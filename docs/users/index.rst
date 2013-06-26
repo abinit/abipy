@@ -16,5 +16,4 @@ User's Guide
     installing.rst
     whats_new.rst
     license.rst
-    credits.rst
     tutorial/index.rst

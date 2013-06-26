@@ -48,8 +48,7 @@ Naming, spacing, and formatting conventions
 
 In general, we want to stay as closely as possible to the standard
 coding guidelines for python written by Guido in 
-`PEP0008 <http://www.python.org/dev/peps/pep-0008>`_, 
-though we do not do this throughout.
+`PEP0008 <http://www.python.org/dev/peps/pep-0008>`_.
 
 * functions and class methods: ``lower`` or ``lower_underscore_separated``
 
@@ -59,16 +58,17 @@ though we do not do this throughout.
 
 Prefer the shortest names that are still readable.
 
-Configure your editor to use spaces, not hard tabs. The standard indentation unit is always four spaces;
+Configure your editor to use spaces, not hard tabs. 
+The standard indentation unit is always four spaces; 
 if there is a file with tabs or a different number of spaces it is a bug -- please fix it.
 To detect and fix these and other whitespace errors (see below),
-use :file:`tools/reindent.py` as a command-line script.  Unless you are sure your editor always
-does the right thing, please use reindent.py before committing your changes.
+use :file:`tools/reindent.py` as a command-line script.  
+Unless you are sure your editor always does the right thing, please use reindent.py before committing your changes.
 
 Keep docstrings uniformly indented as in the example below, with nothing to the left of the triple quotes.  
 
-Limit line length to 90 characters.  If a logical line needs to be
-longer, use parentheses to break it; do not use an escaped newline.
+Limit line length to 90 characters.  
+If a logical line needs to be longer, use parentheses to break it; do not use an escaped newline.
 It may be preferable to use a temporary variable to replace a single
 long line with two shorter and more readable lines.
 
