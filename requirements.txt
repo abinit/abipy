@@ -1,0 +1,6 @@
+numpy>=1.6
+matplotlib>1.1
+scipy
+numpy
+netCDF4
+pymatgen
