@@ -135,20 +135,6 @@ working with Sphinx in general. Here are a few additional things to keep in mind
   .. versionadded:: 0.98
      The transforms have been completely revamped.
 
-* Use the *seealso* directive, for example::
-
-    .. seealso::
-
-       A bit about :ref:`referring-to-mpl-docs`:
-          One more
-
-  yields:
-
-  .. seealso::
-
-     A bit about :ref:`referring-to-mpl-docs`:
-        One more
-
 * Please keep the :ref:`glossary` in mind when writing documentation. You can
   create a references to a term in the glossary with the ``:term:`` role.
 

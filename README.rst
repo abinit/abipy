@@ -1,7 +1,11 @@
 
-abipy is a library for analysing and plotting the results produced by ABINIT.
-abipy is written in `Python <http://www.python.org>`_. and is designed with 
-the philosophy that you should be able to create simple plots with just a few commands.
+Abipy is an open-source library for analyzing the results produced by ABINIT (http://www.abinit.org), 
+an open-source program for the ab-initio calculation of the physical properties of materials within Density Functional Theory (DFT).
+Abipy is written in Python and is designed with the philosophy that you should be able to create simple plots with just a few commands.
+
+Abipy is free to use. However, we also welcome your help to improve this library by making your own contributions.  
+These contributions can be in the form of additional tools or modules you develop, or even simple things such as bug reports. 
+Please report any bugs and issues at abipy's `Github page <https://github.com/gmatteo/abipy>`_. 
 
 Why use abipy?
 ==============
@@ -65,7 +69,7 @@ Optional libraries that are required if you need certain features:
 License
 =======
 
-Abipy is released under the GPL License. The terms of the license are as follows::
+Abipy is released under the GNU GPL License. The terms of the license are as follows::
 
     abipy is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by

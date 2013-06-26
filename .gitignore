@@ -21,6 +21,10 @@ lib64
 # Installer logs
 pip-log.txt
 
+# Sphinx autodoc
+docs/_build
+docs/examples
+
 # vim files
 *.swp
 
