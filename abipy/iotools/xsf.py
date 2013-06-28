@@ -92,6 +92,7 @@ def xsf_write_data(file, structure, cdata, add_replicas):
 
     if ndim == 3:
         ngrids = 1
+        cdata = np.asarray([cdata])
     elif ndim == 4:
         ngrids = cshape[0]
     else:
