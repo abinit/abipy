@@ -2,6 +2,8 @@
 from __future__ import print_function, division
 import os.path
 import collections 
+from copy import deepcopy
+from itertools import chain
 
 from abipy.tools import StringColorizer, list_strings
 
@@ -119,3 +121,21 @@ def abinit_output_iscomplete(output_file):
         except:
             pass
     return False
+
+
+# =========================================================================== #
+
+
+def _listify(obj):
+    """Return a flat list out of the argument."""
+    if not obj:
+        obj = list()
+    elif '__iter__' in dir(obj):
+        if '__iter__' in dir(obj[0]):
+            obj = list(chain.from_iterable(obj))
+        else:
+            obj = list(obj)
+    else:
+        obj = [obj]
+    return deepcopy(obj)
+
