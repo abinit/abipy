@@ -20,6 +20,7 @@ __all__ = [
     "get_ncfiles_with_ext",
     "get_reference_file",
     "AbipyTest",
+    "AbipyFileTest",
 ]
 
 _DATA_ABSPATH = abspath( pj(dirname(__file__), 'data') )
@@ -70,3 +71,29 @@ class AbipyTest(TestCase):
     @staticmethod
     def assert_equal(actual, desired, err_msg='', verbose=True):
         return nptu.assert_equal(actual, desired, err_msg=err_msg, verbose=verbose)
+
+class AbipyFileTest(AbipyTest):
+    """
+    Test class for files with a __str__ attribute.
+    At setup, must set the 'file' attribute of the AbipyFileTest.
+    """
+    file = None
+
+    def assertContains(self, expression):
+        """
+        Assert that the string representation of the file contains 'expression'
+        'expression' is trimmed of leading new line.
+        Each line of 'expression' is trimmed of blank spaces.
+        Empty lines are ignored.
+        """
+        def normalize(string):
+            string = string.replace('\t', '  ')
+            string = string.replace("$", " CASH ")
+            string = string.replace("(", " LP ")
+            string = string.replace(")", " RP ")
+            string = '\n'.join([line.strip() for line in string.splitlines()])
+            return string
+
+        expression = normalize(expression)
+        ref = normalize(str(self.file))
+        return  self.assertRegexpMatches(ref, expression)

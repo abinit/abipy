@@ -2,7 +2,7 @@ from __future__ import print_function, division
 
 from os import makedirs
 from os.path import basename, dirname, join, abspath, exists, realpath
-from copy import deepcopy
+from .utils import _listify
 
 __all__ = ['JobFile', 'PBSJobFile', 'SGEJobFile', 'SlurmJobFile']
 
@@ -75,6 +75,11 @@ class JobFile(object):
             Default depends on the job type.
     """
     _executable = 'abinit'
+    _mpirun = ''
+    _modules = list()
+    _other_lines = list()
+    _lines_before = list()
+    _lines_after = list()
 
     def __init__(self, name='job.sh', **kwargs):
 
@@ -84,7 +89,7 @@ class JobFile(object):
         self.absname = realpath(self.name)
 
         # Shell
-        self.shell = '/bin/bash'
+        self._shell = '/bin/bash'
 
         # Execution lines
         self.input = ''
@@ -114,27 +119,30 @@ class JobFile(object):
 
     def __str__(self):
         lines = []
-        app = lines.append
+        def app(line):
+            if '__iter__' in dir(line):
+                lines.extend(line)
+            else:
+                lines.append(line)
 
         # Shell line
         app('#!' + self.shell)
         app('')
 
         # Submission instructions
-        lines.extend(self._get_command_lines())
+        app(self._get_command_lines())
 
         # Other submission inscrutions
-        lines.extend(self.other_lines)
+        app(self.other_lines)
         app('')
 
         # Declarations
-        for (key, value) in [ ('MPIRUN', self.mpirun),
-                              ('EXECUTABLE', self.executable),
-                              ('INPUT', self.input),
-                              ('LOG', self.log),
-                              ('STDERR', self.stderr),
-                            ]:
-            app(self._declaration_line(key, value))
+        for (key, value) in [('MPIRUN', self.mpirun),
+                             ('EXECUTABLE', self.executable),
+                             ('INPUT', self.input),
+                             ('LOG', self.log),
+                             ('STDERR', self.stderr)]:
+            app(self._declare(key, value))
         app('')
 
         # Modules
@@ -143,32 +151,45 @@ class JobFile(object):
         app('')
 
         # Lines before execution
-        lines.extend(self.lines_before)
+        app(self.lines_before)
         app('')
 
         # Execution lines
-        app('$MPIRUN $EXECUTABLE < $INPUT > $LOG 2> $STDERR')
+        if 'csh' in self.shell:
+            execline = "($MPIRUN $EXECUTABLE < $INPUT > $LOG) >& $STDERR"
+        else:
+            execline = "$MPIRUN $EXECUTABLE < $INPUT > $LOG 2> $STDERR"
+        app(execline)
         app('')
 
         # Lines after execution
-        lines.extend(self.lines_after)
+        app(self.lines_after)
         app('')
 
         return "\n".join(lines)
+
+    def write(self, name=None):
+        """Write the file."""
+        if name is None:
+            name = self.name
+
+        if self.dirname and not exists(self.dirname):
+            makedirs(self.dirname)
+
+        with open(name, 'w') as f:
+            f.write(str(self))
 
     def _get_command_lines(self):
         """Return the lines specifying instructions for job submission."""
         return list()
 
-    def _declaration_line(self, key, val):
+    def _declare(self, key, val):
         """Return a lines setting a variable."""
         if 'csh' in self.shell:
             declare = 'set '
-        elif 'tcsh' in self.shell:
-            declare = 'set '
         else:
             declare = ''
-        return declare + key + '=' + val + '\n'
+        return declare + key + '=' + val
 
     def _set_property(self, name, *args, **kwargs):
         """Set a property through the corresponding set_ function."""
@@ -195,17 +216,6 @@ class JobFile(object):
         funcs = filter(lambda s: s.startswith('set_'), dir(cls))
         return [ f.split('set_', 1)[-1] for f in funcs ]
 
-    def write(self, name=None):
-        """Write the file."""
-        if name is None:
-            name = self.name
-
-        if not exists(self.dirname):
-            makedirs(self.dirname)
-
-        with open(name, 'w') as f:
-            f.write(str(self))
-
     @property
     def executable(self):
         return join(self.bindir, self._executable)
@@ -216,6 +226,57 @@ class JobFile(object):
         if basename(executable) != executable:
             self.set_bindir(dirname(executable))
 
+    @property
+    def mpirun(self):
+        return '"' + self._mpirun.strip('"').strip("'") + '"'
+
+    @mpirun.setter
+    def mpirun(self, mpirun):
+        self._mpirun = str(mpirun)
+
+    @property
+    def shell(self):
+        return self._shell
+
+    @shell.setter
+    def shell(self, shell):
+        if shell == basename(shell):
+            self._shell = join('/bin', shell)
+        else:
+            self._shell = abspath(shell)
+
+    @property
+    def modules(self):
+        return self._modules
+
+    @modules.setter
+    def modules(self, modules):
+        self._modules = _listify(modules)
+
+    @property
+    def other_lines(self):
+        return self._other_lines
+
+    @other_lines.setter
+    def other_lines(self, lines):
+        self._other_lines = _listify(lines)
+
+    @property
+    def lines_before(self):
+        return self._lines_before
+
+    @lines_before.setter
+    def lines_before(self, lines):
+        self._lines_before = _listify(lines)
+
+    @property
+    def lines_after(self):
+        return self._lines_after
+
+    @lines_after.setter
+    def lines_after(self, lines):
+        self._lines_after = _listify(lines)
+
     def set_shell(self, shell):
         """
         Sets the shell type.  The argument can either be an absolute path,
@@ -223,18 +284,13 @@ class JobFile(object):
         the executable is assumed to be located in /bin/.
         The shell also determine how a variable is declared.
         """
-        if shell == basename(shell):
-            self.shell = join('/bin', shell)
-        else:
-            self.shell = abspath(shell)
+        self.shell = shell
 
     def set_mpirun(self, mpirun):
         """
         Set the mpi runner to execute the program.
         E.g. 'mpiexec -npernode 6', 'mpirun -np 12', ''.
         """
-        if not (mpirun.startswith("'") or mpirun.startswith('"')):
-            mpirun = '"' + mpirun + '"'
         self.mpirun = mpirun
 
     def set_bindir(self, bindir):
@@ -259,34 +315,19 @@ class JobFile(object):
 
     def set_modules(self, *modules):
         """Set one or many modules to be loaded."""
-        if not modules:
-            modules = list()
-        elif '__iter__' in dir(modules[0]):
-            modules = tuple(modules[0])
+        self.modules = modules
 
-        self.modules = deepcopy(modules)
+    def set_other_lines(self, *lines):
+        """Set other command lines for the batch submission system."""
+        self.other_lines = lines
 
     def set_lines_before(self, *lines):
         """Set one or many lines to be executed before the main execution."""
-        if not lines:
-            lines = list()
-        elif '__iter__' in dir(lines[0]):
-            lines = tuple(lines[0])
-
-        self.lines_before = list()
-        for line in lines:
-            self.lines_before.append(line.rstrip('\n'))
+        self.lines_before = lines
 
     def set_lines_after(self, *lines):
-        """Set one or many lines to be executed before the main execution."""
-        if not lines:
-            lines = list()
-        elif '__iter__' in dir(lines[0]):
-            lines = tuple(lines[0])
-
-        self.lines_after = list()
-        for line in lines:
-            self.lines_after.append(line.rstrip('\n'))
+        """Set one or many lines to be executed after the main execution."""
+        self.lines_after = lines
 
     def set_submission_command(self, command):
         """
@@ -374,7 +415,7 @@ class PBSJobFile(JobFile):
         """Return the lines specifying instructions for job submission."""
         lines = list()
         def add(line):
-            lines.append(self._command + line + '\n')
+            lines.append(self._command + line) # + '\n')
 
         if self.jobname:
             add('-N ' + str(self.jobname))
@@ -478,7 +519,7 @@ class SGEJobFile(JobFile):
         """Return the lines specifying instructions for job submission."""
         lines = list()
         def add(line):
-            lines.append(self._command + line + '\n')
+            lines.append(self._command + line) # + '\n')
 
         if self.jobname:
             add('-N ' + str(self.jobname))
@@ -585,7 +626,7 @@ class SlurmJobFile(JobFile):
         """Return the lines specifying instructions for job submission."""
         lines = list()
         def add(line):
-            lines.append(self._command + line + '\n')
+            lines.append(self._command + line) # + '\n')
 
         if self.jobname:
             add('--job-name=' + str(self.jobname))

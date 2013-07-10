@@ -130,23 +130,23 @@ class FilesFile(object):
         """The directory containing the file."""
         return dirname(self.name)
 
+    def check_pseudos(self):
+        """Issue a warning for each pseudopotential file not found."""
+        for pseudo in self.pseudos:
+            if not exists(pseudo):
+                warnings.warn('Pseudopotential file not found: ' + pseudo)
+
+    def __str__(self):
+        lines = [self.input, self.output, self.idat_root, self.odat_root,
+                 self.tmp_root] + self.pseudos
+        return '\n'.join(lines)
+
     def write(self):
         """Write the file."""
+        self.check_pseudos()
 
-        if not exists(self.dirname):
+        if self.dirname and not exists(self.dirname):
             makedirs(self.dirname)
 
         with open(self.name, 'w') as f:
-
-            for file in (self.input, self.output,
-                         self.idat_root, self.odat_root, self.tmp_root):
-
-                f.write(file + '\n')
-
-            for pseudo in self.pseudos:
-
-                if not exists(pseudo):
-                    warnings.warn('Pseudopotential file not found: ' + pseudo)
-
-                f.write(pseudo + '\n')
-
+            f.write(str(self))
