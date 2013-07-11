@@ -7,9 +7,6 @@ Abipy is free to use. However, we also welcome your help to improve this library
 These contributions can be in the form of additional tools or modules you develop, or even simple things such as bug reports. 
 Please report any bugs and issues at abipy's `Github page <https://github.com/gmatteo/abipy>`_. 
 
-Why use abipy?
-==============
-
 Getting abipy
 =============
 
@@ -51,13 +48,13 @@ Otherwise, these packages should be available on `PyPI <http://pypi.python.org>`
 
 3. pymatgen 2.7.3+
 
-2. numpy - For array, matrix and other numerical manipulations. 
+4. numpy - For array, matrix and other numerical manipulations. 
 
-3. matplotlib 1.1+
+5. matplotlib 1.1+
 
-4. scipy 0.10+
+6. scipy 0.10+
 
-5. netCDF4
+7. netCDF4
 
 Optional dependencies
 ---------------------
@@ -66,20 +63,37 @@ Optional libraries that are required if you need certain features:
 
 1. nose - For complete unittesting.
 
+Using abipy
+===========
+
+Basic usage
+-----------
+
+Here are some quick examples of the core capabilities and objects:
+
+.. code-block:: pycon
+
+    >>> import abipy as ab
+    >>>
+
+The above example illustrates only the most basic capabilities of abipy.
+
+.. note:: Examples
+
+    A good way to explore the functionality of abipy is to look at examples.
+    We have created a `Github wiki page <https://github.com/gmatteo/abipy/wiki>`_ 
+    to allow users to share their Github gists (essentially mini git repos of scripts)
+    performing various kinds of functions with abipy. 
+    Please feel free to check them out and we welcome your contributions as well!
+
+Advanced Usage
+--------------
+
+Users are strongly encouraged to explore the detailed `api docs <http://pythonhosted.org/abipy/api/index..html>`_.
+
 License
 =======
 
-Abipy is released under the GNU GPL License. The terms of the license are as follows::
+Abipy is released under the GNU GPL License. The terms of the license are as follows:
 
-    abipy is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation, either version 2.1 of the License, or
-    (at your option) any later version.
-
-    abipy is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License along with abipy.  
-    If not, see <http://www.gnu.org/licenses/>.
+.. literalinclude:: LICENSE

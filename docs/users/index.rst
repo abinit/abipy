@@ -13,7 +13,6 @@ User's Guide
     :maxdepth: 2
 
     intro.rst
-    installing.rst
     whats_new.rst
     license.rst
     tutorial/index.rst

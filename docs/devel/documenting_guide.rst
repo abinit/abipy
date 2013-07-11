@@ -100,8 +100,7 @@ working with Sphinx in general. Here are a few additional things to keep in mind
 
   .. [#] For example.
 
-* Use the *note* and *warning* directives, sparingly, to draw attention to
-  important comments::
+* Use the *note* and *warning* directives, sparingly, to draw attention to important comments::
 
     .. note::
        Here is a note
@@ -129,14 +128,11 @@ working with Sphinx in general. Here are a few additional things to keep in mind
 * Use the *versionadded* and *versionchanged* directives, which have similar
   syntax to the *deprecated* role::
 
-    .. versionadded:: 0.98
+    .. versionadded:: 0.2
        The transforms have been completely revamped.
 
-  .. versionadded:: 0.98
+  .. versionadded:: 0.2
      The transforms have been completely revamped.
-
-* Please keep the :ref:`glossary` in mind when writing documentation. You can
-  create a references to a term in the glossary with the ``:term:`` role.
 
 * The autodoc extension will handle index entries for the API, but additional
   entries in the index_ need to be explicitly added.
@@ -166,14 +162,4 @@ Figures can be automatically generated from scripts and included in the docs.
 It is not necessary to explicitly save the figure in the script, this will be done 
 automatically at build time to ensure that the code that is included runs and produces the advertised figure.
 
-Any plots specific to the documentation should be added to the ``doc/pyplots`` directory and committed to git.  
-
-Examples
---------
-
-The source of the files in the ``examples`` directory are automatically included in the HTML docs.  
-An image is generated and included for all examples in the ``api`` and ``pylab_examples``
-directories.  To exclude the example from having an image rendered,
-insert the following special comment anywhere in the script::
-
-  # -*- noplot -*-
+Any plots specific to the documentation should be added to the ``examples/plot/`` directory and committed to git.  

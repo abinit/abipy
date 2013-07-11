@@ -27,6 +27,7 @@ docs/examples
 
 # vim files
 *.swp
+*.swo
 
 # Unit test / coverage reports
 .coverage
