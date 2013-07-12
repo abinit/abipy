@@ -68,6 +68,7 @@ def find_package_data():
     # We need to muck with the MANIFEST to get this to work
     package_data = {
         'abipy.tests' : ['data/*'],
+        'abipy.gui' : ['images/*'],
     }
     return package_data
 
@@ -119,6 +120,8 @@ install_requires = [
 "scipy>=0.10",
 "numpy>=1.5",
 "netCDF4",
+#"wxpython",
+#wxmplot",
 ]
 
 #---------------------------------------------------------------------------

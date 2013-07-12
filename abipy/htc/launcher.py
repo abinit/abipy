@@ -406,18 +406,18 @@ class Launcher(AbinitInput):
 
         if what_visualize == "crystal":
 
-            structure = Structure.from_etsf_file(gsfname)
+            structure = Structure.from_ncfile(gsfname)
             structure.visualize(visualizer)()
 
         elif what_visualize == "density":
             raise NotImplementedError("den_fname?")
 
-            density = Density.from_etsf_file(den_fname)
+            density = Density.from_ncfile(den_fname)
             density.visualize(visualizer)()
 
         elif what_visualize in ["electrons", "fermisurface",]:
             from ..electrons import ElectronBands
-            energies = ElectronBands.from_etsf_file(gsfname)
+            energies = ElectronBands.from_ncfile(gsfname)
 
             if what_visualize == "electrons": energies.plot()
             if what_visualize == "fermisurface":

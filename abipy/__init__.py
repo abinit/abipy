@@ -23,9 +23,7 @@ from abipy.kpoints import *
 from abipy.electrons import *
 from abipy.waves import *
 from abipy.htc import Launcher, MassLauncher, AbinitInput
-
-# Support for tests
-from abipy.tests import * 
+from abipy.abifiles import *
 
 # Release data
 __author__ = ''
@@ -35,4 +33,3 @@ del author, email
 
 __license__  = release.license
 __version__  = release.version
-

@@ -46,15 +46,15 @@ Otherwise, these packages should be available on `PyPI <http://pypi.python.org>`
 
 1. Python 2.7+ required. 
 
-3. pymatgen 2.7.3+
+2. pymatgen 2.7.3+
 
-4. numpy - For array, matrix and other numerical manipulations. 
+3. numpy - For array, matrix and other numerical manipulations. 
 
-5. matplotlib 1.1+
+4. matplotlib 1.1+
 
-6. scipy 0.10+
+5. scipy 0.10+
 
-7. netCDF4
+6. netCDF4
 
 Optional dependencies
 ---------------------
@@ -94,6 +94,17 @@ Users are strongly encouraged to explore the detailed `api docs <http://pythonho
 License
 =======
 
-Abipy is released under the GNU GPL License. The terms of the license are as follows:
+Abipy is released under the GNU GPL License. The terms of the license are as follows::
 
-.. literalinclude:: LICENSE
+    abipy is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation, either version 2.1 of the License, or
+    (at your option) any later version.
+
+    abipy is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License along with abipy.  
+    If not, see <http://www.gnu.org/licenses/>.

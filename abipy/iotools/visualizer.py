@@ -11,6 +11,7 @@ from abipy.tools import ask_yes_no, which
 
 __all__ = [
     "Visualizer",
+    "supported_visunames",
 ]
 
 # cmdarg is the command line option that has to be provided to visualize a file with the given extension.
@@ -27,7 +28,7 @@ ext2apps = OrderedDict( {
 } )
 
 #: One-to-many mapping application_name --> file extensions supported.
-appname2exts = dict()
+appname2exts = {}
 
 for (ext, applications) in ext2apps.items():
     for app in applications:
@@ -41,6 +42,9 @@ for aname in appname2exts: # Remove duplicated entries
     appname2exts[aname] = set(appname2exts[aname])
 
 ##########################################################################################
+
+def supported_visunames():
+    return list(appname2exts.keys())
 
 
 class VisualizerError(AbipyException):
@@ -67,13 +71,13 @@ class Visualizer(object):
         try:
             application, executable = cls.appath_from_ext(ext)
         except Exception as exc:
-            raise cls.Error(exc)
+            raise cls.Error(str(exc))
 
         return Visualizer(filename, executable, application.cmdarg)
 
     @staticmethod
     def appath_from_ext(ext):
-        "Return the absolute path of the first (available) application that supports extension ext"
+        """Return the absolute path of the first (available) application that supports extension ext"""
         if ext.startswith("."): ext = ext[1:]
         try:
             applications = ext2apps[ext]
@@ -89,13 +93,12 @@ class Visualizer(object):
 
     @staticmethod
     def exts_from_appname(application_name):
-        "Return the set of extensions supported by application_name"
+        """Return the set of extensions supported by application_name"""
         aname = os.path.basename(application_name)
         try:
             return appname2exts[aname]
         except KeyError:
-            err_msg = "application %s is not supported" % application_name
-            raise KeyError(err_msg)
+            raise KeyError("application %s is not supported" % application_name)
 
     def __init__(self, filename, executable, cmdarg=None, wait=False):
         """

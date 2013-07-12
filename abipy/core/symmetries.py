@@ -226,7 +226,8 @@ class SpaceGroup(object):
         self.nsym = len(self._sym_tuple)
 
     @classmethod
-    def from_etsf_file(cls, file):
+    def from_ncfile(cls, file):
+        """Initialize the object from a Netcdf file."""
         file, closeit = as_etsfreader(file)
 
         new = cls(spgid=file.read_value("space_group"),

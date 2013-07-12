@@ -25,6 +25,9 @@ pip-log.txt
 docs/_build
 docs/examples
 
+# MacOSX stuff
+.DS_Store
+
 # vim files
 *.swp
 *.swo

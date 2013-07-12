@@ -5,10 +5,10 @@ import os
 import numpy as np
 
 from abipy.core import Mesh3D, GSphere, Structure
-from abipy.iotools import ETSF_Reader
+from abipy.iotools import ETSF_Reader, Visualizer
 from abipy.electrons import ElectronBands
 from abipy.kpoints import kpoints_factory
-from .pwwave import PWWaveFunction
+from abipy.waves.pwwave import PWWaveFunction
 
 __all__ = [
     "WFK_File",
@@ -27,7 +27,7 @@ class WFK_File(object):
         self.path = os.path.abspath(path)
 
         # Initialize the  structure from file.
-        self.structure = Structure.from_etsf_file(path)
+        self.structure = Structure.from_ncfile(path)
 
         # Initialize the band energies.
         self.bands = ElectronBands.from_ncfile(path)
@@ -62,8 +62,8 @@ class WFK_File(object):
         self.reader = reader
 
     @classmethod
-    def from_filename(cls, path):
-        """Initialize the object from file."""
+    def from_ncfile(cls, path):
+        """Initialize the object from a Netcdf file."""
         return cls(path)
 
     @property
@@ -75,6 +75,11 @@ class WFK_File(object):
     def gspheres(self):
         """List of `GSphere` ordered by k-points."""
         return self._gspheres
+
+    @property
+    def mband(self):
+        """Maximum band index"""
+        return np.max(self.nband_sk)
 
     def __str__(self):
         return self.tostring()
@@ -170,7 +175,8 @@ class WFK_File(object):
             ext = "." + ext
             try:
                 return self.export_structure(ext)
-            except Visualizer.Error:
+            except Visualizer.Error as exc:
+                #print(exc)
                 pass
         else:
             raise Visualizer.Error(
@@ -297,23 +303,3 @@ class WFK_Reader(ETSF_Reader):
         # TODO use variables to avoid storing the full block.
         return self.set_of_ug[spin,k,band,:,:npw_k]
 
-
-def smart_open(path):
-    """
-    Factory function that returns the appropriate object
-    from the extension of filename.
-
-    Args:
-        filename:
-            string with the filename.
-    """
-    ext2class = {
-        #"GSR.nc": GSR_File
-        "WFK.nc": WFK_File,
-        #"PHBST.nc": PHBST_File,
-    }
-
-    ext = os.path.split("_")[-1]
-    klass = ext2class[ext]
-
-    return klass.from_file(path)

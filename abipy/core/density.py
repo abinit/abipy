@@ -32,7 +32,7 @@ class Density(DFTScalarField):
     ]
 
     @classmethod
-    def from_etsf_file(cls, filename):
+    def from_ncfile(cls, filename):
         """
         Read density from an external netCDF file.
 

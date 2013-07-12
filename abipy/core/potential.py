@@ -138,7 +138,7 @@ class Potential(DFTScalarField):
         # Build potential descriptor.
         #vinfo = PotentialInfo(vtype, **kwargs)
 
-        structure = Structure.from_etsf_file(path)
+        structure = Structure.from_ncfile(path)
 
         rec = Record()
         #
