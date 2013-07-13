@@ -68,7 +68,7 @@ def find_package_data():
     # We need to muck with the MANIFEST to get this to work
     package_data = {
         'abipy.tests' : ['data/*'],
-        'abipy.gui' : ['images/*'],
+        'abipy.gui.awx' : ['images/*'],
     }
     return package_data
 

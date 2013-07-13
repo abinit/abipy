@@ -36,14 +36,14 @@ __license__  = release.license
 __version__  = release.version
 
 
-def abiopen(filename):
+def abiopen(filepath):
     """
     Factory function that returns the appropriate object
-    from the extension of filename.
+    from the extension of filepath.
 
     Args:
-        filename:
-            string with the filename.
+        filepath:
+            string with the filepath.
     """
     ext2class = {
         #"GSR.nc": GSR_File
@@ -53,10 +53,13 @@ def abiopen(filename):
         "WFK-etsf.nc": WFK_File,
     }
 
-    ext = filename.split("_")[-1]
+    #if isinstance(filepath, AbinitNcFile):
+    #    return filepath
+
+    ext = filepath.split("_")[-1]
     try:
         klass = ext2class[ext]
     except KeyError:
         raise KeyError("Unsupported extension %s" % ext)
 
-    return klass.from_ncfile(filename)
+    return klass.from_ncfile(filepath)

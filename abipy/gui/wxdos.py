@@ -5,22 +5,26 @@ import sys
 import os
 import wx
 
-from wx.lib.agw.floatspin import FloatSpin
-from wxmplot import PlotApp, PlotFrame
+import wx.lib.dialogs as wxdg 
+import abipy.gui.awx as awx
+import abipy.gui.electronswx as ewx
 
 from abipy.abifiles import abiopen
 from abipy.electrons import ElectronBands
 from abipy.waves import WFK_File
-from abipy.gui.tools import build_aboutbox, build_errormessage, straceback, path_img
+from wx.lib.agw.floatspin import FloatSpin
+from wxmplot import PlotApp, PlotFrame
 
-class WxDosPlotter(wx.Frame):
+from abipy.gui.popupmenus import popupmenu_from_ext
+
+class DosPlotter(wx.Frame):
     VERSION = "0.1"
 
     # Help menu items.
     ID_ABOUT = wx.NewId() 
 
     def __init__(self, parent=None, **kwargs):
-        super(WxDosPlotter, self).__init__(parent, -1, self.codename, size=(800,600)) 
+        super(DosPlotter, self).__init__(parent, -1, self.codename, size=(800,600)) 
 
         # Create statusbar
         self.statusbar = self.CreateStatusBar() 
@@ -55,8 +59,8 @@ class WxDosPlotter(wx.Frame):
 
         artBmp = wx.ArtProvider.GetBitmap
         toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, tsize), "Open")
-        #toolbar.AddSimpleTool(self.ID_VISTRUCT, wx.Bitmap(path_img("crystal.png")), "Visualize the crystal structure")
-        #toolbar.AddSimpleTool(self.ID_VISWAVE, wx.Bitmap(path_img("wave.png")), "Visualize the selected wavefunction")
+        #toolbar.AddSimpleTool(self.ID_VISTRUCT, wx.Bitmap(awx.path_img("crystal.png")), "Visualize the crystal structure")
+        #toolbar.AddSimpleTool(self.ID_VISWAVE, wx.Bitmap(awx.path_img("wave.png")), "Visualize the selected wavefunction")
 
         self.toolbar.Realize()
 
@@ -94,7 +98,7 @@ class WxDosPlotter(wx.Frame):
             self.filehistory.AddFileToHistory(path)
             self.filehistory.Save(self.config)
             self.config.Flush()
-            self.read_ebands(path)
+            self.read_bands(path)
 
         dlg.Destroy()
 
@@ -103,96 +107,25 @@ class WxDosPlotter(wx.Frame):
         path = self.filehistory.GetHistoryFile(fileNum)
         # move up the list
         self.filehistory.AddFileToHistory(path)  
-        self.read_ebands(path)
+        self.read_bands(path)
 
-    def read_ebands(self, path):
+    def read_bands(self, path):
         try:
-            self.ebands = ElectronBands.from_ncfile(path)
-            EdosFrame(ebands=self.ebands, parent=self).Show()
+            self.bands = ElectronBands.from_ncfile(path)
+            ewx.ElectronDosFrame(bands=self.bands, parent=self).Show()
         except Exception:
-            build_errormessage(self, straceback())
+            awx.showErrorMessage(self)
 
     def onClose(self, event):
-        self.ebands = None
+        self.bands = None
 
     def onExit(self, event):
         self.Destroy()
 
     def onAboutBox(self, event):
-        build_aboutbox(codename=self.codename, version=self.VERSION, 
-                       description="", developers="M. Giantomassi")
+        awx.makeAboutBox(codename=self.codename, version=self.VERSION, 
+                      description="", developers="M. Giantomassi")
 
-
-class EdosFrame(wx.Frame):
-
-    def __init__(self, ebands, parent=None, **kwargs):
-        super(EdosFrame, self).__init__(parent, id=-1, title="Electron DOS", **kwargs)
-        self.ebands = ebands
-
-        self.statusbar = self.CreateStatusBar() 
-
-        # Widgets.
-        self.panel = panel = wx.Panel(self, -1)
-        sizer = wx.FlexGridSizer(rows=3, cols=2, vgap=5, hgap=5)
-
-        label = wx.StaticText(panel, -1, "Broadening [eV]:")
-
-        self.width = 0.2
-        self.width_ctrl = FloatSpin(panel, id=-1, value=self.width, min_val=0.0, increment=0.1, digits=3)
-        self.Bind(wx.EVT_SPINCTRL, self.onWidth, self.width_ctrl)
-
-        sizer.AddMany([label, self.width_ctrl])
-
-        label = wx.StaticText(panel, -1, "Mesh step [eV]:")
-        self.step = 0.1
-        self.step_ctrl = FloatSpin(panel, id=-1, value=self.step, min_val=0.0, increment=0.1, digits=3)
-        self.Bind(wx.EVT_SPINCTRL, self.onStep, self.step_ctrl)
-
-        sizer.AddMany([label, self.step_ctrl])
-
-        dos_button = wx.Button(panel, -1, "Compute DOS", (20,100))
-        self.Bind(wx.EVT_BUTTON, self.onClick, dos_button)
-
-        self.oplot_checkbox = wx.CheckBox(panel, id=-1, label="Same plot")
-        self.oplot_checkbox.SetValue(True)
-
-        sizer.AddMany([dos_button, self.oplot_checkbox])
-
-        panel.SetSizer(sizer)
-        sizer.Layout()
-
-    def onWidth(self, event):
-        self.width = float(self.width_ctrl.GetValue())
-
-    def onStep(self, event):
-        self.step = float(self.step_ctrl.GetValue())
-
-    def onClick(self, event):
-        try:
-            edos = self.ebands.get_dos(step=self.step, width=self.width)
-        except:
-            build_errormessage(self, straceback())
-            return
-
-        tot_dos, tot_idos = edos.dos_idos()
-        label = "$\sigma = %s, step = %s$" % (self.width, self.step)
-
-        if self.has_plotframe and self.oplot_checkbox.GetValue():
-            self.plotframe.oplot(tot_dos.mesh, tot_dos.values, label=label, draw_legend=True) 
-        else:
-            self.plotframe = plotframe = PlotFrame(parent=self)
-            plotframe.plot(tot_dos.mesh, tot_dos.values, label=label, draw_legend=True)
-            plotframe.Show()
-
-    @property
-    def has_plotframe(self):
-        return hasattr(self, "plotframe")  
-
-    @property
-    def destroy_plotframe(self):
-        if self.has_plotframe:
-            self.plotframe.Destroy()
-            del self.plotframe
 
 class FileListPanel(wx.Panel):
 
@@ -206,7 +139,7 @@ class FileListPanel(wx.Panel):
 
         self.ncfiles_by_id = {}
         file_list.InsertColumn(0, "filename")
-        file_list.InsertColumn(1, "filetype")
+        #file_list.InsertColumn(1, "filetype")
         for index, path in enumerate(paths):
             self.append_path_to_filelist(path)
 
@@ -224,16 +157,17 @@ class FileListPanel(wx.Panel):
     def append_path_to_filelist(self, path):
         next = len(self.ncfiles_by_id)
         try:
-            ncfile = abiopen(path)
-            file_type = ncfile.__class__.__name__
+            #ncfile = abiopen(path)
+            #file_type = ncfile.__class__.__name__
             #file_type = ncfile.filetype
-            ncid = id(ncfile)
-            self.ncfiles_by_id[ncid] = ncfile 
-            entry = [os.path.basename(path), file_type]
+            ncid = id(path)
+            self.ncfiles_by_id[ncid] = path
+            #entry = [os.path.basename(path), file_type]
+            entry = [os.path.basename(path)]
             self.file_list.Append(entry)
             self.file_list.SetItemData(next, ncid)
         except:
-            build_errormessage(self, straceback())
+            awx.showErrorMessage(self)
 
     def onFilePicker(self, event):
         self.append_path_to_filelist(self.filepicker.GetPath())
@@ -245,33 +179,53 @@ class FileListPanel(wx.Panel):
             ncfile = self.ncfiles_by_id[self.file_list.GetItemData(currentItem)]
             print("Select ncfile: ",ncfile)
 
-            menu = popup_menu_for_ncfile(ncfile)
+            menu = popupmenu_from_ext(ncfile)
 
             # Open the popup menum then destroy it to avoid mem leak.
             self.PopupMenu(menu, event.GetPoint())
             menu.Destroy() 
 
-def popup_menu_for_ncfile(ncfile):
+
+def popupmenu_from_ext(filepath):
+    """
+    Factory function that returns the appropriate popmenu menu
+    by testing the file extension.
+    """
     menu = BasePopupMenu()
-    menu.add_target(ncfile)
+    menu.add_target(ncfilepath)
     return menu
 
-class BasePopupMenu(wx.Menu):
-    menu_titles = [ 
-        "Properties",
-    ]
 
-    menu_title_by_id = {}
-    for title in menu_titles:
-        menu_title_by_id[wx.NewId()] = title
+def showNcdumpMessage(parent, filepath):
+    caption = "ncdump output for file %s" % filepath
+    from abipy import abiopen
+    ncfile = abiopen(filepath)
+    wxdg.ScrolledMessageDialog(parent, ncfile.ncdump(), caption=caption, style=wx.MAXIMIZE_BOX).Show()
+
+
+class BasePopupMenu(wx.Menu):
+    MENU_TITLES = {
+        #("Properties",
+        "Ncdump": showNcdumpMessage,
+        "DOS": ewx.showElectronDosFrame,
+    }
 
     def __init__(self, *args, **kwargs):
         super(BasePopupMenu, self).__init__()
 
+        menu_title_by_id = {}
+        for title in self.MENU_TITLES:
+            menu_title_by_id[wx.NewId()] = title
+
+        if not hasattr(self, "menu_title_by_id"):
+            self.menu_title_by_id = {}
+
+        self.menu_title_by_id.update(menu_title_by_id)
+
         for (id, title) in self.menu_title_by_id.items():
             self.Append(id, title)
             # registers menu handlers with EVT_MENU, on the menu.
-            wx.EVT_MENU(self, id, self.MenuSelectionCb)
+            wx.EVT_MENU(self, id, self.OnMenuSelection)
 
     def add_target(self, target):
         self._target = target
@@ -283,14 +237,67 @@ class BasePopupMenu(wx.Menu):
         except AttributeError:
             return None
 
-    def MenuSelectionCb(self, event):
-        # do something
-        operation = self.menu_title_by_id[event.GetId()]
+    def OnMenuSelection(self, event):
+        menu_title = self.menu_title_by_id[event.GetId()]
+        operation = self.MENU_TITLES[menu_title]
         print("Perform operation %s on target %s" % (operation, self.target))
+        try:
+            #ewx.showElectronDosFrame(parent=None, path=self.target)
+            operation(parent=None, filepath=self.target)
+        except:
+            awx.showErrorMessage(parent=None)
 
 
-if __name__ == "__main__":
+from abipy.gui.wfkviewer import wfk_viewer
+_VIEWERS = {
+    "WFK-etsf.nc": wfk_viewer,
+}
+
+def run_viewer_for_filepath(filepath):
+    ext = filepath.split("_")[-1]
+    try:
+        return _VIEWERS[ext](filepath)
+    except KeyError:
+        raise KeyError("No wx viewer s has been registered for the extension %s" % ext)
+
+
+class AbipyDirCtrl(wx.GenericDirCtrl):
+    def __init__(self, *args, **kwargs):
+        #style = wx.TR_MULTIPLE
+        super(AbipyDirCtrl, self).__init__(*args, **kwargs)
+
+        self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnItemActivated)
+        self.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.OnRightClick)
+        #self.Bind(wx.EVT_TREE_SEL_CHANGED, self.dirBrowser_OnSelectionChanged, tree)
+
+    def OnItemActivated(self, event):
+        path = self.GetFilePath()
+        if not path:
+            return
+        print("in activated with path %s" % path)
+        run_viewer_for_filepath(path)
+
+    def OnRightClick(self, event):
+        path = self.GetFilePath()
+        if not path:
+            return
+        print("in right with path %s" % path)
+
+def dos_plotter():
     app = wx.App()
-    win = WxDosPlotter()
+    win = DosPlotter()
     win.Show(True)
     app.MainLoop()
+
+def abi_navigator():
+    app = wx.App()
+    win = wx.Frame(None, -1)
+    filebrowser = AbipyDirCtrl(win, -1, dir=os.getcwd(), filter="Netcdf files (*.nc)|*.nc|All files (*.*)|*.*", name="Netcdf Navigator")
+    #filebrowser = wx.GenericDirCtrl(win, -1, dir=os.getcwd(), filter="Netcdf files (*.nc)|*.nc|All files (*.*)|*.*", name="Netcdf Navigator")
+    #filebrowser.SetDefaultPath("/Users/gmatteo/Coding/abipy/abipy/tests/data")
+    #filebrowser.SetPath("/Users/gmatteo/Coding/abipy/abipy/tests/data")
+    win.Show(True)
+    app.MainLoop()
+
+if __name__ == "__main__":
+    abi_navigator()

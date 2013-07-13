@@ -4,6 +4,8 @@ from __future__ import division, print_function
 import abc
 import os
 
+from abipy.tools import which
+
 __all__ = [
     "AbinitNcFile",
 ]
@@ -44,7 +46,20 @@ class AbinitNcFile(object):
         """Basename of the file"""
         return os.path.basename(self.filepath)
 
-
     #@abc.abstractproperty
     #def summary(self):
     #    """String summarizing the most important properties."""
+
+    #@abc.abstractproperty
+    #def fileinfo(self):
+    #    """File metadata"""
+
+    def ncdump(self, *nc_args, **nc_kwargs):
+        """Returns a string with the output of ncdump."""
+        ncdump = which("ncdump")
+        if ncdump is None:
+            return "Cannot find ncdump tool in PATH"
+        else:
+            from subprocess import check_output
+            cmd = ["ncdump", self.filepath]
+            return check_output(cmd)

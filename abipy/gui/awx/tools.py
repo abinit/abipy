@@ -1,9 +1,12 @@
-#!/usr/bin/env python
 from __future__ import print_function, division
 
-import sys
-import traceback
+import os
 import wx
+
+__all__ = [
+    "path_img",
+    "makeAboutBox",
+]
 
 #class Logger(object):
 #    def WriteText(self, text):
@@ -12,27 +15,13 @@ import wx
 #        wx.LogMessage(text)
 #    write = WriteText
 
-def straceback():
-    """Returns a string with the traceback."""
-    return traceback.format_exc()
-
-
 def path_img(filename):
     """Returns the absolute path of an image."""
     dirname = os.path.dirname(__file__)
     return os.path.join(dirname, "images", filename)
 
 
-def build_errormessage(parent, message):
-    dlg = wx.MessageDialog(parent, message=message,
-                           caption='Error Message',
-                           style=wx.OK | wx.ICON_INFORMATION | wx.ICON_ERROR | wx.STAY_ON_TOP
-                          )
-    dlg.ShowModal()
-    dlg.Destroy()
-
-def build_aboutbox(codename, version, description, developers, 
-                   website=None, icon_path=None):
+def makeAboutBox(codename, version, description, developers, website=None, icon_path=None):
 
     licence = """%(codename)s is free software; you can redistribute 
 it and/or modify it under the terms of the GNU General Public License as 
@@ -68,13 +57,3 @@ Suite 330, Boston, MA  02111-1307  USA""" % {"codename": codename}
         info.AddDeveloper(dev)
 
     wx.AboutBox(info)
-
-def main():
-    app = wx.App()
-    build_aboutbox(codename="ABINIT", version="1.0",
-                   description="foo desc", developers="M. Giantomassi")
-    app.MainLoop()
-
-
-if __name__ == "__main__":
-    main()
