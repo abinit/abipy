@@ -6,7 +6,7 @@ import collections
 import numpy as np
 
 from abipy.core.func1d import Function1D
-from abipy.iotools import ETSF_Reader
+from abipy.iotools import ETSF_Reader, AbinitNcFile
 
 __all__ = [
     "PhononDOS",
@@ -188,7 +188,7 @@ class PHDOS_Reader(ETSF_Reader):
     #     return self.read_value("phonon_frequencies")
 
 
-class PHDOS_File(object):
+class PHDOS_File(AbinitNcFile):
     """
     Container object storing the different DOSes stored in the
     PHDOS.nc file produced by anaddb. Provides helper function
@@ -196,10 +196,10 @@ class PHDOS_File(object):
     """
     def __init__(self, path):
         # Open the file, read data and create objects.
-        self.path = os.path.abspath(path)
+        self._filepath = os.path.abspath(path)
 
         pjdos_type_dict = collections.OrderedDict()
-        with PHDOS_Reader(self.path) as r:
+        with PHDOS_Reader(self.filepath) as r:
             self.structure = r.structure
             self.wmesh = r.wmesh
             self.phdos = r.read_phdos()
@@ -213,6 +213,10 @@ class PHDOS_File(object):
     @classmethod
     def from_ncfile(cls, path):
         return cls(path)
+
+    @property
+    def filepath(self):
+        return self._filepath
 
     def plot_pjdos_type(self, colormap="jet", **kwargs):
         """

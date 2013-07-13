@@ -4,7 +4,7 @@ import os
 import functools
 import numpy as np
 
-from abipy.iotools import ETSF_Reader
+from abipy.iotools import ETSF_Reader, AbinitNcFile
 from abipy.kpoints.kpoints import Kpoint
 from abipy.tools import gaussian
 from .phdos import PhononDOS
@@ -567,7 +567,7 @@ class PHBST_Reader(ETSF_Reader):
         return self.read_value("phdispl_cart", cmode="c")
 
 
-class PHBST_File(object):
+class PHBST_File(AbinitNcFile):
 
     def __init__(self, path):
         """
@@ -577,7 +577,7 @@ class PHBST_File(object):
             path:
                 path to the file
         """
-        self.path = os.path.abspath(path)
+        self._filepath = os.path.abspath(path)
         #
         # Initialize Phonon bands
         self.phbands = PhononBands.from_ncfile(path)
@@ -587,9 +587,10 @@ class PHBST_File(object):
         """Initialize the object from path."""
         return cls(path)
 
+
     @property
-    def name(self):
-        return os.path.basename(self.path)
+    def filepath(self):
+        return self._filepath
 
     @property
     def structure(self):

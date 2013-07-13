@@ -14,6 +14,7 @@ from abipy.tools import find_le, find_ge
 from abipy.tools.text import pprint_table
 from abipy.kpoints.kpoints import askpoints, kpoints_factory
 from abipy.electrons.ebands import ElectronBands
+from abipy.iotools import AbinitNcFile
 from .scissors import ScissorsOperator
 
 __all__ = [
@@ -444,15 +445,15 @@ class Sigmaw(object):
 ##########################################################################################
 
 
-class SIGRES_File(object):
+class SIGRES_File(AbinitNcFile):
     """Container storing the GW results reported in the SIGRES.nc file."""
 
     def __init__(self, path):
         """Reade data from the netcdf file path."""
-        self.path = os.path.abspath(path)
+        self._filepath = os.path.abspath(path)
 
         ## Keep a reference to the SIGRES_Reader.
-        self.ncreader = ncreader = SIGRES_Reader(self.path)
+        self.ncreader = ncreader = SIGRES_Reader(self.filepath)
 
         self.structure = ncreader.read_structure()
         self.gwcalctyp = ncreader.gwcalctyp
@@ -468,6 +469,10 @@ class SIGRES_File(object):
     def from_ncfile(cls, path):
         """Initialize an instance from file."""
         return cls(path)
+
+    @property
+    def filepath(self):
+        return self._filepath
 
     def close(self):
         """Close the netcdf file."""

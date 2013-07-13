@@ -23,7 +23,8 @@ from abipy.kpoints import *
 from abipy.electrons import *
 from abipy.waves import *
 from abipy.htc import Launcher, MassLauncher, AbinitInput
-from abipy.abifiles import *
+
+from abipy.tests import get_reference_file, get_ncfile
 
 # Release data
 __author__ = ''
@@ -33,3 +34,29 @@ del author, email
 
 __license__  = release.license
 __version__  = release.version
+
+
+def abiopen(filename):
+    """
+    Factory function that returns the appropriate object
+    from the extension of filename.
+
+    Args:
+        filename:
+            string with the filename.
+    """
+    ext2class = {
+        #"GSR.nc": GSR_File
+        #"PHBST.nc": PHBST_File,
+        #"PHDOS.nc": PHBST_File,
+        #"SIGRES.nc": SIGRES_File,
+        "WFK-etsf.nc": WFK_File,
+    }
+
+    ext = filename.split("_")[-1]
+    try:
+        klass = ext2class[ext]
+    except KeyError:
+        raise KeyError("Unsupported extension %s" % ext)
+
+    return klass.from_ncfile(filename)

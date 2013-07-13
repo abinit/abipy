@@ -8,7 +8,7 @@ import wx
 from wx.lib.agw.floatspin import FloatSpin
 from wxmplot import PlotApp, PlotFrame
 
-from abipy.files import abiopen
+from abipy.abifiles import abiopen
 from abipy.electrons import ElectronBands
 from abipy.waves import WFK_File
 from abipy.gui.tools import build_aboutbox, build_errormessage, straceback, path_img
@@ -73,7 +73,7 @@ class WxDosPlotter(wx.Frame):
             self.Bind(wx.EVT_MENU, handler, id=id)
 
         # Widgets.
-        self.panel = panel = FileListPanel(self, ["ciao", "bello"])
+        self.panel = panel = FileListPanel(self)
         self.panel.Show()
 
     @property
@@ -196,18 +196,19 @@ class EdosFrame(wx.Frame):
 
 class FileListPanel(wx.Panel):
 
-    def __init__(self, parent, paths, **kwargs):
+    def __init__(self, parent, paths=(), **kwargs):
         super(FileListPanel, self).__init__(parent, -1, **kwargs)
 
         self.file_list = file_list = wx.ListCtrl(self, id=-1, size=(-1,100), 
                                      style=wx.LC_REPORT | wx.BORDER_SUNKEN
                                      )
         file_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRightClick)
-                                                                   
+
+        self.ncfiles_by_id = {}
         file_list.InsertColumn(0, "filename")
-        file_list.InsertColumn(1, "object")
+        file_list.InsertColumn(1, "filetype")
         for index, path in enumerate(paths):
-            self.append_path(path)
+            self.append_path_to_filelist(path)
 
         self.filepicker = wx.FilePickerCtrl(self, id=-1, path=os.getcwd(),
             wildcard="Netcdf files (*.nc)|*nc", style = wx.FLP_OPEN | wx.CHANGE_DIR)
@@ -220,39 +221,72 @@ class FileListPanel(wx.Panel):
         sizer.Add(self.filepicker, 0, wx.ALL | wx.CENTER, 5)
         self.SetSizer(sizer)
 
-    def append_path(self, path):
+    def append_path_to_filelist(self, path):
+        next = len(self.ncfiles_by_id)
         try:
             ncfile = abiopen(path)
             file_type = ncfile.__class__.__name__
+            #file_type = ncfile.filetype
+            ncid = id(ncfile)
+            self.ncfiles_by_id[ncid] = ncfile 
+            entry = [os.path.basename(path), file_type]
+            self.file_list.Append(entry)
+            self.file_list.SetItemData(next, ncid)
         except:
-            print(straceback())
-            file_type = None
-
-        entry = [os.path.basename(path), file_type]
-        self.file_list.Append(entry)
+            build_errormessage(self, straceback())
 
     def onFilePicker(self, event):
-        self.append_path(self.filepicker.GetPath())
+        self.append_path_to_filelist(self.filepicker.GetPath())
 
     def onRightClick(self, event):
-        print("in left:",event)
         currentItem = event.m_itemIndex
-        print("currentItem: ",currentItem)
+
         if currentItem != -1:
-            #car = self.myRowDict[self.list_ctrl.GetItemData(currentItem)]
-            print(self.file_list.GetItemData(currentItem))
+            ncfile = self.ncfiles_by_id[self.file_list.GetItemData(currentItem)]
+            print("Select ncfile: ",ncfile)
 
+            menu = popup_menu_for_ncfile(ncfile)
 
+            # Open the popup menum then destroy it to avoid mem leak.
+            self.PopupMenu(menu, event.GetPoint())
+            menu.Destroy() 
 
+def popup_menu_for_ncfile(ncfile):
+    menu = BasePopupMenu()
+    menu.add_target(ncfile)
+    return menu
 
+class BasePopupMenu(wx.Menu):
+    menu_titles = [ 
+        "Properties",
+    ]
 
-class DosPlotApp(PlotApp):
-    def __init__(self, path):
-        super(DosPlotApp, self).__init__()
-        ebands = ElectronBands.from_ncfile(path)
-        edos = ebands.get_dos()
-        tot_dos, tot_idos = edos.dos_idos()
-        self.plot(tot_dos.mesh, tot_dos.values)
+    menu_title_by_id = {}
+    for title in menu_titles:
+        menu_title_by_id[wx.NewId()] = title
+
+    def __init__(self, *args, **kwargs):
+        super(BasePopupMenu, self).__init__()
+
+        for (id, title) in self.menu_title_by_id.items():
+            self.Append(id, title)
+            # registers menu handlers with EVT_MENU, on the menu.
+            wx.EVT_MENU(self, id, self.MenuSelectionCb)
+
+    def add_target(self, target):
+        self._target = target
+
+    @property
+    def target(self):
+        try:
+            return self._target
+        except AttributeError:
+            return None
+
+    def MenuSelectionCb(self, event):
+        # do something
+        operation = self.menu_title_by_id[event.GetId()]
+        print("Perform operation %s on target %s" % (operation, self.target))
 
 
 if __name__ == "__main__":

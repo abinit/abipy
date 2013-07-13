@@ -5,7 +5,7 @@ import os
 import numpy as np
 
 from abipy.core import Mesh3D, GSphere, Structure
-from abipy.iotools import ETSF_Reader, Visualizer
+from abipy.iotools import ETSF_Reader, Visualizer, AbinitNcFile
 from abipy.electrons import ElectronBands
 from abipy.kpoints import kpoints_factory
 from abipy.waves.pwwave import PWWaveFunction
@@ -15,7 +15,7 @@ __all__ = [
 ]
 
 
-class WFK_File(object):
+class WFK_File(AbinitNcFile):
     """
     This object provides simple interfaces to access and analyze
     the data stored in the WFK file produced by ABINIT.
@@ -24,7 +24,7 @@ class WFK_File(object):
         """
         Initialized the object from a Netcdf file.
         """
-        self.path = os.path.abspath(path)
+        self._filepath = path = os.path.abspath(path)
 
         # Initialize the  structure from file.
         self.structure = Structure.from_ncfile(path)
@@ -35,7 +35,7 @@ class WFK_File(object):
         self.kpoints = kpoints_factory(path)
         self.nkpt = len(self.kpoints)
 
-        with WFK_Reader(self.path) as reader:
+        with WFK_Reader(path) as reader:
             assert reader.has_pwbasis_set
             assert reader.cplex_ug == 2
             print(reader)
@@ -67,9 +67,8 @@ class WFK_File(object):
         return cls(path)
 
     @property
-    def basename(self):
-        """Basename of the WFK file"""
-        return os.path.basename(self.path)
+    def filepath(self):
+        return self._filepath
 
     @property
     def gspheres(self):

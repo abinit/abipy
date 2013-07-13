@@ -27,9 +27,6 @@ class WfkGuiApp(wx.App):
 
 class WfkGui(wx.Frame):
     VERSION = "0.1"
-    
-    # Help menu items.
-    ID_ABOUT    = wx.NewId() 
     # Toolbar items.
     ID_VISTRUCT = wx.NewId() 
     ID_VISWAVE  = wx.NewId() 
@@ -59,7 +56,7 @@ class WfkGui(wx.Frame):
         self.Bind(wx.EVT_MENU_RANGE, self.on_file_history, id=wx.ID_FILE1, id2=wx.ID_FILE9)
 
         self.helpMenu = wx.Menu()
-        self.helpMenu.Append(self.ID_ABOUT, "About " + self.codename, help="Info on the application")
+        self.helpMenu.Append(wx.ID_ABOUT, "About " + self.codename, help="Info on the application")
         menuBar.Append(self.helpMenu, "Help")
 
         self.SetMenuBar(menuBar)
@@ -80,7 +77,7 @@ class WfkGui(wx.Frame):
             (wx.ID_OPEN,        self.onOpen),
             (wx.ID_CLOSE,       self.onClose),
             (wx.ID_EXIT,        self.onExit),
-            (self.ID_ABOUT,     self.onAboutBox),
+            (wx.ID_ABOUT,       self.onAboutBox),
             (self.ID_VISTRUCT,  self.onVisualizeStructure),
             (self.ID_VISWAVE,   self.onVisualizeWave),
         ]
