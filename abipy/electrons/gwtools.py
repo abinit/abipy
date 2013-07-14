@@ -15,6 +15,7 @@ from abipy.tools.text import pprint_table
 from abipy.kpoints.kpoints import askpoints, kpoints_factory
 from abipy.electrons.ebands import ElectronBands
 from abipy.iotools import AbinitNcFile
+from abipy.tools.plotting_utils import plot_array, ArrayPlotter
 from .scissors import ScissorsOperator
 
 __all__ = [
@@ -290,13 +291,14 @@ class ScissorsBuilder(object):
     Interactive program that return a ScissorsOperator constructed from
     the _GW file filename.
     """
-    def build(self, path):
-        # Init the corrections from file.
-        self.path = os.path.abspath(path)
+    def build(self, filepath):
 
-        sigres = SIGRES_File(self.path)
+        sigres = filepath
+        if not isinstance(filepath, SIGRES_File):
+            # Init the corrections from path.
+            sigres = SIGRES_File(filepath)
+
         qps_spin = sigres.get_allqps()
-
         nsppol = len(qps_spin)
 
         # Construct the scissors operator for each spin.
@@ -448,9 +450,9 @@ class Sigmaw(object):
 class SIGRES_File(AbinitNcFile):
     """Container storing the GW results reported in the SIGRES.nc file."""
 
-    def __init__(self, path):
+    def __init__(self, filepath):
         """Reade data from the netcdf file path."""
-        self._filepath = os.path.abspath(path)
+        self._filepath = os.path.abspath(filepath)
 
         ## Keep a reference to the SIGRES_Reader.
         self.ncreader = ncreader = SIGRES_Reader(self.filepath)
@@ -466,9 +468,9 @@ class SIGRES_File(AbinitNcFile):
     #    super(SIGRES_File, self).__del__()
 
     @classmethod
-    def from_ncfile(cls, path):
+    def from_ncfile(cls, filepath):
         """Initialize an instance from file."""
-        return cls(path)
+        return cls(filepath)
 
     @property
     def filepath(self):
@@ -477,6 +479,9 @@ class SIGRES_File(AbinitNcFile):
     def close(self):
         """Close the netcdf file."""
         self.ncreader.close()
+
+    def get_structure(self):
+        return self.structure
 
     def get_allqps(self):
         return self.ncreader.read_allqps()
@@ -544,7 +549,7 @@ class SIGRES_File(AbinitNcFile):
         return fig
 
     def plot_eigvec_qp(self, spin, kpoint, band=None, **kwargs):
-        from abipy.tools.plotting_utils import plot_array, ArrayPlotter
+
         title = kwargs.pop("title", None)
 
         if kpoint is None:
@@ -804,6 +809,7 @@ class SIGRES_Reader(ETSF_Reader):
             `KpointsError` if kpoint cannot be found.
 
         .. note:
+
             This tool is needed since arrays in the netcdf file are dimensioned
             with the total number of k-points in the IBZ.
         """

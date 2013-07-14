@@ -10,6 +10,32 @@ __all__ = [
     "AbinitNcFile",
 ]
 
+class NcDumper(object):
+    """This object wraps the ncdump tool"""
+
+    def __init__(self, *nc_args, **nc_kwargs):
+        """
+            Args:
+                nc_args:
+                    Arguments passed to ncdump.
+                nc_kwargs:
+                    Keyword arguments passed to ncdump
+        """
+        self.nc_args = nc_args
+        self.nc_kwargs = nc_kwargs
+
+        self.ncdump = which("ncdump")
+
+    def dump(self, filepath):
+        """Returns a string with the output of ncdump."""
+        if self.ncdump is None:
+            return "Cannot find ncdump tool in PATH"
+        else:
+            from subprocess import check_output
+            cmd = ["ncdump", filepath]
+            return check_output(cmd)
+
+
 class AbinitNcFile(object):
     """
     Abstract base class defining the methods that must be 
@@ -46,6 +72,10 @@ class AbinitNcFile(object):
         """Basename of the file"""
         return os.path.basename(self.filepath)
 
+    @abc.abstractmethod
+    def get_structure(self):
+        """Returns the `Structure` object."""
+
     #@abc.abstractproperty
     #def summary(self):
     #    """String summarizing the most important properties."""
@@ -56,10 +86,4 @@ class AbinitNcFile(object):
 
     def ncdump(self, *nc_args, **nc_kwargs):
         """Returns a string with the output of ncdump."""
-        ncdump = which("ncdump")
-        if ncdump is None:
-            return "Cannot find ncdump tool in PATH"
-        else:
-            from subprocess import check_output
-            cmd = ["ncdump", self.filepath]
-            return check_output(cmd)
+        return NcDumper(*nc_args, **nc_kwargs).dump(self.filepath)

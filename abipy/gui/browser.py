@@ -14,7 +14,7 @@ from abipy.waves import WFK_File
 from wx.lib.agw.floatspin import FloatSpin
 from wxmplot import PlotApp, PlotFrame
 
-from abipy.gui.popupmenus import popupmenu_from_ext
+from abipy.gui.popupmenus import popupmenu_for_filename
 
 from abipy.gui.wfkviewer import wfk_viewer
 
@@ -56,7 +56,7 @@ class NcFileDirCtrl(wx.GenericDirCtrl):
         print("in right with path %s" % path)
 
         # Open the popup menum then destroy it to avoid mem leak.
-        popmenu = popupmenu_from_ext(path)
+        popmenu = popupmenu_for_filename(path, parent=self)
         self.PopupMenu(popmenu, event.GetPoint())
         popmenu.Destroy() 
 
@@ -70,9 +70,10 @@ def wxabi_browser(dirpath):
 
     frame = wx.Frame(None, -1)
     dirctrl = NcFileDirCtrl(frame, -1, dir=dirpath)
+    app.SetTopWindow(frame)
     frame.Show()
 
-    wx.LogError("Ciao")
+    #wx.LogError("Ciao")
     #wx.LoadFileSelector("hello", "txt")
     #wx.InfoMessageBox(None)
 

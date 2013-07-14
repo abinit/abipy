@@ -1,13 +1,11 @@
 from __future__ import print_function, division
 
-import sys
-import os
 import wx
 
 from wx.lib.agw.floatspin import FloatSpin
 from wxmplot import PlotApp, PlotFrame
 
-from abipy.abifiles import abiopen
+from abipy import abiopen
 from abipy.electrons import ElectronBands
 from abipy.waves import WFK_File
 import abipy.gui.awx as awx 
@@ -15,13 +13,16 @@ import abipy.gui.awx as awx
 
 def showElectronDosFrame(parent, filepath):
     bands = ElectronBands.from_ncfile(filepath)
-    ElectronDosFrame(bands=bands, parent=parent).Show()
+    ElectronDosFrame(bands=bands, parent=parent, title="File: %s" % filepath).Show()
 
+def showElectronBandsPlot(parent, filepath):
+    bands = ElectronBands.from_ncfile(filepath)
+    bands.plot(title="File: %s" % filepath)
 
 class ElectronDosFrame(wx.Frame):
 
-    def __init__(self, bands, parent=None, **kwargs):
-        super(ElectronDosFrame, self).__init__(parent, id=-1, title="Electron DOS", **kwargs)
+    def __init__(self, bands, parent=None, title="Electron DOS"):
+        super(ElectronDosFrame, self).__init__(parent, id=-1, title=title)
         self.bands = bands
 
         self.statusbar = self.CreateStatusBar() 

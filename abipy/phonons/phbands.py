@@ -11,6 +11,7 @@ from .phdos import PhononDOS
 
 __all__ = [
     "PhononBands",
+    "PHBST_File",
 ]
 
 #########################################################################################
@@ -556,7 +557,7 @@ class PHBST_Reader(ETSF_Reader):
         return self.read_value("qweights")
 
     def read_phfreqs(self):
-        """Array with phonon frequencies in eV."""
+        """Array with the phonon frequencies in eV."""
         return self.read_value("phfreqs")
 
     def read_phdispl_cart(self):
@@ -569,7 +570,7 @@ class PHBST_Reader(ETSF_Reader):
 
 class PHBST_File(AbinitNcFile):
 
-    def __init__(self, path):
+    def __init__(self, filepath):
         """
         Object used to access data stored in the PHBST file produced by ABINIT.
 
@@ -577,16 +578,15 @@ class PHBST_File(AbinitNcFile):
             path:
                 path to the file
         """
-        self._filepath = os.path.abspath(path)
+        self._filepath = os.path.abspath(filepath)
         #
         # Initialize Phonon bands
-        self.phbands = PhononBands.from_ncfile(path)
+        self.phbands = PhononBands.from_ncfile(filepath)
 
     @classmethod
     def from_ncfile(cls, path):
         """Initialize the object from path."""
         return cls(path)
-
 
     @property
     def filepath(self):
@@ -663,7 +663,6 @@ class PHBST_File(AbinitNcFile):
                 pass
         else:
             raise Visualizer.Error("Don't know how to export data for visualizer " % visualizer)
-
 
     #def plot_bands(self, title=None, klabels=None, *args, **kwargs):
     #    self.bands.plot(title, klabels, *args, **kwargs)

@@ -36,30 +36,37 @@ __license__  = release.license
 __version__  = release.version
 
 
+from abipy.waves import WFK_File
+from abipy.electrons import SIGRES_File
+from abipy.phonons import PHBST_File
+from abipy.iotools.files import AbinitNcFile
+
+def ncfile_subclass_from_filename(filename):
+    ext2ncfile = {
+        #"GSR.nc": GSR_File
+        #"PHDOS.nc": PHDOS_File,
+        "SIGRES.nc": SIGRES_File,
+        "WFK-etsf.nc": WFK_File,
+        #"PHBST.nc": PHBST_File,
+    }
+
+    ext = filename.split("_")[-1]
+    try:
+        return ext2ncfile[ext]
+    except KeyError:
+        raise KeyError("No ncfile subclass has been registered for extension %s" % ext)
+
 def abiopen(filepath):
     """
-    Factory function that returns the appropriate object
-    from the extension of filepath.
+    Factory function that returns the appropriate `AbinitNcFile` object
 
     Args:
         filepath:
-            string with the filepath.
+            string with the filename or `AbinitNcFile` instance
     """
-    ext2class = {
-        #"GSR.nc": GSR_File
-        #"PHBST.nc": PHBST_File,
-        #"PHDOS.nc": PHBST_File,
-        #"SIGRES.nc": SIGRES_File,
-        "WFK-etsf.nc": WFK_File,
-    }
+    if isinstance(filepath, AbinitNcFile):
+        return filepath
 
-    #if isinstance(filepath, AbinitNcFile):
-    #    return filepath
-
-    ext = filepath.split("_")[-1]
-    try:
-        klass = ext2class[ext]
-    except KeyError:
-        raise KeyError("Unsupported extension %s" % ext)
-
-    return klass.from_ncfile(filepath)
+    # Assume string.
+    ncfile = ncfile_subclass_from_filename(filepath)
+    return ncfile.from_ncfile(filepath)

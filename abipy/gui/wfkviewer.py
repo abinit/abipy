@@ -15,11 +15,13 @@ from abipy.iotools.visualizer import supported_visunames
 class WfkViewer(wx.Frame):
     VERSION = "0.1"
     # Toolbar items.
-    ID_VISTRUCT = wx.NewId() 
-    ID_VISWAVE  = wx.NewId() 
-    ID_DOS      = wx.NewId() 
-    ID_SUMMARY  = wx.NewId()
-    ID_NCDUMP   = wx.NewId()
+    ID_VISTRUCT  = wx.NewId() 
+    ID_VISWAVE   = wx.NewId() 
+    ID_VISBZ     = wx.NewId() 
+    ID_DOS       = wx.NewId() 
+    ID_SUMMARY   = wx.NewId()
+    ID_NCDUMP    = wx.NewId()
+    ID_PLOTBANDS = wx.NewId()
 
     def __init__(self, parent, filepath=None):
         super(WfkViewer, self).__init__(parent, -1, self.codename) 
@@ -60,7 +62,9 @@ class WfkViewer(wx.Frame):
         toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, tsize), "Open")
         toolbar.AddSimpleTool(self.ID_VISTRUCT, wx.Bitmap(awx.path_img("crystal.png")), "Visualize the crystal structure")
         toolbar.AddSimpleTool(self.ID_VISWAVE, wx.Bitmap(awx.path_img("wave.png")), "Visualize the selected wavefunction")
+        toolbar.AddSimpleTool(self.ID_VISBZ, wx.Bitmap(awx.path_img("wave.png")), "Visualize the BZ")
         toolbar.AddSimpleTool(self.ID_DOS, wx.Bitmap(awx.path_img("wave.png")), "Compute DOS")
+        toolbar.AddSimpleTool(self.ID_PLOTBANDS, wx.Bitmap(awx.path_img("wave.png")), "Plot bands")
 
         self.toolbar.Realize()
 
@@ -70,10 +74,13 @@ class WfkViewer(wx.Frame):
             (wx.ID_CLOSE,       self.onClose),
             (wx.ID_EXIT,        self.onExit),
             (wx.ID_ABOUT,       self.onAboutBox),
+            (self.ID_NCDUMP,    self.onNcdump),
+            #
             (self.ID_VISTRUCT,  self.onVisualizeStructure),
             (self.ID_VISWAVE,   self.onVisualizeWave),
+            (self.ID_VISBZ,     self.onVisualizeBZ),
             (self.ID_DOS,       self.onDOS),
-            (self.ID_NCDUMP,    self.onNcdump),
+            (self.ID_PLOTBANDS, self.onPlotBands),
             #(self.ID_SUMMARY,  self.onSummary),
         ]
 
@@ -223,6 +230,10 @@ class WfkViewer(wx.Frame):
         except:
             awx.showErrorMessage(self)
 
+    def onVisualizeBZ(self, event):
+        if self.wfk is None: return
+        self.wfk.structure.show_bz()
+
     def onVisualizeWave(self, event):
         if self.wfk is None: return
 
@@ -243,38 +254,31 @@ class WfkViewer(wx.Frame):
         if self.wfk is None: return
         ewx.ElectronDosFrame(bands=self.wfk.get_bands(), parent=self).Show()
 
+    def onPlotBands(self, event):
+        if self.wfk is None: return
+        self.wfk.get_bands().plot()
+
     def onNcdump(self, event):
         if self.wfk is None: return
         caption = "ncdump output for WFK file %s" % self.wfk.filepath
         wxdg.ScrolledMessageDialog(self, self.wfk.ncdump(), caption=caption, style=wx.MAXIMIZE_BOX).Show()
-
-    #def onSummary(self, event):
-    #    if self.wfk is None: return
-    #    summary = self.wfk.summary
-
 
 def wfk_viewer(filepath):
     """Start up the WfkViewer application."""
 
     class WfkViewerApp(wx.App):
         def OnInit(self): 
-            # The code for the splash screen.
-            #image = wx.Image(awx.path_img("wabi_logo.png"), wx.BITMAP_TYPE_PNG)
-            #bmp = image.ConvertToBitmap() 
-            #wx.SplashScreen(bmp, wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_TIMEOUT, 1000, None, -1) 
-            #wx.Yield()
-            frame = WfkViewer(parent=None,filepath=filepath) 
-            frame.Show(True) 
+            frame = WfkViewer(parent=None, filepath=filepath) 
+            frame.Show() 
             self.SetTopWindow(frame) 
             return True
 
-    app = WfkViewerApp()
-    app.MainLoop()
+    WfkViewerApp().MainLoop()
 
 if __name__ == "__main__":
     import sys
     filepath = None
     if len(sys.argv) > 1:
         filepath = sys.argv[1] 
-    wfk_browser(filepath)
+    wfk_viewer(filepath)
 

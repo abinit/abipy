@@ -5,11 +5,11 @@ import sys
 import os
 import wx
 
-import wx.lib.dialogs as wxdg 
+
 import abipy.gui.awx as awx
 import abipy.gui.electronswx as ewx
 
-from abipy.abifiles import abiopen
+from abipy.iotools.files import NcDumper 
 from abipy.electrons import ElectronBands
 from abipy.waves import WFK_File
 from wx.lib.agw.floatspin import FloatSpin
@@ -179,109 +179,10 @@ class FileListPanel(wx.Panel):
             ncfile = self.ncfiles_by_id[self.file_list.GetItemData(currentItem)]
             print("Select ncfile: ",ncfile)
 
-            menu = popupmenu_from_ext(ncfile)
-
             # Open the popup menum then destroy it to avoid mem leak.
+            menu = popupmenu_from_ext(ncfile)
             self.PopupMenu(menu, event.GetPoint())
             menu.Destroy() 
-
-
-def popupmenu_from_ext(filepath):
-    """
-    Factory function that returns the appropriate popmenu menu
-    by testing the file extension.
-    """
-    menu = BasePopupMenu()
-    menu.add_target(ncfilepath)
-    return menu
-
-
-def showNcdumpMessage(parent, filepath):
-    caption = "ncdump output for file %s" % filepath
-    from abipy import abiopen
-    ncfile = abiopen(filepath)
-    wxdg.ScrolledMessageDialog(parent, ncfile.ncdump(), caption=caption, style=wx.MAXIMIZE_BOX).Show()
-
-
-class BasePopupMenu(wx.Menu):
-    MENU_TITLES = {
-        #("Properties",
-        "Ncdump": showNcdumpMessage,
-        "DOS": ewx.showElectronDosFrame,
-    }
-
-    def __init__(self, *args, **kwargs):
-        super(BasePopupMenu, self).__init__()
-
-        menu_title_by_id = {}
-        for title in self.MENU_TITLES:
-            menu_title_by_id[wx.NewId()] = title
-
-        if not hasattr(self, "menu_title_by_id"):
-            self.menu_title_by_id = {}
-
-        self.menu_title_by_id.update(menu_title_by_id)
-
-        for (id, title) in self.menu_title_by_id.items():
-            self.Append(id, title)
-            # registers menu handlers with EVT_MENU, on the menu.
-            wx.EVT_MENU(self, id, self.OnMenuSelection)
-
-    def add_target(self, target):
-        self._target = target
-
-    @property
-    def target(self):
-        try:
-            return self._target
-        except AttributeError:
-            return None
-
-    def OnMenuSelection(self, event):
-        menu_title = self.menu_title_by_id[event.GetId()]
-        operation = self.MENU_TITLES[menu_title]
-        print("Perform operation %s on target %s" % (operation, self.target))
-        try:
-            #ewx.showElectronDosFrame(parent=None, path=self.target)
-            operation(parent=None, filepath=self.target)
-        except:
-            awx.showErrorMessage(parent=None)
-
-
-from abipy.gui.wfkviewer import wfk_viewer
-_VIEWERS = {
-    "WFK-etsf.nc": wfk_viewer,
-}
-
-def run_viewer_for_filepath(filepath):
-    ext = filepath.split("_")[-1]
-    try:
-        return _VIEWERS[ext](filepath)
-    except KeyError:
-        raise KeyError("No wx viewer s has been registered for the extension %s" % ext)
-
-
-class AbipyDirCtrl(wx.GenericDirCtrl):
-    def __init__(self, *args, **kwargs):
-        #style = wx.TR_MULTIPLE
-        super(AbipyDirCtrl, self).__init__(*args, **kwargs)
-
-        self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnItemActivated)
-        self.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.OnRightClick)
-        #self.Bind(wx.EVT_TREE_SEL_CHANGED, self.dirBrowser_OnSelectionChanged, tree)
-
-    def OnItemActivated(self, event):
-        path = self.GetFilePath()
-        if not path:
-            return
-        print("in activated with path %s" % path)
-        run_viewer_for_filepath(path)
-
-    def OnRightClick(self, event):
-        path = self.GetFilePath()
-        if not path:
-            return
-        print("in right with path %s" % path)
 
 def dos_plotter():
     app = wx.App()
@@ -289,15 +190,6 @@ def dos_plotter():
     win.Show(True)
     app.MainLoop()
 
-def abi_navigator():
-    app = wx.App()
-    win = wx.Frame(None, -1)
-    filebrowser = AbipyDirCtrl(win, -1, dir=os.getcwd(), filter="Netcdf files (*.nc)|*.nc|All files (*.*)|*.*", name="Netcdf Navigator")
-    #filebrowser = wx.GenericDirCtrl(win, -1, dir=os.getcwd(), filter="Netcdf files (*.nc)|*.nc|All files (*.*)|*.*", name="Netcdf Navigator")
-    #filebrowser.SetDefaultPath("/Users/gmatteo/Coding/abipy/abipy/tests/data")
-    #filebrowser.SetPath("/Users/gmatteo/Coding/abipy/abipy/tests/data")
-    win.Show(True)
-    app.MainLoop()
 
 if __name__ == "__main__":
-    abi_navigator()
+    dos_plotter()
