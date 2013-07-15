@@ -70,18 +70,18 @@ class WfkViewer(wx.Frame):
 
         # Associate menu/toolbar items with their handlers.
         menuHandlers = [
-            (wx.ID_OPEN,        self.onOpen),
-            (wx.ID_CLOSE,       self.onClose),
-            (wx.ID_EXIT,        self.onExit),
-            (wx.ID_ABOUT,       self.onAboutBox),
-            (self.ID_NCDUMP,    self.onNcdump),
+            (wx.ID_OPEN,        self.OnOpen),
+            (wx.ID_CLOSE,       self.OnClose),
+            (wx.ID_EXIT,        self.OnExit),
+            (wx.ID_ABOUT,       self.OnAboutBox),
+            (self.ID_NCDUMP,    self.OnNcdump),
             #
-            (self.ID_VISTRUCT,  self.onVisualizeStructure),
-            (self.ID_VISWAVE,   self.onVisualizeWave),
-            (self.ID_VISBZ,     self.onVisualizeBZ),
-            (self.ID_DOS,       self.onDOS),
-            (self.ID_PLOTBANDS, self.onPlotBands),
-            #(self.ID_SUMMARY,  self.onSummary),
+            (self.ID_VISTRUCT,  self.OnVisualizeStructure),
+            (self.ID_VISWAVE,   self.OnVisualizeWave),
+            (self.ID_VISBZ,     self.OnVisualizeBZ),
+            (self.ID_DOS,       self.OnDOS),
+            (self.ID_PLOTBANDS, self.OnPlotBands),
+            #(self.ID_SUMMARY,  self.OnSummary),
         ]
 
         for combo in menuHandlers:
@@ -96,86 +96,26 @@ class WfkViewer(wx.Frame):
     def codename(self):
         return self.__class__.__name__
 
-    def destroy_panel(self):
-        if hasattr(self, "panel"):
-            self.panel.Destroy()
+    #def destroy_panel(self):
+    #    if hasattr(self, "panel"):
+    #        self.panel.Destroy()
 
-    def build_panel(self):
+    def build_UI(self):
         wfk = self.wfk
         if wfk is None: return
+        #self.destroy_panel()
 
-        self.destroy_panel()
+        self.skb_panel = awx.SpinKpointBandPanel(self, wfk.nsppol, wfk.kpoints, wfk.mband)
 
-        self.panel = panel = wx.Panel(self, -1)
-
-        band_label = wx.StaticText(panel, -1, "Band:")
-        self.band_cbox = wx.ComboBox(panel, id=-1, choices=map(str, range(wfk.mband)))
-
-        spin_label = wx.StaticText(panel, -1, "Spin:")
-        self.spin_cbox = wx.ComboBox(panel, id=-1, choices=map(str, range(wfk.nsppol)))
-
-        kpt_label = wx.StaticText(panel, -1, "Kpoint:")
-        self.kpt_list = kpt_list = wx.ListCtrl(panel, id=-1, size=(-1,100), 
-                                     style=wx.LC_REPORT | wx.BORDER_SUNKEN
-                                     )
-
-        visu_label = wx.StaticText(panel, -1, "Visualizer:")
-        self.visualizer = wx.ComboBox(panel, id=-1, choices=supported_visunames())
-
-        kpt_list.InsertColumn(0, '#')
-        kpt_list.InsertColumn(1, 'Reduced Coords')
-        kpt_list.InsertColumn(2, 'Weight')
-        for index, kpt in enumerate(wfk.kpoints):
-            entry = map(str, [index, kpt.frac_coords, kpt.weight])
-            kpt_list.Append(entry)
-
-        # Make the first row by adding the label and field  to the first horizontal sizer 
-        vsizer = wx.BoxSizer(wx.VERTICAL) 
-        field1_sz = wx.BoxSizer(wx.HORIZONTAL) 
-        field2_sz = wx.BoxSizer(wx.HORIZONTAL)
-
-        field1_sz.AddSpacer(50) 
-        field1_sz.Add(band_label)
-        field1_sz.AddSpacer(5)
-        field1_sz.Add(self.band_cbox) 
-
-        field1_sz.Add(spin_label)
-        field1_sz.AddSpacer(5)
-        field1_sz.Add(self.spin_cbox) 
-
-        field1_sz.Add(visu_label)
-        field1_sz.AddSpacer(5)
-        field1_sz.Add(self.visualizer) 
-
-        field2_sz.AddSpacer(50)
-        field2_sz.Add(kpt_label)
-        field2_sz.AddSpacer(5)
-
-        BOTH_SIDES = wx.EXPAND|wx.LEFT|wx.RIGHT 
-        field2_sz.Add(self.kpt_list, 0, BOTH_SIDES, 50) 
-
-        vsizer.AddSpacer(50) 
-        vsizer.Add(field1_sz)
-        vsizer.AddSpacer(15) 
-        vsizer.Add(field2_sz) 
-        vsizer.AddSpacer(50)
+        #visu_label = wx.StaticText(panel, -1, "Visualizer:")
+        #self.visualizer = wx.ComboBox(panel, id=-1, choices=supported_visunames())
 
         # Python shell
-        from wx.py.shell import Shell
-        pyshell = Shell(panel, locals={"wfk": self.wfk})
-        vsizer.Add(pyshell)
+        #from wx.py.shell import Shell
+        #pyshell = Shell(panel, locals={"wfk": self.wfk})
+        #vsizer.Add(pyshell)
 
-        panel.SetSizer(vsizer)
-
-        #sizer = wx.FlexGridSizer(rows=4, cols=2, vgap=5, hgap=5)
-        #sizer.AddMany([band_label, self.band_cbox])
-        #sizer.AddMany([spin_label, self.spin_cbox])
-        #sizer.AddMany([kpt_label, self.kpt_list])
-        #sizer.AddMany([visu_label, self.visualizer])
-        #panel.SetSizer(sizer)
-        #sizer.Layout()
-
-    def onOpen(self, event):
+    def OnOpen(self, event):
         dlg = wx.FileDialog(self, message="Choose a WFK file", defaultDir=os.getcwd(), 
             defaultFile="", wildcard="Netcdf files (*.nc)|*nc",
             style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
@@ -203,23 +143,23 @@ class WfkViewer(wx.Frame):
         self.statusbar.PushStatusText("Reading %s" % path)
         try:
             self.wfk = WFK_File(path)
-            self.build_panel()
+            self.build_UI()
             self.statusbar.PushStatusText("WFK file %s loaded" % path)
         except Exception:
             awx.showErrorMessage(self)
 
-    def onClose(self, event):
+    def OnClose(self, event):
         self.wfk= None
         self.destroy_panel()
 
-    def onExit(self, event):
+    def OnExit(self, event):
         self.Destroy()
 
-    def onAboutBox(self, event):
+    def OnAboutBox(self, event):
         awx.makeAboutBox(codename=self.codename, version=self.VERSION, 
                          description="", developers="M. Giantomassi")
 
-    def onVisualizeStructure(self, event):
+    def OnVisualizeStructure(self, event):
         if self.wfk is None: return
 
         visualizer = self.visualizer.GetValue()
@@ -230,19 +170,17 @@ class WfkViewer(wx.Frame):
         except:
             awx.showErrorMessage(self)
 
-    def onVisualizeBZ(self, event):
+    def OnVisualizeBZ(self, event):
         if self.wfk is None: return
         self.wfk.structure.show_bz()
 
-    def onVisualizeWave(self, event):
+    def OnVisualizeWave(self, event):
         if self.wfk is None: return
 
-        spin = int(self.spin_cbox.GetValue())
-        band = int(self.band_cbox.GetValue())
-        kidx  = self.kpt_list.GetFirstSelected()
+        spin, kidx, band = self.skb_panel.get_skb()
         kpoint = self.wfk.kpoints[kidx]
 
-        visualizer = self.visualizer.GetValue()
+        #visualizer = self.visualizer.GetValue()
         self.statusbar.PushStatusText("Visualizing wavefunction (spin=%d, kpoint=%s, band=%d)" % (spin, kpoint, band))
         try:
             visu = self.wfk.export_ur2(".xsf", spin, kpoint, band)
@@ -250,15 +188,15 @@ class WfkViewer(wx.Frame):
         except:
             awx.showErrorMessage(self)
 
-    def onDOS(self, event):
+    def OnDOS(self, event):
         if self.wfk is None: return
         ewx.ElectronDosFrame(bands=self.wfk.get_bands(), parent=self).Show()
 
-    def onPlotBands(self, event):
+    def OnPlotBands(self, event):
         if self.wfk is None: return
         self.wfk.get_bands().plot()
 
-    def onNcdump(self, event):
+    def OnNcdump(self, event):
         if self.wfk is None: return
         caption = "ncdump output for WFK file %s" % self.wfk.filepath
         wxdg.ScrolledMessageDialog(self, self.wfk.ncdump(), caption=caption, style=wx.MAXIMIZE_BOX).Show()

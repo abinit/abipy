@@ -1,4 +1,4 @@
-"Generic helper functions"
+"""Generic helper functions"""
 from __future__ import print_function, division
 
 import os

@@ -395,22 +395,24 @@ class ElectronBands(object):
 
         return Function1D(mesh, jdos)
 
-    def plot_jdosvc(self, vrange, crange, method="gaussian", step=0.1, width=0.2,
-                    title=None, show=True, savefig=None,  **kwargs):
+    def plot_jdosvc(self, vrange, crange, method="gaussian", step=0.1, width=0.2, cumulative=True,
+                    **kwargs):
         """
         Plot the decomposition of the joint-density of States (JDOS).
 
         Args:
             vrange:
-                Iterable with the indices of the valence bands to consider.
+                Int or Iterable with the indices of the valence bands to consider.
             crange:
-                Iterable with the indices of the conduction bands to consider.
+                Int or Iterable with the indices of the conduction bands to consider.
             method:
                 String defining the method.
             step:
                 Energy step (eV) of the linear mesh.
             width:
                 Standard deviation (eV) of the gaussian.
+            cumulative:
+                True for cumulative plots (default).
 
             ================  ==============================================================
             kwargs            Meaning
@@ -418,16 +420,20 @@ class ElectronBands(object):
             title             Title of the plot (Default: None).
             show              True to show the figure (Default).
             savefig           'abc.png' or 'abc.eps'* to save the figure to a file.
-            cumulative_plot   True for cumulative plots (default)
+
             ================  ==============================================================
 
         Returns:
             `matplotlib` figure
         """
+        if not isinstance(crange, collections.Iterable):
+            crange = [crange]
+        if not isinstance(vrange, collections.Iterable):
+            vrange = [vrange]
+
         title = kwargs.pop("title", None)
         show = kwargs.pop("show", True)
         savefig = kwargs.pop("savefig", None)
-        cumulative_plot = kwargs.pop("cumulative_plot", True)
 
         import matplotlib.pyplot as plt
 
@@ -445,16 +451,16 @@ class ElectronBands(object):
                     jdos_vc[(v, c)] = jd
 
             # Plot data for this spin.
-            if cumulative_plot:
+            if cumulative:
                 cmap = plt.get_cmap("jet")
                 cumulative = np.zeros(len(tot_jdos))
                 num_plots, i = len(jdos_vc), 0
 
                 for (v, c), jdos in jdos_vc.items():
                     label = "val=%s --> cond=%s, s=%s" % (v, c, s)
-                    color = cmap(float(i)/(num_plots-1))
+                    color = cmap(float(i)/(num_plots))
                     x, y = jdos.mesh, jdos.values
-                    ax.plot(x, cumulative + y, lw=0, label=label, color=color)
+                    ax.plot(x, cumulative + y, lw=1.0, label=label, color=color)
                     ax.fill_between(x, cumulative, cumulative + y, facecolor=color, alpha=0.7)
                     cumulative += jdos.values
                     i += 1
