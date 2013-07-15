@@ -13,7 +13,7 @@ from abipy.iotools.files import NcDumper
 
 from abipy.iotools.files import AbinitNcFile
 from abipy import WFK_File, SIGRES_File
-#from abipy.phonons import PHBST_File
+from abipy.electrons.bse import MDF_Reader, MDF_File
 
 
 __all__ = [
@@ -201,14 +201,14 @@ class SigResPopupMenu(PopupMenu):
     HANDLED_NCFILES = [SIGRES_File] 
 
 
-#def showEXCMDF(parent, filepath):
-#    mdf_file = abiopen(filepath)
-#    mdf_file.read
-#
-#class MDFPopupMenu(PopupMenu):
-#    """Popup menu for MDF files."""
-#    MENU_TITLES = collections.OrderedDict([
-#        ("excmdfPlot", showEXCMDF),
-#    ])
-#
-#    HANDLED_NCFILES = [MDF_File] 
+def showEXCMDF(parent, filepath):
+    mdf_file = MDF_File(filepath)
+    mdf_file.plot_mdfs()
+
+class MDFPopupMenu(PopupMenu):
+    """Popup menu for MDF files."""
+    MENU_TITLES = collections.OrderedDict([
+        ("mdfPlot", showEXCMDF),
+    ])
+
+    HANDLED_NCFILES = [MDF_File] 

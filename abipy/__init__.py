@@ -43,10 +43,11 @@ from abipy.iotools.files import AbinitNcFile
 
 def ncfile_subclass_from_filename(filename):
     ext2ncfile = {
-        #"GSR.nc": GSR_File
-        #"PHDOS.nc": PHDOS_File,
         "SIGRES.nc": SIGRES_File,
         "WFK-etsf.nc": WFK_File,
+        "MDF.nc" : MDF_File,
+        #"GSR.nc": GSR_File
+        #"PHDOS.nc": PHDOS_File,
         #"PHBST.nc": PHBST_File,
     }
 

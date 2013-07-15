@@ -8,8 +8,8 @@ from wxmplot import PlotFrame
 
 class Func1dPlotFrame(wx.Frame):
     """
-    Simple Frame that allows the user to have access to the method of a `Function1D` objects
-    and plot the results woth wxmplot
+    Simple Frame that allows the user to have access to the method 
+    of a `Function1D` objects and plot the results with wxmplot.
     """
     def __init__(self, parent, func1d, **kwargs):
         """

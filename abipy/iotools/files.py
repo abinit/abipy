@@ -44,6 +44,9 @@ class AbinitNcFile(object):
     """
     __metaclass__ = abc.ABCMeta
 
+    def __init__(self, filepath):
+        self._filepath = os.path.abspath(filepath)
+
     def __repr__(self):
         return "<%s at %s, filetype = %s>" % (self.__class__.__name__, id(self), self.filetype)
 
@@ -56,16 +59,17 @@ class AbinitNcFile(object):
         return self.__class__.__name__
 
     #@abstractclassmethod
-    def from_ncfile(cls, path):
+    def from_ncfile(cls, filepath):
         """Initialize the object from a Netcdf file"""
         try:
-            return cls(path)
+            return cls(filepath)
         except:
             raise ValueError("Subclass must define the class method from_ncfile")
 
-    @abc.abstractproperty
+    @property
     def filepath(self):
         """Absolute path of the file."""
+        return self._filepath
 
     @property
     def basename(self):

@@ -578,7 +578,7 @@ class PHBST_File(AbinitNcFile):
             path:
                 path to the file
         """
-        self._filepath = os.path.abspath(filepath)
+        super(PHBST_File, self).__init__(filepath)
         #
         # Initialize Phonon bands
         self.phbands = PhononBands.from_ncfile(filepath)
@@ -589,12 +589,11 @@ class PHBST_File(AbinitNcFile):
         return cls(path)
 
     @property
-    def filepath(self):
-        return self._filepath
-
-    @property
     def structure(self):
         return self.phbands.structure
+
+    def get_structure(self):
+        return self.structure
 
     #def __str__(self):
     #    return self.tostring()

@@ -20,22 +20,22 @@ class WFK_File(AbinitNcFile):
     This object provides simple interfaces to access and analyze
     the data stored in the WFK file produced by ABINIT.
     """
-    def __init__(self, path):
+    def __init__(self, filepath):
         """
         Initialized the object from a Netcdf file.
         """
-        self._filepath = path = os.path.abspath(path)
+        super(WFK_File, self).__init__(filepath)
 
         # Initialize the  structure from file.
-        self.structure = Structure.from_ncfile(path)
+        self.structure = Structure.from_ncfile(filepath)
 
         # Initialize the band energies.
-        self.bands = ElectronBands.from_ncfile(path)
+        self.bands = ElectronBands.from_ncfile(filepath)
 
-        self.kpoints = kpoints_factory(path)
+        self.kpoints = kpoints_factory(filepath)
         self.nkpt = len(self.kpoints)
 
-        with WFK_Reader(path) as reader:
+        with WFK_Reader(filepath) as reader:
             assert reader.has_pwbasis_set
             assert reader.cplex_ug == 2
             print(reader)
@@ -65,10 +65,6 @@ class WFK_File(AbinitNcFile):
     def from_ncfile(cls, path):
         """Initialize the object from a Netcdf file."""
         return cls(path)
-
-    @property
-    def filepath(self):
-        return self._filepath
 
     @property
     def gspheres(self):

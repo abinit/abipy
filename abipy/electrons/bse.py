@@ -7,12 +7,13 @@ import collections
 import numpy as np
 
 from abipy.core.func1d import Function1D
-from abipy.iotools import NetcdfReader
+from abipy.iotools import ETSF_Reader, AbinitNcFile
 from abipy.kpoints import Kpoint, kpoints_factory
 from abipy.tools.plotting_utils import ArrayPlotter
 
 __all__ = [
     "DielectricFunction",
+    "MDF_File",
     "MDF_Reader",
     "MDF_Plotter",
 ]
@@ -217,11 +218,63 @@ omega_re omega_im em_q[0]_re em_q[0]_im ... em_q[nq-1]_im
 
 #########################################################################################
 
+class MDF_File(AbinitNcFile):
+    def __init__(self, filepath):
+        super(MDF_File, self).__init__(filepath)
 
-class MDF_Reader(NetcdfReader):
+        with MDF_Reader(filepath) as r:
+            self.structure = r.read_structure()
+
+            self.exc_mdf = r.read_exc_mdf()
+            self.rpanlf_mdf = r.read_rpanlf_mdf()
+            self.gwnlf_mdf = r.read_gwnlf_mdf()
+
+    @property
+    def filepath(self):
+        return self._filepath
+
+    @classmethod
+    def from_ncfile(cls, filepath):
+        """Initialize the object from a Netcdf file"""
+        return cls(filepath)
+
+    def get_structure(self):
+        """Returns the `Structure` object."""
+        return self.structure
+
+    def plot_mdfs(self, cplx_mode="Im", mdf_select="all", **kwargs):
+        """Plot the macroscopic dielectric function."""
+        plot_all = mdf_select == "all"
+        mdf_select = mdf_select.split("-")
+
+        # Build the plotter.
+        plotter = MDF_Plotter()
+        
+        # Excitonic MDF.
+        if "exc" in mdf_select or plot_all:
+            plotter.add_mdf("EXC", self.exc_mdf)
+            
+        # KS-RPA MDF
+        if "rpa" in mdf_select or plot_all:
+            plotter.add_mdf("KS-RPA", self.rpanlf_mdf)
+
+        # GW-RPA MDF (obtained with the scissors operator).
+        if "gwrpa" in mdf_select or plot_all:
+            plotter.add_mdf("GW-RPA", self.gwnlf_mdf)
+
+        # Plot spectra 
+        plotter.plot(cplx_mode=cplx_mode, **kwargs)
+
+#########################################################################################
+
+class MDF_Reader(ETSF_Reader):
     """
     This object reads data from the MDF.nc file produced by ABINIT.
     """
+    def __init__(self, path):
+        """Initialize the object from a filename."""
+        super(MDF_Reader, self).__init__(path)
+
     def _lazy_get(self, varname):
         """Helper function used to create lazy properties."""
         hiddename = "__" + varname
@@ -273,6 +326,8 @@ class MDF_Reader(NetcdfReader):
         info = self.read_run_params()
         emacros_q = self._read_mdf("gwnlf_mdf")
         return DielectricFunction(self.qpoints, self.wmesh, emacros_q, info)
+
+#########################################################################################
 
 
 class MDF_Plotter(object):
@@ -368,7 +423,7 @@ class MDF_Plotter(object):
                 legends.append("%s: %s $\,\\varepsilon$" % (cmode, label))
 
         # Set legends.
-        ax.legend(lines, legends, 'upper right', shadow=True)
+        ax.legend(lines, legends, 'best', shadow=True)
 
         if show:
             plt.show()
@@ -469,7 +524,7 @@ class DIPME_File(object):
         return plotter.plot(title=title, color_map=color_map, show=show, savefig=savefig, **kwargs)
 
 
-class DIPME_Reader(NetcdfReader):
+class DIPME_Reader(ETSF_Reader):
     """"
     This object reads the optical matrix elements from the OME.nc file.
     """

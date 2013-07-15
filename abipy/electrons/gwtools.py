@@ -292,7 +292,6 @@ class ScissorsBuilder(object):
     the _GW file filename.
     """
     def build(self, filepath):
-
         sigres = filepath
         if not isinstance(filepath, SIGRES_File):
             # Init the corrections from path.
@@ -452,7 +451,7 @@ class SIGRES_File(AbinitNcFile):
 
     def __init__(self, filepath):
         """Reade data from the netcdf file path."""
-        self._filepath = os.path.abspath(filepath)
+        super(SIGRES_File, self).__init__(filepath)
 
         ## Keep a reference to the SIGRES_Reader.
         self.ncreader = ncreader = SIGRES_Reader(self.filepath)
@@ -471,10 +470,6 @@ class SIGRES_File(AbinitNcFile):
     def from_ncfile(cls, filepath):
         """Initialize an instance from file."""
         return cls(filepath)
-
-    @property
-    def filepath(self):
-        return self._filepath
 
     def close(self):
         """Close the netcdf file."""

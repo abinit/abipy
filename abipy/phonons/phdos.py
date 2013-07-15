@@ -194,12 +194,12 @@ class PHDOS_File(AbinitNcFile):
     PHDOS.nc file produced by anaddb. Provides helper function
     to visualize/extract data.
     """
-    def __init__(self, path):
+    def __init__(self, filepath):
         # Open the file, read data and create objects.
-        self._filepath = os.path.abspath(path)
+        super(PHDOS_File, self).__init__(filepath)
 
         pjdos_type_dict = collections.OrderedDict()
-        with PHDOS_Reader(self.filepath) as r:
+        with PHDOS_Reader(filepath) as r:
             self.structure = r.structure
             self.wmesh = r.wmesh
             self.phdos = r.read_phdos()
@@ -214,9 +214,9 @@ class PHDOS_File(AbinitNcFile):
     def from_ncfile(cls, path):
         return cls(path)
 
-    @property
-    def filepath(self):
-        return self._filepath
+    def get_structure(self):
+        """Returns the `Structure` object."""
+        return self.structure
 
     def plot_pjdos_type(self, colormap="jet", **kwargs):
         """
