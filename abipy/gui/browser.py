@@ -37,8 +37,9 @@ class NcFileDirCtrl(wx.GenericDirCtrl):
             kwargs["filter"] = "Netcdf files (*.nc)|*.nc|All files (*.*)|*.*"
         if "dir" not in kwargs:
             kwargs["dir"] = os.getcwd()
+        if "style" not in kwargs:
+            kwargs["style"] = wx.TR_MULTIPLE
 
-        kwargs["style"] = wx.TR_MULTIPLE
         super(NcFileDirCtrl, self).__init__(*args, **kwargs)
 
         self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnItemActivated)

@@ -15,24 +15,13 @@ from abipy.iotools.visualizer import supported_visunames
 
 from pymatgen.io.abinitio import EventParser
 
-#class EventPanel(wx.Panel):
-#
-#    def __init__(self, parent, filepath, **kwargs):
-#        super(EventPanel, self).__init__(parent, -1, **kwargs)
-#        self.filepath = os.path.abspath(filepath)
-#
-#        parser = EventParser()
-#        self.events = parser.parse(self.filepath)
-#        print(self.events)
-#                                                                       
-#        self.BuildUi()
-#                                                                       
-#    def BuildUi(self):
-#        pass
-
-
 
 class EventPanel(wx.Panel):
+    """
+    Panel with a TreeCtrl that allows the user to navigate 
+    the events (WARNINGS/COMMENTS/ERRORS) reported by ABINIT
+    in the main output file or in the log file.
+    """
     def __init__(self, parent, filepath):
         super(EventPanel, self).__init__(parent, -1)
 
@@ -79,6 +68,10 @@ class EventPanel(wx.Panel):
         self.SetSizer(hbox)
         self.Centre()
 
+    @property
+    def has_events(self):
+        return len(self.events) > 0
+
     def OnSelChanged(self, event):
         item =  event.GetItem()
         lineno = self.tree.GetItemText(item)
@@ -88,25 +81,113 @@ class EventPanel(wx.Panel):
             data = proxy.GetData()
             self.display.SetLabel(data)
 
-def abo_viewer(filepath):
-    """Start up the AbinitOutputViewer application."""
 
-    class AboViewerApp(wx.App):
+class EventFrame(wx.Frame):
+    """
+    Frame with an EventPanel 
+    """
+    def __init__(self, parent, filepath):
+        self.filepath = os.path.abspath(filepath)
+        title = "Abinit Events: %s" % os.path.basename(self.filepath)
+        super(EventFrame, self).__init__(parent, -1, title=title)
+
+        self.BuildUi()
+
+    def BuildUi(self):
+        self.event_panel = EventPanel(self, self.filepath)
+
+class AbiOutLogDirCtrl(wx.GenericDirCtrl):
+
+    def __init__(self, *args, **kwargs):
+
+        if "filter" not in kwargs:
+            kwargs["filter"] = "All files (*.*)|*.*|about files (*.about)|*.out| ablog files (*.ablog)|*.ablog"
+        if "dir" not in kwargs:
+            kwargs["dir"] = os.getcwd()
+        if "style" not in kwargs:
+            kwargs["style"] = wx.TR_MULTIPLE
+
+        super(AbiOutLogDirCtrl, self).__init__(*args, **kwargs)
+
+        self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnItemActivated)
+        #self.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.OnRightClick)
+
+    def OnItemActivated(self, event):
+        path = self.GetFilePath()
+        if not path: return
+        print("in activated with path %s" % path)
+        frame = EventFrame(self, path).Show()
+
+    #def OnRightClick(self, event):
+    #    path = self.GetFilePath()
+    #    if not path: return
+    #    print("in right with path %s" % path)
+
+
+class EventsNotebookFrame(wx.Frame):
+    def __init__(self, parent, filenames, **kwargs):
+
+        if "title" not in kwargs:
+            kwargs["title"] = "Abinit Events"
+
+        super(EventsNotebookFrame, self).__init__(parent, **kwargs)
+
+        # Here we create a panel and a notebook on the panel
+        p = wx.Panel(self)
+
+        import wx.lib.agw.flatnotebook as fnb
+        #nb = wx.Notebook(p)
+        nb = fnb.FlatNotebook(p)
+
+        # Add the pages to the notebook with the label to show on the tab
+        # Add only files for which we have events.
+        for fname in filenames:
+            page = EventPanel(nb, fname)
+            if page.has_events:
+                nb.AddPage(page, text=os.path.basename(fname))
+
+        # Finally, put the notebook in a sizer for the panel to manage the layout
+        sizer = wx.BoxSizer()
+        sizer.Add(nb, 1, wx.EXPAND)
+        p.SetSizer(sizer)
+
+def abievents_viewer(root):
+    """
+    Start up the AbinitOutputViewer application.
+
+    Args:
+        root:
+            None or filename or directory name.
+            If root is a directory, we locate all the output files
+            starting from root and we visualize them in the main Frame.
+    """
+    if root is None:
+        filenames = []
+
+    elif isinstance(root, str):
+            root = os.path.abspath(root)
+            if os.path.isdir(root):
+                #filenames = [os.path.join(root, f) for f in ["t01.out", "t02.out"]]
+                filenames = [os.path.join(root, f) for f in os.listdir(root) if f.endswith(".out")]
+            else:
+                filenames = [root]
+    else:
+        filenames = root
+    
+    print(filenames)
+    class AbiEventsViewerApp(wx.App):
         def OnInit(self): 
-            #frame = AbinitOutputViewer(parent=None, filepath=filepath) 
-            frame = wx.Frame(None)
-            panel = EventPanel(frame, filepath)
-            #Editor(panel, -1, style=wx.SUNKEN_BORDER)
+            frame = EventsNotebookFrame(None, filenames)
             frame.Show() 
             self.SetTopWindow(frame) 
             return True
 
-    AboViewerApp().MainLoop()
+    AbiEventsViewerApp().MainLoop()
 
 
 if __name__ == "__main__":
     import sys
     filepath = None
     if len(sys.argv) > 1:
-        filepath = sys.argv[1] 
-    abo_viewer(filepath)
+        filepath = sys.argv[1:] 
+    abievents_viewer(filepath)

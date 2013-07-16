@@ -1,16 +1,17 @@
 """This module ..."""
 from __future__ import print_function, division
 
+import os
 import wx
-import collections
 
 import wx.lib.dialogs as wxdg 
 import abipy.gui.awx as awx
 import abipy.gui.electronswx as ewx
+
+from collections import OrderedDict
+
 from abipy import ncfile_subclass_from_filename, abiopen
-
 from abipy.iotools.files import NcDumper 
-
 from abipy.iotools.files import AbinitNcFile
 from abipy import WFK_File, SIGRES_File
 from abipy.electrons.bse import MDF_Reader, MDF_File
@@ -20,9 +21,40 @@ __all__ = [
     "popupmenu_for_filename",
 ]
 
+
+_ABBREVS = [
+    (1<<50L, 'Pb'), 
+    (1<<40L, 'Tb'), 
+    (1<<30L, 'Gb'), 
+    (1<<20L, 'Mb'), 
+    (1<<10L, 'kb'), 
+    (1,      'b'),
+] 
+    
+def size2str(size):                                                  
+    """Convert size to string with units."""
+    for factor, suffix in _ABBREVS:                             
+        if size > factor:                                            
+            break 
+    return "%.2f " % (size/factor) + suffix
+
+
+def filestat_dict(filename):
+        stat = os.stat(filename)
+        from time import ctime
+        return OrderedDict([
+            ("Name",              os.path.basename(filename)),
+            ("Directory",         os.path.dirname(filename)),
+            ("Size",              size2str(stat.st_size)),
+            ("Access Time",       ctime(stat.st_atime)),  
+            ("Modification Time", ctime(stat.st_mtime)), 
+            #"Change Time",       ctime(stat.st_ctime)),
+        ])
+
+
 def popupmenu_for_filename(filename, parent=None):
     """
-    Factory function that returns the appropriate popup menu 
+    Factory function that returns the appropriate popup menu. 
 
     Args:
         parent:
@@ -46,11 +78,20 @@ def showNcdumpMessage(parent, filepath):
     style = wx.DEFAULT_FRAME_STYLE
     wxdg.ScrolledMessageDialog(parent, msg, caption=caption, size=(600, 600), style=style).Show()
 
-#def showStructure(parent, filepath):
-#    ncfile = abiopen(filepath)
-#    structure = ncfile.get_structure() 
-#    visu = structure.visualize("xcrysden")
-#    visu()
+
+def showFileStat(parent, filepath):
+    """Open a dialog reporting file stats."""
+    caption = "Info on file %s" % filepath
+    stat_dict = filestat_dict(filepath)
+    msg = str(stat_dict)
+    style = wx.DEFAULT_FRAME_STYLE
+    wxdg.ScrolledMessageDialog(parent, msg, caption=caption, size=(600, 600), style=style).Show()
+
+def showStructure(parent, filepath):
+    ncfile = abiopen(filepath)
+    structure = ncfile.get_structure() 
+    visu = structure.visualize("xcrysden")
+    visu()
 
 #--------------------------------------------------------------------------------------------------
 
@@ -75,10 +116,10 @@ class PopupMenu(wx.Menu):
         4. Done (most of the work is indeed done in the base class and in 
            the factory function popupmenu_for_filename.
     """
-    MENU_TITLES = collections.OrderedDict([
-        ("ncdump", showNcdumpMessage),
-        #("structure", showStructure),
-        #"Properties":
+    MENU_TITLES = OrderedDict([
+        ("structure",  showStructure),
+        ("ncdump",     showNcdumpMessage),
+        ("properties", showFileStat),
     ])
 
     HANDLED_NCFILES = []
@@ -112,13 +153,14 @@ class PopupMenu(wx.Menu):
     def _make_menu(self):
         """Build the menu taking into account the options of the superclasses."""
         base_classes = list(self.__class__.__bases__) + [self.__class__]
+        base_classes.reverse()
 
         assert not hasattr(self, "menu_title_by_id")
         assert not hasattr(self, "menu_titles")
-        self.menu_title_by_id, self.menu_titles = {}, {}
+        self.menu_title_by_id, self.menu_titles = OrderedDict(), OrderedDict()
 
         for cls in base_classes:
-            print(cls)
+            #print(cls)
             try:
                 menus = cls.MENU_TITLES
             except AttributeError as exc:
@@ -126,15 +168,23 @@ class PopupMenu(wx.Menu):
                 continue
 
             self.menu_titles.update(menus)
+
             for title in menus:
                 self.menu_title_by_id[wx.NewId()] = title
+
+            # Add sentinel for Menu separator.
+            self.menu_title_by_id["separator_" + str(len(self.menu_titles))] = None
                                                                   
-        print(self.menu_title_by_id)
-                                                                  
+        #print(self.menu_title_by_id)
         for (id, title) in self.menu_title_by_id.items():
-            self.Append(id, title)
-            # registers menu handlers with EVT_MENU, on the menu.
-            wx.EVT_MENU(self, id, self.OnMenuSelection)
+            if title is None:
+                sepid = int(id.split("_")[-1])
+                if sepid != len(self.menu_titles):
+                    self.AppendSeparator()
+            else:
+                # Register menu handlers with EVT_MENU, on the menu.
+                self.Append(id, title)
+                wx.EVT_MENU(self, id, self.OnMenuSelection)
 
     def set_parent(self, parent):
         """Set the parent window."""
@@ -177,9 +227,9 @@ class PopupMenu(wx.Menu):
 
 class EbandsPopupMenu(PopupMenu):
     """Popup menu for ncfiles that contain the electron band structure."""
-    MENU_TITLES = collections.OrderedDict([
-        ("eDos",  ewx.showElectronDosFrame),
+    MENU_TITLES = OrderedDict([
         ("ePlot", ewx.showElectronBandsPlot),
+        ("eDos",  ewx.showElectronDosFrame),
     ])
 
     HANDLED_NCFILES = [WFK_File] 
@@ -194,7 +244,7 @@ def showQPData(parent, filepath):
 
 class SigResPopupMenu(PopupMenu):
     """Popup menu for SIGRES files."""
-    MENU_TITLES = collections.OrderedDict([
+    MENU_TITLES = OrderedDict([
         ("qpDataPlot", showQPData),
     ])
 
@@ -205,10 +255,12 @@ def showEXCMDF(parent, filepath):
     mdf_file = MDF_File(filepath)
     mdf_file.plot_mdfs()
 
+
 class MDFPopupMenu(PopupMenu):
     """Popup menu for MDF files."""
-    MENU_TITLES = collections.OrderedDict([
+    MENU_TITLES = OrderedDict([
         ("mdfPlot", showEXCMDF),
     ])
 
     HANDLED_NCFILES = [MDF_File] 
+
