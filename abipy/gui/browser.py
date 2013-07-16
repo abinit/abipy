@@ -61,7 +61,7 @@ class NcFileDirCtrl(wx.GenericDirCtrl):
         self.PopupMenu(popmenu, event.GetPoint())
         popmenu.Destroy() 
 
-def wxabi_browser(dirpath):
+def awx_browser(dirpath):
     if dirpath is None: 
         dirpath = ""
     else:
@@ -74,10 +74,6 @@ def wxabi_browser(dirpath):
     app.SetTopWindow(frame)
     frame.Show()
 
-    #wx.LogError("Ciao")
-    #wx.LoadFileSelector("hello", "txt")
-    #wx.InfoMessageBox(None)
-
     app.MainLoop()
  
 
@@ -85,4 +81,4 @@ if __name__ == "__main__":
     dirpath = None
     if len(sys.argv) > 1:
         dirpath = sys.argv[1]
-    wxabi_browser(dirpath)
+    awx_browser(dirpath)

@@ -24,7 +24,7 @@ from abipy.electrons import *
 from abipy.waves import *
 from abipy.htc import Launcher, MassLauncher, AbinitInput
 
-from abipy.tests import get_reference_file, get_ncfile
+from abipy.tests import get_reference_file, get_datadir, get_ncfile
 
 # Release data
 __author__ = ''

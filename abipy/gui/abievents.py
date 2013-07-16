@@ -151,13 +151,14 @@ class EventsNotebookFrame(wx.Frame):
         sizer.Add(nb, 1, wx.EXPAND)
         p.SetSizer(sizer)
 
-def abievents_viewer(root):
+def awx_events(root):
     """
     Start up the AbinitOutputViewer application.
 
     Args:
         root:
-            None or filename or directory name.
+            Can be: None, filename, directory name or list of filenames.
+            None means that we just open the browser without accessing any file.
             If root is a directory, we locate all the output files
             starting from root and we visualize them in the main Frame.
     """
@@ -173,13 +174,13 @@ def abievents_viewer(root):
                 filenames = [root]
     else:
         filenames = root
-    
     print(filenames)
+
     class AbiEventsViewerApp(wx.App):
         def OnInit(self): 
             frame = EventsNotebookFrame(None, filenames)
-            frame.Show() 
             self.SetTopWindow(frame) 
+            frame.Show() 
             return True
 
     AbiEventsViewerApp().MainLoop()
@@ -187,7 +188,6 @@ def abievents_viewer(root):
 
 if __name__ == "__main__":
     import sys
-    filepath = None
-    if len(sys.argv) > 1:
-        filepath = sys.argv[1:] 
-    abievents_viewer(filepath)
+    root = None
+    if len(sys.argv) > 1: root = sys.argv[1:] 
+    awx_events(root)

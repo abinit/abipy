@@ -51,6 +51,9 @@ def get_reference_file(filename):
     """Returns the absolute path of filename in the tests/data directory."""
     return os.path.join(_DATA_ABSPATH, filename)
 
+def get_datadir():
+    return _DATA_ABSPATH
+
 ##########################################################################################
 
 WFK_NCFILES = get_ncfiles_with_ext("WFK")
