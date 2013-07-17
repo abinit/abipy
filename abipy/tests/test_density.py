@@ -22,7 +22,7 @@ class TestDensity(AbipyTest):
                 nelect_file = r.read_value("number_of_electrons")
 
             # Compute nelect from data.
-            den = Density.from_ncfile(filename)
+            den = Density.from_file(filename)
             print(den)
             den.get_rhor_tot()
             den.get_rhog_tot()

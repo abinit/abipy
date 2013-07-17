@@ -3,6 +3,7 @@
 import os
 import abipy
 
-import abipy.gui.apps as apps
+import abipy.gui.wxapps as wxapps
 
-apps.awx_browser(abipy.get_datadir())
+wxapps.wxapp_dirbrowser(abipy.get_datadir()).MainLoop()
+

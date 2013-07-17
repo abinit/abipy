@@ -101,7 +101,7 @@ class Potential(DFTScalarField):
     ]
 
     @classmethod
-    def from_ncfile(cls, path):
+    def from_file(cls, path):
         """
         Read density from a the netCDF file.
 
@@ -138,7 +138,7 @@ class Potential(DFTScalarField):
         # Build potential descriptor.
         #vinfo = PotentialInfo(vtype, **kwargs)
 
-        structure = Structure.from_ncfile(path)
+        structure = Structure.from_file(path)
 
         rec = Record()
         #

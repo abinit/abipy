@@ -83,7 +83,7 @@ class PhononBands(object):
     """
 
     @classmethod
-    def from_ncfile(cls, path):
+    def from_file(cls, path):
         """Create the object from a netCDF file."""
         with PHBST_Reader(path) as r:
             structure = r.read_structure()
@@ -581,12 +581,7 @@ class PHBST_File(AbinitNcFile):
         super(PHBST_File, self).__init__(filepath)
         #
         # Initialize Phonon bands
-        self.phbands = PhononBands.from_ncfile(filepath)
-
-    @classmethod
-    def from_ncfile(cls, path):
-        """Initialize the object from path."""
-        return cls(path)
+        self.phbands = PhononBands.from_file(filepath)
 
     @property
     def structure(self):

@@ -2,6 +2,8 @@ from __future__ import print_function, division
 
 import wx
 
+import wx.lib.mixins.listctrl as listmix
+
 __all__ = [
     "SpinKpointBandPanel",
 ]
@@ -50,10 +52,16 @@ class SpinKpointBandPanel (wx.Panel):
         self.kpoint_label.Wrap( -1 )
         hsizer2.Add( self.kpoint_label, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
-        self.kpoint_listctrl = wx.ListCtrl( self, -1, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
-        hsizer2.Add( self.kpoint_listctrl, 1, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
+        class MyListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
+            """ Mixin class to resize the last column appropriately."""
+            def __init__(self, parent):
+                wx.ListCtrl.__init__(self, parent, id=-1, style=wx.LC_REPORT | wx.BORDER_SUNKEN)
+                listmix.ListCtrlAutoWidthMixin.__init__(self)
 
-        klist = self.kpoint_listctrl
+        self.kpoint_list = MyListCtrl(self)
+        hsizer2.Add( self.kpoint_list, 1, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+        klist = self.kpoint_list
         klist.InsertColumn(0, '#')
         klist.InsertColumn(1, 'Reduced Coords')
         klist.InsertColumn(2, 'Weight')
@@ -70,7 +78,7 @@ class SpinKpointBandPanel (wx.Panel):
     def get_skb(self):
         """Returns a tuple with the set of indices (spin, kpoint_idx, band)"""
         spin = int(self.spin_cbox.GetValue())
-        kidx  = int(self.kpoint_listctrl.GetFirstSelected())
+        kidx  = int(self.kpoint_list.GetFirstSelected())
         band = int(self.band_cbox.GetValue())
         return spin, kidx, band
 

@@ -467,7 +467,7 @@ class SIGRES_File(AbinitNcFile):
     #    super(SIGRES_File, self).__del__()
 
     @classmethod
-    def from_ncfile(cls, filepath):
+    def from_file(cls, filepath):
         """Initialize an instance from file."""
         return cls(filepath)
 
@@ -726,7 +726,7 @@ class SIGRES_Reader(ETSF_Reader):
       ! Frequencies used to evaluate the Derivative of Sigma.
     """
     def __init__(self, path):
-        self.ks_bands = ElectronBands.from_ncfile(path)
+        self.ks_bands = ElectronBands.from_file(path)
         self.nsppol = self.ks_bands.nsppol
 
         super(SIGRES_Reader, self).__init__(path)

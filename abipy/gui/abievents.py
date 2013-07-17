@@ -9,28 +9,26 @@ import wx.lib.dialogs as wxdg
 import abipy.gui.awx as awx
 import abipy.gui.electronswx as ewx
 
-#from wx.lib.editor.editor import Editor
 from abipy.waves import WFK_File
 from abipy.iotools.visualizer import supported_visunames
 
 from pymatgen.io.abinitio import EventParser
 
 
-class EventPanel(wx.Panel):
+class AbinitEventsPanel(wx.Panel):
     """
     Panel with a TreeCtrl that allows the user to navigate 
     the events (WARNINGS/COMMENTS/ERRORS) reported by ABINIT
     in the main output file or in the log file.
     """
     def __init__(self, parent, filepath):
-        super(EventPanel, self).__init__(parent, -1)
+        super(AbinitEventsPanel, self).__init__(parent, -1)
 
         self.filepath = os.path.abspath(filepath)
 
         self.BuildUi()
 
     def BuildUi(self):
-
         parser = EventParser()
         self.events = events = parser.parse(self.filepath)
 
@@ -82,19 +80,19 @@ class EventPanel(wx.Panel):
             self.display.SetLabel(data)
 
 
-class EventFrame(wx.Frame):
+class AbinitEventsFrame(wx.Frame):
     """
-    Frame with an EventPanel 
+    Frame with an EventsPanel 
     """
     def __init__(self, parent, filepath):
         self.filepath = os.path.abspath(filepath)
         title = "Abinit Events: %s" % os.path.basename(self.filepath)
-        super(EventFrame, self).__init__(parent, -1, title=title)
+        super(AbinitEventsFrame, self).__init__(parent, -1, title=title)
 
         self.BuildUi()
 
     def BuildUi(self):
-        self.event_panel = EventPanel(self, self.filepath)
+        self.event_panel = AbinitEventsPanel(self, self.filepath)
 
 class AbiOutLogDirCtrl(wx.GenericDirCtrl):
 
@@ -124,13 +122,13 @@ class AbiOutLogDirCtrl(wx.GenericDirCtrl):
     #    print("in right with path %s" % path)
 
 
-class EventsNotebookFrame(wx.Frame):
+class AbinitEventsNotebookFrame(wx.Frame):
     def __init__(self, parent, filenames, **kwargs):
 
         if "title" not in kwargs:
             kwargs["title"] = "Abinit Events"
 
-        super(EventsNotebookFrame, self).__init__(parent, **kwargs)
+        super(AbinitEventsNotebookFrame, self).__init__(parent, **kwargs)
 
         # Here we create a panel and a notebook on the panel
         p = wx.Panel(self)
@@ -142,7 +140,7 @@ class EventsNotebookFrame(wx.Frame):
         # Add the pages to the notebook with the label to show on the tab
         # Add only files for which we have events.
         for fname in filenames:
-            page = EventPanel(nb, fname)
+            page = AbinitEventsPanel(nb, fname)
             if page.has_events:
                 nb.AddPage(page, text=os.path.basename(fname))
 
@@ -151,7 +149,7 @@ class EventsNotebookFrame(wx.Frame):
         sizer.Add(nb, 1, wx.EXPAND)
         p.SetSizer(sizer)
 
-def awx_events(root):
+def wxapp_events(root):
     """
     Start up the AbinitOutputViewer application.
 
@@ -183,7 +181,7 @@ def awx_events(root):
             frame.Show() 
             return True
 
-    AbiEventsViewerApp().MainLoop()
+    return AbiEventsViewerApp()
 
 
 if __name__ == "__main__":

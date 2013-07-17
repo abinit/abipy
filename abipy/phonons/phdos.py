@@ -210,10 +210,6 @@ class PHDOS_File(AbinitNcFile):
 
         self.pjdos_type_dict = pjdos_type_dict
 
-    @classmethod
-    def from_ncfile(cls, path):
-        return cls(path)
-
     def get_structure(self):
         """Returns the `Structure` object."""
         return self.structure

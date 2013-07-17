@@ -21,7 +21,7 @@ __all__ = [
 #class DielectricTensor(object):
 #    def __init__(self):
 #    @classmethod
-#    def from_ncfile(cls, filobj):
+#    def from_file(cls, filobj):
 #    def plot(self, *args, **kwargs):
 #    def make_dielectric_function(self, qpoints):
 #    def plot_ax(self, ax, what, *args, **kwargs):
@@ -234,7 +234,7 @@ class MDF_File(AbinitNcFile):
         return self._filepath
 
     @classmethod
-    def from_ncfile(cls, filepath):
+    def from_file(cls, filepath):
         """Initialize the object from a Netcdf file"""
         return cls(filepath)
 
@@ -454,7 +454,7 @@ class DIPME_File(object):
             self.dipme_scvk = reader.read_dipme_scvk()
 
     @classmethod
-    def from_ncfile(cls, path):
+    def from_file(cls, path):
         return cls(path)
 
     def kpoint_index(self, kpoint):

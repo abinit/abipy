@@ -527,7 +527,7 @@ class KpointsInfo(dict):
                 raise ValueError("Mandatory key %s is missing" % k)
 
     @classmethod
-    def from_ncfile(cls, file):
+    def from_file(cls, file):
         """
         Initialize the object from a Netcdf file with data
         saved in the ETSF-IO format.
@@ -590,7 +590,7 @@ def kpoints_factory(file):
     file, closeit = as_etsfreader(file)
     structure = file.read_structure()
 
-    kinfo = KpointsInfo.from_ncfile(file)
+    kinfo = KpointsInfo.from_file(file)
 
     if kinfo.is_sampling:
         obj = IrredZone(structure, kinfo.frac_coords, kinfo)

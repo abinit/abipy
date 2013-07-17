@@ -90,7 +90,7 @@ class ElectronBands(object):
                 self.set_markers(k, xys)
 
     @classmethod
-    def from_ncfile(cls, file):
+    def from_file(cls, file):
         """Initialize an instance of ElectronBands from a netCDF file."""
         with Ebands_Reader(file) as r:
             return cls(r.read_structure(),
@@ -843,7 +843,7 @@ class NestingFactor(object):
         self.bands = bands
 
     @classmethod
-    def from_ncfile(cls, file):
+    def from_file(cls, file):
         """
         Initialize the object from a netcdf file containing an
         electronic band structure.

@@ -1,6 +1,7 @@
 __all__ = []
 
 _MODS = [
+    "apps",
     "frames",
     "tools",
     "dialogs",

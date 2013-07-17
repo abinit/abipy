@@ -39,9 +39,9 @@ __version__  = release.version
 from abipy.waves import WFK_File
 from abipy.electrons import SIGRES_File
 from abipy.phonons import PHBST_File
-from abipy.iotools.files import AbinitNcFile
+from abipy.iotools.files import AbinitFile, AbinitLogFile, AbinitOutputFile
 
-def ncfile_subclass_from_filename(filename):
+def abifile_subclass_from_filename(filename):
     ext2ncfile = {
         "SIGRES.nc": SIGRES_File,
         "WFK-etsf.nc": WFK_File,
@@ -50,6 +50,12 @@ def ncfile_subclass_from_filename(filename):
         #"PHDOS.nc": PHDOS_File,
         #"PHBST.nc": PHBST_File,
     }
+
+    if filename.endswith(".out"):
+        return AbinitOutputFile
+    
+    if filename.endswith(".log"):
+        return AbinitLogFile
 
     ext = filename.split("_")[-1]
     try:
@@ -65,9 +71,9 @@ def abiopen(filepath):
         filepath:
             string with the filename or `AbinitNcFile` instance
     """
-    if isinstance(filepath, AbinitNcFile):
+    if isinstance(filepath, AbinitFile):
         return filepath
 
     # Assume string.
-    ncfile = ncfile_subclass_from_filename(filepath)
-    return ncfile.from_ncfile(filepath)
+    abifile = abifile_subclass_from_filename(filepath)
+    return abifile.from_file(filepath)

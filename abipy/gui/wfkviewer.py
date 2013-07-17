@@ -9,10 +9,10 @@ import wx.lib.dialogs as wxdg
 import abipy.gui.awx as awx
 import abipy.gui.electronswx as ewx
 
-from abipy.waves import WFK_File
+from abipy import abiopen, WFK_File
 from abipy.iotools.visualizer import supported_visunames
 
-class WfkViewer(wx.Frame):
+class WfkViewerFrame(wx.Frame):
     VERSION = "0.1"
     # Toolbar items.
     ID_VISTRUCT  = wx.NewId() 
@@ -23,8 +23,8 @@ class WfkViewer(wx.Frame):
     ID_NCDUMP    = wx.NewId()
     ID_PLOTBANDS = wx.NewId()
 
-    def __init__(self, parent, filepath=None):
-        super(WfkViewer, self).__init__(parent, -1, self.codename) 
+    def __init__(self, parent, filename=None):
+        super(WfkViewerFrame, self).__init__(parent, -1, self.codename) 
 
         # Create statusbar
         self.statusbar = self.CreateStatusBar() 
@@ -46,7 +46,7 @@ class WfkViewer(wx.Frame):
         filehistory.UseMenu(recent)
         filehistory.AddFilesToMenu()
         fileMenu.AppendMenu(wx.ID_ANY, "&Recent Files", recent)
-        self.Bind(wx.EVT_MENU_RANGE, self.on_file_history, id=wx.ID_FILE1, id2=wx.ID_FILE9)
+        self.Bind(wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9)
 
         self.helpMenu = wx.Menu()
         self.helpMenu.Append(wx.ID_ABOUT, "About " + self.codename, help="Info on the application")
@@ -89,8 +89,9 @@ class WfkViewer(wx.Frame):
             self.Bind(wx.EVT_MENU, handler, id=id)
 
         self.wfk = None 
-        if filepath is not None:
-            self.read_wfkfile(filepath)
+        if filename is not None:
+            print("in read",filename)
+            self.read_wfkfile(filename)
 
     @property
     def codename(self):
@@ -132,7 +133,7 @@ class WfkViewer(wx.Frame):
 
         dlg.Destroy()
 
-    def on_file_history(self, event):
+    def OnFileHistory(self, event):
         fileNum = event.GetId() - wx.ID_FILE1
         path = self.filehistory.GetHistoryFile(fileNum)
         # move up the list
@@ -142,9 +143,15 @@ class WfkViewer(wx.Frame):
     def read_wfkfile(self, path):
         self.statusbar.PushStatusText("Reading %s" % path)
         try:
-            self.wfk = WFK_File(path)
+            wfkfile = abiopen(path)
+            if not isinstance(wfkfile, WFK_File):
+                awx.showErrorMessage(self, message="%s is not a valid WFK File" % path)
+                return
+                
+            self.wfk = wfkfile
             self.build_UI()
             self.statusbar.PushStatusText("WFK file %s loaded" % path)
+
         except Exception:
             awx.showErrorMessage(self)
 
@@ -201,22 +208,36 @@ class WfkViewer(wx.Frame):
         caption = "ncdump output for WFK file %s" % self.wfk.filepath
         wxdg.ScrolledMessageDialog(self, self.wfk.ncdump(), caption=caption, style=wx.MAXIMIZE_BOX).Show()
 
-def wfk_viewer(filepath):
-    """Start up the WfkViewer application."""
 
-    class WfkViewerApp(wx.App):
-        def OnInit(self): 
-            frame = WfkViewer(parent=None, filepath=filepath) 
-            frame.Show() 
-            self.SetTopWindow(frame) 
-            return True
+class WfkViewerApp(awx.App):
 
-    WfkViewerApp().MainLoop()
+    def OnInit(self):
+        frame = WfkViewerFrame(None, filename=None)
+        frame.Show()
+        self.SetTopWindow(frame) 
+        return True
+
+    def MacOpenFile(self, filename):
+        """Called for files droped on dock icon, or opened via finders context menu"""
+        if filename.endswith(".py"):
+            return
+        # Open filename in a new frame.
+        awx.PRINT("%s dropped on app %s" % (filename, self.appname)) 
+        frame = WfkViewerFrame(parent=None, filename=filename) 
+        frame.Show()
+        
+
+def wxapp_wfkviewer(wfk_filename):
+    app = WfkViewerApp()
+    frame = WfkViewerFrame(None, filename=wfk_filename) 
+    frame.Show() 
+    app.SetTopWindow(frame) 
+    return app
+
 
 if __name__ == "__main__":
     import sys
-    filepath = None
+    wfk_filename = None
     if len(sys.argv) > 1:
-        filepath = sys.argv[1] 
-    wfk_viewer(filepath)
-
+        wfk_filename = sys.argv[1] 
+    wxapp_wfkviewer(wfk_filename).MainLoop()

@@ -84,7 +84,7 @@ def build_scissors(options, args):
 
     bst_fname = options.bands_file
 
-    ks_bands = ElectronBands.from_ncfile(bst_fname)
+    ks_bands = ElectronBands.from_file(bst_fname)
 
     qp_bands = ks_bands.apply_scissors(scissor_spin)
 

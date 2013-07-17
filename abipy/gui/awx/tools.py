@@ -1,11 +1,14 @@
 from __future__ import print_function, division
 
 import os
+import warnings
 import wx
 
 __all__ = [
     "path_img",
     "makeAboutBox",
+    "PRINT",
+    "WARNING",
 ]
 
 #class Logger(object):
@@ -14,6 +17,22 @@ __all__ = [
 #            text = text[:-1]
 #        wx.LogMessage(text)
 #    write = WriteText
+
+_DEBUG = True
+
+if _DEBUG:
+    def PRINT(*args, **kwargs):
+        print(*args, **kwargs)
+
+    def WARNING(*args):
+        warnings.warn(" ".join(str(a) for a in args))
+else:
+    def PRINT(*args, **kwargs):
+        pass
+
+    def WARNING(*args):
+        pass
+
 
 def path_img(filename):
     """Returns the absolute path of an image."""

@@ -2,6 +2,7 @@
 from __future__ import print_function, division
 
 import os
+import abc
 import wx
 
 import wx.lib.dialogs as wxdg 
@@ -10,11 +11,11 @@ import abipy.gui.electronswx as ewx
 
 from collections import OrderedDict
 
-from abipy import ncfile_subclass_from_filename, abiopen
-from abipy.iotools.files import NcDumper 
-from abipy.iotools.files import AbinitNcFile
+from abipy import abifile_subclass_from_filename, abiopen
+from abipy.iotools.files import NcDumper, AbinitNcFile, AbinitTextFile, get_filestat
 from abipy import WFK_File, SIGRES_File
 from abipy.electrons.bse import MDF_Reader, MDF_File
+from .abievents import AbinitEventsFrame
 
 
 __all__ = [
@@ -22,37 +23,7 @@ __all__ = [
 ]
 
 
-_ABBREVS = [
-    (1<<50L, 'Pb'), 
-    (1<<40L, 'Tb'), 
-    (1<<30L, 'Gb'), 
-    (1<<20L, 'Mb'), 
-    (1<<10L, 'kb'), 
-    (1,      'b'),
-] 
-    
-def size2str(size):                                                  
-    """Convert size to string with units."""
-    for factor, suffix in _ABBREVS:                             
-        if size > factor:                                            
-            break 
-    return "%.2f " % (size/factor) + suffix
-
-
-def filestat_dict(filename):
-        stat = os.stat(filename)
-        from time import ctime
-        return OrderedDict([
-            ("Name",              os.path.basename(filename)),
-            ("Directory",         os.path.dirname(filename)),
-            ("Size",              size2str(stat.st_size)),
-            ("Access Time",       ctime(stat.st_atime)),  
-            ("Modification Time", ctime(stat.st_mtime)), 
-            #"Change Time",       ctime(stat.st_ctime)),
-        ])
-
-
-def popupmenu_for_filename(filename, parent=None):
+def popupmenu_for_filename(parent, filename):
     """
     Factory function that returns the appropriate popup menu. 
 
@@ -61,11 +32,15 @@ def popupmenu_for_filename(filename, parent=None):
             The parent wx window. Used to connect the children created
             by the popupmenu to the calling window.
     """
-    menu = PopupMenu.from_filename(filename)
+
+    if filename.endswith(".nc"):
+        menu = NcFilePopupMenu.from_filename(filename)
+    else:
+        # abinit main output file or log file.
+        menu = AbinitTextFilePopupMenu()
 
     menu.set_target(filename)
-    if parent is not None:
-        menu.set_parent(parent)
+    menu.set_parent(parent)
     return menu
 
 #--------------------------------------------------------------------------------------------------
@@ -82,10 +57,16 @@ def showNcdumpMessage(parent, filepath):
 def showFileStat(parent, filepath):
     """Open a dialog reporting file stats."""
     caption = "Info on file %s" % filepath
-    stat_dict = filestat_dict(filepath)
+    stat_dict = get_filestat(filepath)
     msg = str(stat_dict)
     style = wx.DEFAULT_FRAME_STYLE
     wxdg.ScrolledMessageDialog(parent, msg, caption=caption, size=(600, 600), style=style).Show()
+
+
+def showAbinitEvents(parent, filepath):
+    """Open a dialog reporting file stats."""
+    frame = AbinitEventsFrame(parent, filepath)
+    frame.Show()
 
 def showStructure(parent, filepath):
     ncfile = abiopen(filepath)
@@ -98,31 +79,15 @@ def showStructure(parent, filepath):
 class PopupMenu(wx.Menu):
     """
     Base class for popup menus. `A PopupMenu` has a list of callback functions
-    indexed by the menu title and a list of `AbinitNcFile` associated to it.
-    The signature of the callback function is func(filename, parent) where 
+    indexed by the menu title. The signature of the callback function is func(filename, parent) where 
     filename is the name of the file selected in the Widget and parent is the wx
     Window that will become the parent of the new frame created by the callback.
-
-    How to subclass PopupMenu:
-
-        1. Define a new class that inherits from PopupMenu. 
-
-        2. Define the callbacks in the class variable MENU_TITLES.
-           Use OrderedDict to have a fixed ordering of the labels.
-
-        3. Define the class variable HANDLED_NCFILES with the list
-           of `AbinitNcFile` subclasses associated to the popupmenu.
-
-        4. Done (most of the work is indeed done in the base class and in 
-           the factory function popupmenu_for_filename.
     """
-    MENU_TITLES = OrderedDict([
-        ("structure",  showStructure),
-        ("ncdump",     showNcdumpMessage),
-        ("properties", showFileStat),
-    ])
-
-    HANDLED_NCFILES = []
+    MENU_TITLES = {}
+    #MENU_TITLES = OrderedDict([
+    #    ("properties", showFileStat),
+    #])
+    HANDLED_FILES = []
 
     def __init__(self):
         super(PopupMenu, self).__init__()
@@ -131,24 +96,23 @@ class PopupMenu(wx.Menu):
     @staticmethod
     def from_filename(filename):
         """
-        Static factory function that instanciates the appropriate subclass of `PopupMenu`
+        Static factory function that instanciates the appropriate subclass of `NcFilePopupMenu`
         """
         # Find the AbinitNcFile subclass associated to files.
-        ncfile_class = ncfile_subclass_from_filename(filename)
-        print("ncfile_class:",ncfile_class)
+        file_class = abifile_subclass_from_filename(filename)
 
         # Check whether a subclass handles this file..
         # Fallback to a simple PopupMenu if no match.
         for popsubc in PopupMenu.__subclasses__():
-            if popsubc.handle_ncfile_class(ncfile_class):
+            if popsubc.handle_file_class(file_class):
                 return popsubc()
         else:
             return PopupMenu()
 
     @classmethod
-    def handle_ncfile_class(cls, ncfile_class):
-        """True if the popupmenu is associated to ncfile_class."""
-        return ncfile_class in cls.HANDLED_NCFILES
+    def handle_file_class(cls, file_class):
+        """True if the popupmenu is associated to file_class."""
+        return file_class in cls.HANDLED_FILES
 
     def _make_menu(self):
         """Build the menu taking into account the options of the superclasses."""
@@ -160,11 +124,10 @@ class PopupMenu(wx.Menu):
         self.menu_title_by_id, self.menu_titles = OrderedDict(), OrderedDict()
 
         for cls in base_classes:
-            #print(cls)
             try:
                 menus = cls.MENU_TITLES
             except AttributeError as exc:
-                print("exc ",exc," for cls", cls)
+                awx.WARNING("exc ",exc," for cls", cls)
                 continue
 
             self.menu_titles.update(menus)
@@ -175,7 +138,6 @@ class PopupMenu(wx.Menu):
             # Add sentinel for Menu separator.
             self.menu_title_by_id["separator_" + str(len(self.menu_titles))] = None
                                                                   
-        #print(self.menu_title_by_id)
         for (id, title) in self.menu_title_by_id.items():
             if title is None:
                 sepid = int(id.split("_")[-1])
@@ -196,7 +158,7 @@ class PopupMenu(wx.Menu):
         try:
             return self._parent
         except AttributeError:
-            print("Warning Popup menu has not parent")
+            awx.WARNING("Popup menu doesn't haveparent")
             return None
 
     def set_target(self, target):
@@ -217,22 +179,61 @@ class PopupMenu(wx.Menu):
     def OnMenuSelection(self, event):
         title = self.menu_title_by_id[event.GetId()]
         callback = self._get_callback(title)
-        print("Calling callback %s on target %s" % (callback, self.target))
-
+        #print("Calling callback %s on target %s" % (callback, self.target))
         try:
             callback(parent=self.parent, filepath=self.target)
         except:
             awx.showErrorMessage(parent=self.parent)
 
 
-class EbandsPopupMenu(PopupMenu):
-    """Popup menu for ncfiles that contain the electron band structure."""
+class AbinitTextFilePopupMenu(PopupMenu):
+    """
+    """
+    MENU_TITLES = OrderedDict([
+        ("events",     showAbinitEvents),
+    ])
+
+    HANDLED_FILES = [AbinitTextFile]
+
+
+class NcFilePopupMenu(PopupMenu):
+    """
+    Base class for popup menus. `A PopupMenu` has a list of callback functions
+    indexed by the menu title and a list of `AbinitNcFile` associated to it.
+    The signature of the callback function is func(filename, parent) where 
+    filename is the name of the file selected in the Widget and parent is the wx
+    Window that will become the parent of the new frame created by the callback.
+
+    How to subclass PopupMenu:
+
+        1. Define a new class that inherits from NcFilePopupMenu. 
+
+        2. Define the callbacks in the class variable MENU_TITLES.
+           Use OrderedDict to have a fixed ordering of the labels.
+
+        3. Define the class variable HANDLED_FILES with the list of 
+           `AbinitNcFile` subclasses associated to the popupmenu.
+
+        4. Done (most of the work is indeed done in the base class and in 
+           the factory function popupmenu_for_filename.
+    """
+    MENU_TITLES = OrderedDict([
+        ("properties", showFileStat),
+        ("structure",  showStructure),
+        ("ncdump",     showNcdumpMessage),
+    ])
+
+    HANDLED_FILES = []
+
+
+class EbandsPopupMenu(NcFilePopupMenu):
+    """Popup menu for Netcdf files that contain the electron band structure."""
     MENU_TITLES = OrderedDict([
         ("ePlot", ewx.showElectronBandsPlot),
         ("eDos",  ewx.showElectronDosFrame),
     ])
 
-    HANDLED_NCFILES = [WFK_File] 
+    HANDLED_FILES = [WFK_File] 
 
 
 def showQPData(parent, filepath):
@@ -242,13 +243,13 @@ def showQPData(parent, filepath):
     qps_spin[0].plot_qps_vs_e0()
 
 
-class SigResPopupMenu(PopupMenu):
+class SigResPopupMenu(NcFilePopupMenu):
     """Popup menu for SIGRES files."""
     MENU_TITLES = OrderedDict([
         ("qpDataPlot", showQPData),
     ])
 
-    HANDLED_NCFILES = [SIGRES_File] 
+    HANDLED_FILES = [SIGRES_File] 
 
 
 def showEXCMDF(parent, filepath):
@@ -256,11 +257,11 @@ def showEXCMDF(parent, filepath):
     mdf_file.plot_mdfs()
 
 
-class MDFPopupMenu(PopupMenu):
+class MDFPopupMenu(NcFilePopupMenu):
     """Popup menu for MDF files."""
     MENU_TITLES = OrderedDict([
         ("mdfPlot", showEXCMDF),
     ])
 
-    HANDLED_NCFILES = [MDF_File] 
+    HANDLED_FILES = [MDF_File] 
 

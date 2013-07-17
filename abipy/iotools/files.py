@@ -3,12 +3,111 @@ from __future__ import division, print_function
 
 import abc
 import os
+import collections
 
+from time import ctime
+from pymatgen.io.abinitio import EventParser
 from abipy.tools import which
 
 __all__ = [
     "AbinitNcFile",
 ]
+
+
+class AbinitFile(object):
+    """
+    Abstract base class defining the methods that must be  implemented 
+    by the concrete classes representing the different files produced by ABINIT.
+    """
+    __metaclass__ = abc.ABCMeta
+
+    def __init__(self, filepath):
+        self._filepath = os.path.abspath(filepath)
+
+    def __repr__(self):
+        return "<%s at %s, filetype = %s>" % (self.__class__.__name__, id(self), self.filetype)
+
+    @classmethod
+    def from_file(cls, filepath):
+        """Initialize the object from a string."""
+        try:
+            return cls(filepath)
+        except:
+            raise ValueError("Subclass must define the class method from_file")
+
+    @property
+    def filetype(self):
+        """String defining the filetype."""
+        return self.__class__.__name__
+
+    @property
+    def filetype(self):
+        """String defining the filetype."""
+        return self.__class__.__name__
+
+    @property
+    def filepath(self):
+        """Absolute path of the file."""
+        return self._filepath
+
+    @property
+    def basename(self):
+        """Basename of the file"""
+        return os.path.basename(self.filepath)
+
+    def filestat(self):
+        """Dictionary with file metadata"""
+        return get_filestat(self.filepath):
+
+
+class AbinitTextFile(AbinitFile):
+    """Class for the ABINIT main output file and the log file."""
+
+    @property
+    def events(self):
+        """List of ABINIT events reported in the file."""
+        try:
+            return self._events
+        except AttributeError:
+            parser = EventParser()
+            self_events = parser.parse(self.filepath)
+            return self._events
+
+    #@property
+    #def timer_data(self)
+    #    """Timer data."""
+    #    try:
+    #        return self._timer_data
+    #    except AttributeError:
+    #        parser = EventParser()
+    #        self_timer_data = parser.parse(self.filepath)
+    #        return self._timer_data
+
+
+class AbinitOutputFile(AbinitFile):
+    """Class representing the main output file."""
+
+
+class AbinitLogFile(AbinitFile):
+    """Class representing the log file."""
+
+
+class AbinitNcFile(AbinitFile):
+    """
+    Base class for the Netcdf files."""
+    __metaclass__ = abc.ABCMeta
+
+    def __str__(self):
+        return self.summary
+
+    @abc.abstractmethod
+    def get_structure(self):
+        """Returns the `Structure` object."""
+
+    def ncdump(self, *nc_args, **nc_kwargs):
+        """Returns a string with the output of ncdump."""
+        return NcDumper(*nc_args, **nc_kwargs).dump(self.filepath)
+
 
 class NcDumper(object):
     """This object wraps the ncdump tool"""
@@ -36,58 +135,32 @@ class NcDumper(object):
             return check_output(cmd)
 
 
-class AbinitNcFile(object):
-    """
-    Abstract base class defining the methods that must be 
-    implemented by the concrete classes representing the Netcdf file 
-    produces by ABINIT.
-    """
-    __metaclass__ = abc.ABCMeta
 
-    def __init__(self, filepath):
-        self._filepath = os.path.abspath(filepath)
+_ABBREVS = [
+    (1<<50L, 'Pb'), 
+    (1<<40L, 'Tb'), 
+    (1<<30L, 'Gb'), 
+    (1<<20L, 'Mb'), 
+    (1<<10L, 'kb'), 
+    (1,      'b'),
+] 
 
-    def __repr__(self):
-        return "<%s at %s, filetype = %s>" % (self.__class__.__name__, id(self), self.filetype)
 
-    def __str__(self):
-        return self.summary
+def size2str(size):                                                  
+    """Convert size to string with units."""
+    for factor, suffix in _ABBREVS:                             
+        if size > factor:                                            
+            break 
+    return "%.2f " % (size/factor) + suffix
 
-    @property
-    def filetype(self):
-        """String defining the filetype."""
-        return self.__class__.__name__
 
-    #@abstractclassmethod
-    def from_ncfile(cls, filepath):
-        """Initialize the object from a Netcdf file"""
-        try:
-            return cls(filepath)
-        except:
-            raise ValueError("Subclass must define the class method from_ncfile")
-
-    @property
-    def filepath(self):
-        """Absolute path of the file."""
-        return self._filepath
-
-    @property
-    def basename(self):
-        """Basename of the file"""
-        return os.path.basename(self.filepath)
-
-    @abc.abstractmethod
-    def get_structure(self):
-        """Returns the `Structure` object."""
-
-    #@abc.abstractproperty
-    #def summary(self):
-    #    """String summarizing the most important properties."""
-
-    #@abc.abstractproperty
-    #def fileinfo(self):
-    #    """File metadata"""
-
-    def ncdump(self, *nc_args, **nc_kwargs):
-        """Returns a string with the output of ncdump."""
-        return NcDumper(*nc_args, **nc_kwargs).dump(self.filepath)
+def get_filestat(filepath):
+    stat = os.stat(filepath)
+    return collections.OrderedDict([
+        ("Name",              os.path.basename(filepath)),
+        ("Directory",         os.path.dirname(filepath)),
+        ("Size",              size2str(stat.st_size)),
+        ("Access Time",       ctime(stat.st_atime)),  
+        ("Modification Time", ctime(stat.st_mtime)), 
+        ("Change Time",       ctime(stat.st_ctime)),
+    ])

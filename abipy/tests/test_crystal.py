@@ -15,7 +15,7 @@ class TestStructure(AbipyTest):
         assert ncfiles
         for filename in ncfiles:
             print("Reading file %s" % filename)
-            structure = Structure.from_ncfile(filename)
+            structure = Structure.from_file(filename)
             print(structure)
 
             #structure.visualize(None)

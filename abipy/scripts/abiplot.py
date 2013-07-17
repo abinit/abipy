@@ -20,7 +20,7 @@ def plot_bands(bands):
     :arg bands: string, file object or ElectronBands instance.
     """
     if not isinstance(bands, ElectronBands):
-        bands = ElectronBands.from_ncfile(bands)
+        bands = ElectronBands.from_file(bands)
 
     bands.plot()
 
@@ -47,7 +47,7 @@ def plot_bands_and_dos(bands, dos):
     :arg dos: string, file object or DOS instance.
     """
     if not isinstance(bands, ElectronBands):
-        bands = ElectronBands.from_ncfile(bands)
+        bands = ElectronBands.from_file(bands)
 
     #bands.raw_print()
 

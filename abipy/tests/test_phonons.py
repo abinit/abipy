@@ -11,7 +11,7 @@ class PhononBandsTest(AbipyTest):
         """Base tests for PhononBands"""
         filename = get_reference_file("trf2_5.out_PHBST.nc")
 
-        phbands = PhononBands.from_ncfile(filename)
+        phbands = PhononBands.from_file(filename)
         print(phbands)
 
         phbands.show_qpoints()

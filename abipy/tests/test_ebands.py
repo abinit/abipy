@@ -14,17 +14,17 @@ class ElectronBandsTest(AbipyTest):
     def test_ncread_ebands(self):
         """Read ElectronBands from WFK data files"""
         for filename in WFK_NCFILES:
-            bands = ElectronBands.from_ncfile(filename)
+            bands = ElectronBands.from_file(filename)
 
     def test_dos(self):
         """DOS methods."""
-        gs_bands = ElectronBands.from_ncfile(get_reference_file("si_WFK-etsf.nc"))
+        gs_bands = ElectronBands.from_file(get_reference_file("si_WFK-etsf.nc"))
         dos = gs_bands.get_dos()
         mu = dos.find_mu(8, atol=1.e-4)
         self.assert_almost_equal(mu, 6.1443350264585996, decimal=4)
 
     def test_jdos(self):
-        bands = ElectronBands.from_ncfile(get_reference_file("si_WFK-etsf.nc"))
+        bands = ElectronBands.from_file(get_reference_file("si_WFK-etsf.nc"))
 
         spin = 0
         conduction = [4,]
@@ -36,6 +36,6 @@ class ElectronBandsTest(AbipyTest):
 
         # Need a homogeneous sampling.
         with self.assertRaises(ValueError):
-            bands = ElectronBands.from_ncfile(get_reference_file("si_nscf_WFK-etsf.nc"))
+            bands = ElectronBands.from_file(get_reference_file("si_nscf_WFK-etsf.nc"))
             bands.get_jdos(spin, 0, 4)
 

@@ -27,10 +27,10 @@ class WFK_File(AbinitNcFile):
         super(WFK_File, self).__init__(filepath)
 
         # Initialize the  structure from file.
-        self.structure = Structure.from_ncfile(filepath)
+        self.structure = Structure.from_file(filepath)
 
         # Initialize the band energies.
-        self.bands = ElectronBands.from_ncfile(filepath)
+        self.bands = ElectronBands.from_file(filepath)
 
         self.kpoints = kpoints_factory(filepath)
         self.nkpt = len(self.kpoints)
@@ -60,11 +60,6 @@ class WFK_File(AbinitNcFile):
 
         # Save reference to the reader.
         self.reader = reader
-
-    @classmethod
-    def from_ncfile(cls, path):
-        """Initialize the object from a Netcdf file."""
-        return cls(path)
 
     @property
     def gspheres(self):

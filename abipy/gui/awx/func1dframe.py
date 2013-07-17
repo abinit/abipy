@@ -85,9 +85,9 @@ class Func1dPlotFrame(wx.Frame):
             dialogs.showErrorMessage(self)
 
 
-def main():
-    from abipy.core import Function1D
+def awx_function1d():
     import numpy as np
+    from abipy.core import Function1D
     app = wx.App()
     func1d = Function1D.from_func(np.sin, np.arange(1,100,1))
     frame = Func1dPlotFrame(None, func1d)
@@ -95,4 +95,4 @@ def main():
     app.MainLoop()
 
 if __name__ == "__main__":
-    main()
+    awx_function1d()

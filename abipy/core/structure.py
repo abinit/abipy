@@ -16,7 +16,7 @@ __all__ = [
 class Structure(pymatgen.Structure):
 
     @classmethod
-    def from_ncfile(cls, file):
+    def from_file(cls, file):
         """
         Return a new instance from a NetCDF file containing crystallographic data in the ETSF-IO format.
 
@@ -30,7 +30,7 @@ class Structure(pymatgen.Structure):
         # Change the class of new.
         new.__class__ = cls
 
-        new.set_spacegroup(SpaceGroup.from_ncfile(file))
+        new.set_spacegroup(SpaceGroup.from_file(file))
 
         if closeit:
             file.close()

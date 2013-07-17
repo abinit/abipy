@@ -13,12 +13,12 @@ from abipy.waves import WFK_File
 
 
 def showElectronDosFrame(parent, filepath):
-    bands = ElectronBands.from_ncfile(filepath)
+    bands = ElectronBands.from_file(filepath)
     ElectronDosFrame(parent, bands, title="File: %s" % filepath).Show()
 
 
 def showElectronBandsPlot(parent, filepath):
-    bands = ElectronBands.from_ncfile(filepath)
+    bands = ElectronBands.from_file(filepath)
     bands.plot(title="File: %s" % filepath)
 
 

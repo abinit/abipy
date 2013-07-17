@@ -2,7 +2,8 @@
 
 import os
 import abipy
-import abipy.gui.apps as apps
+
+import abipy.gui.wxapps as wxapps
 
 filenames = [os.path.join(abipy.get_datadir(), f) for f in  ["t01.out", "t02.out"]]
-apps.awx_events(filenames)
+wxapps.wxapp_events(filenames).MainLoop()

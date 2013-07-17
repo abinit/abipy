@@ -25,7 +25,7 @@ class EliashbergFunction(object):
         self.a2f = Function1D(mesh, a2f_tot)
 
     @classmethod
-    def from_ncfile(cls, path):
+    def from_file(cls, path):
         """Initialize the object from the data stored in a netcdf file."""
         with ETSF_Reader(path) as r:
             mesh = r.get_a2fmesh()

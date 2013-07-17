@@ -9,12 +9,13 @@ import wx
 import abipy.gui.awx as awx
 import abipy.gui.electronswx as ewx
 
+
 from abipy.iotools.files import NcDumper 
 from abipy.electrons import ElectronBands
 from abipy.waves import WFK_File
 from wx.lib.agw.floatspin import FloatSpin
 
-from abipy.gui.popupmenus import popupmenu_from_ext
+from abipy.gui.popupmenus import popupmenu_for_filename
 
 class DosPlotter(wx.Frame):
     VERSION = "0.1"
@@ -110,7 +111,7 @@ class DosPlotter(wx.Frame):
 
     def read_bands(self, path):
         try:
-            self.bands = ElectronBands.from_ncfile(path)
+            self.bands = ElectronBands.from_file(path)
             ewx.ElectronDosFrame(bands=self.bands, parent=self).Show()
         except Exception:
             awx.showErrorMessage(self)
@@ -125,63 +126,6 @@ class DosPlotter(wx.Frame):
         awx.makeAboutBox(codename=self.codename, version=self.VERSION, 
                       description="", developers="M. Giantomassi")
 
-
-class FileListPanel(wx.Panel):
-
-    def __init__(self, parent, paths=(), **kwargs):
-        super(FileListPanel, self).__init__(parent, -1, **kwargs)
-
-        self.file_list = file_list = wx.ListCtrl(self, id=-1, size=(-1,100), 
-                                     style=wx.LC_REPORT | wx.BORDER_SUNKEN
-                                     )
-        file_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRightClick)
-
-        self.ncfiles_by_id = {}
-        file_list.InsertColumn(0, "filename")
-        #file_list.InsertColumn(1, "filetype")
-        for index, path in enumerate(paths):
-            self.append_path_to_filelist(path)
-
-        self.filepicker = wx.FilePickerCtrl(self, id=-1, path=os.getcwd(),
-            wildcard="Netcdf files (*.nc)|*nc", style = wx.FLP_OPEN | wx.CHANGE_DIR)
-
-        self.Bind(wx.EVT_FILEPICKER_CHANGED, self.onFilePicker)
-
-        # Pack
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(file_list, 0, wx.ALL | wx.EXPAND, 5)
-        sizer.Add(self.filepicker, 0, wx.ALL | wx.CENTER, 5)
-        self.SetSizer(sizer)
-
-    def append_path_to_filelist(self, path):
-        next = len(self.ncfiles_by_id)
-        try:
-            #ncfile = abiopen(path)
-            #file_type = ncfile.__class__.__name__
-            #file_type = ncfile.filetype
-            ncid = id(path)
-            self.ncfiles_by_id[ncid] = path
-            #entry = [os.path.basename(path), file_type]
-            entry = [os.path.basename(path)]
-            self.file_list.Append(entry)
-            self.file_list.SetItemData(next, ncid)
-        except:
-            awx.showErrorMessage(self)
-
-    def onFilePicker(self, event):
-        self.append_path_to_filelist(self.filepicker.GetPath())
-
-    def onRightClick(self, event):
-        currentItem = event.m_itemIndex
-
-        if currentItem != -1:
-            ncfile = self.ncfiles_by_id[self.file_list.GetItemData(currentItem)]
-            print("Select ncfile: ",ncfile)
-
-            # Open the popup menum then destroy it to avoid mem leak.
-            menu = popupmenu_from_ext(ncfile)
-            self.PopupMenu(menu, event.GetPoint())
-            menu.Destroy() 
 
 def dos_plotter():
     app = wx.App()
