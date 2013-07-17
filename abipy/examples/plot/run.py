@@ -10,16 +10,20 @@ from __future__ import print_function
 
 import sys
 import os 
+import time
 import shutil
+
+from argparse import ArgumentParser
+from subprocess import call, Popen
 
 CONF_FILE = None
 BKP_FILE = None
 
-def change_backend(new_backend=None):
+def change_backend(new_backend=""):
     """Change the backend by modifying the matplotlib configuration file."""
     global CONF_FILE, BKP_FILE
 
-    if new_backend is None:
+    if not new_backend:
         return 
 
     home = os.environ["HOME"]
@@ -47,19 +51,70 @@ def revert_backend():
     if BKP_FILE is not None:
         shutil.move(BKP_FILE, CONF_FILE)
 
+def str_examples():
+    examples = """
+      Usage example:\n\n
+      run.py               => Run all scripts.
+      run.py -m auto -t 5  => Run all scripts, kill the process after 5 seconds.
+    """
+    return examples
+
+def show_examples_and_exit(err_msg=None, error_code=1):
+    """Display the usage of the script."""
+    sys.stderr.write(str_examples())
+    if err_msg: 
+        sys.stderr.write("Fatal Error\n" + err_msg + "\n")
+    sys.exit(error_code)
+
 
 def main():
-    new_backend = None
-    if len(sys.argv) > 1:
-        new_backend = sys.argv[1]
+    parser = ArgumentParser(epilog=str_examples())
 
-    change_backend(new_backend=new_backend)
+    parser.add_argument('-b', '--backend', type=str, default="",
+                        help="matplotlib backend")
 
-    import subprocess
+    parser.add_argument('-m', '--mode', type=str, default="sequential",
+                        help="Execution mode")
+
+    parser.add_argument('-t', '--time', type=float, default=3,
+                        help="Wait time seconds before running next demo.")
+
+    options = parser.parse_args()
+
+    change_backend(new_backend=options.backend)
+
+    # Find scripts.
+    scripts = []
     for fname in os.listdir("."):
-        if fname.endswith(".py") and fname != "run.py":
-            retcode = subprocess.call(["python", fname])
+        if fname.endswith(".py") and fname.startswith("plot_"):
+            scripts.append(fname)
+
+    # Run scripts according to mode.
+    if options.mode == "sequential":
+        for script in scripts:
+            retcode = call(["python", script])
             if retcode != 0: break
+
+    elif options.mode == "auto":
+        for script in scripts:
+            p = Popen(["python", script])
+            time.sleep(options.time)
+            p.kill()
+        retcode = 0
+
+    elif options.mode == "screenshot":
+        processes = []
+        for script in scripts:
+            p = Popen(["python", script])
+            processes.append(p)
+            
+        time.sleep(options.time)
+        for p in processes:
+            p.kill()
+        retcode = 0
+
+    else:
+        show_examples_and_exit(err_msg="Wrong value for mode: %s" % options.mode)
 
     revert_backend()
     return retcode

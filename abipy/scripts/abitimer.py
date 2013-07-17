@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Script for analyzing the data saved by the ABINT timer in the TIMER section"""
+
 from __future__ import print_function, division
 import sys
 import matplotlib.pyplot as plt
@@ -62,4 +63,4 @@ def main():
 ###############################################################################
 
 if __name__ == "__main__":
-  sys.exit(main())
+    sys.exit(main())

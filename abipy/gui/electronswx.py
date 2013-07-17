@@ -5,7 +5,12 @@ import wx
 import abipy.gui.awx as awx 
 
 from wx.lib.agw.floatspin import FloatSpin
-from wxmplot import PlotFrame
+try:
+    from wxmplot import PlotFrame
+except ImportError:
+    import warnings
+    warnings.warn("Error while import wxmplot. Some features won't be available")
+
 from abipy.tools import AttrDict
 from abipy import abiopen
 from abipy.electrons import ElectronBands

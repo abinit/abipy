@@ -36,28 +36,24 @@ class AbinitFile(object):
             raise ValueError("Subclass must define the class method from_file")
 
     @property
-    def filetype(self):
-        """String defining the filetype."""
-        return self.__class__.__name__
-
-    @property
-    def filetype(self):
-        """String defining the filetype."""
-        return self.__class__.__name__
-
-    @property
     def filepath(self):
         """Absolute path of the file."""
         return self._filepath
 
     @property
     def basename(self):
-        """Basename of the file"""
+        """Basename of the file."""
         return os.path.basename(self.filepath)
+
+    @property
+    def filetype(self):
+        """String defining the filetype."""
+        return self.__class__.__name__
+
 
     def filestat(self):
         """Dictionary with file metadata"""
-        return get_filestat(self.filepath):
+        return get_filestat(self.filepath)
 
 
 class AbinitTextFile(AbinitFile):
@@ -84,17 +80,19 @@ class AbinitTextFile(AbinitFile):
     #        return self._timer_data
 
 
-class AbinitOutputFile(AbinitFile):
+class AbinitOutputFile(AbinitTextFile):
     """Class representing the main output file."""
 
 
-class AbinitLogFile(AbinitFile):
+class AbinitLogFile(AbinitTextFile):
     """Class representing the log file."""
 
 
 class AbinitNcFile(AbinitFile):
     """
-    Base class for the Netcdf files."""
+    Abstract class representing a Netcdf file with data written 
+    according to the ETSF-IO specifications (when available).
+    """
     __metaclass__ = abc.ABCMeta
 
     def __str__(self):

@@ -40,7 +40,7 @@ def main():
         if fname.endswith(".py") and fname.startswith("demo_"):
             scripts.append(fname)
 
-    # Run scripts according to mode.
+    # Run scripts depending on mode.
     if options.mode == "sequential":
         for script in scripts:
             retcode = call(["python", script])
@@ -59,15 +59,16 @@ def main():
             p = Popen(["python", script])
             processes.append(p)
             
-        #time.sleep(60)
-        #for p in processes:
-        #    p.kill()
+        time.sleep(options.time)
+        for p in processes:
+            p.kill()
         retcode = 0
 
     else:
         show_examples_and_exit(err_msg="Wrong value for mode: %s" % options.mode)
 
     return retcode
+
 
 if __name__ == "__main__":
     sys.exit(main())

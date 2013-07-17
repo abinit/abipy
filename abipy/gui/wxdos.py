@@ -5,10 +5,8 @@ import sys
 import os
 import wx
 
-
 import abipy.gui.awx as awx
 import abipy.gui.electronswx as ewx
-
 
 from abipy.iotools.files import NcDumper 
 from abipy.electrons import ElectronBands

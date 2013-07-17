@@ -176,7 +176,7 @@ def wxapp_events(root):
 
     class AbiEventsViewerApp(wx.App):
         def OnInit(self): 
-            frame = EventsNotebookFrame(None, filenames)
+            frame = AbinitEventsNotebookFrame(None, filenames)
             self.SetTopWindow(frame) 
             frame.Show() 
             return True

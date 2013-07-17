@@ -12,7 +12,7 @@ import abipy.gui.electronswx as ewx
 from collections import OrderedDict
 
 from abipy import abifile_subclass_from_filename, abiopen
-from abipy.iotools.files import NcDumper, AbinitNcFile, AbinitTextFile, get_filestat
+from abipy.iotools.files import NcDumper, AbinitNcFile, AbinitLogFile, AbinitOutputFile, get_filestat
 from abipy import WFK_File, SIGRES_File
 from abipy.electrons.bse import MDF_Reader, MDF_File
 from .abievents import AbinitEventsFrame
@@ -33,11 +33,12 @@ def popupmenu_for_filename(parent, filename):
             by the popupmenu to the calling window.
     """
 
-    if filename.endswith(".nc"):
-        menu = NcFilePopupMenu.from_filename(filename)
-    else:
-        # abinit main output file or log file.
-        menu = AbinitTextFilePopupMenu()
+    menu = PopupMenu.from_filename(filename)
+    #if filename.endswith(".nc"):
+    #    menu = NcFilePopupMenu()
+    #else:
+    #    # abinit main output file or log file.
+    #    menu = AbinitTextFilePopupMenu()
 
     menu.set_target(filename)
     menu.set_parent(parent)
@@ -83,10 +84,9 @@ class PopupMenu(wx.Menu):
     filename is the name of the file selected in the Widget and parent is the wx
     Window that will become the parent of the new frame created by the callback.
     """
-    MENU_TITLES = {}
-    #MENU_TITLES = OrderedDict([
-    #    ("properties", showFileStat),
-    #])
+    MENU_TITLES = OrderedDict([
+    ])
+
     HANDLED_FILES = []
 
     def __init__(self):
@@ -103,9 +103,22 @@ class PopupMenu(wx.Menu):
 
         # Check whether a subclass handles this file..
         # Fallback to a simple PopupMenu if no match.
-        for popsubc in PopupMenu.__subclasses__():
-            if popsubc.handle_file_class(file_class):
-                return popsubc()
+        def allsubclasses(cls):
+            """Returns the set of subclasses of cls."""
+            children = [cls]
+            for sc in cls.__subclasses__():
+                if sc.__subclasses__():
+                    for k in sc.__subclasses__():
+                        children.extend(allsubclasses(k))
+                else:
+                    children.append(sc)
+            return set(children)
+            
+        for cls in allsubclasses(PopupMenu):
+            #print("all",allsubclasses(PopupMenu))
+            if cls.handle_file_class(file_class):
+                #awx.PRINT(cls," will handle ", filename) 
+                return cls()
         else:
             return PopupMenu()
 
@@ -158,7 +171,7 @@ class PopupMenu(wx.Menu):
         try:
             return self._parent
         except AttributeError:
-            awx.WARNING("Popup menu doesn't haveparent")
+            awx.WARNING("Popup menu doesn't have parent")
             return None
 
     def set_target(self, target):
@@ -191,9 +204,10 @@ class AbinitTextFilePopupMenu(PopupMenu):
     """
     MENU_TITLES = OrderedDict([
         ("events",     showAbinitEvents),
+        ("properties", showFileStat),
     ])
 
-    HANDLED_FILES = [AbinitTextFile]
+    HANDLED_FILES = [AbinitLogFile, AbinitOutputFile]
 
 
 class NcFilePopupMenu(PopupMenu):
@@ -218,9 +232,9 @@ class NcFilePopupMenu(PopupMenu):
            the factory function popupmenu_for_filename.
     """
     MENU_TITLES = OrderedDict([
-        ("properties", showFileStat),
         ("structure",  showStructure),
         ("ncdump",     showNcdumpMessage),
+        ("properties", showFileStat),
     ])
 
     HANDLED_FILES = []

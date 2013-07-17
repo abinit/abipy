@@ -71,6 +71,12 @@ class FileListPanel(wx.Panel, listmix.ColumnSorterMixin):
     def __init__(self, parent, dirpaths=None, filepaths=None, wildcard=None, **kwargs):
         wx.Panel.__init__(self, parent, -1, **kwargs)
 
+        if isinstance(dirpaths, str) and dirpaths:
+            dirpaths = [dirpaths,]
+
+        if isinstance(filepaths, str) and filepaths:
+            filepaths = [filepaths,]
+
         self.dirpaths = dirpaths if dirpaths is not None else []
         self.filepaths = filepaths if filepaths is not None else []
 
@@ -219,21 +225,19 @@ def wxapp_dirbrowser(dirpath):
     return app
 
 
-def wxapp_listbrowser():
-    dirpaths = None
-    if len(sys.argv) > 1:
-        dirpaths = sys.argv[1:]
-
+def wxapp_listbrowser(dirpaths=None, filepaths=None, wildcard=""):
     app = wx.App()
     frame = wx.Frame(None,-1)
-    #panel = FileListPanel(frame, dirpaths=dirpaths, wildcard="Netdf file (*.nc) |*.nc")
-    panel = FileListPanel(frame, dirpaths=dirpaths)
+    panel = FileListPanel(frame, dirpaths=dirpaths, filepaths=filepaths, wildcard=wildcard)
     frame.Show()
     return app
 
 
 if __name__ == "__main__":
-    wxapp_listbrowser().MainLoop()
+    dirpaths = None
+    if len(sys.argv) > 1:
+        dirpaths = sys.argv[1:]
+    wxapp_listbrowser(dirpaths=dirpaths).MainLoop()
     #dirpath = None
     #if len(sys.argv) > 1: dirpath = sys.argv[1]
     #wxapp_dirbrowser(dirpath).MainLoop()
