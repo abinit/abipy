@@ -32,7 +32,6 @@ def popupmenu_for_filename(parent, filename):
             The parent wx window. Used to connect the children created
             by the popupmenu to the calling window.
     """
-
     menu = PopupMenu.from_filename(filename)
     menu.set_target(filename)
     menu.set_parent(parent)
@@ -83,7 +82,7 @@ def showStructure(parent, filepath):
 class PopupMenu(wx.Menu):
     """
     Base class for popup menus. `A PopupMenu` has a list of callback functions
-    indexed by the menu title. The signature of the callback function is func(filename, parent) where 
+    indexed by the menu title. The signature of the callback function is func(parent, filename) where 
     filename is the name of the file selected in the Widget and parent is the wx
     Window that will become the parent of the new frame created by the callback.
     """

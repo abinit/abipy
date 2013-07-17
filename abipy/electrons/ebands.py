@@ -1,10 +1,12 @@
 from __future__ import division, print_function
 
+import os
 import sys
 import tempfile
 import collections
 import itertools
 import numpy as np
+
 
 from abipy.core.constants import Ha_eV, eV_Ha, Bohr_Ang
 from abipy.core.func1d import Function1D
@@ -15,7 +17,8 @@ from .edos import ElectronDOS
 
 __all__ = [
     "ElectronBands",
-    "EBands_Plotter",
+    "EBandsPlotter",
+    "ElectronDosPlotter",
 ]
 
 
@@ -861,7 +864,7 @@ class NestingFactor(object):
 #########################################################################################
 
 
-class EBands_Plotter(object):
+class EBandsPlotter(object):
     """
     Class for plotting electronic bands structure and DOSes.
     Supports plots on the same graph or separated plots.
@@ -879,6 +882,17 @@ class EBands_Plotter(object):
         for o in itertools.product( self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
             yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
 
+    def add_bands_from_file(self, filepath, label=None):
+        """
+        Adds a band structure for plotting. Reads data from a Netcdfile
+        """
+        from abipy import abiopen
+        ncfile = abiopen(filepath)
+        bands = ncfile.get_bands()
+        if label is None: label = ncfile.filepath
+
+        self.add_bands(label, ncfile.get_bands())
+
     def add_bands(self, label, bands, dos=None):
         """
         Adds a band structure for plotting.
@@ -891,11 +905,13 @@ class EBands_Plotter(object):
             dos:
                 `ElectronDos` object.
         """
-        if label in self._doses:
+        if label in self._bands:
             raise ValueError("label %s is already in %s" % (label, self._bands.keys()))
 
         self._bands[label] = bands
-        self._doses[label] = dos
+
+        if dos is not None:
+            self._doses[label] = dos
 
     def add_bands_list(self, labels, bands_list, dos_list=None):
         """
@@ -1005,6 +1021,89 @@ class EBands_Plotter(object):
             for (label, dos) in self._doses.items():
                 print(label, dos)
                 dos.plot_ax(ax, exchange_xy=True, **opts_label[label])
+
+        if show:
+            plt.show()
+
+        if savefig is not None:
+            fig.savefig(savefig)
+
+        return fig
+
+
+class ElectronDosPlotter(object):
+    """
+    Class for plotting electronic DOSes.
+    """
+    #_LINE_COLORS = ["b", "r",]
+    #_LINE_STYLES = ["-",":","--","-.",]
+    #_LINE_WIDTHS = [2,]
+
+    def __init__(self):
+        self._doses = collections.OrderedDict()
+
+    #def iter_lineopt(self):
+    #    """Generates style options for lines."""
+    #    for o in itertools.product( self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
+    #        yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
+
+    def add_dos_from_file(self, filepath, label=None, method="gaussian", step=0.1, width=0.2):
+        """
+        Adds a dos for plotting. Reads data from a Netcdfile
+        """
+        from abipy import abiopen
+        bands = abiopen(filepath).get_bands()
+        dos = bands.get_dos(method=method, step=step, width=width)
+        if label is None: label = filepath
+
+        self.add_dos(label, dos)
+
+    def add_dos(self, label, dos):
+        """
+        Adds a DOS for plotting.
+
+        Args:
+            label:
+                label for the DOS. Must be unique.
+            dos:
+                `ElectronDos` object.
+        """
+        if label in self._doses:
+            raise ValueError("label %s is already in %s" % (label, self._doses.keys()))
+
+        self._doses[label] = dos
+
+    def plot(self, **kwargs):
+        """
+        Plot the band structure and the DOS.
+
+        ==============  ==============================================================
+        kwargs          Meaning
+        ==============  ==============================================================
+        title           Title of the plot (Default: None).
+        show            True to show the figure (Default).
+        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
+        ==============  ==============================================================
+
+        Returns:
+            `matplotlib` figure.
+        """
+        title = kwargs.pop("title", None)
+        show = kwargs.pop("show", True)
+        savefig = kwargs.pop("savefig", None)
+
+        import matplotlib.pyplot as plt
+
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+
+        for (label, dos) in self._doses.items():
+            dos.plot_ax(ax, label=label)
+
+        ax.grid(True)
+        ax.set_xlabel("Energy [eV]")
+        ax.set_ylabel("DOS")
+        ax.legend()
 
         if show:
             plt.show()

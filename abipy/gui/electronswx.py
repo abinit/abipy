@@ -61,6 +61,35 @@ class ElectronDosPanel(wx.Panel):
             ))
 
 
+class ElectronDosDialog(wx.Dialog):
+    
+    def __init__(self, parent, **kwargs):
+        super(ElectronDosDialog, self).__init__(parent, -1, **kwargs) 
+            
+        self.SetSize((250, 200))
+        self.SetTitle("Select DOS parameters")
+
+        vbox = wx.BoxSizer(wx.VERTICAL)
+
+        self.panel = ElectronDosPanel(self)
+
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+
+        ok_button = wx.Button(self, wx.ID_OK, label='Ok')
+        close_button = wx.Button(self, wx.ID_CANCEL, label='Cancel')
+
+        hbox.Add(ok_button)
+        hbox.Add(close_button, flag=wx.LEFT, border=5)
+
+        vbox.Add(self.panel, proportion=1,  flag=wx.ALL|wx.EXPAND, border=5)
+        vbox.Add(hbox, flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)
+
+        self.SetSizer(vbox)
+
+    def GetParams(self):
+        return self.panel.GetParams()
+        
+
 class ElectronDosFrame(wx.Frame):
     """This frames allows the user to control and compute the Electron DOS."""
 

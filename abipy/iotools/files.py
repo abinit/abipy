@@ -30,10 +30,13 @@ class AbinitFile(object):
     @classmethod
     def from_file(cls, filepath):
         """Initialize the object from a string."""
+        if isinstance(filepath, cls):
+            return filepath
+
         try:
             return cls(filepath)
-        except:
-            raise ValueError("Subclass must define the class method from_file")
+        except Exception as exc:
+            raise ValueError("%s\n Perhaps the subclass %s must redefine the classmethod from_file\n" % (str(exc), cls))
 
     @property
     def filepath(self):

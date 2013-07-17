@@ -229,10 +229,6 @@ class MDF_File(AbinitNcFile):
             self.rpanlf_mdf = r.read_rpanlf_mdf()
             self.gwnlf_mdf = r.read_gwnlf_mdf()
 
-    @property
-    def filepath(self):
-        return self._filepath
-
     @classmethod
     def from_file(cls, filepath):
         """Initialize the object from a Netcdf file"""
@@ -241,6 +237,17 @@ class MDF_File(AbinitNcFile):
     def get_structure(self):
         """Returns the `Structure` object."""
         return self.structure
+
+    def get_mdf(self, mdf_type="exc"):
+
+        if mdf_type == "exc":
+            return self.exc_mdf
+        elif mdf_type == "rpa":
+            return self.rpanlf_mdf
+        elif mdf_type == "gwrpa":
+            return self.gwnlf_mdf 
+        else:
+            raise ValueError("Wrong value for mdf_type %s" % mdf_type)
 
     def plot_mdfs(self, cplx_mode="Im", mdf_select="all", **kwargs):
         """Plot the macroscopic dielectric function."""
@@ -352,23 +359,23 @@ class MDF_Plotter(object):
 
         self._mdfs[label] = mdf
 
-    def add_mdf_dict(self, mdf_dict, key_sort_func=None):
+    def add_mdf_from_file(self, filepath, mdf_type="exc", label=None):
         """
-        Add a dictionary of MDFs, with an optional sorting function for the keys.
+        Adds a mdf for plotting. Reads data from file filepaths.
 
         Args:
-            mfd_dict:
-                dict of {label: mdf}
-            key_sort_func:
-                function used to sort the mdf_dict keys.
+            mdf_type:
+                String defing the type of mdf.
+            label:
+                Optional string used to label the plot.
         """
-        if key_sort_func:
-            keys = sorted(mdf_dict.keys(), key=key_sort_func)
-        else:
-            keys = mdf_dict.keys()
+        from abipy import abiopen
+        ncfile = abiopen(filepath)
+        mdf = ncfile.get_mdf(mdf_type=mdf_type)
+        if label is None: 
+            label = mdf_type + ncfile.filepath
 
-        for label in keys:
-            self.add_mdf(label, mdf_dict[label])
+        self.add_mdf(label, mdf)
 
     def plot(self, cplx_mode="Im", *args, **kwargs):
         """

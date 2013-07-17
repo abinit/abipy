@@ -68,7 +68,7 @@ import wx.lib.mixins.listctrl as listmix
 class FileListPanel(wx.Panel, listmix.ColumnSorterMixin):
 
     def __init__(self, parent, dirpaths=None, filepaths=None, wildcard=None, **kwargs):
-        wx.Panel.__init__(self, parent, -1, **kwargs)
+        super(FileListPanel, self).__init__(parent, -1, **kwargs)
 
         if isinstance(dirpaths, str) and dirpaths:
             dirpaths = [dirpaths,]
@@ -208,6 +208,16 @@ class FileListPanel(wx.Panel, listmix.ColumnSorterMixin):
             indices.append(self.file_list.GetNextSelected(indices[-1]))
         indices = indices[:-1]
         awx.PRINT("in OnItemSelected with indices:", indices)
+
+        # Plot multiple bands
+        if len(indices) > 1:
+            from abipy.electrons import EBandsPlotter
+            plotter = EBandsPlotter()
+            for index in indices:
+                fd = self.id2filedata[self.file_list.GetItemData(index)]
+                print("adding ",fd.abspath)
+                plotter.add_bands_from_file(fd.abspath)
+            plotter.plot()
 
 
 def wxapp_dirbrowser(dirpath):

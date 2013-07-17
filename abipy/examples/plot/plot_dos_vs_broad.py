@@ -16,16 +16,11 @@ gs_bands = gs_wfk.get_bands()
 widths = [0.1, 0.2, 0.3]
 step = 0.1
 
-fig = plt.figure()
-ax = fig.add_subplot(1,1,1)
+plotter = ElectronDosPlotter()
 
 for width in widths:
    dos = gs_bands.get_dos(method="gaussian", step=step, width=width)
-   dos.plot_ax(ax, label="$\sigma = %s$ [eV]" % width)
+   label="$\sigma = %s$ [eV]" % width
+   plotter.add_dos(label, dos)
 
-ax.grid(True)
-ax.set_xlabel("Energy [eV]")
-ax.set_ylabel("DOS")
-ax.legend()
-
-plt.show()
+plotter.plot()

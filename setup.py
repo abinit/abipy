@@ -120,8 +120,8 @@ install_requires = [
 "scipy>=0.10",
 "numpy>=1.5",
 "netCDF4",
-#"wxpython",
-#wxmplot",
+#"wxPython",
+#"wxmplot",
 ]
 
 #---------------------------------------------------------------------------

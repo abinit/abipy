@@ -5,7 +5,7 @@ import awx
 import collections
 import fnmatch
 
-from abipy.electrons import EBandsPlotter
+from abipy.electrons import EBandsPlotter, ElectronDosPlotter
 
 class FileCheckBoxPanel ( wx.Panel ):
 
@@ -117,8 +117,8 @@ class ComparisonFrame(wx.Frame):
         st1.Wrap( -1 )
         hsizer.Add(st1, 0, wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.BOTTOM|wx.LEFT, 5 )
 
-        plotter_choices = ["bands",]
-        self.plotter_cbox = wx.ComboBox( self, -1, "bands", wx.DefaultPosition, wx.DefaultSize, plotter_choices, 0 )
+        plotter_choices = ["ebands", "edos",]
+        self.plotter_cbox = wx.ComboBox( self, -1, "ebands", wx.DefaultPosition, wx.DefaultSize, plotter_choices, 0 )
         hsizer.Add( self.plotter_cbox, 0, wx.ALL, 5 )
 
         compare_button = wx.Button( self, -1, "Compare", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -138,35 +138,38 @@ class ComparisonFrame(wx.Frame):
         awx.PRINT("selected",selected)
 
         choice = self.plotter_cbox.GetValue()
-
         try:
-            if choice == "bands":
+            if choice == "ebands":
                 plotter = EBandsPlotter()
-                for file in selected:
-                    plotter.add_bands_from_file(file)
+                for filepath in selected:
+                    plotter.add_bands_from_file(filepath)
                 plotter.plot()
 
+            elif choice == "edos":
+                # Open dialog to ask the user the DOS parameters.
+                from abipy.gui.electronswx import ElectronDosDialog
+                dos_dialog = ElectronDosDialog(None)
+
+                if dos_dialog.ShowModal() == wx.ID_OK:
+                    p = dos_dialog.GetParams()
+                    print(p)
+                    plotter = ElectronDosPlotter()
+                    for filepath in selected:
+                        plotter.add_dos_from_file(filepath, **p)
+                    plotter.plot()
+
+                dos_dialog.Destroy()
+
+            #elif choice == "mdf":
+            #    from abipy.electrons import MDF_Plotter
+            #    plotter = MDF_Plotter()
+            #    for filepath in selected:
+            #        plotter.add_mdf_from_file(filepath, mdf_type="exc")
+            #    plotter.plot()
+
             else:
-                awx.showErrorMessage(self, message="No fallback registered for choice %s" % choice)
+                awx.showErrorMessage(self, message="No function registered for choice %s" % choice)
 
         except Exception as exc:
             awx.showErrorMessage(self, message=str(exc))
 
-
-def main():
-    import sys
-    import os
-    app = wx.App()
-
-    filepaths = ["ciao.nc", "hello.out", "a"]
-    dir = sys.argv[1]
-    filepaths = [os.path.join(dir, f) for f in os.listdir(sys.argv[1])]
-    #frame = wx.Frame(None, -1)
-    #panel = FileCheckBoxPanel(frame, filepaths)
-    frame = ComparisonFrame(None, filepaths=filepaths)
-    app.SetTopWindow(frame)
-    frame.Show()
-    app.MainLoop()
-
-if __name__ == "__main__":
-    main()

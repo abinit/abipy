@@ -15,7 +15,7 @@ from abipy.waves import WFK_File
 from abipy.iotools.visualizer import supported_visunames
 
 from pymatgen.io.abinitio import EventParser
-
+from abipy.htc.abitimer import Section
 
 class AbinitEventsPanel(wx.Panel):
     """
@@ -44,8 +44,8 @@ class AbinitEventsPanel(wx.Panel):
         root = self.tree.AddRoot('Events')
 
         err_tree = tree.AppendItem(root, "%d Errors" % events.num_errors)
-        warn_tree = tree.AppendItem(root, "%s Warnings" % events.num_warnings)
-        com_tree = tree.AppendItem(root, "%s Comments" % events.num_comments)
+        warn_tree = tree.AppendItem(root, "%d Warnings" % events.num_warnings)
+        com_tree = tree.AppendItem(root, "%d Comments" % events.num_comments)
 
         for e in self.events.errors:
             tree.AppendItem(err_tree, "line: " + str(e.lineno), data=wx.TreeItemData(e.message))
@@ -136,7 +136,6 @@ class AbinitEventsNotebookFrame(wx.Frame):
         p = wx.Panel(self)
 
         import wx.lib.agw.flatnotebook as fnb
-        #nb = wx.Notebook(p)
         nb = fnb.FlatNotebook(p)
 
         # Add the pages to the notebook with the label to show on the tab
@@ -168,7 +167,6 @@ def wxapp_events(root):
     elif isinstance(root, str):
         root = os.path.abspath(root)
         if os.path.isdir(root):
-                #filenames = [os.path.join(root, f) for f in ["t01.out", "t02.out"]]
             filenames = [os.path.join(root, f) for f in os.listdir(root) if f.endswith(".out")]
         else:
             filenames = [root]
@@ -208,15 +206,14 @@ class AbinitTimerFrame(wx.Frame):
         self.BuildUi()
 
     def BuildUi(self):
-        timer_data = self.timer_data
 
-        # Callbacks (bound methods of AbiTimerData).
+        # Set callbacks (bound methods of AbiTimerData).
+        timer_data = self.timer_data
         self.plot_types = OrderedDict([
             ("pie",          timer_data.show_pie),
             ("stacked_hist", timer_data.show_stacked_hist),
         ])
 
-        from abipy.htc.abitimer import Section
         keys = Section.NUMERIC_FIELDS
 
         main_sizer = wx.BoxSizer( wx.VERTICAL )
@@ -252,11 +249,5 @@ class AbinitTimerFrame(wx.Frame):
         kwargs = dict(
             key=str(self.key_cbox.GetValue())
         )
-        print(callback, kwargs)
         callback(**kwargs)
 
-if __name__ == "__main__":
-    import sys
-    root = None
-    if len(sys.argv) > 1: root = sys.argv[1:]
-    awx_events(root)
