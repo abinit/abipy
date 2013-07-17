@@ -9,6 +9,7 @@ __all__ = [
     "makeAboutBox",
     "PRINT",
     "WARNING",
+    "Error",
 ]
 
 #class Logger(object):
@@ -32,6 +33,9 @@ else:
 
     def WARNING(*args):
         pass
+
+class Error(Exception):
+    """Base class for exceptions"""
 
 
 def path_img(filename):

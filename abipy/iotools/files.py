@@ -69,15 +69,17 @@ class AbinitTextFile(AbinitFile):
             self_events = parser.parse(self.filepath)
             return self._events
 
-    #@property
-    #def timer_data(self)
-    #    """Timer data."""
-    #    try:
-    #        return self._timer_data
-    #    except AttributeError:
-    #        parser = EventParser()
-    #        self_timer_data = parser.parse(self.filepath)
-    #        return self._timer_data
+    @property
+    def timer_data(self):
+        """Timer data."""
+        try:
+            return self._timer_data
+        except AttributeError:
+            from abipy.htc.abitimer import AbiTimerParser
+            parser = AbiTimerParser()
+            parser.read(self.filepath)
+            self._timer_data = parser
+            return self._timer_data
 
 
 class AbinitOutputFile(AbinitTextFile):

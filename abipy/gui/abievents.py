@@ -5,10 +5,12 @@ import sys
 import os
 import wx
 
-import wx.lib.dialogs as wxdg 
+import wx.lib.dialogs as wxdg
 import abipy.gui.awx as awx
 import abipy.gui.electronswx as ewx
 
+from collections import OrderedDict
+from abipy import abiopen
 from abipy.waves import WFK_File
 from abipy.iotools.visualizer import supported_visunames
 
@@ -17,7 +19,7 @@ from pymatgen.io.abinitio import EventParser
 
 class AbinitEventsPanel(wx.Panel):
     """
-    Panel with a TreeCtrl that allows the user to navigate 
+    Panel with a TreeCtrl that allows the user to navigate
     the events (WARNINGS/COMMENTS/ERRORS) reported by ABINIT
     in the main output file or in the log file.
     """
@@ -73,7 +75,7 @@ class AbinitEventsPanel(wx.Panel):
     def OnSelChanged(self, event):
         item =  event.GetItem()
         lineno = self.tree.GetItemText(item)
-        proxy = self.tree.GetItemData(item) 
+        proxy = self.tree.GetItemData(item)
 
         if proxy is not None:
             data = proxy.GetData()
@@ -82,7 +84,7 @@ class AbinitEventsPanel(wx.Panel):
 
 class AbinitEventsFrame(wx.Frame):
     """
-    Frame with an EventsPanel 
+    Frame with an EventsPanel
     """
     def __init__(self, parent, filepath):
         self.filepath = os.path.abspath(filepath)
@@ -164,28 +166,97 @@ def wxapp_events(root):
         filenames = []
 
     elif isinstance(root, str):
-            root = os.path.abspath(root)
-            if os.path.isdir(root):
+        root = os.path.abspath(root)
+        if os.path.isdir(root):
                 #filenames = [os.path.join(root, f) for f in ["t01.out", "t02.out"]]
-                filenames = [os.path.join(root, f) for f in os.listdir(root) if f.endswith(".out")]
-            else:
-                filenames = [root]
+            filenames = [os.path.join(root, f) for f in os.listdir(root) if f.endswith(".out")]
+        else:
+            filenames = [root]
     else:
         filenames = root
     print(filenames)
 
     class AbiEventsViewerApp(wx.App):
-        def OnInit(self): 
+        def OnInit(self):
             frame = AbinitEventsNotebookFrame(None, filenames)
-            self.SetTopWindow(frame) 
-            frame.Show() 
+            self.SetTopWindow(frame)
+            frame.Show()
             return True
 
     return AbiEventsViewerApp()
 
 
+class AbinitTimerFrame(wx.Frame):
+    """
+    Frame with controls to plot the timing data.
+    """
+    def __init__(self, parent, filepath):
+        filepath = os.path.abspath(filepath)
+        title = "Abinit Timer: %s" % os.path.basename(filepath)
+        super(AbinitTimerFrame, self).__init__(parent, -1, title=title)
+
+        abifile = abiopen(filepath)
+
+        try:
+            self.timer_data = abifile.timer_data
+        except Exception as exc:
+            raise awx.Error(str(exc))
+
+        if not self.timer_data:
+            raise awx.Error("%s does not contain a valid ABINIT TIMER section!" % filepath)
+
+        self.BuildUi()
+
+    def BuildUi(self):
+        timer_data = self.timer_data
+
+        # Callbacks (bound methods of AbiTimerData).
+        self.plot_types = OrderedDict([
+            ("pie",          timer_data.show_pie),
+            ("stacked_hist", timer_data.show_stacked_hist),
+        ])
+
+        from abipy.htc.abitimer import Section
+        keys = Section.NUMERIC_FIELDS
+
+        main_sizer = wx.BoxSizer( wx.VERTICAL )
+
+        hsizer = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.plot_label = wx.StaticText( self, wx.ID_ANY, "plot type:", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.plot_label.Wrap( -1 )
+        hsizer.Add( self.plot_label, 0, wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.BOTTOM|wx.LEFT, 5 )
+
+        self.plot_cbox = wx.ComboBox( self, wx.ID_ANY, "pie", wx.DefaultPosition, wx.DefaultSize, self.plot_types.keys(), 0)
+        hsizer.Add( self.plot_cbox, 0, wx.ALL, 5 )
+
+        self.key_label = wx.StaticText( self, wx.ID_ANY, "key:", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.key_label.Wrap( -1 )
+        hsizer.Add( self.key_label, 0, wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.BOTTOM|wx.LEFT, 5 )
+
+        self.key_cbox = wx.ComboBox( self, wx.ID_ANY, "wall_time", wx.DefaultPosition, wx.DefaultSize, keys, 0 )
+        hsizer.Add( self.key_cbox, 0, wx.ALL, 5 )
+
+        main_sizer.Add( hsizer, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
+
+        self.plot_button = wx.Button( self, wx.ID_ANY, "Plot", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.Bind(wx.EVT_BUTTON, self.OnClick, self.plot_button)
+        main_sizer.Add( self.plot_button, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+
+
+        self.SetSizer( main_sizer )
+        self.Layout()
+
+    def OnClick(self, event):
+        callback = self.plot_types[self.plot_cbox.GetValue()]
+        kwargs = dict(
+            key=str(self.key_cbox.GetValue())
+        )
+        print(callback, kwargs)
+        callback(**kwargs)
+
 if __name__ == "__main__":
     import sys
     root = None
-    if len(sys.argv) > 1: root = sys.argv[1:] 
+    if len(sys.argv) > 1: root = sys.argv[1:]
     awx_events(root)

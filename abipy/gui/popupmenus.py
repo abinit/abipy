@@ -15,7 +15,7 @@ from abipy import abifile_subclass_from_filename, abiopen
 from abipy.iotools.files import NcDumper, AbinitNcFile, AbinitLogFile, AbinitOutputFile, get_filestat
 from abipy import WFK_File, SIGRES_File
 from abipy.electrons.bse import MDF_Reader, MDF_File
-from .abievents import AbinitEventsFrame
+from .abievents import AbinitEventsFrame, AbinitTimerFrame
 
 
 __all__ = [
@@ -34,12 +34,6 @@ def popupmenu_for_filename(parent, filename):
     """
 
     menu = PopupMenu.from_filename(filename)
-    #if filename.endswith(".nc"):
-    #    menu = NcFilePopupMenu()
-    #else:
-    #    # abinit main output file or log file.
-    #    menu = AbinitTextFilePopupMenu()
-
     menu.set_target(filename)
     menu.set_parent(parent)
     return menu
@@ -68,6 +62,15 @@ def showAbinitEvents(parent, filepath):
     """Open a dialog reporting file stats."""
     frame = AbinitEventsFrame(parent, filepath)
     frame.Show()
+
+
+def showAbinitTimerFrame(parent, filepath):
+    """Open a dialog reporting file stats."""
+    try:
+        frame = AbinitTimerFrame(parent, filepath)
+        frame.Show()
+    except awx.Error as exc:
+        awx.showErrorMessage(parent, str(exc)) 
 
 def showStructure(parent, filepath):
     ncfile = abiopen(filepath)
@@ -205,6 +208,7 @@ class AbinitTextFilePopupMenu(PopupMenu):
     MENU_TITLES = OrderedDict([
         ("events",     showAbinitEvents),
         ("properties", showFileStat),
+        ("timer",      showAbinitTimerFrame),
     ])
 
     HANDLED_FILES = [AbinitLogFile, AbinitOutputFile]

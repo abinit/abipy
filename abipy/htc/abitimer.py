@@ -1,32 +1,43 @@
 from __future__ import print_function, division
-import sys
-import numpy as np
 
-from warnings import warn
+import sys
+import warnings 
+import collections
+import numpy as np
 
 from abipy.tools.numtools import minloc, alternate
 from abipy.tools.text import pprint_table
 
-######################################################################
 class AbiTimerParserError(Exception):
     """Errors raised by AbiTimerParser"""
 
 
-class AbiTimerParser(object):
+class AbiTimerParser(collections.Iterable):
     """
     Responsible for parsing a list of output files, and managing the parsed database.
     """
+    # The markers enclosing the data.
+    BEGIN_TAG = "-<BEGIN_TIMER"
+    END_TAG = "-<END_TIMER>"
+
     Error = AbiTimerParserError
+
+    #self._default_mpi_rank = "0"
 
     def __init__(self):
         # List of files that have been parsed.
         self._filenames = []
 
         # timers[filename][mpi_rank]
-        # contains the timer extracted from file filename associated to the MPI rank mpi_rank
-        self._timers = {}
+        # contains the timer extracted from the file filename 
+        # associated to the MPI rank mpi_rank.
+        self._timers = collections.OrderedDict()
 
-        #self._default_mpi_rank = "0"
+    def __iter__(self):
+        return self._timers.__iter__()
+
+    def __len__(self):
+        return len(self._timers)
 
     def read(self, filenames):
         """
@@ -35,7 +46,6 @@ class AbiTimerParser(object):
         Files that cannot be opened are ignored. A single filename may also be given.
         Return list of successfully read files.
         """
-
         if isinstance(filenames, str):
             filenames = [filenames]
 
@@ -44,7 +54,7 @@ class AbiTimerParser(object):
             try:
                 fh = open(fname)
             except IOError:
-                warn("Cannot open file: " + fname)
+                warnings.warn("Cannot open file %s" % fname)
                 continue
 
             try:
@@ -52,7 +62,7 @@ class AbiTimerParser(object):
                 read_ok.append(fname)
 
             except self.Error as e:
-                warn(str(e))
+                warnings.warn(str(e))
                 continue
 
             finally:
@@ -64,45 +74,37 @@ class AbiTimerParser(object):
 
     def _read(self, fh, fname):
         """Parse the TIMER section"""
-
         if fname in self._timers:
-            raise RuntimeError("Cannot overwrite timer associated to: %s " % fname)
+            raise self.Error("Cannot overwrite timer associated to: %s " % fname)
 
-        self._timers[fname] = dict()
+        data = {}
 
         def parse_line(line):
             name, vals = line[:25], line[25:].split()
             (cpu_time, cpu_fract, wall_time, wall_fract, ncalls, gflops) = vals
-
             return Section(name, cpu_time, cpu_fract, wall_time, wall_fract, ncalls, gflops)
 
-        # Markers enclosing the data.
-        BEGIN_TAG = "-<BEGIN_TIMER"
-        END_TAG = "-<END_TIMER>"
-
-        inside = 0
-        has_timer = False
+        inside, has_timer = 0, False
         for line in fh:
-            #print line.strip()
-
-            if line.startswith(BEGIN_TAG):
+            #print(line.strip())
+            if line.startswith(self.BEGIN_TAG):
                 has_timer = True
                 sections = []
                 info = dict()
                 inside = 1
-                line = line[len(BEGIN_TAG):].strip()[:-1]
+                line = line[len(self.BEGIN_TAG):].strip()[:-1]
 
                 info["fname"] = fname
                 for tok in line.split(","):
                     (key, val) = [s.strip() for s in tok.split("=")]
                     info[key] = val
 
-            elif line.startswith(END_TAG):
+            elif line.startswith(self.END_TAG):
                 inside = 0
                 timer = AbiTimer(sections, info, cpu_time, wall_time)
-
                 mpi_rank = info["mpi_rank"]
-                self._timers[fname][mpi_rank] = timer
+
+                data[mpi_rank] = timer
 
             elif inside:
                 inside += 1
@@ -130,23 +132,25 @@ class AbiTimerParser(object):
                         raise self.Error("line should be empty: " + str(inside) + line)
 
         if not has_timer:
-            raise self.Error("%s: No timer section found " % fname)
+            raise self.Error("%s: No timer section found" % fname)
+
+        # Add it to the dict
+        self._timers[fname] = data
 
     #def set_default_mpi_rank(mpi_rank): self._default_mpi_rank = mpi_rank
     #def get_default_mpi_rank(mpi_rank): return self._default_mpi_rank
 
-    def timers(self, fname=None, mpi_rank="0"):
-        "Return the list of timers associated to filename fname and MPI rank mpi_rank"
-
-        if fname is not None:
-            timers = [self._timers[fname][mpi_rank]]
+    def timers(self, filename=None, mpi_rank="0"):
+        """Return the list of timers associated to the given filename and MPI rank mpi_rank."""
+        if filename is not None:
+            timers = [self._timers[filename][mpi_rank]]
         else:
-            timers = [self._timers[fname][mpi_rank] for fname in self._filenames]
+            timers = [self._timers[filename][mpi_rank] for filename in self._filenames]
 
         return timers
 
     def section_names(self, ordkey="wall_time"):
-        "Return the names of sections ordered by ordkey"
+        """Return the names of sections ordered by ordkey."""
 
         # FIXME this is not trivial
         for (idx, timer) in enumerate(self.timers()):
@@ -169,7 +173,6 @@ class AbiTimerParser(object):
         Return the list of sections stored in self.timers() whose name is section_name
         A fake section is returned if the timer does not have sectio_name.
         """
-
         sections = []
         for timer in self.timers():
             for sect in timer.sections:
@@ -183,7 +186,7 @@ class AbiTimerParser(object):
 
     def pefficiency(self):
         """
-        Analyze the parallel efficiency
+        Analyze the parallel efficiency.
         """
         timers = self.timers()
         #
@@ -229,8 +232,12 @@ class AbiTimerParser(object):
 
         return ParallelEfficiency(self._filenames, min_idx, peff)
 
-    def show_efficiency(self, key="wall_time", what="gb", nmax=5):
+    def show_efficiency(self, key="wall_time", what="gb", nmax=5, **kwargs):
         import matplotlib.pyplot as plt
+
+        title = kwargs.pop("title", None)
+        show = kwargs.pop("show", True)
+        savefig = kwargs.pop("savefig", None)
 
         timers = self.timers()
 
@@ -287,11 +294,21 @@ class AbiTimerParser(object):
         ax.set_xticks(xx)
         ax.set_xticklabels(labels, fontdict=None, minor=False, rotation=15)
 
-        plt.show()
+        if show:
+            plt.show()
 
-    def show_pie(self, key="wall_time", minfract=0.05):
-        "Pie charts of the different timers"
+        if savefig:
+            fig.savefig(savefig)
+
+        return fig
+
+    def show_pie(self, key="wall_time", minfract=0.05, **kwargs):
+        """Pie charts of the different timers."""
         import matplotlib.pyplot as plt
+
+        title = kwargs.pop("title", None)
+        show = kwargs.pop("show", True)
+        savefig = kwargs.pop("savefig", None)
 
         timers = self.timers()
         n = len(timers)
@@ -299,18 +316,28 @@ class AbiTimerParser(object):
         # Make square figures and axes
         the_grid = plt.GridSpec(n, 1)
 
-        plt.figure(1, figsize=(6, 6))
+        fig = plt.figure(1, figsize=(6, 6))
 
         for (idx, timer) in enumerate(timers):
             plt.subplot(the_grid[idx, 0])
             plt.title(str(timer))
             timer.pie(key=key, minfract=minfract)
 
-        plt.show()
+        if show:
+            plt.show()
 
-    def show_stacked_hist(self, key="wall_time", nmax=5):
-        "Stacked histogram of the different timers"
+        if savefig:
+            fig.savefig(savefig)
+                                 
+        return fig
+
+    def show_stacked_hist(self, key="wall_time", nmax=5, **kwargs):
+        """Stacked histogram of the different timers."""
         import matplotlib.pyplot as plt
+
+        title = kwargs.pop("title", None)
+        show = kwargs.pop("show", True)
+        savefig = kwargs.pop("savefig", None)
 
         mpi_rank = "0"
         timers = self.timers(mpi_rank=mpi_rank)
@@ -363,7 +390,15 @@ class AbiTimerParser(object):
 
         plt.legend([bar[0] for bar in bars], names)
 
-        plt.show()
+        if show:
+            plt.show()
+
+        fig = plt.gcf()
+        if savefig:
+            fig.savefig(savefig)
+                                 
+        return fig
+
 
     def main(self, *args, **kwargs):
 
@@ -459,15 +494,20 @@ class ParallelEfficiency(dict):
 
 class Section(object):
     """Record with the timing results associated to a section of code."""
-    _attributes = tuple([
-        "name",
+    STR_FIELDS = [ 
+        "name"
+    ]
+
+    NUMERIC_FIELDS = [
         "cpu_time",
         "cpu_fract",
         "wall_time",
         "wall_fract",
         "ncalls",
         "gflops",
-    ])
+    ]
+
+    FIELDS = tuple(STR_FIELDS + NUMERIC_FIELDS)
 
     @classmethod
     def fake(cls):
@@ -483,21 +523,21 @@ class Section(object):
         self.gflops = float(gflops)
 
     def totuple(self):
-        return tuple([self.__dict__[at] for at in Section._attributes])
+        return tuple([self.__dict__[at] for at in Section.FIELDS])
 
     def tocsvline(self, with_header=False):
-        "Return a string with data in CSV format"
+        """Return a string with data in CSV format"""
         string = ""
 
         if with_header:
-            string += "# " + " ".join([at for at in Section._attributes]) + "\n"
+            string += "# " + " ".join([at for at in Section.FIELDS]) + "\n"
 
         string += ", ".join([str(v) for v in self.totuple()]) + "\n"
         return string
 
     def __str__(self):
         string = ""
-        for a in Section._attributes: string += a + " = " + self.__dict__[a] + ","
+        for a in Section.FIELDS: string += a + " = " + self.__dict__[a] + ","
         return string[:-1]
 
 ######################################################################
@@ -505,7 +545,6 @@ class Section(object):
 
 class AbiTimer(object):
     """Container class used to store the timing results."""
-
     def __init__(self, sections, info, cpu_time, wall_time):
 
         self.sections = tuple(sections)
@@ -530,7 +569,7 @@ class AbiTimer(object):
 
     @property
     def ncpus(self):
-        "Total number of CPUs employed"
+        """Total number of CPUs employed."""
         return self.mpi_nprocs * self.omp_nthreads
 
     def get_section(self, section_name):
@@ -543,32 +582,35 @@ class AbiTimer(object):
         return sect
 
     def tocsv(self, fileobj=sys.stdout):
-        "Write data on file fileobj using CSV format"
+        """Write data on file fileobj using CSV format."""
+        openclose = isinstance(fileobj, str)
 
-        open_here = isinstance(fileobj, str)
-        if open_here: fileobj = open(fileobj, "w")
+        if openclose: 
+            fileobj = open(fileobj, "w")
 
         for (idx, section) in enumerate(self.sections):
             fileobj.write(section.tocsvline(with_header=(idx == 0)))
         fileobj.flush()
 
-        if open_here: fileobj.close()
+        if openclose: 
+            fileobj.close()
 
     def totable(self, sort_key="wall_time", stop=None):
-        "Return a table (list of lists) with timer data"
-        table = [list(Section._attributes), ]
+        """Return a table (list of lists) with timer data"""
+        table = [list(Section.FIELDS), ]
         ord_sections = self.order_sections(sort_key)
 
-        if stop is not None: ord_sections = ord_sections[:stop]
+        if stop is not None: 
+            ord_sections = ord_sections[:stop]
 
         for osect in ord_sections:
             row = [str(item) for item in osect.totuple()]
             table.append(row)
+
         return table
 
     def get_values(self, keys):
-        "Return a list of values associated to a particular list of keys"
-
+        """Return a list of values associated to a particular list of keys"""
         if isinstance(keys, str):
             return [s.__dict__[keys] for s in self.sections]
         else:
@@ -636,15 +678,18 @@ class AbiTimer(object):
         return self._reduce_sections(keys, sum)
 
     def order_sections(self, key, reverse=True):
-        "Sort sections according to the value of key"
-
+        """Sort sections according to the value of key."""
         fsort = lambda s: s.__dict__[key]
         return sorted(self.sections, key=fsort, reverse=reverse)
 
-    def cpuwall_histogram(self, title=None):
+    def cpuwall_histogram(self, **kwargs):
         import matplotlib.pyplot as plt
 
-        plt.subplot(1, 1, 1)
+        title = kwargs.pop("title", None)
+        show = kwargs.pop("show", True)
+        savefig = kwargs.pop("savefig", None)
+
+        fig = plt.subplot(1, 1, 1)
 
         nk = len(self.sections)
         ind = np.arange(nk)  # the x locations for the groups
@@ -669,7 +714,13 @@ class AbiTimer(object):
 
         plt.legend((rects1[0], rects2[0]), ('CPU', 'Wall'))
 
-        plt.show()
+        if show:
+            plt.show()
+
+        if savefig:
+            fig.savefig(savefig)
+                                 
+        return fig
 
     def hist2(self, key1="wall_time", key2="cpu_time"):
 
@@ -694,11 +745,10 @@ class AbiTimer(object):
         plt.show()
 
     def pie(self, key="wall_time", minfract=0.05, title=None):
+        import matplotlib.pyplot as plt
 
         # Don't show section whose value is less that minfract
         labels, vals = self.names_and_values(key, minfract=minfract)
-
-        import matplotlib.pyplot as plt
 
         return plt.pie(vals, explode=None, labels=labels, autopct='%1.1f%%', shadow=True)
 
