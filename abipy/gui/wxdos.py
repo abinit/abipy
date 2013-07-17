@@ -13,6 +13,7 @@ from abipy.electrons import ElectronBands
 from abipy.waves import WFK_File
 
 from abipy.gui.popupmenus import popupmenu_for_filename
+from abipy.gui.browser import FileListPanel
 
 class DosPlotter(wx.Frame):
     VERSION = "0.1"

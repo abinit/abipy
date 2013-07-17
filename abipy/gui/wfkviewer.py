@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 from __future__ import print_function, division
 
 import sys
@@ -11,6 +10,7 @@ import abipy.gui.electronswx as ewx
 
 from abipy import abiopen, WFK_File
 from abipy.iotools.visualizer import supported_visunames
+
 
 class WfkViewerFrame(wx.Frame):
     VERSION = "0.1"
@@ -234,10 +234,3 @@ def wxapp_wfkviewer(wfk_filename):
     app.SetTopWindow(frame) 
     return app
 
-
-if __name__ == "__main__":
-    import sys
-    wfk_filename = None
-    if len(sys.argv) > 1:
-        wfk_filename = sys.argv[1] 
-    wxapp_wfkviewer(wfk_filename).MainLoop()

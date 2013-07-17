@@ -7,6 +7,7 @@ _MODS = [
     "dialogs",
     "panels",
     "hg",
+    "func1dframe",
 ]
 
 for _mod in _MODS:

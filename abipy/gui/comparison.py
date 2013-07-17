@@ -1,11 +1,12 @@
-#!/usr/bin/env python
+from __future__ import print_function, division
 
 import wx
 import awx
 import collections
 import fnmatch
 
-from abipy.electrons import EBandsPlotter, ElectronDosPlotter
+from abipy.electrons import EBandsPlotter, ElectronDosPlotter, MDF_Plotter
+from abipy.gui.electronswx import ElectronDosDialog
 
 class FileCheckBoxPanel ( wx.Panel ):
 
@@ -101,6 +102,7 @@ class ComparisonFrame(wx.Frame):
     def __init__(self, parent, dirpaths=None, filepaths=None, wildcard=None, **kwargs):
         super(ComparisonFrame, self).__init__(parent, -1, **kwargs)
 
+        # TODO
         #self.dirpaths = dirpaths if dirpaths is not None else []
         #self.filepaths = filepaths if filepaths is not None else []
         #
@@ -117,7 +119,7 @@ class ComparisonFrame(wx.Frame):
         st1.Wrap( -1 )
         hsizer.Add(st1, 0, wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.BOTTOM|wx.LEFT, 5 )
 
-        plotter_choices = ["ebands", "edos",]
+        plotter_choices = ["ebands", "edos", "mdf"]
         self.plotter_cbox = wx.ComboBox( self, -1, "ebands", wx.DefaultPosition, wx.DefaultSize, plotter_choices, 0 )
         hsizer.Add( self.plotter_cbox, 0, wx.ALL, 5 )
 
@@ -147,7 +149,6 @@ class ComparisonFrame(wx.Frame):
 
             elif choice == "edos":
                 # Open dialog to ask the user the DOS parameters.
-                from abipy.gui.electronswx import ElectronDosDialog
                 dos_dialog = ElectronDosDialog(None)
 
                 if dos_dialog.ShowModal() == wx.ID_OK:
@@ -160,12 +161,11 @@ class ComparisonFrame(wx.Frame):
 
                 dos_dialog.Destroy()
 
-            #elif choice == "mdf":
-            #    from abipy.electrons import MDF_Plotter
-            #    plotter = MDF_Plotter()
-            #    for filepath in selected:
-            #        plotter.add_mdf_from_file(filepath, mdf_type="exc")
-            #    plotter.plot()
+            elif choice == "mdf":
+                plotter = MDF_Plotter()
+                for filepath in selected:
+                    plotter.add_mdf_from_file(filepath, mdf_type="exc")
+                plotter.plot()
 
             else:
                 awx.showErrorMessage(self, message="No function registered for choice %s" % choice)

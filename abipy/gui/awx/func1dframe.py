@@ -1,10 +1,13 @@
-#!/usr/bin/env python
 from __future__ import print_function, division
 
 import wx
-import abipy.gui.awx.dialogs 
+from dialogs import showErrorMessage
 
 from wxmplot import PlotFrame
+
+__all__ = [
+    "Func1dPlotFrame",
+]
 
 class Func1dPlotFrame(wx.Frame):
     """
@@ -82,17 +85,5 @@ class Func1dPlotFrame(wx.Frame):
                 plotframe.oplot(g.mesh, g.values, label=method, draw_legend=True)
 
         except:
-            dialogs.showErrorMessage(self)
+            showErrorMessage(self)
 
-
-def awx_function1d():
-    import numpy as np
-    from abipy.core import Function1D
-    app = wx.App()
-    func1d = Function1D.from_func(np.sin, np.arange(1,100,1))
-    frame = Func1dPlotFrame(None, func1d)
-    frame.Show()
-    app.MainLoop()
-
-if __name__ == "__main__":
-    awx_function1d()
