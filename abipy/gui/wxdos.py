@@ -11,7 +11,6 @@ import abipy.gui.electronswx as ewx
 from abipy.iotools.files import NcDumper 
 from abipy.electrons import ElectronBands
 from abipy.waves import WFK_File
-from wx.lib.agw.floatspin import FloatSpin
 
 from abipy.gui.popupmenus import popupmenu_for_filename
 

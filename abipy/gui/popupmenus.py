@@ -245,6 +245,7 @@ class EbandsPopupMenu(NcFilePopupMenu):
     MENU_TITLES = OrderedDict([
         ("ePlot", ewx.showElectronBandsPlot),
         ("eDos",  ewx.showElectronDosFrame),
+        ("eJdos", ewx.showJdosFrame),
     ])
 
     HANDLED_FILES = [WFK_File] 

@@ -35,10 +35,11 @@ def main():
     options = parser.parse_args()
 
     # Find scripts.
+    dir = os.path.dirname(__file__)
     scripts = []
-    for fname in os.listdir("."):
+    for fname in os.listdir(dir):
         if fname.endswith(".py") and fname.startswith("demo_"):
-            scripts.append(fname)
+            scripts.append(os.path.join(dir, fname))
 
     # Run scripts depending on mode.
     if options.mode == "sequential":

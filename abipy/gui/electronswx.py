@@ -4,7 +4,6 @@ import wx
 
 import abipy.gui.awx as awx 
 
-from wx.lib.agw.floatspin import FloatSpin
 try:
     from wxmplot import PlotFrame
 except ImportError:
@@ -26,6 +25,10 @@ def showElectronBandsPlot(parent, filepath):
     bands = ElectronBands.from_file(filepath)
     bands.plot(title="File: %s" % filepath)
 
+def showJdosFrame(parent, filepath):
+    bands = ElectronBands.from_file(filepath)
+    ElectronJdosFrame(parent, bands).Show()
+
 
 class ElectronDosPanel(wx.Panel):
     """Simple panel with controls for the electron DOS calculation."""
@@ -40,12 +43,11 @@ class ElectronDosPanel(wx.Panel):
         sizer = wx.FlexGridSizer(rows=3, cols=2, vgap=5, hgap=5)
 
         label = wx.StaticText(self, -1, "Broadening [eV]:")
-        self.width_ctrl = FloatSpin(self, id=-1, value=self.DEFAULT_WIDTH, min_val=0.0, increment=0.1, digits=3)
-
+        self.width_ctrl = wx.SpinCtrlDouble(self, id=-1, value=str(self.DEFAULT_WIDTH), min=0.0, max=100, inc=0.1)
         sizer.AddMany([label, self.width_ctrl])
 
         label = wx.StaticText(self, -1, "Mesh step [eV]:")
-        self.step_ctrl = FloatSpin(self, id=-1, value=self.DEFAULT_STEP, min_val=0.0, increment=0.1, digits=3)
+        self.step_ctrl = wx.SpinCtrlDouble(self, id=-1, value=str(self.DEFAULT_STEP), min=0.0, max=100, inc=0.1)
 
         sizer.AddMany([label, self.step_ctrl])
 
@@ -165,12 +167,12 @@ class ElectronJdosPanel(wx.Panel):
         sz1.AddMany([spin_label, self.spin_cbox])
                                                                                                               
         label = wx.StaticText(self, -1, "Broadening [eV]:")
-        self.width_ctrl = FloatSpin(self, id=-1, value=self.DEFAULT_WIDTH, min_val=0.0, increment=0.1, digits=3)
+        self.width_ctrl = wx.SpinCtrlDouble(self, id=-1, value=str(self.DEFAULT_WIDTH), min=0.0, max=100, inc=0.1)
 
         sz1.AddMany([label, self.width_ctrl])
                                                                                                               
         label = wx.StaticText(self, -1, "Mesh step [eV]:")
-        self.step_ctrl = FloatSpin(self, id=-1, value=self.DEFAULT_STEP, min_val=0.0, increment=0.1, digits=3)
+        self.step_ctrl = wx.SpinCtrlDouble(self, id=-1, value=str(self.DEFAULT_STEP), min=0.0, max=100, inc=0.1)
 
         sz1.AddMany([label, self.step_ctrl])
         main_sizer.Add(sz1)
