@@ -5,6 +5,7 @@ import wx
 
 __all__ = [
     "showErrorMessage",
+    "askUser",
 ]
 
 
@@ -27,3 +28,10 @@ def showErrorMessage(parent, message=None):
     )
     dlg.ShowModal()
     dlg.Destroy()
+
+
+def askUser(parent, message):
+    ask = wx.MessageDialog(parent, message)
+    answer = ask.ShowModal() == wx.ID_OK
+    ask.Destroy()
+    return answer

@@ -84,7 +84,7 @@ def main():
     change_backend(new_backend=options.backend)
 
     # Find scripts.
-    dir = os.path.dirname(__file__)
+    dir = os.path.join(os.path.dirname(__file__), "plot")
     scripts = []
     for fname in os.listdir(dir):
         if fname.endswith(".py") and fname.startswith("plot_"):

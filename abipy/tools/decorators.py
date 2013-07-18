@@ -45,8 +45,9 @@ def verbose(func):
     @functools.wraps(func)
     def new_function(*args, **kwargs):
         print("Entering", func.__name__)
-        func(*args, **kwargs)
+        res = func(*args, **kwargs)
         print("Exiting ", func.__name__)
+        return res
     return new_function
 
 

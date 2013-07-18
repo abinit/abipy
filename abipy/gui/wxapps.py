@@ -3,3 +3,4 @@
 from .abievents import wxapp_events
 from .browser import wxapp_dirbrowser, wxapp_listbrowser
 from .wfkviewer import wxapp_wfkviewer
+from .scissors import wxapp_scissors

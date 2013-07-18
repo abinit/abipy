@@ -36,7 +36,8 @@ class AbinitFile(object):
         try:
             return cls(filepath)
         except Exception as exc:
-            raise ValueError("%s\n Perhaps the subclass %s must redefine the classmethod from_file\n" % (str(exc), cls))
+            msg = "%s\n Perhaps the subclass %s must redefine the classmethod from_file\n" % (str(exc), cls)
+            raise ValueError(msg)
 
     @property
     def filepath(self):
@@ -53,10 +54,12 @@ class AbinitFile(object):
         """String defining the filetype."""
         return self.__class__.__name__
 
-
     def filestat(self):
         """Dictionary with file metadata"""
         return get_filestat(self.filepath)
+
+    #@abc.abstractmethod
+    #def close(self):
 
 
 class AbinitTextFile(AbinitFile):
@@ -68,8 +71,7 @@ class AbinitTextFile(AbinitFile):
         try:
             return self._events
         except AttributeError:
-            parser = EventParser()
-            self_events = parser.parse(self.filepath)
+            self._events = EventParser().parse(self.filepath)
             return self._events
 
     @property
@@ -77,6 +79,7 @@ class AbinitTextFile(AbinitFile):
         """Timer data."""
         try:
             return self._timer_data
+
         except AttributeError:
             from abipy.htc.abitimer import AbinitTimerParser
             parser = AbinitTimerParser()
@@ -95,7 +98,7 @@ class AbinitLogFile(AbinitTextFile):
 
 class AbinitNcFile(AbinitFile):
     """
-    Abstract class representing a Netcdf file with data written 
+    Abstract class representing a Netcdf file with data saved
     according to the ETSF-IO specifications (when available).
     """
     __metaclass__ = abc.ABCMeta
@@ -113,15 +116,15 @@ class AbinitNcFile(AbinitFile):
 
 
 class NcDumper(object):
-    """This object wraps the ncdump tool"""
+    """Wrapper object for the ncdump tool."""
 
     def __init__(self, *nc_args, **nc_kwargs):
         """
-            Args:
-                nc_args:
-                    Arguments passed to ncdump.
-                nc_kwargs:
-                    Keyword arguments passed to ncdump
+        Args:
+            nc_args:
+                Arguments passed to ncdump.
+            nc_kwargs:
+                Keyword arguments passed to ncdump
         """
         self.nc_args = nc_args
         self.nc_kwargs = nc_kwargs
@@ -134,36 +137,36 @@ class NcDumper(object):
             return "Cannot find ncdump tool in PATH"
         else:
             from subprocess import check_output
+
             cmd = ["ncdump", filepath]
             return check_output(cmd)
 
 
-
 _ABBREVS = [
-    (1<<50L, 'Pb'), 
-    (1<<40L, 'Tb'), 
-    (1<<30L, 'Gb'), 
-    (1<<20L, 'Mb'), 
-    (1<<10L, 'kb'), 
-    (1,      'b'),
-] 
+    (1 << 50L, 'Pb'),
+    (1 << 40L, 'Tb'),
+    (1 << 30L, 'Gb'),
+    (1 << 20L, 'Mb'),
+    (1 << 10L, 'kb'),
+    (1, 'b'),
+]
 
 
-def size2str(size):                                                  
+def size2str(size):
     """Convert size to string with units."""
-    for factor, suffix in _ABBREVS:                             
-        if size > factor:                                            
-            break 
-    return "%.2f " % (size/factor) + suffix
+    for factor, suffix in _ABBREVS:
+        if size > factor:
+            break
+    return "%.2f " % (size / factor) + suffix
 
 
 def get_filestat(filepath):
     stat = os.stat(filepath)
     return collections.OrderedDict([
-        ("Name",              os.path.basename(filepath)),
-        ("Directory",         os.path.dirname(filepath)),
-        ("Size",              size2str(stat.st_size)),
-        ("Access Time",       ctime(stat.st_atime)),  
-        ("Modification Time", ctime(stat.st_mtime)), 
-        ("Change Time",       ctime(stat.st_ctime)),
+        ("Name", os.path.basename(filepath)),
+        ("Directory", os.path.dirname(filepath)),
+        ("Size", size2str(stat.st_size)),
+        ("Access Time", ctime(stat.st_atime)),
+        ("Modification Time", ctime(stat.st_mtime)),
+        ("Change Time", ctime(stat.st_ctime)),
     ])

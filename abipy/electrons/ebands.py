@@ -492,7 +492,7 @@ class ElectronBands(object):
 
         Args:
             scissors:
-                An instance of :class:`ScissorsOperator`.
+                An instance of :class:`Scissors`.
 
         Returns:
             New instance of :class:`ElectronBands` with modified energies.

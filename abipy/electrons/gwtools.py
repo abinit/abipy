@@ -1,22 +1,21 @@
 from __future__ import print_function, division
 
 import sys
-import os
 import collections
-import cPickle as pickle
+import copy
 import numpy as np
 
 from pymatgen.io.abinitio.netcdf import ETSF_Reader
+from abipy.tools import find_le, find_ge
 
 from abipy.core.constants import Ha_eV
 from abipy.core.func1d import Function1D
-from abipy.tools import find_le, find_ge
+
 from abipy.tools.text import pprint_table
 from abipy.kpoints.kpoints import askpoints, kpoints_factory
 from abipy.electrons.ebands import ElectronBands
 from abipy.iotools import AbinitNcFile
 from abipy.tools.plotting_utils import plot_array, ArrayPlotter
-from .scissors import ScissorsOperator
 
 __all__ = [
     "SIGRES_File",
@@ -27,7 +26,7 @@ _QP_FIELDS = "spin kpoint band e0 qpe qpe_diago vxcme sigxme, sigcmee0 vUme ze0"
 
 class QP(collections.namedtuple("QP", _QP_FIELDS)):
     """
-    QP correction at a given (spin, kpoint, band).
+    QP correction for given (spin, kpoint, band).
 
     .. Attributes:
 
@@ -42,7 +41,7 @@ class QP(collections.namedtuple("QP", _QP_FIELDS)):
         qpe:
             Quasiparticle energy (complex) computed with the perturbative approach.
         qpe_diago
-            Quasiparticle energy (real) computed by diagonalization of the SC self-energy.
+            Quasiparticle energy (real) computed by diagonalizing the SC self-energy.
         vxcme:
             Matrix element of vxc[nval].
         sigxme:
@@ -62,7 +61,6 @@ class QP(collections.namedtuple("QP", _QP_FIELDS)):
         return self.qpe - self.e0
 
     def copy(self):
-        import copy
         d = {f: copy.copy(getattr(self, f)) for f in self._fields}
         return QP(**d)
 
@@ -118,6 +116,7 @@ class QuasiParticles(list):
         """Return the E0 energies."""
         if not self.is_e0sorted:
             raise ValueError("QP corrections are not sorted. Use sort_by_e0")
+
         return np.array([qp.e0 for qp in self])
 
     def get_field(self, field):
@@ -132,7 +131,7 @@ class QuasiParticles(list):
         """Return an arrays with the QP corrections."""
         return self.get_field("qpeme0")
 
-    def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, *args, **kwargs):
+    def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, **kwargs):
         """
         Args:
             with_fields:
@@ -199,7 +198,7 @@ class QuasiParticles(list):
             ax.set_xlabel('e0 [eV]')
             ax.set_ylabel(field)
             yy = qps.get_field(field)
-            ax.plot(e0mesh, yy, linestyle, *args, **kwargs)
+            ax.plot(e0mesh, yy, linestyle, **kwargs)
 
         plt.tight_layout()
 
@@ -211,7 +210,7 @@ class QuasiParticles(list):
 
         return fig
 
-    def make_scissors(self, domains, bounds=None, plot=False, *args, **kwargs):
+    def build_scissors(self, domains, bounds=None, plot=False, **kwargs):
         """
         Construct a scissors operator by interpolating the QP corrections as a function of E0.
 
@@ -233,10 +232,10 @@ class QuasiParticles(list):
 
         for idx, v in enumerate(dflat):
             if idx == 0 and v > e0mesh[0]:
-                raise ValueError("min(e0mesh) is not included in domains")
+                raise ValueError("min(e0mesh) %s is not included in domains" % e0mesh[0])
 
             if idx == dsize-1 and v < e0mesh[-1]:
-                raise ValueError("max(e0mesh is not included in domains")
+                raise ValueError("max(e0mesh) %s is not included in domains" % e0mesh[-1])
 
             if idx != dsize-1 and dflat[idx] > dflat[idx+1]:
                 raise ValueError("domain boundaries should be given in increasing order.")
@@ -258,7 +257,8 @@ class QuasiParticles(list):
             func_list.append(f)
 
         # Build the scissors operator.
-        sciss = ScissorsOperator(func_list, domains, bounds)
+        from abipy.electrons import Scissors
+        sciss = Scissors(func_list, domains, bounds)
 
         # Compare fit with input data.
         if plot:
@@ -284,59 +284,6 @@ class QuasiParticles(list):
     #        else:
     #            new.append(qp)
     #    return new
-
-
-class ScissorsBuilder(object):
-    """
-    Interactive program that return a ScissorsOperator constructed from
-    the _GW file filename.
-    """
-    def build(self, filepath):
-        sigres = filepath
-        if not isinstance(filepath, SIGRES_File):
-            # Init the corrections from path.
-            sigres = SIGRES_File(filepath)
-
-        qps_spin = sigres.get_allqps()
-        nsppol = len(qps_spin)
-
-        # Construct the scissors operator for each spin.
-        scissor_spin = nsppol * [None]
-
-        self.domains, self.bounds = nsppol * [None], nsppol * [None],
-
-        for (spin, qps) in enumerate(qps_spin):
-            # Plot QP data
-            #qps.plot_qps_vs_e0()
-            # TODO
-            # Info on the gap
-
-            while True:
-                domains = input('Enter the list of domains in eV: ')
-                print("Domains are: ", domains)
-
-                bounds = None
-                sciss = qps.make_scissors(domains, bounds=bounds, plot=True)
-
-                is_ok = raw_input('Do you accept the fit [y/N]?')
-                if is_ok and is_ok[0].lower() == "y":
-                    scissor_spin[spin] = sciss
-                    # Save input so that we can reconstruct the scissor
-                    self.domains[spin] = domains
-                    self.bounds[spin] = bounds
-                    break
-
-        return scissor_spin
-
-    def pickle_dump(self, path, protocol=-1):
-        """Save scissors parameters in a file."""
-        with open(path, "w") as fh:
-            pickle.dump(self, fh, protocol=protocol)
-
-    def pickle_load(self, path):
-        """Load the scissors parameters from file."""
-        with open(path, "r") as fh:
-            return pickle.load(fh)
 
 #########################################################################################
 
@@ -384,7 +331,7 @@ class Sigmaw(object):
 
         return lines
 
-    def plot(self, what="sa", *args, **kwargs):
+    def plot(self, what="sa", **kwargs):
         """
         Plot the self-energy and the spectral function
 

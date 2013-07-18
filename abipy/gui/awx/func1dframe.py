@@ -1,8 +1,9 @@
 from __future__ import print_function, division
 
 import wx
-from dialogs import showErrorMessage
+import inspect
 
+from dialogs import showErrorMessage
 from wxmplot import PlotFrame
 
 __all__ = [
@@ -37,8 +38,6 @@ class Func1dPlotFrame(wx.Frame):
         bSizer10 = wx.BoxSizer(wx.VERTICAL)
 
         # Get the methods of the objects.
-        import inspect
-
         obj_methods = ["None"]
         obj_methods += [t[0] for t in inspect.getmembers(self.func1d, predicate=inspect.ismethod)
                         if not t[0].startswith("_")]
@@ -62,7 +61,7 @@ class Func1dPlotFrame(wx.Frame):
         bSizer10.Add(fgSizer4, 0, 0, 5)
 
         self.SetSizer(bSizer10)
-        self.Layout()
+        self.Fit()
 
         self.plot_button.Bind(wx.EVT_BUTTON, self.OnClick)
 

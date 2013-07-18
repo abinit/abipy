@@ -8,8 +8,8 @@ illustrated in the examples in this directory.
 Below is a brief description of the different directories found here:
 
   * plot - scripts showing how to produce plots with matplotlib in a 
-    procedural way. Execute the script run.py for an overview of the 
-    capabilities of abipy.
+    procedural way. Execute the script runplots.py for an overview 
+    of the capabilities of abipy.
 
   * htc -  usage examples of the High-throughput API.
 

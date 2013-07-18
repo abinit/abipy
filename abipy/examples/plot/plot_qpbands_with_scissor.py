@@ -12,7 +12,7 @@ qps_spin = sigma_file.get_allqps()
 
 # Construct the scissors operator
 domains = [[-10, 6.02], [6.3, 18]]
-scissors = qps_spin[0].make_scissors(domains, bounds=None)
+scissors = qps_spin[0].build_scissors(domains, bounds=None)
 
 # Read the KS band energies computed on the k-path
 ks_bands = WFK_File(get_reference_file("si_nscf_WFK-etsf.nc")).get_bands()

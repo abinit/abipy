@@ -74,7 +74,6 @@ class SpinKpointBandPanel(wx.Panel):
         main_sizer.Add(hsizer2, 1, wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 5)
 
         self.SetSizer(main_sizer)
-        self.Layout()
         main_sizer.Fit(self)
 
     def get_skb(self):
