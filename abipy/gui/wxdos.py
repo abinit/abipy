@@ -1,39 +1,35 @@
 #!/usr/bin/env python
 from __future__ import print_function, division
 
-import sys
 import os
 import wx
 
 import abipy.gui.awx as awx
 import abipy.gui.electronswx as ewx
 
-from abipy.iotools.files import NcDumper 
 from abipy.electrons import ElectronBands
-from abipy.waves import WFK_File
-
-from abipy.gui.popupmenus import popupmenu_for_filename
 from abipy.gui.browser import FileListPanel
+
 
 class DosPlotter(wx.Frame):
     VERSION = "0.1"
 
     # Help menu items.
-    ID_ABOUT = wx.NewId() 
+    ID_ABOUT = wx.NewId()
 
     def __init__(self, parent=None, **kwargs):
-        super(DosPlotter, self).__init__(parent, -1, self.codename, size=(800,600)) 
+        super(DosPlotter, self).__init__(parent, -1, self.codename, size=(800, 600))
 
         # Create statusbar
-        self.statusbar = self.CreateStatusBar() 
+        self.statusbar = self.CreateStatusBar()
 
         # Setup menu bar.
         menuBar = wx.MenuBar()
 
         fileMenu = wx.Menu()
-        fileMenu.Append(wx.ID_OPEN,  "&Open", help="Open an existing WFK file")
+        fileMenu.Append(wx.ID_OPEN, "&Open", help="Open an existing WFK file")
         fileMenu.Append(wx.ID_CLOSE, "&Close", help="Close the WFK file")
-        fileMenu.Append(wx.ID_EXIT,  "&Quit", help="Exit the application")
+        fileMenu.Append(wx.ID_EXIT, "&Quit", help="Exit the application")
         menuBar.Append(fileMenu, "File")
 
         filehistory = self.filehistory = wx.FileHistory(8)
@@ -52,7 +48,7 @@ class DosPlotter(wx.Frame):
         self.SetMenuBar(menuBar)
 
         # Create toolbar.
-        tsize = (15,15)
+        tsize = (15, 15)
         self.toolbar = toolbar = self.CreateToolBar()
 
         artBmp = wx.ArtProvider.GetBitmap
@@ -64,10 +60,10 @@ class DosPlotter(wx.Frame):
 
         # Associate menu/toolbar items with their handlers.
         menuHandlers = [
-            (wx.ID_OPEN,        self.onOpen),
-            (wx.ID_CLOSE,       self.onClose),
-            (wx.ID_EXIT,        self.onExit),
-            (self.ID_ABOUT,     self.onAboutBox),
+            (wx.ID_OPEN, self.onOpen),
+            (wx.ID_CLOSE, self.onClose),
+            (wx.ID_EXIT, self.onExit),
+            (self.ID_ABOUT, self.onAboutBox),
         ]
 
         for combo in menuHandlers:
@@ -83,10 +79,10 @@ class DosPlotter(wx.Frame):
         return self.__class__.__name__
 
     def onOpen(self, event):
-        dlg = wx.FileDialog(self, message="Choose a Netcdf file", defaultDir=os.getcwd(), 
-            defaultFile="", wildcard="Netcdf files (*.nc)|*nc",
-            style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
-            )
+        dlg = wx.FileDialog(self, message="Choose a Netcdf file", defaultDir=os.getcwd(),
+                            defaultFile="", wildcard="Netcdf files (*.nc)|*nc",
+                            style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
+        )
 
         # Show the dialog and retrieve the user response. 
         # If it is the OK response, process the data.
@@ -104,7 +100,7 @@ class DosPlotter(wx.Frame):
         fileNum = event.GetId() - wx.ID_FILE1
         path = self.filehistory.GetHistoryFile(fileNum)
         # move up the list
-        self.filehistory.AddFileToHistory(path)  
+        self.filehistory.AddFileToHistory(path)
         self.read_bands(path)
 
     def read_bands(self, path):
@@ -121,8 +117,8 @@ class DosPlotter(wx.Frame):
         self.Destroy()
 
     def onAboutBox(self, event):
-        awx.makeAboutBox(codename=self.codename, version=self.VERSION, 
-                      description="", developers="M. Giantomassi")
+        awx.makeAboutBox(codename=self.codename, version=self.VERSION,
+                         description="", developers="M. Giantomassi")
 
 
 def dos_plotter():

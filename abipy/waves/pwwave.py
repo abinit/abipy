@@ -18,6 +18,7 @@ class WaveFunction(object):
     """
     Abstract class defining base and abstract methods for wavefunction objects.
     """
+
     def __mul__(self, other):
         raise NotImplementedError("Dot product not yet implemented for PWWave objects")
 
@@ -122,6 +123,7 @@ class PWWaveFunction(WaveFunction):
     """
     This object describes a wavefunction expressed in a plane-wave basis set.
     """
+
     def __init__(self, nspinor, spin, band, gsphere, ug):
         """
         Creation method.
@@ -168,7 +170,7 @@ class PWWaveFunction(WaveFunction):
         ext = tokens[-1]
 
         if not tokens[0]: # fname == ".ext" ==> Create temporary file.
-            filename = tempfile.mkstemp(suffix="."+ext, text=True)[1]
+            filename = tempfile.mkstemp(suffix="." + ext, text=True)[1]
             print("Creating temporary file: %s" % filename)
 
         # Compute |u(r)|2 and write data according to ext.
@@ -191,7 +193,7 @@ class PWWaveFunction(WaveFunction):
             wav2_ug_mesh = wav2.gsphere.tofftmesh(self.mesh, wav2.ug)
             return np.vdot(ug_mesh, wav2_ug_mesh)
         elif space.lower() == "r":
-            return np.vdot(self.ur,wav2.ur)/self.mesh.size
+            return np.vdot(self.ur, wav2.ur) / self.mesh.size
         else:
             raise ValueError("Wrong space: %s" % space)
 
@@ -206,8 +208,8 @@ class PWWaveFunction(WaveFunction):
     def pww_translation_inplace(self, gvector, rprimd):
         """Translates the pwwave from 1 kpoint by one gvector."""
         self.gsphere.kpoint = self.gsphere.kpoint + gvector
-        self.gsphere.gvecs = self.gsphere.gvecs+gvector
-        fft_ndivs = (self.mesh.shape[0]+2, self.mesh.shape[1]+2, self.mesh.shape[2]+2)
+        self.gsphere.gvecs = self.gsphere.gvecs + gvector
+        fft_ndivs = (self.mesh.shape[0] + 2, self.mesh.shape[1] + 2, self.mesh.shape[2] + 2)
         newmesh = Mesh3D(fft_ndivs, rprimd, pbc=True)
         self.mesh = newmesh
 
@@ -220,7 +222,7 @@ class PWWaveFunction(WaveFunction):
             return
 
         #@David FIXME this is wrong
-        gvector = np.array(kpoint.rcoord-wkpt.rcoord, np.int)
+        gvector = np.array(kpoint.rcoord - wkpt.rcoord, np.int)
         self.gsphere.gvecs = self.gsphere.gvecs + gvector
         self.gsphere.kpoint = wkpt.rcoord
 
@@ -241,7 +243,7 @@ class PWWaveFunction(WaveFunction):
         if not np.allclose(symmop.tau, np.zeros(3)):
             rug = np.zeros_like(self.ug)
             for ii in range(np.shape(self.ug)[1]):
-                rug[:,ii] = self.ug[:,ii]*np.exp(-2j*np.pi*(np.dot(rgvecs+rkpt,symmop.tau)))
+                rug[:, ii] = self.ug[:, ii] * np.exp(-2j * np.pi * (np.dot(rgvecs + rkpt, symmop.tau)))
             self._ug = rug
         self.gsphere.kpoint = rkpt
         self.gsphere.gvecs = rgvecs

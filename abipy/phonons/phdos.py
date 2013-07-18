@@ -1,7 +1,6 @@
 """Phonon density of states."""
 from __future__ import print_function, division
 
-import os
 import collections
 import numpy as np
 
@@ -89,7 +88,7 @@ class PhononDOS(object):
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
 
-        gspec = GridSpec(2, 1, height_ratios=[1,2])
+        gspec = GridSpec(2, 1, height_ratios=[1, 2])
         ax1 = plt.subplot(gspec[0])
         ax2 = plt.subplot(gspec[1])
 
@@ -125,6 +124,7 @@ class PHDOS_Reader(ETSF_Reader):
     .. note:
             Frequencies are in eV, DOSes are in states/eV.
     """
+
     def _lazy_get(self, varname):
         """Helper function used to create lazy properties."""
         hiddename = "__" + varname
@@ -173,19 +173,19 @@ class PHDOS_Reader(ETSF_Reader):
         type_idx = self.typeidx_from_symbol(symbol)
         return PhononDOS(self.wmesh, self.pjdos_type[type_idx])
 
-    # def read_pjdos(self, atom_idx=None):
-    #     """
-    #     projected DOS (over atoms)
-    #     """
-    #     return self.read_value("phonon_frequencies")
+        # def read_pjdos(self, atom_idx=None):
+        #     """
+        #     projected DOS (over atoms)
+        #     """
+        #     return self.read_value("phonon_frequencies")
 
-    # def read_pjdos_rc_type(self, symbol=None):
-    #     """
-    #     phdos(3,ntypat,nomega)
-    #     phonon DOS contribution arising from a particular atom-type
-    #     decomposed along the three reduced directions.
-    #     """
-    #     return self.read_value("phonon_frequencies")
+        # def read_pjdos_rc_type(self, symbol=None):
+        #     """
+        #     phdos(3,ntypat,nomega)
+        #     phonon DOS contribution arising from a particular atom-type
+        #     decomposed along the three reduced directions.
+        #     """
+        #     return self.read_value("phonon_frequencies")
 
 
 class PHDOS_File(AbinitNcFile):
@@ -194,6 +194,7 @@ class PHDOS_File(AbinitNcFile):
     PHDOS.nc file produced by anaddb. Provides helper function
     to visualize/extract data.
     """
+
     def __init__(self, filepath):
         # Open the file, read data and create objects.
         super(PHDOS_File, self).__init__(filepath)
@@ -239,9 +240,10 @@ class PHDOS_File(AbinitNcFile):
         savefig = kwargs.pop("savefig", None)
 
         import matplotlib.pyplot as plt
+
         fig = plt.figure()
 
-        ax = fig.add_subplot(1,1,1)
+        ax = fig.add_subplot(1, 1, 1)
         ax.grid(True)
 
         xlim = kwargs.pop("xlim", None)
@@ -264,7 +266,7 @@ class PHDOS_File(AbinitNcFile):
         for i, (symbol, pjdos) in enumerate(self.pjdos_type_dict.items()):
             f = pjdos.dos
             x, y = f.mesh, f.values
-            color = plt.get_cmap(colormap)(float(i)/(num_plots-1))
+            color = plt.get_cmap(colormap)(float(i) / (num_plots - 1))
             ax.plot(x, cumulative + y, lw=2, label=symbol, color=color)
             ax.fill_between(x, cumulative, cumulative + y, facecolor=color, alpha=0.7)
             cumulative += y

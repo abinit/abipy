@@ -4,22 +4,21 @@ import os
 import warnings
 import wx
 
+import abipy.tools.decorators as dec
+
 __all__ = [
     "path_img",
     "makeAboutBox",
     "PRINT",
     "WARNING",
     "Error",
+    "verbose",
 ]
 
-#class Logger(object):
-#    def WriteText(self, text):
-#        if text[-1:] == '\n':
-#            text = text[:-1]
-#        wx.LogMessage(text)
-#    write = WriteText
-
 _DEBUG = True
+
+class Error(Exception):
+    """Base class for exceptions"""
 
 if _DEBUG:
     def PRINT(*args, **kwargs):
@@ -27,6 +26,8 @@ if _DEBUG:
 
     def WARNING(*args):
         warnings.warn(" ".join(str(a) for a in args))
+
+    verbose = dec.verbose
 else:
     def PRINT(*args, **kwargs):
         pass
@@ -34,8 +35,8 @@ else:
     def WARNING(*args):
         pass
 
-class Error(Exception):
-    """Base class for exceptions"""
+    def verbose(func):
+        return func
 
 
 def path_img(filename):

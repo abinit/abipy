@@ -2,18 +2,18 @@ from __future__ import print_function, division
 
 import wx
 
-import abipy.gui.awx as awx 
+import abipy.gui.awx as awx
 
 try:
     from wxmplot import PlotFrame
 except ImportError:
     import warnings
+
     warnings.warn("Error while import wxmplot. Some features won't be available")
 
 from abipy.tools import AttrDict
 from abipy import abiopen
 from abipy.electrons import ElectronBands
-from abipy.waves import WFK_File
 
 
 def showElectronDosFrame(parent, filepath):
@@ -25,6 +25,7 @@ def showElectronBandsPlot(parent, filepath):
     bands = ElectronBands.from_file(filepath)
     bands.plot(title="File: %s" % filepath)
 
+
 def showJdosFrame(parent, filepath):
     bands = ElectronBands.from_file(filepath)
     ElectronJdosFrame(parent, bands).Show()
@@ -33,12 +34,12 @@ def showJdosFrame(parent, filepath):
 class ElectronDosPanel(wx.Panel):
     """Simple panel with controls for the electron DOS calculation."""
     DEFAULT_WIDTH = 0.2
-    DEFAULT_STEP  = 0.1
+    DEFAULT_STEP = 0.1
 
     def __init__(self, parent, **kwargs):
         super(ElectronDosPanel, self).__init__(parent, -1, **kwargs)
         self.BuildUi()
-    
+
     def BuildUi(self):
         sizer = wx.FlexGridSizer(rows=3, cols=2, vgap=5, hgap=5)
 
@@ -58,14 +59,13 @@ class ElectronDosPanel(wx.Panel):
         return AttrDict(dict(
             width=float(self.width_ctrl.GetValue()),
             step=float(self.step_ctrl.GetValue()),
-            ))
+        ))
 
 
 class ElectronDosDialog(wx.Dialog):
-    
     def __init__(self, parent, **kwargs):
-        super(ElectronDosDialog, self).__init__(parent, -1, **kwargs) 
-            
+        super(ElectronDosDialog, self).__init__(parent, -1, **kwargs)
+
         self.SetSize((250, 200))
         self.SetTitle("Select DOS parameters")
 
@@ -81,14 +81,14 @@ class ElectronDosDialog(wx.Dialog):
         hbox.Add(ok_button)
         hbox.Add(close_button, flag=wx.LEFT, border=5)
 
-        vbox.Add(self.panel, proportion=1,  flag=wx.ALL|wx.EXPAND, border=5)
-        vbox.Add(hbox, flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)
+        vbox.Add(self.panel, proportion=1, flag=wx.ALL | wx.EXPAND, border=5)
+        vbox.Add(hbox, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10)
 
         self.SetSizer(vbox)
 
     def GetParams(self):
         return self.panel.GetParams()
-        
+
 
 class ElectronDosFrame(wx.Frame):
     """This frames allows the user to control and compute the Electron DOS."""
@@ -112,7 +112,7 @@ class ElectronDosFrame(wx.Frame):
         self._pframes = []
 
     def BuildUi(self):
-        self.statusbar = self.CreateStatusBar() 
+        self.statusbar = self.CreateStatusBar()
 
         #main_sizer = wx.FlexGridSizer(rows=3, cols=2, vgap=5, hgap=5)
         #main_sizer = wx.GridSizer(rows=2, cols=2, vgap=5, hgap=5)
@@ -157,7 +157,8 @@ class ElectronDosFrame(wx.Frame):
             plotframe.Show()
             self._pframes.append(plotframe)
         else:
-            plotframe.oplot(tot_dos.mesh, tot_dos.values, label=label, draw_legend=True) 
+            plotframe.oplot(tot_dos.mesh, tot_dos.values, label=label, draw_legend=True)
+
 
 class ElectronJdosPanel(wx.Panel):
     """
@@ -189,17 +190,17 @@ class ElectronJdosPanel(wx.Panel):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         sz1 = wx.BoxSizer(wx.HORIZONTAL)
-                                                                                                              
+
         spin_label = wx.StaticText(self, -1, "Spin:")
         self.spin_cbox = wx.ComboBox(self, id=-1, choices=map(str, range(self.nsppol)), style=wx.CB_READONLY)
-                                                                                                              
+
         sz1.AddMany([spin_label, self.spin_cbox])
-                                                                                                              
+
         label = wx.StaticText(self, -1, "Broadening [eV]:")
         self.width_ctrl = wx.SpinCtrlDouble(self, id=-1, value=str(self.DEFAULT_WIDTH), min=0.0, max=100, inc=0.1)
 
         sz1.AddMany([label, self.width_ctrl])
-                                                                                                              
+
         label = wx.StaticText(self, -1, "Mesh step [eV]:")
         self.step_ctrl = wx.SpinCtrlDouble(self, id=-1, value=str(self.DEFAULT_STEP), min=0.0, max=100, inc=0.1)
 
@@ -207,9 +208,9 @@ class ElectronJdosPanel(wx.Panel):
         main_sizer.Add(sz1)
 
         start_label = wx.StaticText(self, -1, "Start:")
-        stop_label  = wx.StaticText(self, -1, "Stop:")
+        stop_label = wx.StaticText(self, -1, "Stop:")
         self.vstart = wx.ComboBox(self, id=-1, choices=map(str, range(self.mband)))
-        self.vstop  = wx.ComboBox(self, id=-1, choices=map(str, range(self.mband)))
+        self.vstop = wx.ComboBox(self, id=-1, choices=map(str, range(self.mband)))
 
         val_sizer = wx.GridSizer(rows=2, cols=2, vgap=5, hgap=5)
         val_sizer.AddMany((start_label, self.vstart))
@@ -220,9 +221,9 @@ class ElectronJdosPanel(wx.Panel):
         val_boxsizer.Add(val_sizer)
 
         start_label = wx.StaticText(self, -1, "Start:")
-        stop_label  = wx.StaticText(self, -1, "Stop:")
+        stop_label = wx.StaticText(self, -1, "Stop:")
         self.cstart = wx.ComboBox(self, id=-1, choices=map(str, range(self.mband)))
-        self.cstop  = wx.ComboBox(self, id=-1, choices=map(str, range(self.mband)))
+        self.cstop = wx.ComboBox(self, id=-1, choices=map(str, range(self.mband)))
 
         cond_sizer = wx.GridSizer(rows=2, cols=2, vgap=5, hgap=5)
         cond_sizer.AddMany((start_label, self.cstart))
@@ -252,12 +253,12 @@ class ElectronJdosPanel(wx.Panel):
         if cstart == cstop: crange = cstart
 
         return AttrDict(dict(
-            vrange = vrange,
-            crange = crange,
-            spin = int(self.spin_cbox.GetValue()),
-            step = float(self.step_ctrl.GetValue()),
-            width = float(self.width_ctrl.GetValue()),
-            cumulative = True,
+            vrange=vrange,
+            crange=crange,
+            spin=int(self.spin_cbox.GetValue()),
+            step=float(self.step_ctrl.GetValue()),
+            width=float(self.width_ctrl.GetValue()),
+            cumulative=True,
         ))
 
 
@@ -265,6 +266,7 @@ class ElectronJdosFrame(wx.Frame):
     """
     Frame for the computation of the JDOS.
     """
+
     def __init__(self, parent, bands, **kwargs):
         """
             Args:
@@ -282,11 +284,11 @@ class ElectronJdosFrame(wx.Frame):
         self.BuildUi()
 
     def BuildUi(self):
-        self.statusbar = self.CreateStatusBar() 
+        self.statusbar = self.CreateStatusBar()
 
         self.jdos_panel = ElectronJdosPanel(self, self.bands.nsppol, self.bands.mband)
 
-        jdos_button = wx.Button(self, -1, "Compute JDOS", (20,100))
+        jdos_button = wx.Button(self, -1, "Compute JDOS", (20, 100))
         self.Bind(wx.EVT_BUTTON, self.OnClick, jdos_button)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -299,17 +301,18 @@ class ElectronJdosFrame(wx.Frame):
     def OnClick(self, event):
         p = self.jdos_panel.GetParams()
         try:
-            self.bands.plot_jdosvc(vrange=p.vrange, crange=p.crange, step=p.step, width=p.width, cumulative=p.cumulative)
+            self.bands.plot_jdosvc(vrange=p.vrange, crange=p.crange, step=p.step, width=p.width,
+                                   cumulative=p.cumulative)
         except:
             awx.showErrorMessage(self)
 
+
 def main():
     import sys
+
     app = wx.App()
     bands = abiopen(sys.argv[1]).get_bands()
     frame = ElectronJdosFrame(None, bands)
-    #frame = wx.Frame(None)
-    #panel = ElectronDosPanel(frame)
     frame.Show()
     app.MainLoop()
 

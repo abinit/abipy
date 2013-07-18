@@ -1,7 +1,6 @@
 """Wavefunction file."""
 from __future__ import print_function, division
 
-import os
 import numpy as np
 
 from abipy.core import Mesh3D, GSphere, Structure
@@ -20,6 +19,7 @@ class WFK_File(AbinitNcFile):
     This object provides simple interfaces to access and analyze
     the data stored in the WFK file produced by ABINIT.
     """
+
     def __init__(self, filepath):
         """
         Initialized the object from a Netcdf file.
@@ -38,7 +38,6 @@ class WFK_File(AbinitNcFile):
         with WFK_Reader(filepath) as reader:
             assert reader.has_pwbasis_set
             assert reader.cplex_ug == 2
-            print(reader)
             self.npwarr = reader.npwarr
             self.nband_sk = reader.nband_sk
 
@@ -126,7 +125,7 @@ class WFK_File(AbinitNcFile):
         k = self.kindex(kpoint)
 
         if (spin not in range(self.nsppol) or k not in range(self.nkpt) or
-            band not in range(self.nband_sk[spin,k])):
+                    band not in range(self.nband_sk[spin, k])):
             raise ValueError("Wrong (spin, band, kpt) indices")
 
         ug_skb = self.reader.read_ug(spin, kpoint, band)
@@ -160,13 +159,12 @@ class WFK_File(AbinitNcFile):
         See :class:`Visualizer` for the list of applications and formats supported.
         """
         extensions = Visualizer.exts_from_appname(visualizer)
-                                                                                                 
+
         for ext in extensions:
             ext = "." + ext
             try:
                 return self.export_structure(ext)
-            except Visualizer.Error as exc:
-                #print(exc)
+            except Visualizer.Error:
                 pass
         else:
             raise Visualizer.Error(
@@ -185,29 +183,30 @@ class WFK_File(AbinitNcFile):
         # Export data uding the format specified by filename.
         return wave.export_ur2(path, self.structure)
 
-    #def visualize_ur2_with(self, spin, kpoint, bands, visualizer):
-    #    """
-    #    Visualize :math:`|u(r)|^2`  with visualizer.
+        #def visualize_ur2_with(self, spin, kpoint, bands, visualizer):
+        #    """
+        #    Visualize :math:`|u(r)|^2`  with visualizer.
 
-    #    See :class:`Visualizer` for the list of applications and formats supported.
-    #    """
-    #    extensions = Visualizer.exts_from_appname(visualizer)
-    #
-    #    for ext in extensions:
-    #        ext = "." + ext
-    #        try:
-    #            return self.export_ur2(ext)
-    #        except Visualizer.Error:
-    #            pass
-    #    else:
-    #        raise Visualizer.Error(
-    #            "Don't know how to export data for visualizer %s" % visualizer)
+        #    See :class:`Visualizer` for the list of applications and formats supported.
+        #    """
+        #    extensions = Visualizer.exts_from_appname(visualizer)
+        #
+        #    for ext in extensions:
+        #        ext = "." + ext
+        #        try:
+        #            return self.export_ur2(ext)
+        #        except Visualizer.Error:
+        #            pass
+        #    else:
+        #        raise Visualizer.Error(
+        #            "Don't know how to export data for visualizer %s" % visualizer)
 
 #########################################################################################
 
 
 class WFK_Reader(ETSF_Reader):
     """This object reads data from the WFK file."""
+
     def __init__(self, path):
         """Initialize the object from a filename."""
         super(WFK_Reader, self).__init__(path)
@@ -284,12 +283,12 @@ class WFK_Reader(ETSF_Reader):
         """
         k = self.kindex(kpoint)
         npw_k, istwfk = self.npwarr[k], self.istwfk[k]
-        return self._kg[k,:npw_k,:], istwfk
+        return self._kg[k, :npw_k, :], istwfk
 
     def read_ug(self, spin, kpoint, band):
         """Read the Fourier components of the wavefunction."""
         k = self.kindex(kpoint)
         npw_k, istwfk = self.npwarr[k], self.istwfk[k]
         # TODO use variables to avoid storing the full block.
-        return self.set_of_ug[spin,k,band,:,:npw_k]
+        return self.set_of_ug[spin, k, band, :, :npw_k]
 

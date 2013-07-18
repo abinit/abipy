@@ -1,6 +1,6 @@
 from __future__ import print_function, division
+
 import sys
-import os
 import functools
 import numpy as np
 
@@ -22,7 +22,7 @@ class PhononMode(object):
     __slots__ = [
         "qpoint",
         "freq",
-        "displ_cart",   # Cartesian displacement.
+        "displ_cart", # Cartesian displacement.
         "structure"
     ]
 
@@ -53,15 +53,15 @@ class PhononMode(object):
     def __lt__(self, other):
         return self.freq < other.freq
 
-    #@property
-    #def displ_red(self)
-    #    return np.dot(self.xred, self.rprimd)
+        #@property
+        #def displ_red(self)
+        #    return np.dot(self.xred, self.rprimd)
 
-    #def make_supercell(self, delta):
+        #def make_supercell(self, delta):
 
-    #def export(self, path):
+        #def export(self, path):
 
-    #def visualize(self, visualizer):
+        #def visualize(self, visualizer):
 
 #########################################################################################
 
@@ -149,7 +149,7 @@ class PhononBands(object):
         displ_specie = []
         for (i, site) in enumerate(self.structure):
             if site.specie == specie:
-                displ_specie.append(self.phdispl_cart[:,:,i,:])
+                displ_specie.append(self.phdispl_cart[:, :, i, :])
         return displ_specie
 
     @property
@@ -212,9 +212,9 @@ class PhononBands(object):
         umodes = []
         for (q, qpoint) in enumerate(self.qpoints):
             for nu in self.branches:
-                freq = self.phfreqs[q,nu]
+                freq = self.phfreqs[q, nu]
                 if freq < below_mev * 1000:
-                    displ_cart = self.phdispl_cart[q,nu,:]
+                    displ_cart = self.phdispl_cart[q, nu, :]
                     umodes.append(PhononMode(qpoint, freq, displ_cart, self.structure))
         return umodes
 
@@ -289,9 +289,10 @@ class PhononBands(object):
         savefig = kwargs.pop("savefig", None)
 
         import matplotlib.pyplot as plt
+
         fig = plt.figure()
 
-        ax = fig.add_subplot(1,1,1)
+        ax = fig.add_subplot(1, 1, 1)
 
         if title is not None:
             ax.set_title(title)
@@ -340,11 +341,11 @@ class PhononBands(object):
             for (q, qpoint) in enumerate(self.qpoints):
                 if qtick == qpoint:
                     d[q] = qname
-        # ticks, labels
+            # ticks, labels
         return d.keys(), d.values()
 
     def plot_fatbands(self, colormap="jet", max_stripe_width_mev=3.0, qlabels=None, **kwargs):
-                      #select_specie, select_red_dir
+    #select_specie, select_red_dir
         """
         Plot phonon fatbands
 
@@ -381,6 +382,7 @@ class PhononBands(object):
         savefig = kwargs.pop("savefig", None)
 
         import matplotlib.pyplot as plt
+
         structure = self.structure
         ntypat = structure.ntypesp
 
@@ -398,8 +400,8 @@ class PhononBands(object):
         d2_qnu = np.zeros((self.num_qpoints, self.num_branches))
         for q in range(self.num_qpoints):
             for nu in self.branches:
-                cvect = self.phdispl_cart[q,nu,:]
-                d2_qnu[q,nu] = np.vdot(cvect, cvect).real
+                cvect = self.phdispl_cart[q, nu, :]
+                d2_qnu[q, nu] = np.vdot(cvect, cvect).real
 
         # One plot per atom type.
         for (ax_idx, symbol) in enumerate(structure.symbol_set):
@@ -414,29 +416,29 @@ class PhononBands(object):
             dir_indices = []
             for aindx in atom_indices:
                 start = 3 * aindx
-                dir_indices.extend([start, start+1, start+2])
+                dir_indices.extend([start, start + 1, start + 2])
 
             for nu in self.branches:
-                yy = self.phfreqs[:,nu]
+                yy = self.phfreqs[:, nu]
 
                 # Exctract the sub-vector associated to this atom type.
-                displ_type = self.phdispl_cart[:,nu,dir_indices]
+                displ_type = self.phdispl_cart[:, nu, dir_indices]
                 d2_type = np.zeros(self.num_qpoints)
                 for q in range(self.num_qpoints):
                     d2_type[q] = np.vdot(displ_type[q], displ_type[q]).real
 
                 # Normalize and scale by max_stripe_width_mev.
                 # The stripe is centered on the phonon branch hence the factor 2
-                d2_type = max_stripe_width_mev * 1.e-3 * d2_type / (2. * d2_qnu[:,nu])
+                d2_type = max_stripe_width_mev * 1.e-3 * d2_type / (2. * d2_qnu[:, nu])
 
                 # Plot the phonon branch and the stripe.
-                color = plt.get_cmap(colormap)(float(ax_idx)/(ntypat-1))
+                color = plt.get_cmap(colormap)(float(ax_idx) / (ntypat - 1))
                 if nu == 0:
                     ax.plot(xx, yy, lw=2, label=symbol, color=color)
                 else:
                     ax.plot(xx, yy, lw=2, color=color)
 
-                ax.fill_between(xx, yy+d2_type, yy-d2_type, facecolor=color, alpha=0.7, linewidth=0)
+                ax.fill_between(xx, yy + d2_type, yy - d2_type, facecolor=color, alpha=0.7, linewidth=0)
 
             ax.legend(loc="best")
 
@@ -492,7 +494,7 @@ class PhononBands(object):
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
 
-        gspec = GridSpec(1, 2, width_ratios=[2,1])
+        gspec = GridSpec(1, 2, width_ratios=[2, 1])
 
         ax1 = plt.subplot(gspec[0])
         # Align bands and DOS.
@@ -569,7 +571,6 @@ class PHBST_Reader(ETSF_Reader):
 
 
 class PHBST_File(AbinitNcFile):
-
     def __init__(self, filepath):
         """
         Object used to access data stored in the PHBST file produced by ABINIT.
@@ -630,7 +631,7 @@ class PHBST_File(AbinitNcFile):
             else:
                 raise ValueError("qpoint %s not found" % qpoint)
 
-        #return PHMode
+                #return PHMode
 
     def export_structure(self, path):
         """
@@ -658,8 +659,8 @@ class PHBST_File(AbinitNcFile):
         else:
             raise Visualizer.Error("Don't know how to export data for visualizer " % visualizer)
 
-    #def plot_bands(self, title=None, klabels=None, *args, **kwargs):
-    #    self.bands.plot(title, klabels, *args, **kwargs)
+            #def plot_bands(self, title=None, klabels=None, *args, **kwargs):
+            #    self.bands.plot(title, klabels, *args, **kwargs)
 
 
 #########################################################################################

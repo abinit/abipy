@@ -1,20 +1,17 @@
 """This module ..."""
 from __future__ import print_function, division
 
-import os
-import abc
 import wx
-
-import wx.lib.dialogs as wxdg 
+import wx.lib.dialogs as wxdg
 import abipy.gui.awx as awx
 import abipy.gui.electronswx as ewx
 
 from collections import OrderedDict
 
 from abipy import abifile_subclass_from_filename, abiopen
-from abipy.iotools.files import NcDumper, AbinitNcFile, AbinitLogFile, AbinitOutputFile, get_filestat
+from abipy.iotools.files import NcDumper, AbinitLogFile, AbinitOutputFile, get_filestat
 from abipy import WFK_File, SIGRES_File
-from abipy.electrons.bse import MDF_Reader, MDF_File
+from abipy.electrons.bse import MDF_File
 from .abievents import AbinitEventsFrame, AbinitTimerFrame
 
 
@@ -39,6 +36,7 @@ def popupmenu_for_filename(parent, filename):
 
 #--------------------------------------------------------------------------------------------------
 # Callbacks
+
 
 def showNcdumpMessage(parent, filepath):
     """Open a dialog with the output of ncdump."""
@@ -71,6 +69,7 @@ def showAbinitTimerFrame(parent, filepath):
     except awx.Error as exc:
         awx.showErrorMessage(parent, str(exc)) 
 
+
 def showStructure(parent, filepath):
     ncfile = abiopen(filepath)
     structure = ncfile.get_structure() 
@@ -78,6 +77,7 @@ def showStructure(parent, filepath):
     visu()
 
 #--------------------------------------------------------------------------------------------------
+
 
 class PopupMenu(wx.Menu):
     """
@@ -117,9 +117,7 @@ class PopupMenu(wx.Menu):
             return set(children)
             
         for cls in allsubclasses(PopupMenu):
-            #print("all",allsubclasses(PopupMenu))
             if cls.handle_file_class(file_class):
-                #awx.PRINT(cls," will handle ", filename) 
                 return cls()
         else:
             return PopupMenu()

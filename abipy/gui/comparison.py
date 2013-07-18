@@ -8,10 +8,10 @@ import fnmatch
 from abipy.electrons import EBandsPlotter, ElectronDosPlotter, MDF_Plotter
 from abipy.gui.electronswx import ElectronDosDialog
 
-class FileCheckBoxPanel ( wx.Panel ):
 
+class FileCheckBoxPanel(wx.Panel):
     def __init__(self, parent, filepaths, **kwargs):
-        wx.Panel.__init__ (self, parent, id=-1, **kwargs)
+        wx.Panel.__init__(self, parent, id=-1, **kwargs)
 
         if isinstance(filepaths, str): filepaths = [filepaths]
         self.all_filepaths = filepaths
@@ -21,7 +21,7 @@ class FileCheckBoxPanel ( wx.Panel ):
     def BuildUi(self):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        static_sizer = wx.StaticBoxSizer( wx.StaticBox(self, -1, "Files"), wx.VERTICAL )
+        static_sizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, "Files"), wx.VERTICAL)
 
         self.check_boxes = collections.OrderedDict()
 
@@ -33,35 +33,36 @@ class FileCheckBoxPanel ( wx.Panel ):
             assert path not in self.check_boxes
             cbox = wx.CheckBox(self, -1, path, wx.DefaultPosition, wx.DefaultSize, 0)
             cbox.SetValue(True)
-            static_sizer.Add(cbox, 0, wx.ALL|wx.EXPAND, 5)
+            static_sizer.Add(cbox, 0, wx.ALL | wx.EXPAND, 5)
             self.check_boxes[path] = cbox
 
         main_sizer.Add(static_sizer, 1, wx.EXPAND, 5)
 
         # Add buttons to (select|deselect) all checkboxes.
-        hsizer = wx.BoxSizer( wx.HORIZONTAL )
+        hsizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.all_button = wx.Button( self, -1, "Select all", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.all_button = wx.Button(self, -1, "Select all", wx.DefaultPosition, wx.DefaultSize, 0)
         self.Bind(wx.EVT_BUTTON, self.OnSelectAll, self.all_button)
-        hsizer.Add( self.all_button, 0, wx.ALL, 5 )
+        hsizer.Add(self.all_button, 0, wx.ALL, 5)
 
-        self.deselect_button = wx.Button( self, -1, "Deselect all", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.deselect_button = wx.Button(self, -1, "Deselect all", wx.DefaultPosition, wx.DefaultSize, 0)
         self.Bind(wx.EVT_BUTTON, self.OnDeselectAll, self.deselect_button)
-        hsizer.Add( self.deselect_button, 0, wx.ALL, 5 )
+        hsizer.Add(self.deselect_button, 0, wx.ALL, 5)
 
-        filter_label = wx.StaticText( self, -1, "Filter:", wx.DefaultPosition, wx.DefaultSize, 0 )
-        filter_label.Wrap( -1 )
-        hsizer.Add(filter_label, 0, wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.BOTTOM|wx.LEFT, 5 )
+        filter_label = wx.StaticText(self, -1, "Filter:", wx.DefaultPosition, wx.DefaultSize, 0)
+        filter_label.Wrap(-1)
+        hsizer.Add(filter_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
 
         wildcard_choices = ["*", "*.nc"]
-        self.filter_combobox = wx.ComboBox( self, wx.ID_ANY, "*", wx.DefaultPosition, wx.DefaultSize, wildcard_choices, 0)
+        self.filter_combobox = wx.ComboBox(self, wx.ID_ANY, "*", wx.DefaultPosition, wx.DefaultSize, wildcard_choices,
+                                           0)
         self.filter_combobox.Bind(wx.EVT_COMBOBOX, self.OnFilterComboBox)
         self.filter_combobox.Bind(wx.EVT_TEXT_ENTER, self.OnFilterComboBox)
-        hsizer.Add( self.filter_combobox, 0, wx.ALL, 5 )
+        hsizer.Add(self.filter_combobox, 0, wx.ALL, 5)
 
-        main_sizer.Add( hsizer, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        main_sizer.Add(hsizer, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
 
-        self.SetSizer( main_sizer )
+        self.SetSizer(main_sizer)
         self.Fit()
 
     def _SelectFilename(self, filename):
@@ -111,33 +112,34 @@ class ComparisonFrame(wx.Frame):
         #
         #self.wildcard = wildcard if wildcard is not None else ""
 
-        main_sizer = wx.BoxSizer( wx.VERTICAL )
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        hsizer = wx.BoxSizer( wx.HORIZONTAL )
+        hsizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        st1 = wx.StaticText(self, -1, "Quantity:", wx.DefaultPosition, wx.DefaultSize, 0 )
-        st1.Wrap( -1 )
-        hsizer.Add(st1, 0, wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.BOTTOM|wx.LEFT, 5 )
+        st1 = wx.StaticText(self, -1, "Quantity:", wx.DefaultPosition, wx.DefaultSize, 0)
+        st1.Wrap(-1)
+        hsizer.Add(st1, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
 
         plotter_choices = ["ebands", "edos", "mdf"]
-        self.plotter_cbox = wx.ComboBox( self, -1, "ebands", wx.DefaultPosition, wx.DefaultSize, plotter_choices, 0 )
-        hsizer.Add( self.plotter_cbox, 0, wx.ALL, 5 )
+        self.plotter_cbox = wx.ComboBox(self, -1, "ebands", wx.DefaultPosition, wx.DefaultSize, plotter_choices, 0)
+        hsizer.Add(self.plotter_cbox, 0, wx.ALL, 5)
 
-        compare_button = wx.Button( self, -1, "Compare", wx.DefaultPosition, wx.DefaultSize, 0 )
+        compare_button = wx.Button(self, -1, "Compare", wx.DefaultPosition, wx.DefaultSize, 0)
         self.Bind(wx.EVT_BUTTON, self.OnCompare, compare_button)
-        hsizer.Add(compare_button, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
+        hsizer.Add(compare_button, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
-        main_sizer.Add( hsizer, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        main_sizer.Add(hsizer, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
 
         self.panel = FileCheckBoxPanel(self, filepaths)
         main_sizer.Add(self.panel, 1, wx.EXPAND, 5)
 
-        self.SetSizer( main_sizer )
+        self.SetSizer(main_sizer)
         self.Layout()
 
+    @awx.verbose
     def OnCompare(self, event):
         selected = self.panel.GetSelectedFilepaths()
-        awx.PRINT("selected",selected)
+        awx.PRINT("selected", selected)
 
         choice = self.plotter_cbox.GetValue()
         try:

@@ -28,6 +28,9 @@ docs/examples
 # MacOSX stuff
 .DS_Store
 
+# Pycharm
+.idea/
+
 # vim files
 *.swp
 *.swo

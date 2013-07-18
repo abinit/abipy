@@ -37,6 +37,7 @@ class DielectricFunction(object):
     .. note:
         Frequencies are in eV
     """
+
     def __init__(self, qpoints, wmesh, emacros_q, info):
         """
         Args:
@@ -56,7 +57,7 @@ class DielectricFunction(object):
 
         """
         self.wmesh = np.array(wmesh)
-        self.qpoints = np.reshape(qpoints, (-1,3))
+        self.qpoints = np.reshape(qpoints, (-1, 3))
         assert len(self.qpoints) == len(emacros_q)
         self.info = info
 
@@ -68,7 +69,7 @@ class DielectricFunction(object):
 
         # Compute the average value.
         # TODO: One should take into account the star of q, but I need the symops
-        self.emacro_avg = Function1D(wmesh, em_avg/self.num_qpoints)
+        self.emacro_avg = Function1D(wmesh, em_avg / self.num_qpoints)
 
     def __iter__(self):
         """Iterate over (q, em_q)."""
@@ -91,7 +92,7 @@ class DielectricFunction(object):
     def show_info(self, stream=sys.stdout):
         """Pretty print of the info."""
         import pprint
-        printer = pprint.PrettyPrinter(self, indent=1, width=80, depth=None, stream=stream)
+        printer = pprint.PrettyPrinter(self, width=80, depth=None, stream=stream)
         printer.pprint(self.info)
 
     def raw_print(self, stream=sys.stdout, fmt=None, delimiter=' '):
@@ -109,10 +110,10 @@ class DielectricFunction(object):
                 Character separating columns.
         """
         header = \
-"""
-2 * (num_qpoints+1) columns representing num_qpoints+1 complex numbers (re, im).
-omega_re omega_im em_q[0]_re em_q[0]_im ... em_q[nq-1]_im
-"""
+            """
+            2 * (num_qpoints+1) columns representing num_qpoints+1 complex numbers (re, im).
+            omega_re omega_im em_q[0]_re em_q[0]_im ... em_q[nq-1]_im
+            """
         # Build table.
         table = []
         for (iw, omega) in enumerate(self.wmesh):
@@ -147,9 +148,10 @@ omega_re omega_im em_q[0]_re em_q[0]_im ... em_q[nq-1]_im
         savefig = kwargs.pop("savefig", None)
 
         import matplotlib.pyplot as plt
+
         fig = plt.figure()
 
-        ax = fig.add_subplot(1,1,1)
+        ax = fig.add_subplot(1, 1, 1)
 
         if title is not None:
             ax.set_title(title)
@@ -245,7 +247,7 @@ class MDF_File(AbinitNcFile):
         elif mdf_type == "rpa":
             return self.rpanlf_mdf
         elif mdf_type == "gwrpa":
-            return self.gwnlf_mdf 
+            return self.gwnlf_mdf
         else:
             raise ValueError("Wrong value for mdf_type %s" % mdf_type)
 
@@ -256,11 +258,11 @@ class MDF_File(AbinitNcFile):
 
         # Build the plotter.
         plotter = MDF_Plotter()
-        
+
         # Excitonic MDF.
         if "exc" in mdf_select or plot_all:
             plotter.add_mdf("EXC", self.exc_mdf)
-            
+
         # KS-RPA MDF
         if "rpa" in mdf_select or plot_all:
             plotter.add_mdf("KS-RPA", self.rpanlf_mdf)
@@ -278,6 +280,7 @@ class MDF_Reader(ETSF_Reader):
     """
     This object reads data from the MDF.nc file produced by ABINIT.
     """
+
     def __init__(self, path):
         """Initialize the object from a filename."""
         super(MDF_Reader, self).__init__(path)
@@ -341,6 +344,7 @@ class MDF_Plotter(object):
     """
     Class for plotting MDFs.
     """
+
     def __init__(self):
         self._mdfs = collections.OrderedDict()
 
@@ -365,14 +369,15 @@ class MDF_Plotter(object):
 
         Args:
             mdf_type:
-                String defing the type of mdf.
+                String defining the type of mdf.
             label:
                 Optional string used to label the plot.
         """
         from abipy import abiopen
+
         ncfile = abiopen(filepath)
         mdf = ncfile.get_mdf(mdf_type=mdf_type)
-        if label is None: 
+        if label is None:
             label = mdf_type + ncfile.filepath
 
         self.add_mdf(label, mdf)
@@ -396,9 +401,10 @@ class MDF_Plotter(object):
         savefig = kwargs.pop("savefig", None)
 
         import matplotlib.pyplot as plt
+
         fig = plt.figure()
 
-        ax = fig.add_subplot(1,1,1)
+        ax = fig.add_subplot(1, 1, 1)
         ax.grid(True)
 
         xlim = kwargs.pop("xlim", None)
@@ -409,7 +415,7 @@ class MDF_Plotter(object):
 
         ax.set_xlabel('Frequency [eV]')
         ax.set_ylabel('Macroscopic DF')
-                                        
+
         if title is not None:
             ax.set_title(title)
 
@@ -445,6 +451,7 @@ class DIPME_File(object):
     """
     This object provides tools to analyze the dipole matrix elements produced by the BSE code.
     """
+
     def __init__(self, path):
         self.path = os.path.abspath(path)
 
@@ -506,7 +513,7 @@ class DIPME_File(object):
             qpoint = Kpoint.askpoint(qpoint, self.structure.reciprocal_lattice).versor()
         else:
             # Will plot |<psi|r|psi>|.
-            qpoint = Kpoint((1,1,1), self.structure.reciprocal_lattice)
+            qpoint = Kpoint((1, 1, 1), self.structure.reciprocal_lattice)
 
         if spin in None:
             spins = range(self.nsppol)
@@ -521,7 +528,7 @@ class DIPME_File(object):
         for spin in spins:
             for kpoint in kpoints:
                 ik = self.kpoint_index(kpoint)
-                rme = self.dipme_scvk[spin,ik,:,:,:]
+                rme = self.dipme_scvk[spin, ik, :, :, :]
 
                 #qrme = qpoint * rme
                 label = "qpoint %s, spin %s, kpoint = %s" % (qpoint, spin, kpoint)
@@ -535,6 +542,7 @@ class DIPME_Reader(ETSF_Reader):
     """"
     This object reads the optical matrix elements from the OME.nc file.
     """
+
     def __init__(self, path):
         super(DIPME_Reader, self).__init__(path)
 
@@ -555,5 +563,5 @@ class DIPME_Reader(ETSF_Reader):
     def read_dipme(self, spin, kpoint):
         """Read the dipole matrix elements."""
         ik = self.kpoint_index(kpoint)
-        return self.dipme_skvc[spin,ik,:,:,:]
+        return self.dipme_skvc[spin, ik, :, :, :]
 

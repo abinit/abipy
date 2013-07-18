@@ -43,6 +43,7 @@ class FFT_Test(object):
     This object stores the wall-time of the FFT
     as a function of the size of the problem.
     """
+
     def __init__(self, ecut, ngfft, wall_time, info):
         """
         Args:
@@ -95,7 +96,7 @@ class FFT_Test(object):
         line, = ax.plot(xx, yy,
                         color=color, linestyle=linestyle, label=str(self), linewidth=3.0,
                         marker=marker, markersize=10,
-                        )
+        )
         return line
 
 ######################################################################
@@ -107,6 +108,7 @@ class FFT_Benchmark(object):
 
     Use the classmethod from_filename to generate an instance.
     """
+
     @classmethod
     def from_filename(cls, fileobj):
         return parse_prof_file(fileobj)
@@ -152,6 +154,7 @@ class FFT_Benchmark(object):
         savefig = kwargs.pop("savefig", None)
 
         import matplotlib.pyplot as plt
+
         fig = plt.figure()
 
         ax1 = fig.add_subplot(2, 1, 1)
@@ -230,7 +233,7 @@ class FFT_Benchmark(object):
                 msg = "xecut" + str(xecut) + " not found"
                 labels.append("")
                 #raise RuntimeError(msg)
-            #print("labels:", labels)
+                #print("labels:", labels)
 
         # Set and rotate labels.
         ax2.set_xticklabels(labels, fontdict=None, minor=False, rotation=35)
@@ -245,6 +248,7 @@ class FFT_Benchmark(object):
             fig.savefig(os.path.abspath(savefig))
 
         return fig
+
 
 def parse_prof_file(fileobj):
     """
@@ -294,8 +298,8 @@ def parse_prof_file(fileobj):
             line = lines.pop(0)
         except IndexError:
             line = None
-        #
-    # Instanciate FFT_Benchmark.
+            #
+        # Instanciate FFT_Benchmark.
     fft_tests = []
     for (idx, wall_time) in enumerate(data):
         info = info_of_test[idx]

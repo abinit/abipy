@@ -1,26 +1,22 @@
 #!/usr/bin/env python
 from __future__ import print_function, division
 
-import sys
 import os
 import wx
 
 import abipy.gui.awx as awx
-import abipy.gui.electronswx as ewx
 
 from collections import namedtuple
-from abipy.iotools.files import NcDumper 
-from abipy.electrons import ElectronBands
-from abipy.waves import WFK_File
 from wxmplot import PlotApp, PlotFrame
 
 from abipy.gui.popupmenus import popupmenu_for_filename
-
 from abipy.gui.wfkviewer import WfkViewerFrame
+
 
 _VIEWERS = {
     "WFK-etsf.nc": WfkViewerFrame,
 }
+
 
 def viewerframe_for_filepath(parent, filepath):
     ext = filepath.split("_")[-1]
@@ -31,7 +27,6 @@ def viewerframe_for_filepath(parent, filepath):
 
 
 class NcFileDirCtrl(wx.GenericDirCtrl):
-
     def __init__(self, *args, **kwargs):
         if "filter" not in kwargs:
             kwargs["filter"] = "Netcdf files (*.nc)|*.nc|All files (*.*)|*.*"
@@ -59,22 +54,22 @@ class NcFileDirCtrl(wx.GenericDirCtrl):
         # Open the popup menum then destroy it to avoid mem leak.
         popmenu = popupmenu_for_filename(self, path)
         self.PopupMenu(popmenu, event.GetPoint())
-        popmenu.Destroy() 
+        popmenu.Destroy()
 
 
 import fnmatch
 import wx.lib.mixins.listctrl as listmix
 
-class FileListPanel(wx.Panel, listmix.ColumnSorterMixin):
 
+class FileListPanel(wx.Panel, listmix.ColumnSorterMixin):
     def __init__(self, parent, dirpaths=None, filepaths=None, wildcard=None, **kwargs):
         super(FileListPanel, self).__init__(parent, -1, **kwargs)
 
         if isinstance(dirpaths, str) and dirpaths:
-            dirpaths = [dirpaths,]
+            dirpaths = [dirpaths, ]
 
         if isinstance(filepaths, str) and filepaths:
-            filepaths = [filepaths,]
+            filepaths = [filepaths, ]
 
         self.dirpaths = dirpaths if dirpaths is not None else []
         self.filepaths = filepaths if filepaths is not None else []
@@ -90,6 +85,7 @@ class FileListPanel(wx.Panel, listmix.ColumnSorterMixin):
 
         class MyListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
             """ Mixin class to resize the last column appropriately."""
+
             def __init__(self, parent):
                 wx.ListCtrl.__init__(self, parent, id=-1, style=wx.LC_REPORT | wx.BORDER_SUNKEN)
                 listmix.ListCtrlAutoWidthMixin.__init__(self)
@@ -103,6 +99,7 @@ class FileListPanel(wx.Panel, listmix.ColumnSorterMixin):
 
         class FileDataObj(namedtuple("FileDataObj", "filename type directory")):
             """The fields of the row"""
+
             @property
             def abspath(self):
                 return os.path.join(self.directory, self.filename)
@@ -113,7 +110,7 @@ class FileListPanel(wx.Panel, listmix.ColumnSorterMixin):
                     filename=os.path.basename(abspath),
                     type=os.path.splitext(abspath)[-1],
                     directory=os.path.dirname(abspath),
-                    )
+                )
 
         self.FileDataObj = FileDataObj
 
@@ -136,11 +133,11 @@ class FileListPanel(wx.Panel, listmix.ColumnSorterMixin):
         #self.filepicker = wx.FilePickerCtrl(self, id=-1, path=os.getcwd(),
         #    wildcard=self.wildcard, style = wx.FLP_OPEN | wx.CHANGE_DIR | wx.FLP_USE_TEXTCTRL)
         #self.Bind(wx.EVT_FILEPICKER_CHANGED, self.OnFilePicker)
+        #sizer.Add(self.filepicker, 0, wx.ALL | wx.CENTER, 5)
 
         # Pack
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(file_list, 1, wx.ALL | wx.EXPAND, 5)
-        #sizer.Add(self.filepicker, 0, wx.ALL | wx.CENTER, 5)
         self.SetSizer(sizer)
 
     def HasAbsPath(self, abspath):
@@ -194,17 +191,17 @@ class FileListPanel(wx.Panel, listmix.ColumnSorterMixin):
 
         if currentItem != -1:
             fd = self.id2filedata[self.file_list.GetItemData(currentItem)]
-            # Open the popup menum then destroy it to avoid mem leak.
+            # Open the popup menu then destroy it to avoid mem leak.
             menu = popupmenu_for_filename(self, fd.abspath)
             self.PopupMenu(menu, event.GetPoint())
-            menu.Destroy() 
+            menu.Destroy()
 
     def OnColClick(self, event):
         event.Skip()
 
     def OnItemSelected(self, event):
         indices = [self.file_list.GetFirstSelected()]
-        while indices[-1] != -1: 
+        while indices[-1] != -1:
             indices.append(self.file_list.GetNextSelected(indices[-1]))
         indices = indices[:-1]
         awx.PRINT("in OnItemSelected with indices:", indices)
@@ -212,16 +209,17 @@ class FileListPanel(wx.Panel, listmix.ColumnSorterMixin):
         # Plot multiple bands
         if len(indices) > 1:
             from abipy.electrons import EBandsPlotter
+
             plotter = EBandsPlotter()
             for index in indices:
                 fd = self.id2filedata[self.file_list.GetItemData(index)]
-                print("adding ",fd.abspath)
+                print("adding ", fd.abspath)
                 plotter.add_bands_from_file(fd.abspath)
             plotter.plot()
 
 
 def wxapp_dirbrowser(dirpath):
-    if dirpath is None: 
+    if dirpath is None:
         dirpath = ""
     else:
         dirpath = os.path.abspath(dirpath)
@@ -236,17 +234,7 @@ def wxapp_dirbrowser(dirpath):
 
 def wxapp_listbrowser(dirpaths=None, filepaths=None, wildcard=""):
     app = wx.App()
-    frame = wx.Frame(None,-1)
-    panel = FileListPanel(frame, dirpaths=dirpaths, filepaths=filepaths, wildcard=wildcard)
+    frame = wx.Frame(None, -1)
+    FileListPanel(frame, dirpaths=dirpaths, filepaths=filepaths, wildcard=wildcard)
     frame.Show()
     return app
-
-
-if __name__ == "__main__":
-    dirpaths = None
-    if len(sys.argv) > 1:
-        dirpaths = sys.argv[1:]
-    wxapp_listbrowser(dirpaths=dirpaths).MainLoop()
-    #dirpath = None
-    #if len(sys.argv) > 1: dirpath = sys.argv[1]
-    #wxapp_dirbrowser(dirpath).MainLoop()

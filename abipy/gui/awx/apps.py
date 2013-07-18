@@ -3,7 +3,6 @@ from __future__ import print_function, division
 import abc
 import wx
 
-from .tools import PRINT, WARNING
 
 __all__ = [
     "App",

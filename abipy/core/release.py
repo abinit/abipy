@@ -24,25 +24,25 @@ version = __version__  # backwards compatibility name
 description = "Set of python modules and scripts to analyze the results of ABINIT computations.",
 
 long_description = \
-"""
-The goal of abipy is to create a comprehensive environment for
-interactive and exploratory computing.  To support this goal,
-abipy provides:
+    """
+    The goal of abipy is to create a comprehensive environment for
+    interactive and exploratory computing.  To support this goal,
+    abipy provides:
 
-* A set of pythons objects to store the results of the calculations.
+    * A set of pythons objects to store the results of the calculations.
 
-* A set of scripts for performing common tasks such as plotting the results
-  of the calculation.
+    * A set of scripts for performing common tasks such as plotting the results
+      of the calculation.
 
-The latest development version is always available from ...
-site <http://??>.
-"""
+    The latest development version is always available from ...
+    site <http://??>.
+    """
 
 license = 'GPL'
 
-authors = {'Matteo': ('Matteo Giantomassi','gmatteo at gmail.com'),
-           'Antonius': ('Gabriel Antonius','gabriel.antonius at gmail.com'),
-           }
+authors = {'Matteo': ('Matteo Giantomassi', 'gmatteo at gmail.com'),
+           'Antonius': ('Gabriel Antonius', 'gabriel.antonius at gmail.com'),
+}
 
 author = 'The ABINIT group'
 

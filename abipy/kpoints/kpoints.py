@@ -66,10 +66,10 @@ def askpoints(obj, lattice, weigths=None, labels=None):
 class Kpoint(object):
     """Class defining one k-point."""
     __slots__ = [
-       "_frac_coords",
-       "_lattice",
-       "_weight",
-       "_label",
+        "_frac_coords",
+        "_lattice",
+        "_weight",
+        "_label",
     ]
     # Tolerance used to compare k-points.
     _ATOL_KDIFF = 1e-08
@@ -199,7 +199,7 @@ class Kpoint(object):
         """Returns the versor i.e. ||k|| = 1"""
         cls = self.__class__
         try:
-            return cls(self.frac_coords/self.norm, self.lattice, weight=self.weight)
+            return cls(self.frac_coords / self.norm, self.lattice, weight=self.weight)
         except ZeroDivisionError:
             return cls.gamma(self.lattice, weight=self.weight)
 
@@ -251,7 +251,7 @@ class Kpoints(collections.Sequence):
         """
         self.structure = structure
 
-        frac_coords = np.reshape(frac_coords, (-1,3))
+        frac_coords = np.reshape(frac_coords, (-1, 3))
 
         if weights is not None:
             assert len(weights) == len(frac_coords)
@@ -315,7 +315,7 @@ class Kpoints(collections.Sequence):
 
     def asarray(self):
         """Returns a ndarray with the fractional coordinates of the k-points."""
-        coords = np.empty((len(self),3))
+        coords = np.empty((len(self), 3))
         for i, k in enumerate(self):
             coords[i] = k.frac_coords
         return coords
@@ -355,9 +355,9 @@ class Kpath(Kpoints):
         try:
             return self._ds
         except AttributeError:
-            self._ds = ds = np.zeros(len(self)-1)
+            self._ds = ds = np.zeros(len(self) - 1)
             for (i, kpoint) in enumerate(self[:-1]):
-                ds[i] = (self[i+1] - kpoint).norm
+                ds[i] = (self[i + 1] - kpoint).norm
             return self._ds
 
     @property
@@ -366,11 +366,11 @@ class Kpath(Kpoints):
         try:
             return self._versors
         except AttributeError:
-            versors = (len(self) - 1) * [None,]
+            versors = (len(self) - 1) * [None, ]
             versors[0] = Kpoint.gamma(self.reciprocal_lattice)
 
             for (i, kpt) in enumerate(self[:-1]):
-                versors[i] = (self[i+1] - kpt).versor()
+                versors[i] = (self[i + 1] - kpt).versor()
             self._versors = tuple(versors)
             return self._versors
 
@@ -397,7 +397,7 @@ class Kpath(Kpoints):
                     indices = [i]
                 else:
                     indices += [i]
-            lines.append(indices + [len(self)-1])
+            lines.append(indices + [len(self) - 1])
 
             self._lines = tuple(lines)
             return self._lines
@@ -444,6 +444,7 @@ class IrredZone(Kpoints):
     Each point has a weight whose sum must equal 1 so that we can integrate quantities 
     in the full Brillouin zone.
     """
+
     def __init__(self, structure, frac_coords, kinfo):
         """
         Args:
@@ -458,7 +459,7 @@ class IrredZone(Kpoints):
         labels = None
         #labels = kinfo.pop("labels", None)
         super(IrredZone, self).__init__(structure, frac_coords,
-                                     weights=kinfo.weights, labels=labels)
+                                        weights=kinfo.weights, labels=labels)
 
         # Weights must be normalized to one.
         wsum = sum(kpt.weight for kpt in self)
@@ -491,10 +492,10 @@ class IrredZone(Kpoints):
         "True if the mesh has been defined in terms of Monkhors-Pack divisions."""
         return self.mpdivs is not None
 
-    #@classmethod
-    #def from_info(cls, structure, info):
-    #    """Initialize the IrredZone from structure and info."""
-    #    raise NotImplementedError("")
+        #@classmethod
+        #def from_info(cls, structure, info):
+        #    """Initialize the IrredZone from structure and info."""
+        #    raise NotImplementedError("")
 
 ##########################################################################################
 
@@ -567,7 +568,7 @@ class KpointsInfo(dict):
     @property
     def shifts(self):
         shifts = self.get("kpoint_grid_shift", np.zeros(3))
-        return np.reshape(shifts, (-1,3))
+        return np.reshape(shifts, (-1, 3))
 
     @property
     def mpdivs(self):
@@ -640,7 +641,7 @@ def map_mesh2ibz(structure, mpdivs, shifts, ibz):
         raise ValueError("Too many shifts!")
     shift = shifts[0]
 
-    bz = np.empty((mpdivs.prod(),3))
+    bz = np.empty((mpdivs.prod(), 3))
 
     count = 0
     for i in range(mpdivs[0]):
@@ -649,7 +650,7 @@ def map_mesh2ibz(structure, mpdivs, shifts, ibz):
             y = (j + shift[1]) / mpdivs[1]
             for k in range(mpdivs[2]):
                 z = (k + shift[2]) / mpdivs[2]
-                bz[count] = (x,y,z)
+                bz[count] = (x, y, z)
                 count += 1
 
     # Build mapping.
@@ -734,7 +735,7 @@ def map_bz2ibz(structure, bz, ibz):
         stars[i] = kirr.get_star(fm_symmops)
         norm2star[kirr.norm] = i
         fc = [k.frac_coords for k in stars[i]]
-        coord_stars[i] = np.reshape(fc, (-1,3))
+        coord_stars[i] = np.reshape(fc, (-1, 3))
 
     #fullbz_coords = np.empty((len(bz), 3))
     #ibz_coords = np.empty((len(ibz), 3))
@@ -814,10 +815,10 @@ def map_bz2ibz(structure, bz, ibz):
                     bz2ibz[bz_idx] = ibz_idx
                     break
 
-            #if kfull in stars[ibz_idx]:
-            #    found = True
-            #    bz2ibz[bz_idx] = ibz_idx
-            #    break
+                    #if kfull in stars[ibz_idx]:
+                    #    found = True
+                    #    bz2ibz[bz_idx] = ibz_idx
+                    #    break
 
         if not found:
             #print("Full k-point: %s not found" % kfull))
@@ -825,8 +826,7 @@ def map_bz2ibz(structure, bz, ibz):
 
     if miss:
         err_msg = "Cannot map BZ %d/%d missing" % (miss, len(bz))
-        print(err_msg)
-        #raise ValueError(err_msg)
+        raise ValueError(err_msg)
 
     print("Done")
     return bz2ibz
@@ -842,6 +842,7 @@ class Kmesh(object):
     to generate the mesh in the full BZ. It also provides methods
     to symmetrized and visualize quantities in k-space.
     """
+
     def __init__(self, structure, mpdivs, shifts, ibz):
         """
         Args:
@@ -861,7 +862,7 @@ class Kmesh(object):
         self.mpdivs = np.asarray(mpdivs)
         self.nx, self.ny, self.nz = self.mpdivs
 
-        self.shifts = np.reshape(shifts, (-1,3))
+        self.shifts = np.reshape(shifts, (-1, 3))
         assert len(self.shifts) == 1
         self.ibz = ibz
 
@@ -896,8 +897,8 @@ class Kmesh(object):
         kx, ky = range(self.nx), range(self.ny)
         for x in kx:
             for y in ky:
-                ibz_idx = self.bzmap[x,y,z0]
-                plane[x,y] = values_ibz[ibz_idx]
+                ibz_idx = self.bzmap[x, y, z0]
+                plane[x, y] = values_ibz[ibz_idx]
 
         kx, ky = np.meshgrid(kx, ky)
         return kx, ky, plane

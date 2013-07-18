@@ -1,10 +1,9 @@
 from __future__ import print_function, division
 
-import sys
 import os
 import wx
 
-import wx.lib.dialogs as wxdg 
+import wx.lib.dialogs as wxdg
 import abipy.gui.awx as awx
 import abipy.gui.electronswx as ewx
 
@@ -15,26 +14,26 @@ from abipy.iotools.visualizer import supported_visunames
 class WfkViewerFrame(wx.Frame):
     VERSION = "0.1"
     # Toolbar items.
-    ID_VISTRUCT  = wx.NewId() 
-    ID_VISWAVE   = wx.NewId() 
-    ID_VISBZ     = wx.NewId() 
-    ID_DOS       = wx.NewId() 
-    ID_SUMMARY   = wx.NewId()
-    ID_NCDUMP    = wx.NewId()
+    ID_VISTRUCT = wx.NewId()
+    ID_VISWAVE = wx.NewId()
+    ID_VISBZ = wx.NewId()
+    ID_DOS = wx.NewId()
+    ID_SUMMARY = wx.NewId()
+    ID_NCDUMP = wx.NewId()
     ID_PLOTBANDS = wx.NewId()
 
     def __init__(self, parent, filename=None):
-        super(WfkViewerFrame, self).__init__(parent, -1, self.codename) 
+        super(WfkViewerFrame, self).__init__(parent, -1, self.codename)
 
         # Create statusbar
-        self.statusbar = self.CreateStatusBar() 
+        self.statusbar = self.CreateStatusBar()
 
         # Setup menu bar.
         menuBar = wx.MenuBar()
 
         fileMenu = wx.Menu()
         fileMenu.Append(wx.ID_OPEN, "&Open", help="Open an existing WFK file")
-        fileMenu.Append(wx.ID_CLOSE,"&Close", help="Close the WFK file")
+        fileMenu.Append(wx.ID_CLOSE, "&Close", help="Close the WFK file")
         fileMenu.Append(wx.ID_EXIT, "&Quit", help="Exit the application")
         fileMenu.Append(self.ID_NCDUMP, "Ncdump", help="ncdump printout")
         menuBar.Append(fileMenu, "File")
@@ -58,10 +57,12 @@ class WfkViewerFrame(wx.Frame):
         self.toolbar = toolbar = self.CreateToolBar()
         artBmp = wx.ArtProvider.GetBitmap
 
-        tsize = (15,15)
+        tsize = (15, 15)
         toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, tsize), "Open")
-        toolbar.AddSimpleTool(self.ID_VISTRUCT, wx.Bitmap(awx.path_img("crystal.png")), "Visualize the crystal structure")
-        toolbar.AddSimpleTool(self.ID_VISWAVE, wx.Bitmap(awx.path_img("wave.png")), "Visualize the selected wavefunction")
+        toolbar.AddSimpleTool(self.ID_VISTRUCT, wx.Bitmap(awx.path_img("crystal.png")),
+                              "Visualize the crystal structure")
+        toolbar.AddSimpleTool(self.ID_VISWAVE, wx.Bitmap(awx.path_img("wave.png")),
+                              "Visualize the selected wavefunction")
         toolbar.AddSimpleTool(self.ID_VISBZ, wx.Bitmap(awx.path_img("wave.png")), "Visualize the BZ")
         toolbar.AddSimpleTool(self.ID_DOS, wx.Bitmap(awx.path_img("wave.png")), "Compute DOS")
         toolbar.AddSimpleTool(self.ID_PLOTBANDS, wx.Bitmap(awx.path_img("wave.png")), "Plot bands")
@@ -70,16 +71,16 @@ class WfkViewerFrame(wx.Frame):
 
         # Associate menu/toolbar items with their handlers.
         menuHandlers = [
-            (wx.ID_OPEN,        self.OnOpen),
-            (wx.ID_CLOSE,       self.OnClose),
-            (wx.ID_EXIT,        self.OnExit),
-            (wx.ID_ABOUT,       self.OnAboutBox),
-            (self.ID_NCDUMP,    self.OnNcdump),
+            (wx.ID_OPEN, self.OnOpen),
+            (wx.ID_CLOSE, self.OnClose),
+            (wx.ID_EXIT, self.OnExit),
+            (wx.ID_ABOUT, self.OnAboutBox),
+            (self.ID_NCDUMP, self.OnNcdump),
             #
-            (self.ID_VISTRUCT,  self.OnVisualizeStructure),
-            (self.ID_VISWAVE,   self.OnVisualizeWave),
-            (self.ID_VISBZ,     self.OnVisualizeBZ),
-            (self.ID_DOS,       self.OnDOS),
+            (self.ID_VISTRUCT, self.OnVisualizeStructure),
+            (self.ID_VISWAVE, self.OnVisualizeWave),
+            (self.ID_VISBZ, self.OnVisualizeBZ),
+            (self.ID_DOS, self.OnDOS),
             (self.ID_PLOTBANDS, self.OnPlotBands),
             #(self.ID_SUMMARY,  self.OnSummary),
         ]
@@ -88,9 +89,9 @@ class WfkViewerFrame(wx.Frame):
             id, handler = combo[:2]
             self.Bind(wx.EVT_MENU, handler, id=id)
 
-        self.wfk = None 
+        self.wfk = None
         if filename is not None:
-            print("in read",filename)
+            print("in read", filename)
             self.read_wfkfile(filename)
 
     @property
@@ -117,10 +118,10 @@ class WfkViewerFrame(wx.Frame):
         #vsizer.Add(pyshell)
 
     def OnOpen(self, event):
-        dlg = wx.FileDialog(self, message="Choose a WFK file", defaultDir=os.getcwd(), 
-            defaultFile="", wildcard="Netcdf files (*.nc)|*nc",
-            style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
-            )
+        dlg = wx.FileDialog(self, message="Choose a WFK file", defaultDir=os.getcwd(),
+                            defaultFile="", wildcard="Netcdf files (*.nc)|*nc",
+                            style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
+        )
 
         # Show the dialog and retrieve the user response. 
         # If it is the OK response, process the data.
@@ -137,7 +138,7 @@ class WfkViewerFrame(wx.Frame):
         fileNum = event.GetId() - wx.ID_FILE1
         path = self.filehistory.GetHistoryFile(fileNum)
         # move up the list
-        self.filehistory.AddFileToHistory(path)  
+        self.filehistory.AddFileToHistory(path)
         self.read_wfkfile(path)
 
     def read_wfkfile(self, path):
@@ -147,7 +148,7 @@ class WfkViewerFrame(wx.Frame):
             if not isinstance(wfkfile, WFK_File):
                 awx.showErrorMessage(self, message="%s is not a valid WFK File" % path)
                 return
-                
+
             self.wfk = wfkfile
             self.build_UI()
             self.statusbar.PushStatusText("WFK file %s loaded" % path)
@@ -156,14 +157,14 @@ class WfkViewerFrame(wx.Frame):
             awx.showErrorMessage(self)
 
     def OnClose(self, event):
-        self.wfk= None
+        self.wfk = None
         self.destroy_panel()
 
     def OnExit(self, event):
         self.Destroy()
 
     def OnAboutBox(self, event):
-        awx.makeAboutBox(codename=self.codename, version=self.VERSION, 
+        awx.makeAboutBox(codename=self.codename, version=self.VERSION,
                          description="", developers="M. Giantomassi")
 
     def OnVisualizeStructure(self, event):
@@ -210,27 +211,26 @@ class WfkViewerFrame(wx.Frame):
 
 
 class WfkViewerApp(awx.App):
-
     def OnInit(self):
         frame = WfkViewerFrame(None, filename=None)
         frame.Show()
-        self.SetTopWindow(frame) 
+        self.SetTopWindow(frame)
         return True
 
     def MacOpenFile(self, filename):
         """Called for files droped on dock icon, or opened via finders context menu"""
         if filename.endswith(".py"):
             return
-        # Open filename in a new frame.
-        awx.PRINT("%s dropped on app %s" % (filename, self.appname)) 
-        frame = WfkViewerFrame(parent=None, filename=filename) 
+            # Open filename in a new frame.
+        awx.PRINT("%s dropped on app %s" % (filename, self.appname))
+        frame = WfkViewerFrame(parent=None, filename=filename)
         frame.Show()
-        
+
 
 def wxapp_wfkviewer(wfk_filename):
     app = WfkViewerApp()
-    frame = WfkViewerFrame(None, filename=wfk_filename) 
-    frame.Show() 
-    app.SetTopWindow(frame) 
+    frame = WfkViewerFrame(None, filename=wfk_filename)
+    frame.Show()
+    app.SetTopWindow(frame)
     return app
 
