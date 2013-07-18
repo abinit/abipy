@@ -7,7 +7,7 @@ from abipy.phonons import PhononBands
 filename = get_reference_file("trf2_5.out_PHBST.nc")
 
 # Create the object from file.
-phbands = PhononBands.from_ncfile(filename)
+phbands = PhononBands.from_file(filename)
 
 # Mapping reduced coordinates -> labels
 qlabels = {

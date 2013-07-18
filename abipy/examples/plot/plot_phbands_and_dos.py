@@ -9,7 +9,7 @@ from abipy.phonons import PhononBands, PHDOS_Reader, PHDOS_File
 phbst_file = get_reference_file("trf2_5.out_PHBST.nc")
 
 # Create the object from file.
-phbands = PhononBands.from_ncfile(phbst_file)
+phbands = PhononBands.from_file(phbst_file)
 
 # Read the Phonon DOS from the netcd file produced by anaddb (prtdos 2)
 phdos_file = get_reference_file("trf2_5.out_PHDOS.nc")
