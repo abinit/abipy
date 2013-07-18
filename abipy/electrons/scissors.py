@@ -135,29 +135,35 @@ class ScissorsBuilder(object):
 
     @classmethod
     def from_file(cls, filepath):
+        """Generate an instance of ScissorsBuilder from file."""
         from abipy import abiopen
         ncfile = abiopen(filepath)
         return cls(qps_spin=ncfile.get_allqps())
 
     @property
     def nsppol(self):
+        """Number of spins."""
         return len(self._qps_spin)
 
     @property
     def e0min(self):
+        """Minimum KS energy."""
         return self._e0min
 
     @property
     def e0max(self):
-        return self._e0max 
+        """Maximum KS energy."""
+        return self._e0max
 
     def get_scissors_spin(self):
+        """Returns a tuple of `Scissors` indexed by the spin value."""
         try:
             return self._scissors_spin
         except AttributeError:
             return None
 
     def build(self, domains_spin, bounds_spin):
+        """Build the scissors operator."""
         nsppol = self.nsppol
 
         if nsppol == 1:
@@ -187,23 +193,25 @@ class ScissorsBuilder(object):
         self._scissors_spin = scissors_spin
 
     def plot_qpe_vs_e0(self, **kwargs):
+        """Plot the quasiparticle corrections as function of the KS energy."""
         for (spin, qps) in enumerate(self._qps_spin):
             qps.plot_qps_vs_e0(with_fields="all", **kwargs)
 
     def plotfit(self):
-        """Compare fit with input data."""
+        """Compare fit results with input data."""
         import matplotlib.pyplot as plt
 
         # TODO treat nsppol == 2
+        assert self.nsppol == 1
         for spin in range(self.nsppol):
             scissors = self._scissors_spin[spin]
             qps = self._qps_spin[spin]
             e0mesh, qpcorrs = qps.get_e0mesh(), qps.get_qpeme0()
 
-            plt.plot(e0mesh, qpcorrs, label="input data")
+            plt.plot(e0mesh, qpcorrs, label="Input Data")
             intp_qpc = [scissors.apply(e0) for e0 in e0mesh]
-            plt.plot(e0mesh, intp_qpc, label="scissor")
-            plt.legend()
+            plt.plot(e0mesh, intp_qpc, label="Scissors(e)")
+            plt.legend(loc="best")
             plt.show()
 
     def save_data(self, filepath, protocol=-1):
