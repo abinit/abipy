@@ -78,8 +78,8 @@ class AbinitTextFile(AbinitFile):
         try:
             return self._timer_data
         except AttributeError:
-            from abipy.htc.abitimer import AbiTimerParser
-            parser = AbiTimerParser()
+            from abipy.htc.abitimer import AbinitTimerParser
+            parser = AbinitTimerParser()
             parser.read(self.filepath)
             self._timer_data = parser
             return self._timer_data

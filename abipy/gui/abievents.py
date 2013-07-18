@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 from __future__ import print_function, division
 
 import os
@@ -9,7 +8,7 @@ import abipy.gui.awx as awx
 from collections import OrderedDict
 from pymatgen.io.abinitio import EventParser
 from abipy import abiopen
-from abipy.htc.abitimer import Section
+from abipy.htc.abitimer import AbinitTimerSection
 
 
 class AbinitEventsPanel(wx.Panel):
@@ -19,8 +18,8 @@ class AbinitEventsPanel(wx.Panel):
     in the main output file or in the log file.
     """
 
-    def __init__(self, parent, filepath):
-        super(AbinitEventsPanel, self).__init__(parent, -1)
+    def __init__(self, parent, filepath, **kwargs):
+        super(AbinitEventsPanel, self).__init__(parent, -1, **kwargs)
 
         self.filepath = os.path.abspath(filepath)
 
@@ -82,19 +81,17 @@ class AbinitEventsFrame(wx.Frame):
     """
 
     def __init__(self, parent, filepath):
-        self.filepath = os.path.abspath(filepath)
-        title = "Abinit Events: %s" % os.path.basename(self.filepath)
-        super(AbinitEventsFrame, self).__init__(parent, -1, title=title)
+        filepath = os.path.abspath(filepath)
+        title = "Abinit Events: %s" % os.path.basename(filepath)
 
-        self.BuildUi()
+        super(AbinitEventsFrame, self).__init__(parent, -1, title=title, **kwargs)
 
-    def BuildUi(self):
-        self.event_panel = AbinitEventsPanel(self, self.filepath)
+        self.event_panel = AbinitEventsPanel(self, filepath)
 
 
 class AbiOutLogDirCtrl(wx.GenericDirCtrl):
-    def __init__(self, *args, **kwargs):
 
+    def __init__(self, *args, **kwargs):
         if "filter" not in kwargs:
             kwargs["filter"] = "All files (*.*)|*.*|about files (*.about)|*.out| ablog files (*.ablog)|*.ablog"
         if "dir" not in kwargs:
@@ -127,11 +124,11 @@ class AbinitEventsNotebookFrame(wx.Frame):
         super(AbinitEventsNotebookFrame, self).__init__(parent, **kwargs)
 
         # Here we create a panel and a notebook on the panel
-        p = wx.Panel(self)
+        panel = wx.Panel(self)
 
         import wx.lib.agw.flatnotebook as fnb
 
-        nb = fnb.FlatNotebook(p)
+        nb = fnb.FlatNotebook(panel)
 
         # Add the pages to the notebook with the label to show on the tab
         # Add only files for which we have events.
@@ -143,7 +140,7 @@ class AbinitEventsNotebookFrame(wx.Frame):
         # Finally, put the notebook in a sizer for the panel to manage the layout
         sizer = wx.BoxSizer()
         sizer.Add(nb, 1, wx.EXPAND)
-        p.SetSizer(sizer)
+        panel.SetSizer(sizer)
 
 
 def wxapp_events(root):
@@ -183,16 +180,15 @@ class AbinitTimerFrame(wx.Frame):
     """
     Frame with controls to plot the timing data.
     """
-
-    def __init__(self, parent, filepath):
+    def __init__(self, parent, filepath, **kwargs):
         filepath = os.path.abspath(filepath)
         title = "Abinit Timer: %s" % os.path.basename(filepath)
-        super(AbinitTimerFrame, self).__init__(parent, -1, title=title)
-
-        abifile = abiopen(filepath)
+        super(AbinitTimerFrame, self).__init__(parent, -1, title=title, **kwargs)
 
         try:
+            abifile = abiopen(filepath)
             self.timer_data = abifile.timer_data
+
         except Exception as exc:
             raise awx.Error(str(exc))
 
@@ -210,7 +206,7 @@ class AbinitTimerFrame(wx.Frame):
             ("stacked_hist", timer_data.show_stacked_hist),
         ])
 
-        keys = Section.NUMERIC_FIELDS
+        keys = AbinitTimerSection.NUMERIC_FIELDS
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 

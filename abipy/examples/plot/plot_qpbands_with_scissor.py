@@ -32,7 +32,7 @@ qp_mpbands = ks_mpbands.apply_scissors(scissors)
 qp_dos = qp_mpbands.get_dos()
 
 # Plot the LDA and the QP band structure with matplotlib.
-plotter = EBandsPlotter()
+plotter = ElectronBandsPlotter()
 
 plotter.add_bands("LDA", ks_bands, dos=ks_dos)
 

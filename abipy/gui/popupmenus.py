@@ -55,10 +55,9 @@ def showFileStat(parent, filepath):
     wxdg.ScrolledMessageDialog(parent, msg, caption=caption, size=(600, 600), style=style).Show()
 
 
-def showAbinitEvents(parent, filepath):
+def showAbinitEventsFrame(parent, filepath):
     """Open a dialog reporting file stats."""
-    frame = AbinitEventsFrame(parent, filepath)
-    frame.Show()
+    AbinitEventsFrame(parent, filepath).Show()
 
 
 def showAbinitTimerFrame(parent, filepath):
@@ -75,6 +74,7 @@ def showStructure(parent, filepath):
     structure = ncfile.get_structure() 
     visu = structure.visualize("xcrysden")
     visu()
+
 
 #--------------------------------------------------------------------------------------------------
 
@@ -203,7 +203,7 @@ class AbinitTextFilePopupMenu(PopupMenu):
     """
     """
     MENU_TITLES = OrderedDict([
-        ("events",     showAbinitEvents),
+        ("events",     showAbinitEventsFrame),
         ("properties", showFileStat),
         ("timer",      showAbinitTimerFrame),
     ])
@@ -246,7 +246,7 @@ class EbandsPopupMenu(NcFilePopupMenu):
     MENU_TITLES = OrderedDict([
         ("ePlot", ewx.showElectronBandsPlot),
         ("eDos",  ewx.showElectronDosFrame),
-        ("eJdos", ewx.showJdosFrame),
+        ("eJdos", ewx.showElectronJdosFrame),
     ])
 
     HANDLED_FILES = [WFK_File] 

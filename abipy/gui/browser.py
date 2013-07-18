@@ -13,7 +13,7 @@ from abipy.gui.popupmenus import popupmenu_for_filename
 from abipy.gui.wfkviewer import WfkViewerFrame
 
 
-_VIEWERS = {
+_VIEWER_FRAMES = {
     "WFK-etsf.nc": WfkViewerFrame,
 }
 
@@ -21,7 +21,7 @@ _VIEWERS = {
 def viewerframe_for_filepath(parent, filepath):
     ext = filepath.split("_")[-1]
     try:
-        return _VIEWERS[ext](parent, filepath)
+        return _VIEWER_FRAMES[ext](parent, filepath)
     except KeyError:
         raise KeyError("No WX viewer has been registered for the extension %s" % ext)
 
@@ -208,9 +208,9 @@ class FileListPanel(wx.Panel, listmix.ColumnSorterMixin):
 
         # Plot multiple bands
         if len(indices) > 1:
-            from abipy.electrons import EBandsPlotter
+            from abipy.electrons import ElectronBandsPlotter
 
-            plotter = EBandsPlotter()
+            plotter = ElectronBandsPlotter()
             for index in indices:
                 fd = self.id2filedata[self.file_list.GetItemData(index)]
                 print("adding ", fd.abspath)
@@ -220,13 +220,13 @@ class FileListPanel(wx.Panel, listmix.ColumnSorterMixin):
 
 def wxapp_dirbrowser(dirpath):
     if dirpath is None:
-        dirpath = ""
+        dirpath = " "
     else:
         dirpath = os.path.abspath(dirpath)
 
     app = wx.App()
     frame = wx.Frame(None, -1)
-    dirctrl = NcFileDirCtrl(frame, -1, dir=dirpath)
+    NcFileDirCtrl(frame, -1, dir=dirpath)
     app.SetTopWindow(frame)
     frame.Show()
     return app

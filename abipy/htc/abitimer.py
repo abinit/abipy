@@ -1,18 +1,19 @@
 from __future__ import print_function, division
 
 import sys
-import warnings 
+import warnings
 import collections
 import numpy as np
 
 from abipy.tools.numtools import minloc, alternate
 from abipy.tools.text import pprint_table
 
-class AbiTimerParserError(Exception):
-    """Errors raised by AbiTimerParser"""
+
+class AbinitTimerParserError(Exception):
+    """Errors raised by AbinitTimerParser"""
 
 
-class AbiTimerParser(collections.Iterable):
+class AbinitTimerParser(collections.Iterable):
     """
     Responsible for parsing a list of output files, and managing the parsed database.
     """
@@ -20,7 +21,7 @@ class AbiTimerParser(collections.Iterable):
     BEGIN_TAG = "-<BEGIN_TIMER"
     END_TAG = "-<END_TIMER>"
 
-    Error = AbiTimerParserError
+    Error = AbinitTimerParserError
 
     #self._default_mpi_rank = "0"
 
@@ -82,7 +83,7 @@ class AbiTimerParser(collections.Iterable):
         def parse_line(line):
             name, vals = line[:25], line[25:].split()
             (cpu_time, cpu_fract, wall_time, wall_fract, ncalls, gflops) = vals
-            return Section(name, cpu_time, cpu_fract, wall_time, wall_fract, ncalls, gflops)
+            return AbinitTimerSection(name, cpu_time, cpu_fract, wall_time, wall_fract, ncalls, gflops)
 
         inside, has_timer = 0, False
         for line in fh:
@@ -101,7 +102,7 @@ class AbiTimerParser(collections.Iterable):
 
             elif line.startswith(self.END_TAG):
                 inside = 0
-                timer = AbiTimer(sections, info, cpu_time, wall_time)
+                timer = AbinitTimer(sections, info, cpu_time, wall_time)
                 mpi_rank = info["mpi_rank"]
 
                 data[mpi_rank] = timer
@@ -180,7 +181,7 @@ class AbiTimerParser(collections.Iterable):
                     sections.append(sect)
                     break
             else:
-                sections.append(Section.fake())
+                sections.append(AbinitTimerSection.fake())
 
         return sections
 
@@ -328,7 +329,7 @@ class AbiTimerParser(collections.Iterable):
 
         if savefig:
             fig.savefig(savefig)
-                                 
+
         return fig
 
     def show_stacked_hist(self, key="wall_time", nmax=5, **kwargs):
@@ -396,9 +397,8 @@ class AbiTimerParser(collections.Iterable):
         fig = plt.gcf()
         if savefig:
             fig.savefig(savefig)
-                                 
-        return fig
 
+        return fig
 
     def main(self, *args, **kwargs):
 
@@ -434,7 +434,6 @@ class AbiTimerParser(collections.Iterable):
 
 
 class ParallelEfficiency(dict):
-
     def __init__(self, filenames, ref_idx, *args, **kwargs):
         self.update(*args, **kwargs)
         self.filenames = filenames
@@ -471,7 +470,7 @@ class ParallelEfficiency(dict):
         osects = self._order_by_peff("wall_time", criterion="mean", reverse=reverse)
 
         n = len(self.filenames)
-        table = [["Section"] + alternate(self.filenames, n * ["%"])]
+        table = [["AbinitTimerSection"] + alternate(self.filenames, n * ["%"])]
         for sect_name in osects:
             peff = self[sect_name]["wall_time"]
             fract = self[sect_name]["wall_fract"]
@@ -492,9 +491,9 @@ class ParallelEfficiency(dict):
 ######################################################################
 
 
-class Section(object):
+class AbinitTimerSection(object):
     """Record with the timing results associated to a section of code."""
-    STR_FIELDS = [ 
+    STR_FIELDS = [
         "name"
     ]
 
@@ -511,7 +510,7 @@ class Section(object):
 
     @classmethod
     def fake(cls):
-        return Section("fake", 0.0, 0.0, 0.0, 0.0, -1, 0.0)
+        return AbinitTimerSection("fake", 0.0, 0.0, 0.0, 0.0, -1, 0.0)
 
     def __init__(self, name, cpu_time, cpu_fract, wall_time, wall_fract, ncalls, gflops):
         self.name = name.strip()
@@ -523,28 +522,29 @@ class Section(object):
         self.gflops = float(gflops)
 
     def totuple(self):
-        return tuple([self.__dict__[at] for at in Section.FIELDS])
+        return tuple([self.__dict__[at] for at in AbinitTimerSection.FIELDS])
 
     def tocsvline(self, with_header=False):
         """Return a string with data in CSV format"""
         string = ""
 
         if with_header:
-            string += "# " + " ".join([at for at in Section.FIELDS]) + "\n"
+            string += "# " + " ".join([at for at in AbinitTimerSection.FIELDS]) + "\n"
 
         string += ", ".join([str(v) for v in self.totuple()]) + "\n"
         return string
 
     def __str__(self):
         string = ""
-        for a in Section.FIELDS: string += a + " = " + self.__dict__[a] + ","
+        for a in AbinitTimerSection.FIELDS: string += a + " = " + self.__dict__[a] + ","
         return string[:-1]
 
 ######################################################################
 
 
-class AbiTimer(object):
+class AbinitTimer(object):
     """Container class used to store the timing results."""
+
     def __init__(self, sections, info, cpu_time, wall_time):
 
         self.sections = tuple(sections)
@@ -585,22 +585,22 @@ class AbiTimer(object):
         """Write data on file fileobj using CSV format."""
         openclose = isinstance(fileobj, str)
 
-        if openclose: 
+        if openclose:
             fileobj = open(fileobj, "w")
 
         for (idx, section) in enumerate(self.sections):
             fileobj.write(section.tocsvline(with_header=(idx == 0)))
         fileobj.flush()
 
-        if openclose: 
+        if openclose:
             fileobj.close()
 
     def totable(self, sort_key="wall_time", stop=None):
         """Return a table (list of lists) with timer data"""
-        table = [list(Section.FIELDS), ]
+        table = [list(AbinitTimerSection.FIELDS), ]
         ord_sections = self.order_sections(sort_key)
 
-        if stop is not None: 
+        if stop is not None:
             ord_sections = ord_sections[:stop]
 
         for osect in ord_sections:
@@ -719,7 +719,7 @@ class AbiTimer(object):
 
         if savefig:
             fig.savefig(savefig)
-                                 
+
         return fig
 
     def hist2(self, key1="wall_time", key2="cpu_time"):

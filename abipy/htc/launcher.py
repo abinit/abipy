@@ -435,8 +435,8 @@ class Launcher(AbinitInput):
     def time(self, *args, **kwargs):
         "Analyze execution time (requires timopt !=0 in the input file."
 
-        from .abitimer import AbiTimerParser
-        time_parser = AbiTimerParser()
+        from .abitimer import AbinitTimerParser
+        time_parser = AbinitTimerParser()
 
         time_parser.read(self.last_output())
 

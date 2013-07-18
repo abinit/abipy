@@ -1,10 +1,14 @@
 """This module contains useful decorators for a variety of functions."""
 from __future__ import print_function, division
 
+import sys
+import os
+import linecache
 import functools
 
 # Import all pymatgen decorators in namespace.
 from pymatgen.util.decorators import *
+
 
 def benchmark(func):
     """
@@ -19,6 +23,7 @@ def benchmark(func):
         return res
     return wrapper
 
+
 def logging(func):
     """
     A decorator that logs the activity of the script.
@@ -31,6 +36,7 @@ def logging(func):
         return res
     return wrapper
 
+
 def verbose(func):
     """
     Decorator for functions. Returns a new function that prints 
@@ -42,3 +48,31 @@ def verbose(func):
         func(*args, **kwargs)
         print("Exiting ", func.__name__)
     return new_function
+
+
+def linetracing(f):
+    """Trace a function (line by line)."""
+    def globaltrace(frame, why, arg):
+        if why == "call":
+            return localtrace
+        return None
+
+    def localtrace(frame, why, arg):
+        if why == "line":
+            # record the file name and line number of every trace
+            filename = frame.f_code.co_filename
+            lineno = frame.f_lineno
+
+            bname = os.path.basename(filename)
+            print("{}({}): {}".format(bname,
+                                      lineno,
+                                      linecache.getline(filename, lineno)))
+        return localtrace
+
+    def _f(*args, **kwds):
+        sys.settrace(globaltrace)
+        result = f(*args, **kwds)
+        sys.settrace(None)
+        return result
+
+    return _f

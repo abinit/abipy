@@ -16,7 +16,7 @@ from .edos import ElectronDOS
 
 __all__ = [
     "ElectronBands",
-    "EBandsPlotter",
+    "ElectronBandsPlotter",
     "ElectronDosPlotter",
 ]
 
@@ -863,7 +863,7 @@ class NestingFactor(object):
 #########################################################################################
 
 
-class EBandsPlotter(object):
+class ElectronBandsPlotter(object):
     """
     Class for plotting electronic bands structure and DOSes.
     Supports plots on the same graph or separated plots.

@@ -8,6 +8,7 @@ from abipy.core.func1d import Function1D
 
 __all__ = [
     "ElectronDOS",
+    "ElectronDOSPlotter",
 ]
 
 
@@ -169,7 +170,7 @@ class ElectronDOS(object):
         return fig
 
 
-class DOS_Plotter(object):
+class ElectronDOSPlotter(object):
     """
     Class for plotting DOSes.
     """

@@ -5,7 +5,7 @@ import awx
 import collections
 import fnmatch
 
-from abipy.electrons import EBandsPlotter, ElectronDosPlotter, MDF_Plotter
+from abipy.electrons import ElectronBandsPlotter, ElectronDosPlotter, MDF_Plotter
 from abipy.gui.electronswx import ElectronDosDialog
 
 
@@ -144,7 +144,7 @@ class ComparisonFrame(wx.Frame):
         choice = self.plotter_cbox.GetValue()
         try:
             if choice == "ebands":
-                plotter = EBandsPlotter()
+                plotter = ElectronBandsPlotter()
                 for filepath in selected:
                     plotter.add_bands_from_file(filepath)
                 plotter.plot()
