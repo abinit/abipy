@@ -94,7 +94,6 @@ class FileListPanel(wx.Panel, listmix.ColumnSorterMixin):
 
         file_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick)
         file_list.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected)
-
         file_list.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
 
         class FileDataObj(namedtuple("FileDataObj", "filename type directory")):

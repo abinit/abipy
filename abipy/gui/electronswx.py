@@ -147,7 +147,7 @@ class ElectronDosFrame(wx.Frame):
 
     def OnClick(self, event):
         p = self.dos_panel.GetParams()
-        if p.step == 44:
+        if p.step == 1234:
             awx.tetris_game()
 
         try:

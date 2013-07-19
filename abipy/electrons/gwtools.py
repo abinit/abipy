@@ -3,6 +3,7 @@ from __future__ import print_function, division
 import sys
 import collections
 import copy
+import cStringIO
 import numpy as np
 
 from pymatgen.io.abinitio.netcdf import ETSF_Reader
@@ -15,7 +16,6 @@ from abipy.tools.text import pprint_table
 from abipy.kpoints.kpoints import askpoints, kpoints_factory
 from abipy.electrons.ebands import ElectronBands
 from abipy.iotools import AbinitNcFile
-from abipy.tools.plotting_utils import plot_array, ArrayPlotter
 
 __all__ = [
     "SIGRES_File",
@@ -99,10 +99,21 @@ class QP(collections.namedtuple("QP", _QP_FIELDS)):
 
 
 class QuasiParticles(list):
-    """A list of quasiparticle corrections for a given spin."""
+    """A list of quasiparticle corrections."""
+
     def __init__(self, *args, **kwargs):
         super(QuasiParticles, self).__init__(*args)
         self.is_e0sorted = kwargs.get("is_e0sorted", False)
+
+    def __repr__(self):
+        return "<%s at %s, len=%d>" % (self.__class__.__name__, id(self), len(self))
+
+    def __str__(self):
+        """String representation."""
+        strio = cStringIO.StringIO()
+        self.totable(stream=strio)
+        strio.seek(0)
+        return "".join(strio)
 
     def copy(self):
         """Copy of self."""
@@ -130,6 +141,17 @@ class QuasiParticles(list):
     def get_qpeme0(self):
         """Return an arrays with the QP corrections."""
         return self.get_field("qpeme0")
+
+    def totable(self, fmt=None, stream=sys.stdout):
+        header = QP.get_fields(exclude=["spin", "kpoint"])
+        table = [header]
+
+        for qp in self:
+            d = qp.to_strdict(fmt=fmt)
+            table.append([d[k] for k in header])
+                                                                                                                        
+        pprint_table(table, out=stream)
+        stream.write("\n")
 
     def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, **kwargs):
         """
@@ -397,7 +419,7 @@ class SIGRES_File(AbinitNcFile):
     """Container storing the GW results reported in the SIGRES.nc file."""
 
     def __init__(self, filepath):
-        """Reade data from the netcdf file path."""
+        """Read data from the netcdf file path."""
         super(SIGRES_File, self).__init__(filepath)
 
         ## Keep a reference to the SIGRES_Reader.
@@ -407,6 +429,10 @@ class SIGRES_File(AbinitNcFile):
         self.gwcalctyp = ncreader.gwcalctyp
         self.ks_bands = ncreader.ks_bands
         self.kpoints = ncreader.kpoints
+        self.gwkpoints = ncreader.gwkpoints
+
+        self.min_gwbstart = ncreader.min_gwbstart
+        self.max_gwbstop = ncreader.max_gwbstop
 
     #def __del__(self):
     #    print("in %s __del__" % self.__class__.__name__)
@@ -418,17 +444,24 @@ class SIGRES_File(AbinitNcFile):
         """Initialize an instance from file."""
         return cls(filepath)
 
+    @property
+    def nsppol(self):
+        """Number of spins"""
+        return self.ks_bands.nsppol
+
     def close(self):
         """Close the netcdf file."""
         self.ncreader.close()
 
     def get_structure(self):
+        """Returns a `Structure` instance."""
         return self.structure
 
     def get_allqps(self):
         return self.ncreader.read_allqps()
 
     def get_qpcorr(self, spin, kpoint, band):
+        """Returns the `QP` object for the given (s, k, b)"""
         return self.ncreader.read_qp(spin, kpoint, band)
 
     def get_sigmaw(self, spin, kpoint, band):
@@ -495,6 +528,7 @@ class SIGRES_File(AbinitNcFile):
         title = kwargs.pop("title", None)
 
         if kpoint is None:
+            from abipy.tools.plotting_utils import ArrayPlotter
             plotter = ArrayPlotter()
             for kpoint in self.kpoints:
                 ksqp_arr = self.ncreader.read_eigvec_qp(spin, kpoint, band=band)
@@ -502,6 +536,7 @@ class SIGRES_File(AbinitNcFile):
             plotter.plot(title=title)
 
         else:
+            from abipy.tools.plotting_utils import plot_array
             ksqp_arr = self.ncreader.read_eigvec_qp(spin, kpoint, band=band)
             plot_array(ksqp_arr)
 
@@ -699,8 +734,12 @@ class SIGRES_Reader(ETSF_Reader):
 
         # minbnd[nkptgw,nsppol] gives the minimum band index computed
         # Note conversion between Fortran and python convention.
-        self.minbnd_skgw = self.read_value("minbnd") - 1
-        self.maxbnd_skgw = self.read_value("maxbnd") - 1
+        self.gwbstart_sk = self.read_value("minbnd") - 1
+        self.gwbstop_sk = self.read_value("maxbnd")
+
+        # min and Max band index for GW corrections.
+        self.min_gwbstart = np.min(self.gwbstart_sk)
+        self.max_gwbstop = np.max(self.gwbstop_sk)
 
         self._egw = self.read_value("egw", cmode="c")
 
@@ -785,16 +824,17 @@ class SIGRES_Reader(ETSF_Reader):
             qps = []
             for gwkpoint in self.gwkpoints:
                 i = self.gwkpt2seqindex(gwkpoint)
-                bands = range(self.minbnd_skgw[spin,i], self.maxbnd_skgw[spin,i]+1)
+                bands = range(self.gwbstart_sk[spin,i], self.gwbstop_sk[spin,i])
                 for band in bands:
                     qps.append(self.read_qp(spin, gwkpoint, band))
 
             qps_spin[spin] = QuasiParticles(qps)
+
         return tuple(qps_spin)
 
     def read_qp(self, spin, kpoint, band):
         ik_file = self.kpt2fileindex(kpoint)
-        ib_file = band - self.minbnd_skgw[spin, self.gwkpt2seqindex(kpoint)]
+        ib_file = band - self.gwbstart_sk[spin, self.gwkpt2seqindex(kpoint)]
 
         d = dict(
             spin=spin,
@@ -834,7 +874,7 @@ class SIGRES_Reader(ETSF_Reader):
             raise ValueError("%s does not contain spectral function data" % self.path)
 
         ik = self.kpt2fileindex(kpoint)
-        ib = band - self.minbnd_skgw[spin, self.gwkpt2seqindex(kpoint)]
+        ib = band - self.gwbstart_sk[spin, self.gwkpt2seqindex(kpoint)]
 
         aim_sigc = np.abs(self._sigcme[spin,:,ik,ib].imag)
 
@@ -883,7 +923,7 @@ class SIGRES_Reader(ETSF_Reader):
                 table_sk = [header]
                 if bands is None:
                     i = self.gwkpt2seqindex(kpoint)
-                    bands = range(self.minbnd_skgw[spin,i], self.maxbnd_skgw[spin,i]+1)
+                    bands = range(self.gwbstart_sk[spin,i], self.gwbstop_sk[spin,i])
 
                 for band in bands:
                     qp = self.read_qp(spin, kpoint, band)

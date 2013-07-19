@@ -183,23 +183,22 @@ class WFK_File(AbinitNcFile):
         # Export data uding the format specified by filename.
         return wave.export_ur2(path, self.structure)
 
-        #def visualize_ur2_with(self, spin, kpoint, bands, visualizer):
-        #    """
-        #    Visualize :math:`|u(r)|^2`  with visualizer.
-
-        #    See :class:`Visualizer` for the list of applications and formats supported.
-        #    """
-        #    extensions = Visualizer.exts_from_appname(visualizer)
-        #
-        #    for ext in extensions:
-        #        ext = "." + ext
-        #        try:
-        #            return self.export_ur2(ext)
-        #        except Visualizer.Error:
-        #            pass
-        #    else:
-        #        raise Visualizer.Error(
-        #            "Don't know how to export data for visualizer %s" % visualizer)
+    #def visualize_ur2_with(self, spin, kpoint, bands, visualizer):
+    #    """
+    #    Visualize :math:`|u(r)|^2`  with visualizer.
+    #    See :class:`Visualizer` for the list of applications and formats supported.
+    #    """
+    #    extensions = Visualizer.exts_from_appname(visualizer)
+    #
+    #    for ext in extensions:
+    #        ext = "." + ext
+    #        try:
+    #            return self.export_ur2(ext)
+    #        except Visualizer.Error:
+    #            pass
+    #    else:
+    #        msg = "Don't know how to export data for visualizer %s" % visualizer
+    #        raise Visualizer.Error(msg)
 
 #########################################################################################
 

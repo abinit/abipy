@@ -5,11 +5,10 @@ from abipy import *
 sigma_file = SIGRES_File(get_reference_file("tgw1_9o_DS4_SIGRES.nc"))
 
 # Printout of the QP results
-print("calctyp",sigma_file.gwcalctyp)
 sigma_file.print_qps()
 
 qp = sigma_file.get_qpcorr(spin=0, kpoint=(0,0,0), band=0)
-print(qp)
+#print(qp)
 
 qps_spin = sigma_file.get_allqps()
 

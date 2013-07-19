@@ -1,7 +1,7 @@
 "Define a class used to execute a visualizer within the Python interpreter."
 from __future__ import division, print_function
 
-import os.path
+import os
 
 from subprocess import call
 from collections import namedtuple, OrderedDict
@@ -18,7 +18,7 @@ __all__ = [
 Application = namedtuple("Application", "name cmdarg")
 
 #: One-to-many mapping file extension --> applications
-ext2apps = OrderedDict( {
+_EXT2APPS = OrderedDict( {
     "xsf": [Application("xcrysden", "--xsf"),
             Application("vsim", None),
             ],
@@ -30,7 +30,7 @@ ext2apps = OrderedDict( {
 #: One-to-many mapping application_name --> file extensions supported.
 appname2exts = {}
 
-for (ext, applications) in ext2apps.items():
+for (ext, applications) in _EXT2APPS.items():
     for app in applications:
         aname = app.name
         if aname not in appname2exts:
@@ -80,16 +80,16 @@ class Visualizer(object):
         """Return the absolute path of the first (available) application that supports extension ext"""
         if ext.startswith("."): ext = ext[1:]
         try:
-            applications = ext2apps[ext]
+            applications = _EXT2APPS[ext]
         except KeyError:
-            raise KeyError("Don't know how to handle extension: %s" % ext)
+            raise self.Error("Don't know how to handle extension: %s" % ext)
 
         for app in applications:
             executable = which(app.name)
             if executable is not None:
                 return app, executable
         else:
-            raise ValueError("No executable found for file: %s" % filename)
+            raise self.Error("No executable found for file: %s" % filename)
 
     @staticmethod
     def exts_from_appname(application_name):
@@ -98,7 +98,7 @@ class Visualizer(object):
         try:
             return appname2exts[aname]
         except KeyError:
-            raise KeyError("application %s is not supported" % application_name)
+            raise self.Error("application %s is not supported" % application_name)
 
     def __init__(self, filename, executable, cmdarg=None, wait=False):
         """
@@ -113,7 +113,7 @@ class Visualizer(object):
         self.executable = which(executable)
         self.filename = os.path.abspath(filename)
         self.cmdarg = cmdarg
-        self.wait = wait
+        self._wait = wait
 
     def __call__(self):
         return self.show()
@@ -121,8 +121,13 @@ class Visualizer(object):
     def __str__(self):
         return "%s" % self.executable
 
+    @property
+    def wait(self):
+        return self._wait
+
     def set_wait(self, wait=True):
-        self.wait = wait
+        """Wait setter."""
+        self._wait = wait
 
     def show(self):
         """Call the visualizer in a subprocess to visualize the data."""

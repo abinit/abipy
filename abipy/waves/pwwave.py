@@ -164,7 +164,7 @@ class PWWaveFunction(WaveFunction):
         Format is defined by the extension in filename.
         """
         if "." not in filename:
-            raise ValueError("Cannot detect file extension in: %s" % filname)
+            raise ValueError("Cannot detect file extension in: %s" % filename)
 
         tokens = filename.strip().split(".")
         ext = tokens[-1]

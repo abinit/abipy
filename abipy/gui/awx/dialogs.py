@@ -70,3 +70,4 @@ class License(wx.Dialog):
         vsizer.Add(wx.Button( self, wx.ID_OK), 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
         self.SetSizerAndFit(vsizer)
+

@@ -9,7 +9,6 @@ import numpy as np
 from abipy.core.func1d import Function1D
 from abipy.iotools import ETSF_Reader, AbinitNcFile
 from abipy.kpoints import Kpoint, kpoints_factory
-from abipy.tools.plotting_utils import ArrayPlotter
 
 __all__ = [
     "DielectricFunction",
@@ -524,6 +523,7 @@ class DIPME_File(object):
             kpoints = self.ibz
 
         # Extract the matrix elements for the plot.
+        from abipy.tools.plotting_utils import ArrayPlotter
         plotter = ArrayPlotter()
         for spin in spins:
             for kpoint in kpoints:

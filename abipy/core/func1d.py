@@ -8,11 +8,6 @@ from __future__ import print_function, division
 import itertools
 import cStringIO as StringIO
 import numpy as np
-import scipy
-
-from scipy.interpolate import UnivariateSpline
-from scipy.integrate import cumtrapz
-from scipy import fftpack
 
 from abipy.tools.derivatives import finite_diff
 
@@ -257,6 +252,7 @@ class Function1D(object):
         Returns:
             `Function1d` with :math:`\int y(x) dx`
         """
+        from scipy.integrate import cumtrapz
         integ = cumtrapz(self.values, x=self.mesh)
         pad_intg = np.zeros(len(self.values))
         pad_intg[1:] = integ
@@ -268,6 +264,7 @@ class Function1D(object):
         try:
             return self._spline
         except AttributeError:
+            from scipy.interpolate import UnivariateSpline
             self._spline = scipy.interpolate.UnivariateSpline(self.mesh, self.values, s=0)
             return self._spline
 
@@ -307,6 +304,7 @@ class Function1D(object):
     def fft(self):
         """Compute the FFT transform (negative sign)."""
         # Compute FFT and frequencies.
+        from scipy import fftpack
         n, d = len(self), self.h
         fft_vals = fftpack.fft(self.values, n=n)
         freqs = fftpack.fftfreq(n, d=d)
@@ -320,6 +318,7 @@ class Function1D(object):
     def ifft(self, x0=None):
         """Compute the FFT transform :math:`\int e+i`"""
         # Rearrange values in the standard order then perform IFFT.
+        from scipy import fftpack
         n, d = len(self), self.h
         fft_vals = fftpack.ifftshift(self.values)
         fft_vals = fftpack.ifft(fft_vals, n=n)
