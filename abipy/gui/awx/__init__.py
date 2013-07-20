@@ -1,12 +1,12 @@
 __all__ = []
 
 _MODS = [
+    "core",
     "apps",
-    "frames",
-    "tools",
+    "grids",
     "dialogs",
     "panels",
-    "hg",
+    "egs",
     "func1dframe",
 ]
 

@@ -31,7 +31,7 @@ def showElectronJdosFrame(parent, filepath):
     ElectronJdosFrame(parent, bands).Show()
 
 
-class DosPanel(wx.Panel):
+class DosPanel(awx.Panel):
     """Base class defining a panel with controls for specifying the DOS parameters (step, width)."""
     DEFAULT_WIDTH = 0.2
     DEFAULT_STEP = 0.1
@@ -104,7 +104,7 @@ class ElectronDosDialog(wx.Dialog):
         return self.panel.GetParams()
 
 
-class ElectronDosFrame(wx.Frame):
+class ElectronDosFrame(awx.Frame):
     """This frames allows the user to control and compute the Electron DOS."""
     def __init__(self, parent, bands, **kwargs):
         """
@@ -129,7 +129,7 @@ class ElectronDosFrame(wx.Frame):
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        panel = wx.Panel(self, -1)
+        panel = awx.Panel(self, -1)
 
         self.dos_panel = ElectronDosPanel(panel)
         main_sizer.Add(self.dos_panel)
@@ -172,7 +172,7 @@ class ElectronDosFrame(wx.Frame):
             plotframe.oplot(tot_dos.mesh, tot_dos.values, label=label, draw_legend=True)
 
 
-class ElectronJdosPanel(wx.Panel):
+class ElectronJdosPanel(awx.Panel):
     """
     This panel allows the user to specify the parameters for the 
     calculation of the Electron JDOS.
@@ -305,7 +305,7 @@ class ElectronJdosDialog(wx.Dialog):
         return self.panel.GetParams()
 
 
-class ElectronJdosFrame(wx.Frame):
+class ElectronJdosFrame(awx.Frame):
     """
     Frame for the computation of the JDOS.
     """

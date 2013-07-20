@@ -13,6 +13,9 @@ class ScissorsParamsDialog(wx.Dialog):
     This dialog prompts the user to enter the parameters for the
     generations of the Scissors operator.
     """
+    #TODO: See
+    #http://www.blog.pythonlibrary.org/2012/05/05/wxpython-adding-and-removing-widgets-dynamically/
+    # for how to add and remove widgets dinamically.
     def __init__(self, parent, nsppol, num_domains, e0min, e0max, **kwargs):
         """
         Args:
@@ -68,7 +71,7 @@ class ScissorsParamsDialog(wx.Dialog):
         )
 
 
-class ScissorsParamsPanel(wx.Panel):
+class ScissorsParamsPanel(awx.Panel):
     """
     Panel with controls allowing the user to specify the
     Scissors parameters for a single spin.
@@ -85,7 +88,7 @@ class ScissorsParamsPanel(wx.Panel):
                 e0max:
                     Maximum KS energy [eV]
         """
-        wx.Panel.__init__(self, parent, -1, **kwargs)
+        awx.Panel.__init__(self, parent, -1, **kwargs)
 
         self.bound_choices = ["c", "h"]
 
@@ -188,7 +191,7 @@ class ScissorsParamsPanel(wx.Panel):
         )
 
 
-class ScissorsBuilderFrame(wx.Frame):
+class ScissorsBuilderFrame(awx.Frame):
     def __init__(self, parent, filepath, **kwargs):
         super(ScissorsBuilderFrame, self).__init__(parent, -1, **kwargs)
 
@@ -239,7 +242,7 @@ class ScissorsBuilderFrame(wx.Frame):
         if build_dialog.ShowModal() == wx.ID_OK:
             # Get the parameters of the scissors.
             p = build_dialog.GetScissorBuilderParams()
-            awx.PRINT("scissor params", p)
+            self.log("scissor params", p)
 
             # Try the fit.
             fitok = True
@@ -260,7 +263,7 @@ class ScissorsBuilderFrame(wx.Frame):
 
                     if saveFileDialog.ShowModal() == wx.ID_OK:
                         savefile = saveFileDialog.GetPath()
-                        print("About to save in %s" % savefile)
+                        self.log("About to save in %s" % savefile)
                         self.scissors_builder.save_data(savefile)
 
                     saveFileDialog.Destroy()
@@ -270,14 +273,13 @@ class ScissorsBuilderFrame(wx.Frame):
 
 def wxapp_scissors(filepath):
     app = wx.App()
-    frame = ScissorsBuilderFrame(None, filepath)
-    frame.Show()
-    app.MainLoop()
+    ScissorsBuilderFrame(None, filepath).Show()
+    return app
 
 
 if __name__ == "__main__":
     app = wx.App()
-    frame = wx.Frame(None, -1)
+    frame = awx.Frame(None, -1)
     frame.Show()
     awx.showLicense(frame)
     app.MainLoop()

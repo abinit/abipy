@@ -98,11 +98,11 @@ class QP(collections.namedtuple("QP", _QP_FIELDS)):
 #########################################################################################
 
 
-class QuasiParticles(list):
+class QPList(list):
     """A list of quasiparticle corrections."""
 
     def __init__(self, *args, **kwargs):
-        super(QuasiParticles, self).__init__(*args)
+        super(QPList, self).__init__(*args)
         self.is_e0sorted = kwargs.get("is_e0sorted", False)
 
     def __repr__(self):
@@ -110,18 +110,21 @@ class QuasiParticles(list):
 
     def __str__(self):
         """String representation."""
+        table = self.to_table()
+
         strio = cStringIO.StringIO()
-        self.totable(stream=strio)
+        pprint_table(table, out=strio)
+        strio.write("\n")
         strio.seek(0)
         return "".join(strio)
 
     def copy(self):
         """Copy of self."""
-        return QuasiParticles([qp.copy() for qp in self], is_e0sorted=self.is_e0sorted)
+        return QPList([qp.copy() for qp in self], is_e0sorted=self.is_e0sorted)
 
     def sort_by_e0(self):
         """Return a new object with the E0 energies sorted in ascending order."""
-        return QuasiParticles(sorted(self, key=lambda qp: qp.e0), is_e0sorted=True)
+        return QPList(sorted(self, key=lambda qp: qp.e0), is_e0sorted=True)
 
     def get_e0mesh(self):
         """Return the E0 energies."""
@@ -142,16 +145,15 @@ class QuasiParticles(list):
         """Return an arrays with the QP corrections."""
         return self.get_field("qpeme0")
 
-    def totable(self, fmt=None, stream=sys.stdout):
+    def to_table(self):
         header = QP.get_fields(exclude=["spin", "kpoint"])
         table = [header]
 
         for qp in self:
-            d = qp.to_strdict(fmt=fmt)
+            d = qp.to_strdict(fmt=None)
             table.append([d[k] for k in header])
-                                                                                                                        
-        pprint_table(table, out=stream)
-        stream.write("\n")
+
+        return table
 
     def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, **kwargs):
         """
@@ -422,7 +424,7 @@ class SIGRES_File(AbinitNcFile):
         """Read data from the netcdf file path."""
         super(SIGRES_File, self).__init__(filepath)
 
-        ## Keep a reference to the SIGRES_Reader.
+        # Keep a reference to the SIGRES_Reader.
         self.ncreader = ncreader = SIGRES_Reader(self.filepath)
 
         self.structure = ncreader.read_structure()
@@ -431,6 +433,9 @@ class SIGRES_File(AbinitNcFile):
         self.kpoints = ncreader.kpoints
         self.gwkpoints = ncreader.gwkpoints
 
+        self.gwbstart_sk = ncreader.gwbstart_sk 
+        self.gwbstop_sk =  ncreader.gwbstop_sk
+        
         self.min_gwbstart = ncreader.min_gwbstart
         self.max_gwbstop = ncreader.max_gwbstop
 
@@ -460,6 +465,10 @@ class SIGRES_File(AbinitNcFile):
     def get_allqps(self):
         return self.ncreader.read_allqps()
 
+    def get_qplist(self, spin, kpoint):
+        qplist = self.ncreader.read_qplist_sk(spin, kpoint)
+        return qplist
+
     def get_qpcorr(self, spin, kpoint, band):
         """Returns the `QP` object for the given (s, k, b)"""
         return self.ncreader.read_qp(spin, kpoint, band)
@@ -472,6 +481,13 @@ class SIGRES_File(AbinitNcFile):
     def get_spfunc(self, spin, kpoint, band):
         wmesh, spf_values = self.ncreader.read_spfunc(spin, kpoint, band)
         return Function1D(wmesh, spf_values)
+
+    def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, **kwargs):
+        qps_spin = self.get_allqps()
+
+        for spin in range(self.nsppol):
+            qps = qps_spin[spin].sort_by_e0()
+            qps.plot_qps_vs_e0(with_fields=with_fields, exclude_fields=exclude_fields, **kwargs)
 
     def plot_spectral_functions(self, spin, kpoint, bands, *args, **kwargs):
         """
@@ -541,6 +557,7 @@ class SIGRES_File(AbinitNcFile):
             plot_array(ksqp_arr)
 
     def print_qps(self, spin=None, kpoint=None, bands=None, fmt=None, stream=sys.stdout):
+        # TODO Is it still used?
         self.ncreader.print_qps(spin=spin, kpoint=kpoint, bands=bands, fmt=None, stream=stream)
 
     #def plot_ksbands_and_qpcorr(self, *args, **kwargs):
@@ -828,9 +845,18 @@ class SIGRES_Reader(ETSF_Reader):
                 for band in bands:
                     qps.append(self.read_qp(spin, gwkpoint, band))
 
-            qps_spin[spin] = QuasiParticles(qps)
+            qps_spin[spin] = QPList(qps)
 
         return tuple(qps_spin)
+
+    def read_qplist_sk(self, spin, kpoint):
+        ik = self.gwkpt2seqindex(kpoint)
+        bstart = self.gwbstart_sk[spin, ik]
+        bstop = self.gwbstop_sk[spin, ik]
+
+        qps = [self.read_qp(spin, kpoint, band) for band in range(bstart, bstop)]
+
+        return QPList(qps)
 
     def read_qp(self, spin, kpoint, band):
         ik_file = self.kpt2fileindex(kpoint)

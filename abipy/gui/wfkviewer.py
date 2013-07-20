@@ -21,7 +21,7 @@ ID_PLOTBANDS = wx.NewId()
 
 ID_TBOX_VIS = wx.NewId()
 
-class WfkViewerFrame(wx.Frame):
+class WfkViewerFrame(awx.Frame):
     VERSION = "0.1"
 
     def __init__(self, parent, filename=None):
@@ -257,7 +257,7 @@ class WfkViewerApp(awx.App):
         if filename.endswith(".py"):
             return
         # Open filename in a new frame.
-        awx.PRINT("%s dropped on app %s" % (filename, self.appname))
+        self("%s dropped on app %s" % (filename, self.appname))
         frame = WfkViewerFrame(parent=None, filename=filename)
         frame.Show()
 

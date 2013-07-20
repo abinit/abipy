@@ -265,7 +265,7 @@ class Function1D(object):
             return self._spline
         except AttributeError:
             from scipy.interpolate import UnivariateSpline
-            self._spline = scipy.interpolate.UnivariateSpline(self.mesh, self.values, s=0)
+            self._spline = UnivariateSpline(self.mesh, self.values, s=0)
             return self._spline
 
     @property

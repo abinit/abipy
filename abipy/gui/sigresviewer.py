@@ -15,10 +15,10 @@ ID_VISTRUCT = wx.NewId()
 ID_VISBZ = wx.NewId()
 ID_NCDUMP = wx.NewId()
 ID_SCISSORS = wx.NewId()
-
+ID_PLOTQPSE0 = wx.NewId()
 ID_TBOX_VIS = wx.NewId()
 
-class SigresViewerFrame(wx.Frame):
+class SigresViewerFrame(awx.Frame):
     VERSION = "0.1"
 
     def __init__(self, parent, filename=None):
@@ -58,6 +58,7 @@ class SigresViewerFrame(wx.Frame):
         toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, tsize), "Open")
         toolbar.AddSimpleTool(ID_VISTRUCT, wx.Bitmap(awx.path_img("crystal.png")), "Visualize the crystal structure")
         toolbar.AddSimpleTool(ID_VISBZ, wx.Bitmap(awx.path_img("wave.png")), "Visualize the BZ")
+        toolbar.AddSimpleTool(ID_PLOTQPSE0, wx.Bitmap(awx.path_img("wave.png")), "Plot QP Results.")
         toolbar.AddSimpleTool(ID_SCISSORS, wx.Bitmap(awx.path_img("wave.png")), "Build energy-dependent scissors from GW correction.")
 
         toolbar.AddSeparator()
@@ -80,6 +81,7 @@ class SigresViewerFrame(wx.Frame):
             (ID_NCDUMP, self.OnNcdump),
             (ID_VISTRUCT, self.OnVisualizeStructure),
             (ID_VISBZ, self.OnVisualizeBZ),
+            (ID_PLOTQPSE0, self.OnPlotQpsE0),
             (ID_SCISSORS, self.OnScissors),
         ]
 
@@ -108,7 +110,7 @@ class SigresViewerFrame(wx.Frame):
             bstart=sigres.min_gwbstart)
 
         # Set the callback for double click on k-point row..
-        #self.skb_panel.SetOnItemActivated(self._ShowQP_k)
+        self.skb_panel.SetOnItemActivated(self._ShowQPTable)
 
         # Add Python shell
         #from wx.py.shell import Shell
@@ -177,6 +179,11 @@ class SigresViewerFrame(wx.Frame):
         awx.makeAboutBox(codename=self.codename, version=self.VERSION,
                          description="", developers="M. Giantomassi")
 
+    def OnPlotQpsE0(self, event):
+        """Plot the QP results."""
+        if self.sigres is None: return
+        self.sigres.plot_qps_vs_e0()
+
     def OnScissors(self, event):
         """Build the scissors operator."""
         if self.sigres is None: return
@@ -204,10 +211,13 @@ class SigresViewerFrame(wx.Frame):
         if self.sigres is None: return
         self.sigres.get_structure().show_bz()
 
-    def _ShowQP_k(self, spin, kpoint, band):
-        """Calls the visualizer to visualize the specified wavefunction."""
-        qpcorr_skb = self.sigres.get_qpcorr(spin, kpoint, band)
-        print(qpcorr_skb)
+    def _ShowQPTable(self, spin, kpoint, band):
+        qplist = self.sigres.get_qplist(spin, kpoint)
+        table = qplist.to_table()
+
+        title = "spin: %d, kpoint: %s" % (spin, kpoint)
+        frame = awx.SimpleGridFrame(self, table[1:], col_labels=table[0], title=title)
+        frame.Show()
 
     def OnNcdump(self, event):
         """Call ncdump and show results in a dialog."""
@@ -225,7 +235,7 @@ class SigresViewerApp(awx.App):
         if filename.endswith(".py"):
             return
         # Open filename in a new frame.
-        awx.PRINT("%s dropped on app %s" % (filename, self.appname))
+        self.log("%s dropped on app %s" % (filename, self.appname))
         frame = SigresViewerFrame(parent=None, filename=filename)
         frame.Show()
 

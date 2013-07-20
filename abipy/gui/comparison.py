@@ -9,9 +9,9 @@ from abipy.electrons import ElectronBandsPlotter, ElectronDosPlotter, MDF_Plotte
 from abipy.gui.electronswx import ElectronDosDialog
 
 
-class FileCheckBoxPanel(wx.Panel):
+class FileCheckBoxPanel(awx.Panel):
     def __init__(self, parent, filepaths, **kwargs):
-        wx.Panel.__init__(self, parent, id=-1, **kwargs)
+        super(FileCheckBoxPanel, self).__init__(parent, -1, **kwargs)
 
         if isinstance(filepaths, str): filepaths = [filepaths]
         self.all_filepaths = filepaths
@@ -99,7 +99,7 @@ class FileCheckBoxPanel(wx.Panel):
         return selected
 
 
-class ComparisonFrame(wx.Frame):
+class ComparisonFrame(awx.Frame):
     def __init__(self, parent, dirpaths=None, filepaths=None, wildcard=None, **kwargs):
         super(ComparisonFrame, self).__init__(parent, -1, **kwargs)
 
@@ -136,10 +136,9 @@ class ComparisonFrame(wx.Frame):
         self.SetSizer(main_sizer)
         self.Layout()
 
-    @awx.verbose
     def OnCompare(self, event):
         selected = self.panel.GetSelectedFilepaths()
-        awx.PRINT("selected", selected)
+        self.log("selected", selected)
 
         choice = self.plotter_cbox.GetValue()
         try:
@@ -155,7 +154,7 @@ class ComparisonFrame(wx.Frame):
 
                 if dos_dialog.ShowModal() == wx.ID_OK:
                     p = dos_dialog.GetParams()
-                    print(p)
+                    self.log(p)
                     plotter = ElectronDosPlotter()
                     for filepath in selected:
                         plotter.add_dos_from_file(filepath, **p)

@@ -11,7 +11,7 @@ from abipy.electrons import ElectronBands
 from abipy.gui.browser import FileListPanel
 
 
-class DosPlotter(wx.Frame):
+class DosPlotter(awx.Frame):
     VERSION = "0.1"
 
     # Help menu items.

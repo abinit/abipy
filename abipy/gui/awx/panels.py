@@ -4,14 +4,14 @@ import wx
 
 import wx.lib.mixins.listctrl as listmix
 
-from .tools import PRINT
+from .core import Panel
 
 __all__ = [
     "SpinKpointBandPanel",
 ]
 
 
-class SpinKpointBandPanel(wx.Panel):
+class SpinKpointBandPanel(Panel):
     """
     This panel shows information on the k-points and the set of bands, spins. 
     Useful if we want to allow the user to select the set of indices (spin, kpt_idx, band).
@@ -29,7 +29,7 @@ class SpinKpointBandPanel(wx.Panel):
             bstart:
                 First band index.
         """
-        wx.Panel.__init__(self, parent, -1, **kwargs)
+        super(SpinKpointBandPanel, self).__init__(parent, -1, **kwargs)
 
         self.kpoints = kpoints
 
@@ -99,7 +99,7 @@ class SpinKpointBandPanel(wx.Panel):
         """Call the callback registered with `SetOnRightClick` (if any)."""
         if hasattr(self, "_on_item_right_click_callback"):
             skb = self.GetSKB()
-            PRINT("In OnRightClick with skb %s" % str(skb))
+            self.log("In OnRightClick with skb %s" % str(skb))
             self._on_item_right_click_callback(*skb)
 
     def SetOnItemSelected(self, callback):
@@ -113,7 +113,7 @@ class SpinKpointBandPanel(wx.Panel):
         """Call the callback registered with `SetOnItemSelected` (if any)."""
         if hasattr(self, "_on_item_selected_callback"):
             skb = self.GetSKB()
-            PRINT("In OnItemSelected with skb %s" % str(skb))
+            self.log("In OnItemSelected with skb %s" % str(skb))
             self._on_item_selected_callback(*skb)
 
     def SetOnItemActivated(self, callback):
@@ -127,5 +127,5 @@ class SpinKpointBandPanel(wx.Panel):
         """Call the callback registered with `SetOnItemActivated` (if any)."""
         if hasattr(self, "_on_item_activated_callback"):
             skb = self.GetSKB()
-            PRINT("In OnItemActivated with skb %s" % str(skb))
+            self.log("In OnItemActivated with skb %s" % str(skb))
             self._on_item_activated_callback(*skb)

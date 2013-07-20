@@ -1,6 +1,7 @@
 from __future__ import print_function, division
 
 import abc
+import sys
 import wx
 
 
@@ -14,9 +15,13 @@ class App(wx.App):
 
     def __init__(self, *args, **kwargs):
         wx.App.__init__(self, *args, **kwargs)
+        self._log = sys.stdout
         
         # This catches events when the app is asked to activate by some other process
         self.Bind(wx.EVT_ACTIVATE_APP, self.OnActivate)
+
+    def log(self):
+        return self._log.write
 
     def OnInit(self): 
         return True
@@ -46,7 +51,7 @@ class App(wx.App):
         #if filename.endswith(".py"):
         #    return
         # Code to load filename.
-        #PRINT("%s dropped on app %s" % (filename, self.appname)) 
+        #self.log("%s dropped on app %s" % (filename, self.appname)) 
         
     def MacReopenApp(self):
         """Called when the dock icon is clicked."""

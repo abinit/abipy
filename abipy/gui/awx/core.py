@@ -1,6 +1,7 @@
 from __future__ import print_function, division
 
 import os
+import sys
 import warnings
 import wx
 
@@ -13,6 +14,8 @@ __all__ = [
     "WARNING",
     "Error",
     "verbose",
+    "Panel",
+    "Frame",
 ]
 
 _DEBUG = True
@@ -81,3 +84,24 @@ Suite 330, Boston, MA  02111-1307  USA""" % {"codename": codename}
         info.AddDeveloper(dev)
 
     wx.AboutBox(info)
+
+
+# TODO Write logger class
+class Panel(wx.Panel):
+    def __init__(self, *args, **kwargs):
+        super(Panel, self).__init__(*args, **kwargs)
+        #self._log = sys.stdout.write
+
+    @property
+    def log(self):
+        return print
+
+
+class Frame(wx.Frame):
+    def __init__(self, *args, **kwargs):
+        super(Frame, self).__init__(*args, **kwargs)
+        #self._log = sys.stdout.write
+
+    @property
+    def log(self):
+        return print

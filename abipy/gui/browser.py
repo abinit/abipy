@@ -49,7 +49,7 @@ class NcFileDirCtrl(wx.GenericDirCtrl):
     def OnRightClick(self, event):
         path = self.GetFilePath()
         if not path: return
-        awx.PRINT("in right with path %s" % path)
+        self.log("in right with path %s" % path)
 
         # Open the popup menum then destroy it to avoid mem leak.
         popmenu = popupmenu_for_filename(self, path)
@@ -61,7 +61,7 @@ import fnmatch
 import wx.lib.mixins.listctrl as listmix
 
 
-class FileListPanel(wx.Panel, listmix.ColumnSorterMixin):
+class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
     def __init__(self, parent, dirpaths=None, filepaths=None, wildcard=None, **kwargs):
         super(FileListPanel, self).__init__(parent, -1, **kwargs)
 
@@ -181,7 +181,7 @@ class FileListPanel(wx.Panel, listmix.ColumnSorterMixin):
     def OnItemActivated(self, event):
         currentItem = event.m_itemIndex
         fd = self.id2filedata[self.file_list.GetItemData(currentItem)]
-        awx.PRINT("In OnItemActivated with filedata %s" % str(fd))
+        self.log("In OnItemActivated with filedata %s" % str(fd))
         frame = viewerframe_for_filepath(self, fd.abspath)
         frame.Show()
 
@@ -203,7 +203,7 @@ class FileListPanel(wx.Panel, listmix.ColumnSorterMixin):
         while indices[-1] != -1:
             indices.append(self.file_list.GetNextSelected(indices[-1]))
         indices = indices[:-1]
-        awx.PRINT("in OnItemSelected with indices:", indices)
+        self.log("in OnItemSelected with indices:", indices)
 
         # Plot multiple bands
         if len(indices) > 1:
@@ -212,7 +212,7 @@ class FileListPanel(wx.Panel, listmix.ColumnSorterMixin):
             plotter = ElectronBandsPlotter()
             for index in indices:
                 fd = self.id2filedata[self.file_list.GetItemData(index)]
-                print("adding ", fd.abspath)
+                self.log("adding ", fd.abspath)
                 plotter.add_bands_from_file(fd.abspath)
             plotter.plot()
 
@@ -224,7 +224,7 @@ def wxapp_dirbrowser(dirpath):
         dirpath = os.path.abspath(dirpath)
 
     app = wx.App()
-    frame = wx.Frame(None, -1)
+    frame = awx.Frame(None, -1)
     NcFileDirCtrl(frame, -1, dir=dirpath)
     app.SetTopWindow(frame)
     frame.Show()
@@ -233,7 +233,7 @@ def wxapp_dirbrowser(dirpath):
 
 def wxapp_listbrowser(dirpaths=None, filepaths=None, wildcard=""):
     app = wx.App()
-    frame = wx.Frame(None, -1)
+    frame = awx.Frame(None, -1)
     FileListPanel(frame, dirpaths=dirpaths, filepaths=filepaths, wildcard=wildcard)
     frame.Show()
     return app

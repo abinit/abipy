@@ -11,7 +11,7 @@ from abipy import abiopen
 from abipy.htc.abitimer import AbinitTimerSection
 
 
-class AbinitEventsPanel(wx.Panel):
+class AbinitEventsPanel(awx.Panel):
     """
     Panel with a TreeCtrl that allows the user to navigate
     the events (WARNINGS/COMMENTS/ERRORS) reported by ABINIT
@@ -31,8 +31,8 @@ class AbinitEventsPanel(wx.Panel):
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         vbox = wx.BoxSizer(wx.VERTICAL)
-        panel1 = wx.Panel(self, -1)
-        panel2 = wx.Panel(self, -1)
+        panel1 = awx.Panel(self, -1)
+        panel2 = awx.Panel(self, -1)
 
         self.tree = tree = wx.TreeCtrl(panel1, 1, wx.DefaultPosition, (-1, -1), wx.TR_HIDE_ROOT | wx.TR_HAS_BUTTONS)
 
@@ -75,7 +75,7 @@ class AbinitEventsPanel(wx.Panel):
             self.display.SetLabel(data)
 
 
-class AbinitEventsFrame(wx.Frame):
+class AbinitEventsFrame(awx.Frame):
     """
     Frame with an EventsPanel
     """
@@ -115,7 +115,7 @@ class AbiOutLogDirCtrl(wx.GenericDirCtrl):
         #    print("in right with path %s" % path)
 
 
-class AbinitEventsNotebookFrame(wx.Frame):
+class AbinitEventsNotebookFrame(awx.Frame):
     def __init__(self, parent, filenames, **kwargs):
 
         if "title" not in kwargs:
@@ -124,7 +124,7 @@ class AbinitEventsNotebookFrame(wx.Frame):
         super(AbinitEventsNotebookFrame, self).__init__(parent, **kwargs)
 
         # Here we create a panel and a notebook on the panel
-        panel = wx.Panel(self)
+        panel = awx.Panel(self)
 
         import wx.lib.agw.flatnotebook as fnb
 
@@ -176,7 +176,7 @@ def wxapp_events(root):
     return AbiEventsViewerApp()
 
 
-class AbinitTimerFrame(wx.Frame):
+class AbinitTimerFrame(awx.Frame):
     """
     Frame with controls to plot the timing data.
     """
