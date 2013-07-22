@@ -17,7 +17,7 @@ __all__ = [
 # cmdarg is the command line option that has to be provided to visualize a file with the given extension.
 Application = namedtuple("Application", "name cmdarg")
 
-#: One-to-many mapping file extension --> applications
+# One-to-many mapping file extension --> applications
 _EXT2APPS = OrderedDict( {
     "xsf": [Application("xcrysden", "--xsf"),
             Application("vsim", None),

@@ -29,7 +29,7 @@ class SpinKpointBandPanel(Panel):
             bstart:
                 First band index.
         """
-        super(SpinKpointBandPanel, self).__init__(parent, -1, **kwargs)
+        super(SpinKpointBandPanel, self).__init__(parent, **kwargs)
 
         self.kpoints = kpoints
 

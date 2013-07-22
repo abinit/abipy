@@ -11,7 +11,7 @@ class TestDensity(AbipyTest):
     """Unit tests for Density."""
 
     def test_ncread_density(self):
-        "Read density from NC example data files"
+        """Read density from NC example data files"""
         assert DEN_NCFILES
 
         for filename in DEN_NCFILES:

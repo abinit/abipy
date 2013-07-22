@@ -13,6 +13,17 @@ __all__ = [
 class SimpleGrid(gridlib.Grid): 
 
     def __init__(self, parent, table, row_labels=None, col_labels=None):
+        """
+        Args:
+            parent:
+                parent window.
+            table:
+                List of string lists.
+            row_labels:
+                List of strings used to label the rows.
+            col_labels:
+                List of strings used to label the col.
+        """
 
         gridlib.Grid.__init__(self, parent, -1)
         self.log = sys.stdout
@@ -32,7 +43,7 @@ class SimpleGrid(gridlib.Grid):
         attr = gridlib.GridCellAttr()
         attr.SetTextColour(wx.BLACK)
         attr.SetBackgroundColour(wx.WHITE)
-        attr.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD))
+        attr.SetFont(wx.Font(14, wx.SWISS, wx.NORMAL, wx.NORMAL))
 
         self.SetGridCellAttr(attr)
 
@@ -52,9 +63,6 @@ class SimpleGrid(gridlib.Grid):
             for c, col in enumerate(row):
                 self.SetCellValue(r, c, table[r][c])
                 self.SetReadOnly(r, c, True)
-                #self.SetColSize(3, 200)
-                #self.SetRowSize(4, 45)
-                #self.SetCellAlignment(11, 1, wx.ALIGN_CENTRE, wx.ALIGN_CENTRE);
 
         self.AutoSize()
         self.ForceRefresh()
@@ -100,53 +108,43 @@ class SimpleGrid(gridlib.Grid):
         self.ForceRefresh()
 
     def OnCellLeftClick(self, evt):
-        self.log.write("OnCellLeftClick: (%d,%d) %s\n" %
-                       (evt.GetRow(), evt.GetCol(), evt.GetPosition()))
+        self.log.write("OnCellLeftClick: (%d,%d) %s\n" % (evt.GetRow(), evt.GetCol(), evt.GetPosition()))
         evt.Skip()
 
     def OnCellRightClick(self, evt):
-        self.log.write("OnCellRightClick: (%d,%d) %s\n" %
-                       (evt.GetRow(), evt.GetCol(), evt.GetPosition()))
+        self.log.write("OnCellRightClick: (%d,%d) %s\n" % (evt.GetRow(), evt.GetCol(), evt.GetPosition()))
         evt.Skip()
 
     def OnCellLeftDClick(self, evt):
-        self.log.write("OnCellLeftDClick: (%d,%d) %s\n" %
-                       (evt.GetRow(), evt.GetCol(), evt.GetPosition()))
+        self.log.write("OnCellLeftDClick: (%d,%d) %s\n" % (evt.GetRow(), evt.GetCol(), evt.GetPosition()))
         evt.Skip()
 
     def OnCellRightDClick(self, evt):
-        self.log.write("OnCellRightDClick: (%d,%d) %s\n" %
-                       (evt.GetRow(), evt.GetCol(), evt.GetPosition()))
+        self.log.write("OnCellRightDClick: (%d,%d) %s\n" % (evt.GetRow(), evt.GetCol(), evt.GetPosition()))
         evt.Skip()
 
     def OnLabelLeftClick(self, evt):
-        self.log.write("OnLabelLeftClick: (%d,%d) %s\n" %
-                       (evt.GetRow(), evt.GetCol(), evt.GetPosition()))
+        self.log.write("OnLabelLeftClick: (%d,%d) %s\n" % (evt.GetRow(), evt.GetCol(), evt.GetPosition()))
         evt.Skip()
 
     def OnLabelRightClick(self, evt):
-        self.log.write("OnLabelRightClick: (%d,%d) %s\n" %
-                       (evt.GetRow(), evt.GetCol(), evt.GetPosition()))
+        self.log.write("OnLabelRightClick: (%d,%d) %s\n" % (evt.GetRow(), evt.GetCol(), evt.GetPosition()))
         evt.Skip()
 
     def OnLabelLeftDClick(self, evt):
-        self.log.write("OnLabelLeftDClick: (%d,%d) %s\n" %
-                       (evt.GetRow(), evt.GetCol(), evt.GetPosition()))
+        self.log.write("OnLabelLeftDClick: (%d,%d) %s\n" % (evt.GetRow(), evt.GetCol(), evt.GetPosition()))
         evt.Skip()
 
     def OnLabelRightDClick(self, evt):
-        self.log.write("OnLabelRightDClick: (%d,%d) %s\n" %
-                       (evt.GetRow(), evt.GetCol(), evt.GetPosition()))
+        self.log.write("OnLabelRightDClick: (%d,%d) %s\n" % (evt.GetRow(), evt.GetCol(), evt.GetPosition()))
         evt.Skip()
 
     def OnRowSize(self, evt):
-        self.log.write("OnRowSize: row %d, %s\n" %
-                       (evt.GetRowOrCol(), evt.GetPosition()))
+        self.log.write("OnRowSize: row %d, %s\n" % (evt.GetRowOrCol(), evt.GetPosition()))
         evt.Skip()
 
     def OnColSize(self, evt):
-        self.log.write("OnColSize: col %d, %s\n" %
-                       (evt.GetRowOrCol(), evt.GetPosition()))
+        self.log.write("OnColSize: col %d, %s\n" % (evt.GetRowOrCol(), evt.GetPosition()))
         evt.Skip()
 
     def OnRangeSelect(self, evt):
@@ -160,8 +158,7 @@ class SimpleGrid(gridlib.Grid):
 
 
     def OnCellChange(self, evt):
-        self.log.write("OnCellChange: (%d,%d) %s\n" %
-                       (evt.GetRow(), evt.GetCol(), evt.GetPosition()))
+        self.log.write("OnCellChange: (%d,%d) %s\n" % (evt.GetRow(), evt.GetCol(), evt.GetPosition()))
 
         # Show how to stay in a cell that has bad data.  We can't just
         # call SetGridCursor here since we are nested inside one so it
@@ -172,7 +169,6 @@ class SimpleGrid(gridlib.Grid):
         if value == 'no good':
             self.moveTo = evt.GetRow(), evt.GetCol()
 
-
     def OnIdle(self, evt):
         if self.moveTo != None:
             self.SetGridCursor(self.moveTo[0], self.moveTo[1])
@@ -180,14 +176,12 @@ class SimpleGrid(gridlib.Grid):
 
         evt.Skip()
 
-
     def OnSelectCell(self, evt):
         if evt.Selecting():
             msg = 'Selected'
         else:
             msg = 'Deselected'
-        self.log.write("OnSelectCell: %s (%d,%d) %s\n" %
-                       (msg, evt.GetRow(), evt.GetCol(), evt.GetPosition()))
+        self.log.write("OnSelectCell: %s (%d,%d) %s\n" % (msg, evt.GetRow(), evt.GetCol(), evt.GetPosition()))
 
         # Another way to stay in a cell that has a bad value...
         row = self.GetGridCursorRow()
@@ -204,7 +198,6 @@ class SimpleGrid(gridlib.Grid):
 
         evt.Skip()
 
-
     def OnEditorShown(self, evt):
         if evt.GetRow() == 6 and evt.GetCol() == 3 and \
            wx.MessageBox("Are you sure you wish to edit this cell?",
@@ -212,10 +205,8 @@ class SimpleGrid(gridlib.Grid):
             evt.Veto()
             return
 
-        self.log.write("OnEditorShown: (%d,%d) %s\n" %
-                       (evt.GetRow(), evt.GetCol(), evt.GetPosition()))
+        self.log.write("OnEditorShown: (%d,%d) %s\n" % (evt.GetRow(), evt.GetCol(), evt.GetPosition()))
         evt.Skip()
-
 
     def OnEditorHidden(self, evt):
         if evt.GetRow() == 6 and evt.GetCol() == 3 and \
@@ -224,15 +215,29 @@ class SimpleGrid(gridlib.Grid):
             evt.Veto()
             return
 
-        self.log.write("OnEditorHidden: (%d,%d) %s\n" %
-                       (evt.GetRow(), evt.GetCol(), evt.GetPosition()))
+        self.log.write("OnEditorHidden: (%d,%d) %s\n" % (evt.GetRow(), evt.GetCol(), evt.GetPosition()))
         evt.Skip()
 
-
     def OnEditorCreated(self, evt):
-        self.log.write("OnEditorCreated: (%d, %d) %s\n" %
-                       (evt.GetRow(), evt.GetCol(), evt.GetControl()))
+        self.log.write("OnEditorCreated: (%d, %d) %s\n" % (evt.GetRow(), evt.GetCol(), evt.GetControl()))
 
+    #def InstallGridHint(grid, rowcolhintcallback):
+    #    prev_rowcol = [None,None]
+    #    def OnMouseMotion(evt):
+    #        # evt.GetRow() and evt.GetCol() would be nice to have here,
+    #        # but as this is a mouse event, not a grid event, they are not
+    #        # available and we need to compute them by hand.
+    #        x, y = grid.CalcUnscrolledPosition(evt.GetPosition())
+    #        row = grid.YToRow(y)
+    #        col = grid.XToCol(x)
+    #        if (row,col) != prev_rowcol and row >= 0 and col >= 0:
+    #            prev_rowcol[:] = [row,col]
+    #            hinttext = rowcolhintcallback(row, col)
+    #            if hinttext is None:
+    #                hinttext = ''
+    #            grid.GetGridWindow().SetToolTipString(hinttext)
+    #        evt.Skip()
+    #    wx.EVT_MOTION(grid.GetGridWindow(), OnMouseMotion)
 
 
 class SimpleGridFrame(wx.Frame):
@@ -244,17 +249,19 @@ class SimpleGridFrame(wx.Frame):
         self.grid = SimpleGrid(self, table, row_labels=row_labels, col_labels=col_labels)
         self.Bind(wx.EVT_FONTPICKER_CHANGED, self.OnFontPickerChanged)
 
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer = main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(self.font_picker)
         main_sizer.Add(self.grid)
 
         self.SetSizerAndFit(main_sizer)
 
     def OnFontPickerChanged(self, event):
+        """Change the Font."""
         font = self.font_picker.GetSelectedFont()
         attr = gridlib.GridCellAttr()
         attr.SetFont(font)
         self.grid.SetGridCellAttr(attr)
+        self.main_sizer.Fit(self)
 
 #---------------------------------------------------------------------------
 

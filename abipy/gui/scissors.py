@@ -216,22 +216,21 @@ class ScissorsBuilderFrame(awx.Frame):
         return self.scissors_builder.e0max
 
     def BuildUi(self):
-        hsizer = wx.BoxSizer(wx.HORIZONTAL)
+        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         stext = wx.StaticText(self, -1, "Numer of domains:", wx.DefaultPosition, wx.DefaultSize, 0)
         stext.Wrap(-1)
-        hsizer.Add(stext, 0, wx.TOP | wx.BOTTOM | wx.LEFT, 5)
+        main_sizer.Add(stext, 0, wx.TOP | wx.BOTTOM | wx.LEFT, 5)
 
         self.numdomains_ctrl = wx.SpinCtrl(self, -1, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
                                            wx.SP_ARROW_KEYS, 1, 100, 1)
-        hsizer.Add(self.numdomains_ctrl, 0, wx.ALL, 5)
+        main_sizer.Add(self.numdomains_ctrl, 0, wx.ALL, 5)
 
         startfit_button = wx.Button(self, -1, "Start Fit", wx.DefaultPosition, wx.DefaultSize, 0)
         startfit_button.Bind(wx.EVT_BUTTON, self.OnStartFitButton)
-        hsizer.Add(startfit_button, 0, wx.ALL, 5)
+        main_sizer.Add(startfit_button, 0, wx.ALL, 5)
 
-        self.SetSizer(hsizer)
-        self.Fit()
+        self.SetSizerAndFit(main_sizer)
 
     def OnStartFitButton(self, event):
         """Callback that start the generation of the scissors."""

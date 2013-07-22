@@ -17,13 +17,14 @@ class ElectronBandsTest(AbipyTest):
             bands = ElectronBands.from_file(filename)
 
     def test_dos(self):
-        """DOS methods."""
+        """Test DOS methods."""
         gs_bands = ElectronBands.from_file(get_reference_file("si_WFK-etsf.nc"))
         dos = gs_bands.get_dos()
         mu = dos.find_mu(8, atol=1.e-4)
         self.assert_almost_equal(mu, 6.1443350264585996, decimal=4)
 
     def test_jdos(self):
+        """Test JDOS methods."""
         bands = ElectronBands.from_file(get_reference_file("si_WFK-etsf.nc"))
 
         spin = 0

@@ -18,10 +18,12 @@ from abipy.electrons.ebands import ElectronBands
 from abipy.iotools import AbinitNcFile
 
 __all__ = [
+    "QP",
     "SIGRES_File",
 ]
 
 _QP_FIELDS = "spin kpoint band e0 qpe qpe_diago vxcme sigxme, sigcmee0 vUme ze0"
+
 
 
 class QP(collections.namedtuple("QP", _QP_FIELDS)):
@@ -40,25 +42,31 @@ class QP(collections.namedtuple("QP", _QP_FIELDS)):
             Initial KS energy.
         qpe:
             Quasiparticle energy (complex) computed with the perturbative approach.
-        qpe_diago
-            Quasiparticle energy (real) computed by diagonalizing the SC self-energy.
+        qpe_diago:
+            Quasiparticle energy (real) computed by diagonalizing the self-energy.
         vxcme:
-            Matrix element of vxc[nval].
+            Matrix element of vxc[n_val] with nval the valence charge density.
         sigxme:
             Matrix element of Sigma_x.
         sigcmee0:
-            Matrix element of Sigma_c(e0).
-        vU:
-            Matrix element of vU term of the LDA+U Hamiltonian.
+            Matrix element of Sigma_c(e0) with e0 being the KS energy.
+        vUme:
+            Matrix element of the vU term of the LDA+U Hamiltonian.
         ze0:
             Renormalization factor computed at e=e0.
 
-     .. note:: Energies are in eV.
+    .. note:: Energies are in eV.
     """
+
     @property
     def qpeme0(self):
         """E_QP - E_0"""
         return self.qpe - self.e0
+
+    @property
+    def skb(self):
+        """Tuple with (spin, kpoint, band)"""
+        return self.spin, self.kpoint, self.band
 
     def copy(self):
         d = {f: copy.copy(getattr(self, f)) for f in self._fields}
@@ -94,6 +102,53 @@ class QP(collections.namedtuple("QP", _QP_FIELDS)):
                     #print("k", k, str(exc))
                     d[k] = str(v)
         return d
+
+    @property
+    def tips(self):
+        """Bound method of self that returns a dictionary with the description of the fields."""
+        return self.__class__.TIPS()
+    
+    @classmethod
+    def TIPS(cls):
+        """
+        Class method that returns a dictionary with the description of the fields.
+        The string are extracted from the class doc string.
+        """
+        try:
+            return cls._TIPS
+
+        except AttributeError:
+            # Parse the doc string.
+            cls._TIPS = _TIPS = {}
+            lines = cls.__doc__.splitlines()
+
+            for i, line in enumerate(lines):
+                if line.strip().startswith(".. Attributes"):
+                    lines = lines[i+1:]
+                    break
+
+            def num_leadblanks(string):
+                """Returns the number of the leading whitespaces."""
+                return len(string) - len(string.lstrip())
+
+            for field in cls._fields:
+                for i, line in enumerate(lines):
+
+                    if line.strip().startswith(field + ":"):
+                        nblanks = num_leadblanks(line)
+                        desc = []
+                        for s in lines[i+1:]:
+                            if nblanks == num_leadblanks(s) or not s.strip():
+                                break
+                            desc.append(s.lstrip())
+
+                        _TIPS[field] = "\n".join(desc)
+
+            diffset = set(cls._fields) - set(_TIPS.keys())
+            if diffset:
+                raise RuntimeError("The following fields are not documented: %s" % str(diffset))
+
+            return _TIPS
 
 #########################################################################################
 
@@ -295,19 +350,24 @@ class QPList(list):
 
         return sciss
 
-    #def merge(self, other):
-    #    """
-    #    Merge self with other. Return new set of QP_corrections.
-    #    :raise: ValueError if merge cannot be done.
-    #    """
-    #    new = self.copy()
-    #    skb0_list = [qp.skb for qp in new]
-    #    for qp in other:
-    #        if qp.skb in skb0_list:
-    #            raise ValueError("Found duplicated (s,b,k) indexes: %s" % qp.skb)
-    #        else:
-    #            new.append(qp)
-    #    return new
+    def merge(self, other, copy=False):
+        """
+        Merge self with other. Return new QPList
+
+        Raise:
+            ValueError if merge cannot be done.
+        """
+        skb0_list = [qp.skb for qp in self]
+        for qp in other:
+            if qp.skb in skb0_list:
+                raise ValueError("Found duplicated (s,b,k) indexes: %s" % str(qp.skb))
+
+        if copy:
+            qps = self.copy() + other.copy()
+        else:
+            qps = self + other
+
+        return QPList(qps)
 
 #########################################################################################
 
@@ -429,7 +489,6 @@ class SIGRES_File(AbinitNcFile):
 
         self.structure = ncreader.read_structure()
         self.gwcalctyp = ncreader.gwcalctyp
-        self.ks_bands = ncreader.ks_bands
         self.kpoints = ncreader.kpoints
         self.gwkpoints = ncreader.gwkpoints
 
@@ -438,6 +497,32 @@ class SIGRES_File(AbinitNcFile):
         
         self.min_gwbstart = ncreader.min_gwbstart
         self.max_gwbstop = ncreader.max_gwbstop
+
+        # TODO
+        # Add GW markers to ks_bands.
+        self.ks_bands = ks_bands = ncreader.ks_bands
+
+        # Each marker is a list of tuple(x,y,value)
+        #qplist_spin = self.get_allqps()
+        #x, y, s = [], [], []
+
+        #min_band, max_band = np.inf, -np.inf
+        #for spin in range(self.nsppol):
+        #    for qp in qplist_spin[spin]:
+        #        ik = ks_bands.kpoints.index(qp.kpoint)
+        #        x.append(ik)
+        #        y.append(qp.e0)
+        #        size = getattr(qp, qpattr)
+        #        # Handle complex quantities
+        #        if np.iscomplex(size): size = size.real
+        #        size = fact * size 
+        #        s.append(size)
+
+        #        # Plot only bands in this range.
+        #        min_band = min(min_band, qp.band)
+        #        max_band = max(max_band, qp.band)
+
+        #ks_bands.set_markers(qpattr, (x, y, s))
 
     #def __del__(self):
     #    print("in %s __del__" % self.__class__.__name__)
@@ -483,6 +568,7 @@ class SIGRES_File(AbinitNcFile):
         return Function1D(wmesh, spf_values)
 
     def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, **kwargs):
+        """Plot QP data as functio of the KS energy."""
         qps_spin = self.get_allqps()
 
         for spin in range(self.nsppol):
@@ -560,9 +646,36 @@ class SIGRES_File(AbinitNcFile):
         # TODO Is it still used?
         self.ncreader.print_qps(spin=spin, kpoint=kpoint, bands=bands, fmt=None, stream=stream)
 
-    #def plot_ksbands_and_qpcorr(self, *args, **kwargs):
-    #    """Plot the KS bands with error bars whose width is proportional to the QP corrections"""
-    #    return self.ksbands.plot(*args, **kwargs)
+    def plot_ksbands_with_qpmarkers(self, qpattr="qpeme0", fact=1000, **kwargs):
+        """
+        Plot the KS energies as function an k and add markers 
+        whose size is proportional to QP attribute qpattr
+        """
+        # Each marker is a list of tuple(x,y,value)
+        ks_bands = self.ks_bands
+        qplist_spin = self.get_allqps()
+        x, y, s = [], [], []
+
+        min_band, max_band = np.inf, -np.inf
+        for spin in range(self.nsppol):
+            for qp in qplist_spin[spin]:
+                ik = ks_bands.kpoints.index(qp.kpoint)
+                x.append(ik)
+                y.append(qp.e0)
+                size = getattr(qp, qpattr)
+                # Handle complex quantities
+                if np.iscomplex(size): size = size.real
+                size = fact * size 
+                s.append(size)
+
+                # Plot only bands in this range.
+                min_band = min(min_band, qp.band)
+                max_band = max(max_band, qp.band)
+
+        ks_bands.set_markers(qpattr, (x, y, s))
+        with_marker = qpattr + ":" + str(fact)
+        ks_bands.plot(with_marker=with_marker, band_range=(min_band,max_band+1), **kwargs)
+        ks_bands.del_markers(qpattr)
 
     #def plot_matrix_elements(self, mel_name, spin, kpoint, *args, **kwargs):
     #   matrix = self.reader.read_mel(mel_name, spin, kpoint):
@@ -911,9 +1024,6 @@ class SIGRES_Reader(ETSF_Reader):
 
         return self._omega_r, 1./np.pi * (aim_sigc/den)
 
-    #def read_mel(self, mel_name, spin, kpoint, band, band2=None):
-    #    array = self.read_value(mel_name)
-
     def read_eigvec_qp(self, spin, kpoint, band=None):
         """
         Returns <KS|QP> for the given spin, kpoint and band.
@@ -925,17 +1035,6 @@ class SIGRES_Reader(ETSF_Reader):
             return self._eigvec_qp[spin,ik,:,band]
         else:
             return self._eigvec_qp[spin,ik,:,:]
-
-    #def read_mlda_to_qp(self, spin, kpoint, band=None):
-    #    """Returns the unitary transformation KS-->QPS"""
-    #    ik = self.kpt2fileindex(kpoint)
-    #if band is not None:
-    #    return self._mlda_to_qp[spin,ik,:,band]
-    #else:
-    #    return self._mlda_to_qp[spin,ik,:,:]
-
-    #def read_qprhor(self):
-    #    """Returns the QP density in real space."""
 
     def print_qps(self, spin=None, kpoint=None, bands=None, fmt=None, stream=sys.stdout):
         spins = range(self.nsppol) if spin is None else [spin]
@@ -959,3 +1058,17 @@ class SIGRES_Reader(ETSF_Reader):
                 stream.write("\nkpoint: %s, spin: %s, energy units: eV (NB: bands start from zero)\n" % (kpoint, spin))
                 pprint_table(table_sk, out=stream)
                 stream.write("\n")
+
+    #def read_mel(self, mel_name, spin, kpoint, band, band2=None):
+    #    array = self.read_value(mel_name)
+                                                                   
+    #def read_mlda_to_qp(self, spin, kpoint, band=None):
+    #    """Returns the unitary transformation KS-->QPS"""
+    #    ik = self.kpt2fileindex(kpoint)
+    #if band is not None:
+    #    return self._mlda_to_qp[spin,ik,:,band]
+    #else:
+    #    return self._mlda_to_qp[spin,ik,:,:]
+                                                                   
+    #def read_qprhor(self):
+    #    """Returns the QP density in real space."""

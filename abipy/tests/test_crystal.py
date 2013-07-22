@@ -7,10 +7,10 @@ from abipy.tests import ALL_NCFILES, AbipyTest
 
 
 class TestStructure(AbipyTest):
-    "Unit tests for Structure."
+    """Unit tests for Structure."""
 
     def test_structure_from_ncfiles(self):
-        "Init Structure objects from Netcdf data files"
+        """Init Structure objects from Netcdf data files"""
         ncfiles = ALL_NCFILES
         assert ncfiles
         for filename in ncfiles:

@@ -8,7 +8,7 @@ class TestWFKFile(AbipyTest):
     """Unit tests for WFKFile."""
 
     def test_read_wfkfile(self):
-        "Read WFK_File and waves from NC example data files"
+        """Read WFK_File and waves from NC example data files."""
         assert WFK_NCFILES
 
         for filename in WFK_NCFILES:

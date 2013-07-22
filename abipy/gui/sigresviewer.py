@@ -8,6 +8,7 @@ import abipy.gui.awx as awx
 import abipy.gui.electronswx as ewx
 
 from abipy import abiopen, SIGRES_File
+from abipy.tools import AttrDict
 from abipy.iotools.visualizer import supported_visunames
 from abipy.gui.scissors import ScissorsBuilderFrame
 
@@ -16,13 +17,14 @@ ID_VISBZ = wx.NewId()
 ID_NCDUMP = wx.NewId()
 ID_SCISSORS = wx.NewId()
 ID_PLOTQPSE0 = wx.NewId()
+ID_PLOTKSWITHMARKS = wx.NewId()
 ID_TBOX_VIS = wx.NewId()
 
 class SigresViewerFrame(awx.Frame):
     VERSION = "0.1"
 
     def __init__(self, parent, filename=None):
-        super(SigresViewerFrame, self).__init__(parent, -1, self.codename)
+        super(SigresViewerFrame, self).__init__(parent, id=-1, title=self.codename)
 
         self.statusbar = self.CreateStatusBar()
 
@@ -59,6 +61,7 @@ class SigresViewerFrame(awx.Frame):
         toolbar.AddSimpleTool(ID_VISTRUCT, wx.Bitmap(awx.path_img("crystal.png")), "Visualize the crystal structure")
         toolbar.AddSimpleTool(ID_VISBZ, wx.Bitmap(awx.path_img("wave.png")), "Visualize the BZ")
         toolbar.AddSimpleTool(ID_PLOTQPSE0, wx.Bitmap(awx.path_img("wave.png")), "Plot QP Results.")
+        toolbar.AddSimpleTool(ID_PLOTKSWITHMARKS, wx.Bitmap(awx.path_img("wave.png")), "Plot KS energies with QP markers.")
         toolbar.AddSimpleTool(ID_SCISSORS, wx.Bitmap(awx.path_img("wave.png")), "Build energy-dependent scissors from GW correction.")
 
         toolbar.AddSeparator()
@@ -82,6 +85,7 @@ class SigresViewerFrame(awx.Frame):
             (ID_VISTRUCT, self.OnVisualizeStructure),
             (ID_VISBZ, self.OnVisualizeBZ),
             (ID_PLOTQPSE0, self.OnPlotQpsE0),
+            (ID_PLOTKSWITHMARKS, self.OnPlotKSwithQPmarkers),
             (ID_SCISSORS, self.OnScissors),
         ]
 
@@ -97,6 +101,13 @@ class SigresViewerFrame(awx.Frame):
     def codename(self):
         return self.__class__.__name__
 
+    @property
+    def ks_bands(self):
+        if self.sigres is None: 
+            return None
+        else:
+            return self.sigres.ks_bands
+
     def BuildUi(self):
         sigres = self.sigres
         if sigres is None: return
@@ -110,7 +121,7 @@ class SigresViewerFrame(awx.Frame):
             bstart=sigres.min_gwbstart)
 
         # Set the callback for double click on k-point row..
-        self.skb_panel.SetOnItemActivated(self._ShowQPTable)
+        self.skb_panel.SetOnItemActivated(self.ShowQPTable)
 
         # Add Python shell
         #from wx.py.shell import Shell
@@ -180,9 +191,14 @@ class SigresViewerFrame(awx.Frame):
                          description="", developers="M. Giantomassi")
 
     def OnPlotQpsE0(self, event):
-        """Plot the QP results."""
+        """Plot QP results as function of the KS energy."""
         if self.sigres is None: return
         self.sigres.plot_qps_vs_e0()
+
+    def OnPlotKSwithQPmarkers(self, event):
+        """Plot KS energies with QP markers."""
+        if self.sigres is None: return
+        QPAttrPlotFrame(self, self.sigres).Show()
 
     def OnScissors(self, event):
         """Build the scissors operator."""
@@ -211,7 +227,7 @@ class SigresViewerFrame(awx.Frame):
         if self.sigres is None: return
         self.sigres.get_structure().show_bz()
 
-    def _ShowQPTable(self, spin, kpoint, band):
+    def ShowQPTable(self, spin, kpoint, band):
         qplist = self.sigres.get_qplist(spin, kpoint)
         table = qplist.to_table()
 
@@ -226,9 +242,81 @@ class SigresViewerFrame(awx.Frame):
         wxdg.ScrolledMessageDialog(self, self.sigres.ncdump(), caption=caption, style=wx.MAXIMIZE_BOX).Show()
 
 
+
+class QPAttrPlotFrame(awx.Frame):
+
+    def __init__(self, parent, sigres, **kwargs):
+        super(QPAttrPlotFrame, self).__init__(parent, -1, **kwargs)
+        self.SetTitle("Select parameters")
+
+        self.sigres = sigres
+
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # Construct a panel for each spin.
+        self.panel = QPAttrChoicePanel(self)
+
+        main_sizer.Add(self.panel, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5)
+
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+
+        ok_button = wx.Button(self, wx.ID_OK, label='Ok')
+        close_button = wx.Button(self, wx.ID_CANCEL, label='Cancel')
+
+        ok_button.Bind(wx.EVT_BUTTON, self.OnOkButton)
+        close_button.Bind(wx.EVT_BUTTON, self.OnCloseButton)
+
+        hbox.Add(ok_button)
+        hbox.Add(close_button, flag=wx.LEFT, border=5)
+
+        main_sizer.Add(hbox, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10)
+
+        self.SetSizerAndFit(main_sizer)
+
+    def OnCloseButton(self, event):
+        self.Destroy()
+
+    def OnOkButton(self, event):
+        p = self.panel.GetParams()
+        self.sigres.plot_ksbands_with_qpmarkers(qpattr=p.qpattr, fact=p.fact)
+
+class QPAttrChoicePanel(awx.Panel):
+
+    def __init__(self, parent, **kwargs):
+        super(QPAttrChoicePanel, self).__init__(parent, -1, **kwargs)
+
+        hsz1 =  wx.BoxSizer(wx.HORIZONTAL)
+        label = wx.StaticText(self, -1, "QP attribute:", wx.DefaultPosition, wx.DefaultSize, 0)
+        label.Wrap(-1)
+        hsz1.Add(label, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
+
+        from abipy.electrons import QP
+        qp_choices = QP.get_fields(exclude=("spin", "kpoint", "band"))
+        self.attr_choice = attr_choice = wx.Choice(self, -1, wx.DefaultPosition, wx.DefaultSize, qp_choices, 0)
+        attr_choice.SetSelection(0)
+        attr_choice.SetToolTipString("Select the quantity to use for the markers.")
+        hsz1.Add(attr_choice, 0, wx.ALL, 5)
+
+        hsz2 =  wx.BoxSizer(wx.HORIZONTAL)
+        label = wx.StaticText(self, -1, "Scale Factor:")
+        self.fact_ctrl = wx.SpinCtrlDouble(self, id=-1, value=str(5), min=0.0, inc=1)
+        self.fact_ctrl.SetToolTipString("Multiplicative factor used to render the markers more visible.")
+        hsz2.Add(label, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
+        hsz2.Add(self.fact_ctrl, 0, wx.ALL, 5)
+
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(hsz1)
+        main_sizer.Add(hsz2)
+        self.SetSizerAndFit(main_sizer)
+
+    def GetParams(self):
+        return AttrDict(
+            qpattr=self.attr_choice.GetStringSelection(),
+            fact=float(self.fact_ctrl.GetValue()),
+        )
+
+
 class SigresViewerApp(awx.App):
-    def OnInit(self):
-        return True
 
     def MacOpenFile(self, filename):
         """Called for files droped on dock icon, or opened via finders context menu"""

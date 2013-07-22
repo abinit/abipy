@@ -25,11 +25,8 @@ class ElectronBands(object):
     """This object stores the electronic band structure."""
     # Attributes read from the netCDF file.
     #_slots = [
-    #  "mband",
-    #  "nband_sk",
     #  "nelect",
     #  "fermie",
-    #  "energies",
     #  "smearing_scheme",
     #  "occopt",
     #  "tsmear",
@@ -149,6 +146,22 @@ class ElectronBands(object):
         except AttributeError:
             return {}
 
+    def del_markers(self, key):
+        """
+        Delete the entry in self.markers with the specied key. 
+        All markers are removed if key is None.
+        """
+        if key is not None:
+            try:
+                del self._markers[key]
+            except AttributeError:
+                pass
+        else:
+            try:
+                del self._markers
+            except AttributeError:
+                pass
+
     def set_markers(self, key, xys, overwrite=False):
         """
         Set the markers.
@@ -165,12 +178,17 @@ class ElectronBands(object):
         """
         if not hasattr(self, "_markers"):
             self._markers = collections.OrderedDict()
+
         if key in self.markers and not overwrite:
             raise ValueError("Cannot overwrite key %s in data" % key)
 
+        for s in xys[-1]:
+            if np.iscomplex(s):
+                raise ValueError("Found ambiguous complex entry %s" % str(s))
+
         self._markers[key] = xys
 
-    def get_markers(self, key):
+    def _get_markers(self, key):
         """Returns the markers associated to the given key."""
         return self._markers[key]
 
@@ -495,7 +513,7 @@ class ElectronBands(object):
                 An instance of :class:`Scissors`.
 
         Returns:
-            New instance of :class:`ElectronBands` with modified energies.
+            New instance of `ElectronBands` with modified energies.
         """
         if self.nsppol == 1 and not isinstance(scissors, collections.Iterable):
             scissors = [scissors]
@@ -525,7 +543,7 @@ class ElectronBands(object):
         new.set_eigens(qp_energies)
         return new
 
-    def plot(self, klabels=None, with_markers=None, *args, **kwargs):
+    def plot(self, klabels=None, with_marker=None, **kwargs):
         """
         Plot the band structure.
 
@@ -534,13 +552,13 @@ class ElectronBands(object):
                 dictionary whose keys are tuple with the reduced
                 coordinates of the k-points. The values are the labels.
                 e.g. klabels = { (0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L" }.
-            with_markers:
-                List of keywords defining the markers to plot.
+            band_range:
+                Tuple specifying the minimum and maximum band to plot (default: all bands are plotted)
+            with_marker:
+                String defining the marker to plot.
                 all ==> plot all markers stored in self.
-                accepts the syntax markername:fact where
+                accepts the syntax "markername:fact" where
                 fact is a float used to scale the marker size.
-            args:
-                Positional arguments passed to `matplotlib`.
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -556,6 +574,8 @@ class ElectronBands(object):
         title = kwargs.pop("title", None)
         show = kwargs.pop("show", True)
         savefig = kwargs.pop("savefig", None)
+
+        band_range = kwargs.pop("band_range", None)
 
         import matplotlib.pyplot as plt
         fig = plt.figure()
@@ -581,28 +601,47 @@ class ElectronBands(object):
 
         # Plot the band energies.
         for spin in self.spins:
-            for band in range(self.mband):
-                self.plot_ax(ax, spin=spin, band=band, *args, **kwargs)
 
-        if with_markers is not None:
-            fact = 1
-            if with_markers.startswith("all"):
-                try:
-                    key, fact = with_markers.split(":")
-                except ValueError:
-                    fact = 1
-                fact = float(fact)
-                with_markers = self.markers.keys()
+            # Select the band range.
+            if band_range is None:
+                band_range = range(self.mband)
+            else:
+                band_range = range(band_range[0], band_range[1], 1)
 
-            for key in with_markers:
-                # check if scale factor is specified.
-                if ":" in key:
-                    key, fact = key.split(":")
-                    fact = float(fact)
-                x, y, s = self.get_markers(key)
-                s = np.abs(s) * fact
+            for band in band_range:
+                self.plot_ax(ax, spin=spin, band=band, **kwargs)
 
-                ax.scatter(x, y, s=s, marker='o', label=key)
+        # Add markers to the plot.
+        if with_marker is not None:
+            try:
+                key, fact = with_marker.split(":")
+            except ValueError:
+                key = marker
+                fact = 1
+            fact = float(fact)
+
+            xvals, yvals, svals = self._get_markers(key)
+
+            pos_x, pos_y, pos_s = [], [], []
+            neg_x, neg_y, neg_s = [], [], []
+
+            # Use different sybols depending on the value of s.
+            # Cannot use negative s.
+            for x, y, s in zip(xvals, yvals, svals):
+                if s > 0.0:
+                    pos_x.append(x)
+                    pos_y.append(y)
+                    pos_s.append(s)
+                else:
+                    neg_x.append(x)
+                    neg_y.append(y)
+                    neg_s.append(s)
+
+            if pos_s:
+                ax.scatter(pos_x, pos_y, s=np.abs(pos_s)*fact , marker="^", label=key + " >0")
+
+            if neg_s:
+                ax.scatter(neg_x, neg_y, s=np.abs(neg_s)*fact , marker="v", label=key + " <0")
 
         plt.legend(loc="best")
 
@@ -617,23 +656,19 @@ class ElectronBands(object):
     def plot_ax(self, ax, spin=None, band=None, *args, **kwargs):
         """Helper function to plot the energies for (spin,band) on the axis ax."""
         lines = []
-        if spin is not None and band is not None:
-            xx = range(self.nkpt)
-            for spin in self.spins:
-                for band in range(self.mband):
-                    yy = self.eigens[spin,:,band]
-                    lines.extend(ax.plot(xx, yy, *args, **kwargs))
-        elif spin is None:
-            for spin in self.spins:
-                lines.extend(self.plot_ax(ax, spin=spin, band=band, *args, **kwargs))
 
-        elif band is None:
-            for band in range(self.mband):
-                lines.extend(self.plot_ax(ax, spin=spin, band=band, *args, **kwargs))
+        spin_range = range(self.nsppol) if spin is None else [spin]
+        band_range = range(self.mband) if band is None else [band]
+
+        xx = range(self.nkpt)
+        for spin in spin_range:
+            for band in band_range:
+                yy = self.eigens[spin,:,band]
+                lines.extend(ax.plot(xx, yy, *args, **kwargs))
 
         return lines
 
-    def make_kpoint(self, kcoords):
+    def _make_kpoint(self, kcoords):
         """Build Kpoint instance."""
         return Kpoint(kcoords, self.reciprocal_lattice.matrix)
 
@@ -642,13 +677,13 @@ class ElectronBands(object):
         d = {}
         for (kcoord, kname) in klabels.items():
             # Build Kpoint instance.
-            ktick = self.make_kpoint(kcoord)
+            ktick = self._make_kpoint(kcoord)
             for (idx, kpt) in enumerate(self.kpoints):
                 if ktick == kpt: d[idx] = kname
         # ticks, labels
         return d.keys(), d.values()
 
-    def plot_with_dos(self, dos, klabels=None, *args, **kwargs):
+    def plot_with_dos(self, dos, klabels=None, **kwargs):
         """
         Plot the band structure and the DOS.
 
@@ -659,8 +694,6 @@ class ElectronBands(object):
                 dictionary whose keys are tuple with the reduced
                 coordinates of the k-points. The values are the labels.
                 e.g. klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
-            args:
-                Positional arguments passed to `matplotlib`.
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -691,7 +724,7 @@ class ElectronBands(object):
         # Plot the band structure
         for spin in self.spins:
             for band in range(self.mband):
-                self.plot_ax(ax1, spin=spin, band=band, *args, **kwargs)
+                self.plot_ax(ax1, spin=spin, band=band, **kwargs)
 
         # Set ticks and labels.
         if klabels is not None:
@@ -718,7 +751,7 @@ class ElectronBands(object):
         ax1.yaxis.set_view_interval(emin, emax)
 
         # Plot the DOS
-        dos.plot_ax(ax2, exchange_xy=True, *args, **kwargs)
+        dos.plot_ax(ax2, exchange_xy=True, **kwargs)
 
         ax2.yaxis.set_ticks_position("right")
         ax2.yaxis.set_label_position("right")

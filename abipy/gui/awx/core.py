@@ -10,8 +10,6 @@ import abipy.tools.decorators as dec
 __all__ = [
     "path_img",
     "makeAboutBox",
-    "PRINT",
-    "WARNING",
     "Error",
     "verbose",
     "Panel",
@@ -24,20 +22,9 @@ class Error(Exception):
     """Base class for exceptions"""
 
 if _DEBUG:
-    def PRINT(*args, **kwargs):
-        print(*args, **kwargs)
-
-    def WARNING(*args):
-        warnings.warn(" ".join(str(a) for a in args))
-
     verbose = dec.verbose
+
 else:
-    def PRINT(*args, **kwargs):
-        pass
-
-    def WARNING(*args):
-        pass
-
     def verbose(func):
         return func
 
@@ -88,8 +75,8 @@ Suite 330, Boston, MA  02111-1307  USA""" % {"codename": codename}
 
 # TODO Write logger class
 class Panel(wx.Panel):
-    def __init__(self, *args, **kwargs):
-        super(Panel, self).__init__(*args, **kwargs)
+    def __init__(self, parent, *args, **kwargs):
+        super(Panel, self).__init__(parent, *args, **kwargs)
         #self._log = sys.stdout.write
 
     @property
@@ -98,8 +85,8 @@ class Panel(wx.Panel):
 
 
 class Frame(wx.Frame):
-    def __init__(self, *args, **kwargs):
-        super(Frame, self).__init__(*args, **kwargs)
+    def __init__(self, parent, *args, **kwargs):
+        super(Frame, self).__init__(parent, *args, **kwargs)
         #self._log = sys.stdout.write
 
     @property
