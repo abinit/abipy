@@ -10,12 +10,12 @@ sigma_file.print_qps()
 qp = sigma_file.get_qpcorr(spin=0, kpoint=(0,0,0), band=0)
 #print(qp)
 
-qps_spin = sigma_file.get_allqps()
-#print(qps_spin[0])
+qplist_spin = sigma_file.qplist_spin
+#print(qplist_spin[0])
 #import sys
 #sys.exit(1)
 
-qps_spin[0].plot_qps_vs_e0(title="QP corrections of Si", exclude_fields="vUme")
+qplist_spin[0].plot_qps_vs_e0(title="QP corrections of Si", exclude_fields="vUme")
 
 #print(sigw)
 #sigw.plot()

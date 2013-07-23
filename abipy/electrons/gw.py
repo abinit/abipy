@@ -24,8 +24,6 @@ __all__ = [
 
 _QP_FIELDS = "spin kpoint band e0 qpe qpe_diago vxcme sigxme, sigcmee0 vUme ze0"
 
-
-
 class QP(collections.namedtuple("QP", _QP_FIELDS)):
     """
     QP correction for given (spin, kpoint, band).
@@ -502,27 +500,24 @@ class SIGRES_File(AbinitNcFile):
         # Add GW markers to ks_bands.
         self.ks_bands = ks_bands = ncreader.ks_bands
 
+        qplist_spin = self.qplist_spin
+
+        # Add QP markers to the KS band structure. 
         # Each marker is a list of tuple(x,y,value)
-        #qplist_spin = self.get_allqps()
-        #x, y, s = [], [], []
+        for qpattr in QP.get_fields(exclude=("spin", "band", "kpoint",)):
+            x, y, s = [], [], []
 
-        #min_band, max_band = np.inf, -np.inf
-        #for spin in range(self.nsppol):
-        #    for qp in qplist_spin[spin]:
-        #        ik = ks_bands.kpoints.index(qp.kpoint)
-        #        x.append(ik)
-        #        y.append(qp.e0)
-        #        size = getattr(qp, qpattr)
-        #        # Handle complex quantities
-        #        if np.iscomplex(size): size = size.real
-        #        size = fact * size 
-        #        s.append(size)
+            for spin in range(self.nsppol):
+                for qp in qplist_spin[spin]:
+                    ik = self.ks_bands.kpoints.index(qp.kpoint)
+                    x.append(ik)
+                    y.append(qp.e0)
+                    size = getattr(qp, qpattr)
+                    # Handle complex quantities
+                    if np.iscomplex(size): size = size.real
+                    s.append(size)
 
-        #        # Plot only bands in this range.
-        #        min_band = min(min_band, qp.band)
-        #        max_band = max(max_band, qp.band)
-
-        #ks_bands.set_markers(qpattr, (x, y, s))
+            ks_bands.set_markers(qpattr, (x, y, s))
 
     #def __del__(self):
     #    print("in %s __del__" % self.__class__.__name__)
@@ -547,8 +542,14 @@ class SIGRES_File(AbinitNcFile):
         """Returns a `Structure` instance."""
         return self.structure
 
-    def get_allqps(self):
-        return self.ncreader.read_allqps()
+    @property
+    def qplist_spin(self):
+        """Tuple of QPList objects indexed by spin."""
+        try:
+            return self._qplist_spin
+        except AttributeError:
+            self._qplist_spin = self.ncreader.read_allqps()
+            return self._qplist_spin
 
     def get_qplist(self, spin, kpoint):
         qplist = self.ncreader.read_qplist_sk(spin, kpoint)
@@ -569,10 +570,9 @@ class SIGRES_File(AbinitNcFile):
 
     def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, **kwargs):
         """Plot QP data as functio of the KS energy."""
-        qps_spin = self.get_allqps()
 
         for spin in range(self.nsppol):
-            qps = qps_spin[spin].sort_by_e0()
+            qps = self.qplist_spin[spin].sort_by_e0()
             qps.plot_qps_vs_e0(with_fields=with_fields, exclude_fields=exclude_fields, **kwargs)
 
     def plot_spectral_functions(self, spin, kpoint, bands, *args, **kwargs):
@@ -646,36 +646,16 @@ class SIGRES_File(AbinitNcFile):
         # TODO Is it still used?
         self.ncreader.print_qps(spin=spin, kpoint=kpoint, bands=bands, fmt=None, stream=stream)
 
-    def plot_ksbands_with_qpmarkers(self, qpattr="qpeme0", fact=1000, **kwargs):
+    def plot_ksbands_with_qpmarkers(self, qpattr="qpeme0", fact=1, **kwargs):
         """
         Plot the KS energies as function an k and add markers 
         whose size is proportional to QP attribute qpattr
         """
-        # Each marker is a list of tuple(x,y,value)
-        ks_bands = self.ks_bands
-        qplist_spin = self.get_allqps()
-        x, y, s = [], [], []
-
-        min_band, max_band = np.inf, -np.inf
-        for spin in range(self.nsppol):
-            for qp in qplist_spin[spin]:
-                ik = ks_bands.kpoints.index(qp.kpoint)
-                x.append(ik)
-                y.append(qp.e0)
-                size = getattr(qp, qpattr)
-                # Handle complex quantities
-                if np.iscomplex(size): size = size.real
-                size = fact * size 
-                s.append(size)
-
-                # Plot only bands in this range.
-                min_band = min(min_band, qp.band)
-                max_band = max(max_band, qp.band)
-
-        ks_bands.set_markers(qpattr, (x, y, s))
         with_marker = qpattr + ":" + str(fact)
-        ks_bands.plot(with_marker=with_marker, band_range=(min_band,max_band+1), **kwargs)
-        ks_bands.del_markers(qpattr)
+        gwband_range = (self.min_gwbstart, self.max_gwbstop)
+
+        fig = self.ks_bands.plot(with_marker=with_marker, band_range=gwband_range, **kwargs)
+        return fig
 
     #def plot_matrix_elements(self, mel_name, spin, kpoint, *args, **kwargs):
     #   matrix = self.reader.read_mel(mel_name, spin, kpoint):

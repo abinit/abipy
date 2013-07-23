@@ -65,11 +65,11 @@ class SigresViewerFrame(awx.Frame):
         toolbar.AddSimpleTool(ID_SCISSORS, wx.Bitmap(awx.path_img("wave.png")), "Build energy-dependent scissors from GW correction.")
 
         toolbar.AddSeparator()
-        self.visualizer_cbox = wx.ComboBox(choices=supported_visunames(), id=ID_TBOX_VIS, 
-            name='visualizer', parent=toolbar, value='xcrysden') 
-        self.visualizer_cbox.Refresh() 
+        self.visualizer_cbox = wx.ComboBox(choices=supported_visunames(), id=ID_TBOX_VIS,
+            name='visualizer', parent=toolbar, value='xcrysden')
+        self.visualizer_cbox.Refresh()
 
-        toolbar.AddControl(control=self.visualizer_cbox) 
+        toolbar.AddControl(control=self.visualizer_cbox)
 
         self.toolbar.Realize()
         self.Centre()
@@ -103,7 +103,7 @@ class SigresViewerFrame(awx.Frame):
 
     @property
     def ks_bands(self):
-        if self.sigres is None: 
+        if self.sigres is None:
             return None
         else:
             return self.sigres.ks_bands
@@ -114,10 +114,10 @@ class SigresViewerFrame(awx.Frame):
 
         #splitter = wx.SplitterWindow(self, style=wx.SP_LIVE_UPDATE)
         #splitter.SetMinimumPaneSize(50)
-        #parent = splitter 
+        #parent = splitter
 
         parent = self
-        self.skb_panel = awx.SpinKpointBandPanel(parent, sigres.nsppol, sigres.gwkpoints, sigres.max_gwbstop, 
+        self.skb_panel = awx.SpinKpointBandPanel(parent, sigres.nsppol, sigres.gwkpoints, sigres.max_gwbstop,
             bstart=sigres.min_gwbstart)
 
         # Set the callback for double click on k-point row..
@@ -143,7 +143,7 @@ class SigresViewerFrame(awx.Frame):
                             style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
         )
 
-        # Show the dialog and retrieve the user response. 
+        # Show the dialog and retrieve the user response.
         # If it is the OK response, process the data.
         if dlg.ShowModal() == wx.ID_OK:
             filepath = dlg.GetPath()
@@ -198,7 +198,12 @@ class SigresViewerFrame(awx.Frame):
     def OnPlotKSwithQPmarkers(self, event):
         """Plot KS energies with QP markers."""
         if self.sigres is None: return
-        QPAttrPlotFrame(self, self.sigres).Show()
+
+        band_range = (self.sigres.min_gwbstart, self.sigres.max_gwbstop)
+        try:
+            BandsWithMarkersPlotFrame(self, self.sigres.ks_bands, band_range=band_range).Show()
+        except awx.Error as exc:
+            awx.showErrorMessage(self)
 
     def OnScissors(self, event):
         """Build the scissors operator."""
@@ -243,77 +248,75 @@ class SigresViewerFrame(awx.Frame):
 
 
 
-class QPAttrPlotFrame(awx.Frame):
+class BandsWithMarkersPlotFrame(awx.Frame):
 
-    def __init__(self, parent, sigres, **kwargs):
-        super(QPAttrPlotFrame, self).__init__(parent, -1, **kwargs)
+    def __init__(self, parent, bands, **kwargs):
+        self.band_range = kwargs.pop("band_range", None)
+
+        super(BandsWithMarkersPlotFrame, self).__init__(parent, -1, **kwargs)
         self.SetTitle("Select parameters")
 
-        self.sigres = sigres
+        self.bands = bands
+
+        if not bands.markers:
+            raise awx.Error("Found empty markers dictionary in bands %s" % repr(bands))
+
+        self.BuildUi()
+
+    def BuildUi(self):
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        # Construct a panel for each spin.
-        self.panel = QPAttrChoicePanel(self)
+        hsizer1 = wx.BoxSizer( wx.HORIZONTAL )
 
-        main_sizer.Add(self.panel, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5)
+        marker_label = wx.StaticText(self, -1, "Available Markers:")
+        marker_label.Wrap(-1)
+        hsizer1.Add(marker_label, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        marker_choices = list(self.bands.markers.keys())
+        self.marker_choice = wx.Choice( self, -1, wx.DefaultPosition, wx.DefaultSize, marker_choices, 0 )
+        self.marker_choice.SetSelection(0)
+        hsizer1.Add(self.marker_choice, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
+        scale_label = wx.StaticText(self, -1, "Scale Factor:")
+        scale_label.Wrap(-1)
+        hsizer1.Add(scale_label, 0, wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.BOTTOM|wx.LEFT, 5 )
+
+        self.scale_ctrl = wx.SpinCtrlDouble(self, id=-1, value=str(50), min=0.0, max=1.e+10, inc=50)
+        self.scale_ctrl.SetToolTipString("Multiplicative factor used to render the markers more visible.")
+        hsizer1.Add( self.scale_ctrl, 0, wx.ALL, 5 )
+
+        main_sizer.Add( hsizer1, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
+
+        hsizer2 = wx.BoxSizer( wx.HORIZONTAL )
 
         ok_button = wx.Button(self, wx.ID_OK, label='Ok')
-        close_button = wx.Button(self, wx.ID_CANCEL, label='Cancel')
+        cancel_button = wx.Button(self, wx.ID_CANCEL, label='Cancel')
 
         ok_button.Bind(wx.EVT_BUTTON, self.OnOkButton)
-        close_button.Bind(wx.EVT_BUTTON, self.OnCloseButton)
+        cancel_button.Bind(wx.EVT_BUTTON, self.OnCloseButton)
 
-        hbox.Add(ok_button)
-        hbox.Add(close_button, flag=wx.LEFT, border=5)
+        hsizer2.Add(ok_button, 0, wx.ALL, 5 )
+        hsizer2.Add(cancel_button, 0, wx.ALL, 5 )
 
-        main_sizer.Add(hbox, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10)
+        main_sizer.Add( hsizer2, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
         self.SetSizerAndFit(main_sizer)
 
     def OnCloseButton(self, event):
         self.Destroy()
 
-    def OnOkButton(self, event):
-        p = self.panel.GetParams()
-        self.sigres.plot_ksbands_with_qpmarkers(qpattr=p.qpattr, fact=p.fact)
-
-class QPAttrChoicePanel(awx.Panel):
-
-    def __init__(self, parent, **kwargs):
-        super(QPAttrChoicePanel, self).__init__(parent, -1, **kwargs)
-
-        hsz1 =  wx.BoxSizer(wx.HORIZONTAL)
-        label = wx.StaticText(self, -1, "QP attribute:", wx.DefaultPosition, wx.DefaultSize, 0)
-        label.Wrap(-1)
-        hsz1.Add(label, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
-
-        from abipy.electrons import QP
-        qp_choices = QP.get_fields(exclude=("spin", "kpoint", "band"))
-        self.attr_choice = attr_choice = wx.Choice(self, -1, wx.DefaultPosition, wx.DefaultSize, qp_choices, 0)
-        attr_choice.SetSelection(0)
-        attr_choice.SetToolTipString("Select the quantity to use for the markers.")
-        hsz1.Add(attr_choice, 0, wx.ALL, 5)
-
-        hsz2 =  wx.BoxSizer(wx.HORIZONTAL)
-        label = wx.StaticText(self, -1, "Scale Factor:")
-        self.fact_ctrl = wx.SpinCtrlDouble(self, id=-1, value=str(5), min=0.0, inc=1)
-        self.fact_ctrl.SetToolTipString("Multiplicative factor used to render the markers more visible.")
-        hsz2.Add(label, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
-        hsz2.Add(self.fact_ctrl, 0, wx.ALL, 5)
-
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(hsz1)
-        main_sizer.Add(hsz2)
-        self.SetSizerAndFit(main_sizer)
-
     def GetParams(self):
         return AttrDict(
-            qpattr=self.attr_choice.GetStringSelection(),
-            fact=float(self.fact_ctrl.GetValue()),
+            qpattr=self.marker_choice.GetStringSelection(),
+            fact=float(self.scale_ctrl.GetValue()),
         )
+
+    def OnOkButton(self, event):
+        p = self.GetParams()
+        with_marker = p.qpattr + ":" + str(p.fact)
+
+        self.bands.plot(with_marker=with_marker, band_range=self.band_range)
 
 
 class SigresViewerApp(awx.App):
@@ -334,4 +337,3 @@ def wxapp_sigresviewer(sigres_filename):
     frame.Show()
     app.SetTopWindow(frame)
     return app
-

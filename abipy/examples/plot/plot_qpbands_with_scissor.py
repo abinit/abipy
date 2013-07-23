@@ -8,11 +8,11 @@ from abipy import *
 
 # Get the quasiparticle results from the SIGRES.nc database.
 sigma_file = SIGRES_File(get_reference_file("tgw1_9o_DS4_SIGRES.nc"))
-qps_spin = sigma_file.get_allqps()
+qplist_spin = sigma_file.qplist_spin
 
 # Construct the scissors operator
 domains = [[-10, 6.02], [6.3, 18]]
-scissors = qps_spin[0].build_scissors(domains, bounds=None)
+scissors = qplist_spin[0].build_scissors(domains, bounds=None)
 
 # Read the KS band energies computed on the k-path
 ks_bands = WFK_File(get_reference_file("si_nscf_WFK-etsf.nc")).get_bands()

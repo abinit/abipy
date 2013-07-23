@@ -138,7 +138,7 @@ class ScissorsBuilder(object):
         """Generate an instance of ScissorsBuilder from file."""
         from abipy import abiopen
         ncfile = abiopen(filepath)
-        return cls(qps_spin=ncfile.get_allqps())
+        return cls(qps_spin=ncfile.qplist_spin)
 
     @property
     def nsppol(self):
