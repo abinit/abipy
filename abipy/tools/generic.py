@@ -2,16 +2,15 @@
 from __future__ import print_function, division
 
 import os
+
 from subprocess import Popen, PIPE
 
-#########################################################################################
 
 def pipe_commands(args1, args2):
     p1 = Popen(args1, stdout=PIPE)
     p2 = Popen(args2, stdin=p1.stdout, stdout=PIPE)
     return p2.communicate() # (stdout, stderr)
 
-#########################################################################################
 
 def unzip(gz_fname, dest=None):
     """decompress a gz file."""
@@ -32,7 +31,6 @@ def unzip(gz_fname, dest=None):
     finally:
         out_fh.close()
 
-#########################################################################################
 
 def touch(filename):
     try:
@@ -41,7 +39,6 @@ def touch(filename):
     except:
         raise IOError("trying to create file = %s" % filename)
 
-#########################################################################################
 
 def tail_file(fname, n, aslist=False):
     """Assumes a unix-like system."""
@@ -59,7 +56,6 @@ def tail_file(fname, n, aslist=False):
     else:
         return p.stdout.read()
 
-#########################################################################################
 
 def which(program):
     """
@@ -82,4 +78,3 @@ def which(program):
 
     return None
 
-#########################################################################################

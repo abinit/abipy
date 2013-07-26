@@ -1,9 +1,9 @@
 from __future__ import print_function, division
 
 import sys
-import collections
 import copy
 import cStringIO
+import collections
 import numpy as np
 
 from pymatgen.io.abinitio.netcdf import ETSF_Reader
@@ -18,15 +18,15 @@ from abipy.electrons.ebands import ElectronBands
 from abipy.iotools import AbinitNcFile
 
 __all__ = [
-    "QP",
+    "QPState",
     "SIGRES_File",
 ]
 
-_QP_FIELDS = "spin kpoint band e0 qpe qpe_diago vxcme sigxme, sigcmee0 vUme ze0"
 
-class QP(collections.namedtuple("QP", _QP_FIELDS)):
+class QPState(collections.namedtuple("QPState",
+                         "spin kpoint band e0 qpe qpe_diago vxcme sigxme sigcmee0 vUme ze0")):
     """
-    QP correction for given (spin, kpoint, band).
+    QP data for given (spin, kpoint, band).
 
     .. Attributes:
 
@@ -55,7 +55,6 @@ class QP(collections.namedtuple("QP", _QP_FIELDS)):
 
     .. note:: Energies are in eV.
     """
-
     @property
     def qpeme0(self):
         """E_QP - E_0"""
@@ -68,7 +67,7 @@ class QP(collections.namedtuple("QP", _QP_FIELDS)):
 
     def copy(self):
         d = {f: copy.copy(getattr(self, f)) for f in self._fields}
-        return QP(**d)
+        return QPState(**d)
 
     @classmethod
     def get_fields(cls, exclude=()):
@@ -78,7 +77,7 @@ class QP(collections.namedtuple("QP", _QP_FIELDS)):
         return tuple(fields)
 
     def _asdict(self):
-        od = super(QP, self)._asdict()
+        od = super(QPState, self)._asdict()
         od["qpeme0"] = self.qpeme0
         return od
 
@@ -182,7 +181,7 @@ class QPList(list):
     def get_e0mesh(self):
         """Return the E0 energies."""
         if not self.is_e0sorted:
-            raise ValueError("QP corrections are not sorted. Use sort_by_e0")
+            raise ValueError("QPState corrections are not sorted. Use sort_by_e0")
 
         return np.array([qp.e0 for qp in self])
 
@@ -191,15 +190,15 @@ class QPList(list):
         return np.array([getattr(qp, field) for qp in self])
 
     def get_qpenes(self):
-        """Return an array with the QP energies."""
+        """Return an array with the QPState energies."""
         return self.get_field("qpe")
 
     def get_qpeme0(self):
-        """Return an arrays with the QP corrections."""
+        """Return an arrays with the QPState corrections."""
         return self.get_field("qpeme0")
 
     def to_table(self):
-        header = QP.get_fields(exclude=["spin", "kpoint"])
+        header = QPState.get_fields(exclude=["spin", "kpoint"])
         table = [header]
 
         for qp in self:
@@ -215,7 +214,7 @@ class QPList(list):
                 The names of the qp attributes to plot as function of e0.
                 Accepts:
                     List of strings or string with tokens separated by blanks.
-                    See `_QP_FIELDS` for the list of available fields.
+                    See `QPState` for the list of available fields.
             args:
                 Positional arguments passed to :mod:`matplotlib`.
 
@@ -236,7 +235,7 @@ class QPList(list):
 
         if isinstance(with_fields, str):
             if with_fields == "all":
-                fields = list(QP.get_fields(exclude=["spin", "kpoint"]))
+                fields = list(QPState.get_fields(exclude=["spin", "kpoint"]))
             else:
                 fields = with_fields.split()
 
@@ -289,7 +288,7 @@ class QPList(list):
 
     def build_scissors(self, domains, bounds=None, plot=False, **kwargs):
         """
-        Construct a scissors operator by interpolating the QP corrections as a function of E0.
+        Construct a scissors operator by interpolating the QPState corrections as a function of E0.
 
         Args:
             domains:
@@ -502,9 +501,9 @@ class SIGRES_File(AbinitNcFile):
 
         qplist_spin = self.qplist_spin
 
-        # Add QP markers to the KS band structure. 
+        # Add QPState markers to the KS band structure.
         # Each marker is a list of tuple(x,y,value)
-        for qpattr in QP.get_fields(exclude=("spin", "band", "kpoint",)):
+        for qpattr in QPState.get_fields(exclude=("spin", "band", "kpoint",)):
             x, y, s = [], [], []
 
             for spin in range(self.nsppol):
@@ -517,7 +516,7 @@ class SIGRES_File(AbinitNcFile):
                     if np.iscomplex(size): size = size.real
                     s.append(size)
 
-            ks_bands.set_markers(qpattr, (x, y, s))
+            ks_bands.set_marker(qpattr, (x, y, s))
 
     #def __del__(self):
     #    print("in %s __del__" % self.__class__.__name__)
@@ -556,7 +555,7 @@ class SIGRES_File(AbinitNcFile):
         return qplist
 
     def get_qpcorr(self, spin, kpoint, band):
-        """Returns the `QP` object for the given (s, k, b)"""
+        """Returns the `QPState` object for the given (s, k, b)"""
         return self.ncreader.read_qp(spin, kpoint, band)
 
     def get_sigmaw(self, spin, kpoint, band):
@@ -569,7 +568,7 @@ class SIGRES_File(AbinitNcFile):
         return Function1D(wmesh, spf_values)
 
     def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, **kwargs):
-        """Plot QP data as functio of the KS energy."""
+        """Plot QPState data as functio of the KS energy."""
 
         for spin in range(self.nsppol):
             qps = self.qplist_spin[spin].sort_by_e0()
@@ -649,12 +648,12 @@ class SIGRES_File(AbinitNcFile):
     def plot_ksbands_with_qpmarkers(self, qpattr="qpeme0", fact=1, **kwargs):
         """
         Plot the KS energies as function an k and add markers 
-        whose size is proportional to QP attribute qpattr
+        whose size is proportional to QPState attribute qpattr
         """
         with_marker = qpattr + ":" + str(fact)
         gwband_range = (self.min_gwbstart, self.max_gwbstop)
 
-        fig = self.ks_bands.plot(with_marker=with_marker, band_range=gwband_range, **kwargs)
+        fig = self.ks_bands.plot(marker=with_marker, band_range=gwband_range, **kwargs)
         return fig
 
     #def plot_matrix_elements(self, mel_name, spin, kpoint, *args, **kwargs):
@@ -712,15 +711,15 @@ class SIGRES_Reader(ETSF_Reader):
 
       real(dp),pointer :: degwgap(:,:)   SET2NULL
       ! degwgap(nkibz,nsppol)
-      ! Difference btw the QP and the KS optical gap.
+      ! Difference btw the QPState and the KS optical gap.
 
       real(dp),pointer :: egwgap(:,:)   SET2NULL
       ! egwgap(nkibz,nsppol))
-      ! QP optical gap at each k-point and spin.
+      ! QPState optical gap at each k-point and spin.
 
       real(dp),pointer :: en_qp_diago(:,:,:)   SET2NULL
       ! en_qp_diago(nbnds,nkibz,nsppol))
-      ! QP energies obtained from the diagonalization of the Hermitian approximation to Sigma (QPSCGW)
+      ! QPState energies obtained from the diagonalization of the Hermitian approximation to Sigma (QPSCGW)
 
       real(dp),pointer :: e0(:,:,:)    SET2NULL
       ! e0(nbnds,nkibz,nsppol)
@@ -753,7 +752,7 @@ class SIGRES_Reader(ETSF_Reader):
 
       complex(dpc),pointer :: degw(:,:,:)   SET2NULL
       ! degw(b1gw:b2gw,nkibz,nsppol))
-      ! Difference between the QP and the KS energies.
+      ! Difference between the QPState and the KS energies.
 
       complex(dpc),pointer :: dsigmee0(:,:,:)  SET2NULL
       ! dsigmee0(b1gw:b2gw,nkibz,nsppol*nsig_ab))
@@ -761,11 +760,11 @@ class SIGRES_Reader(ETSF_Reader):
 
       complex(dpc),pointer :: egw(:,:,:)  SET2NULL
       ! degw(nbnds,nkibz,nsppol))
-      ! QP energies, $\epsilon_{nks}^{QP}$.
+      ! QPState energies, $\epsilon_{nks}^{QPState}$.
 
       complex(dpc),pointer :: eigvec_qp(:,:,:,:)   SET2NULL
       ! eigvec_qp(nbnds,nbnds,nkibz,nsppol))
-      ! Expansion of the QP amplitude in the KS basis set.
+      ! Expansion of the QPState amplitude in the KS basis set.
 
       complex(dpc),pointer :: hhartree(:,:,:,:)   SET2NULL
       ! hhartree(b1gw:b2gw,b1gw:b2gw,nkibz,nsppol*nsig_ab)
@@ -777,7 +776,7 @@ class SIGRES_Reader(ETSF_Reader):
 
       complex(dpc),pointer :: sigmee(:,:,:)  SET2NULL
       ! sigmee(b1gw:b2gw,nkibz,nsppol*nsig_ab))
-      ! $\Sigma_{xc}E_{KS} + (E_{QP}- E_{KS})*dSigma/dE_KS
+      ! $\Sigma_{xc}E_{KS} + (E_{QPState}- E_{KS})*dSigma/dE_KS
 
       complex(dpc),pointer :: sigcmee0(:,:,:)   SET2NULL
       ! sigcmee0(b1gw:b2gw,nkibz,nsppol*nsig_ab))
@@ -838,7 +837,7 @@ class SIGRES_Reader(ETSF_Reader):
         # 1) The K-points of the homogeneous mesh.
         self.kpoints = kpoints_factory(self)
 
-        # 2) The K-points where QP corrections have been calculated.
+        # 2) The K-points where QPState corrections have been calculated.
         gwred_coords = self.read_redc_gwkpoints()
         self.gwkpoints = askpoints(gwred_coords, self.structure.reciprocal_lattice)
 
@@ -878,7 +877,7 @@ class SIGRES_Reader(ETSF_Reader):
         # Self-consistent case
         self._en_qp_diago = self.read_value("en_qp_diago")
 
-        # <KS|QP>
+        # <KS|QPState>
         self._eigvec_qp = self.read_value("eigvec_qp", cmode="c")
 
         #self._mlda_to_qp
@@ -968,7 +967,7 @@ class SIGRES_Reader(ETSF_Reader):
             vUme=self._vUme[spin, ik_file, ib_file],
             ze0=self._ze0[spin, ik_file, ib_file],
         )
-        return QP(**d)
+        return QPState(**d)
 
     def read_e0(self, spin, kfile, band):
         return self.ks_bands.eigens[spin, kfile, band]
@@ -1006,7 +1005,7 @@ class SIGRES_Reader(ETSF_Reader):
 
     def read_eigvec_qp(self, spin, kpoint, band=None):
         """
-        Returns <KS|QP> for the given spin, kpoint and band.
+        Returns <KS|QPState> for the given spin, kpoint and band.
 
         If band is None, <KS_b|QP_{b'}> is returned.
         """
@@ -1021,7 +1020,7 @@ class SIGRES_Reader(ETSF_Reader):
         kpoints = self.gwkpoints if kpoint is None else [kpoint]
         if bands is not None: bands = [bands]
 
-        header = QP.get_fields(exclude=["spin", "kpoint"])
+        header = QPState.get_fields(exclude=["spin", "kpoint"])
 
         for spin in spins:
             for kpoint in kpoints:
@@ -1051,4 +1050,4 @@ class SIGRES_Reader(ETSF_Reader):
     #    return self._mlda_to_qp[spin,ik,:,:]
                                                                    
     #def read_qprhor(self):
-    #    """Returns the QP density in real space."""
+    #    """Returns the QPState density in real space."""

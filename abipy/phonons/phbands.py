@@ -345,7 +345,7 @@ class PhononBands(object):
         return d.keys(), d.values()
 
     def plot_fatbands(self, colormap="jet", max_stripe_width_mev=3.0, qlabels=None, **kwargs):
-    #select_specie, select_red_dir
+                      #select_specie, select_red_dir
         """
         Plot phonon fatbands
 

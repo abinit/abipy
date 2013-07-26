@@ -1,7 +1,6 @@
 """Tests for electrons.ebands module"""
 from __future__ import print_function, division
 
-from abipy.core import Structure
 from abipy.electrons import ElectronBands
 from abipy.tests import *
 

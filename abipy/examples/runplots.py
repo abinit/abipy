@@ -73,7 +73,7 @@ def main():
     parser.add_argument('-b', '--backend', type=str, default="",
                         help="matplotlib backend")
 
-    parser.add_argument('-m', '--mode', type=str, default="sequential",
+    parser.add_argument('-m', '--mode', type=str, default="auto",
                         help="Execution mode")
 
     parser.add_argument('-t', '--time', type=float, default=3,

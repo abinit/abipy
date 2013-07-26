@@ -3,12 +3,14 @@ from __future__ import division, print_function
 import sys
 import tempfile
 import collections
+import copy
 import itertools
+import warnings
 import numpy as np
-
 
 from abipy.core.constants import Ha_eV, eV_Ha, Bohr_Ang
 from abipy.core.func1d import Function1D
+from abipy.tools import AttrDict
 from abipy.iotools import ETSF_Reader, Visualizer, bxsf_write
 from abipy.kpoints import Kpoint, Kpath, IrredZone, kpoints_factory
 from abipy.tools import gaussian
@@ -21,20 +23,145 @@ __all__ = [
 ]
 
 
-class ElectronBands(object):
-    """This object stores the electronic band structure."""
-    # Attributes read from the netCDF file.
-    #_slots = [
-    #  "nelect",
-    #  "fermie",
-    #  "smearing_scheme",
-    #  "occopt",
-    #  "tsmear",
-    #  "occfacts",
-    #    ]
+class KSState(collections.namedtuple("KSState", "spin kpoint band eig occ")):
+    """
+    Kohn-Sham data for given (spin, kpoint, band).
 
-    def __init__(self, structure, kpoints, eigens, efermi, occfacts, nelect,
-                 nband_sk=None, smearing_info=None, markers=None):
+    .. Attributes:
+
+        spin:
+            spin index (C convention, i.e >= 0)
+        kpoint:
+            `Kpoint` object.
+        band:
+            band index. (C convention, i.e >= 0).
+        eig:
+            KS eigenvalue.
+        occ:
+            Occupation factor
+
+    .. note:: Energies are in eV.
+    """
+    @property
+    def skb(self):
+        """Tuple with (spin, kpoint, band)"""
+        return self.spin, self.kpoint, self.band
+
+    def copy(self):
+        d = {f: copy.copy(getattr(self, f)) for f in self._fields}
+        return KSState(**d)
+
+    @classmethod
+    def get_fields(cls, exclude=()):
+        fields = list(cls._fields)
+        for e in exclude:
+            fields.remove(e)
+        return tuple(fields)
+
+    def _asdict(self):
+        od = super(KSState, self)._asdict()
+        return od
+
+    def to_strdict(self, fmt=None):
+        """Ordered dictionary mapping fields --> strings."""
+        d = self._asdict()
+        for (k, v) in d.items():
+            if np.iscomplexobj(v):
+                if abs(v.imag) < 1.e-3:
+                    d[k] = "%.2f" % v.real
+                else:
+                    d[k] = "%.2f%+.2fj" % (v.real, v.imag)
+            elif isinstance(v, int):
+                d[k] = "%d" % v
+            else:
+                try:
+                    d[k] = "%.2f" % v
+                except TypeError as exc:
+                    #print("k", k, str(exc))
+                    d[k] = str(v)
+        return d
+
+    @property
+    def tips(self):
+        """Bound method of self that returns a dictionary with the description of the fields."""
+        return self.__class__.TIPS()
+
+    @classmethod
+    def TIPS(cls):
+        """
+        Class method that returns a dictionary with the description of the fields.
+        The string are extracted from the class doc string.
+        """
+        try:
+            return cls._TIPS
+
+        except AttributeError:
+            # Parse the doc string.
+            cls._TIPS = _TIPS = {}
+            lines = cls.__doc__.splitlines()
+
+            for i, line in enumerate(lines):
+                if line.strip().startswith(".. Attributes"):
+                    lines = lines[i+1:]
+                    break
+
+            def num_leadblanks(string):
+                """Returns the number of the leading whitespaces."""
+                return len(string) - len(string.lstrip())
+
+            for field in cls._fields:
+                for i, line in enumerate(lines):
+
+                    if line.strip().startswith(field + ":"):
+                        nblanks = num_leadblanks(line)
+                        desc = []
+                        for s in lines[i+1:]:
+                            if nblanks == num_leadblanks(s) or not s.strip():
+                                break
+                            desc.append(s.lstrip())
+
+                        _TIPS[field] = "\n".join(desc)
+
+            diffset = set(cls._fields) - set(_TIPS.keys())
+            if diffset:
+                raise RuntimeError("The following fields are not documented: %s" % str(diffset))
+
+            return _TIPS
+
+
+class Smearing(AttrDict):
+    """Stores data and information about the smearing technique."""
+    _MANDATORY_KEYS = [
+        "scheme",
+        "occopt",
+        "tsmear_ev",
+    ]
+
+    def __init__(self, *args, **kwargs):
+        super(Smearing, self).__init__(*args, **kwargs)
+        for mkey in self._MANDATORY_KEYS:
+            if mkey not in self:
+                raise ValueError("Mandatory key %s must be provided" % str(mkey))
+
+
+#class XcInfo(AttrDict):
+#    """Stores data and information about the XC functional."""
+#    _MANDATORY_KEYS = [
+#    ]
+#
+#    def __init__(self, *args, **kwargs):
+#        super(XcInfo, self).__init__(*args, **kwargs)
+#        for mkey in self._MANDATORY_KEYS:
+#            if mkey not in self:
+#                raise ValueError("Mandatory key %s must be provided" % str(mkey))
+
+
+class ElectronBands(object):
+    """
+    This object stores the electronic band structure.
+    """
+    def __init__(self, structure, kpoints, eigens, fermie, occfacts, nelect,
+                 nband_sk=None, smearing=None, markers=None, widths=None):
         """
         Args:
             structure:
@@ -43,21 +170,26 @@ class ElectronBands(object):
                 Kpoints instance.
             eigens
                 Array-like object with the eigenvalues (eV) stored as [s,k,b] where s: spin , k: kpoint, b: band index
-            efermi:
+            fermie:
                 Fermi level in eV
             occfacts:
                 Occupation factors (same shape as eigens)
             nelect:
                 Number of valence electrons in the unit cell.
-            smearing_info:
-                Dictionary with extra info on the smearing technique
+            smearing:
+                `Smearing` object storing information on the smearing technique.
             nband_sk:
                 Array-like object with the number of bands treated at each [spin,kpoint]
                 If not given, nband_sk is initialized from eigens.
             markers:
                 Optional dictionary containing markers labelled by a string.
                 Each marker is a list of tuple(x,y,value)
-                used for plotting purpose e.g. L-projections, energy derivatives
+                Used for plotting purpose e.g. QP data, energy derivatives...
+            widths:
+                Optional dictionary containing data used for the so-called fatbands
+                Each entry is an array of shape [nsppol, nkpt, mband] giving the width
+                of the band at that particular point.
+                Used for plotting purpose e.g. L-projections.
         """
         self.structure = structure
 
@@ -75,30 +207,30 @@ class ElectronBands(object):
         self.kpoints = kpoints
         assert self.nkpt == len(self.kpoints)
 
-        self.efermi = efermi
+        self.fermie= fermie
         self.nelect = nelect
 
-        # Handy variables used to loop
-        self.spins = range(self.nsppol)
-        self.kidxs = range(self.nkpt)
-
-        self.smearing_info = {} if smearing_info is None else smearing_info
+        self.smearing = {} if smearing is None else smearing
 
         if markers is not None:
-            for k, xys in markers.items():
-                self.set_markers(k, xys)
+            for key, xys in markers.items():
+                self.set_marker(key, xys)
+
+        if widths is not None:
+            for key, width in widths.items():
+                self.set_width(key, width)
 
     @classmethod
-    def from_file(cls, file):
+    def from_file(cls, filepath):
         """Initialize an instance of ElectronBands from a netCDF file."""
-        with Ebands_Reader(file) as r:
+        with Ebands_Reader(filepath) as r:
             return cls(r.read_structure(),
                        r.read_kpoints(),
                        r.read_eigens(),
-                       r.read_efermi(),
+                       r.read_fermie(),
                        r.read_occfacts(),
                        r.read_nelect(),
-                       smearing_info=r.read_smearing_info(),
+                       smearing=r.read_smearing(),
                        nband_sk=r.read_nband_sk(),
                        )
 
@@ -118,6 +250,15 @@ class ElectronBands(object):
             except KeyError:
                 pass
         return "\n".join(lines)
+
+    # Handy variables used to loop
+    @property
+    def spins(self):
+        return range(self.nsppol)
+
+    @property
+    def kidxs(self):
+        return range(self.nkpt)
 
     @property
     def eigens(self):
@@ -146,7 +287,7 @@ class ElectronBands(object):
         except AttributeError:
             return {}
 
-    def del_markers(self, key):
+    def del_marker(self, key):
         """
         Delete the entry in self.markers with the specied key. 
         All markers are removed if key is None.
@@ -162,9 +303,9 @@ class ElectronBands(object):
             except AttributeError:
                 pass
 
-    def set_markers(self, key, xys, overwrite=False):
+    def set_marker(self, key, xys, overwrite=False):
         """
-        Set the markers.
+        Set an entry in the markers dictionary.
 
         Args:
             key:
@@ -188,17 +329,64 @@ class ElectronBands(object):
 
         self._markers[key] = xys
 
-    def _get_markers(self, key):
-        """Returns the markers associated to the given key."""
-        return self._markers[key]
+    @property
+    def widths(self):
+        try:
+            return self._widths
+        except AttributeError:
+            return {}
+
+    def del_width(self, key):
+        """
+        Delete the entry in self.widths with the specified key.
+        All keys are removed if key is None.
+        """
+        if key is not None:
+            try:
+                del self._widths[key]
+            except AttributeError:
+                pass
+        else:
+            try:
+                del self._widths
+            except AttributeError:
+                pass
+
+    def set_width(self, key, width, overwrite=False):
+        """
+        Set an entry in the widths dictionary.
+
+        Args:
+            key:
+                string used to label the set of markers.
+            width
+                array-like of positive numbers, shape is [nsppol, nkpt, mband].
+            overwrite:
+                True if key can overwrite a pre-existing entry.
+        """
+        width = np.reshape(width, self.shape)
+
+        if not hasattr(self, "_widths"):
+            self._widths = collections.OrderedDict()
+
+        if key in self.widths and not overwrite:
+            raise ValueError("Cannot overwrite key %s in data" % key)
+
+        if np.any(np.iscomplex(width)):
+            raise ValueError("Found ambiguous complex entry %s" % str(width))
+
+        if np.any(width < 0.0):
+            raise ValueError("Found negative entry in width array %s" % str(width))
+
+        self._widths[key] = width
 
     @property
-    def has_mesh(self):
+    def has_bzmesh(self):
         """True if the k-point sampling is homogeneous."""
         return isinstance(self.kpoints, IrredZone)
 
     @property
-    def has_path(self):
+    def has_bzpath(self):
         """True if the bands are computed on a k-path."""
         return isinstance(self.kpoints, Kpath)
 
@@ -215,16 +403,7 @@ class ElectronBands(object):
 
     def copy(self):
         """Deep copy of self."""
-        import copy
         return copy.deepcopy(self)
-
-    def set_eigens(self, eigens):
-        """Set the eigenvalues."""
-        assert eigens.shape == self.shape
-        self._eigens = eigens
-        # TODO
-        #self.occfacts =
-        #self.efermi =
 
     def enemin(self, spin=None, band=None):
         """Compute the minimum of the eigenvalues."""
@@ -273,7 +452,7 @@ class ElectronBands(object):
         return emax
 
     def raw_print(self, stream=sys.stdout):
-        """Print k-points and energies on stream stream."""
+        """Print k-points and energies on stream."""
         stream.write("# Band structure energies in Ev.\n")
         stream.write("# idx   kpt_red(1:3)  ene(b1) ene(b2) ...\n")
 
@@ -288,12 +467,89 @@ class ElectronBands(object):
                 for c in kpoint: st += fmt_k(c)
                 for e in ene_sk: st += fmt_e(e)
                 stream.write(st+"\n")
+
         stream.flush()
 
-    #def get_direct_gap(self, spin=None):
-    #def get_fundamental_gap(self, spin=None):
-    #def homo(self, spin=None):
-    #def lomo(self, spin=None):
+    #@property
+    #def homo_bands(self):
+    #    try:
+    #        return self._homo_bands
+
+    #    except AttributeError:
+    #        hband = self.nelect / 2
+    #        if hband != int(hband):
+    #             homo_bands = self.nsppol * [None]
+
+    #        has_gap = self.nsppol * [True]
+    #        for spin in self.spins:
+    #            opt_gaps = self.eigens[spin,:,hband+1] - self.eigens[spin,:,hband]
+    #            has_gap[spin] = (has_gap[spin] and np.all(opt_gaps > 0.0))
+
+    #        hband if has_gap else None
+
+    #def lomo_band(self):
+    #    return None if self.homo_band is None else self.homo_band + 1
+
+    #def _compute_hlstates(self):
+    #    homos, lumos, lomos = [], [], []
+
+    #    for spin in self.spins:
+    #        homo_band = self.homo_bands(spin)
+    #        lumo_band = homo_band + 1
+
+    #        homo_kidx = self.eigens[spin,:,homo_band].argmax()
+    #        lumo_kidx = self.eigens[spin,:,lumo_band].argmin()
+    #        lomo_kidx = self.eigens[spin,:,1].argmin()
+
+    #        homos.append(KSState(
+    #            spin=spin,
+    #            kpoint=self.kpoints[homo_kidx],
+    #            band=homo_band,
+    #            eig=self.eigens[spin,homo_kidx,homo_band],
+    #            occ=self.occfacts[spin,homo_kidx,homo_band],
+    #        ))
+
+    #        lumos.append(KSState(
+    #            spin=spin,
+    #            kpoint=self.kpoints[lumo_kidx],
+    #            band=lumo_band,
+    #            eig=self.eigens[spin,lumo_kidx,lumo_band],
+    #            occ=self.occfacts[spin,lumo_kidx,lumo_band],
+    #        ))
+
+    #        lomos.append(KSState(
+    #            spin=spin,
+    #            kpoint=self.kpoints[lomo_kidx],
+    #            band=1,
+    #            eig=self.eigens[spin,lomo_kidx,1],
+    #            occ=self.occfacts[spin,lomo_kidx,1],
+    #        ))
+
+    #    return map(tuple, [homos, lumos, lomos])
+
+    #@property
+    #def is_metallic(self):
+        #"""True if bands are metallic"""
+
+    #@property
+    #def bandwith(self):
+    #    bandwiths = self*nsppol * [None]
+    #    for spin in self.spins:
+    #        bandwiths[spin] = self.homo_state[spin].eig - self.lomo_states[spin].eig
+    #    return bandwiths
+
+    #def direct_gap(self):
+    #def fundamental_gap(self):
+
+    #def info(self):
+    #    for spin in self.spins:
+    #        homo_band = self.homo_band(spin)
+    #        opt_gaps = self.eigens[spin,:,homo_band+1] - self.eigens[spin,:,homo_band]
+    #        kmax_idx = opt_gaps.argmax()
+    #        kmix_idx = opt_gaps.argmin()
+    #        kmax = self.kpoints[kmax_idx]
+    #        kmin = self.kpoints[kmin_idx]
+    #    np.minloc(opt_gaps)
 
     def get_dos(self, method="gaussian", step=0.1, width=0.2):
         """
@@ -308,7 +564,7 @@ class ElectronBands(object):
                 Standard deviation (eV) of the gaussian.
 
         Returns:
-            ElectronDOS object.
+            `ElectronDOS` object.
         """
         if abs(self.kpoints.sum_weights - 1) > 1.e-6:
             raise ValueError("Kpoint weights should sum up to one")
@@ -440,7 +696,6 @@ class ElectronBands(object):
             title             Title of the plot (Default: None).
             show              True to show the figure (Default).
             savefig           'abc.png' or 'abc.eps'* to save the figure to a file.
-
             ================  ==============================================================
 
         Returns:
@@ -524,7 +779,7 @@ class ElectronBands(object):
         # Create new array with same shape as self.
         qp_energies = np.zeros(self.shape)
 
-        # Calculate new QP energies with the scissors operator.
+        # Calculate Quasi-particle energies with the scissors operator.
         for spin in self.spins:
             sciss = scissors[spin]
             for k in self.kidxs:
@@ -534,16 +789,17 @@ class ElectronBands(object):
                         qp_ene = e0 + sciss.apply(e0)
                     except sciss.Error:
                         raise
-                        #qp_ene = e0
 
+                    # Update the energy.
                     qp_energies[spin,k,band] = qp_ene
 
-        # Change the energies (occupations are left unchanged).
-        new = self.copy()
-        new.set_eigens(qp_energies)
-        return new
+        # Change the energies (NB: occupations and fermie are left unchanged).
+        return ElectronBands(
+            self.structure, self.kpoints, qp_energies, self.fermie, self.occfacts, self.nelect,
+            nband_sk=self.nband_sk, smearing=self.smearing, markers=self.markers
+        )
 
-    def plot(self, klabels=None, with_marker=None, **kwargs):
+    def plot(self, klabels=None, marker=None, width=None, **kwargs):
         """
         Plot the band structure.
 
@@ -554,11 +810,14 @@ class ElectronBands(object):
                 e.g. klabels = { (0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L" }.
             band_range:
                 Tuple specifying the minimum and maximum band to plot (default: all bands are plotted)
-            with_marker:
+            marker:
                 String defining the marker to plot.
-                all ==> plot all markers stored in self.
                 accepts the syntax "markername:fact" where
                 fact is a float used to scale the marker size.
+            width:
+                String defining the width to plot.
+                accepts the syntax "widthname:fact" where
+                fact is a float used to scale the stripe size.
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -575,75 +834,51 @@ class ElectronBands(object):
         show = kwargs.pop("show", True)
         savefig = kwargs.pop("savefig", None)
 
+        # Select the band range.
         band_range = kwargs.pop("band_range", None)
+        if band_range is None:
+            band_range = range(self.mband)
+        else:
+            band_range = range(band_range[0], band_range[1], 1)
 
         import matplotlib.pyplot as plt
         fig = plt.figure()
 
         ax = fig.add_subplot(1,1,1)
 
-        if title is not None:
-            ax.set_title(title)
-
-        ax.grid(True)
-        ax.set_xlabel('k-point')
-        ax.set_ylabel('Energy [eV]')
+        # Set ticks and labels.
+        self.decorate_ax(ax, klabels=klabels, title=title)
 
         if not kwargs:
             kwargs = {"color": "black", "linewidth": 2.0}
 
-        # Set ticks and labels.
-        if klabels is not None:
-            ticks, labels = self._ticks_and_labels(klabels)
-
-            ax.set_xticks(ticks, minor=False)
-            ax.set_xticklabels(labels, fontdict=None, minor=False)
-
         # Plot the band energies.
         for spin in self.spins:
-
-            # Select the band range.
-            if band_range is None:
-                band_range = range(self.mband)
-            else:
-                band_range = range(band_range[0], band_range[1], 1)
-
             for band in band_range:
                 self.plot_ax(ax, spin=spin, band=band, **kwargs)
 
         # Add markers to the plot.
-        if with_marker is not None:
+        if marker is not None:
             try:
-                key, fact = with_marker.split(":")
+                key, fact = marker.split(":")
             except ValueError:
                 key = marker
                 fact = 1
             fact = float(fact)
 
-            xvals, yvals, svals = self._get_markers(key)
+            self.plot_marker_ax(ax, key, fact=fact)
 
-            pos_x, pos_y, pos_s = [], [], []
-            neg_x, neg_y, neg_s = [], [], []
+        # Plot fatbands.
+        if width is not None:
+            try:
+                key, fact = width.split(":")
+            except ValueError:
+                key = width
+                fact = 1
 
-            # Use different sybols depending on the value of s.
-            # Cannot use negative s.
-            for x, y, s in zip(xvals, yvals, svals):
-                if s > 0.0:
-                    pos_x.append(x)
-                    pos_y.append(y)
-                    pos_s.append(s)
-                else:
-                    neg_x.append(x)
-                    neg_y.append(y)
-                    neg_s.append(s)
-
-            if pos_s:
-                ax.scatter(pos_x, pos_y, s=np.abs(pos_s)*fact , marker="^", label=key + " >0")
-
-            if neg_s:
-                ax.scatter(neg_x, neg_y, s=np.abs(neg_s)*fact , marker="v", label=key + " <0")
-
-        plt.legend(loc="best")
+            for spin in self.spins:
+                for band in band_range:
+                    self.plot_width_ax(ax, key, fact=fact)
 
         if show:
             plt.show()
@@ -653,24 +888,138 @@ class ElectronBands(object):
 
         return fig
 
-    def plot_ax(self, ax, spin=None, band=None, *args, **kwargs):
-        """Helper function to plot the energies for (spin,band) on the axis ax."""
-        lines = []
+    def plot_fatbands(self, **kwargs):
+        """
+        Plot the electronic fatbands.
 
+        Args:
+            klabels:
+                dictionary whose keys are tuple with the reduced
+                coordinates of the k-points. The values are the labels.
+                e.g. klabels = { (0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L" }.
+            band_range:
+                Tuple specifying the minimum and maximum band to plot (default: all bands are plotted)
+            width:
+                String defining the width to plot.
+                accepts the syntax "widthname:fact" where
+                fact is a float used to scale the stripe size.
+
+        ==============  ==============================================================
+        kwargs          Meaning
+        ==============  ==============================================================
+        title           Title of the plot (Default: None).
+        show            True to show the figure (Default).
+        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
+        ==============  ==============================================================
+
+        Returns:
+            `matplotlib` figure
+        """
+        title = kwargs.pop("title", None)
+        show = kwargs.pop("show", True)
+        savefig = kwargs.pop("savefig", None)
+
+        # Build grid of plots.
+        num_plots, ncols, nrows = len(self.widths), 1, 1
+        if num_plots > 1:
+            ncols = 2
+            nrows = (num_plots//ncols) + (num_plots % ncols)
+
+        import matplotlib.pyplot as plt
+        fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, squeeze=False)
+        ax_list = ax_list.ravel()
+
+        for ax, key in zip(ax_list, self.widths):
+            # Decorate the axis
+            self.decorate_ax(ax, title=key)
+            # Plot the energies.
+            self.plot_ax(ax)
+            # Add width around each band.
+            self.plot_width_ax(ax, key)
+
+        if title is not None:
+            fig.suptitle(title)
+
+        if show:
+            plt.show()
+                                 
+        if savefig is not None:
+            fig.savefig(savefig)
+                                 
+        return fig
+
+    def decorate_ax(self, ax, klabels=None, title=None):
+        if title is not None:
+            ax.set_title(title)
+
+        ax.grid(True)
+        ax.set_xlabel('k-point')
+        ax.set_ylabel('Energy [eV]')
+        ax.legend(loc="best")
+
+        # Set ticks and labels.
+        if klabels is not None:
+            ticks, labels = self._ticks_and_labels(klabels)
+
+            ax.set_xticks(ticks, minor=False)
+            ax.set_xticklabels(labels, fontdict=None, minor=False)
+
+    def plot_ax(self, ax, spin=None, band=None, **kwargs):
+        """Helper function to plot the energies for (spin,band) on the axis ax."""
         spin_range = range(self.nsppol) if spin is None else [spin]
         band_range = range(self.mband) if band is None else [band]
 
-        xx = range(self.nkpt)
+        lines, xx = [], range(self.nkpt)
         for spin in spin_range:
             for band in band_range:
                 yy = self.eigens[spin,:,band]
-                lines.extend(ax.plot(xx, yy, *args, **kwargs))
+                lines.extend(ax.plot(xx, yy, **kwargs))
 
         return lines
 
-    def _make_kpoint(self, kcoords):
+    def plot_width_ax(self, ax, key, fact=1.0, spin=None, band=None, **kwargs):
+        """Helper function to plot fatbands for (spin,band) on the axis ax."""
+        spin_range = range(self.nsppol) if spin is None else [spin]
+        band_range = range(self.mband) if band is None else [band]
+
+        facecolor = kwargs.pop("facecolor", "blue")
+        alpha = kwargs.pop("alpha", 0.7)
+
+        width = fact * self.widths[key]
+        x = range(self.nkpt)
+        for spin in spin_range:
+            for band in band_range:
+                y = self.eigens[spin,:,band]
+                w = width[spin,:,band] * fact
+                ax.fill_between(x, y-w/2, y+w/2, facecolor=facecolor, alpha=alpha)
+
+    def plot_marker_ax(self, ax, key, fact=1.0):
+        """Helper function to plot the markers for (spin,band) on the axis ax."""
+        xvals, yvals, svals = self.markers[key]
+
+        # Use different symbols depending on the value of s.
+        # Cannot use negative s.
+        pos_x, pos_y, pos_s = [], [], []
+        neg_x, neg_y, neg_s = [], [], []
+        for x, y, s in zip(xvals, yvals, svals):
+            if s >= 0.0:
+                pos_x.append(x)
+                pos_y.append(y)
+                pos_s.append(s)
+            else:
+                neg_x.append(x)
+                neg_y.append(y)
+                neg_s.append(s)
+
+        if pos_s:
+            ax.scatter(pos_x, pos_y, s=np.abs(pos_s)*fact, marker="^", label=key + " >0")
+
+        if neg_s:
+            ax.scatter(neg_x, neg_y, s=np.abs(neg_s)*fact, marker="v", label=key + " <0")
+
+    def _make_kpoint(self, frac_coords):
         """Build Kpoint instance."""
-        return Kpoint(kcoords, self.reciprocal_lattice.matrix)
+        return Kpoint(frac_coords, self.reciprocal_lattice.matrix)
 
     def _ticks_and_labels(self, klabels):
         """Return ticks and labels from the mapping qlabels."""
@@ -680,6 +1029,7 @@ class ElectronBands(object):
             ktick = self._make_kpoint(kcoord)
             for (idx, kpt) in enumerate(self.kpoints):
                 if ktick == kpt: d[idx] = kname
+
         # ticks, labels
         return d.keys(), d.values()
 
@@ -768,7 +1118,6 @@ class ElectronBands(object):
     def export_bxsf(self, file, structure):
         """
         Export the full band structure on file
-
         Format is defined by the extension in file.
         """
         # Sanity check.
@@ -784,10 +1133,10 @@ class ElectronBands(object):
             eapp("shifted meshes are not supported by Xcryden")
 
         if errors:
-            raise ValueError("\n".join(l for l in errors))
+            raise ValueError("\n".join(errors))
 
         if "." not in file:
-            raise ValueError("Cannot detect file extension in path %s: " % path)
+            raise ValueError("Cannot detect file extension in path %s: " % file)
 
         tokens = file.strip().split(".")
         ext = tokens[-1]
@@ -805,10 +1154,10 @@ class ElectronBands(object):
 
         return Visualizer.from_file(file)
 
-    def derivatives(self, spin, band, order=1, acc=4, asmarkers=False):
+    def derivatives(self, spin, band, order=1, acc=4, asmarker=False):
         """Compute the derivative of the eigenvalues along the path."""
-        if self.has_path:
-            # Exctract the branch.
+        if self.has_bzpath:
+            # Extract the branch.
             branch = self.eigens[spin,:,band]
 
             # Simulate free-electron bands. This will produce all(effective masses == 1)
@@ -817,7 +1166,7 @@ class ElectronBands(object):
             # Compute derivatives by finite differences.
             ders_onlines = self.kpoints.finite_diff(branch, order=order, acc=acc)
 
-            if not asmarkers:
+            if not asmarker:
                 return ders_onlines
             else:
                 x, y, s = [], [], []
@@ -827,6 +1176,7 @@ class ElectronBands(object):
                     y.extend(branch[line])
                     s.extend(ders_onlines[i])
                     assert len(x) == len(y) == len(s)
+
                 return x, y, s
 
         else:
@@ -835,13 +1185,14 @@ class ElectronBands(object):
     def effective_masses(self, spin, band, acc=4):
         """Compute the effective masses."""
         ders2 = self.derivatives(spin, band, acc=acc) * eV_Ha / Bohr_Ang**2
-        emasses = 1/ders2
+        emasses = 1.0/ders2
         return emasses
 
 #########################################################################################
 
 
 class EBands3D(object):
+
     def __init__(self, structure, ibz, ene_ibz, ngkpt, shifts, pbc=3*[True], korder="c"):
         self.structure= structure
         self.ibz      = ibz
@@ -871,22 +1222,29 @@ class EBands3D(object):
 
 #########################################################################################
 
+
 class NestingFactor(object):
+
     def __init__(self, structure, bands):
         self.structure = structure
-        # TODO check whether k-points form a homogeneous sampling
         self.bands = bands
 
+        # check whether k-points form a homogeneous sampling.
+        if not self.bands.has_bzmesh:
+            msg = "The computation of the nesting factor requires a homogeneous k-point sampling"
+            raise ValueError(msg)
+
     @classmethod
-    def from_file(cls, file):
+    def from_file(cls, filepath):
         """
-        Initialize the object from a netcdf file containing an
-        electronic band structure.
+        Initialize the object from a netcdf
+        file containing an electronic band structure.
         """
-        with ETSF_Reader(file) as r:
+        with ETSF_Reader(filepath) as r:
             return cls(r.get_structure(), r.get_bands())
 
     def compute_nesting(self, qpath):
+        mesh, values = None, None
         return Function1D(mesh, values)
 
     def plot(self, qpath):
@@ -920,8 +1278,8 @@ class ElectronBandsPlotter(object):
         """
         from abipy import abiopen
         ncfile = abiopen(filepath)
-        bands = ncfile.get_bands()
-        if label is None: label = ncfile.filepath
+        if label is None:
+            label = ncfile.filepath
 
         self.add_bands(label, ncfile.get_bands())
 
@@ -1051,7 +1409,6 @@ class ElectronBandsPlotter(object):
         if self._doses:
             ax = ax_list[1]
             for (label, dos) in self._doses.items():
-                print(label, dos)
                 dos.plot_ax(ax, exchange_xy=True, **opts_label[label])
 
         if show:
@@ -1135,7 +1492,10 @@ class ElectronDosPlotter(object):
         ax.grid(True)
         ax.set_xlabel("Energy [eV]")
         ax.set_ylabel("DOS")
-        ax.legend()
+        ax.legend(loc="best")
+
+        if title is not None:
+            fig.suptitle(title)
 
         if show:
             plt.show()
@@ -1171,7 +1531,7 @@ class Ebands_Reader(ETSF_Reader):
         """Occupancies."""
         return self.read_value("occupations")
 
-    def read_efermi(self):
+    def read_fermie(self):
         """Fermi level in eV."""
         return self.read_value("fermi_energy") * Ha_eV
 
@@ -1179,25 +1539,26 @@ class Ebands_Reader(ETSF_Reader):
         """Number of valence electrons."""
         return self.read_value("number_of_electrons")
 
-    def read_smearing_info(self):
-        """Returns a dict with info on the smearing technique."""
+    def read_smearing(self):
+        """Returns a `AttrDict` with info on the smearing technique."""
         try:
             scheme = "".join(c for c in self.read_value("smearing_scheme"))
         except TypeError:
             scheme = None
 
-        d = {
-            "scheme": scheme,
-            "occopt": self.read_value("occopt"),
-            "tsmear_ev": self.read_value("smearing_width") * Ha_eV
-            }
+        d = Smearing(
+            scheme=scheme,
+            occopt=self.read_value("occopt"),
+            tsmear_ev=self.read_value("smearing_width") * Ha_eV
+        )
 
         # FIXME there's a problem in smearing_scheme
         if scheme is None:
-            print("warning scheme is None, occopt %s" % d["occopt"])
+            warnings.warn("warning scheme is None, occopt %s" % d["occopt"])
 
         return d
 
     #def read_xcinfo(self):
     #   """Returns a dictionary with info on the XC functional."""
-    #    return {}
+    #    return XcInfo.from_ixc(self.read_value("ixc"))
+

@@ -41,7 +41,7 @@ class TestQPList(AbipyTest):
         for qp in other_qplist:
             self.assertTrue(qp in qpl_merge)
 
-        # Test QP object.
+        # Test QPState object.
         qp = qplist[0]
         print(qp)
         print(qp.tips)

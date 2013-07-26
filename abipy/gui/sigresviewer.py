@@ -60,8 +60,8 @@ class SigresViewerFrame(awx.Frame):
         toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, tsize), "Open")
         toolbar.AddSimpleTool(ID_VISTRUCT, wx.Bitmap(awx.path_img("crystal.png")), "Visualize the crystal structure")
         toolbar.AddSimpleTool(ID_VISBZ, wx.Bitmap(awx.path_img("wave.png")), "Visualize the BZ")
-        toolbar.AddSimpleTool(ID_PLOTQPSE0, wx.Bitmap(awx.path_img("wave.png")), "Plot QP Results.")
-        toolbar.AddSimpleTool(ID_PLOTKSWITHMARKS, wx.Bitmap(awx.path_img("wave.png")), "Plot KS energies with QP markers.")
+        toolbar.AddSimpleTool(ID_PLOTQPSE0, wx.Bitmap(awx.path_img("wave.png")), "Plot QPState Results.")
+        toolbar.AddSimpleTool(ID_PLOTKSWITHMARKS, wx.Bitmap(awx.path_img("wave.png")), "Plot KS energies with QPState markers.")
         toolbar.AddSimpleTool(ID_SCISSORS, wx.Bitmap(awx.path_img("wave.png")), "Build energy-dependent scissors from GW correction.")
 
         toolbar.AddSeparator()
@@ -191,12 +191,12 @@ class SigresViewerFrame(awx.Frame):
                          description="", developers="M. Giantomassi")
 
     def OnPlotQpsE0(self, event):
-        """Plot QP results as function of the KS energy."""
+        """Plot QPState results as function of the KS energy."""
         if self.sigres is None: return
         self.sigres.plot_qps_vs_e0()
 
     def OnPlotKSwithQPmarkers(self, event):
-        """Plot KS energies with QP markers."""
+        """Plot KS energies with QPState markers."""
         if self.sigres is None: return
 
         band_range = (self.sigres.min_gwbstart, self.sigres.max_gwbstop)
@@ -316,7 +316,7 @@ class BandsWithMarkersPlotFrame(awx.Frame):
         p = self.GetParams()
         with_marker = p.qpattr + ":" + str(p.fact)
 
-        self.bands.plot(with_marker=with_marker, band_range=self.band_range)
+        self.bands.plot(marker=with_marker, band_range=self.band_range)
 
 
 class SigresViewerApp(awx.App):

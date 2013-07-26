@@ -26,7 +26,7 @@ def show_examples_and_exit(err_msg=None, error_code=1):
 def main():
     parser = ArgumentParser(epilog=str_examples())
 
-    parser.add_argument('-m', '--mode', type=str, default="sequential",
+    parser.add_argument('-m', '--mode', type=str, default="auto",
                         help="Execution mode")
 
     parser.add_argument('-t', '--time', type=float, default=3,

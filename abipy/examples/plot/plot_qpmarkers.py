@@ -9,6 +9,6 @@ sigma_file = SIGRES_File(get_reference_file("tgw1_9o_DS4_SIGRES.nc"))
 sigma_file.plot_ksbands_with_qpmarkers(qpattr="qpeme0", fact=1000)
 
 # The list of available qpattr:
-print(QP.get_fields)
+print(QPState.get_fields)
 
 #sigma_file.plot_ksbands_with_qpmarkers(qpattr="vxcme", fact=1000)

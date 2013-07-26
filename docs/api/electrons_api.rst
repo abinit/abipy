@@ -34,10 +34,10 @@ electrons Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`gwtools` Module
+:mod:`gw` Module
 ---------------------
 
-.. automodule:: abipy.electrons.gwtools
+.. automodule:: abipy.electrons.gw
    :members:
    :undoc-members:
    :show-inheritance:

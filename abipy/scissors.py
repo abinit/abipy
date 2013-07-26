@@ -7,7 +7,7 @@ from abipy.electrons.gwtools import ScissorsBuilder
 #scissors_from_sigres(get_reference_file("tgw1_9o_DS4_SIGRES.nc"))
 
 
-# Printout of the QP results
+# Printout of the QPState results
 
 from abipy import *
 

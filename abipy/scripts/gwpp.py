@@ -88,7 +88,7 @@ def build_scissors(options, args):
 
     qp_bands = ks_bands.apply_scissors(scissor_spin)
 
-    # Plot the KS and the QP band structures.
+    # Plot the KS and the QPState band structures.
     fig = plt.figure()
 
     ax = fig.add_subplot(1, 1, 1)
