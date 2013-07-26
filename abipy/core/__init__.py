@@ -1,5 +1,6 @@
 from .exceptions import *
 from .func1d import *
+from .kpoints import *
 from .structure import *
 from .symmetries import *
 from .gsphere import *

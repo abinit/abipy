@@ -74,3 +74,20 @@ core Package
    :undoc-members:
    :show-inheritance:
 
+
+:mod:`kpoints` Module
+---------------------
+
+.. automodule:: abipy.core.kpoints
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+:mod:`shells` Module
+--------------------
+
+.. automodule:: abipy.core.shells
+   :members:
+   :undoc-members:
+   :show-inheritance:

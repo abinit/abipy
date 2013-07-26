@@ -1,7 +1,7 @@
 """"Tests for the kpoints.shells module."""
 from __future__ import print_function, division
 
-from abipy.kpoints.shells import *
+from abipy.core.shells import *
 from abipy.tests import *
 
 ##########################################################################################

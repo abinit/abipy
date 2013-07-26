@@ -11,9 +11,8 @@ from abipy.tools import find_le, find_ge
 
 from abipy.core.constants import Ha_eV
 from abipy.core.func1d import Function1D
-
+from abipy.core.kpoints import askpoints, kpoints_factory
 from abipy.tools.text import pprint_table
-from abipy.kpoints.kpoints import askpoints, kpoints_factory
 from abipy.electrons.ebands import ElectronBands
 from abipy.iotools import AbinitNcFile
 

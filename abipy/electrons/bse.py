@@ -7,8 +7,8 @@ import collections
 import numpy as np
 
 from abipy.core.func1d import Function1D
+from abipy.core.kpoints import Kpoint, kpoints_factory
 from abipy.iotools import ETSF_Reader, AbinitNcFile
-from abipy.kpoints import Kpoint, kpoints_factory
 
 __all__ = [
     "DielectricFunction",

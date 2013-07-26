@@ -10,9 +10,9 @@ import numpy as np
 
 from abipy.core.constants import Ha_eV, eV_Ha, Bohr_Ang
 from abipy.core.func1d import Function1D
+from abipy.core.kpoints import Kpoint, Kpath, IrredZone, kpoints_factory
 from abipy.tools import AttrDict
 from abipy.iotools import ETSF_Reader, Visualizer, bxsf_write
-from abipy.kpoints import Kpoint, Kpath, IrredZone, kpoints_factory
 from abipy.tools import gaussian
 from .edos import ElectronDOS
 
@@ -1206,7 +1206,7 @@ class EBands3D(object):
         raise NotImplementedError("This code must be tested!")
 
         # Generator for the K-mesh in the full Brillouin zone.
-        from abipy.kpoints import KmeshGen, BZSymmetrizer
+        from abipy.core.kpoints import KmeshGen, BZSymmetrizer
         self.kmesh_gen = KmeshGen(self.ngkpt, structure.lattice_vectors("g"),
                          shifts=self.shifts, pbc=pbc, korder=korder, wrap_tows=False)
 

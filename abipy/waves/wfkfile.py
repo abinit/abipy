@@ -4,9 +4,9 @@ from __future__ import print_function, division
 import numpy as np
 
 from abipy.core import Mesh3D, GSphere, Structure
+from abipy.core.kpoints import kpoints_factory
 from abipy.iotools import ETSF_Reader, Visualizer, AbinitNcFile
 from abipy.electrons import ElectronBands
-from abipy.kpoints import kpoints_factory
 from abipy.waves.pwwave import PWWaveFunction
 
 __all__ = [

@@ -19,7 +19,6 @@ import abipy.core.constants
 from abipy.core import release
 from abipy.profile import abipy_env
 from abipy.core import *
-from abipy.kpoints import *
 from abipy.electrons import *
 from abipy.waves import *
 from abipy.htc import Launcher, MassLauncher, AbinitInput

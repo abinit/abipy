@@ -1,4 +1,4 @@
-# This example shows how to plot the so-called  fatbands for electrons
+# This example shows how to plot the so-called fatbands for electrons
 import numpy as np
 import collections
 

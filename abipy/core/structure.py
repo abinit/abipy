@@ -64,13 +64,40 @@ class Structure(pymatgen.Structure):
         """Tuple with Anti-ferromagnetic symmetries (time-reversal is included, if present)."""
         return self.spacegroup.symmops(afm_sgn=-1)
 
+    @property
+    def high_symm_kpath(self):
+        """
+        Returns an instance of the pymatgen class `HighSymmKpath`
+        (Database of special k-point and high symmetry lines).
+        """
+        try:
+            return self._high_symm_kpath
+        except AttributeError:
+            from pymatgen.symmetry.bandstructure import HighSymmKpath
+            self._high_symm_kpath = HighSymmKpath(self)
+            return self._high_symm_kpath
+
+    @property
+    def special_kpoints(self):
+        try:
+            return self._special_kpoints
+
+        except AttributeError:
+            name2frac_coords = self.high_symm_kpath.kpath["kpoints"]
+            import pprint
+            pprint.pprint(name2frac_coords)
+            self._special_kpoints = name2frac_coords
+            for symop in self.spacegroup:
+                print(symop)
+                symop.rotate_k( wrap_tows=True)
+
+            return self._special_kpoints
+
     def show_bz(self):
         """
         Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
         """
-        from pymatgen.symmetry.bandstructure import HighSymmKpath
-        hskp = HighSymmKpath(self)
-        return hskp.get_kpath_plot()
+        return self.high_symm_kpath.get_kpath_plot()
 
     def export(self, filename):
         """

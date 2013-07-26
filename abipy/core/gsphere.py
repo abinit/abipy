@@ -4,7 +4,7 @@ from __future__ import print_function, division
 import collections
 import numpy as np
 
-from abipy.kpoints.kpoints import Kpoint
+from abipy.core.kpoints import Kpoint
 
 __all__ = [
     "GSphere",

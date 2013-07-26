@@ -7,7 +7,7 @@ import tempfile
 from abipy.iotools import Visualizer
 from abipy.iotools.xsf import xsf_write_structure, xsf_write_data
 from abipy.core import Mesh3D
-from abipy.kpoints import Kpoint
+from abipy.core.kpoints import Kpoint
 
 __all__ = [
     "PWWaveFunction",

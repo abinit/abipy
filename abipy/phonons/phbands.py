@@ -5,7 +5,7 @@ import functools
 import numpy as np
 
 from abipy.iotools import ETSF_Reader, AbinitNcFile
-from abipy.kpoints.kpoints import Kpoint
+from abipy.core.kpoints import Kpoint
 from abipy.tools import gaussian
 from .phdos import PhononDOS
 
