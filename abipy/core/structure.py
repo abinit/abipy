@@ -65,39 +65,46 @@ class Structure(pymatgen.Structure):
         return self.spacegroup.symmops(afm_sgn=-1)
 
     @property
-    def high_symm_kpath(self):
+    def high_symmetry_kpath(self):
         """
         Returns an instance of the pymatgen class `HighSymmKpath`
-        (Database of special k-point and high symmetry lines).
+        (Database of high symmetry k-points and high symmetry lines).
         """
         try:
-            return self._high_symm_kpath
+            return self._high_symmetry_kpath
         except AttributeError:
             from pymatgen.symmetry.bandstructure import HighSymmKpath
-            self._high_symm_kpath = HighSymmKpath(self)
-            return self._high_symm_kpath
+            self._high_symmetry_kpath = HighSymmKpath(self)
+            return self._high_symmetry_kpath
 
     @property
-    def special_kpoints(self):
+    def high_symmetry_kpoints(self):
         try:
-            return self._special_kpoints
+            return self._high_symmetry_kpoints
 
         except AttributeError:
-            name2frac_coords = self.high_symm_kpath.kpath["kpoints"]
+            name2frac_coords = self.high_symmetry_kpath.kpath["kpoints"]
             import pprint
             pprint.pprint(name2frac_coords)
-            self._special_kpoints = name2frac_coords
+
             for symop in self.spacegroup:
                 print(symop)
-                symop.rotate_k( wrap_tows=True)
+                symop.rotate_k(wrap_tows=True)
 
-            return self._special_kpoints
+            label2star = {}
+
+            kstar = kpoint.compute_star(symmops, wrap_tows=True)
+
+            #hs_kpoints = KpointList(structure, frac_coords, weights=None, labels=None):
+
+            self._high_symmetry_kpoints = name2frac_coords
+            return self._high_symmetry_kpoints
 
     def show_bz(self):
         """
         Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
         """
-        return self.high_symm_kpath.get_kpath_plot()
+        return self.high_symmetry_kpath.get_kpath_plot()
 
     def export(self, filename):
         """

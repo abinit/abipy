@@ -75,7 +75,7 @@ class PhononBands(object):
       "phfreqs",       # (nqpt, 3*natom)
       "phdispl_cart",  # (nqpt, 3*natom, 3*natom)
                        # the last dimension stores the cartesian components.
-      "qpoints",       # qpoints and wtq are replaced by self.ibz that is a list of Kpoints.
+      "qpoints",       # qpoints and wtq are replaced by self.ibz that is a list of KpointList.
       "weights",
 
     .. note:

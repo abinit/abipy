@@ -130,7 +130,7 @@ class AbinitEventsNotebookFrame(awx.Frame):
 
         nb = fnb.FlatNotebook(panel)
 
-        # Add the pages to the notebook with the label to show on the tab
+        # Add the pages to the notebook with the name to show on the tab
         # Add only files for which we have events.
         for fname in filenames:
             page = AbinitEventsPanel(nb, fname)

@@ -216,7 +216,7 @@ class PWWaveFunction(WaveFunction):
     def pwwtows_inplace(self):
         """Wrap the kpoint to the interval ]-1/2,1/2] and update pwwave accordingly."""
         kpoint = Kpoint(self.gsphere.kpoint, self.gsphere.gprimd)
-        wkpt = kpoint.wraptows()
+        wkpt = kpoint.wrap_to_ws()
 
         if np.allclose(wkpt.rcoord, kpoint.rcoord):
             return

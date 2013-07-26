@@ -12,7 +12,7 @@ wfk_file = WFK_File(filename)
 # Extract the band structure. 
 bands = wfk_file.get_bands()
 
-# Define the mapping reduced_coordinates -> label of the k-point.
+# Define the mapping reduced_coordinates -> name of the k-point.
 klabels = {
     (0.5,  0.0,  0.0) : "L",
     (0.0,  0.0,  0.0) : "$\Gamma$",

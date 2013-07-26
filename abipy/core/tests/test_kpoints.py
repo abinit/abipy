@@ -33,7 +33,7 @@ class TestWrapBZ(AbipyTest):
         self.assertAlmostEqual(wrap_to_bz(-3.2), 0.8)
 
 class TestKpoint(AbipyTest):
-    """Unit tests for Kpoints."""
+    """Unit tests for KpointList."""
 
     def setUp(self):
         self.lattice = Lattice([0.5,0.5,0,0,0.5,0,0,0,0.4])
@@ -41,22 +41,22 @@ class TestKpoint(AbipyTest):
     def test_askpoints(self):
         """Test askpoints."""
         lattice = self.lattice
-        kpts = askpoints([1,2,3], lattice)
+        kpts = askpoints([1, 2, 3], lattice)
 
         newkpts = askpoints(kpts, lattice)
         self.assertTrue(kpts is newkpts)
 
-        kpts = askpoints([1,2,3,4,5,6], lattice)
+        kpts = askpoints([1, 2, 3, 4, 5, 6], lattice)
         self.assertTrue(len(kpts) == 2)
-        self.assertTrue(kpts[0] == Kpoint([1,2,3], lattice))
-        self.assertTrue(kpts[1] == Kpoint([4,5,6], lattice))
+        self.assertTrue(kpts[0] == Kpoint([1, 2, 3], lattice))
+        self.assertTrue(kpts[1] == Kpoint([4, 5, 6], lattice))
 
     def test_kpoint_algebra(self):
         """Test k-point algebra."""
         lattice = self.lattice
-        gamma = Kpoint([0,0,0], lattice)
-        pgamma = Kpoint([1,0,1], lattice)
-        X = Kpoint([0.5,0,0], lattice)
+        gamma = Kpoint([0, 0, 0], lattice)
+        pgamma = Kpoint([1, 0, 1], lattice)
+        X = Kpoint([0.5, 0, 0], lattice)
         print(X)
 
         self.assert_almost_equal(X.versor().norm, 1.0)

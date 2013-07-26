@@ -38,7 +38,7 @@ plotter.add_bands("LDA", ks_bands, dos=ks_dos)
 
 plotter.add_bands("LDA+scissors(e)", qp_bands, dos=qp_dos)
 
-# Define the mapping reduced_coordinates -> label of the k-point.
+# Define the mapping reduced_coordinates -> name of the k-point.
 klabels = {
     (0.5,  0.0,  0.0): "L",
     (0.0,  0.0,  0.0): "$\Gamma$",

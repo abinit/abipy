@@ -33,7 +33,7 @@ def plot_fft():
     poly = lambda x : x + x**2 + 3
     func = Function1D.from_func(poly, mesh)
 
-    #(0.1 + func).plot_ax(ax, label="func")
+    #(0.1 + func).plot_ax(ax, name="func")
     func.plot_ax(ax, label="func")
     fft_func = func.fft() 
     fft_func.plot_ax(ax, label="FFT(func)")

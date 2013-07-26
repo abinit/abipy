@@ -182,13 +182,13 @@ class ElectronDOSPlotter(object):
         Adds a DOS for plotting.
 
         Args:
-            label:
-                label for the MDF. Must be unique.
+            name:
+                name for the MDF. Must be unique.
             dos:
                 MacroscopicDielectricFunction object.
         """
         if label in self._doses:
-            raise ValueError("label %s is already in %s" % (label, self._doses.keys()))
+            raise ValueError("name %s is already in %s" % (label, self._doses.keys()))
 
         self._doses[label] = dos
 
@@ -198,7 +198,7 @@ class ElectronDOSPlotter(object):
 
         Args:
             dos_dict:
-                dict of {label: dos}
+                dict of {name: dos}
             key_sort_func:
                 function used to sort the dos_dict keys.
         """

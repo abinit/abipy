@@ -352,13 +352,13 @@ class MDF_Plotter(object):
         Adds a MDF for plotting.
 
         Args:
-            label:
-                label for the MDF. Must be unique.
+            name:
+                name for the MDF. Must be unique.
             mdf:
                 MacroscopicDielectricFunction object.
         """
         if label in self._mdfs:
-            raise ValueError("label %s is already in %s" % (label, self._mdfs.keys()))
+            raise ValueError("name %s is already in %s" % (label, self._mdfs.keys()))
 
         self._mdfs[label] = mdf
 
@@ -369,8 +369,8 @@ class MDF_Plotter(object):
         Args:
             mdf_type:
                 String defining the type of mdf.
-            label:
-                Optional string used to label the plot.
+            name:
+                Optional string used to name the plot.
         """
         from abipy import abiopen
 

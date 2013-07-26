@@ -107,7 +107,7 @@ class ArrayPlotter(object):
         return self._arr_dict.items()
 
     def add_array(self, label, array):
-        """Add array with the given label."""
+        """Add array with the given name."""
         if label in self._arr_dict:
             raise ValueError("%s is already in %s" % (label, self._arr_dict.keys()))
 

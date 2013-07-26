@@ -68,7 +68,8 @@ def wrap_to_bz(x):
     """
     return x % 1
 
-def askpoints(obj, lattice, weigths=None, labels=None):
+
+def askpoints(obj, lattice, weigths=None, names=None):
     """
     Convert obj into a list of k-points.
 
@@ -80,7 +81,7 @@ def askpoints(obj, lattice, weigths=None, labels=None):
         weights:
             k-point weights. Ignored if obj is already a `Kpoint` instance or a list
             of `Kpoint` items.
-        label:
+        name:
             string with the name of the k-point. Ignored if obj is already a `Kpoint`
             instance or a list of `Kpoint` items.
     """
@@ -99,12 +100,12 @@ def askpoints(obj, lattice, weigths=None, labels=None):
 
     ndim = obj.ndim
     if ndim == 1:
-        return [Kpoint(obj, lattice, weight=weigths, label=labels)]
+        return [Kpoint(obj, lattice, weight=weigths, name=names)]
     elif ndim == 2:
         nk = len(obj)
         if weigths is None: weigths = nk * [None]
-        if labels is None: labels = nk * [None]
-        return [Kpoint(rc, lattice, weight=w, label=l) for (rc, w, l) in zip(obj, weigths, labels)]
+        if names is None: names = nk * [None]
+        return [Kpoint(rc, lattice, weight=w, name=l) for (rc, w, l) in zip(obj, weigths, names)]
     else:
         raise ValueError("ndim > 2 is not supported")
 
@@ -117,12 +118,12 @@ class Kpoint(object):
         "_frac_coords",
         "_lattice",
         "_weight",
-        "_label",
+        "_name",
     ]
     # Tolerance used to compare k-points.
     _ATOL_KDIFF = 1e-08
 
-    def __init__(self, frac_coords, lattice, weight=None, label=None):
+    def __init__(self, frac_coords, lattice, weight=None, name=None):
         """
         Args:
             frac_coords:
@@ -131,7 +132,7 @@ class Kpoint(object):
                 Reciprocal lattice object.
             weights: 
                 k-point weight (optional, set to zero if not given).
-            label:
+            name:
                 string with the name of the k-point (optional)
         """
         self._frac_coords = np.asarray(frac_coords)
@@ -139,7 +140,7 @@ class Kpoint(object):
 
         self._lattice = lattice
         self._weight = weight
-        self._label = label
+        self._name = name
 
     @property
     def frac_coords(self):
@@ -169,13 +170,13 @@ class Kpoint(object):
         return self.lattice.get_cartesian_coords(self.frac_coords)
 
     @property
-    def label(self):
-        """Label of the k-point. None if not available."""
-        return self._label
+    def name(self):
+        """Name of the k-point. None if not available."""
+        return self._name
 
-    def set_label(self, label):
-        """Set the label of the k-point."""
-        self._label = label
+    def set_name(self, name):
+        """Set the name of the k-point."""
+        self._name = name
 
     def __str__(self):
         s = "(%.3f, %.3f, %.3f)" % tuple(self.frac_coords)
@@ -191,7 +192,7 @@ class Kpoint(object):
         return self.__class__(self.frac_coords - other.frac_coords, self.lattice)
 
     def __eq__(self, other):
-        # Comparison between two Kpoints
+        # Comparison between two KpointList
         try:
         #if isinstance(other, Kpoint):
             #return issamek(self.frac_coords, other.frac_coords, atol=self._ATOL_KDIFF)
@@ -225,17 +226,17 @@ class Kpoint(object):
         if isinstance(obj, cls):
             return obj
         else:
-            return cls(obj, lattice, weight=None, label=None)
+            return cls(obj, lattice, weight=None, name=None)
 
     @classmethod
     def gamma(cls, lattice, weight=None):
         """Constructor for the Gamma point."""
-        return cls(np.zeros(3), lattice, weight=weight, label="$\Gamma$")
+        return cls(np.zeros(3), lattice, weight=weight, name="$\Gamma$")
 
     def copy(self):
         """Deep copy."""
         return self.__class__(self.frac_coords.copy(), self.lattice.copy(),
-                              weight=self.weight, label=self.label)
+                              weight=self.weight, name=self.name)
 
     @property
     def norm(self):
@@ -246,46 +247,52 @@ class Kpoint(object):
     def versor(self):
         """Returns the versor i.e. ||k|| = 1"""
         cls = self.__class__
+
         try:
             return cls(self.frac_coords / self.norm, self.lattice, weight=self.weight)
+
         except ZeroDivisionError:
             return cls.gamma(self.lattice, weight=self.weight)
 
-    def wraptows(self):
-        """Returns a new kpoint in the Wigner-Seitz zone."""
-        return self.__class__(wrap_to_ws(self.frac_coords), self.lattice, weight=self.weight)
+    def wrap_to_ws(self):
+        """Returns a new `Kpoint` in the Wigner-Seitz zone."""
+        return self.__class__(wrap_to_ws(self.frac_coords), self.lattice, 
+                              name=self.name, weight=self.weight)
 
-    def wrapto1bz(self):
-        """Returns a new kpoint in the first unit cell."""
-        return self.__class__(wrap_to_bz(self.frac_coords), self.lattice, weight=self.weight)
-
-    def get_star(self, symmops, wrap_tows=True):
-        """Return the star of the kpoint (tuple of Kpoint object)."""
+    def wrapt_to_bz(self):
+        """Returns a new `Kpoint` in the first unit cell."""
+        return self.__class__(wrap_to_bz(self.frac_coords), self.lattice, 
+                              name=self.name, weight=self.weight)
+        
+    def compute_star(self, symmops, wrap_tows=True):
+        """Return the star of the kpoint (tuple of `Kpoint` objects)."""
         star = []
         for sym in symmops:
             sk_coords = sym.rotate_k(self.frac_coords, wrap_tows=wrap_tows)
-            star.append(Kpoint(sk_coords, self.lattice))
+            star.append(self.__class__(sk_coords, self.lattice, name=self.name))
+
         return tuple(star)
+        #return KpointList(self.structure, frac_coords, weights=None, names=len(* [None):
 
 ##########################################################################################
 
 
 class KpointsError(AbipyException):
-    """Base error class for Kpoints exceptions."""
+    """Base error class for KpointList exceptions."""
 
 
 class KpointNotFoundError(KpointsError):
-    """Raised when the k-point cannot be found in Kpoints."""
+    """Raised when the k-point cannot be found in KpointList."""
 
 
-class Kpoints(collections.Sequence):
+class KpointList(collections.Sequence):
     """
     Base class defining a sequence of `Kpoint` objects. Essentially consists 
     of base methods implementing the sequence protocol and helper functions.
     """
     Error = KpointsError
 
-    def __init__(self, structure, frac_coords, weights=None, labels=None):
+    def __init__(self, structure, frac_coords, weights=None, names=None):
         """
         Args:
             structure:
@@ -294,8 +301,8 @@ class Kpoints(collections.Sequence):
                 Array-like object with the reduced coordinates of the k-points.
             weights:
                 List of k-point weights.
-            labels:
-                List of k-point labels.
+            names:
+                List of k-point names.
         """
         self.structure = structure
 
@@ -304,14 +311,14 @@ class Kpoints(collections.Sequence):
         if weights is not None:
             assert len(weights) == len(frac_coords)
 
-        if labels is not None:
-            assert len(labels) == len(frac_coords)
+        if names is not None:
+            assert len(names) == len(frac_coords)
 
         self._points = []
         for (i, rcs) in enumerate(frac_coords):
             weight = None if weights is None else weights[i]
-            label = None if labels is None else labels[i]
-            kpt = Kpoint(rcs, self.reciprocal_lattice, weight=weight, label=label)
+            name = None if names is None else names[i]
+            kpt = Kpoint(rcs, self.reciprocal_lattice, weight=weight, name=name)
             self._points.append(kpt)
 
     @property
@@ -363,24 +370,23 @@ class Kpoints(collections.Sequence):
 
     def asarray(self):
         """Returns a ndarray with the fractional coordinates of the k-points."""
-        coords = np.empty((len(self), 3))
+        frac_coords = np.empty((len(self), 3))
         for i, k in enumerate(self):
-            coords[i] = k.frac_coords
-        return coords
+            frac_coords[i] = k.frac_coords
+
+        return frac_coords
 
 ##########################################################################################
 
 
-class Kpath(Kpoints):
+class Kpath(KpointList):
     """This object describes a path in reciprocal space."""
 
     def __init__(self, structure, frac_coords, kinfo):
-        #labels = kinfo.pop("labels", None)
-        labels = None
+        #names = kinfo.pop("names", None)
+        names = None
 
-        super(Kpath, self).__init__(structure, frac_coords,
-                                    weights=kinfo.weights, labels=labels)
-
+        super(Kpath, self).__init__(structure, frac_coords, weights=kinfo.weights, names=names)
         # time-reversal?
         #bounds = kinfo.pop("bounds", None)
         #if bounds is None:
@@ -481,12 +487,13 @@ class Kpath(Kpoints):
 
             der = finite_diff(vals_on_line, h, order=order, acc=acc)
             ders_on_lines.append(der)
+
         return np.array(ders_on_lines)
 
 ##########################################################################################
 
 
-class IrredZone(Kpoints):
+class IrredZone(KpointList):
     """
     An IrredZone is a (immutable) sequence of points in the irreducible wedge of the BZ.
     Each point has a weight whose sum must equal 1 so that we can integrate quantities 
@@ -504,10 +511,9 @@ class IrredZone(Kpoints):
                 `Kinfo` object, essentially consists of a dictionary with 
                 the parameters used to generate the mesh in the full Brillouin zone. 
         """
-        labels = None
-        #labels = kinfo.pop("labels", None)
-        super(IrredZone, self).__init__(structure, frac_coords,
-                                        weights=kinfo.weights, labels=labels)
+        names = None
+        #names = kinfo.pop("names", None)
+        super(IrredZone, self).__init__(structure, frac_coords, weights=kinfo.weights, names=names)
 
         # Weights must be normalized to one.
         wsum = sum(kpt.weight for kpt in self)
@@ -576,12 +582,12 @@ class KpointsInfo(dict):
                 raise ValueError("Mandatory key %s is missing" % k)
 
     @classmethod
-    def from_file(cls, file):
+    def from_file(cls, filepath):
         """
         Initialize the object from a Netcdf file with data
         saved in the ETSF-IO format.
         """
-        file, closeit = as_etsfreader(file)
+        file, closeit = as_etsfreader(filepath)
 
         d = {}
         for k in cls.KNOWN_KEYS:
@@ -590,7 +596,9 @@ class KpointsInfo(dict):
             except file.Error:
                 pass
 
-        if closeit: file.close()
+        if closeit:
+            file.close()
+
         return cls(**d)
 
     @property
@@ -631,15 +639,15 @@ class KpointsInfo(dict):
         return self.get("kptopt", None)
 
 
-def kpoints_factory(file):
+def kpoints_factory(filepath):
     """
     Factory function: returns an instance of [Kpath, IrredZone]
     from a netcdf file written according to the ETSF-IO specifications.
     """
-    file, closeit = as_etsfreader(file)
+    file, closeit = as_etsfreader(filepath)
     structure = file.read_structure()
 
-    kinfo = KpointsInfo.from_file(file)
+    kinfo = KpointsInfo.from_file(filepath)
 
     if kinfo.is_sampling:
         obj = IrredZone(structure, kinfo.frac_coords, kinfo)
@@ -743,7 +751,7 @@ def map_bz2ibz(structure, bz, ibz):
     fm_symmops = structure.fm_symops
 
     #from .shells import Shells
-    #func = lambda k: k.wraptows().norm
+    #func = lambda k: k.wrap_to_ws().norm
     #bz_shells = Shells(bz, func=func)
     #ibz_shells = Shells(ibz, func=func)
 
@@ -757,7 +765,7 @@ def map_bz2ibz(structure, bz, ibz):
 
     #    for bz_idx, kbz in fsh.indexitem():
     #        for ibz_idx, kibz in ish.indexitem():
-    #            if kbz in kibz.get_star(fm_symmops, wrap_tows=False):
+    #            if kbz in kibz.compute_star(fm_symmops, wrap_tows=False):
     #                bz2ibz[bz_idx] = ibz_idx
     #                break
     #        #else:
@@ -780,7 +788,7 @@ def map_bz2ibz(structure, bz, ibz):
     coord_stars = len(ibz) * [None]
     norm2star = {}
     for i, kirr in enumerate(ibz):
-        stars[i] = kirr.get_star(fm_symmops)
+        stars[i] = kirr.compute_star(fm_symmops)
         norm2star[kirr.norm] = i
         fc = [k.frac_coords for k in stars[i]]
         coord_stars[i] = np.reshape(fc, (-1, 3))

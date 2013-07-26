@@ -20,9 +20,9 @@ class SimpleGrid(gridlib.Grid):
             table:
                 List of string lists.
             row_labels:
-                List of strings used to label the rows.
+                List of strings used to name the rows.
             col_labels:
-                List of strings used to label the col.
+                List of strings used to name the col.
         """
 
         gridlib.Grid.__init__(self, parent, -1)
