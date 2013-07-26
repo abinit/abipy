@@ -390,7 +390,7 @@ class Sigmaw(object):
 
         if w == "s":
             f = self.xc
-            label = kwargs.get("name", "$\Sigma(\omega)$")
+            label = kwargs.get("label", "$\Sigma(\omega)$")
             extend(f.plot_ax(ax, cplx_mode="re", label="Re " + label))
             extend(f.plot_ax(ax, cplx_mode="im", label="Im " + label))
             ax.legend(loc="best")
@@ -398,11 +398,11 @@ class Sigmaw(object):
 
         elif w == "a":
             f = self.spfunc
-            label  = kwargs.get("name", "$A(\omega)$")
+            label  = kwargs.get("label", "$A(\omega)$")
             extend(f.plot_ax(ax, label=label))
             # Plot I(w)
             #ax2 = ax.twinx()
-            #extend(f.cumintegral().plot_ax(ax2, name="$I(\omega) = \int_{-\infty}^{\omega} A(\omega')d\omega'$"))
+            #extend(f.cumintegral().plot_ax(ax2, label="$I(\omega) = \int_{-\infty}^{\omega} A(\omega')d\omega'$"))
             #ax.set_ylabel('Energy [eV]')
             ax.legend(loc="best")
 

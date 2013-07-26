@@ -100,7 +100,7 @@ class ElectronDOS(object):
 
         Return value is a list of lines that were added.
         """
-        print("spin",spin)
+        #print("spin",spin)
         dosf, idosf = self.dos_idos(spin=spin)
 
         opts = [c.lower() for c in what]
@@ -182,13 +182,13 @@ class ElectronDOSPlotter(object):
         Adds a DOS for plotting.
 
         Args:
-            name:
-                name for the MDF. Must be unique.
+            label:
+                label for the MDF. Must be unique.
             dos:
                 MacroscopicDielectricFunction object.
         """
         if label in self._doses:
-            raise ValueError("name %s is already in %s" % (label, self._doses.keys()))
+            raise ValueError("label %s is already in %s" % (label, self._doses.keys()))
 
         self._doses[label] = dos
 
@@ -198,7 +198,7 @@ class ElectronDOSPlotter(object):
 
         Args:
             dos_dict:
-                dict of {name: dos}
+                dict of {label: dos}
             key_sort_func:
                 function used to sort the dos_dict keys.
         """

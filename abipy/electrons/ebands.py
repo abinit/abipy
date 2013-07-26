@@ -309,7 +309,7 @@ class ElectronBands(object):
 
         Args:
             key:
-                string used to name the set of markers.
+                string used to label the set of markers.
             xys:
                 Three iterables x,y,s where x[i],y[i] gives the
                 positions of the i-th markers in the plot and
@@ -358,7 +358,7 @@ class ElectronBands(object):
 
         Args:
             key:
-                string used to name the set of markers.
+                string used to label the set of markers.
             width
                 array-like of positive numbers, shape is [nsppol, nkpt, mband].
             overwrite:
@@ -739,7 +739,7 @@ class ElectronBands(object):
                     ax.fill_between(x, cumulative, cumulative + y, facecolor=color, alpha=0.7)
                     cumulative += jdos.values
                     i += 1
-                #tot_jdos.plot_ax(ax, color="k", lw=2, name=" Total JDOS: s=%s," % s, **kwargs)
+                #tot_jdos.plot_ax(ax, color="k", lw=2, label=" Total JDOS: s=%s," % s, **kwargs)
 
             else:
                 tot_jdos.plot_ax(ax, label="Total JDOS: s=%s," % s, **kwargs)
@@ -1288,15 +1288,15 @@ class ElectronBandsPlotter(object):
         Adds a band structure for plotting.
 
         Args:
-            name:
-                name for the bands. Must be unique.
+            label:
+                label for the bands. Must be unique.
             bands:
                 `ElectronBands` object.
             dos:
                 `ElectronDos` object.
         """
         if label in self._bands:
-            raise ValueError("name %s is already in %s" % (label, self._bands.keys()))
+            raise ValueError("label %s is already in %s" % (label, self._bands.keys()))
 
         self._bands[label] = bands
 
@@ -1452,13 +1452,13 @@ class ElectronDosPlotter(object):
         Adds a DOS for plotting.
 
         Args:
-            name:
-                name for the DOS. Must be unique.
+            label:
+                label for the DOS. Must be unique.
             dos:
                 `ElectronDos` object.
         """
         if label in self._doses:
-            raise ValueError("name %s is already in %s" % (label, self._doses.keys()))
+            raise ValueError("label %s is already in %s" % (label, self._doses.keys()))
 
         self._doses[label] = dos
 
