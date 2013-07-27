@@ -192,12 +192,9 @@ class Kpoint(object):
         return self.__class__(self.frac_coords - other.frac_coords, self.lattice)
 
     def __eq__(self, other):
-        # Comparison between two KpointList
         try:
-        #if isinstance(other, Kpoint):
-            #return issamek(self.frac_coords, other.frac_coords, atol=self._ATOL_KDIFF)
-            kdiff = self.frac_coords - other.frac_coords
-            return all(abs(np.around(kdiff) - kdiff) < self._ATOL_KDIFF)
+            # Comparison between two Kpoint objects
+            return issamek(self.frac_coords, other.frac_coords, atol=self._ATOL_KDIFF)
 
         except AttributeError:
             # Kpoint vs iterable (e.g. list)
@@ -210,7 +207,14 @@ class Kpoint(object):
         return self.frac_coords[slice]
 
     #def __hash__(self):
-    #    return tuple(self.frac_coords).__hash__()
+    #    try:
+    #        return self._hash
+    #    except AttributeError:
+    #        #datum = "%.2f %.2f %.2f" % tuple(wrap_to_ws(self.frac_coords))
+    #        #datum = tuple([round(x, 2) for x in wrap_to_ws(self.frac_coords)])
+    #        datum = 1
+    #        self._hash = hash(datum)
+    #        return self._hash
 
     @classmethod
     def askpoint(cls, obj, lattice):
@@ -325,11 +329,11 @@ class KpointList(collections.Sequence):
     def reciprocal_lattice(self):
         return self.structure.reciprocal_lattice
 
-    # Sequence protocol.
     def __str__(self):
-        lines = ["%d) %s" % ik for ik in enumerate(self)]
+        lines = ["%d) %s" % (i, str(kpoint)) for i, kpoint in enumerate(self)]
         return "\n".join(lines)
 
+    # Sequence protocol.
     def __len__(self):
         return len(self._points)
 
@@ -344,6 +348,16 @@ class KpointList(collections.Sequence):
 
     def __reversed__(self):
         return self._points.__reversed__()
+
+    #def __add__(self, other):
+    #    assert self.structure == other.structure
+    #    return KpointList(self.structure, 
+    #        frac_coords = [k.frac_coords for k in self] + [k.frac_coords for k in other], 
+    #        weights = None,
+    #        names = [k.name for k in self] + [k.name for k in other]
+    #        )
+
+    #def __sub__(self, other):
 
     def index(self, kpoint):
         """
@@ -365,14 +379,14 @@ class KpointList(collections.Sequence):
         try:
             return self._sum_weights
         except AttributeError:
-            self._sum_weights = np.sum(k.weight for k in self)
+            self._sum_weights = np.sum(kpoint.weight for kpoint in self)
             return self._sum_weights
 
     def asarray(self):
         """Returns a ndarray with the fractional coordinates of the k-points."""
         frac_coords = np.empty((len(self), 3))
-        for i, k in enumerate(self):
-            frac_coords[i] = k.frac_coords
+        for i, kpoint in enumerate(self):
+            frac_coords[i] = kpoint.frac_coords
 
         return frac_coords
 
@@ -663,8 +677,6 @@ def kpoints_factory(filepath):
 
     return obj
 
-##########################################################################################
-
 
 def map_mesh2ibz(structure, mpdivs, shifts, ibz):
     """
@@ -727,165 +739,48 @@ def map_bz2ibz(structure, bz, ibz):
     """
     #from pymatgen.core.finder import SymmetryFinder
     #finder = SymmetryFinder(structure)
-
     #Returns:
     #            Numbering of reducible kpoints. Equivalent kpoints will have the
     #            same number. The number of unique values is the number of the
     #            irreducible kpoints.
-
     #finder.get_ir_kpoints_mapping(kpoints, is_time_reversal=True)
-
     #Returns:
     #        A list of irreducible kpoints and their weights as a list of
     #        tuples [(ir_kpoint, weight)], with ir_kpoint given
     #        in fractional coordinates
-
     #finder.get_ir_reciprocal_mesh(mesh=(10, 10, 10), shift=(0, 0, 0), is_time_reversal=True)
 
     ibz = askpoints(ibz, structure.reciprocal_lattice)
     bz = askpoints(bz, structure.reciprocal_lattice)
+
     bz2ibz = np.empty(len(bz), np.int)
     bz2ibz.fill(-1)
 
     # Only Ferromagnetic symmetries are used.
-    fm_symmops = structure.fm_symops
+    #fm_symmops = structure.fm_symmops
+    #stars = [Star(kirr, fm_symmops) for kirr in ibz]
 
-    #from .shells import Shells
-    #func = lambda k: k.wrap_to_ws().norm
-    #bz_shells = Shells(bz, func=func)
-    #ibz_shells = Shells(ibz, func=func)
+    #miss = 0
+    #for bz_idx, kfull in enumerate(bz):
 
-    #miss = []
-    #for fsh in bz_shells:
-    #    try:
-    #        ish = ibz_shells.get_from_value(fsh.value)
-    #    except ValueError:
-    #        miss.append(fsh)
-    #        continue
+    #    for ibz_idx, star in enumerate(stars):
+    #        idx = star.index(kfull) 
+    #        if idx != -1:
+    #            bz2ibz[bz_idx] = ibz_idx 
+    #            break
 
-    #    for bz_idx, kbz in fsh.indexitem():
-    #        for ibz_idx, kibz in ish.indexitem():
-    #            if kbz in kibz.compute_star(fm_symmops, wrap_tows=False):
-    #                bz2ibz[bz_idx] = ibz_idx
-    #                break
-    #        #else:
-    #            #raise ValueError("Not found")
+    #    if bz2ibz[bz_idx] == -1:
+    #        msg = "Full k-point: %s not found" % str(kfull)
+    #        #raise ValueError(msg)
+    #        print(msg)
+    #        miss += 1
+
     #if miss:
-    #    print("len(miss) = ",len(miss))
-    #    for fsh in miss:
-    #        for bz_idx, kfull in fsh.indexitem():
-    #            for ibz_idx, kirred in enumerate(ibz):
-    #                if kfull in kirred.iter_star(fm_symmops):
-    #                    bz2ibz[bz_idx] = ibz_idx
-    #                    #break
-    #            #else:
-    #                #raise ValueError("Full k-point: %s not found" % kfull)
-    #if all(bzibz != -1):
-    #    return bz2ibz
-    ATOL = Kpoint._ATOL_KDIFF
+    #    err_msg = "Cannot map BZ %d/%d missing" % (miss, len(bz))
+    #    raise ValueError(err_msg)
 
-    stars = len(ibz) * [None]
-    coord_stars = len(ibz) * [None]
-    norm2star = {}
-    for i, kirr in enumerate(ibz):
-        stars[i] = kirr.compute_star(fm_symmops)
-        norm2star[kirr.norm] = i
-        fc = [k.frac_coords for k in stars[i]]
-        coord_stars[i] = np.reshape(fc, (-1, 3))
-
-    #fullbz_coords = np.empty((len(bz), 3))
-    #ibz_coords = np.empty((len(ibz), 3))
-
-    #for i, k in enumerate(ibz):
-    #    ibz_coords[i][:] = k.frac_coords
-
-    #for i, kfull in enumerate(bz):
-    #    fullbz_coords[i][:] = k.frac_coords
-
-    #for ik_full in range(len(bz)):
-    #    found = False
-    #    fullk = fullbz_coords[ik_full]
-    #    for ik_irr in range(len(ibz)):
-    #        kdiff = coord_stars[ik_irr] - fullk
-    #        #print(kdiff.shape)
-    #        mask = abs(np.around(kdiff) - kdiff) < ATOL
-    #        for m in mask:
-    #            if m.all():
-    #                found = True
-    #                bz2ibz[ik_full] = ik_irr
-    #                break
-    #        #if mask.any():
-    #        #    found = True
-    #        #    bz2ibz[ik_full] = ik_irr
-    #        #    break
-
-    #    if not found:
-    #        raise ValueError("Full k-point: %s not found" % kfull)
-
+    #print("Done")
     #return bz2ibz
-    #print("done")
-    #import sys
-    #sys.exit(1)
-
-    miss = 0
-    for bz_idx, kfull in enumerate(bz):
-        if bz2ibz[bz_idx] != -1:
-            continue
-        found = False
-
-        kfull_coords = kfull.frac_coords
-
-        #kf_norm = kfull.norm
-        #if kf_norm in norm2star:
-        #    ibz_idx = norm2star[kf_norm]
-        #    star = stars[ibz_idx]
-        #    #    if kfull in star:
-        #    #        found = True
-        #    #        bz2ibz[bz_idx] = ibz_idx
-        #    for k in star:
-        #        kdiff = k.frac_coords - kfull_coords
-        #        if all(abs(np.around(kdiff) - kdiff) < ATOL):
-        #            found = True
-        #            bz2ibz[bz_idx] = ibz_idx
-        #            break
-        #if found:
-        #    continue
-
-        for ibz_idx, kirr in enumerate(ibz):
-            #if kfull in kirr.iter_star(fm_symmops):
-            #    bz2ibz[bz_idx] = ibz_idx
-            #    break
-
-            #kdiffs = np.reshape([k.frac_coords - kfull_coords for k in stars[ibz_idx]], (-1,3))
-
-            for k in stars[ibz_idx]:
-                kdiff = k.frac_coords - kfull_coords
-                #kdiff = np.ascontiguousarray(kdiff)
-                #assert kdiff.iscontiguous
-                #int_kdiff = np.array([round(c) for c in kdiff], dtype=np.float)
-                #int_kdiff = np.array([c for c in kdiff], dtype=np.float)
-                #if all(abs(int_kdiff - kdiff) < ATOL):
-                if all(abs(np.round(kdiff) - kdiff) < ATOL):
-                #if all(abs(kdiff) < ATOL):
-                    found = True
-                    bz2ibz[bz_idx] = ibz_idx
-                    break
-
-                    #if kfull in stars[ibz_idx]:
-                    #    found = True
-                    #    bz2ibz[bz_idx] = ibz_idx
-                    #    break
-
-        if not found:
-            #print("Full k-point: %s not found" % kfull))
-            miss += 1
-
-    if miss:
-        err_msg = "Cannot map BZ %d/%d missing" % (miss, len(bz))
-        raise ValueError(err_msg)
-
-    print("Done")
-    return bz2ibz
 
 #########################################################################################
 

@@ -2,7 +2,9 @@
 from __future__ import print_function, division
 
 from abipy import *
-from abipy.electrons.gwtools import ScissorsBuilder
+from abipy.electrons import ScissorsBuilder
+
+import sys
 
 #scissors_from_sigres(get_reference_file("tgw1_9o_DS4_SIGRES.nc"))
 
@@ -13,7 +15,7 @@ from abipy import *
 
 import numpy as np
 from abipy.tools.derivatives import finite_diff
-from abipy.testing import *
+#from abipy.testing import *
 import matplotlib.pyplot as plt
 
 
@@ -103,9 +105,9 @@ def plot_emasses():
     #bands.plot()
 
 def check_kinfo():
-    from abipy.kpoints import KpointsInfo, kpoints_factory
+    from abipy.core.kpoints import KpointsInfo, kpoints_factory
     file = get_reference_file("si_nscf_WFK-etsf.nc")
-    #kinfo = KpointsInfo.from_etsf_file(file)
+    #kinfo = KpointsInfo.from_file(file)
     #print(kinfo)
     #print(kinfo.is_sampling)
     kpoints = kpoints_factory(file)
@@ -143,22 +145,23 @@ def sppgroup():
     #structure = wfk.get_structure()
     #ibz = wfk.kpoints
 
-    structure = Structure.from_etsf_file(filename)
+    structure = Structure.from_file(filename)
 
     spg = structure.spacegroup
     print(spg)
 
     ibz = kpoints_factory(filename)
     print(type(ibz))
+    print("mpdivs",ibz.mpdivs)
 
-    bands = ElectronBands.from_ncfile(filename)
+    bands = ElectronBands.from_file(filename)
 
-    from abipy.kpoints.kpoints import map_mesh2ibz, Kmesh
-    from abipy.tools.plotting_utils import plot_array
-    kmesh = Kmesh(structure,ibz.mpdivs, ibz.shifts, ibz)
+    from abipy.core.kpoints import map_mesh2ibz, Kmesh
 
-    #kmap = map_mesh2ibz(structure, ibz.mpdivs, ibz.shifts, ibz)
-    print(kmesh.bzmap)
+    kmap = map_mesh2ibz(structure, ibz.mpdivs, ibz.shifts, ibz)
+    sys.exit(1)
+    #kmesh = Kmesh(structure,ibz.mpdivs, ibz.shifts, ibz)
+    #print(kmesh.bzmap)
 
     band = 3
 
@@ -172,6 +175,7 @@ def sppgroup():
     #mlab.surf(kx,ky,plane)
     #mlab.show()
 
+    from abipy.tools.plotting_utils import plot_array
     from mpl_toolkits.mplot3d import axes3d
     from matplotlib import cm
 

@@ -149,13 +149,10 @@ class SymmOp(object):
         """
         Apply the symmetry operation to the k-point given in reduced coordinates.
 
-        Sk is wrapped to the first Brillouin zone if wrap is True.
+        Sk is wrapped to the first Brillouin zone if wrap_tows is True.
         """
         sk = np.dot(self.rot_g, frac_coords) * self.time_sign
-        if not wrap_tows:
-            return sk
-        else:
-            return wrap_to_ws(sk)
+        return wrap_to_ws(sk) if wrap_tows else sk
 
     def rotate_g(self, gvecs):
         """

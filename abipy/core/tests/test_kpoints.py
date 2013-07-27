@@ -74,6 +74,11 @@ class TestKpoint(AbipyTest):
         self.assertEqual(X.norm, (gamma + X).norm)
         self.assertEqual(X.norm, np.sqrt(np.sum(X.cart_coords**2)))
 
+        # test hash function.
+        #self.assertTrue(hash(gamma) == hash(pgamma))
+        #if hash(X) != hash(gamma):
+        #    self.assertTrue(X != gamma)
+
 
 if __name__ == "__main__":
     import unittest

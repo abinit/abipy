@@ -55,50 +55,44 @@ class Structure(pymatgen.Structure):
         return self.spacegroup.issymmorphic
 
     @property
-    def fm_symops(self):
+    def fm_symmops(self):
         """Tuple with ferromagnetic symmetries (time-reversal is included, if present)."""
-        return self.spacegroup.symmops(afm_sgn=+1)
+        return self.spacegroup.symmops(afm_sign=+1)
 
     @property
-    def afm_symops(self):
+    def afm_symmops(self):
         """Tuple with Anti-ferromagnetic symmetries (time-reversal is included, if present)."""
-        return self.spacegroup.symmops(afm_sgn=-1)
+        return self.spacegroup.symmops(afm_sign=-1)
 
     @property
-    def high_symmetry_kpath(self):
+    def hsym_kpath(self):
         """
         Returns an instance of the pymatgen class `HighSymmKpath`
         (Database of high symmetry k-points and high symmetry lines).
         """
         try:
-            return self._high_symmetry_kpath
+            return self._hsym_kpath
         except AttributeError:
             from pymatgen.symmetry.bandstructure import HighSymmKpath
-            self._high_symmetry_kpath = HighSymmKpath(self)
-            return self._high_symmetry_kpath
+            self._hsym_kpath = HighSymmKpath(self)
+            return self._hsym_kpath
 
     @property
-    def high_symmetry_kpoints(self):
+    def hsym_stars(self):
         try:
-            return self._high_symmetry_kpoints
+            return self._hsym_stars
 
         except AttributeError:
-            name2frac_coords = self.high_symmetry_kpath.kpath["kpoints"]
+            name2frac_coords = self.hsym_kpath.kpath["kpoints"]
             import pprint
             pprint.pprint(name2frac_coords)
 
-            for symop in self.spacegroup:
-                print(symop)
-                symop.rotate_k(wrap_tows=True)
+            hsym_kpoints = [Kpoint(frac_coords, self.lattice, weight=None, name=name) 
+                for (name, frac_coords) in names2frac_coords.items()]
 
-            label2star = {}
+            self._hsym_stars = [kpoint.compute_star() for kpoint in hsym_kpoints]
 
-            kstar = kpoint.compute_star(symmops, wrap_tows=True)
-
-            #hs_kpoints = KpointList(structure, frac_coords, weights=None, labels=None):
-
-            self._high_symmetry_kpoints = name2frac_coords
-            return self._high_symmetry_kpoints
+            return self._hsym_stars
 
     def show_bz(self):
         """
