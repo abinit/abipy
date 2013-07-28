@@ -83,22 +83,38 @@ class Structure(pymatgen.Structure):
             return self._hsym_stars
 
         except AttributeError:
+            # Get mapping name --> frac_coords for the special k-points in the database.
             name2frac_coords = self.hsym_kpath.kpath["kpoints"]
-            import pprint
-            pprint.pprint(name2frac_coords)
 
-            hsym_kpoints = [Kpoint(frac_coords, self.lattice, weight=None, name=name) 
-                for (name, frac_coords) in names2frac_coords.items()]
+            # Build Kpoint instances.
+            from .kpoints import Kpoint
+            hsym_kpoints = [Kpoint(frac_coords, self.reciprocal_lattice, weight=None, name=name) 
+                for (name, frac_coords) in name2frac_coords.items()]
 
-            self._hsym_stars = [kpoint.compute_star() for kpoint in hsym_kpoints]
+            # Construct the stars.
+            self._hsym_stars = [kpoint.compute_star(self.fm_symmops) for kpoint in hsym_kpoints]
+
+            for star in self._hsym_stars:
+                print("===",star[0].name)
+                for kpoint in star:
+                    print(kpoint)
+                print("===")
 
             return self._hsym_stars
+
+    def findname_in_hsym_stars(self, kpoint):
+        for star in self.hsym_stars:
+            idx = star.index(kpoint)
+            if idx != -1:
+                return star[0].name
+        else:
+            return None
 
     def show_bz(self):
         """
         Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
         """
-        return self.high_symmetry_kpath.get_kpath_plot()
+        return self.hsym_kpath.get_kpath_plot()
 
     def export(self, filename):
         """

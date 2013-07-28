@@ -120,6 +120,7 @@ class Kpoint(object):
         "_weight",
         "_name",
     ]
+
     # Tolerance used to compare k-points.
     _ATOL_KDIFF = 1e-08
 
@@ -129,7 +130,7 @@ class Kpoint(object):
             frac_coords:
                 Reduced coordinates.
             lattice:
-                Reciprocal lattice object.
+                `Lattice` object describing the reciprocal lattice.
             weights: 
                 k-point weight (optional, set to zero if not given).
             name:
@@ -139,8 +140,8 @@ class Kpoint(object):
         assert len(self.frac_coords) == 3
 
         self._lattice = lattice
-        self._weight = weight
-        self._name = name
+        self.set_weight(weight)
+        self.set_name(name)
 
     @property
     def frac_coords(self):
@@ -176,6 +177,8 @@ class Kpoint(object):
 
     def set_name(self, name):
         """Set the name of the k-point."""
+        # Fix typo in Latex syntax (if any).
+        if name is not None and name.startswith("\\"): name = "$" + name + "$"
         self._name = name
 
     def __str__(self):
@@ -270,23 +273,24 @@ class Kpoint(object):
         
     def compute_star(self, symmops, wrap_tows=True):
         """Return the star of the kpoint (tuple of `Kpoint` objects)."""
-        star = []
+        frac_coords = [self.frac_coords]
         for sym in symmops:
             sk_coords = sym.rotate_k(self.frac_coords, wrap_tows=wrap_tows)
-            star.append(self.__class__(sk_coords, self.lattice, name=self.name))
 
-        return tuple(star)
-        #return KpointList(self.structure, frac_coords, weights=None, names=len(* [None):
+            # Add it only if it's not already in the list.
+            for prev_coords in frac_coords:
+                if issamek(sk_coords, prev_coords, atol=self._ATOL_KDIFF):
+                    break
+            else:
+                frac_coords.append(sk_coords)
+
+        return KpointStar(self.lattice, frac_coords, weights=None, names=len(frac_coords) * [self.name])
 
 ##########################################################################################
 
 
 class KpointsError(AbipyException):
     """Base error class for KpointList exceptions."""
-
-
-class KpointNotFoundError(KpointsError):
-    """Raised when the k-point cannot be found in KpointList."""
 
 
 class KpointList(collections.Sequence):
@@ -296,11 +300,11 @@ class KpointList(collections.Sequence):
     """
     Error = KpointsError
 
-    def __init__(self, structure, frac_coords, weights=None, names=None):
+    def __init__(self, reciprocal_lattice, frac_coords, weights=None, names=None):
         """
         Args:
-            structure:
-                `Structure` object.
+            reciprocal_lattice:
+                `Lattice` object.
             frac_coords:
                 Array-like object with the reduced coordinates of the k-points.
             weights:
@@ -308,7 +312,7 @@ class KpointList(collections.Sequence):
             names:
                 List of k-point names.
         """
-        self.structure = structure
+        self._reciprocal_lattice = reciprocal_lattice
 
         frac_coords = np.reshape(frac_coords, (-1, 3))
 
@@ -327,7 +331,7 @@ class KpointList(collections.Sequence):
 
     @property
     def reciprocal_lattice(self):
-        return self.structure.reciprocal_lattice
+        return self._reciprocal_lattice
 
     def __str__(self):
         lines = ["%d) %s" % (i, str(kpoint)) for i, kpoint in enumerate(self)]
@@ -350,8 +354,8 @@ class KpointList(collections.Sequence):
         return self._points.__reversed__()
 
     #def __add__(self, other):
-    #    assert self.structure == other.structure
-    #    return KpointList(self.structure, 
+    #    assert self.reciprocal_lattice == other.reciprocal_lattice
+    #    return KpointList(self.reciprocal_lattice, 
     #        frac_coords = [k.frac_coords for k in self] + [k.frac_coords for k in other], 
     #        weights = None,
     #        names = [k.name for k in self] + [k.name for k in other]
@@ -361,13 +365,12 @@ class KpointList(collections.Sequence):
 
     def index(self, kpoint):
         """
-        Returns first index of kpoint.
-        Raises ValueError if the value is not present..
+        Returns first index of kpoint. -1 if not found
         """
         try:
             return self._points.index(kpoint)
         except ValueError:
-            raise KpointNotFoundError
+            return -1
 
     def count(self, kpoint):
         """Return number of occurrences of kpoint"""
@@ -393,14 +396,28 @@ class KpointList(collections.Sequence):
 ##########################################################################################
 
 
+class KpointStar(KpointList):
+    """
+    Start of the kpoint. Note that the first k-point is assumed to be the base 
+    of the star namely the point that is used to generate the Star.
+    """
+    @property
+    def base_kpoint(self):
+        return self[0]
+
+    @property
+    def name(self):
+        return self.base_kpoint.name
+
+
 class Kpath(KpointList):
     """This object describes a path in reciprocal space."""
 
-    def __init__(self, structure, frac_coords, kinfo):
+    def __init__(self, reciprocal_lattice, frac_coords, kinfo):
         #names = kinfo.pop("names", None)
         names = None
 
-        super(Kpath, self).__init__(structure, frac_coords, weights=kinfo.weights, names=names)
+        super(Kpath, self).__init__(reciprocal_lattice, frac_coords, weights=kinfo.weights, names=names)
         # time-reversal?
         #bounds = kinfo.pop("bounds", None)
         #if bounds is None:
@@ -409,10 +426,10 @@ class Kpath(KpointList):
         #    pass
 
     #@classmethod
-    #def from_bounds(cls, structure, bounds, ndivsm)
+    #def from_bounds(cls, reciprocal_lattice, bounds, ndivsm)
 
     #@classmethod
-    #def automatic(cls, structure, ndivsm)
+    #def automatic(cls, reciprocal_lattice, ndivsm)
 
     @property
     def ds(self):
@@ -514,11 +531,11 @@ class IrredZone(KpointList):
     in the full Brillouin zone.
     """
 
-    def __init__(self, structure, frac_coords, kinfo):
+    def __init__(self, reciprocal_lattice, frac_coords, kinfo):
         """
         Args:
-            structure:
-                pymatgen `Structure`
+            reciprocal_lattice:
+                `Lattice`
             frac_coords:
                 Array-like object with the reduced coordinates of the points.
             kinfo:
@@ -527,7 +544,7 @@ class IrredZone(KpointList):
         """
         names = None
         #names = kinfo.pop("names", None)
-        super(IrredZone, self).__init__(structure, frac_coords, weights=kinfo.weights, names=names)
+        super(IrredZone, self).__init__(reciprocal_lattice, frac_coords, weights=kinfo.weights, names=names)
 
         # Weights must be normalized to one.
         wsum = sum(kpt.weight for kpt in self)
@@ -560,10 +577,10 @@ class IrredZone(KpointList):
         "True if the mesh has been defined in terms of Monkhors-Pack divisions."""
         return self.mpdivs is not None
 
-        #@classmethod
-        #def from_info(cls, structure, info):
-        #    """Initialize the IrredZone from structure and info."""
-        #    raise NotImplementedError("")
+    #@classmethod
+    #def from_info(cls, reciprocal_lattice, info):
+    #    """Initialize the IrredZone from reciprocal_lattice and info."""
+    #    raise NotImplementedError("")
 
 ##########################################################################################
 
@@ -664,10 +681,10 @@ def kpoints_factory(filepath):
     kinfo = KpointsInfo.from_file(filepath)
 
     if kinfo.is_sampling:
-        obj = IrredZone(structure, kinfo.frac_coords, kinfo)
+        obj = IrredZone(structure.reciprocal_lattice, kinfo.frac_coords, kinfo)
 
     elif kinfo.is_path:
-        obj = Kpath(structure, kinfo.frac_coords, kinfo)
+        obj = Kpath(structure.reciprocal_lattice, kinfo.frac_coords, kinfo)
 
     else:
         raise ValueError("Only path or sampling modes are supported!")

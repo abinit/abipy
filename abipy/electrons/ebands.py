@@ -212,6 +212,18 @@ class ElectronBands(object):
 
         self.smearing = {} if smearing is None else smearing
 
+        # TODO: Make sure that we always instanciate the abipy structure
+        # so that we have access to the symmetry operations.
+        # 
+        # Find the k-point names in the pymatgen database.
+        # We'll use _auto_klabels to label the point in the matplotlib plot
+        # if klabels are not specified by the user.
+        self._auto_klabels = collections.OrderedDict()
+        for idx, kpoint in enumerate(self.kpoints):
+            name = self.structure.findname_in_hsym_stars(kpoint)
+            if name is not None:
+                self._auto_klabels[idx] = name
+
         if markers is not None:
             for key, xys in markers.items():
                 self.set_marker(key, xys)
@@ -958,9 +970,9 @@ class ElectronBands(object):
         ax.legend(loc="best")
 
         # Set ticks and labels.
-        if klabels is not None:
-            ticks, labels = self._ticks_and_labels(klabels)
+        ticks, labels = self._make_ticks_and_labels(klabels)
 
+        if ticks:
             ax.set_xticks(ticks, minor=False)
             ax.set_xticklabels(labels, fontdict=None, minor=False)
 
@@ -1017,20 +1029,22 @@ class ElectronBands(object):
         if neg_s:
             ax.scatter(neg_x, neg_y, s=np.abs(neg_s)*fact, marker="v", label=key + " <0")
 
-    def _make_kpoint(self, frac_coords):
-        """Build Kpoint instance."""
-        return Kpoint(frac_coords, self.reciprocal_lattice.matrix)
-
-    def _ticks_and_labels(self, klabels):
+    def _make_ticks_and_labels(self, klabels):
         """Return ticks and labels from the mapping qlabels."""
-        d = {}
-        for (kcoord, kname) in klabels.items():
-            # Build Kpoint instance.
-            ktick = self._make_kpoint(kcoord)
-            for (idx, kpt) in enumerate(self.kpoints):
-                if ktick == kpt: d[idx] = kname
 
-        # ticks, labels
+        if klabels is not None:
+            d = collections.OrderedDict()
+            for (kcoord, kname) in klabels.items():
+                # Build Kpoint instance.
+                ktick = Kpoint(kcoord, self.reciprocal_lattice)
+                for (idx, kpt) in enumerate(self.kpoints):
+                    if ktick == kpt: 
+                        d[idx] = kname
+
+        else:
+            d = self._auto_klabels
+
+        # Return ticks, labels
         return d.keys(), d.values()
 
     def plot_with_dos(self, dos, klabels=None, **kwargs):
@@ -1078,7 +1092,7 @@ class ElectronBands(object):
 
         # Set ticks and labels.
         if klabels is not None:
-            ticks, labels = self._ticks_and_labels(klabels)
+            ticks, labels = self._make_ticks_and_labels(klabels)
 
             ax1.set_xticks(ticks, minor=False)
             ax1.set_xticklabels(labels, fontdict=None, minor=False)
@@ -1398,7 +1412,7 @@ class ElectronBandsPlotter(object):
 
             # Set ticks and labels.
             if i == 0 and klabels is not None:
-                ticks, labels = bands._ticks_and_labels(klabels)
+                ticks, labels = bands._make_ticks_and_labels(klabels)
                 ax.set_xticks(ticks, minor=False)
                 ax.set_xticklabels(labels, fontdict=None, minor=False)
 
@@ -1511,6 +1525,10 @@ class Ebands_Reader(ETSF_Reader):
     This object reads band structure data from a netcdf file written
     according to the ETSF-IO specifications.
     """
+    #def read_structure(self):
+    #    from abipy.core.structure import Structure
+    #    return Structure.from_file(self.path)
+
     def read_kpoints(self):
         """Factory function. Returns KpointList instance."""
         return kpoints_factory(self)
@@ -1540,7 +1558,7 @@ class Ebands_Reader(ETSF_Reader):
         return self.read_value("number_of_electrons")
 
     def read_smearing(self):
-        """Returns a `AttrDict` with info on the smearing technique."""
+        """Returns a `Smearing` instance with info on the smearing technique."""
         try:
             scheme = "".join(c for c in self.read_value("smearing_scheme"))
         except TypeError:

@@ -12,12 +12,17 @@ wfk_file = WFK_File(filename)
 # Extract the band structure. 
 bands = wfk_file.get_bands()
 
-# Define the mapping reduced_coordinates -> name of the k-point.
+# Plot the band energies. Note that the labels for the k-point 
+# are found automatically by searching in an internal database.
+bands.plot(title="Silicon band structure")
+
+# Alternatively you can use the optional argument klabels 
+# that defines the mapping reduced_coordinates --> name of the k-point.
 klabels = {
-    (0.5,  0.0,  0.0) : "L",
-    (0.0,  0.0,  0.0) : "$\Gamma$",
-    (0.0,  0.5,  0.5) : "X",
+    (0.5, 0.0, 0.0) : "L",
+    (0.0, 0.0, 0.0) : "$\Gamma$",
+    (0.0, 0.5, 0.5) : "X",
 }
 
-# Plot the band energies.
-bands.plot(title="Silicon band structure", klabels = klabels)
+# and pass it to the plot method:
+#bands.plot(title="Silicon band structure", klabels=klabels)
