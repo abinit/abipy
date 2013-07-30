@@ -6,15 +6,13 @@ import cStringIO
 import collections
 import numpy as np
 
-from pymatgen.io.abinitio.netcdf import ETSF_Reader
 from abipy.tools import find_le, find_ge
-
 from abipy.core.constants import Ha_eV
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import askpoints, kpoints_factory
 from abipy.tools.text import pprint_table
 from abipy.electrons.ebands import ElectronBands
-from abipy.iotools import AbinitNcFile
+from abipy.iotools import AbinitNcFile, ETSF_Reader
 
 __all__ = [
     "QPState",

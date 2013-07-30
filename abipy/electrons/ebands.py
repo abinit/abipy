@@ -315,7 +315,7 @@ class ElectronBands(object):
             except AttributeError:
                 pass
 
-    def set_marker(self, key, xys, overwrite=False):
+    def set_marker(self, key, xys, extend=False):
         """
         Set an entry in the markers dictionary.
 
@@ -326,20 +326,33 @@ class ElectronBands(object):
                 Three iterables x,y,s where x[i],y[i] gives the
                 positions of the i-th markers in the plot and
                 s[i] is the size of the marker.
-            overwrite:
-                True if key can overwrite a pre-existing entry.
+            extend:
+                True if the values xys should be added to a pre-existing marker.
         """
         if not hasattr(self, "_markers"):
             self._markers = collections.OrderedDict()
-
-        if key in self.markers and not overwrite:
-            raise ValueError("Cannot overwrite key %s in data" % key)
 
         for s in xys[-1]:
             if np.iscomplex(s):
                 raise ValueError("Found ambiguous complex entry %s" % str(s))
 
-        self._markers[key] = xys
+        if extend:
+            if key not in self.markers:
+                self._markers[key] = xys
+            else:
+                # Add xys to the previous marker set.
+                prev_marker = self._markers[key]
+                prev_marker[0].extend(x)
+                prev_marker[1].extend(y)
+                prev_marker[2].extend(s)
+
+                self._markers[key] = prev_marker
+        
+        else:
+            if key in self.markers:
+                raise ValueError("Cannot overwrite key %s in data" % key)
+
+            self._markers[key] = xys
 
     @property
     def widths(self):
@@ -364,7 +377,7 @@ class ElectronBands(object):
             except AttributeError:
                 pass
 
-    def set_width(self, key, width, overwrite=False):
+    def set_width(self, key, width):
         """
         Set an entry in the widths dictionary.
 
@@ -373,15 +386,13 @@ class ElectronBands(object):
                 string used to label the set of markers.
             width
                 array-like of positive numbers, shape is [nsppol, nkpt, mband].
-            overwrite:
-                True if key can overwrite a pre-existing entry.
         """
         width = np.reshape(width, self.shape)
 
         if not hasattr(self, "_widths"):
             self._widths = collections.OrderedDict()
 
-        if key in self.widths and not overwrite:
+        if key in self.widths:
             raise ValueError("Cannot overwrite key %s in data" % key)
 
         if np.any(np.iscomplex(width)):
@@ -402,12 +413,12 @@ class ElectronBands(object):
         """True if the bands are computed on a k-path."""
         return isinstance(self.kpoints, Kpath)
 
-    def iter_skb(self):
-        """Iterator over (spin, band, kpt) indices."""
+    def skb_iter(self):
+        """Iterator over (spin, k, band) indices."""
         for spin in self.spins:
             for k in self.kidxs:
                 for band in self.nband_sk[spin,k]:
-                    yield (spin, k, band)
+                    yield spin, k, band
 
     def show_bz(self):
         """Call `matplotlib` to show the Brillouin zone."""
@@ -419,10 +430,11 @@ class ElectronBands(object):
 
     def enemin(self, spin=None, band=None):
         """Compute the minimum of the eigenvalues."""
-        my_spins = self.spins
+
+        spin_range = self.spins
         if spin is not None:
             assert isinstance(spin, int)
-            my_spins = list(spin)
+            spin_range = [spin]
 
         my_kidxs = self.kidxs
 
@@ -431,7 +443,7 @@ class ElectronBands(object):
             my_bands = list(band)
 
         emin = np.inf
-        for spin in my_spins:
+        for spin in spin_range:
             for k in my_kidxs:
                 if band is None:
                     my_bands = range(self.nband_sk[spin,k])
@@ -442,10 +454,10 @@ class ElectronBands(object):
 
     def enemax(self, spin=None, band=None):
         """Compute the maximum of the eigenvalues."""
-        my_spins = self.spins
+        spin_range = self.spins
         if spin is not None:
             assert isinstance(spin, int)
-            my_spins = list(spin)
+            spin_range = [spin]
 
         my_kidxs = self.kidxs
 
@@ -454,7 +466,7 @@ class ElectronBands(object):
             my_bands = list(band)
 
         emax = -np.inf
-        for spin in my_spins:
+        for spin in spin_range:
             for k in my_kidxs:
                 if band is None:
                     my_bands = range(self.nband_sk[spin,k])
@@ -578,7 +590,7 @@ class ElectronBands(object):
         Returns:
             `ElectronDOS` object.
         """
-        if abs(self.kpoints.sum_weights - 1) > 1.e-6:
+        if abs(self.kpoints.sum_weights() - 1) > 1.e-6:
             raise ValueError("Kpoint weights should sum up to one")
 
         # Compute the linear mesh.
@@ -631,7 +643,7 @@ class ElectronBands(object):
         Returns:
             `Function1D` object.
         """
-        if abs(self.kpoints.sum_weights - 1) > 1.e-6:
+        if abs(self.kpoints.sum_weights() - 1) > 1.e-6:
             raise ValueError("Kpoint weights should sum up to one")
 
         if not isinstance(valence, collections.Iterable):
@@ -1129,14 +1141,15 @@ class ElectronBands(object):
 
         return fig
 
-    def export_bxsf(self, file, structure):
+    def export_bxsf(self, filepath, structure):
         """
-        Export the full band structure on file
-        Format is defined by the extension in file.
+        Export the full band structure on filepath
+        Format is defined by the extension in filepath.
         """
         # Sanity check.
         errors = []
         eapp = errors.append
+
         if np.any(self.nband_sk != self.nband_sk[0,0]):
             eapp("nband must be constant")
 
@@ -1149,10 +1162,10 @@ class ElectronBands(object):
         if errors:
             raise ValueError("\n".join(errors))
 
-        if "." not in file:
-            raise ValueError("Cannot detect file extension in path %s: " % file)
+        if "." not in filepath:
+            raise ValueError("Cannot detect file extension in path %s: " % filepath)
 
-        tokens = file.strip().split(".")
+        tokens = filepath.strip().split(".")
         ext = tokens[-1]
 
         if not tokens[0]:
@@ -1160,16 +1173,16 @@ class ElectronBands(object):
             path = tempfile.mkstemp(suffix="."+ext, text=True)[1]
 
         # Xcrysden uses C order and includes periodic images.
-        ebands3d = EBands3D(self.kpoints, self.eigens, self.ngkpt, self.shiftk, structure,
-                            pbc=3*[True], korder="c")
+        ebands3d = EBands3D(self.kpoints, self.eigens, self.ngkpt, self.shiftk, structure, pbc=3*[True], korder="c")
 
-        with open(file, mode="w") as fh:
+        with open(filepath, mode="w") as fh:
             bxsf_write(fh, ebands3d, structure, fermie=self.fermie)
 
-        return Visualizer.from_file(file)
+        return Visualizer.from_file(filepath)
 
-    def derivatives(self, spin, band, order=1, acc=4, asmarker=False):
+    def derivatives(self, spin, band, order=1, acc=4, asmarker=None):
         """Compute the derivative of the eigenvalues along the path."""
+
         if self.has_bzpath:
             # Extract the branch.
             branch = self.eigens[spin,:,band]
@@ -1180,7 +1193,7 @@ class ElectronBands(object):
             # Compute derivatives by finite differences.
             ders_onlines = self.kpoints.finite_diff(branch, order=order, acc=acc)
 
-            if not asmarker:
+            if asmarker is None:
                 return ders_onlines
             else:
                 x, y, s = [], [], []
@@ -1191,6 +1204,7 @@ class ElectronBands(object):
                     s.extend(ders_onlines[i])
                     assert len(x) == len(y) == len(s)
 
+                self.set_marker(asmarker, (x,y,s))
                 return x, y, s
 
         else:
@@ -1202,48 +1216,14 @@ class ElectronBands(object):
         emasses = 1.0/ders2
         return emasses
 
-#########################################################################################
-
-
-class EBands3D(object):
-
-    def __init__(self, structure, ibz, ene_ibz, ngkpt, shifts, pbc=3*[True], korder="c"):
-        self.structure= structure
-        self.ibz      = ibz
-        self.ene_ibz  = np.atleast_3d(ene_ibz)
-        shape = self.ene_ibz.shape
-        self.nsppol, self.nkibz, self.nband = shape[0], shape[1], shape[2]
-        self.ngkpt = ngkpt
-        self.shifts = shifts
-        self.pbc = pbc
-        self.korder = korder
-        raise NotImplementedError("This code must be tested!")
-
-        # Generator for the K-mesh in the full Brillouin zone.
-        from abipy.core.kpoints import KmeshGen, BZSymmetrizer
-        self.kmesh_gen = KmeshGen(self.ngkpt, structure.lattice_vectors("g"),
-                         shifts=self.shifts, pbc=pbc, korder=korder, wrap_tows=False)
-
-        # Compute the mapping bz_mesh --> ibz
-        try:
-            self.ksymmetrizer = BZSymmetrizer(self.kmesh_gen, self.ibz, self.structure)
-        except:
-            raise
-
-    def enebz(self, spin, band):
-        """Return energies in the full BZone for given spin and band."""
-        return self.ksymmetrizer(self.ene_ibz[spin,:,band])
-
-#########################################################################################
-
 
 class NestingFactor(object):
 
-    def __init__(self, structure, bands):
-        self.structure = structure
+    def __init__(self, bands):
+
         self.bands = bands
 
-        # check whether k-points form a homogeneous sampling.
+        # Check whether k-points form a homogeneous sampling.
         if not self.bands.has_bzmesh:
             msg = "The computation of the nesting factor requires a homogeneous k-point sampling"
             raise ValueError(msg)
@@ -1251,11 +1231,9 @@ class NestingFactor(object):
     @classmethod
     def from_file(cls, filepath):
         """
-        Initialize the object from a netcdf
-        file containing an electronic band structure.
+        Initialize the object from a netcdf file containing an electronic band structure.
         """
-        with ETSF_Reader(filepath) as r:
-            return cls(r.get_structure(), r.get_bands())
+        return cls(ElectronBands.from_file(filepath))
 
     def compute_nesting(self, qpath):
         mesh, values = None, None
@@ -1525,10 +1503,6 @@ class Ebands_Reader(ETSF_Reader):
     This object reads band structure data from a netcdf file written
     according to the ETSF-IO specifications.
     """
-    #def read_structure(self):
-    #    from abipy.core.structure import Structure
-    #    return Structure.from_file(self.path)
-
     def read_kpoints(self):
         """Factory function. Returns KpointList instance."""
         return kpoints_factory(self)

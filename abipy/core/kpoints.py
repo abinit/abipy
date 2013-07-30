@@ -122,7 +122,7 @@ class Kpoint(object):
     ]
 
     # Tolerance used to compare k-points.
-    _ATOL_KDIFF = 1e-08
+    _ATOL_KDIFF = 1e-8
 
     def __init__(self, frac_coords, lattice, weight=None, name=None):
         """
@@ -181,10 +181,14 @@ class Kpoint(object):
         if name is not None and name.startswith("\\"): name = "$" + name + "$"
         self._name = name
 
+    def __repr__(self):
+        return self.__str__()
+
     def __str__(self):
-        s = "(%.3f, %.3f, %.3f)" % tuple(self.frac_coords)
-        if self._weight is not None:
-            s += ", weight = %f" % self.weight
+        s = "Kpoint: [%.3f, %.3f, %.3f]" % tuple(self.frac_coords)
+        if self.name is not None: s += ", name = %s" % self.name
+        if self._weight is not None: s += ", weight = %f" % self.weight
+
         return s
 
     # Kpoint algebra.
@@ -208,16 +212,6 @@ class Kpoint(object):
 
     def __getitem__(self, slice):
         return self.frac_coords[slice]
-
-    #def __hash__(self):
-    #    try:
-    #        return self._hash
-    #    except AttributeError:
-    #        #datum = "%.2f %.2f %.2f" % tuple(wrap_to_ws(self.frac_coords))
-    #        #datum = tuple([round(x, 2) for x in wrap_to_ws(self.frac_coords)])
-    #        datum = 1
-    #        self._hash = hash(datum)
-    #        return self._hash
 
     @classmethod
     def askpoint(cls, obj, lattice):
@@ -288,6 +282,30 @@ class Kpoint(object):
 
 ##########################################################################################
 
+def kpoints_factory(filepath):
+    """
+    Factory function: returns an instance of [Kpath, IrredZone]
+    from a netcdf file written according to the ETSF-IO specifications.
+    """
+    file, closeit = as_etsfreader(filepath)
+    structure = file.read_structure()
+
+    kinfo = KpointsInfo.from_file(filepath)
+
+    if kinfo.is_sampling:
+        obj = IrredZone(structure.reciprocal_lattice, kinfo.frac_coords, kinfo)
+
+    elif kinfo.is_path:
+        obj = Kpath(structure.reciprocal_lattice, kinfo.frac_coords, kinfo)
+
+    else:
+        raise ValueError("Only path or sampling modes are supported!")
+
+    if closeit:
+        file.close()
+
+    return obj
+
 
 class KpointsError(AbipyException):
     """Base error class for KpointList exceptions."""
@@ -314,20 +332,21 @@ class KpointList(collections.Sequence):
         """
         self._reciprocal_lattice = reciprocal_lattice
 
-        frac_coords = np.reshape(frac_coords, (-1, 3))
+        self._frac_coords = frac_coords = np.reshape(frac_coords, (-1, 3))
 
         if weights is not None:
             assert len(weights) == len(frac_coords)
+            weights = np.asarray(weights)
+        else:
+            weights = np.zeros(len(self.frac_coords))
 
         if names is not None:
             assert len(names) == len(frac_coords)
 
         self._points = []
         for (i, rcs) in enumerate(frac_coords):
-            weight = None if weights is None else weights[i]
             name = None if names is None else names[i]
-            kpt = Kpoint(rcs, self.reciprocal_lattice, weight=weight, name=name)
-            self._points.append(kpt)
+            self._points.append(Kpoint(rcs, self.reciprocal_lattice, weight=weights[i], name=name))
 
     @property
     def reciprocal_lattice(self):
@@ -365,10 +384,16 @@ class KpointList(collections.Sequence):
 
     def index(self, kpoint):
         """
+        Returns first index of kpoint. Raises ValueError if not found.
+        """
+        return self._points.index(kpoint)
+
+    def find(self, kpoint):
+        """
         Returns first index of kpoint. -1 if not found
         """
         try:
-            return self._points.index(kpoint)
+            return self.index(kpoint)
         except ValueError:
             return -1
 
@@ -377,23 +402,22 @@ class KpointList(collections.Sequence):
         return self._points.count(kpoint)
 
     @property
+    def frac_coords(self):
+        return self._frac_coords
+
+    @property
+    def weights(self):
+        return np.array([kpoint.weight for kpoint in self])
+
     def sum_weights(self):
-        """Return the sum of the weights of the k-points."""
-        try:
-            return self._sum_weights
-        except AttributeError:
-            self._sum_weights = np.sum(kpoint.weight for kpoint in self)
-            return self._sum_weights
+        return np.sum(self.weights)
 
-    def asarray(self):
-        """Returns a ndarray with the fractional coordinates of the k-points."""
-        frac_coords = np.empty((len(self), 3))
-        for i, kpoint in enumerate(self):
-            frac_coords[i] = kpoint.frac_coords
+    def to_fortran_arrays(self):
+        fort_arrays = collections.namedtuple("FortranKpointListArrays", "frac_coords")
 
-        return frac_coords
-
-##########################################################################################
+        return fort_arrays(
+            frac_coords=np.asfortranarray(self.frac_coords.T),
+        )
 
 
 class KpointStar(KpointList):
@@ -471,10 +495,11 @@ class Kpath(KpointList):
         """
         try:
             return self._lines
+
         except AttributeError:
             lines = []
             prev, indices = self.versors[0], [0]
-            for i, v in enumerate(self.versors[1:]):
+            for (i, v) in enumerate(self.versors[1:]):
                 i += 1
                 if v != prev:
                     prev = v
@@ -521,8 +546,6 @@ class Kpath(KpointList):
 
         return np.array(ders_on_lines)
 
-##########################################################################################
-
 
 class IrredZone(KpointList):
     """
@@ -547,7 +570,7 @@ class IrredZone(KpointList):
         super(IrredZone, self).__init__(reciprocal_lattice, frac_coords, weights=kinfo.weights, names=names)
 
         # Weights must be normalized to one.
-        wsum = sum(kpt.weight for kpt in self)
+        wsum = self.sum_weights()
         if abs(wsum - 1) > 1.e-6:
             raise ValueError("K-point weights must be normalized to one but wsum = %s" % wsum)
 
@@ -582,10 +605,9 @@ class IrredZone(KpointList):
     #    """Initialize the IrredZone from reciprocal_lattice and info."""
     #    raise NotImplementedError("")
 
-##########################################################################################
-
 
 class KpointsInfo(dict):
+
     class MANDATORY(object):
         """Mandatory keys."""
 
@@ -669,148 +691,17 @@ class KpointsInfo(dict):
     def kptopt(self):
         return self.get("kptopt", None)
 
-
-def kpoints_factory(filepath):
-    """
-    Factory function: returns an instance of [Kpath, IrredZone]
-    from a netcdf file written according to the ETSF-IO specifications.
-    """
-    file, closeit = as_etsfreader(filepath)
-    structure = file.read_structure()
-
-    kinfo = KpointsInfo.from_file(filepath)
-
-    if kinfo.is_sampling:
-        obj = IrredZone(structure.reciprocal_lattice, kinfo.frac_coords, kinfo)
-
-    elif kinfo.is_path:
-        obj = Kpath(structure.reciprocal_lattice, kinfo.frac_coords, kinfo)
-
-    else:
-        raise ValueError("Only path or sampling modes are supported!")
-
-    if closeit:
-        file.close()
-
-    return obj
-
-
-def map_mesh2ibz(structure, mpdivs, shifts, ibz):
-    """
-    This function computes the mapping between the 
-    points in the full BZ and the points in the IBZ.
-
-    Args:
-        structure:
-            pymatgen `Structure` instance.
-        mpdivs
-            The three MP divisions
-        shifts:
-            Array-like object with the MP shift.
-        ibz:
-            array-like object with the reduced coordinates of the
-            points in the IBZ.
-
-    Returns
-        ndarray array that maps the full mesh onto ibz i.e. 
-
-            bzmap[idx_bz] = id_ibz
-
-        where idx_bz is the index the BZ and idx_ibz the index in the IBZ.
-    """
-    # Build bz grid.
-    mpdivs = np.asarray(mpdivs)
-    shifts = np.asarray(shifts)
-
-    if len(shifts) != 1:
-        raise ValueError("Too many shifts!")
-    shift = shifts[0]
-
-    bz = np.empty((mpdivs.prod(), 3))
-
-    count = 0
-    for i in range(mpdivs[0]):
-        x = (i + shift[0]) / mpdivs[0]
-        for j in range(mpdivs[1]):
-            y = (j + shift[1]) / mpdivs[1]
-            for k in range(mpdivs[2]):
-                z = (k + shift[2]) / mpdivs[2]
-                bz[count] = (x, y, z)
-                count += 1
-
-    # Build mapping.
-    kmap = map_bz2ibz(structure, bz, ibz)
-    return np.reshape(kmap, mpdivs)
-
-
-def map_bz2ibz(structure, bz, ibz):
-    """
-    This functon computes  the mapping between the Brillouin zone and the Irreducible wedge.
-    Args:
-        structure:
-            pymatgen `Structure` instance.
-        bz:
-            Reduced coordinates of the points in the BZ
-        ibz:
-            Reduced coordinates of the points in the IBZ
-    """
-    #from pymatgen.core.finder import SymmetryFinder
-    #finder = SymmetryFinder(structure)
-    #Returns:
-    #            Numbering of reducible kpoints. Equivalent kpoints will have the
-    #            same number. The number of unique values is the number of the
-    #            irreducible kpoints.
-    #finder.get_ir_kpoints_mapping(kpoints, is_time_reversal=True)
-    #Returns:
-    #        A list of irreducible kpoints and their weights as a list of
-    #        tuples [(ir_kpoint, weight)], with ir_kpoint given
-    #        in fractional coordinates
-    #finder.get_ir_reciprocal_mesh(mesh=(10, 10, 10), shift=(0, 0, 0), is_time_reversal=True)
-
-    ibz = askpoints(ibz, structure.reciprocal_lattice)
-    bz = askpoints(bz, structure.reciprocal_lattice)
-
-    bz2ibz = np.empty(len(bz), np.int)
-    bz2ibz.fill(-1)
-
-    # Only Ferromagnetic symmetries are used.
-    #fm_symmops = structure.fm_symmops
-    #stars = [Star(kirr, fm_symmops) for kirr in ibz]
-
-    #miss = 0
-    #for bz_idx, kfull in enumerate(bz):
-
-    #    for ibz_idx, star in enumerate(stars):
-    #        idx = star.index(kfull) 
-    #        if idx != -1:
-    #            bz2ibz[bz_idx] = ibz_idx 
-    #            break
-
-    #    if bz2ibz[bz_idx] == -1:
-    #        msg = "Full k-point: %s not found" % str(kfull)
-    #        #raise ValueError(msg)
-    #        print(msg)
-    #        miss += 1
-
-    #if miss:
-    #    err_msg = "Cannot map BZ %d/%d missing" % (miss, len(bz))
-    #    raise ValueError(err_msg)
-
-    #print("Done")
-    #return bz2ibz
-
-#########################################################################################
+##########################################################################################
 
 
 class Kmesh(object):
     """
     This object describes the sampling of the full Brillouin zone.
 
-    A Kmesh object has a set of irreduble point, information on how
+    A Kmesh object has a set of irreducible points, information on how
     to generate the mesh in the full BZ. It also provides methods
     to symmetrized and visualize quantities in k-space.
     """
-
     def __init__(self, structure, mpdivs, shifts, ibz):
         """
         Args:
@@ -823,34 +714,71 @@ class Kmesh(object):
             ibz:
                 k-points in the irreducible wedge.
 
-        Provides methods to  symmetrize k-dependent quantities with the full
+        Provides methods to symmetrize k-dependent quantities with the full
         symmetry of the structure. e.g. bands, occupation factors, phonon frequencies.
         """
-        self.structure = structure
+        self._structure = structure
+        assert stucture.reciprocal_lattice == ibz.reciprocal_lattice
+
         self.mpdivs = np.asarray(mpdivs)
+        assert self.mpdivs.shape == (3,)
         self.nx, self.ny, self.nz = self.mpdivs
 
-        self.shifts = np.reshape(shifts, (-1, 3))
-        assert len(self.shifts) == 1
-        self.ibz = ibz
+        self._shifts = np.reshape(shifts, (-1, 3))
 
-        grids_1d = 3 * [None]
-        for i in range(3):
-            grids_1d[i] = np.arange(0, self.mpdivs[i])
-        self.grids_1d = tuple(grids_1d)
+        self._ibz = ibz
 
-        # Hack needed because the python code in map_mesh2ibz is very slow!
-        # I need a C version, possibly included in spglib.
-        bkp_file = "bzmap.arr.npy"
-        if os.path.exists(bkp_file):
-            self.bzmap = np.load(bkp_file)
+        #grids_1d = 3 * [None]
+        #for i in range(3):
+        #    grids_1d[i] = np.arange(0, self.mpdivs[i])
+        #self.grids_1d = tuple(grids_1d)
 
-        else:
-            # Build the mapping BZ --> IBZ for the different grids.
-            # map[i,j,k] --> index of the point in the IBZ
-            self.bzmap = map_mesh2ibz(structure, self.mpdivs, self.shifts, ibz)
+    @property
+    def structure(self):
+        return self._structure
 
-            np.save(bkp_file, self.bzmap)
+    @property
+    def ibz(self):
+        return self._ibz
+
+    @property
+    def len_ibz(self):
+        return len(self.ibz)
+
+    @property
+    def shifts(self):
+        return self._shifts
+
+    @property
+    def num_shifts(self):
+        return len(self.shifts)
+
+    @property
+    def len_bz(self):
+        return self.mpdivs.prod() * self.num_shifts
+
+    #@property
+    #def tables_for_shift(self):
+        #try:
+        #    return self._tables_for_shift
+        #except AttributeError:
+        #   Build the mapping BZ --> IBZ for the different grids.
+        #   map[i,j,k] --> index of the point in the IBZ
+        #   self._tables_for_shift = map_mesh2ibz(self.structure, self.mpdivs, self.shifts, self.ibz)
+        #   return self._tables_for_shift
+
+    #@property
+    #def flat_tables(self):
+
+    def symmetrize_data_ibz(self, data_ibz): #, pbc=3*[False], korder="c"):
+        assert len(data_ibz) == self.len_ibz 
+        data_bz = np.empty(self.len_bz, dtype=data_ibz.dtype)
+
+        bz2ibz = self.bz2ibz
+        for ik_bz in range(self.len_bz):
+            data_bz[ik_bz] = data_ibz[bz2ibz[ik_bz]]
+
+        return data_bz
 
     def plane_cut(self, values_ibz):
         """
@@ -865,7 +793,7 @@ class Kmesh(object):
         kx, ky = range(self.nx), range(self.ny)
         for x in kx:
             for y in ky:
-                ibz_idx = self.bzmap[x, y, z0]
+                ibz_idx = self.map_xyz2ibz[x, y, z0]
                 plane[x, y] = values_ibz[ibz_idx]
 
         kx, ky = np.meshgrid(kx, ky)

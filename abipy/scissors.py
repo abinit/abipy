@@ -49,61 +49,6 @@ def plot_fft():
     plt.legend()
     plt.show()
 
-def plot_emasses():
-    wfk = WFK_File(get_ncfile("si_nscf_WFK-etsf.nc"))
-
-    kpath = wfk.kpoints
-
-    #kpath = Kpath(wfk.structure, wfk.kpoints, weights=None, labels=None)
-    bands = wfk.get_bands()
-
-    print("ds", kpath.ds)
-    for vers in kpath.versors:
-        print("versors", vers)
-    #print "is_homo", kpath.is_homogeneous
-    #bands = wfk_file.get_bands()
-    print(kpath)
-    print(kpath.lines)
-
-    band = 3
-    #branch = bands.get_branch(spin=0, band=3)
-    #ders = kpath.finite_diff(branch, order=1)
-    #ders = kpath.finite_diff(branch, order=2)
-    #print("order2",ders)
-
-    xys = bands.derivatives(spin=0,band=0,order=1, asmarkers=True)
-    bands.set_markers("DER1-band0", xys)
-
-    xys = bands.derivatives(spin=0,band=1,order=1, asmarkers=True)
-    bands.set_markers("DER1-band1", xys)
-
-    xys = bands.derivatives(spin=0,band=2,order=1, asmarkers=True)
-    bands.set_markers("DER1-band2", xys)
-
-    xys = bands.derivatives(spin=0,band=3,order=1, asmarkers=True)
-    bands.set_markers("DER1-band3", xys)
-    #print(xys)
-    #markers = {
-    bands.plot(with_markers="all:100")
-
-    #print("der1",der1)
-    #der2 = bands.derivatives(spin=0,band=3,order=2)
-    #print("der2",der2)
-
-    emasses = bands.effective_masses(spin=0,band=0)
-    print("emasses", emasses)
-
-    #markers["0"] = zip(
-
-    emasses = bands.effective_masses(spin=0,band=3)
-    print("emasses", emasses)
-
-    emasses = bands.effective_masses(spin=0,band=4)
-    print("emasses", emasses)
-
-    #data = np.ones(bands.shape)
-    #bands.plot()
-
 def check_kinfo():
     from abipy.core.kpoints import KpointsInfo, kpoints_factory
     file = get_reference_file("si_nscf_WFK-etsf.nc")
@@ -227,7 +172,7 @@ if __name__ == "__main__":
     #import cProfile, pstats, io
     #pr = cProfile.Profile()
     #pr.enable()
-    sppgroup()
+    #sppgroup()
     #pr.disable()
     #s = io.StringIO()
     #ps = pstats.Stats(pr, stream=s)

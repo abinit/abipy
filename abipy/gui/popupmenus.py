@@ -254,7 +254,7 @@ class EbandsPopupMenu(NcFilePopupMenu):
 
 def showQPData(parent, filepath):
     sigres = abiopen(filepath)
-    qps_spin = sigres.get_allqps()
+    qps_spin = sigres.qplist_spin
     assert len(qps_spin) == 1
     qps_spin[0].plot_qps_vs_e0()
 
