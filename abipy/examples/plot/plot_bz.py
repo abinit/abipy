@@ -11,8 +11,8 @@ structure = wfk_file.get_structure()
 # Visualize the BZ.
 structure.show_bz()
 
-from pprint import pprint
-pprint(structure.high_symmetry_kpoints)
+#from pprint import pprint
+#pprint(structure.hsym_kpoints)
 
 #print("kpath")
-#pprint(structure.high_symmetry_kpath.get_kpoints())
+#pprint(structure.hsym_kpoint.get_kpoints())

@@ -212,9 +212,6 @@ class ElectronBands(object):
 
         self.smearing = {} if smearing is None else smearing
 
-        # TODO: Make sure that we always instanciate the abipy structure
-        # so that we have access to the symmetry operations.
-        # 
         # Find the k-point names in the pymatgen database.
         # We'll use _auto_klabels to label the point in the matplotlib plot
         # if klabels are not specified by the user.
@@ -648,6 +645,7 @@ class ElectronBands(object):
 
         if not isinstance(valence, collections.Iterable):
             valence = [valence]
+
         if not isinstance(conduction, collections.Iterable):
             conduction = [conduction]
 
@@ -740,6 +738,7 @@ class ElectronBands(object):
 
         for s in self.spins:
             ax = fig.add_subplot(1, self.nsppol, s+1)
+
             # Get total JDOS
             tot_jdos = self.get_jdos(s, vrange, crange, method=method, step=step, width=width)
 

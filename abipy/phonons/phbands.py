@@ -2,6 +2,7 @@ from __future__ import print_function, division
 
 import sys
 import functools
+import collections
 import numpy as np
 
 from abipy.iotools import ETSF_Reader, AbinitNcFile
@@ -53,15 +54,15 @@ class PhononMode(object):
     def __lt__(self, other):
         return self.freq < other.freq
 
-        #@property
-        #def displ_red(self)
-        #    return np.dot(self.xred, self.rprimd)
+    #@property
+    #def displ_red(self)
+    #    return np.dot(self.xred, self.rprimd)
 
-        #def make_supercell(self, delta):
+    #def make_supercell(self, delta):
 
-        #def export(self, path):
+    #def export(self, path):
 
-        #def visualize(self, visualizer):
+    #def visualize(self, visualizer):
 
 #########################################################################################
 
@@ -119,6 +120,23 @@ class PhononBands(object):
         self.num_atoms = structure.num_sites
         self.num_branches = 3 * self.num_atoms
         self.branches = range(self.num_branches)
+
+        # Find the q-point names in the pymatgen database.
+        # We'll use _auto_klabels to label the point in the matplotlib plot
+        # if qlabels are not specified by the user.
+        self._auto_qlabels = collections.OrderedDict()
+        for idx, qpoint in enumerate(self.qpoints):
+            name = self.structure.findname_in_hsym_stars(qpoint)
+            if name is not None:
+                self._auto_qlabels[idx] = name
+                                                                            
+        #if markers is not None:
+        #    for key, xys in markers.items():
+        #        self.set_marker(key, xys)
+        #                                                                    
+        #if widths is not None:
+        #    for key, width in widths.items():
+        #        self.set_width(key, width)
 
     def __str__(self):
         return self.tostring()
@@ -261,6 +279,23 @@ class PhononBands(object):
 
         return PhononDOS(mesh, values)
 
+    def decorate_ax(self, ax, qlabels=None, title=None):
+        if title is not None:
+            ax.set_title(title)
+                                                                   
+        ax.grid(True)
+        ax.set_xlabel('q-point')
+        ax.set_ylabel('Energy [eV]')
+
+        ax.legend(loc="best")
+                                                                   
+        # Set ticks and labels.
+        ticks, labels = self._make_ticks_and_labels(qlabels)
+                                                                   
+        if ticks:
+            ax.set_xticks(ticks, minor=False)
+            ax.set_xticklabels(labels, fontdict=None, minor=False)
+
     def plot(self, qlabels=None, *args, **kwargs):
         """
         Plot the band structure.
@@ -294,22 +329,11 @@ class PhononBands(object):
 
         ax = fig.add_subplot(1, 1, 1)
 
-        if title is not None:
-            ax.set_title(title)
-
-        ax.grid(True)
-        ax.set_xlabel('q-point')
-        ax.set_ylabel('Energy [eV]')
+        self.decorate_ax(ax, qlabels=qlabels, title=title)
 
         args = [] if not args else args
         if not kwargs:
             kwargs = {"color": "black", "linewidth": 2.0}
-
-        # Set ticks and labels.
-        if qlabels is not None:
-            ticks, labels = self._ticks_and_labels(qlabels)
-            ax.set_xticks(ticks, minor=False)
-            ax.set_xticklabels(labels, fontdict=None, minor=False)
 
         # Plot phonon branches.
         for nu in self.branches:
@@ -332,16 +356,21 @@ class PhononBands(object):
         xx, yy = range(self.num_qpoints), self.phfreqs[:, mode]
         return ax.plot(xx, yy, *args, **kwargs)
 
-    def _ticks_and_labels(self, qlabels):
+    def _make_ticks_and_labels(self, qlabels):
         """Return ticks and labels from the mapping {qred: qstring} given in qlabels."""
-        d = {}
-        for (qcoord, qname) in qlabels.items():
-            # Build Kpoint instancee
-            qtick = Kpoint(qcoord, self.structure.reciprocal_lattice)
-            for (q, qpoint) in enumerate(self.qpoints):
-                if qtick == qpoint:
-                    d[q] = qname
-            # ticks, labels
+
+        if qlabels is not None:
+            d = collections.OrderedDict()
+            for (qcoord, qname) in qlabels.items():
+                # Build Kpoint instancee
+                qtick = Kpoint(qcoord, self.structure.reciprocal_lattice)
+                for (q, qpoint) in enumerate(self.qpoints):
+                    if qtick == qpoint:
+                        d[q] = qname
+        else:
+            d = self._auto_qlabels
+
+        # Return ticks, labels
         return d.keys(), d.values()
 
     def plot_fatbands(self, colormap="jet", max_stripe_width_mev=3.0, qlabels=None, **kwargs):
@@ -406,14 +435,13 @@ class PhononBands(object):
         # One plot per atom type.
         for (ax_idx, symbol) in enumerate(structure.symbol_set):
             ax = ax_list[ax_idx]
-            if title and ax_idx == 0:
-                ax.set_title(title)
 
-            ax.grid(True)
+            self.decorate_ax(ax, qlabels=qlabels, title=symbol)
 
             # dir_indices lists the coordinate indices for the atoms of the same type.
             atom_indices = structure.indices_from_symbol(symbol)
             dir_indices = []
+
             for aindx in atom_indices:
                 start = 3 * aindx
                 dir_indices.extend([start, start + 1, start + 2])
@@ -440,19 +468,12 @@ class PhononBands(object):
 
                 ax.fill_between(xx, yy + d2_type, yy - d2_type, facecolor=color, alpha=0.7, linewidth=0)
 
-            ax.legend(loc="best")
-
             ylim = kwargs.pop("ylim", None)
             if ylim is not None:
                 ax.set_ylim(ylim)
 
-            ax.set_ylabel('Frequency [eV]')
-
-            # Set ticks and labels.
-            if qlabels is not None:
-                ticks, labels = self._ticks_and_labels(qlabels)
-                ax.set_xticks(ticks, minor=False)
-                ax.set_xticklabels(labels, fontdict=None, minor=False)
+        if title is not None:
+            fig.suptitle(title)
 
         if show:
             plt.show()
@@ -507,20 +528,7 @@ class PhononBands(object):
         for nu in self.branches:
             self.plot_ax(ax1, nu, *args, **kwargs)
 
-        # Set ticks and labels.
-        if qlabels is not None:
-            ticks, labels = self._ticks_and_labels(qlabels)
-            ax1.set_xticks(ticks, minor=False)
-            ax1.set_xticklabels(labels, fontdict=None, minor=False)
-
-        for ax in (ax1, ax2):
-            ax.grid(True)
-
-        if title:
-            ax1.set_title(title)
-
-        ax1.set_xlabel('q-point')
-        ax1.set_ylabel('Energy [eV]')
+        self.decorate_ax(ax1)
 
         emin = np.min(self.minfreq)
         emin -= 0.05 * abs(emin)
@@ -533,6 +541,7 @@ class PhononBands(object):
         # Plot the DOS
         dos.plot_ax(ax2, what="d", exchange_xy=True, *args, **kwargs)
 
+        ax2.grid(True)
         ax2.yaxis.set_ticks_position("right")
         ax2.yaxis.set_label_position("right")
 
@@ -540,6 +549,9 @@ class PhononBands(object):
             plt.show()
 
         fig = plt.gcf()
+
+        if title:
+            fig.suptitle(title)
 
         if savefig is not None:
             fig.savefig(savefig)
@@ -571,6 +583,7 @@ class PHBST_Reader(ETSF_Reader):
 
 
 class PHBST_File(AbinitNcFile):
+
     def __init__(self, filepath):
         """
         Object used to access data stored in the PHBST file produced by ABINIT.
