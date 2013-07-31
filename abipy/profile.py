@@ -1,4 +1,5 @@
 import os
+import pwd
 import imp
 
 from os.path import exists, join as pj
@@ -307,7 +308,13 @@ parser.add_option("visualizer", default="xcrysden", allowed_values=["xcrysden",]
 ##########################################################################################
 
 # Configuration file
-abipy_cfg_dir = pj(os.getenv("HOME"), ".abinit", "abipy")
+
+# Avoid using the HOME dir of root when sudo is used.
+username= pwd.getpwuid(os.getuid())[0]
+homepath = os.path.expanduser("~"+username+"/")
+#homepath = os.getenv("HOME"),
+
+abipy_cfg_dir = pj(homepath, ".abinit", "abipy")
 abipyrc_path = pj(abipy_cfg_dir, "abipyrc")
 
 # Create the dictionary with the environment
@@ -318,7 +325,8 @@ def write_abipy_cfg_data():
     "Write the configuration files used by abipy"
 
     # Create directories (recursively)
-    if not exists(abipy_cfg_dir): os.makedirs(abipy_cfg_dir)
+    if not exists(abipy_cfg_dir): 
+        os.makedirs(abipy_cfg_dir)
 
     if not exists(abipyrc_path):
         # Write the configuration file.

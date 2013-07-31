@@ -183,7 +183,8 @@ class ElectronBands(object):
                 If not given, nband_sk is initialized from eigens.
             markers:
                 Optional dictionary containing markers labelled by a string.
-                Each marker is a list of tuple(x,y,value)
+                Each marker is a list of tuple(x, y, s) where x,and y are the position 
+                in the graph and s is the size of the marker.
                 Used for plotting purpose e.g. QP data, energy derivatives...
             widths:
                 Optional dictionary containing data used for the so-called fatbands
@@ -250,7 +251,7 @@ class ElectronBands(object):
         """String representation."""
         lines = []
         app = lines.append
-        for k in self._slots:
+        for (key, value) in self.__dict__.items():
             try:
                 value = self.__dict__[k]
                 if prtvol == 0 and isinstance(value, np.ndarray):
@@ -258,6 +259,7 @@ class ElectronBands(object):
                 app("%s = %s" % (k, value))
             except KeyError:
                 pass
+
         return "\n".join(lines)
 
     # Handy variables used to loop
@@ -822,7 +824,7 @@ class ElectronBands(object):
             nband_sk=self.nband_sk, smearing=self.smearing, markers=self.markers
         )
 
-    def plot(self, klabels=None, marker=None, width=None, **kwargs):
+    def plot(self, klabels=None, band_range=None, marker=None, width=None, **kwargs):
         """
         Plot the band structure.
 
@@ -834,12 +836,10 @@ class ElectronBands(object):
             band_range:
                 Tuple specifying the minimum and maximum band to plot (default: all bands are plotted)
             marker:
-                String defining the marker to plot.
-                accepts the syntax "markername:fact" where
+                String defining the marker to plot. Accepts the syntax "markername:fact" where
                 fact is a float used to scale the marker size.
             width:
-                String defining the width to plot.
-                accepts the syntax "widthname:fact" where
+                String defining the width to plot. Accepts the syntax "widthname:fact" where
                 fact is a float used to scale the stripe size.
 
         ==============  ==============================================================
@@ -858,7 +858,6 @@ class ElectronBands(object):
         savefig = kwargs.pop("savefig", None)
 
         # Select the band range.
-        band_range = kwargs.pop("band_range", None)
         if band_range is None:
             band_range = range(self.mband)
         else:
@@ -869,7 +868,7 @@ class ElectronBands(object):
 
         ax = fig.add_subplot(1,1,1)
 
-        # Set ticks and labels.
+        # Decorate the axis (e.g add ticks and labels).
         self.decorate_ax(ax, klabels=klabels, title=title)
 
         if not kwargs:
@@ -899,9 +898,7 @@ class ElectronBands(object):
                 key = width
                 fact = 1
 
-            for spin in self.spins:
-                for band in band_range:
-                    self.plot_width_ax(ax, key, fact=fact)
+            self.plot_width_ax(ax, key, fact=fact)
 
         if show:
             plt.show()
@@ -911,7 +908,8 @@ class ElectronBands(object):
 
         return fig
 
-    def plot_fatbands(self, **kwargs):
+    def plot_fatbands(self, klabels=None, **kwargs):
+#colormap="jet", max_stripe_width_mev=3.0, qlabels=None, **kwargs):
         """
         Plot the electronic fatbands.
 
@@ -952,11 +950,13 @@ class ElectronBands(object):
         fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, squeeze=False)
         ax_list = ax_list.ravel()
 
-        for ax, key in zip(ax_list, self.widths):
+        for (ax, key) in zip(ax_list, self.widths):
             # Decorate the axis
-            self.decorate_ax(ax, title=key)
+            self.decorate_ax(ax, klabels=klabels, title=key)
+
             # Plot the energies.
             self.plot_ax(ax)
+
             # Add width around each band.
             self.plot_width_ax(ax, key)
 
@@ -971,7 +971,8 @@ class ElectronBands(object):
                                  
         return fig
 
-    def decorate_ax(self, ax, klabels=None, title=None):
+    def decorate_ax(self, ax, **kwargs):
+        title = kwargs.pop("title", None)
         if title is not None:
             ax.set_title(title)
 
@@ -981,7 +982,7 @@ class ElectronBands(object):
         ax.legend(loc="best")
 
         # Set ticks and labels.
-        ticks, labels = self._make_ticks_and_labels(klabels)
+        ticks, labels = self._make_ticks_and_labels(kwargs.pop("klabels", None))
 
         if ticks:
             ax.set_xticks(ticks, minor=False)
@@ -992,7 +993,7 @@ class ElectronBands(object):
         spin_range = range(self.nsppol) if spin is None else [spin]
         band_range = range(self.mband) if band is None else [band]
 
-        lines, xx = [], range(self.nkpt)
+        xx, lines = range(self.nkpt), []
         for spin in spin_range:
             for band in band_range:
                 yy = self.eigens[spin,:,band]
@@ -1000,30 +1001,30 @@ class ElectronBands(object):
 
         return lines
 
-    def plot_width_ax(self, ax, key, fact=1.0, spin=None, band=None, **kwargs):
-        """Helper function to plot fatbands for (spin,band) on the axis ax."""
+    def plot_width_ax(self, ax, key, spin=None, band=None, fact=1.0, **kwargs):
+        """Helper function to plot fatbands for the given (spin,band) on the axis ax."""
         spin_range = range(self.nsppol) if spin is None else [spin]
         band_range = range(self.mband) if band is None else [band]
 
         facecolor = kwargs.pop("facecolor", "blue")
         alpha = kwargs.pop("alpha", 0.7)
 
-        width = fact * self.widths[key]
-        x = range(self.nkpt)
+        x, width = range(self.nkpt), fact * self.widths[key]
+
         for spin in spin_range:
             for band in band_range:
-                y = self.eigens[spin,:,band]
-                w = width[spin,:,band] * fact
+                y, w = self.eigens[spin,:,band], width[spin,:,band] * fact
                 ax.fill_between(x, y-w/2, y+w/2, facecolor=facecolor, alpha=alpha)
 
     def plot_marker_ax(self, ax, key, fact=1.0):
-        """Helper function to plot the markers for (spin,band) on the axis ax."""
+        """Helper function to plot the markers on the axis ax."""
         xvals, yvals, svals = self.markers[key]
 
         # Use different symbols depending on the value of s.
         # Cannot use negative s.
         pos_x, pos_y, pos_s = [], [], []
         neg_x, neg_y, neg_s = [], [], []
+
         for x, y, s in zip(xvals, yvals, svals):
             if s >= 0.0:
                 pos_x.append(x)

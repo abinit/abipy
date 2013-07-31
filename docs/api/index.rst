@@ -15,7 +15,6 @@
    core_api.rst
    tools_api.rst
    iotools_api.rst
-   kpoints_api.rst
    electrons_api.rst
    phonons_api.rst
    waves_api.rst

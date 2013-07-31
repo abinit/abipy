@@ -1,5 +1,5 @@
-# This example shows how to compute and plot the line derivatives of the
-# KS eigenvalues computed along a high symmetry path in K-space.
+# This example shows how to compute and plot the derivatives of the
+# KS eigenvalues along a high symmetry path in K-space.
 from abipy import *
 
 wfk = WFK_File(get_ncfile("si_nscf_WFK-etsf.nc"))

@@ -12,7 +12,7 @@ wfk_file = WFK_File(filename)
 # Extract the band structure. 
 bands = wfk_file.get_bands()
 
-# Plot the band energies. Note that the labels for the k-point 
+# Plot the band energies. Note that the labels for the k-points
 # are found automatically by searching in an internal database.
 bands.plot(title="Silicon band structure")
 

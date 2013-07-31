@@ -69,6 +69,10 @@ def wrap_to_bz(x):
     return x % 1
 
 
+class KpointsError(AbipyException):
+    """Base error class for KpointList exceptions."""
+
+
 def askpoints(obj, lattice, weigths=None, names=None):
     """
     Convert obj into a list of k-points.
@@ -97,8 +101,8 @@ def askpoints(obj, lattice, weigths=None, names=None):
 
     # Assume array-like
     obj = np.reshape(np.asarray(obj), (-1, 3))
-
     ndim = obj.ndim
+
     if ndim == 1:
         return [Kpoint(obj, lattice, weight=weigths, name=names)]
     elif ndim == 2:
@@ -305,10 +309,6 @@ def kpoints_factory(filepath):
         file.close()
 
     return obj
-
-
-class KpointsError(AbipyException):
-    """Base error class for KpointList exceptions."""
 
 
 class KpointList(collections.Sequence):
@@ -708,9 +708,9 @@ class Kmesh(object):
             structure:
                 `Structure` instance.
             mpdivs:
-                number of Monkhorst-Pack divisions.
+                Number of Monkhorst-Pack divisions along the reduced directions kx, ky, kz.
             shifts:
-                shifts of the mesh.
+                Shifts of the mesh.
             ibz:
                 k-points in the irreducible wedge.
 
@@ -735,27 +735,52 @@ class Kmesh(object):
 
     @property
     def structure(self):
+        """Crystalline Structure."""
         return self._structure
 
     @property
     def ibz(self):
+        """`IrredZone` object."""
         return self._ibz
 
     @property
     def len_ibz(self):
+        """Number of points in the IBZ."""
         return len(self.ibz)
 
     @property
     def shifts(self):
+        """`ndarray` with the shifts."""
         return self._shifts
 
     @property
     def num_shifts(self):
+        """Number of shifts."""
         return len(self.shifts)
 
     @property
     def len_bz(self):
+        """Number of points in the full BZ."""
         return self.mpdivs.prod() * self.num_shifts
+
+    #def iter_bz_coords(self):
+    #    """
+    #    Generates the fractional coordinates of the points in the BZ.
+
+    #    .. note:
+
+    #        points are ordered in blocks, one block for each shift.
+    #        Inside the block, points are ordered following the C convention.
+    #    """
+    #    for shift in self.shifts:
+
+    #        for i in range(mpdivs[0]):
+    #            x = (i + shift[0]) / mpdivs[0]
+    #            for j in range(mpdivs[1]):
+    #                y = (j + shift[1]) / mpdivs[1]
+    #                for k in range(mpdivs[2]):
+    #                    z = (k + shift[2]) / mpdivs[2]
+    #                    yield np.array((x, y, z))
 
     #@property
     #def tables_for_shift(self):

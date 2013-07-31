@@ -20,6 +20,7 @@ __all__ = [
 @functools.total_ordering
 class PhononMode(object):
     """A phonon mode has a q-point, a frequency, a cartesian displacement and a structure."""
+
     __slots__ = [
         "qpoint",
         "freq",
@@ -83,30 +84,26 @@ class PhononBands(object):
         Frequencies are in eV. Cartesian displacements are in Angstrom.
     """
 
-    @classmethod
-    def from_file(cls, path):
-        """Create the object from a netCDF file."""
-        with PHBST_Reader(path) as r:
-            structure = r.read_structure()
-            phfreqs = r.read_phfreqs()
-            phdispl_cart = r.read_phdispl_cart()
-
-            # Build list of q-points
-            qcoords = r.read_qredcoords()
-            qweights = r.read_qweights()
-
-            #qpoints = kpoints_factory(self)
-            qpoints = []
-            for (qc, w) in zip(qcoords, qweights):
-                qpoints.append(Kpoint(qc, structure.reciprocal_lattice, weight=w))
-
-        return cls(structure, qpoints, phfreqs, phdispl_cart)
-
-    def __init__(self, structure, qpoints, phfreqs, phdispl_cart):
+    def __init__(self, structure, qpoints, phfreqs, phdispl_cart, markers=None, widths=None):
         """
         Args:
             structure:
                 Structure object
+            qpoints:
+                KpointList instance.
+            phfreqs:
+                Phonon frequencies in eV.
+            phdispl_cart:
+                Displacement in Cartesian coordinates.
+            markers:
+                Optional dictionary containing markers labelled by a string.
+                Each marker is a list of tuple(x, y, s) where x,and y are the position 
+                in the graph and s is the size of the marker.
+                Used for plotting purpose e.g. QP data, energy derivatives...
+            widths:
+                Optional dictionary containing data used for the so-called fatbands
+                Each entry is an array of shape [nsppol, nkpt, mband] giving the width
+                of the band at that particular point. Used for plotting purpose e.g. fatbands.
         """
         self.structure = structure
         self.qpoints = qpoints
@@ -130,13 +127,35 @@ class PhononBands(object):
             if name is not None:
                 self._auto_qlabels[idx] = name
                                                                             
-        #if markers is not None:
-        #    for key, xys in markers.items():
-        #        self.set_marker(key, xys)
-        #                                                                    
-        #if widths is not None:
-        #    for key, width in widths.items():
-        #        self.set_width(key, width)
+        if markers is not None:
+            for key, xys in markers.items():
+                self.set_marker(key, xys)
+                                                                            
+        if widths is not None:
+            for key, width in widths.items():
+                self.set_width(key, width)
+
+    @classmethod
+    def from_file(cls, filepath):
+        """Create the object from a netCDF file."""
+                                                                                   
+        with PHBST_Reader(filepath) as r:
+            structure = r.read_structure()
+
+            # Build list of q-points
+            #qpoints = kpoints_factory(self)
+            qcoords = r.read_qredcoords()
+            qweights = r.read_qweights()
+
+            qpoints = []
+            for (qc, w) in zip(qcoords, qweights):
+                qpoints.append(Kpoint(qc, structure.reciprocal_lattice, weight=w))
+                                                                                   
+            return cls(structure=structure,
+                       qpoints=qpoints, 
+                       phfreqs=r.read_phfreqs(),
+                       phdispl_cart=r.read_phdispl_cart()
+                       )
 
     def __str__(self):
         return self.tostring()
@@ -145,19 +164,14 @@ class PhononBands(object):
         """String representation."""
         lines = []
         app = lines.append
+
         for (key, value) in self.__dict__.items():
             if key.startswith("_"): continue
             if prtvol == 0 and isinstance(value, np.ndarray):
                 continue
             app("%s = %s" % (key, value))
-        return "\n".join(lines)
 
-    def show_qpoints(self, stream=sys.stdout):
-        lines = []
-        for (i, qpoint) in enumerate(self.qpoints):
-            lines.append("%d) %s\n" % (i, qpoint))
-        stream.writelines("\n".join(lines))
-        stream.flush()
+        return "\n".join(lines)
 
     def displ_of_specie(self, specie):
         """Returns the displacement vectors for the given specie."""
@@ -168,6 +182,7 @@ class PhononBands(object):
         for (i, site) in enumerate(self.structure):
             if site.specie == specie:
                 displ_specie.append(self.phdispl_cart[:, :, i, :])
+
         return displ_specie
 
     @property
@@ -199,6 +214,122 @@ class PhononBands(object):
         else:
             return np.max(self.phfreqs[:, mode])
 
+    @property
+    def shape(self):
+        """Shape of the array with the eigenvalues."""
+        return self.num_qpoints, self.num_branches
+
+    @property
+    def markers(self):
+        try:
+            return self._markers
+        except AttributeError:
+            return {}
+
+    def del_marker(self, key):
+        """
+        Delete the entry in self.markers with the specied key. 
+        All markers are removed if key is None.
+        """
+        if key is not None:
+            try:
+                del self._markers[key]
+            except AttributeError:
+                pass
+        else:
+            try:
+                del self._markers
+            except AttributeError:
+                pass
+
+    def set_marker(self, key, xys, extend=False):
+        """
+        Set an entry in the markers dictionary.
+
+        Args:
+            key:
+                string used to label the set of markers.
+            xys:
+                Three iterables x,y,s where x[i],y[i] gives the
+                positions of the i-th markers in the plot and
+                s[i] is the size of the marker.
+            extend:
+                True if the values xys should be added to a pre-existing marker.
+        """
+        if not hasattr(self, "_markers"):
+            self._markers = collections.OrderedDict()
+
+        for s in xys[-1]:
+            if np.iscomplex(s):
+                raise ValueError("Found ambiguous complex entry %s" % str(s))
+
+        if extend:
+            if key not in self.markers:
+                self._markers[key] = xys
+            else:
+                # Add xys to the previous marker set.
+                prev_marker = self._markers[key]
+                prev_marker[0].extend(x)
+                prev_marker[1].extend(y)
+                prev_marker[2].extend(s)
+
+                self._markers[key] = prev_marker
+        
+        else:
+            if key in self.markers:
+                raise ValueError("Cannot overwrite key %s in data" % key)
+
+            self._markers[key] = xys
+
+    @property
+    def widths(self):
+        try:
+            return self._widths
+        except AttributeError:
+            return {}
+
+    def del_width(self, key):
+        """
+        Delete the entry in self.widths with the specified key.
+        All keys are removed if key is None.
+        """
+        if key is not None:
+            try:
+                del self._widths[key]
+            except AttributeError:
+                pass
+        else:
+            try:
+                del self._widths
+            except AttributeError:
+                pass
+
+    def set_width(self, key, width):
+        """
+        Set an entry in the widths dictionary.
+
+        Args:
+            key:
+                string used to label the set of markers.
+            width
+                array-like of positive numbers, shape is [nqpt, num_modes].
+        """
+        width = np.reshape(width, self.shape)
+
+        if not hasattr(self, "_widths"):
+            self._widths = collections.OrderedDict()
+
+        if key in self.widths:
+            raise ValueError("Cannot overwrite key %s in data" % key)
+
+        if np.any(np.iscomplex(width)):
+            raise ValueError("Found ambiguous complex entry %s" % str(width))
+
+        if np.any(width < 0.0):
+            raise ValueError("Found negative entry in width array %s" % str(width))
+
+        self._widths[key] = width
+
     def raw_print(self, stream=sys.stdout, fmt=None, cvs=False):
         """Write data on stream with format fmt. Use CVS format if cvs."""
         raise NotImplementedError("")
@@ -228,12 +359,14 @@ class PhononBands(object):
         """Return the list of unstable phonon modes."""
         raise NotImplemetedError("this is a stub")
         umodes = []
+
         for (q, qpoint) in enumerate(self.qpoints):
             for nu in self.branches:
                 freq = self.phfreqs[q, nu]
                 if freq < below_mev * 1000:
                     displ_cart = self.phdispl_cart[q, nu, :]
                     umodes.append(PhononMode(qpoint, freq, displ_cart, self.structure))
+
         return umodes
 
     def get_dos(self, method="gaussian", step=1.e-4, width=4.e-4):
@@ -249,12 +382,15 @@ class PhononBands(object):
                 Standard deviation (eV) of the gaussian.
 
         Returns:
-            PhononDOS object.
+            `PhononDOS` object.
 
         .. warning:
-            The DOS computed here is reliable only if the set of q-points for
-            a homogeneous sampling of the Brillouin zone.
+
+            Requires a homogeneous sampling of the Brillouin zone.
         """
+        if abs(self.qpoints.sum_weights() - 1) > 1.e-6:
+            raise ValueError("Qpoint weights should sum up to one")
+
         # Compute the linear mesh for the DOS
         w_min = self.minfreq
         w_min -= 0.1 * abs(w_min)
@@ -279,34 +415,40 @@ class PhononBands(object):
 
         return PhononDOS(mesh, values)
 
-    def decorate_ax(self, ax, qlabels=None, title=None):
+    def decorate_ax(self, ax, **kwargs):
+        title = kwargs.pop("title", None)
         if title is not None:
             ax.set_title(title)
                                                                    
         ax.grid(True)
         ax.set_xlabel('q-point')
         ax.set_ylabel('Energy [eV]')
-
         ax.legend(loc="best")
                                                                    
         # Set ticks and labels.
-        ticks, labels = self._make_ticks_and_labels(qlabels)
+        ticks, labels = self._make_ticks_and_labels(kwargs.pop("qlabels", None))
                                                                    
         if ticks:
             ax.set_xticks(ticks, minor=False)
             ax.set_xticklabels(labels, fontdict=None, minor=False)
 
-    def plot(self, qlabels=None, *args, **kwargs):
+    def plot(self, qlabels=None, branch_range=None, marker=None, width=None, **kwargs):
         """
-        Plot the band structure.
+        Plot the phonon band structure.
 
         Args:
             qlabels:
                 dictionary whose keys are tuple with the reduced
                 coordinates of the q-points. The values are the labels.
                 e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
-            args:
-                Positional arguments passed to matplotlib.
+            branch_range:
+                Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted)
+            marker:
+                String defining the marker to plot. Accepts the syntax "markername:fact" where
+                fact is a float used to scale the marker size.
+            width:
+                String defining the width to plot. Accepts the syntax "widthname:fact" where
+                fact is a float used to scale the stripe size.
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -323,21 +465,48 @@ class PhononBands(object):
         show = kwargs.pop("show", True)
         savefig = kwargs.pop("savefig", None)
 
+        # Select the band range.
+        if branch_range is None:
+            branch_range = range(self.num_branches)
+        else:
+            branch_range = range(branch_range[0], branch_range[1], 1)
+
         import matplotlib.pyplot as plt
 
         fig = plt.figure()
 
         ax = fig.add_subplot(1, 1, 1)
 
+        # Decorate the axis (e.g add ticks and labels).
         self.decorate_ax(ax, qlabels=qlabels, title=title)
 
-        args = [] if not args else args
         if not kwargs:
             kwargs = {"color": "black", "linewidth": 2.0}
 
-        # Plot phonon branches.
-        for nu in self.branches:
-            self.plot_ax(ax, nu, *args, **kwargs)
+        # Plot the phonon branches.
+        for nu in branch_range:
+            self.plot_ax(ax, nu, **kwargs)
+
+        # Add markers to the plot.
+        if marker is not None:
+            try:
+                key, fact = marker.split(":")
+            except ValueError:
+                key = marker
+                fact = 1
+            fact = float(fact)
+
+            self.plot_marker_ax(ax, key, fact=fact)
+
+        # Plot fatbands.
+        if width is not None:
+            try:
+                key, fact = width.split(":")
+            except ValueError:
+                key = width
+                fact = 1
+
+            self.plot_width_ax(ax, key, fact=fact)
 
         if show:
             plt.show()
@@ -347,20 +516,66 @@ class PhononBands(object):
 
         return fig
 
-    def plot_ax(self, ax, mode, *args, **kwargs):
+    def plot_ax(self, ax, branch, **kwargs):
         """
-        Plots the energies for a given mode as a function of the q index on axis ax.
+        Plots the frequencies for the given branch index as a function of the q index on axis ax.
+        If branch is None, all phonon branches are plotted.
 
-        Return value is a list of lines that were added.
+        Return:
+            The list of 'matplotlib' lines added.
         """
-        xx, yy = range(self.num_qpoints), self.phfreqs[:, mode]
-        return ax.plot(xx, yy, *args, **kwargs)
+        branch_range = range(self.num_branches) if branch is None else [branch]
+
+        xx, lines = range(self.num_qpoints), []
+        for branch in branch_range:
+            lines.extend(ax.plot(xx, self.phfreqs[:, branch], **kwargs))
+
+        return lines
+
+    def plot_width_ax(self, ax, key, branch=None, fact=1.0, **kwargs):
+        """Helper function to plot fatbands for given branch on the axis ax."""
+        branch_range = range(self.num_branches) if branch is None else [branch]
+
+        facecolor = kwargs.pop("facecolor", "blue")
+        alpha = kwargs.pop("alpha", 0.7)
+
+        x, width = range(self.num_qpoints), fact * self.widths[key]
+
+        for branch in branch_range:
+           y, w = self.phfreq[:, branch], width[:,branch] * fact
+           ax.fill_between(x, y-w/2, y+w/2, facecolor=facecolor, alpha=alpha)
+
+    def plot_marker_ax(self, ax, key, fact=1.0):
+        """Helper function to plot the markers for (spin,band) on the axis ax."""
+        xvals, yvals, svals = self.markers[key]
+
+        # Use different symbols depending on the value of s.
+        # Cannot use negative s.
+        pos_x, pos_y, pos_s = [], [], []
+        neg_x, neg_y, neg_s = [], [], []
+
+        for x, y, s in zip(xvals, yvals, svals):
+            if s >= 0.0:
+                pos_x.append(x)
+                pos_y.append(y)
+                pos_s.append(s)
+            else:
+                neg_x.append(x)
+                neg_y.append(y)
+                neg_s.append(s)
+
+        if pos_s:
+            ax.scatter(pos_x, pos_y, s=np.abs(pos_s)*fact, marker="^", label=key + " >0")
+
+        if neg_s:
+            ax.scatter(neg_x, neg_y, s=np.abs(neg_s)*fact, marker="v", label=key + " <0")
 
     def _make_ticks_and_labels(self, qlabels):
         """Return ticks and labels from the mapping {qred: qstring} given in qlabels."""
 
         if qlabels is not None:
             d = collections.OrderedDict()
+
             for (qcoord, qname) in qlabels.items():
                 # Build Kpoint instancee
                 qtick = Kpoint(qcoord, self.structure.reciprocal_lattice)
@@ -483,7 +698,7 @@ class PhononBands(object):
 
         return fig
 
-    def plot_with_dos(self, dos, qlabels=None, *args, **kwargs):
+    def plot_with_dos(self, dos, qlabels=None, **kwargs):
         """
         Plot the phonon band structure with the phonon DOS.
 
@@ -494,8 +709,6 @@ class PhononBands(object):
                 dictionary whose keys are tuple with the reduced
                 coordinates of the q-points. The values are the labels.
                 e.g. qlabels = {(0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L"}.
-            args:
-                Positional arguments passed to matplotlib.
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -525,10 +738,9 @@ class PhononBands(object):
             kwargs = {"color": "black", "linewidth": 2.0}
 
         # Plot the phonon band structure.
-        for nu in self.branches:
-            self.plot_ax(ax1, nu, *args, **kwargs)
+        self.plot_ax(ax1, branch=None, **kwargs)
 
-        self.decorate_ax(ax1)
+        self.decorate_ax(ax1, qlabels=qlabels)
 
         emin = np.min(self.minfreq)
         emin -= 0.05 * abs(emin)
@@ -539,7 +751,7 @@ class PhononBands(object):
         ax1.yaxis.set_view_interval(emin, emax)
 
         # Plot the DOS
-        dos.plot_ax(ax2, what="d", exchange_xy=True, *args, **kwargs)
+        dos.plot_ax(ax2, what="d", exchange_xy=True, **kwargs)
 
         ax2.grid(True)
         ax2.yaxis.set_ticks_position("right")
@@ -621,9 +833,9 @@ class PHBST_File(AbinitNcFile):
         """Return the electronic bands."""
         return self.bands
 
-    def get_mode(self, qpoint, nu):
+    def get_phonon_mode(self, qpoint, nu):
         """
-        Returns he phonon with the given qpoint and branch nu.
+        Returns the `PhononMode` with the given qpoint and branch nu.
 
         Args:
             qpoint:
@@ -638,13 +850,11 @@ class PHBST_File(AbinitNcFile):
         if isinstance(qpoint, int):
             qidx = qpoint
         else:
-            for (qidx, q) in enumerate(self.qpoints):
-                if np.allclose(qpoint, q):
-                    break
-            else:
-                raise ValueError("qpoint %s not found" % qpoint)
+            qidx = self.qpoints.index(qpoint)
 
-                #return PHMode
+        raise NotImplementedError("")
+
+        #return PHMode(qpoint, freq, displ_cart, structure)
 
     def export_structure(self, path):
         """
@@ -672,8 +882,8 @@ class PHBST_File(AbinitNcFile):
         else:
             raise Visualizer.Error("Don't know how to export data for visualizer " % visualizer)
 
-            #def plot_bands(self, title=None, klabels=None, *args, **kwargs):
-            #    self.bands.plot(title, klabels, *args, **kwargs)
+    #def plot_bands(self, title=None, klabels=None, *args, **kwargs):
+    #    self.bands.plot(title, klabels, *args, **kwargs)
 
 
 #########################################################################################
