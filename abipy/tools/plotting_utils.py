@@ -174,5 +174,55 @@ class ArrayPlotter(object):
         return fig
 
 
+class Marker(collections.namedtuple("Marker", "x y s")):
+    """Stores the position and the size of the marker."""
+
+    def __new__(cls, *xys):
+        """Extends the base class adding consistency check."""
+        assert len(xys) == 3
+
+        for s in xys[-1]:
+            if np.iscomplex(s):
+                raise ValueError("Found ambiguous complex entry %s" % str(s))
+                                                                          
+        return super(cls, Marker).__new__(cls, *xys)
+
+    def __bool__(self):
+        return bool(len(self.s))
+
+    __nonzero__ = __bool__
+
+    def extend(self, *xys):
+        """Extend the marker values."""
+        assert len(xys) == 3
+
+        self.x.extend(xys[0])
+        self.y.extend(xys[1])
+        self.s.extend(xys[2])
+
+        lens = map(len, self.x, self.y, self.s)
+        assert np.all(lens == lens[0])
+
+    def posneg_marker(self):
+        """
+        Split data into two sets: the first one contains all the points with positive size.
+        the first set contains all the points with negative size.
+        """
+        pos_x, pos_y, pos_s = [], [], []
+        neg_x, neg_y, neg_s = [], [], []
+                                                             
+        for (x, y, s) in zip(self.x, self.y, self.s):
+            if s >= 0.0:
+                pos_x.append(x)
+                pos_y.append(y)
+                pos_s.append(s)
+            else:
+                neg_x.append(x)
+                neg_y.append(y)
+                neg_s.append(s)
+
+        return Marker(pos_x, pos_y, pos_s), Marker(neg_x, neg_y, neg_s)
+
+
 if __name__ == "__main__":
     plot_array(np.random.rand(10, 10))

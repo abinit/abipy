@@ -14,6 +14,7 @@ from abipy.core.kpoints import Kpoint, Kpath, IrredZone, kpoints_factory
 from abipy.tools import AttrDict
 from abipy.iotools import ETSF_Reader, Visualizer, bxsf_write
 from abipy.tools import gaussian
+from abipy.tools.plotting_utils import Marker
 from .edos import ElectronDOS
 
 __all__ = [
@@ -21,7 +22,6 @@ __all__ = [
     "ElectronBandsPlotter",
     "ElectronDosPlotter",
 ]
-
 
 class KSState(collections.namedtuple("KSState", "spin kpoint band eig occ")):
     """
@@ -331,27 +331,18 @@ class ElectronBands(object):
         if not hasattr(self, "_markers"):
             self._markers = collections.OrderedDict()
 
-        for s in xys[-1]:
-            if np.iscomplex(s):
-                raise ValueError("Found ambiguous complex entry %s" % str(s))
-
         if extend:
             if key not in self.markers:
-                self._markers[key] = xys
+                self._markers[key] = Marker(*xys)
             else:
                 # Add xys to the previous marker set.
-                prev_marker = self._markers[key]
-                prev_marker[0].extend(x)
-                prev_marker[1].extend(y)
-                prev_marker[2].extend(s)
-
-                self._markers[key] = prev_marker
+                self._markers[key].extend(*xys)
         
         else:
             if key in self.markers:
                 raise ValueError("Cannot overwrite key %s in data" % key)
 
-            self._markers[key] = xys
+            self._markers[key] = Marker(*xys)
 
     @property
     def widths(self):
@@ -1018,28 +1009,16 @@ class ElectronBands(object):
 
     def plot_marker_ax(self, ax, key, fact=1.0):
         """Helper function to plot the markers on the axis ax."""
-        xvals, yvals, svals = self.markers[key]
+        pos, neg = self.markers[key].posneg_marker()
 
         # Use different symbols depending on the value of s.
         # Cannot use negative s.
-        pos_x, pos_y, pos_s = [], [], []
-        neg_x, neg_y, neg_s = [], [], []
+        if pos:
+            print(pos.x)
+            ax.scatter(pos.x, pos.y, s=np.abs(pos.s)*fact, marker="^", label=key + " >0")
 
-        for x, y, s in zip(xvals, yvals, svals):
-            if s >= 0.0:
-                pos_x.append(x)
-                pos_y.append(y)
-                pos_s.append(s)
-            else:
-                neg_x.append(x)
-                neg_y.append(y)
-                neg_s.append(s)
-
-        if pos_s:
-            ax.scatter(pos_x, pos_y, s=np.abs(pos_s)*fact, marker="^", label=key + " >0")
-
-        if neg_s:
-            ax.scatter(neg_x, neg_y, s=np.abs(neg_s)*fact, marker="v", label=key + " <0")
+        if neg:
+            ax.scatter(neg.x, neg.y, s=np.abs(neg.s)*fact, marker="v", label=key + " <0")
 
     def _make_ticks_and_labels(self, klabels):
         """Return ticks and labels from the mapping qlabels."""
