@@ -8,6 +8,7 @@ _MODS = [
     "panels",
     "egs",
     "func1dframe",
+    "threads",
 ]
 
 for _mod in _MODS:

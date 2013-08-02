@@ -79,7 +79,7 @@ def map_mesh2ibz(structure, mpdivs, shifts, ibz):
         #    isym = ktabo[ik_bz]
         #    itime = ktabi[ik_bz]
         #    op = spg[isym + itime
-        #    krot = op.rotate_k(ibz[ik_ibz].frac_coords)
+        #    krot = op.rotate_k(ibz[ik_ibz].frac_coords, wrap_tows=True)
         #    assert full_kpt == krot
     
         tables[ish] = KSymmetryTables(bz2ibz=bz2ibz, ktabi=ktabi, ktabo=ktabo)

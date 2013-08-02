@@ -4,7 +4,7 @@ from __future__ import division, print_function
 import numpy as np
 import collections
 
-from abipy.core.kpoints import wrap_to_ws
+from abipy.core.kpoints import wrap_to_ws, issamek
 from abipy.iotools import as_etsfreader
 
 
@@ -196,6 +196,10 @@ class SymmOp(object):
                       afm_sign=self.afm_sign
                       )
 
+    def conjugate(self, other):
+        """Returns X^-1 S X where X is the other symmetry operation."""
+        return other.inverse() * self * other
+
     @property
     def det(self):
         """Determinant of the rotation matrix [-1, +1]."""
@@ -236,14 +240,26 @@ class SymmOp(object):
         """True if self if anti-ferromagnetic symmetry."""
         return self.afm_sign == -1
 
-    def rotate_k(self, frac_coords, wrap_tows=True):
+    def rotate_k(self, frac_coords, wrap_tows=False):
         """
         Apply the symmetry operation to the k-point given in reduced coordinates.
 
         Sk is wrapped to the first Brillouin zone if wrap_tows is True.
         """
         sk = np.dot(self.rot_g, frac_coords) * self.time_sign
+
         return wrap_to_ws(sk) if wrap_tows else sk
+
+    #def preserve_k(self, frac_coords):
+    #    """
+    #    Check if the operation preserves the k-point modulo a reciprocal lattice vector.
+
+    #    Returns:
+    #        bool, Sk - k
+    #    """
+    #    sk = self.rotate_k(frac_coords, wraps_tows=False)
+
+    #    return issamek(sk, frac_coords), sk - frac_coords
 
     def rotate_r(self, frac_coords, in_ucell=False):
         """
@@ -253,6 +269,7 @@ class SymmOp(object):
             We use the convention: symmop(r) = R^{-1] (r -tau)
         """
         rotm1_rmt = np.dot(self.rotm1_r, frac_coords - self.tau)
+
         return wrap_in_ucell(rotm1_rmt) if in_ucell else rotm1_rmt
 
     def rotate_gvecs(self, gvecs):
@@ -268,14 +285,11 @@ class SymmOp(object):
 #########################################################################################
 
 
-class SpaceGroup(collections.Sequence):
-    """Container storing the space group symmetries."""
+class SymmOpList(collections.Sequence):
 
-    def __init__(self, spgid, symrel, tnons, symafm, has_timerev, inord="C"):
+    def __init__(self, symrel, tnons, symafm, has_timerev, inord="C"):
         """
         Args:
-            spgid:
-                space group number (from 1 to 232, 0 if cannot be specified).
             symrel:
                 (nsym,3,3) array with the rotational part of the symmetries in real
                 space (reduced coordinates are assumed, see also `inord` for the order.
@@ -296,9 +310,6 @@ class SpaceGroup(collections.Sequence):
         """
         inord = inord.upper()
         assert inord in ["C", "F"]
-
-        self.spgid = spgid
-        assert self.spgid in range(0, 233)
 
         # Time reversal symmetry.
         self._has_timerev = has_timerev
@@ -328,82 +339,34 @@ class SpaceGroup(collections.Sequence):
                                        rot_g=self.symrec[isym],
                                 ))
 
-        self._all_symmops = tuple(all_syms)
-
-    @classmethod
-    def from_file(cls, file, inord="F"):
-        """Initialize the object from a Netcdf file."""
-        file, closeit = as_etsfreader(file)
-
-        new = cls(spgid=file.read_value("space_group"),
-                  symrel=file.read_value("reduced_symmetry_matrices"),
-                  tnons=file.read_value("reduced_symmetry_translations"),
-                  symafm=file.read_value("symafm"),
-                  has_timerev=True,  # FIXME not treated by ETSF-IO.
-                  inord=inord,
-                  )
-        if closeit:
-            file.close()
-
-        return new
+        self._symmops = tuple(all_syms)
 
     def __len__(self):
-        return len(self._all_symmops)
+        return len(self._symmops)
 
     def __iter__(self):
-        return self._all_symmops.__iter__()
+        return self._symmops.__iter__()
                                       
     def __getitem__(self, slice):
-        return self._all_symmops[slice]
+        return self._symmops[slice]
 
     def __contains__(self, symmop):
-        return symmop in self._all_symmops
+        return symmop in self._symmops
 
     def count(self, symmop):
-        return self._all_symmops.count(symmop)
+        """Returns the number of occurences of symmop in self."""
+        return self._symmops.count(symmop)
 
     def index(self, symmop):
-        return self._all_symmops.index(symmop)
+        """Return the (first) index of symmop in self. Raises ValueError if not found.""" 
+        return self._symmops.index(symmop)
 
     def find(self, symmop):
+        """Return the (first) index of symmop in self. -1 if not found.""" 
         try:
             return self.index(symmop)
         except ValueError:
             return -1
-
-    def asdict(self):
-        d = {op: idx for (idx, op) in enumerate(self)}
-        assert len(d) == len(self)
-        return d
-
-    def __str__(self):
-        """String representation."""
-        lines = ["spgid %d, num_spatial_symmetries %d, has_timerev %s" % (
-            self.spgid, self.num_spatial_symmetries, self.has_timerev)]
-        app = lines.append
-
-        #app(["rot_r  rot_g"]
-        for op in self.symmops(time_sign=+1):
-            app(str(op))
-
-        return "\n".join(lines)
-
-    def to_fortran_arrays(self):
-        fort_arrays = collections.namedtuple("FortranSpaceGroupArrays", "symrel symrec tnons symafm")
-
-        symrel = np.asfortranarray(self.symrel.T)
-        symrec = np.asfortranarray(self.symrec.T)
-
-        for isym in range(self.num_spatial_symmetries):
-            symrel[:,:,isym] = symrel[:,:,isym].T
-            symrec[:,:,isym] = symrec[:,:,isym].T
-
-        return fort_arrays(
-            symrel=symrel,
-            symrec=symrec,
-            tnons =np.asfortranarray(self.tnons.T),
-            symafm=self.symafm,
-        )
 
     @property
     def has_timerev(self):
@@ -453,7 +416,7 @@ class SpaceGroup(collections.Sequence):
             tuple of `SymmOp` instances.
         """
         symmops = []
-        for sym in self._all_symmops:
+        for sym in self._symmops:
             gotit = True
 
             if time_sign:
@@ -470,6 +433,7 @@ class SpaceGroup(collections.Sequence):
         return tuple(symmops)
 
     def is_group(self):
+        """Returns True if self is a group."""
         check = 0
     
         # Identity must be present.
@@ -490,3 +454,203 @@ class SpaceGroup(collections.Sequence):
                 check += 1
 
         return check == 0
+
+    def asdict(self):
+        """
+        Returns a dictions where the keys are the symmetry operations and 
+        the values are the indices of the operations in the iterable.
+        """
+        d = {op: idx for (idx, op) in enumerate(self)}
+        assert len(d) == len(self)
+        return d
+
+    def to_fortran_arrays(self):
+        fort_arrays = collections.namedtuple("FortranSpaceGroupArrays", "symrel symrec tnons symafm timrev")
+
+        symrel = np.asfortranarray(self.symrel.T)
+        symrec = np.asfortranarray(self.symrec.T)
+
+        for isym in range(self.num_spatial_symmetries):
+            symrel[:,:,isym] = symrel[:,:,isym].T
+            symrec[:,:,isym] = symrec[:,:,isym].T
+
+        return fort_arrays(
+            symrel=symrel,
+            symrec=symrec,
+            tnons =np.asfortranarray(self.tnons.T),
+            symafm=self.symafm,
+            timrev = 2 if self.has_timerev else 1
+        )
+
+    #def mult_table(self):
+    #    """
+    #    Given a set of nsym 3x3 operations which are supposed to form a group, 
+    #    this routine constructs the multiplication table of the group.
+    #    mtab(nsym,nsym)=The index of the product S_i * S_j in the input set sym.
+    #    """
+    #    d = self.asdict()
+    #    for op1 in self:
+    #        for op2 in self:
+    #            op12 = op1 * op2 
+    #            table = d[op12]
+    #    return table
+
+    #@property
+    #def classes(self):
+    #    """
+    #    A class is defined as the set of distinct elements obtained by 
+    #    considering for each element, S, of the group all its conjugate
+    #    elements X^-1 S X where X range over all the elements of the group.
+    #    """
+
+    #    try:
+    #        return self._classes
+
+    #    except AttributeError:
+    #        
+    #        num_classes, found, classes = -1, len(self) * [False], len(self) * [None]
+
+    #        for (ii, op1) in enumerate(self):
+    #            if found[ii]: continue
+    #            num_classes += 1
+
+    #            for (jj, op2) in enumerate(self):
+    #                # Form conjugate
+    #                op1_conj = op1.conjugate(op2)
+    #                for (kk, op3) in enumerate(self):
+    #                    if not found[kk] and op1_conj == op3:
+    #                        found[kk] = True
+    #                        classes[num_classes]
+
+
+class SpaceGroup(SymmOpList):
+    """Container storing the space group symmetries."""
+
+    def __init__(self, spgid, symrel, tnons, symafm, has_timerev, inord="C"):
+        """
+        Args:
+            spgid:
+                space group number (from 1 to 232, 0 if cannot be specified).
+            symrel:
+                (nsym,3,3) array with the rotational part of the symmetries in real
+                space (reduced coordinates are assumed, see also `inord` for the order.
+            tnons:
+                (nsym,3) array with fractional translation in reduced coordinates.
+            symafm:
+                (nsym) array with +1 for Ferromagnetic symmetry and -1 for AFM
+            has_timerev:
+                True if time-reversal symmetry is included.
+            inord:
+                storage order of mat in symrel[:]. If inord == "F", mat.T is stored
+                as matrices are always stored in C-order. Use inord == "F" if you have 
+                read symrel from an external file produced by abinit.
+
+        .. note:
+            All the arrays are store in C-order. Use as_fortran_arrays to extract data that
+            can be passes to Fortran routines.
+        """
+        SymmOpList.__init__(self, symrel, tnons, symafm, has_timerev, inord=inord)
+
+        self.spgid = spgid
+        assert self.spgid in range(0, 233)
+
+
+    @classmethod
+    def from_file(cls, file, inord="F"):
+        """Initialize the object from a Netcdf file."""
+        file, closeit = as_etsfreader(file)
+
+        new = cls(spgid=file.read_value("space_group"),
+                  symrel=file.read_value("reduced_symmetry_matrices"),
+                  tnons=file.read_value("reduced_symmetry_translations"),
+                  symafm=file.read_value("symafm"),
+                  has_timerev=True,  # FIXME not treated by ETSF-IO.
+                  inord=inord,
+                  )
+        if closeit:
+            file.close()
+
+        return new
+
+    def __str__(self):
+        """String representation."""
+        lines = ["spgid %d, num_spatial_symmetries %d, has_timerev %s" % (
+            self.spgid, self.num_spatial_symmetries, self.has_timerev)]
+        app = lines.append
+
+        #app(["rot_r  rot_g"]
+        for op in self.symmops(time_sign=+1):
+            app(str(op))
+
+        return "\n".join(lines)
+
+
+#class LittleGroup(SymmOpList):
+
+class Irrep(object):
+    """
+    .. attributes:
+
+        name: 
+            Name of the irreducible representation.
+
+        dim:
+            Dimension of the irreducible representation.
+
+        nsym:
+            Number of symmetries.
+
+        mats:
+            array of shape [nsym,dim,dim] with
+            the irreducible representations of the group.
+
+        traces:
+            traces[nsym]. The trace of each matrix.
+    """
+
+    def __init__(self, name, mats):
+        self.name = name
+        assert len(mats.shape) == 3
+        self.mats = mats
+        self.nsym = len(mats)
+        self.dim = mats.shape[1]
+        assert self.dim == mats.shape[2]
+
+        self.trace = tuple([m.trace() for m in mats])
+
+
+#class IrrepsDatabase(dict)
+#    _PTGROUP_NAMES = [
+#      "1",   
+#      "-1",
+#      "2",
+#      "m",
+#      "2/m",
+#      "222",
+#      "mm2",
+#      "mmm",
+#      "4",
+#      "-4",
+#      "4/m",
+#      "422",
+#      "4mm",
+#      "-42m",
+#      "4/mmm",
+#      "3",
+#      "-3",
+#      "32",
+#      "3m",
+#      "-3m",
+#      "6",
+#      "-6",
+#      "6/m", 
+#      "622",
+#      "6mm",
+#      "-62m",
+#      "6/mmm",
+#      "23",
+#      "m-3",
+#      "432",
+#      "-43m ",
+#      "m-3m",
+#    ]

@@ -1014,7 +1014,6 @@ class ElectronBands(object):
         # Use different symbols depending on the value of s.
         # Cannot use negative s.
         if pos:
-            print(pos.x)
             ax.scatter(pos.x, pos.y, s=np.abs(pos.s)*fact, marker="^", label=key + " >0")
 
         if neg:

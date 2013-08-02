@@ -12,12 +12,12 @@ from pymatgen.io.abinitio.wrappers import Mrgddb
 # Helper functions.
 
 def str_examples():
-    examples = \
-"""Example usage:\n
-    mrgddb -o output_DDB file1_DDB file2_DDB 
-    mrgddb -o output_DDB -d "String with description" file1_DDB file2_DDB 
-    mrgddb -o output_DDB  *_DDB
-"""
+    examples = (
+        "Example usage:\n\n"
+        "mrgddb -o output_DDB file1_DDB file2_DDB\n"
+        "mrgddb -o output_DDB -d 'String with description' file1_DDB file2_DDB\n"
+        "mrgddb -o output_DDB  *_DDB\n"
+    )
     return examples
 
 

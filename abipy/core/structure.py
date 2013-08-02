@@ -94,11 +94,6 @@ class Structure(pymatgen.Structure):
             # Construct the stars.
             self._hsym_stars = [kpoint.compute_star(self.fm_symmops) for kpoint in hsym_kpoints]
 
-            #for star in self._hsym_stars:
-            #    print("===",star.name)
-            #    for kpoint in star: print(kpoint)
-            #    print("===")
-
             return self._hsym_stars
 
     def findname_in_hsym_stars(self, kpoint):

@@ -112,11 +112,11 @@ class SigresViewerFrame(awx.Frame):
         sigres = self.sigres
         if sigres is None: return
 
-        #splitter = wx.SplitterWindow(self, style=wx.SP_LIVE_UPDATE)
-        #splitter.SetMinimumPaneSize(50)
-        #parent = splitter
+        splitter = wx.SplitterWindow(self, style=wx.SP_LIVE_UPDATE)
+        splitter.SetMinimumPaneSize(50)
+        parent = splitter
+        #parent = self
 
-        parent = self
         self.skb_panel = awx.SpinKpointBandPanel(parent, sigres.nsppol, sigres.gwkpoints, sigres.max_gwbstop,
             bstart=sigres.min_gwbstart)
 
@@ -124,9 +124,14 @@ class SigresViewerFrame(awx.Frame):
         self.skb_panel.SetOnItemActivated(self.ShowQPTable)
 
         # Add Python shell
-        #from wx.py.shell import Shell
-        #pyshell = Shell(parent, introText="SIGRES File methods are available via the variable sigres ", locals={"sigres": sigres})
-        #splitter.SplitHorizontally(self.skb_panel, pyshell)
+        from wx.py.shell import Shell
+        from abipy.tools import marquee
+        msg = "SIGRES_File object is accessible via the sigres variable. Try, for example, print(sigres)"
+        msg = marquee(msg, width=len(msg) + 8, mark="#")
+        msg = "#"*len(msg) + "\n" + msg + "\n" + "#"*len(msg) + "\n"
+
+        pyshell = Shell(parent, introText=msg, locals={"sigres": sigres})
+        splitter.SplitHorizontally(self.skb_panel, pyshell)
 
         #main_sizer = wx.BoxSizer(wx.VERTICAL)
         #main_sizer.Add(self.skb_panel, 1, wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 5)

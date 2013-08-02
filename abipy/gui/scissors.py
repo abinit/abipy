@@ -276,9 +276,3 @@ def wxapp_scissors(filepath):
     return app
 
 
-if __name__ == "__main__":
-    app = wx.App()
-    frame = awx.Frame(None, -1)
-    frame.Show()
-    awx.showLicense(frame)
-    app.MainLoop()

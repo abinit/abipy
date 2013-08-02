@@ -525,6 +525,9 @@ class SIGRES_File(AbinitNcFile):
         """Initialize an instance from file."""
         return cls(filepath)
 
+    def __str__(self):
+        return "<%s at %s>" % (self.__class__.__name__, id(self))
+
     @property
     def nsppol(self):
         """Number of spins"""
