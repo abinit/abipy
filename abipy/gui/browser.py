@@ -7,7 +7,13 @@ import wx
 import abipy.gui.awx as awx
 
 from collections import namedtuple
-from wxmplot import PlotApp, PlotFrame
+
+try:
+    from wxmplot import PlotApp, PlotFrame
+except ImportError:
+    import warnings
+
+    warnings.warn("Error while import wxmplot. Some features won't be available")
 
 from abipy.electrons import ElectronBandsPlotter
 from abipy.gui.popupmenus import popupmenu_for_filename
