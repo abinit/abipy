@@ -22,7 +22,10 @@ __all__ = [
     "kpoints_factory",
 ]
 
-def isinteger(x, atol=1e-08):
+# Tolerance used to compare k-points.
+_ATOL_KDIFF = 1e-8
+
+def isinteger(x, atol=_ATOL_KDIFF):
     """
     True if all x is integer within the absolute tolerance atol.
 
@@ -126,7 +129,9 @@ class Kpoint(object):
     ]
 
     # Tolerance used to compare k-points.
-    _ATOL_KDIFF = 1e-8
+    @property
+    def ATOL_KDIFF(self):
+        return _ATOL_KDIFF
 
     def __init__(self, frac_coords, lattice, weight=None, name=None):
         """
@@ -205,11 +210,11 @@ class Kpoint(object):
     def __eq__(self, other):
         try:
             # Comparison between two Kpoint objects
-            return issamek(self.frac_coords, other.frac_coords, atol=self._ATOL_KDIFF)
+            return issamek(self.frac_coords, other.frac_coords, atol=self.ATOL_KDIFF)
 
         except AttributeError:
             # Kpoint vs iterable (e.g. list)
-            return issamek(self.frac_coords, other, atol=self._ATOL_KDIFF)
+            return issamek(self.frac_coords, other, atol=self.ATOL_KDIFF)
 
     def __ne__(self, other):
         return not self == other
@@ -272,12 +277,13 @@ class Kpoint(object):
     def compute_star(self, symmops, wrap_tows=True):
         """Return the star of the kpoint (tuple of `Kpoint` objects)."""
         frac_coords = [self.frac_coords]
+
         for sym in symmops:
             sk_coords = sym.rotate_k(self.frac_coords, wrap_tows=wrap_tows)
 
             # Add it only if it's not already in the list.
             for prev_coords in frac_coords:
-                if issamek(sk_coords, prev_coords, atol=self._ATOL_KDIFF):
+                if issamek(sk_coords, prev_coords, atol=self.ATOL_KDIFF):
                     break
             else:
                 frac_coords.append(sk_coords)
@@ -309,6 +315,8 @@ def kpoints_factory(filepath):
         file.close()
 
     return obj
+
+#def qpoints_factory(filepath):
 
 
 class KpointList(collections.Sequence):
@@ -380,8 +388,6 @@ class KpointList(collections.Sequence):
     #        names = [k.name for k in self] + [k.name for k in other]
     #        )
 
-    #def __sub__(self, other):
-
     def index(self, kpoint):
         """
         Returns first index of kpoint. Raises ValueError if not found.
@@ -426,12 +432,12 @@ class KpointStar(KpointList):
     of the star namely the point that is used to generate the Star.
     """
     @property
-    def base_kpoint(self):
+    def base_point(self):
         return self[0]
 
     @property
     def name(self):
-        return self.base_kpoint.name
+        return self.base_point.name
 
 
 class Kpath(KpointList):
@@ -449,12 +455,6 @@ class Kpath(KpointList):
         #else:
         #    pass
 
-    #@classmethod
-    #def from_bounds(cls, reciprocal_lattice, bounds, ndivsm)
-
-    #@classmethod
-    #def automatic(cls, reciprocal_lattice, ndivsm)
-
     @property
     def ds(self):
         """
@@ -464,9 +464,11 @@ class Kpath(KpointList):
         try:
             return self._ds
         except AttributeError:
+
             self._ds = ds = np.zeros(len(self) - 1)
             for (i, kpoint) in enumerate(self[:-1]):
                 ds[i] = (self[i + 1] - kpoint).norm
+
             return self._ds
 
     @property
@@ -474,6 +476,7 @@ class Kpath(KpointList):
         """Tuple of len(self)-1 elements with the versors connecting k[i] to k[i+1]."""
         try:
             return self._versors
+
         except AttributeError:
             versors = (len(self) - 1) * [None, ]
             versors[0] = Kpoint.gamma(self.reciprocal_lattice)
@@ -481,6 +484,7 @@ class Kpath(KpointList):
             for (i, kpt) in enumerate(self[:-1]):
                 versors[i] = (self[i + 1] - kpt).versor()
             self._versors = tuple(versors)
+
             return self._versors
 
     @property
@@ -499,6 +503,7 @@ class Kpath(KpointList):
         except AttributeError:
             lines = []
             prev, indices = self.versors[0], [0]
+
             for (i, v) in enumerate(self.versors[1:]):
                 i += 1
                 if v != prev:
@@ -507,9 +512,10 @@ class Kpath(KpointList):
                     indices = [i]
                 else:
                     indices += [i]
-            lines.append(indices + [len(self) - 1])
 
+            lines.append(indices + [len(self) - 1])
             self._lines = tuple(lines)
+
             return self._lines
 
     def finite_diff(self, values, order=1, acc=4):
@@ -533,6 +539,7 @@ class Kpath(KpointList):
         # Loop over the lines of the path, extract the data and
         # differenciate f(s) where s is the distance along the line.
         ders_on_lines = []
+
         for line in self.lines:
             vals_on_line = values[line]
             h = self.ds[line[0]]

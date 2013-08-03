@@ -80,7 +80,7 @@ class AbinitEventsFrame(awx.Frame):
     Frame with an EventsPanel
     """
 
-    def __init__(self, parent, filepath):
+    def __init__(self, parent, filepath, **kwargs):
         filepath = os.path.abspath(filepath)
         title = "Abinit Events: %s" % os.path.basename(filepath)
 

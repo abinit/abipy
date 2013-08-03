@@ -92,3 +92,4 @@ class Frame(wx.Frame):
     @property
     def log(self):
         return print
+

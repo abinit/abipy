@@ -3,16 +3,16 @@
 import sys
 import os
 import time
+import argparse
 
-from argparse import ArgumentParser
 from subprocess import call, Popen
 
 def str_examples():
-    examples = """
-      Usage example:\n\n
-      run.py               => Run all demo scripts.
-      run.py -m auto -t 5  => Run all tests, close the demo after 5 seconds.
-    """
+    examples = (
+      "Usage example:\n"
+      "run.py               => Run all demo scripts.\n"
+      "run.py -m auto -t 5  => Run all tests, close the demo after 5 seconds.\n"
+      )
     return examples
 
 def show_examples_and_exit(err_msg=None, error_code=1):
@@ -24,13 +24,13 @@ def show_examples_and_exit(err_msg=None, error_code=1):
 
 
 def main():
-    parser = ArgumentParser(epilog=str_examples())
+    parser = argparse.ArgumentParser(epilog=str_examples(),formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument('-m', '--mode', type=str, default="auto",
-                        help="Execution mode")
+    parser.add_argument('-m', '--mode', type=str, default="automatic",
+                        help="execution mode. Either s (sequential) or a (automatic)")
 
     parser.add_argument('-t', '--time', type=float, default=3,
-                        help="Wait time seconds before running next demo.")
+                        help="wait time seconds before running next demo.")
 
     options = parser.parse_args()
 
@@ -42,12 +42,12 @@ def main():
             scripts.append(os.path.join(dir, fname))
 
     # Run scripts depending on mode.
-    if options.mode == "sequential":
+    if options.mode in ["s", "sequential"]:
         for script in scripts:
             retcode = call(["python", script])
             if retcode != 0: break
 
-    elif options.mode == "auto":
+    elif options.mode in ["a", "automatic"]:
         for script in scripts:
             p = Popen(["python", script])
             time.sleep(options.time)

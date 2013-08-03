@@ -130,7 +130,11 @@ class Visualizer(object):
         self._wait = wait
 
     def show(self):
-        """Call the visualizer in a subprocess to visualize the data."""
+        """
+        Call the visualizer in a subprocess to visualize the data.
+
+        Returns: exit status of the subprocess.
+        """
         if self.cmdarg is None:
             raise NotImplementedError()
 

@@ -44,16 +44,15 @@ class DosPanel(awx.Panel):
         sizer = wx.FlexGridSizer(rows=3, cols=2, vgap=5, hgap=5)
 
         label = wx.StaticText(self, -1, "Broadening [eV]:")
-        self.width_ctrl = wx.SpinCtrlDouble(self, id=-1, value=str(self.DEFAULT_WIDTH), min=0.0, max=100, inc=0.1)
+        self.width_ctrl = wx.SpinCtrlDouble(self, id=-1, value=str(self.DEFAULT_WIDTH), min=self.DEFAULT_WIDTH/1000, inc=0.1)
         sizer.AddMany([label, self.width_ctrl])
 
         label = wx.StaticText(self, -1, "Mesh step [eV]:")
-        self.step_ctrl = wx.SpinCtrlDouble(self, id=-1, value=str(self.DEFAULT_STEP), min=0.0, max=100, inc=0.1)
+        self.step_ctrl = wx.SpinCtrlDouble(self, id=-1, value=str(self.DEFAULT_STEP), min=self.DEFAULT_STEP/1000, inc=0.1)
 
         sizer.AddMany([label, self.step_ctrl])
 
-        self.SetSizer(sizer)
-        sizer.Layout()
+        self.SetSizerAndFit(sizer)
 
     def GetParams(self):
         """Return a parameters in a `AttrDict`."""
@@ -204,23 +203,33 @@ class ElectronJdosPanel(awx.Panel):
         sz1 = wx.BoxSizer(wx.HORIZONTAL)
 
         spin_label = wx.StaticText(self, -1, "Spin:")
+        spin_label.Wrap(-1)
         self.spin_cbox = wx.ComboBox(self, id=-1, choices=map(str, range(self.nsppol)), style=wx.CB_READONLY)
 
-        sz1.AddMany([spin_label, self.spin_cbox])
+        sz1.Add(spin_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
+        sz1.Add(self.spin_cbox, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
 
         label = wx.StaticText(self, -1, "Broadening [eV]:")
-        self.width_ctrl = wx.SpinCtrlDouble(self, id=-1, value=str(self.DEFAULT_WIDTH), min=0.0, max=100, inc=0.1)
+        label.Wrap(-1)
+        self.width_ctrl = wx.SpinCtrlDouble(self, id=-1, value=str(self.DEFAULT_WIDTH), min=self.DEFAULT_WIDTH/1000, inc=0.1)
 
-        sz1.AddMany([label, self.width_ctrl])
+        sz1.Add(label, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
+        sz1.Add(self.width_ctrl, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
 
         label = wx.StaticText(self, -1, "Mesh step [eV]:")
-        self.step_ctrl = wx.SpinCtrlDouble(self, id=-1, value=str(self.DEFAULT_STEP), min=0.0, max=100, inc=0.1)
+        label.Wrap(-1)
+        self.step_ctrl = wx.SpinCtrlDouble(self, id=-1, value=str(self.DEFAULT_STEP), min=self.DEFAULT_STEP/1000, inc=0.1)
 
-        sz1.AddMany([label, self.step_ctrl])
+        sz1.Add(label, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
+        sz1.Add(self.step_ctrl, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
+
         main_sizer.Add(sz1)
 
         start_label = wx.StaticText(self, -1, "Start:")
+        start_label.Wrap(-1)
         stop_label = wx.StaticText(self, -1, "Stop:")
+        stop_label.Wrap(-1)
+
         self.vstart = wx.ComboBox(self, id=-1, choices=map(str, range(self.mband)))
         self.vstop = wx.ComboBox(self, id=-1, choices=map(str, range(self.mband)))
 
@@ -233,7 +242,10 @@ class ElectronJdosPanel(awx.Panel):
         val_boxsizer.Add(val_sizer)
 
         start_label = wx.StaticText(self, -1, "Start:")
+        start_label.Wrap(-1)
         stop_label = wx.StaticText(self, -1, "Stop:")
+        stop_label.Wrap(-1)
+
         self.cstart = wx.ComboBox(self, id=-1, choices=map(str, range(self.mband)))
         self.cstop = wx.ComboBox(self, id=-1, choices=map(str, range(self.mband)))
 
@@ -247,10 +259,9 @@ class ElectronJdosPanel(awx.Panel):
 
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
         hsizer.AddMany((val_boxsizer, cond_boxsizer))
-        main_sizer.Add(hsizer)
 
-        self.SetSizer(main_sizer)
-        main_sizer.Layout()
+        main_sizer.Add(hsizer, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5)
+        self.SetSizerAndFit(main_sizer)
 
     def GetParams(self):
         """Returns the parameter for the JDOS calculation in a `AttrDict`"""
@@ -326,19 +337,16 @@ class ElectronJdosFrame(awx.Frame):
         self.BuildUi()
 
     def BuildUi(self):
-        self.statusbar = self.CreateStatusBar()
-
         self.jdos_panel = ElectronJdosPanel(self, self.bands.nsppol, self.bands.mband)
 
         jdos_button = wx.Button(self, -1, "Compute JDOS", (20, 100))
         self.Bind(wx.EVT_BUTTON, self.OnClick, jdos_button)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.jdos_panel)
-        sizer.Add(jdos_button)
+        sizer.Add(self.jdos_panel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5)
+        sizer.Add(jdos_button, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5)
 
-        self.SetSizer(sizer)
-        sizer.Layout()
+        self.SetSizerAndFit(sizer)
 
     def OnClick(self, event):
         p = self.jdos_panel.GetParams()

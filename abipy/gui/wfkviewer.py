@@ -108,11 +108,10 @@ class WfkViewerFrame(awx.Frame):
         wfk = self.wfk
         if wfk is None: return
 
-        #splitter = wx.SplitterWindow(self, style=wx.SP_LIVE_UPDATE)
-        #splitter.SetMinimumPaneSize(50)
-        #parent = splitter 
-
-        parent = self
+        splitter = wx.SplitterWindow(self, style=wx.SP_LIVE_UPDATE)
+        splitter.SetMinimumPaneSize(50)
+        parent = splitter 
+        #parent = self
 
         self.skb_panel = awx.SpinKpointBandPanel(parent, wfk.nsppol, wfk.kpoints, wfk.mband)
 
@@ -120,9 +119,14 @@ class WfkViewerFrame(awx.Frame):
         self.skb_panel.SetOnItemActivated(self._visualize_skb)
 
         # Add Python shell
-        #from wx.py.shell import Shell
-        #pyshell = Shell(parent, introText="Wavefunction File methods are available via the wfk variable", locals={"wfk": self.wfk})
-        #splitter.SplitHorizontally(self.skb_panel, pyshell)
+        from wx.py.shell import Shell
+        from abipy.tools import marquee
+        msg = "WFK_File object is accessible via the wfk variable. Try, for example, print(wfk)"
+        msg = marquee(msg, width=len(msg) + 8, mark="#")
+        msg = "#"*len(msg) + "\n" + msg + "\n" + "#"*len(msg) + "\n"
+
+        pyshell = Shell(parent, introText=msg, locals={"wfk": self.wfk})
+        splitter.SplitHorizontally(self.skb_panel, pyshell)
 
         #main_sizer = wx.BoxSizer(wx.VERTICAL)
         #main_sizer.Add(self.skb_panel, 1, wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 5)
@@ -196,9 +200,14 @@ class WfkViewerFrame(awx.Frame):
 
         visualizer = self.GetVisualizer()
         self.statusbar.PushStatusText("Visualizing crystal structure with %s" % visualizer)
+
         try:
             visu = self.wfk.visualize_structure_with(visualizer)
-            visu()
+            #visu()
+
+            thread = awx.WorkerThread(self, target=visu)
+            thread.start()
+
         except:
             awx.showErrorMessage(self)
 
@@ -222,7 +231,11 @@ class WfkViewerFrame(awx.Frame):
         try:
             visu = self.wfk.export_ur2(".xsf", spin, kpoint, band)
             #visu = self.wfk.visualize_ur2_with(spin, kpoint, bands, visualizer)
-            visu()
+            #visu()
+
+            thread = awx.WorkerThread(self, target=visu)
+            thread.start()
+
         except:
             awx.showErrorMessage(self)
 

@@ -8,6 +8,7 @@ from .core import Panel
 
 __all__ = [
     "SpinKpointBandPanel",
+    "KpointsListCtrl",
 ]
 
 
@@ -31,7 +32,14 @@ class SpinKpointBandPanel(Panel):
         """
         super(SpinKpointBandPanel, self).__init__(parent, **kwargs)
 
+        self.nsppol = nsppol
         self.kpoints = kpoints
+        self.mband = mband
+        self.bstart = bstart
+
+        self.BuildUi()
+
+    def BuildUi(self):
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -41,14 +49,14 @@ class SpinKpointBandPanel(Panel):
         band_label.Wrap(-1)
         hsizer1.Add(band_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
 
-        self.band_cbox = wx.ComboBox(self, -1, choices=map(str, range(bstart, mband)))
+        self.band_cbox = wx.ComboBox(self, -1, choices=map(str, range(self.bstart, self.mband)))
         hsizer1.Add(self.band_cbox, 0, wx.ALL, 5)
 
         spin_label = wx.StaticText(self, -1, "Spin:", wx.DefaultPosition, wx.DefaultSize, 0)
         spin_label.Wrap(-1)
         hsizer1.Add(spin_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
 
-        self.spin_cbox = wx.ComboBox(self, -1, choices=map(str, range(nsppol)))
+        self.spin_cbox = wx.ComboBox(self, -1, choices=map(str, range(self.nsppol)))
         hsizer1.Add(self.spin_cbox, 0, wx.ALL, 5)
 
         main_sizer.Add(hsizer1, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
@@ -63,17 +71,25 @@ class SpinKpointBandPanel(Panel):
         hsizer2.Add(self.kpoint_listctrl, 1, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
 
         klist = self.kpoint_listctrl
-        klist.InsertColumn(0, '#')
-        klist.InsertColumn(1, 'Reduced Coordinates')
-        klist.InsertColumn(2, 'Weight')
-        for index, kpt in enumerate(kpoints):
-            entry = map(str, [index, kpt.frac_coords, kpt.weight])
+        columns = ["#", 'Reduced Coordinates', 'Weight', 'Name']
+
+        for index, col in enumerate(columns):
+            klist.InsertColumn(index, col)
+
+        for index, kpt in enumerate(self.kpoints):
+            entry = ["%d\t\t" % index, 
+                     "[%.5f,  %.5f,  %.5f]\t\t" % tuple(c for c in kpt.frac_coords), 
+                     "%.3f\t\t" % kpt.weight, 
+                     "%s" % kpt.name,
+                     ]
             klist.Append(entry)
+
+        for index, col in enumerate(columns):
+            klist.SetColumnWidth(index, wx.LIST_AUTOSIZE)
 
         main_sizer.Add(hsizer2, 1, wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 5)
 
-        self.SetSizer(main_sizer)
-        main_sizer.Fit(self)
+        self.SetSizerAndFit(main_sizer)
 
         # Connect the events whose callback will be set by the client code.
         klist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick)
@@ -129,3 +145,38 @@ class SpinKpointBandPanel(Panel):
             skb = self.GetSKB()
             self.log("In OnItemActivated with skb %s" % str(skb))
             self._on_item_activated_callback(*skb)
+
+
+class KpointsListCtrl(wx.ListCtrl):
+    """
+    """
+    def __init__(self, parent, kpoints, **kwargs):
+        """
+        Args:
+            kpoints:
+                List of `Kpoint` instances.
+        """
+        super(KpointsListCtrl, self).__init__(parent, id=-1, style=wx.LC_REPORT | wx.BORDER_SUNKEN, **kwargs)
+
+        self.kpoints = kpoints
+
+        columns = ["#", 'Reduced Coordinates', 'Weight', 'Name']
+
+        for (index, col) in enumerate(columns):
+            self.InsertColumn(index, col)
+
+        for (index, kpt) in enumerate(self.kpoints):
+            entry = ["%d\t\t" % index, 
+                     "[%.5f,  %.5f,  %.5f]\t\t" % tuple(c for c in kpt.frac_coords), 
+                     "%.3f\t\t" % kpt.weight, 
+                     "%s" % kpt.name,
+                     ]
+            self.Append(entry)
+
+        for (index, col) in enumerate(columns):
+            self.SetColumnWidth(index, wx.LIST_AUTOSIZE)
+
+    def GetKpoint(self):
+        """Returns the kpoint selected by the user."""
+        kidx = int(self.GetFirstSelected())
+        return self.kpoints[kidx]

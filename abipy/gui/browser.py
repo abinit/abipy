@@ -15,12 +15,15 @@ except ImportError:
 
     warnings.warn("Error while import wxmplot. Some features won't be available")
 
+from abipy.electrons import ElectronBandsPlotter
 from abipy.gui.popupmenus import popupmenu_for_filename
 from abipy.gui.wfkviewer import WfkViewerFrame
+from abipy.gui.sigresviewer import SigresViewerFrame
 
 
 _VIEWER_FRAMES = {
     "WFK-etsf.nc": WfkViewerFrame,
+    "SIGRES.nc": SigresViewerFrame,
 }
 
 
@@ -34,10 +37,13 @@ def viewerframe_for_filepath(parent, filepath):
 
 class NcFileDirCtrl(wx.GenericDirCtrl):
     def __init__(self, *args, **kwargs):
+
         if "filter" not in kwargs:
             kwargs["filter"] = "Netcdf files (*.nc)|*.nc|All files (*.*)|*.*"
+
         if "dir" not in kwargs:
             kwargs["dir"] = os.getcwd()
+
         if "style" not in kwargs:
             kwargs["style"] = wx.TR_MULTIPLE
 
@@ -66,9 +72,9 @@ class NcFileDirCtrl(wx.GenericDirCtrl):
 import fnmatch
 import wx.lib.mixins.listctrl as listmix
 
-
 class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
-    def __init__(self, parent, dirpaths=None, filepaths=None, wildcard=None, **kwargs):
+
+    def __init__(self, parent, dirpaths=None, filepaths=None, wildcard="", **kwargs):
         super(FileListPanel, self).__init__(parent, -1, **kwargs)
 
         if isinstance(dirpaths, str) and dirpaths:
@@ -83,7 +89,14 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
         self.dirpaths = map(os.path.abspath, self.dirpaths)
         self.filepaths = map(os.path.abspath, self.filepaths)
 
-        self.wildcard = wildcard if wildcard is not None else ""
+        if not wildcard:
+            self.wildcards = ["*.*"]
+        else:
+            if "|" in wildcard:
+                self.wildcards = wildcard.split("|")
+            else:
+                self.wildcards = [wildcard]
+        #print(self.wildcards)
 
         self.BuildUi()
 
@@ -120,8 +133,8 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
         self.FileDataObj = FileDataObj
 
         self.id2filedata = {}
-        for i, colname in enumerate(self.FileDataObj._fields):
-            file_list.InsertColumn(i, colname)
+        for (index, colname) in enumerate(self.FileDataObj._fields):
+            file_list.InsertColumn(index, colname)
 
         for dirpath in self.dirpaths:
             self.ScanDirectory(dirpath)
@@ -129,16 +142,13 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
         for filepath in self.filepaths:
             self.AppendFilepath(filepath)
 
+        for (index, colname) in enumerate(self.FileDataObj._fields):
+            file_list.SetColumnWidth(index, wx.LIST_AUTOSIZE)
+
         # Now that the list exists we can init the other base class, see wx/lib/mixins/listctrl.py
         self.itemDataMap = self.id2filedata
         listmix.ColumnSorterMixin.__init__(self, len(self.FileDataObj._fields))
         self.Bind(wx.EVT_LIST_COL_CLICK, self.OnColClick, self.file_list)
-
-        # Add filepicker.
-        #self.filepicker = wx.FilePickerCtrl(self, id=-1, path=os.getcwd(),
-        #    wildcard=self.wildcard, style = wx.FLP_OPEN | wx.CHANGE_DIR | wx.FLP_USE_TEXTCTRL)
-        #self.Bind(wx.EVT_FILEPICKER_CHANGED, self.OnFilePicker)
-        #sizer.Add(self.filepicker, 0, wx.ALL | wx.CENTER, 5)
 
         # Pack
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -153,7 +163,7 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
         return self.file_list
 
     def AcceptFilename(self, filename):
-        for wcard in self.wildcard.split("|")[1::2]:
+        for wcard in self.wildcards:
             if not fnmatch.fnmatch(filename, wcard):
                 return False
         return True
@@ -213,13 +223,13 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
 
         # Plot multiple bands
         if len(indices) > 1:
-            from abipy.electrons import ElectronBandsPlotter
-
             plotter = ElectronBandsPlotter()
+
             for index in indices:
                 fd = self.id2filedata[self.file_list.GetItemData(index)]
                 self.log("adding ", fd.abspath)
                 plotter.add_bands_from_file(fd.abspath)
+
             plotter.plot()
 
 
