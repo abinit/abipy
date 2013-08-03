@@ -4,7 +4,13 @@ import wx
 import inspect
 
 from dialogs import showErrorMessage
-from wxmplot import PlotFrame
+
+try:
+    from wxmplot import PlotFrame
+except ImportError:
+    import warnings
+
+    warnings.warn("Error while import wxmplot. Some features won't be available")
 
 __all__ = [
     "Func1dPlotFrame",
