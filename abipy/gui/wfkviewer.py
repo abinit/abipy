@@ -18,7 +18,6 @@ ID_DOS = wx.NewId()
 ID_JDOS = wx.NewId()
 ID_NCDUMP = wx.NewId()
 ID_PLOTBANDS = wx.NewId()
-
 ID_TBOX_VIS = wx.NewId()
 
 class WfkViewerFrame(awx.Frame):
@@ -270,9 +269,8 @@ class WfkViewerApp(awx.App):
         if filename.endswith(".py"):
             return
         # Open filename in a new frame.
-        self("%s dropped on app %s" % (filename, self.appname))
-        frame = WfkViewerFrame(parent=None, filename=filename)
-        frame.Show()
+        self.log("%s dropped on app %s" % (filename, self.appname))
+        WfkViewerFrame(parent=None, filename=filename).Show()
 
 
 def wxapp_wfkviewer(wfk_filename):

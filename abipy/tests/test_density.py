@@ -31,7 +31,6 @@ class TestDensity(AbipyTest):
             # Diff between nelect computed and the one written on file.
             self.assert_almost_equal(nelect_calc, nelect_file)
             visu = den.export(".xsf")
-            #visu()
 
 
 if __name__ == "__main__":

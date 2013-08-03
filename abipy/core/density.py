@@ -17,19 +17,11 @@ class Density(DFTScalarField):
     Electron density
     """
     #: Attributes read from the netCDF file.
-    _slots = [
-      "cplex_den",                # "real_or_complex_density"
-      "nsppol",                   # "number_of_spins"
-      "nspinor",                  # "number_of_spinor_components"
-      "nspden",                   # "number_of_components"
-      "nfft1",                    # "number_of_grid_points_vector1"
-      "nfft2",                    # "number_of_grid_points_vector2"
-      "nfft3",                    # "number_of_grid_points_vector3"
-      "rhor",                     # "density"
-      "nelect",                   # "number_of_electrons"
-      "exchange_functional",      # "exchange_functional"
-      "valence_charges",          # "valence_charges"
-    ]
+    #_slots = [
+    #  "nelect",                   # "number_of_electrons"
+    #  "exchange_functional",      # "exchange_functional"
+    #  "valence_charges",          # "valence_charges"
+    #]
 
     @classmethod
     def from_file(cls, filename):
@@ -41,35 +33,34 @@ class Density(DFTScalarField):
                 string or file object.
         """
         with ETSF_Reader(filename) as r:
+
             structure = r.read_structure()
-            d, missing = r.read_values_with_map(cls._slots, map_names=abipy2etsfio)
+            cplex_den = r.read_dimvalue("real_or_complex_density")
+            nspinor = r.read_dimvalue("number_of_spinor_components")
+            nsppol = r.read_dimvalue("number_of_spins")
+            nspden = r.read_dimvalue("number_of_components")
 
-        # FIXME
-        class Record(object): pass
-        rec = Record()
-        rec.__dict__ = d
+            nfft1 = r.read_dimvalue("number_of_grid_points_vector1")
+            nfft2 = r.read_dimvalue("number_of_grid_points_vector2")
+            nfft3 = r.read_dimvalue("number_of_grid_points_vector3")
 
-        # Handle the error
-        if missing:
-            for miss in missing:
-                print("internal name= " + miss[0] + ", ETSF name= " + miss[1] + " is missing!")
+            rhor = r.read_value("density")
 
         # use iorder="f" to transpose the last 3 dimensions since ETSF
         # stores data in Fortran order while abipy uses C-ordering.
+        if cplex_den == 1:
 
-        if rec.cplex_den == 1:
-            #
             # Get rid of fake last dimensions (cplex).
-            rec.rhor = np.reshape(rec.rhor, (rec.nspden, rec.nfft1, rec.nfft2, rec.nfft3))
-            #
+            rhor = np.reshape(rhor, (nspden, nfft1, nfft2, nfft3))
+
             # Fortran to C, avoid the view.
             #cview = np.transpose(rec.rhor, axes = [0,3,2,1])
             #rec.rhor = np.ascontiguousarray(cview)
-            rec.rhor = rec.rhor / Bohr_Ang**3
-            return Density(rec.nspinor, rec.nsppol, rec.nspden, rec.rhor, structure, iorder="f")
+            rhor = rhor / Bohr_Ang**3
+            return Density(nspinor, nsppol, nspden, rhor, structure, iorder="f")
 
         else:
-            raise NotImplementedError("cplex_den %s not coded" % rec.cplex_den)
+            raise NotImplementedError("cplex_den %s not coded" % cplex_den)
 
     def __init__(self, nspinor, nsppol, nspden, rhor, structure, iorder="c"):
         """
@@ -99,6 +90,7 @@ class Density(DFTScalarField):
             raise NotImplementedError("Non collinear not implemented")
 
         nelect = self.mesh.integrate(self.datar)
+
         if spin is None:
             return np.sum(nelect)
         else:
@@ -179,9 +171,9 @@ class Density(DFTScalarField):
         vhr = self.mesh.fft_g2r(vhg, fg_ishifted=False)
         return vhr, vhg
 
-    #def get_kinden(self, spin=None):
-        #return kindr, kindgg
-
     #def get_vxc(self, spin=None, xc_type=None):
         #return vxcr, vxcg
+
+    #def get_kinden(self, spin=None):
+        #return kindr, kindgg
 

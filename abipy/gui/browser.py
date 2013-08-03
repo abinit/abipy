@@ -55,7 +55,6 @@ class NcFileDirCtrl(wx.GenericDirCtrl):
     def OnRightClick(self, event):
         path = self.GetFilePath()
         if not path: return
-        self.log("in right with path %s" % path)
 
         # Open the popup menum then destroy it to avoid mem leak.
         popmenu = popupmenu_for_filename(self, path)

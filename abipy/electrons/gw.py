@@ -2,8 +2,8 @@ from __future__ import print_function, division
 
 import sys
 import copy
-import cStringIO
 import collections
+import cStringIO as StringIO
 import numpy as np
 
 from abipy.tools import find_le, find_ge
@@ -161,7 +161,7 @@ class QPList(list):
         """String representation."""
         table = self.to_table()
 
-        strio = cStringIO.StringIO()
+        strio = StringIO.StringIO()
         pprint_table(table, out=strio)
         strio.write("\n")
         strio.seek(0)
@@ -654,6 +654,7 @@ class SIGRES_File(AbinitNcFile):
         gwband_range = (self.min_gwbstart, self.max_gwbstop)
 
         fig = self.ks_bands.plot(marker=with_marker, band_range=gwband_range, **kwargs)
+
         return fig
 
     #def plot_matrix_elements(self, mel_name, spin, kpoint, *args, **kwargs):

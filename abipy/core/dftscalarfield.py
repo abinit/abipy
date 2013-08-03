@@ -29,17 +29,20 @@ class DFTScalarField(object):
             datar:
                 numpy array with the scalar field in real space.
             structure:
-                pymatgen structure
+                `Structure` object describing the crystalline structure.
             iorder:
                 Order of the array. "c" for C ordering, "f" for Fortran ordering.
         """
         self.nspinor = nspinor
         self.nsppol = nsppol
         self.nspden = nspden
+        self.datar = datar
         self.structure = structure
 
-        self.datar = datar
-        if iorder.lower() == "f": # (z,x,y) --> (x,y,z)
+        iorder = iorder.lower()
+        assert iorder in ["f", "c"]
+
+        if iorder == "f": # (z,x,y) --> (x,y,z)
             self.datar = transpose_last3dims(self.datar)
 
         # Init Mesh3D
@@ -64,20 +67,21 @@ class DFTScalarField(object):
 
     def tostring(self, prtvol=0):
         """String representation"""
+
         s  = "ScalarField: nspinor = %i, nsppol = %i, nspden = %i" % (
             self.nspinor, self.nsppol, self.nspden)
         s += "  " + self.mesh.tostring(prtvol)
         if prtvol > 0:
             s += "  " + str(self.structure)
+
         return s
 
     @property
     def shape(self):
         shape_r, shape_g = self.datar.shape, self.datag.shape
-        if np.all(shape_r == shape_g):
-            return shape_r
-        else:
-            raise RuntimeError("datar and datag have different shape")
+        assert np.all(shape_r == shape_g)
+
+        return shape_r
 
     @property
     def iscollinear(self):

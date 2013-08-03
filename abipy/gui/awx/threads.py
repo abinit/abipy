@@ -39,8 +39,7 @@ class WorkerThread(Thread):
         self._want_abort = 0
 
     def start(self):
-        # This starts the thread running on creation, but you could
-        # also make the GUI thread responsible for calling this
+        """Start Worker Thread."""
         super(WorkerThread, self).start()
 
     def run(self):
@@ -65,7 +64,7 @@ class WorkerThread(Thread):
         return retcode 
 
     def abort(self):
-        """abort worker thread."""
+        """Abort worker thread."""
         # Method for use by main thread to signal an abort
         self._want_abort = 1
 

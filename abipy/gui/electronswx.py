@@ -1,18 +1,16 @@
 from __future__ import print_function, division
 
 import wx
-
 import abipy.gui.awx as awx
 
 try:
     from wxmplot import PlotFrame
 except ImportError:
     import warnings
-
     warnings.warn("Error while import wxmplot. Some features won't be available")
 
-from abipy.tools import AttrDict
 from abipy import abiopen
+from abipy.tools import AttrDict
 from abipy.electrons import ElectronBands
 
 
@@ -41,33 +39,40 @@ class DosPanel(awx.Panel):
         self.BuildUi()
 
     def BuildUi(self):
-        sizer = wx.FlexGridSizer(rows=3, cols=2, vgap=5, hgap=5)
+        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         label = wx.StaticText(self, -1, "Broadening [eV]:")
+        label.Wrap(-1)
         self.width_ctrl = wx.SpinCtrlDouble(self, id=-1, value=str(self.DEFAULT_WIDTH), min=self.DEFAULT_WIDTH/1000, inc=0.1)
-        sizer.AddMany([label, self.width_ctrl])
+
+        main_sizer.Add(label, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
+        main_sizer.Add(self.width_ctrl, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         label = wx.StaticText(self, -1, "Mesh step [eV]:")
+        label.Wrap(-1)
         self.step_ctrl = wx.SpinCtrlDouble(self, id=-1, value=str(self.DEFAULT_STEP), min=self.DEFAULT_STEP/1000, inc=0.1)
 
-        sizer.AddMany([label, self.step_ctrl])
+        main_sizer.Add(label, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
+        main_sizer.Add(self.step_ctrl, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
-        self.SetSizerAndFit(sizer)
+        self.SetSizerAndFit(main_sizer)
 
     def GetParams(self):
-        """Return a parameters in a `AttrDict`."""
-        return AttrDict(dict(
+        """Return the parameters for the computation of the DOS in a `AttrDict`."""
+        return AttrDict(
             width=float(self.width_ctrl.GetValue()),
             step=float(self.step_ctrl.GetValue()),
-        ))
+        )
 
 
 class PhononDosPanel(DosPanel):
+    """Panel for the specification of the phonon DOS parameters."""
     DEFAULT_WIDTH = 0.002
     DEFAULT_STEP = 0.001
 
 
 class ElectronDosPanel(DosPanel):
+    """Panel for the specification of the electron DOS parameters."""
     DEFAULT_WIDTH = 0.2
     DEFAULT_STEP = 0.1
 
@@ -96,7 +101,7 @@ class ElectronDosDialog(wx.Dialog):
         vbox.Add(self.panel, proportion=1, flag=wx.ALL | wx.EXPAND, border=5)
         vbox.Add(hbox, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10)
 
-        self.SetSizer(vbox)
+        self.SetSizerAndFit(vbox)
 
     def GetParams(self):
         """Return a parameters in a `AttrDict`."""
@@ -118,20 +123,19 @@ class ElectronDosFrame(awx.Frame):
 
         super(ElectronDosFrame, self).__init__(parent, id=-1, **kwargs)
         self.bands = bands
+
         self.BuildUi()
 
         # Store PlotFrames in this list.
         self._pframes = []
 
     def BuildUi(self):
-        self.statusbar = self.CreateStatusBar()
-
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         panel = awx.Panel(self, -1)
 
         self.dos_panel = ElectronDosPanel(panel)
-        main_sizer.Add(self.dos_panel)
+        main_sizer.Add(self.dos_panel, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5)
 
         dos_button = wx.Button(panel, -1, "Compute DOS")
         self.Bind(wx.EVT_BUTTON, self.OnClick, dos_button)
@@ -139,10 +143,14 @@ class ElectronDosFrame(awx.Frame):
         self.replot_checkbox = wx.CheckBox(panel, id=-1, label="Replot")
         self.replot_checkbox.SetValue(True)
 
-        main_sizer.AddMany([dos_button, self.replot_checkbox])
+        hsizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        panel.SetSizer(main_sizer)
-        main_sizer.Layout()
+        hsizer.Add(dos_button, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        hsizer.Add(self.replot_checkbox, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
+        main_sizer.Add(hsizer, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5)
+
+        panel.SetSizerAndFit(main_sizer)
 
     def OnClick(self, event):
         p = self.dos_panel.GetParams()
@@ -275,20 +283,29 @@ class ElectronJdosPanel(awx.Panel):
         crange = range(cstart, cstop)
         if cstart == cstop: crange = cstart
 
-        return AttrDict(dict(
+        return AttrDict(
             vrange=vrange,
             crange=crange,
             spin=int(self.spin_cbox.GetValue()),
             step=float(self.step_ctrl.GetValue()),
             width=float(self.width_ctrl.GetValue()),
             cumulative=True,
-        ))
+        )
 
 
 class ElectronJdosDialog(wx.Dialog):
     """Dialog that asks the user to enter the parameters for the electron JDOS."""
 
     def __init__(self, parent, nsppol, mband, **kwargs):
+        """
+            Args:
+                parent:
+                    Parent window.
+                nsppol:
+                    Number of spins.
+                mband
+                    Maximum number of bands.
+        """
         super(ElectronJdosDialog, self).__init__(parent, -1, **kwargs)
 
         self.SetSize((250, 200))
@@ -309,7 +326,7 @@ class ElectronJdosDialog(wx.Dialog):
         vbox.Add(self.panel, proportion=1, flag=wx.ALL | wx.EXPAND, border=5)
         vbox.Add(hbox, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10)
 
-        self.SetSizer(vbox)
+        self.SetSizerAndFit(vbox)
 
     def GetParams(self):
         """Return a parameters in a `AttrDict`."""
@@ -355,17 +372,4 @@ class ElectronJdosFrame(awx.Frame):
                                    cumulative=p.cumulative)
         except:
             awx.showErrorMessage(self)
-
-
-def main():
-    import sys
-    app = wx.App()
-    bands = abiopen(sys.argv[1]).get_bands()
-    frame = ElectronJdosFrame(None, bands)
-    frame.Show()
-    app.MainLoop()
-
-
-if __name__ == "__main__":
-    main()
 

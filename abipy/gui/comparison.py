@@ -1,16 +1,25 @@
 from __future__ import print_function, division
 
 import wx
-import awx
 import collections
 import fnmatch
+import abipy.gui.awx as awx
 
 from abipy.electrons import ElectronBandsPlotter, ElectronDosPlotter, MDF_Plotter
 from abipy.gui.electronswx import ElectronDosDialog
 
 
 class FileCheckBoxPanel(awx.Panel):
+    """A panel with a list of filepaths and checkboxes."""
+
     def __init__(self, parent, filepaths, **kwargs):
+        """
+        Args:
+            parent:
+                Parent window.
+            filepaths:
+                String or List of strings with filepaths.
+        """
         super(FileCheckBoxPanel, self).__init__(parent, -1, **kwargs)
 
         if isinstance(filepaths, str): filepaths = [filepaths]
@@ -28,8 +37,7 @@ class FileCheckBoxPanel(awx.Panel):
         self.wildcards = ["*"]
 
         for path in self.all_filepaths:
-            if not self._SelectFilename(path):
-                continue
+            if not self._SelectFilename(path): continue
             assert path not in self.check_boxes
             cbox = wx.CheckBox(self, -1, path, wx.DefaultPosition, wx.DefaultSize, 0)
             cbox.SetValue(True)
@@ -41,13 +49,13 @@ class FileCheckBoxPanel(awx.Panel):
         # Add buttons to (select|deselect) all checkboxes.
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.all_button = wx.Button(self, -1, "Select all", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.Bind(wx.EVT_BUTTON, self.OnSelectAll, self.all_button)
-        hsizer.Add(self.all_button, 0, wx.ALL, 5)
+        all_button = wx.Button(self, -1, "Select all", wx.DefaultPosition, wx.DefaultSize, 0)
+        all_button.Bind(wx.EVT_BUTTON, self.OnSelectAll) 
+        hsizer.Add(all_button, 0, wx.ALL, 5)
 
-        self.deselect_button = wx.Button(self, -1, "Deselect all", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.Bind(wx.EVT_BUTTON, self.OnDeselectAll, self.deselect_button)
-        hsizer.Add(self.deselect_button, 0, wx.ALL, 5)
+        deselect_button = wx.Button(self, -1, "Deselect all", wx.DefaultPosition, wx.DefaultSize, 0)
+        deselect_button.Bind(wx.EVT_BUTTON, self.OnDeselectAll)
+        hsizer.Add(deselect_button, 0, wx.ALL, 5)
 
         filter_label = wx.StaticText(self, -1, "Filter:", wx.DefaultPosition, wx.DefaultSize, 0)
         filter_label.Wrap(-1)
@@ -62,8 +70,7 @@ class FileCheckBoxPanel(awx.Panel):
 
         main_sizer.Add(hsizer, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
 
-        self.SetSizer(main_sizer)
-        self.Fit()
+        self.SetSizerAndFit(main_sizer)
 
     def _SelectFilename(self, filename):
         for wcard in self.wildcards:
@@ -73,6 +80,7 @@ class FileCheckBoxPanel(awx.Panel):
 
     def OnFilterComboBox(self, event):
         self.wildcards = self.filter_combobox.GetValue().split("|")
+
         for filepath, cbox in self.check_boxes.items():
             if self._SelectFilename(filepath):
                 cbox.SetValue(True)
@@ -93,14 +101,32 @@ class FileCheckBoxPanel(awx.Panel):
         Main entry point for client code.
         """
         selected = []
+
         for path, cbox in self.check_boxes.items():
             if cbox.GetValue():
                 selected.append(path)
+
         return selected
 
 
 class ComparisonFrame(awx.Frame):
+    """
+    This frame allows the user to select/deselect a list of files and to produce plots 
+    for all the files selected. Useful for convergence studies.
+    """
+
     def __init__(self, parent, dirpaths=None, filepaths=None, wildcard=None, **kwargs):
+        """
+        Args:
+            parent:
+                parent window
+            dirpaths
+                List of directory names
+            filepaths
+                List of filepaths.
+            wildcard
+                Regular expression for selecting files.
+        """
         super(ComparisonFrame, self).__init__(parent, -1, **kwargs)
 
         # TODO
@@ -125,7 +151,7 @@ class ComparisonFrame(awx.Frame):
         hsizer.Add(self.plotter_cbox, 0, wx.ALL, 5)
 
         compare_button = wx.Button(self, -1, "Compare", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.Bind(wx.EVT_BUTTON, self.OnCompare, compare_button)
+        compare_button.Bind(wx.EVT_BUTTON, self.OnCompareButton)
         hsizer.Add(compare_button, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
         main_sizer.Add(hsizer, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
@@ -133,19 +159,21 @@ class ComparisonFrame(awx.Frame):
         self.panel = FileCheckBoxPanel(self, filepaths)
         main_sizer.Add(self.panel, 1, wx.EXPAND, 5)
 
-        self.SetSizer(main_sizer)
-        self.Layout()
+        self.SetSizerAndFit(main_sizer)
 
-    def OnCompare(self, event):
+    def OnCompareButton(self, event):
         selected = self.panel.GetSelectedFilepaths()
-        self.log("selected", selected)
+        #self.log("selected", selected)
 
         choice = self.plotter_cbox.GetValue()
         try:
+
             if choice == "ebands":
                 plotter = ElectronBandsPlotter()
+
                 for filepath in selected:
                     plotter.add_bands_from_file(filepath)
+
                 plotter.plot()
 
             elif choice == "edos":
@@ -154,18 +182,22 @@ class ComparisonFrame(awx.Frame):
 
                 if dos_dialog.ShowModal() == wx.ID_OK:
                     p = dos_dialog.GetParams()
-                    self.log(p)
+
                     plotter = ElectronDosPlotter()
+
                     for filepath in selected:
                         plotter.add_dos_from_file(filepath, **p)
+
                     plotter.plot()
 
                 dos_dialog.Destroy()
 
             elif choice == "mdf":
                 plotter = MDF_Plotter()
+
                 for filepath in selected:
                     plotter.add_mdf_from_file(filepath, mdf_type="exc")
+
                 plotter.plot()
 
             else:
