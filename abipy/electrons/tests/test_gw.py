@@ -2,9 +2,11 @@
 from __future__ import print_function, division
 
 import collections
+import numpy as np
 
 from abipy import abiopen
 from abipy.electrons.gw import *
+from abipy.electrons.gw import SIGRES_Reader
 from abipy.tests import *
 
 class TestQPList(AbipyTest):
@@ -52,13 +54,46 @@ class TestQPList(AbipyTest):
         self.assertAlmostEqual(qp.sigxme, -16.549383605401)
 
 
-#class TestSigresFile(AbipyTest):
-#    def SetUp(self):
-#        self.sigres = abiopen(get_reference_file("tgw1_9o_DS4_SIGRES.nc"))
-#
-#    def test_readwrite_GWFile(self):
-#        """Test read & write GWFile"""
-#        pass
+class TestSigresReader(AbipyTest):
+
+    def test_base(self):
+        """Test SIGRES Reader."""
+        with SIGRES_Reader(get_reference_file("tgw1_9o_DS4_SIGRES.nc")) as r:
+            self.assertFalse(r.has_spfunc)
+            #params = r.read_params()
+
+
+class TestSigresFile(AbipyTest):
+
+    def test_base(self):
+        """Test SIGRES File."""
+        sigres = abiopen(get_reference_file("tgw1_9o_DS4_SIGRES.nc"))
+
+        self.assertTrue(sigres.nsppol == 1)
+
+        # Markers are initialied in __init__
+        self.assertTrue(sigres.ks_bands.markers)
+
+        # In this run IBZ = kptgw
+        self.assertTrue(len(sigres.ibz) == 6)
+        self.assertTrue(sigres.gwkpoints == sigres.ibz)
+
+        kptgw_coords = np.reshape([
+            -0.25, -0.25, 0,
+            -0.25, 0.25, 0,
+            0.5, 0.5, 0,
+            -0.25, 0.5, 0.25,
+            0.5, 0, 0,
+            0, 0, 0 
+        ], (-1,3))
+
+        self.assert_almost_equal(sigres.ibz.frac_coords, kptgw_coords)
+
+        qpgaps = [3.53719151871085, 4.35685250045637, 4.11717896881632, 8.71122659251508, 3.29693118466282, 3.125545059031]
+
+        self.assert_almost_equal(sigres.qpgaps, np.reshape(qpgaps, (1,6)))
+
+
 
 
 if __name__ == "__main__":

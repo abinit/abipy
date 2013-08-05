@@ -2,6 +2,7 @@
 """Tests for kpoints.kpoints module."""
 from __future__ import print_function, division
 
+import itertools
 import numpy as np
 
 from pymatgen.core.lattice import Lattice
@@ -103,6 +104,24 @@ class TestKpointList(AbipyTest):
         # Changing the weight of the Kpoint object shoul change the weights of klist.
         for kpoint in klist: kpoint.set_weight(1.0)
         self.assertTrue(np.all(klist.weights == 1.0))
+
+        frac_coords = [0, 0, 0, 1/2, 1/3, 1/3]
+                                                                  
+        other_klist = KpointList(lattice, frac_coords)
+
+        # Test __add__
+        add_klist = klist + other_klist 
+
+        for k in itertools.chain(klist, other_klist):
+            self.assertTrue(k in add_klist)
+
+        self.assertTrue(add_klist.count([0,0,0]) == 2)
+
+        # Remove duplicated k-points.
+        add_klist = add_klist.remove_duplicated()
+        self.assertTrue(add_klist.count([0,0,0]) == 1)
+        self.assertTrue(len(add_klist) == 4)
+        self.assertTrue(add_klist == add_klist.remove_duplicated())
 
 
 if __name__ == "__main__":

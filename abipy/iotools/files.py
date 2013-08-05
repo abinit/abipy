@@ -25,7 +25,10 @@ class AbinitFile(object):
         self._filepath = os.path.abspath(filepath)
 
     def __repr__(self):
-        return "<%s at %s, filetype = %s>" % (self.__class__.__name__, id(self), self.filetype)
+        return "<%s at %s, filepath = %s>" % (self.__class__.__name__, id(self), self.filepath)
+
+    def __str__(self):
+        return repr(self)
 
     @classmethod
     def from_file(cls, filepath):
@@ -102,9 +105,6 @@ class AbinitNcFile(AbinitFile):
     according to the ETSF-IO specifications (when available).
     """
     __metaclass__ = abc.ABCMeta
-
-    def __str__(self):
-        return self.summary
 
     @abc.abstractmethod
     def get_structure(self):

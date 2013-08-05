@@ -58,8 +58,8 @@ class SigresViewerFrame(awx.Frame):
         tsize = (15, 15)
         artBmp = wx.ArtProvider.GetBitmap
         toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, tsize), "Open")
-        toolbar.AddSimpleTool(ID_VISTRUCT, wx.Bitmap(awx.path_img("crystal.png")), "Visualize the crystal structure")
-        toolbar.AddSimpleTool(ID_VISBZ, wx.Bitmap(awx.path_img("wave.png")), "Visualize the BZ")
+        toolbar.AddSimpleTool(ID_VISTRUCT, wx.Bitmap(awx.path_img("struct.png")), "Visualize the crystal structure")
+        toolbar.AddSimpleTool(ID_VISBZ, wx.Bitmap(awx.path_img("bz.png")), "Visualize the BZ")
         toolbar.AddSimpleTool(ID_PLOTQPSE0, wx.Bitmap(awx.path_img("wave.png")), "Plot QPState Results.")
         toolbar.AddSimpleTool(ID_PLOTKSWITHMARKS, wx.Bitmap(awx.path_img("wave.png")), "Plot KS energies with QPState markers.")
         toolbar.AddSimpleTool(ID_SCISSORS, wx.Bitmap(awx.path_img("wave.png")), "Build energy-dependent scissors from GW correction.")
@@ -126,7 +126,7 @@ class SigresViewerFrame(awx.Frame):
         # Add Python shell
         from wx.py.shell import Shell
         from abipy.tools import marquee
-        msg = "SIGRES_File object is accessible via the sigres variable. Try, for example, print(sigres)"
+        msg = "SIGRES_File object is accessible via the sigres variable. Use sigres.<TAB> to access the list of the methods."
         msg = marquee(msg, width=len(msg) + 8, mark="#")
         msg = "#"*len(msg) + "\n" + msg + "\n" + "#"*len(msg) + "\n"
 

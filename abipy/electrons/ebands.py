@@ -970,7 +970,7 @@ class ElectronBands(object):
         ax.grid(True)
         ax.set_xlabel('k-point')
         ax.set_ylabel('Energy [eV]')
-        ax.legend(loc="best")
+        ax.legend(loc="best", shadow=True)
 
         # Set ticks and labels.
         ticks, labels = self._make_ticks_and_labels(kwargs.pop("klabels", None))
@@ -1351,10 +1351,6 @@ class ElectronBandsPlotter(object):
             [ax.set_ylim(ylim) for ax in ax_list]
 
         # Plot bands.
-        ax = ax_list[0]
-        ax.set_xlabel('k-point')
-        ax.set_ylabel('Energy [eV]')
-
         lines, legends = [], []
         my_kwargs, opts_label = kwargs.copy(), {}
         i = -1
@@ -1362,18 +1358,17 @@ class ElectronBandsPlotter(object):
             i += 1
             my_kwargs.update(lineopt)
             opts_label[label] = my_kwargs.copy()
-            l = bands.plot_ax(ax, spin=None, band=None, *args, **my_kwargs)
+
+            l = bands.plot_ax(ax1, spin=None, band=None, *args, **my_kwargs)
             lines.append(l[0])
             legends.append("%s" % label)
 
-            # Set ticks and labels.
-            if i == 0 and klabels is not None:
-                ticks, labels = bands._make_ticks_and_labels(klabels)
-                ax.set_xticks(ticks, minor=False)
-                ax.set_xticklabels(labels, fontdict=None, minor=False)
+            # Set ticks and labels, legends.
 
-        # Set legends.
-        ax.legend(lines, legends, 'upper right', shadow=True)
+            if i == 0:
+                bands.decorate_ax(ax)
+
+        ax.legend(lines, legends, 'best', shadow=True)
 
         # Add DOSes
         if self._doses:

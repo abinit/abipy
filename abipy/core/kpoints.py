@@ -108,11 +108,13 @@ def askpoints(obj, lattice, weigths=None, names=None):
 
     if ndim == 1:
         return [Kpoint(obj, lattice, weight=weigths, name=names)]
+
     elif ndim == 2:
         nk = len(obj)
         if weigths is None: weigths = nk * [None]
         if names is None: names = nk * [None]
         return [Kpoint(rc, lattice, weight=w, name=l) for (rc, w, l) in zip(obj, weigths, names)]
+
     else:
         raise ValueError("ndim > 2 is not supported")
 
@@ -126,6 +128,7 @@ class Kpoint(object):
         "_lattice",
         "_weight",
         "_name",
+        #"_hash",
     ]
 
     # Tolerance used to compare k-points.
@@ -151,6 +154,22 @@ class Kpoint(object):
         self._lattice = lattice
         self.set_weight(weight)
         self.set_name(name)
+
+    #def __hash__(self):
+    #    """
+    #    Kpoint objects can be used as dict keys. Note however that 
+    #    the hash is computed from the fractional coordinates (floats). 
+    #    Hence one should avoid using hashes for implementing search algorithms
+    #    in which new Kpoints are generated, for example, by means of 
+    #    symmetry operations. This means that a dict of Kpoint objects
+    #    is safe to use only when we are sure than we are going to access
+    #    its entries with the *same* keys that were used to generate the dict!.
+    #    """
+    #    try:
+    #        return self._hash
+    #    except AttributeError:
+    #        self._hash = has(tuple(wrap_to_ws(self.frac_coords)))
+    #        return self._hash
 
     @property
     def frac_coords(self):
@@ -191,10 +210,10 @@ class Kpoint(object):
         self._name = name
 
     def __repr__(self):
-        return self.__str__()
+        return "[%.3f, %.3f, %.3f]" % tuple(self.frac_coords)
 
     def __str__(self):
-        s = "Kpoint: [%.3f, %.3f, %.3f]" % tuple(self.frac_coords)
+        s = repr(self)
         if self.name is not None: s += ", name = %s" % self.name
         if self._weight is not None: s += ", weight = %f" % self.weight
 
@@ -360,6 +379,10 @@ class KpointList(collections.Sequence):
     def reciprocal_lattice(self):
         return self._reciprocal_lattice
 
+    def __repr__(self):
+        lines = ["%d) %s" % (i, repr(kpoint)) for i, kpoint in enumerate(self)]
+        return "\n".join(lines)
+
     def __str__(self):
         lines = ["%d) %s" % (i, str(kpoint)) for i, kpoint in enumerate(self)]
         return "\n".join(lines)
@@ -380,19 +403,32 @@ class KpointList(collections.Sequence):
     def __reversed__(self):
         return self._points.__reversed__()
 
-    #def __add__(self, other):
-    #    assert self.reciprocal_lattice == other.reciprocal_lattice
-    #    return KpointList(self.reciprocal_lattice, 
-    #        frac_coords = [k.frac_coords for k in self] + [k.frac_coords for k in other], 
-    #        weights = None,
-    #        names = [k.name for k in self] + [k.name for k in other]
-    #        )
+    def __add__(self, other):
+        assert self.reciprocal_lattice == other.reciprocal_lattice
+        return KpointList(self.reciprocal_lattice, 
+                          frac_coords=[k.frac_coords for k in self] + [k.frac_coords for k in other], 
+                          weights=None,
+                          names=[k.name for k in self] + [k.name for k in other],
+                        )
+
+    def __eq__(self, other):
+        for k1, k2 in zip(self, other):
+            if k1 != k2:
+                return False
+
+        return True
+        
+    def __ne__(self, other):
+        return not self == other
 
     def index(self, kpoint):
         """
         Returns first index of kpoint. Raises ValueError if not found.
         """
-        return self._points.index(kpoint)
+        try:
+            return self._points.index(kpoint)
+        except ValueError:
+            raise ValueError("\nCannot find point: %s in KpointList:\n%s" % (repr(kpoint), repr(self)))
 
     def find(self, kpoint):
         """
@@ -417,6 +453,28 @@ class KpointList(collections.Sequence):
 
     def sum_weights(self):
         return np.sum(self.weights)
+
+    def remove_duplicated(self):
+        """Remove copies from self. Returns new KpointList instance."""
+        frac_coords, good_indices = [self[0].frac_coords], [0]
+
+        for i, kpoint in enumerate(self[1:]):
+            i += 1
+            # Add it only if it's not already in the list.
+            for prev_coords in frac_coords:
+                if issamek(kpoint.frac_coords, prev_coords, atol=_ATOL_KDIFF):
+                    break
+            else:
+                frac_coords.append(kpoint.frac_coords)
+                good_indices.append(i)
+
+        good_kpoints = [self[i] for i in good_indices]
+
+        return KpointList(self.reciprocal_lattice, 
+                          frac_coords=[k.frac_coords for k in good_kpoints],
+                          weights=None,
+                          names=[k.name for k in good_kpoints],
+                        )
 
     def to_fortran_arrays(self):
         fort_arrays = collections.namedtuple("FortranKpointListArrays", "frac_coords")

@@ -120,7 +120,7 @@ class WfkViewerFrame(awx.Frame):
         # Add Python shell
         from wx.py.shell import Shell
         from abipy.tools import marquee
-        msg = "WFK_File object is accessible via the wfk variable. Try, for example, print(wfk)"
+        msg = "WFK_File object is accessible via the wfk variable. Use wfk.<TAB> to access the list of methods."
         msg = marquee(msg, width=len(msg) + 8, mark="#")
         msg = "#"*len(msg) + "\n" + msg + "\n" + "#"*len(msg) + "\n"
 

@@ -5,7 +5,7 @@ import collections
 import fnmatch
 import abipy.gui.awx as awx
 
-from abipy.electrons import ElectronBandsPlotter, ElectronDosPlotter, MDF_Plotter
+from abipy.electrons import ElectronBandsPlotter, ElectronDosPlotter, MDF_Plotter, SIGRES_Plotter
 from abipy.gui.electronswx import ElectronDosDialog
 
 
@@ -146,7 +146,7 @@ class ComparisonFrame(awx.Frame):
         st1.Wrap(-1)
         hsizer.Add(st1, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
 
-        plotter_choices = ["ebands", "edos", "mdf"]
+        plotter_choices = ["ebands", "edos", "mdf", "sigres"]
         self.plotter_cbox = wx.ComboBox(self, -1, "ebands", wx.DefaultPosition, wx.DefaultSize, plotter_choices, 0)
         hsizer.Add(self.plotter_cbox, 0, wx.ALL, 5)
 
@@ -162,7 +162,7 @@ class ComparisonFrame(awx.Frame):
         self.SetSizerAndFit(main_sizer)
 
     def OnCompareButton(self, event):
-        selected = self.panel.GetSelectedFilepaths()
+        selected_files = self.panel.GetSelectedFilepaths()
         #self.log("selected", selected)
 
         choice = self.plotter_cbox.GetValue()
@@ -171,7 +171,7 @@ class ComparisonFrame(awx.Frame):
             if choice == "ebands":
                 plotter = ElectronBandsPlotter()
 
-                for filepath in selected:
+                for filepath in selected_files:
                     plotter.add_bands_from_file(filepath)
 
                 plotter.plot()
@@ -185,7 +185,7 @@ class ComparisonFrame(awx.Frame):
 
                     plotter = ElectronDosPlotter()
 
-                    for filepath in selected:
+                    for filepath in selected_files:
                         plotter.add_dos_from_file(filepath, **p)
 
                     plotter.plot()
@@ -195,10 +195,18 @@ class ComparisonFrame(awx.Frame):
             elif choice == "mdf":
                 plotter = MDF_Plotter()
 
-                for filepath in selected:
+                for filepath in selected_files:
                     plotter.add_mdf_from_file(filepath, mdf_type="exc")
 
                 plotter.plot()
+
+            elif choice == "sigres":
+                plotter = SIGRES_Plotter()
+
+                plotter.add_files(selected_files)
+
+                plotter.plot_qpgaps()
+                #plotter.plot_qpenes()
 
             else:
                 awx.showErrorMessage(self, message="No function registered for choice %s" % choice)
@@ -206,3 +214,9 @@ class ComparisonFrame(awx.Frame):
         except Exception as exc:
             awx.showErrorMessage(self, message=str(exc))
 
+
+def wxapp_comparison(dirpaths=None, filepaths=None, wildcard=None):
+    app = wx.App()
+    frame = ComparisonFrame(None, dirpaths=dirpaths, filepaths=filepaths, wildcard=wildcard)
+    frame.Show()
+    return app

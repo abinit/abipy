@@ -3,20 +3,23 @@ from __future__ import print_function, division
 import sys
 import copy
 import collections
+import warnings
 import cStringIO as StringIO
 import numpy as np
 
 from abipy.tools import find_le, find_ge
 from abipy.core.constants import Ha_eV
 from abipy.core.func1d import Function1D
-from abipy.core.kpoints import askpoints, kpoints_factory
-from abipy.tools.text import pprint_table
-from abipy.electrons.ebands import ElectronBands
+from abipy.core.kpoints import kpoints_factory, KpointList
+from abipy.tools import pprint_table, AttrDict
 from abipy.iotools import AbinitNcFile, ETSF_Reader
+from abipy.electrons.ebands import ElectronBands
+from abipy.electrons.scissors import Scissors
 
 __all__ = [
     "QPState",
     "SIGRES_File",
+    "SIGRES_Plotter",
 ]
 
 
@@ -195,6 +198,7 @@ class QPList(list):
         return self.get_field("qpeme0")
 
     def to_table(self):
+        """Return a table (list of list of strings)."""
         header = QPState.get_fields(exclude=["spin", "kpoint"])
         table = [header]
 
@@ -273,7 +277,7 @@ class QPList(list):
             yy = qps.get_field(field)
             ax.plot(e0mesh, yy, linestyle, **kwargs)
 
-        plt.tight_layout()
+        #plt.tight_layout()
 
         if show:
             plt.show()
@@ -330,7 +334,7 @@ class QPList(list):
             func_list.append(f)
 
         # Build the scissors operator.
-        from abipy.electrons import Scissors
+
         sciss = Scissors(func_list, domains, bounds)
 
         # Compare fit with input data.
@@ -468,7 +472,282 @@ class Sigmaw(object):
 
         return fig
 
-##########################################################################################
+def torange(obj):
+    """
+    Convert obj into a range. Accepts integer, slice object 
+    or any object with an __iter__ method.
+    Note that an integer is converted into range(int, int+1)
+
+    >>> torange(1) 
+    [1]
+    >>> torange(slice(0,4,2))
+    [0, 2]
+    >>> list(torange([1,4,2]))
+    [1, 4, 2]
+    """
+    if isinstance(obj, int):
+        return range(obj, obj+1)
+
+    elif isinstance(obj, slice):
+        start = obj.start if obj.start is not None else 0
+        step = obj.step if obj.step is not None else 1
+        return range(start, obj.stop, step)
+
+    else:
+        try:
+            return obj.__iter__()
+        except:
+            raise TypeError("Don't know how to convert %s into a range object" % str(obj))
+
+class SIGRES_Plotter(collections.Iterable):
+    """
+    This object receives a list of `SIGRES_File` objects and provides
+    methods to inspect/analyze the GW results (useful for convergence studies)
+    """
+    def __init__(self):
+        self._sigres_files = collections.OrderedDict()
+
+    def __len__(self):
+        return len(self._sigres_files)
+
+    def __iter__(self):
+        return iter(self._sigres_files.values())
+
+    def __str__(self):
+        s = ""
+        for sigres in self:
+            s += str(sigres) + "\n"
+
+        return s
+
+    def add_files(self, filepaths):
+        if isinstance(filepaths, str): 
+            filepaths = [filepaths]
+
+        for filepath in filepaths:
+            self.add_file(filepath)
+
+    def add_file(self, filepath):
+        from abipy import abiopen
+        sigres = abiopen(filepath)
+        self._sigres_files[sigres.filepath] = sigres
+
+        # Initialize/check useful quantities.
+        #
+        # 1) Number of spins
+        if not hasattr(self, "nsppol"): 
+            self.nsppol = sigres.nsppol
+        assert self.nsppol == sigres.nsppol
+
+        # The set of k-points where GW corrections have been computed.
+        if not hasattr(self, "computed_gwkpoints"):
+            self.computed_gwkpoints = sigres.gwkpoints
+        #assert self.compute_gwkpoints == sigres.gwkpoints
+        #    self.computed_gwkpoints = (self.computed_gwkpoints + sigres.gwkpoints).remove_duplicated()
+
+        #if not hasattr(self, "min_gwbstart"):
+        #    self.min_gwbstart = sigres.min_gwbstart
+        #else:
+        #    self.min_gwbstart = max(self.min_gwbstart, sigres.min_gwbstart)
+
+        #if not hasattr(self, "max_gwbstop"):
+        #    self.max_gwbstop = sigres.max_gwbstop
+        #    self.max_gwbstop = min(self.max_gwbstop, sigres.max_gwbstop)
+
+    @property
+    def param_name(self):
+        """The name of the parameter whose value is checked for convergence."""
+        try: 
+            return self._param_name
+        except AttributeError:
+            self.set_param_name(param_name=None)
+            return self.param_name
+
+    def set_param_name(self, param_name=None):
+        """
+        Set the name of the parameter whose value is checked for convergence.
+        if param_name is None, we try to find the its name by inspecting 
+        the values in the sigres.params dictionaries.
+        """
+        if param_name is not None:
+            self._param_name = param_name
+        else:
+            self._param_name = self._find_converge_parameter()
+        
+    def _find_converge_parameter(self):
+        """
+        This method tries to figure the converge paramenter by looking at the 
+        set of parameters used to compute the different SIGRES files.
+        """
+        self.param_list = param_list = collections.defaultdict(list)
+
+        for sigres in self:
+            for pname in sigres.params.keys():
+                param_list[pname].append(sigres.params[pname])
+
+        pname, problem = None, False
+        for key, value_list in param_list.items():
+            if any(v != value_list[0] for v in value_list):
+                print(key, value_list)
+                if pname is None:
+                    pname = key
+                else:
+                    problem = True
+                    warnings.warn("Cannot perform automatic detection of convergence parameter.\n" + 
+                                  "Found multiple parameters with different values. Will use filepaths as plot labels.")
+
+        return pname if not problem else None
+
+    @property
+    def xvalues(self):
+        """The values used for the X-axis."""
+        if self.param_name is None:
+            return range(len(self))
+        else:
+            return self.param_list[self.param_name]
+
+    def order_files_by_xvalues(self):
+        if self.param_name is None:
+            return
+
+        # Sort self.xvalues and rearrange the files.
+        items = sorted([iv for iv in enumerate(self.xvalues)], key=lambda item: item[1])
+        indices = [item[0] for item in items]
+
+        files = self._sigres_files.values()
+
+        newd = collections.OrderedDict()
+        for i in indices:
+            sigres = files[i]
+            newd[sigres.filepath] = sigres
+
+        self._sigres_files = newd
+
+    def decorate_ax(self, ax, **kwargs):
+        ax.grid(True)
+        if self.param_name is not None:
+            ax.set_xlabel(self.param_name)
+        ax.set_ylabel('Energy [eV]')
+        ax.legend(loc="best")
+
+        title = kwargs.pop("title", None)
+        if title is not None:
+            ax.set_title(title)
+                                                                                 
+        # Set ticks and labels. use param_name if not None
+        if self.param_name is None:
+            ticks, labels = range(len(self)), [f.basename for f in self]
+        else:
+            ticks, labels = self.xvalues, [f.params[self.param_name] for f in self]
+
+        ax.set_xticks(ticks, minor=False)
+        ax.set_xticklabels(labels, fontdict=None, minor=False)
+
+    def extract_qpgaps(self, spin, kpoint):
+        qpgaps = []
+        for sigres in self:
+            k = sigres.ibz.index(kpoint)
+            qpgaps.append(sigres.qpgaps[spin, k])
+        
+        return np.array(qpgaps)
+
+    def extract_qpenes(self, spin, kpoint, band):
+        qpenes = []
+        for sigres in self:
+            k = sigres.ibz.index(kpoint)
+            qpenes.append(sigres.qpenes[spin,k,band])
+        
+        return np.array(qpenes)
+
+    def plot_qpgaps(self, hspan=0.01, **kwargs):
+        title = kwargs.pop("title", None)
+        show = kwargs.pop("show", True)
+        savefig = kwargs.pop("savefig", None)
+
+        self.order_files_by_xvalues()
+
+        import matplotlib.pyplot as plt
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+
+        #if "linestyle" not in kwargs:
+        #    kwargs["linestyle"] = "-o"
+
+        xx = self.xvalues
+        for spin in range(self.nsppol):
+            for kpoint in self.computed_gwkpoints:
+                label = "spin %d, kpoint %s" % (spin, repr(kpoint))
+                gaps = self.extract_qpgaps(spin, kpoint)
+                ax.plot(xx, gaps, label=label, **kwargs)
+
+                if hspan is not None:
+                    last = gaps[-1]
+                    ax.axhspan(last-hspan, last+hspan, facecolor='0.5', alpha=0.5)
+
+        self.decorate_ax(ax)
+
+        if title is not None:
+            fig.suptitle(title)
+                                 
+        if show:
+            plt.show()
+                                 
+        if savefig is not None:
+            fig.savefig(savefig)
+                                 
+        return fig
+
+    def plot_qpenes(self, spin=None, kpoint=None, band=None, hspan=0.01, **kwargs):
+        spin_range = range(self.nsppol) if spin is None else torange(spin)
+        #band_range = range(self.gwb_stop) if band is None else torange(band)
+        band_range = [3,4]
+        kpoints_for_plot = self.computed_gwkpoints #if kpoint is None else KpointList.askpoints(kpoint)
+
+        self.order_files_by_xvalues()
+
+        title = kwargs.pop("title", None)
+        show = kwargs.pop("show", True)
+        savefig = kwargs.pop("savefig", None)
+                                              
+        import matplotlib.pyplot as plt
+
+        # Build grid of plots.
+        num_plots, ncols, nrows = len(kpoints_for_plot), 1, 1
+        if num_plots > 1:
+            ncols = 2
+            nrows = (num_plots//ncols) + (num_plots % ncols)
+
+        fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharex=False, squeeze=False)
+        ax_list = ax_list.ravel()
+
+        if (num_plots % ncols) != 0:
+            ax_list[-1].axis('off')
+
+        xx = self.xvalues
+        for kpoint, ax in zip(kpoints_for_plot, ax_list):
+            
+            for spin in spin_range:
+                for band in band_range:
+                    label = "spin %d, band %d" % (spin, band)
+                    qpenes = self.extract_qpenes(spin, kpoint, band)
+                    ax.plot(xx, qpenes, label=label, **kwargs)
+
+                    if hspan is not None:
+                        last = qpenes[-1]
+                        ax.axhspan(last-hspan, last+hspan, facecolor='0.5', alpha=0.5)
+
+            self.decorate_ax(ax, title="kpoint %s" % repr(kpoint))
+
+        if title is not None:
+            fig.suptitle(title)
+                                 
+        if show:
+            plt.show()
+                                 
+        if savefig is not None:
+            fig.savefig(savefig)
+                                 
+        return fig
 
 
 class SIGRES_File(AbinitNcFile):
@@ -483,7 +762,9 @@ class SIGRES_File(AbinitNcFile):
 
         self.structure = ncreader.read_structure()
         self.gwcalctyp = ncreader.gwcalctyp
+        # FIXME 
         self.kpoints = ncreader.kpoints
+        self.ibz = self.kpoints
         self.gwkpoints = ncreader.gwkpoints
 
         self.gwbstart_sk = ncreader.gwbstart_sk 
@@ -515,6 +796,12 @@ class SIGRES_File(AbinitNcFile):
 
             ks_bands.set_marker(qpattr, (x, y, s))
 
+        # TODO handle the case in which nkptgw < nkibz
+        self.qpgaps = ncreader.read_qpgaps()
+        self.qpenes = ncreader.read_qpenes()
+
+        self.params = ncreader.read_params()
+
     #def __del__(self):
     #    print("in %s __del__" % self.__class__.__name__)
     #    self.ncreader.close()
@@ -524,9 +811,6 @@ class SIGRES_File(AbinitNcFile):
     def from_file(cls, filepath):
         """Initialize an instance from file."""
         return cls(filepath)
-
-    def __str__(self):
-        return "<%s at %s>" % (self.__class__.__name__, id(self))
 
     @property
     def nsppol(self):
@@ -558,9 +842,13 @@ class SIGRES_File(AbinitNcFile):
         """Returns the `QPState` object for the given (s, k, b)"""
         return self.ncreader.read_qp(spin, kpoint, band)
 
+    def get_qpgap(self, spin, kpoint):
+        return self.gwgaps[spin, k]
+
     def get_sigmaw(self, spin, kpoint, band):
         wmesh, sigxc_values = self.ncreader.read_sigmaw(spin, kpoint, band)
         wmesh, spf_values = self.ncreader.read_spfunc(spin, kpoint, band)
+
         return Sigmaw(spin, kpoint, band, wmesh, sigxc_values, spf_values)
 
     def get_spfunc(self, spin, kpoint, band):
@@ -574,7 +862,7 @@ class SIGRES_File(AbinitNcFile):
             qps = self.qplist_spin[spin].sort_by_e0()
             qps.plot_qps_vs_e0(with_fields=with_fields, exclude_fields=exclude_fields, **kwargs)
 
-    def plot_spectral_functions(self, spin, kpoint, bands, *args, **kwargs):
+    def plot_spectral_functions(self, spin, kpoint, bands, **kwargs):
         """
         Args:
             spin:
@@ -583,8 +871,6 @@ class SIGRES_File(AbinitNcFile):
                 Required kpoint.
             bands:
                 List of bands
-            args:
-                Positional arguments passed to `matplotlib`.
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -760,7 +1046,7 @@ class SIGRES_Reader(ETSF_Reader):
       ! Derivative of $\Sigma_c(E)$ calculated at the KS eigenvalue.
 
       complex(dpc),pointer :: egw(:,:,:)  SET2NULL
-      ! degw(nbnds,nkibz,nsppol))
+      ! egw(nbnds,nkibz,nsppol))
       ! QPState energies, $\epsilon_{nks}^{QPState}$.
 
       complex(dpc),pointer :: eigvec_qp(:,:,:,:)   SET2NULL
@@ -840,7 +1126,7 @@ class SIGRES_Reader(ETSF_Reader):
 
         # 2) The K-points where QPState corrections have been calculated.
         gwred_coords = self.read_redc_gwkpoints()
-        self.gwkpoints = askpoints(gwred_coords, self.structure.reciprocal_lattice)
+        self.gwkpoints = KpointList(self.structure.reciprocal_lattice, gwred_coords)
 
         # minbnd[nkptgw,nsppol] gives the minimum band index computed
         # Note conversion between Fortran and python convention.
@@ -920,10 +1206,7 @@ class SIGRES_Reader(ETSF_Reader):
         if isinstance(gwkpoint, int):
             return gwkpoint
         else:
-            try:
-                return self.gwkpoints.index(gwkpoint)
-            except:
-                raise
+            return self.gwkpoints.index(gwkpoint)
 
     def read_redc_gwkpoints(self):
         return self.read_value("kptgw")
@@ -951,6 +1234,11 @@ class SIGRES_Reader(ETSF_Reader):
 
         return QPList(qps)
 
+    #def read_qpene(self, spin, kpoint, band)
+
+    def read_qpenes(self):
+        return self._egw[:, :, :]
+
     def read_qp(self, spin, kpoint, band):
         ik_file = self.kpt2fileindex(kpoint)
         ib_file = band - self.gwbstart_sk[spin, self.gwkpt2seqindex(kpoint)]
@@ -969,6 +1257,10 @@ class SIGRES_Reader(ETSF_Reader):
             ze0=self._ze0[spin, ik_file, ib_file],
         )
         return QPState(**d)
+
+    def read_qpgaps(self):
+        """Read the QP gaps. Returns ndarray with shape [nsppol, nkibz] in eV"""
+        return self.read_value("egwgap")
 
     def read_e0(self, spin, kfile, band):
         return self.ks_bands.eigens[spin, kfile, band]
@@ -1015,6 +1307,29 @@ class SIGRES_Reader(ETSF_Reader):
             return self._eigvec_qp[spin,ik,:,band]
         else:
             return self._eigvec_qp[spin,ik,:,:]
+
+    def read_params(self):
+        """
+        Read the parameters of the calculation. Returns `AttrDict` instance with the parameters.
+        """
+        param_names = [
+            "ecutwfn",
+            "ecuteps",
+            "ecutsigx",
+            "sigma_nband",
+        ]
+
+        params = {}
+        for pname in param_names:
+            try:
+                params[pname] = self.read_value(pname)
+            except self.Error:
+                pass
+        
+        # Other quantities that might be sibject of convergence studies.
+        params["nkibz"] = len(self.kpoints)
+
+        return AttrDict(params)
 
     def print_qps(self, spin=None, kpoint=None, bands=None, fmt=None, stream=sys.stdout):
         spins = range(self.nsppol) if spin is None else [spin]

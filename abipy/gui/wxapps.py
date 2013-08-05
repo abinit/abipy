@@ -5,3 +5,4 @@ from .browser import wxapp_dirbrowser, wxapp_listbrowser
 from .scissors import wxapp_scissors
 from .wfkviewer import wxapp_wfkviewer
 from .sigresviewer import wxapp_sigresviewer
+from .comparison import wxapp_comparison

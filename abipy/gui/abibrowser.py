@@ -12,7 +12,8 @@ def str_examples():
     examples = (
       "\n"
       "Usage example:\n\n" 
-      "abibrowser.py  dirpath ==> Visualize all netcdf files (*.nc) in the directory dirpath.\n"
+      "abibrowser.py  dirpath    ==> Visualize all netcdf files (*.nc) in the directory dirpath.\n"
+      "abibrowser.py -f *WFK.nc  ==> Use a glob pattern to match all the WFK files in the current directory.\n"
     )
     return examples
 
@@ -36,24 +37,31 @@ def main():
     parser.add_argument('-f', '--filepaths', nargs="+", default=None,
                         help="List of files.")
 
+    #parser.add_argument('-r', '--recurse', type=bool, default=False,
+    #                    help="Recursive mode.")
+
     parser.add_argument("dirpaths", nargs="*", help="List of directories.")
 
     # Parse the command line.
     try:
         options = parser.parse_args()
-        print(options)
     except: 
         show_examples_and_exit(error_code=1)
 
     if options.view_mode in ["list", "l"]:
-        import abipy
         app = wxapps.wxapp_listbrowser(dirpaths=options.dirpaths, 
                                        filepaths=options.filepaths, 
                                        wildcard=options.wildcard,
                                        )
 
+    elif options.view_mode in ["compare", "c"]:
+        app = wxapps.wxapp_comparison(dirpaths=options.dirpaths, 
+                                      filepaths=options.filepaths, 
+                                      wildcard=options.wildcard,
+                                      )
+
     elif options.view_mode in ["tree", "t"]:
-        app = wxapps.wxapp_dirbrowser(dirpath=dirpaths[0])
+        app = wxapps.wxapp_dirbrowser(dirpath=options.dirpaths[0])
 
     else:
         raise ValueError("Wrong view_mode %s" % options.view_mode)
