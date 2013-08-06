@@ -1195,31 +1195,31 @@ class ElectronBands(object):
         return emasses
 
 
-class NestingFactor(object):
-
-    def __init__(self, bands):
-
-        self.bands = bands
-
-        # Check whether k-points form a homogeneous sampling.
-        if not self.bands.has_bzmesh:
-            msg = "The computation of the nesting factor requires a homogeneous k-point sampling"
-            raise ValueError(msg)
-
-    @classmethod
-    def from_file(cls, filepath):
-        """
-        Initialize the object from a netcdf file containing an electronic band structure.
-        """
-        return cls(ElectronBands.from_file(filepath))
-
-    def compute_nesting(self, qpath):
-        mesh, values = None, None
-        return Function1D(mesh, values)
-
-    def plot(self, qpath):
-        nesting = self.compute_nesting(qpath)
-        nesting.plot()
+#class NestingFactor(object):
+#
+#    def __init__(self, bands):
+#
+#        self.bands = bands
+#
+#        # Check whether k-points form a homogeneous sampling.
+#        if not self.bands.has_bzmesh:
+#            msg = "The computation of the nesting factor requires a homogeneous k-point sampling"
+#            raise ValueError(msg)
+#
+#    @classmethod
+#    def from_file(cls, filepath):
+#        """
+#        Initialize the object from a netcdf file containing an electronic band structure.
+#        """
+#        return cls(ElectronBands.from_file(filepath))
+#
+#    def compute_nesting(self, qpath):
+#        mesh, values = None, None
+#        return Function1D(mesh, values)
+#
+#    def plot(self, qpath):
+#        nesting = self.compute_nesting(qpath)
+#        nesting.plot()
 
 #########################################################################################
 
@@ -1408,8 +1408,8 @@ class ElectronDosPlotter(object):
         from abipy import abiopen
         bands = abiopen(filepath).get_bands()
         dos = bands.get_dos(method=method, step=step, width=width)
-        if label is None: label = filepath
 
+        if label is None: label = filepath
         self.add_dos(label, dos)
 
     def add_dos(self, label, dos):

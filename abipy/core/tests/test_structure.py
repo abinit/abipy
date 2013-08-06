@@ -2,19 +2,27 @@
 import numpy as np
 
 from abipy.core.structure import *
-from abipy.tests import AbipyTest
+from abipy.tests import ALL_NCFILES, AbipyTest
+
+class TestStructure(AbipyTest):
+    """Unit tests for Structure."""
+
+    def test_structure_from_ncfiles(self):
+        """Initialize Structure from Netcdf data files"""
+        ncfiles = ALL_NCFILES
+        assert ncfiles
+        for filename in ncfiles:
+            print("Reading file %s" % filename)
+            structure = Structure.from_file(filename)
+            print(structure)
+
+            #structure.visualize(None)
+            #xcart = structure.get_xcart()
+            #normA = structure.calc_norm(structure.xred, space="r")
+            #normB = np.sqrt( [np.dot(x,x) for x in xcart] )
+            #self.assert_almost_equal(normA, normB)
 
 
-#class TestCrystalTools(AbipyTest):
-#    "Test crystal tools."
-#
-#    def test_reciprocal_space(self):
-#        """Test crystal tools"""
-#        rprimd = np.array([1.,0,0, 0,0.5,0, 0,0.2,1])
-#        rprimd.shape = (3,3)
-#        rmet, ucvol = metric_vol(rprimd)
-#        gprimd = reciprocal_space(rprimd)
-#        gmet, bzvol = metric_vol(gprimd)
-#        same_rprimd = reciprocal_space(gprimd)
-#        self.assert_almost_equal(rprimd, same_rprimd)
-#        self.assert_almost_equal(bzvol, (2*np.pi)**3/ucvol)
+if __name__ == "__main__":
+    import unittest
+    unittest.main()

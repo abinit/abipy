@@ -47,6 +47,7 @@ class TestKpoint(AbipyTest):
         gamma = Kpoint([0, 0, 0], lattice)
         pgamma = Kpoint([1, 0, 1], lattice)
         X = Kpoint([0.5, 0, 0], lattice)
+        K = Kpoint([1/3, 1/3, 1/3], lattice)
         print(X)
 
         self.assert_almost_equal(X.versor().norm, 1.0)
@@ -63,6 +64,11 @@ class TestKpoint(AbipyTest):
 
         self.assertEqual(X.norm, (gamma + X).norm)
         self.assertEqual(X.norm, np.sqrt(np.sum(X.cart_coords**2)))
+
+        self.assertTrue(hash(gamma) == hash(pgamma))
+
+        if hash(K) != hash(X):
+            self.assertTrue(K != X)
 
 
 class TestKpointList(AbipyTest):
@@ -101,7 +107,7 @@ class TestKpointList(AbipyTest):
             self.assertTrue(klist.count(kpoint) == 1)
             self.assertTrue(klist.find(kpoint) == i)
 
-        # Changing the weight of the Kpoint object shoul change the weights of klist.
+        # Changing the weight of the Kpoint object should change the weights of klist.
         for kpoint in klist: kpoint.set_weight(1.0)
         self.assertTrue(np.all(klist.weights == 1.0))
 

@@ -153,6 +153,7 @@ class Has_Structure(object):
             raise Visualizer.Error(
                 "Don't know how to export data for visualizer %s" % visualizer)
 
+
 class Has_ElectronBands(object):
     """Mixin class for `AbinitNcFile` containing electron data."""
     __metaclass__ = abc.ABCMeta
@@ -165,7 +166,7 @@ class Has_ElectronBands(object):
         """
         Plot the energy bands. See the :func:`ElectronBands.plot` for the meaning of the variables""
         """
-        return self.bands.plot(klabels=klabels, *args, **kwargs)
+        return self.bands.plot(klabels=klabels, **kwargs)
 
 
 class NcDumper(object):

@@ -408,9 +408,9 @@ class SymmOpList(collections.Sequence):
         """
         Args:
             time_sign:
-                If specified, only symmetryes with time-reversal sign time_sign are returned.
+                If specified, only symmetries with time-reversal sign time_sign are returned.
             afm_sign:
-                If specified, only symmetryes with anti-ferromagnetic part afm_sign are returned.
+                If specified, only symmetries with anti-ferromagnetic part afm_sign are returned.
 
         returns:
             tuple of `SymmOp` instances.

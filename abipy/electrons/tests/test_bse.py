@@ -7,7 +7,7 @@ from abipy.tests import *
 
 class TestMDF_Reader(AbipyTest):
 
-    def test_readwrite_GWFile(self):
+    def test_MDF_reading(self):
         """Test MDF_Reader."""
         mdf_file = get_reference_file("tbs_4o_DS2_MDF.nc")
 
