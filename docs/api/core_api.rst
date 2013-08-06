@@ -91,3 +91,12 @@ core Package
    :members:
    :undoc-members:
    :show-inheritance:
+
+
+:mod:`testing` Module
+-----------------------
+
+.. automodule:: abipy.core.testing
+   :members:
+   :undoc-members:
+   :show-inheritance:

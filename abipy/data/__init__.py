@@ -1,34 +1,29 @@
 """
-Common test support for all abipy test scripts.
+Functions providing access to file data for unit tests and tutorias.
+Preferred way to import the module is via the import syntax:
 
-This single module should provide all the common functionality for abipy tests
-in a single location, so that test scripts can just import it and work right away.
+import abipy.data as data
 """
 from __future__ import print_function, division
 
-from os.path import join as pj, dirname, abspath
-
 import os
 
+from os.path import join as pj, dirname, abspath
+
 __all__ = [
-    "WFK_NCFILES",
-    "DEN_NCFILES",
-    "ALL_NCFILES",
-    "get_ncfile",
-    "get_ncfiles_with_ext",
-    "get_reference_file",
+
 ]
 
-_DATA_ABSPATH = abspath( pj(dirname(__file__), 'data') )
+_DATA_ABSPATH = dirname(__file__)
 
-_CIF_DIRPATH = abspath( pj(dirname(__file__), 'data', "cifs") )
+_CIF_DIRPATH = abspath( pj(dirname(__file__), "cifs") )
 
-_PSEUDOS_DIRPATH = abspath( pj(dirname(__file__), 'data', "pseudos") )
+_PSEUDOS_DIRPATH = abspath( pj(dirname(__file__), "pseudos") )
 
 try:
     _DATA_NCFILES = [pj(_DATA_ABSPATH, f) for f in os.listdir(_DATA_ABSPATH) if f.endswith(".nc")]
 except:
-    _DATA_NCFILES = list()
+    _DATA_NCFILES = []
 
 def get_ncfile(filename):
     """Return the absolute path of file filename locate in data. None if not found"""
@@ -74,4 +69,3 @@ DEN_NCFILES = get_ncfiles_with_ext("DEN")
 
 ALL_NCFILES = WFK_NCFILES + DEN_NCFILES
 
-##########################################################################################

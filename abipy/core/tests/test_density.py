@@ -2,10 +2,11 @@
 """Tests for core.density module"""
 from __future__ import print_function, division
 
+import abipy.data as data 
+
 from abipy.core import Density
 from abipy.core.testing import *
 from abipy.iotools import *
-from abipy.tests import DEN_NCFILES
 
 
 class TestDensity(AbipyTest):
@@ -13,9 +14,9 @@ class TestDensity(AbipyTest):
 
     def test_ncread_density(self):
         """Read density from NC example data files"""
-        assert DEN_NCFILES
+        assert data.DEN_NCFILES
 
-        for filename in DEN_NCFILES:
+        for filename in data.DEN_NCFILES:
             print("Reading file %s " % filename)
 
             # Read data directly from file.

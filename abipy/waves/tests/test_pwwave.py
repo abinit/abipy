@@ -1,10 +1,11 @@
 """Tests for pwwave"""
 from __future__ import print_function, division
+
 import numpy as np
 
 from abipy.core import Mesh3D
-from abipy.waves.pwwave import *
 from abipy.core.testing import *
+from abipy.waves.pwwave import *
 
 
 class TestPWWave(AbipyTest):

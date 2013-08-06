@@ -1,8 +1,8 @@
 """Tests for structure module"""
 import numpy as np
+import abipy.data as data
 
 from abipy.core.structure import *
-from abipy.tests import ALL_NCFILES
 from abipy.core.testing import *
 
 class TestStructure(AbipyTest):
@@ -10,7 +10,7 @@ class TestStructure(AbipyTest):
 
     def test_structure_from_ncfiles(self):
         """Initialize Structure from Netcdf data files"""
-        ncfiles = ALL_NCFILES
+        ncfiles = data.ALL_NCFILES
         assert ncfiles
         for filename in ncfiles:
             print("Reading file %s" % filename)

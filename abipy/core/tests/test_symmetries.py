@@ -1,7 +1,7 @@
 """Tests for symmetries module"""
 import numpy as np
+import abipy.data as data
 
-from abipy import get_ncfile
 from abipy.core import Structure
 from abipy.core.symmetries import *
 from abipy.core.testing import *
@@ -11,7 +11,7 @@ class TestSymmetries(AbipyTest):
 
     def test_silicon(self):
         """Test silicon space group."""
-        structure = Structure.from_file(get_ncfile("si_nscf_WFK-etsf.nc"))
+        structure = Structure.from_file(data.get_ncfile("si_nscf_WFK-etsf.nc"))
 
         spgrp = structure.spacegroup
         print(spgrp)

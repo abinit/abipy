@@ -1,14 +1,14 @@
 """Tests for electrons.bse module"""
+import abipy.data as data
+
 from abipy.electrons.bse import *
 from abipy.core.testing import *
-from abipy.tests import *
-
 
 class TestMDF_Reader(AbipyTest):
 
     def test_MDF_reading(self):
         """Test MDF_Reader."""
-        mdf_file = get_reference_file("tbs_4o_DS2_MDF.nc")
+        mdf_file = data.get_reference_file("tbs_4o_DS2_MDF.nc")
 
         with MDF_Reader(mdf_file) as r:
             self.assertTrue(len(r.wmesh) == r.read_dimvalue("number_of_frequencies"))

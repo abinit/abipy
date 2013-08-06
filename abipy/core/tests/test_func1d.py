@@ -8,7 +8,6 @@ import cStringIO as StringIO
 from abipy.core.func1d import *
 from abipy.core.testing import *
 
-
 class TestFunction1D(AbipyTest):
     """Test Function1d."""
 

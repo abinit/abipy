@@ -1,8 +1,9 @@
 from __future__ import print_function, division
 
+import abipy.data as data
+
 from abipy import WFK_File
 from abipy.core.testing import *
-from abipy.tests import *
 
 
 class TestWFKFile(AbipyTest):
@@ -10,9 +11,9 @@ class TestWFKFile(AbipyTest):
 
     def test_read_wfkfile(self):
         """Read WFK_File and waves from NC example data files."""
-        assert WFK_NCFILES
+        assert data.WFK_NCFILES
 
-        for filename in WFK_NCFILES:
+        for filename in data.WFK_NCFILES:
             wff = WFK_File(filename)
             print(wff)
 
@@ -43,6 +44,4 @@ class TestWFKFile(AbipyTest):
             #for idx, g in enumerate(wave.gvecs):
             #  if abs(wave.ug[0,idx] - same_ug[0,idx]) > 0.001:
             #    print idx, g
-
-
 
