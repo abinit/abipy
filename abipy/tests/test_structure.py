@@ -24,6 +24,7 @@ class TestStructure(AbipyTest):
             #normB = np.sqrt( [np.dot(x,x) for x in xcart] )
             #self.assert_almost_equal(normA, normB)
 
+
 if __name__ == "__main__":
     import unittest
     unittest.main()

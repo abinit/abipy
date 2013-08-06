@@ -1144,6 +1144,7 @@ class SIGRES_Reader(ETSF_Reader):
 
         # Save important quantities needed to simplify the API.
         self.structure = self.read_structure()
+
         self.gwcalctyp = self.read_value("gwcalctyp")
         self.usepawu = self.read_value("usepawu")
 
@@ -1242,11 +1243,12 @@ class SIGRES_Reader(ETSF_Reader):
 
     def read_allqps(self):
         qps_spin = self.nsppol * [None]
+
         for spin in range(self.nsppol):
             qps = []
             for gwkpoint in self.gwkpoints:
-                i = self.gwkpt2seqindex(gwkpoint)
-                bands = range(self.gwbstart_sk[spin,i], self.gwbstop_sk[spin,i])
+                ik = self.gwkpt2seqindex(gwkpoint)
+                bands = range(self.gwbstart_sk[spin,ik], self.gwbstop_sk[spin,ik])
                 for band in bands:
                     qps.append(self.read_qp(spin, gwkpoint, band))
 
@@ -1339,7 +1341,8 @@ class SIGRES_Reader(ETSF_Reader):
 
     def read_params(self):
         """
-        Read the parameters of the calculation. Returns `AttrDict` instance with the parameters.
+        Read the parameters of the calculation. 
+        Returns `AttrDict` instance with the value of the parameters.
         """
         param_names = [
             "ecutwfn",
@@ -1355,7 +1358,7 @@ class SIGRES_Reader(ETSF_Reader):
             except self.Error:
                 pass
         
-        # Other quantities that might be subject of convergence studies.
+        # Other quantities that might be subject to convergence studies.
         params["nkibz"] = len(self.ibz)
 
         return AttrDict(params)
@@ -1371,8 +1374,8 @@ class SIGRES_Reader(ETSF_Reader):
             for kpoint in kpoints:
                 table_sk = [header]
                 if bands is None:
-                    i = self.gwkpt2seqindex(kpoint)
-                    bands = range(self.gwbstart_sk[spin,i], self.gwbstop_sk[spin,i])
+                    ik = self.gwkpt2seqindex(kpoint)
+                    bands = range(self.gwbstart_sk[spin,ik], self.gwbstop_sk[spin,ik])
 
                 for band in bands:
                     qp = self.read_qp(spin, kpoint, band)

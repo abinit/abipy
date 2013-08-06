@@ -9,10 +9,13 @@ from time import ctime
 from pymatgen.io.abinitio import EventParser
 from abipy.tools import which
 
+from abipy.iotools.visualizer import Visualizer
+
 __all__ = [
     "AbinitNcFile",
+    "Has_Structure",
+    "Has_ElectronBands",
 ]
-
 
 class AbinitFile(object):
     """
@@ -113,6 +116,56 @@ class AbinitNcFile(AbinitFile):
     def ncdump(self, *nc_args, **nc_kwargs):
         """Returns a string with the output of ncdump."""
         return NcDumper(*nc_args, **nc_kwargs).dump(self.filepath)
+
+
+class Has_Structure(object):
+    """Mixin class for `AbinitNcFile` containing crystallographic data."""
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractproperty
+    def structure(self):
+        """Returns the `Structure` object."""
+
+    def export_structure(self, filepath):
+        """
+        Export the structure on file.
+
+        returns:
+            Instance of :class:`Visualizer`
+        """
+        return self.structure.export(filepath)
+
+    def visualize_structure_with(self, visualizer):
+        """
+        Visualize the crystalline structure with visualizer.
+
+        See :class:`Visualizer` for the list of applications and formats supported.
+        """
+        extensions = Visualizer.exts_from_appname(visualizer)
+
+        for ext in extensions:
+            ext = "." + ext
+            try:
+                return self.export_structure(ext)
+            except Visualizer.Error:
+                pass
+        else:
+            raise Visualizer.Error(
+                "Don't know how to export data for visualizer %s" % visualizer)
+
+class Has_ElectronBands(object):
+    """Mixin class for `AbinitNcFile` containing electron data."""
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractproperty
+    def bands(self):
+        """Returns the `ElectronBands` object."""
+
+    def plot_bands(self, klabels=None, **kwargs):
+        """
+        Plot the energy bands. See the :func:`ElectronBands.plot` for the meaning of the variables""
+        """
+        return self.bands.plot(klabels=klabels, *args, **kwargs)
 
 
 class NcDumper(object):

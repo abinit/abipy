@@ -81,7 +81,7 @@ class FileCheckBoxPanel(awx.Panel):
     def OnFilterComboBox(self, event):
         self.wildcards = self.filter_combobox.GetValue().split("|")
 
-        for filepath, cbox in self.check_boxes.items():
+        for (filepath, cbox) in self.check_boxes.items():
             if self._SelectFilename(filepath):
                 cbox.SetValue(True)
             else:

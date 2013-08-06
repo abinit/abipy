@@ -5,7 +5,7 @@ import numpy as np
 
 from abipy.core import Mesh3D, GSphere, Structure
 from abipy.core.kpoints import kpoints_factory
-from abipy.iotools import ETSF_Reader, Visualizer, AbinitNcFile
+from abipy.iotools import ETSF_Reader, Visualizer, AbinitNcFile, Has_Structure, Has_ElectronBands
 from abipy.electrons import ElectronBands
 from abipy.waves.pwwave import PWWaveFunction
 
@@ -14,7 +14,7 @@ __all__ = [
 ]
 
 
-class WFK_File(AbinitNcFile):
+class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     """
     This object provides simple interfaces to access and analyze
     the data stored in the WFK file produced by ABINIT.
@@ -22,15 +22,15 @@ class WFK_File(AbinitNcFile):
 
     def __init__(self, filepath):
         """
-        Initialized the object from a Netcdf file.
+        Initialize the object from a Netcdf file.
         """
         super(WFK_File, self).__init__(filepath)
 
         # Initialize the  structure from file.
-        self.structure = Structure.from_file(filepath)
+        self._structure = Structure.from_file(filepath)
 
         # Initialize the band energies.
-        self.bands = ElectronBands.from_file(filepath)
+        self._bands = ElectronBands.from_file(filepath)
 
         self.kpoints = kpoints_factory(filepath)
         self.nkpt = len(self.kpoints)
@@ -61,8 +61,18 @@ class WFK_File(AbinitNcFile):
         self.reader = reader
 
     @property
+    def structure(self):
+        """`Structure` object"""
+        return self._structure
+
+    @property
+    def bands(self):
+        """`ElectronBands` object"""
+        return self._bands
+
+    @property
     def gspheres(self):
-        """List of `GSphere` ordered by k-points."""
+        """List of `GSphere` objects ordered by k-points."""
         return self._gspheres
 
     @property
@@ -137,40 +147,7 @@ class WFK_File(AbinitNcFile):
 
         return wave
 
-    def plot_bands(self, klabels=None, *args, **kwargs):
-        """
-        Plot the energy bands. See the :func:`ElectronBands.plot` for the meaning of the variables""
-        """
-        return self.bands.plot(klabels=klabels, *args, **kwargs)
-
-    def export_structure(self, path):
-        """
-        Export the structure on file.
-
-        returns:
-            Instance of :class:`Visualizer`
-        """
-        return self.structure.export(path)
-
-    def visualize_structure_with(self, visualizer):
-        """
-        Visualize the crystalline structure with visualizer.
-
-        See :class:`Visualizer` for the list of applications and formats supported.
-        """
-        extensions = Visualizer.exts_from_appname(visualizer)
-
-        for ext in extensions:
-            ext = "." + ext
-            try:
-                return self.export_structure(ext)
-            except Visualizer.Error:
-                pass
-        else:
-            raise Visualizer.Error(
-                "Don't know how to export data for visualizer %s" % visualizer)
-
-    def export_ur2(self, path, spin, kpoint, band):
+    def export_ur2(self, filepath, spin, kpoint, band):
         """
         Export :math:`|u(r)|^2` on file filename.
 
@@ -181,7 +158,7 @@ class WFK_File(AbinitNcFile):
         wave = self.get_wave(spin, kpoint, band)
 
         # Export data uding the format specified by filename.
-        return wave.export_ur2(path, self.structure)
+        return wave.export_ur2(filepath, self.structure)
 
     #def visualize_ur2_with(self, spin, kpoint, bands, visualizer):
     #    """
@@ -206,12 +183,12 @@ class WFK_File(AbinitNcFile):
 class WFK_Reader(ETSF_Reader):
     """This object reads data from the WFK file."""
 
-    def __init__(self, path):
+    def __init__(self, filepath):
         """Initialize the object from a filename."""
-        super(WFK_Reader, self).__init__(path)
+        super(WFK_Reader, self).__init__(filepath)
 
         self.structure = self.read_structure()
-        self.kpoints = kpoints_factory(path)
+        self.kpoints = kpoints_factory(filepath)
 
         self.nfft1 = self.read_dimvalue("number_of_grid_points_vector1")
         self.nfft2 = self.read_dimvalue("number_of_grid_points_vector2")

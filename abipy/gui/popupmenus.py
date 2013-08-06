@@ -10,7 +10,8 @@ from collections import OrderedDict
 
 from abipy import abifile_subclass_from_filename, abiopen
 from abipy.iotools.files import NcDumper, AbinitLogFile, AbinitOutputFile, get_filestat
-from abipy import WFK_File, SIGRES_File
+from abipy.waves import WFK_File
+from abipy.electrons import SIGRES_File, GSR_File
 from abipy.electrons.bse import MDF_File
 from .abievents import AbinitEventsFrame, AbinitTimerFrame
 
@@ -249,7 +250,7 @@ class EbandsPopupMenu(NcFilePopupMenu):
         ("eJdos", ewx.showElectronJdosFrame),
     ])
 
-    HANDLED_FILES = [WFK_File] 
+    HANDLED_FILES = [WFK_File, GSR_File] 
 
 
 def showQPData(parent, filepath):

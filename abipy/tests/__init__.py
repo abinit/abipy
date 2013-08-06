@@ -25,6 +25,10 @@ __all__ = [
 
 _DATA_ABSPATH = abspath( pj(dirname(__file__), 'data') )
 
+_CIF_DIRPATH = abspath( pj(dirname(__file__), 'data', "cifs") )
+
+_PSEUDOS_DIRPATH = abspath( pj(dirname(__file__), 'data', "pseudos") )
+
 try:
     _DATA_NCFILES = [pj(_DATA_ABSPATH, f) for f in os.listdir(_DATA_ABSPATH) if f.endswith(".nc")]
 except:
@@ -48,11 +52,23 @@ def get_ncfiles_with_ext(ext):
     return ncfiles
 
 def get_reference_file(filename):
-    """Returns the absolute path of filename in the tests/data directory."""
+    """Returns the absolute path of filename in tests/data directory."""
     return os.path.join(_DATA_ABSPATH, filename)
 
 def get_datadir():
     return _DATA_ABSPATH
+
+def get_ciffile(filename):
+    """Returns the absolute path of the CIF file in tests/data/cifs."""
+    return os.path.join(_CIF_DIRPATH, filename)
+
+def get_pseudo(filename):
+    """Returns the absolute path of a pseudopotential file in tests/data/pseudos."""
+    return os.path.join(_PSEUDOS_DIRPATH, filename)
+
+def get_pseudos(*filenames):
+    """Returns the absolute path of a pseudopotential file in tests/data/pseudos."""
+    return [get_pseudo(f) for f in filenames]
 
 ##########################################################################################
 

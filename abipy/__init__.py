@@ -37,7 +37,7 @@ __version__  = release.version
 
 
 from abipy.waves import WFK_File
-from abipy.electrons import SIGRES_File
+from abipy.electrons import SIGRES_File, GSR_File
 from abipy.phonons import PHBST_File
 from abipy.iotools.files import AbinitFile, AbinitLogFile, AbinitOutputFile
 
@@ -46,7 +46,7 @@ def abifile_subclass_from_filename(filename):
         "SIGRES.nc": SIGRES_File,
         "WFK-etsf.nc": WFK_File,
         "MDF.nc" : MDF_File,
-        #"GSR.nc": GSR_File
+        "GSR.nc": GSR_File
         #"PHDOS.nc": PHDOS_File,
         #"PHBST.nc": PHBST_File,
     }
