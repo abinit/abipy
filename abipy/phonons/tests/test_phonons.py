@@ -2,6 +2,7 @@
 from __future__ import print_function, division
 
 from abipy.phonons import PhononBands
+from abipy.core.testing import *
 from abipy.tests import *
 
 

@@ -2,7 +2,7 @@
 import warnings
 
 from abipy.htc import *
-from abipy.tests import *
+from abipy.core.testing import *
 
 # =========================================================================== #
 

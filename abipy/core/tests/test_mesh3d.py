@@ -4,7 +4,7 @@ from __future__ import print_function, division
 import numpy as np
 
 from abipy.core.mesh3d import *
-from abipy.tests import AbipyTest
+from abipy.core.testing import *
 
 class TestMesh3D(AbipyTest):
     "Test Mesh3d"

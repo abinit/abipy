@@ -3,6 +3,7 @@ from __future__ import print_function, division
 
 from abipy.core.kpoints import KpointList
 from abipy.electrons.ebands import Ebands_Reader, ElectronBands
+from abipy.core.testing import *
 from abipy.tests import *
 
 class EbandsReaderTest(AbipyTest):

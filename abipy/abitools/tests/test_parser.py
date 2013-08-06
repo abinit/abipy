@@ -3,7 +3,7 @@ import os
 
 import unittest
 
-from abipy.tests import *
+from abipy.core.testing import *
 from abipy.abitools import *
 from abipy.abitools.parser import _parser_ok   # if not _parser_ok: Do not run the test suite.
 

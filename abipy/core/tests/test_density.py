@@ -3,8 +3,9 @@
 from __future__ import print_function, division
 
 from abipy.core import Density
+from abipy.core.testing import *
 from abipy.iotools import *
-from abipy.tests import DEN_NCFILES, AbipyTest
+from abipy.tests import DEN_NCFILES
 
 
 class TestDensity(AbipyTest):

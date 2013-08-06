@@ -5,7 +5,7 @@ import numpy as np
 
 from abipy.core import Mesh3D
 from abipy.core.gsphere import *
-from abipy.tests import AbipyTest
+from abipy.core.testing import *
 
 
 class TestGSphere(AbipyTest):

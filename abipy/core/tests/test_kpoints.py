@@ -8,7 +8,7 @@ import numpy as np
 from pymatgen.core.lattice import Lattice
 from abipy.core.kpoints import *
 from abipy.core.kpoints import KpointList
-from abipy.tests import *
+from abipy.core.testing import *
 
 class TestWrapWS(AbipyTest):
 

@@ -1,6 +1,7 @@
 from __future__ import print_function, division
 
 from abipy import WFK_File
+from abipy.core.testing import *
 from abipy.tests import *
 
 

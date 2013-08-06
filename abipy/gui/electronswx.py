@@ -20,13 +20,13 @@ def showElectronDosFrame(parent, filepath):
 
 
 def showElectronBandsPlot(parent, filepath):
-    bands = ElectronBands.from_file(filepath)
-    bands.plot(title="File: %s" % filepath)
+    ebands = ElectronBands.from_file(filepath)
+    ebands.plot(title="File: %s" % filepath)
 
 
 def showElectronJdosFrame(parent, filepath):
-    bands = ElectronBands.from_file(filepath)
-    ElectronJdosFrame(parent, bands).Show()
+    ebands = ElectronBands.from_file(filepath)
+    ElectronJdosFrame(parent, ebands).Show()
 
 
 class DosPanel(awx.Panel):
@@ -368,7 +368,7 @@ class ElectronJdosFrame(awx.Frame):
     def OnClick(self, event):
         p = self.jdos_panel.GetParams()
         try:
-            self.bands.plot_jdosvc(vrange=p.vrange, crange=p.crange, step=p.step, width=p.width,
+            self.bands.plot_ejdosvc(vrange=p.vrange, crange=p.crange, step=p.step, width=p.width,
                                    cumulative=p.cumulative)
         except:
             awx.showErrorMessage(self)

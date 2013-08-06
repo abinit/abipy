@@ -4,7 +4,7 @@ import numpy as np
 from abipy import get_ncfile
 from abipy.core import Structure
 from abipy.core.symmetries import *
-from abipy.tests import AbipyTest
+from abipy.core.testing import *
 
 class TestSymmetries(AbipyTest):
     """"Test symmetries."""

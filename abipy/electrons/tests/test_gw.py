@@ -7,6 +7,7 @@ import numpy as np
 from abipy import abiopen
 from abipy.electrons.gw import *
 from abipy.electrons.gw import SIGRES_Reader
+from abipy.core.testing import *
 from abipy.tests import *
 
 class TestQPList(AbipyTest):

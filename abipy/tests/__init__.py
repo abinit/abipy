@@ -7,10 +7,8 @@ in a single location, so that test scripts can just import it and work right awa
 from __future__ import print_function, division
 
 from os.path import join as pj, dirname, abspath
-from unittest import TestCase
 
 import os
-import numpy.testing.utils as nptu
 
 __all__ = [
     "WFK_NCFILES",
@@ -19,8 +17,6 @@ __all__ = [
     "get_ncfile",
     "get_ncfiles_with_ext",
     "get_reference_file",
-    "AbipyTest",
-    "AbipyFileTest",
 ]
 
 _DATA_ABSPATH = abspath( pj(dirname(__file__), 'data') )
@@ -79,40 +75,3 @@ DEN_NCFILES = get_ncfiles_with_ext("DEN")
 ALL_NCFILES = WFK_NCFILES + DEN_NCFILES
 
 ##########################################################################################
-
-class AbipyTest(TestCase):
-    """Extend TestCase with functions from numpy.testing.utils that support ndarrays."""
-
-    @staticmethod
-    def assert_almost_equal(actual, desired, decimal=7, err_msg='', verbose=True):
-        return nptu.assert_almost_equal(actual, desired, decimal, err_msg, verbose)
-
-    @staticmethod
-    def assert_equal(actual, desired, err_msg='', verbose=True):
-        return nptu.assert_equal(actual, desired, err_msg=err_msg, verbose=verbose)
-
-class AbipyFileTest(AbipyTest):
-    """
-    Test class for files with a __str__ attribute.
-    At setup, must set the 'file' attribute of the AbipyFileTest.
-    """
-    file = None
-
-    def assertContains(self, expression):
-        """
-        Assert that the string representation of the file contains 'expression'
-        'expression' is trimmed of leading new line.
-        Each line of 'expression' is trimmed of blank spaces.
-        Empty lines are ignored.
-        """
-        def normalize(string):
-            string = string.replace('\t', '  ')
-            string = string.replace("$", " CASH ")
-            string = string.replace("(", " LP ")
-            string = string.replace(")", " RP ")
-            string = '\n'.join([line.strip() for line in string.splitlines()])
-            return string
-
-        expression = normalize(expression)
-        ref = normalize(str(self.file))
-        return  self.assertRegexpMatches(ref, expression)

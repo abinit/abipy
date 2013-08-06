@@ -4,7 +4,7 @@ from __future__ import division, print_function
 import numpy as np
 
 from abipy.tools.derivatives import finite_diff
-from abipy.tests import *
+from abipy.core.testing import *
 
 class FiniteDiffTest(AbipyTest):
 

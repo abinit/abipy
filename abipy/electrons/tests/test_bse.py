@@ -1,7 +1,6 @@
 """Tests for electrons.bse module"""
-import unittest
-
 from abipy.electrons.bse import *
+from abipy.core.testing import *
 from abipy.tests import *
 
 
@@ -29,5 +28,7 @@ class TestMDF_Reader(AbipyTest):
             plotter.add_mdf("GW-RPA", gwnlf_mdf)
             #plotter.plot()
 
+
 if __name__ == "__main__":
+    import unittest
     unittest.main()

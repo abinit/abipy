@@ -6,7 +6,7 @@ import collections
 import cStringIO as StringIO
 
 from abipy.core.func1d import *
-from abipy.tests import AbipyTest
+from abipy.core.testing import *
 
 
 class TestFunction1D(AbipyTest):

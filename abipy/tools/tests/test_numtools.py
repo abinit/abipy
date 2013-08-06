@@ -3,7 +3,7 @@ from __future__ import print_function, division
 import numpy as np
 
 from abipy.tools.numtools import *
-from abipy.tests import AbipyTest
+from abipy.core.testing import *
 
 class TestTools(AbipyTest):
     """Test numtools."""

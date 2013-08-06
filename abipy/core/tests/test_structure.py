@@ -2,7 +2,8 @@
 import numpy as np
 
 from abipy.core.structure import *
-from abipy.tests import ALL_NCFILES, AbipyTest
+from abipy.tests import ALL_NCFILES
+from abipy.core.testing import *
 
 class TestStructure(AbipyTest):
     """Unit tests for Structure."""

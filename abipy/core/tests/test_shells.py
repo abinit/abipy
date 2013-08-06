@@ -2,7 +2,7 @@
 from __future__ import print_function, division
 
 from abipy.core.shells import *
-from abipy.tests import *
+from abipy.core.testing import *
 
 ##########################################################################################
 
