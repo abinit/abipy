@@ -188,7 +188,7 @@ class PHDOS_Reader(ETSF_Reader):
         #     return self.read_value("phonon_frequencies")
 
 
-class PHDOS_File(AbinitNcFile):
+class PHDOS_File(AbinitNcFile, Has_Structure):
     """
     Container object storing the different DOSes stored in the
     PHDOS.nc file produced by anaddb. Provides helper function

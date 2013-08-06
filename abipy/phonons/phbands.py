@@ -5,7 +5,7 @@ import functools
 import collections
 import numpy as np
 
-from abipy.iotools import ETSF_Reader, AbinitNcFile, Has_Structure
+from abipy.iotools import ETSF_Reader, AbinitNcFile, Has_Structure, Has_PhononBands
 from abipy.core.kpoints import Kpoint
 from abipy.tools import gaussian
 from abipy.tools.plotting_utils import Marker
@@ -771,7 +771,7 @@ class PHBST_Reader(ETSF_Reader):
         return self.read_value("phdispl_cart", cmode="c")
 
 
-class PHBST_File(AbinitNcFile, Has_Structure):
+class PHBST_File(AbinitNcFile, Has_Structure, Has_PhononBands):
 
     def __init__(self, filepath):
         """
@@ -782,13 +782,19 @@ class PHBST_File(AbinitNcFile, Has_Structure):
                 path to the file
         """
         super(PHBST_File, self).__init__(filepath)
-        #
+
         # Initialize Phonon bands
-        self.phbands = PhononBands.from_file(filepath)
+        self._phbands = PhononBands.from_file(filepath)
 
     @property
     def structure(self):
+        """`Structure` object"""
         return self.phbands.structure
+
+    @property
+    def phbands(self):
+        """`PhononBands` object"""
+        return self._phbands
 
     #def __str__(self):
     #    return self.tostring()
@@ -802,10 +808,6 @@ class PHBST_File(AbinitNcFile, Has_Structure):
     #            verbosity level.
     #    """
     #    return "\n".join(lines)
-
-    def get_bands(self):
-        """Return the electronic bands."""
-        return self.bands
 
     def get_phonon_mode(self, qpoint, nu):
         """
@@ -829,35 +831,5 @@ class PHBST_File(AbinitNcFile, Has_Structure):
         raise NotImplementedError("")
 
         #return PHMode(qpoint, freq, displ_cart, structure)
-
-    def export_structure(self, path):
-        """
-        Export the structure structure on file filename.
-
-        returns:
-            Instance of :class:`Visualizer`
-        """
-        return self.structure.export(path)
-
-    def visualize_structure_with(self, visualizer):
-        """
-        Visualize the crystalline structure with visualizer.
-
-        See :class:`Visualizer` for the list of applications and formats supported.
-        """
-        extensions = Visualizer.exts_from_appname(visualizer)
-
-        for ext in extensions:
-            ext = "." + ext
-            try:
-                return self.export_structure(ext)
-            except Visualizer.Error:
-                pass
-        else:
-            raise Visualizer.Error("Don't know how to export data for visualizer " % visualizer)
-
-    #def plot_bands(self, title=None, klabels=None, *args, **kwargs):
-    #    self.bands.plot(title, klabels, *args, **kwargs)
-
 
 #########################################################################################

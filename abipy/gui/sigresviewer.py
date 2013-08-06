@@ -102,11 +102,11 @@ class SigresViewerFrame(awx.Frame):
         return self.__class__.__name__
 
     @property
-    def ks_bands(self):
+    def ebands(self):
         if self.sigres is None:
             return None
         else:
-            return self.sigres.ks_bands
+            return self.sigres.ebands
 
     def BuildUi(self):
         sigres = self.sigres
@@ -206,7 +206,7 @@ class SigresViewerFrame(awx.Frame):
 
         band_range = (self.sigres.min_gwbstart, self.sigres.max_gwbstop)
         try:
-            BandsWithMarkersPlotFrame(self, self.sigres.ks_bands, band_range=band_range).Show()
+            BandsWithMarkersPlotFrame(self, self.sigres.ebands, band_range=band_range).Show()
         except awx.Error as exc:
             awx.showErrorMessage(self)
 

@@ -72,7 +72,7 @@ class TestSigresFile(AbipyTest):
         self.assertTrue(sigres.nsppol == 1)
 
         # Markers are initialied in __init__
-        self.assertTrue(sigres.ks_bands.markers)
+        self.assertTrue(sigres.ebands.markers)
 
         # In this run IBZ = kptgw
         self.assertTrue(len(sigres.ibz) == 6)

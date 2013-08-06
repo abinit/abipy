@@ -15,6 +15,7 @@ __all__ = [
     "AbinitNcFile",
     "Has_Structure",
     "Has_ElectronBands",
+    "Has_PhononBands",
 ]
 
 class AbinitFile(object):
@@ -164,11 +165,28 @@ class Has_ElectronBands(object):
     def ebands(self):
         """Returns the `ElectronBands` object."""
 
-    def plot_ebands(self, klabels=None, **kwargs):
+    def plot_ebands(self, **kwargs):
         """
         Plot the electron energy bands. See the :func:`ElectronBands.plot` for the signature.""
         """
-        return self.ebands.plot(klabels=klabels, **kwargs)
+        return self.ebands.plot(**kwargs)
+
+
+class Has_PhononBands(object):
+    """Mixin class for `AbinitNcFile` containing phonon data."""
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractproperty
+    def phbands(self):
+        """Returns the `PhononBands` object."""
+
+    def plot_phbands(self, **kwargs):
+        """
+        Plot the electron energy bands. See the :func:`PhononBands.plot` for the signature.""
+        """
+        return self.phbands.plot(**kwargs)
+
+
 
 
 class NcDumper(object):

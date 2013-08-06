@@ -38,7 +38,7 @@ class ElectronBandsTest(AbipyTest):
     def test_dos(self):
         """Test DOS methods."""
         gs_bands = ElectronBands.from_file(get_reference_file("si_WFK-etsf.nc"))
-        dos = gs_bands.get_dos()
+        dos = gs_bands.get_edos()
         mu = dos.find_mu(8, atol=1.e-4)
         self.assert_almost_equal(mu, 6.1443350264585996, decimal=4)
 
@@ -50,14 +50,14 @@ class ElectronBandsTest(AbipyTest):
         conduction = [4,]
         for v in range(1,5):
             valence = range(0,v)
-            jdos = bands.get_jdos(spin, valence, conduction)
+            jdos = bands.get_ejdos(spin, valence, conduction)
             intg = jdos.integral()[-1][-1]
             self.assert_almost_equal(intg, len(conduction) * len(valence))
 
         # Need a homogeneous sampling.
         with self.assertRaises(ValueError):
             bands = ElectronBands.from_file(get_reference_file("si_nscf_WFK-etsf.nc"))
-            bands.get_jdos(spin, 0, 4)
+            bands.get_ejdos(spin, 0, 4)
 
 
 if __name__ == "__main__":

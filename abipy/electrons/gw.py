@@ -12,7 +12,7 @@ from abipy.core.constants import Ha_eV
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import kpoints_factory, KpointList
 from abipy.tools import pprint_table, AttrDict
-from abipy.iotools import AbinitNcFile, ETSF_Reader, Has_Structure
+from abipy.iotools import AbinitNcFile, ETSF_Reader, Has_Structure, Has_ElectronBands
 from abipy.electrons.ebands import ElectronBands
 from abipy.electrons.scissors import Scissors
 
@@ -772,7 +772,7 @@ class SIGRES_Plotter(collections.Iterable):
         return fig
 
 
-class SIGRES_File(AbinitNcFile, Has_Structure):
+class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     """Container storing the GW results reported in the SIGRES.nc file."""
 
     def __init__(self, filepath):
@@ -796,9 +796,7 @@ class SIGRES_File(AbinitNcFile, Has_Structure):
         self.min_gwbstop = reader.min_gwbstop
         self.max_gwbstop = reader.max_gwbstop
 
-        # TODO
-        # Add GW markers to ks_bands.
-        self.ks_bands = ks_bands = reader.ks_bands
+        self._ebands = ebands = reader.ks_bands
 
         qplist_spin = self.qplist_spin
 
@@ -809,7 +807,7 @@ class SIGRES_File(AbinitNcFile, Has_Structure):
 
             for spin in range(self.nsppol):
                 for qp in qplist_spin[spin]:
-                    ik = self.ks_bands.kpoints.index(qp.kpoint)
+                    ik = self.ebands.kpoints.index(qp.kpoint)
                     x.append(ik)
                     y.append(qp.e0)
                     size = getattr(qp, qpattr)
@@ -817,7 +815,7 @@ class SIGRES_File(AbinitNcFile, Has_Structure):
                     if np.iscomplex(size): size = size.real
                     s.append(size)
 
-            ks_bands.set_marker(qpattr, (x, y, s))
+            ebands.set_marker(qpattr, (x, y, s))
 
         # TODO handle the case in which nkptgw < nkibz
         self.qpgaps = reader.read_qpgaps()
@@ -838,7 +836,7 @@ class SIGRES_File(AbinitNcFile, Has_Structure):
     @property
     def nsppol(self):
         """Number of spins"""
-        return self.ks_bands.nsppol
+        return self.ebands.nsppol
 
     def close(self):
         """Close the netcdf file."""
@@ -848,6 +846,11 @@ class SIGRES_File(AbinitNcFile, Has_Structure):
     def structure(self):
         """Structure` instance."""
         return self._structure
+
+    @property
+    def ebands(self):
+        """`ElectronBands` with the KS energies."""
+        return self._ebands
 
     @property
     def qplist_spin(self):
@@ -966,7 +969,7 @@ class SIGRES_File(AbinitNcFile, Has_Structure):
         with_marker = qpattr + ":" + str(fact)
         gwband_range = (self.min_gwbstart, self.max_gwbstop)
 
-        fig = self.ks_bands.plot(marker=with_marker, band_range=gwband_range, **kwargs)
+        fig = self.ebands.plot(marker=with_marker, band_range=gwband_range, **kwargs)
 
         return fig
 
