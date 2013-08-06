@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#
 # This example shows how to use the Function1D object to analyze and plot results.
 import numpy as np
 import matplotlib.pyplot as plt

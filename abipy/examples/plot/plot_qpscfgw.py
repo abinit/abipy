@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#
 # This example shows how to visualize the SCGW QP amplitudes 
 # in the KS basis set.
 from abipy import *

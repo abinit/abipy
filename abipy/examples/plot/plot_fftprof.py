@@ -1,6 +1,7 @@
+#!/usr/bin/env python
+#
 # This example shows how to plot the benchmark 
 # results for the FFT libraries produced by fftprof
-
 from abipy.tests import get_reference_file
 from abipy.abitools.fftprof import FFT_Benchmark
 

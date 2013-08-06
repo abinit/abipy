@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#
 # This example shows how to plot the macroscopic 
 # dielectric function (MDF) computed in the Bethe-Salpeter code
 from abipy import *

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#
 # This example shows how to plot the phonon band structure of AlAs.
 # See tutorial/lesson_rf2.html
 
@@ -15,7 +17,7 @@ phbands = PhononBands.from_file(phbst_file)
 phdos_file = get_reference_file("trf2_5.out_PHDOS.nc")
 
 with PHDOS_Reader(phdos_file) as ncdata:
-    dos = ncdata.read_phdos()
+    phdos = ncdata.read_phdos()
 
 # plot phonon bands and DOS.
-phbands.plot_with_dos(dos, title="AlAs Phonon bands and DOS")
+phbands.plot_with_phdos(phdos, title="AlAs Phonon bands and DOS")

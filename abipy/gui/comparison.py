@@ -172,7 +172,7 @@ class ComparisonFrame(awx.Frame):
                 plotter = ElectronBandsPlotter()
 
                 for filepath in selected_files:
-                    plotter.add_bands_from_file(filepath)
+                    plotter.add_ebands_from_file(filepath)
 
                 plotter.plot()
 
@@ -186,7 +186,7 @@ class ComparisonFrame(awx.Frame):
                     plotter = ElectronDosPlotter()
 
                     for filepath in selected_files:
-                        plotter.add_dos_from_file(filepath, **p)
+                        plotter.add_edos_from_file(filepath, **p)
 
                     plotter.plot()
 

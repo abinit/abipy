@@ -72,9 +72,10 @@ def showAbinitTimerFrame(parent, filepath):
 
 def showStructure(parent, filepath):
     ncfile = abiopen(filepath)
-    structure = ncfile.get_structure() 
-    visu = structure.visualize("xcrysden")
-    visu()
+    visu = ncfile.structure.visualize("xcrysden")
+
+    thread = awx.WorkerThread(parent, target=visu)
+    thread.start()
 
 
 #--------------------------------------------------------------------------------------------------

@@ -5,7 +5,7 @@ import collections
 import numpy as np
 
 from abipy.core.func1d import Function1D
-from abipy.iotools import ETSF_Reader, AbinitNcFile
+from abipy.iotools import ETSF_Reader, AbinitNcFile, Has_Structure
 
 __all__ = [
     "PhononDOS",
@@ -201,7 +201,7 @@ class PHDOS_File(AbinitNcFile):
 
         pjdos_type_dict = collections.OrderedDict()
         with PHDOS_Reader(filepath) as r:
-            self.structure = r.structure
+            self._structure = r.structure
             self.wmesh = r.wmesh
             self.phdos = r.read_phdos()
 
@@ -211,9 +211,10 @@ class PHDOS_File(AbinitNcFile):
 
         self.pjdos_type_dict = pjdos_type_dict
 
-    def get_structure(self):
+    @property
+    def structure(self):
         """Returns the `Structure` object."""
-        return self.structure
+        return self._structure
 
     def plot_pjdos_type(self, colormap="jet", **kwargs):
         """

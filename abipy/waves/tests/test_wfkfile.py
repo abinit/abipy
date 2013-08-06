@@ -16,7 +16,7 @@ class TestWFKFile(AbipyTest):
             print(wff)
 
             spin, kpoint, band = (0, 0, 0)
-            structure = wff.get_structure()
+            structure = wff.structure
             wave = wff.get_wave(spin, kpoint, band)
 
             # Test the norm

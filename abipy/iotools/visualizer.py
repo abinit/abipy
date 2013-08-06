@@ -20,7 +20,7 @@ Application = namedtuple("Application", "name cmdarg")
 # One-to-many mapping file extension --> applications
 _EXT2APPS = OrderedDict( {
     "xsf": [Application("xcrysden", "--xsf"),
-            Application("vsim", None),
+            Application("v_sim", None),
             ],
 
     "bxsf": [Application("xcrysden", "--bxsf"),

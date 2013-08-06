@@ -158,7 +158,7 @@ class ElectronDosFrame(awx.Frame):
             awx.tetris_game()
 
         try:
-            edos = self.bands.get_dos(step=p.step, width=p.width)
+            edos = self.bands.get_edos(step=p.step, width=p.width)
         except:
             awx.showErrorMessage(self)
             return

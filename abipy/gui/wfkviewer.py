@@ -202,7 +202,6 @@ class WfkViewerFrame(awx.Frame):
 
         try:
             visu = self.wfk.visualize_structure_with(visualizer)
-            #visu()
 
             thread = awx.WorkerThread(self, target=visu)
             thread.start()
@@ -241,17 +240,17 @@ class WfkViewerFrame(awx.Frame):
     def OnPlotBands(self, event):
         """Plot band energies with matplotlib."""
         if self.wfk is None: return
-        self.wfk.get_bands().plot()
+        self.wfk.plot_ebands()
 
     def OnDos(self, event):
         """Open Frame for the computation of the DOS."""
         if self.wfk is None: return
-        ewx.ElectronDosFrame(self, bands=self.wfk.get_bands()).Show()
+        ewx.ElectronDosFrame(self, bands=self.wfk.ebands()).Show()
 
     def OnJdos(self, event):
         """Open Frame for the computation of the JDOS."""
         if self.wfk is None: return
-        ewx.ElectronJdosFrame(self, bands=self.wfk.get_bands()).Show()
+        ewx.ElectronJdosFrame(self, bands=self.wfk.ebands).Show()
 
     def OnNcdump(self, event):
         """Call ncdump and show results in a dialog."""

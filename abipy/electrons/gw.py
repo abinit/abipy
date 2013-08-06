@@ -12,7 +12,7 @@ from abipy.core.constants import Ha_eV
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import kpoints_factory, KpointList
 from abipy.tools import pprint_table, AttrDict
-from abipy.iotools import AbinitNcFile, ETSF_Reader
+from abipy.iotools import AbinitNcFile, ETSF_Reader, Has_Structure
 from abipy.electrons.ebands import ElectronBands
 from abipy.electrons.scissors import Scissors
 
@@ -772,7 +772,7 @@ class SIGRES_Plotter(collections.Iterable):
         return fig
 
 
-class SIGRES_File(AbinitNcFile):
+class SIGRES_File(AbinitNcFile, Has_Structure):
     """Container storing the GW results reported in the SIGRES.nc file."""
 
     def __init__(self, filepath):
@@ -782,7 +782,7 @@ class SIGRES_File(AbinitNcFile):
         # Keep a reference to the SIGRES_Reader.
         self.reader = reader = SIGRES_Reader(self.filepath)
 
-        self.structure = reader.read_structure()
+        self._structure = reader.read_structure()
         self.gwcalctyp = reader.gwcalctyp
         self.ibz = reader.ibz
         self.gwkpoints = reader.gwkpoints
@@ -844,9 +844,10 @@ class SIGRES_File(AbinitNcFile):
         """Close the netcdf file."""
         self.reader.close()
 
-    def get_structure(self):
-        """Returns a `Structure` instance."""
-        return self.structure
+    @property
+    def structure(self):
+        """Structure` instance."""
+        return self._structure
 
     @property
     def qplist_spin(self):

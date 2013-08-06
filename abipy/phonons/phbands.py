@@ -5,7 +5,7 @@ import functools
 import collections
 import numpy as np
 
-from abipy.iotools import ETSF_Reader, AbinitNcFile
+from abipy.iotools import ETSF_Reader, AbinitNcFile, Has_Structure
 from abipy.core.kpoints import Kpoint
 from abipy.tools import gaussian
 from abipy.tools.plotting_utils import Marker
@@ -361,7 +361,7 @@ class PhononBands(object):
 
         return umodes
 
-    def get_dos(self, method="gaussian", step=1.e-4, width=4.e-4):
+    def get_phdos(self, method="gaussian", step=1.e-4, width=4.e-4):
         """
         Compute the phonon DOS on a linear mesh.
 
@@ -675,7 +675,7 @@ class PhononBands(object):
 
         return fig
 
-    def plot_with_dos(self, dos, qlabels=None, **kwargs):
+    def plot_with_phdos(self, dos, qlabels=None, **kwargs):
         """
         Plot the phonon band structure with the phonon DOS.
 
@@ -771,7 +771,7 @@ class PHBST_Reader(ETSF_Reader):
         return self.read_value("phdispl_cart", cmode="c")
 
 
-class PHBST_File(AbinitNcFile):
+class PHBST_File(AbinitNcFile, Has_Structure):
 
     def __init__(self, filepath):
         """
@@ -789,9 +789,6 @@ class PHBST_File(AbinitNcFile):
     @property
     def structure(self):
         return self.phbands.structure
-
-    def get_structure(self):
-        return self.structure
 
     #def __str__(self):
     #    return self.tostring()

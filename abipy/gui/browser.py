@@ -227,7 +227,7 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
             for index in indices:
                 fd = self.id2filedata[self.file_list.GetItemData(index)]
                 self.log("adding ", fd.abspath)
-                plotter.add_bands_from_file(fd.abspath)
+                plotter.add_ebands_from_file(fd.abspath)
 
             plotter.plot()
 

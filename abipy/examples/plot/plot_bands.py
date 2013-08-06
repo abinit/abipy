@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#
 # This example shows how to plot a band structure
 # using the eigenvalues stored in a netCDF WFK file produced by abinit.
 from abipy import *
@@ -10,11 +12,11 @@ filename = get_ncfile("si_nscf_WFK-etsf.nc")
 wfk_file = WFK_File(filename)
 
 # Extract the band structure. 
-bands = wfk_file.get_bands()
+ebands = wfk_file.ebands
 
 # Plot the band energies. Note that the labels for the k-points
 # are found automatically by searching in an internal database.
-bands.plot(title="Silicon band structure")
+ebands.plot(title="Silicon band structure")
 
 # Alternatively you can use the optional argument klabels 
 # that defines the mapping reduced_coordinates --> name of the k-point.
@@ -25,4 +27,4 @@ klabels = {
 }
 
 # and pass it to the plot method:
-#bands.plot(title="Silicon band structure", klabels=klabels)
+#ebands.plot(title="Silicon band structure", klabels=klabels)

@@ -109,10 +109,6 @@ class AbinitNcFile(AbinitFile):
     """
     __metaclass__ = abc.ABCMeta
 
-    @abc.abstractmethod
-    def get_structure(self):
-        """Returns the `Structure` object."""
-
     def ncdump(self, *nc_args, **nc_kwargs):
         """Returns a string with the output of ncdump."""
         return NcDumper(*nc_args, **nc_kwargs).dump(self.filepath)
@@ -125,6 +121,12 @@ class Has_Structure(object):
     @abc.abstractproperty
     def structure(self):
         """Returns the `Structure` object."""
+
+    def show_bz(self):
+        """
+        Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
+        """
+        return self.structure.hsym_kpath.get_kpath_plot()
 
     def export_structure(self, filepath):
         """
@@ -159,14 +161,14 @@ class Has_ElectronBands(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractproperty
-    def bands(self):
+    def ebands(self):
         """Returns the `ElectronBands` object."""
 
-    def plot_bands(self, klabels=None, **kwargs):
+    def plot_ebands(self, klabels=None, **kwargs):
         """
-        Plot the energy bands. See the :func:`ElectronBands.plot` for the meaning of the variables""
+        Plot the electron energy bands. See the :func:`ElectronBands.plot` for the signature.""
         """
-        return self.bands.plot(klabels=klabels, **kwargs)
+        return self.ebands.plot(klabels=klabels, **kwargs)
 
 
 class NcDumper(object):

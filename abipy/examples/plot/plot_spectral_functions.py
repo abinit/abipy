@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#
 # This examples shows how to plot the GW spectral functions A(w)
 # See lesson tgw2_4
 from abipy import *

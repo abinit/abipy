@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#
 # This example shows how to compute and plot the derivatives of the
 # KS eigenvalues along a high symmetry path in K-space.
 from abipy import *
@@ -18,7 +20,7 @@ for vers in kpath.versors:
 #ders = kpath.finite_diff(branch, order=2)
 #print("order2",ders)
 
-bands = wfk.get_bands()
+bands = wfk.ebands
 
 xys = bands.derivatives(spin=0,band=0,order=1, asmarker="DER1-band0")
 

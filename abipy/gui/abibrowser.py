@@ -48,6 +48,9 @@ def main():
     except: 
         show_examples_and_exit(error_code=1)
 
+    if not options.dirpaths and not options.filepaths:
+        options.dirpaths = [os.getcwd()]
+
     if options.view_mode in ["list", "l"]:
         app = wxapps.wxapp_listbrowser(dirpaths=options.dirpaths, 
                                        filepaths=options.filepaths, 

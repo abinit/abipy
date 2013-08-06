@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # This examples shows how to plot the GW self-energy
 # and the spectral function of Al at the gamma point (first band)
 # See lesson tgw2_4

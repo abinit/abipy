@@ -22,7 +22,7 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
             self._structure = r.read_structure()
 
             # Initialize the band energies.
-            self._bands = ElectronBands.from_file(filepath)
+            self._ebands = ElectronBands.from_file(filepath)
 
             #self.kpoints = kpoints_factory(filepath)
             #self.nkpt = len(self.kpoints)
@@ -42,9 +42,9 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         return self._structure
                                      
     @property
-    def bands(self):
+    def ebands(self):
         """`ElectronBands` object"""
-        return self._bands
+        return self._ebands
 
 
 class GSR_Reader(ETSF_Reader):

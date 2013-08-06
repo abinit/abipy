@@ -30,7 +30,7 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         self._structure = Structure.from_file(filepath)
 
         # Initialize the band energies.
-        self._bands = ElectronBands.from_file(filepath)
+        self._ebands = ElectronBands.from_file(filepath)
 
         self.kpoints = kpoints_factory(filepath)
         self.nkpt = len(self.kpoints)
@@ -66,9 +66,9 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         return self._structure
 
     @property
-    def bands(self):
+    def ebands(self):
         """`ElectronBands` object"""
-        return self._bands
+        return self._ebands
 
     @property
     def gspheres(self):
@@ -108,14 +108,6 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     def kindex(self, kpoint):
         """The index of the k-point in the file. Accepts: `Kpoint` object or int."""
         return self.reader.kindex(kpoint)
-
-    def get_structure(self):
-        """Returns the `Structure`"""
-        return self.structure
-
-    def get_bands(self):
-        """Return an instance of `ElectronBands`"""
-        return self.bands
 
     def get_wave(self, spin, kpoint, band):
         """

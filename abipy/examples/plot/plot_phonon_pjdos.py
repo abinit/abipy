@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#
 # This example shows how to plot the projected phonon DOS of AlAs.
 # See tutorial/lesson_rf2.html
 from abipy.tests import get_reference_file

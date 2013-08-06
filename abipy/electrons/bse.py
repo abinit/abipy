@@ -8,7 +8,7 @@ import numpy as np
 
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, kpoints_factory
-from abipy.iotools import ETSF_Reader, AbinitNcFile
+from abipy.iotools import ETSF_Reader, AbinitNcFile, Has_Structure
 
 __all__ = [
     "DielectricFunction",
@@ -219,12 +219,13 @@ class DielectricFunction(object):
 
 #########################################################################################
 
-class MDF_File(AbinitNcFile):
+class MDF_File(AbinitNcFile, Has_Structure):
+
     def __init__(self, filepath):
         super(MDF_File, self).__init__(filepath)
 
         with MDF_Reader(filepath) as r:
-            self.structure = r.read_structure()
+            self._structure = r.read_structure()
 
             self.exc_mdf = r.read_exc_mdf()
             self.rpanlf_mdf = r.read_rpanlf_mdf()
@@ -235,9 +236,10 @@ class MDF_File(AbinitNcFile):
         """Initialize the object from a Netcdf file"""
         return cls(filepath)
 
-    def get_structure(self):
+    @property
+    def structure(self):
         """Returns the `Structure` object."""
-        return self.structure
+        return self._structure
 
     def get_mdf(self, mdf_type="exc"):
 

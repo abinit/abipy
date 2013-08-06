@@ -565,7 +565,7 @@ class ElectronBands(object):
     #        kmin = self.kpoints[kmin_idx]
     #    np.minloc(opt_gaps)
 
-    def get_dos(self, method="gaussian", step=0.1, width=0.2):
+    def get_edos(self, method="gaussian", step=0.1, width=0.2):
         """
         Compute the electronic DOS on a linear mesh.
 
@@ -608,7 +608,7 @@ class ElectronBands(object):
 
         return ElectronDOS(mesh, dos)
 
-    def get_jdos(self, spin, valence, conduction, method="gaussian", step=0.1, width=0.2,
+    def get_ejdos(self, spin, valence, conduction, method="gaussian", step=0.1, width=0.2,
                  mesh=None):
         """
         Compute the join density of states at q==0
@@ -686,7 +686,7 @@ class ElectronBands(object):
 
         return Function1D(mesh, jdos)
 
-    def plot_jdosvc(self, vrange, crange, method="gaussian", step=0.1, width=0.2, cumulative=True,
+    def plot_ejdosvc(self, vrange, crange, method="gaussian", step=0.1, width=0.2, cumulative=True,
                     **kwargs):
         """
         Plot the decomposition of the joint-density of States (JDOS).
@@ -733,12 +733,12 @@ class ElectronBands(object):
             ax = fig.add_subplot(1, self.nsppol, s+1)
 
             # Get total JDOS
-            tot_jdos = self.get_jdos(s, vrange, crange, method=method, step=step, width=width)
+            tot_jdos = self.get_ejdos(s, vrange, crange, method=method, step=step, width=width)
 
             jdos_vc = collections.OrderedDict()
             for v in vrange:
                 for c in crange:
-                    jd = self.get_jdos(s, v, c, method=method, step=step, width=width, mesh=tot_jdos.mesh)
+                    jd = self.get_ejdos(s, v, c, method=method, step=step, width=width, mesh=tot_jdos.mesh)
                     jdos_vc[(v, c)] = jd
 
             # Plot data for this spin.
@@ -1037,7 +1037,7 @@ class ElectronBands(object):
         # Return ticks, labels
         return d.keys(), d.values()
 
-    def plot_with_dos(self, dos, klabels=None, **kwargs):
+    def plot_with_edos(self, dos, klabels=None, **kwargs):
         """
         Plot the band structure and the DOS.
 
@@ -1235,14 +1235,14 @@ class ElectronBandsPlotter(object):
 
     def __init__(self):
         self._bands = collections.OrderedDict()
-        self._doses = collections.OrderedDict()
+        self._edoses = collections.OrderedDict()
 
     def iter_lineopt(self):
         """Generates style options for lines."""
         for o in itertools.product( self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
             yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
 
-    def add_bands_from_file(self, filepath, label=None):
+    def add_ebands_from_file(self, filepath, label=None):
         """
         Adds a band structure for plotting. Reads data from a Netcdfile
         """
@@ -1251,9 +1251,9 @@ class ElectronBandsPlotter(object):
         if label is None:
             label = ncfile.filepath
 
-        self.add_bands(label, ncfile.get_bands())
+        self.add_ebands(label, ncfile.ebands)
 
-    def add_bands(self, label, bands, dos=None):
+    def add_ebands(self, label, bands, dos=None):
         """
         Adds a band structure for plotting.
 
@@ -1271,9 +1271,9 @@ class ElectronBandsPlotter(object):
         self._bands[label] = bands
 
         if dos is not None:
-            self._doses[label] = dos
+            self._edoses[label] = dos
 
-    def add_bands_list(self, labels, bands_list, dos_list=None):
+    def add_ebands_list(self, labels, bands_list, dos_list=None):
         """
         Add a list of Bands and DOSes.
 
@@ -1289,11 +1289,11 @@ class ElectronBandsPlotter(object):
 
         if dos_list is None:
             for label, bands in zip(labels, bands_list):
-                self.add_bands(label, bands)
+                self.add_ebands(label, bands)
         else:
             assert len(dos_list) == len(bands_list)
             for label, bands, dos in zip(labels, bands_list, dos_list):
-                self.add_bands(label, bands, dos=dos)
+                self.add_ebands(label, bands, dos=dos)
 
     def plot(self, klabels=None, *args, **kwargs):
         """
@@ -1328,7 +1328,7 @@ class ElectronBandsPlotter(object):
         from matplotlib.gridspec import GridSpec
 
         # Build grid of plots.
-        if self._doses:
+        if self._edoses:
             gspec = GridSpec(1, 2, width_ratios=[2, 1])
             ax1 = plt.subplot(gspec[0])
             # Align bands and DOS.
@@ -1371,9 +1371,9 @@ class ElectronBandsPlotter(object):
         ax.legend(lines, legends, 'best', shadow=True)
 
         # Add DOSes
-        if self._doses:
+        if self._edoses:
             ax = ax_list[1]
-            for (label, dos) in self._doses.items():
+            for (label, dos) in self._edoses.items():
                 dos.plot_ax(ax, exchange_xy=True, **opts_label[label])
 
         if show:
@@ -1394,25 +1394,25 @@ class ElectronDosPlotter(object):
     #_LINE_WIDTHS = [2,]
 
     def __init__(self):
-        self._doses = collections.OrderedDict()
+        self._edoses = collections.OrderedDict()
 
     #def iter_lineopt(self):
     #    """Generates style options for lines."""
     #    for o in itertools.product( self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
     #        yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
 
-    def add_dos_from_file(self, filepath, label=None, method="gaussian", step=0.1, width=0.2):
+    def add_edos_from_file(self, filepath, label=None, method="gaussian", step=0.1, width=0.2):
         """
         Adds a dos for plotting. Reads data from a Netcdfile
         """
         from abipy import abiopen
-        bands = abiopen(filepath).get_bands()
-        dos = bands.get_dos(method=method, step=step, width=width)
+        ebands = abiopen(filepath).ebands
+        edos = ebands.get_edos(method=method, step=step, width=width)
 
         if label is None: label = filepath
-        self.add_dos(label, dos)
+        self.add_edos(label, edos)
 
-    def add_dos(self, label, dos):
+    def add_edos(self, label, edos):
         """
         Adds a DOS for plotting.
 
@@ -1422,10 +1422,10 @@ class ElectronDosPlotter(object):
             dos:
                 `ElectronDos` object.
         """
-        if label in self._doses:
-            raise ValueError("label %s is already in %s" % (label, self._doses.keys()))
+        if label in self._edoses:
+            raise ValueError("label %s is already in %s" % (label, self._edoses.keys()))
 
-        self._doses[label] = dos
+        self._edoses[label] = edos
 
     def plot(self, **kwargs):
         """
@@ -1451,7 +1451,7 @@ class ElectronDosPlotter(object):
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
 
-        for (label, dos) in self._doses.items():
+        for (label, dos) in self._edoses.items():
             dos.plot_ax(ax, label=label)
 
         ax.grid(True)

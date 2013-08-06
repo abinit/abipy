@@ -79,6 +79,10 @@ class Structure(pymatgen.Structure):
 
     @property
     def hsym_stars(self):
+        """
+        List of `Star` objects. Each start is associated to one of the special k-points 
+        present in the pymatgen database.
+        """
         try:
             return self._hsym_stars
 
@@ -97,6 +101,7 @@ class Structure(pymatgen.Structure):
             return self._hsym_stars
 
     def findname_in_hsym_stars(self, kpoint):
+        """Returns the name of the special k-point, None if kpoint is unknown.""" 
         for star in self.hsym_stars:
             if star.find(kpoint) != -1:
                 return star.name
@@ -147,10 +152,6 @@ class Structure(pymatgen.Structure):
 
         See :class:`Visualizer` for the list of applications and formats supported.
         """
-        #from pymatgen.vis.structure_vtk import StructureVis
-        #vis = StructureVis()
-        #vis.set_structure(self)
-        #vis.show()
         extensions = Visualizer.exts_from_appname(visualizer)
 
         for ext in extensions:

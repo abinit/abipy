@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#
 # This example shows how to visualize the QP results 
 # stored in the SIGRES produced by the GW code (sigma run)
 from abipy import *

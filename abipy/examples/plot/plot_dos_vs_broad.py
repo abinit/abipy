@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#
 # This example shows how to compute and plot several
 # gaussian DOS by varying the broadening parameters.
 from abipy import *
@@ -9,7 +11,7 @@ gs_filename = get_ncfile("si_WFK-etsf.nc")
 
 gs_wfk = WFK_File(gs_filename)
 
-gs_bands = gs_wfk.get_bands()
+gs_bands = gs_wfk.ebands
 
 # Compute the DOS with the Gaussian method.
 # Plot bands and DOS.
@@ -19,8 +21,8 @@ step = 0.1
 plotter = ElectronDosPlotter()
 
 for width in widths:
-   dos = gs_bands.get_dos(method="gaussian", step=step, width=width)
+   edos = gs_bands.get_edos(method="gaussian", step=step, width=width)
    label="$\sigma = %s$ [eV]" % width
-   plotter.add_dos(label, dos)
+   plotter.add_edos(label, edos)
 
 plotter.plot()

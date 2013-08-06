@@ -225,7 +225,7 @@ class SigresViewerFrame(awx.Frame):
 
         visualizer = self.GetVisualizer()
         self.statusbar.PushStatusText("Visualizing crystal structure with %s" % visualizer)
-        structure = self.sigres.get_structure()
+        structure = self.sigres.structure
         try:
             visu = structure.visualize(visualizer)
             visu()
@@ -235,7 +235,7 @@ class SigresViewerFrame(awx.Frame):
     def OnVisualizeBZ(self, event):
         """"Visualize the Brillouin zone with matplotlib."""
         if self.sigres is None: return
-        self.sigres.get_structure().show_bz()
+        self.sigres.show_bz()
 
     def ShowQPTable(self, spin, kpoint, band):
         qplist = self.sigres.get_qplist(spin, kpoint)
