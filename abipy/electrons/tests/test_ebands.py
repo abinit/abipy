@@ -11,7 +11,7 @@ class EbandsReaderTest(AbipyTest):
 
     def test_reader(self):
         """Test Ebands_Reader."""
-        filepath = data.get_reference_file("si_WFK-etsf.nc")
+        filepath = data.ref_file("si_WFK-etsf.nc")
 
         with Ebands_Reader(filepath) as r:
             kpoints = r.read_kpoints()
@@ -39,14 +39,14 @@ class ElectronBandsTest(AbipyTest):
 
     def test_dos(self):
         """Test DOS methods."""
-        gs_bands = ElectronBands.from_file(data.get_reference_file("si_WFK-etsf.nc"))
+        gs_bands = ElectronBands.from_file(data.ref_file("si_WFK-etsf.nc"))
         dos = gs_bands.get_edos()
         mu = dos.find_mu(8, atol=1.e-4)
         self.assert_almost_equal(mu, 6.1443350264585996, decimal=4)
 
     def test_jdos(self):
         """Test JDOS methods."""
-        bands = ElectronBands.from_file(data.get_reference_file("si_WFK-etsf.nc"))
+        bands = ElectronBands.from_file(data.ref_file("si_WFK-etsf.nc"))
 
         spin = 0
         conduction = [4,]
@@ -58,7 +58,7 @@ class ElectronBandsTest(AbipyTest):
 
         # Need a homogeneous sampling.
         with self.assertRaises(ValueError):
-            bands = ElectronBands.from_file(data.get_reference_file("si_nscf_WFK-etsf.nc"))
+            bands = ElectronBands.from_file(data.ref_file("si_nscf_WFK-etsf.nc"))
             bands.get_ejdos(spin, 0, 4)
 
 

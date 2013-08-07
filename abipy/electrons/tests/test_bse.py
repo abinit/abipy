@@ -8,7 +8,7 @@ class TestMDF_Reader(AbipyTest):
 
     def test_MDF_reading(self):
         """Test MDF_Reader."""
-        mdf_file = data.get_reference_file("tbs_4o_DS2_MDF.nc")
+        mdf_file = data.ref_file("tbs_4o_DS2_MDF.nc")
 
         with MDF_Reader(mdf_file) as r:
             self.assertTrue(len(r.wmesh) == r.read_dimvalue("number_of_frequencies"))

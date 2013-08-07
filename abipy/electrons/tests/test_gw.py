@@ -13,7 +13,7 @@ from abipy.core.testing import *
 class TestQPList(AbipyTest):
 
     def setUp(self):
-        self.sigres = sigres= abiopen(data.get_reference_file("tgw1_9o_DS4_SIGRES.nc"))
+        self.sigres = sigres= abiopen(data.ref_file("tgw1_9o_DS4_SIGRES.nc"))
         self.qplist = sigres.get_qplist(spin=0, kpoint=sigres.gwkpoints[0])
 
     def test_qplist(self):
@@ -59,7 +59,7 @@ class TestSigresReader(AbipyTest):
 
     def test_base(self):
         """Test SIGRES Reader."""
-        with SIGRES_Reader(data.get_reference_file("tgw1_9o_DS4_SIGRES.nc")) as r:
+        with SIGRES_Reader(data.ref_file("tgw1_9o_DS4_SIGRES.nc")) as r:
             self.assertFalse(r.has_spfunc)
             #params = r.read_params()
 
@@ -68,7 +68,7 @@ class TestSigresFile(AbipyTest):
 
     def test_base(self):
         """Test SIGRES File."""
-        sigres = abiopen(data.get_reference_file("tgw1_9o_DS4_SIGRES.nc"))
+        sigres = abiopen(data.ref_file("tgw1_9o_DS4_SIGRES.nc"))
 
         self.assertTrue(sigres.nsppol == 1)
 
