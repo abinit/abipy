@@ -54,7 +54,7 @@ class GSR_Reader(ETSF_Reader):
     important quantities.
     """
     def __init__(self, filepath):
-        """Initialize the object from a filename."""
+        """Initialize the object from a filepath."""
         super(GSR_Reader, self).__init__(filepath)
 
         #structure = self.read_structure()
