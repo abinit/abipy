@@ -2,19 +2,18 @@
 from __future__ import division, print_function
 
 import sys
+import abipy.data as data  
 
-from abipy.tests import get_ciffile, get_pseudos
 from pymatgen.io.abinitio.abiobjects import AbiStructure
 from pymatgen.io.abinitio.task import RunMode
 from pymatgen.io.abinitio.pseudos import PseudoTable
 from pymatgen.io.abinitio.launcher import SimpleResourceManager
 from pymatgen.io.abinitio.calculations import bandstructure
 
-if __name__ == "__main__":
+def main():
+    structure = AbiStructure.asabistructure(data.cif_file("si.cif"))
 
-    structure = AbiStructure.asabistructure(get_ciffile("si.cif"))
-
-    pseudos = PseudoTable(get_pseudos("14si.pspnc"))
+    pseudos = PseudoTable(data.pseudos("14si.pspnc"))
     runmode = RunMode.sequential()
 
     kppa = scf_kppa = 40
@@ -40,10 +39,14 @@ if __name__ == "__main__":
 
     #work.rmtree()
 
-    sys.exit(max(retcodes))
+    return max(retcodes)
 
     #dos_kppa = 10
     #bands = bandstructure("hello_dos", runmode, structure, pseudos, scf_kppa, nscf_nband,
     #                      ndivsm, accuracy="normal", spin_mode="polarized",
     #                      smearing="fermi_dirac:0.1 eV", charge=0.0, scf_solver=None,
     #                      dos_kppa=dos_kppa)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
