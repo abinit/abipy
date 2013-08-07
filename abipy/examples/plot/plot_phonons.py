@@ -2,11 +2,11 @@
 #
 # This example shows how to plot the phonon band structure of AlAs.
 # See tutorial/lesson_rf2.html
-from abipy.tests import get_reference_file
 from abipy.phonons import PhononBands
+import abipy.data as data
 
 # Path to the PHBST file produced by anaddb.
-filename = get_reference_file("trf2_5.out_PHBST.nc")
+filename = data.ref_file("trf2_5.out_PHBST.nc")
 
 # Create the object from file.
 phbands = PhononBands.from_file(filename)

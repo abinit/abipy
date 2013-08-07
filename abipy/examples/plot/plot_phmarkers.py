@@ -2,9 +2,10 @@
 #
 # This example shows how to plot the phonon band structure with markers.
 from abipy import *
+import abipy.data as data
 
 # Create the object from file.
-phbands = PhononBands.from_file(get_reference_file("trf2_5.out_PHBST.nc"))
+phbands = PhononBands.from_file(data.ref_file("trf2_5.out_PHBST.nc"))
 
 # Create the marker. Here we just use the phonon frequency as size of the marker.
 x = []

@@ -3,14 +3,15 @@
 # This example shows how to compute and plot the derivatives of the
 # KS eigenvalues along a high symmetry path in K-space.
 from abipy import *
+import abipy.data as data
 
-wfk = WFK_File(get_ncfile("si_nscf_WFK-etsf.nc"))
+wfk = WFK_File(data.ref_file("si_nscf_WFK-etsf.nc"))
 
 kpath = wfk.kpoints
 
-print("ds", kpath.ds)
-for vers in kpath.versors:
-    print("versors", vers)
+#print("ds", kpath.ds)
+#for vers in kpath.versors:
+#    print("versors", vers)
 
 #print(kpath)
 #print(kpath.lines)

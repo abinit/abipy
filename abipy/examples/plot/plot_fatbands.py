@@ -5,9 +5,10 @@ import numpy as np
 import collections
 
 from abipy import *
+import abipy.data as data
 
 # Open the WKF file.
-wfk_file = WFK_File(get_ncfile("si_nscf_WFK-etsf.nc"))
+wfk_file = WFK_File(data.ref_file("si_nscf_WFK-etsf.nc"))
 
 # Extract the band structure. 
 ebands = wfk_file.ebands

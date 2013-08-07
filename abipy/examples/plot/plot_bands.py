@@ -3,10 +3,11 @@
 # This example shows how to plot a band structure
 # using the eigenvalues stored in a netCDF WFK file produced by abinit.
 from abipy import *
+import abipy.data as data
 
 # Here we use one of the WFK files shipped with abipy.
 # Replace filename with the path to your WFK file.
-filename = get_ncfile("si_nscf_WFK-etsf.nc")
+filename = data.ref_file("si_nscf_WFK-etsf.nc")
 
 # Open the WKF file and read data. 
 wfk_file = WFK_File(filename)

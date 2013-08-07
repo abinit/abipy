@@ -14,58 +14,57 @@ __all__ = [
 
 ]
 
-_DATA_ABSPATH = dirname(__file__)
+dirpath = dirname(__file__)
 
 _CIF_DIRPATH = abspath( pj(dirname(__file__), "cifs") )
 
 _PSEUDOS_DIRPATH = abspath( pj(dirname(__file__), "pseudos") )
 
 try:
-    _DATA_NCFILES = [pj(_DATA_ABSPATH, f) for f in os.listdir(_DATA_ABSPATH) if f.endswith(".nc")]
+    _DATA_NCFILES = [pj(dirpath, f) for f in os.listdir(dirpath) if f.endswith(".nc")]
 except:
     _DATA_NCFILES = []
 
-def get_ncfile(filename):
-    """Return the absolute path of file filename locate in data. None if not found"""
+def ncfile(filename):
+    """Return the absolute path of file filename located in data. None if not found."""
     for f in _DATA_NCFILES:
         if os.path.basename(f) == filename:
             return f
-    else:
-        return None
 
-def get_ncfiles_with_ext(ext):
-    """Return a list with the absolute path of the files with extension ext"""
+    return None
+
+def ncfiles_with_ext(ext):
+    """Return a list with the absolute path of the files with extension ext."""
     ncfiles = []
     for filename in _DATA_NCFILES:
         f = filename.rstrip(".nc").rstrip("-etsf")
         if f.endswith("_"+ext):
             ncfiles.append(filename)
+
     return ncfiles
 
-def get_reference_file(filename):
+def ref_file(filename):
     """Returns the absolute path of filename in tests/data directory."""
-    return os.path.join(_DATA_ABSPATH, filename)
+    return os.path.join(dirpath, filename)
 
-def get_datadir():
-    return _DATA_ABSPATH
 
-def get_ciffile(filename):
+def cif_file(filename):
     """Returns the absolute path of the CIF file in tests/data/cifs."""
     return os.path.join(_CIF_DIRPATH, filename)
 
-def get_pseudo(filename):
+def _pseudo(filename):
     """Returns the absolute path of a pseudopotential file in tests/data/pseudos."""
     return os.path.join(_PSEUDOS_DIRPATH, filename)
 
-def get_pseudos(*filenames):
+def pseudos(*filenames):
     """Returns the absolute path of a pseudopotential file in tests/data/pseudos."""
-    return [get_pseudo(f) for f in filenames]
+    return [_pseudo(f) for f in filenames]
 
 ##########################################################################################
 
-WFK_NCFILES = get_ncfiles_with_ext("WFK")
+WFK_NCFILES = ncfiles_with_ext("WFK")
 
-DEN_NCFILES = get_ncfiles_with_ext("DEN")
+DEN_NCFILES = ncfiles_with_ext("DEN")
 
 ALL_NCFILES = WFK_NCFILES + DEN_NCFILES
 

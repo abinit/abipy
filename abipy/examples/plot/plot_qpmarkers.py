@@ -3,8 +3,9 @@
 # This example shows how to plot the Kohn-Sham energies with
 # markers providing a graphical representation of the GW results. 
 from abipy import *
+import abipy.data as data
 
-sigma_file = SIGRES_File(get_reference_file("tgw1_9o_DS4_SIGRES.nc"))
+sigma_file = SIGRES_File(data.ref_file("tgw1_9o_DS4_SIGRES.nc"))
 
 # Plot the KS energies with markers whose size is proportional to the difference E_GW - E_KS 
 # Multiply the difference by 1000 to make the markers more visible.
