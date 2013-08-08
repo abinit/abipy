@@ -67,10 +67,17 @@ def find_package_data():
     # This is not enough for these things to appear in an sdist.
     # We need to muck with the MANIFEST to get this to work
     package_data = {
-        'abipy.tests' : ['data/*'],
+        'abipy.data' : ['*','pseudos/*','runs/*','cifs/*'],
         'abipy.gui.awx' : ['images/*'],
     }
     return package_data
+
+def find_exclude_package_data():
+    package_data = {
+        'abipy.data' : ['pseudos','runs','cifs'],
+    }
+    return package_data
+
 
 
 #---------------------------------------------------------------------------
@@ -135,6 +142,7 @@ my_packages = find_packages(exclude=())
 my_scripts = find_scripts()
 
 my_package_data = find_package_data()
+my_excl_package_data = find_exclude_package_data()
 #data_files = find_data_files()
 
 # Create a dict with the basic information
@@ -153,6 +161,7 @@ setup_args = dict(
       install_requires = install_requires,
       packages         = my_packages,
       package_data     = my_package_data,
+      exclude_package_data = my_excl_package_data,
       scripts          = my_scripts,
       #download_url     = download_url,
       )
