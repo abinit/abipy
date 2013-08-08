@@ -49,10 +49,10 @@ def abifile_subclass_from_filename(filename):
         #"PHBST.nc": PHBST_File,
     }
 
-    if filename.endswith(".out"):
+    if filename.endswith(".about"):
         return AbinitOutputFile
     
-    if filename.endswith(".log"):
+    if filename.endswith(".ablog"):
         return AbinitLogFile
 
     ext = filename.split("_")[-1]
@@ -73,5 +73,11 @@ def abiopen(filepath):
         return filepath
 
     # Assume string.
+    
+    # CIF files.
+    #if filepath.endswith(".cif"):
+    #    from abipy.core.structure import structure
+    #    return structure.from_file(filepath)
+
     abifile = abifile_subclass_from_filename(filepath)
     return abifile.from_file(filepath)

@@ -1,4 +1,6 @@
 """Tests for htc.FilesFile."""
+from __future__ import print_function, division
+
 import warnings
 
 from abipy.htc import *
@@ -44,3 +46,6 @@ t_mycalc
         self.assertContains(lookfor)
 
 
+if __name__ == "__main__": 
+    import unittest
+    unittest.main()

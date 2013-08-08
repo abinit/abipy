@@ -29,3 +29,8 @@ class TestShells(AbipyTest):
         self.assertEqual(sort_values, sh_values)
 
         shells.get_from_value(1.0)
+
+
+if __name__ == "__main__": 
+    import unittest
+    unittest.main()

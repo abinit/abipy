@@ -20,3 +20,7 @@ class PhononBandsTest(AbipyTest):
         #self.assertEqual(phbands.maxfreq, 30)
 
         #dos = phbands.get_dos()
+
+if __name__ == "__main__":
+    import unittest
+    unittest.main()

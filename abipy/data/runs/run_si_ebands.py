@@ -2,6 +2,7 @@
 from __future__ import division, print_function
 
 import sys
+import os
 import abipy.data as data  
 
 from pymatgen.io.abinitio.abiobjects import AbiStructure
@@ -10,7 +11,7 @@ from pymatgen.io.abinitio.pseudos import PseudoTable
 from pymatgen.io.abinitio.launcher import SimpleResourceManager
 from pymatgen.io.abinitio.calculations import bandstructure
 
-def main():
+def main(workdir=None, dry_run=False):
     structure = AbiStructure.asabistructure(data.cif_file("si.cif"))
 
     pseudos = PseudoTable(data.pseudos("14si.pspnc"))
@@ -29,17 +30,34 @@ def main():
         istwfk="*1",
     )
 
-    work = bandstructure("silicon_gs+nscf", runmode, structure, pseudos, scf_kppa, nscf_nband, ndivsm, 
+    if workdir is None:
+        workdir = os.path.basename(__file__).replace(".py","")
+
+    work = bandstructure(workdir, runmode, structure, pseudos, scf_kppa, nscf_nband, ndivsm, 
                          spin_mode="unpolarized", smearing=None, **extra_abivars)
 
     retcodes = SimpleResourceManager(work, max_ncpus, sleep_time=5).run()
+    retcode = max(retcodes)
 
     work[0].rename("out_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
     work[1].rename("out_WFK_0-etsf.nc", "si_nscf_WFK-etsf.nc")
 
-    #work.rmtree()
 
-    return max(retcodes)
+    #work.rmtree(keep_top=True)
+
+    return retcode 
+
+    ref_dir = ?
+
+    diffs = []
+    for fname in os.listdir(ref_dir):
+        ref_path = os.path.join(ref_dir, fname)
+        new_path = os.path.join(workdir, fname)
+        #with open(ref_path, "r") as ref, with open(new_file,"r") as new:
+        diff = abidiff(ref_path, new_path)
+        if diff:
+            diffs[ref_path] = diff
+
 
     #dos_kppa = 10
     #bands = bandstructure("hello_dos", runmode, structure, pseudos, scf_kppa, nscf_nband,

@@ -1,4 +1,6 @@
 """Tests for symmetries module"""
+from __future__ import print_function, division
+
 import numpy as np
 import abipy.data as data
 
@@ -203,3 +205,8 @@ class TestSymmetries(AbipyTest):
 #  1, -1, 0,
 #  1, 0, -1,
 #  1, 0, 0 ;
+
+
+if __name__ == "__main__": 
+    import unittest
+    unittest.main()

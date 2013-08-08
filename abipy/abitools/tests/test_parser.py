@@ -1,7 +1,8 @@
-"""Test suite for abipy.parser.parser."""
-import os
+"""Test suite for abipy.abitools.parser."""
+from __future__ import print_function, division
 
 import unittest
+import os
 
 from abipy.core.testing import *
 from abipy.abitools import *
@@ -12,7 +13,7 @@ TEST_DATA_PATH = os.path.join(os.path.dirname(__file__), 'data')
 
 class TestParser(AbipyTest):
 
-    @unittest.skipIf(not _parser_ok, "Bindings for the ABINIT parser are not available")
+    @unittest.skipIf(not _parser_ok, "Python bindings for the ABINIT parser are not available")
     def test_base(self):
         filename = pjoin(TEST_DATA_PATH, "t66.in")
 
@@ -38,3 +39,6 @@ class TestParser(AbipyTest):
     #    #print "Filename = ",fname
     #    dtset = abipy.parser.Datasets(fname)
     #    print("dtset(acell_orig) = ",dtset.dtsets[1]["acell_orig"])
+
+if __name__ == "__main__":
+    unittest.main()

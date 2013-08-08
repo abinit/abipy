@@ -46,3 +46,7 @@ class TestPWWave(AbipyTest):
                 int_r = mesh.integrate(fr)
                 int_g = fg[...,0,0,0]
                 self.assert_almost_equal(int_r, int_g)
+
+if __name__ == "__main__":
+   import unittest
+   unittest.main()

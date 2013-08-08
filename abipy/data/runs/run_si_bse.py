@@ -12,6 +12,7 @@ from pymatgen.io.abinitio.calculations import bse_with_mdf
 
 
 def main():
+    return 0
     structure = AbiStructure.asabistructure(data.cif_file("si.cif"))
 
     pseudos = PseudoTable(data.pseudos("14si.pspnc"))

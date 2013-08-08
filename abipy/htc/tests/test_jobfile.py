@@ -1,4 +1,6 @@
 """Tests for htc.JobFile."""
+from __future__ import print_function, division
+
 import warnings
 
 from abipy.htc import *
@@ -156,4 +158,9 @@ class TestJobFileCSH(AbipyFileTest):
         self.assertContains("""
         ($MPIRUN $EXECUTABLE < $INPUT > $LOG) >& $STDERR
         """)
+
+
+if __name__ == "__main__":
+    import unittest
+    unittest.main()
 

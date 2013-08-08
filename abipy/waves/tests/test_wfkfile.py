@@ -45,3 +45,7 @@ class TestWFKFile(AbipyTest):
             #  if abs(wave.ug[0,idx] - same_ug[0,idx]) > 0.001:
             #    print idx, g
 
+
+if __name__ == "__main__":
+   import unittest
+   unittest.main()

@@ -1,4 +1,6 @@
 """Tests for electrons.bse module"""
+from __future__ import print_function, division
+
 import abipy.data as data
 
 from abipy.electrons.bse import *

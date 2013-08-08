@@ -74,3 +74,8 @@ class TestMesh3D(AbipyTest):
     #    xx = mesh_points + shift
     #    same_fr = mesh.trilinear_interp(fr, xx)
     #    self.assert_almost_equal(fr, same_fr)
+
+
+if __name__ == "__main__": 
+    import unittest
+    unittest.main()

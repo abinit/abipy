@@ -46,3 +46,8 @@ class TestTools(AbipyTest):
             self.assertTrue(np.all(view[...,0] == view[...,-1]))
             self.assertTrue(np.all(view[...,0,0] == view[...,-1,-1]))
             self.assertTrue(np.all(view[...,0,0,0] == view[...,-1,-1,-1]))
+
+
+if __name__ == "__main__":
+   import unittest
+   unittest.main()

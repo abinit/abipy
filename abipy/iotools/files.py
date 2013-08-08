@@ -187,8 +187,6 @@ class Has_PhononBands(object):
         return self.phbands.plot(**kwargs)
 
 
-
-
 class NcDumper(object):
     """Wrapper object for the ncdump tool."""
 
