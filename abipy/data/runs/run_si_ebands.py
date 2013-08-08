@@ -11,7 +11,36 @@ from pymatgen.io.abinitio.pseudos import PseudoTable
 from pymatgen.io.abinitio.launcher import SimpleResourceManager
 from pymatgen.io.abinitio.calculations import bandstructure
 
-def main(workdir=None, dry_run=False):
+#class TestResults(object):
+#    def __init__(self):
+
+def find_ncdata(top):
+    """
+    Find all netcdf files starting from the top-level directory top
+
+    Returns:
+        dictionary with mapping: basename --> absolute path.
+    """
+    ncdata = {}
+    for dirpath, dirnames, filenames in os.walk(top):
+        for basename in filenames:
+            apath = os.path.join(dirpath, basename)
+            if basename.endswith(".nc"):
+                assert basename not in ncdata
+                ncdata[basename] = apath 
+
+    return ncdata
+
+
+def abidiff(ref_path, new_path):
+    with open(ref_path, "r") as ref, open(new_path,"r") as new:
+        ref_lines = ref.readlines()
+        new_lines = new.readlines()
+        return new_path
+        #return ref_lines != new_lines
+
+
+def main(dry_run=False):
     structure = AbiStructure.asabistructure(data.cif_file("si.cif"))
 
     pseudos = PseudoTable(data.pseudos("14si.pspnc"))
@@ -30,8 +59,11 @@ def main(workdir=None, dry_run=False):
         istwfk="*1",
     )
 
-    if workdir is None:
-        workdir = os.path.basename(__file__).replace(".py","")
+    refdir = "data_" + os.path.basename(__file__).replace(".py","")
+    workdir = "tmp_" + refdir
+
+    refdir = os.path.join(os.path.dirname(__file__), refdir)
+    workdir = os.path.join(os.path.dirname(__file__), workdir)
 
     work = bandstructure(workdir, runmode, structure, pseudos, scf_kppa, nscf_nband, ndivsm, 
                          spin_mode="unpolarized", smearing=None, **extra_abivars)
@@ -39,31 +71,37 @@ def main(workdir=None, dry_run=False):
     retcodes = SimpleResourceManager(work, max_ncpus, sleep_time=5).run()
     retcode = max(retcodes)
 
+    if retcode !=0:
+        return retcode
+
+    # Remove all files except those matching these regular expression.
     work[0].rename("out_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
     work[1].rename("out_WFK_0-etsf.nc", "si_nscf_WFK-etsf.nc")
 
+    work.rmtree(exclude_wildcard="*.abin|*_WFK*")
+    work.rm_indatadir()
+    work.rm_tmpdatadir()
 
-    #work.rmtree(keep_top=True)
+    if not os.path.exists(refdir):
+        work.move(refdir)
 
-    return retcode 
+    else:
+        diffs = {}
+        for dirpath, dirnames, filenames in os.walk(refdir):
+            for fname in filenames:
+                ref_path = os.path.join(dirpath, fname)
+                new_path = os.path.join(workdir, os.path.relpath(ref_path, start=refdir))
+                diffs[ref_path] = abidiff(ref_path, new_path)
 
-    ref_dir = ?
-
-    diffs = []
-    for fname in os.listdir(ref_dir):
-        ref_path = os.path.join(ref_dir, fname)
-        new_path = os.path.join(workdir, fname)
-        #with open(ref_path, "r") as ref, with open(new_file,"r") as new:
-        diff = abidiff(ref_path, new_path)
-        if diff:
-            diffs[ref_path] = diff
-
+        print(diffs)
 
     #dos_kppa = 10
     #bands = bandstructure("hello_dos", runmode, structure, pseudos, scf_kppa, nscf_nband,
     #                      ndivsm, accuracy="normal", spin_mode="polarized",
     #                      smearing="fermi_dirac:0.1 eV", charge=0.0, scf_solver=None,
     #                      dos_kppa=dos_kppa)
+
+    return retcode 
 
 
 if __name__ == "__main__":

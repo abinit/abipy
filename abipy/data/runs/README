@@ -15,6 +15,6 @@ must satisfy some basic rules and conventions.
 1) The name of the script must mast the regular expression:
   run_[*].py
 
-2) The script must define a main method that accepts two arguments:
+2) The script must define a main method with the following signature:
 
-   def main(workdir=None, dry_run=False):
+   def main(dry_run=False):

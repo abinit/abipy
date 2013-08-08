@@ -19,3 +19,7 @@ class ETSF_Reader(ionc.ETSF_Reader):
     def read_ebands(self):
         from abipy.electrons.electrons import ElectronBands
         return ElectronBands.from_file(filepath)
+
+    #def read_kpoints(self):
+    #    from abipy.kpoints import kpoints_factory
+    #    return kpoints_factory(filepath)
