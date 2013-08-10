@@ -8,36 +8,17 @@ import abipy.data as data
 from pymatgen.io.abinitio.abiobjects import AbiStructure
 from pymatgen.io.abinitio.task import RunMode
 from pymatgen.io.abinitio.pseudos import PseudoTable
-from pymatgen.io.abinitio.launcher import SimpleResourceManager
 from pymatgen.io.abinitio.calculations import bandstructure
-
-#class TestResults(object):
-#    def __init__(self):
-
-def abidiff(ref_path, new_path):
-    if ref_path.endswith(".about"):
-        with open(ref_path, "r") as ref, open(new_path,"r") as new:
-            ref_lines = ref.readlines()
-            new_lines = new.readlines()
-            return ref_lines != new_lines
-            #return new_path
-    else:
-        return "no comparison for file %s" % ref_path
+from abipy.data.runs import RunManager
 
 
-def main(dry_run=False):
+def main():
     structure = AbiStructure.asabistructure(data.cif_file("si.cif"))
 
     pseudos = PseudoTable(data.pseudos("14si.pspnc"))
     runmode = RunMode.sequential()
 
-    base = os.path.basename(__file__).replace(".py","").replace("run_","")
-
-    refdir = "data_" + base
-    workdir = "tmp_" + base
-
-    refdir = os.path.join(os.path.dirname(__file__), refdir)
-    workdir = os.path.join(os.path.dirname(__file__), workdir)
+    manager = RunManager()
 
     scf_kppa = 40
     nscf_nband = 6
@@ -58,13 +39,12 @@ def main(dry_run=False):
         istwfk="*1",
     )
 
-    work = bandstructure(workdir, runmode, structure, pseudos, scf_kppa, nscf_nband, ndivsm, 
+    work = bandstructure(manager.workdir, runmode, structure, pseudos, scf_kppa, nscf_nband, ndivsm, 
                          spin_mode="unpolarized", smearing=None, **extra_abivars)
 
-    retcodes = SimpleResourceManager(work, max_ncpus=1, sleep_time=5).run()
-    retcode = max(retcodes)
+    manager.set_workflow_and_run(work)
 
-    if retcode !=0:
+    if manager.retcode != 0:
         return retcode
 
     # Remove all files except those matching these regular expression.
@@ -76,21 +56,8 @@ def main(dry_run=False):
     work[1].rename("out_GSR.nc", "si_nscf_GSR.nc")
 
     work.rmtree(exclude_wildcard="*.abin|*.about|*_WFK*|*_GSR.nc|*DEN-etsf.nc")
-    work.rm_indatadir()
-    work.rm_tmpdatadir()
 
-    if not os.path.exists(refdir):
-        work.move(refdir)
-
-    else:
-        diffs = {}
-        for dirpath, dirnames, filenames in os.walk(refdir):
-            for fname in filenames:
-                ref_path = os.path.join(dirpath, fname)
-                new_path = os.path.join(workdir, os.path.relpath(ref_path, start=refdir))
-                diffs[ref_path] = abidiff(ref_path, new_path)
-
-        print(diffs)
+    manager.finalize()
 
     #dos_kppa = 10
     #bands = bandstructure("hello_dos", runmode, structure, pseudos, scf_kppa, nscf_nband,
@@ -98,7 +65,7 @@ def main(dry_run=False):
     #                      smearing="fermi_dirac:0.1 eV", charge=0.0, scf_solver=None,
     #                      dos_kppa=dos_kppa)
 
-    return retcode 
+    return manager.retcode 
 
 
 if __name__ == "__main__":

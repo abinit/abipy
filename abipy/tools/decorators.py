@@ -12,14 +12,17 @@ from pymatgen.util.decorators import *
 
 def benchmark(func):
     """
-    A decorator that prints the time a function takes to execute.
+    A decorator that computes the time a function takes to execute 
+    and stores it in the __etime attribute.
     """
     import time
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         t = time.clock()
         res = func(*args, **kwargs)
-        print(func.__name__, time.clock()-t)
+        etime = time.clock()-t
+        print(func.__name__, etime)
+        func.__etime = etime
         return res
     return wrapper
 

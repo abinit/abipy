@@ -7,8 +7,8 @@ import abipy.data as data
 from pymatgen.io.abinitio.abiobjects import AbiStructure
 from pymatgen.io.abinitio.task import RunMode
 from pymatgen.io.abinitio.pseudos import PseudoTable
-from pymatgen.io.abinitio.launcher import SimpleResourceManager
 from pymatgen.io.abinitio.calculations import bse_with_mdf
+from abipy.data.runs import RunManager
 
 
 def main():
@@ -17,6 +17,8 @@ def main():
 
     pseudos = PseudoTable(data.pseudos("14si.pspnc"))
     runmode = RunMode.sequential()
+
+    manager = RunManager()
 
     kppa = scf_kppa = 1
     nscf_nband = 6
@@ -34,14 +36,31 @@ def main():
     )
 
 
-    bse = bse_with_mdf("hello_bse", runmode, structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,
+    work = bse_with_mdf(manager.workdir, runmode, structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,
                        ecuteps, bs_loband, soenergy, mdf_epsinf,
                        accuracy="normal", spin_mode="unpolarized", smearing=None,
                        charge=0.0, scf_solver=None, **extra_abivars)
 
-    retcodes = SimpleResourceManager(g0w0, max_ncpus).run()
-    return max(retcodes)
+    manager.set_workflow_and_run(work)
 
+    if manager.retcode !=0:
+        return retcode
+
+    # Remove all files except those matching these regular expression.
+    #work[0].rename("out_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
+    #work[0].rename("out_DEN-etsf.nc", "si_DEN-etsf.nc")
+    #work[0].rename("out_GSR.nc", "si_scf_GSR.nc")
+
+    #work[1].rename("out_WFK_0-etsf.nc", "si_nscf_WFK-etsf.nc")
+    #work[1].rename("out_GSR.nc", "si_nscf_GSR.nc")
+
+    #work[3].rename("out_SIGRES.nc", "si_g0w0ppm_SIGRES.nc")
+
+    #work.rmtree(exclude_wildcard="*.abin|*.about|*_SIGRES.nc")
+
+    manager.finalize()
+
+    return manager.retcode 
 
 if __name__ == "__main__":
     sys.exit(main())
