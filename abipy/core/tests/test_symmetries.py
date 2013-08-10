@@ -15,6 +15,9 @@ class TestSymmetries(AbipyTest):
         """Test silicon space group."""
         structure = Structure.from_file(data.ref_file("si_nscf_WFK-etsf.nc"))
 
+        self.assertTrue(structure.has_spacegroup)
+        self.assertTrue(structure.is_symmorphic)
+
         spgrp = structure.spacegroup
         print(spgrp)
 
@@ -47,18 +50,19 @@ class TestSymmetries(AbipyTest):
 
         ucell_coords = np.reshape([site.frac_coords for site in structure], (len(structure), 3))
 
+        err_msg = ""
         for site in structure:
             for symop in spgrp:
                 rot_coords = symop.rotate_r(site.frac_coords, in_ucell=True)
 
-                found = False
                 for atom_coords in ucell_coords:
                     #print (atom_coords - rot_coords)
                     if np.allclose(atom_coords,  rot_coords):
-                        found = True
                         break
+                else:
+                    err_msg += "Cannot find symmetrical image of %s\n" % str(rot_coords)
 
-                self.assertTrue(found)
+                self.assertFalse(err_msg)
 
 # reduced_symmetry_matrices =
 #  1, 0, 0,

@@ -50,9 +50,14 @@ class Structure(pymatgen.Structure):
         self._spacegroup = spacegroup
 
     @property
+    def has_spacegroup(self):
+        """True is self contains info on the spacegroup."""
+        return self.spacegroup is not None
+
+    @property
     def is_symmorphic(self):
         """True if at least one fractional translation is non-zero."""
-        return self.spacegroup.issymmorphic
+        return self.spacegroup.is_symmorphic
 
     @property
     def fm_symmops(self):
@@ -72,10 +77,31 @@ class Structure(pymatgen.Structure):
         """
         try:
             return self._hsym_kpath
+
         except AttributeError:
             from pymatgen.symmetry.bandstructure import HighSymmKpath
             self._hsym_kpath = HighSymmKpath(self)
             return self._hsym_kpath
+
+    @property
+    def hsym_kpoints(self):
+        """`KpointList` object with the high-symmetry K-points."""
+        try:
+            return self._hsym_kpoints
+
+        except AttributeError:
+            # Get mapping name --> frac_coords for the special k-points in the database.
+            name2frac_coords = self.hsym_kpath.kpath["kpoints"]
+
+            frac_coords, names = [], []
+            for (name, fc) in name2frac_coords.items():
+                frac_coords.append(fc)
+                names.append(name)
+
+            # Build KpointList instance.
+            from .kpoints import KpointList
+            self._hsym_kpoints = KpointList(self.reciprocal_lattice, frac_coords, weights=None, names=names) 
+            return self._hsym_kpoints
 
     @property
     def hsym_stars(self):
@@ -87,17 +113,8 @@ class Structure(pymatgen.Structure):
             return self._hsym_stars
 
         except AttributeError:
-            # Get mapping name --> frac_coords for the special k-points in the database.
-            name2frac_coords = self.hsym_kpath.kpath["kpoints"]
-
-            # Build Kpoint instances.
-            from .kpoints import Kpoint
-            hsym_kpoints = [Kpoint(frac_coords, self.reciprocal_lattice, weight=None, name=name) 
-                for (name, frac_coords) in name2frac_coords.items()]
-
             # Construct the stars.
-            self._hsym_stars = [kpoint.compute_star(self.fm_symmops) for kpoint in hsym_kpoints]
-
+            self._hsym_stars = [kpoint.compute_star(self.fm_symmops) for kpoint in self.hsym_kpoints]
             return self._hsym_stars
 
     def findname_in_hsym_stars(self, kpoint):
@@ -108,11 +125,21 @@ class Structure(pymatgen.Structure):
         else:
             return None
 
-    def show_bz(self):
+    def show_bz(self, **kwargs):
         """
         Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
+
+        Returns:
+            `matplotlib` figure.
+
+        ================  ==============================================================
+        kwargs            Meaning
+        ================  ==============================================================
+        show              True to show the figure (Default).
+        savefig           'abc.png' or 'abc.eps'* to save the figure to a file.
+        ================  ==============================================================
         """
-        return self.hsym_kpath.get_kpath_plot()
+        return self.hsym_kpath.get_kpath_plot(**kwargs)
 
     def export(self, filename):
         """

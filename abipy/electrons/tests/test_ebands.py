@@ -11,7 +11,7 @@ class EbandsReaderTest(AbipyTest):
 
     def test_reader(self):
         """Test Ebands_Reader."""
-        filepath = data.ref_file("si_WFK-etsf.nc")
+        filepath = data.ref_file("si_scf_WFK-etsf.nc")
 
         with Ebands_Reader(filepath) as r:
             kpoints = r.read_kpoints()
@@ -31,22 +31,28 @@ class ElectronBandsTest(AbipyTest):
 
     def setUp(self):
         assert data.WFK_NCFILES
+        assert data.GSR_NCFILES
 
-    def test_ncread_ebands(self):
-        """Read ElectronBands from WFK data files"""
+    def test_read_ebands_from_WFK(self):
+        """Read ElectronBands from WFK files."""
         for filename in data.WFK_NCFILES:
-            bands = ElectronBands.from_file(filename)
+            ebands = ElectronBands.from_file(filename)
+
+    def test_read_ebands_from_GSR(self):
+        """Read ElectronBands from GSR files."""
+        for filename in data.GSR_NCFILES:
+            ebands = ElectronBands.from_file(filename)
 
     def test_dos(self):
         """Test DOS methods."""
-        gs_bands = ElectronBands.from_file(data.ref_file("si_WFK-etsf.nc"))
+        gs_bands = ElectronBands.from_file(data.ref_file("si_scf_WFK-etsf.nc"))
         dos = gs_bands.get_edos()
         mu = dos.find_mu(8, atol=1.e-4)
         self.assert_almost_equal(mu, 6.1443350264585996, decimal=4)
 
     def test_jdos(self):
         """Test JDOS methods."""
-        bands = ElectronBands.from_file(data.ref_file("si_WFK-etsf.nc"))
+        bands = ElectronBands.from_file(data.ref_file("si_scf_WFK-etsf.nc"))
 
         spin = 0
         conduction = [4,]

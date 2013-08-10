@@ -9,10 +9,16 @@ from collections import OrderedDict
 class KpointSymmetriesFrame(awx.Frame):
 
     def __init__(self, parent, structure, kpoints, **kwargs):
+        """
+        Args:
+            parent:
+                Parent window.
+            structure:
+                `Structure` object.
+            kpoints:
+                `KpointList` object. 
+        """
         super(KpointSymmetriesFrame, self).__init__(parent, **kwargs)
-
-        #kpoint_label = wx.StaticText(self, -1, "Kpoint:", wx.DefaultPosition, wx.DefaultSize, 0)
-        #kpoint_label.Wrap(-1)
 
         self.kpoint_panel = KpointSymmetriesPanel(self, structure, kpoints)
 
@@ -24,6 +30,15 @@ class KpointSymmetriesFrame(awx.Frame):
 class KpointSymmetriesPanel(awx.Panel):
 
     def __init__(self, parent, structure, kpoints, **kwargs):
+        """
+        Args:
+            parent:
+                Parent window.
+            structure:
+                `Structure` object.
+            kpoints:
+                `KpointList` object. 
+        """
         super(KpointSymmetriesPanel, self).__init__(parent, -1, **kwargs)
 
         self.kpoints_listctrl = awx.KpointsListCtrl(parent, kpoints)
@@ -40,17 +55,19 @@ class KpointSymmetriesPanel(awx.Panel):
         popmenu.set_cb_kwargs(structure=self.structure, kpoint=self.kpoints_listctrl.GetKpoint())
 
         self.PopupMenu(popmenu, event.GetPoint())
-
         popmenu.Destroy()
-        
+
+
+##################
+### Callbacks ###
+##################
+
 def showStarFrame(parent, *args, **kwargs):
     structure, kpoint = kwargs.pop("structure"), kwargs.pop("kpoint")
     #pos = parent.GetPosition()
 
     star = kpoint.compute_star(structure.fm_symmops)
-    star_frame = KpointSymmetriesFrame(parent, structure, star, title="Star of %s" % str(kpoint))
-
-    star_frame.Show()
+    KpointSymmetriesFrame(parent, structure, star, title="Star of %s" % str(kpoint)).Show()
 
 
 class KpointPopupMenu(wx.Menu):
@@ -60,7 +77,7 @@ class KpointPopupMenu(wx.Menu):
     parent is the wx Window that will become the parent of the new frame created by the callback.
     """
     MENU_TITLES = OrderedDict([
-        ("Star", showStarFrame),
+        ("Show Star", showStarFrame),
         #("Little Group", showLittleGroupFrame),
         #("Irreps", showIrrepsFrame),
     ])
@@ -103,6 +120,7 @@ class KpointPopupMenu(wx.Menu):
 
     @property
     def cb_args(self):
+        """Callback positional arguments."""
         try: 
             return self._cb_args
         except AttributeError:
@@ -114,12 +132,14 @@ class KpointPopupMenu(wx.Menu):
                                                   
     @property
     def cb_kwargs(self):
+        """Callback keyword arguments."""
         try: 
             return self._cb_kwargs
         except AttributeError:
             return {}
 
     def OnMenuSelection(self, event):
+        """Call the callback selected in the popupmenu."""
         title = self.menu_title_by_id[event.GetId()]
         callback = self.MENU_TITLES[title]
 

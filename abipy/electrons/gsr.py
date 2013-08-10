@@ -26,7 +26,7 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
             # Initialize the band energies.
             self._ebands = r.read_ebands()
 
-            #self.kpoints = r.read_kpoints()
+            self.kpoints = r.read_kpoints()
 
     @classmethod
     def from_file(cls, filepath):
@@ -35,12 +35,12 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
     @property
     def structure(self):
-        """`Structure` object"""
+        """`Structure` object."""
         return self._structure
                                      
     @property
     def ebands(self):
-        """`ElectronBands` object"""
+        """`ElectronBands` object."""
         return self._ebands
 
 
@@ -53,9 +53,6 @@ class GSR_Reader(ETSF_Reader):
     def __init__(self, filepath):
         """Initialize the object from a filepath."""
         super(GSR_Reader, self).__init__(filepath)
-
-        #structure = self.read_structure()
-        #self.kibz = kpoints_factory(path)
 
     #def read_forces(self):
 
@@ -127,6 +124,7 @@ class GSR_Plotter(collections.Iterable):
         """The name of the parameter whose value is checked for convergence."""
         try: 
             return self._param_name
+
         except AttributeError:
             self.set_param_name(param_name=None)
             return self.param_name

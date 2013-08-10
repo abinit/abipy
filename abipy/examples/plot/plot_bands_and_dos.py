@@ -15,7 +15,7 @@ nscf_ebands = nscf_wfk.ebands
 
 # Open the wavefunction file computed with a homogeneous sampling of the BZ 
 # and extract the band structure on the k-mesh.
-gs_filename = data.ref_file("si_WFK-etsf.nc")
+gs_filename = data.ref_file("si_scf_WFK-etsf.nc")
 
 gs_wfk = WFK_File(gs_filename)
 

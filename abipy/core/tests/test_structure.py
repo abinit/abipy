@@ -14,16 +14,18 @@ class TestStructure(AbipyTest):
         """Initialize Structure from Netcdf data files"""
         ncfiles = data.ALL_NCFILES
         assert ncfiles
+
         for filename in ncfiles:
-            print("Reading file %s" % filename)
+            print("About to read file %s" % filename)
             structure = Structure.from_file(filename)
             print(structure)
 
-            #structure.visualize(None)
-            #xcart = structure.get_xcart()
-            #normA = structure.calc_norm(structure.xred, space="r")
-            #normB = np.sqrt( [np.dot(x,x) for x in xcart] )
-            #self.assert_almost_equal(normA, normB)
+            self.assertTrue(structure.has_spacegroup)
+
+            # Call pymatgen machinery to get the high-symmetry stars.
+            print(structure.hsym_stars)
+
+            structure.export(".xsf")
 
 
 if __name__ == "__main__":

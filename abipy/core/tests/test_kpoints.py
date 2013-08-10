@@ -4,24 +4,26 @@ from __future__ import print_function, division
 
 import itertools
 import numpy as np
+import abipy.data as data
 
 from pymatgen.core.lattice import Lattice
 from abipy.core.kpoints import *
 from abipy.core.kpoints import KpointList
 from abipy.core.testing import *
 
+
 class TestWrapWS(AbipyTest):
 
     def test_wrap_to_ws(self):
         """Testing wrap_to_ws"""
-        self.assertAlmostEqual(wrap_to_ws( 0.5), 0.5)
-        self.assertAlmostEqual(wrap_to_ws(-0.5), 0.5)
-        self.assertAlmostEqual(wrap_to_ws( 0.2), 0.2)
-        self.assertAlmostEqual(wrap_to_ws(-0.3),-0.3)
-        self.assertAlmostEqual(wrap_to_ws( 0.7),-0.3)
-        self.assertAlmostEqual(wrap_to_ws( 2.3), 0.3)
-        self.assertAlmostEqual(wrap_to_ws(-1.2),-0.2)
-        #self.assertAlmostEqual( wrap_to_ws([0.5,2.3,-1.2]), np.array([0.5,0.3,-0.2]) )
+        self.assert_almost_equal(wrap_to_ws( 0.5), 0.5)
+        self.assert_almost_equal(wrap_to_ws(-0.5), 0.5)
+        self.assert_almost_equal(wrap_to_ws( 0.2), 0.2)
+        self.assert_almost_equal(wrap_to_ws(-0.3),-0.3)
+        self.assert_almost_equal(wrap_to_ws( 0.7),-0.3)
+        self.assert_almost_equal(wrap_to_ws( 2.3), 0.3)
+        self.assert_almost_equal(wrap_to_ws(-1.2),-0.2)
+        self.assert_almost_equal(wrap_to_ws(np.array([0.5,2.3,-1.2])), np.array([0.5,0.3,-0.2]))
 
 
 class TestWrapBZ(AbipyTest):
@@ -128,6 +130,22 @@ class TestKpointList(AbipyTest):
         self.assertTrue(add_klist.count([0,0,0]) == 1)
         self.assertTrue(len(add_klist) == 4)
         self.assertTrue(add_klist == add_klist.remove_duplicated())
+
+class TestKpointsFactory(AbipyTest):
+
+    def test_reading_from_WFK(self):
+        """Test the reading of Kpoints from WFK netcdf files."""
+        for filepath in data.WFK_NCFILES:
+            print("About to read %s" % filepath)
+            kpoints_factory(filepath)
+
+    def test_reading_from_GSR(self):
+        """Test the reading of Kpoints from GSR netcdf files."""
+        for filepath in data.GSR_NCFILES:
+            print("About to read %s" % filepath)
+            kpoints_factory(filepath)
+
+
 
 
 if __name__ == "__main__":

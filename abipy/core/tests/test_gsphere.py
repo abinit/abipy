@@ -13,7 +13,6 @@ class TestGSphere(AbipyTest):
 
     def test_base(self):
         """Basic G-sphere methods"""
-
         ecut = 2
         gprimd = np.array([1.,0,0, 0,1,0, 0,0,1])
         gprimd.shape = (3,3)

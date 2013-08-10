@@ -10,7 +10,7 @@ import numpy as np
 from abipy.tools import find_le, find_ge
 from abipy.core.constants import Ha_eV
 from abipy.core.func1d import Function1D
-from abipy.core.kpoints import kpoints_factory, KpointList
+from abipy.core.kpoints import KpointList
 from abipy.tools import pprint_table, AttrDict
 from abipy.iotools import AbinitNcFile, ETSF_Reader, Has_Structure, Has_ElectronBands
 from abipy.electrons.ebands import ElectronBands
@@ -1153,7 +1153,7 @@ class SIGRES_Reader(ETSF_Reader):
         self.usepawu = self.read_value("usepawu")
 
         # 1) The K-points of the homogeneous mesh.
-        self.ibz = kpoints_factory(self)
+        self.ibz = self.read_kpoints()
 
         # 2) The K-points where QPState corrections have been calculated.
         gwred_coords = self.read_redc_gwkpoints()

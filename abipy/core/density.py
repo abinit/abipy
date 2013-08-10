@@ -24,15 +24,15 @@ class Density(DFTScalarField):
     #]
 
     @classmethod
-    def from_file(cls, filename):
+    def from_file(cls, filepath):
         """
         Read density from an external netCDF file.
 
         Args:
-            filename:
+            filepath:
                 string or file object.
         """
-        with ETSF_Reader(filename) as r:
+        with ETSF_Reader(filepath) as r:
 
             structure = r.read_structure()
             cplex_den = r.read_dimvalue("real_or_complex_density")

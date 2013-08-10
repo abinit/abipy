@@ -13,13 +13,13 @@ class TestWFKFile(AbipyTest):
         """Read WFK_File and waves from NC example data files."""
         assert data.WFK_NCFILES
 
-        for filename in data.WFK_NCFILES:
-            wff = WFK_File(filename)
-            print(wff)
+        for path in data.WFK_NCFILES:
+            wfk = WFK_File(path)
+            print(wfk)
 
             spin, kpoint, band = (0, 0, 0)
-            structure = wff.structure
-            wave = wff.get_wave(spin, kpoint, band)
+            structure = wfk.structure
+            wave = wfk.get_wave(spin, kpoint, band)
 
             # Test the norm
             for space in ["g", "r"]:
@@ -37,7 +37,6 @@ class TestWFKFile(AbipyTest):
             same_ug = wave.gsphere.fromfftmesh(wave.mesh, ug_mesh)
             self.assert_almost_equal(wave.ug, same_ug)
 
-            structure.export(".xsf")
             wave.export_ur2(".xsf", structure)
 
             #print wave.ug.shape, same_ug.shape

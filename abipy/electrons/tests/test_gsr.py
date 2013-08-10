@@ -35,7 +35,6 @@ class GSR_Reader_TestCase(AbipyTest):
         }
 
         with GSR_Reader(path) as r:
-
             self.assertEqual(r.ngroups, 1)
 
             print(r.read_varnames())

@@ -21,7 +21,7 @@ ks_bands = WFK_File(data.ref_file("si_nscf_WFK-etsf.nc")).ebands
 
 # Read the KS band energies computed on the Monkhorst-Pack (MP) mesh
 # and compute the DOS with the Gaussian method
-ks_mpbands = WFK_File(data.ref_file("si_WFK-etsf.nc")).ebands
+ks_mpbands = WFK_File(data.ref_file("si_scf_WFK-etsf.nc")).ebands
 ks_dos = ks_mpbands.get_edos()
 
 # Apply the scissors operator first on the KS band structure 

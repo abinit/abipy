@@ -47,7 +47,6 @@ class TestMesh3D(AbipyTest):
                 int_g = fg[...,0,0,0]
                 self.assert_almost_equal(int_r, int_g)
 
-
     #def test_trilinear_interp(self):
     #    return
     #    rprimd = np.array([1.,0,0, 0,1,0, 0,0,1])

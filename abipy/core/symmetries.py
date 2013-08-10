@@ -176,10 +176,20 @@ class SymmOp(object):
                       )
 
     def __hash__(self):
+        """
+        Symmop can be used as keys in dictionaries.
+        Note that the hash is computed from integer values. 
+        """
         return 8 * self.trace + 4 * self.det + 2 * self.time_sign
 
     @property
+    def is_symmorphic(self):
+        """True if the fractional translation is non-zero."""
+        return np.any(np.abs(self.tau) > 0.0)
+
+    @property
     def is_identity(self):
+        """True is self is the identity operator."""
         return (np.all(self.rot_r == np.eye(3, dtype=np.int)) and
                 isinteger(self.tau, atol=self._ATOL_TAU) and
                 self.time_sign == 1 and
@@ -187,9 +197,7 @@ class SymmOp(object):
                )
 
     def inverse(self):
-        """
-        Returns inverse of transformation i.e. {R^{-1}, -R^{-1} tau}.
-        """
+        """Returns inverse of transformation i.e. {R^{-1}, -R^{-1} tau}."""
         return SymmOp(rot_r=self.rotm1_r,
                       tau=-np.dot(self.rotm1_r, self.tau),
                       time_sign=-self.time_sign,
@@ -258,7 +266,6 @@ class SymmOp(object):
     #        bool, Sk - k
     #    """
     #    sk = self.rotate_k(frac_coords, wraps_tows=False)
-
     #    return issamek(sk, frac_coords), sk - frac_coords
 
     def rotate_r(self, frac_coords, in_ucell=False):
@@ -369,9 +376,22 @@ class SymmOpList(collections.Sequence):
             return -1
 
     @property
+    def is_symmorphic(self):
+        """True if there's at least one operation with non-zero fractional translation."""
+        for symmop in self:
+            if symmop.is_symmorphic:
+                return True
+
+        return False
+
+    @property
     def has_timerev(self):
         """True if time-reversal symmetry is present."""
         return self._has_timerev
+        #for symmop in self:
+        #    if symmop.has_timerev:
+        #        return True
+        #return False
 
     @property
     def symrel(self):
@@ -457,7 +477,7 @@ class SymmOpList(collections.Sequence):
 
     def asdict(self):
         """
-        Returns a dictions where the keys are the symmetry operations and 
+        Returns a dictionary where the keys are the symmetry operations and 
         the values are the indices of the operations in the iterable.
         """
         d = {op: idx for (idx, op) in enumerate(self)}
@@ -486,14 +506,17 @@ class SymmOpList(collections.Sequence):
     #    """
     #    Given a set of nsym 3x3 operations which are supposed to form a group, 
     #    this routine constructs the multiplication table of the group.
-    #    mtab(nsym,nsym)=The index of the product S_i * S_j in the input set sym.
+    #    mtable[i,j] gives the index of the product S_i * S_j.
     #    """
+    #    mtable = np.empty((len(self), len(self)), dtype=np.int)
+    #
     #    d = self.asdict()
-    #    for op1 in self:
-    #        for op2 in self:
+    #    for (i, op1) in enumerate(self):
+    #        for (j, op2) in enumerate(self):
     #            op12 = op1 * op2 
-    #            table = d[op12]
-    #    return table
+    #            # Save the index of op12 in self
+    #            mtable[i,j] = d[op12]
+    #    return mtable
 
     #@property
     #def classes(self):
@@ -578,17 +601,36 @@ class SpaceGroup(SymmOpList):
             self.spgid, self.num_spatial_symmetries, self.has_timerev)]
         app = lines.append
 
-        #app(["rot_r  rot_g"]
         for op in self.symmops(time_sign=+1):
             app(str(op))
 
         return "\n".join(lines)
 
+    #def little_group(self, kpoint):
+    #   """
+    #   Find the little group of the kpoint
+    
+    #   Returns:
+    #       ltg_symmops, g0vecs, indices
 
-#class LittleGroup(SymmOpList):
+    #   ltg_symmops is a tuple with the symmetry operations that preserve the k-point i.e. Sk = k + G0
+    #   g0vecs is the tuple for G0 vectors for each operation in ltg_symmops
+    #   indices gives the index of the little group operation in the initial spacegroup.
+    #   """
+    #    indices, g0vecs = []
+    #    for idx, symmop in enumerate(self.afm_symmops):
+    #        issame, g0 = symmop.preserve(kpoint.frac_coords)
+    #        if issame:
+    #            indices.append(idx)
+    #            g0vecs.append(g0)
+
+    #    return tuple([self[i] for i in indices]), tuple(g0vecs), tuple(indices)
+
 
 class Irrep(object):
     """
+    This class represents an irreducible representation.
+
     .. attributes:
 
         name: 

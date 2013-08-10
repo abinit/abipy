@@ -16,22 +16,24 @@ class TestDensity(AbipyTest):
         """Read density from NC example data files"""
         assert data.DEN_NCFILES
 
-        for filename in data.DEN_NCFILES:
-            print("Reading file %s " % filename)
+        for path in data.DEN_NCFILES:
+            print("Reading DEN file %s " % path)
 
             # Read data directly from file.
-            with ETSF_Reader(filename) as r:
+            with ETSF_Reader(path) as r:
                 nelect_file = r.read_value("number_of_electrons")
 
             # Compute nelect from data.
-            den = Density.from_file(filename)
+            den = Density.from_file(path)
+            structure = den.structure
             print(den)
-            den.get_rhor_tot()
-            den.get_rhog_tot()
+            rhor_tot = den.get_rhor_tot()
+            rhog_tot = den.get_rhog_tot()
             nelect_calc = den.get_nelect().sum()
 
             # Diff between nelect computed and the one written on file.
             self.assert_almost_equal(nelect_calc, nelect_file)
+            self.assert_almost_equal(rhog_tot[0,0,0] * structure.volume, nelect_file)
 
             # Export data in xsf format.
             visu = den.export(".xsf")

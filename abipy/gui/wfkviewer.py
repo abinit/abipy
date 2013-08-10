@@ -224,12 +224,11 @@ class WfkViewerFrame(awx.Frame):
         """Calls the visualizer to visualize the specified wavefunction."""
         # To make the Gui responsive one can use the approach described in 
         # http://wiki.wxpython.org/LongRunningTasks
+
         #visualizer = self.GetVisualizer()
         self.statusbar.PushStatusText("Visualizing wavefunction (spin=%d, kpoint=%s, band=%d)" % (spin, kpoint, band))
         try:
             visu = self.wfk.export_ur2(".xsf", spin, kpoint, band)
-            #visu = self.wfk.visualize_ur2_with(spin, kpoint, bands, visualizer)
-            #visu()
 
             thread = awx.WorkerThread(self, target=visu)
             thread.start()
@@ -275,7 +274,7 @@ class WfkViewerApp(awx.App):
 def wxapp_wfkviewer(wfk_filename):
     app = WfkViewerApp()
     frame = WfkViewerFrame(None, filename=wfk_filename)
-    frame.Show()
     app.SetTopWindow(frame)
+    frame.Show()
     return app
 

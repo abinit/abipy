@@ -6,7 +6,7 @@ from abipy import *
 import abipy.data as data
 
 # Extract the bands computed with the SCF cycle on a Monkhorst-Pack mesh.
-wfk = WFK_File(data.ref_file("si_WFK-etsf.nc"))
+wfk = WFK_File(data.ref_file("si_scf_WFK-etsf.nc"))
 ebands = wfk.ebands
 
 # Select the valence and conduction bands to include in the JDOS

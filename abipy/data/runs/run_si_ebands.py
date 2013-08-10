@@ -14,30 +14,15 @@ from pymatgen.io.abinitio.calculations import bandstructure
 #class TestResults(object):
 #    def __init__(self):
 
-def find_ncdata(top):
-    """
-    Find all netcdf files starting from the top-level directory top
-
-    Returns:
-        dictionary with mapping: basename --> absolute path.
-    """
-    ncdata = {}
-    for dirpath, dirnames, filenames in os.walk(top):
-        for basename in filenames:
-            apath = os.path.join(dirpath, basename)
-            if basename.endswith(".nc"):
-                assert basename not in ncdata
-                ncdata[basename] = apath 
-
-    return ncdata
-
-
 def abidiff(ref_path, new_path):
-    with open(ref_path, "r") as ref, open(new_path,"r") as new:
-        ref_lines = ref.readlines()
-        new_lines = new.readlines()
-        return new_path
-        #return ref_lines != new_lines
+    if ref_path.endswith(".about"):
+        with open(ref_path, "r") as ref, open(new_path,"r") as new:
+            ref_lines = ref.readlines()
+            new_lines = new.readlines()
+            return ref_lines != new_lines
+            #return new_path
+    else:
+        return "no comparison for file %s" % ref_path
 
 
 def main(dry_run=False):
@@ -46,29 +31,37 @@ def main(dry_run=False):
     pseudos = PseudoTable(data.pseudos("14si.pspnc"))
     runmode = RunMode.sequential()
 
-    kppa = scf_kppa = 40
-    nscf_nband = 6
-    ndivsm = 5
-    dos_ngkpt = [4,4,4]
-    dos_shiftk = [0.1, 0.2, 0.3]
-    max_ncpus = 1
+    base = os.path.basename(__file__).replace(".py","").replace("run_","")
 
-    extra_abivars = dict(
-        ecut=12, 
-        accesswff=3, 
-        istwfk="*1",
-    )
-
-    refdir = "data_" + os.path.basename(__file__).replace(".py","")
-    workdir = "tmp_" + refdir
+    refdir = "data_" + base
+    workdir = "tmp_" + base
 
     refdir = os.path.join(os.path.dirname(__file__), refdir)
     workdir = os.path.join(os.path.dirname(__file__), workdir)
 
+    scf_kppa = 40
+    nscf_nband = 6
+    ndivsm = 5
+    #dos_ngkpt = [4,4,4]
+    #dos_shiftk = [0.1, 0.2, 0.3]
+
+    #klabels = {
+    #    (0.5, 0.0, 0.0) : "L",
+    #    (0.0, 0.0, 0.0) : "$\Gamma$",
+    #    (0.0, 0.5, 0.5) : "X",
+    #}
+
+    extra_abivars = dict(
+        ecut=6, 
+        timopt=-1,
+        accesswff=3, 
+        istwfk="*1",
+    )
+
     work = bandstructure(workdir, runmode, structure, pseudos, scf_kppa, nscf_nband, ndivsm, 
                          spin_mode="unpolarized", smearing=None, **extra_abivars)
 
-    retcodes = SimpleResourceManager(work, max_ncpus, sleep_time=5).run()
+    retcodes = SimpleResourceManager(work, max_ncpus=1, sleep_time=5).run()
     retcode = max(retcodes)
 
     if retcode !=0:
@@ -76,9 +69,13 @@ def main(dry_run=False):
 
     # Remove all files except those matching these regular expression.
     work[0].rename("out_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
-    work[1].rename("out_WFK_0-etsf.nc", "si_nscf_WFK-etsf.nc")
+    work[0].rename("out_DEN-etsf.nc", "si_DEN-etsf.nc")
+    work[0].rename("out_GSR.nc", "si_scf_GSR.nc")
 
-    work.rmtree(exclude_wildcard="*.abin|*_WFK*")
+    work[1].rename("out_WFK_0-etsf.nc", "si_nscf_WFK-etsf.nc")
+    work[1].rename("out_GSR.nc", "si_nscf_GSR.nc")
+
+    work.rmtree(exclude_wildcard="*.abin|*.about|*_WFK*|*_GSR.nc|*DEN-etsf.nc")
     work.rm_indatadir()
     work.rm_tmpdatadir()
 

@@ -8,63 +8,71 @@ from __future__ import print_function, division
 
 import os
 
-from os.path import join as pj, dirname, abspath
+from os.path import join as pj
 
 __all__ = [
 
 ]
 
-dirpath = dirname(__file__)
+dirpath = os.path.dirname(__file__)
 
-_CIF_DIRPATH = abspath( pj(dirname(__file__), "cifs") )
+_CIF_DIRPATH = os.path.abspath(pj(os.path.dirname(__file__), "cifs"))
 
-_PSEUDOS_DIRPATH = abspath( pj(dirname(__file__), "pseudos") )
-
-try:
-    _DATA_NCFILES = [pj(dirpath, f) for f in os.listdir(dirpath) if f.endswith(".nc")]
-except:
-    _DATA_NCFILES = []
-
-def ncfile(filename):
-    """Return the absolute path of file filename located in data. None if not found."""
-    for f in _DATA_NCFILES:
-        if os.path.basename(f) == filename:
-            return f
-
-    return None
-
-def ncfiles_with_ext(ext):
-    """Return a list with the absolute path of the files with extension ext."""
-    ncfiles = []
-    for filename in _DATA_NCFILES:
-        f = filename.rstrip(".nc").rstrip("-etsf")
-        if f.endswith("_"+ext):
-            ncfiles.append(filename)
-
-    return ncfiles
-
-def ref_file(filename):
-    """Returns the absolute path of filename in tests/data directory."""
-    return os.path.join(dirpath, filename)
-
+_PSEUDOS_DIRPATH = os.path.abspath(pj(os.path.dirname(__file__), "pseudos"))
 
 def cif_file(filename):
     """Returns the absolute path of the CIF file in tests/data/cifs."""
     return os.path.join(_CIF_DIRPATH, filename)
 
-def _pseudo(filename):
-    """Returns the absolute path of a pseudopotential file in tests/data/pseudos."""
-    return os.path.join(_PSEUDOS_DIRPATH, filename)
 
 def pseudos(*filenames):
     """Returns the absolute path of a pseudopotential file in tests/data/pseudos."""
-    return [_pseudo(f) for f in filenames]
+    return [os.path.join(_PSEUDOS_DIRPATH, f) for f in filenames]
 
-##########################################################################################
+
+def find_ncfiles(top):
+    """
+    Find all netcdf files starting from the top-level directory top.
+    Filenames must be unique.
+
+    Returns:
+        dictionary with mapping: basename --> absolute path.
+    """
+    ncfiles = {}
+    for dirpath, dirnames, filenames in os.walk(top):
+        for basename in filenames:
+            apath = os.path.join(dirpath, basename)
+            if basename.endswith(".nc"):
+                if basename in ncfiles:
+                    raise ValueError("Found duplicated basename %s" % basename)
+                ncfiles[basename] = apath 
+
+    return ncfiles
+
+_DATA_NCFILES = find_ncfiles(top=os.path.dirname(__file__))
+
+def ref_file(basename):
+    """Returns the absolute path of basename in tests/data directory."""
+    if basename in _DATA_NCFILES:
+        return _DATA_NCFILES[basename]
+    else:
+        return os.path.join(dirpath, basename)
+
+
+def ncfiles_with_ext(ext):
+    """Return a list with the absolute path of the files with extension ext."""
+    ncfiles = []
+    for basename, path in _DATA_NCFILES.items():
+        f = basename.rstrip(".nc").rstrip("-etsf")
+        if f.endswith("_"+ext):
+            ncfiles.append(path)
+
+    return ncfiles
 
 WFK_NCFILES = ncfiles_with_ext("WFK")
 
 DEN_NCFILES = ncfiles_with_ext("DEN")
 
-ALL_NCFILES = WFK_NCFILES + DEN_NCFILES
+GSR_NCFILES = ncfiles_with_ext("GSR")
 
+ALL_NCFILES = _DATA_NCFILES.values()

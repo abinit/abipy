@@ -410,9 +410,9 @@ class ElectronBands(object):
                 for band in self.nband_sk[spin,k]:
                     yield spin, k, band
 
-    def show_bz(self):
+    def show_bz(self, **kwargs):
         """Call `matplotlib` to show the Brillouin zone."""
-        return self.structure.show_bz()
+        return self.structure.show_bz(**kwargs)
 
     def copy(self):
         """Deep copy of self."""
@@ -1476,10 +1476,6 @@ class Ebands_Reader(ETSF_Reader):
     This object reads band structure data from a netcdf file written
     according to the ETSF-IO specifications.
     """
-    def read_kpoints(self):
-        """Factory function. Returns KpointList instance."""
-        return kpoints_factory(self)
-
     def read_kfrac_coords(self):
         """Returns a ndarray with the fractional coordinates of the k-points"""
         return self.read_value("reduced_coordinates_of_kpoints")
