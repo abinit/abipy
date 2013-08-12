@@ -165,6 +165,18 @@ class Has_ElectronBands(object):
     def ebands(self):
         """Returns the `ElectronBands` object."""
 
+    #@property
+    #def nsppol(self):
+    #    return self.ebands.nsppol
+
+    #@property
+    #def nspinor(self):
+    #    return self.ebands.nspinor
+
+    #@property
+    #def nspden(self):
+    #    return self.ebands.nspden
+
     def plot_ebands(self, **kwargs):
         """
         Plot the electron energy bands. See the :func:`ElectronBands.plot` for the signature.""
@@ -209,7 +221,6 @@ class NcDumper(object):
             return "Cannot find ncdump tool in PATH"
         else:
             from subprocess import check_output
-
             cmd = ["ncdump", filepath]
             return check_output(cmd)
 

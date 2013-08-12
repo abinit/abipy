@@ -661,8 +661,9 @@ class KSamplingInfo(AttrDict):
     #    "kptopt": OPTIONAL,
     #}
 
-    #def __init__(self, *args, **kwargs):
-    #    super(KSamplingInfo, self).__init__(*args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super(KSamplingInfo, self).__init__(*args, **kwargs)
+        print("ksampling",self)
     #    for k in self:
     #        if k not in self.KNOWN_KEYS:
     #            raise ValueError("Unknow key %s" % k)
@@ -819,11 +820,15 @@ class Kmesh(object):
 
 def returns_None_onfail(func):
     import functools
+    from numpy.ma import MaskedArray
 
     @functools.wraps(func)
     def wrapper(self):
         try:
-            return func(self)
+            value = func(self)
+            # This trick is needed because in many cases we define the netcdf variable
+            # but we don't write its value. 
+            return value if not isinstance(value, MaskedArray) else None
         except self.Error:
             return None
 
@@ -844,18 +849,18 @@ class KpointsReaderMixin(object):
 
         frac_coords = self.read_kfrac_coords()
         weights = self.read_kweights()
-        sampling = self.read_ksampling_info()
+        ksampling = self.read_ksampling_info()
 
-        if sampling.is_homogeneous:
+        if ksampling.is_homogeneous:
             # we have a homogeneous sampling of the BZ.
-            return IrredZone(structure.reciprocal_lattice, frac_coords, weights, sampling)
+            return IrredZone(structure.reciprocal_lattice, frac_coords, weights, ksampling)
 
-        elif sampling.is_path:
+        elif ksampling.is_path:
             # we have a path in the BZ.
             return Kpath(structure.reciprocal_lattice, frac_coords)
 
         else:
-            raise ValueError("Only path or sampling modes are supported!")
+            raise ValueError("Only homogeneous or path samplings are supported!")
 
     def read_ksampling_info(self):
         return KSamplingInfo(

@@ -4,7 +4,8 @@ from __future__ import print_function, division
 import collections
 import numpy as np
 
-from abipy.iotools import ETSF_Reader, AbinitNcFile, Has_Structure, Has_ElectronBands
+from abipy.iotools import AbinitNcFile, Has_Structure, Has_ElectronBands
+from .ebands import ElectronsReader
 
 __all__ = [
     "GSR_File",
@@ -20,13 +21,13 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         super(GSR_File, self).__init__(filepath)
 
         with GSR_Reader(filepath) as r:
-            # Initialize the  structure from file.
-            self._structure = r.read_structure()
-
-            # Initialize the band energies.
+            # Initialize the electron bands from file
             self._ebands = r.read_ebands()
+            #self._forces = r.read_forces()
+            #self._stress = r.read_stress()
 
-            self.kpoints = r.read_kpoints()
+            #self.structure.set_forces(self.forces)
+            #self.structure.set_stress(self.stress)
 
     @classmethod
     def from_file(cls, filepath):
@@ -36,7 +37,12 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     @property
     def structure(self):
         """`Structure` object."""
-        return self._structure
+        return self.ebands._structure
+
+    @property
+    def kpoints(self):
+        """Iterable with the Kpoints."""
+        return self.ebands.kpoints
                                      
     @property
     def ebands(self):
@@ -44,15 +50,15 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         return self._ebands
 
 
-class GSR_Reader(ETSF_Reader):
+class GSR_Reader(ElectronsReader):
     """
     This object reads the results stored in the _GSR (Ground-State Results)
     file produced by ABINIT. It provides helper function to access the most
     important quantities.
     """
-    def __init__(self, filepath):
-        """Initialize the object from a filepath."""
-        super(GSR_Reader, self).__init__(filepath)
+    #def __init__(self, filepath):
+    #    """Initialize the object from a filepath."""
+    #    super(GSR_Reader, self).__init__(filepath)
 
     #def read_forces(self):
 

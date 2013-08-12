@@ -7,8 +7,7 @@ import numpy as np
 import abipy.data as data
 
 from pymatgen.core.lattice import Lattice
-from abipy.core.kpoints import *
-from abipy.core.kpoints import KpointList
+from abipy.core.kpoints import wrap_to_ws, wrap_to_bz, Kpoint, KpointList, KpointsReader, askpoints
 from abipy.core.testing import *
 
 
@@ -134,18 +133,18 @@ class TestKpointList(AbipyTest):
 class TestKpointsFactory(AbipyTest):
 
     def test_reading_from_WFK(self):
-        """Test the reading of Kpoints from WFK netcdf files."""
+        """Test the reading of Kpoints from WFK files."""
         for filepath in data.WFK_NCFILES:
-            print("About to read %s" % filepath)
-            kpoints_factory(filepath)
+            print("About to read WFK file: %s" % filepath)
+            with KpointsReader(filepath) as r:
+                kpoints = r.read_kpoints()
 
     #def test_reading_from_GSR(self):
-    #    """Test the reading of Kpoints from GSR netcdf files."""
+    #    """Test the reading of Kpoints from GSR files."""
     #    for filepath in data.GSR_NCFILES:
-    #        print("About to read %s" % filepath)
-    #        kpoints_factory(filepath)
-
-
+    #        print("About to read GSR file: %s" % filepath)
+    #        with KpointsReader(filepath) as r:
+    #            kpoints = r.read_kpoints()
 
 
 if __name__ == "__main__":

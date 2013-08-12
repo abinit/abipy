@@ -1,17 +1,14 @@
 #!/usr/bin/env python
 #
 # This example shows how to plot the so-called fatbands for electrons
-import numpy as np
-import collections
-
-from abipy import *
+from abipy import abiopen
 import abipy.data as data
 
 # Open the WKF file.
-wfk_file = WFK_File(data.ref_file("si_nscf_WFK-etsf.nc"))
+gsr_file = abiopen(data.ref_file("si_nscf_GSR.nc"))
 
 # Extract the band structure. 
-ebands = wfk_file.ebands
+ebands = gsr_file.ebands
 
 # Define the mapping reduced_coordinates -> name of the k-point.
 klabels = {
@@ -21,6 +18,8 @@ klabels = {
 }
 
 # Set the width 
+import numpy as np
+import collections
 ones = np.ones(ebands.shape)
 widths = collections.OrderedDict([
     ("Si-3s", ones),

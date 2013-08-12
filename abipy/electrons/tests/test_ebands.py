@@ -19,8 +19,8 @@ class EbandsReaderTest(AbipyTest):
             #self.assertTrue(len(kpoints) == ??)
             #self.assert_all_equal(self.read_nband_sk == ??))
 
-            eigens = r.read_eigens()
-            occfacts = r.read_occfacts()
+            eigens = r.read_eigenvalues()
+            occfacts = r.read_occupations()
             fermie = r.read_fermie()
 
             #self.assertTrue(r.read_nelect() == 8)
@@ -45,7 +45,8 @@ class ElectronBandsTest(AbipyTest):
 
     def test_dos(self):
         """Test DOS methods."""
-        gs_bands = ElectronBands.from_file(data.ref_file("si_scf_WFK-etsf.nc"))
+        gs_bands = ElectronBands.from_file(data.ref_file("si_scf_GSR.nc"))
+        #gs_bands = ElectronBands.from_file(data.ref_file("si_scf_WFK-etsf.nc"))
         dos = gs_bands.get_edos()
         mu = dos.find_mu(8, atol=1.e-4)
         imu = dos.tot_idos.find_mesh_index(mu)
@@ -53,7 +54,7 @@ class ElectronBandsTest(AbipyTest):
 
     def test_jdos(self):
         """Test JDOS methods."""
-        bands = ElectronBands.from_file(data.ref_file("si_scf_WFK-etsf.nc"))
+        bands = ElectronBands.from_file(data.ref_file("si_scf_GSR.nc"))
 
         spin = 0
         conduction = [4,]

@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 #
 # This example shows how to plot a band structure
-# using the eigenvalues stored in a netCDF WFK file produced by abinit.
-from abipy import *
+# using the eigenvalues stored in the GSR file produced by abinit.
+from abipy import abiopen
 import abipy.data as data
 
-# Here we use one of the WFK files shipped with abipy.
-# Replace filename with the path to your WFK file.
-filename = data.ref_file("si_nscf_WFK-etsf.nc")
+# Here we use one of the GSR files shipped with abipy.
+# Replace filename with the path to your GSR file or your WFK file.
+filename = data.ref_file("si_nscf_GSR.nc")
 
 # Open the WKF file and read data. 
-wfk_file = WFK_File(filename)
+abifile = abiopen(filename)
 
 # Extract the band structure. 
-ebands = wfk_file.ebands
+ebands = abifile.ebands
 
 # Plot the band energies. Note that the labels for the k-points
 # are found automatically by searching in an internal database.

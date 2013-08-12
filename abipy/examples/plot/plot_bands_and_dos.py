@@ -1,27 +1,24 @@
 #!/usr/bin/env python
 #
 # This example shows how to compute the DOS and how to plot a band structure
-# using two netCDF WFK files produced by abinit.
-from abipy import *
+# using two GSR files produced by abinit.
+from abipy import abiopen
 import abipy.data as data
 
-# Open the wavefunction file computed on a k-path in the BZ
+# Open the file with energies computed on a k-path in the BZ
 # and extract the band structure.
-nscf_filename = data.ref_file("si_nscf_WFK-etsf.nc")
+nscf_file = abiopen(data.ref_file("si_nscf_GSR.nc"))
 
-nscf_wfk = WFK_File(nscf_filename)
+nscf_ebands = nscf_file.ebands
 
-nscf_ebands = nscf_wfk.ebands
+# Open thefile with energies computed with a homogeneous sampling of the BZ 
+# and extract the band structure.
+gs_file = abiopen(data.ref_file("si_scf_GSR.nc"))
 
-# Open the wavefunction file computed with a homogeneous sampling of the BZ 
-# and extract the band structure on the k-mesh.
-gs_filename = data.ref_file("si_scf_WFK-etsf.nc")
+gs_ebands = gs_file.ebands
 
-gs_wfk = WFK_File(gs_filename)
-
-gs_ebands = gs_wfk.ebands
-
-# Compute the DOS with the Gaussian method.
+# Compute the DOS with the Gaussian method (use default values for 
+# the broadening and the linear mesh step.
 edos = gs_ebands.get_edos()
 
 # Define the mapping reduced_coordinates -> name of the k-point.

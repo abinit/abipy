@@ -2,12 +2,12 @@
 #
 # This example shows how to compute and plot the derivatives of the
 # KS eigenvalues along a high symmetry path in K-space.
-from abipy import *
+from abipy import abiopen
 import abipy.data as data
 
-wfk = WFK_File(data.ref_file("si_nscf_WFK-etsf.nc"))
+gsr_file = abiopen(data.ref_file("si_nscf_GSR.nc"))
 
-kpath = wfk.kpoints
+kpath = gsr_file.kpoints
 
 #print("ds", kpath.ds)
 #for vers in kpath.versors:
@@ -21,7 +21,7 @@ kpath = wfk.kpoints
 #ders = kpath.finite_diff(branch, order=2)
 #print("order2",ders)
 
-bands = wfk.ebands
+bands = gsr_file.ebands
 
 xys = bands.derivatives(spin=0,band=0,order=1, asmarker="DER1-band0")
 

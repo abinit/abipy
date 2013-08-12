@@ -2,10 +2,10 @@
 #
 # This example shows how to visualize the QP results 
 # stored in the SIGRES produced by the GW code (sigma run)
-from abipy import *
+from abipy import abiopen
 import abipy.data as data
 
-sigma_file = SIGRES_File(data.ref_file("tgw1_9o_DS4_SIGRES.nc"))
+sigma_file = abiopen(data.ref_file("tgw1_9o_DS4_SIGRES.nc"))
 
 # Printout of the QPState results
 sigma_file.print_qps()

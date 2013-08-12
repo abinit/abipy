@@ -2,16 +2,12 @@
 #
 # This example shows how to compute and plot several
 # gaussian DOS by varying the broadening parameters.
-from abipy import *
-
 import abipy.data as data
-import matplotlib.pyplot as plt
+from abipy import abiopen
 
 # Open the wavefunction file computed with a homogeneous sampling of the BZ 
 # and extract the band structure on the k-mesh.
-gs_filename = data.ref_file("si_scf_WFK-etsf.nc")
-
-gs_wfk = WFK_File(gs_filename)
+gs_wfk = abiopen(data.ref_file("si_scf_WFK-etsf.nc"))
 
 gs_bands = gs_wfk.ebands
 

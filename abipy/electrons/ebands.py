@@ -575,10 +575,12 @@ class ElectronBands(object):
         Returns:
             `ElectronDOS` object.
         """
-        if abs(self.kpoints.sum_weights() - 1) > 1.e-6:
-            print(type(self.kpoints))
-            print(self.kpoints)
-            raise ValueError("Kpoint weights should sum up to one")
+        wsum = self.kpoints.sum_weights()
+        if abs(wsum - 1) > 1.e-6:
+            err_msg =  "Kpoint weights should sum up to one while sum_weights is %.3f\n" % wsum
+            err_msg += "The list of kpoints does not represent a homogeneous sampling of the BZ\n" 
+            err_msg += str(type(self.kpoints)) + "\n" + str(self.kpoints)
+            raise ValueError(err_msg)
 
         # Compute the linear mesh.
         e_min = self.enemin()
