@@ -33,6 +33,41 @@ del author, email
 __license__  = release.license
 __version__  = release.version
 
+
+
+def abifile_subclass_from_filename(filename):
+    from abipy.waves import WFK_File
+    from abipy.electrons import SIGRES_File, GSR_File
+    from abipy.phonons import PHBST_File
+    from abipy.iotools.files import AbinitFile, AbinitLogFile, AbinitOutputFile
+                                                                                        
+    ext2ncfile = {
+        "SIGRES.nc": SIGRES_File,
+        "WFK-etsf.nc": WFK_File,
+        "MDF.nc" : MDF_File,
+        "GSR.nc": GSR_File
+        #"PHDOS.nc": PHDOS_File,
+        #"PHBST.nc": PHBST_File,
+    }
+                                                                                        
+    if filename.endswith(".about"):
+        return AbinitOutputFile
+    
+    if filename.endswith(".ablog"):
+        return AbinitLogFile
+
+    # CIF files.
+    #if filepath.endswith(".cif"):
+    #    from abipy.core.structure import structure
+    #    return structure.from_file(filepath)
+
+    ext = filename.split("_")[-1]
+    try:
+        return ext2ncfile[ext]
+    except KeyError:
+        raise KeyError("No ncfile subclass has been registered for extension %s" % ext)
+
+
 def abiopen(filepath):
     """
     Factory function that returns the appropriate `AbinitNcFile` object
@@ -41,42 +76,5 @@ def abiopen(filepath):
         filepath:
             string with the filename or `AbinitNcFile` instance
     """
-    from abipy.waves import WFK_File
-    from abipy.electrons import SIGRES_File, GSR_File
-    from abipy.phonons import PHBST_File
-    from abipy.iotools.files import AbinitFile, AbinitLogFile, AbinitOutputFile
-
-    def abifile_subclass_from_filename(filename):
-        ext2ncfile = {
-            "SIGRES.nc": SIGRES_File,
-            "WFK-etsf.nc": WFK_File,
-            "MDF.nc" : MDF_File,
-            "GSR.nc": GSR_File
-            #"PHDOS.nc": PHDOS_File,
-            #"PHBST.nc": PHBST_File,
-        }
-
-        if filename.endswith(".about"):
-            return AbinitOutputFile
-        
-        if filename.endswith(".ablog"):
-            return AbinitLogFile
-
-        ext = filename.split("_")[-1]
-        try:
-            return ext2ncfile[ext]
-        except KeyError:
-            raise KeyError("No ncfile subclass has been registered for extension %s" % ext)
-
-    if isinstance(filepath, AbinitFile):
-        return filepath
-
-    # Assume string.
-    
-    # CIF files.
-    #if filepath.endswith(".cif"):
-    #    from abipy.core.structure import structure
-    #    return structure.from_file(filepath)
-
     cls = abifile_subclass_from_filename(filepath)
     return cls.from_file(filepath)
