@@ -3,25 +3,22 @@ from __future__ import division, print_function
 
 import numpy as np
 
+from abipy.iotools import abipy2etsfio, ETSF_Reader
+from abipy.tools import AttrDict
 from .dftscalarfield import DFTScalarField
 from .constants import Bohr_Ang
-from abipy.iotools import abipy2etsfio, ETSF_Reader
 
 __all__ = [
     "Density",
 ]
 
-
 class Density(DFTScalarField):
     """
     Electron density
     """
-    #: Attributes read from the netCDF file.
-    #_slots = [
-    #  "nelect",                   # "number_of_electrons"
+    # TODO 
     #  "exchange_functional",      # "exchange_functional"
     #  "valence_charges",          # "valence_charges"
-    #]
 
     @classmethod
     def from_file(cls, filepath):
@@ -32,35 +29,26 @@ class Density(DFTScalarField):
             filepath:
                 string or file object.
         """
-        with ETSF_Reader(filepath) as r:
-
+        with DensityReader(filepath) as r:
             structure = r.read_structure()
-            cplex_den = r.read_dimvalue("real_or_complex_density")
-            nspinor = r.read_dimvalue("number_of_spinor_components")
-            nsppol = r.read_dimvalue("number_of_spins")
-            nspden = r.read_dimvalue("number_of_components")
-
-            nfft1 = r.read_dimvalue("number_of_grid_points_vector1")
-            nfft2 = r.read_dimvalue("number_of_grid_points_vector2")
-            nfft3 = r.read_dimvalue("number_of_grid_points_vector3")
-
-            rhor = r.read_value("density")
+            dims = r.read_dendims()
+            rhor = r.read_rhor()
 
         # use iorder="f" to transpose the last 3 dimensions since ETSF
         # stores data in Fortran order while abipy uses C-ordering.
-        if cplex_den == 1:
+        if dims.cplex_den == 1:
 
             # Get rid of fake last dimensions (cplex).
-            rhor = np.reshape(rhor, (nspden, nfft1, nfft2, nfft3))
+            rhor = np.reshape(rhor, (dims.nspden, dims.nfft1, dims.nfft2, dims.nfft3))
 
             # Fortran to C, avoid the view.
             #cview = np.transpose(rec.rhor, axes = [0,3,2,1])
             #rec.rhor = np.ascontiguousarray(cview)
             rhor = rhor / Bohr_Ang**3
-            return Density(nspinor, nsppol, nspden, rhor, structure, iorder="f")
+            return Density(dims.nspinor, dims.nsppol, dims.nspden, rhor, structure, iorder="f")
 
         else:
-            raise NotImplementedError("cplex_den %s not coded" % cplex_den)
+            raise NotImplementedError("cplex_den %s not coded" % dims.cplex_den)
 
     def __init__(self, nspinor, nsppol, nspden, rhor, structure, iorder="c"):
         """
@@ -172,8 +160,29 @@ class Density(DFTScalarField):
         return vhr, vhg
 
     #def get_vxc(self, spin=None, xc_type=None):
+        #"""Compute the exchange-correlation potential in real- and reciprocal-space."""
         #return vxcr, vxcg
 
     #def get_kinden(self, spin=None):
+        #"""Compute the kinetic energy density in real- and reciprocal-space."""
         #return kindr, kindgg
 
+
+class DensityReader(ETSF_Reader):
+    """This object reads density data from a netcdf file."""
+
+    def read_dendims(self):
+        """Returns a `AttrDict` dictionary with the basic dimensions."""
+        return AttrDict(
+            cplex_den=self.read_dimvalue("real_or_complex_density"),
+            nspinor=self.read_dimvalue("number_of_spinor_components"),
+            nsppol=self.read_dimvalue("number_of_spins"),
+            nspden=self.read_dimvalue("number_of_components"),
+            nfft1=self.read_dimvalue("number_of_grid_points_vector1"),
+            nfft2=self.read_dimvalue("number_of_grid_points_vector2"),
+            nfft3=self.read_dimvalue("number_of_grid_points_vector3"),
+        )
+
+    def read_rhor(self):
+        """Return the density in real space."""
+        return self.read_value("density")

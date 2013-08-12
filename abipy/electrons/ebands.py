@@ -10,7 +10,7 @@ import numpy as np
 
 from abipy.core.constants import Ha_eV, eV_Ha, Bohr_Ang
 from abipy.core.func1d import Function1D
-from abipy.core.kpoints import Kpoint, Kpath, IrredZone, kpoints_factory
+from abipy.core.kpoints import Kpoint, Kpath, IrredZone, KpointsReaderMixin
 from abipy.tools import AttrDict
 from abipy.iotools import ETSF_Reader, Visualizer, bxsf_write
 from abipy.tools import gaussian
@@ -21,6 +21,7 @@ __all__ = [
     "ElectronBands",
     "ElectronBandsPlotter",
     "ElectronDosPlotter",
+    "ElectronsReader",
 ]
 
 class KSState(collections.namedtuple("KSState", "spin kpoint band eig occ")):
@@ -144,13 +145,13 @@ class Smearing(AttrDict):
                 raise ValueError("Mandatory key %s must be provided" % str(mkey))
 
 
-#class XcInfo(AttrDict):
+#class XC_Parameters(AttrDict):
 #    """Stores data and information about the XC functional."""
 #    _MANDATORY_KEYS = [
 #    ]
 #
 #    def __init__(self, *args, **kwargs):
-#        super(XcInfo, self).__init__(*args, **kwargs)
+#        super(XC_Parameters, self).__init__(*args, **kwargs)
 #        for mkey in self._MANDATORY_KEYS:
 #            if mkey not in self:
 #                raise ValueError("Mandatory key %s must be provided" % str(mkey))
@@ -233,16 +234,10 @@ class ElectronBands(object):
     @classmethod
     def from_file(cls, filepath):
         """Initialize an instance of ElectronBands from a netCDF file."""
-        with Ebands_Reader(filepath) as r:
-            return cls(r.read_structure(),
-                       r.read_kpoints(),
-                       r.read_eigens(),
-                       r.read_fermie(),
-                       r.read_occfacts(),
-                       r.read_nelect(),
-                       smearing=r.read_smearing(),
-                       nband_sk=r.read_nband_sk(),
-                       )
+        with ElectronsReader(filepath) as r:
+            new = r.read_ebands()
+            assert new.__class__ == cls
+            return new
 
     def __str__(self):
         return self.tostring()
@@ -581,6 +576,8 @@ class ElectronBands(object):
             `ElectronDOS` object.
         """
         if abs(self.kpoints.sum_weights() - 1) > 1.e-6:
+            print(type(self.kpoints))
+            print(self.kpoints)
             raise ValueError("Kpoint weights should sum up to one")
 
         # Compute the linear mesh.
@@ -899,8 +896,7 @@ class ElectronBands(object):
 
         return fig
 
-    def plot_fatbands(self, klabels=None, **kwargs):
-#colormap="jet", max_stripe_width_mev=3.0, qlabels=None, **kwargs):
+    def plot_fatbands(self, klabels=None, **kwargs): #colormap="jet", max_stripe_width_mev=3.0, qlabels=None, **kwargs):
         """
         Plot the electronic fatbands.
 
@@ -1080,35 +1076,24 @@ class ElectronBands(object):
             for band in range(self.mband):
                 self.plot_ax(ax1, spin=spin, band=band, **kwargs)
 
-        # Set ticks and labels.
-        if klabels is not None:
-            ticks, labels = self._make_ticks_and_labels(klabels)
-
-            ax1.set_xticks(ticks, minor=False)
-            ax1.set_xticklabels(labels, fontdict=None, minor=False)
-
-        for ax in (ax1, ax2):
-            ax.grid(True)
-
-        if title:
-            ax1.set_title(title)
-
-        ax1.set_xlabel('k-point')
-        ax1.set_ylabel('Energy [eV]')
+        self.decorate_ax(ax1, klabels=klabels)
 
         emin = np.min(self.eigens)
         emin -= 0.05 * abs(emin)
 
         emax = np.max(self.eigens)
         emax += 0.05 * abs(emax)
-
         ax1.yaxis.set_view_interval(emin, emax)
 
         # Plot the DOS
         dos.plot_ax(ax2, exchange_xy=True, **kwargs)
 
+        ax2.grid(True)
         ax2.yaxis.set_ticks_position("right")
         ax2.yaxis.set_label_position("right")
+
+        if title:
+            fig.suptitle(title)
 
         if show:
             plt.show()
@@ -1364,7 +1349,6 @@ class ElectronBandsPlotter(object):
             legends.append("%s" % label)
 
             # Set ticks and labels, legends.
-
             if i == 0:
                 bands.decorate_ax(ax)
 
@@ -1471,24 +1455,35 @@ class ElectronDosPlotter(object):
         return fig
 
 
-class Ebands_Reader(ETSF_Reader):
+class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
     """
     This object reads band structure data from a netcdf file written
     according to the ETSF-IO specifications.
     """
-    def read_kfrac_coords(self):
-        """Returns a ndarray with the fractional coordinates of the k-points"""
-        return self.read_value("reduced_coordinates_of_kpoints")
+    def read_ebands(self):
+        """
+        Returns an instance of `ElectronBands`. Main entry point for client code
+        """
+        return ElectronBands(
+            structure=self.read_structure(),
+            kpoints=self.read_kpoints(),
+            eigens=self.read_eigenvalues(),
+            fermie=self.read_fermie(),
+            occfacts=self.read_occupations(),
+            nelect=self.read_nelect(),
+            nband_sk=self.read_nband_sk(),
+            smearing=self.read_smearing(),
+            )
 
     def read_nband_sk(self):
         """Array with the number of bands indexed by [s,k]."""
         return self.read_value("number_of_states")
 
-    def read_eigens(self):
+    def read_eigenvalues(self):
         """Eigenvalues in eV."""
         return self.read_value("eigenvalues") * Ha_eV
 
-    def read_occfacts(self):
+    def read_occupations(self):
         """Occupancies."""
         return self.read_value("occupations")
 
@@ -1502,24 +1497,23 @@ class Ebands_Reader(ETSF_Reader):
 
     def read_smearing(self):
         """Returns a `Smearing` instance with info on the smearing technique."""
+        occopt = self.read_value("occopt")
+
         try:
             scheme = "".join(c for c in self.read_value("smearing_scheme"))
         except TypeError:
             scheme = None
 
-        d = Smearing(
+        # FIXME there's a problem in smearing_scheme
+        if scheme is None:
+            warnings.warn("warning scheme is None, occopt %s" % occopt)
+
+        return Smearing(
             scheme=scheme,
-            occopt=self.read_value("occopt"),
+            occopt=occopt,
             tsmear_ev=self.read_value("smearing_width") * Ha_eV
         )
 
-        # FIXME there's a problem in smearing_scheme
-        if scheme is None:
-            warnings.warn("warning scheme is None, occopt %s" % d["occopt"])
-
-        return d
-
-    #def read_xcinfo(self):
+    #def read_xc_parameters(self):
     #   """Returns a dictionary with info on the XC functional."""
-    #    return XcInfo.from_ixc(self.read_value("ixc"))
-
+    #    return XC_Parameters.from_ixc(self.read_value("ixc"))

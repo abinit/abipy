@@ -41,7 +41,7 @@ def main():
     manager.set_workflow_and_run(work)
 
     if manager.retcode != 0:
-        return retcode
+        return manager.retcode
 
     # Remove all files except those matching these regular expression.
     work[3].rename("out_SIGRES.nc", "si_g0w0ppm_SIGRES.nc")

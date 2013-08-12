@@ -228,6 +228,16 @@ class Function1D(object):
                 dx[i] = self.mesh[i+1] - x
             return self._dx
 
+    def find_mesh_index(self, value):
+        """
+        Return the index of the first point in the mesh whose value is >= value
+        -1 if not found
+        """
+        for (i, x) in enumerate(self.mesh):
+            if x >= value:
+                return i
+        return -1
+
     def finite_diff(self, order=1, acc=4):
         """
         Compute the derivatives by finite differences.

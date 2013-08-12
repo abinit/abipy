@@ -4,9 +4,8 @@ from __future__ import print_function, division
 import numpy as np
 
 from abipy.core import Mesh3D, GSphere, Structure
-from abipy.core.kpoints import kpoints_factory
 from abipy.iotools import ETSF_Reader, Visualizer, AbinitNcFile, Has_Structure, Has_ElectronBands
-from abipy.electrons import ElectronBands
+from abipy.electrons import ElectronsReader
 from abipy.waves.pwwave import PWWaveFunction
 
 __all__ = [
@@ -26,16 +25,10 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         """
         super(WFK_File, self).__init__(filepath)
 
-        # Initialize the  structure from file.
-        self._structure = Structure.from_file(filepath)
-
-        # Initialize the band energies.
-        self._ebands = ElectronBands.from_file(filepath)
-
-        self.kpoints = kpoints_factory(filepath)
-        self.nkpt = len(self.kpoints)
-
         with WFK_Reader(filepath) as reader:
+            # Read the electron bands 
+            self._ebands = reader.read_ebands()
+
             assert reader.has_pwbasis_set
             assert reader.cplex_ug == 2
             self.npwarr = reader.npwarr
@@ -63,12 +56,20 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     @property
     def structure(self):
         """`Structure` object"""
-        return self._structure
+        return self.ebands.structure
 
     @property
     def ebands(self):
         """`ElectronBands` object"""
         return self._ebands
+
+    @property
+    def kpoints(self):
+        return self.ebands.kpoints
+
+    @property
+    def nkpt(self):
+        return len(self.kpoints)
 
     @property
     def gspheres(self):
@@ -152,7 +153,7 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         # Export data uding the format specified by filename.
         return wave.export_ur2(filepath, self.structure)
 
-    #def visualize_ur2_with(self, spin, kpoint, bands, visualizer):
+    #def visualize_ur2(self, spin, kpoint, band, visualizer):
     #    """
     #    Visualize :math:`|u(r)|^2`  with visualizer.
     #    See :class:`Visualizer` for the list of applications and formats supported.
@@ -162,7 +163,7 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     #    for ext in extensions:
     #        ext = "." + ext
     #        try:
-    #            return self.export_ur2(ext)
+    #            return self.export_ur2(ext, spin, kpoint, band)
     #        except Visualizer.Error:
     #            pass
     #    else:
@@ -172,15 +173,14 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
 #########################################################################################
 
 
-class WFK_Reader(ETSF_Reader):
+class WFK_Reader(ElectronsReader):
     """This object reads data from the WFK file."""
 
     def __init__(self, filepath):
         """Initialize the object from a filename."""
         super(WFK_Reader, self).__init__(filepath)
 
-        self.structure = self.read_structure()
-        self.kpoints = kpoints_factory(filepath)
+        self.kpoints = self.read_kpoints()
 
         self.nfft1 = self.read_dimvalue("number_of_grid_points_vector1")
         self.nfft2 = self.read_dimvalue("number_of_grid_points_vector2")
@@ -236,13 +236,7 @@ class WFK_Reader(ETSF_Reader):
         if isinstance(kpoint, int):
             return kpoint
         else:
-            try:
-                return self.kpoints.index(kpoint)
-            except:
-                raise
-
-    def read_kpoints(self):
-        return self.kpoints
+            return self.kpoints.index(kpoint)
 
     def read_gvec_istwfk(self, kpoint):
         """

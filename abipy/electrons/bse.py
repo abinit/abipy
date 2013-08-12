@@ -7,7 +7,7 @@ import collections
 import numpy as np
 
 from abipy.core.func1d import Function1D
-from abipy.core.kpoints import Kpoint, kpoints_factory
+from abipy.core.kpoints import Kpoint
 from abipy.iotools import ETSF_Reader, AbinitNcFile, Has_Structure
 
 __all__ = [
@@ -540,30 +540,30 @@ class DIPME_File(object):
         return plotter.plot(title=title, color_map=color_map, show=show, savefig=savefig, **kwargs)
 
 
-class DIPME_Reader(ETSF_Reader):
-    """"
-    This object reads the optical matrix elements from the OME.nc file.
-    """
-
-    def __init__(self, path):
-        super(DIPME_Reader, self).__init__(path)
-
-        # Read important dimensions and variables.
-        frac_coords = self.read_value("kpoints_reduced_coordinates")
-        self.kibz = kpoints_factory(self)
-
-        # Minimum and maximum band index as function of [s,k]
-        self.minb_ks = self.read_value("minb")
-        self.maxb_ks = self.read_value("maxb")
-
-        # Dipole matrix elements
-        self.dipme_skvc = self.read_value("dipme", cmode="c")
-
-    def kpoint_index(self, kpoint):
-        return self.kibz.find(kpoint)
-
-    def read_dipme(self, spin, kpoint):
-        """Read the dipole matrix elements."""
-        ik = self.kpoint_index(kpoint)
-        return self.dipme_skvc[spin, ik, :, :, :]
+#class DIPME_Reader(ETSF_Reader):
+#    """"
+#    This object reads the optical matrix elements from the OME.nc file.
+#    """
+#
+#    def __init__(self, path):
+#        super(DIPME_Reader, self).__init__(path)
+#
+#        # Read important dimensions and variables.
+#        frac_coords = self.read_value("kpoints_reduced_coordinates")
+#        self.kibz = kpoints_factory(self)
+#
+#        # Minimum and maximum band index as function of [s,k]
+#        self.minb_ks = self.read_value("minb")
+#        self.maxb_ks = self.read_value("maxb")
+#
+#        # Dipole matrix elements
+#        self.dipme_skvc = self.read_value("dipme", cmode="c")
+#
+#    def kpoint_index(self, kpoint):
+#        return self.kibz.find(kpoint)
+#
+#    def read_dipme(self, spin, kpoint):
+#        """Read the dipole matrix elements."""
+#        ik = self.kpoint_index(kpoint)
+#        return self.dipme_skvc[spin, ik, :, :, :]
 

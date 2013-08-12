@@ -5,9 +5,9 @@ import os
 import collections
 import numpy as np
 
-from numpy import allclose,  where, around, asarray 
 from abipy.core.exceptions import AbipyException
-from abipy.iotools import as_etsfreader
+from abipy.iotools import as_etsfreader, ETSF_Reader
+from abipy.tools import AttrDict
 from abipy.tools.derivatives import finite_diff
 
 __all__ = [
@@ -18,8 +18,6 @@ __all__ = [
     "Kpoint",
     "Kpath",
     "IrredZone",
-    "KpointsInfo",
-    "kpoints_factory",
 ]
 
 # Tolerance used to compare k-points.
@@ -36,8 +34,8 @@ def isinteger(x, atol=_ATOL_KDIFF):
     >>> isinteger([1.01, 2])
     False
     """
-    int_x = around(x)
-    return allclose(int_x, x, atol=atol)
+    int_x = np.around(x)
+    return np.allclose(int_x, x, atol=atol)
 
 
 def issamek(k1, k2, atol=1e-08):
@@ -53,7 +51,7 @@ def issamek(k1, k2, atol=1e-08):
     >>> issamek(0.00003, 1)
     False
     """
-    kdiff = asarray(k1) - asarray(k2)
+    kdiff = np.asarray(k1) - np.asarray(k2)
     return isinteger(kdiff, atol=atol)
 
 
@@ -62,7 +60,7 @@ def wrap_to_ws(x):
     Transforms x in its corresponding reduced number in the interval ]-1/2,1/2].
     """
     w = x % 1
-    return where(w > 0.5, w-1.0, w)
+    return np.where(w > 0.5, w-1.0, w)
 
 
 def wrap_to_bz(x):
@@ -76,7 +74,7 @@ class KpointsError(AbipyException):
     """Base error class for KpointList exceptions."""
 
 
-def askpoints(obj, lattice, weigths=None, names=None):
+def askpoints(obj, lattice, weights=None, names=None):
     """
     Convert obj into a list of k-points.
 
@@ -107,13 +105,13 @@ def askpoints(obj, lattice, weigths=None, names=None):
     ndim = obj.ndim
 
     if ndim == 1:
-        return [Kpoint(obj, lattice, weight=weigths, name=names)]
+        return [Kpoint(obj, lattice, weight=weights, name=names)]
 
     elif ndim == 2:
         nk = len(obj)
-        if weigths is None: weigths = nk * [None]
+        if weights is None: weights = nk * [None]
         if names is None: names = nk * [None]
-        return [Kpoint(rc, lattice, weight=w, name=l) for (rc, w, l) in zip(obj, weigths, names)]
+        return [Kpoint(rc, lattice, weight=w, name=l) for (rc, w, l) in zip(obj, weights, names)]
 
     else:
         raise ValueError("ndim > 2 is not supported")
@@ -199,7 +197,7 @@ class Kpoint(object):
 
     @property
     def cart_coords(self):
-        """Cartesian coordinates of the k-points."""
+        """Cartesian coordinates of the k-point."""
         return self.lattice.get_cartesian_coords(self.frac_coords)
 
     @property
@@ -315,33 +313,6 @@ class Kpoint(object):
 
 ##########################################################################################
 
-def kpoints_factory(filepath):
-    """
-    Factory function: returns an instance of [Kpath, IrredZone]
-    from a netcdf file written according to the ETSF-IO specifications.
-    """
-    file, closeit = as_etsfreader(filepath)
-    structure = file.read_structure()
-
-    kinfo = KpointsInfo.from_file(filepath)
-
-    if kinfo.is_sampling:
-        obj = IrredZone(structure.reciprocal_lattice, kinfo.frac_coords, kinfo)
-
-    elif kinfo.is_path:
-        obj = Kpath(structure.reciprocal_lattice, kinfo.frac_coords, kinfo)
-
-    else:
-        raise ValueError("Only path or sampling modes are supported!")
-
-    if closeit:
-        file.close()
-
-    return obj
-
-#def qpoints_factory(filepath):
-
-
 class KpointList(collections.Sequence):
     """
     Base class defining a sequence of `Kpoint` objects. Essentially consists 
@@ -379,8 +350,16 @@ class KpointList(collections.Sequence):
             name = None if names is None else names[i]
             self._points.append(Kpoint(rcs, self.reciprocal_lattice, weight=weights[i], name=name))
 
+    @classmethod
+    def from_file(cls, filepath):
+        with KpointsReader(filepath) as r:
+            new = r.read_kpoints()
+        assert new.__class__ == cls
+        return new
+
     @property
     def reciprocal_lattice(self):
+        """`Lattice` object defining the reciprocal lattice."""
         return self._reciprocal_lattice
 
     def __repr__(self):
@@ -449,17 +428,20 @@ class KpointList(collections.Sequence):
 
     @property
     def frac_coords(self):
+        """Fractional coordinates of the k-point as `ndarray` of shape (len(self), 3)"""
         return self._frac_coords
 
     @property
     def weights(self):
+        """`ndarray` with the weights of the k-points."""
         return np.array([kpoint.weight for kpoint in self])
 
     def sum_weights(self):
+        """Returns the sum of the weights."""
         return np.sum(self.weights)
 
     def remove_duplicated(self):
-        """Remove copies from self. Returns new KpointList instance."""
+        """Remove duplicated k-points from self. Returns new KpointList instance."""
         frac_coords, good_indices = [self[0].frac_coords], [0]
 
         for i, kpoint in enumerate(self[1:]):
@@ -495,27 +477,27 @@ class KpointStar(KpointList):
     """
     @property
     def base_point(self):
+        """The point used to generate the star."""
         return self[0]
 
     @property
     def name(self):
+        """The name of the star (inherited from the name of the base point)."""
         return self.base_point.name
 
 
 class Kpath(KpointList):
     """This object describes a path in reciprocal space."""
 
-    def __init__(self, reciprocal_lattice, frac_coords, kinfo):
-        #names = kinfo.pop("names", None)
-        names = None
-
-        super(Kpath, self).__init__(reciprocal_lattice, frac_coords, weights=kinfo.weights, names=names)
-        # time-reversal?
-        #bounds = kinfo.pop("bounds", None)
-        #if bounds is None:
-        #    self.bounds = np.reshape(bounds, (-1,3))
-        #else:
-        #    pass
+    def __init__(self, reciprocal_lattice, frac_coords):
+        """
+        Args:
+            reciprocal_lattice:
+                `Lattice` object.
+            frac_coords:
+                Array-like object with the reduced coordinates of the k-points.
+        """
+        super(Kpath, self).__init__(reciprocal_lattice, frac_coords)
 
     @property
     def ds(self):
@@ -525,8 +507,8 @@ class Kpath(KpointList):
         """
         try:
             return self._ds
-        except AttributeError:
 
+        except AttributeError:
             self._ds = ds = np.zeros(len(self) - 1)
             for (i, kpoint) in enumerate(self[:-1]):
                 ds[i] = (self[i + 1] - kpoint).norm
@@ -622,21 +604,20 @@ class IrredZone(KpointList):
     Each point has a weight whose sum must equal 1 so that we can integrate quantities 
     in the full Brillouin zone.
     """
-
-    def __init__(self, reciprocal_lattice, frac_coords, kinfo):
+    def __init__(self, reciprocal_lattice, frac_coords, weights, ksampling):
         """
         Args:
             reciprocal_lattice:
                 `Lattice`
             frac_coords:
                 Array-like object with the reduced coordinates of the points.
-            kinfo:
-                `Kinfo` object, essentially consists of a dictionary with 
-                the parameters used to generate the mesh in the full Brillouin zone. 
+            weights:
+                Array-like with the weights of the k-points.
+            ksampling:
+                TODO
+                
         """
-        names = None
-        #names = kinfo.pop("names", None)
-        super(IrredZone, self).__init__(reciprocal_lattice, frac_coords, weights=kinfo.weights, names=names)
+        super(IrredZone, self).__init__(reciprocal_lattice, frac_coords, weights=weights, names=None)
 
         # Weights must be normalized to one.
         wsum = self.sum_weights()
@@ -644,121 +625,62 @@ class IrredZone(KpointList):
             raise ValueError("K-point weights must be normalized to one but wsum = %s" % wsum)
 
         # time-reversal?
-        self.kptopt = kinfo.kptopt
-        self.shifts = kinfo.shifts
+        assert ksampling.is_homogeneous
+        self.kptopt = self.shifts = ksampling.kptopt, ksampling.shifts
 
-        self.mpdivs = None
-        self.kptrlatt = None
+        self.mpdivs, self.kptrlatt = None, None
 
-        if kinfo.mpdivs is not None:
+        if ksampling.mpdivs is not None:
             # MP folding
-            self.mpdivs = kinfo.mpdivs
+            self.mpdivs = ksampling.mpdivs
 
-        elif kinfo.kptrlatt is not None:
+        elif ksampling.kptrlatt is not None:
             # kptrlatt case.
-            self.kptrlatt = kinfo.kptrlatt
+            self.kptrlatt = ksampling.kptrlatt
             # Diagonal kptrlatt is equivalent to MP folding.
             #if self.kptrlatt  and ...
             #self.mpdivs =
 
         else:
-            raise ValueError("Either MP mesh info or kptrlatt must be present in kinfo")
+            raise ValueError("Either MP mesh info or kptrlatt must be present in ksampling")
 
     @property
     def has_mpmesh(self):
-        "True if the mesh has been defined in terms of Monkhors-Pack divisions."""
+        """True if the mesh has been defined in terms of Monkhors-Pack divisions."""
         return self.mpdivs is not None
 
-    #@classmethod
-    #def from_info(cls, reciprocal_lattice, info):
-    #    """Initialize the IrredZone from reciprocal_lattice and info."""
-    #    raise NotImplementedError("")
 
+class KSamplingInfo(AttrDict):
 
-class KpointsInfo(dict):
+    #KNOWN_KEYS = {
+    #    "reduced_coordinates_of_kpoints": MANDATORY,
+    #    "kpoint_weights": OPTIONAL,
+    #    "kpoint_grid shift": OPTIONAL,
+    #    "monkhorst_pack_folding": OPTIONAL,
+    #    "kpoint_grid vectors": OPTIONAL,
+    #    "kptopt": OPTIONAL,
+    #}
 
-    class MANDATORY(object):
-        """Mandatory keys."""
-
-    class OPTIONAL(object):
-        """Optional keys."""
-
-    KNOWN_KEYS = {
-        "reduced_coordinates_of_kpoints": MANDATORY,
-        "kpoint_weights": OPTIONAL,
-        "kpoint_grid shift": OPTIONAL,
-        "monkhorst_pack_folding": OPTIONAL,
-        "kpoint_grid vectors": OPTIONAL,
-        "kptopt": OPTIONAL,
-    }
-
-    def __init__(self, *args, **kwargs):
-        super(KpointsInfo, self).__init__(*args, **kwargs)
-
-        for k in self:
-            if k not in self.KNOWN_KEYS:
-                raise ValueError("Unknow key %s" % k)
-
-        for k, v in self.KNOWN_KEYS.items():
-            if v is self.MANDATORY and k not in self:
-                raise ValueError("Mandatory key %s is missing" % k)
-
-    @classmethod
-    def from_file(cls, filepath):
-        """
-        Initialize the object from a Netcdf file with data
-        saved in the ETSF-IO format.
-        """
-        file, closeit = as_etsfreader(filepath)
-
-        d = {}
-        for k in cls.KNOWN_KEYS:
-            try:
-                d[k] = file.read_value(k)
-            except file.Error:
-                pass
-
-        if closeit:
-            file.close()
-
-        return cls(**d)
+    #def __init__(self, *args, **kwargs):
+    #    super(KSamplingInfo, self).__init__(*args, **kwargs)
+    #    for k in self:
+    #        if k not in self.KNOWN_KEYS:
+    #            raise ValueError("Unknow key %s" % k)
+    #    for k, v in self.KNOWN_KEYS.items():
+    #        if v is self.MANDATORY and k not in self:
+    #            raise ValueError("Mandatory key %s is missing" % k)
 
     @property
-    def is_sampling(self):
+    def is_homogeneous(self):
         """True if we have a homogeneous sampling of the BZ."""
-        return ("monkhorst_pack_folding" in self or
-                "kpoint_grid vectors" in self)
+        return (self.mpdivs is not None or 
+                self.kptrlatt is not None)
 
     @property
     def is_path(self):
         """True if we have a path in the BZ."""
-        return not self.is_sampling
+        return not self.is_homogeneous
 
-    @property
-    def frac_coords(self):
-        """Fractional coordinates of the k-points"""
-        return np.reshape(self.get("reduced_coordinates_of_kpoints"), (-1, 3))
-
-    @property
-    def weights(self):
-        return self.get("kpoint_weights", None)
-
-    @property
-    def shifts(self):
-        shifts = self.get("kpoint_grid_shift", np.zeros(3))
-        return np.reshape(shifts, (-1, 3))
-
-    @property
-    def mpdivs(self):
-        return self.get("monkhorst_pack_folding", None)
-
-    @property
-    def kptrlatt(self):
-        return self.get("kpoint_grid vectors", None)
-
-    @property
-    def kptopt(self):
-        return self.get("kptopt", None)
 
 ##########################################################################################
 
@@ -796,6 +718,7 @@ class Kmesh(object):
         self._shifts = np.reshape(shifts, (-1, 3))
 
         self._ibz = ibz
+        assert isinstance(ibz, IrredZone)
 
         #grids_1d = 3 * [None]
         #for i in range(3):
@@ -893,3 +816,84 @@ class Kmesh(object):
         kx, ky = np.meshgrid(kx, ky)
         return kx, ky, plane
 
+
+def returns_None_onfail(func):
+    import functools
+
+    @functools.wraps(func)
+    def wrapper(self):
+        try:
+            return func(self)
+        except self.Error:
+            return None
+
+    return wrapper
+
+
+class KpointsReaderMixin(object):
+    """
+    Mixin class that provides methods for reading k-point data from a netcdf 
+    file written according to the ETSF-IO specifications.
+    """
+    def read_kpoints(self):
+        """
+        Factory function: returns an instance of [Kpath, IrredZone]
+        depending on the content of the netcdf file. Main entry point for client code.
+        """
+        structure = self.read_structure()
+
+        frac_coords = self.read_kfrac_coords()
+        weights = self.read_kweights()
+        sampling = self.read_ksampling_info()
+
+        if sampling.is_homogeneous:
+            # we have a homogeneous sampling of the BZ.
+            return IrredZone(structure.reciprocal_lattice, frac_coords, weights, sampling)
+
+        elif sampling.is_path:
+            # we have a path in the BZ.
+            return Kpath(structure.reciprocal_lattice, frac_coords)
+
+        else:
+            raise ValueError("Only path or sampling modes are supported!")
+
+    def read_ksampling_info(self):
+        return KSamplingInfo(
+            shifts=self.read_kshifts(),
+            mpdivs=self.read_kmpdivs(),
+            kptrlatt=self.read_kptrlatt(),
+            kptopt=self.read_kptopt(),
+        )
+
+    def read_kfrac_coords(self):
+        """Fractional coordinates of the k-points"""
+        return self.read_value("reduced_coordinates_of_kpoints")
+
+    @returns_None_onfail
+    def read_kweights(self):
+        """Returns the weight of the k-points. None if not found."""
+        return self.read_value("kpoint_weights")
+
+    @returns_None_onfail
+    def read_kshifts(self):
+        """Returns the shifts of the k-mesh in reduced coordinates. None if not found."""
+        return self.read_value("kpoint_grid_shift")
+
+    @returns_None_onfail
+    def read_kmpdivs(self):
+        """Returns the Monkhorst-Pack divisions defining the mesh. None if not found."""
+        return self.read_value("monkhorst_pack_folding")
+
+    @returns_None_onfail
+    def read_kptrlatt(self):
+        """Returns ABINIT variable kptrlatt. None if not found."""
+        return self.read_value("kpoint_grid vectors")
+
+    @returns_None_onfail
+    def read_kptopt(self):
+        """Returns the ABINIT variable kptopt. None if not found."""
+        return self.read_value("kptopt")
+
+
+class KpointsReader(ETSF_Reader, KpointsReaderMixin):
+    """This object reads k-point data from a netcdf file."""

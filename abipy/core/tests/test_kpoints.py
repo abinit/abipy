@@ -139,11 +139,11 @@ class TestKpointsFactory(AbipyTest):
             print("About to read %s" % filepath)
             kpoints_factory(filepath)
 
-    def test_reading_from_GSR(self):
-        """Test the reading of Kpoints from GSR netcdf files."""
-        for filepath in data.GSR_NCFILES:
-            print("About to read %s" % filepath)
-            kpoints_factory(filepath)
+    #def test_reading_from_GSR(self):
+    #    """Test the reading of Kpoints from GSR netcdf files."""
+    #    for filepath in data.GSR_NCFILES:
+    #        print("About to read %s" % filepath)
+    #        kpoints_factory(filepath)
 
 
 

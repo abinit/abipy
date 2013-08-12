@@ -55,16 +55,18 @@ class TestQPList(AbipyTest):
         self.assertAlmostEqual(qp.sigxme, -16.549383605401)
 
 
-class TestSigresReader(AbipyTest):
-
-    def test_base(self):
-        """Test SIGRES Reader."""
-        with SIGRES_Reader(data.ref_file("tgw1_9o_DS4_SIGRES.nc")) as r:
-            self.assertFalse(r.has_spfunc)
-            #params = r.read_params()
+#class TestSigresReader(AbipyTest):
+#    def test_base(self):
+#        """Test SIGRES Reader."""
+#        with SIGRES_Reader(data.ref_file("tgw1_9o_DS4_SIGRES.nc")) as r:
+#            #params = r.read_params()
 
 
 class TestSigresFile(AbipyTest):
+
+    def test_readall(self):
+        for path in data.SIGRES_NCFILES:
+            sigres = abiopen(path)
 
     def test_base(self):
         """Test SIGRES File."""

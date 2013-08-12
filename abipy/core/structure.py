@@ -161,7 +161,8 @@ class Structure(pymatgen.Structure):
         tokens = filename.strip().split(".")
         ext = tokens[-1]
 
-        if not tokens[0]: # filename == ".ext" ==> Create temporary file.
+        if not tokens[0]: 
+            # filename == ".ext" ==> Create temporary file.
             import tempfile
             filename = tempfile.mkstemp(suffix="."+ext, text=True)[1]
 

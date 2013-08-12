@@ -64,7 +64,6 @@ class ElectronDOS(object):
         # Cannot use bisection because DOS might be negative due to smearing.
         # This one is safer albeit slower.
         for i, (ene, intg) in enumerate(idos):
-            #print(i, ene, intg)
             if intg > nelect:
                 break
         else:
@@ -74,7 +73,6 @@ class ElectronDOS(object):
         e0, e1 = idos.mesh[i-1], idos.mesh[i]
         idos_spline = idos.spline
         for mu in np.linspace(e0, e1, num=num):
-            #print(idos_spline(mu), nelect)
             if abs(idos_spline(mu) - nelect) < atol:
                 return mu
         else:

@@ -12,6 +12,7 @@ import os
 import argparse
 
 from subprocess import call, Popen
+from abipy.tools.devtools import number_of_cpus
 
 def str_examples():
     examples = """
@@ -36,6 +37,8 @@ def main():
                         help="execution mode. Default is sequential.")
 
     options = parser.parse_args()
+
+    #max_ncpus = number_of_cpus()
 
     # Find scripts.
     dir = os.path.join(os.path.dirname(__file__))

@@ -33,18 +33,26 @@ def pseudos(*filenames):
 def find_ncfiles(top):
     """
     Find all netcdf files starting from the top-level directory top.
-    Filenames must be unique.
+    Filenames must be unique. Directories whose start with "tmp_" are
+    excluded from the search.
 
     Returns:
         dictionary with mapping: basename --> absolute path.
     """
     ncfiles = {}
     for dirpath, dirnames, filenames in os.walk(top):
+
+        if "tmp_" in dirpath:
+            continue
+
         for basename in filenames:
             apath = os.path.join(dirpath, basename)
             if basename.endswith(".nc"):
                 if basename in ncfiles:
-                    raise ValueError("Found duplicated basename %s" % basename)
+                    err_msg =  "Found duplicated basename %s\n" % basename
+                    err_msg += "Stored: %s, new %s\n" % (ncfiles[basename], apath)
+                    raise ValueError(err_msg)
+
                 ncfiles[basename] = apath 
 
     return ncfiles
@@ -74,5 +82,7 @@ WFK_NCFILES = ncfiles_with_ext("WFK")
 DEN_NCFILES = ncfiles_with_ext("DEN")
 
 GSR_NCFILES = ncfiles_with_ext("GSR")
+
+SIGRES_NCFILES = ncfiles_with_ext("SIGRES")
 
 ALL_NCFILES = _DATA_NCFILES.values()

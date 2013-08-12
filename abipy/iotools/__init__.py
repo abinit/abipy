@@ -1,3 +1,5 @@
+from __future__ import print_function, division
+
 from .etsfio import *
 from .xsf import *
 from .visualizer import *
@@ -15,11 +17,3 @@ class ETSF_Reader(ionc.ETSF_Reader):
     def read_structure(self):
         from abipy.core.structure import Structure
         return Structure.from_file(self.path)
-
-    def read_ebands(self):
-        from abipy.electrons.electrons import ElectronBands
-        return ElectronBands.from_file(self.path)
-
-    def read_kpoints(self):
-        from abipy.core.kpoints import kpoints_factory
-        return kpoints_factory(self.path)

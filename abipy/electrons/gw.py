@@ -1153,7 +1153,7 @@ class SIGRES_Reader(ETSF_Reader):
         self.usepawu = self.read_value("usepawu")
 
         # 1) The K-points of the homogeneous mesh.
-        self.ibz = self.read_kpoints()
+        self.ibz = self.ks_bands.kpoints
 
         # 2) The K-points where QPState corrections have been calculated.
         gwred_coords = self.read_redc_gwkpoints()

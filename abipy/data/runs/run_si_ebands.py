@@ -45,7 +45,7 @@ def main():
     manager.set_workflow_and_run(work)
 
     if manager.retcode != 0:
-        return retcode
+        return manager.retcode
 
     # Remove all files except those matching these regular expression.
     work[0].rename("out_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
