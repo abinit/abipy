@@ -5,23 +5,24 @@
 # We then use the scissors operator to correct the KS band structure 
 # computed on a high symmetry k-path. Finally, the LDA and the QPState band
 # structure are plotted with matplotlib.
-from abipy import *
+from abipy import abiopen, ElectronBandsPlotter
 import abipy.data as data
 
 # Get the quasiparticle results from the SIGRES.nc database.
-sigma_file = SIGRES_File(data.ref_file("tgw1_9o_DS4_SIGRES.nc"))
+sigma_file = abiopen(data.ref_file("tgw1_9o_DS4_SIGRES.nc"))
+#sigma_file.plot_qps_vs_e0()
 qplist_spin = sigma_file.qplist_spin
 
 # Construct the scissors operator
-domains = [[-10, 6.02], [6.3, 18]]
+domains = [[-10, 6.1], [6.1, 18]]
 scissors = qplist_spin[0].build_scissors(domains, bounds=None)
 
 # Read the KS band energies computed on the k-path
-ks_bands = WFK_File(data.ref_file("si_nscf_WFK-etsf.nc")).ebands
+ks_bands = abiopen(data.ref_file("si_nscf_GSR.nc")).ebands
 
 # Read the KS band energies computed on the Monkhorst-Pack (MP) mesh
 # and compute the DOS with the Gaussian method
-ks_mpbands = WFK_File(data.ref_file("si_scf_WFK-etsf.nc")).ebands
+ks_mpbands = abiopen(data.ref_file("si_scf_GSR.nc")).ebands
 ks_dos = ks_mpbands.get_edos()
 
 # Apply the scissors operator first on the KS band structure 

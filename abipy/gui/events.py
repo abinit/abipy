@@ -79,7 +79,6 @@ class AbinitEventsFrame(awx.Frame):
     """
     Frame with an EventsPanel
     """
-
     def __init__(self, parent, filepath, **kwargs):
         filepath = os.path.abspath(filepath)
         title = "Abinit Events: %s" % os.path.basename(filepath)
@@ -93,7 +92,7 @@ class AbiOutLogDirCtrl(wx.GenericDirCtrl):
 
     def __init__(self, *args, **kwargs):
         if "filter" not in kwargs:
-            kwargs["filter"] = "All files (*.*)|*.*|about files (*.about)|*.out| ablog files (*.ablog)|*.ablog"
+            kwargs["filter"] = "All files (*.*)|*.*|ABINIT output files (*.abo)|*.out| ABINIT log files (*.abl)|*.ablog"
         if "dir" not in kwargs:
             kwargs["dir"] = os.getcwd()
         if "style" not in kwargs:

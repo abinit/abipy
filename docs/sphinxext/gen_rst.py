@@ -27,7 +27,8 @@ def generate_example_rst(app):
     rootdir = os.path.join(head, "abipy", "examples")
     exampledir = os.path.join(app.builder.srcdir, 'examples')
 
-    if not os.path.exists(exampledir): os.makedirs(exampledir)
+    if not os.path.exists(exampledir): 
+        os.makedirs(exampledir)
 
     datad = {}
     for root, subFolders, files in os.walk(rootdir):
@@ -96,8 +97,8 @@ Abipy Examples
 
 """%(subdir, subdir))
 
-        sys.stdout.write(subdir + ", ")
-        sys.stdout.flush()
+        #sys.stdout.write(subdir + ", ")
+        #sys.stdout.flush()
 
         data = datad[subdir]
         data.sort()
@@ -124,18 +125,23 @@ Abipy Examples
             fh.write(title + '\n')
             fh.write('='*len(title) + '\n\n')
 
-            #do_plot = (subdir in ('api',
-            #                      'pylab_examples',
-            #                      'units',
-            #                      'mplot3d',
-            #                      'axes_grid',
-            #                      ) and
-            #           not noplot_regex.search(contents))
+            do_plot = (subdir in ['plot',] and
+                       not noplot_regex.search(contents))
 
-            do_plot = not noplot_regex.search(contents)
+            do_autorun = subdir in ["htc",] #and not noautorun_regex.search(contents))
+
+            #sys.stderr.write("subdir %s, full_path %s\n" % (subdir, fullpath))
 
             if do_plot:
                 fh.write("\n\n.. plot:: %s\n\n::\n\n" % fullpath)
+
+            elif do_autorun:
+                #sys.stderr.write("in autorun with %s" % fullpath)
+                fh.write("\n\n.. runblock:: pycon\n\n")
+                # Autorun requires >>> at the beginning of the line.
+                contents = '\n'.join(['>>> %s'% row.rstrip() for row in contents.split('\n')])
+
+
             else:
                 fh.write("[`source code <%s>`_]\n\n::\n\n" % fname)
                 fhstatic = file(outputfile, 'w')
@@ -144,8 +150,8 @@ Abipy Examples
 
             # indent the contents
             contents = '\n'.join(['    %s'%row.rstrip() for row in contents.split('\n')])
-            fh.write(contents)
 
+            fh.write(contents)
             fh.close()
 
         fhsubdirIndex.close()

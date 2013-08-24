@@ -6,7 +6,7 @@ from abipy import abiopen
 import abipy.data as data
 
 # Open the WKF file.
-wfk_file = abiopen(data.ref_file("si_nscf_WFK-etsf.nc"))
+wfk_file = abiopen(data.ref_file("si_scf_WFK-etsf.nc"))
 
 # Extract the crystalline structure.
 structure = wfk_file.structure

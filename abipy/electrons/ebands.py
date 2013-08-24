@@ -45,7 +45,7 @@ class KSState(collections.namedtuple("KSState", "spin kpoint band eig occ")):
     """
     @property
     def skb(self):
-        """Tuple with (spin, kpoint, band)"""
+        """Tuple with (spin, kpoint, band)."""
         return self.spin, self.kpoint, self.band
 
     def copy(self):
@@ -57,15 +57,15 @@ class KSState(collections.namedtuple("KSState", "spin kpoint band eig occ")):
         fields = list(cls._fields)
         for e in exclude:
             fields.remove(e)
+
         return tuple(fields)
 
-    def _asdict(self):
-        od = super(KSState, self)._asdict()
-        return od
+    def asdict(self):
+        return super(KSState, self)._asdict()
 
     def to_strdict(self, fmt=None):
         """Ordered dictionary mapping fields --> strings."""
-        d = self._asdict()
+        d = self.asdict()
         for (k, v) in d.items():
             if np.iscomplexobj(v):
                 if abs(v.imag) < 1.e-3:
@@ -541,11 +541,11 @@ class ElectronBands(object):
         #"""True if bands are metallic"""
 
     #@property
-    #def bandwith(self):
+    #def bandwiths(self):
     #    bandwiths = self*nsppol * [None]
     #    for spin in self.spins:
     #        bandwiths[spin] = self.homo_state[spin].eig - self.lomo_states[spin].eig
-    #    return bandwiths
+    #    return np.array(bandwiths)
 
     #def direct_gap(self):
     #def fundamental_gap(self):
@@ -575,6 +575,7 @@ class ElectronBands(object):
         Returns:
             `ElectronDOS` object.
         """
+        # Weights must be normalized to one.
         wsum = self.kpoints.sum_weights()
         if abs(wsum - 1) > 1.e-6:
             err_msg =  "Kpoint weights should sum up to one while sum_weights is %.3f\n" % wsum
@@ -632,8 +633,12 @@ class ElectronBands(object):
         Returns:
             `Function1D` object.
         """
-        if abs(self.kpoints.sum_weights() - 1) > 1.e-6:
-            raise ValueError("Kpoint weights should sum up to one")
+        wsum = self.kpoints.sum_weights()
+        if abs(wsum - 1) > 1.e-6:
+            err_msg =  "Kpoint weights should sum up to one while sum_weights is %.3f\n" % wsum
+            err_msg += "The list of kpoints does not represent a homogeneous sampling of the BZ\n" 
+            err_msg += str(type(self.kpoints)) + "\n" + str(self.kpoints)
+            raise ValueError(err_msg)
 
         if not isinstance(valence, collections.Iterable):
             valence = [valence]
@@ -717,6 +722,7 @@ class ElectronBands(object):
         """
         if not isinstance(crange, collections.Iterable):
             crange = [crange]
+
         if not isinstance(vrange, collections.Iterable):
             vrange = [vrange]
 
@@ -1178,8 +1184,7 @@ class ElectronBands(object):
     def effective_masses(self, spin, band, acc=4):
         """Compute the effective masses."""
         ders2 = self.derivatives(spin, band, acc=acc) * eV_Ha / Bohr_Ang**2
-        emasses = 1.0/ders2
-        return emasses
+        return 1.0/ders2
 
 
 #class NestingFactor(object):

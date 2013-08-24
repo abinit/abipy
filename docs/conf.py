@@ -58,6 +58,7 @@ extensions += [
           'ipython_console_highlighting',
           'numpydoc',
           'gen_rst',
+          'sphinxcontrib.autorun',
           #'gen_gallery',  Generate gallery of PICS a la' matplotlib.
           ]
 

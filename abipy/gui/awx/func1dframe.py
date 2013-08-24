@@ -66,8 +66,7 @@ class Func1dPlotFrame(wx.Frame):
 
         bSizer10.Add(fgSizer4, 0, 0, 5)
 
-        self.SetSizer(bSizer10)
-        self.Fit()
+        self.SetSizerAndFit(bSizer10)
 
         self.plot_button.Bind(wx.EVT_BUTTON, self.OnClick)
 

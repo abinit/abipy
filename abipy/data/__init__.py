@@ -24,6 +24,7 @@ def cif_file(filename):
     """Returns the absolute path of the CIF file in tests/data/cifs."""
     return os.path.join(_CIF_DIRPATH, filename)
 
+pseudo_dir = _PSEUDOS_DIRPATH
 
 def pseudos(*filenames):
     """Returns the absolute path of a pseudopotential file in tests/data/pseudos."""

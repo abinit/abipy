@@ -19,11 +19,11 @@ def main():
 
     manager = RunManager()
 
-    scf_kppa = 1
-    nscf_nband = 150
-    nscf_ngkpt = [4,4,4]
-    nscf_shiftk = [0.0, 0.0, 0.0]
-    ecuteps, ecutsigx = 2, 8
+    scf_kppa = 40
+    nscf_nband = 100
+    #nscf_ngkpt = [4,4,4]
+    #nscf_shiftk = [0.0, 0.0, 0.0]
+    ecuteps, ecutsigx = 6, 8
     #scr_nband = 50
     #sigma_nband = 50
 

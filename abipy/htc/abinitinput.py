@@ -1,4 +1,5 @@
 from __future__ import print_function, division
+
 import subprocess
 
 from os import makedirs, readlink, symlink
@@ -307,6 +308,4 @@ class AbinitInput(AbinitFiles):
             except OSError:
                 raise OSError("Unable to link the files. " +
                               "Maybe {} exists and is not a link.".format(apointer))
-
-
 

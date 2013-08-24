@@ -277,8 +277,6 @@ class QPList(list):
             yy = qps.get_field(field)
             ax.plot(e0mesh, yy, linestyle, **kwargs)
 
-        #plt.tight_layout()
-
         if show:
             plt.show()
 

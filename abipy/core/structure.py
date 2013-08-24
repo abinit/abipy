@@ -1,7 +1,9 @@
 """This module defines the structure object that store information on the crystalline structure and its symmetries."""
 from __future__ import division, print_function
 
-from .constants import Bohr2Ang
+import numpy as np
+
+from .constants import Bohr2Ang, Ang2Bohr
 from .symmetries import SpaceGroup
 from abipy.iotools import as_etsfreader, Visualizer
 from abipy.iotools import xsf
@@ -10,13 +12,43 @@ import pymatgen
 
 __all__ = [
     "Structure",
+    "Lattice",
 ]
+
+
+class Lattice(pymatgen.Lattice):
+
+    @classmethod
+    def from_abivars(cls, d):
+        rprim = d.get("rprim", None)
+        angdeg = d.get("angdeg", None)
+        acell = d["acell"]
+
+        # Call pymatgen constructors (note that pymatgen uses Angstrom instead of Bohr).
+        if rprim is not None:
+            rprim = np.reshape(rprim, (3,3))
+            rprimd = [acell[i] * rprim[i] for i in range(3)]
+            return cls(Bohr2Ang(rprimd))
+
+        elif angdeg is not None:
+            # angdeg(0) is the angle between the 2nd and 3rd vectors,
+            # angdeg(1) is the angle between the 1st and 3rd vectors,
+            # angdeg(2) is the angle between the 1st and 2nd vectors,
+            raise NotImplementedError("angdeg convention should be tested")
+            angles = angdeg
+            angles[1] = -angles[1]
+            new = cls.from_lengths_and_angles(Bohr2Ang(acell), angdeg)
+            new.__class__ = cls
+            return new
+
+        else:
+            raise ValueError("Don't know how to construct a Lattice from dict: %s" % d)
 
 
 class Structure(pymatgen.Structure):
 
     @classmethod
-    def from_file(cls, file):
+    def from_file(cls, filepath):
         """
         Return a new instance from a NetCDF file containing crystallographic data in the ETSF-IO format.
 
@@ -24,16 +56,23 @@ class Structure(pymatgen.Structure):
             ncdata:
                 filename or NetcdfReader instance.
         """
-        file, closeit = as_etsfreader(file)
+        if filepath.endswith(".nc"):
+            file, closeit = as_etsfreader(filepath)
 
-        new = file.read_structure()
-        # Change the class of new.
-        new.__class__ = cls
+            new = file.read_structure()
+            # Change the class of new.
+            new.__class__ = cls
 
-        new.set_spacegroup(SpaceGroup.from_file(file))
+            new.set_spacegroup(SpaceGroup.from_file(file))
 
-        if closeit:
-            file.close()
+            if closeit:
+                file.close()
+        else:
+            # TODO: Spacegroup is missing here.
+            from pymatgen.io.smartio import read_structure
+            new = read_structure(filepath)
+            # Change the class of new.
+            new.__class__ = cls
 
         return new
 
@@ -190,4 +229,78 @@ class Structure(pymatgen.Structure):
                 pass
         else:
             raise Visualizer.Error("Don't know how to export data for %s" % visualizer)
+
+    def to_abivars(self):
+        """Returns a dictionary with the abinit variables."""
+        types_of_specie = self.types_of_specie
+        natom = self.num_sites
+
+        znucl_type = [specie.number for specie in types_of_specie]
+
+        znucl_atoms = self.atomic_numbers
+
+        typat = np.zeros(natom, np.int)
+        for (atm_idx, site) in enumerate(self):
+            typat[atm_idx] = types_of_specie.index(site.specie) + 1
+
+        #significant_figures = 12
+        #format_str = "{{:.{0}f}}".format(significant_figures)
+        #fmt = format_str.format
+
+        #lines = []
+        #for vec in Ang2Bohr(self.lattice.matrix):
+        #    lines.append(" ".join([fmt(c) for c in vec]))
+        #rprim = "\n" + "\n".join(lines)
+
+        #lines = []
+        #for (i, site) in enumerate(self):
+        #    coords = site.frac_coords
+        #    lines.append( " ".join([fmt(c) for c in coords]) + " # " + site.species_string )
+        #xred = '\n' + "\n".join(lines)
+
+        rprim = Ang2Bohr(self.lattice.matrix)
+        xred = np.reshape([site.frac_coords for site in self], (-1,3))
+
+        return {
+            "acell" : 3 * [1.0],
+            "rprim" : rprim,
+            "natom" : natom,
+            "ntypat": len(types_of_specie),
+            "typat" : typat,
+            "znucl" : znucl_type,
+            "xred"  : xred,
+        }
+
+    @classmethod
+    def from_abivars(cls, d):
+        lattice = Lattice.from_abivars(d)
+
+        coords, coords_are_cartesian = d.get("xred", None), False
+
+        if coords is None:
+            coords = d.get("xcart", None)
+            if coords is not None:
+                coords = Bohr2Ang(coords)
+            else:
+                coords = d.get("xangst", None)
+            coords_are_cartesian = True
+        
+        if coords is None:
+            raise ValueError("Cannot extract atomic coordinates from dict %s" % str(d))
+
+        coords = np.reshape(coords, (-1,3))
+
+        znucl_type, typat = d["znucl"], d["typat"]
+        assert len(typat) == len(coords)
+
+        # Note Fortan --> C indexing 
+        species = [znucl_type[typ-1] for typ in typat]
+
+        return cls(lattice, species, coords, validate_proximity=False,
+                   to_unit_cell=False, coords_are_cartesian=coords_are_cartesian)
+
+    def write_structure(self, filename):
+        """See `pymatgen.io.smartio.write_structure`"""
+        from pymatgen.io.smartio import write_structure
+        write_structure(self, filename)
 

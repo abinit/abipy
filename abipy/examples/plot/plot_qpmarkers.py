@@ -12,6 +12,7 @@ sigma_file = abiopen(data.ref_file("tgw1_9o_DS4_SIGRES.nc"))
 sigma_file.plot_ksbands_with_qpmarkers(qpattr="qpeme0", fact=1000)
 
 # The list of available qpattr:
-print(QPState.get_fields)
+#from abipy.electrons.import QPState
+#print(QPState.get_fields)
 
 #sigma_file.plot_ksbands_with_qpmarkers(qpattr="vxcme", fact=1000)

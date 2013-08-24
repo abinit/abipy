@@ -12,19 +12,19 @@ class TestStructure(AbipyTest):
 
     def test_structure_from_ncfiles(self):
         """Initialize Structure from Netcdf data files"""
-        ncfiles = data.ALL_NCFILES
-        assert ncfiles
 
-        for filename in ncfiles:
+        for filename in data.WFK_NCFILES + data.GSR_NCFILES:
             print("About to read file %s" % filename)
             structure = Structure.from_file(filename)
             print(structure)
 
+            # All nc files produced by ABINIT should have info on the spacegroup.
             self.assertTrue(structure.has_spacegroup)
 
             # Call pymatgen machinery to get the high-symmetry stars.
             print(structure.hsym_stars)
 
+            # Export data in Xcrysden format.
             structure.export(".xsf")
 
 

@@ -11,8 +11,6 @@ from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from collections import OrderedDict
 from copy import deepcopy
 
-
-
 from .utils import parse_ewc
 from abipy.core import release, AbipyException, Structure, Density
 from abipy.profile import abipy_env
@@ -259,14 +257,11 @@ class Launcher(AbinitInput):
                 available in main.errors, main.warnings, main.comments, log.errors etc.
        """
        from pymatgen.io.abinitio.events import EventParser
-       #parser = EventParser()
-       #main_events = parser.parse(self.last_output())
-       #log_events = parser.parse(self.log_name)
-       #return main_events, log_events
-       nafter = 5
-       main = parse_ewc(self.last_output(), nafter=nafter)
-       log  = parse_ewc(self.log_name, nafter=nafter)
-       return main, log
+       parser = EventParser()
+       main_events = parser.parse(self.last_output())
+       log_events = parser.parse(self.log_name)
+
+       return main_events, log_events
 
     def make(self, *args, **kwargs):
         """

@@ -4,7 +4,7 @@ This scripts runs all the python scripts located in this directory allowing
 the user to change the matplotlib backend. 
 
 Usage: 
-    run.py [backend]
+    _runplots.py [backend]
 """
 from __future__ import print_function
 
@@ -54,8 +54,8 @@ def revert_backend():
 def str_examples():
     examples = """
       Usage example:\n\n
-      run.py               => Run all scripts.
-      run.py -m auto -t 5  => Run all scripts, kill the process after 5 seconds.
+      _runplots.py               => Run all scripts.
+      _runplots.py -m auto -t 5  => Run all scripts, kill the process after 5 seconds.
     """
     return examples
 

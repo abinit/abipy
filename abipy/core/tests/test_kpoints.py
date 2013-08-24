@@ -130,21 +130,32 @@ class TestKpointList(AbipyTest):
         self.assertTrue(len(add_klist) == 4)
         self.assertTrue(add_klist == add_klist.remove_duplicated())
 
-class TestKpointsFactory(AbipyTest):
+class TestKpointsReader(AbipyTest):
 
-    def test_reading_from_WFK(self):
-        """Test the reading of Kpoints from WFK files."""
-        for filepath in data.WFK_NCFILES:
-            print("About to read WFK file: %s" % filepath)
+    def test_reading(self):
+        """Test the reading of Kpoints from netcdf files."""
+
+        filenames = [
+            "si_scf_GSR.nc",
+            "si_nscf_GSR.nc",
+            "si_scf_WFK-etsf.nc",
+        ]
+
+        for fname in filenames:
+            filepath = data.ref_file(fname)
+            print("About to read file: %s" % filepath)
+
             with KpointsReader(filepath) as r:
                 kpoints = r.read_kpoints()
 
-    #def test_reading_from_GSR(self):
-    #    """Test the reading of Kpoints from GSR files."""
-    #    for filepath in data.GSR_NCFILES:
-    #        print("About to read GSR file: %s" % filepath)
-    #        with KpointsReader(filepath) as r:
-    #            kpoints = r.read_kpoints()
+                if "_scf" in fname:
+                    # expecting a homogeneous sampling.
+                    self.assertTrue(kpoints.is_homogeneous)
+                    self.assertTrue(kpoints.sum_weights() == 1.0)
+
+                elif "_nscf" in fname:
+                    # expecting a path in k-space.
+                    self.assertTrue(kpoints.is_path)
 
 
 if __name__ == "__main__":

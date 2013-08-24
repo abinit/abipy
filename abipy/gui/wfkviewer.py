@@ -244,7 +244,7 @@ class WfkViewerFrame(awx.Frame):
     def OnDos(self, event):
         """Open Frame for the computation of the DOS."""
         if self.wfk is None: return
-        ewx.ElectronDosFrame(self, bands=self.wfk.ebands()).Show()
+        ewx.ElectronDosFrame(self, bands=self.wfk.ebands).Show()
 
     def OnJdos(self, event):
         """Open Frame for the computation of the JDOS."""

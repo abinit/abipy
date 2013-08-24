@@ -427,6 +427,16 @@ class KpointList(collections.Sequence):
         return self._points.count(kpoint)
 
     @property
+    def is_path(self):
+        """True if self represents a path in the BZ."""
+        return isinstance(self, Kpath)
+
+    @property
+    def is_homogeneous(self):
+        """True if self represents a homogeneous sampling of the BZ."""
+        return isinstance(self, IrredZone)
+
+    @property
     def frac_coords(self):
         """Fractional coordinates of the k-point as `ndarray` of shape (len(self), 3)"""
         return self._frac_coords
@@ -603,6 +613,8 @@ class IrredZone(KpointList):
     An IrredZone is a (immutable) sequence of points in the irreducible wedge of the BZ.
     Each point has a weight whose sum must equal 1 so that we can integrate quantities 
     in the full Brillouin zone.
+    Provides methods to symmetrize k-dependent quantities with the full
+    symmetry of the structure. e.g. bands, occupation factors, phonon frequencies.
     """
     def __init__(self, reciprocal_lattice, frac_coords, weights, ksampling):
         """
@@ -622,130 +634,53 @@ class IrredZone(KpointList):
         # Weights must be normalized to one.
         wsum = self.sum_weights()
         if abs(wsum - 1) > 1.e-6:
-            raise ValueError("K-point weights must be normalized to one but wsum = %s" % wsum)
+            err_msg =  "Kpoint weights should sum up to one while sum_weights is %.3f\n" % wsum
+            err_msg += "The list of kpoints does not represent a homogeneous sampling of the BZ\n" 
+            err_msg += str(type(self)) + "\n" + str(self)
+            raise ValueError(err_msg)
+
+        # FIXME
+        # Quick and dirty hack to allow the reading of the k-points from WFK files
+        # where info on the sampling is missing. I will regret it but at present 
+        # is the only solution I found (changes in the ETSF-IO part of Abinit are needed)
+        return 
 
         # time-reversal?
         assert ksampling.is_homogeneous
-        self.kptopt = self.shifts = ksampling.kptopt, ksampling.shifts
+        self.kptopt = ksampling.kptopt
+        self._shifts = np.reshape(shifts, (-1,3))
 
-        self.mpdivs, self.kptrlatt = None, None
+        if ksampling.kptrlatt is not None:
+            # Diagonal kptrlatt is equivalent to MP folding.
+            # Non-diagonal kptrlatt is not supported.
+            self.mpdivs = np.array(3, dtype=np.int)
+            self.mpdivs[0] = ksampling.kptrlatt[0,0]
+            self.mpdivs[1] = ksampling.kptrlatt[1,1]
+            self.mpdivs[2] = ksampling.kptrlatt[2,2]
 
-        if ksampling.mpdivs is not None:
+            for i in range(3):
+                for j in range(3):
+                    if ksampling.kptrlatt[i,j] != 0:
+                        raise ValueError("Non diagonal kptrlatt is not supported")
+
+        elif ksampling.mpdivs is not None:
             # MP folding
             self.mpdivs = ksampling.mpdivs
-
-        elif ksampling.kptrlatt is not None:
-            # kptrlatt case.
-            self.kptrlatt = ksampling.kptrlatt
-            # Diagonal kptrlatt is equivalent to MP folding.
-            #if self.kptrlatt  and ...
-            #self.mpdivs =
 
         else:
             raise ValueError("Either MP mesh info or kptrlatt must be present in ksampling")
 
-    @property
-    def has_mpmesh(self):
-        """True if the mesh has been defined in terms of Monkhors-Pack divisions."""
-        return self.mpdivs is not None
-
-
-class KSamplingInfo(AttrDict):
-
-    #KNOWN_KEYS = {
-    #    "reduced_coordinates_of_kpoints": MANDATORY,
-    #    "kpoint_weights": OPTIONAL,
-    #    "kpoint_grid shift": OPTIONAL,
-    #    "monkhorst_pack_folding": OPTIONAL,
-    #    "kpoint_grid vectors": OPTIONAL,
-    #    "kptopt": OPTIONAL,
-    #}
-
-    def __init__(self, *args, **kwargs):
-        super(KSamplingInfo, self).__init__(*args, **kwargs)
-        print("ksampling",self)
-    #    for k in self:
-    #        if k not in self.KNOWN_KEYS:
-    #            raise ValueError("Unknow key %s" % k)
-    #    for k, v in self.KNOWN_KEYS.items():
-    #        if v is self.MANDATORY and k not in self:
-    #            raise ValueError("Mandatory key %s is missing" % k)
-
-    @property
-    def is_homogeneous(self):
-        """True if we have a homogeneous sampling of the BZ."""
-        return (self.mpdivs is not None or 
-                self.kptrlatt is not None)
-
-    @property
-    def is_path(self):
-        """True if we have a path in the BZ."""
-        return not self.is_homogeneous
-
-
-##########################################################################################
-
-
-class Kmesh(object):
-    """
-    This object describes the sampling of the full Brillouin zone.
-
-    A Kmesh object has a set of irreducible points, information on how
-    to generate the mesh in the full BZ. It also provides methods
-    to symmetrized and visualize quantities in k-space.
-    """
-    def __init__(self, structure, mpdivs, shifts, ibz):
-        """
-        Args:
-            structure:
-                `Structure` instance.
-            mpdivs:
-                Number of Monkhorst-Pack divisions along the reduced directions kx, ky, kz.
-            shifts:
-                Shifts of the mesh.
-            ibz:
-                k-points in the irreducible wedge.
-
-        Provides methods to symmetrize k-dependent quantities with the full
-        symmetry of the structure. e.g. bands, occupation factors, phonon frequencies.
-        """
-        self._structure = structure
-        assert stucture.reciprocal_lattice == ibz.reciprocal_lattice
-
-        self.mpdivs = np.asarray(mpdivs)
-        assert self.mpdivs.shape == (3,)
-        self.nx, self.ny, self.nz = self.mpdivs
-
-        self._shifts = np.reshape(shifts, (-1, 3))
-
-        self._ibz = ibz
-        assert isinstance(ibz, IrredZone)
-
+        #self.nx, self.ny, self.nz = self.mpdivs
         #grids_1d = 3 * [None]
         #for i in range(3):
         #    grids_1d[i] = np.arange(0, self.mpdivs[i])
         #self.grids_1d = tuple(grids_1d)
 
     @property
-    def structure(self):
-        """Crystalline Structure."""
-        return self._structure
-
-    @property
-    def ibz(self):
-        """`IrredZone` object."""
-        return self._ibz
-
-    @property
-    def len_ibz(self):
-        """Number of points in the IBZ."""
-        return len(self.ibz)
-
-    @property
     def shifts(self):
         """`ndarray` with the shifts."""
         return self._shifts
-
+                                         
     @property
     def num_shifts(self):
         """Number of shifts."""
@@ -788,34 +723,63 @@ class Kmesh(object):
     #@property
     #def flat_tables(self):
 
-    def symmetrize_data_ibz(self, data_ibz): #, pbc=3*[False], korder="c"):
-        assert len(data_ibz) == self.len_ibz 
-        data_bz = np.empty(self.len_bz, dtype=data_ibz.dtype)
+    #def symmetrize_data_ibz(self, data_ibz): #, pbc=3*[False], korder="c"):
+    #    assert len(data_ibz) == self.len_ibz 
+    #    data_bz = np.empty(self.len_bz, dtype=data_ibz.dtype)
 
-        bz2ibz = self.bz2ibz
-        for ik_bz in range(self.len_bz):
-            data_bz[ik_bz] = data_ibz[bz2ibz[ik_bz]]
+    #    bz2ibz = self.bz2ibz
+    #    for ik_bz in range(self.len_bz):
+    #        data_bz[ik_bz] = data_ibz[bz2ibz[ik_bz]]
 
-        return data_bz
+    #    return data_bz
 
-    def plane_cut(self, values_ibz):
-        """
-        Symmetrize values in the IBZ to have them on the full BZ, then
-        select a slice along the specified plane E.g. plane = (1,1,0).
-        """
-        assert len(values_ibz) == len(self.ibz)
-        #indices =
-        z0 = 0
-        plane = np.empty((self.nx, self.ny))
+    #def plane_cut(self, values_ibz):
+    #    """
+    #    Symmetrize values in the IBZ to have them on the full BZ, then
+    #    select a slice along the specified plane E.g. plane = (1,1,0).
+    #    """
+    #    assert len(values_ibz) == len(self)
+    #    #indices =
+    #    z0 = 0
+    #    plane = np.empty((self.nx, self.ny))
 
-        kx, ky = range(self.nx), range(self.ny)
-        for x in kx:
-            for y in ky:
-                ibz_idx = self.map_xyz2ibz[x, y, z0]
-                plane[x, y] = values_ibz[ibz_idx]
+    #    kx, ky = range(self.nx), range(self.ny)
+    #    for x in kx:
+    #        for y in ky:
+    #            ibz_idx = self.map_xyz2ibz[x, y, z0]
+    #            plane[x, y] = values_ibz[ibz_idx]
 
-        kx, ky = np.meshgrid(kx, ky)
-        return kx, ky, plane
+    #    kx, ky = np.meshgrid(kx, ky)
+    #    return kx, ky, plane
+
+
+class KSamplingInfo(AttrDict):
+
+    #KNOWN_KEYS = {
+    #    "reduced_coordinates_of_kpoints": MANDATORY,
+    #    "kpoint_weights": OPTIONAL,
+    #    "kpoint_grid shift": OPTIONAL,
+    #    "monkhorst_pack_folding": OPTIONAL,
+    #    "kpoint_grid vectors": OPTIONAL,
+    #    "kptopt": OPTIONAL,
+    #}
+
+    def __init__(self, *args, **kwargs):
+        super(KSamplingInfo, self).__init__(*args, **kwargs)
+        print("ksampling",self)
+    #    for k in self:
+    #        if k not in self.KNOWN_KEYS:
+    #            raise ValueError("Unknow key %s" % k)
+
+    @property
+    def is_homogeneous(self):
+        """True if we have a homogeneous sampling of the BZ."""
+        return (self.mpdivs is not None or self.kptrlatt is not None)
+
+    @property
+    def is_path(self):
+        """True if we have a path in the BZ."""
+        return not self.is_homogeneous
 
 
 def returns_None_onfail(func):
@@ -851,7 +815,11 @@ class KpointsReaderMixin(object):
         weights = self.read_kweights()
         ksampling = self.read_ksampling_info()
 
-        if ksampling.is_homogeneous:
+        # FIXME
+        # Quick and dirty hack to allow the reading of the k-points from WFK files
+        # where info on the sampling is missing. I will regret it but at present 
+        # is the only solution I found (changes in the ETSF-IO part of Abinit are needed)
+        if ksampling.is_homogeneous or abs(sum(weights) - 1.0) < 1.e-6:
             # we have a homogeneous sampling of the BZ.
             return IrredZone(structure.reciprocal_lattice, frac_coords, weights, ksampling)
 

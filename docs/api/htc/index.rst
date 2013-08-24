@@ -10,3 +10,4 @@ High-Throughput Computing
    jobfile.rst
    filesfile.rst
    launcher.rst
+   input.rst

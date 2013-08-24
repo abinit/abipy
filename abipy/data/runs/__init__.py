@@ -38,7 +38,7 @@ class RunManager(object):
         refdir, workdir = self.refdir, self.workdir
 
         if not os.path.exists(refdir):
-            work.move(refdir)
+            self.work.move(refdir)
 
         else:
             diffs = {}

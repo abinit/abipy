@@ -52,7 +52,7 @@ def main():
     work[0].rename("out_DEN-etsf.nc", "si_DEN-etsf.nc")
     work[0].rename("out_GSR.nc", "si_scf_GSR.nc")
 
-    work[1].rename("out_WFK_0-etsf.nc", "si_nscf_WFK-etsf.nc")
+    #work[1].rename("out_WFK_0-etsf.nc", "si_nscf_WFK-etsf.nc")
     work[1].rename("out_GSR.nc", "si_nscf_GSR.nc")
 
     work.rmtree(exclude_wildcard="*.abin|*.about|*_WFK*|*_GSR.nc|*DEN-etsf.nc")
