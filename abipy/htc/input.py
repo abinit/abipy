@@ -6,9 +6,29 @@ import warnings
 import itertools
 import numpy as np
 
+from pymatgen.io.abinitio.pseudos import PseudoTable
 from abipy.core import Structure
 
 __all__ = ['AbiInput']
+
+# variables that must have a unique value throughout all the datasets.
+_NO_MULTI = [
+    "jdtset",
+    "ndtset",
+    "ntypat",
+    "znucl",
+    "cpus",
+    "cpum",
+    "cpuh",
+    "npsp",
+    "timopt",
+    "iatcon",
+    "natcon",
+    "nconeq",
+    "prtxtypat",
+    "wtatcon",
+]
+
 
 class AbinitVariable(object):
 
@@ -64,8 +84,7 @@ class AbiInput(object):
         if missing:
             raise self.Error("Cannot find the following pseudopotential files:\n%s" % str(missing)) 
 
-        self._pseudos = pseudo_paths
-        #self._pseudos = PseudoTable(pseudo_paths)
+        self._pseudos = PseudoTable(pseudo_paths)
 
         if comment:
             self.set_comment(comment)
@@ -100,7 +119,7 @@ class AbiInput(object):
     def __setattr__(self, varname, value):
 
         if varname.startswith("ndtset"):
-            raise ValueError("Cannot change read-only variable ndtset")
+            raise self.Error("Cannot change read-only variable ndtset")
 
         if varname.startswith("_"):
             # Standard behaviour for "private" variables.
@@ -128,6 +147,18 @@ class AbiInput(object):
                 varname = varname[:len(varname)-i]
 
                 self[idt].set_variable(varname, value)
+
+                # Handle no_multi variables.
+                if varname in _NO_MULTI:
+
+                    if varname in self[0]:
+                        glob_value = np.array(self[0][varname])
+                        isok  = np.all(glob_value == np.array(value))
+                        if not isok:
+                            err_msg = "NO_MULTI variable: dataset 0: %s, dataset %d: %s" % (str(glob_value), idt, str(value))
+                            raise self.Error(err_msg)
+                    else:
+                        self[0].set_variable(varname, value)
 
     def __getattr__(self, varname):
 
@@ -189,7 +220,7 @@ class AbiInput(object):
         elif isinstance(dtset, collections.Iterable):
             return dtset
 
-        raise TypeError("Don't know how to convert %s to a range-like object" % str(dtset))
+        raise self.Error("Don't know how to convert %s to a range-like object" % str(dtset))
 
     def set_variables(self, dtset=0, **vars):
         """
@@ -328,20 +359,22 @@ class AbiInput(object):
         for idt in self._dtset2range(dtset):
             self[idt].set_kmesh(ngkpt, shiftk, kptopt=kptopt)
 
-    def set_kpath(self, kptbounds, ndivsm, dtset=0):
+    def set_kpath(self, ndivsm, kptbounds=None, dtset=0):
         """
         Set the variables defining the k-path for the specified dtset.
-        """
-        for idt in self._dtset2range(dtset):
-            self[idt].set_kpath(kptbounds, ndivsm)
 
-    def set_autokpath(self, ndivsm, dtset=0):
-        """
-        Set the variables defining the k-path for the specified dtset.
-        K-points are taken from the pymatgen database.
+        The list of K-points is taken from the pymatgen database if kptbounds is None
+
+        Args:
+            ndivsm:
+                Number of divisions for the smallest segment.
+            kptbounds:
+                k-points defining the path in k-space.
+            dtset:
+                Index of the dataset. 0 for global variables.
         """
         for idt in self._dtset2range(dtset):
-            self[idt].set_autokpath(ndivsm)
+            self[idt].set_kpath(ndivsm, kptbounds=kptbounds)
 
     def set_kptgw(self, kptgw, bdgw, dtset=0):
         """
@@ -350,7 +383,7 @@ class AbiInput(object):
         for idt in self._dtset2range(dtset):
             self[idt].set_kptgw(kptgw, bdgw)
 
-    #def make_filesfiles(self, ):
+    #def make_filesfiles(self):
     #    lines = []
     #    app = lines.append
 
@@ -359,9 +392,8 @@ class AbiInput(object):
     #    app("i")
     #    app("o")
     #    app("t")
-    #    for p in self.pseudos:
-    #        app(p.filepath)
-
+    #    for pseudo in self.pseudos:
+    #        app(pseudo.filepath)
     #    return "\n".join(lines)
 
     def write(self, filepath):
@@ -440,9 +472,13 @@ class Dataset(collections.Mapping):
         return self._index
 
     @property
+    def dt0(self):
+        return self._dt0
+
+    @property
     def global_vars(self):
         """Copy of the dictionary with the global variables."""
-        return self._dt0.vars.copy()
+        return self.dt0.vars.copy()
 
     @property
     def allvars(self):
@@ -450,12 +486,9 @@ class Dataset(collections.Mapping):
         Dictionay with the variables of the dataset + the global variables.
         Variables local to the dataset overwrite the global values (if any).
         """
-        allvars = self.global_vars
-        #print("global",self.global_vars)
-        allvars.update(self.vars)
-        #print("vars",self.vars)
-        #print(allvars)
-        return allvars
+        all_vars = self.global_vars
+        all_vars.update(self.vars)
+        return all_vars
 
     def to_string(self, sortmode=None):
         """String representation."""
@@ -473,13 +506,14 @@ class Dataset(collections.Mapping):
         elif sortmode is "a":
             # alphabetical order.
             keys = sorted(self.keys())
-        #elif sortmode is "t":
-        # TODO
+        #elif sortmode is "t": TODO
         # group variables by topic
         else:
             raise ValueError("Unsupported value for sortmode %s" % str(sortmode))
 
         for var in keys:
+            if self.index != 0 and var in _NO_MULTI:
+                continue
             varname = var + post
             value = self[var]
             app("%s %s" % (varname, format_var(var, value)))
@@ -505,6 +539,18 @@ class Dataset(collections.Mapping):
 
         self[varname] = value
 
+        # Handle no_multi variables.
+        if varname in _NO_MULTI and self.index != 0:
+                                                                                                                      
+            if varname in self.dt0:
+                glob_value = np.array(self.dt0[varname])
+                isok  = np.all(glob_value == np.array(value))
+                if not isok:
+                    err_msg = "NO_MULTI variable: dataset 0: %s, dataset %d: %s" % (str(glob_value), self.index, str(value))
+                    raise self.Error(err_msg)
+            else:
+                self.dt0.set_variable(varname, value)
+
     def set_variables(self, **vars):
         """Sets variables by providing a dictionary"""
         for (varname, varvalue) in vars.items():
@@ -519,6 +565,7 @@ class Dataset(collections.Mapping):
             try:
                 structure = Structure.from_abivars(self.allvars)
             except Exception as exc:
+                raise
                 print(str(exc))
                 structure = None
 
@@ -533,11 +580,13 @@ class Dataset(collections.Mapping):
         if structure is None:
             return
 
-        if self.index == 0:
-            self.set_variables(**structure.to_abivars())
+        self.set_variables(**structure.to_abivars())
 
-        if self.index != 0 and self._dt0.structure is not None and structure != self._dt0.structure:
-            self.set_variables(**structure.to_abivars())
+        #if self.index == 0:
+        #    self.set_variables(**structure.to_abivars())
+
+        #if self.index != 0 and self.dt0.structure is not None and structure != self.dt0.structure:
+        #    self.set_variables(**structure.to_abivars())
 
     # Helper functions to facilitate the specification of several variables.
     def set_kmesh(self, ngkpt, shiftk, kptopt=1):
@@ -546,7 +595,7 @@ class Dataset(collections.Mapping):
 
         Args:
             ngkpt:
-                Monkhorst-Pach divisions
+                Monkhorst-Pack divisions
             shiftk:
                 List of shifts.
             kptopt:
@@ -560,29 +609,19 @@ class Dataset(collections.Mapping):
                            shiftk=shiftk,
                            )
 
-    def set_kpath(self, kptbounds, ndivsm):
+    def set_kpath(self, ndivsm, kptbounds=None):
         """
         Set the variables for the computation of the band structure.
 
         Args:
-            kptbounds
-                k-points defining the path in k-space.
             ndivsm:
                 Number of divisions for the smallest segment.
+            kptbounds
+                k-points defining the path in k-space.
         """
-        kptbounds = np.reshape(kptbounds, (-1,3))
+        if kptbounds is None:
+            kptbounds = [k.frac_coords for k in self.structure.hsym_kpoints]
 
-        self.set_variables(kptbounds=kptbounds,
-                           kptopt=-(len(kptbounds)-1),
-                           ndivsm=ndivsm,
-                           )
-
-    def set_autokpath(self, ndivsm):
-        """
-        Set the variables for the computation of the band structure.
-        The list of special k-points is extracted from the pymatgen database.
-        """
-        kptbounds = [k.frac_coords for k in self.structure.hsym_kpoints]
         kptbounds = np.reshape(kptbounds, (-1,3))
 
         self.set_variables(kptbounds=kptbounds,
@@ -662,6 +701,7 @@ def format_var(varname, value):
         line += ' ' + str(value)
 
     return line
+
 
 def format_scalar(val, floatdecimal=0):
     """
@@ -899,5 +939,3 @@ def convert_number(value):
 
     else:
         raise ValueError("convert_number failed")
-
-

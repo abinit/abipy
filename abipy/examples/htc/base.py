@@ -14,7 +14,7 @@ inp.tolwfr = 1e-8
 # It's possible to use strings but use them only for special cases such as:
 inp.istwfk = '*1'       
 
-# One can create a dictionary mapping  keywords to values 
+# One can create a dictionary mapping keywords to values 
 unit_cell = {
     "acell": 3*[10.217],       
     'rprim': [ [.0, .5, .5],

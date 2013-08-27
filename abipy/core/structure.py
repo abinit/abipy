@@ -1,6 +1,7 @@
 """This module defines the structure object that store information on the crystalline structure and its symmetries."""
 from __future__ import division, print_function
 
+import collections
 import numpy as np
 
 from .constants import Bohr2Ang, Ang2Bohr
@@ -43,6 +44,42 @@ class Lattice(pymatgen.Lattice):
 
         else:
             raise ValueError("Don't know how to construct a Lattice from dict: %s" % d)
+
+    #def norm(self, coords, frac_coords=True):
+    #    """
+    #    Compute the norm of vector(s).
+
+    #    Args:
+    #        coords:
+    #            Array-like object with the coordinates.
+    #        frac_coords:
+    #            Boolean stating whether the vector corresponds to fractional or
+    #            cartesian coordinates.
+    #    """
+    #    return np.sqrt(self.dot(coords, coords, frac_coords=frac_coords))
+
+    #def dot(self, coords_a, coords_b, frac_coords=False):
+    #    """
+    #    Compute the scalar product of vector(s).
+    #                                                                                            
+    #    Args:
+    #        coords:
+    #            Array-like object with the coordinates.
+    #        frac_coords:
+    #            Boolean stating whether the vector corresponds to fractional or
+    #            cartesian coordinates.
+    #    """
+    #    coords_a, coords_b = np.reshape(coords_a, (-1,3)), np.reshape(coords_b, (-1,3))
+    #    assert len(coords_a) == len(coords_b)
+    #    assett not np.iscomplexobj(coords_a) and not np.iscomplexobj(coords_b)
+
+    #    if not frac_coords:
+    #        cart_a, cart_b = coords_a, coords_b
+    #    else:
+    #        cart_a = np.reshape([self.get_cartesian_coords(vec) for vec in coords_a], (-1,3)]
+    #        cart_b = np.reshape([self.get_cartesian_coords(vec) for vec in coords_b], (-1,3)]
+
+    #    return np.array([np.dot(a,b) for a,b in zip(cart_a, cart_b)])
 
 
 class Structure(pymatgen.Structure):
@@ -291,6 +328,13 @@ class Structure(pymatgen.Structure):
         coords = np.reshape(coords, (-1,3))
 
         znucl_type, typat = d["znucl"], d["typat"]
+
+        if not isinstance(znucl_type, collections.Iterable):
+            znucl_type = [znucl_type,]
+
+        if not isinstance(typat, collections.Iterable):
+            typat = [typat,]
+
         assert len(typat) == len(coords)
 
         # Note Fortan --> C indexing 
@@ -304,3 +348,111 @@ class Structure(pymatgen.Structure):
         from pymatgen.io.smartio import write_structure
         write_structure(self, filename)
 
+    #def displace(self, displ, eta):
+    #    displ = np.reshape(displ, (-1,3)).copy()
+    #    assert len(displ) == len(self)
+    #    assert not np.iscomplexobj(displ)
+    #    dnorm = self.norm(displ, space="r")
+    #    displ /= np.max(np.abs(dnorm))
+
+    #    for i, site in enumerate(self):
+    #        site.frac_coords += eta * displ[i, :]
+
+    #    for i in range(len(self)):
+    #       self.translate_sites(indices=[i], vector=eta * displ[i, :], frac_coords=True)
+
+    #def frozen_phonon(self, qpoint, displ, eta):
+    #    old_lattice = self.lattice.copy()
+    #    scaling_matrix = 
+    #    self.make_supercell(scaling_matrix)
+    #    supercell_dipl = np.empty((len(self),3))
+    #    for at, site in enumerate(self):
+    #       l = 
+    #       base_atm = 
+    #       supercell_displ[at,:] = np.real(np.exp(2i * np.pi qpoint . l) displ[base_atm, :])
+    #
+    #    self.displace(supercell_displ, eta)
+
+    #def norm(self, coords, space="r", frac_coords=True):
+    #    """
+    #    Compute the norm of vector(s) either in real space or reciprocal space.
+
+    #    Args:
+    #        coords:
+    #            Array-like object with the coordinates.
+    #        space:
+    #           "r" for real space, "g" for reciprocal space.
+    #        frac_coords:
+    #            Boolean stating whether the vector corresponds to fractional or
+    #            cartesian coordinates.
+    #    """
+    #    return np.sqrt(self.dot(coords, coords, space=space, frac_coords=frac_coords))
+
+    #def dot(self, coords_a, coords_b, space="r", frac_coords=False):
+    #    """
+    #    Compute the scalar producr of vector(s) either in real space or reciprocal space.
+    #                                                                                            
+    #    Args:
+    #        coords:
+    #            Array-like object with the coordinates.
+    #        space:
+    #           "r" for real space, "g" for reciprocal space.
+    #        frac_coords:
+    #            Boolean stating whether the vector corresponds to fractional or
+    #            cartesian coordinates.
+    #    """
+    #    lattice = {"r": self.lattice, "g": self.reciprocal_lattice}[space.lower()]
+    #    return lattice.dot(coords_a, coords_b, frac_coords=frac_coords)
+
+
+
+#class StructureModifier(object):
+#    """
+#    Abstract class definition for all classes that modify structures.
+#    """
+#    __metaclass__ = abc.ABCMeta
+#
+#    @abc.abstractproperty
+#    def original_structure(self):
+#        """Returns the original structure."""
+#
+#    @abc.abstractproperty
+#    def modified_structure(self):
+#        """Returns the modified structure."""
+
+
+
+#class LatticeScaler(object):
+#
+#    def __init__(self, structure, vol_ratios):
+#        self._original_structure = structure.copy()
+#
+#        vol_ratios = np.array(vol_ratios)
+#        self.new_volumes = structure.v0 * vol_ratios
+#
+#    def build_new_structures(self):
+#        news = []
+#        for vol in self.new_volumes:
+#            new_structure = self.original_structure.copy()
+#            new_structure.scale_lattice(vol)
+#            news.append(new_structure)
+#
+#        return tuple(news)
+#
+#
+#class FrozenPhononMaker(object)
+#
+#    def __init__(self, structure, qpoint, displ, etas):
+#        self._original_structure = structure.copy()
+#        self.qpoint = qpoint
+#        self.displ = displ
+#        self.etas = etas
+#                                                                   
+#    def build_new_structures(self):
+#        news = []
+#        for eta in self.etas:
+#            new_structure = self.original_structure.copy()
+#            new_structure.frozen_phonon(self.qpoint, self.displ, eta)
+#            news.append(new_structure)
+#                                                                   
+#        return tuple(news)

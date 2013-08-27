@@ -8,11 +8,11 @@ structure = inp.set_structure_from_file(data.cif_file("si.cif"))
 
 inp.set_kmesh(ngkpt=[4,4,4], shiftk=[0,0,0], dtset=1)
 
-#inp.set_kpath(kptbounds=[[0,0,0], [0.5, 0.0, 0.0]], ndivsm=5, dtset=2)
-inp.set_autokpath(ndivsm=5, dtset=2)
+inp.set_kpath(ndivsm=5, dtset=2)
+#inp.set_kpath(ndivsm=5, kptbounds=[[0,0,0], [0.5, 0.0, 0.0]], dtset=2)
 
 # Global variables
-inp.ecut = 10.
+inp.ecut = 10
 
 # Dataset 1
 inp.tolvrs1 = 1e-9

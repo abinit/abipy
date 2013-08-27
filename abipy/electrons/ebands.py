@@ -1,6 +1,7 @@
 from __future__ import division, print_function
 
 import sys
+import os
 import tempfile
 import collections
 import copy
@@ -15,6 +16,7 @@ from abipy.tools import AttrDict
 from abipy.iotools import ETSF_Reader, Visualizer, bxsf_write
 from abipy.tools import gaussian
 from abipy.tools.plotting_utils import Marker
+from abipy.tools.animator import Animator
 from .edos import ElectronDOS
 
 __all__ = [
@@ -1375,6 +1377,19 @@ class ElectronBandsPlotter(object):
 
         return fig
 
+    #def animate(self, **kwargs):
+    #    from abipy.tools.animator import Animator
+    #    animator = Animator()
+    #    figures = collections.OrderedDict()
+    #    for label, bands in self._bands.items():
+    #        if self._edoses:
+    #            fig = bands.plot_with_edos(self._edoses[label], show=False)
+    #        else
+    #            fig = bands.plot(show=False)
+    #        figures[label] = fig
+    #    #animator.add_figures(figures, figures)
+    #    #return animator.animate(**kwargs)
+
 
 class ElectronDosPlotter(object):
     """
@@ -1460,6 +1475,17 @@ class ElectronDosPlotter(object):
             fig.savefig(savefig)
 
         return fig
+
+    def animate(self, **kwargs):
+        animator = Animator()
+        tmpdir = tempfile.mkdtemp()
+                                                                             
+        for (label, dos) in self._edoses.items():
+            savefig = os.path.join(tmpdir, label + ".png")
+            dos.plot(show=False, savefig=savefig)
+            animator.add_figure(label, savefig)
+
+        return animator.animate(**kwargs)
 
 
 class ElectronsReader(ETSF_Reader, KpointsReaderMixin):

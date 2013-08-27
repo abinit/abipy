@@ -4,6 +4,7 @@
 # gaussian DOS by varying the broadening parameters.
 import abipy.data as data
 from abipy import abiopen
+from abipy.electrons import ElectronDosPlotter
 
 # Open the wavefunction file computed with a homogeneous sampling of the BZ 
 # and extract the band structure on the k-mesh.
@@ -24,3 +25,4 @@ for width in widths:
    plotter.add_edos(label, edos)
 
 plotter.plot()
+#plotter.animate()
