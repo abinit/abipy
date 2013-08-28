@@ -224,6 +224,8 @@ class ElectronBands(object):
             name = self.structure.findname_in_hsym_stars(kpoint)
             if name is not None:
                 self._auto_klabels[idx] = name
+                if kpoint.name is None:
+                    kpoint.set_name(name)
 
         if markers is not None:
             for key, xys in markers.items():
@@ -480,6 +482,46 @@ class ElectronBands(object):
                 stream.write(st+"\n")
 
         stream.flush()
+
+    def to_pymatgen(self):
+        """Return a pymatgen bandstructure object."""
+        from pymatgen.electronic_structure.core import Spin
+        from pymatgen.electronic_structure.bandstructure import BandStructure, BandStructureSymmLine
+
+        assert np.all(self.nband_sk == self.nband_sk[0,0])
+
+        # TODO check this
+        efermi = self.fermie
+
+        #eigenvals is a dict of energies for spin up and spin down
+        #{Spin.up:[][],Spin.down:[][]}, the first index of the array
+        #[][] refers to the band and the second to the index of the
+        #kpoint. The kpoints are ordered according to the order of the
+        #kpoints array. If the band structure is not spin polarized, we
+        #only store one data set under Spin.up
+
+        eigenvals = {Spin.up: self.eigens[0,:,:].T.copy().tolist()}
+
+        if self.nsppol == 2: 
+            eigenvals[Spin.down] = self.eigens[1,:,:].T.copy().tolist()
+
+        if self.kpoints.is_path:
+            labels_dict = {k.name: k.frac_coords for k in self.kpoints if k.name is not None}
+            #print("in SymmLine", labels_dict)
+            return BandStructureSymmLine(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, efermi, labels_dict,
+                                        coords_are_cartesian=False, 
+                                        structure=self.structure,
+                                        projections=None
+                                        )
+
+        else:
+            #print("in BandStructure")
+            return BandStructure(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, efermi, 
+                                labels_dict=None,
+                                coords_are_cartesian=False, 
+                                structure=self.structure, 
+                                projections=None
+                                )
 
     #@property
     #def homo_bands(self):

@@ -20,7 +20,7 @@ class Animator(object):
         self._figures = collections.OrderedDict()
 
         self.animate_bin = which("animate")
-        #self.animate_bin = which("convert")
+
         if self.animate_bin is None:
             raise RuntimeError("Cannot find animate executable in $PATH.\n Please install the ImageMagick suite of tools.")
 

@@ -102,13 +102,13 @@ class AbiInput(object):
     def __str__(self):
         s = ""
         for (i, dataset) in enumerate(self):
-            header = "*** DATASET %d ***" % i
+            header = "### DATASET %d ###" % i
             if i == 0: 
-                header = "*** GLOBAL VARIABLES ***"
+                header = "### GLOBAL VARIABLES ###"
 
             str_dataset = str(dataset)
             if str_dataset:
-                header = len(header) * "*" + "\n" + header + "\n" + len(header) * "*" + "\n"
+                header = len(header) * "#" + "\n" + header + "\n" + len(header) * "#" + "\n"
                 s += "\n" + header + str(dataset) + "\n"
 
         return s
@@ -359,7 +359,7 @@ class AbiInput(object):
         for idt in self._dtset2range(dtset):
             self[idt].set_kmesh(ngkpt, shiftk, kptopt=kptopt)
 
-    def set_kpath(self, ndivsm, kptbounds=None, dtset=0):
+    def set_kpath(self, ndivsm, kptbounds=None, iscf=-2, dtset=0):
         """
         Set the variables defining the k-path for the specified dtset.
 
@@ -370,11 +370,13 @@ class AbiInput(object):
                 Number of divisions for the smallest segment.
             kptbounds:
                 k-points defining the path in k-space.
+            iscf:
+                iscf variable.
             dtset:
                 Index of the dataset. 0 for global variables.
         """
         for idt in self._dtset2range(dtset):
-            self[idt].set_kpath(ndivsm, kptbounds=kptbounds)
+            self[idt].set_kpath(ndivsm, kptbounds=kptbounds, iscf=iscf)
 
     def set_kptgw(self, kptgw, bdgw, dtset=0):
         """
@@ -609,7 +611,7 @@ class Dataset(collections.Mapping):
                            shiftk=shiftk,
                            )
 
-    def set_kpath(self, ndivsm, kptbounds=None):
+    def set_kpath(self, ndivsm, kptbounds=None, iscf=-2):
         """
         Set the variables for the computation of the band structure.
 
@@ -627,6 +629,7 @@ class Dataset(collections.Mapping):
         self.set_variables(kptbounds=kptbounds,
                            kptopt=-(len(kptbounds)-1),
                            ndivsm=ndivsm,
+                           iscf=-2,
                            )
 
     def set_kptgw(self, kptgw, bdgw):
