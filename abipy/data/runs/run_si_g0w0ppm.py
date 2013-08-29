@@ -38,7 +38,7 @@ def main():
                              ppmodel="godby", charge=0.0, inclvkb=2, sigma_nband=None, scr_nband=None,
                              **extra_abivars)
 
-    manager.set_workflow_and_run(work)
+    manager.set_work_and_run(work)
 
     if manager.retcode != 0:
         return manager.retcode

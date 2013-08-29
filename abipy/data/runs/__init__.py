@@ -20,15 +20,15 @@ class RunManager(object):
     def __str__(self):
         return str(self.__dict__)
 
-    def set_workflow(self, work):
+    def set_work(self, work):
         self.work = work
 
     def run(self):
         retcodes = SimpleResourceManager(self.work, max_ncpus=1, sleep_time=5).run()
         self.retcode = max(retcodes)
 
-    def set_workflow_and_run(self, work):
-        self.set_workflow(work)
+    def set_work_and_run(self, work):
+        self.set_work(work)
         self.run()
                                                                                 
     def finalize(self):

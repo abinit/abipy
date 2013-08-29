@@ -42,7 +42,7 @@ def main():
     work = bandstructure(manager.workdir, runmode, structure, pseudos, scf_kppa, nscf_nband, ndivsm, 
                          spin_mode="unpolarized", smearing=None, **extra_abivars)
 
-    manager.set_workflow_and_run(work)
+    manager.set_work_and_run(work)
 
     if manager.retcode != 0:
         return manager.retcode
