@@ -4,69 +4,67 @@ from __future__ import division, print_function
 import sys
 import os
 import abipy.data as data  
+import abipy.abilab as abilab
 
-from pymatgen.io.abinitio.abiobjects import AbiStructure
 from pymatgen.io.abinitio.task import RunMode
-from pymatgen.io.abinitio.pseudos import PseudoTable
-from pymatgen.io.abinitio.calculations import bandstructure
 from abipy.data.runs import RunManager
 
-
 def main():
-    structure = AbiStructure.asabistructure(data.cif_file("si.cif"))
+    structure = abilab.Structure.from_file(data.cif_file("si.cif"))
 
-    pseudos = PseudoTable(data.pseudos("14si.pspnc"))
+    inp = abilab.AbiInput(pseudos=data.pseudos("14si.pspnc"), ndtset=2)
+    inp.set_structure_from_file(data.cif_file("si.cif"))
+
+    # Global variables
+    inp.ecut = 6
+    inp.nband  = 8
+    inp.timopt = -1
+    inp.accesswff = 3
+    inp.istwfk = "*1"
+
+    # Dataset 1 (GS run)
+    inp.set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0], dtset=1)
+    inp.tolvrs1 = 1e-6
+
+    # Dataset 2 (NSCF run)
+    kptbounds = [
+        [0.5, 0.0,  0.0],  # L point
+        [0.0, 0.0,  0.0],  # Gamma point
+        [0.0, 0.5,  0.5],  # X point
+    ]
+
+    inp.set_kpath(ndivsm=6, kptbounds=kptbounds, dtset=2)
+    #inp.set_kpath(ndivsm=5, dtset=2)
+    inp.tolwfr2 = 1e-12
+    inp.getden2 = -1
+
+    print(inp)
+
+    # Create the task defining the calculation and run.
     runmode = RunMode.sequential()
-
     manager = RunManager()
 
-    scf_kppa = 40
-    nscf_nband = 6
-    ndivsm = 5
-    #dos_ngkpt = [4,4,4]
-    #dos_shiftk = [0.1, 0.2, 0.3]
+    task = abilab.AbinitTask.from_input(inp, manager.workdir, runmode)
 
-    #klabels = {
-    #    (0.5, 0.0, 0.0) : "L",
-    #    (0.0, 0.0, 0.0) : "$\Gamma$",
-    #    (0.0, 0.5, 0.5) : "X",
-    #}
-
-    extra_abivars = dict(
-        ecut=6, 
-        timopt=-1,
-        accesswff=3, 
-        istwfk="*1",
-    )
-
-    work = bandstructure(manager.workdir, runmode, structure, pseudos, scf_kppa, nscf_nband, ndivsm, 
-                         spin_mode="unpolarized", smearing=None, **extra_abivars)
-
-    manager.set_work_and_run(work)
+    manager.set_work_and_run(task)
 
     if manager.retcode != 0:
         return manager.retcode
 
     # Remove all files except those matching these regular expression.
-    work[0].rename("out_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
-    work[0].rename("out_DEN-etsf.nc", "si_DEN-etsf.nc")
-    work[0].rename("out_GSR.nc", "si_scf_GSR.nc")
+    task.rmtree(exclude_wildcard="*.abi|*_WFK*|*_GSR.nc|*DEN-etsf.nc")
 
-    #work[1].rename("out_WFK_0-etsf.nc", "si_nscf_WFK-etsf.nc")
-    work[1].rename("out_GSR.nc", "si_nscf_GSR.nc")
+    task.rename("out_DS1_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
+    task.rename("out_DS1_DEN-etsf.nc", "si_DEN-etsf.nc")
+    task.rename("out_DS1_GSR.nc", "si_scf_GSR.nc")
 
-    work.rmtree(exclude_wildcard="*.abin|*.about|*_WFK*|*_GSR.nc|*DEN-etsf.nc")
+    task.rename("out_DS2_WFK_0-etsf.nc", "si_nscf_WFK-etsf.nc")
+    task.rename("out_DS2_GSR.nc", "si_nscf_GSR.nc")
+
+    task.remove_files("out_DS2_DEN-etsf.nc")
 
     manager.finalize()
-
-    #dos_kppa = 10
-    #bands = bandstructure("hello_dos", runmode, structure, pseudos, scf_kppa, nscf_nband,
-    #                      ndivsm, accuracy="normal", spin_mode="polarized",
-    #                      smearing="fermi_dirac:0.1 eV", charge=0.0, scf_solver=None,
-    #                      dos_kppa=dos_kppa)
-
     return manager.retcode 
-
 
 if __name__ == "__main__":
     sys.exit(main())

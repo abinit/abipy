@@ -584,12 +584,6 @@ class Dataset(collections.Mapping):
 
         self.set_variables(**structure.to_abivars())
 
-        #if self.index == 0:
-        #    self.set_variables(**structure.to_abivars())
-
-        #if self.index != 0 and self.dt0.structure is not None and structure != self.dt0.structure:
-        #    self.set_variables(**structure.to_abivars())
-
     # Helper functions to facilitate the specification of several variables.
     def set_kmesh(self, ngkpt, shiftk, kptopt=1):
         """
