@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 from __future__ import division, print_function
 
-import sys
 import os
 import abipy.data as data  
 import abipy.abilab as abilab
@@ -52,7 +51,7 @@ def main():
         return manager.retcode
 
     # Remove all files except those matching these regular expression.
-    task.rmtree(exclude_wildcard="*.abi|*_WFK*|*_GSR.nc|*DEN-etsf.nc")
+    task.rmtree(exclude_wildcard="*.abi|*.abo|*_WFK*|*_GSR.nc|*DEN-etsf.nc")
 
     task.rename("out_DS1_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
     task.rename("out_DS1_DEN-etsf.nc", "si_DEN-etsf.nc")
@@ -67,4 +66,5 @@ def main():
     return manager.retcode 
 
 if __name__ == "__main__":
+    import sys
     sys.exit(main())

@@ -9,7 +9,9 @@ import numpy as np
 from pymatgen.io.abinitio.pseudos import PseudoTable
 from abipy.core import Structure
 
-__all__ = ['AbiInput']
+__all__ = [
+    "AbiInput",
+]
 
 # variables that must have a unique value throughout all the datasets.
 _NO_MULTI = [
@@ -206,7 +208,7 @@ class AbiInput(object):
     @staticmethod
     def _dtset2range(dtset):
         """
-        Helper function that coverts dtset into a range. Accepts int, slice objects or iterable.
+        Helper function to convert dtset into a range. Accepts int, slice objects or iterable.
         """
         if isinstance(dtset, int):
             return [dtset]
@@ -514,10 +516,18 @@ class Dataset(collections.Mapping):
             raise ValueError("Unsupported value for sortmode %s" % str(sortmode))
 
         for var in keys:
+            value = self[var]
+            # Do not print NO_MULTI variables except for dataset 0.
             if self.index != 0 and var in _NO_MULTI:
                 continue
+
+            # Print ndtset only if we really have datasets. 
+            # This trick prevents abinit from adding DS# to the output files.
+            # thus complicating the creation of workflows made of separated calculations.
+            if var == "ndtset" and value == 1:
+                continue
+
             varname = var + post
-            value = self[var]
             app("%s %s" % (varname, format_var(var, value)))
 
         return "\n".join(lines)
@@ -623,7 +633,7 @@ class Dataset(collections.Mapping):
         self.set_variables(kptbounds=kptbounds,
                            kptopt=-(len(kptbounds)-1),
                            ndivsm=ndivsm,
-                           iscf=-2,
+                           iscf=iscf,
                            )
 
     def set_kptgw(self, kptgw, bdgw):

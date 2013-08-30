@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 from __future__ import division, print_function
 
-import sys
 import abipy.data as data  
 
 from pymatgen.io.abinitio.abiobjects import AbiStructure
@@ -63,4 +62,5 @@ def main():
     return manager.retcode 
 
 if __name__ == "__main__":
+    import sys
     sys.exit(main())

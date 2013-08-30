@@ -499,6 +499,15 @@ class SIGRES_Plotter(collections.Iterable):
     """
     This object receives a list of `SIGRES_File` objects and provides
     methods to inspect/analyze the GW results (useful for convergence studies)
+
+    .. attributes:
+        
+        nsppol:
+            Number of spins (must be the same in each file)
+
+        computed_gwkpoints:
+            List of k-points where the QP energies have been evaluated.
+            (must be the same in each file)
     """
     def __init__(self):
         self._sigres_files = collections.OrderedDict()
@@ -534,13 +543,17 @@ class SIGRES_Plotter(collections.Iterable):
         # 1) Number of spins
         if not hasattr(self, "nsppol"): 
             self.nsppol = sigres.nsppol
-        assert self.nsppol == sigres.nsppol
+
+        if self.nsppol != sigres.nsppol:
+            raise ValueError("Found two SIGRES files with different nsppol")
 
         # The set of k-points where GW corrections have been computed.
         if not hasattr(self, "computed_gwkpoints"):
             self.computed_gwkpoints = sigres.gwkpoints
-        #assert self.compute_gwkpoints == sigres.gwkpoints
-        #    self.computed_gwkpoints = (self.computed_gwkpoints + sigres.gwkpoints).remove_duplicated()
+
+        if self.computed_gwkpoints != sigres.gwkpoints:
+            raise ValueError("Found two SIGRES files with different list of GW k-points.")
+            #self.computed_gwkpoints = (self.computed_gwkpoints + sigres.gwkpoints).remove_duplicated()
 
         if not hasattr(self, "max_gwbstart"):
             self.max_gwbstart = sigres.max_gwbstart
@@ -554,7 +567,11 @@ class SIGRES_Plotter(collections.Iterable):
 
     @property
     def param_name(self):
-        """The name of the parameter whose value is checked for convergence."""
+        """
+        The name of the parameter whose value is checked for convergence.
+        This attribute is automatically individuated by inspecting the differences
+        inf the sigres.params dictionaries of the files provided.
+        """
         try: 
             return self._param_name
         except AttributeError:
