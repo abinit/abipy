@@ -62,10 +62,9 @@ def main():
 
     manager.set_work_and_run(work)
 
-    #work.show_inputs()
-    from abipy.gui.wxapps import wxapp_showfiles
-    #wxapp_showfiles(dirpath=work.workdir, walk=True, wildcard="*.abi").MainLoop()
-    wxapp_showfiles(dirpath=work.workdir, walk=True, wildcard="*.abo").MainLoop()
+    work.show_inputs()
+    #from abipy.gui.wxapps import wxapp_showfiles
+    #wxapp_showfiles(dirpath=work.workdir, walk=True, wildcard="*.abo").MainLoop()
 
     if manager.retcode != 0:
         return manager.retcode
