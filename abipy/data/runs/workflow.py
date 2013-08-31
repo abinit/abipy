@@ -60,6 +60,8 @@ def main():
     # that this step depens on the SCF run (requires the DEN file produced in the SCF run).
     work.register_input(nscf_inp, links=scf_link.produces_exts("_DEN"))
 
+    work.show_inputs()
+
     manager.set_work_and_run(work)
 
     if manager.retcode != 0:

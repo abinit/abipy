@@ -139,7 +139,8 @@ class AbinitEventsNotebookFrame(awx.Frame):
         # Finally, put the notebook in a sizer for the panel to manage the layout
         sizer = wx.BoxSizer()
         sizer.Add(nb, 1, wx.EXPAND)
-        panel.SetSizer(sizer)
+
+        panel.SetSizerAndFit(sizer)
 
 
 def wxapp_events(root):
@@ -241,4 +242,3 @@ class AbinitTimerFrame(awx.Frame):
             key=str(self.key_cbox.GetValue())
         )
         callback(**kwargs)
-
