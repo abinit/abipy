@@ -60,9 +60,12 @@ def main():
     # that this step depens on the SCF run (requires the DEN file produced in the SCF run).
     work.register_input(nscf_inp, links=scf_link.produces_exts("_DEN"))
 
-    work.show_inputs()
-
     manager.set_work_and_run(work)
+
+    #work.show_inputs()
+    from abipy.gui.wxapps import wxapp_showfiles
+    #wxapp_showfiles(dirpath=work.workdir, walk=True, wildcard="*.abi").MainLoop()
+    wxapp_showfiles(dirpath=work.workdir, walk=True, wildcard="*.abo").MainLoop()
 
     if manager.retcode != 0:
         return manager.retcode

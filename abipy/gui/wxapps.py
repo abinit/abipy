@@ -6,3 +6,4 @@ from .scissors import wxapp_scissors
 from .wfkviewer import wxapp_wfkviewer
 from .sigresviewer import wxapp_sigresviewer
 from .comparison import wxapp_comparison
+from .notebooks import wxapp_showfiles
