@@ -9,15 +9,9 @@ from abipy.electrons.gsr import GSR_Reader
 
 class GSR_Reader_TestCase(AbipyTest):
 
-    def setUp(self):
-        formulas = ["Si2",]
-        self.GSR_paths = d = {}
-        for formula in formulas:
-            d[formula] = data.ref_file(formula + "_GSR.nc")
-
     def test_read_Si2(self):
         """Test the reading of GSR file."""
-        path = self.GSR_paths["Si2"]
+        path = data.ref_file("si_scf_GSR.nc")
 
         ref_dims = {
             "number_of_spins": 1
@@ -25,13 +19,12 @@ class GSR_Reader_TestCase(AbipyTest):
 
         ref_int_values = {
             "space_group": 227,
-            "number_of_states": np.reshape([15, 15], (1,2)),
         }
 
         ref_float_values = {
-            "etotal": -8.85911566912484,
-            "primitive_vectors": np.reshape([0, 5.125, 5.125, 5.125, 0, 5.125,
-                                             5.125, 5.125, 0], (3,3)),
+            "etotal": -8.8652767680604807,
+        #    "primitive_vectors": np.reshape([0, 5.125, 5.125, 5.125, 0, 5.125,
+        #                                     5.125, 5.125, 0], (3,3)),
         }
 
         with GSR_Reader(path) as r:

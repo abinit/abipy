@@ -697,6 +697,18 @@ class SIGRES_Plotter(collections.Iterable):
         return np.array(qpenes)
 
     def plot_qpgaps(self, spin=None, kpoint=None, hspan=0.01, **kwargs):
+        """
+        Plot the QP gaps as function of the convergence parameter.
+
+        Args:
+            spin:
+            kpoint: 
+            hspan:
+            **kwargs
+
+        Returns:
+            `matplotlib` figure
+        """
         spin_range = range(self.nsppol) if spin is None else torange(spin)
         kpoints_for_plot = self.computed_gwkpoints #if kpoint is None else KpointList.askpoints(kpoint)
 
@@ -735,7 +747,19 @@ class SIGRES_Plotter(collections.Iterable):
         return fig
 
     def plot_qpenes(self, spin=None, kpoint=None, band=None, hspan=0.01, **kwargs):
+        """
+        Plot the QP energies as function of the convergence parameter.
 
+        Args:
+            spin:
+            kpoint: 
+            band:
+            hspan:
+            **kwargs
+
+        Returns:
+            `matplotlib` figure
+        """
         spin_range = range(self.nsppol) if spin is None else torange(spin)
         band_range = range(self.max_gwbstart, self.min_gwbstop) if band is None else torange(band)
         kpoints_for_plot = self.computed_gwkpoints #if kpoint is None else KpointList.askpoints(kpoint)

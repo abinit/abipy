@@ -137,9 +137,6 @@ def make_input(ngkpt):
             ecuteps=4.0,
             ecutsigx=6.0,
             symsigma=1,
-            #nkptgw=1, 
-            #kptgw=[0.000, 0.000, 0.000],
-            #bdgw=[4,5]
         )
 
         inp.set_variables(dtset=4+idx, **sigma_run)

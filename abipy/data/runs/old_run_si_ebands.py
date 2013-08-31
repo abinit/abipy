@@ -20,12 +20,6 @@ def main():
     #dos_ngkpt = [4,4,4]
     #dos_shiftk = [0.1, 0.2, 0.3]
 
-    #klabels = {
-    #    (0.5, 0.0, 0.0) : "L",
-    #    (0.0, 0.0, 0.0) : "$\Gamma$",
-    #    (0.0, 0.5, 0.5) : "X",
-    #}
-
     extra_abivars = dict(
         ecut=6, 
         timopt=-1,

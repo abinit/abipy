@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 from __future__ import division, print_function
 
-
 import os
 import abipy.data as data  
 import abipy.abilab as abilab
@@ -19,7 +18,7 @@ def main():
         #istwfk = "*1",
     )
 
-    # Dataset 1 (GS run)
+    # GS run
     scf_inp = abilab.AbiInput(pseudos=data.pseudos("14si.pspnc"))
     scf_inp.set_structure(structure)
     scf_inp.set_variables(**global_vars)
@@ -29,7 +28,7 @@ def main():
 
     print(scf_inp)
 
-    # Dataset 2 (NSCF run)
+    # NSCF run
     kptbounds = [
         [0.5, 0.0,  0.0],  # L point
         [0.0, 0.0,  0.0],  # Gamma point
@@ -49,11 +48,16 @@ def main():
     # Create the task defining the calculation and run.
     runmode = RunMode.sequential()
     manager = RunManager()
+    
+    # Initialize the workflow.
+    work = abilab.Workflow(manager.workdir, runmode)
 
-    from pymatgen.io.abinitio.workflow import Workflow
-    work = Workflow(manager.workdir, runmode)
-
+    # Register the input for the SCF calculation and receive an object 
+    # that describes this node of the worflow.
     scf_link = work.register_input(scf_inp)
+
+    # Register the input for the NSCF calculation and tell the workflow
+    # that this step depens on the SCF run (requires the DEN file produced in the SCF run).
     work.register_input(nscf_inp, links=scf_link.produces_exts("_DEN"))
 
     manager.set_work_and_run(work)
@@ -61,8 +65,8 @@ def main():
     if manager.retcode != 0:
         return manager.retcode
 
-    ## Remove all files except those matching these regular expression.
-    work.rmtree(exclude_wildcard="*.abi|*.abo|*_WFK*|*_GSR.nc|*DEN-etsf.nc")
+    # Remove all files except those matching these regular expressions.
+    work.rmtree(exclude_wildcard="*.abi|*.abo")
 
     #work.rename("out_DS1_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
     #work.rename("out_DS1_DEN-etsf.nc", "si_DEN-etsf.nc")
@@ -70,7 +74,6 @@ def main():
 
     #work.rename("out_DS2_WFK_0-etsf.nc", "si_nscf_WFK-etsf.nc")
     #work.rename("out_DS2_GSR.nc", "si_nscf_GSR.nc")
-
     #work.remove_files("out_DS2_DEN-etsf.nc")
 
     manager.finalize()

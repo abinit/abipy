@@ -6,14 +6,13 @@ import abipy.data as data
 
 from pymatgen.io.abinitio.abiobjects import AbiStructure
 from pymatgen.io.abinitio.task import RunMode
-from pymatgen.io.abinitio.pseudos import PseudoTable
 from pymatgen.io.abinitio.calculations import g0w0_with_ppmodel
 from abipy.data.runs import RunManager
 
 def main():
     structure = AbiStructure.asabistructure(data.cif_file("si.cif"))
 
-    pseudos = PseudoTable(data.pseudos("14si.pspnc"))
+    pseudos = data.pseudos("14si.pspnc"))
     runmode = RunMode.sequential()
 
     manager = RunManager()
