@@ -314,11 +314,10 @@ class Structure(pymatgen.Structure):
 
     def displace(self, displ, eta, frac_coords=True):
         """
-        Displace the sites of the structure along the vector displ.
-        The displacement vector is normalized so that the max atomic 
-        displacement is 1 Angstrom, then multiplied by eta
-        Hence passing eta=0.001, will move all the atoms according to the 
-        pattern given in disp so that the maximum displacement is 0.001 Angstrom.
+        Displace the sites of the structure along the displacement vector displ.
+        The displacement vector is normalized so that the max atomic displacement 
+        is 1 Angstrom, and then multiplied by eta. Hence passing eta=0.001, will move 
+        all the atoms so that the maximum atomic displacement is 0.001 Angstrom.
 
         Args:
             displ:
@@ -337,9 +336,9 @@ class Structure(pymatgen.Structure):
         if np.iscomplexobj(displ):
             raise TypeError("Displacement cannot be complex")
 
-        #if not frac_coords:
-        #    # Convert to fractional coordinates.
-        #    displ = np.reshape([self.lattice.get_cartesian_coords(vec) for vec in displ], (-1,3))
+        if not frac_coords:
+            # Convert to fractional coordinates.
+            displ = np.reshape([self.lattice.get_cartesian_coords(vec) for vec in displ], (-1,3))
 
         # Normalize the displacement so that the max atomic displacement is 1 Angstrom.
         dnorm = self.norm(displ, space="r")
