@@ -6,9 +6,9 @@ import collections
 import warnings
 import cStringIO as StringIO
 import numpy as np
+#import abipy.core.constants as const 
 
 from abipy.tools import find_le, find_ge
-from abipy.core.constants import Ha_eV
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import KpointList
 from abipy.tools import pprint_table, AttrDict

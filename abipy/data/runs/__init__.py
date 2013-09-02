@@ -20,12 +20,20 @@ class RunManager(object):
     def __str__(self):
         return str(self.__dict__)
 
+    @property
+    def retcode(self):
+        """Return code the workflow."""
+        try:
+            return self._retcode
+        except AttributeError:
+            return 66
+
     def set_work(self, work):
         self.work = work
 
     def run(self):
         retcodes = SimpleResourceManager(self.work, max_ncpus=1, sleep_time=5).run()
-        self.retcode = max(retcodes)
+        self._retcode = max(retcodes)
 
     def set_work_and_run(self, work):
         self.set_work(work)

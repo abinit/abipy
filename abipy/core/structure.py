@@ -312,7 +312,23 @@ class Structure(pymatgen.Structure):
         from pymatgen.io.smartio import write_structure
         write_structure(self, filename)
 
-    def displace(self, displ, eta):
+    def displace(self, displ, eta, frac_coords=True):
+        """
+        Displace the sites of the structure along the vector displ.
+        The displacement vector is normalized so that the max atomic 
+        displacement is 1 Angstrom, then multiplied by eta
+        Hence passing eta=0.001, will move all the atoms according to the 
+        pattern given in disp so that the maximum displacement is 0.001 Angstrom.
+
+        Args:
+            displ:
+                Displacement vector with 3*len(self) entries (fractional coordinates).
+            eta:
+                Scaling factor. 
+            frac_coords:
+                Boolean stating whether the vector corresponds to fractional or
+                cartesian coordinates.
+        """
         displ = np.reshape(displ, (-1,3)).copy()
 
         if len(displ) != len(self):
@@ -321,6 +337,11 @@ class Structure(pymatgen.Structure):
         if np.iscomplexobj(displ):
             raise TypeError("Displacement cannot be complex")
 
+        #if not frac_coords:
+        #    # Convert to fractional coordinates.
+        #    displ = np.reshape([self.lattice.get_cartesian_coords(vec) for vec in displ], (-1,3))
+
+        # Normalize the displacement so that the max atomic displacement is 1 Angstrom.
         dnorm = self.norm(displ, space="r")
         displ /= np.max(np.abs(dnorm))
 

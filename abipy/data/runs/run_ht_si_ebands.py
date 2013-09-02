@@ -45,11 +45,11 @@ def main():
         return manager.retcode
 
     # Remove all files except those matching these regular expression.
-    work[0].rename("out_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
-    work[0].rename("out_DEN-etsf.nc", "si_DEN-etsf.nc")
-    work[0].rename("out_GSR.nc", "si_scf_GSR.nc")
+    #work[0].rename("out_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
+    #work[0].rename("out_DEN-etsf.nc", "si_DEN-etsf.nc")
+    #work[0].rename("out_GSR.nc", "si_scf_GSR.nc")
 
-    work[1].rename("out_GSR.nc", "si_nscf_GSR.nc")
+    #work[1].rename("out_GSR.nc", "si_nscf_GSR.nc")
 
     work.rmtree(exclude_wildcard="*.abin|*.about|*_WFK*|*_GSR.nc|*DEN-etsf.nc")
 

@@ -12,7 +12,7 @@ from abipy.data.runs import RunManager
 def main():
     structure = AbiStructure.asabistructure(data.cif_file("si.cif"))
 
-    pseudos = data.pseudos("14si.pspnc"))
+    pseudos = data.pseudos("14si.pspnc")
     runmode = RunMode.sequential()
 
     manager = RunManager()

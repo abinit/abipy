@@ -26,8 +26,6 @@ def main():
     scf_inp.nband  = 8
     scf_inp.tolvrs = 1e-6
 
-    print(scf_inp)
-
     # NSCF run
     kptbounds = [
         [0.5, 0.0,  0.0],  # L point
@@ -43,8 +41,6 @@ def main():
     #nscf_inp.set_kpath(ndivsm=5)
     nscf_inp.tolwfr = 1e-12
 
-    print(nscf_inp)
-
     # Create the task defining the calculation and run.
     runmode = RunMode.sequential()
     manager = RunManager()
@@ -52,15 +48,17 @@ def main():
     # Initialize the workflow.
     work = abilab.Workflow(manager.workdir, runmode)
 
-    # Register the input for the SCF calculation and receive an object 
-    # that describes this node of the worflow.
-    scf_link = work.register_input(scf_inp)
+    # Register the input for the SCF calculation. 
+    # scf_link is the object that describes this node of the workflow.
+    scf_link = work.register(scf_inp)
 
     # Register the input for the NSCF calculation and tell the workflow
-    # that this step depens on the SCF run (requires the DEN file produced in the SCF run).
-    work.register_input(nscf_inp, links=scf_link.produces_exts("_DEN"))
+    # that this step depens on the SCF run 
+    # Iin this case, the nscf run requires the DEN file produced in the SCF run.
+    work.register(nscf_inp, links=scf_link.produces_exts("_DEN"))
 
-    manager.set_work_and_run(work)
+    #work.build()
+    #manager.set_work_and_run(work)
 
     work.show_inputs()
     #from abipy.gui.wxapps import wxapp_showfiles

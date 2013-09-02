@@ -6,7 +6,7 @@ import numpy as np
 from abipy.iotools import abipy2etsfio, ETSF_Reader
 from abipy.tools import AttrDict
 from .dftscalarfield import DFTScalarField
-from .constants import Bohr_Ang
+from .constants import BOHR_TO_ANGS
 
 __all__ = [
     "Density",
@@ -44,7 +44,7 @@ class Density(DFTScalarField):
             # Fortran to C, avoid the view.
             #cview = np.transpose(rec.rhor, axes = [0,3,2,1])
             #rec.rhor = np.ascontiguousarray(cview)
-            rhor = rhor / Bohr_Ang**3
+            rhor = rhor / BOHR_TO_ANGS**3
             return Density(dims.nspinor, dims.nsppol, dims.nspden, rhor, structure, iorder="f")
 
         else:

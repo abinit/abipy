@@ -8,8 +8,8 @@ import copy
 import itertools
 import warnings
 import numpy as np
+import abipy.core.constants as const
 
-from abipy.core.constants import Ha_eV, eV_Ha, Bohr_Ang
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, Kpath, IrredZone, KpointsReaderMixin
 from abipy.tools import AttrDict
@@ -1227,7 +1227,7 @@ class ElectronBands(object):
 
     def effective_masses(self, spin, band, acc=4):
         """Compute the effective masses."""
-        ders2 = self.derivatives(spin, band, acc=acc) * eV_Ha / Bohr_Ang**2
+        ders2 = self.derivatives(spin, band, acc=acc) * const.EV_TO_HA / const.BOHR_TO_ANGS**2
         return 1.0/ders2
 
 
@@ -1556,7 +1556,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
 
     def read_eigenvalues(self):
         """Eigenvalues in eV."""
-        return self.read_value("eigenvalues") * Ha_eV
+        return self.read_value("eigenvalues") * const.HA_TO_EV
 
     def read_occupations(self):
         """Occupancies."""
@@ -1564,7 +1564,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
 
     def read_fermie(self):
         """Fermi level in eV."""
-        return self.read_value("fermi_energy") * Ha_eV
+        return self.read_value("fermi_energy") * const.HA_TO_EV
 
     def read_nelect(self):
         """Number of valence electrons."""
@@ -1586,7 +1586,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
         return Smearing(
             scheme=scheme,
             occopt=occopt,
-            tsmear_ev=self.read_value("smearing_width") * Ha_eV
+            tsmear_ev=self.read_value("smearing_width") * const.HA_TO_EV
         )
 
     #def read_xc_parameters(self):
