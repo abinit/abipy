@@ -43,24 +43,28 @@ def main():
     runmode = RunMode.sequential()
     manager = RunManager()
 
-    task = abilab.AbinitTask.from_input(inp, manager.workdir, runmode)
+    # Initialize the workflow.
+    work = abilab.Workflow(manager.workdir, runmode)
 
-    manager.set_work_and_run(task)
+    # Register the input.
+    work.register(inp)
+
+    manager.set_work_and_run(work)
 
     if manager.retcode != 0:
         return manager.retcode
 
     # Remove all files except those matching these regular expression.
-    task.rmtree(exclude_wildcard="*.abi|*.abo|*_WFK*|*_GSR.nc|*DEN-etsf.nc")
+    work.rmtree(exclude_wildcard="*.abi|*.abo|*_WFK*|*_GSR.nc|*DEN-etsf.nc")
 
-    task.rename("out_DS1_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
-    task.rename("out_DS1_DEN-etsf.nc", "si_DEN-etsf.nc")
-    task.rename("out_DS1_GSR.nc", "si_scf_GSR.nc")
+    work[0].rename("out_DS1_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
+    work[0].rename("out_DS1_DEN-etsf.nc", "si_DEN-etsf.nc")
+    work[0].rename("out_DS1_GSR.nc", "si_scf_GSR.nc")
 
-    task.rename("out_DS2_WFK_0-etsf.nc", "si_nscf_WFK-etsf.nc")
-    task.rename("out_DS2_GSR.nc", "si_nscf_GSR.nc")
+    work[0].rename("out_DS2_WFK_0-etsf.nc", "si_nscf_WFK-etsf.nc")
+    work[0].rename("out_DS2_GSR.nc", "si_nscf_GSR.nc")
 
-    task.remove_files("out_DS2_DEN-etsf.nc")
+    work[0].remove_files("out_DS2_DEN-etsf.nc")
 
     manager.finalize()
     return manager.retcode 
