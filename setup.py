@@ -74,7 +74,7 @@ def find_package_data():
 
 def find_exclude_package_data():
     package_data = {
-        'abipy.data' : ['pseudos','runs','cifs'],
+        'abipy.data' : ['pseudos','runs','cifs','runs/data_*'],
     }
     return package_data
 
