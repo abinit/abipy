@@ -43,6 +43,10 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     def kpoints(self):
         """Iterable with the Kpoints."""
         return self.ebands.kpoints
+
+    @property
+    def nsppol(self):
+        return self.ebands.nsppol
                                      
     @property
     def ebands(self):
@@ -109,21 +113,9 @@ class GSR_Plotter(collections.Iterable):
             self.nsppol = gsr.nsppol
         assert self.nsppol == gsr.nsppol
 
-        # The set of k-points where GW corrections have been computed.
-        #if not hasattr(self, "computed_gwkpoints"):
-        #    self.computed_gwkpoints = sigres.gwkpoints
-        #assert self.compute_gwkpoints == sigres.gwkpoints
-        #    self.computed_gwkpoints = (self.computed_gwkpoints + sigres.gwkpoints).remove_duplicated()
-
-        #if not hasattr(self, "max_gwbstart"):
-        #    self.max_gwbstart = sigres.max_gwbstart
-        #else:
-        #    self.max_gwbstart = max(self.max_gwbstart, sigres.max_gwbstart)
-
-        #if not hasattr(self, "min_gwbstop"):
-        #    self.min_gwbstop = sigres.min_gwbstop
-        #else:
-        #    self.min_gwbstop = min(self.min_gwbstop, sigres.min_gwbstop)
+    @property
+    def filepaths(self):
+        return self._gsr_files.keys()
 
     @property
     def param_name(self):
@@ -212,6 +204,7 @@ class GSR_Plotter(collections.Iterable):
         ax.grid(True)
         if self.param_name is not None:
             ax.set_xlabel(self.param_name)
+
         ax.set_ylabel('Energy [eV]')
         ax.legend(loc="best")
 
@@ -229,52 +222,39 @@ class GSR_Plotter(collections.Iterable):
         ax.set_xticks(ticks, minor=False)
         ax.set_xticklabels(labels, fontdict=None, minor=False)
 
-    #def extract_qpenes(self, spin, kpoint, band):
-    #    """
-    #    Returns a `ndarray` with the QP energies for the given spin, kpoint.
-    #    Values are ordered with the list of SIGRES files in self.
-    #    """
-    #    qpenes = []
-    #    for sigres in self:
-    #        k = sigres.ibz.index(kpoint)
-    #        qpenes.append(sigres.qpenes[spin,k,band])
-    #    
-    #    return np.array(qpenes)
+    def plot_variables(self, varname_x, varname_y, hspan=None, **kwargs):
+        """
+        Ex:
+            plot_variables("ecut", "etotal")
+        """
+        title = kwargs.pop("title", None)
+        show = kwargs.pop("show", True)
+        savefig = kwargs.pop("savefig", None)
 
-    #def plot_qpgaps(self, spin=None, kpoint=None, hspan=0.01, **kwargs):
-    #    spin_range = range(self.nsppol) if spin is None else torange(spin)
-    #    kpoints_for_plot = self.computed_gwkpoints #if kpoint is None else KpointList.askpoints(kpoint)
+        # Read the value of varname from the files.
+        xx, yy = [], []
+        for filepath in self.filepaths:
+            with GSR_Reader(filepath) as r:
+                xx.append(r.read_value(varname_x))
+                yy.append(r.read_value(varname_y))
 
-    #    title = kwargs.pop("title", None)
-    #    show = kwargs.pop("show", True)
-    #    savefig = kwargs.pop("savefig", None)
+        import matplotlib.pyplot as plt
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
 
-    #    self.prepare_plot()
+        ax.plot(xx, yy, "o-", **kwargs)
 
-    #    import matplotlib.pyplot as plt
-    #    fig = plt.figure()
-    #    ax = fig.add_subplot(1,1,1)
+        if hspan is not None:
+            last = yy[-1]
+            ax.axhspan(last-hspan, last+hspan, facecolor='0.5', alpha=0.5)
 
-    #    xx = self.xvalues
-    #    for spin in spin_range:
-    #        for kpoint in kpoints_for_plot:
-    #            label = "spin %d, kpoint %s" % (spin, repr(kpoint))
-    #            gaps = self.extract_qpgaps(spin, kpoint)
-    #            ax.plot(xx, gaps, "o-", label=label, **kwargs)
-
-    #            if hspan is not None:
-    #                last = gaps[-1]
-    #                ax.axhspan(last-hspan, last+hspan, facecolor='0.5', alpha=0.5)
-
-    #    self.decorate_ax(ax)
-
-    #    if title is not None:
-    #        fig.suptitle(title)
-    #                             
-    #    if show:
-    #        plt.show()
-    #                             
-    #    if savefig is not None:
-    #        fig.savefig(savefig)
-    #                             
-    #    return fig
+        if title is not None:
+            fig.suptitle(title)
+                                 
+        if show:
+            plt.show()
+                                 
+        if savefig is not None:
+            fig.savefig(savefig)
+                                 
+        return fig
