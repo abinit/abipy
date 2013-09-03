@@ -142,11 +142,15 @@ class Structure(pymatgen.Structure):
         except AttributeError:
             # Get mapping name --> frac_coords for the special k-points in the database.
             name2frac_coords = self.hsym_kpath.kpath["kpoints"]
+            kpath = self.hsym_kpath.kpath["path"]
 
             frac_coords, names = [], []
-            for (name, fc) in name2frac_coords.items():
-                frac_coords.append(fc)
-                names.append(name)
+#            for (name, fc) in name2frac_coords.items():
+            for segment in kpath:
+                for name in segment:
+                    fc = name2frac_coords[name]
+                    frac_coords.append(fc)
+                    names.append(name)
 
             # Build KpointList instance.
             from .kpoints import KpointList
@@ -335,7 +339,7 @@ class Structure(pymatgen.Structure):
 
         if not frac_coords:
             # Convert to fractional coordinates.
-            displ = np.reshape([self.lattice.get_cartesian_coords(vec) for vec in displ], (-1,3))
+            displ = np.reshape([self.lattice.get_fractional_coords(vec) for vec in displ], (-1,3))
 
         # Normalize the displacement so that the maximum atomic displacement is 1 Angstrom.
         dnorm = self.norm(displ, space="r")
