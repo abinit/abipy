@@ -12,3 +12,5 @@ TODO List
 #. Make sure that the k-sampling description reported in the WFK file is equivalent
    to the one reported in the WFK file so that the two files can be used for plotting band structures 
    and other types of post-processing 
+
+#. ecut is not reported in the GSR file.

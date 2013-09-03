@@ -9,9 +9,13 @@ from __future__ import print_function, division
 import os
 
 from os.path import join as pj
+from abipy.data.ucells import structure_from_ucell
 
 __all__ = [
-
+    "cif_file",
+    "pseudos",
+    "ref_file",
+    "structure_from_ucell",
 ]
 
 dirpath = os.path.dirname(__file__)

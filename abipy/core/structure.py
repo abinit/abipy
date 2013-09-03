@@ -2,6 +2,7 @@
 from __future__ import division, print_function
 
 import collections
+import pymatgen
 import numpy as np
 
 from .constants import Bohr2Ang, Ang2Bohr
@@ -9,11 +10,10 @@ from .symmetries import SpaceGroup
 from abipy.iotools import as_etsfreader, Visualizer
 from abipy.iotools import xsf
 
-import pymatgen
 
 __all__ = [
-    "Structure",
     "Lattice",
+    "Structure",
 ]
 
 
@@ -27,6 +27,7 @@ class Lattice(pymatgen.Lattice):
 
         # Call pymatgen constructors (note that pymatgen uses Angstrom instead of Bohr).
         if rprim is not None:
+            assert angdeg is None
             rprim = np.reshape(rprim, (3,3))
             rprimd = [acell[i] * rprim[i] for i in range(3)]
             return cls(Bohr2Ang(rprimd))
@@ -43,7 +44,7 @@ class Lattice(pymatgen.Lattice):
             return new
 
         else:
-            raise ValueError("Don't know how to construct a Lattice from dict: %s" % d)
+            raise ValueError("Don't know how to construct a Lattice from dict: %s" % str(d))
 
 
 class Structure(pymatgen.Structure):
@@ -51,7 +52,8 @@ class Structure(pymatgen.Structure):
     @classmethod
     def from_file(cls, filepath):
         """
-        Return a new instance from a NetCDF file containing crystallographic data in the ETSF-IO format.
+        Return a new instance from a NetCDF file containing 
+        crystallographic data in the ETSF-IO format.
 
         Args:
             ncdata:
@@ -232,7 +234,7 @@ class Structure(pymatgen.Structure):
             raise Visualizer.Error("Don't know how to export data for %s" % visualizer)
 
     def to_abivars(self):
-        """Returns a dictionary with the abinit variables."""
+        """Returns a dictionary with the ABINIT variables."""
         types_of_specie = self.types_of_specie
         natom = self.num_sites
 
@@ -243,21 +245,6 @@ class Structure(pymatgen.Structure):
         typat = np.zeros(natom, np.int)
         for (atm_idx, site) in enumerate(self):
             typat[atm_idx] = types_of_specie.index(site.specie) + 1
-
-        #significant_figures = 12
-        #format_str = "{{:.{0}f}}".format(significant_figures)
-        #fmt = format_str.format
-
-        #lines = []
-        #for vec in Ang2Bohr(self.lattice.matrix):
-        #    lines.append(" ".join([fmt(c) for c in vec]))
-        #rprim = "\n" + "\n".join(lines)
-
-        #lines = []
-        #for (i, site) in enumerate(self):
-        #    coords = site.frac_coords
-        #    lines.append( " ".join([fmt(c) for c in coords]) + " # " + site.species_string )
-        #xred = '\n' + "\n".join(lines)
 
         rprim = Ang2Bohr(self.lattice.matrix)
         xred = np.reshape([site.frac_coords for site in self], (-1,3))
@@ -315,8 +302,9 @@ class Structure(pymatgen.Structure):
     def displace(self, displ, eta, frac_coords=True):
         """
         Displace the sites of the structure along the displacement vector displ.
-        The displacement vector is normalized so that the max atomic displacement 
-        is 1 Angstrom, and then multiplied by eta. Hence passing eta=0.001, will move 
+
+        The displacement vector is first rescaled so that the maxium atomic displacement 
+        is one Angstrom, and then multiplied by eta. Hence passing eta=0.001, will move 
         all the atoms so that the maximum atomic displacement is 0.001 Angstrom.
 
         Args:
@@ -328,6 +316,7 @@ class Structure(pymatgen.Structure):
                 Boolean stating whether the vector corresponds to fractional or
                 cartesian coordinates.
         """
+        # Get a copy since we are going to modify displ.
         displ = np.reshape(displ, (-1,3)).copy()
 
         if len(displ) != len(self):
@@ -340,10 +329,11 @@ class Structure(pymatgen.Structure):
             # Convert to fractional coordinates.
             displ = np.reshape([self.lattice.get_cartesian_coords(vec) for vec in displ], (-1,3))
 
-        # Normalize the displacement so that the max atomic displacement is 1 Angstrom.
+        # Normalize the displacement so that the maximum atomic displacement is 1 Angstrom.
         dnorm = self.norm(displ, space="r")
         displ /= np.max(np.abs(dnorm))
 
+        # Displace the sites.
         for i in range(len(self)):
            self.translate_sites(indices=i, vector=eta * displ[i, :], frac_coords=True)
 
@@ -370,46 +360,109 @@ class Structure(pymatgen.Structure):
 
 
 class StructureModifier(object):
+    """
+    This object provides an easy-to-use interface for 
+    generating new structures according to some algorithm.
 
+    The main advantages of this approach are:
+        
+        *) Client code does not have to worry about the fact
+           that many methods of Structure modify the object in place.
+
+        *) One can render the interface more user-friendly. For example 
+           some arguments might have a unit that can be specified in input.
+           For example one can pass a length in Bohr that will be automatically 
+           converted into Angstrom before calling the pymatgen methods
+    """
     def __init__(self, structure):
         """
         Args:
             structure:
-                `pymatgen.core.structure` Structure object.
+                Structure object.
         """
+        # Get a copy to avoid any modification of the input. 
         self._original_structure = structure.copy()
 
-    #def copy_structure(self):
-    #    return self._original_structure.copy()
+    def copy_structure(self):
+        """Returns a copy of the original structure."""
+        return self._original_structure.copy()
 
     def scale_lattice(self, vol_ratios):
-        structure = self._original_structure
+        """
+        Scale the lattice vectors so that length proportions and angles are preserved.
 
+        Args:
+            vol_ratios:
+                List with the ratios v/v0 where v0 is the volume of the original structure.
+
+        Returns:
+            List of new structures with desired volume.
+        """
         vol_ratios = np.array(vol_ratios)
-        new_volumes = structure.volume * vol_ratios
+        new_volumes = self._original_structure.volume * vol_ratios
 
         news = []
         for vol in new_volumes:
-            new_structure = structure.copy()
+            new_structure = self.copy_structure()
             new_structure.scale_lattice(vol)
             news.append(new_structure)
 
         return news
 
     def make_supercell(self, scaling_matrix):
-        new_structure = self._original_structure.copy()
+        """
+        Create a supercell.
+
+        Args:
+            scaling_matrix:
+                A scaling matrix for transforming the lattice vectors.
+                Has to be all integers. Several options are possible:
+
+                a. A full 3x3 scaling matrix defining the linear combination
+                   the old lattice vectors. E.g., [[2,1,0],[0,3,0],[0,0,
+                   1]] generates a new structure with lattice vectors a' =
+                   2a + b, b' = 3b, c' = c where a, b, and c are the lattice
+                   vectors of the original structure.
+                b. An sequence of three scaling factors. E.g., [2, 1, 1]
+                   specifies that the supercell should have dimensions 2a x b x
+                   c.
+                c. A number, which simply scales all lattice vectors by the
+                   same factor.
+
+        Returns:
+            New structure.
+        """
+        new_structure = self.copy_structure()
         new_structure.make_supercell(scaling_matrix)
         return new_structure
 
-    def displace(self, displ, etas):
+    def displace(self, displ, etas, frac_coords=True):
+        """
+        Displace the sites of the structure along the displacement vector displ.
+
+        The displacement vector is first rescaled so that the maxium atomic displacement 
+        is one Angstrom, and then multiplied by eta. Hence passing eta=0.001, will move 
+        all the atoms so that the maximum atomic displacement is 0.001 Angstrom.
+
+        Args:
+            displ:
+                Displacement vector with 3*len(self) entries (fractional coordinates).
+            eta:
+                Scaling factor. 
+            frac_coords:
+                Boolean stating whether the vector corresponds to fractional or
+                cartesian coordinates.
+
+        Returns:
+            List of new structures with displaced atoms.
+        """
         if not isinstance(etas, collections.Iterable):
             etas = [etas]
 
-        structure = self._original_structure
         news = []
-        for i, eta in enumerate(etas):
-            new_structure = structure.copy()
-            new_structure.displace(displ, eta)
+        for eta in etas:
+            new_structure = self.copy_structure()
+            new_structure.displace(displ, eta, frac_coords=frac_coords)
             news.append(new_structure)
 
         return news
@@ -417,11 +470,9 @@ class StructureModifier(object):
     #def frozen_phonon(self, qpoint, displ, etas):
     #   if not isinstance(etas, collections.Iterable):
     #       etas = [etas]
-    #    structure = self._original_structure
-
     #    news = []
     #    for eta in etas:
-    #        new_structure = structure.copy()
+    #        new_structure = self.copy_structure()
     #        new_structure.frozen_phonon(qpoint, displ, eta)
     #        news.append(new_structure)
     #                                                               

@@ -115,6 +115,7 @@ class GSR_Plotter(collections.Iterable):
 
     @property
     def filepaths(self):
+        """Filepaths of the GSR files."""
         return self._gsr_files.keys()
 
     @property

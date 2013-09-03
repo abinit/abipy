@@ -2,6 +2,7 @@
 from __future__ import division, print_function
 
 import os
+import sys 
 import numpy as np
 import abipy.data as data  
 import abipy.abilab as abilab
@@ -13,31 +14,30 @@ def build_raman_workflows():
     pseudos = data.pseudos("14si.pspnc")
 
     # Get the unperturbed structure.
-    base_structure = abilab.Structure.from_file(data.cif_file("si.cif"))
+    base_structure = data.structure_from_ucell("silicon")
+
+    etas = [-.001, 0, +.001]
+    ph_displ = np.reshape(np.zeros(3*len(base_structure)), (-1,3))
+    ph_displ[1,:] = [1, 0, 0]
 
     # Build new structures by displacing atoms according to the phonon displacement
     # ph_displ (in reduced coordinates). The Displacement is normalized so that 
     # the maximum atomic diplacement is 1 Angstrom and then multiplied by eta.
     modifier = abilab.StructureModifier(base_structure)
 
-    etas = [-.001, 0, +0.001]
-    ph_displ = np.reshape(np.zeros(3*len(base_structure)), (-1,3))
-    ph_displ[1,:] = [1, 0, 0]
-
     displaced_structures = modifier.displace(ph_displ, etas)
 
-    # Create a list of workflows. Each workflow defines a complete 
+    # Create the list of workflows. Each workflow defines a complete 
     # BSE calculation for given eta.
-    prefix = "raman_eta"
+    basedir = os.path.join(os.path.dirname(__file__), base_structure.formula + "_RAMAN")
     works = []
     for structure, eta in zip(displaced_structures, etas):
-        workdir = prefix + str(eta)
+        workdir = os.path.join(basedir, "eta_" + str(eta))
         works.append(raman_workflow(workdir, structure, pseudos))
 
     return works
 
 def raman_workflow(workdir, structure, pseudos):
-
     # Generate 3 different input files for computing optical properties with BSE.
 
     # Global variables
@@ -48,6 +48,7 @@ def raman_workflow(workdir, structure, pseudos):
 
     # GS run
     scf_inp = abilab.AbiInput(pseudos=pseudos)
+
     scf_inp.set_structure(structure)
     scf_inp.set_variables(**global_vars)
     scf_inp.set_kmesh(ngkpt=[2,2,2], shiftk=[0,0,0])
@@ -113,12 +114,6 @@ def raman_workflow(workdir, structure, pseudos):
 
     return work
 
-    #work.build()
-    #work.show_inputs()
-    #from abipy.gui.wxapps import wxapp_showfiles
-    #wxapp_showfiles(dirpath=work.workdir, walk=True, wildcard="*.abi").MainLoop()
-    #wxapp_showfiles(dirpath=work.workdir, walk=True, wildcard="*.abo").MainLoop()
-
 def main():
     # Build the list of workflows.
     workflows = build_raman_workflows()
@@ -127,13 +122,18 @@ def main():
     from pymatgen.io.abinitio.launcher import SimpleResourceManager
     retcode = 0
     for work in workflows:
-        retcodes = SimpleResourceManager(work, max_ncpus=1, sleep_time=5).run()
-        retcode = max(retcodes)
-        if retcode != 0:
-            return retcode
+        #retcodes = SimpleResourceManager(work, max_ncpus=1, sleep_time=5).run()
+        #retcode = max(retcodes)
+        #if retcode != 0:
+        #    return retcode
+
+        work.build()
+        #work.show_inputs()
+        #from abipy.gui.wxapps import wxapp_showfiles
+        #wxapp_showfiles(dirpath=work.workdir, walk=True, wildcard="*.abi").MainLoop()
+        #wxapp_showfiles(dirpath=work.workdir, walk=True, wildcard="*.abo").MainLoop()
 
     return retcode
 
 if __name__ == "__main__":
-    import sys
     sys.exit(main())

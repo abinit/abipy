@@ -14,7 +14,7 @@ eos = EOS(eos_name='murnaghan')
 
 # Note that eos.fit expects lengths in Angstrom, energies are in eV.
 # To specify different units use len_units and ene_units 
-fit = eos.fit(volumes, energies, len_units="Bohr", ene_units="Ha")
+fit = eos.fit(volumes, energies, vol_unit="bohr**3", ene_unit="Ha")
 
 print(fit)
 fit.plot()
