@@ -4,8 +4,8 @@ from __future__ import division, print_function
 import os
 import sys 
 import numpy as np
-import abipy.data as data  
 import abipy.abilab as abilab
+import abipy.data as data  
 
 from pymatgen.io.abinitio.task import RunMode
 from abipy.data.runs import RunManager
@@ -27,9 +27,10 @@ def build_raman_workflows():
 
     displaced_structures = modifier.displace(ph_displ, etas)
 
-    # Create the list of workflows. Each workflow defines a complete 
-    # BSE calculation for given eta.
+    # Create the list of workflows. Each workflow defines 
+    # a complete BSE calculation for given eta.
     basedir = os.path.join(os.path.dirname(__file__), base_structure.formula + "_RAMAN")
+
     works = []
     for structure, eta in zip(displaced_structures, etas):
         workdir = os.path.join(basedir, "eta_" + str(eta))
@@ -122,15 +123,14 @@ def main():
     from pymatgen.io.abinitio.launcher import SimpleResourceManager
     retcode = 0
     for work in workflows:
-        work.build()
+        #work.build()
 
-        #retcodes = SimpleResourceManager(work, max_ncpus=1, sleep_time=5).run()
-        #retcode = max(retcodes)
-        #if retcode != 0:
-        #    return retcode
+        retcodes = SimpleResourceManager(work, max_ncpus=1, sleep_time=5).run()
+        retcode = max(retcodes)
+        if retcode != 0:
+            return retcode
 
     work.wxshow_inputs()
-
 
     return retcode
 

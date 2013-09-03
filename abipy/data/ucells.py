@@ -24,14 +24,23 @@ def structure_from_ucell(name):
 
 _UCELLS = {
     "silicon": dict(ntypat=1,         
-                    znucl=14,         
                     natom=2,           
                     typat=[1, 1],
-                    xred=[ [0.0 , 0.0 , 0.0],
-                           [0.25, 0.25, 0.25]],
+                    znucl=14,         
                     acell=3*[10.217],
                     rprim=[[0.0,  0.5,  0.5],   # FCC primitive vectors (to be scaled by acell)
                            [0.5,  0.0,  0.5],  
-                           [0.5,  0.5,  0.0]]
+                           [0.5,  0.5,  0.0]],
+                    xred=[ [0.0 , 0.0 , 0.0],
+                           [0.25, 0.25, 0.25]],
                     ),
+
+    "zno": dict(ntypat=2,
+                natom=2,
+                typat=[1, 2],
+                acell= 3*[8.6277],
+                rprim= [[.0, .5, .5], [.5, .0, .5], [.5, .5, .0]],
+                znucl=[30, 8],
+                xred=[[.0, .0, .0], [.25,.25,.25]],
+    )
 }

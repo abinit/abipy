@@ -58,9 +58,9 @@ class AbinitEventsPanel(awx.Panel):
         vbox.Add(self.tree, 1, wx.EXPAND)
         hbox.Add(panel1, 1, wx.EXPAND)
         hbox.Add(panel2, 1, wx.EXPAND)
-        panel1.SetSizer(vbox)
+        panel1.SetSizerAndFit(vbox)
 
-        self.SetSizer(hbox)
+        self.SetSizerAndFit(hbox)
         self.Centre()
 
     @property
@@ -212,29 +212,28 @@ class AbinitTimerFrame(awx.Frame):
 
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.plot_label = wx.StaticText(self, wx.ID_ANY, "plot type:", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.plot_label = wx.StaticText(self, -1, "plot type:", wx.DefaultPosition, wx.DefaultSize, 0)
         self.plot_label.Wrap(-1)
         hsizer.Add(self.plot_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
 
-        self.plot_cbox = wx.ComboBox(self, wx.ID_ANY, "pie", wx.DefaultPosition, wx.DefaultSize, self.plot_types.keys(),
+        self.plot_cbox = wx.ComboBox(self, -1, "pie", wx.DefaultPosition, wx.DefaultSize, self.plot_types.keys(),
                                      0)
         hsizer.Add(self.plot_cbox, 0, wx.ALL, 5)
 
-        self.key_label = wx.StaticText(self, wx.ID_ANY, "key:", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.key_label = wx.StaticText(self, -1, "key:", wx.DefaultPosition, wx.DefaultSize, 0)
         self.key_label.Wrap(-1)
         hsizer.Add(self.key_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
 
-        self.key_cbox = wx.ComboBox(self, wx.ID_ANY, "wall_time", wx.DefaultPosition, wx.DefaultSize, keys, 0)
+        self.key_cbox = wx.ComboBox(self, -1, "wall_time", wx.DefaultPosition, wx.DefaultSize, keys, 0)
         hsizer.Add(self.key_cbox, 0, wx.ALL, 5)
 
         main_sizer.Add(hsizer, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
 
-        self.plot_button = wx.Button(self, wx.ID_ANY, "Plot", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.plot_button = wx.Button(self, -1, "Plot", wx.DefaultPosition, wx.DefaultSize, 0)
         self.Bind(wx.EVT_BUTTON, self.OnClick, self.plot_button)
         main_sizer.Add(self.plot_button, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5)
 
-        self.SetSizer(main_sizer)
-        self.Layout()
+        self.SetSizerAndFit(main_sizer)
 
     def OnClick(self, event):
         callback = self.plot_types[self.plot_cbox.GetValue()]

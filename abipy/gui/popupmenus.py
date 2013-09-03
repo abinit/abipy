@@ -41,11 +41,12 @@ def popupmenu_for_filename(parent, filename):
 
 def showNcdumpMessage(parent, filepath):
     """Open a dialog with the output of ncdump."""
-    caption = "ncdump output for file %s" % filepath
+    title = "ncdump output for file %s" % filepath
     msg = NcDumper().dump(filepath)
-    style = wx.DEFAULT_FRAME_STYLE
-    wxdg.ScrolledMessageDialog(parent, msg, caption=caption, size=(600, 600), style=style).Show()
-
+    frame = wx.Frame(parent, -1, title=title)
+    panel = wx.Panel(frame, -1)
+    text = wx.TextCtrl(panel, -1, msg, style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
+    frame.Show()
 
 def showFileStat(parent, filepath):
     """Open a dialog reporting file stats."""
