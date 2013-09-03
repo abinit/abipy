@@ -15,11 +15,14 @@ def main():
     inp.set_structure_from_file(data.cif_file("si.cif"))
 
     # Global variables
-    inp.ecut = 6
-    inp.nband  = 8
-    inp.timopt = -1
-    inp.accesswff = 3
-    inp.istwfk = "*1"
+    global_vars = dict(ecut=6,
+                       nband=8,
+                       timopt=-1,
+                       accesswff=3,
+                       istwfk="*1",
+                    )
+
+    inp.set_variables(**global_vars)
 
     # Dataset 1 (GS run)
     inp.set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0], dtset=1)
@@ -27,13 +30,12 @@ def main():
 
     # Dataset 2 (NSCF run)
     kptbounds = [
-        [0.5, 0.0,  0.0],  # L point
-        [0.0, 0.0,  0.0],  # Gamma point
-        [0.0, 0.5,  0.5],  # X point
+        [0.5, 0.0, 0.0], # L point
+        [0.0, 0.0, 0.0], # Gamma point
+        [0.0, 0.5, 0.5], # X point
     ]
 
     inp.set_kpath(ndivsm=6, kptbounds=kptbounds, dtset=2)
-    #inp.set_kpath(ndivsm=5, dtset=2)
     inp.tolwfr2 = 1e-12
     inp.getden2 = -1
 

@@ -18,7 +18,8 @@ def build_raman_workflows():
 
     etas = [-.001, 0, +.001]
     ph_displ = np.reshape(np.zeros(3*len(base_structure)), (-1,3))
-    ph_displ[1,:] = [1, 0, 0]
+    ph_displ[0,:] = [+1, 0, 0]
+    ph_displ[1,:] = [-1, 0, 0]
 
     # Build new structures by displacing atoms according to the phonon displacement
     # ph_displ (in reduced coordinates). The Displacement is normalized so that 
@@ -78,9 +79,8 @@ def raman_workflow(workdir, structure, pseudos):
 
     bse_inp.set_variables(
         optdriver=99,
-        getkss=2,
         ecutwfn=global_vars["ecut"],
-        ecuteps=2,
+        ecuteps=3,
         inclvkb=2,
         bs_algorithm=2,       # Haydock
         bs_haydock_niter=60,  # No. of iterations for Haydock
@@ -130,7 +130,8 @@ def main():
         if retcode != 0:
             return retcode
 
-    work.wxshow_inputs()
+    #work.wxshow_inputs()
+    work.wxshow_outputs()
 
     return retcode
 

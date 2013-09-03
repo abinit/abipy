@@ -9,20 +9,6 @@ from pymatgen.io.abinitio.task import RunMode
 from abipy.data.runs import RunManager
 
 def main():
-    #unit_cell = dict(
-    #    ntypat=1,         
-    #    znucl=14,         
-    #    natom=2,           
-    #    typat=[1, 1],
-    #    xred=[ [0.0 , 0.0 , 0.0],
-    #           [0.25, 0.25, 0.25]],
-    #    acell=3*[10.217],
-    #    rprim=[[0.0,  0.5,  0.5],   # FCC primitive vectors (to be scaled by acell)
-    #           [0.5,  0.0,  0.5],  
-    #           [0.5,  0.5,  0.0]]
-    #    )
-    #inp.set_variables(**unit_cell)
-    #structure = abilab.Structure.from_file(
 
     # Change the value of ngkpt below to perform a GW calculation with a different ngkpt.
     inp = make_input(ngkpt=[2,2,2])
