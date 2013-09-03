@@ -145,7 +145,6 @@ class Structure(pymatgen.Structure):
             kpath = self.hsym_kpath.kpath["path"]
 
             frac_coords, names = [], []
-#            for (name, fc) in name2frac_coords.items():
             for segment in kpath:
                 for name in segment:
                     fc = name2frac_coords[name]
@@ -155,6 +154,7 @@ class Structure(pymatgen.Structure):
             # Build KpointList instance.
             from .kpoints import KpointList
             self._hsym_kpoints = KpointList(self.reciprocal_lattice, frac_coords, weights=None, names=names) 
+
             return self._hsym_kpoints
 
     @property
