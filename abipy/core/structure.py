@@ -331,7 +331,7 @@ class Structure(pymatgen.Structure):
 
         if not frac_coords:
             # Convert to fractional coordinates.
-            displ = np.reshape([self.lattice.get_cartesian_coords(vec) for vec in displ], (-1,3))
+            displ = np.reshape([self.lattice.get_fractional_coords(vec) for vec in displ], (-1,3))
 
         # Normalize the displacement so that the maximum atomic displacement is 1 Angstrom.
         dnorm = self.norm(displ, space="r")
