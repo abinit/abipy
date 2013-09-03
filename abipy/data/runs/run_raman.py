@@ -122,16 +122,15 @@ def main():
     from pymatgen.io.abinitio.launcher import SimpleResourceManager
     retcode = 0
     for work in workflows:
+        work.build()
+
         #retcodes = SimpleResourceManager(work, max_ncpus=1, sleep_time=5).run()
         #retcode = max(retcodes)
         #if retcode != 0:
         #    return retcode
 
-        work.build()
-        #work.show_inputs()
-        #from abipy.gui.wxapps import wxapp_showfiles
-        #wxapp_showfiles(dirpath=work.workdir, walk=True, wildcard="*.abi").MainLoop()
-        #wxapp_showfiles(dirpath=work.workdir, walk=True, wildcard="*.abo").MainLoop()
+    work.wxshow_inputs()
+
 
     return retcode
 
