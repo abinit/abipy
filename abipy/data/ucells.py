@@ -9,16 +9,19 @@ __all__ = [
     "structure_from_ucell",
 ]
 
-
+# Public API
 def ucell_names():
+    """List with the name of the entries."""
     return list(_UCELLS.keys())
 
 
 def ucell(name):
+    """Returnn the entry in the database with the given name."""
     return _UCELLS[name].copy()
 
 
 def structure_from_ucell(name):
+    """Returns a `Structure` from the name of entry in the database."""
     return Structure.from_abivars(ucell(name))
 
 

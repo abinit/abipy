@@ -32,17 +32,17 @@ _NO_MULTI = [
 ]
 
 
-class AbinitVariable(object):
-
-    def __init__(self, name, value):
-        self.name = name
-        self.value = value
-
-    def __repr__(self):
-        return "<%s, name=%s, value=%s>" % (self.__class__.__name__, self.name, self.value)
-
-    def __str__(self):
-        return format_var(self.name, self.value)
+#class AbinitVariable(object):
+#
+#    def __init__(self, name, value):
+#        self.name = name
+#        self.value = value
+#
+#    def __repr__(self):
+#        return "<%s, name=%s, value=%s>" % (self.__class__.__name__, self.name, self.value)
+#
+#    def __str__(self):
+#        return format_var(self.name, self.value)
 
 
 class AbinitInputError(Exception):
@@ -96,10 +96,10 @@ class AbiInput(object):
         """Number of datasets."""
         return self[0]["ndtset"]
 
-    @property
-    def global_vars(self):
-        """Dictionary with global variables (common to the different datasets)."""
-        return self[0]
+    #@property
+    #def global_vars(self):
+    #    """Dictionary with global variables (common to the different datasets)."""
+    #    return self[0]
 
     def __str__(self):
         s = ""
@@ -162,38 +162,38 @@ class AbiInput(object):
                     else:
                         self[0].set_variable(varname, value)
 
-    def __getattr__(self, varname):
+    #def __getattr__(self, varname):
 
-        if not varname[-1].isdigit() and varname in self.global_vars:
-            # Global variable.
-            value = self[0][varname]
-            return AbinitVariable(varname, value)
-                                                                        
-        elif varname[-1].isdigit():
-            # Find the index of the dataset.
-            idt = ""
-            for i, c in enumerate(reversed(varname)):
-                if c.isdigit():
-                    idt += c
-                else:
-                    break
+    #    if not varname[-1].isdigit() and varname in self[0]:
+    #        # Global variable.
+    #        value = self[0][varname]
+    #        return AbinitVariable(varname, value)
+    #                                                                    
+    #    elif varname[-1].isdigit():
+    #        # Find the index of the dataset.
+    #        idt = ""
+    #        for i, c in enumerate(reversed(varname)):
+    #            if c.isdigit():
+    #                idt += c
+    #            else:
+    #                break
 
-            idt = int("".join(reversed(idt)))
-            if not (self.ndtset >= idt  >= 1):
-                raise self.Error("Invalid dataset index %d, ndtset %d " % (idt, self.ndtset))
+    #        idt = int("".join(reversed(idt)))
+    #        if not (self.ndtset >= idt  >= 1):
+    #            raise self.Error("Invalid dataset index %d, ndtset %d " % (idt, self.ndtset))
 
-            # Strip the numeric index.
-            var = varname[:len(varname)-i]
+    #        # Strip the numeric index.
+    #        var = varname[:len(varname)-i]
 
-            try:
-                value = self[idt][var]
-                return AbinitVariable(var, value)
+    #        try:
+    #            value = self[idt][var]
+    #            return AbinitVariable(var, value)
 
-            except:
-                raise AttributeError("cannot find attribute %s" % varname)
+    #        except:
+    #            raise AttributeError("cannot find attribute %s" % varname)
 
-        else:
-            raise AttributeError("cannot find attribute %s" % varname)
+    #    else:
+    #        raise AttributeError("cannot find attribute %s" % varname)
 
     @property
     def pseudo_dir(self):

@@ -23,16 +23,19 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         with GSR_Reader(filepath) as r:
             # Initialize the electron bands from file
             self._ebands = r.read_ebands()
-            #self._forces = r.read_forces()
-            #self._stress = r.read_stress()
 
-            #self.structure.set_forces(self.forces)
-            #self.structure.set_stress(self.stress)
+            #self.structure.set_forces(r.read_forces())
+            #self.structure.set_stress(r.read_stress())
 
     @classmethod
     def from_file(cls, filepath):
         """Initialize the object from a Netcdf file"""
         return cls(filepath)
+
+    @property
+    def ebands(self):
+        """`ElectronBands` object."""
+        return self._ebands
 
     @property
     def structure(self):
@@ -47,11 +50,6 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     @property
     def nsppol(self):
         return self.ebands.nsppol
-                                     
-    @property
-    def ebands(self):
-        """`ElectronBands` object."""
-        return self._ebands
 
 
 class GSR_Reader(ElectronsReader):
@@ -259,3 +257,22 @@ class GSR_Plotter(collections.Iterable):
             fig.savefig(savefig)
                                  
         return fig
+
+    #def eos_fit(eos_name='murnaghan'):
+    #    """Fit E(V)"""
+    #    # Read the value of varname from the files.
+    #    volumes, energies = [], []
+    #    for filepath in self.filepaths:
+    #        with GSR_Reader(filepath) as r:
+    #            volumes.append(r.read_value(varname_x))
+    #            energies.append(r.read_value("etotal"))
+
+    #    # For the list of available models, see EOS.MODELS
+    #    from pymatgen.io.abinitio.eos import EOS
+    #    eos = EOS(eos_name=eos_name)
+
+    #    # Note that eos.fit expects lengths in Angstrom, energies are in eV.
+    #    # To specify different units use len_units and ene_units 
+    #    fit = eos.fit(volumes, energies, vol_unit="bohr**3", ene_unit="Ha")
+    #    #fit.plot()
+    #    return fit

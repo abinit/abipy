@@ -123,16 +123,16 @@ def main():
     from pymatgen.io.abinitio.launcher import SimpleResourceManager
     retcode = 0
     for work in workflows:
-        #work.build()
+        work.build()
+        work.pickle_dump()
 
-        retcodes = SimpleResourceManager(work, max_ncpus=1, sleep_time=5).run()
-        retcode = max(retcodes)
-        if retcode != 0:
-            return retcode
+        #retcodes = SimpleResourceManager(work, max_ncpus=1, sleep_time=5).run()
+        #retcode = max(retcodes)
+        #if retcode != 0:
+        #    return retcode
 
     #work.wxshow_inputs()
-    work.wxshow_outputs()
-
+    #work.wxshow_outputs()
     return retcode
 
 if __name__ == "__main__":

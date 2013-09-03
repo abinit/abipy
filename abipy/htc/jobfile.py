@@ -592,7 +592,8 @@ class SlurmJobFile(JobFile):
             val = [val, 0, 0]
         self.time = val
 
-    def set_runtime(self, val): self.set_time(val)
+    def set_runtime(self, val): 
+        self.set_time(val)
 
     ntasks = None
     def set_ntasks(self, val):

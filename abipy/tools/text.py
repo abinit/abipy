@@ -38,7 +38,7 @@ def nums_and_text(line):
 
     for tok in tokens:
         try:
-            numbers.append( tonumber(tok) )
+            numbers.append(tonumber(tok))
         except ValueError:
             text += " " + tok
 
@@ -109,7 +109,7 @@ def is_string(s):
         return False
 
 
-def list_strings(arg):
+def list_strings(obj):
     """
     Always return a list of strings, given a string or list of strings as input.
 
@@ -124,13 +124,13 @@ def list_strings(arg):
     >>> list_strings(['A','list','of','strings'])
     ['A', 'list', 'of', 'strings']
     """
-    if isinstance(arg, str):
-        return [arg]
+    if is_string(obj):
+        return [obj]
     else:
-        return arg
+        return obj
 
 
-def marquee(txt='', width=78, mark='*'):
+def marquee(text="", width=78, mark='*'):
     """
     Return the input string centered in a 'marquee'.
 
@@ -145,13 +145,13 @@ def marquee(txt='', width=78, mark='*'):
     marquee('A test',40, ' ')
     '                 A test                 '
     """
-    if not txt:
+    if not text:
         return (mark*width)[:width]
 
-    nmark = (width-len(txt)-2)//len(mark)//2
+    nmark = (width-len(text)-2)//len(mark)//2
     if nmark < 0: 
         nmark = 0
 
     marks = mark * nmark
-    return '%s %s %s' % (marks, txt, marks)
+    return '%s %s %s' % (marks, text, marks)
 

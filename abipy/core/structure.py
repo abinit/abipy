@@ -18,9 +18,17 @@ __all__ = [
 
 
 class Lattice(pymatgen.Lattice):
-
+    """
+    Extends the pymatgen Lattice with methods that allows one to construct
+    the object from ABINIT variables or to produce the set of input variables
+    from a structure
+    """
     @classmethod
     def from_abivars(cls, d):
+        """
+        Returns a new instance from a dictionary with the ABINIT variable that 
+        define the unit cell.
+        """
         rprim = d.get("rprim", None)
         angdeg = d.get("angdeg", None)
         acell = d["acell"]
@@ -249,15 +257,15 @@ class Structure(pymatgen.Structure):
         rprim = Ang2Bohr(self.lattice.matrix)
         xred = np.reshape([site.frac_coords for site in self], (-1,3))
 
-        return {
-            "acell" : 3 * [1.0],
-            "rprim" : rprim,
-            "natom" : natom,
-            "ntypat": len(types_of_specie),
-            "typat" : typat,
-            "znucl" : znucl_type,
-            "xred"  : xred,
-        }
+        return dict(
+            acell=3 * [1.0],
+            rprim=rprim,
+            natom=natom,
+            ntypat=len(types_of_specie),
+            typat=typat,
+            znucl=znucl_type,
+            xred=xred,
+        )
 
     @classmethod
     def from_abivars(cls, d):
