@@ -22,11 +22,11 @@ def build_raman_workflows():
     ph_displ[1,:] = [-1, 0, 0]
 
     # Build new structures by displacing atoms according to the phonon displacement
-    # ph_displ (in reduced coordinates). The Displacement is normalized so that 
+    # ph_displ (in cartesian coordinates). The Displacement is normalized so that 
     # the maximum atomic diplacement is 1 Angstrom and then multiplied by eta.
     modifier = abilab.StructureModifier(base_structure)
 
-    displaced_structures = modifier.displace(ph_displ, etas)
+    displaced_structures = modifier.displace(ph_displ, etas, frac_coords=False)
 
     # Create the list of workflows. Each workflow defines 
     # a complete BSE calculation for given eta.
