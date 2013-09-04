@@ -19,6 +19,10 @@ class Workflow(pmWorkflow):
         from abipy.gui.wxapps import wxapp_showfiles
         wxapp_showfiles(dirpath=self.workdir, walk=True, wildcard="*.log").MainLoop()
 
+    #def wxbrowse(self):
+    #    import abipy.gui.wxapps as wxapps
+    #    wxapps.wxapp_listbrowser(dirpaths=self.workdir).MainLoop()
+
     #def wxshow_events(self):
     #    TODO
     #    """Open a noteboox dysplaying the events (warnings, comments, warnings) of the workflow."""

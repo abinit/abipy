@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 """
-This scripts runs all the python scripts located in this directory 
-
-Usage: 
-    run.py 
+This script runs all the python scripts located in this directory 
 """
 from __future__ import print_function
 
