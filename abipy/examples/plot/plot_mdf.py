@@ -13,7 +13,7 @@ mdf_file = abiopen(data.ref_file("tbs_4o_DS2_MDF.nc"))
 title = "Si absorption spectrum: EXC vs RPA"
 mdf_file.plot_mdfs(title=title, xlim=(2, 5))
 
-# Plot the 4 components of the macroscopic dielectric tensor
+# Plot the 6 different components of the macroscopic dielectric tensor 
 title = "Si macroscopic dielectric tensor"
 tensor_exc = mdf_file.get_tensor("exc")
 tensor_exc.plot(title=title)

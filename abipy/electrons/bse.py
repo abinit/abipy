@@ -89,7 +89,7 @@ class DielectricTensor(object):
         #if not kwargs:
         #    kwargs = {"color": "black", "linewidth": 2.0}
 
-        # Plot the q-points
+        # Plot the directions
         for idir in np.arange(0,6):
             self.plot_ax(ax, idir, *args, **kwargs)
 
