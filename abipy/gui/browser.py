@@ -71,15 +71,25 @@ class NcFileDirCtrl(wx.GenericDirCtrl):
 import fnmatch
 import wx.lib.mixins.listctrl as listmix
 
+def is_string(obj):
+    """True if obj is a string."""
+    try:
+        dummy = obj + " "
+        return True
+
+    except TypeError:
+        return False
+
+
 class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
 
     def __init__(self, parent, dirpaths=None, filepaths=None, wildcard="", **kwargs):
         super(FileListPanel, self).__init__(parent, -1, **kwargs)
 
-        if isinstance(dirpaths, str) and dirpaths:
+        if dirpaths is not None and is_string(dirpaths):
             dirpaths = [dirpaths, ]
 
-        if isinstance(filepaths, str) and filepaths:
+        if filepaths is not None and is_string(filepaths):
             filepaths = [filepaths, ]
 
         self.dirpaths = dirpaths if dirpaths is not None else []

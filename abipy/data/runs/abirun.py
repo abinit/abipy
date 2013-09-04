@@ -13,11 +13,11 @@ import abipy.abilab as abilab
 
 def str_examples():
     examples = """
-      Usage example:\n\n
-      abirun.py single      => Run single task.
-      abirun.py rapidfire   => Run tasks in rapidfire mode.
-      abirun.py gui         => Open GUI 
-    """
+Usage example:\n
+    abirun.py single      => Run single task.
+    abirun.py rapidfire   => Run tasks in rapidfire mode.
+    abirun.py gui         => Open GUI
+"""
     return examples
 
 def show_examples_and_exit(err_msg=None, error_code=1):
@@ -80,9 +80,9 @@ def main():
 
             else:
                 print("got task",task)
-                task.start()
+                #task.start()
 
-                #task.start_and_wait()
+                task.start_and_wait()
                 #retcode = task.returncode
                 #print("Task returncode", task.returncode)
 
@@ -112,8 +112,8 @@ def main():
     if options.command == "gui":
         # TODO
         #wxapps.workflow_viewer(work).MainLoop()
-        #work.wxbrowse()
-        work.wxshow_outputs()
+        work.wxbrowse()
+        #work.wxshow_outputs()
 
     return 0
 
