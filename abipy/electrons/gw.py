@@ -500,11 +500,10 @@ class SIGRES_Plotter(collections.Iterable):
     This object receives a list of `SIGRES_File` objects and provides
     methods to inspect/analyze the GW results (useful for convergence studies)
 
-    .. attributes:
+    .. Attributes:
         
         nsppol:
             Number of spins (must be the same in each file)
-
         computed_gwkpoints:
             List of k-points where the QP energies have been evaluated.
             (must be the same in each file)
@@ -704,7 +703,7 @@ class SIGRES_Plotter(collections.Iterable):
             spin:
             kpoint: 
             hspan:
-            **kwargs
+            kwargs:
 
         Returns:
             `matplotlib` figure
@@ -755,7 +754,7 @@ class SIGRES_Plotter(collections.Iterable):
             kpoint: 
             band:
             hspan:
-            **kwargs
+            kwargs:
 
         Returns:
             `matplotlib` figure
