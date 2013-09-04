@@ -11,19 +11,128 @@ from abipy.core.kpoints import Kpoint
 from abipy.iotools import ETSF_Reader, AbinitNcFile, Has_Structure
 
 __all__ = [
+    "DielectricTensor",
     "DielectricFunction",
     "MDF_File",
     "MDF_Reader",
     "MDF_Plotter",
 ]
 
-#class DielectricTensor(object):
-#    def __init__(self):
-#    @classmethod
-#    def from_file(cls, filobj):
-#    def plot(self, *args, **kwargs):
-#    def make_dielectric_function(self, qpoints):
-#    def plot_ax(self, ax, what, *args, **kwargs):
+class DielectricTensor(object):
+    """
+    This object stores the frequency-dependent macroscopic dielectric tensor
+    obtained from the dielectric functions for different q-directions.
+    """
+    def __init__(self, mdf,structure):
+        assert len(mdf.qpoints) == 6
+
+        nfreq = len(mdf.wmesh)
+
+        # Init matrices
+        a = np.zeros((6,6),dtype=np.complex)
+        b = np.zeros((6,nfreq),dtype=np.complex)
+
+        for iqpt in np.arange(0,6):
+           qpt_frac = mdf.qpoints[iqpt]
+
+           # Computing the matrix as a quadratic form with the cart coords for qpt
+           qpt_cart = structure.reciprocal_lattice.get_cartesian_coords(qpt_frac)
+
+           a[iqpt,:] = [qpt_cart[0]**2,qpt_cart[1]**2,qpt_cart[2]**2,2*qpt_cart[0]*qpt_cart[1],2*qpt_cart[0]*qpt_cart[2],2*qpt_cart[1]*qpt_cart[2]]
+           a[iqpt,:] = a[iqpt,:]/(qpt_cart[0]**2+qpt_cart[1]**2+qpt_cart[2]**2)
+           b[iqpt,:] = mdf.emacros_q[iqpt].values
+
+        x = np.linalg.solve(a,b)
+
+        self.tensor_cart = []
+
+        # 1 is xx, 2 is yy, 3 is zz, 4 is xy, 5 is xz, 6 is yz
+        # TODO keep these labels inside self
+        for idir in np.arange(0,6):
+           self.tensor_cart.append(Function1D(mdf.wmesh,x[idir,:]))
+
+    def plot(self, *args, **kwargs):
+        """
+        Plot all the components of the tensor
+
+        args:
+            Optional arguments passed to :mod:`matplotlib`.
+
+        ==============  ==============================================================
+        kwargs          Meaning
+        ==============  ==============================================================
+        title           Title of the plot (Default: None).
+        show            True to show the figure (Default).
+        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
+        ==============  ==============================================================
+
+        Returns:
+            matplotlib figure
+        """
+        title = kwargs.pop("title", None)
+        show = kwargs.pop("show", True)
+        savefig = kwargs.pop("savefig", None)
+
+        import matplotlib.pyplot as plt
+
+        fig = plt.figure()
+
+        ax = fig.add_subplot(1, 1, 1)
+
+        if title is not None:
+            ax.set_title(title)
+
+        ax.grid(True)
+        ax.set_xlabel('Frequency [eV]')
+        ax.set_ylabel('Dielectric tensor')
+
+        #if not kwargs:
+        #    kwargs = {"color": "black", "linewidth": 2.0}
+
+        # Plot the directions
+        for idir in np.arange(0,6):
+            self.plot_ax(ax, idir, *args, **kwargs)
+
+        if show:
+            plt.show()
+
+        if savefig is not None:
+            fig.savefig(savefig)
+
+        return fig
+
+    def plot_ax(self, ax, what, *args, **kwargs):
+        """
+        Helper function to plot data on the axis ax.
+
+        Args:
+            ax:
+                plot axis
+            qpoint:
+                index of the q-point or Kpoint object or "average" to plot emacro_avg.
+            args:
+                Positional arguments passed to ax.plot
+            kwargs:
+                Keyword arguments passed to matplotlib. Accepts also:
+
+                cplx_mode:
+                    string defining the data to print (case-insensitive).
+                    Possible choices are 
+
+                        - "re"  for real part 
+                        - "im" for imaginary part only.
+                        - "abs' for the absolute value
+
+                    Options can be concated with "-".
+        """
+        # Extract the function to plot according to qpoint.
+        if isinstance(what, int):
+            f = self.tensor_cart[what]
+        else:
+            raise ValueError("Don't know how to handle %s" % str(qpoint))
+
+        return f.plot_ax(ax, *args, **kwargs)
+
 
 #########################################################################################
 
@@ -274,6 +383,12 @@ class MDF_File(AbinitNcFile, Has_Structure):
 
         # Plot spectra 
         plotter.plot(cplx_mode=cplx_mode, **kwargs)
+
+    def get_tensor(self,mdf_type="exc"):
+        """Get the macroscopic dielectric tensor from the MDF."""
+    
+        return DielectricTensor(self.get_mdf(mdf_type),self._structure)
+        
 
 #########################################################################################
 

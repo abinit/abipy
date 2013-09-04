@@ -30,6 +30,15 @@ class TestMDF_Reader(AbipyTest):
             plotter.add_mdf("GW-RPA", gwnlf_mdf)
             #plotter.plot()
 
+    def test_TSR(self):
+        """Test the computation of Tensor"""
+        mdf_file = MDF_File(data.ref_file("tbs_4o_DS2_MDF.nc"))
+ 
+        exc_tsr = mdf_file.get_tensor("exc")
+        rpa_tsr = mdf_file.get_tensor("rpa")
+        gw_tsr = mdf_file.get_tensor("gwrpa")
+
+        #exc_tsr.plot()
 
 if __name__ == "__main__":
     import unittest
