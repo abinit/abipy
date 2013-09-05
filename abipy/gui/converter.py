@@ -88,6 +88,7 @@ class ConverterFrame(wx.Frame):
         ufloat = units.FloatWithUnit(fvalue, from_unit)
 
         to_unit = self.to_unit_choice.GetValue()
+
         try:
             conversion = ufloat.to(to_unit)
             print(ufloat, conversion)
