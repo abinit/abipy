@@ -119,20 +119,18 @@ def main():
     # Build the list of workflows.
     workflows = build_raman_workflows()
 
-    # Run them all!
-    from pymatgen.io.abinitio.launcher import SimpleResourceManager
     retcode = 0
     for work in workflows:
         work.build()
         work.pickle_dump()
 
+        # Run them all!
+        #from pymatgen.io.abinitio.launcher import SimpleResourceManager
         #retcodes = SimpleResourceManager(work, max_ncpus=1, sleep_time=5).run()
         #retcode = max(retcodes)
         #if retcode != 0:
         #    return retcode
 
-    #work.wxshow_inputs()
-    #work.wxshow_outputs()
     return retcode
 
 if __name__ == "__main__":

@@ -110,10 +110,8 @@ def main():
     #   work.pickle_dump()
 
     if options.command == "gui":
-        # TODO
-        #wxapps.workflow_viewer(work).MainLoop()
-        work.wxbrowse()
-        #work.wxshow_outputs()
+        from abipy.gui.workflow_viewer import wxapp_workflow_viewer
+        wxapp_workflow_viewer(work).MainLoop()
 
     return 0
 
