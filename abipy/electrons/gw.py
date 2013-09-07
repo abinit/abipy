@@ -23,6 +23,16 @@ __all__ = [
 ]
 
 
+def is_string(obj):
+    """True if object behaves as a string."""
+    try:
+        dummy = obj + ""
+        return True
+
+    except TypeError:
+        return False
+
+
 class QPState(collections.namedtuple("QPState",
                          "spin kpoint band e0 qpe qpe_diago vxcme sigxme sigcmee0 vUme ze0")):
     """
@@ -234,14 +244,14 @@ class QPList(list):
         show = kwargs.pop("show", True)
         savefig = kwargs.pop("savefig", None)
 
-        if isinstance(with_fields, str):
+        if is_string(with_fields):
             if with_fields == "all":
                 fields = list(QPState.get_fields(exclude=["spin", "kpoint"]))
             else:
                 fields = with_fields.split()
 
         if exclude_fields:
-            if isinstance(exclude_fields, str):
+            if is_string(exclude_fields):
                 exclude_fields = exclude_fields.split()
             for e in exclude_fields:
                 fields.remove(e)
@@ -525,7 +535,7 @@ class SIGRES_Plotter(collections.Iterable):
 
     def add_files(self, filepaths):
         """Add a list of filenames to the plotter"""
-        if isinstance(filepaths, str): 
+        if is_string(filepaths):
             filepaths = [filepaths]
 
         for filepath in filepaths:

@@ -18,6 +18,16 @@ __all__ = [
     "MDF_Plotter",
 ]
 
+def is_string(obj):
+    """True if object behaves as a string."""
+    try:
+        dummy = obj + ""
+        return True
+
+    except TypeError:
+        return False
+
+
 class DielectricTensor(object):
     """
     This object stores the frequency-dependent macroscopic dielectric tensor
@@ -318,7 +328,7 @@ class DielectricFunction(object):
             iq = self.qpoints.index(qpoint)
             f = self.emacros_q[iq]
 
-        elif isinstance(qpoint, str) and qpoint == "average":
+        elif is_string(qpoint) and qpoint == "average":
             f = self.emacro_avg
 
         else:

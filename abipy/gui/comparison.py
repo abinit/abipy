@@ -8,6 +8,14 @@ import abipy.gui.awx as awx
 from abipy.electrons import ElectronBandsPlotter, ElectronDosPlotter, MDF_Plotter, SIGRES_Plotter
 from abipy.gui.electronswx import ElectronDosDialog
 
+def is_string(obj):
+    try:
+        dummy = obj + " "
+        return True
+
+    except TypeError:
+        return False
+
 
 class FileCheckBoxPanel(awx.Panel):
     """A panel with a list of filepaths and checkboxes."""
@@ -22,7 +30,8 @@ class FileCheckBoxPanel(awx.Panel):
         """
         super(FileCheckBoxPanel, self).__init__(parent, -1, **kwargs)
 
-        if isinstance(filepaths, str): filepaths = [filepaths]
+        if is_string(filepaths): 
+            filepaths = [filepaths]
         self.all_filepaths = filepaths
 
         self.BuildUi()

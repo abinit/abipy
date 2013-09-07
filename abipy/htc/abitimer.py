@@ -9,6 +9,16 @@ from abipy.tools.numtools import minloc, alternate
 from abipy.tools.text import pprint_table
 
 
+def is_string(obj):
+    """True if object behaves as a string."""
+    try:
+        dummy = obj + ""
+        return True
+
+    except TypeError:
+        return False
+
+
 class AbinitTimerParserError(Exception):
     """Errors raised by AbinitTimerParser"""
 
@@ -47,7 +57,7 @@ class AbinitTimerParser(collections.Iterable):
         Files that cannot be opened are ignored. A single filename may also be given.
         Return list of successfully read files.
         """
-        if isinstance(filenames, str):
+        if is_string(filenames):
             filenames = [filenames]
 
         read_ok = []
@@ -583,7 +593,7 @@ class AbinitTimer(object):
 
     def tocsv(self, fileobj=sys.stdout):
         """Write data on file fileobj using CSV format."""
-        openclose = isinstance(fileobj, str)
+        openclose = is_string(fileobj)
 
         if openclose:
             fileobj = open(fileobj, "w")
@@ -611,7 +621,7 @@ class AbinitTimer(object):
 
     def get_values(self, keys):
         """Return a list of values associated to a particular list of keys"""
-        if isinstance(keys, str):
+        if is_string(keys):
             return [s.__dict__[keys] for s in self.sections]
         else:
             values = []

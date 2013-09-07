@@ -12,6 +12,15 @@ __all__ = [
     "GSR_Plotter",
 ]
 
+def is_string(obj):
+    """True if object behaves as a string."""
+    try:
+        dummy = obj + ""
+        return True
+
+    except TypeError:
+        return False
+
 
 class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     """
@@ -92,7 +101,7 @@ class GSR_Plotter(collections.Iterable):
 
     def add_files(self, filepaths):
         """Add a list of filenames to the plotter"""
-        if isinstance(filepaths, str): 
+        if is_string(filepaths):
             filepaths = [filepaths]
 
         for filepath in filepaths:

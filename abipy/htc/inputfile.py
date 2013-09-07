@@ -10,7 +10,19 @@ from os.path import dirname, abspath, exists
 from collections import OrderedDict
 from copy import deepcopy
 
-__all__ = ['InputFile']
+__all__ = [
+    'InputFile'
+]
+
+def is_string(obj):
+    """True if object behaves as a string."""
+    try:
+        dummy = obj + ""
+        return True
+
+    except TypeError:
+        return False
+
 
 # =========================================================================== #
 
@@ -644,7 +656,7 @@ def string_to_value(sval):
                     if isinstance(value, list):
                         for i in range(len(value)):
                             value[i] *= _units[part]
-                    elif isinstance(value, str):
+                    elif is_string(value):
                         value = None
                         break
                     else:
@@ -716,7 +728,7 @@ def convert_number(value):
     if isinstance(value, float) or isinstance(value, int):
         return value
 
-    elif isinstance(value, str):
+    elif is_string(value):
 
         if is_number(value):
             try:

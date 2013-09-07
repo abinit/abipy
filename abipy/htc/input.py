@@ -32,6 +32,15 @@ _NO_MULTI = [
 ]
 
 
+def is_string(obj):
+    """True if object behaves as a string."""
+    try:
+        dummy = obj + ""
+        return True
+
+    except TypeError:
+        return False
+
 #class AbinitVariable(object):
 #
 #    def __init__(self, name, value):
@@ -79,7 +88,8 @@ class AbiInput(object):
 
         # Setup of the pseudopotential files.
         self._pseudo_dir = os.path.abspath(pseudo_dir)
-        if isinstance(pseudos, str): pseudos = [pseudos]
+        if is_string(pseudos):
+            pseudos = [pseudos]
         pseudo_paths = [os.path.join(self._pseudo_dir, p) for p in pseudos]
 
         missing = [p for p in pseudo_paths if not os.path.exists(p)]
@@ -322,7 +332,7 @@ class AbiInput(object):
         """
         # Split items into varnames and values
         for i, item in enumerate(items):
-            if not isinstance(item, str):
+            if not is_string(item):
                 break
 
         varnames, values = items[:i], items[i:]
@@ -849,7 +859,7 @@ def string_to_value(sval):
                     if isinstance(value, list):
                         for i in range(len(value)):
                             value[i] *= _UNITS[part]
-                    elif isinstance(value, str):
+                    elif is_string(value):
                         value = None
                         break
                     else:
@@ -929,7 +939,7 @@ def convert_number(value):
     if isinstance(value (float, int)):
         return value
 
-    elif isinstance(value, str):
+    elif is_string(value):
 
         if is_number(value):
             try:
