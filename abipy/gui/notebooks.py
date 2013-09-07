@@ -30,11 +30,6 @@ class ReadOnlyTextNotebookFrame(awx.Frame):
 
         super(ReadOnlyTextNotebookFrame, self).__init__(parent, **kwargs)
 
-        # Here we create a panel and a notebook on the panel
-        import wx.lib.agw.flatnotebook as fnb
-        nb_panel = awx.Panel(self)
-        nb = fnb.FlatNotebook(nb_panel)
-
         # Add the pages to the notebook with the name to show on the tab
         if not isinstance(text_list, (list, tuple)):
             text_list = [text_list]
@@ -43,6 +38,11 @@ class ReadOnlyTextNotebookFrame(awx.Frame):
             page_names = [page_names]
 
         assert len(page_names) == len(text_list)
+
+        # Here we create a panel and a notebook on the panel
+        import wx.lib.agw.flatnotebook as fnb
+        nb_panel = awx.Panel(self)
+        nb = fnb.FlatNotebook(nb_panel)
 
         for page_name, text in zip(page_names, text_list):
             page = wx.TextCtrl(nb_panel, -1, text, style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)

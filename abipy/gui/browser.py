@@ -27,7 +27,7 @@ _VIEWER_FRAMES = {
 }
 
 
-def viewerframe_for_filepath(parent, filepath):
+def viewerframe_from_filepath(parent, filepath):
     ext = filepath.split("_")[-1]
     try:
         return _VIEWER_FRAMES[ext](parent, filepath)
@@ -55,7 +55,7 @@ class NcFileDirCtrl(wx.GenericDirCtrl):
     def OnItemActivated(self, event):
         path = self.GetFilePath()
         if not path: return
-        frame = viewerframe_for_filepath(self, path)
+        frame = viewerframe_from_filepath(self, path)
         frame.Show()
 
     def OnRightClick(self, event):
@@ -207,18 +207,19 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
         currentItem = event.m_itemIndex
         fd = self.id2filedata[self.file_list.GetItemData(currentItem)]
         self.log("In OnItemActivated with filedata %s" % str(fd))
-        frame = viewerframe_for_filepath(self, fd.abspath)
+        frame = viewerframe_from_filepath(self, fd.abspath)
         frame.Show()
 
     def OnRightClick(self, event):
         currentItem = event.m_itemIndex
+        if currentItem == -1:
+            return
 
-        if currentItem != -1:
-            fd = self.id2filedata[self.file_list.GetItemData(currentItem)]
-            # Open the popup menu then destroy it to avoid mem leak.
-            menu = popupmenu_for_filename(self, fd.abspath)
-            self.PopupMenu(menu, event.GetPoint())
-            menu.Destroy()
+        fd = self.id2filedata[self.file_list.GetItemData(currentItem)]
+        # Open the popup menu then destroy it to avoid mem leak.
+        menu = popupmenu_for_filename(self, fd.abspath)
+        self.PopupMenu(menu, event.GetPoint())
+        menu.Destroy()
 
     def OnColClick(self, event):
         event.Skip()

@@ -20,6 +20,7 @@ class App(wx.App):
         # This catches events when the app is asked to activate by some other process
         self.Bind(wx.EVT_ACTIVATE_APP, self.OnActivate)
 
+    @property
     def log(self):
         return self._log.write
 

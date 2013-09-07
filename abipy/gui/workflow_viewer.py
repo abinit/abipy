@@ -5,12 +5,16 @@ import wx
 
 import abipy.gui.awx as awx
 
+from collections import OrderedDict
+from .events import AbinitEventsFrame, AbinitEventsNotebookFrame
 #from abipy import abiopen
 
 ID_SHOW_INPUTS = wx.NewId()
 ID_SHOW_OUTPUTS = wx.NewId()
 ID_SHOW_LOGS = wx.NewId()
 ID_BROWSE = wx.NewId()
+ID_SHOW_MAIN_EVENTS = wx.NewId()
+ID_SHOW_LOG_EVENTS = wx.NewId()
 
 class WorkflowViewerFrame(awx.Frame):
     VERSION = "0.1"
@@ -48,18 +52,15 @@ class WorkflowViewerFrame(awx.Frame):
 
         tsize = (15, 15)
         artBmp = wx.ArtProvider.GetBitmap
-        toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, tsize), "Open")
+        #toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, tsize), "Open")
         toolbar.AddSimpleTool(ID_SHOW_INPUTS, wx.Bitmap(awx.path_img("struct.png")), "Visualize the input files.")
         toolbar.AddSimpleTool(ID_SHOW_OUTPUTS, wx.Bitmap(awx.path_img("struct.png")), "Visualize the output files.")
         toolbar.AddSimpleTool(ID_SHOW_LOGS, wx.Bitmap(awx.path_img("struct.png")), "Visualize the log files.")
         toolbar.AddSimpleTool(ID_BROWSE, wx.Bitmap(awx.path_img("struct.png")), "Browse files.")
+        toolbar.AddSimpleTool(ID_SHOW_MAIN_EVENTS, wx.Bitmap(awx.path_img("struct.png")), "Show the ABINIT events reported in the main output files.")
+        toolbar.AddSimpleTool(ID_SHOW_LOG_EVENTS, wx.Bitmap(awx.path_img("struct.png")), "Show the ABINIT events reported in the log files.")
 
         #toolbar.AddSeparator()
-        #self.visualizer_cbox = wx.ComboBox(choices=supported_visunames(), id=ID_TBOX_VIS, 
-        #    name='visualizer', parent=toolbar, value='xcrysden') 
-        #self.visualizer_cbox.Refresh() 
-        #toolbar.AddControl(control=self.visualizer_cbox) 
-
         self.toolbar.Realize()
         self.Centre()
 
@@ -74,6 +75,8 @@ class WorkflowViewerFrame(awx.Frame):
             (ID_SHOW_OUTPUTS, self.OnShowOutputs),
             (ID_SHOW_LOGS, self.OnShowLogs),
             (ID_BROWSE, self.OnBrowse),
+            (ID_SHOW_MAIN_EVENTS, self.OnShowMainEvents),
+            (ID_SHOW_LOG_EVENTS, self.OnShowLogEvents),
         ]
 
         for combo in menu_handlers:
@@ -82,7 +85,9 @@ class WorkflowViewerFrame(awx.Frame):
 
         self.work = work
         #if filename is not None:
-        #    self.ReadWfkFile(filename)
+        #    self.ReadWorkflow(filename)
+
+        self.BuildUi()
 
     @property
     def codename(self):
@@ -92,30 +97,17 @@ class WorkflowViewerFrame(awx.Frame):
         if self.work is None: return
         work = self.work
 
-        #splitter = wx.SplitterWindow(self, style=wx.SP_LIVE_UPDATE)
-        #splitter.SetMinimumPaneSize(50)
-        #parent = splitter 
-        #parent = self
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        #self.skb_panel = awx.SpinKpointBandPanel(parent, wfk.nsppol, wfk.kpoints, wfk.mband)
+        # List Control with the individual tasks of the workflow.
+        self.task_listctrl = task_listctrl = TaskListCtrl(self, work)
+
+        main_sizer.Add(task_listctrl, 1, wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 5)
+
+        self.SetSizerAndFit(main_sizer)
 
         # Set the callback for double click on k-point row..
         #self.skb_panel.SetOnItemActivated(self._visualize_skb)
-
-        # Add Python shell
-        #from wx.py.shell import Shell
-        #from abipy.tools import marquee
-        #msg = "WFK_File object is accessible via the wfk variable. Use wfk.<TAB> to access the list of methods."
-        #msg = marquee(msg, width=len(msg) + 8, mark="#")
-        #msg = "#"*len(msg) + "\n" + msg + "\n" + "#"*len(msg) + "\n"
-
-        #pyshell = Shell(parent, introText=msg, locals={"work": self.work})
-        #splitter.SplitHorizontally(self.skb_panel, pyshell)
-
-        #main_sizer = wx.BoxSizer(wx.VERTICAL)
-        #main_sizer.Add(self.skb_panel, 1, wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 5)
-        #main_sizer.Add(pyshell, 1, wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 5)
-        #self.SetSizerAndFit(main_sizer)
 
     #def DestroyPanel(self):
     #    if hasattr(self, "panel"):
@@ -145,14 +137,14 @@ class WorkflowViewerFrame(awx.Frame):
     #    self.file_history.AddFileToHistory(filepath)
     #    self.ReadWfkFile(filepath)
 
-    #def ReadWfkFile(self, filepath):
+    #def ReadWorkflowFile(self, filepath):
     #    """Read the WFK file and build the UI."""
     #    self.statusbar.PushStatusText("Reading %s" % filepath)
 
     #    try:
     #        work = abiopen(filepath)
     #        #if not isinstance(wfkfile, WFK_File):
-    #        #    awx.showErrorMessage(self, message="%s is not a valid WFK File" % filepath)
+    #        #    awx.showErrorMessage(self)
     #        #    return
 
     #        self.work = wfkfile
@@ -190,22 +182,147 @@ class WorkflowViewerFrame(awx.Frame):
         if self.work is None: return
         self.work.wxbrowse()
 
+    def OnShowMainEvents(self, event):
+        if self.work is None: return
+        frame = AbinitEventsNotebookFrame(self, filenames=[task.output_file.path for task in self.work])
+        frame.Show()
 
-class WorkflowViewerApp(awx.App):
-    def OnInit(self):
-        return True
+    def OnShowLogEvents(self, event):
+        if self.work is None: return
+        frame = AbinitEventsNotebookFrame(self, [task.log_file.path for task in self.work])
+        frame.Show()
 
-    def MacOpenFile(self, filename):
-        """Called for files droped on dock icon, or opened via finders context menu"""
-        if filename.endswith(".py"):
+
+class TaskListCtrl(wx.ListCtrl):
+    """
+    """
+    def __init__(self, parent, work, **kwargs):
+        """
+        Args:
+            Task:
+                List of `Task` instances.
+        """
+        super(TaskListCtrl, self).__init__(parent, id=-1, style=wx.LC_REPORT | wx.BORDER_SUNKEN, **kwargs)
+
+        self.work = work
+
+        columns = ["Task", "Status"]
+
+        for (index, col) in enumerate(columns):
+            self.InsertColumn(index, col)
+
+        for task in work:
+            entry = [task.name,
+                     task.status,
+                     ]
+            self.Append(entry)
+
+        for (index, col) in enumerate(columns):
+            self.SetColumnWidth(index, wx.LIST_AUTOSIZE)
+
+        self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick)
+        #self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected)
+        #self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
+
+    #def GetTask(self):
+    #    """Returns the Task selected by the user."""
+    #    task_idx = int(self.GetFirstSelected())
+    #    return self.work[task_idx]
+
+    #def OnItemActivated(self, event):
+    #    currentItem = event.m_itemIndex
+    #    print("In OnItemActivated with currentItem %s" % str(currentItem))
+    #    task = self.work[currentItem]
+    #    task.start()
+
+    def OnRightClick(self, event):
+        currentItem = event.m_itemIndex
+        print("OnRightClick with currentItem %s" % str(currentItem))
+        if currentItem == -1:
             return
-        # Open filename in a new frame.
-        self.log("%s dropped on app %s" % (filename, self.appname))
-        WorkflowViewerFrame(parent=None, work=filename).Show()
+
+        # Open the popup menu then destroy it to avoid mem leak.
+        task = self.work[currentItem]
+        menu = TaskPopupMenu(parent=self, task=task)
+        self.PopupMenu(menu, event.GetPoint())
+        menu.Destroy()
+
+    #def OnItemSelected(self, event):
+    #    indices = [self.file_list.GetFirstSelected()]
+    #    while indices[-1] != -1:
+    #        indices.append(self.file_list.GetNextSelected(indices[-1]))
+    #    indices = indices[:-1]
+    #    print("in OnItemSelected with indices:", indices)
+
+    #    # Plot multiple bands
+    #    if len(indices) > 1:
+    #        plotter = ElectronBandsPlotter()
+
+    #        for index in indices:
+    #            fd = self.id2filedata[self.file_list.GetItemData(index)]
+    #            print("adding ", fd.abspath)
+    #            plotter.add_ebands_from_file(fd.abspath)
+    #        plotter.plot()
+
+
+class TaskPopupMenu(wx.Menu):
+    """
+    A `TaskPopupMenu` has a list of callback functions indexed by the menu title. 
+    The signature of the callback function is func(parent, task) where parent is 
+    the wx Window that will become the parent of the new frame created by the callback.
+    and task is a `Task` instance.
+    """
+    MENU_TITLES = OrderedDict([
+        ("main events", lambda parent, task: AbinitEventsFrame(parent, task.output_file.path).Show()),
+        ("log events", lambda parent, task: AbinitEventsFrame(parent, task.log_file.path).Show()),
+    ])
+
+    def __init__(self, parent, task):
+        super(TaskPopupMenu, self).__init__()
+        self.parent, self.task = parent, task
+
+        self._make_menu()
+
+    def _make_menu(self):
+        """Build the menu"""
+        self.menu_title_by_id = OrderedDict()
+
+        for title in self.MENU_TITLES:
+            self.menu_title_by_id[wx.NewId()] = title
+
+        for (id, title) in self.menu_title_by_id.items():
+            # Register menu handlers with EVT_MENU, on the menu.
+            self.Append(id, title)
+            wx.EVT_MENU(self, id, self.OnMenuSelection)
+
+    def _get_callback(self, title):
+        return self.MENU_TITLES[title]
+
+    def OnMenuSelection(self, event):
+        title = self.menu_title_by_id[event.GetId()]
+        callback = self._get_callback(title)
+        #print("Calling callback %s on task %s" % (callback, self.task))
+        try:
+            callback(self.parent, self.task)
+        except:
+            awx.showErrorMessage(parent=self.parent)
+
+
+#class WorkflowViewerApp(awx.App):
+#    def OnInit(self):
+#        return True
+#
+#    def MacOpenFile(self, filename):
+#        """Called for files droped on dock icon, or opened via finders context menu"""
+#        if filename.endswith(".py"):
+#            return
+#        # Open filename in a new frame.
+#        self.log("%s dropped on app %s" % (filename, self.appname))
+#        WorkflowViewerFrame(parent=None, work=filename).Show()
 
 
 def wxapp_workflow_viewer(workflow_or_picklefile):
-    app = WorkflowViewerApp()
+    app = wx.App()
     frame = WorkflowViewerFrame(None, work=workflow_or_picklefile)
     frame.Show()
     return app

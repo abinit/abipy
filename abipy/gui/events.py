@@ -123,26 +123,54 @@ class AbiOutLogDirCtrl(wx.GenericDirCtrl):
 
 
 class AbinitEventsNotebookFrame(awx.Frame):
-    def __init__(self, parent, filenames, **kwargs):
-
+    """
+    This frame receives a list of filenames and displays the ABINIT events in a notebook.
+    """
+    def __init__(self, parent, filenames, num_dirs=2, **kwargs):
+        """
+        Args:
+            parent:
+                Parent Widget.
+            filenames:
+                List of filenames.
+            num_dirs:
+                Maximum number of directories that will be shown in the tab.
+        """
         if "title" not in kwargs:
             kwargs["title"] = "Abinit Events"
 
         super(AbinitEventsNotebookFrame, self).__init__(parent, **kwargs)
 
+        if is_string(filenames):
+            filenames = [filenames]
+
+        # Remove inexistent files.
+        filenames = filter(os.path.exists, filenames)
+
+        if not filenames:
+            return
+
         # Here we create a panel and a notebook on the panel
         panel = awx.Panel(self)
 
         import wx.lib.agw.flatnotebook as fnb
-
         nb = fnb.FlatNotebook(panel)
 
-        # Add the pages to the notebook with the name to show on the tab
-        # Add only files for which we have events.
         for fname in filenames:
+            if not os.path.exists(fname):
+                continue
+
             page = AbinitEventsPanel(nb, fname)
-            if page.has_events:
-                nb.AddPage(page, text=os.path.basename(fname))
+            page_name = fname
+            if num_dirs > 0:
+                tokens = page_name.split(os.path.sep)
+                page_name = os.path.join(*tokens[-num_dirs:])
+
+            # Add only files for which we have events.
+            #if page.has_events:
+
+            # Add the pages to the notebook with the name to show on the tab
+            nb.AddPage(page, text=page_name)
 
         # Finally, put the notebook in a sizer for the panel to manage the layout
         sizer = wx.BoxSizer()
