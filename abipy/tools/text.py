@@ -46,7 +46,7 @@ def nums_and_text(line):
 
 
 #def short_path(path, max_len=50):
-#    """Returns the shor version of path with maximum 50 characters."""
+#    """Returns the short version of path with maximum max_len characters."""
 #    if len(path) <= max_len:
 #        return path
 #

@@ -5,5 +5,5 @@ import abipy.data
 
 import abipy.gui.wxapps as wxapps
 
-filenames = [os.path.join(abipy.data.dirpath, f) for f in  ["t01.about", "t02.about"]]
-wxapps.wxapp_events(filenames).MainLoop()
+dirpath = os.path.join(abipy.data.dirpath, "runs", "data_si_ebands")
+wxapps.wxapp_events(dirpath).MainLoop()

@@ -10,6 +10,14 @@ from pymatgen.io.abinitio import EventParser
 from abipy import abiopen
 from abipy.htc.abitimer import AbinitTimerSection
 
+def is_string(obj):
+    try:
+        dummy = obj + " "
+        return True
+
+    except TypeError:
+        return False
+
 
 class AbinitEventsPanel(awx.Panel):
     """
@@ -157,10 +165,10 @@ def wxapp_events(root):
     if root is None:
         filenames = []
 
-    elif isinstance(root, str):
+    elif is_string(root):
         root = os.path.abspath(root)
         if os.path.isdir(root):
-            filenames = [os.path.join(root, f) for f in os.listdir(root) if f.endswith(".out")]
+            filenames = [os.path.join(root, f) for f in os.listdir(root) if f.endswith(".abo")]
         else:
             filenames = [root]
     else:

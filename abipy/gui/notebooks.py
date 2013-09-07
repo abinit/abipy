@@ -2,7 +2,6 @@ from __future__ import print_function, division
 
 import os
 import wx
-
 import abipy.gui.awx as awx
 
 __all__ = [
@@ -14,7 +13,7 @@ class ReadOnlyTextNotebookFrame(awx.Frame):
     """
     This frame receives a list of strings and displays them in a notebook (read-only mode)
     """
-    def __init__(self, parent, text_list, page_names, **kwargs):
+    def __init__(self, parent, text_list, page_names, num_dirs=2, **kwargs):
         """
         Args:
             parent:
@@ -23,6 +22,8 @@ class ReadOnlyTextNotebookFrame(awx.Frame):
                 List of strings. Each string is displayed in its own page in the notebook.
             page_names:
                 List of strings giving the name of the tab for each string in text_list.
+            num_dirs:
+                Maximum number of directories that will be shown in the tab.
         """
         if "title" not in kwargs:
             kwargs["title"] = self.__class__.__name__
@@ -45,6 +46,11 @@ class ReadOnlyTextNotebookFrame(awx.Frame):
 
         for page_name, text in zip(page_names, text_list):
             page = wx.TextCtrl(nb_panel, -1, text, style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
+
+            if num_dirs > 0:
+                tokens = page_name.split(os.path.sep)
+                page_name = os.path.join(*tokens[-num_dirs:])
+
             nb.AddPage(page, text=page_name)
 
         # Finally, put the notebook in a sizer for the nb_panel to manage the layout

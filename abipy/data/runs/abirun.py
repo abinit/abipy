@@ -9,13 +9,12 @@ import os
 import argparse
 
 import abipy.abilab as abilab
-#from abipy.tools.devtools import number_of_cpus
+
 
 def str_examples():
     examples = """
 Usage example:\n
     abirun.py single      => Run single task.
-    abirun.py rapidfire   => Run tasks in rapidfire mode.
     abirun.py gui         => Open GUI
 """
     return examples
@@ -40,13 +39,14 @@ def main():
 
     # Subparser for single command.
     p_single = subparsers.add_parser('single', help="Run single task.")
-
     p_single.add_argument('path', help='Directory with __workflow__.pickle database or file.')
-    #p_single.add_argument('-xc', '--xc-type', default="GGA", help="XC functional type. (default GGA).")  
+
+    # Subparser for all command.
+    p_all = subparsers.add_parser('all', help="Run all tasks.")
+    p_all.add_argument('path', help='Directory with __workflow__.pickle database or file.')
 
     # Subparser for gui command.
     p_gui = subparsers.add_parser('gui', help="Open GUI.")
-
     p_gui.add_argument('path', help='Directory with __workflow__.pickle database or file.')
 
     ###################################
@@ -57,15 +57,17 @@ def main():
     except: 
         show_examples_and_exit(error_code=1)
 
+    retcode = 0
+
     if options.verbose:
         print(options)
 
-    # Read the worflow for the pickle database.
+    # Read the worflow from the pickle database.
     work = abilab.Workflow.pickle_load(options.path)
 
     # Recompute the status of each task since tasks that
     # have been submitted previously might be completed.
-    #work.recheck_task_status()
+    work.recheck_status()
 
     if options.verbose:
         print(work)
@@ -76,13 +78,13 @@ def main():
             task = work.fetch_task_to_run()
 
             if task is None:
-                print("No task to run!")
+                print("No task to run!. Possible deadlock")
 
             else:
                 print("got task",task)
-                #task.start()
+                task.start()
 
-                task.start_and_wait()
+                #task.start_and_wait()
                 #retcode = task.returncode
                 #print("Task returncode", task.returncode)
 
@@ -92,28 +94,33 @@ def main():
         finally:
             work.pickle_dump()
 
+    if options.command == "all":
+        from pymatgen.io.abinitio.launcher import SimpleResourceManager
+        retcodes = SimpleResourceManager(work, max_ncpus=1, sleep_time=5).run()
+        recode = max(retcodes)
+        print("all tasks completed with return code %s" % retcode)
+
+        work.pickle_dump()
+
     #if options.command == "rapidfire":
     #    while True:
     #        try:
     #            task = work.fetch_task_to_run()
-
     #            if task is None:
     #                break
-
     #            print("got task",task)
     #            task.start()
-
     #        except StopIteration as exc:
     #            print(str(exc))
     #            break
-
     #   work.pickle_dump()
 
     if options.command == "gui":
         from abipy.gui.workflow_viewer import wxapp_workflow_viewer
         wxapp_workflow_viewer(work).MainLoop()
 
-    return 0
+    return retcode
+
 
 if __name__ == "__main__":
     sys.exit(main())

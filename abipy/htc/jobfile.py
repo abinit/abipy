@@ -4,7 +4,12 @@ from os import makedirs
 from os.path import basename, dirname, join, abspath, exists, realpath
 from .utils import _listify
 
-__all__ = ['JobFile', 'PBSJobFile', 'SGEJobFile', 'SlurmJobFile']
+__all__ = [
+    'JobFile', 
+    'PBSJobFile', 
+    'SGEJobFile', 
+    'SlurmJobFile',
+]
 
 # =========================================================================== #
 
