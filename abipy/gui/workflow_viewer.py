@@ -237,7 +237,7 @@ class TaskListCtrl(wx.ListCtrl):
 
     def OnRightClick(self, event):
         currentItem = event.m_itemIndex
-        print("OnRightClick with currentItem %s" % str(currentItem))
+        #print("OnRightClick with currentItem %s" % str(currentItem))
         if currentItem == -1:
             return
 
@@ -256,13 +256,35 @@ class TaskListCtrl(wx.ListCtrl):
 
     #    # Plot multiple bands
     #    if len(indices) > 1:
-    #        plotter = ElectronBandsPlotter()
-
     #        for index in indices:
-    #            fd = self.id2filedata[self.file_list.GetItemData(index)]
-    #            print("adding ", fd.abspath)
-    #            plotter.add_ebands_from_file(fd.abspath)
-    #        plotter.plot()
+
+
+# Callbacks 
+def show_task_main_events(parent, task):
+    file = task.output_file
+
+    if file.exists:
+        AbinitEventsFrame(parent, file.path).Show()
+    else:
+        message = "Output file %s does not exist" % file.path
+        awx.showErrorMessage(parent=parent, message=message)
+
+
+def show_task_log_events(parent, task):
+    file = task.log_file
+
+    if file.exists:
+        AbinitEventsFrame(parent, file.path).Show()
+    else:
+        message = "Log file %s does not exist" % file.path
+        awx.showErrorMessage(parent=parent, message=message)
+
+
+def browse_outdir(parent, task):
+    from .browser import FileListPanel
+    frame = awx.Frame(None, -1)
+    FileListPanel(frame, dirpaths=task.outdata_dir, wildcard="*.nc")
+    frame.Show()
 
 
 class TaskPopupMenu(wx.Menu):
@@ -273,8 +295,9 @@ class TaskPopupMenu(wx.Menu):
     and task is a `Task` instance.
     """
     MENU_TITLES = OrderedDict([
-        ("main events", lambda parent, task: AbinitEventsFrame(parent, task.output_file.path).Show()),
-        ("log events", lambda parent, task: AbinitEventsFrame(parent, task.log_file.path).Show()),
+        ("main events", show_task_main_events),
+        ("log events",  show_task_log_events),
+        ("browse outdir",  browse_outdir),
     ])
 
     def __init__(self, parent, task):
