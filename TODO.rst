@@ -14,3 +14,5 @@ TODO List
    and other types of post-processing 
 
 #. ecut is not reported in the GSR file.
+
+#. Move unit conversion to NetcdfReader e.g reader.read_value(varname, unit=None)
