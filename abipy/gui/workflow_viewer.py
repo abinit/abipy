@@ -8,6 +8,8 @@ import abipy.gui.awx as awx
 from collections import OrderedDict
 from .events import AbinitEventsFrame, AbinitEventsNotebookFrame
 #from abipy import abiopen
+from abipy.gui.browser import FileListPanel
+from abipy.gui.notebooks import TextNotebookFrame
 
 ID_SHOW_INPUTS = wx.NewId()
 ID_SHOW_OUTPUTS = wx.NewId()
@@ -15,6 +17,7 @@ ID_SHOW_LOGS = wx.NewId()
 ID_BROWSE = wx.NewId()
 ID_SHOW_MAIN_EVENTS = wx.NewId()
 ID_SHOW_LOG_EVENTS = wx.NewId()
+
 
 class WorkflowViewerFrame(awx.Frame):
     VERSION = "0.1"
@@ -168,19 +171,28 @@ class WorkflowViewerFrame(awx.Frame):
 
     def OnShowInputs(self, event):
         if self.work is None: return
-        self.work.wxshow_inputs()
+        work = self.work
+        #self.work.wxshow_inputs()
+        frame = TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.abi")
+        frame.Show()
 
     def OnShowOutputs(self, event):
         if self.work is None: return
-        self.work.wxshow_outputs()
+        work = self.work
+        frame = TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.abo")
+        frame.Show()
 
     def OnShowLogs(self, event):
         if self.work is None: return
-        self.work.wxshow_logs()
+        work = self.work
+        frame = TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.log")
+        frame.Show()
 
     def OnBrowse(self, event):
         if self.work is None: return
-        self.work.wxbrowse()
+        frame = awx.Frame(self, -1)
+        FileListPanel(frame, dirpaths=self.work.workdir) #, filepaths=filepaths, wildcard=wildcard)
+        frame.Show()
 
     def OnShowMainEvents(self, event):
         if self.work is None: return
@@ -213,7 +225,7 @@ class TaskListCtrl(wx.ListCtrl):
 
         for task in work:
             entry = [task.name,
-                     task.status,
+                     task.str_status,
                      ]
             self.Append(entry)
 
@@ -223,17 +235,6 @@ class TaskListCtrl(wx.ListCtrl):
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick)
         #self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected)
         #self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
-
-    #def GetTask(self):
-    #    """Returns the Task selected by the user."""
-    #    task_idx = int(self.GetFirstSelected())
-    #    return self.work[task_idx]
-
-    #def OnItemActivated(self, event):
-    #    currentItem = event.m_itemIndex
-    #    print("In OnItemActivated with currentItem %s" % str(currentItem))
-    #    task = self.work[currentItem]
-    #    task.start()
 
     def OnRightClick(self, event):
         currentItem = event.m_itemIndex
@@ -257,6 +258,17 @@ class TaskListCtrl(wx.ListCtrl):
     #    # Plot multiple bands
     #    if len(indices) > 1:
     #        for index in indices:
+                                                                            
+    #def OnItemActivated(self, event):
+    #    currentItem = event.m_itemIndex
+    #    print("In OnItemActivated with currentItem %s" % str(currentItem))
+    #    task = self.work[currentItem]
+    #    task.start()
+
+    #def GetTask(self):
+    #    """Returns the Task selected by the user."""
+    #    task_idx = int(self.GetFirstSelected())
+    #    return self.work[task_idx]
 
 
 # Callbacks 
@@ -297,7 +309,7 @@ class TaskPopupMenu(wx.Menu):
     MENU_TITLES = OrderedDict([
         ("main events", show_task_main_events),
         ("log events",  show_task_log_events),
-        ("browse outdir",  browse_outdir),
+        ("browse outdir", browse_outdir),
     ])
 
     def __init__(self, parent, task):
@@ -327,6 +339,7 @@ class TaskPopupMenu(wx.Menu):
         #print("Calling callback %s on task %s" % (callback, self.task))
         try:
             callback(self.parent, self.task)
+
         except:
             awx.showErrorMessage(parent=self.parent)
 

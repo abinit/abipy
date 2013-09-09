@@ -121,7 +121,7 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
         self.file_list = file_list = MyListCtrl(self)
 
         file_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick)
-        file_list.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected)
+        #file_list.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected)
         file_list.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
 
         class FileDataObj(namedtuple("FileDataObj", "filename type directory")):
@@ -224,23 +224,22 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
     def OnColClick(self, event):
         event.Skip()
 
-    def OnItemSelected(self, event):
-        indices = [self.file_list.GetFirstSelected()]
-        while indices[-1] != -1:
-            indices.append(self.file_list.GetNextSelected(indices[-1]))
-        indices = indices[:-1]
-        self.log("in OnItemSelected with indices:", indices)
+    #def OnItemSelected(self, event):
+    #    indices = [self.file_list.GetFirstSelected()]
+    #    while indices[-1] != -1:
+    #        indices.append(self.file_list.GetNextSelected(indices[-1]))
+    #    indices = indices[:-1]
+    #    self.log("in OnItemSelected with indices:", indices)
 
-        # Plot multiple bands
-        if len(indices) > 1:
-            plotter = ElectronBandsPlotter()
+    #    # Plot multiple bands
+    #    if len(indices) > 1:
+    #        plotter = ElectronBandsPlotter()
 
-            for index in indices:
-                fd = self.id2filedata[self.file_list.GetItemData(index)]
-                self.log("adding ", fd.abspath)
-                plotter.add_ebands_from_file(fd.abspath)
-
-            plotter.plot()
+    #        for index in indices:
+    #            fd = self.id2filedata[self.file_list.GetItemData(index)]
+    #            self.log("adding ", fd.abspath)
+    #            plotter.add_ebands_from_file(fd.abspath)
+    #        plotter.plot()
 
 
 def wxapp_dirbrowser(dirpath):
