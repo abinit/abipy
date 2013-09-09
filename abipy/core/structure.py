@@ -5,7 +5,7 @@ import collections
 import pymatgen
 import numpy as np
 
-from .constants import Bohr2Ang, Ang2Bohr
+from .constants import ArrayWithUnit
 from .symmetries import SpaceGroup
 from abipy.iotools import as_etsfreader, Visualizer
 from abipy.iotools import xsf
@@ -38,7 +38,7 @@ class Lattice(pymatgen.Lattice):
             assert angdeg is None
             rprim = np.reshape(rprim, (3,3))
             rprimd = [acell[i] * rprim[i] for i in range(3)]
-            return cls(Bohr2Ang(rprimd))
+            return cls(ArrayWithUnit(rprimd, "bohr").to("ang"))
 
         elif angdeg is not None:
             # angdeg(0) is the angle between the 2nd and 3rd vectors,
@@ -47,7 +47,8 @@ class Lattice(pymatgen.Lattice):
             raise NotImplementedError("angdeg convention should be tested")
             angles = angdeg
             angles[1] = -angles[1]
-            new = cls.from_lengths_and_angles(Bohr2Ang(acell), angdeg)
+            l = ArrayWithUnit(acell, "bohr").to("ang")
+            new = cls.from_lengths_and_angles(l, angdeg)
             new.__class__ = cls
             return new
 
@@ -280,7 +281,7 @@ class Structure(pymatgen.Structure):
         if coords is None:
             coords = d.get("xcart", None)
             if coords is not None:
-                coords = Bohr2Ang(coords)
+                coords = ArrayWithUnit(coords, "bohr").to("ang")
             else:
                 coords = d.get("xangst", None)
             coords_are_cartesian = True

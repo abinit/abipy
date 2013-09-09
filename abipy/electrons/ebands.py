@@ -1556,7 +1556,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
 
     def read_eigenvalues(self):
         """Eigenvalues in eV."""
-        return self.read_value("eigenvalues") * const.HA_TO_EV
+        return const.ArrayWithUnit(self.read_value("eigenvalues"), "Ha").to("eV")
 
     def read_occupations(self):
         """Occupancies."""
@@ -1564,7 +1564,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
 
     def read_fermie(self):
         """Fermi level in eV."""
-        return self.read_value("fermi_energy") * const.HA_TO_EV
+        return const.FloatWithUnit(self.read_value("fermi_energy"), "Ha").to("eV")
 
     def read_nelect(self):
         """Number of valence electrons."""
@@ -1586,7 +1586,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
         return Smearing(
             scheme=scheme,
             occopt=occopt,
-            tsmear_ev=self.read_value("smearing_width") * const.HA_TO_EV
+            tsmear_ev=const.FloatWithUnit(self.read_value("smearing_width"), "Ha").to("eV")
         )
 
     #def read_xc_parameters(self):
