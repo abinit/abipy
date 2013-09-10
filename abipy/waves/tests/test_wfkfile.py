@@ -37,7 +37,8 @@ class TestWFKFile(AbipyTest):
             same_ug = wave.gsphere.fromfftmesh(wave.mesh, ug_mesh)
             self.assert_almost_equal(wave.ug, same_ug)
 
-            wave.export_ur2(".xsf", structure)
+            if self.which("xcrysden") is not None:
+                wave.export_ur2(".xsf", structure)
 
             #print wave.ug.shape, same_ug.shape
             #for idx, g in enumerate(wave.gvecs):

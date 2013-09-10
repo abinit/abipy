@@ -26,6 +26,12 @@ class AbipyTest(TestCase):
     def assert_equal(actual, desired, err_msg='', verbose=True):
         return nptu.assert_equal(actual, desired, err_msg=err_msg, verbose=verbose)
 
+    @staticmethod
+    def which(program):
+        """Returns full path to a executable. None if not found or not executable."""
+        from pymatgen.util.io_utils import which
+        return which(program)
+
 
 class AbipyFileTest(AbipyTest):
     """

@@ -16,3 +16,5 @@ TODO List
 #. ecut is not reported in the GSR file.
 
 #. Move unit conversion to NetcdfReader e.g reader.read_value(varname, unit=None)
+
+#. Write new unit tests for Xcrysden and the other visualizers (move these tools to pymatgen?)

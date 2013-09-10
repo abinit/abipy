@@ -35,9 +35,10 @@ class TestDensity(AbipyTest):
             self.assert_almost_equal(nelect_calc, nelect_file)
             self.assert_almost_equal(rhog_tot[0,0,0] * structure.volume, nelect_file)
 
-            # Export data in xsf format.
-            visu = den.export(".xsf")
-            self.assertTrue(callable(visu))
+            if self.which("xcrysden") is not None:
+                # Export data in xsf format.
+                visu = den.export(".xsf")
+                self.assertTrue(callable(visu))
 
 
 if __name__ == "__main__":

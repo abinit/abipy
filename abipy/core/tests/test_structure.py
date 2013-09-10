@@ -24,8 +24,9 @@ class TestStructure(AbipyTest):
             # Call pymatgen machinery to get the high-symmetry stars.
             print(structure.hsym_stars)
 
-            # Export data in Xcrysden format.
-            structure.export(".xsf")
+            if self.which("xcrysden") is not None:
+                # Export data in Xcrysden format.
+                structure.export(".xsf")
 
 
 if __name__ == "__main__":
