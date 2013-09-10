@@ -259,7 +259,7 @@ class Structure(pymatgen.Structure):
         for (atm_idx, site) in enumerate(self):
             typat[atm_idx] = types_of_specie.index(site.specie) + 1
 
-        rprim = Ang2Bohr(self.lattice.matrix)
+        rprim = ArrayWithUnit(self.lattice.matrix, "ang").to("bohr")
         xred = np.reshape([site.frac_coords for site in self], (-1,3))
 
         return dict(
