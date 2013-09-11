@@ -55,7 +55,7 @@ class SigresViewerFrame(awx.Frame):
         # Create toolbar.
         self.toolbar = toolbar = self.CreateToolBar()
 
-        tsize = (15, 15)
+        tsize = (48, 48)
         artBmp = wx.ArtProvider.GetBitmap
         toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, tsize), "Open")
         toolbar.AddSimpleTool(ID_VISTRUCT, wx.Bitmap(awx.path_img("struct.png")), "Visualize the crystal structure")
