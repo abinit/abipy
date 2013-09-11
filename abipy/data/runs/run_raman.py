@@ -52,7 +52,7 @@ def raman_workflow(workdir, structure, pseudos, shiftk):
 
     # Global variables
     global_vars = dict(
-        ecut=6,
+        ecut=12,
         istwfk="*1",
         chksymbreak=0,
     )

@@ -10,13 +10,15 @@ import argparse
 import abipy.abilab as abilab
 
 from pymatgen.io.abinitio.launcher import SimpleResourceManager
-from abipy.tools import pprint_table
+from abipy.tools import pprint_table, StringColorizer
 
 def str_examples():
     examples = """
 Usage example:\n
-    abirun.py single      => Run single task.
-    abirun.py gui         => Open GUI
+    abirun.py singleshot  => Fetch the first available task and run it.
+    abirun.py rapidfire   => Keep repeating, stop when no task can be executed
+                             due to workflow dependency.
+    abirun.py gui         => Open the GUI 
 """
     return examples
 
@@ -63,28 +65,31 @@ def treat_workflow(path, options):
         finally:
             work.pickle_dump()
 
-    if options.command == "all":
+    if options.command == "pymanager":
         retcodes = SimpleResourceManager(work, max_ncpus=1, sleep_time=5).run()
         recode = max(retcodes)
         print("all tasks completed with return code %s" % retcode)
 
         work.pickle_dump()
 
-    #if options.command == "rapidfire":
-    #    while True:
-    #        try:
-    #            task = work.fetch_task_to_run()
-    #            if task is None:
-    #                break
-    #            print("got task",task)
-    #            task.start()
-    #        except StopIteration as exc:
-    #            print(str(exc))
-    #            break
-    #   work.pickle_dump()
+    if options.command == "rapidfire":
+        while True:
+            try:
+                task = work.fetch_task_to_run()
+                if task is None:
+                    break
+                print("got task",task)
+                task.start()
+
+            except StopIteration as exc:
+                print(str(exc))
+                break
+
+        work.pickle_dump()
 
     if options.command == "status":
         print(work)
+        colorizer = StringColorizer(stream=sys.stdout)
 
         table = [["Task", "Status", "Errors", "Warnings", "Comments"]]
         for task in work:
@@ -92,11 +97,23 @@ def treat_workflow(path, options):
 
             # Parse the events in the main output.
             report = task.parse_events()
-            events = map(str, 3*[0])
+            events = map(str, 3*["N/A"])
             if report is not None: 
                 events = map(str, [report.num_errors, report.num_warnings, report.num_comments])
 
-            table.append([task_name, task.str_status] + events)
+            str_status = task.str_status
+
+            colour = {
+                #task.S_READY: "Ready",
+                #task.S_SUB: "Submitted",
+                #task.S_RUN: "Running",
+                #task.S_DONE: "Done",
+                task.S_ERROR: "red",
+                task.S_OK: "blue",
+            }.get(task.status, None)
+
+            #task_name = colorizer(task_name, colour)
+            table.append([task_name, str_status] + events)
 
         pprint_table(table)
 
@@ -118,12 +135,16 @@ def main():
     subparsers = parser.add_subparsers(dest='command', help='sub-command help')
 
     # Subparser for single command.
-    p_single = subparsers.add_parser('single', help="Run single task.")
+    p_single = subparsers.add_parser('singleshot', help="Run single task.")
     p_single.add_argument('path', nargs="+", help='Directory with __workflow__.pickle database or file.')
 
-    # Subparser for all command.
-    p_all = subparsers.add_parser('all', help="Run all tasks.")
-    p_all.add_argument('path', nargs="+", help='Directory with __workflow__.pickle database or file.')
+    # Subparser for rapidfire command.
+    p_rapid = subparsers.add_parser('rapidfire', help="Run all tasks in rapidfire mode")
+    p_rapid.add_argument('path', nargs="+", help='Directory with __workflow__.pickle database or file.')
+
+    # Subparser for pymanager command.
+    p_pymanager = subparsers.add_parser('pymanager', help="Run all tasks.")
+    p_pymanager.add_argument('path', nargs="+", help='Directory with __workflow__.pickle database or file.')
 
     # Subparser for status command.
     p_status = subparsers.add_parser('status', help="Show task status.")
