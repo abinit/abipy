@@ -54,6 +54,7 @@ def raman_workflow(workdir, structure, pseudos, shiftk):
     global_vars = dict(
         ecut=6,
         istwfk="*1",
+        chksymbreak=0,
     )
 
     # GS run
