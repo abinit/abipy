@@ -60,9 +60,9 @@ class SigresViewerFrame(awx.Frame):
         toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, tsize), "Open")
         toolbar.AddSimpleTool(ID_VISTRUCT, wx.Bitmap(awx.path_img("struct.png")), "Visualize the crystal structure")
         toolbar.AddSimpleTool(ID_VISBZ, wx.Bitmap(awx.path_img("bz.png")), "Visualize the BZ")
-        toolbar.AddSimpleTool(ID_PLOTQPSE0, wx.Bitmap(awx.path_img("wave.png")), "Plot QPState Results.")
-        toolbar.AddSimpleTool(ID_PLOTKSWITHMARKS, wx.Bitmap(awx.path_img("wave.png")), "Plot KS energies with QPState markers.")
-        toolbar.AddSimpleTool(ID_SCISSORS, wx.Bitmap(awx.path_img("wave.png")), "Build energy-dependent scissors from GW correction.")
+        toolbar.AddSimpleTool(ID_PLOTQPSE0, wx.Bitmap(awx.path_img("qpresults.png")), "Plot QPState Results.")
+        toolbar.AddSimpleTool(ID_PLOTKSWITHMARKS, wx.Bitmap(awx.path_img("qpmarkers.png")), "Plot KS energies with QPState markers.")
+        toolbar.AddSimpleTool(ID_SCISSORS, wx.Bitmap(awx.path_img("qpscissor.png")), "Build energy-dependent scissors from GW correction.")
 
         toolbar.AddSeparator()
         self.visualizer_cbox = wx.ComboBox(choices=supported_visunames(), id=ID_TBOX_VIS,
