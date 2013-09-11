@@ -218,15 +218,13 @@ class TaskListCtrl(wx.ListCtrl):
 
         self.work = work
 
-        columns = ["Task", "Status"]
+        columns = ["Task", "Status", "Queue_id"]
 
         for (index, col) in enumerate(columns):
             self.InsertColumn(index, col)
 
         for task in work:
-            entry = [task.name,
-                     task.str_status,
-                     ]
+            entry = map(str, [task.name, task.str_status, task.queue_id])
             self.Append(entry)
 
         for (index, col) in enumerate(columns):

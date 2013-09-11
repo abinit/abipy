@@ -41,18 +41,6 @@ def is_string(obj):
     except TypeError:
         return False
 
-#class AbinitVariable(object):
-#
-#    def __init__(self, name, value):
-#        self.name = name
-#        self.value = value
-#
-#    def __repr__(self):
-#        return "<%s, name=%s, value=%s>" % (self.__class__.__name__, self.name, self.value)
-#
-#    def __str__(self):
-#        return format_var(self.name, self.value)
-
 
 class AbinitInputError(Exception):
     """Base error class for exceptions raised by `AbiInput`"""
@@ -171,39 +159,6 @@ class AbiInput(object):
                             raise self.Error(err_msg)
                     else:
                         self[0].set_variable(varname, value)
-
-    #def __getattr__(self, varname):
-
-    #    if not varname[-1].isdigit() and varname in self[0]:
-    #        # Global variable.
-    #        value = self[0][varname]
-    #        return AbinitVariable(varname, value)
-    #                                                                    
-    #    elif varname[-1].isdigit():
-    #        # Find the index of the dataset.
-    #        idt = ""
-    #        for i, c in enumerate(reversed(varname)):
-    #            if c.isdigit():
-    #                idt += c
-    #            else:
-    #                break
-
-    #        idt = int("".join(reversed(idt)))
-    #        if not (self.ndtset >= idt  >= 1):
-    #            raise self.Error("Invalid dataset index %d, ndtset %d " % (idt, self.ndtset))
-
-    #        # Strip the numeric index.
-    #        var = varname[:len(varname)-i]
-
-    #        try:
-    #            value = self[idt][var]
-    #            return AbinitVariable(var, value)
-
-    #        except:
-    #            raise AttributeError("cannot find attribute %s" % varname)
-
-    #    else:
-    #        raise AttributeError("cannot find attribute %s" % varname)
 
     @property
     def pseudo_dir(self):

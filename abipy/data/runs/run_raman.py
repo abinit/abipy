@@ -43,7 +43,7 @@ def build_raman_workflows():
         for shift in allshifts:
             workdir = os.path.join(dispworkdir, "shift_" + str(ishift))
             works.append(raman_workflow(workdir, structure, pseudos, shift))
-            ishift+=1
+            ishift += 1
 
     return works
 
@@ -106,7 +106,27 @@ def raman_workflow(workdir, structure, pseudos, shiftk):
     )
 
     # Initialize the workflow.
+    manager = abilab.TaskManager(qtype="slurm",
+        qparams=dict(
+            ntasks=1,
+            partition="hmem",
+            account='nobody@nowhere.org',
+            time="119:59:59",
+            #ntasks_per_node=None,
+            #cpus_per_task=None,
+            #time=None,
+            #partition=None,
+            #account=None,
+        ),
+    modules=['intel-compilers/12.0.4.191', 'MPI/Intel/mvapich2/1.6', 'FFTW/3.3'],
+    #shell_env=dict(FOO=1, PATH="/home/user/bin:$PATH"),
+    #pre_run=["echo 'List of command executed before launching the calculation'" ],
+    #post_run=["echo 'List of command executed once the calculation is completed'" ],
+    mpi_runner="mpirun",
+)
+
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1)
+
     work = abilab.Workflow(workdir, manager)
 
     # Register the input for the SCF calculation. 
@@ -129,12 +149,10 @@ def main():
     # Build the list of workflows.
     workflows = build_raman_workflows()
 
-    retcode = 0
     for work in workflows:
-        work.build()
-        work.pickle_dump()
+        work.build_and_pickle_dump()
 
-    return retcode
+    return 0
 
 if __name__ == "__main__":
     sys.exit(main())

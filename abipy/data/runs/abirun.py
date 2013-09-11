@@ -40,11 +40,8 @@ def treat_workflow(path, options):
     # have been submitted previously might be completed.
     work.recheck_status()
 
-    if options.verbose:
-        print(work)
-        print([task.status for task in work])
-
-    if options.command == "single":
+    # Dispatch.
+    if options.command in ["single", "singleshot"]:
         try:
             task = work.fetch_task_to_run()
 
@@ -72,7 +69,7 @@ def treat_workflow(path, options):
 
         work.pickle_dump()
 
-    if options.command == "rapidfire":
+    if options.command in ["rapid", "rapidfire"]:
         while True:
             try:
                 task = work.fetch_task_to_run()
@@ -91,7 +88,7 @@ def treat_workflow(path, options):
         print(work)
         colorizer = StringColorizer(stream=sys.stdout)
 
-        table = [["Task", "Status", "Errors", "Warnings", "Comments"]]
+        table = [["Task", "Status", "queue_id", "Errors", "Warnings", "Comments"]]
         for task in work:
             task_name = os.path.basename(task.name)
 
@@ -112,9 +109,9 @@ def treat_workflow(path, options):
                 task.S_ERROR: "red",
                 task.S_OK: "blue",
             }.get(task.status, None)
-
             #task_name = colorizer(task_name, colour)
-            table.append([task_name, str_status] + events)
+
+            table.append([task_name, str_status, str(task.queue_id)] + events)
 
         pprint_table(table)
 
@@ -126,21 +123,22 @@ def treat_workflow(path, options):
 
     return retcode
 
+
 def main():
-    parser = argparse.ArgumentParser(epilog=str_examples(),formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                          help='verbose, can be supplied multiple times to increase verbosity')
 
     # Create the parsers for the sub-commands
-    subparsers = parser.add_subparsers(dest='command', help='sub-command help')
+    subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for single command.
-    p_single = subparsers.add_parser('singleshot', help="Run single task.")
+    p_single = subparsers.add_parser('singleshot', help="Run single task.") #, aliases=["single"])
     p_single.add_argument('path', nargs="+", help='Directory with __workflow__.pickle database or file.')
 
     # Subparser for rapidfire command.
-    p_rapid = subparsers.add_parser('rapidfire', help="Run all tasks in rapidfire mode")
+    p_rapid = subparsers.add_parser('rapidfire', help="Run all tasks in rapidfire mode") # aliases=["rapid"])
     p_rapid.add_argument('path', nargs="+", help='Directory with __workflow__.pickle database or file.')
 
     # Subparser for pymanager command.
@@ -155,9 +153,7 @@ def main():
     p_gui = subparsers.add_parser('gui', help="Open GUI.")
     p_gui.add_argument('path', nargs="+", help='Directory with __workflow__.pickle database or file.')
 
-    ###################################
-    # Parse command line and dispatch #
-    ###################################
+    # Parse command line.
     try:
         options = parser.parse_args()
     except: 
@@ -169,7 +165,7 @@ def main():
     retcode = 0
     for path in options.path:
         retcode = treat_workflow(path, options)
-        if retcode !=0:
+        if retcode != 0:
             return retcode
 
     return retcode
