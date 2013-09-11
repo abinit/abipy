@@ -118,11 +118,11 @@ def raman_workflow(workdir, structure, pseudos, shiftk):
             #partition=None,
             #account=None,
         ),
-    modules=['intel-compilers/12.0.4.191', 'MPI/Intel/mvapich2/1.6', 'FFTW/3.3'],
-    #shell_env=dict(FOO=1, PATH="/home/user/bin:$PATH"),
-    #pre_run=["echo 'List of command executed before launching the calculation'" ],
-    #post_run=["echo 'List of command executed once the calculation is completed'" ],
-    mpi_runner="mpirun",
+        modules=['intel-compilers/12.0.4.191', 'MPI/Intel/mvapich2/1.6', 'FFTW/3.3'],
+        #shell_env=dict(FOO=1, PATH="/home/user/bin:$PATH"),
+        #pre_run=["echo 'List of command executed before launching the calculation'" ],
+        #post_run=["echo 'List of command executed once the calculation is completed'" ],
+        mpi_runner="mpirun",
 )
 
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1)

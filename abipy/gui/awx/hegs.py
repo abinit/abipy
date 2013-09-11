@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 import wx
 import random
+import numpy as np
+
+from abipy.gui.awx.core import path_img
 
 __all__ = [
     "tetris_game",
+    "puzzle_game",
 ]
 
 # Taken from  http://zetcode.com/wxpython/thetetrisgame/
@@ -388,6 +392,78 @@ def tetris_game():
     app.MainLoop()
 
 
-if __name__ == "__main__":
-    tetris_game()
+class Puzzle(wx.Dialog):
+    
+    def __init__(self, *args, **kw):
+        super(Puzzle, self).__init__(*args, **kw)
+        
+        self.InitUI()
+        
+    def InitUI(self):
+        # convert image.png -crop 120x90 image%d.png
+        # image should be 360x270
+        images = ["abipy" + str(i) + ".png" for i in range(9)]
+        images =  map(path_img, images)
 
+        self.pos = np.reshape(list(range(9)), (3,3))
+
+        self.sizer = wx.GridSizer(3, 3, 0, 0)
+
+        numbers = list(range(8))
+        random.shuffle(numbers)
+
+        for i in numbers:
+            btn = wx.BitmapButton(self, i, wx.Bitmap(images[i]))
+            btn.Bind(wx.EVT_BUTTON, self.OnPressButton, btn)
+            self.sizer.Add(btn)
+
+        self.empty = wx.BitmapButton(self, bitmap=wx.Bitmap(path_img('empty.png')))
+        self.empty.Bind(wx.EVT_BUTTON, self.OnPressButton, self.empty)
+        self.sizer.Add(self.empty)
+
+        self.SetSizerAndFit(self.sizer)
+        self.SetTitle('Puzzle')
+        self.Centre()
+        self.ShowModal()
+        self.Destroy()
+
+    def OnPressButton(self, e):
+        
+        btn = e.GetEventObject()
+        
+        width = self.empty.GetSize().x
+        height = self.empty.GetSize().y
+
+        btnX = btn.GetPosition().x
+        btnY = btn.GetPosition().y
+        emptyX = self.empty.GetPosition().x
+        emptyY = self.empty.GetPosition().y
+    
+        
+        if (((btnX == emptyX) and (emptyY - btnY) == height)
+          or ((btnX == emptyX) and (emptyY - btnY) == -height)
+          or ((btnY == emptyY) and (emptyX - btnX) == width)
+          or ((btnY == emptyY) and (emptyX - btnX) == -width)):
+                 
+            self.ExchangeImages(btn)
+            
+    def ExchangeImages(self, btn):
+        
+        bmp1 = self.empty.GetBitmapLabel()
+        bmp2 = btn.GetBitmapLabel()
+        
+        self.empty.SetBitmapLabel(bmp2)
+        btn.SetBitmapLabel(bmp1)
+        
+        self.empty = btn        
+
+
+def puzzle_game():
+    ex = wx.App()
+    Puzzle(None)
+    ex.MainLoop()    
+
+
+if __name__ == "__main__":
+    #tetris_game()
+    puzzle_game()

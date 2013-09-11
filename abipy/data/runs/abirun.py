@@ -131,7 +131,7 @@ def main():
                          help='verbose, can be supplied multiple times to increase verbosity')
 
     parser.add_argument('-w', '--walk', action="store_true",
-                         help="Walk the filesystem starting from paths and and find the pickle databases.")
+                         help="Walk the filesystem starting from paths and find the pickle databases.")
 
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
