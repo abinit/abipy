@@ -9,7 +9,7 @@ import os
 import argparse
 import abipy.abilab as abilab
 
-from pymatgen.io.abinitio.launcher import SimpleResourceManager
+from pymatgen.io.abinitio.launcher import PyResourceManager
 from abipy.tools import pprint_table, StringColorizer
 
 def str_examples():
@@ -52,7 +52,7 @@ def treat_workflow(path, options):
                 print("No task to run!. Possible deadlock")
 
             else:
-                print("got task",task)
+                print("got task", task)
                 task.start()
 
                 #task.start_and_wait()
@@ -66,7 +66,7 @@ def treat_workflow(path, options):
             work.pickle_dump()
 
     if options.command == "pymanager":
-        retcodes = SimpleResourceManager(work, max_ncpus=1, sleep_time=5).run()
+        retcodes = PyResourceManager(work, max_ncpus=1, sleep_time=5).run()
         recode = max(retcodes)
         print("all tasks completed with return code %s" % retcode)
 
@@ -97,6 +97,7 @@ def treat_workflow(path, options):
 
             # Parse the events in the main output.
             report = task.parse_events()
+
             events = map(str, 3*["N/A"])
             if report is not None: 
                 events = map(str, [report.num_errors, report.num_warnings, report.num_comments])

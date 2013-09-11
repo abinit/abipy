@@ -1,7 +1,7 @@
 import os
 import inspect
 
-from pymatgen.io.abinitio.launcher import SimpleResourceManager
+from pymatgen.io.abinitio.launcher import PyResourceManager
 import abipy.abilab as abilab
 
 
@@ -36,7 +36,7 @@ class Tester(object):
         return abilab.TaskManager.simple_mpi(mpi_ncpus=1)
 
     def run(self):
-        retcodes = SimpleResourceManager(self.work, max_ncpus=2, sleep_time=5).run()
+        retcodes = PyResourceManager(self.work, max_ncpus=2, sleep_time=5).run()
         self._retcode = max(retcodes)
 
     def set_work_and_run(self, work):

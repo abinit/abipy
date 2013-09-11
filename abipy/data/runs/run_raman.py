@@ -134,13 +134,6 @@ def main():
         work.build()
         work.pickle_dump()
 
-        # Run them all!
-        #from pymatgen.io.abinitio.launcher import SimpleResourceManager
-        #retcodes = SimpleResourceManager(work, max_ncpus=1, sleep_time=5).run()
-        #retcode = max(retcodes)
-        #if retcode != 0:
-        #    return retcode
-
     return retcode
 
 if __name__ == "__main__":
