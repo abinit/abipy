@@ -4,10 +4,9 @@ from __future__ import division, print_function
 import abipy.data as data  
 
 from pymatgen.io.abinitio.abiobjects import AbiStructure
-from pymatgen.io.abinitio.task import RunMode
 from pymatgen.io.abinitio.pseudos import PseudoTable
 from pymatgen.io.abinitio.calculations import bse_with_mdf
-from abipy.data.runs import RunManager
+from abipy.data.runs import Tester
 
 
 def main():
@@ -15,9 +14,9 @@ def main():
     structure = AbiStructure.asabistructure(data.cif_file("si.cif"))
 
     pseudos = PseudoTable(data.pseudos("14si.pspnc"))
-    runmode = RunMode.sequential()
 
-    manager = RunManager()
+    tester = Tester()
+    manager = tester.make_manager()
 
     kppa = scf_kppa = 1
     nscf_nband = 6
@@ -35,15 +34,15 @@ def main():
     )
 
 
-    work = bse_with_mdf(manager.workdir, runmode, structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,
+    work = bse_with_mdf(tester.workdir, manager, structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,
                        ecuteps, bs_loband, soenergy, mdf_epsinf,
                        accuracy="normal", spin_mode="unpolarized", smearing=None,
                        charge=0.0, scf_solver=None, **extra_abivars)
 
-    manager.set_work_and_run(work)
+    tester.set_work_and_run(work)
 
-    if manager.retcode !=0:
-        return manager.retcode
+    if tester.retcode !=0:
+        return tester.retcode
 
     # Remove all files except those matching these regular expression.
     #work[0].rename("out_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
@@ -57,9 +56,9 @@ def main():
 
     #work.rmtree(exclude_wildcard="*.abin|*.about|*_SIGRES.nc")
 
-    manager.finalize()
+    tester.finalize()
 
-    return manager.retcode 
+    return tester.retcode 
 
 if __name__ == "__main__":
     import sys

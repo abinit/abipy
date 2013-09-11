@@ -5,7 +5,7 @@ import os
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from abipy.data.runs import RunManager
+from abipy.data.runs import Tester
 
 def main():
     structure = abilab.Structure.from_file(data.cif_file("si.cif"))
@@ -41,23 +41,21 @@ def main():
     print(inp)
 
     # Create the task defining the calculation and run.
-    manager = RunManager()
+    tester = Tester()
 
-    #qadapter = abilab.ShellAdapter(qparams=dict(MPI_NCPUS=2), mpi_runner = "mpirun")
-    #task_manager = abilab.TaskManager("shell", qparams=dict(MPI_NCPUS=2), mpi_runner = "mpirun")
-    task_manager = abilab.TaskManager.simple_mpi(mpi_ncpus=2)
-    print(task_manager)
+    manager = abilab.TaskManager.simple_mpi(mpi_ncpus=2)
+    print(manager)
 
     # Initialize the workflow.
-    work = abilab.Workflow(manager.workdir, task_manager)
+    work = abilab.Workflow(tester.workdir, manager)
 
     # Register the input.
     work.register(inp)
 
-    manager.set_work_and_run(work)
+    tester.set_work_and_run(work)
 
-    if manager.retcode != 0:
-        return manager.retcode
+    if tester.retcode != 0:
+        return tester.retcode
 
     # Remove all files except those matching these regular expression.
     #work.rmtree(exclude_wildcard="*.abi|*.abo|*_WFK*|*_GSR.nc|*DEN-etsf.nc")
@@ -71,8 +69,8 @@ def main():
 
     work[0].remove_files("out_DS2_DEN-etsf.nc")
 
-    manager.finalize()
-    return manager.retcode 
+    tester.finalize()
+    return tester.retcode 
 
 if __name__ == "__main__":
     import sys

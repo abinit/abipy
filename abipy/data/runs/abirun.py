@@ -7,9 +7,9 @@ from __future__ import division, print_function
 import sys 
 import os
 import argparse
-
 import abipy.abilab as abilab
 
+from pymatgen.io.abinitio.launcher import SimpleResourceManager
 
 def str_examples():
     examples = """
@@ -95,7 +95,6 @@ def main():
             work.pickle_dump()
 
     if options.command == "all":
-        from pymatgen.io.abinitio.launcher import SimpleResourceManager
         retcodes = SimpleResourceManager(work, max_ncpus=1, sleep_time=5).run()
         recode = max(retcodes)
         print("all tasks completed with return code %s" % retcode)

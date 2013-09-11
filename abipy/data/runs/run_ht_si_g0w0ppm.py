@@ -5,17 +5,16 @@ import os
 import abipy.data as data  
 
 from pymatgen.io.abinitio.abiobjects import AbiStructure
-from pymatgen.io.abinitio.task import RunMode
 from pymatgen.io.abinitio.calculations import g0w0_with_ppmodel
-from abipy.data.runs import RunManager
+from abipy.data.runs import Tester
 
 def main():
     structure = AbiStructure.asabistructure(data.cif_file("si.cif"))
 
     pseudos = data.pseudos("14si.pspnc")
-    runmode = RunMode.sequential()
 
-    manager = RunManager()
+    tester = Tester()
+    manager = tester.make_manager()
 
     scf_kppa = 40
     nscf_nband = 100
@@ -31,24 +30,24 @@ def main():
         timopt=-1,
     )
 
-    work = g0w0_with_ppmodel(manager.workdir, runmode, structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx,
+    work = g0w0_with_ppmodel(tester.workdir, manager, structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx,
                              accuracy="normal", spin_mode="unpolarized", smearing=None, 
                              ppmodel="godby", charge=0.0, inclvkb=2, sigma_nband=None, scr_nband=None,
                              **extra_abivars)
 
-    manager.set_work_and_run(work)
+    tester.set_work_and_run(work)
 
-    if manager.retcode != 0:
-        return manager.retcode
+    if tester.retcode != 0:
+        return tester.retcode
 
     # Remove all files except those matching these regular expression.
     work[3].rename("out_SIGRES.nc", "si_g0w0ppm_SIGRES.nc")
 
     work.rmtree(exclude_wildcard="*.abin|*.about|*_SIGRES.nc")
 
-    manager.finalize()
+    tester.finalize()
 
-    return manager.retcode
+    return tester.retcode
 
 
 if __name__ == "__main__":

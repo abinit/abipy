@@ -5,14 +5,12 @@ import os
 import abipy.data as data  
 
 from pymatgen.io.abinitio.abiobjects import AbiStructure
-from pymatgen.io.abinitio.task import RunMode
 from pymatgen.io.abinitio.calculations import bandstructure
-from abipy.data.runs import RunManager
+from abipy.data.runs import Tester
 
 
 def main():
     structure = AbiStructure.asabistructure(data.cif_file("si.cif"))
-    runmode = RunMode.sequential()
 
     scf_kppa = 40
     nscf_nband = 6
@@ -27,9 +25,10 @@ def main():
         istwfk="*1",
     )
 
-    manager = RunManager()
+    tester = Tester()
+    manager = tester.make_manager()
 
-    work = bandstructure(manager.workdir, runmode, structure, data.pseudos("14si.pspnc"),
+    work = bandstructure(tester.workdir, manager, structure, data.pseudos("14si.pspnc"),
                          scf_kppa, nscf_nband, ndivsm, 
                          spin_mode="unpolarized", smearing=None, **extra_abivars)
 
@@ -39,10 +38,10 @@ def main():
     #                      smearing="fermi_dirac:0.1 eV", charge=0.0, scf_solver=None,
     #                      dos_kppa=dos_kppa)
 
-    manager.set_work_and_run(work)
+    tester.set_work_and_run(work)
 
-    if manager.retcode != 0:
-        return manager.retcode
+    if tester.retcode != 0:
+        return tester.retcode
 
     # Remove all files except those matching these regular expression.
     #work[0].rename("out_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
@@ -53,9 +52,9 @@ def main():
 
     work.rmtree(exclude_wildcard="*.abin|*.about|*_WFK*|*_GSR.nc|*DEN-etsf.nc")
 
-    manager.finalize()
+    tester.finalize()
 
-    return manager.retcode 
+    return tester.retcode 
 
 
 if __name__ == "__main__":

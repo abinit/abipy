@@ -7,8 +7,7 @@ import abipy.data as data
 import abipy.abilab as abilab
 
 from collections import namedtuple
-from pymatgen.io.abinitio.task import RunMode
-from abipy.data.runs import RunManager
+from abipy.data.runs import Tester
 
 def build_workflows():
 
@@ -63,9 +62,12 @@ def build_workflows():
         print(inp)
 
         # Initialize the workflow.
+        tester = Tester()
+        manager = tester.make_manager()
+
         workdir = structure.formula + "_natom" + str(len(structure))
         assert workdir not in [work.workdir for work in works]
-        work = abilab.Workflow(workdir, runmode=RunMode.sequential())
+        work = abilab.Workflow(workdir, manager)
 
         # Register the input.
         work.register(inp)

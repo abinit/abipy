@@ -2,9 +2,10 @@ import os
 import inspect
 
 from pymatgen.io.abinitio.launcher import SimpleResourceManager
+import abipy.abilab as abilab
 
 
-class RunManager(object):
+class Tester(object):
     def __init__(self):
         
         frm = inspect.stack()[1]
@@ -30,6 +31,9 @@ class RunManager(object):
 
     def set_work(self, work):
         self.work = work
+
+    def make_manager(self):
+        return abilab.TaskManager.simple_mpi(mpi_ncpus=1)
 
     def run(self):
         retcodes = SimpleResourceManager(self.work, max_ncpus=2, sleep_time=5).run()

@@ -5,8 +5,7 @@ import os
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from pymatgen.io.abinitio.task import RunMode
-from abipy.data.runs import RunManager
+from abipy.data.runs import Tester
 
 def main():
 
@@ -15,15 +14,15 @@ def main():
     print(inp)
 
     # Create the task defining the calculation and run it.
-    manager = RunManager()
-    runmode = RunMode.sequential()
+    tester = Tester()
+    manager = tester.make_manager()
 
-    task = abilab.AbinitTask.from_input(inp, manager.workdir, runmode)
+    task = abilab.AbinitTask.from_input(inp, tester.workdir, manager)
 
-    manager.set_work_and_run(task)
+    tester.set_work_and_run(task)
 
-    if manager.retcode != 0:
-        return manager.retcode
+    if tester.retcode != 0:
+        return tester.retcode
 
     # Remove all files except those matching these regular expression.
     task.rmtree(exclude_wildcard="*.abi|*.abo|*SIGRES.nc")
@@ -32,8 +31,8 @@ def main():
     task.rename("out_DS5_SIGRES.nc", "si_g0w0ppm_nband20_SIGRES.nc")
     task.rename("out_DS6_SIGRES.nc", "si_g0w0ppm_nband30_SIGRES.nc")
 
-    manager.finalize()
-    return manager.retcode 
+    tester.finalize()
+    return tester.retcode 
 
 def make_input(ngkpt):
 

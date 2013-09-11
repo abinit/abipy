@@ -5,8 +5,7 @@ import os
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from pymatgen.io.abinitio.task import RunMode
-from abipy.data.runs import RunManager
+from abipy.data.runs import Tester
 
 def main():
     structure = abilab.Structure.from_file(data.cif_file("si.cif"))
@@ -42,11 +41,11 @@ def main():
     nscf_inp.tolwfr = 1e-12
 
     # Create the task defining the calculation and run.
-    runmode = RunMode.sequential()
-    manager = RunManager()
+    tester = Tester()
+    manager = tester.make_manager()
     
     # Initialize the workflow.
-    work = abilab.Workflow(manager.workdir, runmode)
+    work = abilab.Workflow(tester.workdir, manager)
 
     # Register the input for the SCF calculation. 
     # scf_link is the object that describes this node of the workflow.
@@ -58,14 +57,14 @@ def main():
     work.register(nscf_inp, links=scf_link.produces_exts("_DEN"))
 
     #work.build()
-    #manager.set_work_and_run(work)
+    #tester.set_work_and_run(work)
 
     work.show_inputs()
     #from abipy.gui.wxapps import wxapp_showfiles
     #wxapp_showfiles(dirpath=work.workdir, walk=True, wildcard="*.abo").MainLoop()
 
-    if manager.retcode != 0:
-        return manager.retcode
+    if tester.retcode != 0:
+        return tester.retcode
 
     # Remove all files except those matching these regular expressions.
     work.rmtree(exclude_wildcard="*.abi|*.abo")
@@ -78,8 +77,8 @@ def main():
     #work.rename("out_DS2_GSR.nc", "si_nscf_GSR.nc")
     #work.remove_files("out_DS2_DEN-etsf.nc")
 
-    manager.finalize()
-    return manager.retcode 
+    tester.finalize()
+    return tester.retcode 
 
 if __name__ == "__main__":
     import sys

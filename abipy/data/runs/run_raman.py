@@ -7,8 +7,7 @@ import numpy as np
 import abipy.abilab as abilab
 import abipy.data as data  
 
-from pymatgen.io.abinitio.task import RunMode
-from abipy.data.runs import RunManager
+from abipy.data.runs import Tester
 
 def build_raman_workflows():
     pseudos = data.pseudos("14si.pspnc")
@@ -106,7 +105,8 @@ def raman_workflow(workdir, structure, pseudos, shiftk):
     )
 
     # Initialize the workflow.
-    work = abilab.Workflow(workdir, runmode=RunMode.sequential())
+    manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1)
+    work = abilab.Workflow(workdir, manager)
 
     # Register the input for the SCF calculation. 
     # scf_link is the object that describes this node of the workflow.
