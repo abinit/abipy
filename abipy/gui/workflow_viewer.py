@@ -53,8 +53,8 @@ class WorkflowViewerFrame(awx.Frame):
         # Create toolbar.
         self.toolbar = toolbar = self.CreateToolBar()
 
-        tsize = (48,48)
-        artBmp = wx.ArtProvider.GetBitmap
+        #tsize = (48,48)
+        #artBmp = wx.ArtProvider.GetBitmap
         #toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, tsize), "Open")
         toolbar.AddSimpleTool(ID_SHOW_INPUTS, wx.Bitmap(awx.path_img("in.png")), "Visualize the input files.")
         toolbar.AddSimpleTool(ID_SHOW_OUTPUTS, wx.Bitmap(awx.path_img("out.png")), "Visualize the output files.")
@@ -102,15 +102,22 @@ class WorkflowViewerFrame(awx.Frame):
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
+        panel = wx.Panel(self, -1)
+
         # List Control with the individual tasks of the workflow.
-        self.task_listctrl = task_listctrl = TaskListCtrl(self, work)
+        self.task_listctrl = TaskListCtrl(panel, work)
 
-        main_sizer.Add(task_listctrl, 1, wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 5)
+        main_sizer.Add(self.task_listctrl, 1, wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 5)
 
-        self.SetSizerAndFit(main_sizer)
+        check_button = wx.Button(panel, -1, label='Check Status')
+        check_button.Bind(wx.EVT_BUTTON, self.OnCheckStatusButton)
 
-        # Set the callback for double click on k-point row..
-        #self.skb_panel.SetOnItemActivated(self._visualize_skb)
+        main_sizer.Add(check_button, 0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
+
+        panel.SetSizerAndFit(main_sizer)
+
+    def OnCheckStatusButton(self, event):
+        self.work.recheck_status()
 
     #def DestroyPanel(self):
     #    if hasattr(self, "panel"):
@@ -171,21 +178,17 @@ class WorkflowViewerFrame(awx.Frame):
 
     def OnShowInputs(self, event):
         if self.work is None: return
-        work = self.work
-        #self.work.wxshow_inputs()
-        frame = TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.abi")
+        frame = TextNotebookFrame.from_files_and_dir(self, dirpath=self.work.workdir, walk=True, wildcard="*.abi")
         frame.Show()
 
     def OnShowOutputs(self, event):
         if self.work is None: return
-        work = self.work
-        frame = TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.abo")
+        frame = TextNotebookFrame.from_files_and_dir(self, dirpath=self.work.workdir, walk=True, wildcard="*.abo")
         frame.Show()
 
     def OnShowLogs(self, event):
         if self.work is None: return
-        work = self.work
-        frame = TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.log")
+        frame = TextNotebookFrame.from_files_and_dir(self, dirpath=self.work.workdir, walk=True, wildcard="*.log")
         frame.Show()
 
     def OnBrowse(self, event):
@@ -218,21 +221,21 @@ class TaskListCtrl(wx.ListCtrl):
 
         self.work = work
 
-        columns = ["Task", "Status", "Queue_id"]
+        columns = ["Task", "Status", "Queue_id", "Can run"]
 
         for (index, col) in enumerate(columns):
             self.InsertColumn(index, col)
 
         for task in work:
-            entry = map(str, [task.name, task.str_status, task.queue_id])
+            entry = map(str, [task.short_name, task.str_status, task.queue_id, task.can_run])
             self.Append(entry)
 
         for (index, col) in enumerate(columns):
             self.SetColumnWidth(index, wx.LIST_AUTOSIZE)
 
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick)
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
         #self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected)
-        #self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
 
     def OnRightClick(self, event):
         currentItem = event.m_itemIndex
@@ -246,6 +249,14 @@ class TaskListCtrl(wx.ListCtrl):
         self.PopupMenu(menu, event.GetPoint())
         menu.Destroy()
 
+    def OnItemActivated(self, event):
+        currentItem = event.m_itemIndex
+        print("In OnItemActivated with currentItem %s" % str(currentItem))
+        task = self.work[currentItem]
+
+        if task.can_run:
+            task.start()
+
     #def OnItemSelected(self, event):
     #    indices = [self.file_list.GetFirstSelected()]
     #    while indices[-1] != -1:
@@ -256,12 +267,6 @@ class TaskListCtrl(wx.ListCtrl):
     #    # Plot multiple bands
     #    if len(indices) > 1:
     #        for index in indices:
-                                                                            
-    #def OnItemActivated(self, event):
-    #    currentItem = event.m_itemIndex
-    #    print("In OnItemActivated with currentItem %s" % str(currentItem))
-    #    task = self.work[currentItem]
-    #    task.start()
 
     #def GetTask(self):
     #    """Returns the Task selected by the user."""
@@ -270,6 +275,32 @@ class TaskListCtrl(wx.ListCtrl):
 
 
 # Callbacks 
+_FRAME_SIZE = (720, 720)
+
+def show_task_main_output(parent, task):
+    file = task.output_file
+
+    if file.exists:
+        frame = wx.Frame(parent, -1, size=_FRAME_SIZE)
+        text_ctrl = wx.TextCtrl(frame, -1, file.read(), style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
+        frame.Show()
+    else:
+        message = "Output file %s does not exist" % file.path
+        awx.showErrorMessage(parent=parent, message=message)
+
+
+def show_task_log(parent, task):
+    file = task.log_file
+
+    if file.exists:
+        frame = wx.Frame(parent, -1, size=_FRAME_SIZE)
+        text_ctrl = wx.TextCtrl(frame, -1, file.read(), style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
+        frame.Show()
+    else:
+        message = "Output file %s does not exist" % file.path
+        awx.showErrorMessage(parent=parent, message=message)
+
+
 def show_task_main_events(parent, task):
     file = task.output_file
 
@@ -292,7 +323,7 @@ def show_task_log_events(parent, task):
 
 def browse_outdir(parent, task):
     from .browser import FileListPanel
-    frame = awx.Frame(None, -1)
+    frame = awx.Frame(None, -1, size=_FRAME_SIZE)
     FileListPanel(frame, dirpaths=task.outdata_dir, wildcard="*.nc")
     frame.Show()
 
@@ -305,6 +336,8 @@ class TaskPopupMenu(wx.Menu):
     and task is a `Task` instance.
     """
     MENU_TITLES = OrderedDict([
+        ("output", show_task_main_output),
+        ("log", show_task_log),
         ("main events", show_task_main_events),
         ("log events",  show_task_log_events),
         ("browse outdir", browse_outdir),

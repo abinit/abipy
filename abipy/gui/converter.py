@@ -28,9 +28,9 @@ class ConverterFrame(wx.Frame):
         from_uchoices = units.ALL_UNITS[self.DEFAULT_UTYPE].keys()
         self.from_unit_choice = wx.ComboBox(self, -1, choices=from_uchoices)
         self.from_unit_choice.SetSelection(0)
-        hsz1.Add(self.from_unit_choice, 0, wx.ALL, 5)
+        hsz1.Add(self.from_unit_choice, 1, wx.ALL, 5)
 
-        main_sizer.Add(hsz1, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND, 5)
+        main_sizer.Add(hsz1, 0.4, wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND, 5)
 
         hsz2 = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -44,7 +44,7 @@ class ConverterFrame(wx.Frame):
         to_uchoices = units.ALL_UNITS[self.DEFAULT_UTYPE].keys()
         self.to_unit_choice = wx.ComboBox(self, -1, choices=to_uchoices)
         self.to_unit_choice.SetSelection(0)
-        hsz2.Add(self.to_unit_choice, 0, wx.ALL, 5)
+        hsz2.Add(self.to_unit_choice, 1, wx.ALL, 5)
 
         main_sizer.Add(hsz2, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND, 5)
 
@@ -83,10 +83,14 @@ class ConverterFrame(wx.Frame):
         self.to_unit_choice.SetSelection(0)
 
     def OnConvert(self, event):
-        fvalue = float(self.from_textctrl.GetValue())
+        try:
+            fvalue = float(self.from_textctrl.GetValue())
+        except:
+            awx.showErrorMessage(self)
+            return
+
         from_unit = self.from_unit_choice.GetValue()
         ufloat = units.FloatWithUnit(fvalue, from_unit)
-
         to_unit = self.to_unit_choice.GetValue()
 
         try:

@@ -49,7 +49,7 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     @property
     def structure(self):
         """`Structure` object."""
-        return self.ebands._structure
+        return self.ebands.structure
 
     @property
     def kpoints(self):

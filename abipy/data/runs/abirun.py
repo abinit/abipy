@@ -130,28 +130,31 @@ def main():
     parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                          help='verbose, can be supplied multiple times to increase verbosity')
 
+    parser.add_argument('-w', '--walk', action="store_true",
+                         help="Walk the filesystem starting from paths and and find the pickle databases.")
+
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for single command.
     p_single = subparsers.add_parser('singleshot', help="Run single task.") #, aliases=["single"])
-    p_single.add_argument('path', nargs="+", help='Directory with __workflow__.pickle database or file.')
+    p_single.add_argument('paths', nargs="+", help='Directory with __workflow__.pickle database or file.')
 
     # Subparser for rapidfire command.
     p_rapid = subparsers.add_parser('rapidfire', help="Run all tasks in rapidfire mode") # aliases=["rapid"])
-    p_rapid.add_argument('path', nargs="+", help='Directory with __workflow__.pickle database or file.')
+    p_rapid.add_argument('paths', nargs="+", help='Directory with __workflow__.pickle database or file.')
 
     # Subparser for pymanager command.
     p_pymanager = subparsers.add_parser('pymanager', help="Run all tasks.")
-    p_pymanager.add_argument('path', nargs="+", help='Directory with __workflow__.pickle database or file.')
+    p_pymanager.add_argument('paths', nargs="+", help='Directory with __workflow__.pickle database or file.')
 
     # Subparser for status command.
     p_status = subparsers.add_parser('status', help="Show task status.")
-    p_status.add_argument('path', nargs="+", help='Directory with __workflow__.pickle database or file.')
+    p_status.add_argument('paths', nargs="+", help='Directory with __workflow__.pickle database or file.')
 
     # Subparser for gui command.
     p_gui = subparsers.add_parser('gui', help="Open GUI.")
-    p_gui.add_argument('path', nargs="+", help='Directory with __workflow__.pickle database or file.')
+    p_gui.add_argument('paths', nargs="+", help='Directory with __workflow__.pickle database or file.')
 
     # Parse command line.
     try:
@@ -162,8 +165,21 @@ def main():
     if options.verbose:
         print(options)
 
+    paths = options.paths
+
+    if options.walk:
+        # Walk through each directory in options.paths and find the pickle databases.
+        paths = []
+        for root in options.paths:
+
+            for dirpath, dirnames, filenames in os.walk(root):
+                for fname in filenames:
+                    if fname == abilab.Workflow.PICKLE_FNAME:
+                        paths.append(os.path.join(dirpath, fname))
+
+
     retcode = 0
-    for path in options.path:
+    for path in paths:
         retcode = treat_workflow(path, options)
         if retcode != 0:
             return retcode
