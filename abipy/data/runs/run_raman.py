@@ -32,14 +32,23 @@ def build_raman_workflows():
     # a complete BSE calculation for given eta.
     basedir = os.path.join(os.path.dirname(__file__), base_structure.formula + "_RAMAN")
 
+    # Generate the different shifts to average
+    ndiv = 2
+    shift1D = np.arange(1,2*ndiv+1,2)/(2*ndiv)
+    allshifts = [[x,y,z] for x in shift1D for y in shift1D for z in shift1D]
+
     works = []
     for structure, eta in zip(displaced_structures, etas):
-        workdir = os.path.join(basedir, "eta_" + str(eta))
-        works.append(raman_workflow(workdir, structure, pseudos))
+        dispworkdir = os.path.join(basedir, "eta_" + str(eta))
+        ishift = 0
+        for shift in allshifts:
+            workdir = os.path.join(dispworkdir, "shift_" + str(ishift))
+            works.append(raman_workflow(workdir, structure, pseudos, shift))
+            ishift+=1
 
     return works
 
-def raman_workflow(workdir, structure, pseudos):
+def raman_workflow(workdir, structure, pseudos, shiftk):
     # Generate 3 different input files for computing optical properties with BSE.
 
     # Global variables
@@ -53,7 +62,7 @@ def raman_workflow(workdir, structure, pseudos):
 
     scf_inp.set_structure(structure)
     scf_inp.set_variables(**global_vars)
-    scf_inp.set_kmesh(ngkpt=[2,2,2], shiftk=[0,0,0])
+    scf_inp.set_kmesh(ngkpt=[2,2,2], shiftk=shiftk)
     scf_inp.tolvrs = 1e-6
 
     # NSCF run
@@ -61,7 +70,7 @@ def raman_workflow(workdir, structure, pseudos):
 
     nscf_inp.set_structure(structure)
     nscf_inp.set_variables(**global_vars)
-    nscf_inp.set_kmesh(ngkpt=[2,2,2], shiftk=[0,0,0])
+    nscf_inp.set_kmesh(ngkpt=[2,2,2], shiftk=shiftk)
 
     nscf_inp.set_variables(tolwfr=1e-12,
                            nband=12,
@@ -75,7 +84,7 @@ def raman_workflow(workdir, structure, pseudos):
 
     bse_inp.set_structure(structure)
     bse_inp.set_variables(**global_vars)
-    bse_inp.set_kmesh(ngkpt=[2,2,2], shiftk=[0,0,0])
+    bse_inp.set_kmesh(ngkpt=[2,2,2], shiftk=shiftk)
 
     bse_inp.set_variables(
         optdriver=99,

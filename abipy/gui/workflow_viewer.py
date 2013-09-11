@@ -53,15 +53,15 @@ class WorkflowViewerFrame(awx.Frame):
         # Create toolbar.
         self.toolbar = toolbar = self.CreateToolBar()
 
-        tsize = (15, 15)
+        tsize = (48,48)
         artBmp = wx.ArtProvider.GetBitmap
         #toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, tsize), "Open")
-        toolbar.AddSimpleTool(ID_SHOW_INPUTS, wx.Bitmap(awx.path_img("struct.png")), "Visualize the input files.")
-        toolbar.AddSimpleTool(ID_SHOW_OUTPUTS, wx.Bitmap(awx.path_img("struct.png")), "Visualize the output files.")
-        toolbar.AddSimpleTool(ID_SHOW_LOGS, wx.Bitmap(awx.path_img("struct.png")), "Visualize the log files.")
-        toolbar.AddSimpleTool(ID_BROWSE, wx.Bitmap(awx.path_img("struct.png")), "Browse files.")
-        toolbar.AddSimpleTool(ID_SHOW_MAIN_EVENTS, wx.Bitmap(awx.path_img("struct.png")), "Show the ABINIT events reported in the main output files.")
-        toolbar.AddSimpleTool(ID_SHOW_LOG_EVENTS, wx.Bitmap(awx.path_img("struct.png")), "Show the ABINIT events reported in the log files.")
+        toolbar.AddSimpleTool(ID_SHOW_INPUTS, wx.Bitmap(awx.path_img("in.png")), "Visualize the input files.")
+        toolbar.AddSimpleTool(ID_SHOW_OUTPUTS, wx.Bitmap(awx.path_img("out.png")), "Visualize the output files.")
+        toolbar.AddSimpleTool(ID_SHOW_LOGS, wx.Bitmap(awx.path_img("log.png")), "Visualize the log files.")
+        toolbar.AddSimpleTool(ID_BROWSE, wx.Bitmap(awx.path_img("browse.png")), "Browse files.")
+        toolbar.AddSimpleTool(ID_SHOW_MAIN_EVENTS, wx.Bitmap(awx.path_img("out_evt.png")), "Show the ABINIT events reported in the main output files.")
+        toolbar.AddSimpleTool(ID_SHOW_LOG_EVENTS, wx.Bitmap(awx.path_img("log_evt.png")), "Show the ABINIT events reported in the log files.")
 
         #toolbar.AddSeparator()
         self.toolbar.Realize()
