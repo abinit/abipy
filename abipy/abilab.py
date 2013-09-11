@@ -1,8 +1,6 @@
 from pymatgen.io.abinitio.eos import EOS
-from pymatgen.io.abinitio.task import AbinitTask, TaskManager
-#from pymatgen.io.abinitio.workflow import Workflow
-#from pymatgen.io.abinitio.calculations import bandstructure
-from pymatgen.io.abinitio.qadapters import ShellAdapter
+from pymatgen.io.abinitio.task import TaskManager
+from pymatgen.io.abinitio import qadapters as qadapters
 
 import abipy.core.constants as constants
 from abipy.core.structure import Structure, StructureModifier
