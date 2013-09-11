@@ -32,7 +32,7 @@ class RunManager(object):
         self.work = work
 
     def run(self):
-        retcodes = SimpleResourceManager(self.work, max_ncpus=1, sleep_time=5).run()
+        retcodes = SimpleResourceManager(self.work, max_ncpus=2, sleep_time=5).run()
         self._retcode = max(retcodes)
 
     def set_work_and_run(self, work):

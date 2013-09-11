@@ -5,7 +5,6 @@ import os
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from pymatgen.io.abinitio.task import RunMode
 from abipy.data.runs import RunManager
 
 def main():
@@ -42,11 +41,15 @@ def main():
     print(inp)
 
     # Create the task defining the calculation and run.
-    runmode = RunMode.sequential()
     manager = RunManager()
 
+    #qadapter = abilab.ShellAdapter(qparams=dict(MPI_NCPUS=2), mpi_runner = "mpirun")
+    #task_manager = abilab.TaskManager("shell", qparams=dict(MPI_NCPUS=2), mpi_runner = "mpirun")
+    task_manager = abilab.TaskManager.simple_mpi(mpi_ncpus=2)
+    print(task_manager)
+
     # Initialize the workflow.
-    work = abilab.Workflow(manager.workdir, runmode)
+    work = abilab.Workflow(manager.workdir, task_manager)
 
     # Register the input.
     work.register(inp)
@@ -57,7 +60,7 @@ def main():
         return manager.retcode
 
     # Remove all files except those matching these regular expression.
-    work.rmtree(exclude_wildcard="*.abi|*.abo|*_WFK*|*_GSR.nc|*DEN-etsf.nc")
+    #work.rmtree(exclude_wildcard="*.abi|*.abo|*_WFK*|*_GSR.nc|*DEN-etsf.nc")
 
     work[0].rename("out_DS1_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
     work[0].rename("out_DS1_DEN-etsf.nc", "si_DEN-etsf.nc")
