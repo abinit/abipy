@@ -2,6 +2,7 @@
 Utilities for generating matplotlib plots.
 
 .. note:
+
     Avoid importing these tools in the top-level namespace of the module
     since they rely on matplotlib whose startup is very slow.
 """
@@ -9,10 +10,14 @@ from __future__ import division, print_function
 
 import numpy as np
 import collections
-import matplotlib as mpl
-import matplotlib.cm as cmap
 
-from matplotlib import pyplot as plt
+try:
+    import matplotlib as mpl
+    import matplotlib.cm as cmap
+    from matplotlib import pyplot as plt
+
+except ImportError:
+    pass
 
 __all__ = [
     "plot_array",
