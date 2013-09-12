@@ -17,6 +17,7 @@ __all__ = [
 ]
 
 _DEBUG = True
+_DEBUG = False
 
 class Error(Exception):
     """Base class for exceptions"""

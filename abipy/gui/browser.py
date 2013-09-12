@@ -3,8 +3,9 @@ from __future__ import print_function, division
 
 import os
 import wx
-
+import fnmatch
 import abipy.gui.awx as awx
+import wx.lib.mixins.listctrl as listmix
 
 from collections import namedtuple
 
@@ -25,13 +26,29 @@ _VIEWER_FRAMES = {
     "SIGRES.nc": SigresViewerFrame,
 }
 
+_FRAME_SIZE = (720, 720)
+
+def is_string(obj):
+    """True if obj is a string."""
+    try:
+        dummy = obj + " "
+        return True
+
+    except TypeError:
+        return False
+
 
 def viewerframe_from_filepath(parent, filepath):
+    """
+    Returns the viewer (wx frame) associated to the file.
+    None if no viewer has been registered.
+    """
     ext = filepath.split("_")[-1]
     try:
         return _VIEWER_FRAMES[ext](parent, filepath)
     except KeyError:
-        raise KeyError("No WX viewer has been registered for the extension %s" % ext)
+        #print("No WX viewer has been registered for the extension %s" % ext)
+        return None
 
 
 class NcFileDirCtrl(wx.GenericDirCtrl):
@@ -54,8 +71,10 @@ class NcFileDirCtrl(wx.GenericDirCtrl):
     def OnItemActivated(self, event):
         path = self.GetFilePath()
         if not path: return
+
         frame = viewerframe_from_filepath(self, path)
-        frame.Show()
+        if frame is not None:
+            frame.Show()
 
     def OnRightClick(self, event):
         path = self.GetFilePath()
@@ -67,17 +86,27 @@ class NcFileDirCtrl(wx.GenericDirCtrl):
         popmenu.Destroy()
 
 
-import fnmatch
-import wx.lib.mixins.listctrl as listmix
+class MyListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
+    """ Mixin class to resize the last column appropriately."""
+    def __init__(self, parent):
+        wx.ListCtrl.__init__(self, parent, id=-1, style=wx.LC_REPORT | wx.BORDER_SUNKEN)
+        listmix.ListCtrlAutoWidthMixin.__init__(self)
 
-def is_string(obj):
-    """True if obj is a string."""
-    try:
-        dummy = obj + " "
-        return True
 
-    except TypeError:
-        return False
+class FileDataObj(namedtuple("FileDataObj", "filename type directory")):
+    """The fields of the row in `FileListPanel`"""
+                                                                         
+    @property
+    def abspath(self):
+        return os.path.join(self.directory, self.filename)
+                                                                         
+    @classmethod
+    def from_abspath(cls, abspath):
+        return cls(
+            filename=os.path.basename(abspath),
+            type=os.path.splitext(abspath)[-1],
+            directory=os.path.dirname(abspath),
+        )
 
 
 class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
@@ -104,39 +133,14 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
                 self.wildcards = wildcard.split("|")
             else:
                 self.wildcards = [wildcard]
-        #print(self.wildcards)
 
         self.BuildUi()
 
     def BuildUi(self):
-
-        class MyListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
-            """ Mixin class to resize the last column appropriately."""
-
-            def __init__(self, parent):
-                wx.ListCtrl.__init__(self, parent, id=-1, style=wx.LC_REPORT | wx.BORDER_SUNKEN)
-                listmix.ListCtrlAutoWidthMixin.__init__(self)
-
         self.file_list = file_list = MyListCtrl(self)
 
         file_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick)
-        #file_list.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected)
         file_list.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
-
-        class FileDataObj(namedtuple("FileDataObj", "filename type directory")):
-            """The fields of the row"""
-
-            @property
-            def abspath(self):
-                return os.path.join(self.directory, self.filename)
-
-            @classmethod
-            def from_abspath(cls, abspath):
-                return cls(
-                    filename=os.path.basename(abspath),
-                    type=os.path.splitext(abspath)[-1],
-                    directory=os.path.dirname(abspath),
-                )
 
         self.FileDataObj = FileDataObj
 
@@ -206,8 +210,10 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
         currentItem = event.m_itemIndex
         fd = self.id2filedata[self.file_list.GetItemData(currentItem)]
         self.log("In OnItemActivated with filedata %s" % str(fd))
+
         frame = viewerframe_from_filepath(self, fd.abspath)
-        frame.Show()
+        if frame is not None:
+            frame.Show()
 
     def OnRightClick(self, event):
         currentItem = event.m_itemIndex
@@ -217,28 +223,17 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
         fd = self.id2filedata[self.file_list.GetItemData(currentItem)]
         # Open the popup menu then destroy it to avoid mem leak.
         menu = popupmenu_for_filename(self, fd.abspath)
-        self.PopupMenu(menu, event.GetPoint())
-        menu.Destroy()
+
+        if menu is not None:
+            self.PopupMenu(menu, event.GetPoint())
+            menu.Destroy()
 
     def OnColClick(self, event):
         event.Skip()
 
-    #def OnItemSelected(self, event):
-    #    indices = [self.file_list.GetFirstSelected()]
-    #    while indices[-1] != -1:
-    #        indices.append(self.file_list.GetNextSelected(indices[-1]))
-    #    indices = indices[:-1]
-    #    self.log("in OnItemSelected with indices:", indices)
 
-    #    # Plot multiple bands
-    #    if len(indices) > 1:
-    #        plotter = ElectronBandsPlotter()
-
-    #        for index in indices:
-    #            fd = self.id2filedata[self.file_list.GetItemData(index)]
-    #            self.log("adding ", fd.abspath)
-    #            plotter.add_ebands_from_file(fd.abspath)
-    #        plotter.plot()
+class FileListFrame(awx.Frame):
+    pass
 
 
 def wxapp_dirbrowser(dirpath):
@@ -257,7 +252,7 @@ def wxapp_dirbrowser(dirpath):
 
 def wxapp_listbrowser(dirpaths=None, filepaths=None, wildcard=""):
     app = wx.App()
-    frame = awx.Frame(None, -1)
+    frame = FileListFrame(None, -1, size=_FRAME_SIZE)
     FileListPanel(frame, dirpaths=dirpaths, filepaths=filepaths, wildcard=wildcard)
     frame.Show()
     return app

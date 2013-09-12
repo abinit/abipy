@@ -31,8 +31,11 @@ def popupmenu_for_filename(parent, filename):
             by the popupmenu to the calling window.
     """
     menu = PopupMenu.from_filename(filename)
-    menu.set_target(filename)
-    menu.set_parent(parent)
+
+    if menu is not None:
+        menu.set_target(filename)
+        menu.set_parent(parent)
+
     return menu
 
 #--------------------------------------------------------------------------------------------------
@@ -102,9 +105,13 @@ class PopupMenu(wx.Menu):
     def from_filename(filename):
         """
         Static factory function that instanciates the appropriate subclass of `NcFilePopupMenu`
+        Returns None if the extesion of filename is not supported.
         """
         # Find the AbinitNcFile subclass associated to files.
-        file_class = abifile_subclass_from_filename(filename)
+        try:
+            file_class = abifile_subclass_from_filename(filename)
+        except KeyError:
+            return None
 
         # Check whether a subclass handles this file..
         # Fallback to a simple PopupMenu if no match.
