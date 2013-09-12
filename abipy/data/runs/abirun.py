@@ -30,11 +30,10 @@ def show_examples_and_exit(err_msg=None, error_code=1):
 
     sys.exit(error_code)
 
-def treat_workflow(path, options):
+def treat_workflow(work, options):
 
     # Read the worflow from the pickle database.
     retcode = 0
-    work = abilab.Workflow.pickle_load(path)
 
     # Recompute the status of each task since tasks that
     # have been submitted previously might be completed.
@@ -115,12 +114,6 @@ def treat_workflow(path, options):
 
         pprint_table(table)
 
-    if options.command == "gui":
-        # TODO 
-        # Modify the viewer so that we can have multiple tabs for each workflow.
-        from abipy.gui.workflow_viewer import wxapp_workflow_viewer
-        wxapp_workflow_viewer(work).MainLoop()
-
     return retcode
 
 
@@ -130,31 +123,28 @@ def main():
     parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                          help='verbose, can be supplied multiple times to increase verbosity')
 
-    parser.add_argument('-w', '--walk', action="store_true",
-                         help="Walk the filesystem starting from paths and find the pickle databases.")
-
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for single command.
     p_single = subparsers.add_parser('singleshot', help="Run single task.") #, aliases=["single"])
-    p_single.add_argument('paths', nargs="+", help='Directory with __workflow__.pickle database or file.')
+    p_single.add_argument('paths', nargs="+", help="Directories containing ABINIT workflows")
 
     # Subparser for rapidfire command.
     p_rapid = subparsers.add_parser('rapidfire', help="Run all tasks in rapidfire mode") # aliases=["rapid"])
-    p_rapid.add_argument('paths', nargs="+", help='Directory with __workflow__.pickle database or file.')
+    p_rapid.add_argument('paths', nargs="+", help="Directories containing ABINIT workflows")
 
     # Subparser for pymanager command.
     p_pymanager = subparsers.add_parser('pymanager', help="Run all tasks.")
-    p_pymanager.add_argument('paths', nargs="+", help='Directory with __workflow__.pickle database or file.')
+    p_pymanager.add_argument('paths', nargs="+", help="Directories containing ABINIT workflows")
 
     # Subparser for status command.
     p_status = subparsers.add_parser('status', help="Show task status.")
-    p_status.add_argument('paths', nargs="+", help='Directory with __workflow__.pickle database or file.')
+    p_status.add_argument('paths', nargs="+", help="Directories containing ABINIT workflows")
 
     # Subparser for gui command.
     p_gui = subparsers.add_parser('gui', help="Open GUI.")
-    p_gui.add_argument('paths', nargs="+", help='Directory with __workflow__.pickle database or file.')
+    p_gui.add_argument('paths', nargs="+", help="Directories containing ABINIT workflows")
 
     # Parse command line.
     try:
@@ -167,22 +157,29 @@ def main():
 
     paths = options.paths
 
-    if options.walk:
-        # Walk through each directory in options.paths and find the pickle databases.
-        paths = []
-        for root in options.paths:
+    # Walk through each directory in options.paths and find the pickle databases.
+    paths = []
+    for root in options.paths:
 
-            for dirpath, dirnames, filenames in os.walk(root):
-                for fname in filenames:
-                    if fname == abilab.Workflow.PICKLE_FNAME:
-                        paths.append(os.path.join(dirpath, fname))
+        for dirpath, dirnames, filenames in os.walk(root):
+            for fname in filenames:
+                if fname == abilab.Workflow.PICKLE_FNAME:
+                    paths.append(os.path.join(dirpath, fname))
 
-
+    options.paths = paths
     retcode = 0
-    for path in paths:
-        retcode = treat_workflow(path, options)
-        if retcode != 0:
-            return retcode
+
+    workflows = [abilab.Workflow.pickle_load(path) for path in options.paths]
+
+    if options.command == "gui":
+        from abipy.gui.workflow_viewer import wxapp_workflow_viewer
+        wxapp_workflow_viewer(workflows).MainLoop()
+
+    else:
+        for work in workflows:
+            retcode = treat_workflow(work, options)
+            if retcode != 0:
+                return retcode
 
     return retcode
     

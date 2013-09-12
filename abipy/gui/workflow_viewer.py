@@ -22,7 +22,12 @@ ID_SHOW_LOG_EVENTS = wx.NewId()
 class WorkflowViewerFrame(awx.Frame):
     VERSION = "0.1"
 
-    def __init__(self, parent, work):
+    def __init__(self, parent, workflows):
+        """
+        Args:
+            workflows:
+                List of `Workflow` objects or single `Workflow`.
+        """
         super(WorkflowViewerFrame, self).__init__(parent, -1, self.codename)
 
         self.statusbar = self.CreateStatusBar()
@@ -86,7 +91,10 @@ class WorkflowViewerFrame(awx.Frame):
             mid, handler = combo[:2]
             self.Bind(wx.EVT_MENU, handler, id=mid)
 
-        self.work = work
+        self.workflows = workflows
+        if not isinstance(workflows, (list, tuple)):
+            self.workflows = [workflows]
+
         #if filename is not None:
         #    self.ReadWorkflow(filename)
 
@@ -97,27 +105,59 @@ class WorkflowViewerFrame(awx.Frame):
         return self.__class__.__name__
 
     def BuildUi(self):
-        if self.work is None: return
-        work = self.work
+        # Here we create a panel and a notebook on the panel
+        import wx.lib.agw.flatnotebook as fnb
+        nb_panel = wx.Panel(self, -1)
+        self.notebook = fnb.FlatNotebook(nb_panel)
 
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        for work  in self.workflows:
 
-        panel = wx.Panel(self, -1)
+            main_sizer = wx.BoxSizer(wx.VERTICAL)
+            panel = wx.Panel(self.notebook, -1)
 
-        # List Control with the individual tasks of the workflow.
-        self.task_listctrl = TaskListCtrl(panel, work)
+            # List Control with the individual tasks of the workflow.
+            self.task_listctrl = TaskListCtrl(panel, work)
 
-        main_sizer.Add(self.task_listctrl, 1, wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 5)
+            main_sizer.Add(self.task_listctrl, 1, wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 5)
 
-        check_button = wx.Button(panel, -1, label='Check Status')
-        check_button.Bind(wx.EVT_BUTTON, self.OnCheckStatusButton)
+            #check_button = wx.Button(panel, -1, label='Check Status')
+            #check_button.Bind(wx.EVT_BUTTON, self.OnCheckStatusButton)
+            #main_sizer.Add(check_button, 0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
 
-        main_sizer.Add(check_button, 0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
+            self.notebook.AddPage(panel, text=os.path.basename(work.workdir))
+            panel.SetSizerAndFit(main_sizer)
 
-        panel.SetSizerAndFit(main_sizer)
+        # Finally, put the notebook in a sizer for the nb_panel to manage the layout
+        sizer = wx.BoxSizer()
+        sizer.Add(self.notebook, 1, wx.EXPAND)
+                                                                                     
+        nb_panel.SetSizerAndFit(sizer)
 
-    def OnCheckStatusButton(self, event):
-        self.work.recheck_status()
+    def GetSelectedWork(self):
+        """
+        Return the selected workflow namely that the workflow associated to the 
+        active tab. None is list is empy.
+        """
+        # FIXME: If we want to allow the user to remove some tab we have
+        # to remove the corresponding work from workflows.
+        # Easy if workflow_viewer can only read data but it might be source 
+        # of bugs if we want to modify the object e.g. by submitting the calculation.
+        # For the time-being, use this assertion to prevent users from removing pages.
+        if self.notebook.GetPageCount() != len(self.workflows):
+            return awx.showErrorMessage(self, message="Bad user has removed pages from the notebook!")
+
+        idx = self.notebook.GetSelection()
+        print("work index is ", idx)
+        if idx == -1:
+            return None
+
+        try:
+            return self.workflows[idx]
+        except IndexError:
+            return None
+
+    #def OnCheckStatusButton(self, event):
+    #    self.work.recheck_status()
 
     #def DestroyPanel(self):
     #    if hasattr(self, "panel"):
@@ -177,34 +217,40 @@ class WorkflowViewerFrame(awx.Frame):
                          description="", developers="M. Giantomassi")
 
     def OnShowInputs(self, event):
-        if self.work is None: return
-        frame = TextNotebookFrame.from_files_and_dir(self, dirpath=self.work.workdir, walk=True, wildcard="*.abi")
+        work = self.GetSelectedWork() 
+        if work is None: return
+        frame = TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.abi")
         frame.Show()
 
     def OnShowOutputs(self, event):
-        if self.work is None: return
-        frame = TextNotebookFrame.from_files_and_dir(self, dirpath=self.work.workdir, walk=True, wildcard="*.abo")
+        work = self.GetSelectedWork() 
+        if work is None: return
+        frame = TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.abo")
         frame.Show()
 
     def OnShowLogs(self, event):
-        if self.work is None: return
-        frame = TextNotebookFrame.from_files_and_dir(self, dirpath=self.work.workdir, walk=True, wildcard="*.log")
+        work = self.GetSelectedWork() 
+        if work is None: return
+        frame = TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.log")
         frame.Show()
 
     def OnBrowse(self, event):
-        if self.work is None: return
+        work = self.GetSelectedWork() 
+        if work is None: return
         frame = awx.Frame(self, -1)
-        FileListPanel(frame, dirpaths=self.work.workdir) #, filepaths=filepaths, wildcard=wildcard)
+        FileListPanel(frame, dirpaths=work.workdir) #, filepaths=filepaths, wildcard=wildcard)
         frame.Show()
 
     def OnShowMainEvents(self, event):
-        if self.work is None: return
-        frame = AbinitEventsNotebookFrame(self, filenames=[task.output_file.path for task in self.work])
+        work = self.GetSelectedWork() 
+        if work is None: return
+        frame = AbinitEventsNotebookFrame(self, filenames=[task.output_file.path for task in work])
         frame.Show()
 
     def OnShowLogEvents(self, event):
-        if self.work is None: return
-        frame = AbinitEventsNotebookFrame(self, [task.log_file.path for task in self.work])
+        work = self.GetSelectedWork() 
+        if work is None: return
+        frame = AbinitEventsNotebookFrame(self, [task.log_file.path for task in work])
         frame.Show()
 
 
@@ -388,8 +434,8 @@ class TaskPopupMenu(wx.Menu):
 #        WorkflowViewerFrame(parent=None, work=filename).Show()
 
 
-def wxapp_workflow_viewer(workflow_or_picklefile):
+def wxapp_workflow_viewer(workflows):
     app = wx.App()
-    frame = WorkflowViewerFrame(None, work=workflow_or_picklefile)
+    frame = WorkflowViewerFrame(None, workflows)
     frame.Show()
     return app

@@ -47,9 +47,10 @@ class TextNotebookFrame(awx.Frame):
         import wx.lib.agw.flatnotebook as fnb
         nb_panel = awx.Panel(self)
         nb = fnb.FlatNotebook(nb_panel)
+        #nb = wx.Notebook(nb_panel)
 
         for page_name, text in zip(page_names, text_list):
-            page = wx.TextCtrl(nb_panel, -1, text, style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
+            page = wx.TextCtrl(nb, -1, text, style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
 
             if num_dirs > 0:
                 tokens = page_name.split(os.path.sep)
