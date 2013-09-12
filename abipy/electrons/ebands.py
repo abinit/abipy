@@ -9,13 +9,12 @@ import itertools
 import warnings
 import numpy as np
 import abipy.core.constants as const
-
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, Kpath, IrredZone, KpointsReaderMixin
 from abipy.tools import AttrDict
 from abipy.iotools import ETSF_Reader, Visualizer, bxsf_write
 from abipy.tools import gaussian
-from abipy.tools.plotting_utils import Marker
+
 from abipy.tools.animator import Animator
 from .edos import ElectronDOS
 
@@ -327,6 +326,7 @@ class ElectronBands(object):
             extend:
                 True if the values xys should be added to a pre-existing marker.
         """
+        from abipy.tools.plotting_utils import Marker
         if not hasattr(self, "_markers"):
             self._markers = collections.OrderedDict()
 
