@@ -8,7 +8,6 @@ import numpy as np
 from abipy.iotools import ETSF_Reader, AbinitNcFile, Has_Structure, Has_PhononBands
 from abipy.core.kpoints import Kpoint
 from abipy.tools import gaussian
-from abipy.tools.plotting_utils import Marker
 from .phdos import PhononDOS
 
 __all__ = [
@@ -257,6 +256,7 @@ class PhononBands(object):
             extend:
                 True if the values xys should be added to a pre-existing marker.
         """
+        from abipy.tools.plotting_utils import Marker
         if not hasattr(self, "_markers"):
             self._markers = collections.OrderedDict()
 
