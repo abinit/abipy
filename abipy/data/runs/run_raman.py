@@ -105,22 +105,25 @@ def raman_workflow(workdir, structure, pseudos, shiftk):
         bs_hayd_term=0,      # No terminator
     )
 
-    # Initialize the workflow.
-    manager = abilab.TaskManager(qtype="slurm",
-        qparams=dict(
-            ntasks=1,
-            partition="hmem",
-            account='nobody@nowhere.org',
-            time="119:59:59",
-            #ntasks_per_node=None,
-            #cpus_per_task=None,
-        ),
-        modules=['intel-compilers/12.0.4.191', 'MPI/Intel/mvapich2/1.6', 'FFTW/3.3'],
-        #shell_env=dict(FOO=1, PATH="/home/user/bin:$PATH"),
-        #pre_run=["echo 'List of command executed before launching the calculation'" ],
-        #post_run=["echo 'List of command executed once the calculation is completed'" ],
-        mpi_runner="mpirun",
-)
+   # Initialize the workflow.
+   manager = abilab.TaskManager(qtype="slurm",
+       qparams=dict(
+           ntasks=2,
+           #partition="hmem",
+           time="0:20:00",
+           #account='nobody@nowhere.org',
+           #ntasks_per_node=None,
+           #cpus_per_task=None,
+       ),
+       #setup="SetEnv intel13_intel",
+       modules = ["intel/compilerpro/13.0.1.117", "fftw3/intel/3.3"],
+       shell_env=dict(
+         PATH=("/home/naps/ygillet/NAPS/src/abinit-7.4.3-public/tmp_intel13/src/98_main/:" +
+               "/home/naps/ygillet/NAPS/intel13/bin:$PATH"),
+         LD_LIBRARY_PATH="/home/naps/ygillet/NAPS/intel13/lib:$LD_LIBRARY_PATH",
+       ),
+       mpi_runner="mpirun",
+    )
 
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1)
 
