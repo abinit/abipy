@@ -12,8 +12,7 @@ try:
     from wxmplot import PlotApp, PlotFrame
 except ImportError:
     import warnings
-
-    warnings.warn("Error while import wxmplot. Some features won't be available")
+    warnings.warn("Error while importing wxmplot. Some features won't be available")
 
 from abipy.electrons import ElectronBandsPlotter
 from abipy.gui.popupmenus import popupmenu_for_filename
