@@ -123,13 +123,13 @@ def cleanup():
 # List of external packages we rely on.
 # Note setup install will download them from Pypi if they are not avaiable.
 install_requires = [
-"pymatgen>=2.7.3",
-"matplotlib>=1.1",
-"scipy>=0.10",
-"numpy>=1.5",
-"netCDF4",
-"wxPython",
-"wxmplot",
+    "pymatgen>=2.7.3",
+    "matplotlib>=1.1",
+    "scipy>=0.10",
+    "numpy>=1.5",
+    "netCDF4",
+    #"wxPython",
+    #"wxmplot",
 ]
 
 #---------------------------------------------------------------------------

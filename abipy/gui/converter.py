@@ -91,7 +91,7 @@ class ConverterFrame(wx.Frame):
 
         from_unit = self.from_unit_choice.GetValue()
         if from_unit == "foo":
-            from abipy.gui.awx.hegs import Puzzle
+            from abipy.gui.awx.eggs import Puzzle
             return Puzzle(self)
             
         ufloat = units.FloatWithUnit(fvalue, from_unit)

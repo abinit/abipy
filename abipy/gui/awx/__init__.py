@@ -6,7 +6,7 @@ _MODS = [
     "grids",
     "dialogs",
     "panels",
-    "hegs",
+    "eggs",
     "func1dframe",
     "threads",
 ]
