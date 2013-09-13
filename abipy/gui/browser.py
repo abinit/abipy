@@ -50,7 +50,7 @@ class Wildcard(object):
                 String of tokens separated by sep.
                 Each token represents a pattern.
             sep:
-                Separator for wildcards.
+                Separator for shell patterns.
         """
         self.pats = ["*"]
         if wildcard:
@@ -132,7 +132,6 @@ class MyListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
 
 class FileDataObj(namedtuple("FileDataObj", "filename type directory")):
     """The fields of the row in `FileListPanel`"""
-                                                                         
     @property
     def abspath(self):
         return os.path.join(self.directory, self.filename)
@@ -147,8 +146,19 @@ class FileDataObj(namedtuple("FileDataObj", "filename type directory")):
 
 
 class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
-
+    """
+    This panel shows a list of files (strings), supports column sorting
+    and provides specific popup menus for the different type of files 
+    (file type detection is based on file extensions).
+    """
     def __init__(self, parent, filepaths, **kwargs):
+        """
+        Args:
+            parent:
+                parent window
+            filepaths:
+                List of file paths.
+        """
         super(FileListPanel, self).__init__(parent, -1, **kwargs)
 
         if filepaths is not None and is_string(filepaths):
@@ -189,6 +199,7 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
         self.SetSizerAndFit(sizer)
 
     def HasAbsPath(self, abspath):
+        """True if abspath is already present."""
         return abspath in [f.abspath for f in self.id2filedata.values()]
 
     def GetListCtrl(self):
@@ -196,6 +207,7 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
         return self.file_list
 
     def AppendFilepath(self, abspath):
+        """Add a file to the panel."""
         if self.HasAbsPath(abspath):
             awx.showErrorMessage(self, message="%s is already in the list" % abspath)
 
@@ -258,15 +270,19 @@ def wxapp_listbrowser(dirpaths=None, filepaths=None, wildcard=""):
 
 
 class FileListFrame(awx.Frame):
-    def __init__(self, parent, dirpaths=None, filepaths=None, wildcard="", **kwargs):
+    def __init__(self, parent, dirpaths=None, filepaths=None, walk=True, wildcard="", **kwargs):
         """
         Args:
             parent:
                 parent window
+            dirpaths:
+                List of directories to scan.
             filepaths
                 List of filepaths (absolute paths).
+            walk:
+                True if we have to browse all files and directories starting from filepaths.
             wildcard
-                Regular expression for selecting files.
+                Regular expressions for selecting files (tokens are separated by |).
         """
         if "size" not in kwargs:
             kwargs["size"] = _FRAME_SIZE
@@ -286,16 +302,26 @@ class FileListFrame(awx.Frame):
         wildcard = Wildcard(wildcard)
 
         self.all_filepaths = filepaths
-        for dirpath in dirpaths:
-            for root, dirnames, filenames in os.walk(dirpath):
-                wnames = [os.path.join(root, f) for f in filenames]
-                self.all_filepaths += wildcard.filter(wnames)
+
+        if walk:
+            for dirpath in dirpaths:
+                for root, dirnames, filenames in os.walk(dirpath):
+                    fnames = [os.path.join(root, f) for f in filenames]
+                    self.all_filepaths += wildcard.filter(fnames)
+        else:
+            # Select only the files in dirpaths.
+            for dirpath in dirpaths:
+                fnames = map(os.path.isfile, os.listdir(dirpath))
+                self.all_filepaths += wildcard.filter(fnames)
+
+        self.BuildUi()
+
+    def BuildUi(self):
 
         self.main_sizer = main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         panel = FileListPanel(self, filepaths=self.all_filepaths)
         main_sizer.Add(panel, 1, wx.EXPAND, 5)
-
 
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
 
