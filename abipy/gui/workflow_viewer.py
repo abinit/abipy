@@ -6,9 +6,9 @@ import wx
 import abipy.gui.awx as awx
 
 from collections import OrderedDict
-from .events import AbinitEventsFrame, AbinitEventsNotebookFrame
-from abipy.gui.browser import FileListFrame
-from abipy.gui.notebooks import TextNotebookFrame
+from abipy.gui.events import AbinitEventsFrame, AbinitEventsNotebookFrame
+from abipy.gui.browser import FileListFrame, viewerframe_from_filepath
+from abipy.gui.editor import TextNotebookFrame
 
 ID_SHOW_INPUTS = wx.NewId()
 ID_SHOW_OUTPUTS = wx.NewId()
@@ -18,16 +18,21 @@ ID_SHOW_MAIN_EVENTS = wx.NewId()
 ID_SHOW_LOG_EVENTS = wx.NewId()
 
 
+_FRAME_SIZE = (720, 720)
+
 class WorkflowViewerFrame(awx.Frame):
     VERSION = "0.1"
 
-    def __init__(self, parent, workflows):
+    def __init__(self, parent, workflows, **kwargs):
         """
         Args:
             workflows:
                 List of `Workflow` objects or single `Workflow`.
         """
-        super(WorkflowViewerFrame, self).__init__(parent, -1, self.codename)
+        if "size" not in kwargs:
+            kwargs["size"] = _FRAME_SIZE
+
+        super(WorkflowViewerFrame, self).__init__(parent, -1, self.codename, **kwargs)
 
         self.statusbar = self.CreateStatusBar()
 
@@ -107,7 +112,9 @@ class WorkflowViewerFrame(awx.Frame):
         # Here we create a panel and a notebook on the panel
         import wx.lib.agw.flatnotebook as fnb
         nb_panel = wx.Panel(self, -1)
-        self.notebook = fnb.FlatNotebook(nb_panel)
+
+        style = fnb.FNB_NO_X_BUTTON | fnb.FNB_NAV_BUTTONS_WHEN_NEEDED 
+        self.notebook = fnb.FlatNotebook(nb_panel, style=style)
 
         for work  in self.workflows:
 
@@ -324,24 +331,20 @@ def show_task_main_output(parent, task):
     file = task.output_file
 
     if file.exists:
-        frame = wx.Frame(parent, -1, size=_FRAME_SIZE)
-        text_ctrl = wx.TextCtrl(frame, -1, file.read(), style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
+        frame = viewerframe_from_filepath(parent, file.path)
         frame.Show()
     else:
-        message = "Output file %s does not exist" % file.path
-        awx.showErrorMessage(parent=parent, message=message)
+        awx.showErrorMessage(parent=parent, message="Output file %s does not exist" % file.path)
 
 
 def show_task_log(parent, task):
     file = task.log_file
 
     if file.exists:
-        frame = wx.Frame(parent, -1, size=_FRAME_SIZE)
-        text_ctrl = wx.TextCtrl(frame, -1, file.read(), style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
+        frame = viewerframe_from_filepath(parent, file.path)
         frame.Show()
     else:
-        message = "Output file %s does not exist" % file.path
-        awx.showErrorMessage(parent=parent, message=message)
+        awx.showErrorMessage(parent=parent, message="Output file %s does not exist" % file.path)
 
 
 def show_task_main_events(parent, task):

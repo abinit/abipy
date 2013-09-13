@@ -11,6 +11,8 @@ from abipy import abiopen
 from abipy.htc.abitimer import AbinitTimerSection
 from abipy.tools import list_strings, is_string
 
+_FRAME_SIZE = (720, 720)
+
 
 class AbinitEventsPanel(awx.Panel):
     """
@@ -57,7 +59,7 @@ class AbinitEventsPanel(awx.Panel):
         self.display = wx.StaticText(panel2, -1, '', (10, 10), style=wx.ALIGN_LEFT)
 
         vbox.Add(self.tree, 1, wx.EXPAND)
-        hbox.Add(panel1, 1, wx.EXPAND)
+        hbox.Add(panel1, 0, wx.EXPAND)
         hbox.Add(panel2, 1, wx.EXPAND)
         panel1.SetSizerAndFit(vbox)
 
@@ -82,9 +84,14 @@ class AbinitEventsFrame(awx.Frame):
     """
     def __init__(self, parent, filepath, **kwargs):
         filepath = os.path.abspath(filepath)
-        title = "Abinit Events: %s" % os.path.basename(filepath)
 
-        super(AbinitEventsFrame, self).__init__(parent, -1, title=title, **kwargs)
+        if "size" not in kwargs:
+            kwargs["size"] = _FRAME_SIZE
+
+        if "title" not in kwargs:
+            kwargs["title"] = "Abinit Events: %s" % os.path.basename(filepath)
+
+        super(AbinitEventsFrame, self).__init__(parent, **kwargs)
 
         self.event_panel = AbinitEventsPanel(self, filepath)
 
@@ -129,6 +136,9 @@ class AbinitEventsNotebookFrame(awx.Frame):
             num_dirs:
                 Maximum number of directories that will be shown in the tab.
         """
+        if "size" not in kwargs:
+            kwargs["size"] = _FRAME_SIZE
+
         if "title" not in kwargs:
             kwargs["title"] = "Abinit Events"
 
@@ -149,11 +159,9 @@ class AbinitEventsNotebookFrame(awx.Frame):
         nb = fnb.FlatNotebook(panel)
 
         for fname in filenames:
-            if not os.path.exists(fname):
-                continue
-
             page = AbinitEventsPanel(nb, fname)
             page_name = fname
+
             if num_dirs > 0:
                 tokens = page_name.split(os.path.sep)
                 page_name = os.path.join(*tokens[-num_dirs:])
@@ -210,8 +218,10 @@ class AbinitTimerFrame(awx.Frame):
     """
     def __init__(self, parent, filepath, **kwargs):
         filepath = os.path.abspath(filepath)
-        title = "Abinit Timer: %s" % os.path.basename(filepath)
-        super(AbinitTimerFrame, self).__init__(parent, -1, title=title, **kwargs)
+        if title not in kwargs:
+            kwargs["title"] = "Abinit Timer: %s" % os.path.basename(filepath)
+
+        super(AbinitTimerFrame, self).__init__(parent, **kwargs)
 
         try:
             abifile = abiopen(filepath)

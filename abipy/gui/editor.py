@@ -4,11 +4,30 @@ import os
 import wx
 import abipy.gui.awx as awx
 
+from abipy.tools.text import WildCard
+from wx.py.editor import EditorFrame, EditorNotebookFrame, EditorNotebook, Editor
+
 __all__ = [
     "TextNotebookFrame",
 ]
 
 _FRAME_SIZE = (720, 720)
+
+class SimpleTextViewer(awx.Frame):
+    def __init__(self, parent, filename, **kwargs):
+        super(SimpleTextViewer, self).__init__(parent, **kwargs)
+        wx.TextCtrl(self, -1, text, style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
+
+
+class Editor(EditorFrame):
+    """Very simple frame that displays text (string )in read-only mode."""
+
+    def __init__(self, parent, filename, **kwargs):
+        if "size" not in kwargs:
+            kwargs["size"] = _FRAME_SIZE
+
+        EditorFrame.__init__(self, parent=parent, filename=filename)
+
 
 class TextNotebookFrame(awx.Frame):
     """
@@ -46,8 +65,9 @@ class TextNotebookFrame(awx.Frame):
         # Here we create a panel and a notebook on the panel
         import wx.lib.agw.flatnotebook as fnb
         nb_panel = awx.Panel(self)
-        nb = fnb.FlatNotebook(nb_panel)
-        #nb = wx.Notebook(nb_panel)
+
+        style = fnb.FNB_X_ON_TAB | fnb.FNB_NAV_BUTTONS_WHEN_NEEDED 
+        nb = fnb.FlatNotebook(nb_panel, style=style)
 
         for page_name, text in zip(page_names, text_list):
             page = wx.TextCtrl(nb, -1, text, style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
@@ -65,7 +85,7 @@ class TextNotebookFrame(awx.Frame):
         nb_panel.SetSizerAndFit(sizer)
 
     @classmethod
-    def from_files_and_dir(cls, parent, filenames=None, dirpath=None, walk=True, wildcard=None):
+    def from_files_and_dir(cls, parent, filenames=None, dirpath=None, walk=True, wildcard=""):
         """
         Static constructure that reads the content of the files/directory specified in input.
 
@@ -84,32 +104,21 @@ class TextNotebookFrame(awx.Frame):
                 Only the files matching one of the regular expressions will be showed.
                 example: wildcard="*.nc|*.txt" shows only the files whose extension is in ["nc", "txt"].
         """
-        def select(fname): 
-            return True
-
-        if wildcard is not None:
-            import fnmatch
-            pats = wildcard.split("|")
-                                                    
-            def select(fname):
-                for pat in pats:
-                    if fnmatch.fnmatch(fname, pat):
-                        return True
-                return False
+        wildcard = WildCard(wildcard)
 
         if filenames is None:
             filenames = []
 
-        filenames = [f for f in filenames if select(f)]
+        filenames = wildcard.filter(filenames)
 
         if dirpath is not None:
             if not walk:
-                filenames += [f for f in os.listdir(dirpath) if select(f)]
+                filenames += wildcard.filter(os.listdir(dirpath))
 
             else:
                 for root, dirnames, fnames in os.walk(dirpath):
                     for fname in fnames:
-                        if select(fname):
+                        if wildcard.match(fname):
                             filenames.append(os.path.join(root, fname))
 
         # Open the files and read the content in a string
@@ -124,8 +133,8 @@ class TextNotebookFrame(awx.Frame):
 
 def wxapp_showfiles(filenames=None, dirpath=None, walk=True, wildcard=None):
     """
-    This function read the content of the files specified in input and 
-    show them in a noteboox in read-only mode.
+    Standalone applications that reads the content of the files specified 
+    in input and show them in a noteboox.
 
     Args:
         filenames:
@@ -149,3 +158,20 @@ def wxapp_showfiles(filenames=None, dirpath=None, walk=True, wildcard=None):
     frame = TextNotebookFrame.from_files_and_dir(None, filenames=filenames, dirpath=dirpath, walk=walk, wildcard=wildcard)
     frame.Show()
     return app
+
+
+if __name__ == "__main__":
+    app = wx.App()
+    frame = EditorNotebookFrame()
+    #frame = wx.Frame(None, -1)
+    #notebook = EditorNotebook(frame)
+    for filename in ["editor.py", "__init__.py"]:
+        frame.bufferCreate(filename=filename)
+
+    #Editor(frame)
+    frame.Show()
+    app.MainLoop()
+
+    #frame = EditorFrame()
+    #frame.bufferCreate(file.path)
+    #frame = EditorNotebookFrame(filename=file.path)

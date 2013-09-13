@@ -6,7 +6,7 @@ import wx
 import abipy.gui.awx as awx
 
 import wx.lib.mixins.listctrl as listmix
-from abipy.tools import list_strings, is_string
+from abipy.tools.text import list_strings, is_string, WildCard
 from collections import namedtuple
 
 try:
@@ -17,75 +17,37 @@ except ImportError:
 
 from abipy.electrons import ElectronBandsPlotter
 from abipy.gui.popupmenus import popupmenu_for_filename
-from abipy.gui.wfkviewer import WfkViewerFrame
-from abipy.gui.sigresviewer import SigresViewerFrame
-
-
-_VIEWER_FRAMES = {
-    "WFK-etsf.nc": WfkViewerFrame,
-    "SIGRES.nc": SigresViewerFrame,
-}
 
 _FRAME_SIZE = (720, 720)
 
 
-class Wildcard(object):
-    """
-    This object provides an easy-to-use interface for
-    filename matching with shell patterns (fnmatch).
-
-    .. example:
-
-    >>> w = Wildcard("*.nc|*.pdf")
-    >>> w.filter(["foo.nc", "bar.pdf", "hello.txt"])
-    ['foo.nc', 'bar.pdf']
-
-    >>> w.filter("foo.nc")
-    ['foo.nc']
-    """
-    def __init__(self, wildcard, sep="|"):
-        """
-        Args:
-            wildcard:
-                String of tokens separated by sep.
-                Each token represents a pattern.
-            sep:
-                Separator for shell patterns.
-        """
-        self.pats = ["*"]
-        if wildcard:
-            self.pats = wildcard.split(sep)
-
-    def __str__(self):
-        return "<%s, patters = %s>" % (self.__class__.__name__, self.pats)
-
-    def filter(self, filenames): 
-        """
-        Return a list with the filenames matching the pattern.
-        """
-        import fnmatch
-        filenames = list_strings(filenames)
-
-        fnames = []
-        for f in filenames:
-            for pat in self.pats:
-                if fnmatch.fnmatch(f, pat):
-                    fnames.append(f)
-
-        return fnames
-
-
 def viewerframe_from_filepath(parent, filepath):
     """
-    Returns the viewer (wx frame) associated to the file.
-    None if no viewer has been registered.
+    Factory function that returns the viewer (wx frame) associated to the file.
+    None if no viewer has been registered for this filename.
     """
+    from abipy.gui.wfkviewer import WfkViewerFrame
+    from abipy.gui.sigresviewer import SigresViewerFrame
+    from abipy.gui.editor import Editor
+
+    VIEWER_FRAMES = {
+        "WFK-etsf.nc": WfkViewerFrame,
+        "SIGRES.nc": SigresViewerFrame,
+        ".abi": Editor, #AbiViewerFrame,
+        ".abo": Editor, #AboViewerFrame,
+        ".log": Editor, #AbiLogViewerFrame,
+    }
+
     ext = filepath.split("_")[-1]
     try:
-        return _VIEWER_FRAMES[ext](parent, filepath)
+        return VIEWER_FRAMES[ext](parent, filepath)
 
     except KeyError:
-        return None
+        root, ext = os.path.splitext(filepath)
+        try:
+            return VIEWER_FRAMES[ext](parent, filepath)
+        except KeyError:
+            return None
 
 
 class NcFileDirCtrl(wx.GenericDirCtrl):
@@ -226,7 +188,7 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
     def OnItemActivated(self, event):
         currentItem = event.m_itemIndex
         fd = self.id2filedata[self.file_list.GetItemData(currentItem)]
-        self.log("In OnItemActivated with filedata %s" % str(fd))
+        #self.log("In OnItemActivated with filedata %s" % str(fd))
 
         frame = viewerframe_from_filepath(self, fd.abspath)
         if frame is not None:
@@ -299,7 +261,7 @@ class FileListFrame(awx.Frame):
         else:
             filepaths = []
 
-        wildcard = Wildcard(wildcard)
+        wildcard = WildCard(wildcard)
 
         self.all_filepaths = filepaths
 
@@ -345,7 +307,7 @@ class FileListFrame(awx.Frame):
         self.Layout()
 
     def OnFilterComboBox(self, event):
-        wildcard = Wildcard(self.filter_combobox.GetValue())
+        wildcard = WildCard(self.filter_combobox.GetValue())
 
         select_files = wildcard.filter(self.all_filepaths)
         panel = FileListPanel(self, filepaths=select_files)

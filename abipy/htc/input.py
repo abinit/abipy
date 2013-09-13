@@ -75,7 +75,10 @@ class AbiInput(object):
         if missing:
             raise self.Error("Cannot find the following pseudopotential files:\n%s" % str(missing)) 
 
-        self._pseudos = PseudoTable(pseudo_paths)
+        try:
+            self._pseudos = PseudoTable(pseudo_paths)
+        except Exception as exc:
+            warnings.warn("Ignoring error raised while parsing pseudopotential files.")
 
         if comment:
             self.set_comment(comment)
