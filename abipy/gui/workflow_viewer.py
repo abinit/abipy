@@ -7,8 +7,7 @@ import abipy.gui.awx as awx
 
 from collections import OrderedDict
 from .events import AbinitEventsFrame, AbinitEventsNotebookFrame
-#from abipy import abiopen
-from abipy.gui.browser import FileListPanel
+from abipy.gui.browser import FileListFrame
 from abipy.gui.notebooks import TextNotebookFrame
 
 ID_SHOW_INPUTS = wx.NewId()
@@ -237,9 +236,7 @@ class WorkflowViewerFrame(awx.Frame):
     def OnBrowse(self, event):
         work = self.GetSelectedWork() 
         if work is None: return
-        frame = awx.Frame(self, -1)
-        FileListPanel(frame, dirpaths=work.workdir) #, filepaths=filepaths, wildcard=wildcard)
-        frame.Show()
+        FileListFrame(self, dirpaths=work.workdir).Show()
 
     def OnShowMainEvents(self, event):
         work = self.GetSelectedWork() 
@@ -368,10 +365,7 @@ def show_task_log_events(parent, task):
 
 
 def browse_outdir(parent, task):
-    from .browser import FileListPanel
-    frame = awx.Frame(None, -1, size=_FRAME_SIZE)
-    FileListPanel(frame, dirpaths=task.outdata_dir, wildcard="*.nc")
-    frame.Show()
+    FileListFrame(parent, dirpaths=task.outdata_dir).Show()
 
 
 class TaskPopupMenu(wx.Menu):

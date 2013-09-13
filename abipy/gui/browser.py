@@ -3,10 +3,10 @@ from __future__ import print_function, division
 
 import os
 import wx
-import fnmatch
 import abipy.gui.awx as awx
-import wx.lib.mixins.listctrl as listmix
 
+import wx.lib.mixins.listctrl as listmix
+from abipy.tools import list_strings, is_string
 from collections import namedtuple
 
 try:
@@ -28,14 +28,51 @@ _VIEWER_FRAMES = {
 
 _FRAME_SIZE = (720, 720)
 
-def is_string(obj):
-    """True if obj is a string."""
-    try:
-        dummy = obj + " "
-        return True
 
-    except TypeError:
-        return False
+class Wildcard(object):
+    """
+    This object provides an easy-to-use interface for
+    filename matching with shell patterns (fnmatch).
+
+    .. example:
+
+    >>> w = Wildcard("*.nc|*.pdf")
+    >>> w.filter(["foo.nc", "bar.pdf", "hello.txt"])
+    ['foo.nc', 'bar.pdf']
+
+    >>> w.filter("foo.nc")
+    ['foo.nc']
+    """
+    def __init__(self, wildcard, sep="|"):
+        """
+        Args:
+            wildcard:
+                String of tokens separated by sep.
+                Each token represents a pattern.
+            sep:
+                Separator for wildcards.
+        """
+        self.pats = ["*"]
+        if wildcard:
+            self.pats = wildcard.split(sep)
+
+    def __str__(self):
+        return "<%s, patters = %s>" % (self.__class__.__name__, self.pats)
+
+    def filter(self, filenames): 
+        """
+        Return a list with the filenames matching the pattern.
+        """
+        import fnmatch
+        filenames = list_strings(filenames)
+
+        fnames = []
+        for f in filenames:
+            for pat in self.pats:
+                if fnmatch.fnmatch(f, pat):
+                    fnames.append(f)
+
+        return fnames
 
 
 def viewerframe_from_filepath(parent, filepath):
@@ -46,8 +83,8 @@ def viewerframe_from_filepath(parent, filepath):
     ext = filepath.split("_")[-1]
     try:
         return _VIEWER_FRAMES[ext](parent, filepath)
+
     except KeyError:
-        #print("No WX viewer has been registered for the extension %s" % ext)
         return None
 
 
@@ -111,28 +148,14 @@ class FileDataObj(namedtuple("FileDataObj", "filename type directory")):
 
 class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
 
-    def __init__(self, parent, dirpaths=None, filepaths=None, wildcard="", **kwargs):
+    def __init__(self, parent, filepaths, **kwargs):
         super(FileListPanel, self).__init__(parent, -1, **kwargs)
 
-        if dirpaths is not None and is_string(dirpaths):
-            dirpaths = [dirpaths, ]
-
         if filepaths is not None and is_string(filepaths):
-            filepaths = [filepaths, ]
+            filepaths = [filepaths]
 
-        self.dirpaths = dirpaths if dirpaths is not None else []
         self.filepaths = filepaths if filepaths is not None else []
-
-        self.dirpaths = map(os.path.abspath, self.dirpaths)
         self.filepaths = map(os.path.abspath, self.filepaths)
-
-        if not wildcard:
-            self.wildcards = ["*.*"]
-        else:
-            if "|" in wildcard:
-                self.wildcards = wildcard.split("|")
-            else:
-                self.wildcards = [wildcard]
 
         self.BuildUi()
 
@@ -148,9 +171,6 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
         for (index, colname) in enumerate(self.FileDataObj._fields):
             file_list.InsertColumn(index, colname)
 
-        for dirpath in self.dirpaths:
-            self.ScanDirectory(dirpath)
-
         for filepath in self.filepaths:
             self.AppendFilepath(filepath)
 
@@ -165,7 +185,8 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
         # Pack
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(file_list, 1, wx.ALL | wx.EXPAND, 5)
-        self.SetSizer(sizer)
+
+        self.SetSizerAndFit(sizer)
 
     def HasAbsPath(self, abspath):
         return abspath in [f.abspath for f in self.id2filedata.values()]
@@ -173,18 +194,6 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
     def GetListCtrl(self):
         """Used by the ColumnSorterMixin, see wx/lib/mixins/listctrl.py"""
         return self.file_list
-
-    def AcceptFilename(self, filename):
-        for wcard in self.wildcards:
-            if not fnmatch.fnmatch(filename, wcard):
-                return False
-        return True
-
-    def ScanDirectory(self, dirpath):
-        for root, dirnames, filenames in os.walk(dirpath):
-            wnames = [f for f in filenames if self.AcceptFilename(f)]
-            for apath in wnames:
-                self._AppendFilepath(os.path.join(root, apath))
 
     def AppendFilepath(self, abspath):
         if self.HasAbsPath(abspath):
@@ -201,10 +210,6 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
         self.file_list.Append(entry)
         self.file_list.SetItemData(next, entry_id)
         self.id2filedata[entry_id] = entry
-
-    #def OnFilePicker(self, event):
-    #    new_filepath = self.filepicker.GetPath()
-    #    self.AppendFilepath(new_filepath)
 
     def OnItemActivated(self, event):
         currentItem = event.m_itemIndex
@@ -232,10 +237,6 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
         event.Skip()
 
 
-class FileListFrame(awx.Frame):
-    pass
-
-
 def wxapp_dirbrowser(dirpath):
     if dirpath is None:
         dirpath = " "
@@ -245,14 +246,88 @@ def wxapp_dirbrowser(dirpath):
     app = wx.App()
     frame = awx.Frame(None, -1)
     NcFileDirCtrl(frame, -1, dir=dirpath)
-    app.SetTopWindow(frame)
     frame.Show()
     return app
 
 
 def wxapp_listbrowser(dirpaths=None, filepaths=None, wildcard=""):
     app = wx.App()
-    frame = FileListFrame(None, -1, size=_FRAME_SIZE)
-    FileListPanel(frame, dirpaths=dirpaths, filepaths=filepaths, wildcard=wildcard)
+    frame = FileListFrame(None, dirpaths=dirpaths, filepaths=filepaths, wildcard=wildcard, size=_FRAME_SIZE)
     frame.Show()
     return app
+
+
+class FileListFrame(awx.Frame):
+    def __init__(self, parent, dirpaths=None, filepaths=None, wildcard="", **kwargs):
+        """
+        Args:
+            parent:
+                parent window
+            filepaths
+                List of filepaths (absolute paths).
+            wildcard
+                Regular expression for selecting files.
+        """
+        if "size" not in kwargs:
+            kwargs["size"] = _FRAME_SIZE
+
+        super(FileListFrame, self).__init__(parent, -1, **kwargs)
+
+        if dirpaths is not None:
+            dirpaths = map(os.path.abspath, list_strings(dirpaths))
+        else:
+            dirpaths = []
+
+        if filepaths is not None:
+            filepaths = map(os.path.abspath, list_strings(filepaths))
+        else:
+            filepaths = []
+
+        wildcard = Wildcard(wildcard)
+
+        self.all_filepaths = filepaths
+        for dirpath in dirpaths:
+            for root, dirnames, filenames in os.walk(dirpath):
+                wnames = [os.path.join(root, f) for f in filenames]
+                self.all_filepaths += wildcard.filter(wnames)
+
+        self.main_sizer = main_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        panel = FileListPanel(self, filepaths=self.all_filepaths)
+        main_sizer.Add(panel, 1, wx.EXPAND, 5)
+
+
+        hsizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        filter_label = wx.StaticText(self, -1, "Filter:", wx.DefaultPosition, wx.DefaultSize, 0)
+        filter_label.Wrap(-1)
+        hsizer.Add(filter_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
+
+        # Combobox to enter shell patters.
+        wildcard_choices = ["*", "*.nc", "*.abo", "*.log"]
+        self.filter_combobox = wx.ComboBox(self, id=-1, value="*", style=wx.TE_PROCESS_ENTER, choices=wildcard_choices)
+        self.filter_combobox.SetToolTipString("Shell patters separated by |")
+
+        self.filter_combobox.Bind(wx.EVT_COMBOBOX, self.OnFilterComboBox)
+        self.filter_combobox.Bind(wx.EVT_TEXT_ENTER, self.OnFilterComboBox)
+
+        hsizer.Add(self.filter_combobox, 0, wx.ALL, 5)
+
+        main_sizer.Add(hsizer, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
+
+        self.SetSizer(main_sizer)
+        self.Layout()
+
+    def OnFilterComboBox(self, event):
+        wildcard = Wildcard(self.filter_combobox.GetValue())
+
+        select_files = wildcard.filter(self.all_filepaths)
+        panel = FileListPanel(self, filepaths=select_files)
+
+        main_sizer = self.main_sizer
+        main_sizer.Hide(0)
+        main_sizer.Remove(0)
+        main_sizer.Insert(0, panel, 1, wx.EXPAND, 5)
+
+        self.Layout()
+        #self.Fit()

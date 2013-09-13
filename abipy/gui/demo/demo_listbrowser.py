@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import os
 import abipy
 import abipy.data
 

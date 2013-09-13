@@ -172,11 +172,10 @@ class ComparisonFrame(awx.Frame):
 
     def OnCompareButton(self, event):
         selected_files = self.panel.GetSelectedFilepaths()
-        #self.log("selected", selected)
 
         choice = self.plotter_cbox.GetValue()
-        try:
 
+        try:
             if choice == "ebands":
                 plotter = ElectronBandsPlotter()
 
