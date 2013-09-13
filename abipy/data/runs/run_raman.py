@@ -105,8 +105,8 @@ def raman_workflow(workdir, structure, pseudos, shiftk):
         bs_hayd_term=0,      # No terminator
     )
 
-   # Initialize the workflow.
-   manager = abilab.TaskManager(qtype="slurm",
+    # Initialize the workflow.
+    manager = abilab.TaskManager(qtype="slurm",
        qparams=dict(
            ntasks=2,
            #partition="hmem",
