@@ -6,17 +6,7 @@ import collections
 import numpy as np
 
 from abipy.tools.numtools import minloc, alternate
-from abipy.tools.text import pprint_table
-
-
-def is_string(obj):
-    """True if object behaves as a string."""
-    try:
-        dummy = obj + ""
-        return True
-
-    except TypeError:
-        return False
+from abipy.tools import pprint_table, is_string, list_strings
 
 
 class AbinitTimerParserError(Exception):
@@ -57,8 +47,7 @@ class AbinitTimerParser(collections.Iterable):
         Files that cannot be opened are ignored. A single filename may also be given.
         Return list of successfully read files.
         """
-        if is_string(filenames):
-            filenames = [filenames]
+        filenames = list_strings(filenames)
 
         read_ok = []
         for fname in filenames:

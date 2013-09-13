@@ -8,6 +8,7 @@ import numpy as np
 
 from pymatgen.io.abinitio.pseudos import PseudoTable
 from abipy.core import Structure
+from abipy.tools import is_string, list_strings
 
 __all__ = [
     "AbiInput",
@@ -30,16 +31,6 @@ _NO_MULTI = [
     "prtxtypat",
     "wtatcon",
 ]
-
-
-def is_string(obj):
-    """True if object behaves as a string."""
-    try:
-        dummy = obj + ""
-        return True
-
-    except TypeError:
-        return False
 
 
 class AbinitInputError(Exception):
@@ -76,8 +67,8 @@ class AbiInput(object):
 
         # Setup of the pseudopotential files.
         self._pseudo_dir = os.path.abspath(pseudo_dir)
-        if is_string(pseudos):
-            pseudos = [pseudos]
+
+        pseudos = list_strings(pseudos)
         pseudo_paths = [os.path.join(self._pseudo_dir, p) for p in pseudos]
 
         missing = [p for p in pseudo_paths if not os.path.exists(p)]

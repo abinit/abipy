@@ -10,21 +10,12 @@ from os.path import dirname, abspath, exists
 from collections import OrderedDict
 from copy import deepcopy
 
+from abipy.tools import is_string
+
 __all__ = [
     'InputFile'
 ]
 
-def is_string(obj):
-    """True if object behaves as a string."""
-    try:
-        dummy = obj + ""
-        return True
-
-    except TypeError:
-        return False
-
-
-# =========================================================================== #
 
 _input_variable_blocks = OrderedDict((
 ('Datasets', '''

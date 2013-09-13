@@ -8,7 +8,7 @@ import cStringIO as StringIO
 import numpy as np
 #import abipy.core.constants as const 
 
-from abipy.tools import find_le, find_ge
+from abipy.tools import find_le, find_ge, list_strings, is_string
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import KpointList
 from abipy.tools import pprint_table, AttrDict
@@ -21,16 +21,6 @@ __all__ = [
     "SIGRES_File",
     "SIGRES_Plotter",
 ]
-
-
-def is_string(obj):
-    """True if object behaves as a string."""
-    try:
-        dummy = obj + ""
-        return True
-
-    except TypeError:
-        return False
 
 
 class QPState(collections.namedtuple("QPState",
@@ -535,10 +525,7 @@ class SIGRES_Plotter(collections.Iterable):
 
     def add_files(self, filepaths):
         """Add a list of filenames to the plotter"""
-        if is_string(filepaths):
-            filepaths = [filepaths]
-
-        for filepath in filepaths:
+        for filepath in list_strings(filepaths):
             self.add_file(filepath)
 
     def add_file(self, filepath):

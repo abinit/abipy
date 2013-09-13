@@ -5,22 +5,13 @@ import collections
 import numpy as np
 
 from abipy.iotools import AbinitNcFile, Has_Structure, Has_ElectronBands
+from abipy.tools import list_strings
 from .ebands import ElectronsReader
 
 __all__ = [
     "GSR_File",
     "GSR_Plotter",
 ]
-
-def is_string(obj):
-    """True if object behaves as a string."""
-    try:
-        dummy = obj + ""
-        return True
-
-    except TypeError:
-        return False
-
 
 class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     """
@@ -101,10 +92,7 @@ class GSR_Plotter(collections.Iterable):
 
     def add_files(self, filepaths):
         """Add a list of filenames to the plotter"""
-        if is_string(filepaths):
-            filepaths = [filepaths]
-
-        for filepath in filepaths:
+        for filepath in list_strings(filepaths):
             self.add_file(filepath)
 
     def add_file(self, filepath):

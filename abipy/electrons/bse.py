@@ -9,6 +9,7 @@ import numpy as np
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint
 from abipy.iotools import ETSF_Reader, AbinitNcFile, Has_Structure
+from abipy.tools import is_string
 
 __all__ = [
     "DielectricTensor",
@@ -17,16 +18,6 @@ __all__ = [
     "MDF_Reader",
     "MDF_Plotter",
 ]
-
-def is_string(obj):
-    """True if object behaves as a string."""
-    try:
-        dummy = obj + ""
-        return True
-
-    except TypeError:
-        return False
-
 
 class DielectricTensor(object):
     """

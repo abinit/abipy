@@ -9,14 +9,7 @@ from collections import OrderedDict
 from pymatgen.io.abinitio import EventParser
 from abipy import abiopen
 from abipy.htc.abitimer import AbinitTimerSection
-
-def is_string(obj):
-    try:
-        dummy = obj + " "
-        return True
-
-    except TypeError:
-        return False
+from abipy.tools import list_strings, is_string
 
 
 class AbinitEventsPanel(awx.Panel):
@@ -141,8 +134,7 @@ class AbinitEventsNotebookFrame(awx.Frame):
 
         super(AbinitEventsNotebookFrame, self).__init__(parent, **kwargs)
 
-        if is_string(filenames):
-            filenames = [filenames]
+        filenames = list_strings(filenames)
 
         # Remove inexistent files.
         filenames = filter(os.path.exists, filenames)
