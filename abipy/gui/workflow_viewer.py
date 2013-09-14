@@ -135,6 +135,11 @@ class WorkflowViewerFrame(awx.Frame):
         rapidfire_button.Bind(wx.EVT_BUTTON, self.OnRapidFireButton)
         hsizer.Add(rapidfire_button,  0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
 
+
+        singleshot_button = wx.Button(panel, -1, label='Single Shot')
+        singleshot_button.Bind(wx.EVT_BUTTON, self.OnSingleShotButton)
+        hsizer.Add(singleshot_button,  0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
+
         self.all_checkbox = wx.CheckBox(panel, -1, label="All workflows")
         self.all_checkbox.SetValue(True)
         hsizer.Add(self.all_checkbox,  0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
@@ -157,6 +162,19 @@ class WorkflowViewerFrame(awx.Frame):
             work = self.GetSelectedWork()
             nlaunch += PyLauncher(work).rapidfire()
 
+        self.statusbar.PushStatusText("Submitted %d tasks" % nlaunch)
+
+    def OnSingleShotButton(self, event):
+        nlaunch = 0
+                                                                      
+        if self.all_checkbox.GetValue():
+            for work in self.workflows:
+                nlaunch += PyLauncher(work).single_shot()
+                                                                      
+        else:
+            work = self.GetSelectedWork()
+            nlaunch += PyLauncher(work).single_shot()
+                                                                      
         self.statusbar.PushStatusText("Submitted %d tasks" % nlaunch)
 
     def GetSelectedWork(self):
