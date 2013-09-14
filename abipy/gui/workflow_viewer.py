@@ -124,6 +124,10 @@ class WorkflowViewerFrame(awx.Frame):
 
         panel.SetSizerAndFit(main_sizer)
 
+        # Register this event when the GUI is IDLE
+        # TODO: Use a timer to avoid too much overload.
+        #self.Bind(wx.EVT_IDLE, self.OnIdle)
+
     def GetSelectedWork(self):
         """
         Return the selected workflow namely that the workflow associated to the 
@@ -131,7 +135,14 @@ class WorkflowViewerFrame(awx.Frame):
         """
         return self.notebook.GetSelectedWork()
 
+    #def OnIdle(self, event):
+    #    print("On Idle")
+    #    self.CheckStatusAndRedraw()
+
     def OnCheckStatusButton(self, event):
+        self.CheckStatusAndRedraw()
+
+    def CheckStatusAndRedraw(self):
         for work in self.workflows:
             work.recheck_status()
 
@@ -237,7 +248,6 @@ class WorkflowViewerFrame(awx.Frame):
 
 
 
-#class Notebook(wx.Notebook):
 class Notebook(fnb.FlatNotebook):
     """
     Notebook class
