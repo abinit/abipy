@@ -26,13 +26,13 @@ global_vars = dict(
     ecut=12,
     istwfk="*1",
     chksymbreak=0,
-    accesswff=3
+    #accesswff=3
 )
 
 def build_workflows():
     
-    allecuts = np.arange(20,30,4)
-    allngkpts = np.arange(2,10,2)
+    all_ecuts = np.arange(20,30,4)
+    all_ngkpts = [3 * [nk] for nk in np.arange(2,10,2)]
 
     structure = abilab.Structure.from_abivars(unit_cell)
     pseudos = data.pseudos("14si.pspnc","6c.pspnc")
@@ -42,15 +42,15 @@ def build_workflows():
     shiftk = [[0.5,0.5,0.5],[0.5,0.0,0.0],[0.0,0.5,0.0],[0.0,0.0,0.5]]
 
     works = []    
-    for ecut in allecuts:
-        for ngkpt in allngkpts:
+    for ecut in all_ecuts:
+        for ngkpt in all_ngkpts:
     
             gs_inp = abilab.AbiInput(pseudos=pseudos)
             gs_inp.set_structure(structure)
             gs_inp.set_variables(**global_vars)
 
-            gs_inp.set_kmesh(ngkpt=3*ngkpt,shiftk=shiftk)
-            gs_inp.tol_vrs=1e-16
+            gs_inp.set_kmesh(ngkpt=ngkpt, shiftk=shiftk)
+            gs_inp.tolvrs=1e-16
 
             
             nscf_inp = abilab.AbiInput(pseudos=pseudos)
@@ -64,7 +64,7 @@ def build_workflows():
             relax_inp.set_structure(structure)
             relax_inp.set_variables(**global_vars)
 
-            relax_inp.set_kmesh(ngkpt=3*ngkpt,shiftk=shiftk)
+            relax_inp.set_kmesh(ngkpt=ngkpt, shiftk=shiftk)
             relax_inp.toldff = 1e-6
             relax_inp.tolmxf = 1e-5
             relax_inp.strfact = 100
@@ -85,13 +85,13 @@ def build_workflows():
             # Initialize the workflow.
             manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1)
 
-            workdir = "relax_SiC/ecut"+str(ecut)+"_ngkpt"+str(ngkpt)
+            workdir = "relax_SiC/ecut" + str(ecut) + "_ngkpt" + "x".join(str(nk)for nk in ngkpt)
             assert workdir not in [work.workdir for work in works]
             work = abilab.Workflow(workdir, manager)
 
             gs_link = work.register(gs_inp)  
-            nscf_link = work.register(nscf_inp,links=gs_link.produces_exts("_DEN"))
-            relax_link = work.register(relax_inp,links=gs_link.produces_exts("_WFK"))
+            nscf_link = work.register(nscf_inp, links=gs_link.produces_exts("_DEN"))
+            relax_link = work.register(relax_inp, links=gs_link.produces_exts("_WFK"))
 
             works.append(work)    
 

@@ -407,8 +407,7 @@ def show_task_main_events(parent, task):
     if file.exists:
         AbinitEventsFrame(parent, file.path).Show()
     else:
-        message = "Output file %s does not exist" % file.path
-        awx.showErrorMessage(parent=parent, message=message)
+        awx.showErrorMessage(parent=parent, message="Output file %s does not exist" % file.path)
 
 
 def show_task_log_events(parent, task):
@@ -417,8 +416,7 @@ def show_task_log_events(parent, task):
     if file.exists:
         AbinitEventsFrame(parent, file.path).Show()
     else:
-        message = "Log file %s does not exist" % file.path
-        awx.showErrorMessage(parent=parent, message=message)
+        awx.showErrorMessage(parent=parent, message="Log file %s does not exist" % file.path)
 
 
 def browse_outdir(parent, task):
@@ -487,6 +485,5 @@ class TaskPopupMenu(wx.Menu):
 
 def wxapp_workflow_viewer(workflows):
     app = wx.App()
-    frame = WorkflowViewerFrame(None, workflows)
-    frame.Show()
+    WorkflowViewerFrame(None, workflows).Show()
     return app
