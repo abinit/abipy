@@ -9,7 +9,7 @@ import os
 import argparse
 import abipy.abilab as abilab
 
-from pymatgen.io.abinitio.launcher import PyResourceManager
+from pymatgen.io.abinitio.launcher import PyResourceManager, PyLauncher
 from abipy.tools import pprint_table, StringColorizer
 
 def str_examples():
@@ -30,6 +30,7 @@ def show_examples_and_exit(err_msg=None, error_code=1):
 
     sys.exit(error_code)
 
+
 def treat_workflow(work, options):
 
     # Read the worflow from the pickle database.
@@ -41,46 +42,18 @@ def treat_workflow(work, options):
 
     # Dispatch.
     if options.command in ["single", "singleshot"]:
-        try:
-            task = work.fetch_task_to_run()
+        nlaunch = PyLauncher(work).single_shot()
+        print("Number of tasks launched %d" % nlaunch)
 
-            if task is None:
-                print("No task to run!. Possible deadlock")
-
-            else:
-                print("got task", task)
-                task.start()
-
-                #task.start_and_wait()
-                #retcode = task.returncode
-                #print("Task returncode", task.returncode)
-
-        except StopIteration as exc:
-            print(str(exc))
-
-        finally:
-            work.pickle_dump()
+    if options.command in ["rapid", "rapidfire"]:
+        nlaunch = PyLauncher(work).rapidfire()
+        print("Number of tasks launched %d" % nlaunch)
 
     if options.command == "pymanager":
         retcodes = PyResourceManager(work, max_ncpus=1, sleep_time=5).run()
         recode = max(retcodes)
         print("all tasks completed with return code %s" % retcode)
-
-        work.pickle_dump()
-
-    if options.command in ["rapid", "rapidfire"]:
-        while True:
-            try:
-                task = work.fetch_task_to_run()
-                if task is None:
-                    break
-                print("got task",task)
-                task.start()
-
-            except StopIteration as exc:
-                print(str(exc))
-                break
-
+                                                                            
         work.pickle_dump()
 
     if options.command == "status":

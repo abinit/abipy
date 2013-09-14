@@ -2,6 +2,7 @@ from __future__ import print_function, division
 
 import os
 import wx
+import time
 
 import abipy.gui.awx as awx
 
@@ -11,18 +12,24 @@ from abipy.gui.browser import FileListFrame, viewerframe_from_filepath
 from abipy.gui.editor import TextNotebookFrame
 import wx.lib.agw.flatnotebook as fnb
 
+from pymatgen.io.abinitio.launcher import PyLauncher 
+
 ID_SHOW_INPUTS = wx.NewId()
 ID_SHOW_OUTPUTS = wx.NewId()
 ID_SHOW_LOGS = wx.NewId()
 ID_BROWSE = wx.NewId()
 ID_SHOW_MAIN_EVENTS = wx.NewId()
 ID_SHOW_LOG_EVENTS = wx.NewId()
+ID_RECHECK_STATUS = wx.NewId()
 
 
 _FRAME_SIZE = (720, 720)
 
 class WorkflowViewerFrame(awx.Frame):
     VERSION = "0.1"
+
+    # Time in second after which we check the status of the tasks.
+    REFRESH_INTERVAL = 5
 
     def __init__(self, parent, workflows, **kwargs):
         """
@@ -73,6 +80,9 @@ class WorkflowViewerFrame(awx.Frame):
         toolbar.AddSimpleTool(ID_SHOW_MAIN_EVENTS, wx.Bitmap(awx.path_img("out_evt.png")), "Show the ABINIT events reported in the main output files.")
         toolbar.AddSimpleTool(ID_SHOW_LOG_EVENTS, wx.Bitmap(awx.path_img("log_evt.png")), "Show the ABINIT events reported in the log files.")
 
+        toolbar.AddSeparator()
+        toolbar.AddSimpleTool(ID_RECHECK_STATUS, wx.Bitmap(awx.path_img("log_evt.png")), "Check the status of the workflow(s).")
+
         #toolbar.AddSeparator()
         self.toolbar.Realize()
         self.Centre()
@@ -90,6 +100,7 @@ class WorkflowViewerFrame(awx.Frame):
             (ID_BROWSE, self.OnBrowse),
             (ID_SHOW_MAIN_EVENTS, self.OnShowMainEvents),
             (ID_SHOW_LOG_EVENTS, self.OnShowLogEvents),
+            (ID_RECHECK_STATUS, self.OnCheckStatusButton),
         ]
 
         for combo in menu_handlers:
@@ -118,15 +129,35 @@ class WorkflowViewerFrame(awx.Frame):
 
         main_sizer.Add(self.notebook, 1, wx.EXPAND, 5)
 
-        check_button = wx.Button(panel, -1, label='Check Status')
-        check_button.Bind(wx.EVT_BUTTON, self.OnCheckStatusButton)
-        main_sizer.Add(check_button, 0,  wx.ALIGN_CENTER_HORIZONTAL, 5)                                                                                     
+        hsizer = wx.BoxSizer(wx.HORIZONTAL)
 
+        rapidfire_button = wx.Button(panel, -1, label='Rapid Fire')
+        rapidfire_button.Bind(wx.EVT_BUTTON, self.OnRapidFireButton)
+        hsizer.Add(rapidfire_button,  0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
+
+        self.all_checkbox = wx.CheckBox(panel, -1, label="All workflows")
+        self.all_checkbox.SetValue(True)
+        hsizer.Add(self.all_checkbox,  0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
+
+        main_sizer.Add(hsizer, 0,  wx.ALIGN_CENTER_HORIZONTAL, 5)                                                                                     
         panel.SetSizerAndFit(main_sizer)
 
         # Register this event when the GUI is IDLE
-        # TODO: Use a timer to avoid too much overload.
-        #self.Bind(wx.EVT_IDLE, self.OnIdle)
+        self.last_refresh = time.time()
+        self.Bind(wx.EVT_IDLE, self.OnIdle)
+
+    def OnRapidFireButton(self, event):
+        nlaunch = 0
+
+        if self.all_checkbox.GetValue():
+            for work in self.workflows:
+                nlaunch += PyLauncher(work).rapidfire()
+
+        else:
+            work = self.GetSelectedWork()
+            nlaunch += PyLauncher(work).rapidfire()
+
+        self.statusbar.PushStatusText("Submitted %d tasks" % nlaunch)
 
     def GetSelectedWork(self):
         """
@@ -135,21 +166,29 @@ class WorkflowViewerFrame(awx.Frame):
         """
         return self.notebook.GetSelectedWork()
 
-    #def OnIdle(self, event):
-    #    print("On Idle")
-    #    self.CheckStatusAndRedraw()
+    def OnIdle(self, event):
+         now = time.time()
+
+         if now - self.last_refresh > self.REFRESH_INTERVAL: 
+            self.CheckStatusAndRedraw()
+            self.last_refresh = time.time()
 
     def OnCheckStatusButton(self, event):
         self.CheckStatusAndRedraw()
 
     def CheckStatusAndRedraw(self):
+        self.statusbar.PushStatusText("Checking status...")
         for work in self.workflows:
             work.recheck_status()
+
+        counter = self.workflows[0].status_counter()
+        for work in self.workflows[1:]:
+            counter += work.status_counter()
 
         # Save the active tab so that we can set it afterwards.
         old_selection = self.notebook.GetSelection()
 
-        # Redraw the panel
+        # Build new notebook and redraw the panel
         main_sizer = self.main_sizer
         main_sizer.Hide(0)
         main_sizer.Remove(0)
@@ -161,6 +200,9 @@ class WorkflowViewerFrame(awx.Frame):
 
         # Reinstate the old selection
         self.notebook.SetSelection(old_selection)
+
+        message = ", ".join("%s: %s" % (k, v) for (k, v) in counter.items())
+        self.statusbar.PushStatusText(message)
 
     #def OnOpen(self, event):
     #    dlg = wx.FileDialog(self, message="Choose a __workflow__.pickle file", defaultDir=os.getcwd(),
@@ -260,9 +302,6 @@ class Notebook(fnb.FlatNotebook):
             tab = TabPanel(self, work)
             self.AddPage(tab, text=os.path.basename(work.workdir))
 
-        #self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnPageChanged)
-        #self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.OnPageChanging)
-
     def GetSelectedWork(self):
         """
         Return the selected workflow namely that the workflow associated to the 
@@ -275,9 +314,8 @@ class Notebook(fnb.FlatNotebook):
         # For the time-being, use this assertion to prevent users from removing pages.
         if self.GetPageCount() != len(self.workflows):
             return awx.showErrorMessage(self, message="Bad user has removed pages from the notebook!")
-                                                                                                       
+
         idx = self.GetSelection()
-        #print("work index is ", idx)
         if idx == -1:
             return None
                                                                                                        
@@ -379,7 +417,6 @@ class TaskListCtrl(wx.ListCtrl):
 
 
 # Callbacks 
-_FRAME_SIZE = (720, 720)
 
 def show_task_main_output(parent, task):
     file = task.output_file
