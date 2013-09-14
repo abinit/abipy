@@ -218,7 +218,7 @@ class AbinitTimerFrame(awx.Frame):
     """
     def __init__(self, parent, filepath, **kwargs):
         filepath = os.path.abspath(filepath)
-        if title not in kwargs:
+        if "title" not in kwargs:
             kwargs["title"] = "Abinit Timer: %s" % os.path.basename(filepath)
 
         super(AbinitTimerFrame, self).__init__(parent, **kwargs)

@@ -92,7 +92,7 @@ def treat_workflow(work, options):
             task_name = os.path.basename(task.name)
 
             # Parse the events in the main output.
-            report = task.parse_events()
+            report = task.get_event_report()
 
             events = map(str, 3*["N/A"])
             if report is not None: 
@@ -173,6 +173,10 @@ def main():
 
     if options.command == "gui":
         from abipy.gui.workflow_viewer import wxapp_workflow_viewer
+
+        #for work in workflows:
+        #    work.recheck_status()
+
         wxapp_workflow_viewer(workflows).MainLoop()
 
     else:

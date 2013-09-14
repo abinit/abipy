@@ -11,25 +11,30 @@ __all__ = [
     "TextNotebookFrame",
 ]
 
-_FRAME_SIZE = (720, 720)
+_FRAME_SIZE = (800, 600)
 
 class SimpleTextViewer(awx.Frame):
+    """Very simple frame that displays text (string )in read-only mode."""
     def __init__(self, parent, filename, **kwargs):
         super(SimpleTextViewer, self).__init__(parent, **kwargs)
         wx.TextCtrl(self, -1, text, style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
 
 
-class Editor(EditorFrame):
-    """Very simple frame that displays text (string )in read-only mode."""
-
+#class AbinitEditorFrame(awx.Frame):
+class AbinitEditorFrame(EditorFrame):
     def __init__(self, parent, filename, **kwargs):
         if "size" not in kwargs:
             kwargs["size"] = _FRAME_SIZE
 
-        EditorFrame.__init__(self, parent=parent, filename=filename)
+        super(AbinitEditorFrame, self).__init__(parent, filename=filename, **kwargs)
 
+        #self.editor = Editor(self)
+        #with open(filename , "r") as fh:
+        #    self.editor.setText(fh.read())
+        #EditorFrame.__init__(self, parent=parent, filename=filename, **kwargs)
 
 class TextNotebookFrame(awx.Frame):
+#class TextNotebookFrame(EditorNotebookFrame):
     """
     This frame receives a list of strings and displays them in a notebook (read-only mode)
     """
@@ -121,6 +126,12 @@ class TextNotebookFrame(awx.Frame):
                         if wildcard.match(fname):
                             filenames.append(os.path.join(root, fname))
 
+        #frame = EditorNotebookFrame(parent)
+        #frame.notebook.DeletePage(0)
+        #for fname in filenames:
+        #    frame.bufferCreate(filename=fname)
+        #return frame
+
         # Open the files and read the content in a string
         text_list = []
         for fname in filenames:
@@ -152,7 +163,7 @@ def wxapp_showfiles(filenames=None, dirpath=None, walk=True, wildcard=None):
             example: wildcard="*.nc|*.txt" shows only the files whose extension is in ["nc", "txt"].
 
     Returns:
-        wxpython Application.
+        wxpython application.
     """
     app = wx.App()
     frame = TextNotebookFrame.from_files_and_dir(None, filenames=filenames, dirpath=dirpath, walk=walk, wildcard=wildcard)
@@ -170,8 +181,7 @@ if __name__ == "__main__":
 
     #Editor(frame)
     frame.Show()
-    app.MainLoop()
-
     #frame = EditorFrame()
     #frame.bufferCreate(file.path)
     #frame = EditorNotebookFrame(filename=file.path)
+    app.MainLoop()

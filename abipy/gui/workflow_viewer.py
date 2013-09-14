@@ -9,6 +9,7 @@ from collections import OrderedDict
 from abipy.gui.events import AbinitEventsFrame, AbinitEventsNotebookFrame
 from abipy.gui.browser import FileListFrame, viewerframe_from_filepath
 from abipy.gui.editor import TextNotebookFrame
+import wx.lib.agw.flatnotebook as fnb
 
 ID_SHOW_INPUTS = wx.NewId()
 ID_SHOW_OUTPUTS = wx.NewId()
@@ -39,9 +40,9 @@ class WorkflowViewerFrame(awx.Frame):
         menuBar = wx.MenuBar()
 
         file_menu = wx.Menu()
-        file_menu.Append(wx.ID_OPEN, "&Open", help="Open an existing WFK file")
-        file_menu.Append(wx.ID_CLOSE, "&Close", help="Close the WFK file")
-        file_menu.Append(wx.ID_EXIT, "&Quit", help="Exit the application")
+        #file_menu.Append(wx.ID_OPEN, "&Open", help="Open an existing WFK file")
+        #file_menu.Append(wx.ID_CLOSE, "&Close", help="Close the Viewer")
+        #file_menu.Append(wx.ID_EXIT, "&Quit", help="Exit the application")
         menuBar.Append(file_menu, "File")
 
         #file_history = self.file_history = wx.FileHistory(8)
@@ -65,10 +66,10 @@ class WorkflowViewerFrame(awx.Frame):
         #tsize = (48,48)
         #artBmp = wx.ArtProvider.GetBitmap
         #toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, tsize), "Open")
-        toolbar.AddSimpleTool(ID_SHOW_INPUTS, wx.Bitmap(awx.path_img("in.png")), "Visualize the input files.")
-        toolbar.AddSimpleTool(ID_SHOW_OUTPUTS, wx.Bitmap(awx.path_img("out.png")), "Visualize the output files.")
-        toolbar.AddSimpleTool(ID_SHOW_LOGS, wx.Bitmap(awx.path_img("log.png")), "Visualize the log files.")
-        toolbar.AddSimpleTool(ID_BROWSE, wx.Bitmap(awx.path_img("browse.png")), "Browse files.")
+        toolbar.AddSimpleTool(ID_SHOW_INPUTS, wx.Bitmap(awx.path_img("in.png")), "Visualize the input files of the workflow.")
+        toolbar.AddSimpleTool(ID_SHOW_OUTPUTS, wx.Bitmap(awx.path_img("out.png")), "Visualize the output files of the workflow..")
+        toolbar.AddSimpleTool(ID_SHOW_LOGS, wx.Bitmap(awx.path_img("log.png")), "Visualize the log files of the workflow.")
+        toolbar.AddSimpleTool(ID_BROWSE, wx.Bitmap(awx.path_img("browse.png")), "Browse all the files of the workflow.")
         toolbar.AddSimpleTool(ID_SHOW_MAIN_EVENTS, wx.Bitmap(awx.path_img("out_evt.png")), "Show the ABINIT events reported in the main output files.")
         toolbar.AddSimpleTool(ID_SHOW_LOG_EVENTS, wx.Bitmap(awx.path_img("log_evt.png")), "Show the ABINIT events reported in the log files.")
 
@@ -109,65 +110,46 @@ class WorkflowViewerFrame(awx.Frame):
         return self.__class__.__name__
 
     def BuildUi(self):
+        self.panel = panel = wx.Panel(self, -1)
+        self.main_sizer = main_sizer = wx.BoxSizer(wx.VERTICAL)
+
         # Here we create a panel and a notebook on the panel
-        import wx.lib.agw.flatnotebook as fnb
-        nb_panel = wx.Panel(self, -1)
+        self.notebook = Notebook(panel, self.workflows)
 
-        style = fnb.FNB_NO_X_BUTTON | fnb.FNB_NAV_BUTTONS_WHEN_NEEDED 
-        self.notebook = fnb.FlatNotebook(nb_panel, style=style)
+        main_sizer.Add(self.notebook, 1, wx.EXPAND, 5)
 
-        for work  in self.workflows:
+        check_button = wx.Button(panel, -1, label='Check Status')
+        check_button.Bind(wx.EVT_BUTTON, self.OnCheckStatusButton)
+        main_sizer.Add(check_button, 0,  wx.ALIGN_CENTER_HORIZONTAL, 5)                                                                                     
 
-            main_sizer = wx.BoxSizer(wx.VERTICAL)
-            panel = wx.Panel(self.notebook, -1)
-
-            # List Control with the individual tasks of the workflow.
-            self.task_listctrl = TaskListCtrl(panel, work)
-
-            main_sizer.Add(self.task_listctrl, 1, wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 5)
-
-            #check_button = wx.Button(panel, -1, label='Check Status')
-            #check_button.Bind(wx.EVT_BUTTON, self.OnCheckStatusButton)
-            #main_sizer.Add(check_button, 0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
-
-            self.notebook.AddPage(panel, text=os.path.basename(work.workdir))
-            panel.SetSizerAndFit(main_sizer)
-
-        # Finally, put the notebook in a sizer for the nb_panel to manage the layout
-        sizer = wx.BoxSizer()
-        sizer.Add(self.notebook, 1, wx.EXPAND)
-                                                                                     
-        nb_panel.SetSizerAndFit(sizer)
+        panel.SetSizerAndFit(main_sizer)
 
     def GetSelectedWork(self):
         """
         Return the selected workflow namely that the workflow associated to the 
         active tab. None is list is empy.
         """
-        # FIXME: If we want to allow the user to remove some tab we have
-        # to remove the corresponding work from workflows.
-        # Easy if workflow_viewer can only read data but it might be source 
-        # of bugs if we want to modify the object e.g. by submitting the calculation.
-        # For the time-being, use this assertion to prevent users from removing pages.
-        if self.notebook.GetPageCount() != len(self.workflows):
-            return awx.showErrorMessage(self, message="Bad user has removed pages from the notebook!")
+        return self.notebook.GetSelectedWork()
 
-        idx = self.notebook.GetSelection()
-        print("work index is ", idx)
-        if idx == -1:
-            return None
+    def OnCheckStatusButton(self, event):
+        for work in self.workflows:
+            work.recheck_status()
 
-        try:
-            return self.workflows[idx]
-        except IndexError:
-            return None
+        # Save the active tab so that we can set it afterwards.
+        old_selection = self.notebook.GetSelection()
 
-    #def OnCheckStatusButton(self, event):
-    #    self.work.recheck_status()
+        # Redraw the panel
+        main_sizer = self.main_sizer
+        main_sizer.Hide(0)
+        main_sizer.Remove(0)
+        new_notebook = Notebook(self, self.workflows)
+        main_sizer.Insert(0, new_notebook, 1, wx.EXPAND, 5)
+        self.notebook = new_notebook
 
-    #def DestroyPanel(self):
-    #    if hasattr(self, "panel"):
-    #        self.panel.Destroy()
+        self.panel.Layout()
+
+        # Reinstate the old selection
+        self.notebook.SetSelection(old_selection)
 
     #def OnOpen(self, event):
     #    dlg = wx.FileDialog(self, message="Choose a __workflow__.pickle file", defaultDir=os.getcwd(),
@@ -199,10 +181,6 @@ class WorkflowViewerFrame(awx.Frame):
 
     #    try:
     #        work = abiopen(filepath)
-    #        #if not isinstance(wfkfile, WFK_File):
-    #        #    awx.showErrorMessage(self)
-    #        #    return
-
     #        self.work = wfkfile
     #        self.BuildUi()
     #        self.statusbar.PushStatusText("Workflow file %s loaded" % filepath)
@@ -258,6 +236,63 @@ class WorkflowViewerFrame(awx.Frame):
         frame.Show()
 
 
+
+#class Notebook(wx.Notebook):
+class Notebook(fnb.FlatNotebook):
+    """
+    Notebook class
+    """
+    def __init__(self, parent, workflows):
+        super(Notebook, self).__init__(parent, id=-1, style=fnb.FNB_NO_X_BUTTON | fnb.FNB_NAV_BUTTONS_WHEN_NEEDED)
+
+        self.workflows = workflows
+        for work in workflows:
+            tab = TabPanel(self, work)
+            self.AddPage(tab, text=os.path.basename(work.workdir))
+
+        #self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnPageChanged)
+        #self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.OnPageChanging)
+
+    def GetSelectedWork(self):
+        """
+        Return the selected workflow namely that the workflow associated to the 
+        active tab. None is list is empy.
+        """
+        # FIXME: If we want to allow the user to remove some tab we have
+        # to remove the corresponding work from workflows.
+        # Easy if workflow_viewer can only read data but it might be source 
+        # of bugs if we want to modify the object e.g. by submitting the calculation.
+        # For the time-being, use this assertion to prevent users from removing pages.
+        if self.GetPageCount() != len(self.workflows):
+            return awx.showErrorMessage(self, message="Bad user has removed pages from the notebook!")
+                                                                                                       
+        idx = self.GetSelection()
+        #print("work index is ", idx)
+        if idx == -1:
+            return None
+                                                                                                       
+        try:
+            return self.workflows[idx]
+        except IndexError:
+            return None
+
+
+class TabPanel(wx.Panel):
+    """
+    Notebook tab.
+    """
+    def __init__(self, parent, work, **kwargs):
+        wx.Panel.__init__(self, parent=parent, id=-1, **kwargs)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # List Control with the individual tasks of the workflow.
+        task_listctrl = TaskListCtrl(self, work)
+        sizer.Add(task_listctrl, 1, wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 5)
+
+        self.SetSizer(sizer)
+
+
 class TaskListCtrl(wx.ListCtrl):
     """
     """
@@ -271,13 +306,22 @@ class TaskListCtrl(wx.ListCtrl):
 
         self.work = work
 
-        columns = ["Task", "Status", "Queue_id", "Can run"]
+        columns = ["Task", "Status", "Queue_id", "Can run", "Errors", "Warnings", "Comments"]
 
         for (index, col) in enumerate(columns):
             self.InsertColumn(index, col)
 
         for task in work:
-            entry = map(str, [task.short_name, task.str_status, task.queue_id, task.can_run])
+
+            events = map(str, 3*["N/A"])
+            try:
+                report = task.get_event_report()
+                if report is not None: 
+                    events = map(str, [report.num_errors, report.num_warnings, report.num_comments])
+            except:
+                pass
+
+            entry = map(str, [task.short_name, task.str_status, task.queue_id, task.can_run] + events)
             self.Append(entry)
 
         for (index, col) in enumerate(columns):

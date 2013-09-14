@@ -28,14 +28,17 @@ def viewerframe_from_filepath(parent, filepath):
     """
     from abipy.gui.wfkviewer import WfkViewerFrame
     from abipy.gui.sigresviewer import SigresViewerFrame
-    from abipy.gui.editor import Editor
+    from abipy.gui.editor import AbinitEditorFrame
 
     VIEWER_FRAMES = {
         "WFK-etsf.nc": WfkViewerFrame,
         "SIGRES.nc": SigresViewerFrame,
-        ".abi": Editor, #AbiViewerFrame,
-        ".abo": Editor, #AboViewerFrame,
-        ".log": Editor, #AbiLogViewerFrame,
+        ".abi": AbinitEditorFrame, #AbiViewerFrame,
+        ".abo": AbinitEditorFrame, #AboViewerFrame,
+        ".log": AbinitEditorFrame, #AbiLogViewerFrame,
+        ".sh": AbinitEditorFrame, #EditorFrame,
+        ".err": AbinitEditorFrame, #EditorFrame,
+        ".files": AbinitEditorFrame, #EditorFrame,
     }
 
     ext = filepath.split("_")[-1]
@@ -47,6 +50,9 @@ def viewerframe_from_filepath(parent, filepath):
         try:
             return VIEWER_FRAMES[ext](parent, filepath)
         except KeyError:
+            #if filepath.endswith(".nc")
+            #    return NcViewerFrame(parent, filepath)
+            #else:
             return None
 
 
@@ -211,25 +217,6 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
         event.Skip()
 
 
-def wxapp_dirbrowser(dirpath):
-    if dirpath is None:
-        dirpath = " "
-    else:
-        dirpath = os.path.abspath(dirpath)
-
-    app = wx.App()
-    frame = awx.Frame(None, -1)
-    NcFileDirCtrl(frame, -1, dir=dirpath)
-    frame.Show()
-    return app
-
-
-def wxapp_listbrowser(dirpaths=None, filepaths=None, wildcard=""):
-    app = wx.App()
-    frame = FileListFrame(None, dirpaths=dirpaths, filepaths=filepaths, wildcard=wildcard, size=_FRAME_SIZE)
-    frame.Show()
-    return app
-
 
 class FileListFrame(awx.Frame):
     def __init__(self, parent, dirpaths=None, filepaths=None, walk=True, wildcard="", **kwargs):
@@ -319,3 +306,23 @@ class FileListFrame(awx.Frame):
 
         self.Layout()
         #self.Fit()
+
+
+def wxapp_dirbrowser(dirpath):
+    if dirpath is None:
+        dirpath = " "
+    else:
+        dirpath = os.path.abspath(dirpath)
+
+    app = wx.App()
+    frame = awx.Frame(None, -1)
+    NcFileDirCtrl(frame, -1, dir=dirpath)
+    frame.Show()
+    return app
+
+
+def wxapp_listbrowser(dirpaths=None, filepaths=None, wildcard=""):
+    app = wx.App()
+    frame = FileListFrame(None, dirpaths=dirpaths, filepaths=filepaths, wildcard=wildcard, size=_FRAME_SIZE)
+    frame.Show()
+    return app
