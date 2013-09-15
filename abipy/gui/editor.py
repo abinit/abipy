@@ -11,7 +11,6 @@ __all__ = [
     "TextNotebookFrame",
 ]
 
-_FRAME_SIZE = (800, 600)
 
 class SimpleTextViewer(awx.Frame):
     """Very simple frame that displays text (string )in read-only mode."""
@@ -24,7 +23,7 @@ class SimpleTextViewer(awx.Frame):
 class AbinitEditorFrame(EditorFrame):
     def __init__(self, parent, filename, **kwargs):
         if "size" not in kwargs:
-            kwargs["size"] = _FRAME_SIZE
+            kwargs["size"] = awx.FRAME_SIZE
 
         super(AbinitEditorFrame, self).__init__(parent, filename=filename, **kwargs)
 
@@ -52,9 +51,6 @@ class TextNotebookFrame(awx.Frame):
         """
         if "title" not in kwargs:
             kwargs["title"] = self.__class__.__name__
-
-        if "size" not in kwargs:
-            kwargs["size"] = _FRAME_SIZE
 
         super(TextNotebookFrame, self).__init__(parent, **kwargs)
 

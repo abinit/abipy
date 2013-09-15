@@ -1,6 +1,11 @@
 from __future__ import print_function, division
 
+import os
+import tempfile
 import numpy as np
+
+from subprocess import Popen, PIPE
+from abipy.tools import which, WildCard
 
 __all__ = [
     "FFT_Benchmark",
@@ -43,7 +48,6 @@ class FFT_Test(object):
     This object stores the wall-time of the FFT
     as a function of the size of the problem.
     """
-
     def __init__(self, ecut, ngfft, wall_time, info):
         """
         Args:
@@ -99,8 +103,6 @@ class FFT_Test(object):
         )
         return line
 
-######################################################################
-
 
 class FFT_Benchmark(object):
     """
@@ -110,7 +112,7 @@ class FFT_Benchmark(object):
     """
 
     @classmethod
-    def from_filename(cls, fileobj):
+    def from_file(cls, fileobj):
         return parse_prof_file(fileobj)
 
     def __init__(self, title, FFT_tests):
@@ -307,3 +309,73 @@ def parse_prof_file(fileobj):
         fft_tests.append(Test)
 
     return FFT_Benchmark(title, fft_tests)
+
+
+class FFTProfError(Exception):
+    """Exceptions raised by FFTprof."""
+
+
+class FFTProf(object):
+
+    Error =  FFTProfError
+
+    def __init__(self, fft_input, executable="fftprof"):
+        self.verbose = 1
+        self.fft_input = fft_input
+
+        self.executable = which(executable)
+        if self.executable is None:
+            raise self.Error("Cannot find executable %s in $PATH" % executable)
+
+    @classmethod
+    def from_file(cls, filename, executable="fftprof"):
+        with open(filename, "r") as fh:
+            fft_input = fh.read()
+
+        return cls(fft_input, executable=executable)
+
+    def run(self):
+        """Execute the executable in a subprocess."""
+        self.workdir = tempfile.mkdtemp()
+        print(self.workdir)
+
+        self.stdin_fname = os.path.join(self.workdir, "fftprof.in")
+        self.stdout_fname = os.path.join(self.workdir,  "fftprof.out")
+        self.stderr_fname = os.path.join(self.workdir,  "fftprof.err")
+
+        with open(self.stdin_fname, "w") as fh:
+            fh.write(self.fft_input)
+
+        args = [self.executable, "<", self.stdin_fname, ">", self.stdout_fname, "2>", self.stderr_fname]
+
+        cmd_str = " ".join(args)
+
+        p = Popen(cmd_str, shell=True, stdout=PIPE, stderr=PIPE, cwd=self.workdir)
+
+        (self.stdout_data, self.stderr_data) = p.communicate()
+
+        self.returncode = p.returncode
+
+        if self.returncode != 0:
+            with open(self.stdout_fname, "r") as out, open(self.stderr_fname, "r") as err:
+                self.stdout_data = out.read()
+                self.stderr_data = err.read()
+
+            if self.verbose:
+                print("*** stdout: ***\n", self.stdout_data)
+                print("*** stderr  ***\n", self.stderr_data)
+
+            raise self.Error("%s returned %s\n cmd_str: %s" % (self, self.returncode, cmd_str))
+
+        return self.returncode
+
+    def plot(self):
+        filepaths = WildCard("PROF_*").filter(os.listdir(self.workdir))
+        filepaths = filter(os.path.isfile, [os.path.join(self.workdir, f) for f in filepaths])
+        print(filepaths)
+
+        for prof_file in filepaths:
+            print("prof_file", prof_file)
+            bench = FFT_Benchmark.from_file(prof_file)
+            bench.plot()
+

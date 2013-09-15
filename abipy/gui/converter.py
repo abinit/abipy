@@ -6,7 +6,7 @@ import pymatgen.core.units as units
 from abipy.gui import awx
 
 
-class ConverterFrame(wx.Frame):
+class ConverterFrame(awx.Frame):
     DEFAULT_UTYPE = "energy"
 
     def __init__(self, parent, **kwargs):

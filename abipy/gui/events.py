@@ -11,8 +11,6 @@ from abipy import abiopen
 from abipy.htc.abitimer import AbinitTimerSection
 from abipy.tools import list_strings, is_string
 
-_FRAME_SIZE = (720, 720)
-
 
 class AbinitEventsPanel(awx.Panel):
     """
@@ -85,9 +83,6 @@ class AbinitEventsFrame(awx.Frame):
     def __init__(self, parent, filepath, **kwargs):
         filepath = os.path.abspath(filepath)
 
-        if "size" not in kwargs:
-            kwargs["size"] = _FRAME_SIZE
-
         if "title" not in kwargs:
             kwargs["title"] = "Abinit Events: %s" % os.path.basename(filepath)
 
@@ -136,9 +131,6 @@ class AbinitEventsNotebookFrame(awx.Frame):
             num_dirs:
                 Maximum number of directories that will be shown in the tab.
         """
-        if "size" not in kwargs:
-            kwargs["size"] = _FRAME_SIZE
-
         if "title" not in kwargs:
             kwargs["title"] = "Abinit Events"
 

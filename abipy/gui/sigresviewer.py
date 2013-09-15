@@ -12,8 +12,6 @@ from abipy.tools import AttrDict
 from abipy.iotools.visualizer import supported_visunames
 from abipy.gui.scissors import ScissorsBuilderFrame
 
-_FRAME_SIZE = (720, 720)
-
 ID_VISTRUCT = wx.NewId()
 ID_VISBZ = wx.NewId()
 ID_NCDUMP = wx.NewId()
@@ -26,9 +24,6 @@ class SigresViewerFrame(awx.Frame):
     VERSION = "0.1"
 
     def __init__(self, parent, filename=None, **kwargs):
-        if "size" not in kwargs:
-            kwargs["size"] = _FRAME_SIZE
-
         super(SigresViewerFrame, self).__init__(parent, id=-1, title=self.codename, **kwargs)
 
         self.statusbar = self.CreateStatusBar()

@@ -147,7 +147,6 @@ class Board(wx.Panel):
         else:
             event.Skip()
 
-
     def OnTimer(self, event):
         if event.GetId() == Board.ID_TIMER:
             if self.isWaitingAfterLine:
@@ -157,7 +156,6 @@ class Board(wx.Panel):
                 self.oneLineDown()
         else:
             event.Skip()
-
 
     def dropDown(self):
         newY = self.curY
@@ -172,7 +170,6 @@ class Board(wx.Panel):
         if not self.tryMove(self.curPiece, self.curX, self.curY - 1):
             self.pieceDropped()
 
-
     def pieceDropped(self):
         for i in range(4):
             x = self.curX + self.curPiece.x(i)
@@ -183,7 +180,6 @@ class Board(wx.Panel):
 
         if not self.isWaitingAfterLine:
             self.newPiece()
-
 
     def removeFullLines(self):
         numFullLines = 0
@@ -217,7 +213,6 @@ class Board(wx.Panel):
                 self.curPiece.setShape(Tetrominoes.NoShape)
                 self.Refresh()
 
-
     def newPiece(self):
         self.curPiece = self.nextPiece
         statusbar = self.GetParent().statusbar
@@ -245,7 +240,6 @@ class Board(wx.Panel):
         self.curY = newY
         self.Refresh()
         return True
-
 
     def drawSquare(self, dc, x, y, shape):
         colors = ['#000000', '#CC6666', '#66CC66', '#6666CC',
@@ -448,7 +442,6 @@ class Puzzle(wx.Dialog):
             self.ExchangeImages(btn)
             
     def ExchangeImages(self, btn):
-        
         bmp1 = self.empty.GetBitmapLabel()
         bmp2 = btn.GetBitmapLabel()
         

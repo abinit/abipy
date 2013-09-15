@@ -18,8 +18,6 @@ except ImportError:
 from abipy.electrons import ElectronBandsPlotter
 from abipy.gui.popupmenus import popupmenu_for_filename
 
-_FRAME_SIZE = (720, 720)
-
 
 def viewerframe_from_filepath(parent, filepath):
     """
@@ -233,9 +231,6 @@ class FileListFrame(awx.Frame):
             wildcard
                 Regular expressions for selecting files (tokens are separated by |).
         """
-        if "size" not in kwargs:
-            kwargs["size"] = _FRAME_SIZE
-
         super(FileListFrame, self).__init__(parent, -1, **kwargs)
 
         if dirpaths is not None:
@@ -323,6 +318,6 @@ def wxapp_dirbrowser(dirpath):
 
 def wxapp_listbrowser(dirpaths=None, filepaths=None, wildcard=""):
     app = wx.App()
-    frame = FileListFrame(None, dirpaths=dirpaths, filepaths=filepaths, wildcard=wildcard, size=_FRAME_SIZE)
+    frame = FileListFrame(None, dirpaths=dirpaths, filepaths=filepaths, wildcard=wildcard)
     frame.Show()
     return app

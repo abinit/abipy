@@ -9,7 +9,7 @@ import abipy.data as data
 prof_filename = data.ref_file("PROF_fourwf_cplex0_option3_istwfk1")
 
 # Create the object
-bench = FFT_Benchmark.from_filename(prof_filename)
+bench = FFT_Benchmark.from_file(prof_filename)
 
 # Plot data.
 bench.plot()

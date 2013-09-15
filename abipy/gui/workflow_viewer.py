@@ -23,8 +23,6 @@ ID_SHOW_LOG_EVENTS = wx.NewId()
 ID_RECHECK_STATUS = wx.NewId()
 
 
-_FRAME_SIZE = (720, 720)
-
 class WorkflowViewerFrame(awx.Frame):
     VERSION = "0.1"
 
@@ -37,9 +35,6 @@ class WorkflowViewerFrame(awx.Frame):
             workflows:
                 List of `Workflow` objects or single `Workflow`.
         """
-        if "size" not in kwargs:
-            kwargs["size"] = _FRAME_SIZE
-
         super(WorkflowViewerFrame, self).__init__(parent, -1, self.codename, **kwargs)
 
         self.statusbar = self.CreateStatusBar()

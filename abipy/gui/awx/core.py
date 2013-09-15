@@ -30,6 +30,8 @@ else:
         return func
 
 
+FRAME_SIZE = (800, 600)
+
 def path_img(filename):
     """Returns the absolute path of an image."""
     dirname = os.path.dirname(__file__)
@@ -87,7 +89,14 @@ class Panel(wx.Panel):
 
 class Frame(wx.Frame):
     def __init__(self, parent, *args, **kwargs):
+        if "size" not in kwargs:
+            kwargs["size"] = FRAME_SIZE
+
+        if "title" not in kwargs:
+            kwargs["title"] = self.__class__.__name__
+        
         super(Frame, self).__init__(parent, *args, **kwargs)
+
         #self._log = sys.stdout.write
 
     @property

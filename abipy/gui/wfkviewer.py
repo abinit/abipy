@@ -20,16 +20,12 @@ ID_NCDUMP = wx.NewId()
 ID_PLOTBANDS = wx.NewId()
 ID_TBOX_VIS = wx.NewId()
 
-_FRAME_SIZE = (720, 720)
 
 class WfkViewerFrame(awx.Frame):
     VERSION = "0.1"
 
-    def __init__(self, parent, filename=None):
-        if "size" not in kwargs:
-            kwargs["size"] = _FRAME_SIZE
-
-        super(WfkViewerFrame, self).__init__(parent, -1, self.codename, **kwargs)
+    def __init__(self, parent, filename=None, **kwargs):
+        super(WfkViewerFrame, self).__init__(parent, -1, title=self.codename, **kwargs)
 
         self.statusbar = self.CreateStatusBar()
 
