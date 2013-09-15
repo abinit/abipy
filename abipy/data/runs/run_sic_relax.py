@@ -60,7 +60,8 @@ def build_workflows():
             nscf_inp.set_kpath(ndivsm=20)
             nscf_inp.tolwfr = 1e-22
 
-            relax_inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
+            #relax_inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
+            relax_inp = abilab.AbiInput(pseudos=pseudos)
             relax_inp.set_structure(structure)
             relax_inp.set_variables(**global_vars)
 
@@ -72,16 +73,21 @@ def build_workflows():
             relax_inp.dilatmx = 1.15
             relax_inp.ntime = 100
 
-            relax_inp[1].set_variables(
-                ionmov = 2,
-                optcell = 0,
-            )
+            #relax_inp[1].set_variables(
+            #    ionmov = 2,
+            #    optcell = 0,
+            #)
 
-            relax_inp[2].set_variables(
+            #relax_inp[2].set_variables(
+            #    ionmov = 2,
+            #    optcell = 1,
+            #)
+  
+            relax_inp.set_variables(
                 ionmov = 2,
                 optcell = 1,
             )
-  
+
             # Initialize the workflow.
             manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1)
 
