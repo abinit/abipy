@@ -15,6 +15,39 @@ FFTALGS = OrderedDict([
 ])
 
 
+class LinspaceWidget(wx.Panel):
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent, id=-1)
+
+        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        #start
+        text = wx.StaticText(self, -1, "Start:")
+        text.Wrap( -1 )
+        text.SetToolTipString("The starting value of the sequence.")
+
+        self.start_ctrl = wx.SpinCtrlDouble(self, -1, value=str(0.0)) #value=str(self.DEFAULT_WIDTH)) #, min=self.DEFAULT_WIDTH/1000, inc=0.1)
+
+        main_sizer.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
+        main_sizer.Add(self.start_ctrl, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
+        #stop 
+        text = wx.StaticText(self, -1, "Stop:")
+        text.Wrap( -1 )
+        text.SetToolTipString("The end value of the sequence")
+        main_sizer.Add(text, 1, wx.EXPAND, 5)
+
+        #num
+        text = wx.StaticText(self, -1, "Num:")
+        text.Wrap( -1 )
+        text.SetToolTipString("Number of samples to generate.")
+        main_sizer.Add(text, 1, wx.EXPAND, 5)
+
+        self.SetSizerAndFit(main_sizer)
+
+    #def GetLinspace(self):
+
+
 class FftalgsPanel(wx.Panel):
 
     def __init__( self, parent ):
@@ -38,6 +71,7 @@ class FftalgsPanel(wx.Panel):
 
         static_sizer.Add(grid_sizer, 0, wx.ALL | wx.EXPAND, 5)
         main_sizer.Add(static_sizer, 1, wx.EXPAND, 5)
+
         self.SetSizerAndFit(main_sizer)
 
     def GetValues(self):
@@ -80,51 +114,50 @@ class ControlPanel(wx.Panel):
 
         main_sizer = wx.BoxSizer( wx.VERTICAL )
 
-        bSizer5 = wx.BoxSizer( wx.HORIZONTAL )
+        hsz1 = wx.BoxSizer( wx.HORIZONTAL )
                                                                                                         
-        text = wx.StaticText( self, -1, "Tasks:", wx.DefaultPosition, wx.DefaultSize, 0 )
+        text = wx.StaticText( self, -1, "Tasks:")
         text.Wrap( -1 )
         text.SetToolTipString("Select the routines for the benchmark.")
         self.task_choice = wx.Choice( self, -1, wx.DefaultPosition, wx.DefaultSize, self.BENCHMARKS, 0 )
         self.task_choice.SetSelection( 0 )
 
-        bSizer5.Add(text, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 5 )
-        bSizer5.Add( self.task_choice, 0, wx.ALL, 5 )
-                                                                                                        
-        main_sizer.Add( bSizer5, 1, wx.EXPAND, 5 )
+        hsz1.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
+        hsz1.Add(self.task_choice, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
-        hsz1 = wx.BoxSizer( wx.HORIZONTAL )
-
-        text = wx.StaticText( self, -1, "ndat:", wx.DefaultPosition, wx.DefaultSize, 0 )
+        text = wx.StaticText( self, -1, "ndat:")
         text.Wrap( -1 )
         text.SetToolTipString("Number of FFT transform per call.")
         self.ndat_ctrl = wx.SpinCtrl( self, -1, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 1 )
 
-        hsz1.Add(text, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 5 )
-        hsz1.Add( self.ndat_ctrl, 0, wx.ALL, 5 )
+        hsz1.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
+        hsz1.Add(self.ndat_ctrl, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
-        text = wx.StaticText( self, -1, "ncalls:", wx.DefaultPosition, wx.DefaultSize, 0 )
+        text = wx.StaticText( self, -1, "ncalls:")
         text.Wrap( -1 )
         text.SetToolTipString("Number of calls (used to get mean results)")
         self.ncalls_ctrl = wx.SpinCtrl( self, -1, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 5 )
 
-        hsz1.Add(text, 0, wx.ALL, 5 )
-        hsz1.Add( self.ncalls_ctrl, 0, wx.ALL, 5 )
+        hsz1.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
+        hsz1.Add(self.ncalls_ctrl, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
-        text = wx.StaticText( self, -1, "max_nthreads:", wx.DefaultPosition, wx.DefaultSize, 0 )
+        text = wx.StaticText( self, -1, "max_nthreads:")
         text.Wrap( -1 )
         text.SetToolTipString("Maximum number of OpenMP threads")
         self.max_nthreads_ctrl = wx.SpinCtrl( self, -1, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 1 )
 
-        hsz1.Add(text, 0, wx.ALL, 5 )
-        hsz1.Add(self.max_nthreads_ctrl, 0, wx.ALL, 5 )
+        hsz1.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
+        hsz1.Add(self.max_nthreads_ctrl, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
-        #text = wx.StaticText( self, -1, "ecut_range:", wx.DefaultPosition, wx.DefaultSize, 0 )
+        #text = wx.StaticText( self, -1, "ecut_range:")
         #text.Wrap( -1 )
-        #hsz1.Add(text, 0, wx.ALL, 5 )
+        #hsz1.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
         #                                                                                                                           
         #self.ecutrange_ctrl = wx.SpinCtrl( self, -1, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 0 )
         #hsz1.Add(self.ecutrange_ctrl, 0, wx.ALL, 5 )
+
+        #self.ecut_linspace = LinspaceWidget(self)
+        #hsz1.Add(self.ecut_linspace, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         main_sizer.Add(hsz1, 1, wx.EXPAND, 5 )
 
@@ -140,7 +173,7 @@ class ControlPanel(wx.Panel):
         d = OrderedDict(
             tasks="'" + self.task_choice.GetStringSelection() + "'",
             fftalgs=",".join(str(v) for v in self.fftalgs.GetValues()),
-            ncalls=self.ncalls_ctrl.GetValue()),
+            ncalls=self.ncalls_ctrl.GetValue(),
             max_nthreads=self.max_nthreads_ctrl.GetValue(),
             ndat=self.ndat_ctrl.GetValue(),
             necut=2,
@@ -196,17 +229,17 @@ class SystemPanel(wx.Panel):
 
         hsz1 = wx.BoxSizer( wx.HORIZONTAL )
 
-        text = wx.StaticText( self, -1, "kpoint:", wx.DefaultPosition, wx.DefaultSize, 0 )
+        text = wx.StaticText( self, -1, "kpoint:")
         text.Wrap( -1 )
         text.SetToolTipString("K-point used in the FFT of the wavefunctions (istwfk).")
-        hsz1.Add(text, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 5 )
+        hsz1.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
         self.kpoint_choice = KpointChoice(self)
 
         hsz1.Add( self.kpoint_choice, 0, wx.ALL, 5 )
 
-        #text = wx.StaticText( self, -1, "ndat:", wx.DefaultPosition, wx.DefaultSize, 0 )
+        #text = wx.StaticText( self, -1, "ndat:")
         #text.Wrap( -1 )
-        #hsz1.Add(text, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 5 )
+        #hsz1.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
         #                                                                                                                         
         #self.ndat_ctrl = wx.SpinCtrl( self, -1, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 4 )
         #hsz1.Add( self.ndat_ctrl, 0, wx.ALL, 5 )

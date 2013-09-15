@@ -35,7 +35,10 @@ class WorkflowViewerFrame(awx.Frame):
             workflows:
                 List of `Workflow` objects or single `Workflow`.
         """
-        super(WorkflowViewerFrame, self).__init__(parent, -1, self.codename, **kwargs)
+        if "title" not in kwargs:
+            kwargs["title"] = self.codename
+            
+        super(WorkflowViewerFrame, self).__init__(parent, -1, **kwargs)
 
         self.statusbar = self.CreateStatusBar()
 

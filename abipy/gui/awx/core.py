@@ -14,6 +14,7 @@ __all__ = [
     "verbose",
     "Panel",
     "Frame",
+    "FRAME_SIZE",
 ]
 
 _DEBUG = True
