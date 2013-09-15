@@ -93,7 +93,7 @@ class LinspaceControl(wx.Panel):
         # There's a problem since the text entered in the SpinCtrl is processed
         # only when the widget looses focus. I tried the solution discussed at
         # https://groups.google.com/forum/#!topic/wxpython-users/Gud8PI6n-4E
-        # but it didn't work o my Mac
+        # but it didn't work on my Mac
         #txtctrl = self.num_ctrl.GetChildren[0]
         #txtctrl.WindowStyle |= wx.TE_PROCESS_ENTER
 
@@ -215,10 +215,10 @@ class ControlPanel(wx.Panel):
 
         main_sizer.Add(hsz1, 1, wx.EXPAND, 5)
 
-        # Control that reads the range of cutoff energies.
+        # Control to read the range of cutoff energies.
         self.ecut_linspace = LinspaceControl(self, start=dict(value="20"), stop=dict(value="120"), num=dict(value="10"))
 
-        # Control to specify fftalgs
+        # Control to specify fftalgs.
         self.fftalgs = FftalgsPanel(self)
 
         static_sizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, "Ecut list:"), wx.VERTICAL)
@@ -377,7 +377,6 @@ class FFTProfFrame(awx.Frame):
     def OnStartButton(self, event):
         """Run the benchmark and plot the results with `matplotlib`."""
         fft_input = self.MakeInput()
-        return
 
         # Run FFTPROF.
         try:
