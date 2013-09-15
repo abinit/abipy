@@ -8,3 +8,4 @@ from .sigresviewer import wxapp_sigresviewer
 from .comparison import wxapp_comparison
 from .editor import wxapp_showfiles
 from .converter import wxapp_converter
+from .fftprof import wxapp_fftprof

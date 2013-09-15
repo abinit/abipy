@@ -372,10 +372,11 @@ class FFTProf(object):
     def plot(self):
         filepaths = WildCard("PROF_*").filter(os.listdir(self.workdir))
         filepaths = filter(os.path.isfile, [os.path.join(self.workdir, f) for f in filepaths])
-        print(filepaths)
 
         for prof_file in filepaths:
-            print("prof_file", prof_file)
+            if self.verbose:
+                print("About to plot prof_file: ", prof_file)
+
             bench = FFT_Benchmark.from_file(prof_file)
             bench.plot()
 

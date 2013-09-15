@@ -183,9 +183,8 @@ class WorkflowViewerFrame(awx.Frame):
         return self.notebook.GetSelectedWork()
 
     def OnIdle(self, event):
-         now = time.time()
-
-         if now - self.last_refresh > self.REFRESH_INTERVAL: 
+        now = time.time()
+        if now - self.last_refresh > self.REFRESH_INTERVAL:
             self.CheckStatusAndRedraw()
             self.last_refresh = time.time()
 
@@ -197,6 +196,7 @@ class WorkflowViewerFrame(awx.Frame):
         for work in self.workflows:
             work.recheck_status()
 
+        # Cound the number of tasks with given status.
         counter = self.workflows[0].status_counter()
         for work in self.workflows[1:]:
             counter += work.status_counter()
@@ -217,6 +217,7 @@ class WorkflowViewerFrame(awx.Frame):
         # Reinstate the old selection
         self.notebook.SetSelection(old_selection)
 
+        # Write number of jobs with given status.
         message = ", ".join("%s: %s" % (k, v) for (k, v) in counter.items())
         self.statusbar.PushStatusText(message)
 
@@ -303,7 +304,6 @@ class WorkflowViewerFrame(awx.Frame):
         if work is None: return
         frame = AbinitEventsNotebookFrame(self, [task.log_file.path for task in work])
         frame.Show()
-
 
 
 class Notebook(fnb.FlatNotebook):
@@ -521,19 +521,6 @@ class TaskPopupMenu(wx.Menu):
 
         except:
             awx.showErrorMessage(parent=self.parent)
-
-
-#class WorkflowViewerApp(awx.App):
-#    def OnInit(self):
-#        return True
-#
-#    def MacOpenFile(self, filename):
-#        """Called for files droped on dock icon, or opened via finders context menu"""
-#        if filename.endswith(".py"):
-#            return
-#        # Open filename in a new frame.
-#        self.log("%s dropped on app %s" % (filename, self.appname))
-#        WorkflowViewerFrame(parent=None, work=filename).Show()
 
 
 def wxapp_workflow_viewer(workflows):

@@ -5,7 +5,10 @@ import wx
 
 from collections import OrderedDict
 from abipy.gui import awx
+from abipy.tools import AttrDict
 from abipy.abitools.fftprof import FFTProf
+from abipy.gui.editor import SimpleTextViewer
+
 
 FFTALGS = OrderedDict([
     (112, "Goedecker"),
@@ -15,47 +18,108 @@ FFTALGS = OrderedDict([
 ])
 
 
-class LinspaceWidget(wx.Panel):
-    def __init__(self, parent):
+class LinspaceControl(wx.Panel):
+    """
+    This control merges two `SpinCtrlDouble` and a `SpinCtrl` to allow 
+    the user to specify a range using the `numpy.linspace` syntax.
+    """
+    # Default parameters passed to SpinCtrl and SpinCtrlDouble.
+    SPIN_DEFAULTS = AttrDict(
+        value=str(50),
+        min=0,
+        max=10000,
+        initial=0,
+    )
+
+    SPIN_DOUBLE_DEFAULTS = AttrDict(
+        value=str(0.0),
+        min=0,
+        max=10000,
+        initial=0,
+        inc=1,
+    )
+
+    def __init__(self, parent, start=None, stop=None, num=None):
+        """
+        value (string)  Default value (as text).
+        min (float)  Minimal value.
+        max (float)  Maximal value.
+        initial (float)  Initial value.
+        inc (float)  Increment value.
+        """
         wx.Panel.__init__(self, parent, id=-1)
 
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        #start
+        # start
         text = wx.StaticText(self, -1, "Start:")
-        text.Wrap( -1 )
+        text.Wrap(-1)
         text.SetToolTipString("The starting value of the sequence.")
 
-        self.start_ctrl = wx.SpinCtrlDouble(self, -1, value=str(0.0)) #value=str(self.DEFAULT_WIDTH)) #, min=self.DEFAULT_WIDTH/1000, inc=0.1)
+        p = self.SPIN_DOUBLE_DEFAULTS
+        if start is not None:
+            p.update(start)
+
+        self.start_ctrl = wx.SpinCtrlDouble(self, -1, **p)
 
         main_sizer.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
         main_sizer.Add(self.start_ctrl, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
-        #stop 
+        # stop 
         text = wx.StaticText(self, -1, "Stop:")
-        text.Wrap( -1 )
+        text.Wrap(-1)
         text.SetToolTipString("The end value of the sequence")
-        main_sizer.Add(text, 1, wx.EXPAND, 5)
 
-        #num
+        p = self.SPIN_DOUBLE_DEFAULTS
+        if stop is not None:
+            p.update(stop)
+
+        self.stop_ctrl = wx.SpinCtrlDouble(self, -1, **p)
+
+        main_sizer.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
+        main_sizer.Add(self.stop_ctrl, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
+        # num
         text = wx.StaticText(self, -1, "Num:")
-        text.Wrap( -1 )
+        text.Wrap(-1)
         text.SetToolTipString("Number of samples to generate.")
-        main_sizer.Add(text, 1, wx.EXPAND, 5)
+
+        p = self.SPIN_DEFAULTS
+        if num is not None:
+            p.update(num)
+
+        self.num_ctrl = wx.SpinCtrl(self, -1, **p)
+        # FIXME:
+        # There's a problem since the text entered in the SpinCtrl is processed
+        # only when the widget looses focus. I tried the solution discussed at
+        # https://groups.google.com/forum/#!topic/wxpython-users/Gud8PI6n-4E
+        # but it didn't work o my Mac
+        #txtctrl = self.num_ctrl.GetChildren[0]
+        #txtctrl.WindowStyle |= wx.TE_PROCESS_ENTER
+
+        main_sizer.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
+        main_sizer.Add(self.num_ctrl, 1, wx.EXPAND, 5)
 
         self.SetSizerAndFit(main_sizer)
 
-    #def GetLinspace(self):
+    def GetLinspace(self):
+        #FIXME Values are not updated if I edit the string in the SpinCtrl
+        import numpy as np
+
+        p = dict(start=self.start_ctrl.GetValue(),
+                 stop=self.stop_ctrl.GetValue(),
+                 num=self.num_ctrl.GetValue())
+        print(p)
+        return np.linspace(**p)
 
 
 class FftalgsPanel(wx.Panel):
-
-    def __init__( self, parent ):
+    def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=-1)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         static_sizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, "FFT Libraries"), wx.VERTICAL)
-        grid_sizer = wx.GridSizer( 0, 2, 0, 0 )
+        grid_sizer = wx.GridSizer(0, 2, 0, 0)
 
         self.check_boxes = OrderedDict()
 
@@ -67,7 +131,7 @@ class FftalgsPanel(wx.Panel):
                 cbox.SetValue(False)
 
             self.check_boxes[fftalg] = cbox
-            grid_sizer.Add(cbox, 0, wx.ALL, 5 )
+            grid_sizer.Add(cbox, 0, wx.ALL, 5)
 
         static_sizer.Add(grid_sizer, 0, wx.ALL | wx.EXPAND, 5)
         main_sizer.Add(static_sizer, 1, wx.EXPAND, 5)
@@ -81,7 +145,7 @@ class FftalgsPanel(wx.Panel):
             if cbox.GetValue():
                 fftalgs.append(fftalg)
 
-        if not fftalgs: 
+        if not fftalgs:
             fftalgs = [112]
 
         return fftalgs
@@ -109,75 +173,84 @@ class ControlPanel(wx.Panel):
     """
     BENCHMARKS = ["bench_fourwf", "bench_fourdp", "bench_rhotwg"]
 
-    def __init__( self, parent ):
-        wx.Panel.__init__ ( self, parent, id =-1)
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent, id=-1)
 
-        main_sizer = wx.BoxSizer( wx.VERTICAL )
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        hsz1 = wx.BoxSizer( wx.HORIZONTAL )
-                                                                                                        
-        text = wx.StaticText( self, -1, "Tasks:")
-        text.Wrap( -1 )
+        hsz1 = wx.BoxSizer(wx.HORIZONTAL)
+
+        text = wx.StaticText(self, -1, "Tasks:")
+        text.Wrap(-1)
         text.SetToolTipString("Select the routines for the benchmark.")
-        self.task_choice = wx.Choice( self, -1, wx.DefaultPosition, wx.DefaultSize, self.BENCHMARKS, 0 )
-        self.task_choice.SetSelection( 0 )
+        self.task_choice = wx.Choice(self, -1, wx.DefaultPosition, wx.DefaultSize, self.BENCHMARKS, 0)
+        self.task_choice.SetSelection(0)
 
         hsz1.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
         hsz1.Add(self.task_choice, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
-        text = wx.StaticText( self, -1, "ndat:")
-        text.Wrap( -1 )
+        text = wx.StaticText(self, -1, "ndat:")
+        text.Wrap(-1)
         text.SetToolTipString("Number of FFT transform per call.")
-        self.ndat_ctrl = wx.SpinCtrl( self, -1, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 1 )
+        self.ndat_ctrl = wx.SpinCtrl(self, -1, value="1", min=1) 
 
         hsz1.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
         hsz1.Add(self.ndat_ctrl, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
-        text = wx.StaticText( self, -1, "ncalls:")
-        text.Wrap( -1 )
+        text = wx.StaticText(self, -1, "ncalls:")
+        text.Wrap(-1)
         text.SetToolTipString("Number of calls (used to get mean results)")
-        self.ncalls_ctrl = wx.SpinCtrl( self, -1, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 5 )
+        self.ncalls_ctrl = wx.SpinCtrl(self, -1, value="5", min=1)
 
         hsz1.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
         hsz1.Add(self.ncalls_ctrl, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
-        text = wx.StaticText( self, -1, "max_nthreads:")
-        text.Wrap( -1 )
+        text = wx.StaticText(self, -1, "max_nthreads:")
+        text.Wrap(-1)
         text.SetToolTipString("Maximum number of OpenMP threads")
-        self.max_nthreads_ctrl = wx.SpinCtrl( self, -1, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 1 )
+        self.max_nthreads_ctrl = wx.SpinCtrl(self, -1, value="1", min=1) 
 
         hsz1.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
         hsz1.Add(self.max_nthreads_ctrl, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
-        #text = wx.StaticText( self, -1, "ecut_range:")
-        #text.Wrap( -1 )
-        #hsz1.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
-        #                                                                                                                           
-        #self.ecutrange_ctrl = wx.SpinCtrl( self, -1, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 0 )
-        #hsz1.Add(self.ecutrange_ctrl, 0, wx.ALL, 5 )
+        main_sizer.Add(hsz1, 1, wx.EXPAND, 5)
 
-        #self.ecut_linspace = LinspaceWidget(self)
-        #hsz1.Add(self.ecut_linspace, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        # Control that reads the range of cutoff energies.
+        self.ecut_linspace = LinspaceControl(self, start=dict(value="20"), stop=dict(value="120"), num=dict(value="10"))
 
-        main_sizer.Add(hsz1, 1, wx.EXPAND, 5 )
-
+        # Control to specify fftalgs
         self.fftalgs = FftalgsPanel(self)
-        main_sizer.Add(self.fftalgs, 1, wx.EXPAND, 5 )
+
+        static_sizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, "Ecut list:"), wx.VERTICAL)
+        static_sizer.Add(self.ecut_linspace, 0, wx.ALL | wx.EXPAND, 5)
+
+        #vsz1 = wx.BoxSizer(wx.VERTICAL)
+        #vsz1.Add(static_sizer, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        #vsz1.Add(self.fftalgs, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        #main_sizer.Add(vsz1, 1, wx.EXPAND, 5)
+
+        main_sizer.Add(static_sizer, 1, wx.EXPAND, 5)
+        main_sizer.Add(self.fftalgs, 1, wx.EXPAND, 5)
 
         self.SetSizerAndFit(main_sizer)
 
     def GetNamelist(self):
         """
-        Returns the Fortran NAMELIST.
+        Build and returns a string with whe &CONTROL Fortran NAMELIST.
         """
+        ecut_list = self.ecut_linspace.GetLinspace()
+        if len(ecut_list) <= 1:
+            return awx.showErrorMessage(self, message="Ecut list is empty or contains only one item!")
+        step = ecut_list[1] - ecut_list[0]
+
         d = OrderedDict(
             tasks="'" + self.task_choice.GetStringSelection() + "'",
             fftalgs=",".join(str(v) for v in self.fftalgs.GetValues()),
             ncalls=self.ncalls_ctrl.GetValue(),
             max_nthreads=self.max_nthreads_ctrl.GetValue(),
             ndat=self.ndat_ctrl.GetValue(),
-            necut=2,
-            ecut_arth = "10, 5",
+            necut=len(ecut_list),
+            ecut_arth="%s, %s" % (ecut_list[0], step)
         )
 
         namelist = ["&CONTROL"]
@@ -193,13 +266,13 @@ class KpointChoice(wx.Choice):
         choices = map(str, [
             (0.1, 0.2, 0.3),
             (0.0, 0.0, 0.0),
-            (1/2, 0 , 0 ),
-            ( 0 , 0 ,1/2),
-            (1/2, 0 ,1/2),
-            ( 0 ,1/2, 0 ),
-            (1/2,1/2, 0 ),
-            ( 0 ,1/2,1/2),
-            (1/2,1/2,1/2),
+            (1 / 2, 0, 0),
+            (0, 0, 1 / 2),
+            (1 / 2, 0, 1 / 2),
+            (0, 1 / 2, 0),
+            (1 / 2, 1 / 2, 0),
+            (0, 1 / 2, 1 / 2),
+            (1 / 2, 1 / 2, 1 / 2),
         ])
 
         wx.Choice.__init__(self, parent, -1, choices=choices)
@@ -222,39 +295,33 @@ class SystemPanel(wx.Panel):
     !!     nsym     =Number of symmetry operations (DEFAULT 1)
     !!     symrel(3,3,nsym) = Symmetry operation in real space used to select the FFT mesh in the routine getng (default: Identity matrix)
     """
+
     def __init__(self, parent):
-        wx.Panel.__init__ ( self, parent, id =-1)
+        wx.Panel.__init__(self, parent, id=-1)
 
-        main_sizer = wx.BoxSizer( wx.VERTICAL )
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        hsz1 = wx.BoxSizer( wx.HORIZONTAL )
+        hsz1 = wx.BoxSizer(wx.HORIZONTAL)
 
-        text = wx.StaticText( self, -1, "kpoint:")
-        text.Wrap( -1 )
+        text = wx.StaticText(self, -1, "kpoint:")
+        text.Wrap(-1)
         text.SetToolTipString("K-point used in the FFT of the wavefunctions (istwfk).")
-        hsz1.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
         self.kpoint_choice = KpointChoice(self)
 
-        hsz1.Add( self.kpoint_choice, 0, wx.ALL, 5 )
+        hsz1.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
+        hsz1.Add(self.kpoint_choice, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
-        #text = wx.StaticText( self, -1, "ndat:")
-        #text.Wrap( -1 )
-        #hsz1.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
-        #                                                                                                                         
-        #self.ndat_ctrl = wx.SpinCtrl( self, -1, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 4 )
-        #hsz1.Add( self.ndat_ctrl, 0, wx.ALL, 5 )
-
-        main_sizer.Add(hsz1, 1, wx.EXPAND, 5 )
+        main_sizer.Add(hsz1, 1, wx.EXPAND, 5)
 
         self.SetSizerAndFit(main_sizer)
 
     def GetNamelist(self):
         """
-        Returns the Fortran NAMELIST.
+        Build and returns a string with whe &SYSTEM Fortran NAMELIST.
         """
         d = OrderedDict(
             ecut=10,
-            rprimd= "20, 0, 0, 0, 20, 0, 0, 0, 20",
+            rprimd="20, 0, 0, 0, 20, 0, 0, 0, 20",
             kpoint=self.kpoint_choice.GetStringSelection()
             #osc_ecut= TODO why here and not in control?
             #nsym=
@@ -281,25 +348,44 @@ class FFTProfFrame(awx.Frame):
         start_button = wx.Button(panel, -1, label='Start Benchmark')
         start_button.Bind(wx.EVT_BUTTON, self.OnStartButton)
 
-        main_sizer = wx.BoxSizer( wx.VERTICAL )
-        main_sizer.Add(self.control, 1, wx.EXPAND, 5 )
-        main_sizer.Add(self.system, 1, wx.EXPAND, 5 )
-        main_sizer.Add(start_button,  0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
+        show_button = wx.Button(panel, -1, label='Show Input')
+        show_button.Bind(wx.EVT_BUTTON, self.OnShowInput)
+
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(self.control, 1, wx.EXPAND, 5)
+        main_sizer.Add(self.system, 1, wx.EXPAND, 5)
+
+        hsz = wx.BoxSizer(wx.HORIZONTAL)
+        hsz.Add(start_button, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
+        hsz.Add(show_button, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
+
+        main_sizer.Add(hsz, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
 
         panel.SetSizerAndFit(main_sizer)
 
-    def OnStartButton(self, event):
-        """Run the benchmark."""
-        # Build the input file for FFTPROF.
-        fft_input  = self.control.GetNamelist() + "\n"
+    def MakeInput(self):
+        """Build the input file for FFTPROF."""
+        fft_input = self.control.GetNamelist() + "\n"
         fft_input += self.system.GetNamelist() + "\n"
-        print(fft_input)
+        return fft_input
+
+    def OnShowInput(self, event):
+        """Show the fftprof input in an external window."""
+        fft_input = self.MakeInput()
+        SimpleTextViewer(self, fft_input).Show()
+
+    def OnStartButton(self, event):
+        """Run the benchmark and plot the results with `matplotlib`."""
+        fft_input = self.MakeInput()
+        return
 
         # Run FFTPROF.
         try:
             fftprof = FFTProf(fft_input)
             returncode = fftprof.run()
-            #if returncode != 0:
+
+            if returncode != 0:
+                raise RunTimeError("fftprof exited with returncode %s" % returncode)
 
             # Analyze the results.
             fftprof.plot()

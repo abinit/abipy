@@ -2,10 +2,11 @@ from __future__ import print_function, division
 
 import os
 import wx
+import wx.lib.agw.flatnotebook as fnb
 import abipy.gui.awx as awx
 
 from abipy.tools.text import WildCard
-from wx.py.editor import EditorFrame, EditorNotebookFrame, EditorNotebook, Editor
+from wx.py.editor import EditorFrame, EditorNotebookFrame  # EditorNotebook, Editor
 
 __all__ = [
     "TextNotebookFrame",
@@ -14,12 +15,11 @@ __all__ = [
 
 class SimpleTextViewer(awx.Frame):
     """Very simple frame that displays text (string )in read-only mode."""
-    def __init__(self, parent, filename, **kwargs):
+    def __init__(self, parent, text, **kwargs):
         super(SimpleTextViewer, self).__init__(parent, **kwargs)
         wx.TextCtrl(self, -1, text, style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
 
 
-#class AbinitEditorFrame(awx.Frame):
 class AbinitEditorFrame(EditorFrame):
     def __init__(self, parent, filename, **kwargs):
         if "size" not in kwargs:
@@ -32,8 +32,8 @@ class AbinitEditorFrame(EditorFrame):
         #    self.editor.setText(fh.read())
         #EditorFrame.__init__(self, parent=parent, filename=filename, **kwargs)
 
+
 class TextNotebookFrame(awx.Frame):
-#class TextNotebookFrame(EditorNotebookFrame):
     """
     This frame receives a list of strings and displays them in a notebook (read-only mode)
     """
@@ -64,10 +64,9 @@ class TextNotebookFrame(awx.Frame):
         assert len(page_names) == len(text_list)
 
         # Here we create a panel and a notebook on the panel
-        import wx.lib.agw.flatnotebook as fnb
-        nb_panel = awx.Panel(self)
 
-        style = fnb.FNB_X_ON_TAB | fnb.FNB_NAV_BUTTONS_WHEN_NEEDED 
+        nb_panel = awx.Panel(self)
+        style = fnb.FNB_X_ON_TAB | fnb.FNB_NAV_BUTTONS_WHEN_NEEDED
         nb = fnb.FlatNotebook(nb_panel, style=style)
 
         for page_name, text in zip(page_names, text_list):
@@ -134,18 +133,17 @@ class TextNotebookFrame(awx.Frame):
             with open(fname, "r") as fh:
                 text_list.append(fh.read())
 
-        # Instanciate the frame.
         return cls(parent, text_list, page_names=filenames)
 
 
 def wxapp_showfiles(filenames=None, dirpath=None, walk=True, wildcard=None):
     """
     Standalone applications that reads the content of the files specified 
-    in input and show them in a noteboox.
+    in input and show them in a notebook.
 
     Args:
         filenames:
-            List of files to show in the botebook. Defaults to an empty list.
+            List of files to show in the notebook. Defaults to an empty list.
         dirpath:
             Directory to scan for additional files.
         walk:
@@ -159,7 +157,7 @@ def wxapp_showfiles(filenames=None, dirpath=None, walk=True, wildcard=None):
             example: wildcard="*.nc|*.txt" shows only the files whose extension is in ["nc", "txt"].
 
     Returns:
-        wxpython application.
+        `wxpython` application.
     """
     app = wx.App()
     frame = TextNotebookFrame.from_files_and_dir(None, filenames=filenames, dirpath=dirpath, walk=walk, wildcard=wildcard)
