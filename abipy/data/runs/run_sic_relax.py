@@ -23,7 +23,6 @@ unit_cell = dict(
 )
 
 global_vars = dict(
-    ecut=12,
     istwfk="*1",
     chksymbreak=0,
     #accesswff=3
@@ -51,7 +50,7 @@ def build_workflows():
 
             gs_inp.set_kmesh(ngkpt=ngkpt, shiftk=shiftk)
             gs_inp.tolvrs=1e-16
-
+            gs_inp.ecut = ecut
             
             nscf_inp = abilab.AbiInput(pseudos=pseudos)
             nscf_inp.set_structure(structure)
@@ -59,6 +58,7 @@ def build_workflows():
 
             nscf_inp.set_kpath(ndivsm=20)
             nscf_inp.tolwfr = 1e-22
+            nscf_inp.ecut = ecut
 
             #relax_inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
             relax_inp = abilab.AbiInput(pseudos=pseudos)
@@ -72,6 +72,7 @@ def build_workflows():
             relax_inp.ecutsm = 0.5
             relax_inp.dilatmx = 1.15
             relax_inp.ntime = 100
+            relax_inp.ecut = ecut
 
             #relax_inp[1].set_variables(
             #    ionmov = 2,
