@@ -31,8 +31,8 @@ global_vars = dict(
 
 def build_workflows():
     
-    all_ecuts = np.arange(20,30,4)
-    all_ngkpts = [3 * [nk] for nk in np.arange(2,10,2)]
+    all_ecuts = np.arange(20,28,4)
+    all_ngkpts = [3 * [nk] for nk in np.arange(2,6,2)]
 
     structure = abilab.Structure.from_abivars(unit_cell)
     pseudos = data.pseudos("14si.pspnc","6c.pspnc")
