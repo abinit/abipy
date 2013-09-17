@@ -2,14 +2,15 @@ from __future__ import print_function, division
 
 import wx
 import inspect
+import warnings
 
 from dialogs import showErrorMessage
 
 try:
     from wxmplot import PlotFrame
 except ImportError:
-    import warnings
-    warnings.warn("Error while importing wxmplot. Some features won't be available")
+    #warnings.warn("Error while importing wxmplot. Some features won't be available")
+    pass
 
 __all__ = [
     "Func1dPlotFrame",

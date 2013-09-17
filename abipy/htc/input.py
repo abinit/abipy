@@ -196,6 +196,19 @@ class AbiInput(object):
         for idt in self._dtset2range(dtset):
             self[idt].set_variables(**vars)
 
+    def remove_variables(self, keys, dtset=0):
+        """
+        Remove the variable listed in keys
+                                                                             
+        Args:
+            dtset:
+                Int with the index of the dataset, slice object of iterable 
+            keys:
+                List of variables to remove.
+        """
+        for idt in self._dtset2range(dtset):
+            self[idt].remove_variables(keys)
+
     def list_variable(self, varname):
         # Global value
         glob = self[0].get(varname, None)
@@ -429,6 +442,16 @@ class Dataset(collections.Mapping):
         except KeyError:
             return default
 
+    def pop(self, k, *d):
+        """
+        D.pop(k[,d]) -> v, remove specified key and return the corresponding value.
+        If key is not found, d is returned if given, otherwise KeyError is raised
+        """
+        if d:
+            return self.vars.pop(k, d[0])
+        else:
+            return self.vars.pop(k)
+
     @property
     def index(self):
         """The index of the dataset within the input."""
@@ -526,6 +549,12 @@ class Dataset(collections.Mapping):
         """Sets variables by providing a dictionary"""
         for (varname, varvalue) in vars.items():
             self.set_variable(varname, varvalue)
+
+    def remove_variables(self, keys):
+        """Remove the variables listed in keys."""
+        for key in keys:
+            #self.pop(key, None)
+            self.pop(key)
 
     @property
     def structure(self):

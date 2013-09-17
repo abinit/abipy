@@ -3,6 +3,7 @@ from __future__ import print_function, division
 
 import os
 import wx
+import warnings
 import abipy.gui.awx as awx
 
 import wx.lib.mixins.listctrl as listmix
@@ -12,8 +13,8 @@ from collections import namedtuple
 try:
     from wxmplot import PlotApp, PlotFrame
 except ImportError:
-    import warnings
-    warnings.warn("Error while importing wxmplot. Some features won't be available")
+    #warnings.warn("Error while importing wxmplot. Some features won't be available")
+    pass
 
 from abipy.electrons import ElectronBandsPlotter
 from abipy.gui.popupmenus import popupmenu_for_filename

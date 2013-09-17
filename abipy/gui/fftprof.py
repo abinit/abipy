@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 from __future__ import print_function, division
 
 import wx
@@ -377,6 +376,7 @@ class FFTProfFrame(awx.Frame):
     def OnStartButton(self, event):
         """Run the benchmark and plot the results with `matplotlib`."""
         fft_input = self.MakeInput()
+        #return
 
         # Run FFTPROF.
         try:
