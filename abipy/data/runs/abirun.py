@@ -97,6 +97,9 @@ def main():
     parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                          help='verbose, can be supplied multiple times to increase verbosity')
 
+    parser.add_argument('--loglevel', default="ERROR", type=str,
+                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
@@ -128,6 +131,14 @@ def main():
 
     if options.verbose:
         print(options)
+
+    # loglevel is bound to the string value obtained from the command line argument. 
+    # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
+    import logging
+    numeric_level = getattr(logging, options.loglevel.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % options.loglevel)
+    logging.basicConfig(level=numeric_level)
 
     paths = options.paths
 
