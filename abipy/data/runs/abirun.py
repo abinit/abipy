@@ -6,6 +6,7 @@ from __future__ import division, print_function
 
 import sys 
 import os
+import warnings
 import argparse
 import abipy.abilab as abilab
 
@@ -139,16 +140,19 @@ def main():
                 if fname == abilab.Workflow.PICKLE_FNAME:
                     paths.append(os.path.join(dirpath, fname))
 
+    if not paths:
+        warnings.warn("The directories specifies do not contain any valid workflow")
+        return 1
+
     options.paths = paths
     retcode = 0
-
     workflows = [abilab.Workflow.pickle_load(path) for path in options.paths]
 
     if options.command == "gui":
         from abipy.gui.workflow_viewer import wxapp_workflow_viewer
 
-        #for work in workflows:
-        #    work.recheck_status()
+        for work in workflows:
+            work.recheck_status()
 
         wxapp_workflow_viewer(workflows).MainLoop()
 
