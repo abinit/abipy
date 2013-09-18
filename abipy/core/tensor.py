@@ -11,6 +11,7 @@ from .constants import ArrayWithUnit
 
 __all__ = [
     "Tensor",
+    "SymmetricTensor",
 ]
 
 
@@ -43,10 +44,48 @@ class Tensor(object):
 
 
     @classmethod
-    def from_cartesian_tensor(cls,cartesian_tensor,lattice):
+    def from_cartesian_tensor(cls, cartesian_tensor,lattice):
         mat = lattice.inv_matrix
-        red_tensor = np.dot(np.dot(np.transpose(mat),cartesian_tensor),mat)
+        red_tensor = np.dot(np.dot(np.transpose(mat), cartesian_tensor), mat)
+        return cls(red_tensor, lattice)
+
+class SymmetricTensor(Tensor):
+    """Representation of a 3x3 symmetric tensor"""
+    @classmethod
+    def from_directions(cls, qpoints, values, lattice):
+        """
+        Args:
+            qpoints:
+                fractional coordinates of 6 independent q-directions
+            values:
+                values of (q^T E q)/(q^T q) along the 6 qpoints
+            lattice:
+                Lattice object defining the reference system
+        """
+
+        assert (len(qpoints) == 6)
+        assert (len(values) == len(qpoints))
+
+        mat = lattice.matrix
+        metric = np.dot(np.transpose(mat),mat)
+
+        coeffs_red = np.zeros((6,6))
+
+        for (iqpt,qpt) in enumerate(qpoints):
+            metqpt = np.dot(metric,qpt)
+
+            coeffs_red[iqpt,:] = [metqpt[0]**2,metqpt[1]**2,metqpt[2]**2,
+                                  2*metqpt[0]*metqpt[1],2*metqpt[0]*metqpt[2],2*metqpt[1]*metqpt[2]]
+
+            normqpt = np.dot(np.transpose(qpt),np.dot(metric,qpt))
+
+            coeffs_red[iqpt,:] = coeffs_red[iqpt,:] / (normqpt**2)
+
+        red_symm = np.linalg.solve(coeffs_red,values)
+
+        red_tensor = [[red_symm[0],red_symm[3],red_symm[4]],
+                      [red_symm[3],red_symm[1],red_symm[5]],
+                      [red_symm[4],red_symm[5],red_symm[2]]]
+
         return cls(red_tensor,lattice)
-
-
 
