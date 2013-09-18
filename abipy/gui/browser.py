@@ -193,7 +193,7 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
     def OnItemActivated(self, event):
         currentItem = event.m_itemIndex
         fd = self.id2filedata[self.file_list.GetItemData(currentItem)]
-        #self.log("In OnItemActivated with filedata %s" % str(fd))
+        #logger.info("In OnItemActivated with filedata %s" % str(fd))
 
         frame = viewerframe_from_filepath(self, fd.abspath)
         if frame is not None:

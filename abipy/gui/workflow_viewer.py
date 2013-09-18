@@ -133,7 +133,6 @@ class WorkflowViewerFrame(awx.Frame):
         rapidfire_button.Bind(wx.EVT_BUTTON, self.OnRapidFireButton)
         hsizer.Add(rapidfire_button,  0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
 
-
         singleshot_button = wx.Button(panel, -1, label='Single Shot')
         singleshot_button.Bind(wx.EVT_BUTTON, self.OnSingleShotButton)
         hsizer.Add(singleshot_button,  0,  wx.ALIGN_CENTER_HORIZONTAL, 5)

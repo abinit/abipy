@@ -331,7 +331,7 @@ class SigresViewerApp(awx.App):
         if filename.endswith(".py"):
             return
         # Open filename in a new frame.
-        self.log("%s dropped on app %s" % (filename, self.appname))
+        #logger.info("%s dropped on app %s" % (filename, self.appname))
         frame = SigresViewerFrame(parent=None, filename=filename)
         frame.Show()
 

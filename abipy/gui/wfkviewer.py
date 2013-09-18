@@ -268,7 +268,7 @@ class WfkViewerApp(awx.App):
         if filename.endswith(".py"):
             return
         # Open filename in a new frame.
-        self.log("%s dropped on app %s" % (filename, self.appname))
+        #logger.info("%s dropped on app %s" % (filename, self.appname))
         WfkViewerFrame(parent=None, filename=filename).Show()
 
 

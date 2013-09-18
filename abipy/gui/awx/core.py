@@ -7,6 +7,12 @@ import wx
 
 import abipy.tools.decorators as dec
 
+from abipy.tools.text import list_strings
+
+#import logging
+#logger = logging.getLogger(__name__)
+
+
 __all__ = [
     "path_img",
     "makeAboutBox",
@@ -68,24 +74,15 @@ Suite 330, Boston, MA  02111-1307  USA""" % {"codename": codename}
 
     info.SetLicence(licence)
 
-    if isinstance(developers, str): 
-        developers = [developers,]
-
-    for dev in developers:
+    for dev in list_strings(developers):
         info.AddDeveloper(dev)
 
     wx.AboutBox(info)
 
 
-# TODO Write logger class
 class Panel(wx.Panel):
     def __init__(self, parent, *args, **kwargs):
         super(Panel, self).__init__(parent, *args, **kwargs)
-        #self._log = sys.stdout.write
-
-    @property
-    def log(self):
-        return print
 
 
 class Frame(wx.Frame):
@@ -97,10 +94,3 @@ class Frame(wx.Frame):
             kwargs["title"] = self.__class__.__name__
         
         super(Frame, self).__init__(parent, *args, **kwargs)
-
-        #self._log = sys.stdout.write
-
-    @property
-    def log(self):
-        return print
-
