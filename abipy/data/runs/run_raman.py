@@ -147,6 +147,9 @@ def raman_workflow(workdir, structure, pseudos, shiftk):
 
 def main():
     # Build the list of workflows.
+    import logging
+    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+
     workflows = build_raman_workflows()
 
     for work in workflows:
