@@ -4,10 +4,7 @@ TODO
 from __future__ import print_function, division
 
 import itertools
-import cStringIO as StringIO
 import numpy as np
-
-from .constants import ArrayWithUnit
 
 __all__ = [
     "Tensor",
