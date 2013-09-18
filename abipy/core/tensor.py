@@ -77,11 +77,13 @@ class SymmetricTensor(Tensor):
             coeffs_red[iqpt,:] = [metqpt[0]**2,metqpt[1]**2,metqpt[2]**2,
                                   2*metqpt[0]*metqpt[1],2*metqpt[0]*metqpt[2],2*metqpt[1]*metqpt[2]]
 
-            normqpt = np.dot(np.transpose(qpt),np.dot(metric,qpt))
+            normqpt_red = np.dot(np.transpose(qpt),np.dot(metric,qpt))
 
-            coeffs_red[iqpt,:] = coeffs_red[iqpt,:] / (normqpt**2)
+            coeffs_red[iqpt,:] = coeffs_red[iqpt,:] / (normqpt_red)
+
 
         red_symm = np.linalg.solve(coeffs_red,values)
+
 
         red_tensor = [[red_symm[0],red_symm[3],red_symm[4]],
                       [red_symm[3],red_symm[1],red_symm[5]],
