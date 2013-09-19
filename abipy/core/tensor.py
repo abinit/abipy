@@ -46,6 +46,18 @@ class Tensor(object):
         red_tensor = np.dot(np.dot(np.transpose(mat), cartesian_tensor), mat)
         return cls(red_tensor, lattice)
 
+    def symmetrize(self, pointgroup, system="reciprocal_lattice"):
+        tensor = self._reduced_tensor
+
+        if system == "reciprocal_lattice":
+            real_lattice = self._lattice.reciprocal_lattice
+        elif system == "real_lattice":
+            real_lattice = self._lattice
+        else:
+            raise AttributeError("system not understood")
+
+        # TODO symmetrize
+
 class SymmetricTensor(Tensor):
     """Representation of a 3x3 symmetric tensor"""
     @classmethod
