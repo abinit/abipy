@@ -1227,7 +1227,7 @@ class ElectronBands(object):
 
     def effective_masses(self, spin, band, acc=4):
         """Compute the effective masses."""
-        ders2 = self.derivatives(spin, band, acc=acc) * const.EV_TO_HA / const.BOHR_TO_ANGS**2
+        ders2 = self.derivatives(spin, band, acc=acc) * const.eV_to_Ha / const.bohr_to_ang**2
         return 1.0/ders2
 
 
