@@ -241,7 +241,7 @@ class ScissorsBuilderFrame(awx.Frame):
         if build_dialog.ShowModal() == wx.ID_OK:
             # Get the parameters of the scissors.
             p = build_dialog.GetScissorBuilderParams()
-            self.log("scissor params", p)
+            #logger.info("scissor params", p)
 
             # Try the fit.
             fitok = True
@@ -262,7 +262,7 @@ class ScissorsBuilderFrame(awx.Frame):
 
                     if saveFileDialog.ShowModal() == wx.ID_OK:
                         savefile = saveFileDialog.GetPath()
-                        self.log("About to save in %s" % savefile)
+                        #logger.info("About to save in %s" % savefile)
                         self.scissors_builder.save_data(savefile)
 
                     saveFileDialog.Destroy()
