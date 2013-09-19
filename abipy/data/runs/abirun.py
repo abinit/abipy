@@ -61,7 +61,7 @@ def treat_workflow(work, options):
         print(work)
         colorizer = StringColorizer(stream=sys.stdout)
 
-        table = [["Task", "Status", "queue_id", "Errors", "Warnings", "Comments"]]
+        table = [["Task", "Status", "queue_id", "Errors", "Warnings", "Comments", "MPI", "OMP"]]
         for task in work:
             task_name = os.path.basename(task.name)
 
@@ -84,7 +84,9 @@ def treat_workflow(work, options):
             }.get(task.status, None)
             #task_name = colorizer(task_name, colour)
 
-            table.append([task_name, str_status, str(task.queue_id)] + events)
+            cpu_info = map(str, [task.mpi_ncpus, task.omp_ncpus])
+
+            table.append([task_name, str_status, str(task.queue_id)] + events + cpu_info)
 
         pprint_table(table)
 

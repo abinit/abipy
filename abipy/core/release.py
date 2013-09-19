@@ -21,7 +21,7 @@ __version__ = '.'.join(map(str, _ver))
 
 version = __version__  # backwards compatibility name
 
-description = "Set of python modules and scripts to analyze the results of ABINIT computations.",
+description = "Set of python modules and scripts to analyze the results of ABINIT computations."
 
 long_description = \
     """

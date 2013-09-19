@@ -6,3 +6,6 @@ import abipy.core.constants as constants
 from abipy.core.structure import Structure, StructureModifier
 from abipy.htc.input import AbiInput
 from abipy.htc.workflows import Workflow
+
+FloatWithUnit = constants.FloatWithUnit
+ArrayWithUnit = constants.ArrayWithUnit

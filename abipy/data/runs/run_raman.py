@@ -123,9 +123,10 @@ def raman_workflow(workdir, structure, pseudos, shiftk):
          LD_LIBRARY_PATH="/home/naps/ygillet/NAPS/intel13/lib:$LD_LIBRARY_PATH",
        ),
        mpi_runner="mpirun",
+       policy=dict(autoparal=1, max_ncpus=2),
     )
 
-    manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1)
+    #manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1)
 
     work = abilab.Workflow(workdir, manager)
 

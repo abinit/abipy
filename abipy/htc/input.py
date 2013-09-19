@@ -14,7 +14,7 @@ __all__ = [
     "AbiInput",
 ]
 
-# variables that must have a unique value throughout all the datasets.
+# Variables that must have a unique value throughout all the datasets.
 _NO_MULTI = [
     "jdtset",
     "ndtset",
@@ -68,8 +68,7 @@ class AbiInput(object):
         # Setup of the pseudopotential files.
         self._pseudo_dir = os.path.abspath(pseudo_dir)
 
-        pseudos = list_strings(pseudos)
-        pseudo_paths = [os.path.join(self._pseudo_dir, p) for p in pseudos]
+        pseudo_paths = [os.path.join(self._pseudo_dir, p) for p in list_strings(pseudos)]
 
         missing = [p for p in pseudo_paths if not os.path.exists(p)]
         if missing:
@@ -87,11 +86,6 @@ class AbiInput(object):
     def ndtset(self):
         """Number of datasets."""
         return self[0]["ndtset"]
-
-    #@property
-    #def global_vars(self):
-    #    """Dictionary with global variables (common to the different datasets)."""
-    #    return self[0]
 
     def __str__(self):
         s = ""
@@ -552,9 +546,9 @@ class Dataset(collections.Mapping):
 
     def remove_variables(self, keys):
         """Remove the variables listed in keys."""
-        for key in keys:
-            #self.pop(key, None)
+        for key in list_strings(keys):
             self.pop(key)
+            #self.pop(key, None)
 
     @property
     def structure(self):
