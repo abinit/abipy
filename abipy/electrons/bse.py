@@ -10,6 +10,7 @@ from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint
 from abipy.iotools import ETSF_Reader, AbinitNcFile, Has_Structure
 from abipy.tools import is_string
+from abipy.core.tensor import SymmetricTensor
 
 __all__ = [
     "DielectricTensor",
@@ -25,32 +26,47 @@ class DielectricTensor(object):
     obtained from the dielectric functions for different q-directions.
     """
     def __init__(self, mdf,structure):
-        assert len(mdf.qpoints) == 6
 
         nfreq = len(mdf.wmesh)
 
-        # Init matrices
-        a = np.zeros((6,6),dtype=np.complex)
-        b = np.zeros((6,nfreq),dtype=np.complex)
+        self._wmesh = mdf.wmesh
 
-        for iqpt in np.arange(0,6):
-           qpt_frac = mdf.qpoints[iqpt]
+        # Transform mdf emacros_q to numpy array
+        all_emacros = []
+        for emacro in mdf.emacros_q:
+           all_emacros.append(emacro.values)
 
-           # Computing the matrix as a quadratic form with the cart coords for qpt
-           qpt_cart = structure.reciprocal_lattice.get_cartesian_coords(qpt_frac)
+        all_emacros = np.array(all_emacros)
 
-           a[iqpt,:] = [qpt_cart[0]**2,qpt_cart[1]**2,qpt_cart[2]**2,2*qpt_cart[0]*qpt_cart[1],2*qpt_cart[0]*qpt_cart[2],2*qpt_cart[1]*qpt_cart[2]]
-           a[iqpt,:] = a[iqpt,:]/(qpt_cart[0]**2+qpt_cart[1]**2+qpt_cart[2]**2)
-           b[iqpt,:] = mdf.emacros_q[iqpt].values
+        # One tensor for each frequency
+        all_tensors = []
+        for (ifrq,freq) in enumerate(mdf.wmesh):
+            all_tensors.append(SymmetricTensor.from_directions(mdf.qpoints,all_emacros[:,ifrq],structure.lattice.reciprocal_lattice))
 
-        x = np.linalg.solve(a,b)
+        self._all_tensors = all_tensors
 
-        self.tensor_cart = []
+    def to_array(self,red_coords=True):
+       
+        table = [] 
+        for tensor in self._all_tensors:
+            if red_coords:
+               table.append(tensor.reduced_tensor)
+            else:
+               table.append(tensor.cartesian_tensor)
 
-        # 1 is xx, 2 is yy, 3 is zz, 4 is xy, 5 is xz, 6 is yz
-        # TODO keep these labels inside self
-        for idir in np.arange(0,6):
-           self.tensor_cart.append(Function1D(mdf.wmesh,x[idir,:]))
+        return np.array(table)
+
+    def to_func1d(self,red_coords=True):
+
+        table = self.to_array(red_coords)
+
+        all_funcs = []
+ 
+        for i in np.arange(3):
+            for j in np.arange(3):
+                all_funcs.append(Function1D(self._wmesh,table[:,i,j]))
+
+        return all_funcs
 
     def plot(self, *args, **kwargs):
         """
@@ -65,6 +81,7 @@ class DielectricTensor(object):
         title           Title of the plot (Default: None).
         show            True to show the figure (Default).
         savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
+        red_coords      True to plot the reduced coordinate tensor (Default: True)
         ==============  ==============================================================
 
         Returns:
@@ -73,6 +90,7 @@ class DielectricTensor(object):
         title = kwargs.pop("title", None)
         show = kwargs.pop("show", True)
         savefig = kwargs.pop("savefig", None)
+        red_coords = kwargs.pop("red_coords", True)
 
         import matplotlib.pyplot as plt
 
@@ -90,9 +108,9 @@ class DielectricTensor(object):
         #if not kwargs:
         #    kwargs = {"color": "black", "linewidth": 2.0}
 
-        # Plot the directions
-        for idir in np.arange(0,6):
-            self.plot_ax(ax, idir, *args, **kwargs)
+        # Plot the 6 independent components
+        for icomponent in [0,4,8,1,2,5]: 
+            self.plot_ax(ax, icomponent, red_coords, *args, **kwargs)
 
         if show:
             plt.show()
@@ -102,7 +120,7 @@ class DielectricTensor(object):
 
         return fig
 
-    def plot_ax(self, ax, what, *args, **kwargs):
+    def plot_ax(self, ax, what, red_coords, *args, **kwargs):
         """
         Helper function to plot data on the axis ax.
 
@@ -128,7 +146,7 @@ class DielectricTensor(object):
         """
         # Extract the function to plot according to qpoint.
         if isinstance(what, int):
-            f = self.tensor_cart[what]
+            f = self.to_func1d(red_coords)[what]
         else:
             raise ValueError("Don't know how to handle %s" % str(qpoint))
 
