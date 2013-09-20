@@ -58,16 +58,30 @@ Otherwise, these packages should be available on `PyPI <http://pypi.python.org>`
 
 6. netCDF4
 
+7. pyyaml 3.1.0+
+
 Optional dependencies
 ---------------------
 
 Optional libraries that are required if you need certain features:
 
-1. nose - For complete unittesting.
+1. wxPython - For the GUI 
 
-2. wxPython - For the GUI 
+2. wxmplot
 
-3. wxmplot
+3. nose - For complete unittesting.
+
+Installing wxPython
+-------------------
+
+Mac users can download the
+
+Linux users:
+    TODO
+
+The directory `abipy.gui.demos` contains demos that can be used to test the installation 
+(run the script `runall.py` to have an overview of the different graphical interfaces).
+
 
 Using abipy
 ===========

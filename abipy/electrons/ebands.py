@@ -62,6 +62,7 @@ class KSState(collections.namedtuple("KSState", "spin kpoint band eig occ")):
         return tuple(fields)
 
     def asdict(self):
+        """Convert self into a dict.""" 
         return super(KSState, self)._asdict()
 
     def to_strdict(self, fmt=None):
@@ -242,10 +243,13 @@ class ElectronBands(object):
             assert new.__class__ == cls
             return new
 
-    def __str__(self):
-        return self.tostring()
+    def __repr__(self):
+        return self.to_string()
 
-    def tostring(self, prtvol=0):
+    def __str__(self):
+        return self.to_string()
+
+    def to_string(self, prtvol=0):
         """String representation."""
         lines = []
         app = lines.append
@@ -419,7 +423,6 @@ class ElectronBands(object):
 
     def enemin(self, spin=None, band=None):
         """Compute the minimum of the eigenvalues."""
-
         spin_range = self.spins
         if spin is not None:
             assert isinstance(spin, int)
@@ -1231,35 +1234,6 @@ class ElectronBands(object):
         return 1.0/ders2
 
 
-#class NestingFactor(object):
-#
-#    def __init__(self, bands):
-#
-#        self.bands = bands
-#
-#        # Check whether k-points form a homogeneous sampling.
-#        if not self.bands.has_bzmesh:
-#            msg = "The computation of the nesting factor requires a homogeneous k-point sampling"
-#            raise ValueError(msg)
-#
-#    @classmethod
-#    def from_file(cls, filepath):
-#        """
-#        Initialize the object from a netcdf file containing an electronic band structure.
-#        """
-#        return cls(ElectronBands.from_file(filepath))
-#
-#    def compute_nesting(self, qpath):
-#        mesh, values = None, None
-#        return Function1D(mesh, values)
-#
-#    def plot(self, qpath):
-#        nesting = self.compute_nesting(qpath)
-#        nesting.plot()
-
-#########################################################################################
-
-
 class ElectronBandsPlotter(object):
     """
     Class for plotting electronic bands structure and DOSes.
@@ -1592,3 +1566,32 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
     #def read_xc_parameters(self):
     #   """Returns a dictionary with info on the XC functional."""
     #    return XC_Parameters.from_ixc(self.read_value("ixc"))
+
+
+#class NestingFactor(object):
+#
+#    def __init__(self, bands):
+#
+#        self.bands = bands
+#
+#        # Check whether k-points form a homogeneous sampling.
+#        if not self.bands.has_bzmesh:
+#            msg = "The computation of the nesting factor requires a homogeneous k-point sampling"
+#            raise ValueError(msg)
+#
+#    @classmethod
+#    def from_file(cls, filepath):
+#        """
+#        Initialize the object from a netcdf file containing an electronic band structure.
+#        """
+#        return cls(ElectronBands.from_file(filepath))
+#
+#    def compute_nesting(self, qpath):
+#        mesh, values = None, None
+#        return Function1D(mesh, values)
+#
+#    def plot(self, qpath):
+#        nesting = self.compute_nesting(qpath)
+#        nesting.plot()
+
+#########################################################################################

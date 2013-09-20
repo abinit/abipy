@@ -106,6 +106,8 @@ def raman_workflow(workdir, structure, pseudos, shiftk):
     )
 
     # Initialize the workflow.
+    policy=dict(autoparal=1, max_ncpus=2)
+
     manager = abilab.TaskManager(qtype="slurm",
        qparams=dict(
            ntasks=2,
@@ -123,10 +125,10 @@ def raman_workflow(workdir, structure, pseudos, shiftk):
          LD_LIBRARY_PATH="/home/naps/ygillet/NAPS/intel13/lib:$LD_LIBRARY_PATH",
        ),
        mpi_runner="mpirun",
-       policy=dict(autoparal=1, max_ncpus=2),
+       policy=policy
     )
 
-    #manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1)
+    manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=policy)
 
     work = abilab.Workflow(workdir, manager)
 

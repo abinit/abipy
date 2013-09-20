@@ -12,5 +12,20 @@ advantages:
 In order to facilitate the automatic execution and validation, the python scripts 
 must satisfy some basic rules and conventions.
 
-1) The name of the script must match the regular expression:
-  run_[*].py
+#. The name of the script must match the regular expression run_[*].py so that 
+   we can run all the tests easily with run_all.py
+
+#. The execution of the test should be managed by a `Tester` object
+   The `Tester` is responsible for the definition of the working directory (constructed
+   from the name of the script by just removing the prefix `run_`), the submission
+   of the calculation (tester.set_work_and_run) and the analysis of the final results
+   (tester.finalize).
+
+#. The script should remove all the output files produced by the run that are not needed 
+   for the automatic tests and/or the tutorials. Each file should have a unique (meanigfull) name 
+   so that we can easily access it with the syntax:
+
+        import abipy.data as data
+        path_to_reference_file = data.ref_file("basename_of_the_file")
+
+    An exception is raised if this rule is not respected.

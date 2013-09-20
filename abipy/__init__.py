@@ -72,7 +72,7 @@ def abifile_subclass_from_filename(filename):
 
 def abiopen(filepath):
     """
-    Factory function that returns the appropriate object
+    Factory function that opens any file supported by abipy.
 
     Args:
         filepath:

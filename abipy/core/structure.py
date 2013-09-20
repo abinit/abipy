@@ -1,4 +1,4 @@
-"""This module defines the structure object that store information on the crystalline structure and its symmetries."""
+"""This module defines basic objects representing the crystalline structure."""
 from __future__ import division, print_function
 
 import collections
@@ -10,7 +10,6 @@ from .symmetries import SpaceGroup
 from abipy.iotools import as_etsfreader, Visualizer
 from abipy.iotools import xsf
 
-
 __all__ = [
     "Lattice",
     "Structure",
@@ -19,15 +18,14 @@ __all__ = [
 
 class Lattice(pymatgen.Lattice):
     """
-    Extends the pymatgen Lattice with methods that allows one to construct
-    the object from ABINIT variables or to produce the set of input variables
-    from a structure
+    Extends pymatgen.Lattice with methods that allows one 
+    to construct a Lattice object from ABINIT variables.
     """
     @classmethod
     def from_abivars(cls, d):
         """
-        Returns a new instance from a dictionary with the ABINIT variable that 
-        define the unit cell.
+        Returns a new instance from a dictionary with the variables 
+        used in ABINIT to define the unit cell.
         """
         rprim = d.get("rprim", None)
         angdeg = d.get("angdeg", None)
@@ -61,12 +59,12 @@ class Structure(pymatgen.Structure):
     @classmethod
     def from_file(cls, filepath):
         """
-        Return a new instance from a NetCDF file containing 
-        crystallographic data in the ETSF-IO format.
+        Return a new Structure instance from a NetCDF file 
 
         Args:
-            ncdata:
-                filename or NetcdfReader instance.
+            filename:
+                netcdf file with crystallographic data in the ETSF-IO format.
+                or any other file format supported by `pymatgen.io.smartio`.
         """
         if filepath.endswith(".nc"):
             file, closeit = as_etsfreader(filepath)
@@ -102,7 +100,7 @@ class Structure(pymatgen.Structure):
 
     @property
     def has_spacegroup(self):
-        """True is self contains info on the spacegroup."""
+        """True is the structure contains info on the spacegroup."""
         return self.spacegroup is not None
 
     @property
@@ -161,7 +159,7 @@ class Structure(pymatgen.Structure):
     @property
     def hsym_stars(self):
         """
-        List of `Star` objects. Each start is associated to one of the special k-points 
+        List of `Star` objects. Each star is associated to one of the special k-points 
         present in the pymatgen database.
         """
         try:
@@ -274,6 +272,7 @@ class Structure(pymatgen.Structure):
 
     @classmethod
     def from_abivars(cls, d):
+        """Build a `Structure` object from a dictionary containing ABINIT variables."""
         lattice = Lattice.from_abivars(d)
 
         coords, coords_are_cartesian = d.get("xred", None), False
@@ -309,8 +308,13 @@ class Structure(pymatgen.Structure):
 
     def write_structure(self, filename):
         """See `pymatgen.io.smartio.write_structure`"""
-        from pymatgen.io.smartio import write_structure
-        write_structure(self, filename)
+
+        if filepath.endswith(".nc"):
+            raise NotImplementedError("Cannot write a structure to a netcdfile file yet")
+
+        else:
+            from pymatgen.io.smartio import write_structure
+            write_structure(self, filename)
 
     def displace(self, displ, eta, frac_coords=True):
         """
