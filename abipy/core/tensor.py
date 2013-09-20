@@ -38,7 +38,7 @@ class Tensor(object):
         elif space == "r":
             self._is_real_space = True
         else:
-            raise AttributeError("space should be either 'g' or 'r'")
+            raise ValueError("space should be either 'g' or 'r'")
 
     @property
     def reduced_tensor(self):
@@ -92,17 +92,19 @@ class SymmetricTensor(Tensor):
     @classmethod
     def from_directions(cls, qpoints, values, lattice):
         """
+        Build a `SymmetricTensor` from the values computed along 6 directions. 
+
         Args:
             qpoints:
                 fractional coordinates of 6 independent q-directions
             values:
                 values of (q^T E q)/(q^T q) along the 6 qpoints
             lattice:
-                Lattice object defining the reference system
+                `Lattice` object defining the reference system
         """
 
-        assert (len(qpoints) == 6)
-        assert (len(values) == len(qpoints))
+        assert len(qpoints) == 6
+        assert len(values) == len(qpoints)
 
         mat = lattice.matrix
         metric = np.dot(np.transpose(mat),mat)

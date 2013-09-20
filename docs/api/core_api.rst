@@ -100,3 +100,12 @@ core Package
    :members:
    :undoc-members:
    :show-inheritance:
+
+
+:mod:`tensor` Module
+-----------------------
+
+.. automodule:: abipy.core.tensor
+   :members:
+   :undoc-members:
+   :show-inheritance:
