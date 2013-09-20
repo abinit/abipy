@@ -58,14 +58,14 @@ def build_workflow(workdir, structure, pseudos):
     gs_inp = abilab.AbiInput(pseudos=pseudos)
     gs_inp.set_structure(structure)
 
-    # Global variables
+    # Variables global to the SCF and the NSCF run.
     global_vars = dict(ecut=FloatWithUnit(100, "eV").to("Ha"),
                        #nband=8,
                     )
 
     gs_inp.set_variables(**global_vars)
 
-    # Dataset 1 (GS run)
+    # (GS run)
     gs_inp.set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
 
     gs_inp.set_variables(
@@ -74,10 +74,11 @@ def build_workflow(workdir, structure, pseudos):
 
     print(gs_inp)
 
-    # Dataset 2 (NSCF run)
+    # (NSCF run)
     nscf_inp = abilab.AbiInput(pseudos=pseudos)
-    nscf_inp.set_structure(structure)
 
+    nscf_inp.set_structure(structure)
+    nscf_inp.set_variables(**global_vars)
 
     nscf_inp.set_variables(
         tolwfr=1e-12,
@@ -88,8 +89,28 @@ def build_workflow(workdir, structure, pseudos):
 
     print(nscf_inp)
 
-    # Create the task defining the calculation and run.
-    manager = abilab.TaskManager.simple_mpi(mpi_ncpus=2)
+    # Build the manager.
+    #manager = abilab.TaskManager.simple_mpi(mpi_ncpus=2)
+
+    manager = abilab.TaskManager(qtype="slurm",
+       qparams=dict(
+           ntasks=2,
+           #partition="hmem",
+           time="0:20:00",
+           #account='nobody@nowhere.org',
+           #ntasks_per_node=None,
+           #cpus_per_task=None,
+       ),
+       #setup="SetEnv intel13_intel",
+       modules = ["intel/compilerpro/13.0.1.117", "fftw3/intel/3.3"],
+       shell_env=dict(
+         PATH=("/home/naps/ygillet/NAPS/src/abinit-7.4.3-public/tmp_intel13/src/98_main/:" +
+               "/home/naps/ygillet/NAPS/intel13/bin:$PATH"),
+         LD_LIBRARY_PATH="/home/naps/ygillet/NAPS/intel13/lib:$LD_LIBRARY_PATH",
+       ),
+       mpi_runner="mpirun",
+       #policy=dict(autoparal=1, max_ncpus=2),
+    )
 
     # Initialize the workflow.
     work = abilab.Workflow(workdir, manager)
