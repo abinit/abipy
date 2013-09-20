@@ -274,10 +274,10 @@ class FileListFrame(awx.Frame):
         filter_label.Wrap(-1)
         hsizer.Add(filter_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
 
-        # Combobox to enter shell patters.
+        # Combobox to enter shell patterns.
         wildcard_choices = ["*", "*.nc", "*.abo", "*.log"]
         self.filter_combobox = wx.ComboBox(self, id=-1, value="*", style=wx.TE_PROCESS_ENTER, choices=wildcard_choices)
-        self.filter_combobox.SetToolTipString("Shell patters separated by |")
+        self.filter_combobox.SetToolTipString("Shell patterns separated by |")
 
         self.filter_combobox.Bind(wx.EVT_COMBOBOX, self.OnFilterComboBox)
         self.filter_combobox.Bind(wx.EVT_TEXT_ENTER, self.OnFilterComboBox)
