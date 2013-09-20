@@ -172,5 +172,5 @@ if __name__ == "__main__":
     from setuptools import setup
     setup(**setup_args)
     # Create the abipyrc file
-    execfile('abipy/profile.py')
+    #execfile('abipy/profile.py')
     cleanup()

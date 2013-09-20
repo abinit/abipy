@@ -18,3 +18,5 @@ TODO List
 #. Move unit conversion to NetcdfReader e.g reader.read_value(varname, unit=None)
 
 #. Write new unit tests for Xcrysden and the other visualizers (move these tools to pymatgen?)
+
+#. Rewrite user profile from scratch. Look at matplotlib rc.
