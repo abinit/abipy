@@ -14,7 +14,11 @@ title = "Si absorption spectrum: EXC vs RPA"
 mdf_file.plot_mdfs(title=title, xlim=(2, 5))
 
 # Plot the 6 different components of the macroscopic dielectric tensor 
-title = "Si macroscopic dielectric tensor"
+title = "Si macroscopic dielectric tensor (Reduced coord)"
 tensor_exc = mdf_file.get_tensor("exc")
 tensor_exc.plot(title=title)
+
+title = "Si macroscopic dielectric tensor (Cartesian coord)"
+tensor_exc = mdf_file.get_tensor("exc")
+tensor_exc.plot(title=title,red_coords=False)
 
