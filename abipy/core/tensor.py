@@ -29,6 +29,9 @@ class Tensor(object):
                 array-like object with the 9 cartesian components of the tensor
             lattice:
                 Lattice object defining the reference system
+            space:
+                "r" if the lattice is a real space lattice
+                "g" if the lattice is a reciprocal space lattice
         """
         self._reduced_tensor = red_tensor
         self._lattice = lattice
@@ -90,7 +93,7 @@ class Tensor(object):
 class SymmetricTensor(Tensor):
     """Representation of a 3x3 symmetric tensor"""
     @classmethod
-    def from_directions(cls, qpoints, values, lattice):
+    def from_directions(cls, qpoints, values, lattice, space):
         """
         Build a `SymmetricTensor` from the values computed along 6 directions. 
 
@@ -101,6 +104,9 @@ class SymmetricTensor(Tensor):
                 values of (q^T E q)/(q^T q) along the 6 qpoints
             lattice:
                 `Lattice` object defining the reference system
+            space:
+                "r" if the lattice is a real space lattice
+                "g" if the lattice is a reciprocal space lattice
         """
 
         assert len(qpoints) == 6
@@ -129,5 +135,5 @@ class SymmetricTensor(Tensor):
                       [red_symm[3],red_symm[1],red_symm[5]],
                       [red_symm[4],red_symm[5],red_symm[2]]]
 
-        return cls(red_tensor,lattice)
+        return cls(red_tensor,lattice,space)
 
