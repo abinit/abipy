@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+"""
+This example shows how to compute the band structure of a set of 
+crystalline structures obtained by changin a set of internal paramaters
+"""
+
 from __future__ import division, print_function
 
 import os
@@ -54,15 +59,18 @@ def build_workflows():
 
 
 def build_workflow(workdir, structure, pseudos):
-
-    gs_inp = abilab.AbiInput(pseudos=pseudos)
-    gs_inp.set_structure(structure)
-
+    """
+    Return a `Workflow` object defining a band structure calculation
+    for given `Structure`.
+    """
     # Variables global to the SCF and the NSCF run.
     global_vars = dict(ecut=FloatWithUnit(100, "eV").to("Ha"),
                        #nband=8,
                     )
 
+    # GS Input 
+    gs_inp = abilab.AbiInput(pseudos=pseudos)
+    gs_inp.set_structure(structure)
     gs_inp.set_variables(**global_vars)
 
     # (GS run)

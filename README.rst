@@ -93,7 +93,7 @@ Here are some quick examples of the core capabilities and objects:
 
 .. code-block:: pycon
 
-    >>> import abipy as ab
+    >>> from abipy import abilab
     >>>
 
 The above example illustrates only the most basic capabilities of abipy.

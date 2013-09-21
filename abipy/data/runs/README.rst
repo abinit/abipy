@@ -1,5 +1,6 @@
 This directory contains the scripts used to generate most of the Netcdf files
 employed in the unit tests and in the Abipy examples.
+
 Using an automated procedure for the generation of the netcdf files has two distinct
 advantages:
 
@@ -7,10 +8,10 @@ advantages:
    of Abinit.
 
 2) The automated generation allows one to test and validate the python interface 
-   used for the generation of input files and high throughput calculations.
+   used for the generation of the input files and the API for high throughput calculations.
 
 In order to facilitate the automatic execution and validation, the python scripts 
-must satisfy some basic rules and conventions.
+must satisfy the following rules and conventions.
 
 #. The name of the script must match the regular expression run_[*].py so that 
    we can run all the tests easily with run_all.py
@@ -22,10 +23,10 @@ must satisfy some basic rules and conventions.
    (tester.finalize).
 
 #. The script should remove all the output files produced by the run that are not needed 
-   for the automatic tests and/or the tutorials. Each file should have a unique (meanigfull) name 
+   for the automatic tests and/or the tutorials. Each file should have a unique (meaningful) name 
    so that we can easily access it with the syntax:
 
         import abipy.data as data
         path_to_reference_file = data.ref_file("basename_of_the_file")
 
-    An exception is raised if this rule is not respected.
+   An exception is raised during the automatic tests if this rule is not respected.

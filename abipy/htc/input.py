@@ -38,7 +38,10 @@ class AbinitInputError(Exception):
 
 
 class AbiInput(object):
-
+    """
+    This object represents an ABINIT input file. It supports multi-datasets a
+    and provided an easy-to-use interface for defining the variables of the calculation
+    """
     Error = AbinitInputError
 
     def __init__(self, pseudos, pseudo_dir="", ndtset=1, comment=""):
@@ -47,7 +50,7 @@ class AbiInput(object):
             pseudos:
                 String or list of string with the name of the pseudopotential files.
             pseudo_dir:
-                Name of the directory where pseudo files are located.
+                Name of the directory where the pseudopotential files are located.
             ndtset:
                 Number of datasets.
             comment:
@@ -226,7 +229,7 @@ class AbiInput(object):
 
     def linspace(self, varname, start, stop, endpoint=True):
         """
-        Returns `ndtset` evenly spaced samples, calculated over the interval [`start`, `stop` ].
+        Returns `ndtset` evenly spaced samples, calculated over the interval [`start`, `stop`].
 
         The endpoint of the interval can optionally be excluded.
 
@@ -298,8 +301,6 @@ class AbiInput(object):
         varnames = [ [varnames[i]] * len(values[i]) for i in range(len(values))]
         varnames = itertools.product(*varnames)
         values = itertools.product(*values)
-        #print([v for v in varnames])
-        #print([v for v in values])
 
         idt = 0
         for names, values in zip(varnames, values):
@@ -353,19 +354,6 @@ class AbiInput(object):
         for idt in self._dtset2range(dtset):
             self[idt].set_kptgw(kptgw, bdgw)
 
-    #def make_filesfiles(self):
-    #    lines = []
-    #    app = lines.append
-
-    #    app(".abi")
-    #    app(".abo")
-    #    app("i")
-    #    app("o")
-    #    app("t")
-    #    for pseudo in self.pseudos:
-    #        app(pseudo.filepath)
-    #    return "\n".join(lines)
-
     def write(self, filepath):
         """
         Write the input file to file filepath.
@@ -378,10 +366,6 @@ class AbiInput(object):
         with open(filepath, "w") as fh:
            fh.write(str(self))
 
-        # TODO filesfile.
-        #if filesfile is not None
-        #    with open(filesfiles.filepath, "w") as fh:
-        #        fh.write(self.make_filesfiles(filesfile))
 
 _UNITS = {
         'bohr' : 1.0,
@@ -394,7 +378,7 @@ _UNITS = {
 
 class Dataset(collections.Mapping):
     """
-    This object stores the variables for a single dataset.
+    This object stores the ABINIT variables for a single dataset.
     """
     Error = AbinitInputError
 
@@ -487,7 +471,7 @@ class Dataset(collections.Mapping):
             # alphabetical order.
             keys = sorted(self.keys())
         #elif sortmode is "t": TODO
-        # group variables by topic
+            # group variables by topic
         else:
             raise ValueError("Unsupported value for sortmode %s" % str(sortmode))
 
@@ -540,7 +524,7 @@ class Dataset(collections.Mapping):
                 self.dt0.set_variable(varname, value)
 
     def set_variables(self, **vars):
-        """Sets variables by providing a dictionary"""
+        """Set the value of the variables provied in the dictionary **vars"""
         for (varname, varvalue) in vars.items():
             self.set_variable(varname, varvalue)
 
@@ -552,16 +536,12 @@ class Dataset(collections.Mapping):
 
     @property
     def structure(self):
+        """Returns the `Structure` associated to this dataset."""
         try:
             return self._structure
 
         except AttributeError:
-            try:
-                structure = Structure.from_abivars(self.allvars)
-            except Exception as exc:
-                raise
-                print(str(exc))
-                structure = None
+            structure = Structure.from_abivars(self.allvars)
 
             self.set_structure(structure)
             return self._structure
@@ -828,7 +808,7 @@ def string_to_value(sval):
 
                 # Convert
                 if False:
-                    if isinstance(value, list):
+                    if isinstance(value, (list, tuple)):
                         for i in range(len(value)):
                             value[i] *= _UNITS[part]
                     elif is_string(value):
