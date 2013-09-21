@@ -17,7 +17,7 @@ def ucell_names():
 
 def ucell(name):
     """Returnn the entry in the database with the given name."""
-    return _UCELLS[name].copy()
+    return _UCELLS[name.lower()].copy()
 
 
 def structure_from_ucell(name):
@@ -26,16 +26,16 @@ def structure_from_ucell(name):
 
 
 _UCELLS = {
-    "silicon": dict(ntypat=1,         
-                    natom=2,           
-                    typat=[1, 1],
-                    znucl=14,         
-                    acell=3*[10.217],
-                    rprim=[[0.0,  0.5,  0.5],   
-                           [0.5,  0.0,  0.5],  
-                           [0.5,  0.5,  0.0]],
-                    xred=[ [0.0 , 0.0 , 0.0],
-                           [0.25, 0.25, 0.25]],
+    "si": dict(ntypat=1,         
+               natom=2,           
+               typat=[1, 1],
+               znucl=14,         
+               acell=3*[10.217],
+               rprim=[[0.0,  0.5,  0.5],   
+                      [0.5,  0.0,  0.5],  
+                      [0.5,  0.5,  0.0]],
+               xred=[ [0.0 , 0.0 , 0.0],
+                      [0.25, 0.25, 0.25]],
                     ),
 
     "zno": dict(ntypat=2,

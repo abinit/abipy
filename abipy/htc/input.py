@@ -79,8 +79,10 @@ class AbiInput(object):
 
         try:
             self._pseudos = PseudoTable(pseudo_paths)
+
         except Exception as exc:
             warnings.warn("Ignoring error raised while parsing pseudopotential files.")
+            self._pseudos = []
 
         if comment:
             self.set_comment(comment)

@@ -13,7 +13,7 @@ def build_raman_workflows():
     pseudos = data.pseudos("14si.pspnc")
 
     # Get the unperturbed structure.
-    base_structure = data.structure_from_ucell("silicon")
+    base_structure = data.structure_from_ucell("si")
 
     etas = [-.001, 0, +.001]
     ph_displ = np.reshape(np.zeros(3*len(base_structure)), (-1,3))
