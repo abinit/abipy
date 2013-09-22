@@ -13,7 +13,8 @@ from abipy.iotools.files import NcDumper, AbinitLogFile, AbinitOutputFile, get_f
 from abipy.waves import WFK_File
 from abipy.electrons import SIGRES_File, GSR_File
 from abipy.electrons.bse import MDF_File
-from .events import AbinitEventsFrame, AbinitTimerFrame
+from .events import AbinitEventsFrame
+from .timer import AbinitTimerFrame
 
 
 __all__ = [

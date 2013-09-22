@@ -433,7 +433,7 @@ class Launcher(AbinitInput):
         from .abitimer import AbinitTimerParser
         time_parser = AbinitTimerParser()
 
-        time_parser.read(self.last_output())
+        time_parser.parse(self.last_output())
 
         time_parser.main(*args, **kwargs)
 

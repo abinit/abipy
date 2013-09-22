@@ -90,7 +90,7 @@ class AbinitTextFile(AbinitFile):
         except AttributeError:
             from abipy.htc.abitimer import AbinitTimerParser
             parser = AbinitTimerParser()
-            parser.read(self.filepath)
+            parser.parse(self.filepath)
             self._timer_data = parser
             return self._timer_data
 

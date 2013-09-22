@@ -40,7 +40,7 @@ class AbinitTimerParser(collections.Iterable):
     def __len__(self):
         return len(self._timers)
 
-    def read(self, filenames):
+    def parse(self, filenames):
         """
         Read and parse a filename or a list of filenames.
 

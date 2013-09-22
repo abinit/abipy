@@ -107,6 +107,7 @@ def raman_workflow(workdir, structure, pseudos, shiftk):
 
     # Initialize the workflow.
     policy=dict(autoparal=1, max_ncpus=2)
+    policy=dict(autoparal=0, max_ncpus=2)
 
     manager = abilab.TaskManager(qtype="slurm",
        qparams=dict(

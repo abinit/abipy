@@ -17,6 +17,7 @@ from pymatgen.io.abinitio.launcher import PyLauncher
 ID_SHOW_INPUTS = wx.NewId()
 ID_SHOW_OUTPUTS = wx.NewId()
 ID_SHOW_LOGS = wx.NewId()
+ID_SHOW_JOB_SCRIPTS = wx.NewId()
 ID_BROWSE = wx.NewId()
 ID_SHOW_MAIN_EVENTS = wx.NewId()
 ID_SHOW_LOG_EVENTS = wx.NewId()
@@ -74,6 +75,7 @@ class WorkflowViewerFrame(awx.Frame):
         toolbar.AddSimpleTool(ID_SHOW_INPUTS, wx.Bitmap(awx.path_img("in.png")), "Visualize the input files of the workflow.")
         toolbar.AddSimpleTool(ID_SHOW_OUTPUTS, wx.Bitmap(awx.path_img("out.png")), "Visualize the output files of the workflow..")
         toolbar.AddSimpleTool(ID_SHOW_LOGS, wx.Bitmap(awx.path_img("log.png")), "Visualize the log files of the workflow.")
+        toolbar.AddSimpleTool(ID_SHOW_JOB_SCRIPTS, wx.Bitmap(awx.path_img("log.png")), "Visualize the scripts.")
         toolbar.AddSimpleTool(ID_BROWSE, wx.Bitmap(awx.path_img("browse.png")), "Browse all the files of the workflow.")
         toolbar.AddSimpleTool(ID_SHOW_MAIN_EVENTS, wx.Bitmap(awx.path_img("out_evt.png")), "Show the ABINIT events reported in the main output files.")
         toolbar.AddSimpleTool(ID_SHOW_LOG_EVENTS, wx.Bitmap(awx.path_img("log_evt.png")), "Show the ABINIT events reported in the log files.")
@@ -95,6 +97,7 @@ class WorkflowViewerFrame(awx.Frame):
             (ID_SHOW_INPUTS, self.OnShowInputs),
             (ID_SHOW_OUTPUTS, self.OnShowOutputs),
             (ID_SHOW_LOGS, self.OnShowLogs),
+            (ID_SHOW_JOB_SCRIPTS, self.OnShowJobScripts),
             (ID_BROWSE, self.OnBrowse),
             (ID_SHOW_MAIN_EVENTS, self.OnShowMainEvents),
             (ID_SHOW_LOG_EVENTS, self.OnShowLogEvents),
@@ -279,6 +282,12 @@ class WorkflowViewerFrame(awx.Frame):
         work = self.GetSelectedWork() 
         if work is None: return
         frame = TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.abo")
+        frame.Show()
+
+    def OnShowJobScripts(self, event):
+        work = self.GetSelectedWork() 
+        if work is None: return
+        frame = TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.sh")
         frame.Show()
 
     def OnShowLogs(self, event):

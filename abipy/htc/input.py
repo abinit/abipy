@@ -4,6 +4,7 @@ import os
 import collections
 import warnings
 import itertools
+import copy
 import numpy as np
 
 from pymatgen.io.abinitio.pseudos import PseudoTable
@@ -152,6 +153,12 @@ class AbiInput(object):
                             raise self.Error(err_msg)
                     else:
                         self[0].set_variable(varname, value)
+
+    def copy(self):
+        return copy.copy(self)
+
+    def deepcopy(self):
+        return copy.deepcopy(self)
 
     @property
     def pseudo_dir(self):

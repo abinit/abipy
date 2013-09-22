@@ -7,6 +7,7 @@ import abipy.data as data
 from __future__ import print_function, division
 
 import os
+import warnings
 
 from os.path import join as pj
 from abipy.data.ucells import structure_from_ucell
@@ -53,12 +54,14 @@ def find_ncfiles(top):
         for basename in filenames:
             apath = os.path.join(dirpath, basename)
             if basename.endswith(".nc"):
+
                 if basename in ncfiles:
                     err_msg =  "Found duplicated basename %s\n" % basename
                     err_msg += "Stored: %s, new %s\n" % (ncfiles[basename], apath)
-                    raise ValueError(err_msg)
-
-                ncfiles[basename] = apath 
+                    warnings.warn(err_msg)
+                    #raise ValueError(err_msg)
+                else:
+                    ncfiles[basename] = apath 
 
     return ncfiles
 
