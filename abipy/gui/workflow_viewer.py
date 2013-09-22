@@ -21,6 +21,7 @@ ID_SHOW_JOB_SCRIPTS = wx.NewId()
 ID_BROWSE = wx.NewId()
 ID_SHOW_MAIN_EVENTS = wx.NewId()
 ID_SHOW_LOG_EVENTS = wx.NewId()
+ID_SHOW_TIMERS = wx.NewId()
 ID_RECHECK_STATUS = wx.NewId()
 
 
@@ -79,6 +80,7 @@ class WorkflowViewerFrame(awx.Frame):
         toolbar.AddSimpleTool(ID_BROWSE, wx.Bitmap(awx.path_img("browse.png")), "Browse all the files of the workflow.")
         toolbar.AddSimpleTool(ID_SHOW_MAIN_EVENTS, wx.Bitmap(awx.path_img("out_evt.png")), "Show the ABINIT events reported in the main output files.")
         toolbar.AddSimpleTool(ID_SHOW_LOG_EVENTS, wx.Bitmap(awx.path_img("log_evt.png")), "Show the ABINIT events reported in the log files.")
+        toolbar.AddSimpleTool(ID_SHOW_TIMERS, wx.Bitmap(awx.path_img("log_evt.png")), "Show the ABINIT timers in the abo files.")
 
         toolbar.AddSeparator()
         toolbar.AddSimpleTool(ID_RECHECK_STATUS, wx.Bitmap(awx.path_img("log_evt.png")), "Check the status of the workflow(s).")
@@ -101,6 +103,7 @@ class WorkflowViewerFrame(awx.Frame):
             (ID_BROWSE, self.OnBrowse),
             (ID_SHOW_MAIN_EVENTS, self.OnShowMainEvents),
             (ID_SHOW_LOG_EVENTS, self.OnShowLogEvents),
+            (ID_SHOW_TIMERS, self.OnShowTimers),
             (ID_RECHECK_STATUS, self.OnCheckStatusButton),
         ]
 
@@ -312,6 +315,15 @@ class WorkflowViewerFrame(awx.Frame):
         if work is None: return
         frame = AbinitEventsNotebookFrame(self, [task.log_file.path for task in work])
         frame.Show()
+
+    def OnShowTimers(self, event):
+        # TODO: build a frame for analyzing multiple timers.
+        work = self.GetSelectedWork() 
+        if work is None: return
+        timers = work.parse_timers()
+        timers.show_efficiency()
+        #frame = AbinitEventsNotebookFrame(self, [task.log_file.path for task in work])
+        #frame.Show()
 
 
 class Notebook(fnb.FlatNotebook):

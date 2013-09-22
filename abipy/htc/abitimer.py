@@ -244,7 +244,7 @@ class AbinitTimerParser(collections.Iterable):
         peff = self.pefficiency()
 
         # Table with the parallel efficiency for all the sections.
-        pprint_table(peff.totable())
+        #pprint_table(peff.totable())
 
         n = len(timers)
         xx = np.arange(n)
