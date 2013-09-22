@@ -161,6 +161,13 @@ def main():
     retcode = 0
     workflows = [abilab.Workflow.pickle_load(path) for path in options.paths]
 
+    #workflows = []
+    #import cPickle as pickle
+    #for path in options.paths:
+    #    with open(path, "r") as fh:
+    #        new = pickle.load(fh)
+    #        workflows.append(new)
+
     if options.command == "gui":
         from abipy.gui.workflow_viewer import wxapp_workflow_viewer
 

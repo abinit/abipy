@@ -5,14 +5,14 @@ import wx
 import time
 
 import abipy.gui.awx as awx
-
-from collections import OrderedDict
-from abipy.gui.events import AbinitEventsFrame, AbinitEventsNotebookFrame
-from abipy.gui.browser import FileListFrame, viewerframe_from_filepath
-from abipy.gui.editor import TextNotebookFrame
 import wx.lib.agw.flatnotebook as fnb
 
+from collections import OrderedDict
 from pymatgen.io.abinitio.launcher import PyLauncher 
+from abipy.gui.events import AbinitEventsFrame, AbinitEventsNotebookFrame
+from abipy.gui.timer import MultiTimerFrame
+from abipy.gui.browser import FileListFrame, viewerframe_from_filepath
+from abipy.gui.editor import TextNotebookFrame
 
 ID_SHOW_INPUTS = wx.NewId()
 ID_SHOW_OUTPUTS = wx.NewId()
@@ -317,13 +317,11 @@ class WorkflowViewerFrame(awx.Frame):
         frame.Show()
 
     def OnShowTimers(self, event):
-        # TODO: build a frame for analyzing multiple timers.
         work = self.GetSelectedWork() 
         if work is None: return
         timers = work.parse_timers()
-        timers.show_efficiency()
-        #frame = AbinitEventsNotebookFrame(self, [task.log_file.path for task in work])
-        #frame.Show()
+        # build the frame for analyzing multiple timers.
+        MultiTimerFrame(self, timers).Show()
 
 
 class Notebook(fnb.FlatNotebook):

@@ -1,12 +1,14 @@
 from __future__ import print_function, division
 
 import sys
-import warnings
 import collections
 import numpy as np
 
 from abipy.tools.numtools import minloc, alternate
 from abipy.tools import pprint_table, is_string, list_strings
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class AbinitTimerParserError(Exception):
@@ -54,7 +56,7 @@ class AbinitTimerParser(collections.Iterable):
             try:
                 fh = open(fname)
             except IOError:
-                warnings.warn("Cannot open file %s" % fname)
+                logger.warning("Cannot open file %s" % fname)
                 continue
 
             try:
@@ -62,7 +64,7 @@ class AbinitTimerParser(collections.Iterable):
                 read_ok.append(fname)
 
             except self.Error as e:
-                warnings.warn(str(e))
+                logger.warning("exception while parsing file %s :\n%s" (fname, str(e)))
                 continue
 
             finally:
@@ -260,7 +262,7 @@ class AbinitTimerParser(collections.Iterable):
         if "g" in what:
             good = peff.good_sections(key=key, nmax=nmax)
             for g in good:
-            #print g, peff[g]
+                #print(g, peff[g])
                 yy = peff[g][key]
                 line, = ax.plot(xx, yy, "-->", linewidth=3.0, markersize=10)
                 lines.append(line)
@@ -270,7 +272,7 @@ class AbinitTimerParser(collections.Iterable):
         if "b" in what:
             bad = peff.bad_sections(key=key, nmax=nmax)
             for b in bad:
-            #print b, peff[b]
+                #print(b, peff[b])
                 yy = peff[b][key]
                 line, = ax.plot(xx, yy, "-.<", linewidth=3.0, markersize=10)
                 lines.append(line)
@@ -358,7 +360,7 @@ class AbinitTimerParser(collections.Iterable):
 
         names.append("others (nmax = %d)" % nmax)
         values.append(rest)
-        #for (n, vals) in zip(names, values): print n, vals
+        #for (n, vals) in zip(names, values): print(n, vals)
 
         # The dataset is stored in values.
         # Now create the stacked histogram.
@@ -429,8 +431,6 @@ class AbinitTimerParser(collections.Iterable):
 
         return 1
 
-######################################################################
-
 
 class ParallelEfficiency(dict):
     def __init__(self, filenames, ref_idx, *args, **kwargs):
@@ -454,7 +454,7 @@ class ParallelEfficiency(dict):
             # Ignore values where we had a division by zero.
             if all([v != -1 for v in peff[key]]):
                 values = peff[key][:]
-                #print sect_name, values
+                #print(sect_name, values)
                 if len(values) > 1:
                     ref_value = values.pop(self._ref_idx)
                     assert ref_value == 1.0
@@ -486,8 +486,6 @@ class ParallelEfficiency(dict):
     def bad_sections(self, key="wall_time", criterion="mean", nmax=5):
         bad_sections = self._order_by_peff(key, criterion=criterion, reverse=False)
         return bad_sections[:nmax]
-
-######################################################################
 
 
 class AbinitTimerSection(object):
@@ -537,8 +535,6 @@ class AbinitTimerSection(object):
         string = ""
         for a in AbinitTimerSection.FIELDS: string += a + " = " + self.__dict__[a] + ","
         return string[:-1]
-
-######################################################################
 
 
 class AbinitTimer(object):
@@ -751,9 +747,13 @@ class AbinitTimer(object):
 
         return plt.pie(vals, explode=None, labels=labels, autopct='%1.1f%%', shadow=True)
 
-    def scatter_hist(self):
+    def scatter_hist(self, **kwargs):
         import matplotlib.pyplot as plt
         from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+        title = kwargs.pop("title", None)
+        show = kwargs.pop("show", True)
+        savefig = kwargs.pop("savefig", None)
 
         x = np.asarray(self.get_values("cpu_time"))
         y = np.asarray(self.get_values("wall_time"))
@@ -798,9 +798,17 @@ class AbinitTimer(object):
                 axHisty.set_xticks([0, 50, 100])
 
         plt.draw()
-        plt.show()
+
+        if show:
+            plt.show()
+
+        if savefig:
+            fig.savefig(savefig)
+
+        return fig
 
 
+# TODO: remove this function. now we use wxpython or python scripts 
 def build_timer_parser(arg_parser=None, *args, **kwargs):
     if arg_parser is None:
         from argparse import ArgumentParser

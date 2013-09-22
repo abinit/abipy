@@ -6,11 +6,9 @@ import abipy.data as data
 import abipy.abilab as abilab
 
 
-def make_input():
-    structure = data.structure_from_ucell("si")
-
+def make_base_input():
     inp = abilab.AbiInput(pseudos=data.pseudos("14si.pspnc"))
-    inp.set_structure(structure)
+    inp.set_structure(data.structure_from_ucell("si"))
 
     # Global variables
     global_vars = dict(ecut=18,
@@ -26,82 +24,80 @@ def make_input():
     # Simple GS run.
     inp.set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
     inp.tolvrs = 1e-8
+
     return inp
 
 
-class AbinitBenchmark(object):
+def build_abinit_benchmark(workdir, base_input, max_ncpus, manager):
+    """
+    Initialize the benchmark
 
-    def __init__(self, workdir, base_input, max_ncpus, manager):
-        """
-        Initialize the benchmark
+    Args:
+        workdir:
+            Working directory. 
+        base_input:
+            Initial `AbinitInput`. It will be modified by adding the 
+            parameters reported by autoparal (if any).
+        max_ncpus:
+            Maximum number of CPUs that can be used to run each task of the workflow.
+            This parameter will be used to get the autoparal configurations.
+        manager:
+            `TaskManager` object.
+    """
 
-        Args:
-            workdir:
-                Working directory. 
-            base_input:
-                Initial `AbinitInput`. It will be modified by adding the 
-                parameters reported by autoparal (if any).
-            max_ncpus:
-                Maximum number of CPUs that can be used to run each task of the workflow.
-                This parameter will be used to get the autoparal configurations.
-            manager:
-                `TaskManager` object.
-        """
-        self.workdir = os.path.abspath(workdir)
-        self.base_input = base_input
-        self.manager = manager
-        self.max_ncpus = max_ncpus
+    # Build a temporary workflow just to run ABINIT to get the autoparal configurations.
+    simple_manager = manager.to_shell_manager(mpi_ncpus=1, policy=dict(autoparal=1, max_ncpus=max_ncpus))
+    print(simple_manager)
 
-        # Build a temporary workflow just to run ABINIT to get the autoparal configurations.
-        simple_manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=dict(autoparal=1, max_ncpus=max_ncpus))
-        #print(simple_manager)
+    w = abilab.Workflow(workdir=os.path.join(workdir, "autoparal_run"), manager=simple_manager)
+    w.register(base_input)
+    w.build()
 
-        w = abilab.Workflow(workdir=os.path.join(self.workdir, "autoparal_run"), manager=simple_manager)
-        w.register(self.base_input)
+    # Get the configurations suggested by autoparal.
+    auto_confs = simple_manager.autoparal(w[0])
+    #w.rmtree()
 
-        # Get the configurations suggested by autoparal.
-        self.confs = simple_manager.autoparal(w[0])
-        w.rmtree()
+    if auto_confs is None:
+        raise ValueError("autoparal returned None")
 
-        if self.confs is None:
-            raise ValueError("autoparal returned None")
-        print(self.confs)
+    # Select the configurations with reasonable efficiency.
+    #for constraint in constraints:
+    #    auto_confs.filter(constraint)
 
-        # Select the configurations with reasonable efficiency.
-        #self.confs = ["ciao", "bello"] #confs
+    #if not auto_confs:
+    #    raise ValueError("Empty set of autoparal configurations.")
 
-        # Build the final workflow using the autoparal configurations selected above.
-        self.work = work = abilab.Workflow(self.workdir, simple_manager)
+    print(auto_confs)
 
-        for i, conf in enumerate(self.confs):
-            # Set the number of MPI nodes.
-            new_manager = self.manager.deepcopy()
-            print("new_manager",new_manager.policy)
+    work = abilab.Workflow(workdir=workdir, manager=simple_manager)
 
-            new_manager.set_mpi_ncpus(conf.mpi_ncpus)
+    # Build the final workflow using the autoparal configurations selected above.
+    for i, conf in enumerate(auto_confs):
+        # Set the number of MPI nodes.
+        new_manager = manager.deepcopy()
+        print("new_manager:", new_manager.policy)
 
-            #new_manager.set_omp_ncpus(conf.omp_ncpus)
-            # Change the number of OpenMP threads.
-            #if optimal.omp_ncpus > 1:
-            #    self.qadapter.set_omp_ncpus(optimal.omp_ncpus)
-            #else:
-            #    self.qadapter.disable_omp()
-            #print(new_manager)
+        new_manager.set_mpi_ncpus(conf.mpi_ncpus)
 
-            new_input = self.base_input.deepcopy()
-            new_input.set_variables(**conf.vars)
-            #print(new_input)
+        #new_manager.set_omp_ncpus(conf.omp_ncpus)
+        # Change the number of OpenMP threads.
+        #if optimal.omp_ncpus > 1:
+        #    self.qadapter.set_omp_ncpus(optimal.omp_ncpus)
+        #else:
+        #    self.qadapter.disable_omp()
+        #print(new_manager)
 
-            work.register(new_input, manager=new_manager)
+        new_input = base_input.deepcopy()
+        new_input.set_variables(**conf.vars)
+        #print(new_input)
 
-    def build_and_pickle_dump(self):
-       self.work.build_and_pickle_dump()
+        work.register(new_input, manager=new_manager)
 
-    #def __str__(self):
+    return work
 
 
 def main():
-    base_input = make_input()
+    base_input = make_base_input()
 
     max_ncpus = 2
     policy=dict(autoparal=0, max_ncpus=max_ncpus)
@@ -111,9 +107,6 @@ def main():
            ntasks=2,
            #partition="hmem",
            time="0:20:00",
-           #account='nobody@nowhere.org',
-           #ntasks_per_node=None,
-           #cpus_per_task=None,
        ),
        #setup="SetEnv intel13_intel",
        modules = ["intel/compilerpro/13.0.1.117", "fftw3/intel/3.3"],
@@ -128,7 +121,7 @@ def main():
 
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=2, policy=policy)
 
-    benchmark = AbinitBenchmark("hello", base_input, max_ncpus=max_ncpus, manager=manager)
+    benchmark = build_abinit_benchmark("hello", base_input, max_ncpus=max_ncpus, manager=manager)
     print(benchmark)
 
     benchmark.build_and_pickle_dump()
