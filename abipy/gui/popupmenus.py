@@ -15,6 +15,7 @@ from abipy.electrons import SIGRES_File, GSR_File
 from abipy.electrons.bse import MDF_File
 from .events import AbinitEventsFrame
 from .timer import AbinitTimerFrame
+from .editor import SimpleTextViewer
 
 
 __all__ = [
@@ -46,11 +47,12 @@ def popupmenu_for_filename(parent, filename):
 def showNcdumpMessage(parent, filepath):
     """Open a dialog with the output of ncdump."""
     title = "ncdump output for file %s" % filepath
-    msg = NcDumper().dump(filepath)
-    frame = wx.Frame(parent, -1, title=title)
-    panel = wx.Panel(frame, -1)
-    text = wx.TextCtrl(panel, -1, msg, style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
-    frame.Show()
+    text = NcDumper().dump(filepath)
+    SimpleTextViewer(parent, text, title=title).Show()
+    #frame = wx.Frame(parent, -1, title=title)
+    #panel = wx.Panel(frame, -1)
+    #text = wx.TextCtrl(panel, -1, text, style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
+    #frame.Show()
 
 def showFileStat(parent, filepath):
     """Open a dialog reporting file stats."""
