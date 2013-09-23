@@ -17,14 +17,16 @@ def main():
     tester = Tester()
     manager = tester.make_manager()
 
-    task = abilab.AbinitTask.from_input(inp, tester.workdir, manager)
+    work = abilab.Workflow(tester.workdir, manager)
+    work.register(inp)
 
-    tester.set_work_and_run(task)
+    tester.set_work_and_run(work)
 
     if tester.retcode != 0:
         return tester.retcode
 
     # Remove all files except those matching these regular expression.
+    task = work[0]
     task.rmtree(exclude_wildcard="*.abi|*.abo|*SIGRES.nc")
 
     task.rename("out_DS4_SIGRES.nc", "si_g0w0ppm_nband10_SIGRES.nc")
@@ -67,7 +69,8 @@ def make_input(ngkpt):
     )
 
     # Global variables. gw_kmesh is used in all datasets except DATASET 1.
-    inp.ecut = 6
+    ecut = 6
+    inp.ecut = ecut
     inp.timopt = -1
     inp.istwfk = "*1"
     inp.set_kmesh(dtset=0, **gw_kmesh)
@@ -91,7 +94,7 @@ def make_input(ngkpt):
         optdriver=3,   
         getkss=2,      
         nband=25,    
-        ecutwfn=inp.ecut,   
+        ecutwfn=ecut,   
         symchi=1,
         inclvkb=0,
         ecuteps=4.0,    
@@ -118,7 +121,7 @@ def make_input(ngkpt):
             getkss=2,      
             getscr=3,     
             nband=nband,      
-            ecutwfn=inp.ecut,
+            ecutwfn=ecut,
             ecuteps=4.0,
             ecutsigx=6.0,
             symsigma=1,

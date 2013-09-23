@@ -1,19 +1,18 @@
 #!/usr/bin/env python
 from __future__ import division, print_function
 
+from abipy import abilab
 import abipy.data as data  
 
 from pymatgen.io.abinitio.abiobjects import AbiStructure
-from pymatgen.io.abinitio.pseudos import PseudoTable
 from pymatgen.io.abinitio.calculations import bse_with_mdf
 from abipy.data.runs import Tester
 
 
 def main():
-    return 0
-    structure = AbiStructure.asabistructure(data.cif_file("si.cif"))
-
-    pseudos = PseudoTable(data.pseudos("14si.pspnc"))
+    #return 0
+    pseudos = data.pseudos("14si.pspnc")
+    structure = abilab.Structure.from_file(data.cif_file("si.cif"))
 
     tester = Tester()
     manager = tester.make_manager()
