@@ -3,10 +3,9 @@ from __future__ import print_function, division
 
 import sys
 import os
-import fnmatch
 
 from string import maketrans, punctuation
-from pymatgen.util.string_utils import is_string, list_strings, pprint_table
+from pymatgen.util.string_utils import is_string, list_strings, pprint_table, WildCard
 
 
 _TABLE = maketrans("", "")
@@ -89,59 +88,3 @@ def marquee(text="", width=78, mark='*'):
 
     marks = mark * nmark
     return '%s %s %s' % (marks, text, marks)
-
-
-class WildCard(object):
-    """
-    This object provides an easy-to-use interface for
-    filename matching with shell patterns (fnmatch).
-
-    .. example:
-
-    >>> w = WildCard("*.nc|*.pdf")
-    >>> w.filter(["foo.nc", "bar.pdf", "hello.txt"])
-    ['foo.nc', 'bar.pdf']
-
-    >>> w.filter("foo.nc")
-    ['foo.nc']
-    """
-    def __init__(self, wildcard, sep="|"):
-        """
-        Args:
-            wildcard:
-                String of tokens separated by sep.
-                Each token represents a pattern.
-            sep:
-                Separator for shell patterns.
-        """
-        self.pats = ["*"]
-        if wildcard:
-            self.pats = wildcard.split(sep)
-
-    def __str__(self):
-        return "<%s, patters = %s>" % (self.__class__.__name__, self.pats)
-
-    def filter(self, filenames): 
-        """
-        Return a list with the filenames matching the pattern.
-        """
-
-        filenames = list_strings(filenames)
-
-        fnames = []
-        for f in filenames:
-            for pat in self.pats:
-                if fnmatch.fnmatch(f, pat):
-                    fnames.append(f)
-
-        return fnames
-
-    def match(self, filename):
-        """
-        Return True if filename matches.
-        """
-        for pat in self.pats:
-            if not fnmatch.fnmatch(filename, pat):
-                return False
-
-        return True
