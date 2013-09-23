@@ -39,7 +39,7 @@ def treat_workflow(work, options):
 
     # Recompute the status of each task since tasks that
     # have been submitted previously might be completed.
-    work.recheck_status()
+    work.check_status()
 
     # Dispatch.
     if options.command in ["single", "singleshot"]:
@@ -172,7 +172,7 @@ def main():
         from abipy.gui.workflow_viewer import wxapp_workflow_viewer
 
         for work in workflows:
-            work.recheck_status()
+            work.check_status()
 
         wxapp_workflow_viewer(workflows).MainLoop()
 

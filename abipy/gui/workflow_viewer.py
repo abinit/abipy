@@ -12,7 +12,7 @@ from pymatgen.io.abinitio.launcher import PyLauncher
 from abipy.gui.events import AbinitEventsFrame, AbinitEventsNotebookFrame
 from abipy.gui.timer import MultiTimerFrame
 from abipy.gui.browser import FileListFrame, viewerframe_from_filepath
-from abipy.gui.editor import TextNotebookFrame
+from abipy.gui.editor import TextNotebookFrame, SimpleTextViewer
 
 ID_SHOW_INPUTS = wx.NewId()
 ID_SHOW_OUTPUTS = wx.NewId()
@@ -22,14 +22,14 @@ ID_BROWSE = wx.NewId()
 ID_SHOW_MAIN_EVENTS = wx.NewId()
 ID_SHOW_LOG_EVENTS = wx.NewId()
 ID_SHOW_TIMERS = wx.NewId()
-ID_RECHECK_STATUS = wx.NewId()
+ID_CHECK_STATUS = wx.NewId()
 
 
 class WorkflowViewerFrame(awx.Frame):
     VERSION = "0.1"
 
     # Time in second after which we check the status of the tasks.
-    REFRESH_INTERVAL = 5
+    REFRESH_INTERVAL = 10
 
     def __init__(self, parent, workflows, **kwargs):
         """
@@ -83,7 +83,7 @@ class WorkflowViewerFrame(awx.Frame):
         toolbar.AddSimpleTool(ID_SHOW_TIMERS, wx.Bitmap(awx.path_img("log_evt.png")), "Show the ABINIT timers in the abo files.")
 
         toolbar.AddSeparator()
-        toolbar.AddSimpleTool(ID_RECHECK_STATUS, wx.Bitmap(awx.path_img("log_evt.png")), "Check the status of the workflow(s).")
+        toolbar.AddSimpleTool(ID_CHECK_STATUS, wx.Bitmap(awx.path_img("log_evt.png")), "Check the status of the workflow(s).")
 
         #toolbar.AddSeparator()
         self.toolbar.Realize()
@@ -104,7 +104,7 @@ class WorkflowViewerFrame(awx.Frame):
             (ID_SHOW_MAIN_EVENTS, self.OnShowMainEvents),
             (ID_SHOW_LOG_EVENTS, self.OnShowLogEvents),
             (ID_SHOW_TIMERS, self.OnShowTimers),
-            (ID_RECHECK_STATUS, self.OnCheckStatusButton),
+            (ID_CHECK_STATUS, self.OnCheckStatusButton),
         ]
 
         for combo in menu_handlers:
@@ -189,7 +189,7 @@ class WorkflowViewerFrame(awx.Frame):
 
     def OnIdle(self, event):
         now = time.time()
-        if now - self.last_refresh > self.REFRESH_INTERVAL:
+        if (now - self.last_refresh) > self.REFRESH_INTERVAL:
             self.CheckStatusAndRedraw()
             self.last_refresh = time.time()
 
@@ -198,8 +198,9 @@ class WorkflowViewerFrame(awx.Frame):
 
     def CheckStatusAndRedraw(self):
         self.statusbar.PushStatusText("Checking status...")
+
         for work in self.workflows:
-            work.recheck_status()
+            work.check_status()
 
         # Cound the number of tasks with given status.
         counter = self.workflows[0].status_counter()
@@ -413,7 +414,6 @@ class TaskListCtrl(wx.ListCtrl):
 
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
-        #self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected)
 
     def OnRightClick(self, event):
         currentItem = event.m_itemIndex
@@ -429,27 +429,11 @@ class TaskListCtrl(wx.ListCtrl):
 
     def OnItemActivated(self, event):
         currentItem = event.m_itemIndex
-        print("In OnItemActivated with currentItem %s" % str(currentItem))
+        #print("In OnItemActivated with currentItem %s" % str(currentItem))
         task = self.work[currentItem]
 
         if task.can_run:
             task.start()
-
-    #def OnItemSelected(self, event):
-    #    indices = [self.file_list.GetFirstSelected()]
-    #    while indices[-1] != -1:
-    #        indices.append(self.file_list.GetNextSelected(indices[-1]))
-    #    indices = indices[:-1]
-    #    print("in OnItemSelected with indices:", indices)
-
-    #    # Plot multiple bands
-    #    if len(indices) > 1:
-    #        for index in indices:
-
-    #def GetTask(self):
-    #    """Returns the Task selected by the user."""
-    #    task_idx = int(self.GetFirstSelected())
-    #    return self.work[task_idx]
 
 
 # Callbacks 
@@ -496,6 +480,11 @@ def browse_outdir(parent, task):
     FileListFrame(parent, dirpaths=task.outdata_dir).Show()
 
 
+def show_history(parent, task):
+    text = "\n".join(task.history)
+    SimpleTextViewer(parent, text).Show()
+
+
 class TaskPopupMenu(wx.Menu):
     """
     A `TaskPopupMenu` has a list of callback functions indexed by the menu title. 
@@ -509,6 +498,7 @@ class TaskPopupMenu(wx.Menu):
         ("main events", show_task_main_events),
         ("log events",  show_task_log_events),
         ("browse outdir", browse_outdir),
+        ("history", show_history),
     ])
 
     def __init__(self, parent, task):
@@ -538,7 +528,6 @@ class TaskPopupMenu(wx.Menu):
         #print("Calling callback %s on task %s" % (callback, self.task))
         try:
             callback(self.parent, self.task)
-
         except:
             awx.showErrorMessage(parent=self.parent)
 
