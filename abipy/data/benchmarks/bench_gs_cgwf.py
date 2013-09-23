@@ -29,7 +29,7 @@ def make_base_input():
     return inp
 
 
-def build_abinit_benchmark(workdir, base_input, max_ncpus, manager):
+def build_abinit_benchmark(workdir, base_input, manager):
     """
     Build an `AbinitWorkflow` used for benchmarking ABINIT.
 
@@ -39,15 +39,13 @@ def build_abinit_benchmark(workdir, base_input, max_ncpus, manager):
         base_input:
             Initial `AbinitInput` that will be modified by adding the 
             parameters reported by autoparal (if any).
-        max_ncpus:
-            Maximum number of CPUs that can be used to run each task of the workflow.
-            This parameter will be used to get the autoparal configurations.
         manager:
             `TaskManager` object.
 
     Return
         `AbinitWorflow` object.
     """
+    max_ncpus = manager.policy.max_ncpus
 
     # Build a temporary workflow just to run ABINIT to get the autoparal configurations.
     simple_manager = manager.to_shell_manager(mpi_ncpus=1, policy=dict(autoparal=1, max_ncpus=max_ncpus))
@@ -77,7 +75,6 @@ def build_abinit_benchmark(workdir, base_input, max_ncpus, manager):
 
     # Build the final workflow using the autoparal configurations selected above.
     for i, conf in enumerate(auto_confs):
-
         new_manager = manager.deepcopy()
 
         # Change the number of MPI nodes
@@ -86,7 +83,8 @@ def build_abinit_benchmark(workdir, base_input, max_ncpus, manager):
         # Change the number of OpenMP threads.
         #new_manager.set_omp_ncpus(conf.omp_ncpus)
 
-        print("new_manager:", new_manager.policy)
+        #print("new_manager.policy", new_manager.policy)
+        #print("new_manager.policy", new_manager.policy)
 
         # Change the ABINIT input.
         new_input = base_input.deepcopy()
@@ -100,13 +98,12 @@ def build_abinit_benchmark(workdir, base_input, max_ncpus, manager):
 def main():
     base_input = make_base_input()
 
-    max_ncpus = 2
-    policy=dict(autoparal=0, max_ncpus=max_ncpus)
+    policy=dict(autoparal=0, max_ncpus=2)
 
-    manager = abilab.TaskManager.simple_mpi(mpi_ncpus=2, policy=policy)
+    manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=policy)
     #manager = abilab.TaskManager.from_file("taskmanager.yaml")
 
-    benchmark = build_abinit_benchmark("hello", base_input, max_ncpus=max_ncpus, manager=manager)
+    benchmark = build_abinit_benchmark("hello", base_input, manager=manager)
     print(benchmark)
 
     benchmark.build_and_pickle_dump()
