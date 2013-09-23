@@ -35,7 +35,7 @@ def build_abinit_benchmark(workdir, base_input, manager):
     if auto_confs is None:
         raise ValueError("autoparal returned None")
 
-    w.rmtree()
+    #w.rmtree()
 
     # Select the configurations with reasonable efficiency.
     #for constraint in constraints:

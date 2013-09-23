@@ -16,7 +16,7 @@ def make_base_input():
                        nsppol=1,
                        nband=20,
                        timopt=-1,
-                       paral_kgb=0,
+                       paral_kgb=1,
                        chksymbreak=0,
                        prtwf=0
                        #accesswff=3,
@@ -25,17 +25,18 @@ def make_base_input():
     inp.set_variables(**global_vars)
 
     # Simple GS run.
-    inp.set_kmesh(ngkpt=[4,4,4], shiftk=[0,0,0])
-    #inp.set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
+    #inp.set_kmesh(ngkpt=[4,4,4], shiftk=[0,0,0])
+    inp.set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
     #inp.set_kmesh(ngkpt=[12,12,12], shiftk=[0.1,0.2,0.3])
     inp.tolvrs = 1e-8
 
     return inp
 
 def main():
+    max_ncpus = 10
     base_input = make_base_input()
 
-    policy = dict(autoparal=0, max_ncpus=2)
+    policy = dict(autoparal=0, max_ncpus=10)
 
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=policy)
     #manager = abilab.TaskManager.from_file("taskmanager.yaml")
