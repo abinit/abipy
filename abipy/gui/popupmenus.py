@@ -15,7 +15,7 @@ from abipy.electrons import SIGRES_File, GSR_File
 from abipy.electrons.bse import MDF_File
 from .events import AbinitEventsFrame
 from .timer import AbinitTimerFrame
-from .editor import SimpleTextViewer
+from .editor import SimpleTextViewer, AbinitEditorFrame
 
 
 __all__ = [
@@ -48,11 +48,9 @@ def showNcdumpMessage(parent, filepath):
     """Open a dialog with the output of ncdump."""
     title = "ncdump output for file %s" % filepath
     text = NcDumper().dump(filepath)
-    SimpleTextViewer(parent, text, title=title).Show()
-    #frame = wx.Frame(parent, -1, title=title)
-    #panel = wx.Panel(frame, -1)
-    #text = wx.TextCtrl(panel, -1, text, style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
-    #frame.Show()
+    # TODO: Get a decent wxpython editor somewhere
+    #SimpleTextViewer(parent, text, title=title).Show()
+    AbinitEditorFrame.from_text(parent, text, title=title).Show()
 
 def showFileStat(parent, filepath):
     """Open a dialog reporting file stats."""

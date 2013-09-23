@@ -27,10 +27,16 @@ class AbinitEditorFrame(EditorFrame):
 
         super(AbinitEditorFrame, self).__init__(parent, filename=filename, **kwargs)
 
-        #self.editor = Editor(self)
-        #with open(filename , "r") as fh:
-        #    self.editor.setText(fh.read())
-        #EditorFrame.__init__(self, parent=parent, filename=filename, **kwargs)
+    @classmethod
+    def from_text(cls, parent, text, **kwargs):
+        # Hack so that we can open a string in the Editor.
+        import tempfile
+        fd, filename = tempfile.mkstemp(text=True)
+
+        with open(filename, "w") as fh:
+            fh.write(text)
+
+        return cls(parent, filename, **kwargs)
 
 
 class TextNotebookFrame(awx.Frame):
