@@ -103,25 +103,8 @@ def main():
     max_ncpus = 2
     policy=dict(autoparal=0, max_ncpus=max_ncpus)
 
-    manager = abilab.TaskManager(qtype="slurm",
-       qparams=dict(
-           ntasks=2,
-           #partition="Oban",
-           time="0:20:00",
-       ),
-       #setup="SetEnv intel13_intel",
-       modules = ["intel/compilerpro/13.0.1.117", "fftw3/intel/3.3"],
-       shell_env=dict(
-         PATH=("/home/naps/ygillet/NAPS/src/abinit-7.4.3-public/tmp_intel13/src/98_main/:" +
-               "/home/naps/ygillet/NAPS/intel13/bin:$PATH"),
-         LD_LIBRARY_PATH="/home/naps/ygillet/NAPS/intel13/lib:$LD_LIBRARY_PATH",
-       ),
-       mpi_runner="mpirun",
-       policy=policy
-    )
-
-    #manager = abilab.TaskManager.from_file("taskmanager.yaml")
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=2, policy=policy)
+    #manager = abilab.TaskManager.from_file("taskmanager.yaml")
 
     benchmark = build_abinit_benchmark("hello", base_input, max_ncpus=max_ncpus, manager=manager)
     print(benchmark)
