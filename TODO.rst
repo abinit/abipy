@@ -13,7 +13,7 @@ TODO List
    to the one reported in the WFK file so that the two files can be used for plotting band structures 
    and other types of post-processing 
 
-#. ecut is not reported in the GSR file.
+#. ecut is not reported in the GSR file. Similar problem for the k-sampling (see SIGRES.nc)
 
 #. Move unit conversion to NetcdfReader e.g reader.read_value(varname, unit=None)
 
