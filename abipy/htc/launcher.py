@@ -100,13 +100,6 @@ class LauncherArgParser(ArgumentParser):
 
         self.register_subparser("visualize", p_visu)
 
-        p_time = self.subparsers.add_parser('time', help='Visualize elapsed time and timer data. Requires timopt != 0')
-
-        from .abitimer import build_timer_parser
-        p_time = build_timer_parser(p_time)
-
-        self.register_subparser("time", p_time)
-
     def myparse_args(self, args=None, namespace=None):
         """
         Wrap the parse_args method of ArgumentParsers

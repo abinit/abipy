@@ -25,7 +25,7 @@ class AbinitTimerParser(collections.Iterable):
 
     Error = AbinitTimerParserError
 
-    #self._default_mpi_rank = "0"
+    #DEFAULT_MPI_RANK = "0"
 
     def __init__(self):
         # List of files that have been parsed.
@@ -284,7 +284,7 @@ class AbinitTimerParser(collections.Iterable):
             lines.append(total_line)
             legend_entries.append("total")
 
-        ax.legend(lines, legend_entries, 'lower left', shadow=True)
+        ax.legend(lines, legend_entries, loc="best", shadow=True)
 
         ax.set_title('Parallel efficiency')
         ax.set_xlabel('Total_NCPUs')
@@ -390,7 +390,7 @@ class AbinitTimerParser(collections.Iterable):
         plt.xticks(ind + width / 2.0, labels, rotation=15)
         #plt.yticks(np.arange(0,81,10))
 
-        plt.legend([bar[0] for bar in bars], names)
+        plt.legend([bar[0] for bar in bars], names, loc="best")
 
         if show:
             plt.show()
@@ -400,36 +400,6 @@ class AbinitTimerParser(collections.Iterable):
             fig.savefig(savefig)
 
         return fig
-
-    def main(self, *args, **kwargs):
-
-        defv = False
-        if kwargs.get("efficiency", defv):
-            self.show_efficiency()
-
-        if kwargs.get("pie", defv):
-            self.show_pie()
-
-        nolines = int(kwargs.get("table", 0))
-        if nolines:
-            for timer in self.timers():
-                table = timer.totable(stop=table)
-                c = "*"
-                print(80 * c + "\n" + str(timer) + "\n" + 80 * c + "\n")
-                pprint_table(timer.totable(stop=nolines))
-                print(80 * c + "\n")
-
-        if kwargs.get("csv", False):
-            for timer in self.timers(): timer.tocsv()
-
-        if kwargs.get("histogram", defv):
-            for timer in self.timers(): timer.hist2()
-            #for timer in self.timers(): timer.cpuwall_histogram(title=timer.fname)
-
-        if kwargs.get("stacked_histogram", defv):
-            self.show_stacked_hist()
-
-        return 1
 
 
 class ParallelEfficiency(dict):
@@ -518,17 +488,17 @@ class AbinitTimerSection(object):
         self.ncalls = int(ncalls)
         self.gflops = float(gflops)
 
-    def totuple(self):
+    def to_tuple(self):
         return tuple([self.__dict__[at] for at in AbinitTimerSection.FIELDS])
 
-    def tocsvline(self, with_header=False):
+    def to_csvline(self, with_header=False):
         """Return a string with data in CSV format"""
         string = ""
 
         if with_header:
             string += "# " + " ".join([at for at in AbinitTimerSection.FIELDS]) + "\n"
 
-        string += ", ".join([str(v) for v in self.totuple()]) + "\n"
+        string += ", ".join([str(v) for v in self.to_tuple()]) + "\n"
         return string
 
     def __str__(self):
@@ -576,7 +546,7 @@ class AbinitTimer(object):
         assert sect.name == section_name
         return sect
 
-    def tocsv(self, fileobj=sys.stdout):
+    def to_csv(self, fileobj=sys.stdout):
         """Write data on file fileobj using CSV format."""
         openclose = is_string(fileobj)
 
@@ -584,7 +554,7 @@ class AbinitTimer(object):
             fileobj = open(fileobj, "w")
 
         for (idx, section) in enumerate(self.sections):
-            fileobj.write(section.tocsvline(with_header=(idx == 0)))
+            fileobj.write(section.to_csvline(with_header=(idx == 0)))
         fileobj.flush()
 
         if openclose:
@@ -599,7 +569,7 @@ class AbinitTimer(object):
             ord_sections = ord_sections[:stop]
 
         for osect in ord_sections:
-            row = [str(item) for item in osect.totuple()]
+            row = [str(item) for item in osect.to_tuple()]
             table.append(row)
 
         return table
@@ -707,7 +677,7 @@ class AbinitTimer(object):
         ticks = self.get_values("name")
         plt.xticks(ind + width, ticks)
 
-        plt.legend((rects1[0], rects2[0]), ('CPU', 'Wall'))
+        plt.legend((rects1[0], rects2[0]), ('CPU', 'Wall'), loc="best")
 
         if show:
             plt.show()
@@ -717,27 +687,27 @@ class AbinitTimer(object):
 
         return fig
 
-    def hist2(self, key1="wall_time", key2="cpu_time"):
+    #def hist2(self, key1="wall_time", key2="cpu_time"):
 
-        labels = self.get_values("name")
-        vals1, vals2 = self.get_values([key1, key2])
+    #    labels = self.get_values("name")
+    #    vals1, vals2 = self.get_values([key1, key2])
 
-        N = len(vals1)
-        assert N == len(vals2)
+    #    N = len(vals1)
+    #    assert N == len(vals2)
 
-        plt.figure(1)
-        plt.subplot(2, 1, 1) # 2 rows, 1 column, figure 1
+    #    plt.figure(1)
+    #    plt.subplot(2, 1, 1) # 2 rows, 1 column, figure 1
 
-        n1, bins1, patches1 = plt.hist(vals1, N, facecolor="m")
-        plt.xlabel(labels)
-        plt.ylabel(key1)
+    #    n1, bins1, patches1 = plt.hist(vals1, N, facecolor="m")
+    #    plt.xlabel(labels)
+    #    plt.ylabel(key1)
 
-        plt.subplot(2, 1, 2)
-        n2, bins2, patches2 = plt.hist(vals2, N, facecolor="y")
-        plt.xlabel(labels)
-        plt.ylabel(key2)
+    #    plt.subplot(2, 1, 2)
+    #    n2, bins2, patches2 = plt.hist(vals2, N, facecolor="y")
+    #    plt.xlabel(labels)
+    #    plt.ylabel(key2)
 
-        plt.show()
+    #    plt.show()
 
     def pie(self, key="wall_time", minfract=0.05, title=None):
         import matplotlib.pyplot as plt
@@ -806,31 +776,3 @@ class AbinitTimer(object):
             fig.savefig(savefig)
 
         return fig
-
-
-# TODO: remove this function. now we use wxpython or python scripts 
-def build_timer_parser(arg_parser=None, *args, **kwargs):
-    if arg_parser is None:
-        from argparse import ArgumentParser
-        # Initialize the parser here (used in standalone scripts).
-        arg_parser = ArgumentParser(*args, **kwargs)
-
-    arg_parser.add_argument("--csv", action="store_true", default=False,
-                            help="Export data in CVS format")
-
-    arg_parser.add_argument("-e", "--efficiency", action="store_true", default=False,
-                            help="Analyze the parallel efficiency")
-
-    arg_parser.add_argument("-p", "--pie", action="store_true", default=False,
-                            help="Pie histrogram")
-
-    arg_parser.add_argument("-t", "--table", type=int, default=0,
-                            help="Print table with the first t entries")
-
-    arg_parser.add_argument("-y", "--histogram", action="store_true", default=False,
-                            help="Histogram")
-
-    arg_parser.add_argument("-s", "--stacked-histogram", action="store_true", default=False,
-                            help="Stacked Histogram")
-
-    return arg_parser
