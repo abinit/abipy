@@ -20,3 +20,6 @@ TODO List
 #. Write new unit tests for Xcrysden and the other visualizers (move these tools to pymatgen?)
 
 #. Rewrite user profile from scratch. Look at matplotlib rc.
+
+#. Add the fermi level to the DEN file (netcdf and fortran version) so that the NSCF run can read 
+   it and can report this value in the final band structure.
