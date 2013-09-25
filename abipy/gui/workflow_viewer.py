@@ -144,7 +144,7 @@ class WorkflowViewerFrame(awx.Frame):
         hsizer.Add(singleshot_button,  0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
 
         self.all_checkbox = wx.CheckBox(panel, -1, label="All workflows")
-        self.all_checkbox.SetValue(True)
+        self.all_checkbox.SetValue(False)
         hsizer.Add(self.all_checkbox,  0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
 
         main_sizer.Add(hsizer, 0,  wx.ALIGN_CENTER_HORIZONTAL, 5)                                                                                     
@@ -389,7 +389,7 @@ class TaskListCtrl(wx.ListCtrl):
 
         self.work = work
 
-        columns = ["Task", "Status", "Queue_id", "Errors", "Warnings", "Comments", "MPI", "OMP"]
+        columns = ["Task", "Status", "Queue_id", "Errors", "Warnings", "Comments", "MPI", "OMP", "Task Class"]
 
         for (index, col) in enumerate(columns):
             self.InsertColumn(index, col)
@@ -405,7 +405,9 @@ class TaskListCtrl(wx.ListCtrl):
                 pass
 
             cpu_info = [task.mpi_ncpus, task.omp_ncpus]
-            entry = map(str, [task.short_name, task.str_status, task.queue_id] + events + cpu_info)
+            entry = map(str, [task.short_name, task.str_status, task.queue_id] + 
+                              events + cpu_info + [task.__class__.__name__]
+                        )
 
             self.Append(entry)
 
@@ -477,12 +479,19 @@ def show_task_log_events(parent, task):
 
 
 def browse_outdir(parent, task):
-    FileListFrame(parent, dirpaths=task.outdata_dir).Show()
+    FileListFrame(parent, dirpaths=task.outdir.path).Show()
 
 
 def show_history(parent, task):
     text = "\n".join(task.history)
     SimpleTextViewer(parent, text).Show()
+
+
+def task_restart(parent, task):
+    task.restart()
+
+def task_reset(parent, task):
+    task.reset()
 
 
 class TaskPopupMenu(wx.Menu):
@@ -499,6 +508,8 @@ class TaskPopupMenu(wx.Menu):
         ("log events",  show_task_log_events),
         ("browse outdir", browse_outdir),
         ("history", show_history),
+        ("restart", task_restart),
+        ("reset", task_reset),
     ])
 
     def __init__(self, parent, task):

@@ -418,6 +418,10 @@ class ElectronBands(object):
         return self.structure.show_bz(**kwargs)
 
     def copy(self):
+        """Shallow copy of self."""
+        return copy.copy(self)
+
+    def deepcopy(self):
         """Deep copy of self."""
         return copy.deepcopy(self)
 

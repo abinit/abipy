@@ -116,7 +116,8 @@ def raman_workflow(workdir, structure, pseudos, shiftk):
 
     # Register the input for the SCF calculation. 
     # scf_link is the object that describes this node of the workflow.
-    scf_link = work.register(scf_inp)
+    from pymatgen.io.abinitio.task import AbinitScfTask
+    scf_link = work.register(scf_inp, task_class=AbinitScfTask)
 
     # Register the input for the NSCF calculation and tell the workflow
     # that this step depends on the SCF run 
