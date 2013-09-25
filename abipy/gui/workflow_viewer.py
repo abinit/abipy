@@ -143,6 +143,10 @@ class WorkflowViewerFrame(awx.Frame):
         singleshot_button.Bind(wx.EVT_BUTTON, self.OnSingleShotButton)
         hsizer.Add(singleshot_button,  0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
 
+        finalize_button = wx.Button(panel, -1, label='Finalize')
+        finalize_button.Bind(wx.EVT_BUTTON, self.OnFinalizeButton)
+        hsizer.Add(finalize_button,  0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
+
         self.all_checkbox = wx.CheckBox(panel, -1, label="All workflows")
         self.all_checkbox.SetValue(False)
         hsizer.Add(self.all_checkbox,  0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
@@ -179,6 +183,23 @@ class WorkflowViewerFrame(awx.Frame):
             nlaunch += PyLauncher(work).single_shot()
                                                                       
         self.statusbar.PushStatusText("Submitted %d tasks" % nlaunch)
+
+    def OnFinalizeButton(self, event):
+        nlaunch = 0
+                                                                      
+        if self.all_checkbox.GetValue():
+            for work in self.workflows:
+                work.finalize()
+                #work.pickle_dump()
+                nlaunch += 1
+                                                                      
+        else:
+            work = self.GetSelectedWork()
+            work.finalize()
+            #work.pickle_dump()
+            nlaunch += 1
+                                                                      
+        self.statusbar.PushStatusText("Finalized %d workflows" % nlaunch)
 
     def GetSelectedWork(self):
         """
