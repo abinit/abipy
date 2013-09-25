@@ -6,8 +6,10 @@ import abipy.data as data
 
 from pymatgen.io.abinitio.abiobjects import AbiStructure
 from pymatgen.io.abinitio.calculations import g0w0_with_ppmodel
-from abipy.data.runs import Tester
+from abipy.data.runs import Tester, decorate_main
 
+
+@decorate_main
 def main():
     structure = AbiStructure.asabistructure(data.cif_file("si.cif"))
 

@@ -238,10 +238,14 @@ class ElectronBands(object):
     @classmethod
     def from_file(cls, filepath):
         """Initialize an instance of ElectronBands from a netCDF file."""
-        with ElectronsReader(filepath) as r:
-            new = r.read_ebands()
-            assert new.__class__ == cls
-            return new
+        if filepath.endswith(".nc"):
+            with ElectronsReader(filepath) as r:
+                new = r.read_ebands()
+        else:
+            raise NotImplementedError("")
+
+        assert new.__class__ == cls
+        return new
 
     def __repr__(self):
         return self.to_string()

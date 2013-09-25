@@ -7,7 +7,7 @@ import numpy as np
 import abipy.abilab as abilab
 import abipy.data as data  
 
-from abipy.data.runs import Tester
+from abipy.data.runs import Tester, decorate_main
 
 def build_raman_workflows():
     pseudos = data.pseudos("14si.pspnc")
@@ -109,20 +109,20 @@ def raman_workflow(workdir, structure, pseudos, shiftk):
     manager = abilab.TaskManager.from_file("taskmanager.yaml")
 
     policy=dict(autoparal=1, max_ncpus=2)
-    policy=dict(autoparal=0, max_ncpus=2)
+    #policy=dict(autoparal=0, max_ncpus=2)
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=policy)
 
     work = abilab.Workflow(workdir, manager)
 
     # Register the input for the SCF calculation. 
     # scf_link is the object that describes this node of the workflow.
-    from pymatgen.io.abinitio.task import AbinitScfTask
+    from pymatgen.io.abinitio.task import AbinitScfTask, AbinitNscfTask
     scf_link = work.register(scf_inp, task_class=AbinitScfTask)
 
     # Register the input for the NSCF calculation and tell the workflow
     # that this step depends on the SCF run 
     # In this case, the nscf run requires the DEN file produced in the SCF run.
-    nscf_link = work.register(nscf_inp, links=scf_link.produces_exts("_DEN"))
+    nscf_link = work.register(nscf_inp, links=scf_link.produces_exts("_DEN"), task_class=AbinitNscfTask)
 
     # Register the input for the BSE calculation and tell the workflow
     # that this step depends on the NSCF run 
@@ -131,11 +131,9 @@ def raman_workflow(workdir, structure, pseudos, shiftk):
 
     return work
 
+@decorate_main
 def main():
     # Build the list of workflows.
-    import logging
-    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.WARNING)
-
     workflows = build_raman_workflows()
 
     for work in workflows:
