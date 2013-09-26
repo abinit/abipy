@@ -2,6 +2,8 @@
 from __future__ import division, print_function
 
 import os
+import numpy as np
+import yaml
 import abipy.abilab as abilab
 
 
@@ -54,8 +56,8 @@ def build_qptdm_workflow(workdir, manager, scr_input, wfk_file):
     Return
         `QptdmWorflow` object.
     """
-    # Build a temporary workflow with a shell manager just to run 
-    # ABINIT to get the list of q-points for the screening.
+    # Build a temporary workflow with a shell manager just 
+    # to run ABINIT to get the list of q-points for the screening.
     shell_manager = manager.to_shell_manager(mpi_ncpus=1, policy=dict(autoparal=0))
 
     fake_input = scr_input.deepcopy()
@@ -64,8 +66,8 @@ def build_qptdm_workflow(workdir, manager, scr_input, wfk_file):
     w.register(fake_input)
     w.build()
 
-    # Create the symbolic link and add the magic value nqpdm = -1 to 
-    # get the list of q-points
+    # Create the symbolic link and add the magic value 
+    # nqpdm = -1 to get the list of q-points
     fake_task = w[0]
     fake_task.inlink_file(wfk_file)
     fake_task.strategy.add_extra_abivars({"nqptdm": -1})
@@ -116,13 +118,12 @@ def yaml_kpoints(filename, tag="<KPOINTS>"):
 
     s = "".join(l for l in lines[start+1:end])
 
-    import yaml
+
     try:
         d = yaml.load(s)
     except Exception as exc:
         raise ValueError("Malformatted Yaml section in file %s:\n %s" % (filename, str(exc)))
 
-    import numpy as np
     return np.array(d["reduced_coordinates_of_qpoints"])
     #return KpointList(reciprocal_lattice, frac_coords, weights=None, names=None)
 
@@ -150,13 +151,11 @@ def yaml_irred_perts(filename, tag="<KPOINTS>"):
 
     s = "".join(l for l in lines[start+1:end])
 
-    import yaml
     try:
         d = yaml.load(s)
     except Exception as exc:
         raise ValueError("Malformatted Yaml section in file %s:\n %s" % (filename, str(exc)))
 
-    import numpy as np
     return np.array(d["reduced_coordinates_of_qpoints"])
     #return KpointList(reciprocal_lattice, frac_coords, weights=None, names=None)
 
@@ -239,10 +238,10 @@ def build_phonon_workflow(workdir, manager, ph_input, wfk_file): #, with_loto=):
     # Now we can build the final list of workflows:
     # One workflow per q-point, each workflow computes all 
     # the irreducible perturbations for a singe q-point.
-    import numpy as np
+
     qpoints = np.reshape([
         0.0, 0.0, 0.0,
-        ].(-1,3))
+        ], (-1,3))
 
     works = []
 

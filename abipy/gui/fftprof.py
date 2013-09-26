@@ -395,7 +395,7 @@ class FFTProfFrame(awx.Frame):
 
 def wxapp_fftprof():
     """Stand alone application."""
-    app = wx.App()
+    app = awx.App()
     frame = FFTProfFrame(None)
     frame.Show()
     return app

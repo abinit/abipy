@@ -215,7 +215,7 @@ class ComparisonFrame(awx.Frame):
 
 
 def wxapp_comparison(dirpaths=None, filepaths=None, wildcard=None):
-    app = wx.App()
+    app = awx.App()
     frame = ComparisonFrame(None, dirpaths=dirpaths, filepaths=filepaths, wildcard=wildcard)
     frame.Show()
     return app

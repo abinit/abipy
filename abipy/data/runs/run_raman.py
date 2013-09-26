@@ -116,18 +116,18 @@ def raman_workflow(workdir, structure, pseudos, shiftk):
 
     # Register the input for the SCF calculation. 
     # scf_link is the object that describes this node of the workflow.
-    from pymatgen.io.abinitio.task import AbinitScfTask, AbinitNscfTask
-    scf_link = work.register(scf_inp, task_class=AbinitScfTask)
+    from pymatgen.io.abinitio.task import ScfTask, NscfTask, HaydockBseTask
+    scf_link = work.register(scf_inp, task_class=ScfTask)
 
     # Register the input for the NSCF calculation and tell the workflow
     # that this step depends on the SCF run 
     # In this case, the nscf run requires the DEN file produced in the SCF run.
-    nscf_link = work.register(nscf_inp, links=scf_link.produces_exts("_DEN"), task_class=AbinitNscfTask)
+    nscf_link = work.register(nscf_inp, links=scf_link.produces_exts("DEN"), task_class=NscfTask)
 
     # Register the input for the BSE calculation and tell the workflow
     # that this step depends on the NSCF run 
     # In this case, the BSE run requires the WFK file produced in the NSCF run.
-    work.register(bse_inp, links=nscf_link.produces_exts("_WFK"))
+    work.register(bse_inp, links=nscf_link.produces_exts("WFK"), task_class=HaydockBseTask)
 
     return work
 

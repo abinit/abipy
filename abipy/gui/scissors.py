@@ -271,7 +271,7 @@ class ScissorsBuilderFrame(awx.Frame):
 
 
 def wxapp_scissors(filepath):
-    app = wx.App()
+    app = awx.App()
     ScissorsBuilderFrame(None, filepath).Show()
     return app
 

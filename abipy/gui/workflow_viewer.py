@@ -565,6 +565,6 @@ class TaskPopupMenu(wx.Menu):
 
 
 def wxapp_workflow_viewer(workflows):
-    app = wx.App()
+    app = awx.App()
     WorkflowViewerFrame(None, workflows).Show()
     return app

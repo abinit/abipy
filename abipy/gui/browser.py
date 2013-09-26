@@ -310,7 +310,7 @@ def wxapp_dirbrowser(dirpath):
     else:
         dirpath = os.path.abspath(dirpath)
 
-    app = wx.App()
+    app = awx.App()
     frame = awx.Frame(None, -1)
     NcFileDirCtrl(frame, -1, dir=dirpath)
     frame.Show()
@@ -318,7 +318,7 @@ def wxapp_dirbrowser(dirpath):
 
 
 def wxapp_listbrowser(dirpaths=None, filepaths=None, wildcard=""):
-    app = wx.App()
+    app = awx.App()
     frame = FileListFrame(None, dirpaths=dirpaths, filepaths=filepaths, wildcard=wildcard)
     frame.Show()
     return app

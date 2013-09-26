@@ -71,7 +71,7 @@ class Tester(object):
         return abilab.TaskManager.simple_mpi(mpi_ncpus=1)
 
     def run(self):
-        retcodes = PyResourceManager(self.work, max_ncpus=2, sleep_time=5).run()
+        retcodes = PyResourceManager(self.work, max_ncpus=2, sleep_time=2.5).run()
         self._retcode = max(retcodes)
 
     def set_work_and_run(self, work):
@@ -99,7 +99,7 @@ class Tester(object):
     @staticmethod
     def compare(ref_path, new_path):
 
-        if ref_path.endswith(".about"):
+        if ref_path.endswith(".abo"):
             with open(ref_path, "r") as ref, open(new_path,"r") as new:
                 ref_lines = ref.readlines()
                 new_lines = new.readlines()

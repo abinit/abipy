@@ -111,7 +111,7 @@ def all_inputs():
 
 @decorate_main
 def main():
-    gs, nscf, scr_input = inps = all_inputs()
+    gs, nscf, scr_input = all_inputs()
 
     policy = dict(autoparal=0, max_ncpus=2)
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=policy)
@@ -119,16 +119,29 @@ def main():
     workdir = "QPTDM"
 
     # This is to produce the out_WFK file
-    #work = abilab.Workflow(workdir, manager)
-    #gs_link = work.register(gs)
-    #work.register(nscf, links=gs_link.produces_exts("_DEN"))
-    #work.start()
+    #wfk_work = abilab.Workflow(workdir, manager)
+    #gs_link = wfk_work.register(gs)
+    #nscf_link = wfk_work.register(nscf, links=gs_link.produces_exts("DEN"))
+    #wfk_work.start()
+    #return 
 
     wfk_file = os.path.join(os.getcwd(), "out_WFK")
-    work = build_qptdm_workflow(workdir, manager, scr_input, wfk_file)
+    qptdm_work = build_qptdm_workflow(workdir, manager, scr_input, wfk_file)
+    #qptdm_work.connect(nscf_link.produces_exts("WFK"))
+    #qptdm_work.connect(nscf_link, exts="WFK")
 
-    work.build_and_pickle_dump()
+    qptdm_work.build_and_pickle_dump()
 
+    return 
+
+    works = AbinitWorks(workdir, manager)
+
+    # One can register a workflow object.
+    wfk_link = works.register(wfk_work)
+
+    # Register a function that will be executed to build another workflow
+    #works.register(qptdm_work, links=wfk_link.produces_exts("WFK"))
+    #works.build_and_pickle_dump()
 
 if __name__ == "__main__":
     import sys

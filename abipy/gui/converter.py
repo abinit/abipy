@@ -107,7 +107,7 @@ class ConverterFrame(awx.Frame):
 
 
 def wxapp_converter():
-    app = wx.App()
+    app = awx.App()
     frame = ConverterFrame(None)
     frame.Show()
     app.SetTopWindow(frame)

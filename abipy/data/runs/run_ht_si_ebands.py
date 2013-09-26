@@ -51,7 +51,7 @@ def main():
 
     #work[1].rename("out_GSR.nc", "si_nscf_GSR.nc")
 
-    work.rmtree(exclude_wildcard="*.abin|*.about|*_WFK*|*_GSR.nc|*DEN-etsf.nc")
+    #work.rmtree(exclude_wildcard="*.abin|*.about|*_WFK*|*_GSR.nc|*DEN-etsf.nc")
 
     tester.finalize()
 

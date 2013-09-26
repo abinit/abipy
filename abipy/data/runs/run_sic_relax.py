@@ -99,8 +99,8 @@ def build_workflows():
             work = abilab.Workflow(workdir, manager)
 
             gs_link = work.register(gs_inp)  
-            nscf_link = work.register(nscf_inp, links=gs_link.produces_exts("_DEN"))
-            relax_link = work.register(relax_inp, links=gs_link.produces_exts("_WFK"))
+            nscf_link = work.register(nscf_inp, links=gs_link.produces_exts("DEN"))
+            relax_link = work.register(relax_inp, links=gs_link.produces_exts("WFK"))
 
             works.append(work)    
 

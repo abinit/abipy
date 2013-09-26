@@ -192,7 +192,7 @@ def wxapp_events(root):
     else:
         filenames = root
 
-    class AbiEventsViewerApp(wx.App):
+    class AbiEventsViewerApp(awx.App):
         def OnInit(self):
             frame = AbinitEventsNotebookFrame(None, filenames)
             self.SetTopWindow(frame)

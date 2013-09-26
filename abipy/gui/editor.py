@@ -165,14 +165,14 @@ def wxapp_showfiles(filenames=None, dirpath=None, walk=True, wildcard=None):
     Returns:
         `wxpython` application.
     """
-    app = wx.App()
+    app = awx.App()
     frame = TextNotebookFrame.from_files_and_dir(None, filenames=filenames, dirpath=dirpath, walk=walk, wildcard=wildcard)
     frame.Show()
     return app
 
 
 if __name__ == "__main__":
-    app = wx.App()
+    app = awx.App()
     frame = EditorNotebookFrame()
     #frame = wx.Frame(None, -1)
     #notebook = EditorNotebook(frame)
