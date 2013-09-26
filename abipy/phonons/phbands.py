@@ -74,11 +74,14 @@ class PhononBands(object):
 
     .. Attributes:
 
-      "phfreqs",       # (nqpt, 3*natom)
-      "phdispl_cart",  # (nqpt, 3*natom, 3*natom)
-                       # the last dimension stores the cartesian components.
-      "qpoints",       # qpoints and wtq are replaced by self.ibz that is a list of KpointList.
-      "weights",
+        phfreqs:
+            # (nqpt, 3*natom)
+        phdispl_cart:
+            # (nqpt, 3*natom, 3*natom)
+            # the last dimension stores the cartesian components.
+        qpoints:
+            # qpoints and wtq are replaced by self.ibz that is a list of KpointList.
+        weights:
 
     .. note:
         Frequencies are in eV. Cartesian displacements are in Angstrom.
