@@ -259,10 +259,10 @@ class ElectronBands(object):
         app = lines.append
         for (key, value) in self.__dict__.items():
             try:
-                value = self.__dict__[k]
+                value = self.__dict__[key]
                 if prtvol == 0 and isinstance(value, np.ndarray):
                     continue
-                app("%s = %s" % (k, value))
+                app("%s = %s" % (key, value))
             except KeyError:
                 pass
 
@@ -1510,7 +1510,6 @@ class ElectronDosPlotter(object):
             animator.add_figure(label, savefig)
 
         return animator.animate(**kwargs)
-
 
 class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
     """
