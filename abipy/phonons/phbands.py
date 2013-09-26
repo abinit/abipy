@@ -138,7 +138,9 @@ class PhononBands(object):
     @classmethod
     def from_file(cls, filepath):
         """Create the object from a netCDF file."""
-                                                                                   
+        if not filepath.endswith(".nc"):
+            raise NotImplementedError("")
+
         with PHBST_Reader(filepath) as r:
             structure = r.read_structure()
 

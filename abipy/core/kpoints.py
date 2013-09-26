@@ -352,8 +352,12 @@ class KpointList(collections.Sequence):
 
     @classmethod
     def from_file(cls, filepath):
-        with KpointsReader(filepath) as r:
-            new = r.read_kpoints()
+        if filepath.endswith(".nc"):
+            with KpointsReader(filepath) as r:
+                new = r.read_kpoints()
+        else:
+            raise NotImplementedError("")
+
         assert new.__class__ == cls
         return new
 

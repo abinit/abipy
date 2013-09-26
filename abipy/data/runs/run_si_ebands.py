@@ -5,8 +5,9 @@ import os
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from abipy.data.runs import Tester
+from abipy.data.runs import Tester, decorate_main
 
+@decorate_main
 def main():
     structure = abilab.Structure.from_file(data.cif_file("si.cif"))
 

@@ -1,8 +1,43 @@
 import os
 import inspect
+import functools
+import argparse
 
 from pymatgen.io.abinitio.launcher import PyResourceManager
 import abipy.abilab as abilab
+
+__all__ = [
+    "decorate_main",
+    "Tester",
+]
+
+def decorate_main(main):
+    """
+    This decorator adds the initialization of the logger and an 
+    argument parser that allows one to select the loglevel.
+    """
+    @functools.wraps(main)
+    def wrapper(*args, **kwargs):
+
+        parser = argparse.ArgumentParser()
+
+        parser.add_argument('--loglevel', default="ERROR", type=str,
+                            help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+
+        options = parser.parse_args()
+
+        # loglevel is bound to the string value obtained from the command line argument. 
+        # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
+        import logging
+        numeric_level = getattr(logging, options.loglevel.upper(), None)
+        if not isinstance(numeric_level, int):
+            raise ValueError('Invalid log level: %s' % options.loglevel)
+        logging.basicConfig(level=numeric_level)
+
+        retcode = main(*args, **kwargs)
+        return retcode
+
+    return wrapper
 
 
 class Tester(object):

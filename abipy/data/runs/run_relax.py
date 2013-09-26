@@ -7,7 +7,7 @@ import abipy.data as data
 import abipy.abilab as abilab
 
 from collections import namedtuple
-from abipy.data.runs import Tester
+from abipy.data.runs import Tester, decorate_main
 
 def build_workflows():
 
@@ -76,6 +76,7 @@ def build_workflows():
 
     return works
 
+@decorate_main
 def main():
     works = build_workflows()
     for work in works:

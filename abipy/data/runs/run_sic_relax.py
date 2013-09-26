@@ -8,6 +8,8 @@ import os
 import abipy.abilab as abilab
 import abipy.data as data
 
+from abipy.data.runs import Tester, decorate_main
+
 # One can create a dictionary mapping keywords to values 
 unit_cell = dict(
     acell=3*[8.19],
@@ -104,6 +106,7 @@ def build_workflows():
 
     return works
 
+@decorate_main
 def main():
     works = build_workflows()
     for work in works:

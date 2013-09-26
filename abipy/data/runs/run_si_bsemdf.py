@@ -6,9 +6,10 @@ import abipy.data as data
 
 from pymatgen.io.abinitio.abiobjects import AbiStructure
 from pymatgen.io.abinitio.calculations import bse_with_mdf
-from abipy.data.runs import Tester
+from abipy.data.runs import Tester, decorate_main
 
 
+@decorate_main
 def main():
     #return 0
     pseudos = data.pseudos("14si.pspnc")
