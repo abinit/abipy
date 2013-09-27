@@ -35,7 +35,9 @@ class QptdmWorkflow(abilab.Workflow):
 
         print(scr_files)
         mrgscr = abilab.Mrgscr(verbose=1)
-        mrgscr.merge_qpoints(scr_files, out_prefix="out_hello", cwd=None)
+
+        out_prefix = "out_hello"
+        mrgscr.merge_qpoints(scr_files, out_prefix=out_prefix, cwd=self.outdir.path)
 
 
 def build_qptdm_workflow(workdir, manager, scr_input, wfk_file):

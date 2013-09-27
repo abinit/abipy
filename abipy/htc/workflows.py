@@ -1,6 +1,6 @@
 from __future__ import division, print_function
 
-from pymatgen.io.abinitio.workflow import Workflow as pmWorkflow
+from pymatgen.io.abinitio.workflow import IterativeWorkflow, Workflow as pmWorkflow
 from abipy.htc.abitimer import AbinitTimerParser
 
 class Workflow(pmWorkflow):
