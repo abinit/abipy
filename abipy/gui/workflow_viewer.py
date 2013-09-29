@@ -112,8 +112,8 @@ class WorkflowViewerFrame(awx.Frame):
             self.Bind(wx.EVT_MENU, handler, id=mid)
 
         self.workflows = workflows
-        if not isinstance(workflows, (list, tuple)):
-            self.workflows = [workflows]
+        #if not isinstance(workflows, (list, tuple)):
+        #    self.workflows = [workflows]
 
         #if filename is not None:
         #    self.ReadWorkflow(filename)
@@ -142,10 +142,6 @@ class WorkflowViewerFrame(awx.Frame):
         singleshot_button = wx.Button(panel, -1, label='Single Shot')
         singleshot_button.Bind(wx.EVT_BUTTON, self.OnSingleShotButton)
         hsizer.Add(singleshot_button,  0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
-
-        finalize_button = wx.Button(panel, -1, label='Finalize')
-        finalize_button.Bind(wx.EVT_BUTTON, self.OnFinalizeButton)
-        hsizer.Add(finalize_button,  0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
 
         self.all_checkbox = wx.CheckBox(panel, -1, label="All workflows")
         self.all_checkbox.SetValue(False)
@@ -183,23 +179,6 @@ class WorkflowViewerFrame(awx.Frame):
             nlaunch += PyLauncher(work).single_shot()
                                                                       
         self.statusbar.PushStatusText("Submitted %d tasks" % nlaunch)
-
-    def OnFinalizeButton(self, event):
-        nlaunch = 0
-                                                                      
-        if self.all_checkbox.GetValue():
-            for work in self.workflows:
-                work.finalize()
-                #work.pickle_dump()
-                nlaunch += 1
-                                                                      
-        else:
-            work = self.GetSelectedWork()
-            work.finalize()
-            #work.pickle_dump()
-            nlaunch += 1
-                                                                      
-        self.statusbar.PushStatusText("Finalized %d workflows" % nlaunch)
 
     def GetSelectedWork(self):
         """
@@ -564,7 +543,7 @@ class TaskPopupMenu(wx.Menu):
             awx.showErrorMessage(parent=self.parent)
 
 
-def wxapp_workflow_viewer(workflows):
+def wxapp_workflow_viewer(works):
     app = awx.App()
-    WorkflowViewerFrame(None, workflows).Show()
+    WorkflowViewerFrame(None, works).Show()
     return app

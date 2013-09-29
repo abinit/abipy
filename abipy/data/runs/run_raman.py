@@ -108,26 +108,27 @@ def raman_workflow(workdir, structure, pseudos, shiftk):
     # Initialize the workflow.
     manager = abilab.TaskManager.from_file("taskmanager.yaml")
 
-    policy=dict(autoparal=1, max_ncpus=2)
-    #policy=dict(autoparal=0, max_ncpus=2)
+    #policy=dict(autoparal=1, max_ncpus=2)
+    policy=dict(autoparal=0, max_ncpus=1)
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=policy)
 
     work = abilab.Workflow(workdir, manager)
 
     # Register the input for the SCF calculation. 
-    # scf_link is the object that describes this node of the workflow.
+    # scf_task is the object that describes this node of the workflow.
     from pymatgen.io.abinitio.task import ScfTask, NscfTask, HaydockBseTask
-    scf_link = work.register(scf_inp, task_class=ScfTask)
+    scf_task = work.register(scf_inp, task_class=ScfTask)
 
     # Register the input for the NSCF calculation and tell the workflow
     # that this step depends on the SCF run 
     # In this case, the nscf run requires the DEN file produced in the SCF run.
-    nscf_link = work.register(nscf_inp, links=scf_link.produces_exts("DEN"), task_class=NscfTask)
+    nscf_task = work.register(nscf_inp, deps={scf_task: "DEN"}, task_class=NscfTask)
 
     # Register the input for the BSE calculation and tell the workflow
     # that this step depends on the NSCF run 
     # In this case, the BSE run requires the WFK file produced in the NSCF run.
-    work.register(bse_inp, links=nscf_link.produces_exts("WFK"), task_class=HaydockBseTask)
+    work.register(bse_inp, deps={nscf_task: "WFK"}, task_class=HaydockBseTask)
+    work.show_intra_deps()
 
     return work
 

@@ -23,3 +23,7 @@ TODO List
 
 #. Add the fermi level to the DEN file (netcdf and fortran version) so that the NSCF run can read 
    it and can report this value in the final band structure.
+
+#. Use different and cleaner rules for file extensions in ABINIT. Why _DEN12 and _1WF13 instead
+   of the simpler syntax 12_1DEN, 13_1WF in which the extension is preserved?
+

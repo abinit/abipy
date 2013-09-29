@@ -128,9 +128,11 @@ install_requires = [
     "scipy>=0.10",
     "numpy>=1.5",
     "netCDF4",
-    'pyyaml>=3.1.0',
+    "PyDispatcher",
+    "pyyaml>=3.1.0",
     #"wxPython",
     #"wxmplot",
+    #"termcolor",
 ]
 
 #---------------------------------------------------------------------------

@@ -160,23 +160,39 @@ def main():
     options.paths = paths
     retcode = 0
 
-    workflows = []
+    works = []
     import cPickle as pickle
-    for path in options.paths:
+    #MG
+    if 0:
+        for path in options.paths:
+            with open(path, "rb") as fh:
+                w = pickle.load(fh)
+                w.connect_signals()
+                works.append(w)
+
+    else:
+        path = options.paths[0]
         with open(path, "rb") as fh:
-            workflows.append(pickle.load(fh))
+            works = pickle.load(fh)
+
+        works.connect_signals()
+
+        print(works)
+        for w in works:
+            print(w)
+        #works = [works[0], works[1], works[2]]
 
     if options.command == "gui":
         from abipy.gui.workflow_viewer import wxapp_workflow_viewer
 
-        for work in workflows:
-            work.check_status()
+        for w in works:
+            w.check_status()
 
-        wxapp_workflow_viewer(workflows).MainLoop()
+        wxapp_workflow_viewer(works).MainLoop()
 
     else:
-        for work in workflows:
-            retcode = treat_workflow(work, options)
+        for w in works:
+            retcode = treat_workflow(w, options)
             if retcode != 0:
                 return retcode
 

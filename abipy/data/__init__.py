@@ -45,6 +45,7 @@ def find_ncfiles(top):
     Returns:
         dictionary with mapping: basename --> absolute path.
     """
+    SILENT = 0
     ncfiles = {}
     for dirpath, dirnames, filenames in os.walk(top):
 
@@ -58,8 +59,11 @@ def find_ncfiles(top):
                 if basename in ncfiles:
                     err_msg =  "Found duplicated basename %s\n" % basename
                     err_msg += "Stored: %s, new %s\n" % (ncfiles[basename], apath)
-                    warnings.warn(err_msg)
-                    #raise ValueError(err_msg)
+
+                    if not SILENT:
+                        SILENT += 1
+                        warnings.warn(err_msg)
+                        #raise ValueError(err_msg)
                 else:
                     ncfiles[basename] = apath 
 

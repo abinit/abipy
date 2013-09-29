@@ -48,13 +48,13 @@ def main():
     work = abilab.Workflow(tester.workdir, manager)
 
     # Register the input for the SCF calculation. 
-    # scf_link is the object that describes this node of the workflow.
-    scf_link = work.register(scf_inp)
+    # scf_task is the object that describes this node of the workflow.
+    scf_task = work.register(scf_inp)
 
     # Register the input for the NSCF calculation and tell the workflow
     # that this step depens on the SCF run 
     # Iin this case, the nscf run requires the DEN file produced in the SCF run.
-    work.register(nscf_inp, links=scf_link.produces_exts("_DEN"))
+    work.register(nscf_inp, links={scf_task: "DEN"})
 
     #work.build()
     #tester.set_work_and_run(work)

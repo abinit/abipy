@@ -124,9 +124,9 @@ def build_workflow(workdir, structure, pseudos):
     work = abilab.Workflow(workdir, manager)
 
     # Register the input.
-    gs_link = work.register(gs_inp)
+    gs_task = work.register(gs_inp)
 
-    work.register(nscf_inp, links=gs_link.produces_exts("_DEN"))
+    work.register(nscf_inp, links={gs_task: "DEN"})
 
     return work
 

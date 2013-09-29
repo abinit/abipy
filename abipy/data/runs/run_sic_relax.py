@@ -98,9 +98,11 @@ def build_workflows():
             assert workdir not in [work.workdir for work in works]
             work = abilab.Workflow(workdir, manager)
 
-            gs_link = work.register(gs_inp)  
-            nscf_link = work.register(nscf_inp, links=gs_link.produces_exts("DEN"))
-            relax_link = work.register(relax_inp, links=gs_link.produces_exts("WFK"))
+            gs_task = work.register(gs_inp)  
+
+            nscf_task = work.register(nscf_inp, deps={gs_task: "DEN"})
+
+            work.register(relax_inp, deps={gs_task: "WFK"})
 
             works.append(work)    
 
