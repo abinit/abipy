@@ -5,24 +5,90 @@ import os
 import numpy as np
 import yaml
 import collections
+from collections import OrderedDict
 import cPickle as pickle
 import abipy.abilab as abilab
+Workflow = abilab.Workflow
 from abipy.tools import AttrDict
 
 from pydispatch import dispatcher
-from pymatgen.io.abinitio.task import Task 
-from pymatgen.io.abinitio.workflow import BandStructure, Dependency
+from pymatgen.io.abinitio.task import Task, Dependency
+from pymatgen.io.abinitio.workflow import BandStructureWorkflow
 
 import logging
 logger = logging.getLogger(__name__)
 
 
-def show_receivers(sender=dispatcher.Any, signal=dispatcher.Any):
+class OrderedDefaultdict(collections.OrderedDict):
+    """
+    Taken from:
+    http://stackoverflow.com/questions/4126348/how-do-i-rewrite-this-function-to-implement-ordereddict/4127426#4127426
+    """
+    def __init__(self, *args, **kwargs):
+        if not args:
+            self.default_factory = None
+        else:
+            if not (args[0] is None or callable(args[0])):
+                raise TypeError('first argument must be callable or None')
+            self.default_factory = args[0]
+            args = args[1:]
+        super(OrderedDefaultdict, self).__init__(*args, **kwargs)
 
-    print("*** live receivers ***")
-    for rec in dispatcher.liveReceivers(dispatcher.getReceivers(sender, signal)):
-        print("receiver -->", rec)
-    print("*** end live receivers ***")
+    def __missing__ (self, key):
+        if self.default_factory is None:
+            raise KeyError(key)
+        self[key] = default = self.default_factory()
+        return default
+
+    def __reduce__(self):  # optional, for pickle support
+        args = self.default_factory if self.default_factory else tuple()
+        return type(self), args, None, None, self.items()
+
+
+class DefaultOrderedDict(OrderedDict):
+    """
+    Taken from
+    http://stackoverflow.com/questions/6190331/can-i-do-an-ordered-default-dict-in-python
+    """
+    def __init__(self, default_factory=None, *a, **kw):
+        if (default_factory is not None and not callable(default_factory)):
+            raise TypeError('first argument must be callable')
+        OrderedDict.__init__(self, *a, **kw)
+        self.default_factory = default_factory
+
+    def __getitem__(self, key):
+        try:
+            return OrderedDict.__getitem__(self, key)
+        except KeyError:
+            return self.__missing__(key)
+
+    def __missing__(self, key):
+        if self.default_factory is None:
+            raise KeyError(key)
+        self[key] = value = self.default_factory()
+        return value
+
+    def __reduce__(self):
+        if self.default_factory is None:
+            args = tuple()
+        else:
+            args = self.default_factory,
+        return type(self), args, None, None, self.items()
+
+    def copy(self):
+        return self.__copy__()
+
+    def __copy__(self):
+        return type(self)(self.default_factory, self)
+
+    def __deepcopy__(self, memo):
+        import copy
+        return type(self)(self.default_factory,
+                          copy.deepcopy(self.items()))
+    def __repr__(self):
+        return 'OrderedDefaultDict(%s, %s)' % (self.default_factory,
+                                        OrderedDict.__repr__(self))
+
 
 
 def hello(signal, sender):
@@ -30,21 +96,21 @@ def hello(signal, sender):
 
 class Callback(object):
 
-    def __init__(self, func, w_idx, deps, cb_data):
+    def __init__(self, func, w_idx, deps, cbk_data):
         self.func  = func
         self.w_idx = w_idx
         self.deps = deps
-        self.cb_data = cb_data or {}
+        self.cbk_data = cbk_data or {}
 
     def __call__(self, works, **kwargs):
-        print("in callback")
-        #sender = kwargs["sender"]
-        #signal = kwargs["sender"]
-        #print("in callback with sender %s, signal %s" % (sender, signal))
         if self.can_execute():
-            cb_data = self.cb_data.copy()
-            cb_data["_w_idx"] = self.w_idx
-            return self.func(works, cb_data=cb_data, **kwargs)
+            print("in callback")
+            #sender = kwargs["sender"]
+            #signal = kwargs["sender"]
+            #print("in callback with sender %s, signal %s" % (sender, signal))
+            cbk_data = self.cbk_data.copy()
+            cbk_data["_w_idx"] = self.w_idx
+            return self.func(works, cbk_data=cbk_data, **kwargs)
         else:
             raise Exception("Cannot execute")
 
@@ -52,16 +118,16 @@ class Callback(object):
         return [dep.status == Task.S_OK  for dep in self.deps]
 
     def handle_sender(self, sender):
-        return sender in self.deps
+        return sender in [d.node for d in self.deps]
 
 
-class QptdmWorkflow(abilab.Workflow):
+class QptdmWorkflow(Workflow):
     """
     This workflow parallelizes the calculation of the q-points of the screening. 
     It also provides the callback on_all_ok that calls mrgscr to merge 
     all the partial screening files produced.
     """
-    def __init__(self, workdir, manager, wfk_file):
+    def __init__(self, wfk_file, workdir, manager):
         """
         Args:
             workdir:
@@ -76,7 +142,7 @@ class QptdmWorkflow(abilab.Workflow):
         self.wfk_file = os.path.abspath(wfk_file)
 
     def build(self):
-        """Buil files and directories."""
+        """Build files and directories."""
         super(QptdmWorkflow, self).build()
 
         # Create symbolic links to the WFK file.
@@ -89,8 +155,9 @@ class QptdmWorkflow(abilab.Workflow):
         scr_files = []
         for task in self:
             scr = task.outdir.has_abiext("SCR")
-            assert scr 
             scr_files.append(scr)
+
+        assert scr_files
 
         logger.debug("scr_files:\n%s" % str(scr_files))
         mrgscr = abilab.Mrgscr(verbose=1)
@@ -107,10 +174,10 @@ class QptdmWorkflow(abilab.Workflow):
         return results
 
 
-def cb_build_qptdm_workflow(works, cb_data):
-    w_idx = cb_data["_w_idx"]
+def cbk_build_qptdm_workflow(works, cbk_data):
+    w_idx = cbk_data["_w_idx"]
     workdir = works[w_idx].workdir
-    scr_input = cb_data["scr_input"]
+    scr_input = cbk_data["scr_input"]
 
     manager = works.manager
     # TODO
@@ -128,19 +195,19 @@ def cb_build_qptdm_workflow(works, cb_data):
         raise 
 
 
-def build_qptdm_workflow(workdir, manager, scr_input, wfk_file):
+def build_qptdm_workflow(wfk_file, scr_input, workdir, manager):
     """
     Factory function that builds a `QptdmWorkflow`.
 
     Args:
-        workdir:
-            String defining the working directory. 
-        manager:
-            `TaskManager` object.
         scr_input:
             Input for the screening calculation.
         wfk_file:
             Path to the ABINIT WFK file to use for the computation of the screening.
+        workdir:
+            String defining the working directory. 
+        manager:
+            `TaskManager` object.
 
     Return
         `QptdmWorflow` object.
@@ -151,7 +218,7 @@ def build_qptdm_workflow(workdir, manager, scr_input, wfk_file):
 
     fake_input = scr_input.deepcopy()
 
-    w = abilab.Workflow(workdir=os.path.join(workdir, "_qptdm_run"), manager=shell_manager)
+    w = Workflow(workdir=os.path.join(workdir, "_qptdm_run"), manager=shell_manager)
     w.register(fake_input)
     w.build()
 
@@ -171,7 +238,7 @@ def build_qptdm_workflow(workdir, manager, scr_input, wfk_file):
     #w.remove()
 
     # Now we can build the final workflow.
-    work = QptdmWorkflow(workdir, manager, wfk_file)
+    work = QptdmWorkflow(wfk_file, workdir, manager)
 
     for qpoint in qpoints:
         qptdm_input = scr_input.deepcopy()
@@ -250,13 +317,13 @@ def yaml_irred_perts(filename, tag="<KPOINTS>"):
     #return KpointList(reciprocal_lattice, frac_coords, weights=None, names=None)
 
 
-class PhononWorkflow(abilab.Workflow):
+class PhononWorkflow(Workflow):
     """
     This workflow is used for parallelizing the calculation of the 
     q-points of the screening. It also provides a on_all_ok method 
     that calls mrgddb to merge the partial DDB files.
     """
-    def __init__(self, workdir, manager, wfk_file):
+    def __init__(self, wfk_file, workdir, manager):
         super(PhononWorkflow, self).__init__(workdir, manager)
 
         self.wfk_file = os.path.abspath(wfk_file)
@@ -274,8 +341,9 @@ class PhononWorkflow(abilab.Workflow):
         ddb_files = []
         for task in self:
             ddb = task.outdir.has_abiext("DDB")
-            assert ddb
             ddb_files.append(scr)
+
+        assert ddb_files
 
         logger.debug("ddb_files:\n%s" % str(ddb_files))
         mrgddb = abilab.Mrgddb(verbose=1)
@@ -316,7 +384,7 @@ def build_phonon_workflow(workdir, manager, ph_input, wfk_file): #, with_loto=):
     shell_manager = manager.to_shell_manager(mpi_ncpus=1, policy=dict(autoparal=0))
 
     #fake_input = ph_input.deepcopy()
-    #w = abilab.Workflow(workdir=os.path.join(workdir, "phonon_run"), manager=shell_manager)
+    #w = Workflow(workdir=os.path.join(workdir, "phonon_run"), manager=shell_manager)
     #w.register(fake_input)
     #w.build()
 
@@ -347,7 +415,7 @@ def build_phonon_workflow(workdir, manager, ph_input, wfk_file): #, with_loto=):
         # Get the irreducible perturbations for this q-point.
         fake_input = ph_input.deepcopy()
                                                                                                 
-        w = abilab.Workflow(workdir=os.path.join(workdir, "irred_pert_run"), manager=shell_manager)
+        w = Workflow(workdir=os.path.join(workdir, "irred_pert_run"), manager=shell_manager)
         w.register(fake_input)
         w.build()
                                                                                                 
@@ -386,12 +454,50 @@ def build_phonon_workflow(workdir, manager, ph_input, wfk_file): #, with_loto=):
 
 
 def build_gw_workflow(workdir, manager, scf_input, nscf_input, scr_input, sigma_input):
+    # NEW version
 
     # Create the container that will manage the different workflows.
     works = AbinitWorks(workdir, manager)
 
     # Register the first workflow (GS + NSCF calculation)
-    wfk_work = abilab.Workflow()
+    bands_work = works.register(BandStructureWorkflow(scf_input, nscf_input))
+
+    assert not bands_work.scf_task.depends_on(bands_work.scf_task)
+    assert bands_work.nscf_task.depends_on(bands_work.scf_task)
+
+    # Register the callback that will be executed to build another workflow
+    scr_work = works.register(cbk_build_qptdm_workflow, deps={bands_work.nscf_task: "WFK"}, 
+                              cbk_data={"input": scr_input}) 
+
+    #assert scr_work.depends_on(bands_work.nscf_task)
+    #assert not scr_work.depends_on(bands_work.scf_task)
+
+    #sigma_work = Workflow(sigma_input, deps={bands_work.nscf_task: "WFK", scr_work: "SCR"})
+    #works.register(sigma_work)
+
+    # The last workflow is a SIGMA run that will use 
+    # the data produced in the previous two workflows.
+    sigma_work = Workflow()
+    sigma_task = sigma_work.register(sigma_input, deps={bands_work.nscf_task: "WFK", scr_work: "SCR"})
+    works.register(sigma_work)
+
+    assert sigma_task.depends_on(bands_work.nscf_task)
+    assert not sigma_task.depends_on(bands_work.scf_task)
+    #assert sigma_work.depends_on(scr_work)
+
+    works.allocate()
+
+    #for task in bands_work:
+    #    print("deps", task.deps)
+
+    #works.show_dependencies()
+    return works
+
+    # Create the container that will manage the different workflows.
+    works = AbinitWorks(workdir, manager)
+
+    # Register the first workflow (GS + NSCF calculation)
+    wfk_work = Workflow()
     works.register(wfk_work)
 
     # Pass the information needed to build the GS + NSCF workflow:
@@ -400,21 +506,47 @@ def build_gw_workflow(workdir, manager, scf_input, nscf_input, scr_input, sigma_
     scf_task = wfk_work.register(scf_input)
     nscf_task = wfk_work.register(nscf_input, deps={scf_task: "DEN"})
     #wfk_work = BandStructure(workdir + "/WFK", manager, scf_input, nscf_input)
+    print(wfk_work)
+    wfk_work.show_intradeps()
 
     # Register a function that will be executed to build another workflow
     # the callback will have access the all the workflows that have been 
     # registered so far. The workflow will be generated at runtime and will
     # depend on the previous workflows specified in deps.
     scr_work = works.register(cb_build_qptdm_workflow, deps={nscf_task: "WFK"}, 
-        cb_data={"scr_input": scr_input}) # wi, ti = (0,1)
+        cbk_data={"input": scr_input}) # TODO wi, ti = (0,1)
 
     # The last workflow is a SIGMA run that will use 
     # the data produced in the previous two workflows.
-    sigma_work = abilab.Workflow()
-    sigma_task = works.register(sigma_work, deps={nscf_task: "WFK", scr_work: "SCR"})
-    sigma_work.register(sigma_input)
+    sigma_work = Workflow()
+    sigma_work = works.register(sigma_work, deps={nscf_task: "WFK", scr_work: "SCR"})
+    sigma_task = sigma_work.register(sigma_input, deps={nscf_task: "WFK", scr_work: "SCR"})
 
     return works
+
+
+def build_schf_workflow(workdir, manager, scf_input, nscf_input, hf_input):
+    # NEW version
+
+    # Create the container that will manage the different workflows.
+    works = AbinitWorks(workdir, manager)
+
+    # Register the first workflow (GS + NSCF calculation)
+    bands_work = works.register(BandStructureWorkflow(scf_input, nscf_input))
+
+    # FIXME there's a problem with the ids if I want to add a task at runtime
+    # e.g if I want to iterate the SCHF task.
+    #sigma_work = Workflow(hf_input, deps={bands_work.nscf_task: "WFK"})
+    #works.register(sigma_work)
+
+    works.allocate()
+    works.show_dependencies()
+    return works
+
+
+#def test_workflow(self):
+#    gs, nscf, scr_input, sigma_input = all_inputs()
+#    manager = abilab.TaskManager.simple_mpi()
 
 class AbinitWorks(collections.Iterable):
     """
@@ -454,6 +586,30 @@ class AbinitWorks(collections.Iterable):
 
     def __getitem__(self, slice):
         return self._works[slice]
+
+    def used_ids(self):
+        """
+        Returns a set with all the ids used so far to identify `Task` and `Workflow`.
+        """
+        ids = []
+        for work in self:
+            ids.append(work.node_id)
+            for task in work:
+                ids.append(task.node_id)
+
+        used_ids = set(ids)
+        assert len(ids_set) == len(ids)
+
+        return used_ids
+
+    def generate_new_nodeid(self):
+        """Returns an unused node identifier."""
+        used_ids = self.used_ids()
+
+        import itertools
+        for nid in intertools.count():
+            if nid not in used_ids:
+                return nid
 
     def check_status(self):
         """Check the status of the workflows in self."""
@@ -506,7 +662,7 @@ class AbinitWorks(collections.Iterable):
         works.connect_signals()
         return works
 
-    def register(self, obj, deps=None, manager=None, cb_data=None):
+    def register(self, obj, deps=None, manager=None, cbk_data=None):
         """
         Registers a new workflow and add it to the internal list, 
         taking into account possible dependencies.
@@ -532,9 +688,10 @@ class AbinitWorks(collections.Iterable):
         # Make a deepcopy since manager is mutable and we might change it at run-time.
         manager = self.manager.deepcopy() if manager is None else manager.deepcopy()
 
+        got_cbk = False
         if not callable(obj):
             # We have a workflow object. 
-            assert cb_data is None
+            assert cbk_data is None
             work = obj
             work.set_workdir(work_workdir)
             work.set_manager(manager)
@@ -542,73 +699,112 @@ class AbinitWorks(collections.Iterable):
 
         else:
             # We received a callback --> create an empty workflow and register the callback
-            work = abilab.Workflow(work_workdir, manager)
+            got_cbk = True
+            work = Workflow(work_workdir, manager)
             callback = obj
         
         self._works.append(work)
 
         if deps:
             deps = [Dependency(node, exts) for node, exts in deps.items()]
+
             self._deps_dict[work].extend(deps)
 
-            print(80*"*")
-            print("%s needs:\n%s" % (work, "\n".join(str(l) for l in deps)))
-            print(80*"*")
+            if not got_cbk:
+                work.add_deps(deps)
 
         if callback is not None:
             if not deps:
                 raise ValueError("A callback must have deps!")
-            print("Callback dependencies:", deps)
 
-            # Wraps the callable in a Callback object a save 
+            # Wraps the callable in a Callback object and save 
             # useful info such as the index of the workflow in self.
-            cb = Callback(callback, w_idx=len(self)-1, deps=deps, cb_data=cb_data)
+            cbk = Callback(callback, w_idx=len(self)-1, deps=deps, cbk_data=cbk_data)
 
-            self._callbacks.append(cb)
+            self._callbacks.append(cbk)
 
         return work
+
+    def allocate(self):
+        for work in self:
+            work.allocate()
+
+        return self
+
+    def show_dependencies(self):
+        for node, deps in self._deps_dict.items():
+            print("Node %s had dependencies:" % str(node))
+            for i, dep in enumerate(deps):
+                print("%d) %s, status=%s" % (i, str(dep.node), str(dep.status)))
+
+        for work in self:
+            work.show_dependencies()
 
     def on_dep_ok(self, signal, sender):
         print("on_dep_ok with sender %s, signal %s" % (str(sender), signal))
 
         for i, cbk in enumerate(self._callbacks):
+
             if not cbk.handle_sender(sender):
+                print("Do not handle")
                 continue
 
             if not cbk.can_execute():
+                print("cannot execute")
                 continue 
 
-            print("about to build new workflow")
-            w_idx = cbk.w_idx
-            w = cbk(works=self)
-            w.connect_signals()
-            w.build()
-
-            # Replace the empty workflow with the new one 
-            # and remove the callback.
-            self._works[w_idx] = w
-            self._callbacks[i] = None
-
-            # Update the database.
-            self.pickle_dump()
-
-        while True:
+            # Execute the callback to generate the workflow.
             try:
-                self._callbacks.remove(None)
-            except ValueError:
-                break
+                print("about to build new workflow")
+                w = cbk(works=self)
+
+                # Make sure the new workflow has the same id as the previous one.
+                w_idx = cbk.w_idx
+                w.set_nodeid(self._works[w_idx].node_id)
+
+                #w.set_task_nodeids(self, id_generator)
+                w.allocate()
+                w.add_deps(cbk.deps)
+                w.connect_signals()
+                w.build()
+                print("new: ", str(w))
+
+                # Replace the empty workflow with the new one and 
+                # register the callback for removal
+                self._works[w_idx] = w
+
+            except Exception as exc:
+                print(str(exc))
+
+            finally:
+                self._callbacks[i] = None
+
+        # Remove the callbacks that have been executed.
+        self._callbacks = filter(None, self._callbacks)
+
+        # Update the database.
+        self.pickle_dump()
 
     def connect_signals(self):
-        print("Connecting AbinitWorks")
+        """
+        Connect the signals within the workflow.
+        self is responsible for catching the important signals raised from 
+        its task and raise new signals when some particular condition occurs.
+        """
         # Connect the signals inside each Workflow.
         for work in self:
             work.connect_signals()
 
-        # Handle possible callbacks.
-        for c in self._callbacks:
-            for dep in c.deps:
-                print("connecting %s \nwith sender %s, signal %s" % (str(c), dep.node, dep.node.S_OK))
+        # Observe the nodes that must reach S_OK in order to call the callbacks.
+        for cbk in self._callbacks:
+            for dep in cbk.deps:
+                print("connecting %s \nwith sender %s, signal %s" % (str(cbk), dep.node, dep.node.S_OK))
                 dispatcher.connect(self.on_dep_ok, signal=dep.node.S_OK, sender=dep.node, weak=False)
-                #dispatcher.connect(hello, signal=dep._node.S_OK)
-                                                                                                        
-        show_receivers()
+
+        self.show_receivers()
+
+    def show_receivers(self, sender=dispatcher.Any, signal=dispatcher.Any):
+        print("*** live receivers ***")
+        for rec in dispatcher.liveReceivers(dispatcher.getReceivers(sender, signal)):
+            print("receiver -->", rec)
+        print("*** end live receivers ***")

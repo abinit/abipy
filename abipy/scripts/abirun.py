@@ -153,24 +153,21 @@ def main():
                 if fname == abilab.Workflow.PICKLE_FNAME:
                     paths.append(os.path.join(dirpath, fname))
 
-    if not paths:
-        warnings.warn("The directories specifies do not contain any valid workflow")
-        return 1
-
     options.paths = paths
     retcode = 0
 
-    works = []
     import cPickle as pickle
-    #MG
-    if 0:
+
+    if len(options.paths) > 1:
+        #TODO: here we should write a warning if we are reading AbiWorks.
+        works = []
         for path in options.paths:
             with open(path, "rb") as fh:
                 w = pickle.load(fh)
                 w.connect_signals()
                 works.append(w)
 
-    else:
+    elif len(options.paths) == 1:
         path = options.paths[0]
         with open(path, "rb") as fh:
             works = pickle.load(fh)
@@ -180,7 +177,13 @@ def main():
         print(works)
         for w in works:
             print(w)
-        #works = [works[0], works[1], works[2]]
+        
+        works.show_dependencies()
+
+    else:
+        warnings.warn("The directories specifies do not contain any valid workflow")
+        return 1
+
 
     if options.command == "gui":
         from abipy.gui.workflow_viewer import wxapp_workflow_viewer

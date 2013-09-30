@@ -119,9 +119,8 @@ def gw_works():
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=policy)
 
     gw_works = build_gw_workflow(workdir, manager, gs, nscf, scr_input, sigma_input)
-    #print(gw_works)
-                                                                                     
     gw_works.build_and_pickle_dump()
+
     return 0
 
     
@@ -134,16 +133,14 @@ def qptdm_work():
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=policy)
 
     # This is to produce the out_WFK file
-    #wfk_work = abilab.Workflow(workdir, manager)
+    #wfk_work = Workflow(workdir, manager)
     #gs_link = wfk_work.register(gs)
     #nscf_link = wfk_work.register(nscf, deps=gs_link.produces_exts("DEN"))
     #wfk_work.start()
     #return 
 
     wfk_file = os.path.join(os.getcwd(), "out_WFK")
-    qptdm_work = build_qptdm_workflow(workdir, manager, scr_input, wfk_file)
-    #qptdm_work.connect(nscf_link.produces_exts("WFK"))
-    #qptdm_work.connect(nscf_link, exts="WFK")
+    qptdm_work = build_qptdm_workflow(wfk_file, scr_input, workdir, manager)
 
     qptdm_work.build_and_pickle_dump()
     return 0

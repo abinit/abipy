@@ -128,7 +128,7 @@ def raman_workflow(workdir, structure, pseudos, shiftk):
     # that this step depends on the NSCF run 
     # In this case, the BSE run requires the WFK file produced in the NSCF run.
     work.register(bse_inp, deps={nscf_task: "WFK"}, task_class=HaydockBseTask)
-    work.show_intra_deps()
+    work.show_intrawork_deps()
 
     return work
 
