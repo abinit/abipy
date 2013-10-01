@@ -18,6 +18,13 @@ inp = AbiInput(pseudos=data.pseudos("14si.pspnc"), ndtset=len(tsmear_list) * len
 inp.product("tsmear", "ngkpt", tsmear_list, ngkpt_list)
 print(inp)
 
+# If you don't want to use multiple datasets in your calculation,
+# you can split the initial input into ndtset different inputs.
+separated_inps = inp.split_datasets()
+
+for inp in separated_inps:
+    print(inp)
+
 # product accepts an arbitrary number of variables.
 inp = AbiInput(pseudos=data.pseudos("14si.pspnc"), ndtset=len(tsmear_list) * len(ngkpt_list) * len(occopt_list))
 

@@ -1,3 +1,9 @@
+"""
+This module defines objects that faciliate the creation of the 
+ABINIT input files. The syntax is similar to the one used 
+in ABINIT with small differences. 
+"""
+
 from __future__ import print_function, division
 
 import os
@@ -41,7 +47,7 @@ class AbinitInputError(Exception):
 class AbiInput(object):
     """
     This object represents an ABINIT input file. It supports multi-datasets a
-    and provided an easy-to-use interface for defining the variables of the calculation
+    and provides an easy-to-use interface for defining the variables of the calculation.
     """
     Error = AbinitInputError
 
@@ -70,28 +76,28 @@ class AbiInput(object):
         self._datasets[0]["ndtset"] = ndtset
 
         # Setup of the pseudopotential files.
-        self._pseudo_dir = os.path.abspath(pseudo_dir)
+        if isinstance(pseudos, PseudoTable):
+            self._pseudos = pseudos
 
-        pseudo_paths = [os.path.join(self._pseudo_dir, p) for p in list_strings(pseudos)]
+        else:
+            # String(s)
+            pseudo_dir = os.path.abspath(pseudo_dir)
 
-        missing = [p for p in pseudo_paths if not os.path.exists(p)]
-        if missing:
-            raise self.Error("Cannot find the following pseudopotential files:\n%s" % str(missing)) 
+            pseudo_paths = [os.path.join(pseudo_dir, p) for p in list_strings(pseudos)]
 
-        try:
-            self._pseudos = PseudoTable(pseudo_paths)
+            missing = [p for p in pseudo_paths if not os.path.exists(p)]
+            if missing:
+                raise self.Error("Cannot find the following pseudopotential files:\n%s" % str(missing)) 
 
-        except Exception as exc:
-            warnings.warn("Ignoring error raised while parsing pseudopotential files.")
-            self._pseudos = []
+            try:
+                self._pseudos = PseudoTable(pseudo_paths)
+
+            except Exception as exc:
+                warnings.warn("Ignoring error raised while parsing pseudopotential files.")
+                self._pseudos = []
 
         if comment:
             self.set_comment(comment)
-
-    @property
-    def ndtset(self):
-        """Number of datasets."""
-        return self[0]["ndtset"]
 
     def __str__(self):
         s = ""
@@ -111,7 +117,6 @@ class AbiInput(object):
         return self._datasets[key]
 
     def __setattr__(self, varname, value):
-
         if varname.startswith("ndtset"):
             raise self.Error("Cannot change read-only variable ndtset")
 
@@ -154,20 +159,14 @@ class AbiInput(object):
                     else:
                         self[0].set_variable(varname, value)
 
-    def copy(self):
-        return copy.copy(self)
-
-    def deepcopy(self):
-        return copy.deepcopy(self)
-
     @property
-    def pseudo_dir(self):
-        """The directory where pseudos are located."""
-        return self._pseudo_dir
+    def ndtset(self):
+        """Number of datasets."""
+        return self[0]["ndtset"]
 
     @property
     def pseudos(self):
-        """List of pseudopotentials."""
+        """List of `Pseudo` objecst."""
         return self._pseudos
 
     @staticmethod
@@ -188,6 +187,33 @@ class AbiInput(object):
             return dtset
 
         raise self.Error("Don't know how to convert %s to a range-like object" % str(dtset))
+
+    def copy(self):
+        """Shallow copy of the input."""
+        return copy.copy(self)
+                                   
+    def deepcopy(self):
+        """Deep copy of the input."""
+        return copy.deepcopy(self)
+
+    def split_datasets(self):
+        """
+        Split an input file with multiple datasets into a 
+        list of `ndtset` distinct input files.
+        """
+        # Propagate subclasses (if any)
+        cls = self.__class__ 
+        news = []
+
+        for i in range(self.ndtset):
+            my_vars = self[i+1].allvars
+            my_vars.pop("ndtset", None)
+
+            new = cls(pseudos=self.pseudos, ndtset=1)
+            new.set_variables(**my_vars)
+            news.append(new)
+    
+        return news
 
     def set_variables(self, dtset=0, **vars):
         """
@@ -461,7 +487,7 @@ class Dataset(collections.Mapping):
         """
         all_vars = self.global_vars
         all_vars.update(self.vars)
-        return all_vars
+        return all_vars.copy()
 
     def to_string(self, sortmode=None):
         """String representation."""

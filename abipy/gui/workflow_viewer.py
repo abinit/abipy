@@ -367,13 +367,17 @@ class TabPanel(wx.Panel):
     def __init__(self, parent, work, **kwargs):
         wx.Panel.__init__(self, parent=parent, id=-1, **kwargs)
 
-        sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         # List Control with the individual tasks of the workflow.
         task_listctrl = TaskListCtrl(self, work)
-        sizer.Add(task_listctrl, 1, wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 5)
+        main_sizer.Add(task_listctrl, 1, wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 5)
 
-        self.SetSizer(sizer)
+        label = wx.StaticText(self, -1, "Workflow info: status: %s, finalized: %s" % (work.status, work.finalized))
+        label.Wrap(-1)
+        main_sizer.Add(label, 0, wx.ALIGN_LEFT, 5)
+
+        self.SetSizerAndFit(main_sizer)
 
 
 class TaskListCtrl(wx.ListCtrl):
@@ -493,6 +497,10 @@ def task_restart(parent, task):
 def task_reset(parent, task):
     task.reset()
 
+def task_show_deps(parent, task):
+    text = task.str_deps()
+    SimpleTextViewer(parent, text).Show()
+
 
 class TaskPopupMenu(wx.Menu):
     """
@@ -510,6 +518,7 @@ class TaskPopupMenu(wx.Menu):
         ("history", show_history),
         ("restart", task_restart),
         ("reset", task_reset),
+        ("dependencies", task_show_deps),
     ])
 
     def __init__(self, parent, task):

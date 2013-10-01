@@ -21,8 +21,11 @@ def all_inputs():
         istwfk = "*1",
     )
 
-    gs = abilab.AbiInput(pseudos=pseudos)
-    gs.set_structure(structure)
+    inp = abilab.AbiInput(pseudos=pseudos, ndtset=4)
+    inp.set_structure(structure)
+    inp.set_variables(**global_vars)
+
+    gs, nscf, scr, sigma = inp[1:]
 
     # This grid is the most economical, but does not contain the Gamma point.
     gs_kmesh = dict(
@@ -44,7 +47,6 @@ def all_inputs():
     )
 
     # Dataset 1 (GS run)
-    gs.set_variables(**global_vars)
     gs.set_kmesh(**gs_kmesh)
     gs.set_variables(tolvrs=1e-6,
                      nband=4,
@@ -52,9 +54,6 @@ def all_inputs():
 
     # Dataset 2 (NSCF run)
     # Here we select the second dataset directly with the syntax inp[2]
-    nscf = abilab.AbiInput(pseudos=pseudos)
-    nscf.set_structure(structure)
-    nscf.set_variables(**global_vars)
     nscf.set_kmesh(**gw_kmesh)
 
     nscf.set_variables(iscf=-2,
@@ -64,10 +63,7 @@ def all_inputs():
                        )
 
     # Dataset3: Calculation of the screening.
-    scr = abilab.AbiInput(pseudos=pseudos)
-    scr.set_structure(structure)
     scr.set_kmesh(**gw_kmesh)
-    scr.set_variables(**global_vars)
 
     scr.set_variables(
         optdriver=3,   
@@ -80,10 +76,7 @@ def all_inputs():
     )
 
     # Dataset4: Calculation of the Self-Energy matrix elements (GW corrections)
-    sigma = abilab.AbiInput(pseudos=pseudos)
-    sigma.set_structure(structure)
     sigma.set_kmesh(**gw_kmesh)
-    sigma.set_variables(**global_vars)
 
     sigma.set_variables(
             optdriver=4,
@@ -107,7 +100,8 @@ def all_inputs():
 
     sigma.set_kptgw(kptgw, bdgw)
 
-    return gs, nscf, scr, sigma
+    #return gs, nscf, scr, sigma
+    return inp.split_datasets()
 
 
 def gw_works():
@@ -118,7 +112,7 @@ def gw_works():
     policy = dict(autoparal=0, max_ncpus=2)
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=policy)
 
-    gw_works = build_gw_workflow(workdir, manager, gs, nscf, scr_input, sigma_input)
+    gw_works = gw_workflow(workdir, manager, gs, nscf, scr_input, sigma_input)
     gw_works.build_and_pickle_dump()
 
     return 0
@@ -140,7 +134,7 @@ def qptdm_work():
     #return 
 
     wfk_file = os.path.join(os.getcwd(), "out_WFK")
-    qptdm_work = build_qptdm_workflow(wfk_file, scr_input, workdir, manager)
+    qptdm_work = qptdm_workflow(wfk_file, scr_input, workdir, manager)
 
     qptdm_work.build_and_pickle_dump()
     return 0

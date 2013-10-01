@@ -13,7 +13,7 @@ from abipy.tools import AttrDict
 
 from pydispatch import dispatcher
 from pymatgen.io.abinitio.task import Task, Dependency
-from pymatgen.io.abinitio.workflow import BandStructureWorkflow
+from pymatgen.io.abinitio.workflow import BandStructureWorkflow, IterativeWorkflow
 
 import logging
 logger = logging.getLogger(__name__)
@@ -96,106 +96,41 @@ def hello(signal, sender):
 
 class Callback(object):
 
-    def __init__(self, func, w_idx, deps, cbk_data):
+    def __init__(self, func, work, deps, cbk_data):
         self.func  = func
-        self.w_idx = w_idx
+        self.work = work
         self.deps = deps
         self.cbk_data = cbk_data or {}
+        self._disabled = False
 
-    def __call__(self, works, **kwargs):
+    def __call__(self, flow):
         if self.can_execute():
             print("in callback")
-            #sender = kwargs["sender"]
-            #signal = kwargs["sender"]
             #print("in callback with sender %s, signal %s" % (sender, signal))
             cbk_data = self.cbk_data.copy()
-            cbk_data["_w_idx"] = self.w_idx
-            return self.func(works, cbk_data=cbk_data, **kwargs)
+            #cbk_data["_w_idx"] = self.w_idx
+            return self.func(flow=flow, work=self.work, cbk_data=cbk_data)
         else:
             raise Exception("Cannot execute")
 
     def can_execute(self):
-        return [dep.status == Task.S_OK  for dep in self.deps]
+        return not self._disabled and [dep.status == Task.S_OK  for dep in self.deps]
+
+    def disable(self):
+        self._disabled = True
 
     def handle_sender(self, sender):
         return sender in [d.node for d in self.deps]
 
 
-class QptdmWorkflow(Workflow):
-    """
-    This workflow parallelizes the calculation of the q-points of the screening. 
-    It also provides the callback on_all_ok that calls mrgscr to merge 
-    all the partial screening files produced.
-    """
-    def __init__(self, wfk_file, workdir, manager):
-        """
-        Args:
-            workdir:
-                String defining the working directory.
-            manager:
-                `TaskManager` object.
-            wfk_file:
-                The path of the WFK file.
-        """
-        super(QptdmWorkflow, self).__init__(workdir, manager)
-
-        self.wfk_file = os.path.abspath(wfk_file)
-
-    def build(self):
-        """Build files and directories."""
-        super(QptdmWorkflow, self).build()
-
-        # Create symbolic links to the WFK file.
-        for task in self:
-            task.inlink_file(self.wfk_file)
-
-    def on_all_ok(self):
-        logger.info("about to call mrgscr in on_all_ok")
-
-        scr_files = []
-        for task in self:
-            scr = task.outdir.has_abiext("SCR")
-            scr_files.append(scr)
-
-        assert scr_files
-
-        logger.debug("scr_files:\n%s" % str(scr_files))
-        mrgscr = abilab.Mrgscr(verbose=1)
-
-        out_prefix = "out_hello"
-        final_scr = mrgscr.merge_qpoints(scr_files, out_prefix=out_prefix, cwd=self.outdir.path)
-
-        results = dict(
-            returncode=0,
-            message="mrgscr done",
-            final_scr=final_scr,
-        )
-
-        return results
+def bandstructure_flow(workdir, manager, scf_input, nscf_input):
+    # Create the container that will manage the different workflows.
+    flow = AbinitFlow(workdir, manager)
+    flow.register_work(BandStructureWorkflow(scf_input, nscf_input))
+    return flow.allocate()
 
 
-def cbk_build_qptdm_workflow(works, cbk_data):
-    w_idx = cbk_data["_w_idx"]
-    workdir = works[w_idx].workdir
-    scr_input = cbk_data["scr_input"]
-
-    manager = works.manager
-    # TODO
-    # Index of the workflow and of the task that 
-    # has produced the WFK needed to generate the `QptdmWorkflow`.
-    wi, ti = (0,1)
-    task = works[wi][ti]
-    wfk_file = task.outdir.has_abiext("WFK")
-    
-    try:
-        work = build_qptdm_workflow(workdir, manager, scr_input, wfk_file)
-        return work
-
-    except Exception as exc:
-        raise 
-
-
-def build_qptdm_workflow(wfk_file, scr_input, workdir, manager):
+def qptdm_workflow(wfk_file, scr_input, workdir, manager):
     """
     Factory function that builds a `QptdmWorkflow`.
 
@@ -212,13 +147,16 @@ def build_qptdm_workflow(wfk_file, scr_input, workdir, manager):
     Return
         `QptdmWorflow` object.
     """
+    manager = work.manager
+
     # Build a temporary workflow with a shell manager just 
     # to run ABINIT to get the list of q-points for the screening.
     shell_manager = manager.to_shell_manager(mpi_ncpus=1, policy=dict(autoparal=0))
 
     fake_input = scr_input.deepcopy()
+    tmpdir = os.path.join(workdir, "_qptdm_run")
 
-    w = Workflow(workdir=os.path.join(workdir, "_qptdm_run"), manager=shell_manager)
+    w = Workflow(workdir=tmpdir, manager=shell_manager)
     w.register(fake_input)
     w.build()
 
@@ -228,8 +166,6 @@ def build_qptdm_workflow(wfk_file, scr_input, workdir, manager):
     fake_task.inlink_file(wfk_file)
     fake_task.strategy.add_extra_abivars({"nqptdm": -1})
 
-    #print(scr_input)
-    #print(fake_task.strategy.make_input())
     w.start()
 
     # Parse the section with the q-points
@@ -245,11 +181,142 @@ def build_qptdm_workflow(wfk_file, scr_input, workdir, manager):
         qptdm_input.set_variables(
             nqptdm=1,
             qptdm=qpoint
-            #qptdm=qpoint.frac_coords,
         )
         work.register(qptdm_input)
 
     return work
+
+
+class QptdmWorkflow(Workflow):
+    """
+    This workflow parallelizes the calculation of the q-points of the screening. 
+    It also provides the callback on_all_ok that calls mrgscr to merge 
+    all the partial screening files produced.
+    """
+    #def __init__(self, wfk_file, workdir, manager):
+    #    """
+    #    Args:
+    #        wfk_file:
+    #            The path of the WFK file.
+    #        workdir:
+    #            String defining the working directory.
+    #        manager:
+    #            `TaskManager` object.
+    #    """
+    #    super(QptdmWorkflow, self).__init__(workdir, manager)
+
+    #    self.wfk_file = os.path.abspath(wfk_file)
+
+    def build(self):
+        """Build files and directories."""
+        super(QptdmWorkflow, self).build()
+
+        # Create symbolic links to the WFK file.
+        for task in self:
+            task.inlink_file(self.wfk_file)
+
+    def fill(self, wfk_file, scr_input):
+        """
+        Factory function that builds a `QptdmWorkflow`.
+
+        Args:
+            scr_input:
+                Input for the screening calculation.
+            wfk_file:
+                Path to the ABINIT WFK file to use for the computation of the screening.
+
+        Return
+            `QptdmWorflow` object.
+        """
+        wfk_file = self.wfk_file = os.path.abspath(wfk_file)
+        # Build a temporary workflow with a shell manager just 
+        # to run ABINIT to get the list of q-points for the screening.
+        shell_manager = self.manager.to_shell_manager(mpi_ncpus=1, policy=dict(autoparal=0))
+
+        fake_input = scr_input.deepcopy()
+        tmpdir = os.path.join(self.workdir, "_qptdm_run")
+
+        w = Workflow(workdir=tmpdir, manager=shell_manager)
+        w.register(fake_input)
+        w.build()
+
+        # Create the symbolic link and add the magic value 
+        # nqpdm = -1 to get the list of q-points
+        fake_task = w[0]
+        fake_task.inlink_file(wfk_file)
+        fake_task.strategy.add_extra_abivars({"nqptdm": -1})
+
+        w.start()
+
+        # Parse the section with the q-points
+        qpoints = yaml_kpoints(fake_task.log_file.path, tag="<QPTDM>")
+        #print(qpoints)
+        #w.remove()
+
+        # Now we can register the task for the different q-points 
+        for qpoint in qpoints:
+            qptdm_input = scr_input.deepcopy()
+            qptdm_input.set_variables(
+                nqptdm=1,
+                qptdm=qpoint
+            )
+            self.register(qptdm_input)
+
+        return self
+
+    def on_all_ok(self):
+        """
+        This method is called when all the q-points have been computed.
+        In run `mrgscr` in sequential on the local machine to produce
+        the final SCR file in the outdir of the `Workflow`.
+        """
+        logger.info("about to call mrgscr in on_all_ok")
+
+        scr_files = filter(None, [task.outdir.has_abiext("SCR") for task in self])
+        logger.debug("scr_files:\n%s" % str(scr_files))
+        assert len(scr_files) == len(self)
+
+        mrgscr = abilab.Mrgscr(verbose=1)
+
+        final_scr = mrgscr.merge_qpoints(scr_files, out_prefix="out", cwd=self.outdir.path)
+
+        results = dict(
+            returncode=0,
+            message="mrgscr done",
+            final_scr=final_scr,
+        )
+
+        return results
+
+
+def cbk_qptdm_workflow(flow, work, cbk_data):
+    #w_idx = cbk_data["_w_idx"]
+    #workdir = flow[w_idx].workdir
+    scr_input = cbk_data["input"]
+    #wfk_file = cbk_data["wfk_file"]
+    wfk_file = "/Users/gmatteo/Coding/abipy/abipy/data/runs/WORKS/work_0/task_1/outdata/out_WFK"
+
+    work.fill(wfk_file, scr_input)
+    work.allocate()
+    #work.add_deps(cbk.deps)
+    work.connect_signals()
+    work.build()
+
+    return work
+
+    #manager = flow.manager
+    ## TODO
+    ## Index of the workflow and of the task that 
+    ## has produced the WFK needed to generate the `QptdmWorkflow`.
+    #wi, ti = (0,1)
+    #task = flow[wi][ti]
+    #wfk_file = task.outdir.has_abiext("WFK")
+    #
+    #try:
+    #    return qptdm_workflow(wfk_file, scr_input, workdir, manager)
+
+    #except Exception as exc:
+    #    raise 
 
 
 def yaml_kpoints(filename, tag="<KPOINTS>"):
@@ -336,20 +403,20 @@ class PhononWorkflow(Workflow):
             task.inlink_file(self.wfk_file)
 
     def on_all_ok(self):
+        """
+        This method is called when all the q-points have been computed.
+        In run `mrgddb` in sequential on the local machine to produce
+        the final DDB file in the outdir of the `Workflow`.
+        """
         logger.info("about to call anaddb.")
 
-        ddb_files = []
-        for task in self:
-            ddb = task.outdir.has_abiext("DDB")
-            ddb_files.append(scr)
-
-        assert ddb_files
-
+        ddb_files = filter(None, [task.outdir.has_abiext("DDB") for task in self])
+        assert len(ddb_files) == len(self)
         logger.debug("ddb_files:\n%s" % str(ddb_files))
+
         mrgddb = abilab.Mrgddb(verbose=1)
 
-        out_prefix = "out_hello"
-        mrgddb.merge_qpoints(ddb_files, out_prefix=out_prefix, cwd=self.outdir.path)
+        mrgddb.merge_qpoints(ddb_files, out_prefix="out", cwd=self.outdir.path)
 
         results = dict(
             returncode=0,
@@ -361,7 +428,7 @@ class PhononWorkflow(Workflow):
 #import collections
 #AbinitPertubation = collections.namedtuple("IrredPert", "qpoint idir ipert")
 
-def build_phonon_workflow(workdir, manager, ph_input, wfk_file): #, with_loto=):
+def phonon_work(workdir, manager, ph_input, wfk_file): #, with_loto=):
     """
     Factory function that builds a `list of PhononWorkflow` objects.
 
@@ -453,108 +520,101 @@ def build_phonon_workflow(workdir, manager, ph_input, wfk_file): #, with_loto=):
     return works
 
 
-def build_gw_workflow(workdir, manager, scf_input, nscf_input, scr_input, sigma_input):
+def gw_workflow(workdir, manager, scf_input, nscf_input, scr_input, sigma_input):
     # NEW version
 
     # Create the container that will manage the different workflows.
-    works = AbinitWorks(workdir, manager)
+    flow = AbinitFlow(workdir, manager)
 
     # Register the first workflow (GS + NSCF calculation)
-    bands_work = works.register(BandStructureWorkflow(scf_input, nscf_input))
+    bands_work = flow.register_work(BandStructureWorkflow(scf_input, nscf_input))
 
     assert not bands_work.scf_task.depends_on(bands_work.scf_task)
     assert bands_work.nscf_task.depends_on(bands_work.scf_task)
 
     # Register the callback that will be executed to build another workflow
-    scr_work = works.register(cbk_build_qptdm_workflow, deps={bands_work.nscf_task: "WFK"}, 
-                              cbk_data={"input": scr_input}) 
+    scr_work = flow.register_cbk(cbk=cbk_qptdm_workflow, cbk_data={"input": scr_input},
+                                 deps={bands_work.nscf_task: "WFK"}, work_class=QptdmWorkflow
+                                )
+                             
 
     #assert scr_work.depends_on(bands_work.nscf_task)
     #assert not scr_work.depends_on(bands_work.scf_task)
 
     #sigma_work = Workflow(sigma_input, deps={bands_work.nscf_task: "WFK", scr_work: "SCR"})
-    #works.register(sigma_work)
+    #flow.register(sigma_work)
 
     # The last workflow is a SIGMA run that will use 
     # the data produced in the previous two workflows.
     sigma_work = Workflow()
+    #sigma_task = sigma_work.register(sigma_input, deps={bands_work.nscf_task: "WFK"})
     sigma_task = sigma_work.register(sigma_input, deps={bands_work.nscf_task: "WFK", scr_work: "SCR"})
-    works.register(sigma_work)
+    flow.register_work(sigma_work)
+
+    flow.allocate()
+    flow.show_dependencies()
 
     assert sigma_task.depends_on(bands_work.nscf_task)
     assert not sigma_task.depends_on(bands_work.scf_task)
+    print("sigma_work.deps", sigma_work.deps)
+    print("sigma_task.deps", sigma_task.deps)
+    assert sigma_task.depends_on(scr_work)
     #assert sigma_work.depends_on(scr_work)
 
-    works.allocate()
-
-    #for task in bands_work:
-    #    print("deps", task.deps)
-
-    #works.show_dependencies()
-    return works
-
-    # Create the container that will manage the different workflows.
-    works = AbinitWorks(workdir, manager)
-
-    # Register the first workflow (GS + NSCF calculation)
-    wfk_work = Workflow()
-    works.register(wfk_work)
-
-    # Pass the information needed to build the GS + NSCF workflow:
-    #   1) Input files 
-    #   2) Dependency between the NSCF and the SCF task 
-    scf_task = wfk_work.register(scf_input)
-    nscf_task = wfk_work.register(nscf_input, deps={scf_task: "DEN"})
-    #wfk_work = BandStructure(workdir + "/WFK", manager, scf_input, nscf_input)
-    print(wfk_work)
-    wfk_work.show_intradeps()
-
-    # Register a function that will be executed to build another workflow
-    # the callback will have access the all the workflows that have been 
-    # registered so far. The workflow will be generated at runtime and will
-    # depend on the previous workflows specified in deps.
-    scr_work = works.register(cb_build_qptdm_workflow, deps={nscf_task: "WFK"}, 
-        cbk_data={"input": scr_input}) # TODO wi, ti = (0,1)
-
-    # The last workflow is a SIGMA run that will use 
-    # the data produced in the previous two workflows.
-    sigma_work = Workflow()
-    sigma_work = works.register(sigma_work, deps={nscf_task: "WFK", scr_work: "SCR"})
-    sigma_task = sigma_work.register(sigma_input, deps={nscf_task: "WFK", scr_work: "SCR"})
-
-    return works
+    return flow
 
 
-def build_schf_workflow(workdir, manager, scf_input, nscf_input, hf_input):
-    # NEW version
+class GW0_Workflow(IterativeWorkflow):
+    def __init__(self, wfk_file, sigma_input, workdir, manager):
+        self.wfk_file = os.path.abspath(wfk_file)
+        max_niter = 25
 
-    # Create the container that will manage the different workflows.
-    works = AbinitWorks(workdir, manager)
+        inputs = []
+        for i in range(max_niter):
+            new = sigma_input.copy()
+            inputs.append(new)
 
-    # Register the first workflow (GS + NSCF calculation)
-    bands_work = works.register(BandStructureWorkflow(scf_input, nscf_input))
+        IterativeWorkflow.__init__(sigma_generator, max_niter=max_niter, workdir=workdir, manager=manager)
 
-    # FIXME there's a problem with the ids if I want to add a task at runtime
-    # e.g if I want to iterate the SCHF task.
-    #sigma_work = Workflow(hf_input, deps={bands_work.nscf_task: "WFK"})
-    #works.register(sigma_work)
+    def build(self):
+        """Build files and directories."""
+        super(GW0_Workflow, self).build()
 
-    works.allocate()
-    works.show_dependencies()
-    return works
+        # Create symbolic links to the WFK file.
+        for task in self:
+            task.inlink_file(self.wfk_file)
+
+    def exit_iteration(self, *args, **kwargs):
+        """
+        Return a dictionary with the results produced at the given iteration.
+        The dictionary must contains an entry "converged" that evaluates to
+        True if the iteration should be stopped.
+        """
+
+    #def on_all_ok(self):
+        # Create the container that will manage the different workflows.
+        #work = Workflow()
+
+        ## Register the first workflow (GS + NSCF calculation)
+        #bands_work = flow.register(BandStructureWorkflow(scf_input, nscf_input))
+
+        ## FIXME there's a problem with the ids if I want to add a task at runtime
+        ## e.g if I want to iterate the SCHF task.
+        ##sigma_work = Workflow(hf_input, deps={bands_work.nscf_task: "WFK"})
+        ##flow.register(sigma_work)
+
+        #flow.allocate()
+        #flow.show_dependencies()
+        #return flow
 
 
-#def test_workflow(self):
-#    gs, nscf, scr_input, sigma_input = all_inputs()
-#    manager = abilab.TaskManager.simple_mpi()
-
-class AbinitWorks(collections.Iterable):
+class AbinitFlow(collections.Iterable):
     """
     This object is a container of workflows. Its main task is managing the 
     possible inter-depencies among the workflows and the generation of
     dynamic worflows that are generates by callabacks registered by the user.
     """
-    #PICKLE_FNAME = "__AbinitWorks__.pickle"
+    #PICKLE_FNAME = "__AbinitFlow__.pickle"
     PICKLE_FNAME = "__workflow__.pickle"
 
     def __init__(self, workdir, manager):
@@ -568,9 +628,8 @@ class AbinitWorks(collections.Iterable):
         # List of callbacks that must be executed when the dependencies reach S_OK
         self._callbacks = []
 
-        # Dictionary [work] --> list of deps 
-        # with the dependencies of each workflow.
-        self._deps_dict = collections.defaultdict(list)
+        # Dictionary [work] --> list of deps with the dependencies of each workflow.
+        #self._deps_dict = collections.defaultdict(list)
 
     def __repr__(self):
         return "<%s at %s, workdir=%s>" % (self.__class__.__name__, id(self), self.workdir)
@@ -657,21 +716,19 @@ class AbinitWorks(collections.Iterable):
     @staticmethod
     def pickle_load(filepath):
         with open(filepath, "rb") as fh:
-            works = pickle.load(fh)
+            flow = pickle.load(fh)
 
-        works.connect_signals()
-        return works
+        flow.connect_signals()
+        return flow
 
-    def register(self, obj, deps=None, manager=None, cbk_data=None):
+    def register_work(self, work, deps=None, manager=None):
         """
-        Registers a new workflow and add it to the internal list, 
+        Register a new `Workflow` and add it to the internal list, 
         taking into account possible dependencies.
 
         Args:
-            obj:
-                `Strategy` object or `AbinitInput` instance.
-                if obj is a `Strategy`, we create a new `AbinitTask` from 
-                the input strategy and add it to the list.
+            work:
+                `Workflow` object.
             deps:
                 List of `Dependency` objects specifying the dependency of this node.
                 An empy list of deps implies that this node has no dependencies.
@@ -680,7 +737,7 @@ class AbinitWorks(collections.Iterable):
                 If manager is None, we use the `TaskManager` specified during the creation of the workflow.
 
         Returns:   
-            `Dependency` object
+            The workflow.
         """
         # Directory of the workflow.
         work_workdir = os.path.join(self.workdir, "work_" + str(len(self)))
@@ -688,41 +745,61 @@ class AbinitWorks(collections.Iterable):
         # Make a deepcopy since manager is mutable and we might change it at run-time.
         manager = self.manager.deepcopy() if manager is None else manager.deepcopy()
 
-        got_cbk = False
-        if not callable(obj):
-            # We have a workflow object. 
-            assert cbk_data is None
-            work = obj
-            work.set_workdir(work_workdir)
-            work.set_manager(manager)
-            callback = None
+        work.set_workdir(work_workdir)
+        work.set_manager(manager)
 
-        else:
-            # We received a callback --> create an empty workflow and register the callback
-            got_cbk = True
-            work = Workflow(work_workdir, manager)
-            callback = obj
-        
         self._works.append(work)
 
         if deps:
             deps = [Dependency(node, exts) for node, exts in deps.items()]
+            work.add_deps(deps)
+            #self._deps_dict[work].extend(deps)
 
-            self._deps_dict[work].extend(deps)
+        return work
 
-            if not got_cbk:
-                work.add_deps(deps)
+    def register_cbk(self, cbk, cbk_data, deps, work_class, manager=None):
+        """
+        Registers a new workflow and add it to the internal list, 
+        taking into account possible dependencies.
+                                                                                                            
+        Args:
+            cbk:
+                Callback function.
+            cbk_data
+            deps:
+                List of `Dependency` objects specifying the dependency of this node.
+            work_class:
+                `Workflow` class to instantiate.
+            manager:
+                The `TaskManager` responsible for the submission of the task. 
+                If manager is None, we use the `TaskManager` specified during the creation of the `Flow`.
+                                                                                                            
+        Returns:   
+            The `Workflow` that will be finalized by the callback.
+        """
+        # Directory of the workflow.
+        work_workdir = os.path.join(self.workdir, "work_" + str(len(self)))
+                                                                                                            
+        # Make a deepcopy since manager is mutable and we might change it at run-time.
+        manager = self.manager.deepcopy() if manager is None else manager.deepcopy()
+                                                                                                            
+        # create an empty workflow and register the callback
+        work = work_class(workdir=work_workdir, manager=manager)
+        
+        self._works.append(work)
+                                                                                                            
+        deps = [Dependency(node, exts) for node, exts in deps.items()]
+        if not deps:
+            raise ValueError("A callback must have deps!")
 
-        if callback is not None:
-            if not deps:
-                raise ValueError("A callback must have deps!")
+        work.add_deps(deps)
 
-            # Wraps the callable in a Callback object and save 
-            # useful info such as the index of the workflow in self.
-            cbk = Callback(callback, w_idx=len(self)-1, deps=deps, cbk_data=cbk_data)
-
-            self._callbacks.append(cbk)
-
+        # Wrap the callable in a Callback object and save 
+        # useful info such as the index of the workflow and the callback data.
+        cbk = Callback(cbk, work, deps=deps, cbk_data=cbk_data)
+                                                                                                            
+        self._callbacks.append(cbk)
+                                                                                                            
         return work
 
     def allocate(self):
@@ -732,13 +809,13 @@ class AbinitWorks(collections.Iterable):
         return self
 
     def show_dependencies(self):
-        for node, deps in self._deps_dict.items():
-            print("Node %s had dependencies:" % str(node))
-            for i, dep in enumerate(deps):
-                print("%d) %s, status=%s" % (i, str(dep.node), str(dep.status)))
+        #for node, deps in self._deps_dict.items():
+        #    print("Node %s had dependencies:" % str(node))
+        #    for i, dep in enumerate(deps):
+        #        print("%d) %s, status=%s" % (i, str(dep.node), str(dep.status)))
 
         for work in self:
-            work.show_dependencies()
+            work.show_intrawork_deps()
 
     def on_dep_ok(self, signal, sender):
         print("on_dep_ok with sender %s, signal %s" % (str(sender), signal))
@@ -754,33 +831,31 @@ class AbinitWorks(collections.Iterable):
                 continue 
 
             # Execute the callback to generate the workflow.
-            try:
-                print("about to build new workflow")
-                w = cbk(works=self)
+            print("about to build new workflow")
+            #empty_work = self._works[cbk.w_idx]
 
-                # Make sure the new workflow has the same id as the previous one.
-                w_idx = cbk.w_idx
-                w.set_nodeid(self._works[w_idx].node_id)
+            # TODO better treatment of ids
+            # Make sure the new workflow has the same id as the previous one.
+            #new_work_idx = cbk.w_idx
+            work = cbk(flow=self)
+            #new_work.set_node_id(empty_work.node_id)
+            ##new_work.set_task_nodeids(self, id_generator)
+            #new_work.allocate()
+            #new_work.add_deps(cbk.deps)
+            #new_work.connect_signals()
+            #new_work.build()
+            work.add_deps(cbk.deps)
 
-                #w.set_task_nodeids(self, id_generator)
-                w.allocate()
-                w.add_deps(cbk.deps)
-                w.connect_signals()
-                w.build()
-                print("new: ", str(w))
+            #print("new: ", str(w))
+            # Replace the empty workflow with the new one and 
+            # register the callback for removal
+            #self._works[cbk.w_idx] = new_work
 
-                # Replace the empty workflow with the new one and 
-                # register the callback for removal
-                self._works[w_idx] = w
+            #dispatcher.send(signal=Task.S_OK, sender=work)
+            #except Exception as exc:
 
-            except Exception as exc:
-                print(str(exc))
-
-            finally:
-                self._callbacks[i] = None
-
-        # Remove the callbacks that have been executed.
-        self._callbacks = filter(None, self._callbacks)
+            # Disable the callback.
+            cbk.disable()
 
         # Update the database.
         self.pickle_dump()

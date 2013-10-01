@@ -153,10 +153,12 @@ def main():
                 if fname == abilab.Workflow.PICKLE_FNAME:
                     paths.append(os.path.join(dirpath, fname))
 
+    import cPickle as pickle
+    paths = [paths[0]]
+    print("paths", str(paths))
+
     options.paths = paths
     retcode = 0
-
-    import cPickle as pickle
 
     if len(options.paths) > 1:
         #TODO: here we should write a warning if we are reading AbiWorks.
@@ -168,6 +170,7 @@ def main():
                 works.append(w)
 
     elif len(options.paths) == 1:
+        print("in path1")
         path = options.paths[0]
         with open(path, "rb") as fh:
             works = pickle.load(fh)
