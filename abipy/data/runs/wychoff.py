@@ -52,19 +52,14 @@ def build_flow():
     flow = abilab.AbinitFlow(workdir, manager)
 
     # Create the list of workflows. Each workflow defines a band structure calculation.
-    works = []
     for new_structure, u in zip(news, uparams):
-
-        s = new_structure.formula.replace(" ", "")
-        workdir = os.path.join(os.path.dirname(__file__), s + "_u" + str(u))
-
-        # Generate the workflow.
-        works.append(build_workflow(workdir, new_structure, pseudos))
+        # Generate the workflow and register it.
+        flow.register_work(build_workflow(new_structure, pseudos))
 
     return flow.allocate()
 
 
-def build_workflow(workdir, structure, pseudos):
+def build_workflow(structure, pseudos):
     """
     Return a `Workflow` object defining a band structure calculation
     for given `Structure`.
@@ -95,6 +90,7 @@ def build_workflow(workdir, structure, pseudos):
     nscf_inp.set_variables(**global_vars)
 
     nscf_inp.set_variables(
+        iscf=-2,
         tolwfr=1e-12,
         kptopt=0,
         nkpt=1,
@@ -103,7 +99,7 @@ def build_workflow(workdir, structure, pseudos):
 
     print(nscf_inp)
 
-    return BandStructureWorkflow(scf_inp, nscf_inp)
+    return abilab.BandStructureWorkflow(gs_inp, nscf_inp)
 
 
 @decorate_main

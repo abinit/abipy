@@ -102,23 +102,23 @@ def find_ge(a, x):
 
 def minloc(iterable):
     """Return the min value and its position."""
-    min_val = iterable[0];
-    min_idx = 0
+    min_val, min_idx = iterable[0], 0
+
     for (idx, item) in enumerate(iterable[1:]):
         if item < min_val:
-            min_val = item
-            min_idx = idx
+            min_val, min_idx = item, idx
+
     return min_val, min_idx
 
 
 def maxloc(iterable):
     """Return the max value and its position."""
-    max_val = iterable[0];
-    max_idx = 0
+    max_val, max_idx = iterable[0], 0
+
     for (idx, item) in enumerate(iterable[1:]):
         if item > max_val:
-            max_val = item
-            max_idx = idx
+            max_val, max_idx = item, idx
+
     return max_val, max_idx
 
 #########################################################################################

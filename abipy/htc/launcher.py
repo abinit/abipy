@@ -420,16 +420,6 @@ class Launcher(AbinitInput):
     #   string = ""
     #   return string
 
-    def time(self, *args, **kwargs):
-        "Analyze execution time (requires timopt !=0 in the input file."
-
-        from .abitimer import AbinitTimerParser
-        time_parser = AbinitTimerParser()
-
-        time_parser.parse(self.last_output())
-
-        time_parser.main(*args, **kwargs)
-
     def report(self, *args, **kwargs):
         """
         Print information on the calculation status and return a status.
@@ -500,7 +490,6 @@ class Launcher(AbinitInput):
             *  show        --  Signify that the calculation exists.
             *  destroy     --  Remove all files, including input and outputs.
             *  visualize   --  Visualize data.
-            *  time        --  Visualize elapsed time and timer data (require timopt != 0)
 
         Suppose this is the content of 'myscript.py':
 

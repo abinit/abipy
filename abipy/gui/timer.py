@@ -6,9 +6,8 @@ import wx
 import abipy.gui.awx as awx
 
 from collections import OrderedDict
+from pymatgen.io.abinitio.abitimer import AbinitTimerSection
 from abipy import abiopen
-from abipy.htc.abitimer import AbinitTimerSection
-#from abipy.tools import list_strings, is_string
 
 
 class AbinitTimerFrame(awx.Frame):
