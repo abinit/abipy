@@ -13,4 +13,4 @@ shell_env:
 mpi_runner: mpirun
 policy:
     autoparal: 1
-    max_ncpus: 10
+    max_ncpus: 2

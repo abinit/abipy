@@ -148,7 +148,7 @@ def main():
 
         for dirpath, dirnames, filenames in os.walk(root):
             for fname in filenames:
-                if fname == abilab.Workflow.PICKLE_FNAME:
+                if fname == abilab.AbinitFlow.PICKLE_FNAME:
                     paths.append(os.path.join(dirpath, fname))
 
     import cPickle as pickle
@@ -182,7 +182,7 @@ def main():
         works.show_dependencies()
 
     else:
-        warnings.warn("The directories specifies do not contain any valid workflow")
+        warnings.warn("The directories specifies do not contain any valid AbinitFlow")
         return 1
 
 

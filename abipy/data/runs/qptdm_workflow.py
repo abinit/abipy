@@ -165,7 +165,7 @@ class QptdmWorkflow(Workflow):
                 nqptdm=1,
                 qptdm=qpoint
             )
-            self.register(qptdm_input)
+            self.register(qptdm_input, manager=self.manager)
 
         return self.allocate()
 
@@ -421,6 +421,7 @@ def cbk_qptdm_workflow(flow, work, cbk_data):
 
 def g0w0_flow_with_qptdm(workdir, manager, scf_input, nscf_input, scr_input, sigma_input):
     # Create the container that will manage the different workflows.
+    print(manager)
     flow = AbinitFlow(workdir, manager)
 
     # Register the first workflow (GS + NSCF calculation)
