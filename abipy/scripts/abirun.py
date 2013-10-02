@@ -189,12 +189,12 @@ def main():
 
 
     if options.command == "gui":
-        from abipy.gui.workflow_viewer import wxapp_workflow_viewer
+        from abipy.gui.workflow_viewer import wxapp_flow_viewer
 
         for w in works:
             w.check_status()
 
-        wxapp_workflow_viewer(works).MainLoop()
+        wxapp_flow_viewer(works).MainLoop()
 
     else:
         for w in works:

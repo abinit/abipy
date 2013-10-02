@@ -11,8 +11,8 @@ from abipy.abilab import Workflow, AbinitFlow, Mrgscr, Mrgddb
 from abipy.tools import AttrDict
 
 from pydispatch import dispatcher
-from pymatgen.io.abinitio.task import Task, Dependency
-from pymatgen.io.abinitio.workflow import BandStructureWorkflow, IterativeWorkflow
+from pymatgen.io.abinitio.tasks import Task, Dependency
+from pymatgen.io.abinitio.workflows import BandStructureWorkflow, IterativeWorkflow
 
 import logging
 logger = logging.getLogger(__name__)

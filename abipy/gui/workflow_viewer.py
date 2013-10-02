@@ -25,22 +25,22 @@ ID_SHOW_TIMERS = wx.NewId()
 ID_CHECK_STATUS = wx.NewId()
 
 
-class WorkflowViewerFrame(awx.Frame):
+class FlowViewerFrame(awx.Frame):
     VERSION = "0.1"
 
     # Time in second after which we check the status of the tasks.
     REFRESH_INTERVAL = 10
 
-    def __init__(self, parent, workflows, **kwargs):
+    def __init__(self, parent, flow, **kwargs):
         """
         Args:
-            workflows:
-                List of `Workflow` objects or single `Workflow`.
+            flow:
+                `AbinitFlow` with the list of `Workflow` objects.
         """
         if "title" not in kwargs:
             kwargs["title"] = self.codename
             
-        super(WorkflowViewerFrame, self).__init__(parent, -1, **kwargs)
+        super(FlowViewerFrame, self).__init__(parent, -1, **kwargs)
 
         self.statusbar = self.CreateStatusBar()
 
@@ -86,6 +86,11 @@ class WorkflowViewerFrame(awx.Frame):
         toolbar.AddSimpleTool(ID_CHECK_STATUS, wx.Bitmap(awx.path_img("log_evt.png")), "Check the status of the workflow(s).")
 
         #toolbar.AddSeparator()
+        #self.visualizer_cbox = wx.ComboBox(choices=supported_visunames(), id=ID_TBOX_VIS, 
+        #    name='visualizer', parent=toolbar, value='xcrysden') 
+        #self.visualizer_cbox.Refresh() 
+
+        #toolbar.AddSeparator()
         self.toolbar.Realize()
         self.Centre()
 
@@ -111,9 +116,7 @@ class WorkflowViewerFrame(awx.Frame):
             mid, handler = combo[:2]
             self.Bind(wx.EVT_MENU, handler, id=mid)
 
-        self.workflows = workflows
-        #if not isinstance(workflows, (list, tuple)):
-        #    self.workflows = [workflows]
+        self.flow = flow
 
         #if filename is not None:
         #    self.ReadWorkflow(filename)
@@ -129,61 +132,41 @@ class WorkflowViewerFrame(awx.Frame):
         self.main_sizer = main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         # Here we create a panel and a notebook on the panel
-        self.notebook = Notebook(panel, self.workflows)
+        self.notebook = Notebook(panel, self.flow)
 
         main_sizer.Add(self.notebook, 1, wx.EXPAND, 5)
 
+        submit_button = wx.Button(panel, -1, label='Submit')
+        submit_button.Bind(wx.EVT_BUTTON, self.OnSubmitButton)
+
+        text = wx.StaticText(self, -1, "Max nlaunch:")
+        text.Wrap(-1)
+        text.SetToolTipString("Maximum number of tasks that can be submitted. Use -1 for unlimited launches.")
+        self.max_nlaunch = wx.SpinCtrl(panel, -1, value="1", min=-1)
+
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
-
-        rapidfire_button = wx.Button(panel, -1, label='Rapid Fire')
-        rapidfire_button.Bind(wx.EVT_BUTTON, self.OnRapidFireButton)
-        hsizer.Add(rapidfire_button,  0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
-
-        singleshot_button = wx.Button(panel, -1, label='Single Shot')
-        singleshot_button.Bind(wx.EVT_BUTTON, self.OnSingleShotButton)
-        hsizer.Add(singleshot_button,  0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
-
-        self.all_checkbox = wx.CheckBox(panel, -1, label="All workflows")
-        self.all_checkbox.SetValue(False)
-        hsizer.Add(self.all_checkbox,  0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
-
+        hsizer.Add(submit_button,  0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
+        hsizer.Add(text,  0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
+        hsizer.Add(self.max_nlaunch,  0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
         main_sizer.Add(hsizer, 0,  wx.ALIGN_CENTER_HORIZONTAL, 5)                                                                                     
+
         panel.SetSizerAndFit(main_sizer)
 
         # Register this event when the GUI is IDLE
         self.last_refresh = time.time()
         self.Bind(wx.EVT_IDLE, self.OnIdle)
 
-    def OnRapidFireButton(self, event):
-        nlaunch = 0
+    def OnSubmitButton(self, event):
+        """Submit up to max_nlauch tasks."""
+        max_nlaunch = int(self.max_nlaunch.GetValue())
+        nlaunch = PyLauncher(self.flow).rapidfire(max_nlaunch=max_nlaunch)
 
-        if self.all_checkbox.GetValue():
-            for work in self.workflows:
-                nlaunch += PyLauncher(work).rapidfire()
-
-        else:
-            work = self.GetSelectedWork()
-            nlaunch += PyLauncher(work).rapidfire()
-
-        self.statusbar.PushStatusText("Submitted %d tasks" % nlaunch)
-
-    def OnSingleShotButton(self, event):
-        nlaunch = 0
-                                                                      
-        if self.all_checkbox.GetValue():
-            for work in self.workflows:
-                nlaunch += PyLauncher(work).single_shot()
-                                                                      
-        else:
-            work = self.GetSelectedWork()
-            nlaunch += PyLauncher(work).single_shot()
-                                                                      
         self.statusbar.PushStatusText("Submitted %d tasks" % nlaunch)
 
     def GetSelectedWork(self):
         """
-        Return the selected workflow namely that the workflow associated to the 
-        active tab. None is list is empy.
+        Return the selected workflow namely that the 
+        workflow associated to the active tab. None if list is empty.
         """
         return self.notebook.GetSelectedWork()
 
@@ -194,17 +177,18 @@ class WorkflowViewerFrame(awx.Frame):
             self.last_refresh = time.time()
 
     def OnCheckStatusButton(self, event):
+        """Callback triggereed by the checkstatus button."""
         self.CheckStatusAndRedraw()
 
     def CheckStatusAndRedraw(self):
+        """Check the status of all the workflows and redraw the panel."""
         self.statusbar.PushStatusText("Checking status...")
 
-        for work in self.workflows:
-            work.check_status()
+        self.flow.check_status()
 
         # Cound the number of tasks with given status.
-        counter = self.workflows[0].status_counter()
-        for work in self.workflows[1:]:
+        counter = self.flow[0].status_counter()
+        for work in self.flow[1:]:
             counter += work.status_counter()
 
         # Save the active tab so that we can set it afterwards.
@@ -214,7 +198,7 @@ class WorkflowViewerFrame(awx.Frame):
         main_sizer = self.main_sizer
         main_sizer.Hide(0)
         main_sizer.Remove(0)
-        new_notebook = Notebook(self, self.workflows)
+        new_notebook = Notebook(self, self.flow)
         main_sizer.Insert(0, new_notebook, 1, wx.EXPAND, 5)
         self.notebook = new_notebook
 
@@ -251,7 +235,7 @@ class WorkflowViewerFrame(awx.Frame):
     #    self.file_history.AddFileToHistory(filepath)
     #    self.ReadWfkFile(filepath)
 
-    #def ReadWorkflowFile(self, filepath):
+    #def ReadFlowFile(self, filepath):
     #    """Read the WFK file and build the UI."""
     #    self.statusbar.PushStatusText("Reading %s" % filepath)
 
@@ -277,51 +261,59 @@ class WorkflowViewerFrame(awx.Frame):
                          description="", developers="M. Giantomassi")
 
     def OnShowInputs(self, event):
+        """Show all the input files of the selected `Workflow`."""
         work = self.GetSelectedWork() 
         if work is None: return
         frame = TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.abi")
         frame.Show()
 
     def OnShowOutputs(self, event):
+        """Show all the output files of the selected `Workflow`."""
         work = self.GetSelectedWork() 
         if work is None: return
         frame = TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.abo")
         frame.Show()
 
     def OnShowJobScripts(self, event):
+        """Show all the job script files of the selected `Workflow`."""
         work = self.GetSelectedWork() 
         if work is None: return
         frame = TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.sh")
         frame.Show()
 
     def OnShowLogs(self, event):
+        """Show all the log files of the selected `Workflow`."""
         work = self.GetSelectedWork() 
         if work is None: return
         frame = TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.log")
         frame.Show()
 
     def OnBrowse(self, event):
+        """Browse all the output files produced by the selected `Workflow`."""
         work = self.GetSelectedWork() 
         if work is None: return
         FileListFrame(self, dirpaths=work.workdir).Show()
 
     def OnShowMainEvents(self, event):
+        """Browse all the main events of the tasks in the selected `Workflow`."""
         work = self.GetSelectedWork() 
         if work is None: return
         frame = AbinitEventsNotebookFrame(self, filenames=[task.output_file.path for task in work])
         frame.Show()
 
     def OnShowLogEvents(self, event):
+        """Browse all the log events of the tasks in the selected `Workflow`."""
         work = self.GetSelectedWork() 
         if work is None: return
         frame = AbinitEventsNotebookFrame(self, [task.log_file.path for task in work])
         frame.Show()
 
     def OnShowTimers(self, event):
+        """Analyze the timing data of all the output files of the selected `Workflow`."""
         work = self.GetSelectedWork() 
         if work is None: return
         timers = work.parse_timers()
-        # build the frame for analyzing multiple timers.
+        # Build the frame for analyzing multiple timers.
         MultiTimerFrame(self, timers).Show()
 
 
@@ -329,11 +321,11 @@ class Notebook(fnb.FlatNotebook):
     """
     Notebook class
     """
-    def __init__(self, parent, workflows):
+    def __init__(self, parent, flow):
         super(Notebook, self).__init__(parent, id=-1, style=fnb.FNB_NO_X_BUTTON | fnb.FNB_NAV_BUTTONS_WHEN_NEEDED)
 
-        self.workflows = workflows
-        for work in workflows:
+        self.flow = flow
+        for work in flow:
             tab = TabPanel(self, work)
             self.AddPage(tab, text=os.path.basename(work.workdir))
 
@@ -347,7 +339,7 @@ class Notebook(fnb.FlatNotebook):
         # Easy if workflow_viewer can only read data but it might be source 
         # of bugs if we want to modify the object e.g. by submitting the calculation.
         # For the time-being, use this assertion to prevent users from removing pages.
-        if self.GetPageCount() != len(self.workflows):
+        if self.GetPageCount() != len(self.flow):
             return awx.showErrorMessage(self, message="Bad user has removed pages from the notebook!")
 
         idx = self.GetSelection()
@@ -355,7 +347,7 @@ class Notebook(fnb.FlatNotebook):
             return None
                                                                                                        
         try:
-            return self.workflows[idx]
+            return self.flow[idx]
         except IndexError:
             return None
 
@@ -423,7 +415,6 @@ class TaskListCtrl(wx.ListCtrl):
 
     def OnRightClick(self, event):
         currentItem = event.m_itemIndex
-        #print("OnRightClick with currentItem %s" % str(currentItem))
         if currentItem == -1:
             return
 
@@ -435,11 +426,13 @@ class TaskListCtrl(wx.ListCtrl):
 
     def OnItemActivated(self, event):
         currentItem = event.m_itemIndex
-        #print("In OnItemActivated with currentItem %s" % str(currentItem))
         task = self.work[currentItem]
 
         if task.can_run:
             task.start()
+
+        # This is to update the database.
+        flow.pickle_dump()
 
 
 # Callbacks 
@@ -552,7 +545,8 @@ class TaskPopupMenu(wx.Menu):
             awx.showErrorMessage(parent=self.parent)
 
 
-def wxapp_workflow_viewer(works):
+def wxapp_flow_viewer(works):
+    """Standalone application."""
     app = awx.App()
-    WorkflowViewerFrame(None, works).Show()
+    FlowViewerFrame(None, works).Show()
     return app
