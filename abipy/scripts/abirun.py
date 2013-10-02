@@ -72,8 +72,6 @@ def treat_workflow(work, options):
             if report is not None: 
                 events = map(str, [report.num_errors, report.num_warnings, report.num_comments])
 
-            str_status = task.str_status
-
             colour = {
                 #task.S_READY: "Ready",
                 #task.S_SUB: "Submitted",
@@ -86,7 +84,7 @@ def treat_workflow(work, options):
 
             cpu_info = map(str, [task.mpi_ncpus, task.omp_ncpus])
 
-            table.append([task_name, str_status, str(task.queue_id)] + events + cpu_info)
+            table.append([task_name, str(task.status), str(task.queue_id)] + events + cpu_info)
 
         pprint_table(table)
 

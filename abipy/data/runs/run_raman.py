@@ -8,7 +8,6 @@ import abipy.abilab as abilab
 import abipy.data as data  
 
 from abipy.data.runs import Tester, decorate_main
-from pymatgen.io.abinitio.workflow import BSEMDF_Workflow
 
 def build_flow():
     pseudos = data.pseudos("14si.pspnc")
@@ -105,7 +104,7 @@ def raman_workflow(structure, pseudos, shiftk):
     )
 
     # Build the workflow representing a BSE run with model dielectric function.
-    return BSEMDF_Workflow(scf_inp, nscf_inp, bse_inp)
+    return abilab.BSEMDF_Workflow(scf_inp, nscf_inp, bse_inp)
 
 
 @decorate_main

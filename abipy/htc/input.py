@@ -542,7 +542,8 @@ class Dataset(collections.Mapping):
     def set_variable(self, varname, value):
         """Set a single variable."""
         if varname in self:
-            warnings.warn("Variable %s is already defined with value:\n%s" % (varname, str(self[varname])))
+            msg = "Variable %s is already defined:\n old: %s, new %s" % (varname, str(self[varname]), str(value))
+            warnings.warn(msg)
 
         self[varname] = value
 

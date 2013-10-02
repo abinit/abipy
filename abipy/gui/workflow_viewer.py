@@ -249,10 +249,14 @@ class FlowViewerFrame(awx.Frame):
     #        awx.showErrorMessage(self)
 
     #def OnClose(self, event):
-    #    self.work = None
-    #    self.DestroyPanel()
+    #    print("onclose")
+    #    self.flow.pickle_dump()
+    #    self.Close()
 
     #def OnExit(self, event):
+    #    """Save the status of the flow in the database and exit the GUI."""
+    #    print("onexit")
+    #    self.flow.pickle_dump()
     #    self.Close()
 
     def OnAboutBox(self, event):
@@ -378,8 +382,10 @@ class TaskListCtrl(wx.ListCtrl):
     def __init__(self, parent, work, **kwargs):
         """
         Args:
-            Task:
-                List of `Task` instances.
+            parent:
+                Parent window.
+            work:
+                `Workflow` containig the List of `Task` instances.
         """
         super(TaskListCtrl, self).__init__(parent, id=-1, style=wx.LC_REPORT | wx.BORDER_SUNKEN, **kwargs)
 
@@ -401,7 +407,7 @@ class TaskListCtrl(wx.ListCtrl):
                 pass
 
             cpu_info = [task.mpi_ncpus, task.omp_ncpus]
-            entry = map(str, [task.short_name, task.str_status, task.queue_id] + 
+            entry = map(str, [task.short_name, str(task.status), task.queue_id] + 
                               events + cpu_info + [task.__class__.__name__]
                         )
 
@@ -487,8 +493,10 @@ def show_history(parent, task):
 def task_restart(parent, task):
     task.restart()
 
+
 def task_reset(parent, task):
     task.reset()
+
 
 def task_show_deps(parent, task):
     text = task.str_deps()
