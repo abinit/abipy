@@ -112,8 +112,8 @@ def gw_works():
     policy = dict(autoparal=0, max_ncpus=2)
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=policy)
 
-    gw_works = gw_workflow(workdir, manager, gs, nscf, scr_input, sigma_input)
-    gw_works.build_and_pickle_dump()
+    flow = g0w0_flow_with_qptdm(workdir, manager, gs, nscf, scr_input, sigma_input)
+    flow.build_and_pickle_dump()
 
     return 0
 

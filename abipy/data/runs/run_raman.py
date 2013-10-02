@@ -8,8 +8,9 @@ import abipy.abilab as abilab
 import abipy.data as data  
 
 from abipy.data.runs import Tester, decorate_main
+from pymatgen.io.abinitio.workflow import BSEMDF_Workflow
 
-def build_raman_workflows():
+def build_flow():
     pseudos = data.pseudos("14si.pspnc")
 
     # Get the unperturbed structure.
@@ -27,27 +28,25 @@ def build_raman_workflows():
 
     displaced_structures = modifier.displace(ph_displ, etas, frac_coords=False)
 
-    # Create the list of workflows. Each workflow defines 
-    # a complete BSE calculation for given eta.
-    basedir = os.path.join(os.path.dirname(__file__), base_structure.formula + "_RAMAN")
+    # Initialize flow. Each workflow in the flow defines a complete BSE calculation for given eta.
+    workdir = os.path.join(os.path.dirname(__file__), base_structure.formula + "_RAMAN")
+    manager = abilab.TaskManager.from_file("taskmanager.yaml")
+
+    flow = abilab.AbinitFlow(workdir, manager)
 
     # Generate the different shifts to average
     ndiv = 2
     shift1D = np.arange(1,2*ndiv+1,2)/(2*ndiv)
     allshifts = [[x,y,z] for x in shift1D for y in shift1D for z in shift1D]
 
-    works = []
     for structure, eta in zip(displaced_structures, etas):
-        dispworkdir = os.path.join(basedir, "eta_" + str(eta))
-        ishift = 0
         for shift in allshifts:
-            workdir = os.path.join(dispworkdir, "shift_" + str(ishift))
-            works.append(raman_workflow(workdir, structure, pseudos, shift))
-            ishift += 1
+            flow.register_work(raman_workflow(structure, pseudos, shift))
 
-    return works
+    return flow.allocate()
 
-def raman_workflow(workdir, structure, pseudos, shiftk):
+
+def raman_workflow(structure, pseudos, shiftk):
     # Generate 3 different input files for computing optical properties with BSE.
 
     # Global variables
@@ -105,42 +104,17 @@ def raman_workflow(workdir, structure, pseudos, shiftk):
         bs_hayd_term=0,      # No terminator
     )
 
-    # Initialize the workflow.
-    manager = abilab.TaskManager.from_file("taskmanager.yaml")
+    # Build the workflow representing a BSE run with model dielectric function.
+    return BSEMDF_Workflow(scf_inp, nscf_inp, bse_inp)
 
-    #policy=dict(autoparal=1, max_ncpus=2)
-    policy=dict(autoparal=0, max_ncpus=1)
-    manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=policy)
-
-    work = abilab.Workflow(workdir, manager)
-
-    # Register the input for the SCF calculation. 
-    # scf_task is the object that describes this node of the workflow.
-    from pymatgen.io.abinitio.task import ScfTask, NscfTask, HaydockBseTask
-    scf_task = work.register(scf_inp, task_class=ScfTask)
-
-    # Register the input for the NSCF calculation and tell the workflow
-    # that this step depends on the SCF run 
-    # In this case, the nscf run requires the DEN file produced in the SCF run.
-    nscf_task = work.register(nscf_inp, deps={scf_task: "DEN"}, task_class=NscfTask)
-
-    # Register the input for the BSE calculation and tell the workflow
-    # that this step depends on the NSCF run 
-    # In this case, the BSE run requires the WFK file produced in the NSCF run.
-    work.register(bse_inp, deps={nscf_task: "WFK"}, task_class=HaydockBseTask)
-    work.show_intrawork_deps()
-
-    return work
 
 @decorate_main
 def main():
     # Build the list of workflows.
-    workflows = build_raman_workflows()
-
-    for work in workflows:
-        work.build_and_pickle_dump()
-
+    flow = build_flow()
+    flow.build_and_pickle_dump()
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

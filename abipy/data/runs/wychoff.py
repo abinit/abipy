@@ -3,15 +3,17 @@
 This example shows how to compute the band structure of a set of 
 crystalline structures obtained by changin a set of internal paramaters
 """
-
 from __future__ import division, print_function
 
 import os
+import sys 
 
 from abipy import abilab
 import abipy.data as data
 
+from abipy.data.runs import decorate_main
 from abipy.abilab import FloatWithUnit
+
 
 def special_positions(lattice, u):
     """Construct the crystalline `Structure` for given value of the internal parameter u."""
@@ -32,7 +34,7 @@ def special_positions(lattice, u):
     return abilab.Structure(lattice, species, coords, 
                             validate_proximity=True, coords_are_cartesian=False)
 
-def build_workflows():
+def build_flow():
     pseudos = data.pseudos("14si.pspnc")
 
     base_structure = abilab.Structure.from_file(data.cif_file("si.cif"))
@@ -41,9 +43,13 @@ def build_workflows():
 
     for u in uparams:
         new = special_positions(base_structure.lattice, u)
-        print(new)
+        #print(new)
         news.append(new)
-        #assert len(base_structure) == len(new)
+
+    workdir = os.path.join(os.path.dirname(__file__), base_structure.formula + "_WYCHOFF")
+    manager = abilab.TaskManager.from_file("taskmanager.yaml")
+
+    flow = abilab.AbinitFlow(workdir, manager)
 
     # Create the list of workflows. Each workflow defines a band structure calculation.
     works = []
@@ -55,7 +61,7 @@ def build_workflows():
         # Generate the workflow.
         works.append(build_workflow(workdir, new_structure, pseudos))
 
-    return works
+    return flow.allocate()
 
 
 def build_workflow(workdir, structure, pseudos):
@@ -97,42 +103,18 @@ def build_workflow(workdir, structure, pseudos):
 
     print(nscf_inp)
 
-    # Build the manager.
-    #manager = abilab.TaskManager.simple_mpi(mpi_ncpus=2)
+    return BandStructureWorkflow(scf_inp, nscf_inp)
 
-    manager = abilab.TaskManager(qtype="slurm",
-       qparams=dict(
-           ntasks=2,
-           #partition="hmem",
-           time="0:20:00",
-           #account='nobody@nowhere.org',
-           #ntasks_per_node=None,
-           #cpus_per_task=None,
-       ),
-       #setup="SetEnv intel13_intel",
-       modules = ["intel/compilerpro/13.0.1.117", "fftw3/intel/3.3"],
-       shell_env=dict(
-         PATH=("/home/naps/ygillet/NAPS/src/abinit-7.4.3-public/tmp_intel13/src/98_main/:" +
-               "/home/naps/ygillet/NAPS/intel13/bin:$PATH"),
-         LD_LIBRARY_PATH="/home/naps/ygillet/NAPS/intel13/lib:$LD_LIBRARY_PATH",
-       ),
-       mpi_runner="mpirun",
-       #policy=dict(autoparal=1, max_ncpus=2),
-    )
 
-    # Initialize the workflow.
-    work = abilab.Workflow(workdir, manager)
-
-    # Register the input.
-    gs_task = work.register(gs_inp)
-
-    work.register(nscf_inp, links={gs_task: "DEN"})
-
-    return work
-
+@decorate_main
+def main():
+    flow = build_flow()
+    flow.build_and_pickle_dump()
+    return 0
 
 if __name__ == "__main__":
-    works = build_workflows()
+    sys.exit(main())
 
-    for work in works:
-        work.build_and_pickle_dump()
+    
+    
+    

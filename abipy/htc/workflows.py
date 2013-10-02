@@ -1,16 +1,7 @@
 from __future__ import division, print_function
 
-from pymatgen.io.abinitio.workflow import IterativeWorkflow, Workflow as pmWorkflow
-from abipy.htc.abitimer import AbinitTimerParser
+import pymatgen.io.abinitio.workflow as pm
 
-class Workflow(pmWorkflow):
-    """Hook used to add and test additional features to the pymatgen workflow."""
+class AbinitFlow(pm.AbinitFlow):
+    """Hook used to add and test additional features to the pymatgen AbinitFlow."""
 
-    def parse_timers(self):
-        """Parse the TIMER section reported in the ABINIT output files."""
-        filenames = [task.output_file.path for task in self]
-
-        parser = AbinitTimerParser()
-        parser.parse(filenames)
-
-        return parser
