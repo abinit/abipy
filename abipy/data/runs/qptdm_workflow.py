@@ -11,87 +11,16 @@ from abipy.abilab import Workflow, AbinitFlow, Mrgscr, Mrgddb
 from abipy.tools import AttrDict
 
 from pydispatch import dispatcher
-from pymatgen.io.abinitio.tasks import Task, Dependency
+from pymatgen.io.abinitio.tasks import Task, Dependency, ScfTask, PhononTask
 from pymatgen.io.abinitio.workflows import BandStructureWorkflow, IterativeWorkflow
 
 import logging
 logger = logging.getLogger(__name__)
 
 
-class OrderedDefaultdict(collections.OrderedDict):
-    """
-    Taken from:
-    http://stackoverflow.com/questions/4126348/how-do-i-rewrite-this-function-to-implement-ordereddict/4127426#4127426
-    """
-    def __init__(self, *args, **kwargs):
-        if not args:
-            self.default_factory = None
-        else:
-            if not (args[0] is None or callable(args[0])):
-                raise TypeError('first argument must be callable or None')
-            self.default_factory = args[0]
-            args = args[1:]
-        super(OrderedDefaultdict, self).__init__(*args, **kwargs)
-
-    def __missing__ (self, key):
-        if self.default_factory is None:
-            raise KeyError(key)
-        self[key] = default = self.default_factory()
-        return default
-
-    def __reduce__(self):  # optional, for pickle support
-        args = self.default_factory if self.default_factory else tuple()
-        return type(self), args, None, None, self.items()
-
-
-class DefaultOrderedDict(OrderedDict):
-    """
-    Taken from
-    http://stackoverflow.com/questions/6190331/can-i-do-an-ordered-default-dict-in-python
-    """
-    def __init__(self, default_factory=None, *a, **kw):
-        if (default_factory is not None and not callable(default_factory)):
-            raise TypeError('first argument must be callable')
-        OrderedDict.__init__(self, *a, **kw)
-        self.default_factory = default_factory
-
-    def __getitem__(self, key):
-        try:
-            return OrderedDict.__getitem__(self, key)
-        except KeyError:
-            return self.__missing__(key)
-
-    def __missing__(self, key):
-        if self.default_factory is None:
-            raise KeyError(key)
-        self[key] = value = self.default_factory()
-        return value
-
-    def __reduce__(self):
-        if self.default_factory is None:
-            args = tuple()
-        else:
-            args = self.default_factory,
-        return type(self), args, None, None, self.items()
-
-    def copy(self):
-        return self.__copy__()
-
-    def __copy__(self):
-        return type(self)(self.default_factory, self)
-
-    def __deepcopy__(self, memo):
-        import copy
-        return type(self)(self.default_factory,
-                          copy.deepcopy(self.items()))
-    def __repr__(self):
-        return 'OrderedDefaultDict(%s, %s)' % (self.default_factory,
-                                        OrderedDict.__repr__(self))
-
-
-
 def hello(signal, sender):
     print("on_hello with sender %s, signal %s" % (sender, signal))
+
 
 def bandstructure_flow(workdir, manager, scf_input, nscf_input):
     flow = AbinitFlow(workdir, manager)
@@ -122,7 +51,7 @@ class QptdmWorkflow(Workflow):
 
     def fill(self, wfk_file, scr_input):
         """
-        Create the tasks and register them in self.
+        Create the SCR tasks and register them in self.
 
         Args:
             wfk_file:
@@ -194,19 +123,82 @@ class QptdmWorkflow(Workflow):
         return results
 
 
-def phonon_flow(workdir, manager, scf_input, ph_input):
+def phonon_flow(workdir, manager, scf_input, ph_inputs):
+    #natom = len(scf_input.structure)
+    natom = 2
+
     # Create the container that will manage the different workflows.
     flow = AbinitFlow(workdir, manager)
 
     # Register the first workflow (GS calculation)
-    #scf_work = flow.register_work(Workflow().register(scf_input, task_class=ScfTask)
+    scf_work = Workflow()
+    scf_task = scf_work.register(scf_input, task_class=ScfTask)
 
-    # Register the callback that will be executed to build the other workflows:
-    # one workflow for q-point
-    #scr_work = flow.register_cbk(cbk=cbk_phonons_workflow, cbk_data={"input": ph_input},
-    #                             deps={scf_task: "WFK"}, work_class=QptdmWorkflow
-    #                            )
-    
+    flow.register_work(scf_work)
+
+    # Build a temporary workflow with a shell manager just to run 
+    # ABINIT to get the list of irreducible pertubations for this q-point.
+    shell_manager = manager.to_shell_manager(mpi_ncpus=1, policy=dict(autoparal=0))
+
+    if not isinstance(ph_inputs, (list, tuple)):
+        ph_inputs = [ph_inputs]
+
+    for ph_input in ph_inputs:
+        fake_input = ph_input.deepcopy()
+        print(fake_input.pseudos)
+
+        tmp_dir = "_ph_run"
+        w = Workflow(workdir=tmp_dir, manager=shell_manager)
+        fake_task = w.register(fake_input)
+
+        # Create the symbolic link and add the magic value 
+        # paral_rf = -1 to get the list of irreducible perturbations for this q-point.
+        vars = dict(paral_rf=-1,
+                    rfatpol=[1, natom],   # Only the first atom is displaced
+                    rfdir=[1, 1, 1],   # Along the first reduced coordinate axis
+                   )
+
+        fake_task.strategy.add_extra_abivars(vars)
+
+        w.build()
+        w.start()
+
+        # Parse the file to get the perturbations.
+        irred_perts = yaml_irred_perts(fake_task.log_file.path, tag="<IRRED_PERTS>")
+        print(irred_perts)
+
+        # Now we can build the final list of workflows:
+        # One workflow per q-point, each workflow computes all 
+        # the irreducible perturbations for a singe q-point.
+        work_qpt = Workflow()
+        for irred_pert in irred_perts:
+            print(irred_pert)
+            new_input = ph_input.deepcopy()
+
+            #rfatpol   1 1   # Only the first atom is displaced
+            #rfdir   1 0 0   # Along the first reduced coordinate axis
+
+            qpt = irred_pert["qpt"]
+            idir = irred_pert["idir"]
+            ipert = irred_pert["ipert"]
+
+            # TODO this will work for phonons, not for the 
+            # other types of perturbations.
+            rfdir = 3 * [0]
+            rfdir[idir -1] = 1
+            rfatpol = [idir, idir]
+
+            new_input.set_variables(
+                #rfpert=1,
+                qpt=qpt,
+                rfdir=rfdir,
+                rfatpol=rfatpol,
+            )
+
+            work_qpt.register(new_input, task_class=PhononTask, deps={scf_task: "WFK"})
+
+        flow.register_work(work_qpt)
+                                            
     return flow.allocate()
 
 
@@ -271,8 +263,7 @@ def yaml_irred_perts(filename, tag="<KPOINTS>"):
     except Exception as exc:
         raise ValueError("Malformatted Yaml section in file %s:\n %s" % (filename, str(exc)))
 
-    return np.array(d["reduced_coordinates_of_qpoints"])
-    #return KpointList(reciprocal_lattice, frac_coords, weights=None, names=None)
+    return d["irred_perts"]
 
 
 class PhononWorkflow(Workflow):
@@ -291,7 +282,7 @@ class PhononWorkflow(Workflow):
     def on_all_ok(self):
         """
         This method is called when all the q-points have been computed.
-        In run `mrgddb` in sequential on the local machine to produce
+        Ir runs `mrgddb` in sequential on the local machine to produce
         the final DDB file in the outdir of the `Workflow`.
         """
         ddb_files = filter(None, [task.outdir.has_abiext("DDB") for task in self])
@@ -300,20 +291,23 @@ class PhononWorkflow(Workflow):
         logger.debug(msg)
         assert len(ddb_files) == len(self)
 
+        #if len(ddb_files) == 1:
+        # Avoid the merge. Just move the DDB file to the outdir of the workflow
+
         mrgddb = Mrgddb(verbose=1)
 
         mrgddb.merge_qpoints(ddb_files, out_prefix="out", cwd=self.outdir.path)
 
         results = dict(
             returncode=0,
-            message="merged done",
+            message="DDB merge done",
         )
 
         return results
 
-    def fill(self, wfk_file, ph_input): #, with_loto=):
+    def fill(self, wfk_file, qpoint, ph_input): #, with_loto=):
         """
-        Factory function that builds a `list of PhononWorkflow` objects.
+        Create the Phonon tasks and register them in self.
 
         Args:
             wfk_file:
@@ -329,79 +323,53 @@ class PhononWorkflow(Workflow):
         wfk_file = self.wfk_file = os.path.abspath(wfk_file)
 
         # Build a temporary workflow with a shell manager just to run 
-        # ABINIT to get the list of q-points for the phonons.
+        # ABINIT to get the list of irreducible pertubations for this q-point.
         shell_manager = self.manager.to_shell_manager(mpi_ncpus=1, policy=dict(autoparal=0))
 
-        #fake_input = ph_input.deepcopy()
-        #w = Workflow(workdir=self.tmpdir.path_join("_ph_run"),, manager=shell_manager)
-        #w.register(fake_input)
-        #w.build()
+        fake_input = ph_input.deepcopy()
+        w = Workflow(workdir=self.tmpdir.path_join("_ph_run"), manager=shell_manager)
+        fake_task = w.register(fake_input)
+        w.build()
 
         # Create the symbolic link and add the magic value 
-        # nqpdm = -1 to get the list of q-points
-        #fake_task = w[0]
-        #fake_task.inlink_file(wfk_file)
-        #fake_task.strategy.add_extra_abivars({"nqptdm": -1})
+        # ??? to get the list of perturbations for this q-point.
+        fake_task.inlink_file(wfk_file)
+        fake_task.strategy.add_extra_abivars({"nqptdm": -1})
 
-        #w.start()
+        w.start()
 
-        ## Parse the section with the q-points in the irreducible zone.
-        #qpoints = yaml_kpoints(fake_task.log_file.path, tag="<QPTDM>")
-        #print(qpoints)
+        # Parse the file to get the perturbations.
+        irred_perts = yaml_irred_perts(fake_task.log_file.path, tag="<IRRED_PERTS>")
 
-        # Now we can build the final list of tasks:
         # One workflow per q-point, each workflow computes all 
         # the irreducible perturbations for a singe q-point.
 
-        qpoints = np.reshape([
-            0.0, 0.0, 0.0,
-            ], (-1,3))
+        # Now we can build the final list of tasks:
+        for irred_pert in irred_perts:
+            new_input = ph_input.deepcopy()
 
-        works = []
+            #rfatpol   1 1   # Only the first atom is displaced
+            #rfdir   1 0 0   # Along the first reduced coordinate axis
 
-        for iq, qpoint in enumerate(qpoints):
+            idir = irred_pert.idir
+            ipert = irred_pert.ipert
 
-            # Get the irreducible perturbations for this q-point.
-            fake_input = ph_input.deepcopy()
-                                                                                                    
-            w = Workflow(workdir=os.path.join(workdir, "irred_pert_run"), manager=shell_manager)
-            w.register(fake_input)
-            w.build()
-                                                                                                    
-            # Create the symbolic link and add the magic value 
-            # nqpdm = -1 to get the list of q-points.
-            fake_task = w[0]
-            fake_task.inlink_file(wfk_file)
-            vars = dict(
-                qpt=qpoint
-                #??
-                )
-            fake_task.strategy.add_extra_abivars(vars)
-                                                                                                    
-            w.start()
+            # TODO this will work for phonons, not for the 
+            # other types of perturbations.
+            rfdir = 3 * [0]
+            rfdir[idir -1] = 1
+            rfatpol = [idir, idir]
 
-            # Parse the file to get the perturbations.
-            irred_perts = yaml_irred_perts(fake_task.log_file.path, tag="<QPTDM>")
+            new_input.set_variables(
+                #rfpert=1,
+                qpt=irred_pert.qpoint,
+                rfdir=rfdir,
+                rfatpol=rfatpol,
+            )
 
-            # Compute all the irreducible perturbations.
-            dirpath = os.path.join(workdir, "QPT_" + str(i))
-            work_q = PhononWorkflow(dirpath, manager, wfk_file)
-
-            for irred_pert in irred_perts:
-                new_input = ph_input.deepcopy()
-                new_input.set_variables(
-                    #rfpert=1,
-                    qpt=irred_pert.qpoint,
-                    idir=irred_pert.idir,
-                    ipert=irred_pert.ipert,
-                )
-                work_q.register(new_input)
-
-            works.append(work_q)
-
-        #work.allocate()
-
-        return works
+            self.register(new_input, manager=self.manager, task_class=PhononTask)
+                                            
+        return self.allocate()
 
 
 def cbk_qptdm_workflow(flow, work, cbk_data):
@@ -458,49 +426,3 @@ def g0w0_flow_with_qptdm(workdir, manager, scf_input, nscf_input, scr_input, sig
     assert sigma_task.depends_on(scr_work)
 
     return flow
-
-
-class GW0_Workflow(IterativeWorkflow):
-    def __init__(self, wfk_file, sigma_input, workdir, manager):
-        self.wfk_file = os.path.abspath(wfk_file)
-        max_niter = 25
-
-        inputs = []
-        for i in range(max_niter):
-            new = sigma_input.copy()
-            inputs.append(new)
-
-        IterativeWorkflow.__init__(sigma_generator, max_niter=max_niter, workdir=workdir, manager=manager)
-
-    def build(self):
-        """Build files and directories."""
-        super(GW0_Workflow, self).build()
-
-        # Create symbolic links to the WFK file.
-        for task in self:
-            task.inlink_file(self.wfk_file)
-
-    def exit_iteration(self, *args, **kwargs):
-        """
-        Return a dictionary with the results produced at the given iteration.
-        The dictionary must contains an entry "converged" that evaluates to
-        True if the iteration should be stopped.
-        """
-
-    #def on_all_ok(self):
-        # Create the container that will manage the different workflows.
-        #work = Workflow()
-
-        ## Register the first workflow (GS + NSCF calculation)
-        #bands_work = flow.register(BandStructureWorkflow(scf_input, nscf_input))
-
-        ## FIXME there's a problem with the ids if I want to add a task at runtime
-        ## e.g if I want to iterate the SCHF task.
-        ##sigma_work = Workflow(hf_input, deps={bands_work.nscf_task: "WFK"})
-        ##flow.register(sigma_work)
-
-        #flow.allocate()
-        #flow.show_dependencies()
-        #return flow
-
-
