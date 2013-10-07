@@ -29,7 +29,8 @@ def build_flow():
 
     # Initialize flow. Each workflow in the flow defines a complete BSE calculation for given eta.
     workdir = os.path.join(os.path.dirname(__file__), base_structure.formula + "_RAMAN")
-    manager = abilab.TaskManager.from_file("taskmanager.yaml")
+    #manager = abilab.TaskManager.from_file("taskmanager.yaml")
+    manager = abilab.TaskManager.simple_mpi()
 
     flow = abilab.AbinitFlow(workdir, manager)
 

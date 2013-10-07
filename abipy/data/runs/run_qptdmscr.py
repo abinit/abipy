@@ -201,22 +201,27 @@ def qptdm_work():
     #wfk_work.start()
     #return 
 
-    wfk_file = os.path.join(os.getcwd(), "out_WFK")
-    qptdm_work = qptdm_workflow(wfk_file, scr_input, workdir, manager)
+    #wfk_file = os.path.join(os.getcwd(), "out_WFK")
+    #qptdm_work = qptdm_workflow(wfk_file, scr_input, workdir, manager)
 
-    qptdm_work.build_and_pickle_dump()
+    #qptdm_work.build_and_pickle_dump()
+    #return 0
+
+    flow = g0w0_flow_with_qptdm(workdir, manager, gs, nscf, scr_input, sigma_input)
+    flow.build_and_pickle_dump()
+
     return 0
 
 @decorate_main
 def main():
     # QPTDM
-    #qptdm_work()
+    qptdm_work()
 
     # GW Works
     #gw_flow()
 
     # Phonon Works
-    ph_flow()
+    #ph_flow()
 
 
 if __name__ == "__main__":

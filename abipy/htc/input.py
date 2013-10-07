@@ -101,16 +101,26 @@ class AbiInput(object):
             self.set_comment(comment)
 
     def __str__(self):
-        s = ""
-        for (i, dataset) in enumerate(self):
-            header = "### DATASET %d ###" % i
-            if i == 0: 
-                header = "### GLOBAL VARIABLES ###"
 
-            str_dataset = str(dataset)
-            if str_dataset:
-                header = len(header) * "#" + "\n" + header + "\n" + len(header) * "#" + "\n"
-                s += "\n" + header + str(dataset) + "\n"
+        if self.ndtset > 1:
+            s = ""
+            for (i, dataset) in enumerate(self):
+                header = "### DATASET %d ###" % i
+                if i == 0: 
+                    header = "### GLOBAL VARIABLES ###"
+
+                str_dataset = str(dataset)
+                if str_dataset:
+                    header = len(header) * "#" + "\n" + header + "\n" + len(header) * "#" + "\n"
+                    s += "\n" + header + str(dataset) + "\n"
+        else:
+            # single datasets ==> don't append the dataset index to the variables in self[1]
+            # this trick is needed because Abinit complains if ndtset is not specified 
+            # and we have variables that end with the dataset index e.g. acell1
+            # We don't want to specify ndtset here since abinit will start to add DS# to 
+            # the input and output files thus complicating the algorithms we have to use
+            # to locate the files.
+            s = str(self[0]) + self[1].to_string(post="")
 
         return s
 
@@ -507,15 +517,32 @@ class Dataset(collections.Mapping):
         all_vars.update(self.vars)
         return all_vars.copy()
 
-    def to_string(self, sortmode=None):
-        """String representation."""
+    def to_string(self, sortmode=None, post=None):
+        """
+        String representation.
+
+        Args:
+            sortmode:
+                Not available
+            post:
+                String that will be appended to the name of the variables
+                Note post is usually autodetected when we have multiple datatasets
+                It is mainly used when we have an input file with a single dataset
+                so that we can prevent the code from adding "1" to the name of the variables 
+                (In this case, indeed, Abinit complains if ndtset=1 is not specified 
+                and we don't want ndtset=1 simply because the code will start to add 
+                _DS1_ to all the input and output files.
+        """
         lines = []
         app = lines.append
 
         if self.comment:
             app("# " + self.comment.replace("\n", "\n#"))
 
-        post = "" if self.index == 0 else str(self.index)
+        if post is None:
+            post = "" if self.index == 0 else str(self.index)
+        else:
+            post = post
 
         if sortmode is None:
             # no sorting.

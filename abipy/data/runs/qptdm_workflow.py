@@ -198,10 +198,10 @@ def phonon_flow(workdir, manager, scf_input, ph_inputs):
         `AbinitFlow`
     """
     # FIXME cannot use this since abinit complains about ndtset=0 and acell1
-    #natom = len(scf_input.structure)
+    natom = len(scf_input.structure)
     #natom = scf_input["natom"]
-    natom = 2
-    assert natom == 2
+    #natom = 2
+    #assert natom == 2
 
     # Create the container that will manage the different workflows.
     flow = AbinitFlow(workdir, manager)
@@ -440,7 +440,7 @@ def g0w0_flow_with_qptdm(workdir, manager, scf_input, nscf_input, scr_input, sig
 
     # The last workflow contains a single SIGMA task that will use 
     # the data produced in the previous two workflows.
-    flow.register_task(sigma_input, deps={bands_work.nscf_task: "WFK", scr_work: "SCR"})
+    sigma_task = flow.register_task(sigma_input, deps={bands_work.nscf_task: "WFK", scr_work: "SCR"})
 
     flow.allocate()
     assert sigma_task.depends_on(bands_work.nscf_task)
@@ -448,7 +448,7 @@ def g0w0_flow_with_qptdm(workdir, manager, scf_input, nscf_input, scr_input, sig
     assert sigma_task.depends_on(scr_work)
 
     flow.show_dependencies()
-    print("sigma_work.deps", sigma_work.deps)
+    #print("sigma_work.deps", sigma_work.deps)
     print("sigma_task.deps", sigma_task.deps)
 
     return flow
