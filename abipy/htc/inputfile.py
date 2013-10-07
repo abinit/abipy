@@ -1,3 +1,4 @@
+
 from __future__ import print_function, division
 
 import string
@@ -10,11 +11,9 @@ from os.path import dirname, abspath, exists
 from collections import OrderedDict
 from copy import deepcopy
 
-from abipy.tools import is_string
+from .utils import flatten, listify, is_number, is_iter
 
-__all__ = [
-    'InputFile'
-]
+__all__ = ['InputFile', 'AbinitVariable', 'VariableBlock']
 
 
 _input_variable_blocks = OrderedDict((
@@ -106,6 +105,8 @@ _input_variable_blocks = OrderedDict((
     '''),
 ))
 
+
+
 _units = {
         'bohr' : 1.0,
         'angstrom' : 1.8897261328856432,
@@ -114,8 +115,426 @@ _units = {
         'eV' : 0.03674932539796232,
         }
 
+_available_units = [
+    'bohr',
+    'angstrom',
+    'hartree',
+    'Ha',
+    'eV',
+    ]
+
 
 # =========================================================================== #
+
+
+def convert_number(value):
+    """
+    Converts some object to a float or a string.
+    If the argument is an integer or a float, returns the same object.
+    If the argument is a string, tries to convert to an integer,
+    then to a float.
+    The string '1.0d-03' will be treated the same as '1.0e-03'
+    """
+
+    if isinstance(value, float) or isinstance(value, int):
+        return value
+
+    elif isinstance(value, str):
+
+        if is_number(value):
+            try:
+                val = int(value)
+            except ValueError:
+                val = float(value)
+            return val
+
+        else:
+            val = value.replace('d', 'e')
+            if is_number(val):
+                val = float(val)
+                return val
+            else:
+                raise ValueError('convert_number failed')
+
+    else:
+        raise ValueError('convert_number failed')
+
+# =========================================================================== #
+
+
+class AbinitVariable(object):
+    """An Abinit variable."""
+
+    def __init__(self, name, value, units=''):
+
+        # This is the "internal" name, using '_s', '_i' and '_a'.
+        self.name = name
+
+        # The value, in any format.
+        self.value = value
+
+        # The units
+        self.units = units
+
+        if is_iter(self.value) \
+        and isinstance(self.value[-1], str) \
+        and self.value[-1] in _units:
+            self.value = list(self.value)
+            self.units = self.value.pop(-1)
+
+    def get_value(self):
+        """Return the value."""
+        if self.units:
+            return list(self.value) + [self.units]
+        else:
+            return self.value
+
+    @staticmethod
+    def internal_to_declared(name):
+        """
+        Make the conversion
+            _s --> :
+            _i --> +
+            _a --> ?
+        """
+        for old, new in (('_s', ':'), ('_i', '+'), ('_a', '?')):
+            name = name.replace(old, new)
+        return name
+
+    @staticmethod
+    def declared_to_internal(name):
+        """
+        Make the conversion
+             : --> _s
+             + --> _i
+             ? --> _a
+        """
+        for old, new in ((':', '_s'), ('+', '_i'), ('?', '_a')):
+            name = name.replace(old, new)
+        return name
+
+    @property
+    def basename(self):
+        """Return the name trimmed of any dataset index."""
+        basename = self.name
+        for r in ('_s', ':', '_i', '+', '_a', '?'):
+            basename = basename[:-4] + basename[-4:].replace(r, '')
+        return basename.rstrip(string.digits)
+
+    @property
+    def declared_name(self):
+        """Return the name for declaration in the input file."""
+        return self.internal_to_declared(self.name)
+
+    @property
+    def dataset(self):
+        """Return the (internal) dataset index in string form."""
+        return self.name.split(self.basename)[-1]
+
+    def __str__(self):
+        """Declaration of the variable in the input file."""
+
+        value = self.value
+        if value is None or not str(value):
+            return ''
+    
+        var = self.declared_name
+        line = ' ' + var
+    
+        # By default, do not impose a number of decimal points
+        floatdecimal = 0
+    
+        # For some inputs, impose number of decimal points...
+        if any(inp in var for inp in ('xred','xcart','qpt','kpt')):
+            #TODO Shouldn't do that
+            floatdecimal = 10
+    
+        # ...but not for those
+        if any(inp in var for inp in ('ngkpt','kptrlatt', 'ngqpt',)):
+            #TODO Shouldn't do that
+            floatdecimal = 0
+    
+        if isinstance(value, np.ndarray):
+            n = 1
+            for i in np.shape(value):
+                n *= i
+            value = np.reshape(value, n)
+            value = list(value)
+    
+        # values in lists
+        if isinstance(value, list):
+    
+            # Reshape a list of lists into a single list
+            if all(isinstance(v, list) for v in value):
+                line += self.format_list2d(value, floatdecimal)
+    
+            else:
+                # Maximum number of values per line.
+                valperline = 3
+                if any(inp in var for inp in ['bdgw']):
+                    #TODO Shouldn't do that
+                    valperline = 2
+    
+                line += self.format_list(value, valperline, floatdecimal)
+    
+        # scalar values
+        else:
+            line += ' ' + str(value)
+
+        # Add units
+        if self.units:
+            line += ' ' + self.units
+    
+        return line
+
+    def format_scalar(self, val, floatdecimal=0):
+        """
+        Format a single numerical value into a string
+        with the appropriate number of decimal.
+        """
+        sval = str(val)
+        if sval.isdigit() and floatdecimal == 0:
+            return sval
+    
+        try:
+            fval = float(val)
+        except:
+            return sval
+    
+        if fval == 0 or (abs(fval) > 1e-3 and abs(fval) < 1e4):
+            form = 'f'
+            addlen = 5
+        else:
+            form = 'e'
+            addlen = 8
+    
+        ndec = max(len(str(fval-int(fval)))-2, floatdecimal)
+        ndec = min(ndec, 10)
+    
+        sval = '{v:>{l}.{p}{f}}'.format(v=fval, l=ndec+addlen, p=ndec, f=form)
+    
+        sval = sval.replace('e', 'd')
+    
+        return sval
+
+    def format_list2d(self, values, floatdecimal=0):
+        """Format a list of lists."""
+    
+        lvals = flatten(values)
+    
+        # Determine the representation
+        if all(isinstance(v, int) for v in lvals):
+            type_all = int
+        else:
+            try:
+                for v in lvals:
+                    float(v)
+                type_all = float
+            except:
+                type_all = str
+    
+        # Determine the format
+        width = max(len(str(s)) for s in lvals)
+        if type_all == int:
+            formatspec = '>{}d'.format(width)
+        elif type_all == str:
+            formatspec = '>{}'.format(width)
+        else:
+    
+            # Number of decimal
+            maxdec = max(len(str(f-int(f)))-2 for f in lvals)
+            ndec = min(max(maxdec, floatdecimal), 10)
+    
+            if all(f == 0 or (abs(f) > 1e-3 and abs(f) < 1e4) for f in lvals):
+                formatspec = '>{w}.{p}f'.format(w=ndec+5, p=ndec)
+            else:
+                formatspec = '>{w}.{p}e'.format(w=ndec+8, p=ndec)
+    
+        line = '\n'
+        for L in values:
+            for val in L:
+                line += ' {v:{f}}'.format(v=val, f=formatspec)
+            line += '\n'
+    
+        return line.rstrip('\n')
+
+    def format_list(self, values, valperline=3, floatdecimal=0):
+        """
+        Format a list of values into a string.
+        The result might be spread among several lines.
+        """
+    
+        line = ''
+    
+        # Format the line declaring the value
+        for i, val in enumerate(values):
+            line += ' ' + self.format_scalar(val, floatdecimal)
+            if (i+1) % valperline == 0:
+                line += '\n'
+    
+        # Add a carriage return in case of several lines
+        if '\n' in line.rstrip('\n'):
+            line = '\n' + line
+    
+        return line.rstrip('\n')
+
+    @staticmethod
+    def string_to_value(sval):
+        """
+        Interpret a string variable and attempt to return a value of the
+        appropriate type.  If all else fails, return the initial string.
+        """
+
+        value = None
+    
+        try:
+            for part in sval.split():
+    
+                if '*' in part:
+    
+                    # cases like istwfk *1
+                    if part[0] == '*':
+                        value = None
+                        break
+    
+                    # cases like acell 3*3.52
+                    else:
+                        n = int(part.split('*')[0])
+                        f = convert_number(part.split('*')[1])
+                        if value is None:
+                            value = []
+                        value += n * [f]
+                        continue
+    
+                # Fractions
+                if '/' in part:
+                    (num, den) = (float(part.split('/')[i]) for i in range(2))
+                    part = num / den
+    
+                # Unit
+                if part in _units.keys():
+    
+                    if value is None:
+                        msg = "Could not apply the unit tolken '%s'." %(part)
+                        warnings.warn(msg)
+                    elif isinstance(value, list):
+                        value.append(part)
+                    else:
+                        value = [value, part]
+    
+                    # Convert
+                    if False:
+                        if isinstance(value, list):
+                            for i in range(len(value)):
+                                value[i] *= _units[part]
+                        elif isinstance(value, str):
+                            value = None
+                            break
+                        else:
+                            value *= _units[part]
+    
+                    continue
+    
+                # Convert
+                try:
+                    val = convert_number(part)
+                except:
+                    val = part
+    
+                if value is None:
+                    value = val
+                elif isinstance(value, list):
+                    value.append(val)
+                else:
+                    value = [value, val]
+        except:
+            value = None
+    
+        if value is None:
+            value = sval
+    
+        return value
+
+    @classmethod
+    def from_str(cls, bigstring):
+        """Return an instance from a string declaration."""
+        parts = bigstring.split()
+
+        # Perform checks on the string
+        if len(parts) < 2 or (parts[-1] in _units and len(parts) < 3):
+            msg = '\n'.join(['Unable to initialize variable from string:',
+                             bigstring, 'not enough tokens.'])
+            raise ValueError(msg)
+        elif not parts[0].isalpha():
+            msg = '\n'.join(['Unable to initialize variable from string:',
+                             bigstring, 'no valid variable name found.'])
+            raise ValueError(msg)
+
+        # Make the name
+        name = parts.pop(0)
+        name = cls.declared_to_internal(name)
+
+        # Make the units
+        if parts[-1] in _units:
+            units = parts.pop(-1)
+        else:
+            units = None
+
+        value = cls.string_to_value(' '.join(parts))
+
+        return cls(name, value, units)
+
+    @property
+    def sorting_name(self):
+        """Name for sorting purposes."""
+        conversion = zip(string.digits, string.letters) + (
+                     zip(['_s', '_i', '_a'], string.letters[10:]))
+
+        dataset = self.dataset
+        for this, that in conversion:
+            dataset = dataset.replace(this, that)
+
+        return self.basename + '_' + dataset
+
+    def __gt__(self, other):
+        return self.sorting_name > other.sorting_name
+
+    def __lt__(self, other):
+        return self.sorting_name < other.sorting_name
+
+    def __eq__(self, other):
+        return self.sorting_name == other.sorting_name
+
+
+
+class VariableBlock(list):
+    """A block of abinit variables."""
+
+    def __init__(self, title, register=''):
+
+        # The block title
+        self.title = title
+
+        # A register of all possible input variable.
+        if isinstance(register, str):
+            self.register = register.split()
+        else:
+            self.register = list(register)
+
+    def clear(self):
+        del self[:]
+
+    def __str__(self):
+        lines = ['#== {} ==#'.format(self.title)]
+        for variable in sorted(self):
+            svar = str(variable)
+            if svar:
+                lines.append(svar)
+        return '\n'.join(lines)
+
+
+# =========================================================================== #
+
 
 class InputFile(object):
     """
@@ -161,6 +580,7 @@ class InputFile(object):
         >> f.write()
 
     See also the function :func:`~abipy.htc.InputFile.set_variables`.
+        return self.variables
     """
 
     _blocks = _input_variable_blocks
@@ -168,37 +588,75 @@ class InputFile(object):
     def __init__(self, name='abinit.in'):
 
         self.__dict__['name'] = str(name)
-        self.__dict__['path'] = abspath(name)
         self.__dict__['variables'] = dict()
         self.__dict__['_comment'] = str()
+        self.__dict__['variables_blocks'] = list()
+
+        for (name, register) in _input_variable_blocks.items():
+            self.variables_blocks.append(VariableBlock(name, register))
+        self.variables_blocks.append(VariableBlock('Other'))
 
     def __str__(self):
-        return str(self.variables)
+        lines = list()
+        
+        # Comments
+        if self.comment:
+            lines.append(self.comment)
+            lines.append('')
 
-    def __setattr__(self, name, val):
+        # Clear blocks
+        for block in self.variables_blocks:
+            block.clear()
+
+        # Sort variables in blocks
+        for variable in self.variables.itervalues():
+            placed = False
+            for block in self.variables_blocks:
+                if variable.basename in block.register:
+                    block.append(variable)
+                    placed = True
+                    break
+            if not placed:
+                self.variables_blocks[-1].append(variable)
+
+        # Make the string
+        for block in self.variables_blocks:
+            if block:
+                lines.append(str(block))
+                lines.append('')
+
+        return '\n'.join(lines)
+
+    def __setattr__(self, name, value):
         """
         F.__setattr__('name', value) <==> F.name = value
 
-        Stores values inside F.variables dictionary.
-
-        To set some attribute, and not an input variable,
-        use F.__dict__['name'] = value
+        Declare a variable in the internal dictionary.
         """
-        self.variables[name] = val
+        self.set_variable(name, value)
+
+    def set_name(self, name):
+        """Set the name of the file."""
+        self.__dict__['name'] = name
+
+    @property
+    def path(self):
+        """The absolute path."""
+        return abspath(self.name)
 
     @property
     def exists(self):
-        "True if self.path exists."
+        """True if self.path exists."""
         return os.path.exists(self.path)
+
+    @property
+    def comment(self):
+        return self._comment
 
     def set_comment(self, comment):
         """Set a comment to be included at the top of the file."""
-        comment = str(comment).lstrip('#\n').rstrip('\n')
-        comment = '# ' + comment
-        comment = comment.replace('\n', '\n# ')
-        comment = comment.replace('\n# #', '\n# ')
-        comment += '\n'
-        self.__dict__['_comment'] = comment
+        lines = [ '# ' + l.lstrip('#').strip() for l in comment.splitlines() ]
+        self.__dict__['_comment'] = '\n'.join(lines)
 
     def write(self, name=None):
         """Write the inputs to the file."""
@@ -208,79 +666,60 @@ class InputFile(object):
         if not exists(dirname(self.name)):
             makedirs(dirname(self.name))
 
-        variables = deepcopy(self.variables)
-
         with open(name, 'w') as f:
+            f.write(str(self))
 
-            # Write comments
-            if self._comment:
-                f.write(self._comment)
+    def clear(self):
+        """Clear variables."""
+        self.variables.clear()
+        for block in self.variables_blocks:
+            block.clear()
 
-            # Write defined input blocks
-            for (block_name, block_var) in self._blocks.items():
+    def read_string(self, bigstring):
+        """Initialize all variables from a string."""
 
-                block_dict = dict()
-                for var in block_var.split():
-                    for var_instance in self._variable_instances(var):
-                        val = variables.pop(var_instance, None)
-                        if val is not None:
-                            block_dict[var_instance] = val
+        # Split the big string into parts
+        parts = list()
+        for line in bigstring.splitlines():
+            line = line.replace('=', ' ').split('#')[0].strip()
+            parts.extend(line.split())
 
-                if block_dict:
-                    lines = '#== {} ==\n'.format(block_name)
-                    lines += format_variable_dict(block_dict)
-                    lines += '\n'
-                    f.write(lines)
+        # Make a list of variable string declaration
+        var_list, var_string = list(), ''
+        for part in parts:
+            if not part:
+                continue
+            if part[0].isalpha() and part not in _units:
+                if var_string:
+                    var_list.append(var_string)
+                    var_string = ''
+            var_string += ' ' + part
+        if var_string:
+            var_list.append(var_string)
 
-            # Write other input variables
-            if variables:
-                lines = '#== {} ==\n'.format('Other')
-                lines += format_variable_dict(variables)
-                lines += '\n'
-                f.write(lines)
+        # Initialize all variables.
+        for var_string in var_list:
+            variable = AbinitVariable.from_str(var_string)
+            self.variables[variable.name] = variable
+                
+    @classmethod
+    def from_str(cls, bigstring):
+        """Initialize from a string."""
+        inputfile = cls()
+        inputfile.read_string(bigstring)
 
     def read(self, file):
         """
         Reads the content of an input file and store the variables in the
         internal dictionary with the proper type. Comments are thrown away.
         """
-        self.variables.clear()
-
-        # Split the file into a dictionary of variables
-        #   and a string containing their value.
-        var = None
-        val = ''
-        tmp_dict = dict()
+        self.clear()
         with open(file, 'r') as f:
+            self.read_string(f.read())
 
-            for line in f.readlines():
-
-                line = line.replace('=', ' ').split('#')[0].strip()
-
-                for part in line.split():
-
-                    # New input variable
-                    if part[0].isalpha() and part not in _units:
-
-                        # Store old variable
-                        if var:
-                            tmp_dict[var] = val
-
-                        # Reset variable and value
-                        var = expand_var(part)
-                        val = ''
-
-                    # append to value
-                    else:
-                        val += ' ' + part
-
-            # Store last variable
-            if var and val != '':
-                tmp_dict[var] = val
-
-        # Interpret values
-        for var, sval in tmp_dict.iteritems():
-            self.set_variable(var, string_to_value(sval))
+    def set_variable(self, name, value):
+        """Set a single variable."""
+        self.variables[name] = AbinitVariable(name, value)
 
     def set_variables(self, variables=dict(), dataset=0, **kwargs):
         """
@@ -330,7 +769,7 @@ class InputFile(object):
         variables.update(kwargs)
 
         if not dataset:
-            dataset = ''
+            dataset = ['']
 
         for ds in listify(dataset):
             for (key, val) in variables.items():
@@ -338,404 +777,15 @@ class InputFile(object):
                 self.set_variable(newkey, val)
 
     def get_variables(self):
-        """Return the variables dict."""
-        return self.variables
+        """Return a dictionary of the variables."""
+        variables = dict()
+        for name, var in self.variables:
+            variables[name] = var.get_value()
+        return variables
 
     def get_variable(self, variable):
         """Return the value of a variable, or None if it is not set."""
-        return self.variables.get(variable)
-
-    def set_variable(self, variable, value):
-        """Set a single variable."""
-        self.variables[variable] = value
-
-    def _variable_instances(self, var):
-        """
-        Return the list of all instances of a particular input variable defined,
-        appended or not by a digit.  Return the keys only, sorted.
-        """
-
-        inputlist = list()
-        for inp in self.variables.keys():
-            if strip_var(inp) == var:
-                inputlist.append(inp)
-
-        sorting = list()
-        for inp in inputlist:
-            digit = inp.split(var)[-1]
-            n = 0
-
-            if digit == '':
-                n += 9000000
-
-            elif digit.isdigit():
-                n += 8000000 + int(digit)
-
-            elif digit.count('_') == 2 and len(digit) == 4:
-                n += 7000000
-
-                if digit[:2] == '_s':   n += 10
-                elif digit[:2] == '_i': n += 20
-                elif digit[:2] == '_a': n += 30
-
-                if digit[2:] == '_s':   n +=  1
-                elif digit[2:] == '_i': n +=  2
-                elif digit[2:] == '_a': n +=  3
-
-            elif digit.startswith('_') and digit[2:].isdigit():
-                n += 6000000
-
-                if digit[:2] == '_s':   n += 100000
-                elif digit[:2] == '_i': n += 200000
-                elif digit[:2] == '_a': n += 300000
-
-                n +=  int(digit[2:])
-
-            elif digit[-2:].startswith('_') and digit[:-2].isdigit():
-                n += 5000000
-
-                if digit[-2:] == '_s':   n += 100000
-                elif digit[-2:] == '_i': n += 200000
-                elif digit[-2:] == '_a': n += 300000
-
-                n += int(digit[:-2])
-
-            sorting.append((inp,n))
-
-        # Sort the inputs
-        sorting = sorted(sorting, cmp=lambda x,y: cmp(x[1],y[1]))
-        inputlist = [ imp[0] for imp in sorting ]
-
-        return inputlist
-
-
-# =========================================================================== #
-
-
-def strip_var(var):
-    """Strip an input of any trailling dataset indication."""
-    inp = var.rstrip(string.digits)
-    for r in ('_s', ':', '_i', '+', '_a', '?'):
-        inp = inp[:-4] + inp[-4:].replace(r, '')
-    return inp
-
-def expand_var(inputvar):
-    """
-    This is a two-way substitution function between
-        ':' <==> '_s'
-        '+' <==> '_i'
-        '?' <==> '_a'
-    Also, if the trailing digits are '0' or '00', suppresses it.
-    """
-    inputvar = str(inputvar)
-
-    alphapart = inputvar.rstrip(string.digits)
-    rest = inputvar.split(alphapart)[-1]
-    if not rest:
-        pass
-
-    elif rest.isdigit() and int(rest) == 0:
-        inputvar = alphapart
-
-    elif rest.isdigit():
-        pass
-
-    replacelist = (('_s', ':'), ('_i', '+'), ('_a', '?'))
-    if any(r[1] in inputvar for r in replacelist):
-        for (a, b) in replacelist:
-            inputvar = inputvar.replace(b, a)
-
-    elif any(r[0] in inputvar for r in replacelist):
-        for (a, b) in replacelist:
-            inputvar = inputvar[:-4] + inputvar[-4:].replace(a, b)
-
-    return inputvar
-
-def format_var(var, value):
-    """
-    Return a string for a single input variable
-    to be written in the input file.
-    Always ends with a carriage return.
-    """
-
-    if value is None or not str(value):
-        return ''
-
-    var = expand_var(var)
-    line = ' ' + var
-
-    # By default, do not impose a number of decimal points
-    floatdecimal = 0
-
-    # For some inputs, impose number of decimal points...
-    if any(inp in var for inp in ('xred','xcart','qpt','kpt')):
-        floatdecimal = 10
-
-    # ...but not for those
-    if any(inp in var for inp in ('ngkpt','kptrlatt', 'ngqpt',)):
-        floatdecimal = 0
-
-    if isinstance(value, np.ndarray):
-        n = 1
-        for i in np.shape(value):
-            n *= i
-        value = np.reshape(value, n)
-        value = list(value)
-
-    # values in lists
-    if isinstance(value, list):
-
-        # Reshape a list of lists into a single list
-        if all(isinstance(v, list) for v in value):
-            line += format_list_of_list(value, floatdecimal)
-
-        else:
-            # Maximum number of values per line.
-            valperline = 3
-            if any(inp in var for inp in ['bdgw']):
-                valperline = 2
-
-            line += format_list(value, valperline, floatdecimal)
-
-    # scalar values
-    else:
-        line += ' ' + str(value) + '\n'
-
-    return line
-
-def format_scalar(val, floatdecimal=0):
-    """
-    Format a single numerical value into a string
-    with the appropriate number of decimal.
-    """
-    sval = str(val)
-    if sval.isdigit() and floatdecimal == 0:
-        return sval
-
-    try:
-        fval = float(val)
-    except:
-        return sval
-
-    if fval == 0 or (abs(fval) > 1e-3 and abs(fval) < 1e4):
-        form = 'f'
-        addlen = 5
-    else:
-        form = 'e'
-        addlen = 8
-
-    ndec = max(len(str(fval-int(fval)))-2, floatdecimal)
-    ndec = min(ndec, 10)
-
-    sval = '{v:>{l}.{p}{f}}'.format(v=fval, l=ndec+addlen, p=ndec, f=form)
-
-    sval = sval.replace('e', 'd')
-
-    return sval
-
-def format_list_of_list(values, floatdecimal=0):
-    """Format a list of lists."""
-
-    lvals = flattens(values)
-
-    # Determine the representation
-    if all(isinstance(v, int) for v in lvals):
-        type_all = int
-    else:
-        try:
-            for v in lvals:
-                float(v)
-            type_all = float
-        except:
-            type_all = str
-
-    # Determine the format
-    width = max(len(str(s)) for s in lvals)
-    if type_all == int:
-        formatspec = '>{}d'.format(width)
-    elif type_all == str:
-        formatspec = '>{}'.format(width)
-    else:
-
-        # Number of decimal
-        maxdec = max(len(str(f-int(f)))-2 for f in lvals)
-        ndec = min(max(maxdec, floatdecimal), 10)
-
-        if all(f == 0 or (abs(f) > 1e-3 and abs(f) < 1e4) for f in lvals):
-            formatspec = '>{w}.{p}f'.format(w=ndec+5, p=ndec)
-        else:
-            formatspec = '>{w}.{p}e'.format(w=ndec+8, p=ndec)
-
-    line = '\n'
-    for L in values:
-        for val in L:
-            line += ' {v:{f}}'.format(v=val, f=formatspec)
-        line += '\n'
-
-    return line
-
-def format_list(values, valperline=3, floatdecimal=0):
-    """
-    Format a list of values into a string.  The result might be spread among
-    several lines, each line starting with a blank space.
-    'valperline' specifies the number of values per line.
-    """
-
-    line = ''
-
-    # Format the line declaring the value
-    for i, val in enumerate(values):
-        line += ' ' + format_scalar(val, floatdecimal)
-        if (i+1) % valperline == 0:
-            line += '\n'
-
-    # Add a carriage return in case of several lines
-    if '\n' in line.rstrip('\n'):
-        line = '\n' + line
-    # Add a carriage return at the end
-    if not line.endswith('\n'):
-        line += '\n'
-
-    return line
-
-
-def string_to_value(sval):
-    """
-    Interpret a string variable and attempt to return a value of the
-    appropriate type.  If all else fails, return the initial string.
-    """
-
-    value = None
-
-    try:
-        for part in sval.split():
-
-            if '*' in part:
-
-                # cases like istwfk *1
-                if part[0] == '*':
-                    value = None
-                    break
-
-                # cases like acell 3*3.52
-                else:
-                    n = int(part.split('*')[0])
-                    f = convert_number(part.split('*')[1])
-                    if value is None:
-                        value = []
-                    value += n * [f]
-                    continue
-
-            # Fractions
-            if '/' in part:
-                (num, den) = (float(part.split('/')[i]) for i in range(2))
-                part = num / den
-
-            # Unit
-            if part in _units.keys():
-
-                if value is None:
-                    msg = "Could not apply the unit tolken '%s'." %(part)
-                    warnings.warn(msg)
-                elif isinstance(value, list):
-                    value.append(part)
-                else:
-                    value = [value, part]
-
-                # Convert
-                if False:
-                    if isinstance(value, list):
-                        for i in range(len(value)):
-                            value[i] *= _units[part]
-                    elif is_string(value):
-                        value = None
-                        break
-                    else:
-                        value *= _units[part]
-
-                continue
-
-            # Convert
-            try:
-                val = convert_number(part)
-            except:
-                val = part
-
-            if value is None:
-                value = val
-            elif isinstance(value, list):
-                value.append(val)
-            else:
-                value = [value, val]
-    except:
-        value = None
-
-    if value is None:
-        value = sval
-
-    return value
-
-def format_variable_dict(variables):
-    """Format a dictionary of input variables into a multi-line string."""
-    string = ''
-    for (var, val) in variables.iteritems():
-        string += format_var(var, val)
-    return string
-
-
-def flattens(lists):
-    """Transform a list of lists into a single list."""
-    if not isinstance(lists[0], list):
-        return lists
-    L = list()
-    for l in lists:
-        L += l
-    return L
-
-def listify(obj):
-    """Transform any object, iterable or not, to a list."""
-    if '__iter__' in dir(obj):
-        return list(obj)
-    else:
-        return [obj]
-
-def is_number(s):
-    """Returns True if the argument can be made a float."""
-    try:
-        float(s)
-        return True
-    except:
-        return False
-
-def convert_number(value):
-    """
-    Converts some object to a float or a string.
-    If the argument is an integer or a float, returns the same object.
-    If the argument is a string, tries to convert to an integer,
-    then to a float.
-    The string '1.0d-03' will be treated the same as '1.0e-03'
-    """
-
-    if isinstance(value, float) or isinstance(value, int):
-        return value
-
-    elif is_string(value):
-
-        if is_number(value):
-            try:
-                val = int(value)
-            except ValueError:
-                val = float(value)
-            return val
-
-        else:
-            val = value.replace('d', 'e')
-            if is_number(val):
-                val = float(val)
-                return val
-            else:
-                raise ValueError('convert_number failed')
-
-    else:
-        raise ValueError('convert_number failed')
+        if variable not in self.variables:
+            return None
+        return self.variables.get(variable).get_value()
 

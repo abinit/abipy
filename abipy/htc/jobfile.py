@@ -2,7 +2,7 @@ from __future__ import print_function, division
 
 from os import makedirs
 from os.path import basename, dirname, join, abspath, exists, realpath
-from .utils import _listify
+from .utils import listify
 
 __all__ = [
     'JobFile', 
@@ -256,7 +256,7 @@ class JobFile(object):
 
     @modules.setter
     def modules(self, modules):
-        self._modules = _listify(modules)
+        self._modules = listify(modules)
 
     @property
     def other_lines(self):
@@ -264,7 +264,7 @@ class JobFile(object):
 
     @other_lines.setter
     def other_lines(self, lines):
-        self._other_lines = _listify(lines)
+        self._other_lines = listify(lines)
 
     @property
     def lines_before(self):
@@ -272,7 +272,7 @@ class JobFile(object):
 
     @lines_before.setter
     def lines_before(self, lines):
-        self._lines_before = _listify(lines)
+        self._lines_before = listify(lines)
 
     @property
     def lines_after(self):
@@ -280,7 +280,7 @@ class JobFile(object):
 
     @lines_after.setter
     def lines_after(self, lines):
-        self._lines_after = _listify(lines)
+        self._lines_after = listify(lines)
 
     def set_shell(self, shell):
         """
