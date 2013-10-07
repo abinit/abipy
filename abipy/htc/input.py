@@ -170,6 +170,23 @@ class AbiInput(object):
         """List of `Pseudo` objecst."""
         return self._pseudos
 
+    @property
+    def structure(self):
+        """
+        Returns the `Structure` associated to the ABINIT input.
+
+        Raises:
+            ValueError if we have multi datasets with different 
+            structure so that users will learn that multiple datasets are bad.
+        """
+        structures = [dt.structure for dt in self[1:]]
+
+        if all(s == structures[0] for s in structures):
+            return structures[0]
+
+        raise ValueError("Cannot extract a unique structure from an input file with multiple datasets!\n" + 
+                         "Please DON'T use multiple datasets with different unit cells!")
+
     @staticmethod
     def _dtset2range(dtset):
         """

@@ -26,7 +26,7 @@ def main():
 
     # Dataset 1 (GS run)
     inp.set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0], dtset=1)
-    inp.tolvrs1 = 1e-6
+    inp[1].set_variables(tolvrs=1e-6)
 
     # Dataset 2 (NSCF run)
     kptbounds = [
@@ -35,17 +35,16 @@ def main():
         [0.0, 0.5, 0.5], # X point
     ]
 
-    inp.set_kpath(ndivsm=6, kptbounds=kptbounds, dtset=2)
-    inp.tolwfr2 = 1e-12
-    inp.getden2 = -1
-
+    inp[2].set_kpath(ndivsm=6, kptbounds=kptbounds, dtset=2)
+    inp[2].set_variables(tolwfr=1e-12,
+                         getden=-1
+                        )
     print(inp)
 
     # Create the task defining the calculation and run.
     tester = Tester()
 
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=2)
-    print(manager)
 
     # Initialize the workflow.
     work = abilab.Workflow(tester.workdir, manager)

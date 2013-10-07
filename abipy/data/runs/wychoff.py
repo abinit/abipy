@@ -43,7 +43,6 @@ def build_flow():
 
     for u in uparams:
         new = special_positions(base_structure.lattice, u)
-        #print(new)
         news.append(new)
 
     workdir = os.path.join(os.path.dirname(__file__), base_structure.formula + "_WYCHOFF")
@@ -51,7 +50,8 @@ def build_flow():
 
     flow = abilab.AbinitFlow(workdir, manager)
 
-    # Create the list of workflows. Each workflow defines a band structure calculation.
+    # Create the list of workflows. 
+    # Each workflow defines a band structure calculation.
     for new_structure, u in zip(news, uparams):
         # Generate the workflow and register it.
         flow.register_work(build_workflow(new_structure, pseudos))
@@ -69,27 +69,19 @@ def build_workflow(structure, pseudos):
                        #nband=8,
                     )
 
-    # GS Input 
-    gs_inp = abilab.AbiInput(pseudos=pseudos)
-    gs_inp.set_structure(structure)
-    gs_inp.set_variables(**global_vars)
+    # GS + NSCF run 
+    inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
+    inp.set_structure(structure)
+    inp.set_variables(**global_vars)
 
     # (GS run)
-    gs_inp.set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
+    inp[1].set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
 
-    gs_inp.set_variables(
-        tolvrs=1e-6,
-    )
-
-    print(gs_inp)
+    inp[1].set_variables(
+          tolvrs=1e-6)
 
     # (NSCF run)
-    nscf_inp = abilab.AbiInput(pseudos=pseudos)
-
-    nscf_inp.set_structure(structure)
-    nscf_inp.set_variables(**global_vars)
-
-    nscf_inp.set_variables(
+    inp[2].set_variables(
         iscf=-2,
         tolwfr=1e-12,
         kptopt=0,
@@ -97,8 +89,7 @@ def build_workflow(structure, pseudos):
         kpt=[0, 0, 0],
     )
 
-    print(nscf_inp)
-
+    gs_inp, nscf_inp = inp.split_datasets()
     return abilab.BandStructureWorkflow(gs_inp, nscf_inp)
 
 

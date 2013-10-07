@@ -12,7 +12,6 @@ def main():
 
     # Change the value of ngkpt below to perform a GW calculation with a different ngkpt.
     inp = make_input(ngkpt=[2,2,2])
-    print(inp)
 
     # Create the task defining the calculation and run it.
     tester = Tester()
@@ -38,7 +37,6 @@ def main():
     return tester.retcode 
 
 def make_input(ngkpt):
-
     # Crystalline silicon
     # Calculation of the GW correction to the direct band gap in Gamma
     # Dataset 1: ground state calculation 

@@ -10,32 +10,16 @@ import abipy.data as data
 
 from abipy.data.runs import Tester, decorate_main
 
-# One can create a dictionary mapping keywords to values 
-unit_cell = dict(
-    acell=3*[8.19],
-    rprim=[[.0, .5, .5],
-               [.5, .0, .5],
-               [.5, .5, .0]],
-    ntypat=2,
-    znucl=[6,14],
-    natom=2,
-    typat=[1, 2],
-    xred=[ [.0, .0, .0],
-           [.25,.25,.25] ]
-)
-
-global_vars = dict(
-    istwfk="*1",
-    chksymbreak=0,
-    #accesswff=3
-)
-
 def build_workflows():
-    
+    global_vars = dict(
+        istwfk="*1",
+        chksymbreak=0,
+        #accesswff=3
+    )
     all_ecuts = np.arange(20,28,4)
     all_ngkpts = [3 * [nk] for nk in np.arange(2,6,2)]
 
-    structure = abilab.Structure.from_abivars(unit_cell)
+    structure = data.structure_from_ucell("sic")
     pseudos = data.pseudos("14si.pspnc","6c.pspnc")
 
     print(structure)
@@ -62,7 +46,6 @@ def build_workflows():
             nscf_inp.tolwfr = 1e-22
             nscf_inp.ecut = ecut
 
-            #relax_inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
             relax_inp = abilab.AbiInput(pseudos=pseudos)
             relax_inp.set_structure(structure)
             relax_inp.set_variables(**global_vars)

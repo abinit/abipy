@@ -147,6 +147,7 @@ def scf_ph_inputs():
             #rfdir   1 0 0   # Along the first reduced coordinate axis
             #kptopt   2     # Automatic generation of k points, taking
 
+    # return gs_inp, ph_inputs
     return inp.split_datasets()
 
 
@@ -164,7 +165,6 @@ def ph_flow():
     flow = phonon_flow(workdir, manager, scf_input, ph_inputs)
 
     flow.build_and_pickle_dump()
-
     return 0
 
 
