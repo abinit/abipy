@@ -32,15 +32,14 @@ class TestFilesFile(AbipyFileTest):
 
     def test_str(self):
         """Test the FilesFile is printed correctly."""
-        lookfor = """
-mycalc.in
-mycalc.out
-i_mycalc
-o_mycalc
-t_mycalc
-/path/to/my/pseudodir/ps1
-/path/to/my/pseudodir/ps2
-        """.strip()
-        self.assertContains(lookfor)
+        self.assertContains("""
+        mycalc.in
+        mycalc.out
+        i_mycalc
+        o_mycalc
+        t_mycalc
+        /path/to/my/pseudodir/ps1
+        /path/to/my/pseudodir/ps2
+        """)
 
 
