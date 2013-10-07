@@ -215,13 +215,13 @@ def qptdm_work():
 @decorate_main
 def main():
     # QPTDM
-    qptdm_work()
+    #qptdm_work()
 
     # GW Works
     #gw_flow()
 
     # Phonon Works
-    #ph_flow()
+    ph_flow()
 
 
 if __name__ == "__main__":

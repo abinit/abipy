@@ -120,7 +120,9 @@ class AbiInput(object):
             # We don't want to specify ndtset here since abinit will start to add DS# to 
             # the input and output files thus complicating the algorithms we have to use
             # to locate the files.
-            s = str(self[0]) + self[1].to_string(post="")
+            d = self[0].deepcopy()
+            d.update(self[1])
+            s = d.to_string(post="")
 
         return s
 
@@ -471,6 +473,10 @@ class Dataset(collections.Mapping):
     def __contains__(self, key):
         return key in self.vars
 
+    def deepcopy(self):
+        """Deepcopy of the `Dataset`"""
+        return copy.deepcopy(self)
+
     def keys(self):
         return self.vars.keys()
 
@@ -492,6 +498,15 @@ class Dataset(collections.Mapping):
             return self.vars.pop(k, d[0])
         else:
             return self.vars.pop(k)
+
+    def update(self, e, **f):
+        """
+        D.update([E, ]**F) -> None.  Update D from dict/iterable E and F.
+        If E present and has a .keys() method, does:     for k in E: D[k] = E[k]
+        If E present and lacks .keys() method, does:     for (k, v) in E: D[k] = v
+        In either case, this is followed by: for k in F: D[k] = F[k]
+        """
+        self.vars.update(e, **f)
 
     @property
     def index(self):
@@ -526,7 +541,7 @@ class Dataset(collections.Mapping):
                 Not available
             post:
                 String that will be appended to the name of the variables
-                Note post is usually autodetected when we have multiple datatasets
+                Note that post is usually autodetected when we have multiple datatasets
                 It is mainly used when we have an input file with a single dataset
                 so that we can prevent the code from adding "1" to the name of the variables 
                 (In this case, indeed, Abinit complains if ndtset=1 is not specified 
