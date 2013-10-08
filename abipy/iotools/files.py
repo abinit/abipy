@@ -7,7 +7,7 @@ import collections
 
 from time import ctime
 from pymatgen.io.abinitio import EventParser
-from pymatgen.io.abinitio.abitimer import AbinitTimerParser
+#from pymatgen.io.abinitio.abitimer import AbinitTimerParser
 from abipy.tools import which
 from abipy.iotools.visualizer import Visualizer
 
@@ -90,10 +90,12 @@ class AbinitTextFile(AbinitFile):
 
         except AttributeError:
 
-            parser = AbinitTimerParser()
-            parser.parse(self.filepath)
-            self._timer_data = parser
-            return self._timer_data
+            # FIXME AbinitTimerParser no longer in pymatgen...
+            #parser = AbinitTimerParser()
+            #parser.parse(self.filepath)
+            #self._timer_data = parser
+            #return self._timer_data
+            return None
 
 
 class AbinitOutputFile(AbinitTextFile):
