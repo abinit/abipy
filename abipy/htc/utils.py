@@ -128,16 +128,47 @@ def abinit_output_iscomplete(output_file):
 
 # =========================================================================== #
 
+def is_number(s):
+    """Returns True if the argument can be made a float."""
+    try:
+        float(s)
+        return True
+    except:
+        return False
 
-def _listify(obj):
+def is_iter(obj):
+    """Return True if the argument is list-like."""
+    return hasattr(obj, '__iter__')
+
+def is_scalar(obj):
+    """Return True if the argument is not list-like."""
+    return not is_iter
+
+def flatten(iterable):
+    """Make an iterable flat, i.e. a 1d iterable object."""
+    iterator = iter(iterable)
+    array, stack = collections.deque(), collections.deque()
+    while True:
+        try:
+            value = next(iterator)
+        except StopIteration:
+            if not stack:
+                return tuple(array)
+            iterator = stack.pop()
+        else:
+            if not isinstance(value, str) \
+               and isinstance(value, collections.Iterable):
+                stack.append(iterator)
+                iterator = iter(value)
+            else:
+                array.append(value)
+
+def listify(obj):
     """Return a flat list out of the argument."""
     if not obj:
         obj = list()
-    elif '__iter__' in dir(obj):
-        if '__iter__' in dir(obj[0]):
-            obj = list(chain.from_iterable(obj))
-        else:
-            obj = list(obj)
+    elif is_iter(obj):
+        obj = list(flatten(obj))
     else:
         obj = [obj]
     return deepcopy(obj)
