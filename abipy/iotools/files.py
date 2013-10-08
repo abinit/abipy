@@ -85,17 +85,16 @@ class AbinitTextFile(AbinitFile):
     @property
     def timer_data(self):
         """Timer data."""
-        try:
-            return self._timer_data
+        return self._timer_data
+        # FIXME AbinitTimerParser no longer in pymatgen...
+        #try:
+        #    return self._timer_data
 
-        except AttributeError:
-
-            # FIXME AbinitTimerParser no longer in pymatgen...
-            #parser = AbinitTimerParser()
-            #parser.parse(self.filepath)
-            #self._timer_data = parser
-            #return self._timer_data
-            return None
+        #except AttributeError:
+        #    parser = AbinitTimerParser()
+        #    parser.parse(self.filepath)
+        #    self._timer_data = parser
+        #    return self._timer_data
 
 
 class AbinitOutputFile(AbinitTextFile):
