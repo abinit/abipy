@@ -293,7 +293,7 @@ class AbinitVariable(object):
         with the appropriate number of decimal.
         """
         sval = str(val)
-        if sval.isdigit() and floatdecimal == 0:
+        if sval.lstrip('-').lstrip('+').isdigit() and floatdecimal == 0:
             return sval
     
         try:
