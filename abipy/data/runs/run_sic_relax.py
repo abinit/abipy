@@ -10,7 +10,7 @@ import abipy.data as data
 
 from abipy.data.runs import Tester, decorate_main
 
-def build_workflows():
+def build_flow():
     global_vars = dict(
         istwfk="*1",
         chksymbreak=0,
@@ -18,15 +18,17 @@ def build_workflows():
     )
     all_ecuts = np.arange(20,28,4)
     all_ngkpts = [3 * [nk] for nk in np.arange(2,6,2)]
-
-    structure = data.structure_from_ucell("sic")
-    pseudos = data.pseudos("14si.pspnc","6c.pspnc")
-
-    print(structure)
-
     shiftk = [[0.5,0.5,0.5],[0.5,0.0,0.0],[0.0,0.5,0.0],[0.0,0.0,0.5]]
 
-    works = []    
+    pseudos = data.pseudos("14si.pspnc","6c.pspnc")
+    structure = data.structure_from_ucell("sic")
+    print(structure)
+
+    manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1)
+    workdir = "relax_SiC"
+
+    flow = abilab.AbinitFlow(workdir, manager)
+
     for ecut in all_ecuts:
         for ngkpt in all_ngkpts:
     
@@ -75,28 +77,21 @@ def build_workflows():
             )
 
             # Initialize the workflow.
-            manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1)
-
-            workdir = "relax_SiC/ecut" + str(ecut) + "_ngkpt" + "x".join(str(nk)for nk in ngkpt)
-            assert workdir not in [work.workdir for work in works]
-            work = abilab.Workflow(workdir, manager)
-
+            work = abilab.Workflow()
             gs_task = work.register(gs_inp)  
 
             nscf_task = work.register(nscf_inp, deps={gs_task: "DEN"})
 
             work.register(relax_inp, deps={gs_task: "WFK"})
 
-            works.append(work)    
+            flow.register_work(work)  
 
-    return works
+    return flow.allocate()
 
 @decorate_main
 def main():
-    works = build_workflows()
-    for work in works:
-        work.build_and_pickle_dump()
-
+    flow = build_workflow()
+    flow.build_and_pickle_dump()
     return 0
 
 

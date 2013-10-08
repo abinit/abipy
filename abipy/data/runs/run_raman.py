@@ -110,7 +110,8 @@ def raman_workflow(structure, pseudos, shiftk):
 
 @decorate_main
 def main():
-    # Build the list of workflows.
+    # Build the flow, build files and dirs 
+    # and save the object in cpickle format.
     flow = build_flow()
     flow.build_and_pickle_dump()
     return 0

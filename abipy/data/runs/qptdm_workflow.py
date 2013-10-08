@@ -22,57 +22,6 @@ logger = logging.getLogger(__name__)
 def hello(signal, sender):
     print("on_hello with sender %s, signal %s" % (sender, signal))
 
-
-def bandstructure_flow(workdir, manager, scf_input, nscf_input):
-    """
-    Build an `AbinitFlow` for band structure calculations.
-
-    Args:
-        workdir:
-            Working directory.
-        manager:
-            `TaskManager` object used to submit the jobs
-        scf_input:
-            Input for the GS SCF run.
-        nscf_input:
-            Input for the NSCF run (band structure run).
-
-    Returns:
-        `AbinitFlow`
-    """
-    flow = AbinitFlow(workdir, manager)
-    work = BandStructureWorkflow(scf_input, nscf_input)
-    flow.register_work(work)
-    return flow.allocate()
-
-
-def g0w0_flow(workdir, manager, scf_input, nscf_input, scr_input, sigma_input):
-    """
-    Build an `AbinitFlow` for one-shot G0W0 calculations.
-
-    Args:
-        workdir:
-            Working directory.
-        manager:
-            `TaskManager` object used to submit the jobs
-        scf_input:
-            Input for the GS SCF run.
-        nscf_input:
-            Input for the NSCF run (band structure run).
-        scr_input:
-            Input for the SCR run.
-        sigma_input:
-            Input for the SIGMA run.
-
-    Returns:
-        `AbinitFlow`
-    """
-    flow = AbinitFlow(workdir, manager)
-    work = G0W0_Workflow(scf_input, scf_input, nscf_input, scr_input, sigma_input)
-    flow.register_work(work)
-    return flow.allocate()
-
-
 class QptdmWorkflow(Workflow):
     """
     This workflow parallelizes the calculation of the q-points of the screening. 
@@ -112,7 +61,7 @@ class QptdmWorkflow(Workflow):
         w.start()
 
         # Parse the section with the q-points
-        qpoints = yaml_kpoints(fake_task.log_file.path, tag="<QPTDM>")
+        qpoints = yaml_kpoints(fake_task.log_file.path, tag="--- !Qptdms")
         #print(qpoints)
         #w.rmtree()
 
@@ -197,11 +146,7 @@ def phonon_flow(workdir, manager, scf_input, ph_inputs):
     Returns:
         `AbinitFlow`
     """
-    # FIXME cannot use this since abinit complains about ndtset=0 and acell1
     natom = len(scf_input.structure)
-    #natom = scf_input["natom"]
-    #natom = 2
-    #assert natom == 2
 
     # Create the container that will manage the different workflows.
     flow = AbinitFlow(workdir, manager)
@@ -223,11 +168,11 @@ def phonon_flow(workdir, manager, scf_input, ph_inputs):
         w = Workflow(workdir=tmp_dir, manager=shell_manager)
         fake_task = w.register(fake_input)
 
-        # Create the symbolic link and add the magic value 
-        # paral_rf = -1 to get the list of irreducible perturbations for this q-point.
+        # Use the magic value paral_rf = -1 
+        # to get the list of irreducible perturbations for this q-point.
         vars = dict(paral_rf=-1,
-                    rfatpol=[1, natom],  # Only the first atom is displaced
-                    rfdir=[1, 1, 1],     # Along the first reduced coordinate axis
+                    rfatpol=[1, natom],  # Set of atoms to displace.
+                    rfdir=[1, 1, 1],     # Along this set of reduced coordinate axis.
                    )
 
         fake_task.strategy.add_extra_abivars(vars)
@@ -236,14 +181,15 @@ def phonon_flow(workdir, manager, scf_input, ph_inputs):
         w.start()
 
         # Parse the file to get the perturbations.
-        irred_perts = yaml_irred_perts(fake_task.log_file.path, tag="<IRRED_PERTS>")
+        irred_perts = yaml_irred_perts(fake_task.log_file.path)
         #print(irred_perts)
-        w.rmtree()
+        #w.rmtree()
 
         # Now we can build the final list of workflows:
         # One workflow per q-point, each workflow computes all 
         # the irreducible perturbations for a singe q-point.
         work_qpt = PhononWorkflow()
+
         for irred_pert in irred_perts:
             print(irred_pert)
             new_input = ph_input.deepcopy()
@@ -274,8 +220,8 @@ def phonon_flow(workdir, manager, scf_input, ph_inputs):
     return flow.allocate()
 
 
-def yaml_kpoints(filename, tag="<KPOINTS>"):
-    end_tag = tag.replace("<", "</")
+def yaml_kpoints(filename, tag="--- !Kpoints"):
+    end_tag = "..."
 
     with open(filename, "r") as fh:
         lines = fh.readlines()
@@ -284,7 +230,7 @@ def yaml_kpoints(filename, tag="<KPOINTS>"):
     for i, line in enumerate(lines):
         if tag in line:
             start = i
-        elif end_tag in line:
+        if start is not None and end_tag in line:
             end = i
             break
                                                                                                              
@@ -293,7 +239,7 @@ def yaml_kpoints(filename, tag="<KPOINTS>"):
                                                                                                              
     if start == end:
         # Empy section ==> User didn't enable Yaml support in ABINIT.
-        raise ValueError("%s\n contains an empty RUN_HINTS section. Enable Yaml support in ABINIT" % filename)
+        raise ValueError("%s\n contains an empty %s document. Enable Yaml support in ABINIT" % (tag, filename))
 
     s = "".join(lines[start+1:end])
 
@@ -316,8 +262,8 @@ def yaml_kpoints(filename, tag="<KPOINTS>"):
 #        return vars
 
 
-def yaml_irred_perts(filename, tag="<KPOINTS>"):
-    end_tag = tag.replace("<", "</")
+def yaml_irred_perts(filename, tag="--- !IrredPerts"):
+    end_tag = "..."
 
     with open(filename, "r") as fh:
         lines = fh.readlines()
@@ -326,7 +272,7 @@ def yaml_irred_perts(filename, tag="<KPOINTS>"):
     for i, line in enumerate(lines):
         if tag in line:
             start = i
-        elif end_tag in line:
+        if start is not None and end_tag in line:
             end = i
             break
 
@@ -335,7 +281,7 @@ def yaml_irred_perts(filename, tag="<KPOINTS>"):
                                                                                                              
     if start == end:
         # Empy section ==> User didn't enable Yaml support in ABINIT.
-        raise ValueError("%s\n contains an empty RUN_HINTS section. Enable Yaml support in ABINIT" % filename)
+        raise ValueError("%s\n contains an empty %s document. Enable Yaml support in ABINIT" % (tag, filename))
 
     s = "".join(lines[start+1:end])
 
@@ -452,3 +398,24 @@ def g0w0_flow_with_qptdm(workdir, manager, scf_input, nscf_input, scr_input, sig
     print("sigma_task.deps", sigma_task.deps)
 
     return flow
+
+def exctract_yaml_docs(stream):
+    doc_list = []
+    in_doc = False
+    for line in stream:
+
+        if line.startswith("---"):
+            doc = []
+            in_doc == True
+
+        if in_doc
+            doc.append(line)
+
+        if in_doc and line.startswith("...")
+            in_doc = False
+            doc_list.append(doc)
+
+    if doc:
+        doc_list.append(doc)
+
+    return doc_list
