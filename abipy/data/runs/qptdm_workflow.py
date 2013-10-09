@@ -408,10 +408,10 @@ def exctract_yaml_docs(stream):
             doc = []
             in_doc == True
 
-        if in_doc
+        if in_doc:
             doc.append(line)
 
-        if in_doc and line.startswith("...")
+        if in_doc and line.startswith("..."):
             in_doc = False
             doc_list.append(doc)
 
