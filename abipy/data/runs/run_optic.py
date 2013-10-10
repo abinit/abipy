@@ -7,11 +7,6 @@ import abipy.abilab as abilab
 
 from abipy.data.runs import Tester, decorate_main
 
-
-
-
-
-
 optic_input = """\
 0.002         ! Value of the smearing factor, in Hartree
 0.0003  0.3   ! Difference between frequency values (in Hartree), and maximum frequency ( 1 Ha is about 27.211 eV)
@@ -61,8 +56,6 @@ def optic_flow():
       kptopt=1,
       tolwfr=1.e-9,
       #kptopt=3,
-      #getwfk=2,  
-      #getden=1,
     )
 
     #Fourth dataset : ddk response function along axis 1
@@ -83,7 +76,6 @@ def optic_flow():
            qpt=[0.0, 0.0, 0.0],
           rfdir=rfdir,
          rfelfd=2,
-         #getwfk=3,
          tolwfr=1.e-9,
         )
 
@@ -140,8 +132,8 @@ def optic_flow_from_files():
 
 @decorate_main
 def main():
-    #flow = optic_flow()
-    flow = optic_flow_from_files()
+    flow = optic_flow()
+    #flow = optic_flow_from_files()
     flow.build_and_pickle_dump()
     return 0
 

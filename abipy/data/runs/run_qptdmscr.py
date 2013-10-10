@@ -173,13 +173,12 @@ def gw_flow():
     gs, nscf, scr_input, sigma_input = all_inputs()
                                                                         
     #manager = abilab.TaskManager.from_file("taskmanager.yaml")
-    #manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=dict(autoparal=0, max_ncpus=1))
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=dict(autoparal=1, max_ncpus=2))
 
     flow = g0w0_flow_with_qptdm(workdir, manager, gs, nscf, scr_input, sigma_input)
 
-    from pymatgen.io.abinitio.tasks import GW0_Task
-    flow[2][0].__class__ = GW0_Task
+    from pymatgen.io.abinitio.tasks import G_Task
+    flow[2][0].__class__ = G_Task
     flow.build_and_pickle_dump()
 
     return 0
