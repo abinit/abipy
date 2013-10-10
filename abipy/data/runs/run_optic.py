@@ -7,6 +7,22 @@ import abipy.abilab as abilab
 
 from abipy.data.runs import Tester, decorate_main
 
+
+
+
+
+
+optic_input = """\
+0.002         ! Value of the smearing factor, in Hartree
+0.0003  0.3   ! Difference between frequency values (in Hartree), and maximum frequency ( 1 Ha is about 27.211 eV)
+0.000         ! Scissor shift if needed, in Hartree
+0.002         ! Tolerance on closeness of singularities (in Hartree)
+1             ! Number of components of linear optic tensor to be computed
+11            ! Linear coefficients to be computed (x=1, y=2, z=3)
+2             ! Number of components of nonlinear optic tensor to be computed
+123 222       ! Non-linear coefficients to be computed
+"""
+
 def optic_flow():
     structure = data.structure_from_ucell("gaas")
 
@@ -93,33 +109,39 @@ def optic_flow():
     # Check is the order of the 1WF files is relevant. Can we use DDK files ordered 
     # in an arbitrary way or do we have to pass (x,y,z)?
 
-#/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTIC/work_1/task_0/outdata/out_1WF
-#/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTIC/work_1/task_1/outdata/out_1WF
-#/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTIC/work_1/task_2/outdata/out_1WF
-#/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTIC/work_0/task_1/outdata/out_WFK
-
-    optic_input = """\
-0.002         ! Value of the smearing factor, in Hartree
-0.0003  0.3   ! Difference between frequency values (in Hartree), and maximum frequency ( 1 Ha is about 27.211 eV)
-0.000         ! Scissor shift if needed, in Hartree
-0.002         ! Tolerance on closeness of singularities (in Hartree)
-1             ! Number of components of linear optic tensor to be computed
-11            ! Linear coefficients to be computed (x=1, y=2, z=3)
-2             ! Number of components of nonlinear optic tensor to be computed
-123 222       ! Non-linear coefficients to be computed
-"""
     # Optic does not support MPI with ncpus > 1.
     shell_manager = manager.to_shell_manager(mpi_ncpus=1)
 
-    optic_task = abilab.OpticTask(optic_input, nscf_task=bands_work.nscf_task, ddk_tasks=ddk_work, manager=shell_manager)
+    optic_task = abilab.OpticTask(optic_input, nscf_node=bands_work.nscf_task, ddk_nodes=ddk_work, manager=shell_manager)
     flow.register_task(optic_task)
 
     return flow.allocate()
 
 
+def optic_flow_from_files():
+
+    # Optic does not support MPI with ncpus > 1.
+    manager = abilab.TaskManager.sequential()
+
+    flow = abilab.AbinitFlow(workdir="OPTIC_FROM_FILE", manager=manager)
+    
+    ddk_nodes = [
+        "/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTIC/work_1/task_0/outdata/out_1WF",
+        "/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTIC/work_1/task_1/outdata/out_1WF",
+        "/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTIC/work_1/task_2/outdata/out_1WF",
+    ]
+    nscf_node = "/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTIC/work_0/task_1/outdata/out_WFK"
+
+    optic_task = abilab.OpticTask(optic_input, nscf_node=nscf_node, ddk_nodes=ddk_nodes)
+    flow.register_task(optic_task)
+                                                                                                                          
+    return flow.allocate()
+
+
 @decorate_main
 def main():
-    flow = optic_flow()
+    #flow = optic_flow()
+    flow = optic_flow_from_files()
     flow.build_and_pickle_dump()
     return 0
 
