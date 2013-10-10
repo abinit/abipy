@@ -417,7 +417,7 @@ class TaskListCtrl(wx.ListCtrl):
             self.SetColumnWidth(index, wx.LIST_AUTOSIZE)
 
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick)
-        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
+        #self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
 
     def OnRightClick(self, event):
         currentItem = event.m_itemIndex
@@ -430,15 +430,15 @@ class TaskListCtrl(wx.ListCtrl):
         self.PopupMenu(menu, event.GetPoint())
         menu.Destroy()
 
-    def OnItemActivated(self, event):
-        currentItem = event.m_itemIndex
-        task = self.work[currentItem]
+    #def OnItemActivated(self, event):
+    #    currentItem = event.m_itemIndex
+    #    task = self.work[currentItem]
 
-        if task.can_run:
-            task.start()
+    #    if task.can_run:
+    #        task.start()
 
-        # This is to update the database.
-        flow.pickle_dump()
+    #    # This is to update the database.
+    #    self.flow.pickle_dump()
 
 
 # Callbacks 

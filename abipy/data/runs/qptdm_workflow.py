@@ -220,38 +220,6 @@ def phonon_flow(workdir, manager, scf_input, ph_inputs):
     return flow.allocate()
 
 
-def yaml_kpoints(filename, tag="--- !Kpoints"):
-    end_tag = "..."
-
-    with open(filename, "r") as fh:
-        lines = fh.readlines()
-
-    start, end = None, None
-    for i, line in enumerate(lines):
-        if tag in line:
-            start = i
-        if start is not None and end_tag in line:
-            end = i
-            break
-                                                                                                             
-    if start is None or end is None:
-        raise ValueError("%s\n does not contain any valid %s section" % (filename, tag))
-                                                                                                             
-    if start == end:
-        # Empy section ==> User didn't enable Yaml support in ABINIT.
-        raise ValueError("%s\n contains an empty %s document. Enable Yaml support in ABINIT" % (tag, filename))
-
-    s = "".join(lines[start+1:end])
-
-    try:
-        d = yaml.load(s)
-    except Exception as exc:
-        raise ValueError("Malformatted Yaml document in file %s:\n %s" % (filename, str(exc)))
-
-    return np.array(d["reduced_coordinates_of_qpoints"])
-    #return KpointList(reciprocal_lattice, frac_coords, weights=None, names=None)
-
-
 #class IrredPert(object):
 #    def to_abivars(self):
 #        #rfatpol   1 1   # Only the first atom is displaced
@@ -260,38 +228,6 @@ def yaml_kpoints(filename, tag="--- !Kpoints"):
 #        idir = irred_pert["idir"]
 #        ipert = irred_pert["ipert"]
 #        return vars
-
-
-def yaml_irred_perts(filename, tag="--- !IrredPerts"):
-    end_tag = "..."
-
-    with open(filename, "r") as fh:
-        lines = fh.readlines()
-
-    start, end = None, None
-    for i, line in enumerate(lines):
-        if tag in line:
-            start = i
-        if start is not None and end_tag in line:
-            end = i
-            break
-
-    if start is None or end is None:
-        raise ValueError("%s\n does not contain any valid %s section" % (filename, tag))
-                                                                                                             
-    if start == end:
-        # Empy section ==> User didn't enable Yaml support in ABINIT.
-        raise ValueError("%s\n contains an empty %s document. Enable Yaml support in ABINIT" % (tag, filename))
-
-    s = "".join(lines[start+1:end])
-
-    try:
-        d = yaml.load(s)
-
-    except Exception as exc:
-        raise ValueError("Malformatted Yaml document in file %s:\n %s" % (filename, str(exc)))
-
-    return d["irred_perts"]
 
 
 class PhononWorkflow(Workflow):
@@ -320,7 +256,7 @@ class PhononWorkflow(Workflow):
         desc = "DDB file merged by %s on %s" % (self.__class__.__name__, time.asctime())
 
         mrgddb = Mrgddb(verbose=1)
-        mrgddb.merge(ddb_files, out_ddb=out_dbb, description=desc, cwd=self.outdir.path)
+        mrgddb.merge(ddb_files, out_ddb=out_ddb, description=desc, cwd=self.outdir.path)
 
         results = dict(
             returncode=0,
@@ -399,23 +335,91 @@ def g0w0_flow_with_qptdm(workdir, manager, scf_input, nscf_input, scr_input, sig
 
     return flow
 
-def exctract_yaml_docs(stream):
-    doc_list = []
-    in_doc = False
-    for line in stream:
+def all_yaml_docs(stream):
+    """
+    Returns a list with all the YAML documents found in stream
 
+    .. warning:
+        Assume that all the docs (with the exception of the last one) 
+        are closed explicitely with the sentinel ... 
+    """
+    docs, in_doc = [], False
+
+    for line in stream:
         if line.startswith("---"):
-            doc = []
-            in_doc == True
+            doc, in_doc = [], True
 
         if in_doc:
             doc.append(line)
 
         if in_doc and line.startswith("..."):
             in_doc = False
-            doc_list.append(doc)
+            docs.append("\n".join(doc))
 
     if doc:
-        doc_list.append(doc)
+        docs.append(doc)
 
-    return doc_list
+    return docs
+
+def yaml_kpoints(filename, tag="--- !Kpoints"):
+    end_tag = "..."
+
+    with open(filename, "r") as fh:
+        lines = fh.readlines()
+
+    start, end = None, None
+    for i, line in enumerate(lines):
+        if tag in line:
+            start = i
+        if start is not None and end_tag in line:
+            end = i
+            break
+                                                                                                             
+    if start is None or end is None:
+        raise ValueError("%s\n does not contain any valid %s section" % (filename, tag))
+                                                                                                             
+    if start == end:
+        # Empy section ==> User didn't enable Yaml support in ABINIT.
+        raise ValueError("%s\n contains an empty %s document. Enable Yaml support in ABINIT" % (tag, filename))
+
+    s = "".join(lines[start+1:end])
+
+    try:
+        d = yaml.load(s)
+    except Exception as exc:
+        raise ValueError("Malformatted Yaml document in file %s:\n %s" % (filename, str(exc)))
+
+    return np.array(d["reduced_coordinates_of_qpoints"])
+    #return KpointList(reciprocal_lattice, frac_coords, weights=None, names=None)
+
+
+def yaml_irred_perts(filename, tag="--- !IrredPerts"):
+    end_tag = "..."
+
+    with open(filename, "r") as fh:
+        lines = fh.readlines()
+
+    start, end = None, None
+    for i, line in enumerate(lines):
+        if tag in line:
+            start = i
+        if start is not None and end_tag in line:
+            end = i
+            break
+
+    if start is None or end is None:
+        raise ValueError("%s\n does not contain any valid %s section" % (filename, tag))
+                                                                                                             
+    if start == end:
+        # Empy section ==> User didn't enable Yaml support in ABINIT.
+        raise ValueError("%s\n contains an empty %s document. Enable Yaml support in ABINIT" % (tag, filename))
+
+    s = "".join(lines[start+1:end])
+
+    try:
+        d = yaml.load(s)
+
+    except Exception as exc:
+        raise ValueError("Malformatted Yaml document in file %s:\n %s" % (filename, str(exc)))
+
+    return d["irred_perts"]

@@ -7,7 +7,7 @@ import abipy.abilab as abilab
 
 from abipy.data.runs import Tester, decorate_main
 
-def optics_flow():
+def optic_flow():
     structure = data.structure_from_ucell("gaas")
 
     inp = abilab.AbiInput(pseudos=data.pseudos("31ga.pspnc", "33as.pspnc"), ndtset=5)
@@ -15,7 +15,7 @@ def optics_flow():
     inp.set_structure(structure)
 
     # Global variables
-    kmesh = dict(ngkpt=[4, 4,  4], 
+    kmesh = dict(ngkpt=[4, 4, 4], 
                  nshiftk=4,
                  shiftk=[[0.5, 0.5, 0.5],
                          [0.5, 0.0, 0.0],
@@ -73,12 +73,12 @@ def optics_flow():
 
     print(inp)
 
-    manager = abilab.TaskManager.simple_mpi(mpi_ncpus=2)
+    manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1)
 
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = inp.split_datasets()
 
     # Initialize the flow.
-    flow = abilab.AbinitFlow(workdir="OPTICS", manager=manager)
+    flow = abilab.AbinitFlow(workdir="OPTIC", manager=manager)
 
     bands_work = abilab.BandStructureWorkflow(scf_inp, nscf_inp)
     flow.register_work(bands_work)
@@ -93,11 +93,12 @@ def optics_flow():
     # Check is the order of the 1WF files is relevant. Can we use DDK files ordered 
     # in an arbitrary way or do we have to pass (x,y,z)?
 
-    optics_input = """\
-/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTICS/work_1/task_0/outdata/out_1WF
-/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTICS/work_1/task_1/outdata/out_1WF
-/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTICS/work_1/task_2/outdata/out_1WF
-/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTICS/work_0/task_1/outdata/out_WFK
+#/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTIC/work_1/task_0/outdata/out_1WF
+#/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTIC/work_1/task_1/outdata/out_1WF
+#/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTIC/work_1/task_2/outdata/out_1WF
+#/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTIC/work_0/task_1/outdata/out_WFK
+
+    optic_input = """\
 0.002         ! Value of the smearing factor, in Hartree
 0.0003  0.3   ! Difference between frequency values (in Hartree), and maximum frequency ( 1 Ha is about 27.211 eV)
 0.000         ! Scissor shift if needed, in Hartree
@@ -107,26 +108,18 @@ def optics_flow():
 2             ! Number of components of nonlinear optic tensor to be computed
 123 222       ! Non-linear coefficients to be computed
 """
-    deps = {task: "1WF" for task in ddk_work}
-    deps.update({bands_work.nscf_task: "WFK"})
-    #deps = {task: "1WF" for task in ddk_work}.update(
+    # Optic does not support MPI with ncpus > 1.
+    shell_manager = manager.to_shell_manager(mpi_ncpus=1)
 
-    shell_manager = manager.to_shell_manager()
+    optic_task = abilab.OpticTask(optic_input, nscf_task=bands_work.nscf_task, ddk_tasks=ddk_work, manager=shell_manager)
+    flow.register_task(optic_task)
 
-    optics_task = flow.register_task(optics_input, deps=deps, manager=shell_manager, task_class=abilab.OpticsTask)
-    #optics_task.add_deps(deps)
-    #flow.register_task(optics_task, deps=deps)
-
-    flow.allocate()
-    #print(optics_task)
-    #print(optics_task.__class__)
-    print("input",optics_task.make_input())
-    return flow
+    return flow.allocate()
 
 
 @decorate_main
 def main():
-    flow = optics_flow()
+    flow = optic_flow()
     flow.build_and_pickle_dump()
     return 0
 

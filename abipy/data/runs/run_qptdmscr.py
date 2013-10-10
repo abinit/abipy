@@ -169,8 +169,7 @@ def ph_flow():
 
 
 def gw_flow():
-    workdir = "WORKS"
-
+    workdir = "GW"
     gs, nscf, scr_input, sigma_input = all_inputs()
                                                                         
     #manager = abilab.TaskManager.from_file("taskmanager.yaml")
@@ -215,13 +214,13 @@ def qptdm_work():
 @decorate_main
 def main():
     # QPTDM
-    qptdm_work()
+    #qptdm_work()
 
     # GW Works
     #gw_flow()
 
     # Phonon Works
-    #ph_flow()
+    ph_flow()
 
 
 if __name__ == "__main__":
