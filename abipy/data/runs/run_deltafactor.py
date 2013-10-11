@@ -20,10 +20,8 @@ def delta_flow():
     #manager = abilab.TaskManager.from_file("taskmanager.yaml") 
 
     # Initialize the flow.
-    flow = abilab.AbinitFlow(workdir="DELTAFACTOR", manager=manager)
-
     # Don't know why protocol=-1 does not work here.
-    flow.pickle_protocol = 0
+    flow = abilab.AbinitFlow(workdir="DELTAFACTOR", manager=manager, pickle_protcol=0)
 
     # Build the workflow for the computation of the deltafactor.
     # The calculation is done with the paramenters and the cif files
@@ -37,7 +35,7 @@ def delta_flow():
     work = factory.work_for_pseudo(pseudo, accuracy="normal", kppa=kppa, 
                                    ecut=8, toldfe=1.e-8, smearing="fermi_dirac:0.0005")
 
-    # Register the input.
+    # Register the workflow.
     flow.register_work(work)
     return flow.allocate()
 

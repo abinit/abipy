@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
-This script ...
+This script allows the user to submit the calculations contained in the `AbinitFlow`.
+It provides both a command line interface as well as a graphical interfaced based on wxpython.
 """
 from __future__ import division, print_function
 
@@ -16,10 +17,10 @@ from abipy.tools import pprint_table, StringColorizer
 def str_examples():
     examples = """
 Usage example:\n
-    abirun.py singleshot  => Fetch the first available task and run it.
-    abirun.py rapidfire   => Keep repeating, stop when no task can be executed
-                             due to workflow dependency.
-    abirun.py gui         => Open the GUI 
+    abirun.py singleshot DIRECTORY  => Fetch the first available task and run it.
+    abirun.py rapidfire  DIRECTORY  => Keep repeating, stop when no task can be executed
+                                       due to inter-dependency.
+    abirun.py gui DIRECTORY         => Open the GUI 
 """
     return examples
 
@@ -54,6 +55,10 @@ def treat_flow(flow, options):
         colorizer = StringColorizer(stream=sys.stdout)
 
         for work in flow:
+            print(80*"")
+            print("workflow: ", work)
+            print(80*"")
+
             table = [["Task", "Status", "queue_id", "Errors", "Warnings", "Comments", "MPI", "OMP"]]
             for task in work:
                 task_name = os.path.basename(task.name)
@@ -146,7 +151,7 @@ def main():
 
     import cPickle as pickle
     paths = [paths[0]]
-    print("paths", str(paths))
+    #print("paths", str(paths))
 
     options.paths = paths
     retcode = 0
@@ -169,11 +174,9 @@ def main():
     #    print(w)
     #flow.show_dependencies()
 
-
     # Recompute the status of each task since tasks that
     # have been submitted previously might be completed.
-    for work in flow:
-        work.check_status()
+    flow.check_status()
 
     if options.command == "gui":
         from abipy.gui.workflow_viewer import wxapp_flow_viewer
@@ -181,8 +184,6 @@ def main():
 
     else:
         retcode = treat_flow(flow, options)
-        if retcode != 0:
-            return retcode
 
     return retcode
     
