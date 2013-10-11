@@ -21,7 +21,7 @@ def delta_flow():
 
     # Initialize the flow.
     # Don't know why protocol=-1 does not work here.
-    flow = abilab.AbinitFlow(workdir="DELTAFACTOR", manager=manager, pickle_protcol=0)
+    flow = abilab.AbinitFlow(workdir="DELTAFACTOR", manager=manager, pickle_protocol=0)
 
     # Build the workflow for the computation of the deltafactor.
     # The calculation is done with the paramenters and the cif files
