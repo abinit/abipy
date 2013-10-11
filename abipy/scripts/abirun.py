@@ -170,16 +170,15 @@ def main():
     elif len(options.paths) == 1:
         print("in path1")
         path = options.paths[0]
+
         with open(path, "rb") as fh:
             works = pickle.load(fh)
 
         works.connect_signals()
-
-        print(works)
-        for w in works:
-            print(w)
-        
-        works.show_dependencies()
+        #print(works)
+        #for w in works:
+        #    print(w)
+        #works.show_dependencies()
 
     else:
         warnings.warn("The directories specifies do not contain any valid AbinitFlow")
