@@ -21,11 +21,20 @@ def delta_flow():
 
     # Initialize the flow.
     flow = abilab.AbinitFlow(workdir="DELTAFACTOR", manager=manager)
+
+    # Don't know why protocol=-1 does not work here.
     flow.pickle_protocol = 0
 
-    # Build the wrorkflow for the computation of the deltafactor.
+    # Build the workflow for the computation of the deltafactor.
+    # The calculation is done with the paramenters and the cif files
+    # used in the original paper. We only have to specify 
+    # the cutoff energy ecut (Ha) for the pseudopotential.
     factory = DeltaFactory()
-    work = factory.work_for_pseudo(pseudo, accuracy="normal", kppa=50, 
+
+    kppa = 6750  # Use this to have the official k-point sampling
+    kppa = 50    # this value is for testing purpose.
+
+    work = factory.work_for_pseudo(pseudo, accuracy="normal", kppa=kppa, 
                                    ecut=8, toldfe=1.e-8, smearing="fermi_dirac:0.0005")
 
     # Register the input.
@@ -37,7 +46,6 @@ def delta_flow():
 def main():
     flow = delta_flow()
 
-    # Don't know why protocol=-1 does not work here.
     flow.build_and_pickle_dump()
 
 if __name__ == "__main__":
