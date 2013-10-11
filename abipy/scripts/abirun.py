@@ -32,61 +32,54 @@ def show_examples_and_exit(err_msg=None, error_code=1):
     sys.exit(error_code)
 
 
-def treat_workflow(work, options):
-
-    # Read the worflow from the pickle database.
+def treat_flow(flow, options):
     retcode = 0
-
-    # Recompute the status of each task since tasks that
-    # have been submitted previously might be completed.
-    work.check_status()
 
     # Dispatch.
     if options.command in ["single", "singleshot"]:
-        nlaunch = PyLauncher(work).single_shot()
+        nlaunch = PyLauncher(flow).single_shot()
         print("Number of tasks launched %d" % nlaunch)
 
     if options.command in ["rapid", "rapidfire"]:
-        nlaunch = PyLauncher(work).rapidfire()
+        nlaunch = PyLauncher(flow).rapidfire()
         print("Number of tasks launched %d" % nlaunch)
 
-    if options.command == "pymanager":
-        retcodes = PyResourceManager(work, max_ncpus=1, sleep_time=5).run()
-        recode = max(retcodes)
-        print("all tasks completed with return code %s" % retcode)
-                                                                            
-        work.pickle_dump()
+    #if options.command == "pymanager":
+    #    retcodes = PyResourceManager(work, max_ncpus=1, sleep_time=5).run()
+    #    recode = max(retcodes)
+    #    print("all tasks completed with return code %s" % retcode)
+    #    work.pickle_dump()
 
     if options.command == "status":
-        print(work)
         colorizer = StringColorizer(stream=sys.stdout)
 
-        table = [["Task", "Status", "queue_id", "Errors", "Warnings", "Comments", "MPI", "OMP"]]
-        for task in work:
-            task_name = os.path.basename(task.name)
+        for work in flow:
+            table = [["Task", "Status", "queue_id", "Errors", "Warnings", "Comments", "MPI", "OMP"]]
+            for task in work:
+                task_name = os.path.basename(task.name)
 
-            # Parse the events in the main output.
-            report = task.get_event_report()
+                # Parse the events in the main output.
+                report = task.get_event_report()
 
-            events = map(str, 3*["N/A"])
-            if report is not None: 
-                events = map(str, [report.num_errors, report.num_warnings, report.num_comments])
+                events = map(str, 3*["N/A"])
+                if report is not None: 
+                    events = map(str, [report.num_errors, report.num_warnings, report.num_comments])
 
-            colour = {
-                #task.S_READY: "Ready",
-                #task.S_SUB: "Submitted",
-                #task.S_RUN: "Running",
-                #task.S_DONE: "Done",
-                task.S_ERROR: "red",
-                task.S_OK: "blue",
-            }.get(task.status, None)
-            #task_name = colorizer(task_name, colour)
+                colour = {
+                    #task.S_READY: "Ready",
+                    #task.S_SUB: "Submitted",
+                    #task.S_RUN: "Running",
+                    #task.S_DONE: "Done",
+                    task.S_ERROR: "red",
+                    task.S_OK: "blue",
+                }.get(task.status, None)
+                #task_name = colorizer(task_name, colour)
 
-            cpu_info = map(str, [task.mpi_ncpus, task.omp_ncpus])
+                cpu_info = map(str, [task.mpi_ncpus, task.omp_ncpus])
 
-            table.append([task_name, str(task.status), str(task.queue_id)] + events + cpu_info)
+                table.append([task_name, str(task.status), str(task.queue_id)] + events + cpu_info)
 
-        pprint_table(table)
+            pprint_table(table)
 
     return retcode
 
@@ -158,46 +151,38 @@ def main():
     options.paths = paths
     retcode = 0
 
-    if len(options.paths) > 1:
-        #TODO: here we should write a warning if we are reading AbiWorks.
-        works = []
-        for path in options.paths:
-            with open(path, "rb") as fh:
-                w = pickle.load(fh)
-                w.connect_signals()
-                works.append(w)
-
-    elif len(options.paths) == 1:
-        print("in path1")
-        path = options.paths[0]
-
-        with open(path, "rb") as fh:
-            works = pickle.load(fh)
-
-        works.connect_signals()
-        #print(works)
-        #for w in works:
-        #    print(w)
-        #works.show_dependencies()
-
-    else:
+    if len(options.paths) == 0:
         warnings.warn("The directories specifies do not contain any valid AbinitFlow")
         return 1
 
+    if len(options.paths) > 1:
+        raise ValueError("Multiple flows are not supported")
+
+    path = options.paths[0]
+
+    # Read the worflow from the pickle database.
+    with open(path, "rb") as fh:
+        flow = pickle.load(fh)
+
+    flow.connect_signals()
+    #for w in flow:
+    #    print(w)
+    #flow.show_dependencies()
+
+
+    # Recompute the status of each task since tasks that
+    # have been submitted previously might be completed.
+    for work in flow:
+        work.check_status()
 
     if options.command == "gui":
         from abipy.gui.workflow_viewer import wxapp_flow_viewer
-
-        for w in works:
-            w.check_status()
-
-        wxapp_flow_viewer(works).MainLoop()
+        wxapp_flow_viewer(flow).MainLoop()
 
     else:
-        for w in works:
-            retcode = treat_workflow(w, options)
-            if retcode != 0:
-                return retcode
+        retcode = treat_flow(flow, options)
+        if retcode != 0:
+            return retcode
 
     return retcode
     

@@ -21,6 +21,7 @@ def delta_flow():
 
     # Initialize the flow.
     flow = abilab.AbinitFlow(workdir="DELTAFACTOR", manager=manager)
+    flow.pickle_protocol = 0
 
     # Build the wrorkflow for the computation of the deltafactor.
     factory = DeltaFactory()
@@ -37,7 +38,7 @@ def main():
     flow = delta_flow()
 
     # Don't know why protocol=-1 does not work here.
-    flow.build_and_pickle_dump(protocol=0)
+    flow.build_and_pickle_dump()
 
 if __name__ == "__main__":
     import sys
