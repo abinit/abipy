@@ -9,7 +9,7 @@ import abipy.data as data
 
 from abipy.data.runs import Tester, decorate_main
 
-def build_flow():
+def raman_flow():
     pseudos = data.pseudos("14si.pspnc")
 
     # Get the unperturbed structure.
@@ -29,6 +29,7 @@ def build_flow():
 
     # Initialize flow. Each workflow in the flow defines a complete BSE calculation for given eta.
     workdir = os.path.join(os.path.dirname(__file__), base_structure.formula + "_RAMAN")
+
     #manager = abilab.TaskManager.from_file("taskmanager.yaml")
     manager = abilab.TaskManager.simple_mpi()
 
@@ -110,11 +111,10 @@ def raman_workflow(structure, pseudos, shiftk):
 
 @decorate_main
 def main():
-    # Build the flow, build files and dirs 
+    # Define the flow, build files and dirs 
     # and save the object in cpickle format.
-    flow = build_flow()
-    flow.build_and_pickle_dump()
-    return 0
+    flow = raman_flow()
+    return flow.build_and_pickle_dump()
 
 
 if __name__ == "__main__":

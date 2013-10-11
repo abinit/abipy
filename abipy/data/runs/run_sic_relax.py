@@ -10,10 +10,10 @@ import abipy.data as data
 
 from abipy.data.runs import Tester, decorate_main
 
-def build_flow():
+def relax_flow():
     global_vars = dict(
-        istwfk="*1",
         chksymbreak=0,
+        #istwfk="*1",
         #accesswff=3
     )
     all_ecuts = np.arange(20,28,4)
@@ -22,7 +22,6 @@ def build_flow():
 
     pseudos = data.pseudos("14si.pspnc","6c.pspnc")
     structure = data.structure_from_ucell("sic")
-    print(structure)
 
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1)
     workdir = "relax_SiC"
@@ -90,9 +89,8 @@ def build_flow():
 
 @decorate_main
 def main():
-    flow = build_workflow()
-    flow.build_and_pickle_dump()
-    return 0
+    flow = relax_flow()
+    return flow.build_and_pickle_dump()
 
 
 if __name__=="__main__":

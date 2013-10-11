@@ -54,10 +54,9 @@ def treat_flow(flow, options):
     if options.command == "status":
         colorizer = StringColorizer(stream=sys.stdout)
 
-        for work in flow:
-            print(80*"")
-            print("workflow: ", work)
-            print(80*"")
+        for i, work in enumerate(flow):
+            print(80*"=")
+            print("Workflow #%d: %s, Finalized=%s\n" % (i, work, work.finalized) )
 
             table = [["Task", "Status", "queue_id", "Errors", "Warnings", "Comments", "MPI", "OMP"]]
             for task in work:

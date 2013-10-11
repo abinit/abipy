@@ -9,7 +9,7 @@ import abipy.abilab as abilab
 from collections import namedtuple
 from abipy.data.runs import Tester, decorate_main
 
-def build_workflows():
+def relax_flow():
 
     pseudo_dirname = data.pseudo_dir
     pp_names = ["14si.pspnc"]
@@ -78,12 +78,8 @@ def build_workflows():
 
 @decorate_main
 def main():
-    works = build_workflows()
-    for work in works:
-        #print("work",work.workdir)
-        work.build()
-
-    return 0
+    flow = relax_flow()
+    return flow.build_and_pickle_dump()
 
 if __name__ == "__main__":
     sys.exit(main())

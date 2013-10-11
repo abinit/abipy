@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""This script shows how to compute the deltafactor for a given pseudopotential."""
 from __future__ import division, print_function
 
 import os
@@ -27,6 +28,9 @@ def delta_flow():
     # The calculation is done with the paramenters and the cif files
     # used in the original paper. We only have to specify 
     # the cutoff energy ecut (Ha) for the pseudopotential.
+    # The workflow will produce a pdf file with the equation of state 
+    # and a file deltafactor.txt with the final results in the 
+    # outdir directory DELTAFACTOR/work_0/outdir.
     factory = DeltaFactory()
 
     kppa = 6750  # Use this to have the official k-point sampling
@@ -43,8 +47,7 @@ def delta_flow():
 @decorate_main
 def main():
     flow = delta_flow()
-
-    flow.build_and_pickle_dump()
+    return flow.build_and_pickle_dump()
 
 if __name__ == "__main__":
     import sys

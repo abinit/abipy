@@ -9,10 +9,8 @@ from abipy.data.runs import Tester, decorate_main
 
 @decorate_main
 def main():
-    structure = abilab.Structure.from_file(data.cif_file("si.cif"))
-
     inp = abilab.AbiInput(pseudos=data.pseudos("14si.pspnc"), ndtset=2)
-    inp.set_structure_from_file(data.cif_file("si.cif"))
+    structure = inp.set_structure_from_file(data.cif_file("si.cif"))
 
     # Global variables
     global_vars = dict(ecut=6,
@@ -39,8 +37,6 @@ def main():
     inp[2].set_variables(tolwfr=1e-12,
                          getden=-1
                         )
-    print(inp)
-
     # Create the task defining the calculation and run.
     tester = Tester()
 

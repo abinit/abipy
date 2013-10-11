@@ -34,7 +34,7 @@ def special_positions(lattice, u):
     return abilab.Structure(lattice, species, coords, 
                             validate_proximity=True, coords_are_cartesian=False)
 
-def build_flow():
+def make_flow():
     pseudos = data.pseudos("14si.pspnc")
 
     base_structure = abilab.Structure.from_file(data.cif_file("si.cif"))
@@ -54,12 +54,12 @@ def build_flow():
     # Each workflow defines a band structure calculation.
     for new_structure, u in zip(news, uparams):
         # Generate the workflow and register it.
-        flow.register_work(build_workflow(new_structure, pseudos))
+        flow.register_work(make_workflow(new_structure, pseudos))
 
     return flow.allocate()
 
 
-def build_workflow(structure, pseudos):
+def make_workflow(structure, pseudos):
     """
     Return a `Workflow` object defining a band structure calculation
     for given `Structure`.
@@ -95,9 +95,8 @@ def build_workflow(structure, pseudos):
 
 @decorate_main
 def main():
-    flow = build_flow()
-    flow.build_and_pickle_dump()
-    return 0
+    flow = make_flow()
+    return flow.build_and_pickle_dump()
 
 if __name__ == "__main__":
     sys.exit(main())

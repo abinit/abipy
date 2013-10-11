@@ -79,8 +79,6 @@ def optic_flow():
          tolwfr=1.e-9,
         )
 
-    print(inp)
-
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1)
 
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = inp.split_datasets()
@@ -134,8 +132,7 @@ def optic_flow_from_files():
 def main():
     flow = optic_flow()
     #flow = optic_flow_from_files()
-    flow.build_and_pickle_dump()
-    return 0
+    return flow.build_and_pickle_dump()
 
 
 if __name__ == "__main__":
