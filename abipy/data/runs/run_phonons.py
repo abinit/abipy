@@ -10,7 +10,11 @@ from abipy.data.runs import decorate_main
 from abipy.data.runs.qptdm_workflow import *
 
 def scf_ph_inputs():
-    # Crystalline AlAs : computation of the second derivative of the total energy
+    """
+    This function constructs the input files for the phonon calculation: 
+    GS input + the input files for the phonon calculation.
+    """
+    # Crystalline AlAs: computation of the second derivative of the total energy
     structure = data.structure_from_ucell("alas")
     pseudos = data.pseudos("13al.981214.fhi", "33as.pspnc")
 
@@ -56,21 +60,29 @@ def scf_ph_inputs():
 
 
 def ph_flow():
+    """
+    Create an `AbinitFlow` for phonon calculations:
+
+        1) One workflow for the GS run.
+
+        2) nqpt workflows for phonon calculations. Each workflow contains 
+           nirred tasks where nirred is the number of irreducible phonon perturbations
+           for that particuar q-point.
+    """
     workdir = "PHONONS"
-
-    all_inps  = scf_ph_inputs()
-
-    scf_input, ph_inputs = all_inps[0], all_inps[1:]
-                                                                        
-    #manager = abilab.TaskManager.from_file("taskmanager.yaml")
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=dict(autoparal=0, max_ncpus=1))
     #manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=dict(autoparal=1, max_ncpus=2))
+    #manager = abilab.TaskManager.from_file("taskmanager.yaml")
+
+    all_inps = scf_ph_inputs()
+    scf_input, ph_inputs = all_inps[0], all_inps[1:]
 
     return phonon_flow(workdir, manager, scf_input, ph_inputs)
 
+
 @decorate_main
 def main():
-    # Phonon Works
+    """Build the flow for Phonon calculations and save the object in cpickle format."""
     flow = ph_flow()
     return flow.build_and_pickle_dump()
 

@@ -210,9 +210,11 @@ def phonon_flow(workdir, manager, scf_input, ph_inputs):
 
 class PhononWorkflow(Workflow):
     """
-    This workflow is used for parallelizing the calculation of the 
-    q-points of the screening. It also provides a on_all_ok method 
-    that calls mrgddb to merge the partial DDB files.
+    This workflow automates the parallelization of phonon calculations.
+    It usually consists of nirred tasks where nirred is the number of 
+    irreducible perturbations for a given q-point.
+    It also provides the callback method (on_all_ok) that calls mrgddb to merge 
+    the partial DDB files and mrgggkk to merge the GKK files.
     """
     def merge_ddb_files(self):
         """
@@ -253,7 +255,7 @@ class PhononWorkflow(Workflow):
         out_ggk = self.outdir.path_in("out_GKK")
 
         mrggkk = Mrggkk(verbose=1)
-        raise NotImplementedError("")
+        raise NotImplementedError("Have to check mrggkk")
         #mrggkk.merge(gswfk_file, dfpt_files, gkk_files, out_fname, binascii=0, cwd=self.outdir.path)
 
     def on_all_ok(self):
@@ -291,7 +293,7 @@ def cbk_qptdm_workflow(flow, work, cbk_data):
 def g0w0_flow_with_qptdm(workdir, manager, scf_input, nscf_input, scr_input, sigma_input):
     """
     Build an `AbinitFlow` for one-shot G0W0 calculations.
-    The computation of the q-points for the screening is done with qptdm.
+    The computation of the q-points for the screening is parallelized with qptdm (task parallelism).
 
     Args:
         workdir:
@@ -344,11 +346,12 @@ def g0w0_flow_with_qptdm(workdir, manager, scf_input, nscf_input, scr_input, sig
 
 def all_yaml_docs(stream):
     """
-    Returns a list with all the YAML documents found in stream
+    Returns a list with all the YAML documents found in stream.
 
     .. warning:
-        Assume that all the docs (with the exception of the last one) 
-        are closed explicitely with the sentinel ... 
+
+        Assume that all the YAML docs (with the exception of the last one) 
+        are closed explicitely with the sentinel '...'
     """
     docs, in_doc = [], False
 
