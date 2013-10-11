@@ -109,7 +109,7 @@ def gw_flow():
     workdir = "GW"
     gs, nscf, scr_input, sigma_input = all_inputs()
                                                                         
-    #manager = abilab.TaskManager.from_file("taskmanager.yaml")
+    #manager = abilab.TaskManager.from_user_config()
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=dict(autoparal=1, max_ncpus=2))
 
     flow = g0w0_flow_with_qptdm(workdir, manager, gs, nscf, scr_input, sigma_input)

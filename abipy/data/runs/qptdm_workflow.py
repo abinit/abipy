@@ -143,7 +143,7 @@ def phonon_flow(workdir, manager, scf_input, ph_inputs):
     for i, ph_input in enumerate(ph_inputs):
         fake_input = ph_input.deepcopy()
 
-        tmp_dir = os.path.join(workdir, "_ph_run" + str(i))
+        tmp_dir = os.path.join(workdir, "__ph_run" + str(i) + "__")
         w = Workflow(workdir=tmp_dir, manager=shell_manager)
         fake_task = w.register(fake_input)
 

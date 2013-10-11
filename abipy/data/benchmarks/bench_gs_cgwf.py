@@ -39,11 +39,11 @@ def main():
     policy = dict(autoparal=0, max_ncpus=10)
 
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=policy)
-    #manager = abilab.TaskManager.from_file("taskmanager.yaml")
+    #manager = abilab.TaskManager.from_user_config()
 
     benchmark = build_abinit_benchmark("gs_cgwf", base_input, manager=manager)
 
-    benchmark.build_and_pickle_dump()
+    return benchmark.build_and_pickle_dump()
 
 
 if __name__ == "__main__":
