@@ -18,7 +18,7 @@ def relax_flow():
                                                          
     flow = abilab.AbinitFlow(workdir, manager)
 
-    pseudos = data.pseudos("14si.pspnc","6c.pspnc")
+    pseudos = data.pseudos("14si.pspnc", "6c.pspnc")
     structure = data.structure_from_ucell("sic")
 
     global_vars = dict(
@@ -42,21 +42,23 @@ def relax_flow():
 
     relax_inp.set_kmesh(ngkpt=ngkpt, shiftk=shiftk)
     relax_inp.set_variables(
-        toldff = 1e-6
-        tolmxf = 1e-5
-        strfact = 100
-        ecutsm = 0.5
-        dilatmx = 1.15
-        ntime = 100
-        ionmov = 2,
-        optcell = 1,
+        toldff=1e-6,
+        tolmxf=1e-5,
+        strfact=100,
+        ecutsm=0.5,
+        dilatmx=1.15,
+        ntime=100,
+        ionmov=2,
+        optcell=1,
     )
 
     nscf_inp.set_kpath(ndivsm=20)
     nscf_inp.tolwfr = 1e-22
 
+    relax_inp, nscf_inp = inp.split_datasets()
+
     # Initialize the workflow.
-    relax_task = flow.register_task(relax_inp)  
+    relax_task = flow.register_task(relax_inp)
 
     nscf_task = flow.register_task(nscf_inp, deps={relax_task: "DEN"})
 
