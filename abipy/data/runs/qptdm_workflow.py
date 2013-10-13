@@ -13,7 +13,7 @@ from abipy.tools import AttrDict
 
 from pydispatch import dispatcher
 from pymatgen.io.abinitio.tasks import Task, Dependency, ScfTask, PhononTask
-from pymatgen.io.abinitio.workflows import BandStructureWorkflow, IterativeWorkflow
+from pymatgen.io.abinitio.workflows import BandStructureWorkflow, IterativeWorkflow, PhononWorkflow
 
 import logging
 logger = logging.getLogger(__name__)
@@ -204,73 +204,6 @@ def phonon_flow(workdir, manager, scf_input, ph_inputs):
 #        return vars
 
 
-class PhononWorkflow(Workflow):
-    """
-    This workflow automates the parallelization of phonon calculations.
-    It usually consists of nirred tasks where nirred is the number of 
-    irreducible perturbations for a given q-point.
-    It also provides the callback method (on_all_ok) that calls mrgddb to merge 
-    the partial DDB files and mrgggkk to merge the GKK files.
-    """
-    def merge_ddb_files(self):
-        """
-        This method is called when all the q-points have been computed.
-        Ir runs `mrgddb` in sequential on the local machine to produce
-        the final DDB file in the outdir of the `Workflow`.
-        """
-        ddb_files = filter(None, [task.outdir.has_abiext("DDB") for task in self])
-
-        logger.debug("will call mrgddb to merge %s:\n" % str(ddb_files))
-        assert len(ddb_files) == len(self)
-
-        #if len(ddb_files) == 1:
-        # Avoid the merge. Just move the DDB file to the outdir of the workflow
-
-        # Final DDB file will be produced in the outdir of the workflow.
-        out_ddb = self.outdir.path_in("out_DDB")
-        desc = "DDB file merged by %s on %s" % (self.__class__.__name__, time.asctime())
-
-        mrgddb = Mrgddb(verbose=1)
-        mrgddb.merge(ddb_files, out_ddb=out_ddb, description=desc, cwd=self.outdir.path)
-
-    def merge_gkk_files(self):
-        """
-        This method is called when all the q-points have been computed.
-        Ir runs `mrgddb` in sequential on the local machine to produce
-        the final DDB file in the outdir of the `Workflow`.
-        """
-        gkk_files = filter(None, [task.outdir.has_abiext("GKK") for task in self])
-                                                                                         
-        logger.debug("will call mrggkk to merge %s:\n" % str(gkk_files))
-        assert len(gkk) == len(self)
-
-        #if len(gkk) == 1:
-        # Avoid the merge. Just move the GKK file to the outdir of the workflow
-                                                                                         
-        # Final DDB file will be produced in the outdir of the workflow.
-        out_ggk = self.outdir.path_in("out_GKK")
-
-        mrggkk = Mrggkk(verbose=1)
-        raise NotImplementedError("Have to check mrggkk")
-        #mrggkk.merge(gswfk_file, dfpt_files, gkk_files, out_fname, binascii=0, cwd=self.outdir.path)
-
-    def on_all_ok(self):
-        """
-        This method is called when all the q-points have been computed.
-        Ir runs `mrgddb` in sequential on the local machine to produce
-        the final DDB file in the outdir of the `Workflow`.
-        """
-        self.merge_ddb_files()
-        #self.merge_gkk_files()
-
-        results = dict(
-            returncode=0,
-            message="DDB merge done",
-        )
-
-        return results
-
-
 def cbk_qptdm_workflow(flow, work, cbk_data):
     scr_input = cbk_data["input"]
     # Use the WFK file produced by the second 
@@ -349,7 +282,7 @@ class YamlTokenizer(object):
     def __enter__(self):
         return self
 
-    def __exit__(self)
+    def __exit__(self):
         self.close()
 
     def __del__(self):
@@ -412,7 +345,7 @@ def all_yaml_docs(stream):
     return docs
 
 
-def next_yaml_doc(stream, tag="---")
+def next_yaml_doc(stream, tag="---"):
     """
     Returns the first YAML document in stream.
 
@@ -509,52 +442,3 @@ def yaml_irred_perts(filename, tag="--- !IrredPerts"):
         raise ValueError("Malformatted Yaml document in file %s:\n %s" % (filename, str(exc)))
 
     return d["irred_perts"]
-
-
-class DataPersistenceTest(object):
-
-    def test_pickle(self, objects, protocols=None):
-        """
-        Test whether the object can be serialized and deserialized with pickle.
-
-        Args:
-            objects:
-                Object or list of objects. The object must define the __eq__ operator.
-            protocols:
-                List of pickle protocols to test.
-
-        Returns:
-            List of objects deserialized with the specified protocols.
-        """
-        # Build a list even when we receive a single object.
-        if not isinstance(objects, (list, tuple):
-            objects = [objects]
-
-        # By default, all pickle protocols are tested.
-        if protocols is None:
-            protocols = set([0, 1, 2] + [pickle.HIGHEST_PROTOCOL])
-
-        # This list will contains the deserialized object for each protocol.
-        objects_by_protocol = []
-
-        for protocol in protocols:
-
-            # Serialize and deserialize the object.
-            mode = "w" if protocol == 0 else "wb"
-            fd, tmpfile = tempfile.mkstemp(text="b" not in mode)
-
-            with open(tmpfile, mode) as fh:
-                pickle.dump(objects, fh, protocol=protocol)
-
-            with open(tmpfile, "r") as fh:
-                new_objects = pickle.load(fh)
-
-            # Save the deserialized objects and test for equality.
-            objects_by_protocol.append(new_objects)
-
-            for old_obj, new_obj in zip(objects, new_objects):
-                self.assert_equal(old_obj, new_obj)
-
-                #self.assertTrue(str(old_obj) == str(new_obj))
-
-        return objects_by_protocol
