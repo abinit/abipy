@@ -17,10 +17,10 @@ from abipy.tools import pprint_table, StringColorizer
 def str_examples():
     examples = """
 Usage example:\n
-    abirun.py singleshot DIRECTORY  => Fetch the first available task and run it.
-    abirun.py rapidfire  DIRECTORY  => Keep repeating, stop when no task can be executed
+    abirun.py DIRECTORY singleshot  => Fetch the first available task and run it.
+    abirun.py DIRECTORY rapidfire   => Keep repeating, stop when no task can be executed
                                        due to inter-dependency.
-    abirun.py gui DIRECTORY         => Open the GUI 
+    abirun.py DIRECTORY gui         => Open the GUI 
 """
     return examples
 
@@ -97,28 +97,25 @@ def main():
     parser.add_argument('--loglevel', default="ERROR", type=str,
                          help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
+    parser.add_argument('paths', nargs="+", help="Directories containing ABINIT workflows")
+
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for single command.
     p_single = subparsers.add_parser('singleshot', help="Run single task.") #, aliases=["single"])
-    p_single.add_argument('paths', nargs="+", help="Directories containing ABINIT workflows")
 
     # Subparser for rapidfire command.
     p_rapid = subparsers.add_parser('rapidfire', help="Run all tasks in rapidfire mode") # aliases=["rapid"])
-    p_rapid.add_argument('paths', nargs="+", help="Directories containing ABINIT workflows")
 
     # Subparser for pymanager command.
     p_pymanager = subparsers.add_parser('pymanager', help="Run all tasks.")
-    p_pymanager.add_argument('paths', nargs="+", help="Directories containing ABINIT workflows")
 
     # Subparser for status command.
     p_status = subparsers.add_parser('status', help="Show task status.")
-    p_status.add_argument('paths', nargs="+", help="Directories containing ABINIT workflows")
 
     # Subparser for gui command.
     p_gui = subparsers.add_parser('gui', help="Open GUI.")
-    p_gui.add_argument('paths', nargs="+", help="Directories containing ABINIT workflows")
 
     # Parse command line.
     try:
@@ -138,13 +135,15 @@ def main():
     logging.basicConfig(level=numeric_level)
 
     paths = options.paths
+    print(paths)
 
     # Walk through each directory in options.paths and find the pickle databases.
     paths = []
     for root in options.paths:
-
+        #print(root)
         for dirpath, dirnames, filenames in os.walk(root):
             for fname in filenames:
+
                 if fname == abilab.AbinitFlow.PICKLE_FNAME:
                     paths.append(os.path.join(dirpath, fname))
 

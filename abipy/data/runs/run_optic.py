@@ -35,7 +35,6 @@ def optic_flow():
                 )
 
     global_vars = dict(ecut=2,
-                       #nband=8,
                       )
 
     global_vars.update(kmesh)
@@ -80,6 +79,7 @@ def optic_flow():
         )
 
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1)
+    #manager = abilab.TaskManager.from_user_config()
 
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = inp.split_datasets()
 

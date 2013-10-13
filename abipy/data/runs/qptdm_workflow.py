@@ -19,10 +19,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def hello(signal, sender):
-    print("on_hello with sender %s, signal %s" % (sender, signal))
-
-
 class QptdmWorkflow(Workflow):
     """
     This workflow parallelizes the calculation of the q-points of the screening. 
@@ -247,7 +243,7 @@ class PhononWorkflow(Workflow):
                                                                                          
         logger.debug("will call mrggkk to merge %s:\n" % str(gkk_files))
         assert len(gkk) == len(self)
-                                                                                         
+
         #if len(gkk) == 1:
         # Avoid the merge. Just move the GKK file to the outdir of the workflow
                                                                                          
@@ -344,6 +340,49 @@ def g0w0_flow_with_qptdm(workdir, manager, scf_input, nscf_input, scr_input, sig
 
     return flow
 
+
+class YamlTokenizer(object):
+
+    def __init__(self, filename):
+        self.stream = open(filename, "r")
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self)
+        self.close()
+
+    def __del__(self):
+        self.close()
+
+    def close(self):
+        self.stream.close()
+
+    def seek(self, offset, whence=0):
+        """
+        seek(offset[, whence]) -> None.  Move to new file position.
+
+        Argument offset is a byte count.  Optional argument whence defaults to
+        0 (offset from start of file, offset should be >= 0); other values are 1
+        (move relative to current position, positive or negative), and 2 (move
+        relative to end of file, usually negative, although many platforms allow
+        seeking beyond the end of a file).  If the file is opened in text mode,
+        only offsets returned by tell() are legal.  Use of other offsets causes
+        undefined behavior.
+        Note that not all file objects are seekable.
+        """
+        return self.stream.seek(offset, whence)
+
+    def all_yaml_docs(self):
+        docs = all_yaml_docs(self.stream)
+        return docs
+
+    def next_doc(self):
+        doc = next_yaml_doc(self.stream, tag="---")
+        #raise StopIteration
+
+
+
 def all_yaml_docs(stream):
     """
     Returns a list with all the YAML documents found in stream.
@@ -365,11 +404,48 @@ def all_yaml_docs(stream):
         if in_doc and line.startswith("..."):
             in_doc = False
             docs.append("\n".join(doc))
+            doc = []
 
     if doc:
-        docs.append(doc)
+        docs.append("".join(doc))
 
     return docs
+
+
+def next_yaml_doc(stream, tag="---")
+    """
+    Returns the first YAML document in stream.
+
+    .. warning:
+
+        Assume that the YAML document are closed explicitely with the sentinel '...'
+    """
+    end_tag = "..."
+
+    in_doc, lines = None, None, []
+    for i, line in enumerate(stream):
+        if tag in line:
+            in_doc = True
+
+        if in_doc:
+            lines.append(line)
+
+        if line.startwith(end_tag):
+            break
+
+    return "".join(lines)
+
+    #if start is None or end is None:
+    #    raise ValueError("Cannot find initial tag %s" % tag)
+    #                                                                                                         
+    #if start == end: # Empy section ==> User didn't enable Yaml support in ABINIT.
+    #    raise ValueError("Found empty document with tag" % tag)
+    #s = "".join(lines[start+1:end])
+    #try:
+    #    d = yaml.load(s)
+    #except Exception as exc:
+    #    raise ValueError("Malformatted Yaml document %s:" % str(exc))
+
 
 def yaml_kpoints(filename, tag="--- !Kpoints"):
     end_tag = "..."
@@ -433,3 +509,52 @@ def yaml_irred_perts(filename, tag="--- !IrredPerts"):
         raise ValueError("Malformatted Yaml document in file %s:\n %s" % (filename, str(exc)))
 
     return d["irred_perts"]
+
+
+class DataPersistenceTest(object):
+
+    def test_pickle(self, objects, protocols=None):
+        """
+        Test whether the object can be serialized and deserialized with pickle.
+
+        Args:
+            objects:
+                Object or list of objects. The object must define the __eq__ operator.
+            protocols:
+                List of pickle protocols to test.
+
+        Returns:
+            List of objects deserialized with the specified protocols.
+        """
+        # Build a list even when we receive a single object.
+        if not isinstance(objects, (list, tuple):
+            objects = [objects]
+
+        # By default, all pickle protocols are tested.
+        if protocols is None:
+            protocols = set([0, 1, 2] + [pickle.HIGHEST_PROTOCOL])
+
+        # This list will contains the deserialized object for each protocol.
+        objects_by_protocol = []
+
+        for protocol in protocols:
+
+            # Serialize and deserialize the object.
+            mode = "w" if protocol == 0 else "wb"
+            fd, tmpfile = tempfile.mkstemp(text="b" not in mode)
+
+            with open(tmpfile, mode) as fh:
+                pickle.dump(objects, fh, protocol=protocol)
+
+            with open(tmpfile, "r") as fh:
+                new_objects = pickle.load(fh)
+
+            # Save the deserialized objects and test for equality.
+            objects_by_protocol.append(new_objects)
+
+            for old_obj, new_obj in zip(objects, new_objects):
+                self.assert_equal(old_obj, new_obj)
+
+                #self.assertTrue(str(old_obj) == str(new_obj))
+
+        return objects_by_protocol

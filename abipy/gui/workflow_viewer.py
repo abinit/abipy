@@ -407,7 +407,7 @@ class TaskListCtrl(wx.ListCtrl):
                 pass
 
             cpu_info = [task.mpi_ncpus, task.omp_ncpus]
-            entry = map(str, [task.short_name, str(task.status), task.queue_id] + 
+            entry = map(str, [task.name, str(task.status), task.queue_id] + 
                               events + cpu_info + [task.__class__.__name__]
                         )
 
@@ -503,6 +503,11 @@ def task_show_deps(parent, task):
     SimpleTextViewer(parent, text).Show()
 
 
+def task_inspect(parent, task):
+    if hasattr(task, "inspect"):
+        task.inspect()
+
+
 class TaskPopupMenu(wx.Menu):
     """
     A `TaskPopupMenu` has a list of callback functions indexed by the menu title. 
@@ -520,6 +525,7 @@ class TaskPopupMenu(wx.Menu):
         ("restart", task_restart),
         ("reset", task_reset),
         ("dependencies", task_show_deps),
+        ("inspect", task_inspect),
     ])
 
     def __init__(self, parent, task):

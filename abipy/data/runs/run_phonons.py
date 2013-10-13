@@ -53,7 +53,7 @@ def scf_ph_inputs():
             )
             #rfatpol   1 1   # Only the first atom is displaced
             #rfdir   1 0 0   # Along the first reduced coordinate axis
-            #kptopt   2     # Automatic generation of k points, taking
+            #kptopt   2      # Automatic generation of k points, taking
 
     # return gs_inp, ph_inputs
     return inp.split_datasets()
@@ -67,7 +67,7 @@ def ph_flow():
 
         2) nqpt workflows for phonon calculations. Each workflow contains 
            nirred tasks where nirred is the number of irreducible phonon perturbations
-           for that particuar q-point.
+           for that particular q-point.
     """
     workdir = "PHONONS"
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=dict(autoparal=0, max_ncpus=1))

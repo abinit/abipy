@@ -24,12 +24,6 @@ def relax_flow():
 
     pseudos = [os.path.join(pseudo_dirname, pp_name) for pp_name in pp_names]
 
-    #Conf = namedtuple("Configuration",  "cif_file, pseudos vars")
-    #cif_file = [os.path.join(cif_dirname, cif_name) for cif_name in cif_names]
-    #configs = []
-    #for cif_file in cif_files:
-    #    configs.append(Conf(cif_file=cif_file,  pseudos=pseudos, vars={}))
-
     works = []
     for cif, ksampling in ksampling_for_cif.items():
 
