@@ -50,8 +50,7 @@ def make_flow():
 
     flow = abilab.AbinitFlow(workdir, manager)
 
-    # Create the list of workflows. 
-    # Each workflow defines a band structure calculation.
+    # Create the list of workflows. Each workflow defines a band structure calculation.
     for new_structure, u in zip(news, uparams):
         # Generate the workflow and register it.
         flow.register_work(make_workflow(new_structure, pseudos))

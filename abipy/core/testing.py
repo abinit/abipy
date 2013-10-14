@@ -22,53 +22,6 @@ class AbipyTest(PymatgenTest):
         """Returns full path to a executable. None if not found or not executable."""
         return which(program)
 
-    def serialize_with_pickle(self, objects, protocols=None):
-        """
-        Test whether the object can be serialized and deserialized with pickle.
-
-        Args:
-            objects:
-                Object or list of objects. The object must define the __eq__ operator.
-            protocols:
-                List of pickle protocols to test.
-
-        Returns:
-            List of objects deserialized with the specified protocols.
-        """
-        import tempfile
-        import cPickle as pickle
-
-        # Build a list even when we receive a single object.
-        if not isinstance(objects, (list, tuple)):
-            objects = [objects]
-
-        # By default, all pickle protocols are tested.
-        if protocols is None:
-            protocols = set([0, 1, 2] + [pickle.HIGHEST_PROTOCOL])
-
-        # This list will contains the deserialized object for each protocol.
-        objects_by_protocol = []
-
-        for protocol in protocols:
-            # Serialize and deserialize the object.
-            mode = "w" if protocol == 0 else "wb"
-            fd, tmpfile = tempfile.mkstemp(text="b" not in mode)
-
-            with open(tmpfile, mode) as fh:
-                pickle.dump(objects, fh, protocol=protocol)
-
-            with open(tmpfile, "r") as fh:
-                new_objects = pickle.load(fh)
-
-            # Save the deserialized objects and test for equality.
-            objects_by_protocol.append(new_objects)
-
-            for old_obj, new_obj in zip(objects, new_objects):
-                self.assert_equal(old_obj, new_obj)
-                #self.assertTrue(str(old_obj) == str(new_obj))
-
-        return objects_by_protocol
-
 
 class AbipyFileTest(AbipyTest):
     """

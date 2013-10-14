@@ -34,6 +34,8 @@ class FlowViewerFrame(awx.Frame):
     def __init__(self, parent, flow, **kwargs):
         """
         Args:
+            parent:
+                Parent window.
             flow:
                 `AbinitFlow` with the list of `Workflow` objects.
         """
@@ -61,9 +63,9 @@ class FlowViewerFrame(awx.Frame):
         #file_menu.AppendMenu(wx.ID_ANY, "&Recent Files", recent)
         #self.Bind(wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9)
 
-        self.help_menu = wx.Menu()
-        self.help_menu.Append(wx.ID_ABOUT, "About " + self.codename, help="Info on the application")
-        menuBar.Append(self.help_menu, "Help")
+        help_menu = wx.Menu()
+        help_menu.Append(wx.ID_ABOUT, "About " + self.codename, help="Info on the application")
+        menuBar.Append(help_menu, "Help")
 
         self.SetMenuBar(menuBar)
 
@@ -125,7 +127,8 @@ class FlowViewerFrame(awx.Frame):
 
     @property
     def codename(self):
-        return self.__class__.__name__
+        """String with the code name."""
+        return self.__class__.__name__ 
 
     def BuildUi(self):
         self.panel = panel = wx.Panel(self, -1)
@@ -369,7 +372,8 @@ class TabPanel(wx.Panel):
         task_listctrl = TaskListCtrl(self, work)
         main_sizer.Add(task_listctrl, 1, wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 5)
 
-        label = wx.StaticText(self, -1, "Workflow info: status: %s, finalized: %s" % (work.status, work.finalized))
+        label = wx.StaticText(self, -1, "Workflow class %s, status: %s, finalized: %s" % (
+            work.__class__.__name__, work.status, work.finalized))
         label.Wrap(-1)
         main_sizer.Add(label, 0, wx.ALIGN_LEFT, 5)
 
@@ -397,8 +401,8 @@ class TaskListCtrl(wx.ListCtrl):
             self.InsertColumn(index, col)
 
         for task in work:
-
             events = map(str, 3*["N/A"])
+
             try:
                 report = task.get_event_report()
                 if report is not None: 
@@ -560,7 +564,82 @@ class TaskPopupMenu(wx.Menu):
 
 
 def wxapp_flow_viewer(works):
-    """Standalone application."""
+    """Standalone application for `FlowViewerFrame"""
     app = awx.App()
     FlowViewerFrame(None, works).Show()
+    return app
+
+
+class FlowsDatabaseViewerFrame(awx.Frame):
+    """
+    Simple frame that shows the active flows and allows the user
+    to open and interact with a particular `Flow`.
+    """
+    VERSION = "0.1"
+
+    def __init__(self, parent, **kwargs):
+        """
+        Args:
+            parent:
+                Parent window
+        """
+        super(FlowsDatabaseViewerFrame, self).__init__(parent, -1, **kwargs)
+
+        self.statusbar = self.CreateStatusBar()
+
+        menuBar = wx.MenuBar()
+
+        file_menu = wx.Menu()
+
+        help_menu = wx.Menu()
+        help_menu.Append(wx.ID_ABOUT, "About " + self.codename, help="Info on the application")
+        menuBar.Append(help_menu, "Help")
+
+        self.SetMenuBar(menuBar)
+
+        # Create toolbar.
+        self.toolbar = toolbar = self.CreateToolBar()
+
+        #toolbar.AddSeparator()
+        self.toolbar.Realize()
+        self.Centre()
+
+        # Associate menu/toolbar items with their handlers.
+        menu_handlers = [
+            (wx.ID_ABOUT, self.OnAboutBox),
+        ]
+
+        for combo in menu_handlers:
+            mid, handler = combo[:2]
+            self.Bind(wx.EVT_MENU, handler, id=mid)
+
+        #self.flows_db = FlowsDatabase()
+
+        self.BuildUi()
+
+    @property
+    def codename(self):
+        """String with the code name """
+        return self.__class__.__name__ 
+
+    def BuildUi(self):
+        panel = wx.Panel(self, -1)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        #strings = ["ciao", "bello"]
+        #self.flow_list_ctr = 
+        # TODO
+
+        panel.SetSizerAndFit(main_sizer)
+
+    def OnAboutBox(self, event):
+        """"Info on the application."""
+        awx.makeAboutBox(codename=self.codename, version=self.VERSION,
+                         description="", developers="M. Giantomassi")
+
+
+def wxapp_flowsdatabase_viewer():
+    """Standalone application for `FlowsDatabaseViewerFrame"""
+    app = awx.App()
+    FlowsDatabaseViewerFrame(None).Show()
     return app

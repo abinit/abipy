@@ -130,6 +130,7 @@ install_requires = [
     "netCDF4",
     "PyDispatcher",
     "pyyaml>=3.1.0",
+    #"apscheduler>=2.1.1",
     #"wxPython",
     #"wxmplot",
     #"termcolor",

@@ -135,7 +135,6 @@ def main():
     logging.basicConfig(level=numeric_level)
 
     paths = options.paths
-    print(paths)
 
     # Walk through each directory in options.paths and find the pickle databases.
     paths = []

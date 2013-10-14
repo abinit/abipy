@@ -309,12 +309,38 @@ class Structure(pymatgen.Structure):
     def write_structure(self, filename):
         """See `pymatgen.io.smartio.write_structure`"""
 
-        if filepath.endswith(".nc"):
+        if filename.endswith(".nc"):
             raise NotImplementedError("Cannot write a structure to a netcdfile file yet")
 
         else:
             from pymatgen.io.smartio import write_structure
             write_structure(self, filename)
+
+    #def convert(self, format="cif"):
+    #    """
+    #    Convert the Abinit structure to CIF, POSCAR, CSSR 
+    #    and pymatgen's JSON serialized structures (json, mson)
+    #    """
+    #    prefix = {
+    #        "poscar": "poscar",
+    #    }.get(format, "tmp")
+
+    #    # FIXME:
+    #    # Symmetry operations
+    #    # json and mson do not work!
+    #    suffix = { 
+    #        "cif": ".cif",
+    #        "cssr": ".cssr",
+    #        "json": ".json",
+    #        "mson": ".mson",
+    #    }.get(format, "")
+
+    #    import tempfile
+    #    tmp_file = tempfile.NamedTemporaryFile(suffix=suffix, prefix=prefix, mode="rw")
+    #    self.write_structure(tmp_file.name)
+    #    tmp_file.seek(0)
+
+    #    return tmp_file.read()
 
     def displace(self, displ, eta, frac_coords=True):
         """

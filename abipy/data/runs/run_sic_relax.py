@@ -58,9 +58,9 @@ def relax_flow():
     relax_inp, nscf_inp = inp.split_datasets()
 
     # Initialize the workflow.
-    relax_task = flow.register_task(relax_inp)
+    relax_task = flow.register_task(relax_inp, task_class=abilab.RelaxTask)
 
-    nscf_task = flow.register_task(nscf_inp, deps={relax_task: "DEN"})
+    nscf_task = flow.register_task(nscf_inp, deps={relax_task: "DEN"}, task_class=abilab.NscfTask)
 
     return flow.allocate()
 

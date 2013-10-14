@@ -308,12 +308,12 @@ class YamlTokenizer(object):
 
     def all_yaml_docs(self):
         docs = all_yaml_docs(self.stream)
+        self.seek(0)
         return docs
 
     def next_doc(self):
         doc = next_yaml_doc(self.stream, tag="---")
         #raise StopIteration
-
 
 
 def all_yaml_docs(stream):
@@ -367,17 +367,6 @@ def next_yaml_doc(stream, tag="---"):
             break
 
     return "".join(lines)
-
-    #if start is None or end is None:
-    #    raise ValueError("Cannot find initial tag %s" % tag)
-    #                                                                                                         
-    #if start == end: # Empy section ==> User didn't enable Yaml support in ABINIT.
-    #    raise ValueError("Found empty document with tag" % tag)
-    #s = "".join(lines[start+1:end])
-    #try:
-    #    d = yaml.load(s)
-    #except Exception as exc:
-    #    raise ValueError("Malformatted Yaml document %s:" % str(exc))
 
 
 def yaml_kpoints(filename, tag="--- !Kpoints"):
