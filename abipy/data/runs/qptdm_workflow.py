@@ -2,18 +2,15 @@
 from __future__ import division, print_function
 
 import os
-import numpy as np
-import yaml
 import time
 import collections
-from collections import OrderedDict
-import cPickle as pickle
-from abipy.abilab import Workflow, AbinitFlow, Mrgscr, Mrgddb, Mrggkk
-from abipy.tools import AttrDict
+import yaml
+import numpy as np
 
-from pydispatch import dispatcher
-from pymatgen.io.abinitio.tasks import Task, Dependency, ScfTask, PhononTask
-from pymatgen.io.abinitio.workflows import BandStructureWorkflow, IterativeWorkflow, PhononWorkflow
+from abipy.abilab import AbinitFlow, Mrgscr, Mrgddb, Mrggkk
+
+from pymatgen.io.abinitio.tasks import ScfTask, PhononTask
+from pymatgen.io.abinitio.workflows import Workflow, BandStructureWorkflow, IterativeWorkflow, PhononWorkflow
 
 import logging
 logger = logging.getLogger(__name__)
