@@ -271,15 +271,26 @@ def g0w0_flow_with_qptdm(workdir, manager, scf_input, nscf_input, scr_input, sig
     return flow
 
 
-class YamlTokenizer(object):
+class YamlFileReaderError(Exception):
+    """Exception raised by `YamlFileReader`."""
+
+class YamlFileReader(collections.Iterator):
+    """
+    A file locking mechanism that has context-manager support so you can use
+    it in a with statement. 
+    """
+    Error = YamlFileReaderError
 
     def __init__(self, filename):
         self.stream = open(filename, "r")
 
+    def __iter__(self):
+        return self
+
     def __enter__(self):
         return self
 
-    def __exit__(self):
+    def __exit__(self, type, value, traceback):
         self.close()
 
     def __del__(self):
@@ -308,9 +319,37 @@ class YamlTokenizer(object):
         self.seek(0)
         return docs
 
-    def next_doc(self):
-        doc = next_yaml_doc(self.stream, tag="---")
-        #raise StopIteration
+    # Python 3 compatibility
+    def __next__(self):
+        return self.next()
+
+    def next(self):
+        return next_yaml_doc(self.stream, tag="---")
+
+    def next_doc_with_tag(self, tag):
+        """
+        Returns the next document with the specified tag.
+        """
+        for doc in self:
+            if tag in doc:
+                return doc
+        else:
+            return ""
+
+    def all_docs_with_tag(self, tag):
+        """
+        Returns all the documents with the specified tag.
+        """
+        docs = []
+
+        while True:
+            try:
+                doc = self.next_doc_with(tag)
+                docs.append(doc)
+            except StopIteration():
+                break
+        
+        return docs
 
 
 def all_yaml_docs(stream):
@@ -333,7 +372,7 @@ def all_yaml_docs(stream):
 
         if in_doc and line.startswith("..."):
             in_doc = False
-            docs.append("\n".join(doc))
+            docs.append("".join(doc))
             doc = []
 
     if doc:
@@ -352,18 +391,22 @@ def next_yaml_doc(stream, tag="---"):
     """
     end_tag = "..."
 
-    in_doc, lines = None, None, []
+    in_doc, lines = None, []
     for i, line in enumerate(stream):
-        if tag in line:
+        if line.startswith(tag):
             in_doc = True
 
         if in_doc:
             lines.append(line)
 
-        if line.startwith(end_tag):
+        if in_doc and line.startswith(end_tag):
             break
 
-    return "".join(lines)
+    if lines:
+        #yield "".join(lines)
+        return "".join(lines)
+    else:
+        raise StopIteration()
 
 
 def yaml_kpoints(filename, tag="--- !Kpoints"):
@@ -428,3 +471,62 @@ def yaml_irred_perts(filename, tag="--- !IrredPerts"):
         raise ValueError("Malformatted Yaml document in file %s:\n %s" % (filename, str(exc)))
 
     return d["irred_perts"]
+
+if __name__ == "__main__":
+
+    string = """
+---
+none: [~, null]
+bool: [true, false, on, off]
+int: 42
+float: 3.14159
+list: [LITE, RES_ACID, SUS_DEXT]
+dict: {hp: 13, sp: 5}
+...
+this is not a YAML document!
+and the reader will ignore it
+--- !Monster
+name: Cave spider
+hp: [2,6]    # 2d6
+ac: 16
+attacks: [BITE, HURT]
+...
+
+This is not a proper document --- the end tag below is ignored 
+...
+--- !Monster
+name: Dragon
+hp: [2,6]    # 2d6
+ac: 32
+attacks: [BITE, HURT]
+...
+"""
+    print(string)
+
+    filename = "foo.yaml"
+    with open(filename, "w") as fh:
+        fh.write(string)
+
+    with YamlFileReader(filename) as r:
+        all_docs = r.all_yaml_docs()
+        print(all_docs)
+        assert len(all_docs) == 3
+        assert all_docs == r.all_yaml_docs()
+
+        r.seek(0)
+        for i, doc in enumerate(r):
+            print("doc", doc, "all", all_docs[i])
+            assert doc == all_docs[i]
+
+        r.seek(0)
+        monster = r.next_doc_with_tag("!Monster")
+        assert monster == all_docs[1]
+
+        monster = r.next_doc_with_tag("!Monster")
+        assert monster == all_docs[2]
+
+        monster = r.next_doc_with_tag("!Monster")
+        assert monster == ""
+
+
+    
