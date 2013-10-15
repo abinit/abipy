@@ -51,8 +51,7 @@ def issamek(k1, k2, atol=1e-08):
     >>> issamek(0.00003, 1)
     False
     """
-    kdiff = np.asarray(k1) - np.asarray(k2)
-    return isinteger(kdiff, atol=atol)
+    return isinteger(k1-k2, atol=atol)
 
 
 def wrap_to_ws(x):
@@ -68,6 +67,37 @@ def wrap_to_bz(x):
     Transforms x in its corresponding reduced number in the interval [0,1[."
     """
     return x % 1
+
+
+#def fullbz_from_mpdivs(mpdivs, shifts):
+#    """
+#    Returns a ndarray with the reduced coordinates from 
+#    the MP divisions and the shifts.
+#
+#    Args:
+#        mpdivs
+#            The three MP divisions
+#        shifts:
+#            Array-like object with the MP shift.
+#    """
+#
+#    mpdivs = np.asarray(mpdivs)
+#
+#    shifts = np.reshape(shifts, (-1,3))
+#
+#    # Build bz grid.
+#    kbz = np.empty(shape=(mpdivs.prod() * len(shifts),  3))
+#
+#    count = 0
+#    for ish, shift in enumerate(shifts):
+#        for i in range(mpdivs[0]):
+#            x = (i + shift[0]) / mpdivs[0]
+#            for j in range(mpdivs[1]):
+#                y = (j + shift[1]) / mpdivs[1]
+#                for k in range(mpdivs[2]):
+#                    z = (k + shift[2]) / mpdivs[2]
+#                    kbz[count] = (x, y, z)
+#                    count += 1
 
 
 class KpointsError(AbipyException):
@@ -115,8 +145,6 @@ def askpoints(obj, lattice, weights=None, names=None):
 
     else:
         raise ValueError("ndim > 2 is not supported")
-
-##########################################################################################
 
 
 class Kpoint(object):
@@ -311,7 +339,6 @@ class Kpoint(object):
 
         return KpointStar(self.lattice, frac_coords, weights=None, names=len(frac_coords) * [self.name])
 
-##########################################################################################
 
 class KpointList(collections.Sequence):
     """

@@ -6,6 +6,25 @@ import numpy as np
 import m_kpoints
 from m_kpoints import m_kpoints  as mod
 
+def slow_map_mesh2ibz(structure, bz, ibz):
+
+    bz2ibz = np.empty(len(bz), dtype=np.int)
+    bz2ibz = -1
+
+    for ik_bz, kbz in enumerate(full_zone):
+
+        found = False
+        for ik_ibz, kibz in enumerate(ibz):
+            if found:
+                break:
+
+            for symmop in structure.symmops:
+                krot = symmop.rotate(kibz.frac_coords)
+                if krot == kibz:
+                    bz2ibz[ik_bz] = ik_ibz
+                    found = True
+
+
 
 def map_mesh2ibz(structure, mpdivs, shifts, ibz):
     """
@@ -51,7 +70,6 @@ def map_mesh2ibz(structure, mpdivs, shifts, ibz):
     tables = num_shifts * [None]
 
     for ish, shift in enumerate(shifts):
-
         kbz, count = np.empty((mpdivs.prod(), 3)), 0
 
         for i in range(mpdivs[0]):
@@ -88,7 +106,6 @@ def map_mesh2ibz(structure, mpdivs, shifts, ibz):
 
 def main():
     print(m_kpoints.__doc__)
-
     v1 = np.zeros(3)
     v2 = v1 + 1.0
     #print(v1, v2)
@@ -102,7 +119,6 @@ def main():
     ibz = kpoints_factory(filename)
 
     tables = map_mesh2ibz(structure, ibz.mpdivs, ibz.shifts, ibz)
-
 
 if __name__ == "__main__":
     main()

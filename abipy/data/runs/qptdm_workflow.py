@@ -55,7 +55,7 @@ class QptdmWorkflow(Workflow):
         w.start()
 
         # Parse the section with the q-points
-        qpoints = yaml_kpoints(fake_task.log_file.path, tag="--- !Qptdms")
+        qpoints = yaml_read_kpoints(fake_task.log_file.path, tag="--- !Qptdms")
         #print(qpoints)
         w.rmtree()
 
@@ -153,9 +153,9 @@ def phonon_flow(workdir, manager, scf_input, ph_inputs):
         w.start()
 
         # Parse the file to get the perturbations.
-        irred_perts = yaml_irred_perts(fake_task.log_file.path)
-        #print(irred_perts)
-        w.rmtree()
+        irred_perts = yaml_read_irred_perts(fake_task.log_file.path)
+        print(irred_perts)
+        #w.rmtree()
 
         # Now we can build the final list of workflows:
         # One workflow per q-point, each workflow computes all 
@@ -271,13 +271,28 @@ def g0w0_flow_with_qptdm(workdir, manager, scf_input, nscf_input, scr_input, sig
     return flow
 
 
+class YamlDoc(object):
+    """A string with a YAML tag."""
+
+    def __init__(self, string):
+        self.string = string 
+        self.tag = None
+
+    #def __repr__(self):
+    #    return self.string
+
+    def __str__(self):
+        return self.string
+
+
 class YamlFileReaderError(Exception):
     """Exception raised by `YamlFileReader`."""
 
+
 class YamlFileReader(collections.Iterator):
     """
-    A file locking mechanism that has context-manager support so you can use
-    it in a with statement. 
+    A file locking mechanism that has context-manager support 
+    so you can use it in a with statement. 
     """
     Error = YamlFileReaderError
 
@@ -315,6 +330,9 @@ class YamlFileReader(collections.Iterator):
         return self.stream.seek(offset, whence)
 
     def all_yaml_docs(self):
+        """
+        Returns a list with all the YAML docs found. Seek the stream before returning.
+        """
         docs = all_yaml_docs(self.stream)
         self.seek(0)
         return docs
@@ -324,19 +342,21 @@ class YamlFileReader(collections.Iterator):
         return self.next()
 
     def next(self):
-        return next_yaml_doc(self.stream, tag="---")
+        """Return the next YAML document in stream."""
+        return next_yaml_doc(self.stream)
 
-    def next_doc_with_tag(self, tag):
+    def next_doc_with_tag(self, doc_tag):
         """
         Returns the next document with the specified tag.
+        Empty string is no doc is found.
         """
         for doc in self:
-            if tag in doc:
+            if doc_tag in doc:
                 return doc
         else:
             return ""
 
-    def all_docs_with_tag(self, tag):
+    def all_docs_with_tag(self, doc_tag, seek=True):
         """
         Returns all the documents with the specified tag.
         """
@@ -344,10 +364,14 @@ class YamlFileReader(collections.Iterator):
 
         while True:
             try:
-                doc = self.next_doc_with(tag)
+                doc = self.next_doc_with(doc_tag)
                 docs.append(doc)
+
             except StopIteration():
                 break
+
+        if seek:
+            self.seek(0)
         
         return docs
 
@@ -381,7 +405,7 @@ def all_yaml_docs(stream):
     return docs
 
 
-def next_yaml_doc(stream, tag="---"):
+def next_yaml_doc(stream, doc_tag="---"):
     """
     Returns the first YAML document in stream.
 
@@ -389,88 +413,44 @@ def next_yaml_doc(stream, tag="---"):
 
         Assume that the YAML document are closed explicitely with the sentinel '...'
     """
-    end_tag = "..."
-
     in_doc, lines = None, []
     for i, line in enumerate(stream):
-        if line.startswith(tag):
+        if line.startswith(doc_tag):
             in_doc = True
 
         if in_doc:
             lines.append(line)
 
-        if in_doc and line.startswith(end_tag):
+        if in_doc and line.startswith("..."):
             break
 
     if lines:
-        #yield "".join(lines)
         return "".join(lines)
     else:
         raise StopIteration()
 
 
-def yaml_kpoints(filename, tag="--- !Kpoints"):
-    end_tag = "..."
+def yaml_read_kpoints(filename, doc_tag="!Kpoints"):
 
-    with open(filename, "r") as fh:
-        lines = fh.readlines()
+    with YamlFileReader(filename) as r:
+        doc = r.next_doc_with_tag(doc_tag)
+        #doc = doc.replace(doc_tag, "")
+        d = yaml.load(doc)
 
-    start, end = None, None
-    for i, line in enumerate(lines):
-        if tag in line:
-            start = i
-        if start is not None and end_tag in line:
-            end = i
-            break
-                                                                                                             
-    if start is None or end is None:
-        raise ValueError("%s\n does not contain any valid %s section" % (filename, tag))
-                                                                                                             
-    if start == end:
-        # Empy section ==> User didn't enable Yaml support in ABINIT.
-        raise ValueError("%s\n contains an empty %s document. Enable Yaml support in ABINIT" % (tag, filename))
-
-    s = "".join(lines[start+1:end])
-
-    try:
-        d = yaml.load(s)
-    except Exception as exc:
-        raise ValueError("Malformatted Yaml document in file %s:\n %s" % (filename, str(exc)))
-
-    return np.array(d["reduced_coordinates_of_qpoints"])
-    #return KpointList(reciprocal_lattice, frac_coords, weights=None, names=None)
+        return np.array(d["reduced_coordinates_of_qpoints"])
+        #return KpointList(reciprocal_lattice, frac_coords, weights=None, names=None)
 
 
-def yaml_irred_perts(filename, tag="--- !IrredPerts"):
-    end_tag = "..."
+def yaml_read_irred_perts(filename, doc_tag="!IrredPerts"):
 
-    with open(filename, "r") as fh:
-        lines = fh.readlines()
+    with YamlFileReader(filename) as r:
+        doc = r.next_doc_with_tag(doc_tag)
+        #doc = doc.replace(doc_tag, "")
+        print("doc",doc)
+        d = yaml.load(doc)
 
-    start, end = None, None
-    for i, line in enumerate(lines):
-        if tag in line:
-            start = i
-        if start is not None and end_tag in line:
-            end = i
-            break
+        return d ["irred_perts"]
 
-    if start is None or end is None:
-        raise ValueError("%s\n does not contain any valid %s section" % (filename, tag))
-                                                                                                             
-    if start == end:
-        # Empy section ==> User didn't enable Yaml support in ABINIT.
-        raise ValueError("%s\n contains an empty %s document. Enable Yaml support in ABINIT" % (tag, filename))
-
-    s = "".join(lines[start+1:end])
-
-    try:
-        d = yaml.load(s)
-
-    except Exception as exc:
-        raise ValueError("Malformatted Yaml document in file %s:\n %s" % (filename, str(exc)))
-
-    return d["irred_perts"]
 
 if __name__ == "__main__":
 
@@ -483,8 +463,10 @@ float: 3.14159
 list: [LITE, RES_ACID, SUS_DEXT]
 dict: {hp: 13, sp: 5}
 ...
+
 this is not a YAML document!
 and the reader will ignore it
+
 --- !Monster
 name: Cave spider
 hp: [2,6]    # 2d6
@@ -492,7 +474,8 @@ ac: 16
 attacks: [BITE, HURT]
 ...
 
-This is not a proper document --- the end tag below is ignored 
+This is not a proper document since it does not start with --- 
+the end tag below is ignored 
 ...
 --- !Monster
 name: Dragon
@@ -508,16 +491,22 @@ attacks: [BITE, HURT]
         fh.write(string)
 
     with YamlFileReader(filename) as r:
+
+        # Read all docs present in file.
         all_docs = r.all_yaml_docs()
         print(all_docs)
         assert len(all_docs) == 3
+
+        # We should be at the begining at the file.
         assert all_docs == r.all_yaml_docs()
 
+        # Generate the docs
         r.seek(0)
         for i, doc in enumerate(r):
             print("doc", doc, "all", all_docs[i])
             assert doc == all_docs[i]
 
+        # Find documents by tag.
         r.seek(0)
         monster = r.next_doc_with_tag("!Monster")
         assert monster == all_docs[1]
@@ -527,6 +516,4 @@ attacks: [BITE, HURT]
 
         monster = r.next_doc_with_tag("!Monster")
         assert monster == ""
-
-
     
