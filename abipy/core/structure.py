@@ -316,31 +316,33 @@ class Structure(pymatgen.Structure):
             from pymatgen.io.smartio import write_structure
             write_structure(self, filename)
 
-    #def convert(self, format="cif"):
-    #    """
-    #    Convert the Abinit structure to CIF, POSCAR, CSSR 
-    #    and pymatgen's JSON serialized structures (json, mson)
-    #    """
-    #    prefix = {
-    #        "poscar": "poscar",
-    #    }.get(format, "tmp")
+    def convert(self, format="cif"):
+        """
+        Convert the Abinit structure to CIF, POSCAR, CSSR 
+        and pymatgen's JSON serialized structures (json, mson)
+        """
+        prefix = {
+            "POSCAR": "POSCAR",
+        }.get(format, "tmp")
 
-    #    # FIXME:
-    #    # Symmetry operations
-    #    # json and mson do not work!
-    #    suffix = { 
-    #        "cif": ".cif",
-    #        "cssr": ".cssr",
-    #        "json": ".json",
-    #        "mson": ".mson",
-    #    }.get(format, "")
+        # FIXME:
+        # Do we need symmetry operations here?
+        # perhaps if the CIF file is used.
+        suffix = { 
+            "cif": ".cif",
+            "cssr": ".cssr",
+            "json": ".json",
+            "mson": ".mson",
+        }.get(format, "")
 
-    #    import tempfile
-    #    tmp_file = tempfile.NamedTemporaryFile(suffix=suffix, prefix=prefix, mode="rw")
-    #    self.write_structure(tmp_file.name)
-    #    tmp_file.seek(0)
+        import tempfile
+        tmp_file = tempfile.NamedTemporaryFile(suffix=suffix, prefix=prefix, mode="rw")
 
-    #    return tmp_file.read()
+        self.write_structure(tmp_file.name)
+
+        tmp_file.seek(0)
+
+        return tmp_file.read()
 
     def displace(self, displ, eta, frac_coords=True):
         """

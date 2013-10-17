@@ -44,7 +44,7 @@ class Input(object):
     """
     Base class foor Input objects.
 
-    An input object must define have a __str__ method 
+    An input object must define have a make_input method 
     that returns the string representation used by the client code.
     """
     __metaclass__ = abc.ABCMeta
@@ -62,10 +62,12 @@ class Input(object):
         Write the input file to file. Returns a string with the input.
         """
         dirname = os.path.dirname(filepath)
-        if not os.path.exists(dirname): os.makedirs(dirname)
+        if not os.path.exists(dirname): 
+            os.makedirs(dirname)
                                                                                       
         # Write the input file.
-        input_string = str(self)
+        #input_string = str(self)
+        input_string = self.make_input()
         with open(filepath, "w") as fh:
            fh.write(input_string)
 
@@ -76,6 +78,8 @@ class Input(object):
 
     #@abc.abstractproperty
     #def structure(self):
+
+    #def set_structure(self, structure):
 
     #def set_variables(self, dtset=0, **vars):
     #    """
