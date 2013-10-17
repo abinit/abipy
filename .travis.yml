@@ -6,10 +6,10 @@ before_install:
   - sudo apt-get install -qq liblapack-dev 
   - sudo apt-get install -qq libhdf5-serial-dev hdf5-tools 
   - sudo apt-get install libnetcdf-dev
-  - sudo pip install numpy
-  - sudo pip install scipy
-  - sudo pip install -Iv https://bitbucket.org/jamesrhester/pycifrw/downloads/PyCifRW-3.6.1.tar.gz
-  - sudo pip install pymatgen
+#  - sudo pip install numpy
+#  - sudo pip install scipy
+#  - sudo pip install -Iv https://bitbucket.org/jamesrhester/pycifrw/downloads/PyCifRW-3.6.1.tar.gz
+#  - sudo pip install pymatgen
 # command to install dependencies
 install: "pip install -q -r requirements.txt --use-mirrors"
 # command to run tests, e.g. python setup.py test

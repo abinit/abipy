@@ -321,19 +321,25 @@ class Structure(pymatgen.Structure):
         Convert the Abinit structure to CIF, POSCAR, CSSR 
         and pymatgen's JSON serialized structures (json, mson)
         """
-        prefix = {
+        prefix_dict = {
             "POSCAR": "POSCAR",
-        }.get(format, "tmp")
+        }
 
         # FIXME:
         # Do we need symmetry operations here?
         # perhaps if the CIF file is used.
-        suffix = { 
+        suffix_dict = { 
             "cif": ".cif",
             "cssr": ".cssr",
             "json": ".json",
             "mson": ".mson",
-        }.get(format, "")
+        }
+
+        if format not in prefix_dict.keys() and format not in suffix_dict.keys():
+            raise ValueError("Unknown format %s" % format)
+
+        prefix = prefix_dict.get(format, "tmp")
+        suffix = suffix_dict.get(format, "")
 
         import tempfile
         tmp_file = tempfile.NamedTemporaryFile(suffix=suffix, prefix=prefix, mode="rw")
