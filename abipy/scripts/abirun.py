@@ -171,17 +171,8 @@ def main():
 
     path = options.paths[0]
 
-    flow = abilab.AbinitFlow.pickle_load(path)
-
     # Read the worflow from the pickle database.
-    #with open(path, "rb") as fh:
-    #flow.connect_signals()
-    #for w in flow:
-    #    print(w)
-    #flow.show_dependencies()
-    # Recompute the status of each task since tasks that
-    # have been submitted previously might be completed.
-    #flow.check_status()
+    flow = abilab.AbinitFlow.pickle_load(path)
 
     if options.command == "gui":
         from abipy.gui.workflow_viewer import wxapp_flow_viewer
