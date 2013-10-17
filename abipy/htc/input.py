@@ -3,7 +3,6 @@ This module defines objects that faciliate the creation of the
 ABINIT input files. The syntax is similar to the one used 
 in ABINIT with small differences. 
 """
-
 from __future__ import print_function, division
 
 import os
@@ -11,6 +10,7 @@ import collections
 import warnings
 import itertools
 import copy
+import abc
 import numpy as np
 
 from pymatgen.io.abinitio.pseudos import PseudoTable
@@ -39,6 +39,7 @@ _ABINIT_NO_MULTI = [
     "wtatcon",
 ]
 
+
 class Input(object): 
     """
     Base class foor Input objects.
@@ -46,6 +47,8 @@ class Input(object):
     An input object must define have a __str__ method 
     that returns the string representation used by the client code.
     """
+    __metaclass__ = abc.ABCMeta
+
     def copy(self):
         """Shallow copy of the input."""
         return copy.copy(self)
@@ -56,15 +59,50 @@ class Input(object):
 
     def write(self, filepath):
         """
-        Write the input file to file filepath.
+        Write the input file to file. Returns a string with the input.
         """
         dirname = os.path.dirname(filepath)
-        if not os.path.exists(dirname):
-            os.makedirs(dirname)
+        if not os.path.exists(dirname): os.makedirs(dirname)
                                                                                       
-        # Write input file.
+        # Write the input file.
+        input_string = str(self)
         with open(filepath, "w") as fh:
-           fh.write(str(self))
+           fh.write(input_string)
+
+        return input_string
+
+    #@abc.abstractmethod
+    #def make_input(self)
+
+    #@abc.abstractproperty
+    #def structure(self):
+
+    #def set_variables(self, dtset=0, **vars):
+    #    """
+    #    Set the value of a set of input variables.
+
+    #    Args:
+    #        dtset:
+    #            Int with the index of the dataset, slice object of iterable 
+    #        vars:
+    #            Dictionary with the variables.
+    #    """
+    #    for idt in self._dtset2range(dtset):
+    #        self[idt].set_variables(**vars)
+
+    #def remove_variables(self, keys, dtset=0):
+    #    """
+    #    Remove the variable listed in keys
+    #                                                                         
+    #    Args:
+    #        dtset:
+    #            Int with the index of the dataset, slice object of iterable 
+    #        keys:
+    #            List of variables to remove.
+    #    """
+    #    for idt in self._dtset2range(dtset):
+    #        self[idt].remove_variables(keys)
+
 
 
 class AbinitInputError(Exception):
@@ -126,6 +164,9 @@ class AbiInput(Input):
 
         if comment:
             self.set_comment(comment)
+
+    #def make_input(self):
+    #    return str(self)
 
     def __str__(self):
         """String representation i.e. the input file read by Abinit."""
@@ -247,8 +288,7 @@ class AbiInput(Input):
 
     def split_datasets(self):
         """
-        Split an input file with multiple datasets into a 
-        list of `ndtset` distinct input files.
+        Split an input file with multiple datasets into a  list of `ndtset` distinct input files.
         """
         # Propagate subclasses (if any)
         cls = self.__class__ 
@@ -439,14 +479,15 @@ class AbiInput(Input):
             self[idt].set_kptgw(kptgw, bdgw)
 
 _UNITS = {
-        'bohr' : 1.0,
-        'angstrom' : 1.8897261328856432,
-        'hartree' : 1.0,
-        'Ha' : 1.0,
-        'eV' : 0.03674932539796232,
-        }
+    'bohr' : 1.0,
+    'angstrom' : 1.8897261328856432,
+    'hartree' : 1.0,
+    'Ha' : 1.0,
+    'eV' : 0.03674932539796232,
+}
 
 
+# TODO this should be the "actual" input file!
 class Dataset(collections.Mapping):
     """
     This object stores the ABINIT variables for a single dataset.

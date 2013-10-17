@@ -6,7 +6,6 @@ import abipy.abilab as abilab
 import abipy.data as data  
 
 from abipy.data.runs import enable_logging
-
 from abipy.data.runs.qptdm_workflow import *
 
 

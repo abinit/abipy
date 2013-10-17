@@ -48,8 +48,8 @@ class Tester(object):
 
     def run(self):
         raise NotImplementedError("")
-    #    retcodes = PyResourceManager(self.flow, max_ncpus=2, sleep_time=2.5).run()
-    #    self._retcode = max(retcodes)
+        #retcodes = PyResourceManager(self.flow, max_ncpus=2, sleep_time=2.5).run()
+        #self._retcode = max(retcodes)
 
     def finalize(self):
         pass

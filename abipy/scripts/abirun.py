@@ -17,10 +17,11 @@ from abipy.tools import pprint_table, StringColorizer
 def str_examples():
     examples = """
 Usage example:\n
-    abirun.py DIRECTORY singleshot  => Fetch the first available task and run it.
-    abirun.py DIRECTORY rapidfire   => Keep repeating, stop when no task can be executed
-                                       due to inter-dependency.
-    abirun.py DIRECTORY gui         => Open the GUI 
+    abirun.py DIRPATH  singleshot              => Fetch the first available task and run it.
+    abirun.py DIRPATH  rapidfire               => Keep repeating, stop when no task can be executed
+                                                  due to inter-dependency.
+    abirun.py DIRPATH gui                      => Open the GUI 
+    nohup abirun.py DIRPATH sheduler -s 30 &   => Use a scheduler to schedule task submission
 """
     return examples
 
@@ -45,19 +46,25 @@ def treat_flow(flow, options):
         nlaunch = PyLauncher(flow).rapidfire()
         print("Number of tasks launched %d" % nlaunch)
 
-    if options.command == "pyscheduler":
+    if options.command == "scheduler":
 
-        sched_options = dict(
-             weeks=0,
-             days=0,
-             hours=0,
-             minutes=0,
-             seconds=10,
-             start_date=None,
-        ) 
+        opt_names = [
+            "weeks",
+            "days",
+            "hours",
+            "minutes",
+            "seconds",
+        ]
 
+        sched_options = {oname: getattr(options, oname) for oname in opt_names}
+        if all(v == 0 for v in sched_options.values()):
+            sched_options["seconds"] = 15
+            warnings.warn("No value of scheduler specified in input. Using seconds=15")
+
+        #print(sched_options)
         sched = PyFlowsScheduler(**sched_options)
         sched.add_flow(flow)
+
         sched.start()
 
     if options.command == "status":
@@ -117,8 +124,18 @@ def main():
     # Subparser for rapidfire command.
     p_rapid = subparsers.add_parser('rapidfire', help="Run all tasks in rapidfire mode") # aliases=["rapid"])
 
-    # Subparser for pyscheduler command.
-    p_pyscheduler = subparsers.add_parser('pyscheduler', help="Run all tasks.")
+    # Subparser for scheduler command.
+    p_scheduler = subparsers.add_parser('scheduler', help="Run all tasks.")
+
+    p_scheduler.add_argument('-w', '--weeks', default=0, type=int, help="number of weeks to wait")
+
+    p_scheduler.add_argument('-d', '--days', default=0, type=int, help="number of days to wait")
+
+    p_scheduler.add_argument('-hs', '--hours', default=0, type=int, help="number of hours to wait")
+
+    p_scheduler.add_argument('-m', '--minutes', default=0, type=int, help="number of minutes to wait")
+
+    p_scheduler.add_argument('-s', '--seconds', default=0, type=int, help="number of seconds to wait")
 
     # Subparser for status command.
     p_status = subparsers.add_parser('status', help="Show task status.")
