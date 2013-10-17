@@ -4,3 +4,4 @@ numpy>=1.5
 netCDF4
 PyDispatcher
 pyyaml>=3.1.0
+apscheduler>=2.1.1

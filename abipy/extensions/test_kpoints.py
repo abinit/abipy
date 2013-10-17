@@ -3,27 +3,43 @@ from abipy import *
 
 import numpy as np
 
-import m_kpoints
-from m_kpoints import m_kpoints  as mod
 
-def slow_map_mesh2ibz(structure, bz, ibz):
+def slow_map_mesh2ibz(structure, bz, ibz_arr):
+    print("bz",bz)
+    print("ibz_arr",ibz_arr)
+    #return
 
-    bz2ibz = np.empty(len(bz), dtype=np.int)
-    bz2ibz = -1
+    bz2ibz = np.ones(len(bz), dtype=np.int)
 
-    for ik_bz, kbz in enumerate(full_zone):
+    for ik_bz, kbz in enumerate(bz):
+        #print("kbz",kbz)
 
         found = False
-        for ik_ibz, kibz in enumerate(ibz):
-            if found:
-                break:
+        for ik_ibz, kibz in enumerate(ibz_arr):
+            print("kibz",kibz)
+            if found: break
 
-            for symmop in structure.symmops:
-                krot = symmop.rotate(kibz.frac_coords)
-                if krot == kibz:
+            for symmop in structure.spacegroup:
+                krot = symmop.rotate_k(kibz)
+                if np.allclose(krot, kibz):
                     bz2ibz[ik_bz] = ik_ibz
                     found = True
 
+    return bz2ibz
+
+
+#def pyx_mesh2ibz(bz, ibz, symrec):
+#    for ik_bz, kbz in enumerate(bz):
+#        found = False
+#        for ik_ibz, kibz in enumerate(ibz):
+#            if found:
+#                break:
+#
+#            for symmop in structure.symmops:
+#                krot = symmop.rotate(kibz.frac_coords)
+#                if krot == kibz:
+#                    bz2ibz[ik_bz] = ik_ibz
+#                    found = True
 
 
 def map_mesh2ibz(structure, mpdivs, shifts, ibz):
@@ -105,20 +121,32 @@ def map_mesh2ibz(structure, mpdivs, shifts, ibz):
     return tuple(tables)
 
 def main():
-    print(m_kpoints.__doc__)
-    v1 = np.zeros(3)
-    v2 = v1 + 1.0
+    #import m_kpoints
+    #from m_kpoints import m_kpoints  as mod
+    #print(m_kpoints.__doc__)
+    #v1 = np.zeros(3)
+    #v2 = v1 + 1.0
     #print(v1, v2)
 
-    ans, g0 = mod.isamek(v1, v2)
+    #ans, g0 = mod.isamek(v1, v2)
     #print(ans,g0)
 
-    filename = "/Users/gmatteo/Coding/Abinit/bzr_archives/733/gmatteo-private/gcc47/tests/Silicon/o_GSR"
+    from abipy.core.kpoints import IrredZone, bz_from_mpdivs
+
+    filename = "/Users/gmatteo/Coding/abipy/abipy/data/runs/data_si_ebands/outdata/si_scf_GSR.nc"
     structure = Structure.from_file(filename)
 
-    ibz = kpoints_factory(filename)
+    ibz = IrredZone.from_file(filename)
+    #print(ibz)
 
-    tables = map_mesh2ibz(structure, ibz.mpdivs, ibz.shifts, ibz)
+    mpdivs = [8, 8, 8]
+    shifts = [0.0, 0.0, 0.0]
+
+    #tables = map_mesh2ibz(structure, mpdivs, shifts, ibz)
+
+    bz = bz_from_mpdivs(mpdivs, shifts)
+
+    ktab = slow_map_mesh2ibz(structure, bz, ibz.frac_coords)
 
 if __name__ == "__main__":
     main()

@@ -5,7 +5,7 @@ import os
 import abipy.abilab as abilab
 import abipy.data as data  
 
-from abipy.data.runs import decorate_main
+from abipy.data.runs import enable_logging
 
 from abipy.data.runs.qptdm_workflow import *
 
@@ -55,7 +55,7 @@ def scf_ph_inputs():
             #rfdir   1 0 0   # Along the first reduced coordinate axis
             #kptopt   2      # Automatic generation of k points, taking
 
-    # return gs_inp, ph_inputs
+    # Split input into gs_inp and ph_inputs
     return inp.split_datasets()
 
 
@@ -80,7 +80,7 @@ def ph_flow():
     return phonon_flow(workdir, manager, scf_input, ph_inputs)
 
 
-@decorate_main
+@enable_logging
 def main():
     """Build the flow for Phonon calculations and save the object in cpickle format."""
     flow = ph_flow()

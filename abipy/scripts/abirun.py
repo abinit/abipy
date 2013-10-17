@@ -11,7 +11,7 @@ import warnings
 import argparse
 import abipy.abilab as abilab
 
-from pymatgen.io.abinitio.launcher import PyResourceManager, PyLauncher
+from pymatgen.io.abinitio.launcher import PyFlowsScheduler, PyLauncher
 from abipy.tools import pprint_table, StringColorizer
 
 def str_examples():
@@ -45,11 +45,20 @@ def treat_flow(flow, options):
         nlaunch = PyLauncher(flow).rapidfire()
         print("Number of tasks launched %d" % nlaunch)
 
-    #if options.command == "pymanager":
-    #    retcodes = PyResourceManager(work, max_ncpus=1, sleep_time=5).run()
-    #    recode = max(retcodes)
-    #    print("all tasks completed with return code %s" % retcode)
-    #    work.pickle_dump()
+    if options.command == "pyscheduler":
+
+        sched_options = dict(
+             weeks=0,
+             days=0,
+             hours=0,
+             minutes=0,
+             seconds=10,
+             start_date=None,
+        ) 
+
+        sched = PyFlowsScheduler(**sched_options)
+        sched.add_flow(flow)
+        sched.start()
 
     if options.command == "status":
         colorizer = StringColorizer(stream=sys.stdout)
@@ -108,8 +117,8 @@ def main():
     # Subparser for rapidfire command.
     p_rapid = subparsers.add_parser('rapidfire', help="Run all tasks in rapidfire mode") # aliases=["rapid"])
 
-    # Subparser for pymanager command.
-    p_pymanager = subparsers.add_parser('pymanager', help="Run all tasks.")
+    # Subparser for pyscheduler command.
+    p_pyscheduler = subparsers.add_parser('pyscheduler', help="Run all tasks.")
 
     # Subparser for status command.
     p_status = subparsers.add_parser('status', help="Show task status.")
@@ -146,7 +155,7 @@ def main():
                 if fname == abilab.AbinitFlow.PICKLE_FNAME:
                     paths.append(os.path.join(dirpath, fname))
 
-    import cPickle as pickle
+    #import cPickle as pickle
     paths = [paths[0]]
     #print("paths", str(paths))
 
@@ -162,18 +171,17 @@ def main():
 
     path = options.paths[0]
 
-    # Read the worflow from the pickle database.
-    with open(path, "rb") as fh:
-        flow = pickle.load(fh)
+    flow = abilab.AbinitFlow.pickle_load(path)
 
-    flow.connect_signals()
+    # Read the worflow from the pickle database.
+    #with open(path, "rb") as fh:
+    #flow.connect_signals()
     #for w in flow:
     #    print(w)
     #flow.show_dependencies()
-
     # Recompute the status of each task since tasks that
     # have been submitted previously might be completed.
-    flow.check_status()
+    #flow.check_status()
 
     if options.command == "gui":
         from abipy.gui.workflow_viewer import wxapp_flow_viewer

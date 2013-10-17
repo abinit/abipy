@@ -6,7 +6,7 @@ import os
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from abipy.data.runs import Tester, decorate_main
+from abipy.data.runs import Tester, enable_logging
 from pseudo_dojo.dojo.deltaworks import DeltaFactory
 
 
@@ -44,7 +44,7 @@ def delta_flow():
     return flow.allocate()
 
 
-@decorate_main
+@enable_logging
 def main():
     flow = delta_flow()
     return flow.build_and_pickle_dump()

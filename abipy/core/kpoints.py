@@ -69,35 +69,34 @@ def wrap_to_bz(x):
     return x % 1
 
 
-#def fullbz_from_mpdivs(mpdivs, shifts):
-#    """
-#    Returns a ndarray with the reduced coordinates from 
-#    the MP divisions and the shifts.
-#
-#    Args:
-#        mpdivs
-#            The three MP divisions
-#        shifts:
-#            Array-like object with the MP shift.
-#    """
-#
-#    mpdivs = np.asarray(mpdivs)
-#
-#    shifts = np.reshape(shifts, (-1,3))
-#
-#    # Build bz grid.
-#    kbz = np.empty(shape=(mpdivs.prod() * len(shifts),  3))
-#
-#    count = 0
-#    for ish, shift in enumerate(shifts):
-#        for i in range(mpdivs[0]):
-#            x = (i + shift[0]) / mpdivs[0]
-#            for j in range(mpdivs[1]):
-#                y = (j + shift[1]) / mpdivs[1]
-#                for k in range(mpdivs[2]):
-#                    z = (k + shift[2]) / mpdivs[2]
-#                    kbz[count] = (x, y, z)
-#                    count += 1
+def bz_from_mpdivs(mpdivs, shifts):
+    """
+    Returns a ndarray with the reduced coordinates from 
+    the MP divisions and the shifts.
+
+    Args:
+        mpdivs
+            The three MP divisions
+        shifts:
+            Array-like object with the MP shift.
+    """
+    mpdivs = np.asarray(mpdivs)
+    shifts = np.reshape(shifts, (-1,3))
+
+    # Build bz grid.
+    kbz = np.empty(shape=(mpdivs.prod() * len(shifts),  3))
+
+    count = 0
+    for ish, shift in enumerate(shifts):
+        for i in range(mpdivs[0]):
+            x = (i + shift[0]) / mpdivs[0]
+            for j in range(mpdivs[1]):
+                y = (j + shift[1]) / mpdivs[1]
+                for k in range(mpdivs[2]):
+                    z = (k + shift[2]) / mpdivs[2]
+                    kbz[count] = (x, y, z)
+                    count += 1
+    return kbz
 
 
 class KpointsError(AbipyException):
@@ -664,6 +663,7 @@ class IrredZone(KpointList):
 
         # Weights must be normalized to one.
         wsum = self.sum_weights()
+
         if abs(wsum - 1) > 1.e-6:
             err_msg =  "Kpoint weights should sum up to one while sum_weights is %.3f\n" % wsum
             err_msg += "The list of kpoints does not represent a homogeneous sampling of the BZ\n" 
@@ -798,9 +798,9 @@ class KSamplingInfo(AttrDict):
     def __init__(self, *args, **kwargs):
         super(KSamplingInfo, self).__init__(*args, **kwargs)
         print("ksampling",self)
-    #    for k in self:
-    #        if k not in self.KNOWN_KEYS:
-    #            raise ValueError("Unknow key %s" % k)
+        #for k in self:
+        #   if k not in self.KNOWN_KEYS:
+        #       raise ValueError("Unknow key %s" % k)
 
     @property
     def is_homogeneous(self):

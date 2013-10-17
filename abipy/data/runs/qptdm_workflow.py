@@ -4,12 +4,14 @@ from __future__ import division, print_function
 import os
 import time
 import collections
+import yaml
 import numpy as np
 
 from abipy.abilab import AbinitFlow, Mrgscr, Mrgddb, Mrggkk
 
 from pymatgen.io.abinitio.tasks import ScfTask, PhononTask
 from pymatgen.io.abinitio.workflows import Workflow, BandStructureWorkflow, IterativeWorkflow, PhononWorkflow
+from pymatgen.io.abinitio.abiinspect import yaml_read_kpoints, yaml_read_irred_perts
 
 import logging
 logger = logging.getLogger(__name__)
@@ -54,6 +56,7 @@ class QptdmWorkflow(Workflow):
         w.start()
 
         # Parse the section with the q-points
+
         qpoints = yaml_read_kpoints(fake_task.log_file.path, tag="--- !Qptdms")
         #print(qpoints)
         w.rmtree()
@@ -108,11 +111,11 @@ def phonon_flow(workdir, manager, scf_input, ph_inputs):
         workdir:
             Working directory.
         manager:
-            `TaskManager` object used to submit the jobs
+            `TaskManager` used to submit the jobs
         scf_input:
             Input for the GS SCF run.
         ph_inputs:
-            List of Inpus for the phonon runs.
+            List of Inputs for the phonon runs.
 
     Returns:
         `AbinitFlow`
@@ -135,6 +138,7 @@ def phonon_flow(workdir, manager, scf_input, ph_inputs):
     for i, ph_input in enumerate(ph_inputs):
         fake_input = ph_input.deepcopy()
 
+        # Run abinit on the front-end to get the list of irreducible pertubations.
         tmp_dir = os.path.join(workdir, "__ph_run" + str(i) + "__")
         w = Workflow(workdir=tmp_dir, manager=shell_manager)
         fake_task = w.register(fake_input)
@@ -154,7 +158,7 @@ def phonon_flow(workdir, manager, scf_input, ph_inputs):
         # Parse the file to get the perturbations.
         irred_perts = yaml_read_irred_perts(fake_task.log_file.path)
         print(irred_perts)
-        #w.rmtree()
+        w.rmtree()
 
         # Now we can build the final list of workflows:
         # One workflow per q-point, each workflow computes all 
@@ -218,7 +222,9 @@ def cbk_qptdm_workflow(flow, work, cbk_data):
 def g0w0_flow_with_qptdm(workdir, manager, scf_input, nscf_input, scr_input, sigma_input):
     """
     Build an `AbinitFlow` for one-shot G0W0 calculations.
-    The computation of the q-points for the screening is parallelized with qptdm (task parallelism).
+    The computation of the q-points for the screening is parallelized with qptdm
+    i.e. we run independent calculation for each q-point and then we merge 
+    the final results.
 
     Args:
         workdir:

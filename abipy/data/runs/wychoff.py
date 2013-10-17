@@ -11,7 +11,7 @@ import sys
 from abipy import abilab
 import abipy.data as data
 
-from abipy.data.runs import decorate_main
+from abipy.data.runs import enable_logging
 from abipy.abilab import FloatWithUnit
 
 
@@ -92,7 +92,7 @@ def make_workflow(structure, pseudos):
     return abilab.BandStructureWorkflow(gs_inp, nscf_inp)
 
 
-@decorate_main
+@enable_logging
 def main():
     flow = make_flow()
     return flow.build_and_pickle_dump()

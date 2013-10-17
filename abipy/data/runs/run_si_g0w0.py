@@ -5,9 +5,9 @@ import os
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from abipy.data.runs import Tester, decorate_main
+from abipy.data.runs import Tester, enable_logging
 
-@decorate_main
+@enable_logging
 def main():
 
     # Change the value of ngkpt below to perform a GW calculation with a different ngkpt.

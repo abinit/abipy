@@ -4,7 +4,7 @@ from __future__ import division, print_function
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from abipy.data.runs import decorate_main
+from abipy.data.runs import enable_logging
 
 
 def relax_flow():
@@ -60,7 +60,7 @@ def relax_flow():
     return flow.allocate()
 
 
-@decorate_main
+@enable_logging
 def main():
     flow = relax_flow()
     return flow.build_and_pickle_dump()

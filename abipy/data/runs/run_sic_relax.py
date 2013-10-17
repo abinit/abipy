@@ -8,7 +8,7 @@ import os
 import abipy.abilab as abilab
 import abipy.data as data
 
-from abipy.data.runs import Tester, decorate_main
+from abipy.data.runs import Tester, enable_logging
 
 def relax_flow():
 
@@ -64,7 +64,7 @@ def relax_flow():
 
     return flow.allocate()
 
-@decorate_main
+@enable_logging
 def main():
     flow = relax_flow()
     return flow.build_and_pickle_dump()

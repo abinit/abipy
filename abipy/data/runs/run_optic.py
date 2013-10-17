@@ -5,7 +5,7 @@ import os
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from abipy.data.runs import Tester, decorate_main
+from abipy.data.runs import Tester, enable_logging
 
 optic_input = """\
 0.002         ! Value of the smearing factor, in Hartree
@@ -128,7 +128,7 @@ def optic_flow_from_files():
     return flow.allocate()
 
 
-@decorate_main
+@enable_logging
 def main():
     flow = optic_flow()
     #flow = optic_flow_from_files()

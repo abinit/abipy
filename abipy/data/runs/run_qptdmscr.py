@@ -5,7 +5,7 @@ import os
 import abipy.abilab as abilab
 import abipy.data as data  
 
-from abipy.data.runs import decorate_main
+from abipy.data.runs import enable_logging
 
 from abipy.data.runs.qptdm_workflow import *
 
@@ -129,7 +129,7 @@ def qptdm_work():
 
     return g0w0_flow_with_qptdm(workdir, manager, gs, nscf, scr_input, sigma_input)
 
-@decorate_main
+@enable_logging
 def main():
     # QPTDM
     flow = qptdm_work()

@@ -7,7 +7,7 @@ import numpy as np
 import abipy.abilab as abilab
 import abipy.data as data  
 
-from abipy.data.runs import Tester, decorate_main
+from abipy.data.runs import Tester, enable_logging
 
 def raman_flow():
     pseudos = data.pseudos("14si.pspnc")
@@ -38,10 +38,11 @@ def raman_flow():
     # Generate the different shifts to average
     ndiv = 2
     shift1D = np.arange(1,2*ndiv+1,2)/(2*ndiv)
-    allshifts = [[x,y,z] for x in shift1D for y in shift1D for z in shift1D]
+    all_shifts = [[x,y,z] for x in shift1D for y in shift1D for z in shift1D]
+    all_shifts = [[0, 0, 0]]
 
     for structure, eta in zip(displaced_structures, etas):
-        for shift in allshifts:
+        for shift in all_shifts:
             flow.register_work(raman_workflow(structure, pseudos, shift))
 
     return flow.allocate()
@@ -109,7 +110,7 @@ def raman_workflow(structure, pseudos, shiftk):
     return abilab.BSEMDF_Workflow(scf_inp, nscf_inp, bse_inp)
 
 
-@decorate_main
+@enable_logging
 def main():
     # Define the flow, build files and dirs 
     # and save the object in cpickle format.
