@@ -167,7 +167,7 @@ class AbinitVariable(object):
 
     def __init__(self, name, value, units=''):
 
-        # This is the "internal" name, using '_s', '_i' and '_a'.
+        # This is the "internal" name, using '__s', '__i' and '__a'.
         self.name = name
 
         # The value, in any format.
@@ -193,11 +193,11 @@ class AbinitVariable(object):
     def internal_to_declared(name):
         """
         Make the conversion
-            _s --> :
-            _i --> +
-            _a --> ?
+            __s --> :
+            __i --> +
+            __a --> ?
         """
-        for old, new in (('_s', ':'), ('_i', '+'), ('_a', '?')):
+        for old, new in (('__s', ':'), ('__i', '+'), ('__a', '?')):
             name = name.replace(old, new)
         return name
 
@@ -205,11 +205,11 @@ class AbinitVariable(object):
     def declared_to_internal(name):
         """
         Make the conversion
-             : --> _s
-             + --> _i
-             ? --> _a
+             : --> __s
+             + --> __i
+             ? --> __a
         """
-        for old, new in ((':', '_s'), ('+', '_i'), ('?', '_a')):
+        for old, new in ((':', '__s'), ('+', '__i'), ('?', '__a')):
             name = name.replace(old, new)
         return name
 
@@ -217,7 +217,7 @@ class AbinitVariable(object):
     def basename(self):
         """Return the name trimmed of any dataset index."""
         basename = self.name
-        for r in ('_s', ':', '_i', '+', '_a', '?'):
+        for r in ('__s', ':', '__i', '+', '__a', '?'):
             basename = basename[:-4] + basename[-4:].replace(r, '')
         return basename.rstrip(string.digits)
 
@@ -561,9 +561,9 @@ class InputFile(object):
         >> f.nband4 = 300        # Dataset-specific variable.
         >> 
         >> f.udtset = '2 3'      # We will have to remember that:
-        >> f.nband1_s = 100      #   ':' <==> '_s'  (start)
-        >> f.nband1_i = 50       #   '+' <==> '_i'  (increment)
-        >> f.ecut_a2 = 20.0      #   '?' <==> '_a'  (any)
+        >> f.nband1__s = 100      #   ':' <==> '__s'  (start)
+        >> f.nband1__i = 50       #   '+' <==> '__i'  (increment)
+        >> f.ecut__a2 = 20.0      #   '?' <==> '__a'  (any)
         >> 
         >> f.istwfk = '*1'       # In some cases, string is the only way!
         >> 
