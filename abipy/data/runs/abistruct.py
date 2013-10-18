@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Script to export/visualize the crystal structure saved in the netcdf files produced by ABINIT."""
 from __future__ import division, print_function
 
 import sys
@@ -12,11 +13,7 @@ from abipy import abilab
 def str_examples():
     examples = """
 Usage example:\n
-    abirun.py DIRPATH  singleshot              => Fetch the first available task and run it.
-    abirun.py DIRPATH  rapidfire               => Keep repeating, stop when no task can be executed
-                                                  due to inter-dependency.
-    abirun.py DIRPATH gui                      => Open the GUI 
-    nohup abirun.py DIRPATH sheduler -s 30 &   => Use a scheduler to schedule task submission
+    abistruct.py NCFILE convert cif    => Read the structure from the netcdf FILE.nc and create the CIF file.
 """
     return examples
 
@@ -43,9 +40,10 @@ def main():
 
     p_convert.add_argument('format', nargs="?", default="cif", type=str, help="Format of the output file (ciff, POSCAR, json).")
 
-    # Subparser for single command.
-    #p_single = subparsers.add_parser('singleshot', help="Run single task.") #, aliases=["single"])
+    # Subparser for visualize command.
+    #p_visualize = subparsers.add_parser('visualizeshot', help="Visualize the structure with the specified visualizer")
 
+    #p_visualize.add_argument('visualizer', nargs="?", default="xcrysden", type=str, help="Visualizer.")
 
     # Parse command line.
     try:
