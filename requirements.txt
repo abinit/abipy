@@ -2,3 +2,4 @@ PyDispatcher>=2.0
 apscheduler>=2.1.1
 pyyaml>=3.1.0
 netCDF4
+pymatgen>=2.8.6
