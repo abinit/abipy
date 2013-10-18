@@ -71,7 +71,6 @@ def ph_flow():
     """
     workdir = "PHONONS"
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=dict(autoparal=0, max_ncpus=1))
-    #manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=dict(autoparal=1, max_ncpus=2))
     #manager = abilab.TaskManager.from_user_config()
 
     all_inps = scf_ph_inputs()

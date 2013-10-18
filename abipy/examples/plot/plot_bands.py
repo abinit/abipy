@@ -9,7 +9,7 @@ import abipy.data as data
 # Replace filename with the path to your GSR file or your WFK file.
 filename = data.ref_file("si_nscf_GSR.nc")
 
-# Open the WKF file and read data. 
+# Open the GSR file and read data. 
 abifile = abiopen(filename)
 
 # Extract the band structure. 

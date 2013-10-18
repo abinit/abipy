@@ -302,6 +302,12 @@ class AbiInput(Input):
             my_vars = self[i+1].allvars
             my_vars.pop("ndtset", None)
 
+            # Cannot use get*, ird* variables since links must be explicit.
+            for varname in my_vars:
+                if varname.startswith("get") or varname.startswith("ird"):
+                    err_msg = ("get* or ird* variables should not be present in the input when you split it into datasets")
+                    raise ValueError(err_msg)
+
             new = cls(pseudos=self.pseudos, ndtset=1)
             new.set_variables(**my_vars)
             news.append(new)

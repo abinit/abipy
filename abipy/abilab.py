@@ -9,6 +9,7 @@ import abipy.core.constants as constants
 from abipy import abiopen
 from abipy.core.structure import Structure, StructureModifier
 from abipy.htc.input import AbiInput
+from abipy.electrons import ElectronDosPlotter, SIGRES_Plotter
 
 FloatWithUnit = constants.FloatWithUnit
 ArrayWithUnit = constants.ArrayWithUnit
