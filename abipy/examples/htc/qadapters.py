@@ -31,7 +31,8 @@ shell = qadapters.ShellAdapter(
 
 # Generate the script (we assume that executable and mpirun are located in $PATH.
 script = shell.get_script_str(job_name="job.sh", launch_dir="/path/to/lauch_dir",
-    executable="abinit", stdin="STDIN_FNAME", stdout="STDOUT_FNAME", stderr="STDERR_FNAME")
+    executable="abinit", qout_path="queue.out", qerr_path="qeue.err", 
+    stdin="STDIN_FNAME", stdout="STDOUT_FNAME", stderr="STDERR_FNAME")
 
 print(script)
 
@@ -55,6 +56,7 @@ slurm = qadapters.SlurmAdapter(
 )
 
 script = slurm.get_script_str(job_name="job.sh", launch_dir="/path/to/lauch_dir",
-    executable="abinit", stdin="STDIN_FNAME", stdout="STDOUT_FNAME", stderr="STDERR_FNAME")
+    executable="abinit", qout_path="queue.out", qerr_path="qeue.err", 
+    stdin="STDIN_FNAME", stdout="STDOUT_FNAME", stderr="STDERR_FNAME")
 
 print(script)

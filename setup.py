@@ -126,7 +126,7 @@ install_requires = [
     "pymatgen>=2.7.3",
     "matplotlib>=1.1",
     "scipy>=0.10",
-    "numpy>=1.5",
+    "numpy>=1.6",
     "netCDF4",
     "PyDispatcher",
     "pyyaml>=3.1.0",
