@@ -13,7 +13,8 @@ from abipy import abilab
 def str_examples():
     examples = """
 Usage example:\n
-    abistruct.py NCFILE convert cif    => Read the structure from the netcdf FILE.nc and create the CIF file.
+    abistruct.py NCFILE convert cif         => Read the structure from the netcdf FILE.nc and create the CIF file.
+    abistruct.py NCFILE visualize xcrysden  => Visualize the structure with XcrysDen.
 """
     return examples
 
@@ -41,9 +42,9 @@ def main():
     p_convert.add_argument('format', nargs="?", default="cif", type=str, help="Format of the output file (ciff, POSCAR, json).")
 
     # Subparser for visualize command.
-    #p_visualize = subparsers.add_parser('visualizeshot', help="Visualize the structure with the specified visualizer")
+    p_visualize = subparsers.add_parser('visualize', help="Visualize the structure with the specified visualizer")
 
-    #p_visualize.add_argument('visualizer', nargs="?", default="xcrysden", type=str, help="Visualizer.")
+    p_visualize.add_argument('visualizer', nargs="?", default="xcrysden", type=str, help="Visualizer.")
 
     # Parse command line.
     try:
@@ -60,6 +61,10 @@ def main():
 
         #print((" Abinit --> %s " % format).center(80, "*"))
         print(s)
+
+    elif options.command == "visualize":
+        visu = structure.visualize(options.visualizer)
+        visu()
 
     else:
         raise ValueError("Unsupported command %s" % options.command)
