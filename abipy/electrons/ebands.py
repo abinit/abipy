@@ -1155,13 +1155,13 @@ class ElectronBands(object):
         ax2.yaxis.set_ticks_position("right")
         ax2.yaxis.set_label_position("right")
 
+        fig = plt.gcf()
         if title:
             fig.suptitle(title)
 
         if show:
             plt.show()
 
-        fig = plt.gcf()
         if savefig is not None:
             fig.savefig(savefig)
 

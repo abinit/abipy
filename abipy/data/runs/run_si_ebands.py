@@ -5,16 +5,9 @@ import os
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from abipy.data.runs import Tester, decorate_main
+from abipy.data.runs import Tester, enable_logging
 
-def bands_flow()
-    # Create the task defining the calculation and run.
-    tester = Tester()
-    manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1)
-    #manager = abilab.TaskManager.from_user_config()
-
-    flow  = abilab.AbinitFlow(workdir=tester.workdir, manager=manager)
-
+def make_scf_nscf_inputs():
     inp = abilab.AbiInput(pseudos=data.pseudos("14si.pspnc"), ndtset=2)
     structure = inp.set_structure_from_file(data.cif_file("si.cif"))
 
@@ -40,16 +33,20 @@ def bands_flow()
     ]
 
     inp[2].set_kpath(ndivsm=6, kptbounds=kptbounds)
-    inp[2].set_variables(tolwfr=1e-12,
-                         getden=-1
-                        )
+    inp[2].set_variables(tolwfr=1e-12)
     
-    # Initialize the workflow.
-    gs_inp, nscf_inp = inp.split_datasets()
-    work = abilab.BandStructureWorkflow(gs_inp, nscf_inp)
+    # Generate two input files for the GS and the NSCF run 
+    scf_input, nscf_input = inp.split_datasets()
+    return scf_input, nscf_input
 
-    flow.register_work(work)
-
+def bands_flow(workdir):
+    # Create the task defining the calculation and run.
+    scf_input, nscf_input = make_scf_nscf_inputs()
+                                                               
+    manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1)
+    #manager = abilab.TaskManager.from_user_config()
+                                                               
+    flow = abilab.bandstructure_flow(workdir, manager, scf_input, nscf_input)
     return flow.allocate()
 
     #tester.set_work_and_run(work)
@@ -71,14 +68,13 @@ def bands_flow()
     #tester.finalize()
     #return tester.retcode 
 
-
-@decorate_main
+@enable_logging
 def main():
-    flow = bands_flow()
+    tester = Tester()
+    flow = bands_flow(tester.workdir)
     return flow.build_and_pickle_dump()
 
 
 if __name__ == "__main__":
     import sys
     sys.exit(main())
-
