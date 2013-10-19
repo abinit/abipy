@@ -1,15 +1,21 @@
-qtype: slurm
-qparams:
-    ntasks: 2
-    time: 0:20:00
-    partition: Oban
-#setup="SetEnv intel13_intel",
-modules:
-    - intel/compilerpro/13.0.1.117
-    - fftw3/intel/3.3
-shell_env:
-     PATH: /home/naps/ygillet/NAPS/src/abinit-7.4.3-public/tmp_intel13/src/98_main/:/home/naps/ygillet/NAPS/intel13/bin:$PATH
-     LD_LIBRARY_PATH: /home/naps/ygillet/NAPS/intel13/lib:$LD_LIBRARY_PATH
+#qtype: slurm
+#qparams:
+#    ntasks: 2
+#    time: 0:20:00
+#    partition: Oban
+##setup="SetEnv intel13_intel",
+#modules:
+#    - intel/compilerpro/13.0.1.117
+#    - fftw3/intel/3.3
+#shell_env:
+#     PATH: /home/naps/ygillet/NAPS/src/abinit-7.4.3-public/tmp_intel13/src/98_main/:/home/naps/ygillet/NAPS/intel13/bin:$PATH
+#     LD_LIBRARY_PATH: /home/naps/ygillet/NAPS/intel13/lib:$LD_LIBRARY_PATH
+#mpi_runner: mpirun
+#policy:
+#    autoparal: 1
+#    max_ncpus: 2
+
+qtype: shell
 mpi_runner: mpirun
 policy:
     autoparal: 1

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Script to inspect the status of the Abinit."""
+"""Script to inspect the status of Abinit calculations at run-time."""
 from __future__ import division, print_function
 
 import sys
@@ -15,9 +15,9 @@ from abipy import abilab
 def str_examples():
     examples = """
 Usage example:\n
-    abiinsp.py OUTFILE status
-    abiinsp.py OUTFILE plot
-    abiinsp.py OUTFILE timer
+    abiinsp.py OUTFILE status  ==> Report the list of Warning, Commments, Errors
+    abiinsp.py OUTFILE plot    ==> Plot results of the GS Scf cycle, Phonon Scf cycle...
+    abiinsp.py OUTFILE timer   ==> Visualize timing data with matplotlib.
 """
     return examples
 
@@ -63,7 +63,7 @@ def main():
         #print("completed", report.run_completed)
 
     elif options.command == "plot":
-        # TODO: At present only GS runs are supported in plottable_from_outfile
+        # TODO: At present only GS runs are supported by plottable_from_outfile
         obj = plottable_from_outfile(options.filepath)
 
         if obj is not None:
@@ -82,6 +82,7 @@ def main():
         raise ValueError("Unsupported command %s" % options.command)
 
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

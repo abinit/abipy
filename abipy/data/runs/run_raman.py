@@ -56,6 +56,7 @@ def raman_workflow(structure, pseudos, shiftk):
         ecut=12,
         istwfk="*1",
         chksymbreak=0,
+        nstep=4,
     )
 
     # GS run

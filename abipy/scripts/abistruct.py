@@ -55,10 +55,7 @@ def main():
     structure = abilab.Structure.from_file(options.filepath)
 
     if options.command == "convert":
-        print(options.format)
-        #for format in ["cif", "POSCAR", "cssr", "json"]:
         s = structure.convert(format=options.format)
-
         #print((" Abinit --> %s " % format).center(80, "*"))
         print(s)
 

@@ -6,63 +6,64 @@ import abipy.abilab as abilab
 
 from abipy.data.runs import enable_logging
 
-
-def relax_flow():
+def make_ion_ioncell_inputs():
     cif_file = data.cif_file("si.cif")
     structure = abilab.Structure.from_file(cif_file)
 
-    pseudos_list = [
-        data.pseudos("14si.pspnc"),
-        #data.pseudos("14si.fhi"),
-    ]
+    pseudos = data.pseudos("14si.pspnc")
 
     global_vars = dict(
-        ecut=4,  # Assuming that all the pseudos require the same cutoff.
+        ecut=4,  
         ngkpt=[8,8,8], 
         shiftk=[0,0,0],
         nshiftk=1,
     )
 
-    workdir = "IONCELL"
-    manager = abilab.TaskManager.simple_mpi()
-    #manager = abilab.TaskManager.from_user_config()
+    inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
+    inp.set_structure(structure)
+
+    # Global variables
+    inp.set_variables(**global_vars)
+
+    # Dataset 1 (Atom Relaxation)
+    inp[1].set_variables(
+        optcell=0,
+        ionmov=1,
+        tolvrs=1e-6
+    )
+
+    # Dataset 2 (Atom + Cell Relaxation)
+    inp[2].set_variables(
+        optcell=1,
+        ionmov=2,
+        ecutsm=0.5,
+        dilatmx=1.1,
+        tolvrs=1e-6,
+        #ntime=1,
+        )
+
+    ion_inp, ioncell_inp = inp.split_datasets()
+    return ion_inp, ioncell_inp
+
+
+def relax_flow(workdir):
+
+    manager = abilab.TaskManager.from_user_config()
 
     flow = abilab.AbinitFlow(workdir, manager)
 
-    for pseudos in pseudos_list:
-        inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
-        inp.set_structure(structure)
+    ion_inp, ioncell_inp = make_ion_ioncell_inputs()
 
-        # Global variables
-        inp.set_variables(**global_vars)
-
-        # Dataset 1 (Atom Relaxation)
-        inp[1].set_variables(
-            optcell=0,
-            ionmov=1,
-            tolvrs=1e-6
-        )
-
-        # Dataset 2 (Atom + Cell Relaxation)
-        inp[2].set_variables(
-            optcell=1,
-            ionmov=1,
-            dilatmax=1.1,
-            tolvrs=1e-6,
-            #getxred=-1,
-            )
-
-        ion_inp, ioncell_inp = inp.split_datasets()
-        work = abilab.RelaxWorkflow(ion_inp, ioncell_inp)
-
-        flow.register_work(work)
-
+    work = abilab.RelaxWorkflow(ion_inp, ioncell_inp)
+                                                      
+    flow.register_work(work)
     return flow.allocate()
 
 
 @enable_logging
 def main():
-    flow = relax_flow()
+    workdir = "IONCELL"
+    flow = relax_flow(workdir)
     return flow.build_and_pickle_dump()
 
 

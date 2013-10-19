@@ -395,7 +395,11 @@ class TaskListCtrl(wx.ListCtrl):
 
         self.work = work
 
-        columns = ["Task", "Status", "Queue_id", "Errors", "Warnings", "Comments", "MPI", "OMP", "Task Class"]
+        columns = ["Task", "Status", "Queue_id", 
+                   "Errors", "Warnings", "Comments", 
+                   "MPI", "OMP", 
+                   "num_restarts", "max_restarts", "Task Class",
+                   ]
 
         for (index, col) in enumerate(columns):
             self.InsertColumn(index, col)
@@ -412,7 +416,9 @@ class TaskListCtrl(wx.ListCtrl):
 
             cpu_info = [task.mpi_ncpus, task.omp_ncpus]
             entry = map(str, [task.name, str(task.status), task.queue_id] + 
-                              events + cpu_info + [task.__class__.__name__]
+                              events + 
+                              cpu_info + 
+                              [task.num_restarts, task.max_num_restarts, task.__class__.__name__]
                         )
 
             self.Append(entry)
