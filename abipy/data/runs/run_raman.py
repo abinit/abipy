@@ -94,7 +94,7 @@ def raman_workflow(structure, pseudos, shiftk):
         ecuteps=3,
         inclvkb=2,
         bs_algorithm=2,       # Haydock
-        bs_haydock_niter=60,  # No. of iterations for Haydock
+        bs_haydock_niter=4,  # No. of iterations for Haydock
         bs_exchange_term=1,
         bs_coulomb_term=21,   # Use model W and full W_GG.
         mdf_epsinf=12.0,

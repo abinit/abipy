@@ -29,7 +29,8 @@ def make_ion_ioncell_inputs():
     inp[1].set_variables(
         optcell=0,
         ionmov=1,
-        tolvrs=1e-6
+        tolvrs=1e-6,
+        ntime=2,
     )
 
     # Dataset 2 (Atom + Cell Relaxation)
@@ -39,7 +40,7 @@ def make_ion_ioncell_inputs():
         ecutsm=0.5,
         dilatmx=1.1,
         tolvrs=1e-6,
-        #ntime=1,
+        ntime=2,
         )
 
     ion_inp, ioncell_inp = inp.split_datasets()

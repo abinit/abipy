@@ -47,6 +47,7 @@ def scf_ph_inputs():
     for i, qpt in enumerate(qpoints):
         # Response-function calculation for phonons.
         inp[i+2].set_variables(
+            nstep=2,
             rfphon=1,        # Will consider phonon-type perturbation
             nqpt=1,          # One wavevector is to be considered
             qpt=qpt,         # This wavevector is q=0 (Gamma)

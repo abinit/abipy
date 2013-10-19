@@ -375,8 +375,8 @@ class TabPanel(wx.Panel):
         label = wx.StaticText(self, -1, "Workflow class %s, status: %s, finalized: %s" % (
             work.__class__.__name__, work.status, work.finalized))
         label.Wrap(-1)
-        main_sizer.Add(label, 0, wx.ALIGN_LEFT, 5)
 
+        main_sizer.Add(label, 0, wx.ALIGN_LEFT, 5)
         self.SetSizerAndFit(main_sizer)
 
 
@@ -491,29 +491,44 @@ def show_task_log_events(parent, task):
         awx.showErrorMessage(parent=parent, message="Log file %s does not exist" % file.path)
 
 
+def browse_indir(parent, task):
+    """Open a window that allows the user to browse the input files in indir."""
+    FileListFrame(parent, dirpaths=task.indir.path).Show()
+
+
 def browse_outdir(parent, task):
+    """Open a window that allows the user to browse the output files in outdir."""
     FileListFrame(parent, dirpaths=task.outdir.path).Show()
 
+def browse_tmpdir(parent, task):
+    """Open a window that allows the user to browse the output files in outdir."""
+    FileListFrame(parent, dirpaths=task.tmpdir.path).Show()
 
 def show_history(parent, task):
+    """Show the history of the task."""
     text = "\n".join(task.history)
     SimpleTextViewer(parent, text).Show()
 
 
+# FIXME: Here I shoud dump the pickle file (keep a reference to the flow?)
 def task_restart(parent, task):
+    """Restart the task."""
     task.restart()
 
 
 def task_reset(parent, task):
+    """Reset the status of the task."""
     task.reset()
 
 
 def task_show_deps(parent, task):
+    """Show the dependencies of the task."""
     text = task.str_deps()
     SimpleTextViewer(parent, text).Show()
 
 
 def task_inspect(parent, task):
+    """Inspect the results at runtime."""
     if hasattr(task, "inspect"):
         task.inspect()
 
@@ -530,7 +545,9 @@ class TaskPopupMenu(wx.Menu):
         ("log", show_task_log),
         ("main events", show_task_main_events),
         ("log events",  show_task_log_events),
+        ("browse indir", browse_indir),
         ("browse outdir", browse_outdir),
+        ("browse tmpdir", browse_tmpdir),
         ("history", show_history),
         ("restart", task_restart),
         ("reset", task_reset),
