@@ -1,17 +1,28 @@
 from __future__ import print_function, division
 
+import os
 import collections
 import subprocess
+import tempfile
 
 from abipy.tools import which
 
 __all__ = [
-    "animator",
+    "FilesAnimator",
 ]
 
 
-class Animator(object):
+class FilesAnimator(object):
+    """
+    This object wraps the animate tool of ImageMagick.
+    If received a list of files and/or a list of `matplotlib` figures 
+    and creates an animation. 
 
+    .. note:
+        The module `matplotlib.animation` provides a much more powerful API for the 
+        creation of animation. `FilesAnimator` should only be used when we already 
+        have a list of files and figures and we want to create a simple animation.
+    """
     DEFAULT_OPTIONS = {
         "-delay": "100", # display the next image after pausing <1/100ths of a second>
     }
@@ -53,6 +64,12 @@ class Animator(object):
             self.add_figure(label, figure)
 
     def animate(self, **kwargs):
+        """
+        Calls `animate` in a subprocess.
+
+        Returns:
+            return code of the subprocess.
+        """
         figs = list(self._figures.values())
 
         options = []
@@ -63,9 +80,31 @@ class Animator(object):
             for k,v in kwargs.items():
                 options.extend([k, v])
 
-        command = [self.animate_bin] + options + figs
-        print(command)
+        # We have to create files before calling animate.
+        # If we have a matplotlib figure we call savefig 
+        tmp_dirname = tempfile.mkdtemp()
+        files = figs
 
+        files = []
+        for i, fig in enumerate(figs):
+
+            if hasattr(fig, "savefig"):
+                # matplotlib figure --> save it.
+                fname = os.path.join(tmp_dirname, "scratch_" + str(i) + ".png")
+                fig.savefig(fname)
+            else:
+                # Assume filepath.
+                fname = fig
+
+            assert os.path.isfile(fname)
+            files.append(fname)
+
+        command = [self.animate_bin] + options + files
+        print("will execute command:", command)
         retcode = subprocess.call(command)
+
+        # Remove the temporary directory.
+        #os.rmdir(tmp_dirname)
+
         return retcode
 

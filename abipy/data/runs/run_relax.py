@@ -10,13 +10,17 @@ def make_ion_ioncell_inputs():
     cif_file = data.cif_file("si.cif")
     structure = abilab.Structure.from_file(cif_file)
 
+    # Perturb the structure (random perturbation of 0.1 Angstrom)
+    structure.perturb(distance=0.1)
+
     pseudos = data.pseudos("14si.pspnc")
 
     global_vars = dict(
         ecut=4,  
-        ngkpt=[8,8,8], 
+        ngkpt=[4,4,4], 
         shiftk=[0,0,0],
         nshiftk=1,
+        chksymbreak=0,
     )
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
@@ -28,9 +32,10 @@ def make_ion_ioncell_inputs():
     # Dataset 1 (Atom Relaxation)
     inp[1].set_variables(
         optcell=0,
-        ionmov=1,
-        tolvrs=1e-6,
-        ntime=2,
+        ionmov=2,
+        tolrff=0.02,
+        tolmxf=5.0e-5,
+        ntime=50,
     )
 
     # Dataset 2 (Atom + Cell Relaxation)
@@ -39,8 +44,10 @@ def make_ion_ioncell_inputs():
         ionmov=2,
         ecutsm=0.5,
         dilatmx=1.1,
-        tolvrs=1e-6,
-        ntime=2,
+        tolrff=0.02,
+        tolmxf=5.0e-5,
+        strfact=100,
+        ntime=5,
         )
 
     ion_inp, ioncell_inp = inp.split_datasets()

@@ -126,7 +126,7 @@ def main():
     parser.add_argument('--loglevel', default="ERROR", type=str,
                          help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
-    parser.add_argument('paths', nargs="+", help="Directories containing ABINIT workflows")
+    parser.add_argument('path', help="File or directory containing the ABINIT flow")
 
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
@@ -173,37 +173,10 @@ def main():
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
 
-    paths = options.paths
+    # Read the flow from the pickle database.
+    flow = abilab.AbinitFlow.pickle_load(options.path)
 
-    # Walk through each directory in options.paths and find the pickle databases.
-    paths = []
-    for root in options.paths:
-        #print(root)
-        for dirpath, dirnames, filenames in os.walk(root):
-            for fname in filenames:
-
-                if fname == abilab.AbinitFlow.PICKLE_FNAME:
-                    paths.append(os.path.join(dirpath, fname))
-
-    #import cPickle as pickle
-    paths = [paths[0]]
-    #print("paths", str(paths))
-
-    options.paths = paths
     retcode = 0
-
-    if len(options.paths) == 0:
-        warnings.warn("The directories specifies do not contain any valid AbinitFlow")
-        return 1
-
-    if len(options.paths) > 1:
-        raise ValueError("Multiple flows are not supported")
-
-    path = options.paths[0]
-
-    # Read the worflow from the pickle database.
-    flow = abilab.AbinitFlow.pickle_load(path)
-
     if options.command == "gui":
         from abipy.gui.workflow_viewer import wxapp_flow_viewer
         wxapp_flow_viewer(flow).MainLoop()

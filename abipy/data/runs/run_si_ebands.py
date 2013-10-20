@@ -15,14 +15,12 @@ def make_scf_nscf_inputs():
     global_vars = dict(ecut=6,
                        nband=8,
                        timopt=-1,
-                       accesswff=3,
-                       istwfk="*1",
                     )
 
     inp.set_variables(**global_vars)
 
     # Dataset 1 (GS run)
-    inp.set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0], dtset=1)
+    inp[1].set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
     inp[1].set_variables(tolvrs=1e-6)
 
     # Dataset 2 (NSCF run)
@@ -43,8 +41,7 @@ def bands_flow(workdir):
     # Create the task defining the calculation and run.
     scf_input, nscf_input = make_scf_nscf_inputs()
                                                                
-    manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1)
-    #manager = abilab.TaskManager.from_user_config()
+    manager = abilab.TaskManager.from_user_config()
                                                                
     flow = abilab.bandstructure_flow(workdir, manager, scf_input, nscf_input)
     return flow.allocate()

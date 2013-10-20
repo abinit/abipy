@@ -13,7 +13,6 @@ from abipy.data.runs import Tester, enable_logging
 def relax_flow():
 
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1)
-    #manager = abilab.TaskManager.from_user_config()
     workdir = "relax_SiC"
                                                          
     flow = abilab.AbinitFlow(workdir, manager)
@@ -24,7 +23,6 @@ def relax_flow():
     global_vars = dict(
         chksymbreak=0,
         ecut = 20
-        #istwfk="*1",
     )
 
     ngkpt = [4,4,4]
@@ -63,6 +61,7 @@ def relax_flow():
     nscf_task = flow.register_task(nscf_inp, deps={relax_task: "DEN"}, task_class=abilab.NscfTask)
 
     return flow.allocate()
+
 
 @enable_logging
 def main():

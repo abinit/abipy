@@ -5,8 +5,8 @@ import collections
 import pymatgen
 import numpy as np
 
-from .constants import ArrayWithUnit
-from .symmetries import SpaceGroup
+from abipy.core.constants import ArrayWithUnit
+from abipy.core.symmetries import SpaceGroup
 from abipy.iotools import as_etsfreader, Visualizer
 from abipy.iotools import xsf
 
