@@ -51,7 +51,7 @@ def issamek(k1, k2, atol=1e-08):
     >>> issamek(0.00003, 1)
     False
     """
-    return isinteger(k1-k2, atol=atol)
+    return isinteger(np.asarray(k1)-np.asarray(k2), atol=atol)
 
 
 def wrap_to_ws(x):
