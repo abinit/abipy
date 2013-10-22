@@ -6,7 +6,6 @@ import collections
 import warnings
 import cStringIO as StringIO
 import numpy as np
-#import abipy.core.constants as const 
 
 from abipy.tools import find_le, find_ge, list_strings, is_string
 from abipy.core.func1d import Function1D

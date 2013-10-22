@@ -6,30 +6,20 @@ in a single location, so that test scripts can just import it and work right awa
 """
 from __future__ import print_function, division
 
-from unittest import TestCase
-
-import numpy.testing.utils as nptu
+from pymatgen.util.io_utils import which
+from pymatgen.util.testing import PymatgenTest
 
 __all__ = [
     "AbipyTest",
     "AbipyFileTest",
 ]
 
-class AbipyTest(TestCase):
+class AbipyTest(PymatgenTest):
     """Extend TestCase with functions from numpy.testing.utils that support ndarrays."""
-
-    @staticmethod
-    def assert_almost_equal(actual, desired, decimal=7, err_msg='', verbose=True):
-        return nptu.assert_almost_equal(actual, desired, decimal, err_msg, verbose)
-
-    @staticmethod
-    def assert_equal(actual, desired, err_msg='', verbose=True):
-        return nptu.assert_equal(actual, desired, err_msg=err_msg, verbose=verbose)
 
     @staticmethod
     def which(program):
         """Returns full path to a executable. None if not found or not executable."""
-        from pymatgen.util.io_utils import which
         return which(program)
 
 
@@ -50,7 +40,6 @@ class AbipyFileTest(AbipyTest):
         string = string.strip()
         string = '\n'.join([line.strip() for line in string.splitlines()])
         return string
-
 
     def assertContains(self, expression):
         """

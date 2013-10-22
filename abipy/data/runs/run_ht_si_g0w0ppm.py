@@ -6,10 +6,10 @@ import abipy.data as data
 
 from pymatgen.io.abinitio.abiobjects import AbiStructure
 from pymatgen.io.abinitio.calculations import g0w0_with_ppmodel
-from abipy.data.runs import Tester, decorate_main
+from abipy.data.runs import Tester, enable_logging
 
 
-@decorate_main
+@enable_logging
 def main():
     structure = AbiStructure.asabistructure(data.cif_file("si.cif"))
 
@@ -32,10 +32,10 @@ def main():
         timopt=-1,
     )
 
-    work = g0w0_with_ppmodel(tester.workdir, manager, structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx,
+    work = g0w0_with_ppmodel(structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx,
                              accuracy="normal", spin_mode="unpolarized", smearing=None, 
                              ppmodel="godby", charge=0.0, inclvkb=2, sigma_nband=None, scr_nband=None,
-                             **extra_abivars)
+                             workdir=tester.workdir, manager=manager, **extra_abivars)
 
     tester.set_work_and_run(work)
 

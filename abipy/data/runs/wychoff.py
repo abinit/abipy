@@ -11,7 +11,7 @@ import sys
 from abipy import abilab
 import abipy.data as data
 
-from abipy.data.runs import decorate_main
+from abipy.data.runs import enable_logging
 from abipy.abilab import FloatWithUnit
 
 
@@ -34,7 +34,7 @@ def special_positions(lattice, u):
     return abilab.Structure(lattice, species, coords, 
                             validate_proximity=True, coords_are_cartesian=False)
 
-def build_flow():
+def make_flow():
     pseudos = data.pseudos("14si.pspnc")
 
     base_structure = abilab.Structure.from_file(data.cif_file("si.cif"))
@@ -50,16 +50,15 @@ def build_flow():
 
     flow = abilab.AbinitFlow(workdir, manager)
 
-    # Create the list of workflows. 
-    # Each workflow defines a band structure calculation.
+    # Create the list of workflows. Each workflow defines a band structure calculation.
     for new_structure, u in zip(news, uparams):
         # Generate the workflow and register it.
-        flow.register_work(build_workflow(new_structure, pseudos))
+        flow.register_work(make_workflow(new_structure, pseudos))
 
     return flow.allocate()
 
 
-def build_workflow(structure, pseudos):
+def make_workflow(structure, pseudos):
     """
     Return a `Workflow` object defining a band structure calculation
     for given `Structure`.
@@ -93,11 +92,10 @@ def build_workflow(structure, pseudos):
     return abilab.BandStructureWorkflow(gs_inp, nscf_inp)
 
 
-@decorate_main
+@enable_logging
 def main():
-    flow = build_flow()
-    flow.build_and_pickle_dump()
-    return 0
+    flow = make_flow()
+    return flow.build_and_pickle_dump()
 
 if __name__ == "__main__":
     sys.exit(main())

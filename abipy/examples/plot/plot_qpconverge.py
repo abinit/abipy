@@ -2,7 +2,7 @@
 #
 # This example shows how to visualize the convergence of the 
 # QP results stored in the SIGRES produced by the GW code (sigma run).
-from abipy.electrons import SIGRES_Plotter
+from abipy.abilab import SIGRES_Plotter
 import abipy.data as data
 
 # List of SIGRES files computed with different values of nband.

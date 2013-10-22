@@ -1,90 +1,82 @@
 #!/usr/bin/env python
 from __future__ import division, print_function
 
-import os
-import sys
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from collections import namedtuple
-from abipy.data.runs import Tester, decorate_main
+from abipy.data.runs import enable_logging
 
-def build_workflows():
+def make_ion_ioncell_inputs():
+    cif_file = data.cif_file("si.cif")
+    structure = abilab.Structure.from_file(cif_file)
 
-    pseudo_dirname = data.pseudo_dir
-    pp_names = ["14si.pspnc"]
+    # Perturb the structure (random perturbation of 0.1 Angstrom)
+    structure.perturb(distance=0.1)
 
-    cif_names = ["si.cif"]
-    cif_dirname = data._CIF_DIRPATH
+    pseudos = data.pseudos("14si.pspnc")
 
-    ksampling_for_cif = {
-        "si.cif": dict(ngkpt=[8,8,8], shiftk=[0,0,0]),
-        #"foo.cif": dict(ngkpt=[12,12,8], shiftk=[0,0,0]),
-    }
+    global_vars = dict(
+        ecut=4,  
+        ngkpt=[4,4,4], 
+        shiftk=[0,0,0],
+        nshiftk=1,
+        chksymbreak=0,
+        paral_kgb=1,
+    )
 
-    pseudos = [os.path.join(pseudo_dirname, pp_name) for pp_name in pp_names]
+    inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
+    inp.set_structure(structure)
 
-    #Conf = namedtuple("Configuration",  "cif_file, pseudos vars")
-    #cif_file = [os.path.join(cif_dirname, cif_name) for cif_name in cif_names]
-    #configs = []
-    #for cif_file in cif_files:
-    #    configs.append(Conf(cif_file=cif_file,  pseudos=pseudos, vars={}))
+    # Global variables
+    inp.set_variables(**global_vars)
 
-    works = []
-    for cif, ksampling in ksampling_for_cif.items():
+    # Dataset 1 (Atom Relaxation)
+    inp[1].set_variables(
+        optcell=0,
+        ionmov=2,
+        tolrff=0.02,
+        tolmxf=5.0e-5,
+        ntime=50,
+    )
 
-        structure = abilab.Structure.from_file(os.path.join(cif_dirname, cif))
-
-        inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
-        inp.set_structure(structure)
-
-        # Global variables
-        #inp.set_variables(**conf.vars)
-
-        inp.set_kmesh(**ksampling)
-
-        # Dataset 1 (Atom Relaxation)
-        inp[1].set_variables(
-            optcell=0,
-            ionmov=1,
-            tolvrs=1e-6
+    # Dataset 2 (Atom + Cell Relaxation)
+    inp[2].set_variables(
+        optcell=1,
+        ionmov=2,
+        ecutsm=0.5,
+        dilatmx=1.1,
+        tolrff=0.02,
+        tolmxf=5.0e-5,
+        strfact=100,
+        ntime=5,
         )
 
-        # Dataset 2 (Atom + Cell Relaxation)
-        inp[2].set_variables(
-            optcell=1,
-            ionmov=1,
-            dilatmax=1.1,
-            tolvrs=1e-6,
-            getxred=-1,
-            )
+    ion_inp, ioncell_inp = inp.split_datasets()
+    return ion_inp, ioncell_inp
 
-        print(inp)
 
-        # Initialize the workflow.
-        tester = Tester()
-        manager = tester.make_manager()
+def relax_flow(workdir):
 
-        workdir = structure.formula + "_natom" + str(len(structure))
-        assert workdir not in [work.workdir for work in works]
-        work = abilab.Workflow(workdir, manager)
+    manager = abilab.TaskManager.from_user_config()
 
-        # Register the input.
-        work.register(inp)
+    flow = abilab.AbinitFlow(workdir, manager)
 
-        works.append(work)
+    ion_inp, ioncell_inp = make_ion_ioncell_inputs()
 
-    return works
+    work = abilab.RelaxWorkflow(ion_inp, ioncell_inp)
+                                                      
+    flow.register_work(work)
+    return flow.allocate()
 
-@decorate_main
+
+@enable_logging
 def main():
-    works = build_workflows()
-    for work in works:
-        #print("work",work.workdir)
-        work.build()
+    workdir = "IONCELL"
+    flow = relax_flow(workdir)
+    return flow.build_and_pickle_dump()
 
-    return 0
 
 if __name__ == "__main__":
+    import sys
     sys.exit(main())
 

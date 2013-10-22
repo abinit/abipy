@@ -89,7 +89,10 @@ Using abipy
 Basic usage
 -----------
 
-Here are some quick examples of the core capabilities and objects:
+Here are some quick examples of the core capabilities and objects.
+For a more detailed list of the features, look at the 
+`example page http://pythonhosted.org/abipy/examples/index.html`_ of the 
+official documentation.
 
 .. code-block:: pycon
 
@@ -109,7 +112,7 @@ The above example illustrates only the most basic capabilities of abipy.
 Advanced Usage
 --------------
 
-Users are strongly encouraged to explore the detailed `api docs <http://pythonhosted.org/abipy/api/index..html>`_.
+Users are strongly encouraged to explore the detailed `api docs <http://pythonhosted.org/abipy/api/index.html>`_.
 
 License
 =======

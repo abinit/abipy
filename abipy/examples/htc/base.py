@@ -2,7 +2,7 @@
 from __future__ import division
 
 import abipy.data as data
-from abipy.htc.input import AbiInput
+from abipy.abilab import AbiInput
 
 # Create an ABINIT input file with 1 dataset. 
 # Pseudos are located in the pseudo_dir directory.

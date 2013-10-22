@@ -115,7 +115,7 @@ class SpinKpointBandPanel(Panel):
         """Call the callback registered with `SetOnRightClick` (if any)."""
         if hasattr(self, "_on_item_right_click_callback"):
             skb = self.GetSKB()
-            self.log("In OnRightClick with skb %s" % str(skb))
+            #print("In OnRightClick with skb %s" % str(skb))
             self._on_item_right_click_callback(*skb)
 
     def SetOnItemSelected(self, callback):
@@ -129,7 +129,7 @@ class SpinKpointBandPanel(Panel):
         """Call the callback registered with `SetOnItemSelected` (if any)."""
         if hasattr(self, "_on_item_selected_callback"):
             skb = self.GetSKB()
-            self.log("In OnItemSelected with skb %s" % str(skb))
+            #print("In OnItemSelected with skb %s" % str(skb))
             self._on_item_selected_callback(*skb)
 
     def SetOnItemActivated(self, callback):
@@ -143,7 +143,7 @@ class SpinKpointBandPanel(Panel):
         """Call the callback registered with `SetOnItemActivated` (if any)."""
         if hasattr(self, "_on_item_activated_callback"):
             skb = self.GetSKB()
-            self.log("In OnItemActivated with skb %s" % str(skb))
+            #print("In OnItemActivated with skb %s" % str(skb))
             self._on_item_activated_callback(*skb)
 
 

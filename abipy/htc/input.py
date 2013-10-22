@@ -3,7 +3,6 @@ This module defines objects that faciliate the creation of the
 ABINIT input files. The syntax is similar to the one used 
 in ABINIT with small differences. 
 """
-
 from __future__ import print_function, division
 
 import os
@@ -11,6 +10,7 @@ import collections
 import warnings
 import itertools
 import copy
+import abc
 import numpy as np
 
 from pymatgen.io.abinitio.pseudos import PseudoTable
@@ -22,7 +22,7 @@ __all__ = [
 ]
 
 # Variables that must have a unique value throughout all the datasets.
-_NO_MULTI = [
+_ABINIT_NO_MULTI = [
     "jdtset",
     "ndtset",
     "ntypat",
@@ -40,11 +40,80 @@ _NO_MULTI = [
 ]
 
 
+class Input(object): 
+    """
+    Base class foor Input objects.
+
+    An input object must define have a make_input method 
+    that returns the string representation used by the client code.
+    """
+    __metaclass__ = abc.ABCMeta
+
+    def copy(self):
+        """Shallow copy of the input."""
+        return copy.copy(self)
+                                   
+    def deepcopy(self):
+        """Deep copy of the input."""
+        return copy.deepcopy(self)
+
+    def write(self, filepath):
+        """
+        Write the input file to file. Returns a string with the input.
+        """
+        dirname = os.path.dirname(filepath)
+        if not os.path.exists(dirname): 
+            os.makedirs(dirname)
+                                                                                      
+        # Write the input file.
+        #input_string = str(self)
+        input_string = self.make_input()
+        with open(filepath, "w") as fh:
+           fh.write(input_string)
+
+        return input_string
+
+    #@abc.abstractmethod
+    #def make_input(self)
+
+    #@abc.abstractproperty
+    #def structure(self):
+
+    #def set_structure(self, structure):
+
+    #def set_variables(self, dtset=0, **vars):
+    #    """
+    #    Set the value of a set of input variables.
+
+    #    Args:
+    #        dtset:
+    #            Int with the index of the dataset, slice object of iterable 
+    #        vars:
+    #            Dictionary with the variables.
+    #    """
+    #    for idt in self._dtset2range(dtset):
+    #        self[idt].set_variables(**vars)
+
+    #def remove_variables(self, keys, dtset=0):
+    #    """
+    #    Remove the variable listed in keys
+    #                                                                         
+    #    Args:
+    #        dtset:
+    #            Int with the index of the dataset, slice object of iterable 
+    #        keys:
+    #            List of variables to remove.
+    #    """
+    #    for idt in self._dtset2range(dtset):
+    #        self[idt].remove_variables(keys)
+
+
+
 class AbinitInputError(Exception):
     """Base error class for exceptions raised by `AbiInput`"""
 
 
-class AbiInput(object):
+class AbiInput(Input):
     """
     This object represents an ABINIT input file. It supports multi-datasets a
     and provides an easy-to-use interface for defining the variables of the calculation.
@@ -100,8 +169,11 @@ class AbiInput(object):
         if comment:
             self.set_comment(comment)
 
-    def __str__(self):
+    #def make_input(self):
+    #    return str(self)
 
+    def __str__(self):
+        """String representation i.e. the input file read by Abinit."""
         if self.ndtset > 1:
             s = ""
             for (i, dataset) in enumerate(self):
@@ -161,7 +233,7 @@ class AbiInput(object):
                 self[idt].set_variable(varname, value)
 
                 # Handle no_multi variables.
-                if varname in _NO_MULTI:
+                if varname in _ABINIT_NO_MULTI:
 
                     if varname in self[0]:
                         glob_value = np.array(self[0][varname])
@@ -218,18 +290,9 @@ class AbiInput(object):
 
         raise self.Error("Don't know how to convert %s to a range-like object" % str(dtset))
 
-    def copy(self):
-        """Shallow copy of the input."""
-        return copy.copy(self)
-                                   
-    def deepcopy(self):
-        """Deep copy of the input."""
-        return copy.deepcopy(self)
-
     def split_datasets(self):
         """
-        Split an input file with multiple datasets into a 
-        list of `ndtset` distinct input files.
+        Split an input file with multiple datasets into a  list of `ndtset` distinct input files.
         """
         # Propagate subclasses (if any)
         cls = self.__class__ 
@@ -238,6 +301,12 @@ class AbiInput(object):
         for i in range(self.ndtset):
             my_vars = self[i+1].allvars
             my_vars.pop("ndtset", None)
+
+            # Cannot use get*, ird* variables since links must be explicit.
+            for varname in my_vars:
+                if varname.startswith("get") or varname.startswith("ird"):
+                    err_msg = ("get* or ird* variables should not be present in the input when you split it into datasets")
+                    raise ValueError(err_msg)
 
             new = cls(pseudos=self.pseudos, ndtset=1)
             new.set_variables(**my_vars)
@@ -419,28 +488,16 @@ class AbiInput(object):
         for idt in self._dtset2range(dtset):
             self[idt].set_kptgw(kptgw, bdgw)
 
-    def write(self, filepath):
-        """
-        Write the input file to file filepath.
-        """
-        dirname = os.path.dirname(filepath)
-        if not os.path.exists(dirname):
-            os.makedirs(dirname)
-                                                                                      
-        # Write input file.
-        with open(filepath, "w") as fh:
-           fh.write(str(self))
-
-
 _UNITS = {
-        'bohr' : 1.0,
-        'angstrom' : 1.8897261328856432,
-        'hartree' : 1.0,
-        'Ha' : 1.0,
-        'eV' : 0.03674932539796232,
-        }
+    'bohr' : 1.0,
+    'angstrom' : 1.8897261328856432,
+    'hartree' : 1.0,
+    'Ha' : 1.0,
+    'eV' : 0.03674932539796232,
+}
 
 
+# TODO this should be the "actual" input file!
 class Dataset(collections.Mapping):
     """
     This object stores the ABINIT variables for a single dataset.
@@ -573,7 +630,7 @@ class Dataset(collections.Mapping):
         for var in keys:
             value = self[var]
             # Do not print NO_MULTI variables except for dataset 0.
-            if self.index != 0 and var in _NO_MULTI:
+            if self.index != 0 and var in _ABINIT_NO_MULTI:
                 continue
 
             # Print ndtset only if we really have datasets. 
@@ -608,7 +665,7 @@ class Dataset(collections.Mapping):
         self[varname] = value
 
         # Handle no_multi variables.
-        if varname in _NO_MULTI and self.index != 0:
+        if varname in _ABINIT_NO_MULTI and self.index != 0:
                                                                                                                       
             if varname in self.dt0:
                 glob_value = np.array(self.dt0[varname])

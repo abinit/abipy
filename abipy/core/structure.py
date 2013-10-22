@@ -5,8 +5,8 @@ import collections
 import pymatgen
 import numpy as np
 
-from .constants import ArrayWithUnit
-from .symmetries import SpaceGroup
+from abipy.core.constants import ArrayWithUnit
+from abipy.core.symmetries import SpaceGroup
 from abipy.iotools import as_etsfreader, Visualizer
 from abipy.iotools import xsf
 
@@ -309,12 +309,46 @@ class Structure(pymatgen.Structure):
     def write_structure(self, filename):
         """See `pymatgen.io.smartio.write_structure`"""
 
-        if filepath.endswith(".nc"):
+        if filename.endswith(".nc"):
             raise NotImplementedError("Cannot write a structure to a netcdfile file yet")
 
         else:
             from pymatgen.io.smartio import write_structure
             write_structure(self, filename)
+
+    def convert(self, format="cif"):
+        """
+        Convert the Abinit structure to CIF, POSCAR, CSSR 
+        and pymatgen's JSON serialized structures (json, mson)
+        """
+        prefix_dict = {
+            "POSCAR": "POSCAR",
+        }
+
+        # FIXME:
+        # Do we need symmetry operations here?
+        # perhaps if the CIF file is used.
+        suffix_dict = { 
+            "cif": ".cif",
+            "cssr": ".cssr",
+            "json": ".json",
+            "mson": ".mson",
+        }
+
+        if format not in prefix_dict.keys() and format not in suffix_dict.keys():
+            raise ValueError("Unknown format %s" % format)
+
+        prefix = prefix_dict.get(format, "tmp")
+        suffix = suffix_dict.get(format, "")
+
+        import tempfile
+        tmp_file = tempfile.NamedTemporaryFile(suffix=suffix, prefix=prefix, mode="rw")
+
+        self.write_structure(tmp_file.name)
+
+        tmp_file.seek(0)
+
+        return tmp_file.read()
 
     def displace(self, displ, eta, frac_coords=True):
         """

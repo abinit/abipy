@@ -5,7 +5,7 @@ import sys
 import os
 
 from string import maketrans, punctuation
-from pymatgen.util.string_utils import is_string, list_strings, pprint_table
+from pymatgen.util.string_utils import is_string, list_strings, pprint_table, WildCard
 
 
 _TABLE = maketrans("", "")

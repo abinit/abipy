@@ -8,15 +8,15 @@ import copy
 import itertools
 import warnings
 import numpy as np
-import abipy.core.constants as const
+
+from abipy.core import constants as const
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, Kpath, IrredZone, KpointsReaderMixin
 from abipy.tools import AttrDict
 from abipy.iotools import ETSF_Reader, Visualizer, bxsf_write
 from abipy.tools import gaussian
-
-from abipy.tools.animator import Animator
-from .edos import ElectronDOS
+from abipy.electrons.edos import ElectronDOS
+from abipy.tools.animator import FilesAnimator
 
 __all__ = [
     "ElectronBands",
@@ -237,12 +237,12 @@ class ElectronBands(object):
 
     @classmethod
     def from_file(cls, filepath):
-        """Initialize an instance of ElectronBands from a netCDF file."""
+        """Initialize an instance of `ElectronBands` from a netCDF file."""
         if filepath.endswith(".nc"):
             with ElectronsReader(filepath) as r:
                 new = r.read_ebands()
         else:
-            raise NotImplementedError("")
+            raise NotImplementedError("ElectronBands can only be initialized from nc files")
 
         assert new.__class__ == cls
         return new
@@ -271,10 +271,12 @@ class ElectronBands(object):
     # Handy variables used to loop
     @property
     def spins(self):
+        """Spin range"""
         return range(self.nsppol)
 
     @property
     def kidxs(self):
+        """Range with the index of the k-points."""
         return range(self.nkpt)
 
     @property
@@ -353,6 +355,7 @@ class ElectronBands(object):
 
     @property
     def widths(self):
+        """Widths dictionary"""
         try:
             return self._widths
         except AttributeError:
@@ -374,7 +377,7 @@ class ElectronBands(object):
             except AttributeError:
                 pass
 
-    def set_width(self, key, width):
+    def set_width(self, key, width, overwrite=True):
         """
         Set an entry in the widths dictionary.
 
@@ -389,8 +392,9 @@ class ElectronBands(object):
         if not hasattr(self, "_widths"):
             self._widths = collections.OrderedDict()
 
-        if key in self.widths:
-            raise ValueError("Cannot overwrite key %s in data" % key)
+        if not overwrite and key in self.widths:
+            if not np.allclose(widths, self.widths[key]):
+                raise ValueError("Cannot overwrite key %s in data" % key)
 
         if np.any(np.iscomplex(width)):
             raise ValueError("Found ambiguous complex entry %s" % str(width))
@@ -518,7 +522,7 @@ class ElectronBands(object):
 
         if self.kpoints.is_path:
             labels_dict = {k.name: k.frac_coords for k in self.kpoints if k.name is not None}
-            #print("in SymmLine", labels_dict)
+            #print("in BandStructureSymmLine with labes_dict", labels_dict)
             return BandStructureSymmLine(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, efermi, labels_dict,
                                         coords_are_cartesian=False, 
                                         structure=self.structure,
@@ -1155,13 +1159,13 @@ class ElectronBands(object):
         ax2.yaxis.set_ticks_position("right")
         ax2.yaxis.set_label_position("right")
 
+        fig = plt.gcf()
         if title:
             fig.suptitle(title)
 
         if show:
             plt.show()
 
-        fig = plt.gcf()
         if savefig is not None:
             fig.savefig(savefig)
 
@@ -1252,8 +1256,28 @@ class ElectronBandsPlotter(object):
     _LINE_WIDTHS = [2,]
 
     def __init__(self):
-        self._bands = collections.OrderedDict()
-        self._edoses = collections.OrderedDict()
+        self._bands_dict = collections.OrderedDict()
+        self._edoses_dict = collections.OrderedDict()
+
+    @property
+    def bands_dict(self):
+        """Dictionary with the mapping label --> ebands."""
+        return self._bands_dict
+
+    @property
+    def edoses_dict(self):
+        """Dictionary with the mapping label --> edos."""
+        return self._edoses_dict
+
+    @property
+    def ebands_list(self):
+        """"List of `ElectronBands`."""
+        return list(self._bands.values())
+
+    @property
+    def edoses_list(self):
+        """"List of `ElectronDos`."""
+        return list(self._edoses_dict.values())
 
     def iter_lineopt(self):
         """Generates style options for lines."""
@@ -1283,13 +1307,13 @@ class ElectronBandsPlotter(object):
             dos:
                 `ElectronDos` object.
         """
-        if label in self._bands:
-            raise ValueError("label %s is already in %s" % (label, self._bands.keys()))
+        if label in self._bands_dict:
+            raise ValueError("label %s is already in %s" % (label, self._bands_dict.keys()))
 
-        self._bands[label] = bands
+        self._bands_dict[label] = bands
 
         if dos is not None:
-            self._edoses[label] = dos
+            self.edoses_dict[label] = dos
 
     def add_ebands_list(self, labels, bands_list, dos_list=None):
         """
@@ -1346,7 +1370,7 @@ class ElectronBandsPlotter(object):
         from matplotlib.gridspec import GridSpec
 
         # Build grid of plots.
-        if self._edoses:
+        if self.edoses_dict:
             gspec = GridSpec(1, 2, width_ratios=[2, 1])
             ax1 = plt.subplot(gspec[0])
             # Align bands and DOS.
@@ -1372,14 +1396,19 @@ class ElectronBandsPlotter(object):
         lines, legends = [], []
         my_kwargs, opts_label = kwargs.copy(), {}
         i = -1
-        for (label, bands), lineopt in zip(self._bands.items(), self.iter_lineopt()):
+        for (label, bands), lineopt in zip(self._bands_dict.items(), self.iter_lineopt()):
             i += 1
             my_kwargs.update(lineopt)
             opts_label[label] = my_kwargs.copy()
 
             l = bands.plot_ax(ax1, spin=None, band=None, *args, **my_kwargs)
             lines.append(l[0])
-            legends.append("%s" % label)
+
+            # Use relative paths if label is a file.
+            if os.path.isfile(label):
+                legends.append("%s" % os.path.relpath(label))
+            else:
+                legends.append("%s" % label)
 
             # Set ticks and labels, legends.
             if i == 0:
@@ -1388,9 +1417,9 @@ class ElectronBandsPlotter(object):
         ax.legend(lines, legends, 'best', shadow=True)
 
         # Add DOSes
-        if self._edoses:
+        if self.edoses_dict:
             ax = ax_list[1]
-            for (label, dos) in self._edoses.items():
+            for (label, dos) in self.edoses_dict.items():
                 dos.plot_ax(ax, exchange_xy=True, **opts_label[label])
 
         if show:
@@ -1401,18 +1430,45 @@ class ElectronBandsPlotter(object):
 
         return fig
 
-    #def animate(self, **kwargs):
-    #    from abipy.tools.animator import Animator
-    #    animator = Animator()
-    #    figures = collections.OrderedDict()
-    #    for label, bands in self._bands.items():
-    #        if self._edoses:
-    #            fig = bands.plot_with_edos(self._edoses[label], show=False)
-    #        else
-    #            fig = bands.plot(show=False)
-    #        figures[label] = fig
-    #    #animator.add_figures(figures, figures)
-    #    #return animator.animate(**kwargs)
+    def animate_files(self, **kwargs):
+        animator = FilesAnimator()
+        figures = collections.OrderedDict()
+
+        for label, bands in self.bands_dict.items():
+            if self.edoses_dict:
+                fig = bands.plot_with_edos(self.edoses_dict[label], show=False)
+            else:
+                fig = bands.plot(show=False)
+
+            figures[label] = fig
+
+        animator.add_figures(labels=figures.keys(), figure_list=figures.values())
+        return animator.animate(**kwargs)
+
+    def animate(self, **kwargs):
+        "See http://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/"
+        import matplotlib.pyplot as plt
+        import matplotlib.animation as animation
+
+        fig, ax = plt.subplots()
+        bands = list(self.bands_dict.values())
+
+        def cbk_animate(i):
+            #line.set_ydata(np.sin(x+i/10.0))  # update the data
+            print("in animate with %d" % i)
+            return bands[i].plot_ax(ax, spin=None, band=None)
+            #lines = bands[i].plot_ax(ax, spin=None, band=None)
+            #line = lines[0]
+            #return line
+
+        # initialization function: plot the background of each frame
+        def init():
+            return bands[0].plot_ax(ax, spin=None, band=None)
+            #line.set_data([], [])
+            #return line,
+
+        ani = animation.FuncAnimation(fig, cbk_animate, frames=len(bands), interval=125, blit=True, init_func=init)
+        plt.show()
 
 
 class ElectronDosPlotter(object):
@@ -1424,16 +1480,26 @@ class ElectronDosPlotter(object):
     #_LINE_WIDTHS = [2,]
 
     def __init__(self):
-        self._edoses = collections.OrderedDict()
+        self._edoses_dict = collections.OrderedDict()
 
     #def iter_lineopt(self):
     #    """Generates style options for lines."""
     #    for o in itertools.product( self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
     #        yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
 
+    @property
+    def edoses_dict(self):
+        """Dictionary with the DOSes"""
+        return self._edoses_dict
+
+    @property
+    def edoses(self):
+        """List of DOSes"""
+        return list(self._edoses.values())
+
     def add_edos_from_file(self, filepath, label=None, method="gaussian", step=0.1, width=0.2):
         """
-        Adds a dos for plotting. Reads data from a Netcdfile
+        Adds a dos for plotting. Reads data from a Netcd file
         """
         from abipy import abiopen
         ebands = abiopen(filepath).ebands
@@ -1452,10 +1518,10 @@ class ElectronDosPlotter(object):
             dos:
                 `ElectronDos` object.
         """
-        if label in self._edoses:
-            raise ValueError("label %s is already in %s" % (label, self._edoses.keys()))
+        if label in self.edoses_dict:
+            raise ValueError("label %s is already in %s" % (label, self._edoses_dict.keys()))
 
-        self._edoses[label] = edos
+        self._edoses_dict[label] = edos
 
     def plot(self, **kwargs):
         """
@@ -1481,7 +1547,11 @@ class ElectronDosPlotter(object):
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
 
-        for (label, dos) in self._edoses.items():
+        for (label, dos) in self.edoses_dict.items():
+            # Use relative paths if label is a file.
+            if os.path.isfile(label):
+                label = os.path.relpath(label)
+
             dos.plot_ax(ax, label=label)
 
         ax.grid(True)
@@ -1504,12 +1574,13 @@ class ElectronDosPlotter(object):
         animator = Animator()
         tmpdir = tempfile.mkdtemp()
                                                                              
-        for (label, dos) in self._edoses.items():
+        for (label, dos) in self.edoses_dict.items():
             savefig = os.path.join(tmpdir, label + ".png")
             dos.plot(show=False, savefig=savefig)
             animator.add_figure(label, savefig)
 
         return animator.animate(**kwargs)
+
 
 class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
     """
@@ -1577,14 +1648,14 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
 
 #class NestingFactor(object):
 #
-#    def __init__(self, bands):
+#    def __init__(self, ebands):
 #
-#        self.bands = bands
+#        self.ebands = ebands
 #
 #        # Check whether k-points form a homogeneous sampling.
-#        if not self.bands.has_bzmesh:
-#            msg = "The computation of the nesting factor requires a homogeneous k-point sampling"
-#            raise ValueError(msg)
+#        if not ebands.has_bzmesh:
+#            err_msg = "The computation of the nesting factor requires a homogeneous k-point sampling"
+#            raise ValueError(err_msg)
 #
 #    @classmethod
 #    def from_file(cls, filepath):
@@ -1600,5 +1671,3 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
 #    def plot(self, qpath):
 #        nesting = self.compute_nesting(qpath)
 #        nesting.plot()
-
-#########################################################################################

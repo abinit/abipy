@@ -7,9 +7,9 @@ import numpy as np
 import abipy.abilab as abilab
 import abipy.data as data  
 
-from abipy.data.runs import Tester, decorate_main
+from abipy.data.runs import Tester, enable_logging
 
-def build_flow():
+def raman_flow():
     pseudos = data.pseudos("14si.pspnc")
 
     # Get the unperturbed structure.
@@ -29,18 +29,19 @@ def build_flow():
 
     # Initialize flow. Each workflow in the flow defines a complete BSE calculation for given eta.
     workdir = os.path.join(os.path.dirname(__file__), base_structure.formula + "_RAMAN")
-    #manager = abilab.TaskManager.from_file("taskmanager.yaml")
-    manager = abilab.TaskManager.simple_mpi()
+
+    manager = abilab.TaskManager.from_user_config()
 
     flow = abilab.AbinitFlow(workdir, manager)
 
     # Generate the different shifts to average
     ndiv = 2
     shift1D = np.arange(1,2*ndiv+1,2)/(2*ndiv)
-    allshifts = [[x,y,z] for x in shift1D for y in shift1D for z in shift1D]
+    all_shifts = [[x,y,z] for x in shift1D for y in shift1D for z in shift1D]
+    all_shifts = [[0, 0, 0]]
 
     for structure, eta in zip(displaced_structures, etas):
-        for shift in allshifts:
+        for shift in all_shifts:
             flow.register_work(raman_workflow(structure, pseudos, shift))
 
     return flow.allocate()
@@ -54,6 +55,9 @@ def raman_workflow(structure, pseudos, shiftk):
         ecut=12,
         istwfk="*1",
         chksymbreak=0,
+        #nstep=4,
+        nstep=10,
+        paral_kgb=1,
     )
 
     # GS run
@@ -91,7 +95,7 @@ def raman_workflow(structure, pseudos, shiftk):
         ecuteps=3,
         inclvkb=2,
         bs_algorithm=2,       # Haydock
-        bs_haydock_niter=60,  # No. of iterations for Haydock
+        bs_haydock_niter=4,  # No. of iterations for Haydock
         bs_exchange_term=1,
         bs_coulomb_term=21,   # Use model W and full W_GG.
         mdf_epsinf=12.0,
@@ -108,12 +112,12 @@ def raman_workflow(structure, pseudos, shiftk):
     return abilab.BSEMDF_Workflow(scf_inp, nscf_inp, bse_inp)
 
 
-@decorate_main
+@enable_logging
 def main():
-    # Build the list of workflows.
-    flow = build_flow()
-    flow.build_and_pickle_dump()
-    return 0
+    # Define the flow, build files and dirs 
+    # and save the object in cpickle format.
+    flow = raman_flow()
+    return flow.build_and_pickle_dump()
 
 
 if __name__ == "__main__":
