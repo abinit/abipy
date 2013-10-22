@@ -71,8 +71,7 @@ def ph_flow():
            for that particular q-point.
     """
     workdir = "PHONONS"
-    manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=dict(autoparal=0, max_ncpus=1))
-    #manager = abilab.TaskManager.from_user_config()
+    manager = abilab.TaskManager.from_user_config()
 
     all_inps = scf_ph_inputs()
     scf_input, ph_inputs = all_inps[0], all_inps[1:]

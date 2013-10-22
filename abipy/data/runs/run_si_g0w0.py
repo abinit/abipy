@@ -90,7 +90,6 @@ def make_inputs(ngkpt):
     # Dataset 2 (NSCF run)
     # Here we select the second dataset directly with the syntax inp[2]
     inp[2].set_variables(iscf=-2,
-                         #getden=1,
                          tolwfr=1e-12,
                          nband=35,
                          nbdbuf=5,
@@ -99,7 +98,6 @@ def make_inputs(ngkpt):
     # Dataset3: Calculation of the screening.
     inp[3].set_variables(
         optdriver=3,   
-        #getkss=2,      
         nband=25,    
         ecutwfn=ecut,   
         symchi=1,
@@ -123,8 +121,6 @@ def make_inputs(ngkpt):
     for idx, nband in enumerate([10, 20, 30]):
         inp[4+idx].set_variables(
             optdriver=4,
-            #getkss=2,      
-            #getscr=3,     
             nband=nband,      
             ecutwfn=ecut,
             ecuteps=4.0,

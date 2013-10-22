@@ -12,7 +12,7 @@ import argparse
 import abipy.abilab as abilab
 
 from pymatgen.io.abinitio.launcher import PyFlowsScheduler, PyLauncher
-from abipy.tools import pprint_table, StringColorizer
+
 
 def str_examples():
     examples = """
@@ -68,51 +68,7 @@ def treat_flow(flow, options):
         sched.start()
 
     if options.command == "status":
-        colorizer = StringColorizer(stream=sys.stdout)
-
-        for i, work in enumerate(flow):
-            print(80*"=")
-            print("Workflow #%d: %s, Finalized=%s\n" % (i, work, work.finalized) )
-
-            table = [[
-                     "Task", "Status", "Queue_id", 
-                     "Errors", "Warnings", "Comments", 
-                     "MPI", "OMP", 
-                     "num_restarts", "max_restarts", "Task Class"
-                     ]]
-
-            for task in work:
-                task_name = os.path.basename(task.name)
-
-                # Parse the events in the main output.
-                report = task.get_event_report()
-
-                events = map(str, 3*["N/A"])
-                if report is not None: 
-                    events = map(str, [report.num_errors, report.num_warnings, report.num_comments])
-
-                #colour = {
-                #    #task.S_READY: "Ready",
-                #    #task.S_SUB: "Submitted",
-                #    #task.S_RUN: "Running",
-                #    #task.S_DONE: "Done",
-                #    #task.S_UNCONVERGED: "Done",
-                #    task.S_ERROR: "red",
-                #    task.S_OK: "blue",
-                #}.get(task.status, None)
-                #task_name = colorizer(task_name, colour)
-
-                cpu_info = map(str, [task.mpi_ncpus, task.omp_ncpus])
-                task_info = map(str, [task.num_restarts, task.max_num_restarts, task.__class__.__name__])
-
-                table.append(
-                    [task_name, str(task.status), str(task.queue_id)] + 
-                    events + 
-                    cpu_info + 
-                    task_info
-                    )
-
-            pprint_table(table)
+        flow.show_status()
 
     return retcode
 

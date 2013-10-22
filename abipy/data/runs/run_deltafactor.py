@@ -15,12 +15,10 @@ def delta_flow():
     pseudo = data.pseudos("14si.pspnc")[0]
 
     # Manager used to submit the jobs.
-    manager = abilab.TaskManager.simple_mpi(mpi_ncpus=2)
-
-    # Use this for manneback and edit the YAML file according to your platform
-    #manager = abilab.TaskManager.from_user_config()
+    manager = abilab.TaskManager.from_user_config()
 
     # Initialize the flow.
+    # FIXME
     # Don't know why protocol=-1 does not work here.
     flow = abilab.AbinitFlow(workdir="DELTAFACTOR", manager=manager, pickle_protocol=0)
 

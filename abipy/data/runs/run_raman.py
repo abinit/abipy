@@ -30,8 +30,7 @@ def raman_flow():
     # Initialize flow. Each workflow in the flow defines a complete BSE calculation for given eta.
     workdir = os.path.join(os.path.dirname(__file__), base_structure.formula + "_RAMAN")
 
-    #manager = abilab.TaskManager.from_user_config()
-    manager = abilab.TaskManager.simple_mpi()
+    manager = abilab.TaskManager.from_user_config()
 
     flow = abilab.AbinitFlow(workdir, manager)
 
@@ -56,7 +55,9 @@ def raman_workflow(structure, pseudos, shiftk):
         ecut=12,
         istwfk="*1",
         chksymbreak=0,
-        nstep=4,
+        #nstep=4,
+        nstep=10,
+        paral_kgb=1,
     )
 
     # GS run

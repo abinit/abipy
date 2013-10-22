@@ -19,4 +19,6 @@ qtype: shell
 mpi_runner: mpirun
 policy:
     autoparal: 1
-    max_ncpus: 2
+    max_ncpus: 4
+    mode: aggressive
+    condition: {$and: [ {efficiency: {$gt: 0.7}}, {tot_ncpus: {$divisible: 2}} ]}

@@ -1,5 +1,6 @@
 from __future__ import print_function, division
 
+import os
 import wx
 import warnings
 import abipy.gui.awx as awx
@@ -17,12 +18,14 @@ from abipy.electrons import ElectronBands
 
 def showElectronDosFrame(parent, filepath):
     bands = ElectronBands.from_file(filepath)
-    ElectronDosFrame(parent, bands, title="File: %s" % filepath).Show()
+    title = "File: " % os.path.relpath(filepath)
+    ElectronDosFrame(parent, bands, title=title).Show()
 
 
 def showElectronBandsPlot(parent, filepath):
     ebands = ElectronBands.from_file(filepath)
-    ebands.plot(title="File: %s" % filepath)
+    title = "File: " % os.path.relpath(filepath)
+    ebands.plot(title=title)
 
 
 def showElectronJdosFrame(parent, filepath):

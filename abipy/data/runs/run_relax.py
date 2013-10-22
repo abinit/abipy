@@ -21,6 +21,7 @@ def make_ion_ioncell_inputs():
         shiftk=[0,0,0],
         nshiftk=1,
         chksymbreak=0,
+        paral_kgb=1,
     )
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
