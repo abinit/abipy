@@ -136,13 +136,12 @@ class FlowViewerFrame(awx.Frame):
 
         # Here we create a panel and a notebook on the panel
         self.notebook = Notebook(panel, self.flow)
-
-        main_sizer.Add(self.notebook, 1, wx.EXPAND, 5)
+        main_sizer.Add(self.notebook, 1, wx.EXPAND , 5)
 
         submit_button = wx.Button(panel, -1, label='Submit')
         submit_button.Bind(wx.EVT_BUTTON, self.OnSubmitButton)
 
-        text = wx.StaticText(self, -1, "Max nlaunch:")
+        text = wx.StaticText(panel, -1, "Max nlaunch:")
         text.Wrap(-1)
         text.SetToolTipString("Maximum number of tasks that can be submitted. Use -1 for unlimited launches.")
         self.max_nlaunch = wx.SpinCtrl(panel, -1, value="1", min=-1)
@@ -370,16 +369,17 @@ class TabPanel(wx.Panel):
 
         # List Control with the individual tasks of the workflow.
         task_listctrl = TaskListCtrl(self, work)
-        main_sizer.Add(task_listctrl, 1, wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 5)
+        main_sizer.Add(task_listctrl, 1, wx.EXPAND, 5)
 
         label = wx.StaticText(self, -1, "Workflow class %s, status: %s, finalized: %s" % (
             work.__class__.__name__, work.status, work.finalized))
         label.Wrap(-1)
-
         main_sizer.Add(label, 0, wx.ALIGN_LEFT, 5)
+
         self.SetSizerAndFit(main_sizer)
 
-
+#from abipy.gui.browser import MyListCtrl
+#class TaskListCtrl(MyListCtrl):
 class TaskListCtrl(wx.ListCtrl):
     """
     """
@@ -404,6 +404,9 @@ class TaskListCtrl(wx.ListCtrl):
         for (index, col) in enumerate(columns):
             self.InsertColumn(index, col)
 
+        # Used to store the Max width in pixels for the data in the column.
+        column_widths = [awx.get_width_height(self, s)[0] for s in columns]
+
         for task in work:
             events = map(str, 3*["N/A"])
 
@@ -420,11 +423,15 @@ class TaskListCtrl(wx.ListCtrl):
                               cpu_info + 
                               [task.num_restarts, task.max_num_restarts, task.__class__.__name__]
                         )
+            w = [awx.get_width_height(self, s)[0] for s in entry]
+            column_widths = map(max, zip(w, column_widths))
 
             self.Append(entry)
 
+        # Set the width in pixel for each column.
         for (index, col) in enumerate(columns):
-            self.SetColumnWidth(index, wx.LIST_AUTOSIZE)
+            self.SetColumnWidth(index, column_widths[index])
+            #self.SetColumnWidth(index, wx.LIST_AUTOSIZE)
 
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick)
         #self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
@@ -443,10 +450,8 @@ class TaskListCtrl(wx.ListCtrl):
     #def OnItemActivated(self, event):
     #    currentItem = event.m_itemIndex
     #    task = self.work[currentItem]
-
     #    if task.can_run:
     #        task.start()
-
     #    # This is to update the database.
     #    self.flow.pickle_dump()
 

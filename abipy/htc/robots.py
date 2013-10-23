@@ -7,6 +7,7 @@ import abc
 import numpy as np
 
 from abipy import abilab
+from abipy.electrons.gsr import GSR_Reader
 
 from pymatgen.io.abinitio.flows import AbinitFlow
 
@@ -86,7 +87,7 @@ class FlowRobot(object):
 
     def collect_data(self, *args, **kwargs):
         """
-        Collect the data. Subclasses should provide their own implemetation (if needed).
+        Collect the data. Subclasses should provide their own implementation (if needed).
         """
                                                      
     @abc.abstractmethod
@@ -128,24 +129,26 @@ class EosRobot(FlowRobot):
     """
 
     def collect_data(self, *args, **kwargs):
-        self.volumes = [13.72, 14.83, 16.0, 17.23, 18.52]
-        self.energies = [-56.29, -56.41, -56.46, -56.46, -56.42]
+        #self.volumes = [13.72, 14.83, 16.0, 17.23, 18.52]
+        #self.energies = [-56.29, -56.41, -56.46, -56.46, -56.42]
 
-        #volumes, energies = [], []
-        #for task, wi, ti in self.flow.iflat_tasks():
-        #    directory = getattr(task, "outdir")
-        #    if type(task) != abilab.ScfTask:
-        #        continue
-        #                                                                            
-        #    gsr_filepath = directory.has_abiext("GSR")
-        #    if gsr_filepath:
-        #        with GSR_Reader(gsr_filepath) as r:
-        #           structure = r.read_structure()
-        #           etotal = r.read_etotal()
-        #           etotals.append(etotal)   
-        #           volumes.append(structure.volume)
-        
-        self.etotals = np.array(etotals)
+        volumes, etotals = [], []
+        for task, wi, ti in self.flow.iflat_tasks():
+            directory = getattr(task, "outdir")
+            if type(task) != abilab.ScfTask:
+                continue
+                                                                                    
+            gsr_filepath = directory.has_abiext("GSR")
+            if gsr_filepath:
+                with GSR_Reader(gsr_filepath) as r:
+                   structure = r.read_structure()
+                   # Volumes are in Ang^3
+                   volumes.append(structure.volume)
+
+                   # Read energy in Hartree
+                   etotals.append(r.read_value("etotal"))
+
+        self.etotals = abilab.ArrayWithUnit(etotals, "Ha").to("eV")
         self.volumes = np.array(volumes)
 
     def analyze_data(self, *args, **kwargs):
@@ -157,7 +160,7 @@ class EosRobot(FlowRobot):
            eos = abilab.EOS(eos_name=eos_name)
            # Note that eos.fit expects lengths in Angstrom, energies are in eV.
            # To specify different units use len_units and ene_units 
-           fits.append(eos.fit(self.volumes, self.energies, vol_unit="bohr^3", ene_unit="Ha"))
+           fits.append(eos.fit(self.volumes, self.etotals, vol_unit="ang^3", ene_unit="eV"))
 
         return fits
 
@@ -167,6 +170,7 @@ class FlowInspector(FlowRobot):
     def analyze_data(self, *args, **kwargs):
         """Analyze the collected data."""
         # List of SIGRES files computed with different values of nband.
+        show = kwargs.get("show", True)
 
         from pymatgen.io.abinitio.tasks import Task
         from pymatgen.io.abinitio.abiinspect import  plottable_from_outfile
@@ -176,9 +180,10 @@ class FlowInspector(FlowRobot):
         for out in out_files:
             obj = plottable_from_outfile(out)
             if obj is not None:
-                figs.append(obj.plot(title=os.path.relpath(out), show=False))
+                figs.append(obj.plot(title=os.path.relpath(out), show=show))
 
         return figs
+
 
 class SigresRobot(FlowRobot):
 

@@ -134,6 +134,9 @@ install_requires = [
     #"wxPython",
     #"wxmplot",
     #"termcolor",
+    #"ipython",
+    #"pyzmq", # for the notebook
+    #"jinja2",
 ]
 
 #---------------------------------------------------------------------------

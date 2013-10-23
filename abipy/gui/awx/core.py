@@ -21,6 +21,7 @@ __all__ = [
     "Panel",
     "Frame",
     "FRAME_SIZE",
+    "get_width_height",
 ]
 
 _DEBUG = True
@@ -94,3 +95,17 @@ class Frame(wx.Frame):
             kwargs["title"] = self.__class__.__name__
         
         super(Frame, self).__init__(parent, *args, **kwargs)
+
+
+def get_width_height(window, string, pads=(10,10)):
+    """
+    Returns the width and the height (in pixels) of a string used in window.
+    Returns are padded with pads
+
+    See http://docs.wxwidgets.org/2.8/wx_wxdc.html#wxdcgettextextent
+    """
+    f = window.GetFont()
+    dc = wx.WindowDC(window)
+    dc.SetFont(f)
+    width, height = dc.GetTextExtent(string)
+    return width + pads[0], height + pads[1]

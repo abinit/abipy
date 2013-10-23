@@ -18,13 +18,13 @@ from abipy.electrons import ElectronBands
 
 def showElectronDosFrame(parent, filepath):
     bands = ElectronBands.from_file(filepath)
-    title = "File: " % os.path.relpath(filepath)
+    title = "File: %s" % os.path.relpath(filepath)
     ElectronDosFrame(parent, bands, title=title).Show()
 
 
 def showElectronBandsPlot(parent, filepath):
     ebands = ElectronBands.from_file(filepath)
-    title = "File: " % os.path.relpath(filepath)
+    title = "File: %s" % os.path.relpath(filepath)
     ebands.plot(title=title)
 
 

@@ -1431,6 +1431,10 @@ class ElectronBandsPlotter(object):
         return fig
 
     def animate_files(self, **kwargs):
+        """
+        See http://visvis.googlecode.com/hg/vvmovie/images2gif.py
+        for a (much better) approach
+        """
         animator = FilesAnimator()
         figures = collections.OrderedDict()
 
@@ -1453,22 +1457,30 @@ class ElectronBandsPlotter(object):
         fig, ax = plt.subplots()
         bands = list(self.bands_dict.values())
 
+        plot_opts = {"color": "black", "linewidth": 2.0}
+
         def cbk_animate(i):
             #line.set_ydata(np.sin(x+i/10.0))  # update the data
             print("in animate with %d" % i)
-            return bands[i].plot_ax(ax, spin=None, band=None)
+            return bands[i].plot_ax(ax, spin=None, band=None, **plot_opts)
             #lines = bands[i].plot_ax(ax, spin=None, band=None)
             #line = lines[0]
             #return line
 
         # initialization function: plot the background of each frame
         def init():
-            return bands[0].plot_ax(ax, spin=None, band=None)
+            return bands[0].plot_ax(ax, spin=None, band=None, **plot_opts)
             #line.set_data([], [])
             #return line,
 
-        ani = animation.FuncAnimation(fig, cbk_animate, frames=len(bands), interval=125, blit=True, init_func=init)
-        plt.show()
+        anim = animation.FuncAnimation(fig, cbk_animate, frames=len(bands), interval=250, blit=True, init_func=init)
+
+        #anim.save('im.mp4', metadata={'artist':'gmatteo'})
+
+        if kwargs.get("show", True):
+            plt.show()
+
+        return anim
 
 
 class ElectronDosPlotter(object):
