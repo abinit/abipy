@@ -1038,7 +1038,12 @@ class ElectronBands(object):
         ax.grid(True)
         ax.set_xlabel('k-point')
         ax.set_ylabel('Energy [eV]')
-        ax.legend(loc="best", shadow=True)
+
+        # FIXME:
+        # This causes the annoying warning
+        #UserWarning: No labeled objects found. Use label='...' kwarg on individual plots.
+        # perhaps a method ax_finalize?
+        #ax.legend(loc="best", shadow=True)
 
         # Set ticks and labels.
         ticks, labels = self._make_ticks_and_labels(kwargs.pop("klabels", None))
@@ -1051,6 +1056,10 @@ class ElectronBands(object):
         """Helper function to plot the energies for (spin,band) on the axis ax."""
         spin_range = range(self.nsppol) if spin is None else [spin]
         band_range = range(self.mband) if band is None else [band]
+
+        # Disable labels.
+        if "label" not in kwargs:
+            kwargs["label"] = "_no_legend_" # Actively suppress.
 
         xx, lines = range(self.nkpt), []
         for spin in spin_range:

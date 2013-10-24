@@ -101,8 +101,10 @@ def optic_flow():
 
     # Optic does not support MPI with ncpus > 1.
     shell_manager = manager.to_shell_manager(mpi_ncpus=1)
+    #print("optic manager", shell_manager)
 
-    optic_task = abilab.OpticTask(optic_input, nscf_node=bands_work.nscf_task, ddk_nodes=ddk_work, manager=shell_manager)
+    optic_task = abilab.OpticTask(optic_input, nscf_node=bands_work.nscf_task, ddk_nodes=ddk_work, 
+                                  manager=shell_manager)
     flow.register_task(optic_task)
 
     return flow.allocate()
@@ -135,6 +137,10 @@ def optic_flow_from_files():
 def main():
     flow = optic_flow()
     #flow = optic_flow_from_files()
+
+    #print("optic manager after allocate", flow[2][0].manager)
+
+
     return flow.build_and_pickle_dump()
 
 

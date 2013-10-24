@@ -14,7 +14,7 @@ def make_inputs(ngkpt):
     # Dataset 1: ground state calculation 
     # Dataset 2: NSCF calculation 
     # Dataset 3: calculation of the screening 
-    # Dataset 4: calculation of the Self-Energy matrix elements (GW corrections)
+    # Dataset 4-5-6: Self-Energy matrix elements (GW corrections) with different values of nband
 
     inp = abilab.AbiInput(pseudos=data.pseudos("14si.pspnc"), ndtset=6)
 
