@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __future__ import division, print_function
 
+import sys
 import os
 import abipy.abilab as abilab
 import abipy.data as data  
@@ -47,7 +48,8 @@ def scf_ph_inputs():
     for i, qpt in enumerate(qpoints):
         # Response-function calculation for phonons.
         inp[i+2].set_variables(
-            nstep=2,
+            #nstep=2,
+            nstep=10,
             rfphon=1,        # Will consider phonon-type perturbation
             nqpt=1,          # One wavevector is to be considered
             qpt=qpt,         # This wavevector is q=0 (Gamma)
@@ -87,5 +89,4 @@ def main():
 
 
 if __name__ == "__main__":
-    import sys
     sys.exit(main())

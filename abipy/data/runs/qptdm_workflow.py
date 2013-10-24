@@ -54,12 +54,16 @@ class QptdmWorkflow(Workflow):
         fake_task.inlink_file(wfk_file)
         fake_task.strategy.add_extra_abivars({"nqptdm": -1})
         w.start()
+        w.wait()
 
         # Parse the section with the q-points
-
-        qpoints = yaml_read_kpoints(fake_task.log_file.path, tag="--- !Qptdms")
-        #print(qpoints)
-        w.rmtree()
+        try:
+            qpoints = yaml_read_kpoints(fake_task.log_file.path, doc_tag="!Qptdms")
+            #print(qpoints)
+        except:
+            raise
+        finally:
+            w.rmtree()
 
         # Now we can register the task for the different q-points 
         for qpoint in qpoints:

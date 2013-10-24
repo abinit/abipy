@@ -659,8 +659,19 @@ class Dataset(collections.Mapping):
     def set_variable(self, varname, value):
         """Set a single variable."""
         if varname in self:
-            msg = "Variable %s is already defined:\n old: %s, new %s" % (varname, str(self[varname]), str(value))
-            warnings.warn(msg)
+
+            try: 
+                iseq = (self[varname] == value)
+                iseq = np.all(iseq)
+            except ValueError:
+                # array like.
+                iseq = np.allclose(self[varname], value)
+            except:
+                iseq = False
+
+            if not iseq:
+                msg = "%s is already defined with a different value:\n old: %s, new %s" % (varname, str(self[varname]), str(value))
+                warnings.warn(msg)
 
         self[varname] = value
 

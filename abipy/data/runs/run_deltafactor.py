@@ -3,6 +3,7 @@
 from __future__ import division, print_function
 
 import os
+import sys
 import abipy.data as data  
 import abipy.abilab as abilab
 
@@ -18,8 +19,7 @@ def delta_flow():
     manager = abilab.TaskManager.from_user_config()
 
     # Initialize the flow.
-    # FIXME
-    # Don't know why protocol=-1 does not work here.
+    # FIXME  Abistructure is not pickleable with protocol -1
     flow = abilab.AbinitFlow(workdir="DELTAFACTOR", manager=manager, pickle_protocol=0)
 
     # Build the workflow for the computation of the deltafactor.
@@ -48,5 +48,4 @@ def main():
     return flow.build_and_pickle_dump()
 
 if __name__ == "__main__":
-    import sys
     sys.exit(main())

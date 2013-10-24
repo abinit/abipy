@@ -65,6 +65,7 @@ def treat_flow(flow, options):
         sched = PyFlowsScheduler(**sched_options)
         sched.add_flow(flow)
 
+        print(sched)
         sched.start()
 
     if options.command == "status":

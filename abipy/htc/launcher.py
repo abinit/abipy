@@ -249,8 +249,8 @@ class Launcher(AbinitInput):
                 The lists of strings with the corresponding messages are
                 available in main.errors, main.warnings, main.comments, log.errors etc.
        """
-       from pymatgen.io.abinitio.events import EventParser
-       parser = EventParser()
+       from pymatgen.io.abinitio.events import EventsParser
+       parser = EventsParser()
        main_events = parser.parse(self.last_output())
        log_events = parser.parse(self.log_name)
 

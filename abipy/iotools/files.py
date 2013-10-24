@@ -6,7 +6,7 @@ import os
 import collections
 
 from time import ctime
-from pymatgen.io.abinitio import EventParser
+from pymatgen.io.abinitio import EventsParser
 #from pymatgen.io.abinitio.abitimer import AbinitTimerParser
 from abipy.tools import which
 from abipy.iotools.visualizer import Visualizer
@@ -79,7 +79,7 @@ class AbinitTextFile(AbinitFile):
         try:
             return self._events
         except AttributeError:
-            self._events = EventParser().parse(self.filepath)
+            self._events = EventsParser().parse(self.filepath)
             return self._events
 
     @property

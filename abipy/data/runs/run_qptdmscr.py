@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 from __future__ import division, print_function
 
+import sys
 import os
 import abipy.abilab as abilab
 import abipy.data as data  
 
 from abipy.data.runs import enable_logging
-
 from abipy.data.runs.qptdm_workflow import *
 
 def all_inputs():
@@ -140,5 +140,4 @@ def main():
     return flow.build_and_pickle_dump()
 
 if __name__ == "__main__":
-    import sys
     sys.exit(main())

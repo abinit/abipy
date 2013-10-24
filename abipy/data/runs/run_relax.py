@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __future__ import division, print_function
 
+import sys
 import abipy.data as data  
 import abipy.abilab as abilab
 
@@ -56,7 +57,6 @@ def make_ion_ioncell_inputs():
 
 
 def relax_flow(workdir):
-
     manager = abilab.TaskManager.from_user_config()
 
     flow = abilab.AbinitFlow(workdir, manager)
@@ -77,6 +77,6 @@ def main():
 
 
 if __name__ == "__main__":
-    import sys
+
     sys.exit(main())
 

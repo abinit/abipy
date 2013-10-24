@@ -6,7 +6,7 @@ import wx
 import abipy.gui.awx as awx
 
 from collections import OrderedDict
-from pymatgen.io.abinitio import EventParser
+from pymatgen.io.abinitio import EventsParser
 from abipy.tools import list_strings, is_string
 
 
@@ -25,7 +25,7 @@ class AbinitEventsPanel(awx.Panel):
         self.BuildUi()
 
     def BuildUi(self):
-        parser = EventParser()
+        parser = EventsParser()
         self.events = events = parser.parse(self.filepath)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)

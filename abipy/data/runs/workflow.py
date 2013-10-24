@@ -42,7 +42,7 @@ def main():
 
     # Create the task defining the calculation and run.
     tester = Tester()
-    manager = tester.make_manager()
+    manager = abilab.TaskManager.from_user_config()
     
     # Initialize the workflow.
     work = abilab.Workflow(tester.workdir, manager)

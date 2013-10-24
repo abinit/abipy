@@ -7,7 +7,7 @@ import os
 import warnings
 import argparse
 
-from pymatgen.io.abinitio.events import EventParser
+from pymatgen.io.abinitio.events import EventsParser
 from pymatgen.io.abinitio.abiinspect import plottable_from_outfile
 from pymatgen.io.abinitio.abitimer import AbinitTimerParser
 from abipy import abilab
@@ -56,11 +56,10 @@ def main():
         show_examples_and_exit(error_code=1)
 
     if options.command == "status":
-        parser = EventParser()
+        # Parse the Abinit Events in filepath.
+        parser = EventsParser()
         report = parser.parse(options.filepath)
-
         print(report)
-        #print("completed", report.run_completed)
 
     elif options.command == "plot":
         # TODO: At present only GS runs are supported by plottable_from_outfile

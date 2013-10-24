@@ -1,17 +1,18 @@
 #!/usr/bin/env python
 from __future__ import division, print_function
 
+import sys
 import os
-from abipy import abilab
 import abipy.data as data  
+
+from abipy import abilab
 
 from pymatgen.io.abinitio.abiobjects import AbiStructure
 from pymatgen.io.abinitio.calculations import bandstructure
 from abipy.data.runs import Tester, enable_logging
 
 
-@enable_logging
-def main():
+def make_flow():
     structure = AbiStructure.asabistructure(data.cif_file("si.cif"))
 
     scf_kppa = 40
@@ -28,24 +29,24 @@ def main():
     )
 
     tester = Tester()
-    manager = tester.make_manager()
+    manager = abilab.TaskManager.from_user_config()
 
-    flow = abilab.AbinitFlow(workdir=tester.workdir, manager=manager)
+    # Initialize the flow.
+    # FIXME  Abistructure is not pickleable with protocol -1
+    flow = abilab.AbinitFlow(workdir=tester.workdir, manager=manager, pickle_protocol=0)
 
     work = bandstructure(structure, data.pseudos("14si.pspnc"), scf_kppa, nscf_nband, ndivsm, 
                          spin_mode="unpolarized", smearing=None, **extra_abivars)
 
     flow.register_work(work)
-    flow.allocate()
+    return flow.allocate()
 
     #dos_kppa = 10
     #bands = bandstructure("hello_dos", runmode, structure, pseudos, scf_kppa, nscf_nband,
     #                      ndivsm, accuracy="normal", spin_mode="polarized",
     #                      smearing="fermi_dirac:0.1 eV", charge=0.0, scf_solver=None,
     #                      dos_kppa=dos_kppa)
-
-    tester.set_flow_and_run(flow)
-
+    #tester.set_flow_and_run(flow)
     #if tester.retcode != 0:
     #    return tester.retcode
 
@@ -61,7 +62,11 @@ def main():
     #tester.finalize()
     #return tester.retcode 
 
+@enable_logging
+def main():
+    flow = make_flow()
+    return flow.build_and_pickle_dump()
+
 
 if __name__ == "__main__":
-    import sys
     sys.exit(main())

@@ -18,6 +18,11 @@ from abipy.tools import gaussian
 from abipy.electrons.edos import ElectronDOS
 from abipy.tools.animator import FilesAnimator
 
+
+import logging
+logger = logging.getLogger(__name__)
+
+
 __all__ = [
     "ElectronBands",
     "ElectronBandsPlotter",

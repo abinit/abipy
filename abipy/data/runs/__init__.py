@@ -1,10 +1,12 @@
 import os
 import inspect
 import functools
+import abipy.abilab as abilab
 
 from pymatgen.io.abinitio.launcher import PyFlowsScheduler
 from pymatgen.util.decorators import enable_logging
-import abipy.abilab as abilab
+from abipy.core.testing import AbipyTest
+from abipy.tools.text import WildCard
 
 __all__ = [
     "enable_logging",
@@ -18,6 +20,7 @@ class Tester(object):
         mod = inspect.getmodule(frm[0])
 
         apath = os.path.abspath(mod.__file__)
+        #apath = os.getcwd()
 
         base = os.path.basename(apath).replace(".py","").replace("run_","")
 
@@ -38,9 +41,9 @@ class Tester(object):
     def set_flow(self, flow):
         self.flow = flow
 
-    def make_manager(self):
-        return abilab.TaskManager.simple_mpi(mpi_ncpus=1)
-        #return abilab.TaskManager.from_user_config()
+    #def make_manager(self):
+    #    return abilab.TaskManager.from_user_config()
+    #    #return abilab.TaskManager.simple_mpi(mpi_ncpus=1)
 
     def set_flow_and_run(self, flow):
         self.set_flow(flow)
@@ -79,3 +82,24 @@ class Tester(object):
                 return ref_lines != new_lines
         else:
             return "no comparison for file %s" % ref_path
+
+
+class PickleTest(AbipyTest):
+
+    def Setup(self):
+        # Find (runnable) scripts.
+        dir = os.path.join(os.path.dirname(__file__))
+        scripts = self.scripts = []
+        wildcard = WildCard("run_*.py")
+        fnames = wildcard.filter(os.listdir(dir))
+        self.scripts.extend(os.path.join(dir, f) for f in fnames)
+        print("scripts %s" % self.scripts)
+
+    #def test_picke(self):
+    #    # For each script:
+    #    #   1) import the module.
+    #    #   2  execute the main to get the flow
+    #    #   3) test wether the flow can be pickled.
+    #    for script in self.scripts:
+    #        mod = __import__(script)
+    #        print(mod)

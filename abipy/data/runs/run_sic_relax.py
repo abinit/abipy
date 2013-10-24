@@ -2,8 +2,8 @@
 from __future__ import division, print_function
 
 import sys
-import numpy as np
 import os
+import numpy as np
 
 import abipy.abilab as abilab
 import abipy.data as data

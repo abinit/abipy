@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __future__ import division, print_function
 
+import sys
 import os
 import abipy.data as data  
 import abipy.abilab as abilab
@@ -78,8 +79,7 @@ def optic_flow():
          tolwfr=1.e-9,
         )
 
-    manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1)
-    #manager = abilab.TaskManager.from_user_config()
+    manager = abilab.TaskManager.from_user_config()
 
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = inp.split_datasets()
 
@@ -139,5 +139,4 @@ def main():
 
 
 if __name__ == "__main__":
-    import sys
     sys.exit(main())
