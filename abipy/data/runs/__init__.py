@@ -5,8 +5,6 @@ import abipy.abilab as abilab
 
 from pymatgen.io.abinitio.launcher import PyFlowsScheduler
 from pymatgen.util.decorators import enable_logging
-from abipy.core.testing import AbipyTest
-from abipy.tools.text import WildCard
 
 __all__ = [
     "enable_logging",
@@ -83,23 +81,3 @@ class Tester(object):
         else:
             return "no comparison for file %s" % ref_path
 
-
-class PickleTest(AbipyTest):
-
-    def Setup(self):
-        # Find (runnable) scripts.
-        dir = os.path.join(os.path.dirname(__file__))
-        scripts = self.scripts = []
-        wildcard = WildCard("run_*.py")
-        fnames = wildcard.filter(os.listdir(dir))
-        self.scripts.extend(os.path.join(dir, f) for f in fnames)
-        print("scripts %s" % self.scripts)
-
-    #def test_picke(self):
-    #    # For each script:
-    #    #   1) import the module.
-    #    #   2  execute the main to get the flow
-    #    #   3) test wether the flow can be pickled.
-    #    for script in self.scripts:
-    #        mod = __import__(script)
-    #        print(mod)

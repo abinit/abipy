@@ -47,6 +47,7 @@ class QptdmWorkflow(Workflow):
 
         fake_input = scr_input.deepcopy()
         fake_task = w.register(fake_input)
+        w.allocate()
         w.build()
 
         # Create the symbolic link and add the magic value 
@@ -123,6 +124,7 @@ def cbk_qptdm_workflow(flow, work, cbk_data):
     nscf_task = flow[0][1]
     wfk_file = nscf_task.outdir.has_abiext("WFK")
 
+    work.set_manager(flow.manager)
     work.fill(wfk_file, scr_input)
     #work.add_deps(cbk.deps)
     work.connect_signals()

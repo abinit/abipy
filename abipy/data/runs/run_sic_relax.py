@@ -58,6 +58,8 @@ def relax_flow():
     # Initialize the workflow.
     relax_task = flow.register_task(relax_inp, task_class=abilab.RelaxTask)
 
+    #work = RelaxWorkflow(self, ion_input, ioncell_input, workdir=None, manager=None):
+
     nscf_task = flow.register_task(nscf_inp, deps={relax_task: "DEN"}, task_class=abilab.NscfTask)
 
     return flow.allocate()

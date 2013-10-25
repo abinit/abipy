@@ -30,6 +30,7 @@ def scf_ph_inputs():
              5.00000000E-01,  5.00000000E-01,  0.00000000E+00,
             -2.50000000E-01,  5.00000000E-01,  2.50000000E-01,
             ]
+
     qpoints = np.reshape(qpoints, (-1,3))
 
     # Global variables used both for the GS and the DFPT run.
@@ -49,7 +50,7 @@ def scf_ph_inputs():
         # Response-function calculation for phonons.
         inp[i+2].set_variables(
             #nstep=2,
-            nstep=10,
+            nstep=20,
             rfphon=1,        # Will consider phonon-type perturbation
             nqpt=1,          # One wavevector is to be considered
             qpt=qpt,         # This wavevector is q=0 (Gamma)
@@ -78,7 +79,8 @@ def ph_flow():
     all_inps = scf_ph_inputs()
     scf_input, ph_inputs = all_inps[0], all_inps[1:]
 
-    return abilab.phonon_flow(workdir, manager, scf_input, ph_inputs)
+    flow = abilab.phonon_flow(workdir, manager, scf_input, ph_inputs)
+    return flow
 
 
 @enable_logging

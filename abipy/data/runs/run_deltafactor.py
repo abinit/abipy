@@ -23,7 +23,7 @@ def delta_flow():
     flow = abilab.AbinitFlow(workdir="DELTAFACTOR", manager=manager, pickle_protocol=0)
 
     # Build the workflow for the computation of the deltafactor.
-    # The calculation is done with the paramenters and the cif files
+    # The calculation is done with the parameters and the cif files
     # used in the original paper. We only have to specify 
     # the cutoff energy ecut (Ha) for the pseudopotential.
     # The workflow will produce a pdf file with the equation of state 

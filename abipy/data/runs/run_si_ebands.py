@@ -37,7 +37,7 @@ def make_scf_nscf_inputs():
     scf_input, nscf_input = inp.split_datasets()
     return scf_input, nscf_input
 
-def bands_flow(workdir):
+def build_bands_flow(workdir):
     # Create the task defining the calculation and run.
     scf_input, nscf_input = make_scf_nscf_inputs()
                                                                
@@ -68,7 +68,7 @@ def bands_flow(workdir):
 @enable_logging
 def main():
     tester = Tester()
-    flow = bands_flow(tester.workdir)
+    flow = build_bands_flow(tester.workdir)
     return flow.build_and_pickle_dump()
 
 

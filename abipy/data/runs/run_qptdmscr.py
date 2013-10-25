@@ -121,11 +121,9 @@ def gw_flow():
     
 def qptdm_work():
     workdir = "QPTDM"
-
     gs, nscf, scr_input, sigma_input = all_inputs()
                                                                         
-    policy = dict(autoparal=0, max_ncpus=2)
-    manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=policy)
+    manager = abilab.TaskManager.from_user_config()
 
     return g0w0_flow_with_qptdm(workdir, manager, gs, nscf, scr_input, sigma_input)
 
