@@ -5,7 +5,6 @@ import collections
 import pymatgen
 import numpy as np
 
-from pymatgen.util.num_utils import iround
 from pymatgen.io.abinitio.pseudos import PseudoTable
 from abipy.core.constants import ArrayWithUnit
 from abipy.core.symmetries import SpaceGroup
@@ -454,7 +453,7 @@ class Structure(pymatgen.Structure):
 
         ngkpt = np.ones(3, dtype=np.int)
         for i in range(3):
-            ngkpt[i] = iround(nksmall * lengths[i] / lmin)
+            ngkpt[i] = int(round(nksmall * lengths[i] / lmin))
             if (ngkpt[i] == 0): ngkpt[i] = 1
 
         return ngkpt
