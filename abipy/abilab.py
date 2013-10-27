@@ -1,5 +1,5 @@
 from pymatgen.io.abinitio.eos import EOS
-from pymatgen.io.abinitio.wrappers import Mrgscr, Mrgddb, Mrggkk #, Anaddb,
+from pymatgen.io.abinitio.wrappers import Mrgscr, Mrgddb, Mrggkk, Anaddb
 from pymatgen.io.abinitio import qadapters
 from pymatgen.io.abinitio.tasks import * 
 from pymatgen.io.abinitio.workflows import *
@@ -36,7 +36,7 @@ def abifile_subclass_from_filename(filename):
     if filename.endswith(".abo"):
         return AbinitOutputFile
     
-    if filename.endswith(".abl"):
+    if filename.endswith(".log"):
         return AbinitLogFile
 
     # CIF files.
