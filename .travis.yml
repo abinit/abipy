@@ -10,9 +10,9 @@ before_install:
   - sudo apt-get install python-numpy 
   - sudo apt-get install python-scipy 
   - sudo apt-get install python-matplotlib 
-#  - sudo pip install numpy
-#  - sudo pip install scipy
-  - sudo pip install -Iv https://bitbucket.org/jamesrhester/pycifrw/downloads/PyCifRW-3.6.1.tar.gz
+  - pip install numpy
+  - pip install scipy
+  - pip install -Iv https://bitbucket.org/jamesrhester/pycifrw/downloads/PyCifRW-3.6.1.tar.gz
 # command to install dependencies
 install: "pip install -q -r requirements.txt --use-mirrors"
 # command to run tests, e.g. python setup.py test
