@@ -519,11 +519,13 @@ def show_history(parent, task):
 def task_restart(parent, task):
     """Restart the task."""
     task.restart()
+    #task.flow.check_status()
 
 
 def task_reset(parent, task):
     """Reset the status of the task."""
     task.reset()
+    #task.flow.check_status()
 
 
 def task_show_deps(parent, task):

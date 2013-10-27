@@ -61,7 +61,7 @@ class FlowRobot(object):
         return self.flow.show_status(stream=stream)
 
     def all_outfiles(self, status=None, op="="):
-        all_outs = [task.output_file.path for (task, w, t) in self.flow.iflat_tasks(status, op=op)]
+        all_outs = [task.output_file.path for taskin self.flow.iflat_tasks(status, op=op)]
         return all_outs
 
     def all_files_with_abiext(self, abiext, dirname="outdir", 
@@ -69,7 +69,7 @@ class FlowRobot(object):
                               include_works=(), include_tasks=()):
 
         files = []
-        for task, wi, ti in self.flow.iflat_tasks():
+        for task, wi, ti in self.flow.iflat_tasks_wti():
 
             if wi in exclude_works or (wi, ti) in exclude_tasks: 
                 continue
@@ -109,7 +109,7 @@ class EbandsRobot(FlowRobot):
         self.plotter = abilab.ElectronBandsPlotter()
 
     def analyze_data(self, *args, **kwargs):
-        for task, wi, ti in self.flow.iflat_tasks():
+        for task, in self.flow.iflat_tasks():
             directory = getattr(task, "outdir")
 
             if type(task) != abilab.NscfTask:
@@ -133,7 +133,7 @@ class EosRobot(FlowRobot):
         #self.energies = [-56.29, -56.41, -56.46, -56.46, -56.42]
 
         volumes, etotals = [], []
-        for task, wi, ti in self.flow.iflat_tasks():
+        for task in self.flow.iflat_tasks():
             directory = getattr(task, "outdir")
             if type(task) != abilab.ScfTask:
                 continue

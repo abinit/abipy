@@ -20,7 +20,7 @@ optic_input = """\
 """
 
 def optic_flow():
-    structure = data.structure_from_ucell("gaas")
+    structure = data.structure_from_ucell("GaAs")
 
     inp = abilab.AbiInput(pseudos=data.pseudos("31ga.pspnc", "33as.pspnc"), ndtset=5)
 
@@ -139,8 +139,6 @@ def main():
     #flow = optic_flow_from_files()
 
     #print("optic manager after allocate", flow[2][0].manager)
-
-
     return flow.build_and_pickle_dump()
 
 

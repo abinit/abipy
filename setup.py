@@ -131,8 +131,8 @@ install_requires = [
     "PyDispatcher",
     "pyyaml>=3.1.0",
     "apscheduler>=2.1.1",
+    "wxmplot",
     #"wxPython",
-    #"wxmplot",
     #"termcolor",
     #"ipython",
     #"pyzmq", # for the notebook

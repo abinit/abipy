@@ -146,8 +146,6 @@ class QPState(collections.namedtuple("QPState",
 
             return _TIPS
 
-#########################################################################################
-
 
 class QPList(list):
     """A list of quasiparticle corrections."""
@@ -363,8 +361,6 @@ class QPList(list):
             qps = self + other
 
         return QPList(qps)
-
-#########################################################################################
 
 
 class Sigmaw(object):

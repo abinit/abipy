@@ -69,6 +69,10 @@ def relax_flow(workdir):
     work = abilab.RelaxWorkflow(ion_inp, ioncell_inp)
                                                       
     flow.register_work(work)
+
+    #bands_work = abilab.BandStructureWorkflow(scf_input, nscf_input)
+return flow.allocate()
+
     return flow.allocate()
 
 
@@ -80,6 +84,5 @@ def main():
 
 
 if __name__ == "__main__":
-
     sys.exit(main())
 

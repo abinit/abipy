@@ -18,7 +18,7 @@ def relax_flow():
     flow = abilab.AbinitFlow(workdir, manager)
 
     pseudos = data.pseudos("14si.pspnc", "6c.pspnc")
-    structure = data.structure_from_ucell("sic")
+    structure = data.structure_from_ucell("SiC")
 
     global_vars = dict(
         chksymbreak=0,

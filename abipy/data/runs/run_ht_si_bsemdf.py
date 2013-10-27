@@ -45,8 +45,7 @@ def main():
     flow.register_work(work)
     flow.allocate()
 
-    tester.set_flow_and_run(flow)
-
+    #tester.set_flow_and_run(flow)
     #tester.set_work_and_run(work)
     #if tester.retcode !=0:
     #    return tester.retcode
