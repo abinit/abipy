@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+"""
+This script shows how to perform a RAMAN calculation with excitonic effects 
+included with the BSE formalism.
+"""
 from __future__ import division, print_function
 
 import sys 

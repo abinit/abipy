@@ -1044,6 +1044,27 @@ def listify(obj):
     else:
         return [obj]
 
+#def listify(obj):
+#    """
+#    Transform any object, iterable or not, to a list. 
+#    Returns obj if object is Iterable with the exception of 
+#    single string that is converted to list.
+#    """
+#    if is_string(obj)
+#       return [obj]
+#
+#    if isinstance(obj, collections.Iterable):
+#        if isinstance(obj, tuple):
+#            return list(obj)
+#        else:
+#            return obj
+#
+#    elif isinstance(obj, collections.Iterator):
+#        return list(obj)
+#
+#    else:
+#        return [obj]
+
 
 def is_number(s):
     """Returns True if the argument can be converted to float."""

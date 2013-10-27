@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""This script computes the BSE spectrum with the HT interface."""
 from __future__ import division, print_function
 
 import sys
@@ -36,7 +37,7 @@ def main():
 
     flow = abilab.AbinitFlow(workdir=tester.workdir, manager=manager)
 
-
+    # BSE calculation with model dielectric function.
     work = bse_with_mdf(structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,
                        ecuteps, bs_loband, soenergy, mdf_epsinf,
                        accuracy="normal", spin_mode="unpolarized", smearing=None,

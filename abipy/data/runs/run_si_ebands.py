@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""This script shows how to compute the band structure of silicon."""
 from __future__ import division, print_function
 
 import os

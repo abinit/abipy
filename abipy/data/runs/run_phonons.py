@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""This script shows how to compute the phonon band structure of AlAs."""
 from __future__ import division, print_function
 
 import sys
@@ -16,7 +17,7 @@ def scf_ph_inputs():
     GS input + the input files for the phonon calculation.
     """
     # Crystalline AlAs: computation of the second derivative of the total energy
-    structure = data.structure_from_ucell("alas")
+    structure = data.structure_from_ucell("AlAs")
     pseudos = data.pseudos("13al.981214.fhi", "33as.pspnc")
 
     # List of q-points for the phonon calculation.

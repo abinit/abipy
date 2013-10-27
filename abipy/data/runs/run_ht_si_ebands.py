@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""This script computes the band structure of silicon with the HT interface."""
 from __future__ import division, print_function
 
 import sys
