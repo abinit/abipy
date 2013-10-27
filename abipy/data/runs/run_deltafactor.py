@@ -39,6 +39,7 @@ def delta_flow():
 
     # Register the workflow.
     flow.register_work(work)
+
     return flow.allocate()
 
 
