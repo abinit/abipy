@@ -30,7 +30,7 @@ def make_scf_nscf_inputs(structure, pseudos):
 
     # Dataset 1 (GS run)
     inp[1].set_kmesh(ngkpt=[8,8,8], 
-                    shiftk=abilab.shiftk_from_structure(structure)
+                    shiftk=structure.calc_shiftk(),
                    )
 
     inp[1].set_variables(tolvrs=1e-6)
@@ -56,13 +56,12 @@ def build_bands_flow(workdir):
     pseudos = data.pseudos("12mg.pspnc", "05b.soft_tm")
     structure = data.structure_from_ucell("MgB2")
 
-    from abipy.htc.input import nvalence
-    nval = nvalence(structure, pseudos)
+    nval = structure.calc_nvalence(pseudos)
     print(nval)
 
     inputs = make_scf_nscf_inputs(structure, pseudos)
     scf_input, nscf_input, dos_inputs = inputs[0], inputs[1], inputs[2:]
-    #print(scf_input.pseudos)
+    print(scf_input.pseudos)
 
     manager = abilab.TaskManager.from_user_config()
                                                                

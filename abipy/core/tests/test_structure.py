@@ -28,6 +28,15 @@ class TestStructure(AbipyTest):
                 # Export data in Xcrysden format.
                 structure.export(".xsf")
 
+    def test_utils(self):
+        """Test utilities for the generation of Abinit inputs."""
+        structure = data.structure_from_ucell("MgB2")
+        pseudos = data.pseudos("12mg.pspnc", "05b.soft_tm")
+        nval = structure.calc_nvalence(pseudos)
+        self.assertTrue(nval == 12)
+        shiftk = structure.calc_shiftk()
+        self.assert_equal(shiftk, [[0.0, 0.0, 0.5]])
+
 
 if __name__ == "__main__":
     import unittest
