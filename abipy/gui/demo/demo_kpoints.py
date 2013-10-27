@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import wx
-import abipy
+from abipy.abilab import abiopen
 import abipy.data as data
 
 from abipy.gui.kpoints import KpointSymmetriesFrame

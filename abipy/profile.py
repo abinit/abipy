@@ -10,8 +10,6 @@ __all__ = [
     "abipy_env",
 ]
 
-##########################################################################################
-
 
 class FrozenDict(dict):
     "A dictionary that does not permit to redefine its keys"
@@ -80,7 +78,6 @@ class AbipyEnvironment(FrozenDict):
       else:
          return default
 
-##########################################################################################
 
 
 class EnvVar(object):
@@ -335,7 +332,6 @@ def write_abipy_cfg_data():
         # Do not overwrite the old config file, create a file with the new template.
         parser.write_template(abipyrc_path + ".new")
 
-##########################################################################################
 
 if __name__ == "__main__":
     write_abipy_cfg_data()

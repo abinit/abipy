@@ -7,6 +7,9 @@ before_install:
   - sudo apt-get install -qq libhdf5-serial-dev hdf5-tools 
   - sudo apt-get install libnetcdf-dev
   - sudo apt-get install libzmq3-dev
+  - sudo apt-get install build-essential gfortran python-dev
+  #python-nose python-numpy python-setuptools python-docutils \
+  #python-h5py python-setuptools
   #- sudo apt-get install python-numpy 
   #- sudo apt-get install python-scipy 
   #- sudo apt-get install python-matplotlib 
