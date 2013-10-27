@@ -2,8 +2,8 @@
 #
 # This examples shows how to plot the GW spectral functions A(w)
 # See lesson tgw2_4
-from abipy import abiopen
 import abipy.data as data
+from abipy.abilab import abiopen
 
 # Open the file with the GW results
 sigma_file = abiopen(data.ref_file("tgw2_4o_SIGRES.nc"))

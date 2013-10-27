@@ -5,7 +5,7 @@ import collections
 import numpy as np
 import abipy.data as data
 
-from abipy import abiopen
+from abipy.abilab import abiopen
 from abipy.electrons.gw import *
 from abipy.electrons.gw import SIGRES_Reader
 from abipy.core.testing import *

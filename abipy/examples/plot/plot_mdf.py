@@ -2,8 +2,8 @@
 #
 # This example shows how to plot the macroscopic 
 # dielectric function (MDF) computed in the Bethe-Salpeter code
-from abipy import abiopen
 import abipy.data as data
+from abipy.abilab import abiopen
 
 # Open the MDF file produced in the tutorial.
 mdf_file = abiopen(data.ref_file("tbs_4o_DS2_MDF.nc"))

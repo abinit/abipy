@@ -11,8 +11,9 @@ from abipy.core.testing import AbipyTest
 
 # Unit test for this module.
 #class FlowTest(AbipyTest):
-#    def setUp(self):
+#    def test_flow(self):
 #        self.flow = main()
+
 
 def make_scf_nscf_inputs():
     inp = abilab.AbiInput(pseudos=data.pseudos("14si.pspnc"), ndtset=2)

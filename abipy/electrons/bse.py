@@ -513,7 +513,7 @@ class MDF_Plotter(object):
             name:
                 Optional string used to name the plot.
         """
-        from abipy import abiopen
+        from abipy.abilab import abiopen
 
         ncfile = abiopen(filepath)
         mdf = ncfile.get_mdf(mdf_type=mdf_type)

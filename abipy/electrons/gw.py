@@ -7,10 +7,9 @@ import warnings
 import cStringIO as StringIO
 import numpy as np
 
-from abipy.tools import find_le, find_ge, list_strings, is_string
+from abipy.tools import find_le, find_ge, list_strings, is_string, pprint_table, AttrDict
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import KpointList
-from abipy.tools import pprint_table, AttrDict
 from abipy.iotools import AbinitNcFile, ETSF_Reader, Has_Structure, Has_ElectronBands
 from abipy.electrons.ebands import ElectronBands
 from abipy.electrons.scissors import Scissors
@@ -525,7 +524,7 @@ class SIGRES_Plotter(collections.Iterable):
 
     def add_file(self, filepath):
         """Add a filename to the plotter"""
-        from abipy import abiopen
+        from abipy.abilab import abiopen
         sigres = abiopen(filepath)
         self._sigres_files[sigres.filepath] = sigres
 

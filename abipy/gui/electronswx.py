@@ -11,7 +11,7 @@ except ImportError:
     #warnings.warn("Error while importing wxmplot. Some features won't be available")
     pass
 
-from abipy import abiopen
+from abipy.abilab import abiopen
 from abipy.tools import AttrDict
 from abipy.electrons import ElectronBands
 

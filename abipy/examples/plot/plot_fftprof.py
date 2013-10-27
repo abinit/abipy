@@ -2,7 +2,6 @@
 #
 # This example shows how to plot the benchmark results for the FFT libraries produced by fftprof.F90
 # To run the graphical interface to fftprof see abipy.gui.demos.demo_fftprof.py
-
 from abipy.abitools.fftprof import FFT_Benchmark
 import abipy.data as data
 

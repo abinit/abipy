@@ -1302,7 +1302,7 @@ class ElectronBandsPlotter(object):
         """
         Adds a band structure for plotting. Reads data from a Netcdfile
         """
-        from abipy import abiopen
+        from abipy.abilab import abiopen
         ncfile = abiopen(filepath)
         if label is None:
             label = ncfile.filepath

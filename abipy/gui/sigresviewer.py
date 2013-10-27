@@ -7,7 +7,7 @@ import wx.lib.dialogs as wxdg
 import abipy.gui.awx as awx
 import abipy.gui.electronswx as ewx
 
-from abipy import abiopen, SIGRES_File
+from abipy.abilab import abiopen
 from abipy.tools import AttrDict
 from abipy.iotools.visualizer import supported_visunames
 from abipy.gui.scissors import ScissorsBuilderFrame
@@ -172,9 +172,9 @@ class SigresViewerFrame(awx.Frame):
 
         try:
             sigres = abiopen(filepath)
-            if not isinstance(sigres, SIGRES_File):
-                awx.showErrorMessage(self, message="%s is not a valid SIGRES file" % filepath)
-                return
+            #if not isinstance(sigres, SIGRES_File):
+            #    awx.showErrorMessage(self, message="%s is not a valid SIGRES file" % filepath)
+            #    return
 
             self.sigres = sigres
             self.BuildUi()

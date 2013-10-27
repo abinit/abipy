@@ -3,7 +3,7 @@
 # This example shows how to plot the Kohn-Sham energies with
 # markers providing a graphical representation of the GW results. 
 import abipy.data as data
-from abipy import abiopen
+from abipy.abilab import abiopen
 
 sigma_file = abiopen(data.ref_file("tgw1_9o_DS4_SIGRES.nc"))
 

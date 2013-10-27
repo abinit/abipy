@@ -125,9 +125,6 @@ def optic_flow_from_files():
     ]
     nscf_node = "/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTIC/work_0/task_1/outdata/out_WFK"
 
-    #from pymatgen.io.abinitio.strategies import OpticInput
-    #optic_input = 
-
     optic_task = abilab.OpticTask(optic_input, nscf_node=nscf_node, ddk_nodes=ddk_nodes)
     flow.register_task(optic_task)
                                                                                                                           

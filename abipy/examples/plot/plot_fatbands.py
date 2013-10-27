@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # This example shows how to plot the so-called fatbands for electrons
-from abipy import abiopen
+from abipy.abilab import abiopen
 import abipy.data as data
 
 # Open the WKF file.
