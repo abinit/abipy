@@ -51,6 +51,8 @@ class TestKpoint(AbipyTest):
         K = Kpoint([1/3, 1/3, 1/3], lattice)
         print(X)
 
+        self.serialize_with_pickle(X, protocols=[-1])
+
         self.assert_almost_equal(X.versor().norm, 1.0)
 
         self.assertTrue(X[0] == 0.5)
@@ -82,6 +84,8 @@ class TestKpointList(AbipyTest):
         """Test askpoints."""
         lattice = self.lattice
         kpts = askpoints([1, 2, 3], lattice)
+
+        self.serialize_with_pickle(kpts, protocols=[-1])
 
         newkpts = askpoints(kpts, lattice)
         self.assertTrue(kpts is newkpts)

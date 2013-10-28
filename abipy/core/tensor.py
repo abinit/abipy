@@ -35,6 +35,7 @@ class Tensor(object):
         """
         self._reduced_tensor = red_tensor
         self._lattice = lattice
+        self.space = space
       
         if space == "g":
             self._is_real_space = False
@@ -42,6 +43,19 @@ class Tensor(object):
             self._is_real_space = True
         else:
             raise ValueError("space should be either 'g' or 'r'")
+
+    def __eq__(self, other):
+        if other is None:  return False
+        return (np.allclose(self.reduced_tensor, other.reduced_tensor) and 
+                self.lattice == other.lattice and
+                self.space == other.space)
+
+    def __ne__(self, other):
+        return not self == other
+
+    @property
+    def lattice(self):
+        return self._lattice
 
     @property
     def reduced_tensor(self):

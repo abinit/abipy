@@ -19,6 +19,8 @@ class LdauLexxTest(AbipyTest):
         luj_params.luj_for_symbol("Ni", l=2, u=u, j=0.1*u, unit="eV")
         vars = luj_params.to_abivars()
 
+        self.serialize_with_pickle(luj_params, test_eq=False)
+
         self.assertTrue(vars["usepawu"] == 1),
         self.assertTrue(vars["lpawu"] ==  "2 -1"),
         self.assertTrue(vars["upawu"] == "8.0 0.0 eV"),
@@ -35,6 +37,8 @@ class LdauLexxTest(AbipyTest):
         lexx_params = LexxParams(structure)
         lexx_params.lexx_for_symbol("Ni", l=2)
         vars = lexx_params.to_abivars()
+
+        self.serialize_with_pickle(lexx_params, test_eq=False)
 
         self.assertTrue(vars["useexexch"] == 1),
         self.assertTrue(vars["lexexch"] ==  "2 -1"),

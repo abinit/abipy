@@ -35,10 +35,16 @@ class TestTensor(AbipyTest):
         tensor2 = Tensor(red_tensor,lattice.reciprocal_lattice,space="g")
         assert(((np.abs(tensor2.cartesian_tensor)-np.abs(cartesian_tensor)) < 1E-8).all())
 
+        self.assertTrue(tensor==tensor2)
+
         #print("non-symmetrized cartesian_tensor = ",tensor2.cartesian_tensor)
         tensor2.symmetrize()
 
         #print("symmetrized_cartesian_tensor = ",tensor2.cartesian_tensor)
+
+
+
+        self.serialize_with_pickle(tensor)
 
 
 if __name__ == "__main__":

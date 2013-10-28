@@ -20,6 +20,8 @@ class TestQPList(AbipyTest):
         """Test QPList object."""
         qplist = self.qplist
         self.assertTrue(isinstance(qplist, collections.Iterable))
+
+        self.serialize_with_pickle(qplist, protocols=[-1])
         
         print(qplist)
         qplist_copy = qplist.copy()

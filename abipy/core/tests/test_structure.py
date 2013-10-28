@@ -31,6 +31,9 @@ class TestStructure(AbipyTest):
     def test_utils(self):
         """Test utilities for the generation of Abinit inputs."""
         structure = data.structure_from_ucell("MgB2")
+
+        self.serialize_with_pickle(structure)
+
         pseudos = data.pseudos("12mg.pspnc", "05b.soft_tm")
         nval = structure.calc_nvalence(pseudos)
         self.assertTrue(nval == 12)

@@ -16,7 +16,9 @@ class TestMesh3D(AbipyTest):
 
         mesh_443 = Mesh3D((4,4,3), rprimd)
         mesh_444 = Mesh3D((4,4,4), rprimd)
-        #
+        
+        self.serialize_with_pickle(mesh_443)
+
         # Test __eq__
         self.assertNotEqual(mesh_443, mesh_444)
 

@@ -16,6 +16,8 @@ class PhononBandsTest(AbipyTest):
         phbands = PhononBands.from_file(filename)
         print(phbands)
 
+        self.serialize_with_pickle(phbands, protocols=[-1], test_eq=False)
+
         self.assertEqual(phbands.minfreq, 0.0)
         #self.assertEqual(phbands.maxfreq, 30)
 

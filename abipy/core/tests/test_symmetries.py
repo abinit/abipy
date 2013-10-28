@@ -18,6 +18,8 @@ class TestSymmetries(AbipyTest):
         self.assertTrue(structure.has_spacegroup)
         self.assertTrue(structure.is_symmorphic)
 
+        self.serialize_with_pickle(structure, protocols=[-1])
+
         spgrp = structure.spacegroup
         print(spgrp)
 
