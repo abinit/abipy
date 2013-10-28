@@ -252,9 +252,6 @@ class QPList(list):
         fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, squeeze=False)
         ax_list = ax_list.ravel()
 
-        if (num_plots % ncols) != 0:
-            ax_list[-1].axis('off')
-
         if title:
             fig.suptitle(title)
 
@@ -272,6 +269,12 @@ class QPList(list):
             ax.set_ylabel(field)
             yy = qps.get_field(field)
             ax.plot(e0mesh, yy, linestyle, **kwargs)
+
+        # Get around a bug in matplotlib
+        if (num_plots % ncols) != 0:
+            ax_list[-1].plot([0,1], [0,1], lw=0)
+            ax_list[-1].axis('off')
+
 
         if show:
             plt.show()
