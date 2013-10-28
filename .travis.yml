@@ -22,7 +22,7 @@ install: "pip install -r requirements.txt --use-mirrors"
 # This is needed, otherwise, nosetests will import try to import wx.
 before_script:
     - rm abipy/gui/__init__.py 
-    - export LD_LIBRARY_PATH=/usr/:$LD_LIBRARY_PATH
+    - export LD_LIBRARY_PATH=/usr/lib/:$LD_LIBRARY_PATH
     - python -m netCDF4_utils
 # command to run tests
 script: nosetests
