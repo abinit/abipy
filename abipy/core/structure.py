@@ -427,6 +427,11 @@ class Structure(pymatgen.Structure):
     #
     #    self.displace(supercell_displ, eta)
 
+    def calc_kptbounds(self):
+        """Returns the suggested value for kptbounds."""
+        kptbounds = [k.frac_coords for k in self.hsym_kpoints]
+        return np.reshape(kptbounds, (-1,3))
+
     def calc_ksampling(self, nksmall, symprec=0.01, angle_tolerance=5):
         """
         Return the k-point sampling from the number of divisions to be used for

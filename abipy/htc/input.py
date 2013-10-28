@@ -473,6 +473,10 @@ class AbiInput(Input):
         for idt in self._dtset2range(dtset):
             self[idt].set_kmesh(ngkpt, shiftk, kptopt=kptopt)
 
+    #def set_autokmesh(self, nksmall, kptopt=1, dtset=0):
+    #    for idt in self._dtset2range(dtset):
+    #        self[idt].set_autokmesh(nksmall, kptopt=kptopt)
+
     def set_kpath(self, ndivsm, kptbounds=None, iscf=-2, dtset=0):
         """
         Set the variables defining the k-path for the specified dtset.
@@ -752,6 +756,25 @@ class Dataset(collections.Mapping):
                            shiftk=shiftk,
                            )
 
+    #def set_autokmesh(self, nksmall, kptopt=1):
+    #    """
+    #    Set the variables for the sampling of the BZ.
+    #                                                   
+    #    Args:
+    #        nksmall:
+    #            Number of k-points used to sample the smallest lattice vector.
+    #        kptopt:
+    #            Option for the generation of the mesh.
+    #    """
+    #    shiftk = self.structure.calc_shiftk()
+    #    ngkpt = self.structure.calc_ngkpt(nksmall)
+    #    
+    #    self.set_variables(ngkpt=ngkpt,
+    #                       kptopt=kptopt,
+    #                       nshiftk=len(shiftk),
+    #                       shiftk=shiftk,
+    #                       )
+
     def set_kpath(self, ndivsm, kptbounds=None, iscf=-2):
         """
         Set the variables for the computation of the band structure.
@@ -763,7 +786,7 @@ class Dataset(collections.Mapping):
                 k-points defining the path in k-space.
         """
         if kptbounds is None:
-            kptbounds = [k.frac_coords for k in self.structure.hsym_kpoints]
+            kptbounds = self.structure.calc_kptbounds()
 
         kptbounds = np.reshape(kptbounds, (-1,3))
 

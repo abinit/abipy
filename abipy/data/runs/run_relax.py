@@ -76,8 +76,6 @@ def relax_flow(workdir):
     flow.register_work(work)
 
     #bands_work = abilab.BandStructureWorkflow(scf_input, nscf_input)
-return flow.allocate()
-
     return flow.allocate()
 
 

@@ -39,7 +39,7 @@ def make_scf_nscf_inputs(structure, pseudos):
     inp[2].set_kpath(ndivsm=6)
     inp[2].set_variables(tolwfr=1e-12)
 
-    # Dos calculations
+    # Dos calculations with increasing k-point sampling.
     for i, nksmall in enumerate([10, 14, 18]):
         inp[i+3].set_variables(
             iscf=-3,   # NSCF calculation

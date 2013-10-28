@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""This script computs the LDA+U band structure of NiO for several values of U-J."""
+"""This script computes the LDA+U band structure of NiO for several values of U-J."""
 from __future__ import division, print_function
 
 import sys
@@ -86,9 +86,9 @@ def bands_flow(workdir):
     u_values = [5.0, 8.0]
 
     for u in u_values:
+        # Apply U-J on Ni only.
         luj_params = abilab.LdauParams(usepawu, structure)
         luj_params.luj_for_symbol("Ni", l=2, u=u, j=0.1*u, unit="eV")
-        #print(luj_params.to_abivars())
 
         scf_input, nscf_input, dos_input = make_scf_nscf_dos_inputs(structure, pseudos, luj_params)
                                                                        

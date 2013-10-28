@@ -9,4 +9,4 @@ from .comparison import wxapp_comparison
 from .editor import wxapp_showfiles
 from .converter import wxapp_converter
 from .fftprof import wxapp_fftprof
-from .workflow_viewer import wxapp_flow_viewer, wxapp_flowsdatabase_viewer
+from .flowviewer import wxapp_flow_viewer, wxapp_flowsdatabase_viewer

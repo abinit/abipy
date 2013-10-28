@@ -135,7 +135,7 @@ def main():
 
     retcode = 0
     if options.command == "gui":
-        from abipy.gui.workflow_viewer import wxapp_flow_viewer
+        from abipy.gui.flowviewer import wxapp_flow_viewer
         wxapp_flow_viewer(flow).MainLoop()
 
     else:

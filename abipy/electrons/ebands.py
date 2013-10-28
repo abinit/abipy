@@ -931,13 +931,15 @@ class ElectronBands(object):
         # Decorate the axis (e.g add ticks and labels).
         self.decorate_ax(ax, klabels=klabels, title=title)
 
-        if not kwargs:
-            kwargs = {"color": "black", "linewidth": 2.0}
-
         # Plot the band energies.
         for spin in self.spins:
+            if spin == 0:
+                opts = {"color": "black", "linewidth": 2.0}
+            else:
+                opts = {"color": "red", "linewidth": 2.0}
+
             for band in band_range:
-                self.plot_ax(ax, spin=spin, band=band, **kwargs)
+                self.plot_ax(ax, spin=spin, band=band, **opts)
 
         # Add markers to the plot.
         if marker is not None:
@@ -1174,6 +1176,7 @@ class ElectronBands(object):
         ax2.yaxis.set_label_position("right")
 
         fig = plt.gcf()
+
         if title:
             fig.suptitle(title)
 

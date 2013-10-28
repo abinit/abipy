@@ -1,3 +1,4 @@
+**Official docs:** http://pythonhosted.org/abipy/
 
 Abipy is an open-source library for analyzing the results produced by ABINIT (http://www.abinit.org), 
 an open-source program for the ab-initio calculation of the physical properties of materials 
@@ -39,6 +40,13 @@ or to install the package in developmental mode::
 
     python setup.py develop
 
+To run the suite of unittests, make sure you have nose installed and then just type::
+
+    nosetests
+
+in the abipy root directory.
+
+
 Requirements
 ============
 
@@ -48,7 +56,7 @@ Otherwise, these packages should be available on `PyPI <http://pypi.python.org>`
 
 1. Python 2.7+ required. 
 
-2. pymatgen 2.7.3+
+2. pymatgen 2.8.7+
 
 3. numpy - For array, matrix and other numerical manipulations. 
 
@@ -66,10 +74,6 @@ Optional dependencies
 Optional libraries that are required if you need certain features:
 
 1. wxPython - For the GUI 
-
-2. wxmplot
-
-3. nose - For complete unittesting.
 
 Installing wxPython
 -------------------

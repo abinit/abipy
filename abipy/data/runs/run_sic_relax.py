@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Structural relaxation for SiC."""
 from __future__ import division, print_function
 
 import sys

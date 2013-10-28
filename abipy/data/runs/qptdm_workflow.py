@@ -8,7 +8,6 @@ import yaml
 import numpy as np
 
 from abipy.abilab import AbinitFlow, Mrgscr, Mrgddb, Mrggkk
-
 from pymatgen.io.abinitio.tasks import ScfTask, PhononTask
 from pymatgen.io.abinitio.workflows import Workflow, BandStructureWorkflow, IterativeWorkflow, PhononWorkflow
 from pymatgen.io.abinitio.abiinspect import yaml_read_kpoints, yaml_read_irred_perts
@@ -106,15 +105,6 @@ class QptdmWorkflow(Workflow):
         )
 
         return results
-
-#class IrredPert(object):
-#    def to_abivars(self):
-#        #rfatpol   1 1   # Only the first atom is displaced
-#        #rfdir   1 0 0   # Along the first reduced coordinate axis
-#        qpt = irred_pert["qpt"]
-#        idir = irred_pert["idir"]
-#        ipert = irred_pert["ipert"]
-#        return vars
 
 
 def cbk_qptdm_workflow(flow, work, cbk_data):

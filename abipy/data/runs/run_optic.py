@@ -59,9 +59,9 @@ def optic_flow():
       #kptopt=3,
     )
 
-    #Fourth dataset : ddk response function along axis 1
-    #Fifth dataset : ddk response function along axis 2
-    #Sixth dataset : ddk response function along axis 3
+    # Fourth dataset : ddk response function along axis 1
+    # Fifth dataset : ddk response function along axis 2
+    # Sixth dataset : ddk response function along axis 3
     for dir in range(3):
         rfdir = 3 * [0]
         rfdir[dir] = 1
@@ -135,8 +135,8 @@ def optic_flow_from_files():
 def main():
     flow = optic_flow()
     #flow = optic_flow_from_files()
-
     #print("optic manager after allocate", flow[2][0].manager)
+
     return flow.build_and_pickle_dump()
 
 
