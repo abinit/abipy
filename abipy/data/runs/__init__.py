@@ -1,9 +1,7 @@
 import os
 import inspect
 import functools
-#import abipy.abilab as abilab
 
-#from pymatgen.io.abinitio.launcher import PyFlowsScheduler
 from pymatgen.util.decorators import enable_logging
 
 __all__ = [
@@ -25,26 +23,6 @@ class Tester(object):
         # is the first time we execute the AbinitFlow.
         self.workdir = os.path.join(os.path.dirname(apath), "tmp_" + base)
         self.refdir = os.path.join(os.path.dirname(apath), "data_" + base)
-
-    #def __str__(self):
-    #    return str(self.__dict__)
-
-    #@property
-    #def retcode(self):
-    #    """Return code."""
-    #    try:
-    #        return self._retcode
-    #    except AttributeError:
-    #        return 66
-
-    #def set_flow_and_run(self, flow):
-    #    self.set_flow(flow)
-    #    self.run()
-
-    #def run(self):
-    #    raise NotImplementedError("")
-    #    #retcodes = PyResourceManager(self.flow, max_ncpus=2, sleep_time=2.5).run()
-    #    #self._retcode = max(retcodes)
 
     #def finalize(self):
         #pass

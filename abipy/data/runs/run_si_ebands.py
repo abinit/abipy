@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-"""This script shows how to compute the band structure of silicon."""
+"""Flow for computing the band structure of silicon."""
 from __future__ import division, print_function
 
+import sys
 import os
 import abipy.data as data  
 import abipy.abilab as abilab
@@ -9,13 +10,86 @@ import abipy.abilab as abilab
 from abipy.data.runs import Tester, enable_logging
 from abipy.core.testing import AbipyTest
 
-# Unit test for this module.
-#class FlowTest(AbipyTest):
-#    def test_flow(self):
-#        self.flow = main()
+###########################################################
+# Begin unit test for the flow defined in this module. 
+# Users who just want to learn how to use this flow can ignore this section.
+############################################################
+import unittest
+
+class FlowTest(AbipyTest):
+    DORUN = False
+
+    def setUp(self):
+        super(FlowTest, self).setUp()
+        self.flow = build_bands_flow("__hello_test__")
+
+        self.init_dirs()
+
+    def init_dirs(self):
+        import inspect
+        import os
+        ## Get the filename of the calling module.
+        frm = inspect.stack()[1]
+        mod = inspect.getmodule(frm[0])
+        #
+        apath = os.path.abspath(mod.__file__)
+        print(apath)
+        #assert 0
+
+        #base = os.path.basename(apath).replace(".py","").replace("run_","")
+        # Results will be produced in workdir. 
+        # refdir contains the reference data (might not be present if this 
+        # is the first time we execute the AbinitFlow.
+        #self.workdir = os.path.join(os.path.dirname(apath), "tmp_" + base)
+        #self.refdir = os.path.join(os.path.dirname(apath), "data_" + base)
+
+    def test_pickle(self):
+        """Testing whether the flow object is pickleable."""
+        self.serialize_with_pickle(self.flow, protocols=None, test_eq=True)
+
+    @unittest.skipIf(not DORUN, "Skipping test_run")
+    def test_run(self):
+        """Running the flow with PyFlowsScheduler."""
+        from pymatgen.io.abinitio.launcher import PyFlowsScheduler
+        self.flow.build_and_pickle_dump()
+
+        sched_options = dict(
+            weeks=0,
+            days=0,
+            hours=0,
+            minutes=0,
+            seconds=5,
+        )
+
+        sched = PyFlowsScheduler(**sched_options)
+        sched.add_flow(self.flow)
+        sched.start()
+
+        all_ok = self.flow.all_ok
+        self.assertTrue(all_ok)
+
+    def finalize_run(self):
+        pass
+        ##Remove all files except those matching these regular expression.
+        #work.rmtree(exclude_wildcard="*.abi|*.abo|*_WFK*|*_GSR.nc|*DEN-etsf.nc")
+        #        
+        #work = flow[0]
+        #                                                                                   
+        #work[0].rename("out_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
+        #work[0].rename("out_DEN-etsf.nc", "si_DEN-etsf.nc")
+        #work[0].rename("out_GSR.nc", "si_scf_GSR.nc")
+        #
+        #work[1].rename("out_WFK_0-etsf.nc", "si_nscf_WFK-etsf.nc")
+        #work[1].rename("out_GSR.nc", "si_nscf_GSR.nc")
+        #work[1].remove_files("out_DS2_DEN-etsf.nc")
+        #flow.rmtree()
+#########################
+# End unit test section #
+#########################
 
 
 def make_scf_nscf_inputs():
+    """Returns two input files: GS run and NSCF on a high symmetry k-mesh."""
     inp = abilab.AbiInput(pseudos=data.pseudos("14si.pspnc"), ndtset=2)
     structure = inp.set_structure_from_file(data.cif_file("si.cif"))
 
@@ -46,32 +120,17 @@ def make_scf_nscf_inputs():
     return scf_input, nscf_input
 
 def build_bands_flow(workdir):
-    # Create the task defining the calculation and run.
+
+    # Get the SCF and the NSCF input.
     scf_input, nscf_input = make_scf_nscf_inputs()
-                                                               
+
+    # Instantiate the TaskManager from `taskmanager.yml`.
     manager = abilab.TaskManager.from_user_config()
                                                                
+    # Build the flow.
     flow = abilab.bandstructure_flow(workdir, manager, scf_input, nscf_input)
     return flow.allocate()
-
-    #tester.set_work_and_run(work)
-    #if tester.retcode != 0:
-    #    return tester.retcode
-
-    ## Remove all files except those matching these regular expression.
-    ##work.rmtree(exclude_wildcard="*.abi|*.abo|*_WFK*|*_GSR.nc|*DEN-etsf.nc")
-
-    #work[0].rename("out_DS1_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
-    #work[0].rename("out_DS1_DEN-etsf.nc", "si_DEN-etsf.nc")
-    #work[0].rename("out_DS1_GSR.nc", "si_scf_GSR.nc")
-
-    #work[0].rename("out_DS2_WFK_0-etsf.nc", "si_nscf_WFK-etsf.nc")
-    #work[0].rename("out_DS2_GSR.nc", "si_nscf_GSR.nc")
-
-    #work[0].remove_files("out_DS2_DEN-etsf.nc")
-
-    #tester.finalize()
-    #return tester.retcode 
+    
 
 @enable_logging
 def main():
@@ -81,5 +140,4 @@ def main():
 
 
 if __name__ == "__main__":
-    import sys
     sys.exit(main())

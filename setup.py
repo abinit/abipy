@@ -135,7 +135,6 @@ install_requires = [
     "ipython>=1.1.0",
     "pyzmq",     # for the notebook
     "jinja2",    # for the notebook
-    #"wxPython",
     #"termcolor",
 ]
 

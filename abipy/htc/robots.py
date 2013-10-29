@@ -21,7 +21,7 @@ __all__ = [
 class FlowRobot(object):
     """
     The main function of a `FlowRobot` is facilitating the extraction of the 
-    output data produced by a `AbinitFlow` or the runtime inspections of the 
+    output data produced by an `AbinitFlow` or the runtime inspections of the 
     calculations. This is the base class from which all Robot classes should 
     derive. It provides helper functions to select the output files of the flow.
 
@@ -61,13 +61,27 @@ class FlowRobot(object):
         return self.flow.show_status(stream=stream)
 
     def all_outfiles(self, status=None, op="="):
-        all_outs = [task.output_file.path for taskin self.flow.iflat_tasks(status, op=op)]
+        """
+        List of abinit output files produced by the tasks in the flow.
+        If status is not None, only the tasks whose status satisfies
+        the condition: 
+
+            `task.status op status`
+
+        are selected.
+        """
+        all_outs = [task.output_file.path for task in 
+            self.flow.iflat_tasks(status, op=op)]
+
         return all_outs
 
     def all_files_with_abiext(self, abiext, dirname="outdir", 
                               exclude_works=(), exclude_tasks=(),
                               include_works=(), include_tasks=()):
-
+        """
+        Returns a list of files with extenxions `abiext` located 
+        in the drectory dirname
+        """
         files = []
         for task, wi, ti in self.flow.iflat_tasks_wti():
 
@@ -79,7 +93,7 @@ class FlowRobot(object):
                 continue
 
             directory = getattr(task, dirname)
-            path = directory.has_abiext("SIGRES")
+            path = directory.has_abiext(abiext)
             if path:
                 files.append(path)
 
@@ -103,6 +117,10 @@ class FlowRobot(object):
 
 
 class EbandsRobot(FlowRobot):
+    """
+    This robot collects the band energies from the GSR files
+    and returns an instance of `ElectronBandsPlotter`
+    """
     def __init__(self, flow):
         super(EbandsRobot, self).__init__(flow)
 
@@ -127,7 +145,6 @@ class EosRobot(FlowRobot):
     This robot computes the equation of state by 
     fitting the total energy as function of the unit cell volume.
     """
-
     def collect_data(self, *args, **kwargs):
         #self.volumes = [13.72, 14.83, 16.0, 17.23, 18.52]
         #self.energies = [-56.29, -56.41, -56.46, -56.46, -56.42]
@@ -166,7 +183,10 @@ class EosRobot(FlowRobot):
 
 
 class FlowInspector(FlowRobot):
-
+    """
+    This robot extract data from the main output files produced by Abinit
+    and returns a plottable object.
+    """
     def analyze_data(self, *args, **kwargs):
         """Analyze the collected data."""
         # List of SIGRES files computed with different values of nband.
@@ -186,10 +206,12 @@ class FlowInspector(FlowRobot):
 
 
 class SigresRobot(FlowRobot):
-
+    """
+    This robot collect all the SIGRES files produced by the tasks
+    and returns an instance of `SIGRES_Plotter`.
+    """
     def collect_data(self, *args, **kwargs):
         """Collect the data"""
-
         # List of SIGRES files computed with different values of nband.
         self.sigres_files = self.all_files_with_abiext("SIGRES")
 

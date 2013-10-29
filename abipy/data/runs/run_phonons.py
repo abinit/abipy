@@ -88,6 +88,9 @@ def ph_flow():
 def main():
     """Build the flow for Phonon calculations and save the object in cpickle format."""
     flow = ph_flow()
+    for task in flow.iflat_tasks():
+        print(task, task.manager)
+
     return flow.build_and_pickle_dump()
 
 
