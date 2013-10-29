@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""This script computes the LDA+U band structure of NiO for several values of U-J."""
+"""LDA+U band structure of NiO for several values of U-J."""
 from __future__ import division, print_function
 
 import sys

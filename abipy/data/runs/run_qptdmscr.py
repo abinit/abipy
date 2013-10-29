@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This script shows how to compute the SCR file by splitting the calculation
+This example shows how to compute the SCR file by splitting the calculation
 over q-points with the input variables nqptdm and qptdm.
 """
 from __future__ import division, print_function

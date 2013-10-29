@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""This script shows how to compute the phonon band structure of AlAs."""
+"""Phonon band structure of AlAs."""
 from __future__ import division, print_function
 
 import sys

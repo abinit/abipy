@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 This example shows how to compute the band structure of a set of 
-crystalline structures obtained by changin a set of internal paramaters
+crystalline structures obtained by changing a set of internal paramaters
 """
 from __future__ import division, print_function
 

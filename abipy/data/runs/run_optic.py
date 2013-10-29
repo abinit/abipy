@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""This script shows how to compute optical spectra with Optic."""
+"""Optical spectra with Optic."""
 from __future__ import division, print_function
 
 import sys

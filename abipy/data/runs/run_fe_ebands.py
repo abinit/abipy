@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This script shows how to compute the band structure of Fe with and without magnetization.
+Calculation of the band structure of Fe with and without magnetization.
 See tutorial/Input/tspin_1.in
 """
 from __future__ import division, print_function
@@ -35,8 +35,8 @@ def make_scf_nscf_inputs(nsppol):
     inp[1].set_variables(tolvrs=1e-6)
 
     # Dataset 2 (NSCF run)
-    inp[2].set_kpath(ndivsm=6)
-    inp[2].set_variables(tolwfr=1e-10)
+    inp[2].set_kpath(ndivsm=4)
+    inp[2].set_variables(tolwfr=1e-8)
     
     # Generate two input files for the GS and the NSCF run 
     scf_input, nscf_input = inp.split_datasets()

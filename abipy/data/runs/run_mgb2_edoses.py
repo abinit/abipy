@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """
-This script computes the band structure and the electron DOS of MgB2
-with different k-point samplings.
+Band structure and the electron DOS of MgB2 with different k-point samplings.
 """
 from __future__ import division, print_function
 

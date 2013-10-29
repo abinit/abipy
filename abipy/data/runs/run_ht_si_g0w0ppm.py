@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""This script computes the G0W0 corrections with the HT interface."""
+"""G0W0 corrections with the HT interface."""
 from __future__ import division, print_function
 
 import sys

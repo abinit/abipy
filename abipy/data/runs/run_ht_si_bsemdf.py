@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""This script computes the BSE spectrum with the HT interface."""
+"""Calculation of the BSE spectrum with the HT interface."""
 from __future__ import division, print_function
 
 import sys

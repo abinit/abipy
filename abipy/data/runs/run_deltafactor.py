@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""This script shows how to compute the deltafactor for a given pseudopotential."""
+"""Compute the deltafactor for a given pseudopotential."""
 from __future__ import division, print_function
 
 import os

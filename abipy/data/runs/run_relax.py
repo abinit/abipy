@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 """
 This script shows how to perform a structural relaxation in two steps:
-1) Relaxation of atomic positions with unit cell parameters fixed.
-2) Full relaxation (atoms + cell) with the initial configuration read from step 1)
+
+    1) Relaxation of atomic positions with unit cell parameters fixed.
+    2) Full relaxation (atoms + cell) with the initial configuration read from step 1)
 """
 from __future__ import division, print_function
 

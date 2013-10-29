@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This script computes the frozen phonon band structure of silicon.
+Band structure of silicon in a distorted geometry (frozen phonon at q=0)
 """
 from __future__ import division, print_function
 
