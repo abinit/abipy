@@ -14,7 +14,7 @@ before_install:
   #- sudo apt-get install python-scipy 
   #- sudo apt-get install python-matplotlib 
   - pip -q install numpy
-  - pip -q install scipy
+  - pip install scipy
   - pip install -Iv https://bitbucket.org/jamesrhester/pycifrw/downloads/PyCifRW-3.6.1.tar.gz
   - pip install netCDF4
 # command to install dependencies
