@@ -83,11 +83,10 @@ class ElectronDosPanel(DosPanel):
 
 class ElectronDosDialog(wx.Dialog):
     """Dialog that asks the user to enter the parameters for the electron DOS."""
-
     def __init__(self, parent, **kwargs):
         super(ElectronDosDialog, self).__init__(parent, -1, **kwargs)
 
-        self.SetSize((250, 200))
+        #self.SetSize((250, 200))
         self.SetTitle("Select DOS parameters")
 
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -102,8 +101,8 @@ class ElectronDosDialog(wx.Dialog):
         hbox.Add(ok_button)
         hbox.Add(close_button, flag=wx.LEFT, border=5)
 
-        vbox.Add(self.panel, proportion=1, flag=wx.ALL | wx.EXPAND, border=5)
-        vbox.Add(hbox, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10)
+        vbox.Add(self.panel, proportion=0, flag=wx.ALL | wx.EXPAND, border=5)
+        vbox.Add(hbox, proportion=0, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10)
 
         self.SetSizerAndFit(vbox)
 
@@ -124,6 +123,9 @@ class ElectronDosFrame(awx.Frame):
         """
         if "title" not in kwargs:
             kwargs["title"] = "Electron DOS"
+
+        if "size" not in kwargs:
+            kwargs["size"] = (600, 200)
 
         super(ElectronDosFrame, self).__init__(parent, id=-1, **kwargs)
         self.bands = bands

@@ -131,7 +131,7 @@ install_requires = [
     "PyDispatcher",
     "pyyaml>=3.1.0",
     "apscheduler>=2.1.1",
-    "wxmplot",
+    "wxmplot>=0.9.13",
     "ipython>=1.1.0",
     "pyzmq",     # for the notebook
     "jinja2",    # for the notebook

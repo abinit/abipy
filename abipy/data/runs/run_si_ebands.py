@@ -16,14 +16,8 @@ from abipy.core.testing import AbipyTest
 ############################################################
 import unittest
 
-class FlowTest(AbipyTest):
+class MixinTest(object):
     DORUN = False
-
-    def setUp(self):
-        super(FlowTest, self).setUp()
-        self.flow = build_bands_flow("__hello_test__")
-
-        self.init_dirs()
 
     def init_dirs(self):
         import inspect
@@ -35,7 +29,7 @@ class FlowTest(AbipyTest):
         apath = os.path.abspath(mod.__file__)
         print(apath)
         #assert 0
-
+                                                                             
         #base = os.path.basename(apath).replace(".py","").replace("run_","")
         # Results will be produced in workdir. 
         # refdir contains the reference data (might not be present if this 
@@ -47,9 +41,12 @@ class FlowTest(AbipyTest):
         """Testing whether the flow object is pickleable."""
         self.serialize_with_pickle(self.flow, protocols=None, test_eq=True)
 
-    @unittest.skipIf(not DORUN, "Skipping test_run")
     def test_run(self):
         """Running the flow with PyFlowsScheduler."""
+        if not self.DORUN:
+            print("Skipping test_run")
+            return 
+
         from pymatgen.io.abinitio.launcher import PyFlowsScheduler
         self.flow.build_and_pickle_dump()
 
@@ -68,11 +65,35 @@ class FlowTest(AbipyTest):
         all_ok = self.flow.all_ok
         self.assertTrue(all_ok)
 
-    def finalize_run(self):
+    def tearDown(self):
+        if not self.DO_RUN:
+            return 
+
+        if not self.flow.all_ok:
+            return 
+
+
+class FlowTest(AbipyTest, MixinTest):
+    def setUp(self):
+        super(FlowTest, self).setUp()
+        self.flow = build_bands_flow("__hello_test__")
+
+        self.init_dirs()
+
+    def move_files(self):
         pass
-        ##Remove all files except those matching these regular expression.
+
+        # (wi, ti) --> (out_file, ref_file)
+        #files_to_move = dict(
+        #    (0, 0): {"out_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc"}
+        #)
+        #for (wi, ti), d in files_to_move.items():
+        #    task = flow[wi][ti]
+        #    for out_file, ref_file in d.items():
+        #        task.rename(out_file, ref_file)
+
+        #Remove all files except those matching these regular expression.
         #work.rmtree(exclude_wildcard="*.abi|*.abo|*_WFK*|*_GSR.nc|*DEN-etsf.nc")
-        #        
         #work = flow[0]
         #                                                                                   
         #work[0].rename("out_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
