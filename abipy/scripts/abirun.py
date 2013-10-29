@@ -37,6 +37,9 @@ def show_examples_and_exit(err_msg=None, error_code=1):
 def treat_flow(flow, options):
     retcode = 0
 
+    #print("num", flow.num_tasks_with_error) 
+    #sys.exit(1)
+
     # Dispatch.
     if options.command in ["single", "singleshot"]:
         nlaunch = PyLauncher(flow).single_shot()
@@ -58,11 +61,13 @@ def treat_flow(flow, options):
 
         sched_options = {oname: getattr(options, oname) for oname in opt_names}
         if all(v == 0 for v in sched_options.values()):
-            sched_options["seconds"] = 15
-            warnings.warn("No value of scheduler specified in input. Using seconds=15")
+            #sched_options["seconds"] = 15
+            #warnings.warn("No value of scheduler specified in input. Using seconds=15")
+            sched = PyFlowsScheduler.from_user_config()
+        else:
+            #print(sched_options)
+            sched = PyFlowsScheduler(**sched_options)
 
-        #print(sched_options)
-        sched = PyFlowsScheduler(**sched_options)
         sched.add_flow(flow)
 
         print(sched)

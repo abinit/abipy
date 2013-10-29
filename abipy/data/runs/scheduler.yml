@@ -1,0 +1,12 @@
+# number of weeks to wait
+#weeks:
+# number of days to wait
+#days:
+# number of hours to wait
+#hours:
+# number of minutes to wait
+#minutes:
+# number of seconds to wait
+seconds: 10
+# when to first execute the job and start the counter (default is after the given interval)
+#start_date:

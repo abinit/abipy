@@ -188,10 +188,8 @@ class FlowViewerFrame(awx.Frame):
 
         self.flow.check_status()
 
-        # Cound the number of tasks with given status.
-        counter = self.flow[0].status_counter()
-        for work in self.flow[1:]:
-            counter += work.status_counter()
+        # Count the number of tasks with given status.
+        counter = self.flow.status_counter
 
         # Save the active tab so that we can set it afterwards.
         old_selection = self.notebook.GetSelection()

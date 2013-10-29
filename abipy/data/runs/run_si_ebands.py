@@ -17,7 +17,8 @@ from abipy.core.testing import AbipyTest
 import unittest
 
 class MixinTest(object):
-    DORUN = False
+    #DORUN = False
+    DORUN = True
 
     def init_dirs(self):
         import inspect
@@ -82,15 +83,15 @@ class FlowTest(AbipyTest, MixinTest):
 
     def move_files(self):
         pass
-
         # (wi, ti) --> (out_file, ref_file)
-        #files_to_move = dict(
-        #    (0, 0): {"out_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc"}
-        #)
-        #for (wi, ti), d in files_to_move.items():
-        #    task = flow[wi][ti]
-        #    for out_file, ref_file in d.items():
-        #        task.rename(out_file, ref_file)
+        files_to_move = {
+            (0, 0): {"out_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc"}
+        }
+        for (wi, ti), d in files_to_move.items():
+            task = flow[wi][ti]
+            for out_file, ref_file in d.items():
+                print("Will move out_file %s to ref_file %s" % (out_file, ref_file))
+                #task.rename(out_file, ref_file)
 
         #Remove all files except those matching these regular expression.
         #work.rmtree(exclude_wildcard="*.abi|*.abo|*_WFK*|*_GSR.nc|*DEN-etsf.nc")
@@ -118,6 +119,7 @@ def make_scf_nscf_inputs():
     global_vars = dict(ecut=6,
                        nband=8,
                        timopt=-1,
+                       accesswff=3,
                     )
 
     inp.set_variables(**global_vars)
