@@ -136,6 +136,7 @@ install_requires = [
     "pyzmq",     # for the notebook
     "jinja2",    # for the notebook
     #"termcolor",
+    #"cython",
 ]
 
 #---------------------------------------------------------------------------

@@ -120,6 +120,7 @@ def make_scf_nscf_inputs():
                        nband=8,
                        timopt=-1,
                        accesswff=3,
+                       istwfk="*1",
                     )
 
     inp.set_variables(**global_vars)

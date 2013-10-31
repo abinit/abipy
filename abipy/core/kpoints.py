@@ -37,6 +37,10 @@ def isinteger(x, atol=_ATOL_KDIFF):
     int_x = np.around(x)
     return np.allclose(int_x, x, atol=atol)
 
+    #return (np.abs(int_kdiff[0] - kdiff[0]) < atol and 
+    #        np.abs(int_kdiff[1] - kdiff[1]) < atol and 
+    #        np.abs(int_kdiff[2] - kdiff[2]) < atol )
+
 
 def issamek(k1, k2, atol=1e-08):
     """
@@ -69,10 +73,11 @@ def wrap_to_bz(x):
     return x % 1
 
 
+# TODO: Add option to wrap the point in [-1/2, 1/2)
 def bz_from_mpdivs(mpdivs, shifts):
     """
-    Returns a ndarray with the reduced coordinates from 
-    the MP divisions and the shifts.
+    Returns a `ndarray` with the reduced coordinates of the 
+    k-points from the MP divisions and the shifts.
 
     Args:
         mpdivs
@@ -80,7 +85,7 @@ def bz_from_mpdivs(mpdivs, shifts):
         shifts:
             Array-like object with the MP shift.
     """
-    mpdivs = np.asarray(mpdivs)
+    mpdivs = np.array(mpdivs)
     shifts = np.reshape(shifts, (-1,3))
 
     # Build bz grid.
@@ -502,12 +507,14 @@ class KpointList(collections.Sequence):
                           names=[k.name for k in good_kpoints],
                         )
 
-    def to_fortran_arrays(self):
-        fort_arrays = collections.namedtuple("FortranKpointListArrays", "frac_coords")
+    def to_array(self):
+        return np.array(self.frac_coords.copy())
 
-        return fort_arrays(
-            frac_coords=np.asfortranarray(self.frac_coords.T),
-        )
+    #def to_fortran_arrays(self):
+    #    fort_arrays = collections.namedtuple("FortranKpointListArrays", "frac_coords")
+    #    return fort_arrays(
+    #        frac_coords=np.asfortranarray(self.frac_coords.T),
+    #    )
 
 
 class KpointStar(KpointList):
@@ -676,9 +683,14 @@ class IrredZone(KpointList):
         # is the only solution I found (changes in the ETSF-IO part of Abinit are needed)
         return 
 
+        # FIXME: Check the treatment of the shifts, kptrlatt ...
         # time-reversal?
         assert ksampling.is_homogeneous
         self.kptopt = ksampling.kptopt
+
+        shifts = ksampling.shifts 
+        if shifts is None: shifts = [0.0, 0.0, 0.0]
+
         self._shifts = np.reshape(shifts, (-1,3))
 
         if ksampling.kptrlatt is not None:

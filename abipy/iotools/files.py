@@ -32,7 +32,7 @@ class AbinitFile(object):
         return "<%s at %s, filepath = %s>" % (self.__class__.__name__, id(self), self.filepath)
 
     def __str__(self):
-        return repr(self)
+        return "<%s at %s, filepath = %s>" % (self.__class__.__name__, id(self), os.path.relpath(self.filepath))
 
     @classmethod
     def from_file(cls, filepath):

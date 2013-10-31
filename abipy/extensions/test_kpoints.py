@@ -1,46 +1,30 @@
 #!/usr/bin/env python
-from abipy import *
-
+#from abipy import *
 import numpy as np
 
+from abipy.core.kpoints import issamek
 
-def slow_map_mesh2ibz(structure, bz, ibz_arr):
-    print("bz",bz)
-    print("ibz_arr",ibz_arr)
-    #return
+def slow_mesh2ibz(structure, bz, ibz):
+    #print("bz",bz)
+    #print("ibz",ibz)
 
-    bz2ibz = np.ones(len(bz), dtype=np.int)
+    bz2ibz = -np.ones(len(bz), dtype=np.int)
 
     for ik_bz, kbz in enumerate(bz):
         #print("kbz",kbz)
-
         found = False
-        for ik_ibz, kibz in enumerate(ibz_arr):
-            print("kibz",kibz)
-            if found: break
 
+        for ik_ibz, kibz in enumerate(ibz):
+            #print("kibz",kibz)
+            if found: break
             for symmop in structure.spacegroup:
-                krot = symmop.rotate_k(kibz)
-                if np.allclose(krot, kibz):
+                krot = symmop.rotate_k(kibz.frac_coords)
+                if issamek(krot, kbz):
                     bz2ibz[ik_bz] = ik_ibz
                     found = True
+                    break
 
     return bz2ibz
-
-
-#def pyx_mesh2ibz(bz, ibz, symrec):
-#    for ik_bz, kbz in enumerate(bz):
-#        found = False
-#        for ik_ibz, kibz in enumerate(ibz):
-#            if found:
-#                break:
-#
-#            for symmop in structure.symmops:
-#                krot = symmop.rotate(kibz.frac_coords)
-#                if krot == kibz:
-#                    bz2ibz[ik_bz] = ik_ibz
-#                    found = True
-
 
 def map_mesh2ibz(structure, mpdivs, shifts, ibz):
     """

@@ -8,7 +8,6 @@ import errno
 import re
 import subprocess
 
-#############################################################################################################
 
 def number_of_cpus():
     """
@@ -96,6 +95,13 @@ def number_of_cpus():
     return -1
     #raise Exception('Cannot determine number of CPUs on this system')
 
-#########################################################################################
+import json
+class NumPyArangeEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist() # or map(int, obj)
+        return json.JSONEncoder.default(self, obj)
 
-
+#def export_json(self, filename):
+#    with open (filename, 'w') as fh:
+#        fh.write(json.dumps(self.dtsets, cls=NumPyArangeEncoder))

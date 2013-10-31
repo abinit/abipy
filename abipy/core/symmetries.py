@@ -289,8 +289,6 @@ class SymmOp(object):
 
         return rot_gvecs
 
-#########################################################################################
-
 
 class SymmOpList(collections.Sequence):
 
@@ -483,6 +481,9 @@ class SymmOpList(collections.Sequence):
         d = {op: idx for (idx, op) in enumerate(self)}
         assert len(d) == len(self)
         return d
+
+    #def symrec_array(self):
+    #    symrec = np.asfortranarray(self.symrec.T)
 
     def to_fortran_arrays(self):
         fort_arrays = collections.namedtuple("FortranSpaceGroupArrays", "symrel symrec tnons symafm timrev")
