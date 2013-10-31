@@ -6,11 +6,11 @@ from abipy.core.testing import *
 
 # =========================================================================== #
 
-class TestAbinitVariable(AbipyFileTest):
+class TestInputVariable(AbipyFileTest):
     """Unit tests for AbinitVariable."""
 
     def setUp(self):
-        self.file = AbinitVariable('ecut', 10.0)
+        self.file = SpecialInputVariable('ecut', 10.0)
 
     def test_varnames(self):
         """Test printing of variables name."""

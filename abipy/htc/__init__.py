@@ -5,8 +5,10 @@ Abinit files handling library
 __all__ = []
 
 _mods = [
+    'input',
     'abinitfiles',
     'filesfile',
+    'variable',
     'inputfile',
     'jobfile',
     'abinitinput',
