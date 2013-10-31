@@ -1188,44 +1188,44 @@ class ElectronBands(object):
 
         return fig
 
-    def export_bxsf(self, filepath, structure):
-        """
-        Export the full band structure on filepath
-        Format is defined by the extension in filepath.
-        """
-        # Sanity check.
-        errors = []
-        eapp = errors.append
+    #def export_bxsf(self, filepath, structure):
+    #    """
+    #    Export the full band structure on filepath
+    #    Format is defined by the extension in filepath.
+    #    """
+    #    # Sanity check.
+    #    errors = []
+    #    eapp = errors.append
 
-        if np.any(self.nband_sk != self.nband_sk[0,0]):
-            eapp("nband must be constant")
+    #    if np.any(self.nband_sk != self.nband_sk[0,0]):
+    #        eapp("nband must be constant")
 
-        if not self.has_omesh:
-            eapp("An omogeneous sampling is needed for the Fermi surface")
+    #    if not self.has_omesh:
+    #        eapp("An omogeneous sampling is needed for the Fermi surface")
 
-        if self.has_omesh and not np.allclose(self.shiftk, 0.0):
-            eapp("shifted meshes are not supported by Xcryden")
+    #    if self.has_omesh and not np.allclose(self.shiftk, 0.0):
+    #        eapp("shifted meshes are not supported by Xcryden")
 
-        if errors:
-            raise ValueError("\n".join(errors))
+    #    if errors:
+    #        raise ValueError("\n".join(errors))
 
-        if "." not in filepath:
-            raise ValueError("Cannot detect file extension in path %s: " % filepath)
+    #    if "." not in filepath:
+    #        raise ValueError("Cannot detect file extension in path %s: " % filepath)
 
-        tokens = filepath.strip().split(".")
-        ext = tokens[-1]
+    #    tokens = filepath.strip().split(".")
+    #    ext = tokens[-1]
 
-        if not tokens[0]:
-            # fname == ".ext" ==> Create temporary file.
-            path = tempfile.mkstemp(suffix="."+ext, text=True)[1]
+    #    if not tokens[0]:
+    #        # fname == ".ext" ==> Create temporary file.
+    #        path = tempfile.mkstemp(suffix="."+ext, text=True)[1]
 
-        # Xcrysden uses C order and includes periodic images.
-        ebands3d = EBands3D(self.kpoints, self.eigens, self.ngkpt, self.shiftk, structure, pbc=3*[True], korder="c")
+    #    # Xcrysden uses C order and includes periodic images.
+    #    ebands3d = EBands3D(self.kpoints, self.eigens, self.ngkpt, self.shiftk, structure, pbc=3*[True], korder="c")
 
-        with open(filepath, mode="w") as fh:
-            bxsf_write(fh, ebands3d, structure, fermie=self.fermie)
+    #    with open(filepath, mode="w") as fh:
+    #        bxsf_write(fh, ebands3d, structure, fermie=self.fermie)
 
-        return Visualizer.from_file(filepath)
+    #    return Visualizer.from_file(filepath)
 
     def derivatives(self, spin, band, order=1, acc=4, asmarker=None):
         """Compute the derivative of the eigenvalues along the path."""

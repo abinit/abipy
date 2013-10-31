@@ -508,6 +508,7 @@ class KpointList(collections.Sequence):
                         )
 
     def to_array(self):
+        """Returns a ndarray [nk, 3] with the fractional coordinates."""
         return np.array(self.frac_coords.copy())
 
     #def to_fortran_arrays(self):
