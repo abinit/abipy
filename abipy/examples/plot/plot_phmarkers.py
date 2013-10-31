@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # This example shows how to plot the phonon band structure with markers.
-from abipy import *
+from abipy.abilab import PhononBands
 import abipy.data as data
 
 # Create the object from file.

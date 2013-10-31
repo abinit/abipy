@@ -1,7 +1,7 @@
 """Database of unit cells in the ABINIT format."""
 from __future__ import division, print_function
 
-from abipy.core.structure import Structure
+from abipy.abilab import Structure, ArrayWithUnit
 
 __all__ = [
     "ucell_names",
@@ -17,7 +17,7 @@ def ucell_names():
 
 def ucell(name):
     """Returnn the entry in the database with the given name."""
-    return _UCELLS[name.lower()].copy()
+    return _UCELLS[name].copy()
 
 
 def structure_from_ucell(name):
@@ -26,7 +26,7 @@ def structure_from_ucell(name):
 
 
 _UCELLS = {
-    "si": dict(ntypat=1,         
+    "Si": dict(ntypat=1,         
                natom=2,           
                typat=[1, 1],
                znucl=14,         
@@ -38,7 +38,7 @@ _UCELLS = {
                       [0.25, 0.25, 0.25]],
                     ),
 
-    "zno": dict(ntypat=2,
+    "ZnO": dict(ntypat=2,
                 natom=2,
                 typat=[1, 2],
                 acell= 3*[8.6277],
@@ -47,7 +47,7 @@ _UCELLS = {
                 xred=[[.0, .0, .0], [.25,.25,.25]],
     ),
 
-    "sic": dict(ntypat=2,
+    "SiC": dict(ntypat=2,
                 natom=2,
                 typat=[1, 2],
                 acell=3*[8.19],
@@ -59,7 +59,7 @@ _UCELLS = {
                        [.25,.25,.25] ]
                 ),
 
-    "alas": dict(natom=2,
+    "AlAs": dict(natom=2,
                  typat=[1, 2],
                  acell=3*[10.61],
                  rprim=[[0.0,  0.5,  0.5], 
@@ -70,7 +70,7 @@ _UCELLS = {
                        [0.25, 0.25, 0.25]]
                 ),
 
-    "gaas": dict(natom=2,
+    "GaAs": dict(natom=2,
                  typat=[1, 2],  
                  acell=3*[10.60],
                  rprim=[[0.0, 0.5, 0.5],
@@ -81,4 +81,45 @@ _UCELLS = {
                              3 *[0.25]]
                 ),
 
+    "NiO": dict(natom=4,           
+                typat=[1, 1, 2, 2],       
+                acell=3 * [7.92],
+                rprim=[0.0, 1/2, 1/2,
+                       1/2, 0.0, 1/2,
+                       1.0, 1.0, 0.0],
+                znucl=[28, 8],     
+                xred=[0.0, 0.0, 0.0,
+                      0.0, 0.0, 0.5,
+                      0.5, 0.5, 0.25,
+                      0.5, 0.5, 0.75
+                      ]
+                ),                 
+    "MgB2": dict(natom=3,                       
+                 typat=[1, 2, 2],
+                 acell=ArrayWithUnit([3.086, 3.086, 3.523], "ang").to("bohr"),
+                 rprim= [ 0.866025403784439, 0.5, 0.0,
+                         -0.866025403784439, 0.5, 0.0,
+                          0.0              , 0.0, 1.0],
+                 znucl=[12, 5],
+                 xred=[0.0, 0.0, 0.0, #Mg
+                       1/3, 2/3, 0.5, #B
+                       2/3, 1/3, 0.5] #B
+                ),
+    "Fe-fm":  dict(natom=1,                       
+                   typat=1,                       
+                   acell=3*[5.42],
+                   rprim=[-0.5,  0.5,  0.5,
+                           0.5, -0.5,  0.5,
+                           0.5,  0.5, -0.5],
+                   znucl=26,
+                   xred=[0.0, 0.0, 0.0],
+                  ),
 }
+
+#dict(natom=,                       
+#     typat=,                       
+#     acell=,
+#     rprim=,
+#     znucl=,
+#     xred=,
+#     ),

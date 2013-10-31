@@ -7,6 +7,7 @@ import abc
 import numpy as np
 
 from abipy import abilab
+from abipy.electrons.gsr import GSR_Reader
 
 from pymatgen.io.abinitio.flows import AbinitFlow
 
@@ -20,7 +21,7 @@ __all__ = [
 class FlowRobot(object):
     """
     The main function of a `FlowRobot` is facilitating the extraction of the 
-    output data produced by a `AbinitFlow` or the runtime inspections of the 
+    output data produced by an `AbinitFlow` or the runtime inspections of the 
     calculations. This is the base class from which all Robot classes should 
     derive. It provides helper functions to select the output files of the flow.
 
@@ -60,15 +61,29 @@ class FlowRobot(object):
         return self.flow.show_status(stream=stream)
 
     def all_outfiles(self, status=None, op="="):
-        all_outs = [task.output_file.path for (task, w, t) in self.flow.iflat_tasks(status, op=op)]
+        """
+        List of abinit output files produced by the tasks in the flow.
+        If status is not None, only the tasks whose status satisfies
+        the condition: 
+
+            `task.status op status`
+
+        are selected.
+        """
+        all_outs = [task.output_file.path for task in 
+            self.flow.iflat_tasks(status, op=op)]
+
         return all_outs
 
     def all_files_with_abiext(self, abiext, dirname="outdir", 
                               exclude_works=(), exclude_tasks=(),
                               include_works=(), include_tasks=()):
-
+        """
+        Returns a list of files with extenxions `abiext` located 
+        in the drectory dirname
+        """
         files = []
-        for task, wi, ti in self.flow.iflat_tasks():
+        for task, wi, ti in self.flow.iflat_tasks_wti():
 
             if wi in exclude_works or (wi, ti) in exclude_tasks: 
                 continue
@@ -78,7 +93,7 @@ class FlowRobot(object):
                 continue
 
             directory = getattr(task, dirname)
-            path = directory.has_abiext("SIGRES")
+            path = directory.has_abiext(abiext)
             if path:
                 files.append(path)
 
@@ -86,7 +101,7 @@ class FlowRobot(object):
 
     def collect_data(self, *args, **kwargs):
         """
-        Collect the data. Subclasses should provide their own implemetation (if needed).
+        Collect the data. Subclasses should provide their own implementation (if needed).
         """
                                                      
     @abc.abstractmethod
@@ -102,13 +117,17 @@ class FlowRobot(object):
 
 
 class EbandsRobot(FlowRobot):
+    """
+    This robot collects the band energies from the GSR files
+    and returns an instance of `ElectronBandsPlotter`
+    """
     def __init__(self, flow):
         super(EbandsRobot, self).__init__(flow)
 
         self.plotter = abilab.ElectronBandsPlotter()
 
     def analyze_data(self, *args, **kwargs):
-        for task, wi, ti in self.flow.iflat_tasks():
+        for task, in self.flow.iflat_tasks():
             directory = getattr(task, "outdir")
 
             if type(task) != abilab.NscfTask:
@@ -126,26 +145,27 @@ class EosRobot(FlowRobot):
     This robot computes the equation of state by 
     fitting the total energy as function of the unit cell volume.
     """
-
     def collect_data(self, *args, **kwargs):
-        self.volumes = [13.72, 14.83, 16.0, 17.23, 18.52]
-        self.energies = [-56.29, -56.41, -56.46, -56.46, -56.42]
+        #self.volumes = [13.72, 14.83, 16.0, 17.23, 18.52]
+        #self.energies = [-56.29, -56.41, -56.46, -56.46, -56.42]
 
-        #volumes, energies = [], []
-        #for task, wi, ti in self.flow.iflat_tasks():
-        #    directory = getattr(task, "outdir")
-        #    if type(task) != abilab.ScfTask:
-        #        continue
-        #                                                                            
-        #    gsr_filepath = directory.has_abiext("GSR")
-        #    if gsr_filepath:
-        #        with GSR_Reader(gsr_filepath) as r:
-        #           structure = r.read_structure()
-        #           etotal = r.read_etotal()
-        #           etotals.append(etotal)   
-        #           volumes.append(structure.volume)
-        
-        self.etotals = np.array(etotals)
+        volumes, etotals = [], []
+        for task in self.flow.iflat_tasks():
+            directory = getattr(task, "outdir")
+            if type(task) != abilab.ScfTask:
+                continue
+                                                                                    
+            gsr_filepath = directory.has_abiext("GSR")
+            if gsr_filepath:
+                with GSR_Reader(gsr_filepath) as r:
+                   structure = r.read_structure()
+                   # Volumes are in Ang^3
+                   volumes.append(structure.volume)
+
+                   # Read energy in Hartree
+                   etotals.append(r.read_value("etotal"))
+
+        self.etotals = abilab.ArrayWithUnit(etotals, "Ha").to("eV")
         self.volumes = np.array(volumes)
 
     def analyze_data(self, *args, **kwargs):
@@ -157,16 +177,20 @@ class EosRobot(FlowRobot):
            eos = abilab.EOS(eos_name=eos_name)
            # Note that eos.fit expects lengths in Angstrom, energies are in eV.
            # To specify different units use len_units and ene_units 
-           fits.append(eos.fit(self.volumes, self.energies, vol_unit="bohr^3", ene_unit="Ha"))
+           fits.append(eos.fit(self.volumes, self.etotals, vol_unit="ang^3", ene_unit="eV"))
 
         return fits
 
 
 class FlowInspector(FlowRobot):
-
+    """
+    This robot extract data from the main output files produced by Abinit
+    and returns a plottable object.
+    """
     def analyze_data(self, *args, **kwargs):
         """Analyze the collected data."""
         # List of SIGRES files computed with different values of nband.
+        show = kwargs.get("show", True)
 
         from pymatgen.io.abinitio.tasks import Task
         from pymatgen.io.abinitio.abiinspect import  plottable_from_outfile
@@ -176,15 +200,18 @@ class FlowInspector(FlowRobot):
         for out in out_files:
             obj = plottable_from_outfile(out)
             if obj is not None:
-                figs.append(obj.plot(title=os.path.relpath(out), show=False))
+                figs.append(obj.plot(title=os.path.relpath(out), show=show))
 
         return figs
 
-class SigresRobot(FlowRobot):
 
+class SigresRobot(FlowRobot):
+    """
+    This robot collect all the SIGRES files produced by the tasks
+    and returns an instance of `SIGRES_Plotter`.
+    """
     def collect_data(self, *args, **kwargs):
         """Collect the data"""
-
         # List of SIGRES files computed with different values of nband.
         self.sigres_files = self.all_files_with_abiext("SIGRES")
 

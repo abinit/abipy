@@ -2,7 +2,7 @@
 #
 # This example shows how to compute the DOS and how to plot a band structure
 # using two GSR files produced by abinit.
-from abipy import abiopen
+from abipy.abilab import abiopen
 import abipy.data as data
 
 # Open the file with energies computed on a k-path in the BZ

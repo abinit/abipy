@@ -1,43 +1,13 @@
 #!/usr/bin/env python
+"""This script shows how to compute the G0W0 corrections in silicon."""
 from __future__ import division, print_function
 
 import os
+import sys
 import abipy.data as data  
 import abipy.abilab as abilab
 
 from abipy.data.runs import Tester, enable_logging
-
-@enable_logging
-def main():
-
-    # Change the value of ngkpt below to perform a GW calculation with a different ngkpt.
-
-    scf, nscf, scr, sig1, sig2, sig3 = make_inputs(ngkpt=[2,2,2])
-
-    # Create the task defining the calculation and run it.
-    tester = Tester()
-    manager = tester.make_manager()
-    print(tester.workdir)
-
-    flow = abilab.g0w0_flow(tester.workdir, manager, scf, nscf, scr, [sig1, sig2, sig3])
-
-    flow.build_and_pickle_dump()
-
-    #tester.set_work_and_run(work)
-
-    #if tester.retcode != 0:
-    #    return tester.retcode
-
-    # Remove all files except those matching these regular expression.
-    #task = work[0]
-    #task.rmtree(exclude_wildcard="*.abi|*.abo|*SIGRES.nc")
-
-    #task.rename("out_DS4_SIGRES.nc", "si_g0w0ppm_nband10_SIGRES.nc")
-    #task.rename("out_DS5_SIGRES.nc", "si_g0w0ppm_nband20_SIGRES.nc")
-    #task.rename("out_DS6_SIGRES.nc", "si_g0w0ppm_nband30_SIGRES.nc")
-
-    #tester.finalize()
-    #return tester.retcode 
 
 def make_inputs(ngkpt):
     # Crystalline silicon
@@ -45,7 +15,7 @@ def make_inputs(ngkpt):
     # Dataset 1: ground state calculation 
     # Dataset 2: NSCF calculation 
     # Dataset 3: calculation of the screening 
-    # Dataset 4: calculation of the Self-Energy matrix elements (GW corrections)
+    # Dataset 4-5-6: Self-Energy matrix elements (GW corrections) with different values of nband
 
     inp = abilab.AbiInput(pseudos=data.pseudos("14si.pspnc"), ndtset=6)
 
@@ -77,6 +47,7 @@ def make_inputs(ngkpt):
         ecut=ecut,
         timopt=-1,
         istwfk="*1",
+        paral_kgb=1,
     )
     inp.set_kmesh(**gw_kmesh)
 
@@ -131,7 +102,34 @@ def make_inputs(ngkpt):
 
     return inp.split_datasets()
 
+@enable_logging
+def main():
+
+    # Change the value of ngkpt below to perform a GW calculation with a different k-mesh.
+    scf, nscf, scr, sig1, sig2, sig3 = make_inputs(ngkpt=[2,2,2])
+
+    # Create the task defining the calculation and run it.
+    tester = Tester()
+
+    workdir = "tmp_si_g0w0"
+    manager = abilab.TaskManager.from_user_config()
+
+    flow = abilab.g0w0_flow(tester.workdir, manager, scf, nscf, scr, [sig1, sig2, sig3])
+
+    return flow.build_and_pickle_dump()
+
+    #tester.set_work_and_run(work)
+    #if tester.retcode != 0:
+    #    return tester.retcode
+    # Remove all files except those matching these regular expression.
+    #task = work[0]
+    #task.rmtree(exclude_wildcard="*.abi|*.abo|*SIGRES.nc")
+
+    #task.rename("out_DS4_SIGRES.nc", "si_g0w0ppm_nband10_SIGRES.nc")
+    #task.rename("out_DS5_SIGRES.nc", "si_g0w0ppm_nband20_SIGRES.nc")
+    #task.rename("out_DS6_SIGRES.nc", "si_g0w0ppm_nband30_SIGRES.nc")
+    #tester.finalize()
+    #return tester.retcode 
 
 if __name__ == "__main__":
-    import sys
     sys.exit(main())

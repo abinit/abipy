@@ -47,6 +47,8 @@ class ElectronBandsTest(AbipyTest):
         imu = dos.tot_idos.find_mesh_index(mu)
         self.assert_almost_equal(dos.tot_idos[imu][1], 8, decimal=2)
 
+        self.serialize_with_pickle(dos, protocols=[-1], test_eq=False)
+
     def test_jdos(self):
         """Test JDOS methods."""
         bands = ElectronBands.from_file(data.ref_file("si_scf_GSR.nc"))
@@ -58,6 +60,8 @@ class ElectronBandsTest(AbipyTest):
             jdos = bands.get_ejdos(spin, valence, conduction)
             intg = jdos.integral()[-1][-1]
             self.assert_almost_equal(intg, len(conduction) * len(valence))
+
+        self.serialize_with_pickle(jdos, protocols=[-1])
 
         # Need a homogeneous sampling.
         with self.assertRaises(ValueError):

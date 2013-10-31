@@ -7,6 +7,9 @@ import tempfile
 
 from abipy.tools import which
 
+import logging
+logger = logging.getLogger(__name__)
+
 __all__ = [
     "FilesAnimator",
 ]
@@ -100,7 +103,8 @@ class FilesAnimator(object):
             files.append(fname)
 
         command = [self.animate_bin] + options + files
-        print("will execute command:", command)
+        msg = "will execute command: %s" % command
+        logger.info(msg)
         retcode = subprocess.call(command)
 
         # Remove the temporary directory.

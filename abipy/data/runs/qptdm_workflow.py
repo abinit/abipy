@@ -8,7 +8,6 @@ import yaml
 import numpy as np
 
 from abipy.abilab import AbinitFlow, Mrgscr, Mrgddb, Mrggkk
-
 from pymatgen.io.abinitio.tasks import ScfTask, PhononTask
 from pymatgen.io.abinitio.workflows import Workflow, BandStructureWorkflow, IterativeWorkflow, PhononWorkflow
 from pymatgen.io.abinitio.abiinspect import yaml_read_kpoints, yaml_read_irred_perts
@@ -47,6 +46,7 @@ class QptdmWorkflow(Workflow):
 
         fake_input = scr_input.deepcopy()
         fake_task = w.register(fake_input)
+        w.allocate()
         w.build()
 
         # Create the symbolic link and add the magic value 
@@ -54,12 +54,16 @@ class QptdmWorkflow(Workflow):
         fake_task.inlink_file(wfk_file)
         fake_task.strategy.add_extra_abivars({"nqptdm": -1})
         w.start()
+        w.wait()
 
         # Parse the section with the q-points
-
-        qpoints = yaml_read_kpoints(fake_task.log_file.path, tag="--- !Qptdms")
-        #print(qpoints)
-        w.rmtree()
+        try:
+            qpoints = yaml_read_kpoints(fake_task.log_file.path, doc_tag="!Qptdms")
+            #print(qpoints)
+        except:
+            raise
+        finally:
+            w.rmtree()
 
         # Now we can register the task for the different q-points 
         for qpoint in qpoints:
@@ -102,15 +106,6 @@ class QptdmWorkflow(Workflow):
 
         return results
 
-#class IrredPert(object):
-#    def to_abivars(self):
-#        #rfatpol   1 1   # Only the first atom is displaced
-#        #rfdir   1 0 0   # Along the first reduced coordinate axis
-#        qpt = irred_pert["qpt"]
-#        idir = irred_pert["idir"]
-#        ipert = irred_pert["ipert"]
-#        return vars
-
 
 def cbk_qptdm_workflow(flow, work, cbk_data):
     scr_input = cbk_data["input"]
@@ -119,6 +114,7 @@ def cbk_qptdm_workflow(flow, work, cbk_data):
     nscf_task = flow[0][1]
     wfk_file = nscf_task.outdir.has_abiext("WFK")
 
+    work.set_manager(flow.manager)
     work.fill(wfk_file, scr_input)
     #work.add_deps(cbk.deps)
     work.connect_signals()

@@ -97,7 +97,7 @@ class GSR_Plotter(collections.Iterable):
 
     def add_file(self, filepath):
         """Add a filename to the plotter"""
-        from abipy import abiopen
+        from abipy.abilab import abiopen
         gsr = abiopen(filepath)
         self._gsr_files[gsr.filepath] = gsr
 

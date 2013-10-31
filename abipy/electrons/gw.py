@@ -7,10 +7,9 @@ import warnings
 import cStringIO as StringIO
 import numpy as np
 
-from abipy.tools import find_le, find_ge, list_strings, is_string
+from abipy.tools import find_le, find_ge, list_strings, is_string, pprint_table, AttrDict
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import KpointList
-from abipy.tools import pprint_table, AttrDict
 from abipy.iotools import AbinitNcFile, ETSF_Reader, Has_Structure, Has_ElectronBands
 from abipy.electrons.ebands import ElectronBands
 from abipy.electrons.scissors import Scissors
@@ -146,8 +145,6 @@ class QPState(collections.namedtuple("QPState",
 
             return _TIPS
 
-#########################################################################################
-
 
 class QPList(list):
     """A list of quasiparticle corrections."""
@@ -255,9 +252,6 @@ class QPList(list):
         fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, squeeze=False)
         ax_list = ax_list.ravel()
 
-        if (num_plots % ncols) != 0:
-            ax_list[-1].axis('off')
-
         if title:
             fig.suptitle(title)
 
@@ -275,6 +269,12 @@ class QPList(list):
             ax.set_ylabel(field)
             yy = qps.get_field(field)
             ax.plot(e0mesh, yy, linestyle, **kwargs)
+
+        # Get around a bug in matplotlib
+        if (num_plots % ncols) != 0:
+            ax_list[-1].plot([0,1], [0,1], lw=0)
+            ax_list[-1].axis('off')
+
 
         if show:
             plt.show()
@@ -363,8 +363,6 @@ class QPList(list):
             qps = self + other
 
         return QPList(qps)
-
-#########################################################################################
 
 
 class Sigmaw(object):
@@ -529,7 +527,7 @@ class SIGRES_Plotter(collections.Iterable):
 
     def add_file(self, filepath):
         """Add a filename to the plotter"""
-        from abipy import abiopen
+        from abipy.abilab import abiopen
         sigres = abiopen(filepath)
         self._sigres_files[sigres.filepath] = sigres
 

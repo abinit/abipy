@@ -92,8 +92,8 @@ class NcFileDirCtrl(wx.GenericDirCtrl):
 
 class MyListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
     """ Mixin class to resize the last column appropriately."""
-    def __init__(self, parent):
-        wx.ListCtrl.__init__(self, parent, id=-1, style=wx.LC_REPORT | wx.BORDER_SUNKEN)
+    def __init__(self, parent, **kwargs):
+        wx.ListCtrl.__init__(self, parent, id=-1, style=wx.LC_REPORT | wx.BORDER_SUNKEN, **kwargs)
         listmix.ListCtrlAutoWidthMixin.__init__(self)
 
 

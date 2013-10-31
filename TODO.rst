@@ -26,4 +26,3 @@ TODO List
 
 #. Use different and cleaner rules for file extensions in ABINIT. Why _DEN12 and _1WF13 instead
    of the simpler syntax 12_1DEN, 13_1WF in which the extension is preserved?
-

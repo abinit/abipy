@@ -1,8 +1,9 @@
 #!/usr/bin/env python
-"""This script shows how to compute the deltafactor for a given pseudopotential."""
+"""Compute the deltafactor for a given pseudopotential."""
 from __future__ import division, print_function
 
 import os
+import sys
 import abipy.data as data  
 import abipy.abilab as abilab
 
@@ -18,12 +19,11 @@ def delta_flow():
     manager = abilab.TaskManager.from_user_config()
 
     # Initialize the flow.
-    # FIXME
-    # Don't know why protocol=-1 does not work here.
+    # FIXME  Abistructure is not pickleable with protocol -1
     flow = abilab.AbinitFlow(workdir="DELTAFACTOR", manager=manager, pickle_protocol=0)
 
     # Build the workflow for the computation of the deltafactor.
-    # The calculation is done with the paramenters and the cif files
+    # The calculation is done with the parameters and the cif files
     # used in the original paper. We only have to specify 
     # the cutoff energy ecut (Ha) for the pseudopotential.
     # The workflow will produce a pdf file with the equation of state 
@@ -39,6 +39,7 @@ def delta_flow():
 
     # Register the workflow.
     flow.register_work(work)
+
     return flow.allocate()
 
 
@@ -48,5 +49,4 @@ def main():
     return flow.build_and_pickle_dump()
 
 if __name__ == "__main__":
-    import sys
     sys.exit(main())

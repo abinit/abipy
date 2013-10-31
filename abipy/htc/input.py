@@ -14,11 +14,16 @@ import abc
 import numpy as np
 
 from pymatgen.io.abinitio.pseudos import PseudoTable
+from pymatgen.io.abinitio.strategies import select_pseudos
 from abipy.core import Structure
 from abipy.tools import is_string, list_strings
+from pymatgen.core.units import Energy
+
 
 __all__ = [
     "AbiInput",
+    "LdauParams",
+    "LexxParams",
 ]
 
 # Variables that must have a unique value throughout all the datasets.
@@ -38,6 +43,12 @@ _ABINIT_NO_MULTI = [
     "prtxtypat",
     "wtatcon",
 ]
+
+
+def straceback():
+    """Returns a string with the traceback."""
+    import traceback
+    return traceback.format_exc()
 
 
 class Input(object): 
@@ -162,7 +173,7 @@ class AbiInput(Input):
                 self._pseudos = PseudoTable(pseudo_paths)
 
             except Exception as exc:
-                msg = "Ignoring error raised while parsing pseudopotential files:\n" + str(exc)
+                msg = "\nIgnoring error raised while parsing pseudopotential files:\n Backtrace:" + straceback()
                 warnings.warn(msg)
                 self._pseudos = []
 
@@ -462,6 +473,10 @@ class AbiInput(Input):
         for idt in self._dtset2range(dtset):
             self[idt].set_kmesh(ngkpt, shiftk, kptopt=kptopt)
 
+    #def set_autokmesh(self, nksmall, kptopt=1, dtset=0):
+    #    for idt in self._dtset2range(dtset):
+    #        self[idt].set_autokmesh(nksmall, kptopt=kptopt)
+
     def set_kpath(self, ndivsm, kptbounds=None, iscf=-2, dtset=0):
         """
         Set the variables defining the k-path for the specified dtset.
@@ -659,8 +674,19 @@ class Dataset(collections.Mapping):
     def set_variable(self, varname, value):
         """Set a single variable."""
         if varname in self:
-            msg = "Variable %s is already defined:\n old: %s, new %s" % (varname, str(self[varname]), str(value))
-            warnings.warn(msg)
+
+            try: 
+                iseq = (self[varname] == value)
+                iseq = np.all(iseq)
+            except ValueError:
+                # array like.
+                iseq = np.allclose(self[varname], value)
+            except:
+                iseq = False
+
+            if not iseq:
+                msg = "%s is already defined with a different value:\n old: %s, new %s" % (varname, str(self[varname]), str(value))
+                warnings.warn(msg)
 
         self[varname] = value
 
@@ -730,6 +756,25 @@ class Dataset(collections.Mapping):
                            shiftk=shiftk,
                            )
 
+    #def set_autokmesh(self, nksmall, kptopt=1):
+    #    """
+    #    Set the variables for the sampling of the BZ.
+    #                                                   
+    #    Args:
+    #        nksmall:
+    #            Number of k-points used to sample the smallest lattice vector.
+    #        kptopt:
+    #            Option for the generation of the mesh.
+    #    """
+    #    shiftk = self.structure.calc_shiftk()
+    #    ngkpt = self.structure.calc_ngkpt(nksmall)
+    #    
+    #    self.set_variables(ngkpt=ngkpt,
+    #                       kptopt=kptopt,
+    #                       nshiftk=len(shiftk),
+    #                       shiftk=shiftk,
+    #                       )
+
     def set_kpath(self, ndivsm, kptbounds=None, iscf=-2):
         """
         Set the variables for the computation of the band structure.
@@ -741,7 +786,7 @@ class Dataset(collections.Mapping):
                 k-points defining the path in k-space.
         """
         if kptbounds is None:
-            kptbounds = [k.frac_coords for k in self.structure.hsym_kpoints]
+            kptbounds = self.structure.calc_kptbounds()
 
         kptbounds = np.reshape(kptbounds, (-1,3))
 
@@ -1024,6 +1069,27 @@ def listify(obj):
     else:
         return [obj]
 
+#def listify(obj):
+#    """
+#    Transform any object, iterable or not, to a list. 
+#    Returns obj if object is Iterable with the exception of 
+#    single string that is converted to list.
+#    """
+#    if is_string(obj)
+#       return [obj]
+#
+#    if isinstance(obj, collections.Iterable):
+#        if isinstance(obj, tuple):
+#            return list(obj)
+#        else:
+#            return obj
+#
+#    elif isinstance(obj, collections.Iterator):
+#        return list(obj)
+#
+#    else:
+#        return [obj]
+
 
 def is_number(s):
     """Returns True if the argument can be converted to float."""
@@ -1061,3 +1127,158 @@ def convert_number(value):
 
     else:
         raise ValueError("convert_number failed")
+
+
+
+class LujForSpecie(collections.namedtuple("LdauForSpecie", "l u j unit")):
+    """
+    This object stores the value of l, u, j used for a single atomic specie.
+    """
+    def __new__(cls, l, u, j, unit):
+        """
+        Args:
+            l: 
+                Angular momentum (int or string).
+            u:
+                U value
+            j:
+                J Value
+            unit:
+                Energy unit for u and j.
+        """
+        l = l
+        u = Energy(u, unit)
+        j = Energy(j, unit)
+        return super(cls, LujForSpecie).__new__(cls, l, u, j, unit)
+
+
+class LdauParams(object):
+    """
+    This object stores the parameters for LDA+U calculations with the PAW method
+    It facilitates the specification of the U-J parameters in the Abinit input file.
+    (see `to_abivars`). The U-J operator will be applied only on  the atomic species 
+    that have been selected by calling `lui_for_symbol`.
+    """
+    def __init__(self, usepawu, structure):
+        """
+        Arg:
+            usepawu:
+                Abinit variable `usepawu` defining the LDA+U method.
+            structure:
+                `Structure` object.
+        """
+        self.usepawu = usepawu
+        self.structure = structure
+        self._params = {} 
+
+    @property
+    def symbols_by_typat(self):
+        return [specie.symbol for specie in self.structure.types_of_specie]
+
+    def luj_for_symbol(self, symbol, l, u, j, unit="eV"):
+        """
+        Args:
+            symbol:
+                Chemical symbol of the atoms on which LDA+U should be applied.
+            l:
+                Angular momentum.
+            u: 
+                Value of U.
+            j:
+                Value of J.
+            unit:
+                Energy unit of U and J.
+        """
+        if symbol not in self.symbols_by_typat:
+            err_msg = "Symbol %s not in symbols_by_typat:\n%s" % (symbol, self.symbols_by_typat)
+            raise ValueError(err_msg)
+
+        if symbol in self._params:
+            err_msg = "Symbol %s is already present in LdauParams! Cannot overwrite:\n" % symbol
+            raise ValueError(err_msg)
+
+        self._params[symbol] = LujForSpecie(l=l, u=u, j=j, unit=unit)
+
+    def to_abivars(self):
+        """
+        Returns a dict with the Abinit variables.
+        """
+        lpawu, upawu, jpawu = [], [], []
+
+        for symbol in self.symbols_by_typat:
+            p = self._params.get(symbol, None)
+
+            if p is not None:
+                l, u, j = p.l, p.u.to("eV"), p.j.to("eV")
+            else:
+                l, u, j = -1, 0, 0
+
+            lpawu.append(int(l)) 
+            upawu.append(float(u))
+            jpawu.append(float(j))
+
+        # convert upawu and jpaw to string so that we can use 
+        # eV unit in the Abinit input file (much more readable).
+        return dict(
+            usepawu=self.usepawu,
+            lpawu=" ".join(map(str, lpawu)),
+            upawu=" ".join(map(str, upawu))  + " eV",
+            jpawu=" ".join(map(str, jpawu)) + " eV",
+        )
+
+
+class LexxParams(object):
+    """
+    This object stores the parameters for local exact exchange calculations with the PAW method
+    It facilitates the specification of the LEXX parameters in the Abinit input file.
+    (see `to_abivars`). The LEXX operator will be applied only on the atomic species 
+    that have been selected by calling `lexx_for_symbol`.
+    """
+    def __init__(self, structure):
+        """
+        Arg:
+            structure:
+                `Structure` object.
+        """
+        self.structure = structure
+        self._lexx_for_symbol = {} 
+
+    @property
+    def symbols_by_typat(self):
+        return [specie.symbol for specie in self.structure.types_of_specie]
+
+    def lexx_for_symbol(self, symbol, l):
+        """
+        Enable LEXX for the given chemical symbol and the angular momentum l 
+
+        Args:
+            symbol:
+                Chemical symbol of the atoms on which LEXX should be applied.
+            l:
+                Angular momentum.
+        """
+        if symbol not in self.symbols_by_typat:
+            err_msg = "Symbol %s not in symbols_by_typat:\n%s" % (symbol, self.symbols_by_typat)
+            raise ValueError(err_msg)
+
+        if symbol in self._lexx_for_symbol:
+            err_msg = "Symbol %s is already present in LdauParams! Cannot overwrite:\n" % symbol
+            raise ValueError(err_msg)
+
+        self._lexx_for_symbol[symbol] = l
+
+    def to_abivars(self):
+        """
+        Returns a dict with the Abinit variables.
+        """
+        lexx_typat = []
+
+        for symbol in self.symbols_by_typat:
+            l = self._lexx_for_symbol.get(symbol, -1)
+            lexx_typat.append(int(l)) 
+
+        return dict(
+            useexexch=1,
+            lexexch=" ".join(map(str, lexx_typat))
+        )
+

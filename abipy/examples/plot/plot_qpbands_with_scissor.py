@@ -5,8 +5,8 @@
 # We then use the scissors operator to correct the KS band structure 
 # computed on a high symmetry k-path. Finally, the LDA and the QPState band
 # structure are plotted with matplotlib.
-from abipy import abiopen, ElectronBandsPlotter
 import abipy.data as data
+from abipy.abilab import abiopen, ElectronBandsPlotter
 
 # Get the quasiparticle results from the SIGRES.nc database.
 sigma_file = abiopen(data.ref_file("tgw1_9o_DS4_SIGRES.nc"))

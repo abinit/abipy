@@ -1,6 +1,8 @@
 #!/usr/bin/env python
+"""Optical spectra with Optic."""
 from __future__ import division, print_function
 
+import sys
 import os
 import abipy.data as data  
 import abipy.abilab as abilab
@@ -19,7 +21,7 @@ optic_input = """\
 """
 
 def optic_flow():
-    structure = data.structure_from_ucell("gaas")
+    structure = data.structure_from_ucell("GaAs")
 
     inp = abilab.AbiInput(pseudos=data.pseudos("31ga.pspnc", "33as.pspnc"), ndtset=5)
 
@@ -57,9 +59,9 @@ def optic_flow():
       #kptopt=3,
     )
 
-    #Fourth dataset : ddk response function along axis 1
-    #Fifth dataset : ddk response function along axis 2
-    #Sixth dataset : ddk response function along axis 3
+    # Fourth dataset : ddk response function along axis 1
+    # Fifth dataset : ddk response function along axis 2
+    # Sixth dataset : ddk response function along axis 3
     for dir in range(3):
         rfdir = 3 * [0]
         rfdir[dir] = 1
@@ -78,8 +80,7 @@ def optic_flow():
          tolwfr=1.e-9,
         )
 
-    manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1)
-    #manager = abilab.TaskManager.from_user_config()
+    manager = abilab.TaskManager.from_user_config()
 
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = inp.split_datasets()
 
@@ -102,7 +103,8 @@ def optic_flow():
     # Optic does not support MPI with ncpus > 1.
     shell_manager = manager.to_shell_manager(mpi_ncpus=1)
 
-    optic_task = abilab.OpticTask(optic_input, nscf_node=bands_work.nscf_task, ddk_nodes=ddk_work, manager=shell_manager)
+    optic_task = abilab.OpticTask(optic_input, nscf_node=bands_work.nscf_task, ddk_nodes=ddk_work, 
+                                  manager=shell_manager)
     flow.register_task(optic_task)
 
     return flow.allocate()
@@ -122,9 +124,6 @@ def optic_flow_from_files():
     ]
     nscf_node = "/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTIC/work_0/task_1/outdata/out_WFK"
 
-    #from pymatgen.io.abinitio.strategies import OpticInput
-    #optic_input = 
-
     optic_task = abilab.OpticTask(optic_input, nscf_node=nscf_node, ddk_nodes=ddk_nodes)
     flow.register_task(optic_task)
                                                                                                                           
@@ -135,9 +134,10 @@ def optic_flow_from_files():
 def main():
     flow = optic_flow()
     #flow = optic_flow_from_files()
+    #print("optic manager after allocate", flow[2][0].manager)
+
     return flow.build_and_pickle_dump()
 
 
 if __name__ == "__main__":
-    import sys
     sys.exit(main())

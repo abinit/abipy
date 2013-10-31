@@ -2,8 +2,8 @@ from __future__ import print_function, division
 
 import abipy.data as data
 
-from abipy import WFK_File
 from abipy.core.testing import *
+from abipy.waves import WFK_File
 
 
 class TestWFKFile(AbipyTest):

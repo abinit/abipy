@@ -22,6 +22,8 @@ class TestGSphere(AbipyTest):
         gsphere = GSphere(ecut, gprimd, kpoint, gvecs, istwfk=1)
         print(gsphere)
 
+        self.serialize_with_pickle(gsphere, protocols=[-1])
+
         same_gsphere = gsphere.copy()
         self.assertTrue(gsphere == same_gsphere)
         same_gsphere.kpt = [0.5, 0.1, 0.3]

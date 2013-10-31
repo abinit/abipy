@@ -2,8 +2,8 @@
 #
 # This example shows how to visualize the SCGW QP amplitudes 
 # in the KS basis set.
-from abipy import abiopen
 import abipy.data as data
+from abipy.abilab import abiopen
 
 sigma_file = abiopen(data.ref_file("QPSC_SIGRES.nc"))
 

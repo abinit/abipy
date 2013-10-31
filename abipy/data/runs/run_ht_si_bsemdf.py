@@ -1,6 +1,8 @@
 #!/usr/bin/env python
+"""Calculation of the BSE spectrum with the HT interface."""
 from __future__ import division, print_function
 
+import sys
 from abipy import abilab
 import abipy.data as data  
 
@@ -16,7 +18,7 @@ def main():
     structure = abilab.Structure.from_file(data.cif_file("si.cif"))
 
     tester = Tester()
-    manager = tester.make_manager()
+    manager = abilab.TaskManager.from_user_config()
 
     kppa = scf_kppa = 1
     nscf_nband = 6
@@ -33,16 +35,21 @@ def main():
         istwfk="*1",
     )
 
+    flow = abilab.AbinitFlow(workdir=tester.workdir, manager=manager)
 
-    work = bse_with_mdf(tester.workdir, manager, structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,
+    # BSE calculation with model dielectric function.
+    work = bse_with_mdf(structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,
                        ecuteps, bs_loband, soenergy, mdf_epsinf,
                        accuracy="normal", spin_mode="unpolarized", smearing=None,
                        charge=0.0, scf_solver=None, **extra_abivars)
 
-    tester.set_work_and_run(work)
+    flow.register_work(work)
+    flow.allocate()
 
-    if tester.retcode !=0:
-        return tester.retcode
+    #tester.set_flow_and_run(flow)
+    #tester.set_work_and_run(work)
+    #if tester.retcode !=0:
+    #    return tester.retcode
 
     # Remove all files except those matching these regular expression.
     #work[0].rename("out_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
@@ -56,10 +63,8 @@ def main():
 
     #work.rmtree(exclude_wildcard="*.abin|*.about|*_SIGRES.nc")
 
-    tester.finalize()
-
-    return tester.retcode 
+    #tester.finalize()
+    #return tester.retcode 
 
 if __name__ == "__main__":
-    import sys
     sys.exit(main())

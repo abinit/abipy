@@ -1,6 +1,5 @@
 from __future__ import print_function, division
 
-import traceback
 import wx
 
 __all__ = [
@@ -12,6 +11,7 @@ __all__ = [
 
 def _straceback():
     """Returns a string with the traceback."""
+    import traceback
     return traceback.format_exc()
 
 

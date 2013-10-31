@@ -7,7 +7,7 @@ import abipy.gui.awx as awx
 
 from collections import OrderedDict
 from pymatgen.io.abinitio.abitimer import AbinitTimerSection
-from abipy import abiopen
+from abipy.abilab import abiopen
 
 
 class AbinitTimerFrame(awx.Frame):

@@ -2,8 +2,8 @@
 # This examples shows how to plot the GW self-energy
 # and the spectral function of Al at the gamma point (first band)
 # See lesson tgw2_4
-from abipy import abiopen
 import abipy.data as data
+from abipy.abilab import abiopen
 
 sigma_file = abiopen(data.ref_file("tgw2_4o_SIGRES.nc"))
 

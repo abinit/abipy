@@ -1,6 +1,13 @@
 #!/usr/bin/env python
+"""
+This script shows how to perform a structural relaxation in two steps:
+
+    1) Relaxation of atomic positions with unit cell parameters fixed.
+    2) Full relaxation (atoms + cell) with the initial configuration read from step 1)
+"""
 from __future__ import division, print_function
 
+import sys
 import abipy.data as data  
 import abipy.abilab as abilab
 
@@ -37,6 +44,8 @@ def make_ion_ioncell_inputs():
         tolrff=0.02,
         tolmxf=5.0e-5,
         ntime=50,
+        #ntime=5, To test the restart
+        dilatmx=1.1, # FIXME: abinit crashes if I don't use this
     )
 
     # Dataset 2 (Atom + Cell Relaxation)
@@ -48,7 +57,8 @@ def make_ion_ioncell_inputs():
         tolrff=0.02,
         tolmxf=5.0e-5,
         strfact=100,
-        ntime=5,
+        ntime=50,
+        #ntime=5, To test the restart
         )
 
     ion_inp, ioncell_inp = inp.split_datasets()
@@ -56,7 +66,6 @@ def make_ion_ioncell_inputs():
 
 
 def relax_flow(workdir):
-
     manager = abilab.TaskManager.from_user_config()
 
     flow = abilab.AbinitFlow(workdir, manager)
@@ -66,6 +75,8 @@ def relax_flow(workdir):
     work = abilab.RelaxWorkflow(ion_inp, ioncell_inp)
                                                       
     flow.register_work(work)
+
+    #bands_work = abilab.BandStructureWorkflow(scf_input, nscf_input)
     return flow.allocate()
 
 
@@ -77,6 +88,5 @@ def main():
 
 
 if __name__ == "__main__":
-    import sys
     sys.exit(main())
 

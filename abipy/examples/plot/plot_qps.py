@@ -2,8 +2,8 @@
 #
 # This example shows how to visualize the QP results 
 # stored in the SIGRES produced by the GW code (sigma run)
-from abipy import abiopen
 import abipy.data as data
+from abipy.abilab import abiopen
 
 sigma_file = abiopen(data.ref_file("tgw1_9o_DS4_SIGRES.nc"))
 

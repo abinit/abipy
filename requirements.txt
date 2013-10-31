@@ -1,5 +1,11 @@
-PyDispatcher>=2.0
-apscheduler>=2.1.1
+pymatgen>=2.8.7
+matplotlib>=1.1
+scipy>=0.10
+numpy>=1.6
+PyDispatcher
 pyyaml>=3.1.0
-netCDF4
-pymatgen>=2.8.6
+apscheduler>=2.1.1
+wxmplot>=0.9.13
+ipython>=1.1.0
+pyzmq
+jinja2

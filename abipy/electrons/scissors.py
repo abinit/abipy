@@ -136,7 +136,7 @@ class ScissorsBuilder(object):
     @classmethod
     def from_file(cls, filepath):
         """Generate an instance of ScissorsBuilder from file."""
-        from abipy import abiopen
+        from abipy.abilab import abiopen
         ncfile = abiopen(filepath)
         return cls(qps_spin=ncfile.qplist_spin)
 

@@ -1,12 +1,16 @@
 #!/usr/bin/env python
+"""
+This example shows how to compute the SCR file by splitting the calculation
+over q-points with the input variables nqptdm and qptdm.
+"""
 from __future__ import division, print_function
 
+import sys
 import os
 import abipy.abilab as abilab
 import abipy.data as data  
 
 from abipy.data.runs import enable_logging
-
 from abipy.data.runs.qptdm_workflow import *
 
 def all_inputs():
@@ -109,23 +113,21 @@ def gw_flow():
     workdir = "GW"
     gs, nscf, scr_input, sigma_input = all_inputs()
                                                                         
-    #manager = abilab.TaskManager.from_user_config()
-    manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=dict(autoparal=1, max_ncpus=2))
+    manager = abilab.TaskManager.from_user_config()
+    #manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=dict(autoparal=1, max_ncpus=2))
 
     flow = g0w0_flow_with_qptdm(workdir, manager, gs, nscf, scr_input, sigma_input)
 
-    from pymatgen.io.abinitio.tasks import G_Task
-    flow[2][0].__class__ = G_Task
+    #from pymatgen.io.abinitio.tasks import G_Task
+    #flow[2][0].__class__ = G_Task
 
     return flow
     
 def qptdm_work():
     workdir = "QPTDM"
-
     gs, nscf, scr_input, sigma_input = all_inputs()
                                                                         
-    policy = dict(autoparal=0, max_ncpus=2)
-    manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=policy)
+    manager = abilab.TaskManager.from_user_config()
 
     return g0w0_flow_with_qptdm(workdir, manager, gs, nscf, scr_input, sigma_input)
 
@@ -140,5 +142,4 @@ def main():
     return flow.build_and_pickle_dump()
 
 if __name__ == "__main__":
-    import sys
     sys.exit(main())

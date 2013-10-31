@@ -1,8 +1,12 @@
 #!/usr/bin/env python
+"""
+This script shows how to perform a RAMAN calculation with 
+excitonic effects included with the BSE formalism.
+"""
 from __future__ import division, print_function
 
-import os
 import sys 
+import os
 import numpy as np
 import abipy.abilab as abilab
 import abipy.data as data  
@@ -13,7 +17,7 @@ def raman_flow():
     pseudos = data.pseudos("14si.pspnc")
 
     # Get the unperturbed structure.
-    base_structure = data.structure_from_ucell("si")
+    base_structure = data.structure_from_ucell("Si")
 
     etas = [-.001, 0, +.001]
     ph_displ = np.reshape(np.zeros(3*len(base_structure)), (-1,3))

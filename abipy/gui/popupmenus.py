@@ -8,14 +8,14 @@ import abipy.gui.electronswx as ewx
 
 from collections import OrderedDict
 
-from abipy import abifile_subclass_from_filename, abiopen
+from abipy.abilab import abifile_subclass_from_filename, abiopen
 from abipy.iotools.files import NcDumper, AbinitLogFile, AbinitOutputFile, get_filestat
 from abipy.waves import WFK_File
 from abipy.electrons import SIGRES_File, GSR_File
 from abipy.electrons.bse import MDF_File
-from .events import AbinitEventsFrame
-from .timer import AbinitTimerFrame
-from .editor import SimpleTextViewer, AbinitEditorFrame
+from abipy.gui.events import AbinitEventsFrame
+from abipy.gui.timer import AbinitTimerFrame
+from abipy.gui.editor import SimpleTextViewer, AbinitEditorFrame
 
 
 __all__ = [

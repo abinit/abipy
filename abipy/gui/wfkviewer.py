@@ -7,7 +7,7 @@ import wx.lib.dialogs as wxdg
 import abipy.gui.awx as awx
 import abipy.gui.electronswx as ewx
 
-from abipy import abiopen, WFK_File
+from abipy.abilab import abiopen
 from abipy.iotools.visualizer import supported_visunames
 
 
@@ -167,9 +167,9 @@ class WfkViewerFrame(awx.Frame):
 
         try:
             wfkfile = abiopen(filepath)
-            if not isinstance(wfkfile, WFK_File):
-                awx.showErrorMessage(self, message="%s is not a valid WFK File" % filepath)
-                return
+            #if not isinstance(wfkfile, WFK_File):
+            #    awx.showErrorMessage(self, message="%s is not a valid WFK File" % filepath)
+            #    return
 
             self.wfk = wfkfile
             self.BuildUi()

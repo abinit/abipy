@@ -1,9 +1,10 @@
 #!/usr/bin/env python
+"""Structural relaxation for SiC."""
 from __future__ import division, print_function
 
 import sys
-import numpy as np
 import os
+import numpy as np
 
 import abipy.abilab as abilab
 import abipy.data as data
@@ -18,7 +19,7 @@ def relax_flow():
     flow = abilab.AbinitFlow(workdir, manager)
 
     pseudos = data.pseudos("14si.pspnc", "6c.pspnc")
-    structure = data.structure_from_ucell("sic")
+    structure = data.structure_from_ucell("SiC")
 
     global_vars = dict(
         chksymbreak=0,
@@ -57,6 +58,8 @@ def relax_flow():
 
     # Initialize the workflow.
     relax_task = flow.register_task(relax_inp, task_class=abilab.RelaxTask)
+
+    #work = RelaxWorkflow(self, ion_input, ioncell_input, workdir=None, manager=None):
 
     nscf_task = flow.register_task(nscf_inp, deps={relax_task: "DEN"}, task_class=abilab.NscfTask)
 

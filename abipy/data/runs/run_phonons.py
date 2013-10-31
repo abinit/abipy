@@ -1,6 +1,8 @@
 #!/usr/bin/env python
+"""Phonon band structure of AlAs."""
 from __future__ import division, print_function
 
+import sys
 import os
 import abipy.abilab as abilab
 import abipy.data as data  
@@ -15,7 +17,7 @@ def scf_ph_inputs():
     GS input + the input files for the phonon calculation.
     """
     # Crystalline AlAs: computation of the second derivative of the total energy
-    structure = data.structure_from_ucell("alas")
+    structure = data.structure_from_ucell("AlAs")
     pseudos = data.pseudos("13al.981214.fhi", "33as.pspnc")
 
     # List of q-points for the phonon calculation.
@@ -29,6 +31,7 @@ def scf_ph_inputs():
              5.00000000E-01,  5.00000000E-01,  0.00000000E+00,
             -2.50000000E-01,  5.00000000E-01,  2.50000000E-01,
             ]
+
     qpoints = np.reshape(qpoints, (-1,3))
 
     # Global variables used both for the GS and the DFPT run.
@@ -47,7 +50,8 @@ def scf_ph_inputs():
     for i, qpt in enumerate(qpoints):
         # Response-function calculation for phonons.
         inp[i+2].set_variables(
-            nstep=2,
+            #nstep=2,
+            nstep=20,
             rfphon=1,        # Will consider phonon-type perturbation
             nqpt=1,          # One wavevector is to be considered
             qpt=qpt,         # This wavevector is q=0 (Gamma)
@@ -76,16 +80,19 @@ def ph_flow():
     all_inps = scf_ph_inputs()
     scf_input, ph_inputs = all_inps[0], all_inps[1:]
 
-    return abilab.phonon_flow(workdir, manager, scf_input, ph_inputs)
+    flow = abilab.phonon_flow(workdir, manager, scf_input, ph_inputs)
+    return flow
 
 
 @enable_logging
 def main():
     """Build the flow for Phonon calculations and save the object in cpickle format."""
     flow = ph_flow()
+    for task in flow.iflat_tasks():
+        print(task, task.manager)
+
     return flow.build_and_pickle_dump()
 
 
 if __name__ == "__main__":
-    import sys
     sys.exit(main())

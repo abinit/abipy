@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 This example shows how to compute the band structure of a set of 
-crystalline structures obtained by changin a set of internal paramaters
+crystalline structures obtained by changing a set of internal paramaters
 """
 from __future__ import division, print_function
 
@@ -46,7 +46,7 @@ def make_flow():
         news.append(new)
 
     workdir = os.path.join(os.path.dirname(__file__), base_structure.formula + "_WYCHOFF")
-    manager = abilab.TaskManager.from_file("taskmanager.yaml")
+    manager = abilab.TaskManager.from_user_config()
 
     flow = abilab.AbinitFlow(workdir, manager)
 
@@ -89,6 +89,7 @@ def make_workflow(structure, pseudos):
     )
 
     gs_inp, nscf_inp = inp.split_datasets()
+
     return abilab.BandStructureWorkflow(gs_inp, nscf_inp)
 
 

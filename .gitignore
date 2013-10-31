@@ -40,6 +40,9 @@ docs/examples
 .tox
 nosetests.xml
 
+# ipython notebooks
+.ipynb*
+
 # Translations
 *.mo
 

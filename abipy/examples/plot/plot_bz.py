@@ -2,7 +2,7 @@
 #
 # This example shows how to display the Brillouin zone 
 # with pymatgen and matplotlib.
-from abipy import abiopen
+from abipy.abilab import abiopen
 import abipy.data as data
 
 # Open the WKF file.

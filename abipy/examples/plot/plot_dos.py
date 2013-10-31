@@ -5,7 +5,7 @@
 import matplotlib.pyplot as plt
 
 import abipy.data as data
-from abipy import abiopen
+from abipy.abilab import abiopen
 
 # Open the wavefunction file computed with a homogeneous sampling of the BZ 
 # and extract the band structure on the k-mesh.

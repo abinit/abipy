@@ -2,7 +2,7 @@
 #
 # This example shows how to plot the phonon fatbands of AlAs.
 # See tutorial/lesson_rf2.html
-from abipy.phonons import PhononBands
+from abipy.abilab import PhononBands
 import abipy.data as data
 
 # Path to the PHBST file produced by anaddb.

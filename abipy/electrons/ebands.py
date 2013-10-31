@@ -18,6 +18,11 @@ from abipy.tools import gaussian
 from abipy.electrons.edos import ElectronDOS
 from abipy.tools.animator import FilesAnimator
 
+
+import logging
+logger = logging.getLogger(__name__)
+
+
 __all__ = [
     "ElectronBands",
     "ElectronBandsPlotter",
@@ -926,13 +931,15 @@ class ElectronBands(object):
         # Decorate the axis (e.g add ticks and labels).
         self.decorate_ax(ax, klabels=klabels, title=title)
 
-        if not kwargs:
-            kwargs = {"color": "black", "linewidth": 2.0}
-
         # Plot the band energies.
         for spin in self.spins:
+            if spin == 0:
+                opts = {"color": "black", "linewidth": 2.0}
+            else:
+                opts = {"color": "red", "linewidth": 2.0}
+
             for band in band_range:
-                self.plot_ax(ax, spin=spin, band=band, **kwargs)
+                self.plot_ax(ax, spin=spin, band=band, **opts)
 
         # Add markers to the plot.
         if marker is not None:
@@ -1033,7 +1040,12 @@ class ElectronBands(object):
         ax.grid(True)
         ax.set_xlabel('k-point')
         ax.set_ylabel('Energy [eV]')
-        ax.legend(loc="best", shadow=True)
+
+        # FIXME:
+        # This causes the annoying warning
+        #UserWarning: No labeled objects found. Use label='...' kwarg on individual plots.
+        # perhaps a method ax_finalize?
+        #ax.legend(loc="best", shadow=True)
 
         # Set ticks and labels.
         ticks, labels = self._make_ticks_and_labels(kwargs.pop("klabels", None))
@@ -1046,6 +1058,10 @@ class ElectronBands(object):
         """Helper function to plot the energies for (spin,band) on the axis ax."""
         spin_range = range(self.nsppol) if spin is None else [spin]
         band_range = range(self.mband) if band is None else [band]
+
+        # Disable labels.
+        if "label" not in kwargs:
+            kwargs["label"] = "_no_legend_" # Actively suppress.
 
         xx, lines = range(self.nkpt), []
         for spin in spin_range:
@@ -1160,6 +1176,7 @@ class ElectronBands(object):
         ax2.yaxis.set_label_position("right")
 
         fig = plt.gcf()
+
         if title:
             fig.suptitle(title)
 
@@ -1288,7 +1305,7 @@ class ElectronBandsPlotter(object):
         """
         Adds a band structure for plotting. Reads data from a Netcdfile
         """
-        from abipy import abiopen
+        from abipy.abilab import abiopen
         ncfile = abiopen(filepath)
         if label is None:
             label = ncfile.filepath
@@ -1431,6 +1448,10 @@ class ElectronBandsPlotter(object):
         return fig
 
     def animate_files(self, **kwargs):
+        """
+        See http://visvis.googlecode.com/hg/vvmovie/images2gif.py
+        for a (much better) approach
+        """
         animator = FilesAnimator()
         figures = collections.OrderedDict()
 
@@ -1453,22 +1474,30 @@ class ElectronBandsPlotter(object):
         fig, ax = plt.subplots()
         bands = list(self.bands_dict.values())
 
+        plot_opts = {"color": "black", "linewidth": 2.0}
+
         def cbk_animate(i):
             #line.set_ydata(np.sin(x+i/10.0))  # update the data
             print("in animate with %d" % i)
-            return bands[i].plot_ax(ax, spin=None, band=None)
+            return bands[i].plot_ax(ax, spin=None, band=None, **plot_opts)
             #lines = bands[i].plot_ax(ax, spin=None, band=None)
             #line = lines[0]
             #return line
 
         # initialization function: plot the background of each frame
         def init():
-            return bands[0].plot_ax(ax, spin=None, band=None)
+            return bands[0].plot_ax(ax, spin=None, band=None, **plot_opts)
             #line.set_data([], [])
             #return line,
 
-        ani = animation.FuncAnimation(fig, cbk_animate, frames=len(bands), interval=125, blit=True, init_func=init)
-        plt.show()
+        anim = animation.FuncAnimation(fig, cbk_animate, frames=len(bands), interval=250, blit=True, init_func=init)
+
+        #anim.save('im.mp4', metadata={'artist':'gmatteo'})
+
+        if kwargs.get("show", True):
+            plt.show()
+
+        return anim
 
 
 class ElectronDosPlotter(object):

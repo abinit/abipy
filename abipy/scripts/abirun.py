@@ -65,6 +65,7 @@ def treat_flow(flow, options):
         sched = PyFlowsScheduler(**sched_options)
         sched.add_flow(flow)
 
+        print(sched)
         sched.start()
 
     if options.command == "status":
@@ -94,7 +95,7 @@ def main():
     p_rapid = subparsers.add_parser('rapidfire', help="Run all tasks in rapidfire mode") # aliases=["rapid"])
 
     # Subparser for scheduler command.
-    p_scheduler = subparsers.add_parser('scheduler', help="Run all tasks.")
+    p_scheduler = subparsers.add_parser('scheduler', help="Run all tasks with a Python scheduler.")
 
     p_scheduler.add_argument('-w', '--weeks', default=0, type=int, help="number of weeks to wait")
 
@@ -115,7 +116,7 @@ def main():
     # Parse command line.
     try:
         options = parser.parse_args()
-    except: 
+    except Exception as exc: 
         show_examples_and_exit(error_code=1)
 
     if options.verbose:
@@ -134,7 +135,7 @@ def main():
 
     retcode = 0
     if options.command == "gui":
-        from abipy.gui.workflow_viewer import wxapp_flow_viewer
+        from abipy.gui.flowviewer import wxapp_flow_viewer
         wxapp_flow_viewer(flow).MainLoop()
 
     else:

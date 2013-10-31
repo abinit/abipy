@@ -4,7 +4,7 @@
 # See tutorial/lesson_rf2.html
 
 # FIXME: LO-TO splitting and phonon displacements instead of eigenvectors.
-from abipy.phonons import PhononBands, PHDOS_Reader, PHDOS_File
+from abipy.abilab import PhononBands, PHDOS_Reader, PHDOS_File
 import abipy.data as data
 
 # Path to the PHBST file produced by anaddb.

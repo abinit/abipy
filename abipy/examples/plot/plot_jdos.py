@@ -3,7 +3,7 @@
 # This example shows how plot the different contributions 
 # to the electronic joint density of states of Silicon
 import abipy.data as data
-from abipy import abiopen
+from abipy.abilab import abiopen
 
 # Extract the bands computed with the SCF cycle on a Monkhorst-Pack mesh.
 wfk_file = abiopen(data.ref_file("si_scf_WFK-etsf.nc"))

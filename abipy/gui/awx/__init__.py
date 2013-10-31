@@ -1,3 +1,5 @@
+#import os
+
 __all__ = []
 
 _MODS = [
@@ -11,22 +13,22 @@ _MODS = [
     "threads",
 ]
 
+#_MODS = [os.path.join(os.path.dirname(__file__), f) for f in _MODS]
+
 for _mod in _MODS:
-    exec('import ' + _mod)
-    exec('from ' + _mod + ' import *')
-    exec('__all__.extend(' + _mod + '.__all__)')
-    exec('del ' + _mod)
+    try:
+        exec('import ' + _mod)
+        exec('from ' + _mod + ' import *')
+        exec('__all__.extend(' + _mod + '.__all__)')
+        exec('del ' + _mod)
 
+    except ImportError:
+        pass
 
-#import pkgutil
-#import inspect
-#
-#for loader, name, is_pkg in pkgutil.walk_packages(__path__):
-#    module = loader.find_module(name).load_module(name)
-#
-#    for name, value in inspect.getmembers(module):
-#        if name.startswith('_'): continue
-#
-#        globals()[name] = value
-#        __all__.append(name)
-
+    #dir = os.path.dirname(os.path.abspath(__file__))
+    #self.scripts = [f.replace(".py", "") for f in wildcard.filter(os.listdir(dir))]
+    #_mod = __import__(_mod)
+    #from _mod import *
+    #__all__.extend(_mod.__all__)
+    #del _mod
+#del os

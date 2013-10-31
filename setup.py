@@ -123,7 +123,7 @@ def cleanup():
 # List of external packages we rely on.
 # Note setup install will download them from Pypi if they are not avaiable.
 install_requires = [
-    "pymatgen>=2.8.6",
+    "pymatgen>=2.8.7",
     "matplotlib>=1.1",
     "scipy>=0.10",
     "numpy>=1.6",
@@ -131,8 +131,10 @@ install_requires = [
     "PyDispatcher",
     "pyyaml>=3.1.0",
     "apscheduler>=2.1.1",
-    #"wxPython",
-    #"wxmplot",
+    "wxmplot>=0.9.13",
+    "ipython>=1.1.0",
+    "pyzmq",     # for the notebook
+    "jinja2",    # for the notebook
     #"termcolor",
 ]
 
