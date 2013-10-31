@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 """Setup script for abipy."""
+from __future__ import print_function
+
 import sys
+import os
+
+from glob import glob
+from setuptools import find_packages
 
 # This check is also made in abipy/__init__, don't forget to update both when
 # changing Python version requirements.
@@ -8,20 +14,20 @@ if sys.version[0:3] < '2.7':
     sys.stderr.write("abipy requires Python version 2.7 or above. Exiting.")
     sys.exit(1)
 
-#-------------------------------------------------------------------------------
-import os
-import sys
+with_ipython = True
+if '--with-ipython' in sys.argv:
+    with_ipython = True
+    sys.argv.remove('--with-ipython')
 
-from glob import glob
-from setuptools import find_packages
+with_cython = True
+if '--with-cython' in sys.argv:
+    with_cython = True
+    sys.argv.remove('--with-cython')
+
 
 #-------------------------------------------------------------------------------
 # Useful globals and utility functions
 #-------------------------------------------------------------------------------
-
-# A few handy globals
-isfile = os.path.isfile
-pjoin = os.path.join
 
 # A little utility we'll need below, since glob() does NOT allow you to do exclusion on multiple endings!
 def file_doesnt_end_with(test, endings):
@@ -29,7 +35,7 @@ def file_doesnt_end_with(test, endings):
     Returns true if test is a file and its name does NOT end with any
     of the strings listed in endings.
     """
-    if not isfile(test):
+    if not os.path.isfile(test):
         return False
     for e in endings:
         if test.endswith(e):
@@ -41,7 +47,7 @@ def file_doesnt_end_with(test, endings):
 #---------------------------------------------------------------------------
 
 # release.py contains version, authors, license, url, keywords, etc.
-release_file = pjoin('abipy','core','release.py')
+release_file = os.path.join('abipy','core','release.py')
 
 with open(release_file) as f:
     code = compile(f.read(), release_file, 'exec')
@@ -80,7 +86,6 @@ def find_exclude_package_data():
     return package_data
 
 
-
 #---------------------------------------------------------------------------
 # Find scripts
 #---------------------------------------------------------------------------
@@ -90,7 +95,7 @@ def find_scripts():
     scripts = []
     #
     # All python files in abipy/scripts
-    pyfiles = glob(pjoin('abipy','scripts',"*.py"))
+    pyfiles = glob(os.path.join('abipy','scripts',"*.py"))
     scripts.extend(pyfiles)
     return scripts
 
@@ -132,12 +137,24 @@ install_requires = [
     "pyyaml>=3.1.0",
     "apscheduler>=2.1.1",
     "wxmplot>=0.9.13",
-    "ipython>=1.1.0",
-    "pyzmq",     # for the notebook
-    "jinja2",    # for the notebook
     #"termcolor",
-    #"cython",
+
 ]
+
+if with_ipython:
+    install_requires += [
+        "ipython>=1.1.0",
+        "pyzmq",     # for the notebook
+        "jinja2",    
+    ]
+
+if with_cython:
+    install_requires += [
+        "cython",
+    ]
+
+#print("install_requires\n", install_requires)
+
 
 #---------------------------------------------------------------------------
 # Find all the packages, package data, and data_files
