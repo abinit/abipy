@@ -6,33 +6,33 @@ from abipy.core.testing import *
 
 # =========================================================================== #
 
-class TestAbinitVariable(AbipyFileTest):
+class TestInputVariable(AbipyFileTest):
     """Unit tests for AbinitVariable."""
 
     def setUp(self):
-        self.file = AbinitVariable('ecut', 10.0)
+        self.file = SpecialInputVariable('ecut', 10.0)
 
     def test_varnames(self):
         """Test printing of variables name."""
         self.file.name = 'ecut1'
         self.assertContains('ecut1')
 
-        self.file.name = 'ecut_s'
+        self.file.name = 'ecut__s'
         self.assertContains('ecut:')
 
-        self.file.name = 'ecut_i'
+        self.file.name = 'ecut__i'
         self.assertContains('ecut+')
 
-        self.file.name = 'ecut_a'
+        self.file.name = 'ecut__a'
         self.assertContains('ecut?')
 
-        self.file.name = 'ecut_s2'
+        self.file.name = 'ecut__s2'
         self.assertContains('ecut:2')
 
-        self.file.name = 'ecut3_a'
+        self.file.name = 'ecut3__a'
         self.assertContains('ecut3?')
 
-        self.file.name = 'ecut_s_a'
+        self.file.name = 'ecut__s__a'
         self.assertContains('ecut:?')
 
     def test_scalar_values(self):
