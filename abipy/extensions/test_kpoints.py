@@ -115,7 +115,7 @@ def main():
     #ans, g0 = mod.isamek(v1, v2)
     #print(ans,g0)
 
-    from abipy.core.kpoints import IrredZone, bz_from_mpdivs
+    from abipy.core.kpoints import IrredZone, kmesh_from_mpdivs
 
     filename = "/Users/gmatteo/Coding/abipy/abipy/data/runs/data_si_ebands/outdata/si_scf_GSR.nc"
     structure = Structure.from_file(filename)
@@ -128,7 +128,7 @@ def main():
 
     #tables = map_mesh2ibz(structure, mpdivs, shifts, ibz)
 
-    bz = bz_from_mpdivs(mpdivs, shifts)
+    bz = kmesh_from_mpdivs(mpdivs, shifts)
 
     ktab = slow_map_mesh2ibz(structure, bz, ibz.frac_coords)
 

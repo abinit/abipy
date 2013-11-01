@@ -15,6 +15,7 @@ if sys.version[0:3] < '2.7':
     sys.stderr.write("abipy requires Python version 2.7 or above. Exiting.")
     sys.exit(1)
 
+# Install ipython with notebook support.
 with_ipython = True
 if '--with-ipython' in sys.argv:
     with_ipython = True
@@ -32,12 +33,12 @@ ext_modules = [ ]
 #with_cython = False
 if with_cython:
     ext_modules += [
-        Extension("abipy.extensions.kxlib", ["abipy/extensions/kxlib.pyx"], include_dirs=[np.get_include()])
+        Extension("abipy.extensions.klib", ["abipy/extensions/klib.pyx"], include_dirs=[np.get_include()])
     ]
-    cmdclass.update({ 'build_ext': build_ext })
+    cmdclass.update({'build_ext': build_ext})
 else:
     ext_modules += [
-        Extension("abipy.extensions.kxlib", ["abipy/extensions/kxlib.c"], include_dirs=[np.get_include()])
+        Extension("abipy.extensions.klib", ["abipy/extensions/klib.c"], include_dirs=[np.get_include()])
     ]
 
 #-------------------------------------------------------------------------------

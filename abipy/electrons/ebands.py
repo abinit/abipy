@@ -527,7 +527,7 @@ class ElectronBands(object):
 
         if self.kpoints.is_path:
             labels_dict = {k.name: k.frac_coords for k in self.kpoints if k.name is not None}
-            #print("in BandStructureSymmLine with labes_dict", labels_dict)
+            logger.info("calling pmg BandStructureSymmLine with labes_dict %s" % str(labels_dict))
             return BandStructureSymmLine(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, efermi, labels_dict,
                                         coords_are_cartesian=False, 
                                         structure=self.structure,
@@ -535,7 +535,7 @@ class ElectronBands(object):
                                         )
 
         else:
-            #print("in BandStructure")
+            logger.info("Calling pmg BandStructure")
             return BandStructure(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, efermi, 
                                 labels_dict=None,
                                 coords_are_cartesian=False, 
@@ -1221,6 +1221,7 @@ class ElectronBands(object):
 
     #    # Xcrysden uses C order and includes periodic images.
     #    ebands3d = EBands3D(self.kpoints, self.eigens, self.ngkpt, self.shiftk, structure, pbc=3*[True], korder="c")
+    #    ebands3d = EBands3D(structure, ibz_arr, ene_ibz, ngkpt, shifts, pbc=True, order="unit_cell")
 
     #    with open(filepath, mode="w") as fh:
     #        bxsf_write(fh, ebands3d, structure, fermie=self.fermie)
@@ -1478,7 +1479,7 @@ class ElectronBandsPlotter(object):
 
         def cbk_animate(i):
             #line.set_ydata(np.sin(x+i/10.0))  # update the data
-            print("in animate with %d" % i)
+            #print("in animate with %d" % i)
             return bands[i].plot_ax(ax, spin=None, band=None, **plot_opts)
             #lines = bands[i].plot_ax(ax, spin=None, band=None)
             #line = lines[0]
@@ -1673,6 +1674,42 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
     #def read_xc_parameters(self):
     #   """Returns a dictionary with info on the XC functional."""
     #    return XC_Parameters.from_ixc(self.read_value("ixc"))
+
+class EBands3D(object):
+    """This object stores the energies in the full Brillouin zone.""" 
+    def __init__(self, structure, ibz_arr, ene_ibz, ngkpt, shifts, pbc=False, order="unit_cell"):
+        """
+        Args:
+            structure:
+            ibz_arr:
+            ene_ibz:
+            ngkpt:
+            shifts:
+            pbc=3*[True]:
+            order:
+                "unit_cell"
+        """
+        #self.ibz_arr = ibz
+        #self.ene_ibz = np.atleast_3d(ene_ibz)
+        #self.nsppol, self.nkibz, self.nband = self.ene_ibz.shape
+
+        #self.ngkpt, self.shifts = ngkpt, np.at_least_2d(shifts)
+        #self.pbc, self.order = pbc, order
+
+        # Compute the full list of k-points according to order.
+        #self.bz_arr = kmesh_from_mpdivs(mpdivs, shifts, pbc=pbc, order=order)
+
+        # Compute the mapping bz --> ibz
+        #self.bz_map = map_bz2ibz(structure, self.bz, self.ibz)
+
+    #def get_enebz(self, spin, band):
+    #    """Return energies in the full Brillouin zone for given spin and band."""
+    #    ene_ibz = self.ene_ibz[spin,:,band]
+    #    enebz = np.empty(len(self.bz_arr))
+    #    for ik_bz in range(len(self.bz))):
+    #       ik_ibz = self.bz_map[ik_bz]
+    #       enebz[ik_bz] = self.ene_ibz[spin,ik_ibz,band]
+    #    return enebz
 
 
 #class NestingFactor(object):

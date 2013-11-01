@@ -4,6 +4,7 @@ from __future__ import division, print_function
 import numpy as np
 
 from abipy.tools import transpose_last3dims, add_periodic_replicas
+from abipy.core.constants import Energy, EnergyArray
 
 __all__ = [
     "xsf_write_structure",
@@ -39,6 +40,8 @@ def xsf_write_structure(file, structures):
 
         cart_coords = struct.cart_coords  
         atomic_numbers = struct.atomic_numbers
+
+        # TODO
         forces = None
         #forces  = struct.cart_forces()
         #if cart_forces.any(): forces = forces / Bohr_Ang # Hartree/Angstrom units
@@ -138,32 +141,45 @@ def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None):
     fwrite('END_BLOCK_DATAGRID_3D\n')
 
 
-def bxsf_write(file, bands3d, structure, fermie):
+def bxsf_write(file, structure, nsppol, nband, ndivs, energies, fermie, unit="eV"):
     """
     Write band structure data in the Xcrysden format (XSF)
 
     Args:
         file:
             file-like object.
-        bands3d:
-            
         structure:
-            Structure object.
+            `Structure` object.
+        nsppol:
+            Number of spins.
+        nband:
+            Number of bands.
+        ndivs:
+            Number of divisions of the full k-mesh.
+        energies:
+            Array [nsppol, nband, ndivs[0], ndivs[1], mpdvis[2]] with the energies in energy unit `unit`.
         fermie:
-            Fermi energy in eV units.
+            Fermi energy.
+
+    .. note:
+
+        #. The k-points must span the reciprocal unit cell, not the Brillouin zone.
+
+        #. The mesh must be closed and centered on Gamma.
+            
+        #. Energies are written in row-major (i.e. C) order.
+
+    See also http://www.xcrysden.org/doc/XSF.html
     """
-    # Consistency checks.
-    if not np.all(bands3d.pbc):
-        raise ValueError("The k-mesh does not contain redundant data points.")
+    energies = EnergyArray(energies, unit).to("eV")
+    fermie = Energy(fermie, unit).to("eV")
 
-    if bands3d.korder.lower() != "c":
-        raise ValueError("The k-mesh must be in C-order.")
+    energies = np.reshape(energies, (nsppol, nband) + (ndivs,))
 
-    if np.any(bands3d.shifts != 0.0):
-        raise ValueError("The k-mesh must be Gamma-centered.")
-
+    close_it = False
     if not hasattr(file, "write"):
-        file = file(file, mode="w")
+        file = open(file, mode="w")
+        close_it = True
 
     fw = file.write
 
@@ -173,20 +189,18 @@ def bxsf_write(file, bands3d, structure, fermie):
     fw('# NOTE: the first band is relative to spin-up electrons,\n')
     fw('#       the second band to spin-down electrons (if any) and so on ...\n#\n')
     fw('# Launch as: xcrysden --bxsf\n#\n')
-    fw(' Fermi Energy: ' + str(fermie) + "\n")
+    fw(' Fermi Energy: %f\n' % fermie)
     fw('END_INFO\n\n')
     fw('BEGIN_BLOCK_BANDGRID_3D\n')
     fw(' band_energies\n')
     fw(' BEGIN_BANDGRID_3D\n')
 
-    nsppol, nband = bands3d.nsppol, bands3d.nband
+    fw(str(nsppol * nband) + "\n")  # Number of bands written.
+    fw("%d %d %d\n" % tuple(ndivs)) # Number of division in the full BZ mesh.
+    fw("0 0 0\n")                   # Unshifted meshes are not supported.
 
-    fw(str(nsppol * nband) + "\n")                      # Number of bands written.
-    fw("%d %d %d\n" % tuple(bands3d.kmesh_gen.ndivs+1)) # Number of division in the full BZ mesh.
-    fw("0 0 0\n")                                       # Unshifted meshes are not supported.
-
-    # Xcrysden uses Angstrom units, convert to Ang^{-1} just to be consistent
-    gcell = structure.lattive_vectors("g")
+    # Reciprocal lattice vectors in Ang^{-1} 
+    gcell = structure.lattice_vectors("g")
     for i in range(3):
         fw('%f %f %f\n' % tuple(gcell[i]))
 
@@ -195,7 +209,7 @@ def bxsf_write(file, bands3d, structure, fermie):
     for band in range(nband):
         for spin in range(nsppol):
             idx += 1
-            enebz = bands3d.enebz(spin, band)
+            enebz = energies[spin, band]
             fw(" BAND: " + str(idx) + "\n")
             np.savetxt(file, enebz)
 
@@ -203,3 +217,6 @@ def bxsf_write(file, bands3d, structure, fermie):
     fw('END_BLOCK_BANDGRID_3D\n')
 
     file.flush()
+
+    if close_it:
+        file.close()

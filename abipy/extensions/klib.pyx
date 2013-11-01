@@ -1,3 +1,8 @@
+#!python
+#cython: boundscheck=False
+#cython: nonecheck=False
+#cython: wraparound=False
+
 from __future__ import print_function, division
 
 import numpy as np
@@ -9,16 +14,26 @@ cdef extern from "math.h":
     double floor(double x)
 
 cdef inline int nint(double num):
+    """Truncate to the nearest integer."""
     return int(floor(num + 0.5))
 
 
-#@cython.profile(True)
-@cython.wraparound(False)
-@cython.nonecheck(False)
-@cython.boundscheck(False) # turn of bounds-checking for entire function
-def pyx_mesh2ibz(structure, 
-                 np.ndarray[dtype=np.double_t, ndim=2] bz, 
-                 np.ndarray[dtype=np.double_t, ndim=2] ibz):
+cdef inline timrotk(int time_sign, const int symrec[3][3], const double kpt[3], double krot[3]):
+    """Rotate the kpoint kpt in reduced coordinates"""
+    cdef int i, j
+
+    for i in range(3):
+        krot[i] = 0.0
+        for j in range(3):
+            krot[i] += symrec[i][j] * kpt[j]
+        krot[i] *= time_sign
+
+
+def map_bz2ibz(structure, 
+               np.ndarray[dtype=np.double_t, ndim=2] bz, 
+               np.ndarray[dtype=np.double_t, ndim=2] ibz,
+               atol=1.e-8
+               ):
 
     cdef:
         unsigned int ik_bz, ik_ibz, found, i, j
@@ -26,7 +41,7 @@ def pyx_mesh2ibz(structure,
         int time_sign, isym
         double kdiff[3], kbz[3], kibz[3], krot[3]
         int int_kdiff[3] #, rot_g[3][3]
-        double atol = 1e-8
+        double _atol = atol
         #np.ndarray np_rot_g = np.ones((3,3), dtype=np.int)
         #np.ndarray bz2ibz = -np.ones(len(bz), dtype=np.int)
         # FIXME
@@ -86,9 +101,9 @@ def pyx_mesh2ibz(structure,
                 int_kdiff[1] = nint(kdiff[1])
                 int_kdiff[2] = nint(kdiff[2])
 
-                if (abs(int_kdiff[0] - kdiff[0]) < atol and 
-                    abs(int_kdiff[1] - kdiff[1]) < atol and 
-                    abs(int_kdiff[2] - kdiff[2]) < atol):
+                if (abs(int_kdiff[0] - kdiff[0]) < _atol and 
+                    abs(int_kdiff[1] - kdiff[1]) < _atol and 
+                    abs(int_kdiff[2] - kdiff[2]) < _atol):
 
                     bz2ibz[ik_bz] = ik_ibz
                     #ktabi[ik_bz] = isym
@@ -155,8 +170,8 @@ cdef _capi_mesh2ibz(const int len_bz,
                         abs(int_kdiff[2] - kdiff[2]) < atol):
 
                         bz2ibz[ik_bz] = ik_ibz
-                        #ktabi[ik_bz] = isym
-                        #ktabo[ik_bz] = itime
-                        #umklp[ik_bz] = g0
+                        #ktabo[ik_bz] = isym
+                        #ktabi[ik_bz] = itime
+                        #umklp[ik_bz,:] = g0
                         found = 1
                         break

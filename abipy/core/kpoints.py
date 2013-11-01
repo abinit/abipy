@@ -18,6 +18,8 @@ __all__ = [
     "Kpoint",
     "Kpath",
     "IrredZone",
+    "rc_list",
+    "kmesh_from_mpdivs",
 ]
 
 # Tolerance used to compare k-points.
@@ -73,8 +75,58 @@ def wrap_to_bz(x):
     return x % 1
 
 
-# TODO: Add option to wrap the point in [-1/2, 1/2)
-def bz_from_mpdivs(mpdivs, shifts):
+
+def rc_list(mp, sh, pbc=False, order="bz"):
+    """
+    Returns a `ndarray` with the linear mesh used to sample one dimension of the reciprocal space.
+    Note that the coordinates are always ordered so that rc[i+1] > rc[i].
+    so that we can easily plot quantities defined on the 3D multidimensional mesh.
+
+    Args:
+        mp:
+            Number of Monkhorst-Pack divisions along this direction.
+        sh:
+            Shift 
+        pbc:
+            if pbc is True, periodic boundary conditions are enforced.
+        order:
+            Possible values ["bz", "unit_cell"]. 
+            if "bz", the coordinates are forced to be in [-1/2, 1/2)
+            if "unit_cell", the coordinates are forced to be in [0, 1).
+    """
+    rc = []
+                                                   
+    if order == "unit_cell":
+        n = mp if not pbc else mp + 1
+        for i in range(n):
+            rc.append((i + sh) / mp)
+                                                   
+    elif order == "bz":
+        for i in range(mp):
+            x = (i + sh) / mp
+
+            if x < 0.5:
+                rc.append(x)
+            else:
+                # Insert xm1 in rc so that we still have a ordered list.
+                xm1 = x - 1.0
+                for i, c in enumerate(rc):
+                    if c > xm1:
+                        break
+                else:
+                    raise ValueError()
+
+                rc.insert(i, xm1)
+                                                   
+        if pbc:
+            rc.append(rc[0] + 1.0)
+                                                   
+    else:
+        raise ValueError("Wrong order %s" % order)
+                                                   
+    return np.array(rc)
+
+def kmesh_from_mpdivs(mpdivs, shifts, pbc=False, order="bz"):
     """
     Returns a `ndarray` with the reduced coordinates of the 
     k-points from the MP divisions and the shifts.
@@ -84,24 +136,27 @@ def bz_from_mpdivs(mpdivs, shifts):
             The three MP divisions
         shifts:
             Array-like object with the MP shift.
+        pbc:
+            If True, periodic images of the k-points will be includes i.e. closed mesh.
+        order:
+            "unit_cell" if the kpoint coordinates must be in [0,1)
+            "bz" if the kpoint coordinates must be in [-1/2, +1/2)
     """
-    mpdivs = np.array(mpdivs)
     shifts = np.reshape(shifts, (-1,3))
+    assert np.all(np.abs(shifts) <= 0.5)
 
-    # Build bz grid.
-    kbz = np.empty(shape=(mpdivs.prod() * len(shifts),  3))
-
-    count = 0
+    # Build k-point grid.
+    from itertools import product
+    kbz = []
     for ish, shift in enumerate(shifts):
-        for i in range(mpdivs[0]):
-            x = (i + shift[0]) / mpdivs[0]
-            for j in range(mpdivs[1]):
-                y = (j + shift[1]) / mpdivs[1]
-                for k in range(mpdivs[2]):
-                    z = (k + shift[2]) / mpdivs[2]
-                    kbz[count] = (x, y, z)
-                    count += 1
-    return kbz
+        rc0 = rc_list(mpdivs[0], shift[0], pbc=pbc, order=order)
+        rc1 = rc_list(mpdivs[1], shift[1], pbc=pbc, order=order)
+        rc2 = rc_list(mpdivs[2], shift[2], pbc=pbc, order=order)
+
+        for kxyz in product(rc0, rc1, rc2):
+            kbz.append(kxyz)
+
+    return np.array(kbz)
 
 
 class KpointsError(AbipyException):

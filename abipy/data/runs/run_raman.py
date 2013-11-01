@@ -32,7 +32,7 @@ def raman_flow():
     displaced_structures = modifier.displace(ph_displ, etas, frac_coords=False)
 
     # Initialize flow. Each workflow in the flow defines a complete BSE calculation for given eta.
-    workdir = os.path.join(os.path.dirname(__file__), base_structure.formula + "_RAMAN")
+    workdir = os.path.join(os.path.dirname(__file__), base_structure.formula.replace(" ","") + "_RAMAN")
 
     manager = abilab.TaskManager.from_user_config()
 

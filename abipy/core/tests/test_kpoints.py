@@ -7,9 +7,9 @@ import numpy as np
 import abipy.data as data
 
 from pymatgen.core.lattice import Lattice
-from abipy.core.kpoints import wrap_to_ws, wrap_to_bz, Kpoint, KpointList, KpointsReader, askpoints
+from abipy.core.kpoints import (wrap_to_ws, wrap_to_bz, Kpoint, KpointList, KpointsReader, 
+                                askpoints, rc_list, kmesh_from_mpdivs,)
 from abipy.core.testing import *
-
 
 class TestWrapWS(AbipyTest):
 
@@ -160,6 +160,160 @@ class TestKpointsReader(AbipyTest):
                 elif "_nscf" in fname:
                     # expecting a path in k-space.
                     self.assertTrue(kpoints.is_path)
+
+class KmeshTest(AbipyTest):
+    def test_rc_list(self):
+        """Testing rc_list."""
+        # Special case mp=1
+        rc = rc_list(mp=1, sh=0.0, pbc=False, order="unit_cell")
+        self.assert_equal(rc, [0.0])
+                                                                   
+        rc = rc_list(mp=1, sh=0.0, pbc=True, order="unit_cell")
+        self.assert_equal(rc, [0.0, 1.0])
+                                                                   
+        rc = rc_list(mp=1, sh=0.0, pbc=False, order="bz")
+        self.assert_equal(rc, [0.0])
+                                                                  
+        rc = rc_list(mp=1, sh=0.0, pbc=True, order="bz")
+        self.assert_equal(rc, [0.0, 1.0])
+
+        # Even mp
+        rc = rc_list(mp=2, sh=0, pbc=False, order="unit_cell")
+        self.assert_equal(rc, [0., 0.5])
+
+        rc = rc_list(mp=2, sh=0, pbc=True, order="unit_cell")
+        self.assert_equal(rc, [0., 0.5,  1.])
+
+        rc = rc_list(mp=2, sh=0, pbc=False, order="bz")
+        self.assert_equal(rc, [-0.5, 0.0])
+                                                                
+        rc = rc_list(mp=2, sh=0, pbc=True, order="bz")
+        self.assert_equal(rc, [-0.5,  0.,  0.5])
+
+        rc = rc_list(mp=2, sh=0.5, pbc=False, order="unit_cell")
+        self.assert_equal(rc, [0.25, 0.75])
+                                                                 
+        rc = rc_list(mp=2, sh=0.5, pbc=True, order="unit_cell")
+        self.assert_equal(rc, [0.25,  0.75, 1.25])
+        
+        rc = rc_list(mp=2, sh=0.5, pbc=False, order="bz")
+        self.assert_equal(rc, [-0.25,  0.25])
+
+        rc = rc_list(mp=2, sh=0.5, pbc=True, order="bz")
+        self.assert_equal(rc, [-0.25,  0.25,  0.75])
+
+        # Odd mp
+        rc = rc_list(mp=3, sh=0, pbc=False, order="unit_cell")
+        self.assert_almost_equal(rc, [0.,  0.33333333,  0.66666667])
+                                                                  
+        rc = rc_list(mp=3, sh=0, pbc=True, order="unit_cell")
+        self.assert_almost_equal(rc, [ 0.,  0.33333333,  0.66666667,  1.])
+
+        rc = rc_list(mp=3, sh=0, pbc=False, order="bz")
+        self.assert_almost_equal(rc, [-0.33333333,  0.,  0.33333333])
+                                                                
+        rc = rc_list(mp=3, sh=0, pbc=True, order="bz")
+        self.assert_almost_equal(rc, [-0.33333333,  0.,  0.33333333,  0.66666667])
+                                                                  
+        rc = rc_list(mp=3, sh=0.5, pbc=False, order="unit_cell")
+        self.assert_almost_equal(rc, [ 0.16666667, 0.5, 0.83333333])
+                                                                 
+        rc = rc_list(mp=3, sh=0.5, pbc=True, order="unit_cell")
+        self.assert_almost_equal(rc, [ 0.16666667, 0.5,  0.83333333, 1.16666667])
+    
+        rc = rc_list(mp=3, sh=0.5, pbc=False, order="bz")
+        self.assert_almost_equal(rc, [-0.5, -0.16666667,  0.16666667])
+                                                                  
+        rc = rc_list(mp=3, sh=0.5, pbc=True, order="bz")
+        self.assert_almost_equal(rc, [-0.5, -0.16666667,  0.16666667,  0.5])
+
+    def test_unshifted_kmesh(self):
+        """Testing the generation of unshifted kmeshes."""
+        mpdivs, shifts = [1,2,3], [0,0,0]
+
+        # No shift, no pbc.
+        kmesh = kmesh_from_mpdivs(mpdivs, shifts, order="unit_cell") 
+
+        ref_string = \
+"""[[ 0.          0.          0.        ]
+ [ 0.          0.          0.33333333]
+ [ 0.          0.          0.66666667]
+ [ 0.          0.5         0.        ]
+ [ 0.          0.5         0.33333333]
+ [ 0.          0.5         0.66666667]]"""
+        self.assertMultiLineEqual(str(kmesh), ref_string)
+
+        # No shift, with pbc.
+        pbc_kmesh = kmesh_from_mpdivs(mpdivs, shifts, pbc=True, order="unit_cell") 
+
+        ref_string = \
+"""[[ 0.          0.          0.        ]
+ [ 0.          0.          0.33333333]
+ [ 0.          0.          0.66666667]
+ [ 0.          0.          1.        ]
+ [ 0.          0.5         0.        ]
+ [ 0.          0.5         0.33333333]
+ [ 0.          0.5         0.66666667]
+ [ 0.          0.5         1.        ]
+ [ 0.          1.          0.        ]
+ [ 0.          1.          0.33333333]
+ [ 0.          1.          0.66666667]
+ [ 0.          1.          1.        ]
+ [ 1.          0.          0.        ]
+ [ 1.          0.          0.33333333]
+ [ 1.          0.          0.66666667]
+ [ 1.          0.          1.        ]
+ [ 1.          0.5         0.        ]
+ [ 1.          0.5         0.33333333]
+ [ 1.          0.5         0.66666667]
+ [ 1.          0.5         1.        ]
+ [ 1.          1.          0.        ]
+ [ 1.          1.          0.33333333]
+ [ 1.          1.          0.66666667]
+ [ 1.          1.          1.        ]]"""
+        self.assertMultiLineEqual(str(pbc_kmesh), ref_string)
+
+        # No shift, no pbc, bz order
+        bz_kmesh = kmesh_from_mpdivs(mpdivs, shifts, pbc=False, order="bz") 
+
+        ref_string = \
+"""[[ 0.         -0.5        -0.33333333]
+ [ 0.         -0.5         0.        ]
+ [ 0.         -0.5         0.33333333]
+ [ 0.          0.         -0.33333333]
+ [ 0.          0.          0.        ]
+ [ 0.          0.          0.33333333]]"""
+        self.assertMultiLineEqual(str(bz_kmesh), ref_string)
+
+        # No shift, pbc, bz order
+        bz_kmesh = kmesh_from_mpdivs(mpdivs, shifts, pbc=True, order="bz") 
+
+        ref_string = \
+"""[[ 0.         -0.5        -0.33333333]
+ [ 0.         -0.5         0.        ]
+ [ 0.         -0.5         0.33333333]
+ [ 0.         -0.5         0.66666667]
+ [ 0.          0.         -0.33333333]
+ [ 0.          0.          0.        ]
+ [ 0.          0.          0.33333333]
+ [ 0.          0.          0.66666667]
+ [ 0.          0.5        -0.33333333]
+ [ 0.          0.5         0.        ]
+ [ 0.          0.5         0.33333333]
+ [ 0.          0.5         0.66666667]
+ [ 1.         -0.5        -0.33333333]
+ [ 1.         -0.5         0.        ]
+ [ 1.         -0.5         0.33333333]
+ [ 1.         -0.5         0.66666667]
+ [ 1.          0.         -0.33333333]
+ [ 1.          0.          0.        ]
+ [ 1.          0.          0.33333333]
+ [ 1.          0.          0.66666667]
+ [ 1.          0.5        -0.33333333]
+ [ 1.          0.5         0.        ]
+ [ 1.          0.5         0.33333333]
+ [ 1.          0.5         0.66666667]]"""
+        self.assertMultiLineEqual(str(bz_kmesh), ref_string)
 
 
 if __name__ == "__main__":
