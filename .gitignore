@@ -25,6 +25,10 @@ pip-log.txt
 docs/_build
 docs/examples
 
+# cython generated code
+abipy/extensions/*.c
+abipy/extensions/*.html
+
 # MacOSX stuff
 .DS_Store
 

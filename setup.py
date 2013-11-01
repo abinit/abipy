@@ -4,9 +4,10 @@ from __future__ import print_function
 
 import sys
 import os
+import numpy as np
 
 from glob import glob
-from setuptools import find_packages
+from setuptools import find_packages, setup, Extension
 
 # This check is also made in abipy/__init__, don't forget to update both when
 # changing Python version requirements.
@@ -20,10 +21,24 @@ if '--with-ipython' in sys.argv:
     sys.argv.remove('--with-ipython')
 
 with_cython = True
-if '--with-cython' in sys.argv:
-    with_cython = True
-    sys.argv.remove('--with-cython')
+try:
+    from Cython.Distutils import build_ext
+except ImportError:
+    with_cython = False
 
+cmdclass = { }
+ext_modules = [ ]
+
+#with_cython = False
+if with_cython:
+    ext_modules += [
+        Extension("abipy.extensions.kxlib", ["abipy/extensions/kxlib.pyx"], include_dirs=[np.get_include()])
+    ]
+    cmdclass.update({ 'build_ext': build_ext })
+else:
+    ext_modules += [
+        Extension("abipy.extensions.kxlib", ["abipy/extensions/kxlib.c"], include_dirs=[np.get_include()])
+    ]
 
 #-------------------------------------------------------------------------------
 # Useful globals and utility functions
@@ -78,6 +93,7 @@ def find_package_data():
         'abipy.gui.awx' : ['images/*'],
     }
     return package_data
+
 
 def find_exclude_package_data():
     package_data = {
@@ -148,10 +164,10 @@ if with_ipython:
         "jinja2",    
     ]
 
-if with_cython:
-    install_requires += [
-        "cython",
-    ]
+#if with_cython:
+#    install_requires += [
+#        "cython",
+#    ]
 
 #print("install_requires\n", install_requires)
 
@@ -189,10 +205,11 @@ setup_args = dict(
       exclude_package_data = my_excl_package_data,
       scripts          = my_scripts,
       #download_url     = download_url,
+      cmdclass = cmdclass,
+      ext_modules=ext_modules,
       )
 
 if __name__ == "__main__":
-    from setuptools import setup
     setup(**setup_args)
     # Create the abipyrc file
     #execfile('abipy/profile.py')
