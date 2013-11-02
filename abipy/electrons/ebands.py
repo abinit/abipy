@@ -11,7 +11,7 @@ import numpy as np
 
 from abipy.core import constants as const
 from abipy.core.func1d import Function1D
-from abipy.core.kpoints import Kpoint, Kpath, IrredZone, KpointsReaderMixin
+from abipy.core.kpoints import Kpoint, Kpath, IrredZone, KpointsReaderMixin, kmesh_from_mpdivs
 from abipy.tools import AttrDict
 from abipy.iotools import ETSF_Reader, Visualizer, bxsf_write
 from abipy.tools import gaussian
@@ -278,6 +278,15 @@ class ElectronBands(object):
     def spins(self):
         """Spin range"""
         return range(self.nsppol)
+
+    @property
+    def nband(self):
+        try:
+            return self._nband
+        except AttributeError:
+            assert np.all(self.nband_sk == self.nband_sk[0])
+            self._nband = self.nband_sk[0,0]
+            return self._nband
 
     @property
     def kidxs(self):
@@ -1188,49 +1197,60 @@ class ElectronBands(object):
 
         return fig
 
-    #def export_bxsf(self, filepath, structure):
-    #    """
-    #    Export the full band structure on filepath
-    #    Format is defined by the extension in filepath.
-    #    """
-    #    # Sanity check.
-    #    errors = []
-    #    eapp = errors.append
+    def export_bxsf(self, filepath):
+        """
+        Export the full band structure on filepath in the BXSF format 
+        suitable for the visualization of the Fermi surface.
+        """
+        # Sanity check.
+        errors = []
+        eapp = errors.append
 
-    #    if np.any(self.nband_sk != self.nband_sk[0,0]):
-    #        eapp("nband must be constant")
+        if np.any(self.nband_sk != self.nband_sk[0,0]):
+            eapp("nband must be constant")
 
-    #    if not self.has_omesh:
-    #        eapp("An omogeneous sampling is needed for the Fermi surface")
+        # TODO
+        #if not self.has_omesh:
+        #    eapp("An homogeneous sampling is needed for the Fermi surface")
 
-    #    if self.has_omesh and not np.allclose(self.shiftk, 0.0):
-    #        eapp("shifted meshes are not supported by Xcryden")
+        if not np.allclose(self.kpoints.shifts, 0.0):
+            eapp("shifted meshes are not supported by Xcryden")
 
-    #    if errors:
-    #        raise ValueError("\n".join(errors))
+        if errors:
+            raise ValueError("\n".join(errors))
 
-    #    if "." not in filepath:
-    #        raise ValueError("Cannot detect file extension in path %s: " % filepath)
+        if "." not in filepath:
+            raise ValueError("Cannot detect file extension in path %s: " % filepath)
 
-    #    tokens = filepath.strip().split(".")
-    #    ext = tokens[-1]
+        tokens = filepath.strip().split(".")
+        ext = tokens[-1]
 
-    #    if not tokens[0]:
-    #        # fname == ".ext" ==> Create temporary file.
-    #        path = tempfile.mkstemp(suffix="."+ext, text=True)[1]
+        if not tokens[0]:
+            # fname == ".ext" ==> Create temporary file.
+            path = tempfile.mkstemp(suffix="."+ext, text=True)[1]
 
-    #    # Xcrysden uses C order and includes periodic images.
-    #    ebands3d = EBands3D(self.kpoints, self.eigens, self.ngkpt, self.shiftk, structure, pbc=3*[True], korder="c")
-    #    ebands3d = EBands3D(structure, ibz_arr, ene_ibz, ngkpt, shifts, pbc=True, order="unit_cell")
+        # Xcrysden requires points in the unit cell and the mesh must include the periodic images hence use pbc=True.
+        ndivs = self.kpoints.mpdivs
 
-    #    with open(filepath, mode="w") as fh:
-    #        bxsf_write(fh, ebands3d, structure, fermie=self.fermie)
+        ibz_arr = self.kpoints.to_array()
+        #print("ibz_arr", ibz_arr)
 
-    #    return Visualizer.from_file(filepath)
+        ebands3d = EBands3D(self.structure, 
+                    ibz_arr=self.kpoints.to_array(), ene_ibz=self.eigens, 
+                    ndivs=ndivs, shifts=self.kpoints.shifts, 
+                    pbc=True, order="unit_cell")
+
+        # Symmetrize bands in the unit cell.
+        emesh_sbk = ebands3d.get_emesh_sbk()
+
+        #print(self.nband, ndivs+1)
+        with open(filepath, "w") as fh:
+           bxsf_write(fh, self.structure, self.nsppol, self.nband, ndivs+1, emesh_sbk, self.fermie, unit="eV")
+
+        return Visualizer.from_file(filepath)
 
     def derivatives(self, spin, band, order=1, acc=4, asmarker=None):
         """Compute the derivative of the eigenvalues along the path."""
-
         if self.has_bzpath:
             # Extract the branch.
             branch = self.eigens[spin,:,band]
@@ -1675,41 +1695,114 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
     #   """Returns a dictionary with info on the XC functional."""
     #    return XC_Parameters.from_ixc(self.read_value("ixc"))
 
+
 class EBands3D(object):
-    """This object stores the energies in the full Brillouin zone.""" 
-    def __init__(self, structure, ibz_arr, ene_ibz, ngkpt, shifts, pbc=False, order="unit_cell"):
+    """This object symmetrizes the band energies in the full Brillouin zone.""" 
+    def __init__(self, structure, ibz_arr, ene_ibz, ndivs, shifts, pbc=False, order="unit_cell"):
         """
         Args:
             structure:
+                `Structure` object.
             ibz_arr:
+                `ndarray` with the k-points in the IBZ in reduced coordinates.
             ene_ibz:
-            ngkpt:
+                Energies in the IBZ. shape = (nsppol, nk_ibz, nband)
+            ndivs:
+                Number of divisions used to generate the k-mesh
             shifts:
-            pbc=3*[True]:
+                List of shifts used to generate the k-mesh
+            pbc=
+                True if periodic boundary conditions should be enfored
+                during the generation of the k-mesh
             order:
-                "unit_cell"
+                String defining the order of the k-point in the k-mesh.
+                "unit_cell":
+                    Point are located in the unit_cell, i.e kx in [0, 1]
+                "bz":
+                    Point are located in the Brilluoin zone, i.e kx in [-1/2, 1/2].
         """
-        #self.ibz_arr = ibz
-        #self.ene_ibz = np.atleast_3d(ene_ibz)
-        #self.nsppol, self.nkibz, self.nband = self.ene_ibz.shape
+        self.ibz_arr = ibz_arr
+        self.ene_ibz = np.atleast_3d(ene_ibz)
+        self.nsppol, self.nkibz, self.nband = self.ene_ibz.shape
 
-        #self.ngkpt, self.shifts = ngkpt, np.at_least_2d(shifts)
-        #self.pbc, self.order = pbc, order
+        self.ndivs, self.shifts = ndivs, np.atleast_2d(shifts)
+        self.pbc, self.order = pbc, order
 
         # Compute the full list of k-points according to order.
-        #self.bz_arr = kmesh_from_mpdivs(mpdivs, shifts, pbc=pbc, order=order)
+        self.bz_arr = kmesh_from_mpdivs(self.ndivs, shifts, pbc=pbc, order=order)
 
         # Compute the mapping bz --> ibz
-        #self.bz_map = map_bz2ibz(structure, self.bz, self.ibz)
+        from abipy.extensions.klib import map_bz2ibz
+        self.bz2ibz = map_bz2ibz(structure, self.bz_arr, self.ibz_arr)
 
-    #def get_enebz(self, spin, band):
-    #    """Return energies in the full Brillouin zone for given spin and band."""
-    #    ene_ibz = self.ene_ibz[spin,:,band]
-    #    enebz = np.empty(len(self.bz_arr))
-    #    for ik_bz in range(len(self.bz))):
-    #       ik_ibz = self.bz_map[ik_bz]
-    #       enebz[ik_bz] = self.ene_ibz[spin,ik_ibz,band]
-    #    return enebz
+        #for ik_bz, ik_ibz in enumerate(self.bz2ibz):
+        #   print(ik_bz, ">>>", ik_ibz)
+
+        if np.any(self.bz2ibz == -1):
+            raise ValueError("-1 found")
+
+    @property
+    def spins(self):
+        """Used to iterate over spin indices."""
+        return range(self.nsppol)
+
+    @property
+    def bands(self):
+        """Used to iterate over bands"""
+        return range(self.nband)
+
+    @property
+    def len_bz(self):
+        """Number of point in the full bz."""
+        return len(self.bz_arr)
+
+    def get_emesh_sbk(self):
+        """
+        Returns a `ndarray` with shape [nsppol, nband, len_bz] with
+        the eigevanalues in the full zone.
+        """
+        emesh_sbk = np.empty((self.nsppol, self.nband, self.len_bz))
+
+        for spin in self.spins:
+            for band in self.bands:
+                emesh_sbk[spin,band,:] = self.get_emesh_k(spin, band)
+
+        return emesh_sbk
+
+    def get_emesh_k(self, spin, band):
+        """
+        Return a `ndarray` with shape [len_bz] with
+        the energies in the full zone for given spin and band.
+        """
+        emesh_k = np.empty(self.len_bz)
+
+        ene_ibz = self.ene_ibz[spin,:,band]
+        # e_{Sk} = e_{k}
+        for ik_bz in range(self.len_bz):
+           ik_ibz = self.bz2ibz[ik_bz]
+           #print(ik_bz, ">>>", ik_ibz)
+           emesh_k[ik_bz] = self.ene_ibz[spin,ik_ibz,band]
+
+        return emesh_k
+
+    #def plane_cut(self, values_ibz):
+    #    """
+    #    Symmetrize values in the IBZ to have them on the full BZ, then
+    #    select a slice along the specified plane E.g. plane = (1,1,0).
+    #    """
+    #    assert len(values_ibz) == len(self)
+    #    #indices =
+    #    z0 = 0
+    #    plane = np.empty((self.nx, self.ny))
+                                                                        
+    #    kx, ky = range(self.nx), range(self.ny)
+    #    for x in kx:
+    #        for y in ky:
+    #            ibz_idx = self.map_xyz2ibz[x, y, z0]
+    #            plane[x, y] = values_ibz[ibz_idx]
+                                                                        
+    #    kx, ky = np.meshgrid(kx, ky)
+    #    return kx, ky, plane
 
 
 #class NestingFactor(object):

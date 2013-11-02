@@ -1,7 +1,7 @@
 """
 This module defines the object Function1D that described a functions.
 of a single variables and provides simple interfaces for performing
-common tasks such as algebrical operations, integrations, differentations, plots ...
+common tasks such as algebraic operations, integrations, differentiations, plots ...
 """
 from __future__ import print_function, division
 
@@ -160,14 +160,14 @@ class Function1D(object):
         np.savetxt(path, data, fmt=fmt, delimiter=delimiter, newline=newline,
                    header=header, footer=footer, comments=comments)
 
+    def __repr__(self):
+        return "%s at %s, size = %d" % (self.__class__.__name__, id(self), len(self))
+
     def __str__(self):
         stream = StringIO.StringIO()
         self.to_file(stream)
         stream.seek(0)
         return "\n".join(stream)
-
-    def __repr__(self):
-        return "%s at %s, size = %d" % (self.__class__.__name__, id(self), len(self))
 
     def has_same_mesh(self, other):
         """True if self and other have the same mesh."""
@@ -209,10 +209,7 @@ class Function1D(object):
         try:
             return self._h
         except AttributeError:
-            if np.allclose(self.dx[0], self.dx):
-                return self.dx[0]
-            else:
-                return None
+            return self.dx[0] if np.allclose(self.dx[0], self.dx) else None
 
     @property
     def dx(self):
@@ -253,6 +250,7 @@ class Function1D(object):
         """
         if self.h is None:
             raise ValueError("Finite differences with inhomogeneous meshes are not supported")
+
         return self.__class__(self.mesh, finite_diff(self.values, self.h, order=order, acc=acc))
 
     def integral(self):

@@ -141,7 +141,7 @@ def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None):
     fwrite('END_BLOCK_DATAGRID_3D\n')
 
 
-def bxsf_write(file, structure, nsppol, nband, ndivs, energies, fermie, unit="eV"):
+def bxsf_write(file, structure, nsppol, nband, ndivs, emesh_sbk, fermie, unit="eV"):
     """
     Write band structure data in the Xcrysden format (XSF)
 
@@ -156,8 +156,8 @@ def bxsf_write(file, structure, nsppol, nband, ndivs, energies, fermie, unit="eV
             Number of bands.
         ndivs:
             Number of divisions of the full k-mesh.
-        energies:
-            Array [nsppol, nband, ndivs[0], ndivs[1], mpdvis[2]] with the energies in energy unit `unit`.
+        emesh_sbk:
+            Array [nsppol, nband, ndivs[0], ndivs[1], mpdvis[2]] with the emesh_sbk in energy unit `unit`.
         fermie:
             Fermi energy.
 
@@ -169,12 +169,14 @@ def bxsf_write(file, structure, nsppol, nband, ndivs, energies, fermie, unit="eV
             
         #. Energies are written in row-major (i.e. C) order.
 
+        #  Energies are in Hartree.
+
     See also http://www.xcrysden.org/doc/XSF.html
     """
-    energies = EnergyArray(energies, unit).to("eV")
-    fermie = Energy(fermie, unit).to("eV")
+    emesh_sbk = EnergyArray(emesh_sbk, unit).to("Ha")
+    fermie = Energy(fermie, unit).to("Ha")
 
-    energies = np.reshape(energies, (nsppol, nband) + (ndivs,))
+    emesh_sbk = np.reshape(emesh_sbk, (nsppol, nband, np.product(ndivs)))
 
     close_it = False
     if not hasattr(file, "write"):
@@ -209,7 +211,7 @@ def bxsf_write(file, structure, nsppol, nband, ndivs, energies, fermie, unit="eV
     for band in range(nband):
         for spin in range(nsppol):
             idx += 1
-            enebz = energies[spin, band]
+            enebz = emesh_sbk[spin, band, :]
             fw(" BAND: " + str(idx) + "\n")
             np.savetxt(file, enebz)
 

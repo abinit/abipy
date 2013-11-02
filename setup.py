@@ -32,10 +32,12 @@ ext_modules = [ ]
 
 #with_cython = False
 if with_cython:
+    #define_macros = [("CYTHON_TRACE", "1")]
     ext_modules += [
         Extension("abipy.extensions.klib", ["abipy/extensions/klib.pyx"], include_dirs=[np.get_include()])
     ]
     cmdclass.update({'build_ext': build_ext})
+
 else:
     ext_modules += [
         Extension("abipy.extensions.klib", ["abipy/extensions/klib.c"], include_dirs=[np.get_include()])

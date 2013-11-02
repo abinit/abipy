@@ -39,9 +39,9 @@ def isinteger(x, atol=_ATOL_KDIFF):
     int_x = np.around(x)
     return np.allclose(int_x, x, atol=atol)
 
-    #return (np.abs(int_kdiff[0] - kdiff[0]) < atol and 
-    #        np.abs(int_kdiff[1] - kdiff[1]) < atol and 
-    #        np.abs(int_kdiff[2] - kdiff[2]) < atol )
+    #return (np.abs(int_x[0] - x[0]) < atol and 
+    #        np.abs(int_x[1] - x[1]) < atol and 
+    #        np.abs(int_x[2] - x[2]) < atol )
 
 
 def issamek(k1, k2, atol=1e-08):
@@ -563,14 +563,8 @@ class KpointList(collections.Sequence):
                         )
 
     def to_array(self):
-        """Returns a ndarray [nk, 3] with the fractional coordinates."""
+        """Returns a `ndarray` [nkpy, 3] with the fractional coordinates."""
         return np.array(self.frac_coords.copy())
-
-    #def to_fortran_arrays(self):
-    #    fort_arrays = collections.namedtuple("FortranKpointListArrays", "frac_coords")
-    #    return fort_arrays(
-    #        frac_coords=np.asfortranarray(self.frac_coords.T),
-    #    )
 
 
 class KpointStar(KpointList):
@@ -790,6 +784,15 @@ class IrredZone(KpointList):
         """Number of points in the full BZ."""
         return self.mpdivs.prod() * self.num_shifts
 
+    #def compute_ktab(self, structure):
+    #    try:
+    #        return self._ktab
+    #    except AttributeError:
+    #        # Compute the mapping bz --> ibz
+    #        from abipy.extensions.klib import map_bz2ibz
+    #        self._ktab = map_bz2ibz(structure=structure, bz_arr=self.bz_arr, ib_arr=self.ibz_arr)
+    #        return self._ktab
+
     #def iter_bz_coords(self):
     #    """
     #    Generates the fractional coordinates of the points in the BZ.
@@ -809,29 +812,6 @@ class IrredZone(KpointList):
     #                    z = (k + shift[2]) / mpdivs[2]
     #                    yield np.array((x, y, z))
 
-    #@property
-    #def tables_for_shift(self):
-        #try:
-        #    return self._tables_for_shift
-        #except AttributeError:
-        #   Build the mapping BZ --> IBZ for the different grids.
-        #   map[i,j,k] --> index of the point in the IBZ
-        #   self._tables_for_shift = map_mesh2ibz(self.structure, self.mpdivs, self.shifts, self.ibz)
-        #   return self._tables_for_shift
-
-    #@property
-    #def flat_tables(self):
-
-    #def symmetrize_data_ibz(self, data_ibz): #, pbc=3*[False], korder="c"):
-    #    assert len(data_ibz) == self.len_ibz 
-    #    data_bz = np.empty(self.len_bz, dtype=data_ibz.dtype)
-
-    #    bz2ibz = self.bz2ibz
-    #    for ik_bz in range(self.len_bz):
-    #        data_bz[ik_bz] = data_ibz[bz2ibz[ik_bz]]
-
-    #    return data_bz
-
     #def plane_cut(self, values_ibz):
     #    """
     #    Symmetrize values in the IBZ to have them on the full BZ, then
@@ -850,6 +830,11 @@ class IrredZone(KpointList):
 
     #    kx, ky = np.meshgrid(kx, ky)
     #    return kx, ky, plane
+
+
+#from collections import namedtuple
+#class KSymmetryTables(namedtuple("KSymmetryTables", "bz2ibz ktabi ktabo")):
+#        pass
 
 
 class KSamplingInfo(AttrDict):

@@ -93,7 +93,7 @@ END_BLOCK_DATAGRID_3D
 
         energies = np.arange(nsppol * nband * np.product(ndivs))
 
-        bxsf_write(tmp_file, self.mgb2, nsppol, nband, ndivs, energies, fermie, unit="eV")
+        bxsf_write(tmp_file, self.mgb2, nsppol, nband, ndivs, energies, fermie, unit="Ha")
 
         xsf_string = \
 """BEGIN_INFO
