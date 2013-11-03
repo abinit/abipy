@@ -1,5 +1,8 @@
 *.py[cod]
 
+# Temporary files or directories
+tmp_*
+
 # C extensions
 *.so
 

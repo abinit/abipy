@@ -11,9 +11,21 @@ import numpy as np
 import abipy.abilab as abilab
 import abipy.data as data  
 
-from abipy.data.runs import Tester, enable_logging
+from abipy.data.runs import enable_logging, AbipyTest, MixinTest
 
-def raman_flow():
+
+class RamanFlowTest(AbipyTest, MixinTest):
+    """
+    Unit test for the flow defined in this module.  
+    Users who just want to learn how to use this flow can ignore this section.
+    """
+    def setUp(self):
+        super(RamanFlowTest, self).setUp()
+        self.init_dirs()
+        self.flow = raman_flow(workdir=self.workdir)
+
+
+def raman_flow(workdir="tmp_raman"):
     pseudos = data.pseudos("14si.pspnc")
 
     # Get the unperturbed structure.
@@ -32,7 +44,8 @@ def raman_flow():
     displaced_structures = modifier.displace(ph_displ, etas, frac_coords=False)
 
     # Initialize flow. Each workflow in the flow defines a complete BSE calculation for given eta.
-    workdir = os.path.join(os.path.dirname(__file__), base_structure.formula.replace(" ","") + "_RAMAN")
+    if workdir is None:
+        workdir = os.path.join(os.path.dirname(__file__), base_structure.formula.replace(" ","") + "_RAMAN")
 
     manager = abilab.TaskManager.from_user_config()
 

@@ -9,11 +9,11 @@ import abipy.abilab as abilab
 
 from abipy.data.runs import enable_logging, AbipyTest, MixinTest
 
-###########################################################
-# Begin unit test for the flow defined in this module. 
-# Users who just want to learn how to use this flow can ignore this section.
-############################################################
-class FlowTest(AbipyTest, MixinTest):
+class EbandsFlowTest(AbipyTest, MixinTest):
+    """
+    Unit test for the flow defined in this module.  
+    Users who just want to learn how to use this flow can ignore this section.
+    """
     def setUp(self):
         super(FlowTest, self).setUp()
         self.init_dirs()
@@ -43,9 +43,6 @@ class FlowTest(AbipyTest, MixinTest):
         #work[1].rename("out_GSR.nc", "si_nscf_GSR.nc")
         #work[1].remove_files("out_DS2_DEN-etsf.nc")
         #flow.rmtree()
-#########################
-# End unit test section #
-#########################
 
 
 def make_scf_nscf_inputs():

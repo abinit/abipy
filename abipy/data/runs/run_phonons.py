@@ -7,8 +7,19 @@ import os
 import abipy.abilab as abilab
 import abipy.data as data  
 
-from abipy.data.runs import enable_logging
+from abipy.data.runs import enable_logging, AbipyTest, MixinTest
 from abipy.data.runs.qptdm_workflow import *
+
+
+class PhononsFlowTest(AbipyTest, MixinTest):
+    """
+    Unit test for the flow defined in this module.  
+    Users who just want to learn how to use this flow can ignore this section.
+    """
+    def setUp(self):
+        super(PhononsFlowTest, self).setUp()
+        self.init_dirs()
+        self.flow = ph_flow(self.workdir)
 
 
 def scf_ph_inputs():
@@ -64,7 +75,7 @@ def scf_ph_inputs():
     return inp.split_datasets()
 
 
-def ph_flow():
+def ph_flow(workdir="tmp_phonons"):
     """
     Create an `AbinitFlow` for phonon calculations:
 
@@ -74,7 +85,6 @@ def ph_flow():
            nirred tasks where nirred is the number of irreducible phonon perturbations
            for that particular q-point.
     """
-    workdir = "PHONONS"
     manager = abilab.TaskManager.from_user_config()
 
     all_inps = scf_ph_inputs()
@@ -88,8 +98,8 @@ def ph_flow():
 def main():
     """Build the flow for Phonon calculations and save the object in cpickle format."""
     flow = ph_flow()
-    for task in flow.iflat_tasks():
-        print(task, task.manager)
+    #for task in flow.iflat_tasks():
+    #    print(task, task.manager)
 
     return flow.build_and_pickle_dump()
 

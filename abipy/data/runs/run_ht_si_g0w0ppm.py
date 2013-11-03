@@ -6,13 +6,31 @@ import sys
 import os
 import abipy.data as data  
 
+
 from pymatgen.io.abinitio.abiobjects import AbiStructure
 from pymatgen.io.abinitio.calculations import g0w0_with_ppmodel
 from abipy import abilab
-from abipy.data.runs import Tester, enable_logging
+from abipy.data.runs import enable_logging, AbipyTest, MixinTest
 
 
-def htg0w0_flow(workdir):
+class HtSiEbandsFlowTest(AbipyTest, MixinTest):
+    """
+    Unit test for the flow defined in this module.  
+    Users who just want to learn how to use this flow can ignore this section.
+    """
+    def setUp(self):
+        super(HtSiEbandsFlowTest, self).setUp()
+        self.init_dirs()
+        self.flow = htg0w0_flow(self.workdir)
+
+    # Remove all files except those matching these regular expression.
+    #work[3].rename("out_SIGRES.nc", "si_g0w0ppm_SIGRES.nc")
+    #work.rmtree(exclude_wildcard="*.abin|*.about|*_SIGRES.nc")
+    #tester.finalize()
+    #return tester.retcode
+
+
+def htg0w0_flow(workdir="ht_si_g0w0ppm"):
     structure = AbiStructure.asabistructure(data.cif_file("si.cif"))
 
     pseudos = data.pseudos("14si.pspnc")
@@ -45,21 +63,11 @@ def htg0w0_flow(workdir):
     
     flow.register_work(work)
     return flow.allocate()
-
-    #tester.set_work_and_run(work)
-    #if tester.retcode != 0:
-    #    return tester.retcode
-
-    # Remove all files except those matching these regular expression.
-    #work[3].rename("out_SIGRES.nc", "si_g0w0ppm_SIGRES.nc")
-    #work.rmtree(exclude_wildcard="*.abin|*.about|*_SIGRES.nc")
-    #tester.finalize()
-    #return tester.retcode
+    
 
 @enable_logging
 def main():
-    tester = Tester()
-    flow = htg0w0_flow(tester.workdir)
+    flow = htg0w0_flow()
     return flow.build_and_pickle_dump()
 
 

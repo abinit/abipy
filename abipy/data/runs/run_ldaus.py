@@ -8,7 +8,19 @@ import numpy as np
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from abipy.data.runs import Tester, enable_logging
+from abipy.data.runs import enable_logging, AbipyTest, MixinTest
+
+
+class LdausFlowTest(AbipyTest, MixinTest):
+    """
+    Unit test for the flow defined in this module.  
+    Users who just want to learn how to use this flow can ignore this section.
+    """
+    def setUp(self):
+        super(LdausFlowTest, self).setUp()
+        self.init_dirs()
+        self.flow = bands_flow(workdir=self.workdir)
+
 
 def make_scf_nscf_dos_inputs(structure, pseudos, luj_params):
     # Input file taken from tldau_2.in
@@ -59,7 +71,7 @@ def make_scf_nscf_dos_inputs(structure, pseudos, luj_params):
         ngkpt=structure.calc_ngkpt(nksmall=8),      
         shiftk=[0.0, 0.0, 0.0],
         nshiftk=1,
-        towfr=1.e-8,
+        towlfr=1.e-8,
         #pawprtdos=1,
     )
 
@@ -69,7 +81,7 @@ def make_scf_nscf_dos_inputs(structure, pseudos, luj_params):
     return scf_input, nscf_input, dos_input
 
 
-def bands_flow(workdir):
+def bands_flow(workdir="tmp_ldaus"):
     manager = abilab.TaskManager.from_user_config()
 
     flow = abilab.AbinitFlow(workdir, manager)
@@ -101,8 +113,7 @@ def bands_flow(workdir):
 
 @enable_logging
 def main():
-    tester = Tester()
-    flow = bands_flow(tester.workdir)
+    flow = bands_flow()
     return flow.build_and_pickle_dump()
 
 

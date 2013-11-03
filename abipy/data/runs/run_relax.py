@@ -11,7 +11,19 @@ import sys
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from abipy.data.runs import enable_logging
+from abipy.data.runs import enable_logging, AbipyTest, MixinTest
+
+
+class RelaxFlowTest(AbipyTest, MixinTest):
+    """
+    Unit test for the flow defined in this module.  
+    Users who just want to learn how to use this flow can ignore this section.
+    """
+    def setUp(self):
+        super(RelaxFlowTest, self).setUp()
+        self.init_dirs()
+        self.flow = relax_flow(self.workdir)
+
 
 def make_ion_ioncell_inputs():
     cif_file = data.cif_file("si.cif")
@@ -65,7 +77,7 @@ def make_ion_ioncell_inputs():
     return ion_inp, ioncell_inp
 
 
-def relax_flow(workdir):
+def relax_flow(workdir="tmp_relax"):
     manager = abilab.TaskManager.from_user_config()
 
     flow = abilab.AbinitFlow(workdir, manager)
@@ -82,7 +94,6 @@ def relax_flow(workdir):
 
 @enable_logging
 def main():
-    workdir = "IONCELL"
     flow = relax_flow(workdir)
     return flow.build_and_pickle_dump()
 

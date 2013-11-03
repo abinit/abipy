@@ -7,11 +7,22 @@ import sys
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from abipy.data.runs import Tester, enable_logging
+from abipy.data.runs import enable_logging, AbipyTest, MixinTest
 from pseudo_dojo.dojo.deltaworks import DeltaFactory
 
 
-def delta_flow():
+class DeltaFactorFlowTest(AbipyTest, MixinTest):
+    """
+    Unit test for the flow defined in this module.  
+    Users who just want to learn how to use this flow can ignore this section.
+    """
+    def setUp(self):
+        super(DeltaFactorFlowTest, self).setUp()
+        self.init_dirs()
+        self.flow = delta_flow(workdir=self.workdir)
+
+
+def delta_flow(workdir="tmp_deltafactor"):
     # Path of the pseudopotential to test.
     #pseudo = data.pseudo("14si.pspnc")
     pseudo = data.pseudo("Si.GGA_PBE-JTH-paw.xml")
@@ -21,7 +32,7 @@ def delta_flow():
 
     # Initialize the flow.
     # FIXME  Abistructure is not pickleable with protocol -1
-    flow = abilab.AbinitFlow(workdir="DELTAFACTOR", manager=manager, pickle_protocol=0)
+    flow = abilab.AbinitFlow(workdir=workdir, manager=manager, pickle_protocol=0)
 
     # Build the workflow for the computation of the deltafactor.
     # The calculation is done with the parameters and the cif files

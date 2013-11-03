@@ -8,8 +8,17 @@ import os
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from abipy.data.runs import Tester, enable_logging
-from abipy.core.testing import AbipyTest
+from abipy.data.runs import enable_logging, AbipyTest, MixinTest
+
+class MgB2DosesFlowTest(AbipyTest, MixinTest):
+    """
+    Unit test for the flow defined in this module.  
+    Users who just want to learn how to use this flow can ignore this section.
+    """
+    def setUp(self):
+        super(MgB2DosesFlowTest, self).setUp()
+        self.init_dirs()
+        self.flow = build_bands_flow(workdir=self.workdir)
 
 
 def make_scf_nscf_inputs(structure, pseudos):
@@ -51,7 +60,7 @@ def make_scf_nscf_inputs(structure, pseudos):
     return  inp.split_datasets()
 
 
-def build_bands_flow(workdir):
+def build_bands_flow(workdir="tmp_mgb2_edoses"):
     pseudos = data.pseudos("12mg.pspnc", "05b.soft_tm")
     structure = data.structure_from_ucell("MgB2")
 
@@ -70,8 +79,7 @@ def build_bands_flow(workdir):
 
 @enable_logging
 def main():
-    tester = Tester()
-    flow = build_bands_flow(tester.workdir)
+    flow = build_bands_flow()
     return flow.build_and_pickle_dump()
 
 

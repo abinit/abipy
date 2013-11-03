@@ -9,7 +9,19 @@ import os
 import abipy.data as data  
 import abipy.abilab as abilab
 
+from abipy.data.runs import enable_logging, AbipyTest, MixinTest
 from abipy.data.runs import Tester, enable_logging
+
+class SpinEbandsFlowTest(AbipyTest, MixinTest):
+    """
+    Unit test for the flow defined in this module.  
+    Users who just want to learn how to use this flow can ignore this section.
+    """
+    def setUp(self):
+        super(SpinEbandsFlowTest, self).setUp()
+        self.init_dirs()
+        self.flow = build_bands_flow(workdir=self.workdir)
+
 
 def make_scf_nscf_inputs(nsppol):
     inp = abilab.AbiInput(pseudos=data.pseudos("26fe.pspnc"), ndtset=2)
@@ -43,7 +55,7 @@ def make_scf_nscf_inputs(nsppol):
 
     return scf_input, nscf_input
 
-def build_bands_flow(workdir):
+def build_bands_flow(workdir="tmp_fe_ebands"):
     manager = abilab.TaskManager.from_user_config()
 
     flow = abilab.AbinitFlow(workdir, manager)
@@ -59,8 +71,7 @@ def build_bands_flow(workdir):
 
 @enable_logging
 def main():
-    tester = Tester()
-    flow = build_bands_flow(tester.workdir)
+    flow = build_bands_flow()
     return flow.build_and_pickle_dump()
 
 

@@ -10,8 +10,20 @@ import os
 import abipy.abilab as abilab
 import abipy.data as data  
 
-from abipy.data.runs import enable_logging
+from abipy.data.runs import enable_logging, AbipyTest, MixinTest
 from abipy.data.runs.qptdm_workflow import *
+
+
+class QptdmFlowTest(AbipyTest, MixinTest):
+    """
+    Unit test for the flow defined in this module.  
+    Users who just want to learn how to use this flow can ignore this section.
+    """
+    def setUp(self):
+        super(QptdmFlowTest, self).setUp()
+        self.init_dirs()
+        self.flow = qptdm_flow(self.workdir)
+
 
 def all_inputs():
     structure = abilab.Structure.from_file(data.cif_file("si.cif"))
@@ -123,21 +135,21 @@ def gw_flow():
 
     return flow
     
-def qptdm_work():
-    workdir = "QPTDM"
+def qptdm_flow(workdir="tmp_qptdmscr"):
     gs, nscf, scr_input, sigma_input = all_inputs()
                                                                         
     manager = abilab.TaskManager.from_user_config()
 
     return g0w0_flow_with_qptdm(workdir, manager, gs, nscf, scr_input, sigma_input)
 
+
 @enable_logging
 def main():
-    # QPTDM
-    flow = qptdm_work()
-
     # GW Works
     #flow = gw_flow()
+
+    # QPTDM
+    flow = qptdm_flow()
 
     return flow.build_and_pickle_dump()
 

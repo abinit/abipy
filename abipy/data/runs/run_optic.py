@@ -7,7 +7,18 @@ import os
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from abipy.data.runs import Tester, enable_logging
+from abipy.data.runs import enable_logging, AbipyTest, MixinTest
+
+class OpticFlowTest(AbipyTest, MixinTest):
+    """
+    Unit test for the flow defined in this module.  
+    Users who just want to learn how to use this flow can ignore this section.
+    """
+    def setUp(self):
+        super(OpticFlowTest, self).setUp()
+        self.init_dirs()
+        self.flow = optic_flow(workdir=self.workdir)
+
 
 optic_input = """\
 0.002         ! Value of the smearing factor, in Hartree
@@ -20,7 +31,7 @@ optic_input = """\
 123 222       ! Non-linear coefficients to be computed
 """
 
-def optic_flow():
+def optic_flow(workdir="tmp_optic"):
     structure = data.structure_from_ucell("GaAs")
 
     inp = abilab.AbiInput(pseudos=data.pseudos("31ga.pspnc", "33as.pspnc"), ndtset=5)
@@ -85,7 +96,7 @@ def optic_flow():
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = inp.split_datasets()
 
     # Initialize the flow.
-    flow = abilab.AbinitFlow(workdir="OPTIC", manager=manager)
+    flow = abilab.AbinitFlow(workdir=workdir, manager=manager)
 
     bands_work = abilab.BandStructureWorkflow(scf_inp, nscf_inp)
     flow.register_work(bands_work)

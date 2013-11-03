@@ -8,16 +8,35 @@ import abipy.data as data
 
 from pymatgen.io.abinitio.abiobjects import AbiStructure
 from pymatgen.io.abinitio.calculations import bse_with_mdf
-from abipy.data.runs import Tester, enable_logging
+from abipy.data.runs import enable_logging, AbipyTest, MixinTest
+
+class HtBseMdfFlowTest(AbipyTest, MixinTest):
+    """
+    Unit test for the flow defined in this module.  
+    Users who just want to learn how to use this flow can ignore this section.
+    """
+    def setUp(self):
+        super(HtBseMdfFlowTest, self).setUp()
+        self.init_dirs()
+        self.flow = make_flow(self.workdir)
+
+    # Remove all files except those matching these regular expression.
+    #work[0].rename("out_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
+    #work[0].rename("out_DEN-etsf.nc", "si_DEN-etsf.nc")
+    #work[0].rename("out_GSR.nc", "si_scf_GSR.nc")
+                                                                       
+    #work[1].rename("out_WFK_0-etsf.nc", "si_nscf_WFK-etsf.nc")
+    #work[1].rename("out_GSR.nc", "si_nscf_GSR.nc")
+                                                                       
+    #work[3].rename("out_SIGRES.nc", "si_g0w0ppm_SIGRES.nc")
+                                                                       
+    #work.rmtree(exclude_wildcard="*.abin|*.about|*_SIGRES.nc")
 
 
-@enable_logging
-def main():
-    #return 0
+def make_flow(workdir="ht_si_bsemdf"):
     pseudos = data.pseudos("14si.pspnc")
     structure = abilab.Structure.from_file(data.cif_file("si.cif"))
 
-    tester = Tester()
     manager = abilab.TaskManager.from_user_config()
 
     kppa = scf_kppa = 1
@@ -35,7 +54,7 @@ def main():
         istwfk="*1",
     )
 
-    flow = abilab.AbinitFlow(workdir=tester.workdir, manager=manager)
+    flow = abilab.AbinitFlow(workdir=workdir, manager=manager)
 
     # BSE calculation with model dielectric function.
     work = bse_with_mdf(structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,
@@ -44,27 +63,25 @@ def main():
                        charge=0.0, scf_solver=None, **extra_abivars)
 
     flow.register_work(work)
-    flow.allocate()
+    return flow.allocate()
 
-    #tester.set_flow_and_run(flow)
-    #tester.set_work_and_run(work)
-    #if tester.retcode !=0:
-    #    return tester.retcode
+    
+    
+    
+    
 
-    # Remove all files except those matching these regular expression.
-    #work[0].rename("out_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
-    #work[0].rename("out_DEN-etsf.nc", "si_DEN-etsf.nc")
-    #work[0].rename("out_GSR.nc", "si_scf_GSR.nc")
+    
+    
 
-    #work[1].rename("out_WFK_0-etsf.nc", "si_nscf_WFK-etsf.nc")
-    #work[1].rename("out_GSR.nc", "si_nscf_GSR.nc")
+    
 
-    #work[3].rename("out_SIGRES.nc", "si_g0w0ppm_SIGRES.nc")
+    
 
-    #work.rmtree(exclude_wildcard="*.abin|*.about|*_SIGRES.nc")
+@enable_logging
+def main():
+    flow = make_flow()
+    return flow.build_and_pickle_dump()
 
-    #tester.finalize()
-    #return tester.retcode 
 
 if __name__ == "__main__":
     sys.exit(main())
