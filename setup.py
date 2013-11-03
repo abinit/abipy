@@ -27,8 +27,8 @@ try:
 except ImportError:
     with_cython = False
 
-cmdclass = { }
-ext_modules = [ ]
+cmdclass = {}
+ext_modules = []
 
 #with_cython = False
 if with_cython:
@@ -42,6 +42,10 @@ else:
     ext_modules += [
         Extension("abipy.extensions.klib", ["abipy/extensions/klib.c"], include_dirs=[np.get_include()])
     ]
+
+# Disable cython for the time being.
+cmdclass = {}
+ext_modules = []
 
 #-------------------------------------------------------------------------------
 # Useful globals and utility functions

@@ -13,7 +13,8 @@ from pseudo_dojo.dojo.deltaworks import DeltaFactory
 
 def delta_flow():
     # Path of the pseudopotential to test.
-    pseudo = data.pseudos("14si.pspnc")[0]
+    #pseudo = data.pseudo("14si.pspnc")
+    pseudo = data.pseudo("Si.GGA_PBE-JTH-paw.xml")
 
     # Manager used to submit the jobs.
     manager = abilab.TaskManager.from_user_config()
@@ -34,8 +35,14 @@ def delta_flow():
     kppa = 6750  # Use this to have the official k-point sampling
     kppa = 50    # this value is for testing purpose.
 
+    #extra = {}
+
+    ecut = 8
+    pawecutdg = ecut * 2 #if pseudo.ispaw else None
+
     work = factory.work_for_pseudo(pseudo, accuracy="normal", kppa=kppa, 
-                                   ecut=8, toldfe=1.e-8, smearing="fermi_dirac:0.0005")
+                                   ecut=ecut, pawecutdg=pawecutdg,
+                                   toldfe=1.e-8, smearing="fermi_dirac:0.0005")
 
     # Register the workflow.
     flow.register_work(work)

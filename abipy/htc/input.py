@@ -13,7 +13,7 @@ import copy
 import abc
 import numpy as np
 
-from pymatgen.io.abinitio.pseudos import PseudoTable
+from pymatgen.io.abinitio.pseudos import PseudoTable, Pseudo
 from pymatgen.io.abinitio.strategies import select_pseudos
 from abipy.core import Structure
 from abipy.tools import is_string, list_strings
@@ -160,6 +160,9 @@ class AbiInput(Input):
         if isinstance(pseudos, PseudoTable):
             self._pseudos = pseudos
 
+        elif all(isinstance(p, Pseudo) for p in pseudos):
+            self._pseudos = PseudoTable(pseudos)
+
         else:
             # String(s)
             pseudo_dir = os.path.abspath(pseudo_dir)
@@ -265,6 +268,16 @@ class AbiInput(Input):
     def pseudos(self):
         """List of `Pseudo` objecst."""
         return self._pseudos
+
+    @property
+    def ispaw(self):
+        """True if we have a PAW calculation."""
+        return all(p.ispaw for p in self.pseudos)
+
+    @property
+    def isnc(self):
+        """True if we have a norm-conserving calculation."""
+        return all(p.isnc for p in self.pseudos)
 
     @property
     def structure(self):

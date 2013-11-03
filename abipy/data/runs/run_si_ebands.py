@@ -7,79 +7,17 @@ import os
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from abipy.data.runs import Tester, enable_logging
-from abipy.core.testing import AbipyTest
+from abipy.data.runs import enable_logging, AbipyTest, MixinTest
 
 ###########################################################
 # Begin unit test for the flow defined in this module. 
 # Users who just want to learn how to use this flow can ignore this section.
 ############################################################
-import unittest
-
-class MixinTest(object):
-    #DORUN = False
-    DORUN = True
-
-    def init_dirs(self):
-        import inspect
-        import os
-        ## Get the filename of the calling module.
-        frm = inspect.stack()[1]
-        mod = inspect.getmodule(frm[0])
-        #
-        apath = os.path.abspath(mod.__file__)
-        print(apath)
-        #assert 0
-                                                                             
-        #base = os.path.basename(apath).replace(".py","").replace("run_","")
-        # Results will be produced in workdir. 
-        # refdir contains the reference data (might not be present if this 
-        # is the first time we execute the AbinitFlow.
-        #self.workdir = os.path.join(os.path.dirname(apath), "tmp_" + base)
-        #self.refdir = os.path.join(os.path.dirname(apath), "data_" + base)
-
-    def test_pickle(self):
-        """Testing whether the flow object is pickleable."""
-        self.serialize_with_pickle(self.flow, protocols=None, test_eq=True)
-
-    def test_run(self):
-        """Running the flow with PyFlowsScheduler."""
-        if not self.DORUN:
-            print("Skipping test_run")
-            return 
-
-        from pymatgen.io.abinitio.launcher import PyFlowsScheduler
-        self.flow.build_and_pickle_dump()
-
-        sched_options = dict(
-            weeks=0,
-            days=0,
-            hours=0,
-            minutes=0,
-            seconds=5,
-        )
-
-        sched = PyFlowsScheduler(**sched_options)
-        sched.add_flow(self.flow)
-        sched.start()
-
-        all_ok = self.flow.all_ok
-        self.assertTrue(all_ok)
-
-    def tearDown(self):
-        if not self.DO_RUN:
-            return 
-
-        if not self.flow.all_ok:
-            return 
-
-
 class FlowTest(AbipyTest, MixinTest):
     def setUp(self):
         super(FlowTest, self).setUp()
-        self.flow = build_bands_flow("__hello_test__")
-
         self.init_dirs()
+        self.flow = build_bands_flow(self.workdir)
 
     def move_files(self):
         pass
@@ -112,16 +50,24 @@ class FlowTest(AbipyTest, MixinTest):
 
 def make_scf_nscf_inputs():
     """Returns two input files: GS run and NSCF on a high symmetry k-mesh."""
-    inp = abilab.AbiInput(pseudos=data.pseudos("14si.pspnc"), ndtset=2)
+    pseudos = data.pseudos("14si.pspnc")
+    #pseudos = data.pseudos("Si.GGA_PBE-JTH-paw.xml")
+
+    inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
+    print(inp.pseudos)
     structure = inp.set_structure_from_file(data.cif_file("si.cif"))
 
     # Global variables
-    global_vars = dict(ecut=6,
+    ecut = 6
+    global_vars = dict(ecut=ecut,
                        nband=8,
                        timopt=-1,
                        accesswff=3,
                        istwfk="*1",
                     )
+
+    if inp.ispaw:
+        global_vars.update(pawecutdg=2*ecut)
 
     inp.set_variables(**global_vars)
 
@@ -158,8 +104,7 @@ def build_bands_flow(workdir):
 
 @enable_logging
 def main():
-    tester = Tester()
-    flow = build_bands_flow(tester.workdir)
+    flow = build_bands_flow(workdir="tmp_si_ebands")
     return flow.build_and_pickle_dump()
 
 

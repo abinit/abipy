@@ -9,21 +9,23 @@ from __future__ import print_function, division
 import os
 import warnings
 
-from os.path import join as pj
+from pymatgen.io.abinitio.pseudos import PseudoParser, PseudoTable
 from abipy.data.ucells import structure_from_ucell
 
 __all__ = [
     "cif_file",
+    "pseudo",
     "pseudos",
     "ref_file",
+    "ref_files",
     "structure_from_ucell",
 ]
 
 dirpath = os.path.dirname(__file__)
 
-_CIF_DIRPATH = os.path.abspath(pj(os.path.dirname(__file__), "cifs"))
+_CIF_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "cifs"))
 
-_PSEUDOS_DIRPATH = os.path.abspath(pj(os.path.dirname(__file__), "pseudos"))
+_PSEUDOS_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "pseudos"))
 
 def cif_file(filename):
     """Returns the absolute path of the CIF file in tests/data/cifs."""
@@ -31,9 +33,15 @@ def cif_file(filename):
 
 pseudo_dir = _PSEUDOS_DIRPATH
 
+def pseudo(filename):
+    """Returns a `Pseudo` object."""
+    filepath = os.path.join(_PSEUDOS_DIRPATH, filename)
+    return PseudoParser().parse(filepath)
+
 def pseudos(*filenames):
-    """Returns the absolute path of a pseudopotential file in tests/data/pseudos."""
-    return [os.path.join(_PSEUDOS_DIRPATH, f) for f in filenames]
+    """Returns a PseudoTable constructed from the input filenames  located in tests/data/pseudos."""
+    pseudos = map(pseudo, filenames)
+    return PseudoTable(pseudos)
 
 
 def find_ncfiles(top):
@@ -77,6 +85,9 @@ def ref_file(basename):
         return _DATA_NCFILES[basename]
     else:
         return os.path.join(dirpath, basename)
+
+def ref_files(*basenames):
+    return map(ref_file, basenames)
 
 
 def ncfiles_with_ext(ext):
