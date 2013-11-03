@@ -17,14 +17,14 @@ __all__ = [
 
 
 class Function1D(object):
-    """Immutable object describing a (real|complex) function of a real variable."""
+    """A (real|complex) function of a real variable."""
     def __init__(self, mesh, values):
         """
         Args:
             mesh:
                 array-like object with the real points of the grid.
             values:
-                array-like object with the values of the function (can be complex)
+                array-like object with the values of the function (can be complex-valued)
         """
         self._mesh = np.ascontiguousarray(mesh)
         self._values = np.ascontiguousarray(values)

@@ -9,12 +9,21 @@ import numpy as np
 import abipy.abilab as abilab
 import abipy.data as data
 
-from abipy.data.runs import Tester, enable_logging
+from abipy.data.runs import enable_logging, AbipyTest, MixinTest
 
-def relax_flow():
+class SicRelaxFlowTest(AbipyTest, MixinTest):
+    """
+    Unit test for the flow defined in this module.  
+    Users who just want to learn how to use this flow can ignore this section.
+    """
+    def setUp(self):
+        super(SicRelaxFlowTest, self).setUp()
+        self.init_dirs()
+        self.flow = relax_flow(workdir=self.workdir)
+
+def relax_flow(workdir="tmp_sic_relax"):
 
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1)
-    workdir = "relax_SiC"
                                                          
     flow = abilab.AbinitFlow(workdir, manager)
 

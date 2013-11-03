@@ -65,18 +65,6 @@ def make_flow(workdir="ht_si_bsemdf"):
     flow.register_work(work)
     return flow.allocate()
 
-    
-    
-    
-    
-
-    
-    
-
-    
-
-    
-
 @enable_logging
 def main():
     flow = make_flow()

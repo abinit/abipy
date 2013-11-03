@@ -10,7 +10,6 @@ import abipy.data as data
 import abipy.abilab as abilab
 
 from abipy.data.runs import enable_logging, AbipyTest, MixinTest
-from abipy.data.runs import Tester, enable_logging
 
 class SpinEbandsFlowTest(AbipyTest, MixinTest):
     """
