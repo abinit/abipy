@@ -159,7 +159,7 @@ install_requires = [
     "PyDispatcher",
     "pyyaml>=3.1.0",
     "apscheduler>=2.1.1",
-    "wxmplot>=0.9.13",
+    "wxmplot>=0.9.12",
     #"termcolor",
 
 ]
