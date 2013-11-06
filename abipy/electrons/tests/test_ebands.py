@@ -63,10 +63,19 @@ class ElectronBandsTest(AbipyTest):
 
         self.serialize_with_pickle(jdos, protocols=[-1])
 
-        # Need a homogeneous sampling.
+        nscf_bands = ElectronBands.from_file(data.ref_file("si_nscf_GSR.nc"))
+
+        # Test the detection of denerate states.
+        degs = nscf_bands.degeneracies(spin=0, kpoint=[0,0,0], bands_range=range(8))
+
+        ref_degbands = [[0], [1,2,3], [4,5,6], [7]]
+
+        for i, (e, deg_bands) in enumerate(degs):
+            self.assertEqual(deg_bands, ref_degbands[i])
+
+        # JDOS a homogeneous sampling.
         with self.assertRaises(ValueError):
-            bands = ElectronBands.from_file(data.ref_file("si_nscf_GSR.nc"))
-            bands.get_ejdos(spin, 0, 4)
+            nscf_bands.get_ejdos(spin, 0, 4)
 
 
 if __name__ == "__main__":

@@ -35,42 +35,42 @@ def isinteger(x, atol=1e-08):
     return np.allclose(int_x, x, atol=atol)
 
 
-def mati3inv(mm, trans=True):
+def mati3inv(mat3, trans=True):
     """
     Invert and transpose orthogonal 3x3 matrix of INTEGER elements.
 
     Args:
-        mm:
+        mat3:
             3x3 matrix-like object with integer elements
 
     Returns:
-        ndarray with the TRANSPOSE of the inverse of mm if trans==True.
-        If trans==False, the inverse of mm is returned.
+        ndarray with the TRANSPOSE of the inverse of mat3 if trans==True.
+        If trans==False, the inverse of mat3 is returned.
 
     .. note::
 
        Used for symmetry operations. This function applies to *ORTHOGONAL* matrices only.
        Since these form a group, inverses are also integer arrays.
     """
-    mm = np.array(mm)
-    assert mm.dtype in [np.int, np.int8, np.int16, np.int32, np.int64]
+    mat3 = np.array(mat3)
+    assert mat3.dtype in [np.int, np.int8, np.int16, np.int32, np.int64]
 
-    mit = np.zeros((3,3), dtype=np.int)
-    mit[0,0] = mm[1,1] * mm[2,2] - mm[2,1] * mm[1,2]
-    mit[1,0] = mm[2,1] * mm[0,2] - mm[0,1] * mm[2,2]
-    mit[2,0] = mm[0,1] * mm[1,2] - mm[1,1] * mm[0,2]
-    mit[0,1] = mm[2,0] * mm[1,2] - mm[1,0] * mm[2,2]
-    mit[1,1] = mm[0,0] * mm[2,2] - mm[2,0] * mm[0,2]
-    mit[2,1] = mm[1,0] * mm[0,2] - mm[0,0] * mm[1,2]
-    mit[0,2] = mm[1,0] * mm[2,1] - mm[2,0] * mm[1,1]
-    mit[1,2] = mm[2,0] * mm[0,1] - mm[0,0] * mm[2,1]
-    mit[2,2] = mm[0,0] * mm[1,1] - mm[1,0] * mm[0,1]
+    mit = np.empty((3,3), dtype=np.int)
+    mit[0,0] = mat3[1,1] * mat3[2,2] - mat3[2,1] * mat3[1,2]
+    mit[1,0] = mat3[2,1] * mat3[0,2] - mat3[0,1] * mat3[2,2]
+    mit[2,0] = mat3[0,1] * mat3[1,2] - mat3[1,1] * mat3[0,2]
+    mit[0,1] = mat3[2,0] * mat3[1,2] - mat3[1,0] * mat3[2,2]
+    mit[1,1] = mat3[0,0] * mat3[2,2] - mat3[2,0] * mat3[0,2]
+    mit[2,1] = mat3[1,0] * mat3[0,2] - mat3[0,0] * mat3[1,2]
+    mit[0,2] = mat3[1,0] * mat3[2,1] - mat3[2,0] * mat3[1,1]
+    mit[1,2] = mat3[2,0] * mat3[0,1] - mat3[0,0] * mat3[2,1]
+    mit[2,2] = mat3[0,0] * mat3[1,1] - mat3[1,0] * mat3[0,1]
 
-    dd = mm[0,0] * mit[0,0] + mm[1,0] * mit[1,0] + mm[2,0] * mit[2,0]
+    dd = mat3[0,0] * mit[0,0] + mat3[1,0] * mit[1,0] + mat3[2,0] * mit[2,0]
 
     # Make sure matrix is not singular
     if dd == 0:
-        raise ValueError("Attempting to invert integer array: %s\n ==> determinant is zero." % mm)
+        raise ValueError("Attempting to invert integer array: %s\n ==> determinant is zero." % mat3)
 
     mit = mit // dd
     if trans:
@@ -97,6 +97,7 @@ def _get_det(mat):
 
 
 class SymmOp(object):
+    """Crystalline symmetry."""
     _ATOL_TAU =  1e-8
 
     __slots__ = [
@@ -428,10 +429,6 @@ class SymmOpList(collections.Sequence):
     def has_timerev(self):
         """True if time-reversal symmetry is present."""
         return self._has_timerev
-        #for symmop in self:
-        #    if symmop.has_timerev:
-        #        return True
-        #return False
 
     @property
     def symrel(self):
@@ -527,23 +524,23 @@ class SymmOpList(collections.Sequence):
     #def symrec_array(self):
     #    symrec = np.asfortranarray(self.symrec.T)
 
-    def to_fortran_arrays(self):
-        fort_arrays = collections.namedtuple("FortranSpaceGroupArrays", "symrel symrec tnons symafm timrev")
+    #def to_fortran_arrays(self):
+    #    fort_arrays = collections.namedtuple("FortranSpaceGroupArrays", "symrel symrec tnons symafm timrev")
 
-        symrel = np.asfortranarray(self.symrel.T)
-        symrec = np.asfortranarray(self.symrec.T)
+    #    symrel = np.asfortranarray(self.symrel.T)
+    #    symrec = np.asfortranarray(self.symrec.T)
 
-        for isym in range(self.num_spatial_symmetries):
-            symrel[:,:,isym] = symrel[:,:,isym].T
-            symrec[:,:,isym] = symrec[:,:,isym].T
+    #    for isym in range(self.num_spatial_symmetries):
+    #        symrel[:,:,isym] = symrel[:,:,isym].T
+    #        symrec[:,:,isym] = symrec[:,:,isym].T
 
-        return fort_arrays(
-            symrel=symrel,
-            symrec=symrec,
-            tnons =np.asfortranarray(self.tnons.T),
-            symafm=self.symafm,
-            timrev = 2 if self.has_timerev else 1
-        )
+    #    return fort_arrays(
+    #        symrel=symrel,
+    #        symrec=symrec,
+    #        tnons =np.asfortranarray(self.tnons.T),
+    #        symafm=self.symafm,
+    #        timrev = 2 if self.has_timerev else 1
+    #    )
 
     @property
     def mult_table(self):
@@ -633,7 +630,7 @@ class SpaceGroup(SymmOpList):
             All the arrays are store in C-order. Use as_fortran_arrays to extract data that
             can be passes to Fortran routines.
         """
-        SymmOpList.__init__(self, symrel, tnons, symafm, has_timerev, inord=inord)
+        super(SpaceGroup, self).__init__(symrel, tnons, symafm, has_timerev, inord=inord)
 
         self.spgid = spgid
         assert self.spgid in range(0, 233)
@@ -655,6 +652,9 @@ class SpaceGroup(SymmOpList):
             file.close()
 
         return new
+
+    def __repr__(self):
+        return str(self)
 
     def __str__(self):
         """String representation."""
@@ -698,72 +698,424 @@ class SpaceGroup(SymmOpList):
         return ltg_symmops, g0vecs, isyms
 
 
-class Irrep(object):
+_E3D = np.identity(3,  np.int)
+
+class LatticeRotation(object):
     """
-    This class represents an irreducible representation.
-
-    .. attributes:
-
-        name: 
-            Name of the irreducible representation.
-
-        dim:
-            Dimension of the irreducible representation.
-
-        nsym:
-            Number of symmetries.
-
-        mats:
-            array of shape [nsym,dim,dim] with
-            the irreducible representations of the group.
-
-        traces:
-            traces[nsym]. The trace of each matrix.
+    This object defines a pure rotation of the lattice (proper, improper, mirror symmetry)
+    that is a rotation which is compatible with a lattice. The rotation matrix is
+    expressed in reduced coordinates, therefore its elements are integers.
     """
+    def __init__(self, rotation):
+        self.rotation = np.matrix(rotation, np.int)
 
-    def __init__(self, name, mats):
-        self.name = name
-        assert len(mats.shape) == 3
-        self.mats = mats
-        self.nsym = len(mats)
-        self.dim = mats.shape[1]
-        assert self.dim == mats.shape[2]
+    #def __repr__(self):
+    #    return str(self)
 
-        self.trace = tuple([m.trace() for m in mats])
+    #def __str__(self):
+    #    lines =  "Rotation: " + str(self.order) + ", versor: " + str(self.versor) + ", " + str(self.trcoords) + "\n"
+    #    lines.append(str(self.rotation))
+    #    return "\n".join(lines)
+
+    # Might subclass np.matrix though.
+    def __eq__(self, other):
+        return np.allclose(self.rotation, other.rotation)
+
+    def __ne__(self, other):
+        return not (self == other)
+
+    # Implement the unary arithmetic operations (+, -)
+    def __pos__(self): 
+        return self
+
+    def __neg__(self): 
+        return self.__class__(-self.rotation) 
+
+    def __mul__(self, other):
+        return self.__class__(self.rotation * other.rotation)
+
+    def __pow__(self, intexp, modulo=1):
+       if intexp ==  0: return self.__class__(_E3D)
+       if intexp  >  0: return self.__class__(self.rotation**intexp)
+       if intexp == -1: return self.inverse()
+       if intexp  <  0: return self.__pow__(-intexp).inverse()
+
+    @property
+    def det(self):
+        """Return the determinant of a symmetry matrix mat[3,3]. It must be +-1"""
+        try:
+            return self._det
+        except AttributeError:
+            self._det = _get_det(self.rotation)
+            return self._det
+
+    @property
+    def trace(self):
+        """The trace of the rotation"""
+        return self.rotation.trace()[0,0]
+
+    @property
+    def is_proper(self):
+        """True if proper rotation"""
+        return self.det == 1
+
+    def inverse(self): 
+        """
+        Invert an orthogonal 3x3 matrix of INTEGER elements.
+        Note use of integer arithmetic. Raise ValueError if not invertible.
+        """
+        det = self.det
+        mm = self.rotation
+        inv= np.matrix(np.zeros((3,3), np.int))
+
+        inv[0,0] = mm[1,1] * mm[2,2] - mm[1,2] * mm[2,1]
+        inv[0,1] = mm[0,2] * mm[2,1] - mm[0,1] * mm[2,2] 
+        inv[0,2] = mm[0,1] * mm[1,2] - mm[0,2] * mm[1,1]
+
+        inv[1,0] = mm[1,2] * mm[2,0] - mm[1,0] * mm[2,2]
+        inv[1,1] = mm[0,0] * mm[2,2] - mm[0,2] * mm[2,0]
+        inv[1,2] = mm[0,2] * mm[1,0] - mm[0,0] * mm[1,2] 
+
+        inv[2,0] = mm[1,0] * mm[2,1] - mm[1,1] * mm[2,0]
+        inv[2,1] = mm[0,1] * mm[2,0] - mm[0,0] * mm[2,1] 
+        inv[2,2] = mm[0,0] * mm[1,1] - mm[0,1] * mm[1,0]
+
+        # Make sure matrix is not singular
+        if det != 0: 
+            return self.__class__(inv/det)
+        else: 
+            raise ValueError("Attempting to invert singular matrix")
+
+    @property
+    def rottype(self):
+        """
+        Receive a 3x3 orthogonal matrix and reports its type:
+            1 Identity
+            2 Inversion
+            3 Proper rotation of an angle <> 180 degrees
+            4 Proper rotation of 180 degrees
+            5 Mirror symmetry
+            6 Improper rotation
+        """
+        #rot = self.rotation # Just an alias. 
+        # Treat identity and inversion first
+        #identity  = Rotation(_E3D)
+
+        if self.isE: return 1
+        if self.isI: return 2
+    
+        if self.isproper: # Proper rotation
+            t = 3 # try angle != 180
+            #det180 = get_sym_det(rot+_E3D)
+            if (self + identity).det == 0: t = 4 # 180 rotation
+        else: 
+            # Mirror symmetry or Improper rotation
+            t = 6
+            #detmirror = get_sym_det(rot-_E3D)
+            if (self - identity).det == 0: 
+                t = 5 # Mirror symmetry if an eigenvalue is 1
+
+        return t
+
+    @property
+    def isE(self):
+        """True if it is the identity"""
+        return np.allclose(self.rotation, _E3D)
+
+    @property
+    def isI(self):
+        """True if it is the inversion"""
+        return np.allclose(self.rotation, -_E3D)
+
+    @property
+    def order(self):
+        """Order and root of unit"""
+        order, root_invers = None, 0
+        for ior in range(1,7):
+            rn = self ** ior
+
+            if rn.isE:
+                order = ior
+                break
+
+            if rn.isI: 
+                root_invers = ior
+
+        if order is None: 
+            raise ValueError("symmetry is not a root of unit!")
+
+        return order, root_invers
+
+    #@property
+    #def name(self):
+    #    order, root_invers = self.info
+    #    name = ""
+    #    if self.det == -1: name = "-"
+    #    name += str(self.order) # FIXME this one doesn't work yet.
+    #    if root_invers != 0: 
+    #        name += "-"
+    #    else:
+    #        name += "+"
+
+    #    return name
 
 
+#class Irrep(object):
+#    """
+#    This object represents an irreducible representation.
+#
+#    .. attributes:
+#        dim:
+#            Dimension of the irreducible representation.
+#        nsym:
+#            Number of symmetries.
+#        traces:
+#            traces[nsym]. The trace of each matrix.
+#    """
+#
+#    def __init__(self, name, mats):
+#        """
+#        Args:
+#            name: 
+#                Name of the irreducible representation.
+#            mats:
+#                array of shape [nsym,dim,dim] with the irreducible representations of the group.
+#        """
+#        self.name = name
+#
+#        assert len(mats.shape) == 3
+#        self._mats = mats
+#
+#        self.dim = mats.shape[1]
+#        assert self.dim == mats.shape[2]
+#
+#        self.traces = [m.trace() for m in mats]
+#
+#    @property
+#    def mats(self):
+#        return self._mats
+#
+#    @property
+#    def nsym(self)
+#        return len(self.mats)
+#
+#    @property
+#    def character(self)
+
+
+#_PTGROUP_NAMES = [
+#    "1",   
+#    "-1",
+#    "2",
+#    "m",
+#    "2/m",
+#    "222",
+#    "mm2",
+#    "mmm",
+#    "4",
+#    "-4",
+#    "4/m",
+#    "422",
+#    "4mm",
+#    "-42m",
+#    "4/mmm",
+#    "3",
+#    "-3",
+#    "32",
+#    "3m",
+#    "-3m",
+#    "6",
+#    "-6",
+#    "6/m", 
+#    "622",
+#    "6mm",
+#    "-62m",
+#    "6/mmm",
+#    "23",
+#    "m-3",
+#    "432",
+#    "-43m ",
+#    "m-3m",
+#]
+
+
+#@singleton
 #class IrrepsDatabase(dict)
-#    _PTGROUP_NAMES = [
-#      "1",   
-#      "-1",
-#      "2",
-#      "m",
-#      "2/m",
-#      "222",
-#      "mm2",
-#      "mmm",
-#      "4",
-#      "-4",
-#      "4/m",
-#      "422",
-#      "4mm",
-#      "-42m",
-#      "4/mmm",
-#      "3",
-#      "-3",
-#      "32",
-#      "3m",
-#      "-3m",
-#      "6",
-#      "-6",
-#      "6/m", 
-#      "622",
-#      "6mm",
-#      "-62m",
-#      "6/mmm",
-#      "23",
-#      "m-3",
-#      "432",
-#      "-43m ",
-#      "m-3m",
-#    ]
+#    def __init__(self):
+#        super(IrrepsDatabase, self).__init__([(ptg_name, []) for ptg_name in _PTGROUP_NAMES])
+#        for irrep in self["ptgname"]:
+
+
+class PointGroup(list):
+    """
+    A PointGroup is a list of Rotations and has irreducible representations
+    """ 
+    def __init__(self, rotations, name=None, irreprs=None):
+
+        class_ids = mk_classes(rotations)
+
+        # Always reorder rotations and irreprs according to class indeces.
+        ord_rotations = [ None for ii in range(len(rotations)) ]
+        idx = -1
+        for ord_idx in rflat(class_ids): 
+            idx += 1
+            ord_rotations[idx] = rotations[ord_idx]
+
+        ord_irreprs  = list() 
+        for irr in irreprs:
+            ord_matrices = [ None for ii in range(len(irr.matrices)) ]
+            idx = -1
+            for ord_idx in rflat(class_ids):
+               idx += 1
+               ord_matrices[idx] = irr.matrices[ord_idx]
+
+            ord_irreprs.append( IrreducibleRepr(irr.name, irr.dim, ord_matrices) )
+
+        list.__init__(self)
+        for orot in ord_rotations: self.append(orot)
+
+        self.class_ids = mk_classes(ord_rotations)
+        self.nclass = len(self.class_ids)
+
+        # Create name of each class.
+        #self.class_names = [ "None" for ii in range(self.nclass) ]
+        first_rot_ids = [ self.class_ids[ii][0] for ii in range(self.nclass) ]
+        self.class_names = [ self[ii].name for ii in first_rot_ids ]
+
+        self.nsym = len(self)
+        self.name = str(name)
+
+        self.irreprs = ord_irreprs
+        #for ii in self.irreprs: print ii
+
+        self.nirrepr = len(self.irreprs)
+
+    #def find(self, rot):
+    #    """Return the index of rot."""
+    #    try:
+    #        return self.index(rot)
+    #    except ValueError:
+    #        raise RotationNotFound(rot)
+
+    #def findE(self):
+    #    """Return the index of the identity."""
+    #    try:
+    #        return self.index(Rotation(_E3D))
+    #    except RotationNotFound:
+    #        raise
+
+    #def find_inverse(self, rot):
+    #    """Return the index of the inverse of rot."""
+    #    E = Rotation(_E3D)
+    #    for s in self:
+    #        if s * rot == E: return s
+
+    #    sys.stderr.write("Warning: Inverse not found!!\n")
+    #    raise RotationNotFound(rot)
+
+    #def isgroup(self):
+    #    try:
+    #        self.findE() 
+    #        for rot in self: self.find_inverse(rot)
+    #        return True
+    #    except RotationNotFound:
+    #        sys.stderr.write("Not a group! Identity or inverse are missing")
+    #        return False
+
+    #def mk_mtable(self):
+    #    """Check if it is a group, then build the multiplication table"""
+
+    #    # Check if r1 * r2 is in group and build the multiplication table.
+    #    mtable = dict()
+    #    for idx1, r1 in enumerate(self):
+    #        for idx2, r2 in enumerate(self): 
+
+    #            try:
+    #                ij = (idx1, idx2)
+    #                mtable[ij] = self.index(r1 * r2)
+    #            except RotationNotFound:
+    #                sys.stderr.write("Not a group. Not close wrt *")
+    #                raise
+    #    return mtable
+
+    #def show_mtable(self):
+    #    """Print out multiplication table."""
+    #    mtable = self.mk_mtable() 
+
+    #    print(4*" " + (2*" ").join([str(i) for i in xrange(self.nsym)]) + "\n")
+    #    for i in xrange(self.nsym):
+    #        lij = [(i, j) for j in xrange(self.nsym)]
+    #        print(str(i) + (2*" ").join([str(mtable[ij]) for ij in lij]) + "\n")
+
+    #def show_character_table(self):
+    #    vlen = 10
+    #                                            
+    #    print 100*"*"
+    #    print ("Point Group" + self.name)
+    #    cln = ""
+    #    for clname in self.class_names:
+    #        cln += str(clname).center(vlen)
+    #    print "Class" + cln 
+    #                                            
+    #    mult = "Mult" 
+    #    for cls in self.class_ids:
+    #        mult += str(len(cls)).center(vlen)
+    #    print mult
+    #                                            
+    #    for irrepr in self.irreprs:
+    #        #print "irrepr ", irrepr
+    #        row = irrepr.name.ljust(5)
+    #        for icls in range(self.nclass): 
+    #           sym_id = self.class_ids[icls][0] 
+    #           mat = irrepr.matrices[sym_id]
+    #           char = mat.trace()[0,0]
+    #           row += str(char).center(vlen)
+    #        print row
+    #                                            
+    #    print 100*"*"
+    #    print 100*"*"
+
+    def check(self):
+        if not self.isgroup(): raise NotAGroup
+
+        class_ids = mk_classes(self)
+        #print class_ids
+        check = -1
+        for idx in rflat(class_ids):
+            check = check +1
+            if check!= idx: raise PointGroupException("Symmetries are not ordered by classes")
+
+        mtable = self.mk_mtable()
+
+        err = 0.0
+        for idx1 in range(len(self)):
+            for idx2 in range(len(self)):
+                ij = (idx1, idx2)
+                idx_prod = mtable[ij] 
+
+                for irr in self.irreprs:
+                    mat_prod = irr.matrices[idx1] * irr.matrices[idx2]
+                    my_err = (mat_prod - irr.matrices[idx_prod]).max()
+                    err = max(err, abs(my_err))
+
+        print("Error in Group Representation", err)
+
+        character_of = dict()
+        for irr in self.irreprs:
+            traces = irr.traces()
+            #character = [ traces[ii] 
+            chr = list()
+            for clids in self.class_ids:
+                idx = clids[0]
+                chr.append(traces[idx])
+            #character_of[irr.name] = N.array(chr)
+            character_of[irr.name] = traces
+            #irr.name 
+
+        err_otrace = 0.0
+        for k1, v1 in character_of.iteritems():
+            for k2, v2 in character_of.iteritems():
+                my_err = dotc(v1, v2) / self.nsym
+                if k2 == k1: my_err -= 1.0 
+                err_otrace = max(err_otrace, abs(my_err))
+        print("Error in orthogonality relation of traces ", err)

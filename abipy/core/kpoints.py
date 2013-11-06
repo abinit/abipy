@@ -500,6 +500,7 @@ class KpointList(collections.Sequence):
         """
         try:
             return self._points.index(kpoint)
+
         except ValueError:
             raise ValueError("\nCannot find point: %s in KpointList:\n%s" % (repr(kpoint), repr(self)))
 

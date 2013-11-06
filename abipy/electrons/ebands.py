@@ -428,6 +428,17 @@ class ElectronBands(object):
         """True if the bands are computed on a k-path."""
         return isinstance(self.kpoints, Kpath)
 
+    def kindex(self, kpoint):
+        """
+        The index of the k-point in the internal list of k-points.
+                                                                   
+        Accepts: `Kpoint` instance of integer.
+        """
+        if isinstance(kpoint, int):
+            return kpoint
+        else:
+            return self.kpoints.index(kpoint)
+
     def skb_iter(self):
         """Iterator over (spin, k, band) indices."""
         for spin in self.spins:
@@ -446,6 +457,52 @@ class ElectronBands(object):
     def deepcopy(self):
         """Deep copy of self."""
         return copy.deepcopy(self)
+
+    def degeneracies(self, spin, kpoint, bands_range, tol_ediff=1.e-3):
+        """
+        Returns a list with the indices of the degenerate bands.
+
+        Args:
+            spin:
+                Spin index.
+            kpoint:
+                K-point index or `Kpoint` object 
+            bands_range:
+                List of band indices to analyze.
+            tol_ediff:
+                Tolerance on the energy difference (in eV)
+
+        Returns:
+            List of tuples [(e0, bands_e0), (e1, bands_e1, ....]
+            Each tuple stores the degenerate energy and a list with the band indices.
+            The band structure of silicon at Gamma, for example, will produce something like:
+
+            [(-6.3, [0]), (5.6, [1, 2, 3]), (8.1, [4, 5, 6])] 
+        """
+        # Find the index of the k-point
+        k = self.kindex(kpoint)
+
+        # Extract the energies we are interested in.
+        bands_list = list(bands_range)
+        energies = [self.eigens[spin,k,band] for band in bands_list]
+
+        # Group bands according to their degeneracy.
+        bstart, deg_ebands = bands_list[0], []
+        e0, bs = energies[0], [bstart]
+
+        for (band, e) in enumerate(energies[1:]):
+            band += (bstart + 1)
+            new_deg = abs(e-e0) > tol_ediff
+
+            if new_deg:
+                ebs = (e0, bs)
+                deg_ebands.append(ebs)
+                e0, bs = e, [band]
+            else:
+                bs.append(band)
+        
+        deg_ebands.append((e0, bs))
+        return deg_ebands
 
     def enemin(self, spin=None, band=None):
         """Compute the minimum of the eigenvalues."""

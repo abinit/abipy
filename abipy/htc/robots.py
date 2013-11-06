@@ -193,7 +193,7 @@ class FlowInspector(FlowRobot):
         show = kwargs.get("show", True)
 
         from pymatgen.io.abinitio.tasks import Task
-        from pymatgen.io.abinitio.abiinspect import  plottable_from_outfile
+        from pymatgen.io.abinitio.abiinspect import plottable_from_outfile
         out_files = self.all_outfiles(status=Task.S_RUN, op=">=")
 
         figs = []

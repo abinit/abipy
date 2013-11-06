@@ -12,6 +12,22 @@ __all__ = [
     "WFK_File",
 ]
 
+#def ilower_triangle(items):
+
+def iupper_triangle(items):
+    """
+    Loop over the upper matrix elements of the matrix items x items
+
+    >>> for ij, mate in iupper_triangle([0,1]): print("ij", ij, "mate",mate)
+    ('ij', (0, 0), 'ab', (0, 0))
+    ('ij', (0, 1), 'ab', (0, 1))
+    ('ij', (1, 1), 'ab', (1, 1))
+    """
+    for (ii, item1) in enumerate(items):
+        for (jj, item2) in enumerate(items):
+            if jj >= ii:
+                yield (ii, jj), (item1, item2)
+
 
 class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     """
@@ -127,8 +143,10 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         """
         k = self.kindex(kpoint)
 
-        if (spin not in range(self.nsppol) or k not in range(self.nkpt) or
-                    band not in range(self.nband_sk[spin, k])):
+        if (spin not in range(self.nsppol) or 
+            k not in range(self.nkpt) or
+            band not in range(self.nband_sk[spin, k])
+            ):
             raise ValueError("Wrong (spin, band, kpt) indices")
 
         ug_skb = self.reader.read_ug(spin, kpoint, band)
@@ -153,6 +171,55 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         # Export data uding the format specified by filename.
         return wave.export_ur2(filepath, self.structure)
 
+    def classify_ebands(self, spin, kpoint, bands_range, tol_ediff=1e-3):
+        """
+        Analyze the caracter of the bands at the given k-point and spin.
+
+        Args:
+            spin:
+                Spin index.
+            kpoint:
+                K-point index or `Kpoint` object 
+            bands_range:
+                List of band indices to analyze.
+            tol_ediff:
+                Tolerance on the energy difference (in eV)
+        """
+        # Extract the index here to speed up the calls belows
+        k = self.kindex(kpoint)
+
+        # Find the set fo degenerate states at the given spin and k-point.
+        deg_ebands = self.ebands.degeneracies(spin, k, bands_range, tol_ediff=tol_ediff)
+
+        # Create list of tuples (ene, waves) for each degenerate set.
+        deg_ewaves = []
+        for e, bands in deg_ebands:
+            deg_ewaves.append((e, [self.get_wave(spin, k, band) for band in bands])) 
+        #print(deg_ewaves)
+
+        # Find the little group of the k-point
+        #ltg_symmops, g0vecs, isyms = spgrp.get_little_group(kpoint=[0,0,0])
+
+        # Compute the D(S) matrices for each degenerate subset.
+        #dmats = [ {} for i in range(len(deg_ewaves)) ]
+
+        #for idg, (e, waves) in enumerate(deg_ewaves):
+        #    for cls in ltg_symmops.classes()
+        #        isym = cls[0]
+        #        symmop = ltg_symmops[isym]
+
+        #        row = -1
+        #        for (ii,jj), (wave1, wave2) in iupper_triangle(waves):
+        #            if ii != row:
+        #               ii = row
+        #               rot_wave1 = wave1.rotate(symmop)
+
+        #            prod = wave2.product(rot_wave1)
+        #            dmats[idg][symmop][ii,jj] = prod
+
+        # Locate the D in the lookup table.
+        #deg_labels = []
+
     #def visualize_ur2(self, spin, kpoint, band, visualizer):
     #    """
     #    Visualize :math:`|u(r)|^2`  with visualizer.
@@ -169,6 +236,7 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     #    else:
     #        msg = "Don't know how to export data for visualizer %s" % visualizer
     #        raise Visualizer.Error(msg)
+
 
 
 class WFK_Reader(ElectronsReader):
