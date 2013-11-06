@@ -50,10 +50,12 @@ class Function1D(object):
         return self.mesh[slice], self.values[slice]
 
     def __eq__(self, other):
-        return self.has_same_mesh(other) and np.allclose(self.values, other.values)
+        if other is None: return False
+        return (self.has_same_mesh(other) and 
+                np.allclose(self.values, other.values))
 
     def __ne__(self, other):
-        return not self == other
+        return not (self == other)
 
     def __neg__(self):
         return self.__class__(self.mesh, -self.values)

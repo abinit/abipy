@@ -45,7 +45,7 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         gspheres = len(self.kpoints) * [None]
         ecut = reader.ecut
         for k, kpoint in enumerate(self.kpoints):
-            gvec_k, istwfk = reader.read_gvec_istwfk(k)
+            gvec_k, istwfk = reader.read_gvecs_istwfk(k)
             gspheres[k] = GSphere(ecut, self.structure.reciprocal_lattice, kpoint, gvec_k, istwfk=istwfk)
 
         self._gspheres = tuple(gspheres)
@@ -170,8 +170,6 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     #        msg = "Don't know how to export data for visualizer %s" % visualizer
     #        raise Visualizer.Error(msg)
 
-#########################################################################################
-
 
 class WFK_Reader(ElectronsReader):
     """This object reads data from the WFK file."""
@@ -238,7 +236,7 @@ class WFK_Reader(ElectronsReader):
         else:
             return self.kpoints.index(kpoint)
 
-    def read_gvec_istwfk(self, kpoint):
+    def read_gvecs_istwfk(self, kpoint):
         """
         Read the set of G-vectors and the value of istwfk for the given k-point.
         Accepts `Kpoint` object or integer.

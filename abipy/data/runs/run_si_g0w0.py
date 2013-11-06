@@ -64,6 +64,7 @@ def make_inputs(ngkpt):
         timopt=-1,
         istwfk="*1",
         paral_kgb=1,
+        gwpara=2,
     )
     inp.set_kmesh(**gw_kmesh)
 

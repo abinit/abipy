@@ -2,6 +2,7 @@
 from __future__ import print_function, division
 
 import collections
+import itertools
 import numpy as np
 
 from abipy.core.kpoints import Kpoint
@@ -31,7 +32,8 @@ class GSphere(collections.Sequence):
         self.ecut = ecut
         self.lattice = lattice
         self.kpoint = Kpoint.askpoint(kpoint, lattice)
-        self._gvecs = np.reshape(gvecs, (-1, 3))
+
+        self._gvecs = np.reshape(np.array(gvecs), (-1, 3))
         self.npw = self.gvecs.shape[0]
 
         self.istwfk = istwfk
@@ -39,13 +41,9 @@ class GSphere(collections.Sequence):
         if istwfk != 1:
             raise NotImplementedError("istwfk %d is not implemented" % self.istwfk)
 
-        # min and Max reduced component for each direction.
-        #self.gmin = gvecs.min(axis=0)
-        #self.gmax = gvecs.max(axis=0)
-
     @property
     def gvecs(self):
-        """G-vectors in reduced coordinates."""
+        """ndarray with the G-vectors in reduced coordinates."""
         return self._gvecs
 
     # Sequence protocol
@@ -70,7 +68,7 @@ class GSphere(collections.Sequence):
             if np.all(g == gvec):
                 return i
         else:
-            raise ValueError("Cannot find %s in Gsphere" % gvec)
+            raise ValueError("Cannot find %s in Gsphere" % str(gvec))
 
     def count(self, gvec):
         """Return number of occurrences of gvec."""
@@ -93,19 +91,20 @@ class GSphere(collections.Sequence):
 
     def copy(self):
         """Deep copy."""
-        return GSphere(self.ecut, self.lattice.copy(), self.kpoint.copy(), self.gvecs.copy(), istwfk=self.istwfk)
+        return self.__class__(self.ecut, self.lattice.copy(), self.kpoint.copy(), self.gvecs.copy(), istwfk=self.istwfk)
 
     def tostring(self, prtvol=0):
         """String representation."""
-        s = "GSphere: kpoint = %(kpoint)s, ecut = %(ecut)f, npw = %(npw)d, istwfk = %(istwfk)d" % (
-            self.__dict__)
+        name = str(self.__class__)
+        s = name + ": kpoint = %(kpoint)s, ecut = %(ecut)f, npw = %(npw)d, istwfk = %(istwfk)d" % (self.__dict__)
         return s
 
     def _new_array(self, dtype=np.float, zero=True, extra_dims=()):
         """Returns a numpy array defined on the sphere."""
         shape = (self.npw,)
 
-        if isinstance(extra_dims, int): extra_dims = (extra_dims,)
+        if isinstance(extra_dims, int): 
+            extra_dims = (extra_dims,)
         shape = extra_dims + tuple(shape)
 
         if zero:
@@ -144,7 +143,13 @@ class GSphere(collections.Sequence):
     #  #return ndivs
 
     def tofftmesh(self, mesh, arr_on_sphere):
-        """Insert arr_on_sphere in the FFT mesh."""
+        """
+        Insert the array arr_on_sphere given on the sphere inside the FFT mesh.
+
+        Args:
+            mesh:
+            arr_on_sphere:
+        """
         arr_on_sphere = np.atleast_2d(arr_on_sphere)
         ishape = arr_on_sphere.shape
         s0 = ishape[0]
@@ -153,15 +158,11 @@ class GSphere(collections.Sequence):
         arr_on_mesh = np.zeros((s0,) + mesh.shape, dtype=arr_on_sphere.dtype)
 
         if self.istwfk == 1:
-             #do ipw=1,npw
-             #  i1=kg_k(1,ipw); if(i1<0)i1=i1+n1; i1=i1+1
-             #  i2=kg_k(2,ipw); if(i2<0)i2=i2+n2; i2=i2+1
-             #  i3=kg_k(3,ipw); if(i3<0)i3=i3+n3; i3=i3+1
-             #  do idat=1,ndat
-             #    cfft(1,i1,i2,i3+n6*(idat-1))=cg(1,ipw+npw*(idat-1))
-             #    cfft(2,i1,i2,i3+n6*(idat-1))=cg(2,ipw+npw*(idat-1))
-             #  end do
-             #end do
+            #do ipw=1,npw
+            #  i1=kg_k(1,ipw); if(i1<0)i1=i1+n1; i1=i1+1
+            #  i2=kg_k(2,ipw); if(i2<0)i2=i2+n2; i2=i2+1
+            #  i3=kg_k(3,ipw); if(i3<0)i3=i3+n3; i3=i3+1
+            #end do
 
             (n1, n2, n3) = mesh.shape
             for sph_idx, gvec in enumerate(self.gvecs):
@@ -172,16 +173,20 @@ class GSphere(collections.Sequence):
                 i3 = gvec[2]
                 if i3 < 0: i3 = i3 + n3
                 arr_on_mesh[...,i1,i2,i3] = arr_on_sphere[...,sph_idx]
+
         else:
             raise NotImplementedError("istwfk = %s not implemented" % self.istwfk)
 
-        if s0 == 1:  # Reinstate input shape
+        if s0 == 1:  
+            # Reinstate input shape
             arr_on_mesh.shape = mesh.shape
 
         return arr_on_mesh
 
     def fromfftmesh(self, mesh, arr_on_mesh):
-        """Transfer arr_on_mesh given on the FFT mesh to the G-sphere."""
+        """
+        Transfer arr_on_mesh given on the FFT mesh to the G-sphere.
+        """
         indim =  arr_on_mesh.ndim
         arr_on_mesh = mesh.reshape(arr_on_mesh)
         ishape = arr_on_mesh.shape
@@ -190,15 +195,11 @@ class GSphere(collections.Sequence):
         arr_on_sphere = np.empty((s0,) + (self.npw,), dtype=arr_on_mesh.dtype)
 
         if self.istwfk == 1:
-           #do ig=1,npwout
-           #  i1=kg_kout(1,ig); if (i1<0) i1=i1+n1; i1=i1+1
-           #  i2=kg_kout(2,ig); if (i2<0) i2=i2+n2; i2=i2+1
-           #  i3=kg_kout(3,ig); if (i3<0) i3=i3+n3; i3=i3+1
-           #  do idat=1,ndat
-           #    fofgout(1,ig+npwout*(idat-1))=fofr(1,i1,i2,i3+n3*(idat-1))
-           #    fofgout(2,ig+npwout*(idat-1))=fofr(2,i1,i2,i3+n3*(idat-1))
-           #  end do
-           #end do
+            #do ig=1,npwout
+            #  i1=kg_kout(1,ig); if (i1<0) i1=i1+n1; i1=i1+1
+            #  i2=kg_kout(2,ig); if (i2<0) i2=i2+n2; i2=i2+1
+            #  i3=kg_kout(3,ig); if (i3<0) i3=i3+n3; i3=i3+1
+            #end do
             (n1, n2, n3) = mesh.shape
 
             for sph_idx, gvec in enumerate(self.gvecs):
@@ -212,13 +213,89 @@ class GSphere(collections.Sequence):
         else:
             raise NotImplementedError("istwfk = " + str(self.istwfk) + " is not implemented")
 
-        if s0 == 1 and indim == 1:  # Reinstate input shape
+        if s0 == 1 and indim == 1:  
+            # Reinstate input shape
             arr_on_sphere.shape = self.npw
 
         return arr_on_sphere
 
-#########################################################################################
+    def rotate(self, symmop):
+        """
+        Returns a new `GSphere` centered on Sk.
 
-#def kpgsphere(kpoint, ecut, gmet, istwfk)
-# """Set up the list of G vectors inside a sphere out to $ (1/2)*(2*\pi*(k+G))^2=ecut $"""
-# return gvec
+        Args:
+            symmop:
+                Symmetry operation
+        """
+        # The problem in this approach is that G-spheres centered on the 
+        # same k-point might have G-vectors ordered in a different way
+        # and therefore one cannot operate on two wavefunctions in reciprocal space 
+        # on the G-sphere without checking first that gvecs1 == gvecs2.
+        # The best solution is to compute the list of g-vectors with a deterministic
+        # algorithm, similar to the one used in Abinit and then create tables
+        # defining the mapping btw the two sets
+        if self.istwfk != 1:
+            raise ValueError("istwfk %d not coded" % self.istwfk)
+
+        # Rotate the k-point and the G-vectors
+        rot_kpt = symmop.rotate_k(self.kpoint.frac_coords, wrap_tows=False)
+        rot_gvecs = symmop.rotate_gvecs(self.gvecs)
+
+        #rot_istwfk = istwfk(rot_kpt)
+        rot_istwfk = self.istwfk
+
+        new = self.__class__(self.ecut, self.lattice, rot_kpt, rot_gvecs, istwfk=rot_istwfk)
+        return new
+
+
+#def kpg_sphere(lattice, kcoords, ecut):
+#    """
+#    Set up the list of G vectors inside a sphere out to $ (1/2)*(2*\pi*(k+G))^2=ecut $
+#    """
+#    # Set up standard search sequence for grid points, in standard storage mode i.e. 
+#    # 0 1 2 3 ... g_max g_min ... -1
+#    from pymatgen.core.units import Energy
+#    ecut = Energy(ecut, "Ha").to("eV")
+#    two_ecut = 2 * ecut 
+#
+#    g1d_list = 3 * [None]
+#
+#    def norm2(vec):
+#        return lattice.dot(vec, vec)
+#
+#    for dim in range(3):
+#        rec_vec = lattice.matrix[dim,:]
+#
+#        # Compute g_max and g_min for this direction.
+#        for ig in itertools.count(start=0, step=1):
+#            kpg = kcoords + (ig * rec_vec)
+#            kpg2 = norm2(kpg)
+#            if kpg2 > two_ecut: 
+#                g_max = ig
+#                break
+#
+#        for ig in itertools.count(start=-1, step=-1):
+#            kpg = kcoords + (ig * rec_vec)
+#            kpg2 = norm2(kpg)
+#            if kpg2 > two_ecut: 
+#                g_min = ig
+#                break
+#
+#        g1d_list[dim] = list(range(g_max)) + list(range(-1, g_min, -1))
+#
+#    gx_list = g1d_list[0]
+#    gy_list = g1d_list[1]
+#    gz_list = g1d_list[2]
+#
+#    # Compute the list of G-vectors. Note that the Gs are ordered
+#    # according to the Fortran convention.
+#    gvecs = []
+#    app = gvecs.append
+#
+#    for gvec in itertools.product(gz_list, gy_list, gx_list):
+#        gvec = np.array(gvec)
+#        kpg2 = norm2(kcoords + gvec)
+#        if kpg2 <= two_ecut: 
+#            app(gvec)
+#
+#    return np.array(gvecs, dtype=np.int)

@@ -12,12 +12,12 @@ class TestPWWave(AbipyTest):
     """Test PWWave"""
 
     def test_base(self):
-        """basic tests"""
-        rprimd = np.array([1.,0,0, 0,1,0, 0,0,1])
-        rprimd.shape = (3,3)
+        """Basic tests for PWWave"""
+        vectors = np.array([1.,0,0, 0,1,0, 0,0,1])
+        vectors.shape = (3,3)
 
-        mesh_443 = Mesh3D( (4,4,3), rprimd)
-        mesh_444 = Mesh3D( (4,4,4), rprimd)
+        mesh_443 = Mesh3D( (4,4,3), vectors)
+        mesh_444 = Mesh3D( (4,4,4), vectors)
 
         print(mesh_444)
         self.assertNotEqual(mesh_443, mesh_444)
@@ -27,10 +27,10 @@ class TestPWWave(AbipyTest):
 
     def test_fft(self):
         """FFT transforms"""
-        rprimd = np.array([1.,0,0, 0,1,0, 0,0,1])
-        rprimd.shape = (3,3)
+        vectors = np.array([1.,0,0, 0,1,0, 0,0,1])
+        vectors.shape = (3,3)
 
-        mesh = Mesh3D( (12,3,5), rprimd)
+        mesh = Mesh3D( (12,3,5), vectors)
 
         extra_dims = [(), 1, (2,), (3,4)]
         types = [np.float, np.complex]
@@ -46,6 +46,8 @@ class TestPWWave(AbipyTest):
                 int_r = mesh.integrate(fr)
                 int_g = fg[...,0,0,0]
                 self.assert_almost_equal(int_r, int_g)
+
+
 
 if __name__ == "__main__":
    import unittest

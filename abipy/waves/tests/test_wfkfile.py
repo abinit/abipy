@@ -21,9 +21,24 @@ class TestWFKFile(AbipyTest):
             structure = wfk.structure
             wave = wfk.get_wave(spin, kpoint, band)
 
+            self.assertTrue(wave == wave)
+
+            #for ig, (g, ug) in enumerate(wave):
+            #    self.assertTrue(np.all(g == wave.gvecs[ig]))
+            #    self.assertTrue(np.all(ug == wave.ug[:,ig]))
+
+            #print(wave[0:1])
+
             # Test the norm
             for space in ["g", "r"]:
-                norm2 = wave.norm2(space)
+                norm2 = wave.norm2(space=space)
+                if space == "r": norm2 = norm2 / structure.volume
+                self.assert_almost_equal(norm2, 1.0)
+
+            # Test bracket with the same wave.
+            for space in ["g", "gsphere", "r"]:
+                print(space)
+                norm2 = wave.braket(wave, space=space)
                 if space == "r": norm2 = norm2 / structure.volume
                 self.assert_almost_equal(norm2, 1.0)
 
@@ -39,11 +54,6 @@ class TestWFKFile(AbipyTest):
 
             if self.which("xcrysden") is not None:
                 wave.export_ur2(".xsf", structure)
-
-            #print wave.ug.shape, same_ug.shape
-            #for idx, g in enumerate(wave.gvecs):
-            #  if abs(wave.ug[0,idx] - same_ug[0,idx]) > 0.001:
-            #    print idx, g
 
 
 if __name__ == "__main__":

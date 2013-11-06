@@ -14,12 +14,12 @@ class TestGSphere(AbipyTest):
     def test_base(self):
         """Basic G-sphere methods"""
         ecut = 2
-        gprimd = np.array([1.,0,0, 0,1,0, 0,0,1])
-        gprimd.shape = (3,3)
+        lattice = np.array([1.,0,0, 0,1,0, 0,0,1])
+        lattice.shape = (3,3)
         kpoint = [0,0,0]
         gvecs = np.array([0,0,0])
 
-        gsphere = GSphere(ecut, gprimd, kpoint, gvecs, istwfk=1)
+        gsphere = GSphere(ecut, lattice, kpoint, gvecs, istwfk=1)
         print(gsphere)
 
         self.serialize_with_pickle(gsphere, protocols=[-1])

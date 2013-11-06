@@ -2,6 +2,7 @@
 from __future__ import division, print_function
 
 import numpy as np
+import warnings
 import collections
 
 from abipy.core.kpoints import wrap_to_ws, issamek
@@ -143,6 +144,9 @@ class SymmOp(object):
     def _vec2str(vec):
         return "%2d,%2d,%2d" % tuple(v for v in vec)
 
+    def __repr__(self):
+        return str(self)
+
     def __str__(self):
         s = ""
         for i in range(3):
@@ -162,7 +166,7 @@ class SymmOp(object):
                 )
 
     def __ne__(self, other):
-        return not self == other
+        return not (self == other)
 
     def __mul__(self, other):
         """
@@ -200,7 +204,7 @@ class SymmOp(object):
         """Returns inverse of transformation i.e. {R^{-1}, -R^{-1} tau}."""
         return SymmOp(rot_r=self.rotm1_r,
                       tau=-np.dot(self.rotm1_r, self.tau),
-                      time_sign=-self.time_sign,
+                      time_sign=self.time_sign,
                       afm_sign=self.afm_sign
                       )
 
@@ -258,15 +262,26 @@ class SymmOp(object):
 
         return wrap_to_ws(sk) if wrap_tows else sk
 
-    #def preserve_k(self, frac_coords):
-    #    """
-    #    Check if the operation preserves the k-point modulo a reciprocal lattice vector.
+    def preserve_k(self, frac_coords, ret_g0=True):
+        """
+        Check if the operation preserves the k-point modulo a reciprocal lattice vector.
 
-    #    Returns:
-    #        bool, Sk - k
-    #    """
-    #    sk = self.rotate_k(frac_coords, wraps_tows=False)
-    #    return issamek(sk, frac_coords), sk - frac_coords
+        Args:
+            frac_coords:
+                Fractional coordinates of the k-point
+            ret_g0:
+                False if only bool result is wanted.
+
+        Returns:
+            bool, g0 = S(k) - k 
+            bool is True is self preserves k and g0 is an integer vector.
+        """
+        sk = self.rotate_k(frac_coords, wrap_tows=False)
+
+        if ret_g0:
+            return issamek(sk, frac_coords), np.array(np.round(sk - frac_coords), dtype=np.int)
+        else:
+            return issamek(sk, frac_coords)
 
     def rotate_r(self, frac_coords, in_ucell=False):
         """
@@ -284,6 +299,7 @@ class SymmOp(object):
         Apply the symmetry operation to the list of gvectors gvecs in reduced coordinates.
         """
         rot_gvecs = np.zeros_like(gvecs)
+
         for ig, gvec in enumerate(gvecs):
             rot_gvecs[ig] = np.dot(self.rot_g, gvec) * self.time_sign
 
@@ -357,6 +373,32 @@ class SymmOpList(collections.Sequence):
 
     def __contains__(self, symmop):
         return symmop in self._symmops
+
+    def __eq__(self, other):
+        """
+        Equality test. 
+
+        .. warning: 
+
+                The order of the operations in self and other is not tested.
+        """
+        if other is None: return False
+        if len(self) != len(other): return False
+
+        founds = []
+        for i, o1 in enumerate(self):
+            if o1 not in other:
+                return False
+            founds.append(i)
+
+        if len(set(founds)) == len(founds):
+            return True
+        
+        warnings.warn("self contains duplicated symops! Likely a bug!")
+        return False
+
+    def __ne__(self, other):
+        return not (self == other)
 
     def count(self, symmop):
         """Returns the number of occurences of symmop in self."""
@@ -503,48 +545,66 @@ class SymmOpList(collections.Sequence):
             timrev = 2 if self.has_timerev else 1
         )
 
-    #def mult_table(self):
-    #    """
-    #    Given a set of nsym 3x3 operations which are supposed to form a group, 
-    #    this routine constructs the multiplication table of the group.
-    #    mtable[i,j] gives the index of the product S_i * S_j.
-    #    """
-    #    mtable = np.empty((len(self), len(self)), dtype=np.int)
-    #
-    #    d = self.asdict()
-    #    for (i, op1) in enumerate(self):
-    #        for (j, op2) in enumerate(self):
-    #            op12 = op1 * op2 
-    #            # Save the index of op12 in self
-    #            mtable[i,j] = d[op12]
-    #    return mtable
+    @property
+    def mult_table(self):
+        """
+        Given a set of nsym 3x3 operations which are supposed to form a group, 
+        this routine constructs the multiplication table of the group.
+        mtable[i,j] gives the index of the product S_i * S_j.
+        """
+        try:
+            return self._mult_table
 
-    #@property
-    #def classes(self):
-    #    """
-    #    A class is defined as the set of distinct elements obtained by 
-    #    considering for each element, S, of the group all its conjugate
-    #    elements X^-1 S X where X range over all the elements of the group.
-    #    """
+        except AttributeError:
+            mtable = np.empty((len(self), len(self)), dtype=np.int)
+    
+            d = self.asdict()
+            for (i, op1) in enumerate(self):
+                for (j, op2) in enumerate(self):
+                    op12 = op1 * op2 
+                    # Save the index of op12 in self
+                    mtable[i,j] = d[op12]
 
-    #    try:
-    #        return self._classes
+            self._mult_table = mtable
+            return self._mult_table
 
-    #    except AttributeError:
-    #        
-    #        num_classes, found, classes = -1, len(self) * [False], len(self) * [None]
+    @property
+    def classes(self):
+        """
+        A class is defined as the set of distinct elements obtained by 
+        considering for each element, S, of the group all its conjugate
+        elements X^-1 S X where X ranges over all the elements of the group.
 
-    #        for (ii, op1) in enumerate(self):
-    #            if found[ii]: continue
-    #            num_classes += 1
+        Returns:
+            Nested list l = [cls0_indices, cls1_indeces, ...] wheree each sublist 
+            contains the indices of the class. len(l) equals the number of classes.
+        """
+        try:
+            return self._classes
 
-    #            for (jj, op2) in enumerate(self):
-    #                # Form conjugate
-    #                op1_conj = op1.conjugate(op2)
-    #                for (kk, op3) in enumerate(self):
-    #                    if not found[kk] and op1_conj == op3:
-    #                        found[kk] = True
-    #                        classes[num_classes]
+        except AttributeError:
+            
+            found, classes = len(self) * [False], [[] for i in range(len(self))]
+
+            num_classes = -1
+            for (ii, op1) in enumerate(self):
+                if found[ii]: continue
+                num_classes += 1
+
+                for (jj, op2) in enumerate(self):
+                    # Form conjugate and search it among the operations 
+                    # that have not been found yet.
+                    op1_conj = op1.conjugate(op2)
+
+                    for (kk, op3) in enumerate(self):
+                        if not found[kk] and op1_conj == op3:
+                            found[kk] = True
+                            classes[num_classes].append(kk)
+
+            self._classes = classes[:num_classes+1]
+
+            #assert sum(len(c) for c in self._classes) == len(self)
+            return self._classes
 
 
 class SpaceGroup(SymmOpList):
@@ -607,25 +667,35 @@ class SpaceGroup(SymmOpList):
 
         return "\n".join(lines)
 
-    #def little_group(self, kpoint):
-    #   """
-    #   Find the little group of the kpoint
+    def get_little_group(self, kpoint):
+        """
+        Find the little group of the kpoint
+
+        Args:
+            kpoint:
+                Accept vector with the reduced coordinates or `Kpoint` object.
     
-    #   Returns:
-    #       ltg_symmops, g0vecs, indices
+        Returns:
+            ltg_symmops, g0vecs, indices
 
-    #   ltg_symmops is a tuple with the symmetry operations that preserve the k-point i.e. Sk = k + G0
-    #   g0vecs is the tuple for G0 vectors for each operation in ltg_symmops
-    #   indices gives the index of the little group operation in the initial spacegroup.
-    #   """
-    #    indices, g0vecs = []
-    #    for idx, symmop in enumerate(self.afm_symmops):
-    #        issame, g0 = symmop.preserve(kpoint.frac_coords)
-    #        if issame:
-    #            indices.append(idx)
-    #            g0vecs.append(g0)
+            ltg_symmops is a tuple with the symmetry operations that preserve the k-point i.e. Sk = k + G0
+            g0vecs is the tuple for G0 vectors for each operation in ltg_symmops
+            indices gives the index of the little group operation in the initial spacegroup.
+        """
+        frac_coords = getattr(kpoint, "frac_coords", kpoint)
 
-    #    return tuple([self[i] for i in indices]), tuple(g0vecs), tuple(indices)
+        isyms, g0vecs = [], []
+
+        # Exclude AFM operations.
+        for isym, symmop in enumerate(self.fm_symmops):
+            is_same, g0 = symmop.preserve_k(frac_coords)
+            if is_same:
+                isyms.append(isym)
+                g0vecs.append(g0)
+
+        ltg_symmops = [self[isym] for isym in isyms]
+
+        return ltg_symmops, g0vecs, isyms
 
 
 class Irrep(object):

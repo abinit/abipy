@@ -21,8 +21,26 @@ class TestSymmetries(AbipyTest):
         self.serialize_with_pickle(structure, protocols=[-1])
 
         spgrp = structure.spacegroup
-        print(spgrp)
+        print("spgrp:\n", spgrp)
 
+        #print("mult_tables:\n", spgrp.mult_table)
+        classes = spgrp.classes
+
+        self.assertEqual(sum(len(c) for c in spgrp.classes), len(spgrp))
+
+        # Operation in the same class have the same trace and determinant.
+        for cls in classes: 
+            print(cls)
+            isym0 = cls[0]
+            ref_trace = spgrp[isym0].trace
+            ref_det = spgrp[isym0].det
+            for isym in cls[1:]:
+                self.assertEqual(spgrp[isym].trace, ref_trace) 
+                self.assertEqual(spgrp[isym].det, ref_det) 
+
+        #assert 0
+
+        self.assertTrue(spgrp == spgrp)
         self.assertTrue(spgrp.spgid == 227)
         self.assertTrue(spgrp.has_timerev)
         self.assertTrue(len(spgrp) == 48 * 2)
@@ -65,6 +83,14 @@ class TestSymmetries(AbipyTest):
                     err_msg += "Cannot find symmetrical image of %s\n" % str(rot_coords)
 
                 self.assertFalse(err_msg)
+
+        # Test little group.
+        ltg_symmops, g0vecs, isyms = spgrp.get_little_group(kpoint=[0,0,0])
+
+        self.assertTrue(len(ltg_symmops) == len(spgrp))
+
+        for o1, o2 in zip(ltg_symmops, spgrp):
+            self.assertEqual(o1, o2)
 
 # reduced_symmetry_matrices =
 #  1, 0, 0,
