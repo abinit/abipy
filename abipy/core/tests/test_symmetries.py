@@ -92,6 +92,35 @@ class TestSymmetries(AbipyTest):
         for o1, o2 in zip(ltg_symmops, spgrp):
             self.assertEqual(o1, o2)
 
+
+class LatticeRotationTest(AbipyTest):
+    def test_base(self):
+        """Test LatticeRotation."""
+        E = LatticeRotation([1, 0, 0,
+                             0, 1, 0,
+                             0, 0, 1])
+
+        I = LatticeRotation([-1,  0,  0,
+                              0, -1,  0,
+                              0,  0, -1])
+
+        self.assertTrue(E.isE and E.is_proper and E.inverse() == E)
+        self.assertTrue(I.isI and not I.is_proper and I.inverse() == I)
+
+        # Basic operations
+        atrue = self.assertTrue
+
+        atrue(E != I)
+        atrue(+E == E)
+        atrue(-I == E)
+        atrue(E * I == I) 
+        atrue(I ** 0 == E)
+        atrue(I ** 3 == I)
+
+        # Test pickle.
+        self.serialize_with_pickle([E, I])
+
+
 # reduced_symmetry_matrices =
 #  1, 0, 0,
 #  0, 1, 0,

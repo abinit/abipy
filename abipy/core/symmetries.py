@@ -10,6 +10,7 @@ from abipy.iotools import as_etsfreader
 
 
 __all__ = [
+    "LatticeRotation",
     "SymmOp",
     "SpaceGroup",
 ]
@@ -84,7 +85,7 @@ def _get_det(mat):
     Return the determinant of a 3x3 rotation matrix mat.
 
     raises:
-        ValueError if det not in [+1,-1]
+        ValueError if abs(det) != 1.
     """
     det = mat[0,0]* (mat[1,1]*mat[2,2] - mat[1,2]*mat[2,1])\
         - mat[0,1]* (mat[1,0]*mat[2,2] - mat[1,2]*mat[2,0])\
@@ -92,8 +93,8 @@ def _get_det(mat):
 
     if abs(det) != 1:
         raise ValueError("determinant must be \pm 1 while it is %s" % det)
-    else:
-        return det
+
+    return det
 
 
 class SymmOp(object):
@@ -177,12 +178,11 @@ class SymmOp(object):
         return SymmOp(rot_r=np.dot(self.rot_r, other.rot_r),
                       tau=self.tau + np.dot(self.rot_r, other.tau),
                       time_sign=self.time_sign * other.time_sign,
-                      afm_sign=self.afm_sign * other.afm_sign
-                      )
+                      afm_sign=self.afm_sign * other.afm_sign)
 
     def __hash__(self):
         """
-        Symmop can be used as keys in dictionaries.
+        `Symmop` can be used as keys in dictionaries.
         Note that the hash is computed from integer values. 
         """
         return 8 * self.trace + 4 * self.det + 2 * self.time_sign
@@ -271,10 +271,11 @@ class SymmOp(object):
             frac_coords:
                 Fractional coordinates of the k-point
             ret_g0:
-                False if only bool result is wanted.
+                False if only the boolean result is wanted.
 
         Returns:
             bool, g0 = S(k) - k 
+
             bool is True is self preserves k and g0 is an integer vector.
         """
         sk = self.rotate_k(frac_coords, wrap_tows=False)
@@ -286,10 +287,11 @@ class SymmOp(object):
 
     def rotate_r(self, frac_coords, in_ucell=False):
         """
-        Apply the symmetry operation to point in real space given in reduced coordinates.
+        Apply the symmetry operation to a point in real space given in reduced coordinates.
 
         .. note:
-            We use the convention: symmop(r) = R^{-1] (r -tau)
+
+            We use the convention: symmop(r) = R^{-1] (r - tau)
         """
         rotm1_rmt = np.dot(self.rotm1_r, frac_coords - self.tau)
 
@@ -298,8 +300,15 @@ class SymmOp(object):
     def rotate_gvecs(self, gvecs):
         """
         Apply the symmetry operation to the list of gvectors gvecs in reduced coordinates.
+
+        Args:
+            gvecs:
+                ndarray with shape [ng, 3] containing the reduced coordinates of the G-vectors.
+        Returns:
+            rot_gvecs:
+                ndarray with shape [ng, 3] containing the result of self(G).
         """
-        rot_gvecs = np.zeros_like(gvecs)
+        rot_gvecs = np.empty_like(gvecs)
 
         for ig, gvec in enumerate(gvecs):
             rot_gvecs[ig] = np.dot(self.rot_g, gvec) * self.time_sign
@@ -307,73 +316,19 @@ class SymmOp(object):
         return rot_gvecs
 
 
-class SymmOpList(collections.Sequence):
-
-    def __init__(self, symrel, tnons, symafm, has_timerev, inord="C"):
-        """
-        Args:
-            symrel:
-                (nsym,3,3) array with the rotational part of the symmetries in real
-                space (reduced coordinates are assumed, see also `inord` for the order.
-            tnons:
-                (nsym,3) array with fractional translation in reduced coordinates.
-            symafm:
-                (nsym) array with +1 for Ferromagnetic symmetry and -1 for AFM
-            has_timerev:
-                True if time-reversal symmetry is included.
-            inord:
-                storage order of mat in symrel[:]. If inord == "F", mat.T is stored
-                as matrices are always stored in C-order. Use inord == "F" if you have 
-                read symrel from an external file produced by abinit.
-
-        .. note:
-            All the arrays are store in C-order. Use as_fortran_arrays to extract data that
-            can be passes to Fortran routines.
-        """
-        inord = inord.upper()
-        assert inord in ["C", "F"]
-
-        # Time reversal symmetry.
-        self._has_timerev = has_timerev
-        self._time_signs = [+1, -1] if self.has_timerev else [+1]
-
-        self._symrel, self._tnons, self._symafm = map(np.asarray, (symrel, tnons, symafm))
-
-        if len(self.symrel) != len(self.tnons) or len(self.symrel) != len(self.symafm):
-            raise ValueError("symrel, tnons and symafm must have equal shape[0]")
-
-        if inord == "F": # Fortran to C.
-            for isym in range(len(self.symrel)):
-                self._symrel[isym] = self._symrel[isym].T
-
-        self._symrec = self._symrel.copy()
-        for isym in range(len(self.symrel)):
-            self._symrec[isym] = mati3inv(self.symrel[isym], trans=True)
-
-        all_syms = []
-        for time_sign in self._time_signs:
-            for isym in range(len(self.symrel)):
-
-                all_syms.append(SymmOp(rot_r=self.symrel[isym],
-                                       tau=self.tnons[isym],
-                                       time_sign=time_sign,
-                                       afm_sign=self.symafm[isym],
-                                       rot_g=self.symrec[isym],
-                                ))
-
-        self._symmops = tuple(all_syms)
+class OpList(collections.Sequence):
 
     def __len__(self):
-        return len(self._symmops)
+        return len(self._ops)
 
     def __iter__(self):
-        return self._symmops.__iter__()
+        return self._ops.__iter__()
                                       
     def __getitem__(self, slice):
-        return self._symmops[slice]
+        return self._ops[slice]
 
-    def __contains__(self, symmop):
-        return symmop in self._symmops
+    def __contains__(self, op):
+        return op in self._ops
 
     def __eq__(self, other):
         """
@@ -381,15 +336,17 @@ class SymmOpList(collections.Sequence):
 
         .. warning: 
 
-                The order of the operations in self and other is not tested.
+                The order of the operations in self and in other 
+                is not relevant.
         """
         if other is None: return False
         if len(self) != len(other): return False
 
+        # Check if each operation in self is also present 
+        # in other. The order is irrelevant.
         founds = []
-        for i, o1 in enumerate(self):
-            if o1 not in other:
-                return False
+        for i, op1 in enumerate(self):
+            if op1 not in other: return False
             founds.append(i)
 
         if len(set(founds)) == len(founds):
@@ -401,93 +358,25 @@ class SymmOpList(collections.Sequence):
     def __ne__(self, other):
         return not (self == other)
 
-    def count(self, symmop):
-        """Returns the number of occurences of symmop in self."""
-        return self._symmops.count(symmop)
+    def count(self, op):
+        """Returns the number of occurences of operation op in self."""
+        return self._ops.count(op)
 
-    def index(self, symmop):
-        """Return the (first) index of symmop in self. Raises ValueError if not found.""" 
-        return self._symmops.index(symmop)
+    def index(self, op):
+        """
+        Return the (first) index of operation op in self. 
 
-    def find(self, symmop):
-        """Return the (first) index of symmop in self. -1 if not found.""" 
+        Raises: 
+            ValueError if not found.
+        """ 
+        return self._ops.index(op)
+
+    def find(self, op):
+        """Return the (first) index of op in self. -1 if not found.""" 
         try:
-            return self.index(symmop)
+            return self.index(op)
         except ValueError:
             return -1
-
-    @property
-    def is_symmorphic(self):
-        """True if there's at least one operation with non-zero fractional translation."""
-        for symmop in self:
-            if symmop.is_symmorphic:
-                return True
-
-        return False
-
-    @property
-    def has_timerev(self):
-        """True if time-reversal symmetry is present."""
-        return self._has_timerev
-
-    @property
-    def symrel(self):
-        return self._symrel
-
-    @property
-    def tnons(self):
-        return self._tnons
-
-    @property
-    def symrec(self):
-        return self._symrec
-
-    @property
-    def symafm(self):
-        return self._symafm
-
-    @property
-    def num_spatial_symmetries(self):
-        fact = 2 if self.has_timerev else 1
-        return int(len(self) / fact)
-
-    @property
-    def afm_symmops(self):
-        """Tuple with antiferromagnetic symmetries."""
-        return self.symmops(time_sign=None, afm_sign=-1)
-                                                       
-    @property
-    def fm_symmops(self):
-        """Tuple of ferromagnetic symmetries."""
-        return self.symmops(time_sign=None, afm_sign=+1)
-
-    def symmops(self, time_sign=None, afm_sign=None):
-        """
-        Args:
-            time_sign:
-                If specified, only symmetries with time-reversal sign time_sign are returned.
-            afm_sign:
-                If specified, only symmetries with anti-ferromagnetic part afm_sign are returned.
-
-        returns:
-            tuple of `SymmOp` instances.
-        """
-        symmops = []
-        for sym in self._symmops:
-            gotit = True
-
-            if time_sign:
-                assert time_sign in self._time_signs
-                gotit = gotit and sym.time_sign == time_sign
-
-            if afm_sign:
-                assert afm_sign in [-1,+1]
-                gotit = gotit and sym.afm_sign == afm_sign
-
-            if gotit:
-                symmops.append(sym)
-
-        return tuple(symmops)
 
     def is_group(self):
         """Returns True if self is a group."""
@@ -520,27 +409,6 @@ class SymmOpList(collections.Sequence):
         d = {op: idx for (idx, op) in enumerate(self)}
         assert len(d) == len(self)
         return d
-
-    #def symrec_array(self):
-    #    symrec = np.asfortranarray(self.symrec.T)
-
-    #def to_fortran_arrays(self):
-    #    fort_arrays = collections.namedtuple("FortranSpaceGroupArrays", "symrel symrec tnons symafm timrev")
-
-    #    symrel = np.asfortranarray(self.symrel.T)
-    #    symrec = np.asfortranarray(self.symrec.T)
-
-    #    for isym in range(self.num_spatial_symmetries):
-    #        symrel[:,:,isym] = symrel[:,:,isym].T
-    #        symrec[:,:,isym] = symrec[:,:,isym].T
-
-    #    return fort_arrays(
-    #        symrel=symrel,
-    #        symrec=symrec,
-    #        tnons =np.asfortranarray(self.tnons.T),
-    #        symafm=self.symafm,
-    #        timrev = 2 if self.has_timerev else 1
-    #    )
 
     @property
     def mult_table(self):
@@ -604,7 +472,7 @@ class SymmOpList(collections.Sequence):
             return self._classes
 
 
-class SpaceGroup(SymmOpList):
+class SpaceGroup(OpList):
     """Container storing the space group symmetries."""
 
     def __init__(self, spgid, symrel, tnons, symafm, has_timerev, inord="C"):
@@ -627,14 +495,44 @@ class SpaceGroup(SymmOpList):
                 read symrel from an external file produced by abinit.
 
         .. note:
-            All the arrays are store in C-order. Use as_fortran_arrays to extract data that
-            can be passes to Fortran routines.
+            All the arrays are store in C-order. Use as_fortran_arrays to extract data 
+            that can be passes to Fortran routines.
         """
-        super(SpaceGroup, self).__init__(symrel, tnons, symafm, has_timerev, inord=inord)
-
         self.spgid = spgid
         assert self.spgid in range(0, 233)
 
+        inord = inord.upper()
+        assert inord in ["C", "F"]
+
+        # Time reversal symmetry.
+        self._has_timerev = has_timerev
+        self._time_signs = [+1, -1] if self.has_timerev else [+1]
+
+        self._symrel, self._tnons, self._symafm = map(np.asarray, (symrel, tnons, symafm))
+
+        if len(self.symrel) != len(self.tnons) or len(self.symrel) != len(self.symafm):
+            raise ValueError("symrel, tnons and symafm must have equal shape[0]")
+
+        if inord == "F": # Fortran to C.
+            for isym in range(len(self.symrel)):
+                self._symrel[isym] = self._symrel[isym].T
+
+        self._symrec = self._symrel.copy()
+        for isym in range(len(self.symrel)):
+            self._symrec[isym] = mati3inv(self.symrel[isym], trans=True)
+
+        all_syms = []
+        for time_sign in self._time_signs:
+            for isym in range(len(self.symrel)):
+
+                all_syms.append(SymmOp(rot_r=self.symrel[isym],
+                                       tau=self.tnons[isym],
+                                       time_sign=time_sign,
+                                       afm_sign=self.symafm[isym],
+                                       rot_g=self.symrec[isym],
+                                ))
+
+        self._ops = tuple(all_syms)
 
     @classmethod
     def from_file(cls, file, inord="F"):
@@ -648,6 +546,7 @@ class SpaceGroup(SymmOpList):
                   has_timerev=True,  # FIXME not treated by ETSF-IO.
                   inord=inord,
                   )
+
         if closeit:
             file.close()
 
@@ -666,6 +565,99 @@ class SpaceGroup(SymmOpList):
             app(str(op))
 
         return "\n".join(lines)
+
+    @property
+    def is_symmorphic(self):
+        """True if there's at least one operation with non-zero fractional translation."""
+        for op in self:
+            if op.is_symmorphic:
+                return True
+
+        return False
+
+    @property
+    def has_timerev(self):
+        """True if time-reversal symmetry is present."""
+        return self._has_timerev
+
+    @property
+    def symrel(self):
+        return self._symrel
+
+    @property
+    def tnons(self):
+        return self._tnons
+
+    @property
+    def symrec(self):
+        return self._symrec
+
+    @property
+    def symafm(self):
+        return self._symafm
+
+    @property
+    def num_spatial_symmetries(self):
+        fact = 2 if self.has_timerev else 1
+        return int(len(self) / fact)
+
+    @property
+    def afm_symmops(self):
+        """Tuple with antiferromagnetic symmetries."""
+        return self.symmops(time_sign=None, afm_sign=-1)
+                                                       
+    @property
+    def fm_symmops(self):
+        """Tuple of ferromagnetic symmetries."""
+        return self.symmops(time_sign=None, afm_sign=+1)
+
+    def symmops(self, time_sign=None, afm_sign=None):
+        """
+        Args:
+            time_sign:
+                If specified, only symmetries with time-reversal sign time_sign are returned.
+            afm_sign:
+                If specified, only symmetries with anti-ferromagnetic part afm_sign are returned.
+
+        returns:
+            tuple of `SymmOp` instances.
+        """
+        symmops = []
+        for sym in self._ops:
+            gotit = True
+
+            if time_sign:
+                assert time_sign in self._time_signs
+                gotit = gotit and sym.time_sign == time_sign
+
+            if afm_sign:
+                assert afm_sign in [-1,+1]
+                gotit = gotit and sym.afm_sign == afm_sign
+
+            if gotit:
+                symmops.append(sym)
+
+        return tuple(symmops)
+
+    #def to_array(self):
+    #    fort_arrays = collections.namedtuple("FortranSpaceGroupArrays", "symrel symrec tnons symafm timrev")
+                                                                                                              
+    #    symrel = np.asfortranarray(self.symrel.T)
+    #    symrec = np.asfortranarray(self.symrec.T)
+                                                                                                              
+    #    for isym in range(self.num_spatial_symmetries):
+    #        symrel[:,:,isym] = symrel[:,:,isym].T
+    #        symrec[:,:,isym] = symrec[:,:,isym].T
+                                                                                                              
+    #    return fort_arrays(
+    #        symrel=symrel,
+    #        symrec=symrec,
+    #        tnons =np.asfortranarray(self.tnons.T),
+    #        symafm=self.symafm,
+    #        timrev = 2 if self.has_timerev else 1
+    #    )
+
+
 
     def get_little_group(self, kpoint):
         """
@@ -700,14 +692,48 @@ class SpaceGroup(SymmOpList):
 
 _E3D = np.identity(3,  np.int)
 
+#class LatticeRotation(np.ndarray):
 class LatticeRotation(object):
     """
     This object defines a pure rotation of the lattice (proper, improper, mirror symmetry)
     that is a rotation which is compatible with a lattice. The rotation matrix is
     expressed in reduced coordinates, therefore its elements are integers.
     """
+    #def __new__(cls, input_array, unit, unit_type=None):
+    #    # Input array is an already formed ndarray instance
+    #    # We first cast to be our class type
+    #    obj = np.asarray(input_array).view(cls)
+    #    # add the new attributes to the created instance
+    #    obj._unit = Unit(unit)
+    #    obj._unit_type = unit_type
+    #    return obj
+
+    #def __array_finalize__(self, obj):
+    #    """
+    #    See http://docs.scipy.org/doc/numpy/user/basics.subclassing.html for
+    #    comments.
+    #    """
+    #    if obj is None:
+    #        return
+    #    self._unit = getattr(obj, "_unit", None)
+    #    self._unit_type = getattr(obj, "_unit_type", None)
+
+    #def __reduce__(self):
+    #    #print("in reduce")
+    #    reduce = list(super(ArrayWithUnit, self).__reduce__())
+    #    #print("unit",self._unit)
+    #    #print(reduce[2])
+    #    reduce[2] = {"np_state": reduce[2], "_unit": self._unit}
+    #    return tuple(reduce)
+
+    #def __setstate__(self, state):
+    #    #print("in setstate %s" % str(state))
+    #    super(ArrayWithUnit, self).__setstate__(state["np_state"])
+    #    self._unit = state["_unit"]
+
     def __init__(self, rotation):
         self.rotation = np.matrix(rotation, np.int)
+        self.rotation.shape = (3,3)
 
     #def __repr__(self):
     #    return str(self)
@@ -764,27 +790,8 @@ class LatticeRotation(object):
         Invert an orthogonal 3x3 matrix of INTEGER elements.
         Note use of integer arithmetic. Raise ValueError if not invertible.
         """
-        det = self.det
-        mm = self.rotation
-        inv= np.matrix(np.zeros((3,3), np.int))
-
-        inv[0,0] = mm[1,1] * mm[2,2] - mm[1,2] * mm[2,1]
-        inv[0,1] = mm[0,2] * mm[2,1] - mm[0,1] * mm[2,2] 
-        inv[0,2] = mm[0,1] * mm[1,2] - mm[0,2] * mm[1,1]
-
-        inv[1,0] = mm[1,2] * mm[2,0] - mm[1,0] * mm[2,2]
-        inv[1,1] = mm[0,0] * mm[2,2] - mm[0,2] * mm[2,0]
-        inv[1,2] = mm[0,2] * mm[1,0] - mm[0,0] * mm[1,2] 
-
-        inv[2,0] = mm[1,0] * mm[2,1] - mm[1,1] * mm[2,0]
-        inv[2,1] = mm[0,1] * mm[2,0] - mm[0,0] * mm[2,1] 
-        inv[2,2] = mm[0,0] * mm[1,1] - mm[0,1] * mm[1,0]
-
-        # Make sure matrix is not singular
-        if det != 0: 
-            return self.__class__(inv/det)
-        else: 
-            raise ValueError("Attempting to invert singular matrix")
+        inv = mati3inv(self.rotation, trans=False)
+        return self.__class__(inv)
 
     @property
     def rottype(self):
@@ -865,23 +872,28 @@ class LatticeRotation(object):
 #    This object represents an irreducible representation.
 #
 #    .. attributes:
-#        dim:
-#            Dimension of the irreducible representation.
 #        nsym:
 #            Number of symmetries.
-#        traces:
-#            traces[nsym]. The trace of each matrix.
+#        dim:
+#            Dimension of the irreducible representation.
+#        all_traces:
+#            all_traces[nsym]. The trace of each irrep.
+#        character[num_classes]
 #    """
 #
-#    def __init__(self, name, mats):
+#    def __init__(self, name, ops, mats):
 #        """
 #        Args:
 #            name: 
 #                Name of the irreducible representation.
+#            ops:
+#                List of symmetry operations packed in classes
 #            mats:
-#                array of shape [nsym,dim,dim] with the irreducible representations of the group.
+#                Array of shape [nsym,dim,dim] with the irreducible 
+#                representations of the group. mats are packed in classes.
 #        """
 #        self.name = name
+#        self._ops = ops
 #
 #        assert len(mats.shape) == 3
 #        self._mats = mats
@@ -889,8 +901,24 @@ class LatticeRotation(object):
 #        self.dim = mats.shape[1]
 #        assert self.dim == mats.shape[2]
 #
-#        self.traces = [m.trace() for m in mats]
-#
+#        self.all_traces = [m.trace() for m in mats]
+#        # List of tuples, each tuple gives the start and stop index for the class.
+#        [(0, 2), (2,4), (4,n)]
+#        self.class_ranges = 
+
+        # Compute character table.
+        #character = []
+        #for icls, (start, stop) in enumerate(self.class_ranges):
+        #    t0 = self.all_traces[start]
+        #    isok = all(t0 == self.all_traces[i] for i in range(start, stop)]
+        #    character[icls] = t0
+
+        #self._character = character
+
+#    @property
+#    def ops(self):
+#        return self._ops
+
 #    @property
 #    def mats(self):
 #        return self._mats
@@ -901,50 +929,23 @@ class LatticeRotation(object):
 #
 #    @property
 #    def character(self)
+#        return self._character
 
 
-#_PTGROUP_NAMES = [
-#    "1",   
-#    "-1",
-#    "2",
-#    "m",
-#    "2/m",
-#    "222",
-#    "mm2",
-#    "mmm",
-#    "4",
-#    "-4",
-#    "4/m",
-#    "422",
-#    "4mm",
-#    "-42m",
-#    "4/mmm",
-#    "3",
-#    "-3",
-#    "32",
-#    "3m",
-#    "-3m",
-#    "6",
-#    "-6",
-#    "6/m", 
-#    "622",
-#    "6mm",
-#    "-62m",
-#    "6/mmm",
-#    "23",
-#    "m-3",
-#    "432",
-#    "-43m ",
-#    "m-3m",
-#]
-
-
-#@singleton
-#class IrrepsDatabase(dict)
-#    def __init__(self):
-#        super(IrrepsDatabase, self).__init__([(ptg_name, []) for ptg_name in _PTGROUP_NAMES])
-#        for irrep in self["ptgname"]:
-
+#ptg_filepath = os.path.join(..., "ptg_irreps.json")
+#
+#with open(ptg_filepath, "r") as fh:
+#    d = json.load(fh)
+#
+#_PTG_IRREPS = {}
+#for ptg_name, v in d.items():
+#    _PTF_IRREPS[ptg_name] = Irrep(name, ops, mats)
+#
+#del d, ptg_filepath, ptg_name
+#
+#def ptgroup_irreps(ptg_name):
+#    return _PTG_IRREPS[ptg_name]
+#
 
 class PointGroup(list):
     """
@@ -1003,49 +1004,6 @@ class PointGroup(list):
     #        return self.index(Rotation(_E3D))
     #    except RotationNotFound:
     #        raise
-
-    #def find_inverse(self, rot):
-    #    """Return the index of the inverse of rot."""
-    #    E = Rotation(_E3D)
-    #    for s in self:
-    #        if s * rot == E: return s
-
-    #    sys.stderr.write("Warning: Inverse not found!!\n")
-    #    raise RotationNotFound(rot)
-
-    #def isgroup(self):
-    #    try:
-    #        self.findE() 
-    #        for rot in self: self.find_inverse(rot)
-    #        return True
-    #    except RotationNotFound:
-    #        sys.stderr.write("Not a group! Identity or inverse are missing")
-    #        return False
-
-    #def mk_mtable(self):
-    #    """Check if it is a group, then build the multiplication table"""
-
-    #    # Check if r1 * r2 is in group and build the multiplication table.
-    #    mtable = dict()
-    #    for idx1, r1 in enumerate(self):
-    #        for idx2, r2 in enumerate(self): 
-
-    #            try:
-    #                ij = (idx1, idx2)
-    #                mtable[ij] = self.index(r1 * r2)
-    #            except RotationNotFound:
-    #                sys.stderr.write("Not a group. Not close wrt *")
-    #                raise
-    #    return mtable
-
-    #def show_mtable(self):
-    #    """Print out multiplication table."""
-    #    mtable = self.mk_mtable() 
-
-    #    print(4*" " + (2*" ").join([str(i) for i in xrange(self.nsym)]) + "\n")
-    #    for i in xrange(self.nsym):
-    #        lij = [(i, j) for j in xrange(self.nsym)]
-    #        print(str(i) + (2*" ").join([str(mtable[ij]) for ij in lij]) + "\n")
 
     #def show_character_table(self):
     #    vlen = 10

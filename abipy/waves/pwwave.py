@@ -103,10 +103,15 @@ class WaveFunction(object):
         except AttributeError:
             pass
 
+    @property
+    def mesh(self):
+        """The mesh used for the FFT."""
+        return self._mesh
+
     def set_mesh(self, mesh):
         """Set the FFT mesh. :math:`u(r)` is computed on this box."""
         assert isinstance(mesh, Mesh3D)
-        self.mesh = mesh
+        self._mesh = mesh
         self.delete_ur()
 
     def _fft_ug(self):
