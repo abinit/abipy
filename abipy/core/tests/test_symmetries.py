@@ -24,21 +24,17 @@ class TestSymmetries(AbipyTest):
         print("spgrp:\n", spgrp)
 
         #print("mult_tables:\n", spgrp.mult_table)
-        classes = spgrp.classes
-
-        self.assertEqual(sum(len(c) for c in spgrp.classes), len(spgrp))
+        # Classes cover the entire group.
+        self.assertEqual(sum(len(cls) for cls in spgrp.groupby_class()), len(spgrp))
 
         # Operation in the same class have the same trace and determinant.
-        for cls in classes: 
-            print(cls)
-            isym0 = cls[0]
-            ref_trace = spgrp[isym0].trace
-            ref_det = spgrp[isym0].det
-            for isym in cls[1:]:
-                self.assertEqual(spgrp[isym].trace, ref_trace) 
-                self.assertEqual(spgrp[isym].det, ref_det) 
-
-        #assert 0
+        for cls in spgrp.groupby_class(): 
+            #print(cls)
+            op0 = cls[0]
+            ref_trace, ref_det = op0.trace, op0.det
+            for op in cls[1:]:
+                self.assertEqual(op.trace, ref_trace) 
+                self.assertEqual(op.det, ref_det) 
 
         self.assertTrue(spgrp == spgrp)
         self.assertTrue(spgrp.spgid == 227)
@@ -85,7 +81,7 @@ class TestSymmetries(AbipyTest):
                 self.assertFalse(err_msg)
 
         # Test little group.
-        ltg_symmops, g0vecs, isyms = spgrp.get_little_group(kpoint=[0,0,0])
+        ltg_symmops, g0vecs, isyms = spgrp.find_little_group(kpoint=[0,0,0])
 
         self.assertTrue(len(ltg_symmops) == len(spgrp))
 

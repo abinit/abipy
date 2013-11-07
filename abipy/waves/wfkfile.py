@@ -12,29 +12,67 @@ __all__ = [
     "WFK_File",
 ]
 
-#def ilower_triangle(items):
-
-def iupper_triangle(items):
+def iuptri(items, diago=True, with_inds=False):
     """
-    Loop over the upper matrix elements of the matrix items x items
+    Iterate over the upper triangle of the matrix (items x items)
 
-    >>> for ij, mate in iupper_triangle([0,1]): print("ij", ij, "mate",mate)
-    ('ij', (0, 0), 'ab', (0, 0))
-    ('ij', (0, 1), 'ab', (0, 1))
-    ('ij', (1, 1), 'ab', (1, 1))
+    Args:
+        items:
+            Iterable object with elements [e0, e1, ...]
+        diago:
+            False if diagonal matrix elements should be excluded
+        with_inds:
+            If True, (i,j) (e_i, e_j) is returned else (e_i, e_j)
+
+    >>> for (ij, mate) in iuptri([0,1], with_inds=True): 
+    ...     print("ij:", ij, "mate:", mate)
+    ij: (0, 0) mate: (0, 0)
+    ij: (0, 1) mate: (0, 1)
+    ij: (1, 1) mate: (1, 1)
     """
     for (ii, item1) in enumerate(items):
         for (jj, item2) in enumerate(items):
-            if jj >= ii:
-                yield (ii, jj), (item1, item2)
+            do_yield = (jj >= ii) if diago else (jj > ii)
+            if do_yield:
+                if with_inds:
+                    yield (ii, jj), (item1, item2)
+                else:
+                    yield item1, item2
+
+
+def ilotri(items, diago=True, with_inds=False):
+    """
+    Iterate over the lower triangle of the matrix (items x items)
+
+    Args:
+        items:
+            Iterable object with elements [e0, e1, ...]
+        diago:
+            False if diagonal matrix elements should be excluded
+        with_inds:
+            If True, (i,j) (e_i, e_j) is returned else (e_i, e_j)
+
+    >>> for (ij, mate) in ilotri([0,1], with_inds=True): 
+    ...     print("ij:", ij, "mate:", mate)
+    ij: (0, 0) mate: (0, 0)
+    ij: (1, 0) mate: (1, 0)
+    ij: (1, 1) mate: (1, 1)
+    """
+    for (ii, item1) in enumerate(items):
+        for (jj, item2) in enumerate(items):
+            do_yield = (jj <= ii) if diago else (jj < ii)
+            if do_yield:
+                if with_inds:
+                    yield (ii, jj), (item1, item2)
+                else:
+                    yield item1, item2
 
 
 class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     """
-    This object provides simple interfaces to access and analyze
+    This object provides a simple interface to access and analyze
     the data stored in the WFK file produced by ABINIT.
     """
-
     def __init__(self, filepath):
         """
         Initialize the object from a Netcdf file.
@@ -145,13 +183,12 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
         if (spin not in range(self.nsppol) or 
             k not in range(self.nkpt) or
-            band not in range(self.nband_sk[spin, k])
-            ):
+            band not in range(self.nband_sk[spin, k])):
             raise ValueError("Wrong (spin, band, kpt) indices")
 
         ug_skb = self.reader.read_ug(spin, kpoint, band)
 
-        # Istanciate the wavefunction object and set the FFT mesh
+        # Istantiate the wavefunction object and set the FFT mesh
         # using the divisions reported in the WFK file.
         wave = PWWaveFunction(self.nspinor, spin, band, self.gspheres[k], ug_skb)
         wave.set_mesh(self.fft_mesh)
@@ -185,40 +222,47 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
             tol_ediff:
                 Tolerance on the energy difference (in eV)
         """
-        # Extract the index here to speed up the calls belows
+        # Extract the k-point index to speed up the calls belows
         k = self.kindex(kpoint)
+        kpoint = self.kpoints[k]
 
-        # Find the set fo degenerate states at the given spin and k-point.
+        # Find the set of degenerate states at the given spin and k-point.
         deg_ebands = self.ebands.degeneracies(spin, k, bands_range, tol_ediff=tol_ediff)
 
-        # Create list of tuples (ene, waves) for each degenerate set.
+        # Create list of tuples (energy, waves) for each degenerate set.
         deg_ewaves = []
         for e, bands in deg_ebands:
             deg_ewaves.append((e, [self.get_wave(spin, k, band) for band in bands])) 
         #print(deg_ewaves)
 
         # Find the little group of the k-point
-        #ltg_symmops, g0vecs, isyms = spgrp.get_little_group(kpoint=[0,0,0])
+        #ltgk = spgrp.get_little_group(kpoint)
 
         # Compute the D(S) matrices for each degenerate subset.
-        #dmats = [ {} for i in range(len(deg_ewaves)) ]
+        #dmats = compute_dmats(ltgk, deg_ewaves)
 
         #for idg, (e, waves) in enumerate(deg_ewaves):
-        #    for cls in ltg_symmops.classes()
-        #        isym = cls[0]
-        #        symmop = ltg_symmops[isym]
-
+        #    for symmops in ltgk.groupby_class()
+        #        op = symmops[0]
         #        row = -1
-        #        for (ii,jj), (wave1, wave2) in iupper_triangle(waves):
+        #        for (ii,jj), (wave1, wave2) in iuptri(waves):
         #            if ii != row:
         #               ii = row
-        #               rot_wave1 = wave1.rotate(symmop)
-
+        #               rot_wave1 = wave1.rotate(op)
         #            prod = wave2.product(rot_wave1)
         #            dmats[idg][symmop][ii,jj] = prod
 
-        # Locate the D in the lookup table.
-        #deg_labels = []
+        # Locate the D(S) in the lookup table.
+        #for trace_atol in [0.1, 0.01, 0.001]:
+        #try
+        #   dmats.classify(trace_atol)
+        #   return dmats
+        #except dmats.ClassificationError:
+        #   pass
+        #
+        # Case with accidental degeneraties. 
+        # Try to decompose the reducible representations
+        #return dmats.decompose()
 
     #def visualize_ur2(self, spin, kpoint, band, visualizer):
     #    """
