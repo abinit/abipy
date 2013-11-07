@@ -7,6 +7,7 @@ import warnings
 import collections
 import numpy as np
 
+from pymatgen.util.num_utils import iuptri
 from abipy.core.kpoints import wrap_to_ws, issamek
 from abipy.iotools import as_etsfreader
 
@@ -437,7 +438,7 @@ class OpSequence(collections.Sequence):
 
     def is_commutative(self):
         """True if operations in self commute with each other."""
-        for op1, op2 in iuptri(self, with_diago=False):
+        for op1, op2 in iuptri(self, diago=False):
             if op1 * op2 != op2 * op1:
                 return False
 
@@ -745,22 +746,16 @@ class SpaceGroup(OpSequence):
     #        timrev = 2 if self.has_timerev else 1
     #    )
 
-    def find_little_group(self, kpoint): #, with_timerev=False):
+    def find_little_group(self, kpoint):
         """
         Find the little group of the kpoint
 
         Args:
             kpoint:
                 Accept vector with the reduced coordinates or `Kpoint` object.
-            with_tr:
-                True if time-reversal must be included.
-    
-        Returns:
-            ltg_symmops, g0vecs, indices
 
-            ltg_symmops is a tuple with the symmetry operations that preserve the k-point i.e. Sk = k + G0
-            g0vecs is the tuple for G0 vectors for each operation in ltg_symmops
-            indices gives the index of the little group operation in the initial spacegroup.
+        Returns:
+            `LittleGroup` object.
         """
         frac_coords = getattr(kpoint, "frac_coords", kpoint)
 
@@ -774,27 +769,34 @@ class SpaceGroup(OpSequence):
                 g0vecs.append(g0)
 
         # List with the symmetry operation that preserve the kpoint.
-        ltg_symmops = [self[i] for i in to_spgrp]
-
-        return ltg_symmops, g0vecs, to_spgrp
-        #return LittleGroup(kpoint, ltg_symmops, g0vecs, to_spgrp):
+        k_symmops = [self[i] for i in to_spgrp]
+        return LittleGroup(kpoint, k_symmops, g0vecs, to_spgrp)
 
 
-#class LittleGroup(object):
-#    def __init__(self, kpoint, symmops, g0vecs, to_spgrp):
-#        self.kpoint = kpoint 
-#        self.symmops = symmops
-#        self.g0vecs = np.reshape(g0vecs, (-1,3))
-#        assert len(self.symmops) == len(self.g0vecs)
-#        self.to_spgrp = to_spgrp
-#
-#        krots = [o.rot_g for o in self.symmops]
-#        kpoint_group = LatticePointGroup(lattice, rotations=krots)
+class LittleGroup(OpSequence):
+    def __init__(self, kpoint, symmops, g0vecs, to_spgrp):
+        """
+        k_symmops, g0vecs, indices
+                                                                                                     
+        k_symmops is a tuple with the symmetry operations that preserve the k-point i.e. Sk = k + G0
+        g0vecs is the tuple for G0 vectors for each operation in k_symmops
+        indices gives the index of the little group operation in the initial spacegroup.
+        """
+        self.kpoint = kpoint 
+        self._ops = symmops
+        self.g0vecs = np.reshape(g0vecs, (-1,3))
+        assert len(self.symmops) == len(self.g0vecs)
+        self.to_spgrp = to_spgrp
 
-         #if not kpoint_group.is_group():
-         #   raise NotGroupError()
+        # Find the point group (operations in reciprocal space).
+        # so that we know how to access the Bilbao database.
+        #krots = [o.rot_g for o in symmops]
+        #kpoint_group = LatticePointGroup(lattice, krots)
+        #kclasses = kpoint_group.classes
 
-         #kclasses = kpoint_group.classes
+    @property
+    def symmops(self):
+        return self._ops
 
     #def iter_symmop_g0(self):
     #    for op, g0 in zip(self.symmops, self.g0vecs):
@@ -1043,7 +1045,7 @@ class Irrep(object):
         # Compute character table.
         character = self.nclass * [None]
         for icls, (start, stop) in enumerate(self.class_range):
-            t0 = self._traces[start]
+            t0 = self.traces[start]
             isok = all(t0 == self.traces[i] for i in range(start, stop))
             character[icls] = t0
 
@@ -1072,7 +1074,7 @@ class BilbaoPointGroup(object):
     A `BilbaoPointGroup` is a `Pointgroup` with irreducible representations
     """ 
     def __init__(self, sch_symbol, rotations, class_names, class_range, irreps):
-        # Always reorder rotations and irreps according to class indeces.
+        # Rotations are grouped in classes.
         self.sch_symbol = sch_symbol
         self.rotations = [np.array(mat) for mat in rotations]
         self.class_names = class_names
@@ -1083,13 +1085,15 @@ class BilbaoPointGroup(object):
         self.class_range = class_range
         self.class_len = [stop - start for (start, stop) in class_range]
 
-        # The numner of irreps must equal the number of classes.
+        # The number of irreps must equal the number of classes.
         assert len(irreps) == self.nclass
-        self.irreps = {}
+        self.irreps, self.irreps_by_name = [], {}
         for name, d in irreps.items():
             mats = d["matrices"]
             assert len(mats) == self.num_rots
-            self.irreps[name] = Irrep(name, d["dim"], mats, class_range=self.class_range)
+            irrep =Irrep(name, d["dim"], mats, class_range=self.class_range)
+            self.irreps.append(irrep)
+            self.irreps_by_name[name] = irrep
 
     @property
     def herm_symbol(self):
@@ -1114,7 +1118,7 @@ class BilbaoPointGroup(object):
     @property
     def irrep_names(self):
         """List with the names of the irreps."""
-        return list(self.irreps.keys())
+        return list(self.irreps_by_name.keys())
 
     def show_character_table(self, stream=sys.stdout):
         """Write a string with the character_table on the given stream."""
@@ -1126,7 +1130,7 @@ class BilbaoPointGroup(object):
         app = table.append
 
         # Add row: irrep_name, character.
-        for irrep in self.irreps.values():
+        for irrep in self.irreps:
             character = map(str, irrep.character)
             app([irrep.name] + character)
 
@@ -1134,7 +1138,7 @@ class BilbaoPointGroup(object):
 
     #def show_irrep(self, irrep_name):
     #    """Show the mapping rotation --> irrep mat."""
-    #    irrep = self.irreps[irrep_name]
+    #    irrep = self.irreps_by_name[irrep_name]
 
     #def irrep_from_character(self, character, rotations, tol=None):
     #    """
@@ -1148,6 +1152,7 @@ class BilbaoPointGroup(object):
         Returns:
             Return code (0 if success).
         """
+        # TODO: complete the test.
         #if not self.rotations.is_group(): 
         #    return 1
 
@@ -1173,27 +1178,17 @@ class BilbaoPointGroup(object):
         # Test orthogonality theorem
         #for traces1 
 
-        # Test orthogonality relation of traces.
-        #character_of = {}
-        #for irrep in self.irreps.values():
-        #    traces = irrep.traces
-        #    #character = [ traces[ii] 
-        #    chr = []
-        #    for clids in self.class_ids:
-        #        idx = clids[0]
-        #        chr.append(traces[idx])
-        #    character_of[irrep.name] = traces
+        # Test the orthogonality relation of traces.
+        max_err = 0.0
+        for (ii, jj), (irp1, irp2) in iuptri(self.irreps, with_inds=True):
+            trac1, trac2 = irp1.traces, irp2.traces
+            err = np.vdot(trac1, trac2) / self.num_rots
+            if ii == jj: err -= 1.0 
+            max_err = max(max_err, abs(err))
 
-        #err_otrace = 0.0
-        #for k1, v1 in character_of.iteritems():
-        #    for k2, v2 in character_of.iteritems():
-        #        err = dotc(v1, v2) / self.nsym
-        #        if k2 == k1: err -= 1.0 
-        #        err_otrace = max(err_otrace, abs(err))
-
-        #print("Error in orthogonality relation of traces ", err_otrace)
-        #if err_otrace > 0.0:
-        #    return 4
+        print("Error in orthogonality relation of traces: ", max_err)
+        if max_err > 1e-05:
+            return 4
 
         return 0 # Success.
 
@@ -1237,6 +1232,8 @@ _SCH2HERM = {t[0]: t[1] for t in _PTG_IDS}
 _HERM2SCH = {t[1]: t[0] for t in _PTG_IDS}
 _SPGID2SCH = {t[2]: t[0] for t in _PTG_IDS}
 _SCH2SPGID = {t[0]: t[2] for t in _PTG_IDS}
+
+sch_symbols = _SCH2HERM.keys() 
 
 def sch2herm(sch_symbol):
     """Convert from Schoenflies to Hermann-Mauguin."""

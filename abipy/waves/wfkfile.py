@@ -12,61 +12,6 @@ __all__ = [
     "WFK_File",
 ]
 
-def iuptri(items, diago=True, with_inds=False):
-    """
-    Iterate over the upper triangle of the matrix (items x items)
-
-    Args:
-        items:
-            Iterable object with elements [e0, e1, ...]
-        diago:
-            False if diagonal matrix elements should be excluded
-        with_inds:
-            If True, (i,j) (e_i, e_j) is returned else (e_i, e_j)
-
-    >>> for (ij, mate) in iuptri([0,1], with_inds=True): 
-    ...     print("ij:", ij, "mate:", mate)
-    ij: (0, 0) mate: (0, 0)
-    ij: (0, 1) mate: (0, 1)
-    ij: (1, 1) mate: (1, 1)
-    """
-    for (ii, item1) in enumerate(items):
-        for (jj, item2) in enumerate(items):
-            do_yield = (jj >= ii) if diago else (jj > ii)
-            if do_yield:
-                if with_inds:
-                    yield (ii, jj), (item1, item2)
-                else:
-                    yield item1, item2
-
-
-def ilotri(items, diago=True, with_inds=False):
-    """
-    Iterate over the lower triangle of the matrix (items x items)
-
-    Args:
-        items:
-            Iterable object with elements [e0, e1, ...]
-        diago:
-            False if diagonal matrix elements should be excluded
-        with_inds:
-            If True, (i,j) (e_i, e_j) is returned else (e_i, e_j)
-
-    >>> for (ij, mate) in ilotri([0,1], with_inds=True): 
-    ...     print("ij:", ij, "mate:", mate)
-    ij: (0, 0) mate: (0, 0)
-    ij: (1, 0) mate: (1, 0)
-    ij: (1, 1) mate: (1, 1)
-    """
-    for (ii, item1) in enumerate(items):
-        for (jj, item2) in enumerate(items):
-            do_yield = (jj <= ii) if diago else (jj < ii)
-            if do_yield:
-                if with_inds:
-                    yield (ii, jj), (item1, item2)
-                else:
-                    yield item1, item2
-
 
 class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     """
@@ -236,33 +181,29 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         #print(deg_ewaves)
 
         # Find the little group of the k-point
-        #ltgk = spgrp.get_little_group(kpoint)
+        ltk = spgrp.find_little_group(kpoint)
 
-        # Compute the D(S) matrices for each degenerate subset.
-        #dmats = compute_dmats(ltgk, deg_ewaves)
+        raise NotImplementedError("")
 
-        #for idg, (e, waves) in enumerate(deg_ewaves):
-        #    for symmops in ltgk.groupby_class()
-        #        op = symmops[0]
-        #        row = -1
-        #        for (ii,jj), (wave1, wave2) in iuptri(waves):
-        #            if ii != row:
-        #               ii = row
-        #               rot_wave1 = wave1.rotate(op)
-        #            prod = wave2.product(rot_wave1)
-        #            dmats[idg][symmop][ii,jj] = prod
+        # Compute the D(R) matrices for each degenerate subset.
+        dmats = DMatrices(ltk, deg_ewaves)
 
-        # Locate the D(S) in the lookup table.
-        #for trace_atol in [0.1, 0.01, 0.001]:
-        #try
-        #   dmats.classify(trace_atol)
-        #   return dmats
-        #except dmats.ClassificationError:
-        #   pass
-        #
+        # Locate the D(R) in the lookup table.
+        for trace_atol in [0.1, 0.01, 0.001]:
+
+            try
+               dmats.classify(trace_atol)
+               return dmats
+            except dmats.ClassificationError:
+               pass
+
         # Case with accidental degeneraties. 
         # Try to decompose the reducible representations
-        #return dmats.decompose()
+        try:
+            dmats.decompose()
+            return dmats
+        except dmats.DecompositionError
+            raise 
 
     #def visualize_ur2(self, spin, kpoint, band, visualizer):
     #    """
@@ -364,3 +305,147 @@ class WFK_Reader(ElectronsReader):
         # TODO use variables to avoid storing the full block.
         return self.set_of_ug[spin, k, band, :, :npw_k]
 
+
+
+class DmatsError(Exception):
+    """Base error class."""
+
+
+class DmatsClassificationError(DmatsError):
+    """Bands cannot be classified."""
+
+
+class DmatsDecompositionError(DmatsError):
+    """Accidental degeneracies detected, decompostion failed."""
+
+
+class DMatrices(object):
+    """
+    * Let M(R_t) the irreducible representation associated to the space group symmetry (R_t).
+    * By convention M(R_t) multiplies wave functions as a row vector:
+
+       $ R_t \psi_a(r) = \psi_a (R^{-1}(r-\tau)) = \sum_b M(R_t)_{ba} \psi_b $
+
+      Therefore, if R_t belongs to the little group of k (i.e. Sk=k+G0), one obtains:
+
+       $ M_ab(R_t) = e^{-i(k+G0).\tau} \int e^{iG0.r} u_{ak}(r)^* u_{bk}(R^{-1}(r-\tau)) \,dr $.
+
+    * The irreducible representation of the small _point_ group of k, M_ab(R), suffices to
+      classify the degenerate eigenstates provided that particular conditions are fulfilled 
+      (see limitations below). The matrix is indeed given by:
+
+       $ M_ab(R) = e^{+ik.\tau} M_ab(R_t) = e^{-iG0.\tau} \int e^{iG0.r} u_{ak}(r)^* u_{bk}(R^{-1}(r-\tau))\,dr $
+     
+      The phase factor outside the integral should be zero since symmetry analysis at border zone in non-symmorphic
+      space groups is not available. Anyway it is included in our expressions for the sake of consistency.
+
+    * For PAW there is an additional onsite terms involving <phi_i|phi_j(R^{-1}(r-\tau)> and 
+      the pseudized version that can be  evaluated using the rotation matrix for 
+       real spherical harmonis, zarot(mp,m,l,R). $ Y_{lm}(Rr)= \sum_{m'} zarot(m',m,ll,R) Y_{lm'}(r) $
+
+       $ M^{onsite}_ab(R_t) = sum_{c ij} <\tpsi_a| p_i^c>  <p_j^{c'}|\tpsi_b\> \times 
+          [ <\phi_i^c|\phi_j^{c'}> - <\tphi_i^c|\tphi_j^{c'}> ]. $
+
+       $ [ <\phi_i^c|\phi_j^{c'}> - <\tphi_i^c|\tphi_j^{c'}> ] = s_{ij} D_{\mi\mj}^\lj(R^{-1}) $
+
+      where c' is the rotated atom i.e c' = R^{-1}( c-\tau) and D is the rotation matrix for 
+      real spherical harmonics.
+
+      Remember that zarot(m',m,l,R)=zarot(m,m',l,R^{-1})
+      and $ Y^l_m(ISG) = sum_{m'} D_{m'm}(S) Y_{m'}^l(G) (-i)^l $
+          $ D_{m'm}^l (R) = D_{m,m'}^l (R^{-1}) $
+
+    * LIMITATIONS: The method does not work if k is at zone border and the little group of k 
+                   contains a non-symmorphic fractional translation. 
+    """
+    ClassificationError = DmatsClassificationError
+    DecompositionError = DmatsDecompositionError
+
+    def __init__(ltk, deg_ewaves)
+        """
+        Compute the D(R) matrices for each degenerate subset.
+        """
+        num_degs = len(deg_ewaves)
+
+        # Array with the calculated character
+        # my_character = [num_degs, num_classes]
+        """
+        The main problem here is represented by the fact 
+        that the classes in ltk might not have the 
+        same order as the classes reported in the Bilbao database.
+        Hence we have to shuffle the last dimension of my_character
+        so that we can compare the two array correctly
+        The most robust approach consists in matching class invariants 
+        such as the trace, the determinant of the rotation matrices.
+        as well as the order of the rotation and inv_root!
+        Perhaps I can make LatticeRotation hashable with
+        __hash__ = return det + 10 * trace + 100 * order + 1000 * inv_root
+        The pseudo code below computes the table to_bilbao_classes:
+        """
+        # Get the Bilbao entry for this point group
+        try:
+            bilbao_ptg = bilbao_ptgroup(ltk.sch_symbol)
+            to_bilbao_classes = bilbao_ptg.match_classes(ltk)
+        except:
+            raise self.Error(strace())
+
+
+        my_character = my_character[:, to_bilbao_classes]
+
+        # Now my_character has the same ordered as in the Bilbao database.
+        # The remaining part is trivial and we only have to deal with possible
+        # failures due to numerical errors and accidental degeneracies.
+        deg_labels = [None] * num_degs
+        for idg in range(num_degs):
+            mychar = my_character[idg]
+            for irrep in bilbao_ptg.irreps
+                if np.allclose(irrep.character, mychar, rtol=1e-05, atol=1e-08):
+                    deg_labels[idg] = irrep.name
+                    break
+
+        if any(label is None for label in deg_labels):
+            """Increase tolerance and rerun.""" 
+        return deg_labels
+
+        #from pymatgen.util.num_utils import iuptri
+        #nsym_k = len(ltk)
+        # Loop over the set of degenerate states.
+        # For each degenerate set compute the full D_(R)
+        # mats = [None] * num_degs 
+
+        #for idg, (e, waves) in enumerate(deg_ewaves):
+        #    nb, ncl = len(waves), ltk.num_classes
+        #    mats[idg] = [np.empty((nb,nb) for i in range(ncl))
+
+        #    for icl, symmops in enumerate(ltk.groupby_class())
+        #        op = symmops[0]
+        #        row = -1
+        #        for (ii,jj), (wave1, wave2) in iuptri(waves):
+        #            if ii != row:
+        #               ii = row
+        #               rot_wave1 = wave1.rotate(op)
+        #            prod = wave2.product(rot_wave1)
+        #            # Update the entry
+        #            mats[idg][icl][ii,jj] = prod
+        #self.mats = mats
+
+    #def __str__(self):
+    #    lines = []
+    #    app = lines.append
+    #    return "\n".join(lines)
+
+    def classify(self, trace_atol):
+        """
+        Raises:
+            ClassificationError
+        """
+        raise NotImplementedError()
+        mats = self.mats
+
+
+    def decompose()
+        """
+        Raises:
+            DecompositionError
+        """
+        raise NotImplementedError()
