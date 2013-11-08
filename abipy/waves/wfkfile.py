@@ -361,7 +361,7 @@ class DMatrices(object):
     ClassificationError = DmatsClassificationError
     DecompositionError = DmatsDecompositionError
 
-    def __init__(ltk, deg_ewaves)
+    def __init__(ltk, deg_ewaves):
         """
         Compute the D(R) matrices for each degenerate subset.
         """
