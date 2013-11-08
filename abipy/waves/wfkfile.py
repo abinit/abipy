@@ -191,7 +191,7 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         # Locate the D(R) in the lookup table.
         for trace_atol in [0.1, 0.01, 0.001]:
 
-            try
+            try:
                dmats.classify(trace_atol)
                return dmats
             except dmats.ClassificationError:
@@ -202,7 +202,7 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         try:
             dmats.decompose()
             return dmats
-        except dmats.DecompositionError
+        except dmats.DecompositionError:
             raise 
 
     #def visualize_ur2(self, spin, kpoint, band, visualizer):
@@ -361,7 +361,7 @@ class DMatrices(object):
     ClassificationError = DmatsClassificationError
     DecompositionError = DmatsDecompositionError
 
-    def __init__(ltk, deg_ewaves)
+    def __init__(ltk, deg_ewaves):
         """
         Compute the D(R) matrices for each degenerate subset.
         """
@@ -398,7 +398,7 @@ class DMatrices(object):
         deg_labels = [None] * num_degs
         for idg in range(num_degs):
             mychar = my_character[idg]
-            for irrep in bilbao_ptg.irreps
+            for irrep in bilbao_ptg.irreps:
                 if np.allclose(irrep.character, mychar, rtol=1e-05, atol=1e-08):
                     deg_labels[idg] = irrep.name
                     break
@@ -443,7 +443,7 @@ class DMatrices(object):
         mats = self.mats
 
 
-    def decompose()
+    def decompose():
         """
         Raises:
             DecompositionError
