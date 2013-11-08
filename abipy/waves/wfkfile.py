@@ -366,10 +366,14 @@ class DMatrices(object):
         """
         Compute the D(R) matrices for each degenerate subset.
         """
-        num_degs = len(deg_ewaves)
+        num_degs, num_classes = len(deg_ewaves), ltk.kgroup.num_classes
 
-        # Array with the calculated character
-        # my_character = [num_degs, num_classes]
+        # Allocate array to store the calculated character.
+        my_character = num_degs * [None]
+        for idg, (e, waves) in enumerate(deg_ewaves):
+            nb = len(waves)
+            my_character[idg] = [np.empty((nb,nb) for i in range(num_classes))
+            my_character[idg] = np.array(my_character[idg])
         """
         The main problem here is represented by the fact 
         that the classes in ltk might not have the 
@@ -385,13 +389,13 @@ class DMatrices(object):
         """
         # Get the Bilbao entry for this point group
         try:
-            bilbao_ptg = bilbao_ptgroup(ltk.sch_symbol)
-            to_bilbao_classes = bilbao_ptg.match_classes(ltk)
+            bilbao_ptg = bilbao_ptgroup(ltk.kgroup.sch_symbol)
+            #to_bilbao_classes = bilbao_ptg.map_rotclasses(ltk.kgroup.rotclasses)
         except:
             raise self.Error(strace())
 
-
-        my_character = my_character[:, to_bilbao_classes]
+        for idg in range(num_degs):
+            my_character[idg] = my_character[idg][to_bilbao_classes]
 
         # Now my_character has the same ordered as in the Bilbao database.
         # The remaining part is trivial and we only have to deal with possible
@@ -409,14 +413,13 @@ class DMatrices(object):
         return deg_labels
 
         #from pymatgen.util.num_utils import iuptri
-        #nsym_k = len(ltk)
         # Loop over the set of degenerate states.
         # For each degenerate set compute the full D_(R)
         # mats = [None] * num_degs 
 
         #for idg, (e, waves) in enumerate(deg_ewaves):
-        #    nb, ncl = len(waves), ltk.num_classes
-        #    mats[idg] = [np.empty((nb,nb) for i in range(ncl))
+        #    nb = len(waves)
+        #    mats[idg] = [np.empty((nb,nb) for i in range(num_classes))
 
         #    for icl, symmops in enumerate(ltk.groupby_class())
         #        op = symmops[0]
@@ -435,7 +438,7 @@ class DMatrices(object):
     #    app = lines.append
     #    return "\n".join(lines)
 
-    def classify(self, trace_atol):
+    def classify(self, trace_rtol=1e-05, trace_atol=1e-08):
         """
         Raises:
             ClassificationError
@@ -443,8 +446,7 @@ class DMatrices(object):
         raise NotImplementedError()
         mats = self.mats
 
-
-    def decompose():
+    def decompose(self):
         """
         Raises:
             DecompositionError

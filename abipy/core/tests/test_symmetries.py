@@ -122,6 +122,7 @@ class BilbaoPointGroupTest(AbipyTest):
     def test_database(self):
         from abipy.core.symmetries import bilbao_ptgroup, sch_symbols
         for sch_symbol in sch_symbols:
+            print(sch_symbol)
             ptg = bilbao_ptgroup(sch_symbol)
             #print(ptg)
             ptg.show_character_table()

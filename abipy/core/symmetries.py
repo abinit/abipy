@@ -393,6 +393,13 @@ class OpSequence(collections.Sequence):
     def __ne__(self, other):
         return not (self == other)
 
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self):
+        lines = [str(op) for op in self]
+        return "\n".join(lines)
+
     def count(self, op):
         """Returns the number of occurences of operation op in self."""
         return self._ops.count(op)
@@ -500,7 +507,6 @@ class OpSequence(collections.Sequence):
             return self._class_indices
 
         except AttributeError:
-            
             found, class_indices = len(self) * [False], [[] for i in range(len(self))]
 
             num_classes = -1
@@ -811,17 +817,15 @@ class LatticePointGroup(OpSequence):
 
     def __init__(self, rotations):
         self._ops = [LatticeRotation(rot) for rot in rotations]
-
-        for rot in self:
-            print(rot)
+        #print(self)
 
         from pymatgen.symmetry.finder import get_point_group
         herm_symbol, ptg_num, trans_mat = get_point_group(rotations)
-                                                                                                        
+        #                                                                                                
         # Remove blanks from C string.
         self.herm_symbol = herm_symbol.lstrip().rstrip() 
-        #print(self.herm_symbol, ptg_num, trans_mat)
-                                                                                                        
+        print(self.herm_symbol, ptg_num, trans_mat)
+        #                                                                                                
         if self.sch_symbol is None:
             raise ValueError("Cannot detect point group symbol! Got sch_symbol = %s" % self.sch_symbol)
 
@@ -902,15 +906,6 @@ class LatticeRotation(Operation):
             raise ValueError("LatticeRotation is not a root of unit!")
 
         return order, root_inv
-
-    #@classmethod
-    #def as_rotation(cls, obj):
-    #    """
-    #    Build an instance if `LatticeRotation` form the object obj 
-    #    (accepts array-like object or `LatticeRotation`instance).
-    #    """
-    #    if isinstance(obj, cls): return obj 
-    #    return cls(obj)
 
     def __repr__(self):
         return self.name
@@ -1107,7 +1102,7 @@ class BilbaoPointGroup(object):
     def __init__(self, sch_symbol, rotations, class_names, class_range, irreps):
         # Rotations are grouped in classes.
         self.sch_symbol = sch_symbol
-        self.rotations = [np.array(mat) for mat in rotations]
+        self.rotations = rotations
         self.class_names = class_names
         self.nclass = len(class_names)
 
@@ -1178,36 +1173,50 @@ class BilbaoPointGroup(object):
     #    irreducible representation.
     #    """
 
+    #def map_rotclasses(self, rotations_in_classes)
+    #def map_rotation(self, rotations_in_classes)
+
     def auto_test(self):
         """
         Returns:
             Return code (0 if success).
         """
-        # TODO: complete the test.
-        #if not self.rotations.is_group(): 
-        #    return 1
+        rot_group = LatticePointGroup(self.rotations)
+        if not rot_group.is_group(): 
+            print("rotations do not form a group!")
+            return 1
 
         # Symmetries should be ordered in classes.
-        #flat_clsids = np.ravel(self.rotations.class_indices)
-        #if flat_clsids != list(range(len(self.rotations))):
-        #    return 2
+        # Here we recompute the classes by calling rot_group.class_indices.
+        # We then sort the indices and we compare the results with the ref data stored in the Bilbao database.
+        calc_class_inds = [sorted(l) for l in rot_group.class_indices]
+        #print(calc_class_inds)
+        assert len(calc_class_inds) == len(self.class_range)
+
+        for calc_inds, ref_range in zip(calc_class_inds, self.class_range):
+            ref_inds = list(range(ref_range[0], ref_range[1]))
+            if calc_inds != ref_inds:
+                print("Rotations are not ordered in classes.", calc_inds, ref_inds)
+                return 2
 
         # Do we have a representation of the Group?
-        #mult_table = self.rotations.mult_mtable()
-        #max_err = 0.0
-        #for idx1 in range(len(self)):
-        #    for idx2 in range(len(self)):
-        #        idx_prod = mult_table[idx1, idx2]
-        #        for irrep in self.irreps:
-        #            mat_prod = irrep.mats[idx1] * irrep.mats[idx2]
-        #            err = (mat_prod - irrep.mats[idx_prod]).max()
-        #            max_err = max(err, abs(err))
+        mult_table = rot_group.mult_table
+        max_err = 0.0
 
-        #if max_err:
-        #    return 3
+        for idx1, rot1 in enumerate(rot_group):
+            for idx2, rot2 in enumerate(rot_group):
+                idx_prod = mult_table[idx1, idx2]
+                for irrep in self.irreps:
+                    mat_prod = np.dot(irrep.mats[idx1], irrep.mats[idx2])
+                    err = (mat_prod - irrep.mats[idx_prod]).max()
+                    max_err = max(max_err, abs(err))
 
+        if max_err > 1e-5:
+            print("Irreps do not form a representation of the group, max_err: ", max_err)
+            return 3
+
+        # TODO
         # Test orthogonality theorem
-        #for traces1 
 
         # Test the orthogonality relation of traces.
         max_err = 0.0
@@ -1217,11 +1226,13 @@ class BilbaoPointGroup(object):
             if ii == jj: err -= 1.0 
             max_err = max(max_err, abs(err))
 
-        print("Error in orthogonality relation of traces: ", max_err)
-        if max_err > 1e-05:
+        if max_err > 1e-5:
+            print("Error in orthogonality relation of traces: ", max_err)
             return 4
 
-        return 0 # Success.
+        # Success.
+        return 0 
+
 
 # Schoenflies, Hermann-Mauguin, spgid
 _PTG_IDS = [
@@ -1250,7 +1261,7 @@ _PTG_IDS = [
     ("C6h", "6/m",   175), 
     ("D6" , "622",   177), 
     ("C6v", "6mm",	 183), 
-    ("D3h", "-62m",  189),   
+    ("D3h", "-6m2",  189),   
     ("D6h", "6/mmm", 191), 
     ("T"  , "23",    195), 
     ("Th" , "m-3",   200), 

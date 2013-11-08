@@ -137,6 +137,20 @@ def alternate(*iterables):
         items.extend([item for item in tup])
     return items
 
+
+def iflat(iterables):
+    """
+    Iterator over all elements of a nested iterable. It's recursive!
+    """
+    for item in iterables:
+        if not hasattr(item, "__iter__"): 
+            yield item
+        else: 
+            # iterable object.
+            for it in flat(item): 
+                yield it
+
+
 #########################################################################################
 # Sorting and ordering
 #########################################################################################
