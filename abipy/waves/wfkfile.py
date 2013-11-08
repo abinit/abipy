@@ -202,7 +202,7 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         try:
             dmats.decompose()
             return dmats
-        except dmats.DecompositionError
+        except dmats.DecompositionError:
             raise 
 
     #def visualize_ur2(self, spin, kpoint, band, visualizer):
