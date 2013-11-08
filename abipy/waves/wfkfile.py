@@ -191,7 +191,7 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         # Locate the D(R) in the lookup table.
         for trace_atol in [0.1, 0.01, 0.001]:
 
-            try
+            try:
                dmats.classify(trace_atol)
                return dmats
             except dmats.ClassificationError:
