@@ -398,7 +398,7 @@ class DMatrices(object):
         deg_labels = [None] * num_degs
         for idg in range(num_degs):
             mychar = my_character[idg]
-            for irrep in bilbao_ptg.irreps
+            for irrep in bilbao_ptg.irreps:
                 if np.allclose(irrep.character, mychar, rtol=1e-05, atol=1e-08):
                     deg_labels[idg] = irrep.name
                     break
@@ -443,7 +443,7 @@ class DMatrices(object):
         mats = self.mats
 
 
-    def decompose()
+    def decompose():
         """
         Raises:
             DecompositionError
