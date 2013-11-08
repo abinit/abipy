@@ -788,61 +788,73 @@ class LittleGroup(OpSequence):
         assert len(self.symmops) == len(self.g0vecs)
         self.to_spgrp = to_spgrp
 
-        # Find the point group (operations in reciprocal space).
-        # so that we know how to access the Bilbao database.
-        #krots = [o.rot_g for o in symmops]
-        #kpoint_group = LatticePointGroup(lattice, krots)
-        #kclasses = kpoint_group.classes
+        # Find the point group of k so that we know how to access the Bilbao database.
+        # (note that operations are in reciprocal space, afm and time_reversalve are taken out
+        krots = np.array([o.rot_g for o in symmops if not o.has_timerev])
+
+        self.kgroup = LatticePointGroup(krots)
+        print(self.kgroup)
+        #kclasses = kgroup.classes
 
     @property
     def symmops(self):
         return self._ops
 
-    #def iter_symmop_g0(self):
-    #    for op, g0 in zip(self.symmops, self.g0vecs):
-    #        yield op, g0
+    def iter_symmop_g0(self):
+        for symmop, g0 in zip(self.symmops, self.g0vecs):
+            yield symmop, g0
 
     #def iter_symmop_g0_byclass(self):
 
 
 class LatticePointGroup(OpSequence):
 
-    def __init__(self, lattice, rotations):
-        self.lattice = lattice
-        #self.ops = [LatticeRotation.(rot) for obj in rotations]
+    def __init__(self, rotations):
+        self._ops = [LatticeRotation(rot) for rot in rotations]
+
+        for rot in self:
+            print(rot)
+
+        from pymatgen.symmetry.finder import get_point_group
+        herm_symbol, ptg_num, trans_mat = get_point_group(rotations)
+                                                                                                        
+        # Remove blanks from C string.
+        self.herm_symbol = herm_symbol.lstrip().rstrip() 
+        #print(self.herm_symbol, ptg_num, trans_mat)
+                                                                                                        
+        if self.sch_symbol is None:
+            raise ValueError("Cannot detect point group symbol! Got sch_symbol = %s" % self.sch_symbol)
 
         # Call spglib to get the Schoenflies symbol.
-        #self.sch_symbol =
+        #from pymatgen.symmetry.finder import SymmetryFinder
+        #finder = SymmetryFinder(structure, symprec=1e-5, angle_tolerance=5)
 
-        #int spg_get_schoenflies(char symbol[10], const double lattice[3][3],
-        #                        const double position[][3],
-        #                        const int types[], const int num_atom,
-        #                        const double symprec);
+        #self.sch_symbol = finder.get_point_group()
+        #finder.get_point_group_operations(self, cartesian=False)
 
-        try:
-            import pymatgen._spglib as spg
-        except ImportError:
-            try:
-                import pyspglib._spglib as spg
-            except ImportError:
-                msg = ("Spglib required. Please either run python setup.py install"
-                       " for pymatgen, or install pyspglib from spglib.")
-                raise ImportError(msg)
+        #try:
+        #    import pymatgen._spglib as spg
+        #except ImportError:
+        #    try:
+        #        import pyspglib._spglib as spg
+        #    except ImportError:
+        #        msg = ("Spglib required. Please either run python setup.py install"
+        #               " for pymatgen, or install pyspglib from spglib.")
+        #        raise ImportError(msg)
 
-        #spg.pointgroup(rotations)
+    #@classmethod
+    #def from_lattice(cls, lattice)
 
-    #def __repr__(self):
-    #    return str(self)
+    def __repr__(self):
+        return "%s: %s, %s (%d)" % (self.__class__.__name__, self.herm_symbol, self.sch_symbol, self.spgid)
 
-    #def __str__(self):
-    #    lines = []
-    #    app = lines.append
-    #    return "\n".join(lines)
+    def __str__(self):
+        return repr(self)
 
     @property
-    def herm_symbol(self):
-        """Hermann-Mauguin symbol."""
-        return herm2sch(self.sch_symbol)
+    def sch_symbol(self):
+        """Schoenflies symbol"""
+        return herm2sch(self.herm_symbol)
 
     @property
     def spgid(self):
@@ -857,6 +869,10 @@ class LatticeRotation(Operation):
     that is a rotation which is compatible with a lattice. The rotation matrix is
     expressed in reduced coordinates, therefore its elements are integers.
 
+    See
+
+        http://xrayweb2.chem.ou.edu/notes/symmetry.html#rotation
+
     .. note::
         
         This object does not inherit from `ndarray` or from `np.matrix` because ....
@@ -867,6 +883,26 @@ class LatticeRotation(Operation):
         self.mat = np.matrix(mat, np.int)
         self.mat.shape = (3,3)
 
+    def _find_order_and_rootinv(self):
+        """
+        Returns the order of the rotation and if self is a root of the inverse.
+        """
+        order, root_inv = None, 0
+        for ior in range(1,7):
+            rn = self ** ior
+
+            if rn.isE:
+                order = ior
+                break
+
+            if rn.isI: 
+                root_inv = ior
+
+        if order is None: 
+            raise ValueError("LatticeRotation is not a root of unit!")
+
+        return order, root_inv
+
     #@classmethod
     #def as_rotation(cls, obj):
     #    """
@@ -876,8 +912,8 @@ class LatticeRotation(Operation):
     #    if isinstance(obj, cls): return obj 
     #    return cls(obj)
 
-    #def __repr__(self):
-    #    return repr(self.mat)
+    def __repr__(self):
+        return self.name
 
     #def __str__(self):
     #    lines = "Rotation: " + str(self.order) + ", versor: " + str(self.versor) + ", " + str(self.trcoords) + "\n"
@@ -899,8 +935,7 @@ class LatticeRotation(Operation):
         Invert an orthogonal 3x3 matrix of INTEGER elements.
         Note use of integer arithmetic. Raise ValueError if not invertible.
         """
-        inv = mati3inv(self.mat, trans=False)
-        return self.__class__(inv)
+        return self.__class__(mati3inv(self.mat, trans=False))
 
     @property
     def isE(self):
@@ -923,6 +958,23 @@ class LatticeRotation(Operation):
        raise TypeError("type %s is not supported in __pow__" % type(intexp))
 
     @property
+    def order(self):
+        """Order of the rotation."""
+        try:
+            return self._order
+        except AttributeError:
+            self._order, self._root_inv = self._find_order_and_rootinv()
+            return self._order
+
+    @property
+    def root_inv(self):
+        try:
+            return self._root_inv
+        except AttributeError:
+            self._order, self._root_inv = self._find_order_and_rootinv()
+            return self._root_inv
+
+    @property
     def det(self):
         """Return the determinant of a symmetry matrix mat[3,3]. It must be +-1"""
         try:
@@ -942,69 +994,50 @@ class LatticeRotation(Operation):
         return self.det == 1
 
     @property
-    def rottype(self):
-        """
-        Receive a 3x3 orthogonal matrix and reports its type:
-            1 Identity
-            2 Inversion
-            3 Proper rotation of an angle <> 180 degrees
-            4 Proper rotation of 180 degrees
-            5 Mirror symmetry
-            6 Improper rotation
-        """
-        # Treat identity and inversion first
-        if self.isE: return 1
-        if self.isI: return 2
-    
-        if self.isproper: # Proper rotation
-            t = 3 # try angle != 180
-            #det180 = get_sym_det(rot + self._E3D)
-            if (self + identity).det == 0: t = 4 # 180 rotation
-        else: 
-            # Mirror symmetry or Improper rotation
-            t = 6
-            #detmirror = get_sym_det(rot - self._E3D)
-            if (self - identity).det == 0: 
-                t = 5 # Mirror symmetry if an eigenvalue is 1
-
-        return t
-
-    @property
     def isI(self):
         """True if self is the inversion operation."""
         return np.allclose(self.mat, -self._E3D)
 
-    #@property
-    #def order(self):
-    #    """Order and root of unit"""
-    #    order, root_invers = None, 0
-    #    for ior in range(1,7):
-    #        rn = self ** ior
+    @property
+    def name(self):
+        # Sign of the determinant (only if improper)
+        name = "-" if self.det == -1 else ""
 
-    #        if rn.isE:
-    #            order = ior
-    #            break
+        # FIXME this one doesn't work yet.
+        name += str(self.order) 
 
-    #        if rn.isI: 
-    #            root_invers = ior
+        # Root of inverse?
+        name += "-" if self.root_inv != 0 else "+"
 
-    #    if order is None: 
-    #        raise ValueError("symmetry is not a root of unit!")
-
-    #    return order, root_invers
+        return name
 
     #@property
-    #def name(self):
-    #    order, root_invers = self.info
-    #    name = ""
-    #    if self.det == -1: name = "-"
-    #    name += str(self.order) # FIXME this one doesn't work yet.
-    #    if root_invers != 0: 
-    #        name += "-"
-    #    else:
-    #        name += "+"
+    #def rottype(self):
+    #    """
+    #    Receive a 3x3 orthogonal matrix and reports its type:
+    #        1 Identity
+    #        2 Inversion
+    #        3 Proper rotation of an angle <> 180 degrees
+    #        4 Proper rotation of 180 degrees
+    #        5 Mirror symmetry
+    #        6 Improper rotation
+    #    """
+    #    # Treat identity and inversion first
+    #    if self.isE: return 1
+    #    if self.isI: return 2
+    #
+    #    if self.isproper: # Proper rotation
+    #        t = 3 # try angle != 180
+    #        #det180 = get_sym_det(rot + self._E3D)
+    #        if (self + identity).det == 0: t = 4 # 180 rotation
+    #    else: 
+    #        # Mirror symmetry or Improper rotation
+    #        t = 6
+    #        #detmirror = get_sym_det(rot - self._E3D)
+    #        if (self - identity).det == 0: 
+    #            t = 5 # Mirror symmetry if an eigenvalue is 1
 
-    #    return name
+    #    return t
 
 
 class Irrep(object):
@@ -1013,13 +1046,11 @@ class Irrep(object):
 
     .. attributes::
 
-
         traces:
             all_traces[nsym]. The trace of each irrep.
         character:
             character[num_classes]
     """
-
     def __init__(self, name, dim, mats, class_range):
         """
         Args:
@@ -1237,31 +1268,19 @@ sch_symbols = _SCH2HERM.keys()
 
 def sch2herm(sch_symbol):
     """Convert from Schoenflies to Hermann-Mauguin."""
-    try:
-        return _SCH2HERM[sch_symbol]
-    except KeyError:
-        return None
+    return _SCH2HERM.get(sch_symbol, None)
 
 
 def sch2spgid(sch_symbol):
     """Convert from Schoenflies to the space group id."""
-    try:
-        return _SCH2SPGID[sch_symbol]
-    except KeyError:
-        return None
+    return _SCH2SPGID.get(sch_symbol, None)
 
 
 def herm2sch(herm_symbol):
     """Convert from Hermann-Mauguin to Schoenflies."""
-    try:
-        return _HERM2SCH[herm_symbol]
-    except KeyError:
-        return None
+    return _HERM2SCH.get(herm_symbol, None)
 
 
 def spgid2sch(spgid):
     """Return the Schoenflies symbol from the space group identifier."""
-    try:
-        return _SPGID2SCH[spgid]
-    except KeyError:
-        return None
+    return _SPGID2SCH.get(spgid, None)
