@@ -298,6 +298,16 @@ class Kpoint(object):
         if name is not None and name.startswith("\\"): name = "$" + name + "$"
         self._name = name
 
+    @property
+    def on_border(self):
+        """
+        True if the k-point is on the border of the BZ 
+        (lattice translations are taken into account).
+        """
+        kreds = wrap_to_ws(self.frac_coords)
+        diff = np.abs(np.abs(kreds) - 0.5)
+        return np.any(diff < self.ATOL_KDIFF)
+
     def __repr__(self):
         return "[%.3f, %.3f, %.3f]" % tuple(self.frac_coords)
 

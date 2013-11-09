@@ -12,8 +12,6 @@ __all__ = [
     "DFTScalarField",
 ]
 
-#########################################################################################
-
 
 class DFTScalarField(object):
 
@@ -33,9 +31,7 @@ class DFTScalarField(object):
             iorder:
                 Order of the array. "c" for C ordering, "f" for Fortran ordering.
         """
-        self.nspinor = nspinor
-        self.nsppol = nsppol
-        self.nspden = nspden
+        self.nspinor, self.nsppol, self.nspden = nspinor, nsppol, nspden
         self.datar = datar
         self.structure = structure
 
@@ -47,7 +43,7 @@ class DFTScalarField(object):
 
         # Init Mesh3D
         mesh_shape = self.datar.shape[-3:]
-        self.mesh = Mesh3D(mesh_shape, structure.lattice_vectors(), pbc=True)
+        self.mesh = Mesh3D(mesh_shape, structure.lattice_vectors())
 
         # Make sure we have the correct shape.
         self.datar = np.reshape(self.datar, (nspden,) + self.mesh.shape)
@@ -98,18 +94,27 @@ class DFTScalarField(object):
         self.datag = datag
         self.datar = self.mesh.fft_g2r(datag)
 
-    #def set_mesh(self, mesh):
-    #  self.mesh = mesh
-    #  try:
-    #      del self.datar
-    #  except AttributeError:
-    #      pass
+    #def bracket(self, bra_wave, ket_wave):
+    #    """
+    #    Compute the matrix element of the local operator v(r) in real space
+    #    """
+    #    if bra_wave.mesh != self.mesh:
+    #       bra_ur = bra_wave.fft_ug(self.mesh)
+    #    else:
+    #       bra_ur = bra_wave.ur
+
+    #    if ket_wave.mesh != self.mesh:
+    #       ket_ur = ket_wave.fft_ug(self.mesh)
+    #    else:
+    #       ket_ur = ket_wave.ur
+
+    #    return self.mesh.integrate(bra_ur.conj() * self.datar * ur_right)
 
     #def interpolate(self, points, method="linear", space="r")
 
     #def fourier_interp(self, new_mesh):
-    #  new_field =
-    #  return DFTScalarField(self.nspinor, self.nsppol, self.nspden, self.structure, datar)
+    #  intp_datar =
+    #  return DFTScalarField(self.nspinor, self.nsppol, self.nspden, self.structure, intp_datar)
 
     def export(self, filename):
         """

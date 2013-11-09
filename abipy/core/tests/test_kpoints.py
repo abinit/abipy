@@ -73,6 +73,11 @@ class TestKpoint(AbipyTest):
         if hash(K) != hash(X):
             self.assertTrue(K != X)
 
+        # test ob_border
+        self.assertFalse(gamma.on_border)
+        self.assertTrue(X.on_border)
+        self.assertFalse(K.on_border)
+
 
 class TestKpointList(AbipyTest):
     """Unit tests for KpointList."""

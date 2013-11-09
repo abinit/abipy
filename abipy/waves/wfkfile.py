@@ -13,6 +13,13 @@ __all__ = [
 ]
 
 
+# Tools and helper functions.
+def straceback():
+    """Returns a string with the traceback."""
+    import traceback
+    return traceback.format_exc()
+
+
 class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     """
     This object provides a simple interface to access and analyze
@@ -163,7 +170,7 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
             kpoint:
                 K-point index or `Kpoint` object 
             bands_range:
-                List of band indices to analyze.
+                Range of band indices to analyze.
             tol_ediff:
                 Tolerance on the energy difference (in eV)
         """
@@ -178,20 +185,20 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         deg_ewaves = []
         for e, bands in deg_ebands:
             deg_ewaves.append((e, [self.get_wave(spin, k, band) for band in bands])) 
-        print(deg_ewaves)
+
+        print("degeneracies detected:", deg_ebands)
+        #print(deg_ewaves)
 
         # Find the little group of the k-point
         ltk = self.structure.spacegroup.find_little_group(kpoint)
         #assert ltk.is_group()
 
-        raise NotImplementedError("")
-
         # Compute the D(R) matrices for each degenerate subset.
         dmats = DMatrices(ltk, deg_ewaves)
+        raise NotImplementedError("")
 
         # Locate the D(R) in the lookup table.
-        for trace_atol in [0.1, 0.01, 0.001]:
-
+        for trace_atol in [0.001, 0.01, 0.01]:
             try:
                dmats.classify(trace_atol)
                return dmats
@@ -359,21 +366,52 @@ class DMatrices(object):
     * LIMITATIONS: The method does not work if k is at zone border and the little group of k 
                    contains a non-symmorphic fractional translation. 
     """
+    Error = DmatsError
     ClassificationError = DmatsClassificationError
     DecompositionError = DmatsDecompositionError
 
-    def __init__(ltk, deg_ewaves):
+    def __init__(self, ltk, deg_ewaves):
         """
         Compute the D(R) matrices for each degenerate subset.
         """
-        num_degs, num_classes = len(deg_ewaves), ltk.kgroup.num_classes
+        kgroup = ltk.kgroup
 
-        # Allocate array to store the calculated character.
-        my_character = num_degs * [None]
+        # Number of degeneracies, 
+        # number of spatial rotation in the group of k, number of classes in kgroup.
+        self.num_degs = num_degs = len(deg_ewaves)
+        num_rotk, num_classes = len(kgroup), kgroup.num_classes
+
+        # Allocate D(R) for each set of degenerated bands.
+        # Init them with np.inf. If everything goes well 
+        # only the diagonal element for the first operation 
+        # in each class has to be computed.
+        dmats = self.num_degs * [None]
         for idg, (e, waves) in enumerate(deg_ewaves):
             nb = len(waves)
-            my_character[idg] = [np.empty((nb,nb) for i in range(num_classes))
-            my_character[idg] = np.array(my_character[idg])
+            print(nb)
+            dr_bbp = np.empty((num_rotk, nb, nb), dtype=np.complex)
+            dr_bbp[:,:,:] = np.inf
+            dmats[idg] = dr_bbp
+
+        # FIXME
+        # Here there's a problem since I have to exclude time_rev and afm.
+        ltk_symmops = ltk.symmops[:48]
+
+        for idg, (e, waves) in enumerate(deg_ewaves):
+            nb = len(waves)
+            for isym, symmop in enumerate(ltk_symmops):
+                for (ii, wave) in enumerate(waves):
+                    rot_wave = wave.rotate(symmop)
+                    prod = wave.braket(rot_wave)
+                    # Update the entry
+                    dmats[idg][isym,ii,ii] = prod
+
+            #from pprint import pprint
+            print("idg", idg)
+            print(dmats[idg].shape)
+            #print(dmats[idg])
+
+        self.dmats = dmats
         """
         The main problem here is represented by the fact 
         that the classes in ltk might not have the 
@@ -387,30 +425,39 @@ class DMatrices(object):
         __hash__ = return det + 10 * trace + 100 * order + 1000 * inv_root
         The pseudo code below computes the table to_bilbao_classes:
         """
-        # Get the Bilbao entry for this point group
-        try:
-            bilbao_ptg = bilbao_ptgroup(ltk.kgroup.sch_symbol)
-            #to_bilbao_classes = bilbao_ptg.map_rotclasses(ltk.kgroup.rotclasses)
-        except:
-            raise self.Error(strace())
+        #def my_character(self):
+        # Allocate array to store the calculated character.
+        #    char_dg = self.num_degs * [None]
+        #    for idg in range(self.num_degs)
+        #        char = mat.trace() for mat in self.dmats[idg]  for each element in class
+        #        char_dg[idg] = char
+        #    return char_dg
 
-        for idg in range(num_degs):
-            my_character[idg] = my_character[idg][to_bilbao_classes]
+        # Get the Bilbao entry for this point group
+        from abipy.core.symmetries import bilbao_ptgroup
+        try:
+            bilbao_ptg = bilbao_ptgroup(kgroup.sch_symbol)
+            #to_bilbao_classes = bilbao_ptg.map_rotclasses(kgroup.rotclasses)
+        except:
+            raise self.Error(straceback())
+
+        #for idg in range(num_degs):
+        #    my_character[idg] = my_character[idg][to_bilbao_classes]
 
         # Now my_character has the same ordered as in the Bilbao database.
         # The remaining part is trivial and we only have to deal with possible
         # failures due to numerical errors and accidental degeneracies.
-        deg_labels = [None] * num_degs
-        for idg in range(num_degs):
-            mychar = my_character[idg]
-            for irrep in bilbao_ptg.irreps:
-                if np.allclose(irrep.character, mychar, rtol=1e-05, atol=1e-08):
-                    deg_labels[idg] = irrep.name
-                    break
+        #deg_labels = [None] * num_degs
+        #for idg in range(num_degs):
+        #    mychar = my_character[idg]
+        #    for irrep in bilbao_ptg.irreps:
+        #        if np.allclose(irrep.character, mychar, rtol=1e-05, atol=1e-08):
+        #            deg_labels[idg] = irrep.name
+        #            break
 
-        if any(label is None for label in deg_labels):
-            """Increase tolerance and rerun.""" 
-        return deg_labels
+        #if any(label is None for label in deg_labels):
+        #    """Increase tolerance and rerun.""" 
+        #return deg_labels
 
         #from pymatgen.util.num_utils import iuptri
         # Loop over the set of degenerate states.
@@ -419,8 +466,6 @@ class DMatrices(object):
 
         #for idg, (e, waves) in enumerate(deg_ewaves):
         #    nb = len(waves)
-        #    mats[idg] = [np.empty((nb,nb) for i in range(num_classes))
-
         #    for icl, symmops in enumerate(ltk.groupby_class())
         #        op = symmops[0]
         #        row = -1
@@ -438,13 +483,15 @@ class DMatrices(object):
     #    app = lines.append
     #    return "\n".join(lines)
 
+    #def _compute_diagonal_per_class(self):
+    #def _compute_all_dmats(self):
+
     def classify(self, trace_rtol=1e-05, trace_atol=1e-08):
         """
         Raises:
             ClassificationError
         """
         raise NotImplementedError()
-        mats = self.mats
 
     def decompose(self):
         """

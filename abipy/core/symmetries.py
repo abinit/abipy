@@ -6,8 +6,11 @@ import abc
 import warnings
 import collections
 import numpy as np
+import cStringIO as StringIO
 
 from pymatgen.util.num_utils import iuptri
+from pymatgen.util.string_utils import is_string
+from pymatgen.symmetry.finder import SymmetryFinder, get_point_group
 from abipy.core.kpoints import wrap_to_ws, issamek
 from abipy.iotools import as_etsfreader
 
@@ -370,8 +373,8 @@ class OpSequence(collections.Sequence):
 
         .. warning: 
 
-                The order of the operations in self and in other 
-                is not relevant.
+                The order of the operations in self and 
+                in other is not relevant.
         """
         if other is None: return False
         if len(self) != len(other): 
@@ -393,12 +396,13 @@ class OpSequence(collections.Sequence):
     def __ne__(self, other):
         return not (self == other)
 
-    def __repr__(self):
-        return str(self)
-
     def __str__(self):
         lines = [str(op) for op in self]
         return "\n".join(lines)
+
+    def show_ops(self, stream=sys.stdout):
+        lines = [str(op) for op in self]
+        stream.writelines("\n".join(lines))
 
     def count(self, op):
         """Returns the number of occurences of operation op in self."""
@@ -491,6 +495,11 @@ class OpSequence(collections.Sequence):
 
             self._mult_table = mtable
             return self._mult_table
+
+    @property
+    def num_classes(self):
+        """Number of classes."""
+        return len(self.class_indices)
 
     @property
     def class_indices(self):
@@ -609,6 +618,11 @@ class SpaceGroup(OpSequence):
     @classmethod
     def from_file(cls, file, inord="F"):
         """Initialize the object from a Netcdf file."""
+        #is_ncfile = is_string(file) and file.endswith(".nc")
+        #if not is_ncfile
+        #structure = Structure.from_file(file):
+        #return cls.from_structure(cls, structure, has_timerev=True,  symprec=1e-5, angle_tolerance=5)
+
         file, closeit = as_etsfreader(file)
 
         new = cls(spgid=file.read_value("space_group"),
@@ -623,33 +637,36 @@ class SpaceGroup(OpSequence):
 
         return new
 
-    #@classmethod
-    #def from_structure(cls, structure, has_timerev,  symprec=1e-5, angle_tolerance=5):
-    #    """
-    #    Takes a `Structure` object. Uses pyspglib to perform various symmetry finding operations.
+    @classmethod
+    def from_structure(cls, structure, has_timerev=True, symprec=1e-5, angle_tolerance=5):
+        """
+        Takes a `Structure` object. Uses pyspglib to perform various symmetry finding operations.
 
-    #    Args:
-    #        structure:
-    #            Structure object
-    #        symprec:
-    #            Tolerance for symmetry finding
-    #        angle_tolerance:
-    #            Angle tolerance for symmetry finding.
-    #    """
-    #    from pymatgen.symmetry.finder import SymmetryFinder
-    #    finder =SymmetryFinder(structure)
-    #    spgid = finder.get_spacegroup_number()
+        Args:
+            structure:
+                Structure object
+            has_timerev:
+                True is time-reversal symmetry is included.
+            symprec:
+                Tolerance for symmetry finding
+            angle_tolerance:
+                Angle tolerance for symmetry finding.
 
-    #    data = finder.get_symmetry_dataset(self):
+        .. warning::
+            AFM symmetries are not supported.
+        """
+        # Call spglib to get the list of symmetry operations.
+        finder = SymmetryFinder(structure, symprec=symprec, angle_tolerance=angle_tolerance)
+        data = finder.get_symmetry_dataset()
 
-    #    new = cls(spgid=file.read_value("space_group"),
-    #              symrel=file.read_value("reduced_symmetry_matrices"),
-    #              tnons=file.read_value("reduced_symmetry_translations"),
-    #              symafm=file.read_value("symafm"),
-    #              has_timerev=True,  # FIXME not treated by ETSF-IO.
-    #              inord=inord)
+        symrel = data["rotations"],
 
-    #    return new
+        return cls(spgid=data["number"],
+                   symrel=symrel,
+                   tnons=data["translations"],
+                   symafm=len(symrel) * [1],
+                   has_timerev=has_timerev,
+                   inord="C")
 
     def __repr__(self):
         return str(self)
@@ -734,17 +751,14 @@ class SpaceGroup(OpSequence):
 
         return tuple(symmops)
 
-    #def to_arrays(self):
-    #    fort_arrays = collections.namedtuple("FortranSpaceGroupArrays", "symrel symrec tnons symafm timrev")
-                                                                                                              
+    #def to_arrays(self, order="c"):
+    #    spg_arrays = collections.namedtuple("SpaceGroupArrays", "symrel symrec tnons symafm timrev order")
     #    symrel = np.asfortranarray(self.symrel.T)
     #    symrec = np.asfortranarray(self.symrec.T)
-                                                                                                              
     #    for isym in range(self.num_spatial_symmetries):
     #        symrel[:,:,isym] = symrel[:,:,isym].T
     #        symrec[:,:,isym] = symrec[:,:,isym].T
-                                                                                                              
-    #    return fort_arrays(
+    #    return spg_arrays(
     #        symrel=symrel,
     #        symrec=symrec,
     #        tnons =np.asfortranarray(self.tnons.T),
@@ -802,6 +816,22 @@ class LittleGroup(OpSequence):
         print(self.kgroup)
         #kclasses = kgroup.classes
 
+    def __str__(self):
+        lines = ["Kpoint: %s, Kpoint group: %s" % (self.kpoint, self.kgroup)]
+
+        strio = StringIO.StringIO()
+        bilbao_ptgrp = bilbao_ptgroup(self.kgroup.sch_symbol)
+        bilbao_ptgrp.show_character_table(stream=strio)
+        strio.seek(0)
+        #lines += ["Irreducible representations, zoneborder_and_nonsymmorphic %s" % self.kpoint.zoneborder_]
+        lines += [l.strip() for l in strio.readlines()]
+
+        return "\n".join(lines)
+
+    #@property
+    #def zoneborder_and_nonsymmorphic(self):
+    #    return kpoint.on_border and any(not symmop.is_symmorphic for symmop in self)
+
     @property
     def symmops(self):
         return self._ops
@@ -817,9 +847,8 @@ class LatticePointGroup(OpSequence):
 
     def __init__(self, rotations):
         self._ops = [LatticeRotation(rot) for rot in rotations]
-        #print(self)
 
-        from pymatgen.symmetry.finder import get_point_group
+        # Call spglib to get the Herm symbol.
         herm_symbol, ptg_num, trans_mat = get_point_group(rotations)
         #                                                                                                
         # Remove blanks from C string.
@@ -829,23 +858,6 @@ class LatticePointGroup(OpSequence):
         if self.sch_symbol is None:
             raise ValueError("Cannot detect point group symbol! Got sch_symbol = %s" % self.sch_symbol)
 
-        # Call spglib to get the Schoenflies symbol.
-        #from pymatgen.symmetry.finder import SymmetryFinder
-        #finder = SymmetryFinder(structure, symprec=1e-5, angle_tolerance=5)
-
-        #self.sch_symbol = finder.get_point_group()
-        #finder.get_point_group_operations(self, cartesian=False)
-
-        #try:
-        #    import pymatgen._spglib as spg
-        #except ImportError:
-        #    try:
-        #        import pyspglib._spglib as spg
-        #    except ImportError:
-        #        msg = ("Spglib required. Please either run python setup.py install"
-        #               " for pymatgen, or install pyspglib from spglib.")
-        #        raise ImportError(msg)
-
     #@classmethod
     #def from_lattice(cls, lattice)
 
@@ -853,7 +865,7 @@ class LatticePointGroup(OpSequence):
         return "%s: %s, %s (%d)" % (self.__class__.__name__, self.herm_symbol, self.sch_symbol, self.spgid)
 
     def __str__(self):
-        return repr(self)
+        return "%s, %s (%d)" % (self.herm_symbol, self.sch_symbol, self.spgid)
 
     @property
     def sch_symbol(self):
@@ -911,7 +923,7 @@ class LatticeRotation(Operation):
         return self.name
 
     #def __str__(self):
-    #    lines = "Rotation: " + str(self.order) + ", versor: " + str(self.versor) + ", " + str(self.trcoords) + "\n"
+    #    lines = "Rotation: " + str(self.order) + ", versor: " + str(self.versor) + ", 
     #    lines.append(str(self.mat))
     #    return "\n".join(lines)
 
@@ -997,14 +1009,23 @@ class LatticeRotation(Operation):
     def name(self):
         # Sign of the determinant (only if improper)
         name = "-" if self.det == -1 else ""
-
-        # FIXME this one doesn't work yet.
         name += str(self.order) 
-
         # Root of inverse?
         name += "-" if self.root_inv != 0 else "+"
 
         return name
+
+    #def versor(self):
+    #    # Numb code, it would be possible to have a closed expression.
+    #    from numpy.linalg import eig
+    #    eigens, eigvecs = eig(self.mat)
+    #    eigvecs = eigvecs.T # F --> C
+    #    print(eigens, eigvecs)
+    #    for e, vec in zip(eigens, eigves):
+    #       if np.abs(e - 1) < 1.e-3:
+    #            return vec
+    #    else:
+    #       raise ValueError("Cannot find versor of the rotation)
 
     #@property
     #def rottype(self):
@@ -1086,10 +1107,17 @@ class Irrep(object):
         return self._character
 
 
-
 def bilbao_ptgroup(sch_symbol):
+    """
+    Returns an instance of `BilbaoPointGroup`.
+    from a string with the point group symbol
+    or a number with the spacegroup ID.
+    """
+    sch_symbol = any2sch(sch_symbol)
+
     from abipy.core.irrepsdb import _PTG_IRREPS_DB
     entry = _PTG_IRREPS_DB[sch_symbol]
+
     entry.pop("nclass")
     entry["sch_symbol"] = sch_symbol
     return BilbaoPointGroup(**entry)
@@ -1295,3 +1323,16 @@ def herm2sch(herm_symbol):
 def spgid2sch(spgid):
     """Return the Schoenflies symbol from the space group identifier."""
     return _SPGID2SCH.get(spgid, None)
+
+
+def any2sch(obj):
+    """Convert string or int to Schoenflies symbol. Returns None if invalid input"""
+    if is_string(obj):
+        if obj in sch_symbols:
+            return obj
+        else:
+            # Try Hermann-Mauguin
+            return herm2sch(obj)
+    else:
+        # Spacegroup ID?
+        return spgid2sch(obj)

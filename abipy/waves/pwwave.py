@@ -4,6 +4,7 @@ from __future__ import print_function, division
 import tempfile
 import itertools
 import numpy as np
+import copy
 
 from abipy.iotools import Visualizer
 from abipy.iotools.xsf import xsf_write_structure, xsf_write_data
@@ -24,7 +25,6 @@ class WaveFunction(object):
     """
     Abstract class defining base and abstract methods for wavefunction objects.
     """
-
     def __eq__(self, other):
         if other is None: return False
         if self.gsphere != other.gsphere: return False
@@ -93,7 +93,7 @@ class WaveFunction(object):
         try:
             return self._ur
         except AttributeError:
-            self._ur = self._fft_ug()
+            self._ur = self.fft_ug()
             return self._ur
 
     def delete_ur(self):
@@ -114,12 +114,32 @@ class WaveFunction(object):
         self._mesh = mesh
         self.delete_ur()
 
-    def _fft_ug(self):
+    def deepcopy(self)
+        """Deep copy of self."""
+        return copy.deepcopy(self)
+
+    def ug_mesh(self, mesh=None):
         """
-        Performs the FFT transform of :math:`u(g)`.
+        Returns u(G) on the FFT mesh,
+
+        Args:
+            mesh: `Mesh3d` object. If mesh is None, self.mesh is used.
+        """
+        mesh = self.mesh if mesh is None else mesh
+        ug_mesh = self.gsphere.tofftmesh(mesh, self.ug)
+        return ug_mesh
+
+    def fft_ug(self, mesh=None):
+        """
+        Performs the FFT transform of :math:`u(g)` on mesh.
+
+        Args:
+            mesh: `Mesh3d` object. If mesh is None, self.mesh is used.
+
         Returns :math:`u(r)` on the real space FFT box.
         """
-        ug_mesh = self.gsphere.tofftmesh(self.mesh, self.ug)
+        mesh = self.mesh is mesh is None else mesh
+        ug_mesh = self.gsphere.tofftmesh(mesh, self.ug)
         return self.mesh.fft_g2r(ug_mesh, fg_ishifted=False)
 
     def tostring(self, prtvol=0):
@@ -282,13 +302,15 @@ class PWWaveFunction(WaveFunction):
     #    wpww.mesh = self.mesh
     #    return wpww
 
-    def rotate(self, symmop):
+    def rotate(self, symmop, mesh=None):
         """
         Rotate the pwwave by the symmetry operation symmop.
 
         Args:
             symmop:
                 `Symmetry` operation
+            mesh:
+                mesh for the FFT, if None the mesh of self is used.
 
         Returns:
             New wavefunction object.
@@ -297,14 +319,6 @@ class PWWaveFunction(WaveFunction):
             raise ValueError("Spinor rotation not available yet.")
                                                                                                                  
         rot_gsphere = self.gsphere.rotate(symmop)
-                                                                                                                 
-        # CHANGE THIS !! Have a method that rotates the Ug's then calls the PWWaveFunction constructor!
-        #rot_kpt = symmop.rotate_k(self.kpoint, wrap_tows=False)
-        #rot_gvecs = symmop.rotate_g(self.gsphere.gvecs)
-        #                                                                                                         
-        #self.gsphere.kpoint = rot_kpt
-        #self.gsphere.gvecs = rot_gvecs
-                                                                                                                 
         #rot_istwfk = istwfk(rot_kpt)
         #rot_gsphere = Gsphere(self.ecut, self.gsphere.lattice, rot_kpt, rot_gvecs, istwfk=rot_istwfk)
                                                                                                                  
@@ -320,16 +334,43 @@ class PWWaveFunction(WaveFunction):
         else:
             rot_ug = self.ug.copy() 
                                                                                                                  
-        # Invert the collinear spin when we have a AFM operation
+        # Invert the collinear spin if we have an AFM operation
         rot_spin = self.spin
         if self.nspinor == 1: 
             rot_spin = self.spin if symmop.is_fm else (self.spin + 1) % 2
 
-        # Build new wave
-        return self.__class__(self.nspinor, rot_spin, self.band, rot_gsphere, rot_ug)
+        # Build new wave and set the mesh.
+        new = self.__class__(self.nspinor, rot_spin, self.band, rot_gsphere, rot_ug)
+        new.set_mesh(mesh if mesh is not None else self.mesh)
+        return new
 
 
 #class PAW_Wavefunction(PWWaveFunction):
 #    """
 #    A PAW wavefunction extends PWWavefunction adding new methods
+#    All the methods that are related to the all-electron representation
+#    should start with ae.
 #    """
+#    def __init__(self, nspinor, spin, band, gsphere, ug, structure, onsite_terms, cprj=None):
+#        """
+#
+#        cprj[nspinor, natom] = <tprj|tPsi>
+#        """
+#        PWWaveFunction.__init__(self, nspinor, spin, band, gsphere, ug):
+#
+#        self.structure = structure 
+#        self.onsite_terms = onsite_terms
+#
+#        self.cprj = cprj
+#        if cprj is None:
+#            # Have to compute the tprj here.
+#            raise NotImplementedError()
+#
+#    def ae_ur(self, dense_mesh):
+#        # Compute smooth part on the dense FFT mesh.
+#        ug_mesh = self.gsphere.tofftmesh(dense_mesh, self.ug)
+#        ur_dense = dense_mesh.fft_g2r(ug_mesh, fg_ishifted=False)
+#
+#        # Add the on-site terms.
+#
+#        return self._ae_ur

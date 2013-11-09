@@ -35,19 +35,15 @@ class Mesh3D(object):
            0-----4      +-----x
 
     """
-    def __init__(self, shape, vectors, pbc=3*(True,)):
+    def __init__(self, shape, vectors):
         """
-        Construct Mesh3D object.
+        Construct `Mesh3D` object.
 
         Args:
             shape:
                 3 int's Number of grid points along axes.
             vectors:
                 unit cell vectors
-            pbc:
-                Periodic boundary conditions flag(s). one or three boolean
-                Note that if pbc[c] is True, then the actual number of gridpoints
-                along axis c is one less than ndivs[c].
 
         Attributes:
 
@@ -62,16 +58,13 @@ class Mesh3D(object):
 
         cross12 = np.cross(self.vectors[1], self.vectors[2])
         self.dv = abs(np.sum( self.vectors[0] * cross12.T)) / self.size
-        self.pbc = np.asarray(pbc)
 
     def __len__(self):
         return self.size
 
     def __eq__(self, other):
         return (np.all(self.shape == other.shape) and
-                np.all(self.vectors == other.vectors) and
-                np.all(self.pbc == other.pbc)
-                )
+                np.all(self.vectors == other.vectors))
 
     def __ne__(self, other):
         return not self == other
@@ -227,6 +220,41 @@ class Mesh3D(object):
 
         else:
             raise NotImplementedError("ndim < 3 are not supported")
+    
+    def get_rpoints(self):
+        rpoints = np.empty((self.size,3))
+        idx = -1
+        for x in range(self.nx):
+            for y in range(self.ny):
+                for z in range(self.nz):
+                    idx += 1
+                    rpoints[idx,0] = x / self.nx
+                    rpoints[idx,1] = y / self.ny
+                    rpoints[idx,2] = z / self.nz
+
+        return rpoints
+
+    #def get_rgrid(self):
+    #  grid_x, grid_y, grid_z = np.mgrid[0:1:100j, 0:1:200j]
+
+    def get_gvecs(self):
+        gx_list = np.rint(fftfreq(self.nx) * self.nx)
+        gy_list = np.rint(fftfreq(self.ny) * self.ny)
+        gz_list = np.rint(fftfreq(self.nz) * self.nz)
+        #print(gz_list, gy_list, gx_list)
+
+        gvecs = np.empty((self.size,3), dtype=np.int)
+
+        idx = -1
+        for gx in gx_list:
+            for gy in gy_list:
+                for gz in gz_list:
+                    idx += 1
+                    gvecs[idx,0] = gx
+                    gvecs[idx,1] = gy
+                    gvecs[idx,2] = gz
+
+        return gvecs
 
     def trilinear_interp(self, fr, xx):
         """Interpolate fr on points."""
@@ -265,38 +293,3 @@ class Mesh3D(object):
         #    return new
         #else:
         #    return new[0]
-
-    def get_rpoints(self):
-        rpoints = np.zeros((self.size,3))
-        idx = -1
-        for x in range(self.nx):
-            for y in range(self.ny):
-                for z in range(self.nz):
-                    idx += 1
-                    rpoints[idx,0] = float(x) / self.nx
-                    rpoints[idx,1] = float(y) / self.ny
-                    rpoints[idx,2] = float(z) / self.nz
-
-        return rpoints
-
-    #def get_rgrid(self):
-    #  grid_z, grid_y, grid_x = np.mgrid[0:1:100j, 0:1:200j]
-
-    def get_gvecs(self):
-        gvec_z = np.rint(fftfreq(self.nz) * self.nz)
-        gvec_y = np.rint(fftfreq(self.ny) * self.ny)
-        gvec_x = np.rint(fftfreq(self.nx) * self.nx)
-        #print(gvec_z, gvec_y, gvec_x)
-
-        gvec = np.zeros((self.size,3), dtype=np.int)
-
-        idx = -1
-        for gz in gvec_z:
-            for gy in gvec_y:
-                for gx in gvec_x:
-                    idx += 1
-                    gvec[idx,0] = gx
-                    gvec[idx,1] = gy
-                    gvec[idx,2] = gz
-
-        return gvec
