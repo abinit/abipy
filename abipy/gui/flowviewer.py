@@ -78,14 +78,14 @@ class FlowViewerFrame(awx.Frame):
         toolbar.AddSimpleTool(ID_SHOW_INPUTS, wx.Bitmap(awx.path_img("in.png")), "Visualize the input files of the workflow.")
         toolbar.AddSimpleTool(ID_SHOW_OUTPUTS, wx.Bitmap(awx.path_img("out.png")), "Visualize the output files of the workflow..")
         toolbar.AddSimpleTool(ID_SHOW_LOGS, wx.Bitmap(awx.path_img("log.png")), "Visualize the log files of the workflow.")
-        toolbar.AddSimpleTool(ID_SHOW_JOB_SCRIPTS, wx.Bitmap(awx.path_img("log.png")), "Visualize the scripts.")
+        toolbar.AddSimpleTool(ID_SHOW_JOB_SCRIPTS, wx.Bitmap(awx.path_img("script.png")), "Visualize the scripts.")
         toolbar.AddSimpleTool(ID_BROWSE, wx.Bitmap(awx.path_img("browse.png")), "Browse all the files of the workflow.")
         toolbar.AddSimpleTool(ID_SHOW_MAIN_EVENTS, wx.Bitmap(awx.path_img("out_evt.png")), "Show the ABINIT events reported in the main output files.")
         toolbar.AddSimpleTool(ID_SHOW_LOG_EVENTS, wx.Bitmap(awx.path_img("log_evt.png")), "Show the ABINIT events reported in the log files.")
-        toolbar.AddSimpleTool(ID_SHOW_TIMERS, wx.Bitmap(awx.path_img("log_evt.png")), "Show the ABINIT timers in the abo files.")
+        toolbar.AddSimpleTool(ID_SHOW_TIMERS, wx.Bitmap(awx.path_img("timer.png")), "Show the ABINIT timers in the abo files.")
 
         toolbar.AddSeparator()
-        toolbar.AddSimpleTool(ID_CHECK_STATUS, wx.Bitmap(awx.path_img("log_evt.png")), "Check the status of the workflow(s).")
+        toolbar.AddSimpleTool(ID_CHECK_STATUS, wx.Bitmap(awx.path_img("refresh.png")), "Check the status of the workflow(s).")
 
         #toolbar.AddSeparator()
         #self.visualizer_cbox = wx.ComboBox(choices=supported_visunames(), id=ID_TBOX_VIS, 
