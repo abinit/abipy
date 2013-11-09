@@ -94,7 +94,7 @@ def relax_flow(workdir="tmp_relax"):
 
 @enable_logging
 def main():
-    flow = relax_flow(workdir)
+    flow = relax_flow()
     return flow.build_and_pickle_dump()
 
 
