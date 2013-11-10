@@ -33,12 +33,12 @@ class WaveFunction(object):
     def __ne__(self, other):
         return not (self == other)
 
-    #def __iter__(self):
-    #    # G, ug[0:nspinor, G]
-    #    return itertools.izip(self.gvecs, self.ug.T)
+    def __iter__(self):
+        """Yields G, ug[0:nspinor, G]"""
+        return itertools.izip(self.gvecs, self.ug.T)
 
-    #def __getitem__(self, slice):
-    #    return self.gvecs[slice], self.ug[:, slice]
+    def __getitem__(self, slice):
+        return self.gvecs[slice], self.ug[:, slice]
 
     def __repr__(self):
         return str(self)
@@ -77,6 +77,16 @@ class WaveFunction(object):
         return self.gsphere.ecut
 
     @property
+    def isnc(self):
+        """True if norm-conserving wavefunction."""
+        return isinstance(self, PWWaveFunction)
+
+    @property
+    def ispaw(self):
+        """True if PAW wavefunction."""
+        return isinstance(self, PAW_WaveFunction)
+
+    @property
     def ug(self):
         """Periodic part of the wavefunctions in G-space."""
         return self._ug
@@ -104,6 +114,22 @@ class WaveFunction(object):
             pass
 
     @property
+    def ur_xyz(self):
+        """
+        Returns a copy with ur[nspinor, nx, ny, nz]. 
+        Mainly used for post-processing.
+        """
+        return self.mesh.reshape(self.ur).copy()
+
+    @property
+    def ur2_xyz(self):
+        """
+        Returns ur2[nx, ny, nz]. 
+        Mainly used for post-processing.
+        """
+        return self.mesh.reshape(self.ur2)
+
+    @property
     def mesh(self):
         """The mesh used for the FFT."""
         return self._mesh
@@ -114,7 +140,7 @@ class WaveFunction(object):
         self._mesh = mesh
         self.delete_ur()
 
-    def deepcopy(self)
+    def deepcopy(self):
         """Deep copy of self."""
         return copy.deepcopy(self)
 
@@ -138,9 +164,9 @@ class WaveFunction(object):
 
         Returns :math:`u(r)` on the real space FFT box.
         """
-        mesh = self.mesh is mesh is None else mesh
-        ug_mesh = self.gsphere.tofftmesh(mesh, self.ug)
-        return self.mesh.fft_g2r(ug_mesh, fg_ishifted=False)
+        mesh = self.mesh if mesh is None else mesh
+        ug_mesh = self.ug_mesh(mesh)
+        return mesh.fft_g2r(ug_mesh, fg_ishifted=False)
 
     def tostring(self, prtvol=0):
         """String representation."""
@@ -161,6 +187,10 @@ class WaveFunction(object):
     def ur2(self):
         """Return :math:`||u(r)||^2` in real space."""
         ur2 = self.ur.conj() * self.ur
+        #ur2 = self.ur[0].conj() * self.ur[0]
+        #if self.nspinor == 2:
+        #    ur2 += self.ur[1].conj() * self.ur[1]
+
         # copy to have contiguous data.
         return ur2.real.copy()
 
@@ -181,9 +211,9 @@ class PWWaveFunction(WaveFunction):
             band:
                 band index (>=0)
             gsphere
-                Gsphere instance.
+                `GSphere` instance.
             ug:
-                2D array containing u(nspinor,G) for G in gsphere.
+                2D array containing u[nspinor,G] for G in gsphere.
         """
         self.nspinor, self.spin, self.band = nspinor, spin, band
         # Sanity check.
@@ -234,6 +264,11 @@ class PWWaveFunction(WaveFunction):
                 raise NotImplementedError("extension %s is not supported." % ext)
 
         return Visualizer.from_file(filename)
+
+    #def tkin(self):
+    #    """Computes the matrix element of the kinetic operator in reciprocal space."""
+    #    tug = -0.5 * self.gsphere.kpg2 * self.ug
+    #    return np.vdot(self.ug, tug).sum()
 
     def braket(self, other, space="g"):
         """
@@ -320,8 +355,7 @@ class PWWaveFunction(WaveFunction):
                                                                                                                  
         rot_gsphere = self.gsphere.rotate(symmop)
         #rot_istwfk = istwfk(rot_kpt)
-        #rot_gsphere = Gsphere(self.ecut, self.gsphere.lattice, rot_kpt, rot_gvecs, istwfk=rot_istwfk)
-                                                                                                                 
+
         if not np.allclose(symmop.tau, np.zeros(3)):
             rot_ug = np.empty_like(self.ug)
             rot_gvecs = rot_gsphere.gvecs
@@ -345,15 +379,12 @@ class PWWaveFunction(WaveFunction):
         return new
 
 
-#class PAW_Wavefunction(PWWaveFunction):
-#    """
-#    A PAW wavefunction extends PWWavefunction adding new methods
-#    All the methods that are related to the all-electron representation
-#    should start with ae.
-#    """
+class PAW_Wavefunction(WaveFunction):
+    """
+    All the methods that are related to the all-electron representation should start with ae.
+    """
 #    def __init__(self, nspinor, spin, band, gsphere, ug, structure, onsite_terms, cprj=None):
 #        """
-#
 #        cprj[nspinor, natom] = <tprj|tPsi>
 #        """
 #        PWWaveFunction.__init__(self, nspinor, spin, band, gsphere, ug):

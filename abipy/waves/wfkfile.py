@@ -71,10 +71,12 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
     @property
     def kpoints(self):
+        """List of k-points in the WFK file."""
         return self.ebands.kpoints
 
     @property
     def nkpt(self):
+        """Number of k-points."""
         return len(self.kpoints)
 
     @property
@@ -160,6 +162,23 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         # Export data uding the format specified by filename.
         return wave.export_ur2(filepath, self.structure)
 
+    #def visualize_ur2(self, spin, kpoint, band, visualizer):
+    #    """
+    #    Visualize :math:`|u(r)|^2`  with visualizer.
+    #    See :class:`Visualizer` for the list of applications and formats supported.
+    #    """
+    #    extensions = Visualizer.exts_from_appname(visualizer)
+    #
+    #    for ext in extensions:
+    #        ext = "." + ext
+    #        try:
+    #            return self.export_ur2(ext, spin, kpoint, band)
+    #        except Visualizer.Error:
+    #            pass
+    #    else:
+    #        msg = "Don't know how to export data for visualizer %s" % visualizer
+    #        raise Visualizer.Error(msg)
+
     def classify_ebands(self, spin, kpoint, bands_range, tol_ediff=1e-3):
         """
         Analyze the caracter of the bands at the given k-point and spin.
@@ -195,41 +214,7 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
         # Compute the D(R) matrices for each degenerate subset.
         dmats = DMatrices(ltk, deg_ewaves)
-        raise NotImplementedError("")
-
-        # Locate the D(R) in the lookup table.
-        for trace_atol in [0.001, 0.01, 0.01]:
-            try:
-               dmats.classify(trace_atol)
-               return dmats
-            except dmats.ClassificationError:
-               pass
-
-        # Case with accidental degeneraties. 
-        # Try to decompose the reducible representations
-        try:
-            dmats.decompose()
-            return dmats
-        except dmats.DecompositionError:
-            raise 
-
-    #def visualize_ur2(self, spin, kpoint, band, visualizer):
-    #    """
-    #    Visualize :math:`|u(r)|^2`  with visualizer.
-    #    See :class:`Visualizer` for the list of applications and formats supported.
-    #    """
-    #    extensions = Visualizer.exts_from_appname(visualizer)
-    #
-    #    for ext in extensions:
-    #        ext = "." + ext
-    #        try:
-    #            return self.export_ur2(ext, spin, kpoint, band)
-    #        except Visualizer.Error:
-    #            pass
-    #    else:
-    #        msg = "Don't know how to export data for visualizer %s" % visualizer
-    #        raise Visualizer.Error(msg)
-
+        return dmats
 
 
 class WFK_Reader(ElectronsReader):
@@ -262,7 +247,7 @@ class WFK_Reader(ElectronsReader):
         # Wavefunctions (complex array)
         # TODO use variables to avoid storing the full block.
         if self.cplex_ug == 2:
-            self.set_of_ug = self.read_value("coefficients_of_wavefunctions", cmode="c")
+            self.ug_block = self.read_value("coefficients_of_wavefunctions", cmode="c")
         else:
             raise NotImplementedError("")
 
@@ -273,7 +258,7 @@ class WFK_Reader(ElectronsReader):
             return self._basis_set
         except AttributeError:
             basis_set = self.read_value("basis_set")
-            self._basis_set = "".join([c for c in basis_set]).strip()
+            self._basis_set = "".join(basis_set).strip()
             return self._basis_set
 
     @property
@@ -311,7 +296,7 @@ class WFK_Reader(ElectronsReader):
         k = self.kindex(kpoint)
         npw_k, istwfk = self.npwarr[k], self.istwfk[k]
         # TODO use variables to avoid storing the full block.
-        return self.set_of_ug[spin, k, band, :, :npw_k]
+        return self.ug_block[spin, k, band, :, :npw_k]
 
 
 
@@ -375,6 +360,27 @@ class DMatrices(object):
         Compute the D(R) matrices for each degenerate subset.
         """
         kgroup = ltk.kgroup
+        #print("g0vecs", ltk.g0vecs)
+
+        #The main problem here is represented by the fact 
+        #that the classes in ltk might not have the 
+        #same order as the classes reported in the Bilbao database.
+        #Hence we have to shuffle the last dimension of my_character
+        #so that we can compare the two array correctly
+        #The most robust approach consists in matching class invariants 
+        #such as the trace, the determinant of the rotation matrices.
+        #as well as the order of the rotation and inv_root!
+        #Perhaps I can make LatticeRotation hashable with
+        #__hash__ = return det + 10 * trace + 100 * order + 1000 * inv_root
+        #The pseudo code below computes the table to_bilbao_classes:
+
+        # Get the Bilbao entry for this point group
+        from abipy.core.symmetries import bilbao_ptgroup
+        try:
+            self.bilbao_ptg = bilbao_ptgroup(kgroup.sch_symbol)
+            #to_bilbao_classes = self.bilbao_ptg.map_rotclasses(kgroup.rotclasses)
+        except:
+            raise self.Error(straceback())
 
         # Number of degeneracies, 
         # number of spatial rotation in the group of k, number of classes in kgroup.
@@ -388,14 +394,14 @@ class DMatrices(object):
         dmats = self.num_degs * [None]
         for idg, (e, waves) in enumerate(deg_ewaves):
             nb = len(waves)
-            print(nb)
             dr_bbp = np.empty((num_rotk, nb, nb), dtype=np.complex)
             dr_bbp[:,:,:] = np.inf
             dmats[idg] = dr_bbp
 
         # FIXME
         # Here there's a problem since I have to exclude time_rev and afm.
-        ltk_symmops = ltk.symmops[:48]
+        #ltk_symmops = ltk.symmops[:48]
+        ltk_symmops = ltk.symmops[:8]
 
         for idg, (e, waves) in enumerate(deg_ewaves):
             nb = len(waves)
@@ -405,60 +411,15 @@ class DMatrices(object):
                     prod = wave.braket(rot_wave)
                     # Update the entry
                     dmats[idg][isym,ii,ii] = prod
-
-            #from pprint import pprint
-            print("idg", idg)
-            print(dmats[idg].shape)
-            #print(dmats[idg])
+            print("idg", idg, "shape", dmats[idg].shape)
 
         self.dmats = dmats
-        """
-        The main problem here is represented by the fact 
-        that the classes in ltk might not have the 
-        same order as the classes reported in the Bilbao database.
-        Hence we have to shuffle the last dimension of my_character
-        so that we can compare the two array correctly
-        The most robust approach consists in matching class invariants 
-        such as the trace, the determinant of the rotation matrices.
-        as well as the order of the rotation and inv_root!
-        Perhaps I can make LatticeRotation hashable with
-        __hash__ = return det + 10 * trace + 100 * order + 1000 * inv_root
-        The pseudo code below computes the table to_bilbao_classes:
-        """
-        #def my_character(self):
-        # Allocate array to store the calculated character.
-        #    char_dg = self.num_degs * [None]
-        #    for idg in range(self.num_degs)
-        #        char = mat.trace() for mat in self.dmats[idg]  for each element in class
-        #        char_dg[idg] = char
-        #    return char_dg
 
-        # Get the Bilbao entry for this point group
-        from abipy.core.symmetries import bilbao_ptgroup
-        try:
-            bilbao_ptg = bilbao_ptgroup(kgroup.sch_symbol)
-            #to_bilbao_classes = bilbao_ptg.map_rotclasses(kgroup.rotclasses)
-        except:
-            raise self.Error(straceback())
-
-        #for idg in range(num_degs):
-        #    my_character[idg] = my_character[idg][to_bilbao_classes]
-
-        # Now my_character has the same ordered as in the Bilbao database.
-        # The remaining part is trivial and we only have to deal with possible
-        # failures due to numerical errors and accidental degeneracies.
-        #deg_labels = [None] * num_degs
-        #for idg in range(num_degs):
-        #    mychar = my_character[idg]
-        #    for irrep in bilbao_ptg.irreps:
-        #        if np.allclose(irrep.character, mychar, rtol=1e-05, atol=1e-08):
-        #            deg_labels[idg] = irrep.name
-        #            break
-
-        #if any(label is None for label in deg_labels):
-        #    """Increase tolerance and rerun.""" 
-        #return deg_labels
-
+        for idg in range(num_degs):
+            if idg != 2: continue
+            print(self.all_traces(idg))
+        
+        #my_character[idg] = my_character[idg][to_bilbao_classes]
         #from pymatgen.util.num_utils import iuptri
         # Loop over the set of degenerate states.
         # For each degenerate set compute the full D_(R)
@@ -478,6 +439,26 @@ class DMatrices(object):
         #            mats[idg][icl][ii,jj] = prod
         #self.mats = mats
 
+        # Locate the D(R) in the lookup table.
+        #deg_labels = None
+        #for trace_atol in [0.001, 0.01, 0.01]:
+        #    try:
+        #       deg_labels = dmats.classify(trace_atol)
+        #    except dmats.ClassificationError:
+        #       pass
+
+        #if deg_labels is not None:
+        #    self.deg_labels = deg_labels
+        #    return
+
+        # Case with accidental degeneraties. 
+        # Try to decompose the reducible representations
+        #try:
+        #    dmats.decompose()
+        #    return dmats
+        #except dmats.DecompositionError:
+        #    raise 
+
     #def __str__(self):
     #    lines = []
     #    app = lines.append
@@ -486,12 +467,38 @@ class DMatrices(object):
     #def _compute_diagonal_per_class(self):
     #def _compute_all_dmats(self):
 
+    def all_traces(self, idg):
+        """Return the calculated character given the degeneracy index."""
+        ds = self.dmats[idg]
+        return [d.trace() for d in ds]
+
+    #def my_character(self, idg):
+    #    """Return the calculated character given the degeneracy index."""
+    #    ds = self.dmats[idg]
+    #    return ds[isym,:,:].trace() for isym in class_ids
+
     def classify(self, trace_rtol=1e-05, trace_atol=1e-08):
         """
         Raises:
             ClassificationError
         """
-        raise NotImplementedError()
+        # Now my_character has the same ordered as in the Bilbao database.
+        # The remaining part is trivial and we only have to deal with possible
+        # failures due to numerical errors and accidental degeneracies.
+        num_degs = self.num_degs
+        deg_labels = [None] * num_degs
+
+        for idg in range(self.num_degs):
+            mychar = self.my_character(idg)
+            for irrep in self.bilbao_ptg.irreps:
+                if np.allclose(irrep.character, mychar, rtol=trace_rtol, atol=trace_atol):
+                    deg_labels[idg] = irrep.name
+                    break
+                                                                                  
+        if any(label is None for label in deg_labels):
+            raise ClassificationError()
+
+        return deg_labels
 
     def decompose(self):
         """

@@ -2,6 +2,7 @@
 from __future__ import division, print_function
 
 import numpy as np
+from itertools import product as iproduct
 
 from numpy.random import random
 from numpy.fft import fftn, ifftn, fftshift, ifftshift, fftfreq
@@ -73,8 +74,7 @@ class Mesh3D(object):
         return self.tostring()
 
     def tostring(self, prtvol=0):
-        s = self.__class__.__name__
-        s += ": nx=%d, ny=%d, nz=%d" % self.shape
+        s = self.__class__.__name__ + ": nx=%d, ny=%d, nz=%d" % self.shape
         return s
 
     @property
@@ -157,17 +157,6 @@ class Mesh3D(object):
         """
         return np.reshape(arr, (-1,) + self.shape)
 
-    #def zero_pad(self, arr):
-    #  """
-    #  Pad array with zeros as first element along non-periodic directions.
-    #  """
-    #  assert np.all(arr.shape[-3:] == (self.N_c + self.pbc - 1))
-    #  if self.pbc.all(): return arr
-    #  npbx, npby, npbz = 1 - self.pbc
-    #  b_xg = np.zeros(arr.shape[:-3] + tuple(self.N_c), dtype=arr.dtype)
-    #  b_xg[..., npbx:, npby:, npbz:] = arr
-    #  return b_xg
-
     def fft_r2g(self, fr, shift_fg=False):
         """FFT of array fr given in real space."""
         ndim, shape = fr.ndim, fr.shape
@@ -220,31 +209,15 @@ class Mesh3D(object):
 
         else:
             raise NotImplementedError("ndim < 3 are not supported")
-    
-    def get_rpoints(self):
-        rpoints = np.empty((self.size,3))
-        idx = -1
-        for x in range(self.nx):
-            for y in range(self.ny):
-                for z in range(self.nz):
-                    idx += 1
-                    rpoints[idx,0] = x / self.nx
-                    rpoints[idx,1] = y / self.ny
-                    rpoints[idx,2] = z / self.nz
-
-        return rpoints
-
-    #def get_rgrid(self):
-    #  grid_x, grid_y, grid_z = np.mgrid[0:1:100j, 0:1:200j]
 
     def get_gvecs(self):
         gx_list = np.rint(fftfreq(self.nx) * self.nx)
         gy_list = np.rint(fftfreq(self.ny) * self.ny)
         gz_list = np.rint(fftfreq(self.nz) * self.nz)
         #print(gz_list, gy_list, gx_list)
-
+                                                      
         gvecs = np.empty((self.size,3), dtype=np.int)
-
+                                                      
         idx = -1
         for gx in gx_list:
             for gy in gy_list:
@@ -253,43 +226,106 @@ class Mesh3D(object):
                     gvecs[idx,0] = gx
                     gvecs[idx,1] = gy
                     gvecs[idx,2] = gz
-
+                                                      
         return gvecs
+    
+    def get_rpoints(self):
+        nx, ny, nz = self.nx, self.ny, self.nz
+        rpoints = np.empty((self.size,3))
 
-    def trilinear_interp(self, fr, xx):
-        """Interpolate fr on points."""
-        raise NotImplementedError()
-        fr = self.reshape(fr)
+        for ifft, p1_fft in enumerate(iproduct(range(nx), range(ny), range(nz))):
+            rpoints[ifft,0] = p1_fft[0] / nx
+            rpoints[ifft,1] = p1_fft[1] / ny
+            rpoints[ifft,2] = p1_fft[2] / nz
 
-        xx = np.atleast_2d(xx)
-        nx = len(xx)
+        return rpoints
 
-        oarr = np.empty(xx, fr.dtype)
+    #def ogrid_rfft(self):
+    #    return np.ogrid[0:1:1/self.nx, 
+    #                    0:1:1/self.ny,
+    #                    0:1:1/self.nz]
 
-        #So we assume your grid has the corners (0.0, 0.0, 0.0) and (max_x, max_y, max_z)
-        #and is aligned with the coordinate system.
-        #We denote the number of cells along each axis by (n_x, n_y, n_z) respectively
-        #and the point you wish to evaluate at by (x, y, z) (all of type float).
-        #Then your logic might be something similar to
+    def axis_inds(self, axis):
+        """
+        Returns an ogrid with the indices associated to the specified axis.
 
-        #a_x = x * n_x / max_x
-        #a_y = y * n_y / max_y
-        #a_z = z * n_z / max_z
-        #i_x = math.floor(a_x)
-        #i_y = math.floor(a_y)
-        #i_z = math.floor(a_z)
-        #l_x = a_x - i_x
-        #l_y = a_y - i_y
-        #l_z = a_z - i_z
+        Args:
+            axis: 
+                String specifying the type of axis (in reduced coordinates),
+                e.g. "x", "y", "z".
+        """
+        axis = axis.lower()
 
-        #for idx, pt in enumerate(xx):
-            #pass
-            # Find the indices of nodes enclosing the point.
+        if axis == "x":
+            return np.ogrid[0:self.nx, 0:1, 0:1]
+        elif axis == "y":
+            return np.ogrid[0:1, 0:self.ny, 0:1]
+        elif axis == "z":
+            return np.ogrid[0:1, 0:1, 0:self.nz]
+        else:
+            raise ValueError("Wrong axis %s" % axis)
 
-            # Linear interpolation
-            #new[idx] = f..
+    def plane_inds(self, plane, h):
+        """
+        Returns an ogrid with the indices associated to the specified plane.
 
-        #if npts > 1:
-        #    return new
-        #else:
-        #    return new[0]
+        Args:
+            plane: 
+                String specifying the type of plane (in reduced coordinates),
+                e.g. "xy" "xz" ...
+            h:
+                Index giving the position of the plane along the perpendicular.
+        """
+        plane = plane.lower()
+        nx, ny, nz = self.nx, self.ny, self.nz
+
+        if plane in ("xy", "yx"):
+            return np.ogrid[0:nx, 0:ny, h:h+1]
+        elif plane in ("xz", "zx"):
+            return np.ogrid[0:nx, h:h+1, 0:nz]
+        elif plane in ("yz", "zy"):
+            return np.ogrid[h:h+1, 0:ny, 0:nz]
+        else:
+            raise ValueError("Wrong plane %s" % plane)
+
+    def irottable(self, symmops):
+        nsym = len(symmops)
+        nx, ny, nz = self.nx, self.ny, self.nz
+
+        red2fft = np.diag([nx, ny, nz])
+        fft2red = np.diag([1/nx, 1/ny, 1/nz])
+
+        # For a fully compatible mesh, each mat in rotsm1_fft should be integer 
+        rotsm1_fft, tnons_fft = np.empty((nsym,3,3)), np.empty((nsym,3)) 
+
+        for isym, symmop in enumerate(symmops):
+            rotm1_r, tau = symmop.rotm1_r, symmop.tau
+            rotsm1_fft[isym] = np.dot(np.dot(red2fft, rotm1_r), fft2red)
+            tnons_fft[isym] = np.dot(red2fft, tau)
+
+        # Indeces of $R^{-1}(r-\tau)$ in the FFT box.
+        irottable = np.empty((nsym, nx*ny*nz), dtype=np.int) 
+
+        #max_err = 0.0
+        nxyz = np.array((nx, ny, nz), np.int)
+        for isym in range(nsym):
+            rm1_fft = rotsm1_fft[isym]
+            tau_fft = tnons_fft[isym]
+            for ifft, p1_fft in enumerate(iproduct(range(nx), range(ny), range(nz))):
+                # Form R^-1 (r-\tau) in the FFT basis.
+                p1_fft = np.array(p1_fft)
+                prot_fft = np.dot(rm1_fft, p1_fft - tau_fft)
+                #err = ABS(prot_fft - (ix, iy, iz)) / (nx, ny, nz)
+                prot_fft = np.round(prot_fft)
+                jx, jy, jz = prot_fft % nxyz
+                irottable[isym, ifft] = jz + (jy * nz) + (jx * nx * ny)
+
+        # Test
+        #for isym in range(nsym):
+        #    irottable[isym, ifft]
+        #    rm1_fft = rotsm1_fft[isym]
+        #    tau_fft = tnons_fft[isym]
+        #    for ifft, p1_fft in enumerate(itertools.product(range(nx), range(ny), range(nz))):
+        #        irot_fft == irottable[isym, ifft]
+
+        return irottable

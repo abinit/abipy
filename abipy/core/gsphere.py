@@ -46,6 +46,16 @@ class GSphere(collections.Sequence):
         """ndarray with the G-vectors in reduced coordinates."""
         return self._gvecs
 
+    #@property
+    #def kpg2(self):
+    #    """ndarray with |k+G|**2. in atomic unit"""
+    #    try:
+    #        return self._kpg2
+    #    except AttributeError
+    #        # note that now we use pymatgen lattice hence we have to convert to a.u.
+    #        self.kpg2 = 
+    #        return self._kpg2
+
     # Sequence protocol
     def __len__(self):
         return self.gvecs.shape[0]
@@ -57,13 +67,14 @@ class GSphere(collections.Sequence):
         return self.gvecs.__iter__()
 
     def __contains__(self, gvec):
-        return np.asarray(gvec) in self
+        return np.asarray(gvec) in self.gvecs
 
     def index(self, gvec):
         """
         return the index of the G-vector gvec in self.
         Raises ValueError if the value is not present.
         """
+        gvec = np.asarray(gvec)
         for i, g in enumerate(self):
             if np.all(g == gvec):
                 return i
@@ -83,8 +94,7 @@ class GSphere(collections.Sequence):
                 np.all(self.lattice == other.lattice) and
                 self.kpoint == other.kpoint and
                 np.all(self.gvecs == other.gvecs) and
-                self.istwfk == other.istwfk
-                )
+                self.istwfk == other.istwfk)
 
     def __ne__(self, other):
         return not self == other
@@ -210,8 +220,9 @@ class GSphere(collections.Sequence):
                 i3 = gvec[2]
                 if i3 < 0: i3 = i3 + n3
                 arr_on_sphere[...,sph_idx] = arr_on_mesh[...,i1,i2,i3]
+
         else:
-            raise NotImplementedError("istwfk = " + str(self.istwfk) + " is not implemented")
+            raise NotImplementedError("istwfk %s is not implemented" % self.istwfk)
 
         if s0 == 1 and indim == 1:  
             # Reinstate input shape

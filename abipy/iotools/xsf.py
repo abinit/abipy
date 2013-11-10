@@ -1,4 +1,4 @@
-"""Tools for writing Xcryden files."""
+"""Tools for writing Xcrysden files."""
 from __future__ import division, print_function
 
 import numpy as np
@@ -11,6 +11,14 @@ __all__ = [
     "xsf_write_data",
     "bxsf_write",
 ]
+
+#class DataWriter(object)
+#    EXTENSIONS = ["xsf, "bxsf"]
+#    def write_structure(self, filepath, structure):
+#    def write_stuctures(self, filepath, structures):
+#    def write_datar(self, filepath, structure, datar, add_replicas=True, cplx_mode=None):
+#    def write_fermi_surface(self, filepath, structure, nsppol, nband, ndivs, emesh_sbk, fermie, unit="eV"):
+#    def from_filepath(cls, filepath)
 
 
 def xsf_write_structure(file, structures):
@@ -42,9 +50,8 @@ def xsf_write_structure(file, structures):
         atomic_numbers = struct.atomic_numbers
 
         # TODO
-        forces = None
-        #forces  = struct.cart_forces()
-        #if cart_forces.any(): forces = forces / Bohr_Ang # Hartree/Angstrom units
+        cart_forces = None
+        #cart_forces  = struct.cart_forces()
 
         fwrite("# Cartesian coordinates in Angstrom.\n")
         fwrite('PRIMCOORD %d\n' % (n + 1))
@@ -53,7 +60,7 @@ def xsf_write_structure(file, structures):
         for a in range(len(cart_coords)):
             fwrite(' %2d' % atomic_numbers[a])
             fwrite(' %20.14f %20.14f %20.14f' % tuple(cart_coords[a]))
-            if forces is None:
+            if cart_forces is None:
                 fwrite('\n')
             else:
                 fwrite(' %20.14f %20.14f %20.14f\n' % tuple(cart_forces[a]))
@@ -212,7 +219,7 @@ def bxsf_write(file, structure, nsppol, nband, ndivs, emesh_sbk, fermie, unit="e
         for spin in range(nsppol):
             idx += 1
             enebz = emesh_sbk[spin, band, :]
-            fw(" BAND: " + str(idx) + "\n")
+            fw(" BAND: %d\n" % idx)
             np.savetxt(file, enebz)
 
     fw(' END_BANDGRID_3D\n')

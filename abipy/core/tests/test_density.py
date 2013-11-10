@@ -25,8 +25,8 @@ class TestDensity(AbipyTest):
 
             # Compute nelect from data.
             den = Density.from_file(path)
-            structure = den.structure
             print(den)
+            structure = den.structure
             rhor_tot = den.get_rhor_tot()
             rhog_tot = den.get_rhog_tot()
             nelect_calc = den.get_nelect().sum()

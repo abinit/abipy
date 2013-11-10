@@ -74,8 +74,6 @@ class PotentialInfo(object):
         if len(flags) > 1: plus = "+"
         return plus.join( [_vnames[flag] for flag in flags] )
 
-#########################################################################################
-
 
 class Potential(DFTScalarField):
     #
@@ -202,4 +200,3 @@ class Potential(DFTScalarField):
     #  """Return vector field."""
     #  if self.iscollinear: return None
 
-#########################################################################################

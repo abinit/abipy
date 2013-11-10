@@ -74,7 +74,7 @@ class Density(DFTScalarField):
 
         If spin is None, the total number of electrons is computed.
         """
-        if not self.iscollinear:
+        if not self.is_collinear:
             raise NotImplementedError("Non collinear not implemented")
 
         nelect = self.mesh.integrate(self.datar)
@@ -91,7 +91,7 @@ class Density(DFTScalarField):
         if self.nsppol == 2:
             raise NotImplementedError("check whether ETSF-IO uses up-down storage mode")
 
-        if self.iscollinear:
+        if self.is_collinear:
             rhor_tot = np.sum(self.datar, axis=0)
             if self.nspden == 2 and self.nsppol == 1:
                 raise NotImplementedError
@@ -106,7 +106,7 @@ class Density(DFTScalarField):
         if self.nsppol == 2:
             raise NotImplementedError("check whether ETSF-IO uses up-down storage mode")
 
-        if self.iscollinear:
+        if self.is_collinear:
             rhog_tot = np.sum(self.datag, axis=0)
             if self.nspden == 2 and self.nsppol == 1: raise NotImplementedError
 
@@ -159,11 +159,11 @@ class Density(DFTScalarField):
         vhr = self.mesh.fft_g2r(vhg, fg_ishifted=False)
         return vhr, vhg
 
-    #def get_vxc(self, spin=None, xc_type=None):
+    #def get_vxc(self, xc_type=None):
         #"""Compute the exchange-correlation potential in real- and reciprocal-space."""
         #return vxcr, vxcg
 
-    #def get_kinden(self, spin=None):
+    #def get_kinden(self):
         #"""Compute the kinetic energy density in real- and reciprocal-space."""
         #return kindr, kindgg
 

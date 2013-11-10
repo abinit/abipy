@@ -1,5 +1,6 @@
 from __future__ import print_function, division
 
+import numpy as np
 import abipy.data as data
 
 from abipy.core.testing import *
@@ -20,12 +21,15 @@ class TestWFKFile(AbipyTest):
             spin, kpoint, band = (0, 0, 0)
             structure = wfk.structure
             wave = wfk.get_wave(spin, kpoint, band)
+            other_wave = wfk.get_wave(spin, kpoint, band+1)
 
             self.assertTrue(wave == wave)
+            self.assertTrue(wave != other_wave)
 
-            #for ig, (g, ug) in enumerate(wave):
-            #    self.assertTrue(np.all(g == wave.gvecs[ig]))
-            #    self.assertTrue(np.all(ug == wave.ug[:,ig]))
+            for ig, (g, u_g) in enumerate(wave):
+                self.assertTrue(np.all(g == wave.gvecs[ig]))
+                self.assertTrue(np.all(u_g == wave.ug[:,ig]))
+                if ig == 5: break
 
             #print(wave[0:1])
 

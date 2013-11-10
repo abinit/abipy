@@ -352,7 +352,7 @@ class SymmOp(Operation):
 
 class OpSequence(collections.Sequence):
     """
-    Mixin class provinding the basic method that are common to 
+    Mixin class providing the basic method that are common to 
     containers of operations.
     """
     def __len__(self):
@@ -790,23 +790,21 @@ class SpaceGroup(OpSequence):
 
         # List with the symmetry operation that preserve the kpoint.
         k_symmops = [self[i] for i in to_spgrp]
-        return LittleGroup(kpoint, k_symmops, g0vecs, to_spgrp)
+        return LittleGroup(kpoint, k_symmops, g0vecs)
 
 
 class LittleGroup(OpSequence):
-    def __init__(self, kpoint, symmops, g0vecs, to_spgrp):
+    def __init__(self, kpoint, symmops, g0vecs):
         """
         k_symmops, g0vecs, indices
                                                                                                      
         k_symmops is a tuple with the symmetry operations that preserve the k-point i.e. Sk = k + G0
         g0vecs is the tuple for G0 vectors for each operation in k_symmops
-        indices gives the index of the little group operation in the initial spacegroup.
         """
         self.kpoint = kpoint 
         self._ops = symmops
         self.g0vecs = np.reshape(g0vecs, (-1,3))
         assert len(self.symmops) == len(self.g0vecs)
-        self.to_spgrp = to_spgrp
 
         # Find the point group of k so that we know how to access the Bilbao database.
         # (note that operations are in reciprocal space, afm and time_reversalve are taken out
@@ -829,7 +827,7 @@ class LittleGroup(OpSequence):
         return "\n".join(lines)
 
     #@property
-    #def zoneborder_and_nonsymmorphic(self):
+    #def konborder_and_nonsymmorphic(self):
     #    return kpoint.on_border and any(not symmop.is_symmorphic for symmop in self)
 
     @property
@@ -1116,10 +1114,10 @@ def bilbao_ptgroup(sch_symbol):
     sch_symbol = any2sch(sch_symbol)
 
     from abipy.core.irrepsdb import _PTG_IRREPS_DB
-    entry = _PTG_IRREPS_DB[sch_symbol]
-
+    entry = _PTG_IRREPS_DB[sch_symbol].copy()
     entry.pop("nclass")
     entry["sch_symbol"] = sch_symbol
+
     return BilbaoPointGroup(**entry)
 
 

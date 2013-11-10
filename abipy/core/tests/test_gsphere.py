@@ -17,17 +17,23 @@ class TestGSphere(AbipyTest):
         lattice = np.array([1.,0,0, 0,1,0, 0,0,1])
         lattice.shape = (3,3)
         kpoint = [0,0,0]
-        gvecs = np.array([0,0,0])
+        gvecs = np.array([[0,0,0], [1,0,0]])
 
         gsphere = GSphere(ecut, lattice, kpoint, gvecs, istwfk=1)
         print(gsphere)
+        atrue = self.assertTrue
+
+        atrue(len(gsphere) == 2)
+        atrue([1,0,0] in gsphere)
+        atrue(gsphere.index([1,0,0]) == 1)
+        atrue(gsphere.count([1,0,0]) == 1)
 
         self.serialize_with_pickle(gsphere, protocols=[-1])
 
         same_gsphere = gsphere.copy()
         self.assertTrue(gsphere == same_gsphere)
         same_gsphere.kpt = [0.5, 0.1, 0.3]
-        self.assertTrue(np.all(gsphere.kpoint.frac_coords == kpoint))
+        atrue(np.all(gsphere.kpoint.frac_coords == kpoint))
 
         gsphere.zeros()
         gsphere.czeros()
