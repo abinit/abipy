@@ -126,6 +126,7 @@ def rc_list(mp, sh, pbc=False, order="bz"):
                                                    
     return np.array(rc)
 
+
 def kmesh_from_mpdivs(mpdivs, shifts, pbc=False, order="bz"):
     """
     Returns a `ndarray` with the reduced coordinates of the 
@@ -795,7 +796,8 @@ class IrredZone(KpointList):
         """Number of points in the full BZ."""
         return self.mpdivs.prod() * self.num_shifts
 
-    #def compute_ktab(self, structure):
+    #@property
+    #def ktab(self):
     #    try:
     #        return self._ktab
     #    except AttributeError:
@@ -841,11 +843,6 @@ class IrredZone(KpointList):
 
     #    kx, ky = np.meshgrid(kx, ky)
     #    return kx, ky, plane
-
-
-#from collections import namedtuple
-#class KSymmetryTables(namedtuple("KSymmetryTables", "bz2ibz ktabi ktabo")):
-#        pass
 
 
 class KSamplingInfo(AttrDict):

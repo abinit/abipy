@@ -2,18 +2,20 @@
 from __future__ import print_function, division
 
 import numpy as np
-import abipy.data as data
+import abipy.data as abidata
 
 from abipy.core import Structure
 from abipy.core.symmetries import *
 from abipy.core.testing import *
+from abipy.abilab import abiopen
+
 
 class TestSymmetries(AbipyTest):
     """"Test symmetries."""
 
     def test_silicon(self):
         """Test silicon space group."""
-        structure = Structure.from_file(data.ref_file("si_scf_WFK-etsf.nc"))
+        structure = Structure.from_file(abidata.ref_file("si_scf_WFK-etsf.nc"))
 
         self.assertTrue(structure.has_spacegroup)
         self.assertTrue(structure.is_symmorphic)
@@ -117,6 +119,7 @@ class LatticeRotationTest(AbipyTest):
         # Test pickle.
         self.serialize_with_pickle([E, I])
 
+
 class BilbaoPointGroupTest(AbipyTest):
 
     def test_database(self):
@@ -124,10 +127,36 @@ class BilbaoPointGroupTest(AbipyTest):
         for sch_symbol in sch_symbols:
             print(sch_symbol)
             ptg = bilbao_ptgroup(sch_symbol)
-            #print(ptg)
+            print(ptg)
             ptg.show_character_table()
             #for irrep_name in ptg.irrep_names: ptg.show_irrep(irrep_name)
             self.assertTrue(ptg.auto_test() == 0)
+
+
+class LittleGroupTest(AbipyTest):
+    def test_silicon_little_group(self):
+        """Testing little group in Silicon."""
+        wfk_file = abiopen(abidata.ref_file("si_scf_WFK-etsf.nc"))
+        spgrp = wfk_file.structure.spacegroup
+        #print(spgrp)
+
+        kpoints = [[0,0,0], 
+                   [0.5, 0, 0], 
+                   [1/3, 1/3, 1/3],
+                   [1/4,1/4,0],
+                  ]
+
+        for kpoint in kpoints:
+            ltk = spgrp.find_little_group(kpoint)
+            print(ltk)
+            #wfk_file.classify_ebands(0, kpoint, bands_range=range(0,5))
+
+
+
+
+
+
+
 
 
 # reduced_symmetry_matrices =

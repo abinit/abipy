@@ -3,17 +3,17 @@
 # This example shows how to compute the DOS and how to plot a band structure
 # using two GSR files produced by abinit.
 from abipy.abilab import abiopen
-import abipy.data as data
+import abipy.data as abidata
 
 # Open the file with energies computed on a k-path in the BZ
 # and extract the band structure.
-nscf_file = abiopen(data.ref_file("si_nscf_GSR.nc"))
+nscf_file = abiopen(abidata.ref_file("si_nscf_GSR.nc"))
 
 nscf_ebands = nscf_file.ebands
 
 # Open thefile with energies computed with a homogeneous sampling of the BZ 
 # and extract the band structure.
-gs_file = abiopen(data.ref_file("si_scf_GSR.nc"))
+gs_file = abiopen(abidata.ref_file("si_scf_GSR.nc"))
 
 gs_ebands = gs_file.ebands
 

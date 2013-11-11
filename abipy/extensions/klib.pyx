@@ -2,13 +2,13 @@
 #cython: boundscheck=False
 #cython: nonecheck=False
 #cython: wraparound=False
-
 from __future__ import print_function, division
 
 import numpy as np
 
 cimport cython
 cimport numpy as np
+
 from libc.stdlib cimport malloc #, free
 from cpython.mem cimport PyMem_Malloc #, PyMem_Realloc, PyMem_Free
 

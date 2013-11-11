@@ -4,13 +4,13 @@
 # the eigenvalues stored in the WFK file.
 import matplotlib.pyplot as plt
 
-import abipy.data as data
+import abipy.data as abidata
 from abipy.abilab import abiopen
 
 # Open the wavefunction file computed with a homogeneous sampling of the BZ 
 # and extract the band structure on the k-mesh.
 
-gs_wfk = abiopen(data.ref_file("si_scf_WFK-etsf.nc"))
+gs_wfk = abiopen(abidata.ref_file("si_scf_WFK-etsf.nc"))
 
 gs_ebands = gs_wfk.ebands
 

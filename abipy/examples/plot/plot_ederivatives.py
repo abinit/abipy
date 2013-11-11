@@ -3,9 +3,9 @@
 # This example shows how to compute and plot the derivatives of the
 # KS eigenvalues along a high symmetry path in K-space.
 from abipy.abilab import abiopen
-import abipy.data as data
+import abipy.data as abidata
 
-gsr_file = abiopen(data.ref_file("si_nscf_GSR.nc"))
+gsr_file = abiopen(abidata.ref_file("si_nscf_GSR.nc"))
 
 kpath = gsr_file.kpoints
 

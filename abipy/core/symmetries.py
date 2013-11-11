@@ -811,7 +811,7 @@ class LittleGroup(OpSequence):
         krots = np.array([o.rot_g for o in symmops if not o.has_timerev])
 
         self.kgroup = LatticePointGroup(krots)
-        print(self.kgroup)
+        #print(self.kgroup)
         #kclasses = kgroup.classes
 
     def __str__(self):
@@ -851,7 +851,7 @@ class LatticePointGroup(OpSequence):
         #                                                                                                
         # Remove blanks from C string.
         self.herm_symbol = herm_symbol.lstrip().rstrip() 
-        print(self.herm_symbol, ptg_num, trans_mat)
+        #print(self.herm_symbol, ptg_num, trans_mat)
         #                                                                                                
         if self.sch_symbol is None:
             raise ValueError("Cannot detect point group symbol! Got sch_symbol = %s" % self.sch_symbol)

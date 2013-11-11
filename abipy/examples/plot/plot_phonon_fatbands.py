@@ -3,10 +3,10 @@
 # This example shows how to plot the phonon fatbands of AlAs.
 # See tutorial/lesson_rf2.html
 from abipy.abilab import PhononBands
-import abipy.data as data
+import abipy.data as abidata
 
 # Path to the PHBST file produced by anaddb.
-filename = data.ref_file("trf2_5.out_PHBST.nc")
+filename = abidata.ref_file("trf2_5.out_PHBST.nc")
 
 # Create the object from file.
 phbands = PhononBands.from_file(filename)

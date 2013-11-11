@@ -3,7 +3,7 @@
 # This example shows how to visualize the convergence of the 
 # QP results stored in the SIGRES produced by the GW code (sigma run).
 from abipy.abilab import SIGRES_Plotter
-import abipy.data as data
+import abipy.data as abidata
 
 # List of SIGRES files computed with different values of nband.
 filenames = [
@@ -12,7 +12,7 @@ filenames = [
     "si_g0w0ppm_nband30_SIGRES.nc",
 ]
 
-filepaths = [data.ref_file(fname) for fname in filenames]
+filepaths = [abidata.ref_file(fname) for fname in filenames]
 
 # Instanciate the plotter and add the filepaths to the plotter.
 plotter = SIGRES_Plotter()
