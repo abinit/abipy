@@ -155,18 +155,25 @@ class Mesh3D(object):
 
         Returns ndarray with 4 dimensions (?,nx,ny,nz) where ?*nx*ny*nz == arr.size
         """
+        #if isinstance(extra_dims, int): extra_dims = (extra_dims,)
+        #shape = extra_dims + self.shape)
         return np.reshape(arr, (-1,) + self.shape)
 
     def fft_r2g(self, fr, shift_fg=False):
         """FFT of array fr given in real space."""
         ndim, shape = fr.ndim, fr.shape
-        assert self.size == np.prod(shape[-3:])
 
-        if ndim == 3:
+        if ndim == 1:
+            fr = np.reshape(fr, self.shape)
+            return self.fft_r2g(fr, shift_fg=shift_fg).flatten()
+
+        elif ndim == 3:
+            assert self.size == np.prod(shape[-3:])
             fg = fftn(fr)
             if shift_fg: fg = fftshift(fg)
 
         elif ndim > 3:
+            assert self.size == np.prod(shape[-3:])
             axes = np.arange(ndim)[-3:]
             fg = fftn(fr, axes=axes)
             if shift_fg: fg = fftshift(fg, axes=axes)
@@ -179,13 +186,18 @@ class Mesh3D(object):
     def fft_g2r(self, fg, fg_ishifted=False):
         """FFT of array fg given in G-space."""
         ndim, shape  = fg.ndim, fg.shape
-        assert self.size == np.prod(shape[-3:])
+
+        if ndim == 1:
+            fg = np.reshape(fg, self.shape)
+            return self.fft_rg2r(fg, fh_isshifted=fg_isshifted).flatten()
 
         if ndim == 3:
+            assert self.size == np.prod(shape[-3:])
             if fg_ishifted: fg = ifftshift(fg)
             fr = ifftn(fg)
 
         elif ndim > 3:
+            assert self.size == np.prod(shape[-3:])
             axes = np.arange(ndim)[-3:]
             if fg_ishifted: fg = ifftshift(fg, axes=axes)
             fr = ifftn(fg, axes=axes)
@@ -209,6 +221,13 @@ class Mesh3D(object):
 
         else:
             raise NotImplementedError("ndim < 3 are not supported")
+
+    #@staticmethod
+    #def _check_space(space):
+    #    space = space.lower()
+    #    if space not in ("r", "g"):
+    #        raise ValueError("Wrong space %s" % space)
+    #    return space
 
     def get_gvecs(self):
         gx_list = np.rint(fftfreq(self.nx) * self.nx)
@@ -245,25 +264,25 @@ class Mesh3D(object):
     #                    0:1:1/self.ny,
     #                    0:1:1/self.nz]
 
-    def axis_inds(self, axis):
+    def line_inds(self, line):
         """
-        Returns an ogrid with the indices associated to the specified axis.
+        Returns an ogrid with the indices associated to the specified line.
 
         Args:
-            axis: 
-                String specifying the type of axis (in reduced coordinates),
+            line: 
+                String specifying the type of line (in reduced coordinates),
                 e.g. "x", "y", "z".
         """
-        axis = axis.lower()
+        line = line.lower()
 
-        if axis == "x":
+        if line == "x":
             return np.ogrid[0:self.nx, 0:1, 0:1]
-        elif axis == "y":
+        elif line == "y":
             return np.ogrid[0:1, 0:self.ny, 0:1]
-        elif axis == "z":
+        elif line == "z":
             return np.ogrid[0:1, 0:1, 0:self.nz]
         else:
-            raise ValueError("Wrong axis %s" % axis)
+            raise ValueError("Wrong line %s" % line)
 
     def plane_inds(self, plane, h):
         """

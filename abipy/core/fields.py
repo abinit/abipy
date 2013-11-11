@@ -3,14 +3,12 @@ from __future__ import print_function, division
 
 import numpy as np
 
-from abipy.tools import transpose_last3dims
-from abipy.iotools import Visualizer, xsf
-from abipy.core.mesh3d import Mesh3D
-
-from abipy.tools import AttrDict
-from abipy.iotools import abipy2etsfio, ETSF_Reader
+from abipy.tools import transpose_last3dims, AttrDict
+from abipy.iotools import Visualizer, xsf, abipy2etsfio, ETSF_Reader
 from abipy.core.constants import bohr_to_angstrom
+from abipy.core.mesh3d import Mesh3D
 from abipy.core.structure import Structure
+
 
 __all__ = [
     "ScalarField",
@@ -56,7 +54,6 @@ class ScalarField(object):
 
         # FFT R --> G.
         self._datag = self.mesh.fft_r2g(self.datar)
-        #print self.datag[...,0,0,0] * structure.volume / np.product(datar.shape[-3:])
 
     def __len__(self):
         return len(self.datar)
@@ -94,7 +91,7 @@ class ScalarField(object):
     def shape(self):
         """Shape of the array."""
         shape_r, shape_g = self.datar.shape, self.datag.shape
-        assert np.all(shape_r == shape_g)
+        assert shape_r == shape_g
         return shape_r
 
     @property
@@ -117,13 +114,42 @@ class ScalarField(object):
         """True if collinear i.e. nspinor==1."""
         return self.nspinor == 1
 
-    @property
-    def datar_xyz(self):
-        """
-        Returns a copy of the real space data with shape [:, nx, ny, nz]. 
-        Mainly used for post-processing.
-        """
-        return self.mesh.reshape(self.datar).copy()
+    #@property
+    #def datar_xyz(self):
+    #    """
+    #    Returns a copy of the real space data with shape [:, nx, ny, nz]. 
+    #    Mainly used for post-processing.
+    #    """
+    #    return self.mesh.reshape(self.datar).copy()
+
+    #@property
+    #def datag_xyz(self):
+    #    """
+    #    Returns a copy of the reciprocal space data with shape [:, nx, ny, nz]. 
+    #    Mainly used for post-processing.
+    #    """
+    #    return self.mesh.reshape(self.datag).copy()
+
+    @staticmethod
+    def _check_space(space):
+        space = space.lower()
+        if space not in ("r", "g"):
+            raise ValueError("Wrong space %s" % space)
+        return space
+
+    def mean(self, space="r"):
+        """Returns the average of the array elements."""
+        if "r" == self._check_space(space):
+            return self.datar.mean(axis=0)
+        else:
+            return self.datag.mean(axis=0)
+
+    def std(self, space="r"):
+        """Returns the standard deviation."""
+        if "r" == self._check_space(space):
+            return self.datar.std(axis=0)
+        else:
+            return self.datag.std(axis=0)
 
     #def braket_waves(self, bra_wave, ket_wave):
     #    """
@@ -142,16 +168,42 @@ class ScalarField(object):
     #    assert self.nspinor == 1
     #    assert bra_wave.spin == ket_wave.spin
 
-    #    spin = bra_wave.spin
-    #    datar = self.datar[spin]
+    #    datar_spin = self.datar[bra_wave.spin]
+    #    return self.mesh.integrate(bra_ur.conj() * datar_spin * ket_ur)
 
-    #    return self.mesh.integrate(bra_ur.conj() * datar * ket_ur)
+    #def map_coordinates(self, rcoords, order=3, frac_coords=True)
+    #    """
+    #    Interpolate the real space data
+    #
+    #    Args:
+    #        coordinates: array_like
+    #           The coordinates at which input is evaluated.
+    #        order: int, optional
+    #            The order of the spline interpolation, default is 3. The order has to be in the range 0-5.
+    #    Returns: 
+    #       ndarray with the interpolated results.
+    #    """
+    #    from scipy.ndimage.interpolation import map_coordinates
+    #    # Compute the fractional coordinates at which datar is interpolated.
+    #    rcoords = np.asarray(rcoords)
+    #    if not frac_coords:
+    #       rcoords = self.structure.to_frac_coords(rcoords, in_cell=True)
+    #    # Wrap in the unit cell.
+    #    rcoords %= 1
+    #    coordinates = [rcoords[0], rcoords[1], rcoords[2]]
 
-    #def interpolate(self, points, method="linear", space="r")
+    #    Interpolate the real part.
+    #    interp_data = []
+    #    for indata in self.datar_xyz:
+    #        assert not np.iscomple(indata)
+    #        interp_data.append(map_coordinates(indata.real, coordinates, order=order))
+
+    #    return np.array(interp_data)
 
     #def fourier_interp(self, new_mesh):
         # Insert self.datag in the FFT box of new mesh.
-        #inpt_datag = new_mesh.empty(dtype=self.datag.dtype)
+        #intp_datag = np.empty_like(self.datag)
+        #intp_datag = new_mesh.transferg_from(self.mesh, self.datag)
         # FFT transform G --> R.
         #intp_datar = new_mesh.fft_g2r(intp_datag)
         #return self.__class__(self.nspinor, self.nsppol, self.nspden, self.structure, intp_datar)
@@ -200,15 +252,28 @@ class ScalarField(object):
         else:
             raise Visualizer.Error("Don't know how to export data for visualizer %s" % visualizer)
 
-    #def get_axis(self, axis):
-    #    x, y, z = self.mesh.axis_inds(axis)
-    #    values = self.datar_xyz[:, x, y, z]
+    #def get_line(self, line, space="r"):
+    #    x, y, z = self.mesh.line_inds(line)
+    #    space = self._check_space(space)
+    #    if space == "r":
+    #       line = self.datar_xyz[:, x, y, z]
+    #    elif space == "g":
+    #       line = self.datag_xyz[:, x, y, z]
+    #    # Return a 2D array.
+    #    new_shape = lines.shape[0] + tuple(s for s in shape[-3:] is s)
+    #    return np.reshape(line, new_shape)
 
-    #def get_plane(self, plane, h):
+    #def get_plane(self, plane, h, space="r"):
     #    x, y, z = self.mesh.plane_inds(plane, h=h)
-    #    plane = self.datar_xyz[:, x, y, z]
-    #    new_shape = (plane.shape[0],) + tuple([s for s in plane.shape[-3:-1] if s > 1])
+    #    space = self._check_space(space)
+    #    if space == "r":
+    #       plane = self.datar_xyz[:, x, y, z]
+    #    elif space == "g":
+    #       plane = self.datag_xyz[:, x, y, z]
+    #    # Return a 3D array.
+    #    new_shape = lines.shape[0] + tuple(s for s in shape[-3:] is s)
     #    return np.reshape(plane, new_shape)
+
 
 
 class Density(ScalarField):
@@ -257,10 +322,9 @@ class Density(ScalarField):
             # Get rid of fake last dimensions (cplex).
             rhor = np.reshape(rhor, (dims.nspden, dims.nfft1, dims.nfft2, dims.nfft3))
 
-            # Fortran to C, avoid the view.
-            #cview = np.transpose(rec.rhor, axes = [0,3,2,1])
-            #rec.rhor = np.ascontiguousarray(cview)
+            # Structure uses Angstrom. Abinit uses bohr.
             rhor = rhor / bohr_to_angstrom ** 3
+
             return Density(dims.nspinor, dims.nsppol, dims.nspden, rhor, structure, iorder="f")
 
         else:
@@ -277,10 +341,7 @@ class Density(ScalarField):
 
         nelect = self.mesh.integrate(self.datar)
 
-        if spin is None:
-            return np.sum(nelect)
-        else:
-            return nelect[spin]
+        return np.sum(nelect) if spin is None else nelect[spin]
 
     #def get_magnetization(self)
 
@@ -326,7 +387,7 @@ class Density(ScalarField):
         #print rhog_tot
 
         # Compute |G| for each G in the mesh and treat G=0.
-        gvec  = self.mesh.get_gvec()
+        gvec  = self.mesh.get_gvecs()
 
         gwork = self.mesh.zeros().ravel()
 
@@ -368,9 +429,8 @@ class Density(ScalarField):
 
 class DensityReader(ETSF_Reader):
     """This object reads density data from a netcdf file."""
-
     def read_dendims(self):
-        """Returns a `AttrDict` dictionary with the basic dimensions."""
+        """Returns an `AttrDict` dictionary with the basic dimensions."""
         return AttrDict(
             cplex_den=self.read_dimvalue("real_or_complex_density"),
             nspinor=self.read_dimvalue("number_of_spinor_components"),
@@ -473,13 +533,13 @@ class DensityReader(ETSF_Reader):
 #    ]
 #
 #    @classmethod
-#    def from_file(cls, path):
+#    def from_file(cls, filepath):
 #        """
 #        Read density from a the netCDF file.
 #
 #        Args:
-#            path:
-#                string or file object.
+#            filepath:
+#                string with the file path
 #        returns:
 #            :class:`Potential`
 #        """

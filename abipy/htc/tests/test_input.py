@@ -1,18 +1,37 @@
 """Tests for htc.FilesFile."""
 from __future__ import print_function, division
 
-import abipy.data as data
+import abipy.data as abidata
 
 from abipy.core.testing import AbipyTest
 from abipy.htc.input import *
+
+class AbiInputTest(AbipyTest):
+
+    def test_input(self):
+        """Testing AbiInput."""
+        aequal = self.assertEqual
+        inp = AbiInput(pseudos=abidata.pseudos("28ni.paw", "8o.2.paw"), ndtset=2, comment="NiO calculation")
+        inp.set_structure(abidata.structure_from_ucell("NiO"))
+        print(inp)
+
+        aequal(inp.ndtset, 2)
+        aequal(inp.ispaw, True)
+
+        # Set global variables.
+        inp.set_variables(ecut=10)
+
+        # Setting an unknown variable should raise an error.
+        with self.assertRaises(inp.Error):
+            inp.set_variables(foobar=10)
 
 
 class LdauLexxTest(AbipyTest):
 
     def test_nio(self):
         """Test LdauParams and LexxParams."""
-        structure = data.structure_from_ucell("NiO")
-        pseudos = data.pseudos("28ni.paw", "8o.2.paw")
+        structure = abidata.structure_from_ucell("NiO")
+        pseudos = abidata.pseudos("28ni.paw", "8o.2.paw")
 
         u = 8.0
         luj_params = LdauParams(usepawu=1, structure=structure)

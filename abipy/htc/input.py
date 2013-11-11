@@ -19,7 +19,8 @@ from abipy.core import Structure
 from abipy.tools import is_string, list_strings
 from pymatgen.core.units import Energy
 
-from .variable import InputVariable
+from abipy.htc.variable import InputVariable
+from abipy.htc.abivars import is_abivar
 
 __all__ = [
     "AbiInput",
@@ -123,6 +124,10 @@ class Input(object):
 
 class AbinitInputError(Exception):
     """Base error class for exceptions raised by `AbiInput`"""
+
+
+class UnknownVariable(AbinitInputError):
+    """Raises when we receive a variable that is not registered in abivars."""
 
 
 class AbiInput(Input):
@@ -689,7 +694,6 @@ class Dataset(collections.Mapping):
     def set_variable(self, varname, value):
         """Set a single variable."""
         if varname in self:
-
             try: 
                 iseq = (self[varname] == value)
                 iseq = np.all(iseq)
@@ -700,8 +704,14 @@ class Dataset(collections.Mapping):
                 iseq = False
 
             if not iseq:
-                msg = "%s is already defined with a different value:\n old: %s, new %s" % (varname, str(self[varname]), str(value))
+                msg = "%s is already defined with a different value:\n old: %s, new %s" % (
+                    varname, str(self[varname]), str(value))
                 warnings.warn(msg)
+
+        # Check if varname is in the internal database.
+        if not is_abivar(varname):
+            err_msg = "%s is not a valid ABINIT variable." % varname
+            raise UnknownVariable(err_msg)
 
         self[varname] = value
 
@@ -712,7 +722,8 @@ class Dataset(collections.Mapping):
                 glob_value = np.array(self.dt0[varname])
                 isok  = np.all(glob_value == np.array(value))
                 if not isok:
-                    err_msg = "NO_MULTI variable: dataset 0: %s, dataset %d: %s" % (str(glob_value), self.index, str(value))
+                    err_msg = "NO_MULTI variable: dataset 0: %s, dataset %d: %s" % (
+                        str(glob_value), self.index, str(value))
                     raise self.Error(err_msg)
             else:
                 self.dt0.set_variable(varname, value)
@@ -984,6 +995,5 @@ class LexxParams(object):
 
         return dict(
             useexexch=1,
-            lexexch=" ".join(map(str, lexx_typat))
-        )
+            lexexch=" ".join(map(str, lexx_typat)))
 
