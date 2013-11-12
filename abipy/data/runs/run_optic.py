@@ -89,7 +89,7 @@ def optic_flow(workdir="tmp_optic"):
           rfdir=rfdir,
          rfelfd=2,
          tolwfr=1.e-9,
-         paral_kgb=1,
+         #paral_kgb=1,
         )
 
     manager = abilab.TaskManager.from_user_config()

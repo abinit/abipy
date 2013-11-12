@@ -26,18 +26,11 @@ core Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`density` Module
----------------------
 
-.. automodule:: abipy.core.density
-   :members:
-   :undoc-members:
-   :show-inheritance:
+:mod:`fields` Module
+--------------------
 
-:mod:`dftscalarfield` Module
-----------------------------
-
-.. automodule:: abipy.core.dftscalarfield
+.. automodule:: abipy.core.fields
    :members:
    :undoc-members:
    :show-inheritance:
@@ -62,14 +55,6 @@ core Package
 --------------------
 
 .. automodule:: abipy.core.mesh3d
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-:mod:`potential` Module
------------------------
-
-.. automodule:: abipy.core.potential
    :members:
    :undoc-members:
    :show-inheritance:
