@@ -6,6 +6,7 @@ __all__ = [
     "is_abitoken",
     "is_abivar",
     "is_abiunit",
+    "has_abiop",
 ]
 
 def is_abitoken(s):
@@ -26,6 +27,10 @@ def is_abiunit(s):
     True if s is one of the units supported by the ABINIT parser
     """
     return s in ABI_UNITS
+
+def has_abiop(s)
+    """True is string contains one of the operators supported by the ABINIT parser."""
+    return any(op in s for op in ABI_OPS)
 
 
 def extract_abivars(f90file, pretty_print=True):
@@ -73,10 +78,10 @@ def extract_abivars(f90file, pretty_print=True):
 
 # The variables below have been extracted from the file src/57_iovars/chkvars.F90. 
 # See the function extract_abivars defined in this module.
-# Tokens are divides in two classs: variable names and unit names.
+# Tokens are divides in 4 classes: variable names, unit names, operators
 
 # Variable names.
-ABI_VARNAMES = set([
+ABI_VARNAMES = [
 'accesswff',
 'accuracy',
 'acell',
@@ -697,17 +702,21 @@ ABI_VARNAMES = set([
 'zcut',
 'zeemanfield',
 'znucl',
-'sqrt',
-'end',
 'LatticeConstant',
 'SpinPolarized',
 'cmlfile',
 'XCname',
-])
+]
 
+ABI_OPS = [
+'sqrt',
+'*',
+'/',
+#'end',
+]
 
 # Unit names.
-ABI_UNITS = set([
+ABI_UNITS = [
 'au',
 'Angstr',
 'Angstrom',
@@ -724,11 +733,18 @@ ABI_UNITS = set([
 'Rydbergs',
 'T',
 'Tesla',
-])
+]
 
 
 # All tokens supported by the abinit parser.
-ABI_ALLTOKENS = ABI_VARNAMES.union(ABI_UNITS)
+ABI_ALLTOKENS = ABI_VARNAMES + ABI_OPS + ABI_UNITS 
+
+# Build sets to speedup search.
+ABI_ALLTOKENS = set(ABI_ALLTOKENS)
+ABI_VARNAMES = set(ABI_VARNAMES)
+ABI_OPS = set(ABI_OPS)
+ABI_UNITS = set(ABI_UNITS) 
+
 
 if __name__ == "__main__":
     import sys
