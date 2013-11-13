@@ -7,6 +7,6 @@
 # number of minutes to wait
 #minutes:
 # number of seconds to wait
-seconds: 10
+seconds: 2
 # when to first execute the job and start the counter (default is after the given interval)
 #start_date:
