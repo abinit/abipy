@@ -26,6 +26,7 @@ shell_env:
 policy:
     autoparal: 1
     max_ncpus: 4
+    automemory: 0
     #mode: aggressive
     #condition: {mem_per_cpu: {$le: 10}}}
     #condition: {efficiency: {$gt: 0.99}}}
