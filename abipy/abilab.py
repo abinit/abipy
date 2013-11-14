@@ -61,3 +61,20 @@ def abiopen(filepath):
     """
     cls = abifile_subclass_from_filename(filepath)
     return cls.from_file(filepath)
+
+
+def software_stack():
+    """
+    Import all the hard dependencies.
+    Returns a dict with the version.
+    """
+    import numpy, scipy, netCDF4, wx
+
+    return dict(
+        numpy=numpy.version.version,
+        scipy=scipy.version.version,
+        netCDF4=netCDF4.getlibversion(),
+        wx=wx.version(),
+    )
+
+

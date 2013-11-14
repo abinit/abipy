@@ -10,3 +10,4 @@
 seconds: 2
 # when to first execute the job and start the counter (default is after the given interval)
 #start_date:
+mailto: matteo.giantomassi@uclouvain.be
