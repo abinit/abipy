@@ -48,7 +48,7 @@ unit_cell = dict(
 global_vars = dict(
     istwfk="*1",
     paral_kgb=0,
-    ecut=50,
+    ecut=15,
     nstep=500,
     spinat=[[0.0000000000E+00,  0.0000000000E+00,  3.5716762600E+00],
             [0.0000000000E+00,  0.0000000000E+00, -3.5716762600E+00],
@@ -129,7 +129,7 @@ def raman_workflow(structure, pseudos, ngkpt, shiftk, ddk_manager, shell_manager
 
     # GS run
     inp[1].set_variables(
-        tolvrs=1e-16,
+        tolvrs=1e+8,
         nband=59,
     )
 
@@ -138,7 +138,7 @@ def raman_workflow(structure, pseudos, ngkpt, shiftk, ddk_manager, shell_manager
         iscf=-2,
        nband=100,
        kptopt=1,
-       tolwfr=1.e-22,
+       tolwfr=1.e+12,
     )
     
     # DDK along 3 directions
@@ -160,7 +160,7 @@ def raman_workflow(structure, pseudos, ngkpt, shiftk, ddk_manager, shell_manager
            qpt=[0.0, 0.0, 0.0],
           rfdir=rfdir,
          rfelfd=2,
-         tolwfr=1.e-22,
+         tolwfr=1.e+12,
         )
 
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = inp.split_datasets()
