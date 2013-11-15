@@ -11,7 +11,7 @@ import warnings
 import argparse
 import abipy.abilab as abilab
 
-from pymatgen.io.abinitio.launcher import PyFlowsScheduler, PyLauncher
+from pymatgen.io.abinitio.launcher import PyFlowScheduler, PyLauncher
 
 
 def str_examples():
@@ -63,10 +63,10 @@ def treat_flow(flow, options):
         if all(v == 0 for v in sched_options.values()):
             #sched_options["seconds"] = 15
             #warnings.warn("No value of scheduler specified in input. Using seconds=15")
-            sched = PyFlowsScheduler.from_user_config()
+            sched = PyFlowScheduler.from_user_config()
         else:
             #print(sched_options)
-            sched = PyFlowsScheduler(**sched_options)
+            sched = PyFlowScheduler(**sched_options)
 
         sched.add_flow(flow)
 

@@ -6,7 +6,7 @@ import functools
 
 from abipy.core.testing import AbipyTest
 from pymatgen.util.decorators import enable_logging
-from pymatgen.io.abinitio.launcher import PyFlowsScheduler
+from pymatgen.io.abinitio.launcher import PyFlowScheduler
 
 __all__ = [
 
@@ -42,7 +42,7 @@ class MixinTest(object):
         self.serialize_with_pickle(self.flow, protocols=None, test_eq=True)
 
     def test_run(self):
-        """Running the flow with PyFlowsScheduler (it might take a while) ..."""
+        """Running the flow with PyFlowScheduler (it might take a while) ..."""
         if not self.DORUN:
             print("Skipping test_run")
             return 
@@ -57,7 +57,7 @@ class MixinTest(object):
             seconds=5,
         )
 
-        sched = PyFlowsScheduler(**sched_options)
+        sched = PyFlowScheduler(**sched_options)
         sched.add_flow(self.flow)
         sched.start()
 

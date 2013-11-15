@@ -1,13 +1,21 @@
-# number of weeks to wait
+# number of weeks to wait.
 #weeks:
-# number of days to wait
+# number of days to wait.
 #days:
-# number of hours to wait
+# number of hours to wait.
 #hours:
-# number of minutes to wait
+# number of minutes to wait.
 #minutes:
-# number of seconds to wait
+# number of seconds to wait.
 seconds: 2
-# when to first execute the job and start the counter (default is after the given interval)
+# when to first execute the job and start the counter (default is after the given interval).
 #start_date:
+# Send mail to the specified address (accepts string or list of strings).
 mailto: matteo.giantomassi@uclouvain.be
+
+# The scheduler will shutdown when the number of python exceptions is > MAX_NUM_PYEXCS
+#MAX_NUM_PYEXCS = 2
+# The scheduler will shutdown when the number of Abinit errors is > MAX_NUM_ABIERRS
+#MAX_NUM_ABIERRS = 0
+# The scheduler will shutdows when the number of tasks launched is > SAFETY_RATIO * tot_num_tasks.
+#SAFETY_RATIO = 3
