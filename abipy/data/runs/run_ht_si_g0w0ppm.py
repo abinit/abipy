@@ -30,7 +30,7 @@ class HtSiEbandsFlowTest(AbipyTest, MixinTest):
     #return tester.retcode
 
 
-def htg0w0_flow(workdir="ht_si_g0w0ppm"):
+def htg0w0_flow(workdir="tmp_ht_si_g0w0ppm"):
     structure = AbiStructure.asabistructure(data.cif_file("si.cif"))
 
     pseudos = data.pseudos("14si.pspnc")
