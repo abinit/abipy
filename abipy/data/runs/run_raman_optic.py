@@ -8,9 +8,10 @@ from __future__ import division, print_function
 import sys 
 import os
 import numpy as np
+
 import abipy.abilab as abilab
-import abipy.data as data  
-from pymatgen.io.abinitio.tasks import TaskPolicy
+import abipy.data as abidata  
+#from pymatgen.io.abinitio.tasks import TaskPolicy
 
 optic_input = """\
 0.002         ! Value of the smearing factor, in Hartree
@@ -164,7 +165,7 @@ def raman_workflow(structure, pseudos, ngkpt, shiftk, ddk_manager, shell_manager
         )
 
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = inp.split_datasets()
-    ddk_inputs = [ddk1,ddk2,ddk3]
+    ddk_inputs = [ddk1, ddk2, ddk3]
 
     workflow = abilab.Workflow()
     scf_t = workflow.register(scf_inp, task_class=abilab.ScfTask)
@@ -175,7 +176,7 @@ def raman_workflow(structure, pseudos, ngkpt, shiftk, ddk_manager, shell_manager
         ddk_t.set_manager(ddk_manager)
         ddk_nodes.append(ddk_t)
 
-    optic_t = abilab.OpticTask(optic_input, nscf_node = nscf_t, ddk_nodes=ddk_nodes,manager=shell_manager)
+    optic_t = abilab.OpticTask(optic_input, nscf_node=nscf_t, ddk_nodes=ddk_nodes, manager=shell_manager)
 
     workflow.register(optic_t)
 

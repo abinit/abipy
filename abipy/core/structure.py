@@ -6,6 +6,7 @@ import pymatgen
 import numpy as np
 
 from pymatgen.io.abinitio.pseudos import PseudoTable
+from pymatgen.core.design_patterns import AttrDict
 from abipy.core.constants import ArrayWithUnit
 from abipy.core.symmetries import SpaceGroup
 from abipy.iotools import as_etsfreader, Visualizer
@@ -440,7 +441,7 @@ class Structure(pymatgen.Structure):
         ngkpt = self.calc_ngkpt(nksmall)
         shiftk = self.calc_shiftk(symprec=symprec, angle_tolerance=angle_tolerance)
 
-        return dict(
+        return AttrDict(
             ngkpt=ngkpt,
             shiftk=shiftk
         )

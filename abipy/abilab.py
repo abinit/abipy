@@ -114,7 +114,7 @@ def abicheck():
     app = err_lines.append
     for exe in executables:
         if which(exe) is None:
-            app("Cannot found %s in $PATH" % exe)
+            app("Cannot find %s in $PATH" % exe)
 
     try:    
         software_stack(with_wx=False)
