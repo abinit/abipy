@@ -6,21 +6,7 @@ import numpy as np
 import os
 
 import abipy.abilab as abilab
-import abipy.data as data
-
-# One can create a dictionary mapping keywords to values 
-unit_cell = dict(
-    acell=3*[8.19],
-    rprim=[[.0, .5, .5],
-               [.5, .0, .5],
-               [.5, .5, .0]],
-    ntypat=2,
-    znucl=[6,14],
-    natom=2,
-    typat=[1, 2],
-    xred=[ [.0, .0, .0],
-           [.25,.25,.25] ]
-)
+import abipy.data as abidata
 
 global_vars = dict(
     istwfk="*1",
@@ -30,27 +16,66 @@ global_vars = dict(
     #accesswff=3
 )
 
+ecut = 5
+ngkpt = [4,4,4]
+shiftk = [[0.5,0.5,0.5],[0.5,0.0,0.0],[0.0,0.5,0.0],[0.0,0.0,0.5]]
+
+structure = abidata.structure_from_ucell("SiC")
+print(structure)
+pseudos = abidata.pseudos("14si.pspnc","6c.pspnc")
+
+manager = abilab.TaskManager.from_user_config()
+
+
+def build_bands_flow():
+    # Get the WFK file.
+    inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
+
+    inp.set_structure(structure)
+    inp.set_variables(**global_vars)
+    inp.set_kmesh(ngkpt=ngkpt, shiftk=shiftk)
+
+    inp[1].set_variables(
+		ecut=ecut,
+        nband=10,
+        tolvrs=1.e-8,
+    )
+
+    inp[2].set_variables(
+		ecut=ecut,
+        nband=100,
+        tolwfr=1.e-8,
+        iscf=-2
+    )
+
+    # Get the SCF and the NSCF input.
+    scf_input, nscf_input = inp.split_datasets()
+
+    workdir = "GS"
+
+    #flow = abilab.AbinitFlow(manager=manager, workdir="GS")
+
+    # Instantiate the TaskManager from `taskmanager.yml`.
+    #manager = abilab.TaskManager.from_user_config()
+    # Build the flow.
+    flow = abilab.bandstructure_flow(workdir, manager, scf_input, nscf_input)
+    #flow.register_task(inp)
+    return flow.allocate()
+
+
 def build_workflows():
     
-    all_ecuteps = np.concatenate([np.arange(20,32,2)])
-
-    ecut = 30
-    ngkpt = [4,4,4]
-
-    structure = abilab.Structure.from_abivars(unit_cell)
-    pseudos = data.pseudos("14si.pspnc","6c.pspnc")
-
-    print(structure)
-
-    shiftk = [[0.5,0.5,0.5],[0.5,0.0,0.0],[0.0,0.5,0.0],[0.0,0.0,0.5]]
+    all_ecuteps = np.concatenate([np.arange(2,8,2)])
+    print(all_ecuteps)
 
     # Initialize the workflow.
-    manager = abilab.TaskManager.from_user_config()
+
     workdir="gw_SiC_convecuteps_2"
 
     flow = abilab.AbinitFlow(manager=manager,workdir=workdir)
 
-    wfk_file = "/home/naps/ygillet/SiC/gw_SiC_wfk/work_0/task_0/outdata/out_WFK"
+    #wfk_file = "/home/naps/ygillet/SiC/gw_SiC_wfk/work_0/task_0/outdata/out_WFK"
+    wfk_file = os.path.abspath("GS/work_0/task_1/outdata/out_WFK")
 
     for ecuteps in all_ecuteps:
     
@@ -60,9 +85,9 @@ def build_workflows():
         scr_inp.set_kmesh(ngkpt=ngkpt, shiftk=shiftk)
         scr_inp.set_variables(
         	optdriver=3,
-        	nband=500,
+		    ecut=ecut,
         	ecutwfn=ecut,
-		ecut=ecut,
+        	nband=25,
         	symchi=1,
         	inclvkb=0,
         	ecuteps=ecuteps,
@@ -75,10 +100,10 @@ def build_workflows():
         sig_inp.set_kmesh(ngkpt=ngkpt, shiftk=shiftk)
         sig_inp.set_variables(
         	optdriver=4,
-        	nband=500,
+        	nband=25,
         	ecutwfn=ecut,
-                ecutsigx=(4*ecut),
-		ecut=ecut,
+            ecutsigx=(4*ecut),
+		    ecut=ecut,
         	symchi=1,
         	inclvkb=0,
         	ecuteps=ecuteps,
@@ -100,10 +125,9 @@ def build_workflows():
     return flow.allocate()
 
 def main():
-    works = build_workflows()
-    works.build_and_pickle_dump()
-
-    return 0
+    #flow = build_bands_flow()
+    flow = build_workflows()
+    return flow.build_and_pickle_dump()
 
 
 if __name__=="__main__":

@@ -137,7 +137,9 @@ class TextNotebookFrame(awx.Frame):
         text_list = []
         for fname in filenames:
             with open(fname, "r") as fh:
-                text_list.append(fh.read())
+                # Sanitize strings: use "ignore" to skip invalid characters in .encode/.decode like
+                s = fh.read().decode("utf-8", "ignore")
+                text_list.append(s)
 
         return cls(parent, text_list, page_names=filenames)
 
