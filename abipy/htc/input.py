@@ -27,6 +27,7 @@ __all__ = [
     "AbiInput",
     "LdauParams",
     "LexxParams",
+    "input_gen",
 ]
 
 # Variables that must have a unique value throughout all the datasets.
@@ -737,8 +738,7 @@ class Dataset(collections.Mapping):
     def remove_variables(self, keys):
         """Remove the variables listed in keys."""
         for key in list_strings(keys):
-            self.pop(key)
-            #self.pop(key, None)
+            self.pop(key, None)
 
     @property
     def structure(self):
@@ -998,3 +998,77 @@ class LexxParams(object):
             useexexch=1,
             lexexch=" ".join(map(str, lexx_typat)))
 
+
+def input_gen(inp, *args, **kwargs):
+    """
+    This function receives an `AbiInput` and generates
+    new inputs by replacing the variables specified kwargs.
+
+    Args:
+        inp:
+            `AbiInput` file.
+        kwargs:
+            keyword arguments with the values used for each variable.
+
+    .. example::
+
+        for inp_ecut in input_gen(gs_inp, ecut=[10, 20]):
+
+        generates two input files with different values of ecut
+
+        for inp_ecut in input_gen(gs_inp, ecut=[10, 20], nsppol=[1, 2]):
+
+        generates four input files with all the possible combinations
+        of ecut and nsppol.
+    """
+    for new_vars in product_dict(kwargs):
+        new_inp = inp.deepcopy()
+        # Remove the variable names to avoid annoying warnings.
+        # if the variable is overwritten.
+        new_inp.remove_variables(new_vars.keys())
+        new_inp.set_variables(**new_vars)
+
+        yield new_inp
+
+
+def product_dict(d):
+    """
+    This function receives a dictionary where each key defines a list of items or a simple scalar.
+    It constructs the Cartesian product of the values (equivalent to nested for-loops),
+    and returns a list of dictionaries with the values that would be used inside the loop.
+
+    >>> d = {"foo": [2, 4], "bar": 1}
+    >>> product_dict(d) == [{'bar': 1, 'foo': 2}, {'bar': 1, 'foo': 4}]
+    True
+    >>> d =  {'bar': [1,2], 'foo': [3,4]} 
+    >>> product_dict(d) == [
+    ...    {'bar': 1, 'foo': 3},
+    ...    {'bar': 2, 'foo': 3},
+    ...    {'bar': 1, 'foo': 4},
+    ...    {'bar': 2, 'foo': 4}]
+    True
+
+    .. warning:
+
+        Dictionaries are not ordered, therefore one cannot assume that 
+        the order of the keys in the output equals the one used to loop.
+        If the order is important, one should pass a `OrderedDict` in input
+    """
+    keys, vals = d.keys(), d.values()
+
+    # Each item in vals must be iterable.
+    values = []
+
+    for v in vals:
+        if not isinstance(v, collections.Iterable): v = [v]
+        values.append(v)
+
+    # Build list of dictionaries. Use ordered dicts so that 
+    # we preserve the order when d is an OrderedDict.
+    vars_prod = [] 
+
+    for prod_values in itertools.product(*values):
+        dprod = collections.OrderedDict(zip(keys, prod_values))
+        vars_prod.append(dprod)
+
+    return vars_prod

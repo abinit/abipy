@@ -8,7 +8,7 @@ from pymatgen.io.abinitio.flows import *
 
 from abipy.core import constants
 from abipy.core.structure import Structure, StructureModifier
-from abipy.htc.input import AbiInput, LdauParams, LexxParams
+from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
 from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter, SIGRES_Plotter
 from abipy.phonons import PhononBands, PHDOS_Reader, PHDOS_File
 

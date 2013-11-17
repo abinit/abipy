@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""G0W0 convergence study wrt ecuteps and the number of bands in W."""
 from __future__ import division, print_function
 
 import sys
@@ -10,6 +11,11 @@ import abipy.data as abidata
 
 
 def make_inputs():
+    """
+    Returns a tuple of 4 input files for SCF, NSCF, SCR, SIGMA calculations.
+    These files are then used as templates for the convergence study
+    wrt ecuteps and the number of bands in W.
+    """
     structure = abidata.structure_from_ucell("SiC")
     pseudos = abidata.pseudos("14si.pspnc","6c.pspnc")
 
@@ -71,48 +77,38 @@ def make_inputs():
 
     return inp.split_datasets()
 
-def build_flow(workdir="tmp_sic_g0w0_ecuteps"):
+def build_flow(workdir="tmp_gwconv_ecuteps"):
 
+    # Get our templates
     scf_inp, nscf_inp, scr_inp, sig_inp = make_inputs()
     
     ecuteps_list = np.arange(2, 8, 2)
     max_ecuteps = max(ecuteps_list)
 
     manager = abilab.TaskManager.from_user_config()
-    flow = abilab.AbinitFlow(manager=manager,workdir=workdir)
+    flow = abilab.AbinitFlow(manager=manager, workdir=workdir)
 
+    # Band structure workflow to produce the WFK file
     bands = abilab.BandStructureWorkflow(scf_inp, nscf_inp)
     flow.register_work(bands)
 
-    # This object will generate the input files so that 
-    # we hide the deepcopy and we have a much safer interface.
-    #scr_igen = abilab.InputGenerator(scr_inp, nband=[10, 15])
-
-    # Build workflow of SCR runs with different value of nband
+    # Build a workflow made of two SCR runs with different value of nband
     # Use max_ecuteps for the dielectric matrix (sigma tasks will 
     # read a submatrix when we test the convergence wrt to ecuteps.
     scr_work = abilab.Workflow()
-    for nband in [10, 15]:
-        # Note deepcopy
-        inp = scr_inp.deepcopy()
-        inp.set_variables(nband=nband,
-                          ecuteps=max_ecuteps,
-                         )
+
+    for inp in abilab.input_gen(scr_inp, nband=[10, 15]):
+        inp.set_variables(ecuteps=max_ecuteps)
         scr_work.register(inp, deps={bands.nscf_task: "WFK"})
 
     flow.register_work(scr_work)
 
-    #sig_igen = abilab.InputGenerator(sig_inp, ecuteps=ecuteps_list)
-    # Buik a list of sigma inputs with different ecuteps
-    sigma_inputs = []
-    for ecuteps in ecuteps_list:
-        # Note deepcopy
-        inp = sig_inp.deepcopy()
-        inp.set_variables(ecuteps=ecuteps)
-        sigma_inputs.append(inp)
+    # Do a convergence study wrt ecuteps, each workflow is connected to a
+    # different SCR file computed with a different value of nband.
 
-    # Do a convergence study wrt ecuteps, each workflow is connected to a different SCR file compute with
-    # different value of nband.
+    # Build a list of sigma inputs with different ecuteps
+    sigma_inputs = list(abilab.input_gen(scr_inp, ecuteps=ecuteps_list))
+
     for scr_task in scr_work:
         sigma_conv = abilab.SigmaConvWorkflow(wfk_node=bands.nscf_task, scr_node=scr_task, sigma_inputs=sigma_inputs)
         flow.register_work(sigma_conv)
