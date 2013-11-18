@@ -3,6 +3,7 @@ from __future__ import print_function, division
 import os
 import wx
 import time
+import fnmatch
 
 import abipy.gui.awx as awx
 import wx.lib.agw.flatnotebook as fnb
@@ -29,7 +30,7 @@ class FlowViewerFrame(awx.Frame):
     VERSION = "0.1"
 
     # Time in second after which we check the status of the tasks.
-    REFRESH_INTERVAL = 10
+    REFRESH_INTERVAL = 15
 
     def __init__(self, parent, flow, **kwargs):
         """
@@ -88,11 +89,6 @@ class FlowViewerFrame(awx.Frame):
         toolbar.AddSimpleTool(ID_CHECK_STATUS, wx.Bitmap(awx.path_img("refresh.png")), "Check the status of the workflow(s).")
 
         #toolbar.AddSeparator()
-        #self.visualizer_cbox = wx.ComboBox(choices=supported_visunames(), id=ID_TBOX_VIS, 
-        #    name='visualizer', parent=toolbar, value='xcrysden') 
-        #self.visualizer_cbox.Refresh() 
-
-        #toolbar.AddSeparator()
         self.toolbar.Realize()
         self.Centre()
 
@@ -120,10 +116,40 @@ class FlowViewerFrame(awx.Frame):
 
         self.flow = flow
 
+        self.check_launcher_file()
+
         #if filename is not None:
         #    self.ReadWorkflow(filename)
-
+                                         
         self.BuildUi()
+
+    def check_launcher_file(self, with_dialog=True):
+        """
+        Disable the launch button if we have a sheduler running, 
+        since we don't want to have to processes modifying the flow.
+        """
+        self.disabled_launcher = False
+        pid_file = fnmatch.filter(os.listdir(self.flow.workdir), "*.pid")
+
+        if pid_file:
+            self.disabled_launcher = True
+
+            pid_file = os.path.join(self.flow.workdir, pid_file[0])
+
+            with open(pid_file, "r") as fh:
+                pid = int(fh.readline())
+
+            message = ("Found pid file %s associated to an already running scheduler with pid %d. "
+                       "Job submission has been disabled." % (pid_file, pid))
+
+            if with_dialog:
+                dialog = wx.MessageDialog(None, message=message, caption='Flow is being executed by a scheduler',  
+                                          style=wx.OK | wx.ICON_EXCLAMATION)
+                dialog.ShowModal()
+                dialog.Destroy()
+
+            else:
+                self.statusbar.PushStatusText(message)
 
     @property
     def codename(self):
@@ -160,6 +186,7 @@ class FlowViewerFrame(awx.Frame):
 
     def OnSubmitButton(self, event):
         """Submit up to max_nlauch tasks."""
+        if self.disabled_launcher: return
         max_nlaunch = int(self.max_nlaunch.GetValue())
         nlaunch = PyLauncher(self.flow).rapidfire(max_nlaunch=max_nlaunch)
 
@@ -173,6 +200,9 @@ class FlowViewerFrame(awx.Frame):
         return self.notebook.GetSelectedWork()
 
     def OnIdle(self, event):
+        """Functoin executed when the GUI is idle."""
+        self.check_launcher_file(with_dialog=False)
+
         now = time.time()
         if (now - self.last_refresh) > self.REFRESH_INTERVAL:
             self.CheckStatusAndRedraw()
