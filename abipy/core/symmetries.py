@@ -850,7 +850,7 @@ class LatticePointGroup(OpSequence):
         herm_symbol, ptg_num, trans_mat = get_point_group(rotations)
         #                                                                                                
         # Remove blanks from C string.
-        self.herm_symbol = herm_symbol.lstrip().rstrip() 
+        self.herm_symbol = herm_symbol.strip()
         #print(self.herm_symbol, ptg_num, trans_mat)
         #                                                                                                
         if self.sch_symbol is None:

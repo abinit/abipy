@@ -4,7 +4,7 @@ from __future__ import division, print_function
 
 import sys
 import os
-import abipy.data as data  
+import abipy.data as abidata  
 import abipy.abilab as abilab
 
 from abipy.data.runs import enable_logging, AbipyTest, MixinTest
@@ -47,12 +47,12 @@ class EbandsFlowTest(AbipyTest, MixinTest):
 
 def make_scf_nscf_inputs():
     """Returns two input files: GS run and NSCF on a high symmetry k-mesh."""
-    pseudos = data.pseudos("14si.pspnc")
+    pseudos = abidata.pseudos("14si.pspnc")
     #pseudos = data.pseudos("Si.GGA_PBE-JTH-paw.xml")
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
     print(inp.pseudos)
-    structure = inp.set_structure_from_file(data.cif_file("si.cif"))
+    structure = inp.set_structure_from_file(abidata.cif_file("si.cif"))
 
     # Global variables
     ecut = 6

@@ -3,12 +3,13 @@
 from __future__ import division, print_function
 
 import sys
-import numpy as np
 import os
+import numpy as np
 
 import abipy.abilab as abilab
 import abipy.data as abidata
 
+from abipy.data.runs import enable_logging, AbipyTest, MixinTest
 
 def make_inputs():
     """
@@ -17,13 +18,14 @@ def make_inputs():
     wrt ecuteps and the number of bands in W.
     """
     structure = abidata.structure_from_ucell("SiC")
-    pseudos = abidata.pseudos("14si.pspnc","6c.pspnc")
+    pseudos = abidata.pseudos("14si.pspnc", "6c.pspnc")
+    ecut = 5
 
     global_vars = dict(
+        ecut=ecut,
         istwfk="*1",
         paral_kgb=0,
         gwpara=2
-        #accesswff=3
     )
 
     ecut = 5
@@ -38,13 +40,11 @@ def make_inputs():
     inp.set_kmesh(ngkpt=ngkpt, shiftk=shiftk)
 
     inp[1].set_variables(
-		ecut=ecut,
         nband=10,
         tolvrs=1.e-8,
     )
 
     inp[2].set_variables(
-		ecut=ecut,
         nband=25,
         tolwfr=1.e-8,
         iscf=-2
@@ -52,7 +52,6 @@ def make_inputs():
 
     inp[3].set_variables(
         optdriver=3,
-		ecut=ecut,
         ecutwfn=ecut,
         nband=20,
         symchi=1,
@@ -66,14 +65,12 @@ def make_inputs():
         ecutwfn=ecut,
         ecutsigx=ecut,
         #ecutsigx=(4*ecut), ! This is problematic
-		ecut=ecut,
         symsigma=1,
         ecuteps=ecuteps,
         )
 
     inp[4].set_kptgw(kptgw=[[0,0,0], [0.5, 0, 0]],
-                     bdgw=[1, 8]
-                     )
+                     bdgw=[1, 8])
 
     return inp.split_datasets()
 
@@ -107,7 +104,7 @@ def build_flow(workdir="tmp_gwconv_ecuteps"):
     # different SCR file computed with a different value of nband.
 
     # Build a list of sigma inputs with different ecuteps
-    sigma_inputs = list(abilab.input_gen(scr_inp, ecuteps=ecuteps_list))
+    sigma_inputs = list(abilab.input_gen(sig_inp, ecuteps=ecuteps_list))
 
     for scr_task in scr_work:
         sigma_conv = abilab.SigmaConvWorkflow(wfk_node=bands.nscf_task, scr_node=scr_task, sigma_inputs=sigma_inputs)
@@ -116,6 +113,7 @@ def build_flow(workdir="tmp_gwconv_ecuteps"):
     return flow.allocate()
 
 
+@enable_logging
 def main():
     flow = build_flow()
     return flow.build_and_pickle_dump()

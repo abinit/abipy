@@ -52,7 +52,7 @@ def extract_abivars(f90file, pretty_print=True):
     #!</ABINIT_OPERATORS>
 
     with open(f90file, "r") as fh:
-        lines = [l.lstrip().rstrip() for l in fh]
+        lines = [l.strip() for l in fh]
 
     start = lines.index("!<ABINIT_VARS>")
     stop  = lines.index("!</ABINIT_VARS>", start)
