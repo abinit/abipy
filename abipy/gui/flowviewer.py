@@ -543,17 +543,21 @@ def show_history(parent, task):
     SimpleTextViewer(parent, text).Show()
 
 
-# FIXME: Here I shoud dump the pickle file (keep a reference to the flow?)
+def check_status_and_pickle(task):
+    task.flow.check_status()
+    task.flow.pickle_dump()
+
+
 def task_restart(parent, task):
     """Restart the task."""
     task.restart()
-    #task.flow.check_status()
+    check_status_and_pickle(task)
 
 
 def task_reset(parent, task):
     """Reset the status of the task."""
     task.reset()
-    #task.flow.check_status()
+    check_status_and_pickle(task)
 
 
 def task_show_deps(parent, task):

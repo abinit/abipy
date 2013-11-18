@@ -59,8 +59,9 @@ def make_scf_nscf_inputs():
     global_vars = dict(ecut=ecut,
                        nband=8,
                        timopt=-1,
-                       accesswff=3,
                        istwfk="*1",
+                       nstep=1,
+                       #accesswff=3,
                     )
 
     if inp.ispaw:
