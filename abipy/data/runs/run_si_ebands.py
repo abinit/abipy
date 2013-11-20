@@ -23,7 +23,7 @@ class EbandsFlowTest(AbipyTest, MixinTest):
         pass
         # (wi, ti) --> (out_file, ref_file)
         files_to_move = {
-            (0, 0): {"out_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc"}
+            (0, 0): {"out_WFK_0-etsf.nc": "si_scf_WFK-etsf.nc"}
         }
         for (wi, ti), d in files_to_move.items():
             task = flow[wi][ti]
@@ -60,7 +60,7 @@ def make_scf_nscf_inputs():
                        nband=8,
                        timopt=-1,
                        istwfk="*1",
-                       nstep=1,
+                       nstep=15,
                        #accesswff=3,
                     )
 

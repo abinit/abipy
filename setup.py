@@ -161,7 +161,8 @@ install_requires = [
     "apscheduler>=2.1.1",
     "wxmplot>=0.9.12",
     #"termcolor",
-    #asciitable
+    #"asciitable",
+    #"fabric",
 ]
 
 if with_ipython:

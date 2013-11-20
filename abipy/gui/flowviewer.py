@@ -426,7 +426,7 @@ class TaskListCtrl(wx.ListCtrl):
         columns = ["Task", "Status", "Queue_id", 
                    "Errors", "Warnings", "Comments", 
                    "MPI", "OMP", 
-                   "num_restarts", "max_restarts", "Task Class",
+                   "num_restarts", "Task Class",
                    ]
 
         for (index, col) in enumerate(columns):
@@ -449,7 +449,7 @@ class TaskListCtrl(wx.ListCtrl):
             entry = map(str, [task.name, str(task.status), task.queue_id] + 
                               events + 
                               cpu_info + 
-                              [task.num_restarts, task.max_num_restarts, task.__class__.__name__]
+                              [task.num_restarts, task.__class__.__name__]
                         )
             w = [awx.get_width_height(self, s)[0] for s in entry]
             column_widths = map(max, zip(w, column_widths))
