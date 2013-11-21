@@ -56,10 +56,10 @@ class DielectricTensor(object):
 
         return np.array(table)
 
-    def symmetrize(self):
+    def symmetrize(self,structure):
      
         for tensor in self._all_tensors:
-            tensor.symmetrize()
+            tensor.symmetrize(structure)
 
     def to_func1d(self,red_coords=True):
 
