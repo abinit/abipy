@@ -12,6 +12,7 @@ import pprint
 import cStringIO as StringIO 
 import json
 import yaml
+import socket
 import paramiko
 
 
@@ -28,7 +29,7 @@ class Cluster(object):
         assert password and username
 
         self.port = 22
-        #self.exec_timeout = 60 # Timeout in seconds.
+        self.timeout = 10 # Timeout in seconds.
 
     @classmethod
     def from_qtype(cls, qtype):
@@ -124,9 +125,10 @@ class Cluster(object):
     #def sftp_get(self, source , dest):
     #    self.sftp.get(source, dest)
 
-    def invoke_shell(self):
+    def invoke_shell(self, timeout=None):
         shell = self.ssh.invoke_shell()
         shell.__class__ = MyShell
+        shell.settimeout(timeout if timeout is not None else self.timeout)
         return shell
 
     @abc.abstractmethod
@@ -221,8 +223,7 @@ class MyShell(paramiko.Channel):
         #    #if o:
         #    print("o", o)
         #    result += o
-
-        self.settimeout(30)
+        #self.settimeout(30)
 
         stdout, stderr = StringIO.StringIO(), StringIO.StringIO()
 
@@ -336,7 +337,9 @@ class RunCommand(cmd.Cmd, object):
 
     def __init__(self):
         cmd.Cmd.__init__(self)
-        self.clusters = _ALL_CLUSTERS
+
+        # Get a copy of the dict with the clusters.
+        self.clusters = _ALL_CLUSTERS.copy()
 
         self.flows_db = FlowsDatabase()
 
@@ -396,6 +399,31 @@ class RunCommand(cmd.Cmd, object):
             hosts = s.split()
             return filter(None, (self.clusters.get(h, None) for h in hosts))
 
+    def do_disable_hosts(self, s):
+        """
+        Disable the specified list of hosts. 
+        Syntax: disable_hosts host1 host2 ...
+        """
+        hosts = s.split()
+        if not hosts:
+            print(self.do_disable_hosts.__doc__)
+
+        for h in hosts:
+            self.clusters.pop(h, None)
+
+    complete_disable_hosts = complete_hostnames
+
+    def do_reenable_hosts(self, s):
+        """
+        Renable the specified list of hosts.
+        Syntax: reenable_hosts host1 host2 ...
+        """
+        for h in hosts:
+            self.clusters[h] = _ALL_CLUSTERS[h]
+                                                
+    def complete_reenable_hosts(self, text, line, begidx, endidx):
+        return [h for h in _ALL_CLUSTERS.keys() if h not in self.clusters]
+
     def do_show_clusters(self, s):
         """Print the list of clusters."""
         for c in self.clusters.values():
@@ -421,8 +449,6 @@ class RunCommand(cmd.Cmd, object):
 
     def do_qinfo(self, s):
         """Report info on the queue manager."""
-        #print("hostnames1", s)
-        #print("hostnames1 type", s)
         for cluster in self._select_clusters(s):
             print(cluster.get_qinfo())
 
@@ -441,8 +467,7 @@ class RunCommand(cmd.Cmd, object):
                 hostnames = " ".join(tokens[i:])
                 break
         else:
-            command = s
-            hostnames = None
+            command, hostnames = s, None
 
         #print("command", command, "hosts", hostnames)
         for cluster in self._select_clusters(hostnames):
@@ -457,13 +482,19 @@ class RunCommand(cmd.Cmd, object):
         cmd = "abicheck.py"
 
         for cluster in self._select_clusters(s):
+            print("Testing abipy environment of %s" % cluster)
             shell = cluster.invoke_shell()
-            result = shell.myexec(cmd)
 
-            print("result", result)
-            if result.retcode:
-                msg = "%s returned exited with status %d" % (cmd, result.retcode)
-                cluster.prefix_str(msg)
+            try:
+                result = shell.myexec(cmd)
+
+                print("got result", result)
+                if result.retcode:
+                    msg = "%s returned exited with status %d" % (cmd, result.retcode)
+                    cluster.prefix_str(msg)
+
+            except socket.timeout:
+                print("socket timeout")
                 
             #shell.exit()
 
@@ -475,40 +506,49 @@ class RunCommand(cmd.Cmd, object):
         Syntax: flow_start script.py hostname.
         """
         tokens = s.split()
+
         if len(tokens) != 2:
             print(self.do_flow_start.__doc__)
             return
 
+        # Parse input line.
         script, hostname = os.path.basename(tokens[0]), tokens[1]
         cluster = self.clusters[hostname]
+
+        # Build absolute paths on the remote host.
+        dir_basename = os.path.basename(script).replace(".py", "")
+        flow_absdir = cluster.path_inworkdir(dir_basename)
         remotepath = cluster.path_inworkdir(script)
-        #flow_dir = os.path.join(remotepath, "tmp_si_ebands" )
-        flow_dir = cluster.path_inworkdir("tmp_si_ebands" )
 
         print("Uploading %s to %s:%s" % (script, hostname, remotepath))
 
-        if flow_dir in self.flows_db:
-            raise RuntimeError("remotepath %s is already in the database" % remotepath)
+        #if flow_absdir in self.flows_db:
+        #    raise RuntimeError("remotepath %s is already in the database" % remotepath)
 
         # Upload the script and make it executable.
         cluster.sftp.put(localpath=script, remotepath=remotepath, confirm=True)
         cluster.sftp.chmod(remotepath, mode=0700)
         cluster.sftp.close()
 
-        # Start the shell on the remote host and run the scheduler with nohup.
+        # Start a shell on the remote host and build the flow.
         shell = cluster.invoke_shell()
-        result = shell.myexec(remotepath + "\n")
+        result = shell.myexec(remotepath)
 
-        sched_cmd = "nohup abirun.py %s scheduler > /dev/null 2>&1 &" % flow_dir
-        print(sched_cmd)
-        result = shell.myexec(sched_cmd)
-        print(result)
+        if result.retcode:
+            print("script returned %s" % result.retcode)
 
-        retcode = shell.exit()
-        print("retcode", retcode)
+        # Run the scheduler with nohup.
+        # This is the most delicate part: not so sure that nohup will work everywhere.
+        #sched_cmd = "nohup abirun.py %s scheduler > /dev/null 2>&1 &" % flow_absdir
+        #print(sched_cmd)
+        #result = shell.myexec(sched_cmd)
+        #print(result)
+
+        #retcode = shell.exit()
+        #print("retcode", retcode)
 
         # Add the flow to the local database.
-        self.flows_db.add_flow(flow_dir, cluster)
+        #self.flows_db.add_flow(flow_absdir, cluster)
 
     def complete_flow_start(self, text, line, begidx, endidx):
         tokens = line.split()
@@ -597,6 +637,7 @@ class FlowsDatabase(collections.MutableMapping):
 
     def __len__(self):
         return len(self.db)
+    # end abc protocol.
 
     def add_flow(self, flow_workdir, cluster):
         if flow_workdir in self.db:
