@@ -87,9 +87,6 @@ def main():
     parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                          help='verbose, can be supplied multiple times to increase verbosity')
 
-    #parser.add_argument('-t', '--test', default=0, action="count",
-    #                     help='test whether the environment is properly setup and exit')
-
     parser.add_argument('--loglevel', default="ERROR", type=str,
                          help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
@@ -132,9 +129,8 @@ def main():
     if options.verbose:
         print(options)
 
-    #if options.test:
-    #    # Check that the env on the local machine is properly setup 
-    #    return abilab.abicheck()
+    # Check that the env on the local machine is properly setup 
+    return abilab.abicheck()
 
     # loglevel is bound to the string value obtained from the command line argument. 
     # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug

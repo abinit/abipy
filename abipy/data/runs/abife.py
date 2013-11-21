@@ -8,6 +8,8 @@ import subprocess
 import collections
 import cmd
 import readline
+import pprint
+import cStringIO as StringIO 
 import json
 import yaml
 import paramiko
@@ -37,7 +39,7 @@ class Cluster(object):
         raise ValueError("Wrong value for qtype %s" % qtype)
 
     def __str__(self):
-        return "%s: %s@%s" % (self.__class__.__name__, self.username, self.hostname)
+        return "%s@%s:%s" % (self.username, self.hostname, self.__class__.__name__)
 
     #def __del__(self):
     #    self.disconnect
@@ -52,9 +54,10 @@ class Cluster(object):
 
     def prefix_str(self, s):
         lines = []
-        app = lines.append
-        for l in s.splitlines():
-            app("[%s] " % self.hostname + l)
+        lines.extend(("[%s] %s" % (self.hostname, l) for l in s.splitlines()))
+
+        if not lines:
+            lines = ["[%s] (Empty)" % self.hostname]
 
         return "\n".join(lines)
 
@@ -75,17 +78,6 @@ class Cluster(object):
     @property
     def has_sge(self):
         return self.qtype == "sge"
-
-    #@property
-    #def info(self):
-    #    try:
-    #        return self._info
-    #    except AttributeError:
-    #        info = self._info = {}
-    #        ssh_client = self._ssh_connect()
-    #        stdin, stdout, stderr = ssh_client.exec_command("uname -a", timeout=None)
-    #        info["uname_a"] = stdout.read()
-    #        return self._info
 
     def _ssh_connect(self):
         ssh_client = MySSHClient()
@@ -151,11 +143,11 @@ class SlurmCluster(Cluster):
 
     def get_user_jobs(self):
         result = self.ssh_exec(command="squeue -u %s" % self.username)
-        return self.prefix_str(result.get_out())
+        return self.prefix_str(result.out)
 
     def get_qinfo(self):
         result = self.ssh_exec(command="sinfo")
-        return self.prefix_str(result.get_out())
+        return self.prefix_str(result.out)
 
 
 class SgeCluster(Cluster):
@@ -163,11 +155,11 @@ class SgeCluster(Cluster):
 
     def get_user_jobs(self):
         result = self.ssh_exec(command="qstat -u %s" % self.username)
-        return self.prefix_str(result.get_out())
+        return self.prefix_str(result.out)
 
     def get_qinfo(self):
         result = self.ssh_exec("qhost")
-        return self.prefix_str(result.get_out())
+        return self.prefix_str(result.out)
 
 
 class MySSHClient(paramiko.SSHClient):
@@ -200,22 +192,66 @@ class MySFTPClient(paramiko.SFTPClient):
 
 class MyShell(paramiko.Channel):
 
-    def bsendall(self, s):
+    def myexec(self, s):
         if not s.endswith("\n"): s += "\n"
+        s = "exec " + s
+
+        # http://stackoverflow.com/questions/5342402/can-i-get-the-exit-code-of-a-command-executed-in-a-subshell-via-ssh
         super(MyShell, self).sendall(s)
 
+        #stdout = self.makefile()
+        #stderr = self.makefile_stderr()
+
         # Wait for it.....
-        count = 0
-        while not self.recv_ready():
-            time.sleep(1)
-            count += 1
-            if count >= 6:
-                print('time out') #TODO: add exeption here 
+        #count = 0
+        #while not self.recv_ready():
+        #    time.sleep(1)
+        #    count += 1
+        #    if count >= 6:
+        #        print('time out') #TODO: add exeption here 
+        #time.sleep(10)
 
-        result = ""
-        while self.recv_ready():
-            result += self.recv(1024)
+        #retcode = self.recv_exit_status()
+        #print(retcode)
+        #result = ""
+        #while self.recv_ready():
+        ##while self.recv_ready() and not self.exit_status_ready():
+        #    o = self.recv(1024)
+        #    #if not len(o): break
+        #    #if o:
+        #    print("o", o)
+        #    result += o
 
+        self.settimeout(30)
+
+        stdout, stderr = StringIO.StringIO(), StringIO.StringIO()
+
+        #try: #TODO: add exeption here 
+        # Need to read the entire buffer to caputure output
+        while not self.exit_status_ready():
+
+            if self.recv_ready():
+                out_buff = self.recv(1024)
+                while out_buff:
+                    #print("Indside stdout", out_buff)
+                    stdout.write(out_buff)
+                    out_buff = self.recv(1024)
+
+
+            if self.recv_stderr_ready():
+                error_buff = self.recv_stderr(1024)
+                while error_buff:
+                    #print("Indside stderr", error_buff)
+                    stderr.write(error_buff)
+                    error_buff = self.recv_stderr(1024)
+
+        #except socket.timeout:
+        #  raise socket.timeout
+
+        stdout.seek(0), stderr.seek(0)
+
+        result = SSHResult(stdout, stderr, retcode=self.recv_exit_status())
+        #self.close()
         return result
 
     def exit(self):
@@ -233,18 +269,36 @@ class MyShell(paramiko.Channel):
 
 
 class SSHResult(object):
-    def __init__(self, stdout, stderr):
-        self.stdout = stdout
-        self.stderr = stderr
-        self.retcode = stdout.channel.recv_exit_status()
 
-    def get_out(self):
-        out = self.stdout.read()
-        return out
+    def __init__(self, stdout, stderr, retcode=None):
+        self.stdout, self.stderr = stdout, stderr
 
-    def get_err(self):
-        err = self.stderr.read()
-        return err
+        if retcode is None:
+            self.retcode = stdout.channel.recv_exit_status()
+        else:
+            self.retcode = retcode
+
+    def __str__(self):
+        s  = "out: " + self.out 
+        if self.err: s += "\nerr: " + self.err
+        return s
+
+    @property
+    def out(self):
+        try:
+            self._out
+        except AttributeError:
+            self._out = self.stdout.read()
+            return self._out
+
+    @property
+    def err(self):
+        try:
+            self._err
+        except AttributeError:
+            self._err = self.stderr.read()
+            return self._err
+
 
 def read_clusters():
     with open("clusters.yml", "r") as fh:
@@ -260,6 +314,7 @@ def read_clusters():
         password = params.get("password", global_password)
         cls = Cluster.from_qtype(params["qtype"])
         assert hostname not in clusters
+
         clusters[hostname] = cls(hostname, username, password, params["workdir"])
 
     return clusters
@@ -389,27 +444,36 @@ class RunCommand(cmd.Cmd, object):
             command = s
             hostnames = None
 
-        print("command", command, "hosts", hostnames)
-
+        #print("command", command, "hosts", hostnames)
         for cluster in self._select_clusters(hostnames):
             result = cluster.ssh_exec(command)
-            print(cluster.prefix_str(result.get_out()))
+            print(cluster.prefix_str(result.out))
 
     complete_run = complete_hostnames
 
-    #def do_abicheck(self, s):
-    #    """Test if the abinit environment is properly setup."""
-    #    for cluster in self._select_clusters(s):
-    #        shell = cluster.invoke_shell()
-    #        result = shell.bsendall("abirun.py -t")
-    #        print("result", result)
-    #        retcode = shell.exit()
-    #        print(cluster.prefix_str(str(retcode)))
+    def do_abicheck(self, s):
+        """Test if the abinit environment is properly setup on the remote hosts."""
+        print("WARNING: still under development")
+        cmd = "abicheck.py"
 
-    #complete_abicheck = complete_hostnames
+        for cluster in self._select_clusters(s):
+            shell = cluster.invoke_shell()
+            result = shell.myexec(cmd)
+
+            print("result", result)
+            if result.retcode:
+                msg = "%s returned exited with status %d" % (cmd, result.retcode)
+                cluster.prefix_str(msg)
+                
+            #shell.exit()
+
+    complete_abicheck = complete_hostnames
 
     def do_flow_start(self, s):
-        """syntax: flow_start script.py hostname"""
+        """
+        Start the flow on the remote cluster.
+        Syntax: flow_start script.py hostname.
+        """
         tokens = s.split()
         if len(tokens) != 2:
             print(self.do_flow_start.__doc__)
@@ -418,28 +482,32 @@ class RunCommand(cmd.Cmd, object):
         script, hostname = os.path.basename(tokens[0]), tokens[1]
         cluster = self.clusters[hostname]
         remotepath = cluster.path_inworkdir(script)
-        flow_dir = os.path.join(remotepath, "tmp_si_ebands" )
+        #flow_dir = os.path.join(remotepath, "tmp_si_ebands" )
+        flow_dir = cluster.path_inworkdir("tmp_si_ebands" )
 
         print("Uploading %s to %s:%s" % (script, hostname, remotepath))
 
         if flow_dir in self.flows_db:
             raise RuntimeError("remotepath %s is already in the database" % remotepath)
 
+        # Upload the script and make it executable.
         cluster.sftp.put(localpath=script, remotepath=remotepath, confirm=True)
         cluster.sftp.chmod(remotepath, mode=0700)
         cluster.sftp.close()
 
+        # Start the shell on the remote host and run the scheduler with nohup.
         shell = cluster.invoke_shell()
-        result = shell.bsendall(remotepath + "\n")
+        result = shell.myexec(remotepath + "\n")
 
-        #sched_cmd = "nohup abirun.py %s scheduler > /dev/null 2>&1 &" % flow_dir
-        #print(sched_cmd)
-        #result = shell.bsendall(sched_cmd)
-        #print(result)
+        sched_cmd = "nohup abirun.py %s scheduler > /dev/null 2>&1 &" % flow_dir
+        print(sched_cmd)
+        result = shell.myexec(sched_cmd)
+        print(result)
 
-        #retcode = shell.exit()
-        #print("retcode", retcode)
+        retcode = shell.exit()
+        print("retcode", retcode)
 
+        # Add the flow to the local database.
         self.flows_db.add_flow(flow_dir, cluster)
 
     def complete_flow_start(self, text, line, begidx, endidx):
@@ -459,13 +527,16 @@ class RunCommand(cmd.Cmd, object):
         print(self.flows_db)
 
     def do_flow_status(self, s):
-        """flow_status flow_workdir"""
+        """
+        Inspect the status of the flow on the remote cluster.
+        Syntax: flow_status flow_workdir(s)
+        """
         tokens = s.split()
-        print(tokens)
+        #print(tokens)
 
-        #if len(tokens) != 1:
-        #    print(self.do_flow_status.__doc__)
-        #    return
+        if not tokens:
+            print(self.do_flow_status.__doc__)
+            return
 
         for workdir in tokens:
             params = self.flows_db.get(workdir, None)
@@ -474,10 +545,12 @@ class RunCommand(cmd.Cmd, object):
             cluster = self.clusters[params.get("hostname")]
 
             shell = cluster.invoke_shell()
-            result = shell.bsendall("abirun.py %s status" % workdir)
+            cmd= "abirun.py %s status" % workdir
+            print(cmd)
+            result = shell.myexec(cmd)
             print(result)
-            retcode = shell.exit()
-            print("retcode", retcode)
+            #retcode = shell.exit()
+            #print("retcode", retcode)
 
     def complete_flow_status(self, text, line, begidx, endidx):
         tokens = line.split()
@@ -505,8 +578,9 @@ class FlowsDatabase(collections.MutableMapping):
                 self.db = json.load(fh)
 
     def __str__(self):
-        #import pprint
-        return str(self.db)
+        strio = StringIO.StringIO()
+        pprint.pprint(self.db, stream=strio, indent=1)
+        return strio.getvalue()
 
     # abc protocol.
     def __getitem__(self, key):
@@ -559,14 +633,13 @@ def main():
     #shell = cluster.invoke_shell()
 
     # See http://stackoverflow.com/questions/2202228/how-do-i-launch-background-jobs-w-paramiko
-    #result = shell.bsendall("./run_si_ebands.py\n")
+    #result = shell.myexec("./run_si_ebands.py\n")
     return retcode
 
 
 if __name__ == "__main__":
-    #import sys
+    import sys
+    retcode = 0
     RunCommand().cmdloop()
-    #sys.exit(main())
-    #with open("clusters.yml", "r") as fh:
-    #    d = yaml.load(fh)
-    #    print(d)
+    #retcode = main()
+    #sys.exit(retcode)

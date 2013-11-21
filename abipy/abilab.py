@@ -126,6 +126,3 @@ def abicheck():
         raise RuntimeError(header + "\n".join(err_lines))
 
     return 0
-            
-
-
