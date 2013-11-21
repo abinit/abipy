@@ -75,7 +75,7 @@ class Tensor(object):
         red_tensor = from_cart_to_red(cartesian_tensor,lattice)
         return cls(red_tensor, lattice,space)
 
-    def symmetrize(self):
+    def symmetrize(self,structure):
         tensor = self._reduced_tensor
 
         if self._is_real_space:
@@ -83,9 +83,7 @@ class Tensor(object):
         else:
             real_lattice = self._lattice.reciprocal_lattice
 
-        # Create a fake structure to get point group
-        real_structure = Structure(real_lattice,["H"],[[0,0,0]])
-        real_finder = SymmetryFinder(real_structure)
+        real_finder = SymmetryFinder(structure)
 
         real_symmops = real_finder.get_point_group_operations(cartesian=True)
 
