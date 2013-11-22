@@ -2,9 +2,6 @@
 """Deployment file to facilitate releases of abipy."""
 from __future__ import division, print_function
 
-#import glob
-#import os
-
 from fabric.api import local, lcd
 
 def test():

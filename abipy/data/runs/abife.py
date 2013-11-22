@@ -26,6 +26,9 @@ class Cluster(object):
         self.workdir = workdir
 
         # TODO
+        # Use module secrets.py to store the list of clusters.
+        # Read plain text password, encrypt with user-specified algorith
+        # and decript it on the fly before establishing the SSH connection.
         assert password and username
 
         self.port = 22
@@ -298,7 +301,14 @@ class MyShell(paramiko.Channel):
 
 
 class SSHResult(object):
+    """
+    This object stores the results of a command executed on the remote host.
 
+    .. attributes:
+
+        retcode:
+            Return code of the command.
+    """
     def __init__(self, stdout, stderr, retcode=None):
         self.stdout, self.stderr = stdout, stderr
 
@@ -314,6 +324,7 @@ class SSHResult(object):
 
     @property
     def out(self):
+        """Output of the SSH command."""
         try:
             self._out
         except AttributeError:
@@ -322,6 +333,7 @@ class SSHResult(object):
 
     @property
     def err(self):
+        """Stderr of the SSH command."""
         try:
             self._err
         except AttributeError:
@@ -359,8 +371,7 @@ def straceback():
 
 
 class RunCommand(cmd.Cmd, object):
-    """ Simple shell to run a command on the host """
-
+    """ Simple shell to run a command on the localhost """
     prompt='abife> '
 
     def __init__(self):
@@ -414,7 +425,7 @@ class RunCommand(cmd.Cmd, object):
         It should return a list (possibly empty) of strings representing the possible completions. 
         The arguments begidx and endidx are useful when completion depends on the position of the argument.
         """
-        return [i for i in self.clusters.keys() if i.startswith(text)]
+        return [i for i in self.clusters if i.startswith(text)]
 
     # Method called to complete an input line when no command-specific complete_*() method is available.
     completedefault = complete_hostnames
@@ -451,7 +462,7 @@ class RunCommand(cmd.Cmd, object):
             self.clusters[h] = _ALL_CLUSTERS[h]
                                                 
     def complete_reenable_hosts(self, text, line, begidx, endidx):
-        return [h for h in _ALL_CLUSTERS.keys() if h not in self.clusters]
+        return [h for h in _ALL_CLUSTERS if h not in self.clusters]
 
     def do_show_clusters(self, s):
         """Print the list of clusters."""
@@ -493,7 +504,7 @@ class RunCommand(cmd.Cmd, object):
         # split string into command and list of hostnames.
         tokens = s.split()
         for i, tok in enumerate(tokens):
-            if tok in self.clusters.keys():
+            if tok in self.clusters:
                 command = " ".join(tokens[:i])
                 hostnames = " ".join(tokens[i:])
                 break
@@ -640,7 +651,7 @@ class RunCommand(cmd.Cmd, object):
             return list(self.flows_db.keys())
                                                                               
         elif len(tokens) == 2:
-            return [f for f in self.flows_db.keys() if f.startswith(text)]
+            return [f for f in self.flows_db if f.startswith(text)]
                                                                               
         return []
 
@@ -728,10 +739,19 @@ class FlowsDatabase(collections.MutableMapping):
         self.json_dump()
 
     def remove_flow(self, flow_workdir):
-        """Remove an entry from the database."""
+        """
+        Remove an entry from the database.
+
+        Returns:
+            The entry that has been removed.
+        """
         v = self.pop(flow_workdir, None)
+
         if v is not None:
-            self.dump()
+            # Update the database.
+            self.json_dump()
+
+        return v
 
     def json_dump(self):
         """Dump the database in JSON format."""
@@ -741,7 +761,7 @@ class FlowsDatabase(collections.MutableMapping):
 
 #def main():
 #    retcode = 0
-#    cluster = SlurmCluster(hostname="manneback", username="gmatteo", password="e=mc^2")
+#    cluster = SlurmCluster(hostname="manneback", username="gmatteo", password="")
 #    #cluster.ssh_exec("uname -a")
 #    #print(cluster.info)
 #    print(cluster.get_user_jobs())
