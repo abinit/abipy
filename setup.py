@@ -153,7 +153,8 @@ def cleanup():
 install_requires = [
     "apscheduler>=2.1.1",
     "PyDispatcher",
-    "numpy>=1.6",
+    "numpy",
+    #"numpy>=1.8",  # We need this one for the ufuncs
     "scipy>=0.10",
     "matplotlib>=1.1",
     "pyyaml>=3.1.0",
