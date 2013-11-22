@@ -85,7 +85,7 @@ def software_stack(with_wx=True):
 
     if with_wx:
         import wx
-        d["wx"] = wx=wx.version()
+        d["wx"] = wx.version()
 
     return d
 

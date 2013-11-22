@@ -4,7 +4,7 @@ from __future__ import division, print_function
 
 from fabric.api import local, lcd
 
-def test():
+def unittests():
     """Run the unit tests."""
     local("nosetests")
 
@@ -18,7 +18,7 @@ def push():
 
 def deploy():
     """Unit tests + git commit + git push."""
-    test()
+    unittests()
     commit()
     push()
 

@@ -19,8 +19,10 @@ ENV_OPTS = []
 #ENV_OPTS = ["--no-site-packages",]
 ENV_OPTS = " ".join(ENV_OPTS)
 
+
 def shellcmd(cmd, echo=True):
-    """ Run 'cmd' in the shell and return its standard out.
+    """
+    Run 'cmd' in the shell and return its standard out.
     """
     if echo: print('[cmd] {0}'.format(cmd))
     out = subprocess.check_output(cmd, stderr=sys.stderr, shell=True)

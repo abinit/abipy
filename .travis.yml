@@ -24,7 +24,7 @@ before_script:
     - rm abipy/gui/__init__.py 
     - export LD_LIBRARY_PATH=/usr/lib/:$LD_LIBRARY_PATH
     - python -m netCDF4_utils
-    - abipy/dev_scripts/check_netcdf4.py
+    #- abipy/dev_scripts/check_netcdf4.py
 # command to run tests
 script: nosetests
 branches:
