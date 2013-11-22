@@ -151,18 +151,19 @@ def cleanup():
 # List of external packages we rely on.
 # Note setup install will download them from Pypi if they are not avaiable.
 install_requires = [
-    "pymatgen>=2.8.7",
-    "matplotlib>=1.1",
-    "scipy>=0.10",
-    "numpy>=1.6",
-    "netCDF4",
-    "PyDispatcher",
-    "pyyaml>=3.1.0",
     "apscheduler>=2.1.1",
+    "PyDispatcher",
+    "numpy>=1.6",
+    "scipy>=0.10",
+    "matplotlib>=1.1",
+    "pyyaml>=3.1.0",
+    "netCDF4",
+    "pymatgen>=2.8.7",
     #"wxmplot>=0.9.11",
     #"termcolor",
     #"asciitable",
     #"fabric",
+    #"paramiko",
 ]
 
 if with_ipython:
