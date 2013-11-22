@@ -102,7 +102,10 @@ def build_bands_flow(workdir):
 
 @enable_logging
 def main():
-    flow = build_bands_flow(workdir="tmp_si_ebands")
+    workdir = __file__.replace(".py", "")
+    print(workdir)
+    flow = build_bands_flow(workdir=workdir)
+    #flow = build_bands_flow(workdir="tmp_si_ebands")
     return flow.build_and_pickle_dump()
 
 

@@ -99,10 +99,12 @@ def abicheck():
     Raises:
         RuntimeError if not all the dependencies are fulfilled.
     """
+    import os
     # executables must be in $PATH. Unfortunately we cannot 
-    # test if the binaries work (e.g. shared libraries) 
-    # A possible approach would be to execute "exe -h"
+    # test the version of the binaries.
+    # A possible approach would be to execute "exe -v"
     # but supporting argv in Fortran is not trivial.
+    # Dynamic linking is tested by calling `ldd exe`
     executables = [
         "abinit",
         "mrgddb",
@@ -110,11 +112,16 @@ def abicheck():
         "anaddb",
     ]
 
+    has_ldd = which("ldd") is not None
+
     err_lines = []
     app = err_lines.append
     for exe in executables:
         if which(exe) is None:
             app("Cannot find %s in $PATH" % exe)
+        else:
+            if has_ldd and os.system("ldd " + exe) != 0:
+                app("Missing shared library dependencies for %s" % exe)
 
     try:    
         software_stack(with_wx=False)

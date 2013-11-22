@@ -79,7 +79,7 @@ core Package
 
 
 :mod:`testing` Module
------------------------
+---------------------
 
 .. automodule:: abipy.core.testing
    :members:
@@ -88,7 +88,7 @@ core Package
 
 
 :mod:`tensor` Module
------------------------
+--------------------
 
 .. automodule:: abipy.core.tensor
    :members:

@@ -75,7 +75,7 @@ class Tensor(object):
         red_tensor = from_cart_to_red(cartesian_tensor,lattice)
         return cls(red_tensor, lattice,space)
 
-    def symmetrize(self,structure):
+    def symmetrize(self, structure):
         tensor = self._reduced_tensor
 
         if self._is_real_space:

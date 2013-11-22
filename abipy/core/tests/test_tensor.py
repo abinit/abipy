@@ -38,11 +38,9 @@ class TestTensor(AbipyTest):
         self.assertTrue(tensor==tensor2)
 
         #print("non-symmetrized cartesian_tensor = ",tensor2.cartesian_tensor)
-        tensor2.symmetrize()
+        tensor2.symmetrize(structure)
 
         #print("symmetrized_cartesian_tensor = ",tensor2.cartesian_tensor)
-
-
 
         self.serialize_with_pickle(tensor)
 
