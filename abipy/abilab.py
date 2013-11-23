@@ -117,10 +117,11 @@ def abicheck():
     err_lines = []
     app = err_lines.append
     for exe in executables:
-        if which(exe) is None:
+        exe_path = which(exe)
+        if exe_path is None:
             app("Cannot find %s in $PATH" % exe)
         else:
-            if has_ldd and os.system("ldd " + exe) != 0:
+            if has_ldd and os.system("ldd %s > /dev/null " % exe_path) != 0:
                 app("Missing shared library dependencies for %s" % exe)
 
     try:    

@@ -129,9 +129,6 @@ def main():
     if options.verbose:
         print(options)
 
-    # Check that the env on the local machine is properly setup 
-    return abilab.abicheck()
-
     # loglevel is bound to the string value obtained from the command line argument. 
     # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
     import logging
