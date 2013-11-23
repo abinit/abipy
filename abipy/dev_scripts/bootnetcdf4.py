@@ -44,3 +44,12 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main())
+
+
+
+
+easy_install pyYaml
+easy_install pyCifRW
+easy_install pyhull
+python setup.py install
+for netcdf4 hdf see http://www.unidata.ucar.edu/software/netcdf/docs/build_default.html
