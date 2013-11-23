@@ -118,6 +118,7 @@ def abicheck():
     app = err_lines.append
     for exe in executables:
         exe_path = which(exe)
+
         if exe_path is None:
             app("Cannot find %s in $PATH" % exe)
         else:
