@@ -32,7 +32,7 @@ class Cluster(object):
         assert password and username
 
         self.port = 22
-        self.timeout = 10 # Timeout in seconds.
+        self.timeout = 30 # Timeout in seconds.
 
     @classmethod
     def from_qtype(cls, qtype):
@@ -345,18 +345,23 @@ def read_clusters():
     with open("clusters.yml", "r") as fh:
         conf = yaml.load(fh)
 
+    # Global parameter (will be overwritten by cluster-specific params, if present).
     global_password = conf.get("password", None)
     global_username = conf.get("username", None)
-    d = conf["clusters"]
+    global_qtype = conf.get("qtype", None)
+    global_workdir = conf.get("workdir", None)
 
-    clusters = {}
+    d, clusters = conf["clusters"], {}
+
     for hostname, params in d.items():
         username = params.get("username", global_username)
         password = params.get("password", global_password)
-        cls = Cluster.from_qtype(params["qtype"])
-        assert hostname not in clusters
+        qtype = params.get("qtype", global_qtype)
+        workdir = params.get("workdir", global_workdir)
 
-        clusters[hostname] = cls(hostname, username, password, params["workdir"])
+        cls = Cluster.from_qtype(qtype)
+        assert hostname not in clusters
+        clusters[hostname] = cls(hostname, username, password, workdir)
 
     return clusters
 
@@ -655,6 +660,13 @@ class RunCommand(cmd.Cmd, object):
                                                                               
         return []
 
+    def do_flow_conf(self, s):
+        """Show the configuration files used on the remote hosts."""
+        command = "cat ~/.abinit/abipy/*.yml"
+        for cluster in self._select_clusters(s):
+            result = cluster.ssh_exec(command)
+            print(cluster.prefix_str(result.out))
+
     #def do_flow_gui(self, s):
     #    """
     #    Open the flowviewer on the the remote host.
@@ -759,23 +771,7 @@ class FlowsDatabase(collections.MutableMapping):
             json.dump(self.db, fh)
 
 
-#def main():
-#    retcode = 0
-#    cluster = SlurmCluster(hostname="manneback", username="gmatteo", password="")
-#    #cluster.ssh_exec("uname -a")
-#    #print(cluster.info)
-#    print(cluster.get_user_jobs())
-#    print(cluster.get_qinfo())
-#    cluster.sftp.put(localpath="run_si_ebands.py", remotepath="run_si_ebands.py", confirm=True)
-#    cluster.sftp.chmod("run_si_ebands.py", mode=0700)
-#    #shell = cluster.invoke_shell()
-#    # See http://stackoverflow.com/questions/2202228/how-do-i-launch-background-jobs-w-paramiko
-#    #result = shell.myexec("./run_si_ebands.py\n")
-#    return retcode
-
-
 if __name__ == "__main__":
     import sys
-    retcode = 0
     RunCommand().cmdloop()
-    #sys.exit(main())
+    sys.exit(0)

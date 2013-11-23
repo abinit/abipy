@@ -3,10 +3,10 @@
 from __future__ import division, print_function
 
 import os
+import cStringIO as StringIO
 
-from cStringIO import StringIO
 from fabric.api import local, settings, abort, run, cd, env, prefix, put
-from contextlib import contextmanager 
+from contextlib import contextmanager as _contextmanager 
 
 env.user = "gmatteo"
 
@@ -15,6 +15,10 @@ VENV = "~/VENV-2.7"
 
 #env.password = ""
 def all_hosts():
+    """
+    Used to run the command on all the CECI clusters.
+    example: fab all_hosts pip_install abipy
+    """
     env.hosts = [
         #"green.cism.ucl.ac.be",
         #"manneback.cism.ucl.ac.be",
@@ -37,8 +41,8 @@ git_urls = {
 
 git_repospaths = [os.path.join(git_reposdir, dirpath) for dirpath in git_urls]
 
-@contextmanager
-def virtualenv(venv_dir):
+@_contextmanager
+def _virtualenv(venv_dir):
     with prefix("source %s" % os.path.join(venv_dir, "bin", "activate")):
         yield
 
@@ -47,7 +51,9 @@ def _exists(path):
         return not run('test -e %s' % path).failed
 
 def git_deploy():
-    """Synchronize the git branches with the master branch located on github."""
+    """
+    Synchronize the git branches with the master branch located on github.
+    """
     # Create ~/git_repos and clone the repositories if this is the first time.
     if not _exists(git_reposdir):
         run("mkdir %s" % git_reposdir)
@@ -59,32 +65,41 @@ def git_deploy():
     for apath in git_repospaths:
         with cd(apath):
             run("git pull")
-            with virtualenv(VENV):
+            with _virtualenv(VENV):
                 run("python setup.py clean")
                 run("python setup.py install")
 
 def pytest():
-    """Run the test suite with py.test"""
+    """
+    Run the test suite with py.test.
+    """
     for apath in git_repospaths:
         if "pymatgen" in apath: continue
         with cd(apath):
-            with virtualenv(VENV):
+            with _virtualenv(VENV):
                 #run("nosetests -v")
                 run("py.test -v")
 
 def pip_install(*options):
     """
     Execute `pip install options` on the remote hosts. 
-    (use a virtual environment).
+    Example: pip_install foo bar
+
+    .. note:
+        use the virtual environment VENV
     """
-    with virtualenv(VENV):
+    with _virtualenv(VENV):
         run("pip install %s" % " ".join(o for o in options))
 
 def py_version():
+    """
+    Show the default python version and the python modules available
+    on the remove machines.
+    """
     out = run("python --version", quiet=True)
     py_version = out.split()[1]
 
-    out = StringIO()
+    out = StringIO.StringIO()
     run("module available", stdout=out)
 
     py_modules = []
@@ -95,6 +110,9 @@ def py_version():
 
 
 def bzr_deploy():
+    """
+    Upload the bzr repository on the remote clusters.
+    """
     url = "bzr+ssh://forge.abinit.org/abinit/gmatteo/7.5.4-private"
     to_location = os.path.join(*url.split("/")[-2:]).replace("/", "_")
 
@@ -103,7 +121,7 @@ def bzr_deploy():
     repo_path = os.path.join(bzr_reposdir, to_location)
     print("repo_path", repo_path, "to_location", to_location)
 
-    with virtualenv(VENV):
+    with _virtualenv(VENV):
         if not _exists(bzr_reposdir):
             run("mkdir %s" % bzr_reposdir)
 
