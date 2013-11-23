@@ -92,11 +92,15 @@ def finite_diff(arr, h, order=1, acc=4):
 
     arr = np.asarray(arr)
 
+    if np.iscomplexobj(arr):
+        raise ValueError("Derivatives of complex functions are not supported")
+
     # Retrieve weights.
     try:
         centr_ws = central_fdiff_weights[order][acc]
         forw_ws = forward_fdiff_weights[order][acc]
         back_ws = backward_fdiff_weights[order][acc]
+
     except KeyError:
         raise ValueError("Weights for order %s, accuracy %s are missing!" % (order, acc))
 
