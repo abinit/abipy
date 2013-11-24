@@ -61,6 +61,7 @@ def make_scf_nscf_inputs():
                        timopt=-1,
                        istwfk="*1",
                        nstep=15,
+                       paral_kgb=0,
                        #accesswff=3,
                     )
 
@@ -103,7 +104,6 @@ def build_bands_flow(workdir):
 @enable_logging
 def main():
     workdir = __file__.replace(".py", "")
-    print(workdir)
     flow = build_bands_flow(workdir=workdir)
     #flow = build_bands_flow(workdir="tmp_si_ebands")
     return flow.build_and_pickle_dump()

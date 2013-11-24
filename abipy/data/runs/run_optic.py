@@ -48,6 +48,7 @@ def optic_flow(workdir="tmp_optic"):
                 )
 
     global_vars = dict(ecut=2,
+                       paral_kgb=0,
                       )
 
     global_vars.update(kmesh)
@@ -89,7 +90,6 @@ def optic_flow(workdir="tmp_optic"):
           rfdir=rfdir,
          rfelfd=2,
          tolwfr=1.e-9,
-         #paral_kgb=1,
         )
 
     manager = abilab.TaskManager.from_user_config()

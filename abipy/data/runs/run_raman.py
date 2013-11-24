@@ -74,7 +74,7 @@ def raman_workflow(structure, pseudos, shiftk):
         chksymbreak=0,
         #nstep=4,
         nstep=10,
-        #paral_kgb=1,
+        paral_kgb=0,
     )
 
     # GS run

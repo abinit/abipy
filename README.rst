@@ -27,6 +27,7 @@ or::
 
     pip install abipy
 
+
 Developmental version
 ---------------------
 
@@ -50,8 +51,7 @@ in the abipy root directory.
 Requirements
 ============
 
-All required dependencies should be automatically taken care of if you
-install abipy using easy_install or pip. 
+All required dependencies should be automatically taken care of if you install abipy using easy_install or pip. 
 Otherwise, these packages should be available on `PyPI <http://pypi.python.org>`_.
 
 1. Python 2.7+ required. 
@@ -67,6 +67,13 @@ Otherwise, these packages should be available on `PyPI <http://pypi.python.org>`
 6. netCDF4
 
 7. pyyaml 3.1.0+
+
+#Some packages are much easier to install via easy_install
+#easy_install pyYaml
+#easy_install pyCifRW
+#easy_install pyhull
+#for netcdf4 hdf see http://www.unidata.ucar.edu/software/netcdf/docs/build_default.html
+
 
 Optional dependencies
 ---------------------

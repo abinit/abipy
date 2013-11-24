@@ -13,6 +13,26 @@ def shellcmd(cmd, echo=True):
     if echo: print(out)
     return out
 
+
+# Netcdf4+HDF5 tarballs.
+nc4_tarballs = dict(
+    hdf5="ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4/hdf5-1.8.11.tar.gz",
+    netcdf4="ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4.3.0.tar.gz",
+    netcdf4_f90="ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-fortran-4.2.tar.gz",
+)
+
+# Useful packages for development.
+dev_tarballs = dict(
+    ctags="http://prdownloads.sourceforge.net/ctags/ctags-5.8.tar.gz",
+    python2.7="http://www.python.org/ftp/python/2.7.6/Python-2.7.6.tar.xz",
+)
+
+# PyPy software stack. 
+pypy_tarballs = dict(
+    pypy="https://bitbucket.org/pypy/pypy/downloads/pypy-2.2-src.tar.bz2",
+)
+
+
 def download_tarballs():
     hdf5_url = "ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4/hdf5-1.8.11.tar.gz"
     nc4_url = "ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4.3.0.tar.gz"
@@ -23,7 +43,6 @@ def download_tarballs():
     #shellcmd('curl -O %s' % ncf4_url)
 
     return 0
-
 
 def main():
     test = False
@@ -44,12 +63,3 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main())
-
-
-
-
-easy_install pyYaml
-easy_install pyCifRW
-easy_install pyhull
-python setup.py install
-for netcdf4 hdf see http://www.unidata.ucar.edu/software/netcdf/docs/build_default.html

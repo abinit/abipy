@@ -165,6 +165,7 @@ install_requires = [
     #"asciitable",
     #"fabric",
     #"paramiko",
+    #"psutil",
 ]
 
 if with_ipython:

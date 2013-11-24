@@ -32,7 +32,8 @@ def relax_flow(workdir="tmp_sic_relax"):
 
     global_vars = dict(
         chksymbreak=0,
-        ecut = 20
+        ecut=20
+        paral_kgb=0,
     )
 
     ngkpt = [4,4,4]

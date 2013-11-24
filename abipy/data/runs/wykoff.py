@@ -64,9 +64,11 @@ def make_workflow(structure, pseudos):
     for given `Structure`.
     """
     # Variables global to the SCF and the NSCF run.
-    global_vars = dict(ecut=FloatWithUnit(100, "eV").to("Ha"),
-                       #nband=8,
-                    )
+    global_vars = dict(
+        ecut=FloatWithUnit(100, "eV").to("Ha"),
+        paral_kgb=0,
+        #nband=8,
+    )
 
     # GS + NSCF run 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)

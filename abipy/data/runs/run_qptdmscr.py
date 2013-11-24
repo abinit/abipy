@@ -34,7 +34,8 @@ def all_inputs():
     global_vars = dict(
         ecut=ecut,
         timopt=-1,
-        istwfk = "*1",
+        istwfk="*1",
+        paral_kgb=0,
     )
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=4)
@@ -126,7 +127,6 @@ def gw_flow():
     gs, nscf, scr_input, sigma_input = all_inputs()
                                                                         
     manager = abilab.TaskManager.from_user_config()
-    #manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=dict(autoparal=1, max_ncpus=2))
 
     flow = g0w0_flow_with_qptdm(workdir, manager, gs, nscf, scr_input, sigma_input)
 

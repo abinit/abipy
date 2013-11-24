@@ -32,10 +32,10 @@ def all_hosts():
 git_reposdir = '~gmatteo/git_repos/'
 
 git_urls = {
-    "abipy":     "https://github.com/gmatteo/abipy.git",
-    "pymatgen":   "https://github.com/gmatteo/pymatgen.git",
-    #"abipy": "git@github.com:gmatteo/abipy.git",
-    #"pymatgen": "git@github.com:gmatteo/pymatgen.git",
+    #"abipy":     "https://github.com/gmatteo/abipy.git",
+    #"pymatgen":   "https://github.com/gmatteo/pymatgen.git",
+    "abipy": "git@github.com:gmatteo/abipy.git",
+    "pymatgen": "git@github.com:gmatteo/pymatgen.git",
 
 }
 
@@ -57,17 +57,19 @@ def git_deploy():
     # Create ~/git_repos and clone the repositories if this is the first time.
     if not _exists(git_reposdir):
         run("mkdir %s" % git_reposdir)
-        with cd(git_reposdir):
-            for name, url in git_urls.items():
+
+    with cd(git_reposdir):
+        for name, url in git_urls.items():
+            if not _exists(name):
                 run("git clone %s" % url)
 
     # Pull from github.
     for apath in git_repospaths:
         with cd(apath):
             run("git pull")
-            with _virtualenv(VENV):
-                run("python setup.py clean")
-                run("python setup.py install")
+            #with _virtualenv(VENV):
+            #    run("python setup.py clean")
+            #    run("python setup.py install")
 
 def pytest():
     """

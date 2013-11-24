@@ -32,6 +32,7 @@ def make_scf_nscf_inputs(structure, pseudos):
                        timopt=-1,
                        occopt=4,    # Marzari smearing
                        tsmear=0.03,
+                       paral_kgb=0,
                     )
 
     inp.set_variables(**global_vars)

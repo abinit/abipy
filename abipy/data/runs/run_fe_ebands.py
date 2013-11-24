@@ -35,6 +35,7 @@ def make_scf_nscf_inputs(nsppol):
                        nband=8,
                        occopt=3,
                        tsmear=0.01,
+                       paral_kgb=0,
                     )
     if nsppol == 2:
         global_vars.update(spinat=[0.0, 0.0, 4.0])

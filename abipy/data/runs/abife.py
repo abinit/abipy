@@ -17,12 +17,32 @@ import paramiko
 
 
 class Cluster(object):
+    """
+    Abstract base class defining the interface that must be 
+    implmented by concrete class.
+    This object stores the basic parameters of the cluster
+    that are needed to establish SSH, SFTP connections.
+    It also provides helper functions for monitoring the 
+    resource manager.
+    Every subclass must define the class attribute `qtype` so 
+    that specified the type of resource manager installed on the cluster.
+    """
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, hostname, username, password, workdir):
-        self.hostname = hostname
-        self.username = username
-        self.password = password
+        """
+        Args:
+            hostname:
+                Name of the host.
+            username:
+                Username used to login on the cluster.
+            password:
+                Password used to connect to the cluster.
+            workdir:
+                Absolute path (on the remote host) where `AbinitFlows`
+                will be produced.
+        """
+        self.hostname, self.username, self.password = hostname, username, password
         self.workdir = workdir
 
         # TODO
@@ -44,7 +64,8 @@ class Cluster(object):
         raise ValueError("Wrong value for qtype %s" % qtype)
 
     def __str__(self):
-        return "%s@%s:%s" % (self.username, self.hostname, self.__class__.__name__)
+        """String representation."""
+        return "%s@%s:%s [%s]" % (self.username, self.hostname, self.workdir, self.qtype)
 
     #def __del__(self):
     #    self.disconnect
@@ -149,6 +170,11 @@ class Cluster(object):
         shell.settimeout(timeout if timeout != -1 else self.timeout)
         return shell
 
+    def make_workdir(self):
+        """Create the working directory on the cluster if it does not exist."""
+        if self.ssh_exec("test -e %s" % self.workdir).retcode != 0:
+            self.ssh_exec("mkdir %s" % self.workdir)
+
     @abc.abstractmethod
     def get_user_jobs(self):
         """Return a string with info on the jobs belonging to the user"""
@@ -163,6 +189,7 @@ class Cluster(object):
 
 
 class SlurmCluster(Cluster):
+    """A cluster with Slurm."""
     qtype = "slurm"
 
     def get_all_jobs(self):
@@ -179,6 +206,7 @@ class SlurmCluster(Cluster):
 
 
 class SgeCluster(Cluster):
+    """A cluster with SGE."""
     qtype = "sge"
 
     def get_all_jobs(self):
@@ -376,7 +404,7 @@ def straceback():
 
 
 class RunCommand(cmd.Cmd, object):
-    """ Simple shell to run a command on the localhost """
+    """ Simple shell to run commands on the localhost """
     prompt='abife> '
 
     def __init__(self):
@@ -467,6 +495,7 @@ class RunCommand(cmd.Cmd, object):
             self.clusters[h] = _ALL_CLUSTERS[h]
                                                 
     def complete_reenable_hosts(self, text, line, begidx, endidx):
+        """Command line completion for reenable_hosts."""
         return [h for h in _ALL_CLUSTERS if h not in self.clusters]
 
     def do_show_clusters(self, s):
@@ -523,18 +552,20 @@ class RunCommand(cmd.Cmd, object):
 
     def do_abicheck(self, s):
         """Test if the abinit environment is properly setup on the remote hosts."""
-        print("WARNING: still under development")
-        cmd = "abicheck.py"
 
         for cluster in self._select_clusters(s):
             print("Testing abipy environment on %s ... " % cluster, end="")
+
+            cluster.make_workdir()
+
             shell = cluster.invoke_shell()
             try:
+                cmd = "abicheck.py"
                 result = shell.myexec(cmd)
 
-                #print("got result", result)
                 if result.retcode:
                     msg = "[FAILED]: %s returned %d" % (cmd, result.retcode)
+                    #print("got result", result)
                 else:
                     msg = "[OK]"
 
@@ -542,7 +573,6 @@ class RunCommand(cmd.Cmd, object):
                 msg = "[FAILED]: socket timeout"
 
             print(msg)
-                
             #shell.exit()
 
     def do_flow_start(self, s):
@@ -564,6 +594,7 @@ class RunCommand(cmd.Cmd, object):
         # Build absolute paths on the remote host.
         dir_basename = os.path.basename(script).replace(".py", "")
         remotepath = cluster.path_inworkdir(script)
+        remotepath = os.path.join("/home/ucl/naps/gmatteo/WORKDIR", script)
         flow_absdir = cluster.path_inworkdir(dir_basename)
 
         print("Uploading %s to %s:%s" % (script, hostname, remotepath))
@@ -597,7 +628,7 @@ class RunCommand(cmd.Cmd, object):
 
         #if result.retcode:
         #    print("%s returned %s.\n Will remove the directory and abort" % (sched_cmd, result.retcode))
-        #    #self.ssh.exec("rm -rf ")
+        #    cluster.ssh.exec("rm -rf %s" % flow_absdir)
         #    return
 
         #retcode = shell.exit()
@@ -609,6 +640,7 @@ class RunCommand(cmd.Cmd, object):
             print("%s added to the database" % flow_absdir)
 
     def complete_flow_start(self, text, line, begidx, endidx):
+        """Command line completion for flow_start."""
         tokens = line.split()
 
         if len(tokens) == 2:
@@ -650,6 +682,7 @@ class RunCommand(cmd.Cmd, object):
             #print("retcode", retcode)
 
     def complete_flow_status(self, text, line, begidx, endidx):
+        """Command line completion for flow_status."""
         tokens = line.split()
 
         if len(tokens) == 1:
@@ -662,10 +695,17 @@ class RunCommand(cmd.Cmd, object):
 
     def do_flow_conf(self, s):
         """Show the configuration files used on the remote hosts."""
-        command = "cat ~/.abinit/abipy/*.yml"
+
+        conf_files = [
+            "~/.abinit/abipy/taskmanager.yml",
+            "~/.abinit/abipy/scheduler.yml",
+        ]
+
         for cluster in self._select_clusters(s):
-            result = cluster.ssh_exec(command)
-            print(cluster.prefix_str(result.out))
+            for f in conf_files:
+                result = cluster.ssh_exec("cat %s" % f)
+                s = yaml.dump(yaml.load(result.out))
+                print(cluster.prefix_str(s))
 
     #def do_flow_gui(self, s):
     #    """
@@ -696,6 +736,15 @@ class RunCommand(cmd.Cmd, object):
 
 
 class FlowsDatabase(collections.MutableMapping):
+    """
+    Database of flows executed on the clusters.
+    It essentially consists of a dictionary that
+    maps the name of the script used to generate
+    the flow to the absolute path on the remote hosts
+    where the flow is being executed.
+
+    We use JSON to save/write the database on disk.
+    """
     JSON_FILE = "flowsdb.json"
     #flow_workdir --> {hostname, start_date, status}
 

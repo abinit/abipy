@@ -51,6 +51,7 @@ def scf_ph_inputs():
                        ngkpt=[4, 4, 4],
                        shiftk=[0, 0, 0],
                        tolvrs=1.0e-8,
+                       paral_kgb=0,
                     )
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=1+len(qpoints))

@@ -32,7 +32,7 @@ def make_scf_nscf_inputs(structure):
     global_vars = dict(ecut=6,
                        nband=8,
                        timopt=-1,
-                       paral_kgb=1,
+                       paral_kgb=0,
                        #nstep=4, # This is not enough to converge. Used to test the automatic restart.
                        nstep=10,
                     )

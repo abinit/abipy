@@ -36,6 +36,7 @@ def make_scf_nscf_dos_inputs(structure, pseudos, luj_params):
         occopt=7,
         tsmear=0.015,
         nstep=50,
+        paral_kgb=0,
         #
         # Spin
         nsppol=1,
