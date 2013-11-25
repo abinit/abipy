@@ -15,6 +15,37 @@ import yaml
 import socket
 import paramiko
 
+def straceback():
+    """Returns a string with the traceback."""
+    import traceback
+    return traceback.format_exc()
+
+
+def read_clusters(filepath="clusters.yml"):
+    """Read the configuration paramenters from the YAML file clusters.yml."""
+    with open(filepath, "r") as fh:
+        conf = yaml.load(fh)
+
+    # Global parameter (will be overwritten by cluster-specific params, if present).
+    global_username = conf.get("username", None)
+    global_password = conf.get("password", None)
+    global_workdir = conf.get("workdir", None)
+    global_qtype = conf.get("qtype", None)
+
+    d, clusters = conf["clusters"], {}
+
+    for hostname, params in d.items():
+        username = params.get("username", global_username)
+        password = params.get("password", global_password)
+        workdir = params.get("workdir", global_workdir)
+        qtype = params.get("qtype", global_qtype)
+
+        cls = Cluster.from_qtype(qtype)
+        assert hostname not in clusters
+        clusters[hostname] = cls(hostname, username, password, workdir)
+
+    return clusters
+
 
 class Cluster(object):
     """
@@ -39,8 +70,7 @@ class Cluster(object):
             password:
                 Password used to connect to the cluster.
             workdir:
-                Absolute path (on the remote host) where `AbinitFlows`
-                will be produced.
+                Absolute path (on the remote host) where `AbinitFlows` will be produced.
         """
         self.hostname, self.username, self.password = hostname, username, password
         self.workdir = workdir
@@ -53,6 +83,9 @@ class Cluster(object):
 
         self.port = 22
         self.timeout = 30 # Timeout in seconds.
+
+        # List of partitions available on the cluster.
+        #self.partions = []
 
     @classmethod
     def from_qtype(cls, qtype):
@@ -82,8 +115,7 @@ class Cluster(object):
 
     def prefix_str(self, s):
         """Add the name of the host to every line in s.splitlines()."""
-        lines = []
-        lines.extend(("[%s] %s" % (self.hostname, l) for l in s.splitlines()))
+        lines = ["[%s] %s" % (self.hostname, l) for l in s.splitlines())]
 
         if not lines:
             lines = ["[%s] (Empty)" % self.hostname]
@@ -172,8 +204,16 @@ class Cluster(object):
 
     def make_workdir(self):
         """Create the working directory on the cluster if it does not exist."""
-        if self.ssh_exec("test -e %s" % self.workdir).retcode != 0:
+        if self.ssh_exec("test -e %s" % self.workdir).return_code != 0:
             self.ssh_exec("mkdir %s" % self.workdir)
+
+    def invoke_abinit(self, *args):
+        """Returns the output of `abinit args`."""
+        shell = self.invoke_shell()
+        return shell.myexec("abinit %s" % " ".join(*args).out
+        #return shell.myexec("mpirun abinit %s" % " ".join(*args).out
+        #return shell.myexec("`which abinit`")
+        #return shell.myexec("ldd `which abinit`")
 
     @abc.abstractmethod
     def get_user_jobs(self):
@@ -187,22 +227,30 @@ class Cluster(object):
     def get_qinfo(self):
         """Return a string with info on the queue."""
 
+    @abc.abstractmethod
+    def get_qload(self):
+        """Return a string with the load of the cluster"""
+
 
 class SlurmCluster(Cluster):
     """A cluster with Slurm."""
     qtype = "slurm"
 
     def get_all_jobs(self):
-        result = self.ssh_exec(command="squeue")
+        result = self.ssh_exec("squeue")
         return self.prefix_str(result.out)
 
     def get_user_jobs(self):
-        result = self.ssh_exec(command="squeue -u %s" % self.username)
+        result = self.ssh_exec("squeue -u %s" % self.username)
         return self.prefix_str(result.out)
 
     def get_qinfo(self):
-        result = self.ssh_exec(command="sinfo")
+        result = self.ssh_exec("sinfo")
         return self.prefix_str(result.out)
+
+    #def get_qload(self):
+    #    result = self.ssh_exec("sload")
+    #    return self.prefix_str(result.out)
 
 
 class SgeCluster(Cluster):
@@ -210,11 +258,11 @@ class SgeCluster(Cluster):
     qtype = "sge"
 
     def get_all_jobs(self):
-        result = self.ssh_exec(command='qstat -u "*"')
+        result = self.ssh_exec('qstat -u "*"')
         return self.prefix_str(result.out)
 
     def get_user_jobs(self):
-        result = self.ssh_exec(command="qstat -u %s" % self.username)
+        result = self.ssh_exec("qstat -u %s" % self.username)
         return self.prefix_str(result.out)
 
     def get_qinfo(self):
@@ -272,8 +320,8 @@ class MyShell(paramiko.Channel):
         #        print('time out') #TODO: add exeption here 
         #time.sleep(10)
 
-        #retcode = self.recv_exit_status()
-        #print(retcode)
+        #return_code = self.recv_exit_status()
+        #print(return_code)
         #result = ""
         #while self.recv_ready():
         ##while self.recv_ready() and not self.exit_status_ready():
@@ -310,7 +358,7 @@ class MyShell(paramiko.Channel):
 
         stdout.seek(0), stderr.seek(0)
 
-        result = SSHResult(stdout, stderr, retcode=self.recv_exit_status())
+        result = SSHResult(stdout, stderr, return_code=self.recv_exit_status())
         #self.close()
         return result
 
@@ -334,16 +382,16 @@ class SSHResult(object):
 
     .. attributes:
 
-        retcode:
+        return_code:
             Return code of the command.
     """
-    def __init__(self, stdout, stderr, retcode=None):
+    def __init__(self, stdout, stderr, return_code=None):
         self.stdout, self.stderr = stdout, stderr
 
-        if retcode is None:
-            self.retcode = stdout.channel.recv_exit_status()
+        if return_code is None:
+            self.return_code = stdout.channel.recv_exit_status()
         else:
-            self.retcode = retcode
+            self.return_code = return_code
 
     def __str__(self):
         s  = "out: " + self.out 
@@ -368,40 +416,7 @@ class SSHResult(object):
             self._err = self.stderr.read()
             return self._err
 
-
-def read_clusters():
-    with open("clusters.yml", "r") as fh:
-        conf = yaml.load(fh)
-
-    # Global parameter (will be overwritten by cluster-specific params, if present).
-    global_password = conf.get("password", None)
-    global_username = conf.get("username", None)
-    global_qtype = conf.get("qtype", None)
-    global_workdir = conf.get("workdir", None)
-
-    d, clusters = conf["clusters"], {}
-
-    for hostname, params in d.items():
-        username = params.get("username", global_username)
-        password = params.get("password", global_password)
-        qtype = params.get("qtype", global_qtype)
-        workdir = params.get("workdir", global_workdir)
-
-        cls = Cluster.from_qtype(qtype)
-        assert hostname not in clusters
-        clusters[hostname] = cls(hostname, username, password, workdir)
-
-    return clusters
-
-
 _ALL_CLUSTERS = read_clusters()
-
-
-def straceback():
-    """Returns a string with the traceback."""
-    import traceback
-    return traceback.format_exc()
-
 
 class RunCommand(cmd.Cmd, object):
     """ Simple shell to run commands on the localhost """
@@ -432,15 +447,15 @@ class RunCommand(cmd.Cmd, object):
     def can_exit(self):
         return False
 
-    def do_exit(self, s):
+    def do_exit(self, line):
         """Exit the interpreter. You can also use the Ctrl-D shortcut."""
         return True
                                                                                    
     do_EOF = do_exit
 
-    def do_shell(self, s):
+    def do_shell(self, line):
         """Execute shell command on the local host."""
-        os.system(s)
+        os.system(line)
                                         
     def complete_hostnames(self, text, line, begidx, endidx):
         """
@@ -463,30 +478,30 @@ class RunCommand(cmd.Cmd, object):
     # Method called to complete an input line when no command-specific complete_*() method is available.
     completedefault = complete_hostnames
 
-    def _select_clusters(self, s):
+    def _select_clusters(self, line):
         """
         Returns the list of clusters corresponding to the input string
         If s is empy, the full list of clusters is returned.
         """
-        if not s:
+        if not line:
             return self.clusters.values()
         else:
-            hosts = s.split()
+            hosts = line.split()
             return filter(None, (self.clusters.get(h, None) for h in hosts))
 
-    def do_disable_hosts(self, s):
+    def do_disable_hosts(self, line):
         """
         Disable the specified list of hosts. 
         Syntax: disable_hosts host1 host2 ...
         """
-        hosts = s.split()
+        hosts = line.split()
         if not hosts:
             print(self.do_disable_hosts.__doc__)
 
         for h in hosts:
             self.clusters.pop(h, None)
 
-    def do_reenable_hosts(self, s):
+    def do_reenable_hosts(self, line):
         """
         Renable the specified list of hosts.
         Syntax: reenable_hosts host1 host2 ...
@@ -498,45 +513,50 @@ class RunCommand(cmd.Cmd, object):
         """Command line completion for reenable_hosts."""
         return [h for h in _ALL_CLUSTERS if h not in self.clusters]
 
-    def do_show_clusters(self, s):
+    def do_show_clusters(self, line):
         """Print the list of clusters."""
         for c in self.clusters.values():
             print(c)
 
-    def do_ping(self, s):
+    def do_ping(self, line):
         """
         Ping the hosts, e.g. ping host1 host2
         """
-        for cluster in self._select_clusters(s):
+        for cluster in self._select_clusters(line):
             print(cluster.ping())
 
-    def do_all_jobs(self, s):
+    def do_all_jobs(self, line):
         """
         Report all the jobs in the queue. e.g all_jobs host1 host2
         """
-        for cluster in self._select_clusters(s):
+        for cluster in self._select_clusters(line):
             print(cluster.get_all_jobs())
                                                                 
-    def do_user_jobs(self, s):
+    def do_user_jobs(self, line):
         """
         Report the jobs of the users. e.g user_jobs host1 host2
         """
-        for cluster in self._select_clusters(s):
+        for cluster in self._select_clusters(line):
             print(cluster.get_user_jobs())
 
-    def do_qinfo(self, s):
+    def do_qinfo(self, line):
         """Report info on the queue manager."""
-        for cluster in self._select_clusters(s):
+        for cluster in self._select_clusters(line):
             print(cluster.get_qinfo())
 
-    def do_run(self, s):
+    #def do_qload(self, line):
+    #    """info on the load of the clusters."""
+    #    for cluster in self._select_clusters(line):
+    #        print(cluster.get_qload())
+
+    def do_run(self, line):
         """
         Execute a shell command on all hosts in the list.
         E.g. run uname -a host1 host2
         If the host list is empty, the command will be executed on all the hosts.
         """
         # split string into command and list of hostnames.
-        tokens = s.split()
+        tokens = line.split()
         for i, tok in enumerate(tokens):
             if tok in self.clusters:
                 command = " ".join(tokens[:i])
@@ -550,10 +570,10 @@ class RunCommand(cmd.Cmd, object):
             result = cluster.ssh_exec(command)
             print(cluster.prefix_str(result.out))
 
-    def do_abicheck(self, s):
+    def do_abicheck(self, line):
         """Test if the abinit environment is properly setup on the remote hosts."""
 
-        for cluster in self._select_clusters(s):
+        for cluster in self._select_clusters(line):
             print("Testing abipy environment on %s ... " % cluster, end="")
 
             cluster.make_workdir()
@@ -563,8 +583,8 @@ class RunCommand(cmd.Cmd, object):
                 cmd = "abicheck.py"
                 result = shell.myexec(cmd)
 
-                if result.retcode:
-                    msg = "[FAILED]: %s returned %d" % (cmd, result.retcode)
+                if result.return_code:
+                    msg = "[FAILED]: %s returned %d" % (cmd, result.return_code)
                     #print("got result", result)
                 else:
                     msg = "[OK]"
@@ -575,13 +595,25 @@ class RunCommand(cmd.Cmd, object):
             print(msg)
             #shell.exit()
 
-    def do_flow_start(self, s):
+    def do_abinit_version(self, line):
+        """Show the abinit version available on the clusters."""
+        for cluster in self._select_clusters(line):
+            s = cluster.invoke_abinit("--version")
+            print(cluster.prefix_str(s))
+
+    def do_abinit_build_info(self, line):
+        """Show the abinit build parameters."""
+        for cluster in self._select_clusters(line):
+            s = cluster.invoke_abinit("--build")
+            print(cluster.prefix_str(s))
+
+    def do_flow_start(self, line):
         """
         Start the flow on the remote cluster.
         Syntax: flow_start script.py hostname.
         """
         production = False
-        tokens = s.split()
+        tokens = line.split()
 
         if len(tokens) != 2:
             print(self.do_flow_start.__doc__)
@@ -611,28 +643,28 @@ class RunCommand(cmd.Cmd, object):
         shell = cluster.invoke_shell()
         result = shell.myexec(remotepath)
 
-        if result.retcode:
-            print("%s returned %s. Aborting operation" % (remotepath, result.retcode))
+        if result.return_code:
+            print("%s returned %s. Aborting operation" % (remotepath, result.return_code))
             return
 
         # Run the scheduler with nohup.
         # This is the most delicate part: not so sure that nohup will work everywhere.
         sched_cmd = "nohup abirun.py %s scheduler > /dev/null 2>&1 &" % flow_absdir
-        print(sched_cmd)
+        print("Detaching process via: %s" % sched_cmd)
         shell = cluster.invoke_shell()
         shell.sendall(sched_cmd)
-        retcode = shell.exit()
-        print(retcode)
+        return_code = shell.exit()
+        print(return_code)
         #result = shell.myexec(sched_cmd)
         #print(result)
 
-        #if result.retcode:
-        #    print("%s returned %s.\n Will remove the directory and abort" % (sched_cmd, result.retcode))
+        #if result.return_code:
+        #    print("%s returned %s.\n Will remove the directory and abort" % (sched_cmd, result.return_code))
         #    cluster.ssh.exec("rm -rf %s" % flow_absdir)
         #    return
 
-        #retcode = shell.exit()
-        #print("retcode", retcode)
+        #return_code = shell.exit()
+        #print("return_code", return_code)
 
         # Add the flow to the local database.
         if production:
@@ -652,16 +684,16 @@ class RunCommand(cmd.Cmd, object):
 
         return []
 
-    def do_show_flows(self, s):
+    def do_show_flows(self, line):
         """Show the flows saved in the database."""
         print(self.flows_db)
 
-    def do_flow_status(self, s):
+    def do_flow_status(self, line):
         """
         Inspect the status of the flow on the remote cluster.
         Syntax: flow_status flow_workdir(s)
         """
-        tokens = s.split()
+        tokens = line.split()
 
         if not tokens:
             print(self.do_flow_status.__doc__)
@@ -678,8 +710,8 @@ class RunCommand(cmd.Cmd, object):
             print(cmd)
             result = shell.myexec(cmd)
             print(result)
-            #retcode = shell.exit()
-            #print("retcode", retcode)
+            #return_code = shell.exit()
+            #print("return_code", return_code)
 
     def complete_flow_status(self, text, line, begidx, endidx):
         """Command line completion for flow_status."""
@@ -693,7 +725,7 @@ class RunCommand(cmd.Cmd, object):
                                                                               
         return []
 
-    def do_flow_conf(self, s):
+    def do_flow_conf(self, line):
         """Show the configuration files used on the remote hosts."""
 
         conf_files = [
@@ -701,38 +733,11 @@ class RunCommand(cmd.Cmd, object):
             "~/.abinit/abipy/scheduler.yml",
         ]
 
-        for cluster in self._select_clusters(s):
+        for cluster in self._select_clusters(line):
             for f in conf_files:
                 result = cluster.ssh_exec("cat %s" % f)
                 s = yaml.dump(yaml.load(result.out))
                 print(cluster.prefix_str(s))
-
-    #def do_flow_gui(self, s):
-    #    """
-    #    Open the flowviewer on the the remote host.
-    #    Syntax: flow_gui flow_workdir(s)
-    #    """
-    #    tokens = s.split()
-
-    #    if not tokens:
-    #        print(self.do_flow_status.__doc__)
-    #        return
-
-    #    for workdir in tokens:
-    #        params = self.flows_db.get(workdir, None)
-    #        if params is None: continue
-
-    #        cluster = self.clusters[params.get("hostname")]
-
-    #        shell = cluster.invoke_shell(timeout=None)
-    #        cmd= "abirun.py %s gui" % workdir
-    #        print(cmd)
-    #        result = shell.myexec(cmd)
-    #        print(result)
-    #        #retcode = shell.exit()
-    #        #print("retcode", retcode)
-
-    #complete_flow_gui = complete_flow_status
 
 
 class FlowsDatabase(collections.MutableMapping):
@@ -744,9 +749,14 @@ class FlowsDatabase(collections.MutableMapping):
     where the flow is being executed.
 
     We use JSON to save/write the database on disk.
+
+    .. Attributes:
+        
+        filepaths:
+            Absolute path of the JSON file.
     """
     JSON_FILE = "flowsdb.json"
-    #flow_workdir --> {hostname, start_date, status}
+    #flow_workdir@hostname:partition --> {hostname, start_date, status}
 
     def __init__(self):
         dirpath = os.getcwd()
@@ -781,38 +791,38 @@ class FlowsDatabase(collections.MutableMapping):
         return len(self.db)
     # end abc protocol.
 
-    def add_flow(self, flow_workdir, cluster):
-        """
-        Add a new entry in the database.
+    #def add_flow(self, flow_workdir, cluster):
+    #    """
+    #    Add a new entry in the database.
 
-        Args:
-            flow_workdir:
-                Absolute path of the directory where the flow is located.
-            cluster:
-                `Cluster` object specifying the remote host where the flow is being executed.
-        """
-        if flow_workdir in self.db:
-            raise RuntimeError("Flow workdir %s is already in the database" % flow_workdir)
+    #    Args:
+    #        flow_workdir:
+    #            Absolute path of the directory where the flow is located.
+    #        cluster:
+    #            `Cluster` object specifying the remote host where the flow is being executed.
+    #    """
+    #    if flow_workdir in self.db:
+    #        raise RuntimeError("Flow workdir %s is already in the database" % flow_workdir)
 
-        d = {"hostname": cluster.hostname, "start_date": time.asctime(), "status": "init"}
-        self.db[flow_workdir] = d
+    #    d = {"hostname": cluster.hostname, "start_date": time.asctime(), "status": "init"}
+    #    self.db[flow_workdir] = d
 
-        self.json_dump()
+    #    self.json_dump()
 
-    def remove_flow(self, flow_workdir):
-        """
-        Remove an entry from the database.
+    #def remove_flow(self, flow_workdir):
+    #    """
+    #    Remove an entry from the database.
 
-        Returns:
-            The entry that has been removed.
-        """
-        v = self.pop(flow_workdir, None)
+    #    Returns:
+    #        The entry that has been removed.
+    #    """
+    #    v = self.pop(flow_workdir, None)
 
-        if v is not None:
-            # Update the database.
-            self.json_dump()
+    #    if v is not None:
+    #        # Update the database.
+    #        self.json_dump()
 
-        return v
+    #    return v
 
     def json_dump(self):
         """Dump the database in JSON format."""

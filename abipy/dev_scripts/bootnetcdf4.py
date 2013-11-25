@@ -27,6 +27,11 @@ dev_tarballs = dict(
     python2.7="http://www.python.org/ftp/python/2.7.6/Python-2.7.6.tar.xz",
 )
 
+
+# BLAS + LAPACK (if the host does not provide them).
+#linalg_tarballs = dict(
+#)
+
 # PyPy software stack. 
 pypy_tarballs = dict(
     pypy="https://bitbucket.org/pypy/pypy/downloads/pypy-2.2-src.tar.bz2",

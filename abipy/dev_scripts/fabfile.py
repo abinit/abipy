@@ -10,6 +10,8 @@ from contextlib import contextmanager as _contextmanager
 
 env.user = "gmatteo"
 
+USER_HOME = "~" + env.user
+
 # The directory of the virtual environment.
 VENV = "~/VENV-2.7"
 
@@ -21,7 +23,7 @@ def all_hosts():
     """
     env.hosts = [
         #"green.cism.ucl.ac.be",
-        #"manneback.cism.ucl.ac.be",
+        "manneback.cism.ucl.ac.be",
         "hmem.cism.ucl.ac.be",
         "lemaitre2.cism.ucl.ac.be",
         "vega.ulb.ac.be",
@@ -29,17 +31,27 @@ def all_hosts():
         "hercules.ptci.unamur.be",
     ]
 
-git_reposdir = '~gmatteo/git_repos/'
+GIT_REPOSDIR = os.path.join(USER_HOME, "git_repos")
 
 git_urls = {
-    #"abipy":     "https://github.com/gmatteo/abipy.git",
-    #"pymatgen":   "https://github.com/gmatteo/pymatgen.git",
-    "abipy": "git@github.com:gmatteo/abipy.git",
-    "pymatgen": "git@github.com:gmatteo/pymatgen.git",
+    "abipy":    "https://github.com/gmatteo/abipy.git",
+    "pymatgen": "https://github.com/gmatteo/pymatgen.git",
+    #"abipy": "git@github.com:gmatteo/abipy.git",
+    #"pymatgen": "git@github.com:gmatteo/pymatgen.git",
 
 }
 
-git_repospaths = [os.path.join(git_reposdir, dirpath) for dirpath in git_urls]
+git_repospaths = [os.path.join(GIT_REPOSDIR, dirpath) for dirpath in git_urls]
+
+bzr_reposdir = os.path.join(USER_HOME, "bzr_repos")
+
+bzr_branchurl = "bzr+ssh://forge.abinit.org/abinit/gmatteo/7.5.4-private"
+
+to_location = os.path.join(*bzr_branchurl.split("/")[-2:]).replace("/", "_")
+
+repo_path = os.path.join(bzr_reposdir, to_location)
+build_path = os.path.join(repo_path, "build")
+
 
 @_contextmanager
 def _virtualenv(venv_dir):
@@ -47,18 +59,23 @@ def _virtualenv(venv_dir):
         yield
 
 def _exists(path):
-    with settings(warn_only=True):
-        return not run('test -e %s' % path).failed
+    return run('test -e %s' % path, warn_only=True, quiet=True).succeeded
 
-def git_deploy():
+def _cpu_count():
+    """Returns the number of CPUs in the remote host."""
+    with _virtualenv(VENV):
+        cmd = run("python -c 'import multiprocessing, sys; sys.exit(multiprocessing.cpu_count())'") 
+        return cmd.return_code
+
+def git_pull():
     """
     Synchronize the git branches with the master branch located on github.
     """
     # Create ~/git_repos and clone the repositories if this is the first time.
-    if not _exists(git_reposdir):
-        run("mkdir %s" % git_reposdir)
+    if not _exists(GIT_REPOSDIR):
+        run("mkdir %s" % GIT_REPOSDIR)
 
-    with cd(git_reposdir):
+    with cd(GIT_REPOSDIR):
         for name, url in git_urls.items():
             if not _exists(name):
                 run("git clone %s" % url)
@@ -67,20 +84,22 @@ def git_deploy():
     for apath in git_repospaths:
         with cd(apath):
             run("git pull")
-            #with _virtualenv(VENV):
-            #    run("python setup.py clean")
-            #    run("python setup.py install")
 
-def pytest():
+def git_install():
+    for apath in git_repospaths:
+        with cd(apath), _virtualenv(VENV):
+            run("python setup.py clean")
+            run("python setup.py install")
+
+
+def pytest(opts=""):
     """
-    Run the test suite with py.test.
+    Run the test suite with py.test. Usage: pytests:"-v"
     """
     for apath in git_repospaths:
         if "pymatgen" in apath: continue
-        with cd(apath):
-            with _virtualenv(VENV):
-                #run("nosetests -v")
-                run("py.test -v")
+        with cd(apath), _virtualenv(VENV):
+            run("py.test %s" % opts)
 
 def pip_install(*options):
     """
@@ -95,8 +114,8 @@ def pip_install(*options):
 
 def py_version():
     """
-    Show the default python version and the python modules available
-    on the remove machines.
+    Show the default python version and the python modules 
+    available on the remote machines.
     """
     out = run("python --version", quiet=True)
     py_version = out.split()[1]
@@ -110,17 +129,11 @@ def py_version():
             
     print("default python:", py_version, "python modules:", py_modules)
 
-
-def bzr_deploy():
+def bzr_pull():
     """
     Upload the bzr repository on the remote clusters.
     """
-    url = "bzr+ssh://forge.abinit.org/abinit/gmatteo/7.5.4-private"
-    to_location = os.path.join(*url.split("/")[-2:]).replace("/", "_")
-
     # Create ~/bzr_repos and clone the repositories if this is the first time.
-    bzr_reposdir = '~gmatteo/bzr_repos/'
-    repo_path = os.path.join(bzr_reposdir, to_location)
     print("repo_path", repo_path, "to_location", to_location)
 
     with _virtualenv(VENV):
@@ -129,11 +142,12 @@ def bzr_deploy():
 
         if not _exists(repo_path):
             with cd(bzr_reposdir):
-                run("bzr get %s %s" % (url, to_location))
+                run("bzr get %s %s" % (bzr_branchurl, to_location))
 
         # Pull the branch
         with cd(repo_path):
             run("bzr pull")
+            run("bzr status")
 
 
 def upload_file(local_path, remote_path, mode=None):
@@ -147,15 +161,49 @@ def upload_file(local_path, remote_path, mode=None):
         run("chmod %s %s" % (mode, remote_path))
 
 
-def upload_rsa():
-    if not _exists("~/.ssh/"): run("mkdir ~/.ssh")
-    put("~/.ssh/id_rsa.ceci", "~/.ssh/id_rsa.ceci")
-    run("chmod go-rwx ~/.ssh/id_rsa.ceci")
+#def upload_rsa():
+#    if not _exists("~/.ssh/"): run("mkdir ~/.ssh")
+#    put("~/.ssh/id_rsa.ceci", "~/.ssh/id_rsa.ceci")
+#    run("chmod go-rwx ~/.ssh/id_rsa.ceci")
+#
+#    put("~/.ssh/gmatteo_dsa", "~/.ssh/gmatteo_dsa")
+#    run("chmod go-rwx ~/.ssh/gmatteo_dsa")
+#
+#
+#def use_ssh_agent():
+#    run("eval $(ssh-agent)")
+#    run("ssh-add ~/.ssh/id_rsa.ceci")
 
-    put("~/.ssh/gmatteo_dsa", "~/.ssh/gmatteo_dsa")
-    run("chmod go-rwx ~/.ssh/gmatteo_dsa")
+def abinit_version():
+    """Show the version of Abinit available on the remote host."""
+    if run("abinit --version", warn_only=True, quiet=True).return_code:
+        run("mpirun abinit --version") # Try to prepend mpirun
 
+def abinit_build(self):
+    """Show the Abinit build parameters."""
+    if run("abinit --build", warn_only=True, quiet=True).return_code:
+        run("mpirun abinit --build") # Try to prepend mpirun
 
-def use_ssh_agent():
-    run("eval $(ssh-agent)")
-    run("ssh-add ~/.ssh/id_rsa.ceci")
+def abinit_makemake():
+    """Run abinit makemake to generate configure script."""
+    with cd(repo_path):
+        run("./config/scripts/makemake")
+
+def abinit_build():
+    with cd(build_path):
+        conf_file = os.path.join(bzr_reposdir, "build.ac")
+        run("../configure --with-config-file=%s" % conf_file)
+        run("make clean")
+        run("make -j8")
+
+def abinit_makeall(self):
+    """Runs abinit makemake and build."""
+    abinit_makemake()
+    abinit_build()
+
+def abinit_runtests(opts=""):
+    """
+    Run the abinit automatic tests. Usage: abinit_runtests:"-j8 -k GW"
+    """
+    with cd(build_path):
+        run("../tests/runtests.py %s" % opts)
