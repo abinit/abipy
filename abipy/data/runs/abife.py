@@ -107,6 +107,11 @@ class Cluster(object):
         """Returns the absolute path in the working directory of the cluster."""
         return os.path.join(self.workdir, basename)
 
+    def exists(self, path):
+        """True if path exists on the cluster."""
+        return self.ssh_exec("test -e %s" % path).succeeded
+        #return self.ssh.exec('test -e %s' % path, warn_only=True, quiet=True).succeeded
+
     def ping(self):
         """Ping the host."""
         cmd = ["ping", "-c1", "-W100", "-t1", self.hostname]
@@ -115,7 +120,7 @@ class Cluster(object):
 
     def prefix_str(self, s):
         """Add the name of the host to every line in s.splitlines()."""
-        lines = ["[%s] %s" % (self.hostname, l) for l in s.splitlines())]
+        lines = ["[%s] %s" % (self.hostname, l) for l in s.splitlines()]
 
         if not lines:
             lines = ["[%s] (Empty)" % self.hostname]
@@ -210,7 +215,7 @@ class Cluster(object):
     def invoke_abinit(self, *args):
         """Returns the output of `abinit args`."""
         shell = self.invoke_shell()
-        return shell.myexec("abinit %s" % " ".join(*args).out
+        return shell.myexec("abinit %s" % " ".join(*args)).out
         #return shell.myexec("mpirun abinit %s" % " ".join(*args).out
         #return shell.myexec("`which abinit`")
         #return shell.myexec("ldd `which abinit`")
@@ -227,9 +232,9 @@ class Cluster(object):
     def get_qinfo(self):
         """Return a string with info on the queue."""
 
-    @abc.abstractmethod
-    def get_qload(self):
-        """Return a string with the load of the cluster"""
+    #@abc.abstractmethod
+    #def get_qload(self):
+    #    """Return a string with the load of the cluster"""
 
 
 class SlurmCluster(Cluster):
@@ -397,6 +402,10 @@ class SSHResult(object):
         s  = "out: " + self.out 
         if self.err: s += "\nerr: " + self.err
         return s
+
+    @property
+    def succeeded(self):
+        return self.return_code == 0
 
     @property
     def out(self):
@@ -624,9 +633,11 @@ class RunCommand(cmd.Cmd, object):
         cluster = self.clusters[hostname]
 
         # Build absolute paths on the remote host.
+
         dir_basename = os.path.basename(script).replace(".py", "")
-        remotepath = cluster.path_inworkdir(script)
-        remotepath = os.path.join("/home/ucl/naps/gmatteo/WORKDIR", script)
+        #remotepath = cluster.path_inworkdir(script)
+        remotedir = "/home/ucl/naps/gmatteo/WORKDIR"
+        remotepath = os.path.join(remotedir, script)
         flow_absdir = cluster.path_inworkdir(dir_basename)
 
         print("Uploading %s to %s:%s" % (script, hostname, remotepath))
@@ -635,15 +646,23 @@ class RunCommand(cmd.Cmd, object):
             raise RuntimeError("remotepath %s is already in the database" % remotepath)
 
         # Upload the script and make it executable.
-        cluster.sftp.put(localpath=script, remotepath=remotepath, confirm=True)
-        cluster.sftp.chmod(remotepath, mode=0700)
-        cluster.sftp.close()
+        sftp = cluster.sftp
+
+        # Create directory if it does not exist.
+        if not cluster.exists(remotedir):
+            print("about to create %s" % remotedir)
+            sftp.mkdir(remotedir)
+
+        sftp.put(localpath=script, remotepath=remotepath, confirm=True)
+        sftp.chmod(remotepath, mode=0700)
+        sftp.close()
 
         # Start a shell on the remote host and run the script to build the flow.
         shell = cluster.invoke_shell()
         result = shell.myexec(remotepath)
 
         if result.return_code:
+            print(result)
             print("%s returned %s. Aborting operation" % (remotepath, result.return_code))
             return
 
