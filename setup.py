@@ -165,6 +165,7 @@ install_requires = [
     #"fabric",
     #"paramiko",
     #"psutil",
+    #"pyro4",
 ]
 
 if with_ipython:

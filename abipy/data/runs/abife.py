@@ -698,7 +698,6 @@ class RunCommand(cmd.Cmd, object):
         Start the flow on the remote cluster.
         Syntax: flow_start script.py hostname.
         """
-        production = False
         tokens = line.split()
 
         if len(tokens) != 2:
@@ -706,65 +705,10 @@ class RunCommand(cmd.Cmd, object):
             return
 
         # Parse input line (local path of the script and hostname).
-        script_locpath, hostname = tokens[0], tokens[1]
-        cluster = self.clusters[hostname]
+        script, hostname = tokens[0], tokens[1]
 
-        # Build absolute paths on the remote host.
-        # foo.py --> WORKDIR/foo/foo.py
-        rdir_basename = os.path.basename(script).replace(".py", "")
-        rdir_path = os.path.join(cluster.workdir, rdir_basename)
-        script_rpath =  os.path.join(rdir_path, os.path.basename(script_locpath))
-
-        print("Uploading %s to %s:%s" % (script, hostname, script_rpath))
-
-        #flow_key = rdir_path + "@" + cluster.hostname
-        #if production and flow_key in self.flows_db:
-        #    raise RuntimeError("flow_key %s is already in the database" % flow_key)
-
-        # Upload the script and make it executable.
-        sftp = cluster.sftp
-
-        # Create directory if it does not exist.
-        if not cluster.exists(self.workdir):
-            print("About to create %s" % self.workdir)
-            sftp.mkdir(self.workdir)
-
-        sftp.put(localpath=script_locpath, remotepath=script_rpath, confirm=True)
-        sftp.chmod(script_rpath, mode=0700)
-        sftp.close()
-
-        # Start a shell on the remote host and run the script to build the flow.
-        command = "script_rpath -w %s" %  rdir_path
-        shell = cluster.invoke_shell()
-        result = shell.myexec(command)
-
-        if result.return_code:
-            print(result)
-            print("%s returned %s. Aborting operation" % (script_rpath, result.return_code))
-            return
-
-        # Run the scheduler with nohup.
-        # This is the most delicate part: not so sure that nohup will work everywhere.
-        sched_cmd = "nohup abirun.py %s scheduler > /dev/null 2>&1 &" % rdir_path
-        print("Detaching process via: %s" % sched_cmd)
-        shell = cluster.invoke_shell()
-        shell.sendall(sched_cmd)
-        return_code = shell.exit()
-        print(return_code)
-        #result = shell.myexec(sched_cmd)
-        #print(result)
-
-        #if result.return_code:
-        #    print("%s returned %s.\n Will remove the directory and abort" % (sched_cmd, result.return_code))
-        #    cluster.ssh.exec("rm -rf %s" % flow_absdir)
-        #    return
-
-        #return_code = shell.exit()
-        #print("return_code", return_code)
-
-        # Add the flow to the local database.
-        #if production:
-        #    self.flows_db.register_flow(cluster.hostname, flowdir)
+        # Start the flow on the remote host.
+        self.flows_db.start_flow(script, hostname)
 
     def complete_flow_start(self, text, line, begidx, endidx):
         """Command line completion for flow_start."""
@@ -888,13 +832,13 @@ class FlowsDatabase(collections.MutableMapping):
         self.filepath = os.path.abspath(filepath)
         self.db = {} if db is None else db
 
-        # Add hostname to each entry.
+        # Add hostname to each entry and convert to AttrDict.
         if self.db:
             for hostname, entries in self.items():
                 entries_with_hostname = []
                 for e in entries:
                     if "hostname" not in e: e["hostname"] = hostname
-                    entries_with_hostname.append(e)
+                    entries_with_hostname.append(AttrDict(**e))
 
                 self.db[hostname] = entries_with_hostname
 
@@ -985,6 +929,10 @@ class FlowsDatabase(collections.MutableMapping):
         else:
             return [flow.workdir for flow in self[hostname]]
 
+    def has_flow(self, hostname, flowdir):
+        """True if flowdir@hostname is in the database."""
+        return flowdir in self.flowdirs(hostname)
+
     def register_flow(self, hostname, flowdir):
         """
         Add a new entry in the database.
@@ -1019,40 +967,46 @@ class FlowsDatabase(collections.MutableMapping):
         flows.remove(flow)
         return flow
 
-    def check_status(self, hostnames=None):
+    def check_status(self, hostnames=None, workdir=None):
         """
         Check the status of the flows running on hostnames.
 
         Returns: 
-            List of flows whose status has changed.
+            (results, changed)
+            
+            changed is the list of flows whose status has changed.
         """
-        changed = []
+        results, changed = [], []
 
         for host in self._select_hosts(hostnames):
             cluster = self.clusters[host]
-            for flow in self[host]:
-                 shell = cluster.invoke_shell()
-                 cmd= "abirun.py %s status" % workdir
-                 print(cmd)
-                 result = shell.myexec(cmd)
-                 print(result)
 
-                 # TODO
-                 #if flow.status != new_status:
-                 #   flow.status = new_status
-                 #   flow.last_check = time.asctime()
-                 #   changed.append(flow)
+            for flow in self[host]:
+                if workdir is not None and flow.workdir != workdir:
+                    continue
+                
+                shell = cluster.invoke_shell()
+                cmd= "abirun.py %s status" % flow.workdir
+                print(cmd)
+                result = shell.myexec(cmd)
+                print(result)
+                results.append(result)
+
+                # TODO
+                #if flow.status != new_status:
+                #   flow.status = new_status
+                #   flow.last_check = time.asctime()
+                #   changed.append(flow)
 
         if changed:
             # Update the database.
             self.json.dump()
 
-        return changed
+        return results, changed
 
     def maintenance(self, hostnames=None):
         """
-        Remove dead flows from the database 
-        i.e. the flows whose workdir does not exist anymore.
+        Remove dead flows from the database i.e. the flows whose workdir does not exist anymore.
         """
         removed = []
 
@@ -1074,24 +1028,23 @@ class FlowsDatabase(collections.MutableMapping):
             hostname:
                 Name of the remote host where the flow will be executed.
         """
-        production = False
         cluster = self.clusters[hostname]
 
         # Build absolute paths on the remote host: foo.py --> WORKDIR/foo/foo.py
         rdir_basename = os.path.basename(script).replace(".py", "")
-        rdir_path = os.path.join(cluster.workdir, rdir_basename)
-        script_rpath = os.path.join(rdir_path, os.path.basename(script))
+        flow_rdir = os.path.join(cluster.workdir, rdir_basename)
+        script_rpath = os.path.join(flow_rdir, os.path.basename(script))
 
         print("Uploading %s to %s:%s" % (script, hostname, script_rpath))
 
-        flow_key = rdir_path + "@" + cluster.hostname
-        if production and flow_key in self.flows_db:
-            raise RuntimeError("flow_key %s is already in the database" % flow_key)
+        if self.has_flow(cluster.hostname, flow_rdir):
+            raise ValueError("%s@%s is already in the database" % (flow_rdir, cluster.hostname))
 
         # Upload the script and make it executable.
         sftp = cluster.sftp
 
         # Create directory if it does not exist.
+        # FIXME
         #if not cluster.exists(cluster.workdir):
         #    print("Will create remote workdir %s" % cluster.workdir)
         #    sftp.mkdir(cluster.workdir)
@@ -1101,7 +1054,7 @@ class FlowsDatabase(collections.MutableMapping):
         sftp.close()
 
         # Start a shell on the remote host and run the script to build the flow.
-        command = "%s -w %s" %  (script_rpath, rdir_path)
+        command = "%s -w %s" %  (script_rpath, flow_rdir)
         shell = cluster.invoke_shell()
         result = shell.myexec(command)
 
@@ -1112,7 +1065,7 @@ class FlowsDatabase(collections.MutableMapping):
 
         # Run the scheduler with nohup.
         # This is the most delicate part: not so sure that nohup will work everywhere.
-        sched_cmd = "nohup abirun.py %s scheduler > /dev/null 2> &1 &" % rdir_path
+        sched_cmd = "nohup abirun.py %s scheduler > /dev/null 2>&1 &" % flow_rdir
         print("Detaching process via: %s" % sched_cmd)
         shell = cluster.invoke_shell()
         shell.sendall(sched_cmd)
@@ -1121,18 +1074,13 @@ class FlowsDatabase(collections.MutableMapping):
         #result = shell.myexec(sched_cmd)
         #print(result)
 
-        #if result.return_code:
-        #    print("%s returned %s.\n Will remove the directory and abort" % (sched_cmd, result.return_code))
-        #    cluster.ssh.exec("rm -rf %s" % flow_absdir)
-        #    return
-
-        #return_code = shell.exit()
-        #print("return_code", return_code)
+        if result.return_code:
+            print("%s returned %s.\n Will remove the directory and abort" % (sched_cmd, result.return_code))
+            #cluster.ssh.exec("rm -rf %s" % flow_absdir)
+            #return
 
         # Add the flow to the local database.
-        #if production:
-        #    self.register_flow(cluster.hostname, flowdir)
-
+        self.register_flow(cluster.hostname, flow_rdir)
 
 
 from abipy.core.testing import AbipyTest
@@ -1167,8 +1115,12 @@ class FlowsDatabaseTest(AbipyTest):
             fdb.register_flow("manneback", "/WORKDIR/run_si_ebands")
 
         aequal = self.assertEqual
+        atrue = self.assertTrue
+
         aequal(fdb.flowdirs("manneback", status="init"), ["/WORKDIR/run_si_ebands"])
         aequal(set(fdb.flowdirs("manneback")), set(["/WORKDIR/run_si_ebands", "/WORKDIR/run_si_ebands2"]))
+        atrue(fdb.has_flow("manneback", "/WORKDIR/run_si_ebands2"))
+        atrue( not fdb.has_flow("lemaitre2", "/WORKDIR/run_si_ebands2"))
 
         fdb.json_dump()
         other = FlowsDatabase.from_file(fdb.filepath)

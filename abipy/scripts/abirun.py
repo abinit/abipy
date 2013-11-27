@@ -78,6 +78,10 @@ def treat_flow(flow, options):
     if options.command == "status":
         flow.show_status()
 
+    if options.command == "cancel":
+        num_cancelled = flow.cancel()
+        print("Number of jobs cancelled %d" % num_cancelled)
+
     return retcode
 
 
@@ -116,6 +120,9 @@ def main():
 
     # Subparser for status command.
     p_status = subparsers.add_parser('status', help="Show task status.")
+
+    # Subparser for scheduler command.
+    p_cancel = subparsers.add_parser('cancel', help="Cancel the tasks in the queue.")
 
     # Subparser for gui command.
     p_gui = subparsers.add_parser('gui', help="Open GUI.")

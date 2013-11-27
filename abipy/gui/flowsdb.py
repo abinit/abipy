@@ -103,6 +103,10 @@ class FlowsDbViewerFrame(awx.Frame):
         """
         return self.notebook.GetSelectedCluster()
 
+    def Refresh(self):
+        """Refresh the GUI, called when we have modified the database."""
+        self.notebook.Refresh()
+
     def OnRunScript(self, event):
         """Browse all the output files produced by the selected `Workflow`."""
         cluster = self.GetSelectedCluster() 
@@ -118,7 +122,7 @@ class FlowsDbViewerFrame(awx.Frame):
 
         try:
             self.flows_db.start_flow(script, cluster.hostname)
-            #self.Refresh()
+            self.Refresh()
         except:
             awx.showErrorMessage(self)
 
@@ -127,10 +131,13 @@ class FlowsDbViewerFrame(awx.Frame):
         cluster = self.GetSelectedCluster() 
         if cluster is None: return
                                                                                
-        print("cluster", cluster)
-        #changed = self.flows_db.check_status(hostnames=cluster.hostname)
-        #if changed:
-        #    self.Refresh()
+        results, changed = self.flows_db.check_status(hostnames=cluster.hostname)
+
+        for res in results:
+            print(results)
+
+        if changed:
+            self.Refresh()
 
     def OnUserJobs(self, event):
         """Open a new frame with the list of jobs submitted by the user."""
@@ -138,7 +145,6 @@ class FlowsDbViewerFrame(awx.Frame):
         if cluster is None: return
 
         s = cluster.get_user_jobs()
-        #self.text_ctrl.SetValue(s)
         SimpleTextViewer(self, text=s, title=cluster.hostname).Show()
 
     def OnAllJobs(self, event):
@@ -147,7 +153,6 @@ class FlowsDbViewerFrame(awx.Frame):
         if cluster is None: return
 
         s = cluster.get_all_jobs()
-        #self.text_ctrl.SetValue(s)
         SimpleTextViewer(self, text=s, title=cluster.hostname).Show()
 
     def OnXterm(self, event):
@@ -181,8 +186,11 @@ class FlowsDbNotebook(fnb.FlatNotebook):
 
         for hostname, flows in flows_db.items():
             cluster = self.clusters_byname[hostname]
-            tab = ClusterPanel(self, cluster, flows)
+            tab = ClusterPanel(self, cluster, flows_db)
             self.AddPage(tab, text=hostname)
+
+    def Refresh(self):
+        """Refresh the notebook, called when we have modified the database."""
 
     def GetSelectedCluster(self):
         """
@@ -203,19 +211,22 @@ class ClusterPanel(wx.Panel):
     """
     Notebook tab for a single cluster.
     """
-    def __init__(self, parent, cluster, flows, **kwargs):
+    def __init__(self, parent, cluster, flows_db, **kwargs):
         wx.Panel.__init__(self, parent=parent, id=-1, **kwargs)
 
-        self.cluster, self.flows = cluster, flows
+        self.cluster, self.flows_db = cluster, flows_db
+        self.flows = self.flows_db[cluster.hostname]
+
         self.BuildUi()
 
     def BuildUi(self):
 
-        splitter = wx.SplitterWindow(self, style=wx.SP_LIVE_UPDATE)
-        splitter.SetMinimumPaneSize(100)
+        #splitter = wx.SplitterWindow(self, style=wx.SP_LIVE_UPDATE)
+        #splitter.SetMinimumPaneSize(100)
+        #parent = splitter
 
-        #parent = self
-        parent = splitter
+        parent = self
+
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         if False:
@@ -231,13 +242,13 @@ class ClusterPanel(wx.Panel):
             main_sizer.Add(hbox, proportion=0, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10)
 
         # List Control with info on the flows.
-        self.flows_listctrl = FlowsListCtrl(parent, self.flows, self.cluster)
-        #main_sizer.Add(self.flows_listctrl, 1, wx.EXPAND, 5)
+        self.flows_listctrl = FlowsListCtrl(parent, self.flows, self.cluster, self.flows_db)
+        main_sizer.Add(self.flows_listctrl, 1, wx.EXPAND, 5)
 
-        self.jobs_panel = JobsPanel(parent, self.cluster)
+        #self.jobs_panel = JobsPanel(parent, self.cluster)
 
-        splitter.SplitHorizontally(self.flows_listctrl, self.jobs_panel)
-        main_sizer.Add(splitter, 1, wx.EXPAND, 5)
+        #splitter.SplitHorizontally(self.flows_listctrl, self.jobs_panel)
+        #main_sizer.Add(splitter, 1, wx.EXPAND, 5)
 
         #label = wx.StaticText(self, -1, "Workflow class %s, status: %s, finalized: %s" % (
         #    work.__class__.__name__, work.status, work.finalized))
@@ -289,7 +300,7 @@ class FlowsListCtrl(wx.ListCtrl):
     """
     ListCtrl with the list of flows being executed on a cluster.
     """
-    def __init__(self, parent, flows, cluster, **kwargs):
+    def __init__(self, parent, flows, cluster, flows_db, **kwargs):
         """
         Args:
             parent:
@@ -297,7 +308,7 @@ class FlowsListCtrl(wx.ListCtrl):
         """
         super(FlowsListCtrl, self).__init__(parent, id=-1, style=wx.LC_REPORT | wx.BORDER_SUNKEN, **kwargs)
 
-        self.flows, self.cluster = flows, cluster
+        self.flows, self.cluster, self.flows_db = flows, cluster, flows_db
 
         columns = ["Workdir", "Status", "Start Date"]
 
@@ -308,10 +319,7 @@ class FlowsListCtrl(wx.ListCtrl):
         column_widths = [awx.get_width_height(self, s)[0] for s in columns]
 
         for flow in flows:
-            #print(flow)
-            # FIXME
-            #entry = map(str, [flow.workdir, str(flow.status), flow.start_date])
-            entry = map(str, [flow["workdir"], str(flow["status"]), flow["start_date"]])
+            entry = map(str, [flow.workdir, str(flow.status), flow.start_date])
 
             w = [awx.get_width_height(self, s)[0] for s in entry]
             column_widths = map(max, zip(w, column_widths))
@@ -331,19 +339,17 @@ class FlowsListCtrl(wx.ListCtrl):
 
         # Open the popup menu then destroy it to avoid mem leak.
         flow = self.flows[currentItem]
-        menu = FlowPopupMenu(self, self.cluster, flow=flow)
+        menu = FlowPopupMenu(self, self.cluster, flow, self.flows_db)
         self.PopupMenu(menu, event.GetPoint())
         menu.Destroy()
 
 
-# TODO: pass a reference to the database.
-def flow_show_status(parent, cluster, flow):
-    pass
+# TODO: Should trigger the refresh of the GUI!
+def flow_show_status(parent, cluster, flow, flows_db):
+    results, changed = flows_db.check_status(cluster.hostname, flow.workdir)
+    print(results)
 
-#def flow_cancel(parent, cluster, flow):
-#    pass
-
-#def flow_goto(parent, cluster, flow):
+#def flow_cancel(parent, cluster, flow, flows_db):
 #    pass
 
 
@@ -357,12 +363,12 @@ class FlowPopupMenu(wx.Menu):
     MENU_TITLES = OrderedDict([
         ("show_status", flow_show_status),
         #("cancel", flow_cancel),
-        #("goto", flow_goto),
     ])
 
-    def __init__(self, parent, cluster, flow):
+    def __init__(self, parent, cluster, flow, flows_db):
         super(FlowPopupMenu, self).__init__()
         self.parent, self.cluster, self.flow = parent, cluster, flow
+        self.flows_db = flows_db
 
         self._make_menu()
 
@@ -387,7 +393,7 @@ class FlowPopupMenu(wx.Menu):
         print("Calling callback %s with cluster %s and flow %s" % (callback, self.cluster, self.flow))
 
         try:
-            callback(self.parent, self.cluster, self.flow)
+            callback(self.parent, self.cluster, self.flow, self.flows_db)
         except:
             awx.showErrorMessage(parent=self.parent)
 
