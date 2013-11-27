@@ -232,16 +232,29 @@ class Cluster(object):
         return self.ssh_exec("cat %s" % path).out
 
     def make_workdir(self):
-        """Create the working directory on the cluster if it does not exist."""
+        """
+        Create the working directory on the cluster if it does not exist.
+
+        Returns:
+            exit_status
+        """
         self.make_dir(self.workdir)
 
     def make_dir(self, path):
-        if not self.exists(path):
-            print("Will create remote dir %s" % path)
-            return self.ssh_exec("mkdir %s" % path)
+        """
+        Create a directory on the cluster if it does not exist.
+
+        Returns:
+            exit_status
+        """
+        if self.exists(path): return 0
+
+        print("Will create remote dir %s" % path)
+        return self.ssh_exec("mkdir %s" % path).return_code
 
     def rmdir(self, path):
-        return self.ssh_exec("rm -rf %s" % path)
+        """Remove a directory on the cluster. Return exit status."""
+        return self.ssh_exec("rm -rf %s" % path).return_code
 
     def invoke_shell(self, timeout=-1):
         """Returns an instance of `MyShell`."""

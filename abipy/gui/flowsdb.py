@@ -5,6 +5,7 @@ import wx
 
 import abipy.gui.awx as awx
 import wx.lib.agw.flatnotebook as fnb
+import  wx.lib.newevent
 
 from collections import OrderedDict
 from abipy.gui.editor import  SimpleTextViewer
@@ -17,6 +18,17 @@ ID_ALL_JOBS = wx.NewId()
 ID_XTERM = wx.NewId()
 ID_SHOW_ABINIT_INFO = wx.NewId()
 ID_SHOW_ABIPY_ENV = wx.NewId()
+
+
+# Command event used to signal that the Flows database 
+# is changed and we should refresh the GUI
+DbChangedEvent, EVT_DB_CHANGED = wx.lib.newevent.NewCommandEvent()
+
+
+def signal_db_changed(target):
+    """Create the event and post it."""
+    event = DbChangedEvent(id=-1)
+    wx.PostEvent(target, event)
 
 
 class FlowsDbViewerFrame(awx.Frame):
@@ -91,6 +103,8 @@ class FlowsDbViewerFrame(awx.Frame):
 
         panel.SetSizerAndFit(main_sizer)
 
+        self.Bind(EVT_DB_CHANGED, self.ReshowFlowsDb)
+
     @property
     def codename(self):
         """String with the code name """
@@ -108,9 +122,10 @@ class FlowsDbViewerFrame(awx.Frame):
         """
         return self.notebook.GetSelectedCluster()
 
-    def Refresh(self):
+    def ReshowFlowsDb(self, event):
         """Refresh the GUI, called when we have modified the database."""
-        self.notebook.Refresh()
+        #print("in refresh with event %s" % event)
+        self.notebook.ReshowFlowsDb(event)
 
     def OnRunScript(self, event):
         """Browse all the output files produced by the selected `Workflow`."""
@@ -127,7 +142,7 @@ class FlowsDbViewerFrame(awx.Frame):
 
         try:
             self.flows_db.start_flow(script, cluster.hostname)
-            self.Refresh()
+            self.ReshowFlowsDb(event)
         except:
             awx.showErrorMessage(self)
 
@@ -142,7 +157,7 @@ class FlowsDbViewerFrame(awx.Frame):
             print(results)
 
         if changed:
-            self.Refresh()
+            self.ReshowFlowsDb(event)
 
     def OnUserJobs(self, event):
         """Open a new frame with the list of jobs submitted by the user."""
@@ -173,7 +188,6 @@ class FlowsDbViewerFrame(awx.Frame):
         try:
             thread = awx.WorkerThread(self, target=xterm)
             thread.start()
-
         except:
             awx.showErrorMessage(self)
 
@@ -209,13 +223,18 @@ class FlowsDbNotebook(fnb.FlatNotebook):
         self.clusters_byname = flows_db.clusters
         self.clusters = list(self.clusters_byname.values())
 
-        for hostname, flows in flows_db.items():
+        self._make_pages()
+
+    def _make_pages(self):
+        for hostname, flows in self.flows_db.items():
             cluster = self.clusters_byname[hostname]
-            tab = ClusterPanel(self, cluster, flows_db)
+            tab = ClusterPanel(self, cluster, self.flows_db)
             self.AddPage(tab, text=hostname)
 
-    def Refresh(self):
+    def ReshowFlowsDb(self, event):
         """Refresh the notebook, called when we have modified the database."""
+        self.DeleteAllPages()
+        self._make_pages()
 
     def GetSelectedCluster(self):
         """
@@ -327,22 +346,29 @@ class FlowsListCtrl(wx.ListCtrl):
         menu.Destroy()
 
 
-# TODO: Should trigger the refresh of the GUI!
+# Callbacks for the PopupMenu.
 def flow_show_status(parent, cluster, flow, flows_db):
     """Show the status of the flow."""
     results, changed = flows_db.check_status(cluster.hostname, flow.workdir)
     SimpleTextViewer(parent, text=str(results[0]), title=cluster.hostname).Show()
+
+    if changed: # Generate the event to refresh the GUI.
+        signal_db_changed(parent)
 
 
 def flow_cancel(parent, cluster, flow, flows_db):
     """Cancel the flow i.e. remove all the jobs that are in the queue."""
     flows_db.cancel_flow(cluster.hostname, flow.workdir)
 
+    signal_db_changed(parent) # Generate event to refresh the GUI.
+
 
 def flow_remove(parent, cluster, flow, flows_db):
     """Remove the working directory of the flow."""
     cluster.rmdir(flow.workdir)
     flows_db.remove_flow(flow)
+
+    signal_db_changed(parent) # Generate event to refresh the GUI.
 
 
 def flow_sched_log(parent, cluster, flow, flows_db):
