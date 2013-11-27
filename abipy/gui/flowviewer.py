@@ -74,19 +74,23 @@ class FlowViewerFrame(awx.Frame):
         # Create toolbar.
         self.toolbar = toolbar = self.CreateToolBar()
 
+        def bitmap(path):
+            return wx.Bitmap(awx.path_img(path))
+
         #tsize = (48,48)
         #artBmp = wx.ArtProvider.GetBitmap
-        toolbar.AddSimpleTool(ID_SHOW_INPUTS, wx.Bitmap(awx.path_img("in.png")), "Visualize the input files of the workflow.")
-        toolbar.AddSimpleTool(ID_SHOW_OUTPUTS, wx.Bitmap(awx.path_img("out.png")), "Visualize the output files of the workflow..")
-        toolbar.AddSimpleTool(ID_SHOW_LOGS, wx.Bitmap(awx.path_img("log.png")), "Visualize the log files of the workflow.")
-        toolbar.AddSimpleTool(ID_SHOW_JOB_SCRIPTS, wx.Bitmap(awx.path_img("script.png")), "Visualize the scripts.")
-        toolbar.AddSimpleTool(ID_BROWSE, wx.Bitmap(awx.path_img("browse.png")), "Browse all the files of the workflow.")
-        toolbar.AddSimpleTool(ID_SHOW_MAIN_EVENTS, wx.Bitmap(awx.path_img("out_evt.png")), "Show the ABINIT events reported in the main output files.")
-        toolbar.AddSimpleTool(ID_SHOW_LOG_EVENTS, wx.Bitmap(awx.path_img("log_evt.png")), "Show the ABINIT events reported in the log files.")
-        toolbar.AddSimpleTool(ID_SHOW_TIMERS, wx.Bitmap(awx.path_img("timer.png")), "Show the ABINIT timers in the abo files.")
+        toolbar.AddSimpleTool(ID_SHOW_INPUTS, bitmap("in.png"), "Visualize the input files of the workflow.")
+        toolbar.AddSimpleTool(ID_SHOW_OUTPUTS, bitmap("out.png"), "Visualize the output files of the workflow..")
+        toolbar.AddSimpleTool(ID_SHOW_LOGS, bitmap("log.png"), "Visualize the log files of the workflow.")
+        toolbar.AddSimpleTool(ID_SHOW_JOB_SCRIPTS, bitmap("script.png"), "Visualize the scripts.")
+        toolbar.AddSimpleTool(ID_BROWSE, bitmap("browse.png"), "Browse all the files of the workflow.")
+        toolbar.AddSimpleTool(ID_SHOW_MAIN_EVENTS, bitmap("out_evt.png"), "Show the ABINIT events reported in the main output files.")
+        toolbar.AddSimpleTool(ID_SHOW_LOG_EVENTS, bitmap("log_evt.png"), "Show the ABINIT events reported in the log files.")
+        toolbar.AddSimpleTool(ID_SHOW_TIMERS, bitmap("timer.png"), "Show the ABINIT timers in the abo files.")
 
         toolbar.AddSeparator()
-        toolbar.AddSimpleTool(ID_CHECK_STATUS, wx.Bitmap(awx.path_img("refresh.png")), "Check the status of the workflow(s).")
+
+        toolbar.AddSimpleTool(ID_CHECK_STATUS, bitmap("refresh.png"), "Check the status of the workflow(s).")
 
         #toolbar.AddSeparator()
         self.toolbar.Realize()
@@ -126,7 +130,7 @@ class FlowViewerFrame(awx.Frame):
     def check_launcher_file(self, with_dialog=True):
         """
         Disable the launch button if we have a sheduler running, 
-        since we don't want to have to processes modifying the flow.
+        since we don't want to have processes modifying the flow.
         """
         self.disabled_launcher = False
         pid_file = fnmatch.filter(os.listdir(self.flow.workdir), "*.pid")
@@ -487,26 +491,27 @@ class TaskListCtrl(wx.ListCtrl):
 # Callbacks 
 
 def show_task_main_output(parent, task):
+    """Show the main output file of the task."""
     file = task.output_file
 
     if file.exists:
-        frame = viewerframe_from_filepath(parent, file.path)
-        frame.Show()
+        viewerframe_from_filepath(parent, file.path).Show()
     else:
         awx.showErrorMessage(parent=parent, message="Output file %s does not exist" % file.path)
 
 
 def show_task_log(parent, task):
+    """Show the log file of the task."""
     file = task.log_file
 
     if file.exists:
-        frame = viewerframe_from_filepath(parent, file.path)
-        frame.Show()
+        viewerframe_from_filepath(parent, file.path).Show()
     else:
         awx.showErrorMessage(parent=parent, message="Output file %s does not exist" % file.path)
 
 
 def show_task_main_events(parent, task):
+    """Show the events reported in the main output file."""
     file = task.output_file
 
     if file.exists:
@@ -516,6 +521,7 @@ def show_task_main_events(parent, task):
 
 
 def show_task_log_events(parent, task):
+    """Show the events reported in the log file."""
     file = task.log_file
 
     if file.exists:
@@ -544,6 +550,7 @@ def show_history(parent, task):
 
 
 def check_status_and_pickle(task):
+    """Check the status of the task and update the pickle database."""
     task.flow.check_status()
     task.flow.pickle_dump()
 

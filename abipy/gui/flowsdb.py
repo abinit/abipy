@@ -49,15 +49,18 @@ class FlowsDbViewerFrame(awx.Frame):
         # Create toolbar.
         self.toolbar = toolbar = self.CreateToolBar()
 
-        toolbar.AddSimpleTool(ID_RUN_SCRIPT, wx.Bitmap(awx.path_img("script.png")), "Upload and execute the script on the remote host.")
-        toolbar.AddSimpleTool(ID_CHECK_STATUS, wx.Bitmap(awx.path_img("script.png")), "Check the status of the flows running on the remote host.")
-        toolbar.AddSimpleTool(ID_USER_JOBS, wx.Bitmap(awx.path_img("script.png")), "Show the list of queued jobs belonging to the user.")
-        toolbar.AddSimpleTool(ID_ALL_JOBS, wx.Bitmap(awx.path_img("script.png")), "Show all the jobs in the queue.")
-        toolbar.AddSimpleTool(ID_XTERM, wx.Bitmap(awx.path_img("script.png")), "Open Xterm and connect to the remote host.")
-        toolbar.AddSimpleTool(ID_SHOW_ABINIT_INFO, wx.Bitmap(awx.path_img("script.png")), "Show the ABINIT version and the build info used on the remote host")
-        toolbar.AddSimpleTool(ID_SHOW_ABIPY_ENV, wx.Bitmap(awx.path_img("script.png")), "Show the abipy enviroment available on the remote host.")
+        def bitmap(path):
+            return wx.Bitmap(awx.path_img(path))
 
-        #toolbar.AddSeparator()
+        toolbar.AddSimpleTool(ID_RUN_SCRIPT, bitmap("script.png"), "Upload and execute the script on the remote host.")
+        toolbar.AddSimpleTool(ID_CHECK_STATUS, bitmap("script.png"), "Check the status of the flows running on the remote host.")
+        toolbar.AddSimpleTool(ID_USER_JOBS, bitmap("script.png"), "Show the list of queued jobs belonging to the user.")
+        toolbar.AddSimpleTool(ID_ALL_JOBS, bitmap("script.png"), "Show all the jobs in the queue.")
+        toolbar.AddSeparator()
+        toolbar.AddSimpleTool(ID_XTERM, bitmap("script.png"), "Open Xterm and connect to the remote host.")
+        toolbar.AddSimpleTool(ID_SHOW_ABINIT_INFO, bitmap("script.png"), "Show the ABINIT version and the build info used on the remote host")
+        toolbar.AddSimpleTool(ID_SHOW_ABIPY_ENV, bitmap("script.png"), "Show the abipy enviroment available on the remote host.")
+
         self.toolbar.Realize()
         self.Centre()
 
@@ -79,8 +82,6 @@ class FlowsDbViewerFrame(awx.Frame):
 
         # Read the database with the list of flows.
         self.flows_db = FlowsDatabase.from_user_config()
-        #self.clusters_byname = self.flows_db.clusters
-        #print("flows_db", self.flows_db)
 
         panel = wx.Panel(self, -1)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -245,65 +246,37 @@ class ClusterPanel(wx.Panel):
 
     def BuildUi(self):
 
-        #splitter = wx.SplitterWindow(self, style=wx.SP_LIVE_UPDATE)
-        #splitter.SetMinimumPaneSize(100)
-        #parent = splitter
-
-        parent = self
-
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-
-        #if False:
-        #    abinit_info_button = wx.Button(self, -1, label='AbinitInfo')
-        #    abienv_button = wx.Button(self, -1, label='AbiEnv')
-        #    self.Bind(wx.EVT_BUTTON, self.ShowAbinitInfo, abinit_info_button)
-        #    self.Bind(wx.EVT_BUTTON, self.AbiEnv, abienv_button)
-
-        #    hbox = wx.BoxSizer(wx.HORIZONTAL)
-        #    hbox.Add(abinit_info_button)
-        #    hbox.Add(abienv_button, flag=wx.LEFT, border=5)
-
-        #    main_sizer.Add(hbox, proportion=0, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10)
 
         # List Control with info on the flows.
-        self.flows_listctrl = FlowsListCtrl(parent, self.flows, self.cluster, self.flows_db)
+        self.flows_listctrl = FlowsListCtrl(self, self.flows, self.cluster, self.flows_db)
         main_sizer.Add(self.flows_listctrl, 1, wx.EXPAND, 5)
 
-        #self.jobs_panel = JobsPanel(parent, self.cluster)
-
-        #splitter.SplitHorizontally(self.flows_listctrl, self.jobs_panel)
-        #main_sizer.Add(splitter, 1, wx.EXPAND, 5)
-
-        #label = wx.StaticText(self, -1, "Workflow class %s, status: %s, finalized: %s" % (
-        #    work.__class__.__name__, work.status, work.finalized))
-        #label.Wrap(-1)
-        #main_sizer.Add(label, 0, wx.ALIGN_LEFT, 5)
-
         self.SetSizerAndFit(main_sizer)
 
 
-class JobsPanel(wx.Panel):
-    def __init__(self, parent, cluster, **kwargs):
-        super(JobsPanel, self).__init__(parent, -1, **kwargs)
-        self.cluster = cluster
-
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
-
-        #user_jobs_button = wx.Button(self, -1, label='User Jobs')
-        #all_jobs_button = wx.Button(self, -1, label='All Jobs')
-        #self.Bind(wx.EVT_BUTTON, self.ShowAllJobs, all_jobs_button)
-        #self.Bind(wx.EVT_BUTTON, self.ShowUserJobs, user_jobs_button)
-
-        #hbox = wx.BoxSizer(wx.HORIZONTAL)
-        #hbox = wx.BoxSizer(wx.HORIZONTAL)
-        #hbox.Add(user_jobs_button)
-        #hbox.Add(all_jobs_button, flag=wx.LEFT, border=5)
-        #main_sizer.Add(hbox, proportion=0, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10)
-
-        #self.text_ctrl = wx.TextCtrl(self, -1, value="", style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
-        #main_sizer.Add(self.text_ctrl, 1, wx.ALIGN_CENTER_HORIZONTAL, 5)
-
-        self.SetSizerAndFit(main_sizer)
+#class JobsPanel(wx.Panel):
+#    def __init__(self, parent, cluster, **kwargs):
+#        super(JobsPanel, self).__init__(parent, -1, **kwargs)
+#        self.cluster = cluster
+#
+#        main_sizer = wx.BoxSizer(wx.VERTICAL)
+#
+#        #user_jobs_button = wx.Button(self, -1, label='User Jobs')
+#        #all_jobs_button = wx.Button(self, -1, label='All Jobs')
+#        #self.Bind(wx.EVT_BUTTON, self.ShowAllJobs, all_jobs_button)
+#        #self.Bind(wx.EVT_BUTTON, self.ShowUserJobs, user_jobs_button)
+#
+#        #hbox = wx.BoxSizer(wx.HORIZONTAL)
+#        #hbox = wx.BoxSizer(wx.HORIZONTAL)
+#        #hbox.Add(user_jobs_button)
+#        #hbox.Add(all_jobs_button, flag=wx.LEFT, border=5)
+#        #main_sizer.Add(hbox, proportion=0, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10)
+#
+#        #self.text_ctrl = wx.TextCtrl(self, -1, value="", style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
+#        #main_sizer.Add(self.text_ctrl, 1, wx.ALIGN_CENTER_HORIZONTAL, 5)
+#
+#        self.SetSizerAndFit(main_sizer)
 
 
 class FlowsListCtrl(wx.ListCtrl):
@@ -356,19 +329,24 @@ class FlowsListCtrl(wx.ListCtrl):
 
 # TODO: Should trigger the refresh of the GUI!
 def flow_show_status(parent, cluster, flow, flows_db):
+    """Show the status of the flow."""
     results, changed = flows_db.check_status(cluster.hostname, flow.workdir)
     SimpleTextViewer(parent, text=str(results[0]), title=cluster.hostname).Show()
 
 
 def flow_cancel(parent, cluster, flow, flows_db):
+    """Cancel the flow i.e. remove all the jobs that are in the queue."""
     flows_db.cancel_flow(cluster.hostname, flow.workdir)
 
 
 def flow_remove(parent, cluster, flow, flows_db):
+    """Remove the working directory of the flow."""
     cluster.rmdir(flow.workdir)
     flows_db.remove_flow(flow)
 
+
 def flow_sched_log(parent, cluster, flow, flows_db):
+    """Show the content of the scheduler log file."""
     sched_log = os.path.join(flow.workdir, "sched.log")
     s = cluster.read_file(sched_log)
     SimpleTextViewer(parent, text=s, title=sched_log).Show()

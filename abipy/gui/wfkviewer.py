@@ -56,15 +56,18 @@ class WfkViewerFrame(awx.Frame):
         # Create toolbar.
         self.toolbar = toolbar = self.CreateToolBar()
 
+        def bitmap(path):
+            return wx.Bitmap(awx.path_img(path))
+
         tsize = (48, 48)
         artBmp = wx.ArtProvider.GetBitmap
         toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, tsize), "Open")
-        toolbar.AddSimpleTool(ID_VISTRUCT, wx.Bitmap(awx.path_img("struct.png")), "Visualize the crystal structure")
-        toolbar.AddSimpleTool(ID_VISBZ, wx.Bitmap(awx.path_img("bz.png")), "Visualize the BZ")
-        toolbar.AddSimpleTool(ID_VISWAVE, wx.Bitmap(awx.path_img("wfk.png")), "Visualize the selected wavefunction")
-        toolbar.AddSimpleTool(ID_DOS, wx.Bitmap(awx.path_img("dos.png")), "Compute the DOS")
-        toolbar.AddSimpleTool(ID_JDOS, wx.Bitmap(awx.path_img("jdos.png")), "Compute the joint DOS")
-        toolbar.AddSimpleTool(ID_PLOTBANDS, wx.Bitmap(awx.path_img("bs.png")), "Plot bands")
+        toolbar.AddSimpleTool(ID_VISTRUCT, bitmap("struct.png"), "Visualize the crystal structure")
+        toolbar.AddSimpleTool(ID_VISBZ, bitmap("bz.png"), "Visualize the BZ")
+        toolbar.AddSimpleTool(ID_VISWAVE, bitmap("wfk.png"), "Visualize the selected wavefunction")
+        toolbar.AddSimpleTool(ID_DOS, bitmap("dos.png"), "Compute the DOS")
+        toolbar.AddSimpleTool(ID_JDOS, bitmap("jdos.png"), "Compute the joint DOS")
+        toolbar.AddSimpleTool(ID_PLOTBANDS, bitmap("bs.png"), "Plot bands")
 
         toolbar.AddSeparator()
         self.visualizer_cbox = wx.ComboBox(choices=supported_visunames(), id=ID_TBOX_VIS, 
