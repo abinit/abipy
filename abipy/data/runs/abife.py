@@ -6,7 +6,6 @@ import os
 import time
 import subprocess
 import collections
-import cmd
 import readline
 import pprint
 import cStringIO as StringIO 
@@ -15,13 +14,30 @@ import yaml
 import socket
 import paramiko
 
-def straceback():
-    """Returns a string with the traceback."""
+from termcolor import colored, cprint
+from pymatgen.core.design_patterns import AttrDict
+from pymatgen.util.string_utils import is_string
+
+
+def straceback(color="red"):
+    """
+    Returns a string with the traceback.
+
+    Use ANSII color formatting for output in terminal if color is not None.
+    """
     import traceback
-    return traceback.format_exc()
+    s = traceback.format_exc()
+    if color is not None:
+        try:
+            from termcolor import colored
+            return colored(s, color)
+        except ImportError:
+            return s
+    else:
+        return s
 
 
-def read_clusters(filepath="clusters.yml"):
+def init_clusters(filepath="clusters.yml"):
     """Read the configuration paramenters from the YAML file clusters.yml."""
     with open(filepath, "r") as fh:
         conf = yaml.load(fh)
@@ -49,14 +65,13 @@ def read_clusters(filepath="clusters.yml"):
 
 class Cluster(object):
     """
-    Abstract base class defining the interface that must be 
-    implmented by concrete class.
-    This object stores the basic parameters of the cluster
-    that are needed to establish SSH, SFTP connections.
-    It also provides helper functions for monitoring the 
-    resource manager.
-    Every subclass must define the class attribute `qtype` so 
+    This object stores the basic parameters of the cluster that are needed to establish 
+    SSH, SFTP connections. It also provides helper functions for monitoring the resource manager.
+    This an abstract base class defining the interface that must be implemented 
+    by the concrete subclasses. Every subclass must define the class attribute `qtype` so 
     that specified the type of resource manager installed on the cluster.
+
+    A cluste has a working directory where we are going the generate and run Flows.
     """
     __metaclass__ = abc.ABCMeta
 
@@ -81,7 +96,7 @@ class Cluster(object):
         # and decript it on the fly before establishing the SSH connection.
         assert password and username
 
-        self.port = 22
+        self.port = 22    # Port for SSH connection
         self.timeout = 30 # Timeout in seconds.
 
         # List of partitions available on the cluster.
@@ -171,9 +186,11 @@ class Cluster(object):
         if hasattr(self, "_ssh") and self._ssh.is_connected:
             self._ssh.close()
 
-    def ssh_exec(self, command):
-        """Execute command via ssh. Return `SSHResult` instance."""
-        stdin, stdout, stderr = self.ssh.exec_command(command, timeout=None)
+    def ssh_exec(self, command, timeout=None):
+        """
+        Execute command via ssh. Return `SSHResult` instance.
+        """
+        stdin, stdout, stderr = self.ssh.exec_command(command, timeout=timeout)
         return SSHResult(stdout, stderr)
          
     def _sftp_connect(self):
@@ -197,8 +214,25 @@ class Cluster(object):
         if hasattr(self, "_sftp") and self._sftp.is_connected:
             self.sftp.close()
 
-    #def sftp_get(self, source , dest):
-    #    self.sftp.get(source, dest)
+    #def sftp_put(self, localpath, remotepath, confirm, mode=None, close=True):
+        #self.sftp.get(source, dest)
+        #sftp = self.sftp
+        #sftp.put(localpath=script, remotepath=remotepath, confirm=True)
+        #sftp.chmod(remotepath, mode=0700)
+        #if close: sftp.close()
+
+    def exists(self, path):
+        """True if path exists."""
+        return self.ssh_exec("test -e %s" % path).return_code != 0
+
+    def which(self, bin):
+        """Execute `which bin` on the cluster."""
+        return self.ssh_exec("which %s" % bin).out
+
+    def make_workdir(self):
+        """Create the working directory on the cluster if it does not exist."""
+        if not self.exists(self.workdir):
+            return self.ssh_exec("mkdir %s" % self.workdir)
 
     def invoke_shell(self, timeout=-1):
         """Returns an instance of `MyShell`."""
@@ -207,33 +241,89 @@ class Cluster(object):
         shell.settimeout(timeout if timeout != -1 else self.timeout)
         return shell
 
-    def make_workdir(self):
-        """Create the working directory on the cluster if it does not exist."""
-        if self.ssh_exec("test -e %s" % self.workdir).return_code != 0:
-            self.ssh_exec("mkdir %s" % self.workdir)
-
     def invoke_abinit(self, *args):
         """Returns the output of `abinit args`."""
         shell = self.invoke_shell()
         return shell.myexec("abinit %s" % " ".join(*args)).out
         #return shell.myexec("mpirun abinit %s" % " ".join(*args).out
-        #return shell.myexec("`which abinit`")
-        #return shell.myexec("ldd `which abinit`")
+
+    def get_abinit_info(self, prefix=False):
+        """
+        Returns a dictionary with the Abinit version and the build info
+        If prefix is True, hostname is prepended to each line
+        """
+        if not self.which("abinit"): 
+            return {}
+
+        return None
+        #return dict(
+        #    version=self.invoke_abinit("--version"),
+        #    build=self.invoke_abinit("--build"))
+
+    def abicheck(self, with_color=False):
+        """
+        Run abicheck.py on the cluster to make sure the environment is properly setup.
+
+        args:
+            with_color:
+                True if ANSII colored string is wanted.
+
+        Returns:
+            human-readable string with the outcome of the test.
+        """
+        if not with_color:
+            def colored(s, color): return s
+
+        shell = self.invoke_shell()
+        try:
+            cmd = "abicheck.py"
+            result = shell.myexec(cmd)
+
+            if result.return_code:
+                msg = colored("[FAILED]: ", "red") + "%s returned %d" % (cmd, result.return_code)
+            else:
+                msg = colored("[OK]", "blue")
+                                                                                                  
+        except socket.timeout:
+            msg = colored("[FAILED]: ", "red") + "socket timeout"
+                                                                                                  
+        return msg
+
+    def yaml_configurations(self):
+        """List of dicts with the YAML configuration files used on the remote hosts."""
+
+        conf_files = [
+            "~/.abinit/abipy/taskmanager.yml",
+            "~/.abinit/abipy/scheduler.yml",
+        ]
+
+        confs = []
+        for f in conf_files:
+            result = self.ssh_exec("cat %s" % f)
+            confs.append(yaml.dump(yaml.load(result.out)))
+
+        return confs
 
     @abc.abstractmethod
-    def get_user_jobs(self):
-        """Return a string with info on the jobs belonging to the user"""
+    def get_user_jobs(self, prefix=False):
+        """
+        Return a string with info on the jobs belonging to the user
+        If prefix is True, hostname is prepended to each line
+        """
 
     @abc.abstractmethod
-    def get_all_jobs(self):
-        """Return a string with info on all the jobs in the queue."""
+    def get_all_jobs(self, prefix=False):
+        """
+        Return a string with info on all the jobs in the queue.
+        If prefix is True, hostname is prepended to each line
+        """
 
     @abc.abstractmethod
-    def get_qinfo(self):
+    def get_qinfo(self, prefix=False):
         """Return a string with info on the queue."""
 
     #@abc.abstractmethod
-    #def get_qload(self):
+    #def get_qload(self, prefix=False):
     #    """Return a string with the load of the cluster"""
 
 
@@ -241,38 +331,38 @@ class SlurmCluster(Cluster):
     """A cluster with Slurm."""
     qtype = "slurm"
 
-    def get_all_jobs(self):
+    def get_all_jobs(self, prefix=False):
         result = self.ssh_exec("squeue")
-        return self.prefix_str(result.out)
+        return self.prefix_str(result.out) if prefix else result.out
 
-    def get_user_jobs(self):
+    def get_user_jobs(self, prefix=False):
         result = self.ssh_exec("squeue -u %s" % self.username)
-        return self.prefix_str(result.out)
+        return self.prefix_str(result.out) if prefix else result.out
 
-    def get_qinfo(self):
+    def get_qinfo(self, prefix=False):
         result = self.ssh_exec("sinfo")
-        return self.prefix_str(result.out)
+        return self.prefix_str(result.out) if prefix else result.out
 
-    #def get_qload(self):
+    #def get_qload(self, prefix=False):
     #    result = self.ssh_exec("sload")
-    #    return self.prefix_str(result.out)
+    #    return self.prefix_str(result.out) if prefix else result.out
 
 
 class SgeCluster(Cluster):
     """A cluster with SGE."""
     qtype = "sge"
 
-    def get_all_jobs(self):
+    def get_all_jobs(self, prefix=False):
         result = self.ssh_exec('qstat -u "*"')
-        return self.prefix_str(result.out)
+        return self.prefix_str(result.out) if prefix else result.out
 
-    def get_user_jobs(self):
+    def get_user_jobs(self, prefix=False):
         result = self.ssh_exec("qstat -u %s" % self.username)
-        return self.prefix_str(result.out)
+        return self.prefix_str(result.out) if prefix else result.out
 
-    def get_qinfo(self):
+    def get_qinfo(self, prefix=False):
         result = self.ssh_exec("qhost")
-        return self.prefix_str(result.out)
+        return self.prefix_str(result.out) if prefix else result.out
 
 
 class MySSHClient(paramiko.SSHClient):
@@ -400,7 +490,7 @@ class SSHResult(object):
 
     def __str__(self):
         s  = "out: " + self.out 
-        if self.err: s += "\nerr: " + self.err
+        if self.err: s += colored("\nerr: " + self.err, "red")
         return s
 
     @property
@@ -425,7 +515,9 @@ class SSHResult(object):
             self._err = self.stderr.read()
             return self._err
 
-_ALL_CLUSTERS = read_clusters()
+_ALL_CLUSTERS = init_clusters()
+
+import cmd
 
 class RunCommand(cmd.Cmd, object):
     """ Simple shell to run commands on the localhost """
@@ -539,19 +631,19 @@ class RunCommand(cmd.Cmd, object):
         Report all the jobs in the queue. e.g all_jobs host1 host2
         """
         for cluster in self._select_clusters(line):
-            print(cluster.get_all_jobs())
+            print(cluster.get_all_jobs(prefix=True))
                                                                 
     def do_user_jobs(self, line):
         """
         Report the jobs of the users. e.g user_jobs host1 host2
         """
         for cluster in self._select_clusters(line):
-            print(cluster.get_user_jobs())
+            print(cluster.get_user_jobs(prefix=True))
 
     def do_qinfo(self, line):
         """Report info on the queue manager."""
         for cluster in self._select_clusters(line):
-            print(cluster.get_qinfo())
+            print(cluster.get_qinfo(prefix=True))
 
     #def do_qload(self, line):
     #    """info on the load of the clusters."""
@@ -582,26 +674,11 @@ class RunCommand(cmd.Cmd, object):
     def do_abicheck(self, line):
         """Test if the abinit environment is properly setup on the remote hosts."""
 
+        print("Testing abipy environment on the different clusters.")
+
         for cluster in self._select_clusters(line):
-            print("Testing abipy environment on %s ... " % cluster, end="")
-
-            cluster.make_workdir()
-
-            shell = cluster.invoke_shell()
-            try:
-                cmd = "abicheck.py"
-                result = shell.myexec(cmd)
-
-                if result.return_code:
-                    msg = "[FAILED]: %s returned %d" % (cmd, result.return_code)
-                    #print("got result", result)
-                else:
-                    msg = "[OK]"
-
-            except socket.timeout:
-                msg = "[FAILED]: socket timeout"
-
-            print(msg)
+            print("%s ..." % cluster, end="")
+            print(cluster.abicheck())
             #shell.exit()
 
     def do_abinit_version(self, line):
@@ -628,47 +705,47 @@ class RunCommand(cmd.Cmd, object):
             print(self.do_flow_start.__doc__)
             return
 
-        # Parse input line.
-        script, hostname = os.path.basename(tokens[0]), tokens[1]
+        # Parse input line (local path of the script and hostname).
+        script_locpath, hostname = tokens[0], tokens[1]
         cluster = self.clusters[hostname]
 
         # Build absolute paths on the remote host.
+        # foo.py --> WORKDIR/foo/foo.py
+        rdir_basename = os.path.basename(script).replace(".py", "")
+        rdir_path = os.path.join(cluster.workdir, rdir_basename)
+        script_rpath =  os.path.join(rdir_path, os.path.basename(script_locpath))
 
-        dir_basename = os.path.basename(script).replace(".py", "")
-        #remotepath = cluster.path_inworkdir(script)
-        remotedir = "/home/ucl/naps/gmatteo/WORKDIR"
-        remotepath = os.path.join(remotedir, script)
-        flow_absdir = cluster.path_inworkdir(dir_basename)
+        print("Uploading %s to %s:%s" % (script, hostname, script_rpath))
 
-        print("Uploading %s to %s:%s" % (script, hostname, remotepath))
-
-        if production and flow_absdir in self.flows_db:
-            raise RuntimeError("remotepath %s is already in the database" % remotepath)
+        #flow_key = rdir_path + "@" + cluster.hostname
+        #if production and flow_key in self.flows_db:
+        #    raise RuntimeError("flow_key %s is already in the database" % flow_key)
 
         # Upload the script and make it executable.
         sftp = cluster.sftp
 
         # Create directory if it does not exist.
-        if not cluster.exists(remotedir):
-            print("about to create %s" % remotedir)
-            sftp.mkdir(remotedir)
+        if not cluster.exists(self.workdir):
+            print("About to create %s" % self.workdir)
+            sftp.mkdir(self.workdir)
 
-        sftp.put(localpath=script, remotepath=remotepath, confirm=True)
-        sftp.chmod(remotepath, mode=0700)
+        sftp.put(localpath=script_locpath, remotepath=script_rpath, confirm=True)
+        sftp.chmod(script_rpath, mode=0700)
         sftp.close()
 
         # Start a shell on the remote host and run the script to build the flow.
+        command = "script_rpath -w %s" %  rdir_path
         shell = cluster.invoke_shell()
-        result = shell.myexec(remotepath)
+        result = shell.myexec(command)
 
         if result.return_code:
             print(result)
-            print("%s returned %s. Aborting operation" % (remotepath, result.return_code))
+            print("%s returned %s. Aborting operation" % (script_rpath, result.return_code))
             return
 
         # Run the scheduler with nohup.
         # This is the most delicate part: not so sure that nohup will work everywhere.
-        sched_cmd = "nohup abirun.py %s scheduler > /dev/null 2>&1 &" % flow_absdir
+        sched_cmd = "nohup abirun.py %s scheduler > /dev/null 2>&1 &" % rdir_path
         print("Detaching process via: %s" % sched_cmd)
         shell = cluster.invoke_shell()
         shell.sendall(sched_cmd)
@@ -686,9 +763,8 @@ class RunCommand(cmd.Cmd, object):
         #print("return_code", return_code)
 
         # Add the flow to the local database.
-        if production:
-            self.flows_db.add_flow(flow_absdir, cluster)
-            print("%s added to the database" % flow_absdir)
+        #if production:
+        #    self.flows_db.register_flow(cluster.hostname, flowdir)
 
     def complete_flow_start(self, text, line, begidx, endidx):
         """Command line completion for flow_start."""
@@ -745,7 +821,7 @@ class RunCommand(cmd.Cmd, object):
         return []
 
     def do_flow_conf(self, line):
-        """Show the configuration files used on the remote hosts."""
+        """Show the YAML configuration files used on the remote hosts."""
 
         conf_files = [
             "~/.abinit/abipy/taskmanager.yml",
@@ -753,45 +829,113 @@ class RunCommand(cmd.Cmd, object):
         ]
 
         for cluster in self._select_clusters(line):
-            for f in conf_files:
-                result = cluster.ssh_exec("cat %s" % f)
-                s = yaml.dump(yaml.load(result.out))
+            for s in self.yaml_configurations():
                 print(cluster.prefix_str(s))
+
+
+class FlowEntry(AttrDict):
+    """
+    An entry of the database with information on the `AbinitFlow` that is
+    being executed on the remote host.
+
+    .. attributes:
+
+        hostname:
+            Name of the remote host.
+        workdir: 
+            Absolute path of the working directory where the flow is being executed.
+        start_date: 
+            String with the creation date.
+        status:
+            Status of the flow.
+    """
+    #def __init__(self, *args, **kwargs):
+    #    super(FlowEntry, self).__init__(*args, **kwargs)
+
+    #    # Test the presence of mandatory keys.
+    #    for key in ["hostname", "workdir", "start_date", "status"]:
+    #        if key not in self:
+    #            raise ValueError("Mandatory key %s is missing!" % key)
+
+    #TODO: script?
+    def __eq__(self, other):
+        return (self.hostname == other.hostname and 
+                self.workdir == other.workdir)
+
+    def __ne__(self, other):
+        return not self == other
 
 
 class FlowsDatabase(collections.MutableMapping):
     """
-    Database of flows executed on the clusters.
-    It essentially consists of a dictionary that
-    maps the name of the script used to generate
-    the flow to the absolute path on the remote hosts
+    Database of flows executed on the clusters. It essentially consists of a dictionary that
+    maps the name of the script used to generate the flow to the absolute path on the remote hosts
     where the flow is being executed.
 
-    We use JSON to save/write the database on disk.
+    We use JSON to save/write the database to disk.
 
     .. Attributes:
         
-        filepaths:
+        filepath:
             Absolute path of the JSON file.
     """
+    #VERSION = "1"
+
     JSON_FILE = "flowsdb.json"
-    #flow_workdir@hostname:partition --> {hostname, start_date, status}
+    # hostname --> [ {flow_workdir, start_date, status}, ... ]
 
-    def __init__(self):
-        dirpath = os.getcwd()
-        self.filepath = os.path.join(dirpath, self.JSON_FILE)
+    def __init__(self, filepath, db=None):
+        self.filepath = os.path.abspath(filepath)
+        self.db = {} if db is None else db
 
-        if not os.path.exists(self.filepath):
-            self.db = {}
-        else:
-            with open(self.filepath, "r") as fh:
-                self.db = json.load(fh)
+        # Add hostname to each entry.
+        if self.db:
+            for hostname, entries in self.items():
+                entries_with_hostname = []
+                for e in entries:
+                    if "hostname" not in e: e["hostname"] = hostname
+                    entries_with_hostname.append(e)
+
+                self.db[hostname] = entries_with_hostname
+
+        self.clusters = init_clusters()
+
+    @classmethod
+    def from_file(cls, filepath):
+        """Read the database from file."""
+        filepath = os.path.abspath(filepath)
+
+        with open(filepath, "r") as fh:
+            return cls(filepath, db=json.load(fh))
+
+    @classmethod
+    def from_user_config(cls):
+        """
+        Initialize the `FlowsDatabase` from the YAML file 'flowsdb.json'.
+        Search first in the working directory and then in the configuration
+        directory of abipy. If no JSON file, a new database is created in ~/.abinit/.abipy
+        """
+        # Try in the current directory.
+        path = os.path.join(os.getcwd(), cls.JSON_FILE)
+
+        if os.path.exists(path):
+            return cls.from_file(path)
+
+        # Try in the configuration directory.
+        home = os.getenv("HOME")
+        dirpath = os.path.join(home, ".abinit", "abipy")
+        path = os.path.join(dirpath, cls.JSON_FILE)
+
+        if os.path.exists(path):
+            return cls.from_file(path)
+
+        # Create empty database.
+        return cls(path)
 
     def __str__(self):
-        s = "FlowsDatabase: %s\n" % self.filepath
         strio = StringIO.StringIO()
         pprint.pprint(self.db, stream=strio, indent=1)
-        return s + strio.getvalue()
+        return "%s: %s\n" % (self.__class__.__name__, self.filepath) + strio.getvalue()
 
     # abc protocol.
     def __getitem__(self, key):
@@ -810,43 +954,225 @@ class FlowsDatabase(collections.MutableMapping):
         return len(self.db)
     # end abc protocol.
 
-    #def add_flow(self, flow_workdir, cluster):
-    #    """
-    #    Add a new entry in the database.
-
-    #    Args:
-    #        flow_workdir:
-    #            Absolute path of the directory where the flow is located.
-    #        cluster:
-    #            `Cluster` object specifying the remote host where the flow is being executed.
-    #    """
-    #    if flow_workdir in self.db:
-    #        raise RuntimeError("Flow workdir %s is already in the database" % flow_workdir)
-
-    #    d = {"hostname": cluster.hostname, "start_date": time.asctime(), "status": "init"}
-    #    self.db[flow_workdir] = d
-
-    #    self.json_dump()
-
-    #def remove_flow(self, flow_workdir):
-    #    """
-    #    Remove an entry from the database.
-
-    #    Returns:
-    #        The entry that has been removed.
-    #    """
-    #    v = self.pop(flow_workdir, None)
-
-    #    if v is not None:
-    #        # Update the database.
-    #        self.json_dump()
-
-    #    return v
-
     def json_dump(self):
         """Dump the database in JSON format."""
         with open(self.filepath, "w") as fh:
-            json.dump(self.db, fh)
+            json.dump(self.db, fh, indent=4, sort_keys=4)
+
+    def hostnames(self):
+        """List of hostnames."""
+        return list(self.keys())
+
+    def _select_hosts(self, hostnames):
+        """
+        Helper function to select hostnames.
+        Receives None, string or list of strings and returns a list of hostnames. 
+        """
+        if hostnames is None:
+            return self.hostnames()
+        else:
+            return [hostnames] if is_string(hostnames) else hostnames
+
+    def select_flows(self, hostname, status=None):
+        if status is not None:
+            return [flow for flow in self[hostname] if flow.status == status]
+        else:
+            return [flow for flow in self[hostname]]
+
+    def flowdirs(self, hostname, status=None):
+        if status is not None:
+            return [flow.workdir for flow in self[hostname] if flow.status == status]
+        else:
+            return [flow.workdir for flow in self[hostname]]
+
+    def register_flow(self, hostname, flowdir):
+        """
+        Add a new entry in the database.
+
+        Args:
+            hostname:
+                Name of the remote host where the flow is being executed.
+            flowdir:
+                Absolute path on the remove cluste containing the `AbinitFlow`.
+        """
+        entries = self[hostname]
+
+        new_entry = FlowEntry(hostname=hostname,
+                              workdir=flowdir,
+                              start_date=time.asctime(),
+                              status="init")
+
+        if new_entry in entries:
+            raise ValueError("Entry %s is already in the database:\n %s" % (new_entry, entries))
+
+        entries.append(new_entry)
+
+    def remove_flow(self, flow):
+        """
+        Remove a flow from the database.
+
+        Returns:
+            The entry that has been removed.
+        """
+        flows = self[flow.hostname]
+
+        flows.remove(flow)
+        return flow
+
+    def check_status(self, hostnames=None):
+        """
+        Check the status of the flows running on hostnames.
+
+        Returns: 
+            List of flows whose status has changed.
+        """
+        changed = []
+
+        for host in self._select_hosts(hostnames):
+            cluster = self.clusters[host]
+            for flow in self[host]:
+                 shell = cluster.invoke_shell()
+                 cmd= "abirun.py %s status" % workdir
+                 print(cmd)
+                 result = shell.myexec(cmd)
+                 print(result)
+
+                 # TODO
+                 #if flow.status != new_status:
+                 #   flow.status = new_status
+                 #   flow.last_check = time.asctime()
+                 #   changed.append(flow)
+
+        if changed:
+            # Update the database.
+            self.json.dump()
+
+        return changed
+
+    def maintenance(self, hostnames=None):
+        """
+        Remove dead flows from the database 
+        i.e. the flows whose workdir does not exist anymore.
+        """
+        removed = []
+
+        for host in self._select_hosts(hostnames):
+            cluster = clusters[host]
+            for flow in self[host]:
+                if not cluster.exists(flow.workdir):
+                     removed.append(self.remove_flow(self, flow))
+
+        return removed
+
+    def start_flow(self, script, hostname):
+        """
+        Start the flow on the remote cluster.
+
+        Args:
+            script:
+                Python script on the local machine
+            hostname:
+                Name of the remote host where the flow will be executed.
+        """
+        production = False
+        cluster = self.clusters[hostname]
+
+        # Build absolute paths on the remote host: foo.py --> WORKDIR/foo/foo.py
+        rdir_basename = os.path.basename(script).replace(".py", "")
+        rdir_path = os.path.join(cluster.workdir, rdir_basename)
+        script_rpath = os.path.join(rdir_path, os.path.basename(script))
+
+        print("Uploading %s to %s:%s" % (script, hostname, script_rpath))
+
+        flow_key = rdir_path + "@" + cluster.hostname
+        if production and flow_key in self.flows_db:
+            raise RuntimeError("flow_key %s is already in the database" % flow_key)
+
+        # Upload the script and make it executable.
+        sftp = cluster.sftp
+
+        # Create directory if it does not exist.
+        #if not cluster.exists(cluster.workdir):
+        #    print("Will create remote workdir %s" % cluster.workdir)
+        #    sftp.mkdir(cluster.workdir)
+
+        sftp.put(localpath=script, remotepath=script_rpath, confirm=True)
+        sftp.chmod(script_rpath, mode=0700)
+        sftp.close()
+
+        # Start a shell on the remote host and run the script to build the flow.
+        command = "%s -w %s" %  (script_rpath, rdir_path)
+        shell = cluster.invoke_shell()
+        result = shell.myexec(command)
+
+        if result.return_code:
+            print(result)
+            print("%s returned %s. Aborting operation" % (command, result.return_code))
+            return
+
+        # Run the scheduler with nohup.
+        # This is the most delicate part: not so sure that nohup will work everywhere.
+        sched_cmd = "nohup abirun.py %s scheduler > /dev/null 2> &1 &" % rdir_path
+        print("Detaching process via: %s" % sched_cmd)
+        shell = cluster.invoke_shell()
+        shell.sendall(sched_cmd)
+        return_code = shell.exit()
+        print(return_code)
+        #result = shell.myexec(sched_cmd)
+        #print(result)
+
+        #if result.return_code:
+        #    print("%s returned %s.\n Will remove the directory and abort" % (sched_cmd, result.return_code))
+        #    cluster.ssh.exec("rm -rf %s" % flow_absdir)
+        #    return
+
+        #return_code = shell.exit()
+        #print("return_code", return_code)
+
+        # Add the flow to the local database.
+        #if production:
+        #    self.register_flow(cluster.hostname, flowdir)
+
+
+
+from abipy.core.testing import AbipyTest
+
+class FlowsDatabaseTest(AbipyTest):
+
+    def test_dbapi(self):
+
+        db = {"manneback": [
+                AttrDict(workdir="/WORKDIR/run_si_ebands", 
+                         status="init", 
+                         start_date="Wed Nov 20 19:59:05 2013"),
+                AttrDict(workdir="/WORKDIR/run_si_ebands2", 
+                         status="error", 
+                         start_date="Wed Nov 21 19:59:05 2013"),
+                ],
+
+              "lemaitre2": [
+                AttrDict(workdir="/WORKDIR/run_si_ebands", 
+                         status="init", 
+                         start_date="Wed Nov 20 19:59:05 2013"),
+                ]
+            }
+
+        #self.tmpfile_write(string)
+        fdb = FlowsDatabase(filepath="test.json", db=db) 
+
+        print(fdb)
+
+        # Cannot add the same flow twice.
+        with self.assertRaises(ValueError):
+            fdb.register_flow("manneback", "/WORKDIR/run_si_ebands")
+
+        aequal = self.assertEqual
+        aequal(fdb.flowdirs("manneback", status="init"), ["/WORKDIR/run_si_ebands"])
+        aequal(set(fdb.flowdirs("manneback")), set(["/WORKDIR/run_si_ebands", "/WORKDIR/run_si_ebands2"]))
+
+        fdb.json_dump()
+        other = FlowsDatabase.from_file(fdb.filepath)
+        #assert 0
 
 
 if __name__ == "__main__":

@@ -86,9 +86,12 @@ def git_pull():
             run("git pull")
 
 def git_install():
+    git_pull()
     for apath in git_repospaths:
         with cd(apath), _virtualenv(VENV):
             run("python setup.py clean")
+            #run("rm -rf build")
+            #run("rm -rf sdist")
             run("python setup.py install")
 
 

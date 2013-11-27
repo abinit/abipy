@@ -5,6 +5,7 @@ import inspect
 import functools
 
 from abipy.core.testing import AbipyTest
+from pymatgen.core.design_patterns import AttrDict
 from pymatgen.util.decorators import enable_logging
 from pymatgen.io.abinitio.launcher import PyFlowScheduler
 
@@ -36,6 +37,21 @@ class MixinTest(object):
         # is the first time we execute the AbinitFlow.
         self.workdir = os.path.join(os.path.dirname(apath), "tmp_" + base)
         #self.refdir = os.path.join(os.path.dirname(apath), "data_" + base)
+
+    @property
+    def options(self):
+        """Options passed to build_flow."""
+        try:
+            return self._options
+
+        except AttributeError:
+            self.init_dirs()
+
+            self._options = AttrDict(
+                workdir=self.workdir,
+                manager="")
+
+            return self._options
 
     def test_pickle(self):
         """Testing whether the flow object is pickleable."""
@@ -84,3 +100,4 @@ class MixinTest(object):
     #        for out_file, ref_file in d.items():
     #            print("Will move out_file %s to ref_file %s" % (out_file, ref_file))
     #            #task.rename(out_file, ref_file)
+

@@ -15,6 +15,7 @@ from abipy.gui.timer import MultiTimerFrame
 from abipy.gui.browser import FileListFrame, viewerframe_from_filepath
 from abipy.gui.editor import TextNotebookFrame, SimpleTextViewer
 
+
 ID_SHOW_INPUTS = wx.NewId()
 ID_SHOW_OUTPUTS = wx.NewId()
 ID_SHOW_LOGS = wx.NewId()
@@ -75,7 +76,6 @@ class FlowViewerFrame(awx.Frame):
 
         #tsize = (48,48)
         #artBmp = wx.ArtProvider.GetBitmap
-        #toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, tsize), "Open")
         toolbar.AddSimpleTool(ID_SHOW_INPUTS, wx.Bitmap(awx.path_img("in.png")), "Visualize the input files of the workflow.")
         toolbar.AddSimpleTool(ID_SHOW_OUTPUTS, wx.Bitmap(awx.path_img("out.png")), "Visualize the output files of the workflow..")
         toolbar.AddSimpleTool(ID_SHOW_LOGS, wx.Bitmap(awx.path_img("log.png")), "Visualize the log files of the workflow.")
@@ -161,7 +161,7 @@ class FlowViewerFrame(awx.Frame):
         self.main_sizer = main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         # Here we create a panel and a notebook on the panel
-        self.notebook = Notebook(panel, self.flow)
+        self.notebook = FlowNotebook(panel, self.flow)
         main_sizer.Add(self.notebook, 1, wx.EXPAND , 5)
 
         submit_button = wx.Button(panel, -1, label='Submit')
@@ -228,7 +228,7 @@ class FlowViewerFrame(awx.Frame):
         main_sizer = self.main_sizer
         main_sizer.Hide(0)
         main_sizer.Remove(0)
-        new_notebook = Notebook(self, self.flow)
+        new_notebook = FlowNotebook(self, self.flow)
         main_sizer.Insert(0, new_notebook, 1, wx.EXPAND, 5)
         self.notebook = new_notebook
 
@@ -351,12 +351,12 @@ class FlowViewerFrame(awx.Frame):
         MultiTimerFrame(self, timers).Show()
 
 
-class Notebook(fnb.FlatNotebook):
+class FlowNotebook(fnb.FlatNotebook):
     """
     Notebook class
     """
     def __init__(self, parent, flow):
-        super(Notebook, self).__init__(parent, id=-1, style=fnb.FNB_NO_X_BUTTON | fnb.FNB_NAV_BUTTONS_WHEN_NEEDED)
+        super(FlowNotebook, self).__init__(parent, id=-1, style=fnb.FNB_NO_X_BUTTON | fnb.FNB_NAV_BUTTONS_WHEN_NEEDED)
 
         self.flow = flow
         for work in flow:
@@ -406,10 +406,10 @@ class TabPanel(wx.Panel):
 
         self.SetSizerAndFit(main_sizer)
 
-#from abipy.gui.browser import MyListCtrl
-#class TaskListCtrl(MyListCtrl):
+
 class TaskListCtrl(wx.ListCtrl):
     """
+    ListCtrl with the list of task in the `Workflow`.
     """
     def __init__(self, parent, work, **kwargs):
         """
@@ -631,77 +631,3 @@ def wxapp_flow_viewer(works):
     FlowViewerFrame(None, works).Show()
     return app
 
-
-class FlowsDatabaseViewerFrame(awx.Frame):
-    """
-    Simple frame that shows the active flows and allows the user
-    to open and interact with a particular `Flow`.
-    """
-    VERSION = "0.1"
-
-    def __init__(self, parent, **kwargs):
-        """
-        Args:
-            parent:
-                Parent window
-        """
-        super(FlowsDatabaseViewerFrame, self).__init__(parent, -1, **kwargs)
-
-        self.statusbar = self.CreateStatusBar()
-
-        menuBar = wx.MenuBar()
-
-        file_menu = wx.Menu()
-
-        help_menu = wx.Menu()
-        help_menu.Append(wx.ID_ABOUT, "About " + self.codename, help="Info on the application")
-        menuBar.Append(help_menu, "Help")
-
-        self.SetMenuBar(menuBar)
-
-        # Create toolbar.
-        self.toolbar = toolbar = self.CreateToolBar()
-
-        #toolbar.AddSeparator()
-        self.toolbar.Realize()
-        self.Centre()
-
-        # Associate menu/toolbar items with their handlers.
-        menu_handlers = [
-            (wx.ID_ABOUT, self.OnAboutBox),
-        ]
-
-        for combo in menu_handlers:
-            mid, handler = combo[:2]
-            self.Bind(wx.EVT_MENU, handler, id=mid)
-
-        #self.flows_db = FlowsDatabase()
-
-        self.BuildUi()
-
-    @property
-    def codename(self):
-        """String with the code name """
-        return self.__class__.__name__ 
-
-    def BuildUi(self):
-        panel = wx.Panel(self, -1)
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
-
-        #strings = ["ciao", "bello"]
-        #self.flow_list_ctr = 
-        # TODO
-
-        panel.SetSizerAndFit(main_sizer)
-
-    def OnAboutBox(self, event):
-        """"Info on the application."""
-        awx.makeAboutBox(codename=self.codename, version=self.VERSION,
-                         description="", developers="M. Giantomassi")
-
-
-def wxapp_flowsdatabase_viewer():
-    """Standalone application for `FlowsDatabaseViewerFrame"""
-    app = awx.App()
-    FlowsDatabaseViewerFrame(None).Show()
-    return app

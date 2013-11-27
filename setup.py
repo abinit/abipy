@@ -116,7 +116,6 @@ def find_exclude_package_data():
 def find_scripts():
     """Find abipy scripts."""
     scripts = []
-    #
     # All python files in abipy/scripts
     pyfiles = glob(os.path.join('abipy','scripts',"*.py"))
     scripts.extend(pyfiles)
@@ -151,6 +150,7 @@ def cleanup():
 # List of external packages we rely on.
 # Note setup install will download them from Pypi if they are not avaiable.
 install_requires = [
+    "termcolor>=1.1.0",
     "apscheduler>=2.1.1",
     "PyDispatcher",
     "numpy",
@@ -161,7 +161,6 @@ install_requires = [
     "netCDF4",
     "pymatgen>=2.8.7",
     #"wxmplot>=0.9.11",
-    #"termcolor",
     #"asciitable",
     #"fabric",
     #"paramiko",

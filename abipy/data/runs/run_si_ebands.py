@@ -16,8 +16,7 @@ class EbandsFlowTest(AbipyTest, MixinTest):
     """
     def setUp(self):
         super(FlowTest, self).setUp()
-        self.init_dirs()
-        self.flow = build_bands_flow(self.workdir)
+        self.flow = build_flow(self.options)
 
     def move_files(self):
         pass
@@ -88,24 +87,25 @@ def make_scf_nscf_inputs():
     scf_input, nscf_input = inp.split_datasets()
     return scf_input, nscf_input
 
-def build_bands_flow(workdir):
+def build_flow(options):
+
+    # Working directory (default is name of the script with '.py' removed)
+    workdir = __file__.replace(".py", "") if not options.workdir else options.workdir
+
+    # Instantiate the TaskManager.
+    manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
 
     # Get the SCF and the NSCF input.
     scf_input, nscf_input = make_scf_nscf_inputs()
 
-    # Instantiate the TaskManager from `taskmanager.yml`.
-    manager = abilab.TaskManager.from_user_config()
-                                                               
     # Build the flow.
     flow = abilab.bandstructure_flow(workdir, manager, scf_input, nscf_input)
     return flow.allocate()
     
 
-@enable_logging
-def main():
-    workdir = __file__.replace(".py", "")
-    flow = build_bands_flow(workdir=workdir)
-    #flow = build_bands_flow(workdir="tmp_si_ebands")
+@abilab.flow_main
+def main(options):
+    flow = build_flow(options)
     return flow.build_and_pickle_dump()
 
 
