@@ -15,13 +15,13 @@ ID_RUN_SCRIPT = wx.NewId()
 ID_CHECK_STATUS = wx.NewId()
 ID_USER_JOBS = wx.NewId()
 ID_ALL_JOBS = wx.NewId()
-ID_XTERM = wx.NewId()
+ID_TERMINAL = wx.NewId()
 ID_SHOW_ABINIT_INFO = wx.NewId()
 ID_SHOW_ABIPY_ENV = wx.NewId()
 
 
 # Command event used to signal that the Flows database 
-# is changed and we should refresh the GUI
+# is changed and we should refresh the GUI.
 DbChangedEvent, EVT_DB_CHANGED = wx.lib.newevent.NewCommandEvent()
 
 
@@ -69,7 +69,7 @@ class FlowsDbViewerFrame(awx.Frame):
         toolbar.AddSimpleTool(ID_USER_JOBS, bitmap("script.png"), "Show the list of queued jobs belonging to the user.")
         toolbar.AddSimpleTool(ID_ALL_JOBS, bitmap("script.png"), "Show all the jobs in the queue.")
         toolbar.AddSeparator()
-        toolbar.AddSimpleTool(ID_XTERM, bitmap("script.png"), "Open Xterm and connect to the remote host.")
+        toolbar.AddSimpleTool(ID_TERMINAL, bitmap("script.png"), "Open terminal and connect to the remote host.")
         toolbar.AddSimpleTool(ID_SHOW_ABINIT_INFO, bitmap("script.png"), "Show the ABINIT version and the build info used on the remote host")
         toolbar.AddSimpleTool(ID_SHOW_ABIPY_ENV, bitmap("script.png"), "Show the abipy enviroment available on the remote host.")
 
@@ -83,7 +83,7 @@ class FlowsDbViewerFrame(awx.Frame):
             (ID_CHECK_STATUS, self.OnCheckStatus),
             (ID_USER_JOBS, self.OnUserJobs),
             (ID_ALL_JOBS, self.OnAllJobs),
-            (ID_XTERM, self.OnXterm),
+            (ID_TERMINAL, self.OnTerminal),
             (ID_SHOW_ABINIT_INFO, self.OnShowAbinitInfo),
             (ID_SHOW_ABIPY_ENV, self.OnShowAbipyEnv),
         ]
@@ -175,18 +175,19 @@ class FlowsDbViewerFrame(awx.Frame):
         s = cluster.get_all_jobs()
         SimpleTextViewer(self, text=s, title=cluster.hostname).Show()
 
-    def OnXterm(self, event):
+    def OnTerminal(self, event):
+        """Open a new terminal and ssh to the remote host."""
         cluster = self.GetSelectedCluster() 
         if cluster is None: return
 
-        def xterm():
+        def open_terminal():
             import subprocess
             subprocess.call(['xterm', '-e', 'ssh %s -X' % cluster.hostname])
 
         # FIXME: Fix possible problem when the user tries to close the GUI 
         # with active terminals (maintain a list of treads and prevent user from closing the GUI if threads?)
         try:
-            thread = awx.WorkerThread(self, target=xterm)
+            thread = awx.WorkerThread(self, target=open_terminal)
             thread.start()
         except:
             awx.showErrorMessage(self)
@@ -217,7 +218,8 @@ class FlowsDbNotebook(fnb.FlatNotebook):
     Notebook class
     """
     def __init__(self, parent, flows_db):
-        super(FlowsDbNotebook, self).__init__(parent, id=-1, style=fnb.FNB_NO_X_BUTTON | fnb.FNB_NAV_BUTTONS_WHEN_NEEDED)
+        super(FlowsDbNotebook, self).__init__(parent, id=-1, 
+            style=fnb.FNB_NO_X_BUTTON | fnb.FNB_NAV_BUTTONS_WHEN_NEEDED)
 
         self.flows_db = flows_db
         self.clusters_byname = flows_db.clusters

@@ -44,7 +44,6 @@ def init_clusters(filepath="clusters.yml"):
 
     # Global parameter (will be overwritten by cluster-specific params, if present).
     global_username = conf.get("username", None)
-    global_password = conf.get("password", None)
     global_workdir = conf.get("workdir", None)
     global_qtype = conf.get("qtype", None)
 
@@ -52,13 +51,12 @@ def init_clusters(filepath="clusters.yml"):
 
     for hostname, params in d.items():
         username = params.get("username", global_username)
-        password = params.get("password", global_password)
         workdir = params.get("workdir", global_workdir)
         qtype = params.get("qtype", global_qtype)
 
         cls = Cluster.from_qtype(qtype)
         assert hostname not in clusters
-        clusters[hostname] = cls(hostname, username, password, workdir)
+        clusters[hostname] = cls(hostname, username, workdir)
 
     return clusters
 
@@ -75,26 +73,18 @@ class Cluster(object):
     """
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, hostname, username, password, workdir):
+    def __init__(self, hostname, username, workdir):
         """
         Args:
             hostname:
                 Name of the host.
             username:
                 Username used to login on the cluster.
-            password:
-                Password used to connect to the cluster.
             workdir:
                 Absolute path (on the remote host) where `AbinitFlows` will be produced.
         """
-        self.hostname, self.username, self.password = hostname, username, password
+        self.hostname, self.username, = hostname, username
         self.workdir = workdir
-
-        # TODO
-        # Use module secrets.py to store the list of clusters.
-        # Read plain text password, encrypt with user-specified algorith
-        # and decript it on the fly before establishing the SSH connection.
-        assert password and username
 
         self.port = 22    # Port for SSH connection
         self.timeout = 30 # Timeout in seconds.
@@ -166,9 +156,9 @@ class Cluster(object):
         """Returns an instance of `MySSHClient`."""
         ssh_client = MySSHClient()
         ssh_client.load_system_host_keys()
-        ssh_client.set_missing_host_key_policy(paramiko.WarningPolicy)
+        ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy)
 
-        ssh_client.connect(self.hostname, port=self.port, username=self.username, password=self.password)
+        ssh_client.connect(self.hostname, port=self.port, username=self.username)
         return ssh_client
 
     @property

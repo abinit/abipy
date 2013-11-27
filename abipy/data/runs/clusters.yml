@@ -1,0 +1,22 @@
+# Cluster configuration file.
+#
+# **********************************************************************
+# Please avoid the use of the shall variables such as $HOME and ~
+# Use absolute paths when referring to the filesystem of the remote host.
+# **********************************************************************
+#
+username: gmatteo
+qtype: slurm
+workdir: /home/ucl/naps/gmatteo/WORKDIR
+
+# List of clusters indexed by hostname
+# qtype: Resource manager type. At present only [slurm, sge] are supported.
+# workdir: Absolute path of the directory on the remote machine where the flows will be produced. 
+clusters:
+    manneback: {workdir: /home/naps/gmatteo/WORKDIR}
+    lemaitre2: {}
+    hmem: {}
+    dragon1: {}
+    hercules: {workdir: /home/gmatteo/WORKDIR}
+    vega: {}
+    #green: {qtype: sge, workdir: /home/naps/gmatteo/WORKDIR}
