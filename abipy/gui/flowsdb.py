@@ -1,9 +1,7 @@
 from __future__ import print_function, division
 
-#import os
+import os
 import wx
-#import time
-#import fnmatch
 
 import abipy.gui.awx as awx
 import wx.lib.agw.flatnotebook as fnb
@@ -17,6 +15,8 @@ ID_CHECK_STATUS = wx.NewId()
 ID_USER_JOBS = wx.NewId()
 ID_ALL_JOBS = wx.NewId()
 ID_XTERM = wx.NewId()
+ID_SHOW_ABINIT_INFO = wx.NewId()
+ID_SHOW_ABIPY_ENV = wx.NewId()
 
 
 class FlowsDbViewerFrame(awx.Frame):
@@ -54,6 +54,8 @@ class FlowsDbViewerFrame(awx.Frame):
         toolbar.AddSimpleTool(ID_USER_JOBS, wx.Bitmap(awx.path_img("script.png")), "Show the list of queued jobs belonging to the user.")
         toolbar.AddSimpleTool(ID_ALL_JOBS, wx.Bitmap(awx.path_img("script.png")), "Show all the jobs in the queue.")
         toolbar.AddSimpleTool(ID_XTERM, wx.Bitmap(awx.path_img("script.png")), "Open Xterm and connect to the remote host.")
+        toolbar.AddSimpleTool(ID_SHOW_ABINIT_INFO, wx.Bitmap(awx.path_img("script.png")), "Show the ABINIT version and the build info used on the remote host")
+        toolbar.AddSimpleTool(ID_SHOW_ABIPY_ENV, wx.Bitmap(awx.path_img("script.png")), "Show the abipy enviroment available on the remote host.")
 
         #toolbar.AddSeparator()
         self.toolbar.Realize()
@@ -67,6 +69,8 @@ class FlowsDbViewerFrame(awx.Frame):
             (ID_USER_JOBS, self.OnUserJobs),
             (ID_ALL_JOBS, self.OnAllJobs),
             (ID_XTERM, self.OnXterm),
+            (ID_SHOW_ABINIT_INFO, self.OnShowAbinitInfo),
+            (ID_SHOW_ABIPY_ENV, self.OnShowAbipyEnv),
         ]
 
         for combo in menu_handlers:
@@ -172,6 +176,26 @@ class FlowsDbViewerFrame(awx.Frame):
         except:
             awx.showErrorMessage(self)
 
+    def OnShowAbinitInfo(self, event):
+        """Show info on the Abinit binary used on the cluster."""
+        cluster = self.GetSelectedCluster() 
+        if cluster is None: return
+
+        d = cluster.get_abinit_info()
+        SimpleTextViewer(self, text=str(d), title=cluster.hostname).Show()
+
+    def OnShowAbipyEnv(self, event):
+        """Show info on the Abinit environment used on the cluster."""
+        cluster = self.GetSelectedCluster() 
+        if cluster is None: return
+
+        d = dict(abinit=cluster.which("abinit"),
+                 abicheck=cluster.abicheck(),
+                 yaml_confs=cluster.yaml_configurations())
+
+        SimpleTextViewer(self, text=str(d), title=cluster.hostname).Show()
+
+
 
 class FlowsDbNotebook(fnb.FlatNotebook):
     """
@@ -229,17 +253,17 @@ class ClusterPanel(wx.Panel):
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        if False:
-            abinit_info_button = wx.Button(self, -1, label='AbinitInfo')
-            abienv_button = wx.Button(self, -1, label='AbiEnv')
-            self.Bind(wx.EVT_BUTTON, self.ShowAbinitInfo, abinit_info_button)
-            self.Bind(wx.EVT_BUTTON, self.AbiEnv, abienv_button)
+        #if False:
+        #    abinit_info_button = wx.Button(self, -1, label='AbinitInfo')
+        #    abienv_button = wx.Button(self, -1, label='AbiEnv')
+        #    self.Bind(wx.EVT_BUTTON, self.ShowAbinitInfo, abinit_info_button)
+        #    self.Bind(wx.EVT_BUTTON, self.AbiEnv, abienv_button)
 
-            hbox = wx.BoxSizer(wx.HORIZONTAL)
-            hbox.Add(abinit_info_button)
-            hbox.Add(abienv_button, flag=wx.LEFT, border=5)
+        #    hbox = wx.BoxSizer(wx.HORIZONTAL)
+        #    hbox.Add(abinit_info_button)
+        #    hbox.Add(abienv_button, flag=wx.LEFT, border=5)
 
-            main_sizer.Add(hbox, proportion=0, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10)
+        #    main_sizer.Add(hbox, proportion=0, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10)
 
         # List Control with info on the flows.
         self.flows_listctrl = FlowsListCtrl(parent, self.flows, self.cluster, self.flows_db)
@@ -256,20 +280,6 @@ class ClusterPanel(wx.Panel):
         #main_sizer.Add(label, 0, wx.ALIGN_LEFT, 5)
 
         self.SetSizerAndFit(main_sizer)
-
-    def ShowAbinitInfo(self, event):
-        """Show info on the Abinit binary used on the cluster."""
-        d = self.cluster.get_abinit_info()
-        SimpleTextViewer(self, text=str(d), title=self.cluster.hostname).Show()
-
-    def AbiEnv(self, event):
-        cluster = self.cluster
-
-        d = dict(abinit=cluster.which("abinit"),
-                 abicheck=cluster.abicheck(),
-                 yaml_confs=cluster.yaml_configurations())
-
-        SimpleTextViewer(self, text=str(d), title=cluster.hostname).Show()
 
 
 class JobsPanel(wx.Panel):
@@ -347,10 +357,21 @@ class FlowsListCtrl(wx.ListCtrl):
 # TODO: Should trigger the refresh of the GUI!
 def flow_show_status(parent, cluster, flow, flows_db):
     results, changed = flows_db.check_status(cluster.hostname, flow.workdir)
-    print(results)
+    SimpleTextViewer(parent, text=str(results[0]), title=cluster.hostname).Show()
 
-#def flow_cancel(parent, cluster, flow, flows_db):
-#    pass
+
+def flow_cancel(parent, cluster, flow, flows_db):
+    flows_db.cancel_flow(cluster.hostname, flow.workdir)
+
+
+def flow_remove(parent, cluster, flow, flows_db):
+    cluster.rmdir(flow.workdir)
+    flows_db.remove_flow(flow)
+
+def flow_sched_log(parent, cluster, flow, flows_db):
+    sched_log = os.path.join(flow.workdir, "sched.log")
+    s = cluster.read_file(sched_log)
+    SimpleTextViewer(parent, text=s, title=sched_log).Show()
 
 
 class FlowPopupMenu(wx.Menu):
@@ -362,7 +383,9 @@ class FlowPopupMenu(wx.Menu):
     """
     MENU_TITLES = OrderedDict([
         ("show_status", flow_show_status),
-        #("cancel", flow_cancel),
+        ("cancel", flow_cancel),
+        ("remove", flow_remove),
+        ("sched_log", flow_sched_log),
     ])
 
     def __init__(self, parent, cluster, flow, flows_db):
@@ -390,8 +413,8 @@ class FlowPopupMenu(wx.Menu):
     def OnMenuSelection(self, event):
         title = self.menu_title_by_id[event.GetId()]
         callback = self._get_callback(title)
-        print("Calling callback %s with cluster %s and flow %s" % (callback, self.cluster, self.flow))
 
+        #print("Calling callback %s with cluster %s and flow %s" % (callback, self.cluster, self.flow))
         try:
             callback(self.parent, self.cluster, self.flow, self.flows_db)
         except:

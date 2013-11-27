@@ -124,8 +124,7 @@ class Cluster(object):
 
     def exists(self, path):
         """True if path exists on the cluster."""
-        return self.ssh_exec("test -e %s" % path).succeeded
-        #return self.ssh.exec('test -e %s' % path, warn_only=True, quiet=True).succeeded
+        return self.ssh_exec("test -e %s" % path).return_code == 0
 
     def ping(self):
         """Ping the host."""
@@ -223,16 +222,26 @@ class Cluster(object):
 
     def exists(self, path):
         """True if path exists."""
-        return self.ssh_exec("test -e %s" % path).return_code != 0
+        return self.ssh_exec("test -e %s" % path).return_code == 0
 
     def which(self, bin):
         """Execute `which bin` on the cluster."""
         return self.ssh_exec("which %s" % bin).out
 
+    def read_file(self, path):
+        return self.ssh_exec("cat %s" % path).out
+
     def make_workdir(self):
         """Create the working directory on the cluster if it does not exist."""
-        if not self.exists(self.workdir):
-            return self.ssh_exec("mkdir %s" % self.workdir)
+        self.make_dir(self.workdir)
+
+    def make_dir(self, path):
+        if not self.exists(path):
+            print("Will create remote dir %s" % path)
+            return self.ssh_exec("mkdir %s" % path)
+
+    def rmdir(self, path):
+        return self.ssh_exec("rm -rf %s" % path)
 
     def invoke_shell(self, timeout=-1):
         """Returns an instance of `MyShell`."""
@@ -244,8 +253,13 @@ class Cluster(object):
     def invoke_abinit(self, *args):
         """Returns the output of `abinit args`."""
         shell = self.invoke_shell()
-        return shell.myexec("abinit %s" % " ".join(*args)).out
-        #return shell.myexec("mpirun abinit %s" % " ".join(*args).out
+
+        result = shell.myexec("abinit %s" % " ".join(*args))
+        if result.return_code != 0:
+            # There are case in which abinit must be invoked via mpirun.
+            result = shell.myexec("mpirun abinit %s" % " ".join(*args)).out
+
+        return result
 
     def get_abinit_info(self, prefix=False):
         """
@@ -253,12 +267,14 @@ class Cluster(object):
         If prefix is True, hostname is prepended to each line
         """
         if not self.which("abinit"): 
-            return {}
+            return {"version": "Cannot find abinit in $PATH"}
 
         return None
-        #return dict(
-        #    version=self.invoke_abinit("--version"),
-        #    build=self.invoke_abinit("--build"))
+        # FIXME
+        return dict(
+            version=self.invoke_abinit("--version").out,
+            build=self.invoke_abinit("--build").out
+            )
 
     def abicheck(self, with_color=False):
         """
@@ -452,10 +468,7 @@ class MyShell(paramiko.Channel):
         #  raise socket.timeout
 
         stdout.seek(0), stderr.seek(0)
-
-        result = SSHResult(stdout, stderr, return_code=self.recv_exit_status())
-        #self.close()
-        return result
+        return SSHResult(stdout, stderr, return_code=self.recv_exit_status())
 
     def exit(self):
         self.sendall('exit\n')
@@ -501,7 +514,7 @@ class SSHResult(object):
     def out(self):
         """Output of the SSH command."""
         try:
-            self._out
+            return self._out
         except AttributeError:
             self._out = self.stdout.read()
             return self._out
@@ -510,7 +523,7 @@ class SSHResult(object):
     def err(self):
         """Stderr of the SSH command."""
         try:
-            self._err
+            return self._err
         except AttributeError:
             self._err = self.stderr.read()
             return self._err
@@ -955,6 +968,8 @@ class FlowsDatabase(collections.MutableMapping):
 
         entries.append(new_entry)
 
+        self.json_dump()
+
     def remove_flow(self, flow):
         """
         Remove a flow from the database.
@@ -963,8 +978,9 @@ class FlowsDatabase(collections.MutableMapping):
             The entry that has been removed.
         """
         flows = self[flow.hostname]
-
         flows.remove(flow)
+
+        self.json_dump()
         return flow
 
     def check_status(self, hostnames=None, workdir=None):
@@ -987,10 +1003,10 @@ class FlowsDatabase(collections.MutableMapping):
                 
                 shell = cluster.invoke_shell()
                 cmd= "abirun.py %s status" % flow.workdir
-                print(cmd)
+                #print(cmd)
                 result = shell.myexec(cmd)
-                print(result)
                 results.append(result)
+                print(result)
 
                 # TODO
                 #if flow.status != new_status:
@@ -1035,23 +1051,23 @@ class FlowsDatabase(collections.MutableMapping):
         flow_rdir = os.path.join(cluster.workdir, rdir_basename)
         script_rpath = os.path.join(flow_rdir, os.path.basename(script))
 
-        print("Uploading %s to %s:%s" % (script, hostname, script_rpath))
-
         if self.has_flow(cluster.hostname, flow_rdir):
             raise ValueError("%s@%s is already in the database" % (flow_rdir, cluster.hostname))
 
-        # Upload the script and make it executable.
-        sftp = cluster.sftp
-
         # Create directory if it does not exist.
-        # FIXME
-        #if not cluster.exists(cluster.workdir):
-        #    print("Will create remote workdir %s" % cluster.workdir)
-        #    sftp.mkdir(cluster.workdir)
+        cluster.make_workdir()
 
+        if cluster.exists(flow_rdir):
+            raise ValueError("%s:%s already exists" % (cluster.hostname, flow_rdir))
+
+        cluster.make_dir(flow_rdir)
+
+        # Upload the script and make it executable.
+        print("Uploading %s to %s:%s" % (script, hostname, script_rpath))
+        sftp = cluster.sftp
         sftp.put(localpath=script, remotepath=script_rpath, confirm=True)
         sftp.chmod(script_rpath, mode=0700)
-        sftp.close()
+        #sftp.close()
 
         # Start a shell on the remote host and run the script to build the flow.
         command = "%s -w %s" %  (script_rpath, flow_rdir)
@@ -1065,7 +1081,9 @@ class FlowsDatabase(collections.MutableMapping):
 
         # Run the scheduler with nohup.
         # This is the most delicate part: not so sure that nohup will work everywhere.
-        sched_cmd = "nohup abirun.py %s scheduler > /dev/null 2>&1 &" % flow_rdir
+        log_file = os.path.join(flow_rdir, "sched.log")
+        #sched_cmd = "nohup abirun.py %s scheduler > /dev/null 2>&1 &" % flow_rdir
+        sched_cmd = "nohup abirun.py %s scheduler > %s 2>&1 &" % (flow_rdir, log_file)
         print("Detaching process via: %s" % sched_cmd)
         shell = cluster.invoke_shell()
         shell.sendall(sched_cmd)
@@ -1082,6 +1100,35 @@ class FlowsDatabase(collections.MutableMapping):
         # Add the flow to the local database.
         self.register_flow(cluster.hostname, flow_rdir)
 
+    def cancel_flow(self, hostname, flow_dir):
+        """
+        Cancel the flow on the remote cluster.
+
+        Args:
+            hostname:
+                Name of the remote host
+            flow_dir:
+                Directory on the remote host where the flow is being executed.
+        """
+        cluster = self.clusters[hostname]
+
+        if not self.has_flow(hostname, flow_dir):
+            raise ValueError("%s@%s is not in the database" % (flow_dir, hostname))
+
+        # Call abirun to cancell the flow 
+        command = "abirun.py %s cancel > /dev/null 2>&1 &" % flow_dir
+        shell = cluster.invoke_shell()
+        shell.sendall(command)
+        return_code = shell.exit()
+        print(return_code)
+
+        #if result.return_code:
+        #    print("%s returned %s.\n Will remove the directory and abort" % (command, result.return_code))
+        #    #cluster.ssh.exec("rm -rf %s" % flow_absdir)
+        #    #return
+
+        ## Add the flow to the local database.
+        #self.register_flow(cluster.hostname, flow_dir)
 
 from abipy.core.testing import AbipyTest
 
