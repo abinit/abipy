@@ -27,17 +27,17 @@ def viewerframe_from_filepath(parent, filepath):
     """
     from abipy.gui.wfkviewer import WfkViewerFrame
     from abipy.gui.sigresviewer import SigresViewerFrame
-    from abipy.gui.editor import AbinitEditorFrame
+    from abipy.gui.editor import MyEditorFrame
 
     VIEWER_FRAMES = {
         "WFK-etsf.nc": WfkViewerFrame,
         "SIGRES.nc": SigresViewerFrame,
-        ".abi": AbinitEditorFrame, #AbiViewerFrame,
-        ".abo": AbinitEditorFrame, #AboViewerFrame,
-        ".log": AbinitEditorFrame, #AbiLogViewerFrame,
-        ".sh": AbinitEditorFrame, #EditorFrame,
-        ".err": AbinitEditorFrame, #EditorFrame,
-        ".files": AbinitEditorFrame, #EditorFrame,
+        ".abi": MyEditorFrame, 
+        ".abo": MyEditorFrame, 
+        ".log": MyEditorFrame, 
+        ".sh": MyEditorFrame,  
+        ".err": MyEditorFrame, 
+        ".files": MyEditorFrame, 
     }
 
     ext = filepath.split("_")[-1]

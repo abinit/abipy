@@ -37,7 +37,7 @@ def straceback(color="red"):
         return s
 
 
-def init_clusters(filepath="clusters.yml"):
+def read_clusters(filepath="clusters.yml"):
     """Read the configuration paramenters from the YAML file clusters.yml."""
     with open(filepath, "r") as fh:
         conf = yaml.load(fh)
@@ -56,7 +56,7 @@ def init_clusters(filepath="clusters.yml"):
 
         cls = Cluster.from_qtype(qtype)
         assert hostname not in clusters
-        clusters[hostname] = cls(hostname, username, workdir)
+        clusters[hostname] = cls(username, hostname, workdir)
 
     return clusters
 
@@ -73,7 +73,7 @@ class Cluster(object):
     """
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, hostname, username, workdir):
+    def __init__(self, username, hostname, workdir):
         """
         Args:
             hostname:
@@ -83,8 +83,7 @@ class Cluster(object):
             workdir:
                 Absolute path (on the remote host) where `AbinitFlows` will be produced.
         """
-        self.hostname, self.username, = hostname, username
-        self.workdir = workdir
+        self.username, self.hostname, self.workdir = username, hostname, workdir
 
         self.port = 22    # Port for SSH connection
         self.timeout = 30 # Timeout in seconds.
@@ -103,10 +102,28 @@ class Cluster(object):
 
     def __str__(self):
         """String representation."""
-        return "%s@%s:%s [%s]" % (self.username, self.hostname, self.workdir, self.qtype)
+        return "%s@%s:%s" % (self.username, self.hostname, self.workdir)
+
+    def __eq__(self, other):
+        return (self.hostname == other.hostname and
+                self.username == other.username)
+
+    def __ne__(self, other):
+        return not self == other
 
     #def __del__(self):
     #    self.disconnect
+
+    @property
+    def home(self):
+        """Home directory of the user."""
+        try:
+            return self._home
+
+        except AttributeError:
+            self._home = self.ssh_exec("echo $HOME").out.strip()
+            assert self._home
+            return self._home
 
     def path_inworkdir(self, basename):
         """Returns the absolute path in the working directory of the cluster."""
@@ -202,6 +219,13 @@ class Cluster(object):
         """Close the SFPT connection."""
         if hasattr(self, "_sftp") and self._sftp.is_connected:
             self.sftp.close()
+
+    #def sftp_put(self, localpath, remotepath, confirm, mode=None, close=True):
+        #self.sftp.get(source, dest)
+        #sftp = self.sftp
+        #sftp.put(localpath=script, remotepath=remotepath, confirm=True)
+        #sftp.chmod(remotepath, mode=0700)
+        #if close: sftp.close()
 
     #def sftp_put(self, localpath, remotepath, confirm, mode=None, close=True):
         #self.sftp.get(source, dest)
@@ -531,8 +555,6 @@ class SSHResult(object):
             self._err = self.stderr.read()
             return self._err
 
-_ALL_CLUSTERS = init_clusters()
-
 import cmd
 
 class RunCommand(cmd.Cmd, object):
@@ -543,7 +565,8 @@ class RunCommand(cmd.Cmd, object):
         cmd.Cmd.__init__(self)
 
         # Get a copy of the dict with the clusters.
-        self.clusters = _ALL_CLUSTERS.copy()
+        self._ALL_CLUSTERS = read_clusters()
+        self.clusters = self._ALL_CLUSTERS.copy()
 
         self.flows_db = FlowsDatabase()
 
@@ -624,11 +647,11 @@ class RunCommand(cmd.Cmd, object):
         Syntax: reenable_hosts host1 host2 ...
         """
         for h in hosts:
-            self.clusters[h] = _ALL_CLUSTERS[h]
+            self.clusters[h] = self._ALL_CLUSTERS[h]
                                                 
     def complete_reenable_hosts(self, text, line, begidx, endidx):
         """Command line completion for reenable_hosts."""
-        return [h for h in _ALL_CLUSTERS if h not in self.clusters]
+        return [h for h in self._ALL_CLUSTERS if h not in self.clusters]
 
     def do_show_clusters(self, line):
         """Print the list of clusters."""
@@ -809,15 +832,15 @@ class FlowEntry(AttrDict):
         status:
             Status of the flow.
     """
-    #def __init__(self, *args, **kwargs):
-    #    super(FlowEntry, self).__init__(*args, **kwargs)
-
-    #    # Test the presence of mandatory keys.
-    #    for key in ["hostname", "workdir", "start_date", "status"]:
-    #        if key not in self:
-    #            raise ValueError("Mandatory key %s is missing!" % key)
-
     #TODO: script?
+    def __init__(self, *args, **kwargs):
+        super(FlowEntry, self).__init__(*args, **kwargs)
+
+        # Test the presence of mandatory keys.
+        for key in ["hostname", "workdir", "start_date", "status"]:
+            if key not in self:
+                raise ValueError("Mandatory key %s is missing!" % key)
+
     def __eq__(self, other):
         return (self.hostname == other.hostname and 
                 self.workdir == other.workdir)
@@ -858,7 +881,7 @@ class FlowsDatabase(collections.MutableMapping):
 
                 self.db[hostname] = entries_with_hostname
 
-        self.clusters = init_clusters()
+        self.clusters = read_clusters()
 
     @classmethod
     def from_file(cls, filepath):

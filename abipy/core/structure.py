@@ -348,7 +348,6 @@ class Structure(pymatgen.Structure):
         self.write_structure(tmp_file.name)
 
         tmp_file.seek(0)
-
         return tmp_file.read()
 
     #def max_overlap_and_sites(self, pseudos):

@@ -148,22 +148,22 @@ def cleanup():
                 pass
 
 # List of external packages we rely on.
-# Note setup install will download them from Pypi if they are not avaiable.
+# Note setup install will download them from Pypi if they are not available.
 install_requires = [
     "termcolor>=1.1.0",
     "apscheduler>=2.1.1",
     "PyDispatcher",
-    "numpy",
-    #"numpy>=1.8",  # We need this one for the ufuncs
+    #"numpy",
+    "numpy>=1.8",  # We need this one for the ufuncs
     "scipy>=0.10",
     "matplotlib>=1.1",
     "pyyaml>=3.1.0",
     "netCDF4",
     "pymatgen>=2.8.7",
+    "fabric",
+    "paramiko",
     #"wxmplot>=0.9.11",
     #"asciitable",
-    #"fabric",
-    #"paramiko",
     #"psutil",
     #"pyro4",
 ]

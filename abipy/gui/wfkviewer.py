@@ -131,11 +131,6 @@ class WfkViewerFrame(awx.Frame):
         pyshell = Shell(parent, introText=msg, locals={"wfk": self.wfk})
         splitter.SplitHorizontally(self.skb_panel, pyshell)
 
-        #main_sizer = wx.BoxSizer(wx.VERTICAL)
-        #main_sizer.Add(self.skb_panel, 1, wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 5)
-        #main_sizer.Add(pyshell, 1, wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 5)
-        #self.SetSizerAndFit(main_sizer)
-
     def DestroyPanel(self):
         if hasattr(self, "panel"):
             self.panel.Destroy()

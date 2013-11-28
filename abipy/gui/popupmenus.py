@@ -15,7 +15,7 @@ from abipy.electrons import SIGRES_File, GSR_File
 from abipy.electrons.bse import MDF_File
 from abipy.gui.events import AbinitEventsFrame
 from abipy.gui.timer import AbinitTimerFrame
-from abipy.gui.editor import SimpleTextViewer, AbinitEditorFrame
+from abipy.gui.editor import SimpleTextViewer, MyEditorFrame
 
 
 __all__ = [
@@ -50,7 +50,7 @@ def showNcdumpMessage(parent, filepath):
     text = NcDumper().dump(filepath)
     # TODO: Get a decent wxpython editor somewhere
     #SimpleTextViewer(parent, text, title=title).Show()
-    AbinitEditorFrame.from_text(parent, text, title=title).Show()
+    MyEditorFrame.from_text(parent, text, title=title).Show()
 
 def showFileStat(parent, filepath):
     """Open a dialog reporting file stats."""

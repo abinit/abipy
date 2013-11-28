@@ -8,6 +8,7 @@ from .sigresviewer import wxapp_sigresviewer
 from .comparison import wxapp_comparison
 from .editor import wxapp_showfiles
 from .converter import wxapp_converter
+from .structure import wxapp_structure_converter
 from .fftprof import wxapp_fftprof
 from .flowviewer import wxapp_flow_viewer
 from .flowsdb import wxapp_flowsdb_viewer

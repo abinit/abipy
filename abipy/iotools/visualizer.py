@@ -27,6 +27,9 @@ _EXT2APPS = OrderedDict( {
              ],
 } )
 
+# NOTE: Mac-OSx applications can be launched with
+#open -a Vesta --args /Users/gmatteo/Coding/abipy/abipy/data/cifs/si.cif
+
 #: One-to-many mapping application_name --> file extensions supported.
 appname2exts = {}
 

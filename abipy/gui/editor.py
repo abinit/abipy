@@ -6,7 +6,7 @@ import wx.lib.agw.flatnotebook as fnb
 import abipy.gui.awx as awx
 
 from abipy.tools.text import WildCard
-from wx.py.editor import EditorFrame, EditorNotebookFrame  # EditorNotebook, Editor
+from wx.py.editor import EditorFrame, EditorNotebookFrame  
 
 __all__ = [
     "TextNotebookFrame",
@@ -20,16 +20,16 @@ class SimpleTextViewer(awx.Frame):
         wx.TextCtrl(self, -1, text, style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
 
 
-class AbinitEditorFrame(EditorFrame):
+class MyEditorFrame(EditorFrame):
     def __init__(self, parent, filename, **kwargs):
         if "size" not in kwargs:
             kwargs["size"] = awx.FRAME_SIZE
 
-        super(AbinitEditorFrame, self).__init__(parent, filename=filename, **kwargs)
+        super(MyEditorFrame, self).__init__(parent, filename=filename, **kwargs)
 
     @classmethod
     def from_text(cls, parent, text, **kwargs):
-        # Hack so that we can open a string in the Editor.
+        """Hack so that we can open a string in the Editor."""
         import tempfile
         fd, filename = tempfile.mkstemp(text=True)
 
