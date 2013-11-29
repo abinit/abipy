@@ -34,6 +34,7 @@ class StructureConverterFrame(wx.Frame):
         label = wx.StaticText(panel, -1, "Convert to:")
         label.Wrap(-1)
 
+        # list of supported formats.
         formats = ["cif", "POSCAR", "cssr", "json"]
         self.format_choice = wx.Choice(panel, -1, choices=formats)
         self.format_choice.SetSelection(0)
@@ -108,8 +109,3 @@ def wxapp_structure_converter(obj):
     frame.Show()
 
     return app
-
-if __name__ == "__main__":
-    import abipy.data as abidata
-    app = wxapp_structure_converter(abidata.ref_file("si_nscf_GSR.nc"))
-    app.MainLoop()

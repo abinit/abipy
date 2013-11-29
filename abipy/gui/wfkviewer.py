@@ -7,6 +7,8 @@ import wx.lib.dialogs as wxdg
 import abipy.gui.awx as awx
 import abipy.gui.electronswx as ewx
 
+from wx.py.shell import Shell
+from abipy.tools import marquee
 from abipy.abilab import abiopen
 from abipy.iotools.visualizer import supported_visunames
 
@@ -70,6 +72,7 @@ class WfkViewerFrame(awx.Frame):
         toolbar.AddSimpleTool(ID_PLOTBANDS, bitmap("bs.png"), "Plot bands")
 
         toolbar.AddSeparator()
+
         self.visualizer_cbox = wx.ComboBox(choices=supported_visunames(), id=ID_TBOX_VIS, 
             name='visualizer', parent=toolbar, value='xcrysden') 
         self.visualizer_cbox.Refresh() 
@@ -122,8 +125,6 @@ class WfkViewerFrame(awx.Frame):
         self.skb_panel.SetOnItemActivated(self._visualize_skb)
 
         # Add Python shell
-        from wx.py.shell import Shell
-        from abipy.tools import marquee
         msg = "WFK_File object is accessible via the wfk variable. Use wfk.<TAB> to access the list of methods."
         msg = marquee(msg, width=len(msg) + 8, mark="#")
         msg = "#"*len(msg) + "\n" + msg + "\n" + "#"*len(msg) + "\n"

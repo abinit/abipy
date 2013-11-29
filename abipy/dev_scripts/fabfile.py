@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-"""Fabric file providing useful tools for the synchronization of the code on the CECI clusters."""
+"""
+Fabric file providing useful tools for the synchronization of the code on the CECI clusters.
+"""
 from __future__ import division, print_function
 
 import os
@@ -16,22 +18,9 @@ USER_HOME = "~" + env.user
 VENV = "~/VENV-2.7"
 
 #env.password = ""
-def all_hosts():
-    """
-    Used to run the command on all the CECI clusters.
-    example: fab all_hosts pip_install abipy
-    """
-    env.hosts = [
-        #"green.cism.ucl.ac.be",
-        "manneback.cism.ucl.ac.be",
-        "hmem.cism.ucl.ac.be",
-        "lemaitre2.cism.ucl.ac.be",
-        "vega.ulb.ac.be",
-        "dragon1.umons.ac.be",
-        "hercules.ptci.unamur.be",
-    ]
 
-GIT_REPOSDIR = os.path.join(USER_HOME, "git_repos")
+# We store our git branches in this directory 
+GIT_REPOSDIR = USER_HOME + "/git_repos"
 
 git_urls = {
     "abipy":    "https://github.com/gmatteo/abipy.git",
@@ -43,7 +32,8 @@ git_urls = {
 
 git_repospaths = [os.path.join(GIT_REPOSDIR, dirpath) for dirpath in git_urls]
 
-bzr_reposdir = os.path.join(USER_HOME, "bzr_repos")
+# We store our bzr branches in this directory 
+bzr_reposdir = USER_HOME + "/bzr_repos"
 
 bzr_branchurl = "bzr+ssh://forge.abinit.org/abinit/gmatteo/7.5.4-private"
 
@@ -59,6 +49,7 @@ def _virtualenv(venv_dir):
         yield
 
 def _exists(path):
+    """True if path exists on the remote host."""
     return run('test -e %s' % path, warn_only=True, quiet=True).succeeded
 
 def _cpu_count():
@@ -67,9 +58,25 @@ def _cpu_count():
         cmd = run("python -c 'import multiprocessing, sys; sys.exit(multiprocessing.cpu_count())'") 
         return cmd.return_code
 
+
+def all_hosts():
+    """
+    Used to run the command on all the CECI clusters.
+    example: fab all_hosts pip_install abipy
+    """
+    env.hosts = [
+        #"green.cism.ucl.ac.be",
+        #"manneback.cism.ucl.ac.be",
+        "hmem.cism.ucl.ac.be",
+        "lemaitre2.cism.ucl.ac.be",
+        "vega.ulb.ac.be",
+        "dragon1.umons.ac.be",
+        "hercules.ptci.unamur.be",
+    ]
+
 def git_pull():
     """
-    Synchronize the git branches with the master branch located on github.
+    Synchronize the git branches with the master branches located on github.
     """
     # Create ~/git_repos and clone the repositories if this is the first time.
     if not _exists(GIT_REPOSDIR):
@@ -86,6 +93,7 @@ def git_pull():
             run("git pull")
 
 def git_install():
+    """Install the code of the git branches."""
     git_pull()
     for apath in git_repospaths:
         with cd(apath), _virtualenv(VENV):
@@ -107,7 +115,9 @@ def pytest(opts=""):
 def pip_install(*options):
     """
     Execute `pip install options` on the remote hosts. 
-    Example: pip_install foo bar
+    Examples: 
+
+        pip_install foo bar
 
     .. note:
         use the virtual environment VENV
@@ -164,14 +174,16 @@ def upload_file(local_path, remote_path, mode=None):
         run("chmod %s %s" % (mode, remote_path))
 
 
-#def upload_rsa():
-#    if not _exists("~/.ssh/"): run("mkdir ~/.ssh")
-#    put("~/.ssh/id_rsa.ceci", "~/.ssh/id_rsa.ceci")
-#    run("chmod go-rwx ~/.ssh/id_rsa.ceci")
-#
-#    put("~/.ssh/gmatteo_dsa", "~/.ssh/gmatteo_dsa")
-#    run("chmod go-rwx ~/.ssh/gmatteo_dsa")
-#
+def upload_key(key):
+    """
+    key: path of the SSH key to upload on the cluster.
+    """
+    if not _exists("~/.ssh/"): run("mkdir ~/.ssh")
+    filename = os.path.basename(key)
+    remotepath = "~/.ssh/" + filename
+    put(key, remotepath)
+    run("chmod go-rwx %s" % remotepath)
+
 #
 #def use_ssh_agent():
 #    run("eval $(ssh-agent)")
