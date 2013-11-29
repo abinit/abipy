@@ -107,6 +107,7 @@ class ConverterFrame(awx.Frame):
 
 
 def wxapp_converter():
+    """Standalon application."""
     app = awx.App()
     frame = ConverterFrame(None)
     frame.Show()

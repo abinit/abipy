@@ -5,25 +5,19 @@ import wx
 
 import wx.lib.dialogs as wxdg
 import abipy.gui.awx as awx
-import abipy.gui.electronswx as ewx
 
 from wx.py.shell import Shell
 from abipy.tools import marquee
 from abipy.abilab import abiopen
 from abipy.iotools.visualizer import supported_visunames
+from abipy.gui.mixins import Has_Structure, Has_Ebands, Has_Tools
 
 
-ID_VISTRUCT = wx.NewId()
 ID_VISWAVE = wx.NewId()
-ID_VISBZ = wx.NewId()
-ID_DOS = wx.NewId()
-ID_JDOS = wx.NewId()
 ID_NCDUMP = wx.NewId()
-ID_PLOTBANDS = wx.NewId()
-ID_TBOX_VIS = wx.NewId()
 
 
-class WfkViewerFrame(awx.Frame):
+class WfkViewerFrame(awx.Frame, Has_Structure, Has_Ebands, Has_Tools):
     VERSION = "0.1"
 
     def __init__(self, parent, filename=None, **kwargs):
@@ -39,6 +33,10 @@ class WfkViewerFrame(awx.Frame):
         file_menu.Append(wx.ID_EXIT, "&Quit", help="Exit the application")
         file_menu.Append(ID_NCDUMP, "Ncdump", help="ncdump printout")
         menuBar.Append(file_menu, "File")
+
+        menuBar.Append(self.CreateStructureMenu(), "Structure")
+        menuBar.Append(self.CreateEbandsMenu(), "Ebands")
+        menuBar.Append(self.CreateToolsMenu(), "Tools")
 
         file_history = self.file_history = wx.FileHistory(8)
         self.config = wx.Config(self.codename, style=wx.CONFIG_USE_LOCAL_FILE)
@@ -64,21 +62,8 @@ class WfkViewerFrame(awx.Frame):
         tsize = (48, 48)
         artBmp = wx.ArtProvider.GetBitmap
         toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, tsize), "Open")
-        toolbar.AddSimpleTool(ID_VISTRUCT, bitmap("struct.png"), "Visualize the crystal structure")
-        toolbar.AddSimpleTool(ID_VISBZ, bitmap("bz.png"), "Visualize the BZ")
         toolbar.AddSimpleTool(ID_VISWAVE, bitmap("wfk.png"), "Visualize the selected wavefunction")
-        toolbar.AddSimpleTool(ID_DOS, bitmap("dos.png"), "Compute the DOS")
-        toolbar.AddSimpleTool(ID_JDOS, bitmap("jdos.png"), "Compute the joint DOS")
-        toolbar.AddSimpleTool(ID_PLOTBANDS, bitmap("bs.png"), "Plot bands")
-
-        toolbar.AddSeparator()
-
-        self.visualizer_cbox = wx.ComboBox(choices=supported_visunames(), id=ID_TBOX_VIS, 
-            name='visualizer', parent=toolbar, value='xcrysden') 
-        self.visualizer_cbox.Refresh() 
-
-        toolbar.AddControl(control=self.visualizer_cbox) 
-
+        #toolbar.AddSeparator()
         self.toolbar.Realize()
         self.Centre()
 
@@ -89,13 +74,8 @@ class WfkViewerFrame(awx.Frame):
             (wx.ID_EXIT, self.OnExit),
             (wx.ID_ABOUT, self.OnAboutBox),
             #
-            (ID_NCDUMP, self.OnNcdump),
-            (ID_VISTRUCT, self.OnVisualizeStructure),
             (ID_VISWAVE, self.OnVisualizeWave),
-            (ID_VISBZ, self.OnVisualizeBZ),
-            (ID_DOS, self.OnDos),
-            (ID_JDOS, self.OnJdos),
-            (ID_PLOTBANDS, self.OnPlotBands),
+            (ID_NCDUMP, self.OnNcdump),
         ]
 
         for combo in menu_handlers:
@@ -109,6 +89,16 @@ class WfkViewerFrame(awx.Frame):
     @property
     def codename(self):
         return self.__class__.__name__
+
+    @property
+    def structure(self):
+        """`Structure` object."""
+        return self.wfk.structure
+
+    @property
+    def ebands(self):
+        """`Electron Bands object."""
+        return self.wfk.ebands
 
     def BuildUi(self):
         wfk = self.wfk
@@ -189,31 +179,6 @@ class WfkViewerFrame(awx.Frame):
         awx.makeAboutBox(codename=self.codename, version=self.VERSION,
                          description="", developers="M. Giantomassi")
 
-    def GetVisualizer(self):
-        """Returns a string with the visualizer selected by the user."""
-        return self.visualizer_cbox.GetValue()
-
-    def OnVisualizeStructure(self, event):
-        """"Call visualizer to visualize the crystalline structure."""
-        if self.wfk is None: return
-
-        visualizer = self.GetVisualizer()
-        self.statusbar.PushStatusText("Visualizing crystal structure with %s" % visualizer)
-
-        try:
-            visu = self.wfk.visualize_structure_with(visualizer)
-
-            thread = awx.WorkerThread(self, target=visu)
-            thread.start()
-
-        except:
-            awx.showErrorMessage(self)
-
-    def OnVisualizeBZ(self, event):
-        """"Visualize the Brillouin zone with matplotlib."""
-        if self.wfk is None: return
-        self.wfk.structure.show_bz()
-
     def OnVisualizeWave(self, event):
         """Visualize :math:`|u(r)|^2`."""
         if self.wfk is None: return
@@ -235,21 +200,6 @@ class WfkViewerFrame(awx.Frame):
 
         except:
             awx.showErrorMessage(self)
-
-    def OnPlotBands(self, event):
-        """Plot band energies with matplotlib."""
-        if self.wfk is None: return
-        self.wfk.plot_ebands()
-
-    def OnDos(self, event):
-        """Open Frame for the computation of the DOS."""
-        if self.wfk is None: return
-        ewx.ElectronDosFrame(self, bands=self.wfk.ebands).Show()
-
-    def OnJdos(self, event):
-        """Open Frame for the computation of the JDOS."""
-        if self.wfk is None: return
-        ewx.ElectronJdosFrame(self, bands=self.wfk.ebands).Show()
 
     def OnNcdump(self, event):
         """Call ncdump and show results in a dialog."""

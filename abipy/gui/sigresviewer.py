@@ -5,22 +5,19 @@ import wx
 
 import wx.lib.dialogs as wxdg
 import abipy.gui.awx as awx
-import abipy.gui.electronswx as ewx
 
 from abipy.abilab import abiopen
 from abipy.tools import AttrDict
-from abipy.iotools.visualizer import supported_visunames
 from abipy.gui.scissors import ScissorsBuilderFrame
+from abipy.gui.mixins import Has_Structure, Has_Ebands, Has_Tools
 
-ID_VISTRUCT = wx.NewId()
-ID_VISBZ = wx.NewId()
-ID_NCDUMP = wx.NewId()
 ID_SCISSORS = wx.NewId()
 ID_PLOTQPSE0 = wx.NewId()
 ID_PLOTKSWITHMARKS = wx.NewId()
-ID_TBOX_VIS = wx.NewId()
+ID_NCDUMP = wx.NewId()
 
-class SigresViewerFrame(awx.Frame):
+
+class SigresViewerFrame(awx.Frame, Has_Structure, Has_Ebands):
     VERSION = "0.1"
 
     def __init__(self, parent, filename=None, **kwargs):
@@ -36,6 +33,10 @@ class SigresViewerFrame(awx.Frame):
         file_menu.Append(wx.ID_EXIT, "&Quit", help="Exit the application")
         file_menu.Append(ID_NCDUMP, "Ncdump", help="ncdump printout")
         menuBar.Append(file_menu, "File")
+
+        menuBar.Append(self.CreateStructureMenu(), "Structure")
+        menuBar.Append(self.CreateEbandsMenu(), "Ebands")
+        menuBar.Append(self.CreateToolsMenu(), "Tools")
 
         file_history = self.file_history = wx.FileHistory(8)
         self.config = wx.Config(self.codename, style=wx.CONFIG_USE_LOCAL_FILE)
@@ -58,18 +59,9 @@ class SigresViewerFrame(awx.Frame):
         tsize = (48, 48)
         artBmp = wx.ArtProvider.GetBitmap
         toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, tsize), "Open")
-        toolbar.AddSimpleTool(ID_VISTRUCT, wx.Bitmap(awx.path_img("struct.png")), "Visualize the crystal structure")
-        toolbar.AddSimpleTool(ID_VISBZ, wx.Bitmap(awx.path_img("bz.png")), "Visualize the BZ")
         toolbar.AddSimpleTool(ID_PLOTQPSE0, wx.Bitmap(awx.path_img("qpresults.png")), "Plot QPState Results.")
         toolbar.AddSimpleTool(ID_PLOTKSWITHMARKS, wx.Bitmap(awx.path_img("qpmarkers.png")), "Plot KS energies with QPState markers.")
         toolbar.AddSimpleTool(ID_SCISSORS, wx.Bitmap(awx.path_img("qpscissor.png")), "Build energy-dependent scissors from GW correction.")
-
-        toolbar.AddSeparator()
-        self.visualizer_cbox = wx.ComboBox(choices=supported_visunames(), id=ID_TBOX_VIS,
-            name='visualizer', parent=toolbar, value='xcrysden')
-        self.visualizer_cbox.Refresh()
-
-        toolbar.AddControl(control=self.visualizer_cbox)
 
         self.toolbar.Realize()
         self.Centre()
@@ -82,8 +74,6 @@ class SigresViewerFrame(awx.Frame):
             (wx.ID_ABOUT, self.OnAboutBox),
             #
             (ID_NCDUMP, self.OnNcdump),
-            (ID_VISTRUCT, self.OnVisualizeStructure),
-            (ID_VISBZ, self.OnVisualizeBZ),
             (ID_PLOTQPSE0, self.OnPlotQpsE0),
             (ID_PLOTKSWITHMARKS, self.OnPlotKSwithQPmarkers),
             (ID_SCISSORS, self.OnScissors),
@@ -102,11 +92,12 @@ class SigresViewerFrame(awx.Frame):
         return self.__class__.__name__
 
     @property
+    def structure(self):
+        return self.sigres.structure
+
+    @property
     def ebands(self):
-        if self.sigres is None:
-            return None
-        else:
-            return self.sigres.ebands
+        return self.sigres.ebands
 
     def BuildUi(self):
         sigres = self.sigres
@@ -214,28 +205,6 @@ class SigresViewerFrame(awx.Frame):
         """Build the scissors operator."""
         if self.sigres is None: return
         ScissorsBuilderFrame(self, self.sigres.filepath).Show()
-
-    def GetVisualizer(self):
-        """Returns a string with the visualizer selected by the user."""
-        return self.visualizer_cbox.GetValue()
-
-    def OnVisualizeStructure(self, event):
-        """"Call visualizer to visualize the crystalline structure."""
-        if self.sigres is None: return
-
-        visualizer = self.GetVisualizer()
-        self.statusbar.PushStatusText("Visualizing crystal structure with %s" % visualizer)
-        structure = self.sigres.structure
-        try:
-            visu = structure.visualize(visualizer)
-            visu()
-        except:
-            awx.showErrorMessage(self)
-
-    def OnVisualizeBZ(self, event):
-        """"Visualize the Brillouin zone with matplotlib."""
-        if self.sigres is None: return
-        self.sigres.show_bz()
 
     def ShowQPTable(self, spin, kpoint, band):
         qplist = self.sigres.get_qplist(spin, kpoint)
