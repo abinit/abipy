@@ -3,21 +3,19 @@ from __future__ import print_function, division
 import os
 import wx
 
-import wx.lib.dialogs as wxdg
 import abipy.gui.awx as awx
 
 from abipy.abilab import abiopen
 from abipy.tools import AttrDict
 from abipy.gui.scissors import ScissorsBuilderFrame
-from abipy.gui.mixins import Has_Structure, Has_Ebands, Has_Tools
+from abipy.gui.mixins import Has_Structure, Has_Ebands, Has_Tools, Has_Netcdf
 
 ID_SCISSORS = wx.NewId()
 ID_PLOTQPSE0 = wx.NewId()
 ID_PLOTKSWITHMARKS = wx.NewId()
-ID_NCDUMP = wx.NewId()
 
 
-class SigresViewerFrame(awx.Frame, Has_Structure, Has_Ebands):
+class SigresViewerFrame(awx.Frame, Has_Structure, Has_Ebands, Has_Tools, Has_Netcdf):
     VERSION = "0.1"
 
     def __init__(self, parent, filename=None, **kwargs):
@@ -31,12 +29,12 @@ class SigresViewerFrame(awx.Frame, Has_Structure, Has_Ebands):
         file_menu.Append(wx.ID_OPEN, "&Open", help="Open an existing SIGRES file")
         file_menu.Append(wx.ID_CLOSE, "&Close", help="Close the SIGRES file")
         file_menu.Append(wx.ID_EXIT, "&Quit", help="Exit the application")
-        file_menu.Append(ID_NCDUMP, "Ncdump", help="ncdump printout")
         menuBar.Append(file_menu, "File")
 
         menuBar.Append(self.CreateStructureMenu(), "Structure")
         menuBar.Append(self.CreateEbandsMenu(), "Ebands")
         menuBar.Append(self.CreateToolsMenu(), "Tools")
+        menuBar.Append(self.CreateNetcdfMenu(), "Netcdf")
 
         file_history = self.file_history = wx.FileHistory(8)
         self.config = wx.Config(self.codename, style=wx.CONFIG_USE_LOCAL_FILE)
@@ -73,7 +71,6 @@ class SigresViewerFrame(awx.Frame, Has_Structure, Has_Ebands):
             (wx.ID_EXIT, self.OnExit),
             (wx.ID_ABOUT, self.OnAboutBox),
             #
-            (ID_NCDUMP, self.OnNcdump),
             (ID_PLOTQPSE0, self.OnPlotQpsE0),
             (ID_PLOTKSWITHMARKS, self.OnPlotKSwithQPmarkers),
             (ID_SCISSORS, self.OnScissors),
@@ -98,6 +95,11 @@ class SigresViewerFrame(awx.Frame, Has_Structure, Has_Ebands):
     @property
     def ebands(self):
         return self.sigres.ebands
+
+    @property
+    def nc_filepath(self):
+        """String with the absolute path of the netcdf file."""
+        return self.sigres.filepath
 
     def BuildUi(self):
         sigres = self.sigres
@@ -213,13 +215,6 @@ class SigresViewerFrame(awx.Frame, Has_Structure, Has_Ebands):
         title = "spin: %d, kpoint: %s" % (spin, kpoint)
         frame = awx.SimpleGridFrame(self, table[1:], col_labels=table[0], title=title)
         frame.Show()
-
-    def OnNcdump(self, event):
-        """Call ncdump and show results in a dialog."""
-        if self.sigres is None: return
-        caption = "ncdump output for SIGRES file %s" % self.sigres.filepath
-        wxdg.ScrolledMessageDialog(self, self.sigres.ncdump(), caption=caption, style=wx.MAXIMIZE_BOX).Show()
-
 
 
 class BandsWithMarkersPlotFrame(awx.Frame):

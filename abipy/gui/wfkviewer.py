@@ -3,21 +3,18 @@ from __future__ import print_function, division
 import os
 import wx
 
-import wx.lib.dialogs as wxdg
 import abipy.gui.awx as awx
 
 from wx.py.shell import Shell
 from abipy.tools import marquee
 from abipy.abilab import abiopen
 from abipy.iotools.visualizer import supported_visunames
-from abipy.gui.mixins import Has_Structure, Has_Ebands, Has_Tools
+from abipy.gui.mixins import Has_Structure, Has_Ebands, Has_Tools, Has_Netcdf
 
 
 ID_VISWAVE = wx.NewId()
-ID_NCDUMP = wx.NewId()
 
-
-class WfkViewerFrame(awx.Frame, Has_Structure, Has_Ebands, Has_Tools):
+class WfkViewerFrame(awx.Frame, Has_Structure, Has_Ebands, Has_Tools, Has_Netcdf):
     VERSION = "0.1"
 
     def __init__(self, parent, filename=None, **kwargs):
@@ -31,12 +28,12 @@ class WfkViewerFrame(awx.Frame, Has_Structure, Has_Ebands, Has_Tools):
         file_menu.Append(wx.ID_OPEN, "&Open", help="Open an existing WFK file")
         file_menu.Append(wx.ID_CLOSE, "&Close", help="Close the WFK file")
         file_menu.Append(wx.ID_EXIT, "&Quit", help="Exit the application")
-        file_menu.Append(ID_NCDUMP, "Ncdump", help="ncdump printout")
         menuBar.Append(file_menu, "File")
 
         menuBar.Append(self.CreateStructureMenu(), "Structure")
         menuBar.Append(self.CreateEbandsMenu(), "Ebands")
         menuBar.Append(self.CreateToolsMenu(), "Tools")
+        menuBar.Append(self.CreateNetcdfMenu(), "Netcdf")
 
         file_history = self.file_history = wx.FileHistory(8)
         self.config = wx.Config(self.codename, style=wx.CONFIG_USE_LOCAL_FILE)
@@ -75,7 +72,6 @@ class WfkViewerFrame(awx.Frame, Has_Structure, Has_Ebands, Has_Tools):
             (wx.ID_ABOUT, self.OnAboutBox),
             #
             (ID_VISWAVE, self.OnVisualizeWave),
-            (ID_NCDUMP, self.OnNcdump),
         ]
 
         for combo in menu_handlers:
@@ -99,6 +95,11 @@ class WfkViewerFrame(awx.Frame, Has_Structure, Has_Ebands, Has_Tools):
     def ebands(self):
         """`Electron Bands object."""
         return self.wfk.ebands
+
+    @property
+    def nc_filepath(self):
+        """String with the absolute path of the netcdf file."""
+        return self.wfk.filepath
 
     def BuildUi(self):
         wfk = self.wfk
@@ -200,12 +201,6 @@ class WfkViewerFrame(awx.Frame, Has_Structure, Has_Ebands, Has_Tools):
 
         except:
             awx.showErrorMessage(self)
-
-    def OnNcdump(self, event):
-        """Call ncdump and show results in a dialog."""
-        if self.wfk is None: return
-        caption = "ncdump output for WFK file %s" % self.wfk.filepath
-        wxdg.ScrolledMessageDialog(self, self.wfk.ncdump(), caption=caption, style=wx.MAXIMIZE_BOX).Show()
 
 
 class WfkViewerApp(awx.App):

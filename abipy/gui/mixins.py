@@ -1,15 +1,17 @@
 from __future__ import print_function, division
 
-import wx
 import abc
+import os
+import wx
+import wx.lib.dialogs as wxdg
 import abipy.gui.awx as awx
 import abipy.gui.electronswx as ewx
 
+from pymatgen.util.io_utils import which 
 from abipy.iotools.visualizer import supported_visunames 
+from abipy.iotools.files import NcDumper
 from abipy.gui.structure import StructureConverterFrame
 from abipy.gui.converter import ConverterFrame
-
-#from pymatgen.util.string_utils import is_string
 #from abipy.gui.editor import SimpleTextViewer
 
 class Has_Structure(object):
@@ -107,7 +109,6 @@ class Has_Ebands(object):
 
 
 #class Has_Kpoints(object):
-#class Has_NcTools(object):
 
 class Has_Tools(object):
 
@@ -124,3 +125,48 @@ class Has_Tools(object):
 
     def OnTools_UnitConverter(self, event):
         ConverterFrame(self).Show()
+
+
+class Has_Netcdf(object):
+    __metaclass__ = abc.ABCMeta
+
+    # Netcdf Menu ID's
+    ID_NETCDF_NCDUMP = wx.NewId()
+    ID_NETCDF_NCVIEW = wx.NewId()
+
+    @abc.abstractproperty
+    def nc_filepath(self):
+        """String with the absolute path of the netcdf file."""
+
+    def CreateNetcdfMenu(self):
+        """Creates the ebands menu."""
+        menu = wx.Menu()
+        menu.Append(self.ID_NETCDF_NCDUMP, "ncdump", "Show the output of ncdump")
+        self.Bind(wx.EVT_MENU, self.OnNetcdf_NcDump, id=self.ID_NETCDF_NCDUMP)
+
+        menu.Append(self.ID_NETCDF_NCVIEW, "ncview", "Call ncview")
+        self.Bind(wx.EVT_MENU, self.OnNetcdf_NcView, id=self.ID_NETCDF_NCVIEW)
+                                                                                            
+        return menu
+
+    def OnNetcdf_NcDump(self, event):
+        """Call ncdump and show results in a dialog."""
+        s = NcDumper().dump(self.nc_filepath)
+        caption = "ncdump output for %s" % self.nc_filepath
+        wxdg.ScrolledMessageDialog(self, s, caption=caption, style=wx.MAXIMIZE_BOX).Show()
+
+    def OnNetcdf_NcView(self, event):
+        """Call ncview in an subprocess."""
+        if which("ncview") is not None:
+            awx.showErrorMessage(self, "Cannot find ncview in $PATH")
+            return 
+
+        def target():
+            os.system("ncview %s" % self.nc_filepath)
+
+        try:
+            thread = awx.WorkerThread(self, target=target)
+            thread.start()
+        except:
+            awx.showErrorMessage(self)
+
