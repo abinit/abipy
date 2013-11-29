@@ -28,6 +28,10 @@ dev_tarballs = dict(
 )
 
 
+#matplotlib = dict(
+#"http://download.savannah.gnu.org/releases/freetype/freetype-2.5.1.tar.gz",
+#)
+
 # BLAS + LAPACK (if the host does not provide them).
 #linalg_tarballs = dict(
 #)

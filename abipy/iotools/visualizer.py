@@ -3,9 +3,7 @@ from __future__ import division, print_function
 
 import os
 
-from subprocess import call
 from collections import namedtuple, OrderedDict
-
 from abipy.core import AbipyException
 from abipy.tools import ask_yes_no, which
 
@@ -15,22 +13,23 @@ __all__ = [
 ]
 
 # cmdarg is the command line option that has to be provided to visualize a file with the given extension.
-Application = namedtuple("Application", "name cmdarg")
+App = namedtuple("App", "name cmdarg")
 
 # One-to-many mapping file extension --> applications
 _EXT2APPS = OrderedDict( {
-    "xsf": [Application("xcrysden", "--xsf"),
-            Application("v_sim", None),
+    "xsf": [App("xcrysden", "--xsf"),
+            App("v_sim", ""),
+            App("VESTA", ""),
             ],
 
-    "bxsf": [Application("xcrysden", "--bxsf"),
+    "bxsf": [App("xcrysden", "--bxsf"),
              ],
 } )
 
 # NOTE: Mac-OSx applications can be launched with
 #open -a Vesta --args /Users/gmatteo/Coding/abipy/abipy/data/cifs/si.cif
 
-#: One-to-many mapping application_name --> file extensions supported.
+#: One-to-many mapping app_name --> file extensions supported.
 appname2exts = {}
 
 for (ext, applications) in _EXT2APPS.items():
@@ -44,9 +43,9 @@ for (ext, applications) in _EXT2APPS.items():
 for aname in appname2exts: # Remove duplicated entries
     appname2exts[aname] = set(appname2exts[aname])
 
-##########################################################################################
 
 def supported_visunames():
+    """List of strings with the name of the supported visualizers."""
     return list(appname2exts.keys())
 
 
@@ -72,11 +71,12 @@ class Visualizer(object):
             raise cls.Error("Cannot detect file extension in %s " % filename)
 
         try:
-            application, executable = cls.appath_from_ext(ext)
+            app, executable = cls.appath_from_ext(ext)
+
         except Exception as exc:
             raise cls.Error(str(exc))
 
-        return Visualizer(filename, executable, application.cmdarg)
+        return Visualizer(filename, executable, app.cmdarg)
 
     @staticmethod
     def appath_from_ext(ext):
@@ -95,15 +95,15 @@ class Visualizer(object):
             raise self.Error("No executable found for file: %s" % filename)
 
     @staticmethod
-    def exts_from_appname(application_name):
-        """Return the set of extensions supported by application_name"""
-        aname = os.path.basename(application_name)
+    def exts_from_appname(app_name):
+        """Return the set of extensions supported by app_name"""
+        name = os.path.basename(app_name)
         try:
-            return appname2exts[aname]
+            return appname2exts[name]
         except KeyError:
-            raise self.Error("application %s is not supported" % application_name)
+            raise self.Error("application %s is not supported" % app_name)
 
-    def __init__(self, filename, executable, cmdarg=None, wait=False):
+    def __init__(self, filename, executable, cmdarg=""):
         """
         Args:
             filename: 
@@ -116,21 +116,12 @@ class Visualizer(object):
         self.executable = which(executable)
         self.filename = os.path.abspath(filename)
         self.cmdarg = cmdarg
-        self._wait = wait
-
-    def __call__(self):
-        return self.show()
 
     def __str__(self):
         return "%s" % self.executable
 
-    @property
-    def wait(self):
-        return self._wait
-
-    def set_wait(self, wait=True):
-        """Wait setter."""
-        self._wait = wait
+    def __call__(self):
+        return self.show()
 
     def show(self):
         """
@@ -138,13 +129,6 @@ class Visualizer(object):
 
         Returns: exit status of the subprocess.
         """
-        if self.cmdarg is None:
-            raise NotImplementedError()
-
-        print("Executing: ", self.executable, self.cmdarg, self.filename)
-        retcode = call([self.executable, self.cmdarg, self.filename])
-
-        if self.wait:
-            ask_yes_no("Enter [y/n] to continue or to exit.", default="yes")
-
-        return retcode
+        #print("Executing: ", self.executable, self.cmdarg, self.filename)
+        from subprocess import call
+        return call([self.executable, self.cmdarg, self.filename])

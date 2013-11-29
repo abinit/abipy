@@ -27,11 +27,13 @@ def viewerframe_from_filepath(parent, filepath):
     """
     from abipy.gui.wfkviewer import WfkViewerFrame
     from abipy.gui.sigresviewer import SigresViewerFrame
+    from abipy.gui.gsrviewer import GsrViewerFrame
     from abipy.gui.editor import MyEditorFrame
 
     VIEWER_FRAMES = {
         "WFK-etsf.nc": WfkViewerFrame,
         "SIGRES.nc": SigresViewerFrame,
+        "GSR.nc": GsrViewerFrame,
         ".abi": MyEditorFrame, 
         ".abo": MyEditorFrame, 
         ".log": MyEditorFrame, 
@@ -193,7 +195,6 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
     def OnItemActivated(self, event):
         currentItem = event.m_itemIndex
         fd = self.id2filedata[self.file_list.GetItemData(currentItem)]
-        #logger.info("In OnItemActivated with filedata %s" % str(fd))
 
         frame = viewerframe_from_filepath(self, fd.abspath)
         if frame is not None:

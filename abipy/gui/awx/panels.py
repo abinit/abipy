@@ -30,12 +30,9 @@ class SpinKpointBandPanel(Panel):
             bstart:
                 First band index.
         """
-        #style=wx.LC_REPORT | wx.BORDER_SUNKEN
-        super(SpinKpointBandPanel, self).__init__(parent, **kwargs)
+        super(SpinKpointBandPanel, self).__init__(parent, style=wx.LC_REPORT | wx.BORDER_SUNKEN, **kwargs) 
 
-        self.nsppol = nsppol
-        self.kpoints = kpoints
-        self.mband = mband
+        self.nsppol, self.kpoints, self.mband = nsppol, kpoints, mband
         self.bstart = bstart
 
         self.BuildUi()
@@ -122,8 +119,8 @@ class SpinKpointBandPanel(Panel):
     def OnRightClick(self, event):
         """Call the callback registered with `SetOnRightClick` (if any)."""
         if hasattr(self, "_on_item_right_click_callback"):
-            skb = self.GetSKB()
             #print("In OnRightClick with skb %s" % str(skb))
+            skb = self.GetSKB()
             self._on_item_right_click_callback(*skb)
 
     def SetOnItemSelected(self, callback):
@@ -136,8 +133,8 @@ class SpinKpointBandPanel(Panel):
     def OnItemSelected(self, event):
         """Call the callback registered with `SetOnItemSelected` (if any)."""
         if hasattr(self, "_on_item_selected_callback"):
-            skb = self.GetSKB()
             #print("In OnItemSelected with skb %s" % str(skb))
+            skb = self.GetSKB()
             self._on_item_selected_callback(*skb)
 
     def SetOnItemActivated(self, callback):

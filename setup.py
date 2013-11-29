@@ -162,10 +162,9 @@ install_requires = [
     "pymatgen>=2.8.7",
     "fabric",
     "paramiko",
-    #"wxmplot>=0.9.11",
+    #"wxmplot>=0.9.14",
     #"asciitable",
     #"psutil",
-    #"pyro4",
 ]
 
 if with_ipython:

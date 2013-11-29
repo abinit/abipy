@@ -25,9 +25,11 @@ GIT_REPOSDIR = USER_HOME + "/git_repos"
 git_urls = {
     "abipy":    "https://github.com/gmatteo/abipy.git",
     "pymatgen": "https://github.com/gmatteo/pymatgen.git",
+    "matplotlib": "https://github.com/matplotlib/matplotlib.git",
     #"abipy": "git@github.com:gmatteo/abipy.git",
     #"pymatgen": "git@github.com:gmatteo/pymatgen.git",
-
+    #"matplotlib": "git@github.com:matplotlib/matplotlib.git",
+    #git://git.gnome.org/pygtk
 }
 
 git_repospaths = [os.path.join(GIT_REPOSDIR, dirpath) for dirpath in git_urls]
@@ -172,6 +174,23 @@ def upload_file(local_path, remote_path, mode=None):
 
     if mode is not None:
         run("chmod %s %s" % (mode, remote_path))
+
+
+def wget(urls):
+    """
+    Download files on the remove host from URLS to ~/Downloads
+
+    fab wget:"foo.tar.gz bar.tar.gz"
+    """
+    downloads_dir = "Downloads"
+
+    with cd (USER_HOME):
+        if not _exists(downloads_dir):
+            run("mkdir %s" % downloads_dir)
+
+        with cd(downloads_dir):
+            for u in urls.split():
+                run("wget %s " % u)
 
 
 def upload_key(key):

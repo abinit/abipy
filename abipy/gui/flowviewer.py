@@ -121,7 +121,6 @@ class FlowViewerFrame(awx.Frame):
         self.flow = flow
 
         self.check_launcher_file()
-
         #if filename is not None:
         #    self.ReadWorkflow(filename)
                                          
@@ -158,7 +157,7 @@ class FlowViewerFrame(awx.Frame):
     @property
     def codename(self):
         """String with the code name."""
-        return self.__class__.__name__ 
+        return "Flow Viewer"
 
     def BuildUi(self):
         self.panel = panel = wx.Panel(self, -1)
