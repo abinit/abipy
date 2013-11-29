@@ -51,6 +51,10 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     def nsppol(self):
         return self.ebands.nsppol
 
+    @property
+    def mband(self):
+        return self.ebands.mband
+
 
 class GSR_Reader(ElectronsReader):
     """

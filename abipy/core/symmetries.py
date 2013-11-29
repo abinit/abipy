@@ -814,8 +814,11 @@ class LittleGroup(OpSequence):
         #print(self.kgroup)
         #kclasses = kgroup.classes
 
+    def __repr__(self):
+        return "Kpoint: %s, Kpoint group: %s" % (self.kpoint, self.kgroup)
+
     def __str__(self):
-        lines = ["Kpoint: %s, Kpoint group: %s" % (self.kpoint, self.kgroup)]
+        lines = [repr(self)]
 
         strio = StringIO.StringIO()
         bilbao_ptgrp = bilbao_ptgroup(self.kgroup.sch_symbol)

@@ -157,7 +157,7 @@ class Has_Netcdf(object):
 
     def OnNetcdf_NcView(self, event):
         """Call ncview in an subprocess."""
-        if which("ncview") is not None:
+        if which("ncview") is None:
             awx.showErrorMessage(self, "Cannot find ncview in $PATH")
             return 
 

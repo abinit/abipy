@@ -86,7 +86,7 @@ class SigresViewerFrame(awx.Frame, Has_Structure, Has_Ebands, Has_Tools, Has_Net
 
     @property
     def codename(self):
-        return self.__class__.__name__
+        return "SigmaResultsViewer"
 
     @property
     def structure(self):

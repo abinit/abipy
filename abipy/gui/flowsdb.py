@@ -477,11 +477,10 @@ class FlowsListCtrl(wx.ListCtrl):
 
         for flow in flows:
             entry = map(str, [flow.workdir, flow.status, flow.start_date])
+            self.Append(entry)
 
             w = [awx.get_width_height(self, s)[0] for s in entry]
             column_widths = map(max, zip(w, column_widths))
-
-            self.Append(entry)
 
         # Set the width in pixel for each column.
         for (index, col) in enumerate(columns):

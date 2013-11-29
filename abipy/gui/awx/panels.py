@@ -4,7 +4,7 @@ import wx
 
 import wx.lib.mixins.listctrl as listmix
 
-from .core import Panel
+from .core import Panel, get_width_height
 
 __all__ = [
     "SpinKpointBandPanel",
@@ -30,6 +30,7 @@ class SpinKpointBandPanel(Panel):
             bstart:
                 First band index.
         """
+        #style=wx.LC_REPORT | wx.BORDER_SUNKEN
         super(SpinKpointBandPanel, self).__init__(parent, **kwargs)
 
         self.nsppol = nsppol
@@ -76,6 +77,9 @@ class SpinKpointBandPanel(Panel):
         for index, col in enumerate(columns):
             klist.InsertColumn(index, col)
 
+        # Used to store the Max width in pixels for the data in the column.
+        column_widths = [get_width_height(self, s)[0] for s in columns]
+
         for index, kpt in enumerate(self.kpoints):
             entry = ["%d\t\t" % index, 
                      "[%.5f,  %.5f,  %.5f]\t\t" % tuple(c for c in kpt.frac_coords), 
@@ -84,8 +88,12 @@ class SpinKpointBandPanel(Panel):
                      ]
             klist.Append(entry)
 
+            w = [get_width_height(self, s)[0] for s in entry]
+            column_widths = map(max, zip(w, column_widths))
+
         for index, col in enumerate(columns):
-            klist.SetColumnWidth(index, wx.LIST_AUTOSIZE)
+            klist.SetColumnWidth(index, column_widths[index])
+            #klist.SetColumnWidth(index, wx.LIST_AUTOSIZE)
 
         main_sizer.Add(hsizer2, 1, wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 5)
 
@@ -165,6 +173,9 @@ class KpointsListCtrl(wx.ListCtrl):
         for (index, col) in enumerate(columns):
             self.InsertColumn(index, col)
 
+        # Used to store the Max width in pixels for the data in the column.
+        column_widths = [get_width_height(self, s)[0] for s in columns]
+
         for (index, kpt) in enumerate(self.kpoints):
             entry = ["%d\t\t" % index, 
                      "[%.5f,  %.5f,  %.5f]\t\t" % tuple(c for c in kpt.frac_coords), 
@@ -173,8 +184,12 @@ class KpointsListCtrl(wx.ListCtrl):
                      ]
             self.Append(entry)
 
+            w = [get_width_height(self, s)[0] for s in entry]
+            column_widths = map(max, zip(w, column_widths))
+
         for (index, col) in enumerate(columns):
-            self.SetColumnWidth(index, wx.LIST_AUTOSIZE)
+            self.SetColumnWidth(index, column_widths[index])
+            #self.SetColumnWidth(index, wx.LIST_AUTOSIZE)
 
     def GetKpoint(self):
         """Returns the kpoint selected by the user."""

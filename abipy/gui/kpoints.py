@@ -3,10 +3,12 @@ from __future__ import print_function, division
 import wx
 
 import abipy.gui.awx as awx
+import wx.lib.dialogs as wxdg
 
 from collections import OrderedDict
 
-class KpointSymmetriesFrame(awx.Frame):
+
+class KpointsPanel(awx.Panel):
 
     def __init__(self, parent, structure, kpoints, **kwargs):
         """
@@ -18,42 +20,20 @@ class KpointSymmetriesFrame(awx.Frame):
             kpoints:
                 `KpointList` object. 
         """
-        super(KpointSymmetriesFrame, self).__init__(parent, **kwargs)
+        super(KpointsPanel, self).__init__(parent, **kwargs)
 
-        self.kpoint_panel = KpointSymmetriesPanel(self, structure, kpoints)
-
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(self.kpoint_panel, 1, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
-        main_sizer.Layout()
-        self.SetSizer(main_sizer)
-
-class KpointSymmetriesPanel(awx.Panel):
-
-    def __init__(self, parent, structure, kpoints, **kwargs):
-        """
-        Args:
-            parent:
-                Parent window.
-            structure:
-                `Structure` object.
-            kpoints:
-                `KpointList` object. 
-        """
-        super(KpointSymmetriesPanel, self).__init__(parent, -1, **kwargs)
-
-        self.kpoints_listctrl = awx.KpointsListCtrl(parent, kpoints)
+        self.kpoints_listctrl = awx.KpointsListCtrl(self, kpoints)
         self.structure = structure
 
         # Connect the events whose callback will be set by the client code.
         self.kpoints_listctrl.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick)
-        #self.kpoints_listctrl.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected)
-        #self.kpoints_listctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
+
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(self.kpoints_listctrl, 1, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
+        self.SetSizer(main_sizer)
 
     def OnRightClick(self, event):
-        popmenu = KpointPopupMenu()
-        popmenu.set_parent(self)
-        popmenu.set_cb_kwargs(structure=self.structure, kpoint=self.kpoints_listctrl.GetKpoint())
-
+        popmenu = KpointPopupMenu(self, structure=self.structure, kpoint=self.kpoints_listctrl.GetKpoint())
         self.PopupMenu(popmenu, event.GetPoint())
         popmenu.Destroy()
 
@@ -62,12 +42,15 @@ class KpointSymmetriesPanel(awx.Panel):
 ### Callbacks ###
 ##################
 
-def showStarFrame(parent, *args, **kwargs):
-    structure, kpoint = kwargs.pop("structure"), kwargs.pop("kpoint")
-    #pos = parent.GetPosition()
 
+def showLittleGroup(parent, structure, kpoint):
+    ltk = structure.spacegroup.find_little_group(kpoint)
+    wxdg.ScrolledMessageDialog(parent, str(ltk), caption=repr(ltk), style=wx.MAXIMIZE_BOX).Show()
+
+
+def showStar(parent, structure, kpoint):
     star = kpoint.compute_star(structure.fm_symmops)
-    KpointSymmetriesFrame(parent, structure, star, title="Star of %s" % str(kpoint)).Show()
+    wxdg.ScrolledMessageDialog(parent, str(star), caption="Star of the kpoint", style=wx.MAXIMIZE_BOX).Show()
 
 
 class KpointPopupMenu(wx.Menu):
@@ -77,13 +60,23 @@ class KpointPopupMenu(wx.Menu):
     parent is the wx Window that will become the parent of the new frame created by the callback.
     """
     MENU_TITLES = OrderedDict([
-        ("Show Star", showStarFrame),
-        #("Little Group", showLittleGroupFrame),
-        #("Irreps", showIrrepsFrame),
+        ("Little Group", showLittleGroup),
+        ("Star", showStar),
     ])
 
-    def __init__(self):
+    def __init__(self, parent, structure, kpoint):
+        """
+        Args:
+            parent:
+                Parent window.
+            structure:
+                `Structure` object
+            kpoint:
+                `Kpoint` object of vector with the reduced coordinates.
+        """
         super(KpointPopupMenu, self).__init__()
+        self._parent, self.structure, self.kpoint = parent, structure, kpoint
+
         self._make_menu()
 
     def _make_menu(self):
@@ -101,42 +94,10 @@ class KpointPopupMenu(wx.Menu):
             self.Append(id, title)
             wx.EVT_MENU(self, id, self.OnMenuSelection)
 
-    def set_parent(self, parent):
-        """Set the parent window."""
-        self._parent = parent
-
     @property
     def parent(self):
         """Returns the parent window."""
-        try:
-            return self._parent
-        except AttributeError:
-            awx.WARNING("Popup menu doesn't have parent")
-            return None
-
-    def set_cb_args(self, *cb_args):
-        """Set the positional arguments of the callback."""
-        self._cb_args = cb_args
-
-    @property
-    def cb_args(self):
-        """Callback positional arguments."""
-        try: 
-            return self._cb_args
-        except AttributeError:
-            return []
-
-    def set_cb_kwargs(self, **cb_kwargs):
-        """Set the kwyword arguments of the callback."""
-        self._cb_kwargs = cb_kwargs
-                                                  
-    @property
-    def cb_kwargs(self):
-        """Callback keyword arguments."""
-        try: 
-            return self._cb_kwargs
-        except AttributeError:
-            return {}
+        return self._parent
 
     def OnMenuSelection(self, event):
         """Call the callback selected in the popupmenu."""
@@ -144,7 +105,11 @@ class KpointPopupMenu(wx.Menu):
         callback = self.MENU_TITLES[title]
 
         try:
-            callback(parent=self.parent, *self.cb_args, **self.cb_kwargs)
+            callback(parent=self.parent, structure=self.structure, kpoint=self.kpoint)
         except:
-            awx.showErrorMessage(parent=self)
+            awx.showErrorMessage(parent=self.parent)
 
+
+#if __name__ == "__main__":
+#    from abipy.abilab import abiopen
+#    import abipy.data as abidata

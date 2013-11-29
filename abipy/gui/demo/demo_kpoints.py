@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 import wx
+
+import abipy.data as abidata
+
 from abipy.abilab import abiopen
-import abipy.data as data
+from abipy.gui.kpoints import KpointsPanel
 
-from abipy.gui.kpoints import KpointSymmetriesFrame
-
-wfk_filename = data.WFK_NCFILES[0]
-wfk = abipy.abiopen(wfk_filename)
+gsr = abiopen(abidata.ref_file("si_nscf_GSR.nc"))
 
 app = wx.App()
-frame = KpointSymmetriesFrame(None, wfk.structure, wfk.kpoints)
+frame = wx.Frame(None, -1)
+KpointsPanel(frame, gsr.structure, gsr.kpoints)
+app.SetTopWindow(frame)
 frame.Show()
 app.MainLoop()
