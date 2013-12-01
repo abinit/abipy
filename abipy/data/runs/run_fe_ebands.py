@@ -6,10 +6,11 @@ See tutorial/Input/tspin_1.in
 from __future__ import division, print_function
 
 import os
+import sys
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from abipy.data.runs import enable_logging, AbipyTest, MixinTest
+from abipy.data.runs import AbipyTest, MixinTest
 
 class SpinEbandsFlowTest(AbipyTest, MixinTest):
     """
@@ -19,7 +20,7 @@ class SpinEbandsFlowTest(AbipyTest, MixinTest):
     def setUp(self):
         super(SpinEbandsFlowTest, self).setUp()
         self.init_dirs()
-        self.flow = build_bands_flow(workdir=self.workdir)
+        self.flow = build_flow()
 
 
 def make_scf_nscf_inputs(nsppol):
@@ -55,8 +56,12 @@ def make_scf_nscf_inputs(nsppol):
 
     return scf_input, nscf_input
 
-def build_bands_flow(workdir="tmp_fe_ebands"):
-    manager = abilab.TaskManager.from_user_config()
+def build_flow(options):
+    # Working directory (default is the name of the script with '.py' removed)
+    workdir = os.path.basename(os.path.abspath(__file__).replace(".py", "")) if not options.workdir else options.workdir
+
+    # Instantiate the TaskManager.
+    manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
 
     flow = abilab.AbinitFlow(workdir, manager)
 
@@ -69,12 +74,11 @@ def build_bands_flow(workdir="tmp_fe_ebands"):
     return flow.allocate()
 
 
-@enable_logging
-def main():
-    flow = build_bands_flow()
+@abilab.flow_main
+def main(options):
+    flow = build_flow(options)
     return flow.build_and_pickle_dump()
 
 
 if __name__ == "__main__":
-    import sys
     sys.exit(main())

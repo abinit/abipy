@@ -11,7 +11,6 @@ import sys
 from abipy import abilab
 import abipy.data as data
 
-from abipy.data.runs import enable_logging
 from abipy.abilab import FloatWithUnit
 
 
@@ -34,7 +33,13 @@ def special_positions(lattice, u):
     return abilab.Structure(lattice, species, coords, 
                             validate_proximity=True, coords_are_cartesian=False)
 
-def make_flow():
+def build_flow(options):
+    # Working directory (default is the name of the script with '.py' removed)
+    workdir = os.path.basename(os.path.abspath(__file__).replace(".py", "")) if not options.workdir else options.workdir
+
+    # Instantiate the TaskManager.
+    manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
+
     pseudos = data.pseudos("14si.pspnc")
 
     base_structure = abilab.Structure.from_file(data.cif_file("si.cif"))
@@ -44,9 +49,6 @@ def make_flow():
     for u in uparams:
         new = special_positions(base_structure.lattice, u)
         news.append(new)
-
-    workdir = os.path.join(os.path.dirname(__file__), base_structure.formula + "_WYCHOFF")
-    manager = abilab.TaskManager.from_user_config()
 
     flow = abilab.AbinitFlow(workdir, manager)
 
@@ -95,9 +97,9 @@ def make_workflow(structure, pseudos):
     return abilab.BandStructureWorkflow(gs_inp, nscf_inp)
 
 
-@enable_logging
-def main():
-    flow = make_flow()
+@abilab.flow_main
+def main(options):
+    flow = build_flow(options)
     return flow.build_and_pickle_dump()
 
 if __name__ == "__main__":

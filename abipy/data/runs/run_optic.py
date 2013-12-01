@@ -7,7 +7,7 @@ import os
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from abipy.data.runs import enable_logging, AbipyTest, MixinTest
+from abipy.data.runs import AbipyTest, MixinTest
 
 class OpticFlowTest(AbipyTest, MixinTest):
     """
@@ -17,7 +17,7 @@ class OpticFlowTest(AbipyTest, MixinTest):
     def setUp(self):
         super(OpticFlowTest, self).setUp()
         self.init_dirs()
-        self.flow = optic_flow(workdir=self.workdir)
+        self.flow = build_flow()
 
 
 optic_input = """\
@@ -31,7 +31,13 @@ optic_input = """\
 123 222       ! Non-linear coefficients to be computed
 """
 
-def optic_flow(workdir="tmp_optic"):
+def optic_flow(options):
+    # Working directory (default is the name of the script with '.py' removed)
+    workdir = os.path.basename(os.path.abspath(__file__).replace(".py", "")) if not options.workdir else options.workdir
+
+    # Instantiate the TaskManager.
+    manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
+
     structure = data.structure_from_ucell("GaAs")
 
     inp = abilab.AbiInput(pseudos=data.pseudos("31ga.pspnc", "33as.pspnc"), ndtset=5)
@@ -92,12 +98,10 @@ def optic_flow(workdir="tmp_optic"):
          tolwfr=1.e-9,
         )
 
-    manager = abilab.TaskManager.from_user_config()
-
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = inp.split_datasets()
 
     # Initialize the flow.
-    flow = abilab.AbinitFlow(workdir=workdir, manager=manager)
+    flow = abilab.AbinitFlow(workdir, manager)
 
     bands_work = abilab.BandStructureWorkflow(scf_inp, nscf_inp)
     flow.register_work(bands_work)
@@ -123,7 +127,6 @@ def optic_flow(workdir="tmp_optic"):
 
 
 def optic_flow_from_files():
-
     # Optic does not support MPI with ncpus > 1.
     manager = abilab.TaskManager.sequential()
 
@@ -142,12 +145,11 @@ def optic_flow_from_files():
     return flow.allocate()
 
 
-@enable_logging
-def main():
-    flow = optic_flow()
+@abilab.flow_main
+def main(options):
+    flow = build_flow(options)
     #flow = optic_flow_from_files()
     #print("optic manager after allocate", flow[2][0].manager)
-
     return flow.build_and_pickle_dump()
 
 

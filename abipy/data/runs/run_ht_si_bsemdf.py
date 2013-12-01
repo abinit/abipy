@@ -8,7 +8,7 @@ import abipy.data as data
 
 from pymatgen.io.abinitio.abiobjects import AbiStructure
 from pymatgen.io.abinitio.calculations import bse_with_mdf
-from abipy.data.runs import enable_logging, AbipyTest, MixinTest
+from abipy.data.runs import AbipyTest, MixinTest
 
 class HtBseMdfFlowTest(AbipyTest, MixinTest):
     """
@@ -18,7 +18,7 @@ class HtBseMdfFlowTest(AbipyTest, MixinTest):
     def setUp(self):
         super(HtBseMdfFlowTest, self).setUp()
         self.init_dirs()
-        self.flow = make_flow(self.workdir)
+        self.flow = build_flow()
 
     # Remove all files except those matching these regular expression.
     #work[0].rename("out_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
@@ -33,11 +33,15 @@ class HtBseMdfFlowTest(AbipyTest, MixinTest):
     #work.rmtree(exclude_wildcard="*.abin|*.about|*_SIGRES.nc")
 
 
-def make_flow(workdir="ht_si_bsemdf"):
+def build_flow(options):
+    # Working directory (default is the name of the script with '.py' removed)
+    workdir = os.path.basename(os.path.abspath(__file__).replace(".py", "")) if not options.workdir else options.workdir
+
+    # Instantiate the TaskManager.
+    manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
+
     pseudos = data.pseudos("14si.pspnc")
     structure = abilab.Structure.from_file(data.cif_file("si.cif"))
-
-    manager = abilab.TaskManager.from_user_config()
 
     kppa = scf_kppa = 1
     nscf_nband = 6
@@ -65,9 +69,10 @@ def make_flow(workdir="ht_si_bsemdf"):
     flow.register_work(work)
     return flow.allocate()
 
-@enable_logging
-def main():
-    flow = make_flow()
+
+@abilab.flow_main
+def main(options):
+    flow = build_flow(options)
     return flow.build_and_pickle_dump()
 
 

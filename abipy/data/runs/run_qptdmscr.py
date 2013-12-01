@@ -10,7 +10,7 @@ import os
 import abipy.abilab as abilab
 import abipy.data as data  
 
-from abipy.data.runs import enable_logging, AbipyTest, MixinTest
+from abipy.data.runs import AbipyTest, MixinTest
 from abipy.data.runs.qptdm_workflow import *
 
 
@@ -22,7 +22,7 @@ class QptdmFlowTest(AbipyTest, MixinTest):
     def setUp(self):
         super(QptdmFlowTest, self).setUp()
         self.init_dirs()
-        self.flow = qptdm_flow(self.workdir)
+        self.flow = qptdm_flow()
 
 
 def all_inputs():
@@ -122,8 +122,14 @@ def all_inputs():
     return inp.split_datasets()
 
 
-def gw_flow():
+def gw_flow(options):
+    # Working directory (default is the name of the script with '.py' removed)
+    #workdir = os.path.basename(os.path.abspath(__file__).replace(".py", "")) if not options.workdir else options.workdir
     workdir = "GW"
+                                                                                                                         
+    # Instantiate the TaskManager.
+    manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
+
     gs, nscf, scr_input, sigma_input = all_inputs()
                                                                         
     manager = abilab.TaskManager.from_user_config()
@@ -135,23 +141,27 @@ def gw_flow():
 
     return flow
     
-def qptdm_flow(workdir="tmp_qptdmscr"):
+def qptdm_flow(options):
+    # Working directory (default is the name of the script with '.py' removed)
+    workdir = os.path.basename(os.path.abspath(__file__).replace(".py", "")) if not options.workdir else options.workdir
+
+    # Instantiate the TaskManager.
+    manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
+
     gs, nscf, scr_input, sigma_input = all_inputs()
-                                                                        
-    manager = abilab.TaskManager.from_user_config()
 
     return g0w0_flow_with_qptdm(workdir, manager, gs, nscf, scr_input, sigma_input)
 
 
-@enable_logging
-def main():
+@abilab.flow_main
+def main(options):
     # GW Works
-    #flow = gw_flow()
-
+    #flow = gw_flow(options)
+                        
     # QPTDM
-    flow = qptdm_flow()
-
+    flow = qptdm_flow(options)
     return flow.build_and_pickle_dump()
+
 
 if __name__ == "__main__":
     sys.exit(main())

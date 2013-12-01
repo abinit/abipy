@@ -6,7 +6,6 @@ import functools
 
 from abipy.core.testing import AbipyTest
 from pymatgen.core.design_patterns import AttrDict
-from pymatgen.util.decorators import enable_logging
 from pymatgen.io.abinitio.launcher import PyFlowScheduler
 
 __all__ = [

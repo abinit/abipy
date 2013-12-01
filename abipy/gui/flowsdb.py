@@ -38,10 +38,31 @@ def signal_db_changed(target):
     wx.PostEvent(target, event)
 
 
+def straceback(color="red"):
+    """
+    Returns a string with the traceback.
+
+    Use ANSII color formatting for output in terminal if color is not None.
+    """
+    import traceback
+    s = traceback.format_exc()
+    if color is not None:
+        try:
+            from termcolor import colored
+            return colored(s, color)
+        except ImportError:
+            return s
+    else:
+        return s
+
 def busy(func):
     """
     Decorator for functions that might become busy.
     A message window is shown while we are executing code on the remote host.
+
+    .. note:
+    
+        The first argument of func is the wx parent Window.
     """
     from functools import wraps
 
@@ -56,7 +77,8 @@ def busy(func):
         finally:
             del wait
             if isinstance(result, Exception):
-                raise result
+                #raise result
+                awx.showErrorMessage(args[0], message=straceback(color=None))
             else:
                 return result
 
@@ -163,7 +185,7 @@ class FlowsDbViewerFrame(awx.Frame):
     @property
     def codename(self):
         """String with the code name """
-        return self.__class__.__name__ 
+        return "Flows Database"
 
     def OnAboutBox(self, event):
         """"Info on the application."""
@@ -488,6 +510,7 @@ class FlowsListCtrl(wx.ListCtrl):
             #self.SetColumnWidth(index, wx.LIST_AUTOSIZE)
 
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick)
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
 
     def OnRightClick(self, event):
         currentItem = event.m_itemIndex
@@ -498,6 +521,15 @@ class FlowsListCtrl(wx.ListCtrl):
         menu = FlowPopupMenu(self, self.cluster, flow, self.flows_db)
         self.PopupMenu(menu, event.GetPoint())
         menu.Destroy()
+
+    def OnItemActivated(self, event):
+        idx = int(self.GetFirstSelected())
+        flow = self.flows[idx]
+        print(flow)
+        #from libftpcube.main import App
+        #app = App()
+        #app.createMainWindow()
+        #app.MainLoop()
 
 
 # Callbacks for the PopupMenu.

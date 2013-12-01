@@ -11,7 +11,7 @@ import sys
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from abipy.data.runs import enable_logging, AbipyTest, MixinTest
+from abipy.data.runs import AbipyTest, MixinTest
 
 
 class RelaxFlowTest(AbipyTest, MixinTest):
@@ -22,7 +22,7 @@ class RelaxFlowTest(AbipyTest, MixinTest):
     def setUp(self):
         super(RelaxFlowTest, self).setUp()
         self.init_dirs()
-        self.flow = relax_flow(self.workdir)
+        self.flow = build_flow()
 
 
 def make_ion_ioncell_inputs():
@@ -77,8 +77,12 @@ def make_ion_ioncell_inputs():
     return ion_inp, ioncell_inp
 
 
-def relax_flow(workdir="tmp_relax"):
-    manager = abilab.TaskManager.from_user_config()
+def build_flow(options):
+    # Working directory (default is the name of the script with '.py' removed)
+    workdir = os.path.basename(os.path.abspath(__file__).replace(".py", "")) if not options.workdir else options.workdir
+
+    # Instantiate the TaskManager.
+    manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
 
     flow = abilab.AbinitFlow(workdir, manager)
 
@@ -92,9 +96,9 @@ def relax_flow(workdir="tmp_relax"):
     return flow.allocate()
 
 
-@enable_logging
-def main():
-    flow = relax_flow()
+@abilab.flow_main
+def main(options):
+    flow = build_flow(options)
     return flow.build_and_pickle_dump()
 
 

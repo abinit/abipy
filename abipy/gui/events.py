@@ -3,6 +3,7 @@ from __future__ import print_function, division
 import os
 import wx
 
+import wx.lib.agw.flatnotebook as fnb
 import abipy.gui.awx as awx
 
 from collections import OrderedDict
@@ -16,7 +17,6 @@ class AbinitEventsPanel(awx.Panel):
     the events (WARNINGS/COMMENTS/ERRORS) reported by ABINIT
     in the main output file or in the log file.
     """
-
     def __init__(self, parent, filepath, **kwargs):
         super(AbinitEventsPanel, self).__init__(parent, -1, **kwargs)
 
@@ -93,7 +93,7 @@ class AbiOutLogDirCtrl(wx.GenericDirCtrl):
 
     def __init__(self, *args, **kwargs):
         if "filter" not in kwargs:
-            kwargs["filter"] = "All files (*.*)|*.*|ABINIT output files (*.abo)|*.out| ABINIT log files (*.abl)|*.ablog"
+            kwargs["filter"] = "All files (*.*)|*.*|ABINIT output files (*.abo)|*.out| ABINIT log files (*.log)|*.log"
         if "dir" not in kwargs:
             kwargs["dir"] = os.getcwd()
         if "style" not in kwargs:
@@ -109,10 +109,10 @@ class AbiOutLogDirCtrl(wx.GenericDirCtrl):
         if not path: return
         EventFrame(self, path).Show()
 
-        #def OnRightClick(self, event):
-        #    path = self.GetFilePath()
-        #    if not path: return
-        #    print("in right with path %s" % path)
+    #def OnRightClick(self, event):
+    #    path = self.GetFilePath()
+    #    if not path: return
+    #    print("in right with path %s" % path)
 
 
 class AbinitEventsNotebookFrame(awx.Frame):
@@ -145,7 +145,6 @@ class AbinitEventsNotebookFrame(awx.Frame):
         # Here we create a panel and a notebook on the panel
         panel = awx.Panel(self)
 
-        import wx.lib.agw.flatnotebook as fnb
         nb = fnb.FlatNotebook(panel)
 
         for fname in filenames:

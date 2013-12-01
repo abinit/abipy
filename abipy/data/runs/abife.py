@@ -14,12 +14,11 @@ import yaml
 import socket
 import paramiko
 
-from termcolor import colored, cprint
 from pymatgen.core.design_patterns import AttrDict
 from pymatgen.util.string_utils import is_string
 
 
-def straceback(color="red"):
+def straceback(color=None):
     """
     Returns a string with the traceback.
 
@@ -27,6 +26,7 @@ def straceback(color="red"):
     """
     import traceback
     s = traceback.format_exc()
+
     if color is not None:
         try:
             from termcolor import colored
@@ -65,11 +65,11 @@ class Cluster(object):
     """
     This object stores the basic parameters of the cluster that are needed to establish 
     SSH, SFTP connections. It also provides helper functions for monitoring the resource manager.
-    This an abstract base class defining the interface that must be implemented 
-    by the concrete subclasses. Every subclass must define the class attribute `qtype` so 
-    that specified the type of resource manager installed on the cluster.
+    It is an abstract base class defining the interface that must be implemented 
+    by the concrete subclasses. Every subclass must define the class attribute `qtype` that 
+    specifies the type of resource manager installed on the cluster.
 
-    A cluste has a working directory where we are going the generate and run Flows.
+    A cluster has a working directory where we are going the generate and run Flows.
     """
     __metaclass__ = abc.ABCMeta
 
@@ -136,8 +136,7 @@ class Cluster(object):
     def ping(self):
         """Ping the host."""
         cmd = ["ping", "-c1", "-W100", "-t1", self.hostname]
-        ping_response = subprocess.Popen(cmd, stdout=subprocess.PIPE).stdout.read()
-        return ping_response
+        return subprocess.Popen(cmd, stdout=subprocess.PIPE).stdout.read()
 
     def prefix_str(self, s):
         """Add the name of the host to every line in s.splitlines()."""
@@ -263,7 +262,7 @@ class Cluster(object):
         """
         if self.exists(path): return 0
 
-        print("Will create remote dir %s" % path)
+        #print("Will create remote dir %s" % path)
         return self.ssh_exec("mkdir %s" % path).return_code
 
     def rmdir(self, path):
@@ -568,7 +567,7 @@ class RunCommand(cmd.Cmd, object):
         self._ALL_CLUSTERS = read_clusters()
         self.clusters = self._ALL_CLUSTERS.copy()
 
-        self.flows_db = FlowsDatabase()
+        self.flows_db = FlowsDatabase.from_user_config()
 
     def emptyline(self):
         """Disable the repetition of the last command."""
@@ -581,7 +580,7 @@ class RunCommand(cmd.Cmd, object):
             return False
 
         except:
-            print(straceback())
+            print(straceback(color="red"))
             return False
 
     def can_exit(self):
@@ -963,6 +962,10 @@ class FlowsDatabase(collections.MutableMapping):
             return [flow for flow in self[hostname]]
 
     def flowdirs(self, hostname, status=None):
+        """
+        List with the working directory of the flows executed on host hostname.
+        If status is not None, only the flows with the specified status are returned.
+        """
         if status is not None:
             return [flow.workdir for flow in self[hostname] if flow.status == status]
         else:

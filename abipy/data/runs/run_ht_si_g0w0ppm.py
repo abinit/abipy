@@ -10,7 +10,7 @@ import abipy.data as data
 from pymatgen.io.abinitio.abiobjects import AbiStructure
 from pymatgen.io.abinitio.calculations import g0w0_with_ppmodel
 from abipy import abilab
-from abipy.data.runs import enable_logging, AbipyTest, MixinTest
+from abipy.data.runs import AbipyTest, MixinTest
 
 
 class HtSiEbandsFlowTest(AbipyTest, MixinTest):
@@ -21,7 +21,7 @@ class HtSiEbandsFlowTest(AbipyTest, MixinTest):
     def setUp(self):
         super(HtSiEbandsFlowTest, self).setUp()
         self.init_dirs()
-        self.flow = htg0w0_flow(self.workdir)
+        self.flow = build_flow()
 
     # Remove all files except those matching these regular expression.
     #work[3].rename("out_SIGRES.nc", "si_g0w0ppm_SIGRES.nc")
@@ -30,12 +30,16 @@ class HtSiEbandsFlowTest(AbipyTest, MixinTest):
     #return tester.retcode
 
 
-def htg0w0_flow(workdir="tmp_ht_si_g0w0ppm"):
+def build_flow(options):
     structure = AbiStructure.asabistructure(data.cif_file("si.cif"))
 
     pseudos = data.pseudos("14si.pspnc")
 
-    manager = abilab.TaskManager.from_user_config()
+    # Working directory (default is the name of the script with '.py' removed)
+    workdir = os.path.basename(os.path.abspath(__file__).replace(".py", "")) if not options.workdir else options.workdir
+
+    # Instantiate the TaskManager.
+    manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
 
     # Initialize the flow.
     # FIXME
@@ -65,9 +69,9 @@ def htg0w0_flow(workdir="tmp_ht_si_g0w0ppm"):
     return flow.allocate()
     
 
-@enable_logging
-def main():
-    flow = htg0w0_flow()
+@abilab.flow_main
+def main(options):
+    flow = build_flow(options)
     return flow.build_and_pickle_dump()
 
 

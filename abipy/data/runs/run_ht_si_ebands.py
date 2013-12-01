@@ -21,7 +21,7 @@ class HtSiEbandsFlowTest(AbipyTest, MixinTest):
     def setUp(self):
         super(HtSiEbandsFlowTest, self).setUp()
         self.init_dirs()
-        self.flow = make_flow(self.workdir)
+        self.flow = build_flow()
 
     # Remove all files except those matching these regular expression.
     #work[0].rename("out_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
@@ -33,7 +33,7 @@ class HtSiEbandsFlowTest(AbipyTest, MixinTest):
     #work.rmtree(exclude_wildcard="*.abin|*.about|*_WFK*|*_GSR.nc|*DEN-etsf.nc")
 
 
-def make_flow(workdir="tmp_ht_si_ebands"):
+def build_flow(options):
     structure = AbiStructure.asabistructure(data.cif_file("si.cif"))
 
     scf_kppa = 40
@@ -49,7 +49,11 @@ def make_flow(workdir="tmp_ht_si_ebands"):
         istwfk="*1",
     )
 
-    manager = abilab.TaskManager.from_user_config()
+    # Working directory (default is the name of the script with '.py' removed)
+    workdir = os.path.basename(os.path.abspath(__file__).replace(".py", "")) if not options.workdir else options.workdir
+
+    # Instantiate the TaskManager.
+    manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
 
     # Initialize the flow.
     # FIXME  Abistructure is not pickleable with protocol -1
@@ -67,9 +71,10 @@ def make_flow(workdir="tmp_ht_si_ebands"):
     #                      smearing="fermi_dirac:0.1 eV", charge=0.0, scf_solver=None,
     #                      dos_kppa=dos_kppa)
 
-@enable_logging
-def main():
-    flow = make_flow()
+
+@abilab.flow_main
+def main(options):
+    flow = build_flow(options)
     return flow.build_and_pickle_dump()
 
 

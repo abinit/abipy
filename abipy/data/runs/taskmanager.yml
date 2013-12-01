@@ -25,7 +25,7 @@ shell_env:
     DYLD_LIBRARY_PATH: /opt/intel/composerxe-2011.0.085/mkl/lib/:/opt/intel/composerxe-2011.0.085/compiler/lib/:$DYLD_LIBRARY_PATH
 policy:
     autoparal: 1
-    max_ncpus: 4
+    max_ncpus: 2
     automemory: 0
     #mode: aggressive
     #condition: {mem_per_cpu: {$le: 10}}}

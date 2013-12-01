@@ -8,7 +8,7 @@ import numpy as np
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from abipy.data.runs import enable_logging, AbipyTest, MixinTest
+from abipy.data.runs import AbipyTest, MixinTest
 
 
 class LdausFlowTest(AbipyTest, MixinTest):
@@ -19,7 +19,7 @@ class LdausFlowTest(AbipyTest, MixinTest):
     def setUp(self):
         super(LdausFlowTest, self).setUp()
         self.init_dirs()
-        self.flow = bands_flow(workdir=self.workdir)
+        self.flow = build_flow()
 
 
 def make_scf_nscf_dos_inputs(structure, pseudos, luj_params):
@@ -82,8 +82,12 @@ def make_scf_nscf_dos_inputs(structure, pseudos, luj_params):
     return scf_input, nscf_input, dos_input
 
 
-def bands_flow(workdir="tmp_ldaus"):
-    manager = abilab.TaskManager.from_user_config()
+def build_flow(options):
+    # Working directory (default is the name of the script with '.py' removed)
+    workdir = os.path.basename(os.path.abspath(__file__).replace(".py", "")) if not options.workdir else options.workdir
+
+    # Instantiate the TaskManager.
+    manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
 
     flow = abilab.AbinitFlow(workdir, manager)
 
@@ -112,9 +116,9 @@ def bands_flow(workdir="tmp_ldaus"):
     return flow.allocate()
 
 
-@enable_logging
-def main():
-    flow = bands_flow()
+@abilab.flow_main
+def main(options):
+    flow = build_flow(options)
     return flow.build_and_pickle_dump()
 
 

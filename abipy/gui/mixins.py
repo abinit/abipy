@@ -14,6 +14,7 @@ from abipy.gui.structure import StructureConverterFrame
 from abipy.gui.converter import ConverterFrame
 #from abipy.gui.editor import SimpleTextViewer
 
+
 class Has_Structure(object):
     __metaclass__ = abc.ABCMeta
 

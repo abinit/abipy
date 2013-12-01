@@ -32,6 +32,10 @@ dev_tarballs = dict(
 #"http://download.savannah.gnu.org/releases/freetype/freetype-2.5.1.tar.gz",
 #)
 
+#wxpython = dict(
+#    http://downloads.sourceforge.net/wxpython/wxPython-src-2.9.5.0.tar.bz2
+#)
+
 # BLAS + LAPACK (if the host does not provide them).
 #linalg_tarballs = dict(
 #)

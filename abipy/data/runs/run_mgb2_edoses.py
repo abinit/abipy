@@ -5,10 +5,11 @@ Band structure and the electron DOS of MgB2 with different k-point samplings.
 from __future__ import division, print_function
 
 import os
+import sys
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from abipy.data.runs import enable_logging, AbipyTest, MixinTest
+from abipy.data.runs import AbipyTest, MixinTest
 
 class MgB2DosesFlowTest(AbipyTest, MixinTest):
     """
@@ -18,7 +19,7 @@ class MgB2DosesFlowTest(AbipyTest, MixinTest):
     def setUp(self):
         super(MgB2DosesFlowTest, self).setUp()
         self.init_dirs()
-        self.flow = build_bands_flow(workdir=self.workdir)
+        self.flow = build_flow()
 
 
 def make_scf_nscf_inputs(structure, pseudos):
@@ -61,7 +62,13 @@ def make_scf_nscf_inputs(structure, pseudos):
     return  inp.split_datasets()
 
 
-def build_bands_flow(workdir="tmp_mgb2_edoses"):
+def build_flow(options)
+    # Working directory (default is the name of the script with '.py' removed)
+    workdir = os.path.basename(os.path.abspath(__file__).replace(".py", "")) if not options.workdir else options.workdir
+
+    # Instantiate the TaskManager.
+    manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
+
     pseudos = data.pseudos("12mg.pspnc", "05b.soft_tm")
     structure = data.structure_from_ucell("MgB2")
 
@@ -71,16 +78,15 @@ def build_bands_flow(workdir="tmp_mgb2_edoses"):
     inputs = make_scf_nscf_inputs(structure, pseudos)
     scf_input, nscf_input, dos_inputs = inputs[0], inputs[1], inputs[2:]
     print(scf_input.pseudos)
-
-    manager = abilab.TaskManager.from_user_config()
                                                                
     flow = abilab.bandstructure_flow(workdir, manager, scf_input, nscf_input, dos_inputs=dos_inputs)
 
     return flow.allocate()
 
-@enable_logging
-def main():
-    flow = build_bands_flow()
+
+@abilab.flow_main
+def main(options):
+    flow = build_flow(options)
     return flow.build_and_pickle_dump()
 
 

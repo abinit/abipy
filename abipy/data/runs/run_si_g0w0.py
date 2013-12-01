@@ -7,7 +7,7 @@ import sys
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from abipy.data.runs import enable_logging, AbipyTest, MixinTest
+from abipy.data.runs import AbipyTest, MixinTest
 
 
 class SiG0W0FlowTest(AbipyTest, MixinTest):
@@ -18,7 +18,7 @@ class SiG0W0FlowTest(AbipyTest, MixinTest):
     def setUp(self):
         super(SiG0W0FlowTest, self).setUp()
         self.init_dirs()
-        self.flow = si_g0w0_flow(workdir=self.workdir)
+        self.flow = build_flow()
 
     #task.rename("out_DS4_SIGRES.nc", "si_g0w0ppm_nband10_SIGRES.nc")
     #task.rename("out_DS5_SIGRES.nc", "si_g0w0ppm_nband20_SIGRES.nc")
@@ -120,22 +120,24 @@ def make_inputs(ngkpt):
     return inp.split_datasets()
 
 
-def si_g0w0_flow(workdir="tmp_si_g0w0"):
+def build_flow(options):
+    # Working directory (default is the name of the script with '.py' removed)
+    workdir = os.path.basename(os.path.abspath(__file__).replace(".py", "")) if not options.workdir else options.workdir
+
+    # Instantiate the TaskManager.
+    manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
+
     # Change the value of ngkpt below to perform a GW calculation with a different k-mesh.
     scf, nscf, scr, sig1, sig2, sig3 = make_inputs(ngkpt=[2,2,2])
-
-    # Create the task defining the calculation and run it.
-    manager = abilab.TaskManager.from_user_config()
 
     flow = abilab.g0w0_flow(workdir, manager, scf, nscf, scr, [sig1, sig2, sig3])
     return flow
 
 
-@enable_logging
-def main():
-    flow = si_g0w0_flow()
+@abilab.flow_main
+def main(options):
+    flow = build_flow(options)
     return flow.build_and_pickle_dump()
-
 
 if __name__ == "__main__":
     sys.exit(main())

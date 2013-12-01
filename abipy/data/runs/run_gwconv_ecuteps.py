@@ -9,7 +9,7 @@ import numpy as np
 import abipy.abilab as abilab
 import abipy.data as abidata
 
-from abipy.data.runs import enable_logging, AbipyTest, MixinTest
+from abipy.data.runs import AbipyTest, MixinTest
 
 def make_inputs():
     """
@@ -74,7 +74,12 @@ def make_inputs():
 
     return inp.split_datasets()
 
-def build_flow(workdir="tmp_gwconv_ecuteps"):
+def build_flow(options):
+    # Working directory (default is the name of the script with '.py' removed)
+    workdir = os.path.basename(os.path.abspath(__file__).replace(".py", "")) if not options.workdir else options.workdir
+
+    # Instantiate the TaskManager.
+    manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
 
     # Get our templates
     scf_inp, nscf_inp, scr_inp, sig_inp = make_inputs()
@@ -82,8 +87,7 @@ def build_flow(workdir="tmp_gwconv_ecuteps"):
     ecuteps_list = np.arange(2, 8, 2)
     max_ecuteps = max(ecuteps_list)
 
-    manager = abilab.TaskManager.from_user_config()
-    flow = abilab.AbinitFlow(manager=manager, workdir=workdir)
+    flow = abilab.AbinitFlow(workdir=workdir, manager=manager)
 
     # Band structure workflow to produce the WFK file
     bands = abilab.BandStructureWorkflow(scf_inp, nscf_inp)
@@ -113,9 +117,9 @@ def build_flow(workdir="tmp_gwconv_ecuteps"):
     return flow.allocate()
 
 
-@enable_logging
-def main():
-    flow = build_flow()
+@abilab.flow_main
+def main(options):
+    flow = build_flow(options)
     return flow.build_and_pickle_dump()
 
 

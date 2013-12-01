@@ -263,7 +263,6 @@ class FileListFrame(awx.Frame):
         self.BuildUi()
 
     def BuildUi(self):
-
         self.main_sizer = main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         panel = FileListPanel(self, filepaths=self.all_filepaths)

@@ -11,7 +11,7 @@ import numpy as np
 import abipy.abilab as abilab
 import abipy.data as data  
 
-from abipy.data.runs import enable_logging, AbipyTest, MixinTest
+from abipy.data.runs import AbipyTest, MixinTest
 
 
 class RamanFlowTest(AbipyTest, MixinTest):
@@ -22,10 +22,22 @@ class RamanFlowTest(AbipyTest, MixinTest):
     def setUp(self):
         super(RamanFlowTest, self).setUp()
         self.init_dirs()
-        self.flow = raman_flow(workdir=self.workdir)
+        self.flow = build_flow(workdir=self.workdir)
 
 
-def raman_flow(workdir="tmp_raman"):
+def build_flow(options):
+    # Working directory (default is the name of the script with '.py' removed)
+    workdir = os.path.basename(os.path.abspath(__file__).replace(".py", "")) if not options.workdir else options.workdir
+
+    # Instantiate the TaskManager.
+    manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
+
+    # Initialize flow. Each workflow in the flow defines a complete BSE calculation for given eta.
+    #if workdir is None:
+    #    workdir = os.path.join(os.path.dirname(__file__), base_structure.formula.replace(" ","") + "_RAMAN")
+                                                                                                                 
+    flow = abilab.AbinitFlow(workdir, manager)
+
     pseudos = data.pseudos("14si.pspnc")
 
     # Get the unperturbed structure.
@@ -42,14 +54,6 @@ def raman_flow(workdir="tmp_raman"):
     modifier = abilab.StructureModifier(base_structure)
 
     displaced_structures = modifier.displace(ph_displ, etas, frac_coords=False)
-
-    # Initialize flow. Each workflow in the flow defines a complete BSE calculation for given eta.
-    if workdir is None:
-        workdir = os.path.join(os.path.dirname(__file__), base_structure.formula.replace(" ","") + "_RAMAN")
-
-    manager = abilab.TaskManager.from_user_config()
-
-    flow = abilab.AbinitFlow(workdir, manager)
 
     # Generate the different shifts to average
     ndiv = 2
@@ -129,11 +133,9 @@ def raman_workflow(structure, pseudos, shiftk):
     return abilab.BSEMDF_Workflow(scf_inp, nscf_inp, bse_inp)
 
 
-@enable_logging
-def main():
-    # Define the flow, build files and dirs 
-    # and save the object in cpickle format.
-    flow = raman_flow()
+@abilab.flow_main
+def main(options):
+    flow = build_flow(options)
     return flow.build_and_pickle_dump()
 
 

@@ -7,7 +7,7 @@
 # number of minutes to wait.
 #minutes:
 # number of seconds to wait.
-seconds: 2
+seconds: 10
 # when to first execute the job and start the counter (default is after the given interval).
 #start_date:
 # Send mail to the specified address (accepts string or list of strings).

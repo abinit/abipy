@@ -7,7 +7,7 @@ import sys
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from abipy.data.runs import enable_logging, AbipyTest, MixinTest
+from abipy.data.runs import AbipyTest, MixinTest
 from pseudo_dojo.dojo.deltaworks import DeltaFactory
 
 
@@ -19,16 +19,19 @@ class DeltaFactorFlowTest(AbipyTest, MixinTest):
     def setUp(self):
         super(DeltaFactorFlowTest, self).setUp()
         self.init_dirs()
-        self.flow = delta_flow(workdir=self.workdir)
+        self.flow = build_flow(workdir=self.workdir)
 
 
-def delta_flow(workdir="tmp_deltafactor"):
+def build_flow(options):
     # Path of the pseudopotential to test.
     #pseudo = data.pseudo("14si.pspnc")
     pseudo = data.pseudo("Si.GGA_PBE-JTH-paw.xml")
 
-    # Manager used to submit the jobs.
-    manager = abilab.TaskManager.from_user_config()
+    # Working directory (default is the name of the script with '.py' removed)
+    workdir = os.path.basename(os.path.abspath(__file__).replace(".py", "")) if not options.workdir else options.workdir
+
+    # Instantiate the TaskManager.
+    manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
 
     # Initialize the flow.
     # FIXME  Abistructure is not pickleable with protocol -1
@@ -61,10 +64,11 @@ def delta_flow(workdir="tmp_deltafactor"):
     return flow.allocate()
 
 
-@enable_logging
-def main():
-    flow = delta_flow()
+@abilab.flow_main
+def main(options):
+    flow = build_flow(options)
     return flow.build_and_pickle_dump()
+
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -25,7 +25,7 @@ GIT_REPOSDIR = USER_HOME + "/git_repos"
 git_urls = {
     "abipy":    "https://github.com/gmatteo/abipy.git",
     "pymatgen": "https://github.com/gmatteo/pymatgen.git",
-    "matplotlib": "https://github.com/matplotlib/matplotlib.git",
+    #"matplotlib": "https://github.com/matplotlib/matplotlib.git",
     #"abipy": "git@github.com:gmatteo/abipy.git",
     #"pymatgen": "git@github.com:gmatteo/pymatgen.git",
     #"matplotlib": "git@github.com:matplotlib/matplotlib.git",

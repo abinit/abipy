@@ -7,7 +7,7 @@ import os
 import abipy.data as abidata  
 import abipy.abilab as abilab
 
-from abipy.data.runs import enable_logging, AbipyTest, MixinTest
+from abipy.data.runs import AbipyTest, MixinTest
 
 class EbandsFlowTest(AbipyTest, MixinTest):
     """
@@ -88,9 +88,8 @@ def make_scf_nscf_inputs():
     return scf_input, nscf_input
 
 def build_flow(options):
-
-    # Working directory (default is name of the script with '.py' removed)
-    workdir = __file__.replace(".py", "") if not options.workdir else options.workdir
+    # Working directory (default is the name of the script with '.py' removed)
+    workdir = os.path.basename(os.path.abspath(__file__).replace(".py", "")) if not options.workdir else options.workdir
 
     # Instantiate the TaskManager.
     manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
