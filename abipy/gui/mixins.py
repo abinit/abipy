@@ -8,7 +8,7 @@ import abipy.gui.awx as awx
 import abipy.gui.electronswx as ewx
 
 from pymatgen.util.io_utils import which 
-from abipy.iotools.visualizer import supported_visunames 
+from abipy.iotools.visualizer import Visualizer
 from abipy.iotools.files import NcDumper
 from abipy.gui.structure import StructureConverterFrame
 from abipy.gui.converter import ConverterFrame
@@ -39,7 +39,10 @@ class Has_Structure(object):
         # Make sub-menu with the list of supported visualizers.
         visu_menu = wx.Menu()
         self._id2visuname = {}
-        for visu_name in supported_visunames():
+
+        available_visus = [visu.name for visu in Visualizer.get_available()]
+
+        for visu_name in available_visus:
             _id =  wx.NewId()
             visu_menu.Append(_id, visu_name)
             self._id2visuname[_id] = visu_name
@@ -55,9 +58,9 @@ class Has_Structure(object):
 
     def OnStructureVisualize(self, event):
         """"Call visualizer to visualize the crystalline structure."""
-        #print("eventID", event.GetId(), "map", self._id2visuname)
-
         visualizer = self._id2visuname[event.GetId()]
+        print("eventID", event.GetId(), "map", self._id2visuname, "visualizer", visualizer)
+
         try:
             visu = self.structure.visualize(visualizer)
                                                                                             

@@ -196,19 +196,23 @@ class Structure(pymatgen.Structure):
         """
         return self.hsym_kpath.get_kpath_plot(**kwargs)
 
-    def export(self, filename):
+    def export(self, filename, visu=None):
         """
-        Export the crystalline structure on file filename.
+        Export the crystalline structure on file filename. 
+
+        Args:
+            filename:
+                String specifying the file path and the file format.
+                The format is defined by the file extension. filename="prefix.xsf", for example, 
+                will produce a file in XSF format. An *empty* prefix, e.g. ".xsf" makes the code use a temporary file.
+            visu:
+               `Visualizer` subclass. By default, this method returns the first available
+                visualizer that supports the given file format. If visu is not None, an
+                instance of visu is returned. See :class:`Visualizer` for the list of 
+                applications and formats supported.
 
         Returns:
             Instance of :class:`Visualizer`
-
-        The format is defined by the extension in filename:
-        See :class:`Visualizer` for the list of applications and formats supported.
-
-            #. "prefix.xsf" for XcrysDen files.
-
-        An *empty* prefix, e.g. ".xsf" makes the code use a temporary file.
         """
         if "." not in filename:
             raise ValueError("Cannot detect extension in filename %s: " % filename)
@@ -219,7 +223,7 @@ class Structure(pymatgen.Structure):
         if not tokens[0]: 
             # filename == ".ext" ==> Create temporary file.
             import tempfile
-            filename = tempfile.mkstemp(suffix="."+ext, text=True)[1]
+            filename = tempfile.mkstemp(suffix="." + ext, text=True)[1]
 
         with open(filename, mode="w") as fh:
             if ext == "xsf": # xcrysden
@@ -227,24 +231,30 @@ class Structure(pymatgen.Structure):
             else:
                 raise Visualizer.Error("extension %s is not supported." % ext)
 
-        return Visualizer.from_file(filename)
+        if visu is None:
+            return Visualizer.from_file(filename)
+        else:
+            return visu(filename)
 
-    def visualize(self, visualizer):
+    def visualize(self, visu_name):
         """
         Visualize the crystalline structure with visualizer.
 
         See :class:`Visualizer` for the list of applications and formats supported.
         """
-        extensions = Visualizer.exts_from_appname(visualizer)
+        # Get the Visualizer subclass from the string.
+        visu = Visualizer.from_name(visu_name)
 
-        for ext in extensions:
+        # Try to export data to one of the formats supported by the visualizer
+        # Use a temporary file (note "." + ext)
+        for ext in visu.supported_extensions():
             ext = "." + ext
             try:
-                return self.export(ext)
-            except Visualizer.Error:
+                return self.export(ext, visu=visu)
+            except visu.Error:
                 pass
         else:
-            raise Visualizer.Error("Don't know how to export data for %s" % visualizer)
+            raise visu.Error("Don't know how to export data for %s" % visu_name)
 
     def to_abivars(self):
         """Returns a dictionary with the ABINIT variables."""
@@ -375,7 +385,6 @@ class Structure(pymatgen.Structure):
     #                    ovlp_sites = (site, other_site)
 
     #    return max_overlap, ovlp_sites
-
 
     def displace(self, displ, eta, frac_coords=True):
         """

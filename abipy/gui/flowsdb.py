@@ -1,6 +1,7 @@
 from __future__ import print_function, division
 
 import os
+import subprocess
 import wx
 
 import abipy.gui.awx as awx

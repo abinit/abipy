@@ -8,7 +8,6 @@ import abipy.gui.awx as awx
 from wx.py.shell import Shell
 from abipy.tools import marquee
 from abipy.abilab import abiopen
-from abipy.iotools.visualizer import supported_visunames
 from abipy.gui.mixins import Has_Structure, Has_Ebands, Has_Tools, Has_Netcdf
 
 
@@ -195,6 +194,8 @@ class WfkViewerFrame(awx.Frame, Has_Structure, Has_Ebands, Has_Tools, Has_Netcdf
         self.statusbar.PushStatusText("Visualizing wavefunction (spin=%d, kpoint=%s, band=%d)" % (spin, kpoint, band))
         try:
             visu = self.wfk.export_ur2(".xsf", spin, kpoint, band)
+            #visu = self.wfk.visualize(".xsf", spin, kpoint, band, visu_name)
+            visu = self.wfk.visualize_ur2(spin, kpoint, band, "vesta")
 
             thread = awx.WorkerThread(self, target=visu)
             thread.start()

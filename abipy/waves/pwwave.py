@@ -237,10 +237,25 @@ class PWWaveFunction(WaveFunction):
         else:
             raise ValueError("Wrong space: %s" % space)
 
-    def export_ur2(self, filename, structure):
+    def export_ur2(self, filename, structure, visu=None):
         """
-        Export the wavefunction on file filename.
-        Format is defined by the extension in filename.
+        Export u(r)**2 on file filename.
+
+        Args:
+            filename:
+                String specifying the file path and the file format.
+                The format is defined by the file extension. filename="prefix.xsf", for example, 
+                will produce a file in XSF format. An *empty* prefix, e.g. ".xsf" makes the code use a temporary file.
+            structure:
+                Structure object.
+            visu:
+               `Visualizer` subclass. By default, this method returns the first available
+                visualizer that supports the given file format. If visu is not None, an
+                instance of visu is returned. See :class:`Visualizer` for the list of 
+                applications and formats supported.
+
+        Returns:
+            Instance of :class:`Visualizer`
         """
         if "." not in filename:
             raise ValueError("Cannot detect file extension in: %s" % filename)
@@ -263,7 +278,30 @@ class PWWaveFunction(WaveFunction):
             else:
                 raise NotImplementedError("extension %s is not supported." % ext)
 
-        return Visualizer.from_file(filename)
+        if visu is None:
+            return Visualizer.from_file(filename)
+        else:
+            return visu(filename)
+
+    def visualize_ur2(self, structure, visu_name):
+        """
+        Visualize u(r)**2 visualizer.
+
+        See :class:`Visualizer` for the list of applications and formats supported.
+        """
+        # Get the Visualizer subclass from the string.
+        visu = Visualizer.from_name(visu_name)
+
+        # Try to export data to one of the formats supported by the visualizer
+        # Use a temporary file (note "." + ext)
+        for ext in visu.supported_extensions():
+            ext = "." + ext
+            try:
+                return self.export_ur2(ext, structure, visu=visu)
+            except visu.Error:
+                pass
+        else:
+            raise visu.Error("Don't know how to export data for %s" % visu_name)
 
     #def tkin(self):
     #    """Computes the matrix element of the kinetic operator in reciprocal space."""

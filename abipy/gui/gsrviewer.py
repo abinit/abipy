@@ -8,7 +8,6 @@ import abipy.gui.awx as awx
 from wx.py.shell import Shell
 from abipy.tools import marquee
 from abipy.abilab import abiopen
-from abipy.iotools.visualizer import supported_visunames
 from abipy.gui.mixins import Has_Structure, Has_Ebands, Has_Tools, Has_Netcdf
 from abipy.gui.kpoints import KpointsPanel
 

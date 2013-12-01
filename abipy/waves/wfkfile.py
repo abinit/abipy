@@ -149,7 +149,7 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
         return wave
 
-    def export_ur2(self, filepath, spin, kpoint, band):
+    def export_ur2(self, filepath, spin, kpoint, band, visu=None):
         """
         Export :math:`|u(r)|^2` on file filename.
 
@@ -160,24 +160,26 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         wave = self.get_wave(spin, kpoint, band)
 
         # Export data uding the format specified by filename.
-        return wave.export_ur2(filepath, self.structure)
+        if visu is None:
+            return wave.export_ur2(filepath, self.structure)
+        else:
+            return wave.export_ur2(filepath, self.structure, visu=visu)
 
-    #def visualize_ur2(self, spin, kpoint, band, visualizer):
-    #    """
-    #    Visualize :math:`|u(r)|^2`  with visualizer.
-    #    See :class:`Visualizer` for the list of applications and formats supported.
-    #    """
-    #    extensions = Visualizer.exts_from_appname(visualizer)
-    #
-    #    for ext in extensions:
-    #        ext = "." + ext
-    #        try:
-    #            return self.export_ur2(ext, spin, kpoint, band)
-    #        except Visualizer.Error:
-    #            pass
-    #    else:
-    #        msg = "Don't know how to export data for visualizer %s" % visualizer
-    #        raise Visualizer.Error(msg)
+    def visualize_ur2(self, spin, kpoint, band, visu_name):
+        """
+        Visualize :math:`|u(r)|^2`  with visualizer.
+        See :class:`Visualizer` for the list of applications and formats supported.
+        """
+        visu = Visualizer.from_name(visu_name)
+    
+        for ext in visu.supported_extensions():
+           ext = "." + ext
+           try:
+               return self.export_ur2(ext, spin, kpoint, band, visu=visu)
+           except visu.Error:
+               pass
+        else:
+            raise visu.Error("Don't know how to export data for visualizer %s" % visu_name)
 
     def classify_ebands(self, spin, kpoint, bands_range, tol_ediff=1e-3):
         """

@@ -211,9 +211,20 @@ class ScalarField(object):
     def export(self, filename):
         """
         Export the real space data on file filename. 
-        Format is defined by the extension in filename.
 
-        See :class:`Visualizer` for the list of applications and formats supported.
+        Args:
+            filename:
+                String specifying the file path and the file format.
+                The format is defined by the file extension. filename="prefix.xsf", for example, 
+                will produce a file in XSF format. An *empty* prefix, e.g. ".xsf" makes the code use a temporary file.
+            visu:
+               `Visualizer` subclass. By default, this method returns the first available
+                visualizer that supports the given file format. If visu is not None, an
+                instance of visu is returned. See :class:`Visualizer` for the list of 
+                applications and formats supported.
+
+        Returns:
+            Instance of :class:`Visualizer`
         """
         if "." not in filename:
             raise ValueError(" Cannot detect file extension in filename: %s " % filename)
@@ -233,24 +244,30 @@ class ScalarField(object):
             else:
                 raise NotImplementedError("extension %s is not supported." % ext)
 
-        return Visualizer.from_file(filename)
+        if visu is None:
+            return Visualizer.from_file(filename)
+        else:
+            return visu(filename)
 
-    def visualize(self, visualizer):
+    def visualize(self, visu_name):
         """
         Visualize data with visualizer.
 
         See :class:`Visualizer` for the list of applications and formats supported.
         """
-        extensions = Visualizer.exts_from_appname(visualizer)
-                                                                                                 
-        for ext in extensions:
+        visu = Visualizer.from_name(visu_name)
+
+
+        # Try to export data to one of the formats supported by the visualizer
+        # Use a temporary file (note "." + ext)
+        for ext in visu.supported_extensions():
             ext = "." + ext
             try:
-                return self.export(ext)
-            except Visualizer.Error:
+                return self.export(ext, visu=visu)
+            except visu.Error:
                 pass
         else:
-            raise Visualizer.Error("Don't know how to export data for visualizer %s" % visualizer)
+            raise visu.Error("Don't know how to export data for visualizer %s" % visualizer)
 
     #def get_line(self, line, space="r"):
     #    x, y, z = self.mesh.line_inds(line)

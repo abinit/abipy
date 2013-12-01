@@ -72,7 +72,7 @@ def make_scf_nscf_dos_inputs(structure, pseudos, luj_params):
         ngkpt=structure.calc_ngkpt(nksmall=8),      
         shiftk=[0.0, 0.0, 0.0],
         nshiftk=1,
-        towlfr=1.e-8,
+        tolwfr=1.e-8,
         #pawprtdos=1,
     )
 

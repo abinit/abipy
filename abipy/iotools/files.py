@@ -145,16 +145,16 @@ class Has_Structure(object):
 
         See :class:`Visualizer` for the list of applications and formats supported.
         """
-        extensions = Visualizer.exts_from_appname(visualizer)
+        visu = Visualizer.from_name(visu_name)
 
-        for ext in extensions:
+        for ext in visu.supported_extensions():
             ext = "." + ext
             try:
                 return self.export_structure(ext)
-            except Visualizer.Error:
+            except visu.Error:
                 pass
         else:
-            raise Visualizer.Error(
+            raise visu.Error(
                 "Don't know how to export data for visualizer %s" % visualizer)
 
 

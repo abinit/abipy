@@ -16,7 +16,7 @@ def ucell_names():
 
 
 def ucell(name):
-    """Returnn the entry in the database with the given name."""
+    """Return the entry in the database with the given name."""
     return _UCELLS[name].copy()
 
 

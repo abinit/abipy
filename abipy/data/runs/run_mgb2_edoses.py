@@ -62,7 +62,7 @@ def make_scf_nscf_inputs(structure, pseudos):
     return  inp.split_datasets()
 
 
-def build_flow(options)
+def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed)
     workdir = os.path.basename(os.path.abspath(__file__).replace(".py", "")) if not options.workdir else options.workdir
 
