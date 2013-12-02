@@ -12,7 +12,6 @@ from abipy.iotools.visualizer import Visualizer
 from abipy.iotools.files import NcDumper
 from abipy.gui.structure import StructureConverterFrame
 from abipy.gui.converter import ConverterFrame
-#from abipy.gui.editor import SimpleTextViewer
 
 
 class Has_Structure(object):
@@ -137,6 +136,7 @@ class Has_Netcdf(object):
     # Netcdf Menu ID's
     ID_NETCDF_NCDUMP = wx.NewId()
     ID_NETCDF_NCVIEW = wx.NewId()
+    ID_NETCDF_WXNCVIEW = wx.NewId()
 
     @abc.abstractproperty
     def nc_filepath(self):
@@ -150,6 +150,9 @@ class Has_Netcdf(object):
 
         menu.Append(self.ID_NETCDF_NCVIEW, "ncview", "Call ncview")
         self.Bind(wx.EVT_MENU, self.OnNetcdf_NcView, id=self.ID_NETCDF_NCVIEW)
+
+        menu.Append(self.ID_NETCDF_WXNCVIEW, "wxncview", "Call wxncview")
+        self.Bind(wx.EVT_MENU, self.OnNetcdf_WxNcView, id=self.ID_NETCDF_WXNCVIEW)
                                                                                             
         return menu
 
@@ -173,4 +176,9 @@ class Has_Netcdf(object):
             thread.start()
         except:
             awx.showErrorMessage(self)
+
+    def OnNetcdf_WxNcView(self, event):
+        """Open wxncview frame."""
+        from abipy.gui.wxncview import NcViewFrame
+        NcViewFrame(None, filepaths=self.nc_filepath).Show()
 

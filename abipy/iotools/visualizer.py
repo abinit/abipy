@@ -12,41 +12,6 @@ __all__ = [
     "Visualizer",
 ]
 
-# cmdarg is the command line option that has to be provided to visualize a file with the given extension.
-#App = namedtuple("App", "name cmdarg")
-#
-## One-to-many mapping file extension --> applications
-#_EXT2APPS = OrderedDict({
-#    "xsf": [App("xcrysden", "--xsf"),
-#            App("v_sim", ""),
-#            App("VESTA", ""),
-#            ],
-#
-#    "bxsf": [App("xcrysden", "--bxsf"),
-#             ],
-#})
-#
-## One-to-many mapping: app_name --> file extensions supported.
-#appname2exts = {}
-#
-#for (ext, applications) in _EXT2APPS.items():
-#    for app in applications:
-#        aname = app.name
-#        if aname not in appname2exts:
-#            appname2exts[aname] = [ext]
-#        else:
-#            appname2exts[aname].append(ext)
-#
-#
-#for aname in appname2exts: # Remove duplicated entries
-#    appname2exts[aname] = set(appname2exts[aname])
-#
-#
-#def supported_visunames():
-#    """List of strings with the name of the supported visualizers."""
-#    return list(appname2exts.keys())
-
-
 def is_macosx():
     """True if we are running on Mac."""
     return "darwin" in sys.platform
@@ -91,94 +56,8 @@ class VisualizerError(AbipyException):
     """Base class for Visualizer errors"""
 
 
-#class Visualizer(object):
-#    """
-#    Handle the visualization of data.
-#    """
-#    Error = VisualizerError
-#
-#    def __init__(self, filename, executable, cmdarg=""):
-#        """
-#        Args:
-#            filename: 
-#                Name of the file to visualize
-#            executable: 
-#                Name of the visualizer (absolute path or simple name).
-#            cmdarg: 
-#                command line option passed to the visualizer.
-#        """
-#        self.executable = which(executable)
-#        self.filename = os.path.abspath(filename)
-#        self.cmdarg = cmdarg
-#
-#    def __str__(self):
-#        return "%s" % self.executable
-#
-#    def __call__(self):
-#        return self.show()
-#
-#    @classmethod
-#    def from_file(cls, filename):
-#        """
-#        Initialize the instance from filename, application is chosen automatically 
-#        depending on the file extension.
-#        """
-#        root, ext = os.path.splitext(filename)
-#
-#        if not ext:
-#            raise cls.Error("Cannot detect file extension in %s " % filename)
-#
-#        try:
-#            app, executable = cls.app_path_from_ext(ext)
-#
-#        except Exception as exc:
-#            raise cls.Error(str(exc))
-#
-#        return Visualizer(filename, executable, app.cmdarg)
-#
-#    @staticmethod
-#    def app_path_from_ext(ext):
-#        """Return the absolute path of the first (available) application that supports extension ext"""
-#        if ext.startswith("."): 
-#            ext = ext[1:]
-#
-#        try:
-#            apps = _EXT2APPS[ext]
-#        except KeyError:
-#            raise self.Error("Don't know how to handle extension: %s" % ext)
-#
-#        for app in apps:
-#            executable = which(app.name)
-#            if executable is not None:
-#                return app, executable
-#        else:
-#            raise self.Error("No executable found for file: %s" % filename)
-#
-#    @staticmethod
-#    def exts_from_appname(app_name):
-#        """Return the set of extensions supported by app_name"""
-#        name = os.path.basename(app_name)
-#        try:
-#            return appname2exts[name]
-#        except KeyError:
-#            raise self.Error("application %s is not supported" % app_name)
-#
-#    def show(self):
-#        """
-#        Call the visualizer in a subprocess to visualize the data.
-#
-#        Returns: exit status of the subprocess.
-#        """
-#        #print("Executing: ", self.executable, self.cmdarg, self.filename)
-#        from subprocess import call
-#        return call([self.executable, self.cmdarg, self.filename])
-#
-#        # NOTE: Mac-OSx applications can be launched with
-#        #open -a Vesta --args /Users/gmatteo/Coding/abipy/abipy/data/cifs/si.cif
-
-
-
 class MetaClass(type):
+    """Provides str representation of the class."""
     def __str__(self):
         return "%s: bin: %s, macosx_app: %s" % (self.__class__.__name__, self.bin, self.is_macosx_app)
 
@@ -189,7 +68,8 @@ class Visualizer(object):
     """
     __metaclass__ = MetaClass
 
-    # True if its a MacOsx applications (default is unix executable).
+    # True if its a Mac OsX applications (default is unix executable).
+    # If we have a Mac OsX application we have to run it with "open -a app_name --args"
     is_macosx_app = False
     
     Error = VisualizerError
@@ -208,7 +88,7 @@ class Visualizer(object):
 
     def __call__(self):
         """
-        Call the visualizer in a subprocess to visualize the data.
+        Call the visualizer in a subprocess.
 
         Returns: exit status of the subprocess.
         """
@@ -227,6 +107,7 @@ class Visualizer(object):
 
     @property
     def cmdarg(self):
+        """Arguments that must be used to visualize the file."""
         root, ext = os.path.splitext(self.filepath)
         ext = ext.replace(".", "")
         #print(root, ext)
@@ -281,10 +162,12 @@ class Visualizer(object):
 
     @classmethod
     def supported_extensions(cls):
+        """List of file extensions supported by the visualizer."""
         return [e for (e, args) in cls.EXTS]
 
     @classmethod
     def from_name(cls, visu_name):
+        """Return the visualizer class from the name of the application."""
         for visu in cls.__subclasses__(): 
             if visu.name == visu_name:
                 return visu
@@ -332,13 +215,10 @@ class Vesta(Visualizer):
 #    ]
 
 if __name__ == "__main__":
-    #print("ismac", is_macosx())
-    print("available:") 
-    for visu in _Visualizer.get_available():
-        print(visu)
+    print("available visualizers:") 
+    for visu in _Visualizer.get_available(): print(visu)
     import sys
     filename = sys.argv[1]
     v = Xcrysden(filename)
     v = Vesta(filename)
     v()
-

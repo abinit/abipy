@@ -8,6 +8,7 @@ import abipy.gui.awx as awx
 from wx.py.shell import Shell
 from abipy.tools import marquee
 from abipy.abilab import abiopen
+from abipy.iotools.visualizer import Visualizer
 from abipy.gui.mixins import Has_Structure, Has_Ebands, Has_Tools, Has_Netcdf
 
 
@@ -59,7 +60,15 @@ class WfkViewerFrame(awx.Frame, Has_Structure, Has_Ebands, Has_Tools, Has_Netcdf
         artBmp = wx.ArtProvider.GetBitmap
         toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, tsize), "Open")
         toolbar.AddSimpleTool(ID_VISWAVE, bitmap("wfk.png"), "Visualize the selected wavefunction")
-        #toolbar.AddSeparator()
+        toolbar.AddSeparator()
+
+        # Combo box with the list of visualizers
+        avail_visunames = [visu.name for visu in Visualizer.get_available()]
+        value = avail_visunames[0] if avail_visunames else "None"
+        self.visualizer_cbox = wx.ComboBox(choices=avail_visunames, id=-1, name='visualizer', parent=toolbar, value=value) 
+        self.visualizer_cbox.Refresh() 
+        toolbar.AddControl(control=self.visualizer_cbox) 
+
         self.toolbar.Realize()
         self.Centre()
 
@@ -179,6 +188,10 @@ class WfkViewerFrame(awx.Frame, Has_Structure, Has_Ebands, Has_Tools, Has_Netcdf
         awx.makeAboutBox(codename=self.codename, version=self.VERSION,
                          description="", developers="M. Giantomassi")
 
+    def GetVisualizer(self):
+        """Returns a string with the visualizer selected by the user."""
+        return self.visualizer_cbox.GetValue()
+
     def OnVisualizeWave(self, event):
         """Visualize :math:`|u(r)|^2`."""
         if self.wfk is None: return
@@ -189,13 +202,13 @@ class WfkViewerFrame(awx.Frame, Has_Structure, Has_Ebands, Has_Tools, Has_Netcdf
         """Calls the visualizer to visualize the specified wavefunction."""
         # To make the Gui responsive one can use the approach described in 
         # http://wiki.wxpython.org/LongRunningTasks
+        visu_name = self.GetVisualizer()
+        if visu_name == "None": return
 
-        #visualizer = self.GetVisualizer()
         self.statusbar.PushStatusText("Visualizing wavefunction (spin=%d, kpoint=%s, band=%d)" % (spin, kpoint, band))
         try:
-            visu = self.wfk.export_ur2(".xsf", spin, kpoint, band)
-            #visu = self.wfk.visualize(".xsf", spin, kpoint, band, visu_name)
-            visu = self.wfk.visualize_ur2(spin, kpoint, band, "vesta")
+            #visu = self.wfk.export_ur2(".xsf", spin, kpoint, band)
+            visu = self.wfk.visualize_ur2(spin, kpoint, band, visu_name=visu_name)
 
             thread = awx.WorkerThread(self, target=visu)
             thread.start()

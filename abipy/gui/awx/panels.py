@@ -38,7 +38,6 @@ class SpinKpointBandPanel(Panel):
         self.BuildUi()
 
     def BuildUi(self):
-
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         hsizer1 = wx.BoxSizer(wx.HORIZONTAL)

@@ -13,3 +13,4 @@ from .fftprof import wxapp_fftprof
 from .flowviewer import wxapp_flow_viewer
 from .flowsdb import wxapp_flowsdb_viewer
 from .gsrviewer import wxapp_gsrviewer
+from .wxncview import wxapp_ncview
