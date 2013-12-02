@@ -7,10 +7,10 @@ import netCDF4
 
 import abipy.gui.awx as awx
 import wx.lib.mixins.listctrl as listmix
+import wx.lib.agw.flatnotebook as fnb
 #import wx.lib.dialogs as wxdg
 
 from wxmplot import PlotFrame, ImageFrame
-
 from abipy.tools.text import list_strings #is_string , 
 #from collections import OrderedDict
 
@@ -40,7 +40,8 @@ class NcViewFrame(wx.Frame):
 
         # Create the notebook contents
         panel = wx.Panel(self, -1)
-        self.notebook = wx.Notebook(panel, -1)
+        #self.notebook = fnb.FlatNotebook(panel, -1, style=fnb.FNB_NO_X_BUTTON | fnb.FNB_NAV_BUTTONS_WHEN_NEEDED)
+        self.notebook = fnb.FlatNotebook(panel, -1, style=fnb.FNB_NAV_BUTTONS_WHEN_NEEDED)
 
         for dataset in self.datasets:
             tab = NcFileTab(self.notebook, dataset)
@@ -50,7 +51,7 @@ class NcViewFrame(wx.Frame):
         sizer.Add(self.notebook, 1, wx.EXPAND, 5)
         panel.SetSizerAndFit(sizer)
 
-        self.Bind(wx.EVT_CLOSE, self.onQuit)
+        self.Bind(wx.EVT_CLOSE, self.OnExit)
         #self.Bind(events.EVT_DIRECTORY_CHANGE, self.onDirectoryChange)
 
     def makeMenu(self):
@@ -76,9 +77,9 @@ class NcViewFrame(wx.Frame):
         file_menu.AppendSeparator()
         file_menu.Append(self.idEXIT, "E&xit", "Exit wxnciew")
 
-        #self.Bind(wx.EVT_MENU, self.OnOpen, id=self.idOPEN)
-        #self.Bind(wx.EVT_MENU, self.OnClose, id=self.idCLOSE)
-        #self.Bind(wx.EVT_MENU, self.OnExit, id=self.idEXIT)
+        self.Bind(wx.EVT_MENU, self.OnOpen, id=self.idOPEN)
+        self.Bind(wx.EVT_MENU, self.OnClose, id=self.idCLOSE)
+        self.Bind(wx.EVT_MENU, self.OnExit, id=self.idEXIT)
         return file_menu
 
     def createHelpMenu(self):
@@ -131,7 +132,39 @@ class NcViewFrame(wx.Frame):
     #    about = aboutwin.AboutWindow(self)
     #    ret = about.ShowModal()
 
-    def onQuit(self, event):
+    #    awx.makeAboutBox(codename=self.codename, version=self.VERSION,
+    #                     description="", developers="M. Giantomassi")
+
+    def OnOpen(self, event):
+        """Open netcdf file."""
+        dialog = wx.FileDialog(self, wildcard="*.nc")
+        if dialog.ShowModal() == wx.ID_CANCEL: return 
+
+        path = dialog.GetPath()
+
+        #self.notebook.AddPage(text_ctrl, filename, select=True)
+
+    def OnClose(self, event):
+        """Close netcdf file, remote the tab from the notebook."""
+        notebook = self.notebook
+        if notebook.GetPageCount() == 0: return
+        idx = notebook.GetSelection()
+        if idx == -1: return None
+        print("idx", idx)
+
+        #notebook.DeletePage(idx)
+
+        # See
+        # http://stackoverflow.com/questions/16854332/how-to-delete-a-notebook-page?rq=1
+        #def delPage(self, pageTitle):
+        #    for index in range(self.dataNoteBook.GetPageCount()):
+        #        if self.dataNoteBook.GetPageText(index) == pageTitle:
+        #            self.dataNoteBook.DeletePage(index)
+        #            self.dataNoteBook.SendSizeEvent()
+        #            break
+
+
+    def OnExit(self, event):
         """Exits the application."""
         self.Destroy()
 
