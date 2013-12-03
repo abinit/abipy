@@ -101,7 +101,7 @@ class GsrViewerFrame(awx.Frame, Has_Structure, Has_Ebands, Has_Tools, Has_Netcdf
         gsr = self.gsr
         if gsr is None: return
 
-        splitter = wx.SplitterWindow(self, style=wx.SP_LIVE_UPDATE)
+        splitter = wx.SplitterWindow(self, id=-1, style=wx.SP_LIVE_UPDATE)
         splitter.SetMinimumPaneSize(50)
         parent = splitter 
         #parent = self

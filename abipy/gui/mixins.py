@@ -10,6 +10,7 @@ import abipy.gui.electronswx as ewx
 from pymatgen.util.io_utils import which 
 from abipy.iotools.visualizer import Visualizer
 from abipy.iotools.files import NcDumper
+from abipy.electrons.ebands import ElectronBandsPlotter, ElectronDosPlotter
 from abipy.gui.structure import StructureConverterFrame
 from abipy.gui.converter import ConverterFrame
 
@@ -17,17 +18,17 @@ from abipy.gui.converter import ConverterFrame
 class Has_Structure(object):
     __metaclass__ = abc.ABCMeta
 
-    # Structure Menu ID's
-    ID_STRUCT_CONVERT = wx.NewId()
-    ID_STRUCT_VISUALIZE = wx.NewId()
-    ID_STRUCT_SHOWBZ = wx.NewId()
-
     @abc.abstractproperty
     def structure(self):
         """Structure object."""
 
     def CreateStructureMenu(self):
         """Creates the structure menu."""
+        # Structure Menu ID's
+        self.ID_STRUCT_CONVERT = wx.NewId()
+        self.ID_STRUCT_VISUALIZE = wx.NewId()
+        self.ID_STRUCT_SHOWBZ = wx.NewId()
+
         menu = wx.Menu()
         menu.Append(self.ID_STRUCT_CONVERT, "Convert", "Convert structure data to cif, POSCAR ...")
         self.Bind(wx.EVT_MENU, self.OnStructureConvert, id=self.ID_STRUCT_CONVERT)
@@ -52,16 +53,16 @@ class Has_Structure(object):
         return menu
 
     def OnStructureConvert(self, event):
-        """Processes a connect initiation event. is initiated."""
+        """Open new frame that allows the user to convert the structure."""
         StructureConverterFrame(self, self.structure).Show()
 
     def OnStructureVisualize(self, event):
-        """"Call visualizer to visualize the crystalline structure."""
-        visualizer = self._id2visuname[event.GetId()]
-        print("eventID", event.GetId(), "map", self._id2visuname, "visualizer", visualizer)
+        """"Call the visualizer to visualize the crystalline structure."""
+        visu_name = self._id2visuname[event.GetId()]
+        print("eventID", event.GetId(), "map", self._id2visuname, "visu_name", visu_name)
 
         try:
-            visu = self.structure.visualize(visualizer)
+            visu = self.structure.visualize(visu_name)
                                                                                             
             thread = awx.WorkerThread(self, target=visu)
             thread.start()
@@ -77,17 +78,17 @@ class Has_Structure(object):
 class Has_Ebands(object):
     __metaclass__ = abc.ABCMeta
 
-    # Ebands Menu ID's
-    ID_EBANDS_PLOT = wx.NewId()
-    ID_EBANDS_DOS = wx.NewId()
-    ID_EBANDS_JDOS = wx.NewId()
-
     @abc.abstractproperty
     def ebands(self):
         """`Electron Bands object."""
 
     def CreateEbandsMenu(self):
         """Creates the ebands menu."""
+        # Ebands Menu ID's
+        self.ID_EBANDS_PLOT = wx.NewId()
+        self.ID_EBANDS_DOS = wx.NewId()
+        self.ID_EBANDS_JDOS = wx.NewId()
+
         menu = wx.Menu()
         menu.Append(self.ID_EBANDS_PLOT, "Plot ebands", "Plot electron bands with matplotlib")
         self.Bind(wx.EVT_MENU, self.OnEbandsPlot, id=self.ID_EBANDS_PLOT)
@@ -110,16 +111,108 @@ class Has_Ebands(object):
         """Open Frame for the computation of the JDOS."""
         ewx.ElectronJdosFrame(self, bands=self.ebands).Show()
 
+    #def OnFermiSurface(self, event):
+    #    """Visualize the Fermi surface."""
+    #    try:
+    #        visu = self.ebands.export_bxsf(".bxsf")
+    #                                                                                        
+    #        thread = awx.WorkerThread(self, target=visu)
+    #        thread.start()
+    #                                                                                        
+    #    except:
+    #        awx.showErrorMessage(self)
+
+
+class Has_MultipleEbands(Has_Ebands):
+    """
+    Mixin class from GUIs that handle multiple objects with `ElectronBands`.
+    """
+    __metaclass__ = abc.ABCMeta
+
+    def CreateEbandsMenu(self):
+        """Creates the ebands menu."""
+        menu = super(Has_MultipleEbands, self).CreateEbandsMenu()
+        menu.AppendSeparator()
+
+        # Multiple Ebands Menu ID's
+        self.ID_MULTI_EBANDS_PLOT = wx.NewId()
+        self.ID_MULTI_EBANDS_DOS = wx.NewId()
+        #self.ID_MULTI_EBANDS_JDOS = wx.NewId()
+                                                                                               
+        menu.Append(self.ID_MULTI_EBANDS_PLOT, "Compare ebands", "Plot multiple electron bands")
+        self.Bind(wx.EVT_MENU, self.OnCompareEbands, id=self.ID_MULTI_EBANDS_PLOT)
+        menu.Append(self.ID_MULTI_EBANDS_DOS, "Compare DOSes", "Compare multiple electron DOSes")
+        self.Bind(wx.EVT_MENU, self.OnCompareEdos, id=self.ID_MULTI_EBANDS_DOS)
+        #menu.Append(self.ID_MULTI_EBANDS_JDOS, "Compare JDOSes", "Compare multiple electron JDOSes")
+        #self.Bind(wx.EVT_MENU, self.OnCompareJdos, id=self.ID_MULTI_EBANDS_JDOS)
+
+        return menu
+
+    @abc.abstractproperty
+    def ebands_list(self):
+        """Return a list of `ElectronBands`."""
+
+    @abc.abstractproperty
+    def ebands_filepaths(self):
+        """
+        Return a list with the absolute paths of the files 
+        from which the `ElectronBands` have been read.
+        """
+
+    def OnCompareEbands(self, event):
+        """Plot multiple electron bands"""
+        plotter = ElectronBandsPlotter()
+
+        for path, ebands in zip(self.ebands_filepaths, self.ebands_list):
+            label = os.path.relpath(path)
+            plotter.add_ebands(label, ebands)
+
+        plotter.plot()
+
+    def OnCompareEdos(self, event):
+        """Plot multiple electron DOSes"""
+        dialog = ewx.ElectronDosDialog(self)
+        if dialog.ShowModal() == wx.ID_CANCEL: return 
+        params = dialog.GetParams()
+
+        plotter = ElectronDosPlotter()
+        for path, ebands in zip(self.ebands_filepaths, self.ebands_list):
+            edos = ebands.get_edos(**params)
+            label = os.path.relpath(path)
+            plotter.add_edos(label, edos)
+                                              
+        plotter.plot()
+
+    #def OnCompareJdos(self, event):
+        #"""Plot multiple electron JDOSes"""
+        #dialog = ElectronJdosDialog(self, nsppol, mband)
+        #params = dialog.GetParams()
+
+        #plotter = ElectronBandsPlotter()
+        #for ebands in self.ebands_list:
+        #    jos = ebands.get_edos(**params)
+        #    plotter.add_edos(label, edos)
+        #                                      
+        #plotter.plot()
+
 
 #class Has_Kpoints(object):
+#    """
+#    Mixin class from GUIs with kpoints
+#    """
+#    __metaclass__ = abc.ABCMeta
+#
+#    @abc.abstractproperty
+#    def kpoints(self):
+#        """`Kpoints` object."""
 
 class Has_Tools(object):
 
-    # Tools Menu ID's
-    ID_TOOLS_UNIT_CONVERTER = wx.NewId()
-
     def CreateToolsMenu(self):
         """Creates the ebands menu."""
+        # Tools Menu ID's
+        self.ID_TOOLS_UNIT_CONVERTER = wx.NewId()
+
         menu = wx.Menu()
         menu.Append(self.ID_TOOLS_UNIT_CONVERTER, "Unit converter", "Unit Converter")
         self.Bind(wx.EVT_MENU, self.OnTools_UnitConverter, id=self.ID_TOOLS_UNIT_CONVERTER)
@@ -133,17 +226,17 @@ class Has_Tools(object):
 class Has_Netcdf(object):
     __metaclass__ = abc.ABCMeta
 
-    # Netcdf Menu ID's
-    ID_NETCDF_NCDUMP = wx.NewId()
-    ID_NETCDF_NCVIEW = wx.NewId()
-    ID_NETCDF_WXNCVIEW = wx.NewId()
-
     @abc.abstractproperty
     def nc_filepath(self):
         """String with the absolute path of the netcdf file."""
 
     def CreateNetcdfMenu(self):
         """Creates the ebands menu."""
+        # Netcdf Menu ID's
+        self.ID_NETCDF_NCDUMP = wx.NewId()
+        self.ID_NETCDF_NCVIEW = wx.NewId()
+        self.ID_NETCDF_WXNCVIEW = wx.NewId()
+
         menu = wx.Menu()
         menu.Append(self.ID_NETCDF_NCDUMP, "ncdump", "Show the output of ncdump")
         self.Bind(wx.EVT_MENU, self.OnNetcdf_NcDump, id=self.ID_NETCDF_NCDUMP)
@@ -180,5 +273,5 @@ class Has_Netcdf(object):
     def OnNetcdf_WxNcView(self, event):
         """Open wxncview frame."""
         from abipy.gui.wxncview import NcViewFrame
-        NcViewFrame(None, filepaths=self.nc_filepath).Show()
+        NcViewFrame(self, filepaths=self.nc_filepath).Show()
 

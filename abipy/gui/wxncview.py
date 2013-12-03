@@ -11,8 +11,7 @@ import wx.lib.agw.flatnotebook as fnb
 import wx.lib.dialogs as wxdg
 
 from wxmplot import PlotFrame, ImageFrame
-from abipy.tools.text import list_strings #is_string , 
-#from collections import OrderedDict
+from abipy.tools.text import list_strings 
 
 
 class AttrDict(dict):
@@ -39,6 +38,7 @@ def getSelected(wxlist):
             break
         selected.append(item)
     return selected
+
 
 def getColumnText(wxlist, index, col):
     """Gets the text from the specified column entry in a list."""
@@ -75,25 +75,20 @@ class NcViewFrame(wx.Frame):
         self.statusbar = self.CreateStatusBar()
 
         # Open netcdf files.
-        filepaths, datasets, exceptions = list_strings(filepaths), [], []
+        filepaths, datasets = list_strings(filepaths), []
         filepaths = map(os.path.abspath, filepaths)
-        for path in filepaths:
-            try:
-                datasets.append(netCDF4.Dataset(path, mode="r"))
-                self.AddFileToHistory(path)
-            except Exception as exc:
-                exceptions.append(exc)
 
-        if exceptions:
-            print(exceptions)
+        for path in filepaths:
+            datasets.append(netCDF4.Dataset(path, mode="r"))
+            self.AddFileToHistory(path)
 
         # Create the notebook (each file will have its own tab).
         panel = wx.Panel(self, -1)
         self.notebook = fnb.FlatNotebook(panel, -1, style=fnb.FNB_NAV_BUTTONS_WHEN_NEEDED)
 
-        for dataset in datasets:
+        for path, dataset in zip(filepaths, datasets):
             tab = NcFileTab(self.notebook, dataset)
-            self.notebook.AddPage(tab, os.path.basename(dataset.filepath()))
+            self.notebook.AddPage(tab, os.path.basename(path))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.notebook, 1, wx.EXPAND, 5)
@@ -249,7 +244,7 @@ class NcViewFrame(wx.Frame):
             notebook = self.notebook
             dataset = netCDF4.Dataset(filepath, mode="r")
             tab = NcFileTab(notebook, dataset)
-            notebook.AddPage(tab, os.path.basename(dataset.filepath()))
+            notebook.AddPage(tab, os.path.basename(filepath))
             # don't know why but this does not work!
             notebook.Refresh()
             notebook.SetSelection(notebook.GetPageCount())
@@ -261,6 +256,7 @@ class NcViewFrame(wx.Frame):
         """Open FileDialog to allow the user to select a netcdf file."""
         dialog = wx.FileDialog(self, wildcard="*.nc")
         if dialog.ShowModal() == wx.ID_CANCEL: return 
+
         filepath = os.path.abspath(dialog.GetPath())
         self.read_file(filepath)
 
