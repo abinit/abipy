@@ -20,4 +20,4 @@ tensor_exc.symmetrize(mdf_file.structure)
 tensor_exc.plot(title=title)
 
 title = "Si macroscopic dielectric tensor (Cartesian coord)"
-tensor_exc.plot(title=title,red_coords=False)
+tensor_exc.plot(title=title, red_coords=False)

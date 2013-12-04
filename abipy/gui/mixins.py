@@ -49,7 +49,6 @@ class Has_Structure(object):
             self.Bind(wx.EVT_MENU, self.OnStructureVisualize, id=_id)
                                                                                                                      
         menu.AppendMenu(-1, 'Visualize', visu_menu)
-                                                                                                                     
         return menu
 
     def OnStructureConvert(self, event):
@@ -59,7 +58,7 @@ class Has_Structure(object):
     def OnStructureVisualize(self, event):
         """"Call the visualizer to visualize the crystalline structure."""
         visu_name = self._id2visuname[event.GetId()]
-        print("eventID", event.GetId(), "map", self._id2visuname, "visu_name", visu_name)
+        #print("eventID", event.GetId(), "map", self._id2visuname, "visu_name", visu_name)
 
         try:
             visu = self.structure.visualize(visu_name)
@@ -162,29 +161,32 @@ class Has_MultipleEbands(Has_Ebands):
     def OnCompareEbands(self, event):
         """Plot multiple electron bands"""
         plotter = ElectronBandsPlotter()
-
         for path, ebands in zip(self.ebands_filepaths, self.ebands_list):
             label = os.path.relpath(path)
             plotter.add_ebands(label, ebands)
-
         plotter.plot()
 
     def OnCompareEdos(self, event):
         """Plot multiple electron DOSes"""
+        # Open dialog to get DOS parameters.
         dialog = ewx.ElectronDosDialog(self)
         if dialog.ShowModal() == wx.ID_CANCEL: return 
         params = dialog.GetParams()
 
         plotter = ElectronDosPlotter()
         for path, ebands in zip(self.ebands_filepaths, self.ebands_list):
-            edos = ebands.get_edos(**params)
-            label = os.path.relpath(path)
-            plotter.add_edos(label, edos)
-                                              
+            try:
+                edos = ebands.get_edos(**params)
+                label = os.path.relpath(path)
+                plotter.add_edos(label, edos)
+            except:
+                awx.showErrorMessage(self)
+
         plotter.plot()
 
     #def OnCompareJdos(self, event):
         #"""Plot multiple electron JDOSes"""
+        # Open dialog to get DOS parameters.
         #dialog = ElectronJdosDialog(self, nsppol, mband)
         #params = dialog.GetParams()
 

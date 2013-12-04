@@ -2,6 +2,7 @@ from __future__ import print_function, division
 
 import os
 import wx
+
 import wx.lib.agw.flatnotebook as fnb
 import abipy.gui.awx as awx
 
@@ -12,10 +13,6 @@ from abipy.iotools.visualizer import Visualizer
 from abipy.gui import mixins as mix 
 
 
-ID_VISWAVE = wx.NewId()
-
-
-#class WfkViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_Ebands, mix.Has_Tools, mix.Has_Netcdf):
 class WfkViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.Has_Tools, mix.Has_Netcdf):
     VERSION = "0.1"
 
@@ -39,14 +36,17 @@ class WfkViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
         self.makeToolBar()
         self.statusbar = self.CreateStatusBar()
 
+        # FIXME
         # Associate menu/toolbar items with their handlers.
+        self.ID_VISWAVE = wx.NewId()
+
         menu_handlers = [
             (wx.ID_OPEN, self.OnOpen),
             #(wx.ID_CLOSE, self.OnClose),
             #(wx.ID_EXIT, self.OnExit),
             (wx.ID_ABOUT, self.OnAboutBox),
             #
-            (ID_VISWAVE, self.OnVisualizeWave),
+            (self.ID_VISWAVE, self.OnVisualizeWave),
         ]
 
         for combo in menu_handlers:
@@ -62,7 +62,6 @@ class WfkViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
         self.notebook = fnb.FlatNotebook(panel, -1, style=fnb.FNB_NAV_BUTTONS_WHEN_NEEDED)
                                                                                            
         for path in filepaths:
-            print(path)
             wfk = abiopen(path)
             tab = WfkFileTab(self.notebook, wfk)
             self.notebook.AddPage(tab, os.path.basename(path))
@@ -79,12 +78,8 @@ class WfkViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
 
     @property
     def active_tab(self):
-        """Returns the active WFK tab. None if notebook is empty."""
-        notebook = self.notebook
-        if notebook.GetPageCount() == 0: return None
-        idx = notebook.GetSelection()
-        if idx == -1: return None
-        return notebook.GetPage(idx)
+        """Returns the active tab. None if notebook is empty."""
+        return self.notebook.GetCurrentPage()
 
     @property
     def active_wfk(self):
@@ -135,13 +130,7 @@ class WfkViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
         file_menu.Append(wx.ID_OPEN, "&Open", help="Open an existing WFK file")
         file_menu.Append(wx.ID_CLOSE, "&Close", help="Close the WFK file")
         file_menu.Append(wx.ID_EXIT, "&Quit", help="Exit the application")
-        menuBar.Append(file_menu, "File")
-                                                                                                     
-        menuBar.Append(self.CreateStructureMenu(), "Structure")
-        menuBar.Append(self.CreateEbandsMenu(), "Ebands")
-        menuBar.Append(self.CreateToolsMenu(), "Tools")
-        menuBar.Append(self.CreateNetcdfMenu(), "Netcdf")
-                                                                                                     
+
         file_history = self.file_history = wx.FileHistory(8)
         file_history.Load(self.config)
         recent = wx.Menu()
@@ -149,11 +138,17 @@ class WfkViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
         file_history.AddFilesToMenu()
         file_menu.AppendMenu(wx.ID_ANY, "&Recent Files", recent)
         self.Bind(wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9)
-                                                                                                     
+        menuBar.Append(file_menu, "File")
+
+        menuBar.Append(self.CreateStructureMenu(), "Structure")
+        menuBar.Append(self.CreateEbandsMenu(), "Ebands")
+        menuBar.Append(self.CreateToolsMenu(), "Tools")
+        menuBar.Append(self.CreateNetcdfMenu(), "Netcdf")
+
         self.help_menu = wx.Menu()
         self.help_menu.Append(wx.ID_ABOUT, "About " + self.codename, help="Info on the application")
         menuBar.Append(self.help_menu, "Help")
-                                                                                                     
+
         self.SetMenuBar(menuBar)
 
     def makeToolBar(self):
@@ -166,7 +161,7 @@ class WfkViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
 
         artBmp = wx.ArtProvider.GetBitmap
         toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR), "Open")
-        toolbar.AddSimpleTool(ID_VISWAVE, bitmap("wfk.png"), "Visualize the selected wavefunction")
+        toolbar.AddSimpleTool(self.ID_VISWAVE, bitmap("wfk.png"), "Visualize the selected wavefunction")
         toolbar.AddSeparator()
 
         # Combo box with the list of visualizers
@@ -184,12 +179,9 @@ class WfkViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
         self.file_history.Save(self.config)
         self.config.Flush()
 
-    def DestroyPanel(self):
-        if hasattr(self, "panel"):
-            self.panel.Destroy()
-
     def read_file(self, filepath):
         """Open netcdf file, create new tab and save the file in the history."""
+        self.statusbar.PushStatusText("Reading %s" % filepath)
         try:
             notebook = self.notebook
             wfk = abiopen(filepath)
@@ -208,6 +200,8 @@ class WfkViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
 
     def OnOpen(self, event):
         """Open FileDialog to allow the user to select a WFK.nc file."""
+        # Show the dialog and retrieve the user response.
+        # If it is the OK response, process the data.
         dialog = wx.FileDialog(self, message="Choose a WFK file", defaultDir=os.getcwd(),
                                wildcard="WFK Netcdf files (*.nc)|*.nc",
                                style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
@@ -215,7 +209,6 @@ class WfkViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
 
         filepath = os.path.abspath(dialog.GetPath())
         self.read_file(filepath)
-        #dialog.Destroy()
 
     def OnFileHistory(self, event):
         fileNum = event.GetId() - wx.ID_FILE1
@@ -339,17 +332,7 @@ class WfkFileTab(wx.Panel):
             return self._viewer_frame
                                                                                     
         except AttributeError:
-            parent = self.GetParent() 
-            while True: 
-                if parent is None:
-                    raise RuntimeError("Cannot find WfkViewerFrame, got None parent!")
-                                                                                    
-                if isinstance(parent, WfkViewerFrame): 
-                    break
-                else:
-                    parent = parent.GetParent()
-                                                                                    
-            self._viewer_frame = parent
+            self._viewer_frame = self.getParentWithType(WfkViewerFrame)
             return self._viewer_frame
 
 

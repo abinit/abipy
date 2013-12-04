@@ -81,12 +81,34 @@ Suite 330, Boston, MA  02111-1307  USA""" % {"codename": codename}
     wx.AboutBox(info)
 
 
-class Panel(wx.Panel):
+class MyWindow(object):
+    """Mixin class providing helper functions."""
+
+    def getParentWithType(self, cls):
+        """
+        Returns the first parent window of type cls.
+
+        Raises:
+            RuntimeError if we have reached the head of the linked list.
+        """
+        parent = self.GetParent() 
+
+        while True: 
+            if parent is None:
+                raise RuntimeError("Cannot find parent with class %s, reached None parent!" % cls)
+
+            if isinstance(parent, cls): 
+                return parent
+            else:
+                parent = parent.GetParent()
+
+
+class Panel(wx.Panel, MyWindow):
     def __init__(self, parent, *args, **kwargs):
         super(Panel, self).__init__(parent, *args, **kwargs)
 
 
-class Frame(wx.Frame):
+class Frame(wx.Frame, MyWindow):
     def __init__(self, parent, *args, **kwargs):
         if "size" not in kwargs:
             kwargs["size"] = FRAME_SIZE
@@ -109,3 +131,6 @@ def get_width_height(window, string, pads=(10,10)):
     dc.SetFont(f)
     width, height = dc.GetTextExtent(string)
     return width + pads[0], height + pads[1]
+
+
+

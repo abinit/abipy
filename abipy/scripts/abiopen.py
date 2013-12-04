@@ -12,8 +12,8 @@ def str_examples():
     examples = (
       "\n"
       "Usage example:\n\n" 
-      "abibrowser.py  dirpath    ==> Visualize all netcdf files (*.nc) in the directory dirpath.\n"
-      "abibrowser.py -f *WFK.nc  ==> Use a glob pattern to match all the WFK files in the current directory.\n"
+      "abiopen.py  dirpath    ==> Visualize all netcdf files (*.nc) in the directory dirpath.\n"
+      "abiopen.py -f *WFK.nc  ==> Use a glob pattern to match all the WFK files in the current directory.\n"
     )
     return examples
 
@@ -54,14 +54,12 @@ def main():
     if options.view_mode in ["list", "l"]:
         app = wxapps.wxapp_listbrowser(dirpaths=options.dirpaths, 
                                        filepaths=options.filepaths, 
-                                       wildcard=options.wildcard,
-                                       )
+                                       wildcard=options.wildcard)
 
     elif options.view_mode in ["compare", "c"]:
         app = wxapps.wxapp_comparison(dirpaths=options.dirpaths, 
                                       filepaths=options.filepaths, 
-                                      wildcard=options.wildcard,
-                                      )
+                                      wildcard=options.wildcard)
 
     elif options.view_mode in ["tree", "t"]:
         app = wxapps.wxapp_dirbrowser(dirpath=options.dirpaths[0])

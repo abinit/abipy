@@ -20,6 +20,7 @@ __all__ = [
     "MDF_Plotter",
 ]
 
+
 class DielectricTensor(object):
     """
     This object stores the frequency-dependent macroscopic dielectric tensor
@@ -156,9 +157,6 @@ class DielectricTensor(object):
             raise ValueError("Don't know how to handle %s" % str(qpoint))
 
         return f.plot_ax(ax, *args, **kwargs)
-
-
-#########################################################################################
 
 
 class DielectricFunction(object):
@@ -350,7 +348,6 @@ class DielectricFunction(object):
 
         return f.plot_ax(ax, *args, **kwargs)
 
-#########################################################################################
 
 class MDF_File(AbinitNcFile, Has_Structure):
 
@@ -359,6 +356,7 @@ class MDF_File(AbinitNcFile, Has_Structure):
 
         with MDF_Reader(filepath) as r:
             self._structure = r.read_structure()
+            #self._ebands = r.read_ebands()
 
             self.exc_mdf = r.read_exc_mdf()
             self.rpanlf_mdf = r.read_rpanlf_mdf()
@@ -375,7 +373,7 @@ class MDF_File(AbinitNcFile, Has_Structure):
         return self._structure
 
     def get_mdf(self, mdf_type="exc"):
-
+        """"Returns the macroscopic dielectric function."""
         if mdf_type == "exc":
             return self.exc_mdf
         elif mdf_type == "rpa":
@@ -386,7 +384,31 @@ class MDF_File(AbinitNcFile, Has_Structure):
             raise ValueError("Wrong value for mdf_type %s" % mdf_type)
 
     def plot_mdfs(self, cplx_mode="Im", mdf_select="all", **kwargs):
-        """Plot the macroscopic dielectric function."""
+        """
+        Plot the macroscopic dielectric function.
+
+        Args:
+            cplx_mode:
+                string defining the data to print (case-insensitive).
+                Possible choices are 
+                                                                      
+                    - "re"  for real part 
+                    - "im" for imaginary part only.
+                    - "abs' for the absolute value
+
+                Options can be concated with "-".
+
+            mdf_select:
+                Select the type of macroscopic dielectric function.
+                Possible choices are 
+
+                    - "exc" for the excitonic MDF.
+                    - "rpa" for RPA MDF.
+                    - "gwrpa" for GW-RPA MDF
+                    - "all" if all types are wanted.
+
+                Options can be concated with "-".
+        """
         plot_all = mdf_select == "all"
         mdf_select = mdf_select.split("-")
 
@@ -408,19 +430,18 @@ class MDF_File(AbinitNcFile, Has_Structure):
         # Plot spectra 
         plotter.plot(cplx_mode=cplx_mode, **kwargs)
 
-    def get_tensor(self,mdf_type="exc"):
+    def get_tensor(self, mdf_type="exc"):
         """Get the macroscopic dielectric tensor from the MDF."""
-    
-        return DielectricTensor(self.get_mdf(mdf_type),self._structure)
+        return DielectricTensor(self.get_mdf(mdf_type), self._structure)
         
 
-#########################################################################################
-
+# TODO
+from abipy.electrons import ElectronsReader
+#class MDF_Reader(ElectronsReader):
 class MDF_Reader(ETSF_Reader):
     """
     This object reads data from the MDF.nc file produced by ABINIT.
     """
-
     def __init__(self, path):
         """Initialize the object from a filename."""
         super(MDF_Reader, self).__init__(path)
@@ -477,14 +498,11 @@ class MDF_Reader(ETSF_Reader):
         emacros_q = self._read_mdf("gwnlf_mdf")
         return DielectricFunction(self.qpoints, self.wmesh, emacros_q, info)
 
-#########################################################################################
-
 
 class MDF_Plotter(object):
     """
-    Class for plotting MDFs.
+    Class for plotting multiple MDFs.
     """
-
     def __init__(self):
         self._mdfs = collections.OrderedDict()
 
@@ -496,7 +514,7 @@ class MDF_Plotter(object):
             name:
                 name for the MDF. Must be unique.
             mdf:
-                MacroscopicDielectricFunction object.
+                `MacroscopicDielectricFunction` object.
         """
         if label in self._mdfs:
             raise ValueError("name %s is already in %s" % (label, self._mdfs.keys()))
@@ -576,7 +594,7 @@ class MDF_Plotter(object):
                 legends.append("%s: %s $\,\\varepsilon$" % (cmode, label))
 
         # Set legends.
-        ax.legend(lines, legends, 'best', shadow=True)
+        ax.legend(lines, legends, 'best', shadow=False)
 
         if show:
             plt.show()
@@ -591,7 +609,6 @@ class DIPME_File(object):
     """
     This object provides tools to analyze the dipole matrix elements produced by the BSE code.
     """
-
     def __init__(self, path):
         self.path = os.path.abspath(path)
 

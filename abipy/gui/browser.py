@@ -28,12 +28,15 @@ def viewerframe_from_filepath(parent, filepath):
     from abipy.gui.wfkviewer import WfkViewerFrame
     from abipy.gui.sigresviewer import SigresViewerFrame
     from abipy.gui.gsrviewer import GsrViewerFrame
+    from abipy.gui.mdfviewer import MdfViewerFrame
     from abipy.gui.editor import MyEditorFrame
+    from abipy.xwncview import NcViewerFrame
 
     VIEWER_FRAMES = {
         "WFK-etsf.nc": WfkViewerFrame,
         "SIGRES.nc": SigresViewerFrame,
         "GSR.nc": GsrViewerFrame,
+        "MDF.nc",MdfViewer.Frame,
         ".abi": MyEditorFrame, 
         ".abo": MyEditorFrame, 
         ".log": MyEditorFrame, 
@@ -51,9 +54,9 @@ def viewerframe_from_filepath(parent, filepath):
         try:
             return VIEWER_FRAMES[ext](parent, filepath)
         except KeyError:
-            #if filepath.endswith(".nc")
-            #    return NcViewerFrame(parent, filepath)
-            #else:
+            # No frame registered for the file. 
+            # Open NcViewer if we have a netcdf file else None
+            if filepath.endswith(".nc") return NcViewerFrame(parent, filepath)
             return None
 
 

@@ -13,4 +13,36 @@ from .fftprof import wxapp_fftprof
 from .flowviewer import wxapp_flow_viewer
 from .flowsdb import wxapp_flowsdb_viewer
 from .gsrviewer import wxapp_gsrviewer
+from .mdfviewer import wxapp_mdfviewer
 from .wxncview import wxapp_ncview
+
+
+# Map abinit file extensions to WX Applications.
+_EXT2APP = {
+    "WFK-etsf.nc": wxapp_wfkvieewer,
+    "SIGRES.nc": wxapp_sigresviewer,
+    "GSR.nc": wxapp_gsrviewer,
+    "MDF.nc": wxapp_mdfviewer,
+    #".abi": MyEditorApp, 
+    #".abo": MyEditorApp, 
+    #".log": MyEditorApp, 
+    #".sh": MyEditorApp,  
+    #".err": MyEditorApp, 
+    #".files": MyEditorApp, 
+}
+
+
+#def file2wxapp(filepath):
+#    ext = filepath.split("_")[-1]
+#    try:
+#        return _EXT2APP[ext]
+#
+#    except KeyError:
+#        root, ext = os.path.splitext(filepath)
+#        try:
+#            return _EXT2APP[ext]
+#        except KeyError:
+#            # No frame registered for the file. 
+#            # Open NcViewer if we have a netcdf file else None
+#            if filepath.endswith(".nc") return wxapp_ncview
+#            return None

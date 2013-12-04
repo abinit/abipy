@@ -12,7 +12,6 @@ from abipy.tools import list_strings
 
 class FileCheckBoxPanel(awx.Panel):
     """A panel with a list of filepaths and checkboxes."""
-
     def __init__(self, parent, filepaths, **kwargs):
         """
         Args:

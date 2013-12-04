@@ -19,7 +19,7 @@ def make_inputs():
     """
     structure = abidata.structure_from_ucell("SiC")
     pseudos = abidata.pseudos("14si.pspnc", "6c.pspnc")
-    ecut = 5
+    ecut = 12
 
     global_vars = dict(
         ecut=ecut,
@@ -28,8 +28,7 @@ def make_inputs():
         gwpara=2
     )
 
-    ecut = 5
-    ecuteps = 2
+    ecuteps = 4
     ngkpt = [4, 4, 4]
     shiftk = [0, 0, 0]
 

@@ -46,7 +46,7 @@ def getColumnText(wxlist, index, col):
     return item.GetText()
 
 
-class NcViewFrame(wx.Frame):
+class NcViewerFrame(wx.Frame):
     """
     This frame allows the user to inspect the dimensions and the 
     variables reported in  a netcdf file.
@@ -63,7 +63,7 @@ class NcViewFrame(wx.Frame):
         if "size" not in kwargs:
             kwargs["size"] = (1200, 800)
 
-        super(NcViewFrame, self).__init__(parent, id=-1, **kwargs)
+        super(NcViewerFrame, self).__init__(parent, id=-1, **kwargs)
 
         # This combination of options for config seems to work on my Mac.
         self.config = wx.FileConfig(appName=self.codename, localFilename=self.codename + ".ini", 
@@ -514,9 +514,9 @@ class VarsPanel(wx.Panel, listmix.ColumnSorterMixin):
             parent = self.GetParent() 
             while True: 
                 if parent is None:
-                    raise RuntimeError("Cannot find NcViewFrame, got None parent!")
+                    raise RuntimeError("Cannot find NcViewerFrame, got None parent!")
 
-                if isinstance(parent, NcViewFrame): 
+                if isinstance(parent, NcViewerFrame): 
                     break
                 else:
                     parent = parent.GetParent()
@@ -527,7 +527,7 @@ class VarsPanel(wx.Panel, listmix.ColumnSorterMixin):
     def GetPlotOptions(self):
         """
         Dictionary with the options for the plots taken from 
-        the MenuBar of the parent `NcViewFrame`
+        the MenuBar of the parent `NcViewerFrame`
         """
         frame = self.ncview_frame
         return frame.GetPlotOptions()
@@ -629,7 +629,7 @@ class VarsPanel(wx.Panel, listmix.ColumnSorterMixin):
 def wxapp_ncview(filepaths=()):
     """Standalone application."""
     app = wx.App()
-    frame = NcViewFrame(None, filepaths=filepaths)
+    frame = NcViewerFrame(None, filepaths=filepaths)
     app.SetTopWindow(frame)
     frame.Show()
 
