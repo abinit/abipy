@@ -67,9 +67,11 @@ def main():
     else:
         raise ValueError("Wrong view_mode %s" % options.view_mode)
 
-    app.MainLoop()
+    if app is None: return -1
 
+    app.MainLoop()
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

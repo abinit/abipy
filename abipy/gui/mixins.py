@@ -7,12 +7,14 @@ import wx.lib.dialogs as wxdg
 import abipy.gui.awx as awx
 import abipy.gui.electronswx as ewx
 
+
 from pymatgen.util.io_utils import which 
 from abipy.iotools.visualizer import Visualizer
 from abipy.iotools.files import NcDumper
 from abipy.electrons.ebands import ElectronBandsPlotter, ElectronDosPlotter
 from abipy.gui.structure import StructureConverterFrame
 from abipy.gui.converter import ConverterFrame
+from abipy.gui.wxncview import NcViewerFrame
 
 
 class Has_Structure(object):
@@ -65,7 +67,7 @@ class Has_Structure(object):
                                                                                             
             thread = awx.WorkerThread(self, target=visu)
             thread.start()
-                                                                                            
+
         except:
             awx.showErrorMessage(self)
 
@@ -274,6 +276,5 @@ class Has_Netcdf(object):
 
     def OnNetcdf_WxNcView(self, event):
         """Open wxncview frame."""
-        from abipy.gui.wxncview import NcViewFrame
-        NcViewFrame(self, filepaths=self.nc_filepath).Show()
+        NcViewerFrame(self, filepaths=self.nc_filepath).Show()
 

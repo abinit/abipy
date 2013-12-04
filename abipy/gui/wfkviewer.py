@@ -36,23 +36,6 @@ class WfkViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
         self.makeToolBar()
         self.statusbar = self.CreateStatusBar()
 
-        # FIXME
-        # Associate menu/toolbar items with their handlers.
-        self.ID_VISWAVE = wx.NewId()
-
-        menu_handlers = [
-            (wx.ID_OPEN, self.OnOpen),
-            #(wx.ID_CLOSE, self.OnClose),
-            #(wx.ID_EXIT, self.OnExit),
-            (wx.ID_ABOUT, self.OnAboutBox),
-            #
-            (self.ID_VISWAVE, self.OnVisualizeWave),
-        ]
-
-        for combo in menu_handlers:
-            mid, handler = combo[:2]
-            self.Bind(wx.EVT_MENU, handler, id=mid)
-
         # Open netcdf files.
         filepaths, exceptions = list_strings(filepaths), []
         filepaths = map(os.path.abspath, filepaths)
@@ -124,6 +107,9 @@ class WfkViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
 
     def makeMenu(self):
         """Creates the main menu."""
+        # Menu IDs
+        self.ID_VISWAVE = wx.NewId()
+
         self.menu_bar = menuBar = wx.MenuBar()
 
         file_menu = wx.Menu()
@@ -150,6 +136,20 @@ class WfkViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
         menuBar.Append(self.help_menu, "Help")
 
         self.SetMenuBar(menuBar)
+
+        # Associate menu/toolbar items with their handlers.
+        menu_handlers = [
+            (wx.ID_OPEN, self.OnOpen),
+            #(wx.ID_CLOSE, self.OnClose),
+            #(wx.ID_EXIT, self.OnExit),
+            (wx.ID_ABOUT, self.OnAboutBox),
+            #
+            (self.ID_VISWAVE, self.OnVisualizeWave),
+        ]
+                                                            
+        for combo in menu_handlers:
+            mid, handler = combo[:2]
+            self.Bind(wx.EVT_MENU, handler, id=mid)
 
     def makeToolBar(self):
         """Creates the toolbar."""
@@ -265,7 +265,7 @@ class WfkViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
         #self._visualize_skb(*skb)
 
 
-class WfkFileTab(wx.Panel):
+class WfkFileTab(awx.Panel):
     """Tab showing information on a single WFK file."""
     def __init__(self, parent, wfk, **kwargs):
         """

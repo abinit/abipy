@@ -7,13 +7,14 @@ import wx.lib.agw.flatnotebook as fnb
 import abipy.gui.awx as awx
 
 from wx.py.shell import Shell
-from abipy.tools import marquee, list_strings 
 from abipy.abilab import abiopen
+from abipy.tools import marquee, list_strings 
+from abipy.electrons.bse import MDF_Plotter
+from abipy.iotools.visualizer import Visualizer
 from abipy.gui import mixins as mix 
-from abipy.gui.kpoints import KpointsPanel
 
 
-class GsrViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.Has_Tools, mix.Has_Netcdf):
+class MdfViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.Has_Tools, mix.Has_Netcdf):
     VERSION = "0.1"
 
     def __init__(self, parent, filepaths=(), **kwargs):
@@ -22,10 +23,10 @@ class GsrViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
             parent:
                 parent window.
             filepaths:
-                String or list of strings with the path of the netcdf WFK files to open
+                String or list of strings with the path of the netcdf MDF files to open
                 Empty tuple if no file should be opened during the initialization of the frame.
         """
-        super(GsrViewerFrame, self).__init__(parent, -1, title=self.codename, **kwargs)
+        super(MdfViewerFrame, self).__init__(parent, -1, title=self.codename, **kwargs)
 
         # This combination of options for config seems to work on my Mac.
         self.config = wx.FileConfig(appName=self.codename, localFilename=self.codename + ".ini", 
@@ -45,8 +46,8 @@ class GsrViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
         self.notebook = fnb.FlatNotebook(panel, -1, style=fnb.FNB_NAV_BUTTONS_WHEN_NEEDED)
                                                                                            
         for path in filepaths:
-            gsr = abiopen(path)
-            tab = GsrFileTab(self.notebook, gsr)
+            mdf_file = abiopen(path)
+            tab = MdfFileTab(self.notebook, mdf_file)
             self.notebook.AddPage(tab, os.path.basename(path))
                                                                                            
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -55,7 +56,7 @@ class GsrViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
 
     @property
     def codename(self):
-        return "GsrViewer"
+        return "MdfViewer"
 
     @property
     def active_tab(self):
@@ -63,19 +64,19 @@ class GsrViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
         return self.notebook.GetCurrentPage()
 
     @property
-    def active_gsr(self):
-        """The active GSR file i.e. the GSR associated to the active tab."""
-        return self.active_tab.gsr
+    def active_mdf_file(self):
+        """The active MDF file i.e. the MDF associated to the active tab."""
+        return self.active_tab.mdf_file
 
     @property
     def structure(self):
         """`Structure` associated to the active tab."""
-        return self.active_gsr.structure
+        return self.active_mdf_file.structure
 
     @property
     def ebands(self):
         """`ElectronBands` associated to the active tab."""
-        return self.active_gsr.ebands
+        return self.active_mdf_file.ebands
 
     @property
     def ebands_list(self):
@@ -83,7 +84,7 @@ class GsrViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
         ebands_list = []
         for page in range(self.notebook.GetPageCount()):
             tab = self.notebook.GetPage(page)
-            ebands_list.append(tab.gsr.ebands)
+            ebands_list.append(tab.mdf_file.ebands)
         return ebands_list
 
     @property
@@ -95,23 +96,42 @@ class GsrViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
         paths = []
         for page in range(self.notebook.GetPageCount()):
             tab = self.notebook.GetPage(page)
-            paths.append(tab.gsr.filepath)
+            paths.append(tab.mdf_file.filepath)
         return paths
 
     @property
     def nc_filepath(self):
-        """String with the absolute path of the netcdf file."""
-        return self.active_gsr.filepath
+        """String with the absolute path of the active netcdf file."""
+        return self.active_mdf_file.filepath
+
+    @property
+    def mdf_filepaths(self):
+        """
+        Return a list with the absolute paths of the files 
+        from which the `MDF_Files` have been read.
+        """
+        paths = []
+        for page in range(self.notebook.GetPageCount()):
+            tab = self.notebook.GetPage(page)
+            paths.append(tab.mdf_file.filepath)
+        return paths
+
+    @property
+    def mdf_files_list(self):
+        """List of `MDF_Files`."""
+        mdf_lists = []
+        for page in range(self.notebook.GetPageCount()):
+            tab = self.notebook.GetPage(page)
+            mdf_lists.append(tab.mdf_file)
+        return mdf_lists
 
     def makeMenu(self):
         """Creates the main menu."""
-        # Menu IDs
-
         self.menu_bar = menuBar = wx.MenuBar()
 
         file_menu = wx.Menu()
-        file_menu.Append(wx.ID_OPEN, "&Open", help="Open an existing GSR file")
-        file_menu.Append(wx.ID_CLOSE, "&Close", help="Close the GSR file")
+        file_menu.Append(wx.ID_OPEN, "&Open", help="Open an existing MDF file")
+        file_menu.Append(wx.ID_CLOSE, "&Close", help="Close the MDF file")
         file_menu.Append(wx.ID_EXIT, "&Quit", help="Exit the application")
 
         file_history = self.file_history = wx.FileHistory(8)
@@ -125,6 +145,7 @@ class GsrViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
 
         menuBar.Append(self.CreateStructureMenu(), "Structure")
         menuBar.Append(self.CreateEbandsMenu(), "Ebands")
+        menuBar.Append(self.CreateMdfMenu(), "Mdf")
         menuBar.Append(self.CreateToolsMenu(), "Tools")
         menuBar.Append(self.CreateNetcdfMenu(), "Netcdf")
 
@@ -134,17 +155,36 @@ class GsrViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
 
         self.SetMenuBar(menuBar)
 
-        # Associate menu/toolbar items with their handlers.
-        menu_handlers = [
-            (wx.ID_OPEN, self.OnOpen),
-            (wx.ID_CLOSE, self.OnClose),
-            (wx.ID_EXIT, self.OnExit),
-            (wx.ID_ABOUT, self.OnAboutBox),
-        ]
-                                                            
-        for combo in menu_handlers:
-            mid, handler = combo[:2]
-            self.Bind(wx.EVT_MENU, handler, id=mid)
+    def CreateMdfMenu(self):
+        # MDF Menu ID's
+        self.ID_MDF_PLOT = wx.NewId()
+        self.ID_MDF_COMPARE = wx.NewId()
+                                                                                      
+        menu = wx.Menu()
+        menu.Append(self.ID_MDF_PLOT, "Plot MDF", "Plot the macroscopic dielectric function")
+        self.Bind(wx.EVT_MENU, self.OnMdfPlot, id=self.ID_MDF_PLOT)
+
+        menu.AppendSeparator()
+
+        menu.Append(self.ID_MDF_COMPARE, "Compare MDF", "Compare multiple macroscopic dielectric functions")
+        self.Bind(wx.EVT_MENU, self.OnMdfCompare, id=self.ID_MDF_COMPARE)                                                                                                            
+
+        return menu
+
+    def OnMdfPlot(self,event):
+        mdf_file = self.active_mdf_file
+        mdf_file.plot_mdfs()
+
+    def OnMdfCompare(self,event):
+        plotter = MDF_Plotter()
+
+        for path, mdf_file in zip(self.mdf_filepaths, self.mdf_files_list):
+            label = os.path.relpath(path)
+            # TODO
+            #plotter.add_mdf(label, mdf)
+            plotter.add_mdf_from_file(mdf_file.filepath)
+
+        plotter.plot()
 
     def makeToolBar(self):
         """Creates the toolbar."""
@@ -156,9 +196,21 @@ class GsrViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
 
         artBmp = wx.ArtProvider.GetBitmap
         toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR), "Open")
-        #toolbar.AddSeparator()
+        toolbar.AddSeparator()
 
         toolbar.Realize()
+
+        # Associate menu/toolbar items with their handlers.
+        menu_handlers = [
+            (wx.ID_OPEN, self.OnOpen),
+            #(wx.ID_CLOSE, self.OnClose),
+            #(wx.ID_EXIT, self.OnExit),
+            (wx.ID_ABOUT, self.OnAboutBox),
+        ]
+                                                            
+        for combo in menu_handlers:
+            mid, handler = combo[:2]
+            self.Bind(wx.EVT_MENU, handler, id=mid)
 
     def AddFileToHistory(self, filepath):
         """Add the absolute filepath to the file history."""
@@ -171,12 +223,12 @@ class GsrViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
         self.statusbar.PushStatusText("Reading %s" % filepath)
         try:
             notebook = self.notebook
-            gsr = abiopen(filepath)
-            #if not isinstance(gsrfile, GSR_File):
-            #    awx.showErrorMessage(self, message="%s is not a valid GSR File" % filepath)
+            mdf_file = abiopen(filepath)
+            #if not isinstance(mdf, MDF_File):
+            #    awx.showErrorMessage(self, message="%s is not a valid MDF File" % filepath)
             #    return
-            self.statusbar.PushStatusText("GSR file %s loaded" % filepath)
-            tab = GsrFileTab(notebook, gsr)
+            self.statusbar.PushStatusText("MDF file %s loaded" % filepath)
+            tab = MdfFileTab(notebook, mdf_file)
             notebook.AddPage(tab, os.path.basename(filepath))
             # don't know why but this does not work!
             notebook.Refresh()
@@ -186,11 +238,11 @@ class GsrViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
             awx.showErrorMessage(self)
 
     def OnOpen(self, event):
-        """Open FileDialog to allow the user to select a WFK.nc file."""
+        """Open FileDialog to allow the user to select a MDF.nc file."""
         # Show the dialog and retrieve the user response.
         # If it is the OK response, process the data.
-        dialog = wx.FileDialog(self, message="Choose a GSR file", defaultDir=os.getcwd(),
-                               wildcard="GSR Netcdf files (*.nc)|*.nc",
+        dialog = wx.FileDialog(self, message="Choose a MDF file", defaultDir=os.getcwd(),
+                               wildcard="MDF Netcdf files (*.nc)|*.nc",
                                style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
         if dialog.ShowModal() == wx.ID_CANCEL: return 
 
@@ -214,7 +266,7 @@ class GsrViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
 
         # Close the file
         tab = notebook.GetPage(idx)
-        #tab.gsr.close()
+        #tab.mdf_file.close()
 
         # Remove tab.
         notebook.DeletePage(idx)
@@ -228,7 +280,7 @@ class GsrViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
         #    for index in range(self.notebook.GetPageCount()):
         #        tab = self.notebook.GetPage(index)
         #        try:
-        #            tab.wfk.close()
+        #            tab.mdf_file.close()
         #        except:
         #            pass
         #finally:
@@ -240,32 +292,35 @@ class GsrViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
                          description="", developers="M. Giantomassi")
 
 
-class GsrFileTab(wx.Panel):
-    """Tab showing information on a single GSR file."""
-    def __init__(self, parent, gsr, **kwargs):
+class MdfFileTab(wx.Panel):
+    """Tab showing information on a single MDF file."""
+    def __init__(self, parent, mdf_file, **kwargs):
         """
         Args:
             parent:
                 parent window.
-            gsr:
+            mdf_file:
         """
-        super(GsrFileTab, self).__init__(parent, -1, **kwargs)
-        self.gsr = gsr
+        super(MdfFileTab, self).__init__(parent, -1, **kwargs)
+        self.mdf_file = mdf_file
 
-        #splitter = wx.SplitterWindow(self, id=-1 style=wx.SP_LIVE_UPDATE)
         splitter = wx.SplitterWindow(self, id=-1, style=wx.SP_3DSASH)
-        splitter.SetMinimumPaneSize(150)
+        #splitter = wx.SplitterWindow(self, id=-1 style=wx.SP_LIVE_UPDATE)
+        splitter.SetMinimumPaneSize(50)
         splitter.SetSashSize(0)
 
-        self.kpoints_panel = KpointsPanel(splitter, gsr.structure, gsr.kpoints)
+        #self.skb_panel = awx.SpinKpointBandPanel(splitter, wfk.nsppol, wfk.kpoints, wfk.mband)
+        # Set the callback for double click on k-point row..
+        #self.skb_panel.SetOnItemActivated(self._visualize_skb)
 
         # Add Python shell
-        msg = "GSR_File object is accessible via the gsr variable. Use gsr.<TAB> to access the list of methods."
-        msg = marquee(msg, width=len(msg) + 8, mark="#")
-        msg = "#"*len(msg) + "\n" + msg + "\n" + "#"*len(msg) + "\n"
+        #msg = "MDF_object is accessible via the mdf_file variable. Use mdf_file.<TAB> to access the list of methods."
+        #msg = marquee(msg, width=len(msg) + 8, mark="#")
+        #msg = "#"*len(msg) + "\n" + msg + "\n" + "#"*len(msg) + "\n"
 
-        pyshell = Shell(splitter, introText=msg, locals={"gsr": self.gsr})
-        splitter.SplitHorizontally(self.kpoints_panel, pyshell)
+        # FIXME <Error>: CGContextRestoreGState: invalid context 0x0
+        #pyshell = Shell(splitter, introText=msg,locals={"mdf_file": self.mdf_file})
+        #splitter.SplitHorizontally(self.skb_panel, pyshell)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(splitter, 1, wx.EXPAND, 5)
@@ -275,55 +330,33 @@ class GsrFileTab(wx.Panel):
     def statusbar(self):
         return self.viewer_frame.statusbar
 
-    def GetVisualizer(self):
-        """Returns a string with the visualizer selected by the user."""
-        return self.viewer_frame.GetVisualizer()
-
-    def _visualize_skb(self, spin, kpoint, band):
-        """Calls the visualizer to visualize the specified wavefunction."""
-        # To make the Gui responsive one can use the approach described in 
-        # http://wiki.wxpython.org/LongRunningTasks
-        visu_name = self.GetVisualizer()
-        if visu_name == "None": return
-                                                                                                                       
-        self.statusbar.PushStatusText("Visualizing wavefunction (spin=%d, kpoint=%s, band=%d)" % (spin, kpoint, band))
-        try:
-            visu = self.wfk.visualize_ur2(spin, kpoint, band, visu_name=visu_name)
-                                                                                                                       
-            thread = awx.WorkerThread(self, target=visu)
-            thread.start()
-                                                                                                                       
-        except:
-            awx.showErrorMessage(self)
-
     @property
     def viewer_frame(self):
-        """The parent frame `GsrViewerFrame`."""
+        """The parent frame `MdfViewerFrame`."""
         try:
             return self._viewer_frame
                                                                                     
         except AttributeError:
-            self._viewer_frame = self.getParentWithType(GsrViewerFrame)
+            self._viewer_frame = self.getParentWithType(MdfViewerFrame)
             return self._viewer_frame
 
 
-class GsrViewerApp(awx.App):
+class MdfViewerApp(awx.App):
     def OnInit(self):
         return True
 
-    #def MacOpenFile(self, filename):
+    #def MacOpenFile(self, filepath):
     #    """Called for files droped on dock icon, or opened via finders context menu"""
-    #    if filename.endswith(".py"):
-    #        return
+    #    if filepath.endswith(".py"): return
     #    # Open filename in a new frame.
     #    #logger.info("%s dropped on app %s" % (filename, self.appname))
-    #    GsrViewerFrame(parent=None, filename=filename).Show()
+    #    MdfViewerFrame(parent=None, filepaths=filepath).Show()
 
 
-def wxapp_gsrviewer(gsr_filepaths):
-    """Standalone application."""
-    app = GsrViewerApp()
-    frame = GsrViewerFrame(None, filepaths=gsr_filepaths)
+def wxapp_mdfviewer(mdf_filepaths):
+    app = MdfViewerApp()
+    frame = MdfViewerFrame(None, filepaths=mdf_filepaths)
     app.SetTopWindow(frame)
     frame.Show()
     return app
+

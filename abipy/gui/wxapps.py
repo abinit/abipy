@@ -19,7 +19,7 @@ from .wxncview import wxapp_ncview
 
 # Map abinit file extensions to WX Applications.
 _EXT2APP = {
-    "WFK-etsf.nc": wxapp_wfkvieewer,
+    "WFK-etsf.nc": wxapp_wfkviewer,
     "SIGRES.nc": wxapp_sigresviewer,
     "GSR.nc": wxapp_gsrviewer,
     "MDF.nc": wxapp_mdfviewer,

@@ -37,27 +37,6 @@ class SigresViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mi
         self.makeToolBar()
         self.statusbar = self.CreateStatusBar()
 
-        # FIXME
-        # Associate menu/toolbar items with their handlers.
-        self.ID_SCISSORS = wx.NewId()
-        self.ID_PLOTQPSE0 = wx.NewId()
-        self.ID_PLOTKSWITHMARKS = wx.NewId()
-
-        menu_handlers = [
-            (wx.ID_OPEN, self.OnOpen),
-            (wx.ID_CLOSE, self.OnClose),
-            (wx.ID_EXIT, self.OnExit),
-            (wx.ID_ABOUT, self.OnAboutBox),
-            #
-            (self.ID_PLOTQPSE0, self.OnPlotQpsE0),
-            (self.ID_PLOTKSWITHMARKS, self.OnPlotKSwithQPmarkers),
-            (self.ID_SCISSORS, self.OnScissors),
-        ]
-
-        for combo in menu_handlers:
-            mid, handler = combo[:2]
-            self.Bind(wx.EVT_MENU, handler, id=mid)
-
         # Open netcdf files.
         filepaths, exceptions = list_strings(filepaths), []
         filepaths = map(os.path.abspath, filepaths)
@@ -204,12 +183,32 @@ class SigresViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mi
         def bitmap(path):
             return wx.Bitmap(awx.path_img(path))
 
+        self.ID_SCISSORS = wx.NewId()
+        self.ID_PLOTQPSE0 = wx.NewId()
+        self.ID_PLOTKSWITHMARKS = wx.NewId()
+
         artBmp = wx.ArtProvider.GetBitmap
         toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR), "Open")
         toolbar.AddSimpleTool(self.ID_PLOTQPSE0, bitmap("qpresults.png"), "Plot QPState Results.")
         toolbar.AddSimpleTool(self.ID_PLOTKSWITHMARKS, bitmap("qpmarkers.png"), "Plot KS energies with QPState markers.")
         toolbar.AddSimpleTool(self.ID_SCISSORS, bitmap("qpscissor.png"), "Build energy-dependent scissors from GW correction.")
-                                                                                                                                            
+
+        # Associate menu/toolbar items with their handlers.
+        menu_handlers = [
+            (wx.ID_OPEN, self.OnOpen),
+            (wx.ID_CLOSE, self.OnClose),
+            (wx.ID_EXIT, self.OnExit),
+            (wx.ID_ABOUT, self.OnAboutBox),
+            #
+            (self.ID_PLOTQPSE0, self.OnPlotQpsE0),
+            (self.ID_PLOTKSWITHMARKS, self.OnPlotKSwithQPmarkers),
+            (self.ID_SCISSORS, self.OnScissors),
+        ]
+                                                                   
+        for combo in menu_handlers:
+            mid, handler = combo[:2]
+            self.Bind(wx.EVT_MENU, handler, id=mid)
+
         self.toolbar.Realize()
 
     def BuildUi(self):

@@ -36,7 +36,7 @@ def viewerframe_from_filepath(parent, filepath):
         "WFK-etsf.nc": WfkViewerFrame,
         "SIGRES.nc": SigresViewerFrame,
         "GSR.nc": GsrViewerFrame,
-        "MDF.nc",MdfViewer.Frame,
+        "MDF.nc": MdfViewer.Frame,
         ".abi": MyEditorFrame, 
         ".abo": MyEditorFrame, 
         ".log": MyEditorFrame, 
@@ -56,7 +56,7 @@ def viewerframe_from_filepath(parent, filepath):
         except KeyError:
             # No frame registered for the file. 
             # Open NcViewer if we have a netcdf file else None
-            if filepath.endswith(".nc") return NcViewerFrame(parent, filepath)
+            if filepath.endswith(".nc"): return NcViewerFrame(parent, filepath)
             return None
 
 
