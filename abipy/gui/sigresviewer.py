@@ -215,8 +215,8 @@ class SigresViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mi
         sigres = self.sigres
         if sigres is None: return
 
-        splitter = wx.SplitterWindow(self, style=wx.SP_LIVE_UPDATE)
-        splitter.SetMinimumPaneSize(50)
+        splitter = wx.SplitterWindow(self, id=-1, style=wx.SP_3D)
+        splitter.SetSashGravity(0.95)
 
         self.skb_panel = awx.SpinKpointBandPanel(splitter, sigres.nsppol, sigres.gwkpoints, sigres.max_gwbstop,
             bstart=sigres.min_gwbstart)

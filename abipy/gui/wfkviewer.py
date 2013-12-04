@@ -277,10 +277,8 @@ class WfkFileTab(awx.Panel):
         super(WfkFileTab, self).__init__(parent, -1, **kwargs)
         self.wfk = wfk
 
-        splitter = wx.SplitterWindow(self, id=-1, style=wx.SP_3DSASH)
-        #splitter = wx.SplitterWindow(self, id=-1 style=wx.SP_LIVE_UPDATE)
-        splitter.SetMinimumPaneSize(50)
-        splitter.SetSashSize(0)
+        splitter = wx.SplitterWindow(self, id=-1, style=wx.SP_3D)
+        splitter.SetSashGravity(0.95)
 
         self.skb_panel = awx.SpinKpointBandPanel(splitter, wfk.nsppol, wfk.kpoints, wfk.mband)
 

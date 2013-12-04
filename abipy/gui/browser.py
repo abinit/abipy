@@ -4,11 +4,13 @@ from __future__ import print_function, division
 import os
 import wx
 import warnings
-import abipy.gui.awx as awx
 
+import abipy.gui.awx as awx
 import wx.lib.mixins.listctrl as listmix
-from abipy.tools.text import list_strings, is_string, WildCard
+
 from collections import namedtuple
+from abipy.tools.text import list_strings, is_string, WildCard
+
 
 try:
     from wxmplot import PlotApp, PlotFrame
@@ -30,13 +32,13 @@ def viewerframe_from_filepath(parent, filepath):
     from abipy.gui.gsrviewer import GsrViewerFrame
     from abipy.gui.mdfviewer import MdfViewerFrame
     from abipy.gui.editor import MyEditorFrame
-    from abipy.xwncview import NcViewerFrame
+    from abipy.gui.wxncview import NcViewerFrame
 
     VIEWER_FRAMES = {
         "WFK-etsf.nc": WfkViewerFrame,
         "SIGRES.nc": SigresViewerFrame,
         "GSR.nc": GsrViewerFrame,
-        "MDF.nc": MdfViewer.Frame,
+        "MDF.nc": MdfViewerFrame,
         ".abi": MyEditorFrame, 
         ".abo": MyEditorFrame, 
         ".log": MyEditorFrame, 
@@ -148,16 +150,24 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
         file_list.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
 
         self.FileDataObj = FileDataObj
+        columns = self.FileDataObj._fields
+
+        # Used to store the Max width in pixels for the data in the column.
+        column_widths = [awx.get_width_height(self, s)[0] for s in columns]
 
         self.id2filedata = {}
         for (index, colname) in enumerate(self.FileDataObj._fields):
             file_list.InsertColumn(index, colname)
 
         for filepath in self.filepaths:
-            self.AppendFilepath(filepath)
+            entry = self.AppendFilepath(filepath)
+
+            w = [awx.get_width_height(self, s)[0] for s in entry]
+            column_widths = map(max, zip(w, column_widths))
 
         for (index, colname) in enumerate(self.FileDataObj._fields):
-            file_list.SetColumnWidth(index, wx.LIST_AUTOSIZE)
+            #file_list.SetColumnWidth(index, wx.LIST_AUTOSIZE)
+            file_list.SetColumnWidth(index, column_widths[index])
 
         # Now that the list exists we can init the other base class, see wx/lib/mixins/listctrl.py
         self.itemDataMap = self.id2filedata
@@ -183,7 +193,7 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
         if self.HasAbsPath(abspath):
             awx.showErrorMessage(self, message="%s is already in the list" % abspath)
 
-        self._AppendFilepath(abspath)
+        return self._AppendFilepath(abspath)
 
     def _AppendFilepath(self, abspath):
         next = len(self.id2filedata)
@@ -194,6 +204,7 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
         self.file_list.Append(entry)
         self.file_list.SetItemData(next, entry_id)
         self.id2filedata[entry_id] = entry
+        return entry
 
     def OnItemActivated(self, event):
         currentItem = event.m_itemIndex

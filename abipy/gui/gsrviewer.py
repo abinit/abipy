@@ -252,10 +252,8 @@ class GsrFileTab(wx.Panel):
         super(GsrFileTab, self).__init__(parent, -1, **kwargs)
         self.gsr = gsr
 
-        #splitter = wx.SplitterWindow(self, id=-1 style=wx.SP_LIVE_UPDATE)
-        splitter = wx.SplitterWindow(self, id=-1, style=wx.SP_3DSASH)
-        splitter.SetMinimumPaneSize(150)
-        splitter.SetSashSize(0)
+        splitter = wx.SplitterWindow(self, id=-1, style=wx.SP_3D)
+        splitter.SetSashGravity(0.95)
 
         self.kpoints_panel = KpointsPanel(splitter, gsr.structure, gsr.kpoints)
 
