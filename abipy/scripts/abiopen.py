@@ -40,6 +40,9 @@ def main():
     #parser.add_argument('-r', '--recurse', type=bool, default=False,
     #                    help="Recursive mode.")
 
+    #parser.add_argument('-t', '--type', type=string, default="",
+    #                    help="Recursive mode.")
+
     parser.add_argument("dirpaths", nargs="*", help="List of directories.")
 
     # Parse the command line.

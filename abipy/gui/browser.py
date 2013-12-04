@@ -108,8 +108,24 @@ class FileDataObj(namedtuple("FileDataObj", "filename type directory")):
     """The fields of the row in `FileListPanel`"""
     @property
     def abspath(self):
+        """Absolute path ofthe file."""
         return os.path.join(self.directory, self.filename)
-                                                                         
+
+    #@property
+    #def basename(self)
+    #    """Basename of the file."""
+    #    return os.path.basename(self.abspath))
+
+    @property
+    def relpath(self):
+        """Relative path"""
+        return os.path.relpath(self.abspath)
+
+    @property
+    def reldirpath(self):
+        """Relative path of the directory"""
+        return os.path.relpath(self.directory)
+
     @classmethod
     def from_abspath(cls, abspath):
         return cls(
@@ -149,14 +165,14 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
         file_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick)
         file_list.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
 
-        self.FileDataObj = FileDataObj
-        columns = self.FileDataObj._fields
+        #self.columns = columns = FileDataObj._fields
+        self.columns = columns = ["filename", "type", "reldirpath"]
 
         # Used to store the Max width in pixels for the data in the column.
         column_widths = [awx.get_width_height(self, s)[0] for s in columns]
 
         self.id2filedata = {}
-        for (index, colname) in enumerate(self.FileDataObj._fields):
+        for (index, colname) in enumerate(columns):
             file_list.InsertColumn(index, colname)
 
         for filepath in self.filepaths:
@@ -165,13 +181,13 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
             w = [awx.get_width_height(self, s)[0] for s in entry]
             column_widths = map(max, zip(w, column_widths))
 
-        for (index, colname) in enumerate(self.FileDataObj._fields):
+        for (index, colname) in enumerate(columns):
             #file_list.SetColumnWidth(index, wx.LIST_AUTOSIZE)
             file_list.SetColumnWidth(index, column_widths[index])
 
         # Now that the list exists we can init the other base class, see wx/lib/mixins/listctrl.py
         self.itemDataMap = self.id2filedata
-        listmix.ColumnSorterMixin.__init__(self, len(self.FileDataObj._fields))
+        listmix.ColumnSorterMixin.__init__(self, len(columns))
         self.Bind(wx.EVT_LIST_COL_CLICK, self.OnColClick, self.file_list)
 
         # Pack
@@ -196,14 +212,17 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
         return self._AppendFilepath(abspath)
 
     def _AppendFilepath(self, abspath):
-        next = len(self.id2filedata)
+        filedata = FileDataObj.from_abspath(abspath)
+
         # We use next as entry id because we want to be able 
         # to sort the columns with the mixin ColumnSorterMixin.
+        next = len(self.id2filedata)
         entry_id = next
-        entry = self.FileDataObj.from_abspath(abspath)
+        entry = [getattr(filedata, attr) for attr in self.columns]
         self.file_list.Append(entry)
         self.file_list.SetItemData(next, entry_id)
-        self.id2filedata[entry_id] = entry
+        self.id2filedata[entry_id] = filedata
+
         return entry
 
     def OnItemActivated(self, event):
