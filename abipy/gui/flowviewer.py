@@ -12,19 +12,8 @@ from collections import OrderedDict
 from pymatgen.io.abinitio.launcher import PyLauncher 
 from abipy.gui.events import AbinitEventsFrame, AbinitEventsNotebookFrame
 from abipy.gui.timer import MultiTimerFrame
-from abipy.gui.browser import FileListFrame, viewerframe_from_filepath
+from abipy.gui.browser import FileListFrame, frame_from_filepath
 from abipy.gui.editor import TextNotebookFrame, SimpleTextViewer
-
-
-ID_SHOW_INPUTS = wx.NewId()
-ID_SHOW_OUTPUTS = wx.NewId()
-ID_SHOW_LOGS = wx.NewId()
-ID_SHOW_JOB_SCRIPTS = wx.NewId()
-ID_BROWSE = wx.NewId()
-ID_SHOW_MAIN_EVENTS = wx.NewId()
-ID_SHOW_LOG_EVENTS = wx.NewId()
-ID_SHOW_TIMERS = wx.NewId()
-ID_CHECK_STATUS = wx.NewId()
 
 
 class FlowViewerFrame(awx.Frame):
@@ -73,27 +62,34 @@ class FlowViewerFrame(awx.Frame):
 
         # Create toolbar.
         self.toolbar = toolbar = self.CreateToolBar()
+        toolbar.SetToolBitmapSize(wx.Size(48, 48))
 
         def bitmap(path):
             return wx.Bitmap(awx.path_img(path))
 
-        #tsize = (48,48)
-        #artBmp = wx.ArtProvider.GetBitmap
-        toolbar.AddSimpleTool(ID_SHOW_INPUTS, bitmap("in.png"), "Visualize the input files of the workflow.")
-        toolbar.AddSimpleTool(ID_SHOW_OUTPUTS, bitmap("out.png"), "Visualize the output files of the workflow..")
-        toolbar.AddSimpleTool(ID_SHOW_LOGS, bitmap("log.png"), "Visualize the log files of the workflow.")
-        toolbar.AddSimpleTool(ID_SHOW_JOB_SCRIPTS, bitmap("script.png"), "Visualize the scripts.")
-        toolbar.AddSimpleTool(ID_BROWSE, bitmap("browse.png"), "Browse all the files of the workflow.")
-        toolbar.AddSimpleTool(ID_SHOW_MAIN_EVENTS, bitmap("out_evt.png"), "Show the ABINIT events reported in the main output files.")
-        toolbar.AddSimpleTool(ID_SHOW_LOG_EVENTS, bitmap("log_evt.png"), "Show the ABINIT events reported in the log files.")
-        toolbar.AddSimpleTool(ID_SHOW_TIMERS, bitmap("timer.png"), "Show the ABINIT timers in the abo files.")
+        self.ID_SHOW_INPUTS = wx.NewId()
+        self.ID_SHOW_OUTPUTS = wx.NewId()
+        self.ID_SHOW_LOGS = wx.NewId()
+        self.ID_SHOW_JOB_SCRIPTS = wx.NewId()
+        self.ID_BROWSE = wx.NewId()
+        self.ID_SHOW_MAIN_EVENTS = wx.NewId()
+        self.ID_SHOW_LOG_EVENTS = wx.NewId()
+        self.ID_SHOW_TIMERS = wx.NewId()
+        self.ID_CHECK_STATUS = wx.NewId()
+
+        toolbar.AddSimpleTool(self.ID_SHOW_INPUTS, bitmap("in.png"), "Visualize the input files of the workflow.")
+        toolbar.AddSimpleTool(self.ID_SHOW_OUTPUTS, bitmap("out.png"), "Visualize the output files of the workflow..")
+        toolbar.AddSimpleTool(self.ID_SHOW_LOGS, bitmap("log.png"), "Visualize the log files of the workflow.")
+        toolbar.AddSimpleTool(self.ID_SHOW_JOB_SCRIPTS, bitmap("script.png"), "Visualize the scripts.")
+        toolbar.AddSimpleTool(self.ID_BROWSE, bitmap("browse.png"), "Browse all the files of the workflow.")
+        toolbar.AddSimpleTool(self.ID_SHOW_MAIN_EVENTS, bitmap("out_evt.png"), "Show the ABINIT events reported in the main output files.")
+        toolbar.AddSimpleTool(self.ID_SHOW_LOG_EVENTS, bitmap("log_evt.png"), "Show the ABINIT events reported in the log files.")
+        toolbar.AddSimpleTool(self.ID_SHOW_TIMERS, bitmap("timer.png"), "Show the ABINIT timers in the abo files.")
 
         toolbar.AddSeparator()
 
-        toolbar.AddSimpleTool(ID_CHECK_STATUS, bitmap("refresh.png"), "Check the status of the workflow(s).")
-
-        #toolbar.AddSeparator()
-        self.toolbar.Realize()
+        toolbar.AddSimpleTool(self.ID_CHECK_STATUS, bitmap("refresh.png"), "Check the status of the workflow(s).")
+        toolbar.Realize()
         self.Centre()
 
         # Associate menu/toolbar items with their handlers.
@@ -103,15 +99,15 @@ class FlowViewerFrame(awx.Frame):
             #(wx.ID_EXIT, self.OnExit),
             (wx.ID_ABOUT, self.OnAboutBox),
             #
-            (ID_SHOW_INPUTS, self.OnShowInputs),
-            (ID_SHOW_OUTPUTS, self.OnShowOutputs),
-            (ID_SHOW_LOGS, self.OnShowLogs),
-            (ID_SHOW_JOB_SCRIPTS, self.OnShowJobScripts),
-            (ID_BROWSE, self.OnBrowse),
-            (ID_SHOW_MAIN_EVENTS, self.OnShowMainEvents),
-            (ID_SHOW_LOG_EVENTS, self.OnShowLogEvents),
-            (ID_SHOW_TIMERS, self.OnShowTimers),
-            (ID_CHECK_STATUS, self.OnCheckStatusButton),
+            (self.ID_SHOW_INPUTS, self.OnShowInputs),
+            (self.ID_SHOW_OUTPUTS, self.OnShowOutputs),
+            (self.ID_SHOW_LOGS, self.OnShowLogs),
+            (self.ID_SHOW_JOB_SCRIPTS, self.OnShowJobScripts),
+            (self.ID_BROWSE, self.OnBrowse),
+            (self.ID_SHOW_MAIN_EVENTS, self.OnShowMainEvents),
+            (self.ID_SHOW_LOG_EVENTS, self.OnShowLogEvents),
+            (self.ID_SHOW_TIMERS, self.OnShowTimers),
+            (self.ID_CHECK_STATUS, self.OnCheckStatusButton),
         ]
 
         for combo in menu_handlers:
@@ -121,9 +117,6 @@ class FlowViewerFrame(awx.Frame):
         self.flow = flow
 
         self.check_launcher_file()
-        #if filename is not None:
-        #    self.ReadWorkflow(filename)
-                                         
         self.BuildUi()
 
     def check_launcher_file(self, with_dialog=True):
@@ -176,10 +169,10 @@ class FlowViewerFrame(awx.Frame):
         self.max_nlaunch = wx.SpinCtrl(panel, -1, value="1", min=-1)
 
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
-        hsizer.Add(submit_button,  0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
-        hsizer.Add(text,  0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
-        hsizer.Add(self.max_nlaunch,  0,  wx.ALIGN_CENTER_HORIZONTAL, 5)
-        main_sizer.Add(hsizer, 0,  wx.ALIGN_CENTER_HORIZONTAL, 5)                                                                                     
+        hsizer.Add(submit_button, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
+        hsizer.Add(text, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
+        hsizer.Add(self.max_nlaunch, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
+        main_sizer.Add(hsizer, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)                                                                                     
 
         panel.SetSizerAndFit(main_sizer)
 
@@ -396,17 +389,16 @@ class TabPanel(wx.Panel):
     def __init__(self, parent, work, **kwargs):
         wx.Panel.__init__(self, parent=parent, id=-1, **kwargs)
 
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
-
         # List Control with the individual tasks of the workflow.
         task_listctrl = TaskListCtrl(self, work)
-        main_sizer.Add(task_listctrl, 1, wx.EXPAND, 5)
 
         label = wx.StaticText(self, -1, "Workflow class %s, status: %s, finalized: %s" % (
             work.__class__.__name__, work.status, work.finalized))
         label.Wrap(-1)
-        main_sizer.Add(label, 0, wx.ALIGN_LEFT, 5)
 
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(label, 0, wx.ALIGN_LEFT, 5)
+        main_sizer.Add(task_listctrl, 1, wx.EXPAND, 5)
         self.SetSizerAndFit(main_sizer)
 
 
@@ -462,15 +454,13 @@ class TaskListCtrl(wx.ListCtrl):
         # Set the width in pixel for each column.
         for (index, col) in enumerate(columns):
             self.SetColumnWidth(index, column_widths[index])
-            #self.SetColumnWidth(index, wx.LIST_AUTOSIZE)
 
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick)
         #self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
 
     def OnRightClick(self, event):
         currentItem = event.m_itemIndex
-        if currentItem == -1:
-            return
+        if currentItem == -1: return
 
         # Open the popup menu then destroy it to avoid mem leak.
         task = self.work[currentItem]
@@ -494,7 +484,7 @@ def show_task_main_output(parent, task):
     file = task.output_file
 
     if file.exists:
-        viewerframe_from_filepath(parent, file.path).Show()
+        frame_from_filepath(parent, file.path).Show()
     else:
         awx.showErrorMessage(parent=parent, message="Output file %s does not exist" % file.path)
 
@@ -504,7 +494,7 @@ def show_task_log(parent, task):
     file = task.log_file
 
     if file.exists:
-        viewerframe_from_filepath(parent, file.path).Show()
+        frame_from_filepath(parent, file.path).Show()
     else:
         awx.showErrorMessage(parent=parent, message="Output file %s does not exist" % file.path)
 

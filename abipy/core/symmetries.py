@@ -815,7 +815,7 @@ class LittleGroup(OpSequence):
         #kclasses = kgroup.classes
 
     def __repr__(self):
-        return "Kpoint: %s, Kpoint group: %s" % (self.kpoint, self.kgroup)
+        return "Kpoint Group: %s, Kpoint: %s" % (self.kgroup, self.kpoint)
 
     def __str__(self):
         lines = [repr(self)]
@@ -824,10 +824,19 @@ class LittleGroup(OpSequence):
         bilbao_ptgrp = bilbao_ptgroup(self.kgroup.sch_symbol)
         bilbao_ptgrp.show_character_table(stream=strio)
         strio.seek(0)
-        #lines += ["Irreducible representations, zoneborder_and_nonsymmorphic %s" % self.kpoint.zoneborder_]
+        # TODO
+        #lines += ["Irreducible representations, zone-border_and_nonsymmorphic %s" % self.kpoint.zoneborder_]
         lines += [l.strip() for l in strio.readlines()]
 
         return "\n".join(lines)
+
+    def bilbao_character_table(self):
+        """Returns table, info"""
+        bilbao_ptgrp = bilbao_ptgroup(self.kgroup.sch_symbol)
+        table = bilbao_ptgrp.character_table
+
+        info = repr(self)
+        return table, info
 
     #@property
     #def konborder_and_nonsymmorphic(self):
@@ -1175,20 +1184,25 @@ class BilbaoPointGroup(object):
         """List with the names of the irreps."""
         return list(self.irreps_by_name.keys())
 
-    def show_character_table(self, stream=sys.stdout):
-        """Write a string with the character_table on the given stream."""
-        from abipy.tools import pprint_table
-
+    @property
+    def character_table(self):
+        """Return a table of strings with the character of the irreps."""
         # 1st row: ptgroup_name class names and multiplicity of each class
         name_mult = [ name + " [" + str(mult) +"]" for (name, mult) in zip(self.class_names, self.class_len)]
         table = [[self.sch_symbol] + name_mult]
         app = table.append
-
+                                                                                                              
         # Add row: irrep_name, character.
         for irrep in self.irreps:
             character = map(str, irrep.character)
             app([irrep.name] + character)
 
+        return table
+
+    def show_character_table(self, stream=sys.stdout):
+        """Write a string with the character_table on the given stream."""
+        from abipy.tools import pprint_table
+        table = self.character_table
         pprint_table(table, out=stream)
 
     #def show_irrep(self, irrep_name):

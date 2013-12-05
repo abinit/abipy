@@ -32,17 +32,17 @@ _EXT2APP = {
 }
 
 
-#def file2wxapp(filepath):
-#    ext = filepath.split("_")[-1]
-#    try:
-#        return _EXT2APP[ext]
-#
-#    except KeyError:
-#        root, ext = os.path.splitext(filepath)
-#        try:
-#            return _EXT2APP[ext]
-#        except KeyError:
-#            # No frame registered for the file. 
-#            # Open NcViewer if we have a netcdf file else None
-#            if filepath.endswith(".nc") return wxapp_ncview
-#            return None
+def file2appcls(filepath):
+    ext = filepath.split("_")[-1]
+    try:
+        return _EXT2APP[ext]
+
+    except KeyError:
+        root, ext = os.path.splitext(filepath)
+        try:
+            return _EXT2APP[ext]
+        except KeyError:
+            # No frame registered for the file. 
+            # Open NcViewer if we have a netcdf file else None
+            if filepath.endswith(".nc"): return wxapp_ncview
+            return None

@@ -5,12 +5,7 @@ import wx
 import warnings
 import abipy.gui.awx as awx
 
-try:
-    from wxmplot import PlotFrame
-except ImportError:
-    #warnings.warn("Error while importing wxmplot. Some features won't be available")
-    pass
-
+from wxmplot import PlotFrame
 from abipy.abilab import abiopen
 from abipy.tools import AttrDict
 from abipy.electrons import ElectronBands

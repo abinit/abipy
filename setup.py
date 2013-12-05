@@ -162,7 +162,7 @@ install_requires = [
     "pymatgen>=2.8.7",
     "fabric",
     "paramiko",
-    #"wxmplot>=0.9.14",
+    "wxmplot",
     #"asciitable",
     #"psutil",
 ]

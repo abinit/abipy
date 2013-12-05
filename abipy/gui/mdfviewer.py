@@ -12,6 +12,7 @@ from abipy.tools import marquee, list_strings
 from abipy.electrons.bse import MDF_Plotter
 from abipy.iotools.visualizer import Visualizer
 from abipy.gui import mixins as mix 
+from abipy.gui.kpoints import KpointsPanel
 
 
 class MdfViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.Has_Tools, mix.Has_Netcdf):
@@ -307,18 +308,16 @@ class MdfFileTab(wx.Panel):
         splitter = wx.SplitterWindow(self, id=-1, style=wx.SP_3D)
         splitter.SetSashGravity(0.95)
 
-        #self.skb_panel = awx.SpinKpointBandPanel(splitter, wfk.nsppol, wfk.kpoints, wfk.mband)
-        # Set the callback for double click on k-point row..
-        #self.skb_panel.SetOnItemActivated(self._visualize_skb)
+        self.qpts_panel = KpointsPanel(splitter, mdf_file.structure, mdf_file.qpoints)
 
         # Add Python shell
-        #msg = "MDF_object is accessible via the mdf_file variable. Use mdf_file.<TAB> to access the list of methods."
-        #msg = marquee(msg, width=len(msg) + 8, mark="#")
-        #msg = "#"*len(msg) + "\n" + msg + "\n" + "#"*len(msg) + "\n"
+        msg = "MDF_object is accessible via the mdf_file variable. Use mdf_file.<TAB> to access the list of methods."
+        msg = marquee(msg, width=len(msg) + 8, mark="#")
+        msg = "#"*len(msg) + "\n" + msg + "\n" + "#"*len(msg) + "\n"
 
         # FIXME <Error>: CGContextRestoreGState: invalid context 0x0
-        #pyshell = Shell(splitter, introText=msg,locals={"mdf_file": self.mdf_file})
-        #splitter.SplitHorizontally(self.skb_panel, pyshell)
+        pyshell = Shell(splitter, introText=msg, locals={"mdf_file": mdf_file})
+        splitter.SplitHorizontally(self.qpts_panel, pyshell)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(splitter, 1, wx.EXPAND, 5)

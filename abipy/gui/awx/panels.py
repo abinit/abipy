@@ -2,7 +2,7 @@ from __future__ import print_function, division
 
 import wx
 
-#import wx.lib.mixins.listctrl as listmix
+import wx.lib.mixins.listctrl as listmix
 
 from .core import Panel, get_width_height
 
@@ -64,33 +64,9 @@ class SpinKpointBandPanel(Panel):
         kpoint_label.Wrap(-1)
         hsizer2.Add(kpoint_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
-        self.kpoint_listctrl = wx.ListCtrl(self, id=-1, style=wx.LC_REPORT | wx.BORDER_SUNKEN)
+        self.kpoint_listctrl = klist = KpointsListCtrl(self, self.kpoints)
+
         hsizer2.Add(self.kpoint_listctrl, 1, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
-
-        klist = self.kpoint_listctrl
-        columns = ["#", 'Reduced Coordinates', 'Weight', 'Name']
-
-        for index, col in enumerate(columns):
-            klist.InsertColumn(index, col)
-
-        # Used to store the Max width in pixels for the data in the column.
-        column_widths = [get_width_height(self, s)[0] for s in columns]
-
-        for index, kpt in enumerate(self.kpoints):
-            entry = ["%d\t\t" % index, 
-                     "[%.5f,  %.5f,  %.5f]\t\t" % tuple(c for c in kpt.frac_coords), 
-                     "%.3f\t\t" % kpt.weight, 
-                     "%s" % kpt.name,
-                     ]
-            klist.Append(entry)
-
-            w = [get_width_height(self, s)[0] for s in entry]
-            column_widths = map(max, zip(w, column_widths))
-
-        for index, col in enumerate(columns):
-            klist.SetColumnWidth(index, column_widths[index])
-            #klist.SetColumnWidth(index, wx.LIST_AUTOSIZE)
-
         main_sizer.Add(hsizer2, 1, wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 5)
 
         self.SetSizerAndFit(main_sizer)
@@ -103,8 +79,7 @@ class SpinKpointBandPanel(Panel):
     def GetSKB(self):
         """Returns the tuple (spin, kpoint, band) selected by the user."""
         spin = int(self.spin_cbox.GetValue())
-        kidx = int(self.kpoint_listctrl.GetFirstSelected())
-        kpoint = self.kpoints[kidx]
+        kpoint = self.kpoint_listctrl.GetKpoint()
         band = int(self.band_cbox.GetValue())
         return spin, kpoint, band
 
@@ -151,12 +126,16 @@ class SpinKpointBandPanel(Panel):
             self._on_item_activated_callback(*skb)
 
 
-class KpointsListCtrl(wx.ListCtrl):
+
+class KpointsListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
     """
+    ListCtrl with info on the k-points. Support Column sorting.
     """
     def __init__(self, parent, kpoints, **kwargs):
         """
         Args:
+            parent:
+                Parent window.
             kpoints:
                 List of `Kpoint` instances.
         """
@@ -164,13 +143,16 @@ class KpointsListCtrl(wx.ListCtrl):
 
         self.kpoints = kpoints
 
-        columns = ["#", 'Reduced Coordinates', 'Weight', 'Name']
+        columns = ["#", 'Reduced coordinates', 'Weight', 'Name']
 
         for (index, col) in enumerate(columns):
             self.InsertColumn(index, col)
 
         # Used to store the Max width in pixels for the data in the column.
         column_widths = [get_width_height(self, s)[0] for s in columns]
+
+        # Used by the ColumnSorterMixin, see wx/lib/mixins/listctrl.py
+        self.itemDataMap = {}
 
         for (index, kpt) in enumerate(self.kpoints):
             entry = ["%d\t\t" % index, 
@@ -179,15 +161,30 @@ class KpointsListCtrl(wx.ListCtrl):
                      "%s" % kpt.name,
                      ]
             self.Append(entry)
+            self.itemDataMap[index] = entry
+            self.SetItemData(index, index)
 
             w = [get_width_height(self, s)[0] for s in entry]
             column_widths = map(max, zip(w, column_widths))
 
         for (index, col) in enumerate(columns):
             self.SetColumnWidth(index, column_widths[index])
-            #self.SetColumnWidth(index, wx.LIST_AUTOSIZE)
+
+        # Now that the list exists we can init the other base class, see wx/lib/mixins/listctrl.py
+        listmix.ColumnSorterMixin.__init__(self, len(columns))
+
+    def GetListCtrl(self):
+        """Used by the ColumnSorterMixin, see wx/lib/mixins/listctrl.py"""
+        return self
 
     def GetKpoint(self):
-        """Returns the kpoint selected by the user."""
-        kidx = int(self.GetFirstSelected())
-        return self.kpoints[kidx]
+        """
+        Returns the kpoint selected by the user.
+        None if no selection has been done.
+        """
+        # Get selected index, map to index in kpoints and return the kpoint.
+        item = self.GetFirstSelected()
+        if item == -1: return None
+        index = self.GetItemData(item)
+        #print("item", item, "index", index)
+        return self.kpoints[index]

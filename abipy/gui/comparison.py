@@ -209,8 +209,8 @@ class ComparisonFrame(awx.Frame):
             else:
                 awx.showErrorMessage(self, message="No function registered for choice %s" % choice)
 
-        except Exception as exc:
-            awx.showErrorMessage(self, message=str(exc))
+        except Exception:
+            awx.showErrorMessage(self)
 
 
 def wxapp_comparison(dirpaths=None, filepaths=None, wildcard=None):

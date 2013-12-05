@@ -9,20 +9,13 @@ import abipy.gui.awx as awx
 import wx.lib.mixins.listctrl as listmix
 
 from collections import namedtuple
+from wxmplot import PlotApp, PlotFrame
 from abipy.tools.text import list_strings, is_string, WildCard
-
-
-try:
-    from wxmplot import PlotApp, PlotFrame
-except ImportError:
-    #warnings.warn("Error while importing wxmplot. Some features won't be available")
-    pass
-
 from abipy.electrons import ElectronBandsPlotter
 from abipy.gui.popupmenus import popupmenu_for_filename
 
 
-def viewerframe_from_filepath(parent, filepath):
+def frame_from_filepath(parent, filepath):
     """
     Factory function that returns the viewer (wx frame) associated to the file.
     None if no viewer has been registered for this filename.
@@ -83,7 +76,7 @@ class NcFileDirCtrl(wx.GenericDirCtrl):
         path = self.GetFilePath()
         if not path: return
 
-        frame = viewerframe_from_filepath(self, path)
+        frame = frame_from_filepath(self, path)
         if frame is not None:
             frame.Show()
 
@@ -128,11 +121,9 @@ class FileDataObj(namedtuple("FileDataObj", "filename type directory")):
 
     @classmethod
     def from_abspath(cls, abspath):
-        return cls(
-            filename=os.path.basename(abspath),
-            type=os.path.splitext(abspath)[-1],
-            directory=os.path.dirname(abspath),
-        )
+        return cls(filename=os.path.basename(abspath),
+                   type=os.path.splitext(abspath)[-1],
+                   directory=os.path.dirname(abspath))
 
 
 class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
@@ -165,7 +156,6 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
         file_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick)
         file_list.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
 
-        #self.columns = columns = FileDataObj._fields
         self.columns = columns = ["filename", "type", "reldirpath"]
 
         # Used to store the Max width in pixels for the data in the column.
@@ -229,7 +219,7 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
         currentItem = event.m_itemIndex
         fd = self.id2filedata[self.file_list.GetItemData(currentItem)]
 
-        frame = viewerframe_from_filepath(self, fd.abspath)
+        frame = frame_from_filepath(self, fd.abspath)
         if frame is not None:
             frame.Show()
 
@@ -248,7 +238,6 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
 
     def OnColClick(self, event):
         event.Skip()
-
 
 
 class FileListFrame(awx.Frame):

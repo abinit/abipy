@@ -7,7 +7,7 @@ import collections
 import numpy as np
 
 from abipy.core.func1d import Function1D
-from abipy.core.kpoints import Kpoint
+from abipy.core.kpoints import Kpoint, KpointList
 from abipy.iotools import ETSF_Reader, AbinitNcFile, Has_Structure
 from abipy.tools import is_string
 from abipy.core.tensor import SymmetricTensor
@@ -42,7 +42,8 @@ class DielectricTensor(object):
         # One tensor for each frequency
         all_tensors = []
         for (ifrq,freq) in enumerate(mdf.wmesh):
-            all_tensors.append(SymmetricTensor.from_directions(mdf.qpoints,all_emacros[:,ifrq],structure.lattice.reciprocal_lattice,space="g"))
+            tensor = SymmetricTensor.from_directions(mdf.qpoints, all_emacros[:,ifrq], structure.lattice.reciprocal_lattice, space="g")
+            all_tensors.append(tensor)
 
         self._all_tensors = all_tensors
 
@@ -356,8 +357,10 @@ class MDF_File(AbinitNcFile, Has_Structure):
 
         with MDF_Reader(filepath) as r:
             self._structure = r.read_structure()
+            # TODO Add electron Bands.
             #self._ebands = r.read_ebands()
 
+            self.qpoints = KpointList(self.structure.reciprocal_lattice, frac_coords=r.qpoints)
             self.exc_mdf = r.read_exc_mdf()
             self.rpanlf_mdf = r.read_rpanlf_mdf()
             self.gwnlf_mdf = r.read_gwnlf_mdf()

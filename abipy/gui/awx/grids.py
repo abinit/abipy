@@ -1,9 +1,9 @@
 from __future__ import print_function, division
 
 import sys
-
 import wx
-import wx.grid as  gridlib
+
+import wx.grid as gridlib
 
 __all__ = [
     "SimpleGrid",
@@ -12,7 +12,7 @@ __all__ = [
 
 class SimpleGrid(gridlib.Grid): 
 
-    def __init__(self, parent, table, row_labels=None, col_labels=None):
+    def __init__(self, parent, table, row_labels=None, col_labels=None, **kwargs):
         """
         Args:
             parent:
@@ -24,8 +24,7 @@ class SimpleGrid(gridlib.Grid):
             col_labels:
                 List of strings used to name the col.
         """
-
-        gridlib.Grid.__init__(self, parent, -1)
+        super(SimpleGrid, self).__init__(parent, -1, **kwargs)
         self.log = sys.stdout
 
         self.moveTo = None
@@ -58,7 +57,7 @@ class SimpleGrid(gridlib.Grid):
                 self.SetColLabelValue(i, label)
             self.SetColLabelAlignment(wx.ALIGN_LEFT, wx.ALIGN_BOTTOM)
 
-        # cell formatting
+        # Cell formatting
         for r, row in enumerate(table):
             for c, col in enumerate(row):
                 self.SetCellValue(r, c, table[r][c])
@@ -241,19 +240,36 @@ class SimpleGrid(gridlib.Grid):
 
 
 class SimpleGridFrame(wx.Frame):
-    def __init__(self, parent, table, row_labels=None, col_labels=None, **kwargs):
+    def __init__(self, parent, table, row_labels=None, col_labels=None, labels_from_table=False, **kwargs):
+        """
+        Args:
+            labels_from_table:
+                If True row_labes and col_labels are taken from the table. Not compatible with `row_labels` and `col_labels`.
+        """
         super(SimpleGridFrame, self).__init__(parent, -1, **kwargs)
 
-        self.font_picker = wx.FontPickerCtrl(self, -1)
+        if labels_from_table:
+            # Extract labes from table and extract the subtable.
+            assert not row_labels and not col_labels
+            col_labels = table[0][1:]
+            row_labels, new_table = [], []
+            for row in table[1:]:
+                row_labels.append(row[0])
+                new_table.append(row[1:])
+            table = new_table
 
-        self.grid = SimpleGrid(self, table, row_labels=row_labels, col_labels=col_labels)
+        self.panel = panel = wx.Panel(self, -1)
+
+        self.font_picker = wx.FontPickerCtrl(panel, -1)
+
+        self.grid = SimpleGrid(panel, table, row_labels=row_labels, col_labels=col_labels)
         self.Bind(wx.EVT_FONTPICKER_CHANGED, self.OnFontPickerChanged)
 
         self.main_sizer = main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(self.font_picker)
-        main_sizer.Add(self.grid)
+        main_sizer.Add(self.grid, 1, wx.EXPAND, 5)
 
-        self.SetSizerAndFit(main_sizer)
+        panel.SetSizerAndFit(main_sizer)
 
     def OnFontPickerChanged(self, event):
         """Change the Font."""
@@ -261,26 +277,25 @@ class SimpleGridFrame(wx.Frame):
         attr = gridlib.GridCellAttr()
         attr.SetFont(font)
         self.grid.SetGridCellAttr(attr)
-        self.main_sizer.Fit(self)
-
-#---------------------------------------------------------------------------
-
-class TestFrame(wx.Frame):
-    def __init__(self, parent):
-        wx.Frame.__init__(self, parent, -1, "Simple Grid Demo")
-
-        row_labels = ["row1", "row2"]
-        col_labels = ["col1", "col2", "col3"]
-
-        table = [ 
-            ["1", "2", "3"],
-            ["4", "5", "6"]
-        ]
-        self.grid = SimpleGrid(self, table, row_labels, col_labels)
+        self.main_sizer.Fit(self.panel)
 
 
-if __name__ == '__main__':
-    app = wx.App()
-    frame = TestFrame(None)
-    frame.Show(True)
-    app.MainLoop()
+#class DemoSimpleGrid(wx.Frame):
+#    def __init__(self, parent):
+#        wx.Frame.__init__(self, parent, -1, "Simple Grid Demo")
+#
+#        row_labels = ["row1", "row2"]
+#        col_labels = ["col1", "col2", "col3"]
+#
+#        table = [ 
+#            ["1", "2", "3"],
+#            ["4", "5", "6"]
+#        ]
+#        self.grid = SimpleGrid(self, table, row_labels, col_labels)
+#
+#
+#if __name__ == '__main__':
+#    app = wx.App()
+#    frame = DemoSimpleGrid(None)
+#    frame.Show(True)
+#    app.MainLoop()

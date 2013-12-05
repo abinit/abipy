@@ -945,10 +945,8 @@ class ElectronBands(object):
                     qp_energies[spin,k,band] = qp_ene
 
         # Change the energies (NB: occupations and fermie are left unchanged).
-        return ElectronBands(
-            self.structure, self.kpoints, qp_energies, self.fermie, self.occfacts, self.nelect,
-            nband_sk=self.nband_sk, smearing=self.smearing, markers=self.markers
-        )
+        return ElectronBands(self.structure, self.kpoints, qp_energies, self.fermie, self.occfacts, self.nelect,
+            nband_sk=self.nband_sk, smearing=self.smearing, markers=self.markers)
 
     def plot(self, klabels=None, band_range=None, marker=None, width=None, **kwargs):
         """

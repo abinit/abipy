@@ -30,7 +30,7 @@ class KpointsPanel(awx.Panel):
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(self.kpoints_listctrl, 1, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
-        self.SetSizer(main_sizer)
+        self.SetSizerAndFit(main_sizer)
 
     def OnRightClick(self, event):
         popmenu = KpointPopupMenu(self, structure=self.structure, kpoint=self.kpoints_listctrl.GetKpoint())
@@ -45,7 +45,9 @@ class KpointsPanel(awx.Panel):
 
 def showLittleGroup(parent, structure, kpoint):
     ltk = structure.spacegroup.find_little_group(kpoint)
-    wxdg.ScrolledMessageDialog(parent, str(ltk), caption=repr(ltk), style=wx.MAXIMIZE_BOX).Show()
+    #wxdg.ScrolledMessageDialog(parent, str(ltk), caption=repr(ltk), style=wx.MAXIMIZE_BOX).Show()
+    table, header = ltk.bilbao_character_table()
+    awx.SimpleGridFrame(parent, table, title=header, labels_from_table=True).Show()
 
 
 def showStar(parent, structure, kpoint):
@@ -109,7 +111,3 @@ class KpointPopupMenu(wx.Menu):
         except:
             awx.showErrorMessage(parent=self.parent)
 
-
-#if __name__ == "__main__":
-#    from abipy.abilab import abiopen
-#    import abipy.data as abidata

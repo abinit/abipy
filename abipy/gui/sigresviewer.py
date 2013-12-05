@@ -329,7 +329,7 @@ class SigresFileTab(wx.Panel):
         self.sigres = sigres
 
         splitter = wx.SplitterWindow(self, style=wx.SP_LIVE_UPDATE)
-        splitter.SetMinimumPaneSize(50)
+        splitter.SetSashGravity(0.95)
 
         self.skb_panel = awx.SpinKpointBandPanel(splitter, sigres.nsppol, sigres.gwkpoints, sigres.max_gwbstop,
             bstart=sigres.min_gwbstart)
