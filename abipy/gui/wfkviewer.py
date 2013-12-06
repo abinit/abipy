@@ -14,8 +14,7 @@ from abipy.gui import mixins as mix
 from abipy.gui.baseviewer import MultiViewerFrame
 
 
-class WfkViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.Has_Tools, mix.Has_NetcdfFiles):
-#class WfkViewerFrame(MultiViewerFrame, mix.Has_Structure, mix.Has_MultipleEbands, mix.Has_Tools, mix.Has_NetcdfFiles):
+class WfkViewerFrame(MultiViewerFrame, mix.Has_Structure, mix.Has_MultipleEbands, mix.Has_Tools, mix.Has_NetcdfFiles):
     VERSION = "0.1"
 
     HELP_MSG = """Quick help:
@@ -38,49 +37,9 @@ Also, these key bindings can be used
   Ctrl-Q:     quit
 
 """
-    def __init__(self, parent, filepaths=(), **kwargs):
-        """
-        Args:
-            parent:
-                parent window.
-            filepaths:
-                String or list of strings with the path of the netcdf WFK files to open
-                Empty tuple if no file should be opened during the initialization of the frame.
-        """
-        super(WfkViewerFrame, self).__init__(parent, -1, title=self.codename, **kwargs)
-
-        # This combination of options for config seems to work on my Mac.
-        self.config = wx.FileConfig(appName=self.codename, localFilename=self.codename + ".ini", 
-                                    style=wx.CONFIG_USE_LOCAL_FILE)
-
-        # Build menu, toolbar and status bar.
-        self.makeMenu()
-        self.makeToolBar()
-        self.statusbar = self.CreateStatusBar()
-
-        # Open netcdf files.
-        filepaths, exceptions = list_strings(filepaths), []
-        filepaths = map(os.path.abspath, filepaths)
-
-        # Create the notebook (each file will have its own tab).
-        panel = wx.Panel(self, -1)
-        self.notebook = fnb.FlatNotebook(panel, -1, style=fnb.FNB_NAV_BUTTONS_WHEN_NEEDED)
-                                                                                           
-        for path in filepaths:
-            self.read_file(path)
-
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.notebook, 1, wx.EXPAND, 5)
-        panel.SetSizerAndFit(sizer)
-
     @property
     def codename(self):
         return "WfkViewer"
-
-    @property
-    def active_tab(self):
-        """Returns the active tab. None if notebook is empty."""
-        return self.notebook.GetCurrentPage()
 
     @property
     def active_wfk(self):
@@ -129,54 +88,20 @@ Also, these key bindings can be used
 
     def makeMenu(self):
         """Creates the main menu."""
-        # Menu IDs
-        self.menu_bar = menuBar = wx.MenuBar()
+        # Base menu.
+        menu_bar = super(WfkViewerFrame, self).makeMenu()
 
-        file_menu = wx.Menu()
-        file_menu.Append(wx.ID_OPEN, "&Open", help="Open an existing WFK file")
-        file_menu.Append(wx.ID_CLOSE, "&Close", help="Close the WFK file")
-        file_menu.Append(wx.ID_EXIT, "&Quit", help="Exit the application")
+        # Add Mixin menus.
+        menu_bar.Append(self.CreateStructureMenu(), "Structure")
+        menu_bar.Append(self.CreateEbandsMenu(), "Ebands")
+        menu_bar.Append(self.CreateToolsMenu(), "Tools")
+        menu_bar.Append(self.CreateNetcdfMenu(), "Netcdf")
 
-        file_history = self.file_history = wx.FileHistory(8)
-        file_history.Load(self.config)
-        recent = wx.Menu()
-        file_history.UseMenu(recent)
-        file_history.AddFilesToMenu()
-        file_menu.AppendMenu(wx.ID_ANY, "&Recent Files", recent)
-        self.Bind(wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9)
-        menuBar.Append(file_menu, "File")
+        # Help menu
+        help_menu = self.makeHelpMenu()
+        menu_bar.Append(help_menu, "Help")
 
-        menuBar.Append(self.CreateStructureMenu(), "Structure")
-        menuBar.Append(self.CreateEbandsMenu(), "Ebands")
-        menuBar.Append(self.CreateToolsMenu(), "Tools")
-        menuBar.Append(self.CreateNetcdfMenu(), "Netcdf")
-
-        self.ID_HELP_QUICKREF = wx.NewId()
-
-        self.help_menu = wx.Menu()
-        self.help_menu.Append(self.ID_HELP_QUICKREF, "Quick Reference ", help="Quick reference for " + self.codename)
-        self.help_menu.Append(wx.ID_ABOUT, "About " + self.codename, help="Info on the application")
-        menuBar.Append(self.help_menu, "Help")
-
-        self.Bind(wx.EVT_MENU, self.onQuickRef, id=self.ID_HELP_QUICKREF)
-
-        self.SetMenuBar(menuBar)
-
-        # Associate menu/toolbar items with their handlers.
-        self.ID_VISWAVE = wx.NewId()
-
-        menu_handlers = [
-            (wx.ID_OPEN, self.OnOpen),
-            #(wx.ID_CLOSE, self.OnClose),
-            #(wx.ID_EXIT, self.OnExit),
-            (wx.ID_ABOUT, self.OnAboutBox),
-            #
-            #(self.ID_VISWAVE, self.OnVisualizeWave),
-        ]
-                                                            
-        for combo in menu_handlers:
-            mid, handler = combo[:2]
-            self.Bind(wx.EVT_MENU, handler, id=mid)
+        self.SetMenuBar(menu_bar)
 
     def makeToolBar(self):
         """Creates the toolbar."""
@@ -188,7 +113,7 @@ Also, these key bindings can be used
 
         artBmp = wx.ArtProvider.GetBitmap
         toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR), "Open")
-        toolbar.AddSimpleTool(self.ID_VISWAVE, bitmap("wfk.png"), "Visualize the selected wavefunction")
+        #toolbar.AddSimpleTool(self.ID_VISWAVE, bitmap("wfk.png"), "Visualize the selected wavefunction")
         toolbar.AddSeparator()
 
         # Combo box with the list of visualizers
@@ -200,98 +125,14 @@ Also, these key bindings can be used
 
         toolbar.Realize()
 
-    def AddFileToHistory(self, filepath):
-        """Add the absolute filepath to the file history."""
-        self.file_history.AddFileToHistory(filepath)
-        self.file_history.Save(self.config)
-        self.config.Flush()
-
-    def read_file(self, filepath):
-        """Open netcdf file, create new tab and save the file in the history."""
-        self.statusbar.PushStatusText("Reading %s" % filepath)
-        try:
-            notebook = self.notebook
-            wfk = abiopen(filepath)
-            #if not isinstance(wfkfile, WFK_File):
-            #    awx.showErrorMessage(self, message="%s is not a valid WFK File" % filepath)
-            #    return
-            self.statusbar.PushStatusText("WFK file %s loaded" % filepath)
-            tab = WfkFileTab(notebook, wfk)
-            notebook.AddPage(tab, os.path.basename(filepath))
-            # don't know why but this does not work!
-            notebook.Refresh()
-            notebook.SetSelection(notebook.GetPageCount())
-            self.AddFileToHistory(filepath)
-        except:
-            awx.showErrorMessage(self)
-
-    def OnOpen(self, event):
-        """Open FileDialog to allow the user to select a WFK.nc file."""
-        # Show the dialog and retrieve the user response.
-        # If it is the OK response, process the data.
-        dialog = wx.FileDialog(self, message="Choose a WFK file", defaultDir=os.getcwd(),
-                               wildcard="WFK Netcdf files (*.nc)|*.nc",
-                               style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
-        if dialog.ShowModal() == wx.ID_CANCEL: return 
-
-        filepath = os.path.abspath(dialog.GetPath())
-        self.read_file(filepath)
-
-    def OnFileHistory(self, event):
-        fileNum = event.GetId() - wx.ID_FILE1
-        filepath = self.file_history.GetHistoryFile(fileNum)
-        self.read_file(filepath)
-
-    def OnClose(self, event):
-        """
-        Remove the active tab from the notebook and 
-        close the corresponding netcdf file, 
-        """
-        notebook = self.notebook
-        if notebook.GetPageCount() == 0: return
-        idx = notebook.GetSelection()
-        if idx == -1: return None
-
-        # Close the file
-        tab = notebook.GetPage(idx)
-        #tab.wfk.close()
-
-        # Remove tab.
-        notebook.DeletePage(idx)
-        notebook.Refresh()
-        #notebook.SendSizeEvent()
-
-    def OnExit(self, event):
-        """Exits the application."""
-        # Close open netcdf files.
-        #try:
-        #    for index in range(self.notebook.GetPageCount()):
-        #        tab = self.notebook.GetPage(index)
-        #        try:
-        #            tab.wfk.close()
-        #        except:
-        #            pass
-        #finally:
-        self.Destroy()
-
-    def OnAboutBox(self, event):
-        """"Info on the application."""
-        awx.makeAboutBox(codename=self.codename, version=self.VERSION,
-                         description="", developers="M. Giantomassi")
+    def addFileTab(self, parent, filepath):
+        wfk = abiopen(filepath)
+        tab = WfkFileTab(self.notebook, wfk)
+        self.notebook.AddPage(tab, os.path.basename(filepath))
 
     def GetVisualizer(self):
         """Returns a string with the visualizer selected by the user."""
         return self.visualizer_cbox.GetValue()
-
-    #def OnVisualizeWave(self, event):
-    #    """Visualize :math:`|u(r)|^2`."""
-    #    raise NotImplementedError("")
-
-    def onQuickRef(self, event=None):
-        dlg = wx.MessageDialog(self, self.HELP_MSG, self.codename + " Quick Reference",
-                               wx.OK | wx.ICON_INFORMATION)
-        dlg.ShowModal()
-        dlg.Destroy()
 
 
 class WfkFileTab(awx.Panel):

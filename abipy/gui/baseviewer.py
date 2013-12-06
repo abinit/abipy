@@ -7,8 +7,7 @@ import abc
 import wx.lib.agw.flatnotebook as fnb
 import abipy.gui.awx as awx
 
-#from abipy.tools import marquee, list_strings 
-#from abipy.abilab import abiopen
+from abipy.tools import list_strings 
 
 
 class MultiViewerFrame(awx.Frame):
@@ -20,7 +19,14 @@ class MultiViewerFrame(awx.Frame):
         HELP_MSG = 'Quick help'
     """
     def __init__(self, parent, filepaths=(), **kwargs):
-
+        """
+        Args:
+            parent:
+                parent window.
+            filepaths:
+                String or list of strings with the path of the netcdf files to open
+                Empty tuple if no file should be opened during the initialization of the frame.
+        """
         super(MultiViewerFrame, self).__init__(parent, -1, title=self.codename, **kwargs)
 
         # This combination of options for config seems to work on my Mac.
@@ -61,7 +67,7 @@ class MultiViewerFrame(awx.Frame):
         Method of the base class that provides a base menu.
         that can be extended by the subclass.
         """
-        self.menu_bar = menuBar = wx.MenuBar()
+        menu_bar = wx.MenuBar()
 
         file_menu = wx.Menu()
         file_menu.Append(wx.ID_OPEN, "&Open", help="Open an existing file in a new tab")
@@ -75,61 +81,58 @@ class MultiViewerFrame(awx.Frame):
         file_history.AddFilesToMenu()
         file_menu.AppendMenu(wx.ID_ANY, "&Recent Files", recent)
         self.Bind(wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9)
-        menuBar.Append(file_menu, "File")
+        menu_bar.Append(file_menu, "File")
 
-        #menuBar.Append(self.CreateStructureMenu(), "Structure")
-        #menuBar.Append(self.CreateEbandsMenu(), "Ebands")
-        #menuBar.Append(self.CreateToolsMenu(), "Tools")
-        #menuBar.Append(self.CreateNetcdfMenu(), "Netcdf")
-
-        self.help_menu = wx.Menu()
-
-        self.ID_HELP_QUICKREF = wx.NewId()
-        self.help_menu.Append(self.ID_HELP_QUICKREF, "Quick Reference ", help="Quick reference for " + self.codename)
-        self.help_menu.Append(wx.ID_ABOUT, "About " + self.codename, help="Info on the application")
-
-        menuBar.Append(self.help_menu, "Help")
-
-        self.SetMenuBar(menuBar)
+        #self.SetMenuBar(menu_bar)
 
         # Associate menu/toolbar items with their handlers.
-        self.ID_VISWAVE = wx.NewId()
-
         menu_handlers = [
             (wx.ID_OPEN, self.OnOpen),
             (wx.ID_CLOSE, self.OnClose),
             (wx.ID_EXIT, self.OnExit),
             (wx.ID_ABOUT, self.OnAboutBox),
-            (self.ID_QUICKREF, self.OnQuickRef),
         ]
                                                             
         for combo in menu_handlers:
             mid, handler = combo[:2]
             self.Bind(wx.EVT_MENU, handler, id=mid)
 
+        return menu_bar
+
+    def makeHelpMenu(self):
+        help_menu = wx.Menu()
+                                                                                                                 
+        self.ID_HELP_QUICKREF = wx.NewId()
+        help_menu.Append(self.ID_HELP_QUICKREF, "Quick Reference ", help="Quick reference for " + self.codename)
+        help_menu.Append(wx.ID_ABOUT, "About " + self.codename, help="Info on the application")
+
+        # Associate menu/toolbar items with their handlers.
+        menu_handlers = [
+            (self.ID_HELP_QUICKREF, self.onQuickRef),
+        ]
+                                                            
+        for combo in menu_handlers:
+            mid, handler = combo[:2]
+            self.Bind(wx.EVT_MENU, handler, id=mid)
+                                                     
+        return help_menu
+
     @abc.abstractmethod
     def makeToolBar(self):
         """To be provided by the concrete class."""
 
     @abc.abstractmethod
-    def addFileTab(self, parent, file_obj):
+    def addFileTab(self, parent, filepath):
         pass
 
     def read_file(self, filepath):
         """Open netcdf file, create new tab and save the file in the history."""
         self.statusbar.PushStatusText("Reading %s" % filepath)
         try:
-            notebook = self.notebook
-            wfk = abiopen(filepath)
-            #if not isinstance(wfkfile, WFK_File):
-            #    awx.showErrorMessage(self, message="%s is not a valid WFK File" % filepath)
-            #    return
-            self.statusbar.PushStatusText("File %s loaded" % filepath)
-            tab = WfkFileTab(notebook, wfk)
-            notebook.AddPage(tab, os.path.basename(filepath))
+            self.addFileTab(self, filepath)
             # don't know why but this does not work!
-            notebook.Refresh()
-            notebook.SetSelection(notebook.GetPageCount())
+            self.notebook.Refresh()
+            self.notebook.SetSelection(self.notebook.GetPageCount())
             self.AddFileToHistory(filepath)
         except:
             awx.showErrorMessage(self)
@@ -181,6 +184,12 @@ class MultiViewerFrame(awx.Frame):
         """"Info on the application."""
         awx.makeAboutBox(codename=self.codename, version=self.VERSION,
                          description="", developers="M. Giantomassi")
+
+    def onQuickRef(self, event=None):
+        dialog = wx.MessageDialog(self, self.HELP_MSG, self.codename + " Quick Reference",
+                               wx.OK | wx.ICON_INFORMATION)
+        dialog.ShowModal()
+        dialog.Destroy()
 
     def AddFileToHistory(self, filepath):
         """Add the absolute filepath to the file history."""
