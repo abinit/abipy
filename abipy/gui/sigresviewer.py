@@ -13,7 +13,7 @@ from abipy.electrons import SIGRES_Plotter
 from abipy.gui.scissors import ScissorsBuilderFrame
 from abipy.gui.baseviewer import MultiViewerFrame
 from abipy.gui import mixins as mix
-from abipy.gui.baseviewer import MultiViewerFrame
+from abipy.gui.kpoints import SpinKpointBandPanel
 
 
 class SigresViewerFrame(MultiViewerFrame, mix.Has_Structure, mix.Has_MultipleEbands, mix.Has_Tools, mix.Has_NetcdfFiles):
@@ -219,7 +219,7 @@ class SigresFileTab(wx.Panel):
         splitter = wx.SplitterWindow(self, style=wx.SP_LIVE_UPDATE)
         splitter.SetSashGravity(0.95)
 
-        self.skb_panel = awx.SpinKpointBandPanel(splitter, sigres.nsppol, sigres.gwkpoints, sigres.max_gwbstop,
+        self.skb_panel = SpinKpointBandPanel(splitter, sigres.nsppol, sigres.gwkpoints, sigres.max_gwbstop,
             bstart=sigres.min_gwbstart)
 
         # Set the callback for double click on k-point row..

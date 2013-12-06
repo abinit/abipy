@@ -11,6 +11,7 @@ from abipy.tools import marquee, list_strings
 from abipy.abilab import abiopen
 from abipy.iotools.visualizer import Visualizer
 from abipy.gui import mixins as mix 
+from abipy.gui.kpoints import SpinKpointBandPanel
 from abipy.gui.baseviewer import MultiViewerFrame
 
 
@@ -146,7 +147,7 @@ class WfkFileTab(awx.Panel):
         splitter = wx.SplitterWindow(self, id=-1, style=wx.SP_3D)
         splitter.SetSashGravity(0.95)
 
-        self.skb_panel = awx.SpinKpointBandPanel(splitter, wfk.nsppol, wfk.kpoints, wfk.mband)
+        self.skb_panel = SpinKpointBandPanel(splitter, wfk.nsppol, wfk.kpoints, wfk.mband)
 
         # Set the callback for double click on k-point row..
         self.skb_panel.SetOnItemActivated(self._visualize_skb)
