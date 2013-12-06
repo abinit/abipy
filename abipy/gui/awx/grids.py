@@ -264,8 +264,7 @@ class SimpleGridFrame(wx.Frame):
         self.grid = SimpleGrid(panel, table, row_labels=row_labels, col_labels=col_labels)
 
         self.main_sizer = main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(self.font_picker)
-        main_sizer.Add(self.grid, 1, wx.EXPAND, 5)
+        main_sizer.Add(self.grid, 1, wx.EXPAND | wx.ALL, 5)
 
         panel.SetSizerAndFit(main_sizer)
 

@@ -3,7 +3,6 @@ from __future__ import print_function, division
 import wx
 
 import abipy.gui.awx as awx
-import wx.lib.dialogs as wxdg
 
 from collections import OrderedDict
 
@@ -38,6 +37,22 @@ class KpointsPanel(awx.Panel):
         popmenu.Destroy()
 
 
+class KpointsFrame(awx.Frame):
+    def __init__(self, parent, structure, kpoints, **kwargs):
+        """
+        Args:
+            parent:
+                Parent window.
+            structure:
+                `Structure` object.
+            kpoints:
+                `KpointList` object. 
+        """
+        super(KpointsFrame, self).__init__(parent, **kwargs)
+
+        panel = KpointsPanel(self, structure, kpoints)
+
+
 ##################
 ### Callbacks ###
 ##################
@@ -45,14 +60,14 @@ class KpointsPanel(awx.Panel):
 
 def showLittleGroup(parent, structure, kpoint):
     ltk = structure.spacegroup.find_little_group(kpoint)
-    #wxdg.ScrolledMessageDialog(parent, str(ltk), caption=repr(ltk), style=wx.MAXIMIZE_BOX).Show()
     table, header = ltk.bilbao_character_table()
     awx.SimpleGridFrame(parent, table, title=header, labels_from_table=True).Show()
 
 
 def showStar(parent, structure, kpoint):
     star = kpoint.compute_star(structure.fm_symmops)
-    wxdg.ScrolledMessageDialog(parent, str(star), caption="Star of the kpoint", style=wx.MAXIMIZE_BOX).Show()
+    #wxdg.ScrolledMessageDialog(parent, str(star), caption="Star of the kpoint", style=wx.MAXIMIZE_BOX).Show()
+    KpointsFrame(parent, structure, star).Show()
 
 
 class KpointPopupMenu(wx.Menu):
