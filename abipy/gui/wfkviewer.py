@@ -13,7 +13,7 @@ from abipy.iotools.visualizer import Visualizer
 from abipy.gui import mixins as mix 
 
 
-class WfkViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.Has_Tools, mix.Has_Netcdf):
+class WfkViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.Has_Tools, mix.Has_NetcdfFiles):
     VERSION = "0.1"
 
     def __init__(self, parent, filepaths=(), **kwargs):
@@ -45,15 +45,11 @@ class WfkViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
         self.notebook = fnb.FlatNotebook(panel, -1, style=fnb.FNB_NAV_BUTTONS_WHEN_NEEDED)
                                                                                            
         for path in filepaths:
-            wfk = abiopen(path)
-            tab = WfkFileTab(self.notebook, wfk)
-            self.notebook.AddPage(tab, os.path.basename(path))
-                                                                                           
+            self.read_file(path)
+
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.notebook, 1, wx.EXPAND, 5)
         panel.SetSizerAndFit(sizer)
-                                                                                           
-        #self.Bind(wx.EVT_CLOSE, self.OnExit)
 
     @property
     def codename(self):
@@ -101,15 +97,17 @@ class WfkViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
         return paths
 
     @property
-    def nc_filepath(self):
+    def nc_filepaths(self):
         """String with the absolute path of the active netcdf file."""
-        return self.active_wfk.filepath
+        paths = []
+        for page in range(self.notebook.GetPageCount()):
+            tab = self.notebook.GetPage(page)
+            paths.append(tab.wfk.filepath)
+        return paths
 
     def makeMenu(self):
         """Creates the main menu."""
         # Menu IDs
-        self.ID_VISWAVE = wx.NewId()
-
         self.menu_bar = menuBar = wx.MenuBar()
 
         file_menu = wx.Menu()
@@ -138,6 +136,8 @@ class WfkViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
         self.SetMenuBar(menuBar)
 
         # Associate menu/toolbar items with their handlers.
+        self.ID_VISWAVE = wx.NewId()
+
         menu_handlers = [
             (wx.ID_OPEN, self.OnOpen),
             #(wx.ID_CLOSE, self.OnClose),

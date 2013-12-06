@@ -13,7 +13,7 @@ from abipy.gui import mixins as mix
 from abipy.gui.kpoints import KpointsPanel
 
 
-class GsrViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.Has_Tools, mix.Has_Netcdf):
+class GsrViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.Has_Tools, mix.Has_NetcdfFiles):
     VERSION = "0.1"
 
     def __init__(self, parent, filepaths=(), **kwargs):
@@ -45,10 +45,8 @@ class GsrViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
         self.notebook = fnb.FlatNotebook(panel, -1, style=fnb.FNB_NAV_BUTTONS_WHEN_NEEDED)
                                                                                            
         for path in filepaths:
-            gsr = abiopen(path)
-            tab = GsrFileTab(self.notebook, gsr)
-            self.notebook.AddPage(tab, os.path.basename(path))
-                                                                                           
+            self.read_file(path)
+
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.notebook, 1, wx.EXPAND, 5)
         panel.SetSizerAndFit(sizer)
@@ -99,9 +97,13 @@ class GsrViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
         return paths
 
     @property
-    def nc_filepath(self):
+    def nc_filepaths(self):
         """String with the absolute path of the netcdf file."""
-        return self.active_gsr.filepath
+        paths = []
+        for page in range(self.notebook.GetPageCount()):
+            tab = self.notebook.GetPage(page)
+            paths.append(tab.gsr.filepath)
+        return paths
 
     def makeMenu(self):
         """Creates the main menu."""

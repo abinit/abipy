@@ -33,6 +33,7 @@ _EXT2APP = {
 
 
 def file2appcls(filepath):
+    import os
     ext = filepath.split("_")[-1]
     try:
         return _EXT2APP[ext]

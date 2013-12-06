@@ -134,7 +134,7 @@ def main():
         show_examples_and_exit(error_code=1)
 
     if options.verbose:
-        print(options)
+        print("options", options)
 
     # loglevel is bound to the string value obtained from the command line argument. 
     # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug

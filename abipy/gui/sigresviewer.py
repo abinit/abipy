@@ -14,7 +14,7 @@ from abipy.gui.scissors import ScissorsBuilderFrame
 from abipy.gui import mixins as mix
 
 
-class SigresViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.Has_Tools, mix.Has_Netcdf):
+class SigresViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.Has_Tools, mix.Has_NetcdfFiles):
     VERSION = "0.1"
 
     def __init__(self, parent, filepaths=(), **kwargs):
@@ -46,10 +46,8 @@ class SigresViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mi
         self.notebook = fnb.FlatNotebook(panel, -1, style=fnb.FNB_NAV_BUTTONS_WHEN_NEEDED)
                                                                                            
         for path in filepaths:
-            sigres = abiopen(path)
-            tab = SigresFileTab(self.notebook, sigres)
-            self.notebook.AddPage(tab, os.path.basename(path))
-                                                                                           
+            self.read_file(path)
+
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.notebook, 1, wx.EXPAND, 5)
         panel.SetSizerAndFit(sizer)
@@ -99,9 +97,13 @@ class SigresViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mi
         return paths
 
     @property
-    def nc_filepath(self):
+    def nc_filepaths(self):
         """String with the absolute path of the netcdf file."""
-        return self.active_sigres.filepath
+        paths = []
+        for page in range(self.notebook.GetPageCount()):
+            tab = self.notebook.GetPage(page)
+            paths.append(tab.sigres.filepath)
+        return paths
 
     @property
     def sigres_filepaths(self):
@@ -463,8 +465,8 @@ class SigresViewerApp(awx.App):
 def wxapp_sigresviewer(sigres_filepaths):
     app = SigresViewerApp()
     frame = SigresViewerFrame(None, filepaths=sigres_filepaths)
-    frame.Show()
     app.SetTopWindow(frame)
+    frame.Show()
     return app
 
 

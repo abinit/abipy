@@ -9,7 +9,10 @@ import abipy.gui.awx as awx
 import wx.lib.mixins.listctrl as listmix
 
 from collections import namedtuple
-from wxmplot import PlotApp, PlotFrame
+try:
+    from wxmplot import PlotApp, PlotFrame
+except ImportError:
+    pass
 from abipy.tools.text import list_strings, is_string, WildCard
 from abipy.electrons import ElectronBandsPlotter
 from abipy.gui.popupmenus import popupmenu_for_filename
@@ -279,7 +282,8 @@ class FileListFrame(awx.Frame):
         else:
             # Select only the files in dirpaths.
             for dirpath in dirpaths:
-                fnames = map(os.path.isfile, os.listdir(dirpath))
+                fnames = [os.path.join(dirpat, f) for f in os.listdir(dirpath)]
+                fnames = filter(os.path.isfile, fnames)
                 self.all_filepaths += wildcard.filter(fnames)
 
         self.BuildUi()

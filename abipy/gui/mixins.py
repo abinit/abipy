@@ -210,6 +210,14 @@ class Has_MultipleEbands(Has_Ebands):
 #    def kpoints(self):
 #        """`Kpoints` object."""
 
+
+#class Has_MultiGsData(object):
+#    """
+#    Mixin class from GUIs Ground-state results (etotal, forces, stresses...)
+#    """
+#    __metaclass__ = abc.ABCMeta
+
+
 class Has_Tools(object):
 
     def CreateToolsMenu(self):
@@ -227,12 +235,12 @@ class Has_Tools(object):
         ConverterFrame(self).Show()
 
 
-class Has_Netcdf(object):
+class Has_NetcdfFiles(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractproperty
-    def nc_filepath(self):
-        """String with the absolute path of the netcdf file."""
+    def nc_filepaths(self):
+        """List of absolute paths of the netcdf file."""
 
     def CreateNetcdfMenu(self):
         """Creates the ebands menu."""
@@ -255,26 +263,24 @@ class Has_Netcdf(object):
 
     def OnNetcdf_NcDump(self, event):
         """Call ncdump and show results in a dialog."""
-        s = NcDumper().dump(self.nc_filepath)
-        caption = "ncdump output for %s" % self.nc_filepath
-        wxdg.ScrolledMessageDialog(self, s, caption=caption, style=wx.MAXIMIZE_BOX).Show()
+        for path in self.nc_filepaths:
+            s = NcDumper().dump(path)
+            caption = "ncdump output for %s" % path
+            wxdg.ScrolledMessageDialog(self, s, caption=caption, style=wx.MAXIMIZE_BOX).Show()
 
     def OnNetcdf_NcView(self, event):
         """Call ncview in an subprocess."""
         if which("ncview") is None:
-            awx.showErrorMessage(self, "Cannot find ncview in $PATH")
-            return 
+            return awx.showErrorMessage(self, "Cannot find ncview in $PATH")
 
-        def target():
-            os.system("ncview %s" % self.nc_filepath)
+        for path in self.nc_filepaths:
+            def target():
+                os.system("ncview %s" % path)
 
-        try:
             thread = awx.WorkerThread(self, target=target)
             thread.start()
-        except:
-            awx.showErrorMessage(self)
 
     def OnNetcdf_WxNcView(self, event):
         """Open wxncview frame."""
-        NcViewerFrame(self, filepaths=self.nc_filepath).Show()
+        NcViewerFrame(self, filepaths=self.nc_filepaths).Show()
 

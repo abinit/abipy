@@ -407,7 +407,7 @@ class FlowsDbNotebook(fnb.FlatNotebook):
     """
     def __init__(self, parent, flows_db):
         super(FlowsDbNotebook, self).__init__(parent, id=-1, 
-            style=fnb.FNB_NO_X_BUTTON | fnb.FNB_NAV_BUTTONS_WHEN_NEEDED)
+              style=fnb.FNB_NO_X_BUTTON | fnb.FNB_NAV_BUTTONS_WHEN_NEEDED)
 
         self.flows_db = flows_db
         self.clusters_byname = flows_db.clusters

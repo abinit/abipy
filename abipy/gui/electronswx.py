@@ -5,7 +5,11 @@ import wx
 import warnings
 import abipy.gui.awx as awx
 
-from wxmplot import PlotFrame
+try:
+    from wxmplot import PlotApp, PlotFrame
+except ImportError:
+    pass
+
 from abipy.abilab import abiopen
 from abipy.tools import AttrDict
 from abipy.electrons import ElectronBands
