@@ -31,11 +31,7 @@ class WfkViewerFrame(MultiViewerFrame, mix.Has_Structure, mix.Has_MultipleEbands
 Also, these key bindings can be used
 (For Mac OSX, replace 'Ctrl' with 'Apple'):
 
-  Ctrl-S:     save plot image to file
-  Ctrl-C:     copy plot image to clipboard
-  Ctrl-K:     Configure Plot
   Ctrl-Q:     quit
-
 """
     @property
     def codename(self):
@@ -101,6 +97,7 @@ Also, these key bindings can be used
         help_menu = self.makeHelpMenu()
         menu_bar.Append(help_menu, "Help")
 
+        #self.menu_bar = menu_bar
         self.SetMenuBar(menu_bar)
 
     def makeToolBar(self):
@@ -113,7 +110,6 @@ Also, these key bindings can be used
 
         artBmp = wx.ArtProvider.GetBitmap
         toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR), "Open")
-        #toolbar.AddSimpleTool(self.ID_VISWAVE, bitmap("wfk.png"), "Visualize the selected wavefunction")
         toolbar.AddSeparator()
 
         # Combo box with the list of visualizers

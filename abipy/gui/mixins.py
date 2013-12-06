@@ -18,6 +18,10 @@ from abipy.gui.wxncview import NcViewerFrame
 
 
 class Has_Structure(object):
+    """
+    Mixin class that provides a menu and callbacks 
+    for analyzing the crystalline structure.
+    """
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractproperty
@@ -77,6 +81,10 @@ class Has_Structure(object):
 
 
 class Has_Ebands(object):
+    """
+    Mixin class that provides a menu and callbacks 
+    for analyzing electron bands.
+    """
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractproperty
@@ -126,7 +134,8 @@ class Has_Ebands(object):
 
 class Has_MultipleEbands(Has_Ebands):
     """
-    Mixin class from GUIs that handle multiple objects with `ElectronBands`.
+    Mixin class that provides a menu and callbacks 
+    for analyzing and comparing multiple electron bands.
     """
     __metaclass__ = abc.ABCMeta
 
@@ -211,7 +220,7 @@ class Has_MultipleEbands(Has_Ebands):
 #        """`Kpoints` object."""
 
 
-#class Has_MultiGsData(object):
+#class Has_MultiGroundStateData(object):
 #    """
 #    Mixin class from GUIs Ground-state results (etotal, forces, stresses...)
 #    """
@@ -219,7 +228,9 @@ class Has_MultipleEbands(Has_Ebands):
 
 
 class Has_Tools(object):
-
+    """
+    Mixin class that provides a menu with external tools.
+    """
     def CreateToolsMenu(self):
         """Creates the ebands menu."""
         # Tools Menu ID's
@@ -237,7 +248,10 @@ class Has_Tools(object):
 
 class Has_NetcdfFiles(object):
     __metaclass__ = abc.ABCMeta
-
+    """
+    Mixin class that provides a menu and callbacks 
+    for analyzing and comparing netcdf files.
+    """
     @abc.abstractproperty
     def nc_filepaths(self):
         """List of absolute paths of the netcdf file."""

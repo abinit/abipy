@@ -19,8 +19,22 @@ from abipy.gui.baseviewer import MultiViewerFrame
 class MdfViewerFrame(MultiViewerFrame, mix.Has_Structure, mix.Has_MultipleEbands, mix.Has_Tools, mix.Has_NetcdfFiles):
     VERSION = "0.1"
 
-    HELP_MSG = 'Quick help'
+    HELP_MSG = """Quick help:
 
+ Left-Click:   to display X,Y coordinates
+ Left-Drag:    to zoom in on plot region
+ Right-Click:  display popup menu with choices:
+                Zoom out 1 level
+                Zoom all the way out
+                --------------------
+                Configure
+                Save Image
+
+Also, these key bindings can be used
+(For Mac OSX, replace 'Ctrl' with 'Apple'):
+
+  Ctrl-Q:     quit
+"""
     @property
     def codename(self):
         return "MdfViewer"
@@ -157,30 +171,17 @@ class MdfViewerFrame(MultiViewerFrame, mix.Has_Structure, mix.Has_MultipleEbands
 
     def makeToolBar(self):
         """Creates the toolbar."""
-        return 
-        #self.toolbar = toolbar = self.CreateToolBar()
-        #toolbar.SetToolBitmapSize(wx.Size(48, 48))
+        self.toolbar = toolbar = self.CreateToolBar()
+        toolbar.SetToolBitmapSize(wx.Size(48, 48))
 
-        #def bitmap(path):
-        #    return wx.Bitmap(awx.path_img(path))
+        def bitmap(path):
+            return wx.Bitmap(awx.path_img(path))
 
-        #artBmp = wx.ArtProvider.GetBitmap
-        #toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR), "Open")
+        artBmp = wx.ArtProvider.GetBitmap
+        toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR), "Open")
+
         #toolbar.AddSeparator()
-
-        #toolbar.Realize()
-
-        ## Associate menu/toolbar items with their handlers.
-        #menu_handlers = [
-        #    (wx.ID_OPEN, self.OnOpen),
-        #    #(wx.ID_CLOSE, self.OnClose),
-        #    #(wx.ID_EXIT, self.OnExit),
-        #    (wx.ID_ABOUT, self.OnAboutBox),
-        #]
-        #                                                    
-        #for combo in menu_handlers:
-        #    mid, handler = combo[:2]
-        #    self.Bind(wx.EVT_MENU, handler, id=mid)
+        toolbar.Realize()
 
     def addFileTab(self, parent, filepath):
         mdf_file = abiopen(filepath)
@@ -234,15 +235,7 @@ class MdfFileTab(wx.Panel):
 
 
 class MdfViewerApp(awx.App):
-    def OnInit(self):
-        return True
-
-    #def MacOpenFile(self, filepath):
-    #    """Called for files droped on dock icon, or opened via finders context menu"""
-    #    if filepath.endswith(".py"): return
-    #    # Open filename in a new frame.
-    #    #logger.info("%s dropped on app %s" % (filename, self.appname))
-    #    MdfViewerFrame(parent=None, filepaths=filepath).Show()
+    pass
 
 
 def wxapp_mdfviewer(mdf_filepaths):

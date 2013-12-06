@@ -258,18 +258,36 @@ class SimpleGridFrame(wx.Frame):
                 new_table.append(row[1:])
             table = new_table
 
+        self.makeToolBar()
+
         self.panel = panel = wx.Panel(self, -1)
-
-        self.font_picker = wx.FontPickerCtrl(panel, -1)
-
         self.grid = SimpleGrid(panel, table, row_labels=row_labels, col_labels=col_labels)
-        self.Bind(wx.EVT_FONTPICKER_CHANGED, self.OnFontPickerChanged)
 
         self.main_sizer = main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(self.font_picker)
         main_sizer.Add(self.grid, 1, wx.EXPAND, 5)
 
         panel.SetSizerAndFit(main_sizer)
+
+    def makeToolBar(self):
+        """Creates the tool bar."""
+        self.toolbar = toolbar = self.CreateToolBar()
+
+        self.font_picker = wx.FontPickerCtrl(toolbar, -1)
+        toolbar.AddControl(control=self.font_picker) 
+        toolbar.Realize()
+
+        #menu_bar = wx.MenuBar()
+        # Associate menu/toolbar items with their handlers.
+        #self.ID_ = wx.NewId()
+        #menu_handlers = [
+        #    (self.ID_FONT_CHANGED, self.onFontChanged),
+        #]
+        #for combo in menu_handlers:
+        #    mid, handler = combo[:2]
+        #    self.Bind(wx.EVT_MENU, handler, id=mid)
+
+        self.Bind(wx.EVT_FONTPICKER_CHANGED, self.OnFontPickerChanged, self.font_picker)
 
     def OnFontPickerChanged(self, event):
         """Change the Font."""

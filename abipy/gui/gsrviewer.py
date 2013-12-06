@@ -17,7 +17,22 @@ from abipy.gui.baseviewer import MultiViewerFrame
 class GsrViewerFrame(MultiViewerFrame, mix.Has_Structure, mix.Has_MultipleEbands, mix.Has_Tools, mix.Has_NetcdfFiles):
     VERSION = "0.1"
 
-    HELP_MSG = 'Quick help'
+    HELP_MSG = """Quick help:
+
+ Left-Click:   to display X,Y coordinates
+ Left-Drag:    to zoom in on plot region
+ Right-Click:  display popup menu with choices:
+                Zoom out 1 level
+                Zoom all the way out
+                --------------------
+                Configure
+                Save Image
+
+Also, these key bindings can be used
+(For Mac OSX, replace 'Ctrl' with 'Apple'):
+
+  Ctrl-Q:     quit
+"""
 
     @property
     def codename(self):
@@ -170,16 +185,7 @@ class GsrFileTab(wx.Panel):
 
 
 class GsrViewerApp(awx.App):
-    def OnInit(self):
-        return True
-
-    #def MacOpenFile(self, filename):
-    #    """Called for files droped on dock icon, or opened via finders context menu"""
-    #    if filename.endswith(".py"):
-    #        return
-    #    # Open filename in a new frame.
-    #    #logger.info("%s dropped on app %s" % (filename, self.appname))
-    #    GsrViewerFrame(parent=None, filename=filename).Show()
+    pass
 
 
 def wxapp_gsrviewer(gsr_filepaths):

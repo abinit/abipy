@@ -13,10 +13,21 @@ from abipy.tools import list_strings
 class MultiViewerFrame(awx.Frame):
     __metaclass__ = abc.ABCMeta
     """
-    Concrete classes must define the following attributes.
+    Base class for Viewers that can handle the multiple netcdf files
+    of the same type. A `MultiViewerFrame` has a notebook where
+    each page provides tools to interact with the data stored in the netcd file
+    Concrete classes should provide the method that open a new file and creates
+    a new page (specific to the file type) that will be added to the notebook.
 
-        VERSION = "0.1"
-        HELP_MSG = 'Quick help'
+    Concrete classes must also define the following (class) attributes.
+
+    .. attributes:
+
+        VERSION:
+            String with the version of the visualizer e.g  "0.1"
+        HELP_MSG:
+            Multi line string with a Quick help. For example a list of shortcuts
+            or a brief description of the usage of the GUI.
     """
     def __init__(self, parent, filepaths=(), **kwargs):
         """
@@ -79,18 +90,15 @@ class MultiViewerFrame(awx.Frame):
         recent = wx.Menu()
         file_history.UseMenu(recent)
         file_history.AddFilesToMenu()
-        file_menu.AppendMenu(wx.ID_ANY, "&Recent Files", recent)
+        file_menu.AppendMenu(-1, "&Recent Files", recent)
         self.Bind(wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9)
         menu_bar.Append(file_menu, "File")
-
-        #self.SetMenuBar(menu_bar)
 
         # Associate menu/toolbar items with their handlers.
         menu_handlers = [
             (wx.ID_OPEN, self.OnOpen),
             (wx.ID_CLOSE, self.OnClose),
             (wx.ID_EXIT, self.OnExit),
-            (wx.ID_ABOUT, self.OnAboutBox),
         ]
                                                             
         for combo in menu_handlers:
@@ -109,6 +117,7 @@ class MultiViewerFrame(awx.Frame):
         # Associate menu/toolbar items with their handlers.
         menu_handlers = [
             (self.ID_HELP_QUICKREF, self.onQuickRef),
+            (wx.ID_ABOUT, self.OnAboutBox),
         ]
                                                             
         for combo in menu_handlers:
@@ -123,7 +132,17 @@ class MultiViewerFrame(awx.Frame):
 
     @abc.abstractmethod
     def addFileTab(self, parent, filepath):
-        pass
+        """
+        This method must be provided by the subclass. 
+        It receives a string with the file path, opens the file
+        and adds a new tab to the notebook.
+
+        Example::
+
+            wfk = abiopen(filepath)
+            tab = WfkFileTab(self.notebook, wfk)
+            self.notebook.AddPage(tab, os.path.basename(filepath))
+        """
 
     def read_file(self, filepath):
         """Open netcdf file, create new tab and save the file in the history."""
@@ -144,8 +163,8 @@ class MultiViewerFrame(awx.Frame):
         dialog = wx.FileDialog(self, message="Choose a WFK file", defaultDir=os.getcwd(),
                                wildcard="WFK Netcdf files (*.nc)|*.nc",
                                style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
+
         if dialog.ShowModal() == wx.ID_CANCEL: return 
-                                                                                          
         self.read_file(dialog.GetPath())
 
     def OnClose(self, event):
@@ -160,8 +179,7 @@ class MultiViewerFrame(awx.Frame):
                                                                                           
         # Close the file
         tab = notebook.GetPage(idx)
-        #tab.wfk.close()
-                                                                                          
+
         # Remove tab.
         notebook.DeletePage(idx)
         notebook.Refresh()
@@ -182,6 +200,7 @@ class MultiViewerFrame(awx.Frame):
                                                                                           
     def OnAboutBox(self, event):
         """"Info on the application."""
+        #print("hello")
         awx.makeAboutBox(codename=self.codename, version=self.VERSION,
                          description="", developers="M. Giantomassi")
 
