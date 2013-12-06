@@ -11,11 +11,33 @@ from abipy.tools import marquee, list_strings
 from abipy.abilab import abiopen
 from abipy.iotools.visualizer import Visualizer
 from abipy.gui import mixins as mix 
+from abipy.gui.baseviewer import MultiViewerFrame
 
 
 class WfkViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.Has_Tools, mix.Has_NetcdfFiles):
+#class WfkViewerFrame(MultiViewerFrame, mix.Has_Structure, mix.Has_MultipleEbands, mix.Has_Tools, mix.Has_NetcdfFiles):
     VERSION = "0.1"
 
+    HELP_MSG = """Quick help:
+
+ Left-Click:   to display X,Y coordinates
+ Left-Drag:    to zoom in on plot region
+ Right-Click:  display popup menu with choices:
+                Zoom out 1 level
+                Zoom all the way out
+                --------------------
+                Configure
+                Save Image
+
+Also, these key bindings can be used
+(For Mac OSX, replace 'Ctrl' with 'Apple'):
+
+  Ctrl-S:     save plot image to file
+  Ctrl-C:     copy plot image to clipboard
+  Ctrl-K:     Configure Plot
+  Ctrl-Q:     quit
+
+"""
     def __init__(self, parent, filepaths=(), **kwargs):
         """
         Args:
@@ -129,9 +151,14 @@ class WfkViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
         menuBar.Append(self.CreateToolsMenu(), "Tools")
         menuBar.Append(self.CreateNetcdfMenu(), "Netcdf")
 
+        self.ID_HELP_QUICKREF = wx.NewId()
+
         self.help_menu = wx.Menu()
+        self.help_menu.Append(self.ID_HELP_QUICKREF, "Quick Reference ", help="Quick reference for " + self.codename)
         self.help_menu.Append(wx.ID_ABOUT, "About " + self.codename, help="Info on the application")
         menuBar.Append(self.help_menu, "Help")
+
+        self.Bind(wx.EVT_MENU, self.onQuickRef, id=self.ID_HELP_QUICKREF)
 
         self.SetMenuBar(menuBar)
 
@@ -144,7 +171,7 @@ class WfkViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
             #(wx.ID_EXIT, self.OnExit),
             (wx.ID_ABOUT, self.OnAboutBox),
             #
-            (self.ID_VISWAVE, self.OnVisualizeWave),
+            #(self.ID_VISWAVE, self.OnVisualizeWave),
         ]
                                                             
         for combo in menu_handlers:
@@ -256,13 +283,15 @@ class WfkViewerFrame(awx.Frame, mix.Has_Structure, mix.Has_MultipleEbands, mix.H
         """Returns a string with the visualizer selected by the user."""
         return self.visualizer_cbox.GetValue()
 
-    def OnVisualizeWave(self, event):
-        """Visualize :math:`|u(r)|^2`."""
-        raise NotImplementedError("")
-        #tab = self.active_tab 
-        #if tab: is None: return
-        #skb = tab.skb_panel.GetSKB()
-        #self._visualize_skb(*skb)
+    #def OnVisualizeWave(self, event):
+    #    """Visualize :math:`|u(r)|^2`."""
+    #    raise NotImplementedError("")
+
+    def onQuickRef(self, event=None):
+        dlg = wx.MessageDialog(self, self.HELP_MSG, self.codename + " Quick Reference",
+                               wx.OK | wx.ICON_INFORMATION)
+        dlg.ShowModal()
+        dlg.Destroy()
 
 
 class WfkFileTab(awx.Panel):

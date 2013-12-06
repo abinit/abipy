@@ -15,8 +15,8 @@ def str_examples():
     examples = (
       "\n"
       "Usage example:\n\n" 
-      "abiopen.py file foo_WFK.nc             ==> Visualize the WFK file foo_WFK.nc\n"
-      "                                           (many other Abinit files are supported, just try!).\n"
+      "abiopen.py files foo_WFK.nc           ==> Visualize the WFK file foo_WFK.nc\n"
+      "                                          (many other Abinit files are supported, just try!).\n"
       "abiopen.py list dirpath                ==> Visualize all files in the directory dirpath (flat list mode) .\n"
       "abiopen.py tree dirpath                ==> Visualize all files in the directory dirpath (tree mode).\n"
       "abiopen.py scan dirpath                ==> Scan all the supported files in the given directory (no recursive).\n"
@@ -77,7 +77,7 @@ def main():
         show_examples_and_exit(error_code=1)
 
     if options.verbose:
-        print("Command line options:")
+        print("*** Command line options *** ")
         print(options)
 
     # loglevel is bound to the string value obtained from the command line argument. 
@@ -122,18 +122,18 @@ def main():
 
 def appclasses_from_files(filepaths):
     """Returns a dictionary mapping WX application classes to the list of files to open."""
-    acls2files, badfiles = collections.defaultdict(list), []
+    acls2files, bad_files = collections.defaultdict(list), []
 
     for path in filepaths:
         app_class = wxapps.file2appcls(path)
         if app_class is None:
-            badfiles.append(path)
+            bad_files.append(path)
         else:
             acls2files[app_class].append(path)
     #print(acls2files)
 
-    if badfiles:
-        warnings.warn("Cannot find wx application for files:\n%s" % badfiles)
+    if bad_files:
+        warnings.warn("Cannot find wx application for files:\n%s" % bad_files)
 
     return acls2files
 

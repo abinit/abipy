@@ -19,20 +19,18 @@ class EosFrame(awx.Frame):
         self.BuildUi()
 
     def BuildUi(self):
-        #panel = wx.Panel(self, -1)
-        panel = self
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         models = EOS.MODELS.keys()
-        self.model_choice = wx.Choice(panel, -1, wx.DefaultPosition, wx.DefaultSize, models, 0)
+        self.model_choice = wx.Choice(self, -1, wx.DefaultPosition, wx.DefaultSize, models, 0)
         self.model_choice.SetSelection(0)
         main_sizer.Add(self.model_choice, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND, 5)
 
-        fit_button = wx.Button(panel, -1, "Plot", wx.DefaultPosition, wx.DefaultSize, 0)
+        fit_button = wx.Button(self, -1, "Plot", wx.DefaultPosition, wx.DefaultSize, 0)
         fit_button.Bind(wx.EVT_BUTTON, self.OnFitButton)
         main_sizer.Add(fit_button, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5)
 
-        panel.SetSizerAndFit(main_sizer)
+        self.SetSizerAndFit(main_sizer)
 
     def OnFitButton(self, event):
         model = self.model_choice.GetStringSelection()
