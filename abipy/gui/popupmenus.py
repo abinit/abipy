@@ -10,12 +10,14 @@ from collections import OrderedDict
 
 from abipy.abilab import abifile_subclass_from_filename, abiopen
 from abipy.iotools.files import NcDumper, AbinitLogFile, AbinitOutputFile, get_filestat
+from abipy.iotools.visualizer import Visualizer
 from abipy.waves import WFK_File
 from abipy.electrons import SIGRES_File, GSR_File
 from abipy.electrons.bse import MDF_File
 from abipy.gui.events import AbinitEventsFrame
 from abipy.gui.timer import AbinitTimerFrame
 from abipy.gui.editor import SimpleTextViewer, MyEditorFrame
+from abipy.gui.wxncview import NcViewerFrame
 
 
 __all__ = [
@@ -52,6 +54,13 @@ def showNcdumpMessage(parent, filepath):
     #SimpleTextViewer(parent, text, title=title).Show()
     MyEditorFrame.from_text(parent, text, title=title).Show()
 
+def openWxncview(parent, filepath):
+    """Open a dialog with the output of ncdump."""
+    title = "wxncview:  %s" % filepath
+    text = NcDumper().dump(filepath)
+    NcViewerFrame(parent, filepath, title=title).Show()
+
+
 def showFileStat(parent, filepath):
     """Open a dialog reporting file stats."""
     caption = "Info on file %s" % filepath
@@ -77,13 +86,18 @@ def showAbinitTimerFrame(parent, filepath):
 
 def showStructure(parent, filepath):
     ncfile = abiopen(filepath)
-    visu = ncfile.structure.visualize("xcrysden")
+    visu_classes = Visualizer.get_available(ext="xsf")
+    if not visu_classes:
+        print("Not visualizer found for extension xsf")
+        return 
+    vname = visu_classes[0].name
+
+    visu = ncfile.structure.visualize(vname)
+    #visu = ncfile.structure.visualize("vesta")
 
     thread = awx.WorkerThread(parent, target=visu)
     thread.start()
 
-
-#--------------------------------------------------------------------------------------------------
 
 
 class PopupMenu(wx.Menu):
@@ -112,6 +126,7 @@ class PopupMenu(wx.Menu):
         try:
             file_class = abifile_subclass_from_filename(filename)
         except KeyError:
+            if filename.endswith(".nc"): NcFilePopupMenu()
             return None
 
         # Check whether a subclass handles this file..
@@ -131,6 +146,7 @@ class PopupMenu(wx.Menu):
             if cls.handle_file_class(file_class):
                 return cls()
         else:
+            if filename.endswith(".nc"): NcFilePopupMenu()
             return PopupMenu()
 
     @classmethod
@@ -246,6 +262,7 @@ class NcFilePopupMenu(PopupMenu):
     MENU_TITLES = OrderedDict([
         ("structure",  showStructure),
         ("ncdump",     showNcdumpMessage),
+        ("wxncview",   openWxncview),
         ("properties", showFileStat),
     ])
 

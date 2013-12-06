@@ -93,6 +93,7 @@ class NcFileDirCtrl(wx.GenericDirCtrl):
         popmenu.Destroy()
 
 
+
 class MyListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
     """ Mixin class to resize the last column appropriately."""
     def __init__(self, parent, **kwargs):
@@ -330,6 +331,13 @@ class FileListFrame(awx.Frame):
         #self.Fit()
 
 
+# FIXME: Rewrite these classes:
+class DirBrowserFrame(awx.Frame):
+    def __init__(self, parent, **kwargs):
+        super(DirBrowserFrame, self).__init__(parent, -1)
+        NcFileDirCtrl(self, -1, **kwargs)
+
+
 def wxapp_dirbrowser(dirpath):
     if dirpath is None:
         dirpath = " "
@@ -337,8 +345,7 @@ def wxapp_dirbrowser(dirpath):
         dirpath = os.path.abspath(dirpath)
 
     app = awx.App()
-    frame = awx.Frame(None, -1)
-    NcFileDirCtrl(frame, -1, dir=dirpath)
+    frame = DirBrowserFrame(None, dir=dirpath)
     frame.Show()
     return app
 

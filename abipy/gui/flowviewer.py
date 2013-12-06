@@ -12,7 +12,7 @@ from collections import OrderedDict
 from pymatgen.io.abinitio.launcher import PyLauncher 
 from abipy.gui.events import AbinitEventsFrame, AbinitEventsNotebookFrame
 from abipy.gui.timer import MultiTimerFrame
-from abipy.gui.browser import FileListFrame, frame_from_filepath
+from abipy.gui.browser import FileListFrame, DirBrowserFrame, frame_from_filepath
 from abipy.gui.editor import TextNotebookFrame, SimpleTextViewer
 
 
@@ -55,6 +55,7 @@ class FlowViewerFrame(awx.Frame):
         #self.Bind(wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9)
 
         help_menu = wx.Menu()
+
         help_menu.Append(wx.ID_ABOUT, "About " + self.codename, help="Info on the application")
         menuBar.Append(help_menu, "Help")
 
@@ -94,10 +95,7 @@ class FlowViewerFrame(awx.Frame):
 
         # Associate menu/toolbar items with their handlers.
         menu_handlers = [
-            #(wx.ID_OPEN, self.OnOpen),
-            #(wx.ID_CLOSE, self.OnClose),
-            #(wx.ID_EXIT, self.OnExit),
-            (wx.ID_ABOUT, self.OnAboutBox),
+            #(wx.ID_ABOUT, self.OnAboutBox),
             #
             (self.ID_SHOW_INPUTS, self.OnShowInputs),
             (self.ID_SHOW_OUTPUTS, self.OnShowOutputs),
@@ -118,6 +116,64 @@ class FlowViewerFrame(awx.Frame):
 
         self.check_launcher_file()
         self.BuildUi()
+
+    @property
+    def codename(self):
+        """String with the code name."""
+        return "Flow Viewer"
+
+    #def makeMenu(self):
+    #    """
+    #    Method of the base class that provides a base menu.
+    #    that can be extended by the subclass.
+    #    """
+    #    menu_bar = wx.MenuBar()
+    #                                                                                                
+    #    file_menu = wx.Menu()
+    #    file_menu.Append(wx.ID_OPEN, "&Open", help="Open an existing file in a new tab")
+    #    file_menu.Append(wx.ID_CLOSE, "&Close", help="Close the file associated to the active tab")
+    #    file_menu.Append(wx.ID_EXIT, "&Quit", help="Exit the application")
+    #                                                                                                
+    #    file_history = self.file_history = wx.FileHistory(8)
+    #    file_history.Load(self.config)
+    #    recent = wx.Menu()
+    #    file_history.UseMenu(recent)
+    #    file_history.AddFilesToMenu()
+    #    file_menu.AppendMenu(-1, "&Recent Files", recent)
+    #    self.Bind(wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9)
+    #    menu_bar.Append(file_menu, "File")
+    #                                                                                                
+    #    # Associate menu/toolbar items with their handlers.
+    #    menu_handlers = [
+    #        (wx.ID_OPEN, self.OnOpen),
+    #        (wx.ID_CLOSE, self.OnClose),
+    #        (wx.ID_EXIT, self.OnExit),
+    #    ]
+    #                                                        
+    #    for combo in menu_handlers:
+    #        mid, handler = combo[:2]
+    #        self.Bind(wx.EVT_MENU, handler, id=mid)
+    #                                                                                                
+    #    return menu_bar
+
+    #def makeHelpMenu(self):
+    #    help_menu = wx.Menu()
+    #                                                                                                             
+    #    self.ID_HELP_QUICKREF = wx.NewId()
+    #    help_menu.Append(self.ID_HELP_QUICKREF, "Quick Reference ", help="Quick reference for " + self.codename)
+    #    help_menu.Append(wx.ID_ABOUT, "About " + self.codename, help="Info on the application")
+    #                                                                                                              
+    #    # Associate menu/toolbar items with their handlers.
+    #    menu_handlers = [
+    #        (self.ID_HELP_QUICKREF, self.onQuickRef),
+    #        (wx.ID_ABOUT, self.OnAboutBox),
+    #    ]
+    #                                                        
+    #    for combo in menu_handlers:
+    #        mid, handler = combo[:2]
+    #        self.Bind(wx.EVT_MENU, handler, id=mid)
+    #                                                 
+    #    return help_menu
 
     def check_launcher_file(self, with_dialog=True):
         """
@@ -146,11 +202,6 @@ class FlowViewerFrame(awx.Frame):
 
             else:
                 self.statusbar.PushStatusText(message)
-
-    @property
-    def codename(self):
-        """String with the code name."""
-        return "Flow Viewer"
 
     def BuildUi(self):
         self.panel = panel = wx.Panel(self, -1)
@@ -323,6 +374,7 @@ class FlowViewerFrame(awx.Frame):
         work = self.GetSelectedWork() 
         if work is None: return
         FileListFrame(self, dirpaths=work.workdir).Show()
+        #DirBrowserFrame(self, dir=work.workdir).Show()
 
     def OnShowMainEvents(self, event):
         """Browse all the main events of the tasks in the selected `Workflow`."""
@@ -373,9 +425,7 @@ class FlowNotebook(fnb.FlatNotebook):
             return awx.showErrorMessage(self, message="Bad user has removed pages from the notebook!")
 
         idx = self.GetSelection()
-        if idx == -1:
-            return None
-                                                                                                       
+        if idx == -1: return None
         try:
             return self.flow[idx]
         except IndexError:
@@ -399,6 +449,7 @@ class TabPanel(wx.Panel):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(label, 0, wx.ALIGN_LEFT, 5)
         main_sizer.Add(task_listctrl, 1, wx.EXPAND, 5)
+
         self.SetSizerAndFit(main_sizer)
 
 
@@ -456,7 +507,7 @@ class TaskListCtrl(wx.ListCtrl):
             self.SetColumnWidth(index, column_widths[index])
 
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick)
-        #self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
 
     def OnRightClick(self, event):
         currentItem = event.m_itemIndex
@@ -468,13 +519,13 @@ class TaskListCtrl(wx.ListCtrl):
         self.PopupMenu(menu, event.GetPoint())
         menu.Destroy()
 
-    #def OnItemActivated(self, event):
-    #    currentItem = event.m_itemIndex
-    #    task = self.work[currentItem]
-    #    if task.can_run:
-    #        task.start()
-    #    # This is to update the database.
-    #    self.flow.pickle_dump()
+    def OnItemActivated(self, event):
+        """
+        Browse the outdir of the task
+        """
+        currentItem = event.m_itemIndex
+        task = self.work[currentItem]
+        FileListFrame(self, dirpaths=task.outdir.path, title=task.outdir.relpath).Show()
 
 
 # Callbacks 

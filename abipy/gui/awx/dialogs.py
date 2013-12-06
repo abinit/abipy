@@ -1,5 +1,6 @@
 from __future__ import print_function, division
 
+import os
 import wx
 
 __all__ = [
@@ -9,11 +10,37 @@ __all__ = [
 ]
 
 
+# Helper functions.
+def is_string(s):
+    """True if s behaves like a string (duck typing test)."""
+    try:
+        dummy = s + " "
+        return True
+
+    except TypeError:
+        return False
+
+
 def _straceback():
     """Returns a string with the traceback."""
     import traceback
     return traceback.format_exc()
 
+
+def askUser(parent, message):
+    """Open dialog with message, return user's answer."""
+    ask = wx.MessageDialog(parent, message)
+    answer = ask.ShowModal() == wx.ID_OK
+    ask.Destroy()
+    return answer
+
+
+class ErrorDialog(wx.MessageDialog):
+    def __init__(self, parent, message):
+        message += "\n\n Do you want to send a bug report?"
+        super(ErrorDialog, self).__init__(parent, message=message, caption='Error Message',
+                                          #style=wx.OK | wx.ICON_INFORMATION | wx.ICON_ERROR | wx.STAY_ON_TOP)
+                                          style=wx.YES_NO | wx.CANCEL | wx.ICON_ERROR | wx.STAY_ON_TOP)
 
 def showErrorMessage(parent, message=None):
     """
@@ -23,19 +50,18 @@ def showErrorMessage(parent, message=None):
     if message is None:
         message = _straceback()
 
-    dlg = wx.MessageDialog(parent, message=message,
-                           caption='Error Message',
-                           style=wx.OK | wx.ICON_INFORMATION | wx.ICON_ERROR | wx.STAY_ON_TOP
-    )
-    dlg.ShowModal()
-    dlg.Destroy()
+    dialog = ErrorDialog(parent, message)
 
+    # Send mail is the user clicked YES.
+    if dialog.ShowModal() == wx.ID_YES:
+        mail = SendMail(parent)
+        mail.setSender(user_at_host())
+        mail.setSubject("Bug report")
+        mail.setBody(message)
+        mail.ShowModal()
+        mail.flg.Destroy()
 
-def askUser(parent, message):
-    ask = wx.MessageDialog(parent, message)
-    answer = ask.ShowModal() == wx.ID_OK
-    ask.Destroy()
-    return answer
+    dialog.Destroy()
 
 
 def showLicense(parent=None, codename=None):
@@ -58,6 +84,7 @@ Suite 330, Boston, MA  02111-1307  USA""" % {"codename": codename}
     dialog.ShowModal()
     dialog.Destroy()
 
+
 class License(wx.Dialog):
     def __init__(self, parent, license_text,  **kwargs):
         wx.Dialog.__init__ (self, parent, id=-1, title="License")
@@ -71,3 +98,140 @@ class License(wx.Dialog):
 
         self.SetSizerAndFit(vsizer)
 
+
+class SendMail(wx.Dialog):
+    def __init__(self, parent, title="SendMail"):
+        super(SendMail, self).__init__(parent, -1, title, wx.DefaultPosition, wx.Size(400, 420))
+
+        panel = wx.Panel(self, -1)
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+        hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        hbox3 = wx.BoxSizer(wx.HORIZONTAL)
+        st1 = wx.StaticText(panel, -1, 'From: ')
+        st2 = wx.StaticText(panel, -1, 'To: ')
+        st3 = wx.StaticText(panel, -1, 'Subject: ')
+        self.sender = wx.TextCtrl(panel, -1, size=(180, -1))
+        self.mailto = wx.TextCtrl(panel, -1, size=(180, -1))
+        self.subject = wx.TextCtrl(panel, -1, size=(180, -1))
+        self.body = wx.TextCtrl(panel, -1, style=wx.TE_MULTILINE)
+        button_send = wx.Button(panel, 1, 'Send')
+        hbox1.Add(st1, 0, wx.LEFT, 10)
+        hbox1.Add(self.sender, 0, wx.LEFT, 20)
+        hbox2.Add(st2, 0, wx.LEFT, 10)
+        hbox2.Add(self.mailto, 0, wx.LEFT, 35)
+        hbox3.Add(st3, 0, wx.LEFT, 10)
+        hbox3.Add(self.subject, 0)
+        vbox.Add(hbox1, 0, wx.TOP, 10)
+        vbox.Add(hbox2, 0, wx.TOP, 10)
+        vbox.Add(hbox3, 0, wx.TOP, 10)
+        vbox.Add(self.body, 1, wx.EXPAND | wx.TOP | wx.RIGHT | wx.LEFT, 15)
+        vbox.Add(button_send, 0, wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, 20)
+        self.Bind(wx.EVT_BUTTON, self.onSend, id=1)
+        panel.SetSizer(vbox)
+        self.Centre()
+
+    def setSender(self, s):
+        self.sender.SetValue(s)
+
+    def setMailto(self, s):
+        self.mailto.SetValue(s)
+
+    def setSubject(self, s):
+        self.subject.SetValue(s)
+
+    def setBody(self, text):
+        self.body.SetValue(text)
+
+    def onSend(self, event):
+        sender = self.sender.GetValue()
+        mailto = self.mailto.GetValue()
+        subject = self.subject.GetValue()
+        body = self.body.GetValue()
+
+        header = 'From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n' % (sender, mailto, subject)
+        
+        try:
+            retcode = sendmail(subject, body, mailto, sender=sender)
+
+            if retcode:
+                dialog = wx.MessageDialog(self, 'Email was not sent', 'Failure', wx.OK | wx.ICON_INFORMATION)
+            else:
+                dialog = wx.MessageDialog(self, 'Email was successfully sent', 'Success', wx.OK | wx.ICON_INFORMATION)
+
+            dialog.ShowModal()
+            dialog.Destroy()
+
+        except:
+            showErrorMessage(self)
+
+        #try:
+        #    message = header + body
+        #    import smtplib
+        #    server = smtplib.SMTP('mail.chello.sk')
+        #    server.sendmail(sender, mailto, message)
+        #    server.quit()
+        #    dialog = wx.MessageDialog(self, 'Email was successfully sent', 'Success', wx.OK | wx.ICON_INFORMATION)
+        #    dialog.ShowModal()
+        #    dialog.Destroy()
+
+        #except smtplib.SMTPException, error:
+        #    dialog = wx.MessageDialog(self, 'Failed to send email', 'Error', wx.OK | wx.ICON_ERROR)
+        #    dialog.ShowModal()
+        #    dialog.Destroy()
+
+
+def user_at_host():
+    from socket import gethostname
+    return os.getlogin() + "@" + gethostname()
+
+
+def sendmail(subject, text, mailto, sender=None):
+    """
+    Sends an e-mail either with unix sendmail. 
+
+    Args:
+        subject:
+            String with the subject of the mail.
+        text:
+            String with the body of the mail.
+        mailto:
+            String or list of string with the recipients.
+        sender:
+            string with the sender address.
+            If sender is None, username@hostname is used.
+    """
+    # Body of the message.
+    sender = user_at_host() if sender is None else sender
+    if is_string(mailto): mailto = [mailto]
+
+    from email.mime.text import MIMEText
+
+    mail = MIMEText(text)
+    mail["Subject"] = subject
+    mail["From"] = sender
+    mail["To"] = ", ".join(mailto)
+
+    msg = mail.as_string()
+
+    # sendmail works much better than the python interface.
+    # Note that sendmail is available only on Unix-like OS.
+    from subprocess import Popen, PIPE
+
+    SENDMAIL = "/usr/sbin/sendmail"
+    p = Popen([SENDMAIL, "-t"], stdin=PIPE, stderr=PIPE)
+
+    outdata, errdata = p.communicate(msg)
+    return len(errdata)
+
+
+class MyApp(wx.App):
+    def OnInit(self):
+        #dialog = SendMail(None)
+        #dialog.ShowModal()
+        #dialog.Destroy()
+        return True
+
+
+if __name__  == "__main__":
+    MyApp(0).MainLoop()
