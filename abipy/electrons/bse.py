@@ -388,14 +388,15 @@ class MDF_File(AbinitNcFile, Has_Structure):
 
     def get_mdf(self, mdf_type="exc"):
         """"Returns the macroscopic dielectric function."""
-        if mdf_type == "exc":
-            return self.exc_mdf
-        elif mdf_type == "rpa":
-            return self.rpanlf_mdf
-        elif mdf_type == "gwrpa":
-            return self.gwnlf_mdf
-        else:
-            raise ValueError("Wrong value for mdf_type %s" % mdf_type)
+
+        d = {"exc": self.exc_mdf,
+             "rpa": self.rpanlf_mdf,
+             "gwrpa": self.gwnlf_mdf}
+
+        try:
+            return d[mdf_type.lower()]
+        except KeyError:
+            raise ValueError("Wrong value for mdf_type: %s" % mdf_type)
 
     def plot_mdfs(self, cplx_mode="Im", mdf_type="all", qpoint=None, **kwargs):
         """
@@ -426,6 +427,8 @@ class MDF_File(AbinitNcFile, Has_Structure):
             qpoint:
                 index of the q-point or Kpoint object or None to plot emacro_avg.
         """
+        mdf_type, cplx_mode = mdf_type.lower(), cplx_mode.lower()
+
         plot_all = mdf_type == "all"
         mdf_type = mdf_type.split("-")
 

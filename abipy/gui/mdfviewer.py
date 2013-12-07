@@ -16,8 +16,8 @@ from abipy.gui import mixins as mix
 from abipy.gui.baseviewer import MultiViewerFrame
 
 
-#class MdfViewerFrame(MultiViewerFrame, mix.Has_Structure, mix.Has_MultipleEbands, mix.Has_Tools, mix.Has_NetcdfFiles):
-class MdfViewerFrame(MultiViewerFrame, mix.Has_Structure, mix.Has_Tools, mix.Has_NetcdfFiles):
+class MdfViewerFrame(MultiViewerFrame, mix.Has_Structure, mix.Has_MultipleEbands, mix.Has_Tools, mix.Has_NetcdfFiles):
+#class MdfViewerFrame(MultiViewerFrame, mix.Has_Structure, mix.Has_Tools, mix.Has_NetcdfFiles):
     VERSION = "0.1"
 
     HELP_MSG = """Quick help:
@@ -125,7 +125,7 @@ Also, these key bindings can be used
         self.ID_MDF_COMPARE = wx.NewId()
                                                                                       
         menu = wx.Menu()
-        menu.Append(self.ID_MDF_PLOT, "Plot MDF", "Plot the macroscopic dielectric function")
+        menu.Append(self.ID_MDF_PLOT, "Plot averaged MDF", "Plot the average of the macroscopic dielectric function")
         self.Bind(wx.EVT_MENU, self.OnMdfPlot, id=self.ID_MDF_PLOT)
 
         menu.AppendSeparator()
@@ -136,8 +136,12 @@ Also, these key bindings can be used
         return menu
 
     def OnMdfPlot(self, event):
+        mdf_type = self.getMdfType()
+        cplx_mode = self.getCplxMode()
+        print(mdf_type, cplx_mode)
+
         mdf_file = self.active_mdf_file
-        mdf_file.plot_mdfs(cplx_mode="Im", mdf_type="all")
+        mdf_file.plot_mdfs(cplx_mode=cplx_mode, mdf_type=mdf_type)
 
     def OnMdfCompare(self, event):
         plotter = MDF_Plotter()
@@ -176,9 +180,14 @@ Also, these key bindings can be used
         toolbar.Realize()
 
     def addFileTab(self, parent, filepath):
+        """Open a file and add a new tab to the notebook."""
         mdf_file = abiopen(filepath)
         tab = MdfFileTab(self.notebook, mdf_file)
         self.notebook.AddPage(tab, os.path.basename(filepath))
+
+        # List to events triggered by the popup menu in the qpoints_table.
+        qpanel = tab.qpoints_panel
+        self.Bind(qpanel.MYEVT_COMPARE_SPECTRAQ, self.onCompareSpectraQ)
 
     def getMdfType(self):
         """Return the sting with the MDF type selected by the user."""
@@ -192,26 +201,47 @@ Also, these key bindings can be used
         if not cplx_mode: cplx_mode = "Im"
         return cplx_mode
 
+    def onCompareSpectraQ(self, event):
+        qpoint = event.qpoint
+        mdf_type = self.getMdfType()
+        cplx_mode = self.getCplxMode()
+        print("on compare q: %s" % qpoint)
 
+        plotter = MDF_Plotter()
+                                                                            
+        # Extract the type of MDF we are interested in
+        for path, mdf_file in zip(self.mdf_filepaths, self.mdf_files_list):
+            mdf = mdf_file.get_mdf(mdf_type)
+            label = os.path.relpath(path)
+            plotter.add_mdf(label, mdf)
+
+        plotter.plot(cplx_mode, qpoint=qpoint)
 
 class MdfQpointsPanel(KpointsPanel):
     """Extend KpointsPanel adding popupmenus"""
 
+    # Command event used to signal that the we should compare multiple spectra (fixed q, move along files).
+    CompareSpectraQEvent, MYEVT_COMPARE_SPECTRAQ = wx.lib.newevent.NewCommandEvent()
+
     def __init__(self, parent, mdf_file, **kwargs):
         KpointsPanel.__init__(self, parent, mdf_file.structure, mdf_file.qpoints)
+        self.parent = parent
         self.mdf_file = mdf_file
+
+        # Connect the events fired by klist_ctrl.
+        self.klist_ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onQpointActivated)
 
     def makePopupMenu(self):
         # menu of the base class
         menu = super(MdfQpointsPanel, self).makePopupMenu()
 
         # Add other options
-        self.ID_POPUP_MDF_QPLOT = wx.NewId()
-        menu.Append(self.ID_POPUP_MDF_QPLOT, "Plot spectra(q)")
+        self.ID_POPUP_MDF_QCOMPARE = wx.NewId()
+        menu.Append(self.ID_POPUP_MDF_QCOMPARE, "Compare spectra(q)")
 
         # Associate menu/toolbar items with their handlers.
         menu_handlers = [
-            (self.ID_POPUP_MDF_QPLOT, self.onQpointPlot),
+            (self.ID_POPUP_MDF_QCOMPARE, self.onCompareSpectraQ),
         ]
                                                             
         for combo in menu_handlers:
@@ -220,15 +250,37 @@ class MdfQpointsPanel(KpointsPanel):
                                                      
         return menu
 
-    def onQpointPlot(self, event):
+    @property
+    def viewer_frame(self):
+        """The parent frame `MdfViewerFrame`."""
+        try:
+            return self._viewer_frame
+                                                                                    
+        except AttributeError:
+            self._viewer_frame = self.getParentWithType(MdfViewerFrame)
+            return self._viewer_frame
+
+    def onQpointActivated(self, event):
         """Plot MDF(q)"""
         qpoint = self.getSelectedKpoint()
         if qpoint is None: return
+
+        # Get the options from the ViewerFrame.
+        mdf_type = self.viewer_frame.getMdfType()
+        cplx_mode = self.viewer_frame.getCplxMode()
+
         #print(qpoint)
-        self.mdf_file.plot_mdfs(cplx_mode="Im", mdf_type="all", qpoint=qpoint)
+        self.mdf_file.plot_mdfs(cplx_mode=cplx_mode, mdf_type=mdf_type, qpoint=qpoint)
+
+    def onCompareSpectraQ(self, event):
+        print("onCompareSpectraQ")
+        qpoint = self.getSelectedKpoint()
+        if qpoint is None: return
+        event = self.CompareSpectraQEvent(id=-1, qpoint=qpoint)
+        wx.PostEvent(self.parent, event)
 
 
-class MdfFileTab(wx.Panel):
+class MdfFileTab(awx.Panel):
     """Tab showing information on a single MDF file."""
     def __init__(self, parent, mdf_file, **kwargs):
         """
@@ -243,8 +295,7 @@ class MdfFileTab(wx.Panel):
         splitter = wx.SplitterWindow(self, id=-1, style=wx.SP_3D)
         splitter.SetSashGravity(0.95)
 
-        #self.qpts_panel = KpointsPanel(splitter, mdf_file.structure, mdf_file.qpoints)
-        self.qpts_panel = MdfQpointsPanel(splitter, mdf_file)
+        self.qpoints_panel = MdfQpointsPanel(splitter, mdf_file)
 
         # Add Python shell
         msg = "MDF_object is accessible via the mdf_file variable. Use mdf_file.<TAB> to access the list of methods."
@@ -253,7 +304,7 @@ class MdfFileTab(wx.Panel):
 
         # FIXME <Error>: CGContextRestoreGState: invalid context 0x0
         pyshell = Shell(splitter, introText=msg, locals={"mdf_file": mdf_file})
-        splitter.SplitHorizontally(self.qpts_panel, pyshell)
+        splitter.SplitHorizontally(self.qpoints_panel, pyshell)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(splitter, 1, wx.EXPAND, 5)
