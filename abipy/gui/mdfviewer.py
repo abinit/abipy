@@ -137,7 +137,7 @@ Also, these key bindings can be used
 
     def OnMdfPlot(self, event):
         mdf_file = self.active_mdf_file
-        mdf_file.plot_mdfs(cplx_mode="Im", mdf_select="all")
+        mdf_file.plot_mdfs(cplx_mode="Im", mdf_type="all")
 
     def OnMdfCompare(self, event):
         plotter = MDF_Plotter()
@@ -164,9 +164,14 @@ Also, these key bindings can be used
         toolbar.AddSeparator()
 
         # Combo box with the list of MDF types
-        mdf_types = ["ALL", "EXC", "GW-RPA", "KS-RPA"]
+        mdf_types = ["ALL", "EXC", "RPA", "GWRPA"]
         self.mdftype_cbox = wx.ComboBox(toolbar, id=-1, name='MDF type', choices=mdf_types, value="ALL", style=wx.CB_READONLY) 
         toolbar.AddControl(control=self.mdftype_cbox) 
+
+        # Combo box with the list of complex modes
+        cplx_modes = ["Re", "Im"]
+        self.cplx_cbox = wx.ComboBox(toolbar, id=-1, name='COMPLEX mode', choices=cplx_modes, value="Im", style=wx.CB_READONLY) 
+        toolbar.AddControl(control=self.cplx_cbox) 
 
         toolbar.Realize()
 
@@ -174,6 +179,19 @@ Also, these key bindings can be used
         mdf_file = abiopen(filepath)
         tab = MdfFileTab(self.notebook, mdf_file)
         self.notebook.AddPage(tab, os.path.basename(filepath))
+
+    def getMdfType(self):
+        """Return the sting with the MDF type selected by the user."""
+        mdf_type = self.mdftype_cbox.GetStringSelection()
+        if not mdf_type: mdf_type = "ALL"
+        return mdf_type
+
+    def getCplxMode(self):
+        """Return the sting with the complex mode used for plotting the spectra."""
+        cplx_mode = self.cplx_cbox.GetStringSelection()
+        if not cplx_mode: cplx_mode = "Im"
+        return cplx_mode
+
 
 
 class MdfQpointsPanel(KpointsPanel):
@@ -207,7 +225,7 @@ class MdfQpointsPanel(KpointsPanel):
         qpoint = self.getSelectedKpoint()
         if qpoint is None: return
         #print(qpoint)
-        self.mdf_file.plot_mdfs(cplx_mode="Im", mdf_select="all", qpoint=qpoint)
+        self.mdf_file.plot_mdfs(cplx_mode="Im", mdf_type="all", qpoint=qpoint)
 
 
 class MdfFileTab(wx.Panel):

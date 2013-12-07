@@ -397,7 +397,7 @@ class MDF_File(AbinitNcFile, Has_Structure):
         else:
             raise ValueError("Wrong value for mdf_type %s" % mdf_type)
 
-    def plot_mdfs(self, cplx_mode="Im", mdf_select="all", qpoint=None, **kwargs):
+    def plot_mdfs(self, cplx_mode="Im", mdf_type="all", qpoint=None, **kwargs):
         """
         Plot the macroscopic dielectric function.
 
@@ -412,7 +412,7 @@ class MDF_File(AbinitNcFile, Has_Structure):
 
                 Options can be concated with "-".
 
-            mdf_select:
+            mdf_type:
                 Select the type of macroscopic dielectric function.
                 Possible choices are 
 
@@ -426,22 +426,22 @@ class MDF_File(AbinitNcFile, Has_Structure):
             qpoint:
                 index of the q-point or Kpoint object or None to plot emacro_avg.
         """
-        plot_all = mdf_select == "all"
-        mdf_select = mdf_select.split("-")
+        plot_all = mdf_type == "all"
+        mdf_type = mdf_type.split("-")
 
         # Build the plotter.
         plotter = MDF_Plotter()
 
         # Excitonic MDF.
-        if "exc" in mdf_select or plot_all:
+        if "exc" in mdf_type or plot_all:
             plotter.add_mdf("EXC", self.exc_mdf)
 
         # KS-RPA MDF
-        if "rpa" in mdf_select or plot_all:
+        if "rpa" in mdf_type or plot_all:
             plotter.add_mdf("KS-RPA", self.rpanlf_mdf)
 
         # GW-RPA MDF (obtained with the scissors operator).
-        if "gwrpa" in mdf_select or plot_all:
+        if "gwrpa" in mdf_type or plot_all:
             plotter.add_mdf("GW-RPA", self.gwnlf_mdf)
 
         # Plot spectra 
