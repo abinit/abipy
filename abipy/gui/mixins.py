@@ -148,6 +148,7 @@ class Has_MultipleEbands(Has_Ebands):
         self.ID_MULTI_EBANDS_PLOT = wx.NewId()
         self.ID_MULTI_EBANDS_DOS = wx.NewId()
         #self.ID_MULTI_EBANDS_JDOS = wx.NewId()
+        self.ID_MULTI_EBANDS_BANDSWITHDOS = wx.NewId()
                                                                                                
         menu.Append(self.ID_MULTI_EBANDS_PLOT, "Compare ebands", "Plot multiple electron bands")
         self.Bind(wx.EVT_MENU, self.OnCompareEbands, id=self.ID_MULTI_EBANDS_PLOT)
@@ -155,6 +156,9 @@ class Has_MultipleEbands(Has_Ebands):
         self.Bind(wx.EVT_MENU, self.OnCompareEdos, id=self.ID_MULTI_EBANDS_DOS)
         #menu.Append(self.ID_MULTI_EBANDS_JDOS, "Compare JDOSes", "Compare multiple electron JDOSes")
         #self.Bind(wx.EVT_MENU, self.OnCompareJdos, id=self.ID_MULTI_EBANDS_JDOS)
+
+        menu.Append(self.ID_MULTI_EBANDS_BANDSWITHDOS, "Plot bands and DOS", "Plot electron bands and DOS on the same figure")
+        self.Bind(wx.EVT_MENU, self.onPlotEbandsWithDos, id=self.ID_MULTI_EBANDS_BANDSWITHDOS)
 
         return menu
 
@@ -182,12 +186,12 @@ class Has_MultipleEbands(Has_Ebands):
         # Open dialog to get DOS parameters.
         dialog = ewx.ElectronDosDialog(self)
         if dialog.ShowModal() == wx.ID_CANCEL: return 
-        params = dialog.GetParams()
+        dos_params = dialog.GetParams()
 
         plotter = ElectronDosPlotter()
         for path, ebands in zip(self.ebands_filepaths, self.ebands_list):
             try:
-                edos = ebands.get_edos(**params)
+                edos = ebands.get_edos(**dos_params)
                 label = os.path.relpath(path)
                 plotter.add_edos(label, edos)
             except:
@@ -199,14 +203,33 @@ class Has_MultipleEbands(Has_Ebands):
         #"""Plot multiple electron JDOSes"""
         # Open dialog to get DOS parameters.
         #dialog = ElectronJdosDialog(self, nsppol, mband)
-        #params = dialog.GetParams()
+        #jdos_params = dialog.GetParams()
 
         #plotter = ElectronBandsPlotter()
         #for ebands in self.ebands_list:
-        #    jos = ebands.get_edos(**params)
+        #    jos = ebands.get_jdos(**jdos_params)
         #    plotter.add_edos(label, edos)
         #                                      
         #plotter.plot()
+
+    def onPlotEbandsWithDos(self, event):
+        # Open dialog to get files and DOS parameters.
+        dialog = ewx.EbandsDosDialog(self, self.ebands_filepaths)
+        if dialog.ShowModal() == wx.ID_CANCEL: return 
+
+        try:
+            dos_params = dialog.getEdosParams()
+            #ipath, idos = 0, 1
+            ipath, idos = dialog.getBandsDosIndex()
+            print(ipath, idos)
+
+            ebands_path = self.ebands_list[ipath]
+            ebands_mesh = self.ebands_list[idos]
+
+            edos = ebands_mesh.get_edos(**dos_params)
+            ebands_path.plot_with_edos(edos)
+        except:
+            awx.showErrorMessage(self)
 
 
 #class Has_Kpoints(object):

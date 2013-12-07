@@ -83,10 +83,8 @@ class ElectronDosPanel(DosPanel):
 class ElectronDosDialog(wx.Dialog):
     """Dialog that asks the user to enter the parameters for the electron DOS."""
     def __init__(self, parent, **kwargs):
+        if "title" not in kwargs: kwargs["title"] = "Select DOS parameters"
         super(ElectronDosDialog, self).__init__(parent, -1, **kwargs)
-
-        #self.SetSize((250, 200))
-        self.SetTitle("Select DOS parameters")
 
         vbox = wx.BoxSizer(wx.VERTICAL)
 
@@ -109,6 +107,64 @@ class ElectronDosDialog(wx.Dialog):
         """Return a parameters in a `AttrDict`."""
         return self.panel.GetParams()
 
+
+class EbandsDosDialog(wx.Dialog):
+    """
+    Dialog that asks the user to select two files with Ebands and Edos 
+    and enter the parameters for the electron DOS.
+    """
+    def __init__(self, parent, filepaths, **kwargs):
+        if "title" not in kwargs: kwargs["title"] = "Select paramater forEbands with DOS plot"
+        super(EbandsDosDialog, self).__init__(parent, -1, **kwargs)
+
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # Use relative paths to save space.
+        choices = map(os.path.relpath, filepaths)
+
+        band_label = wx.StaticText(self, -1, "File for bands:"); band_label.Wrap(-1)
+        self.bandsfile_cbox = wx.ComboBox(self, id=-1, name='Bands file', choices=choices, value=choices[0], style=wx.CB_READONLY)  
+
+        hbox0 = wx.BoxSizer(wx.HORIZONTAL)
+        hbox0.Add(band_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
+        hbox0.Add(self.bandsfile_cbox)
+        main_sizer.Add(hbox0, proportion=0, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10)
+
+        dos_label = wx.StaticText(self, -1, "File for DOS:"); dos_label.Wrap(-1)
+        self.dosfile_cbox = wx.ComboBox(self, id=-1, name='Bands file', choices=choices, value=choices[0], style=wx.CB_READONLY)  
+
+        hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+        hbox1.Add(dos_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
+        hbox1.Add(self.dosfile_cbox)
+        main_sizer.Add(hbox1, proportion=0, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10)
+
+        self.dos_panel = ElectronDosPanel(self)
+
+        ok_button = wx.Button(self, wx.ID_OK, label='Ok')
+        close_button = wx.Button(self, wx.ID_CANCEL, label='Cancel')
+
+        hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        hbox2.Add(ok_button)
+        hbox2.Add(close_button, flag=wx.LEFT, border=5)
+
+        main_sizer.Add(self.dos_panel, proportion=0, flag=wx.ALL | wx.EXPAND, border=5)
+        main_sizer.Add(hbox2, proportion=0, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10)
+
+        self.SetSizerAndFit(main_sizer)
+
+    def getEdosParams(self):
+        """Return a parameters in a `AttrDict`."""
+        return self.dos_panel.GetParams()
+
+    def getBandsDosIndex(self):
+        """Return the index of the files for Bands and Dos selected by the user`."""
+        ipath = self.bandsfile_cbox.GetSelection()
+        imesh = self.dosfile_cbox.GetSelection() 
+        # Default values if no item is selected.:
+        if ipath == wx.NOT_FOUND: ipath = 0
+        if imesh == wx.NOT_FOUND: imesh = 0
+
+        return ipath, imesh
 
 class ElectronDosFrame(awx.Frame):
     """This frames allows the user to control and compute the Electron DOS."""
