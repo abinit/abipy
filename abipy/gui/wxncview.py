@@ -660,17 +660,25 @@ class VarsPanel(BasePanel):
         menu = super(VarsPanel, self).makePopupMenu()
 
         # Extend base class.
+        #menu.AppendSeparator()
+
         self.idPOPUP_VAR_EXPORT = wx.NewId()
         menu.Append(self.idPOPUP_VAR_EXPORT, "Export")
-        self.Bind(wx.EVT_MENU, self.onVarExport, id=self.idPOPUP_VAR_EXPORT)
-
-        #menu.AppendSeparator()
 
         # Extra Popup IDs for arrays
         #self.idPOPUP_ARR_SLICE = wx.NewId()
         #menu.Append(self.idPOPUP_ARR_SLICE, "Slice array")
         #self.Bind(wx.EVT_MENU, self.OnArraySlice, id=self.idPOPUP_ARR_SLICE)
-                                                                                              
+
+        # Associate menu/toolbar items with their handlers.
+        menu_handlers = [
+            (self.idPOPUP_VAR_EXPORT, self.onVarExport),
+        ]
+                                                            
+        for combo in menu_handlers:
+            mid, handler = combo[:2]
+            self.Bind(wx.EVT_MENU, handler, id=mid)
+                                                     
         return menu
 
     #def GetNameVarFromEvent(self, event):
@@ -698,12 +706,17 @@ class VarsPanel(BasePanel):
         item = getSelected(self.list)[0]
         name = getColumnText(self.list, item, 0)
         var = self.dataset.variables[name]
-        raise NotImplementedError("")
 
-        #dialog = wx.FileDialog(self)
-        #if dialog.ShowModal() == wx.ID_CANCEL: return 
+        dialog = wx.FileDialog(self, message="Save text file", defaultDir="", defaultFile="", 
+                               wildcard="", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+
+        if dialog.ShowModal() == wx.ID_CANCEL: return
+
+        # save the current contents in the file
+        path = dialog.GetPath()
+
         # Save self to a text file. See :func:`np.savetext` for the description of the variables
-        #np.savetxt(path, var[:], fmt='%.18e')
+        np.savetxt(path, var[:], fmt='%.18e')
 
     def OnCompare(self, event):
         """Trigger CompareEvent."""

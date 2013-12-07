@@ -255,7 +255,7 @@ class DielectricFunction(object):
 
         np.savetxt(stream, table, fmt=fmt, delimiter=delimiter, header=header)
 
-    def plot(self, *args, **kwargs):
+    def plot(self, **kwargs):
         """
         Plot the MDF.
 
@@ -439,7 +439,7 @@ class MDF_File(AbinitNcFile, Has_Structure):
         
 
 # TODO
-from abipy.electrons import ElectronsReader
+#from abipy.electrons import ElectronsReader
 #class MDF_Reader(ElectronsReader):
 class MDF_Reader(ETSF_Reader):
     """
@@ -608,95 +608,95 @@ class MDF_Plotter(object):
         return fig
 
 
-class DIPME_File(object):
-    """
-    This object provides tools to analyze the dipole matrix elements produced by the BSE code.
-    """
-    def __init__(self, path):
-        self.path = os.path.abspath(path)
-
-        # Save useful quantities
-        with OME_Reader(self.path) as reader:
-            self.structure = reader.structure
-            self.nsppol = reader.nsppol
-            self.kibz = reader.kibz
-            self.minb_sk = reader.minb_sk
-            self.maxb_sk = reader.maxb_sk
-
-            # Dipole matrix elements.
-            # opt_cvk(minb:maxb,minb:maxb,nkbz,Wfd%nsppol)
-            self.dipme_scvk = reader.read_dipme_scvk()
-
-    @classmethod
-    def from_file(cls, path):
-        return cls(path)
-
-    def kpoint_index(self, kpoint):
-        """The index of the kpoint"""
-        return self.kibz.find(kpoint)
-
-    def plot(self, qpoint=None, spin=None, kpoints=None, color_map=None, **kwargs):
-        """
-        Plot the dipole matrix elements.
-
-        Args:
-            qpoint:
-                The qpoint for the optical limit.
-                if qpoint is None, we plot  |<k|r|k>| else |<k|q.r|k>|
-            spin:
-                spin index. None if all spins are wanted
-            kpoints:
-                List of Kpoint objects, None if all k-points are wanted.
-
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig:        'abc.png' or 'abc.eps'* to save the figure to a file.
-        colormap        matplotlib colormap, see link below.
-        ==============  ==============================================================
-
-        Returns:
-            matplotlib figure.
-
-        .. see: 
-            http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
-        """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
-        color_map = kwargs.pop("color_map", None)
-
-        if qpoint is not None:
-            # Will compute scalar product with q
-            qpoint = Kpoint.askpoint(qpoint, self.structure.reciprocal_lattice).versor()
-        else:
-            # Will plot |<psi|r|psi>|.
-            qpoint = Kpoint((1, 1, 1), self.structure.reciprocal_lattice)
-
-        if spin in None:
-            spins = range(self.nsppol)
-        else:
-            spins = [spin]
-
-        if kpoints is None:
-            kpoints = self.ibz
-
-        # Extract the matrix elements for the plot.
-        from abipy.tools.plotting_utils import ArrayPlotter
-        plotter = ArrayPlotter()
-        for spin in spins:
-            for kpoint in kpoints:
-                ik = self.kpoint_index(kpoint)
-                rme = self.dipme_scvk[spin, ik, :, :, :]
-
-                #qrme = qpoint * rme
-                label = "qpoint %s, spin %s, kpoint = %s" % (qpoint, spin, kpoint)
-                plotter.add_array(label, rme)
-
-        # Plot matrix elements and return matplotlib figure.
-        return plotter.plot(title=title, color_map=color_map, show=show, savefig=savefig, **kwargs)
+#class DIPME_File(object):
+#    """
+#    This object provides tools to analyze the dipole matrix elements produced by the BSE code.
+#    """
+#    def __init__(self, path):
+#        self.path = os.path.abspath(path)
+#
+#        # Save useful quantities
+#        with OME_Reader(self.path) as reader:
+#            self.structure = reader.structure
+#            self.nsppol = reader.nsppol
+#            self.kibz = reader.kibz
+#            self.minb_sk = reader.minb_sk
+#            self.maxb_sk = reader.maxb_sk
+#
+#            # Dipole matrix elements.
+#            # opt_cvk(minb:maxb,minb:maxb,nkbz,Wfd%nsppol)
+#            self.dipme_scvk = reader.read_dipme_scvk()
+#
+#    @classmethod
+#    def from_file(cls, path):
+#        return cls(path)
+#
+#    def kpoint_index(self, kpoint):
+#        """The index of the kpoint"""
+#        return self.kibz.find(kpoint)
+#
+#    def plot(self, qpoint=None, spin=None, kpoints=None, color_map=None, **kwargs):
+#        """
+#        Plot the dipole matrix elements.
+#
+#        Args:
+#            qpoint:
+#                The qpoint for the optical limit.
+#                if qpoint is None, we plot  |<k|r|k>| else |<k|q.r|k>|
+#            spin:
+#                spin index. None if all spins are wanted
+#            kpoints:
+#                List of Kpoint objects, None if all k-points are wanted.
+#
+#        ==============  ==============================================================
+#        kwargs          Meaning
+#        ==============  ==============================================================
+#        title           Title of the plot (Default: None).
+#        show            True to show the figure (Default).
+#        savefig:        'abc.png' or 'abc.eps'* to save the figure to a file.
+#        colormap        matplotlib colormap, see link below.
+#        ==============  ==============================================================
+#
+#        Returns:
+#            matplotlib figure.
+#
+#        .. see: 
+#            http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
+#        """
+#        title = kwargs.pop("title", None)
+#        show = kwargs.pop("show", True)
+#        savefig = kwargs.pop("savefig", None)
+#        color_map = kwargs.pop("color_map", None)
+#
+#        if qpoint is not None:
+#            # Will compute scalar product with q
+#            qpoint = Kpoint.askpoint(qpoint, self.structure.reciprocal_lattice).versor()
+#        else:
+#            # Will plot |<psi|r|psi>|.
+#            qpoint = Kpoint((1, 1, 1), self.structure.reciprocal_lattice)
+#
+#        if spin in None:
+#            spins = range(self.nsppol)
+#        else:
+#            spins = [spin]
+#
+#        if kpoints is None:
+#            kpoints = self.ibz
+#
+#        # Extract the matrix elements for the plot.
+#        from abipy.tools.plotting_utils import ArrayPlotter
+#        plotter = ArrayPlotter()
+#        for spin in spins:
+#            for kpoint in kpoints:
+#                ik = self.kpoint_index(kpoint)
+#                rme = self.dipme_scvk[spin, ik, :, :, :]
+#
+#                #qrme = qpoint * rme
+#                label = "qpoint %s, spin %s, kpoint = %s" % (qpoint, spin, kpoint)
+#                plotter.add_array(label, rme)
+#
+#        # Plot matrix elements and return matplotlib figure.
+#        return plotter.plot(title=title, color_map=color_map, show=show, savefig=savefig, **kwargs)
 
 
 #class DIPME_Reader(ETSF_Reader):

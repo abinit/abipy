@@ -154,7 +154,11 @@ class KpointsFrame(awx.Frame):
         """
         super(KpointsFrame, self).__init__(parent, **kwargs)
 
-        panel = KpointsPanel(self, structure, kpoints)
+        self.panel = KpointsPanel(self, structure, kpoints)
+
+        #sizer = wx.BoxSizer(wx.VERTICAL)
+        #sizer.Add(self.panel, 1, wx.EXPAND, 5)
+        #self.SetSizer(sizer)
 
 
 class SpinKpointBandPanel(awx.Panel):

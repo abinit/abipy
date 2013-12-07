@@ -16,7 +16,8 @@ from abipy.gui import mixins as mix
 from abipy.gui.baseviewer import MultiViewerFrame
 
 
-class MdfViewerFrame(MultiViewerFrame, mix.Has_Structure, mix.Has_MultipleEbands, mix.Has_Tools, mix.Has_NetcdfFiles):
+#class MdfViewerFrame(MultiViewerFrame, mix.Has_Structure, mix.Has_MultipleEbands, mix.Has_Tools, mix.Has_NetcdfFiles):
+class MdfViewerFrame(MultiViewerFrame, mix.Has_Structure, mix.Has_Tools, mix.Has_NetcdfFiles):
     VERSION = "0.1"
 
     HELP_MSG = """Quick help:
@@ -127,7 +128,7 @@ Also, these key bindings can be used
 
         # Add Mixin menus.
         menu_bar.Append(self.CreateStructureMenu(), "Structure")
-        menu_bar.Append(self.CreateEbandsMenu(), "Ebands")
+        #menu_bar.Append(self.CreateEbandsMenu(), "Ebands")
         menu_bar.Append(self.CreateMdfMenu(), "Mdf")
         menu_bar.Append(self.CreateToolsMenu(), "Tools")
         menu_bar.Append(self.CreateNetcdfMenu(), "Netcdf")
@@ -156,7 +157,7 @@ Also, these key bindings can be used
 
     def OnMdfPlot(self,event):
         mdf_file = self.active_mdf_file
-        mdf_file.plot_mdfs()
+        mdf_file.plot_mdfs(cplx_mode="Im", mdf_select="all")
 
     def OnMdfCompare(self,event):
         plotter = MDF_Plotter()

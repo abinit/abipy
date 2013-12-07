@@ -10,7 +10,129 @@ __all__ = [
     "SimpleGridFrame",
 ]
 
-class SimpleGrid(gridlib.Grid): 
+class CopyPasteGrid(gridlib.Grid):
+    """ 
+    A Copy&Paste enabled grid class
+    taken from http://wxpython-users.1045709.n5.nabble.com/copy-and-pasting-selections-in-wx-grid-cells-td2353289.html
+    """
+    def __init__(self, parent, **kwargs):
+        super(CopyPasteGrid, self).__init__(parent, **kwargs)
+        wx.EVT_KEY_DOWN(self, self.OnKey)
+
+    def selection(self):
+        # Show cell selection
+        # If selection is cell...
+        if self.GetSelectedCells():
+            print("Selected cells " + str(self.GetSelectedCells()))
+        # If selection is block...
+        if self.GetSelectionBlockTopLeft():
+            print("Selection block top left " + str(self.GetSelectionBlockTopLeft()))
+        if self.GetSelectionBlockBottomRight():
+            print("Selection block bottom right " + str(self.GetSelectionBlockBottomRight()))
+        
+        # If selection is col...
+        if self.GetSelectedCols():
+            print("Selected cols " + str(self.GetSelectedCols()))
+        
+        # If selection is row...
+        if self.GetSelectedRows():
+            print("Selected rows " + str(self.GetSelectedRows()))
+    
+    def currentcell(self):
+        # Show cursor position
+        row = self.GetGridCursorRow()
+        col = self.GetGridCursorCol()
+        cell = (row, col)
+        print("Current cell " + str(cell))
+        
+    def OnKey(self, event):
+        # If Ctrl+C is pressed...
+        if event.ControlDown() and event.GetKeyCode() == 67:
+            print("Ctrl+C")
+            self.selection()
+            # Call copy method
+            self.copy()
+            
+        # If Ctrl+V is pressed...
+        if event.ControlDown() and event.GetKeyCode() == 86:
+            print("Ctrl+V")
+            self.currentcell()
+            # Call paste method
+            self.paste()
+            
+        # If Supr is pressed
+        if event.GetKeyCode() == 127:
+            print("Supr")
+            # Call delete method
+            self.delete()
+            
+        # Skip other Key events
+        if event.GetKeyCode():
+            event.Skip()
+            return
+
+    def copy(self):
+        print("Copy method")
+        # Number of rows and cols
+        rows = self.GetSelectionBlockBottomRight()[0][0] - self.GetSelectionBlockTopLeft()[0][0] + 1
+        cols = self.GetSelectionBlockBottomRight()[0][1] - self.GetSelectionBlockTopLeft()[0][1] + 1
+        
+        # data variable contain text that must be set in the clipboard
+        data = ''
+        
+        # For each cell in selected range append the cell value in the data variable
+        # Tabs '\t' for cols and '\r' for rows
+        for r in range(rows):
+            for c in range(cols):
+                data = data + str(self.GetCellValue(self.GetSelectionBlockTopLeft()[0][0] + r, self.GetSelectionBlockTopLeft()[0][1] + c))
+                if c < cols - 1:
+                    data = data + '\t'
+            data = data + '\n'
+        # Create text data object
+        clipboard = wx.TextDataObject()
+        # Set data object value
+        clipboard.SetText(data)
+        # Put the data in the clipboard
+        if wx.TheClipboard.Open():
+            wx.TheClipboard.SetData(clipboard)
+            wx.TheClipboard.Close()
+        else:
+            wx.MessageBox("Can't open the clipboard", "Error")
+            
+    def paste(self):
+        print("Paste method")
+        clipboard = wx.TextDataObject()
+        if wx.TheClipboard.Open():
+            wx.TheClipboard.GetData(clipboard)
+            wx.TheClipboard.Close()
+        else:
+            wx.MessageBox("Can't open the clipboard", "Error")
+        data = clipboard.GetText()
+        table = []
+        y = -1
+        # Convert text in a array of lines
+        for r in data.splitlines():
+            y = y +1
+            x = -1
+            # Convert c in a array of text separated by tab
+            for c in r.split('\t'):
+                x = x +1
+                self.SetCellValue(self.GetGridCursorRow() + y, self.GetGridCursorCol() + x, c)
+                
+    def delete(self):
+        print("Delete method")
+        # Number of rows and cols
+        rows = self.GetSelectionBlockBottomRight()[0][0] - self.GetSelectionBlockTopLeft()[0][0] + 1
+        cols = self.GetSelectionBlockBottomRight()[0][1] - self.GetSelectionBlockTopLeft()[0][1] + 1
+        # Clear cells contents
+        for r in range(rows):
+            for c in range(cols):
+                self.SetCellValue(self.GetSelectionBlockTopLeft()[0][0] + r, self.GetSelectionBlockTopLeft()[0][1] + c, '')
+   
+
+
+#class SimpleGrid(gridlib.Grid): 
+class SimpleGrid(CopyPasteGrid):
 
     def __init__(self, parent, table, row_labels=None, col_labels=None, **kwargs):
         """
@@ -24,7 +146,7 @@ class SimpleGrid(gridlib.Grid):
             col_labels:
                 List of strings used to name the col.
         """
-        super(SimpleGrid, self).__init__(parent, -1, **kwargs)
+        super(SimpleGrid, self).__init__(parent, id=-1, **kwargs)
         self.log = sys.stdout
 
         self.moveTo = None
