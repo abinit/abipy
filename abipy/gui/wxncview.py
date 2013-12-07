@@ -56,6 +56,13 @@ class AttrDict(dict):
         return self.__class__(**newd)
 
 
+class SimpleTextViewer(awx.Frame):
+    """Very simple frame that displays text (string )in read-only mode."""
+    def __init__(self, parent, text, **kwargs):
+        super(SimpleTextViewer, self).__init__(parent, **kwargs)
+        wx.TextCtrl(self, -1, text, style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
+
+
 # Command event used to signal that the value of the selected variable/dimension 
 # should be plotted as function of the file index.
 CompareEvent, EVT_COMPARE = wx.lib.newevent.NewCommandEvent()
@@ -447,7 +454,6 @@ class BasePanel(wx.Panel, listmix.ColumnSorterMixin):
         menu.Append(self.idPOPUP_COMPARE, "Compare")
         self.Bind(wx.EVT_MENU, self.OnCompare, id=self.idPOPUP_COMPARE)
 
-        menu.AppendSeparator()
         return menu
 
     def OnRightClick(self, event):
@@ -507,7 +513,6 @@ class BasePanel(wx.Panel, listmix.ColumnSorterMixin):
                 return parent
             else:
                 parent = parent.GetParent()
-
 
 
 class DimsPanel(BasePanel):
@@ -659,6 +664,9 @@ class VarsPanel(BasePanel):
         # Menu of the base class
         menu = super(VarsPanel, self).makePopupMenu()
 
+        self.idPOPUP_VAR_SHOW = wx.NewId()
+        menu.Append(self.idPOPUP_VAR_SHOW, "Show")
+
         # Extend base class.
         #menu.AppendSeparator()
 
@@ -672,6 +680,7 @@ class VarsPanel(BasePanel):
 
         # Associate menu/toolbar items with their handlers.
         menu_handlers = [
+            (self.idPOPUP_VAR_SHOW, self.onVarShow),
             (self.idPOPUP_VAR_EXPORT, self.onVarExport),
         ]
                                                             
@@ -701,6 +710,13 @@ class VarsPanel(BasePanel):
         caption = "Variable Metadata" 
         s = "\n".join(lines)
         wxdg.ScrolledMessageDialog(self, s, caption=caption, style=wx.MAXIMIZE_BOX).Show()
+
+    def onVarShow(self, event):
+        item = getSelected(self.list)[0]
+        name = getColumnText(self.list, item, 0)
+        var = self.dataset.variables[name]
+        text = str(var[:])
+        SimpleTextViewer(self, text=text).Show()
 
     def onVarExport(self, event):
         item = getSelected(self.list)[0]

@@ -219,9 +219,7 @@ class Has_MultipleEbands(Has_Ebands):
 
         try:
             dos_params = dialog.getEdosParams()
-            #ipath, idos = 0, 1
             ipath, idos = dialog.getBandsDosIndex()
-            print(ipath, idos)
 
             ebands_path = self.ebands_list[ipath]
             ebands_mesh = self.ebands_list[idos]

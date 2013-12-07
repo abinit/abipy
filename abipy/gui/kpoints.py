@@ -240,6 +240,11 @@ class SpinKpointBandPanel(awx.Panel):
         spin = int(self.spin_cbox.GetValue())
         kpoint = self.getSelectedKpoint()
         band = int(self.band_cbox.GetValue())
+
+        # Default values if no item is selected.:
+        if spin == wx.NOT_FOUND: spin = 0
+        if band == wx.NOT_FOUND: band = 0
+
         return spin, kpoint, band
 
     def OnItemActivated(self, event):
