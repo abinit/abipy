@@ -21,14 +21,10 @@ class SigresViewerFrame(MultiViewerFrame, mix.Has_Structure, mix.Has_MultipleEba
 
     HELP_MSG = """Quick help:
 
- Left-Click:   to display X,Y coordinates
- Left-Drag:    to zoom in on plot region
- Right-Click:  display popup menu with choices:
-                Zoom out 1 level
-                Zoom all the way out
-                --------------------
-                Configure
-                Save Image
+ Kpoint list:
+
+     Left-Click:   to visualize table with QP results for the selected spin, k-point
+     Right-Click:  display popup menu with choices.
 
 Also, these key bindings can be used
 (For Mac OSX, replace 'Ctrl' with 'Apple'):
@@ -219,11 +215,11 @@ class SigresFileTab(wx.Panel):
         splitter = wx.SplitterWindow(self, style=wx.SP_LIVE_UPDATE)
         splitter.SetSashGravity(0.95)
 
-        self.skb_panel = SpinKpointBandPanel(splitter, sigres.nsppol, sigres.gwkpoints, sigres.max_gwbstop,
-            bstart=sigres.min_gwbstart)
+        self.skb_panel = SpinKpointBandPanel(splitter, sigres.structure, sigres.nsppol, sigres.gwkpoints, sigres.max_gwbstop,
+                                             bstart=sigres.min_gwbstart)
 
         # Set the callback for double click on k-point row..
-        self.skb_panel.SetOnItemActivated(self.ShowQPTable)
+        self.Bind(self.skb_panel.MYEVT_SKB_ACTIVATED, self.onShowQPTable)
 
         # Add Python shell
         msg = "SIGRES_File object is accessible via the sigres variable. Use sigres.<TAB> to access the list of methods."
@@ -251,7 +247,8 @@ class SigresFileTab(wx.Panel):
             self._viewer_frame = self.getParentWithType(SigresViewerFrame)
             return self._viewer_frame
 
-    def ShowQPTable(self, spin, kpoint, band):
+    def onShowQPTable(self, event):
+        spin, kpoint, band = event.skb
         qplist = self.sigres.get_qplist(spin, kpoint)
         table = qplist.to_table()
         title = "spin: %d, kpoint: %s" % (spin, kpoint)

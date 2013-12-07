@@ -1,6 +1,7 @@
 from __future__ import print_function, division
 
 import wx
+import wx.lib.newevent
 
 import abipy.gui.awx as awx
 import wx.lib.mixins.listctrl as listmix
@@ -99,16 +100,16 @@ class KpointsPanel(awx.Panel):
 
     def onRightClick(self, event):
         """Generate the popup menu."""
-        kpoint = self.klist_ctrl.getSelectedKpoint()
-
         popup_menu = self.makePopupMenu()
         self.PopupMenu(popup_menu, event.GetPoint())
         popup_menu.Destroy()
 
+    def getSelectedKpoint(self):
+        return self.klist_ctrl.getSelectedKpoint()
+
     def makePopupMenu(self):
         """
-        Build and return a popup menus so that subclasses can extend 
-        or replace this base method.
+        Build and return a popup menu. Subclasses can extend or replace this base method.
         """
         self.ID_POPUP_LITTLEGROUP = wx.NewId()
         self.ID_POPUP_STAR = wx.NewId()
@@ -131,12 +132,14 @@ class KpointsPanel(awx.Panel):
 
     def onLittleGroup(self, event):
         kpoint = self.klist_ctrl.getSelectedKpoint()
+        if kpoint is None: return
         ltk = self.structure.spacegroup.find_little_group(kpoint)
         table, header = ltk.bilbao_character_table()
         awx.SimpleGridFrame(self, table, title=header, labels_from_table=True).Show()
 
     def onShowStar(self, event):
         kpoint = self.klist_ctrl.getSelectedKpoint()
+        if kpoint is None: return
         star = kpoint.compute_star(self.structure.fm_symmops)
         KpointsFrame(self, self.structure, star, title="Star of point: " + str(star.base_point)).Show()
 
@@ -166,9 +169,14 @@ class SpinKpointBandPanel(awx.Panel):
     This panel shows information on the k-points and the set of bands, spins. 
     Useful if we want to allow the user to select the set of indices (spin, kpt_idx, band).
     """
-    def __init__(self, parent, nsppol, kpoints, mband, bstart=0, **kwargs):
+    # Command event used to signal that the spin-kpoint-band has been selected.
+    SkbActivatedEvent, MYEVT_SKB_ACTIVATED = wx.lib.newevent.NewCommandEvent()
+
+    def __init__(self, parent, structure, nsppol, kpoints, mband, bstart=0, **kwargs):
         """
         Args:
+            structure:
+                Structure object.
             nsppol:
                 Number of spins.
             kpoints:
@@ -180,12 +188,11 @@ class SpinKpointBandPanel(awx.Panel):
         """
         super(SpinKpointBandPanel, self).__init__(parent, style=wx.LC_REPORT | wx.BORDER_SUNKEN, **kwargs) 
 
-        self.nsppol, self.kpoints, self.mband = nsppol, kpoints, mband
+        self.parent = parent
+        self.nsppol, self.mband = nsppol, mband
         self.bstart = bstart
 
-        self.BuildUi()
-
-    def BuildUi(self):
+        # Build UI
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         hsizer1 = wx.BoxSizer(wx.HORIZONTAL)
@@ -212,125 +219,31 @@ class SpinKpointBandPanel(awx.Panel):
         kpoint_label.Wrap(-1)
         hsizer2.Add(kpoint_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
-        self.klist_ctrl = klist = KpointsListCtrl(self, self.kpoints)
+        self.kpanel = KpointsPanel(self, structure, kpoints)
+        klist_ctrl = self.kpanel.klist_ctrl
 
-        hsizer2.Add(self.klist_ctrl, 1, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
+        hsizer2.Add(self.kpanel, 1, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
         main_sizer.Add(hsizer2, 1, wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 5)
 
         self.SetSizerAndFit(main_sizer)
 
         # Connect the events whose callback will be set by the client code.
-        klist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick)
-        klist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected)
-        klist.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
+        klist_ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
+        #klist_ctrl.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick)
+        #klist_ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected)
+
+    def getSelectedKpoint(self):
+        return self.kpanel.getSelectedKpoint()
 
     def GetSKB(self):
         """Returns the tuple (spin, kpoint, band) selected by the user."""
         spin = int(self.spin_cbox.GetValue())
-        kpoint = self.klist_ctrl.getSelectedKpoint()
+        kpoint = self.getSelectedKpoint()
         band = int(self.band_cbox.GetValue())
         return spin, kpoint, band
 
-    def SetOnRightClick(self, callback):
-        """
-        Set the callback when EVT_LIST_ITEM_RIGHT_CLICK is fired.
-        The callback expects the tuple (spin, kpoint, band)
-        """
-        self._on_item_right_click_callback = callback
-
-    def OnRightClick(self, event):
-        """Call the callback registered with `SetOnRightClick` (if any)."""
-        if hasattr(self, "_on_item_right_click_callback"):
-            #print("In OnRightClick with skb %s" % str(skb))
-            skb = self.GetSKB()
-            self._on_item_right_click_callback(*skb)
-
-    def SetOnItemSelected(self, callback):
-        """
-        Set the callback when EVT_LIST_ITEM_SELECTED is fired.
-        The callback expects the tuple (spin, kpoint, band)
-        """
-        self._on_item_selected_callback = callback
-
-    def OnItemSelected(self, event):
-        """Call the callback registered with `SetOnItemSelected` (if any)."""
-        if hasattr(self, "_on_item_selected_callback"):
-            #print("In OnItemSelected with skb %s" % str(skb))
-            skb = self.GetSKB()
-            self._on_item_selected_callback(*skb)
-
-    def SetOnItemActivated(self, callback):
-        """
-        Set the callback when EVT_LIST_ITEM_ACTIVATED is fired (double click).
-        The callback expects the tuple (spin, kpoint, band)
-        """
-        self._on_item_activated_callback = callback
-
     def OnItemActivated(self, event):
-        """Call the callback registered with `SetOnItemActivated` (if any)."""
-        if hasattr(self, "_on_item_activated_callback"):
-            skb = self.GetSKB()
-            #print("In OnItemActivated with skb %s" % str(skb))
-            self._on_item_activated_callback(*skb)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        """Fire SkbActivatedEvent)."""
+        #print("Firing SkbActivatedEvent")
+        event = self.SkbActivatedEvent(id=-1, skb=self.GetSKB())
+        wx.PostEvent(self.parent, event)

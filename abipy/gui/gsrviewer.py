@@ -19,14 +19,9 @@ class GsrViewerFrame(MultiViewerFrame, mix.Has_Structure, mix.Has_MultipleEbands
 
     HELP_MSG = """Quick help:
 
- Left-Click:   to display X,Y coordinates
- Left-Drag:    to zoom in on plot region
- Right-Click:  display popup menu with choices:
-                Zoom out 1 level
-                Zoom all the way out
-                --------------------
-                Configure
-                Save Image
+ Kpoint list:
+
+     Right-Click:  display popup menu with choices.
 
 Also, these key bindings can be used
 (For Mac OSX, replace 'Ctrl' with 'Apple'):

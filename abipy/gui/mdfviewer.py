@@ -22,14 +22,9 @@ class MdfViewerFrame(MultiViewerFrame, mix.Has_Structure, mix.Has_Tools, mix.Has
 
     HELP_MSG = """Quick help:
 
- Left-Click:   to display X,Y coordinates
- Left-Drag:    to zoom in on plot region
- Right-Click:  display popup menu with choices:
-                Zoom out 1 level
-                Zoom all the way out
-                --------------------
-                Configure
-                Save Image
+ Qpoint list:
+
+     Right-Click:  display popup menu with choices.
 
 Also, these key bindings can be used
 (For Mac OSX, replace 'Ctrl' with 'Apple'):
@@ -155,11 +150,11 @@ Also, these key bindings can be used
 
         return menu
 
-    def OnMdfPlot(self,event):
+    def OnMdfPlot(self, event):
         mdf_file = self.active_mdf_file
         mdf_file.plot_mdfs(cplx_mode="Im", mdf_select="all")
 
-    def OnMdfCompare(self,event):
+    def OnMdfCompare(self, event):
         plotter = MDF_Plotter()
 
         for path, mdf_file in zip(self.mdf_filepaths, self.mdf_files_list):
@@ -181,7 +176,13 @@ Also, these key bindings can be used
         artBmp = wx.ArtProvider.GetBitmap
         toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR), "Open")
 
-        #toolbar.AddSeparator()
+        toolbar.AddSeparator()
+
+        # Combo box with the list of MDF types
+        mdf_types = ["ALL", "EXC", "GW-RPA", "KS-RPA"]
+        self.mdftype_cbox = wx.ComboBox(toolbar, id=-1, name='MDF type', choices=mdf_types, value="ALL", style=wx.CB_READONLY) 
+        toolbar.AddControl(control=self.mdftype_cbox) 
+
         toolbar.Realize()
 
     def addFileTab(self, parent, filepath):

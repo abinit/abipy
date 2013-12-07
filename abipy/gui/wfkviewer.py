@@ -20,14 +20,10 @@ class WfkViewerFrame(MultiViewerFrame, mix.Has_Structure, mix.Has_MultipleEbands
 
     HELP_MSG = """Quick help:
 
- Left-Click:   to display X,Y coordinates
- Left-Drag:    to zoom in on plot region
- Right-Click:  display popup menu with choices:
-                Zoom out 1 level
-                Zoom all the way out
-                --------------------
-                Configure
-                Save Image
+ Kpoint list:
+
+     Left-Click:   to visualize u(r)^2 for the selected spin, k-point, band
+     Right-Click:  display popup menu with choices.
 
 Also, these key bindings can be used
 (For Mac OSX, replace 'Ctrl' with 'Apple'):
@@ -116,8 +112,7 @@ Also, these key bindings can be used
         # Combo box with the list of visualizers
         avail_visunames = [visu.name for visu in Visualizer.get_available()]
         value = avail_visunames[0] if avail_visunames else "None"
-        self.visualizer_cbox = wx.ComboBox(choices=avail_visunames, id=-1, name='visualizer', parent=toolbar, value=value) 
-        self.visualizer_cbox.Refresh() 
+        self.visualizer_cbox = wx.ComboBox(toolbar, id=-1, name='visualizer', choices=avail_visunames, value=value, style=wx.CB_READONLY)  
         toolbar.AddControl(control=self.visualizer_cbox) 
 
         toolbar.Realize()
@@ -147,10 +142,10 @@ class WfkFileTab(awx.Panel):
         splitter = wx.SplitterWindow(self, id=-1, style=wx.SP_3D)
         splitter.SetSashGravity(0.95)
 
-        self.skb_panel = SpinKpointBandPanel(splitter, wfk.nsppol, wfk.kpoints, wfk.mband)
+        self.skb_panel = skb_panel = SpinKpointBandPanel(splitter, wfk.structure, wfk.nsppol, wfk.kpoints, wfk.mband)
 
         # Set the callback for double click on k-point row..
-        self.skb_panel.SetOnItemActivated(self._visualize_skb)
+        self.Bind(skb_panel.MYEVT_SKB_ACTIVATED, self.onVisualizeSKB)
 
         # Add Python shell
         msg = "WFK_File object is accessible via the wfk variable. Use wfk.<TAB> to access the list of methods."
@@ -173,10 +168,15 @@ class WfkFileTab(awx.Panel):
         """Returns a string with the visualizer selected by the user."""
         return self.viewer_frame.GetVisualizer()
 
-    def _visualize_skb(self, spin, kpoint, band):
-        """Calls the visualizer to visualize the specified wavefunction."""
-        # To make the Gui responsive one can use the approach described in 
-        # http://wiki.wxpython.org/LongRunningTasks
+    def onVisualizeSKB(self, event):
+        """
+        Calls the visualizer to visualize the specified wavefunction.
+        Use the approach described in http://wiki.wxpython.org/LongRunningTasks                                
+        to make the Gui responsive one can use 
+        """
+        #print("in new" ,event.skb)
+        spin, kpoint, band = event.skb
+        
         visu_name = self.GetVisualizer()
         if visu_name == "None": return
                                                                                                                        
@@ -189,6 +189,23 @@ class WfkFileTab(awx.Panel):
                                                                                                                        
         except:
             awx.showErrorMessage(self)
+
+    #def _visualize_skb(self, spin, kpoint, band):
+    #    """Calls the visualizer to visualize the specified wavefunction."""
+    #    # To make the Gui responsive one can use the approach described in 
+    #    # http://wiki.wxpython.org/LongRunningTasks
+    #    visu_name = self.GetVisualizer()
+    #    if visu_name == "None": return
+    #                                                                                                                   
+    #    self.statusbar.PushStatusText("Visualizing wavefunction (spin=%d, kpoint=%s, band=%d)" % (spin, kpoint, band))
+    #    try:
+    #        visu = self.wfk.visualize_ur2(spin, kpoint, band, visu_name=visu_name)
+    #                                                                                                                   
+    #        thread = awx.WorkerThread(self, target=visu)
+    #        thread.start()
+    #                                                                                                                   
+    #    except:
+    #        awx.showErrorMessage(self)
 
     @property
     def viewer_frame(self):

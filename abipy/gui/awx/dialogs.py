@@ -52,14 +52,14 @@ def showErrorMessage(parent, message=None):
 
     dialog = ErrorDialog(parent, message)
 
-    # Send mail is the user clicked YES.
+    # Send mail if the user clicked YES.
     if dialog.ShowModal() == wx.ID_YES:
         mail = SendMail(parent)
         mail.setSender(user_at_host())
         mail.setSubject("Bug report")
         mail.setBody(message)
         mail.ShowModal()
-        mail.flg.Destroy()
+        mail.Destroy()
 
     dialog.Destroy()
 

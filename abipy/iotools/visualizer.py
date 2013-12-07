@@ -95,14 +95,14 @@ class Visualizer(object):
         from subprocess import call
 
         if not self.is_macosx_app:
-            print("Executing: ", self.bin, self.cmdarg, self.filepath)
+            #print("Executing: ", self.bin, self.cmdarg, self.filepath)
             return call([self.bin, self.cmdarg, self.filepath])
 
         else:
             # NOTE: Mac-OSx applications can be launched with
             #open -a Vesta --args si.cif
             cmd = "open -a %s --args %s %s" % (self.name, self.cmdarg, self.filepath)
-            print("Executing Mac open: %s" % cmd)
+            #print("Executing Mac open: %s" % cmd)
             return call(cmd, shell=True)
 
     @property
