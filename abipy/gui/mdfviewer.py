@@ -22,9 +22,14 @@ class MdfViewerFrame(MultiViewerFrame, mix.Has_Structure, mix.Has_MultipleEbands
 
     HELP_MSG = """Quick help:
 
+ Toolbar:
+    Click the button to plot the spectrum (averaged over the q-points)
+    Use the combo boxes to select the type of spectrum and the quantity to plot.
+
  Qpoint list:
 
      Right-Click:  display popup menu with choices.
+     Select:  plot the spectra for this qpoint.
 
 Also, these key bindings can be used
 (For Mac OSX, replace 'Ctrl' with 'Apple'):
@@ -121,12 +126,12 @@ Also, these key bindings can be used
 
     def CreateMdfMenu(self):
         # MDF Menu ID's
-        self.ID_MDF_PLOT = wx.NewId()
+        self.ID_MDF_PLOT_AVERAGE = wx.NewId()
         self.ID_MDF_COMPARE = wx.NewId()
                                                                                       
         menu = wx.Menu()
-        menu.Append(self.ID_MDF_PLOT, "Plot averaged MDF", "Plot the average of the macroscopic dielectric function")
-        self.Bind(wx.EVT_MENU, self.OnMdfPlot, id=self.ID_MDF_PLOT)
+        menu.Append(self.ID_MDF_PLOT_AVERAGE, "Plot averaged MDF", "Plot the average of the macroscopic dielectric function")
+        self.Bind(wx.EVT_MENU, self.onPlotAveragedMdf, id=self.ID_MDF_PLOT_AVERAGE)
 
         menu.AppendSeparator()
 
@@ -135,7 +140,7 @@ Also, these key bindings can be used
 
         return menu
 
-    def OnMdfPlot(self, event):
+    def onPlotAveragedMdf(self, event):
         mdf_type = self.getMdfType()
         cplx_mode = self.getCplxMode()
         print(mdf_type, cplx_mode)
@@ -144,15 +149,19 @@ Also, these key bindings can be used
         mdf_file.plot_mdfs(cplx_mode=cplx_mode, mdf_type=mdf_type)
 
     def OnMdfCompare(self, event):
-        plotter = MDF_Plotter()
+        mdf_type = self.getMdfType()
+        cplx_mode = self.getCplxMode()
 
+        if mdf_type == "ALL":
+            return awx.showErrorMessage(self, "ALL is not supported by Compare. Please use EXC, RPA, GWRPA")
+
+        plotter = MDF_Plotter()
         for path, mdf_file in zip(self.mdf_filepaths, self.mdf_files_list):
             label = os.path.relpath(path)
-            # TODO
-            #plotter.add_mdf(label, mdf)
-            plotter.add_mdf_from_file(mdf_file.filepath)
+            mdf = mdf_file.get_mdf(mdf_type)
+            plotter.add_mdf(label, mdf)
 
-        plotter.plot()
+        plotter.plot(cplx_mode, qpoint=None)
 
     def makeToolBar(self):
         """Creates the toolbar."""
@@ -164,18 +173,23 @@ Also, these key bindings can be used
 
         artBmp = wx.ArtProvider.GetBitmap
         toolbar.AddSimpleTool(wx.ID_OPEN, artBmp(wx.ART_FILE_OPEN, wx.ART_TOOLBAR), "Open")
-
         toolbar.AddSeparator()
+
+        # Button to plot the averaged MDD
+        # TODO: Change icon.
+        toolbar.AddSimpleTool(self.ID_MDF_PLOT_AVERAGE, bitmap("wave.png"), "Plot averaged MDF")
 
         # Combo box with the list of MDF types
         mdf_types = ["ALL", "EXC", "RPA", "GWRPA"]
         self.mdftype_cbox = wx.ComboBox(toolbar, id=-1, name='MDF type', choices=mdf_types, value="ALL", style=wx.CB_READONLY) 
-        toolbar.AddControl(control=self.mdftype_cbox) 
+        self.mdftype_cbox.SetToolTipString("Select the type of MDF spectra to plot.")
+        toolbar.AddControl(control=self.mdftype_cbox, label="MDF Type:") 
 
         # Combo box with the list of complex modes
-        cplx_modes = ["Re", "Im"]
-        self.cplx_cbox = wx.ComboBox(toolbar, id=-1, name='COMPLEX mode', choices=cplx_modes, value="Im", style=wx.CB_READONLY) 
-        toolbar.AddControl(control=self.cplx_cbox) 
+        cplx_modes = ["Re-Im", "Re", "Im"]
+        self.cplx_cbox = wx.ComboBox(toolbar, id=-1, name='COMPLEX mode', choices=cplx_modes, value="Re-Im", style=wx.CB_READONLY) 
+        self.cplx_cbox.SetToolTipString("Select the component of the MDF spectra to plot (real or imaginary part).")
+        toolbar.AddControl(control=self.cplx_cbox, label="Complex Mode:") 
 
         toolbar.Realize()
 
@@ -198,24 +212,27 @@ Also, these key bindings can be used
     def getCplxMode(self):
         """Return the sting with the complex mode used for plotting the spectra."""
         cplx_mode = self.cplx_cbox.GetStringSelection()
-        if not cplx_mode: cplx_mode = "Im"
+        if not cplx_mode: cplx_mode = "Re-Im"
         return cplx_mode
 
     def onCompareSpectraQ(self, event):
         qpoint = event.qpoint
         mdf_type = self.getMdfType()
         cplx_mode = self.getCplxMode()
-        print("on compare q: %s" % qpoint)
+
+        if mdf_type == "ALL":
+            return awx.showErrorMessage(self, "ALL is not supported by Compare. Please use EXC, RPA, GWRPA")
 
         plotter = MDF_Plotter()
                                                                             
         # Extract the type of MDF we are interested in
         for path, mdf_file in zip(self.mdf_filepaths, self.mdf_files_list):
-            mdf = mdf_file.get_mdf(mdf_type)
             label = os.path.relpath(path)
+            mdf = mdf_file.get_mdf(mdf_type)
             plotter.add_mdf(label, mdf)
 
         plotter.plot(cplx_mode, qpoint=qpoint)
+
 
 class MdfQpointsPanel(KpointsPanel):
     """Extend KpointsPanel adding popupmenus"""
@@ -273,7 +290,6 @@ class MdfQpointsPanel(KpointsPanel):
         self.mdf_file.plot_mdfs(cplx_mode=cplx_mode, mdf_type=mdf_type, qpoint=qpoint)
 
     def onCompareSpectraQ(self, event):
-        print("onCompareSpectraQ")
         qpoint = self.getSelectedKpoint()
         if qpoint is None: return
         event = self.CompareSpectraQEvent(id=-1, qpoint=qpoint)

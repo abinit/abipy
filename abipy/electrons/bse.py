@@ -302,10 +302,10 @@ class DielectricFunction(object):
 
         # Plot the q-points
         for (iq, qpoint) in enumerate(self.qpoints):
-            self.plot_ax(ax, iq, *args, **kwargs)
+            self.plot_ax(ax, iq, **kwargs)
 
         # Plot the average value
-        self.plot_ax(ax, qpoint=None, *args, **kwargs)
+        self.plot_ax(ax, qpoint=None, **kwargs)
 
         if show:
             plt.show()
@@ -315,7 +315,7 @@ class DielectricFunction(object):
 
         return fig
 
-    def plot_ax(self, ax, qpoint, *args, **kwargs):
+    def plot_ax(self, ax, qpoint, **kwargs):
         """
         Helper function to plot data on the axis ax.
 
@@ -353,7 +353,7 @@ class DielectricFunction(object):
         else:
             raise ValueError("Don't know how to handle %s" % str(qpoint))
 
-        return f.plot_ax(ax, *args, **kwargs)
+        return f.plot_ax(ax, **kwargs)
 
 
 class MDF_File(AbinitNcFile, Has_Structure):
@@ -573,6 +573,8 @@ class MDF_Plotter(object):
         Get a matplotlib plot showing the MDFs.
 
         Args:
+            qpoint:
+                index of the q-point or Kpoint object or None to plot emacro_avg.
             cplx_mode:
                 string defining the data to print (case-insensitive).
                 Possible choices are 
@@ -582,9 +584,7 @@ class MDF_Plotter(object):
                     - "abs' for the absolute value
                                                                        
                 Options can be concated with "-".
-            qpoint:
-                index of the q-point or Kpoint object or None to plot emacro_avg.
-        
+
         ==============  ==============================================================
         kwargs          Meaning
         ==============  ==============================================================

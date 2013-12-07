@@ -15,13 +15,13 @@ def str_examples():
     examples = (
       "\n"
       "Usage example:\n\n" 
-      "abiopen.py files foo_WFK.nc           ==> Visualize the WFK file foo_WFK.nc\n"
+      "abiopen.py files foo_WFK.nc          ==> Visualize the WFK file foo_WFK.nc\n"
       "                                          (many other Abinit files are supported, just try!).\n"
-      "abiopen.py list dirpath                ==> Visualize all files in the directory dirpath (flat list mode) .\n"
-      "abiopen.py tree dirpath                ==> Visualize all files in the directory dirpath (tree mode).\n"
-      "abiopen.py scan dirpath                ==> Scan all the supported files in the given directory (no recursive).\n"
-      "abiopen.py scan dirpath -r -w *GSR.nc  ==> Wall the directory tree starting from dirpath \n"
-      "                                           and open all the GSR.nc files encountered.\n"
+      "abiopen.py list dirpath              ==> Visualize all files in the directory dirpath (flat list mode) .\n"
+      "abiopen.py tree dirpath              ==> Visualize all files in the directory dirpath (tree mode).\n"
+      "abiopen.py scan dirpath              ==> Scan all the supported files in the given directory (recursive mode).\n"
+      "abiopen.py scan dirpath -w *GSR.nc   ==> Wall the directory tree starting from dirpath \n"
+      "                                         and open all the GSR.nc files encountered.\n"
     )
     return examples
 
@@ -66,7 +66,7 @@ def main():
     p_scan = subparsers.add_parser('scan', help="Show files in directory tree.") 
     p_scan.add_argument("top", help="Top.")
     p_scan.add_argument('-w', '--wildcard', type=str, default="*.nc", help="wildcards. Default *.nc")
-    p_scan.add_argument('-r', '--recurse', default=False, action="store_true", help="Recursive mode.")
+    p_scan.add_argument('--no-walk', default=False, action="store_true", help="Disable walk mode.")
     #p_scan.add_argument('-e', '--extension', type=str, default="GSR.nc", help="File extension to search for")
     #p_scan.add_argument('-t', '--type', type=string, default="", help="Recursive mode.")
 
@@ -144,17 +144,18 @@ def select_files(options):
     wildcard = WildCard(options.wildcard)
     filepaths = []
 
-    if options.recurse:
-        # Navigate the directory tree starting from top.
-        for root, dirnames, filenames in os.walk(options.top):
-            fnames = [os.path.join(root, f) for f in filenames]
-            filepaths += wildcard.filter(fnames)
-    else:
+    if options.no_walk:
         # Select only the files in the top directory.
         fnames = [os.path.join(options.top, f) for f in os.listdir(options.top)]
         fnames = filter(os.path.isfile, fnames)
         #print(fnames)
         filepaths += wildcard.filter(fnames)
+
+    else:
+        # Navigate the directory tree starting from top.
+        for root, dirnames, filenames in os.walk(options.top):
+            fnames = [os.path.join(root, f) for f in filenames]
+            filepaths += wildcard.filter(fnames)
 
     return filepaths
 
