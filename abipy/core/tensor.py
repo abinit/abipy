@@ -120,9 +120,7 @@ class SymmetricTensor(Tensor):
                 "r" if the lattice is a real space lattice
                 "g" if the lattice is a reciprocal space lattice
         """
-
-        assert len(qpoints) == 6
-        assert len(values) == len(qpoints)
+        assert len(qpoints) == 6 and len(values) == len(qpoints)
 
         mat = lattice.matrix
         metric = np.dot(np.transpose(mat),mat)

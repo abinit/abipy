@@ -106,21 +106,6 @@ Also, these key bindings can be used
         # Base menu.
         menu_bar = super(MdfViewerFrame, self).makeMenu()
 
-        #self.menu_bar = menuBar = wx.MenuBar()
-        #file_menu = wx.Menu()
-        #file_menu.Append(wx.ID_OPEN, "&Open", help="Open an existing MDF file")
-        #file_menu.Append(wx.ID_CLOSE, "&Close", help="Close the MDF file")
-        #file_menu.Append(wx.ID_EXIT, "&Quit", help="Exit the application")
-
-        #file_history = self.file_history = wx.FileHistory(8)
-        #file_history.Load(self.config)
-        #recent = wx.Menu()
-        #file_history.UseMenu(recent)
-        #file_history.AddFilesToMenu()
-        #file_menu.AppendMenu(wx.ID_ANY, "&Recent Files", recent)
-        #self.Bind(wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9)
-        #menuBar.Append(file_menu, "File")
-
         # Add Mixin menus.
         menu_bar.Append(self.CreateStructureMenu(), "Structure")
         #menu_bar.Append(self.CreateEbandsMenu(), "Ebands")
@@ -191,6 +176,40 @@ Also, these key bindings can be used
         self.notebook.AddPage(tab, os.path.basename(filepath))
 
 
+class MdfQpointsPanel(KpointsPanel):
+    """Extend KpointsPanel adding popupmenus"""
+
+    def __init__(self, parent, mdf_file, **kwargs):
+        KpointsPanel.__init__(self, parent, mdf_file.structure, mdf_file.qpoints)
+        self.mdf_file = mdf_file
+
+    def makePopupMenu(self):
+        # menu of the base class
+        menu = super(MdfQpointsPanel, self).makePopupMenu()
+
+        # Add other options
+        self.ID_POPUP_MDF_QPLOT = wx.NewId()
+        menu.Append(self.ID_POPUP_MDF_QPLOT, "Plot spectra(q)")
+
+        # Associate menu/toolbar items with their handlers.
+        menu_handlers = [
+            (self.ID_POPUP_MDF_QPLOT, self.onQpointPlot),
+        ]
+                                                            
+        for combo in menu_handlers:
+            mid, handler = combo[:2]
+            self.Bind(wx.EVT_MENU, handler, id=mid)
+                                                     
+        return menu
+
+    def onQpointPlot(self, event):
+        """Plot MDF(q)"""
+        qpoint = self.getSelectedKpoint()
+        if qpoint is None: return
+        #print(qpoint)
+        self.mdf_file.plot_mdfs(cplx_mode="Im", mdf_select="all", qpoint=qpoint)
+
+
 class MdfFileTab(wx.Panel):
     """Tab showing information on a single MDF file."""
     def __init__(self, parent, mdf_file, **kwargs):
@@ -206,7 +225,8 @@ class MdfFileTab(wx.Panel):
         splitter = wx.SplitterWindow(self, id=-1, style=wx.SP_3D)
         splitter.SetSashGravity(0.95)
 
-        self.qpts_panel = KpointsPanel(splitter, mdf_file.structure, mdf_file.qpoints)
+        #self.qpts_panel = KpointsPanel(splitter, mdf_file.structure, mdf_file.qpoints)
+        self.qpts_panel = MdfQpointsPanel(splitter, mdf_file)
 
         # Add Python shell
         msg = "MDF_object is accessible via the mdf_file variable. Use mdf_file.<TAB> to access the list of methods."

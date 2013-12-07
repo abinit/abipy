@@ -39,8 +39,7 @@ class ErrorDialog(wx.MessageDialog):
     def __init__(self, parent, message):
         message += "\n\n Do you want to send a bug report?"
         super(ErrorDialog, self).__init__(parent, message=message, caption='Error Message',
-                                          #style=wx.OK | wx.ICON_INFORMATION | wx.ICON_ERROR | wx.STAY_ON_TOP)
-                                          style=wx.YES_NO | wx.CANCEL | wx.ICON_ERROR | wx.STAY_ON_TOP)
+                                          style=wx.YES_NO | wx.CANCEL | wx.NO_DEFAULT | wx.ICON_ERROR | wx.STAY_ON_TOP)
 
 def showErrorMessage(parent, message=None):
     """

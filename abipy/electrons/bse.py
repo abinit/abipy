@@ -26,8 +26,7 @@ class DielectricTensor(object):
     This object stores the frequency-dependent macroscopic dielectric tensor
     obtained from the dielectric functions for different q-directions.
     """
-    def __init__(self, mdf,structure):
-
+    def __init__(self, mdf, structure):
         nfreq = len(mdf.wmesh)
 
         self._wmesh = mdf.wmesh
@@ -42,7 +41,7 @@ class DielectricTensor(object):
         # One tensor for each frequency
         all_tensors = []
         for (ifrq,freq) in enumerate(mdf.wmesh):
-            tensor = SymmetricTensor.from_directions(mdf.qpoints, all_emacros[:,ifrq], structure.lattice.reciprocal_lattice, space="g")
+            tensor = SymmetricTensor.from_directions(mdf.qfrac_coords, all_emacros[:,ifrq], structure.lattice.reciprocal_lattice, space="g")
             all_tensors.append(tensor)
 
         self._all_tensors = all_tensors
@@ -58,12 +57,12 @@ class DielectricTensor(object):
 
         return np.array(table)
 
-    def symmetrize(self,structure):
+    def symmetrize(self, structure):
      
         for tensor in self._all_tensors:
             tensor.symmetrize(structure)
 
-    def to_func1d(self,red_coords=True):
+    def to_func1d(self, red_coords=True):
 
         table = self.to_array(red_coords)
 
@@ -71,7 +70,7 @@ class DielectricTensor(object):
  
         for i in np.arange(3):
             for j in np.arange(3):
-                all_funcs.append(Function1D(self._wmesh,table[:,i,j]))
+                all_funcs.append(Function1D(self._wmesh, table[:,i,j]))
 
         return all_funcs
 
@@ -134,8 +133,8 @@ class DielectricTensor(object):
         Args:
             ax:
                 plot axis
-            qpoint:
-                index of the q-point or Kpoint object or "average" to plot emacro_avg.
+            what:
+                Sequential index of the tensor matrix element. 
             args:
                 Positional arguments passed to ax.plot
             kwargs:
@@ -155,7 +154,7 @@ class DielectricTensor(object):
         if isinstance(what, int):
             f = self.to_func1d(red_coords)[what]
         else:
-            raise ValueError("Don't know how to handle %s" % str(qpoint))
+            raise ValueError("Don't know how to handle %s" % str(what))
 
         return f.plot_ax(ax, *args, **kwargs)
 
@@ -169,11 +168,13 @@ class DielectricFunction(object):
         Frequencies are in eV
     """
 
-    def __init__(self, qpoints, wmesh, emacros_q, info):
+    def __init__(self, structure, qpoints, wmesh, emacros_q, info):
         """
         Args:
+            structure:
+                Structure object.
             qpoints:
-                List of qpoints in reduced coordinates.
+                `KpointList` with the qpoints in reduced coordinates.
             wmesh:
                 Array-like object with the frequency mesh (eV).
             emacros_q:
@@ -188,7 +189,7 @@ class DielectricFunction(object):
 
         """
         self.wmesh = np.array(wmesh)
-        self.qpoints = np.reshape(qpoints, (-1, 3))
+        self.qpoints = qpoints 
         assert len(self.qpoints) == len(emacros_q)
         self.info = info
 
@@ -209,6 +210,11 @@ class DielectricFunction(object):
     @property
     def num_qpoints(self):
         return len(self.qpoints)
+
+    @property
+    def qfrac_coords(self):
+        """The fractional coordinates of the q-points as a ndarray."""
+        return self.qpoints.frac_coords
 
     @property
     def has_lfe(self):
@@ -299,7 +305,7 @@ class DielectricFunction(object):
             self.plot_ax(ax, iq, *args, **kwargs)
 
         # Plot the average value
-        self.plot_ax(ax, "average", *args, **kwargs)
+        self.plot_ax(ax, qpoint=None, *args, **kwargs)
 
         if show:
             plt.show()
@@ -315,9 +321,9 @@ class DielectricFunction(object):
 
         Args:
             ax:
-                plot axis
+                plot axis.
             qpoint:
-                index of the q-point or Kpoint object or "average" to plot emacro_avg.
+                index of the q-point or Kpoint object or None) to plot emacro_avg.
             args:
                 Positional arguments passed to ax.plot
             kwargs:
@@ -341,7 +347,7 @@ class DielectricFunction(object):
             iq = self.qpoints.index(qpoint)
             f = self.emacros_q[iq]
 
-        elif is_string(qpoint) and qpoint == "average":
+        elif qpoint is None:
             f = self.emacro_avg
 
         else:
@@ -360,7 +366,7 @@ class MDF_File(AbinitNcFile, Has_Structure):
             # TODO Add electron Bands.
             #self._ebands = r.read_ebands()
 
-            self.qpoints = KpointList(self.structure.reciprocal_lattice, frac_coords=r.qpoints)
+            self.qpoints = r.qpoints
             self.exc_mdf = r.read_exc_mdf()
             self.rpanlf_mdf = r.read_rpanlf_mdf()
             self.gwnlf_mdf = r.read_gwnlf_mdf()
@@ -375,6 +381,11 @@ class MDF_File(AbinitNcFile, Has_Structure):
         """Returns the `Structure` object."""
         return self._structure
 
+    @property
+    def qfrac_coords(self):
+        """The fractional coordinates of the q-points as a ndarray."""
+        return self.qpoints.frac_coords
+
     def get_mdf(self, mdf_type="exc"):
         """"Returns the macroscopic dielectric function."""
         if mdf_type == "exc":
@@ -386,7 +397,7 @@ class MDF_File(AbinitNcFile, Has_Structure):
         else:
             raise ValueError("Wrong value for mdf_type %s" % mdf_type)
 
-    def plot_mdfs(self, cplx_mode="Im", mdf_select="all", **kwargs):
+    def plot_mdfs(self, cplx_mode="Im", mdf_select="all", qpoint=None, **kwargs):
         """
         Plot the macroscopic dielectric function.
 
@@ -411,6 +422,9 @@ class MDF_File(AbinitNcFile, Has_Structure):
                     - "all" if all types are wanted.
 
                 Options can be concated with "-".
+
+            qpoint:
+                index of the q-point or Kpoint object or None to plot emacro_avg.
         """
         plot_all = mdf_select == "all"
         mdf_select = mdf_select.split("-")
@@ -431,7 +445,7 @@ class MDF_File(AbinitNcFile, Has_Structure):
             plotter.add_mdf("GW-RPA", self.gwnlf_mdf)
 
         # Plot spectra 
-        plotter.plot(cplx_mode=cplx_mode, **kwargs)
+        plotter.plot(cplx_mode=cplx_mode, qpoint=qpoint, **kwargs)
 
     def get_tensor(self, mdf_type="exc"):
         """Get the macroscopic dielectric tensor from the MDF."""
@@ -448,25 +462,33 @@ class MDF_Reader(ETSF_Reader):
     def __init__(self, path):
         """Initialize the object from a filename."""
         super(MDF_Reader, self).__init__(path)
+        # Read the structure here to facilitate the creation of the other objects.
+        self._structure = self.read_structure()
 
-    def _lazy_get(self, varname):
-        """Helper function used to create lazy properties."""
-        hiddename = "__" + varname
-        try:
-            return getattr(self, hiddename)
-        except AttributeError:
-            setattr(self, hiddename, self.read_value(varname))
-            return self._lazy_get(varname)
+    @property
+    def structure(self):
+        return self._structure
 
     @property
     def qpoints(self):
         """List of q-points (ndarray)."""
-        return self._lazy_get("qpoints")
+        try:
+            return self._qpoints
+        except AttributeError:
+            # Read the fractional coordinates and convert them to KpointList.
+            frac_coords = self.read_value("qpoints")
+            #self._qpoints = frac_coords
+            self._qpoints = KpointList(self.structure.reciprocal_lattice, frac_coords)
+            return self._qpoints
 
     @property
     def wmesh(self):
         """The frequency mesh in eV."""
-        return self._lazy_get("wmesh")
+        try:
+            return self._wmesh
+        except AttributeError:
+            self._wmesh = self.read_value("wmesh")
+            return self._wmesh
 
     def read_run_params(self):
         """Dictionary with the parameters of the run."""
@@ -487,19 +509,19 @@ class MDF_Reader(ETSF_Reader):
         """Returns the excitonic MDF."""
         info = self.read_run_params()
         emacros_q = self._read_mdf("exc_mdf")
-        return DielectricFunction(self.qpoints, self.wmesh, emacros_q, info)
+        return DielectricFunction(self.structure, self.qpoints, self.wmesh, emacros_q, info)
 
     def read_rpanlf_mdf(self):
         """Returns the KS-RPA MDF without LF effects."""
         info = self.read_run_params()
         emacros_q = self._read_mdf("rpanlf_mdf")
-        return DielectricFunction(self.qpoints, self.wmesh, emacros_q, info)
+        return DielectricFunction(self.structure, self.qpoints, self.wmesh, emacros_q, info)
 
     def read_gwnlf_mdf(self):
         """Returns the GW-RPA MDF without LF effects."""
         info = self.read_run_params()
         emacros_q = self._read_mdf("gwnlf_mdf")
-        return DielectricFunction(self.qpoints, self.wmesh, emacros_q, info)
+        return DielectricFunction(self.structure, self.qpoints, self.wmesh, emacros_q, info)
 
 
 class MDF_Plotter(object):
@@ -517,7 +539,7 @@ class MDF_Plotter(object):
             name:
                 name for the MDF. Must be unique.
             mdf:
-                `MacroscopicDielectricFunction` object.
+                `DielectricFunction` object.
         """
         if label in self._mdfs:
             raise ValueError("name %s is already in %s" % (label, self._mdfs.keys()))
@@ -543,9 +565,22 @@ class MDF_Plotter(object):
 
         self.add_mdf(label, mdf)
 
-    def plot(self, cplx_mode="Im", *args, **kwargs):
+    def plot(self, cplx_mode="Im", qpoint=None, **kwargs):
         """
         Get a matplotlib plot showing the MDFs.
+
+        Args:
+            cplx_mode:
+                string defining the data to print (case-insensitive).
+                Possible choices are 
+                                                                      
+                    - "re"  for real part 
+                    - "im" for imaginary part only.
+                    - "abs' for the absolute value
+                                                                       
+                Options can be concated with "-".
+            qpoint:
+                index of the q-point or Kpoint object or None to plot emacro_avg.
         
         ==============  ==============================================================
         kwargs          Meaning
@@ -581,20 +616,21 @@ class MDF_Plotter(object):
             ax.set_title(title)
 
         cmodes = cplx_mode.split("-")
+        qtag = "average" if qpoint is None else repr(qpoint)
 
         lines, legends = [], []
         for (label, mdf) in self._mdfs.items():
 
             # Plot the q-points
             #for (iq, qpoint) in enumerate(self.qpoints):
-            #    self.plot_ax(ax, iq, *args, **kwargs)
+            #    self.plot_ax(ax, iq, **kwargs)
 
             for cmode in cmodes:
                 # Plot the average value
-                l = mdf.plot_ax(ax, "average", *args, cplx_mode=cmode, **kwargs)[0]
+                l = mdf.plot_ax(ax, qpoint, cplx_mode=cmode, **kwargs)[0]
 
                 lines.append(l)
-                legends.append("%s: %s $\,\\varepsilon$" % (cmode, label))
+                legends.append("%s: %s, %s $\,\\varepsilon$" % (cmode, qtag, label))
 
         # Set legends.
         ax.legend(lines, legends, 'best', shadow=False)
@@ -602,7 +638,7 @@ class MDF_Plotter(object):
         if show:
             plt.show()
 
-        if savefig is not None:
+        if savefig:
             fig.savefig(savefig)
 
         return fig

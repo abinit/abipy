@@ -208,7 +208,7 @@ class ScalarField(object):
         #intp_datar = new_mesh.fft_g2r(intp_datag)
         #return self.__class__(self.nspinor, self.nsppol, self.nspden, self.structure, intp_datar)
 
-    def export(self, filename):
+    def export(self, filename, visu=None):
         """
         Export the real space data on file filename. 
 
