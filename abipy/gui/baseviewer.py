@@ -205,7 +205,6 @@ class MultiViewerFrame(awx.Frame):
                                                                                           
     def OnAboutBox(self, event):
         """"Info on the application."""
-        #print("hello")
         awx.makeAboutBox(codename=self.codename, version=self.VERSION,
                          description="", developers="M. Giantomassi")
 

@@ -22,6 +22,18 @@ class FlowViewerFrame(awx.Frame):
     # Time in second after which we check the status of the tasks.
     REFRESH_INTERVAL = 15
 
+    HELP_MSG = """Quick help:
+
+ Kpoint list:
+
+     Left-Click:   to visualize u(r)^2 for the selected spin, k-point, band
+     Right-Click:  display popup menu with choices.
+
+Also, these key bindings can be used
+(For Mac OSX, replace 'Ctrl' with 'Apple'):
+
+  Ctrl-Q:     quit
+"""
     def __init__(self, parent, flow, **kwargs):
         """
         Args:
@@ -35,33 +47,25 @@ class FlowViewerFrame(awx.Frame):
             
         super(FlowViewerFrame, self).__init__(parent, -1, **kwargs)
 
+        # Build menu, toolbar and status bar.
+        self.SetMenuBar(self.makeMenu())
+        self.makeToolBar()
         self.statusbar = self.CreateStatusBar()
+        self.Centre()
 
-        menuBar = wx.MenuBar()
+        self.flow = flow
 
-        file_menu = wx.Menu()
-        #file_menu.Append(wx.ID_OPEN, "&Open", help="Open an existing WFK file")
-        #file_menu.Append(wx.ID_CLOSE, "&Close", help="Close the Viewer")
-        #file_menu.Append(wx.ID_EXIT, "&Quit", help="Exit the application")
-        menuBar.Append(file_menu, "File")
+        # Disable launch mode if we already executing the flow with the scheduler.
+        self.check_launcher_file()
+        self.BuildUi()
 
-        #file_history = self.file_history = wx.FileHistory(8)
-        #self.config = wx.Config(self.codename, style=wx.CONFIG_USE_LOCAL_FILE)
-        #file_history.Load(self.config)
-        #recent = wx.Menu()
-        #file_history.UseMenu(recent)
-        #file_history.AddFilesToMenu()
-        #file_menu.AppendMenu(wx.ID_ANY, "&Recent Files", recent)
-        #self.Bind(wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9)
+    @property
+    def codename(self):
+        """String with the code name."""
+        return "Flow Viewer"
 
-        help_menu = wx.Menu()
-
-        help_menu.Append(wx.ID_ABOUT, "About " + self.codename, help="Info on the application")
-        menuBar.Append(help_menu, "Help")
-
-        self.SetMenuBar(menuBar)
-
-        # Create toolbar.
+    def makeToolBar(self):
+        """Create toolbar."""
         self.toolbar = toolbar = self.CreateToolBar()
         toolbar.SetToolBitmapSize(wx.Size(48, 48))
 
@@ -91,12 +95,9 @@ class FlowViewerFrame(awx.Frame):
 
         toolbar.AddSimpleTool(self.ID_CHECK_STATUS, bitmap("refresh.png"), "Check the status of the workflow(s).")
         toolbar.Realize()
-        self.Centre()
 
         # Associate menu/toolbar items with their handlers.
         menu_handlers = [
-            #(wx.ID_ABOUT, self.OnAboutBox),
-            #
             (self.ID_SHOW_INPUTS, self.OnShowInputs),
             (self.ID_SHOW_OUTPUTS, self.OnShowOutputs),
             (self.ID_SHOW_LOGS, self.OnShowLogs),
@@ -107,73 +108,54 @@ class FlowViewerFrame(awx.Frame):
             (self.ID_SHOW_TIMERS, self.OnShowTimers),
             (self.ID_CHECK_STATUS, self.OnCheckStatusButton),
         ]
-
+                                                               
         for combo in menu_handlers:
             mid, handler = combo[:2]
             self.Bind(wx.EVT_MENU, handler, id=mid)
 
-        self.flow = flow
+    def makeMenu(self):
+        """
+        Make the menu bar.
+        """
+        menu_bar = wx.MenuBar()
+                                                                                                    
+        file_menu = wx.Menu()
+        #file_menu.Append(wx.ID_OPEN, "&Open", help="Open an existing file in a new tab")
+        #file_menu.Append(wx.ID_CLOSE, "&Close", help="Close the file associated to the active tab")
+        #file_menu.Append(wx.ID_EXIT, "&Quit", help="Exit the application")
+        menu_bar.Append(file_menu, "File")
+                                                                                                    
+        #file_history = self.file_history = wx.FileHistory(8)
+        #file_history.Load(self.config)
+        #recent = wx.Menu()
+        #file_history.UseMenu(recent)
+        #file_history.AddFilesToMenu()
+        #file_menu.AppendMenu(-1, "&Recent Files", recent)
+        #self.Bind(wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9)
+        #menu_bar.Append(file_menu, "File")
 
-        self.check_launcher_file()
-        self.BuildUi()
+        help_menu = wx.Menu()
+        help_menu.Append(wx.ID_ABOUT, "About " + self.codename, help="Info on the application")
+        menu_bar.Append(help_menu, "Help")
 
-    @property
-    def codename(self):
-        """String with the code name."""
-        return "Flow Viewer"
+        #self.ID_HELP_QUICKREF = wx.NewId()
+        #help_menu.Append(self.ID_HELP_QUICKREF, "Quick Reference ", help="Quick reference for " + self.codename)
+        #help_menu.Append(wx.ID_ABOUT, "About " + self.codename, help="Info on the application")
+                                                                                                
+        # Associate menu/toolbar items with their handlers.
+        menu_handlers = [
+            #(wx.ID_OPEN, self.OnOpen),
+            #(wx.ID_CLOSE, self.OnClose),
+            #(wx.ID_EXIT, self.OnExit),
+            (wx.ID_ABOUT, self.OnAboutBox),
+            #(self.ID_HELP_QUICKREF, self.onQuickRef),
+        ]
+                                                            
+        for combo in menu_handlers:
+            mid, handler = combo[:2]
+            self.Bind(wx.EVT_MENU, handler, id=mid)
 
-    #def makeMenu(self):
-    #    """
-    #    Method of the base class that provides a base menu.
-    #    that can be extended by the subclass.
-    #    """
-    #    menu_bar = wx.MenuBar()
-    #                                                                                                
-    #    file_menu = wx.Menu()
-    #    file_menu.Append(wx.ID_OPEN, "&Open", help="Open an existing file in a new tab")
-    #    file_menu.Append(wx.ID_CLOSE, "&Close", help="Close the file associated to the active tab")
-    #    file_menu.Append(wx.ID_EXIT, "&Quit", help="Exit the application")
-    #                                                                                                
-    #    file_history = self.file_history = wx.FileHistory(8)
-    #    file_history.Load(self.config)
-    #    recent = wx.Menu()
-    #    file_history.UseMenu(recent)
-    #    file_history.AddFilesToMenu()
-    #    file_menu.AppendMenu(-1, "&Recent Files", recent)
-    #    self.Bind(wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9)
-    #    menu_bar.Append(file_menu, "File")
-    #                                                                                                
-    #    # Associate menu/toolbar items with their handlers.
-    #    menu_handlers = [
-    #        (wx.ID_OPEN, self.OnOpen),
-    #        (wx.ID_CLOSE, self.OnClose),
-    #        (wx.ID_EXIT, self.OnExit),
-    #    ]
-    #                                                        
-    #    for combo in menu_handlers:
-    #        mid, handler = combo[:2]
-    #        self.Bind(wx.EVT_MENU, handler, id=mid)
-    #                                                                                                
-    #    return menu_bar
-
-    #def makeHelpMenu(self):
-    #    help_menu = wx.Menu()
-    #                                                                                                             
-    #    self.ID_HELP_QUICKREF = wx.NewId()
-    #    help_menu.Append(self.ID_HELP_QUICKREF, "Quick Reference ", help="Quick reference for " + self.codename)
-    #    help_menu.Append(wx.ID_ABOUT, "About " + self.codename, help="Info on the application")
-    #                                                                                                              
-    #    # Associate menu/toolbar items with their handlers.
-    #    menu_handlers = [
-    #        (self.ID_HELP_QUICKREF, self.onQuickRef),
-    #        (wx.ID_ABOUT, self.OnAboutBox),
-    #    ]
-    #                                                        
-    #    for combo in menu_handlers:
-    #        mid, handler = combo[:2]
-    #        self.Bind(wx.EVT_MENU, handler, id=mid)
-    #                                                 
-    #    return help_menu
+        return menu_bar
 
     def check_launcher_file(self, with_dialog=True):
         """
@@ -247,7 +229,7 @@ class FlowViewerFrame(awx.Frame):
         return self.notebook.GetSelectedWork()
 
     def OnIdle(self, event):
-        """Functoin executed when the GUI is idle."""
+        """Function executed when the GUI is idle."""
         self.check_launcher_file(with_dialog=False)
 
         now = time.time()
@@ -312,19 +294,6 @@ class FlowViewerFrame(awx.Frame):
     #    self.file_history.AddFileToHistory(filepath)
     #    self.ReadWfkFile(filepath)
 
-    #def ReadFlowFile(self, filepath):
-    #    """Read the WFK file and build the UI."""
-    #    self.statusbar.PushStatusText("Reading %s" % filepath)
-
-    #    try:
-    #        work = abiopen(filepath)
-    #        self.work = wfkfile
-    #        self.BuildUi()
-    #        self.statusbar.PushStatusText("Workflow file %s loaded" % filepath)
-
-    #    except Exception:
-    #        awx.showErrorMessage(self)
-
     #def OnClose(self, event):
     #    print("onclose")
     #    self.flow.pickle_dump()
@@ -341,33 +310,35 @@ class FlowViewerFrame(awx.Frame):
         awx.makeAboutBox(codename=self.codename, version=self.VERSION,
                          description="", developers="M. Giantomassi")
 
+    def onQuickRef(self, event=None):
+        dialog = wx.MessageDialog(self, self.HELP_MSG, self.codename + " Quick Reference",
+                               wx.OK | wx.ICON_INFORMATION)
+        dialog.ShowModal()
+        dialog.Destroy()
+
     def OnShowInputs(self, event):
         """Show all the input files of the selected `Workflow`."""
         work = self.GetSelectedWork() 
         if work is None: return
-        frame = TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.abi")
-        frame.Show()
+        TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.abi").Show()
 
     def OnShowOutputs(self, event):
         """Show all the output files of the selected `Workflow`."""
         work = self.GetSelectedWork() 
         if work is None: return
-        frame = TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.abo")
-        frame.Show()
+        TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.abo").Show()
 
     def OnShowJobScripts(self, event):
         """Show all the job script files of the selected `Workflow`."""
         work = self.GetSelectedWork() 
         if work is None: return
-        frame = TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.sh")
-        frame.Show()
+        TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.sh").Show()
 
     def OnShowLogs(self, event):
         """Show all the log files of the selected `Workflow`."""
         work = self.GetSelectedWork() 
         if work is None: return
-        frame = TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.log")
-        frame.Show()
+        TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.log").Show()
 
     def OnBrowse(self, event):
         """Browse all the output files produced by the selected `Workflow`."""
@@ -380,15 +351,13 @@ class FlowViewerFrame(awx.Frame):
         """Browse all the main events of the tasks in the selected `Workflow`."""
         work = self.GetSelectedWork() 
         if work is None: return
-        frame = AbinitEventsNotebookFrame(self, filenames=[task.output_file.path for task in work])
-        frame.Show()
+        AbinitEventsNotebookFrame(self, filenames=[task.output_file.path for task in work]).Show()
 
     def OnShowLogEvents(self, event):
         """Browse all the log events of the tasks in the selected `Workflow`."""
         work = self.GetSelectedWork() 
         if work is None: return
-        frame = AbinitEventsNotebookFrame(self, [task.log_file.path for task in work])
-        frame.Show()
+        AbinitEventsNotebookFrame(self, [task.log_file.path for task in work]).Show()
 
     def OnShowTimers(self, event):
         """Analyze the timing data of all the output files of the selected `Workflow`."""

@@ -126,6 +126,7 @@ def main():
 
     # Subparser for gui command.
     p_gui = subparsers.add_parser('gui', help="Open GUI.")
+    p_gui.add_argument("--chroot", default="", type=str, help="Directory for chroot.")
 
     # Parse command line.
     try:
@@ -146,6 +147,15 @@ def main():
 
     # Read the flow from the pickle database.
     flow = abilab.AbinitFlow.pickle_load(options.path)
+
+    #options.chroot = "/Users/gmatteo/lemaitre2/WORKDIR/run_si_g0w0"
+    if options.chroot:
+        print("Will chroot to %s" % options.chroot)
+        # Dirty trick.
+        #flow.workdir = options.chroot 
+        #flow[0].workdir="/Users/gmatteo/lemaitre2/WORKDIR/run_si_g0w0/work_0"
+        #flow[0][0].workdir = "/Users/gmatteo/lemaitre2/WORKDIR/run_si_g0w0/work_0/task_0/"
+        flow.chroot(options.chroot)
 
     retcode = 0
     if options.command == "gui":

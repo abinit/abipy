@@ -16,6 +16,7 @@ from abipy.gui import mixins as mix
 from abipy.gui.baseviewer import MultiViewerFrame
 
 
+# TODO Add ebands to MDF.nc
 class MdfViewerFrame(MultiViewerFrame, mix.Has_Structure, mix.Has_MultipleEbands, mix.Has_Tools, mix.Has_NetcdfFiles):
 #class MdfViewerFrame(MultiViewerFrame, mix.Has_Structure, mix.Has_Tools, mix.Has_NetcdfFiles):
     VERSION = "0.1"
