@@ -37,9 +37,6 @@ def show_examples_and_exit(err_msg=None, error_code=1):
 def treat_flow(flow, options):
     retcode = 0
 
-    #print("num", flow.num_tasks_with_error) 
-    #sys.exit(1)
-
     # Dispatch.
     if options.command in ["single", "singleshot"]:
         nlaunch = PyLauncher(flow).single_shot()
@@ -64,7 +61,6 @@ def treat_flow(flow, options):
         if all(v == 0 for v in sched_options.values()):
             sched = PyFlowScheduler.from_user_config()
         else:
-            #print(sched_options)
             sched = PyFlowScheduler(**sched_options)
 
         # Check that the env on the local machine is properly setup 
@@ -128,6 +124,10 @@ def main():
     p_gui = subparsers.add_parser('gui', help="Open GUI.")
     p_gui.add_argument("--chroot", default="", type=str, help="Directory for chroot.")
 
+    p_new_manager = subparsers.add_parser('new_manager', help="Change the TaskManager.")
+    p_new_manager.add_argument("manager_file", default="", type=str, help="YAML file with the new manager")
+    #p_new_manager.add_argument("--chroot", default="", type=str, help="Directory for chroot.")
+
     # Parse command line.
     try:
         options = parser.parse_args()
@@ -148,19 +148,28 @@ def main():
     # Read the flow from the pickle database.
     flow = abilab.AbinitFlow.pickle_load(options.path)
 
-    #options.chroot = "/Users/gmatteo/lemaitre2/WORKDIR/run_si_g0w0"
-    if options.chroot:
-        print("Will chroot to %s" % options.chroot)
-        # Dirty trick.
-        #flow.workdir = options.chroot 
-        #flow[0].workdir="/Users/gmatteo/lemaitre2/WORKDIR/run_si_g0w0/work_0"
-        #flow[0][0].workdir = "/Users/gmatteo/lemaitre2/WORKDIR/run_si_g0w0/work_0/task_0/"
-        flow.chroot(options.chroot)
-
     retcode = 0
     if options.command == "gui":
+
+        if options.chroot:
+            # Change the workdir of flow.
+            print("Will chroot to %s" % options.chroot)
+            flow.chroot(options.chroot)
+
         from abipy.gui.flowviewer import wxapp_flow_viewer
         wxapp_flow_viewer(flow).MainLoop()
+
+    elif options.command == "new_manager":
+        # Read the new manager from file.
+        new_manager = abilab.TaskManager.from_file(options.manager_file)
+
+        # Change the manager of the errored tasks.
+        for task in flow.iflat_tasks(status="S_ERROR"):
+            task.reset()
+            task.set_manager(new_manager)
+            
+        # Update the database.
+        return flow.build_and_pickle_dump()
 
     else:
         retcode = treat_flow(flow, options)

@@ -13,21 +13,6 @@ from pymatgen.util.io_utils import which
 from abipy.gui.editor import  SimpleTextViewer, MyEditorFrame
 from abipy.data.runs.abife import FlowsDatabase
 
-ID_RUN_SCRIPT = wx.NewId()
-ID_CHECK_STATUS = wx.NewId()
-ID_USER_JOBS = wx.NewId()
-ID_ALL_JOBS = wx.NewId()
-ID_TERMINAL = wx.NewId()
-ID_SHOW_ABINIT_INFO = wx.NewId()
-ID_SHOW_ABIPY_ENV = wx.NewId()
-ID_RUN_COMMAND_ALL = wx.NewId()
-ID_RUN_COMMAND_SINGLE = wx.NewId()
-ID_PING = wx.NewId()
-ID_EDIT_TASKMANAGER = wx.NewId()
-ID_EDIT_SCHEDULER = wx.NewId()
-ID_EDIT_BASHRC = wx.NewId()
-
-
 # Command event used to signal that the Flows database 
 # is changed and we should refresh the GUI.
 DbChangedEvent, EVT_DB_CHANGED = wx.lib.newevent.NewCommandEvent()
@@ -105,25 +90,39 @@ class FlowsDbViewerFrame(awx.Frame):
 
         menuBar = wx.MenuBar()
 
+        self.ID_RUN_SCRIPT = wx.NewId()
+        self.ID_CHECK_STATUS = wx.NewId()
+        self.ID_USER_JOBS = wx.NewId()
+        self.ID_ALL_JOBS = wx.NewId()
+        self.ID_TERMINAL = wx.NewId()
+        self.ID_SHOW_ABINIT_INFO = wx.NewId()
+        self.ID_SHOW_ABIPY_ENV = wx.NewId()
+        self.ID_RUN_COMMAND_ALL = wx.NewId()
+        self.ID_RUN_COMMAND_SINGLE = wx.NewId()
+        self.ID_PING = wx.NewId()
+        self.ID_EDIT_TASKMANAGER = wx.NewId()
+        self.ID_EDIT_SCHEDULER = wx.NewId()
+        self.ID_EDIT_BASHRC = wx.NewId()
+
         tools_menu = wx.Menu()
-        tools_menu.Append(ID_RUN_COMMAND_SINGLE, "Run command (selected host)", help="Execute shell command on the selected host")
-        tools_menu.Append(ID_RUN_COMMAND_ALL, "Run command (all hosts)", help="Execute shell command on the hosts")
-        tools_menu.Append(ID_PING, "Ping hosts", help="Ping hosts")
+        tools_menu.Append(self.ID_RUN_COMMAND_SINGLE, "Run command (selected host)", help="Execute shell command on the selected host")
+        tools_menu.Append(self.ID_RUN_COMMAND_ALL, "Run command (all hosts)", help="Execute shell command on the hosts")
+        tools_menu.Append(self.ID_PING, "Ping hosts", help="Ping hosts")
         menuBar.Append(tools_menu, "Tools")
 
         edit_menu = wx.Menu()
-        edit_menu.Append(ID_EDIT_TASKMANAGER, 'taskmanager.yml')
-        edit_menu.Append(ID_EDIT_SCHEDULER, 'scheduler.yml')
-        edit_menu.Append(ID_EDIT_BASHRC, 'bashrc')
+        edit_menu.Append(self.ID_EDIT_TASKMANAGER, 'taskmanager.yml')
+        edit_menu.Append(self.ID_EDIT_SCHEDULER, 'scheduler.yml')
+        edit_menu.Append(self.ID_EDIT_BASHRC, 'bashrc')
         tools_menu.AppendMenu(-1, 'E&dit', edit_menu)
 
         queue_menu = wx.Menu()
-        queue_menu.Append(ID_USER_JOBS, "user jobs", help="Show the list of queued jobs belonging to the user.")
-        queue_menu.Append(ID_ALL_JOBS, "all jobs", help="Show all the jobs in the queue.")
+        queue_menu.Append(self.ID_USER_JOBS, "user jobs", help="Show the list of queued jobs belonging to the user.")
+        queue_menu.Append(self.ID_ALL_JOBS, "all jobs", help="Show all the jobs in the queue.")
         menuBar.Append(queue_menu, 'Q&ueue')
 
         help_menu = wx.Menu()
-        help_menu.Append(wx.ID_ABOUT, "About " + self.codename, help="Info on the application")
+        help_menu.Append(wx.self.ID_ABOUT, "About " + self.codename, help="Info on the application")
         menuBar.Append(help_menu, "Help")
 
         self.SetMenuBar(menuBar)
@@ -134,14 +133,14 @@ class FlowsDbViewerFrame(awx.Frame):
         def bitmap(path):
             return wx.Bitmap(awx.path_img(path))
 
-        toolbar.AddSimpleTool(ID_RUN_SCRIPT, bitmap("script.png"), "Upload and execute the script on the remote host.")
-        toolbar.AddSimpleTool(ID_CHECK_STATUS, bitmap("script.png"), "Check the status of the flows running on the remote host.")
+        toolbar.AddSimpleTool(self.ID_RUN_SCRIPT, bitmap("script.png"), "Upload and execute the script on the remote host.")
+        toolbar.AddSimpleTool(self.ID_CHECK_STATUS, bitmap("script.png"), "Check the status of the flows running on the remote host.")
 
         toolbar.AddSeparator()
 
-        toolbar.AddSimpleTool(ID_TERMINAL, bitmap("script.png"), "Open terminal and connect to the remote host.")
-        toolbar.AddSimpleTool(ID_SHOW_ABINIT_INFO, bitmap("script.png"), "Show the ABINIT version and the build info used on the remote host")
-        toolbar.AddSimpleTool(ID_SHOW_ABIPY_ENV, bitmap("script.png"), "Show the abipy enviroment available on the remote host.")
+        toolbar.AddSimpleTool(self.ID_TERMINAL, bitmap("script.png"), "Open terminal and connect to the remote host.")
+        toolbar.AddSimpleTool(self.ID_SHOW_ABINIT_INFO, bitmap("script.png"), "Show the ABINIT version and the build info used on the remote host")
+        toolbar.AddSimpleTool(self.ID_SHOW_ABIPY_ENV, bitmap("script.png"), "Show the abipy enviroment available on the remote host.")
 
         self.toolbar.Realize()
         self.Centre()
@@ -149,20 +148,20 @@ class FlowsDbViewerFrame(awx.Frame):
         # Associate menu/toolbar items with their handlers.
         menu_handlers = [
             (wx.ID_ABOUT, self.OnAboutBox),
-            (ID_RUN_SCRIPT, self.OnRunScript),
-            (ID_CHECK_STATUS, self.OnCheckStatus),
-            (ID_USER_JOBS, self.OnUserJobs),
-            (ID_ALL_JOBS, self.OnAllJobs),
-            (ID_TERMINAL, self.OnTerminal),
-            (ID_SHOW_ABINIT_INFO, self.OnShowAbinitInfo),
-            (ID_SHOW_ABIPY_ENV, self.OnShowAbipyEnv),
+            (self.ID_RUN_SCRIPT, self.OnRunScript),
+            (self.ID_CHECK_STATUS, self.OnCheckStatus),
+            (self.ID_USER_JOBS, self.OnUserJobs),
+            (self.ID_ALL_JOBS, self.OnAllJobs),
+            (self.ID_TERMINAL, self.OnTerminal),
+            (self.ID_SHOW_ABINIT_INFO, self.OnShowAbinitInfo),
+            (self.ID_SHOW_ABIPY_ENV, self.OnShowAbipyEnv),
             #
-            (ID_RUN_COMMAND_ALL, self.OnRunCommandAll),
-            (ID_RUN_COMMAND_SINGLE, self.OnRunCommandSingle),
-            (ID_PING, self.OnPing),
-            (ID_EDIT_TASKMANAGER, self.OnEditTaskManager),
-            (ID_EDIT_SCHEDULER, self.OnEditScheduler),
-            (ID_EDIT_BASHRC, self.OnEditBashrc),
+            (self.ID_RUN_COMMAND_ALL, self.OnRunCommandAll),
+            (self.ID_RUN_COMMAND_SINGLE, self.OnRunCommandSingle),
+            (self.ID_PING, self.OnPing),
+            (self.ID_EDIT_TASKMANAGER, self.OnEditTaskManager),
+            (self.ID_EDIT_SCHEDULER, self.OnEditScheduler),
+            (self.ID_EDIT_BASHRC, self.OnEditBashrc),
         ]
 
         for combo in menu_handlers:
@@ -211,9 +210,7 @@ class FlowsDbViewerFrame(awx.Frame):
         if cluster is None: return
 
         dialog = wx.FileDialog(self, wildcard="*.py")
-
-        if dialog.ShowModal() == wx.ID_CANCEL:
-            return # The user changed idea...
+        if dialog.ShowModal() == wx.ID_CANCEL: return 
 
         script = dialog.GetPath()
         #print("cluster", cluster, "script", script)
@@ -262,19 +259,17 @@ class FlowsDbViewerFrame(awx.Frame):
     def OnRunCommandAll(self, event):
         """Execute a shell command on all hosts."""
         dialog = wx.TextEntryDialog(self, message="Enter the command to execute on all hosts.") 
+        if dialog.ShowModal() == wx.ID_CANCEL: return 
 
-        if dialog.ShowModal() == wx.ID_OK: 
-            self._runcmd_mode(command=dialog.GetValue(), mode="all")
-
+        self._runcmd_mode(command=dialog.GetValue(), mode="all")
         dialog.Destroy()
 
     def OnRunCommandSingle(self, event):
         """Execute a shell command on the selected host."""
         dialog = wx.TextEntryDialog(self, message="Enter the command to execute on the selected host.") 
+        if dialog.ShowModal() == wx.ID_CANCEL: return 
                                                                                
-        if dialog.ShowModal() == wx.ID_OK: 
-            self._runcmd_mode(command=dialog.GetValue(), mode="single")
-
+        self._runcmd_mode(command=dialog.GetValue(), mode="single")
         dialog.Destroy()
 
     @busy
@@ -318,7 +313,7 @@ class FlowsDbViewerFrame(awx.Frame):
                 retcode = os.system("konsole -e 'ssh %s -X'" % cluster.hostname)
 
             # This does not work
-            #appscript.app('Terminal').do_script('ssh')
+            #retcode = os.system('open -a Terminal -n --args %s -X" % cluster.hostname")
                 
             if retcode: # Fallback to xterm.
                 retcode = os.system("xterm -e ssh %s -X" % cluster.hostname)
@@ -326,7 +321,7 @@ class FlowsDbViewerFrame(awx.Frame):
             return retcode
 
         # FIXME: Fix possible problem when the user tries to close the GUI 
-        # with active terminals (maintain a list of treads and prevent user from closing the GUI if threads?)
+        # with active terminals (maintain a list of treads and prevent the user from closing the GUI if threads?)
         try:
             thread = awx.WorkerThread(self, target=open_terminal)
             thread.start()
@@ -379,7 +374,7 @@ class FlowsDbViewerFrame(awx.Frame):
                                                                                                                         
                 if dialog.ShowModal() == wx.ID_OK:
                     text = self.editor.getText()
-                    print("text", text)
+                    print("will transfer text", text)
 
                     sftp = cluster.sftp
                     sftp.put(localpath=self.localpath, remotepath=self.remotepath, confirm=True)
@@ -508,7 +503,6 @@ class FlowsListCtrl(wx.ListCtrl):
         # Set the width in pixel for each column.
         for (index, col) in enumerate(columns):
             self.SetColumnWidth(index, column_widths[index])
-            #self.SetColumnWidth(index, wx.LIST_AUTOSIZE)
 
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
@@ -527,10 +521,6 @@ class FlowsListCtrl(wx.ListCtrl):
         idx = int(self.GetFirstSelected())
         flow = self.flows[idx]
         print(flow)
-        #from libftpcube.main import App
-        #app = App()
-        #app.createMainWindow()
-        #app.MainLoop()
 
 
 # Callbacks for the PopupMenu.
@@ -548,23 +538,21 @@ def flow_cancel(parent, cluster, flow, flows_db):
     """Cancel the flow i.e. remove all the jobs that are in the queue."""
     dialog = wx.MessageDialog(parent, "Do you want to cancel all the queued jobs belonging to this flow?", 
                               style=wx.OK | wx.CANCEL | wx.CENTRE)
-
-    if dialog.ShowModal() == wx.ID_OK:
-        flows_db.cancel_flow(cluster.hostname, flow.workdir)
-        # Generate event to refresh the GUI.
-        signal_db_changed(parent) 
+    if dialog.ShowModal() == wx.ID_CANCEL: return
+    flows_db.cancel_flow(cluster.hostname, flow.workdir)
+    # Generate event to refresh the GUI.
+    signal_db_changed(parent) 
 
 
 def flow_remove(parent, cluster, flow, flows_db):
     """Remove the working directory of the flow."""
     dialog = wx.MessageDialog(parent, "Do you want to remove the workdir of the flow on the remote host?", 
                               style=wx.OK | wx.CANCEL | wx.CENTRE)
-                                                                                           
-    if dialog.ShowModal() == wx.ID_OK:
-        cluster.rmdir(flow.workdir)
-        flows_db.remove_flow(flow)
-        # Generate event to refresh the GUI.
-        signal_db_changed(parent) 
+    if dialog.ShowModal() == wx.ID_CANCEL: return
+    cluster.rmdir(flow.workdir)
+    flows_db.remove_flow(flow)
+    # Generate event to refresh the GUI.
+    signal_db_changed(parent) 
 
 
 @busy

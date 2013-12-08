@@ -24,9 +24,9 @@ class FlowViewerFrame(awx.Frame):
 
     HELP_MSG = """Quick help:
 
- Kpoint list:
+ Workflow list:
 
-     Left-Click:   to visualize u(r)^2 for the selected spin, k-point, band
+     Left-Click:   
      Right-Click:  display popup menu with choices.
 
 Also, these key bindings can be used
@@ -148,7 +148,7 @@ Also, these key bindings can be used
             #(wx.ID_CLOSE, self.OnClose),
             #(wx.ID_EXIT, self.OnExit),
             (wx.ID_ABOUT, self.OnAboutBox),
-            #(self.ID_HELP_QUICKREF, self.onQuickRef),
+            (self.ID_HELP_QUICKREF, self.onQuickRef),
         ]
                                                             
         for combo in menu_handlers:
@@ -270,29 +270,46 @@ Also, these key bindings can be used
         message = ", ".join("%s: %s" % (k, v) for (k, v) in counter.items())
         self.statusbar.PushStatusText(message)
 
+    #def read_file(self, filepath):
+    #    self.statusbar.PushStatusText("Reading %s" % filepath)
+
+    #    try:
+    #        import abilab
+    #        flow = abilab.AbinitFlow.pickle_load(filepath)
+    #        self.AddFileToHistory(filepath)
+    #        return flow
+    #    except:
+    #        awx.showErrorMessage(self)
+    #        return None
+
     #def OnOpen(self, event):
-    #    dlg = wx.FileDialog(self, message="Choose a __workflow__.pickle file", defaultDir=os.getcwd(),
+    #    dialog = wx.FileDialog(self, message="Choose a __workflow__.pickle file", defaultDir=os.getcwd(),
     #                        wildcard="pickle files (*.pickle)|*.pickle",
-    #                        style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
-    #    )
+    #                        style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
 
     #    # Show the dialog and retrieve the user response. 
     #    # If it is the OK response, process the data.
-    #    if dlg.ShowModal() == wx.ID_OK:
-    #        filepath = dlg.GetPath()
-    #        self.file_history.AddFileToHistory(filepath)
-    #        self.file_history.Save(self.config)
-    #        self.config.Flush()
-    #        self.ReadWfkFile(filepath)
+    #    if dialog.ShowModal() == wx.ID_CANCEL: return 
 
-    #    dlg.Destroy()
+    #    filepath = dialog.GetPath()
+    #    dialog.Destroy()
+
+    #    # Add to the history.
+    #    self.file_history.AddFileToHistory(filepath)
+    #    self.file_history.Save(self.config)
+    #    self.config.Flush()
+    #    flow = self.read_file(filepath)
+
+    #    if flow is not None:
+    #        # Open new frame
+    #        FlowViewerFrame(self, flow).Show()
 
     #def OnFileHistory(self, event):
     #    fileNum = event.GetId() - wx.ID_FILE1
     #    filepath = self.file_history.GetHistoryFile(fileNum)
     #    # move up the list
     #    self.file_history.AddFileToHistory(filepath)
-    #    self.ReadWfkFile(filepath)
+    #    self.read_file(filepath)
 
     #def OnClose(self, event):
     #    print("onclose")

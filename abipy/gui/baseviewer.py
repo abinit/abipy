@@ -158,11 +158,6 @@ class MultiViewerFrame(awx.Frame):
 
     def OnOpen(self, event):
         """Open FileDialog to allow the user to select a file."""
-        #try:
-        #    1/0
-        #except:
-        #    awx.showErrorMessage(self)
-
         # Show the dialog and retrieve the user response.
         # If it is the OK response, process the data.
         dialog = wx.FileDialog(self, message="Choose a WFK file", defaultDir=os.getcwd(),

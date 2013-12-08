@@ -63,13 +63,13 @@ def read_clusters(filepath="clusters.yml"):
 
 class Cluster(object):
     """
-    This object stores the basic parameters of the cluster that are needed to establish 
-    SSH, SFTP connections. It also provides helper functions for monitoring the resource manager.
+    This object stores the basic parameters needed to establish SSH, SFTP connections with a remote machine. 
+    It also provides helper functions for monitoring the resource manager.
     It is an abstract base class defining the interface that must be implemented 
     by the concrete subclasses. Every subclass must define the class attribute `qtype` that 
     specifies the type of resource manager installed on the cluster.
 
-    A cluster has a working directory where we are going the generate and run Flows.
+    A cluster has a remote working directory where we are going the generate and run Flows.
     """
     __metaclass__ = abc.ABCMeta
 
