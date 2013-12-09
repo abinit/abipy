@@ -161,8 +161,9 @@ Also, these key bindings can be used
         menu_bar.Append(file_menu, "File")
 
         flow_menu = wx.Menu()
-        self.ID_FLOW_CHANGE_MANAGER = wx.NewId()
-        flow_menu.Append(self.ID_FLOW_CHANGE_MANAGER, "Change TaskManager", help="")
+
+        #self.ID_FLOW_CHANGE_MANAGER = wx.NewId()
+        #flow_menu.Append(self.ID_FLOW_CHANGE_MANAGER, "Change TaskManager", help="")
 
         self.ID_FLOW_TREE_VIEW = wx.NewId()
         flow_menu.Append(self.ID_FLOW_TREE_VIEW, "Tree view", help="Tree view of the tasks")
@@ -184,7 +185,7 @@ Also, these key bindings can be used
             (wx.ID_EXIT, self.OnExit),
             (wx.ID_ABOUT, self.OnAboutBox),
             #
-            (self.ID_FLOW_CHANGE_MANAGER, self.onChangeManager),
+            #(self.ID_FLOW_CHANGE_MANAGER, self.onChangeManager),
             (self.ID_FLOW_TREE_VIEW, self.onTaskTreeView),
             #
             (self.ID_HELP_QUICKREF, self.onQuickRef),
@@ -430,17 +431,17 @@ Also, these key bindings can be used
     def onTaskTreeView(self, event):
         TaskTreeView(self, self.flow).Show()
 
-    def onChangeManager(self, event):
-        ChangeTaskManager(self, self.flow).Show()
-        new_manager = yaml_manager_dialog(self)
-        if new_manager is None: return
-        print(new_manager)
-        #status_selected =  upper()
-        #status = None if status_selected == "ALL" else status_selected
-        # Change the manager of the errored tasks.
-        #for task in flow.iflat_tasks(status="S_ERROR"):
-        #    task.reset()
-        #    task.set_manager(new_manager)
+    #def onChangeManager(self, event):
+    #    #ChangeTaskManager(self, self.flow).Show()
+    #    new_manager = yaml_manager_dialog(self)
+    #    if new_manager is None: return
+    #    print(new_manager)
+    #    #status_selected =  upper()
+    #    #status = None if status_selected == "ALL" else status_selected
+    #    # Change the manager of the errored tasks.
+    #    #for task in flow.iflat_tasks(status="S_ERROR"):
+    #    #    task.reset()
+    #    #    task.set_manager(new_manager)
 
 class FlowNotebook(fnb.FlatNotebook):
     """
