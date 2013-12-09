@@ -180,7 +180,7 @@ class ElectronDosFrame(awx.Frame):
             kwargs["title"] = "Electron DOS"
 
         if "size" not in kwargs:
-            kwargs["size"] = (600, 200)
+            kwargs["size"] = (600, 100)
 
         super(ElectronDosFrame, self).__init__(parent, id=-1, **kwargs)
         self.bands = bands

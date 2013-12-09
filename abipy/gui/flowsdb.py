@@ -122,7 +122,7 @@ class FlowsDbViewerFrame(awx.Frame):
         menuBar.Append(queue_menu, 'Q&ueue')
 
         help_menu = wx.Menu()
-        help_menu.Append(wx.self.ID_ABOUT, "About " + self.codename, help="Info on the application")
+        help_menu.Append(wx.ID_ABOUT, "About " + self.codename, help="Info on the application")
         menuBar.Append(help_menu, "Help")
 
         self.SetMenuBar(menuBar)
