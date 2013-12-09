@@ -17,6 +17,28 @@ from abipy.gui.browser import FileListFrame, DirBrowserFrame, frame_from_filepat
 from abipy.gui.editor import TextNotebookFrame, SimpleTextViewer
 
 
+def yaml_manager_dialog(parent):
+    """
+    Open a dialog that allows the user to select a YAML file with the taskmanager.
+    Returns the new manager or None if the user clickes CANCEL or file is not readable.
+    """
+    dialog = wx.FileDialog(parent, message="Choose a taskmanager.yml file", defaultDir=os.getcwd(),
+                           wildcard="YAML files (*.yml)|*.yml",
+                           style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
+                                                                                                          
+    # Show the dialog and retrieve the user response. 
+    # If it is the OK response, process the data.
+    if dialog.ShowModal() == wx.ID_CANCEL: return None
+    filepath = dialog.GetPath()
+    dialog.Destroy()
+
+    try:
+        return abilab.TaskManager.from_file(filepath)
+    except:
+        awx.showErrorMessage(parent)
+        return None
+
+
 class FlowViewerFrame(awx.Frame):
     VERSION = "0.1"
 
@@ -25,9 +47,9 @@ class FlowViewerFrame(awx.Frame):
 
     HELP_MSG = """Quick help:
 
- Workflow list:
+ Task list:
 
-     Left-Click:   
+     Left-Click:   Open directory with output files.
      Right-Click:  display popup menu with choices.
 
 Also, these key bindings can be used
@@ -142,6 +164,9 @@ Also, these key bindings can be used
         self.ID_FLOW_CHANGE_MANAGER = wx.NewId()
         flow_menu.Append(self.ID_FLOW_CHANGE_MANAGER, "Change TaskManager", help="")
 
+        self.ID_FLOW_TREE_VIEW = wx.NewId()
+        flow_menu.Append(self.ID_FLOW_TREE_VIEW, "Tree view", help="Tree view of the tasks")
+
         menu_bar.Append(flow_menu, "Flow")
 
         help_menu = wx.Menu()
@@ -160,6 +185,7 @@ Also, these key bindings can be used
             (wx.ID_ABOUT, self.OnAboutBox),
             #
             (self.ID_FLOW_CHANGE_MANAGER, self.onChangeManager),
+            (self.ID_FLOW_TREE_VIEW, self.onTaskTreeView),
             #
             (self.ID_HELP_QUICKREF, self.onQuickRef),
         ]
@@ -401,27 +427,16 @@ Also, these key bindings can be used
         # Build the frame for analyzing multiple timers.
         MultiTimerFrame(self, timers).Show()
 
-    def yaml_manager_dialog(self):
-        dialog = wx.FileDialog(self, message="Choose a taskmanager.yml file", defaultDir=os.getcwd(),
-                               wildcard="YAML files (*.yml)|*.yml",
-                               style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
-                                                                                                              
-        # Show the dialog and retrieve the user response. 
-        # If it is the OK response, process the data.
-        if dialog.ShowModal() == wx.ID_CANCEL: return None
-        filepath = dialog.GetPath()
-        dialog.Destroy()
-
-        try:
-            return abilab.TaskManager.from_file(filepath)
-        except:
-            awx.showErrorMessage(self, message="Bad user has removed pages from the notebook!")
-            return None
+    def onTaskTreeView(self, event):
+        TaskTreeView(self, self.flow).Show()
 
     def onChangeManager(self, event):
-        new_manager = self.yaml_manager_dialog()
+        ChangeTaskManager(self, self.flow).Show()
+        new_manager = yaml_manager_dialog(self)
         if new_manager is None: return
         print(new_manager)
+        #status_selected =  upper()
+        #status = None if status_selected == "ALL" else status_selected
         # Change the manager of the errored tasks.
         #for task in flow.iflat_tasks(status="S_ERROR"):
         #    task.reset()
@@ -699,10 +714,140 @@ class TaskPopupMenu(wx.Menu):
         except:
             awx.showErrorMessage(parent=self.parent)
 
+#class ChangeTaskManager(awx.Frame):
+#    def __init__(self, parent, flow, **kwargs)
+#        super(ChangeTaskManager, self).__init__(self, parent, **kwargs)
+#
+#
+#    def onOkButton(self, event):
+#        new_manager = yaml_manager_dialog(self)
+#        if new_manager is None: return
+#        print(new_manager)
+#        #status_selected =  upper()
+#        #status = None if status_selected == "ALL" else status_selected
+#        # Change the manager of the errored tasks.
+#        #for task in flow.iflat_tasks(status="S_ERROR"):
+#        #    task.reset()
+#        #    task.set_manager(new_manager)
+
+
+class TaskStatusTreePanel(awx.Panel):
+    """
+    Panel with a TreeCtrl that allows the user to navigate the tasks grouped by status.
+    """
+    def __init__(self, parent, flow, **kwargs):
+        super(TaskStatusTreePanel, self).__init__(parent, -1, **kwargs)
+
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        panel1 = awx.Panel(self, -1)
+        panel2 = awx.Panel(self, -1)
+
+        self.tree = tree = wx.TreeCtrl(panel1, 1, wx.DefaultPosition, (-1, -1), wx.TR_HIDE_ROOT | wx.TR_HAS_BUTTONS)
+
+        root = self.tree.AddRoot('Task Status')
+
+        # entry = collections.namedtuple("Entry", "task wi ti")
+        #print(status2entries)
+        self.status2entries = flow.groupby_status()
+
+        self.status_nodes = []
+        for status, entries in self.status2entries.items():
+            node = tree.AppendItem(root, "%d %s tasks" % (len(entries), str(status)), data=wx.TreeItemData(status))
+            self.status_nodes.append(node)
+            for entry in entries:
+                tree.AppendItem(node, "Task: " + str(entry.task), data=wx.TreeItemData(entry))
+
+        tree.Bind(wx.EVT_TREE_SEL_CHANGED, self.onSelChanged)
+        tree.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.onItemRightClick)
+
+        self.display = wx.StaticText(panel2, -1, '', (10, 10), style=wx.ALIGN_LEFT)
+
+        vbox.Add(self.tree, 1, wx.EXPAND)
+        main_sizer.Add(panel1, 1, wx.EXPAND)
+        main_sizer.Add(panel2, 1, wx.EXPAND)
+        panel1.SetSizerAndFit(vbox)
+
+        self.SetSizerAndFit(main_sizer)
+        self.Centre()
+
+    def onSelChanged(self, event):
+        node = event.GetItem()
+        if node in self.status_nodes: return
+
+        proxy = self.tree.GetItemData(node)
+        if proxy is None: return
+        entry = proxy.GetData()
+
+        task = entry.task
+        s = str(task)
+        s += "\nHistory:\n" + task.str_history
+
+        self.display.SetLabel(s)
+
+    def onItemRightClick(self, event):
+        node = event.GetItem()
+        proxy = self.tree.GetItemData(node)
+        if proxy is None: return
+
+        if node in self.status_nodes: 
+            status = proxy.GetData()
+            print("received set of tasks with status %s" % status)
+            popup_menu = self.makePopupMenuStatus()
+            self.PopupMenu(popup_menu, event.GetPoint())
+            popup_menu.Destroy()
+
+        #print("click")
+        #print("event", dir(event))
+
+    def makePopupMenuStatus(self):
+        self.ID_POPUP_CHANGE_MANAGER = wx.NewId()
+        menu = wx.Menu()
+        menu.Append(self.ID_POPUP_CHANGE_MANAGER, "Change manager")
+
+        # Associate menu/toolbar items with their handlers.
+        menu_handlers = [
+            (self.ID_POPUP_CHANGE_MANAGER, self.onChangeManager),
+        ]
+                                                            
+        for combo in menu_handlers:
+            mid, handler = combo[:2]
+            self.Bind(wx.EVT_MENU, handler, id=mid)
+                                                     
+        return menu
+
+    def onChangeManager(self, event):
+        print("changer manager")
+        node = self.tree.GetSelection()
+        status = self.tree.GetItemData(node).GetData()
+        print("status", status)
+
+        entries = self.status2entries[status]
+
+        new_manager = yaml_manager_dialog(self)
+        for e in entries:
+            e.task.reset()
+            e.task.set_manager(new_manager)
+
+        #self.flow.build_and_pickle_dump()
+            
+
+
+class TaskTreeView(awx.Frame):
+    """
+    Frame with an EventsPanel
+    """
+    def __init__(self, parent, flow, **kwargs):
+        if "title" not in kwargs:
+            kwargs["title"] = "Task tree view: %s" % flow.workdir
+
+        super(TaskTreeView, self).__init__(parent, **kwargs)
+
+        panel = TaskStatusTreePanel(self, flow)
+
 
 def wxapp_flow_viewer(works):
     """Standalone application for `FlowViewerFrame"""
     app = awx.App()
     FlowViewerFrame(None, works).Show()
     return app
-

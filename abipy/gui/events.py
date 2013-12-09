@@ -22,13 +22,10 @@ class AbinitEventsPanel(awx.Panel):
 
         self.filepath = os.path.abspath(filepath)
 
-        self.BuildUi()
-
-    def BuildUi(self):
         parser = EventsParser()
         self.events = events = parser.parse(self.filepath)
 
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
         vbox = wx.BoxSizer(wx.VERTICAL)
         panel1 = awx.Panel(self, -1)
         panel2 = awx.Panel(self, -1)
@@ -55,11 +52,11 @@ class AbinitEventsPanel(awx.Panel):
         self.display = wx.StaticText(panel2, -1, '', (10, 10), style=wx.ALIGN_LEFT)
 
         vbox.Add(self.tree, 1, wx.EXPAND)
-        hbox.Add(panel1, 0, wx.EXPAND)
-        hbox.Add(panel2, 1, wx.EXPAND)
+        main_sizer.Add(panel1, 1, wx.EXPAND)
+        main_sizer.Add(panel2, 1, wx.EXPAND)
         panel1.SetSizerAndFit(vbox)
 
-        self.SetSizerAndFit(hbox)
+        self.SetSizerAndFit(main_sizer)
         self.Centre()
 
     @property
