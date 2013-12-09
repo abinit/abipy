@@ -42,9 +42,6 @@ def main():
     parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                          help='verbose, can be supplied multiple times to increase verbosity')
 
-    #parser.add_argument('-f', '--filepaths', nargs="+", default=None, help="List of files.")
-    #parser.add_argument("dirpaths", nargs="*", help="List of directories.")
-
     # Create the parsers for the sub-commands.
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 

@@ -69,9 +69,9 @@ class AbinitEventsPanel(awx.Panel):
     def OnSelChanged(self, event):
         item = event.GetItem()
         proxy = self.tree.GetItemData(item)
-        if proxy is not None:
-            data = proxy.GetData()
-            self.display.SetLabel(data)
+        if proxy is None: return
+        data = proxy.GetData()
+        self.display.SetLabel(data)
 
 
 class AbinitEventsFrame(awx.Frame):

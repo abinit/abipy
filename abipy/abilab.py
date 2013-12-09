@@ -75,12 +75,13 @@ def software_stack(with_wx=True):
     Import all the hard dependencies.
     Returns a dict with the version.
     """
-    import numpy, scipy, netCDF4
+    import numpy, scipy, netCDF4, matplotlib
 
     d = dict(
         numpy=numpy.version.version,
         scipy=scipy.version.version,
         netCDF4=netCDF4.getlibversion(),
+        matplotlib="Version: %s, backend: %s" % (matplotlib.__version__, matplotlib.get_backend()),
     )
 
     if with_wx:

@@ -10,6 +10,7 @@ import wx.lib.agw.flatnotebook as fnb
 
 from collections import OrderedDict
 from pymatgen.io.abinitio.launcher import PyLauncher 
+from abipy import abilab
 from abipy.gui.events import AbinitEventsFrame, AbinitEventsNotebookFrame
 from abipy.gui.timer import MultiTimerFrame
 from abipy.gui.browser import FileListFrame, DirBrowserFrame, frame_from_filepath
@@ -46,6 +47,10 @@ Also, these key bindings can be used
             kwargs["title"] = self.codename
             
         super(FlowViewerFrame, self).__init__(parent, -1, **kwargs)
+
+        # This combination of options for config seems to work on my Mac.
+        self.config = wx.FileConfig(appName=self.codename, localFilename=self.codename + ".ini", 
+                                    style=wx.CONFIG_USE_LOCAL_FILE)
 
         # Build menu, toolbar and status bar.
         self.SetMenuBar(self.makeMenu())
@@ -120,34 +125,42 @@ Also, these key bindings can be used
         menu_bar = wx.MenuBar()
                                                                                                     
         file_menu = wx.Menu()
-        #file_menu.Append(wx.ID_OPEN, "&Open", help="Open an existing file in a new tab")
-        #file_menu.Append(wx.ID_CLOSE, "&Close", help="Close the file associated to the active tab")
-        #file_menu.Append(wx.ID_EXIT, "&Quit", help="Exit the application")
+        file_menu.Append(wx.ID_OPEN, "&Open", help="Open an existing flow in a new frame")
+        file_menu.Append(wx.ID_CLOSE, "&Close", help="Close the file associated to the active tab")
+        file_menu.Append(wx.ID_EXIT, "&Quit", help="Exit the application")
+
+        file_history = self.file_history = wx.FileHistory(8)
+        file_history.Load(self.config)
+        recent = wx.Menu()
+        file_history.UseMenu(recent)
+        file_history.AddFilesToMenu()
+        file_menu.AppendMenu(-1, "&Recent Files", recent)
+        self.Bind(wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9)
         menu_bar.Append(file_menu, "File")
-                                                                                                    
-        #file_history = self.file_history = wx.FileHistory(8)
-        #file_history.Load(self.config)
-        #recent = wx.Menu()
-        #file_history.UseMenu(recent)
-        #file_history.AddFilesToMenu()
-        #file_menu.AppendMenu(-1, "&Recent Files", recent)
-        #self.Bind(wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9)
-        #menu_bar.Append(file_menu, "File")
+
+        flow_menu = wx.Menu()
+        self.ID_FLOW_CHANGE_MANAGER = wx.NewId()
+        flow_menu.Append(self.ID_FLOW_CHANGE_MANAGER, "Change TaskManager", help="")
+
+        menu_bar.Append(flow_menu, "Flow")
 
         help_menu = wx.Menu()
         help_menu.Append(wx.ID_ABOUT, "About " + self.codename, help="Info on the application")
         menu_bar.Append(help_menu, "Help")
 
-        #self.ID_HELP_QUICKREF = wx.NewId()
-        #help_menu.Append(self.ID_HELP_QUICKREF, "Quick Reference ", help="Quick reference for " + self.codename)
-        #help_menu.Append(wx.ID_ABOUT, "About " + self.codename, help="Info on the application")
+        self.ID_HELP_QUICKREF = wx.NewId()
+        help_menu.Append(self.ID_HELP_QUICKREF, "Quick Reference ", help="Quick reference for " + self.codename)
+        help_menu.Append(wx.ID_ABOUT, "About " + self.codename, help="Info on the application")
                                                                                                 
         # Associate menu/toolbar items with their handlers.
         menu_handlers = [
-            #(wx.ID_OPEN, self.OnOpen),
-            #(wx.ID_CLOSE, self.OnClose),
-            #(wx.ID_EXIT, self.OnExit),
+            (wx.ID_OPEN, self.OnOpen),
+            (wx.ID_CLOSE, self.OnClose),
+            (wx.ID_EXIT, self.OnExit),
             (wx.ID_ABOUT, self.OnAboutBox),
+            #
+            (self.ID_FLOW_CHANGE_MANAGER, self.onChangeManager),
+            #
             (self.ID_HELP_QUICKREF, self.onQuickRef),
         ]
                                                             
@@ -270,57 +283,61 @@ Also, these key bindings can be used
         message = ", ".join("%s: %s" % (k, v) for (k, v) in counter.items())
         self.statusbar.PushStatusText(message)
 
-    #def read_file(self, filepath):
-    #    self.statusbar.PushStatusText("Reading %s" % filepath)
+    def read_file(self, filepath):
+        self.statusbar.PushStatusText("Reading %s" % filepath)
 
-    #    try:
-    #        import abilab
-    #        flow = abilab.AbinitFlow.pickle_load(filepath)
-    #        self.AddFileToHistory(filepath)
-    #        return flow
-    #    except:
-    #        awx.showErrorMessage(self)
-    #        return None
+        try:
+            flow = abilab.AbinitFlow.pickle_load(filepath)
+            self.AddFileToHistory(filepath)
+            return flow
+        except:
+            awx.showErrorMessage(self)
+            return None
 
-    #def OnOpen(self, event):
-    #    dialog = wx.FileDialog(self, message="Choose a __workflow__.pickle file", defaultDir=os.getcwd(),
-    #                        wildcard="pickle files (*.pickle)|*.pickle",
-    #                        style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
+    def OnOpen(self, event):
+        dialog = wx.FileDialog(self, message="Choose a __workflow__.pickle file", defaultDir=os.getcwd(),
+                            wildcard="pickle files (*.pickle)|*.pickle",
+                            style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
 
-    #    # Show the dialog and retrieve the user response. 
-    #    # If it is the OK response, process the data.
-    #    if dialog.ShowModal() == wx.ID_CANCEL: return 
+        # Show the dialog and retrieve the user response. 
+        # If it is the OK response, process the data.
+        if dialog.ShowModal() == wx.ID_CANCEL: return 
 
-    #    filepath = dialog.GetPath()
-    #    dialog.Destroy()
+        filepath = dialog.GetPath()
+        dialog.Destroy()
 
-    #    # Add to the history.
-    #    self.file_history.AddFileToHistory(filepath)
-    #    self.file_history.Save(self.config)
-    #    self.config.Flush()
-    #    flow = self.read_file(filepath)
+        # Add to the history.
+        self.file_history.AddFileToHistory(filepath)
+        self.file_history.Save(self.config)
+        self.config.Flush()
+        flow = self.read_file(filepath)
 
-    #    if flow is not None:
-    #        # Open new frame
-    #        FlowViewerFrame(self, flow).Show()
+        if flow is not None:
+            # Open new frame.
+            FlowViewerFrame(self, flow).Show()
 
-    #def OnFileHistory(self, event):
-    #    fileNum = event.GetId() - wx.ID_FILE1
-    #    filepath = self.file_history.GetHistoryFile(fileNum)
-    #    # move up the list
-    #    self.file_history.AddFileToHistory(filepath)
-    #    self.read_file(filepath)
+    def AddFileToHistory(self, filepath):
+        """Add the absolute filepath to the file history."""
+        self.file_history.AddFileToHistory(filepath)
+        self.file_history.Save(self.config)
+        self.config.Flush()
 
-    #def OnClose(self, event):
-    #    print("onclose")
-    #    self.flow.pickle_dump()
-    #    self.Close()
+    def OnFileHistory(self, event):
+        fileNum = event.GetId() - wx.ID_FILE1
+        filepath = self.file_history.GetHistoryFile(fileNum)
+        self.file_history.AddFileToHistory(filepath)
+        self.read_file(filepath)
 
-    #def OnExit(self, event):
-    #    """Save the status of the flow in the database and exit the GUI."""
-    #    print("onexit")
-    #    self.flow.pickle_dump()
-    #    self.Close()
+    def OnClose(self, event):
+        print("onclose")
+        #self.flow.pickle_dump()
+        #self.Close()
+
+    def OnExit(self, event):
+        """Save the status of the flow in the database and exit the GUI."""
+        print("onexit")
+        #self.flow.pickle_dump()
+        self.Close()
 
     def OnAboutBox(self, event):
         """"Info on the application."""
@@ -384,6 +401,31 @@ Also, these key bindings can be used
         # Build the frame for analyzing multiple timers.
         MultiTimerFrame(self, timers).Show()
 
+    def yaml_manager_dialog(self):
+        dialog = wx.FileDialog(self, message="Choose a taskmanager.yml file", defaultDir=os.getcwd(),
+                               wildcard="YAML files (*.yml)|*.yml",
+                               style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
+                                                                                                              
+        # Show the dialog and retrieve the user response. 
+        # If it is the OK response, process the data.
+        if dialog.ShowModal() == wx.ID_CANCEL: return None
+        filepath = dialog.GetPath()
+        dialog.Destroy()
+
+        try:
+            return abilab.TaskManager.from_file(filepath)
+        except:
+            awx.showErrorMessage(self, message="Bad user has removed pages from the notebook!")
+            return None
+
+    def onChangeManager(self, event):
+        new_manager = self.yaml_manager_dialog()
+        if new_manager is None: return
+        print(new_manager)
+        # Change the manager of the errored tasks.
+        #for task in flow.iflat_tasks(status="S_ERROR"):
+        #    task.reset()
+        #    task.set_manager(new_manager)
 
 class FlowNotebook(fnb.FlatNotebook):
     """
