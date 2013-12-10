@@ -43,7 +43,7 @@ class FlowViewerFrame(awx.Frame):
     VERSION = "0.1"
 
     # Time in second after which we check the status of the tasks.
-    REFRESH_INTERVAL = 30
+    REFRESH_INTERVAL = 120
 
     HELP_MSG = """Quick help:
 

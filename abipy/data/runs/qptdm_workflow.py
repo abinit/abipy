@@ -7,7 +7,7 @@ import collections
 import yaml
 import numpy as np
 
-from abipy.abilab import AbinitFlow, Mrgscr, Mrgddb, Mrggkk
+from abipy.abilab import AbinitFlow, Mrgscr
 from pymatgen.io.abinitio.tasks import ScfTask, PhononTask
 from pymatgen.io.abinitio.workflows import Workflow, BandStructureWorkflow, IterativeWorkflow, PhononWorkflow
 from pymatgen.io.abinitio.abiinspect import yaml_read_kpoints, yaml_read_irred_perts
@@ -88,6 +88,7 @@ class QptdmWorkflow(Workflow):
         assert len(scr_files) == len(self)
 
         mrgscr = Mrgscr(verbose=1)
+        mrgscr.set_mpi_runner("mpirun")
         final_scr = mrgscr.merge_qpoints(scr_files, out_prefix="out", cwd=self.outdir.path)
 
     def on_all_ok(self):
