@@ -43,7 +43,7 @@ class FlowViewerFrame(awx.Frame):
     VERSION = "0.1"
 
     # Time in second after which we check the status of the tasks.
-    REFRESH_INTERVAL = 15
+    REFRESH_INTERVAL = 30
 
     HELP_MSG = """Quick help:
 
@@ -239,12 +239,12 @@ Also, these key bindings can be used
         since we don't want to have processes modifying the flow.
         """
         self.disabled_launcher = False
-        pid_file = fnmatch.filter(os.listdir(self.flow.workdir), "*.pid")
+        pid_files = fnmatch.filter(os.listdir(self.flow.workdir), "*.pid")
 
-        if pid_file:
+        if pid_files:
+            pid_file = os.path.join(self.flow.workdir, pid_files[0])
+            if not os.path.exists(pid_file): return
             self.disabled_launcher = True
-
-            pid_file = os.path.join(self.flow.workdir, pid_file[0])
 
             with open(pid_file, "r") as fh:
                 pid = int(fh.readline())
@@ -278,10 +278,9 @@ Also, these key bindings can be used
 
     def OnIdle(self, event):
         """Function executed when the GUI is idle."""
-        self.check_launcher_file(with_dialog=False)
-
         now = time.time()
         if (now - self.last_refresh) > self.REFRESH_INTERVAL:
+            self.check_launcher_file(with_dialog=False)
             self.CheckStatusAndRedraw()
             self.last_refresh = time.time()
 

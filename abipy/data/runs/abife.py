@@ -1141,6 +1141,9 @@ class FlowsDatabase(collections.MutableMapping):
         cluster.make_workdir()
 
         if cluster.exists(flow_rdir):
+            # Raise exception but first register the flow 
+            # in the database so that the user can easily remote it from the GUI.
+            self.register_flow(cluster.hostname, flow_rdir)
             raise ValueError("%s:%s already exists" % (cluster.hostname, flow_rdir))
 
         cluster.make_dir(flow_rdir)

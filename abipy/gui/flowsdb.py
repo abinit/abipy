@@ -98,7 +98,6 @@ class FlowsDbViewerFrame(awx.Frame):
         self.ID_TERMINAL = wx.NewId()
         self.ID_SHOW_ABINIT_INFO = wx.NewId()
         self.ID_SHOW_ABIPY_ENV = wx.NewId()
-        self.ID_SSHFS_MOUNT = wx.NewId()
         self.ID_RUN_COMMAND_ALL = wx.NewId()
         self.ID_RUN_COMMAND_SINGLE = wx.NewId()
         self.ID_PING = wx.NewId()
@@ -143,7 +142,6 @@ class FlowsDbViewerFrame(awx.Frame):
         toolbar.AddSimpleTool(self.ID_TERMINAL, bitmap("script.png"), "Open terminal and connect to the remote host.")
         toolbar.AddSimpleTool(self.ID_SHOW_ABINIT_INFO, bitmap("script.png"), "Show the ABINIT version and the build info used on the remote host")
         toolbar.AddSimpleTool(self.ID_SHOW_ABIPY_ENV, bitmap("script.png"), "Show the abipy enviroment available on the remote host.")
-        toolbar.AddSimpleTool(self.ID_SSHFS_MOUNT, bitmap("script.png"), "Mount remote filesystem with SSHFS.")
 
         self.toolbar.Realize()
         self.Centre()
@@ -158,7 +156,6 @@ class FlowsDbViewerFrame(awx.Frame):
             (self.ID_TERMINAL, self.OnTerminal),
             (self.ID_SHOW_ABINIT_INFO, self.OnShowAbinitInfo),
             (self.ID_SHOW_ABIPY_ENV, self.OnShowAbipyEnv),
-            (self.ID_SSHFS_MOUNT, self.onSshfsMount),
             #
             (self.ID_RUN_COMMAND_ALL, self.OnRunCommandAll),
             (self.ID_RUN_COMMAND_SINGLE, self.OnRunCommandSingle),
@@ -340,14 +337,6 @@ class FlowsDbViewerFrame(awx.Frame):
 
         d = cluster.get_abinit_info()
         SimpleTextViewer(self, text=str(d), title=cluster.hostname).Show()
-
-    def onSshfsMount(self, event):
-        """Mount the remote filesystem on the local host filesystem with SSHFS."""
-        cluster = self.GetSelectedCluster() 
-        if cluster is None: return
-
-        #try:
-        retcode = cluster.sshfs_mount()
 
     @busy
     def OnShowAbipyEnv(self, event):
