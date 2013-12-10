@@ -62,7 +62,7 @@ def frame_from_filepath(parent, filepath):
     Factory function that returns the viewer (wx frame) associated to the file.
     None if no viewer has been registered for this filename.
     """
-    frame_class = frameclass_from_filepath()
+    frame_class = frameclass_from_filepath(filepath)
     if frame_class is None: return None
     return frame_class(parent, filepath)
 

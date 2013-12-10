@@ -4,13 +4,14 @@ import os
 import subprocess
 import wx
 
-import abipy.gui.awx as awx
 import wx.lib.agw.flatnotebook as fnb
 import wx.lib.newevent
+import abipy.gui.awx as awx
 
 from collections import OrderedDict
 from pymatgen.util.io_utils import which
 from abipy.gui.editor import  SimpleTextViewer, MyEditorFrame
+from abipy.gui.flowviewer import FlowViewerFrame
 from abipy.data.runs.abife import FlowsDatabase
 
 # Command event used to signal that the Flows database 
@@ -97,6 +98,7 @@ class FlowsDbViewerFrame(awx.Frame):
         self.ID_TERMINAL = wx.NewId()
         self.ID_SHOW_ABINIT_INFO = wx.NewId()
         self.ID_SHOW_ABIPY_ENV = wx.NewId()
+        self.ID_SSHFS_MOUNT = wx.NewId()
         self.ID_RUN_COMMAND_ALL = wx.NewId()
         self.ID_RUN_COMMAND_SINGLE = wx.NewId()
         self.ID_PING = wx.NewId()
@@ -141,6 +143,7 @@ class FlowsDbViewerFrame(awx.Frame):
         toolbar.AddSimpleTool(self.ID_TERMINAL, bitmap("script.png"), "Open terminal and connect to the remote host.")
         toolbar.AddSimpleTool(self.ID_SHOW_ABINIT_INFO, bitmap("script.png"), "Show the ABINIT version and the build info used on the remote host")
         toolbar.AddSimpleTool(self.ID_SHOW_ABIPY_ENV, bitmap("script.png"), "Show the abipy enviroment available on the remote host.")
+        toolbar.AddSimpleTool(self.ID_SSHFS_MOUNT, bitmap("script.png"), "Mount remote filesystem with SSHFS.")
 
         self.toolbar.Realize()
         self.Centre()
@@ -155,6 +158,7 @@ class FlowsDbViewerFrame(awx.Frame):
             (self.ID_TERMINAL, self.OnTerminal),
             (self.ID_SHOW_ABINIT_INFO, self.OnShowAbinitInfo),
             (self.ID_SHOW_ABIPY_ENV, self.OnShowAbipyEnv),
+            (self.ID_SSHFS_MOUNT, self.onSshfsMount),
             #
             (self.ID_RUN_COMMAND_ALL, self.OnRunCommandAll),
             (self.ID_RUN_COMMAND_SINGLE, self.OnRunCommandSingle),
@@ -336,6 +340,14 @@ class FlowsDbViewerFrame(awx.Frame):
 
         d = cluster.get_abinit_info()
         SimpleTextViewer(self, text=str(d), title=cluster.hostname).Show()
+
+    def onSshfsMount(self, event):
+        """Mount the remote filesystem on the local host filesystem with SSHFS."""
+        cluster = self.GetSelectedCluster() 
+        if cluster is None: return
+
+        #try:
+        retcode = cluster.sshfs_mount()
 
     @busy
     def OnShowAbipyEnv(self, event):
@@ -563,6 +575,34 @@ def flow_sched_log(parent, cluster, flow, flows_db):
     SimpleTextViewer(parent, text=s, title=sched_log).Show()
 
 
+@busy
+def flow_viewer(parent, cluster, flow, flows_db):
+    """Mount the remote filesystem with SSHFS and open the flowviewer."""
+    # Mount remote workdir.
+    retcode = cluster.sshfs_mount()
+    if retcode: 
+        return awx.showErrorMessage("sshfs returned retcode %s. Returning!" % retcode)
+
+    # Read the flow from the pickle database (note the use of the local path).
+    from abipy import abilab
+    #local_path = os.path.join(cluster.workdir, os.path.basename(flow.workdir))
+    local_path = os.path.join(cluster.sshfs_mountpoint, os.path.basename(flow.workdir))
+    print("local_path", local_path)
+
+    try:
+        flow_obj = abilab.AbinitFlow.pickle_load(local_path)
+    except IOError:
+        # It seems that sshfs is asynchronous. 
+        # Give it enough time to mount the file system and try again.
+        import time
+        time.sleep(4)
+        flow_obj = abilab.AbinitFlow.pickle_load(local_path)
+
+    # Change root and open the Viewer in a new frame.
+    flow_obj.chroot(local_path)
+    FlowViewerFrame(parent, flow_obj).Show()
+
+
 class FlowPopupMenu(wx.Menu):
     """
     A `FlowPopupMenu` has a list of callback functions indexed by the menu title. 
@@ -575,6 +615,7 @@ class FlowPopupMenu(wx.Menu):
         ("cancel", flow_cancel),
         ("remove", flow_remove),
         ("sched_log", flow_sched_log),
+        ("flowviewer", flow_viewer),
     ])
 
     def __init__(self, parent, cluster, flow, flows_db):
