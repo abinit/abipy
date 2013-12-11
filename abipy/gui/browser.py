@@ -17,10 +17,9 @@ from abipy.tools.text import list_strings, is_string, WildCard
 from abipy.electrons import ElectronBandsPlotter
 from abipy.gui.popupmenus import popupmenu_for_filename
 
-
-def frame_from_filepath(parent, filepath):
+def frameclass_from_filepath(filepath):
     """
-    Factory function that returns the viewer (wx frame) associated to the file.
+    Factory function that returns the class of the viewer (wx frame) associated to the file.
     None if no viewer has been registered for this filename.
     """
     from abipy.gui.wfkviewer import WfkViewerFrame
@@ -45,17 +44,27 @@ def frame_from_filepath(parent, filepath):
 
     ext = filepath.split("_")[-1]
     try:
-        return VIEWER_FRAMES[ext](parent, filepath)
-
+        return VIEWER_FRAMES[ext]
+                                                                                
     except KeyError:
         root, ext = os.path.splitext(filepath)
         try:
-            return VIEWER_FRAMES[ext](parent, filepath)
+            return VIEWER_FRAMES[ext]
         except KeyError:
             # No frame registered for the file. 
             # Open NcViewer if we have a netcdf file else None
-            if filepath.endswith(".nc"): return NcViewerFrame(parent, filepath)
+            if filepath.endswith(".nc"): return NcViewerFrame
             return None
+
+
+def frame_from_filepath(parent, filepath):
+    """
+    Factory function that returns the viewer (wx frame) associated to the file.
+    None if no viewer has been registered for this filename.
+    """
+    frame_class = frameclass_from_filepath(filepath)
+    if frame_class is None: return None
+    return frame_class(parent, filepath)
 
 
 class NcFileDirCtrl(wx.GenericDirCtrl):

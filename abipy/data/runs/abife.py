@@ -8,6 +8,7 @@ import subprocess
 import collections
 import readline
 import pprint
+import warnings
 import cStringIO as StringIO 
 import json
 import yaml
@@ -15,6 +16,7 @@ import socket
 import paramiko
 
 from pymatgen.core.design_patterns import AttrDict
+from pymatgen.util.io_utils import which
 from pymatgen.util.string_utils import is_string
 
 
@@ -53,10 +55,11 @@ def read_clusters(filepath="clusters.yml"):
         username = params.get("username", global_username)
         workdir = params.get("workdir", global_workdir)
         qtype = params.get("qtype", global_qtype)
+        sshfs_mountpoint = params.get("sshfs_mountpoint", None)
 
         cls = Cluster.from_qtype(qtype)
         assert hostname not in clusters
-        clusters[hostname] = cls(username, hostname, workdir)
+        clusters[hostname] = cls(username, hostname, workdir, sshfs_mountpoint=sshfs_mountpoint)
 
     return clusters
 
@@ -73,7 +76,7 @@ class Cluster(object):
     """
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, username, hostname, workdir):
+    def __init__(self, username, hostname, workdir, sshfs_mountpoint=None):
         """
         Args:
             hostname:
@@ -82,11 +85,17 @@ class Cluster(object):
                 Username used to login on the cluster.
             workdir:
                 Absolute path (on the remote host) where `AbinitFlows` will be produced.
+            sshfs_mountpoint
         """
         self.username, self.hostname, self.workdir = username, hostname, workdir
 
         self.port = 22    # Port for SSH connection
         self.timeout = 30 # Timeout in seconds.
+
+        self.sshfs_mountpoint = os.path.expanduser(sshfs_mountpoint) if sshfs_mountpoint else None
+
+        if self.sshfs_mountpoint is not None and which("sshfs") is None:
+            warnings.warn("Cannot locate sshfs in $PATH, cannot mount remote filesystem with SSHFS")
 
         # List of partitions available on the cluster.
         #self.partions = []
@@ -157,6 +166,51 @@ class Cluster(object):
             self.sftp.close()
         except:
             pass
+        try:
+            self.sshfs_umount()
+        except:
+            pass
+
+    def sshfs_mount(self, **options):
+        """Mount sshfs_mountpoint with sshfs. Returns exit status."""
+        if self.is_sshfs_mounted: return 0
+        if self.sshfs_mountpoint is None: return -1
+
+        # Create directory if it does not exist.
+        if not os.path.exists(self.sshfs_mountpoint): os.makedirs(self.sshfs_mountpoint)
+
+        # Usage: sshfs [user@]host:[dir] mountpoint [options]
+        opts = " ".join(o for o in options) if options else ""
+        cmd = "sshfs %s@%s:%s %s %s" % (self.username, self.hostname, self.workdir, self.sshfs_mountpoint, opts)
+        #print(cmd)
+        retcode = os.system(cmd)
+        self._is_sshfs_mounted = (retcode == 0)
+
+        return retcode
+
+    @property
+    def is_sshfs_mounted(self):
+        """True if sshfs_mountpoint is mounted."""
+        try:
+            return self._is_sshfs_mounted
+        except AttributeError:
+            return False
+
+    def sshfs_umount(self):
+        """Umount sshfs_mountpoint. Return exit status."""
+        if not self.is_sshfs_mounted: return 0
+
+        def is_macosx():
+            """True if we are running on Mac."""
+            return "darwin" in sys.platform
+
+        if is_macosx():
+            cmd = "umount %s" % self.sshfs_mountpoint
+        else:
+            # Linux
+            cmd = "fusermount -u %s" % self.sshfs_mountpoint
+
+        return os.system(cmd)
 
     @property
     def has_slurm(self):
@@ -1087,6 +1141,9 @@ class FlowsDatabase(collections.MutableMapping):
         cluster.make_workdir()
 
         if cluster.exists(flow_rdir):
+            # Raise exception but first register the flow 
+            # in the database so that the user can easily remote it from the GUI.
+            self.register_flow(cluster.hostname, flow_rdir)
             raise ValueError("%s:%s already exists" % (cluster.hostname, flow_rdir))
 
         cluster.make_dir(flow_rdir)

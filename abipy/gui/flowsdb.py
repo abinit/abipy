@@ -4,13 +4,14 @@ import os
 import subprocess
 import wx
 
-import abipy.gui.awx as awx
 import wx.lib.agw.flatnotebook as fnb
 import wx.lib.newevent
+import abipy.gui.awx as awx
 
 from collections import OrderedDict
 from pymatgen.util.io_utils import which
 from abipy.gui.editor import  SimpleTextViewer, MyEditorFrame
+from abipy.gui.flowviewer import FlowViewerFrame
 from abipy.data.runs.abife import FlowsDatabase
 
 # Command event used to signal that the Flows database 
@@ -563,6 +564,34 @@ def flow_sched_log(parent, cluster, flow, flows_db):
     SimpleTextViewer(parent, text=s, title=sched_log).Show()
 
 
+@busy
+def flow_viewer(parent, cluster, flow, flows_db):
+    """Mount the remote filesystem with SSHFS and open the flowviewer."""
+    # Mount remote workdir.
+    retcode = cluster.sshfs_mount()
+    if retcode: 
+        return awx.showErrorMessage("sshfs returned retcode %s. Returning!" % retcode)
+
+    # Read the flow from the pickle database (note the use of the local path).
+    from abipy import abilab
+    #local_path = os.path.join(cluster.workdir, os.path.basename(flow.workdir))
+    local_path = os.path.join(cluster.sshfs_mountpoint, os.path.basename(flow.workdir))
+    print("local_path", local_path)
+
+    try:
+        flow_obj = abilab.AbinitFlow.pickle_load(local_path)
+    except IOError:
+        # It seems that sshfs is asynchronous. 
+        # Give it enough time to mount the file system and try again.
+        import time
+        time.sleep(4)
+        flow_obj = abilab.AbinitFlow.pickle_load(local_path)
+
+    # Change root and open the Viewer in a new frame.
+    flow_obj.chroot(local_path)
+    FlowViewerFrame(parent, flow_obj).Show()
+
+
 class FlowPopupMenu(wx.Menu):
     """
     A `FlowPopupMenu` has a list of callback functions indexed by the menu title. 
@@ -575,6 +604,7 @@ class FlowPopupMenu(wx.Menu):
         ("cancel", flow_cancel),
         ("remove", flow_remove),
         ("sched_log", flow_sched_log),
+        ("flowviewer", flow_viewer),
     ])
 
     def __init__(self, parent, cluster, flow, flows_db):

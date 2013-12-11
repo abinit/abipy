@@ -5,7 +5,7 @@ from __future__ import division, print_function
 import sys
 import os
 import abipy.abilab as abilab
-import abipy.data as data  
+import abipy.data as abidata  
 
 from abipy.data.runs import AbipyTest, MixinTest
 from abipy.data.runs.qptdm_workflow import *
@@ -28,8 +28,8 @@ def scf_ph_inputs():
     GS input + the input files for the phonon calculation.
     """
     # Crystalline AlAs: computation of the second derivative of the total energy
-    structure = data.structure_from_ucell("AlAs")
-    pseudos = data.pseudos("13al.981214.fhi", "33as.pspnc")
+    structure = abidata.structure_from_ucell("AlAs")
+    pseudos = abidata.pseudos("13al.981214.fhi", "33as.pspnc")
 
     # List of q-points for the phonon calculation.
     qpoints = [
@@ -62,12 +62,12 @@ def scf_ph_inputs():
     for i, qpt in enumerate(qpoints):
         # Response-function calculation for phonons.
         inp[i+2].set_variables(
-            #nstep=2,
             nstep=20,
             rfphon=1,        # Will consider phonon-type perturbation
             nqpt=1,          # One wavevector is to be considered
             qpt=qpt,         # This wavevector is q=0 (Gamma)
             )
+
             #rfatpol   1 1   # Only the first atom is displaced
             #rfdir   1 0 0   # Along the first reduced coordinate axis
             #kptopt   2      # Automatic generation of k points, taking
@@ -95,8 +95,7 @@ def build_flow(options):
     all_inps = scf_ph_inputs()
     scf_input, ph_inputs = all_inps[0], all_inps[1:]
 
-    flow = abilab.phonon_flow(workdir, manager, scf_input, ph_inputs)
-    return flow
+    return abilab.phonon_flow(workdir, manager, scf_input, ph_inputs)
 
 
 @abilab.flow_main

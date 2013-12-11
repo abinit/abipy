@@ -13,14 +13,14 @@ from pymatgen.io.abinitio.launcher import PyLauncher
 from abipy import abilab
 from abipy.gui.events import AbinitEventsFrame, AbinitEventsNotebookFrame
 from abipy.gui.timer import MultiTimerFrame
-from abipy.gui.browser import FileListFrame, DirBrowserFrame, frame_from_filepath
+from abipy.gui.browser import FileListFrame, DirBrowserFrame, frame_from_filepath, frameclass_from_filepath
 from abipy.gui.editor import TextNotebookFrame, SimpleTextViewer
 
 
 def yaml_manager_dialog(parent):
     """
     Open a dialog that allows the user to select a YAML file with the taskmanager.
-    Returns the new manager or None if the user clickes CANCEL or file is not readable.
+    Returns the new manager or None if the user clicked CANCEL or the specifed file is not valid.
     """
     dialog = wx.FileDialog(parent, message="Choose a taskmanager.yml file", defaultDir=os.getcwd(),
                            wildcard="YAML files (*.yml)|*.yml",
@@ -43,7 +43,7 @@ class FlowViewerFrame(awx.Frame):
     VERSION = "0.1"
 
     # Time in second after which we check the status of the tasks.
-    REFRESH_INTERVAL = 15
+    REFRESH_INTERVAL = 120
 
     HELP_MSG = """Quick help:
 
@@ -84,7 +84,34 @@ Also, these key bindings can be used
 
         # Disable launch mode if we already executing the flow with the scheduler.
         self.check_launcher_file()
-        self.BuildUi()
+
+        # Build UI
+        self.panel = panel = wx.Panel(self, -1)
+        self.main_sizer = main_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # Here we create a panel and a notebook on the panel
+        self.notebook = FlowNotebook(panel, self.flow)
+        main_sizer.Add(self.notebook, 1, wx.EXPAND , 5)
+
+        submit_button = wx.Button(panel, -1, label='Submit')
+        submit_button.Bind(wx.EVT_BUTTON, self.OnSubmitButton)
+
+        text = wx.StaticText(panel, -1, "Max nlaunch:")
+        text.Wrap(-1)
+        text.SetToolTipString("Maximum number of tasks that can be submitted. Use -1 for unlimited launches.")
+        self.max_nlaunch = wx.SpinCtrl(panel, -1, value="1", min=-1)
+
+        hsizer = wx.BoxSizer(wx.HORIZONTAL)
+        hsizer.Add(submit_button, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
+        hsizer.Add(text, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
+        hsizer.Add(self.max_nlaunch, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
+        main_sizer.Add(hsizer, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)                                                                                     
+
+        panel.SetSizerAndFit(main_sizer)
+
+        # Register this event when the GUI is IDLE
+        self.last_refresh = time.time()
+        self.Bind(wx.EVT_IDLE, self.OnIdle)
 
     @property
     def codename(self):
@@ -121,6 +148,11 @@ Also, these key bindings can be used
         toolbar.AddSeparator()
 
         toolbar.AddSimpleTool(self.ID_CHECK_STATUS, bitmap("refresh.png"), "Check the status of the workflow(s).")
+
+        #toolbar.AddSeparator()
+        #self.file_selector = FileSelector(toolbar, self)
+        #toolbar.AddControl(control=self.file_selector) 
+
         toolbar.Realize()
 
         # Associate menu/toolbar items with their handlers.
@@ -165,6 +197,9 @@ Also, these key bindings can be used
         #self.ID_FLOW_CHANGE_MANAGER = wx.NewId()
         #flow_menu.Append(self.ID_FLOW_CHANGE_MANAGER, "Change TaskManager", help="")
 
+        self.ID_FLOW_OPEN_OUTFILES = wx.NewId()
+        flow_menu.Append(self.ID_FLOW_OPEN_OUTFILES, "Open output files", help="")
+
         self.ID_FLOW_TREE_VIEW = wx.NewId()
         flow_menu.Append(self.ID_FLOW_TREE_VIEW, "Tree view", help="Tree view of the tasks")
 
@@ -186,6 +221,7 @@ Also, these key bindings can be used
             (wx.ID_ABOUT, self.OnAboutBox),
             #
             #(self.ID_FLOW_CHANGE_MANAGER, self.onChangeManager),
+            (self.ID_FLOW_OPEN_OUTFILES, self.onOpenOutFiles),
             (self.ID_FLOW_TREE_VIEW, self.onTaskTreeView),
             #
             (self.ID_HELP_QUICKREF, self.onQuickRef),
@@ -203,12 +239,12 @@ Also, these key bindings can be used
         since we don't want to have processes modifying the flow.
         """
         self.disabled_launcher = False
-        pid_file = fnmatch.filter(os.listdir(self.flow.workdir), "*.pid")
+        pid_files = fnmatch.filter(os.listdir(self.flow.workdir), "*.pid")
 
-        if pid_file:
+        if pid_files:
+            pid_file = os.path.join(self.flow.workdir, pid_files[0])
+            if not os.path.exists(pid_file): return
             self.disabled_launcher = True
-
-            pid_file = os.path.join(self.flow.workdir, pid_file[0])
 
             with open(pid_file, "r") as fh:
                 pid = int(fh.readline())
@@ -224,34 +260,6 @@ Also, these key bindings can be used
 
             else:
                 self.statusbar.PushStatusText(message)
-
-    def BuildUi(self):
-        self.panel = panel = wx.Panel(self, -1)
-        self.main_sizer = main_sizer = wx.BoxSizer(wx.VERTICAL)
-
-        # Here we create a panel and a notebook on the panel
-        self.notebook = FlowNotebook(panel, self.flow)
-        main_sizer.Add(self.notebook, 1, wx.EXPAND , 5)
-
-        submit_button = wx.Button(panel, -1, label='Submit')
-        submit_button.Bind(wx.EVT_BUTTON, self.OnSubmitButton)
-
-        text = wx.StaticText(panel, -1, "Max nlaunch:")
-        text.Wrap(-1)
-        text.SetToolTipString("Maximum number of tasks that can be submitted. Use -1 for unlimited launches.")
-        self.max_nlaunch = wx.SpinCtrl(panel, -1, value="1", min=-1)
-
-        hsizer = wx.BoxSizer(wx.HORIZONTAL)
-        hsizer.Add(submit_button, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
-        hsizer.Add(text, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
-        hsizer.Add(self.max_nlaunch, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
-        main_sizer.Add(hsizer, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)                                                                                     
-
-        panel.SetSizerAndFit(main_sizer)
-
-        # Register this event when the GUI is IDLE
-        self.last_refresh = time.time()
-        self.Bind(wx.EVT_IDLE, self.OnIdle)
 
     def OnSubmitButton(self, event):
         """Submit up to max_nlauch tasks."""
@@ -270,10 +278,9 @@ Also, these key bindings can be used
 
     def OnIdle(self, event):
         """Function executed when the GUI is idle."""
-        self.check_launcher_file(with_dialog=False)
-
         now = time.time()
         if (now - self.last_refresh) > self.REFRESH_INTERVAL:
+            self.check_launcher_file(with_dialog=False)
             self.CheckStatusAndRedraw()
             self.last_refresh = time.time()
 
@@ -442,6 +449,10 @@ Also, these key bindings can be used
     #    #for task in flow.iflat_tasks(status="S_ERROR"):
     #    #    task.reset()
     #    #    task.set_manager(new_manager)
+
+    def onOpenOutFiles(self, event):
+        FileSelectorFrame(parent=self, viewer=self).Show()
+
 
 class FlowNotebook(fnb.FlatNotebook):
     """
@@ -833,10 +844,9 @@ class TaskStatusTreePanel(awx.Panel):
         #self.flow.build_and_pickle_dump()
             
 
-
 class TaskTreeView(awx.Frame):
     """
-    Frame with an EventsPanel
+    A frame with a TaskStatusTreePanel.
     """
     def __init__(self, parent, flow, **kwargs):
         if "title" not in kwargs:
@@ -845,6 +855,96 @@ class TaskTreeView(awx.Frame):
         super(TaskTreeView, self).__init__(parent, **kwargs)
 
         panel = TaskStatusTreePanel(self, flow)
+
+
+class FileSelector(awx.Panel):
+#class FileSelector(wx.Control):
+    """
+    Control that allows the user to select multiple output files of the same type (either inside
+    a `Workflow` on in the entire `Flow`. The open button will open a viewer to analyze
+    the multiple files selected.
+    """
+    def __init__(self, parent, viewer, **kwargs):
+        super(FileSelector, self).__init__(parent, -1, **kwargs)
+        self.viewer = viewer
+        panel = self #wx.Panel(self, -1)
+
+        wcards = ["*GSR.nc", "*WFK-etsf.nc", "*SIGRES.nc", "*MDF.nc"]
+
+        self.wcards_cbox = wx.ComboBox(panel, id=-1, name='File type', choices=wcards, value=wcards[0], style=wx.CB_READONLY)  
+
+        smodes = ["Selected Workflow", "Entire Flow"]
+        self.select_rbox = wx.RadioBox(panel, id=1, name="Selection Mode", choices=smodes, style=wx.RA_SPECIFY_ROWS)
+
+        open_button = wx.Button(panel, -1, label='Open files')
+        open_button.Bind(wx.EVT_BUTTON, self.onOpenButton)
+
+        #main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        main_sizer = wx.GridBagSizer(10, 10)
+
+        #vsizer = wx.BoxSizer(wx.VERTICAL)
+        #vsizer.Add(self.wcards_cbox, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
+        #vsizer.Add(open_button, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
+        #main_sizer.Add(vsizer)
+        #main_sizer.Add(self.select_rbox, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
+
+        main_sizer.Add(self.wcards_cbox, (0, 0), (1,1), wx.ALIGN_CENTER)
+        main_sizer.Add(open_button, (1, 0), (1,1), wx.ALIGN_CENTER)
+        main_sizer.Add(self.select_rbox, (0, 1), (3,3), wx.EXPAND)
+
+        panel.SetSizerAndFit(main_sizer)
+
+    def getWildCard(self):
+        """Returns a string with the Abinit extension selected by the user."""
+        return self.wcards_cbox.GetValue()
+
+    def getSelectionMode(self):
+        """Returns a string with the selection mode selected by the user."""
+        index = self.select_rbox.GetSelection()
+        return self.select_rbox.GetString(index)
+
+    def onOpenButton(self, event):
+        wcard = self.getWildCard()
+        smode = self.getSelectionMode()
+        print("wcard", wcard, "smode", smode)
+
+        # Find the filepaths according to smode.
+        filepaths = []
+
+        if smode == "Selected Workflow":
+            work = self.viewer.GetSelectedWork()
+            for task in work:
+                filepaths.extend(task.outdir.list_filepaths(wildcard=wcard))
+
+        elif smode == "Entire Flow":
+            for work in self.viewer.flow:
+                for task in work:
+                    filepaths.extend(task.outdir.list_filepaths(wildcard=wcard))
+
+        else:
+            return awx.showErrorMessage(self, "Wrong value of smode: %s" % smode)
+
+        if not filepaths: 
+            return awx.showErrorMessage(self, "Cannot find any file matching the specified shell pattern")
+
+        print("filepaths", filepaths)
+
+        # Get the viewer class associated to these files, build the frame and show it.
+        frame_class = frameclass_from_filepath(filepaths[0])
+        if frame_class is None: return
+        frame_class(self, filepaths).Show()
+
+
+class FileSelectorFrame(wx.Frame):
+    def __init__(self, parent, viewer, **kwargs):
+        super(FileSelectorFrame, self).__init__(parent, -1, **kwargs)
+
+        panel = wx.Panel(self, -1)
+        file_selector = FileSelector(panel, viewer)
+
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(file_selector, 1, wx.EXPAND , 5)
+        panel.SetSizerAndFit(main_sizer)
 
 
 def wxapp_flow_viewer(works):
