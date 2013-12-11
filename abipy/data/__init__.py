@@ -70,7 +70,7 @@ def find_ncfiles(top):
 
                     if not SILENT:
                         SILENT += 1
-                        warnings.warn(err_msg)
+                        #warnings.warn(err_msg)
                         #raise ValueError(err_msg)
                 else:
                     ncfiles[basename] = apath 
