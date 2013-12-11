@@ -39,8 +39,26 @@ def straceback(color=None):
         return s
 
 
-def read_clusters(filepath="clusters.yml"):
-    """Read the configuration paramenters from the YAML file clusters.yml."""
+def read_clusters(filepath=None):
+    """
+    Read the configuration parameters from the YAML file clusters.yml.
+    If filepath is None, use default locations i.e. working directory 
+    and then abipy configuration directory.
+    """
+    if filepath is None:
+        YAML_FILE = "clusters.yml"
+        # Try in the current directory.
+        filepath = os.path.join(os.getcwd(), YAML_FILE)
+
+        if not os.path.exists(filepath):
+            # Try in the configuration directory.
+            home = os.getenv("HOME")
+            dirpath = os.path.join(os.getenv("HOME"), ".abinit", "abipy", YAML_FILE)
+            filepath = os.path.join(dirpath, YAML_FILE)
+
+            if not os.path.exists(filepath):
+                raise RuntimeError("Cannot locate %s neither in current directory nor in %s" % (YAML_FILE, dirpath))
+
     with open(filepath, "r") as fh:
         conf = yaml.load(fh)
 
@@ -85,7 +103,8 @@ class Cluster(object):
                 Username used to login on the cluster.
             workdir:
                 Absolute path (on the remote host) where `AbinitFlows` will be produced.
-            sshfs_mountpoint
+            sshfs_mountpoint:
+                Absolute path where the remote file system will be mounted.
         """
         self.username, self.hostname, self.workdir = username, hostname, workdir
 
@@ -387,11 +406,9 @@ class Cluster(object):
 
     def yaml_configurations(self):
         """List of dicts with the YAML configuration files used on the remote hosts."""
-
         conf_files = [
             "~/.abinit/abipy/taskmanager.yml",
-            "~/.abinit/abipy/scheduler.yml",
-        ]
+            "~/.abinit/abipy/scheduler.yml"]
 
         confs = []
         for f in conf_files:

@@ -134,14 +134,14 @@ class FlowsDbViewerFrame(awx.Frame):
         def bitmap(path):
             return wx.Bitmap(awx.path_img(path))
 
-        toolbar.AddSimpleTool(self.ID_RUN_SCRIPT, bitmap("script.png"), "Upload and execute the script on the remote host.")
-        toolbar.AddSimpleTool(self.ID_CHECK_STATUS, bitmap("script.png"), "Check the status of the flows running on the remote host.")
+        toolbar.AddSimpleTool(self.ID_RUN_SCRIPT, bitmap("run.png"), "Upload and execute the script on the remote host.")
+        toolbar.AddSimpleTool(self.ID_CHECK_STATUS, bitmap("chk.png"), "Check the status of the flows running on the remote host.")
 
         toolbar.AddSeparator()
 
-        toolbar.AddSimpleTool(self.ID_TERMINAL, bitmap("script.png"), "Open terminal and connect to the remote host.")
-        toolbar.AddSimpleTool(self.ID_SHOW_ABINIT_INFO, bitmap("script.png"), "Show the ABINIT version and the build info used on the remote host")
-        toolbar.AddSimpleTool(self.ID_SHOW_ABIPY_ENV, bitmap("script.png"), "Show the abipy enviroment available on the remote host.")
+        toolbar.AddSimpleTool(self.ID_TERMINAL, bitmap("term.png"), "Open terminal and connect to the remote host.")
+        toolbar.AddSimpleTool(self.ID_SHOW_ABINIT_INFO, bitmap("vers.png"), "Show the ABINIT version and the build info used on the remote host")
+        toolbar.AddSimpleTool(self.ID_SHOW_ABIPY_ENV, bitmap("vers.png"), "Show the abipy enviroment available on the remote host.")
 
         self.toolbar.Realize()
         self.Centre()
