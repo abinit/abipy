@@ -3,8 +3,9 @@
 from __future__ import division, print_function
 
 import sys
+import os
 from abipy import abilab
-import abipy.data as data  
+import abipy.data as abidata  
 
 from pymatgen.io.abinitio.abiobjects import AbiStructure
 from pymatgen.io.abinitio.calculations import bse_with_mdf
@@ -40,14 +41,15 @@ def build_flow(options):
     # Instantiate the TaskManager.
     manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
 
-    pseudos = data.pseudos("14si.pspnc")
-    structure = abilab.Structure.from_file(data.cif_file("si.cif"))
+    pseudos = abidata.pseudos("14si.pspnc")
+    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
 
     kppa = scf_kppa = 1
     nscf_nband = 6
     nscf_ngkpt = [4,4,4]
     nscf_shiftk = [0.1, 0.2, 0.3]
     bs_loband = 2
+    bs_nban = nscf_nband
     soenergy = 0.7
     mdf_epsinf = 12
     max_ncpus = 1
@@ -62,7 +64,7 @@ def build_flow(options):
 
     # BSE calculation with model dielectric function.
     work = bse_with_mdf(structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,
-                       ecuteps, bs_loband, soenergy, mdf_epsinf,
+                       ecuteps, bs_loband, bs_nband, soenergy, mdf_epsinf,
                        accuracy="normal", spin_mode="unpolarized", smearing=None,
                        charge=0.0, scf_solver=None, **extra_abivars)
 

@@ -646,28 +646,6 @@ def wxapp_flowsdb_viewer():
     FlowsDbViewerFrame(None).Show()
     return app
 
-#class JobsPanel(wx.Panel):
-#    def __init__(self, parent, cluster, **kwargs):
-#        super(JobsPanel, self).__init__(parent, -1, **kwargs)
-#        self.cluster = cluster
-#
-#        main_sizer = wx.BoxSizer(wx.VERTICAL)
-#
-#        #user_jobs_button = wx.Button(self, -1, label='User Jobs')
-#        #all_jobs_button = wx.Button(self, -1, label='All Jobs')
-#        #self.Bind(wx.EVT_BUTTON, self.ShowAllJobs, all_jobs_button)
-#        #self.Bind(wx.EVT_BUTTON, self.ShowUserJobs, user_jobs_button)
-#
-#        #hbox = wx.BoxSizer(wx.HORIZONTAL)
-#        #hbox = wx.BoxSizer(wx.HORIZONTAL)
-#        #hbox.Add(user_jobs_button)
-#        #hbox.Add(all_jobs_button, flag=wx.LEFT, border=5)
-#        #main_sizer.Add(hbox, proportion=0, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10)
-#
-#        #self.text_ctrl = wx.TextCtrl(self, -1, value="", style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
-#        #main_sizer.Add(self.text_ctrl, 1, wx.ALIGN_CENTER_HORIZONTAL, 5)
-#
-#        self.SetSizerAndFit(main_sizer)
 
 if __name__ == "__main__":
     wxapp_flowsdb_viewer().MainLoop()

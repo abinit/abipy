@@ -79,9 +79,7 @@ def build_flow(options):
     scf_input, nscf_input, dos_inputs = inputs[0], inputs[1], inputs[2:]
     print(scf_input.pseudos)
                                                                
-    flow = abilab.bandstructure_flow(workdir, manager, scf_input, nscf_input, dos_inputs=dos_inputs)
-
-    return flow.allocate()
+    return abilab.bandstructure_flow(workdir, manager, scf_input, nscf_input, dos_inputs=dos_inputs)
 
 
 @abilab.flow_main
