@@ -136,6 +136,18 @@ class AbiInput(Input):
     """
     This object represents an ABINIT input file. It supports multi-datasets a
     and provides an easy-to-use interface for defining the variables of the calculation.
+
+    Usage example:
+
+    .. code-block:: python
+
+        inp = AbiInput(pseudos="si.pspnc", pseudo_dir="directory_with_pseudos")
+
+        inp.set_structure_from_file("si.cif")
+        inp.set_variables(ecut=10, nband=3)
+        # Add other variables. See the other methods provided by this object.
+
+        print(inp)
     """
     Error = AbinitInputError
 
@@ -451,7 +463,7 @@ class AbiInput(Input):
         """
         Cartesian product of input iterables.  Equivalent to nested for-loops.
 
-        .. example:
+        .. code-block:: python
 
             inp.product("tsmear", "ngkpt", [[2,2,2], [4,4,4]], [0.1, 0.2, 0.3])
         """
@@ -811,6 +823,8 @@ class Dataset(collections.Mapping):
                 Number of divisions for the smallest segment.
             kptbounds
                 k-points defining the path in k-space.
+                If None, we use the default high-symmetry k-path 
+                defined in the pymatgen database.
         """
         if kptbounds is None:
             kptbounds = self.structure.calc_kptbounds()
@@ -875,6 +889,18 @@ class LdauParams(object):
     It facilitates the specification of the U-J parameters in the Abinit input file.
     (see `to_abivars`). The U-J operator will be applied only on  the atomic species 
     that have been selected by calling `lui_for_symbol`.
+
+    To setup the Abinit variables for a LDA+U calculation in NiO with a 
+    U value of 5 eV applied on the nickel atoms:
+
+    .. code-block:: python
+
+        luj_params = LdauParams(usepawu=1, structure=nio_structure)
+        # Apply U-J on Ni only.
+        u = 5.0 
+        luj_params.luj_for_symbol("Ni", l=2, u=u, j=0.1*u, unit="eV")
+
+        print(luj_params.to_abivars())
     """
     def __init__(self, usepawu, structure):
         """
@@ -950,6 +976,16 @@ class LexxParams(object):
     It facilitates the specification of the LEXX parameters in the Abinit input file.
     (see `to_abivars`). The LEXX operator will be applied only on the atomic species 
     that have been selected by calling `lexx_for_symbol`.
+
+    To perform a LEXX calculation for NiO in which the LEXX is compute only for the l=2
+    channel of the nickel atoms:
+                                                                         
+    .. code-block:: python
+
+        lexx_params = LexxParams(nio_structure)
+        lexx_params.lexx_for_symbol("Ni", l=2)                                                                         
+
+        print(lexc_params.to_abivars())
     """
     def __init__(self, structure):
         """
@@ -999,10 +1035,10 @@ class LexxParams(object):
             lexexch=" ".join(map(str, lexx_typat)))
 
 
-def input_gen(inp, *args, **kwargs):
+def input_gen(inp, **kwargs):
     """
     This function receives an `AbiInput` and generates
-    new inputs by replacing the variables specified kwargs.
+    new inputs by replacing the variables specified in kwargs.
 
     Args:
         inp:
@@ -1010,16 +1046,17 @@ def input_gen(inp, *args, **kwargs):
         kwargs:
             keyword arguments with the values used for each variable.
 
-    .. example::
+    .. code-block:: python
 
+        gs_inp = call_function_to_generate_initial_template()
+
+        # To generate two input files with different values of ecut:
         for inp_ecut in input_gen(gs_inp, ecut=[10, 20]):
+            print("do something with inp_ecut %s" % inp_ecut)
 
-        generates two input files with different values of ecut
-
+        # To generate four input files with all the possible combinations of ecut and nsppol:
         for inp_ecut in input_gen(gs_inp, ecut=[10, 20], nsppol=[1, 2]):
-
-        generates four input files with all the possible combinations
-        of ecut and nsppol.
+            print("do something with inp_ecut %s" % inp_ecut)
     """
     for new_vars in product_dict(kwargs):
         new_inp = inp.deepcopy()

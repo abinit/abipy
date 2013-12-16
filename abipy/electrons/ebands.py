@@ -48,7 +48,8 @@ def lazy_property(method):
         if not hasattr(self, attr_name):
             setattr(self, attr_name, method(self))
         return getattr(self, attr_name)
-    
+
+    #wrapper = property(fget=wrapper, doc=method.__doc__)
     return wrapper
 
 
@@ -330,26 +331,26 @@ class ElectronBands(object):
         assert new.__class__ == cls
         return new
 
-    def __repr__(self):
-        return self.to_string()
+    #def __repr__(self):
+    #    return self.info
 
     def __str__(self):
-        return self.to_string()
+        return self.info
 
-    def to_string(self, prtvol=0):
-        """String representation."""
-        lines = []
-        app = lines.append
-        for (key, value) in self.__dict__.items():
-            try:
-                value = self.__dict__[key]
-                if prtvol == 0 and isinstance(value, np.ndarray):
-                    continue
-                app("%s = %s" % (key, value))
-            except KeyError:
-                pass
+    #def to_string(self, prtvol=0):
+    #    """String representation."""
+    #    lines = []
+    #    app = lines.append
+    #    for (key, value) in self.__dict__.items():
+    #        try:
+    #            value = self.__dict__[key]
+    #            if prtvol == 0 and isinstance(value, np.ndarray):
+    #                continue
+    #            app("%s = %s" % (key, value))
+    #        except KeyError:
+    #            pass
 
-        return "\n".join(lines)
+    #    return "\n".join(lines)
 
     # Handy variables used to loop
     @property
@@ -694,10 +695,6 @@ class ElectronBands(object):
                              eig=self.eigens[spin,kidx,band],
                              occ=self.occfacts[spin,kidx,band])
 
-    #def change_fermie(self, nele_spin=None, fermie=None):
-    #def set_fermie_from_dos(self):
-    #    self.change_fermie(fermie=fermie)
-
     #def from_scfrun(self):
     #    return self.iscf > 0
 
@@ -710,25 +707,30 @@ class ElectronBands(object):
         #if self.use_metallic_scheme or self.from_scfrun: return
     
         # FXME This won't work if ferromagnetic semi-conductor.
-        occfact = 2 if self.nsppol == 1 else 1
-        esb_levels = []
-        for k in self.kidxs:
-            esb_view = self.eigens[:,k,:].T.ravel()
-            for i, esb in enumerate(esb_view):
-                if (i+1) * occfact == self.nelect:
-                    esb_levels.append(esb)
-                    break
-            else:
-                raise ValueError("Not enough bands to compute the position of the Fermi level!")
+        try:
+            occfact = 2 if self.nsppol == 1 else 1
+            esb_levels = []
+            for k in self.kidxs:
+                esb_view = self.eigens[:,k,:].T.ravel()
+                for i, esb in enumerate(esb_view):
+                    if (i+1) * occfact == self.nelect:
+                        esb_levels.append(esb)
+                        break
+                else:
+                    raise ValueError("Not enough bands to compute the position of the Fermi level!")
+
+        except ValueError:
+            # Don't shift energies. 
+            return
 
         new_fermie = max(esb_levels)
-        #if abs(new_fermie - self.fermie) > 0.2:
-        print("old_fermie %s, new fermie %s" % (self.fermie, new_fermie))
+        if abs(new_fermie - self.fermie) > 0.2:
+            print("old_fermie %s, new fermie %s" % (self.fermie, new_fermie))
 
         # Use fermilevel as zero of energies.
-        self._eigens = self._eigens - new_fermie 
-        self.fermie = 0.0
-        #self.fermie = new_fermie
+        self.fermie = new_fermie
+        #self._eigens = self._eigens - new_fermie 
+        #self.fermie = 0.0
 
     @property
     def lomos(self):
@@ -855,10 +857,12 @@ class ElectronBands(object):
 
     @property
     def fundamental_gaps(self):
+        """List of `ElectronTransition` with info on the fundamental gaps for each spin."""
         return [ElectronTransition(self.homos[spin], self.lumos[spin]) for spin in self.spins]
 
     @property
     def direct_gaps(self):
+        """List of `ElectronTransition` with info on the direct gaps for each spin."""
         dirgaps = self.nsppol * [None]
         for spin in self.spins:
             gaps = []
@@ -875,6 +879,9 @@ class ElectronBands(object):
 
     @property
     def info(self):
+        """
+        Human-readable string with useful info such as band gaps, position of HOMO, LOMO...
+        """
         dir_gaps = self.direct_gaps
         fun_gaps = self.fundamental_gaps
         widths = self.bandwidths
@@ -1952,9 +1959,9 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
             tsmear_ev=const.FloatWithUnit(self.read_value("smearing_width"), "Ha").to("eV")
         )
 
-    #def read_xc_parameters(self):
+    #def read_xcinfo(self):
     #   """Returns a dictionary with info on the XC functional."""
-    #    return XC_Parameters.from_ixc(self.read_value("ixc"))
+    #    return XcInfo.from_ixc(self.read_value("ixc"))
 
 
 class EBands3D(object):
@@ -2108,6 +2115,6 @@ class LazyDecoratorTest(unittest.TestCase):
 
         self.assertEqual(obj.prop, range(5))
         print(obj.__dict__)
-        #self.assertTrue("_lazy_prop" in obj.__dict__)
+        self.assertTrue("_lazy_prop" in obj.__dict__)
         #self.assertEqual(obj.prop.__doc__, "A simple property")
         #self.assertEqual(obj.prop.__name__, "prop")
