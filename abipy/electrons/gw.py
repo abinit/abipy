@@ -275,7 +275,6 @@ class QPList(list):
             ax_list[-1].plot([0,1], [0,1], lw=0)
             ax_list[-1].axis('off')
 
-
         if show:
             plt.show()
 
@@ -450,7 +449,7 @@ class Sigmaw(object):
             ax.grid(True)
 
             if i == len(what):
-                ax.set_xlabel('Frequency [Ev]')
+                ax.set_xlabel('Frequency [eV]')
 
             if not kwargs:
                 kwargs = {"color": "black", "linewidth": 2.0}
@@ -492,6 +491,7 @@ def torange(obj):
         except:
             raise TypeError("Don't know how to convert %s into a range object" % str(obj))
 
+
 class SIGRES_Plotter(collections.Iterable):
     """
     This object receives a list of `SIGRES_File` objects and provides
@@ -504,9 +504,19 @@ class SIGRES_Plotter(collections.Iterable):
         computed_gwkpoints:
             List of k-points where the QP energies have been evaluated.
             (must be the same in each file)
+
+    Usage example:
+                                                                  
+    .. code-block:: python
+        
+        plotter = SIGRES_Plotter()
+        plotter.add_file("foo_SIGRES.nc", label="foo bands")
+        plotter.add_file("bar_SIGRES.nc", label="bar bands")
+        plotter.plot_qpgaps()
     """
     def __init__(self):
         self._sigres_files = collections.OrderedDict()
+        self._labels = []
 
     def __len__(self):
         return len(self._sigres_files)
@@ -520,16 +530,19 @@ class SIGRES_Plotter(collections.Iterable):
             s += str(sigres) + "\n"
         return s
 
-    def add_files(self, filepaths):
+    def add_files(self, filepaths, labels=None):
         """Add a list of filenames to the plotter"""
-        for filepath in list_strings(filepaths):
-            self.add_file(filepath)
+        for i, filepath in enumerate(list_strings(filepaths)):
+            label = None if labels is None else labels[i]
+            self.add_file(filepath, label=label)
 
-    def add_file(self, filepath):
+    def add_file(self, filepath, label=None):
         """Add a filename to the plotter"""
         from abipy.abilab import abiopen
         sigres = abiopen(filepath)
         self._sigres_files[sigres.filepath] = sigres
+        # TODO: Not used 
+        self._labels.append(label)
 
         # Initialize/check useful quantities.
         #
@@ -805,8 +818,17 @@ class SIGRES_Plotter(collections.Iterable):
 
 
 class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
-    """Container storing the GW results reported in the SIGRES.nc file."""
+    """
+    Container storing the GW results reported in the SIGRES.nc file.
 
+    Usage example:
+                                                                  
+    .. code-block:: python
+        
+        sigres = SIGRES_File("foo_SIGRES.nc")
+        sigres.plot_qps_vs_e0()
+        sigres.plot_ksbands_with_qpmarkers()
+    """
     def __init__(self, filepath):
         """Read data from the netcdf file path."""
         super(SIGRES_File, self).__init__(filepath)

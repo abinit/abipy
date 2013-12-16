@@ -75,7 +75,6 @@ def wrap_to_bz(x):
     return x % 1
 
 
-
 def rc_list(mp, sh, pbc=False, order="bz"):
     """
     Returns a `ndarray` with the linear mesh used to sample one dimension of the reciprocal space.
@@ -246,7 +245,7 @@ class Kpoint(object):
         """
         Kpoint objects can be used as keys in dictionaries.
         
-        ..warning: 
+        .. warning: 
 
             The hash is computed from the fractional coordinates (floats). 
             Hence one should avoid using hashes for implementing search algorithms
@@ -571,8 +570,7 @@ class KpointList(collections.Sequence):
         return KpointList(self.reciprocal_lattice, 
                           frac_coords=[k.frac_coords for k in good_kpoints],
                           weights=None,
-                          names=[k.name for k in good_kpoints],
-                        )
+                          names=[k.name for k in good_kpoints])
 
     def to_array(self):
         """Returns a `ndarray` [nkpy, 3] with the fractional coordinates."""

@@ -4,7 +4,7 @@ from __future__ import print_function, division
 import numpy as np
 
 from abipy.tools import transpose_last3dims, AttrDict
-from abipy.iotools import Visualizer, xsf, abipy2etsfio, ETSF_Reader
+from abipy.iotools import Visualizer, xsf, ETSF_Reader
 from abipy.core.constants import bohr_to_angstrom
 from abipy.core.mesh3d import Mesh3D
 from abipy.core.structure import Structure

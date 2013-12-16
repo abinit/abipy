@@ -363,7 +363,7 @@ class FFTProf(object):
 
             if self.verbose:
                 print("*** stdout: ***\n", self.stdout_data)
-                print("*** stderr  ***\n", self.stderr_data)
+                print("*** stderr: ***\n", self.stderr_data)
 
             raise self.Error("%s returned %s\n cmd_str: %s" % (self, self.returncode, cmd_str))
 

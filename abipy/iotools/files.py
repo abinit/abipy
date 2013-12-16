@@ -141,9 +141,9 @@ class Has_Structure(object):
         """
         return self.structure.export(filepath)
 
-    def visualize_structure_with(self, visualizer):
+    def visualize_structure_with(self, visu_name):
         """
-        Visualize the crystalline structure with visualizer.
+        Visualize the crystalline structure with the specified visualizer.
 
         See :class:`Visualizer` for the list of applications and formats supported.
         """
@@ -156,8 +156,7 @@ class Has_Structure(object):
             except visu.Error:
                 pass
         else:
-            raise visu.Error(
-                "Don't know how to export data for visualizer %s" % visualizer)
+            raise visu.Error("Don't know how to export data for visu_name %s" % visu_name)
 
 
 class Has_ElectronBands(object):

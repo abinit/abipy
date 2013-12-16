@@ -891,15 +891,20 @@ class ElectronBands(object):
         lines = []
         app = lines.append
 
+        app("Electron bands of %s" % self.structure.formula)
+        app("Number of electrons %s" % self.nelect)
         app("Fermi level: %s [eV]" % self.fermie)
 
+        def indent(s):
+            return "\t" + s.replace("\n", "\n\t")
+
         for spin in self.spins:
-            app("Spin %s" % spin)
-            app("Direct gap: %s" % str(dir_gaps[spin]))
-            app("Fundamental gap %s" % str(fun_gaps[spin]))
+            app(">>> Spin %s" % spin)
+            app("Direct gap:\n %s" % indent(str(dir_gaps[spin])))
+            app("Fundamental gap:\n %s" % indent(str(fun_gaps[spin])))
             app("Bandwidth: %s [eV]" % widths[spin])
-            app("LOMO: %s" % str(lomos[spin]))
-            app("HOMO: %s" % str(homos[spin]))
+            app("LOMO:\n %s" % indent(str(lomos[spin])))
+            app("HOMO:\n %s" % indent(str(homos[spin])))
 
         return "\n".join(lines)
 
@@ -1504,9 +1509,9 @@ class ElectronBands(object):
         #print("ibz_arr", ibz_arr)
 
         ebands3d = EBands3D(self.structure, 
-                    ibz_arr=self.kpoints.to_array(), ene_ibz=self.eigens, 
-                    ndivs=ndivs, shifts=self.kpoints.shifts, 
-                    pbc=True, order="unit_cell")
+                            ibz_arr=self.kpoints.to_array(), ene_ibz=self.eigens, 
+                            ndivs=ndivs, shifts=self.kpoints.shifts, 
+                            pbc=True, order="unit_cell")
 
         # Symmetrize bands in the unit cell.
         emesh_sbk = ebands3d.get_emesh_sbk()
@@ -1554,8 +1559,17 @@ class ElectronBands(object):
 
 class ElectronBandsPlotter(object):
     """
-    Class for plotting electronic bands structure and DOSes.
+    Class for plotting electronic band structure and DOSes.
     Supports plots on the same graph or separated plots.
+
+    Usage example:
+
+    .. code-block:: python
+        
+        plotter = ElectronBandsPlotter()
+        plotter.add_ebands_from_file("foo.nc", label="foo bands")
+        plotter.add_ebands_from_file("bar.nc", label="bar bands")
+        plotter.plot()
     """
     _LINE_COLORS = ["b", "r",]
     _LINE_STYLES = ["-",":","--","-.",]
@@ -1792,6 +1806,15 @@ class ElectronBandsPlotter(object):
 class ElectronDosPlotter(object):
     """
     Class for plotting electronic DOSes.
+
+    Usage example:
+
+    .. code-block:: python
+        
+        plotter = ElectronDosPlotter()
+        plotter.add_edos_from_file("foo.nc", label="foo dos")
+        plotter.add_edos_from_file("bar.nc", label="bar dos")
+        plotter.plot()
     """
     #_LINE_COLORS = ["b", "r",]
     #_LINE_STYLES = ["-",":","--","-.",]
