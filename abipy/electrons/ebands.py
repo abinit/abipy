@@ -41,9 +41,9 @@ def lazy_property(method):
     #@wraps(method)
     @property
     def wrapper(self):
-        #wrapper.__name__ = method.__name__
-        #wrapper.__doc__ = method.__doc__
-        #wrapper.__module__ = method.__module__
+        #self.wrapper.__name__ = method.__name__
+        #self.wrapper.__doc__ = method.__doc__
+        #self.wrapper.__module__ = method.__module__
 
         if not hasattr(self, attr_name):
             setattr(self, attr_name, method(self))
