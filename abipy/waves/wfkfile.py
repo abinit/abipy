@@ -277,7 +277,7 @@ class WFK_Reader(ElectronsReader):
         """
         Index of the k-point in the internal tables.
 
-        Accepts: `Kpoint` instance of integer.
+        Accepts: `Kpoint` instance or integer.
         """
         if isinstance(kpoint, int):
             return kpoint

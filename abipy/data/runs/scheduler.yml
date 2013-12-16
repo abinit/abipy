@@ -17,7 +17,7 @@ mailto: matteo.giantomassi@uclouvain.be
 #MAX_NUM_PYEXCS = 2
 # The scheduler will shutdown when the number of Abinit errors is > MAX_NUM_ABIERRS
 #MAX_NUM_ABIERRS = 0
-# The scheduler will shutdows when the number of tasks launched is > SAFETY_RATIO * tot_num_tasks.
+# The scheduler will shutdows when the total number of tasks launched is > SAFETY_RATIO * tot_num_tasks.
 #SAFETY_RATIO = 3
 #REMINDME_S: 20
 #MAX_TIME_S:

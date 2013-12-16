@@ -116,15 +116,11 @@ class Cluster(object):
         if self.sshfs_mountpoint is not None and which("sshfs") is None:
             warnings.warn("Cannot locate sshfs in $PATH, cannot mount remote filesystem with SSHFS")
 
-        # List of partitions available on the cluster.
-        #self.partions = []
-
     @classmethod
     def from_qtype(cls, qtype):
         """Return the appropriate subclass from the queue type."""
         for subcls in cls.__subclasses__():
-            if subcls.qtype == qtype:
-                return subcls
+            if subcls.qtype == qtype: return subcls
 
         raise ValueError("Wrong value for qtype %s" % qtype)
 
@@ -201,7 +197,7 @@ class Cluster(object):
         # Usage: sshfs [user@]host:[dir] mountpoint [options]
         opts = " ".join(o for o in options) if options else ""
         cmd = "sshfs %s@%s:%s %s %s" % (self.username, self.hostname, self.workdir, self.sshfs_mountpoint, opts)
-        #print(cmd)
+
         retcode = os.system(cmd)
         self._is_sshfs_mounted = (retcode == 0)
 
@@ -315,6 +311,7 @@ class Cluster(object):
         return self.ssh_exec("which %s" % bin).out
 
     def read_file(self, path):
+        """Read a file located on the cluster."""
         return self.ssh_exec("cat %s" % path).out
 
     def make_workdir(self):

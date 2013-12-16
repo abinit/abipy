@@ -17,6 +17,7 @@ from abipy.iotools import ETSF_Reader, Visualizer, bxsf_write
 from abipy.tools import gaussian
 from abipy.electrons.edos import ElectronDOS
 from abipy.tools.animator import FilesAnimator
+from abipy.tools.numtools import find_le, find_gt
 
 
 import logging
@@ -30,9 +31,30 @@ __all__ = [
     "ElectronsReader",
 ]
 
-class KSState(collections.namedtuple("KSState", "spin kpoint band eig occ")):
+
+def lazy_property(method):
+    """lazy property decorator which removes the boilerplace."""
+    # Fixme: don't know how to preserve __doc__
+    # See also http://stackoverflow.com/questions/6394511/python-functools-wraps-equivalent-for-classes?rq=1
+    attr_name = '_lazy_' + method.__name__
+    #from functools import wraps
+    #@wraps(method)
+    @property
+    def wrapper(self):
+        #wrapper.__name__ = method.__name__
+        #wrapper.__doc__ = method.__doc__
+        #wrapper.__module__ = method.__module__
+
+        if not hasattr(self, attr_name):
+            setattr(self, attr_name, method(self))
+        return getattr(self, attr_name)
+    
+    return wrapper
+
+
+class ElectronState(collections.namedtuple("ElectronState", "spin kpoint band eig occ")):
     """
-    Kohn-Sham data for given (spin, kpoint, band).
+    Sigle-particle state.
 
     .. Attributes:
 
@@ -49,6 +71,16 @@ class KSState(collections.namedtuple("KSState", "spin kpoint band eig occ")):
 
     .. note:: Energies are in eV.
     """
+    #def __eq__(self, other):
+    #    return (self.spin = other.spin and 
+    #            self.kpoint == other.kpoint and 
+    #            self.band == other.band and 
+    #            self.eig == other.eig and 
+    #            )
+
+    #def __ne__(self, other):
+    #    return not self == other
+
     @property
     def skb(self):
         """Tuple with (spin, kpoint, band)."""
@@ -56,7 +88,7 @@ class KSState(collections.namedtuple("KSState", "spin kpoint band eig occ")):
 
     def copy(self):
         d = {f: copy.copy(getattr(self, f)) for f in self._fields}
-        return KSState(**d)
+        return ElectronState(**d)
 
     @classmethod
     def get_fields(cls, exclude=()):
@@ -68,7 +100,7 @@ class KSState(collections.namedtuple("KSState", "spin kpoint band eig occ")):
 
     def asdict(self):
         """Convert self into a dict.""" 
-        return super(KSState, self)._asdict()
+        return super(ElectronState, self)._asdict()
 
     def to_strdict(self, fmt=None):
         """Ordered dictionary mapping fields --> strings."""
@@ -137,6 +169,54 @@ class KSState(collections.namedtuple("KSState", "spin kpoint band eig occ")):
             return _TIPS
 
 
+class ElectronTransition(object):
+    """This object descrive an electronic transition between two single-particle states."""
+
+    def __init__(self, in_state, out_state):
+        """
+        Args:
+            in_state, out_state: Initial and finale state (`ElectronState` instances).
+        """
+        self.in_state = in_state
+        self.out_state = out_state
+
+    def __str__(self):
+        """String representation."""
+        lines = []
+        app = lines.append
+        app("%s, energy: %s [ev], direct: " % (self.__class__.__name__, self.energy, self.is_direct))
+        app("initial k %s" % self.in_state.kpoint)
+        app("final k %s" % self.out_state.kpoint)
+
+        return "\n".join(lines)
+
+    #def __eq__(self, other):
+    #    return self.in_state == other.in_state and 
+    #           self.out_state == other.out_state
+
+    #def __ne__(self, other):
+    #    return not self == other
+
+    #def __ge__(self, other):
+    #    return self.energy >=  other.energy
+
+    @property
+    def energy(self):
+        """Transition energy in eV."""
+        return self.out_state.eig - self.in_state.eig
+
+    @property
+    def qpoint(self):
+        """k_final - k_initial"""
+        return self.out_state.kpoint - self.in_state.kpoint
+
+    @property
+    def is_direct(self):
+        """True if direct transition."""
+        return self.in_state.kpoint == self.out_state.kpoint
+
+
+
 class Smearing(AttrDict):
     """Stores data and information about the smearing technique."""
     _MANDATORY_KEYS = [
@@ -151,17 +231,10 @@ class Smearing(AttrDict):
             if mkey not in self:
                 raise ValueError("Mandatory key %s must be provided" % str(mkey))
 
-
-#class XC_Parameters(AttrDict):
-#    """Stores data and information about the XC functional."""
-#    _MANDATORY_KEYS = [
-#    ]
-#
-#    def __init__(self, *args, **kwargs):
-#        super(XC_Parameters, self).__init__(*args, **kwargs)
-#        for mkey in self._MANDATORY_KEYS:
-#            if mkey not in self:
-#                raise ValueError("Mandatory key %s must be provided" % str(mkey))
+    @property
+    def has_metallic_scheme(self):
+        """True if we are using a metallic scheme for occupancies."""
+        return self.occopt in [3,4,5,6,7,8]
 
 
 class ElectronBands(object):
@@ -431,8 +504,7 @@ class ElectronBands(object):
     def kindex(self, kpoint):
         """
         The index of the k-point in the internal list of k-points.
-                                                                   
-        Accepts: `Kpoint` instance of integer.
+        Accepts: `Kpoint` instance or integer.
         """
         if isinstance(kpoint, int):
             return kpoint
@@ -597,8 +669,7 @@ class ElectronBands(object):
             return BandStructureSymmLine(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, efermi, labels_dict,
                                         coords_are_cartesian=False, 
                                         structure=self.structure,
-                                        projections=None
-                                        )
+                                        projections=None)
 
         else:
             logger.info("Calling pmg BandStructure")
@@ -606,79 +677,178 @@ class ElectronBands(object):
                                 labels_dict=None,
                                 coords_are_cartesian=False, 
                                 structure=self.structure, 
-                                projections=None
-                                )
+                                projections=None)
 
-    #@property
-    #def homo_bands(self):
-    #    try:
-    #        return self._homo_bands
+    def _electron_state(self, spin, kpoint, band):
+        """
+        Build an instance of `ElectronState` from the spin, kpoint and band index"""
+        kidx = self.kindex(kpoint)
+        return ElectronState(spin=spin,
+                             kpoint=self.kpoints[kidx],
+                             band=band,
+                             eig=self.eigens[spin,kidx,band],
+                             occ=self.occfacts[spin,kidx,band])
 
-    #    except AttributeError:
-    #        hband = self.nelect / 2
-    #        if hband != int(hband):
-    #             homo_bands = self.nsppol * [None]
+    #def change_fermie(self, nele_spin=None, fermie=None):
+    #def set_fermie_from_dos(self):
+    #    self.change_fermie(fermie=fermie)
 
-    #        has_gap = self.nsppol * [True]
-    #        for spin in self.spins:
-    #            opt_gaps = self.eigens[spin,:,hband+1] - self.eigens[spin,:,hband]
-    #            has_gap[spin] = (has_gap[spin] and np.all(opt_gaps > 0.0))
+    #def _fix_fermie(self)
+    #    # Use the fermi level computed by Abinit for metals or if SCF run
+    #    if self.has_metallic_scheme or self.from_scfrun: return
+    #
+    #    # FXME This won't work if ferromagnetic semi-conductor.
+    #    occfact = 2 if self.nsppol == 1 else 2
+    #    esk_levels = []
+    #    for k in self.kidxs:
+    #        esb_list = [self.eigens[spin,k,band]]
+    #        for i, esk in enumerate(esb_list):
+    #            if i * occfact == self.nelect:
+    #                esk_levels.append(esk)
+    #                break
+    #        else:
+    #            raise ValueError()
 
-    #        hband if has_gap else None
+    #    new_fermie = max(esk_levels)
+    #    self.fermie = new_fermie
 
-    #def lomo_band(self):
-    #    return None if self.homo_band is None else self.homo_band + 1
+    @property
+    def lomos(self):
+        """lomo states for each spin channel as a list of nsppol `ElectronState`."""
+        lomos = self.nsppol * [None]
+        for spin in self.spins:
+            lomo_kidx = self.eigens[spin,:,1].argmin()
+            lomos[spin] = self._electron_state(spin, lomo_kidx, 1)
 
-    #def _compute_hlstates(self):
-    #    homos, lumos, lomos = [], [], []
+        return lomos
 
+    def lomo_sk(self, spin, kpoint):
+        """
+        Returns the LOMO state for the given spin, kpoint.
+
+        Args:
+            spin:
+                Spin index
+            kpoint:
+                Index of the kpoint or `Kpoint` object.
+        """
+        k = self.kindex(kpoint)
+        return self._electron_state(spin, k, 1)
+
+    def homo_sk(self, spin, kpoint):
+        """
+        Returns the HOMO state for the given spin, kpoint.
+                                                           
+        Args:
+            spin:
+                Spin index
+            kpoint:
+                Index of the kpoint or `Kpoint` object.
+        """
+        k = self.kindex(kpoint)
+        # Find rightmost value less than or equal to fermie.
+        b = find_le(self.eigens[spin,k,:], self.fermie)
+        return self._electron_state(spin, k, b)
+
+    def lumo_sk(self, spin, kpoint):
+        """
+        Returns the LUMO state for the given spin, kpoint.
+                                                           
+        Args:
+            spin:
+                Spin index
+            kpoint:
+                Index of the kpoint or `Kpoint` object.
+        """
+        k = self.kindex(kpoint)
+        # Find leftmost value greater than fermie.
+        b = find_gt(self.eigens[spin,k,:], self.fermie)
+        return self._electron_state(spin, kidx, b)
+
+    @property
+    def homos(self):
+        """homo states for each spin channel as a list of nsppol `ElectronState`."""
+        homos = self.nsppol * [None]
+
+        for spin in self.spins:
+            blist, enes = [], []
+            for k in self.kidxs:
+                # Find rightmost value less than or equal to fermie.
+                b = find_le(self.eigens[spin,k,:], self.fermie)
+                blist.append(b)
+                enes.append(self.eigens[spin,k,b])
+
+            homo_kidx = np.array(enes).argmax()
+            homo_band = blist[homo_kidx]
+
+            # Build ElectronState instance.
+            homos[spin] = self._electron_state(spin, homo_kidx, homo_band)
+
+        return homos
+
+    @property
+    def lumos(self):
+        """lumo states for each spin channel as a list of nsppol `ElectronState`."""
+        lumos = self.nsppol * [None]
+                                                                     
+        for spin in self.spins:
+            blist, enes = [], []
+            for k in self.kidxs:
+                # Find leftmost value greater than x.
+                b = find_gt(self.eigens[spin,k,:], self.fermie)
+                blist.append(b)
+                enes.append(self.eigens[spin,k,b])
+                                                                     
+            lumo_kidx = np.array(enes).argmin()
+            lumo_band = blist[lumo_kidx]
+                                                                     
+            # Build ElectronState instance.
+            lumos[spin] = self._electron_state(spin, lumo_kidx, lumo_band)
+
+        return lumos
+
+    @property
+    def has_metallic_scheme(self):
+        """True if we are using a metallic scheme for occupancies."""
+        return self.smearing.has_metallic_scheme
+
+    #def is_metal(self, spin)
+    #    """True if this spin channel is metallic."""
+    #    if not self.has_metallic_scheme: return False
+    #    for k in self.kidxs:
+    #        # Find leftmost value greater than x.
+    #        b = find_gt(self.eigens[spin,k,:], self.fermie)
+    #        if self.eigens[spin,k,b] < self.fermie + 0.01:
+    #            return True
+
+    #def is_semimetal(self, spin)
+    #    """True if this spin channel is semi-metal."""
+    #    fun_gaps = self.fundamental_gaps
     #    for spin in self.spins:
-    #        homo_band = self.homo_bands(spin)
-    #        lumo_band = homo_band + 1
+    #       if abs(fun_gaps.ene) <  TOL_EGAP
 
-    #        homo_kidx = self.eigens[spin,:,homo_band].argmax()
-    #        lumo_kidx = self.eigens[spin,:,lumo_band].argmin()
-    #        lomo_kidx = self.eigens[spin,:,1].argmin()
+    @property
+    def bandwiths(self):
+        """The bandwith for each spin channel i.e. the energy difference (homo - lomo)."""
+        return [self.homos[spin].eig - self.lomos[spin].eig for spin in self.spins]
 
-    #        homos.append(KSState(
-    #            spin=spin,
-    #            kpoint=self.kpoints[homo_kidx],
-    #            band=homo_band,
-    #            eig=self.eigens[spin,homo_kidx,homo_band],
-    #            occ=self.occfacts[spin,homo_kidx,homo_band],
-    #        ))
+    @property
+    def fundamental_gaps(self):
+        return [ElectronTransition(self.homos[spin], self.lumos[spin]) for spin in self.spins]
 
-    #        lumos.append(KSState(
-    #            spin=spin,
-    #            kpoint=self.kpoints[lumo_kidx],
-    #            band=lumo_band,
-    #            eig=self.eigens[spin,lumo_kidx,lumo_band],
-    #            occ=self.occfacts[spin,lumo_kidx,lumo_band],
-    #        ))
-
-    #        lomos.append(KSState(
-    #            spin=spin,
-    #            kpoint=self.kpoints[lomo_kidx],
-    #            band=1,
-    #            eig=self.eigens[spin,lomo_kidx,1],
-    #            occ=self.occfacts[spin,lomo_kidx,1],
-    #        ))
-
-    #    return map(tuple, [homos, lumos, lomos])
+    #def get_transitions(self, in_band, out_band, spin)
 
     #@property
-    #def is_metallic(self):
-        #"""True if bands are metallic"""
-
-    #@property
-    #def bandwiths(self):
-    #    bandwiths = self*nsppol * [None]
+    #def direct_gaps(self):
     #    for spin in self.spins:
-    #        bandwiths[spin] = self.homo_state[spin].eig - self.lomo_states[spin].eig
-    #    return np.array(bandwiths)
+    #        gaps = []
+    #        for k in self.kidxs:
+    #             homo_sk = self.homos_sk(spin, k)
+    #             lumo_sk = self.lumos_sk(spin, k)
+    #             gaps.append((lumo_sk.ene - homo_sk.ene, k))
+    #        egap, kgap = min(gaps)
 
-    #def direct_gap(self):
-    #def fundamental_gap(self):
+    #    gap_spin[spin] = ElectronTransition(homos[spin], lomos[spin]
 
     #def info(self):
     #    for spin in self.spins:
@@ -688,7 +858,6 @@ class ElectronBands(object):
     #        kmix_idx = opt_gaps.argmin()
     #        kmax = self.kpoints[kmax_idx]
     #        kmin = self.kpoints[kmin_idx]
-    #    np.minloc(opt_gaps)
 
     def get_edos(self, method="gaussian", step=0.1, width=0.2):
         """
@@ -1885,3 +2054,23 @@ class EBands3D(object):
 #    def plot(self, qpath):
 #        nesting = self.compute_nesting(qpath)
 #        nesting.plot()
+
+import unittest
+class LazyDecoratorTest(unittest.TestCase):
+
+    def test_lazy_decorator(self):
+        """Test lazy_property decorator."""
+        class MyObject(object):
+            @lazy_property
+            def prop(self):
+                """A simple property"""
+                print("generating 'prop'")
+                return range(5)
+
+        obj = MyObject()
+
+        self.assertEqual(obj.prop, range(5))
+        print(obj.__dict__)
+        #self.assertTrue("_lazy_prop" in obj.__dict__)
+        #self.assertEqual(obj.prop.__doc__, "A simple property")
+        #self.assertEqual(obj.prop.__name__, "prop")

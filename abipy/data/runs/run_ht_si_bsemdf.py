@@ -49,7 +49,7 @@ def build_flow(options):
     nscf_ngkpt = [4,4,4]
     nscf_shiftk = [0.1, 0.2, 0.3]
     bs_loband = 2
-    bs_nban = nscf_nband
+    bs_nband = nscf_nband
     soenergy = 0.7
     mdf_epsinf = 12
     max_ncpus = 1
