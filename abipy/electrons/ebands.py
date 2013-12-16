@@ -75,11 +75,14 @@ class ElectronState(collections.namedtuple("ElectronState", "spin kpoint band ei
     #    return (self.spin = other.spin and 
     #            self.kpoint == other.kpoint and 
     #            self.band == other.band and 
-    #            self.eig == other.eig and 
+    #            self.eig == other.eig 
+                 # and self.occ == other.occ
     #            )
 
     #def __ne__(self, other):
     #    return not self == other
+
+    #def __str__(self):
 
     @property
     def skb(self):
@@ -184,9 +187,9 @@ class ElectronTransition(object):
         """String representation."""
         lines = []
         app = lines.append
-        app("%s, energy: %s [ev], direct: " % (self.__class__.__name__, self.energy, self.is_direct))
-        app("initial k %s" % self.in_state.kpoint)
-        app("final k %s" % self.out_state.kpoint)
+        app("Energy: %s [Ev]" % self.energy)
+        app("Initial state: %s" % str(self.in_state))
+        app("Final state: %s" % str(self.out_state))
 
         return "\n".join(lines)
 
@@ -289,10 +292,13 @@ class ElectronBands(object):
         self.kpoints = kpoints
         assert self.nkpt == len(self.kpoints)
 
-        self.fermie= fermie
-        self.nelect = nelect
-
         self.smearing = {} if smearing is None else smearing
+        self.nelect = nelect
+        self.fermie = fermie
+
+        self._fix_fermie()
+        # Use fermilevel as zero of energies.
+        self._eigens = self._eigens - self.fermie
 
         # Find the k-point names in the pymatgen database.
         # We'll use _auto_klabels to label the point in the matplotlib plot
@@ -693,24 +699,34 @@ class ElectronBands(object):
     #def set_fermie_from_dos(self):
     #    self.change_fermie(fermie=fermie)
 
-    #def _fix_fermie(self)
-    #    # Use the fermi level computed by Abinit for metals or if SCF run
-    #    if self.has_metallic_scheme or self.from_scfrun: return
-    #
-    #    # FXME This won't work if ferromagnetic semi-conductor.
-    #    occfact = 2 if self.nsppol == 1 else 2
-    #    esk_levels = []
-    #    for k in self.kidxs:
-    #        esb_list = [self.eigens[spin,k,band]]
-    #        for i, esk in enumerate(esb_list):
-    #            if i * occfact == self.nelect:
-    #                esk_levels.append(esk)
-    #                break
-    #        else:
-    #            raise ValueError()
+    #def from_scfrun(self):
+    #    return self.iscf > 0
 
-    #    new_fermie = max(esk_levels)
-    #    self.fermie = new_fermie
+    #def has_occupations(self):
+    #    return np.any(self.occfacts != 0.0)
+
+    def _fix_fermie(self):
+        # Use the fermi level computed by Abinit for metals or if SCF run
+        # FIXME
+        #if self.has_metallic_scheme or self.from_scfrun: return
+    
+        # FXME This won't work if ferromagnetic semi-conductor.
+        occfact = 2 if self.nsppol == 1 else 1
+        esb_levels = []
+        for k in self.kidxs:
+            esb_view = self.eigens[:,k,:].T.ravel()
+            for i, esb in enumerate(esb_view):
+                if (i+1) * occfact == self.nelect:
+                    esb_levels.append(esb)
+                    break
+            else:
+                raise ValueError()
+
+        new_fermie = max(esb_levels)
+        if abs(new_fermie - self.fermie) > 0.2:
+            print("old_fermie %s, new fermie %s" % (self.fermie, new_fermie))
+
+        self.fermie = new_fermie
 
     @property
     def lomos(self):
@@ -763,7 +779,7 @@ class ElectronBands(object):
         k = self.kindex(kpoint)
         # Find leftmost value greater than fermie.
         b = find_gt(self.eigens[spin,k,:], self.fermie)
-        return self._electron_state(spin, kidx, b)
+        return self._electron_state(spin, k, b)
 
     @property
     def homos(self):
@@ -836,28 +852,38 @@ class ElectronBands(object):
     def fundamental_gaps(self):
         return [ElectronTransition(self.homos[spin], self.lumos[spin]) for spin in self.spins]
 
-    #def get_transitions(self, in_band, out_band, spin)
+    @property
+    def direct_gaps(self):
+        dirgaps = self.nsppol * [None]
+        for spin in self.spins:
+            gaps = []
+            for k in self.kidxs:
+                 homo_sk = self.homo_sk(spin, k)
+                 lumo_sk = self.lumo_sk(spin, k)
+                 gaps.append(lumo_sk.eig - homo_sk.eig)
 
-    #@property
-    #def direct_gaps(self):
-    #    for spin in self.spins:
-    #        gaps = []
-    #        for k in self.kidxs:
-    #             homo_sk = self.homos_sk(spin, k)
-    #             lumo_sk = self.lumos_sk(spin, k)
-    #             gaps.append((lumo_sk.ene - homo_sk.ene, k))
-    #        egap, kgap = min(gaps)
+            # Find the index of the k-point where the direct gap is located.
+            kdir = np.array(gaps).argmin()
+            dirgaps[spin] = ElectronTransition(self.homo_sk(spin, kdir), self.lumo_sk(spin, kdir))
 
-    #    gap_spin[spin] = ElectronTransition(homos[spin], lomos[spin]
+        return dirgaps
 
-    #def info(self):
-    #    for spin in self.spins:
-    #        homo_band = self.homo_band(spin)
-    #        opt_gaps = self.eigens[spin,:,homo_band+1] - self.eigens[spin,:,homo_band]
-    #        kmax_idx = opt_gaps.argmax()
-    #        kmix_idx = opt_gaps.argmin()
-    #        kmax = self.kpoints[kmax_idx]
-    #        kmin = self.kpoints[kmin_idx]
+    @property
+    def info(self):
+        dir_gaps = self.direct_gaps
+        fun_gaps = self.fundamental_gaps
+
+        lines = []
+        app = lines.append
+
+        app("Fermi level: %s [eV]" % self.fermie)
+
+        for spin in self.spins:
+            app("Spin %s" % spin)
+            app("Direct gap: %s" % str(dir_gaps[spin]))
+            app("Fundamental gap %s" % str(fun_gaps[spin]))
+
+        return "\n".join(lines)
 
     def get_edos(self, method="gaussian", step=0.1, width=0.2):
         """
