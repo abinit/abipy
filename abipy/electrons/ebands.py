@@ -296,9 +296,8 @@ class ElectronBands(object):
         self.nelect = nelect
         self.fermie = fermie
 
+        # Fix the Fermi level and use efermi as the energy zero.
         self._fix_fermie()
-        # Use fermilevel as zero of energies.
-        self._eigens = self._eigens - self.fermie
 
         # Find the k-point names in the pymatgen database.
         # We'll use _auto_klabels to label the point in the matplotlib plot
@@ -708,7 +707,7 @@ class ElectronBands(object):
     def _fix_fermie(self):
         # Use the fermi level computed by Abinit for metals or if SCF run
         # FIXME
-        #if self.has_metallic_scheme or self.from_scfrun: return
+        #if self.use_metallic_scheme or self.from_scfrun: return
     
         # FXME This won't work if ferromagnetic semi-conductor.
         occfact = 2 if self.nsppol == 1 else 1
@@ -720,21 +719,24 @@ class ElectronBands(object):
                     esb_levels.append(esb)
                     break
             else:
-                raise ValueError()
+                raise ValueError("Not enough bands to compute the position of the Fermi level!")
 
         new_fermie = max(esb_levels)
-        if abs(new_fermie - self.fermie) > 0.2:
-            print("old_fermie %s, new fermie %s" % (self.fermie, new_fermie))
+        #if abs(new_fermie - self.fermie) > 0.2:
+        print("old_fermie %s, new fermie %s" % (self.fermie, new_fermie))
 
-        self.fermie = new_fermie
+        # Use fermilevel as zero of energies.
+        self._eigens = self._eigens - new_fermie 
+        self.fermie = 0.0
+        #self.fermie = new_fermie
 
     @property
     def lomos(self):
         """lomo states for each spin channel as a list of nsppol `ElectronState`."""
         lomos = self.nsppol * [None]
         for spin in self.spins:
-            lomo_kidx = self.eigens[spin,:,1].argmin()
-            lomos[spin] = self._electron_state(spin, lomo_kidx, 1)
+            lomo_kidx = self.eigens[spin,:,0].argmin()
+            lomos[spin] = self._electron_state(spin, lomo_kidx, 0)
 
         return lomos
 
@@ -749,7 +751,7 @@ class ElectronBands(object):
                 Index of the kpoint or `Kpoint` object.
         """
         k = self.kindex(kpoint)
-        return self._electron_state(spin, k, 1)
+        return self._electron_state(spin, k, 0)
 
     def homo_sk(self, spin, kpoint):
         """
@@ -824,13 +826,13 @@ class ElectronBands(object):
         return lumos
 
     @property
-    def has_metallic_scheme(self):
+    def use_metallic_scheme(self):
         """True if we are using a metallic scheme for occupancies."""
-        return self.smearing.has_metallic_scheme
+        return self.smearing.use_metallic_scheme
 
     #def is_metal(self, spin)
     #    """True if this spin channel is metallic."""
-    #    if not self.has_metallic_scheme: return False
+    #    if not self.use_metallic_scheme: return False
     #    for k in self.kidxs:
     #        # Find leftmost value greater than x.
     #        b = find_gt(self.eigens[spin,k,:], self.fermie)
@@ -844,8 +846,11 @@ class ElectronBands(object):
     #       if abs(fun_gaps.ene) <  TOL_EGAP
 
     @property
-    def bandwiths(self):
-        """The bandwith for each spin channel i.e. the energy difference (homo - lomo)."""
+    def bandwidths(self):
+        """The bandwidth for each spin channel i.e. the energy difference (homo - lomo)."""
+        for spin in self.spins:
+            print("homos", self.homos[spin])
+            print("lomos",self.lomos[spin])
         return [self.homos[spin].eig - self.lomos[spin].eig for spin in self.spins]
 
     @property
@@ -872,6 +877,9 @@ class ElectronBands(object):
     def info(self):
         dir_gaps = self.direct_gaps
         fun_gaps = self.fundamental_gaps
+        widths = self.bandwidths
+        lomos = self.lomos
+        homos = self.homos
 
         lines = []
         app = lines.append
@@ -882,6 +890,9 @@ class ElectronBands(object):
             app("Spin %s" % spin)
             app("Direct gap: %s" % str(dir_gaps[spin]))
             app("Fundamental gap %s" % str(fun_gaps[spin]))
+            app("Bandwidth: %s [eV]" % widths[spin])
+            app("LOMO: %s" % str(lomos[spin]))
+            app("HOMO: %s" % str(homos[spin]))
 
         return "\n".join(lines)
 
