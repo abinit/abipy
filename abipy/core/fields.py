@@ -18,7 +18,11 @@ __all__ = [
 
 
 class ScalarField(object):
-
+    """
+    Base class representing a typical scalar field generated electrons (e.g. densities, potentials).
+    The field is represented on a homogenous real-space mesh.
+    This class provides helper functions to perform common operations such as FFT transforms.
+    """
     def __init__(self, nspinor, nsppol, nspden, datar, structure, iorder="c"):
         """
         Args:
@@ -256,7 +260,6 @@ class ScalarField(object):
         See :class:`Visualizer` for the list of applications and formats supported.
         """
         visu = Visualizer.from_name(visu_name)
-
 
         # Try to export data to one of the formats supported by the visualizer
         # Use a temporary file (note "." + ext)
