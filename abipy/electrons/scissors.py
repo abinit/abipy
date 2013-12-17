@@ -22,11 +22,11 @@ class Scissors(object):
     The operator is defined by a list of domains (energy intervals)
     and a list of functions defined on these domains. The domains
     should fulfill the constraints documented in the main constructor.
-    We assume eV units everywhere.
+    eV units are assumed.
 
     The standard way to create this object is via the methods
     provided by the factory class `ScissorBuilder`.
-    Once the instance has been create, one can correct the
+    Once the instance has been created, one can correct the
     band structure by calling the `apply` method.
     """
     Error = ScissorsError

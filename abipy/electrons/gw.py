@@ -24,7 +24,7 @@ __all__ = [
 class QPState(collections.namedtuple("QPState",
                          "spin kpoint band e0 qpe qpe_diago vxcme sigxme sigcmee0 vUme ze0")):
     """
-    QP data for given (spin, kpoint, band).
+    Quasi-particle result for given (spin, kpoint, band).
 
     .. Attributes:
 
@@ -330,7 +330,6 @@ class QPList(list):
             func_list.append(f)
 
         # Build the scissors operator.
-
         sciss = Scissors(func_list, domains, bounds)
 
         # Compare fit with input data.
