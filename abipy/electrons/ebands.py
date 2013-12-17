@@ -19,7 +19,6 @@ from abipy.electrons.edos import ElectronDOS
 from abipy.tools.animator import FilesAnimator
 from abipy.tools.numtools import find_le, find_gt
 
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -53,7 +52,7 @@ def lazy_property(method):
     return wrapper
 
 
-class ElectronState(collections.namedtuple("ElectronState", "spin kpoint band eig occ")):
+class Electron(collections.namedtuple("Electron", "spin kpoint band eig occ")):
     """
     Sigle-particle state.
 
@@ -92,7 +91,7 @@ class ElectronState(collections.namedtuple("ElectronState", "spin kpoint band ei
 
     def copy(self):
         d = {f: copy.copy(getattr(self, f)) for f in self._fields}
-        return ElectronState(**d)
+        return Electron(**d)
 
     @classmethod
     def get_fields(cls, exclude=()):
@@ -104,7 +103,7 @@ class ElectronState(collections.namedtuple("ElectronState", "spin kpoint band ei
 
     def asdict(self):
         """Convert self into a dict.""" 
-        return super(ElectronState, self)._asdict()
+        return super(Electron, self)._asdict()
 
     def to_strdict(self, fmt=None):
         """Ordered dictionary mapping fields --> strings."""
@@ -127,7 +126,7 @@ class ElectronState(collections.namedtuple("ElectronState", "spin kpoint band ei
 
     @property
     def tips(self):
-        """Bound method of self that returns a dictionary with the description of the fields."""
+        """Dictionary with the description of the fields."""
         return self.__class__.TIPS()
 
     @classmethod
@@ -174,12 +173,13 @@ class ElectronState(collections.namedtuple("ElectronState", "spin kpoint band ei
 
 
 class ElectronTransition(object):
-    """This object descrive an electronic transition between two single-particle states."""
-
+    """
+    This object describes an electronic transition between two single-particle states.
+    """
     def __init__(self, in_state, out_state):
         """
         Args:
-            in_state, out_state: Initial and finale state (`ElectronState` instances).
+            in_state, out_state: Initial and finale state (`Electron` instances).
         """
         self.in_state = in_state
         self.out_state = out_state
@@ -687,9 +687,9 @@ class ElectronBands(object):
 
     def _electron_state(self, spin, kpoint, band):
         """
-        Build an instance of `ElectronState` from the spin, kpoint and band index"""
+        Build an instance of `Electron` from the spin, kpoint and band index"""
         kidx = self.kindex(kpoint)
-        return ElectronState(spin=spin,
+        return Electron(spin=spin,
                              kpoint=self.kpoints[kidx],
                              band=band,
                              eig=self.eigens[spin,kidx,band],
@@ -702,6 +702,9 @@ class ElectronBands(object):
     #    return np.any(self.occfacts != 0.0)
 
     def _fix_fermie(self):
+        """
+        Fix the value of the Fermi level in semiconductors, set it to the HOMO level.
+        """
         # Use the fermi level computed by Abinit for metals or if SCF run
         # FIXME
         #if self.use_metallic_scheme or self.from_scfrun: return
@@ -720,7 +723,6 @@ class ElectronBands(object):
                     raise ValueError("Not enough bands to compute the position of the Fermi level!")
 
         except ValueError:
-            # Don't shift energies. 
             return
 
         new_fermie = max(esb_levels)
@@ -729,12 +731,16 @@ class ElectronBands(object):
 
         # Use fermilevel as zero of energies.
         self.fermie = new_fermie
+        # FIXME this is problematic since other values e.g. QP corrections
+        # are expressed in terms of KS energies and I should always have
+        # the fermi level to shift energies correctly. perhaps it's better if I provide
+        # an option to shift the energies in the plot.
         #self._eigens = self._eigens - new_fermie 
         #self.fermie = 0.0
 
     @property
     def lomos(self):
-        """lomo states for each spin channel as a list of nsppol `ElectronState`."""
+        """lomo states for each spin channel as a list of nsppol `Electron`."""
         lomos = self.nsppol * [None]
         for spin in self.spins:
             lomo_kidx = self.eigens[spin,:,0].argmin()
@@ -787,7 +793,7 @@ class ElectronBands(object):
 
     @property
     def homos(self):
-        """homo states for each spin channel as a list of nsppol `ElectronState`."""
+        """homo states for each spin channel as a list of nsppol `Electron`."""
         homos = self.nsppol * [None]
 
         for spin in self.spins:
@@ -801,14 +807,14 @@ class ElectronBands(object):
             homo_kidx = np.array(enes).argmax()
             homo_band = blist[homo_kidx]
 
-            # Build ElectronState instance.
+            # Build Electron instance.
             homos[spin] = self._electron_state(spin, homo_kidx, homo_band)
 
         return homos
 
     @property
     def lumos(self):
-        """lumo states for each spin channel as a list of nsppol `ElectronState`."""
+        """lumo states for each spin channel as a list of nsppol `Electron`."""
         lumos = self.nsppol * [None]
                                                                      
         for spin in self.spins:
@@ -822,7 +828,7 @@ class ElectronBands(object):
             lumo_kidx = np.array(enes).argmin()
             lumo_band = blist[lumo_kidx]
                                                                      
-            # Build ElectronState instance.
+            # Build Electron instance.
             lumos[spin] = self._electron_state(spin, lumo_kidx, lumo_band)
 
         return lumos
@@ -850,9 +856,6 @@ class ElectronBands(object):
     @property
     def bandwidths(self):
         """The bandwidth for each spin channel i.e. the energy difference (homo - lomo)."""
-        for spin in self.spins:
-            print("homos", self.homos[spin])
-            print("lomos",self.lomos[spin])
         return [self.homos[spin].eig - self.lomos[spin].eig for spin in self.spins]
 
     @property

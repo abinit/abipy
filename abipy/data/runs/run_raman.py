@@ -26,8 +26,10 @@ class RamanFlowTest(AbipyTest, MixinTest):
 
 
 def build_flow(options):
-    # Working directory (default is the name of the script with '.py' removed)
-    workdir = os.path.basename(os.path.abspath(__file__).replace(".py", "")) if not options.workdir else options.workdir
+    # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
+    workdir = options.workdir
+    if not options.workdir 
+        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
     # Instantiate the TaskManager.
     manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
@@ -125,7 +127,7 @@ def raman_workflow(structure, pseudos, shiftk):
         bs_coupling=0,
         bs_loband=2,
         nband=8,
-        bs_freq_mesh="0 10 0.1 eV",
+        #bs_freq_mesh="0 10 0.1 eV",
         bs_hayd_term=0,      # No terminator
     )
 

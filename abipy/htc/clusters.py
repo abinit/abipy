@@ -19,6 +19,9 @@ from pymatgen.core.design_patterns import AttrDict
 from pymatgen.util.io_utils import which
 from pymatgen.util.string_utils import is_string
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def straceback(color=None):
     """
@@ -53,8 +56,7 @@ def read_clusters(filepath=None):
         if not os.path.exists(filepath):
             # Try in the configuration directory.
             home = os.getenv("HOME")
-            dirpath = os.path.join(os.getenv("HOME"), ".abinit", "abipy", YAML_FILE)
-            filepath = os.path.join(dirpath, YAML_FILE)
+            filepath = os.path.join(home, ".abinit", "abipy", YAML_FILE)
 
             if not os.path.exists(filepath):
                 raise RuntimeError("Cannot locate %s neither in current directory nor in %s" % (YAML_FILE, dirpath))
@@ -86,6 +88,7 @@ class Cluster(object):
     """
     This object stores the basic parameters needed to establish SSH, SFTP connections with a remote machine. 
     It also provides helper functions for monitoring the resource manager.
+
     It is an abstract base class defining the interface that must be implemented 
     by the concrete subclasses. Every subclass must define the class attribute `qtype` that 
     specifies the type of resource manager installed on the cluster.
@@ -97,16 +100,20 @@ class Cluster(object):
     def __init__(self, username, hostname, workdir, sshfs_mountpoint=None):
         """
         Args:
-            hostname:
-                Name of the host.
             username:
                 Username used to login on the cluster.
+            hostname:
+                Name of the host.
             workdir:
-                Absolute path (on the remote host) where `AbinitFlows` will be produced.
+                Absolute path (on the remote host) where the `AbinitFlows` will be produced.
             sshfs_mountpoint:
-                Absolute path where the remote file system will be mounted.
+                Absolute path (on the local host) where the file system of 
+                the remote host will be mounted via sshfs.
         """
         self.username, self.hostname, self.workdir = username, hostname, workdir
+
+        if not os.path.isabs(self.workdir):
+            raise ValueError("Please use an absolute path for the remote workdir")
 
         self.port = 22    # Port for SSH connection
         self.timeout = 30 # Timeout in seconds.
@@ -114,7 +121,7 @@ class Cluster(object):
         self.sshfs_mountpoint = os.path.expanduser(sshfs_mountpoint) if sshfs_mountpoint else None
 
         if self.sshfs_mountpoint is not None and which("sshfs") is None:
-            warnings.warn("Cannot locate sshfs in $PATH, cannot mount remote filesystem with SSHFS")
+            warnings.warn("Cannot locate sshfs in $PATH, cannot mount remote filesystem without SSHFS")
 
     @classmethod
     def from_qtype(cls, qtype):
@@ -130,7 +137,8 @@ class Cluster(object):
 
     def __eq__(self, other):
         return (self.hostname == other.hostname and
-                self.username == other.username)
+                self.username == other.username and
+                self.workdir == other.workdir)
 
     def __ne__(self, other):
         return not self == other
@@ -140,7 +148,7 @@ class Cluster(object):
 
     @property
     def home(self):
-        """Home directory of the user."""
+        """Home directory of the user on the remote host."""
         try:
             return self._home
 
@@ -154,7 +162,7 @@ class Cluster(object):
         return os.path.join(self.workdir, basename)
 
     def exists(self, path):
-        """True if path exists on the cluster."""
+        """True if the remote path exists on the cluster."""
         return self.ssh_exec("test -e %s" % path).return_code == 0
 
     def ping(self):
@@ -201,6 +209,8 @@ class Cluster(object):
         retcode = os.system(cmd)
         self._is_sshfs_mounted = (retcode == 0)
 
+        # sshfs is asynchronous. Give it enough time to mount the file system
+        time.sleep(0.5)
         return retcode
 
     @property
@@ -220,9 +230,10 @@ class Cluster(object):
             return "darwin" in sys.platform
 
         if is_macosx():
+            # Mac uses umount.
             cmd = "umount %s" % self.sshfs_mountpoint
         else:
-            # Linux
+            # Linux must uses fusermount.
             cmd = "fusermount -u %s" % self.sshfs_mountpoint
 
         return os.system(cmd)
@@ -303,7 +314,7 @@ class Cluster(object):
         #if close: sftp.close()
 
     def exists(self, path):
-        """True if path exists."""
+        """True if the remote path exists."""
         return self.ssh_exec("test -e %s" % path).return_code == 0
 
     def which(self, bin):
@@ -311,7 +322,7 @@ class Cluster(object):
         return self.ssh_exec("which %s" % bin).out
 
     def read_file(self, path):
-        """Read a file located on the cluster."""
+        """Read a txt file located on the cluster."""
         return self.ssh_exec("cat %s" % path).out
 
     def make_workdir(self):
@@ -332,7 +343,7 @@ class Cluster(object):
         """
         if self.exists(path): return 0
 
-        #print("Will create remote dir %s" % path)
+        logger.info("Will create remote directory: %s" % path)
         return self.ssh_exec("mkdir %s" % path).return_code
 
     def rmdir(self, path):
@@ -367,16 +378,14 @@ class Cluster(object):
 
         return None
         # FIXME
-        return dict(
-            version=self.invoke_abinit("--version").out,
-            build=self.invoke_abinit("--build").out
-            )
+        return dict(version=self.invoke_abinit("--version").out,
+                    build=self.invoke_abinit("--build").out)
 
     def abicheck(self, with_color=False):
         """
         Run abicheck.py on the cluster to make sure the environment is properly setup.
 
-        args:
+        Args:
             with_color:
                 True if ANSII colored string is wanted.
 
@@ -588,6 +597,12 @@ class SSHResult(object):
             Return code of the command.
     """
     def __init__(self, stdout, stderr, return_code=None):
+        """
+        Args:
+            stdout:
+            stderr:
+            return_code:
+        """
         self.stdout, self.stderr = stdout, stderr
 
         if return_code is None:
@@ -596,12 +611,14 @@ class SSHResult(object):
             self.return_code = return_code
 
     def __str__(self):
+        """String representation."""
         s  = "out: " + self.out 
         if self.err: s += colored("\nerr: " + self.err, "red")
         return s
 
     @property
     def succeeded(self):
+        """True if SSH command completed successfully."""
         return self.return_code == 0
 
     @property
@@ -918,9 +935,10 @@ class FlowEntry(AttrDict):
 
 class FlowsDatabase(collections.MutableMapping):
     """
-    Database of flows executed on the clusters. It essentially consists of a dictionary that
-    maps the name of the script used to generate the flow to the absolute path on the remote hosts
-    where the flow is being executed.
+    Database of flows executed on the different clusters. 
+    It essentially consists of a dictionary that maps the name 
+    of the script used to generate the flow to the absolute path 
+    on the remote hosts where the flow is being executed.
 
     We use JSON to save/write the database to disk.
 
@@ -931,10 +949,16 @@ class FlowsDatabase(collections.MutableMapping):
     """
     #VERSION = "1"
 
+    # Basename of the file.
     JSON_FILE = "flowsdb.json"
     # hostname --> [ {flow_workdir, start_date, status}, ... ]
 
     def __init__(self, filepath, db=None):
+        """
+        Args:
+            filepath:
+            db:
+        """
         self.filepath = os.path.abspath(filepath)
         self.db = {} if db is None else db
 
@@ -963,7 +987,8 @@ class FlowsDatabase(collections.MutableMapping):
         """
         Initialize the `FlowsDatabase` from the YAML file 'flowsdb.json'.
         Search first in the working directory and then in the configuration
-        directory of abipy. If no JSON file, a new database is created in ~/.abinit/.abipy
+        directory of abipy. If no JSON file is found, a new database 
+        is created in the default directory ~/.abinit/.abipy
         """
         # Try in the current directory.
         path = os.path.join(os.getcwd(), cls.JSON_FILE)
@@ -983,6 +1008,7 @@ class FlowsDatabase(collections.MutableMapping):
         return cls(path)
 
     def __str__(self):
+        """String representation."""
         strio = StringIO.StringIO()
         pprint.pprint(self.db, stream=strio, indent=1)
         return "%s: %s\n" % (self.__class__.__name__, self.filepath) + strio.getvalue()
@@ -1024,6 +1050,10 @@ class FlowsDatabase(collections.MutableMapping):
             return [hostnames] if is_string(hostnames) else hostnames
 
     def select_flows(self, hostname, status=None):
+        """
+        Return the list of flows running on the specified hostname.
+        Select onky those flows with the specified if status is not None.
+        """
         if status is not None:
             return [flow for flow in self[hostname] if flow.status == status]
         else:
@@ -1069,7 +1099,7 @@ class FlowsDatabase(collections.MutableMapping):
 
     def remove_flow(self, flow):
         """
-        Remove a flow from the database.
+        Remove a flow from the database and update the database.
 
         Returns:
             The entry that has been removed.
@@ -1119,7 +1149,8 @@ class FlowsDatabase(collections.MutableMapping):
 
     def maintenance(self, hostnames=None):
         """
-        Remove dead flows from the database i.e. the flows whose workdir does not exist anymore.
+        Remove stale flows from the database i.e. the flows 
+        whose workdir does not exist anymore.
         """
         removed = []
 
@@ -1175,8 +1206,8 @@ class FlowsDatabase(collections.MutableMapping):
         result = shell.myexec(command)
 
         if result.return_code:
+            logger.critical("%s returned %s. Aborting operation" % (command, result.return_code))
             print(result)
-            print("%s returned %s. Aborting operation" % (command, result.return_code))
             return
 
         # Run the scheduler with nohup.
@@ -1230,11 +1261,12 @@ class FlowsDatabase(collections.MutableMapping):
         ## Add the flow to the local database.
         #self.register_flow(cluster.hostname, flow_dir)
 
+
 from abipy.core.testing import AbipyTest
 
 class FlowsDatabaseTest(AbipyTest):
-
-    def test_dbapi(self):
+    def test_db(self):
+        """Testing FlowsDatabase."""
 
         db = {"manneback": [
                 AttrDict(workdir="/WORKDIR/run_si_ebands", 
@@ -1269,9 +1301,9 @@ class FlowsDatabaseTest(AbipyTest):
         atrue(fdb.has_flow("manneback", "/WORKDIR/run_si_ebands2"))
         atrue( not fdb.has_flow("lemaitre2", "/WORKDIR/run_si_ebands2"))
 
+        # Dump the database and re-read it.
         fdb.json_dump()
         other = FlowsDatabase.from_file(fdb.filepath)
-        #assert 0
 
 
 if __name__ == "__main__":
