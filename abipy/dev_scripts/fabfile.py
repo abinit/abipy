@@ -102,7 +102,15 @@ def git_install():
             run("python setup.py clean")
             #run("rm -rf build")
             #run("rm -rf sdist")
-            run("python setup.py install")
+            #run("python setup.py install")
+            run("python setup.py develop")
+
+
+def git_checkout():
+    """Perform git_checkout."""
+    for apath in git_repospaths:
+        with cd(apath), _virtualenv(VENV):
+            run("git checkout .")
 
 
 def pytest(opts=""):

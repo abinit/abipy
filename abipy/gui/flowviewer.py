@@ -10,6 +10,7 @@ import wx.lib.agw.flatnotebook as fnb
 
 from collections import OrderedDict
 from pymatgen.io.abinitio.launcher import PyLauncher 
+from pymatgen.io.abinitio.tasks import Node
 from abipy import abilab
 from abipy.gui.events import AbinitEventsFrame, AbinitEventsNotebookFrame
 from abipy.gui.timer import MultiTimerFrame
@@ -662,6 +663,19 @@ def task_reset(parent, task):
     check_status_and_pickle(task)
 
 
+def task_set_status(parent, task):
+    """Reset the status of the task."""
+    choices = [str(s) for s in Node.ALL_STATUS]
+    dialog = wx.SingleChoiceDialog(parent, message="Select new status", caption="", choices=choices)
+    if dialog.ShowModal() == wx.ID_CANCEL: return None
+    status = choices[dialog.GetSelection()]
+    dialog.Destroy()
+
+    task.set_status(status, info_msg="Status changed by user on %s" % time.asctime())
+    #task.reset()
+    check_status_and_pickle(task)
+
+
 def task_show_deps(parent, task):
     """Show the dependencies of the task."""
     text = task.str_deps()
@@ -694,6 +708,7 @@ class TaskPopupMenu(wx.Menu):
         ("reset", task_reset),
         ("dependencies", task_show_deps),
         ("inspect", task_inspect),
+        ("set status", task_set_status),
     ])
 
     def __init__(self, parent, task):
@@ -945,6 +960,30 @@ class FileSelectorFrame(wx.Frame):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(file_selector, 1, wx.EXPAND , 5)
         panel.SetSizerAndFit(main_sizer)
+
+
+#class StatusSelectorFrame(wx.Frame):
+#    def __init__(self, parent, viewer, **kwargs):
+#        super(StatusSelectorFrame, self).__init__(parent, -1, **kwargs)
+#
+#        panel = wx.Panel(self, -1)
+#
+#        #choices = ["S_OK", "*WFK-etsf.nc", "*SIGRES.nc", "*MDF.nc"]
+#
+#        #self.status_cbox = wx.ComboBox(panel, id=-1, name='File type', choices=choices, value=choices[0], style=wx.CB_READONLY)  
+#
+#        #smodes = ["Selected Workflow", "Entire Flow"]
+#        #self.select_rbox = wx.RadioBox(panel, id=1, name="Selection Mode", choices=smodes, style=wx.RA_SPECIFY_ROWS)
+#
+#        #open_button = wx.Button(panel, -1, label='Open files')
+#        #open_button.Bind(wx.EVT_BUTTON, self.onOpenButton)
+#
+#        main_sizer = wx.BoxSizer(wx.VERTICAL)
+#        main_sizer.Add(file_selector, 1, wx.EXPAND , 5)
+#        panel.SetSizerAndFit(main_sizer)
+#
+#    def getSelectedStatus(self):
+#        return self.choices_cbox.GetValue()
 
 
 def wxapp_flow_viewer(works):

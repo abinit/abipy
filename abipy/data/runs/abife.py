@@ -39,8 +39,26 @@ def straceback(color=None):
         return s
 
 
-def read_clusters(filepath="clusters.yml"):
-    """Read the configuration paramenters from the YAML file clusters.yml."""
+def read_clusters(filepath=None):
+    """
+    Read the configuration parameters from the YAML file clusters.yml.
+    If filepath is None, use default locations i.e. working directory 
+    and then abipy configuration directory.
+    """
+    if filepath is None:
+        YAML_FILE = "clusters.yml"
+        # Try in the current directory.
+        filepath = os.path.join(os.getcwd(), YAML_FILE)
+
+        if not os.path.exists(filepath):
+            # Try in the configuration directory.
+            home = os.getenv("HOME")
+            dirpath = os.path.join(os.getenv("HOME"), ".abinit", "abipy", YAML_FILE)
+            filepath = os.path.join(dirpath, YAML_FILE)
+
+            if not os.path.exists(filepath):
+                raise RuntimeError("Cannot locate %s neither in current directory nor in %s" % (YAML_FILE, dirpath))
+
     with open(filepath, "r") as fh:
         conf = yaml.load(fh)
 
@@ -85,7 +103,8 @@ class Cluster(object):
                 Username used to login on the cluster.
             workdir:
                 Absolute path (on the remote host) where `AbinitFlows` will be produced.
-            sshfs_mountpoint
+            sshfs_mountpoint:
+                Absolute path where the remote file system will be mounted.
         """
         self.username, self.hostname, self.workdir = username, hostname, workdir
 
@@ -97,15 +116,11 @@ class Cluster(object):
         if self.sshfs_mountpoint is not None and which("sshfs") is None:
             warnings.warn("Cannot locate sshfs in $PATH, cannot mount remote filesystem with SSHFS")
 
-        # List of partitions available on the cluster.
-        #self.partions = []
-
     @classmethod
     def from_qtype(cls, qtype):
         """Return the appropriate subclass from the queue type."""
         for subcls in cls.__subclasses__():
-            if subcls.qtype == qtype:
-                return subcls
+            if subcls.qtype == qtype: return subcls
 
         raise ValueError("Wrong value for qtype %s" % qtype)
 
@@ -182,7 +197,7 @@ class Cluster(object):
         # Usage: sshfs [user@]host:[dir] mountpoint [options]
         opts = " ".join(o for o in options) if options else ""
         cmd = "sshfs %s@%s:%s %s %s" % (self.username, self.hostname, self.workdir, self.sshfs_mountpoint, opts)
-        #print(cmd)
+
         retcode = os.system(cmd)
         self._is_sshfs_mounted = (retcode == 0)
 
@@ -296,6 +311,7 @@ class Cluster(object):
         return self.ssh_exec("which %s" % bin).out
 
     def read_file(self, path):
+        """Read a file located on the cluster."""
         return self.ssh_exec("cat %s" % path).out
 
     def make_workdir(self):
@@ -387,11 +403,9 @@ class Cluster(object):
 
     def yaml_configurations(self):
         """List of dicts with the YAML configuration files used on the remote hosts."""
-
         conf_files = [
             "~/.abinit/abipy/taskmanager.yml",
-            "~/.abinit/abipy/scheduler.yml",
-        ]
+            "~/.abinit/abipy/scheduler.yml"]
 
         confs = []
         for f in conf_files:

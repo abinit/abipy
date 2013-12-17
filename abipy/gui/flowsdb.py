@@ -134,14 +134,14 @@ class FlowsDbViewerFrame(awx.Frame):
         def bitmap(path):
             return wx.Bitmap(awx.path_img(path))
 
-        toolbar.AddSimpleTool(self.ID_RUN_SCRIPT, bitmap("script.png"), "Upload and execute the script on the remote host.")
-        toolbar.AddSimpleTool(self.ID_CHECK_STATUS, bitmap("script.png"), "Check the status of the flows running on the remote host.")
+        toolbar.AddSimpleTool(self.ID_RUN_SCRIPT, bitmap("run.png"), "Upload and execute the script on the remote host.")
+        toolbar.AddSimpleTool(self.ID_CHECK_STATUS, bitmap("chk.png"), "Check the status of the flows running on the remote host.")
 
         toolbar.AddSeparator()
 
-        toolbar.AddSimpleTool(self.ID_TERMINAL, bitmap("script.png"), "Open terminal and connect to the remote host.")
-        toolbar.AddSimpleTool(self.ID_SHOW_ABINIT_INFO, bitmap("script.png"), "Show the ABINIT version and the build info used on the remote host")
-        toolbar.AddSimpleTool(self.ID_SHOW_ABIPY_ENV, bitmap("script.png"), "Show the abipy enviroment available on the remote host.")
+        toolbar.AddSimpleTool(self.ID_TERMINAL, bitmap("term.png"), "Open terminal and connect to the remote host.")
+        toolbar.AddSimpleTool(self.ID_SHOW_ABINIT_INFO, bitmap("vers.png"), "Show the ABINIT version and the build info used on the remote host")
+        toolbar.AddSimpleTool(self.ID_SHOW_ABIPY_ENV, bitmap("vers.png"), "Show the abipy enviroment available on the remote host.")
 
         self.toolbar.Realize()
         self.Centre()
@@ -646,28 +646,6 @@ def wxapp_flowsdb_viewer():
     FlowsDbViewerFrame(None).Show()
     return app
 
-#class JobsPanel(wx.Panel):
-#    def __init__(self, parent, cluster, **kwargs):
-#        super(JobsPanel, self).__init__(parent, -1, **kwargs)
-#        self.cluster = cluster
-#
-#        main_sizer = wx.BoxSizer(wx.VERTICAL)
-#
-#        #user_jobs_button = wx.Button(self, -1, label='User Jobs')
-#        #all_jobs_button = wx.Button(self, -1, label='All Jobs')
-#        #self.Bind(wx.EVT_BUTTON, self.ShowAllJobs, all_jobs_button)
-#        #self.Bind(wx.EVT_BUTTON, self.ShowUserJobs, user_jobs_button)
-#
-#        #hbox = wx.BoxSizer(wx.HORIZONTAL)
-#        #hbox = wx.BoxSizer(wx.HORIZONTAL)
-#        #hbox.Add(user_jobs_button)
-#        #hbox.Add(all_jobs_button, flag=wx.LEFT, border=5)
-#        #main_sizer.Add(hbox, proportion=0, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10)
-#
-#        #self.text_ctrl = wx.TextCtrl(self, -1, value="", style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
-#        #main_sizer.Add(self.text_ctrl, 1, wx.ALIGN_CENTER_HORIZONTAL, 5)
-#
-#        self.SetSizerAndFit(main_sizer)
 
 if __name__ == "__main__":
     wxapp_flowsdb_viewer().MainLoop()

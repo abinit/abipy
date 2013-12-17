@@ -94,11 +94,14 @@ class Has_Ebands(object):
     def CreateEbandsMenu(self):
         """Creates the ebands menu."""
         # Ebands Menu ID's
+        self.ID_EBANDS_GETINFO = wx.NewId()
         self.ID_EBANDS_PLOT = wx.NewId()
         self.ID_EBANDS_DOS = wx.NewId()
         self.ID_EBANDS_JDOS = wx.NewId()
 
         menu = wx.Menu()
+        menu.Append(self.ID_EBANDS_GETINFO, "Get Info", "Show info on the band structure")
+        self.Bind(wx.EVT_MENU, self.OnEbandsGetInfo, id=self.ID_EBANDS_GETINFO)
         menu.Append(self.ID_EBANDS_PLOT, "Plot ebands", "Plot electron bands with matplotlib")
         self.Bind(wx.EVT_MENU, self.OnEbandsPlot, id=self.ID_EBANDS_PLOT)
         menu.Append(self.ID_EBANDS_DOS, "DOS", "Compute the electron DOS")
@@ -107,6 +110,12 @@ class Has_Ebands(object):
         self.Bind(wx.EVT_MENU, self.OnEbandsJdos, id=self.ID_EBANDS_JDOS)
                                                                                                     
         return menu
+
+    def OnEbandsGetInfo(self, event):
+        """Shows info on the bandstructure."""
+        s = self.ebands.info
+        caption = "Ebands info" 
+        wxdg.ScrolledMessageDialog(self, s, caption=caption, style=wx.MAXIMIZE_BOX).Show()
 
     def OnEbandsPlot(self, event):
         """Plot band energies with matplotlib."""
