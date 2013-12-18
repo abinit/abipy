@@ -643,7 +643,7 @@ class FlowPopupMenu(wx.Menu):
 
 
 def wxapp_flowsdb_viewer():
-    """Standalone application for `FlowsDbViewerFrame"""
+    """Standalone application for `FlowsDbViewerFrame`"""
     app = awx.App()
     FlowsDbViewerFrame(None).Show()
     return app

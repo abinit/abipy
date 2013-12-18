@@ -987,7 +987,7 @@ class FileSelectorFrame(wx.Frame):
 
 
 def wxapp_flow_viewer(works):
-    """Standalone application for `FlowViewerFrame"""
+    """Standalone application for `FlowViewerFrame`."""
     app = awx.App()
     FlowViewerFrame(None, works).Show()
     return app

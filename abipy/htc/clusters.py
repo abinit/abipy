@@ -357,7 +357,7 @@ class Cluster(object):
         shell.settimeout(timeout if timeout != -1 else self.timeout)
         return shell
 
-    def invoke_abinit(self, *args):
+    def exec_abinit(self, *args):
         """Returns the output of `abinit args`."""
         shell = self.invoke_shell()
 
@@ -378,8 +378,8 @@ class Cluster(object):
 
         return None
         # FIXME
-        return dict(version=self.invoke_abinit("--version").out,
-                    build=self.invoke_abinit("--build").out)
+        return dict(version=self.exec_abinit("--version").out,
+                    build=self.exec_abinit("--build").out)
 
     def abicheck(self, with_color=False):
         """
@@ -807,13 +807,13 @@ class RunCommand(cmd.Cmd, object):
     def do_abinit_version(self, line):
         """Show the abinit version available on the clusters."""
         for cluster in self._select_clusters(line):
-            s = cluster.invoke_abinit("--version")
+            s = cluster.exec_abinit("--version")
             print(cluster.prefix_str(s))
 
     def do_abinit_build_info(self, line):
         """Show the abinit build parameters."""
         for cluster in self._select_clusters(line):
-            s = cluster.invoke_abinit("--build")
+            s = cluster.exec_abinit("--build")
             print(cluster.prefix_str(s))
 
     def do_flow_start(self, line):
@@ -976,7 +976,7 @@ class FlowsDatabase(collections.MutableMapping):
 
     @classmethod
     def from_file(cls, filepath):
-        """Read the database from file."""
+        """Read and initialize the database from file."""
         filepath = os.path.abspath(filepath)
 
         with open(filepath, "r") as fh:
@@ -1102,13 +1102,16 @@ class FlowsDatabase(collections.MutableMapping):
         Remove a flow from the database and update the database.
 
         Returns:
-            The entry that has been removed.
+            The entry that has been removed. None if flow is not in the database.
         """
-        flows = self[flow.hostname]
-        flows.remove(flow)
+        try:
+            flows = self[flow.hostname]
+            flows.remove(flow)
 
-        self.json_dump()
-        return flow
+            self.json_dump()
+            return flow
+        except:
+            return None
 
     def check_status(self, hostnames=None, workdir=None):
         """
@@ -1284,8 +1287,10 @@ class FlowsDatabaseTest(AbipyTest):
                 ]
             }
 
-        #self.tmpfile_write(string)
-        fdb = FlowsDatabase(filepath="test.json", db=db) 
+        import tempfile
+        _, tmp_fname = tempfile.mkstemp() 
+
+        fdb = FlowsDatabase(filepath=tmp_fname, db=db) 
 
         print(fdb)
 
@@ -1304,6 +1309,9 @@ class FlowsDatabaseTest(AbipyTest):
         # Dump the database and re-read it.
         fdb.json_dump()
         other = FlowsDatabase.from_file(fdb.filepath)
+
+        # Remove temporary file.
+        os.remove(fdb.filepath)
 
 
 if __name__ == "__main__":

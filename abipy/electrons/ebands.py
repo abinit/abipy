@@ -758,8 +758,7 @@ class ElectronBands(object):
             kpoint:
                 Index of the kpoint or `Kpoint` object.
         """
-        k = self.kindex(kpoint)
-        return self._electron_state(spin, k, 0)
+        return self._electron_state(spin, kpoint, 0)
 
     def homo_sk(self, spin, kpoint):
         """

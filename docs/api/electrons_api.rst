@@ -34,6 +34,14 @@ electrons Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`gsr` Module
+-----------------
+
+.. automodule:: abipy.electrons.gsr
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`gw` Module
 ---------------------
 

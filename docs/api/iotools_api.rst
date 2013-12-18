@@ -9,19 +9,10 @@ iotools Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`files` Package
+----------------------
 
-:mod:`FortranFile` Module
--------------------------
-
-.. automodule:: abipy.iotools.FortranFile
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-:mod:`etsfio` Module
---------------------
-
-.. automodule:: abipy.iotools.etsfio
+.. automodule:: abipy.iotools.files
    :members:
    :undoc-members:
    :show-inheritance:

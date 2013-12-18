@@ -82,14 +82,13 @@ class Has_Structure(object):
 
 class Has_Ebands(object):
     """
-    Mixin class that provides a menu and callbacks 
-    for analyzing electron bands.
+    Mixin class that provides a menu and callbacks for analyzing electron bands.
     """
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractproperty
     def ebands(self):
-        """`Electron Bands object."""
+        """`ElectronBands` object."""
 
     def CreateEbandsMenu(self):
         """Creates the ebands menu."""
