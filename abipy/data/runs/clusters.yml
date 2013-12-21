@@ -13,10 +13,27 @@ workdir: /home/ucl/naps/gmatteo/WORKDIR
 # qtype: Resource manager type. At present only [slurm, sge] are supported.
 # workdir: Absolute path of the directory on the remote machine where the flows will be produced. 
 clusters:
-    manneback: {workdir: /home/naps/gmatteo/WORKDIR}
-    lemaitre2: {}
-    hmem: {}
-    dragon1: {}
-    hercules: {workdir: /home/gmatteo/WORKDIR}
-    vega: {}
-    #green: {qtype: sge, workdir: /home/naps/gmatteo/WORKDIR}
+    manneback: {
+      workdir: /home/naps/gmatteo/WORKDIR,
+      sshfs_mountpoint: ~/sshfs/manneback
+    }
+    lemaitre2: {
+      sshfs_mountpoint: ~/sshfs/lemaitre2
+    }
+    hmem: {
+      sshfs_mountpoint: ~/sshfs/hmem
+    }
+    dragon1: {
+      sshfs_mountpoint: ~/sshfs/dragon1
+    }
+    hercules: {
+      workdir: /home/gmatteo/WORKDIR,
+      sshfs_mountpoint: ~/sshfs/hercules
+    }
+    vega: {
+      sshfs_mountpoint: ~/sshfs/vega
+      }
+    #green: {
+    #  qtype: sge, 
+    #  workdir: /home/naps/gmatteo/WORKDIR,
+    #  sshfs_mountpoint: ~/sshfs/gree}

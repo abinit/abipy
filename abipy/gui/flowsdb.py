@@ -4,13 +4,14 @@ import os
 import subprocess
 import wx
 
-import abipy.gui.awx as awx
 import wx.lib.agw.flatnotebook as fnb
 import wx.lib.newevent
+import abipy.gui.awx as awx
 
 from collections import OrderedDict
 from pymatgen.util.io_utils import which
 from abipy.gui.editor import  SimpleTextViewer, MyEditorFrame
+from abipy.gui.flowviewer import FlowViewerFrame
 from abipy.data.runs.abife import FlowsDatabase
 
 # Command event used to signal that the Flows database 
@@ -133,14 +134,14 @@ class FlowsDbViewerFrame(awx.Frame):
         def bitmap(path):
             return wx.Bitmap(awx.path_img(path))
 
-        toolbar.AddSimpleTool(self.ID_RUN_SCRIPT, bitmap("script.png"), "Upload and execute the script on the remote host.")
-        toolbar.AddSimpleTool(self.ID_CHECK_STATUS, bitmap("script.png"), "Check the status of the flows running on the remote host.")
+        toolbar.AddSimpleTool(self.ID_RUN_SCRIPT, bitmap("run.png"), "Upload and execute the script on the remote host.")
+        toolbar.AddSimpleTool(self.ID_CHECK_STATUS, bitmap("chk.png"), "Check the status of the flows running on the remote host.")
 
         toolbar.AddSeparator()
 
-        toolbar.AddSimpleTool(self.ID_TERMINAL, bitmap("script.png"), "Open terminal and connect to the remote host.")
-        toolbar.AddSimpleTool(self.ID_SHOW_ABINIT_INFO, bitmap("script.png"), "Show the ABINIT version and the build info used on the remote host")
-        toolbar.AddSimpleTool(self.ID_SHOW_ABIPY_ENV, bitmap("script.png"), "Show the abipy enviroment available on the remote host.")
+        toolbar.AddSimpleTool(self.ID_TERMINAL, bitmap("term.png"), "Open terminal and connect to the remote host.")
+        toolbar.AddSimpleTool(self.ID_SHOW_ABINIT_INFO, bitmap("vers.png"), "Show the ABINIT version and the build info used on the remote host")
+        toolbar.AddSimpleTool(self.ID_SHOW_ABIPY_ENV, bitmap("vers.png"), "Show the abipy enviroment available on the remote host.")
 
         self.toolbar.Realize()
         self.Centre()
@@ -563,6 +564,34 @@ def flow_sched_log(parent, cluster, flow, flows_db):
     SimpleTextViewer(parent, text=s, title=sched_log).Show()
 
 
+@busy
+def flow_viewer(parent, cluster, flow, flows_db):
+    """Mount the remote filesystem with SSHFS and open the flowviewer."""
+    # Mount remote workdir.
+    retcode = cluster.sshfs_mount()
+    if retcode: 
+        return awx.showErrorMessage("sshfs returned retcode %s. Returning!" % retcode)
+
+    # Read the flow from the pickle database (note the use of the local path).
+    from abipy import abilab
+    #local_path = os.path.join(cluster.workdir, os.path.basename(flow.workdir))
+    local_path = os.path.join(cluster.sshfs_mountpoint, os.path.basename(flow.workdir))
+    print("local_path", local_path)
+
+    try:
+        flow_obj = abilab.AbinitFlow.pickle_load(local_path)
+    except IOError:
+        # It seems that sshfs is asynchronous. 
+        # Give it enough time to mount the file system and try again.
+        import time
+        time.sleep(4)
+        flow_obj = abilab.AbinitFlow.pickle_load(local_path)
+
+    # Change root and open the Viewer in a new frame.
+    flow_obj.chroot(local_path)
+    FlowViewerFrame(parent, flow_obj).Show()
+
+
 class FlowPopupMenu(wx.Menu):
     """
     A `FlowPopupMenu` has a list of callback functions indexed by the menu title. 
@@ -575,6 +604,7 @@ class FlowPopupMenu(wx.Menu):
         ("cancel", flow_cancel),
         ("remove", flow_remove),
         ("sched_log", flow_sched_log),
+        ("flowviewer", flow_viewer),
     ])
 
     def __init__(self, parent, cluster, flow, flows_db):
@@ -616,28 +646,6 @@ def wxapp_flowsdb_viewer():
     FlowsDbViewerFrame(None).Show()
     return app
 
-#class JobsPanel(wx.Panel):
-#    def __init__(self, parent, cluster, **kwargs):
-#        super(JobsPanel, self).__init__(parent, -1, **kwargs)
-#        self.cluster = cluster
-#
-#        main_sizer = wx.BoxSizer(wx.VERTICAL)
-#
-#        #user_jobs_button = wx.Button(self, -1, label='User Jobs')
-#        #all_jobs_button = wx.Button(self, -1, label='All Jobs')
-#        #self.Bind(wx.EVT_BUTTON, self.ShowAllJobs, all_jobs_button)
-#        #self.Bind(wx.EVT_BUTTON, self.ShowUserJobs, user_jobs_button)
-#
-#        #hbox = wx.BoxSizer(wx.HORIZONTAL)
-#        #hbox = wx.BoxSizer(wx.HORIZONTAL)
-#        #hbox.Add(user_jobs_button)
-#        #hbox.Add(all_jobs_button, flag=wx.LEFT, border=5)
-#        #main_sizer.Add(hbox, proportion=0, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10)
-#
-#        #self.text_ctrl = wx.TextCtrl(self, -1, value="", style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
-#        #main_sizer.Add(self.text_ctrl, 1, wx.ALIGN_CENTER_HORIZONTAL, 5)
-#
-#        self.SetSizerAndFit(main_sizer)
 
 if __name__ == "__main__":
     wxapp_flowsdb_viewer().MainLoop()

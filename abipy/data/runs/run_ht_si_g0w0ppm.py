@@ -62,8 +62,8 @@ def build_flow(options):
 
     work = g0w0_with_ppmodel(structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx,
                              accuracy="normal", spin_mode="unpolarized", smearing=None, 
-                             ppmodel="godby", charge=0.0, inclvkb=2, sigma_nband=None, scr_nband=None,
-                             **extra_abivars)
+                             ppmodel="godby", charge=0.0, inclvkb=2, sigma_nband=None, gw_qprange=1,
+                             scr_nband=None, **extra_abivars)
     
     flow.register_work(work)
     return flow.allocate()

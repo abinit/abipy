@@ -42,8 +42,10 @@ class AbinitFile(object):
 
         try:
             return cls(filepath)
-        except Exception as exc:
-            msg = "%s\n Perhaps the subclass %s must redefine the classmethod from_file\n" % (str(exc), cls)
+        except:
+            import traceback
+            msg = traceback.format_exc()
+            msg += "\n Perhaps the subclass %s must redefine the classmethod from_file\n" % cls
             raise ValueError(msg)
 
     @property

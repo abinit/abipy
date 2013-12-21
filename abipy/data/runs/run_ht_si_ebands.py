@@ -10,7 +10,7 @@ from abipy import abilab
 from pymatgen.io.abinitio.abiobjects import AbiStructure
 from pymatgen.io.abinitio.calculations import bandstructure
 
-from abipy.data.runs import enable_logging, AbipyTest, MixinTest
+from abipy.data.runs import AbipyTest, MixinTest
 
 
 class HtSiEbandsFlowTest(AbipyTest, MixinTest):
