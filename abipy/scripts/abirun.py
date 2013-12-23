@@ -72,7 +72,12 @@ def treat_flow(flow, options):
         sched.start()
 
     if options.command == "status":
-        flow.show_status()
+        #flow.show_status()
+        import pstats, cProfile
+        cProfile.runctx("flow.show_status()", globals(), locals(), "Profile.prof")
+        s = pstats.Stats("Profile.prof")
+        s.strip_dirs().sort_stats("time").print_stats()
+
 
     if options.command == "cancel":
         num_cancelled = flow.cancel()

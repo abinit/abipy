@@ -204,7 +204,7 @@ class FlowsDbViewerFrame(awx.Frame):
 
     def ReshowFlowsDb(self, event):
         """Refresh the GUI, called when we have modified the database."""
-        logger.debug("in refresh with event %s" % event)
+        logger.debug("In refresh with event %s" % event)
         self.notebook.ReshowFlowsDb(event)
 
     def OnRunScript(self, event):

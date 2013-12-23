@@ -936,9 +936,9 @@ class FlowEntry(AttrDict):
 class FlowsDatabase(collections.MutableMapping):
     """
     Database of flows executed on the different clusters. 
-    It essentially consists of a dictionary that maps the name 
-    of the script used to generate the flow to the absolute path 
-    on the remote hosts where the flow is being executed.
+    It essentially consists of a dictionary mapping the hostname 
+    to the list of `Flows` executed on the remote machine i.e.
+    hostname --> [ {flow_workdir, start_date, status}, ... ]
 
     We use JSON to save/write the database to disk.
 
@@ -951,7 +951,7 @@ class FlowsDatabase(collections.MutableMapping):
 
     # Basename of the file.
     JSON_FILE = "flowsdb.json"
-    # hostname --> [ {flow_workdir, start_date, status}, ... ]
+
 
     def __init__(self, filepath, db=None):
         """
@@ -1272,18 +1272,18 @@ class FlowsDatabaseTest(AbipyTest):
         """Testing FlowsDatabase."""
 
         db = {"manneback": [
-                AttrDict(workdir="/WORKDIR/run_si_ebands", 
-                         status="init", 
-                         start_date="Wed Nov 20 19:59:05 2013"),
-                AttrDict(workdir="/WORKDIR/run_si_ebands2", 
-                         status="error", 
-                         start_date="Wed Nov 21 19:59:05 2013"),
+                FlowEntry(workdir="/WORKDIR/run_si_ebands", 
+                          status="init", 
+                          start_date="Wed Nov 20 19:59:05 2013"),
+                FlowEntry(workdir="/WORKDIR/run_si_ebands2", 
+                          status="error", 
+                          start_date="Wed Nov 21 19:59:05 2013"),
                 ],
 
               "lemaitre2": [
-                AttrDict(workdir="/WORKDIR/run_si_ebands", 
-                         status="init", 
-                         start_date="Wed Nov 20 19:59:05 2013"),
+                FlowEntry(workdir="/WORKDIR/run_si_ebands", 
+                          status="init", 
+                          start_date="Wed Nov 20 19:59:05 2013"),
                 ]
             }
 

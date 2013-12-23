@@ -54,24 +54,26 @@ Requirements
 All required dependencies should be automatically taken care of if you install abipy using easy_install or pip. 
 Otherwise, these packages should be available on `PyPI <http://pypi.python.org>`_.
 
-1. Python 2.7+ required. 
+  1. Python 2.7+ required. 
 
-2. pymatgen 2.8.7+
+  2. pymatgen 2.8.7+
 
-3. numpy - For array, matrix and other numerical manipulations. 
+  3. numpy 
 
-4. matplotlib 1.1+
+  4. matplotlib 1.1+
 
-5. scipy 0.10+
+  5. scipy 0.10+
 
-6. netCDF4
+  6. netCDF4
 
-7. pyyaml 3.1.0+
+  7. pyYaml 3.1.0+
 
-#Some packages are much easier to install via easy_install
-#easy_install pyYaml
-#easy_install pyCifRW
-#easy_install pyhull
+The following packages are much easier to install with easy_install:
+
+  #. pyYaml
+  #. pyCifRW
+  #. pyhull
+
 #for netcdf4 hdf see http://www.unidata.ucar.edu/software/netcdf/docs/build_default.html
 
 
