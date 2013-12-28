@@ -111,8 +111,10 @@ Also, these key bindings can be used
         panel.SetSizerAndFit(main_sizer)
 
         # Register this event when the GUI is IDLE
+        # Not used anymore since the Yaml parser
+        # is very slow when we use the pure python version.
         self.last_refresh = time.time()
-        self.Bind(wx.EVT_IDLE, self.OnIdle)
+        #self.Bind(wx.EVT_IDLE, self.OnIdle)
 
     @property
     def codename(self):
