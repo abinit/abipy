@@ -12,8 +12,9 @@ def prof_main():
 
 def main():
     parser = EventsParser()
-    events = parser.parse(sys.argv[1])
-    print(events)
+    for fname in sys.argv[1:]:
+        events = parser.parse(fname)
+        print(events)
 
     return 0
 
