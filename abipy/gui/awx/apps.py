@@ -4,10 +4,38 @@ import abc
 import sys
 import wx
 
+#from abipy.gui.awx.dialogs import showErrorMessage
+
 
 __all__ = [
     "App",
 ]
+
+def ExceptionHook(exctype, value, trace): 
+    """
+    Handler for all unhandled exceptions 
+    Create a simple exception hook to handle and inform the user of 
+    any unexpected errors that occur while the program is running:
+
+    @param exctype: Exception Type 
+    @param value: Error Value
+    @param trace: Trace back info 
+    """ 
+    # Format the traceback 
+    import traceback
+    exc = traceback.format_exception(exctype, value, trace) 
+    ftrace = "".join(exc)
+    app = wx.GetApp() 
+
+    if app:
+        msg = "An unexpected error has occurred: %s" % ftrace 
+        parent = app.GetTopWindow()
+        parent.Raise()
+        wx.MessageBox(parent=parent, msg, caption=app.GetAppName(), style=wx.ICON_ERROR|wx.OK)
+        #showErrorMessage(parent=parent, message=None)
+        #app.Exit()
+    else:
+        sys.stderr.write(ftrace)
 
 
 class App(wx.App):
@@ -31,6 +59,8 @@ class App(wx.App):
         self.Bind(wx.EVT_ACTIVATE_APP, self.OnActivate)
 
     def OnInit(self): 
+        # Handler for all unhandled exceptions 
+        sys.excepthook = ExceptionHook 
         return True
 
     @property

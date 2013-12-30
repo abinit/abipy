@@ -12,7 +12,7 @@ from abipy.gui.editor import SimpleTextViewer
 
 class StructureConverterFrame(wx.Frame):
     """
-    This frame allows the user to convert the structure into  different formats (CIF, POSCAR, ...).
+    This frame allows the user to convert the structure to different formats (CIF, POSCAR, ...).
     """
     def __init__(self, parent, obj, **kwargs):
         """

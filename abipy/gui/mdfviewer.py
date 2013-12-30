@@ -142,14 +142,16 @@ Also, these key bindings can be used
         return menu
 
     def onPlotAveragedMdf(self, event):
+        """Plot the average of the macroscopic dielectric function"""
         mdf_type = self.getMdfType()
         cplx_mode = self.getCplxMode()
-        print(mdf_type, cplx_mode)
+        #print(mdf_type, cplx_mode)
 
         mdf_file = self.active_mdf_file
         mdf_file.plot_mdfs(cplx_mode=cplx_mode, mdf_type=mdf_type)
 
     def OnMdfCompare(self, event):
+        """Compare multiple averaged macroscopic dielectric functions"""
         mdf_type = self.getMdfType()
         cplx_mode = self.getCplxMode()
 
@@ -217,6 +219,10 @@ Also, these key bindings can be used
         return cplx_mode
 
     def onCompareSpectraQ(self, event):
+        """
+        Compare different MDF(q) spectra (provided that we have multiple tabs in the notebook).
+        This callback is executed when MdfQpointsPanel fires CompareSpectraQEvent.
+        """
         qpoint = event.qpoint
         mdf_type = self.getMdfType()
         cplx_mode = self.getCplxMode()
@@ -250,7 +256,8 @@ class MdfQpointsPanel(KpointsPanel):
         self.klist_ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onQpointActivated)
 
     def makePopupMenu(self):
-        # menu of the base class
+        """Build the popup menu."""
+        # Menu of the base class
         menu = super(MdfQpointsPanel, self).makePopupMenu()
 
         # Add other options
@@ -279,7 +286,7 @@ class MdfQpointsPanel(KpointsPanel):
             return self._viewer_frame
 
     def onQpointActivated(self, event):
-        """Plot MDF(q)"""
+        """Plot MDF(q) for the selected q-point."""
         qpoint = self.getSelectedKpoint()
         if qpoint is None: return
 
@@ -291,8 +298,14 @@ class MdfQpointsPanel(KpointsPanel):
         self.mdf_file.plot_mdfs(cplx_mode=cplx_mode, mdf_type=mdf_type, qpoint=qpoint)
 
     def onCompareSpectraQ(self, event):
+        """
+        Get the selected q-point and fire CompareSpectraQEvent.
+        The parent frame will detect the event and will compare the
+        different MDF spectra (provided that we have multiple tabs in the notebook.
+        """
         qpoint = self.getSelectedKpoint()
         if qpoint is None: return
+        # Post the event.
         event = self.CompareSpectraQEvent(id=-1, qpoint=qpoint)
         wx.PostEvent(self.parent, event)
 
@@ -347,6 +360,7 @@ class MdfViewerApp(awx.App):
 
 
 def wxapp_mdfviewer(mdf_filepaths):
+    """Standalone application."""
     app = MdfViewerApp()
     frame = MdfViewerFrame(None, filepaths=mdf_filepaths)
     app.SetTopWindow(frame)

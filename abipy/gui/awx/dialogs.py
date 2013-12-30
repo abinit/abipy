@@ -3,6 +3,9 @@ from __future__ import print_function, division
 import os
 import wx
 
+from pymatgen.util.string_utils import is_string
+from pymatgen.util.io_utils import which
+
 __all__ = [
     "showErrorMessage",
     "askUser",
@@ -11,16 +14,6 @@ __all__ = [
 
 
 # Helper functions.
-def is_string(s):
-    """True if s behaves like a string (duck typing test)."""
-    try:
-        dummy = s + " "
-        return True
-
-    except TypeError:
-        return False
-
-
 def _straceback():
     """Returns a string with the traceback."""
     import traceback
@@ -37,7 +30,6 @@ def askUser(parent, message):
 
 class ErrorDialog(wx.MessageDialog):
     def __init__(self, parent, message):
-        message += "\n\n Do you want to send a bug report?"
         super(ErrorDialog, self).__init__(parent, message=message, caption='Error Message',
                                           style=wx.YES_NO | wx.CANCEL | wx.NO_DEFAULT | wx.ICON_ERROR | wx.STAY_ON_TOP)
 
@@ -49,12 +41,13 @@ def showErrorMessage(parent, message=None):
     if message is None:
         message = _straceback()
 
+    message += "\n\n Do you want to send a bug report?"
     dialog = ErrorDialog(parent, message)
 
     # Send mail if the user clicked YES.
     if dialog.ShowModal() == wx.ID_YES:
         mail = SendMail(parent)
-        mail.setSender(user_at_host())
+        mail.setSender(_user_at_host())
         mail.setSubject("Bug report")
         mail.setBody(message)
         mail.ShowModal()
@@ -99,6 +92,7 @@ class License(wx.Dialog):
 
 
 class SendMail(wx.Dialog):
+    """This dialog allows the user to send an email with sendmail."""
     def __init__(self, parent, title="SendMail"):
         super(SendMail, self).__init__(parent, -1, title, wx.DefaultPosition, wx.Size(400, 420))
 
@@ -164,30 +158,15 @@ class SendMail(wx.Dialog):
         except:
             showErrorMessage(self)
 
-        #try:
-        #    message = header + body
-        #    import smtplib
-        #    server = smtplib.SMTP('mail.chello.sk')
-        #    server.sendmail(sender, mailto, message)
-        #    server.quit()
-        #    dialog = wx.MessageDialog(self, 'Email was successfully sent', 'Success', wx.OK | wx.ICON_INFORMATION)
-        #    dialog.ShowModal()
-        #    dialog.Destroy()
 
-        #except smtplib.SMTPException, error:
-        #    dialog = wx.MessageDialog(self, 'Failed to send email', 'Error', wx.OK | wx.ICON_ERROR)
-        #    dialog.ShowModal()
-        #    dialog.Destroy()
-
-
-def user_at_host():
+def _user_at_host():
     from socket import gethostname
     return os.getlogin() + "@" + gethostname()
 
 
 def sendmail(subject, text, mailto, sender=None):
     """
-    Sends an e-mail either with unix sendmail. 
+    Sends an e-mail with unix sendmail. 
 
     Args:
         subject:
@@ -199,9 +178,12 @@ def sendmail(subject, text, mailto, sender=None):
         sender:
             string with the sender address.
             If sender is None, username@hostname is used.
+
+    Returns:
+        exit status
     """
     # Body of the message.
-    sender = user_at_host() if sender is None else sender
+    sender = _user_at_host() if sender is None else sender
     if is_string(mailto): mailto = [mailto]
 
     from email.mime.text import MIMEText
@@ -217,8 +199,10 @@ def sendmail(subject, text, mailto, sender=None):
     # Note that sendmail is available only on Unix-like OS.
     from subprocess import Popen, PIPE
 
-    SENDMAIL = "/usr/sbin/sendmail"
-    p = Popen([SENDMAIL, "-t"], stdin=PIPE, stderr=PIPE)
+    sendmail = which("sendmail")
+    if sendmail is None: return -1
+
+    p = Popen([sendmail, "-t"], stdin=PIPE, stderr=PIPE)
 
     outdata, errdata = p.communicate(msg)
     return len(errdata)
@@ -226,9 +210,9 @@ def sendmail(subject, text, mailto, sender=None):
 
 class MyApp(wx.App):
     def OnInit(self):
-        #dialog = SendMail(None)
-        #dialog.ShowModal()
-        #dialog.Destroy()
+        dialog = SendMail(None)
+        dialog.ShowModal()
+        dialog.Destroy()
         return True
 
 

@@ -1,4 +1,4 @@
-"""This module ..."""
+"""Collections of Popup menus associated to filenames."""
 from __future__ import print_function, division
 
 import wx
@@ -93,7 +93,6 @@ def showStructure(parent, filepath):
     vname = visu_classes[0].name
 
     visu = ncfile.structure.visualize(vname)
-    #visu = ncfile.structure.visualize("vesta")
 
     thread = awx.WorkerThread(parent, target=visu)
     thread.start()

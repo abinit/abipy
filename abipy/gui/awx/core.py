@@ -16,7 +16,6 @@ from abipy.tools.text import list_strings
 __all__ = [
     "path_img",
     "makeAboutBox",
-    "Error",
     "verbose",
     "Panel",
     "Frame",
@@ -27,8 +26,6 @@ __all__ = [
 _DEBUG = True
 _DEBUG = False
 
-class Error(Exception):
-    """Base class for exceptions"""
 
 if _DEBUG:
     verbose = dec.verbose
@@ -61,6 +58,19 @@ received a copy of the GNU General Public License along with the code;
 if not, write to the Free Software Foundation, Inc., 59 Temple Place, 
 Suite 330, Boston, MA  02111-1307  USA""" % {"codename": codename}
 
+    # Make a template for the description 
+    #desc = "\n".join(["\nwxPython Cookbook Chapter 5\n",
+    #                  "Platform Info: (%s,%s)",
+    #                  "License: Public Domain"])
+
+    ## Get the platform information 
+    #py_version = [sys.platform, ", python ", sys.version.split()[0]] 
+    #platform = list(wx.PlatformInfo[1:])
+    #platform[0] += (" " + wx.VERSION_STRING) 
+    #wx_info = ", ".join(platform)
+
+    #info.SetDescription(desc % (py_version, wx_info))
+
     info = wx.AboutDialogInfo()
 
     if icon_path is not None:
@@ -79,6 +89,20 @@ Suite 330, Boston, MA  02111-1307  USA""" % {"codename": codename}
         info.AddDeveloper(dev)
 
     wx.AboutBox(info)
+
+
+def get_width_height(window, string, pads=(10,10)):
+    """
+    Returns the width and the height (in pixels) of a string used in window.
+    Returns are padded with pads
+
+    See http://docs.wxwidgets.org/2.8/wx_wxdc.html#wxdcgettextextent
+    """
+    f = window.GetFont()
+    dc = wx.WindowDC(window)
+    dc.SetFont(f)
+    width, height = dc.GetTextExtent(string)
+    return width + pads[0], height + pads[1]
 
 
 class MyWindow(object):
@@ -117,20 +141,3 @@ class Frame(wx.Frame, MyWindow):
             kwargs["title"] = self.__class__.__name__
         
         super(Frame, self).__init__(parent, *args, **kwargs)
-
-
-def get_width_height(window, string, pads=(10,10)):
-    """
-    Returns the width and the height (in pixels) of a string used in window.
-    Returns are padded with pads
-
-    See http://docs.wxwidgets.org/2.8/wx_wxdc.html#wxdcgettextextent
-    """
-    f = window.GetFont()
-    dc = wx.WindowDC(window)
-    dc.SetFont(f)
-    width, height = dc.GetTextExtent(string)
-    return width + pads[0], height + pads[1]
-
-
-

@@ -109,6 +109,7 @@ Also, these key bindings can be used
         toolbar.Realize()
 
     def addFileTab(self, parent, filepath):
+        """Read data from filepath and create a new notebook tab."""
         gsr = abiopen(filepath)
         tab = GsrFileTab(self.notebook, gsr)
         self.notebook.AddPage(tab, os.path.basename(filepath))
@@ -122,6 +123,7 @@ class GsrFileTab(wx.Panel):
             parent:
                 parent window.
             gsr:
+                `GsrFile` instance.
         """
         super(GsrFileTab, self).__init__(parent, -1, **kwargs)
         self.gsr = gsr

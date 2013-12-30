@@ -16,24 +16,35 @@ from abipy.electrons import ElectronBands
 
 
 def showElectronDosFrame(parent, filepath):
+    """
+    Read the electron bands from file filepath and shows an `ElectronDosFrame`.
+    """
     bands = ElectronBands.from_file(filepath)
     title = "File: %s" % os.path.relpath(filepath)
     ElectronDosFrame(parent, bands, title=title).Show()
 
 
 def showElectronBandsPlot(parent, filepath):
+    """
+    Read the electron bands from file filepath and plot the bands.
+    """
     ebands = ElectronBands.from_file(filepath)
     title = "File: %s" % os.path.relpath(filepath)
     ebands.plot(title=title)
 
 
 def showElectronJdosFrame(parent, filepath):
+    """
+    Read the electron bands from file filepath and shows an `ElectronJdosFrame`.
+    """
     ebands = ElectronBands.from_file(filepath)
     ElectronJdosFrame(parent, ebands).Show()
 
 
 class DosPanel(awx.Panel):
-    """Base class defining a panel with controls for specifying the DOS parameters (step, width)."""
+    """
+    Base class defining a panel with controls for specifying the DOS parameters (step, width).
+    """
     DEFAULT_WIDTH = 0.2
     DEFAULT_STEP = 0.1
 
@@ -167,7 +178,9 @@ class EbandsDosDialog(wx.Dialog):
         return ipath, imesh
 
 class ElectronDosFrame(awx.Frame):
-    """This frames allows the user to control and compute the Electron DOS."""
+    """
+    This frames allows the user to select the parameters and to compute the Electron DOS.
+    """
     def __init__(self, parent, bands, **kwargs):
         """
             Args:
@@ -355,8 +368,9 @@ class ElectronJdosPanel(awx.Panel):
 
 
 class ElectronJdosDialog(wx.Dialog):
-    """Dialog that asks the user to enter the parameters for the electron JDOS."""
-
+    """
+    Dialog that asks the user to enter the parameters for the electron JDOS.
+    """
     def __init__(self, parent, nsppol, mband, **kwargs):
         """
             Args:

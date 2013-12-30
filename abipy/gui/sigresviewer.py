@@ -48,6 +48,7 @@ Also, these key bindings can be used
 
     @property
     def ebands(self):
+        """The electron bands associated to the active SIGRES file."""
         return self.active_sigres.ebands
 
     @property
@@ -111,6 +112,7 @@ Also, these key bindings can be used
         self.SetMenuBar(menu_bar)
 
     def CreateQpDataMenu(self):
+        """Build and return the QP menu."""
         # Structure Menu ID's
         self.ID_QPGAPS_COMPARE = wx.NewId()
         self.ID_QPENES_COMPARE = wx.NewId()
@@ -125,6 +127,7 @@ Also, these key bindings can be used
         return menu
 
     def OnQpGapsCompare(self, event):
+        """Compare the QP gaps reported in the SIGRES files."""
         # Instanciate the plotter and add the filepaths to the plotter.
         plotter = SIGRES_Plotter()
         plotter.add_files(self.sigres_filepaths)
@@ -133,6 +136,7 @@ Also, these key bindings can be used
         plotter.plot_qpgaps(title="Convergence of QP gaps", hspan=0.05)
 
     def OnQpEnesCompare(self, event):
+        """Compare the QP energies reported in the SIGRES files."""
         # Instanciate the plotter and add the filepaths to the plotter.
         plotter = SIGRES_Plotter()
         plotter.add_files(self.sigres_filepaths)
@@ -172,6 +176,7 @@ Also, these key bindings can be used
         self.toolbar.Realize()
 
     def addFileTab(self, parent, filepath):
+        """Open a SIGRES file and create a new tab in the notebook."""
         gsr = abiopen(filepath)
         tab = SigresFileTab(self.notebook, gsr)
         self.notebook.AddPage(tab, os.path.basename(filepath))
@@ -248,6 +253,7 @@ class SigresFileTab(wx.Panel):
             return self._viewer_frame
 
     def onShowQPTable(self, event):
+        """Show a table with the QP results for the selected spin, kpoint, band."""
         spin, kpoint, band = event.skb
         qplist = self.sigres.get_qplist(spin, kpoint)
         table = qplist.to_table()
