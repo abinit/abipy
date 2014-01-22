@@ -6,7 +6,7 @@ import os
 import collections
 
 from time import ctime
-from pymatgen.io.abinitio import EventsParser
+from pymatgen.io.abinitio.events import EventsParser
 from abipy.tools import which
 from abipy.iotools.visualizer import Visualizer
 

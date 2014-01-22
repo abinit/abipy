@@ -31,27 +31,6 @@ __all__ = [
 ]
 
 
-def lazy_property(method):
-    """lazy property decorator which removes the boilerplace."""
-    # Fixme: don't know how to preserve __doc__
-    # See also http://stackoverflow.com/questions/6394511/python-functools-wraps-equivalent-for-classes?rq=1
-    attr_name = '_lazy_' + method.__name__
-    #from functools import wraps
-    #@wraps(method)
-    @property
-    def wrapper(self):
-        #self.wrapper.__name__ = method.__name__
-        #self.wrapper.__doc__ = method.__doc__
-        #self.wrapper.__module__ = method.__module__
-
-        if not hasattr(self, attr_name):
-            setattr(self, attr_name, method(self))
-        return getattr(self, attr_name)
-
-    #wrapper = property(fget=wrapper, doc=method.__doc__)
-    return wrapper
-
-
 class Electron(collections.namedtuple("Electron", "spin kpoint band eig occ")):
     """
     Sigle-particle state.
@@ -1659,7 +1638,7 @@ class ElectronBandsPlotter(object):
             for label, bands, dos in zip(labels, bands_list, dos_list):
                 self.add_ebands(label, bands, dos=dos)
 
-    def plot(self, klabels=None, *args, **kwargs):
+    def plot(self, klabels=None, **kwargs):
         """
         Plot the band structure and the DOS.
 
@@ -1668,8 +1647,6 @@ class ElectronBandsPlotter(object):
                 dictionary whose keys are tuple with the reduced
                 coordinates of the k-points. The values are the labels.
                 e.g. klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
-            args:
-                Positional arguments passed to :mod:`matplotlib`.
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -1723,7 +1700,7 @@ class ElectronBandsPlotter(object):
             my_kwargs.update(lineopt)
             opts_label[label] = my_kwargs.copy()
 
-            l = bands.plot_ax(ax1, spin=None, band=None, *args, **my_kwargs)
+            l = bands.plot_ax(ax1, spin=None, band=None, **my_kwargs)
             lines.append(l[0])
 
             # Use relative paths if label is a file.
@@ -2123,23 +2100,3 @@ class EBands3D(object):
 #    def plot(self, qpath):
 #        nesting = self.compute_nesting(qpath)
 #        nesting.plot()
-
-import unittest
-class LazyDecoratorTest(unittest.TestCase):
-
-    def test_lazy_decorator(self):
-        """Test lazy_property decorator."""
-        class MyObject(object):
-            @lazy_property
-            def prop(self):
-                """A simple property"""
-                print("generating 'prop'")
-                return range(5)
-
-        obj = MyObject()
-
-        self.assertEqual(obj.prop, range(5))
-        print(obj.__dict__)
-        self.assertTrue("_lazy_prop" in obj.__dict__)
-        #self.assertEqual(obj.prop.__doc__, "A simple property")
-        #self.assertEqual(obj.prop.__name__, "prop")

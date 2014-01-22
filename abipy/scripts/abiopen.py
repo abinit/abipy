@@ -7,7 +7,7 @@ import warnings
 import argparse 
 import collections
 
-from abipy.tools.text import WildCard #list_strings, is_string, 
+from abipy.tools.text import WildCard 
 import abipy.gui.wxapps as wxapps 
 
 
@@ -16,11 +16,11 @@ def str_examples():
       "\n"
       "Usage example:\n\n" 
       "abiopen.py files foo_WFK.nc          ==> Visualize the WFK file foo_WFK.nc\n"
-      "                                          (many other Abinit files are supported, just try!).\n"
+      "                                         (many other Abinit files are supported, just try!).\n"
       "abiopen.py list dirpath              ==> Visualize all files in the directory dirpath (flat list mode) .\n"
       "abiopen.py tree dirpath              ==> Visualize all files in the directory dirpath (tree mode).\n"
       "abiopen.py scan dirpath              ==> Scan all the supported files in the given directory (recursive mode).\n"
-      "abiopen.py scan dirpath -w *GSR.nc   ==> Wall the directory tree starting from dirpath \n"
+      "abiopen.py scan dirpath -w *GSR.nc   ==> Walk the directory tree starting from dirpath \n"
       "                                         and open all the GSR.nc files encountered.\n"
     )
     return examples
@@ -70,7 +70,7 @@ def main():
     # Parse the command line.
     try:
         options = parser.parse_args()
-    except: 
+    except Exception:
         show_examples_and_exit(error_code=1)
 
     if options.verbose:

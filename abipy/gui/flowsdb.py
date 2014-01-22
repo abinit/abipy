@@ -66,7 +66,6 @@ def busy(func):
         finally:
             del wait
             if isinstance(result, Exception):
-                #raise result
                 awx.showErrorMessage(args[0], message=straceback(color=None))
             else:
                 return result
@@ -133,8 +132,8 @@ class FlowsDbViewerFrame(awx.Frame):
         # Create toolbar.
         self.toolbar = toolbar = self.CreateToolBar()
 
-        def bitmap(path):
-            return wx.Bitmap(awx.path_img(path))
+        def bitmap(img_name):
+            return wx.Bitmap(awx.path_img(img_name))
 
         toolbar.AddSimpleTool(self.ID_RUN_SCRIPT, bitmap("run.png"), "Upload and execute the script on the remote host.")
         toolbar.AddSimpleTool(self.ID_CHECK_STATUS, bitmap("chk.png"), "Check the status of the flows running on the remote host.")

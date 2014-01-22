@@ -261,22 +261,26 @@ class Has_MultipleEbands(Has_Ebands):
             awx.showErrorMessage(self)
 
 
-#class Has_Kpoints(object):
+#class Has_MultiGsResults(object):
 #    """
-#    Mixin class from GUIs with kpoints
+#    Mixin class for GUIs with mulitple ground-state results (etotal, forces, stresses...)
 #    """
 #    __metaclass__ = abc.ABCMeta
+
+#    def CreateToolsMenu(self):
+#        """Create the tools menu."""
+#        # Tools Menu ID's
+#        self.ID_MULTIGSR_EOSFIT = wx.NewId()
+#                                                                                            
+#        menu = wx.Menu()
+#        menu.Append(self.ID_MULTIGSR_EOSFIT, "Fit E(V)", "Equation of State")
+#        self.Bind(wx.EVT_MENU, self.onEosFit, id=self.ID_MULTIGSR_EOSFIR)
+#                                                                                            
+#        return menu
 #
-#    @abc.abstractproperty
-#    def kpoints(self):
-#        """`Kpoints` object."""
+#    def onEosFit(self, event):
+#        EosFrame(self, volumes, energies, vol_unit="ang^3", ene_unit="eV").Show()
 
-
-#class Has_MultiGroundStateData(object):
-#    """
-#    Mixin class from GUIs Ground-state results (etotal, forces, stresses...)
-#    """
-#    __metaclass__ = abc.ABCMeta
 
 
 class Has_Tools(object):

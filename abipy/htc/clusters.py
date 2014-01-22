@@ -153,6 +153,7 @@ class Cluster(object):
             return self._home
 
         except AttributeError:
+            # Execute `echo $HOME` on the remote host and save the result.
             self._home = self.ssh_exec("echo $HOME").out.strip()
             assert self._home
             return self._home
@@ -194,7 +195,7 @@ class Cluster(object):
         except:
             pass
 
-    def sshfs_mount(self, **options):
+    def sshfs_mount(self, sleep=0.5, **options):
         """Mount sshfs_mountpoint with sshfs. Returns exit status."""
         if self.is_sshfs_mounted: return 0
         if self.sshfs_mountpoint is None: return -1
@@ -210,7 +211,7 @@ class Cluster(object):
         self._is_sshfs_mounted = (retcode == 0)
 
         # sshfs is asynchronous. Give it enough time to mount the file system
-        time.sleep(0.5)
+        if sleep > 0: time.sleep(sleep)
         return retcode
 
     @property
@@ -332,7 +333,7 @@ class Cluster(object):
         Returns:
             exit_status
         """
-        self.make_dir(self.workdir)
+        return self.make_dir(self.workdir)
 
     def make_dir(self, path):
         """
@@ -447,7 +448,7 @@ class Cluster(object):
 
 
 class SlurmCluster(Cluster):
-    """A cluster with Slurm."""
+    """A cluster that uses Slurm to submit jobs."""
     qtype = "slurm"
 
     def get_all_jobs(self, prefix=False):
@@ -468,7 +469,7 @@ class SlurmCluster(Cluster):
 
 
 class SgeCluster(Cluster):
-    """A cluster with SGE."""
+    """A cluster that uses SGE to submit jobs."""
     qtype = "sge"
 
     def get_all_jobs(self, prefix=False):
@@ -482,6 +483,10 @@ class SgeCluster(Cluster):
     def get_qinfo(self, prefix=False):
         result = self.ssh_exec("qhost")
         return self.prefix_str(result.out) if prefix else result.out
+
+    #def get_qload(self, prefix=False):
+    #    result = self.ssh_exec("sload")
+    #    return self.prefix_str(result.out) if prefix else result.out
 
 
 class MySSHClient(paramiko.SSHClient):

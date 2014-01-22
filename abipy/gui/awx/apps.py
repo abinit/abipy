@@ -31,7 +31,7 @@ def ExceptionHook(exctype, value, trace):
         msg = "An unexpected error has occurred: %s" % ftrace 
         parent = app.GetTopWindow()
         parent.Raise()
-        wx.MessageBox(parent=parent, msg, caption=app.GetAppName(), style=wx.ICON_ERROR|wx.OK)
+        wx.MessageBox(parent, msg, caption=app.GetAppName(), style=wx.ICON_ERROR|wx.OK)
         #showErrorMessage(parent=parent, message=None)
         #app.Exit()
     else:

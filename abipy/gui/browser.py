@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+"""Widgets for browsing and/or analyzing the output files produced by Abinit."""
 from __future__ import print_function, division
 
 import os
@@ -20,7 +20,7 @@ from abipy.gui.popupmenus import popupmenu_for_filename
 def frameclass_from_filepath(filepath):
     """
     Factory function that returns the class of the viewer (wx frame) associated to the file.
-    None if no viewer has been registered for this filename.
+    Returns None if no viewer has been registered for this filepath.
     """
     from abipy.gui.wfkviewer import WfkViewerFrame
     from abipy.gui.sigresviewer import SigresViewerFrame
@@ -51,10 +51,8 @@ def frameclass_from_filepath(filepath):
         try:
             return VIEWER_FRAMES[ext]
         except KeyError:
-            # No frame registered for the file. 
-            # Open NcViewer if we have a netcdf file else None
-            if filepath.endswith(".nc"): return NcViewerFrame
-            return None
+            # No frame registered for the file: return NcViewerFrame if netcdf file else None
+            return NcViewerFrame if filepath.endswith(".nc") else None
 
 
 def frame_from_filepath(parent, filepath):
@@ -63,8 +61,7 @@ def frame_from_filepath(parent, filepath):
     None if no viewer has been registered for this filename.
     """
     frame_class = frameclass_from_filepath(filepath)
-    if frame_class is None: return None
-    return frame_class(parent, filepath)
+    return frame_class if frame_class is None else frame_class(parent, filepath)
 
 
 class NcFileDirCtrl(wx.GenericDirCtrl):
@@ -348,6 +345,7 @@ class DirBrowserFrame(awx.Frame):
 
 
 def wxapp_dirbrowser(dirpath):
+    """Standalone application."""
     if dirpath is None:
         dirpath = " "
     else:
