@@ -17,8 +17,8 @@ from pymatgen.io.abinitio.launcher import PyFlowScheduler, PyLauncher
 def str_examples():
     examples = """
 Usage example:\n
-    abirun.py DIRPATH  singleshot              => Fetch the first available task and run it.
-    abirun.py DIRPATH  rapidfire               => Keep repeating, stop when no task can be executed
+    abirun.py DIRPATH singleshot              => Fetch the first available task and run it.
+    abirun.py DIRPATH rapidfire               => Keep repeating, stop when no task can be executed
                                                   due to inter-dependency.
     abirun.py DIRPATH gui                      => Open the GUI 
     nohup abirun.py DIRPATH sheduler -s 30 &   => Use a scheduler to schedule task submission
@@ -78,6 +78,8 @@ def treat_flow(flow, options):
         #s = pstats.Stats("Profile.prof")
         #s.strip_dirs().sort_stats("time").print_stats()
 
+    if options.command == "open":
+        flow.open_files(what=options.what, wti=None, status=None, op="==")
 
     if options.command == "cancel":
         num_cancelled = flow.cancel()
@@ -124,6 +126,21 @@ def main():
 
     # Subparser for scheduler command.
     p_cancel = subparsers.add_parser('cancel', help="Cancel the tasks in the queue.")
+
+    # Subparser for open command.
+    p_open = subparsers.add_parser('open', help="Open files (command line interface)")
+
+    p_open.add_argument('what', default="o", 
+        help="""\
+Specify the files to open. Possible choices:\n
+i ==> input_file\n
+o ==> output_file\n
+f ==> files_file\n              
+j ==> job_file\n                
+l ==> log_file\n                
+e ==> stderr_file\n             
+q ==> qerr_file\n
+""")
 
     # Subparser for gui command.
     p_gui = subparsers.add_parser('gui', help="Open GUI.")
@@ -184,3 +201,7 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+    #import pstats, cProfile
+    #cProfile.runctx("main()", globals(), locals(), "Profile.prof")
+    #s = pstats.Stats("Profile.prof")
+    #s.strip_dirs().sort_stats("time").print_stats()
