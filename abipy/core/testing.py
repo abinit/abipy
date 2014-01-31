@@ -6,8 +6,8 @@ in a single location, so that test scripts can just import it and work right awa
 """
 from __future__ import print_function, division
 
-from pymatgen.util.io_utils import which
 from pymatgen.util.testing import PymatgenTest
+from abipy.tools import which
 
 __all__ = [
     "AbipyTest",

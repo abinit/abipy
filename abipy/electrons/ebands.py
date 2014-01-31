@@ -220,6 +220,13 @@ class Smearing(AttrDict):
         return self.occopt in [3,4,5,6,7,8]
 
 
+class StatParams(collections.namedtuple("StatParams", "mean stdev min max")):
+    """Named tuple with statistical parameters."""
+    def __str__(self):
+        return "mean = %.3f, stdev = %.3f, min = %.3f, max = %.3f [eV]" % (
+            self.mean, self.stdev, self.min, self.max)
+
+
 class ElectronBands(object):
     """
     This object stores the electronic band structure.
@@ -888,6 +895,49 @@ class ElectronBands(object):
             app("HOMO:\n %s" % indent(str(homos[spin])))
 
         return "\n".join(lines)
+
+    def spacing(self, axis=None):
+        """
+        Compute the statistical parameters of the energy spacing, i.e. e[b+1] - e[b]
+
+        Returns:
+            `namedtuple` with the statistical parameters in eV
+        """
+        ediff = self.eigens[1:,:,:] - self.eigens[:self.mband-1,:,:]
+
+        return StatParams(
+            mean=ediff.mean(axis=axis),
+            stdev=ediff.std(axis=axis),
+            min=ediff.min(axis=axis), 
+            max=ediff.max(axis=axis)
+            )
+
+    def statdiff(self, other, axis=None, numpy_op=np.abs):
+        """
+        Compare the eigenenergies of two bands and compute the 
+        statistical parameters: mean, standard deviation, min and max
+
+        Args:
+            other:
+                `BandStructure` object
+            axis: int, optional
+                Axis along which the statistical parameters are computed. 
+                The default is to compute the parameters of the flattened array.
+            numpy_op:
+                Numpy function to apply to the difference of the eigenvalues. The 
+                default computes t|self.eigens - other.eigens| 
+
+        Returns:
+            `namedtuple` with the statistical parameters in eV
+        """
+        ediff = numpy_op(self.eigens - other.eigens)
+
+        return StatParams(
+            mean=ediff.mean(axis=axis),
+            stdev=ediff.std(axis=axis),
+            min=ediff.min(axis=axis), 
+            max=ediff.max(axis=axis)
+            )
 
     def get_edos(self, method="gaussian", step=0.1, width=0.2):
         """
@@ -1637,6 +1687,28 @@ class ElectronBandsPlotter(object):
             assert len(dos_list) == len(bands_list)
             for label, bands, dos in zip(labels, bands_list, dos_list):
                 self.add_ebands(label, bands, dos=dos)
+
+    def bands_statdiff(self, ref=0):
+        """
+        Compare the reference bands with index ref with the other bands 
+        stored in the plotter.
+        """
+        for i, label in enumerate(self._bands_dict.keys()):
+            if i == ref:
+                ref_label = label
+                break
+        else:
+            raise ValueError("ref index %s is > number of bands" % ref)
+
+        ref_bands = self._bands_dict[ref_label]
+
+        text = []
+        for (label, bands) in self._bands_dict.items():
+            if label == ref_label: continue
+            stat = ref_bands.statdiff(bands)
+            text.append(str(stat))
+
+        return "\n\n".join(text)
 
     def plot(self, klabels=None, **kwargs):
         """

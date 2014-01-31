@@ -34,9 +34,9 @@ class TestStructure(AbipyTest):
 
         self.serialize_with_pickle(structure)
 
-        pseudos = data.pseudos("12mg.pspnc", "05b.soft_tm")
+        pseudos = data.pseudos("12mg.pspnc", "5b.pspnc")
         nval = structure.calc_nvalence(pseudos)
-        self.assertTrue(nval == 12)
+        self.assertEqual(nval, 8)
         shiftk = structure.calc_shiftk()
         self.assert_equal(shiftk, [[0.0, 0.0, 0.5]])
 

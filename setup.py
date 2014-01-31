@@ -159,7 +159,7 @@ install_requires = [
     "matplotlib>=1.1",
     "pyyaml>=3.1.0",
     "netCDF4",
-    "pymatgen>=2.8.7",
+    "pymatgen>=2.9.0",
     "fabric",
     "paramiko",
     "wxmplot",

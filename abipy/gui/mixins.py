@@ -7,7 +7,7 @@ import wx.lib.dialogs as wxdg
 import abipy.gui.awx as awx
 import abipy.gui.electronswx as ewx
 
-from pymatgen.util.io_utils import which 
+from abipy.tools import which 
 from abipy.iotools.visualizer import Visualizer
 from abipy.iotools.files import NcDumper
 from abipy.electrons.ebands import ElectronBandsPlotter, ElectronDosPlotter
@@ -209,6 +209,11 @@ class Has_MultipleEbands(Has_Ebands):
         for path, ebands in zip(self.ebands_filepaths, self.ebands_list):
             label = os.path.relpath(path)
             plotter.add_ebands(label, ebands)
+
+        try:
+            print(plotter.bands_statdiff())
+        except:
+            pass
         plotter.plot()
 
     def OnCompareEdos(self, event):

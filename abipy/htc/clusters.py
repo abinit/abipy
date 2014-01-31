@@ -15,8 +15,8 @@ import yaml
 import socket
 import paramiko
 
+from abipy.tools import which
 from pymatgen.core.design_patterns import AttrDict
-from pymatgen.util.io_utils import which
 from pymatgen.util.string_utils import is_string
 
 import logging

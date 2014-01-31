@@ -1,4 +1,3 @@
-from pymatgen.util.io_utils import which
 from pymatgen.io.abinitio.eos import EOS
 from pymatgen.io.abinitio.wrappers import Mrgscr, Mrgddb, Mrggkk, Anaddb
 from pymatgen.io.abinitio import qadapters
@@ -8,6 +7,7 @@ from pymatgen.io.abinitio.flows import *
 
 from abipy.core import constants
 from abipy.core.structure import Structure, StructureModifier
+from abipy.tools import which
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
 from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter, SIGRES_Plotter
 from abipy.phonons import PhononBands, PHDOS_Reader, PHDOS_File
