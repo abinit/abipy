@@ -37,17 +37,20 @@ def find_loc(app_name):
             except ValueError:
                 pass
 
-        user_dir = os.path.expanduser("~/Applications/")
-        user_apps = [f.lower() for f in os.listdir(user_dir)]
         try:
-            i = user_apps.index(app_name)
-            return os.path.join(user_dir, user_apps[i])
-        except ValueError:
+            user_dir = os.path.expanduser("~/Applications/")
+            user_apps = [f.lower() for f in os.listdir(user_dir)]
             try:
-                i = user_apps.index(app_name + ".app")
-                return os.path.join("/Applications", user_apps[i] + ".app")
+                i = user_apps.index(app_name)
+                return os.path.join(user_dir, user_apps[i])
             except ValueError:
-                pass
+                try:
+                    i = user_apps.index(app_name + ".app")
+                    return os.path.join("/Applications", user_apps[i] + ".app")
+                except ValueError:
+                    pass
+        except:
+            pass
 
     return None
 
