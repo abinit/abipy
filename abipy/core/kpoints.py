@@ -4,6 +4,7 @@ from __future__ import division, print_function
 import os
 import collections
 import numpy as np
+import warnings
 
 from abipy.core.exceptions import AbipyException
 from abipy.iotools import as_etsfreader, ETSF_Reader
@@ -73,7 +74,6 @@ def wrap_to_bz(x):
     Transforms x in its corresponding reduced number in the interval [0,1[."
     """
     return x % 1
-
 
 
 def rc_list(mp, sh, pbc=False, order="bz"):
@@ -246,7 +246,7 @@ class Kpoint(object):
         """
         Kpoint objects can be used as keys in dictionaries.
         
-        ..warning: 
+        .. warning: 
 
             The hash is computed from the fractional coordinates (floats). 
             Hence one should avoid using hashes for implementing search algorithms
@@ -571,8 +571,7 @@ class KpointList(collections.Sequence):
         return KpointList(self.reciprocal_lattice, 
                           frac_coords=[k.frac_coords for k in good_kpoints],
                           weights=None,
-                          names=[k.name for k in good_kpoints],
-                        )
+                          names=[k.name for k in good_kpoints])
 
     def to_array(self):
         """Returns a `ndarray` [nkpy, 3] with the fractional coordinates."""
@@ -737,7 +736,8 @@ class IrredZone(KpointList):
             err_msg =  "Kpoint weights should sum up to one while sum_weights is %.3f\n" % wsum
             err_msg += "The list of kpoints does not represent a homogeneous sampling of the BZ\n" 
             err_msg += str(type(self)) + "\n" + str(self)
-            raise ValueError(err_msg)
+            #raise ValueError(err_msg)  # GA : Should not prevent a band structure from being read!
+            warnings.warn(err_msg)
 
         # FIXME
         # Quick and dirty hack to allow the reading of the k-points from WFK files

@@ -16,6 +16,13 @@ __all__ = [
 class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     """
     File containing the results of a Ground-state calculation.
+
+    Usage example:
+                                                                  
+    .. code-block:: python
+        
+        gsr = GSR_File("foo_GSR.nc")
+        gsr.ebands.plot()
     """
     def __init__(self, filepath):
         super(GSR_File, self).__init__(filepath)
@@ -78,6 +85,15 @@ class GSR_Plotter(collections.Iterable):
     """
     This object receives a list of `GSR_File` objects and provides
     methods to inspect/analyze the results (useful for convergence studies)
+
+    Usage example:
+                                                                  
+    .. code-block:: python
+        
+        plotter = GSR_Plotter()
+        plotter.add_file("foo_GSR.nc")
+        plotter.add_file("bar_GSR.nc")
+        plotter.plot_variables("ecut", "etotal")
     """
     def __init__(self):
         self._gsr_files = collections.OrderedDict()

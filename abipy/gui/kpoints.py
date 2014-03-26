@@ -1,3 +1,4 @@
+"""Collection of widgets that allow the user to interact with list of K-points."""
 from __future__ import print_function, division
 
 import wx
@@ -11,7 +12,8 @@ from collections import OrderedDict
 
 class KpointsListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
     """
-    ListCtrl containing k-points. Support column sorting.
+    ListCtrl that allows the user to interact with a list of k-points. 
+    Support column sorting.
     """
     def __init__(self, parent, kpoints, **kwargs):
         """
@@ -74,7 +76,7 @@ class KpointsListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
 class KpointsPanel(awx.Panel):
     """
     A panel with a list of k-points and a structure. 
-    Provides popup menus for inspecting the k-points.
+    Provides popup menus for retrieving information on a single k-point.
     """
     def __init__(self, parent, structure, kpoints, **kwargs):
         """
@@ -91,7 +93,6 @@ class KpointsPanel(awx.Panel):
         self.klist_ctrl = KpointsListCtrl(self, kpoints)
         self.structure = structure
 
-        # Connect the events whose callback will be set by the client code.
         self.klist_ctrl.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRightClick)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -131,6 +132,7 @@ class KpointsPanel(awx.Panel):
         return menu
 
     def onLittleGroup(self, event):
+        """Show a table with the character table of the little group."""
         kpoint = self.klist_ctrl.getSelectedKpoint()
         if kpoint is None: return
         ltk = self.structure.spacegroup.find_little_group(kpoint)
@@ -138,6 +140,7 @@ class KpointsPanel(awx.Panel):
         awx.SimpleGridFrame(self, table, title=header, labels_from_table=True).Show()
 
     def onShowStar(self, event):
+        """Show a new `KpointsFrame` with the list of points in the star of the selected k-point."""
         kpoint = self.klist_ctrl.getSelectedKpoint()
         if kpoint is None: return
         star = kpoint.compute_star(self.structure.fm_symmops)
@@ -145,6 +148,7 @@ class KpointsPanel(awx.Panel):
 
 
 class KpointsFrame(awx.Frame):
+    """A frame with a `KpointsPanel`."""
     def __init__(self, parent, structure, kpoints, **kwargs):
         """
         Args:
@@ -158,10 +162,6 @@ class KpointsFrame(awx.Frame):
         super(KpointsFrame, self).__init__(parent, **kwargs)
 
         self.panel = KpointsPanel(self, structure, kpoints)
-
-        #sizer = wx.BoxSizer(wx.VERTICAL)
-        #sizer.Add(self.panel, 1, wx.EXPAND, 5)
-        #self.SetSizer(sizer)
 
 
 class SpinKpointBandPanel(awx.Panel):
@@ -248,7 +248,7 @@ class SpinKpointBandPanel(awx.Panel):
         return spin, kpoint, band
 
     def OnItemActivated(self, event):
-        """Fire SkbActivatedEvent)."""
+        """Fire SkbActivatedEvent."""
         #print("Firing SkbActivatedEvent")
         event = self.SkbActivatedEvent(id=-1, skb=self.GetSKB())
         wx.PostEvent(self.parent, event)

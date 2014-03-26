@@ -300,8 +300,8 @@ def parse_prof_file(fileobj):
             line = lines.pop(0)
         except IndexError:
             line = None
-            #
-        # Instanciate FFT_Benchmark.
+
+    # Instanciate FFT_Benchmark.
     fft_tests = []
     for (idx, wall_time) in enumerate(data):
         info = info_of_test[idx]
@@ -363,7 +363,7 @@ class FFTProf(object):
 
             if self.verbose:
                 print("*** stdout: ***\n", self.stdout_data)
-                print("*** stderr  ***\n", self.stderr_data)
+                print("*** stderr: ***\n", self.stderr_data)
 
             raise self.Error("%s returned %s\n cmd_str: %s" % (self, self.returncode, cmd_str))
 

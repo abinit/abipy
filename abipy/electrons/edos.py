@@ -136,7 +136,6 @@ class ElectronDOS(object):
         show = kwargs.pop("show", True)
         savefig = kwargs.pop("savefig", None)
 
-
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
 

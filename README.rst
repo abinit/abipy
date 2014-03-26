@@ -5,6 +5,8 @@ an open-source program for the ab-initio calculation of the physical properties 
 within Density Functional Theory (DFT).
 Abipy is written in Python and is designed with the philosophy that you should be able to create 
 simple plots with just a few commands.
+Check out the the list of plotting scripts available in the 
+`examples/plot <http://pythonhosted.org/abipy/examples/plot/index.html>`_ directory.
 
 Abipy is free to use. However, we also welcome your help to improve this library by making your own contributions.  
 These contributions can be in the form of additional tools or modules you develop, or even simple things 
@@ -26,6 +28,10 @@ The easiest way to install abipy is to use easy_install or pip, as follows::
 or::
 
     pip install abipy
+
+
+The 
+    https://www.enthought.com/products/canopy/
 
 
 Developmental version
@@ -54,24 +60,26 @@ Requirements
 All required dependencies should be automatically taken care of if you install abipy using easy_install or pip. 
 Otherwise, these packages should be available on `PyPI <http://pypi.python.org>`_.
 
-1. Python 2.7+ required. 
+  1. Python 2.7 required (Python 3.0+ not supported) 
 
-2. pymatgen 2.8.7+
+  2. pymatgen 2.8.7+
 
-3. numpy - For array, matrix and other numerical manipulations. 
+  3. numpy 
 
-4. matplotlib 1.1+
+  4. matplotlib 1.1+
 
-5. scipy 0.10+
+  5. scipy 0.10+
 
-6. netCDF4
+  6. netCDF4
 
-7. pyyaml 3.1.0+
+  7. pyYaml 3.1.0+
 
-#Some packages are much easier to install via easy_install
-#easy_install pyYaml
-#easy_install pyCifRW
-#easy_install pyhull
+The following packages are much easier to install with easy_install:
+
+  #. pyYaml
+  #. pyCifRW
+  #. pyhull
+
 #for netcdf4 hdf see http://www.unidata.ucar.edu/software/netcdf/docs/build_default.html
 
 

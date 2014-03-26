@@ -220,4 +220,3 @@ def input_from_editor(message=None):
     with open(fname) as fileobj:
         return fileobj.read()
 
-#########################################################################################

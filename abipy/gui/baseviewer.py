@@ -75,7 +75,7 @@ class MultiViewerFrame(awx.Frame):
 
     def makeMenu(self):
         """
-        Method of the base class that provides a base menu.
+        Method of the base class that provides a base menu
         that can be extended by the subclass.
         """
         menu_bar = wx.MenuBar()
@@ -108,6 +108,10 @@ class MultiViewerFrame(awx.Frame):
         return menu_bar
 
     def makeHelpMenu(self):
+        """
+        Method of the base class that provides a base help menu
+        that can be extended by the subclass.
+        """
         help_menu = wx.Menu()
                                                                                                                  
         self.ID_HELP_QUICKREF = wx.NewId()
@@ -160,9 +164,9 @@ class MultiViewerFrame(awx.Frame):
         """Open FileDialog to allow the user to select a file."""
         # Show the dialog and retrieve the user response.
         # If it is the OK response, process the data.
-        dialog = wx.FileDialog(self, message="Choose a WFK file", defaultDir=os.getcwd(),
-                               wildcard="WFK Netcdf files (*.nc)|*.nc",
-                               style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
+        dialog = wx.FileDialog(self, message="Choose a netcdf file", defaultDir=os.getcwd(),
+                               wildcard="Netcdf files (*.nc)|*.nc",
+                               style=wx.OPEN | wx.CHANGE_DIR)
 
         if dialog.ShowModal() == wx.ID_CANCEL: return 
         self.read_file(dialog.GetPath())
@@ -204,6 +208,7 @@ class MultiViewerFrame(awx.Frame):
                          description="", developers="M. Giantomassi")
 
     def onQuickRef(self, event=None):
+        """Show a dialog with a brief description of the commands."""
         dialog = wx.MessageDialog(self, self.HELP_MSG, self.codename + " Quick Reference",
                                wx.OK | wx.ICON_INFORMATION)
         dialog.ShowModal()

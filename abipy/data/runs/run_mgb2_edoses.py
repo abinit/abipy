@@ -63,13 +63,15 @@ def make_scf_nscf_inputs(structure, pseudos):
 
 
 def build_flow(options):
-    # Working directory (default is the name of the script with '.py' removed)
-    workdir = os.path.basename(os.path.abspath(__file__).replace(".py", "")) if not options.workdir else options.workdir
+    # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
+    workdir = options.workdir
+    if not options.workdir:
+        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
     # Instantiate the TaskManager.
     manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
 
-    pseudos = data.pseudos("12mg.pspnc", "05b.soft_tm")
+    pseudos = data.pseudos("12mg.pspnc", "5b.pspnc")
     structure = data.structure_from_ucell("MgB2")
 
     nval = structure.calc_nvalence(pseudos)

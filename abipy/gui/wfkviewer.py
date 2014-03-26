@@ -219,15 +219,7 @@ class WfkFileTab(awx.Panel):
 
 
 class WfkViewerApp(awx.App):
-    def OnInit(self):
-        return True
-
-    #def MacOpenFile(self, filepath):
-    #    """Called for files droped on dock icon, or opened via finders context menu"""
-    #    if filepath.endswith(".py"): return
-    #    # Open filename in a new frame.
-    #    #logger.info("%s dropped on app %s" % (filename, self.appname))
-    #    WfkViewerFrame(parent=None, filepaths=filepath).Show()
+    pass
 
 
 def wxapp_wfkviewer(wfk_filepaths):

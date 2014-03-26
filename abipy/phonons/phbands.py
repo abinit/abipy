@@ -15,7 +15,6 @@ __all__ = [
     "PHBST_File",
 ]
 
-#########################################################################################
 
 @functools.total_ordering
 class PhononMode(object):
@@ -65,7 +64,6 @@ class PhononMode(object):
 
     #def visualize(self, visualizer):
 
-#########################################################################################
 
 
 class PhononBands(object):
@@ -814,6 +812,12 @@ class PHBST_File(AbinitNcFile, Has_Structure, Has_PhononBands):
     #    """
     #    return "\n".join(lines)
 
+    def qindex(self, qpoint):
+        if isinstance(qpoint, int):
+            return qpoint
+        else:
+            return self.qpoints.index(qpoint)
+
     def get_phonon_mode(self, qpoint, nu):
         """
         Returns the `PhononMode` with the given qpoint and branch nu.
@@ -828,13 +832,7 @@ class PHBST_File(AbinitNcFile, Has_Structure, Has_PhononBands):
             returns:
                 `PhononMode` instance.
         """
-        if isinstance(qpoint, int):
-            qidx = qpoint
-        else:
-            qidx = self.qpoints.index(qpoint)
-
+        q = self.qindex(qpoint)
         raise NotImplementedError("")
-
         #return PHMode(qpoint, freq, displ_cart, structure)
 
-#########################################################################################

@@ -31,9 +31,11 @@ optic_input = """\
 123 222       ! Non-linear coefficients to be computed
 """
 
-def optic_flow(options):
-    # Working directory (default is the name of the script with '.py' removed)
-    workdir = os.path.basename(os.path.abspath(__file__).replace(".py", "")) if not options.workdir else options.workdir
+def build_flow(options):
+    # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
+    workdir = options.workdir
+    if not options.workdir:
+        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
     # Instantiate the TaskManager.
     manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
@@ -148,7 +150,7 @@ def optic_flow_from_files():
 @abilab.flow_main
 def main(options):
     flow = build_flow(options)
-    #flow = optic_flow_from_files()
+    #flow = optic_flow_from_files(options)
     #print("optic manager after allocate", flow[2][0].manager)
     return flow.build_and_pickle_dump()
 

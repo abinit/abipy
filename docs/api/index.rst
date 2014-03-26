@@ -20,4 +20,5 @@
    waves_api.rst
    htc/index.rst
    data_api.rst
+   gui_api.rst
    api_changes.rst

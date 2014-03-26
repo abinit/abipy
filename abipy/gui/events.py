@@ -7,7 +7,7 @@ import wx.lib.agw.flatnotebook as fnb
 import abipy.gui.awx as awx
 
 from collections import OrderedDict
-from pymatgen.io.abinitio import EventsParser
+from pymatgen.io.abinitio.events import EventsParser
 from abipy.tools import list_strings, is_string
 
 

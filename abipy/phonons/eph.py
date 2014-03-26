@@ -52,6 +52,7 @@ class EliashbergFunction(object):
         """""
         raise NotImplementedError()
 
+
 class EPH_Reader(ETSF_Reader):
 
     def __init__(file):
@@ -73,4 +74,3 @@ class EPH_Reader(ETSF_Reader):
         qpoint:
             Qpoint or int. If None all the matrix elements for this spin are read.
         """
-        
