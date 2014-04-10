@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-Python interface to fftprof. Provides object to perform FFT benchmarks
-and plot the results with matplotlib.
+Python interface to fftprof. Provides objects to benchmark
+the FFT libraries used by ABINIT and plot the results with matplotlib.
 """
 from __future__ import print_function, division
 
