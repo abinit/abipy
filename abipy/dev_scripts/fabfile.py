@@ -37,7 +37,7 @@ git_repospaths = [os.path.join(GIT_REPOSDIR, dirpath) for dirpath in git_urls]
 # We store our bzr branches in this directory 
 bzr_reposdir = USER_HOME + "/bzr_repos"
 
-bzr_branchurl = "bzr+ssh://forge.abinit.org/abinit/gmatteo/7.5.4-private"
+bzr_branchurl = "bzr+ssh://forge.abinit.org/abinit/gmatteo/7.7.2-private"
 
 to_location = os.path.join(*bzr_branchurl.split("/")[-2:]).replace("/", "_")
 
@@ -74,6 +74,7 @@ def all_hosts():
         "vega.ulb.ac.be",
         "dragon1.umons.ac.be",
         "hercules.ptci.unamur.be",
+        "nic4.segi.ulg.ac.be",
     ]
 
 def git_pull():

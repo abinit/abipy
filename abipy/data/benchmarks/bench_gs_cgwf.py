@@ -7,7 +7,7 @@ import abipy.data as data
 
 from abipy.data.benchmarks import build_abinit_benchmark
 
-def make_base_input():
+def make_template():
     inp = abilab.AbiInput(pseudos=data.pseudos("14si.pspnc"))
     inp.set_structure(data.structure_from_ucell("si"))
 
@@ -33,15 +33,15 @@ def make_base_input():
     return inp
 
 def main():
-    max_ncpus = 10
-    base_input = make_base_input()
+    template = make_template()
 
-    policy = dict(autoparal=0, max_ncpus=10)
+    max_ncpus = 10
+    policy = dict(autoparal=0, max_ncpus=max_ncpus)
 
     manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=policy)
     #manager = abilab.TaskManager.from_user_config()
 
-    benchmark = build_abinit_benchmark("gs_cgwf", base_input, manager=manager)
+    benchmark = build_abinit_benchmark("gs_cgwf", template, manager=manager)
 
     return benchmark.build_and_pickle_dump()
 
