@@ -1,5 +1,11 @@
+#!/usr/bin/env python
+"""
+Python interface to fftprof. Provides object to perform FFT benchmarks
+and plot the results with matplotlib.
+"""
 from __future__ import print_function, division
 
+import sys
 import os
 import tempfile
 import numpy as np
@@ -53,9 +59,9 @@ class FFT_Test(object):
         """
         Args:
             ecut:
-                List of cutoff energies.
+                List of cutoff energies in Hartree.
             ngfft:
-                List of FFT divisions.
+                List with FFT divisions.
             wall_time:
                 List of wall_time for the different ecut.
             info:
@@ -100,8 +106,7 @@ class FFT_Test(object):
 
         line, = ax.plot(xx, yy,
                         color=color, linestyle=linestyle, label=str(self), linewidth=3.0,
-                        marker=marker, markersize=10,
-        )
+                        marker=marker, markersize=10)
         return line
 
 
@@ -109,9 +114,8 @@ class FFT_Benchmark(object):
     """
     Container class storing the results of the FFT benchmark.
 
-    Use the classmethod from_filename to generate an instance.
+    Use the class method `from_file` to generate a new instance.
     """
-
     @classmethod
     def from_file(cls, fileobj):
         return parse_prof_file(fileobj)
@@ -194,7 +198,7 @@ class FFT_Benchmark(object):
 
         t0 = self.tests[0]
         labels = [str(ndiv) for ndiv in t0.ngfft]
-        #labels = list()
+        #labels = []
         #for t ndiv in zip(t0.ecut, t0.ngfft):
         #for #labels = [ str(ndiv) for ndiv in t0.ngfft ]
         #print labels
@@ -264,6 +268,22 @@ def parse_prof_file(fileobj):
     Returns:
         Instance of FFT_Benchmark.
     """
+    # The file contains
+    # 1) An initial header with info on the routine.
+    # 2) The list of fftalgs that have been analyzed.
+    # Results:
+    #   ecut ngfft(1:3) wall_times
+    #
+    # Example
+
+    # Benchmark: routine = fourwf, cplex = 1, option= 2, istwfk= 1
+    #  fftalg = 112, fftcache = 16, ndat = 1, nthreads = 1, available = 1
+    #  fftalg = 401, fftcache = 16, ndat = 1, nthreads = 1, available = 1
+    #  fftalg = 412, fftcache = 16, ndat = 1, nthreads = 1, available = 1
+    #  fftalg = 312, fftcache = 16, ndat = 1, nthreads = 1, available = 1
+    #   20.0  91  91  90 0.0307 0.0330 0.0275 0.0283
+    #   30.0 101 101 100 0.0395 0.0494 0.0404 0.0333
+
     if not hasattr(fileobj, "readlines"):
         with open(fileobj, "r") as fh:
             lines = fh.readlines()
@@ -302,7 +322,7 @@ def parse_prof_file(fileobj):
         except IndexError:
             line = None
 
-    # Instanciate FFT_Benchmark.
+    # Instantiate FFT_Benchmark.
     fft_tests = []
     for (idx, wall_time) in enumerate(data):
         info = info_of_test[idx]
@@ -317,8 +337,8 @@ class FFTProfError(Exception):
 
 
 class FFTProf(object):
-
-    Error =  FFTProfError
+    """Wrapper around fftprof Fortran executable."""
+    Error = FFTProfError
 
     def __init__(self, fft_input, executable="fftprof"):
         self.verbose = 1
@@ -336,7 +356,7 @@ class FFTProf(object):
         return cls(fft_input, executable=executable)
 
     def run(self):
-        """Execute the executable in a subprocess."""
+        """Execute fftprof in a subprocess."""
         self.workdir = tempfile.mkdtemp()
         print(self.workdir)
 
@@ -382,8 +402,18 @@ class FFTProf(object):
             bench.plot()
 
 
+def main():
+    try:
+        prof_files = sys.argv[1:]
+    except IndexError:
+        raise RuntimeError("Must specify one or more files")
+
+    # Plot the benchmark results saved in the files
+    for pfile in prof_files:
+        FFT_Benchmark.from_file(pfile).plot()
+
+    return 0
+
+
 if __name__ == "__main__":
-    import sys
-    prof_file = sys.argv[1]
-    bench = FFT_Benchmark.from_file(prof_file)
-    bench.plot()
+    sys.exit(main())
