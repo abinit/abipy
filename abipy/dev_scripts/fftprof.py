@@ -16,6 +16,7 @@ _color_fftalg = {
     #311: "y",
     312: "b",
     412: "y",
+    401: "c",
     #511: "c",
     512: "g",
 }
@@ -340,8 +341,8 @@ class FFTProf(object):
         print(self.workdir)
 
         self.stdin_fname = os.path.join(self.workdir, "fftprof.in")
-        self.stdout_fname = os.path.join(self.workdir,  "fftprof.out")
-        self.stderr_fname = os.path.join(self.workdir,  "fftprof.err")
+        self.stdout_fname = os.path.join(self.workdir, "fftprof.out")
+        self.stderr_fname = os.path.join(self.workdir, "fftprof.err")
 
         with open(self.stdin_fname, "w") as fh:
             fh.write(self.fft_input)
@@ -380,3 +381,9 @@ class FFTProf(object):
             bench = FFT_Benchmark.from_file(prof_file)
             bench.plot()
 
+
+if __name__ == "__main__":
+    import sys
+    prof_file = sys.argv[1]
+    bench = FFT_Benchmark.from_file(prof_file)
+    bench.plot()

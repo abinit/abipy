@@ -12,6 +12,7 @@ from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
 from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter, SIGRES_Plotter
 from abipy.phonons import PhononBands, PHDOS_Reader, PHDOS_File
 
+# Tools for unit conversion
 FloatWithUnit = constants.FloatWithUnit
 ArrayWithUnit = constants.ArrayWithUnit
 
@@ -48,8 +49,7 @@ def abifile_subclass_from_filename(filename):
 
     # CIF files.
     if filename.endswith(".cif"):
-        from abipy.core.structure import Structure
-        return Structure.from_file(filename)
+        return Structure
 
     ext = filename.split("_")[-1]
     try:
