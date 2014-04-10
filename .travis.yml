@@ -7,12 +7,12 @@ before_install:
   - pip install -Iv https://bitbucket.org/jamesrhester/pycifrw/downloads/PyCifRW-3.6.1.tar.gz
   - pip install -Iv https://netcdf4-python.googlecode.com/files/netCDF4-1.0.2.tar.gz
   #- pip install netCDF4
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq liblapack-dev 
-  - sudo apt-get install libzmq3-dev
-  - sudo apt-get install build-essential gfortran python-dev
-  - sudo apt-get install python-nose python-numpy python-setuptools python-docutils
-  - sudo apt-get install python-h5py python-setuptools
+  #- sudo apt-get update -qq
+  #- sudo apt-get install -qq liblapack-dev 
+  #- sudo apt-get install libzmq3-dev
+  #- sudo apt-get install build-essential gfortran python-dev
+  #- sudo apt-get install python-nose python-numpy python-setuptools python-docutils
+  #- sudo apt-get install python-h5py python-setuptools
   #- sudo apt-get install python-numpy 
   #- sudo apt-get install python-scipy 
   #- sudo apt-get install python-matplotlib 

@@ -152,13 +152,6 @@ class LittleGroupTest(AbipyTest):
             #wfk_file.classify_ebands(0, kpoint, bands_range=range(0,5))
 
 
-
-
-
-
-
-
-
 # reduced_symmetry_matrices =
 #  1, 0, 0,
 #  0, 1, 0,
