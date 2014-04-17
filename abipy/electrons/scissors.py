@@ -20,7 +20,7 @@ class Scissors(object):
     """
     This object represents an energy-dependent scissors operator.
     The operator is defined by a list of domains (energy intervals)
-    and a list of functions defined on these domains. The domains
+    and a list of functions defined in these domains. The domains
     should fulfill the constraints documented in the main constructor.
     eV units are assumed.
 
@@ -35,11 +35,13 @@ class Scissors(object):
         """
         Args:
             func_list:
-                List of callable objects.
+                List of callable objects. Each function takes an eigenvalue and returns
+                the corrected value.
             domains:
                  Domains of each function. List of tuples [(emin1, emax1), (emin2, emax2), ...]
             bounds:
-                Boundaries
+                Specify how to handle energies that do not fall inside one of the domains. 
+                At present, only constant boundaries are implemented.
 
         .. note:
 
@@ -54,6 +56,8 @@ class Scissors(object):
         assert len(self.func_list) == len(self.domains)
 
         # Treat the out-of-boundary conditions.
+        # func_low and func_high are used to handle energies 
+        # that are below or above the min/max energy given in domains.
         blow, bhigh  = "c", "c"
         if bounds is not None:
             blow  = bounds[0][0]
@@ -81,23 +85,30 @@ class Scissors(object):
         else:
             raise NotImplementedError("Only constant boundaries are implemented")
 
-        # Init the internal counter.
+        # This counter stores the number of points that are out of bounds.
         self.out_bounds = np.zeros(3, np.int)
 
     def apply(self, eig):
         """Correct the eigenvalue eig (eV units)."""
+        # Get the list of domains.
         domains = self.domains
 
         if eig < domains[0,0]:
+            # Eig is below the first point of the first domain.
+            # Call func_low
             print("left ", eig, domains[0,0])
             self.out_bounds[0] += 1
             return self.func_low(eig)
 
         if eig > domains[-1,1]:
+            # Eig is above the last point of the last domain.
+            # Call func_high
             print("right ", eig, domains[-1,1])
             self.out_bounds[1] += 1
             return self.func_high(eig)
 
+        # eig is inside the domains: find the domain 
+        # and call the corresponding function.
         for idx, dms in enumerate(domains):
             if dms[1] >= eig >= dms[0]:
                 return self.func_list[idx](eig)
@@ -108,7 +119,9 @@ class Scissors(object):
 
 class ScissorsBuilder(object):
     """
-    This object facilitates the creations of `Scissors` instances.
+    This object facilitates the creation of `Scissors` instances.
+
+    Usage:
     """
     _DEBUG = True
 
@@ -135,7 +148,10 @@ class ScissorsBuilder(object):
 
     @classmethod
     def from_file(cls, filepath):
-        """Generate an instance of ScissorsBuilder from file."""
+        """
+        Generate an instance of `ScissorsBuilder` from file.
+        Main entry point for client code.
+        """
         from abipy.abilab import abiopen
         ncfile = abiopen(filepath)
         return cls(qps_spin=ncfile.qplist_spin)

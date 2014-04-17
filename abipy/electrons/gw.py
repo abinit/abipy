@@ -285,7 +285,8 @@ class QPList(list):
 
     def build_scissors(self, domains, bounds=None, plot=False, **kwargs):
         """
-        Construct a scissors operator by interpolating the QPState corrections as a function of E0.
+        Construct a scissors operator by interpolating the QPState corrections 
+        as function of the initial energies E0.
 
         Args:
             domains:
@@ -293,13 +294,29 @@ class QPList(list):
                 Domains should not overlap, cover e0mesh, and given in increasing order.
                 Holes are permitted but the interpolation will raise an exception if the
                 point is not in domains.
+            bounds:
+                Specify how to handle out-of-boundary conditions, i.e. how to treat
+                energies that do not fall inside one of the domains (not used at present)
             plot:
                 If true, use `matplolib` to compare input data  and fit.
+
+        Return:
+            instance of `Scissors`operator
+
+        Example:
+
+            # Build the scissors operator.
+            scissors = qplist_spin[0].build_scissors(domains)
+
+            # Compute list of interpolated QP energies.
+            qp_enes = [scissors.apply(e0) for e0 in ks_energies]
+
         """
+        # Sort QP corrections according to the initial KS energy.
         qps = self.sort_by_e0()
         e0mesh, qpcorrs = qps.get_e0mesh(), qps.get_qpeme0()
 
-        # Check domains
+        # Check domains.
         domains = np.atleast_2d(domains)
         dsize, dflat = domains.size, domains.ravel()
 
@@ -316,7 +333,7 @@ class QPList(list):
             if idx == dsize-1 and dflat[idx] < dflat[idx-1]:
                 raise ValueError("domain boundaries should be given in increasing order.")
 
-        # Create the sub_domains
+        # Create the sub_domains and the spline functions in each subdomain.
         func_list = []
         for dom in domains[:]:
             low, high = dom[0], dom[1]
@@ -341,6 +358,7 @@ class QPList(list):
             plt.legend()
             plt.show()
 
+        # Return the object.
         return sciss
 
     def merge(self, other, copy=False):
