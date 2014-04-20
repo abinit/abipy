@@ -141,13 +141,16 @@ def alternate(*iterables):
 def iflat(iterables):
     """
     Iterator over all elements of a nested iterable. It's recursive!
+
+    >>> list(iflat([[0], [1,2, [3,4]]]))
+    [0, 1, 2, 3, 4]
     """
     for item in iterables:
         if not hasattr(item, "__iter__"): 
             yield item
         else: 
             # iterable object.
-            for it in flat(item): 
+            for it in iflat(item): 
                 yield it
 
 
