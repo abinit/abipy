@@ -35,11 +35,11 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         wfk.plot_ebands()
 
         # Visualize u(r)**2 with vesta.
-        visu = wfk.visalize_structure_with("vesta")
+        visu = wfk.visualize_structure_with("vesta")
         visu()
 
         # Visualize u(r)**2 with vesta.
-        visu = wfk.visalize_ur2(spin=0, kpoint=0, band=0, visu="vesta")
+        visu = wfk.visualize_ur2(spin=0, kpoint=0, band=0, visu="vesta")
         visu()
 
         # Get a wavefunction.
