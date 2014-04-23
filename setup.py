@@ -28,7 +28,9 @@ class MyInstall(install):
     def __write_user_cfgfiles(self, overwrite=False): 
         """
         This function creates the abipy configurations files.
-        Set overwrite to True if pre-existent files should be overwritten.
+        
+            overwrite:
+                True if pre-existent files can be overwritten.
         """
         conf_dir = os.path.join(os.getenv("HOME"), ".abinit", "abipy")
         print("Creating configuration files in %s ... " % conf_dir, end="")
