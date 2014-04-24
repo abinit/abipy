@@ -251,10 +251,60 @@ class ScissorsBuilder(object):
             d = AttrDict(pickle.load(fh))
             if cls._DEBUG:
                 print("In load_data")
-                print("domains_spin",d.domains_spin)
-                print("bounds_spin",d.bounds_spin)
+                print("domains_spin", d.domains_spin)
+                print("bounds_spin", d.bounds_spin)
 
             new = cls(d.qps_spin)
             new.build(d.domains_spin, d.bounds_spin)
             return new
 
+
+class AutomaticScissorsBuilder(ScissorsBuilder):
+    """
+    Object to create a Scissors instance without specifing domians
+
+    .number_of_domains is a tuple containing the number of domains in the valence conduction region
+    default (1, 1)
+
+    other than (1, 1) is not implemented jet.
+    """
+
+    def __init__(self, qps_spin, e_bands):
+        print(qps_spin)
+        super(AutomaticScissorsBuilder, self).__init__(qps_spin=qps_spin)
+        if self.nsppol > 1:
+            raise NotImplementedError('2 spin channels is not implemented yet')
+        self.gap_mid = (e_bands.homos[0][3] + e_bands.lumos[0][3]) / 2
+        self.number_of_domains = (1, 1)
+        self.create_domains()
+
+    @classmethod
+    def from_file(cls, filepath):
+        """
+        Generate an instance of `AutomaticScissorsBuilder` from file.
+        Main entry point for client code.
+        """
+        from abipy.abilab import abiopen
+        ncfile = abiopen(filepath)
+        return cls(qps_spin=ncfile.qplist_spin, e_bands=ncfile.ebands)
+
+    def set_domains(self, number_of_domains):
+        self.number_of_domains = number_of_domains
+        self.create_domains()
+
+    def create_domains(self):
+
+        domains = [[self.e0min, self.gap_mid], [self.gap_mid, self.e0max]]
+
+        if self.number_of_domains[0] > 1:
+            # do something smart to sub divide the valence region into more domains
+            raise NotImplementedError('only one domain in the valence region')
+
+        if self.number_of_domains[1] > 1:
+            # do something smart to sub divide the conduction region into more domains
+            raise NotImplementedError('only one domain in the conduction region')
+
+        self.domains_spin = domains
+
+    def build(self):
+        super(AutomaticScissorsBuilder, self).build(self.domains_spin, bounds_spin=None)
