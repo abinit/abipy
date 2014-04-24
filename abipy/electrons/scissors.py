@@ -251,10 +251,44 @@ class ScissorsBuilder(object):
             d = AttrDict(pickle.load(fh))
             if cls._DEBUG:
                 print("In load_data")
-                print("domains_spin",d.domains_spin)
-                print("bounds_spin",d.bounds_spin)
+                print("domains_spin", d.domains_spin)
+                print("bounds_spin", d.bounds_spin)
 
             new = cls(d.qps_spin)
             new.build(d.domains_spin, d.bounds_spin)
             return new
 
+
+class AutomaticScissorsBuilder(ScissorsBuilder):
+    """
+    Object to create a Scissors instance without specifing domians
+
+    .number_of_domains is a tuple containing the number of domains in the valence conduction region
+    default (1, 1)
+
+    other than (1, 1) is not implemented jet.
+    """
+
+    def __init__(self, qps_spin, e_bands):
+        super(AutomaticScissorsBuilder, self).__init__(qps_spin)
+        self.gap_mid = (e_bands.homos[0][3] + e_bands.lumos[0][3]) / 2
+        self.number_of_domains = (1, 1)
+        self.set_domains()
+
+    @classmethod
+    def from_file(cls, filepath):
+        """
+        Generate an instance of `AutomaticScissorsBuilder` from file.
+        Main entry point for client code.
+        """
+        from abipy.abilab import abiopen
+        ncfile = abiopen(filepath)
+        return cls(qps_spin=ncfile.qplist_spin, e_bands=ncfile.ebands)
+
+    def set_domains(self):
+
+        if self.number_of_domains == (1,1):
+            domains = [[-10, 6.1], [6.1, 18]]
+        else:
+            # do something smart to sub divide the valence and conduction domains
+            raise NotImplementedError
