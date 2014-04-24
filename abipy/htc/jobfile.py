@@ -9,6 +9,7 @@ __all__ = [
     'PBSJobFile', 
     'SGEJobFile', 
     'SlurmJobFile',
+    'MoabJobFile',
 ]
 
 # =========================================================================== #
@@ -376,9 +377,9 @@ class PBSJobFile(JobFile):
 
     _command = "#PBS "
 
-    def __inti__(self, **kwargs):
+    def __init__(self, **kwargs):
 
-        kwargs.setdefault(submission_command='qsub')
+        kwargs.setdefault('submission_command', 'qsub')
         JobFile.__init__(self, **kwargs)
 
     nodes = None
@@ -480,9 +481,9 @@ class SGEJobFile(JobFile):
 
     _command = "#$ "
 
-    def __inti__(self, **kwargs):
+    def __init__(self, **kwargs):
 
-        kwargs.setdefault(submission_command='qsub')
+        kwargs.setdefault('submission_command', 'qsub')
         JobFile.__init__(self, **kwargs)
 
     jobname = None
@@ -581,9 +582,9 @@ class SlurmJobFile(JobFile):
 
     _command = "#SBATCH "
 
-    def __inti__(self, **kwargs):
+    def __init__(self, **kwargs):
 
-        kwargs.setdefault(submission_command='sbatch')
+        kwargs.setdefault('submission_command', 'sbatch')
         JobFile.__init__(self, **kwargs)
 
     jobname = None
@@ -592,7 +593,7 @@ class SlurmJobFile(JobFile):
 
     time = None
     def set_time(self, val):
-        """Either set the numer of hours, or a triplet for (hours,min,sec)."""
+        """Either set the number of hours, or a triplet for (hours,min,sec)."""
         if isinstance(val, int):
             val = [val, 0, 0]
         self.time = val
@@ -660,5 +661,146 @@ class SlurmJobFile(JobFile):
 
         if self.mail_type:
             add('--mail-type=' + self.mail_type)
+
+        return lines
+
+# =========================================================================== #
+
+
+class MoabJobFile(JobFile):
+    """
+    Moab Workload Manager
+
+    .. Attributes:
+        start_after:
+          Declares the time after which the job is eligible for execution.
+          Syntax: (brackets delimit optional items with the default being       
+          current date/time): [CC][YY][MM][DD]hhmm[.SS]
+        account:
+            Defines the account associated with the job.
+        hold:
+            Put a user hold on the job at submission time.
+        combine:
+            Combine stdout and stderr into the same output file.
+        resources:
+            Defines the resources that are required by the job.
+        mail:
+            Defines the set of conditions (a=abort,b=begin,e=end) when the
+            server will send a mail message about the job to the user.
+        jobname:
+            Gives a user specified name to the job.
+        priority:
+            Assigns a user priority value to a job.
+        queue:
+            Run the job in the specified queue (pdebug, pbatch, etc.). A host
+            may also be specified if it is not the local host.
+        rerun:
+            Automatically rerun the job is there is a system failure.
+        env:
+            Specifically adds a list of environment variables that are exported
+            to the job.
+        allenv:
+            Declares that all environment variables in the msub environment are
+            exported to the batch job.
+    """
+    __doc__ += "\n" + JobFile.__doc__
+
+    _command = "#MSUB "
+
+    def __init__(self, **kwargs):
+
+        kwargs.setdefault('submission_command', 'srun')
+        JobFile.__init__(self, **kwargs)
+
+    start_after = None
+    def set_start_after(self, val):
+        self.start_after = val
+
+    account = None
+    def set_account(self, val):
+        self.account = val
+
+    hold = None
+    def set_hold(self, val):
+        self.hold = val
+
+    combine = None
+    def set_combine(self, val):
+        self.combine = val
+
+    resources = dict()
+    def set_resources(self, val):
+        self.resources = val
+
+    mail = None
+    def set_mail(self, val):
+        self.mail = val
+
+    jobname = None
+    def set_jobname(self, val):
+        self.jobname = val
+
+    priority = None
+    def set_priority(self, val):
+        self.priority = val
+
+    queue = None
+    def set_queue(self, val):
+        self.queue = val
+
+    rerun = None
+    def set_rerun(self, val):
+        self.rerun = val
+
+    env = None
+    def set_env(self, val):
+        self.env = val
+
+    allenv = None
+    def set_allenv(self, val):
+        self.allenv = val
+
+    def _get_command_lines(self):
+        """Return the lines specifying instructions for job submission."""
+        lines = list()
+        def add(line):
+            lines.append(self._command + line) # + '\n')
+
+        if self.start_after:
+            add('-a ' + self.start_after)
+
+        if self.account:
+            add('-A ' + self.account)
+
+        if self.hold is True:
+            add('-h ')
+
+        if self.combine is True:
+            add('-j oe')
+
+        if self.resources:
+            for (arg, val) in self.resources.iteritems():
+                add('-l ' + arg + '=' + val)
+
+        if self.mail:
+            add('-m ' + self.mail)
+
+        if self.jobname:
+            add('-N ' + self.jobname)
+
+        if self.priority:
+            add('-p ' + self.priority)
+
+        if self.queue:
+            add('-q ' + self.queue)
+
+        if self.rerun is True:
+            add('-r y')
+
+        if self.env:
+            add('-v ' + ','.join(self.env))
+
+        if self.allenv is True:
+            add('-V')
 
         return lines
