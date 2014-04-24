@@ -21,8 +21,7 @@ __all__ = [
 ]
 
 
-class QPState(collections.namedtuple("QPState",
-                         "spin kpoint band e0 qpe qpe_diago vxcme sigxme sigcmee0 vUme ze0")):
+class QPState(collections.namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sigxme sigcmee0 vUme ze0")):
     """
     Quasi-particle result for given (spin, kpoint, band).
 
@@ -409,7 +408,7 @@ class Sigmaw(object):
 
         elif w == "a":
             f = self.spfunc
-            label  = kwargs.get("label", "$A(\omega)$")
+            label = kwargs.get("label", "$A(\omega)$")
             extend(f.plot_ax(ax, label=label))
             # Plot I(w)
             #ax2 = ax.twinx()
@@ -481,13 +480,14 @@ class Sigmaw(object):
 
         return fig
 
+
 def torange(obj):
     """
     Convert obj into a range. Accepts integer, slice object 
     or any object with an __iter__ method.
     Note that an integer is converted into range(int, int+1)
 
-    >>> torange(1) 
+    >>> torange(1)
     [1]
     >>> torange(slice(0,4,2))
     [0, 2]
@@ -1056,6 +1056,7 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
 # TODO  Write F90 routine to merge the SIGRES files.
 #class SIGRES_Merger(object):
 #    """This object merges multiple SIGRES files."""
+
 
 class SIGRES_Reader(ETSF_Reader):
     """This object provides method to read data from the SIGRES file produced ABINIT.
