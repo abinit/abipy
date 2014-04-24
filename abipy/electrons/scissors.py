@@ -270,27 +270,7 @@ class AutomaticScissorsBuilder(ScissorsBuilder):
     """
 
     def __init__(self, qps_spin, e_bands):
-#        super(AutomaticScissorsBuilder, self).__init__(qps_spin=qps_spin)
-        # Sort quasiparticle data by e0.
-        qpsort = []
-        for qps in qps_spin:
-            qpsort.append(qps.sort_by_e0())
-
-        self._qps_spin = tuple(qpsort)
-
-        # Compute the boundaries of the E0 mesh.
-        e0min, e0max = np.inf, -np.inf
-        for qps in self._qps_spin:
-            e0mesh = qps.get_e0mesh()
-            e0min = min(e0min, e0mesh[0])
-            e0max = max(e0max, e0mesh[-1])
-
-        self._e0min, self._e0max = e0min, e0max
-
-        # The parameters defining the scissors operator
-        self.domains_spin = OrderedDict()
-        self.bounds_spin = OrderedDict()
-
+        super(AutomaticScissorsBuilder, self).__init__(qps_spin=qps_spin)
         if self.nsppol > 1:
             raise NotImplementedError('2 spin channels is not implemented yet')
         self.gap_mid = (e_bands.homos[0][3] + e_bands.lumos[0][3]) / 2
