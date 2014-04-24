@@ -270,10 +270,12 @@ class AutomaticScissorsBuilder(ScissorsBuilder):
     """
 
     def __init__(self, qps_spin, e_bands):
+        if self.nsppol > 1:
+            raise NotImplementedError('2 spin channels is not implemented yet')
         super(AutomaticScissorsBuilder, self).__init__(qps_spin)
         self.gap_mid = (e_bands.homos[0][3] + e_bands.lumos[0][3]) / 2
         self.number_of_domains = (1, 1)
-        self.set_domains()
+        self.create_domains()
 
     @classmethod
     def from_file(cls, filepath):
@@ -285,10 +287,23 @@ class AutomaticScissorsBuilder(ScissorsBuilder):
         ncfile = abiopen(filepath)
         return cls(qps_spin=ncfile.qplist_spin, e_bands=ncfile.ebands)
 
-    def set_domains(self):
+    def set_domains(self, number_of_domains):
+        self.number_of_domains = number_of_domains
+        self.create_domains()
 
-        if self.number_of_domains == (1,1):
-            domains = [[-10, 6.1], [6.1, 18]]
-        else:
-            # do something smart to sub divide the valence and conduction domains
-            raise NotImplementedError
+    def create_domains(self):
+
+        domains = [[self.e0min, self.gap_mid], [self.gap_mid, self.e0max]]
+
+        if self.number_of_domains[0] > 1:
+            # do something smart to sub divide the valence region into more domains
+            raise NotImplementedError('only one domain in the valence region')
+
+        if self.number_of_domains[1] > 1:
+            # do something smart to sub divide the conduction region into more domains
+            raise NotImplementedError('only one domain in the conduction region')
+
+        self.domains_spin = domains
+
+    def build(self):
+        super(AutomaticScissorsBuilder, self).build(self.domains_spin, bounds_spin=None)
