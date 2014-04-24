@@ -270,9 +270,9 @@ class AutomaticScissorsBuilder(ScissorsBuilder):
     """
 
     def __init__(self, qps_spin, e_bands):
+        super(AutomaticScissorsBuilder, self).__init__(qps_spin)
         if self.nsppol > 1:
             raise NotImplementedError('2 spin channels is not implemented yet')
-        super(AutomaticScissorsBuilder, self).__init__(qps_spin)
         self.gap_mid = (e_bands.homos[0][3] + e_bands.lumos[0][3]) / 2
         self.number_of_domains = (1, 1)
         self.create_domains()
