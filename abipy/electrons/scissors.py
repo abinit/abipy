@@ -270,7 +270,11 @@ class AutomaticScissorsBuilder(ScissorsBuilder):
     """
 
     def __init__(self, qps_spin, e_bands):
-        super(AutomaticScissorsBuilder, self).__init__(qps_spin)
+        qpsort = []
+        for qps in qps_spin:
+            qpsort.append(qps.sort_by_e0())
+        self._qps_spin = tuple(qpsort)
+        super(AutomaticScissorsBuilder, self).__init__(qps_spin=qps_spin)
         dir(self)
         if self.nsppol > 1:
             raise NotImplementedError('2 spin channels is not implemented yet')
