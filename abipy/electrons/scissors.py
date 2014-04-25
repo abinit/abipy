@@ -270,6 +270,7 @@ class AutomaticScissorsBuilder(ScissorsBuilder):
     """
 
     def __init__(self, qps_spin, e_bands):
+        print('test')
         print(e_bands)
         print(qps_spin)
         super(AutomaticScissorsBuilder, self).__init__(qps_spin=qps_spin)
@@ -287,6 +288,7 @@ class AutomaticScissorsBuilder(ScissorsBuilder):
         """
         from abipy.abilab import abiopen
         ncfile = abiopen(filepath)
+        print(ncfile.qplist_spin, ncfile.ebands)
         return cls(qps_spin=ncfile.qplist_spin, e_bands=ncfile.ebands)
 
     def set_domains(self, number_of_domains):
