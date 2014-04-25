@@ -197,7 +197,10 @@ class ScissorsBuilder(object):
         scissors_spin = nsppol * [None]
         for (spin, qps) in enumerate(self._qps_spin):
             domains = domains_spin[spin]
-            bounds = bounds_spin[spin]
+            if bounds_spin is None:
+                bounds = None
+            else:
+                bounds = bounds_spin[spin]
             print(domains)
             print(bounds)
             scissors = qps.build_scissors(domains, bounds=bounds, plot=False)
