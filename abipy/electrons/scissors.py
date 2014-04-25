@@ -270,6 +270,7 @@ class AutomaticScissorsBuilder(ScissorsBuilder):
     """
 
     def __init__(self, qps_spin, e_bands):
+        print(e_bands)
         print(qps_spin)
         super(AutomaticScissorsBuilder, self).__init__(qps_spin=qps_spin)
         if self.nsppol > 1:
