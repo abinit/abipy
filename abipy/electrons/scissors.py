@@ -309,4 +309,4 @@ class AutomaticScissorsBuilder(ScissorsBuilder):
         self.domains_spin = domains
 
     def build(self):
-        super(AutomaticScissorsBuilder, self).build(domains_spin=self.domains_spin, bounds_spin=None, k=1)
+        super(AutomaticScissorsBuilder, self).build(domains_spin=self.domains_spin, bounds_spin=None, k=2)
