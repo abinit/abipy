@@ -183,13 +183,13 @@ class ScissorsBuilder(object):
 
         if nsppol == 1:
             domains_spin = np.reshape(domains_spin, (1, -1, 2))
-
             if bounds_spin is not None:
                 bounds_spin = np.reshape(bounds_spin, (1, -1, 2))
 
         elif nsppol == 2:
             assert len(domains_spin) == nsppol
-            assert len(bounds_spin) == nsppol
+            if bounds_spin is not None:
+                assert len(bounds_spin) == nsppol
         else:
             raise ValueError("Wrong number of spins %d" % nsppol)
 
