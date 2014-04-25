@@ -130,7 +130,6 @@ class ScissorsBuilder(object):
         qpsort = []
         for qps in qps_spin:
             qpsort.append(qps.sort_by_e0())
-
         self._qps_spin = tuple(qpsort)
 
         # Compute the boundaries of the E0 mesh.
@@ -178,17 +177,19 @@ class ScissorsBuilder(object):
         except AttributeError:
             return None
 
-    def build(self, domains_spin, bounds_spin):
+    def build(self, domains_spin, bounds_spin, k=3):
         """Build the scissors operator."""
         nsppol = self.nsppol
 
         if nsppol == 1:
-            domains_spin = np.reshape(domains_spin, (1,-1,2))
-            bounds_spin = np.reshape(bounds_spin, (1,-1,2))
+            domains_spin = np.reshape(domains_spin, (1, -1, 2))
+            if bounds_spin is not None:
+                bounds_spin = np.reshape(bounds_spin, (1, -1, 2))
 
         elif nsppol == 2:
             assert len(domains_spin) == nsppol
-            assert len(bounds_spin) == nsppol
+            if bounds_spin is not None:
+                assert len(bounds_spin) == nsppol
         else:
             raise ValueError("Wrong number of spins %d" % nsppol)
 
@@ -196,9 +197,11 @@ class ScissorsBuilder(object):
         scissors_spin = nsppol * [None]
         for (spin, qps) in enumerate(self._qps_spin):
             domains = domains_spin[spin]
-            bounds = bounds_spin[spin]
-            print(domains)
-            scissors = qps.build_scissors(domains, bounds=bounds, plot=False)
+            if bounds_spin is None:
+                bounds = None
+            else:
+                bounds = bounds_spin[spin]
+            scissors = qps.build_scissors(domains, bounds=bounds, k=k, plot=False)
 
             scissors_spin[spin] = scissors
 
@@ -270,7 +273,6 @@ class AutomaticScissorsBuilder(ScissorsBuilder):
     """
 
     def __init__(self, qps_spin, e_bands):
-        print(qps_spin)
         super(AutomaticScissorsBuilder, self).__init__(qps_spin=qps_spin)
         if self.nsppol > 1:
             raise NotImplementedError('2 spin channels is not implemented yet')
@@ -307,4 +309,4 @@ class AutomaticScissorsBuilder(ScissorsBuilder):
         self.domains_spin = domains
 
     def build(self):
-        super(AutomaticScissorsBuilder, self).build(self.domains_spin, bounds_spin=None)
+        super(AutomaticScissorsBuilder, self).build(domains_spin=self.domains_spin, bounds_spin=None, k=2)
