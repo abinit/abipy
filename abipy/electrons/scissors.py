@@ -177,7 +177,7 @@ class ScissorsBuilder(object):
         except AttributeError:
             return None
 
-    def build(self, domains_spin, bounds_spin):
+    def build(self, domains_spin, bounds_spin, k=3):
         """Build the scissors operator."""
         nsppol = self.nsppol
 
@@ -201,7 +201,7 @@ class ScissorsBuilder(object):
                 bounds = None
             else:
                 bounds = bounds_spin[spin]
-            scissors = qps.build_scissors(domains, bounds=bounds, plot=False)
+            scissors = qps.build_scissors(domains, bounds=bounds, k=k, plot=False)
 
             scissors_spin[spin] = scissors
 
@@ -309,4 +309,4 @@ class AutomaticScissorsBuilder(ScissorsBuilder):
         self.domains_spin = domains
 
     def build(self):
-        super(AutomaticScissorsBuilder, self).build(self.domains_spin, None)
+        super(AutomaticScissorsBuilder, self).build(domains_spin=self.domains_spin, bounds_spin=None, k=1)
