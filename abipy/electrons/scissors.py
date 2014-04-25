@@ -183,9 +183,9 @@ class ScissorsBuilder(object):
 
         if nsppol == 1:
             domains_spin = np.reshape(domains_spin, (1, -1, 2))
-            print(bounds_spin)
-            bounds_spin = np.reshape(bounds_spin, (1, -1, 2))
-            print(bounds_spin)
+
+            if bounds_spin is not None:
+                bounds_spin = np.reshape(bounds_spin, (1, -1, 2))
 
         elif nsppol == 2:
             assert len(domains_spin) == nsppol
@@ -308,4 +308,4 @@ class AutomaticScissorsBuilder(ScissorsBuilder):
         self.domains_spin = domains
 
     def build(self):
-        super(AutomaticScissorsBuilder, self).build(self.domains_spin)
+        super(AutomaticScissorsBuilder, self).build(self.domains_spin, None)
