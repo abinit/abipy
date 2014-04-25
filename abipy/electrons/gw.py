@@ -339,8 +339,9 @@ class QPList(list):
             start, stop = find_ge(e0mesh, low), find_le(e0mesh, high)
 
             dom_e0 = e0mesh[start:stop+1]
-            print(' ** /n', dom_e0, ' ** /n')
+            print(' ** \n', dom_e0, ' ** \n')
             dom_corr = qpcorrs[start:stop+1]
+            print(' ** \n', dom_corr, ' ** \n')
 
             from scipy.interpolate import UnivariateSpline
             f = UnivariateSpline(dom_e0, dom_corr, w=None, bbox=[None, None], k=k, s=None)
