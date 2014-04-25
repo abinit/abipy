@@ -201,8 +201,6 @@ class ScissorsBuilder(object):
                 bounds = None
             else:
                 bounds = bounds_spin[spin]
-            print(domains)
-            print(bounds)
             scissors = qps.build_scissors(domains, bounds=bounds, plot=False)
 
             scissors_spin[spin] = scissors
