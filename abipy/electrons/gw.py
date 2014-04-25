@@ -282,7 +282,7 @@ class QPList(list):
 
         return fig
 
-    def build_scissors(self, domains, bounds=None, plot=False, **kwargs):
+    def build_scissors(self, domains, bounds=None, plot=False, k=3, **kwargs):
         """
         Construct a scissors operator by interpolating the QPState corrections 
         as function of the initial energies E0.
@@ -341,8 +341,10 @@ class QPList(list):
             dom_e0 = e0mesh[start:stop+1]
             dom_corr = qpcorrs[start:stop+1]
 
+            # todo check if the number of non degenerate data points > k
+
             from scipy.interpolate import UnivariateSpline
-            f = UnivariateSpline(dom_e0, dom_corr, w=None, bbox=[None, None], k=3, s=None)
+            f = UnivariateSpline(dom_e0, dom_corr, w=None, bbox=[None, None], k=k, s=None)
             func_list.append(f)
 
         # Build the scissors operator.
