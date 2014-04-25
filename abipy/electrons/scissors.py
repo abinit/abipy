@@ -182,8 +182,8 @@ class ScissorsBuilder(object):
         nsppol = self.nsppol
 
         if nsppol == 1:
-            domains_spin = np.reshape(domains_spin, (1,-1,2))
-            bounds_spin = np.reshape(bounds_spin, (1,-1,2))
+            domains_spin = np.reshape(domains_spin, (1, -1, 2))
+            bounds_spin = np.reshape(bounds_spin, (1, -1, 2))
 
         elif nsppol == 2:
             assert len(domains_spin) == nsppol
@@ -197,6 +197,7 @@ class ScissorsBuilder(object):
             domains = domains_spin[spin]
             bounds = bounds_spin[spin]
             print(domains)
+            print(bounds)
             scissors = qps.build_scissors(domains, bounds=bounds, plot=False)
 
             scissors_spin[spin] = scissors
@@ -305,4 +306,4 @@ class AutomaticScissorsBuilder(ScissorsBuilder):
         self.domains_spin = domains
 
     def build(self):
-        super(AutomaticScissorsBuilder, self).build(self.domains_spin, bounds_spin=None)
+        super(AutomaticScissorsBuilder, self).build(self.domains_spin)
