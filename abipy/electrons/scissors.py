@@ -130,7 +130,6 @@ class ScissorsBuilder(object):
         qpsort = []
         for qps in qps_spin:
             qpsort.append(qps.sort_by_e0())
-        print('in orignal init  before _qps')
         self._qps_spin = tuple(qpsort)
 
         # Compute the boundaries of the E0 mesh.
