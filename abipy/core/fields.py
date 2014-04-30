@@ -270,7 +270,7 @@ class ScalarField(object):
             except visu.Error:
                 pass
         else:
-            raise visu.Error("Don't know how to export data for visualizer %s" % visualizer)
+            raise visu.Error("Don't know how to export data for visualizer %s" % visu_name)
 
     #def get_line(self, line, space="r"):
     #    x, y, z = self.mesh.line_inds(line)
@@ -415,7 +415,7 @@ class Density(ScalarField):
 
         for idx, gg in enumerate(gvec):
             #gnorm = self.structure.gnorm(gg)
-            gnorm = 1.0 #self.structure.gnorm(gg)
+            gnorm = 1.0  # self.structure.gnorm(gg)
 
             #gg = np.atleast_2d(gg)
             #mv = np.dot(self.structure.gmet, gg.T)
@@ -464,7 +464,6 @@ class DensityReader(ETSF_Reader):
     def read_rhor(self):
         """Return the density in real space."""
         return self.read_value("density")
-
 
 
 # Global variables

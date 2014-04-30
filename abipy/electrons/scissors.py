@@ -264,6 +264,7 @@ class ScissorsBuilder(object):
 
 class AutomaticScissorsBuilder(ScissorsBuilder):
     """
+    todo: complete spin
     Object to create a Scissors instance without specifing domians
 
     .number_of_domains is a tuple containing the number of domains in the valence conduction region
@@ -276,7 +277,9 @@ class AutomaticScissorsBuilder(ScissorsBuilder):
         super(AutomaticScissorsBuilder, self).__init__(qps_spin=qps_spin)
         if self.nsppol > 1:
             raise NotImplementedError('2 spin channels is not implemented yet')
-        self.gap_mid = (e_bands.homos[0][3] + e_bands.lumos[0][3]) / 2
+        self.gap_mid = self.nsppol*[None]
+        for spin in e_bands.spins:
+            self.gap_mid[spin] = (e_bands.homos[spin].eig + e_bands.lumos[spin].eig) / 2
         self.number_of_domains = (1, 1)
         self.create_domains()
 
@@ -296,7 +299,7 @@ class AutomaticScissorsBuilder(ScissorsBuilder):
 
     def create_domains(self):
 
-        domains = [[self.e0min, self.gap_mid], [self.gap_mid, self.e0max]]
+        domains = [[self.e0min, self.gap_mid[0]], [self.gap_mid[0], self.e0max]]
 
         if self.number_of_domains[0] > 1:
             # do something smart to sub divide the valence region into more domains
