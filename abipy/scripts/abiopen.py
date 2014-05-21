@@ -25,6 +25,7 @@ def str_examples():
     )
     return examples
 
+
 def show_examples_and_exit(err_msg=None, error_code=1):
     """Display the usage of the script."""
     sys.stderr.write(str_examples())
@@ -116,6 +117,7 @@ def main():
             cls(files).MainLoop()
 
     return 0
+
 
 def appclasses_from_files(filepaths):
     """Returns a dictionary mapping WX application classes to the list of files to open."""

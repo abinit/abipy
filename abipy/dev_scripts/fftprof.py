@@ -9,6 +9,7 @@ import sys
 
 from abipy.htc.fftbench import FFT_Benchmark
 
+
 def main():
     try:
         prof_files = sys.argv[1:]
@@ -16,8 +17,8 @@ def main():
         raise RuntimeError("Must specify one or more files")
 
     # Plot the benchmark results saved in the files
-    for pfile in prof_files:
-        FFT_Benchmark.from_file(pfile).plot()
+    for prof_file in prof_files:
+        FFT_Benchmark.from_file(prof_file).plot()
 
     return 0
 

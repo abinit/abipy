@@ -2,6 +2,7 @@
 from __future__ import print_function, division
 
 import collections
+import warnings
 import numpy as np
 
 from abipy.iotools import AbinitNcFile, Has_Structure, Has_ElectronBands
@@ -164,7 +165,7 @@ class GSR_Plotter(collections.Iterable):
     def prepare_plot(self):
         """
         This method must be called before plotting data.
-        It tries to figure the name of paramenter we are converging 
+        It tries to figure the name of parameter we are converging
         by looking at the set of parameters used to compute the different GSR files.
         """
         param_list = self._get_param_list()

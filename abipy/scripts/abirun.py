@@ -25,6 +25,7 @@ Usage example:\n
 """
     return examples
 
+
 def show_examples_and_exit(err_msg=None, error_code=1):
     """Display the usage of the script."""
     sys.stderr.write(str_examples())

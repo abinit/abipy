@@ -624,7 +624,7 @@ class SIGRES_Plotter(collections.Iterable):
     def prepare_plot(self):
         """
         This method must be called before plotting data.
-        It tries to figure the name of paramenter we are converging 
+        It tries to figure the name of parameter we are converging
         by looking at the set of parameters used to compute the different SIGRES files.
         """
         param_list = self._get_param_list()
@@ -943,6 +943,7 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         return self.reader.read_qp(spin, kpoint, band)
 
     def get_qpgap(self, spin, kpoint):
+        k = self.reader.kpt2fileindex(kpoint)
         return self.gwgaps[spin, k]
 
     def get_sigmaw(self, spin, kpoint, band):
@@ -1061,7 +1062,8 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
 
 class SIGRES_Reader(ETSF_Reader):
-    """This object provides method to read data from the SIGRES file produced ABINIT.
+    """
+    This object provides method to read data from the SIGRES file produced ABINIT.
     # See 70gw/m_sigma_results.F90
     # Name of the diagonal matrix elements stored in the file.
     # b1gw:b2gw,nkibz,nsppol*nsig_ab))

@@ -507,7 +507,7 @@ class KpointList(collections.Sequence):
 
     def index(self, kpoint):
         """
-        Returns first index of kpoint. Raises ValueError if not found.
+        Returns the first index of kpoint in self. Raises ValueError if not found.
         """
         try:
             return self._points.index(kpoint)
@@ -725,7 +725,6 @@ class IrredZone(KpointList):
                 Array-like with the weights of the k-points.
             ksampling:
                 TODO
-                
         """
         super(IrredZone, self).__init__(reciprocal_lattice, frac_coords, weights=weights, names=None)
 
@@ -733,7 +732,7 @@ class IrredZone(KpointList):
         wsum = self.sum_weights()
 
         if abs(wsum - 1) > 1.e-6:
-            err_msg =  "Kpoint weights should sum up to one while sum_weights is %.3f\n" % wsum
+            err_msg = "Kpoint weights should sum up to one while sum_weights is %.3f\n" % wsum
             err_msg += "The list of kpoints does not represent a homogeneous sampling of the BZ\n" 
             err_msg += str(type(self)) + "\n" + str(self)
             #raise ValueError(err_msg)  # GA : Should not prevent a band structure from being read!
@@ -858,7 +857,7 @@ class KSamplingInfo(AttrDict):
 
     def __init__(self, *args, **kwargs):
         super(KSamplingInfo, self).__init__(*args, **kwargs)
-        print("ksampling",self)
+        print("ksampling", self)
         #for k in self:
         #   if k not in self.KNOWN_KEYS:
         #       raise ValueError("Unknow key %s" % k)
@@ -866,7 +865,7 @@ class KSamplingInfo(AttrDict):
     @property
     def is_homogeneous(self):
         """True if we have a homogeneous sampling of the BZ."""
-        return (self.mpdivs is not None or self.kptrlatt is not None)
+        return self.mpdivs is not None or self.kptrlatt is not None
 
     @property
     def is_path(self):
@@ -899,7 +898,7 @@ class KpointsReaderMixin(object):
     def read_kpoints(self):
         """
         Factory function: returns an instance of [Kpath, IrredZone]
-        depending on the content of the netcdf file. Main entry point for client code.
+        depending on the content of the Netcdf file. Main entry point for client code.
         """
         structure = self.read_structure()
 
