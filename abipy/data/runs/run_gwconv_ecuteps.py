@@ -73,6 +73,7 @@ def make_inputs():
 
     return inp.split_datasets()
 
+
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
