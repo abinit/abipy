@@ -21,6 +21,7 @@ def make_template():
                        npkpt=1,
                        npband=1,
                        npfft=1,
+                       istwfk="*1",
                        #
                        timopt=-1,
                        chksymbreak=0,
