@@ -11,12 +11,12 @@ def make_template():
     inp.set_structure(data.structure_from_ucell("Si"))
 
     # GS run with paral_kgb
-    inp.set_kmesh(ngkpt=[8, 8, 8], shiftk=[0,0,0])
+    inp.set_kmesh(ngkpt=[1,1,1], shiftk=[0,0,0])
 
     # Global variables
     global_vars = dict(ecut=20,
                        nsppol=1,
-                       nband=40,
+                       nband=20,
                        paral_kgb=1,
                        npkpt=1,
                        npband=1,
@@ -28,27 +28,30 @@ def make_template():
                        prtden=0,
                        tolvrs=1e-8,
                        nstep=10,
-                    )
+                       )
     inp.set_variables(**global_vars)
 
     return inp
 
 
-def build_flow(mpi_ncpus=10):
+def build_flow():
     template = make_template()
 
     #policy = dict(autoparal=0, max_ncpus=mpi_ncpus)
     #manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=policy)
     manager = abilab.TaskManager.from_user_config()
-    manager.set_mpi_ncpus(mpi_ncpus)
+    flow = abilab.AbinitFlow(workdir="gs_pfft", manager=manager)
 
-    flow = abilab.AbinitFlow(workdir="gs_paral_kgb", manager=manager)
+    ncpus = [2,4,8]
 
     for fftalg in [312, 402, 401]:
-        work = abilab.Workflow()
-        for inp in abilab.input_gen(template, fftalg=fftalg, ecut=range(10, 20, 5)):
-            work.register(inp)
-        flow.register_work(work)
+        for npfft in ncpus:
+            manager = manager.deepcopy()
+            manager.set_mpi_ncpus(npfft)
+            work = abilab.Workflow(manager=manager)
+            for inp in abilab.input_gen(template, fftalg=fftalg, npfft=npfft, ecut=range(10, 20, 5)):
+                work.register(inp)
+            flow.register_work(work, manager=manager)
 
     return flow.allocate()
 

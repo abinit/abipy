@@ -1,14 +1,14 @@
 qtype: pbs
 mpi_runner: mpirun
-qparams:    
+qparams:
     queue: main
     model: westmere
     walltime: 0:30:00
     group_list: naps
-    #place: excl
-#PBS -l pvmem=1000mb
-#PBS -W 
-#PBS -l select=96:ncpus=1:vmem=1000mb:mpiprocs=1:ompthreads=1
+    place: excl
+    pvmem: 1000
+    vmem: 1000
+    select: 1
 mpi_runner: mpirun
 shell_env:
      PATH: /home/acad/ucl/mgiantom/bzr_repos/7.7.3-public/build_impi/src/98_main:$PATH
@@ -35,5 +35,3 @@ pre_run: |
     echo "------------------ Checking limits -------------"
     ulimit
     echo "------------- Loading environment --------------"
-
-#mpirun -np 96 ${ABINIT} < files > log
