@@ -21,8 +21,8 @@ def make_template():
                        npkpt=1,
                        npband=1,
                        npfft=1,
-                       istwfk="*1",
                        #
+                       istwfk="*1",
                        timopt=-1,
                        chksymbreak=0,
                        prtwf=0,
@@ -43,16 +43,18 @@ def build_flow():
     manager = abilab.TaskManager.from_user_config()
     flow = abilab.AbinitFlow(workdir="gs_pfft", manager=manager)
 
-    ncpus = [2,4,8]
+    #ncpus = [1, 2, 4, 8]
+    ncpu_list = [4]
+    fftalg_list = [312, 402, 401]
+    ecut_list = list(range(400, 410, 10)) 
 
-    for fftalg in [312, 402, 401]:
-        for npfft in ncpus:
-            manager = manager.deepcopy()
+    for fftalg in fftalg_list: 
+        work = abilab.Workflow()
+        for npfft in ncpu_list:
             manager.set_mpi_ncpus(npfft)
-            work = abilab.Workflow(manager=manager)
-            for inp in abilab.input_gen(template, fftalg=fftalg, npfft=npfft, ecut=range(10, 20, 5)):
-                work.register(inp)
-            flow.register_work(work, manager=manager)
+            for inp in abilab.input_gen(template, fftalg=fftalg, npfft=npfft, ecut=ecut_list):
+                work.register(inp, manager=manager)
+        flow.register_work(work)
 
     return flow.allocate()
 
