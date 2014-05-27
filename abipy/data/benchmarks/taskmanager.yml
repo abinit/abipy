@@ -1,16 +1,40 @@
-qtype: slurm
-qparams:
-    ntasks: 2
-    time: 0:20:00
-    partition: Oban
-#setup="SetEnv intel13_intel",
-modules:
-    - intel/compilerpro/13.0.1.117
-    - fftw3/intel/3.3
-shell_env:
-     PATH: /home/naps/ygillet/NAPS/src/abinit-7.4.3-public/tmp_intel13/src/98_main/:/home/naps/ygillet/NAPS/intel13/bin:$PATH
-     LD_LIBRARY_PATH: /home/naps/ygillet/NAPS/intel13/lib:$LD_LIBRARY_PATH
+qtype: pbs
 mpi_runner: mpirun
-policy:
-    autoparal: 1
-    max_ncpus: 10
+qparams:
+    queue: main
+    model: westmere
+    walltime: 0:30:00
+    group_list: naps
+    place: excl
+    pvmem: 1000
+    vmem: 1000
+    select: 1
+mpi_runner: mpirun
+shell_env:
+     PATH: /home/acad/ucl/mgiantom/bzr_repos/7.7.3-public/build_impi/src/98_main:$PATH
+modules:
+    - load compiler/intel/composerxe/2013_sp1.1.106
+    - load intelmpi
+    - load python/2.7
+# pre_run is a string in verbatim mode (note |)
+pre_run: |
+    echo "------------------ Work dir --------------------"
+    echo $PBS_O_WORKDIR
+    cd ${PBS_O_WORKDIR}
+    echo "------------------ Job Info --------------------"
+    echo "jobid      : $PBS_JOBID"
+    echo "jobname    : $PBS_JOBNAME"
+    echo "job type   : $PBS_ENVIRONMENT"
+    echo "submit dir : $PBS_O_WORKDIR"
+    echo "exec dir   : $PBS_JOBDIR"
+    echo "queue      : $PBS_O_QUEUE"
+    echo "user       : $PBS_O_LOGNAME"
+    echo "threads    : $OMP_NUM_THREADS"
+    echo "------------------ $PBS_NODEFILE ---------------"
+    cat $PBS_NODEFILE
+    echo "------------------ Checking limits -------------"
+    ulimit
+    echo "------------- Loading environment --------------"
+#mpirun -np 96 ${ABINIT} < files > log
+
+
