@@ -5,9 +5,8 @@ It provides both a command line interface as well as a graphical interfaced base
 """
 from __future__ import division, print_function
 
-import sys 
+import sys
 import os
-import warnings
 import argparse
 import abipy.abilab as abilab
 
@@ -93,12 +92,13 @@ def main():
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                         help='verbose, can be supplied multiple times to increase verbosity')
+                        help='verbose, can be supplied multiple times to increase verbosity')
 
     parser.add_argument('--loglevel', default="ERROR", type=str,
-                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+                        help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
-    parser.add_argument('path', help="File or directory containing the ABINIT flow")
+    parser.add_argument('path', nargs="?", help=("File or directory containing the ABINIT flow\n" +
+                                                 "If not given, the first flow in the current workdir is selected"))
 
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
@@ -149,7 +149,6 @@ q ==> qerr_file\n
 
     p_new_manager = subparsers.add_parser('new_manager', help="Change the TaskManager.")
     p_new_manager.add_argument("manager_file", default="", type=str, help="YAML file with the new manager")
-    #p_new_manager.add_argument("--chroot", default="", type=str, help="Directory for chroot.")
 
     # Parse command line.
     try:
@@ -169,11 +168,15 @@ q ==> qerr_file\n
     logging.basicConfig(level=numeric_level)
 
     # Read the flow from the pickle database.
+
+    if options.path is None:
+        # "Will try to figure out the location of the Flow"
+        options.path = os.getcwd()
+
     flow = abilab.AbinitFlow.pickle_load(options.path)
-
     retcode = 0
-    if options.command == "gui":
 
+    if options.command == "gui":
         if options.chroot:
             # Change the workdir of flow.
             print("Will chroot to %s" % options.chroot)

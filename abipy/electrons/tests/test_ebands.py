@@ -7,6 +7,7 @@ from abipy.core.kpoints import KpointList
 from abipy.electrons.ebands import ElectronsReader, ElectronBands
 from abipy.core.testing import *
 
+
 class EbandsReaderTest(AbipyTest):
 
     def test_reader(self):
@@ -76,6 +77,11 @@ class ElectronBandsTest(AbipyTest):
         # JDOS a homogeneous sampling.
         with self.assertRaises(ValueError):
             nscf_bands.get_ejdos(spin, 0, 4)
+
+    def test_pymatgen_converter(self):
+        """Test abipy-->pymatgen converter"""
+        nscf_bands = ElectronBands.from_file(data.ref_file("si_nscf_GSR.nc"))
+        pmg_bands = nscf_bands.to_pymatgen()
 
 
 if __name__ == "__main__":
