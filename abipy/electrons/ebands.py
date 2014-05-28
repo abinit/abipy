@@ -33,7 +33,7 @@ __all__ = [
 
 class Electron(collections.namedtuple("Electron", "spin kpoint band eig occ")):
     """
-    Sigle-particle state.
+    Single-particle state.
 
     .. Attributes:
 
@@ -197,7 +197,6 @@ class ElectronTransition(object):
     def is_direct(self):
         """True if direct transition."""
         return self.in_state.kpoint == self.out_state.kpoint
-
 
 
 class Smearing(AttrDict):
@@ -663,7 +662,7 @@ class ElectronBands(object):
 
         if self.kpoints.is_path:
             labels_dict = {k.name: k.frac_coords for k in self.kpoints if k.name is not None}
-            logger.info("calling pmg BandStructureSymmLine with labes_dict %s" % str(labels_dict))
+            logger.info("calling pmg BandStructureSymmLine with labels_dict %s" % str(labels_dict))
             return BandStructureSymmLine(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, fermie, labels_dict,
                                          coords_are_cartesian=False,
                                          structure=self.structure,
@@ -938,12 +937,11 @@ class ElectronBands(object):
         """
         ediff = numpy_op(self.eigens - other.eigens)
 
-        return StatParams(
-            mean=ediff.mean(axis=axis),
-            stdev=ediff.std(axis=axis),
-            min=ediff.min(axis=axis), 
-            max=ediff.max(axis=axis)
-            )
+        return StatParams(mean=ediff.mean(axis=axis),
+                          stdev=ediff.std(axis=axis),
+                          min=ediff.min(axis=axis),
+                          max=ediff.max(axis=axis)
+                          )
 
     def get_edos(self, method="gaussian", step=0.1, width=0.2):
         """
@@ -1076,7 +1074,7 @@ class ElectronBands(object):
         return Function1D(mesh, jdos)
 
     def plot_ejdosvc(self, vrange, crange, method="gaussian", step=0.1, width=0.2, cumulative=True,
-                    **kwargs):
+                     **kwargs):
         """
         Plot the decomposition of the joint-density of States (JDOS).
 
@@ -1555,7 +1553,7 @@ class ElectronBands(object):
 
         #print(self.nband, ndivs+1)
         with open(filepath, "w") as fh:
-           bxsf_write(fh, self.structure, self.nsppol, self.nband, ndivs+1, emesh_sbk, self.fermie, unit="eV")
+            bxsf_write(fh, self.structure, self.nsppol, self.nband, ndivs+1, emesh_sbk, self.fermie, unit="eV")
 
         return Visualizer.from_file(filepath)
 

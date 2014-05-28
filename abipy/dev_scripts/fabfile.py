@@ -37,7 +37,7 @@ git_repospaths = [os.path.join(GIT_REPOSDIR, dirpath) for dirpath in git_urls]
 # We store our bzr branches in this directory 
 bzr_reposdir = USER_HOME + "/bzr_repos"
 
-bzr_branchurl = "bzr+ssh://forge.abinit.org/abinit/gmatteo/7.7.2-private"
+bzr_branchurl = "bzr+ssh://forge.abinit.org/abinit/gmatteo/7.7.3-public"
 
 to_location = os.path.join(*bzr_branchurl.split("/")[-2:]).replace("/", "_")
 
@@ -166,7 +166,7 @@ def bzr_pull():
 
         if not _exists(repo_path):
             with cd(bzr_reposdir):
-                run("bzr get %s %s" % (bzr_branchurl, to_location))
+                run("bzr branch %s %s" % (bzr_branchurl, to_location))
 
         # Pull the branch
         with cd(repo_path):

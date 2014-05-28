@@ -16,11 +16,14 @@ from pymatgen.io.abinitio.launcher import PyFlowScheduler, PyLauncher
 def str_examples():
     examples = """
 Usage example:\n
-    abirun.py DIRPATH singleshot              => Fetch the first available task and run it.
-    abirun.py DIRPATH rapidfire               => Keep repeating, stop when no task can be executed
+    abirun.py [DIRPATH] singleshot              => Fetch the first available task and run it.
+    abirun.py [DIRPATH] rapidfire               => Keep repeating, stop when no task can be executed
                                                   due to inter-dependency.
-    abirun.py DIRPATH gui                      => Open the GUI 
-    nohup abirun.py DIRPATH sheduler -s 30 &   => Use a scheduler to schedule task submission
+    abirun.py [DIRPATH] gui                      => Open the GUI 
+    nohup abirun.py [DIRPATH] sheduler -s 30 &   => Use a scheduler to schedule task submission
+
+    If DIRPATH is not give, abirun.py selects automatically the database located withing the working
+    directory. An Exception is raised if multiple databases are found.
 """
     return examples
 
@@ -89,7 +92,30 @@ def treat_flow(flow, options):
 
 
 def main():
-    parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
+
+    # Decorate argparse classes to add portable support for aliases.
+    class MyArgumentParser(argparse.ArgumentParser):
+        def add_subparsers(self, **kwargs):
+            new = super(MyArgumentParser, self).add_subparsers(**kwargs)
+            # Use my class
+            new.__class__ = MySubParserAction
+            return new
+
+    class MySubParserAction(argparse._SubParsersAction):
+        def add_parser(self, name, **kwargs):
+            """Allows one to pass the aliases option even if this version of ArgumentParser does not support it."""
+            try:
+                return super(MySubParserAction, self).add_parser(name, **kwargs)
+            except Exception as exc:
+                if "aliases" in kwargs: 
+                    # Remove aliases and try again.
+                    kwargs.pop("aliases")
+                    return super(MySubParserAction, self).add_parser(name, **kwargs)
+                else:
+                    # Wrong call.
+                    raise exc
+
+    parser = MyArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                         help='verbose, can be supplied multiple times to increase verbosity')
@@ -104,13 +130,13 @@ def main():
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for single command.
-    p_single = subparsers.add_parser('singleshot', help="Run single task.") #, aliases=["single"])
+    p_single = subparsers.add_parser('singleshot', aliases=["single"], help="Run single task.")
 
     # Subparser for rapidfire command.
-    p_rapid = subparsers.add_parser('rapidfire', help="Run all tasks in rapidfire mode") # aliases=["rapid"])
+    p_rapid = subparsers.add_parser('rapidfire', aliases=["rapid"], help="Run all tasks in rapidfire mode")
 
     # Subparser for scheduler command.
-    p_scheduler = subparsers.add_parser('scheduler', help="Run all tasks with a Python scheduler.")
+    p_scheduler = subparsers.add_parser('scheduler', aliases=["sched"], help="Run all tasks with a Python scheduler.")
 
     p_scheduler.add_argument('-w', '--weeks', default=0, type=int, help="number of weeks to wait")
 
