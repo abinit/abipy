@@ -83,6 +83,7 @@ The following packages are much easier to install with easy_install:
   #. pyYaml
   #. pyCifRW
   #. pyhull
+  #. PyDispatcher
 
 for netcdf4 and hdf see http://www.unidata.ucar.edu/software/netcdf/docs/build_default.html
 

@@ -76,23 +76,35 @@ def abiopen(filepath):
     return cls.from_file(filepath)
 
 
-def software_stack(with_wx=True):
+def software_stack():
     """
     Import all the hard dependencies.
     Returns a dict with the version.
     """
-    import numpy, scipy, netCDF4, matplotlib
+    # Mandatory
+    import numpy, scipy
 
     d = dict(
         numpy=numpy.version.version,
         scipy=scipy.version.version,
-        netCDF4=netCDF4.getlibversion(),
-        matplotlib="Version: %s, backend: %s" % (matplotlib.__version__, matplotlib.get_backend()),
     )
 
-    if with_wx:
+    # Optional but strongly suggested.
+    try:
+        import netCDF4, matplotlib
+        d.update(dict(
+            netCDF4=netCDF4.getlibversion(),
+            matplotlib="Version: %s, backend: %s" % (matplotlib.__version__, matplotlib.get_backend()),
+            ))
+    except ImportError:
+        pass
+
+    # Optional (GUIs).
+    try:
         import wx
         d["wx"] = wx.version()
+    except ImportError:
+        pass
 
     return d
 
@@ -133,7 +145,7 @@ def abicheck():
                 app("Missing shared library dependencies for %s" % exe)
 
     try:    
-        software_stack(with_wx=False)
+        software_stack()
     except:
         app(_straceback())
 
