@@ -22,8 +22,8 @@ Usage example:\n
     abirun.py [DIRPATH] gui                      => Open the GUI 
     nohup abirun.py [DIRPATH] sheduler -s 30 &   => Use a scheduler to schedule task submission
 
-    If DIRPATH is not give, abirun.py selects automatically the database located withing the working
-    directory. An Exception is raised if multiple databases are found.
+    If DIRPATH is not given, abirun.py selects automatically the database located within 
+    the working directory. An Exception is raised if multiple databases are found.
 """
     return examples
 
@@ -93,7 +93,7 @@ def treat_flow(flow, options):
 
 def main():
 
-    # Decorate argparse classes to add portable support for aliases.
+    # Decorate argparse classes to add portable support for aliases in add_subparsers
     class MyArgumentParser(argparse.ArgumentParser):
         def add_subparsers(self, **kwargs):
             new = super(MyArgumentParser, self).add_subparsers(**kwargs)
@@ -194,9 +194,8 @@ q ==> qerr_file\n
     logging.basicConfig(level=numeric_level)
 
     # Read the flow from the pickle database.
-
     if options.path is None:
-        # "Will try to figure out the location of the Flow"
+        # Will try to figure out the location of the Flow.
         options.path = os.getcwd()
 
     flow = abilab.AbinitFlow.pickle_load(options.path)
