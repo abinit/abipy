@@ -8,9 +8,10 @@ from __future__ import division, print_function
 import sys
 import os
 import argparse
-import abipy.abilab as abilab
+import time
 
 from pymatgen.io.abinitio.launcher import PyFlowScheduler, PyLauncher
+import abipy.abilab as abilab
 
 
 def str_examples():
@@ -75,7 +76,18 @@ def treat_flow(flow, options):
         sched.start()
 
     if options.command == "status":
-        flow.show_status()
+        if options.delay:
+            print("Entering infinite loop. Press CTRL+C to exit")
+            try:
+                while True:
+                    print(2*"\n" + time.asctime() + "\n")
+                    flow.show_status()
+                    time.sleep(options.delay)
+
+            except KeyboardInterrupt:
+                pass
+        else:
+            flow.show_status()
         #import pstats, cProfile
         #cProfile.runctx("flow.show_status()", globals(), locals(), "Profile.prof")
         #s = pstats.Stats("Profile.prof")
@@ -150,6 +162,8 @@ def main():
 
     # Subparser for status command.
     p_status = subparsers.add_parser('status', help="Show task status.")
+    p_status.add_argument('-d', '--delay', default=0, type=int, help=("If 0, exit after the first analysis.\n" + 
+                          "If > 0, enter an infinite loop and delay execution for the given number of seconds."))
 
     # Subparser for scheduler command.
     p_cancel = subparsers.add_parser('cancel', help="Cancel the tasks in the queue.")

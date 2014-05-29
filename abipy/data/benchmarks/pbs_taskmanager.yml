@@ -1,4 +1,4 @@
-qtype: pbs
+qtype: shell
 mpi_runner: mpirun
 qparams:
     queue: main

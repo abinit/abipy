@@ -31,7 +31,30 @@ def show_examples_and_exit(err_msg=None, error_code=1):
     sys.exit(error_code)
 
 def main():
-    parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
+
+    # Decorate argparse classes to add portable support for aliases in add_subparsers
+    class MyArgumentParser(argparse.ArgumentParser):
+        def add_subparsers(self, **kwargs):
+            new = super(MyArgumentParser, self).add_subparsers(**kwargs)
+            # Use my class
+            new.__class__ = MySubParserAction
+            return new
+                                                                                                                    
+    class MySubParserAction(argparse._SubParsersAction):
+        def add_parser(self, name, **kwargs):
+            """Allows one to pass the aliases option even if this version of ArgumentParser does not support it."""
+            try:
+                return super(MySubParserAction, self).add_parser(name, **kwargs)
+            except Exception as exc:
+                if "aliases" in kwargs: 
+                    # Remove aliases and try again.
+                    kwargs.pop("aliases")
+                    return super(MySubParserAction, self).add_parser(name, **kwargs)
+                else:
+                    # Wrong call.
+                    raise exc
+
+    parser = MyArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('filepath', nargs="?", help="File to inspect (output file or log file)")
 
@@ -39,15 +62,15 @@ def main():
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for status command.
-    p_status = subparsers.add_parser('status', help="Check the status of the run (errors, warning, completion)")
+    p_status = subparsers.add_parser('status', aliases=["s", "stat"], help="Check the status of the run (errors, warning, completion)")
 
     #p_status.add_argument('format', nargs="?", default="cif", type=str, help="Format of the output file (ciff, POSCAR, json).")
 
     # Subparser for plot command.
-    p_plot = subparsers.add_parser('plot', help="Plot data")
+    p_plot = subparsers.add_parser('plot', aliases=["p"], help="Plot data")
     #p_plot.add_argument('visualizer', nargs="?", default="xcrysden", type=str, help="Visualizer.")
 
-    p_timer = subparsers.add_parser('timer', help="Show timing data.")
+    p_timer = subparsers.add_parser('timer', aliases=["t"], help="Show timing data.")
 
     # Parse command line.
     try:
@@ -74,7 +97,9 @@ def main():
         parser = AbinitTimerParser()
 
         parser.parse(options.filepath)
-        parser.show_pie(key="wall_time", minfract=0.05)
+        #parser.show_pie(key="wall_time", minfract=0.05)
+        #parser.show_efficiency),
+        #parser.show_stacked_hist),
 
 
     else:
