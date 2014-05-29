@@ -14,6 +14,7 @@ from abipy.tools.text import list_strings
 
 
 __all__ = [
+    "Error",
     "path_img",
     "makeAboutBox",
     "verbose",
@@ -36,6 +37,11 @@ else:
 
 
 FRAME_SIZE = (800, 600)
+
+
+class Error(Exception):
+    """Base class for exceptions raised by awx library"""
+
 
 def path_img(filename):
     """Returns the absolute path of an image."""

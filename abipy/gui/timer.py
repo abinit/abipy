@@ -3,11 +3,9 @@ from __future__ import print_function, division
 import os
 import wx
 
-import abipy.gui.awx as awx
-
 from collections import OrderedDict
-from pymatgen.io.abinitio.abitimer import AbinitTimerSection
-from abipy.abilab import abiopen
+from pymatgen.io.abinitio.abitimer import AbinitTimerSection, AbinitTimerParser
+import abipy.gui.awx as awx
 
 
 class AbinitTimerFrame(awx.Frame):
@@ -29,24 +27,22 @@ class AbinitTimerFrame(awx.Frame):
         super(AbinitTimerFrame, self).__init__(parent, **kwargs)
 
         try:
-            abifile = abiopen(filepath)
-            self.timer_data = abifile.timer_data
+            self.timer = AbinitTimerParser()
+            self.timer.parse(filepath)
+            #if o != filepath:
+            #    raise awx.Error("%s does not contain a valid ABINIT TIMER section!" % filepath)
 
         except Exception as exc:
             raise awx.Error(str(exc))
-
-        if not self.timer_data:
-            raise awx.Error("%s does not contain a valid ABINIT TIMER section!" % filepath)
 
         self.BuildUi()
 
     def BuildUi(self):
 
         # Set callbacks (bound methods of AbiTimerData).
-        timer_data = self.timer_data
         self.plot_types = OrderedDict([
-            ("pie", timer_data.show_pie),
-            ("stacked_hist", timer_data.show_stacked_hist),
+            ("pie", self.timer.show_pie),
+            ("stacked_hist", self.timer.show_stacked_hist),
         ])
 
         keys = AbinitTimerSection.NUMERIC_FIELDS

@@ -39,8 +39,7 @@ def showErrorMessage(parent, message=None):
     Open a `MessageDialog` with an error message.
     If message is None, the python traceback is used.
     """
-    if message is None:
-        message = _straceback()
+    if message is None: message = _straceback()
 
     message += "\n\n Do you want to send a bug report?"
     dialog = ErrorDialog(parent, message)

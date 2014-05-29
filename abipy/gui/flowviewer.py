@@ -13,7 +13,7 @@ from pymatgen.io.abinitio.launcher import PyLauncher
 from pymatgen.io.abinitio.tasks import Node
 from abipy import abilab
 from abipy.gui.events import AbinitEventsFrame, AbinitEventsNotebookFrame
-from abipy.gui.timer import MultiTimerFrame
+from abipy.gui.timer import MultiTimerFrame, AbinitTimerFrame
 from abipy.gui.browser import FileListFrame, DirBrowserFrame, frame_from_filepath, frameclass_from_filepath
 from abipy.gui.editor import TextNotebookFrame, SimpleTextViewer
 
@@ -133,16 +133,18 @@ Also, these key bindings can be used
         self.ID_SHOW_OUTPUTS = wx.NewId()
         self.ID_SHOW_LOGS = wx.NewId()
         self.ID_SHOW_JOB_SCRIPTS = wx.NewId()
+        self.ID_SHOW_JOB_OUTERRS = wx.NewId()
         self.ID_BROWSE = wx.NewId()
         self.ID_SHOW_MAIN_EVENTS = wx.NewId()
         self.ID_SHOW_LOG_EVENTS = wx.NewId()
         self.ID_SHOW_TIMERS = wx.NewId()
         self.ID_CHECK_STATUS = wx.NewId()
 
-        toolbar.AddSimpleTool(self.ID_SHOW_INPUTS, bitmap("in.png"), "Visualize the input files of the workflow.")
-        toolbar.AddSimpleTool(self.ID_SHOW_OUTPUTS, bitmap("out.png"), "Visualize the output files of the workflow..")
-        toolbar.AddSimpleTool(self.ID_SHOW_LOGS, bitmap("log.png"), "Visualize the log files of the workflow.")
-        toolbar.AddSimpleTool(self.ID_SHOW_JOB_SCRIPTS, bitmap("script.png"), "Visualize the scripts.")
+        toolbar.AddSimpleTool(self.ID_SHOW_INPUTS, bitmap("in.png"), "Visualize the input file(s) of the workflow.")
+        toolbar.AddSimpleTool(self.ID_SHOW_OUTPUTS, bitmap("out.png"), "Visualize the output file(s) of the workflow..")
+        toolbar.AddSimpleTool(self.ID_SHOW_LOGS, bitmap("log.png"), "Visualize the log file(s) of the workflow.")
+        toolbar.AddSimpleTool(self.ID_SHOW_JOB_SCRIPTS, bitmap("script.png"), "Visualize the script(s).")
+        toolbar.AddSimpleTool(self.ID_SHOW_JOB_OUTERRS, bitmap("script.png"), "Visualize the script(s).")
         toolbar.AddSimpleTool(self.ID_BROWSE, bitmap("browse.png"), "Browse all the files of the workflow.")
         toolbar.AddSimpleTool(self.ID_SHOW_MAIN_EVENTS, bitmap("out_evt.png"), "Show the ABINIT events reported in the main output files.")
         toolbar.AddSimpleTool(self.ID_SHOW_LOG_EVENTS, bitmap("log_evt.png"), "Show the ABINIT events reported in the log files.")
@@ -164,6 +166,7 @@ Also, these key bindings can be used
             (self.ID_SHOW_OUTPUTS, self.OnShowOutputs),
             (self.ID_SHOW_LOGS, self.OnShowLogs),
             (self.ID_SHOW_JOB_SCRIPTS, self.OnShowJobScripts),
+            (self.ID_SHOW_JOB_OUTERRS, self.OnShowJobOutErrs),
             (self.ID_BROWSE, self.OnBrowse),
             (self.ID_SHOW_MAIN_EVENTS, self.OnShowMainEvents),
             (self.ID_SHOW_LOG_EVENTS, self.OnShowLogEvents),
@@ -404,6 +407,12 @@ Also, these key bindings can be used
         work = self.GetSelectedWork() 
         if work is None: return
         TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.sh").Show()
+
+    def OnShowJobOutErrs(self, event):
+        """Show all the queue output/error files files of the selected `Workflow`."""
+        work = self.GetSelectedWork() 
+        if work is None: return
+        TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.qout|*.qerr").Show()
 
     def OnShowLogs(self, event):
         """Show all the log files of the selected `Workflow`."""
@@ -646,6 +655,14 @@ def show_history(parent, task):
     text = "\n".join(task.history)
     SimpleTextViewer(parent, text).Show()
 
+def show_timer(parent, task):
+    """Show timing data of the k."""
+    try:
+        frame = AbinitTimerFrame(parent, task.output_file.path)
+        frame.Show()
+    except awx.Error as exc:
+        awx.showErrorMessage(parent, str(exc)) 
+
 
 def check_status_and_pickle(task):
     """Check the status of the task and update the pickle database."""
@@ -711,6 +728,7 @@ class TaskPopupMenu(wx.Menu):
         ("dependencies", task_show_deps),
         ("inspect", task_inspect),
         ("set status", task_set_status),
+        ("timer", show_timer),
     ])
 
     def __init__(self, parent, task):
