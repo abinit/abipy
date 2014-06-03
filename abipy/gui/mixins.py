@@ -7,8 +7,7 @@ import wx.lib.dialogs as wxdg
 import abipy.gui.awx as awx
 import abipy.gui.electronswx as ewx
 
-
-from pymatgen.util.io_utils import which 
+from abipy.tools import which 
 from abipy.iotools.visualizer import Visualizer
 from abipy.iotools.files import NcDumper
 from abipy.electrons.ebands import ElectronBandsPlotter, ElectronDosPlotter
@@ -64,7 +63,6 @@ class Has_Structure(object):
     def OnStructureVisualize(self, event):
         """"Call the visualizer to visualize the crystalline structure."""
         visu_name = self._id2visuname[event.GetId()]
-        #print("eventID", event.GetId(), "map", self._id2visuname, "visu_name", visu_name)
 
         try:
             visu = self.structure.visualize(visu_name)
@@ -72,7 +70,7 @@ class Has_Structure(object):
             thread = awx.WorkerThread(self, target=visu)
             thread.start()
 
-        except:
+        except Exception:
             awx.showErrorMessage(self)
 
     def OnStructureShowBz(self, event):
@@ -82,14 +80,13 @@ class Has_Structure(object):
 
 class Has_Ebands(object):
     """
-    Mixin class that provides a menu and callbacks 
-    for analyzing electron bands.
+    Mixin class that provides a menu and callbacks for analyzing electron bands.
     """
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractproperty
     def ebands(self):
-        """`Electron Bands object."""
+        """`ElectronBands` object."""
 
     def CreateEbandsMenu(self):
         """Creates the ebands menu."""
@@ -98,17 +95,31 @@ class Has_Ebands(object):
         self.ID_EBANDS_PLOT = wx.NewId()
         self.ID_EBANDS_DOS = wx.NewId()
         self.ID_EBANDS_JDOS = wx.NewId()
+        #self.ID_EBANDS_FSURF = wx.NewId()
+        #self.ID_EBANDS_SCISSORS = wx.NewId()
 
         menu = wx.Menu()
+
         menu.Append(self.ID_EBANDS_GETINFO, "Get Info", "Show info on the band structure")
         self.Bind(wx.EVT_MENU, self.OnEbandsGetInfo, id=self.ID_EBANDS_GETINFO)
+
         menu.Append(self.ID_EBANDS_PLOT, "Plot ebands", "Plot electron bands with matplotlib")
         self.Bind(wx.EVT_MENU, self.OnEbandsPlot, id=self.ID_EBANDS_PLOT)
+
         menu.Append(self.ID_EBANDS_DOS, "DOS", "Compute the electron DOS")
         self.Bind(wx.EVT_MENU, self.OnEbandsDos, id=self.ID_EBANDS_DOS)
+
         menu.Append(self.ID_EBANDS_JDOS, "JDOS", "Compute the electron Joint DOS")
         self.Bind(wx.EVT_MENU, self.OnEbandsJdos, id=self.ID_EBANDS_JDOS)
-                                                                                                    
+
+        # TODO
+        #menu.Append(self.ID_EBANDS_FSURF, "Fermi surface", "Visualize the Fermi surface with Xcrysden")
+        #self.Bind(wx.EVT_MENU, self.OnFermiSurface, id=self.ID_EBANDS_FSURF)
+
+        # TODO
+        #menu.Append(self.ID_EBANDS_SCISSORS, "Apply scissors", "Apply a scissors operator")
+        #self.Bind(wx.EVT_MENU, self.OnApplyScissors, id=self.ID_EBANDS_SCISSORS)
+
         return menu
 
     def OnEbandsGetInfo(self, event):
@@ -129,16 +140,26 @@ class Has_Ebands(object):
         """Open Frame for the computation of the JDOS."""
         ewx.ElectronJdosFrame(self, bands=self.ebands).Show()
 
-    #def OnFermiSurface(self, event):
-    #    """Visualize the Fermi surface."""
-    #    try:
-    #        visu = self.ebands.export_bxsf(".bxsf")
-    #                                                                                        
-    #        thread = awx.WorkerThread(self, target=visu)
-    #        thread.start()
-    #                                                                                        
-    #    except:
-    #        awx.showErrorMessage(self)
+    def OnFermiSurface(self, event):
+        """Visualize the Fermi surface with Xcrysden."""
+        try:
+            visu = self.ebands.export_bxsf(".bxsf")
+                                                                                            
+            thread = awx.WorkerThread(self, target=visu)
+            thread.start()
+                                                                                            
+        except Exception:
+            awx.showErrorMessage(self)
+
+    #def OnApplyScissors(self, event):
+    #    """
+    #    Read the scissors operator from a pickle file, apply it to the electron bands and save the results.
+    #    """
+    #    Get the scissors operator from file
+    #    Apply the scissors.
+    #    new_ebands = self.ebands.apply_scissors(self, scissors)
+    #    new_ebands.plot()
+    #    new_ebands.pickle_dump()
 
 
 class Has_MultipleEbands(Has_Ebands):
@@ -188,6 +209,11 @@ class Has_MultipleEbands(Has_Ebands):
         for path, ebands in zip(self.ebands_filepaths, self.ebands_list):
             label = os.path.relpath(path)
             plotter.add_ebands(label, ebands)
+
+        try:
+            print(plotter.bands_statdiff())
+        except:
+            pass
         plotter.plot()
 
     def OnCompareEdos(self, event):
@@ -222,6 +248,7 @@ class Has_MultipleEbands(Has_Ebands):
         #plotter.plot()
 
     def onPlotEbandsWithDos(self, event):
+        """Plot electron bands with DOS. Requires the specification of two files."""
         # Open dialog to get files and DOS parameters.
         dialog = ewx.EbandsDosDialog(self, self.ebands_filepaths)
         if dialog.ShowModal() == wx.ID_CANCEL: return 
@@ -239,22 +266,26 @@ class Has_MultipleEbands(Has_Ebands):
             awx.showErrorMessage(self)
 
 
-#class Has_Kpoints(object):
+#class Has_MultiGsResults(object):
 #    """
-#    Mixin class from GUIs with kpoints
+#    Mixin class for GUIs with mulitple ground-state results (etotal, forces, stresses...)
 #    """
 #    __metaclass__ = abc.ABCMeta
+
+#    def CreateToolsMenu(self):
+#        """Create the tools menu."""
+#        # Tools Menu ID's
+#        self.ID_MULTIGSR_EOSFIT = wx.NewId()
+#                                                                                            
+#        menu = wx.Menu()
+#        menu.Append(self.ID_MULTIGSR_EOSFIT, "Fit E(V)", "Equation of State")
+#        self.Bind(wx.EVT_MENU, self.onEosFit, id=self.ID_MULTIGSR_EOSFIR)
+#                                                                                            
+#        return menu
 #
-#    @abc.abstractproperty
-#    def kpoints(self):
-#        """`Kpoints` object."""
+#    def onEosFit(self, event):
+#        EosFrame(self, volumes, energies, vol_unit="ang^3", ene_unit="eV").Show()
 
-
-#class Has_MultiGroundStateData(object):
-#    """
-#    Mixin class from GUIs Ground-state results (etotal, forces, stresses...)
-#    """
-#    __metaclass__ = abc.ABCMeta
 
 
 class Has_Tools(object):
@@ -262,7 +293,7 @@ class Has_Tools(object):
     Mixin class that provides a menu with external tools.
     """
     def CreateToolsMenu(self):
-        """Creates the ebands menu."""
+        """Create the tools menu."""
         # Tools Menu ID's
         self.ID_TOOLS_UNIT_CONVERTER = wx.NewId()
 
@@ -273,6 +304,7 @@ class Has_Tools(object):
         return menu
 
     def OnTools_UnitConverter(self, event):
+        """Open new frame with the unit converter."""
         ConverterFrame(self).Show()
 
 
@@ -289,20 +321,21 @@ class Has_NetcdfFiles(object):
     def CreateNetcdfMenu(self):
         """Creates the ebands menu."""
         # Netcdf Menu ID's
+        self.ID_NETCDF_WXNCVIEW = wx.NewId()
         self.ID_NETCDF_NCDUMP = wx.NewId()
         self.ID_NETCDF_NCVIEW = wx.NewId()
-        self.ID_NETCDF_WXNCVIEW = wx.NewId()
 
         menu = wx.Menu()
+
+        menu.Append(self.ID_NETCDF_WXNCVIEW, "wxncview", "Call wxncview")
+        self.Bind(wx.EVT_MENU, self.OnNetcdf_WxNcView, id=self.ID_NETCDF_WXNCVIEW)
+
         menu.Append(self.ID_NETCDF_NCDUMP, "ncdump", "Show the output of ncdump")
         self.Bind(wx.EVT_MENU, self.OnNetcdf_NcDump, id=self.ID_NETCDF_NCDUMP)
 
         menu.Append(self.ID_NETCDF_NCVIEW, "ncview", "Call ncview")
         self.Bind(wx.EVT_MENU, self.OnNetcdf_NcView, id=self.ID_NETCDF_NCVIEW)
 
-        menu.Append(self.ID_NETCDF_WXNCVIEW, "wxncview", "Call wxncview")
-        self.Bind(wx.EVT_MENU, self.OnNetcdf_WxNcView, id=self.ID_NETCDF_WXNCVIEW)
-                                                                                            
         return menu
 
     def OnNetcdf_NcDump(self, event):

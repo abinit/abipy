@@ -20,13 +20,13 @@ class Scissors(object):
     """
     This object represents an energy-dependent scissors operator.
     The operator is defined by a list of domains (energy intervals)
-    and a list of functions defined on these domains. The domains
+    and a list of functions defined in these domains. The domains
     should fulfill the constraints documented in the main constructor.
-    We assume eV units everywhere.
+    eV units are assumed.
 
     The standard way to create this object is via the methods
     provided by the factory class `ScissorBuilder`.
-    Once the instance has been create, one can correct the
+    Once the instance has been created, one can correct the
     band structure by calling the `apply` method.
     """
     Error = ScissorsError
@@ -35,11 +35,13 @@ class Scissors(object):
         """
         Args:
             func_list:
-                List of callable objects.
+                List of callable objects. Each function takes an eigenvalue and returns
+                the corrected value.
             domains:
                  Domains of each function. List of tuples [(emin1, emax1), (emin2, emax2), ...]
             bounds:
-                Boundaries
+                Specify how to handle energies that do not fall inside one of the domains. 
+                At present, only constant boundaries are implemented.
 
         .. note:
 
@@ -54,6 +56,8 @@ class Scissors(object):
         assert len(self.func_list) == len(self.domains)
 
         # Treat the out-of-boundary conditions.
+        # func_low and func_high are used to handle energies 
+        # that are below or above the min/max energy given in domains.
         blow, bhigh  = "c", "c"
         if bounds is not None:
             blow  = bounds[0][0]
@@ -81,23 +85,30 @@ class Scissors(object):
         else:
             raise NotImplementedError("Only constant boundaries are implemented")
 
-        # Init the internal counter.
+        # This counter stores the number of points that are out of bounds.
         self.out_bounds = np.zeros(3, np.int)
 
     def apply(self, eig):
         """Correct the eigenvalue eig (eV units)."""
+        # Get the list of domains.
         domains = self.domains
 
         if eig < domains[0,0]:
+            # Eig is below the first point of the first domain.
+            # Call func_low
             print("left ", eig, domains[0,0])
             self.out_bounds[0] += 1
             return self.func_low(eig)
 
         if eig > domains[-1,1]:
+            # Eig is above the last point of the last domain.
+            # Call func_high
             print("right ", eig, domains[-1,1])
             self.out_bounds[1] += 1
             return self.func_high(eig)
 
+        # eig is inside the domains: find the domain 
+        # and call the corresponding function.
         for idx, dms in enumerate(domains):
             if dms[1] >= eig >= dms[0]:
                 return self.func_list[idx](eig)
@@ -108,7 +119,9 @@ class Scissors(object):
 
 class ScissorsBuilder(object):
     """
-    This object facilitates the creations of `Scissors` instances.
+    This object facilitates the creation of `Scissors` instances.
+
+    Usage:
     """
     _DEBUG = True
 
@@ -117,7 +130,6 @@ class ScissorsBuilder(object):
         qpsort = []
         for qps in qps_spin:
             qpsort.append(qps.sort_by_e0())
-
         self._qps_spin = tuple(qpsort)
 
         # Compute the boundaries of the E0 mesh.
@@ -135,7 +147,10 @@ class ScissorsBuilder(object):
 
     @classmethod
     def from_file(cls, filepath):
-        """Generate an instance of ScissorsBuilder from file."""
+        """
+        Generate an instance of `ScissorsBuilder` from file.
+        Main entry point for client code.
+        """
         from abipy.abilab import abiopen
         ncfile = abiopen(filepath)
         return cls(qps_spin=ncfile.qplist_spin)
@@ -162,17 +177,19 @@ class ScissorsBuilder(object):
         except AttributeError:
             return None
 
-    def build(self, domains_spin, bounds_spin):
+    def build(self, domains_spin, bounds_spin, k=3):
         """Build the scissors operator."""
         nsppol = self.nsppol
 
         if nsppol == 1:
-            domains_spin = np.reshape(domains_spin, (1,-1,2))
-            bounds_spin = np.reshape(bounds_spin, (1,-1,2))
+            domains_spin = np.reshape(domains_spin, (1, -1, 2))
+            if bounds_spin is not None:
+                bounds_spin = np.reshape(bounds_spin, (1, -1, 2))
 
         elif nsppol == 2:
             assert len(domains_spin) == nsppol
-            assert len(bounds_spin) == nsppol
+            if bounds_spin is not None:
+                assert len(bounds_spin) == nsppol
         else:
             raise ValueError("Wrong number of spins %d" % nsppol)
 
@@ -180,9 +197,11 @@ class ScissorsBuilder(object):
         scissors_spin = nsppol * [None]
         for (spin, qps) in enumerate(self._qps_spin):
             domains = domains_spin[spin]
-            bounds = bounds_spin[spin]
-            print(domains)
-            scissors = qps.build_scissors(domains, bounds=bounds, plot=False)
+            if bounds_spin is None:
+                bounds = None
+            else:
+                bounds = bounds_spin[spin]
+            scissors = qps.build_scissors(domains, bounds=bounds, k=k, plot=False)
 
             scissors_spin[spin] = scissors
 
@@ -235,10 +254,59 @@ class ScissorsBuilder(object):
             d = AttrDict(pickle.load(fh))
             if cls._DEBUG:
                 print("In load_data")
-                print("domains_spin",d.domains_spin)
-                print("bounds_spin",d.bounds_spin)
+                print("domains_spin", d.domains_spin)
+                print("bounds_spin", d.bounds_spin)
 
             new = cls(d.qps_spin)
             new.build(d.domains_spin, d.bounds_spin)
             return new
 
+
+class AutomaticScissorsBuilder(ScissorsBuilder):
+    """
+    Object to create a Scissors instance without specifing domians
+
+    .number_of_domains is a tuple containing the number of domains in the valence conduction region
+    default (1, 1)
+
+    other than (1, 1) is not implemented jet.
+    """
+
+    def __init__(self, qps_spin, e_bands):
+        super(AutomaticScissorsBuilder, self).__init__(qps_spin=qps_spin)
+        if self.nsppol > 1:
+            raise NotImplementedError('2 spin channels is not implemented yet')
+        self.gap_mid = (e_bands.homos[0][3] + e_bands.lumos[0][3]) / 2
+        self.number_of_domains = (1, 1)
+        self.create_domains()
+
+    @classmethod
+    def from_file(cls, filepath):
+        """
+        Generate an instance of `AutomaticScissorsBuilder` from file.
+        Main entry point for client code.
+        """
+        from abipy.abilab import abiopen
+        ncfile = abiopen(filepath)
+        return cls(qps_spin=ncfile.qplist_spin, e_bands=ncfile.ebands)
+
+    def set_domains(self, number_of_domains):
+        self.number_of_domains = number_of_domains
+        self.create_domains()
+
+    def create_domains(self):
+
+        domains = [[self.e0min, self.gap_mid], [self.gap_mid, self.e0max]]
+
+        if self.number_of_domains[0] > 1:
+            # do something smart to sub divide the valence region into more domains
+            raise NotImplementedError('only one domain in the valence region')
+
+        if self.number_of_domains[1] > 1:
+            # do something smart to sub divide the conduction region into more domains
+            raise NotImplementedError('only one domain in the conduction region')
+
+        self.domains_spin = domains
+
+    def build(self):
+        super(AutomaticScissorsBuilder, self).build(domains_spin=self.domains_spin, bounds_spin=None, k=2)

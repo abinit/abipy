@@ -7,7 +7,7 @@ import warnings
 import argparse 
 import collections
 
-from abipy.tools.text import WildCard #list_strings, is_string, 
+from abipy.tools.text import WildCard 
 import abipy.gui.wxapps as wxapps 
 
 
@@ -16,14 +16,15 @@ def str_examples():
       "\n"
       "Usage example:\n\n" 
       "abiopen.py files foo_WFK.nc          ==> Visualize the WFK file foo_WFK.nc\n"
-      "                                          (many other Abinit files are supported, just try!).\n"
+      "                                         (many other Abinit files are supported, just try!).\n"
       "abiopen.py list dirpath              ==> Visualize all files in the directory dirpath (flat list mode) .\n"
       "abiopen.py tree dirpath              ==> Visualize all files in the directory dirpath (tree mode).\n"
       "abiopen.py scan dirpath              ==> Scan all the supported files in the given directory (recursive mode).\n"
-      "abiopen.py scan dirpath -w *GSR.nc   ==> Wall the directory tree starting from dirpath \n"
+      "abiopen.py scan dirpath -w *GSR.nc   ==> Walk the directory tree starting from dirpath \n"
       "                                         and open all the GSR.nc files encountered.\n"
     )
     return examples
+
 
 def show_examples_and_exit(err_msg=None, error_code=1):
     """Display the usage of the script."""
@@ -34,7 +35,30 @@ def show_examples_and_exit(err_msg=None, error_code=1):
 
 
 def main():
-    parser = argparse.ArgumentParser(epilog=str_examples(),formatter_class=argparse.RawDescriptionHelpFormatter)
+
+    # Decorate argparse classes to add portable support for aliases in add_subparsers
+    class MyArgumentParser(argparse.ArgumentParser):
+        def add_subparsers(self, **kwargs):
+            new = super(MyArgumentParser, self).add_subparsers(**kwargs)
+            # Use my class
+            new.__class__ = MySubParserAction
+            return new
+                                                                                                                    
+    class MySubParserAction(argparse._SubParsersAction):
+        def add_parser(self, name, **kwargs):
+            """Allows one to pass the aliases option even if this version of ArgumentParser does not support it."""
+            try:
+                return super(MySubParserAction, self).add_parser(name, **kwargs)
+            except Exception as exc:
+                if "aliases" in kwargs: 
+                    # Remove aliases and try again.
+                    kwargs.pop("aliases")
+                    return super(MySubParserAction, self).add_parser(name, **kwargs)
+                else:
+                    # Wrong call.
+                    raise exc
+
+    parser = MyArgumentParser(epilog=str_examples(),formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('--loglevel', default="ERROR", type=str,
                          help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
@@ -46,21 +70,21 @@ def main():
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for single command.
-    p_files = subparsers.add_parser('files', help="Run the specified file(s).") 
+    p_files = subparsers.add_parser('files', aliases=["file", "f"], help="Run the specified file(s).") 
     p_files.add_argument("filepaths", nargs="+", help="List of filepaths.")
 
     # Subparser for list command.
-    p_list = subparsers.add_parser('list', help="List files in directory.") 
+    p_list = subparsers.add_parser('list', aliases=["l"], help="List files in directory.") 
     p_list.add_argument("dirpaths", nargs="+", help="List of filepaths.")
     p_list.add_argument('-w', '--wildcard', type=str, default="*.nc", help="wildcards. Default *.nc")
 
     # Subparser for tree command.
-    p_tree = subparsers.add_parser('tree', help="Show files in directory tree.") 
+    p_tree = subparsers.add_parser('tree', aliases=["t"], help="Show files in directory tree.") 
     p_tree.add_argument("dirpaths", nargs="+", help="List of filepaths.")
     p_tree.add_argument('-w', '--wildcard', type=str, default="*.nc", help="wildcards. Default *.nc")
 
     # Subparser for scan command.
-    p_scan = subparsers.add_parser('scan', help="Show files in directory tree.") 
+    p_scan = subparsers.add_parser('scan', aliases=["s"], help="Show files in directory tree.") 
     p_scan.add_argument("top", help="Top.")
     p_scan.add_argument('-w', '--wildcard', type=str, default="*.nc", help="wildcards. Default *.nc")
     p_scan.add_argument('--no-walk', default=False, action="store_true", help="Disable walk mode.")
@@ -70,7 +94,7 @@ def main():
     # Parse the command line.
     try:
         options = parser.parse_args()
-    except: 
+    except Exception:
         show_examples_and_exit(error_code=1)
 
     if options.verbose:
@@ -116,6 +140,7 @@ def main():
             cls(files).MainLoop()
 
     return 0
+
 
 def appclasses_from_files(filepaths):
     """Returns a dictionary mapping WX application classes to the list of files to open."""

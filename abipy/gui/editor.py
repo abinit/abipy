@@ -14,7 +14,7 @@ __all__ = [
 
 
 class SimpleTextViewer(awx.Frame):
-    """Very simple frame that displays text (string )in read-only mode."""
+    """Very simple frame that displays text (string ) in read-only mode."""
     def __init__(self, parent, text, **kwargs):
         super(SimpleTextViewer, self).__init__(parent, **kwargs)
         wx.TextCtrl(self, -1, text, style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
@@ -106,9 +106,9 @@ class TextNotebookFrame(awx.Frame):
                 we add them to the list if their name match the regular expression 
                 given in wildcard.
             wildcard:
-                String with regular expressions separated by |.
+                String with regular expressions separated by `|`.
                 Only the files matching one of the regular expressions will be showed.
-                example: wildcard="*.nc|*.txt" shows only the files whose extension is in ["nc", "txt"].
+                example: wildcard='*.nc|*.txt' shows only the files whose extension is in ['nc', 'txt'].
         """
         wildcard = WildCard(wildcard)
 

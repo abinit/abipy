@@ -17,6 +17,7 @@ try:
     from wxmplot import PlotFrame, ImageFrame
 except ImportError:
     pass
+
 from abipy.tools.text import list_strings 
 
 
@@ -57,7 +58,7 @@ class AttrDict(dict):
 
 
 class SimpleTextViewer(awx.Frame):
-    """Very simple frame that displays text (string )in read-only mode."""
+    """Very simple frame that displays text (string) in read-only mode."""
     def __init__(self, parent, text, **kwargs):
         super(SimpleTextViewer, self).__init__(parent, **kwargs)
         wx.TextCtrl(self, -1, text, style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
@@ -70,12 +71,13 @@ CompareEvent, EVT_COMPARE = wx.lib.newevent.NewCommandEvent()
 def getSelected(wxlist):
     """Gets the selected items from a list object."""
     selected = []
+
     item = -1
     while True:
         item = wxlist.GetNextItem(item, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
-        if item == -1:
-            break
+        if item == -1: break
         selected.append(item)
+
     return selected
 
 
@@ -142,6 +144,11 @@ class NcViewerFrame(wx.Frame):
     def codename(self):
         """Name of the application."""
         return "wxncview"
+
+    @property
+    def num_tabs(self):
+        """Number of tabs in the notebook."""
+        return self.notebook.GetPageCount()
 
     @property
     def datasets(self):
@@ -216,7 +223,6 @@ class NcViewerFrame(wx.Frame):
             cplx_menu.AppendRadioItem(_id, cplx_mode)
         plot_menu.AppendMenu(-1, 'Complex', cplx_menu)
 
-        #self.GetPlotOptions()
         return plot_menu
 
     def createHelpMenu(self):
@@ -291,7 +297,7 @@ class NcViewerFrame(wx.Frame):
         #                 description="", developers="M. Giantomassi")
 
     def read_file(self, filepath):
-        """Open netcdf file, create new tab and save the file in the history."""
+        """Open a netcdf file, create new tab and save the file in the history."""
         try:
             notebook = self.notebook
             dataset = netCDF4.Dataset(filepath, mode="r")
@@ -381,7 +387,7 @@ class NcViewerFrame(wx.Frame):
         # Plot data. Two Branches for scalars and arrays.
         opts = self.GetPlotOptions()
 
-        is_scalar = (not shape) or (len(shape) == 1 and shape[0] == 1)
+        is_scalar = not shape or (len(shape) == 1 and shape[0] == 1)
         #print(shape)
 
         if is_scalar:
@@ -451,8 +457,9 @@ class BasePanel(wx.Panel, listmix.ColumnSorterMixin):
         menu.Append(self.idPOPUP_GETINFO, "Get Info")
         self.Bind(wx.EVT_MENU, self.OnGetInfo, id=self.idPOPUP_GETINFO)
 
-        menu.Append(self.idPOPUP_COMPARE, "Compare")
-        self.Bind(wx.EVT_MENU, self.OnCompare, id=self.idPOPUP_COMPARE)
+        if self.viewer_frame.num_tabs > 1:
+            menu.Append(self.idPOPUP_COMPARE, "Compare")
+            self.Bind(wx.EVT_MENU, self.OnCompare, id=self.idPOPUP_COMPARE)
 
         return menu
 
@@ -562,7 +569,7 @@ class DimsPanel(BasePanel):
         sizer.Add(self.list, 1, wx.EXPAND, 5)
         self.SetSizerAndFit(sizer)
 
-        # Connect the events whose callback will be set by the client code.
+        # Connect the events.
         self.list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick)
         self.list.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)               
 
@@ -590,9 +597,7 @@ class DimsPanel(BasePanel):
             lines.append(str(var))
             #lines.append(ncvar_info(var))
                                                                                            
-        caption = "Variable Metadata" 
-        s = "\n".join(lines)
-        wxdg.ScrolledMessageDialog(self, s, caption=caption, style=wx.MAXIMIZE_BOX).Show()
+        wxdg.ScrolledMessageDialog(self, "\n".join(lines), caption="Variable Metadata", style=wx.MAXIMIZE_BOX).Show()
 
 
 class VarsPanel(BasePanel):
@@ -707,9 +712,7 @@ class VarsPanel(BasePanel):
             lines.append(str(var))
             #lines.append(ncvar_info(var))
 
-        caption = "Variable Metadata" 
-        s = "\n".join(lines)
-        wxdg.ScrolledMessageDialog(self, s, caption=caption, style=wx.MAXIMIZE_BOX).Show()
+        wxdg.ScrolledMessageDialog(self, "\n".join(lines), caption="Variable Metadata", style=wx.MAXIMIZE_BOX).Show()
 
     def onVarShow(self, event):
         item = getSelected(self.list)[0]
@@ -719,6 +722,7 @@ class VarsPanel(BasePanel):
         SimpleTextViewer(self, text=text).Show()
 
     def onVarExport(self, event):
+        """Export the selected variable to txt format and save it to file."""
         item = getSelected(self.list)[0]
         name = getColumnText(self.list, item, 0)
         var = self.dataset.variables[name]
@@ -958,6 +962,7 @@ class ArrayComparisonPanel(wx.Panel):
         for oname, cbox in self.check_boxes.items():
             if cbox.GetValue():
                 ops[oname] = self.operators[oname]
+
         return ops
 
 

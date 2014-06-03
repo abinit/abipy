@@ -2,6 +2,7 @@
 from __future__ import print_function, division
 
 import collections
+import warnings
 import numpy as np
 
 from abipy.iotools import AbinitNcFile, Has_Structure, Has_ElectronBands
@@ -16,6 +17,13 @@ __all__ = [
 class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     """
     File containing the results of a Ground-state calculation.
+
+    Usage example:
+                                                                  
+    .. code-block:: python
+        
+        gsr = GSR_File("foo_GSR.nc")
+        gsr.ebands.plot()
     """
     def __init__(self, filepath):
         super(GSR_File, self).__init__(filepath)
@@ -78,6 +86,15 @@ class GSR_Plotter(collections.Iterable):
     """
     This object receives a list of `GSR_File` objects and provides
     methods to inspect/analyze the results (useful for convergence studies)
+
+    Usage example:
+                                                                  
+    .. code-block:: python
+        
+        plotter = GSR_Plotter()
+        plotter.add_file("foo_GSR.nc")
+        plotter.add_file("bar_GSR.nc")
+        plotter.plot_variables("ecut", "etotal")
     """
     def __init__(self):
         self._gsr_files = collections.OrderedDict()
@@ -148,7 +165,7 @@ class GSR_Plotter(collections.Iterable):
     def prepare_plot(self):
         """
         This method must be called before plotting data.
-        It tries to figure the name of paramenter we are converging 
+        It tries to figure the name of parameter we are converging
         by looking at the set of parameters used to compute the different GSR files.
         """
         param_list = self._get_param_list()

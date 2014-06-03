@@ -1,17 +1,23 @@
-from pymatgen.util.io_utils import which
+"""
+This module gathers the most important classes and helper functions used for scripting.
+"""
 from pymatgen.io.abinitio.eos import EOS
 from pymatgen.io.abinitio.wrappers import Mrgscr, Mrgddb, Mrggkk, Anaddb
 from pymatgen.io.abinitio import qadapters
-from pymatgen.io.abinitio.tasks import * 
-from pymatgen.io.abinitio.workflows import *
-from pymatgen.io.abinitio.flows import *
-
+from pymatgen.io.abinitio.flows import AbinitFlow, bandstructure_flow, g0w0_flow, phonon_flow
+from pymatgen.io.abinitio.tasks import (TaskManager, ScfTask, NscfTask, RelaxTask, DDK_Task,
+    PhononTask, G_Task, HaydockBseTask, OpticTask, AnaddbTask)
+from pymatgen.io.abinitio.workflows import (Workflow, IterativeWorkflow, BandStructureWorkflow,
+    RelaxWorkflow, DeltaFactorWorkflow, G0W0_Workflow, SigmaConvWorkflow, BSEMDF_Workflow,
+    PhononWorkflow)
 from abipy.core import constants
 from abipy.core.structure import Structure, StructureModifier
+from abipy.tools import which
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
 from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter, SIGRES_Plotter
 from abipy.phonons import PhononBands, PHDOS_Reader, PHDOS_File
 
+# Tools for unit conversion
 FloatWithUnit = constants.FloatWithUnit
 ArrayWithUnit = constants.ArrayWithUnit
 
@@ -23,6 +29,7 @@ def _straceback():
 
 
 def abifile_subclass_from_filename(filename):
+    """Returns the appropriate class associated to the given filename."""
     from abipy.iotools.files import AbinitFile, AbinitLogFile, AbinitOutputFile
     from abipy.electrons import SIGRES_File, GSR_File, MDF_File
     from abipy.waves import WFK_File
@@ -31,7 +38,7 @@ def abifile_subclass_from_filename(filename):
     ext2ncfile = {
         "SIGRES.nc": SIGRES_File,
         "WFK-etsf.nc": WFK_File,
-        "MDF.nc" : MDF_File,
+        "MDF.nc": MDF_File,
         "GSR.nc": GSR_File
         #"PHDOS.nc": PHDOS_File,
         #"PHBST.nc": PHBST_File,
@@ -48,8 +55,7 @@ def abifile_subclass_from_filename(filename):
 
     # CIF files.
     if filename.endswith(".cif"):
-        from abipy.core.structure import Structure
-        return Structure.from_file(filename)
+        return Structure
 
     ext = filename.split("_")[-1]
     try:
@@ -70,23 +76,35 @@ def abiopen(filepath):
     return cls.from_file(filepath)
 
 
-def software_stack(with_wx=True):
+def software_stack():
     """
     Import all the hard dependencies.
     Returns a dict with the version.
     """
-    import numpy, scipy, netCDF4, matplotlib
+    # Mandatory
+    import numpy, scipy
 
     d = dict(
         numpy=numpy.version.version,
         scipy=scipy.version.version,
-        netCDF4=netCDF4.getlibversion(),
-        matplotlib="Version: %s, backend: %s" % (matplotlib.__version__, matplotlib.get_backend()),
     )
 
-    if with_wx:
+    # Optional but strongly suggested.
+    try:
+        import netCDF4, matplotlib
+        d.update(dict(
+            netCDF4=netCDF4.getlibversion(),
+            matplotlib="Version: %s, backend: %s" % (matplotlib.__version__, matplotlib.get_backend()),
+            ))
+    except ImportError:
+        pass
+
+    # Optional (GUIs).
+    try:
         import wx
         d["wx"] = wx.version()
+    except ImportError:
+        pass
 
     return d
 
@@ -101,7 +119,7 @@ def abicheck():
         RuntimeError if not all the dependencies are fulfilled.
     """
     import os
-    # executables must be in $PATH. Unfortunately we cannot 
+    # Executables must be in $PATH. Unfortunately we cannot
     # test the version of the binaries.
     # A possible approach would be to execute "exe -v"
     # but supporting argv in Fortran is not trivial.
@@ -127,7 +145,7 @@ def abicheck():
                 app("Missing shared library dependencies for %s" % exe)
 
     try:    
-        software_stack(with_wx=False)
+        software_stack()
     except:
         app(_straceback())
 
@@ -142,7 +160,7 @@ def flow_main(main):
     """
     This decorator is used to decorate main functions producing `AbinitFlows`.
     It adds the initialization of the logger and an argument parser that allows one to select 
-    the loglevel, the workdir of the flow as well as the YAML file with the paramenters of the `TaskManager`.
+    the loglevel, the workdir of the flow as well as the YAML file with the parameters of the `TaskManager`.
     The main function shall have the signature:
 
         main(options)

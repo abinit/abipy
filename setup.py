@@ -4,16 +4,59 @@ from __future__ import print_function
 
 import sys
 import os
+import shutil
 import numpy as np
 
 from glob import glob
 from setuptools import find_packages, setup, Extension
+from setuptools.command.install import install
 
 # This check is also made in abipy/__init__, don't forget to update both when
 # changing Python version requirements.
 if sys.version[0:3] < '2.7':
     sys.stderr.write("abipy requires Python version 2.7 or above. Exiting.")
     sys.exit(1)
+
+class MyInstall(install):
+    """
+    Extends setuptools install so that we can create the abipy configuration files in ~/abinit/.abipy
+    """
+    def run(self):
+        install.run(self)
+        self.__write_user_cfgfiles()
+
+    def __write_user_cfgfiles(self, overwrite=False): 
+        """
+        This function creates the abipy configurations files.
+        
+            overwrite:
+                True if pre-existent files can be overwritten.
+        """
+        conf_dir = os.path.join(os.getenv("HOME"), ".abinit", "abipy")
+        print("Creating configuration files in %s ... " % conf_dir, end="")
+
+        if not os.path.exists(conf_dir): os.makedirs(conf_dir)
+
+        # TODO: add taskmanager and scheduler
+        path_data =[
+            ("nodecounter", "-1"),
+            #("taskmanager.yml", lambda: fh: fh.write(get_taskmanager_template()))
+            #("scheduler.yml", lambda: fh: fh.write(get_scheduler_template()))))
+        ]
+        path_data = [(os.path.join(conf_dir, f), _) for (f, _) in path_data]
+
+        count = 0
+        for p, data in path_data:
+            exist = os.path.exists(p) 
+            if exist and not overwrite: continue
+            # keep a backup copy if we are going to overwrite the file.
+            if exist: shutil.move(p, p + ".bkp") 
+            with open(p, "w") as fh:
+                fh.write(data)
+                count += 1
+
+        print("(Wrote %d configuration files)" % count)
+
 
 # Install ipython with notebook support.
 with_ipython = True
@@ -27,10 +70,10 @@ try:
 except ImportError:
     with_cython = False
 
-cmdclass = {}
 ext_modules = []
 
-#with_cython = False
+# Disable cython for the time being.
+with_cython = False
 if with_cython:
     #define_macros = [("CYTHON_TRACE", "1")]
     ext_modules += [
@@ -43,8 +86,6 @@ else:
         Extension("abipy.extensions.klib", ["abipy/extensions/klib.c"], include_dirs=[np.get_include()])
     ]
 
-# Disable cython for the time being.
-cmdclass = {}
 ext_modules = []
 
 #-------------------------------------------------------------------------------
@@ -124,10 +165,7 @@ def find_scripts():
 
 def get_long_desc():
     with open("README.rst") as f:
-        long_desc = f.read()
-        #ind = long_desc.find("\n")
-        #long_desc = long_desc[ind + 1:]
-        return long_desc
+        return f.read()
 
 
 #-----------------------------------------------------------------------------
@@ -147,6 +185,7 @@ def cleanup():
             except:
                 pass
 
+
 # List of external packages we rely on.
 # Note setup install will download them from Pypi if they are not available.
 install_requires = [
@@ -156,12 +195,12 @@ install_requires = [
     "numpy",
     #"numpy>=1.8",  # We need this one for the ufuncs
     "scipy>=0.10",
-    "matplotlib>=1.1",
+    #"matplotlib>=1.1",
     "pyyaml>=3.1.0",
     "netCDF4",
-    "pymatgen>=2.8.7",
-    "fabric",
-    "paramiko",
+    "pymatgen>=2.9.0",
+    #"fabric",
+    #"paramiko",
     "wxmplot",
     #"asciitable",
     #"psutil",
@@ -215,7 +254,7 @@ setup_args = dict(
       exclude_package_data = my_excl_package_data,
       scripts          = my_scripts,
       #download_url     = download_url,
-      cmdclass = cmdclass,
+      cmdclass={'install': MyInstall},
       ext_modules=ext_modules,
       )
 

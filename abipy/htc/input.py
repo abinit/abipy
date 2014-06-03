@@ -77,12 +77,10 @@ class Input(object):
         Write the input file to file. Returns a string with the input.
         """
         dirname = os.path.dirname(filepath)
-        if not os.path.exists(dirname): 
-            os.makedirs(dirname)
+        if not os.path.exists(dirname): os.makedirs(dirname)
                                                                                       
         # Write the input file.
-        #input_string = str(self)
-        input_string = self.make_input()
+        input_string = str(self)
         with open(filepath, "w") as fh:
            fh.write(input_string)
 
@@ -506,9 +504,9 @@ class AbiInput(Input):
         for idt in self._dtset2range(dtset):
             self[idt].set_kmesh(ngkpt, shiftk, kptopt=kptopt)
 
-    #def set_autokmesh(self, nksmall, kptopt=1, dtset=0):
-    #    for idt in self._dtset2range(dtset):
-    #        self[idt].set_autokmesh(nksmall, kptopt=kptopt)
+    def set_autokmesh(self, nksmall, kptopt=1, dtset=0):
+        for idt in self._dtset2range(dtset):
+            self[idt].set_autokmesh(nksmall, kptopt=kptopt)
 
     def set_kpath(self, ndivsm, kptbounds=None, iscf=-2, dtset=0):
         """
@@ -795,24 +793,24 @@ class Dataset(collections.Mapping):
                            shiftk=shiftk,
                            )
 
-    #def set_autokmesh(self, nksmall, kptopt=1):
-    #    """
-    #    Set the variables for the sampling of the BZ.
-    #                                                   
-    #    Args:
-    #        nksmall:
-    #            Number of k-points used to sample the smallest lattice vector.
-    #        kptopt:
-    #            Option for the generation of the mesh.
-    #    """
-    #    shiftk = self.structure.calc_shiftk()
-    #    ngkpt = self.structure.calc_ngkpt(nksmall)
-    #    
-    #    self.set_variables(ngkpt=ngkpt,
-    #                       kptopt=kptopt,
-    #                       nshiftk=len(shiftk),
-    #                       shiftk=shiftk,
-    #                       )
+    def set_autokmesh(self, nksmall, kptopt=1):
+        """
+        Set the variables for the sampling of the BZ.
+                                                       
+        Args:
+            nksmall:
+                Number of k-points used to sample the smallest lattice vector.
+            kptopt:
+                Option for the generation of the mesh.
+        """
+        shiftk = self.structure.calc_shiftk()
+        ngkpt = self.structure.calc_ngkpt(nksmall)
+        
+        self.set_variables(ngkpt=ngkpt,
+                           kptopt=kptopt,
+                           nshiftk=len(shiftk),
+                           shiftk=shiftk,
+                           )
 
     def set_kpath(self, ndivsm, kptbounds=None, iscf=-2):
         """

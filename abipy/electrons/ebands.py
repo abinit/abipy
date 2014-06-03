@@ -19,7 +19,6 @@ from abipy.electrons.edos import ElectronDOS
 from abipy.tools.animator import FilesAnimator
 from abipy.tools.numtools import find_le, find_gt
 
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -32,30 +31,9 @@ __all__ = [
 ]
 
 
-def lazy_property(method):
-    """lazy property decorator which removes the boilerplace."""
-    # Fixme: don't know how to preserve __doc__
-    # See also http://stackoverflow.com/questions/6394511/python-functools-wraps-equivalent-for-classes?rq=1
-    attr_name = '_lazy_' + method.__name__
-    #from functools import wraps
-    #@wraps(method)
-    @property
-    def wrapper(self):
-        #self.wrapper.__name__ = method.__name__
-        #self.wrapper.__doc__ = method.__doc__
-        #self.wrapper.__module__ = method.__module__
-
-        if not hasattr(self, attr_name):
-            setattr(self, attr_name, method(self))
-        return getattr(self, attr_name)
-
-    #wrapper = property(fget=wrapper, doc=method.__doc__)
-    return wrapper
-
-
-class ElectronState(collections.namedtuple("ElectronState", "spin kpoint band eig occ")):
+class Electron(collections.namedtuple("Electron", "spin kpoint band eig occ")):
     """
-    Sigle-particle state.
+    Single-particle state.
 
     .. Attributes:
 
@@ -92,7 +70,7 @@ class ElectronState(collections.namedtuple("ElectronState", "spin kpoint band ei
 
     def copy(self):
         d = {f: copy.copy(getattr(self, f)) for f in self._fields}
-        return ElectronState(**d)
+        return Electron(**d)
 
     @classmethod
     def get_fields(cls, exclude=()):
@@ -104,7 +82,7 @@ class ElectronState(collections.namedtuple("ElectronState", "spin kpoint band ei
 
     def asdict(self):
         """Convert self into a dict.""" 
-        return super(ElectronState, self)._asdict()
+        return super(Electron, self)._asdict()
 
     def to_strdict(self, fmt=None):
         """Ordered dictionary mapping fields --> strings."""
@@ -127,7 +105,7 @@ class ElectronState(collections.namedtuple("ElectronState", "spin kpoint band ei
 
     @property
     def tips(self):
-        """Bound method of self that returns a dictionary with the description of the fields."""
+        """Dictionary with the description of the fields."""
         return self.__class__.TIPS()
 
     @classmethod
@@ -174,12 +152,13 @@ class ElectronState(collections.namedtuple("ElectronState", "spin kpoint band ei
 
 
 class ElectronTransition(object):
-    """This object descrive an electronic transition between two single-particle states."""
-
+    """
+    This object describes an electronic transition between two single-particle states.
+    """
     def __init__(self, in_state, out_state):
         """
         Args:
-            in_state, out_state: Initial and finale state (`ElectronState` instances).
+            in_state, out_state: Initial and finale state (`Electron` instances).
         """
         self.in_state = in_state
         self.out_state = out_state
@@ -220,7 +199,6 @@ class ElectronTransition(object):
         return self.in_state.kpoint == self.out_state.kpoint
 
 
-
 class Smearing(AttrDict):
     """Stores data and information about the smearing technique."""
     _MANDATORY_KEYS = [
@@ -239,6 +217,13 @@ class Smearing(AttrDict):
     def has_metallic_scheme(self):
         """True if we are using a metallic scheme for occupancies."""
         return self.occopt in [3,4,5,6,7,8]
+
+
+class StatParams(collections.namedtuple("StatParams", "mean stdev min max")):
+    """Named tuple with statistical parameters."""
+    def __str__(self):
+        return "mean = %.3f, stdev = %.3f, min = %.3f, max = %.3f [eV]" % (
+            self.mean, self.stdev, self.min, self.max)
 
 
 class ElectronBands(object):
@@ -647,15 +632,21 @@ class ElectronBands(object):
 
         stream.flush()
 
-    def to_pymatgen(self):
-        """Return a pymatgen bandstructure object."""
+    def to_pymatgen(self, fermie=None):
+        """
+        Return a pymatgen bandstructure object.
+
+        fermie:
+            Fermi energy in eV. If None, self.efermi is used.
+        """
         from pymatgen.electronic_structure.core import Spin
         from pymatgen.electronic_structure.bandstructure import BandStructure, BandStructureSymmLine
 
         assert np.all(self.nband_sk == self.nband_sk[0,0])
 
         # TODO check this
-        efermi = self.fermie
+        if fermie is None:
+            fermie = self.fermie
 
         #eigenvals is a dict of energies for spin up and spin down
         #{Spin.up:[][],Spin.down:[][]}, the first index of the array
@@ -671,29 +662,29 @@ class ElectronBands(object):
 
         if self.kpoints.is_path:
             labels_dict = {k.name: k.frac_coords for k in self.kpoints if k.name is not None}
-            logger.info("calling pmg BandStructureSymmLine with labes_dict %s" % str(labels_dict))
-            return BandStructureSymmLine(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, efermi, labels_dict,
-                                        coords_are_cartesian=False, 
-                                        structure=self.structure,
-                                        projections=None)
+            logger.info("calling pmg BandStructureSymmLine with labels_dict %s" % str(labels_dict))
+            return BandStructureSymmLine(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, fermie, labels_dict,
+                                         coords_are_cartesian=False,
+                                         structure=self.structure,
+                                         projections=None)
 
         else:
             logger.info("Calling pmg BandStructure")
-            return BandStructure(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, efermi, 
-                                labels_dict=None,
-                                coords_are_cartesian=False, 
-                                structure=self.structure, 
-                                projections=None)
+            return BandStructure(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, fermie,
+                                 labels_dict=None,
+                                 coords_are_cartesian=False,
+                                 structure=self.structure,
+                                 projections=None)
 
     def _electron_state(self, spin, kpoint, band):
         """
-        Build an instance of `ElectronState` from the spin, kpoint and band index"""
+        Build an instance of `Electron` from the spin, kpoint and band index"""
         kidx = self.kindex(kpoint)
-        return ElectronState(spin=spin,
-                             kpoint=self.kpoints[kidx],
-                             band=band,
-                             eig=self.eigens[spin,kidx,band],
-                             occ=self.occfacts[spin,kidx,band])
+        return Electron(spin=spin,
+                        kpoint=self.kpoints[kidx],
+                        band=band,
+                        eig=self.eigens[spin,kidx,band],
+                        occ=self.occfacts[spin,kidx,band])
 
     #def from_scfrun(self):
     #    return self.iscf > 0
@@ -702,6 +693,9 @@ class ElectronBands(object):
     #    return np.any(self.occfacts != 0.0)
 
     def _fix_fermie(self):
+        """
+        Fix the value of the Fermi level in semiconductors, set it to the HOMO level.
+        """
         # Use the fermi level computed by Abinit for metals or if SCF run
         # FIXME
         #if self.use_metallic_scheme or self.from_scfrun: return
@@ -720,7 +714,6 @@ class ElectronBands(object):
                     raise ValueError("Not enough bands to compute the position of the Fermi level!")
 
         except ValueError:
-            # Don't shift energies. 
             return
 
         new_fermie = max(esb_levels)
@@ -729,12 +722,16 @@ class ElectronBands(object):
 
         # Use fermilevel as zero of energies.
         self.fermie = new_fermie
+        # FIXME this is problematic since other values e.g. QP corrections
+        # are expressed in terms of KS energies and I should always have
+        # the fermi level to shift energies correctly. perhaps it's better if I provide
+        # an option to shift the energies in the plot.
         #self._eigens = self._eigens - new_fermie 
         #self.fermie = 0.0
 
     @property
     def lomos(self):
-        """lomo states for each spin channel as a list of nsppol `ElectronState`."""
+        """lomo states for each spin channel as a list of nsppol `Electron`."""
         lomos = self.nsppol * [None]
         for spin in self.spins:
             lomo_kidx = self.eigens[spin,:,0].argmin()
@@ -752,8 +749,7 @@ class ElectronBands(object):
             kpoint:
                 Index of the kpoint or `Kpoint` object.
         """
-        k = self.kindex(kpoint)
-        return self._electron_state(spin, k, 0)
+        return self._electron_state(spin, kpoint, 0)
 
     def homo_sk(self, spin, kpoint):
         """
@@ -787,7 +783,7 @@ class ElectronBands(object):
 
     @property
     def homos(self):
-        """homo states for each spin channel as a list of nsppol `ElectronState`."""
+        """homo states for each spin channel as a list of nsppol `Electron`."""
         homos = self.nsppol * [None]
 
         for spin in self.spins:
@@ -801,14 +797,14 @@ class ElectronBands(object):
             homo_kidx = np.array(enes).argmax()
             homo_band = blist[homo_kidx]
 
-            # Build ElectronState instance.
+            # Build Electron instance.
             homos[spin] = self._electron_state(spin, homo_kidx, homo_band)
 
         return homos
 
     @property
     def lumos(self):
-        """lumo states for each spin channel as a list of nsppol `ElectronState`."""
+        """lumo states for each spin channel as a list of nsppol `Electron`."""
         lumos = self.nsppol * [None]
                                                                      
         for spin in self.spins:
@@ -822,7 +818,7 @@ class ElectronBands(object):
             lumo_kidx = np.array(enes).argmin()
             lumo_band = blist[lumo_kidx]
                                                                      
-            # Build ElectronState instance.
+            # Build Electron instance.
             lumos[spin] = self._electron_state(spin, lumo_kidx, lumo_band)
 
         return lumos
@@ -850,9 +846,6 @@ class ElectronBands(object):
     @property
     def bandwidths(self):
         """The bandwidth for each spin channel i.e. the energy difference (homo - lomo)."""
-        for spin in self.spins:
-            print("homos", self.homos[spin])
-            print("lomos",self.lomos[spin])
         return [self.homos[spin].eig - self.lomos[spin].eig for spin in self.spins]
 
     @property
@@ -891,17 +884,64 @@ class ElectronBands(object):
         lines = []
         app = lines.append
 
+        app("Electron bands of %s" % self.structure.formula)
+        app("Number of electrons %s" % self.nelect)
         app("Fermi level: %s [eV]" % self.fermie)
 
+        def indent(s):
+            return "\t" + s.replace("\n", "\n\t")
+
         for spin in self.spins:
-            app("Spin %s" % spin)
-            app("Direct gap: %s" % str(dir_gaps[spin]))
-            app("Fundamental gap %s" % str(fun_gaps[spin]))
+            app(">>> Spin %s" % spin)
+            app("Direct gap:\n %s" % indent(str(dir_gaps[spin])))
+            app("Fundamental gap:\n %s" % indent(str(fun_gaps[spin])))
             app("Bandwidth: %s [eV]" % widths[spin])
-            app("LOMO: %s" % str(lomos[spin]))
-            app("HOMO: %s" % str(homos[spin]))
+            app("LOMO:\n %s" % indent(str(lomos[spin])))
+            app("HOMO:\n %s" % indent(str(homos[spin])))
 
         return "\n".join(lines)
+
+    def spacing(self, axis=None):
+        """
+        Compute the statistical parameters of the energy spacing, i.e. e[b+1] - e[b]
+
+        Returns:
+            `namedtuple` with the statistical parameters in eV
+        """
+        ediff = self.eigens[1:,:,:] - self.eigens[:self.mband-1,:,:]
+
+        return StatParams(
+            mean=ediff.mean(axis=axis),
+            stdev=ediff.std(axis=axis),
+            min=ediff.min(axis=axis), 
+            max=ediff.max(axis=axis)
+            )
+
+    def statdiff(self, other, axis=None, numpy_op=np.abs):
+        """
+        Compare the eigenenergies of two bands and compute the 
+        statistical parameters: mean, standard deviation, min and max
+
+        Args:
+            other:
+                `BandStructure` object
+            axis: int, optional
+                Axis along which the statistical parameters are computed. 
+                The default is to compute the parameters of the flattened array.
+            numpy_op:
+                Numpy function to apply to the difference of the eigenvalues. The 
+                default computes t|self.eigens - other.eigens| 
+
+        Returns:
+            `namedtuple` with the statistical parameters in eV
+        """
+        ediff = numpy_op(self.eigens - other.eigens)
+
+        return StatParams(mean=ediff.mean(axis=axis),
+                          stdev=ediff.std(axis=axis),
+                          min=ediff.min(axis=axis),
+                          max=ediff.max(axis=axis)
+                          )
 
     def get_edos(self, method="gaussian", step=0.1, width=0.2):
         """
@@ -1034,7 +1074,7 @@ class ElectronBands(object):
         return Function1D(mesh, jdos)
 
     def plot_ejdosvc(self, vrange, crange, method="gaussian", step=0.1, width=0.2, cumulative=True,
-                    **kwargs):
+                     **kwargs):
         """
         Plot the decomposition of the joint-density of States (JDOS).
 
@@ -1159,7 +1199,7 @@ class ElectronBands(object):
 
         # Change the energies (NB: occupations and fermie are left unchanged).
         return ElectronBands(self.structure, self.kpoints, qp_energies, self.fermie, self.occfacts, self.nelect,
-            nband_sk=self.nband_sk, smearing=self.smearing, markers=self.markers)
+                             nband_sk=self.nband_sk, smearing=self.smearing, markers=self.markers)
 
     def plot(self, klabels=None, band_range=None, marker=None, width=None, **kwargs):
         """
@@ -1504,16 +1544,16 @@ class ElectronBands(object):
         #print("ibz_arr", ibz_arr)
 
         ebands3d = EBands3D(self.structure, 
-                    ibz_arr=self.kpoints.to_array(), ene_ibz=self.eigens, 
-                    ndivs=ndivs, shifts=self.kpoints.shifts, 
-                    pbc=True, order="unit_cell")
+                            ibz_arr=self.kpoints.to_array(), ene_ibz=self.eigens, 
+                            ndivs=ndivs, shifts=self.kpoints.shifts, 
+                            pbc=True, order="unit_cell")
 
         # Symmetrize bands in the unit cell.
         emesh_sbk = ebands3d.get_emesh_sbk()
 
         #print(self.nband, ndivs+1)
         with open(filepath, "w") as fh:
-           bxsf_write(fh, self.structure, self.nsppol, self.nband, ndivs+1, emesh_sbk, self.fermie, unit="eV")
+            bxsf_write(fh, self.structure, self.nsppol, self.nband, ndivs+1, emesh_sbk, self.fermie, unit="eV")
 
         return Visualizer.from_file(filepath)
 
@@ -1554,8 +1594,17 @@ class ElectronBands(object):
 
 class ElectronBandsPlotter(object):
     """
-    Class for plotting electronic bands structure and DOSes.
+    Class for plotting electronic band structure and DOSes.
     Supports plots on the same graph or separated plots.
+
+    Usage example:
+
+    .. code-block:: python
+        
+        plotter = ElectronBandsPlotter()
+        plotter.add_ebands_from_file("foo.nc", label="foo bands")
+        plotter.add_ebands_from_file("bar.nc", label="bar bands")
+        plotter.plot()
     """
     _LINE_COLORS = ["b", "r",]
     _LINE_STYLES = ["-",":","--","-.",]
@@ -1643,7 +1692,29 @@ class ElectronBandsPlotter(object):
             for label, bands, dos in zip(labels, bands_list, dos_list):
                 self.add_ebands(label, bands, dos=dos)
 
-    def plot(self, klabels=None, *args, **kwargs):
+    def bands_statdiff(self, ref=0):
+        """
+        Compare the reference bands with index ref with the other bands 
+        stored in the plotter.
+        """
+        for i, label in enumerate(self._bands_dict.keys()):
+            if i == ref:
+                ref_label = label
+                break
+        else:
+            raise ValueError("ref index %s is > number of bands" % ref)
+
+        ref_bands = self._bands_dict[ref_label]
+
+        text = []
+        for (label, bands) in self._bands_dict.items():
+            if label == ref_label: continue
+            stat = ref_bands.statdiff(bands)
+            text.append(str(stat))
+
+        return "\n\n".join(text)
+
+    def plot(self, klabels=None, **kwargs):
         """
         Plot the band structure and the DOS.
 
@@ -1652,8 +1723,6 @@ class ElectronBandsPlotter(object):
                 dictionary whose keys are tuple with the reduced
                 coordinates of the k-points. The values are the labels.
                 e.g. klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
-            args:
-                Positional arguments passed to :mod:`matplotlib`.
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -1707,7 +1776,7 @@ class ElectronBandsPlotter(object):
             my_kwargs.update(lineopt)
             opts_label[label] = my_kwargs.copy()
 
-            l = bands.plot_ax(ax1, spin=None, band=None, *args, **my_kwargs)
+            l = bands.plot_ax(ax1, spin=None, band=None, **my_kwargs)
             lines.append(l[0])
 
             # Use relative paths if label is a file.
@@ -1792,6 +1861,15 @@ class ElectronBandsPlotter(object):
 class ElectronDosPlotter(object):
     """
     Class for plotting electronic DOSes.
+
+    Usage example:
+
+    .. code-block:: python
+        
+        plotter = ElectronDosPlotter()
+        plotter.add_edos_from_file("foo.nc", label="foo dos")
+        plotter.add_edos_from_file("bar.nc", label="bar dos")
+        plotter.plot()
     """
     #_LINE_COLORS = ["b", "r",]
     #_LINE_STYLES = ["-",":","--","-.",]
@@ -2098,23 +2176,3 @@ class EBands3D(object):
 #    def plot(self, qpath):
 #        nesting = self.compute_nesting(qpath)
 #        nesting.plot()
-
-import unittest
-class LazyDecoratorTest(unittest.TestCase):
-
-    def test_lazy_decorator(self):
-        """Test lazy_property decorator."""
-        class MyObject(object):
-            @lazy_property
-            def prop(self):
-                """A simple property"""
-                print("generating 'prop'")
-                return range(5)
-
-        obj = MyObject()
-
-        self.assertEqual(obj.prop, range(5))
-        print(obj.__dict__)
-        self.assertTrue("_lazy_prop" in obj.__dict__)
-        #self.assertEqual(obj.prop.__doc__, "A simple property")
-        #self.assertEqual(obj.prop.__name__, "prop")

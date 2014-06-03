@@ -5,25 +5,29 @@ It provides both a command line interface as well as a graphical interfaced base
 """
 from __future__ import division, print_function
 
-import sys 
+import sys
 import os
-import warnings
 import argparse
-import abipy.abilab as abilab
+import time
 
 from pymatgen.io.abinitio.launcher import PyFlowScheduler, PyLauncher
+import abipy.abilab as abilab
 
 
 def str_examples():
     examples = """
 Usage example:\n
-    abirun.py DIRPATH  singleshot              => Fetch the first available task and run it.
-    abirun.py DIRPATH  rapidfire               => Keep repeating, stop when no task can be executed
+    abirun.py [DIRPATH] singleshot              => Fetch the first available task and run it.
+    abirun.py [DIRPATH] rapidfire               => Keep repeating, stop when no task can be executed
                                                   due to inter-dependency.
-    abirun.py DIRPATH gui                      => Open the GUI 
-    nohup abirun.py DIRPATH sheduler -s 30 &   => Use a scheduler to schedule task submission
+    abirun.py [DIRPATH] gui                      => Open the GUI 
+    nohup abirun.py [DIRPATH] sheduler -s 30 &   => Use a scheduler to schedule task submission
+
+    If DIRPATH is not given, abirun.py selects automatically the database located within 
+    the working directory. An Exception is raised if multiple databases are found.
 """
     return examples
+
 
 def show_examples_and_exit(err_msg=None, error_code=1):
     """Display the usage of the script."""
@@ -72,7 +76,25 @@ def treat_flow(flow, options):
         sched.start()
 
     if options.command == "status":
-        flow.show_status()
+        if options.delay:
+            print("Entering infinite loop. Press CTRL+C to exit")
+            try:
+                while True:
+                    print(2*"\n" + time.asctime() + "\n")
+                    flow.show_status()
+                    time.sleep(options.delay)
+
+            except KeyboardInterrupt:
+                pass
+        else:
+            flow.show_status()
+        #import pstats, cProfile
+        #cProfile.runctx("flow.show_status()", globals(), locals(), "Profile.prof")
+        #s = pstats.Stats("Profile.prof")
+        #s.strip_dirs().sort_stats("time").print_stats()
+
+    if options.command == "open":
+        flow.open_files(what=options.what, wti=None, status=None, op="==")
 
     if options.command == "cancel":
         num_cancelled = flow.cancel()
@@ -82,27 +104,51 @@ def treat_flow(flow, options):
 
 
 def main():
-    parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
+
+    # Decorate argparse classes to add portable support for aliases in add_subparsers
+    class MyArgumentParser(argparse.ArgumentParser):
+        def add_subparsers(self, **kwargs):
+            new = super(MyArgumentParser, self).add_subparsers(**kwargs)
+            # Use my class
+            new.__class__ = MySubParserAction
+            return new
+
+    class MySubParserAction(argparse._SubParsersAction):
+        def add_parser(self, name, **kwargs):
+            """Allows one to pass the aliases option even if this version of ArgumentParser does not support it."""
+            try:
+                return super(MySubParserAction, self).add_parser(name, **kwargs)
+            except Exception as exc:
+                if "aliases" in kwargs: 
+                    # Remove aliases and try again.
+                    kwargs.pop("aliases")
+                    return super(MySubParserAction, self).add_parser(name, **kwargs)
+                else:
+                    # Wrong call.
+                    raise exc
+
+    parser = MyArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                         help='verbose, can be supplied multiple times to increase verbosity')
+                        help='verbose, can be supplied multiple times to increase verbosity')
 
     parser.add_argument('--loglevel', default="ERROR", type=str,
-                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+                        help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
-    parser.add_argument('path', help="File or directory containing the ABINIT flow")
+    parser.add_argument('path', nargs="?", help=("File or directory containing the ABINIT flow\n" +
+                                                 "If not given, the first flow in the current workdir is selected"))
 
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for single command.
-    p_single = subparsers.add_parser('singleshot', help="Run single task.") #, aliases=["single"])
+    p_single = subparsers.add_parser('singleshot', aliases=["single"], help="Run single task.")
 
     # Subparser for rapidfire command.
-    p_rapid = subparsers.add_parser('rapidfire', help="Run all tasks in rapidfire mode") # aliases=["rapid"])
+    p_rapid = subparsers.add_parser('rapidfire', aliases=["rapid"], help="Run all tasks in rapidfire mode")
 
     # Subparser for scheduler command.
-    p_scheduler = subparsers.add_parser('scheduler', help="Run all tasks with a Python scheduler.")
+    p_scheduler = subparsers.add_parser('scheduler', aliases=["sched"], help="Run all tasks with a Python scheduler.")
 
     p_scheduler.add_argument('-w', '--weeks', default=0, type=int, help="number of weeks to wait")
 
@@ -116,9 +162,26 @@ def main():
 
     # Subparser for status command.
     p_status = subparsers.add_parser('status', help="Show task status.")
+    p_status.add_argument('-d', '--delay', default=0, type=int, help=("If 0, exit after the first analysis.\n" + 
+                          "If > 0, enter an infinite loop and delay execution for the given number of seconds."))
 
     # Subparser for scheduler command.
     p_cancel = subparsers.add_parser('cancel', help="Cancel the tasks in the queue.")
+
+    # Subparser for open command.
+    p_open = subparsers.add_parser('open', help="Open files (command line interface)")
+
+    p_open.add_argument('what', default="o", 
+        help="""\
+Specify the files to open. Possible choices:\n
+i ==> input_file\n
+o ==> output_file\n
+f ==> files_file\n              
+j ==> job_file\n                
+l ==> log_file\n                
+e ==> stderr_file\n             
+q ==> qerr_file\n
+""")
 
     # Subparser for gui command.
     p_gui = subparsers.add_parser('gui', help="Open GUI.")
@@ -126,7 +189,6 @@ def main():
 
     p_new_manager = subparsers.add_parser('new_manager', help="Change the TaskManager.")
     p_new_manager.add_argument("manager_file", default="", type=str, help="YAML file with the new manager")
-    #p_new_manager.add_argument("--chroot", default="", type=str, help="Directory for chroot.")
 
     # Parse command line.
     try:
@@ -146,11 +208,14 @@ def main():
     logging.basicConfig(level=numeric_level)
 
     # Read the flow from the pickle database.
+    if options.path is None:
+        # Will try to figure out the location of the Flow.
+        options.path = os.getcwd()
+
     flow = abilab.AbinitFlow.pickle_load(options.path)
-
     retcode = 0
-    if options.command == "gui":
 
+    if options.command == "gui":
         if options.chroot:
             # Change the workdir of flow.
             print("Will chroot to %s" % options.chroot)
@@ -179,3 +244,7 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+    #import pstats, cProfile
+    #cProfile.runctx("main()", globals(), locals(), "Profile.prof")
+    #s = pstats.Stats("Profile.prof")
+    #s.strip_dirs().sort_stats("time").print_stats()

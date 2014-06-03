@@ -26,3 +26,7 @@ TODO List
 
 #. Use different and cleaner rules for file extensions in ABINIT. Why _DEN12 and _1WF13 instead
    of the simpler syntax 12_1DEN, 13_1WF in which the extension is preserved?
+
+#. split long lines in the abinit input (e.g. typat 1 1 1 2 --> typat 3*1 2)
+
+#. Better support for PBS

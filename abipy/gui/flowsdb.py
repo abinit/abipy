@@ -9,10 +9,13 @@ import wx.lib.newevent
 import abipy.gui.awx as awx
 
 from collections import OrderedDict
-from pymatgen.util.io_utils import which
+from abipy.tools import which
 from abipy.gui.editor import  SimpleTextViewer, MyEditorFrame
 from abipy.gui.flowviewer import FlowViewerFrame
-from abipy.data.runs.abife import FlowsDatabase
+from abipy.htc.clusters import FlowsDatabase
+
+import logging
+logger = logging.getLogger(__name__)
 
 # Command event used to signal that the Flows database 
 # is changed and we should refresh the GUI.
@@ -52,7 +55,6 @@ def busy(func):
         The first argument of func is the wx parent Window.
     """
     from functools import wraps
-
     @wraps(func)
     def wrapper(*args, **kwargs):
         wait = wx.BusyInfo("Contacting host...")
@@ -64,7 +66,6 @@ def busy(func):
         finally:
             del wait
             if isinstance(result, Exception):
-                #raise result
                 awx.showErrorMessage(args[0], message=straceback(color=None))
             else:
                 return result
@@ -131,8 +132,8 @@ class FlowsDbViewerFrame(awx.Frame):
         # Create toolbar.
         self.toolbar = toolbar = self.CreateToolBar()
 
-        def bitmap(path):
-            return wx.Bitmap(awx.path_img(path))
+        def bitmap(img_name):
+            return wx.Bitmap(awx.path_img(img_name))
 
         toolbar.AddSimpleTool(self.ID_RUN_SCRIPT, bitmap("run.png"), "Upload and execute the script on the remote host.")
         toolbar.AddSimpleTool(self.ID_CHECK_STATUS, bitmap("chk.png"), "Check the status of the flows running on the remote host.")
@@ -202,7 +203,7 @@ class FlowsDbViewerFrame(awx.Frame):
 
     def ReshowFlowsDb(self, event):
         """Refresh the GUI, called when we have modified the database."""
-        #print("in refresh with event %s" % event)
+        logger.debug("In refresh with event %s" % event)
         self.notebook.ReshowFlowsDb(event)
 
     def OnRunScript(self, event):
@@ -476,7 +477,7 @@ class FlowsListCtrl(wx.ListCtrl):
             parent:
                 Parent window.
             flows:
-                List of flows info
+                List of flows info.
             cluster:
                 The cluster where the flows are executed.
             flows_db:
@@ -570,7 +571,7 @@ def flow_viewer(parent, cluster, flow, flows_db):
     # Mount remote workdir.
     retcode = cluster.sshfs_mount()
     if retcode: 
-        return awx.showErrorMessage("sshfs returned retcode %s. Returning!" % retcode)
+        return awx.showErrorMessage(parent, "sshfs returned retcode %s. Returning!" % retcode)
 
     # Read the flow from the pickle database (note the use of the local path).
     from abipy import abilab
@@ -641,7 +642,7 @@ class FlowPopupMenu(wx.Menu):
 
 
 def wxapp_flowsdb_viewer():
-    """Standalone application for `FlowsDbViewerFrame"""
+    """Standalone application for `FlowsDbViewerFrame`"""
     app = awx.App()
     FlowsDbViewerFrame(None).Show()
     return app

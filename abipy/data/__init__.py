@@ -1,5 +1,5 @@
 """
-Functions providing access to file data for unit tests and tutorias.
+Functions providing access to file data for unit tests and tutorials.
 Preferred way to import the module is via the import syntax:
 
 import abipy.data as data

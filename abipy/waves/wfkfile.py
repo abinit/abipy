@@ -24,6 +24,26 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     """
     This object provides a simple interface to access and analyze
     the data stored in the WFK file produced by ABINIT.
+
+    Usage example:
+                                                                  
+    .. code-block:: python
+        
+        wfk = WFK_File("foo_WFK.nc")
+
+        # Plot band energies.
+        wfk.plot_ebands()
+
+        # Visualize u(r)**2 with vesta.
+        visu = wfk.visualize_structure_with("vesta")
+        visu()
+
+        # Visualize u(r)**2 with vesta.
+        visu = wfk.visualize_ur2(spin=0, kpoint=0, band=0, visu="vesta")
+        visu()
+
+        # Get a wavefunction.
+        wave = wfk.get_wave(spin=0, kpoint=[0,0,0], band=0)
     """
     def __init__(self, filepath):
         """

@@ -1,6 +1,5 @@
 from __future__ import print_function, division
 
-from .etsfio import *
 from .xsf import *
 from .visualizer import *
 from .files import *

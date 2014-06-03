@@ -51,6 +51,14 @@ core Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`irrepsdb` Module
+----------------------
+
+.. automodule:: abipy.core.irrepsdb
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`mesh3d` Module
 --------------------
 
@@ -68,15 +76,13 @@ core Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`symmetries` Module
+------------------------
 
-:mod:`shells` Module
---------------------
-
-.. automodule:: abipy.core.shells
+.. automodule:: abipy.core.symmetries
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 :mod:`testing` Module
 ---------------------

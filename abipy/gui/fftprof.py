@@ -5,7 +5,7 @@ import wx
 from collections import OrderedDict
 from abipy.gui import awx
 from abipy.tools import AttrDict
-from abipy.abitools.fftprof import FFTProf
+from abipy.htc.fftbench import FFTProf
 from abipy.gui.editor import SimpleTextViewer
 
 

@@ -357,7 +357,14 @@ class DielectricFunction(object):
 
 
 class MDF_File(AbinitNcFile, Has_Structure):
-
+    """
+    Usage example:
+                                                                  
+    .. code-block:: python
+        
+        mdf_file = MDF_File("foo_MDF.nc")
+        mdf_file.plot_mdfs()
+    """
     def __init__(self, filepath):
         super(MDF_File, self).__init__(filepath)
 
@@ -530,6 +537,15 @@ class MDF_Reader(ETSF_Reader):
 class MDF_Plotter(object):
     """
     Class for plotting multiple MDFs.
+
+    Usage example:
+                                                                  
+    .. code-block:: python
+        
+        plotter = MDF_Plotter()
+        plotter.add_mdf_from_file("foo_MDF.nc", label="foo mdf")
+        plotter.add_mdf_from_file("bar_MDF.nc", label="bar mdf")
+        plotter.plot()
     """
     def __init__(self):
         self._mdfs = collections.OrderedDict()

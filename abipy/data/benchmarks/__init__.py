@@ -4,14 +4,14 @@ import os
 import abipy.abilab as abilab
 
 
-def build_abinit_benchmark(workdir, base_input, manager):
+def build_abinit_benchmark(workdir, template, manager):
     """
     Build an `AbinitWorkflow` used for benchmarking ABINIT.
 
     Args:
         workdir:
             Working directory. 
-        base_input:
+        template:
             Initial `AbinitInput` that will be modified by adding the 
             parameters reported by autoparal (if any).
         manager:
@@ -26,7 +26,7 @@ def build_abinit_benchmark(workdir, base_input, manager):
     shell_manager = manager.to_shell_manager(mpi_ncpus=1, policy=dict(autoparal=1, max_ncpus=max_ncpus))
 
     w = abilab.Workflow(workdir=os.path.join(workdir, "autoparal_run"), manager=shell_manager)
-    w.register(base_input)
+    w.register(template)
     w.build()
 
     # Get the configurations suggested by autoparal.
@@ -62,7 +62,7 @@ def build_abinit_benchmark(workdir, base_input, manager):
         #print("new_manager.policy", new_manager.policy)
 
         # Add the ABINIT input for the parallel execution.
-        new_input = base_input.deepcopy()
+        new_input = template.deepcopy()
         new_input.set_variables(**conf.vars)
 
         work.register(new_input, manager=new_manager)

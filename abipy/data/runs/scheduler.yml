@@ -17,7 +17,9 @@ mailto: matteo.giantomassi@uclouvain.be
 #MAX_NUM_PYEXCS = 2
 # The scheduler will shutdown when the number of Abinit errors is > MAX_NUM_ABIERRS
 #MAX_NUM_ABIERRS = 0
-# The scheduler will shutdows when the total number of tasks launched is > SAFETY_RATIO * tot_num_tasks.
+# The scheduler will shutdown when the total number of tasks launched is > SAFETY_RATIO * tot_num_tasks.
 #SAFETY_RATIO = 3
-#REMINDME_S: 20
+# Send an e-mail to remind the user that the scheduler is running every REMINDME_S seconds
+# Default is 2 weeks, the scheduler will shutdown if the mail cannot be sent. 
+#REMINDME_S: 1209600
 #MAX_TIME_S:
