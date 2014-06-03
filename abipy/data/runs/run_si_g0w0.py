@@ -114,6 +114,8 @@ def make_inputs(ngkpt):
             ecuteps=4.0,
             ecutsigx=6.0,
             symsigma=1,
+            #gw_qprange=0,
+            #nkptgw=0,
         )
         inp[4+idx].set_kptgw(kptgw, bdgw)
 

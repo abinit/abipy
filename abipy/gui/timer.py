@@ -2,8 +2,10 @@ from __future__ import print_function, division
 
 import os
 import wx
+import StringIO
 
 from collections import OrderedDict
+from pymatgen.util.string_utils import pprint_table
 from pymatgen.io.abinitio.abitimer import AbinitTimerSection, AbinitTimerParser
 import abipy.gui.awx as awx
 
@@ -29,8 +31,6 @@ class AbinitTimerFrame(awx.Frame):
         try:
             self.timer = AbinitTimerParser()
             self.timer.parse(filepath)
-            #if o != filepath:
-            #    raise awx.Error("%s does not contain a valid ABINIT TIMER section!" % filepath)
 
         except Exception as exc:
             raise awx.Error(str(exc))
@@ -43,6 +43,7 @@ class AbinitTimerFrame(awx.Frame):
         self.plot_types = OrderedDict([
             ("pie", self.timer.show_pie),
             ("stacked_hist", self.timer.show_stacked_hist),
+            #("raw_data", self.OnRawData),
         ])
 
         keys = AbinitTimerSection.NUMERIC_FIELDS
@@ -81,6 +82,13 @@ class AbinitTimerFrame(awx.Frame):
         )
         callback(**kwargs)
 
+    #def OnRawData(self, **kwargs):
+    #    """Return a string with the timing data."""
+    #    table = self.timer.totable()
+    #    strio = StringIO.StringIO()
+    #    pprint_table(table, out=strio)
+    #    return strio.getvalue()
+
 
 class MultiTimerFrame(awx.Frame):
     """
@@ -104,6 +112,7 @@ class MultiTimerFrame(awx.Frame):
             ("efficiency", self.timers.show_efficiency),
             ("stacked_hist", self.timers.show_stacked_hist),
             ("pie", self.timers.show_pie),
+            #("raw_data", self.OnRawData),
         ])
 
         keys = AbinitTimerSection.NUMERIC_FIELDS
@@ -141,3 +150,16 @@ class MultiTimerFrame(awx.Frame):
             key=str(self.key_cbox.GetValue())
         )
         callback(**kwargs)
+
+    #def OnRawData(self, **kwargs):
+    #    strings = []
+    #    for timer in self.timers:
+    #        table = timer.totable()
+    #        strio = StringIO.StringIO()
+    #        pprint_table(table, out=strio)
+    #        strings.append(strio.get_value)
+    #    return strings
+
+
+
+

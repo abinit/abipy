@@ -471,7 +471,12 @@ class FlowNotebook(fnb.FlatNotebook):
     Notebook class
     """
     def __init__(self, parent, flow):
-        super(FlowNotebook, self).__init__(parent, id=-1, style=fnb.FNB_NO_X_BUTTON | fnb.FNB_NAV_BUTTONS_WHEN_NEEDED)
+        try:
+            style = fnb.FNB_NO_X_BUTTON | fnb.FNB_NAV_BUTTONS_WHEN_NEEDED
+        except AttributeError:
+            style = fnb.FNB_NO_X_BUTTON 
+            
+        super(FlowNotebook, self).__init__(parent, id=-1, style=style)
 
         self.flow = flow
         for work in flow:

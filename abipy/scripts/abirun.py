@@ -185,7 +185,10 @@ q ==> qerr_file\n
 
     # Subparser for gui command.
     p_gui = subparsers.add_parser('gui', help="Open GUI.")
-    p_gui.add_argument("--chroot", default="", type=str, help="Directory for chroot.")
+    p_gui.add_argument("--chroot", default="", type=str, help=("Use chroot as new directory of the flow.\n" +
+                       "Mainly used for opening a flow located on a remote filesystem mounted with sshfs.\n" +
+                       "In this case chroot is the absolute path to the flow on the **localhost**\n",
+                       "Note that it's not possible to change the flow from remote when chroot is used."))
 
     p_new_manager = subparsers.add_parser('new_manager', help="Change the TaskManager.")
     p_new_manager.add_argument("manager_file", default="", type=str, help="YAML file with the new manager")
