@@ -137,7 +137,7 @@ def find_package_data():
     # We need to muck with the MANIFEST to get this to work
     package_data = {
         'abipy.data' : ['*','pseudos/*','runs/*','cifs/*','benchmarks/*'],
-        'abipy.data.runs' : ['data_*/outdata/*'],
+        'abipy.data.runs' : ['data_*/outdata/*','tmp_*/outdata/*'],
         'abipy.gui.awx' : ['images/*'],
     }
     return package_data
@@ -145,7 +145,7 @@ def find_package_data():
 
 def find_exclude_package_data():
     package_data = {
-        'abipy.data' : ['pseudos','runs','cifs','benchmarks','runs/data_*'],
+        'abipy.data' : ['pseudos','runs','cifs','benchmarks','runs/data_*','runs/tmp_*'],
     }
     return package_data
 
