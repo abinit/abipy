@@ -454,8 +454,8 @@ class Structure(pymatgen.Structure):
         # Try to reduce the matrix
         rprimd = self.lattice.matrix
         for l1 in np.arange(-l[0],l[0]+1):
-            for l2 in np.arange(-l[0],l[0]+1):
-                for l3 in np.arange(-l[0],l[0]+1):
+            for l2 in np.arange(-l[1],l[1]+1):
+                for l3 in np.arange(-l[2],l[2]+1):
                     lnew = np.array([l1,l2,l3])
                     ql = np.dot(lnew,qpoint)
                     # Check if integer and non zero !
@@ -469,8 +469,8 @@ class Structure(pymatgen.Structure):
 
         dmin = np.inf
         for l1 in np.arange(-l[0],l[0]+1):
-            for l2 in np.arange(-l[0],l[0]+1):
-                for l3 in np.arange(-l[0],l[0]+1):
+            for l2 in np.arange(-l[1],l[1]+1):
+                for l3 in np.arange(-l[2],l[2]+1):
                     lnew = np.array([l1,l2,l3])
                     # Check if not parallel !
                     cp = np.cross(lnew,scale_matrix[:,0])
@@ -487,8 +487,8 @@ class Structure(pymatgen.Structure):
 
         dmin = np.inf
         for l1 in np.arange(-l[0],l[0]+1):
-            for l2 in np.arange(-l[0],l[0]+1):
-                for l3 in np.arange(-l[0],l[0]+1):
+            for l2 in np.arange(-l[1],l[1]+1):
+                for l3 in np.arange(-l[2],l[2]+1):
                     lnew = np.array([l1,l2,l3])
                     # Check if not parallel !
                     cp = np.dot(np.cross(lnew,scale_matrix[:,0]),scale_matrix[:,1])
@@ -505,7 +505,7 @@ class Structure(pymatgen.Structure):
 
         return scale_matrix
 
-    def frozen_phonon(self, qpoint, displ, eta, do_real=True, frac_coords=True):
+    def frozen_phonon(self, qpoint, displ, eta, do_real=True, frac_coords=True, scale_matrix=None):
         """
         Compute the supercell needed for a given qpoint and add the displacement
         Args:
@@ -522,7 +522,8 @@ class Structure(pymatgen.Structure):
         # I've copied code from make_supercell since the loop over supercell images
         #  is inside make_supercell and I don't want to create a mapping
 
-        scale_matrix = self.get_smallest_supercell(qpoint)
+        if scale_matrix is None:
+          scale_matrix = self.get_smallest_supercell(qpoint)
 
         scale_matrix = np.array(scale_matrix, np.int16)
         if scale_matrix.shape != (3, 3):
@@ -562,9 +563,9 @@ class Structure(pymatgen.Structure):
         for at,site in enumerate(self):
             for t in tvects:
                 if(do_real):
-                    new_displ[:] = np.real(np.exp(2*1j*np.pi*(qpoint*t))*displ[at,:])
+                    new_displ[:] = np.real(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ[at,:])
                 else:
-                    new_displ[:] = np.imag(np.exp(2*1j*np.pi*(qpoint*t))*displ[at,:])
+                    new_displ[:] = np.imag(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ[at,:])
                 if not frac_coords:
                     # Convert to fractional coordinates.
                     new_displ = self.lattice.get_fractional_coords(new_displ)
@@ -854,13 +855,13 @@ class StructureModifier(object):
 
         return news
 
-    def frozen_phonon(self, qpoint, displ, etas, do_real=True, frac_coords=True):
+    def frozen_phonon(self, qpoint, displ, etas, do_real=True, frac_coords=True, scale_matrix=None):
         if not isinstance(etas, collections.Iterable):
             etas = [etas]
         news = []
         for eta in etas:
            new_structure = self.copy_structure()
-           new_structure.frozen_phonon(qpoint, displ, eta, do_real, frac_coords)
+           new_structure.frozen_phonon(qpoint, displ, eta, do_real, frac_coords, scale_matrix)
            news.append(new_structure)
 
         return news

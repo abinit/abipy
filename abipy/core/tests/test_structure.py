@@ -42,9 +42,13 @@ class TestStructure(AbipyTest):
 
     def test_fphonons(self):
         """ This is not a real test, just to show how to use it ! """
-        structure = data.structure_from_ucell("Si")
+        rprimd = np.array([[0,0.5,0.5],[0.5,0,0.5],[0.5,0.5,0]])
+        rprimd = rprimd*10
+        lattice = Lattice(rprimd)
+        structure = Structure(lattice, ["Ga", "As"],
+                                      [[0, 0, 0], [0.5, 0.5, 0.5]])
         old_structure = structure.copy()
-        structure.frozen_phonon([1/2,0,0],np.array([[1,0,0],[0,0,0]]),1,do_real=True,frac_coords=False)
+        structure.frozen_phonon([1/4,3/4,1/4],np.array([[0,1,0],[0,0,0]]),0.01,do_real=True,frac_coords=False)
 
         # We should add some checks here
 
