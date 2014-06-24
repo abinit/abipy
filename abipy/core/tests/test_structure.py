@@ -40,6 +40,14 @@ class TestStructure(AbipyTest):
         shiftk = structure.calc_shiftk()
         self.assert_equal(shiftk, [[0.0, 0.0, 0.5]])
 
+    def test_fphonons(self):
+        """ This is not a real test, just to show how to use it ! """
+        structure = data.structure_from_ucell("Si")
+        old_structure = structure.copy()
+        structure.frozen_phonon([1/2,0,0],np.array([[1,0,0],[0,0,0]]),1,do_real=True,frac_coords=False)
+
+        # We should add some checks here
+
 
 if __name__ == "__main__":
     import unittest
