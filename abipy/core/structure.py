@@ -431,8 +431,12 @@ class Structure(pymatgen.Structure):
         :param qpoint: q vector in reduced coordinate in reciprocal space
         :return: the scaling matrix of the supercell
         """
-         # Could reduce the supercell if we allow changing the lattice vectors
-        # First implementation : keep same lattice
+
+        if(np.allclose(qpoint,0)):
+            scale_matrix = np.eye(3,3)
+            return scale_matrix
+
+        # Could reduce the supercell if we allow changing the lattice vectors
         l = np.zeros(3, dtype=np.int)
         for i in range(3):
             if(abs(qpoint[i]) < 1e-6):
