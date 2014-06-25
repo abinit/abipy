@@ -431,18 +431,18 @@ class Structure(pymatgen.Structure):
         :param qpoint: q vector in reduced coordinate in reciprocal space
         :return: the scaling matrix of the supercell
         """
-        if(np.allclose(qpoint,0)):
-            scale_matrix = np.eye(3,3)
+        if np.allclose(qpoint, 0):
+            scale_matrix = np.eye(3, 3)
             return scale_matrix
 
         # Could reduce the supercell if we allow changing the lattice vectors
         l = np.zeros(3, dtype=np.int)
         for i in range(3):
-            if(abs(qpoint[i]) < 1e-6):
+            if abs(qpoint[i]) < 1e-6:
                 l[i] = 1
             else:
                 l[i] = 1/(qpoint[i])
-            if(abs(l[i] - round(l[i])) > 1e-6):
+            if abs(l[i] - round(l[i])) > 1e-6:
                 raise ValueError('qpoint is not commensurable with the lattice !')
 
         # Inspired from Exciting Fortran code phcell.F90
@@ -452,54 +452,55 @@ class Structure(pymatgen.Structure):
 
         # Try to reduce the matrix
         rprimd = self.lattice.matrix
-        for l1 in np.arange(-l[0],l[0]+1):
-            for l2 in np.arange(-l[1],l[1]+1):
-                for l3 in np.arange(-l[2],l[2]+1):
-                    lnew = np.array([l1,l2,l3])
-                    ql = np.dot(lnew,qpoint)
+        for l1 in np.arange(-l[0], l[0]+1):
+            for l2 in np.arange(-l[1], l[1]+1):
+                for l3 in np.arange(-l[2], l[2]+1):
+                    lnew = np.array([l1, l2, l3])
+                    ql = np.dot(lnew, qpoint)
                     # Check if integer and non zero !
-                    if(np.abs(ql - np.round(ql)) < 1e-6 and np.abs(ql) > 1e-6):
-                        Rl = np.dot(lnew,rprimd)
+                    if np.abs(ql - np.round(ql)) < 1e-6 and np.abs(ql) > 1e-6:
+                        Rl = np.dot(lnew, rprimd)
                         # Normalize the displacement so that the maximum atomic displacement is 1 Angstrom.
                         dnorm = self.norm(Rl, space="r")
-                        if(dnorm <= dmin):
-                            scale_matrix[:,0] = lnew
+                        if dnorm <= dmin:
+                            scale_matrix[:, 0] = lnew
                             dmin = dnorm
 
         dmin = np.inf
-        for l1 in np.arange(-l[0],l[0]+1):
-            for l2 in np.arange(-l[1],l[1]+1):
-                for l3 in np.arange(-l[2],l[2]+1):
-                    lnew = np.array([l1,l2,l3])
+        for l1 in np.arange(-l[0], l[0]+1):
+            for l2 in np.arange(-l[1], l[1]+1):
+                for l3 in np.arange(-l[2], l[2]+1):
+                    lnew = np.array([l1, l2, l3])
                     # Check if not parallel !
-                    cp = np.cross(lnew,scale_matrix[:,0])
-                    if(np.dot(cp,cp) > 1e-6):
-                        ql = np.dot(lnew,qpoint)
+                    cp = np.cross(lnew, scale_matrix[:,0])
+                    if np.dot(cp,cp) > 1e-6:
+                        ql = np.dot(lnew, qpoint)
                         # Check if integer and non zero !
-                        if(np.abs(ql - np.round(ql)) < 1e-6 and np.abs(ql) > 1e-6):
-                            Rl = np.dot(lnew,rprimd)
+                        if np.abs(ql - np.round(ql)) < 1e-6 and np.abs(ql) > 1e-6:
+                            Rl = np.dot(lnew, rprimd)
                             # Normalize the displacement so that the maximum atomic displacement is 1 Angstrom.
                             dnorm = self.norm(Rl, space="r")
-                            if(dnorm <= dmin):
-                                scale_matrix[:,1] = lnew
+                            if dnorm <= dmin:
+                                scale_matrix[:, 1] = lnew
                                 dmin = dnorm
 
         dmin = np.inf
-        for l1 in np.arange(-l[0],l[0]+1):
-            for l2 in np.arange(-l[1],l[1]+1):
-                for l3 in np.arange(-l[2],l[2]+1):
-                    lnew = np.array([l1,l2,l3])
+        for l1 in np.arange(-l[0], l[0]+1):
+            for l2 in np.arange(-l[1], l[1]+1):
+                for l3 in np.arange(-l[2], l[2]+1):
+                    lnew = np.array([l1, l2, l3])
                     # Check if not parallel !
-                    cp = np.dot(np.cross(lnew,scale_matrix[:,0]),scale_matrix[:,1])
-                    if(np.abs(cp) > 1e-6):
-                        ql = np.dot(lnew,qpoint)
+                    cp = np.dot(np.cross(lnew, scale_matrix[:, 0]), scale_matrix[:, 1])
+                    if cp > 1e-6:
+                        # Should be positive as (R3 X R1).R2 > 0 for abinit !
+                        ql = np.dot(lnew, qpoint)
                         # Check if integer and non zero !
-                        if(np.abs(ql - np.round(ql)) < 1e-6 and np.abs(ql) > 1e-6):
-                            Rl = np.dot(lnew,rprimd)
+                        if np.abs(ql - np.round(ql)) < 1e-6 and np.abs(ql) > 1e-6 :
+                            Rl = np.dot(lnew, rprimd)
                             # Normalize the displacement so that the maximum atomic displacement is 1 Angstrom.
                             dnorm = self.norm(Rl, space="r")
-                            if(dnorm <= dmin):
-                                scale_matrix[:,2] = lnew
+                            if dnorm <= dmin :
+                                scale_matrix[:, 2] = lnew
                                 dmin = dnorm
 
         return scale_matrix
