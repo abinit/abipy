@@ -431,7 +431,6 @@ class Structure(pymatgen.Structure):
         :param qpoint: q vector in reduced coordinate in reciprocal space
         :return: the scaling matrix of the supercell
         """
-
         if(np.allclose(qpoint,0)):
             scale_matrix = np.eye(3,3)
             return scale_matrix
@@ -851,13 +850,9 @@ class StructureModifier(object):
 
         return news
 
-    def frozen_phonon(self, qpoint, displ, etas, do_real=True, frac_coords=True, scale_matrix=None):
-        if not isinstance(etas, collections.Iterable):
-            etas = [etas]
-        news = []
-        for eta in etas:
-           new_structure = self.copy_structure()
-           new_structure.frozen_phonon(qpoint, displ, eta, do_real, frac_coords, scale_matrix)
-           news.append(new_structure)
+    def frozen_phonon(self, qpoint, displ, do_real=True, frac_coords=True, scale_matrix=None):
 
-        return news
+        new_structure = self.copy_structure()
+        new_structure.frozen_phonon(qpoint, displ, do_real, frac_coords, scale_matrix)
+
+        return new_structure
