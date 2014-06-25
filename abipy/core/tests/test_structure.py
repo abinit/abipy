@@ -48,7 +48,7 @@ class TestStructure(AbipyTest):
         structure = Structure(lattice, ["Ga", "As"],
                                       [[0, 0, 0], [0.5, 0.5, 0.5]])
         old_structure = structure.copy()
-        structure.frozen_phonon([1/4,3/4,1/4],np.array([[0,1,0],[0,0,0]]),0.01,do_real=True,frac_coords=False)
+        structure.frozen_phonon([3/4,1/4,1/2],np.array([[0,0.01,0],[-.02,0,0]]),do_real=True,frac_coords=False)
 
         # We should add some checks here
 

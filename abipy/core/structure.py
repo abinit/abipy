@@ -505,7 +505,7 @@ class Structure(pymatgen.Structure):
 
         return scale_matrix
 
-    def frozen_phonon(self, qpoint, displ, eta, do_real=True, frac_coords=True, scale_matrix=None):
+    def frozen_phonon(self, qpoint, displ, do_real=True, frac_coords=True, scale_matrix=None):
         """
         Compute the supercell needed for a given qpoint and add the displacement
         Args:
@@ -570,12 +570,8 @@ class Structure(pymatgen.Structure):
                     # Convert to fractional coordinates.
                     new_displ = self.lattice.get_fractional_coords(new_displ)
 
-                # Normalize the displacement so that the maximum atomic displacement is 1 Angstrom.
-                dnorm = self.norm(new_displ, space="r")
-                if(dnorm > 1e-6):
-                    new_displ /= np.max(np.abs(dnorm))
-
-                fcoords = site.frac_coords + t + eta*new_displ
+                # We don't normalize here !!!
+                fcoords = site.frac_coords + t + new_displ
                 coords = old_lattice.get_cartesian_coords(fcoords)
                 new_site = PeriodicSite(
                     site.species_and_occu, coords, new_lattice,
