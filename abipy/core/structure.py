@@ -55,6 +55,16 @@ class Lattice(pymatgen.Lattice):
         else:
             raise ValueError("Don't know how to construct a Lattice from dict: %s" % str(d))
 
+    #def to_abivars(self, **kwargs):
+    #    # Should we use (rprim, acell) or (angdeg, acell) to specify the lattice?
+    #    geomode = kwargs.pop("geomode", "rprim")
+    #    if geomode == "rprim":
+    #        return dict(acell=3 * [1.0], rprim=rprim))
+    #    elif geomode == "angdeg":
+    #        return dict(acell=3 * [1.0], angdeg=angdeg))
+    #    else:
+    #        raise ValueError("Wrong value for geomode: %s" % geomode)
+
 
 class Structure(pymatgen.Structure):
 
@@ -256,7 +266,7 @@ class Structure(pymatgen.Structure):
         else:
             raise visu.Error("Don't know how to export data for %s" % visu_name)
 
-    def to_abivars(self):
+    def to_abivars(self, **kwargs):
         """Returns a dictionary with the ABINIT variables."""
         types_of_specie = self.types_of_specie
         natom = self.num_sites
@@ -272,15 +282,38 @@ class Structure(pymatgen.Structure):
         rprim = ArrayWithUnit(self.lattice.matrix, "ang").to("bohr")
         xred = np.reshape([site.frac_coords for site in self], (-1,3))
 
-        return dict(
-            acell=3 * [1.0],
-            rprim=rprim,
+        # Set small values to zero. This usually happens when the CIF file
+        # does not give structure parameters with enough digits.
+        #rprim = np.where(np.abs(rprim) > 1e-8, rprim, 0.0)
+        #xred = np.where(np.abs(xred) > 1e-8, xred, 0.0)
+
+        # Info on atoms.
+        d =  dict(
             natom=natom,
             ntypat=len(types_of_specie),
             typat=typat,
             znucl=znucl_type,
             xred=xred,
         )
+
+        # Add info on the lattice.
+        # Should we use (rprim, acell) or (angdeg, acell) to specify the lattice?
+        geomode = kwargs.pop("geomode", "rprim")
+        #latt_dict = self.lattice.to_abivars(geomode=geomode)
+
+        if geomode == "rprim":
+            d.update(dict(
+                acell=3 * [1.0],
+                rprim=rprim))
+
+        elif geomode == "angdeg":
+            d.update(dict(
+                acell=3 * [1.0],
+                angdeg=angdeg))
+        else:
+            raise ValueError("Wrong value for geomode: %s" % geomode)
+
+        return d
 
     @classmethod
     def from_abivars(cls, d):
@@ -451,8 +484,7 @@ class Structure(pymatgen.Structure):
 
         return AttrDict(
             ngkpt=ngkpt,
-            shiftk=shiftk
-        )
+            shiftk=shiftk)
 
     def calc_ngkpt(self, nksmall): 
         """
@@ -585,16 +617,6 @@ class Structure(pymatgen.Structure):
             nval += pseudos[0].Z_val 
 
         return nval
-
-
-#def num_den(float_number):
-#    from fractions import Fraction
-#    from decimal import Decimal
-#    #frac = Fraction(float_number)
-#    #frac.numerator frac.denominator
-#    #Fraction(Decimal('1.1'))
-#    frac = Fraction(Decimal(str(float_number)))
-#    return frac.numerator, frac.denominator
 
 
 class StructureModifier(object):

@@ -2,6 +2,7 @@
 This module gathers the most important classes and helper functions used for scripting.
 """
 from pymatgen.io.abinitio.eos import EOS
+from pymatgen.io.abinitio.pseudos import PseudoTable
 from pymatgen.io.abinitio.wrappers import Mrgscr, Mrgddb, Mrggkk, Anaddb
 from pymatgen.io.abinitio import qadapters
 from pymatgen.io.abinitio.flows import AbinitFlow, bandstructure_flow, g0w0_flow, phonon_flow

@@ -21,9 +21,10 @@
 #host: gmac
 qtype: shell
 mpi_runner: mpirun
-shell_env:
-    PATH: "~/Coding/Abinit/bzr_archives/773/gmatteo-private/gcc/src/98_main/:$PATH"
-    DYLD_LIBRARY_PATH: /opt/intel/composerxe-2011.0.085/mkl/lib/:/opt/intel/composerxe-2011.0.085/compiler/lib/:$DYLD_LIBRARY_PATH
+pre_run: "source ~/env.sh"
+#shell_env:
+#    PATH: "~/Coding/Abinit/bzr_archives/773/gmatteo-private/gcc/src/98_main/:$PATH"
+#    DYLD_LIBRARY_PATH: /opt/intel/composerxe-2011.0.085/mkl/lib/:/opt/intel/composerxe-2011.0.085/compiler/lib/:$DYLD_LIBRARY_PATH
 policy:
     autoparal: 0
     max_ncpus: 0
