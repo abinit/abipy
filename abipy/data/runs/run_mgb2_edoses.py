@@ -23,6 +23,7 @@ class MgB2DosesFlowTest(AbipyTest, MixinTest):
 
 
 def make_scf_nscf_inputs(structure, pseudos):
+    """return GS, NSCF (band structure), and DOSes input."""
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=5)
     inp.set_structure(structure)
@@ -75,7 +76,7 @@ def build_flow(options):
     structure = data.structure_from_ucell("MgB2")
 
     nval = structure.calc_nvalence(pseudos)
-    print(nval)
+    #print(nval)
 
     inputs = make_scf_nscf_inputs(structure, pseudos)
     scf_input, nscf_input, dos_inputs = inputs[0], inputs[1], inputs[2:]

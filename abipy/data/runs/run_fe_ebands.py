@@ -24,6 +24,7 @@ class SpinEbandsFlowTest(AbipyTest, MixinTest):
 
 
 def make_scf_nscf_inputs(nsppol):
+    """Generate two input files for the GS and the NSCF run for given nsppol"""
     inp = abilab.AbiInput(pseudos=data.pseudos("26fe.pspnc"), ndtset=2)
 
     # Fe normal bcc structure for test of a ferromagnetic calculation
@@ -56,6 +57,7 @@ def make_scf_nscf_inputs(nsppol):
 
     return scf_input, nscf_input
 
+
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
@@ -65,9 +67,10 @@ def build_flow(options):
     # Instantiate the TaskManager.
     manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
 
+    # Create the Flow.
     flow = abilab.AbinitFlow(workdir, manager)
 
-    # Create the task defining the calculation and run.
+    # Create the task defining the calculation and run and register it in the flow
     for nsppol in [1,2]:
         scf_input, nscf_input = make_scf_nscf_inputs(nsppol)
         work = abilab.BandStructureWorkflow(scf_input, nscf_input)

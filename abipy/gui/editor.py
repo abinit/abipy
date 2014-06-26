@@ -70,9 +70,13 @@ class TextNotebookFrame(awx.Frame):
         assert len(page_names) == len(text_list)
 
         # Here we create a panel and a notebook on the panel
-
         nb_panel = awx.Panel(self)
-        style = fnb.FNB_X_ON_TAB | fnb.FNB_NAV_BUTTONS_WHEN_NEEDED
+
+        try:
+            style = fnb.FNB_X_ON_TAB | fnb.FNB_NAV_BUTTONS_WHEN_NEEDED
+        except AttributeError:
+            style = fnb.FNB_X_ON_TAB 
+
         nb = fnb.FlatNotebook(nb_panel, style=style)
 
         for page_name, text in zip(page_names, text_list):

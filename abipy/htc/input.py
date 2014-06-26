@@ -352,6 +352,7 @@ class AbiInput(Input):
 
             new = cls(pseudos=self.pseudos, ndtset=1)
             new.set_variables(**my_vars)
+            #new.set_geoformat(self.geoformat)
             news.append(new)
     
         return news
@@ -402,6 +403,21 @@ class AbiInput(Input):
         """Set the main comment in the input file."""
         for idt in self._dtset2range(dtset):
             self[idt].set_comment(comment)
+
+    #@property
+    #def geoformat(self):
+    #    """
+    #    angdeg if the crystalline structure should be specified with angdeg and acell, 
+    #    rprim otherwise (default format)
+    #    """
+    #    try:
+    #        return self._geoformat
+    #    except AttributeError
+    #        return "rprim" # default
+
+    #def set_geoformat(self, format):
+    #    assert format in ["angdeg", "rprim"]
+    #    self._geoformat = format
 
     def linspace(self, varname, start, stop, endpoint=True):
         """
@@ -505,8 +521,21 @@ class AbiInput(Input):
             self[idt].set_kmesh(ngkpt, shiftk, kptopt=kptopt)
 
     def set_autokmesh(self, nksmall, kptopt=1, dtset=0):
+        """
+        Set the variables (ngkpt, shift, kptopt) for the sampling of the BZ.
+                                                       
+        Args:
+            nksmall:
+                Number of k-points used to sample the smallest lattice vector.
+            kptopt:
+                Option for the generation of the mesh.
+        """
         for idt in self._dtset2range(dtset):
             self[idt].set_autokmesh(nksmall, kptopt=kptopt)
+
+    def set_autokpath(self, ndivsm, dtset=0):
+        for idt in self._dtset2range(dtset):
+            self[idt].set_kpath(ndivsm, kptbounds=None)
 
     def set_kpath(self, ndivsm, kptbounds=None, iscf=-2, dtset=0):
         """
@@ -634,6 +663,21 @@ class Dataset(collections.Mapping):
         all_vars = self.global_vars
         all_vars.update(self.vars)
         return all_vars.copy()
+
+    #@property
+    #def geoformat(self):
+    #    """
+    #    angdeg if the crystalline structure should be specified with angdeg and acell, 
+    #    rprim otherwise (default format)
+    #    """
+    #    try:
+    #        return self._geoformat
+    #    except AttributeError
+    #        return "rprim" # default
+    #                                                                                    
+    #def set_geoformat(self, format):
+    #    assert format in ["angdeg", "rprim"]
+    #    self._geoformat = format
 
     def to_string(self, sortmode=None, post=None):
         """
@@ -770,6 +814,7 @@ class Dataset(collections.Mapping):
         if structure is None:
             return
 
+        geoformat = "rprim"
         self.set_variables(**structure.to_abivars())
 
     # Helper functions to facilitate the specification of several variables.
@@ -795,7 +840,7 @@ class Dataset(collections.Mapping):
 
     def set_autokmesh(self, nksmall, kptopt=1):
         """
-        Set the variables for the sampling of the BZ.
+        Set the variables (ngkpt, shift, kptopt) for the sampling of the BZ.
                                                        
         Args:
             nksmall:

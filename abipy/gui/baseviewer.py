@@ -55,7 +55,13 @@ class MultiViewerFrame(awx.Frame):
 
         # Create the notebook (each file will have its own tab).
         panel = wx.Panel(self, -1)
-        self.notebook = fnb.FlatNotebook(panel, -1, style=fnb.FNB_NAV_BUTTONS_WHEN_NEEDED)
+
+        try:
+            style = fnb.FNB_NO_X_BUTTON  | fnb.FNB_NAV_BUTTONS_WHEN_NEEDED
+        except AttributeError:
+            style = fnb.FNB_NO_X_BUTTON 
+
+        self.notebook = fnb.FlatNotebook(panel, -1, style=style)
                                                                                            
         for path in filepaths:
             self.read_file(path)

@@ -13,6 +13,43 @@ import time
 from pymatgen.io.abinitio.launcher import PyFlowScheduler, PyLauncher
 import abipy.abilab as abilab
 
+# Taken from http://stackoverflow.com/questions/2023608/check-what-files-are-open-in-python
+# <<<<< Uncomment to intercept open builting
+
+import __builtin__
+openfiles = set()
+oldfile = __builtin__.file
+
+class newfile(oldfile):
+    def __init__(self, *args, **kwargs):
+        self.x = args[0]
+        print("### OPENING %s ###" % str(self.x))
+        oldfile.__init__(self, *args, **kwargs)
+        openfiles.add(self)
+
+    def close(self):
+        print("### CLOSING %s ###" % str(self.x))
+        oldfile.close(self)
+        try:
+            openfiles.remove(self)
+        except KeyError:
+            print("File %s is not in openfiles" % self)
+
+oldopen = __builtin__.open
+
+def newopen(*args, **kwargs):
+    return newfile(*args, **kwargs)
+
+__builtin__.file = newfile
+__builtin__.open = newopen
+
+def print_open_files():
+    try:
+        print("### %d OPEN FILES: [%s]" % (len(openfiles), ", ".join(f.x for f in openfiles)))
+    except:
+        pass
+# >>>>> End Uncomment to intercept open builting
+
 
 def str_examples():
     examples = """
@@ -74,6 +111,7 @@ def treat_flow(flow, options):
         sched.add_flow(flow)
         print(sched)
         sched.start()
+        print_open_files()
 
     if options.command == "status":
         if options.delay:
@@ -185,7 +223,10 @@ q ==> qerr_file\n
 
     # Subparser for gui command.
     p_gui = subparsers.add_parser('gui', help="Open GUI.")
-    p_gui.add_argument("--chroot", default="", type=str, help="Directory for chroot.")
+    p_gui.add_argument("--chroot", default="", type=str, help=("Use chroot as new directory of the flow.\n" +
+                       "Mainly used for opening a flow located on a remote filesystem mounted with sshfs.\n" +
+                       "In this case chroot is the absolute path to the flow on the **localhost**\n",
+                       "Note that it's not possible to change the flow from remote when chroot is used."))
 
     p_new_manager = subparsers.add_parser('new_manager', help="Change the TaskManager.")
     p_new_manager.add_argument("manager_file", default="", type=str, help="YAML file with the new manager")
