@@ -26,11 +26,12 @@ def build_flow(options):
     # Path of the pseudopotential to test.
     #pseudo = data.pseudo("14si.pspnc")
     pseudo = data.pseudo("Si.GGA_PBE-JTH-paw.xml")
+    pseudo = data.pseudo("pseudo_to_test")
 
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
     if not options.workdir:
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
+        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_")
 
     # Instantiate the TaskManager.
     manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
