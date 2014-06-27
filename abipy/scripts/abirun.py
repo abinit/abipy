@@ -14,6 +14,7 @@ from pymatgen.io.abinitio.launcher import PyFlowScheduler, PyLauncher
 import abipy.abilab as abilab
 
 from abipy.tools import open_hook
+#open_hook.install()
 
 
 def str_examples():

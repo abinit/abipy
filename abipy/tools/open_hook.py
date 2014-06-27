@@ -1,6 +1,18 @@
 """
 This module installs a hook for the built-in open so that one can detect if there are 
-files that have not been closed. To install the hook, simply import the module in the script.
+files that have not been closed. To install the hook, import the module in the script
+and call install. Example
+
+import open_hook
+
+# Install the hook
+open_hook.install()
+
+# Show open files.
+open_hook.print_open_files()
+
+# Remove the hook
+open_hook.remove()
 
 Taken from http://stackoverflow.com/questions/2023608/check-what-files-are-open-in-python
 """
@@ -9,7 +21,7 @@ from __future__ import print_function
 import sys
 import __builtin__
 
-# Save the builtin version
+# Save the builtin version (do not change!)
 _builtin_file = __builtin__.file
 _builtin_open = __builtin__.open
 
@@ -24,8 +36,17 @@ def set_options(**kwargs):
     logfile = kwargs.get("logfile", None)
     if logfile is not None: _LOGFILE = logfile
 
+
 # Set of files that have been opened in the python code.
 _openfiles = set()
+
+def print_open_files(file=sys.stdout):
+    """Print the list of the files that are still open."""
+    print("### %d OPEN FILES: [%s]" % (len(_openfiles), ", ".join(f.x for f in _openfiles)), file=file)
+
+def clear_openfiles():
+    _openfiles = set()
+
 
 class _newfile(_builtin_file):
     def __init__(self, *args, **kwargs):
@@ -47,17 +68,18 @@ class _newfile(_builtin_file):
         except KeyError:
             print("File %s is not in openfiles set" % self)
 
-
-def print_open_files(file=sys.stdout):
-    """Print the list of the files that are still open."""
-    print("### %d OPEN FILES: [%s]" % (len(_openfiles), ", ".join(f.x for f in _openfiles)), file=file)
-
-
 def _newopen(*args, **kwargs):
     """Replacement for python open."""
     return _newfile(*args, **kwargs)
 
 
-# Install the hooks
-__builtin__.file = _newfile
-__builtin__.open = _newopen
+def install():
+    """Install the hook."""
+    __builtin__.file = _newfile
+    __builtin__.open = _newopen
+
+def remove():
+    """Remove the hook."""
+    __builtin__.file = _builtin_file = __builtin__.file
+    __builtin__.open = _builtin_open = __builtin__.open
+
