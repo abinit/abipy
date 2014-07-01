@@ -458,25 +458,18 @@ class Structure(pymatgen.Structure):
         for i in range(len(self)):
            self.translate_sites(indices=i, vector=eta * displ[i, :], frac_coords=True)
 
-    def get_smallest_supercell(self, qpoint):
+    def get_smallest_supercell(self, qpoint, max_supercell):
         """
 
         :param qpoint: q vector in reduced coordinate in reciprocal space
+        :param max_supercell: vector with the maximum supercell size
         :return: the scaling matrix of the supercell
         """
         if np.allclose(qpoint, 0):
             scale_matrix = np.eye(3, 3)
             return scale_matrix
 
-        # Could reduce the supercell if we allow changing the lattice vectors
-        l = np.zeros(3, dtype=np.int)
-        for i in range(3):
-            if abs(qpoint[i]) < 1e-6:
-                l[i] = 1
-            else:
-                l[i] = 1/(qpoint[i])
-            if abs(l[i] - round(l[i])) > 1e-6:
-                raise ValueError('qpoint is not commensurable with the lattice !')
+        l = max_supercell
 
         # Inspired from Exciting Fortran code phcell.F90
         # It should be possible to improve this code taking advantage of python !
@@ -538,7 +531,7 @@ class Structure(pymatgen.Structure):
 
         return scale_matrix
 
-    def frozen_phonon(self, qpoint, displ, do_real=True, frac_coords=True, scale_matrix=None):
+    def frozen_phonon(self, qpoint, displ, do_real=True, frac_coords=True, scale_matrix=None, max_supercell=None):
         """
         Compute the supercell needed for a given qpoint and add the displacement
         Args:
@@ -556,7 +549,10 @@ class Structure(pymatgen.Structure):
         #  is inside make_supercell and I don't want to create a mapping
 
         if scale_matrix is None:
-          scale_matrix = self.get_smallest_supercell(qpoint)
+            if max_supercell is None:
+                raise ValueError("If scale_matrix is not provided, please provide max_supercell !")
+
+            scale_matrix = self.get_smallest_supercell(qpoint, max_supercell=max_supercell)
 
         scale_matrix = np.array(scale_matrix, np.int16)
         if scale_matrix.shape != (3, 3):
