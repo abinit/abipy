@@ -42,14 +42,18 @@ class TestStructure(AbipyTest):
 
     def test_fphonons(self):
         """ This is not a real test, just to show how to use it ! """
-        rprimd = np.array([[0,0.5,0.5],[0.5,0,0.5],[0.5,0.5,0]])
-        rprimd = rprimd*10
+        rprimd = np.array([[0.5,0.5,0],[0.5,0,0.5],[0,0.5,0.5]])
+        rprimd = rprimd*6.7468
         lattice = Lattice(rprimd)
         structure = Structure(lattice, ["Ga", "As"],
                                       [[0, 0, 0], [0.5, 0.5, 0.5]])
         old_structure = structure.copy()
-        qpoint = [3/4, 1/4, 1/2]
-        structure.frozen_phonon(qpoint, np.array([[0,0.01,0], [-.02,0,0]]), do_real=True, frac_coords=False, max_supercell=[4,4,4])
+        qpoint = [1/2, 0, 0]
+        mx_sc = [2, 2, 2]
+        scale_matrix = structure.get_smallest_supercell(qpoint, max_supercell=mx_sc)
+        print("Scale_matrix = ", scale_matrix)
+        structure.frozen_phonon(qpoint, np.array([[0,0.01,0], [-.02,0,0]]), do_real=True, frac_coords=False, max_supercell=mx_sc, scale_matrix = scale_matrix)
+        print("Structure = ", structure)
 
         # We should add some checks here
 

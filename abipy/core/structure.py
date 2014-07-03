@@ -484,11 +484,11 @@ class Structure(pymatgen.Structure):
                     lnew = np.array([l1, l2, l3])
                     ql = np.dot(lnew, qpoint)
                     # Check if integer and non zero !
-                    if np.abs(ql - np.round(ql)) < 1e-6 and np.abs(ql) > 1e-6:
+                    if np.abs(ql - np.round(ql)) < 1e-6:
                         Rl = np.dot(lnew, rprimd)
                         # Normalize the displacement so that the maximum atomic displacement is 1 Angstrom.
-                        dnorm = self.norm(Rl, space="r")
-                        if dnorm <= dmin:
+                        dnorm = np.sqrt(np.dot(Rl,Rl))
+                        if dnorm < dmin and dnorm > 1e-6:
                             scale_matrix[:, 0] = lnew
                             dmin = dnorm
 
@@ -502,11 +502,10 @@ class Structure(pymatgen.Structure):
                     if np.dot(cp,cp) > 1e-6:
                         ql = np.dot(lnew, qpoint)
                         # Check if integer and non zero !
-                        if np.abs(ql - np.round(ql)) < 1e-6 and np.abs(ql) > 1e-6:
+                        if np.abs(ql - np.round(ql)) < 1e-6:
                             Rl = np.dot(lnew, rprimd)
-                            # Normalize the displacement so that the maximum atomic displacement is 1 Angstrom.
-                            dnorm = self.norm(Rl, space="r")
-                            if dnorm <= dmin:
+                            dnorm = np.sqrt(np.dot(Rl, Rl))
+                            if dnorm < dmin and dnorm > 1e-6:
                                 scale_matrix[:, 1] = lnew
                                 dmin = dnorm
 
@@ -521,11 +520,10 @@ class Structure(pymatgen.Structure):
                         # Should be positive as (R3 X R1).R2 > 0 for abinit !
                         ql = np.dot(lnew, qpoint)
                         # Check if integer and non zero !
-                        if np.abs(ql - np.round(ql)) < 1e-6 and np.abs(ql) > 1e-6 :
+                        if np.abs(ql - np.round(ql)) < 1e-6:
                             Rl = np.dot(lnew, rprimd)
-                            # Normalize the displacement so that the maximum atomic displacement is 1 Angstrom.
-                            dnorm = self.norm(Rl, space="r")
-                            if dnorm <= dmin :
+                            dnorm = np.sqrt(np.dot(Rl,Rl))
+                            if dnorm < dmin and dnorm > 1e-6:
                                 scale_matrix[:, 2] = lnew
                                 dmin = dnorm
 
