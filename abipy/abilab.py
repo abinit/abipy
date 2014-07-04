@@ -4,6 +4,8 @@ from pymatgen.io.abinitio import qadapters
 from pymatgen.io.abinitio.tasks import * 
 from pymatgen.io.abinitio.workflows import *
 from pymatgen.io.abinitio.flows import *
+from pymatgen.io.gwwrapper.helpers import refine_structure
+from pymatgen.io.gwwrapper.convergence import test_conv
 
 from abipy.core import constants
 from abipy.core.structure import Structure, StructureModifier
