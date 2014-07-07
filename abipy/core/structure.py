@@ -589,6 +589,7 @@ class Structure(pymatgen.Structure):
         new_sites = []
         for at,site in enumerate(self):
             for t in tvects:
+                print("t = ",t)
                 if(do_real):
                     new_displ[:] = np.real(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ[at,:])
                 else:
