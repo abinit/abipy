@@ -527,7 +527,8 @@ class Structure(pymatgen.Structure):
                                 scale_matrix[:, 2] = lnew
                                 dmin = dnorm
 
-        return scale_matrix
+        # Fortran 2 python!!!
+        return scale_matrix.T
 
     def frozen_phonon(self, qpoint, displ, do_real=True, frac_coords=True, scale_matrix=None, max_supercell=None):
         """
@@ -589,7 +590,6 @@ class Structure(pymatgen.Structure):
         new_sites = []
         for at,site in enumerate(self):
             for t in tvects:
-                print("t = ",t)
                 if(do_real):
                     new_displ[:] = np.real(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ[at,:])
                 else:
