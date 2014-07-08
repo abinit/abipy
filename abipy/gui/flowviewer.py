@@ -651,9 +651,11 @@ def browse_outdir(parent, task):
     """Open a window that allows the user to browse the output files in outdir."""
     FileListFrame(parent, dirpaths=task.outdir.path).Show()
 
+
 def browse_tmpdir(parent, task):
     """Open a window that allows the user to browse the output files in outdir."""
     FileListFrame(parent, dirpaths=task.tmpdir.path).Show()
+
 
 def show_history(parent, task):
     """Show the history of the task."""

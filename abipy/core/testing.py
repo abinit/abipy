@@ -27,12 +27,13 @@ def has_abinit(min_version):
     False if condition is not fulfilled or the execution of `abinit -v` 
     raised CalledProcessError 
     """
-    if which("abinit") is None: return False
+    if which("abinit") is None:
+        return False
 
     try:
         abiver = subprocess.check_output(["abinit", "-v"])
 
-    except subprocess.CalledProcessError as exc:
+    except subprocess.CalledProcessError:
         # Some MPI implementations require the mpirunner.
         try:
             abiver = subprocess.check_output(["mpirun", "-n", "1", "abinit", "-v"])
