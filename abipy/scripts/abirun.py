@@ -172,7 +172,7 @@ def main():
                           "If > 0, enter an infinite loop and delay execution for the given number of seconds."))
 
     # Subparser for scheduler command.
-    p_cancel = subparsers.add_parser('cancel', help="Cancel the tasks in the queue.")
+    #p_cancel = subparsers.add_parser('cancel', help="Cancel the tasks in the queue.")
 
     # Subparser for open command.
     p_open = subparsers.add_parser('open', help="Open files (command line interface)")
