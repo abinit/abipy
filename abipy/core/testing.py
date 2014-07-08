@@ -6,13 +6,45 @@ in a single location, so that test scripts can just import it and work right awa
 """
 from __future__ import print_function, division
 
+import subprocess
+
 from pymatgen.util.testing import PymatgenTest
 from abipy.tools import which
+
+import logging
+logger = logging.getLogger(__file__)
+
 
 __all__ = [
     "AbipyTest",
     "AbipyFileTest",
 ]
+
+
+def has_abinit(min_version):
+    """
+    Return True if abinit is in $PATH and version is >= min_version.
+    False if condition is not fulfilled or the execution of `abinit -v` 
+    raised CalledProcessError 
+    """
+    if which("abinit") is None: return False
+
+    try:
+        abiver = subprocess.check_output(["abinit", "-v"])
+
+    except subprocess.CalledProcessError as exc:
+        # Some MPI implementations require the mpirunner.
+        try:
+            abiver = subprocess.check_output(["mpirun", "-n", "1", "abinit", "-v"])
+        except subprocess.CalledProcessError:
+            try:
+                abiver = subprocess.check_output(["mpiexec", "-n", "1", "abinit", "-v"])
+            except subprocess.CalledProcessError as exc:
+                logger.warning(exc.output)
+                return False
+
+    return abiver.strip() >= min_version.strip()
+
 
 class AbipyTest(PymatgenTest):
     """Extend TestCase with functions from numpy.testing.utils that support ndarrays."""
@@ -21,6 +53,11 @@ class AbipyTest(PymatgenTest):
     def which(program):
         """Returns full path to a executable. None if not found or not executable."""
         return which(program)
+
+    @staticmethod
+    def has_abinit(min_version):
+        """Return True if abinit is in $PATH and version is >= min_version."""
+        return has_abinit(min_version)
 
 
 class AbipyFileTest(AbipyTest):
@@ -39,6 +76,7 @@ class AbipyFileTest(AbipyTest):
         string = string.replace("*", " STAR ")
         string = string.strip()
         string = '\n'.join([line.strip() for line in string.splitlines()])
+
         return string
 
     def assertContains(self, expression):
@@ -50,7 +88,8 @@ class AbipyFileTest(AbipyTest):
         """
         expression = self.normalize(expression)
         ref = self.normalize(str(self.file))
-        return  self.assertRegexpMatches(ref, expression)
+
+        return self.assertRegexpMatches(ref, expression)
 
     def assertContainsNot(self, expression):
         """
@@ -59,7 +98,8 @@ class AbipyFileTest(AbipyTest):
         """
         expression = self.normalize(expression)
         ref = self.normalize(str(self.file))
-        return  self.assertNotRegexpMatches(ref, expression)
+
+        return self.assertNotRegexpMatches(ref, expression)
 
     def assertEmpty(self):
         """Assert the string representation is empty."""
@@ -77,6 +117,5 @@ class AbipyFileTest(AbipyTest):
         self.assertRegexpMatches(ref, expression1)
         self.assertRegexpMatches(ref, expression2)
         last = ref.split(expression1)[-1]
+
         return self.assertRegexpMatches(last, expression2)
-
-

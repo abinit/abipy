@@ -13,7 +13,8 @@ import time
 from pymatgen.io.abinitio.launcher import PyFlowScheduler, PyLauncher
 import abipy.abilab as abilab
 
-from abipy.tools import open_hook
+# Replace python open to detect open files.
+#from abipy.tools import open_hook
 #open_hook.install()
 
 
@@ -78,7 +79,7 @@ def treat_flow(flow, options):
         print(sched)
         sched.start()
 
-        open_hook.print_open_files()
+        #open_hook.print_open_files()
 
     if options.command == "status":
         if options.delay:
