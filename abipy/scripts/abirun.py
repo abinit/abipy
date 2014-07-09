@@ -253,7 +253,5 @@ q ==> qerr_file\n
 
 if __name__ == "__main__":
     sys.exit(main())
-    #import pstats, cProfile
-    #cProfile.runctx("main()", globals(), locals(), "Profile.prof")
-    #s = pstats.Stats("Profile.prof")
-    #s.strip_dirs().sort_stats("time").print_stats()
+    #from abipy.tools.devtools import profile
+    #profile("main()", globals(), locals())

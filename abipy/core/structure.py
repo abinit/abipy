@@ -98,6 +98,57 @@ class Structure(pymatgen.Structure):
 
         return new
 
+    @classmethod
+    def bcc(cls, a, species, **kwargs):
+        """
+        Build a bcc crystal structure.
+
+        Args:
+            a:
+                Lattice parameter in Angstrom.
+            species:
+                Chemical species. See Structure.__init__
+            **kwargs:
+                All keywords arguments supported by Structure.__init__ (except coords_are_cartesian)
+        """
+        lattice = 0.5 * float(a) * np.array([
+            -1,  1,  1,
+             1, -1,  1,
+             1,  1, -1])
+
+        frac_coords = np.reshape([0, 0, 0, 0.5, 0.5, 0.5], (2, 3))
+
+        return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
+
+    #@classmethod
+    #def fcc(cls, a, species, **kwargs):
+    #    """Build a fcc crystal structure."""
+    #    lattice = 0.5 * float(a) * np.array([
+    #         1,  1,  0,
+    #         0,  1,  1,
+    #         1,  0, -1])
+
+    #    frac_coords = np.reshape([
+    #       0,     0,   0,
+    #       0.5, 0.5, 0.5,
+    #       0.5, 0.5, 0.5,
+    #       0.5, 0.5, 0.5], (4,3))
+    #
+    #    return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
+
+    #@classmethod
+    #def rocksalt(cls, a, sites, **kwargs)
+    #    return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
+
+    #@classmethod
+    #def ABO3(cls, a, sites, **kwargs)
+    #   """Peroviskite structures."""
+    #    return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
+
+    #@classmethod
+    #def hH(cls, a, sites, **kwargs)
+    #    return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
+
     @property
     def spacegroup(self):
         """`SpaceGroup` instance."""
