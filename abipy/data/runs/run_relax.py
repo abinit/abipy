@@ -9,21 +9,9 @@ This script shows how to perform a structural relaxation in two steps:
 from __future__ import division, print_function
 
 import sys
+import os
 import abipy.data as data  
 import abipy.abilab as abilab
-
-from abipy.data.runs import AbipyTest, MixinTest
-
-
-class RelaxFlowTest(AbipyTest, MixinTest):
-    """
-    Unit test for the flow defined in this module.  
-    Users who just want to learn how to use this flow can ignore this section.
-    """
-    def setUp(self):
-        super(RelaxFlowTest, self).setUp()
-        self.init_dirs()
-        self.flow = build_flow()
 
 
 def make_ion_ioncell_inputs():

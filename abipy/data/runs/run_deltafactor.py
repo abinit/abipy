@@ -7,26 +7,14 @@ import sys
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from abipy.data.runs import AbipyTest, MixinTest
 from pseudo_dojo.dojo.deltaworks import DeltaFactory
-
-
-class DeltaFactorFlowTest(AbipyTest, MixinTest):
-    """
-    Unit test for the flow defined in this module.  
-    Users who just want to learn how to use this flow can ignore this section.
-    """
-    def setUp(self):
-        super(DeltaFactorFlowTest, self).setUp()
-        self.init_dirs()
-        self.flow = build_flow(workdir=self.workdir)
 
 
 def build_flow(options):
     # Path of the pseudopotential to test.
     #pseudo = data.pseudo("14si.pspnc")
     pseudo = data.pseudo("Si.GGA_PBE-JTH-paw.xml")
-    pseudo = data.pseudo("pseudo_to_test")
+    #pseudo = data.pseudo("pseudo_to_test")
 
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir

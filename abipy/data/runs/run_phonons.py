@@ -7,19 +7,7 @@ import os
 import abipy.abilab as abilab
 import abipy.data as abidata  
 
-from abipy.data.runs import AbipyTest, MixinTest
 from abipy.data.runs.qptdm_workflow import *
-
-
-class PhononsFlowTest(AbipyTest, MixinTest):
-    """
-    Unit test for the flow defined in this module.  
-    Users who just want to learn how to use this flow can ignore this section.
-    """
-    def setUp(self):
-        super(PhononsFlowTest, self).setUp()
-        self.init_dirs()
-        self.flow = build_flow()
 
 
 def scf_ph_inputs():

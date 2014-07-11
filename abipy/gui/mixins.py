@@ -266,20 +266,20 @@ class Has_MultipleEbands(Has_Ebands):
             awx.showErrorMessage(self)
 
 
-#class Has_MultiGsResults(object):
+#class Has_GsResults(object):
 #    """
-#    Mixin class for GUIs with mulitple ground-state results (etotal, forces, stresses...)
+#    Mixin class for GUIs with ground-state results (etotal, forces, stresses...)
 #    """
 #    __metaclass__ = abc.ABCMeta
 
 #    def CreateToolsMenu(self):
 #        """Create the tools menu."""
 #        # Tools Menu ID's
-#        self.ID_MULTIGSR_EOSFIT = wx.NewId()
+#        self.ID_GSRESULTS_EOSFIT = wx.NewId()
 #                                                                                            
 #        menu = wx.Menu()
-#        menu.Append(self.ID_MULTIGSR_EOSFIT, "Fit E(V)", "Equation of State")
-#        self.Bind(wx.EVT_MENU, self.onEosFit, id=self.ID_MULTIGSR_EOSFIR)
+#        menu.Append(self.ID_GSRESULTS_EOSFIT, "Fit E(V)", "Equation of State")
+#        self.Bind(wx.EVT_MENU, self.onEosFit, id=self.ID_GSRESULTS_EOSFIT)
 #                                                                                            
 #        return menu
 #

@@ -10,28 +10,6 @@ from abipy import abilab
 from pymatgen.io.abinitio.abiobjects import AbiStructure
 from pymatgen.io.abinitio.calculations import bandstructure
 
-from abipy.data.runs import AbipyTest, MixinTest
-
-
-class HtSiEbandsFlowTest(AbipyTest, MixinTest):
-    """
-    Unit test for the flow defined in this module.  
-    Users who just want to learn how to use this flow can ignore this section.
-    """
-    def setUp(self):
-        super(HtSiEbandsFlowTest, self).setUp()
-        self.init_dirs()
-        self.flow = build_flow()
-
-    # Remove all files except those matching these regular expression.
-    #work[0].rename("out_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
-    #work[0].rename("out_DEN-etsf.nc", "si_DEN-etsf.nc")
-    #work[0].rename("out_GSR.nc", "si_scf_GSR.nc")
-                                                                                 
-    #work[1].rename("out_GSR.nc", "si_nscf_GSR.nc")
-                                                                                 
-    #work.rmtree(exclude_wildcard="*.abin|*.about|*_WFK*|*_GSR.nc|*DEN-etsf.nc")
-
 
 def build_flow(options):
     structure = AbiStructure.asabistructure(data.cif_file("si.cif"))

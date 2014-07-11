@@ -5,6 +5,10 @@ from pymatgen.util.io_utils import FileLock
 import os
 import re
 import subprocess
+import numpy as np
+
+import logging
+logger = logging.getLogger(__file__)
 
 
 def number_of_cpus():
@@ -15,7 +19,6 @@ def number_of_cpus():
     taken from:
     http://stackoverflow.com/questions/1006289/how-to-find-out-the-number-of-cpus-in-python
     """
-
     # Python 2.6+
     try:
         import multiprocessing
@@ -90,8 +93,9 @@ def number_of_cpus():
     except OSError:
         pass
 
+    logger.critical('Cannot determine number of CPUs on this system!')
     return -1
-    #raise Exception('Cannot determine number of CPUs on this system')
+
 
 import json
 

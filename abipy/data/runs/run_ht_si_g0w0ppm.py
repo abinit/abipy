@@ -10,24 +10,6 @@ import abipy.data as data
 from pymatgen.io.abinitio.abiobjects import AbiStructure
 from pymatgen.io.abinitio.calculations import g0w0_with_ppmodel
 from abipy import abilab
-from abipy.data.runs import AbipyTest, MixinTest
-
-
-class HtSiEbandsFlowTest(AbipyTest, MixinTest):
-    """
-    Unit test for the flow defined in this module.  
-    Users who just want to learn how to use this flow can ignore this section.
-    """
-    def setUp(self):
-        super(HtSiEbandsFlowTest, self).setUp()
-        self.init_dirs()
-        self.flow = build_flow()
-
-    # Remove all files except those matching these regular expression.
-    #work[3].rename("out_SIGRES.nc", "si_g0w0ppm_SIGRES.nc")
-    #work.rmtree(exclude_wildcard="*.abin|*.about|*_SIGRES.nc")
-    #tester.finalize()
-    #return tester.retcode
 
 
 def build_flow(options):

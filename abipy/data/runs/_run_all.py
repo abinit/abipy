@@ -33,14 +33,21 @@ def main():
     parser.add_argument('-m', '--mode', type=str, default="sequential",
                         help="execution mode. Default is sequential.")
 
+    parser.add_argument('-e', '--exclude', nargs="+", type=str, default="",
+                        help="Exclude scripts.")
+
     options = parser.parse_args()
 
     #max_ncpus = number_of_cpus()
 
     # Find scripts.
+    if options.exclude:
+        print("Will exclude: ", options.exclude)
+
     dir = os.path.join(os.path.dirname(__file__))
     scripts = []
     for fname in os.listdir(dir):
+        if fname in options.exclude: continue
         if fname.endswith(".py") and fname.startswith("run_"):
             path = os.path.join(dir, fname)
             if path != __file__:

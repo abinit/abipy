@@ -10,19 +10,7 @@ import os
 import abipy.abilab as abilab
 import abipy.data as data  
 
-from abipy.data.runs import AbipyTest, MixinTest
 from abipy.data.runs.qptdm_workflow import *
-
-
-class QptdmFlowTest(AbipyTest, MixinTest):
-    """
-    Unit test for the flow defined in this module.  
-    Users who just want to learn how to use this flow can ignore this section.
-    """
-    def setUp(self):
-        super(QptdmFlowTest, self).setUp()
-        self.init_dirs()
-        self.flow = qptdm_flow()
 
 
 def all_inputs():

@@ -7,24 +7,6 @@ import sys
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from abipy.data.runs import AbipyTest, MixinTest
-
-
-class SiG0W0FlowTest(AbipyTest, MixinTest):
-    """
-    Unit test for the flow defined in this module.  
-    Users who just want to learn how to use this flow can ignore this section.
-    """
-    def setUp(self):
-        super(SiG0W0FlowTest, self).setUp()
-        self.init_dirs()
-        self.flow = build_flow()
-
-    #task.rename("out_DS4_SIGRES.nc", "si_g0w0ppm_nband10_SIGRES.nc")
-    #task.rename("out_DS5_SIGRES.nc", "si_g0w0ppm_nband20_SIGRES.nc")
-    #task.rename("out_DS6_SIGRES.nc", "si_g0w0ppm_nband30_SIGRES.nc")
-
-
 def make_inputs(ngkpt):
     # Crystalline silicon
     # Calculation of the GW correction to the direct band gap in Gamma

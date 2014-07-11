@@ -7,42 +7,6 @@ import os
 import abipy.data as abidata  
 import abipy.abilab as abilab
 
-from abipy.data.runs import AbipyTest, MixinTest
-
-class EbandsFlowTest(AbipyTest, MixinTest):
-    """
-    Unit test for the flow defined in this module.  
-    Users who just want to learn how to use this flow can ignore this section.
-    """
-    def setUp(self):
-        super(FlowTest, self).setUp()
-        self.flow = build_flow(self.options)
-
-    def move_files(self):
-        pass
-        # (wi, ti) --> (out_file, ref_file)
-        files_to_move = {
-            (0, 0): {"out_WFK_0-etsf.nc": "si_scf_WFK-etsf.nc"}
-        }
-        for (wi, ti), d in files_to_move.items():
-            task = flow[wi][ti]
-            for out_file, ref_file in d.items():
-                print("Will move out_file %s to ref_file %s" % (out_file, ref_file))
-                #task.rename(out_file, ref_file)
-
-        #Remove all files except those matching these regular expression.
-        #work.rmtree(exclude_wildcard="*.abi|*.abo|*_WFK*|*_GSR.nc|*DEN-etsf.nc")
-        #work = flow[0]
-        #                                                                                   
-        #work[0].rename("out_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
-        #work[0].rename("out_DEN-etsf.nc", "si_DEN-etsf.nc")
-        #work[0].rename("out_GSR.nc", "si_scf_GSR.nc")
-        #
-        #work[1].rename("out_WFK_0-etsf.nc", "si_nscf_WFK-etsf.nc")
-        #work[1].rename("out_GSR.nc", "si_nscf_GSR.nc")
-        #work[1].remove_files("out_DS2_DEN-etsf.nc")
-        #flow.rmtree()
-
 
 def make_scf_nscf_inputs():
     """Returns two input files: GS run and NSCF on a high symmetry k-mesh."""

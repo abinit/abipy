@@ -101,7 +101,7 @@ class Structure(pymatgen.Structure):
     @classmethod
     def bcc(cls, a, species, **kwargs):
         """
-        Build a bcc crystal structure.
+        Build a primitive bcc crystal structure.
 
         Args:
             a:
@@ -109,36 +109,45 @@ class Structure(pymatgen.Structure):
             species:
                 Chemical species. See Structure.__init__
             **kwargs:
-                All keywords arguments supported by Structure.__init__ (except coords_are_cartesian)
+                All keyword arguments accepted by Structure.__init__
         """
         lattice = 0.5 * float(a) * np.array([
             -1,  1,  1,
              1, -1,  1,
              1,  1, -1])
 
-        frac_coords = np.reshape([0, 0, 0, 0.5, 0.5, 0.5], (2, 3))
+        return cls(lattice, species, coords=[[0, 0, 0]],  **kwargs)
 
+    @classmethod
+    def fcc(cls, a, species, **kwargs):
+        """
+        Build a primitive fcc crystal structure.
+
+        Args:
+            a:
+                Lattice parameter in Angstrom.
+            species:
+                Chemical species. See Structure.__init__
+            **kwargs:
+                All keyword arguments accepted by Structure.__init__
+        """
+        # This is problematic
+        lattice = 0.5 * float(a) * np.array([
+            0,  1,  1,
+            1,  0,  1,
+            1,  1,  0])
+
+        return cls(lattice, species, coords=[[0, 0, 0]], **kwargs)
+
+    @classmethod
+    def rocksalt(cls, a, sites, **kwargs):
+        lattice = 0.5 * float(a) * np.array([
+            0,  1,  1,
+            1,  0,  1,
+            1,  1,  0])
+
+        coords = np.reshape([0, 0, 0, 0.5, 0.5, 0.5], (2,3))
         return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
-
-    #@classmethod
-    #def fcc(cls, a, species, **kwargs):
-    #    """Build a fcc crystal structure."""
-    #    lattice = 0.5 * float(a) * np.array([
-    #         1,  1,  0,
-    #         0,  1,  1,
-    #         1,  0, -1])
-
-    #    frac_coords = np.reshape([
-    #       0,     0,   0,
-    #       0.5, 0.5, 0.5,
-    #       0.5, 0.5, 0.5,
-    #       0.5, 0.5, 0.5], (4,3))
-    #
-    #    return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
-
-    #@classmethod
-    #def rocksalt(cls, a, sites, **kwargs)
-    #    return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
 
     #@classmethod
     #def ABO3(cls, a, sites, **kwargs)
@@ -339,7 +348,7 @@ class Structure(pymatgen.Structure):
         #xred = np.where(np.abs(xred) > 1e-8, xred, 0.0)
 
         # Info on atoms.
-        d =  dict(
+        d = dict(
             natom=natom,
             ntypat=len(types_of_specie),
             typat=typat,
@@ -506,7 +515,7 @@ class Structure(pymatgen.Structure):
 
         # Displace the sites.
         for i in range(len(self)):
-           self.translate_sites(indices=i, vector=eta * displ[i, :], frac_coords=True)
+            self.translate_sites(indices=i, vector=eta * displ[i, :], frac_coords=True)
 
     #def frozen_phonon(self, qpoint, displ, eta):
     #    old_lattice = self.lattice.copy()
@@ -551,7 +560,8 @@ class Structure(pymatgen.Structure):
         ngkpt = np.ones(3, dtype=np.int)
         for i in range(3):
             ngkpt[i] = int(round(nksmall * lengths[i] / lmin))
-            if (ngkpt[i] == 0): ngkpt[i] = 1
+            if ngkpt[i] == 0:
+                ngkpt[i] = 1
 
         return ngkpt
 
