@@ -12,20 +12,23 @@ from pymatgen.core.design_patterns import AttrDict
 from abipy.core.testing import has_abinit
 
 
-has_abinit_ge790 = has_abinit("7.9.0")
+# Tests in this module require abinit >= 7.9.0
+pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
 
 
-def make_scf_nscf_inputs(paral_kgb, pp_paths):
+def make_scf_nscf_inputs(paral_kgb, pp_paths, nstep=50):
     """Returns two input files: GS run and NSCF on a high symmetry k-mesh."""
-    pseudos = abidata.pseudos(pp_paths)
+    inp = abilab.AbiInput(pseudos=abidata.pseudos(pp_paths), ndtset=2)
+    structure = inp.set_structure_from_file(abidata.cif_file("si.cif"))
 
-    inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
-    inp.set_structure_from_file(abidata.cif_file("si.cif"))
+    nval = structure.calc_nvalence(inp.pseudos)
+    assert nval == 8
 
     # Global variables
     ecut = 4
     global_vars = dict(ecut=ecut,
-                       nband=6,
+                       nband=int(nval/2),
+                       nstep=nstep,
                        paral_kgb=paral_kgb)
 
     if inp.ispaw:
@@ -53,22 +56,74 @@ def make_scf_nscf_inputs(paral_kgb, pp_paths):
     return scf_input, nscf_input
 
 
-@pytest.mark.skipif(not has_abinit_ge790, reason="Requires abinit >= 7.9.0")
+@pytest.mark.parametrize("inp", [{"paral_kgb": 0}, {"paral_kgb": 1}])
+def test_unconverged_scf(fwp, inp):
+    """Testing treatment of unconverged GS calculations."""
+    inp = AttrDict(inp)
+
+    # Build the SCF and the NSCF input (note nstep to have an unconverged run)
+    scf_input, nscf_input = make_scf_nscf_inputs(paral_kgb=inp.paral_kgb, pp_paths="14si.pspnc", nstep=1)
+
+    # Build the flow and create the database.
+    flow = abilab.bandstructure_flow(fwp.workdir, fwp.manager, scf_input, nscf_input)
+
+    flow.allocate()
+    flow.build_and_pickle_dump()
+
+    t0 = flow[0][0]
+    t1 = flow[0][1]
+
+    # This run should not converge.
+    t0.start_and_wait()
+    t0.check_status()
+    assert t0.status == t0.S_UNCONVERGED
+
+    # Remove nstep from the input so that we use the default value.
+    # Then restart the GS task and test that GS is OK.
+    assert not t1.can_run
+    t0.strategy.remove_extra_abivars(["nstep"])
+    assert t0.num_restarts == 0
+    t0.restart()
+    t0.wait()
+    assert t0.num_restarts == 1
+    t0.check_status()
+    assert t0.status == t1.S_OK
+
+    # Now we can start the NSCF step
+    assert t1.can_run
+    t1.start_and_wait()
+    t1.check_status()
+    assert t1.status == t0.S_UNCONVERGED
+
+    assert not flow.all_ok
+
+    # Restart (same trick as the one used for the GS run)
+    t1.strategy.remove_extra_abivars(["nstep"])
+    assert t1.num_restarts == 0
+    assert t1.restart()
+    t1.wait()
+    assert t1.num_restarts == 1
+    assert t1.status == t1.S_DONE
+    t1.check_status()
+    assert t1.status == t1.S_OK
+
+    flow.show_status()
+    assert flow.all_ok
+
+
 @pytest.mark.parametrize("inp", [{"paral_kgb": 0}, {"paral_kgb": 1}])
 def test_bandstructure_flow(fwp, inp):
     """
     Test the building of a bandstructure flow and autoparal.
     Simple flow with one dependency: SCF -> NSCF.
     """
-    workdir = fwp.workdir
     inp = AttrDict(inp)
-    print("Input:", inp)
 
     # Get the SCF and the NSCF input.
     scf_input, nscf_input = make_scf_nscf_inputs(paral_kgb=inp.paral_kgb, pp_paths="14si.pspnc")
 
     # Build the flow and create the database.
-    flow = abilab.bandstructure_flow(workdir, fwp.manager, scf_input, nscf_input)
+    flow = abilab.bandstructure_flow(fwp.workdir, fwp.manager, scf_input, nscf_input)
 
     flow.build_and_pickle_dump()
 
@@ -145,5 +200,6 @@ def test_bandstructure_flow(fwp, inp):
     #aequal(t1.status, t1.S_OK)
     #afalse(t1.can_run)
 
+    flow.show_status()
     assert flow.all_ok
     #assert 0
