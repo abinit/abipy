@@ -5,7 +5,6 @@ import sys
 import os
 
 from collections import namedtuple, OrderedDict
-from abipy.core import AbipyException
 from abipy.tools import ask_yes_no, which
 
 __all__ = [
@@ -55,7 +54,7 @@ def find_loc(app_name):
     return None
 
 
-class VisualizerError(AbipyException):
+class VisualizerError(Exception):
     """Base class for Visualizer errors"""
 
 

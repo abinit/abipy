@@ -21,9 +21,9 @@ __all__ = [
 ]
 
 
-def has_abinit(min_version):
+def has_abinit(version, cmp=">="):
     """
-    Return True if abinit is in $PATH and version is >= min_version.
+    Return True if abinit is in $PATH and version is cmp version.
     False if condition is not fulfilled or the execution of `abinit -v` 
     raised CalledProcessError 
     """
@@ -44,7 +44,8 @@ def has_abinit(min_version):
                 logger.warning(exc.output)
                 return False
 
-    return abiver.strip() >= min_version.strip()
+    return {">=": abiver.strip() >= version.strip(),
+            "==": abiver.strip() == version.strip()}[cmp]
 
 
 class AbipyTest(PymatgenTest):
@@ -56,9 +57,9 @@ class AbipyTest(PymatgenTest):
         return which(program)
 
     @staticmethod
-    def has_abinit(min_version):
-        """Return True if abinit is in $PATH and version is >= min_version."""
-        return has_abinit(min_version)
+    def has_abinit(version, cmp=">="):
+        """Return True if abinit is in $PATH and version is cmp min_version."""
+        return has_abinit(version, cmp=cmp)
 
 
 class AbipyFileTest(AbipyTest):

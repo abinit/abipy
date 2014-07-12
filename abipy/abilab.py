@@ -10,7 +10,7 @@ from pymatgen.io.abinitio import qadapters
 #from pymatgen.io.abinitio.workflows import (Workflow, IterativeWorkflow, BandStructureWorkflow,
 #    RelaxWorkflow, DeltaFactorWorkflow, G0W0_Workflow, SigmaConvWorkflow, BSEMDF_Workflow,
 #    PhononWorkflow)
-from pymatgen.io.abinitio.tasks import * 
+from pymatgen.io.abinitio.tasks import *
 from pymatgen.io.abinitio.workflows import *
 from pymatgen.io.abinitio.flows import *
 from pymatgen.io.gwwrapper.helpers import refine_structure
@@ -178,6 +178,7 @@ def flow_main(main):
             main function.
     """
     from functools import wraps
+
     @wraps(main)
     def wrapper(*args, **kwargs):
         import argparse

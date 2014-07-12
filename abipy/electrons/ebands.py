@@ -1137,7 +1137,7 @@ class ElectronBands(object):
 
                 for (v, c), jdos in jdos_vc.items():
                     label = "val=%s --> cond=%s, s=%s" % (v, c, s)
-                    color = cmap(float(i)/(num_plots))
+                    color = cmap(float(i)/num_plots)
                     x, y = jdos.mesh, jdos.values
                     ax.plot(x, cumulative + y, lw=1.0, label=label, color=color)
                     ax.fill_between(x, cumulative, cumulative + y, facecolor=color, alpha=0.7)
@@ -1287,7 +1287,7 @@ class ElectronBands(object):
 
         return fig
 
-    def plot_fatbands(self, klabels=None, **kwargs): #colormap="jet", max_stripe_width_mev=3.0, qlabels=None, **kwargs):
+    def plot_fatbands(self, klabels=None, **kwargs):  #colormap="jet", max_stripe_width_mev=3.0, qlabels=None, **kwargs):
         """
         Plot the electronic fatbands.
 

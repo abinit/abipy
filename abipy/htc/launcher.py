@@ -12,7 +12,7 @@ from collections import OrderedDict
 from copy import deepcopy
 
 from .utils import parse_ewc
-from abipy.core import release, AbipyException, Structure, Density
+from abipy.core import release, Structure, Density
 from abipy.profile import abipy_env
 from . import AbinitInput
 
@@ -152,8 +152,8 @@ class LauncherArgParser(ArgumentParser):
 
 # =========================================================================== #
 
-class LauncherError(AbipyException): 
-    "base class for the exceptions raised by Launcher."
+class LauncherError(Exception): 
+    """base class for the exceptions raised by Launcher."""
 
 class Launcher(AbinitInput):
     """

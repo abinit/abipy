@@ -296,7 +296,7 @@ class Structure(pymatgen.Structure):
             filename = tempfile.mkstemp(suffix="." + ext, text=True)[1]
 
         with open(filename, mode="w") as fh:
-            if ext == "xsf": # xcrysden
+            if ext == "xsf":  # xcrysden
                 xsf.xsf_write_structure(fh, structures=[self])
             else:
                 raise Visualizer.Error("extension %s is not supported." % ext)
@@ -398,10 +398,10 @@ class Structure(pymatgen.Structure):
         znucl_type, typat = d["znucl"], d["typat"]
 
         if not isinstance(znucl_type, collections.Iterable):
-            znucl_type = [znucl_type,]
+            znucl_type = [znucl_type]
 
         if not isinstance(typat, collections.Iterable):
-            typat = [typat,]
+            typat = [typat]
 
         assert len(typat) == len(coords)
 

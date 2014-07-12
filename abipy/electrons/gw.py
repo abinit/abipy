@@ -861,7 +861,7 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         self.gwkpoints = reader.gwkpoints
 
         self.gwbstart_sk = reader.gwbstart_sk 
-        self.gwbstop_sk =  reader.gwbstop_sk
+        self.gwbstop_sk = reader.gwbstop_sk
         
         self.min_gwbstart = reader.min_gwbstart
         self.max_gwbstart = reader.max_gwbstart

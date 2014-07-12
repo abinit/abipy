@@ -14,6 +14,7 @@ __all__ = [
     "GSR_Plotter",
 ]
 
+
 class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     """
     File containing the results of a Ground-state calculation.

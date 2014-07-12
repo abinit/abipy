@@ -29,6 +29,7 @@ _builtin_open = __builtin__.open
 _VERBOSE = 1
 _LOGFILE = sys.stdout
 
+
 def set_options(**kwargs):
     """Set the value of verbose and logfile."""
     verbose = kwargs.get("verbose", None)
@@ -40,9 +41,11 @@ def set_options(**kwargs):
 # Set of files that have been opened in the python code.
 _openfiles = set()
 
+
 def print_open_files(file=sys.stdout):
     """Print the list of the files that are still open."""
     print("### %d OPEN FILES: [%s]" % (len(_openfiles), ", ".join(f.x for f in _openfiles)), file=file)
+
 
 def clear_openfiles():
     _openfiles = set()
@@ -53,7 +56,7 @@ class _newfile(_builtin_file):
         self.__x = args[0]
 
         if _VERBOSE: 
-           print("### OPENING %s ###" % str(self.__x), file=_LOGFILE)
+            print("### OPENING %s ###" % str(self.__x), file=_LOGFILE)
 
         _builtin_file.__init__(self, *args, **kwargs)
         _openfiles.add(self)
@@ -67,6 +70,7 @@ class _newfile(_builtin_file):
             _openfiles.remove(self)
         except KeyError:
             print("File %s is not in openfiles set" % self)
+
 
 def _newopen(*args, **kwargs):
     """Replacement for python open."""

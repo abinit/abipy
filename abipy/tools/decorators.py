@@ -16,6 +16,7 @@ def benchmark(func):
     and stores it in the __etime attribute.
     """
     import time
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         t = time.clock()
