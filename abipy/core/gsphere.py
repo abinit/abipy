@@ -2,7 +2,6 @@
 from __future__ import print_function, division
 
 import collections
-import itertools
 import numpy as np
 
 from abipy.core.kpoints import Kpoint
@@ -278,6 +277,7 @@ class GSphere(collections.Sequence):
 #        rec_vec = lattice.matrix[dim,:]
 #
 #        # Compute g_max and g_min for this direction.
+#        import itertools
 #        for ig in itertools.count(start=0, step=1):
 #            kpg = kcoords + (ig * rec_vec)
 #            kpg2 = norm2(kpg)
