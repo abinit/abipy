@@ -116,6 +116,7 @@ def test_optic_flow(fwp):
     # Optic does not support MPI with ncpus > 1 hence we have to construct a manager with mpi_ncpus==1
     shell_manager = fwp.manager.to_shell_manager(mpi_ncpus=1)
 
+    # Build optic task and register it
     optic_task1 = abilab.OpticTask(optic_input, nscf_node=bands_work.nscf_task, ddk_nodes=ddk_work,
                                    manager=shell_manager)
 
@@ -123,24 +124,32 @@ def test_optic_flow(fwp):
     flow.allocate()
     flow.build_and_pickle_dump()
 
-    for task in flow[-1]:
-        task.start_and_wait()
-        assert task.status == task.S_DONE
+    optic_task1.start_and_wait()
+    assert optic_task1.status == optic_task1.S_DONE
 
+    # Now we do a similar calculation but the dependencies are represented by
+    # strings with the path to the input files instead of task objects.
     ddk_nodes = [task.outdir.has_abiext("1WF") for task in ddk_work]
     print("ddk_nodes:", ddk_nodes)
-    assert len(ddk_nodes) == len(ddk_work)
+    assert all(ddk_nodes)
+
+    #nscf_node = bands_work.nscf_task
+    nscf_node = bands_work.nscf_task.outdir.has_abiext("WFK")
+    assert nscf_node
 
     # This does not work yet
-    #optic_task2 = abilab.OpticTask(optic_input, nscf_node=bands_work.nscf_task, ddk_nodes=ddk_nodes)
-    #flow.register_task(optic_task2)
-    #flow.allocate()
+    optic_task2 = abilab.OpticTask(optic_input, nscf_node=nscf_node, ddk_nodes=ddk_nodes)
+    flow.register_task(optic_task2)
+    flow.allocate()
+    flow.build_and_pickle_dump()
 
-    #for task in flow[-1]:
-    #    task.start_and_wait()
-    #    assert task.status == task.S_DONE
+    assert len(flow) == 4
+
+    optic_task2.start_and_wait()
+    assert optic_task2.status == optic_task2.S_DONE
 
     flow.check_status()
     flow.show_status()
-    assert all(work.finalized for work in flow)
     assert flow.all_ok
+    assert all(work.finalized for work in flow)
+

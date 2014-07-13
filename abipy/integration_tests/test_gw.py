@@ -166,5 +166,6 @@ def test_g0w0_flow(fwp, inp):
 #
 #    flow.check_status()
 #    flow.show_status()
+#    assert all(work.finalized for work in flow)
 #    assert flow.all_ok
 
