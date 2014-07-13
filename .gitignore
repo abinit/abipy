@@ -2,6 +2,7 @@
 
 # Temporary files or directories
 tmp_*
+tags
 
 # C extensions
 *.so

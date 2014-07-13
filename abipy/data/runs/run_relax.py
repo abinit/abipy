@@ -10,18 +10,18 @@ from __future__ import division, print_function
 
 import sys
 import os
-import abipy.data as data  
+import abipy.data as abidata  
 import abipy.abilab as abilab
 
 
 def make_ion_ioncell_inputs():
-    cif_file = data.cif_file("si.cif")
+    cif_file = abidata.cif_file("si.cif")
     structure = abilab.Structure.from_file(cif_file)
 
     # Perturb the structure (random perturbation of 0.1 Angstrom)
     structure.perturb(distance=0.1)
 
-    pseudos = data.pseudos("14si.pspnc")
+    pseudos = abidata.pseudos("14si.pspnc")
 
     global_vars = dict(
         ecut=4,  

@@ -5,7 +5,7 @@ import pytest
 import abipy.abilab as abilab
 
 
-# TaskManager configurations
+# List of TaskManager configurations
 manager_confs = [
     """
     qtype: shell

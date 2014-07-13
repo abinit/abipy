@@ -1,16 +1,21 @@
-#!/usr/bin/env python
-"""Phonon band structure of AlAs."""
-from __future__ import division, print_function
+"""Integration tests for phonon flows."""
+from __future__ import print_function, division
 
-import sys
-import os
+import pytest
+import numpy as np
+import abipy.data as abidata
 import abipy.abilab as abilab
-import abipy.data as abidata  
+
+from abipy.core.testing import has_abinit
+
+
+# Tests in this module require abinit >= 7.9.0 and pseudodojo.
+pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
 
 
 def scf_ph_inputs():
     """
-    This function constructs the input files for the phonon calculation: 
+    This function constructs the input files for the phonon calculation:
     GS input + the input files for the phonon calculation.
     """
     # Crystalline AlAs: computation of the second derivative of the total energy
@@ -19,7 +24,7 @@ def scf_ph_inputs():
 
     # List of q-points for the phonon calculation.
     qpoints = [
-             0.00000000E+00,  0.00000000E+00,  0.00000000E+00, 
+             0.00000000E+00,  0.00000000E+00,  0.00000000E+00,
              2.50000000E-01,  0.00000000E+00,  0.00000000E+00,
              5.00000000E-01,  0.00000000E+00,  0.00000000E+00,
              2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
@@ -32,8 +37,8 @@ def scf_ph_inputs():
     qpoints = np.reshape(qpoints, (-1,3))
 
     # Global variables used both for the GS and the DFPT run.
-    global_vars = dict(nband=4,             
-                       ecut=3.0,         
+    global_vars = dict(nband=4,
+                       ecut=3.0,
                        ngkpt=[4, 4, 4],
                        shiftk=[0, 0, 0],
                        tolvrs=1.0e-8,
@@ -62,35 +67,41 @@ def scf_ph_inputs():
     return inp.split_datasets()
 
 
-def build_flow(options):
+def test_phonon_flow(fwp):
     """
     Create an `AbinitFlow` for phonon calculations:
 
         1) One workflow for the GS run.
 
-        2) nqpt workflows for phonon calculations. Each workflow contains 
+        2) nqpt workflows for phonon calculations. Each workflow contains
            nirred tasks where nirred is the number of irreducible phonon perturbations
            for that particular q-point.
     """
-    # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
-    workdir = options.workdir
-    if not options.workdir:
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
-
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
-
     all_inps = scf_ph_inputs()
     scf_input, ph_inputs = all_inps[0], all_inps[1:]
 
-    return abilab.phonon_flow(workdir, manager, scf_input, ph_inputs)
+    flow = abilab.phonon_flow(fwp.workdir, fwp.manager, scf_input, ph_inputs)
+    flow.build_and_pickle_dump()
 
+    t0 = flow[0][0]
+    t0.start_and_wait()
 
-@abilab.flow_main
-def main(options):
-    flow = build_flow(options)
-    return flow.build_and_pickle_dump()
+    flow.check_status()
+    assert t0.status == t0.S_OK
+    flow.show_status()
 
+    for work in flow[1:]:
+        for task in work:
+            task.start_and_wait()
+            assert task.status == t0.S_DONE
 
-if __name__ == "__main__":
-    sys.exit(main())
+    flow.check_status()
+    flow.show_status()
+
+    # We should have a DDB files with IFC(q) in work.outdir
+    for work in flow[1:]:
+        assert len(work.outdir.list_filepaths(wildcard="*DDB")) == 1
+
+    assert all(work.finalized for work in flow)
+    assert flow.all_ok
+

@@ -150,16 +150,6 @@ def test_bandstructure_flow(fwp, inp):
     flow.show_status()
     flow.show_receivers()
 
-    # Testing the autoparal feature
-    for work in flow:
-        for task in work:
-            print(task)
-            #confs, optimal = task.autoparal_fake_run()
-            #print(confs, optimal)
-            #aequal(task.status, task.S_INIT)
-            #afalse(task.is_completed)
-            #self.assertTrue(task.can_run)
-
     # Run t0, and check status
     assert t0.returncode == 0
     t0.start_and_wait()
@@ -202,4 +192,5 @@ def test_bandstructure_flow(fwp, inp):
 
     flow.show_status()
     assert flow.all_ok
+    assert all(work.finalized for work in flow)
     #assert 0
