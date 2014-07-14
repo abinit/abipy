@@ -53,8 +53,7 @@ class QptdmWorkflow(Workflow):
         # nqpdm = -1 to the input to get the list of q-points.
         fake_task.inlink_file(wfk_file)
         fake_task.strategy.add_extra_abivars({"nqptdm": -1})
-        w.start()
-        w.wait()
+        w.start_and_wait()
 
         # Parse the section with the q-points
         try:
@@ -102,8 +101,7 @@ class QptdmWorkflow(Workflow):
         results = dict(
             returncode=0,
             message="mrgscr done",
-            final_scr=final_scr,
-        )
+            final_scr=final_scr)
 
         return results
 

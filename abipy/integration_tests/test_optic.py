@@ -25,12 +25,10 @@ def make_inputs():
                  shiftk=[[0.5, 0.5, 0.5],
                          [0.5, 0.0, 0.0],
                          [0.0, 0.5, 0.0],
-                         [0.0, 0.0, 0.5]]
-                )
+                         [0.0, 0.0, 0.5]])
 
     global_vars = dict(ecut=2,
-                       paral_kgb=0,
-                      )
+                       paral_kgb=0)
 
     global_vars.update(kmesh)
 
@@ -39,42 +37,41 @@ def make_inputs():
     # Dataset 1 (GS run)
     inp[1].set_variables(
         tolvrs=1e-6,
-        nband=4,
-    )
+        nband=4)
 
     # NSCF run with large number of bands, and points in the the full BZ
     inp[2].set_variables(
         iscf=-2,
-       nband=20,
-       nstep=25,
-      kptopt=1,
-      tolwfr=1.e-8,
-      #kptopt=3,
-    )
+        nband=20,
+        nstep=25,
+        kptopt=1,
+        tolwfr=1.e-8)
+        #kptopt=3)
 
-    # Fourth dataset : ddk response function along axis 1
-    # Fifth dataset : ddk response function along axis 2
-    # Sixth dataset : ddk response function along axis 3
-    for dir in range(3):
+    # Fourth dataset: ddk response function along axis 1
+    # Fifth dataset: ddk response function along axis 2
+    # Sixth dataset: ddk response function along axis 3
+    for idir in range(3):
         rfdir = 3 * [0]
-        rfdir[dir] = 1
+        rfdir[idir] = 1
 
-        inp[3+dir].set_variables(
-           iscf=-3,
-          nband=20,
-          nstep=1,
-          nline=0,
-          prtwf=3,
-         kptopt=3,
-           nqpt=1,
-           qpt=[0.0, 0.0, 0.0],
-          rfdir=rfdir,
-         rfelfd=2,
-         tolwfr=1.e-9,
+        inp[3+idir].set_variables(
+            iscf=-3,
+            nband=20,
+            nstep=1,
+            nline=0,
+            prtwf=3,
+            kptopt=3,
+            nqpt=1,
+            qpt=[0.0, 0.0, 0.0],
+            rfdir=rfdir,
+            rfelfd=2,
+            tolwfr=1.e-9,
         )
 
     #scf_inp, nscf_inp, ddk1, ddk2, ddk3
     return inp.split_datasets()
+
 
 optic_input = """\
 0.002         ! Value of the smearing factor, in Hartree
@@ -97,6 +94,7 @@ def test_optic_flow(fwp):
     bands_work = abilab.BandStructureWorkflow(scf_inp, nscf_inp)
     flow.register_work(bands_work)
 
+    # workflow with DDK tasks.
     ddk_work = abilab.Workflow()
     for inp in [ddk1, ddk2, ddk3]:
         ddk_work.register(inp, deps={bands_work.nscf_task: "WFK"}, task_class=abilab.DDK_Task)
@@ -142,7 +140,6 @@ def test_optic_flow(fwp):
     flow.register_task(optic_task2)
     flow.allocate()
     flow.build_and_pickle_dump()
-
     assert len(flow) == 4
 
     optic_task2.start_and_wait()

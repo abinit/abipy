@@ -124,7 +124,7 @@ def test_g0w0_flow(fwp, inp):
     assert flow.all_ok
 
     # The sigma task should produce a SIGRES file.
-    assert len(flow[-1].outdir.list_filepaths(wildcard="*SIGRES.nc")) == 1
+    assert len(flow[0][-1].outdir.list_filepaths(wildcard="*SIGRES.nc")) == 1
 
 
 #@pytest.mark.parametrize("inp", [{"paral_kgb": 0}, {"paral_kgb": 1}])

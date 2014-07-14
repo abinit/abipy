@@ -1,0 +1,9 @@
+# TaskManager configuration options.
+qtype: shell
+mpi_runner: mpirun
+pre_run:
+    - "source ~/Coding/Abinit/bzr_archives/env.sh"
+policy:
+    autoparal: 0
+    max_ncpus: 1
+    #condition: {"vars": {"npfft": {"$eq": 1}}}

@@ -102,6 +102,7 @@ def test_phonon_flow(fwp):
     for work in flow[1:]:
         assert len(work.outdir.list_filepaths(wildcard="*DDB")) == 1
 
+    # TODO: Check automatic restart
     assert all(work.finalized for work in flow)
     assert flow.all_ok
 
