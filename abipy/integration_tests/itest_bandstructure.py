@@ -57,7 +57,7 @@ def make_scf_nscf_inputs(paral_kgb, pp_paths, nstep=50):
 
 
 @pytest.mark.parametrize("inp", [{"paral_kgb": 0}, {"paral_kgb": 1}])
-def test_unconverged_scf(fwp, inp):
+def itest_unconverged_scf(fwp, inp):
     """Testing treatment of unconverged GS calculations."""
     inp = AttrDict(inp)
 
@@ -112,7 +112,7 @@ def test_unconverged_scf(fwp, inp):
 
 
 @pytest.mark.parametrize("inp", [{"paral_kgb": 0}, {"paral_kgb": 1}])
-def test_bandstructure_flow(fwp, inp):
+def itest_bandstructure_flow(fwp, inp):
     """
     Test the building of a bandstructure flow and autoparal.
     Simple flow with one dependency: SCF -> NSCF.

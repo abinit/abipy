@@ -69,7 +69,7 @@ def make_inputs():
             tolwfr=1.e-9,
         )
 
-    #scf_inp, nscf_inp, ddk1, ddk2, ddk3
+    # scf_inp, nscf_inp, ddk1, ddk2, ddk3
     return inp.split_datasets()
 
 
@@ -85,7 +85,7 @@ optic_input = """\
 """
 
 
-def test_optic_flow(fwp):
+def itest_optic_flow(fwp):
     """Test optic calculations."""
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = make_inputs()
 

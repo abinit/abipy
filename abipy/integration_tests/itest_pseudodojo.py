@@ -19,7 +19,7 @@ pytestmark = pytest.mark.skipif(not has_abinit("7.9.0") or not has_pseudodojo,
 
 
 #@pytest.mark.parametrize("inp", [{"paral_kgb": 0}, {"paral_kgb": 1}])
-def test_deltafactor(fwp):
+def itest_deltafactor(fwp):
     """Test the flow used for the computation of the deltafactor."""
     #from pymatgen.core.design_patterns import AttrDict
     #inp = AttrDict(inp)
@@ -62,14 +62,14 @@ def test_deltafactor(fwp):
 
 
 #@pytest.mark.parametrize("inp", [{"paral_kgb": 0}, {"paral_kgb": 1}])
-def test_gbrv_flow(fwp):
+def itest_gbrv_flow(fwp):
     """The the GBRV flow: relaxation + EOS computation."""
     from pseudo_dojo.refdata.gbrv.gbrvworks import GbrvFactory
     factory = GbrvFactory()
 
     #pseudo = "si_pbe_v1_abinit.paw"
     pseudo = abidata.pseudo("Si.GGA_PBE-JTH-paw.xml")
-    ecut = 2
+    ecut = 4
     pawecutdg = 2 * ecut if pseudo.ispaw else None
 
     flow = abilab.AbinitFlow(workdir=fwp.workdir, manager=fwp.manager, pickle_protocol=0)

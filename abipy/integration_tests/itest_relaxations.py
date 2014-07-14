@@ -100,7 +100,7 @@ def make_ion_ioncell_inputs():
     return ion_inp, ioncell_inp
 
 
-def test_simple_atomic_relaxation(fwp):
+def itest_simple_atomic_relaxation(fwp):
     """
     Test ion relaxation with automatic restart.
     """

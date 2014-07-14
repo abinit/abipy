@@ -67,7 +67,7 @@ def scf_ph_inputs():
     return inp.split_datasets()
 
 
-def test_phonon_flow(fwp):
+def itest_phonon_flow(fwp):
     """
     Create an `AbinitFlow` for phonon calculations:
 

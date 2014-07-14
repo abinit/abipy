@@ -106,7 +106,7 @@ def make_inputs(ngkpt, paral_kgb):
     return inp.split_datasets()
 
 @pytest.mark.parametrize("inp", [{"paral_kgb": 0}, {"paral_kgb": 1}])
-def test_g0w0_flow(fwp, inp):
+def itest_g0w0_flow(fwp, inp):
     """Test flow for G0W0 calculations."""
     inp = AttrDict(inp)
 
@@ -128,7 +128,7 @@ def test_g0w0_flow(fwp, inp):
 
 
 #@pytest.mark.parametrize("inp", [{"paral_kgb": 0}, {"paral_kgb": 1}])
-#def test_bse_with_mdf(fwp):
+#def itest_bse_with_mdf(fwp):
 #    pseudos = abidata.pseudos("14si.pspnc")
 #    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
 #

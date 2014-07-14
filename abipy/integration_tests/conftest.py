@@ -1,6 +1,7 @@
 """Configuration file for pytest."""
 from __future__ import print_function, division
 
+import os
 import pytest
 import yaml
 import copy
@@ -25,7 +26,8 @@ import abipy.abilab as abilab
 #]
 
 # Read the base configuration from file
-with open("taskmanager.yaml") as fh:
+_dirname = os.path.dirname(__file__)
+with open(os.path.join(_dirname, "taskmanager.yaml")) as fh:
     base_conf = yaml.load(fh)
 
 # Build list of configurations.
