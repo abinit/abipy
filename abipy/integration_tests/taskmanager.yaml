@@ -4,6 +4,7 @@ mpi_runner: mpirun
 pre_run:
     - "source ~/Coding/Abinit/bzr_archives/env.sh"
 policy:
-    autoparal: 0
-    max_ncpus: 1
-    #condition: {"vars": {"npfft": {"$eq": 1}}}
+    autoparal: 1
+    max_ncpus: 2
+    #condition:
+    vars_condition: {"npfft": {"$eq": 1}}

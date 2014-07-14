@@ -37,7 +37,7 @@ def make_scf_nscf_inputs(paral_kgb, pp_paths, nstep=50):
     inp.set_variables(**global_vars)
 
     # Dataset 1 (GS run)
-    inp[1].set_kmesh(ngkpt=[1, 1, 1], shiftk=[0, 0, 0])
+    inp[1].set_kmesh(ngkpt=[4, 4, 4], shiftk=[0, 0, 0])
     inp[1].set_variables(tolvrs=1e-4)
 
     # Dataset 2 (NSCF run)
@@ -112,6 +112,7 @@ def itest_unconverged_scf(fwp, inp):
 
 
 @pytest.mark.parametrize("inp", [{"paral_kgb": 0}, {"paral_kgb": 1}])
+#@pytest.mark.parametrize("inp", [{"paral_kgb": 1}])
 def itest_bandstructure_flow(fwp, inp):
     """
     Test the building of a bandstructure flow and autoparal.

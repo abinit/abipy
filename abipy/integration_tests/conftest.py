@@ -26,14 +26,13 @@ import abipy.abilab as abilab
 #]
 
 # Read the base configuration from file
-_dirname = os.path.dirname(__file__)
-with open(os.path.join(_dirname, "taskmanager.yaml")) as fh:
+with open(os.path.join(os.path.dirname(__file__), "taskmanager.yaml")) as fh:
     base_conf = yaml.load(fh)
 
 # Build list of configurations.
 manager_confs = []
 
-for autoparal in [0]: #, 1]:
+for autoparal in [1]: #, 1]:
     max_ncpus = 1 if autoparal == 0 else 2
 
     newd = copy.deepcopy(base_conf)
@@ -61,6 +60,12 @@ def fwp(tmpdir, request):
     return fwp
 
 
+def pytest_addoption(parser):
+    """Add extra command line options."""
+    parser.addoption('--loglevel', default="ERROR", type=str,
+                     help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+
+
 def pytest_report_header(config):
     """Write the initial header."""
     lines = ["\n*** Integration tests for abipy+abinit+pymatgen ***\n"]
@@ -79,6 +84,16 @@ def pytest_report_header(config):
             app(80 * "=")
 
     app("")
+
+    # Initialize logging
+    # loglevel is bound to the string value obtained from the command line argument.
+    # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
+    import logging
+    numeric_level = getattr(logging, config.option.loglevel.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % config.option.loglevel)
+    logging.basicConfig(level=numeric_level)
+
     return lines
 
 
