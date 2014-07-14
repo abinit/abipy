@@ -8,7 +8,6 @@ import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
 
-from pymatgen.core.design_patterns import AttrDict
 from abipy.core.testing import has_abinit
 
 
@@ -56,13 +55,12 @@ def make_scf_nscf_inputs(paral_kgb, pp_paths, nstep=50):
     return scf_input, nscf_input
 
 
-@pytest.mark.parametrize("inp", [{"paral_kgb": 0}, {"paral_kgb": 1}])
-def itest_unconverged_scf(fwp, inp):
+def itest_unconverged_scf(fwp, tvars):
     """Testing treatment of unconverged GS calculations."""
-    inp = AttrDict(inp)
+    print("tvars:\n %s" % str(tvars))
 
     # Build the SCF and the NSCF input (note nstep to have an unconverged run)
-    scf_input, nscf_input = make_scf_nscf_inputs(paral_kgb=inp.paral_kgb, pp_paths="14si.pspnc", nstep=1)
+    scf_input, nscf_input = make_scf_nscf_inputs(paral_kgb=tvars.paral_kgb, pp_paths="14si.pspnc", nstep=1)
 
     # Build the flow and create the database.
     flow = abilab.bandstructure_flow(fwp.workdir, fwp.manager, scf_input, nscf_input)
@@ -111,17 +109,15 @@ def itest_unconverged_scf(fwp, inp):
     assert flow.all_ok
 
 
-@pytest.mark.parametrize("inp", [{"paral_kgb": 0}, {"paral_kgb": 1}])
-#@pytest.mark.parametrize("inp", [{"paral_kgb": 1}])
-def itest_bandstructure_flow(fwp, inp):
+def itest_bandstructure_flow(fwp, tvars):
     """
     Test the building of a bandstructure flow and autoparal.
     Simple flow with one dependency: SCF -> NSCF.
     """
-    inp = AttrDict(inp)
+    print("tvars:\n %s" % str(tvars))
 
     # Get the SCF and the NSCF input.
-    scf_input, nscf_input = make_scf_nscf_inputs(paral_kgb=inp.paral_kgb, pp_paths="14si.pspnc")
+    scf_input, nscf_input = make_scf_nscf_inputs(paral_kgb=tvars.paral_kgb, pp_paths="14si.pspnc")
 
     # Build the flow and create the database.
     flow = abilab.bandstructure_flow(fwp.workdir, fwp.manager, scf_input, nscf_input)

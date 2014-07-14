@@ -5,7 +5,6 @@ import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
 
-from pymatgen.core.design_patterns import AttrDict
 from pymatgen.io.abinitio.calculations import bse_with_mdf
 from abipy.core.testing import has_abinit
 
@@ -105,12 +104,10 @@ def make_inputs(ngkpt, paral_kgb):
 
     return inp.split_datasets()
 
-@pytest.mark.parametrize("inp", [{"paral_kgb": 0}, {"paral_kgb": 1}])
-def itest_g0w0_flow(fwp, inp):
+def itest_g0w0_flow(fwp, tvars):
     """Test flow for G0W0 calculations."""
-    inp = AttrDict(inp)
 
-    scf, nscf, scr, sig = make_inputs(ngkpt=[2, 2, 2], paral_kgb=inp.paral_kgb)
+    scf, nscf, scr, sig = make_inputs(ngkpt=[2, 2, 2], paral_kgb=tvars.paral_kgb)
 
     flow = abilab.g0w0_flow(fwp.workdir, fwp.manager, scf, nscf, scr, sig)
     flow.build_and_pickle_dump()
@@ -127,8 +124,7 @@ def itest_g0w0_flow(fwp, inp):
     assert len(flow[0][-1].outdir.list_filepaths(wildcard="*SIGRES.nc")) == 1
 
 
-#@pytest.mark.parametrize("inp", [{"paral_kgb": 0}, {"paral_kgb": 1}])
-#def itest_bse_with_mdf(fwp):
+#def itest_bse_with_mdf(fwp, tvars):
 #    pseudos = abidata.pseudos("14si.pspnc")
 #    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
 #

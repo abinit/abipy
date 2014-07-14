@@ -5,7 +5,6 @@ import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
 
-#from pymatgen.core.design_patterns import AttrDict
 from abipy.core.testing import has_abinit
 
 # Tests in this module require abinit >= 7.9.0

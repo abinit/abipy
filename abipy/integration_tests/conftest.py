@@ -7,13 +7,15 @@ import yaml
 import copy
 import abipy.abilab as abilab
 
+from pymatgen.core.design_patterns import AttrDict
+
 # Create the list of TaskManager configurations used for the integration tests.
-# Note that the items in manager_confs must be hashable hence we cannot use dictionaries directly
+# Note that the items in _manager_confs must be hashable hence we cannot use dictionaries directly
 # To bypass this problem we operate on dictionaries to generate the different configuration
-# and then we convert the dictionaries to string with yaml.dump. This string will be passed
+# and then we convert the dictionary to string with yaml.dump. This string will be passed
 # to TasksManager.from_string in fwp. base_conf looks like:
 
-#manager_confs = [
+#base_conf =
 #    """
 #    qtype: shell
 #    mpi_runner: mpirun
@@ -22,15 +24,14 @@ import abipy.abilab as abilab
 #    policy:
 #        autoparal: 0
 #        max_ncpus: 1
-#    """,
-#]
+#    """
 
 # Read the base configuration from file
 with open(os.path.join(os.path.dirname(__file__), "taskmanager.yaml")) as fh:
     base_conf = yaml.load(fh)
 
 # Build list of configurations.
-manager_confs = []
+_manager_confs = []
 
 for autoparal in [1]: #, 1]:
     max_ncpus = 1 if autoparal == 0 else 2
@@ -38,18 +39,19 @@ for autoparal in [1]: #, 1]:
     newd = copy.deepcopy(base_conf)
     newd["policy"]["autoparal"] = autoparal
     newd["policy"]["max_ncpus"] = max_ncpus
-    manager_confs.append(newd)
+    _manager_confs.append(newd)
 
-manager_confs = [yaml.dump(d) for d in manager_confs]
-#manager_confs = [base_conf]
+_manager_confs = [yaml.dump(d) for d in _manager_confs]
+#_manager_confs = [base_conf]
 
 
-@pytest.fixture(params=manager_confs)
+@pytest.fixture(params=_manager_confs)
 def fwp(tmpdir, request):
     """
     Parameters used to initialize Flows.
-    This fixture allows one to change the TaskManager
-    and therefore we can easily test different configurations.
+
+    This fixture allows us to change the TaskManager
+    so that we can easily test different configurations.
     """
     # Temporary working directory
     fwp.workdir = str(tmpdir)
@@ -58,6 +60,24 @@ def fwp(tmpdir, request):
     fwp.manager = abilab.TaskManager.from_string(request.param)
 
     return fwp
+
+
+# Use tuples instead of dict because pytest require objects to be hashable.
+_tvars_list = [
+    (("paral_kgb", 0),),
+    (("paral_kgb", 1),),
+]
+
+@pytest.fixture(params=_tvars_list)
+def tvars(request):
+    """
+    Abinit variables passed to the test functions.
+
+    This fixture allows us change the variables in the input files
+    so that we can easily test different scenarios e.g. runs with or without
+    paral_kgb==1
+    """
+    return AttrDict({k: v for k, v in request.param})
 
 
 def pytest_addoption(parser):
@@ -74,10 +94,10 @@ def pytest_report_header(config):
     app("Assuming the enviroment is properly configured:")
     app("In particular, we assume that abinit is in $PATH and can be executed.")
     app("Change taskmanager.yaml according to your platform.")
-    app("Number of tasksmanager configurations used: %d" % len(manager_confs))
+    app("Number of tasksmanager configurations used: %d" % len(_manager_confs))
 
     if config.option.verbose > 0:
-        for i, s in enumerate(manager_confs):
+        for i, s in enumerate(_manager_confs):
             app(80 * "=")
             app("TaskManager #%d" % i)
             app(s)

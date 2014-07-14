@@ -18,11 +18,8 @@ pytestmark = pytest.mark.skipif(not has_abinit("7.9.0") or not has_pseudodojo,
                                 reason="Requires abinit >= 7.9.0 and pseudodojo")
 
 
-#@pytest.mark.parametrize("inp", [{"paral_kgb": 0}, {"paral_kgb": 1}])
 def itest_deltafactor(fwp):
     """Test the flow used for the computation of the deltafactor."""
-    #from pymatgen.core.design_patterns import AttrDict
-    #inp = AttrDict(inp)
 
     # Path of the pseudopotential to test.
     pseudo = abidata.pseudo("Si.GGA_PBE-JTH-paw.xml")
@@ -61,7 +58,6 @@ def itest_deltafactor(fwp):
     #assert 0
 
 
-#@pytest.mark.parametrize("inp", [{"paral_kgb": 0}, {"paral_kgb": 1}])
 def itest_gbrv_flow(fwp):
     """The the GBRV flow: relaxation + EOS computation."""
     from pseudo_dojo.refdata.gbrv.gbrvworks import GbrvFactory
