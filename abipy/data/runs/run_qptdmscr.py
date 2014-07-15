@@ -6,7 +6,6 @@ over q-points with the input variables nqptdm and qptdm.
 from __future__ import division, print_function
 
 import sys
-import os
 import abipy.abilab as abilab
 import abipy.data as data  
 
@@ -27,7 +26,6 @@ def all_inputs():
     )
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=4)
-    print("pseudos",inp.pseudos)
     inp.set_structure(structure)
     inp.set_variables(**global_vars)
 
@@ -65,34 +63,31 @@ def all_inputs():
     nscf.set_variables(iscf=-2,
                        tolwfr=1e-12,
                        nband=35,
-                       nbdbuf=5,
-                       )
+                       nbdbuf=5)
 
     # Dataset3: Calculation of the screening.
     scr.set_kmesh(**gw_kmesh)
 
     scr.set_variables(
         optdriver=3,   
-        nband=25,    
+        nband=8,    
         ecutwfn=ecutwfn,   
         symchi=1,
         inclvkb=0,
-        ecuteps=4.0,    
-        ppmfrq="16.7 eV",
-    )
+        ecuteps=2.0)
 
     # Dataset4: Calculation of the Self-Energy matrix elements (GW corrections)
     sigma.set_kmesh(**gw_kmesh)
 
     sigma.set_variables(
             optdriver=4,
-            nband=25,      
+            nband=8,      
             ecutwfn=ecutwfn,
-            ecuteps=4.0,
-            ecutsigx=6.0,
-            #symsigma=1,
-            gwcalctyp=20,
-        )
+            ecuteps=2.0,
+            ecutsigx=4.0,
+            symsigma=1,
+            #gwcalctyp=20
+            )
 
     kptgw = [
          -2.50000000E-01, -2.50000000E-01,  0.00000000E+00,
@@ -110,32 +105,11 @@ def all_inputs():
     return inp.split_datasets()
 
 
-def gw_flow(options):
-    #workdir = "GW"
-    # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
-    workdir = options.workdir
-    if not options.workdir:
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
-                                                                                                                         
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
-
-    gs, nscf, scr_input, sigma_input = all_inputs()
-                                                                        
-    manager = abilab.TaskManager.from_user_config()
-
-    flow = g0w0_flow_with_qptdm(workdir, manager, gs, nscf, scr_input, sigma_input)
-
-    #from pymatgen.io.abinitio.tasks import G_Task
-    #flow[2][0].__class__ = G_Task
-
-    return flow
-    
 def qptdm_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
     if not options.workdir: 
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
+        workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Instantiate the TaskManager.
     manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
@@ -147,10 +121,6 @@ def qptdm_flow(options):
 
 @abilab.flow_main
 def main(options):
-    # GW Works
-    #flow = gw_flow(options)
-                        
-    # QPTDM
     flow = qptdm_flow(options)
     return flow.build_and_pickle_dump()
 

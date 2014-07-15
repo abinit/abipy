@@ -2,15 +2,10 @@
 from __future__ import division, print_function
 
 import os
-import time
-import collections
-import yaml
-import numpy as np
 
 from abipy.abilab import AbinitFlow, Mrgscr
-from pymatgen.io.abinitio.tasks import ScfTask, PhononTask
-from pymatgen.io.abinitio.workflows import Workflow, BandStructureWorkflow, IterativeWorkflow, PhononWorkflow
-from pymatgen.io.abinitio.abiinspect import yaml_read_kpoints, yaml_read_irred_perts
+from pymatgen.io.abinitio.workflows import Workflow, BandStructureWorkflow
+from pymatgen.io.abinitio.abiinspect import yaml_read_kpoints
 
 import logging
 logger = logging.getLogger(__name__)
@@ -22,7 +17,7 @@ class QptdmWorkflow(Workflow):
     It also provides the callback `on_all_ok` that calls mrgscr to merge 
     all the partial screening files produced.
     """
-    def fill(self, wfk_file, scr_input):
+    def create_tasks(self, wfk_file, scr_input):
         """
         Create the SCR tasks and register them in self.
 
@@ -53,29 +48,25 @@ class QptdmWorkflow(Workflow):
         # nqpdm = -1 to the input to get the list of q-points.
         fake_task.inlink_file(wfk_file)
         fake_task.strategy.add_extra_abivars({"nqptdm": -1})
-        w.start_and_wait()
+        fake_task.start_and_wait()
 
         # Parse the section with the q-points
         try:
             qpoints = yaml_read_kpoints(fake_task.log_file.path, doc_tag="!Qptdms")
             #print(qpoints)
-        except:
-            raise
         finally:
             w.rmtree()
 
         # Now we can register the task for the different q-points 
         for qpoint in qpoints:
             qptdm_input = scr_input.deepcopy()
-            qptdm_input.set_variables(
-                nqptdm=1,
-                qptdm=qpoint
-            )
+            qptdm_input.set_variables(nqptdm=1, qptdm=qpoint)
+
             self.register(qptdm_input, manager=self.manager)
 
         return self.allocate()
 
-    def merge_scrfiles(self):
+    def merge_scrfiles(self, remove_scrfiles=True):
         """
         This method is called when all the q-points have been computed.
         It runs `mrgscr` in sequential on the local machine to produce
@@ -90,6 +81,15 @@ class QptdmWorkflow(Workflow):
         mrgscr.set_mpi_runner("mpirun")
         final_scr = mrgscr.merge_qpoints(scr_files, out_prefix="out", cwd=self.outdir.path)
 
+        if remove_scrfiles:
+            for scr_file in scr_files:
+                try:
+                    os.remove(scr_file)
+                except IOError:
+                    pass
+
+        return final_scr
+
     def on_all_ok(self):
         """
         This method is called when all the q-points have been computed.
@@ -98,23 +98,21 @@ class QptdmWorkflow(Workflow):
         """
         final_scr = self.merge_scrfiles()
 
-        results = dict(
-            returncode=0,
-            message="mrgscr done",
-            final_scr=final_scr)
-
+        results = dict(returncode=0, message="mrgscr done", final_scr=final_scr)
         return results
 
 
-def cbk_qptdm_workflow(flow, work, cbk_data):
+def cbk_qptdm_workflow(flow, cbk_data):
     scr_input = cbk_data["input"]
     # Use the WFK file produced by the second 
     # Task in the first Workflow (NSCF step).
     nscf_task = flow[0][1]
     wfk_file = nscf_task.outdir.has_abiext("WFK")
 
+    work = flow[1]
+
     work.set_manager(flow.manager)
-    work.fill(wfk_file, scr_input)
+    work.create_tasks(wfk_file, scr_input)
     #work.add_deps(cbk.deps)
     work.connect_signals()
     work.build()
@@ -122,7 +120,7 @@ def cbk_qptdm_workflow(flow, work, cbk_data):
     return work
 
 
-def g0w0_flow_with_qptdm(workdir, manager, scf_input, nscf_input, scr_input, sigma_input):
+def g0w0_flow_with_qptdm(workdir, manager, scf_input, nscf_input, scr_input, sigma_inputs):
     """
     Build an `AbinitFlow` for one-shot G0W0 calculations.
     The computation of the q-points for the screening is parallelized with qptdm
@@ -140,8 +138,8 @@ def g0w0_flow_with_qptdm(workdir, manager, scf_input, nscf_input, scr_input, sig
             Input for the NSCF run (band structure run).
         scr_input:
             Input for the SCR run.
-        sigma_input:
-            Input for the SIGMA run.
+        sigma_inputs:
+            Input(s) for the SIGMA run.
 
     Returns:
         `AbinitFlow`
@@ -157,23 +155,29 @@ def g0w0_flow_with_qptdm(workdir, manager, scf_input, nscf_input, scr_input, sig
 
     # Register the callback that will be executed the workflow for the SCR with qptdm.
     scr_work = flow.register_cbk(cbk=cbk_qptdm_workflow, cbk_data={"input": scr_input},
-                                 deps={bands_work.nscf_task: "WFK"}, work_class=QptdmWorkflow
-                                )
+                                 deps={bands_work.nscf_task: "WFK"}, work_class=QptdmWorkflow)
                              
     assert scr_work.depends_on(bands_work.nscf_task)
     assert not scr_work.depends_on(bands_work.scf_task)
 
-    # The last workflow contains a single SIGMA task that will use 
-    # the data produced in the previous two workflows.
-    sigma_task = flow.register_task(sigma_input, deps={bands_work.nscf_task: "WFK", scr_work: "SCR"})
+    # The last workflow contains a list of SIGMA tasks 
+    # that will use the data produced in the previous two workflows.
+    if not isinstance(sigma_inputs, (list, tuple)):
+        sigma_inputs = [sigma_inputs]
+
+    sigma_work = Workflow()
+    for sigma_input in sigma_inputs:
+        sigma_work.register(sigma_input, deps={bands_work.nscf_task: "WFK", scr_work: "SCR"})
+    flow.register_work(sigma_work)
 
     flow.allocate()
-    assert sigma_task.depends_on(bands_work.nscf_task)
-    assert not sigma_task.depends_on(bands_work.scf_task)
-    assert sigma_task.depends_on(scr_work)
+    #assert sigma_task.depends_on(bands_work.nscf_task)
+    #assert not sigma_task.depends_on(bands_work.scf_task)
+    #assert sigma_task.depends_on(scr_work)
 
     flow.show_dependencies()
     #print("sigma_work.deps", sigma_work.deps)
-    print("sigma_task.deps", sigma_task.deps)
+    for sigma_task in sigma_work:
+        print("sigma_task.deps", sigma_task.deps)
 
     return flow
