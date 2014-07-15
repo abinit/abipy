@@ -5,7 +5,6 @@ import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
 
-from pymatgen.io.abinitio.calculations import bse_with_mdf
 from abipy.core.testing import has_abinit
 
 
@@ -13,13 +12,12 @@ from abipy.core.testing import has_abinit
 pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
 
 
-def make_inputs(ngkpt, tvars):
+def make_g0w0_inputs(ngkpt, tvars):
     """
-    Calculation of the GW correction
-    Dataset 1: ground state calculation
-    Dataset 2: NSCF calculation
-    Dataset 3: calculation of the screening
-    Dataset 4-5-6: Self-Energy matrix elements (GW corrections) with different values of nband
+    Input files for the calculation of the GW corrections.
+
+    Returns:
+        gs_input, nscf_input, scr_input, sigma_input
     """
     inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=4)
     inp.set_structure_from_file(abidata.cif_file("si.cif"))
@@ -107,7 +105,7 @@ def make_inputs(ngkpt, tvars):
 
 def itest_g0w0_flow(fwp, tvars):
     """Test flow for G0W0 calculations."""
-    scf, nscf, scr, sig = make_inputs(ngkpt=[2, 2, 2], tvars=tvars)
+    scf, nscf, scr, sig = make_g0w0_inputs(ngkpt=[2, 2, 2], tvars=tvars)
 
     flow = abilab.g0w0_flow(fwp.workdir, fwp.manager, scf, nscf, scr, sig)
     flow.build_and_pickle_dump()
@@ -122,6 +120,44 @@ def itest_g0w0_flow(fwp, tvars):
 
     # The sigma task should produce a SIGRES file.
     assert len(flow[0][-1].outdir.list_filepaths(wildcard="*SIGRES.nc")) == 1
+
+
+def itest_g0w0qptdm_flow(fwp, tvars):
+    scf, nscf, scr, sig = make_g0w0_inputs(ngkpt=[2, 2, 2], tvars=tvars)
+
+    flow = abilab.G0W0WithQptdmFlow(fwp.workdir, fwp.manager, scf, nscf, scr, sig)
+
+    assert len(flow) == 3
+    bands_work = flow[0]
+    scr_work = flow[1]
+    sigma_work = flow[2]
+
+    assert scr_work.depends_on(bands_work.nscf_task)
+    assert not scr_work.depends_on(bands_work.scf_task)
+
+    for sigma_task in sigma_work:
+        print("sigma_task.deps", sigma_task.deps)
+        assert sigma_task.depends_on(bands_work.nscf_task)
+        assert not sigma_task.depends_on(bands_work.scf_task)
+        assert sigma_task.depends_on(scr_work)
+
+    flow.build_and_pickle_dump()
+    flow.show_dependencies()
+    # This call is needed to connect the node and enable
+    # the callbacks, otherwise the scheduler enters a deadlock.
+    flow.connect_signals()
+
+    # Run the flow.
+    fwp.scheduler.add_flow(flow)
+    fwp.scheduler.start()
+    assert fwp.scheduler.num_excs == 0
+
+    # The scr workflow should produce a SIGRES file.
+    assert len(scr_work.outdir.list_filepaths(wildcard="*SCR")) == 1
+
+    flow.show_status()
+    assert all(work.finalized for work in flow)
+    assert flow.all_ok
 
 
 #def itest_bse_with_mdf(fwp, tvars):
@@ -147,6 +183,7 @@ def itest_g0w0_flow(fwp, tvars):
 #    flow = abilab.AbinitFlow(workdir=fwp.workdir, manager=fwp.manager)
 #
 #    # BSE calculation with model dielectric function.
+#    from pymatgen.io.abinitio.calculations import bse_with_mdf
 #    work = bse_with_mdf(structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,
 #                       ecuteps, bs_loband, bs_nband, soenergy, mdf_epsinf,
 #                       accuracy="normal", spin_mode="unpolarized", smearing=None,

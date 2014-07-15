@@ -27,7 +27,7 @@ from pymatgen.core.design_patterns import AttrDict
 #    """
 
 # Read the base configuration from file
-with open(os.path.join(os.path.dirname(__file__), "taskmanager.yaml")) as fh:
+with open(os.path.join(os.path.dirname(__file__), "taskmanager.yml")) as fh:
     base_conf = yaml.load(fh)
 
 # Build list of configurations.
@@ -59,7 +59,7 @@ def fwp(tmpdir, request):
     # Create the TaskManager.
     fwp.manager = abilab.TaskManager.from_string(request.param)
 
-    fwp.scheduler = abilab.PyFlowScheduler.from_file(os.path.join(os.path.dirname(__file__), "scheduler.yaml"))
+    fwp.scheduler = abilab.PyFlowScheduler.from_file(os.path.join(os.path.dirname(__file__), "scheduler.yml"))
 
     return fwp
 

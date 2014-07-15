@@ -7,4 +7,4 @@ policy:
     autoparal: 1
     max_ncpus: 2
     #condition:
-    vars_condition: {"npfft": {"$eq": 1}}
+    #vars_condition: {"npfft": {"$eq": 1}}
