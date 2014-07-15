@@ -11,7 +11,7 @@ from abipy.core.testing import has_abinit
 pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
 
 
-def make_inputs():
+def make_inputs(tvars):
     """Constrcut the input files."""
     structure = abidata.structure_from_ucell("GaAs")
 
@@ -27,7 +27,7 @@ def make_inputs():
                          [0.0, 0.0, 0.5]])
 
     global_vars = dict(ecut=2,
-                       paral_kgb=0)
+                       paral_kgb=tvars.paral_kgb)
 
     global_vars.update(kmesh)
 
@@ -84,9 +84,12 @@ optic_input = """\
 """
 
 
-def itest_optic_flow(fwp):
+def itest_optic_flow(fwp, tvars):
     """Test optic calculations."""
-    scf_inp, nscf_inp, ddk1, ddk2, ddk3 = make_inputs()
+    if tvars.paral_kgb == 1:
+        pytest.xfail("Optic flow with paral_kgb==1 is expected to fail (implementation problem)")
+
+    scf_inp, nscf_inp, ddk1, ddk2, ddk3 = make_inputs(tvars)
 
     flow = abilab.AbinitFlow(fwp.workdir, fwp.manager)
 

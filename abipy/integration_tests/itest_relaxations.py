@@ -11,7 +11,7 @@ from abipy.core.testing import has_abinit
 pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
 
 
-def ion_relaxation(ntime=50):
+def ion_relaxation(tvars, ntime=50):
     pseudos = abidata.pseudos("14si.pspnc")
     cif_file = abidata.cif_file("si.cif")
     structure = abilab.Structure.from_file(cif_file)
@@ -21,11 +21,11 @@ def ion_relaxation(ntime=50):
 
     global_vars = dict(
         ecut=4,
-        ngkpt=[4,4,4],
+        ngkpt=[2,2,2],
         shiftk=[0,0,0],
         nshiftk=1,
         chksymbreak=0,
-        paral_kgb=0,
+        paral_kgb=tvars.paral_kgb,
     )
 
     inp = abilab.AbiInput(pseudos=pseudos)
@@ -47,7 +47,7 @@ def ion_relaxation(ntime=50):
     return inp
 
 
-def make_ion_ioncell_inputs():
+def make_ion_ioncell_inputs(tvars):
     cif_file = abidata.cif_file("si.cif")
     structure = abilab.Structure.from_file(cif_file)
 
@@ -62,7 +62,7 @@ def make_ion_ioncell_inputs():
         shiftk=[0,0,0],
         nshiftk=1,
         chksymbreak=0,
-        paral_kgb=0,
+        paral_kgb=tvars.paral_kgb,
     )
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
@@ -99,14 +99,14 @@ def make_ion_ioncell_inputs():
     return ion_inp, ioncell_inp
 
 
-def itest_simple_atomic_relaxation(fwp):
+def itest_simple_atomic_relaxation(fwp, tvars):
     """
     Test ion relaxation with automatic restart.
     """
     # Build the flow
     flow = abilab.AbinitFlow(fwp.workdir, fwp.manager)
 
-    ion_input = ion_relaxation(ntime=1)
+    ion_input = ion_relaxation(tvars, ntime=5)
     t0 = flow.register_task(ion_input, task_class=abilab.RelaxTask)
 
     flow.allocate()

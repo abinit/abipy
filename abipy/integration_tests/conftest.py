@@ -59,6 +59,8 @@ def fwp(tmpdir, request):
     # Create the TaskManager.
     fwp.manager = abilab.TaskManager.from_string(request.param)
 
+    fwp.scheduler = abilab.PyFlowScheduler.from_file(os.path.join(os.path.dirname(__file__), "scheduler.yaml"))
+
     return fwp
 
 

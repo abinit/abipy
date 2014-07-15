@@ -13,7 +13,7 @@ from abipy.core.testing import has_abinit
 pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
 
 
-def make_inputs(ngkpt, paral_kgb):
+def make_inputs(ngkpt, tvars):
     """
     Calculation of the GW correction
     Dataset 1: ground state calculation
@@ -50,7 +50,7 @@ def make_inputs(ngkpt, paral_kgb):
         ecut=ecut,
         pawecutdg=ecut*2 if inp.pseudos.allpaw else None,
         istwfk="*1",
-        paral_kgb=paral_kgb,
+        paral_kgb=tvars.paral_kgb,
         gwpara=2,
     )
     inp.set_kmesh(**gw_kmesh)
@@ -104,10 +104,10 @@ def make_inputs(ngkpt, paral_kgb):
 
     return inp.split_datasets()
 
+
 def itest_g0w0_flow(fwp, tvars):
     """Test flow for G0W0 calculations."""
-
-    scf, nscf, scr, sig = make_inputs(ngkpt=[2, 2, 2], paral_kgb=tvars.paral_kgb)
+    scf, nscf, scr, sig = make_inputs(ngkpt=[2, 2, 2], tvars=tvars)
 
     flow = abilab.g0w0_flow(fwp.workdir, fwp.manager, scf, nscf, scr, sig)
     flow.build_and_pickle_dump()

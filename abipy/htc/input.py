@@ -14,13 +14,17 @@ import abc
 import numpy as np
 
 from pymatgen.io.abinitio.pseudos import PseudoTable, Pseudo
-from pymatgen.io.abinitio.strategies import select_pseudos
+#from pymatgen.io.abinitio.strategies import select_pseudos
 from abipy.core import Structure
 from abipy.tools import is_string, list_strings
 from pymatgen.core.units import Energy
 
 from abipy.htc.variable import InputVariable
 from abipy.htc.abivars import is_abivar
+
+import logging
+logger = logging.getLogger(__file__)
+
 
 __all__ = [
     "AbinitInputError",
@@ -82,7 +86,7 @@ class Input(object):
         # Write the input file.
         input_string = str(self)
         with open(filepath, "w") as fh:
-           fh.write(input_string)
+            fh.write(input_string)
 
         return input_string
 
@@ -119,7 +123,6 @@ class Input(object):
     #    """
     #    for idt in self._dtset2range(dtset):
     #        self[idt].remove_variables(keys)
-
 
 
 class AbinitInputError(Exception):
@@ -256,7 +259,7 @@ class AbiInput(Input):
                         break
 
                 idt = int("".join(reversed(idt)))
-                if not (self.ndtset >= idt  >= 1):
+                if not (self.ndtset >= idt >= 1):
                     raise self.Error("Invalid dataset index %d, ndtset %d " % (idt, self.ndtset))
 
                 # Strip the numeric index.
@@ -269,7 +272,7 @@ class AbiInput(Input):
 
                     if varname in self[0]:
                         glob_value = np.array(self[0][varname])
-                        isok  = np.all(glob_value == np.array(value))
+                        isok = np.all(glob_value == np.array(value))
                         if not isok:
                             err_msg = "NO_MULTI variable: dataset 0: %s, dataset %d: %s" % (str(glob_value), idt, str(value))
                             raise self.Error(err_msg)
@@ -313,8 +316,7 @@ class AbiInput(Input):
         raise ValueError("Cannot extract a unique structure from an input file with multiple datasets!\n" + 
                          "Please DON'T use multiple datasets with different unit cells!")
 
-    @staticmethod
-    def _dtset2range(dtset):
+    def _dtset2range(self, dtset):
         """
         Helper function to convert dtset into a range. Accepts int, slice objects or iterable.
         """
@@ -563,14 +565,6 @@ class AbiInput(Input):
         for idt in self._dtset2range(dtset):
             self[idt].set_kptgw(kptgw, bdgw)
 
-_UNITS = {
-    'bohr' : 1.0,
-    'angstrom' : 1.8897261328856432,
-    'hartree' : 1.0,
-    'Ha' : 1.0,
-    'eV' : 0.03674932539796232,
-}
-
 
 # TODO this should be the "actual" input file!
 class Dataset(collections.Mapping):
@@ -760,14 +754,13 @@ class Dataset(collections.Mapping):
                 iseq = False
 
             if not iseq:
-                msg = "%s is already defined with a different value:\n old: %s, new %s" % (
+                msg = "%s is already defined with a different value:\nOLD:\n %s,\nNEW\n %s" % (
                     varname, str(self[varname]), str(value))
                 warnings.warn(msg)
 
         # Check if varname is in the internal database.
         if not is_abivar(varname):
-            err_msg = "%s is not a valid ABINIT variable." % varname
-            raise UnknownVariable(err_msg)
+            raise UnknownVariable("%s is not a valid ABINIT variable." % varname)
 
         self[varname] = value
 
@@ -776,7 +769,7 @@ class Dataset(collections.Mapping):
                                                                                                                       
             if varname in self.dt0:
                 glob_value = np.array(self.dt0[varname])
-                isok  = np.all(glob_value == np.array(value))
+                isok = np.all(glob_value == np.array(value))
                 if not isok:
                     err_msg = "NO_MULTI variable: dataset 0: %s, dataset %d: %s" % (
                         str(glob_value), self.index, str(value))
@@ -786,7 +779,7 @@ class Dataset(collections.Mapping):
 
     def set_variables(self, **vars):
         """Set the value of the variables provied in the dictionary **vars"""
-        for (varname, varvalue) in vars.items():
+        for varname, varvalue in vars.items():
             self.set_variable(varname, varvalue)
 
     def remove_variables(self, keys):

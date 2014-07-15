@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Integration tests for flows (require pytest, ABINIT and a properly configured environment)
 """
@@ -15,7 +14,7 @@ from abipy.core.testing import has_abinit
 pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
 
 
-def make_scf_nscf_inputs(paral_kgb, pp_paths, nstep=50):
+def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
     """Returns two input files: GS run and NSCF on a high symmetry k-mesh."""
     inp = abilab.AbiInput(pseudos=abidata.pseudos(pp_paths), ndtset=2)
     structure = inp.set_structure_from_file(abidata.cif_file("si.cif"))
@@ -28,7 +27,7 @@ def make_scf_nscf_inputs(paral_kgb, pp_paths, nstep=50):
     global_vars = dict(ecut=ecut,
                        nband=int(nval/2),
                        nstep=nstep,
-                       paral_kgb=paral_kgb)
+                       paral_kgb=tvars.paral_kgb)
 
     if inp.ispaw:
         global_vars.update(pawecutdg=2*ecut)
@@ -60,7 +59,7 @@ def itest_unconverged_scf(fwp, tvars):
     print("tvars:\n %s" % str(tvars))
 
     # Build the SCF and the NSCF input (note nstep to have an unconverged run)
-    scf_input, nscf_input = make_scf_nscf_inputs(paral_kgb=tvars.paral_kgb, pp_paths="14si.pspnc", nstep=1)
+    scf_input, nscf_input = make_scf_nscf_inputs(tvars, pp_paths="14si.pspnc", nstep=1)
 
     # Build the flow and create the database.
     flow = abilab.bandstructure_flow(fwp.workdir, fwp.manager, scf_input, nscf_input)
@@ -117,7 +116,7 @@ def itest_bandstructure_flow(fwp, tvars):
     print("tvars:\n %s" % str(tvars))
 
     # Get the SCF and the NSCF input.
-    scf_input, nscf_input = make_scf_nscf_inputs(paral_kgb=tvars.paral_kgb, pp_paths="14si.pspnc")
+    scf_input, nscf_input = make_scf_nscf_inputs(tvars, pp_paths="14si.pspnc")
 
     # Build the flow and create the database.
     flow = abilab.bandstructure_flow(fwp.workdir, fwp.manager, scf_input, nscf_input)
@@ -191,3 +190,35 @@ def itest_bandstructure_flow(fwp, tvars):
     assert flow.all_ok
     assert all(work.finalized for work in flow)
     #assert 0
+
+
+def itest_bandstructure_schedflow(fwp, tvars):
+    """
+    Run a bandstructure flow with the scheduler.
+    """
+    print("tvars:\n %s" % str(tvars))
+
+    # Get the SCF and the NSCF input.
+    scf_input, nscf_input = make_scf_nscf_inputs(tvars, pp_paths="Si.GGA_PBE-JTH-paw.xml")
+
+    # Build the flow and create the database.
+    flow = abilab.bandstructure_flow(fwp.workdir, fwp.manager, scf_input, nscf_input)
+
+    flow.build_and_pickle_dump()
+
+    fwp.scheduler.add_flow(flow)
+    print(fwp.scheduler)
+    # scheduler cannot handle more than one flow.
+    with pytest.raises(fwp.scheduler.Error):
+        fwp.scheduler.add_flow(flow)
+
+    fwp.scheduler.start()
+    assert fwp.scheduler.num_excs == 0
+    assert fwp.scheduler.nlaunch == 2
+
+    flow.show_status()
+    assert flow.all_ok
+    assert all(work.finalized for work in flow)
+    #assert 0
+
+

@@ -18,7 +18,7 @@ pytestmark = pytest.mark.skipif(not has_abinit("7.9.0") or not has_pseudodojo,
                                 reason="Requires abinit >= 7.9.0 and pseudodojo")
 
 
-def itest_deltafactor(fwp):
+def itest_deltafactor(fwp, tvars):
     """Test the flow used for the computation of the deltafactor."""
 
     # Path of the pseudopotential to test.
@@ -36,7 +36,8 @@ def itest_deltafactor(fwp):
     pawecutdg = ecut * 2 if pseudo.ispaw else None
 
     from pseudo_dojo.dojo.deltaworks import DeltaFactory
-    work = DeltaFactory().work_for_pseudo(pseudo, kppa=kppa, ecut=ecut, pawecutdg=pawecutdg)
+    work = DeltaFactory().work_for_pseudo(pseudo, kppa=kppa, ecut=ecut, pawecutdg=pawecutdg, paral_kgb=tvars.paral_kgb)
+
     # Register the workflow.
     flow.register_work(work)
     flow.allocate()
@@ -58,7 +59,7 @@ def itest_deltafactor(fwp):
     #assert 0
 
 
-def itest_gbrv_flow(fwp):
+def itest_gbrv_flow(fwp, tvars):
     """The the GBRV flow: relaxation + EOS computation."""
     from pseudo_dojo.refdata.gbrv.gbrvworks import GbrvFactory
     factory = GbrvFactory()
@@ -73,7 +74,7 @@ def itest_gbrv_flow(fwp):
     struct_types = ["fcc"] #, "bcc"]
 
     for struct_type in struct_types:
-        work = factory.relax_and_eos_work(pseudo, struct_type, ecut, pawecutdg=pawecutdg)
+        work = factory.relax_and_eos_work(pseudo, struct_type, ecut, pawecutdg=pawecutdg, paral_kgb=tvars.paral_kgb)
         flow.register_work(work)
 
     flow.allocate()
