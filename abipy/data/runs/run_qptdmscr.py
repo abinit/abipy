@@ -1,26 +1,28 @@
 #!/usr/bin/env python
 """
-This example shows how to compute the SCR file by splitting the calculation
+This example shows how to compute the SCR file by splitting the calculation of the SCR file
 over q-points with the input variables nqptdm and qptdm.
 """
 from __future__ import division, print_function
 
 import sys
+import os
 import abipy.abilab as abilab
 import abipy.data as data  
 
-from abipy.data.runs.qptdm_workflow import *
-
 
 def all_inputs():
+    """
+    Build the input files of the calculation.
+    Returns: gs_input, nscf_input, scr_input, sigma_input
+    """
     structure = abilab.Structure.from_file(data.cif_file("si.cif"))
     pseudos = data.pseudos("14si.pspnc")
 
-    ecut = ecutwfn = 6
+    ecut = ecutwfn = 4
 
     global_vars = dict(
         ecut=ecut,
-        timopt=-1,
         istwfk="*1",
         paral_kgb=0,
     )
@@ -33,7 +35,7 @@ def all_inputs():
 
     # This grid is the most economical, but does not contain the Gamma point.
     gs_kmesh = dict(
-        ngkpt=[2,2,2],
+        ngkpt=[2, 2, 2],
         shiftk=[0.5, 0.5, 0.5,
                 0.5, 0.0, 0.0,
                 0.0, 0.5, 0.0,
@@ -43,7 +45,7 @@ def all_inputs():
     # This grid contains the Gamma point, which is the point at which
     # we will compute the (direct) band gap. 
     gw_kmesh = dict(
-        ngkpt=[2,2,2],
+        ngkpt=[2, 2, 2],
         shiftk=[0.0, 0.0, 0.0,  
                 0.0, 0.5, 0.5,  
                 0.5, 0.0, 0.5,  
@@ -52,17 +54,15 @@ def all_inputs():
 
     # Dataset 1 (GS run)
     gs.set_kmesh(**gs_kmesh)
-    gs.set_variables(tolvrs=1e-6,
-                     nband=4,
-                    )
+    gs.set_variables(tolvrs=1e-6, nband=4)
 
     # Dataset 2 (NSCF run)
     # Here we select the second dataset directly with the syntax inp[2]
     nscf.set_kmesh(**gw_kmesh)
 
     nscf.set_variables(iscf=-2,
-                       tolwfr=1e-12,
-                       nband=35,
+                       tolwfr=1e-10,
+                       nband=15,
                        nbdbuf=5)
 
     # Dataset3: Calculation of the screening.
@@ -70,7 +70,7 @@ def all_inputs():
 
     scr.set_variables(
         optdriver=3,   
-        nband=8,    
+        nband=6,
         ecutwfn=ecutwfn,   
         symchi=1,
         inclvkb=0,
@@ -81,12 +81,11 @@ def all_inputs():
 
     sigma.set_variables(
             optdriver=4,
-            nband=8,      
+            nband=6,
             ecutwfn=ecutwfn,
             ecuteps=2.0,
-            ecutsigx=4.0,
+            ecutsigx=2.0,
             symsigma=1,
-            #gwcalctyp=20
             )
 
     kptgw = [
@@ -98,7 +97,7 @@ def all_inputs():
           0.00000000E+00,  0.00000000E+00,  0.00000000E+00,
       ]
 
-    bdgw = [1,8]
+    bdgw = [1, 8]
 
     sigma.set_kptgw(kptgw, bdgw)
 
@@ -106,6 +105,11 @@ def all_inputs():
 
 
 def qptdm_flow(options):
+    """
+    Construct the flow for G0W0 calculations.
+    The calculation of the SCR file is split into nqptdm independent calculations.
+    Partial SCR files are then merged with mrgddb before starting the sigma run.
+    """
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
     if not options.workdir: 
@@ -114,9 +118,11 @@ def qptdm_flow(options):
     # Instantiate the TaskManager.
     manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
 
+    # Build the input files for GS, NSCF, SCR and SIGMA runs.
     gs, nscf, scr_input, sigma_input = all_inputs()
 
-    return g0w0_flow_with_qptdm(workdir, manager, gs, nscf, scr_input, sigma_input)
+    # Construct the flow.
+    return abilab.G0W0WithQptdmFlow(workdir, manager, gs, nscf, scr_input, sigma_input)
 
 
 @abilab.flow_main
