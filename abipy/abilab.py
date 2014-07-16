@@ -20,7 +20,7 @@ from pymatgen.io.gwwrapper.convergence import test_conv
 from abipy.core import constants
 from abipy.core.structure import Structure, StructureModifier
 from abipy.tools import which
-from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
+from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen, AnaddbInput
 from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter, SIGRES_Plotter
 from abipy.phonons import PhononBands, PHDOS_Reader, PHDOS_File
 

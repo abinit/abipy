@@ -123,6 +123,7 @@ def itest_g0w0_flow(fwp, tvars):
 
 
 def itest_g0w0qptdm_flow(fwp, tvars):
+    """Integration test for G0W0WithQptdmFlow."""
     scf, nscf, scr, sig = make_g0w0_inputs(ngkpt=[2, 2, 2], tvars=tvars)
 
     flow = abilab.G0W0WithQptdmFlow(fwp.workdir, fwp.manager, scf, nscf, scr, sig)

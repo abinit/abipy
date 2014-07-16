@@ -12,6 +12,7 @@ import itertools
 import copy
 import abc
 import numpy as np
+import pymatgen.core.units as units
 
 from pymatgen.io.abinitio.pseudos import PseudoTable, Pseudo
 #from pymatgen.io.abinitio.strategies import select_pseudos
@@ -32,6 +33,7 @@ __all__ = [
     "LdauParams",
     "LexxParams",
     "input_gen",
+    "AnaddbInput",
 ]
 
 # Variables that must have a unique value throughout all the datasets.
@@ -499,7 +501,7 @@ class AbiInput(Input):
         idt = 0
         for names, values in zip(varnames, values):
             idt += 1
-            self[idt].set_variables(**{k:v for k, v in zip(names, values)})
+            self[idt].set_variables(**{k: v for k, v in zip(names, values)})
         
         if idt != self.ndtset:
             raise self.Error("The number of configurations must equal ndtset while %d != %d" % (idt, self.ndtset))
@@ -566,24 +568,7 @@ class AbiInput(Input):
             self[idt].set_kptgw(kptgw, bdgw)
 
 
-# TODO this should be the "actual" input file!
-class Dataset(collections.Mapping):
-    """
-    This object stores the ABINIT variables for a single dataset.
-    """
-    Error = AbinitInputError
-
-    def __init__(self, index, dt0, *args, **kwargs):
-        self.vars = collections.OrderedDict(*args, **kwargs)
-        self._index = index
-        self._dt0 = dt0
-
-    def __repr__(self):
-        "<%s at %s>" % self.__class__.__name__, id(self)
-
-    def __str__(self):
-        return self.to_string()
-
+class MappingMixin(collections.Mapping):
     def __len__(self):
         return self.vars
 
@@ -598,10 +583,6 @@ class Dataset(collections.Mapping):
 
     def __contains__(self, key):
         return key in self.vars
-
-    def deepcopy(self):
-        """Deepcopy of the `Dataset`"""
-        return copy.deepcopy(self)
 
     def keys(self):
         return self.vars.keys()
@@ -634,6 +615,25 @@ class Dataset(collections.Mapping):
         """
         self.vars.update(e, **f)
 
+
+class Dataset(MappingMixin):
+    """
+    This object stores the ABINIT variables for a single dataset.
+    """
+    # TODO this should be the "actual" input file
+    Error = AbinitInputError
+
+    def __init__(self, index, dt0, *args, **kwargs):
+        self.vars = collections.OrderedDict(*args, **kwargs)
+        self._index = index
+        self._dt0 = dt0
+
+    def __repr__(self):
+        "<%s at %s>" % (self.__class__.__name__, id(self))
+
+    def __str__(self):
+        return self.to_string()
+
     @property
     def index(self):
         """The index of the dataset within the input."""
@@ -658,6 +658,10 @@ class Dataset(collections.Mapping):
         all_vars.update(self.vars)
         return all_vars.copy()
 
+    def deepcopy(self):
+        """Deepcopy of the `Dataset`"""
+        return copy.deepcopy(self)
+
     #@property
     #def geoformat(self):
     #    """
@@ -679,7 +683,7 @@ class Dataset(collections.Mapping):
 
         Args:
             sortmode:
-                Not available
+                "a" for alphabetical order, None if no sorting is wanterd
             post:
                 String that will be appended to the name of the variables
                 Note that post is usually autodetected when we have multiple datatasets
@@ -706,8 +710,6 @@ class Dataset(collections.Mapping):
         elif sortmode is "a":
             # alphabetical order.
             keys = sorted(self.keys())
-        #elif sortmode is "t": TODO
-            # group variables by topic
         else:
             raise ValueError("Unsupported value for sortmode %s" % str(sortmode))
 
@@ -828,8 +830,7 @@ class Dataset(collections.Mapping):
         self.set_variables(ngkpt=ngkpt,
                            kptopt=kptopt,
                            nshiftk=len(shiftk),
-                           shiftk=shiftk,
-                           )
+                           shiftk=shiftk)
 
     def set_autokmesh(self, nksmall, kptopt=1):
         """
@@ -847,8 +848,7 @@ class Dataset(collections.Mapping):
         self.set_variables(ngkpt=ngkpt,
                            kptopt=kptopt,
                            nshiftk=len(shiftk),
-                           shiftk=shiftk,
-                           )
+                           shiftk=shiftk)
 
     def set_kpath(self, ndivsm, kptbounds=None, iscf=-2):
         """
@@ -870,8 +870,7 @@ class Dataset(collections.Mapping):
         self.set_variables(kptbounds=kptbounds,
                            kptopt=-(len(kptbounds)-1),
                            ndivsm=ndivsm,
-                           iscf=iscf,
-                           )
+                           iscf=iscf)
 
     def set_kptgw(self, kptgw, bdgw):
         """
@@ -893,8 +892,7 @@ class Dataset(collections.Mapping):
 
         self.set_variables(kptgw=kptgw,
                            nkptgw=nkptgw,
-                           bdgw=np.reshape(bdgw, (nkptgw, 2)),
-                           )
+                           bdgw=np.reshape(bdgw, (nkptgw, 2)))
 
 
 class LujForSpecie(collections.namedtuple("LdauForSpecie", "l u j unit")):
@@ -1001,7 +999,7 @@ class LdauParams(object):
         return dict(
             usepawu=self.usepawu,
             lpawu=" ".join(map(str, lpawu)),
-            upawu=" ".join(map(str, upawu))  + " eV",
+            upawu=" ".join(map(str, upawu)) + " eV",
             jpawu=" ".join(map(str, jpawu)) + " eV",
         )
 
@@ -1066,9 +1064,8 @@ class LexxParams(object):
             l = self._lexx_for_symbol.get(symbol, -1)
             lexx_typat.append(int(l)) 
 
-        return dict(
-            useexexch=1,
-            lexexch=" ".join(map(str, lexx_typat)))
+        return dict(useexexch=1,
+                    lexexch=" ".join(map(str, lexx_typat)))
 
 
 def input_gen(inp, **kwargs):
@@ -1106,7 +1103,7 @@ def input_gen(inp, **kwargs):
 
 def product_dict(d):
     """
-    This function receives a dictionary where each key defines a list of items or a simple scalar.
+    This function receives a dictionary d where each key defines a list of items or a simple scalar.
     It constructs the Cartesian product of the values (equivalent to nested for-loops),
     and returns a list of dictionaries with the values that would be used inside the loop.
 
@@ -1145,3 +1142,210 @@ def product_dict(d):
         vars_prod.append(dprod)
 
     return vars_prod
+
+
+class AnaddbInput(MappingMixin):
+    #TODO: Abstract interface to that we can provide
+    # tools for AbinitInput and AnaddbInput
+    #deepcopy
+    #removevariable
+    def __init__(self, structure, comment="", *args, **kwargs):
+        """
+        Args:
+            structure:
+                Crystalline structure.
+            comment:
+                Optional string with a comment that will be placed at the beginning of the file.
+        """
+        self._structure = structure
+        self.comment = comment
+        self.vars = collections.OrderedDict(*args, **kwargs)
+
+    @classmethod
+    def phbands_and_dos(cls, structure, ngqpt, ndivsm, nqsmall, q1shft=(0,0,0),
+                        qptbounds=None, asr=1, chneut=0, dipdip=1, dos_method="tetra", *args, **kwargs):
+        """
+        Return an anaddb input file for the computation of phonon bands and phonon DOS.
+
+
+        Args:
+            Structure:
+                Structure object
+            ngqpt:
+                Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
+            ndism:
+            nqsmall:
+            q1shft:
+                Shifts used for the coarse Q-mesh
+            qptbounds
+            asr, chneut, dipdp:
+                Anaddb input variable. See official documentation.
+            dos_method:
+                Possible choices: "tetra" or "gaussian" or "gaussian:0.001 eV".
+                In the later case, the value 0.001 eV is used as gaussian broadening
+        """
+        dosdeltae, dossmear = None, None
+
+        if dos_method == "tetra":
+            prtdos = 2
+        elif "gaussian" in dos_method:
+            prtdos = 1
+            i = dos_method.find(":")
+            if i != -1:
+                value, eunit = dos_method[i+1:].split()
+                dossmear = units.Energy(float(value), eunit).to("Ha")
+        else:
+            raise ValueError("Wrong value for dos_method: %s" % dos_method)
+
+        new = cls(structure, comment="ANADB input for phonon bands and DOS", *args, **kwargs)
+
+        new.set_qpath(ndivsm, qptbounds=qptbounds)
+        new.set_autoqmesh(nqsmall)
+
+        q1shft = np.reshape(q1shft, (-1, 3))
+
+        new.set_variables(
+            ifcflag=1,
+            ngqpt=np.array(ngqpt),
+            q1shft=q1shft,
+            nqshft=len(q1shft),
+            asr=asr,
+            chneut=chneut,
+            diddip=dipdip,
+            prtdos=prtdos,
+            dosdeltae=dosdeltae,
+            dossmear=dossmear,
+        )
+
+        return new
+
+    @property
+    def structure(self):
+        return self._structure
+
+    def __repr__(self):
+        return "<%s at %s>" % (self.__class__.__name__, id(self))
+
+    def __str__(self):
+        return self.to_string()
+
+    def make_input(self):
+        return self.to_string()
+
+    def to_string(self, sortmode=None):
+        """
+        String representation.
+
+        Args:
+            sortmode:
+                "a" for alphabetical order, None if no sorting is wanterd
+        """
+        lines = []
+        app = lines.append
+
+        if self.comment:
+            app("# " + self.comment.replace("\n", "\n#"))
+
+        if sortmode is None:
+            # no sorting.
+            keys = self.keys()
+        elif sortmode is "a":
+            # alphabetical order.
+            keys = sorted(self.keys())
+        else:
+            raise ValueError("Unsupported value for sortmode %s" % str(sortmode))
+
+        for varname in keys:
+            value = self[varname]
+            app(str(InputVariable(varname, value)))
+
+        return "\n".join(lines)
+
+    def set_variable(self, varname, value):
+        """Set a single variable."""
+        if varname in self:
+            try:
+                iseq = (self[varname] == value)
+                iseq = np.all(iseq)
+            except ValueError:
+                # array like.
+                iseq = np.allclose(self[varname], value)
+            else:
+                iseq = False
+
+            if not iseq:
+                msg = "%s is already defined with a different value:\nOLD:\n %s,\nNEW\n %s" % (
+                    varname, str(self[varname]), str(value))
+                warnings.warn(msg)
+
+        # TODO
+        # Check if varname is in the internal database.
+        #if not is_anaddbvar(varname):
+        #    raise UnknownVariable("%s is not a valid ANADDB variable." % varname)
+
+        self[varname] = value
+
+    def set_variables(self, **vars):
+        """Set the value of the variables provied in the dictionary **vars"""
+        for varname, varvalue in vars.items():
+            self.set_variable(varname, varvalue)
+
+    def add_extra_abivars(self, abivars):
+        """
+        This method is needed not to break the API used for strategies
+
+        Connection is explicit via the input file
+        since we can pass the paths of the output files
+        produced by the previous runs.
+        """
+
+    def set_qpath(self, ndivsm, qptbounds=None):
+        """
+        Set the variables for the computation of the phonon band structure.
+
+        Args:
+            ndivsm:
+                Number of divisions for the smallest segment.
+            qptbounds
+                q-points defining the path in k-space.
+                If None, we use the default high-symmetry k-path
+                defined in the pymatgen database.
+        """
+        if qptbounds is None:
+            qptbounds = self.structure.calc_kptbounds()
+
+        qptbounds = np.reshape(qptbounds, (-1, 3))
+
+        self.set_variables(
+            ndivsm=ndivsm,
+            nqpath=len(qptbounds),
+            qpath=qptbounds,
+        )
+
+    def set_autoqmesh(self, nqsmall):
+        """
+        Set the variabls nqpt for the sampling of the BZ.
+
+        Args:
+            nqsmall:
+                Number of q-points used to sample the smallest lattice vector.
+        """
+        self.set_variables(ng2qpt=self.structure.calc_ngkpt(nqsmall))
+
+
+if __name__ == "__main__":
+    import abipy.data as abidata
+    structure = abidata.structure_from_ucell("Si")
+    inp = AnaddbInput(structure, comment="hello anaddb", brav=1)
+    print(str(inp), repr(inp))
+
+    ndivsm = 1; nqsmall = 3; ngqpt = (4,4,4)
+    inp2 = AnaddbInput.phbands_and_dos(structure, ngqpt, ndivsm, nqsmall,
+                                       qptbounds=None, asr=1, chneu=1, dipdip=1, method="tetra")
+
+    print(inp2)
+
+    inp3 = AnaddbInput.phbands_and_dos(structure, ngqpt, ndivsm, nqsmall,
+                                       qptbounds=None, asr=1, chneu=1, dipdip=1, method="gaussian:0.001 eV")
+
+    print(inp3)

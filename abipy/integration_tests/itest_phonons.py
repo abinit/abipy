@@ -22,7 +22,7 @@ def scf_ph_inputs(tvars):
     structure = abidata.structure_from_ucell("AlAs")
     pseudos = abidata.pseudos("13al.981214.fhi", "33as.pspnc")
 
-    # List of q-points for the phonon calculation.
+    # List of q-points for the phonon calculation (4,4,4) mesh.
     qpoints = [
              0.00000000E+00,  0.00000000E+00,  0.00000000E+00,
              2.50000000E-01,  0.00000000E+00,  0.00000000E+00,
@@ -118,13 +118,37 @@ def itest_phonon_flow(fwp, tvars):
                                      cwd=flow.outdir.path)
     assert ddb_path == out_ddb
 
-    # TODO: Call Anaddb
+    # Build new workflow with Anaddb tasks.
     # Construct a manager with mpi_ncpus==1 since  anaddb do not support mpi_ncpus > 1 (except in elphon)
     shell_manager = fwp.manager.to_shell_manager(mpi_ncpus=1)
-    #anaddb_input = None
-    #atask = abilab.AnaddbTask(anaddb_input, ddb_node=ddb_path, manager=shell_manager)
-    #atask.start_and_wait()
-    #assert atask.status == atask.S_DONE
-    #atask.check_status()
-    #assert atask.status == atask.S_OK
+    awork = abilab.Workflow(manager=shell_manager)
+
+    # Phonons bands and DOS with gaussian method
+    anaddb_input = abilab.AnaddbInput.phbands_and_dos(
+        scf_input.structure, ngqpt=(4, 4, 4), ndivsm=5, nqsmall=10, dos_method="gaussian: 0.001 eV")
+
+    atask = abilab.AnaddbTask(anaddb_input, ddb_node=ddb_path, manager=shell_manager)
+    awork.register(atask)
+
+    # Phonons bands and DOS with gaussian method
+    anaddb_input = abilab.AnaddbInput.phbands_and_dos(
+        scf_input.structure, ngqpt=(4, 4, 4), ndivsm=5, nqsmall=10, dos_method="tetra")
+
+    atask = abilab.AnaddbTask(anaddb_input, ddb_node=ddb_path, manager=shell_manager)
+    awork.register(atask)
+
+    flow.register_work(awork)
+    flow.allocate()
+    flow.build()
+
+    for i, atask in enumerate(awork):
+        print("about to run anaddb task: %d" % i)
+        atask.start_and_wait()
+        assert atask.status == atask.S_DONE
+        atask.check_status()
+        assert atask.status == atask.S_OK
+
+        # TODO: output files are not produced in outdir
+        #assert len(atask.outdir.list_filepaths(wildcard="*PHBST.nc")) == 1
+        #assert len(atask.outdir.list_filepaths(wildcard="*PHDOS.nc")) == 1
 
