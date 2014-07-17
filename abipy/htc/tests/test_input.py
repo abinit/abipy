@@ -6,6 +6,7 @@ import abipy.data as abidata
 from abipy.core.testing import AbipyTest
 from abipy.htc.input import *
 
+
 class AbiInputTest(AbipyTest):
 
     def test_si_input(self):
@@ -28,15 +29,15 @@ class AbiInputTest(AbipyTest):
         # One can create a dictionary mapping keywords to values 
         unit_cell = {
             "acell": 3*[10.217],       
-            'rprim': [ [.0, .5, .5],
-                       [.5, .0, .5],
-                       [.5, .5, .0]],
+            'rprim': [[.0, .5, .5],
+                      [.5, .0, .5],
+                      [.5, .5, .0]],
             'ntypat': 1,
             'znucl': [14,],
             'natom': 2,
             'typat': [1, 1],
-            'xred': [ [.0, .0, .0],
-                      [.25,.25,.25] ]
+            'xred': [[.0, .0, .0],
+                     [.25,.25,.25]]
         }
 
         # and set the variables in the input file with the call:
@@ -73,7 +74,7 @@ class AbiInputTest(AbipyTest):
 
         # pseudo file must exist.
         with self.assertRaises(AbinitInputError):
-            inp = AbiInput(pseudos="foobar.pspnc", pseudo_dir=abidata.pseudo_dir, ndtset=2)
+            AbiInput(pseudos="foobar.pspnc", pseudo_dir=abidata.pseudo_dir, ndtset=2)
 
         tsmear_list = [0.005, 0.01]
         ngkpt_list = [[4,4,4], [8,8,8]]

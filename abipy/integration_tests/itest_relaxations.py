@@ -17,10 +17,10 @@ def ion_relaxation(tvars, ntime=50):
     structure = abilab.Structure.from_file(cif_file)
 
     # Perturb the structure (random perturbation of 0.1 Angstrom)
-    structure.perturb(distance=0.1)
+    structure.perturb(distance=0.02)
 
     global_vars = dict(
-        ecut=4,
+        ecut=6,
         ngkpt=[2,2,2],
         shiftk=[0,0,0],
         nshiftk=1,
@@ -52,12 +52,12 @@ def make_ion_ioncell_inputs(tvars):
     structure = abilab.Structure.from_file(cif_file)
 
     # Perturb the structure (random perturbation of 0.1 Angstrom)
-    structure.perturb(distance=0.1)
+    structure.perturb(distance=0.01)
 
     pseudos = abidata.pseudos("14si.pspnc")
 
     global_vars = dict(
-        ecut=4,
+        ecut=6,
         ngkpt=[4,4,4],
         shiftk=[0,0,0],
         nshiftk=1,
@@ -106,7 +106,7 @@ def itest_simple_atomic_relaxation(fwp, tvars):
     # Build the flow
     flow = abilab.AbinitFlow(fwp.workdir, fwp.manager)
 
-    ion_input = ion_relaxation(tvars, ntime=5)
+    ion_input = ion_relaxation(tvars, ntime=2)
     t0 = flow.register_task(ion_input, task_class=abilab.RelaxTask)
 
     flow.allocate()
@@ -121,7 +121,13 @@ def itest_simple_atomic_relaxation(fwp, tvars):
 
     # Remove ntime from the input so that the next run will
     # use the default value ntime=50 and we can converge the calculation.
-    t0.strategy.remove_extra_abivars(["ntime"])
+    # This one does not work
+    #t0.strategy.remove_extra_abivars(["ntime"])
+    t0.strategy.add_extra_abivars(dict(ntime=50))
+    #t0.strategy.abinit_input.pop("ntime")
+    #t0.strategy.abinit_input.remove_variables("ntime")
+    #t0.strategy.abinit_input.set_variables(ntime=50)
+    print("new input:\n", t0.strategy.abinit_input)
     t0.build()
     assert t0.restart()
     t0.wait()

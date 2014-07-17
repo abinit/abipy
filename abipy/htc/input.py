@@ -15,7 +15,6 @@ import numpy as np
 import pymatgen.core.units as units
 
 from pymatgen.io.abinitio.pseudos import PseudoTable, Pseudo
-#from pymatgen.io.abinitio.strategies import select_pseudos
 from abipy.core import Structure
 from abipy.tools import is_string, list_strings
 from pymatgen.core.units import Energy
@@ -129,10 +128,6 @@ class Input(object):
 
 class AbinitInputError(Exception):
     """Base error class for exceptions raised by `AbiInput`"""
-
-
-class UnknownVariable(AbinitInputError):
-    """Raises when we receive a variable that is not registered in abivars."""
 
 
 class AbiInput(Input):
@@ -569,26 +564,48 @@ class AbiInput(Input):
 
 
 class MappingMixin(collections.Mapping):
+    """
+    Mixin class implementing the mapping protocol. Useful to avoid boilerplate code if you want
+    to define a object that behaves as a Mapping but without inheriting from dict or similar classes
+    because you don't want to expose/support all the methods of dict.
+
+    Client code must initialize a Mapping object either in new or in init and bound it to obj._mapping_mixin_
+    The implemention of the Mapping interface is delegated to _mapping_mixin_
+
+    .. Example:
+
+    >>> class Foo(MappingMixin):
+    ...     def __init__(self, attr, **kwargs):
+    ...         self._mapping_mixin_ = kwargs
+    ...         self.attr = attr
+    >>> obj = Foo(attr=1, spam=2)
+    >>> obj.attr, obj["spam"]
+    (1, 2)
+    >>> obj.pop("spam")
+    2
+    >>> len(obj), "spam" in obj
+    (0, False)
+    """
     def __len__(self):
-        return self.vars
+        return len(self._mapping_mixin_)
 
     def __iter__(self):
-        return self.vars.__iter__()
+        return self._mapping_mixin_.__iter__()
 
     def __getitem__(self, key):
-        return self.vars[key]
+        return self._mapping_mixin_[key]
 
     def __setitem__(self, key, value):
-        self.vars[key] = value
+        self._mapping_mixin_[key] = value
 
     def __contains__(self, key):
-        return key in self.vars
+        return key in self._mapping_mixin_
 
     def keys(self):
-        return self.vars.keys()
+        return self._mapping_mixin_.keys()
 
     def items(self):
-        return self.vars.items()
+        return self._mapping_mixin_.items()
 
     def get(self, value, default=None):
         try:
@@ -602,9 +619,9 @@ class MappingMixin(collections.Mapping):
         If key is not found, d is returned if given, otherwise KeyError is raised
         """
         if d:
-            return self.vars.pop(k, d[0])
+            return self._mapping_mixin_.pop(k, d[0])
         else:
-            return self.vars.pop(k)
+            return self._mapping_mixin_.pop(k)
 
     def update(self, e, **f):
         """
@@ -613,7 +630,7 @@ class MappingMixin(collections.Mapping):
         If E present and lacks .keys() method, does:     for (k, v) in E: D[k] = v
         In either case, this is followed by: for k in F: D[k] = F[k]
         """
-        self.vars.update(e, **f)
+        self._mapping_mixin_.update(e, **f)
 
 
 class Dataset(MappingMixin):
@@ -624,7 +641,7 @@ class Dataset(MappingMixin):
     Error = AbinitInputError
 
     def __init__(self, index, dt0, *args, **kwargs):
-        self.vars = collections.OrderedDict(*args, **kwargs)
+        self._mapping_mixin_ = collections.OrderedDict(*args, **kwargs)
         self._index = index
         self._dt0 = dt0
 
@@ -633,6 +650,10 @@ class Dataset(MappingMixin):
 
     def __str__(self):
         return self.to_string()
+
+    @property
+    def vars(self):
+        return self._mapping_mixin_
 
     @property
     def index(self):
@@ -744,7 +765,11 @@ class Dataset(MappingMixin):
         self._comment = comment
 
     def set_variable(self, varname, value):
-        """Set a single variable."""
+        """Set a the value of a variable."""
+        # Check if varname is in the internal database.
+        if not is_abivar(varname):
+            raise self.Error("%s is not a valid ABINIT variable." % varname)
+
         if varname in self:
             try: 
                 iseq = (self[varname] == value)
@@ -759,10 +784,6 @@ class Dataset(MappingMixin):
                 msg = "%s is already defined with a different value:\nOLD:\n %s,\nNEW\n %s" % (
                     varname, str(self[varname]), str(value))
                 warnings.warn(msg)
-
-        # Check if varname is in the internal database.
-        if not is_abivar(varname):
-            raise UnknownVariable("%s is not a valid ABINIT variable." % varname)
 
         self[varname] = value
 
@@ -787,7 +808,10 @@ class Dataset(MappingMixin):
     def remove_variables(self, keys):
         """Remove the variables listed in keys."""
         for key in list_strings(keys):
-            self.pop(key, None)
+            if key not in self:
+                raise KeyError("key: %s not in self:\n %s" % (key, list(self.keys())))
+            #self.pop(key, None)
+            self.pop(key)
 
     @property
     def structure(self):
@@ -802,8 +826,8 @@ class Dataset(MappingMixin):
             return self._structure
 
     def set_structure(self, structure):
-        if hasattr(self, "_structure") and self._structure != structure:
-            raise self.Error("Dataset object already has a structure object, cannot overwrite")
+        #if hasattr(self, "_structure") and self._structure != structure:
+        #    raise self.Error("Dataset object already has a structure object, cannot overwrite")
 
         self._structure = structure
         if structure is None:
@@ -1064,8 +1088,7 @@ class LexxParams(object):
             l = self._lexx_for_symbol.get(symbol, -1)
             lexx_typat.append(int(l)) 
 
-        return dict(useexexch=1,
-                    lexexch=" ".join(map(str, lexx_typat)))
+        return dict(useexexch=1, lexexch=" ".join(map(str, lexx_typat)))
 
 
 def input_gen(inp, **kwargs):
@@ -1159,29 +1182,38 @@ class AnaddbInput(MappingMixin):
         """
         self._structure = structure
         self.comment = comment
-        self.vars = collections.OrderedDict(*args, **kwargs)
+        self._mapping_mixin_ = collections.OrderedDict(*args, **kwargs)
+
+    @property
+    def vars(self):
+        return self._mapping_mixin_
 
     @classmethod
     def phbands_and_dos(cls, structure, ngqpt, ndivsm, nqsmall, q1shft=(0,0,0),
                         qptbounds=None, asr=1, chneut=0, dipdip=1, dos_method="tetra", *args, **kwargs):
         """
-        Return an anaddb input file for the computation of phonon bands and phonon DOS.
-
+        Build an anaddb input file for the computation of phonon bands and phonon DOS.
 
         Args:
             Structure:
                 Structure object
             ngqpt:
                 Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
-            ndism:
+            ndivsm:
+                Used to generate a normalized path for the phonon bands.
+                If gives the number of divisions for the smallest segment of the path.
             nqsmall:
+                Used to generate the (dense) mesh for the DOS.
+                It defines the number of q-points used to sample the smallest lattice vector.
             q1shft:
                 Shifts used for the coarse Q-mesh
             qptbounds
+                Boundaries of the path. If None, the path is generated from an internal database
+                depending on the input structure.
             asr, chneut, dipdp:
                 Anaddb input variable. See official documentation.
             dos_method:
-                Possible choices: "tetra" or "gaussian" or "gaussian:0.001 eV".
+                Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening
         """
         dosdeltae, dossmear = None, None
@@ -1339,7 +1371,12 @@ if __name__ == "__main__":
     inp = AnaddbInput(structure, comment="hello anaddb", brav=1)
     print(str(inp), repr(inp))
 
-    ndivsm = 1; nqsmall = 3; ngqpt = (4,4,4)
+    assert "brav" in inp
+    assert inp["brav"] == 1
+
+    ndivsm = 1
+    nqsmall = 3
+    ngqpt = (4, 4, 4)
     inp2 = AnaddbInput.phbands_and_dos(structure, ngqpt, ndivsm, nqsmall,
                                        qptbounds=None, asr=1, chneu=1, dipdip=1, method="tetra")
 
