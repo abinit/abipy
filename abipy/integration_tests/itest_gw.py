@@ -197,6 +197,9 @@ def itest_htc_g0w0(fwp, tvars):
     assert fwp.scheduler.num_excs == 0
     assert fwp.scheduler.nlaunch == 4
 
+    # The sigma task should produce a SCR file.
+    assert len(work[2].outdir.list_filepaths(wildcard="*SCR")) == 1
+
     flow.show_status()
     assert flow.all_ok
     assert all(work.finalized for work in flow)
