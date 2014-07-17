@@ -8,7 +8,7 @@ import abipy.data as abidata
 import abipy.abilab as abilab
 
 from abipy.core.testing import has_abinit
-
+from pymatgen.io.abinitio.calculations import bandstructure
 
 # Tests in this module require abinit >= 7.9.0
 pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
@@ -220,5 +220,50 @@ def itest_bandstructure_schedflow(fwp, tvars):
     assert flow.all_ok
     assert all(work.finalized for work in flow)
     #assert 0
+
+
+def itest_htc_bandstructure(fwp, tvars):
+    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
+
+    scf_kppa = 40
+    nscf_nband = 6
+    ndivsm = 5
+    #dos_ngkpt = [4,4,4]
+    #dos_shiftk = [0.1, 0.2, 0.3]
+
+    extra_abivars = dict(
+        ecut=2,
+        accesswff=3,
+        istwfk="*1",
+        paral_kgb=tvars.paral_kgb,
+    )
+
+    # Initialize the flow.
+    # FIXME  Abistructure is not pickleable with protocol -1
+    flow = abilab.AbinitFlow(workdir=fwp.workdir, manager=fwp.manager)
+
+    work = bandstructure(structure, abidata.pseudos("14si.pspnc"), scf_kppa, nscf_nband, ndivsm,
+                         spin_mode="unpolarized", smearing=None, **extra_abivars)
+
+    #dos_kppa = 10
+    #bands = bandstructure("hello_dos", runmode, structure, pseudos, scf_kppa, nscf_nband,
+    #                      ndivsm, accuracy="normal", spin_mode="polarized",
+    #                      smearing="fermi_dirac:0.1 eV", charge=0.0, scf_solver=None,
+    #                      dos_kppa=dos_kppa)
+
+    flow.register_work(work)
+    flow.allocate()
+    flow.build_and_pickle_dump()
+
+    fwp.scheduler.add_flow(flow)
+    fwp.scheduler.start()
+    assert fwp.scheduler.num_excs == 0
+    assert fwp.scheduler.nlaunch == 2
+
+    flow.show_status()
+    assert flow.all_ok
+    assert all(work.finalized for work in flow)
+
+
 
 

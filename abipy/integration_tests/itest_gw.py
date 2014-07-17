@@ -5,8 +5,8 @@ import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
 
+from pymatgen.io.abinitio.calculations import g0w0_with_ppmodel
 from abipy.core.testing import has_abinit
-
 
 # Tests in this module require abinit >= 7.9.0
 pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
@@ -159,6 +159,47 @@ def itest_g0w0qptdm_flow(fwp, tvars):
     flow.show_status()
     assert all(work.finalized for work in flow)
     assert flow.all_ok
+
+
+def itest_htc_g0w0(fwp, tvars):
+    """G0W0 corrections with the HT interface."""
+    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
+    pseudos = abidata.pseudos("14si.pspnc")
+
+    flow = abilab.AbinitFlow(fwp.workdir, fwp.manager)
+
+    scf_kppa = 10
+    nscf_nband = 10
+    #nscf_ngkpt = [4,4,4]
+    #nscf_shiftk = [0.0, 0.0, 0.0]
+    ecut, ecuteps, ecutsigx = 4, 2, 3
+    #scr_nband = 50
+    #sigma_nband = 50
+
+    extra_abivars = dict(
+        ecut=ecut,
+        istwfk="*1",
+        paral_kgb=tvars.paral_kgb,
+    )
+
+    work = g0w0_with_ppmodel(structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx,
+                             accuracy="normal", spin_mode="unpolarized", smearing=None,
+                             ppmodel="godby", charge=0.0, inclvkb=2, sigma_nband=None, gw_qprange=1,
+                             scr_nband=None, **extra_abivars)
+
+    flow.register_work(work)
+    flow.allocate()
+    flow.connect_signals()
+
+    #flow.build_and_pickle_dump()
+    fwp.scheduler.add_flow(flow)
+    fwp.scheduler.start()
+    assert fwp.scheduler.num_excs == 0
+    assert fwp.scheduler.nlaunch == 4
+
+    flow.show_status()
+    assert flow.all_ok
+    assert all(work.finalized for work in flow)
 
 
 #def itest_bse_with_mdf(fwp, tvars):
