@@ -20,7 +20,8 @@ before_install:
   #- pip install scipy
 
 # command to install dependencies
-install: "pip install -r requirements.txt --use-mirrors"
+#install: "pip install -r requirements.txt --use-mirrors"
+install: "pip install -r requirements.txt"
 # This is needed, otherwise, nosetests will import try to import wx.
 before_script:
     - rm abipy/gui/__init__.py 

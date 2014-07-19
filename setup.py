@@ -138,7 +138,7 @@ def find_package_data():
     package_data = {
         'abipy.data': ['*', 'pseudos/*', 'runs/*', 'cifs/*', 'benchmarks/*'],
         'abipy.data.runs': ['data_*/outdata/*'],
-        'abipy.htc': ['anaddb_vars.json'],
+        'abipy.htc': ["abinit_vars.json", 'anaddb_vars.json'],
         'abipy.gui.awx': ['images/*'],
     }
     return package_data
