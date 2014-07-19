@@ -190,14 +190,14 @@ def cleanup():
 # List of external packages we rely on.
 # Note setup install will download them from Pypi if they are not available.
 install_requires = [
-    "termcolor>=1.1.0",
-    "apscheduler>=2.1.1",
+    "termcolor",
+    "apscheduler",
     "PyDispatcher",
     "numpy",
     #"numpy>=1.8",  # We need this one for the ufuncs
-    "scipy>=0.10",
+    "scipy",
     #"matplotlib>=1.1",
-    "pyyaml>=3.1.0",
+    "pyyaml",
     "netCDF4",
     "pymatgen>=2.9.0",
     #"fabric",

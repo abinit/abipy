@@ -2,9 +2,9 @@ language: python
 python:
   - "2.7"
 before_install:
+  - pip install -Iv https://bitbucket.org/jamesrhester/pycifrw/downloads/PyCifRW-3.6.1.tar.gz
   - sudo apt-get install -qq libhdf5-serial-dev hdf5-tools 
   - sudo apt-get install libnetcdf-dev
-  - pip install -Iv https://bitbucket.org/jamesrhester/pycifrw/downloads/PyCifRW-3.6.1.tar.gz
   - pip install -Iv https://netcdf4-python.googlecode.com/files/netCDF4-1.0.2.tar.gz
   #- pip install netCDF4
   #- sudo apt-get update -qq
