@@ -183,6 +183,18 @@ class LdauLexxTest(AbipyTest):
             lexx_params.lexx_for_symbol("Ni", l=1)
 
 
-if __name__ == "__main__": 
+
+class AnaddbInputTest(AbipyTest):
+
+    def test_phbands_and_dos(self):
+        """Test phbands_and_dos constructor."""
+        structure = abidata.structure_from_ucell("Si")
+        inp = AnaddbInput(structure, comment="hello anaddb", brav=1)
+        assert "brav" in inp
+        assert inp["brav"] == 1
+        assert inp.get("brav") == 1
+
+
+if __name__ == "__main__":
     import unittest
     unittest.main()

@@ -20,7 +20,7 @@ from pymatgen.core.units import Energy
 from abipy.core import Structure
 from abipy.tools import is_string, list_strings
 from abipy.htc.variable import InputVariable
-from abipy.htc.abivars import is_abivar
+from abipy.htc.abivars import is_abivar, is_anaddb_var
 
 import logging
 logger = logging.getLogger(__file__)
@@ -312,6 +312,10 @@ class AbiInput(Input):
 
         raise ValueError("Cannot extract a unique structure from an input file with multiple datasets!\n" + 
                          "Please DON'T use multiple datasets with different unit cells!")
+
+    def is_abivar(self, varname):
+        """True if varname is a valid Abinit variable."""
+        return is_abivar(varname)
 
     def _dtset2range(self, dtset):
         """
@@ -658,7 +662,7 @@ class Dataset(mixins.MappingMixin):
         if sortmode is None:
             # no sorting.
             keys = self.keys()
-        elif sortmode is "a":
+        elif sortmode == "a":
             # alphabetical order.
             keys = sorted(self.keys())
         else:
@@ -1097,12 +1101,18 @@ def product_dict(d):
     return vars_prod
 
 
+class AnaddbInputError(Exception):
+    """Exceptions raised by AnaddbInput."""
+
+
 class AnaddbInput(mixins.MappingMixin):
     #TODO: Abstract interface to that we can provide
     # tools for AbinitInput and AnaddbInput
     #deepcopy
     #removevariable
-    def __init__(self, structure, comment="", *args, **kwargs):
+    Error = AnaddbInputError
+
+    def __init__(self, structure, comment="", **kwargs):
         """
         Args:
             structure:
@@ -1112,7 +1122,12 @@ class AnaddbInput(mixins.MappingMixin):
         """
         self._structure = structure
         self.comment = comment
-        self._mapping_mixin_ = collections.OrderedDict(*args, **kwargs)
+
+        for k in kwargs:
+            if not self.is_anaddb_var(k):
+                raise self.Error("%s is not a registered Anaddb variable" % k)
+
+        self._mapping_mixin_ = collections.OrderedDict(**kwargs)
 
     @property
     def vars(self):
@@ -1120,7 +1135,7 @@ class AnaddbInput(mixins.MappingMixin):
 
     @classmethod
     def phbands_and_dos(cls, structure, ngqpt, ndivsm, nqsmall, q1shft=(0,0,0),
-                        qptbounds=None, asr=1, chneut=0, dipdip=1, dos_method="tetra", *args, **kwargs):
+                        qptbounds=None, asr=1, chneut=0, dipdip=1, dos_method="tetra", **kwargs):
         """
         Build an anaddb input file for the computation of phonon bands and phonon DOS.
 
@@ -1157,9 +1172,9 @@ class AnaddbInput(mixins.MappingMixin):
                 value, eunit = dos_method[i+1:].split()
                 dossmear = units.Energy(float(value), eunit).to("Ha")
         else:
-            raise ValueError("Wrong value for dos_method: %s" % dos_method)
+            raise cls.Error("Wrong value for dos_method: %s" % dos_method)
 
-        new = cls(structure, comment="ANADB input for phonon bands and DOS", *args, **kwargs)
+        new = cls(structure, comment="ANADB input for phonon bands and DOS", **kwargs)
 
         new.set_qpath(ndivsm, qptbounds=qptbounds)
         new.set_autoqmesh(nqsmall)
@@ -1211,7 +1226,7 @@ class AnaddbInput(mixins.MappingMixin):
         if sortmode is None:
             # no sorting.
             keys = self.keys()
-        elif sortmode is "a":
+        elif sortmode == "a":
             # alphabetical order.
             keys = sorted(self.keys())
         else:
@@ -1240,15 +1255,13 @@ class AnaddbInput(mixins.MappingMixin):
                     varname, str(self[varname]), str(value))
                 warnings.warn(msg)
 
-        # TODO
-        # Check if varname is in the internal database.
-        #if not is_anaddbvar(varname):
-        #    raise UnknownVariable("%s is not a valid ANADDB variable." % varname)
+        if not self.is_anaddbvar(varname):
+            raise self.Error("%s is not a valid ANADDB variable." % varname)
 
         self[varname] = value
 
     def set_variables(self, **vars):
-        """Set the value of the variables provied in the dictionary **vars"""
+        """Set the value of the variables provided in the dictionary **vars"""
         for varname, varvalue in vars.items():
             self.set_variable(varname, varvalue)
 
@@ -1260,6 +1273,10 @@ class AnaddbInput(mixins.MappingMixin):
         since we can pass the paths of the output files
         produced by the previous runs.
         """
+
+    def is_anaddb_var(self, varname):
+        """"True if varname is a valid anaddb variable."""
+        return is_anaddb_var(varname)
 
     def set_qpath(self, ndivsm, qptbounds=None):
         """
@@ -1299,20 +1316,21 @@ if __name__ == "__main__":
     import abipy.data as abidata
     structure = abidata.structure_from_ucell("Si")
     inp = AnaddbInput(structure, comment="hello anaddb", brav=1)
-    print(str(inp), repr(inp))
-
     assert "brav" in inp
     assert inp["brav"] == 1
+    assert inp.get("brav") == 1
+
+    inp = AnaddbInput(structure, foo=1)
 
     ndivsm = 1
     nqsmall = 3
     ngqpt = (4, 4, 4)
-    inp2 = AnaddbInput.phbands_and_dos(structure, ngqpt, ndivsm, nqsmall,
-                                       qptbounds=None, asr=1, chneu=1, dipdip=1, method="tetra")
 
-    print(inp2)
+    inp2 = AnaddbInput.phbands_and_dos(structure, ngqpt, ndivsm, nqsmall,
+                                        asr=0, dos_method="tetra")
+    print(inp2.to_string(sortmode="a"))
+
 
     inp3 = AnaddbInput.phbands_and_dos(structure, ngqpt, ndivsm, nqsmall,
-                                       qptbounds=None, asr=1, chneu=1, dipdip=1, method="gaussian:0.001 eV")
-
-    print(inp3)
+                                           qptbounds=[0,0,0,1,1,1], dos_method="gaussian:0.001 eV")
+    print(inp3.to_string(sortmode="a"))

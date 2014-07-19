@@ -1,8 +1,13 @@
+"""Database with the names of the input variables used in Abinit and in other main programs."""
+
+
+
 # --------------------------------------------------------------------------------
 # Begin computer generated code
 
 # Variable names.
-ABI_VARNAMES = ['accesswff',
+ABI_VARNAMES = [
+ 'accesswff',
  'accuracy',
  'acell',
  'algalch',
