@@ -3,7 +3,6 @@ from __future__ import print_function, division
 
 import collections
 import warnings
-import numpy as np
 
 from abipy.iotools import AbinitNcFile, Has_Structure, Has_ElectronBands
 from abipy.tools import list_strings

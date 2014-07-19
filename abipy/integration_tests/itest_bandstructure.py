@@ -15,7 +15,9 @@ pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit
 
 
 def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
-    """Returns two input files: GS run and NSCF on a high symmetry k-mesh."""
+    """
+    Returns two input files: GS run and NSCF on a high symmetry k-mesh
+    """
     inp = abilab.AbiInput(pseudos=abidata.pseudos(pp_paths), ndtset=2)
     structure = inp.set_structure_from_file(abidata.cif_file("si.cif"))
 
@@ -55,7 +57,7 @@ def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
 
 
 def itest_unconverged_scf(fwp, tvars):
-    """Testing treatment of unconverged GS calculations."""
+    """Test the treatment of unconverged GS calculations."""
     print("tvars:\n %s" % str(tvars))
 
     # Build the SCF and the NSCF input (note nstep to have an unconverged run)
@@ -108,10 +110,11 @@ def itest_unconverged_scf(fwp, tvars):
     assert flow.all_ok
 
 
+
+
 def itest_bandstructure_flow(fwp, tvars):
     """
-    Test the building of a bandstructure flow and autoparal.
-    Simple flow with one dependency: SCF -> NSCF.
+    Test band-structure flow with one dependency: SCF -> NSCF.
     """
     print("tvars:\n %s" % str(tvars))
 
@@ -189,6 +192,10 @@ def itest_bandstructure_flow(fwp, tvars):
     flow.show_status()
     assert flow.all_ok
     assert all(work.finalized for work in flow)
+
+    for task in flow.iflat_tasks():
+        assert len(task.outdir.list_filepaths(wildcard="*GSR.nc")) == 1
+
     #assert 0
 
 
@@ -223,33 +230,28 @@ def itest_bandstructure_schedflow(fwp, tvars):
 
 
 def itest_htc_bandstructure(fwp, tvars):
+    """Test band-structure calculations done with the HTC interface."""
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
 
-    scf_kppa = 40
+    scf_kppa = 20
     nscf_nband = 6
     ndivsm = 5
+    dos_kppa = 40
+    # TODO: Add this options because I don't like the kppa approach
+    # I had to use it because it was the approach used in VaspIO
     #dos_ngkpt = [4,4,4]
     #dos_shiftk = [0.1, 0.2, 0.3]
 
     extra_abivars = dict(
         ecut=2,
-        accesswff=3,
-        istwfk="*1",
         paral_kgb=tvars.paral_kgb,
     )
 
     # Initialize the flow.
-    # FIXME  Abistructure is not pickleable with protocol -1
     flow = abilab.AbinitFlow(workdir=fwp.workdir, manager=fwp.manager)
 
     work = bandstructure(structure, abidata.pseudos("14si.pspnc"), scf_kppa, nscf_nband, ndivsm,
-                         spin_mode="unpolarized", smearing=None, **extra_abivars)
-
-    #dos_kppa = 10
-    #bands = bandstructure("hello_dos", runmode, structure, pseudos, scf_kppa, nscf_nband,
-    #                      ndivsm, accuracy="normal", spin_mode="polarized",
-    #                      smearing="fermi_dirac:0.1 eV", charge=0.0, scf_solver=None,
-    #                      dos_kppa=dos_kppa)
+                         spin_mode="unpolarized", smearing=None, dos_kppa=dos_kppa, **extra_abivars)
 
     flow.register_work(work)
     flow.allocate()
@@ -258,12 +260,31 @@ def itest_htc_bandstructure(fwp, tvars):
     fwp.scheduler.add_flow(flow)
     fwp.scheduler.start()
     assert fwp.scheduler.num_excs == 0
-    assert fwp.scheduler.nlaunch == 2
+    assert fwp.scheduler.nlaunch == 3
 
     flow.show_status()
     assert flow.all_ok
     assert all(work.finalized for work in flow)
 
+    # Test if GSR files are produced and are readable.
+    for i, task in enumerate(work):
+        gsr_path = task.outdir.list_filepaths(wildcard="*GSR.nc")[0]
+        gsr = abilab.abiopen(gsr_path)
+        print(gsr)
+        assert gsr.nsppol == 1
+        assert gsr.structure == structure
+        ebands = gsr.ebands
 
+        # TODO: This does not work yet because GSR files do not contain
+        # enough info to understand if we have a path or a mesh.
+        #if i == 2:
+            # Bandstructure case
+            #assert ebands.has_bzpath
+            #with pytest.raises(ebands.Error):
+            #    ebands.get_edos()
 
+        if i == 3:
+            # DOS case
+            assert ebands.has_bzmesh
+            gsr.bands.get_edos()
 

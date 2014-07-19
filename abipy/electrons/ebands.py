@@ -226,10 +226,16 @@ class StatParams(collections.namedtuple("StatParams", "mean stdev min max")):
             self.mean, self.stdev, self.min, self.max)
 
 
+class ElectronBandsError(Exception):
+    """Exceptions raised by ElectronBands."""
+
+
 class ElectronBands(object):
     """
     This object stores the electronic band structure.
     """
+    Error = ElectronBandsError
+
     def __init__(self, structure, kpoints, eigens, fermie, occfacts, nelect,
                  nband_sk=None, smearing=None, markers=None, widths=None):
         """
@@ -471,7 +477,7 @@ class ElectronBands(object):
             self._widths = collections.OrderedDict()
 
         if not overwrite and key in self.widths:
-            if not np.allclose(widths, self.widths[key]):
+            if not np.allclose(width, self.widths[key]):
                 raise ValueError("Cannot overwrite key %s in data" % key)
 
         if np.any(np.iscomplex(width)):

@@ -457,7 +457,7 @@ class Structure(pymatgen.Structure):
     #    # For each site in self:
     #    # 1) Get the radius of the pseudopotential sphere 
     #    # 2) Get the neighbors of the site (considering the periodic images).
-    #    pseudos = PseudoTable.astable(pseudos)
+    #    pseudos = PseudoTable.as_table(pseudos)
 
     #    max_overlap, ovlp_sites = 0.0, None
 
@@ -668,7 +668,7 @@ class Structure(pymatgen.Structure):
             pseudos:
                 List of `Pseudo` objects or list of pseudopotential filenames.
         """
-        table = PseudoTable.astable(pseudos)
+        table = PseudoTable.as_table(pseudos)
 
         nval = 0
         for site in self:

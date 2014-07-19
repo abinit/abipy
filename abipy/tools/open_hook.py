@@ -14,7 +14,8 @@ open_hook.print_open_files()
 # Remove the hook
 open_hook.remove()
 
-Taken from http://stackoverflow.com/questions/2023608/check-what-files-are-open-in-python
+Initial version taken from
+http://stackoverflow.com/questions/2023608/check-what-files-are-open-in-python
 """
 from __future__ import print_function
 
@@ -33,9 +34,12 @@ _LOGFILE = sys.stdout
 def set_options(**kwargs):
     """Set the value of verbose and logfile."""
     verbose = kwargs.get("verbose", None)
-    if verbose is not None: _VERBOSE = verbose
+    if verbose is not None:
+        _VERBOSE = verbose
+
     logfile = kwargs.get("logfile", None)
-    if logfile is not None: _LOGFILE = logfile
+    if logfile is not None:
+        _LOGFILE = logfile
 
 
 # Set of files that have been opened in the python code.
@@ -44,26 +48,32 @@ _openfiles = set()
 
 def print_open_files(file=sys.stdout):
     """Print the list of the files that are still open."""
-    print("### %d OPEN FILES: [%s]" % (len(_openfiles), ", ".join(f.x for f in _openfiles)), file=file)
+    print("### %d OPEN FILES: [%s]" % (len(_openfiles), ", ".join(f._x for f in _openfiles)), file=file)
+
+
+def num_openfiles():
+    """Number of files in use."""
+    return len(_openfiles)
 
 
 def clear_openfiles():
+    """Reinitialize the set of open files."""
     _openfiles = set()
 
 
 class _newfile(_builtin_file):
     def __init__(self, *args, **kwargs):
-        self.__x = args[0]
+        self._x = args[0]
 
         if _VERBOSE: 
-            print("### OPENING %s ###" % str(self.__x), file=_LOGFILE)
+            print("### OPENING %s ###" % str(self._x), file=_LOGFILE)
 
         _builtin_file.__init__(self, *args, **kwargs)
         _openfiles.add(self)
 
     def close(self):
         if _VERBOSE:
-            print("### CLOSING %s ###" % str(self.__x), file=_LOGFILE)
+            print("### CLOSING %s ###" % str(self._x), file=_LOGFILE)
 
         _builtin_file.close(self)
         try:
@@ -82,8 +92,11 @@ def install():
     __builtin__.file = _newfile
     __builtin__.open = _newopen
 
+
 def remove():
     """Remove the hook."""
     __builtin__.file = _builtin_file = __builtin__.file
     __builtin__.open = _builtin_open = __builtin__.open
+
+
 

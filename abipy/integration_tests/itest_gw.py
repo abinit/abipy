@@ -119,7 +119,12 @@ def itest_g0w0_flow(fwp, tvars):
     assert flow.all_ok
 
     # The sigma task should produce a SIGRES file.
-    assert len(flow[0][-1].outdir.list_filepaths(wildcard="*SIGRES.nc")) == 1
+    sigfile = flow[0][-1].outdir.list_filepaths(wildcard="*SIGRES.nc")
+    assert sigfile
+
+    # TODO Add more tests
+    sigres = abilab.abiopen(sigfile)
+    assert sigres.nsppol == 1
 
 
 def itest_g0w0qptdm_flow(fwp, tvars):
