@@ -183,16 +183,33 @@ class LdauLexxTest(AbipyTest):
             lexx_params.lexx_for_symbol("Ni", l=1)
 
 
-
 class AnaddbInputTest(AbipyTest):
+    """Tests for AnaddbInput."""
 
     def test_phbands_and_dos(self):
         """Test phbands_and_dos constructor."""
         structure = abidata.structure_from_ucell("Si")
         inp = AnaddbInput(structure, comment="hello anaddb", brav=1)
-        assert "brav" in inp
-        assert inp["brav"] == 1
-        assert inp.get("brav") == 1
+        self.assertTrue("brav" in inp)
+        self.assertEqual(inp["brav"], 1)
+        self.assertEqual(inp.get("brav"), 1)
+
+        # Unknown variable.
+        with self.assertRaises(AnaddbInput.Error):
+            AnaddbInput(structure, foo=1)
+
+        ndivsm = 1
+        nqsmall = 3
+        ngqpt = (4, 4, 4)
+
+        inp2 = AnaddbInput.phbands_and_dos(structure, ngqpt, ndivsm, nqsmall, asr=0, dos_method="tetra")
+        s2 = inp2.to_string(sortmode="a")
+        print(s2)
+
+        inp3 = AnaddbInput.phbands_and_dos(structure, ngqpt, ndivsm, nqsmall,
+                                           qptbounds=[0,0,0,1,1,1], dos_method="gaussian:0.001 eV")
+        s3 = inp3.to_string(sortmode="a")
+        print(s3)
 
 
 if __name__ == "__main__":

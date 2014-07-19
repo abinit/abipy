@@ -1188,7 +1188,7 @@ class AnaddbInput(mixins.MappingMixin):
             nqshft=len(q1shft),
             asr=asr,
             chneut=chneut,
-            diddip=dipdip,
+            dipdip=dipdip,
             prtdos=prtdos,
             dosdeltae=dosdeltae,
             dossmear=dossmear,
@@ -1255,7 +1255,7 @@ class AnaddbInput(mixins.MappingMixin):
                     varname, str(self[varname]), str(value))
                 warnings.warn(msg)
 
-        if not self.is_anaddbvar(varname):
+        if not self.is_anaddb_var(varname):
             raise self.Error("%s is not a valid ANADDB variable." % varname)
 
         self[varname] = value
@@ -1295,8 +1295,9 @@ class AnaddbInput(mixins.MappingMixin):
 
         qptbounds = np.reshape(qptbounds, (-1, 3))
 
+        # TODO: Add support for ndivsm in anaddb
         self.set_variables(
-            ndivsm=ndivsm,
+            #ndivsm=ndivsm,
             nqpath=len(qptbounds),
             qpath=qptbounds,
         )
@@ -1310,27 +1311,3 @@ class AnaddbInput(mixins.MappingMixin):
                 Number of q-points used to sample the smallest lattice vector.
         """
         self.set_variables(ng2qpt=self.structure.calc_ngkpt(nqsmall))
-
-
-if __name__ == "__main__":
-    import abipy.data as abidata
-    structure = abidata.structure_from_ucell("Si")
-    inp = AnaddbInput(structure, comment="hello anaddb", brav=1)
-    assert "brav" in inp
-    assert inp["brav"] == 1
-    assert inp.get("brav") == 1
-
-    inp = AnaddbInput(structure, foo=1)
-
-    ndivsm = 1
-    nqsmall = 3
-    ngqpt = (4, 4, 4)
-
-    inp2 = AnaddbInput.phbands_and_dos(structure, ngqpt, ndivsm, nqsmall,
-                                        asr=0, dos_method="tetra")
-    print(inp2.to_string(sortmode="a"))
-
-
-    inp3 = AnaddbInput.phbands_and_dos(structure, ngqpt, ndivsm, nqsmall,
-                                           qptbounds=[0,0,0,1,1,1], dos_method="gaussian:0.001 eV")
-    print(inp3.to_string(sortmode="a"))
