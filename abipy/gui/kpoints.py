@@ -7,8 +7,6 @@ import wx.lib.newevent
 import abipy.gui.awx as awx
 import wx.lib.mixins.listctrl as listmix
 
-from collections import OrderedDict
-
 
 class KpointsListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
     """

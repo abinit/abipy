@@ -4,9 +4,10 @@ import wx
 
 from collections import OrderedDict
 from abipy.gui import awx
-from abipy.tools import AttrDict
+
 from abipy.htc.fftbench import FFTProf
 from abipy.gui.editor import SimpleTextViewer
+from .awx.panels import LinspaceControl
 
 
 FFTALGS = OrderedDict([
@@ -15,101 +16,6 @@ FFTALGS = OrderedDict([
     (412, "Goedecker-2002"),
     (512, "MKL-DFTI"),
 ])
-
-
-class LinspaceControl(wx.Panel):
-    """
-    This control merges two `SpinCtrlDouble` and a `SpinCtrl` to allow 
-    the user to specify a range using the `numpy.linspace` syntax.
-    """
-    # Default parameters passed to SpinCtrl and SpinCtrlDouble.
-    SPIN_DEFAULTS = AttrDict(
-        value=str(50),
-        min=0,
-        max=10000,
-        initial=0,
-    )
-
-    SPIN_DOUBLE_DEFAULTS = AttrDict(
-        value=str(0.0),
-        min=0,
-        max=10000,
-        initial=0,
-        inc=1,
-    )
-
-    def __init__(self, parent, start=None, stop=None, num=None):
-        """
-        value (string)  Default value (as text).
-        min (float)  Minimal value.
-        max (float)  Maximal value.
-        initial (float)  Initial value.
-        inc (float)  Increment value.
-        """
-        wx.Panel.__init__(self, parent, id=-1)
-
-        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
-
-        # start
-        text = wx.StaticText(self, -1, "Start:")
-        text.Wrap(-1)
-        text.SetToolTipString("The starting value of the sequence.")
-
-        p = self.SPIN_DOUBLE_DEFAULTS
-        if start is not None:
-            p.update(start)
-
-        self.start_ctrl = wx.SpinCtrlDouble(self, -1, **p)
-
-        main_sizer.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
-        main_sizer.Add(self.start_ctrl, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
-
-        # stop 
-        text = wx.StaticText(self, -1, "Stop:")
-        text.Wrap(-1)
-        text.SetToolTipString("The end value of the sequence")
-
-        p = self.SPIN_DOUBLE_DEFAULTS
-        if stop is not None:
-            p.update(stop)
-
-        self.stop_ctrl = wx.SpinCtrlDouble(self, -1, **p)
-
-        main_sizer.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
-        main_sizer.Add(self.stop_ctrl, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
-
-        # num
-        text = wx.StaticText(self, -1, "Num:")
-        text.Wrap(-1)
-        text.SetToolTipString("Number of samples to generate.")
-
-        p = self.SPIN_DEFAULTS
-        if num is not None:
-            p.update(num)
-
-        self.num_ctrl = wx.SpinCtrl(self, -1, **p)
-        # FIXME:
-        # There's a problem since the text entered in the SpinCtrl is processed
-        # only when the widget looses focus. I tried the solution discussed at
-        # https://groups.google.com/forum/#!topic/wxpython-users/Gud8PI6n-4E
-        # but it didn't work on my Mac
-        #txtctrl = self.num_ctrl.GetChildren[0]
-        #txtctrl.WindowStyle |= wx.TE_PROCESS_ENTER
-
-        main_sizer.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
-        main_sizer.Add(self.num_ctrl, 1, wx.EXPAND, 5)
-
-        self.SetSizerAndFit(main_sizer)
-
-    def GetLinspace(self):
-        #FIXME Values are not updated if I edit the string in the SpinCtrl
-        import numpy as np
-
-        p = dict(start=self.start_ctrl.GetValue(),
-                 stop=self.stop_ctrl.GetValue(),
-                 num=self.num_ctrl.GetValue())
-        print(p)
-        return np.linspace(**p)
 
 
 class FftalgsPanel(wx.Panel):

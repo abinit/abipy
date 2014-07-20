@@ -168,8 +168,7 @@ class Function1D(object):
     def __str__(self):
         stream = StringIO.StringIO()
         self.to_file(stream)
-        stream.seek(0)
-        return "\n".join(stream)
+        return "\n".join(stream.getvalue())
 
     def has_same_mesh(self, other):
         """True if self and other have the same mesh."""
@@ -413,7 +412,7 @@ class Function1D(object):
 
         return lines
 
-    def plot(self, *args, **kwargs):
+    def plot(self, **kwargs):
         """
         Args:
             args:
@@ -444,7 +443,7 @@ class Function1D(object):
             ax.set_title(title)
 
         exchange_xy = kwargs.pop("exchange_xy", False)
-        self.plot_ax(ax, exchange_xy=exchange_xy, *args, **kwargs)
+        self.plot_ax(ax, exchange_xy=exchange_xy, **kwargs)
 
         if show:
             plt.show()

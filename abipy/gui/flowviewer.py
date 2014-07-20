@@ -58,6 +58,7 @@ Also, these key bindings can be used
 
   Ctrl-Q:     quit
 """
+
     def __init__(self, parent, flow, **kwargs):
         """
         Args:
@@ -661,6 +662,7 @@ def show_history(parent, task):
     """Show the history of the task."""
     text = "\n".join(task.history)
     SimpleTextViewer(parent, text).Show()
+
 
 def show_timer(parent, task):
     """Show timing data of the k."""

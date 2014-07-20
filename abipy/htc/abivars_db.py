@@ -11,7 +11,10 @@ with open(os.path.join(os.path.dirname(__file__), "abinit_vars.json")) as fh:
 ABI_VARNAMES += [
     "acell",
     "xred",
-    "rprim"
+    "rprim",
+    "kptbounds",
+    "ndivsm",
+    "qpt",
 ]
 
 # Unit names.

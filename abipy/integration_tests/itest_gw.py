@@ -119,7 +119,7 @@ def itest_g0w0_flow(fwp, tvars):
     assert flow.all_ok
 
     # The sigma task should produce a SIGRES file.
-    sigfile = flow[0][-1].outdir.list_filepaths(wildcard="*SIGRES.nc")
+    sigfile = flow[0][-1].outdir.list_filepaths(wildcard="*SIGRES.nc")[0]
     assert sigfile
 
     # TODO Add more tests
