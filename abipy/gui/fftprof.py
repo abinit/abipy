@@ -123,11 +123,11 @@ class ControlPanel(wx.Panel):
         # Control to read the range of cutoff energies.
         self.ecut_linspace = LinspaceControl(self, start=dict(value="20"), stop=dict(value="120"), num=dict(value="10"))
 
-        # Control to specify fftalgs.
-        self.fftalgs = FftalgsPanel(self)
-
         static_sizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, "Ecut list:"), wx.VERTICAL)
         static_sizer.Add(self.ecut_linspace, 0, wx.ALL | wx.EXPAND, 5)
+
+        # Control to specify fftalgs.
+        self.fftalgs = FftalgsPanel(self)
 
         #vsz1 = wx.BoxSizer(wx.VERTICAL)
         #vsz1.Add(static_sizer, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
