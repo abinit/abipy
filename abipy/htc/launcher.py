@@ -451,14 +451,18 @@ class Launcher(AbinitInput):
             msg = relpath(output) + ' : ' + color(status)
 
             if verbose:
-                # Read the number of errors, warnings and comments 
-                #for the (last) main output and the log file.
-                main, log =  self.read_mainlog_ewc()
+    
+                # Does not work!
+                pass
 
-                main_info = main.tostream(sys.stdout)
-                log_info  = log.tostream(sys.stdout)
+                ## Read the number of errors, warnings and comments 
+                ##for the (last) main output and the log file.
+                #main, log =  self.read_mainlog_ewc()
 
-                msg += "\n  " + "\n  ".join([main_info, log_info])
+                #main_info = main.tostream(sys.stdout)
+                #log_info  = log.tostream(sys.stdout)
+
+                #msg += "\n  " + "\n  ".join([main_info, log_info])
 
         elif os.path.exists(self.log_name):
             status = 'Unfinished'
@@ -471,9 +475,11 @@ class Launcher(AbinitInput):
         if verbose:
             print(msg)
             if status == 'Completed':
-                for w in main.warnings: print(w)
-                if verbose > 1:
-                    for w in log.warnings: print(w)
+                pass
+                # Does not work!
+                #for w in main.warnings: print(w)
+                #if verbose > 1:
+                #    for w in log.warnings: print(w)
 
         return status
 
@@ -578,8 +584,23 @@ class Launcher(AbinitInput):
     @staticmethod
     def _iscomplete(output_file):
         "Return True if an abinit output file is complete."
-        from pymatgen.io.abinitio.utils import abinit_output_iscomplete
-        return abinit_output_iscomplete(output_file)
+        with open(output_file, 'read') as f:
+            lines = f.readlines()
+            lines.reverse()
+
+            for i in range(10):
+                try:
+                    line = lines[i]
+                except:
+                    return False
+
+                if 'Calculation completed.' in line:
+                    return True
+        return False
+
+        # Does not work !
+        #from pymatgen.io.abinitio.utils import abinit_output_iscomplete
+        #return abinit_output_iscomplete(output_file)
 
 # =========================================================================== #
 
