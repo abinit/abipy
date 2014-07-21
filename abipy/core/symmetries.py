@@ -8,7 +8,7 @@ import collections
 import numpy as np
 import cStringIO as StringIO
 
-from pymatgen.util.num_utils import iuptri
+#from pymatgen.util.num_utils import iuptri
 from pymatgen.util.string_utils import is_string
 from pymatgen.symmetry.finder import SymmetryFinder, get_point_group
 from abipy.core.kpoints import wrap_to_ws, issamek
