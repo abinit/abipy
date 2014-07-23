@@ -906,6 +906,9 @@ class MassLauncher(object):
     def run(self): return
 
     @_make_distributed
+    def submit(self): return
+
+    @_make_distributed
     def clean(self): return
 
     @_make_distributed
