@@ -51,6 +51,7 @@ class OncvFrame(wx.Frame):
         self.SetMenuBar(self.makeMenu())
         self.makeToolBar()
         self.statusbar = self.CreateStatusBar()
+        #self.statusbar.PushStatusText(message)
         self.Centre()
 
         self.BuildUI()
@@ -68,9 +69,8 @@ class OncvFrame(wx.Frame):
         self.input_panel = OncvInputPanel(self, oncv_dims)
         main_sizer.Add(self.input_panel)
 
-        run_button = wx.Button(self, -1, label='Run Input')
-        run_button.Bind(wx.EVT_BUTTON, self.OnRunButton)
-        main_sizer.Add(run_button, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
+        #run_button = wx.Button(self, -1, label='Run Input')
+        #run_button.Bind(wx.EVT_BUTTON, self.OnRunButton)
 
         self.SetSizerAndFit(main_sizer)
 
@@ -89,25 +89,43 @@ class OncvFrame(wx.Frame):
         fileNum = event.GetId() - wx.ID_FILE1
         filepath = self.file_history.GetHistoryFile(fileNum)
         self.file_history.AddFileToHistory(filepath)
-
         #newpanel = OncvInputPanel.from_file(filepath)
 
-    def OnRunButton(self, event):
-        """
-        Called when Run button is pressed.
-        Run the calculation in a subprocess in non-blocking mode and add it to
-        the list containing the generators in executions
-        """
-        # Build the input file from the values given in the panel.
-        input_str = self.input_panel.makeInputString()
+    #def OnRunButton(self, event):
+    #    """
+    #    Called when Run button is pressed.
+    #    Run the calculation in a subprocess in non-blocking mode and add it to
+    #    the list containing the generators in executions
+    #    """
+    #    # Build the input file from the values given in the panel.
+    #    input_str = self.input_panel.makeInputString()
 
-        # Build the PseudoGenerator and run it
-        psgen = OncvGenerator(input_str, calc_type=self.input_panel.get_calc_type())
-        psgen.start()
-        #psgen.wait()
+    #    # Build the PseudoGenerator and run it
+    #    psgen = OncvGenerator(input_str, calc_type=self.input_panel.get_calc_type())
+    #    psgen.start()
+    #    #psgen.wait()
 
-        # Add it to the list ctrl.
-        self.psgen_panel.add_psgen(psgen)
+    #    # Add it to the list ctrl.
+    #    self.psgen_panel.add_psgen(psgen)
+
+    def _onOptimize_key(self, key):
+        template = self.input_panel.makeInput()
+
+        # Build the PseudoGenerator and run it.
+        # Note how we select the method to call from key.
+        psgens = []
+        method = getattr(template, "optimize_" + key)
+        for inp in method():
+            psgen = OncvGenerator(str(inp), calc_type=self.input_panel.get_calc_type())
+            psgens.append(psgen)
+
+        PseudoGeneratorsFrame(self, psgens).Show()
+
+    def OnOptimizeVloc(self, event):
+        self._onOptimize_key("vloc")
+
+    def OnOptimizeRhom(self, event):
+        self._onOptimize_key("modelcore")
 
     def makeMenu(self):
         """Creates the main menu."""
@@ -154,14 +172,23 @@ class OncvFrame(wx.Frame):
             return wx.Bitmap(awx.path_img(path))
 
         self.ID_SHOW_INPUT = wx.NewId()
+        self.ID_ADD_TO_QUEUE = wx.NewId()
+        self.ID_OPTIMIZE_VLOC = wx.NewId()
+        self.ID_OPTIMIZE_RHOM = wx.NewId()
 
         toolbar.AddSimpleTool(self.ID_SHOW_INPUT, bitmap("in.png"), "Visualize the input file(s) of the workflow.")
+        toolbar.AddSimpleTool(self.ID_ADD_TO_QUEUE, bitmap("in.png"), "Add to the queue of pseudos to be generated.")
+        toolbar.AddSimpleTool(self.ID_OPTIMIZE_VLOC, bitmap("in.png"), "Optimize the parameters for Vloc for the given template.")
+        toolbar.AddSimpleTool(self.ID_OPTIMIZE_RHOM, bitmap("in.png"), "Optimize the parameters for the model charge.")
 
         toolbar.Realize()
 
         # Associate menu/toolbar items with their handlers.
         menu_handlers = [
             (self.ID_SHOW_INPUT, self.OnShowInput),
+            (self.ID_ADD_TO_QUEUE, self.onAddToQueue),
+            (self.ID_OPTIMIZE_VLOC, self.OnOptimizeVloc),
+            (self.ID_OPTIMIZE_RHOM, self.OnOptimizeRhom),
         ]
 
         for combo in menu_handlers:
@@ -172,6 +199,12 @@ class OncvFrame(wx.Frame):
         """Show the input file in a new frame."""
         text = self.input_panel.makeInputString()
         SimpleTextViewer(self, text=text).Show()
+
+    def onAddToQueue(self, event):
+        """Build a new generator from the input file, and add it to the queue."""
+        inp = self.input_panel.makeInputString()
+        psgen = OncvGenerator(str(inp), calc_type=self.input_panel.get_calc_type())
+        #psgens.append(psgen)
 
     def OnOpen(self, event):
         dialog = wx.FileDialog(self, message="Choose an inputfile", defaultDir=os.getcwd(),
@@ -276,7 +309,7 @@ class Field(object):
                 data[i] = OrderedDict([(k, None) for k in cls.WXCTRL_PARAMS.keys()])
 
         else:
-            print(cls, cls.ftype)
+            #print(cls, cls.ftype)
             raise NotImplementedError()
 
         return data
@@ -310,13 +343,32 @@ class Field(object):
             entries = [self.data]
 
         for i, entry in enumerate(entries):
-            print(entry)
+            #print(entry)
             if i == 0:  
             # Put comment with the name of the variables only once.
                 app("# " + " ".join((str(k) for k in entry.keys())))
             app(" ".join(str(v) for v in entry.values()))
 
         return "\n".join(lines)
+
+    def has_var(self, key):
+        """Return True if variable belongs to self."""
+        if self.ftype == self.FTYPE_ROW:
+            return key in self.data
+        else:
+            return key in self.data[0]
+
+    def set_var(self, key, value):
+        assert self.has_var(key)
+        if self.ftype == self.FTYPE_ROW:
+            self.data[key] = value
+
+        elif self.ftype == self.FTYPE_TABLE:
+            for r in range(self.nrows):
+                self.data[r][key] = value
+
+        else:
+            raise NotImplementedError()
 
     def set_vars(self, ord_vars):
         """
@@ -345,20 +397,20 @@ class Field(object):
     def set_vars_from_lines(self, lines):
         """The the value of the variables from a list of strings."""
         # TODO: Check this
-        print("About to read: ", type(self))
-        print("\n".join(lines))
+        #print("About to read: ", type(self))
+        #print("\n".join(lines))
 
         okeys = self.WXCTRL_PARAMS.keys()
         odtypes = [v["dtype"] for v in self.WXCTRL_PARAMS.values()]
         parsers = [self.parser_for_dtype[ot] for ot in odtypes]
-        print("okeys", okeys)
-        print("odtypes", odtypes)
+        #print("okeys", okeys)
+        #print("odtypes", odtypes)
 
         if self.ftype == self.FTYPE_ROW:
-            print(lines)
+            #print(lines)
             assert len(lines) == 1
             tokens = lines[0].split()
-            print("row tokens", tokens)
+            #print("row tokens", tokens)
 
             for key, p, tok in zip(okeys, parsers, tokens):
                 self.data[key] = p(tok)
@@ -367,7 +419,7 @@ class Field(object):
             assert len(lines) == self.nrows
             for i in range(self.nrows):
                 tokens = lines[i].split()
-                print("table tokens: ", tokens)
+                #print("table tokens: ", tokens)
                 for key, p, tok in zip(okeys, parsers, tokens):
                     self.data[i][key] = p(tok)
 
@@ -610,27 +662,6 @@ _FIELD_LIST = [
 _NFIELDS = len(_FIELD_LIST)
 
 
-# Not used, at present.
-# Mapping iexc variable (integer) to human-readable string.
-### iexc  exchange-correlation functional: 1-Wigner, 2-Hedin-Lundquist,
-###  3-Perdew-Wang-Ceperly-Alder, 4-Perdew-Burke-Enzerhof
-_IEXC2STR = {
-    4: "GGA-PBE",
-}
-
-_STR2IEXC = {v: k for k, v in _IEXC2STR.items()}
-
-
-def iexc2str(iexc):
-    """Returns the name of the xc functional associated to iexc."""
-    return _IEXC2STR[iexc]
-
-
-def str2iexc(xcstr):
-    """Returns iexc given the name of the xc functional."""
-    return _STR2IEXC[xcstr]
-
-
 class OncvInput(object):
     """
     This object stores the variables needed for generating a pseudo with oncvsps.
@@ -683,13 +714,13 @@ class OncvInput(object):
         Initialize the object from a dict with the fundamental dimensions.
 
         """
-        self.oncv_dims = AttrDict(**oncv_dims)
-        #print("oncv_dims", self.oncv_dims)
+        self.dims = AttrDict(**oncv_dims)
+        #print("oncv_dims", self.dims)
 
         self.fields = _NFIELDS * [None]
 
         for tag in range(_NFIELDS):
-            new = empty_field(tag, oncv_dims)
+            new = empty_field(tag, self.dims)
             self.fields[tag] = new
 
         # 1) ATOM CONFIGURATION
@@ -747,35 +778,63 @@ class OncvInput(object):
         #ncnf = 2
         #nvcnf = 2
 
+    @property
+    def lmax(self):
+        return self.dims.lmax
+
     def __iter__(self):
         return self.fields.__iter__()
 
     def __str__(self):
         """Returns a string with the input variables."""
-        return "\n".join(str(field) for field in self)
+        s =  "\n".join(str(field) for field in self)
+        # FIXME needed to bypass problems with tests
+        return s + "\n 0"
+
+    def __setitem__(self, key, value):
+        ncount = 0
+        for f in self.fields:
+            if f.has_var(key):
+                ncount += 1
+                f.set_var(key, value)
+
+        assert ncount == 1
 
     def deepcopy(self):
         """Deep copy of the input."""
         return copy.deepcopy(self)
 
-    def change_vloc(self):
+    def optimize_vloc(self):
         """
-        Produce a list of new input files by changing the options for vloc.
+        Produce a list of new input files by changing the lloc option for vloc.
         """
-        #TODO
+        # Test all possible vloc up to lmax
+        inps, new = [], self.deepcopy()
+        for il in range(self.lmax+1):
+            new["lloc"] = il
+            inps.append(new.deepcopy())
+
+        # Add smooth polynomial
+        new["lloc"] = 4
+        inps.append(new)
+
         return inps
 
-    def change_modelcore(self):
+    def optimize_modelcore(self):
         """
-        Produce a list of new input files by changing the options for model core.
+        Produce a list of new input files by changing the icmod option for model core.
         """
-        #TODO
+        inps, new = [], self.deepcopy()
+        for icmod in [0, 1]:
+            new["icmod"] = icmod
+            inps.append(new.deepcopy())
+
         return inps
 
 
 class OncvInputPanel(awx.Panel):
     """
-    Panel with widgets for selecting the input paramenters.
+    Panel with widgets for selecting the input parameters.
     """
     def __init__(self, parent, oncv_dims):
         """
@@ -827,7 +886,6 @@ class OncvInputPanel(awx.Panel):
         """Build a panel from an input file."""
         inp = OncvInput.from_file(filename)
         for field, wxctrl in zip(inp, self.wxctrls):
-            #print("in data", type(field), field.data)
             wxctrl.SetParams(field.data)
 
     def get_calc_type(self):
@@ -844,10 +902,7 @@ class OncvInputPanel(awx.Panel):
 
     def makeInputString(self):
         """Return a string with the input passed to the pp generator."""
-        #return mock_input
-        #return str(self.makeInput())
-        # FIXME Add ncnf 0
-        return str(self.makeInput()) + "\n 0"
+        return str(self.makeInput())
 
 
 class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
@@ -879,12 +934,7 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
         self.itemDataMap = {}
 
         for index, psgen in enumerate(self.psgens):
-            entry = [
-                "%d\t\t" % index,
-                "%s" % psgen.status,
-                "%s" % None,
-                "%s" % None,
-            ]
+            entry = self.make_entry(index, psgen)
             self.Append(entry)
             self.SetItemData(index, index)
             self.itemDataMap[index] = entry
@@ -898,33 +948,43 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
         # Now that the list exists we can init the other base class, see wx/lib/mixins/listctrl.py
         listmix.ColumnSorterMixin.__init__(self, len(self._COLUMNS))
 
-    def refresh_column_widths(self):
-        column_widths = [0] * len(self._COLUMNS)
+    @staticmethod
+    def make_entry(index, psgen):
+        entry = [
+            "%d\t\t" % index,
+            "%s" % psgen.status,
+            "%s" % None,
+            "%s" % None]
+        return entry
+
+    def doRefresh(self):
+        column_widths = [awx.get_width_height(self, s)[0] for s in self._COLUMNS]
 
         for index, psgen in enumerate(self.psgens):
-            entry = self.itemDataMap[index]
+            entry = self.make_entry(index, psgen)
+            print("new entry", entry)
+            self.SetItemData(index, index)
+            self.itemDataMap[index] = entry
+
             w = [awx.get_width_height(self, s)[0] for s in entry]
             column_widths = map(max, zip(w, column_widths))
 
         for index, col in enumerate(self._COLUMNS):
             self.SetColumnWidth(index, column_widths[index])
 
+        super(PseudoGeneratorListCtrl, self).Refresh()
+
     def add_psgen(self, psgen):
         """Add a PseudoGenerator to the list."""
         index = len(self.psgens)
-        entry = [
-            "%d\t\t" % index,
-            "%s" % psgen.status,
-            "%s" % None,
-            "%s" % None,
-        ]
+        entry = self.make_entry(index, psgen)
         self.Append(entry)
         self.SetItemData(index, index)
         self.itemDataMap[index] = entry
 
         # Add it to the list and update column widths
         self.psgens.append(psgen)
-        self.refresh_column_widths()
+        self.doRefresh()
 
     def GetListCtrl(self):
         """Used by the ColumnSorterMixin, see wx/lib/mixins/listctrl.py"""
@@ -957,6 +1017,7 @@ class PseudoGeneratorsPanel(awx.Panel):
         """
         super(PseudoGeneratorsPanel, self).__init__(parent, **kwargs)
 
+        self.psgens = list(psgens)
         self.psgen_list_ctrl = PseudoGeneratorListCtrl(self, psgens)
         self.psgen_list_ctrl.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRightClick)
 
@@ -964,7 +1025,36 @@ class PseudoGeneratorsPanel(awx.Panel):
         main_sizer.Add(self.psgen_list_ctrl, 1, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
         self.SetSizerAndFit(main_sizer)
 
+        run_button = wx.Button(self, -1, label='Run Input')
+        run_button.Bind(wx.EVT_BUTTON, self.OnRunButton)
+
+        check_button = wx.Button(self, -1, label='Check Status')
+        check_button.Bind(wx.EVT_BUTTON, self.OnCheckButton)
+        hsz = wx.BoxSizer(wx.HORIZONTAL)
+        hsz.AddMany([run_button, check_button])
+
+        main_sizer.Add(hsz, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
+        #main_sizer.Add(run_button, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
+        self.SetSizerAndFit(main_sizer)
+
+    def OnRunButton(self, event):
+        """
+        Called when Run button is pressed.
+        Run the calculation in a subprocess in non-blocking mode and add it to
+        the list containing the generators in executions
+        """
+        for psgen in self.psgens:
+            psgen.start()
+
+    def OnCheckButton(self, event):
+        for psgen in self.psgens:
+            psgen.check_status()
+
+        self.psgen_list_ctrl.doRefresh()
+
     def add_psgen(self, psgen):
+        """Add a new generator to the internal list."""
+        self.psgens.append(psgen)
         self.psgen_list_ctrl.add_psgen(psgen)
 
     def onRightClick(self, event):
@@ -1038,69 +1128,24 @@ class PseudoGeneratorsPanel(awx.Panel):
         psgen.plot_results()
 
 
-mock_input = """
-# ATOM AND REFERENCE CONFIGURATION
-# atsym, z, nc, nv, iexc   psfile
-    O    8     1   2   3   psp8
-#
-# n, l, f  (nc+nv lines)
-    1    0    2.0
-    2    0    2.0
-    2    1    4.0
-#
-# PSEUDOPOTENTIAL AND OPTIMIZATION
-# lmax
-    1
-#
-# l, rc, ep, ncon, nbas, qcut  (lmax+1 lines, l's must be in order)
-    0    1.60    0.00    4    7    8.00
-    1    1.60    0.00    4    7    8.00
-#
-# LOCAL POTENTIAL
-# lloc, lpopt, rc(5), dvloc0
-    4    5    1.4    0.0
-#
-# VANDERBILT-KLEINMAN-BYLANDER PROJECTORs
-# l, nproj, debl  (lmax+1 lines, l's in order)
-    0    2    1.50
-    1    2    1.00
-#
-# MODEL CORE CHARGE
-# icmod, fcfact
-    0    0.0
-#
-# LOG DERIVATIVE ANALYSIS
-# epsh1, epsh2, depsh
-   -2.0  2.0  0.02
-#
-# OUTPUT GRID
-# rlmax, drl
-    4.0  0.01
-#
-# TEST CONFIGURATIONS
-# ncnf
-    3
-#
-#   nvcnf (repeated ncnf times)
-#   n, l, f  (nvcnf lines, repeated follwing nvcnf's ncnf times)
-    2
-    2    0    2.0
-    2    1    3.0
-#
-    2
-    2    0    1.0
-    2    1    4.0
-#
-    2
-    2    0    1.0
-    2    1    3.0
-"""
+class PseudoGeneratorsFrame(awx.Frame):
+    def __init__(self, parent, psgens=(), **kwargs):
+        super(PseudoGeneratorsFrame, self).__init__(parent, **kwargs)
+        self.panel = PseudoGeneratorsPanel(self, psgens)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        #main_sizer.Add(self.panel)
+
 
 if __name__ == "__main__":
     import sys
     onc_inp = OncvInput.from_file("08_O.dat")
     print(onc_inp)
     #sys.exit(0)
+    for inp in onc_inp.optimize_vloc():
+        print("new\n", inp)
+
+    for inp in onc_inp.optimize_modelcore():
+        print("new model\n", inp)
 
     app = OncvApp()
     app.MainLoop()
