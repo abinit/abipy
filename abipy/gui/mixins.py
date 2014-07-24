@@ -48,7 +48,7 @@ class Has_Structure(object):
         available_visus = [visu.name for visu in Visualizer.get_available()]
 
         for visu_name in available_visus:
-            _id =  wx.NewId()
+            _id = wx.NewId()
             visu_menu.Append(_id, visu_name)
             self._id2visuname[_id] = visu_name
             self.Bind(wx.EVT_MENU, self.OnStructureVisualize, id=_id)
@@ -285,8 +285,6 @@ class Has_MultipleEbands(Has_Ebands):
 #
 #    def onEosFit(self, event):
 #        EosFrame(self, volumes, energies, vol_unit="ang^3", ene_unit="eV").Show()
-
-
 
 class Has_Tools(object):
     """

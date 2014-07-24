@@ -93,8 +93,18 @@ class LinspaceControl(wx.Panel):
         p = dict(start=self.start_ctrl.GetValue(),
                  stop=self.stop_ctrl.GetValue(),
                  num=self.num_ctrl.GetValue())
-        #print(p)
+
         return np.linspace(**p)
+
+
+#class CtrlParams(object)
+#    def __init__(self):
+#        self._params = []
+#    def add(self, label, dtype, **kwargs):
+#    @property
+#    def opts(self):
+#        # Make sure value is a string and create the Ctrl
+#        _opts["value"] = str(_opts["value"])
 
 
 class RowMultiCtrl(wx.Panel):
@@ -102,32 +112,30 @@ class RowMultiCtrl(wx.Panel):
     A panel with control widgets for integer, floats, ... placed on a row.
     """
     # Default parameters passed to SpinCtrl and SpinCtrlDouble.
-    #SPIN_DEFAULTS = AttrDict(value=str(50), min=0, max=10000, initial=0)
+    SPIN_DEFAULTS = AttrDict(value="0", min=0, max=10000, initial=1)
+    SPIN_DOUBLE_DEFAULTS = AttrDict(value="0.0", min=-10000, max=10000, initial=0.0, inc=0.1)
 
-    #SPIN_DOUBLE_DEFAULTS = AttrDict(value=str(0.0), min=0, max=10000, initial=0, inc=1)
-
-    DEFAULT_WIDTH = 0.2
-    DEFAULT_STEP = 0.1
-
-    def __init__(self, parent, ctrls):
+    def __init__(self, parent, ctrl_params):
         """
         Args:
-            ctrls:
-                List whose items are in the form (dtype: params)
-                where dtype is "f" for floats, "i" for integers.
+            ctrl_params:
+                List whose items are in the form (label: params)
+                where label is the name of the Spin button and
                 and params is a dictionary with the arguments used
                 to build the controller. Available keys are listed below.
-                Mandatory keys are explictly documented.
+                Note that dtype must be specified.
 
-                ===========  ===================================
-                label        label of the controller (mandatory)
+                ===========  ============================================================
+                dtype        "f" for floats, "i" for integers, "cbox" for combo box
                 tooltip      tooltip of the controller
-                ===========  ===================================
+                choices      list of possible choices (used if dtype == cbox, mandatory
+                style        used if dtype == "cbox"
+                ===========  ============================================================
 
         Example:
-            RowMultiCtrl(parent, [
-                ("i", dict(label="I'm an integer", tooltip="hello integer)),
-                ("f", dict(label="I'm a float")),
+            RowMultiCtrl(parent, ctrl_params=[
+                ("I'm an integer", dict(dtype="i", value="-1", tooltip="hello integer)),
+                ("I'm a float", dict(dtype="f", value=str(1/3.))),
             ])
         """
         super(RowMultiCtrl, self).__init__(parent, -1)
@@ -135,34 +143,62 @@ class RowMultiCtrl(wx.Panel):
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.ctrls = collections.OrderedDict()
-        for c in ctrls:
-            dtype = c[0]
-            params = AttrDict(**c[1])
-            if not hasattr(params, "label"):
-                raise ValueError("label must be specified")
 
-            label = wx.StaticText(self, -1, params.label)
-            label.Wrap(-1)
+        # Accepts lists or tuples as well.
+        if isinstance(ctrl_params, (list, tuple)):
+            ctrl_params = collections.OrderedDict(ctrl_params)
+
+        for label, params in ctrl_params.items():
+            params = AttrDict(**params)
+
+            dtype = params.pop("dtype", None)
+            if dtype is None:
+                raise ValueError("dtype must be specified")
+
+            txt = wx.StaticText(self, -1, label)
+            txt.Wrap(-1)
 
             # Set the tooltip
             tooltip = params.get("tooltip", None)
             if tooltip is not None:
-                label.SetToolTipString(tooltip)
+                txt.SetToolTipString(tooltip)
 
             # Create the controller and save it in self.ctrls
             if dtype == "f":
-                ctrl = wx.SpinCtrlDouble(
-                    self, id=-1, value=str(self.DEFAULT_WIDTH), min=self.DEFAULT_WIDTH/1000, inc=0.1)
+                # Initialize default values then update them with the values in params.
+                opts = self.SPIN_DOUBLE_DEFAULTS.copy()
+                for k in opts:
+                    if k in params:
+                        opts[k] = params[k]
+
+                # Make sure value is a string and create the Ctrl
+                opts["value"] = str(opts["value"])
+                ctrl = wx.SpinCtrlDouble(self, id=-1, **opts)
 
             elif dtype == "i":
-                ctrl = wx.SpinCtrl(self, id=-1, value="1", min=1)
+                # Initialize default values then update them with the values in params.
+                opts = self.SPIN_DEFAULTS.copy()
+                for k in opts:
+                    if k in params:
+                        opts[k] = params[k]
 
+                # Make sure value is a string and create the Ctrl
+                opts["value"] = str(opts["value"])
+                ctrl = wx.SpinCtrl(self, id=-1, **opts)
+
+            elif dtype == "cbox":
+                # Combo box
+                if not hasattr(params, "choices"):
+                    raise ValueError("choices must be specified if dtype == cbox")
+                choices = params.choices
+                ctrl = wx.ComboBox(self, id=-1, choices=choices, value=choices[0],
+                                   style=params.get("style", wx.CB_READONLY))
             else:
                 raise ValueError("Wrong dtype %s" % str(dtype))
 
-            self.ctrls[params.label] = ctrl
+            self.ctrls[label] = ctrl
 
-            main_sizer.Add(label, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
+            main_sizer.Add(txt, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
             main_sizer.Add(ctrl, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         self.SetSizerAndFit(main_sizer)
@@ -172,19 +208,14 @@ class RowMultiCtrl(wx.Panel):
         tuples = [(label, ctrl.GetValue()) for label, ctrl in self.ctrls.items()]
         return collections.OrderedDict(tuples)
 
-    def SetParams(self, **kwargs):
+    def SetParams(self, d):
         """
-        Set the value of the controllers from kwargs
+        Set the value of the controllers from a dictionary
         Returns the difference between the number of controllers
         and the number of keys in kwargs that have been set
         """
-        count = 0
-        for k, v in kwargs.items():
-            if k in self.ctrls:
-                count += 1
-                self.ctrls[k].SetValue(v)
-
-        return len(self.ctrls) - count
+        for k, v in d.items():
+            self.ctrls[k].SetValue(v)
 
 
 class TableMultiCtrl(wx.Panel):
@@ -222,42 +253,36 @@ class TableMultiCtrl(wx.Panel):
         """Return the parameters selected by the user in a list of `AttrDict` dictionary"""
         olist = []
         for row in self.ctrl_list:
-            od = {label: ctrl.GetValue() for label, ctrl in row.items()}
-            olist.append(od)
+            olist.append(row.GetParams())
 
         return olist
 
     def SetParams(self, ilist):
         """
-        Set the value of the controllers.
-        Returns the difference between the number of controls
-        and the number of entries that have been set
+        Set the value of the controllers from a list of dictionaries
         """
+        assert len(ilist) == len(self.ctrl_list)
         count = 0
         for i, d in enumerate(ilist):
             ctrl = self.ctrl_list[i]
-            for k, v in d.items():
-                if k in ctrl:
-                    count += 1
-                    ctrl[k].SetValue(v)
-
-        return len(self.ctrl_list) * len(self.ctrl_list[0]) - count
+            ctrl.SetParams(d)
 
 if __name__ == "__main__":
    app = wx.App()
    frame = wx.Frame(None)
    #panel = LinspaceControl(frame)
+
    #panel = RowMultiCtrl(frame, [
-   #    ("f", dict(label="hello", tooltip="Tooltip for hello")),
-   #    ("i", dict(label="integer")),
+   #    ("hello", dict(dtype="f", tooltip="Tooltip for hello", value=1/3.0)),
+   #    ("integer", dict(dtype="i")),
+   #    ("combo", dict(dtype="cbox", choices=["default", "another"])),
    #])
 
    panel = TableMultiCtrl(frame, 3, [
-       ("f", dict(label="hello", tooltip="Tooltip for hello")),
-       ("i", dict(label="integer")),
+       ("hello", dict(dtype="f", tooltip="Tooltip for hello")),
+       ("integer", dict(dtype="i", value=-1)),
    ])
 
    frame.Show()
    app.MainLoop()
-
 

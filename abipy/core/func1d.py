@@ -265,6 +265,7 @@ class Function1D(object):
         integ = cumtrapz(self.values, x=self.mesh)
         pad_intg = np.zeros(len(self.values))
         pad_intg[1:] = integ
+
         return self.__class__(self.mesh, pad_intg)
 
     @property

@@ -180,9 +180,7 @@ Also, these key bindings can be used
             self.Bind(wx.EVT_MENU, handler, id=mid)
 
     def makeMenu(self):
-        """
-        Make the menu bar.
-        """
+        """Make the menu bar."""
         menu_bar = wx.MenuBar()
                                                                                                     
         file_menu = wx.Menu()
