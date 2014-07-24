@@ -294,12 +294,21 @@ class Has_Tools(object):
         """Create the tools menu."""
         # Tools Menu ID's
         self.ID_TOOLS_UNIT_CONVERTER = wx.NewId()
+        self.ID_TOOLS_PERIODIC_TABLE = wx.NewId()
 
         menu = wx.Menu()
+        menu.Append(self.ID_TOOLS_PERIODIC_TABLE, "Periodic table", "Periodic Table")
+        self.Bind(wx.EVT_MENU, self.OnTools_PeriodicTable, id=self.ID_TOOLS_PERIODIC_TABLE)
+
         menu.Append(self.ID_TOOLS_UNIT_CONVERTER, "Unit converter", "Unit Converter")
         self.Bind(wx.EVT_MENU, self.OnTools_UnitConverter, id=self.ID_TOOLS_UNIT_CONVERTER)
 
         return menu
+
+    def OnTools_PeriodicTable(self, event):
+        """Open new frame with the periodic table."""
+        from awx.elements_gui import MainFrame
+        MainFrame(self).Show()
 
     def OnTools_UnitConverter(self, event):
         """Open new frame with the unit converter."""

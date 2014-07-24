@@ -93,8 +93,8 @@ class MainFrame(wx.Frame):
 
         self.SetTitle(MainApp.name)
         icon = wx.EmptyIcon()
-        icon.CopyFromBitmap(wx.Bitmap(MainApp.icon + '.png',
-                                      wx.BITMAP_TYPE_ANY))
+        #icon.CopyFromBitmap(wx.Bitmap(MainApp.icon + '.png',
+        #                              wx.BITMAP_TYPE_ANY))
         self.SetIcon(icon)
         self.SetBackgroundColour(wx.SystemSettings_GetColour(
             wx.SYS_COLOUR_3DFACE))
@@ -472,12 +472,17 @@ class DetailsPanel(wx.Panel):
         self.selected = -1
 
         # create controls
+        cb_style = wx.CB_READONLY|wx.CB_SORT
+        if wx.Platform == "__WXMAC__":
+            cb_style = wx.CB_READONLY
+
+
         self.names = LabeledCtrl(self, wx.ComboBox, "Element Name",
             choices=[p.name for p in ELEMENTS],
-            style=wx.CB_READONLY|wx.CB_SORT, size=(1, -1))
+            style=cb_style, size=(1, -1))
         self.symbols = LabeledCtrl(self, wx.ComboBox, "Symbol", '',
             choices=[p.symbol for p in ELEMENTS],
-            style=wx.CB_READONLY|wx.CB_SORT, size=(1, -1))
+            style=cb_style, size=(1, -1))
         self.numbers = LabeledCtrl(self, wx.ComboBox, "Number",
             choices=["%s" % p.number for p in ELEMENTS],
             style=wx.CB_READONLY, size=(1, -1))
