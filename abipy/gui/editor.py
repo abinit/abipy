@@ -9,6 +9,7 @@ from abipy.tools.text import WildCard
 from wx.py.editor import EditorFrame, EditorNotebookFrame  
 
 __all__ = [
+    "SimpleTextViewer",
     "TextNotebookFrame",
 ]
 

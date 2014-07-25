@@ -46,9 +46,10 @@ class FlowViewerFrame(awx.Frame):
     # Time in second after which we check the status of the tasks.
     REFRESH_INTERVAL = 120
 
-    HELP_MSG = """Quick help:
+    HELP_MSG = """\
+Quick help:
 
- Task list:
+  Task list:
 
      Left-Click:   Open directory with output files.
      Right-Click:  display popup menu with choices.
@@ -56,8 +57,7 @@ class FlowViewerFrame(awx.Frame):
 Also, these key bindings can be used
 (For Mac OSX, replace 'Ctrl' with 'Apple'):
 
-  Ctrl-Q:     quit
-"""
+  Ctrl-Q:     quit"""
 
     def __init__(self, parent, flow, **kwargs):
         """
@@ -546,7 +546,7 @@ class TaskListCtrl(wx.ListCtrl):
                    "num_restarts", "Task Class",
                    ]
 
-        for (index, col) in enumerate(columns):
+        for index, col in enumerate(columns):
             self.InsertColumn(index, col)
 
         # Used to store the Max width in pixels for the data in the column.
@@ -574,7 +574,7 @@ class TaskListCtrl(wx.ListCtrl):
             self.Append(entry)
 
         # Set the width in pixel for each column.
-        for (index, col) in enumerate(columns):
+        for index, col in enumerate(columns):
             self.SetColumnWidth(index, column_widths[index])
 
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick)
