@@ -1831,7 +1831,9 @@ class ElectronBandsPlotter(object):
         return animator.animate(**kwargs)
 
     def animate(self, **kwargs):
-        "See http://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/"
+        """
+        See http://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/
+        """
         import matplotlib.pyplot as plt
         import matplotlib.animation as animation
 

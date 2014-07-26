@@ -1,8 +1,8 @@
+"""Core objects and helper functions."""
 from __future__ import print_function, division
 
 import os
 import sys
-import warnings
 import wx
 
 import abipy.tools.decorators as dec
@@ -85,6 +85,7 @@ Suite 330, Boston, MA  02111-1307  USA""" % {"codename": codename}
     info.SetName(codename)
     info.SetVersion(version)
     info.SetDescription(description)
+    info.SetCopyright('(C) Abipy group')
 
     if website is not None:
         info.SetWebSite(website)
@@ -97,7 +98,7 @@ Suite 330, Boston, MA  02111-1307  USA""" % {"codename": codename}
     wx.AboutBox(info)
 
 
-def get_width_height(window, string, pads=(10,10)):
+def get_width_height(window, string, pads=(10, 10)):
     """
     Returns the width and the height (in pixels) of a string used in window.
     Returns are padded with pads

@@ -19,11 +19,11 @@ class LinspaceControl(wx.Panel):
     the user to specify a range using the `numpy.linspace` syntax.
     """
     # Default parameters passed to SpinCtrl and SpinCtrlDouble.
-    SPIN_DEFAULTS = AttrDict(value=str(50), min=0, max=10000, initial=0)
+    SPIN_DEFAULTS = dict(value=str(50), min=0, max=10000, initial=0)
 
-    SPIN_DOUBLE_DEFAULTS = AttrDict(value=str(0.0), min=0, max=10000, initial=0, inc=1)
+    SPIN_DOUBLE_DEFAULTS = dict(value=str(0.0), min=0, max=10000, initial=0, inc=1)
 
-    def __init__(self, parent, start=None, stop=None, num=None):
+    def __init__(self, parent, start=None, stop=None, num=1, **kwargs):
         """
         value (string)  Default value (as text).
         min (float)  Minimal value.
@@ -31,7 +31,12 @@ class LinspaceControl(wx.Panel):
         initial (float)  Initial value.
         inc (float)  Increment value.
         """
-        wx.Panel.__init__(self, parent, id=-1)
+        super(LinspaceControl, self).__init__(parent, id=-1, **kwargs)
+
+        text_opts = dict(flag=wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, border=5)
+        #ctrl_opts = dict(flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
+        #text_opts = {}
+        ctrl_opts = text_opts
 
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -40,37 +45,37 @@ class LinspaceControl(wx.Panel):
         text.Wrap(-1)
         text.SetToolTipString("The starting value of the sequence.")
 
-        p = self.SPIN_DOUBLE_DEFAULTS
+        p = self.SPIN_DOUBLE_DEFAULTS.copy()
         if start is not None:
-            p.update(start)
+            p["value"] = str(start)
 
         self.start_ctrl = wx.SpinCtrlDouble(self, -1, **p)
 
-        main_sizer.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
-        main_sizer.Add(self.start_ctrl, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        main_sizer.Add(text, **text_opts)
+        main_sizer.Add(self.start_ctrl, **ctrl_opts)
 
         # stop
         text = wx.StaticText(self, -1, "Stop:")
         text.Wrap(-1)
         text.SetToolTipString("The end value of the sequence")
 
-        p = self.SPIN_DOUBLE_DEFAULTS
+        p = self.SPIN_DOUBLE_DEFAULTS.copy()
         if stop is not None:
-            p.update(stop)
+            p["value"] = str(stop)
 
         self.stop_ctrl = wx.SpinCtrlDouble(self, -1, **p)
 
-        main_sizer.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
-        main_sizer.Add(self.stop_ctrl, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        main_sizer.Add(text, **text_opts)
+        main_sizer.Add(self.stop_ctrl, **ctrl_opts)
 
         # num
         text = wx.StaticText(self, -1, "Num:")
         text.Wrap(-1)
         text.SetToolTipString("Number of samples to generate.")
 
-        p = self.SPIN_DEFAULTS
+        p = self.SPIN_DEFAULTS.copy()
         if num is not None:
-            p.update(num)
+            p["value"] = str(num)
 
         self.num_ctrl = wx.SpinCtrl(self, -1, **p)
         # FIXME:
@@ -81,8 +86,8 @@ class LinspaceControl(wx.Panel):
         #txtctrl = self.num_ctrl.GetChildren[0]
         #txtctrl.WindowStyle |= wx.TE_PROCESS_ENTER
 
-        main_sizer.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
-        main_sizer.Add(self.num_ctrl, 1, wx.EXPAND, 5)
+        main_sizer.Add(text, **text_opts)
+        main_sizer.Add(self.num_ctrl, **ctrl_opts)
 
         self.SetSizerAndFit(main_sizer)
 
@@ -97,23 +102,13 @@ class LinspaceControl(wx.Panel):
         return np.linspace(**p)
 
 
-#class CtrlParams(object)
-#    def __init__(self):
-#        self._params = []
-#    def add(self, label, dtype, **kwargs):
-#    @property
-#    def opts(self):
-#        # Make sure value is a string and create the Ctrl
-#        _opts["value"] = str(_opts["value"])
-
-
 class RowMultiCtrl(wx.Panel):
     """
     A panel with control widgets for integer, floats, ... placed on a row.
     """
     # Default parameters passed to SpinCtrl and SpinCtrlDouble.
-    SPIN_DEFAULTS = AttrDict(value="0", min=0, max=10000, initial=1)
-    SPIN_DOUBLE_DEFAULTS = AttrDict(value="0.0", min=-10000, max=10000, initial=0.0, inc=0.1)
+    SPIN_DEFAULTS = dict(value="0", min=0, max=10000, initial=1)
+    SPIN_DOUBLE_DEFAULTS = dict(value="0.0", min=-10000, max=10000, initial=0.0, inc=0.1)
 
     def __init__(self, parent, ctrl_params):
         """
@@ -262,15 +257,15 @@ class TableMultiCtrl(wx.Panel):
         Set the value of the controllers from a list of dictionaries
         """
         assert len(ilist) == len(self.ctrl_list)
-        count = 0
         for i, d in enumerate(ilist):
             ctrl = self.ctrl_list[i]
             ctrl.SetParams(d)
 
+
 if __name__ == "__main__":
    app = wx.App()
    frame = wx.Frame(None)
-   #panel = LinspaceControl(frame)
+   panel = LinspaceControl(frame)
 
    #panel = RowMultiCtrl(frame, [
    #    ("hello", dict(dtype="f", tooltip="Tooltip for hello", value=1/3.0)),
@@ -278,10 +273,10 @@ if __name__ == "__main__":
    #    ("combo", dict(dtype="cbox", choices=["default", "another"])),
    #])
 
-   panel = TableMultiCtrl(frame, 3, [
-       ("hello", dict(dtype="f", tooltip="Tooltip for hello")),
-       ("integer", dict(dtype="i", value=-1)),
-   ])
+   #panel = TableMultiCtrl(frame, 3, [
+   #    ("hello", dict(dtype="f", tooltip="Tooltip for hello")),
+   #    ("integer", dict(dtype="i", value=-1)),
+   #])
 
    frame.Show()
    app.MainLoop()

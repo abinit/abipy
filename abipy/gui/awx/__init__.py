@@ -5,6 +5,7 @@ __all__ = []
 _MODS = [
     "core",
     "apps",
+    "frames",
     "grids",
     "dialogs",
     "panels",

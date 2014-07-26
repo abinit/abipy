@@ -4,7 +4,6 @@ from __future__ import print_function, division
 import os
 import copy
 import time
-import warnings
 import wx
 import awx
 import pymatgen.core.periodic_table as periodic_table
@@ -12,16 +11,13 @@ import pymatgen.core.periodic_table as periodic_table
 import wx.lib.mixins.listctrl as listmix
 from collections import OrderedDict
 from abipy.tools import AttrDict
-from abipy.gui.awx.panels import RowMultiCtrl, TableMultiCtrl, LinspaceControl
 from abipy.gui.editor import TextNotebookFrame, SimpleTextViewer
 from abipy.gui.oncv_tooltips import oncv_tip
 from pseudo_dojo.ppcodes.ppgen import OncvGenerator
-
-#def path_img(filename):
-#    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "images", filename)
+from pseudo_dojo.ppcodes.oncvpsp import MultiPseudoGenDataPlotter
 
 
-class OncvApp(wx.App):
+class OncvApp(awx.App):
 
     def OnInit(self):
         # The code for the splash screen.
@@ -37,6 +33,8 @@ class OncvApp(wx.App):
 
 class OncvMainFrame(wx.Frame):
     """The main frame of the GUI"""
+    VERSION = "0.1"
+
     def __init__(self, parent):
         super(OncvMainFrame, self).__init__(parent, -1, "Oncvpsp GUI")
 
@@ -60,22 +58,16 @@ class OncvMainFrame(wx.Frame):
 
     def BuildUI(self):
         """Build user-interface."""
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
-
         oncv_dims = dict(nc=1, nv=2, lmax=1, ncfn=0)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        #main_sizer = wx.FlexGridSizer(wx.VERTICAL)
+
         # The panel to specify the input variables.
         self.input_panel = OncvInputPanel(self, oncv_dims)
         main_sizer.Add(self.input_panel)
 
-        #run_button = wx.Button(self, -1, label='Run Input')
-        #run_button.Bind(wx.EVT_BUTTON, self.OnRunButton)
-
+        #self.SetSizer(main_sizer)
         self.SetSizerAndFit(main_sizer)
-
-        # The panel to interact with the pseudogenerators.
-        #frame = awx.Frame(self, title="Pseudopotential Generators")
-        #self.psgen_panel = PseudoGeneratorsFrame(frame)
-        #frame.Show()
 
     def AddFileToHistory(self, filepath):
         """Add the absolute filepath to the file history."""
@@ -112,7 +104,7 @@ class OncvMainFrame(wx.Frame):
 
         file_menu = wx.Menu()
         file_menu.Append(wx.ID_OPEN, "&Open", help="Open an input file")
-        #file_menu.Append(wx.ID_CLOSE, "&Close", help="Close the file associated to the active tab")
+        file_menu.Append(wx.ID_CLOSE, "&Close", help="Close the Gui")
         #file_menu.Append(wx.ID_EXIT, "&Quit", help="Exit the application")
 
         file_history = self.file_history = wx.FileHistory(8)
@@ -131,7 +123,7 @@ class OncvMainFrame(wx.Frame):
         # Associate menu/toolbar items with their handlers.
         menu_handlers = [
             (wx.ID_OPEN, self.OnOpen),
-            #(wx.ID_CLOSE, self.OnClose),
+            (wx.ID_CLOSE, self.OnClose),
             #(wx.ID_EXIT, self.OnExit),
             (wx.ID_ABOUT, self.OnAbout),
         ]
@@ -212,19 +204,7 @@ class OncvMainFrame(wx.Frame):
 
     def OnOptimizeQcut(self, event):
         """Open a new frame for the optimization of the qcut parameter."""
-        # TODO: Write a frame for handling this case that is the most complicated.
-        # This part gets the range of new qcuts.
-        frame = wx.Frame(self)
-        qcut_range_ctrl = LinspaceControl(frame, start=None, stop=None, num=None)
-        frame.Show()
-        new_qcuts = qcut_range_ctrl.GetLinspace()
-        #print(qcuts)
-
-        # Generate new list of inputs.
-        inp = self.input_panel.makeInput()
-        l = 0
-        new_inps = inp.optimize_qcuts_for_l(l=l, new_qcuts=new_qcuts)
-        #print(new_inps)
+        QcutOptimizationFrame(self, oncv_input_panel=self.input_panel).Show()
 
     def OnOpen(self, event):
         """Open a file"""
@@ -245,38 +225,89 @@ class OncvMainFrame(wx.Frame):
 
         #newpanel = OncvInputPanel.from_file(filepath)
 
-    #def OnClose(self, event):
-    #    """ Respond to the "Close" menu command."""
-    #    self.Destroy()
+    def OnClose(self, event):
+        """ Respond to the "Close" menu command."""
+        self.Destroy()
 
     def OnAbout(self, event):
-        description = "oncvgui is a front-end for the pseudopotential generator oncvpsp"
+        return awx.makeAboutBox(
+            codename=self.codename,
+            version=self.VERSION,
+            description="oncvgui is a front-end for the pseudopotential generator oncvpsp",
+            developers=["Matteo Giantomassi"],
+            website="http://www.mat-simresearch.com/")
 
-        licence = (
-"""OncvGui is free software; you can redistribute
-it and/or modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 2 of the License,
-or (at your option) any later version.
 
-OncvGui is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-See the GNU General Public License for more details. You should have
-received a copy of the GNU General Public License along with File OncvGui;
-if not, write to the Free Software Foundation, Inc., 59 Temple Place,
-Suite 330, Boston, MA  02111-1307  USA""")
+class QcutOptimizationFrame(awx.Frame):
 
-        info = wx.AboutDialogInfo()
+    def __init__(self, parent, oncv_input_panel, **kwargs):
+        super(QcutOptimizationFrame, self).__init__(parent, **kwargs)
 
-        #info.SetIcon(wx.Icon(path_img("wabi_logo.png"), wx.BITMAP_TYPE_PNG))
-        info.SetName('OncvpspsGui')
-        info.SetVersion('0.1')
-        info.SetDescription(description)
-        info.SetCopyright('(C) 2014 Matteo Giantomassi')
-        info.SetWebSite("http://www.mat-simresearch.com/")
-        info.SetLicence(licence)
-        info.AddDeveloper('Matteo Giantomassi')
-        wx.AboutBox(info)
+        panel = wx.Panel(self, -1)
+
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        self.input_panel = oncv_input_panel
+        lmax = oncv_input_panel.lmax
+
+        self.checkbox_l = [None] * (lmax + 1)
+        self.qcut_linspace_l = [None] * (lmax + 1)
+
+        add_opts = dict(flag=wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, border=5)
+        for l in range(lmax + 1):
+            vsz = wx.BoxSizer(wx.HORIZONTAL)
+
+            self.checkbox_l[l] = check_l = wx.CheckBox(panel, -1, name="l=%d" % l)
+            check_l.SetValue(True)
+            self.qcut_linspace_l[l] = qcrange_l = awx.LinspaceControl(panel, start=0.1, stop=0.2, num=2)
+
+            vsz.Add(check_l, **add_opts)
+            vsz.Add(qcrange_l, **add_opts)
+            main_sizer.Add(vsz)
+
+        ok_button = wx.Button(self, wx.ID_OK, label='Ok')
+        ok_button.Bind(wx.EVT_BUTTON, self.onOkButton)
+
+        close_button = wx.Button(self, wx.ID_CANCEL, label='Cancel')
+        close_button.Bind(wx.EVT_BUTTON, self.onCloseButton)
+
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(ok_button)
+        hbox.Add(close_button, flag=wx.LEFT, border=5)
+
+        main_sizer.Add(hbox, flag=wx.ALIGN_CENTER | wx.ALL | wx.EXPAND)
+
+        panel.SetSizerAndFit(main_sizer)
+
+    def onCloseButton(self, event):
+        self.Destroy()
+
+    def onOkButton(self, event):
+        l_list, qcvals_list = [], []
+        for l, (checkbox, wxlinspace) in enumerate(zip(self.checkbox_l, self.qcut_linspace_l)):
+            if checkbox.IsChecked():
+                l_list.append(l)
+                qcvals_list.append(wxlinspace.GetLinspace())
+
+        print(l_list)
+        print(qcvals_list)
+        #return
+
+        # Generate new list of inputs.
+        base_inp = self.input_panel.makeInput()
+        new_inps = []
+        for l, new_qcuts in zip(l_list, qcvals_list):
+            #l = 0
+            new_inps.extend(base_inp.optimize_qcuts_for_l(l=l, new_qcuts=new_qcuts))
+        #print(new_inps)
+
+        # Build the PseudoGenerators and open frame to run them.
+        psgens = []
+        for inp in new_inps:
+            psgen = OncvGenerator(str(inp), calc_type=self.input_panel.get_calc_type())
+            psgens.append(psgen)
+
+        PseudoGeneratorsFrame(self, psgens, title="Qcut Optimation").Show()
 
 
 def empty_field(tag, oncv_dims):
@@ -320,6 +351,7 @@ class Field(object):
 
     @classmethod
     def make_empty_data(cls, oncv_dims):
+        """Initialize data and fill it with None."""
         if cls.ftype == cls.FTYPE_ROW:
             data = OrderedDict([(k, None) for k in cls.WXCTRL_PARAMS.keys()])
 
@@ -364,9 +396,8 @@ class Field(object):
             entries = [self.data]
 
         for i, entry in enumerate(entries):
-            #print(entry)
-            if i == 0:  
-            # Put comment with the name of the variables only once.
+            if i == 0:
+                # Put comment with the name of the variables only once.
                 app("# " + " ".join((str(k) for k in entry.keys())))
             app(" ".join(str(v) for v in entry.values()))
 
@@ -380,6 +411,7 @@ class Field(object):
             return key in self.data[0]
 
     def set_var(self, key, value):
+        """Set the value of a variable."""
         assert self.has_var(key)
         if self.ftype == self.FTYPE_ROW:
             self.data[key] = value
@@ -452,6 +484,7 @@ class Field(object):
 
     @classmethod
     def from_wxctrl(cls, wxctrl, tag, oncv_dims):
+        """Build the object from a wxpython widget."""
         # Get the variables from the controller
         ord_vars = wxctrl.GetParams()
         # Build empty field and set its variables.
@@ -461,12 +494,12 @@ class Field(object):
         return new
 
     def make_wxctrl(self, parent, **kwargs):
-        """"Build th wx controller associated to this field."""
+        """"Build the wx controller associated to this field."""
         if self.ftype == self.FTYPE_ROW:
-            return RowMultiCtrl(parent, self._customize_wxctrl(**kwargs))
+            return awx.RowMultiCtrl(parent, self._customize_wxctrl(**kwargs))
 
         elif self.ftype == self.FTYPE_TABLE:
-            return TableMultiCtrl(parent, self.nrows, self._customize_wxctrl(**kwargs))
+            return awx.TableMultiCtrl(parent, self.nrows, self._customize_wxctrl(**kwargs))
 
         else:
             # Ragged case e.g. test configurations:
@@ -542,7 +575,7 @@ class AtomConfField(RowField):
         ("z", dict(dtype="i")),
         ("nc", dict(dtype="i", tooltip="number of core states"),),
         ("nv", dict(dtype="i", tooltip="number of valence states")),
-        ("iexc", dict(dtype="i", value="4", tooltip="xc functional")),
+        ("iexc", dict(dtype="i", value="4", default="4", tooltip="xc functional")),
         ("psfile", dict(dtype="cbox", choices=["psp8", "upf"]))])
 
 
@@ -816,7 +849,17 @@ class OncvInput(object):
 
     def __str__(self):
         """Returns a string with the input variables."""
-        s = "\n\n".join(str(field) for field in self)
+        lines = []
+        app = lines.append
+        #s = "\n\n".join(str(field) for field in self)
+
+        for i, field in enumerate(self):
+            # FIXME This breaks the output parser!!!!!
+            #pre = "\n#" if i > 0 else ""
+            #app(pre + field.name)
+            app(str(field))
+
+        s = "\n".join(lines)
         # FIXME needed to bypass problems with tests
         return s + "\n 0"
 
@@ -843,7 +886,7 @@ class OncvInput(object):
             new["lloc"] = il
             inps.append(new.deepcopy())
 
-        # Add smooth polynomial
+        # Add option for smooth polynomial
         new["lloc"] = 4
         inps.append(new)
 
@@ -895,6 +938,8 @@ class OncvInput(object):
 
 
 class OncvInputPanel(awx.Panel):
+#class OncvInputPanel(wx.ScrolledWindow):
+
     """
     Panel with widgets allowing the user to select the input parameters.
     """
@@ -905,15 +950,18 @@ class OncvInputPanel(awx.Panel):
                 Basic dimensions of the calculation.
         """
         super(OncvInputPanel, self).__init__(parent)
+        #super(OncvInputPanel, self).__init__(parent, id=-1, style=wx.HSCROLL | wx.VSCROLL)
 
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        #self.main_sizer = wx.FlexGridSizer(wx.VERTICAL)
 
         calc_type_label = wx.StaticText(self, -1, "Calculation type:")
         choices = ["scalar-relativistic", "fully-relativistic", "non-relativistic"]
         self.calctype_cbox = wx.ComboBox(
             self, id=-1, name='Calculation type', choices=choices, value=choices[0], style=wx.CB_READONLY)
 
-        hbox0 = wx.BoxSizer(wx.HORIZONTAL)
+        #hbox0 = wx.BoxSizer(wx.HORIZONTAL)
+        hbox0 = wx.FlexGridSizer(wx.HORIZONTAL)
         hbox0.Add(calc_type_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
         hbox0.Add(self.calctype_cbox)
 
@@ -926,6 +974,10 @@ class OncvInputPanel(awx.Panel):
         self.fill_from_file("08_O.dat")
 
         self.SetSizerAndFit(self.main_sizer)
+
+    @property
+    def lmax(self):
+        return self.oncv_dims["lmax"]
 
     def build_wxctrls(self, oncv_dims):
         """
@@ -1014,15 +1066,20 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
         # Now that the list exists we can init the other base class, see wx/lib/mixins/listctrl.py
         listmix.ColumnSorterMixin.__init__(self, len(self._COLUMNS))
 
+        self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRightClick)
+
     @staticmethod
     def make_entry(index, psgen):
         """Returns the entry associated to the generator psgen with the given index."""
-        entry = [
+        max_ecut = None # if psgen.results is None else psgen.results.max_ecut
+        max_atan_logder_l1err = None # if psgen.results is None else psgen.results.max_atan_logder_l1ee
+
+        return [
             "%d\t\t" % index,
             "%s" % psgen.status,
-            "%s" % None,
-            "%s" % None]
-        return entry
+            "%s" % max_ecut,
+            "%s" % max_atan_logder_l1err,
+        ]
 
     def doRefresh(self):
         """Refresh the panel and redraw it."""
@@ -1069,44 +1126,11 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
         index = self.GetItemData(item)
         return self.psgens[index]
 
-
-class PseudoGeneratorsPanel(awx.Panel):
-    """
-    A panel with a list control providing info on the status pseudogenerators
-    Provides popup menus for interacting with the generators.
-    """
-    def __init__(self, parent, psgens=(), **kwargs):
-        """
-        Args:
-            parent:
-                Parent window.
-            psgens:
-                List of `PseudoGenerator` objects.
-        """
-        super(PseudoGeneratorsPanel, self).__init__(parent, **kwargs)
-
-        self.psgens = psgens
-        self.psgen_list_ctrl = PseudoGeneratorListCtrl(self, psgens)
-        self.psgen_list_ctrl.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRightClick)
-
-        #main_sizer = wx.BoxSizer(wx.VERTICAL)
-        #main_sizer.Add(self.psgen_list_ctrl, 1, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
-        #self.SetSizerAndFit(main_sizer)
-
-    def add_psgen(self, psgen):
-        """Add a new generator to the internal list."""
-        self.psgens.append(psgen)
-        self.psgen_list_ctrl.add_psgen(psgen)
-
     def onRightClick(self, event):
         """Generate the popup menu."""
         popup_menu = self.makePopupMenu()
         self.PopupMenu(popup_menu, event.GetPoint())
         popup_menu.Destroy()
-
-    def getSelectedPseudoGen(self):
-        """Returns the `PseudoGenerator` selected by the user."""
-        return self.psgen_list_ctrl.getSelectedPseudoGen()
 
     def makePopupMenu(self):
         """
@@ -1142,7 +1166,7 @@ class PseudoGeneratorsPanel(awx.Panel):
         Helper function used to access the std files
         of the PseudoGenerator selected by the user.
         """
-        psgen = self.psgen_list_ctrl.getSelectedPseudoGen()
+        psgen = self.getSelectedPseudoGen()
         if psgen is None: return
         call = dict(
             stdin=psgen.get_stdin,
@@ -1166,14 +1190,35 @@ class PseudoGeneratorsPanel(awx.Panel):
 
     def onPlotResults(self, event):
         """Plot the results with matplotlib."""
-        psgen = self.psgen_list_ctrl.getSelectedPseudoGen()
-        print(psgen)
+        psgen = self.getSelectedPseudoGen()
         if psgen is None: return
-        #if psgen.status != psgen.S_DONE:
-        #    warnings.warn("Cannot plot results since run is not completed")
-        #    return
-
         psgen.plot_results()
+
+
+class PseudoGeneratorsPanel(awx.Panel):
+    """
+    A panel with a list control providing info on the status pseudogenerators
+    Provides popup menus for interacting with the generators.
+    """
+    def __init__(self, parent, psgens=(), **kwargs):
+        """
+        Args:
+            parent:
+                Parent window.
+            psgens:
+                List of `PseudoGenerator` objects.
+        """
+        super(PseudoGeneratorsPanel, self).__init__(parent, **kwargs)
+
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.psgen_list_ctrl = PseudoGeneratorListCtrl(self, psgens)
+
+        main_sizer.Add(self.psgen_list_ctrl, 1, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
+        self.SetSizerAndFit(main_sizer)
+
+    @property
+    def psgens(self):
+        return self.psgen_list_ctrl.psgens
 
 
 class PseudoGeneratorsFrame(awx.Frame):
@@ -1190,8 +1235,8 @@ class PseudoGeneratorsFrame(awx.Frame):
         self.panel = panel = wx.Panel(self, -1)
         self.main_sizer = main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.psgens_wxlist = PseudoGeneratorsPanel(self, psgens)
-        main_sizer.Add(self.psgens_wxlist, 1, wx.EXPAND, 5)
+        self.psgens_wxlist = PseudoGeneratorsPanel(panel, psgens)
+        main_sizer.Add(self.psgens_wxlist, 1, wx.ALL | wx.EXPAND, 5)
 
         submit_button = wx.Button(panel, -1, label='Submit')
         submit_button.Bind(wx.EVT_BUTTON, self.OnSubmitButton)
@@ -1199,13 +1244,13 @@ class PseudoGeneratorsFrame(awx.Frame):
         text = wx.StaticText(panel, -1, "Max nlaunch:")
         text.Wrap(-1)
         text.SetToolTipString("Maximum number of tasks that can be submitted. Use -1 for unlimited launches.")
-        self.max_nlaunch = wx.SpinCtrl(panel, -1, value="1", min=-1)
+        self.max_nlaunch = wx.SpinCtrl(panel, -1, value="-1", min=-1)
 
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
         hsizer.Add(submit_button, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
         hsizer.Add(text, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
         hsizer.Add(self.max_nlaunch, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
-        main_sizer.Add(hsizer, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)                                                                                     
+        main_sizer.Add(hsizer, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
 
         panel.SetSizerAndFit(main_sizer)
 
@@ -1215,6 +1260,7 @@ class PseudoGeneratorsFrame(awx.Frame):
 
     @property
     def psgens(self):
+        """List of PseudoGenerators."""
         return self.psgens_wxlist.psgens
 
     def makeToolBar(self):
@@ -1229,10 +1275,12 @@ class PseudoGeneratorsFrame(awx.Frame):
         self.ID_SHOW_OUTPUTS = wx.NewId()
         self.ID_SHOW_ERRS = wx.NewId()
         self.ID_CHECK_STATUS = wx.NewId()
+        self.ID_MULTI_PLOTTER = wx.NewId()
 
         toolbar.AddSimpleTool(self.ID_SHOW_INPUTS, bitmap("in.png"), "Visualize the input file(s) of the generators.")
         toolbar.AddSimpleTool(self.ID_SHOW_OUTPUTS, bitmap("out.png"), "Visualize the output file(s) of the generators.")
         toolbar.AddSimpleTool(self.ID_SHOW_ERRS, bitmap("log.png"), "Visualize the errors file(s) of the generators.")
+        toolbar.AddSimpleTool(self.ID_MULTI_PLOTTER, bitmap("log.png"), "Multi plotter.")
 
         toolbar.AddSeparator()
 
@@ -1246,6 +1294,7 @@ class PseudoGeneratorsFrame(awx.Frame):
             (self.ID_SHOW_OUTPUTS, self.OnShowOutputs),
             (self.ID_SHOW_ERRS, self.OnShowErrs),
             (self.ID_CHECK_STATUS, self.OnCheckStatus),
+            (self.ID_MULTI_PLOTTER, self.OnMultiPlotter),
         ]
 
         for combo in menu_handlers:
@@ -1257,14 +1306,15 @@ class PseudoGeneratorsFrame(awx.Frame):
         Called when Run button is pressed.
         Run the calculation in a subprocess in non-blocking mode and add it to
         the list containing the generators in executions
-        Submit up to max_nlauch tasks.
+        Submit up to max_nlauch tasks (-1 to run'em all)
         """
         max_nlaunch = int(self.max_nlaunch.GetValue())
-        #nlaunch = PyLauncher(self.flow).rapidfire(max_nlaunch=max_nlaunch)
 
         nlaunch = 0
         for psgen in self.psgens:
             nlaunch += psgen.start()
+            if nlaunch == max_nlaunch:
+                break
 
         self.statusbar.PushStatusText("Submitted %d tasks" % nlaunch)
 
@@ -1281,14 +1331,7 @@ class PseudoGeneratorsFrame(awx.Frame):
         # TODO
         for psgen in self.psgens:
             psgen.check_status()
-        #self.panel.psgen_list_ctrl.doRefresh()
         #self.statusbar.PushStatusText("Check done")
-        #return
-        #self.flow.check_status()
-        # Count the number of tasks with given status.
-        #counter = self.flow.status_counter
-        # Save the active tab so that we can set it afterwards.
-        #old_selection = self.notebook.GetSelection()
 
         # Build new notebook and redraw the panel
         main_sizer = self.main_sizer
@@ -1296,17 +1339,9 @@ class PseudoGeneratorsFrame(awx.Frame):
         main_sizer.Remove(0)
         new_psgen_wxlist = PseudoGeneratorsPanel(self.panel, self.psgens)
         main_sizer.Insert(0, new_psgen_wxlist, 1, wx.EXPAND, 5)
-        #del self.panel
         self.psgen_wxlist = new_psgen_wxlist
 
-        #new_notebook = FlowNotebook(self, self.flow)
-        #main_sizer.Insert(0, new_notebook, 1, wx.EXPAND, 5)
-        #self.notebook = new_notebook
         self.panel.Layout()
-        #self.Layout()
-
-        # Reinstate the old selection
-        #self.notebook.SetSelection(old_selection)
 
         # Write number of jobs with given status.
         #message = ", ".join("%s: %s" % (k, v) for (k, v) in counter.items())
@@ -1326,7 +1361,7 @@ class PseudoGeneratorsFrame(awx.Frame):
 
     def OnShowOutputs(self, event):
         """Show all the output files of the selected `Workflow`."""
-        TextNotebookFrame(self, text_list=[psgen.get_stdout() for psgen in self.psgens], 
+        TextNotebookFrame(self, text_list=[psgen.get_stdout() for psgen in self.psgens],
                           page_names=[repr(psgen) for psgen in self.psgens]).Show()
 
     def OnShowErrs(self, event):
@@ -1334,24 +1369,23 @@ class PseudoGeneratorsFrame(awx.Frame):
         TextNotebookFrame(self, text_list=[psgen.get_stderr() for psgen in self.psgens], 
                           page_names=[repr(psgen) for psgen in self.psgens]).Show()
 
+    def OnMultiPlotter(self, event):
+        """Open a dialog that allows the user to plot the results of multiple generators."""
+        multi_plotter = MultiPseudoGenDataPlotter()
 
+        for i, psgen in enumerate(self.psgens):
+            if psgen.status == psgen.S_OK:
+                multi_plotter.add_psgen(label="%d" % i, psgen=psgen)
 
+        keys = list(multi_plotter.keys())
+        if not keys: return
 
+        class MyFrame(awx.FrameWithChoice):
+            def onOkButton(self, event):
+                choice = self.getChoice()
+                multi_plotter.plot_key(choice)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        MyFrame(self, choices=keys, title="MultiPlotter").Show()
 
 
 
@@ -1373,4 +1407,10 @@ if __name__ == "__main__":
 
     app = OncvApp()
     app.MainLoop()
+
+
+    #app = awx.App()
+    #frame = QcutOptimizationFrame(None, lmax=1)
+    #frame.Show()
+    #app.MainLoop()
 
