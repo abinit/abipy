@@ -34,10 +34,10 @@ class FrameWithChoice(wx.Frame):
         close_button.Bind(wx.EVT_BUTTON, self.onCloseButton)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(ok_button, border=5)
-        hbox.Add(close_button, flag=wx.LEFT, border=5)
 
-        main_sizer.Add(hbox, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL | wx.EXPAND, border=5)
+        hbox.Add(ok_button,  0, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, border=5)
+        hbox.Add(close_button,  0, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, border=5)
+        main_sizer.Add(hbox, 0, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, border=5)
 
         panel.SetSizerAndFit(main_sizer)
 

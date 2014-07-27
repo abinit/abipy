@@ -20,7 +20,6 @@ __all__ = [
     "verbose",
     "Panel",
     "Frame",
-    #"FRAME_SIZE",
     "get_width_height",
 ]
 
@@ -34,9 +33,6 @@ if _DEBUG:
 else:
     def verbose(func):
         return func
-
-
-FRAME_SIZE = (800, 600)
 
 
 class Error(Exception):
@@ -141,9 +137,6 @@ class Panel(wx.Panel, MyWindow):
 
 class Frame(wx.Frame, MyWindow):
     def __init__(self, parent, *args, **kwargs):
-        if "size" not in kwargs:
-            kwargs["size"] = FRAME_SIZE
-
         if "title" not in kwargs:
             kwargs["title"] = self.__class__.__name__
         

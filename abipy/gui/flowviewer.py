@@ -93,7 +93,7 @@ Also, these key bindings can be used
 
         # Here we create a panel and a notebook on the panel
         self.notebook = FlowNotebook(panel, self.flow)
-        main_sizer.Add(self.notebook, 1, wx.EXPAND , 5)
+        main_sizer.Add(self.notebook, 1, wx.EXPAND, 5)
 
         submit_button = wx.Button(panel, -1, label='Submit')
         submit_button.Bind(wx.EVT_BUTTON, self.OnSubmitButton)
@@ -104,10 +104,10 @@ Also, these key bindings can be used
         self.max_nlaunch = wx.SpinCtrl(panel, -1, value="1", min=-1)
 
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
-        hsizer.Add(submit_button, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
-        hsizer.Add(text, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
-        hsizer.Add(self.max_nlaunch, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
-        main_sizer.Add(hsizer, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)                                                                                     
+        hsizer.Add(submit_button, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5)
+        hsizer.Add(text, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5)
+        hsizer.Add(self.max_nlaunch, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5)
+        main_sizer.Add(hsizer, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5)
 
         panel.SetSizerAndFit(main_sizer)
 
@@ -334,9 +334,10 @@ Also, these key bindings can be used
             return None
 
     def OnOpen(self, event):
-        dialog = wx.FileDialog(self, message="Choose a __workflow__.pickle file", defaultDir=os.getcwd(),
-                            wildcard="pickle files (*.pickle)|*.pickle",
-                            style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
+        dialog = wx.FileDialog(
+            self, message="Choose a __workflow__.pickle file", defaultDir=os.getcwd(),
+            wildcard="pickle files (*.pickle)|*.pickle",
+            style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
 
         # Show the dialog and retrieve the user response. 
         # If it is the OK response, process the data.

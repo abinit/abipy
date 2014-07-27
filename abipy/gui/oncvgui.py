@@ -10,9 +10,11 @@ import pymatgen.core.periodic_table as periodic_table
 
 import wx.lib.mixins.listctrl as listmix
 from collections import OrderedDict
+from monty.dev import number_of_cpus
 from abipy.tools import AttrDict
 from abipy.gui.editor import TextNotebookFrame, SimpleTextViewer
 from abipy.gui.oncv_tooltips import oncv_tip
+from abipy.gui import mixins as mix
 from pseudo_dojo.ppcodes.ppgen import OncvGenerator
 from pseudo_dojo.ppcodes.oncvpsp import MultiPseudoGenDataPlotter
 
@@ -31,7 +33,7 @@ class OncvApp(awx.App):
         return True
 
 
-class OncvMainFrame(wx.Frame):
+class OncvMainFrame(wx.Frame, mix.Has_Tools):
     """The main frame of the GUI"""
     VERSION = "0.1"
 
@@ -64,9 +66,10 @@ class OncvMainFrame(wx.Frame):
 
         # The panel to specify the input variables.
         self.input_panel = OncvInputPanel(self, oncv_dims)
-        main_sizer.Add(self.input_panel)
+        main_sizer.Add(self.input_panel, flag=wx.EXPAND)
 
         #self.SetSizer(main_sizer)
+        #self.Layout()
         self.SetSizerAndFit(main_sizer)
 
     def AddFileToHistory(self, filepath):
@@ -80,23 +83,6 @@ class OncvMainFrame(wx.Frame):
         filepath = self.file_history.GetHistoryFile(fileNum)
         self.file_history.AddFileToHistory(filepath)
         #newpanel = OncvInputPanel.from_file(filepath)
-
-    #def OnRunButton(self, event):
-    #    """
-    #    Called when Run button is pressed.
-    #    Run the calculation in a subprocess in non-blocking mode and add it to
-    #    the list containing the generators in executions
-    #    """
-    #    # Build the input file from the values given in the panel.
-    #    input_str = self.input_panel.makeInputString()
-
-    #    # Build the PseudoGenerator and run it
-    #    psgen = OncvGenerator(input_str, calc_type=self.input_panel.get_calc_type())
-    #    psgen.start()
-    #    #psgen.wait()
-
-    #    # Add it to the list ctrl.
-    #    self.psgen_panel.add_psgen(psgen)
 
     def makeMenu(self):
         """Creates the main menu."""
@@ -115,6 +101,9 @@ class OncvMainFrame(wx.Frame):
         file_menu.AppendMenu(-1, "&Recent Files", recent)
         self.Bind(wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9)
         menu_bar.Append(file_menu, "File")
+
+        # Add Mixin menus.
+        menu_bar.Append(self.CreateToolsMenu(), "Tools")
 
         help_menu = wx.Menu()
         help_menu.Append(wx.ID_ABOUT, "About " + self.codename, help="Info on the application")
@@ -184,7 +173,7 @@ class OncvMainFrame(wx.Frame):
         """Helper function for simple optimizations."""
         template = self.input_panel.makeInput()
 
-        # Build the PseudoGenerator and run it.
+        # Build the PseudoGeneratorFrame and show it.
         # Note how we select the method to call from key.
         psgens = []
         method = getattr(template, "optimize_" + key)
@@ -259,27 +248,28 @@ class QcutOptimizationFrame(awx.Frame):
         self.input_panel = oncv_input_panel
         lmax = oncv_input_panel.lmax
 
-        # Build list of ArangeControl to allow the user to select the list of
-        # qcut values for the different l-channels. Once can disable particular
-        # l-channels via checkboxes.
+        # Build list of controls to allow the user to select the list of
+        # qcut values for the different l-channels.
+        # One can disable particular l-channels via checkboxes.
         self.checkbox_l = [None] * (lmax + 1)
         self.wxqcut_range_l = [None] * (lmax + 1)
 
-        add_opts = dict(flag=wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, border=5)
+        add_opts = dict(flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
         for l in range(lmax + 1):
             vsz = wx.BoxSizer(wx.HORIZONTAL)
 
             text = wx.StaticText(self, -1, "l-channel %d:" % l)
             text.Wrap(-1)
-            self.checkbox_l[l] = check_l = wx.CheckBox(panel, -1, name="l=%d" % l)
+            self.checkbox_l[l] = check_l = wx.CheckBox(self, -1, name="l=%d" % l)
             check_l.SetToolTipString("Enable/Disable optimization for this l-channel")
             check_l.SetValue(True)
-            self.wxqcut_range_l[l] = qcrange_l = awx.ArangeControl(panel, start=8.0, stop=9.0, step=0.1)
+            #self.wxqcut_range_l[l] = qcrange_l = awx.ArangeControl(self, start=8.0, stop=9.0, step=0.1)
+            self.wxqcut_range_l[l] = qcrange_l = awx.IntervalControl(self, start=8.0, num=2, step=0.1)
 
             vsz.Add(text, **add_opts)
             vsz.Add(check_l, **add_opts)
             vsz.Add(qcrange_l, **add_opts)
-            main_sizer.Add(vsz)
+            main_sizer.Add(vsz, 1, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
 
         ok_button = wx.Button(self, wx.ID_OK, label='Ok')
         ok_button.Bind(wx.EVT_BUTTON, self.onOkButton)
@@ -288,12 +278,12 @@ class QcutOptimizationFrame(awx.Frame):
         close_button.Bind(wx.EVT_BUTTON, self.onCloseButton)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(ok_button)
-        hbox.Add(close_button, flag=wx.LEFT, border=5)
+        hbox.Add(ok_button, **add_opts)
+        hbox.Add(close_button, **add_opts)
 
-        main_sizer.Add(hbox, flag=wx.ALIGN_CENTER | wx.ALL | wx.EXPAND)
+        main_sizer.Add(hbox, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
 
-        panel.SetSizerAndFit(main_sizer)
+        self.SetSizerAndFit(main_sizer)
 
     def onCloseButton(self, event):
         self.Destroy()
@@ -526,7 +516,6 @@ class Field(object):
         and override them with those given in kwargs
         """
         # Make a deep copy since WXTRL_PARAMS is mutable.
-        import copy
         ctrl_params = copy.deepcopy(self.WXCTRL_PARAMS)
 
         for label, params in ctrl_params.items():
@@ -675,7 +664,7 @@ class ModelCoreField(RowField):
 
     WXCTRL_PARAMS = OrderedDict([
         ("icmod", dict(dtype="i", value="0")),
-        ("fcfact", dict(dtype="f", value="0.0"))])
+        ("fcfact", dict(dtype="f", value="0.25"))])
 
 
 @add_tooltips
@@ -1045,6 +1034,7 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
     ListCtrl that allows the user to interact with a list of pseudogenerators
     Supports column sorting
     """
+    # List of columns
     _COLUMNS = ["#", 'status', "max_ecut", "atan_logder_err", "max_psexc_abserr", "herm_err"]
 
     def __init__(self, parent, psgens=(), **kwargs):
@@ -1278,13 +1268,13 @@ class PseudoGeneratorsFrame(awx.Frame):
         text = wx.StaticText(panel, -1, "Max nlaunch:")
         text.Wrap(-1)
         text.SetToolTipString("Maximum number of tasks that can be submitted. Use -1 for unlimited launches.")
-        self.max_nlaunch = wx.SpinCtrl(panel, -1, value="-1", min=-1)
+        self.max_nlaunch = wx.SpinCtrl(panel, -1, value=str(number_of_cpus()), min=-1)
 
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
-        hsizer.Add(submit_button, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
-        hsizer.Add(text, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
-        hsizer.Add(self.max_nlaunch, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
-        main_sizer.Add(hsizer, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
+        hsizer.Add(submit_button, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        hsizer.Add(text, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        hsizer.Add(self.max_nlaunch, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        main_sizer.Add(hsizer, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5)
 
         panel.SetSizerAndFit(main_sizer)
 
@@ -1419,7 +1409,7 @@ class PseudoGeneratorsFrame(awx.Frame):
         keys = list(multi_plotter.keys())
 
         class MyFrame(awx.FrameWithChoice):
-            """Get a string with the quantitiy to plot and call multi_plotter.plot_key"""
+            """Get a string with the quantity to plot and call multi_plotter.plot_key"""
             def onOkButton(self, event):
                 multi_plotter.plot_key(key=self.getChoice())
 
