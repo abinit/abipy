@@ -1045,7 +1045,7 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
     ListCtrl that allows the user to interact with a list of pseudogenerators
     Supports column sorting
     """
-    _COLUMNS = ["#", 'status', "max_ecut", "atan_logder_err"]
+    _COLUMNS = ["#", 'status', "max_ecut", "atan_logder_err", "max_psexc_abserr", "herm_err"]
 
     def __init__(self, parent, psgens=(), **kwargs):
         """
@@ -1089,14 +1089,24 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
     @staticmethod
     def make_entry(index, psgen):
         """Returns the entry associated to the generator psgen with the given index."""
-        max_ecut = None if psgen.results is None else psgen.results.max_ecut
-        max_atan_logder_l1err = None if psgen.results is None else psgen.results.max_atan_logder_l1err
+        max_ecut = None
+        max_atan_logder_l1err = None
+        max_psexc_abserr = None
+        herm_err = None
+
+        if psgen.results is not None:
+            max_ecut = psgen.results.max_ecut
+            max_atan_logder_l1err = psgen.results.max_atan_logder_l1err
+            max_psexc_abserr = psgen.results.max_psexc_abserr
+            herm_err = psgen.results.herm_err
 
         return [
             "%d\t\t" % index,
             "%s" % psgen.status,
             "%s" % max_ecut,
             "%s" % max_atan_logder_l1err,
+            "%s" % max_psexc_abserr,
+            "%s" % herm_err,
         ]
 
     def doRefresh(self):
