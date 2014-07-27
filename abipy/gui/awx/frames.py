@@ -10,7 +10,7 @@ __all__ = [
 ]
 
 
-class FrameWithChoice(awxFrame):
+class FrameWithChoice(wx.Frame):
     """
     Simple frame with a Choice control and two buttons: OK, Cancel
     Subclasses will usually redefine onOkButton.
@@ -21,26 +21,25 @@ class FrameWithChoice(awxFrame):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         panel = wx.Panel(self, -1)
-        main_sizer.Add(panel, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL | wx.EXPAND, border=5)
 
-        self.wxchoices = wx.Choice(self, -1, wx.DefaultPosition, wx.DefaultSize, list(choices), 0)
+        self.wxchoices = wx.Choice(panel, -1, wx.DefaultPosition, wx.DefaultSize, list(choices), 0)
         self.wxchoices.SetSelection(0)
 
         main_sizer.Add(self.wxchoices, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL | wx.EXPAND, border=5)
 
-        ok_button = wx.Button(self, wx.ID_OK, label='Ok')
+        ok_button = wx.Button(panel, wx.ID_OK, label='Ok')
         ok_button.Bind(wx.EVT_BUTTON, self.onOkButton)
 
-        close_button = wx.Button(self, wx.ID_CANCEL, label='Cancel')
+        close_button = wx.Button(panel, wx.ID_CANCEL, label='Cancel')
         close_button.Bind(wx.EVT_BUTTON, self.onCloseButton)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(ok_button)
+        hbox.Add(ok_button, border=5)
         hbox.Add(close_button, flag=wx.LEFT, border=5)
 
-        main_sizer.Add(hbox, flag=wx.ALIGN_CENTER | wx.ALL | wx.EXPAND)
+        main_sizer.Add(hbox, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL | wx.EXPAND, border=5)
 
-        self.SetSizerAndFit(main_sizer)
+        panel.SetSizerAndFit(main_sizer)
 
     def getChoice(self):
         """Returns the string selected by the user."""

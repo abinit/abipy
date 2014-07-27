@@ -8,6 +8,7 @@ from abipy.tools import AttrDict
 
 __all__ = [
     "LinspaceControl",
+    "ArangeControl",
     "RowMultiCtrl",
     "TableMultiCtrl",
 ]
@@ -91,7 +92,7 @@ class LinspaceControl(wx.Panel):
 
         self.SetSizerAndFit(main_sizer)
 
-    def GetLinspace(self):
+    def getValues(self):
         """Returns the numpy array built with numpy.linspace."""
         # FIXME Values are not updated if I edit the string in the SpinCtrl
         import numpy as np
@@ -100,6 +101,84 @@ class LinspaceControl(wx.Panel):
                  num=self.num_ctrl.GetValue())
 
         return np.linspace(**p)
+
+
+class ArangeControl(wx.Panel):
+    """
+    This control merges three `SpinCtrlDouble` controls to allow
+    the user to specify a range using the `numpy.arange` syntax.
+    """
+    # Default parameters passed to SpinCtrlDouble.
+    SPIN_DOUBLE_DEFAULTS = dict(value=str(0.0), min=0, max=10000, initial=0, inc=1)
+
+    def __init__(self, parent, start=None, stop=None, step=None, **kwargs):
+        """
+        """
+        super(ArangeControl, self).__init__(parent, id=-1, **kwargs)
+
+        text_opts = dict(flag=wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, border=5)
+        ctrl_opts = text_opts
+
+        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        # start
+        text = wx.StaticText(self, -1, "Start:")
+        text.Wrap(-1)
+        text.SetToolTipString("Start of interval. The interval includes this value.")
+
+        p = self.SPIN_DOUBLE_DEFAULTS.copy()
+        if start is not None:
+            p["value"] = str(start)
+
+        self.start_ctrl = wx.SpinCtrlDouble(self, -1, **p)
+
+        main_sizer.Add(text, **text_opts)
+        main_sizer.Add(self.start_ctrl, **ctrl_opts)
+
+        # stop
+        text = wx.StaticText(self, -1, "Stop:")
+        text.Wrap(-1)
+        text.SetToolTipString("""\
+End of interval.  The interval does not include this value, except
+in some cases where `step` is not an integer and floating point
+round-off affects the length of `out`.""")
+
+        p = self.SPIN_DOUBLE_DEFAULTS.copy()
+        if stop is not None:
+            p["value"] = str(stop)
+
+        self.stop_ctrl = wx.SpinCtrlDouble(self, -1, **p)
+
+        main_sizer.Add(text, **text_opts)
+        main_sizer.Add(self.stop_ctrl, **ctrl_opts)
+
+        # num
+        text = wx.StaticText(self, -1, "Step:")
+        text.Wrap(-1)
+        text.SetToolTipString("""\
+Spacing between values.  For any output `out`, this is the distance
+between two adjacent values, ``out[i+1] - out[i]``.""")
+#The default #step size is 1.  If `step` is specified, `start` must also be given.
+
+        p = self.SPIN_DOUBLE_DEFAULTS.copy()
+        if step is not None:
+            p["value"] = str(step)
+
+        self.step_ctrl = wx.SpinCtrlDouble(self, -1, **p)
+
+        main_sizer.Add(text, **text_opts)
+        main_sizer.Add(self.step_ctrl, **ctrl_opts)
+
+        self.SetSizerAndFit(main_sizer)
+
+    def getValues(self):
+        """Returns the numpy array built with numpy.linspace."""
+        import numpy as np
+        p = dict(start=self.start_ctrl.GetValue(),
+                 stop=self.stop_ctrl.GetValue(),
+                 step=self.step_ctrl.GetValue())
+
+        return np.arange(**p)
 
 
 class RowMultiCtrl(wx.Panel):
@@ -263,21 +342,23 @@ class TableMultiCtrl(wx.Panel):
 
 
 if __name__ == "__main__":
-   app = wx.App()
-   frame = wx.Frame(None)
-   panel = LinspaceControl(frame)
+    app = wx.App()
+    frame = wx.Frame(None)
 
-   #panel = RowMultiCtrl(frame, [
-   #    ("hello", dict(dtype="f", tooltip="Tooltip for hello", value=1/3.0)),
-   #    ("integer", dict(dtype="i")),
-   #    ("combo", dict(dtype="cbox", choices=["default", "another"])),
-   #])
+    #panel = LinspaceControl(frame)
+    panel = ArangeControl(frame, start=10, stop=15, step=1)
 
-   #panel = TableMultiCtrl(frame, 3, [
-   #    ("hello", dict(dtype="f", tooltip="Tooltip for hello")),
-   #    ("integer", dict(dtype="i", value=-1)),
-   #])
+    #panel = RowMultiCtrl(frame, [
+    #    ("hello", dict(dtype="f", tooltip="Tooltip for hello", value=1/3.0)),
+    #    ("integer", dict(dtype="i")),
+    #    ("combo", dict(dtype="cbox", choices=["default", "another"])),
+    #])
 
-   frame.Show()
-   app.MainLoop()
+    #panel = TableMultiCtrl(frame, 3, [
+    #    ("hello", dict(dtype="f", tooltip="Tooltip for hello")),
+    #    ("integer", dict(dtype="i", value=-1)),
+    #])
+
+    frame.Show()
+    app.MainLoop()
 

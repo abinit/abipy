@@ -143,7 +143,7 @@ class ControlPanel(wx.Panel):
         """
         Build and returns a string with whe &CONTROL Fortran NAMELIST.
         """
-        ecut_list = self.ecut_linspace.GetLinspace()
+        ecut_list = self.ecut_linspace.getValues()
         if len(ecut_list) <= 1:
             return awx.showErrorMessage(self, message="Ecut list is empty or contains only one item!")
         step = ecut_list[1] - ecut_list[0]

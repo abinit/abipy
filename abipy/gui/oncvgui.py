@@ -149,9 +149,9 @@ class OncvMainFrame(wx.Frame):
         self.ID_OPTIMIZE_QCUT = wx.NewId()
 
         toolbar.AddSimpleTool(self.ID_SHOW_INPUT, bitmap("in.png"), "Visualize the input file(s) of the workflow.")
-        toolbar.AddSimpleTool(self.ID_ADD_TO_QUEUE, bitmap("in.png"), "Add to the queue of pseudos to be generated.")
+        toolbar.AddSimpleTool(self.ID_ADD_TO_QUEUE, bitmap("in.png"), "Add the input to the queue the pseudos to be generated.")
         toolbar.AddSimpleTool(self.ID_OPTIMIZE_VLOC, bitmap("in.png"), "Optimize the parameters for Vloc for the given template.")
-        toolbar.AddSimpleTool(self.ID_OPTIMIZE_RHOM, bitmap("in.png"), "Optimize the parameters for the model charge.")
+        toolbar.AddSimpleTool(self.ID_OPTIMIZE_RHOM, bitmap("in.png"), "Optimize the parameters for the model core charge.")
         toolbar.AddSimpleTool(self.ID_OPTIMIZE_QCUT, bitmap("in.png"), "Optimize qcut parameter.")
 
         toolbar.Realize()
@@ -192,7 +192,7 @@ class OncvMainFrame(wx.Frame):
             psgen = OncvGenerator(str(inp), calc_type=self.input_panel.get_calc_type())
             psgens.append(psgen)
 
-        PseudoGeneratorsFrame(self, psgens, title="%s Optimation" % key).Show()
+        PseudoGeneratorsFrame(self, psgens, title="%s Optimization" % key).Show()
 
     def OnOptimizeVloc(self, event):
         """Open a new frame for the optimization of Vlocal."""
@@ -239,28 +239,44 @@ class OncvMainFrame(wx.Frame):
 
 
 class QcutOptimizationFrame(awx.Frame):
-
+    """
+    This frame allows the user to select the l-channels and
+    the list of values of qcut_l to be analyzed.
+    """
     def __init__(self, parent, oncv_input_panel, **kwargs):
+        """
+        Args:
+            oncv_input_panel:
+                Instance of OncvInputPanel containing the parameters of the template.
+        """
         super(QcutOptimizationFrame, self).__init__(parent, **kwargs)
 
         panel = wx.Panel(self, -1)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
+        # Save reference to the input panel.
         self.input_panel = oncv_input_panel
         lmax = oncv_input_panel.lmax
 
+        # Build list of ArangeControl to allow the user to select the list of
+        # qcut values for the different l-channels. Once can disable particular
+        # l-channels via checkboxes.
         self.checkbox_l = [None] * (lmax + 1)
-        self.qcut_linspace_l = [None] * (lmax + 1)
+        self.wxqcut_range_l = [None] * (lmax + 1)
 
         add_opts = dict(flag=wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, border=5)
         for l in range(lmax + 1):
             vsz = wx.BoxSizer(wx.HORIZONTAL)
 
+            text = wx.StaticText(self, -1, "l-channel %d:" % l)
+            text.Wrap(-1)
             self.checkbox_l[l] = check_l = wx.CheckBox(panel, -1, name="l=%d" % l)
+            check_l.SetToolTipString("Enable/Disable optimization for this l-channel")
             check_l.SetValue(True)
-            self.qcut_linspace_l[l] = qcrange_l = awx.LinspaceControl(panel, start=0.1, stop=0.2, num=2)
+            self.wxqcut_range_l[l] = qcrange_l = awx.ArangeControl(panel, start=8.0, stop=9.0, step=0.1)
 
+            vsz.Add(text, **add_opts)
             vsz.Add(check_l, **add_opts)
             vsz.Add(qcrange_l, **add_opts)
             main_sizer.Add(vsz)
@@ -283,25 +299,26 @@ class QcutOptimizationFrame(awx.Frame):
         self.Destroy()
 
     def onOkButton(self, event):
+        """
+        Get input from user, generate new input files by changing qcut and
+        open a new frame for running the calculations.
+        """
         l_list, qcvals_list = [], []
-        for l, (checkbox, wxlinspace) in enumerate(zip(self.checkbox_l, self.qcut_linspace_l)):
+        for l, (checkbox, wxrange) in enumerate(zip(self.checkbox_l, self.wxqcut_range_l)):
             if checkbox.IsChecked():
                 l_list.append(l)
-                qcvals_list.append(wxlinspace.GetLinspace())
+                qcvals_list.append(wxrange.getValues())
 
-        print(l_list)
-        print(qcvals_list)
-        #return
+        print("l_list:", l_list)
+        print("qcvals_list", qcvals_list)
 
         # Generate new list of inputs.
         base_inp = self.input_panel.makeInput()
         new_inps = []
         for l, new_qcuts in zip(l_list, qcvals_list):
-            #l = 0
             new_inps.extend(base_inp.optimize_qcuts_for_l(l=l, new_qcuts=new_qcuts))
-        #print(new_inps)
 
-        # Build the PseudoGenerators and open frame to run them.
+        # Build the PseudoGenerators and open new frame to run them.
         psgens = []
         for inp in new_inps:
             psgen = OncvGenerator(str(inp), calc_type=self.input_panel.get_calc_type())
@@ -450,17 +467,14 @@ class Field(object):
     def set_vars_from_lines(self, lines):
         """The the value of the variables from a list of strings."""
         # TODO: Check this
-        #print("About to read: ", type(self))
-        #print("\n".join(lines))
+        #print("About to read: ", type(self), "\nlines=\n, "\n".join(lines))
 
         okeys = self.WXCTRL_PARAMS.keys()
         odtypes = [v["dtype"] for v in self.WXCTRL_PARAMS.values()]
         parsers = [self.parser_for_dtype[ot] for ot in odtypes]
-        #print("okeys", okeys)
-        #print("odtypes", odtypes)
+        #print("okeys", okeys, "odtypes", odtypes)
 
         if self.ftype == self.FTYPE_ROW:
-            #print(lines)
             assert len(lines) == 1
             tokens = lines[0].split()
             #print("row tokens", tokens)
@@ -750,8 +764,7 @@ class OncvInput(object):
         ncnf = 0
 
         # Initialize the object
-        oncv_dims = dict(atsym=atsym, nc=nc, nv=nv, lmax=lmax, ncnf=ncnf)
-        inp = OncvInput(oncv_dims)
+        inp = OncvInput(oncv_dims=dict(atsym=atsym, nc=nc, nv=nv, lmax=lmax, ncnf=ncnf))
 
         # TODO
         # Fill it
@@ -905,8 +918,8 @@ class OncvInput(object):
 
     def optimize_qcuts_for_l(self, l, new_qcuts):
         """
-        Returns a list of new input objects in which the qcut parameter
-        has been replaced by the values listed in new_qcuts.
+        Returns a list of new input objects in which the qcut parameter for
+        the given l has been replaced by the values listed in new_qcuts.
 
         Args:
             l:
@@ -937,9 +950,11 @@ class OncvInput(object):
         return inps
 
 
-class OncvInputPanel(awx.Panel):
-#class OncvInputPanel(wx.ScrolledWindow):
+#from wx.lib.scrolledpanel import ScrolledPanel
 
+class OncvInputPanel(awx.Panel):
+#class OncvInputPanel(ScrolledPanel):
+#class OncvInputPanel(wx.ScrolledWindow):
     """
     Panel with widgets allowing the user to select the input parameters.
     """
@@ -949,7 +964,7 @@ class OncvInputPanel(awx.Panel):
             oncv_dims:
                 Basic dimensions of the calculation.
         """
-        super(OncvInputPanel, self).__init__(parent)
+        super(OncvInputPanel, self).__init__(parent, id=-1)
         #super(OncvInputPanel, self).__init__(parent, id=-1, style=wx.HSCROLL | wx.VSCROLL)
 
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -973,7 +988,9 @@ class OncvInputPanel(awx.Panel):
 
         self.fill_from_file("08_O.dat")
 
+        #self.SetupScrolling()
         self.SetSizerAndFit(self.main_sizer)
+        #self.SetSizer(self.main_sizer)
 
     @property
     def lmax(self):
@@ -1038,7 +1055,8 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
             psgens:
                 List of `PseudoGenerator` instances.
         """
-        super(PseudoGeneratorListCtrl, self).__init__(parent, id=-1, style=wx.LC_REPORT | wx.BORDER_SUNKEN, **kwargs)
+        super(PseudoGeneratorListCtrl, self).__init__(
+            parent, id=-1, style=wx.LC_REPORT | wx.BORDER_SUNKEN, **kwargs)
 
         self.psgens = psgens if psgens else []
 
@@ -1071,8 +1089,8 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
     @staticmethod
     def make_entry(index, psgen):
         """Returns the entry associated to the generator psgen with the given index."""
-        max_ecut = None # if psgen.results is None else psgen.results.max_ecut
-        max_atan_logder_l1err = None # if psgen.results is None else psgen.results.max_atan_logder_l1ee
+        max_ecut = None if psgen.results is None else psgen.results.max_ecut
+        max_atan_logder_l1err = None if psgen.results is None else psgen.results.max_atan_logder_l1err
 
         return [
             "%d\t\t" % index,
@@ -1087,7 +1105,6 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
 
         for index, psgen in enumerate(self.psgens):
             entry = self.make_entry(index, psgen)
-            #print("new entry", entry)
             self.SetItemData(index, index)
             self.itemDataMap[index] = entry
 
@@ -1096,8 +1113,6 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
 
         for index, col in enumerate(self._COLUMNS):
             self.SetColumnWidth(index, column_widths[index])
-
-        #super(PseudoGeneratorListCtrl, self).Refresh()
 
     def add_psgen(self, psgen):
         """Add a PseudoGenerator to the list."""
@@ -1222,9 +1237,18 @@ class PseudoGeneratorsPanel(awx.Panel):
 
 
 class PseudoGeneratorsFrame(awx.Frame):
+    """
+    This frame contains a list of pseudopotential generators,
+    It provides controls to run the calculation, and inspect/plot the results.
+    """
     REFRESH_INTERVAL = 120
 
     def __init__(self, parent, psgens=(), **kwargs):
+        """
+        Args:
+            psgens:
+                List of `PseudoGenerators`.
+        """
         super(PseudoGeneratorsFrame, self).__init__(parent, -1, **kwargs)
 
         # Build menu, toolbar and status bar.
@@ -1373,21 +1397,29 @@ class PseudoGeneratorsFrame(awx.Frame):
         """Open a dialog that allows the user to plot the results of multiple generators."""
         multi_plotter = MultiPseudoGenDataPlotter()
 
+        # Add psgen if run is OK.
         for i, psgen in enumerate(self.psgens):
             if psgen.status == psgen.S_OK:
                 multi_plotter.add_psgen(label="%d" % i, psgen=psgen)
 
+        # Return immediately if no calculation is OK.
+        if not len(multi_plotter):
+            return
+
         keys = list(multi_plotter.keys())
-        if not keys: return
 
         class MyFrame(awx.FrameWithChoice):
+            """Get a string with the quantitiy to plot and call multi_plotter.plot_key"""
             def onOkButton(self, event):
-                choice = self.getChoice()
-                multi_plotter.plot_key(choice)
+                multi_plotter.plot_key(key=self.getChoice())
 
         MyFrame(self, choices=keys, title="MultiPlotter").Show()
 
 
+def wxapp_oncvpsp():
+    """Standalone application."""
+    app = OncvApp()
+    return app
 
 if __name__ == "__main__":
     import sys
@@ -1405,10 +1437,7 @@ if __name__ == "__main__":
     #    print("new model\n", inp)
     #sys.exit(0)
 
-    app = OncvApp()
-    app.MainLoop()
-
-
+    wxapp_oncvpsp().MainLoop()
     #app = awx.App()
     #frame = QcutOptimizationFrame(None, lmax=1)
     #frame.Show()
