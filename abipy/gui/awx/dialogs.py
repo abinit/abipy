@@ -83,7 +83,7 @@ class License(wx.Dialog):
 
         vsizer = wx.BoxSizer( wx.VERTICAL )
 
-        text = wx.TextCtrl( self, -1, license_text, style=wx.TE_MULTILINE|wx.TE_READONLY )
+        text = wx.TextCtrl( self, -1, license_text, style=wx.TE_MULTILINE | wx.TE_READONLY )
         vsizer.Add(text, 0, wx.ALL|wx.EXPAND, 5 )
 
         vsizer.Add(wx.Button( self, wx.ID_OK), 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )

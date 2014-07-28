@@ -6,10 +6,11 @@ import copy
 import time
 import wx
 import awx
+import numpy as np
 import pymatgen.core.periodic_table as periodic_table
 
 import wx.lib.mixins.listctrl as listmix
-from collections import OrderedDict
+from collections import OrderedDict #, Iterable
 from monty.dev import number_of_cpus
 from abipy.tools import AttrDict
 from abipy.gui.editor import TextNotebookFrame, SimpleTextViewer
@@ -26,19 +27,20 @@ def add_size(kwargs, size=(800, 600)):
 
     return kwargs
 
+#class PseudoCandidate(object):
+#    """This object stores the input file and the results of a previous generation."""
+#    def __init__(self, psgen_input, results):
+#        self.psgen_input = psgen_input
+#        self.results = results
+#    def __hash__(self):
+#        return hash(self.psgen_input)
+#    def __eq__(self, other):
+#        return self.psgen_input == other.psgen_input
+#    def __ne__(self, other):
+#        return not self == other
 
-class OncvApp(awx.App):
-
-    def OnInit(self):
-        # The code for the splash screen.
-        #image = wx.Image(path_img("wabi_logo.png"), wx.BITMAP_TYPE_PNG)
-        #    bmp = image.ConvertToBitmap()
-        #    wx.SplashScreen(bmp, wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_TIMEOUT, 1000, None, -1)
-        #    wx.Yield()
-        frame = OncvMainFrame(None)
-        frame.Show(True)
-        self.SetTopWindow(frame)
-        return True
+#class PseudoHistory(Iterable):
+#    def __init__(
 
 
 class OncvMainFrame(wx.Frame, mix.Has_Tools):
@@ -56,7 +58,6 @@ class OncvMainFrame(wx.Frame, mix.Has_Tools):
         self.SetMenuBar(self.makeMenu())
         self.makeToolBar()
         self.statusbar = self.CreateStatusBar()
-        #self.statusbar.PushStatusText(message)
         self.Centre()
 
         self.BuildUI()
@@ -69,15 +70,14 @@ class OncvMainFrame(wx.Frame, mix.Has_Tools):
     def BuildUI(self):
         """Build user-interface."""
         oncv_dims = dict(nc=1, nv=2, lmax=1, ncfn=0)
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
-        #main_sizer = wx.FlexGridSizer(wx.VERTICAL)
 
-        # The panel to specify the input variables.
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # The panel with the input variables.
         self.wxoncv_input = WxOncvInput(self, oncv_dims)
         main_sizer.Add(self.wxoncv_input, flag=wx.EXPAND)
 
-        #self.SetSizer(main_sizer)
-        #self.Layout()
+        #self.SetSizer(main_sizer); self.Layout()
         self.SetSizerAndFit(main_sizer)
 
     def AddFileToHistory(self, filepath):
@@ -217,7 +217,7 @@ class OncvMainFrame(wx.Frame, mix.Has_Tools):
 
     def OnOptimizeRc(self, event):
         """Open a new frame for the optimization of the rc parameter."""
-        #QcutOptimizationFrame(self, wxoncv_input=self.wxoncv_input).Show()
+        RcOptimizationFrame(self, wxoncv_input=self.wxoncv_input).Show()
 
     def OnOpen(self, event):
         """Open a file"""
@@ -265,7 +265,6 @@ class QcutOptimizationFrame(awx.Frame):
         super(QcutOptimizationFrame, self).__init__(parent, **kwargs)
 
         panel = wx.Panel(self, -1)
-
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         # Save reference to the input panel.
@@ -326,7 +325,6 @@ class QcutOptimizationFrame(awx.Frame):
             if checkbox.IsChecked():
                 l_list.append(l)
                 qcvals_list.append(wxrange.getValues())
-
         #print("\nl_list:", l_list, "\nqcvals_list", qcvals_list)
 
         # Generate new list of inputs.
@@ -345,11 +343,99 @@ class QcutOptimizationFrame(awx.Frame):
         PseudoGeneratorsFrame(self, psgens, title="Qcut Optimation").Show()
 
 
-def empty_field(tag, oncv_dims):
+class RcOptimizationFrame(awx.Frame):
+    """
+    This frame allows the user to select the l-channels and
+    the list of values of rc_l to be analyzed.
+    """
+    def __init__(self, parent, wxoncv_input, **kwargs):
+        """
+        Args:
+            wxoncv_input:
+                Instance of WxOncvInput containing the parameters of the template.
+        """
+        super(RcOptimizationFrame, self).__init__(parent, **kwargs)
+
+        panel = wx.Panel(self, -1)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # Save reference to the input panel.
+        self.wxoncv_input = wxoncv_input
+        lmax = wxoncv_input.lmax
+
+        # Build list of controls to allow the user to select the list of
+        # qcut values for the different l-channels.
+        # One can disable particular l-channels via checkboxes.
+        self.checkbox_l = [None] * (lmax + 1)
+        self.wxrc_range_l = [None] * (lmax + 1)
+
+        rc_l = wxoncv_input.makeInput().rc_l
+
+        add_opts = dict(flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
+        for l in range(lmax + 1):
+            sbox_sizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, "Angular Channel L=%d" % l), wx.VERTICAL)
+            vsz = wx.BoxSizer(wx.HORIZONTAL)
+
+            self.checkbox_l[l] = check_l = wx.CheckBox(self, -1)
+            check_l.SetToolTipString("Enable/Disable optimization for this l-channel")
+            check_l.SetValue(True)
+
+            self.wxrc_range_l[l] = qcrange_l = awx.IntervalControl(self, start=rc_l[l], num=2, step=0.1)
+
+            vsz.Add(check_l, **add_opts)
+            vsz.Add(qcrange_l, **add_opts)
+
+            sbox_sizer.Add(vsz, 1, wx.ALL, 5)
+            main_sizer.Add(sbox_sizer, 1, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
+
+        gen_button = wx.Button(self, wx.ID_OK, label='Generate')
+        gen_button.Bind(wx.EVT_BUTTON, self.onOkButton)
+
+        close_button = wx.Button(self, wx.ID_CANCEL, label='Cancel')
+        close_button.Bind(wx.EVT_BUTTON, self.onCloseButton)
+
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(gen_button, **add_opts)
+        hbox.Add(close_button, **add_opts)
+
+        main_sizer.Add(hbox, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
+
+        self.SetSizerAndFit(main_sizer)
+
+    def onCloseButton(self, event):
+        self.Destroy()
+
+    def onOkButton(self, event):
+        """
+        Get input from user, generate new input files by changing rc and
+        open a new frame for running the calculations.
+        """
+        l_list, rc_list = [], []
+        for l, (checkbox, wxrange) in enumerate(zip(self.checkbox_l, self.wxrc_range_l)):
+            if checkbox.IsChecked():
+                l_list.append(l)
+                rc_list.append(wxrange.getValues())
+
+        # Generate new list of inputs.
+        base_inp = self.wxoncv_input.makeInput()
+        new_inps = []
+        for l, new_rcs in zip(l_list, rc_list):
+            new_inps.extend(base_inp.optimize_rcs_for_l(l, new_rcs))
+
+        # Build the PseudoGenerators and open new frame to run them.
+        psgens = []
+        for inp in new_inps:
+            psgen = OncvGenerator(str(inp), calc_type=self.wxoncv_input.get_calc_type())
+            psgens.append(psgen)
+
+        PseudoGeneratorsFrame(self, psgens, title="Rc Optimation").Show()
+
+
+def empty_field(tag, oncv_dims=None):
     """Returns an empty field."""
     # Get the subclass from tag, initialize data with None and call __init__
     cls = _FIELD_LIST[tag]
-    data = cls.make_empty_data(oncv_dims)
+    data = cls.make_empty_data(oncv_dims=oncv_dims)
 
     return cls(tag, data, oncv_dims)
 
@@ -386,7 +472,7 @@ class Field(object):
         self.data = data
 
     @classmethod
-    def make_empty_data(cls, oncv_dims):
+    def make_empty_data(cls, oncv_dims=None):
         """Initialize data and fill it with None."""
         if cls.ftype == cls.FTYPE_ROW:
             data = OrderedDict([(k, None) for k in cls.WXCTRL_PARAMS.keys()])
@@ -626,8 +712,18 @@ class RefConfField(TableField):
         ("l", dict(dtype="i")),
         ("f", dict(dtype="f"))])
 
-    #@classmethod
-    #def neutral_from_symbol(cls, symbol):
+    @classmethod
+    def neutral_from_symbol(cls, symbol):
+        # TODO
+        ele = periodic_table.Element(symbol)
+        # E.g., The electronic structure for Fe is represented as:
+        #[(1, "s", 2), (2, "s", 2), (2, "p", 6), (3, "s", 2), (3, "p", 6), (3, "d", 6), (4, "s", 2)]
+        #new = empty_field(cls.tag, oncv_dims=dict(nc))
+
+        for row, (n, lchar, f) in zip(new, ele.full_electronic_structure):
+            row["n"], row["l"], row["f"] = n, periodic_table.char2l(lchar), f
+
+        return new
 
     @classmethod
     def nrows_from_dims(cls, oncv_dims):
@@ -646,8 +742,8 @@ class PseudoConfField(TableField):
         ("l", dict(dtype="i")),
         ("rc", dict(dtype="f")),
         ("ep", dict(dtype="f")),
-        ("ncon", dict(dtype="i")),
-        ("nbas", dict(dtype="i")),
+        ("ncon", dict(dtype="i", value="4")),
+        ("nbas", dict(dtype="i", value="7")),
         ("qcut", dict(dtype="f"))])
 
     @classmethod
@@ -672,8 +768,8 @@ class VlocalField(RowField):
     name = "LOCAL POTENTIAL"
 
     WXCTRL_PARAMS = OrderedDict([
-        ("lloc", dict(dtype="i")),
-        ("lpopt", dict(dtype="i")),
+        ("lloc", dict(dtype="i", value="4")),
+        ("lpopt", dict(dtype="i", value="5")),
         ("rc5", dict(dtype="f")),
         ("dvloc0", dict(dtype="f"))])
 
@@ -725,19 +821,25 @@ class RadGridField(RowField):
 
 
 #@add_tooltips
-#class TestConfsField(RaggedField):
+#class TestConfigsField(RaggedField):
     #    name = "TEST CONFIGURATIONS"
     #    WXCTRL_PARAMS = OrderedDict([
-    #        ("rlmax", dict(dtype="f", value="4.0")),
-    #        ("drl", dict(dtype="f", value="0.01"))])
+    #        ("ncnf", dict(dtype="i", value="0")),
+    #        ("nvcnf", dict(dtype="i", value="0")),
+    #        ("n", dict(dtype="i")),
+    #        ("l", dict(dtype="i")),
+    #        ("f", dict(dtype="f"))])
 
     #@property
     #def nrows(self):
-    #    return self.oncv_dims["ncnf"] + 1
+    #    return self.oncv_dims["ncnf"]
 
     #@classmethod
     #def nrows_from_dims(cls, oncv_dims):
     #    return oncv_dims["ncnf"]
+
+    #@property
+    #def nlines_for_row(self, row):
 
 
 # List with the field in the same order as the one used in the input file.
@@ -751,7 +853,7 @@ _FIELD_LIST = [
     ModelCoreField,
     LogDerField,
     RadGridField,
-    #TestConfsField,
+    #TestConfigsField,
 ]
 
 _NFIELDS = len(_FIELD_LIST)
@@ -1022,19 +1124,19 @@ class WxOncvInput(awx.Panel):
     """
     Panel with widgets allowing the user to select the input parameters.
     """
-    def __init__(self, parent, oncv_dims):
+    def __init__(self, parent, oncv_dims, **kwargs):
         """
         Args:
             oncv_dims:
                 Basic dimensions of the calculation.
         """
         super(WxOncvInput, self).__init__(parent, id=-1)
-        #super(WxOncvInput, self).__init__(parent, id=-1, style=wx.HSCROLL | wx.VSCROLL)
+        #super(WxOncvInput, self).__init__(parent, id=-1, style=wx.VSCROLL)
 
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
         #self.main_sizer = wx.FlexGridSizer(wx.VERTICAL)
 
-        calc_type_label = wx.StaticText(self, -1, "Calculation type:")
+        stext = wx.StaticText(self, -1, "Calculation type:")
         choices = ["scalar-relativistic", "fully-relativistic", "non-relativistic"]
         self.calctype_cbox = wx.ComboBox(
             self, id=-1, name='Calculation type', choices=choices, value=choices[0], style=wx.CB_READONLY)
@@ -1042,7 +1144,7 @@ class WxOncvInput(awx.Panel):
         add_opts = dict(proportion=0, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
 
         hbox0 = wx.BoxSizer(wx.HORIZONTAL)
-        hbox0.Add(calc_type_label, **add_opts)
+        hbox0.Add(stext, **add_opts)
         hbox0.Add(self.calctype_cbox)
 
         self.main_sizer.Add(hbox0, **add_opts)
@@ -1052,8 +1154,8 @@ class WxOncvInput(awx.Panel):
 
         self.fill_from_file("08_O.dat")
 
-        self.SetSizerAndFit(self.main_sizer)
         #self.SetupScrolling()
+        self.SetSizerAndFit(self.main_sizer)
         #self.SetSizer(self.main_sizer)
 
     @property
@@ -1066,7 +1168,7 @@ class WxOncvInput(awx.Panel):
         Returns the sizer containing the widgets.
         """
         self.oncv_dims = oncv_dims
-        sizer, sizer_addopts = wx.BoxSizer(wx.VERTICAL), {}
+        sizer, sizer_addopts = wx.BoxSizer(wx.VERTICAL), dict(proportion=0, flag=wx.ALL, border=5)
 
         # We have nfields sections in the input file.
         # Each field has a widget that returns the variables in a dictionary
@@ -1076,7 +1178,7 @@ class WxOncvInput(awx.Panel):
             wxctrl = f.make_wxctrl(self)
             self.wxctrls[i] = wxctrl
             sbox_sizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, f.name + ":"), wx.VERTICAL)
-            sbox_sizer.Add(wxctrl, 1, wx.ALL, 5)
+            sbox_sizer.Add(wxctrl, **sizer_addopts)
             sizer.Add(sbox_sizer, **sizer_addopts)
 
         return sizer
@@ -1314,15 +1416,20 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
 
     def onChangeInput(self, event):
         """Change the template input file."""
-        #print(self.wxinput)
         psgen = self.getSelectedPseudoGen()
         if psgen is None: return
 
         # Change the parameters in wxinput using those in psgen.stdin_path
         if not os.path.exists(psgen.stdin_path):
-            awx.Error("Input file %s does not exist" % psgen.stdin_path)
+            awx.showErrorMessage(self, "Input file %s does not exist" % psgen.stdin_path)
 
         self.wxinput.fill_from_file(psgen.stdin_path)
+
+    #def onAddToHistory(self, event):
+    #    psgen = self.getSelectedPseudoGen()
+    #    if psgen is None: return
+    #    # Add it to history.
+    #    self.history.append(psgen)
 
     def _showStdfile(self, event, stdfile):
         """
@@ -1349,15 +1456,41 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
 
     def onShowStderr(self, event):
         """Open a frame with the stderr file."""
+        #self.plot_columns()
         self._showStdfile(event, "stderr")
 
+    def plot_columns(self, **kwargs):
+        keys = self._COLUMNS[2:]
+        table = OrderedDict([(k, []) for k in keys])
 
+        for index, psgen in enumerate(self.psgens):
+            entry = self.make_entry(index, psgen)
+            for k, v in zip(keys, entry[2:]):
+                #print("k", k, "v", v)
+                try:
+                    v = float(v)
+                except ValueError:
+                    # This happens if the run is not completed.
+                    v = None
 
+                table[k].append(v)
 
+        import matplotlib.pyplot as plt
 
+        # Build grid of plots.
+        fig, ax_list = plt.subplots(nrows=len(table), ncols=1, sharex=False, squeeze=True)
 
+        for key, ax in zip(table.keys(), ax_list):
+            ax.grid(True)
+            ax.set_title(key)
+            row = table[key]
+            xs = np.arange(len(row))
+            ys = np.array(table[key]).astype(np.double)
+            # Mask None
+            mask = np.isfinite(ys)
+            line, = ax.plot(xs[mask], ys[mask], linewidth=2, markersize=2, marker="o")
 
-
+        plt.show()
 
 
 class PseudoGeneratorsPanel(awx.Panel):
@@ -1384,6 +1517,9 @@ class PseudoGeneratorsPanel(awx.Panel):
     @property
     def psgens(self):
         return self.psgen_list_ctrl.psgens
+
+    def plot_columns(self, **kwargs):
+        self.psgen_list_ctrl.plot_columns(**kwargs)
 
 
 class PseudoGeneratorsFrame(awx.Frame):
@@ -1452,11 +1588,13 @@ class PseudoGeneratorsFrame(awx.Frame):
         self.ID_SHOW_ERRS = wx.NewId()
         self.ID_CHECK_STATUS = wx.NewId()
         self.ID_MULTI_PLOTTER = wx.NewId()
+        self.ID_PLOT_COLUMNS = wx.NewId()
 
         toolbar.AddSimpleTool(self.ID_SHOW_INPUTS, bitmap("in.png"), "Visualize the input file(s) of the generators.")
         toolbar.AddSimpleTool(self.ID_SHOW_OUTPUTS, bitmap("out.png"), "Visualize the output file(s) of the generators.")
         toolbar.AddSimpleTool(self.ID_SHOW_ERRS, bitmap("log.png"), "Visualize the errors file(s) of the generators.")
         toolbar.AddSimpleTool(self.ID_MULTI_PLOTTER, bitmap("log.png"), "Multi plotter.")
+        toolbar.AddSimpleTool(self.ID_PLOT_COLUMNS, bitmap("log.png"), "Plot columns.")
         toolbar.AddSeparator()
         toolbar.AddSimpleTool(self.ID_CHECK_STATUS, bitmap("refresh.png"), "Check the status of the workflow(s).")
 
@@ -1469,6 +1607,7 @@ class PseudoGeneratorsFrame(awx.Frame):
             (self.ID_SHOW_ERRS, self.OnShowErrs),
             (self.ID_CHECK_STATUS, self.OnCheckStatus),
             (self.ID_MULTI_PLOTTER, self.OnMultiPlotter),
+            (self.ID_PLOT_COLUMNS, self.onPlotColumns),
         ]
 
         for combo in menu_handlers:
@@ -1529,19 +1668,22 @@ class PseudoGeneratorsFrame(awx.Frame):
             self.last_refresh = time.time()
 
     def OnShowInputs(self, event):
-        """Show all the input files of the selected `Workflow`."""
+        """Show all input files."""
         TextNotebookFrame(self, text_list=[psgen.get_stdin() for psgen in self.psgens], 
                           page_names=[repr(psgen) for psgen in self.psgens]).Show()
 
     def OnShowOutputs(self, event):
-        """Show all the output files of the selected `Workflow`."""
+        """Show all output files."""
         TextNotebookFrame(self, text_list=[psgen.get_stdout() for psgen in self.psgens],
                           page_names=[repr(psgen) for psgen in self.psgens]).Show()
 
     def OnShowErrs(self, event):
-        """Show all the output files of the selected `Workflow`."""
+        """Show all error files."""
         TextNotebookFrame(self, text_list=[psgen.get_stderr() for psgen in self.psgens], 
                           page_names=[repr(psgen) for psgen in self.psgens]).Show()
+
+    def onPlotColumns(self, event):
+        self.psgens_wxlist.plot_columns()
 
     def OnMultiPlotter(self, event):
         """Open a dialog that allows the user to plot the results of multiple generators."""
@@ -1564,6 +1706,20 @@ class PseudoGeneratorsFrame(awx.Frame):
                 multi_plotter.plot_key(key=self.getChoice())
 
         MyFrame(self, choices=keys, title="MultiPlotter").Show()
+
+
+class OncvApp(awx.App):
+
+    def OnInit(self):
+        # The code for the splash screen.
+        #image = wx.Image(path_img("wabi_logo.png"), wx.BITMAP_TYPE_PNG)
+        #    bmp = image.ConvertToBitmap()
+        #    wx.SplashScreen(bmp, wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_TIMEOUT, 1000, None, -1)
+        #    wx.Yield()
+        frame = OncvMainFrame(None)
+        frame.Show(True)
+        self.SetTopWindow(frame)
+        return True
 
 
 def wxapp_oncvpsp():

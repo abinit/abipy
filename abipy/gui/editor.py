@@ -3,6 +3,7 @@ from __future__ import print_function, division
 
 import os
 import wx
+import tempfile
 import wx.lib.agw.flatnotebook as fnb
 import abipy.gui.awx as awx
 
@@ -37,7 +38,6 @@ class MyEditorFrame(EditorFrame):
     @classmethod
     def from_text(cls, parent, text, **kwargs):
         """Hack so that we can open a string in the Editor."""
-        import tempfile
         fd, filename = tempfile.mkstemp(text=True)
 
         with open(filename, "w") as fh:
