@@ -14,10 +14,12 @@ def getApplicationConfigDirectory():
     app = getApplication()
     return app.getConfigDirectory()
 
+
 def getApplicationConfiguration():
     """Returns the application configuration object."""
     app = getApplication()
     return app.getConfiguration()
+
 
 def beautifySize(size):
     """Returns a string representing the size in bytes in a more human readable way."""
@@ -30,11 +32,13 @@ def beautifySize(size):
     else:
         return "%(size)s Bytes" % {'size': size}
 
+
 def addHorizontalSpaceTool(toolbar, width):
     """Adds horizontal space in a portable manner."""
     space = wx.StaticText(toolbar, -1, "")
     space.SetSize((width, -1))
     toolbar.AddControl(space)
+
 
 def addLineSeparator(toolbar, height):
     """Adds a line separator to a toolbar."""
@@ -44,14 +48,16 @@ def addLineSeparator(toolbar, height):
     toolbar.AddControl(line)
     addHorizontalSpaceTool(toolbar, 3)
 
+
 def getColumnText(list, index, col):
     """Gets the text from the specified column entry in a list."""
     item = list.GetItem(index, col)
     return item.GetText()
 
+
 def getSelected(list):
     """Gets the selected items from a list object."""
-    selected = [ ]
+    selected = []
     item = -1
     while 1:
         item = list.GetNextItem(item, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
@@ -60,19 +66,23 @@ def getSelected(list):
         selected.append(item)
     return selected
 
+
 def setListColumnAlignment(list, col, align):
     """Sets the column alignment for a column in a list."""
     item_info = list.GetColumn(col)
     item_info.SetAlign(align)
     list.SetColumn(col, item_info)
 
+
 def colorToTuple(color):
     """Coverts a color object to a tuple RGB tuple representing the color."""
     return (color.Red(), color.Green(), color.Blue())
 
+
 def isStrOrUnicode(value):
     """Returns true if the value is either a string or a unicode type."""
     return isinstance(value, str) or isinstance(value, unicode)
+
 
 def is_string(s):
     """True if s behaves like a string (duck typing test)."""
@@ -81,6 +91,7 @@ def is_string(s):
         return True
     except TypeError:
         return False
+
 
 def straceback(color=None):
     """

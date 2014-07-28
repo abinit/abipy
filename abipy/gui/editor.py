@@ -15,10 +15,10 @@ __all__ = [
 ]
 
 
-def add_size(kwargs):
+def add_size(kwargs, size=(800, 600)):
     """Add size to kwargs if not present."""
     if "size" not in kwargs:
-        kwargs["size"] = (800, 600)
+        kwargs["size"] = size
 
     return kwargs
 

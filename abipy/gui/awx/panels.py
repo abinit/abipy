@@ -266,7 +266,6 @@ centered if values are centered on start,
         step = self.step_ctrl.GetValue()
         num = self.num_ctrl.GetValue()
         int_type = self.interval_type.GetValue()
-        print(start, step, num, int_type)
 
         assert num > 0
         if num == 1:
@@ -287,7 +286,7 @@ centered if values are centered on start,
         else:
             raise ValueError("Wrong int_type %s" % int_type)
 
-        print("values", values)
+        #print("values", values)
         return np.array(values)
 
 

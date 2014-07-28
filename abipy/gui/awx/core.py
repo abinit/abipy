@@ -14,7 +14,6 @@ from abipy.tools.text import list_strings
 
 
 __all__ = [
-    "Error",
     "path_img",
     "makeAboutBox",
     "verbose",
@@ -35,8 +34,8 @@ else:
         return func
 
 
-class Error(Exception):
-    """Base class for exceptions raised by awx library"""
+#class Error(Exception):
+#    """Base class for exceptions raised by awx library"""
 
 
 def path_img(filename):
