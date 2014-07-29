@@ -73,7 +73,7 @@ class MainApp(wx.App):
     def OnInit(self):
         _ = wx.LogNull()
         wx.InitAllImageHandlers()
-        mainframe = MainFrame(None, -1)
+        mainframe = WxPeriodicTable(None, -1)
         self.SetTopWindow(mainframe)
         if wx.Platform != "__WXMAC__":
             mainframe.Centre()
@@ -82,137 +82,64 @@ class MainApp(wx.App):
         return 1
 
 
-class MainFrame(wx.Frame):
-    """Main application window."""
+class ElementButton(buttons.GenToggleButton):
+    """Button representing chemical element."""
 
     def __init__(self, *args, **kwds):
-        kwds["style"] = (wx.DEFAULT_DIALOG_STYLE|wx.MINIMIZE_BOX|
-                         wx.TAB_TRAVERSAL)
-        wx.Frame.__init__(self, *args, **kwds)
-        self.selected = -1
+        buttons.GenToggleButton.__init__(self, *args, **kwds)
+        self.color = wx.Colour(255, 255, 255)
+        self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
+        self.Bind(wx.EVT_RIGHT_DOWN, self.onRightDown)
 
-        self.SetTitle(MainApp.name)
-        icon = wx.EmptyIcon()
-        #icon.CopyFromBitmap(wx.Bitmap(MainApp.icon + '.png',
-        #                              wx.BITMAP_TYPE_ANY))
-        self.SetIcon(icon)
-        self.SetBackgroundColour(wx.SystemSettings_GetColour(
-            wx.SYS_COLOUR_3DFACE))
-
-        # create menu
-        self.menu = wx.MenuBar()
-        self.SetMenuBar(self.menu)
-        menu = wx.Menu()
-        menu.Append(wx.ID_EXIT, "Exit", "Exit the application", wx.ITEM_NORMAL)
-        self.menu.Append(menu, "File")
-        menu = wx.Menu()
-        menu.Append(wx.ID_COPY,
-            "Copy\tCtrl+C", "Copy selected element to the clipboard",
-            wx.ITEM_NORMAL)
-        self.menu.Append(menu, "Edit")
-        menu = wx.Menu()
-        menu.Append(wx.ID_VIEW_DETAILS, "Details", "Show or hide details",
-            wx.ITEM_CHECK)
-        self.menu.Append(menu, "View")
-        menu = wx.Menu()
-        menu.Append(wx.ID_ABOUT, "About...",
-            "Display information about the program", wx.ITEM_NORMAL)
-        self.menu.Append(menu, "Help")
-
-        # create panels and controls
-        self.notebook = wx.Notebook(self, -1, style=0)
-        self.description = DecriptionPanel(self.notebook, -1)
-        self.details = DetailsPanel(self.notebook, -1)
-        self.table = PeriodicPanel(self, -1)
-        self.disclose = DisclosureCtrl(self.table, -1, '')
-        self.table.AddCtrl(self.disclose)
-        self.notebook.AddPage(self.description, "Description")
-        self.notebook.AddPage(self.details, "Properties")
-
-        # event bindings
-        self.Bind(wx.EVT_MENU, self.OnExit, id=wx.ID_EXIT)
-        self.Bind(wx.EVT_MENU, self.OnCopy, id=wx.ID_COPY)
-        self.Bind(wx.EVT_MENU, self.OnDetails, id=wx.ID_VIEW_DETAILS)
-        self.Bind(wx.EVT_MENU, self.OnAbout, id=wx.ID_ABOUT)
-        self.Bind(EVT_ELE_CHANGED, self.OnSelect, self.table)
-        self.Bind(EVT_ELE_CHANGED, self.OnSelect, self.details)
-        self.Bind(wx.EVT_BUTTON, self.OnDetails, self.disclose)
-
-        # create sizers
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.sizer.Add(self.table, 1, (wx.LEFT|wx.TOP|wx.RIGHT|wx.EXPAND|
-            wx.ALIGN_CENTER_HORIZONTAL| wx.EXPAND|wx.ADJUST_MINSIZE), BORDER-5)
-        self.sizer.Add((BORDER, BORDER))
-        self.sizer.Add(self.notebook, 0, (wx.LEFT|wx.RIGHT|wx.BOTTOM|
-            wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|
-            wx.ADJUST_MINSIZE), BORDER)
-
-        self.notebook.SetSelection(1)
-        self.SetAutoLayout(True)
-        self.SetSizerAndFit(self.sizer, True)
-        self.sizer.SetSizeHints(self)
-        self.ApplyLayout(True)
-        self.SetSelection(0)
-
-    def ApplyLayout(self, show=False):
-        self.show_info = show
-        self.sizer.Show(2, show, True)
-        self.SetAutoLayout(True)
-        self.SetSizerAndFit(self.sizer, True)
-        self.sizer.SetSizeHints(self)
-        self.Layout()
-        self.menu.Check(wx.ID_VIEW_DETAILS, show)
-        self.disclose.SetToggle(self.show_info)
-
-    def OnDetails(self, evt):
-        self.ApplyLayout(not self.show_info)
+    def onRightDown(self, event):
+        print("right on z = ", self.GetId() - 100)
 
     def OnEraseBackground(self, event):
         pass
 
-    def OnCopy(self, evt):
-        dobj = wx.TextDataObject()
-        dobj.SetText(repr(ELEMENTS[self.selected + 1]))
-        if wx.TheClipboard.Open():
-            wx.TheClipboard.SetData(dobj)
-            wx.TheClipboard.Close()
+    def SetButtonColour(self, color):
+        self.color = color
 
-    def OnAbout(self, evt):
-        info = wx.AboutDialogInfo()
-        info.Name = MainApp.name
-        info.Version = MainApp.version
-        info.Copyright = MainApp.copyright
-        info.WebSite = MainApp.website
-        wx.AboutBox(info)
+    def OnPaint(self, event):
+        width, height = self.GetClientSizeTuple()
+        dc = wx.BufferedPaintDC(self)
+        brush = wx.Brush(self.GetBackgroundColour(), wx.SOLID)
+        if wx.Platform == "__WXMAC__":
+            brush.MacSetTheme(1)  # kThemeBrushDialogBackgroundActive
+        dc.SetBackground(brush)
+        dc.SetPen(wx.TRANSPARENT_PEN)
+        dc.SetBrush(wx.Brush(self.color if self.up else 'WHITE', wx.SOLID))
+        dc.Clear()
+        dc.DrawRectanglePointSize((1, 1), (width - 2, height - 2))
+        if self.up:
+            self.DrawBezel(dc, 0, 0, width - 1, height - 1)
+        self.DrawLabel(dc, width, height)
+        if (self.hasFocus and self.useFocusInd):
+            self.DrawFocusIndicator(dc, width, height)
 
-    def OnWebsite(self, evt):
-        webbrowser.open(MainApp.website)
+    def DrawLabel(self, dc, width, height):
+        font = self.GetFont()
+        font.SetWeight(wx.FONTWEIGHT_BOLD)
+        dc.SetFont(font)
 
-    def OnWikipedia(self, evt):
-        webbrowser.open("http://en.wikipedia.org/wiki/%s" % (
-            ELEMENTS[self.selected].name), 1)
-
-    def OnWebElements(self, evt):
-        webbrowser.open("http://www.webelements.com/%s/" % (
-            ELEMENTS[self.selected].name.lower()))
-
-    def OnSelect(self, evt):
-        self.SetSelection(evt.GetSelection())
-
-    def SetSelection(self, select):
-        """Set active element."""
-        if self.selected != select:
-            self.selected = select
-            self.description.SetSelection(select)
-            self.table.SetSelection(select)
-            self.details.SetSelection(select)
-
-    def OnExit(self, evt):
-        self.Close()
-        if __name__ == "__main__":
-            sys.exit(0)
+        if self.IsEnabled():
+            dc.SetTextForeground(self.GetForegroundColour())
         else:
-            return self.selected
+            dc.SetTextForeground(wx.SystemSettings.GetColour(
+                wx.SYS_COLOUR_GRAYTEXT))
+
+        label = self.GetLabel()
+        txtwidth, txtheight = dc.GetTextExtent(label)
+        xpos = (width - txtwidth) // 2
+        ypos = (height*0.75 - txtheight) // 2 - 1
+        dc.DrawText(label, xpos, ypos)
+
+        font.SetWeight(wx.FONTWEIGHT_LIGHT)
+        font.SetPointSize((font.GetPointSize()*6) // 8)
+        dc.SetFont(font)
+        label = "%i" % (self.GetId() - 100)
+        txtwidth, txtheight = dc.GetTextExtent(label)
+        dc.DrawText(label, (width-txtwidth)//2, 4+ypos+(height-txtheight)//2)
 
 
 class PeriodicPanel(wx.Panel):
@@ -231,6 +158,8 @@ class PeriodicPanel(wx.Panel):
         .  .  .  *  La Ce Pr Nd Pm Sm Eu Gd Tb Dy Ho Er Tm Yb Lu .
         .  .  .  ** Ac Th Pa U  Np Pu Am Cm Bk Cf Es Fm Md No Lr .
     """
+    # Class used to instanciates the buttons in the panel.
+    element_button_class = ElementButton
 
     def __init__(self, *args, **kwds):
         kwds["style"] = wx.TAB_TRAVERSAL
@@ -259,7 +188,7 @@ class PeriodicPanel(wx.Panel):
                          wx.ALIGN_CENTER_VERTICAL|wx.FIXED_MINSIZE), SPACER//2)
                 else:
                     ele = ELEMENTS[col]
-                    button = ElementButton(self, ele.number+100, ele.symbol,
+                    button = self.element_button_class(self, ele.number+100, ele.symbol,
                                            size=(buttonsize, buttonsize))
                     self.buttons[ele.number - 1] = button
                     button.SetBezelWidth(1)
@@ -305,6 +234,7 @@ class PeriodicPanel(wx.Panel):
         button.SetToggle(button.up)
 
     def OnSelect(self, evt):
+        #print(evt, type(evt))
         self.GetParent().SetSelection(evt.GetId() - 101)
 
     def SetSelection(self, select):
@@ -603,13 +533,15 @@ class DetailsPanel(wx.Panel):
         evt.Skip()
 
     def OnSelectName(self, evt):
-        self.SetSelection(ELEMENTS[evt.GetString()].number - 1)
+        name = self.names.ctrl.GetValue()
+        self.SetSelection(ELEMENTS[name].number - 1)
         event = SelectionEvent(pteEVT_ELE_CHANGED, self.GetId(), self.selected)
         self.GetEventHandler().ProcessEvent(event)
         evt.Skip()
 
     def OnSelectSymbol(self, evt):
-        self.SetSelection(ELEMENTS[evt.GetString()].number - 1)
+        name = self.symbols.ctrl.GetValue()
+        self.SetSelection(ELEMENTS[name].number - 1)
         event = SelectionEvent(pteEVT_ELE_CHANGED, self.GetId(), self.selected)
         self.GetEventHandler().ProcessEvent(event)
         evt.Skip()
@@ -646,62 +578,6 @@ class DecriptionPanel(wx.Panel):
 
         ele = ELEMENTS[select + 1]
         self.description.SetValue(ele.description)
-
-
-class ElementButton(buttons.GenToggleButton):
-    """Button representing chemical element."""
-
-    def __init__(self, *args, **kwds):
-        buttons.GenToggleButton.__init__(self, *args, **kwds)
-        self.color = wx.Colour(255, 255, 255)
-        self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
-
-    def OnEraseBackground(self, event):
-        pass
-
-    def SetButtonColour(self, color):
-        self.color = color
-
-    def OnPaint(self, event):
-        width, height = self.GetClientSizeTuple()
-        dc = wx.BufferedPaintDC(self)
-        brush = wx.Brush(self.GetBackgroundColour(), wx.SOLID)
-        if wx.Platform == "__WXMAC__":
-            brush.MacSetTheme(1)  # kThemeBrushDialogBackgroundActive
-        dc.SetBackground(brush)
-        dc.SetPen(wx.TRANSPARENT_PEN)
-        dc.SetBrush(wx.Brush(self.color if self.up else 'WHITE', wx.SOLID))
-        dc.Clear()
-        dc.DrawRectanglePointSize((1, 1), (width - 2, height - 2))
-        if self.up:
-            self.DrawBezel(dc, 0, 0, width - 1, height - 1)
-        self.DrawLabel(dc, width, height)
-        if (self.hasFocus and self.useFocusInd):
-            self.DrawFocusIndicator(dc, width, height)
-
-    def DrawLabel(self, dc, width, height):
-        font = self.GetFont()
-        font.SetWeight(wx.FONTWEIGHT_BOLD)
-        dc.SetFont(font)
-
-        if self.IsEnabled():
-            dc.SetTextForeground(self.GetForegroundColour())
-        else:
-            dc.SetTextForeground(wx.SystemSettings.GetColour(
-                wx.SYS_COLOUR_GRAYTEXT))
-
-        label = self.GetLabel()
-        txtwidth, txtheight = dc.GetTextExtent(label)
-        xpos = (width - txtwidth) // 2
-        ypos = (height*0.75 - txtheight) // 2 - 1
-        dc.DrawText(label, xpos, ypos)
-
-        font.SetWeight(wx.FONTWEIGHT_LIGHT)
-        font.SetPointSize((font.GetPointSize()*6) // 8)
-        dc.SetFont(font)
-        label = "%i" % (self.GetId() - 100)
-        txtwidth, txtheight = dc.GetTextExtent(label)
-        dc.DrawText(label, (width-txtwidth)//2, 4+ypos+(height-txtheight)//2)
 
 
 class LabeledCtrl(wx.BoxSizer):
@@ -862,6 +738,167 @@ class SelectionEvent(wx.PyCommandEvent):
         return self.selection
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class WxPeriodicTable(wx.Frame):
+    """Main application window."""
+
+    # Class used to instanciate the panel with the elements.
+    periodic_panel_class = PeriodicPanel
+
+    def __init__(self, *args, **kwds):
+        kwds["style"] = (wx.DEFAULT_DIALOG_STYLE | wx.MINIMIZE_BOX | wx.TAB_TRAVERSAL)
+        wx.Frame.__init__(self, *args, **kwds)
+        self.selected = -1
+
+        self.SetTitle(MainApp.name)
+        icon = wx.EmptyIcon()
+        #icon.CopyFromBitmap(wx.Bitmap(MainApp.icon + '.png',
+        #                              wx.BITMAP_TYPE_ANY))
+        self.SetIcon(icon)
+        self.SetBackgroundColour(wx.SystemSettings_GetColour(
+            wx.SYS_COLOUR_3DFACE))
+
+        # create menu
+        self.menu = wx.MenuBar()
+        self.SetMenuBar(self.menu)
+        menu = wx.Menu()
+        menu.Append(wx.ID_EXIT, "Exit", "Exit the application", wx.ITEM_NORMAL)
+        self.menu.Append(menu, "File")
+        menu = wx.Menu()
+        menu.Append(wx.ID_COPY,
+            "Copy\tCtrl+C", "Copy selected element to the clipboard",
+            wx.ITEM_NORMAL)
+        self.menu.Append(menu, "Edit")
+        menu = wx.Menu()
+        menu.Append(wx.ID_VIEW_DETAILS, "Details", "Show or hide details",
+            wx.ITEM_CHECK)
+        self.menu.Append(menu, "View")
+        menu = wx.Menu()
+        menu.Append(wx.ID_ABOUT, "About...",
+            "Display information about the program", wx.ITEM_NORMAL)
+        self.menu.Append(menu, "Help")
+
+        # create panels and controls
+        self.notebook = wx.Notebook(self, -1, style=0)
+        self.description = DecriptionPanel(self.notebook, -1)
+        self.details = DetailsPanel(self.notebook, -1)
+
+        self.table = self.periodic_panel_class(self, id=-1)
+
+        self.disclose = DisclosureCtrl(self.table, -1, '')
+        self.table.AddCtrl(self.disclose)
+        self.notebook.AddPage(self.description, "Description")
+        self.notebook.AddPage(self.details, "Properties")
+
+        # event bindings
+        self.Bind(wx.EVT_MENU, self.OnExit, id=wx.ID_EXIT)
+        self.Bind(wx.EVT_MENU, self.OnCopy, id=wx.ID_COPY)
+        self.Bind(wx.EVT_MENU, self.OnDetails, id=wx.ID_VIEW_DETAILS)
+        self.Bind(wx.EVT_MENU, self.OnAbout, id=wx.ID_ABOUT)
+        self.Bind(EVT_ELE_CHANGED, self.OnSelect, self.table)
+        self.Bind(EVT_ELE_CHANGED, self.OnSelect, self.details)
+        self.Bind(wx.EVT_BUTTON, self.OnDetails, self.disclose)
+
+        # create sizers
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.table, 1, (wx.LEFT|wx.TOP|wx.RIGHT|wx.EXPAND|
+            wx.ALIGN_CENTER_HORIZONTAL| wx.EXPAND|wx.ADJUST_MINSIZE), BORDER-5)
+        self.sizer.Add((BORDER, BORDER))
+        self.sizer.Add(self.notebook, 0, (wx.LEFT|wx.RIGHT|wx.BOTTOM|
+            wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|
+            wx.ADJUST_MINSIZE), BORDER)
+
+        self.notebook.SetSelection(1)
+        self.SetAutoLayout(True)
+        self.SetSizerAndFit(self.sizer, True)
+        self.sizer.SetSizeHints(self)
+        self.ApplyLayout(True)
+        self.SetSelection(0)
+
+    def ApplyLayout(self, show=False):
+        self.show_info = show
+        self.sizer.Show(2, show, True)
+        self.SetAutoLayout(True)
+        self.SetSizerAndFit(self.sizer, True)
+        self.sizer.SetSizeHints(self)
+        self.Layout()
+        self.menu.Check(wx.ID_VIEW_DETAILS, show)
+        self.disclose.SetToggle(self.show_info)
+
+    def OnDetails(self, evt):
+        self.ApplyLayout(not self.show_info)
+
+    def OnEraseBackground(self, event):
+        pass
+
+    def OnCopy(self, evt):
+        dobj = wx.TextDataObject()
+        dobj.SetText(repr(ELEMENTS[self.selected + 1]))
+        if wx.TheClipboard.Open():
+            wx.TheClipboard.SetData(dobj)
+            wx.TheClipboard.Close()
+
+    def OnAbout(self, evt):
+        info = wx.AboutDialogInfo()
+        info.Name = MainApp.name
+        info.Version = MainApp.version
+        info.Copyright = MainApp.copyright
+        info.WebSite = MainApp.website
+        wx.AboutBox(info)
+
+    def OnWebsite(self, evt):
+        webbrowser.open(MainApp.website)
+
+    def OnWikipedia(self, evt):
+        webbrowser.open("http://en.wikipedia.org/wiki/%s" % (
+            ELEMENTS[self.selected].name), 1)
+
+    def OnWebElements(self, evt):
+        webbrowser.open("http://www.webelements.com/%s/" % (
+            ELEMENTS[self.selected].name.lower()))
+
+    def OnSelect(self, evt):
+        self.SetSelection(evt.GetSelection())
+
+    def SetSelection(self, select):
+        """Set active element."""
+        if self.selected != select:
+            self.selected = select
+            self.description.SetSelection(select)
+            self.table.SetSelection(select)
+            self.details.SetSelection(select)
+
+    def OnExit(self, evt):
+        self.Close()
+        if __name__ == "__main__":
+            sys.exit(0)
+        else:
+            return self.selected
+
+
 pteEVT_ELE_CHANGED = wx.NewEventType()
 EVT_ELE_CHANGED = wx.PyEventBinder(pteEVT_ELE_CHANGED, 1)
 
@@ -885,4 +922,3 @@ _u = (lambda x: x.decode('latin-1')) if sys.version[0] == '2' else str
 
 if __name__ == "__main__":
     MainApp(0).MainLoop()
-

@@ -10,7 +10,7 @@ class MappingMixin(collections.Mapping):
     to define a object that behaves as a Mapping but without inheriting from dict or similar classes
     because you don't want to expose/support all the methods of dict.
 
-    Client code must initialize a Mapping object either in new or in init and bound it to obj._mapping_mixin_
+    Client code must initialize a Mapping object either in new or in init and bound it to _mapping_mixin_
     The implemention of the Mapping interface is delegated to _mapping_mixin_
 
     .. Example:

@@ -6,7 +6,7 @@ import wx
 import abipy.gui.awx as awx
 
 from wx.py.shell import Shell
-from abipy.tools import marquee
+from monty.string import marquee
 from abipy.abilab import abiopen
 from abipy.gui import mixins as mix 
 from abipy.gui.kpoints import KpointsPanel

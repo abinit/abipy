@@ -10,7 +10,7 @@ import numpy as np
 import pymatgen.core.periodic_table as periodic_table
 
 import wx.lib.mixins.listctrl as listmix
-from collections import OrderedDict #, Iterable
+from collections import OrderedDict
 from monty.dev import number_of_cpus
 from abipy.tools import AttrDict
 from abipy.gui.editor import TextNotebookFrame, SimpleTextViewer
@@ -27,20 +27,52 @@ def add_size(kwargs, size=(800, 600)):
 
     return kwargs
 
-#class PseudoCandidate(object):
-#    """This object stores the input file and the results of a previous generation."""
-#    def __init__(self, psgen_input, results):
-#        self.psgen_input = psgen_input
-#        self.results = results
-#    def __hash__(self):
-#        return hash(self.psgen_input)
-#    def __eq__(self, other):
-#        return self.psgen_input == other.psgen_input
-#    def __ne__(self, other):
-#        return not self == other
+from awx.elements_gui import WxPeriodicTable, PeriodicPanel
 
-#class PseudoHistory(Iterable):
-#    def __init__(
+class MyPeriodicPanel(PeriodicPanel):
+    def __init__(self, parent, *args, **kwargs):
+        super(MyPeriodicPanel, self).__init__(parent, *args, **kwargs)
+
+    def OnSelect(self, event):
+        # Select correspond to Z, opens the dialog to get basic configuration parameters
+        # from the user. The dialog will then generate the main Frame for the pseudo generation.
+        super(MyPeriodicPanel, self).OnSelect(event)
+        z = event.GetId() - 100
+        print("select", z)
+
+
+class MyPeriodicTable(WxPeriodicTable):
+    """
+    A periodic table that allows the user to select the element
+    before starting the pseudopotential genearation.
+    """
+    def __init__(self, parent):
+        super(MyPeriodicTable, self).__init__(parent, periodic_panel_class=MyPeriodicPanel, id=-1)
+
+    #def SetSelection(self, select):
+    #    super(MyPeriodicTable, self).SetSelection(select)
+    #    print("select", select)
+    #    PseudoParamsFrame(self, z=select+1).Show()
+
+
+class PseudoParamsFrame(awx.Frame):
+    def __init__(self, parent, z, **kwargs):
+        super(PseudoParamsFrame, self).__init__(parent, **kwargs)
+        print(z)
+        element = periodic_table.Element.from_Z(z)
+
+        # E.g., The electronic structure for Fe is represented as:
+        #[(1, "s", 2), (2, "s", 2), (2, "p", 6), (3, "s", 2), (3, "p", 6), (3, "d", 6), (4, "s", 2)]
+        #new = empty_field(cls.tag, oncv_dims=dict(nc))
+
+        ele_struct = element.full_electronic_structure
+        print(ele_struct)
+        rows = [OrderedDict()] * len(ele_struct) 
+                                                                                                     
+        for row, (n, lchar, f) in zip(rows, ele_struct):
+            row["n"], row["l"], row["f"] = n, periodic_table.char2l(lchar), f
+
+        print(rows)
 
 
 class OncvMainFrame(wx.Frame, mix.Has_Tools):
@@ -715,12 +747,12 @@ class RefConfField(TableField):
     @classmethod
     def neutral_from_symbol(cls, symbol):
         # TODO
-        ele = periodic_table.Element(symbol)
+        element = periodic_table.Element(symbol)
         # E.g., The electronic structure for Fe is represented as:
         #[(1, "s", 2), (2, "s", 2), (2, "p", 6), (3, "s", 2), (3, "p", 6), (3, "d", 6), (4, "s", 2)]
         #new = empty_field(cls.tag, oncv_dims=dict(nc))
 
-        for row, (n, lchar, f) in zip(new, ele.full_electronic_structure):
+        for row, (n, lchar, f) in zip(new, element.full_electronic_structure):
             row["n"], row["l"], row["f"] = n, periodic_table.char2l(lchar), f
 
         return new
@@ -829,6 +861,37 @@ class RadGridField(RowField):
     #        ("n", dict(dtype="i")),
     #        ("l", dict(dtype="i")),
     #        ("f", dict(dtype="f"))])
+
+    #@classmethod
+    #def from_oxidation_states(cls, symbol, only_common=True):
+    #    """
+    #    Initialize the test configurations with the most common oxidation states.
+
+    #    Args:
+    #        symbol:
+    #            Chemical symbol.:w
+    #        only_common:
+    #            If False all the known oxidations states are considered, else only
+    #            the most common ones.
+    #    """
+    #    element = periodic_table.Element(symbol)
+
+    #    if only_common:
+    #        oxi_states = element.common_oxidation_states
+    #    else:
+    #        oxi_states = element.oxidation_states
+
+    #    for oxi in oxi_states:
+    #        # Get the electronic configuration of atom with Z = Z + oxi
+    #        if oxi == 0:
+    #            continue
+    #        oxiele = periodic_table.Element.from_Z(element.Z + oxi)
+
+    #        # Here we found the valence configuration by comparing
+    #        # the full configuration of oxiele and the one of the initial element.
+
+
+    #    return new
 
     #@property
     #def nrows(self):
@@ -1149,7 +1212,33 @@ class WxOncvInput(awx.Panel):
 
         self.main_sizer.Add(hbox0, **add_opts)
 
-        sz = self.build_wxctrls(oncv_dims)
+        # Set the dimensions and build the widgets.
+        self.oncv_dims = oncv_dims
+        sz, sizer_addopts = wx.BoxSizer(wx.VERTICAL), dict(proportion=0, flag=wx.ALL, border=5)
+
+        # We have nfields sections in the input file.
+        # Each field has a widget that returns the variables in a dictionary
+        self.wxctrls = _NFIELDS * [None]
+        self.sbox_sizers = _NFIELDS * [None]
+        self.disclose_buttons = _NFIELDS * [None]
+
+        for i in range(_NFIELDS):
+            f = empty_field(i, oncv_dims)
+            wxctrl = f.make_wxctrl(self)
+            self.wxctrls[i] = wxctrl
+
+            # Button to show/hide the sizers
+            #disclose = awx.buttons.DisclosureCtrl(self, -1, "")
+            #disclose._myid = i
+            #self.Bind(wx.EVT_BUTTON, self.onDisclose, disclose)
+            #self.disclose_buttons[i] = disclose
+
+            sbox_sizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, f.name + ":"), wx.VERTICAL)
+            sbox_sizer.Add(wxctrl, **sizer_addopts)
+            #sz.Add(disclose, **sizer_addopts)
+            sz.Add(sbox_sizer, **sizer_addopts)
+            self.sbox_sizers[i] = sbox_sizer
+
         self.main_sizer.Add(sz, **add_opts)
 
         self.fill_from_file("08_O.dat")
@@ -1158,30 +1247,22 @@ class WxOncvInput(awx.Panel):
         self.SetSizerAndFit(self.main_sizer)
         #self.SetSizer(self.main_sizer)
 
+    def onDisclose(self, event):
+        """Hide/Show the widgests inside a sizer."""
+        #print("in disclose with", event, dir(event))
+        button = event.GetButtonObj()
+        i = button._myid
+        print(i)
+        if button.up:
+            self.sbox_sizers[i].Hide(0)
+        else:
+            self.sbox_sizers[i].Show(0)
+
+        self.sbox_sizers[i].Layout()
+
     @property
     def lmax(self):
         return self.oncv_dims["lmax"]
-
-    def build_wxctrls(self, oncv_dims):
-        """
-        Set the dimensions and build the widgets.
-        Returns the sizer containing the widgets.
-        """
-        self.oncv_dims = oncv_dims
-        sizer, sizer_addopts = wx.BoxSizer(wx.VERTICAL), dict(proportion=0, flag=wx.ALL, border=5)
-
-        # We have nfields sections in the input file.
-        # Each field has a widget that returns the variables in a dictionary
-        self.wxctrls = _NFIELDS * [None]
-        for i in range(_NFIELDS):
-            f = empty_field(i, oncv_dims)
-            wxctrl = f.make_wxctrl(self)
-            self.wxctrls[i] = wxctrl
-            sbox_sizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, f.name + ":"), wx.VERTICAL)
-            sbox_sizer.Add(wxctrl, **sizer_addopts)
-            sizer.Add(sbox_sizer, **sizer_addopts)
-
-        return sizer
 
     def fill_from_file(self, filename):
         """Build a panel from an input file."""
@@ -1342,13 +1423,14 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
         return self.psgens[index]
 
     def onItemActivated(self, event):
-        """Use `wxmplot` to plot the selected variables."""
+        """Call psgen.plot_results."""
         psgen = self.getSelectedPseudoGen()
         if psgen is None: return
         #print("selected", psgen)
         psgen.plot_results()
 
     def onPlotSubMenu(self, event):
+        """Called by plot submenu."""
         psgen = self.getSelectedPseudoGen()
         if psgen is None or psgen.plotter is None:
             return
@@ -1376,7 +1458,7 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
         # Make sub-menu with the list of supported quantities
         plot_submenu = wx.Menu()
 
-        # TODO: this list could be take from the class or from the plotter instance.
+        # TODO: this list could be taken from the class or from the plotter instance.
         all_keys = [
             "radial_wfs",
             "projectors",
@@ -1456,7 +1538,6 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
 
     def onShowStderr(self, event):
         """Open a frame with the stderr file."""
-        #self.plot_columns()
         self._showStdfile(event, "stderr")
 
     def plot_columns(self, **kwargs):
@@ -1475,6 +1556,13 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
 
                 table[k].append(v)
 
+        # Return immediately if all entries are None i.e.
+        # if all calculations are still running.
+        count = 0
+        for items in table.values():
+            if all(item is None for item in items): count += 1
+        if count == len(table): return
+
         import matplotlib.pyplot as plt
 
         # Build grid of plots.
@@ -1486,7 +1574,7 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
             row = table[key]
             xs = np.arange(len(row))
             ys = np.array(table[key]).astype(np.double)
-            # Mask None
+            # Use mask to exclude None values from the plot.
             mask = np.isfinite(ys)
             line, = ax.plot(xs[mask], ys[mask], linewidth=2, markersize=2, marker="o")
 
@@ -1716,7 +1804,8 @@ class OncvApp(awx.App):
         #    bmp = image.ConvertToBitmap()
         #    wx.SplashScreen(bmp, wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_TIMEOUT, 1000, None, -1)
         #    wx.Yield()
-        frame = OncvMainFrame(None)
+        #frame = OncvMainFrame(None)
+        frame = MyPeriodicTable(None)
         frame.Show(True)
         self.SetTopWindow(frame)
         return True

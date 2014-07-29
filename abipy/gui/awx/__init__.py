@@ -3,6 +3,7 @@
 __all__ = []
 
 _MODS = [
+    "buttons.py",
     "core",
     "apps",
     "frames",

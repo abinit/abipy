@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import wx
-from abipy.gui.awx.elements_gui import MainFrame
+from abipy.gui.awx.elements_gui import WxPeriodicTable
 
 app = wx.App()
-frame = MainFrame(None)
+frame = WxPeriodicTable(None)
 app.SetTopWindow(frame)
 frame.Show()
 app.MainLoop()
