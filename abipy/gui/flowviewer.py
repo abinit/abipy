@@ -9,7 +9,7 @@ import abipy.gui.awx as awx
 import wx.lib.agw.flatnotebook as fnb
 
 from collections import OrderedDict
-from monty.dev import number_of_cpus
+from monty.dev import get_ncpus
 from pymatgen.io.abinitio.launcher import PyLauncher 
 from pymatgen.io.abinitio.tasks import Node
 from abipy import abilab
@@ -102,7 +102,7 @@ Also, these key bindings can be used
         text = wx.StaticText(panel, -1, "Max nlaunch:")
         text.Wrap(-1)
         text.SetToolTipString("Maximum number of tasks that can be submitted. Use -1 for unlimited launches.")
-        self.max_nlaunch = wx.SpinCtrl(panel, -1, value=number_of_cpus(), min=-1)
+        self.max_nlaunch = wx.SpinCtrl(panel, -1, value=get_ncpus(), min=-1)
 
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
         hsizer.Add(submit_button, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5)

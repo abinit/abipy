@@ -450,14 +450,68 @@ class TableMultiCtrl(wx.Panel):
             ctrl.SetParams(d)
 
 
+import wx.lib.mixins.listctrl as listmix
+from abipy.gui.awx.core import get_width_height
+
+class ListCtrlFromTable(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.ListCtrlAutoWidthMixin):
+    """
+    This ListCtrl displays a list of strings. Support column sorting.
+    """
+    def __init__(self, parent, table, **kwargs):
+        """
+        Args:
+            parent:
+                Parent window.
+            table:
+                Table of strings (List of lists). The first item contains the names of the columns.
+        """
+        super(ListCtrlFromTable, self).__init__(parent, id=-1, style=wx.LC_REPORT | wx.BORDER_SUNKEN, **kwargs)
+
+        # Make sure we have a list of strings
+        for i, row in enumerate(table):
+            table[i] = map(str, row)
+
+        columns = table[0]
+        for (index, col) in enumerate(columns):
+            self.InsertColumn(index, col)
+
+        # Used to store the Max width in pixels for the data in the column.
+        column_widths = [get_width_height(self, s)[0] for s in columns]
+
+        # Used by the ColumnSorterMixin, see wx/lib/mixins/listctrl.py
+        self.itemDataMap = {}
+
+        for (index, entry) in enumerate(table[1:]):
+            self.Append(entry)
+            self.itemDataMap[index] = entry
+            self.SetItemData(index, index)
+
+            w = [get_width_height(self, s)[0] for s in entry]
+            column_widths = map(max, zip(w, column_widths))
+
+        for (index, col) in enumerate(columns):
+            self.SetColumnWidth(index, column_widths[index])
+
+        # Now that the list exists we can init the other base class, see wx/lib/mixins/listctrl.py
+        listmix.ColumnSorterMixin.__init__(self, len(columns))
+        listmix.ListCtrlAutoWidthMixin.__init__(self)
+
+    def GetListCtrl(self):
+        """Used by the ColumnSorterMixin, see wx/lib/mixins/listctrl.py"""
+        return self
+
+
 if __name__ == "__main__":
     app = wx.App()
     frame = wx.Frame(None)
 
+    table = [["ciao", "values"], [1,2], ["3", "4"]]
+    ctrl = ListCtrlFromTable(frame, table)
+
     #panel = LinspaceControl(frame)
     #panel = ArangeControl(frame, start=10, stop=15, step=1)
 
-    panel = IntervalControl(frame, start=10, step=1, num=2)
+    #panel = IntervalControl(frame, start=10, step=1, num=2)
 
     #panel = RowMultiCtrl(frame, [
     #    ("hello", dict(dtype="f", tooltip="Tooltip for hello", value=1/3.0)),
@@ -472,4 +526,3 @@ if __name__ == "__main__":
 
     frame.Show()
     app.MainLoop()
-

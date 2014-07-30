@@ -11,7 +11,7 @@ import pymatgen.core.periodic_table as periodic_table
 
 import wx.lib.mixins.listctrl as listmix
 from collections import OrderedDict
-from monty.dev import number_of_cpus
+from monty.dev import get_ncpus
 from abipy.tools import AttrDict
 from abipy.gui.editor import TextNotebookFrame, SimpleTextViewer
 from abipy.gui.oncv_tooltips import oncv_tip
@@ -27,52 +27,60 @@ def add_size(kwargs, size=(800, 600)):
 
     return kwargs
 
-from awx.elements_gui import WxPeriodicTable, PeriodicPanel
+from awx.elements_gui import WxPeriodicTable, PeriodicPanel, ElementButton
 
-class MyPeriodicPanel(PeriodicPanel):
-    def __init__(self, parent, *args, **kwargs):
-        super(MyPeriodicPanel, self).__init__(parent, *args, **kwargs)
-
-    def OnSelect(self, event):
-        # Select correspond to Z, opens the dialog to get basic configuration parameters
-        # from the user. The dialog will then generate the main Frame for the pseudo generation.
-        super(MyPeriodicPanel, self).OnSelect(event)
-        z = event.GetId() - 100
-        print("select", z)
-
-
-class MyPeriodicTable(WxPeriodicTable):
+def my_periodic_table(parent):
     """
     A periodic table that allows the user to select the element
     before starting the pseudopotential genearation.
     """
-    def __init__(self, parent):
-        super(MyPeriodicTable, self).__init__(parent, periodic_panel_class=MyPeriodicPanel, id=-1)
+    class MyElementButton(ElementButton):
+        def onRightDown(self, event):
+            frame = PseudoParamsFrame(self, self.Z)
+            #frame.Show()
 
-    #def SetSelection(self, select):
-    #    super(MyPeriodicTable, self).SetSelection(select)
-    #    print("select", select)
-    #    PseudoParamsFrame(self, z=select+1).Show()
+    class MyPeriodicPanel(PeriodicPanel):
+        element_button_class = MyElementButton
+
+        def OnSelect(self, event):
+            # Get the atomic number Z, open a dialog to get basic configuration parameters from the user. 
+            # The dialog will then generate the main Frame for the pseudo generation.
+            super(MyPeriodicPanel, self).OnSelect(event)
+            z = event.GetId() - 100
+            print("select", z)
+
+    class MyPeriodicTable(WxPeriodicTable):
+        periodic_panel_class = MyPeriodicPanel
+
+    return MyPeriodicTable(parent)
 
 
 class PseudoParamsFrame(awx.Frame):
+    """
+    This frame allows the user to specify the most important parameters
+    used to generate the pseudopotential once the chemical element has been selected.
+    """
     def __init__(self, parent, z, **kwargs):
         super(PseudoParamsFrame, self).__init__(parent, **kwargs)
-        print(z)
         element = periodic_table.Element.from_Z(z)
 
         # E.g., The electronic structure for Fe is represented as:
-        #[(1, "s", 2), (2, "s", 2), (2, "p", 6), (3, "s", 2), (3, "p", 6), (3, "d", 6), (4, "s", 2)]
-        #new = empty_field(cls.tag, oncv_dims=dict(nc))
-
+        # [(1, "s", 2), (2, "s", 2), (2, "p", 6), (3, "s", 2), (3, "p", 6), (3, "d", 6), (4, "s", 2)]
+        # new = empty_field(cls.tag, oncv_dims=dict(nc))
         ele_struct = element.full_electronic_structure
         print(ele_struct)
         rows = [OrderedDict()] * len(ele_struct) 
                                                                                                      
         for row, (n, lchar, f) in zip(rows, ele_struct):
             row["n"], row["l"], row["f"] = n, periodic_table.char2l(lchar), f
+        #print(rows)
 
-        print(rows)
+        # Get the LDA levels of the neutral atom.
+        # (useful to decide if semicore states should be included in the valence).
+        from pseudo_dojo.refdata.nist import nist_database
+        entry = nist_database.get_neutral_entry(symbol=element.symbol)
+        print(entry)
+        #for state in entry.states: print(state.eig)
 
 
 class OncvMainFrame(wx.Frame, mix.Has_Tools):
@@ -1644,7 +1652,7 @@ class PseudoGeneratorsFrame(awx.Frame):
         text = wx.StaticText(panel, -1, "Max nlaunch:")
         text.Wrap(-1)
         text.SetToolTipString("Maximum number of tasks that can be submitted. Use -1 for unlimited launches.")
-        self.max_nlaunch = wx.SpinCtrl(panel, -1, value=str(number_of_cpus()), min=-1)
+        self.max_nlaunch = wx.SpinCtrl(panel, -1, value=str(get_ncpus()), min=-1)
 
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
         hsizer.Add(submit_button, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
@@ -1805,7 +1813,7 @@ class OncvApp(awx.App):
         #    wx.SplashScreen(bmp, wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_TIMEOUT, 1000, None, -1)
         #    wx.Yield()
         #frame = OncvMainFrame(None)
-        frame = MyPeriodicTable(None)
+        frame = my_periodic_table(None)
         frame.Show(True)
         self.SetTopWindow(frame)
         return True

@@ -43,7 +43,6 @@ Requirements
 * `Elements.py 2013.03.18 <http://www.lfd.uci.edu/~gohlke/>`_
 
 """
-
 from __future__ import division, print_function
 
 import sys
@@ -91,8 +90,14 @@ class ElementButton(buttons.GenToggleButton):
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
         self.Bind(wx.EVT_RIGHT_DOWN, self.onRightDown)
 
+    @property
+    def Z(self):
+        """Atomic number corresponding to this button."""
+        return self.GetId() - 100
+
     def onRightDown(self, event):
-        print("right on z = ", self.GetId() - 100)
+        """Called when right button is pressed."""
+        pass
 
     def OnEraseBackground(self, event):
         pass
@@ -234,7 +239,6 @@ class PeriodicPanel(wx.Panel):
         button.SetToggle(button.up)
 
     def OnSelect(self, evt):
-        #print(evt, type(evt))
         self.GetParent().SetSelection(evt.GetId() - 101)
 
     def SetSelection(self, select):
@@ -736,30 +740,6 @@ class SelectionEvent(wx.PyCommandEvent):
 
     def GetSelection(self):
         return self.selection
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 class WxPeriodicTable(wx.Frame):
