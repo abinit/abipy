@@ -57,6 +57,12 @@ from wx.lib import fancytext, buttons, rcsizer
 
 from elements import ELEMENTS, SERIES
 
+from abipy.gui.awx.panels import ListCtrlFromTable
+try:
+    from pseudo_dojo.refdata.nist import nist_database as nist
+except ImportError:
+    pass
+
 
 class MainApp(wx.App):
     """Main application."""
@@ -95,9 +101,11 @@ class ElementButton(buttons.GenToggleButton):
         """Atomic number corresponding to this button."""
         return self.GetId() - 100
 
-    def onRightDown(self, event):
-        """Called when right button is pressed."""
-        pass
+    #@property
+    #def symbol(self)
+    #    """Chemical symbol."""
+    #    from pymatgen.core.periodic_table import symbol_from_Z
+    #    return symbol_from_Z(self.Z)
 
     def OnEraseBackground(self, event):
         pass
@@ -145,6 +153,43 @@ class ElementButton(buttons.GenToggleButton):
         label = "%i" % (self.GetId() - 100)
         txtwidth, txtheight = dc.GetTextExtent(label)
         dc.DrawText(label, (width-txtwidth)//2, 4+ypos+(height-txtheight)//2)
+
+    def makePopupMenu(self):
+        menu = wx.Menu()
+
+        self.ID_POPUP_NIST_LDA = wx.NewId()
+        menu.Append(self.ID_POPUP_NIST_LDA, "NIST SCF data (LDA)")
+
+        # Associate menu/toolbar items with their handlers.
+        menu_handlers = [
+            (self.ID_POPUP_NIST_LDA, self.onNistLda),
+        ]
+                                                            
+        for combo in menu_handlers:
+            mid, handler = combo[:2]
+            self.Bind(wx.EVT_MENU, handler, id=mid)
+                                                     
+        return menu
+
+    def onRightDown(self, event):
+        """Called when right button is pressed."""
+        popup_menu = self.makePopupMenu()
+        self.PopupMenu(popup_menu, event.GetPosition())
+
+    def onNistLda(self, event):
+        """
+        Show the LDA levels of the neutral atom.
+        (useful to decide if semicore states should be included in the valence).
+        """
+        try:
+            entry = nist.get_neutral_entry(self.Z)
+        except KeyError:
+            return
+
+        table = entry.to_table()
+        frame = wx.Frame(self, title="LDA levels for atom %s (NIST database) " % entry.symbol)
+        ListCtrlFromTable(frame, table)
+        frame.Show()
 
 
 class PeriodicPanel(wx.Panel):

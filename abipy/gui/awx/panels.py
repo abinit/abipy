@@ -13,6 +13,7 @@ __all__ = [
     "IntervalControl",
     "RowMultiCtrl",
     "TableMultiCtrl",
+    "ListCtrlFromTable",
 ]
 
 
@@ -453,6 +454,7 @@ class TableMultiCtrl(wx.Panel):
 import wx.lib.mixins.listctrl as listmix
 from abipy.gui.awx.core import get_width_height
 
+
 class ListCtrlFromTable(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.ListCtrlAutoWidthMixin):
     """
     This ListCtrl displays a list of strings. Support column sorting.
@@ -464,7 +466,11 @@ class ListCtrlFromTable(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.ListCtrl
                 Parent window.
             table:
                 Table of strings (List of lists). The first item contains the names of the columns.
+            kwargs:
+                enumrows:
+                    If True, the first column will contain the row index (default)
         """
+        enumrows = kwargs.pop("enumrows", True)
         super(ListCtrlFromTable, self).__init__(parent, id=-1, style=wx.LC_REPORT | wx.BORDER_SUNKEN, **kwargs)
 
         # Make sure we have a list of strings
@@ -472,6 +478,9 @@ class ListCtrlFromTable(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.ListCtrl
             table[i] = map(str, row)
 
         columns = table[0]
+        if enumrows:
+            columns = ["#"] + columns
+
         for (index, col) in enumerate(columns):
             self.InsertColumn(index, col)
 
@@ -482,6 +491,8 @@ class ListCtrlFromTable(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.ListCtrl
         self.itemDataMap = {}
 
         for (index, entry) in enumerate(table[1:]):
+            if enumrows:
+                entry = [str(index)] + entry
             self.Append(entry)
             self.itemDataMap[index] = entry
             self.SetItemData(index, index)

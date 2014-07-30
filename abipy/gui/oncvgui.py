@@ -79,7 +79,11 @@ class PseudoParamsFrame(awx.Frame):
         # (useful to decide if semicore states should be included in the valence).
         from pseudo_dojo.refdata.nist import nist_database
         entry = nist_database.get_neutral_entry(symbol=element.symbol)
-        print(entry)
+        table = entry.to_table()
+        print(table)
+        frame = awx.Frame(self)
+        awx.ListCtrlFromTable(frame, table)
+        frame.Show()
         #for state in entry.states: print(state.eig)
 
 
