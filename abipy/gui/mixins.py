@@ -307,8 +307,8 @@ class Has_Tools(object):
 
     def OnTools_PeriodicTable(self, event):
         """Open new frame with the periodic table."""
-        from awx.elements_gui import MainFrame
-        MainFrame(self).Show()
+        from awx.elements_gui import WxPeriodicTable
+        WxPeriodicTable(self).Show()
 
     def OnTools_UnitConverter(self, event):
         """Open new frame with the unit converter."""

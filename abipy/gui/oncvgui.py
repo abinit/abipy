@@ -29,15 +29,37 @@ def add_size(kwargs, size=(800, 600)):
 
 from awx.elements_gui import WxPeriodicTable, PeriodicPanel, ElementButton
 
+
 def my_periodic_table(parent):
     """
     A periodic table that allows the user to select the element
     before starting the pseudopotential genearation.
     """
     class MyElementButton(ElementButton):
-        def onRightDown(self, event):
-            frame = PseudoParamsFrame(self, self.Z)
-            #frame.Show()
+
+        def makePopupMenu(self):
+            # Get the menu of the super class.
+            menu = super(MyElementButton, self).makePopupMenu()
+
+            self.ID_POPUP_ONCVPSP = wx.NewId()
+            menu.Append(self.ID_POPUP_ONCVPSP, "Generate NC pseudo with oncvpsp")
+
+            # Associate menu/toolbar items with their handlers.
+            menu_handlers = [
+                (self.ID_POPUP_ONCVPSP, self.onOncvpsp),
+            ]
+                                                                
+            for combo in menu_handlers:
+                mid, handler = combo[:2]
+                self.Bind(wx.EVT_MENU, handler, id=mid)
+
+            return menu
+
+        def onOncvpsp(self, event):
+            """Open a frame for the initialization of oncvpsp."""
+            frame = OncvParamsFrame(self, self.Z)
+            frame.Show()
+
 
     class MyPeriodicPanel(PeriodicPanel):
         element_button_class = MyElementButton
@@ -55,36 +77,85 @@ def my_periodic_table(parent):
     return MyPeriodicTable(parent)
 
 
-class PseudoParamsFrame(awx.Frame):
+class OncvParamsFrame(awx.Frame):
     """
     This frame allows the user to specify the most important parameters
     used to generate the pseudopotential once the chemical element has been selected.
     """
     def __init__(self, parent, z, **kwargs):
-        super(PseudoParamsFrame, self).__init__(parent, **kwargs)
-        element = periodic_table.Element.from_Z(z)
+        super(OncvParamsFrame, self).__init__(parent, **kwargs)
+        self.element = periodic_table.Element.from_Z(z)
+        self.buildUI()
+
+    def buildUI(self):
+        # Controller with the dimensions.
+        panel = wx.Panel(self, -1)
+        self.wxdims = awx.RowMultiCtrl(self, ctrl_params=OrderedDict([
+                    ("nc", dict(dtype="i", tooltip="Number of core states")),
+                    ("nv", dict(dtype="i", tooltip="Number of valence states")),
+                    ("lmax", dict(dtype="i", tooltip="Maximum angular momentum for pseudo"))
+               ]))
 
         # E.g., The electronic structure for Fe is represented as:
         # [(1, "s", 2), (2, "s", 2), (2, "p", 6), (3, "s", 2), (3, "p", 6), (3, "d", 6), (4, "s", 2)]
-        # new = empty_field(cls.tag, oncv_dims=dict(nc))
-        ele_struct = element.full_electronic_structure
-        print(ele_struct)
-        rows = [OrderedDict()] * len(ele_struct) 
-                                                                                                     
-        for row, (n, lchar, f) in zip(rows, ele_struct):
+        ele_struct = self.element.full_electronic_structure
+
+        ctrls = OrderedDict([
+            ("n", dict(dtype="i")),
+            ("l", dict(dtype="i")),
+            ("f", dict(dtype="f"))])
+
+        self.wxaeconf = awx.TableMultiCtrl(self, nrows=len(ele_struct), ctrls=ctrls)
+
+        for wxrow, (n, lchar, f) in zip(self.wxaeconf, ele_struct):
+            row = OrderedDict()
             row["n"], row["l"], row["f"] = n, periodic_table.char2l(lchar), f
+            wxrow.SetParams(row)
         #print(rows)
 
+        add_button = wx.Button(self, -1, "Add row")
+        add_button.Bind(wx.EVT_BUTTON, self.onAddButton)
+        del_button = wx.Button(self, -1, "Delete row")
+        del_button.Bind(wx.EVT_BUTTON, self.onDelButton)
+        hsz = wx.BoxSizer(wx.HORIZONTAL)
+        hsz.Add(add_button)
+        hsz.Add(del_button)
+
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(hsz, 0,flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
+        main_sizer.Add(self.wxdims, 0, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
+        main_sizer.Add(self.wxaeconf, 0, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
+        self.SetSizerAndFit(main_sizer)
+
+    def get_oncv_params(self):
+        """Return the basic dimensions used in oncvpsp.""" 
+        print(self.wxaeconf.GetParams())
+        return AttrDict(
+            dims=self.wxdims.GetParams(),
+        )
+
+    def show_nist_lda_levels(self):
         # Get the LDA levels of the neutral atom.
         # (useful to decide if semicore states should be included in the valence).
-        from pseudo_dojo.refdata.nist import nist_database
-        entry = nist_database.get_neutral_entry(symbol=element.symbol)
-        table = entry.to_table()
-        print(table)
+        from pseudo_dojo.refdata.nist import nist_database as nist
+        entry = nist.get_neutral_entry(symbol=self.element.symbol)
         frame = awx.Frame(self)
-        awx.ListCtrlFromTable(frame, table)
+        awx.ListCtrlFromTable(frame, table=entry.to_table())
         frame.Show()
-        #for state in entry.states: print(state.eig)
+
+    def onAddButton(self, event):
+        """Add a new row."""
+        self.get_oncv_params()
+                                  
+    def onDelButton(self, event):
+        """Delete last row."""
+        self.show_nist_lda_levels()
+
+
+
+
+
+
 
 
 class OncvMainFrame(wx.Frame, mix.Has_Tools):
@@ -761,7 +832,7 @@ class RefConfField(TableField):
         # TODO
         element = periodic_table.Element(symbol)
         # E.g., The electronic structure for Fe is represented as:
-        #[(1, "s", 2), (2, "s", 2), (2, "p", 6), (3, "s", 2), (3, "p", 6), (3, "d", 6), (4, "s", 2)]
+        # [(1, "s", 2), (2, "s", 2), (2, "p", 6), (3, "s", 2), (3, "p", 6), (3, "d", 6), (4, "s", 2)]
         #new = empty_field(cls.tag, oncv_dims=dict(nc))
 
         for row, (n, lchar, f) in zip(new, element.full_electronic_structure):
@@ -1816,8 +1887,9 @@ class OncvApp(awx.App):
         #    bmp = image.ConvertToBitmap()
         #    wx.SplashScreen(bmp, wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_TIMEOUT, 1000, None, -1)
         #    wx.Yield()
-        #frame = OncvMainFrame(None)
-        frame = my_periodic_table(None)
+        frame = OncvMainFrame(None)
+        #frame = my_periodic_table(None)
+        #frame = OncvParamsFrame(None, z=12)
         frame.Show(True)
         self.SetTopWindow(frame)
         return True

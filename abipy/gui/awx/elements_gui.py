@@ -101,12 +101,6 @@ class ElementButton(buttons.GenToggleButton):
         """Atomic number corresponding to this button."""
         return self.GetId() - 100
 
-    #@property
-    #def symbol(self)
-    #    """Chemical symbol."""
-    #    from pymatgen.core.periodic_table import symbol_from_Z
-    #    return symbol_from_Z(self.Z)
-
     def OnEraseBackground(self, event):
         pass
 
@@ -155,6 +149,7 @@ class ElementButton(buttons.GenToggleButton):
         dc.DrawText(label, (width-txtwidth)//2, 4+ypos+(height-txtheight)//2)
 
     def makePopupMenu(self):
+        """Build and return the popup menu."""
         menu = wx.Menu()
 
         self.ID_POPUP_NIST_LDA = wx.NewId()

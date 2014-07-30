@@ -433,6 +433,15 @@ class TableMultiCtrl(wx.Panel):
 
         self.SetSizerAndFit(main_sizer)
 
+    def __iter__(self):
+        return self.ctrl_list.__iter__()
+
+    #def addRow(self, index=-1):
+    #    """Add a new row."""
+
+    #def removeRow(self, index=-1):
+    #    """Remove row with the give index (default: last row)."""
+
     def GetParams(self):
         """Return the parameters selected by the user in a list of `AttrDict` dictionary"""
         olist = []
