@@ -185,10 +185,14 @@ class IntervalControl(wx.Panel):
     # Default parameters passed to SpinCtrl and SpinCtrlDouble.
     SPIN_DEFAULTS = dict(value=str(50), min=0, max=10000, initial=0)
 
-    SPIN_DOUBLE_DEFAULTS = dict(value=str(0.0), min=0, max=10000, initial=0, inc=1)
+    SPIN_DOUBLE_DEFAULTS = dict(value=str(0.0), min=0, max=10000, initial=0, inc=0.1)
 
-    def __init__(self, parent, start, step, num=5, **kwargs):
+    def __init__(self, parent, start, step, num=5, choices=None, **kwargs):
         """
+        Args:
+            start: Initial value
+            step: Step used to generate the mesh
+            num: Number of points
         """
         super(IntervalControl, self).__init__(parent, id=-1, **kwargs)
 
@@ -252,7 +256,7 @@ Select the interval type:
 centered if values are centered on start,
 > if the lower bound of the interval is start, < if the uppper bound is start.""")
 
-        choices = ["centered", ">", "<"]
+        if choices is None: choices = ["centered", ">", "<"]
         self.interval_type = wx.ComboBox(
             self, id=-1, name='Interval type type', choices=choices, value=choices[0], style=wx.CB_READONLY)
 
@@ -519,6 +523,40 @@ class ListCtrlFromTable(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.ListCtrl
     def GetListCtrl(self):
         """Used by the ColumnSorterMixin, see wx/lib/mixins/listctrl.py"""
         return self
+
+
+import wx.lib.foldpanelbar as foldpanel
+
+class FoldPanelMgr(foldpanel.FoldPanelBar): 
+    """
+    Fold panel that manages a collection of Panels
+
+    The FoldPanelBar is a custom container class that allows multiple controls 
+    to be grouped together into FoldPanelItem controls that allow them to be expanded 
+    or contracted by clicking on its CaptionBar. 
+    The FoldPanelBar doesn't work with layouts based on a Sizer and as such its API can get a little cumbersome, 
+    because it requires you to add each control one by one and set its layout by using various flags. 
+    This recipe shows how to create a custom FoldPanelBar that works with Panel objects. 
+    This class will allow for you to modularize your code into Panel classes and then just add them to the FoldPanelBar 
+    instead of directly adding everything to the FoldPanelBar itself.
+    """ 
+    def __init__(self, parent, *args, **kwargs):
+        super(FoldPanelMgr, self).__init__(parent, *args, **kwargs)
+
+    def AddPanel(self, pclass, title="", collapsed=False): 
+        """
+        Add a panel to the manager 
+        @param pclass: Class constructor (callable) 
+        @keyword title: foldpanel title
+        @keyword collapsed: start with it collapsed @return: pclass instance
+        """ 
+        fpitem = self.AddFoldPanel(title, collapsed=collapsed) 
+        wnd = pclass(fpitem) 
+        best = wnd.GetBestSize() 
+        wnd.SetSize(best) 
+        self.AddFoldPanelWindow(fpitem, wnd) 
+
+        return wnd
 
 
 if __name__ == "__main__":

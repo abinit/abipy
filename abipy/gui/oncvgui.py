@@ -1,9 +1,11 @@
 #!/usr/bin/env python
+"""Gui for the oncvpsp norm-conserving pseudopotential generator."""
 from __future__ import print_function, division
 
 import os
 import copy
 import time
+import abc
 import wx
 import awx
 import numpy as np
@@ -19,6 +21,11 @@ from abipy.gui import mixins as mix
 from pseudo_dojo.ppcodes.ppgen import OncvGenerator
 from pseudo_dojo.ppcodes.oncvpsp import MultiPseudoGenDataPlotter
 
+# TODO
+# Change oncvpsp so that 
+#   1) we always write the logarithmic derivatie
+#   2) better error handling
+
 
 def add_size(kwargs, size=(800, 600)):
     """Add size to kwargs if not present."""
@@ -28,7 +35,6 @@ def add_size(kwargs, size=(800, 600)):
     return kwargs
 
 from awx.elements_gui import WxPeriodicTable, PeriodicPanel, ElementButton
-
 
 def my_periodic_table(parent):
     """
@@ -60,7 +66,6 @@ def my_periodic_table(parent):
             frame = OncvParamsFrame(self, self.Z)
             frame.Show()
 
-
     class MyPeriodicPanel(PeriodicPanel):
         element_button_class = MyElementButton
 
@@ -82,13 +87,21 @@ class OncvParamsFrame(awx.Frame):
     This frame allows the user to specify the most important parameters
     used to generate the pseudopotential once the chemical element has been selected.
     """
+
+    HELP_MSG = """\
+Quick help:
+
+    Use this window to select the AE reference configuration and how 
+    to separate states into core and valence.
+"""
+
     def __init__(self, parent, z, **kwargs):
         super(OncvParamsFrame, self).__init__(parent, **kwargs)
         self.element = periodic_table.Element.from_Z(z)
         self.buildUI()
 
     def buildUI(self):
-        # Controller with the dimensions.
+        # Build controller with the dimensions.
         panel = wx.Panel(self, -1)
         self.wxdims = awx.RowMultiCtrl(self, ctrl_params=OrderedDict([
                     ("nc", dict(dtype="i", tooltip="Number of core states")),
@@ -96,6 +109,7 @@ class OncvParamsFrame(awx.Frame):
                     ("lmax", dict(dtype="i", tooltip="Maximum angular momentum for pseudo"))
                ]))
 
+        # Initialize the quantum numbers of the AE atom with the ground-state configuration.
         # E.g., The electronic structure for Fe is represented as:
         # [(1, "s", 2), (2, "s", 2), (2, "p", 6), (3, "s", 2), (3, "p", 6), (3, "d", 6), (4, "s", 2)]
         ele_struct = self.element.full_electronic_structure
@@ -111,7 +125,6 @@ class OncvParamsFrame(awx.Frame):
             row = OrderedDict()
             row["n"], row["l"], row["f"] = n, periodic_table.char2l(lchar), f
             wxrow.SetParams(row)
-        #print(rows)
 
         add_button = wx.Button(self, -1, "Add row")
         add_button.Bind(wx.EVT_BUTTON, self.onAddButton)
@@ -125,6 +138,11 @@ class OncvParamsFrame(awx.Frame):
         main_sizer.Add(hsz, 0,flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
         main_sizer.Add(self.wxdims, 0, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
         main_sizer.Add(self.wxaeconf, 0, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
+
+        help_button = wx.Button(self, wx.ID_HELP)
+        help_button.Bind(wx.EVT_BUTTON, self.onHelp)
+        main_sizer.Add(help_button, 0, flag=wx.ALL | wx.ALIGN_RIGHT)
+
         self.SetSizerAndFit(main_sizer)
 
     def get_oncv_params(self):
@@ -152,18 +170,18 @@ class OncvParamsFrame(awx.Frame):
         self.show_nist_lda_levels()
 
 
-
-
-
-
-
-
-class OncvMainFrame(wx.Frame, mix.Has_Tools):
+class WxOncvFrame(awx.Frame, mix.Has_Tools):
     """The main frame of the GUI"""
     VERSION = "0.1"
 
+    HELP_MSG = """\
+This window shows a template input file with the variables
+used to generated the pseudopotential. The `optimize` buttons
+allows you to scan a set of possible values for the generation of the pseudopotential.
+"""
+
     def __init__(self, parent):
-        super(OncvMainFrame, self).__init__(parent, id=-1, title=self.codename)
+        super(WxOncvFrame, self).__init__(parent, id=-1, title=self.codename)
 
         # This combination of options for config seems to work on my Mac.
         self.config = wx.FileConfig(appName=self.codename, localFilename=self.codename + ".ini", 
@@ -171,20 +189,21 @@ class OncvMainFrame(wx.Frame, mix.Has_Tools):
 
         # Build menu, toolbar and status bar.
         self.SetMenuBar(self.makeMenu())
-        self.makeToolBar()
         self.statusbar = self.CreateStatusBar()
-        self.Centre()
 
         self.BuildUI()
 
     @property
     def codename(self):
         """Name of the application."""
-        return "OncvWxGui"
+        return "WxOncvGui"
 
     def BuildUI(self):
         """Build user-interface."""
         oncv_dims = dict(nc=1, nv=2, lmax=1, ncfn=0)
+
+        self.makeToolBar()
+        self.Centre()
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -192,7 +211,6 @@ class OncvMainFrame(wx.Frame, mix.Has_Tools):
         self.wxoncv_input = WxOncvInput(self, oncv_dims)
         main_sizer.Add(self.wxoncv_input, flag=wx.EXPAND)
 
-        #self.SetSizer(main_sizer); self.Layout()
         self.SetSizerAndFit(main_sizer)
 
     def AddFileToHistory(self, filepath):
@@ -229,6 +247,7 @@ class OncvMainFrame(wx.Frame, mix.Has_Tools):
         menu_bar.Append(self.CreateToolsMenu(), "Tools")
 
         help_menu = wx.Menu()
+        help_menu.Append(wx.ID_HELP, "Help ", help="Quick help")
         help_menu.Append(wx.ID_ABOUT, "About " + self.codename, help="Info on the application")
         menu_bar.Append(help_menu, "Help")
 
@@ -237,6 +256,7 @@ class OncvMainFrame(wx.Frame, mix.Has_Tools):
             (wx.ID_OPEN, self.OnOpen),
             (wx.ID_CLOSE, self.OnClose),
             #(wx.ID_EXIT, self.OnExit),
+            (wx.ID_HELP, self.onHelp),
             (wx.ID_ABOUT, self.OnAbout),
         ]
                                                             
@@ -256,17 +276,9 @@ class OncvMainFrame(wx.Frame, mix.Has_Tools):
 
         self.ID_SHOW_INPUT = wx.NewId()
         self.ID_RUN_INPUT = wx.NewId()
-        self.ID_OPTIMIZE_VLOC = wx.NewId()
-        self.ID_OPTIMIZE_RHOM = wx.NewId()
-        self.ID_OPTIMIZE_QCUT = wx.NewId()
-        self.ID_OPTIMIZE_RC = wx.NewId()
 
         toolbar.AddSimpleTool(self.ID_SHOW_INPUT, bitmap("in.png"), "Visualize the input file(s) of the workflow.")
         toolbar.AddSimpleTool(self.ID_RUN_INPUT, bitmap("run.png"), "Run the input file.")
-        toolbar.AddSimpleTool(self.ID_OPTIMIZE_VLOC, bitmap("in.png"), "Optimize the parameters for Vloc for the given template.")
-        toolbar.AddSimpleTool(self.ID_OPTIMIZE_RHOM, bitmap("in.png"), "Optimize the parameters for the model core charge.")
-        toolbar.AddSimpleTool(self.ID_OPTIMIZE_QCUT, bitmap("in.png"), "Optimize qcut parameter.")
-        toolbar.AddSimpleTool(self.ID_OPTIMIZE_RC, bitmap("in.png"), "Optimize rc parameter.")
 
         toolbar.Realize()
 
@@ -274,10 +286,6 @@ class OncvMainFrame(wx.Frame, mix.Has_Tools):
         menu_handlers = [
             (self.ID_SHOW_INPUT, self.OnShowInput),
             (self.ID_RUN_INPUT, self.onRunInput),
-            (self.ID_OPTIMIZE_VLOC, self.OnOptimizeVloc),
-            (self.ID_OPTIMIZE_RHOM, self.OnOptimizeRhom),
-            (self.ID_OPTIMIZE_QCUT, self.OnOptimizeQcut),
-            (self.ID_OPTIMIZE_RC, self.OnOptimizeRc),
         ]
 
         for combo in menu_handlers:
@@ -292,47 +300,40 @@ class OncvMainFrame(wx.Frame, mix.Has_Tools):
     def onRunInput(self, event):
         """Build a new generator from the input file, and add it to the queue."""
         text = self.wxoncv_input.makeInputString()
-        psgen = OncvGenerator(text, calc_type=self.wxoncv_input.get_calc_type())
+        try:
+            psgen = OncvGenerator(text, calc_type=self.wxoncv_input.calc_type)
+        except:
+            awx.showErrorMessage(self)
+            return
+
         psgen.start()
         psgen.wait()
 
         if psgen.status == psgen.S_OK:
             psgen.plot_results()
         else:
-            text = psgen.get_stdout()
-            SimpleTextViewer(self, text=text).Show()
+            SimpleTextViewer(self, text=psgen.get_stdout()).Show()
 
         #PseudoGeneratorsFrame(self, [psgen], title="Run Input").Show()
 
-    def _onOptimize_simple_key(self, key):
-        """Helper function for simple optimizations."""
-        template = self.wxoncv_input.makeInput()
+    #def _onOptimize_simple_key(self, key):
+    #    """Helper function for simple optimizations."""
+    #    #if self._warn_inoptrun(): return
 
-        # Build the PseudoGeneratorFrame and show it.
-        # Note how we select the method to call from key.
-        psgens = []
-        method = getattr(template, "optimize_" + key)
-        for inp in method():
-            psgen = OncvGenerator(str(inp), calc_type=self.wxoncv_input.get_calc_type())
-            psgens.append(psgen)
+    #    template = self.wxoncv_input.makeInput()
+    #    # Build the PseudoGeneratorFrame and show it.
+    #    # Note how we select the method to call from key.
+    #    psgens = []
+    #    method = getattr(template, "optimize_" + key)
+    #    for inp in method():
+    #        psgen = OncvGenerator(str(inp), calc_type=self.wxoncv_input.calc_type)
+    #        psgens.append(psgen)
 
-        PseudoGeneratorsFrame(self, psgens, title="%s Optimization" % key).Show()
+    #    PseudoGeneratorsFrame(self, psgens, title="%s Optimization" % key).Show()
 
-    def OnOptimizeVloc(self, event):
-        """Open a new frame for the optimization of Vlocal."""
-        self._onOptimize_simple_key("vloc")
-
-    def OnOptimizeRhom(self, event):
-        """Open a new frame for the optimization of the model charge density."""
-        self._onOptimize_simple_key("modelcore")
-
-    def OnOptimizeQcut(self, event):
-        """Open a new frame for the optimization of the qcut parameter."""
-        QcutOptimizationFrame(self, wxoncv_input=self.wxoncv_input).Show()
-
-    def OnOptimizeRc(self, event):
-        """Open a new frame for the optimization of the rc parameter."""
-        RcOptimizationFrame(self, wxoncv_input=self.wxoncv_input).Show()
+    #def OnOptimizeVloc(self, event):
+    #    """Open a new frame for the optimization of Vlocal."""
+    #    self._onOptimize_simple_key("vloc")
 
     def OnOpen(self, event):
         """Open a file"""
@@ -366,11 +367,179 @@ class OncvMainFrame(wx.Frame, mix.Has_Tools):
             website="http://www.mat-simresearch.com/")
 
 
-class QcutOptimizationFrame(awx.Frame):
+class OptimizationFrame(awx.Frame):
+    """Base class for optimization frames."""
+    __metaclass__ = abc.ABCMeta
+
+    def __init__(self, parent, **kwargs):
+        super(OptimizationFrame, self).__init__(parent, **kwargs)
+
+        # All optimization buttons are disabled when we start an optimization.
+        self.main_frame.wxoncv_input.enable_all_optimize_buttons(False)
+        #self.main_frame.Enable(False)
+        #self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
+
+    @property
+    def main_frame(self):
+        return self.getParentWithType(WxOncvFrame)
+
+    def onDestroy(self, event):
+        """Enable all optimize_buttons before destroying the Frame."""
+        self.main_frame.wxoncv_input.enable_all_optimize_buttons(True)
+        return super(OptimizationFrame, self).Destroy()
+
+    def onCloseButton(self, event):
+        self.onDestroy(event)
+
+    def onOkButton(self, event):
+        """
+        Get input from user, generate new input files by changing some parameters 
+        and open a new frame for running the calculations.
+        """
+        # Build the PseudoGenerators and open a new frame to run them.
+        psgens = []
+        for inp in self.build_new_inps():
+            try:
+                psgen = OncvGenerator(str(inp), calc_type=self.wxoncv_input.calc_type)
+                psgens.append(psgen)
+            except:
+                awx.showErrorMessage(self)
+                return
+                                                                                   
+        PseudoGeneratorsFrame(self, psgens, title=self.opt_type).Show()
+
+    def make_buttons(self, parent=None):
+        """
+        Build the three buttons (Generate, Cancel, Help), binds them and return the sizer.
+        """
+        parent = self if parent is None else parent
+
+        add_opts = dict(flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
+        gen_button = wx.Button(parent, wx.ID_OK, label='Generate')
+        gen_button.Bind(wx.EVT_BUTTON, self.onOkButton)
+
+        close_button = wx.Button(parent, wx.ID_CANCEL, label='Cancel')
+        close_button.Bind(wx.EVT_BUTTON, self.onCloseButton)
+
+        help_button = wx.Button(parent, wx.ID_HELP)
+        help_button.Bind(wx.EVT_BUTTON, self.onHelp)
+
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(gen_button, **add_opts)
+        hbox.Add(close_button, **add_opts)
+        hbox.Add(help_button, **add_opts)
+
+        return hbox
+
+    @abc.abstractproperty
+    def opt_type(self):
+        """Human-readable string describing the optimization type."""
+
+    @abc.abstractmethod
+    def build_new_inps(self):
+        """Returns a list of new inputs."""
+
+
+class LlocOptimizationFrame(OptimizationFrame):
+    """
+    This frame allows the user to optimize the parameters for the local part of the pseudopotential
+    """
+    HELP_MSG = """\
+This window allows you to change/optimize the parameters governing the local part"""
+
+    def __init__(self, parent, wxoncv_input, **kwargs):
+        """
+        Args:
+            wxoncv_input:
+                Instance of WxOncvInput containing the parameters of the template.
+        """
+        super(LlocOptimizationFrame, self).__init__(parent, **kwargs)
+
+        # Save reference to the input panel.
+        self.wxoncv_input = wxoncv_input
+
+        panel = wx.Panel(self, -1)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        add_opts = dict(flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
+
+        #self.fcfact_ctl = awx.IntervalControl(self, start=0.25, num=6, step=0.05, choices=[">", "centered", "<"])
+        #check_l.SetToolTipString("Enable/Disable optimization for this l-channel")
+        #main_sizer.Add(self.fcfact_ctl, 1, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
+
+        buttons_sizer = self.make_buttons()
+        main_sizer.Add(buttons_sizer, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
+
+        self.SetSizerAndFit(main_sizer)
+
+    @property
+    def opt_type(self):
+        return "lloc optimization"
+
+    def build_new_inps(self):
+        #fcfact_list = self.fcfact_ctl.getValues()
+
+        # Generate new list of inputs.
+        base_inp = self.wxoncv_input.makeInput()
+        return base_inp.optimize_vloc()
+
+
+class RhoModelOptimizationFrame(OptimizationFrame):
+    """
+    This frame allows the user to optimize the model core charge 
+    """
+
+    HELP_MSG = """\
+This window allows you to change/optimize the parameters governing the model core charge"""
+
+    def __init__(self, parent, wxoncv_input, **kwargs):
+        """
+        Args:
+            wxoncv_input:
+                Instance of WxOncvInput containing the parameters of the template.
+        """
+        super(RhoModelOptimizationFrame, self).__init__(parent, **kwargs)
+
+        # Save reference to the input panel.
+        self.wxoncv_input = wxoncv_input
+
+        panel = wx.Panel(self, -1)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        add_opts = dict(flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
+
+        self.fcfact_ctl = awx.IntervalControl(self, start=0.25, num=6, step=0.05, choices=[">", "centered", "<"])
+        #check_l.SetToolTipString("Enable/Disable optimization for this l-channel")
+        main_sizer.Add(self.fcfact_ctl, 1, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
+
+        buttons_sizer = self.make_buttons()
+        main_sizer.Add(buttons_sizer, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
+
+        self.SetSizerAndFit(main_sizer)
+
+    @property
+    def opt_type(self):
+        return "RhoModel optimization"
+
+    def build_new_inps(self):
+        fcfact_list = self.fcfact_ctl.getValues()
+        print(fcfact_list)
+
+        # Generate new list of inputs.
+        base_inp = self.wxoncv_input.makeInput()
+        return base_inp.optimize_modelcore(fcfact_list, add_icmod0=True)
+
+
+class QcutOptimizationFrame(OptimizationFrame):
     """
     This frame allows the user to select the l-channels and
     the list of values of qcut_l to be analyzed.
     """
+
+    HELP_MSG = """\
+This window allows you to change/optimize the value of the qcut parameters for 
+the different angular channel. Use the checkboxes to select the l-channel(s) to be
+analyzed, and the other controls to specify the list of qc values to test. 
+"""
+
     def __init__(self, parent, wxoncv_input, **kwargs):
         """
         Args:
@@ -387,14 +556,11 @@ class QcutOptimizationFrame(awx.Frame):
         lmax = wxoncv_input.lmax
 
         # Build list of controls to allow the user to select the list of
-        # qcut values for the different l-channels.
-        # One can disable particular l-channels via checkboxes.
+        # qcuts for the different l-channels. One can disable particular l-channels via checkboxes.
         self.checkbox_l = [None] * (lmax + 1)
         self.wxqcut_range_l = [None] * (lmax + 1)
 
-        # TODO: Create base class or factory function to avoid boiler-plate code.
         qcut_l = wxoncv_input.makeInput().qcut_l
-        #rc_l = wxoncv_input.makeInput().rc_l
 
         add_opts = dict(flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
         for l in range(lmax + 1):
@@ -405,7 +571,7 @@ class QcutOptimizationFrame(awx.Frame):
             check_l.SetToolTipString("Enable/Disable optimization for this l-channel")
             check_l.SetValue(True)
 
-            self.wxqcut_range_l[l] = qcrange_l = awx.IntervalControl(self, start=qcut_l[l], num=2, step=0.1)
+            self.wxqcut_range_l[l] = qcrange_l = awx.IntervalControl(self, start=qcut_l[l], num=4, step=0.1)
 
             vsz.Add(check_l, **add_opts)
             vsz.Add(qcrange_l, **add_opts)
@@ -413,28 +579,16 @@ class QcutOptimizationFrame(awx.Frame):
             sbox_sizer.Add(vsz, 1, wx.ALL, 5)
             main_sizer.Add(sbox_sizer, 1, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
 
-        gen_button = wx.Button(self, wx.ID_OK, label='Generate')
-        gen_button.Bind(wx.EVT_BUTTON, self.onOkButton)
-
-        close_button = wx.Button(self, wx.ID_CANCEL, label='Cancel')
-        close_button.Bind(wx.EVT_BUTTON, self.onCloseButton)
-
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(gen_button, **add_opts)
-        hbox.Add(close_button, **add_opts)
-
-        main_sizer.Add(hbox, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
+        buttons_sizer = self.make_buttons()
+        main_sizer.Add(buttons_sizer, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
 
         self.SetSizerAndFit(main_sizer)
 
-    def onCloseButton(self, event):
-        self.Destroy()
+    @property
+    def opt_type(self):
+        return "Qcut optimization"
 
-    def onOkButton(self, event):
-        """
-        Get input from user, generate new input files by changing qcut and
-        open a new frame for running the calculations.
-        """
+    def build_new_inps(self):
         l_list, qcvals_list = [], []
         for l, (checkbox, wxrange) in enumerate(zip(self.checkbox_l, self.wxqcut_range_l)):
             if checkbox.IsChecked():
@@ -447,22 +601,20 @@ class QcutOptimizationFrame(awx.Frame):
         new_inps = []
         for l, new_qcuts in zip(l_list, qcvals_list):
             new_inps.extend(base_inp.optimize_qcuts_for_l(l=l, new_qcuts=new_qcuts))
-            #new_inps.extend(base_inp.optimize_rcs_for_l(l, new_qcuts))
 
-        # Build the PseudoGenerators and open new frame to run them.
-        psgens = []
-        for inp in new_inps:
-            psgen = OncvGenerator(str(inp), calc_type=self.wxoncv_input.get_calc_type())
-            psgens.append(psgen)
-
-        PseudoGeneratorsFrame(self, psgens, title="Qcut Optimation").Show()
+        return new_inps
 
 
-class RcOptimizationFrame(awx.Frame):
+class RcOptimizationFrame(OptimizationFrame):
     """
     This frame allows the user to select the l-channels and
     the list of values of rc_l to be analyzed.
     """
+
+    HELP_MSG = """\
+This window allows you to change/optimize the value of the rc parameters (core radius)
+for  the different angular channel."""
+
     def __init__(self, parent, wxoncv_input, **kwargs):
         """
         Args:
@@ -495,7 +647,7 @@ class RcOptimizationFrame(awx.Frame):
             check_l.SetToolTipString("Enable/Disable optimization for this l-channel")
             check_l.SetValue(True)
 
-            self.wxrc_range_l[l] = qcrange_l = awx.IntervalControl(self, start=rc_l[l], num=2, step=0.1)
+            self.wxrc_range_l[l] = qcrange_l = awx.IntervalControl(self, start=rc_l[l], num=4, step=0.1)
 
             vsz.Add(check_l, **add_opts)
             vsz.Add(qcrange_l, **add_opts)
@@ -503,28 +655,16 @@ class RcOptimizationFrame(awx.Frame):
             sbox_sizer.Add(vsz, 1, wx.ALL, 5)
             main_sizer.Add(sbox_sizer, 1, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
 
-        gen_button = wx.Button(self, wx.ID_OK, label='Generate')
-        gen_button.Bind(wx.EVT_BUTTON, self.onOkButton)
-
-        close_button = wx.Button(self, wx.ID_CANCEL, label='Cancel')
-        close_button.Bind(wx.EVT_BUTTON, self.onCloseButton)
-
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(gen_button, **add_opts)
-        hbox.Add(close_button, **add_opts)
-
-        main_sizer.Add(hbox, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
+        buttons_sizer = self.make_buttons()
+        main_sizer.Add(buttons_sizer, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
 
         self.SetSizerAndFit(main_sizer)
 
-    def onCloseButton(self, event):
-        self.Destroy()
+    @property
+    def opt_type(self):
+        return "Rc optimization"
 
-    def onOkButton(self, event):
-        """
-        Get input from user, generate new input files by changing rc and
-        open a new frame for running the calculations.
-        """
+    def build_new_inps(self):
         l_list, rc_list = [], []
         for l, (checkbox, wxrange) in enumerate(zip(self.checkbox_l, self.wxrc_range_l)):
             if checkbox.IsChecked():
@@ -537,13 +677,7 @@ class RcOptimizationFrame(awx.Frame):
         for l, new_rcs in zip(l_list, rc_list):
             new_inps.extend(base_inp.optimize_rcs_for_l(l, new_rcs))
 
-        # Build the PseudoGenerators and open new frame to run them.
-        psgens = []
-        for inp in new_inps:
-            psgen = OncvGenerator(str(inp), calc_type=self.wxoncv_input.get_calc_type())
-            psgens.append(psgen)
-
-        PseudoGeneratorsFrame(self, psgens, title="Rc Optimation").Show()
+        return new_inps
 
 
 def empty_field(tag, oncv_dims=None):
@@ -599,8 +733,7 @@ class Field(object):
                 data[i] = OrderedDict([(k, None) for k in cls.WXCTRL_PARAMS.keys()])
 
         else:
-            #print(cls, cls.ftype)
-            raise NotImplementedError()
+            raise NotImplementedError(str(cls.ftype))
 
         return data
 
@@ -686,7 +819,6 @@ class Field(object):
 
     def set_vars_from_lines(self, lines):
         """The the value of the variables from a list of strings."""
-        # TODO: Check this
         #print("About to read: ", type(self), "\nlines=\n, "\n".join(lines))
 
         okeys = self.WXCTRL_PARAMS.keys()
@@ -827,18 +959,18 @@ class RefConfField(TableField):
         ("l", dict(dtype="i")),
         ("f", dict(dtype="f"))])
 
-    @classmethod
-    def neutral_from_symbol(cls, symbol):
-        # TODO
-        element = periodic_table.Element(symbol)
-        # E.g., The electronic structure for Fe is represented as:
-        # [(1, "s", 2), (2, "s", 2), (2, "p", 6), (3, "s", 2), (3, "p", 6), (3, "d", 6), (4, "s", 2)]
-        #new = empty_field(cls.tag, oncv_dims=dict(nc))
+    #@classmethod
+    #def neutral_from_symbol(cls, symbol):
+    #    # TODO
+    #    element = periodic_table.Element(symbol)
+    #    # E.g., The electronic structure for Fe is represented as:
+    #    # [(1, "s", 2), (2, "s", 2), (2, "p", 6), (3, "s", 2), (3, "p", 6), (3, "d", 6), (4, "s", 2)]
+    #    #new = empty_field(cls.tag, oncv_dims=dict(nc))
 
-        for row, (n, lchar, f) in zip(new, element.full_electronic_structure):
-            row["n"], row["l"], row["f"] = n, periodic_table.char2l(lchar), f
+    #    for row, (n, lchar, f) in zip(new, element.full_electronic_structure):
+    #        row["n"], row["l"], row["f"] = n, periodic_table.char2l(lchar), f
 
-        return new
+    #    return new
 
     @classmethod
     def nrows_from_dims(cls, oncv_dims):
@@ -931,7 +1063,7 @@ class RadGridField(RowField):
     name = "OUTPUT GRID"
 
     WXCTRL_PARAMS = OrderedDict([
-        ("rlmax", dict(dtype="f", value="4.0")),
+        ("rlmax", dict(dtype="f", value="6.0")),
         ("drl", dict(dtype="f", value="0.01"))])
 
 
@@ -1062,9 +1194,9 @@ class OncvInput(object):
         if fields is None:
             # Default fields.
             self.fields = _NFIELDS * [None]
-            for tag in range(_NFIELDS):
-                new = empty_field(tag, self.dims)
-                self.fields[tag] = new
+            for i in range(_NFIELDS):
+                new = empty_field(i, self.dims)
+                self.fields[i] = new
 
         else:
             self.fields = fields
@@ -1160,9 +1292,7 @@ class OncvInput(object):
         return copy.deepcopy(self)
 
     def optimize_vloc(self):
-        """
-        Produce a list of new input files by changing the lloc option for vloc.
-        """
+        """Produce a list of new input files by changing the lloc option for vloc."""
         # Test all possible vloc up to lmax
         inps, new = [], self.deepcopy()
         for il in range(self.lmax+1):
@@ -1175,13 +1305,17 @@ class OncvInput(object):
 
         return inps
 
-    def optimize_modelcore(self):
-        """
-        Produce a list of new input files by changing the icmod option for model core.
-        """
+    def optimize_modelcore(self, fcfact_list, add_icmod0=True):
+        """Produce a list of new input files by changing the icmod option for model core."""
         inps, new = [], self.deepcopy()
-        for icmod in [0, 1]:
-            new["icmod"] = icmod
+
+        if add_icmod0:
+            new["icmod"] = 0
+            inps.append(new.deepcopy())
+            
+        for fcfact in fcfact_list:
+            new["icmod"] = 1
+            new["fcfact"] = fcfact
             inps.append(new.deepcopy())
 
         return inps
@@ -1189,15 +1323,15 @@ class OncvInput(object):
     @property
     def qcut_l(self):
         """List with the values of qcuts as function of l."""
-        tag = _FIELD_LIST.index(PseudoConfField)
-        return self.fields[tag].get_col("qcut")
+        i = _FIELD_LIST.index(PseudoConfField)
+        return self.fields[i].get_col("qcut")
 
 
     @property
     def rc_l(self):
         """List with the values of rc as function of l."""
-        tag = _FIELD_LIST.index(PseudoConfField)
-        return self.fields[tag].get_col("rc")
+        i = _FIELD_LIST.index(PseudoConfField)
+        return self.fields[i].get_col("rc")
 
     def optimize_qcuts_for_l(self, l, new_qcuts):
         """
@@ -1212,10 +1346,10 @@ class OncvInput(object):
                 The returned list will have len(new_qcuts) input objects.
         """
         # Find the field with the configuration parameters.
-        tag = _FIELD_LIST.index(PseudoConfField)
+        i = _FIELD_LIST.index(PseudoConfField)
 
         # Find the row with the given l.
-        for ir, row in enumerate(self.fields[tag].data):
+        for irow, row in enumerate(self.fields[i].data):
             if row["l"] == l:
                 break
         else:
@@ -1225,7 +1359,7 @@ class OncvInput(object):
         inps = []
         for qc in new_qcuts:
             new_inp = self.deepcopy()
-            new_inp.fields[tag].data[ir]["qcut"] = qc
+            new_inp.fields[i].data[irow]["qcut"] = qc
             inps.append(new_inp)
 
         return inps
@@ -1243,10 +1377,10 @@ class OncvInput(object):
                 The returned list will have len(new_rcs) input objects.
         """
         # Find the field with the configuration parameters.
-        tag = _FIELD_LIST.index(PseudoConfField)
+        i = _FIELD_LIST.index(PseudoConfField)
 
         # Find the row with the given l.
-        for ir, row in enumerate(self.fields[tag].data):
+        for irow, row in enumerate(self.fields[i].data):
             if row["l"] == l:
                 break
         else:
@@ -1256,17 +1390,19 @@ class OncvInput(object):
         inps = []
         for rc in new_rcs:
             new_inp = self.deepcopy()
-            new_inp.fields[tag].data[ir]["rc"] = rc
+            new_inp.fields[i].data[irow]["rc"] = rc
             inps.append(new_inp)
 
         return inps
 
 
-#from wx.lib.scrolledpanel import ScrolledPanel
-#class WxOncvInput(ScrolledPanel):
-#class WxOncvInput(wx.ScrolledWindow):
+# TODO Try this
+#import wx.lib.foldpanelbar as foldpanel
+#class WxOncvInput(foldpanel.FoldPanelBar):
+from wx.lib.scrolledpanel import ScrolledPanel
 
-class WxOncvInput(awx.Panel):
+#class WxOncvInput(awx.Panel):
+class WxOncvInput(ScrolledPanel):
     """
     Panel with widgets allowing the user to select the input parameters.
     """
@@ -1276,11 +1412,10 @@ class WxOncvInput(awx.Panel):
             oncv_dims:
                 Basic dimensions of the calculation.
         """
-        super(WxOncvInput, self).__init__(parent, id=-1)
-        #super(WxOncvInput, self).__init__(parent, id=-1, style=wx.VSCROLL)
+        #super(WxOncvInput, self).__init__(parent, id=-1)
+        super(WxOncvInput, self).__init__(parent, id=-1, style=wx.VSCROLL)
 
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        #self.main_sizer = wx.FlexGridSizer(wx.VERTICAL)
 
         stext = wx.StaticText(self, -1, "Calculation type:")
         choices = ["scalar-relativistic", "fully-relativistic", "non-relativistic"]
@@ -1303,22 +1438,44 @@ class WxOncvInput(awx.Panel):
         # Each field has a widget that returns the variables in a dictionary
         self.wxctrls = _NFIELDS * [None]
         self.sbox_sizers = _NFIELDS * [None]
-        self.disclose_buttons = _NFIELDS * [None]
+
+        # Keep an internal list of buttons so that we can disable them easily.
+        self.all_optimize_buttons = []
+
+        # FieldClass: [(label, OptimizationFrame), ....]
+        self.fields_with_optimization = {
+            PseudoConfField: [
+                ("Optimize rc", RcOptimizationFrame),
+                ("Optimize qcut", QcutOptimizationFrame),
+                ],
+            VlocalField: [("Optimize lloc", LlocOptimizationFrame)],
+            ModelCoreField: [("Optimize fcfact", RhoModelOptimizationFrame)],
+            #VkbConfsField: [("Optimize pseudo", [])],
+        }
 
         for i in range(_NFIELDS):
             f = empty_field(i, oncv_dims)
             wxctrl = f.make_wxctrl(self)
             self.wxctrls[i] = wxctrl
 
-            # Button to show/hide the sizers
-            #disclose = awx.buttons.DisclosureCtrl(self, -1, "")
-            #disclose._myid = i
-            #self.Bind(wx.EVT_BUTTON, self.onDisclose, disclose)
-            #self.disclose_buttons[i] = disclose
-
             sbox_sizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, f.name + ":"), wx.VERTICAL)
             sbox_sizer.Add(wxctrl, **sizer_addopts)
-            #sz.Add(disclose, **sizer_addopts)
+
+            # add optimization button if the field supports it.
+            if f.__class__ in self.fields_with_optimization:
+                hsz = wx.BoxSizer(wx.HORIZONTAL)
+                for label, opt_frame in self.fields_with_optimization[f.__class__]:
+                    optimize_button = wx.Button(self, -1, label)
+                    optimize_button.Bind(wx.EVT_BUTTON, self.onOptimize)
+                    optimize_button.field_class = f.__class__
+                    optimize_button.opt_frame = opt_frame
+
+                    self.all_optimize_buttons.append(optimize_button)
+                    hsz.Add(optimize_button, 0, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, border=5)
+
+                #sbox_sizer.Add(optimize_button, 0, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
+                sbox_sizer.Add(hsz, 0, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
+
             sz.Add(sbox_sizer, **sizer_addopts)
             self.sbox_sizers[i] = sbox_sizer
 
@@ -1326,22 +1483,22 @@ class WxOncvInput(awx.Panel):
 
         self.fill_from_file("08_O.dat")
 
-        #self.SetupScrolling()
+        self.SetupScrolling()
         self.SetSizerAndFit(self.main_sizer)
-        #self.SetSizer(self.main_sizer)
 
-    def onDisclose(self, event):
-        """Hide/Show the widgests inside a sizer."""
-        #print("in disclose with", event, dir(event))
-        button = event.GetButtonObj()
-        i = button._myid
-        print(i)
-        if button.up:
-            self.sbox_sizers[i].Hide(0)
-        else:
-            self.sbox_sizers[i].Show(0)
+    def enable_all_optimize_buttons(self, enable=True):
+        """Enable/disable the optimization buttons."""
+        for button in self.all_optimize_buttons:
+            button.Enable(enable)
 
-        self.sbox_sizers[i].Layout()
+    def onOptimize(self, event):
+        button = event.GetEventObject()
+        self.enable_all_optimize_buttons(False)
+        opt_frame = button.opt_frame
+        try:
+            opt_frame(self, wxoncv_input=self).Show()
+        finally:
+            self.enable_all_optimize_buttons(True)
 
     @property
     def lmax(self):
@@ -1353,15 +1510,16 @@ class WxOncvInput(awx.Panel):
         for field, wxctrl in zip(inp, self.wxctrls):
             wxctrl.SetParams(field.data)
 
-    def get_calc_type(self):
+    @property
+    def calc_type(self):
         """"Return a string with the calculation type."""
         return self.calctype_cbox.GetValue()
 
     def makeInput(self):
         """Build an instance of OncvInput from the data specified in the Wx controllers."""
         inp = OncvInput(self.oncv_dims)
-        for tag, field in enumerate(self.wxctrls):
-            inp.fields[tag].set_vars(field.GetParams())
+        for i, field in enumerate(self.wxctrls):
+            inp.fields[i].set_vars(field.GetParams())
 
         return inp
 
@@ -1369,11 +1527,30 @@ class WxOncvInput(awx.Panel):
         """Return a string with the input passed to the pp generator."""
         return str(self.makeInput())
 
+# Event posted when we start an optimization.
+#EVT_OPTIMIZATION_TYPE = wx.NewEventType()
+#EVT_OPTIMIZATION = wx.PyEventBinder(EVT_CONSOLE_TYPE, 1)
+#
+#class OptimizationEvent(wx.PyEvent):
+#    """
+#    This event is triggered when we start/end the optimization process
+#    """
+#    def __init__(self, kind, msg):
+#        wx.PyEvent.__init__(self)
+#        self.SetEventType(EVT_OPTIMIZATION_TYPE)
+#        self.kind, self.msg = kind, msg
+#
+#    #@classmethod
+#    #def start_optimization(cls, msg)
+#    #@classmethod
+#    #def end_optimization(cls, msg)
+#    #wx.PostEvent(self.console, event)
 
-class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
+
+
+class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.ListCtrlAutoWidthMixin):
     """
-    ListCtrl that allows the user to interact with a list of pseudogenerators
-    Supports column sorting
+    ListCtrl that allows the user to interact with a list of pseudogenerators. Supports column sorting 
     """
     # List of columns
     _COLUMNS = ["#", 'status', "max_ecut", "atan_logder_err", "max_psexc_abserr", "herm_err"]
@@ -1414,6 +1591,7 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
 
         # Now that the list exists we can init the other base class, see wx/lib/mixins/listctrl.py
         listmix.ColumnSorterMixin.__init__(self, len(self._COLUMNS))
+        listmix.ListCtrlAutoWidthMixin.__init__(self)
 
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onItemActivated) 
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRightClick)
@@ -1425,7 +1603,7 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
             return self._wxinput
         except AttributeError:
             parent = self.GetParent()
-            cls = OncvMainFrame
+            cls = WxOncvFrame
 
             while True:
                 if parent is None:
@@ -1436,7 +1614,7 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
                 else:
                     parent = parent.GetParent()
 
-            # The input we need is an attribute of OncvMainFrame.
+            # The input we need is an attribute of WxOncvFrame.
             self._wxinput = parent.wxoncv_input
             return self._wxinput
 
@@ -1486,7 +1664,7 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
         self.SetItemData(index, index)
         self.itemDataMap[index] = entry
 
-        # Add it to the list and update column widths
+        # Add it to the list and update column widths.
         self.psgens.append(psgen)
         self.doRefresh()
 
@@ -1499,7 +1677,7 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
         Returns the PseudoGenerators selected by the user.
         None if no selection has been done.
         """
-        # Get selected index, map to index in kpoints and return the kpoint.
+        # Get selected index, map to index in psgens and return the object.
         item = self.GetFirstSelected()
         if item == -1: return None
         index = self.GetItemData(item)
@@ -1509,7 +1687,6 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
         """Call psgen.plot_results."""
         psgen = self.getSelectedPseudoGen()
         if psgen is None: return
-        #print("selected", psgen)
         psgen.plot_results()
 
     def onPlotSubMenu(self, event):
@@ -1624,6 +1801,7 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
         self._showStdfile(event, "stderr")
 
     def plot_columns(self, **kwargs):
+        """Use matplotlib to plot the values reported in the columns."""
         keys = self._COLUMNS[2:]
         table = OrderedDict([(k, []) for k in keys])
 
@@ -1659,7 +1837,7 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
             ys = np.array(table[key]).astype(np.double)
             # Use mask to exclude None values from the plot.
             mask = np.isfinite(ys)
-            line, = ax.plot(xs[mask], ys[mask], linewidth=2, markersize=2, marker="o")
+            line, = ax.plot(xs[mask], ys[mask], linewidth=2, markersize=10, marker="o")
 
         plt.show()
 
@@ -1700,6 +1878,10 @@ class PseudoGeneratorsFrame(awx.Frame):
     """
     REFRESH_INTERVAL = 120
 
+    HELP_MSG = """\
+This window allows you to generate and analyze multiple pseudopotentials.
+"""
+
     def __init__(self, parent, psgens=(), **kwargs):
         """
         Args:
@@ -1729,12 +1911,17 @@ class PseudoGeneratorsFrame(awx.Frame):
         text.SetToolTipString("Maximum number of tasks that can be submitted. Use -1 for unlimited launches.")
         self.max_nlaunch = wx.SpinCtrl(panel, -1, value=str(get_ncpus()), min=-1)
 
+        help_button = wx.Button(panel, wx.ID_HELP)
+        help_button.Bind(wx.EVT_BUTTON, self.onHelp)
+        main_sizer.Add(help_button, 0, flag=wx.ALL | wx.ALIGN_RIGHT)
+
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
         hsizer.Add(submit_button, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
         hsizer.Add(text, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
         hsizer.Add(self.max_nlaunch, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
-        main_sizer.Add(hsizer, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5)
+        hsizer.Add(help_button, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
+        main_sizer.Add(hsizer, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5)
         panel.SetSizerAndFit(main_sizer)
 
         # Register this event when the GUI is IDLE
@@ -1775,7 +1962,7 @@ class PseudoGeneratorsFrame(awx.Frame):
         menu_handlers = [
             (self.ID_SHOW_INPUTS, self.OnShowInputs),
             (self.ID_SHOW_OUTPUTS, self.OnShowOutputs),
-            (self.ID_SHOW_ERRS, self.OnShowErrs),
+            (self.ID_SHOW_ERRS, self.OnShowErrors),
             (self.ID_CHECK_STATUS, self.OnCheckStatus),
             (self.ID_MULTI_PLOTTER, self.OnMultiPlotter),
             (self.ID_PLOT_COLUMNS, self.onPlotColumns),
@@ -1812,12 +1999,13 @@ class PseudoGeneratorsFrame(awx.Frame):
     def CheckStatusAndRedraw(self):
         """Check the status of all the workflows and redraw the panel."""
         self.statusbar.PushStatusText("Checking status...")
-        # TODO
+        start = time.time()
+
         for psgen in self.psgens:
             psgen.check_status()
-        #self.statusbar.PushStatusText("Check done")
+        self.statusbar.PushStatusText("Check completed in %.1f [s]" % (time.time() - start))
 
-        # Build new notebook and redraw the panel
+        # Redraw the panel
         main_sizer = self.main_sizer
         main_sizer.Hide(0)
         main_sizer.Remove(0)
@@ -1841,17 +2029,17 @@ class PseudoGeneratorsFrame(awx.Frame):
     def OnShowInputs(self, event):
         """Show all input files."""
         TextNotebookFrame(self, text_list=[psgen.get_stdin() for psgen in self.psgens], 
-                          page_names=[repr(psgen) for psgen in self.psgens]).Show()
+                          page_names=["PSGEN # %d" % i for i in range(len(self.psgens))]).Show()
 
     def OnShowOutputs(self, event):
         """Show all output files."""
         TextNotebookFrame(self, text_list=[psgen.get_stdout() for psgen in self.psgens],
-                          page_names=[repr(psgen) for psgen in self.psgens]).Show()
+                          page_names=["PSGEN # %d" % i for i in range(len(self.psgens))]).Show()
 
-    def OnShowErrs(self, event):
+    def OnShowErrors(self, event):
         """Show all error files."""
         TextNotebookFrame(self, text_list=[psgen.get_stderr() for psgen in self.psgens], 
-                          page_names=[repr(psgen) for psgen in self.psgens]).Show()
+                          page_names=["PSGEN # %d" % i for i in range(len(self.psgens))]).Show()
 
     def onPlotColumns(self, event):
         self.psgens_wxlist.plot_columns()
@@ -1887,7 +2075,8 @@ class OncvApp(awx.App):
         #    bmp = image.ConvertToBitmap()
         #    wx.SplashScreen(bmp, wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_TIMEOUT, 1000, None, -1)
         #    wx.Yield()
-        frame = OncvMainFrame(None)
+
+        frame = WxOncvFrame(None)
         #frame = my_periodic_table(None)
         #frame = OncvParamsFrame(None, z=12)
         frame.Show(True)

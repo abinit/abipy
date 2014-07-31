@@ -108,7 +108,14 @@ def get_width_height(window, string, pads=(10, 10)):
 
 
 class MyWindow(object):
-    """Mixin class providing helper functions."""
+    """
+    Mixin class providing helper functions and commonly used callbacks.
+
+    Attributes:
+        HELP_MSG:
+            string with a short help (will be displayed in MessageDialog in onHelp callback)
+    """
+    HELP_MSG = "No help available"
 
     def getParentWithType(self, cls):
         """
@@ -128,6 +135,12 @@ class MyWindow(object):
             else:
                 parent = parent.GetParent()
 
+    def onHelp(self, event):
+        """Short help."""
+        dialog = wx.MessageDialog(self, self.HELP_MSG, " Quick Reference", wx.OK | wx.ICON_INFORMATION)
+        dialog.ShowModal()
+        dialog.Destroy()
+
 
 class Panel(wx.Panel, MyWindow):
     def __init__(self, parent, *args, **kwargs):
@@ -135,6 +148,8 @@ class Panel(wx.Panel, MyWindow):
 
 
 class Frame(wx.Frame, MyWindow):
+    """Base class for frames."""
+
     def __init__(self, parent, *args, **kwargs):
         if "title" not in kwargs:
             kwargs["title"] = self.__class__.__name__

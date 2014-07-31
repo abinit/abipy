@@ -1,5 +1,3 @@
-"""
-"""
 from __future__ import print_function, division
 
 import wx
@@ -8,58 +6,6 @@ __all__ = [
     "ConsoleEvent",
     "ConsoleWindow",
 ]
-
-
-class EventRegistry:
-    """
-    Registry for custom event handlers.
-
-    This registry contains event handlers for custom events. Any number of
-    widgets an register to receive events. Each registered listener will
-    recieve an event callback when the event occurs in the order in which
-    the listeners were registered. This registry is necessary to allow
-    unrelated widgets to post events.
-    """
-    def __init__(self):
-        """Creates an empty event registry."""
-        self.registry = {}
-
-    def registerEventListener(self, event_type, listener):
-        """Registers an event listener for the specified event type."""
-        if self.registry.has_key(event_type):
-            if listener not in self.registry[event_type]:
-                self.registry[event_type].append(listener)
-        else:
-            self.registry[event_type] = [listener]
-
-    def unregisterEventListener(self, event_type, listener):
-        """Unregisters an event listener for the specified event type."""
-        list = self.registry[event_type]
-        if list is not None:
-            list.remove(listener)
-            if len(list) == 0:
-                del self.registry[event_type]
-
-    def postEvent(self, event):
-        """Posts an event to all registered listeners.
-
-        Returns of the event listeners to which the event was posted. Calling
-        code should not modify the returned list."""
-        event_type = event.GetEventType()
-        if not self.registry[event_type]:
-            return None
-        listeners = self.registry[event_type]
-        for listener in listeners:
-            wx.PostEvent(listener, event)
-        return listeners
-
-# Initialize the registry
-#registry = EventRegistry()
-
-#def getEventRegistry():
-#    """Returns the event registry instance."""
-#    return registry
-
 
 #######################################################################
 # Events for the console widget
@@ -110,8 +56,6 @@ class ConsoleWindow(wx.TextCtrl):
 
         # Set ourselves to receive all console events
         self.Bind(EVT_CONSOLE, self.onConsoleEvent)
-        #evt_registry = events.getEventRegistry()
-        #evt_registry.registerEventListener(EVT_CONSOLE_TYPE, self)
 
         # Set up the console menu handler
         self.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick, self)
@@ -213,7 +157,7 @@ class FrameWithConsole(wx.Frame):
 
     def onOkButton(self, event):
         event = ConsoleEvent(kind="error", msg="Hello")
-        print("Firing %s" % event)
+        #print("Firing %s" % event)
         wx.PostEvent(self.console, event)
 
     def onCloseButton(self, event):
