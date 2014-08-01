@@ -39,7 +39,7 @@ from awx.elements_gui import WxPeriodicTable, PeriodicPanel, ElementButton
 def my_periodic_table(parent):
     """
     A periodic table that allows the user to select the element
-    before starting the pseudopotential genearation.
+    before starting the pseudopotential generation.
     """
     class MyElementButton(ElementButton):
 
@@ -306,34 +306,7 @@ allows you to scan a set of possible values for the generation of the pseudopote
             awx.showErrorMessage(self)
             return
 
-        psgen.start()
-        psgen.wait()
-
-        if psgen.status == psgen.S_OK:
-            psgen.plot_results()
-        else:
-            SimpleTextViewer(self, text=psgen.get_stdout()).Show()
-
-        #PseudoGeneratorsFrame(self, [psgen], title="Run Input").Show()
-
-    #def _onOptimize_simple_key(self, key):
-    #    """Helper function for simple optimizations."""
-    #    #if self._warn_inoptrun(): return
-
-    #    template = self.wxoncv_input.makeInput()
-    #    # Build the PseudoGeneratorFrame and show it.
-    #    # Note how we select the method to call from key.
-    #    psgens = []
-    #    method = getattr(template, "optimize_" + key)
-    #    for inp in method():
-    #        psgen = OncvGenerator(str(inp), calc_type=self.wxoncv_input.calc_type)
-    #        psgens.append(psgen)
-
-    #    PseudoGeneratorsFrame(self, psgens, title="%s Optimization" % key).Show()
-
-    #def OnOptimizeVloc(self, event):
-    #    """Open a new frame for the optimization of Vlocal."""
-    #    self._onOptimize_simple_key("vloc")
+        PseudoGeneratorsFrame(self, [psgen], title="Run Input").Show()
 
     def OnOpen(self, event):
         """Open a file"""
@@ -451,7 +424,7 @@ This window allows you to change/optimize the parameters governing the local par
         """
         Args:
             wxoncv_input:
-                Instance of WxOncvInput containing the parameters of the template.
+                `WxOncvInput` containing the parameters of the template.
         """
         super(LlocOptimizationFrame, self).__init__(parent, **kwargs)
 
@@ -483,7 +456,79 @@ This window allows you to change/optimize the parameters governing the local par
         return base_inp.optimize_vloc()
 
 
-class RhoModelOptimizationFrame(OptimizationFrame):
+class DeblOptimizationFrame(OptimizationFrame):
+    """
+    This frame allows the user to optimize the VKB projectors 
+    """
+
+    HELP_MSG = """\
+This window allows you to optimize the parameters used to construct the VKB projectors."""
+
+    def __init__(self, parent, wxoncv_input, **kwargs):
+        """
+        Args:
+            wxoncv_input:
+                `WxOncvInput` containing the parameters of the template.
+        """
+        super(DeblOptimizationFrame, self).__init__(parent, **kwargs)
+
+        # Save reference to the input panel.
+        self.wxoncv_input = wxoncv_input
+        lmax = wxoncv_input.lmax
+
+        panel = wx.Panel(self, -1)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        add_opts = dict(flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
+
+        # Build list of controls to allow the user to select the list of
+        # debl for the different l-channels. One can disable l-channels via checkboxes.
+        self.checkbox_l = [None] * (lmax + 1)
+        self.debl_range_l = [None] * (lmax + 1)
+
+        debl_l = wxoncv_input.makeInput().debl_l
+
+        for l in range(lmax + 1):
+            sbox_sizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, "Angular Channel L=%d" % l), wx.VERTICAL)
+            vsz = wx.BoxSizer(wx.HORIZONTAL)
+                                                                                                             
+            self.checkbox_l[l] = check_l = wx.CheckBox(self, -1)
+            check_l.SetToolTipString("Enable/Disable optimization for this l-channel")
+            check_l.SetValue(True)
+            self.debl_range_l[l] = debl_range_l = awx.IntervalControl(self, start=debl_l[l], num=3, step=0.5)
+                                                                                                             
+            vsz.Add(check_l, **add_opts)
+            vsz.Add(debl_range_l, **add_opts)
+                                                                                                             
+            sbox_sizer.Add(vsz, 1, wx.ALL, 5)
+            main_sizer.Add(sbox_sizer, 1, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
+
+        buttons_sizer = self.make_buttons()
+        main_sizer.Add(buttons_sizer, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
+
+        self.SetSizerAndFit(main_sizer)
+
+    @property
+    def opt_type(self):
+        return "Vkb optimization"
+
+    def build_new_inps(self):
+        # Get the list of angular channels activated and the corresponding arrays.
+        l_list, deblvals_list = [], []
+        for l, (checkbox, wxrange) in enumerate(zip(self.checkbox_l, self.debl_range_l)):
+            if checkbox.IsChecked():
+                l_list.append(l)
+                deblvals_list.append(wxrange.getValues())
+
+        # Generate new list of inputs.
+        base_inp = self.wxoncv_input.makeInput()
+        new_inps = []
+        for l, new_debls in zip(l_list, deblvals_list):
+            new_inps.extend(base_inp.optimize_debls_for_l(l=l, new_debls=new_debls))
+                                                                                     
+        return new_inps
+
+
+class FcfactOptimizationFrame(OptimizationFrame):
     """
     This frame allows the user to optimize the model core charge 
     """
@@ -495,9 +540,9 @@ This window allows you to change/optimize the parameters governing the model cor
         """
         Args:
             wxoncv_input:
-                Instance of WxOncvInput containing the parameters of the template.
+                `WxOncvInput` containing the parameters of the template.
         """
-        super(RhoModelOptimizationFrame, self).__init__(parent, **kwargs)
+        super(FcfactOptimizationFrame, self).__init__(parent, **kwargs)
 
         # Save reference to the input panel.
         self.wxoncv_input = wxoncv_input
@@ -517,7 +562,7 @@ This window allows you to change/optimize the parameters governing the model cor
 
     @property
     def opt_type(self):
-        return "RhoModel optimization"
+        return "fcfact optimization"
 
     def build_new_inps(self):
         fcfact_list = self.fcfact_ctl.getValues()
@@ -544,25 +589,25 @@ analyzed, and the other controls to specify the list of qc values to test.
         """
         Args:
             wxoncv_input:
-                Instance of WxOncvInput containing the parameters of the template.
+                WxOncvInput` containing the parameters of the template.
         """
         super(QcutOptimizationFrame, self).__init__(parent, **kwargs)
-
-        panel = wx.Panel(self, -1)
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         # Save reference to the input panel.
         self.wxoncv_input = wxoncv_input
         lmax = wxoncv_input.lmax
 
+        panel = wx.Panel(self, -1)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        add_opts = dict(flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
+
         # Build list of controls to allow the user to select the list of
-        # qcuts for the different l-channels. One can disable particular l-channels via checkboxes.
+        # qcuts for the different l-channels. One can disable l-channels via checkboxes.
         self.checkbox_l = [None] * (lmax + 1)
         self.wxqcut_range_l = [None] * (lmax + 1)
 
         qcut_l = wxoncv_input.makeInput().qcut_l
 
-        add_opts = dict(flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
         for l in range(lmax + 1):
             sbox_sizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, "Angular Channel L=%d" % l), wx.VERTICAL)
             vsz = wx.BoxSizer(wx.HORIZONTAL)
@@ -571,7 +616,7 @@ analyzed, and the other controls to specify the list of qc values to test.
             check_l.SetToolTipString("Enable/Disable optimization for this l-channel")
             check_l.SetValue(True)
 
-            self.wxqcut_range_l[l] = qcrange_l = awx.IntervalControl(self, start=qcut_l[l], num=4, step=0.1)
+            self.wxqcut_range_l[l] = qcrange_l = awx.IntervalControl(self, start=qcut_l[l], num=4, step=0.2)
 
             vsz.Add(check_l, **add_opts)
             vsz.Add(qcrange_l, **add_opts)
@@ -589,6 +634,7 @@ analyzed, and the other controls to specify the list of qc values to test.
         return "Qcut optimization"
 
     def build_new_inps(self):
+        # Get the list of angular channels activated and the corresponding arrays.
         l_list, qcvals_list = [], []
         for l, (checkbox, wxrange) in enumerate(zip(self.checkbox_l, self.wxqcut_range_l)):
             if checkbox.IsChecked():
@@ -619,7 +665,7 @@ for  the different angular channel."""
         """
         Args:
             wxoncv_input:
-                Instance of WxOncvInput containing the parameters of the template.
+                `WxOncvInput` containing the parameters of the template.
         """
         super(RcOptimizationFrame, self).__init__(parent, **kwargs)
 
@@ -737,6 +783,14 @@ class Field(object):
 
         return data
 
+    #@property
+    #def filepos(self):
+    #    for pos, field in enumerate(_FIELD_LIST):
+    #        if isinstance(self, field):
+    #            return pos
+    #    else:
+    #        raise ValueError("Cannot find position of class:" % self.__class__.__name__)
+
     @property
     def nrows(self):
         """
@@ -820,7 +874,6 @@ class Field(object):
     def set_vars_from_lines(self, lines):
         """The the value of the variables from a list of strings."""
         #print("About to read: ", type(self), "\nlines=\n, "\n".join(lines))
-
         okeys = self.WXCTRL_PARAMS.keys()
         odtypes = [v["dtype"] for v in self.WXCTRL_PARAMS.values()]
         parsers = [self.parser_for_dtype[ot] for ot in odtypes]
@@ -1326,6 +1379,11 @@ class OncvInput(object):
         i = _FIELD_LIST.index(PseudoConfField)
         return self.fields[i].get_col("qcut")
 
+    @property
+    def debl_l(self):
+        """List with the values of debl as function of l."""
+        i = _FIELD_LIST.index(VkbConfsField)
+        return self.fields[i].get_col("debl")
 
     @property
     def rc_l(self):
@@ -1395,6 +1453,37 @@ class OncvInput(object):
 
         return inps
 
+    def optimize_debls_for_l(self, l, new_debls):
+        """
+        Returns a list of new input objects in which the debls parameter for
+        the given l has been replaced by the values listed in new_debls.
+
+        Args:
+            l:
+                Angular momentum
+            new_debls:
+                Iterable with the new values of debls.
+                The returned list will have len(new_debls) input objects.
+        """
+        # Find the field with the configuration parameters.
+        i = _FIELD_LIST.index(VkbConfsField)
+
+        # Find the row with the given l.
+        for irow, row in enumerate(self.fields[i].data):
+            if row["l"] == l:
+                break
+        else:
+            raise ValueError("Cannot find l %s in the VkbConfsField" % l)
+
+        # This is the dict we want to change
+        inps = []
+        for debl in new_debls:
+            new_inp = self.deepcopy()
+            new_inp.fields[i].data[irow]["debl"] = debl
+            inps.append(new_inp)
+
+        return inps
+
 
 # TODO Try this
 #import wx.lib.foldpanelbar as foldpanel
@@ -1415,7 +1504,7 @@ class WxOncvInput(ScrolledPanel):
         #super(WxOncvInput, self).__init__(parent, id=-1)
         super(WxOncvInput, self).__init__(parent, id=-1, style=wx.VSCROLL)
 
-        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         stext = wx.StaticText(self, -1, "Calculation type:")
         choices = ["scalar-relativistic", "fully-relativistic", "non-relativistic"]
@@ -1428,19 +1517,10 @@ class WxOncvInput(ScrolledPanel):
         hbox0.Add(stext, **add_opts)
         hbox0.Add(self.calctype_cbox)
 
-        self.main_sizer.Add(hbox0, **add_opts)
+        main_sizer.Add(hbox0, **add_opts)
 
         # Set the dimensions and build the widgets.
         self.oncv_dims = oncv_dims
-        sz, sizer_addopts = wx.BoxSizer(wx.VERTICAL), dict(proportion=0, flag=wx.ALL, border=5)
-
-        # We have nfields sections in the input file.
-        # Each field has a widget that returns the variables in a dictionary
-        self.wxctrls = _NFIELDS * [None]
-        self.sbox_sizers = _NFIELDS * [None]
-
-        # Keep an internal list of buttons so that we can disable them easily.
-        self.all_optimize_buttons = []
 
         # FieldClass: [(label, OptimizationFrame), ....]
         self.fields_with_optimization = {
@@ -1449,15 +1529,51 @@ class WxOncvInput(ScrolledPanel):
                 ("Optimize qcut", QcutOptimizationFrame),
                 ],
             VlocalField: [("Optimize lloc", LlocOptimizationFrame)],
-            ModelCoreField: [("Optimize fcfact", RhoModelOptimizationFrame)],
-            #VkbConfsField: [("Optimize pseudo", [])],
+            ModelCoreField: [("Optimize fcfact", FcfactOptimizationFrame)],
+            VkbConfsField: [("Optimize debl", DeblOptimizationFrame)],
         }
 
+        sizer_addopts = dict(proportion=0, flag=wx.ALL, border=5)
+                                                                                
+        # We have nfields sections in the input file.
+        # Each field has a widget that returns the variables in a dictionary
+        self.wxctrls = _NFIELDS * [None]
+        self.sbox_sizers = _NFIELDS * [None]
+                                                                               
+        # Keep an internal list of buttons so that we can disable them easily.
+        self.all_optimize_buttons = []
+
+        """
+        (list_of_classes_on_row, show)
+        layout = [
+            ((AtomConfField,), True),
+            ((RefConfField, LmaxField), False),
+            ((PseudoConfField,), True),
+            ((VlocalField,), True),
+            ((VkbConfsField, ModelCoreField,), True),
+            ((LogDerField, RadGridField), True),
+            #TestConfigsField,
+        ]
+
+        for fields, show in layout:
+            hsizer = wx.BoxSizer(wx.HORIZONTAL)
+            for cls in fields:
+                i = _FIELD_LIST.index(cls)
+                f = empty_field(i, oncv_dims)
+                #i = f.filepos
+                wxctrl = f.make_wxctrl(self)
+                sbox_sizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, f.name + ":"), wx.VERTICAL)
+                sbox_sizer.Add(wxctrl, **sizer_addopts)
+                self.wxctrls[i] = wxctrl
+                self.sbox_sizers[i] = sbox_sizer
+                hsizer.Add(sbox_sizer, 0, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
+            main_sizer.Add(hsizer, **add_opts)
+
+        """
         for i in range(_NFIELDS):
             f = empty_field(i, oncv_dims)
             wxctrl = f.make_wxctrl(self)
             self.wxctrls[i] = wxctrl
-
             sbox_sizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, f.name + ":"), wx.VERTICAL)
             sbox_sizer.Add(wxctrl, **sizer_addopts)
 
@@ -1473,18 +1589,18 @@ class WxOncvInput(ScrolledPanel):
                     self.all_optimize_buttons.append(optimize_button)
                     hsz.Add(optimize_button, 0, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, border=5)
 
-                #sbox_sizer.Add(optimize_button, 0, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
                 sbox_sizer.Add(hsz, 0, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
 
-            sz.Add(sbox_sizer, **sizer_addopts)
             self.sbox_sizers[i] = sbox_sizer
-
-        self.main_sizer.Add(sz, **add_opts)
+            main_sizer.Add(sbox_sizer, **add_opts)
 
         self.fill_from_file("08_O.dat")
 
+        #for i in [1,2]:
+        #    main_sizer.Hide(self.sbox_sizers[i])
+
         self.SetupScrolling()
-        self.SetSizerAndFit(self.main_sizer)
+        self.SetSizerAndFit(main_sizer)
 
     def enable_all_optimize_buttons(self, enable=True):
         """Enable/disable the optimization buttons."""
@@ -1886,7 +2002,7 @@ This window allows you to generate and analyze multiple pseudopotentials.
         """
         Args:
             wxoncv_input:
-                Instance of WxOncvInput
+                Instance of `WxOncvInput`
             psgens:
                 List of `PseudoGenerators`.
         """

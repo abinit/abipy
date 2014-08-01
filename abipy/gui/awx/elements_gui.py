@@ -51,7 +51,7 @@ import io
 import webbrowser
 
 import wxversion
-wxversion.ensureMinimal('2.8')
+#wxversion.ensureMinimal('2.8')
 import wx
 from wx.lib import fancytext, buttons, rcsizer
 

@@ -53,10 +53,9 @@ depends on lpopt above as follows, with x=(r/rc)
     3-5) dvloc0*(1-x^4)^4""",
 nproj="number of projectors, 1 or 2. Automatically set to 0 for l=lloc",
 debl="""\
-energy  added to basic psp  energy ep for 2nd projector
+Energy  added to basic psp  energy ep for 2nd projector
 automatically reset to match 2nd projector with 2nd bound state
-at this l when it is occupied (ie., the psp is generated for a
-corresponding-l shallow core state)""",
+at this l when it is occupied (i.e., the psp is generated for a corresponding-l shallow core state)""",
 icmod="""\
   0: no non-linear core correction charge. 
   1: smooth monotonic polynomial model core charge fit at "matching" rc following reference 35.""",

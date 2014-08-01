@@ -14,6 +14,7 @@ __all__ = [
     "RowMultiCtrl",
     "TableMultiCtrl",
     "ListCtrlFromTable",
+    "FoldPanelMgr",
 ]
 
 
@@ -543,7 +544,7 @@ class FoldPanelMgr(foldpanel.FoldPanelBar):
     def __init__(self, parent, *args, **kwargs):
         super(FoldPanelMgr, self).__init__(parent, *args, **kwargs)
 
-    def AddPanel(self, pclass, title="", collapsed=False): 
+    def addPanel(self, pclass, title="", collapsed=False): 
         """
         Add a panel to the manager 
         @param pclass: Class constructor (callable) 
