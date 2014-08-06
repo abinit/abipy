@@ -61,12 +61,12 @@ def itest_deltafactor(fwp, tvars):
 
 def itest_gbrv_flow(fwp, tvars):
     """The the GBRV flow: relaxation + EOS computation."""
-    from pseudo_dojo.refdata.gbrv.gbrvworks import GbrvFactory
+    from pseudo_dojo.dojo.gbrvworks import GbrvFactory
     factory = GbrvFactory()
 
     #pseudo = "si_pbe_v1_abinit.paw"
     pseudo = abidata.pseudo("Si.GGA_PBE-JTH-paw.xml")
-    ecut = 4
+    ecut = 2
     pawecutdg = 2 * ecut if pseudo.ispaw else None
 
     flow = abilab.AbinitFlow(workdir=fwp.workdir, manager=fwp.manager, pickle_protocol=0)
@@ -80,22 +80,26 @@ def itest_gbrv_flow(fwp, tvars):
     flow.allocate()
     flow.build_and_pickle_dump()
 
-    work = flow[0]
-    t0 = work[0]
-    assert len(work) == 1
+    fwp.scheduler.add_flow(flow)
+    fwp.scheduler.start()
+    assert fwp.scheduler.num_excs == 0
 
-    t0.start_and_wait()
-    flow.check_status()
+    #work = flow[0]
+    #t0 = work[0]
+    #assert len(work) == 1
+
+    #t0.start_and_wait()
+    #flow.check_status()
 
     # At this point on_all_ok is called.
-    assert t0.status == t0.S_OK
-    assert len(flow) == 2
-    assert len(flow[1]) == 9
+    #assert t0.status == t0.S_OK
+    #assert len(flow) == 2
+    #assert len(flow[1]) == 9
 
-    assert not flow.all_ok
+    #assert not flow.all_ok
 
-    for task in flow[1]:
-        task.start_and_wait()
+    #for task in flow[1]:
+    #    task.start_and_wait()
 
     flow.check_status()
     flow.show_status()

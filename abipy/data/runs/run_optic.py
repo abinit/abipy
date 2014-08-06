@@ -98,7 +98,7 @@ def build_flow(options):
 
     ddk_work = abilab.Workflow()
     for inp in [ddk1, ddk2, ddk3]:
-        ddk_work.register(inp, deps={bands_work.nscf_task: "WFK"}, task_class=abilab.DDK_Task)
+        ddk_work.register_ddk_task(inp, deps={bands_work.nscf_task: "WFK"})
 
     flow.register_work(ddk_work)
 
