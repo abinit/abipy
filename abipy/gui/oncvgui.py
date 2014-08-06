@@ -8,16 +8,17 @@ import time
 import abc
 import wx
 import awx
+import wx.lib.mixins.listctrl as listmix
 import numpy as np
 import pymatgen.core.periodic_table as periodic_table
 
-import wx.lib.mixins.listctrl as listmix
 from collections import OrderedDict
 from monty.dev import get_ncpus
 from abipy.tools import AttrDict
 from abipy.gui.editor import TextNotebookFrame, SimpleTextViewer
 from abipy.gui.oncv_tooltips import oncv_tip
 from abipy.gui import mixins as mix
+from pseudo_dojo.refdata.nist import nist_database as nist
 from pseudo_dojo.ppcodes.ppgen import OncvGenerator
 from pseudo_dojo.ppcodes.oncvpsp import MultiPseudoGenDataPlotter
 
@@ -85,12 +86,11 @@ def my_periodic_table(parent):
 class OncvParamsFrame(awx.Frame):
     """
     This frame allows the user to specify the most important parameters
-    used to generate the pseudopotential once the chemical element has been selected.
+    to generate the pseudopotential once the chemical element has been selected.
     """
 
     HELP_MSG = """\
 Quick help:
-
     Use this window to select the AE reference configuration and how 
     to separate states into core and valence.
 """
@@ -155,7 +155,6 @@ Quick help:
     def show_nist_lda_levels(self):
         # Get the LDA levels of the neutral atom.
         # (useful to decide if semicore states should be included in the valence).
-        from pseudo_dojo.refdata.nist import nist_database as nist
         entry = nist.get_neutral_entry(symbol=self.element.symbol)
         frame = awx.Frame(self)
         awx.ListCtrlFromTable(frame, table=entry.to_table())
@@ -180,7 +179,7 @@ used to generated the pseudopotential. The `optimize` buttons
 allows you to scan a set of possible values for the generation of the pseudopotential.
 """
 
-    def __init__(self, parent):
+    def __init__(self, parent, filepath=None):
         super(WxOncvFrame, self).__init__(parent, id=-1, title=self.codename)
 
         # This combination of options for config seems to work on my Mac.
@@ -190,28 +189,36 @@ allows you to scan a set of possible values for the generation of the pseudopote
         # Build menu, toolbar and status bar.
         self.SetMenuBar(self.makeMenu())
         self.statusbar = self.CreateStatusBar()
+        self.Centre()
 
-        self.BuildUI()
+        self.BuildUI(wxoncv_input=WxOncvInput.from_symbol(self, "He"))
+        return
+
+        if filepath is not None:
+            self.BuildUI(wxoncv_input=WxOncvInput.from_file(self, filepath))
 
     @property
     def codename(self):
         """Name of the application."""
         return "WxOncvGui"
 
-    def BuildUI(self):
+    def BuildUI(self, wxoncv_input=None):
         """Build user-interface."""
-        oncv_dims = dict(nc=1, nv=2, lmax=1, ncfn=0)
-
         self.makeToolBar()
-        self.Centre()
 
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer = main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         # The panel with the input variables.
-        self.wxoncv_input = WxOncvInput(self, oncv_dims)
-        main_sizer.Add(self.wxoncv_input, flag=wx.EXPAND)
+        if wxoncv_input is None:
+            # FIXME
+            oncv_dims = dict(nc=1, nv=2, lmax=2, ncfn=0)
+            self.wxoncv_input = WxOncvInput(self, oncv_dims)
+        else:
+            self.wxoncv_input = wxoncv_input
 
+        main_sizer.Add(self.wxoncv_input, flag=wx.EXPAND)
         self.SetSizerAndFit(main_sizer)
+        #self.wxoncv_input.SetupScrolling()
 
     def AddFileToHistory(self, filepath):
         """Add the absolute filepath to the file history."""
@@ -219,11 +226,12 @@ allows you to scan a set of possible values for the generation of the pseudopote
         self.file_history.Save(self.config)
         self.config.Flush()
 
-    def OnFileHistory(self, event):
+    def onFileHistory(self, event):
         fileNum = event.GetId() - wx.ID_FILE1
         filepath = self.file_history.GetHistoryFile(fileNum)
         self.file_history.AddFileToHistory(filepath)
-        #newpanel = WxOncvInput.from_file(filepath)
+
+        self.BuildUI(wxoncv_input=WxOncvInput.from_file(self, filepath))
 
     def makeMenu(self):
         """Creates the main menu."""
@@ -231,6 +239,7 @@ allows you to scan a set of possible values for the generation of the pseudopote
 
         file_menu = wx.Menu()
         file_menu.Append(wx.ID_OPEN, "&Open", help="Open an input file")
+        file_menu.Append(wx.ID_SAVE, "&Save", help="Save the input file")
         file_menu.Append(wx.ID_CLOSE, "&Close", help="Close the Gui")
         #file_menu.Append(wx.ID_EXIT, "&Quit", help="Exit the application")
 
@@ -240,7 +249,7 @@ allows you to scan a set of possible values for the generation of the pseudopote
         file_history.UseMenu(recent)
         file_history.AddFilesToMenu()
         file_menu.AppendMenu(-1, "&Recent Files", recent)
-        self.Bind(wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9)
+        self.Bind(wx.EVT_MENU_RANGE, self.onFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9)
         menu_bar.Append(file_menu, "File")
 
         # Add Mixin menus.
@@ -253,9 +262,10 @@ allows you to scan a set of possible values for the generation of the pseudopote
 
         # Associate menu/toolbar items with their handlers.
         menu_handlers = [
-            (wx.ID_OPEN, self.OnOpen),
+            (wx.ID_OPEN, self.onOpen),
             (wx.ID_CLOSE, self.OnClose),
             #(wx.ID_EXIT, self.OnExit),
+            (wx.ID_SAVE, self.onSave),
             (wx.ID_HELP, self.onHelp),
             (wx.ID_ABOUT, self.OnAbout),
         ]
@@ -277,14 +287,14 @@ allows you to scan a set of possible values for the generation of the pseudopote
         self.ID_SHOW_INPUT = wx.NewId()
         self.ID_RUN_INPUT = wx.NewId()
 
-        toolbar.AddSimpleTool(self.ID_SHOW_INPUT, bitmap("in.png"), "Visualize the input file(s) of the workflow.")
+        toolbar.AddSimpleTool(self.ID_SHOW_INPUT, bitmap("in.png"), "Visualize the input file")
         toolbar.AddSimpleTool(self.ID_RUN_INPUT, bitmap("run.png"), "Run the input file.")
 
         toolbar.Realize()
 
         # Associate menu/toolbar items with their handlers.
         menu_handlers = [
-            (self.ID_SHOW_INPUT, self.OnShowInput),
+            (self.ID_SHOW_INPUT, self.onShowInput),
             (self.ID_RUN_INPUT, self.onRunInput),
         ]
 
@@ -292,7 +302,7 @@ allows you to scan a set of possible values for the generation of the pseudopote
             mid, handler = combo[:2]
             self.Bind(wx.EVT_MENU, handler, id=mid)
 
-    def OnShowInput(self, event):
+    def onShowInput(self, event):
         """Show the input file in a new frame."""
         text = self.wxoncv_input.makeInputString()
         SimpleTextViewer(self, text=text, title="Oncvpsp Input").Show()
@@ -303,18 +313,13 @@ allows you to scan a set of possible values for the generation of the pseudopote
         try:
             psgen = OncvGenerator(text, calc_type=self.wxoncv_input.calc_type)
         except:
-            awx.showErrorMessage(self)
-            return
+            return awx.showErrorMessage(self)
 
         PseudoGeneratorsFrame(self, [psgen], title="Run Input").Show()
 
-    def OnOpen(self, event):
+    def onOpen(self, event):
         """Open a file"""
-        dialog = wx.FileDialog(self, message="Choose an inputfile", defaultDir=os.getcwd(),
-                               style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
-
-        # Show the dialog and retrieve the user response. 
-        # If it is the OK response, process the data.
+        dialog = wx.FileDialog(self, message="Choose an input file", style=wx.OPEN)
         if dialog.ShowModal() == wx.ID_CANCEL: return 
 
         filepath = dialog.GetPath()
@@ -325,7 +330,24 @@ allows you to scan a set of possible values for the generation of the pseudopote
         self.file_history.Save(self.config)
         self.config.Flush()
 
-        #newpanel = WxOncvInput.from_file(filepath)
+        self.BuildUI(wxoncv_input=WxOncvInput.from_file(self, filepath))
+
+    def onSave(self, event):
+        """Save a file"""
+        dialog = wx.FileDialog(self, message="Save file as...",
+                               style=wx.SAVE | wx.OVERWRITE_PROMPT, wildcard="Dat files (*.dat)|*.dat|All files (*.*)|*.*")
+        if dialog.ShowModal() == wx.ID_CANCEL: return 
+
+        filepath = dialog.GetPath()
+        dialog.Destroy()
+
+        # Add to the history.
+        self.file_history.AddFileToHistory(filepath)
+        self.file_history.Save(self.config)
+        self.config.Flush()
+
+        with open(filepath, "w") as fh:
+            fh.write(self.wxoncv_input.makeInputString())
 
     def OnClose(self, event):
         """ Respond to the "Close" menu command."""
@@ -376,8 +398,7 @@ class OptimizationFrame(awx.Frame):
                 psgen = OncvGenerator(str(inp), calc_type=self.wxoncv_input.calc_type)
                 psgens.append(psgen)
             except:
-                awx.showErrorMessage(self)
-                return
+                return awx.showErrorMessage(self)
                                                                                    
         PseudoGeneratorsFrame(self, psgens, title=self.opt_type).Show()
 
@@ -770,13 +791,13 @@ class Field(object):
     def make_empty_data(cls, oncv_dims=None):
         """Initialize data and fill it with None."""
         if cls.ftype == cls.FTYPE_ROW:
-            data = OrderedDict([(k, None) for k in cls.WXCTRL_PARAMS.keys()])
+            data = OrderedDict([(k, v.get("value")) for k, v in cls.WXCTRL_PARAMS.items()])
 
         elif cls.ftype == cls.FTYPE_TABLE:
             nrows = cls.nrows_from_dims(oncv_dims)
             data = nrows * [None]
             for i in range(nrows):
-                data[i] = OrderedDict([(k, None) for k in cls.WXCTRL_PARAMS.keys()])
+                data[i] = OrderedDict([(k, v.get("value")) for k, v in cls.WXCTRL_PARAMS.items()])
 
         else:
             raise NotImplementedError(str(cls.ftype))
@@ -997,10 +1018,10 @@ class AtomConfField(RowField):
     WXCTRL_PARAMS = OrderedDict([
         ("atsym", dict(dtype="cbox", choices=periodic_table.all_symbols())),
         ("z", dict(dtype="i")),
-        ("nc", dict(dtype="i", tooltip="number of core states"),),
-        ("nv", dict(dtype="i", tooltip="number of valence states")),
-        ("iexc", dict(dtype="i", value="4", default="4", tooltip="xc functional")),
-        ("psfile", dict(dtype="cbox", choices=["psp8", "upf"]))])
+        ("nc", dict(dtype="i", value=0, tooltip="number of core states"),),
+        ("nv", dict(dtype="i", value=0, tooltip="number of valence states")),
+        ("iexc", dict(dtype="i", value=4, tooltip="xc functional")),
+        ("psfile", dict(dtype="cbox", value="psp8", choices=["psp8", "upf"]))])
 
 
 @add_tooltips
@@ -1019,10 +1040,8 @@ class RefConfField(TableField):
     #    # E.g., The electronic structure for Fe is represented as:
     #    # [(1, "s", 2), (2, "s", 2), (2, "p", 6), (3, "s", 2), (3, "p", 6), (3, "d", 6), (4, "s", 2)]
     #    #new = empty_field(cls.tag, oncv_dims=dict(nc))
-
     #    for row, (n, lchar, f) in zip(new, element.full_electronic_structure):
     #        row["n"], row["l"], row["f"] = n, periodic_table.char2l(lchar), f
-
     #    return new
 
     @classmethod
@@ -1039,12 +1058,12 @@ class PseudoConfField(TableField):
     name = "PSEUDOPOTENTIAL AND OPTIMIZATION"
 
     WXCTRL_PARAMS = OrderedDict([
-        ("l", dict(dtype="i")),
-        ("rc", dict(dtype="f")),
-        ("ep", dict(dtype="f")),
-        ("ncon", dict(dtype="i", value="4")),
-        ("nbas", dict(dtype="i", value="7")),
-        ("qcut", dict(dtype="f"))])
+        ("l", dict(dtype="i", value=0)),
+        ("rc", dict(dtype="f", value=1.6)),
+        ("ep", dict(dtype="f", value=0.0)),
+        ("ncon", dict(dtype="i", value=4)),
+        ("nbas", dict(dtype="i", value=7)),
+        ("qcut", dict(dtype="f", value=8.0))])
 
     @classmethod
     def nrows_from_dims(cls, oncv_dims):
@@ -1060,7 +1079,7 @@ class LmaxField(RowField):
     name = "LMAX"
 
     WXCTRL_PARAMS = OrderedDict([
-        ("lmax", dict(dtype="i"))])
+        ("lmax", dict(dtype="i", value=2))])
 
 
 @add_tooltips
@@ -1068,10 +1087,10 @@ class VlocalField(RowField):
     name = "LOCAL POTENTIAL"
 
     WXCTRL_PARAMS = OrderedDict([
-        ("lloc", dict(dtype="i", value="4")),
-        ("lpopt", dict(dtype="i", value="5")),
-        ("rc5", dict(dtype="f")),
-        ("dvloc0", dict(dtype="f"))])
+        ("lloc", dict(dtype="i", value=4)),
+        ("lpopt", dict(dtype="i", value=5)),
+        ("rc5", dict(dtype="f", value=1.6)),
+        ("dvloc0", dict(dtype="f", value=0.0))])
 
 
 @add_tooltips
@@ -1079,9 +1098,9 @@ class VkbConfsField(TableField):
     name = "VANDERBILT-KLEINMAN-BYLANDER PROJECTORs"
 
     WXCTRL_PARAMS = OrderedDict([
-        ("l", dict(dtype="i")),
-        ("nproj", dict(dtype="i", value="2")),
-        ("debl", dict(dtype="f"))])
+        ("l", dict(dtype="i", value=0)),
+        ("nproj", dict(dtype="i", value=2)),
+        ("debl", dict(dtype="f", value=1.0))])
 
     @classmethod
     def nrows_from_dims(cls, oncv_dims):
@@ -1097,8 +1116,8 @@ class ModelCoreField(RowField):
     name = "MODEL CORE CHARGE"
 
     WXCTRL_PARAMS = OrderedDict([
-        ("icmod", dict(dtype="i", value="1")),
-        ("fcfact", dict(dtype="f", value="0.25"))])
+        ("icmod", dict(dtype="i", value=1)),
+        ("fcfact", dict(dtype="f", value=0.25))])
 
 
 @add_tooltips
@@ -1106,9 +1125,9 @@ class LogDerField(RowField):
     name = "LOG DERIVATIVE ANALYSIS"
 
     WXCTRL_PARAMS = OrderedDict([
-        ("epsh1", dict(dtype="f", value="-2.0")),
-        ("epsh2", dict(dtype="f", value="+2.0")),
-        ("depsh", dict(dtype="f", value="0.02"))])
+        ("epsh1", dict(dtype="f", value=-12.0)),
+        ("epsh2", dict(dtype="f", value=+12.0)),
+        ("depsh", dict(dtype="f", value=0.02))])
 
 
 @add_tooltips
@@ -1116,8 +1135,8 @@ class RadGridField(RowField):
     name = "OUTPUT GRID"
 
     WXCTRL_PARAMS = OrderedDict([
-        ("rlmax", dict(dtype="f", value="6.0")),
-        ("drl", dict(dtype="f", value="0.01"))])
+        ("rlmax", dict(dtype="f", value=6.0)),
+        ("drl", dict(dtype="f", value=0.01))])
 
 
 #@add_tooltips
@@ -1218,23 +1237,48 @@ class OncvInput(object):
 
         # Read lmax and ncfn
         lmax = int(lines[nc + nv + 1])
+        #print("lmax = ",lmax)
 
         # TODO
         # number of tests and number of rows for the different configurations.
         ncnf = 0
 
         # Initialize the object
-        inp = OncvInput(oncv_dims=dict(atsym=atsym, nc=nc, nv=nv, lmax=lmax, ncnf=ncnf))
+        new = OncvInput(oncv_dims=dict(atsym=atsym, nc=nc, nv=nv, lmax=lmax, ncnf=ncnf))
 
         # TODO
         # Fill it
         start = 0
-        for field in inp:
+        for field in new:
             stop = start + field.nrows
             field.set_vars_from_lines(lines[start:stop])
             start = stop
 
-        return inp
+        return new
+
+    @classmethod
+    def from_symbol(cls, symbol):
+        nc, nv, lmax = 0, 0, 0
+        #atom = nist.get_neutral_entry(symbol=symbol)
+        #for state in atom.states:
+        #    lmax = max(lmax, state.l)
+
+        element = periodic_table.Element(symbol)
+        for (n, lchar, f) in element.full_electronic_structure:
+            nc += 1
+            lmax = max(lmax, periodic_table.char2l(lchar))
+
+        ncnf = 0
+        oncv_dims = dict(atsym=symbol, nc=nc, nv=nv, lmax=lmax, ncnf=ncnf)
+
+        new = cls(oncv_dims)
+        #header = new.fields[_FIELD_LIST.index(AtomConfField)]
+
+        field = new.fields[_FIELD_LIST.index(RefConfField)]
+        for row, (n, lchar, f) in zip(field.data, element.full_electronic_structure):
+           row["n"], row["l"], row["f"] = n, periodic_table.char2l(lchar), f
+
+        return new
 
     def __init__(self, oncv_dims, fields=None):
         """
@@ -1248,8 +1292,13 @@ class OncvInput(object):
             # Default fields.
             self.fields = _NFIELDS * [None]
             for i in range(_NFIELDS):
-                new = empty_field(i, self.dims)
-                self.fields[i] = new
+                self.fields[i] = empty_field(i, self.dims)
+
+            header = self.fields[_FIELD_LIST.index(AtomConfField)]
+            header.set_var("atsym", self.dims.atsym)
+            header.set_var("z", periodic_table.Element(self.dims.atsym).Z)
+            header.set_var("nc", self.dims.nc)
+            header.set_var("nv", self.dims.nv)
 
         else:
             self.fields = fields
@@ -1501,8 +1550,7 @@ class WxOncvInput(ScrolledPanel):
             oncv_dims:
                 Basic dimensions of the calculation.
         """
-        #super(WxOncvInput, self).__init__(parent, id=-1)
-        super(WxOncvInput, self).__init__(parent, id=-1, style=wx.VSCROLL)
+        super(WxOncvInput, self).__init__(parent, id=-1, style=wx.VSCROLL | wx.HSCROLL)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -1594,13 +1642,40 @@ class WxOncvInput(ScrolledPanel):
             self.sbox_sizers[i] = sbox_sizer
             main_sizer.Add(sbox_sizer, **add_opts)
 
-        self.fill_from_file("08_O.dat")
-
         #for i in [1,2]:
         #    main_sizer.Hide(self.sbox_sizers[i])
 
-        self.SetupScrolling()
         self.SetSizerAndFit(main_sizer)
+        self.SetupScrolling()
+
+    @classmethod
+    def from_symbol(cls, parent, symbol):
+        inp = OncvInput.from_symbol(symbol)
+        #print("Input_from_symbol\n", inp)
+        new = cls(parent, inp.dims)
+                                                    
+        for field, wxctrl in zip(inp, new.wxctrls):
+            print(field.name)
+            print(field.data)
+            wxctrl.SetParams(field.data)
+                                                    
+        return new
+
+    @classmethod
+    def from_file(cls, parent, filename):
+        inp = OncvInput.from_file(filename)
+        new = cls(parent, inp.dims)
+
+        for field, wxctrl in zip(inp, new.wxctrls):
+            wxctrl.SetParams(field.data)
+
+        return new
+
+    def fill_from_file(self, filename):
+        """Build a panel from an input file."""
+        inp = OncvInput.from_file(filename)
+        for field, wxctrl in zip(inp, self.wxctrls):
+            wxctrl.SetParams(field.data)
 
     def enable_all_optimize_buttons(self, enable=True):
         """Enable/disable the optimization buttons."""
@@ -1611,6 +1686,7 @@ class WxOncvInput(ScrolledPanel):
         button = event.GetEventObject()
         self.enable_all_optimize_buttons(False)
         opt_frame = button.opt_frame
+
         try:
             opt_frame(self, wxoncv_input=self).Show()
         finally:
@@ -1619,12 +1695,6 @@ class WxOncvInput(ScrolledPanel):
     @property
     def lmax(self):
         return self.oncv_dims["lmax"]
-
-    def fill_from_file(self, filename):
-        """Build a panel from an input file."""
-        inp = OncvInput.from_file(filename)
-        for field, wxctrl in zip(inp, self.wxctrls):
-            wxctrl.SetParams(field.data)
 
     @property
     def calc_type(self):
@@ -1879,7 +1949,7 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
 
         # Change the parameters in wxinput using those in psgen.stdin_path
         if not os.path.exists(psgen.stdin_path):
-            awx.showErrorMessage(self, "Input file %s does not exist" % psgen.stdin_path)
+            return awx.showErrorMessage(self, "Input file %s does not exist" % psgen.stdin_path)
 
         self.wxinput.fill_from_file(psgen.stdin_path)
 
@@ -2076,11 +2146,11 @@ This window allows you to generate and analyze multiple pseudopotentials.
 
         # Associate menu/toolbar items with their handlers.
         menu_handlers = [
-            (self.ID_SHOW_INPUTS, self.OnShowInputs),
-            (self.ID_SHOW_OUTPUTS, self.OnShowOutputs),
-            (self.ID_SHOW_ERRS, self.OnShowErrors),
-            (self.ID_CHECK_STATUS, self.OnCheckStatus),
-            (self.ID_MULTI_PLOTTER, self.OnMultiPlotter),
+            (self.ID_SHOW_INPUTS, self.onShowInputs),
+            (self.ID_SHOW_OUTPUTS, self.onShowOutputs),
+            (self.ID_SHOW_ERRS, self.onShowErrors),
+            (self.ID_CHECK_STATUS, self.onCheckStatus),
+            (self.ID_MULTI_PLOTTER, self.onMultiPlotter),
             (self.ID_PLOT_COLUMNS, self.onPlotColumns),
         ]
 
@@ -2105,14 +2175,14 @@ This window allows you to generate and analyze multiple pseudopotentials.
 
         self.statusbar.PushStatusText("Submitted %d tasks" % nlaunch)
 
-    def OnCheckStatus(self, event):
+    def onCheckStatus(self, event):
         """
         Callback triggered by the checkstatus button.
         Check the status of the `PseudoGenerators` and refresh the panel.
         """
-        self.CheckStatusAndRedraw()
+        self.checkStatusAndRedraw()
 
-    def CheckStatusAndRedraw(self):
+    def checkStatusAndRedraw(self):
         """Check the status of all the workflows and redraw the panel."""
         self.statusbar.PushStatusText("Checking status...")
         start = time.time()
@@ -2142,17 +2212,17 @@ This window allows you to generate and analyze multiple pseudopotentials.
             self.CheckStatusAndRedraw()
             self.last_refresh = time.time()
 
-    def OnShowInputs(self, event):
+    def onShowInputs(self, event):
         """Show all input files."""
         TextNotebookFrame(self, text_list=[psgen.get_stdin() for psgen in self.psgens], 
                           page_names=["PSGEN # %d" % i for i in range(len(self.psgens))]).Show()
 
-    def OnShowOutputs(self, event):
+    def onShowOutputs(self, event):
         """Show all output files."""
         TextNotebookFrame(self, text_list=[psgen.get_stdout() for psgen in self.psgens],
                           page_names=["PSGEN # %d" % i for i in range(len(self.psgens))]).Show()
 
-    def OnShowErrors(self, event):
+    def onShowErrors(self, event):
         """Show all error files."""
         TextNotebookFrame(self, text_list=[psgen.get_stderr() for psgen in self.psgens], 
                           page_names=["PSGEN # %d" % i for i in range(len(self.psgens))]).Show()
@@ -2160,7 +2230,7 @@ This window allows you to generate and analyze multiple pseudopotentials.
     def onPlotColumns(self, event):
         self.psgens_wxlist.plot_columns()
 
-    def OnMultiPlotter(self, event):
+    def onMultiPlotter(self, event):
         """Open a dialog that allows the user to plot the results of multiple generators."""
         multi_plotter = MultiPseudoGenDataPlotter()
 
@@ -2182,32 +2252,30 @@ This window allows you to generate and analyze multiple pseudopotentials.
 
         MyFrame(self, choices=keys, title="MultiPlotter").Show()
 
-
-class OncvApp(awx.App):
-
-    def OnInit(self):
-        # The code for the splash screen.
-        #image = wx.Image(path_img("wabi_logo.png"), wx.BITMAP_TYPE_PNG)
-        #    bmp = image.ConvertToBitmap()
-        #    wx.SplashScreen(bmp, wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_TIMEOUT, 1000, None, -1)
-        #    wx.Yield()
-
-        frame = WxOncvFrame(None)
-        #frame = my_periodic_table(None)
-        #frame = OncvParamsFrame(None, z=12)
-        frame.Show(True)
-        self.SetTopWindow(frame)
-        return True
-
-
-def wxapp_oncvpsp():
+def wxapp_oncvpsp(filepath=None):
     """Standalone application."""
+
+    class OncvApp(awx.App):
+        def OnInit(self):
+            # The code for the splash screen.
+            #image = wx.Image(path_img("wabi_logo.png"), wx.BITMAP_TYPE_PNG)
+            #    bmp = image.ConvertToBitmap()
+            #    wx.SplashScreen(bmp, wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_TIMEOUT, 1000, None, -1)
+            #    wx.Yield()
+
+            frame = WxOncvFrame(None, filepath)
+            #frame = my_periodic_table(None)
+            #frame = OncvParamsFrame(None, z=12)
+            frame.Show(True)
+            self.SetTopWindow(frame)
+            return True
+
     app = OncvApp()
     return app
 
 if __name__ == "__main__":
     import sys
-    onc_inp = OncvInput.from_file("08_O.dat")
+    #onc_inp = OncvInput.from_file("08_O.dat")
     #print(onc_inp)
 
     #print("optimizing qcut")
@@ -2220,8 +2288,12 @@ if __name__ == "__main__":
     #for inp in onc_inp.optimize_modelcore():
     #    print("new model\n", inp)
     #sys.exit(0)
+    try:
+        filepath = sys.argv[1]
+    except IndexError:
+        filepath = None
 
-    wxapp_oncvpsp().MainLoop()
+    wxapp_oncvpsp(filepath).MainLoop()
     #app = awx.App()
     #frame = QcutOptimizationFrame(None, lmax=1)
     #frame.Show()
