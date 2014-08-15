@@ -102,6 +102,7 @@ class Tensor(object):
 
         self._reduced_tensor = from_cart_to_red(sym_tensor,self._lattice)
 
+
 class SymmetricTensor(Tensor):
     """Representation of a 3x3 symmetric tensor"""
     @classmethod
@@ -135,7 +136,7 @@ class SymmetricTensor(Tensor):
 
             normqpt_red = np.dot(np.transpose(qpt),np.dot(metric,qpt))
 
-            coeffs_red[iqpt,:] = coeffs_red[iqpt,:] / (normqpt_red)
+            coeffs_red[iqpt,:] = coeffs_red[iqpt,:] / normqpt_red
 
 
         red_symm = np.linalg.solve(coeffs_red,values)

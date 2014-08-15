@@ -3,36 +3,25 @@
 This script shows how to perform a structural relaxation in two steps:
 
     1) Relaxation of atomic positions with unit cell parameters fixed.
+
     2) Full relaxation (atoms + cell) with the initial configuration read from step 1)
 """
 from __future__ import division, print_function
 
 import sys
-import abipy.data as data  
+import os
+import abipy.data as abidata  
 import abipy.abilab as abilab
-
-from abipy.data.runs import AbipyTest, MixinTest
-
-
-class RelaxFlowTest(AbipyTest, MixinTest):
-    """
-    Unit test for the flow defined in this module.  
-    Users who just want to learn how to use this flow can ignore this section.
-    """
-    def setUp(self):
-        super(RelaxFlowTest, self).setUp()
-        self.init_dirs()
-        self.flow = build_flow()
 
 
 def make_ion_ioncell_inputs():
-    cif_file = data.cif_file("si.cif")
+    cif_file = abidata.cif_file("si.cif")
     structure = abilab.Structure.from_file(cif_file)
 
     # Perturb the structure (random perturbation of 0.1 Angstrom)
     structure.perturb(distance=0.1)
 
-    pseudos = data.pseudos("14si.pspnc")
+    pseudos = abidata.pseudos("14si.pspnc")
 
     global_vars = dict(
         ecut=4,  
@@ -86,12 +75,13 @@ def build_flow(options):
     # Instantiate the TaskManager.
     manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
 
+    # Create the flow
     flow = abilab.AbinitFlow(workdir, manager)
 
+    # Create a relaxation workflow and add it to the flow.
     ion_inp, ioncell_inp = make_ion_ioncell_inputs()
 
     work = abilab.RelaxWorkflow(ion_inp, ioncell_inp)
-                                                      
     flow.register_work(work)
 
     #bands_work = abilab.BandStructureWorkflow(scf_input, nscf_input)

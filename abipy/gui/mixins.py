@@ -48,7 +48,7 @@ class Has_Structure(object):
         available_visus = [visu.name for visu in Visualizer.get_available()]
 
         for visu_name in available_visus:
-            _id =  wx.NewId()
+            _id = wx.NewId()
             visu_menu.Append(_id, visu_name)
             self._id2visuname[_id] = visu_name
             self.Bind(wx.EVT_MENU, self.OnStructureVisualize, id=_id)
@@ -266,27 +266,25 @@ class Has_MultipleEbands(Has_Ebands):
             awx.showErrorMessage(self)
 
 
-#class Has_MultiGsResults(object):
+#class Has_GsResults(object):
 #    """
-#    Mixin class for GUIs with mulitple ground-state results (etotal, forces, stresses...)
+#    Mixin class for GUIs with ground-state results (etotal, forces, stresses...)
 #    """
 #    __metaclass__ = abc.ABCMeta
 
 #    def CreateToolsMenu(self):
 #        """Create the tools menu."""
 #        # Tools Menu ID's
-#        self.ID_MULTIGSR_EOSFIT = wx.NewId()
+#        self.ID_GSRESULTS_EOSFIT = wx.NewId()
 #                                                                                            
 #        menu = wx.Menu()
-#        menu.Append(self.ID_MULTIGSR_EOSFIT, "Fit E(V)", "Equation of State")
-#        self.Bind(wx.EVT_MENU, self.onEosFit, id=self.ID_MULTIGSR_EOSFIR)
+#        menu.Append(self.ID_GSRESULTS_EOSFIT, "Fit E(V)", "Equation of State")
+#        self.Bind(wx.EVT_MENU, self.onEosFit, id=self.ID_GSRESULTS_EOSFIT)
 #                                                                                            
 #        return menu
 #
 #    def onEosFit(self, event):
 #        EosFrame(self, volumes, energies, vol_unit="ang^3", ene_unit="eV").Show()
-
-
 
 class Has_Tools(object):
     """
@@ -296,12 +294,21 @@ class Has_Tools(object):
         """Create the tools menu."""
         # Tools Menu ID's
         self.ID_TOOLS_UNIT_CONVERTER = wx.NewId()
+        self.ID_TOOLS_PERIODIC_TABLE = wx.NewId()
 
         menu = wx.Menu()
+        menu.Append(self.ID_TOOLS_PERIODIC_TABLE, "Periodic table", "Periodic Table")
+        self.Bind(wx.EVT_MENU, self.OnTools_PeriodicTable, id=self.ID_TOOLS_PERIODIC_TABLE)
+
         menu.Append(self.ID_TOOLS_UNIT_CONVERTER, "Unit converter", "Unit Converter")
         self.Bind(wx.EVT_MENU, self.OnTools_UnitConverter, id=self.ID_TOOLS_UNIT_CONVERTER)
 
         return menu
+
+    def OnTools_PeriodicTable(self, event):
+        """Open new frame with the periodic table."""
+        from awx.elements_gui import WxPeriodicTable
+        WxPeriodicTable(self).Show()
 
     def OnTools_UnitConverter(self, event):
         """Open new frame with the unit converter."""

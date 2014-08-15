@@ -13,6 +13,10 @@ import time
 from pymatgen.io.abinitio.launcher import PyFlowScheduler, PyLauncher
 import abipy.abilab as abilab
 
+# Replace python open to detect open files.
+#from abipy.tools import open_hook
+#open_hook.install()
+
 
 def str_examples():
     examples = """
@@ -74,6 +78,8 @@ def treat_flow(flow, options):
         sched.add_flow(flow)
         print(sched)
         sched.start()
+
+        #open_hook.print_open_files()
 
     if options.command == "status":
         if options.delay:
@@ -166,7 +172,7 @@ def main():
                           "If > 0, enter an infinite loop and delay execution for the given number of seconds."))
 
     # Subparser for scheduler command.
-    p_cancel = subparsers.add_parser('cancel', help="Cancel the tasks in the queue.")
+    #p_cancel = subparsers.add_parser('cancel', help="Cancel the tasks in the queue.")
 
     # Subparser for open command.
     p_open = subparsers.add_parser('open', help="Open files (command line interface)")
@@ -185,7 +191,10 @@ q ==> qerr_file\n
 
     # Subparser for gui command.
     p_gui = subparsers.add_parser('gui', help="Open GUI.")
-    p_gui.add_argument("--chroot", default="", type=str, help="Directory for chroot.")
+    p_gui.add_argument("--chroot", default="", type=str, help=("Use chroot as new directory of the flow.\n" +
+                       "Mainly used for opening a flow located on a remote filesystem mounted with sshfs.\n" +
+                       "In this case chroot is the absolute path to the flow on the **localhost**\n",
+                       "Note that it's not possible to change the flow from remote when chroot is used."))
 
     p_new_manager = subparsers.add_parser('new_manager', help="Change the TaskManager.")
     p_new_manager.add_argument("manager_file", default="", type=str, help="YAML file with the new manager")
@@ -244,7 +253,5 @@ q ==> qerr_file\n
 
 if __name__ == "__main__":
     sys.exit(main())
-    #import pstats, cProfile
-    #cProfile.runctx("main()", globals(), locals(), "Profile.prof")
-    #s = pstats.Stats("Profile.prof")
-    #s.strip_dirs().sort_stats("time").print_stats()
+    #from abipy.tools.devtools import profile
+    #profile("main()", globals(), locals())

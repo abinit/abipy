@@ -160,7 +160,6 @@ class FFT_Benchmark(object):
         savefig = kwargs.pop("savefig", None)
 
         import matplotlib.pyplot as plt
-
         fig = plt.figure()
 
         ax1 = fig.add_subplot(2, 1, 1)

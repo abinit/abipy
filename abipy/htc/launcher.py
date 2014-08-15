@@ -12,7 +12,7 @@ from collections import OrderedDict
 from copy import deepcopy
 
 from .utils import parse_ewc
-from abipy.core import release, AbipyException, Structure, Density
+from abipy.core import release, Structure, Density
 from abipy.profile import abipy_env
 from . import AbinitInput
 
@@ -152,8 +152,8 @@ class LauncherArgParser(ArgumentParser):
 
 # =========================================================================== #
 
-class LauncherError(AbipyException): 
-    "base class for the exceptions raised by Launcher."
+class LauncherError(Exception): 
+    """base class for the exceptions raised by Launcher."""
 
 class Launcher(AbinitInput):
     """
@@ -347,9 +347,9 @@ class Launcher(AbinitInput):
             self._remove_files(destroy, kwargs.get('force', False))
         self._remove_directory_tree(self.dirname)
         
-    def show(self, *args, **kwargs):
+    def show(self, form=str, *args, **kwargs):
         """Print the calculation name and return True."""
-        print(self.name)
+        print(form(self.name))
         return True
 
     def inspect(self, *args, **kwargs):
@@ -451,14 +451,18 @@ class Launcher(AbinitInput):
             msg = relpath(output) + ' : ' + color(status)
 
             if verbose:
-                # Read the number of errors, warnings and comments 
-                #for the (last) main output and the log file.
-                main, log =  self.read_mainlog_ewc()
+    
+                # Does not work!
+                pass
 
-                main_info = main.tostream(sys.stdout)
-                log_info  = log.tostream(sys.stdout)
+                ## Read the number of errors, warnings and comments 
+                ##for the (last) main output and the log file.
+                #main, log =  self.read_mainlog_ewc()
 
-                msg += "\n  " + "\n  ".join([main_info, log_info])
+                #main_info = main.tostream(sys.stdout)
+                #log_info  = log.tostream(sys.stdout)
+
+                #msg += "\n  " + "\n  ".join([main_info, log_info])
 
         elif os.path.exists(self.log_name):
             status = 'Unfinished'
@@ -471,9 +475,11 @@ class Launcher(AbinitInput):
         if verbose:
             print(msg)
             if status == 'Completed':
-                for w in main.warnings: print(w)
-                if verbose > 1:
-                    for w in log.warnings: print(w)
+                pass
+                # Does not work!
+                #for w in main.warnings: print(w)
+                #if verbose > 1:
+                #    for w in log.warnings: print(w)
 
         return status
 
@@ -578,8 +584,23 @@ class Launcher(AbinitInput):
     @staticmethod
     def _iscomplete(output_file):
         "Return True if an abinit output file is complete."
-        from pymatgen.io.abinitio.utils import abinit_output_iscomplete
-        return abinit_output_iscomplete(output_file)
+        with open(output_file, 'read') as f:
+            lines = f.readlines()
+            lines.reverse()
+
+            for i in range(10):
+                try:
+                    line = lines[i]
+                except:
+                    return False
+
+                if 'Calculation completed.' in line:
+                    return True
+        return False
+
+        # Does not work !
+        #from pymatgen.io.abinitio.utils import abinit_output_iscomplete
+        #return abinit_output_iscomplete(output_file)
 
 # =========================================================================== #
 
@@ -594,7 +615,7 @@ class MassLauncherArgParser(LauncherArgParser):
 
         for (cmd, subparser) in self.iter_cmdsubparser():
             # Add new option 
-            subparser.add_argument('-c', '--calc', dest='only', nargs='*', type=int, 
+            subparser.add_argument('-c', '--calc', dest='only', nargs='*', type=str, 
                                    help="Execute command only for the selected calculations.")
 
             # Add py_nthreads arg to the commands that support threads.
@@ -653,22 +674,18 @@ class MassLauncher(object):
     ArgParser = MassLauncherArgParser
     argparser = MassLauncherArgParser()
 
-    def __init__(self, n, name, *args, **kwargs):
+    def __init__(self, n=0, name='Calc', *args, **kwargs):
 
         self._setattr(launchers = list())
         self._setattr(ids = list())
 
-        index_format = '0=' + str(int(np.log10(n)) + 1)
-        for i in range(1, n+1):
-            calc_name = name + '{i:{f}}'.format(i=i, f=index_format)
-            self.launchers.append(Launcher(calc_name, *args, **kwargs))
-            self.ids.append(i)
-
-        # Create missing property setter (mostly jobfile attributes).
-        for prop in self.launchers[0].properties():
-            setter = 'set_' + prop
-            if not setter in dir(self):
-                self.__dict__[setter] = self._distributed(setter)
+        if n > 0:
+            index_format = '0=' + str(int(np.log10(n)) + 1)
+            for i in range(1, n+1):
+                index = '{i:{f}}'.format(i=i, f=index_format)
+                calc_name = name + index
+                launcher = Launcher(calc_name, *args, **kwargs)
+                self.add_launcher(launcher, index=index)
 
     def __getitem__(self, i): return self.launchers[i]
 
@@ -706,6 +723,37 @@ class MassLauncher(object):
     def __setattr__(self, name, value):
         """Set an attribute to all launchers."""
         return [ setattr(calc, name, value) for calc in self ]
+
+    def add_launcher(self, launcher, index=None):
+        """Add a Launcher instance (or derivatives) to the list."""
+        if index is None:
+            index = str(len(self.launchers) + 1)
+        # maybe needs an OrderedDict here
+        self.launchers.append(launcher)
+        self.ids.append(index)
+
+        # Create missing property setter
+        if len(self.launchers) == 1:
+            for prop in self.launchers[0].properties():
+                setter = 'set_' + prop
+                if not setter in dir(self):
+                    self.__dict__[setter] = self._distributed(setter)
+
+    def properties(self):
+        """Return the list of properties with a 'set_' function."""
+        funcs = filter(lambda s: s.startswith('set_'), dir(self))
+        return [ f.split('set_', 1)[-1] for f in funcs ]
+
+    def only(self, only=None):
+        """Return a list of indexes and a list of calc which are included in 'only'."""
+        if only:
+            filtered = list()
+            for i, calc in zip(self.ids, self):
+                if str(i) in map(str, only):
+                    filtered.append((i, calc))
+        else:
+            filtered= zip(self.ids, self)
+        return filtered
 
     @_make_distributed
     def set_pseudodir(self): return
@@ -774,6 +822,7 @@ class MassLauncher(object):
             args = sys.argv[1:]
 
         options, args, kwargs = self.argparser.myparse_args(args)
+        kwargs.update(vars(options))
 
         if self.argparser.can_handle(options.command):
 
@@ -785,10 +834,15 @@ class MassLauncher(object):
             print("About to run command", options.command," with nthreads", nthreads)
 
             if nthreads == 1:
-                for i, calc in zip(self.ids, self):
-                    if options.only and i not in options.only: continue
 
-                    getattr(calc, options.command)(*args, **kwargs)
+                if options.command in dir(self):
+                    getattr(self, options.command)(*args, **kwargs)
+                else:
+                    for index, calc in self.only(options.only):
+                    #for i, calc in zip(self.ids, self):
+                    #    if options.only and str(i) not in map(str, options.only):
+                    #        continue
+                        getattr(calc, options.command)(*args, **kwargs)
 
             else:
                 # Threaded version.
@@ -807,8 +861,9 @@ class MassLauncher(object):
                     t.setDaemon(True)
                     t.start()
                                                              
-                for (i, calc) in zip(self.ids, self):
-                    if options.only and i not in options.only: continue
+                #for (i, calc) in zip(self.ids, self):
+                #    if options.only and i not in options.only: continue
+                for index, calc in self.only(options.only):
                     func = getattr(calc, options.command)
                     q.put((func, args, kwargs))
 
@@ -827,11 +882,31 @@ class MassLauncher(object):
     @_make_distributed
     def last_output(self): return
 
+    #@_make_distributed
+    def show(self, form=None, *args, **kwargs):
+        only = kwargs.get('only')
+        if form is None:
+            form = str
+        
+        #@form
+        def tmpform(s):
+            return str(index) + ' ' + s
+
+        newform = lambda s: form(tmpform(s))
+
+        for index, calc in self.only(only):
+            calc.show(form=newform, *args, **kwargs)
+
+        return
+
     @_make_distributed
     def make(self): return
 
     @_make_distributed
     def run(self): return
+
+    @_make_distributed
+    def submit(self): return
 
     @_make_distributed
     def clean(self): return

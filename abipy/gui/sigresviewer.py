@@ -8,7 +8,8 @@ import abipy.gui.awx as awx
 
 from wx.py.shell import Shell
 from abipy.abilab import abiopen
-from abipy.tools import AttrDict, marquee, list_strings 
+from monty.string import  marquee
+from abipy.tools import AttrDict
 from abipy.electrons import SIGRES_Plotter
 from abipy.gui.scissors import ScissorsBuilderFrame
 from abipy.gui.baseviewer import MultiViewerFrame

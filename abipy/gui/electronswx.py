@@ -2,7 +2,6 @@ from __future__ import print_function, division
 
 import os
 import wx
-import warnings
 import abipy.gui.awx as awx
 
 try:
@@ -10,7 +9,6 @@ try:
 except ImportError:
     pass
 
-from abipy.abilab import abiopen
 from abipy.tools import AttrDict
 from abipy.electrons import ElectronBands
 
@@ -388,7 +386,7 @@ class ElectronJdosDialog(wx.Dialog):
 
         vbox = wx.BoxSizer(wx.VERTICAL)
 
-        self.panel = ElectronJDosPanel(self, nsppol, mband)
+        self.panel = ElectronJdosPanel(self, nsppol, mband)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
 

@@ -125,7 +125,10 @@ class NcViewerFrame(wx.Frame):
 
         # Create the notebook (each file will have its own tab).
         panel = wx.Panel(self, -1)
-        self.notebook = fnb.FlatNotebook(panel, -1, style=fnb.FNB_NAV_BUTTONS_WHEN_NEEDED)
+        try:
+            self.notebook = fnb.FlatNotebook(panel, -1, style=fnb.FNB_NAV_BUTTONS_WHEN_NEEDED)
+        except AttributeError:
+            self.notebook = fnb.FlatNotebook(panel, -1)
 
         for path, dataset in zip(filepaths, datasets):
             tab = NcFileTab(self.notebook, dataset)

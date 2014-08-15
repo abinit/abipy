@@ -9,7 +9,7 @@ from dialogs import showErrorMessage
 try:
     from wxmplot import PlotFrame
 except ImportError:
-    warnings.warn("Error while importing wxmplot. Some features won't be available")
+    #warnings.warn("Error while importing wxmplot. Some features won't be available")
     pass
 
 __all__ = [

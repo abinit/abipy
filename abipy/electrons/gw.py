@@ -483,17 +483,17 @@ class Sigmaw(object):
         return fig
 
 
-def torange(obj):
+def to_range(obj):
     """
     Convert obj into a range. Accepts integer, slice object 
     or any object with an __iter__ method.
     Note that an integer is converted into range(int, int+1)
 
-    >>> torange(1)
+    >>> list(to_range(1))
     [1]
-    >>> torange(slice(0,4,2))
+    >>> list(to_range(slice(0,4,2)))
     [0, 2]
-    >>> list(torange([1,4,2]))
+    >>> list(to_range([1,4,2]))
     [1, 4, 2]
     """
     if isinstance(obj, int):
@@ -544,10 +544,7 @@ class SIGRES_Plotter(collections.Iterable):
         return iter(self._sigres_files.values())
 
     def __str__(self):
-        s = ""
-        for sigres in self:
-            s += str(sigres) + "\n"
-        return s
+        return "\n".join(str(sigres) for sigres in self)
 
     def add_files(self, filepaths, labels=None):
         """Add a list of filenames to the plotter"""
@@ -734,7 +731,7 @@ class SIGRES_Plotter(collections.Iterable):
         Returns:
             `matplotlib` figure
         """
-        spin_range = range(self.nsppol) if spin is None else torange(spin)
+        spin_range = range(self.nsppol) if spin is None else to_range(spin)
         kpoints_for_plot = self.computed_gwkpoints #if kpoint is None else KpointList.askpoints(kpoint)
 
         title = kwargs.pop("title", None)
@@ -785,8 +782,8 @@ class SIGRES_Plotter(collections.Iterable):
         Returns:
             `matplotlib` figure
         """
-        spin_range = range(self.nsppol) if spin is None else torange(spin)
-        band_range = range(self.max_gwbstart, self.min_gwbstop) if band is None else torange(band)
+        spin_range = range(self.nsppol) if spin is None else to_range(spin)
+        band_range = range(self.max_gwbstart, self.min_gwbstop) if band is None else to_range(band)
         kpoints_for_plot = self.computed_gwkpoints #if kpoint is None else KpointList.askpoints(kpoint)
 
         self.prepare_plot()
@@ -811,7 +808,6 @@ class SIGRES_Plotter(collections.Iterable):
 
         xx = self.xvalues
         for kpoint, ax in zip(kpoints_for_plot, ax_list):
-            
             for spin in spin_range:
                 for band in band_range:
                     label = "spin %d, band %d" % (spin, band)
@@ -861,7 +857,7 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         self.gwkpoints = reader.gwkpoints
 
         self.gwbstart_sk = reader.gwbstart_sk 
-        self.gwbstop_sk =  reader.gwbstop_sk
+        self.gwbstop_sk = reader.gwbstop_sk
         
         self.min_gwbstart = reader.min_gwbstart
         self.max_gwbstart = reader.max_gwbstart
@@ -935,8 +931,7 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
             return self._qplist_spin
 
     def get_qplist(self, spin, kpoint):
-        qplist = self.reader.read_qplist_sk(spin, kpoint)
-        return qplist
+        return self.reader.read_qplist_sk(spin, kpoint)
 
     def get_qpcorr(self, spin, kpoint, band):
         """Returns the `QPState` object for the given (s, k, b)"""
@@ -1056,7 +1051,6 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     #    return plot_matrix(matrix, *args, **kwargs)
 
 
-# TODO  Write F90 routine to merge the SIGRES files.
 #class SIGRES_Merger(object):
 #    """This object merges multiple SIGRES files."""
 

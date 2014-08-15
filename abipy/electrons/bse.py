@@ -34,7 +34,7 @@ class DielectricTensor(object):
         # Transform mdf emacros_q to numpy array
         all_emacros = []
         for emacro in mdf.emacros_q:
-           all_emacros.append(emacro.values)
+            all_emacros.append(emacro.values)
 
         all_emacros = np.array(all_emacros)
 
@@ -46,14 +46,14 @@ class DielectricTensor(object):
 
         self._all_tensors = all_tensors
 
-    def to_array(self,red_coords=True):
+    def to_array(self, red_coords=True):
        
         table = [] 
         for tensor in self._all_tensors:
             if red_coords:
-               table.append(tensor.reduced_tensor)
+                table.append(tensor.reduced_tensor)
             else:
-               table.append(tensor.cartesian_tensor)
+                table.append(tensor.cartesian_tensor)
 
         return np.array(table)
 

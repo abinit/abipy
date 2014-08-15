@@ -1,13 +1,27 @@
 """This module contains lookup table with the name of the ABINIT variables."""
-
 from __future__ import print_function, division
 
+import os
+import json
+
 __all__ = [
+    "is_anaddb_var",
     "is_abitoken",
     "is_abivar",
     "is_abiunit",
     "has_abiop",
 ]
+
+
+with open(os.path.join(os.path.dirname(__file__), "anaddb_vars.json")) as fh:
+    #print(fh.read())
+    _anaddb_varnames = set(json.load(fh))
+
+
+def is_anaddb_var(varname):
+    """True if varname is an Anaddb variable."""
+    return varname in _anaddb_varnames
+
 
 def is_abitoken(s):
     """
@@ -16,17 +30,20 @@ def is_abitoken(s):
     """
     return s in ABI_ALLTOKENS
 
+
 def is_abivar(s):
     """
     True if s is an ABINIT variable. 
     """
     return s in ABI_VARNAMES
 
+
 def is_abiunit(s):
     """
     True if s is one of the units supported by the ABINIT parser
     """
     return s in ABI_UNITS
+
 
 def has_abiop(s):
     """True is string contains one of the operators supported by the ABINIT parser."""

@@ -9,8 +9,6 @@ import numpy as np
 import abipy.abilab as abilab
 import abipy.data as abidata
 
-from abipy.data.runs import AbipyTest, MixinTest
-
 def make_inputs():
     """
     Returns a tuple of 4 input files for SCF, NSCF, SCR, SIGMA calculations.

@@ -7,18 +7,6 @@ import os
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from abipy.data.runs import AbipyTest, MixinTest
-
-class OpticFlowTest(AbipyTest, MixinTest):
-    """
-    Unit test for the flow defined in this module.  
-    Users who just want to learn how to use this flow can ignore this section.
-    """
-    def setUp(self):
-        super(OpticFlowTest, self).setUp()
-        self.init_dirs()
-        self.flow = build_flow()
-
 
 optic_input = """\
 0.002         ! Value of the smearing factor, in Hartree
@@ -110,7 +98,7 @@ def build_flow(options):
 
     ddk_work = abilab.Workflow()
     for inp in [ddk1, ddk2, ddk3]:
-        ddk_work.register(inp, deps={bands_work.nscf_task: "WFK"}, task_class=abilab.DDK_Task)
+        ddk_work.register_ddk_task(inp, deps={bands_work.nscf_task: "WFK"})
 
     flow.register_work(ddk_work)
 

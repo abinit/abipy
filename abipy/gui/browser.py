@@ -3,7 +3,6 @@ from __future__ import print_function, division
 
 import os
 import wx
-import warnings
 
 import abipy.gui.awx as awx
 import wx.lib.mixins.listctrl as listmix
@@ -14,8 +13,8 @@ try:
 except ImportError:
     pass
 from abipy.tools.text import list_strings, is_string, WildCard
-from abipy.electrons import ElectronBandsPlotter
 from abipy.gui.popupmenus import popupmenu_for_filename
+
 
 def frameclass_from_filepath(filepath):
     """
@@ -97,7 +96,6 @@ class NcFileDirCtrl(wx.GenericDirCtrl):
         popmenu = popupmenu_for_filename(self, path)
         self.PopupMenu(popmenu, event.GetPoint())
         popmenu.Destroy()
-
 
 
 class MyListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
@@ -345,7 +343,7 @@ class DirBrowserFrame(awx.Frame):
 
 
 def wxapp_dirbrowser(dirpath):
-    """Standalone application."""
+    """Standalone application.for DirBrowser."""
     if dirpath is None:
         dirpath = " "
     else:
@@ -358,6 +356,7 @@ def wxapp_dirbrowser(dirpath):
 
 
 def wxapp_listbrowser(dirpaths=None, filepaths=None, wildcard=""):
+    """Standalone application ListBroweser."""
     app = awx.App()
     frame = FileListFrame(None, dirpaths=dirpaths, filepaths=filepaths, wildcard=wildcard)
     frame.Show()

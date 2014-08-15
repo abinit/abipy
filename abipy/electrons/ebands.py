@@ -226,10 +226,16 @@ class StatParams(collections.namedtuple("StatParams", "mean stdev min max")):
             self.mean, self.stdev, self.min, self.max)
 
 
+class ElectronBandsError(Exception):
+    """Exceptions raised by ElectronBands."""
+
+
 class ElectronBands(object):
     """
     This object stores the electronic band structure.
     """
+    Error = ElectronBandsError
+
     def __init__(self, structure, kpoints, eigens, fermie, occfacts, nelect,
                  nband_sk=None, smearing=None, markers=None, widths=None):
         """
@@ -471,7 +477,7 @@ class ElectronBands(object):
             self._widths = collections.OrderedDict()
 
         if not overwrite and key in self.widths:
-            if not np.allclose(widths, self.widths[key]):
+            if not np.allclose(width, self.widths[key]):
                 raise ValueError("Cannot overwrite key %s in data" % key)
 
         if np.any(np.iscomplex(width)):
@@ -1137,7 +1143,7 @@ class ElectronBands(object):
 
                 for (v, c), jdos in jdos_vc.items():
                     label = "val=%s --> cond=%s, s=%s" % (v, c, s)
-                    color = cmap(float(i)/(num_plots))
+                    color = cmap(float(i)/num_plots)
                     x, y = jdos.mesh, jdos.values
                     ax.plot(x, cumulative + y, lw=1.0, label=label, color=color)
                     ax.fill_between(x, cumulative, cumulative + y, facecolor=color, alpha=0.7)
@@ -1287,7 +1293,7 @@ class ElectronBands(object):
 
         return fig
 
-    def plot_fatbands(self, klabels=None, **kwargs): #colormap="jet", max_stripe_width_mev=3.0, qlabels=None, **kwargs):
+    def plot_fatbands(self, klabels=None, **kwargs):  #colormap="jet", max_stripe_width_mev=3.0, qlabels=None, **kwargs):
         """
         Plot the electronic fatbands.
 
@@ -1825,7 +1831,9 @@ class ElectronBandsPlotter(object):
         return animator.animate(**kwargs)
 
     def animate(self, **kwargs):
-        "See http://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/"
+        """
+        See http://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/
+        """
         import matplotlib.pyplot as plt
         import matplotlib.animation as animation
 

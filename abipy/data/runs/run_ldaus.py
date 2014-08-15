@@ -8,19 +8,6 @@ import numpy as np
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from abipy.data.runs import AbipyTest, MixinTest
-
-
-class LdausFlowTest(AbipyTest, MixinTest):
-    """
-    Unit test for the flow defined in this module.  
-    Users who just want to learn how to use this flow can ignore this section.
-    """
-    def setUp(self):
-        super(LdausFlowTest, self).setUp()
-        self.init_dirs()
-        self.flow = build_flow()
-
 
 def make_scf_nscf_dos_inputs(structure, pseudos, luj_params):
     # Input file taken from tldau_2.in

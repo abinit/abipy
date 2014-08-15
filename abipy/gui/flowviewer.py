@@ -9,11 +9,12 @@ import abipy.gui.awx as awx
 import wx.lib.agw.flatnotebook as fnb
 
 from collections import OrderedDict
+from monty.dev import get_ncpus
 from pymatgen.io.abinitio.launcher import PyLauncher 
 from pymatgen.io.abinitio.tasks import Node
 from abipy import abilab
 from abipy.gui.events import AbinitEventsFrame, AbinitEventsNotebookFrame
-from abipy.gui.timer import MultiTimerFrame
+from abipy.gui.timer import MultiTimerFrame, AbinitTimerFrame
 from abipy.gui.browser import FileListFrame, DirBrowserFrame, frame_from_filepath, frameclass_from_filepath
 from abipy.gui.editor import TextNotebookFrame, SimpleTextViewer
 
@@ -46,9 +47,10 @@ class FlowViewerFrame(awx.Frame):
     # Time in second after which we check the status of the tasks.
     REFRESH_INTERVAL = 120
 
-    HELP_MSG = """Quick help:
+    HELP_MSG = """\
+Quick help:
 
- Task list:
+  Task list:
 
      Left-Click:   Open directory with output files.
      Right-Click:  display popup menu with choices.
@@ -56,8 +58,8 @@ class FlowViewerFrame(awx.Frame):
 Also, these key bindings can be used
 (For Mac OSX, replace 'Ctrl' with 'Apple'):
 
-  Ctrl-Q:     quit
-"""
+  Ctrl-Q:     quit"""
+
     def __init__(self, parent, flow, **kwargs):
         """
         Args:
@@ -92,7 +94,7 @@ Also, these key bindings can be used
 
         # Here we create a panel and a notebook on the panel
         self.notebook = FlowNotebook(panel, self.flow)
-        main_sizer.Add(self.notebook, 1, wx.EXPAND , 5)
+        main_sizer.Add(self.notebook, 1, wx.EXPAND, 5)
 
         submit_button = wx.Button(panel, -1, label='Submit')
         submit_button.Bind(wx.EVT_BUTTON, self.OnSubmitButton)
@@ -100,13 +102,13 @@ Also, these key bindings can be used
         text = wx.StaticText(panel, -1, "Max nlaunch:")
         text.Wrap(-1)
         text.SetToolTipString("Maximum number of tasks that can be submitted. Use -1 for unlimited launches.")
-        self.max_nlaunch = wx.SpinCtrl(panel, -1, value="1", min=-1)
+        self.max_nlaunch = wx.SpinCtrl(panel, -1, value=str(get_ncpus()), min=-1)
 
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
-        hsizer.Add(submit_button, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
-        hsizer.Add(text, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
-        hsizer.Add(self.max_nlaunch, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
-        main_sizer.Add(hsizer, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)                                                                                     
+        hsizer.Add(submit_button, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5)
+        hsizer.Add(text, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5)
+        hsizer.Add(self.max_nlaunch, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5)
+        main_sizer.Add(hsizer, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5)
 
         panel.SetSizerAndFit(main_sizer)
 
@@ -133,16 +135,18 @@ Also, these key bindings can be used
         self.ID_SHOW_OUTPUTS = wx.NewId()
         self.ID_SHOW_LOGS = wx.NewId()
         self.ID_SHOW_JOB_SCRIPTS = wx.NewId()
+        self.ID_SHOW_JOB_OUTERRS = wx.NewId()
         self.ID_BROWSE = wx.NewId()
         self.ID_SHOW_MAIN_EVENTS = wx.NewId()
         self.ID_SHOW_LOG_EVENTS = wx.NewId()
         self.ID_SHOW_TIMERS = wx.NewId()
         self.ID_CHECK_STATUS = wx.NewId()
 
-        toolbar.AddSimpleTool(self.ID_SHOW_INPUTS, bitmap("in.png"), "Visualize the input files of the workflow.")
-        toolbar.AddSimpleTool(self.ID_SHOW_OUTPUTS, bitmap("out.png"), "Visualize the output files of the workflow..")
-        toolbar.AddSimpleTool(self.ID_SHOW_LOGS, bitmap("log.png"), "Visualize the log files of the workflow.")
-        toolbar.AddSimpleTool(self.ID_SHOW_JOB_SCRIPTS, bitmap("script.png"), "Visualize the scripts.")
+        toolbar.AddSimpleTool(self.ID_SHOW_INPUTS, bitmap("in.png"), "Visualize the input file(s) of the workflow.")
+        toolbar.AddSimpleTool(self.ID_SHOW_OUTPUTS, bitmap("out.png"), "Visualize the output file(s) of the workflow..")
+        toolbar.AddSimpleTool(self.ID_SHOW_LOGS, bitmap("log.png"), "Visualize the log file(s) of the workflow.")
+        toolbar.AddSimpleTool(self.ID_SHOW_JOB_SCRIPTS, bitmap("script.png"), "Visualize the script(s).")
+        toolbar.AddSimpleTool(self.ID_SHOW_JOB_OUTERRS, bitmap("script.png"), "Visualize the script(s).")
         toolbar.AddSimpleTool(self.ID_BROWSE, bitmap("browse.png"), "Browse all the files of the workflow.")
         toolbar.AddSimpleTool(self.ID_SHOW_MAIN_EVENTS, bitmap("out_evt.png"), "Show the ABINIT events reported in the main output files.")
         toolbar.AddSimpleTool(self.ID_SHOW_LOG_EVENTS, bitmap("log_evt.png"), "Show the ABINIT events reported in the log files.")
@@ -164,6 +168,7 @@ Also, these key bindings can be used
             (self.ID_SHOW_OUTPUTS, self.OnShowOutputs),
             (self.ID_SHOW_LOGS, self.OnShowLogs),
             (self.ID_SHOW_JOB_SCRIPTS, self.OnShowJobScripts),
+            (self.ID_SHOW_JOB_OUTERRS, self.OnShowJobOutErrs),
             (self.ID_BROWSE, self.OnBrowse),
             (self.ID_SHOW_MAIN_EVENTS, self.OnShowMainEvents),
             (self.ID_SHOW_LOG_EVENTS, self.OnShowLogEvents),
@@ -176,9 +181,7 @@ Also, these key bindings can be used
             self.Bind(wx.EVT_MENU, handler, id=mid)
 
     def makeMenu(self):
-        """
-        Make the menu bar.
-        """
+        """Make the menu bar."""
         menu_bar = wx.MenuBar()
                                                                                                     
         file_menu = wx.Menu()
@@ -332,9 +335,10 @@ Also, these key bindings can be used
             return None
 
     def OnOpen(self, event):
-        dialog = wx.FileDialog(self, message="Choose a __workflow__.pickle file", defaultDir=os.getcwd(),
-                            wildcard="pickle files (*.pickle)|*.pickle",
-                            style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
+        dialog = wx.FileDialog(
+            self, message="Choose a __workflow__.pickle file", defaultDir=os.getcwd(),
+            wildcard="pickle files (*.pickle)|*.pickle",
+            style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
 
         # Show the dialog and retrieve the user response. 
         # If it is the OK response, process the data.
@@ -405,6 +409,12 @@ Also, these key bindings can be used
         if work is None: return
         TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.sh").Show()
 
+    def OnShowJobOutErrs(self, event):
+        """Show all the queue output/error files files of the selected `Workflow`."""
+        work = self.GetSelectedWork() 
+        if work is None: return
+        TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.qout|*.qerr").Show()
+
     def OnShowLogs(self, event):
         """Show all the log files of the selected `Workflow`."""
         work = self.GetSelectedWork() 
@@ -462,7 +472,12 @@ class FlowNotebook(fnb.FlatNotebook):
     Notebook class
     """
     def __init__(self, parent, flow):
-        super(FlowNotebook, self).__init__(parent, id=-1, style=fnb.FNB_NO_X_BUTTON | fnb.FNB_NAV_BUTTONS_WHEN_NEEDED)
+        try:
+            style = fnb.FNB_NO_X_BUTTON | fnb.FNB_NAV_BUTTONS_WHEN_NEEDED
+        except AttributeError:
+            style = fnb.FNB_NO_X_BUTTON 
+            
+        super(FlowNotebook, self).__init__(parent, id=-1, style=style)
 
         self.flow = flow
         for work in flow:
@@ -533,7 +548,7 @@ class TaskListCtrl(wx.ListCtrl):
                    "num_restarts", "Task Class",
                    ]
 
-        for (index, col) in enumerate(columns):
+        for index, col in enumerate(columns):
             self.InsertColumn(index, col)
 
         # Used to store the Max width in pixels for the data in the column.
@@ -561,7 +576,7 @@ class TaskListCtrl(wx.ListCtrl):
             self.Append(entry)
 
         # Set the width in pixel for each column.
-        for (index, col) in enumerate(columns):
+        for index, col in enumerate(columns):
             self.SetColumnWidth(index, column_widths[index])
 
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick)
@@ -637,14 +652,25 @@ def browse_outdir(parent, task):
     """Open a window that allows the user to browse the output files in outdir."""
     FileListFrame(parent, dirpaths=task.outdir.path).Show()
 
+
 def browse_tmpdir(parent, task):
     """Open a window that allows the user to browse the output files in outdir."""
     FileListFrame(parent, dirpaths=task.tmpdir.path).Show()
+
 
 def show_history(parent, task):
     """Show the history of the task."""
     text = "\n".join(task.history)
     SimpleTextViewer(parent, text).Show()
+
+
+def show_timer(parent, task):
+    """Show timing data of the k."""
+    try:
+        frame = AbinitTimerFrame(parent, task.output_file.path)
+        frame.Show()
+    except awx.Error as exc:
+        awx.showErrorMessage(parent, str(exc)) 
 
 
 def check_status_and_pickle(task):
@@ -711,6 +737,7 @@ class TaskPopupMenu(wx.Menu):
         ("dependencies", task_show_deps),
         ("inspect", task_inspect),
         ("set status", task_set_status),
+        ("timer", show_timer),
     ])
 
     def __init__(self, parent, task):

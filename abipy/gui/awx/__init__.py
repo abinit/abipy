@@ -3,14 +3,17 @@
 __all__ = []
 
 _MODS = [
+    "buttons.py",
     "core",
     "apps",
+    "frames",
     "grids",
     "dialogs",
     "panels",
     "eggs",
     "func1dframe",
     "threads",
+    "utils",
 ]
 
 #_MODS = [os.path.join(os.path.dirname(__file__), f) for f in _MODS]

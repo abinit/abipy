@@ -10,16 +10,16 @@ from .text import list_strings
 
 def file_read(filename):
     """Read a file and close it.  Return the file source using read()."""
-    fobj = open(filename, 'r');
-    source = fobj.read();
+    fobj = open(filename, 'r')
+    source = fobj.read()
     fobj.close()
     return source
 
 
 def file_readlines(filename):
     """Read a file and close it.  Return the file source using readlines()."""
-    fobj = open(filename, 'r');
-    lines = fobj.readlines();
+    fobj = open(filename, 'r')
+    lines = fobj.readlines()
     fobj.close()
     return lines
 

@@ -23,6 +23,7 @@ _UNITS = {
     'eV' : 0.03674932539796232,
 }
 
+
 def convert_number(value):
     """
     Converts some object to a float or a string.
@@ -116,12 +117,12 @@ class InputVariable(object):
         floatdecimal = 0
     
         # For some inputs, impose number of decimal points...
-        if any(inp in var for inp in ('xred','xcart','qpt','kpt')):
+        if any(inp in var for inp in ('xred', 'xcart', 'qpt', 'kpt')):
             #TODO Shouldn't do that
             floatdecimal = 10
     
         # ...but not for those
-        if any(inp in var for inp in ('ngkpt','kptrlatt', 'ngqpt',)):
+        if any(inp in var for inp in ('ngkpt', 'kptrlatt', 'ngqpt', 'ng2qpt')):
             #TODO Shouldn't do that
             floatdecimal = 0
     
@@ -262,7 +263,6 @@ class InputVariable(object):
             for part in sval.split():
     
                 if '*' in part:
-    
                     # cases like istwfk *1
                     if part[0] == '*':
                         value = None
@@ -286,8 +286,7 @@ class InputVariable(object):
                 if part in _UNITS.keys():
     
                     if value is None:
-                        msg = "Could not apply the unit tolken '%s'." %(part)
-                        warnings.warn(msg)
+                        warnings.warn("Could not apply the unit token '%s'." % part)
                     elif isinstance(value, list):
                         value.append(part)
                     else:
@@ -384,7 +383,6 @@ class SpecialInputVariable(InputVariable):
         ? --> __a
     hence allowing for pythonic names.
     """
-
     @property
     def name(self):
         return self._name
