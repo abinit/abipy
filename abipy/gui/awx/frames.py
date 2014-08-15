@@ -40,6 +40,7 @@ class FrameWithChoice(wx.Frame):
         main_sizer.Add(hbox, 0, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, border=5)
 
         panel.SetSizerAndFit(main_sizer)
+        #self.SetSizerAndFit(main_sizer)
 
     def getChoice(self):
         """Returns the string selected by the user."""

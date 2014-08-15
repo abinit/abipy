@@ -189,7 +189,7 @@ class AbipyrcParser(object):
 
         if not exists(filename):
             #raise ValueError("Abipy configuration file %s does not exist!" % filename)
-            warn("Abipy configuration file %s does not exist!" % filename)
+            #warn("Abipy configuration file %s does not exist!" % filename)
             return env
 
         module_name = filename

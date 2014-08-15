@@ -110,8 +110,6 @@ def itest_unconverged_scf(fwp, tvars):
     assert flow.all_ok
 
 
-
-
 def itest_bandstructure_flow(fwp, tvars):
     """
     Test band-structure flow with one dependency: SCF -> NSCF.

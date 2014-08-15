@@ -16,15 +16,16 @@ from collections import OrderedDict
 from monty.dev import get_ncpus
 from abipy.tools import AttrDict
 from abipy.gui.editor import TextNotebookFrame, SimpleTextViewer
-from abipy.gui.oncv_tooltips import oncv_tip
+from abipy.gui.oncvtooltips import oncv_tip
 from abipy.gui import mixins as mix
 from pseudo_dojo.refdata.nist import nist_database as nist
 from pseudo_dojo.ppcodes.ppgen import OncvGenerator
 from pseudo_dojo.ppcodes.oncvpsp import MultiPseudoGenDataPlotter
 
+
 # TODO
 # Change oncvpsp so that 
-#   1) we always write the logarithmic derivatie
+#   1) we always write the logarithmic derivative
 #   2) better error handling
 
 
@@ -190,35 +191,51 @@ allows you to scan a set of possible values for the generation of the pseudopote
         self.SetMenuBar(self.makeMenu())
         self.statusbar = self.CreateStatusBar()
         self.Centre()
-
-        self.BuildUI(wxoncv_input=WxOncvInput.from_symbol(self, "He"))
-        return
+        self.makeToolBar()
+        #self.toolbar.Enable(False)
 
         if filepath is not None:
-            self.BuildUI(wxoncv_input=WxOncvInput.from_file(self, filepath))
+            if os.path.exists(filepath):
+                self.BuildUI(notebook=OncvNotebook.from_file(self, filepath))
+            else:
+                # Assume symbol
+                self.BuildUI(notebook=OncvNotebook.from_symbol(self, filepath))
+        else:
+            self.BuildUI()
 
     @property
     def codename(self):
         """Name of the application."""
         return "WxOncvGui"
 
-    def BuildUI(self, wxoncv_input=None):
+    def BuildUI(self, notebook=None):
         """Build user-interface."""
-        self.makeToolBar()
+        old_selection = None
+        if hasattr(self, "main_sizer"):
+            # Remove old notebook
+            main_sizer = self.main_sizer
+            main_sizer.Hide(0)
+            main_sizer.Remove(0)
 
-        self.main_sizer = main_sizer = wx.BoxSizer(wx.VERTICAL)
-
-        # The panel with the input variables.
-        if wxoncv_input is None:
-            # FIXME
-            oncv_dims = dict(nc=1, nv=2, lmax=2, ncfn=0)
-            self.wxoncv_input = WxOncvInput(self, oncv_dims)
+            # Save the active tab so that we can set it afterwards.
+            old_selection = self.notebook.GetSelection()
+            del self.notebook
         else:
-            self.wxoncv_input = wxoncv_input
+            self.main_sizer = main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        main_sizer.Add(self.wxoncv_input, flag=wx.EXPAND)
+        if notebook is not None:
+            self.notebook = notebook
+        else:
+            # Default is, of course, silicon.
+            self.notebook = OncvNotebook.from_symbol(self, "Si")
+
+        main_sizer.Add(self.notebook, flag=wx.EXPAND)
         self.SetSizerAndFit(main_sizer)
-        #self.wxoncv_input.SetupScrolling()
+        main_sizer.Layout()
+
+        # Reinstate the old selection
+        if old_selection is not None:
+            self.notebook.SetSelection(old_selection)
 
     def AddFileToHistory(self, filepath):
         """Add the absolute filepath to the file history."""
@@ -231,7 +248,7 @@ allows you to scan a set of possible values for the generation of the pseudopote
         filepath = self.file_history.GetHistoryFile(fileNum)
         self.file_history.AddFileToHistory(filepath)
 
-        self.BuildUI(wxoncv_input=WxOncvInput.from_file(self, filepath))
+        self.BuildUI(notebook=OncvNotebook.from_file(self, filepath))
 
     def makeMenu(self):
         """Creates the main menu."""
@@ -242,6 +259,18 @@ allows you to scan a set of possible values for the generation of the pseudopote
         file_menu.Append(wx.ID_SAVE, "&Save", help="Save the input file")
         file_menu.Append(wx.ID_CLOSE, "&Close", help="Close the Gui")
         #file_menu.Append(wx.ID_EXIT, "&Quit", help="Exit the application")
+
+        # Make sub-menu with the list of supported visualizers.
+        symbol_menu = wx.Menu()
+        self._id2symbol = {}
+
+        for symbol in periodic_table.all_symbols():
+            _id = wx.NewId()
+            symbol_menu.Append(_id, symbol)
+            self._id2symbol[_id] = symbol
+            self.Bind(wx.EVT_MENU, self.onNewNotebookFromSymbol, id=_id)
+                                                                                                                     
+        file_menu.AppendMenu(-1, 'Template from element', symbol_menu)
 
         file_history = self.file_history = wx.FileHistory(8)
         file_history.Load(self.config)
@@ -263,11 +292,11 @@ allows you to scan a set of possible values for the generation of the pseudopote
         # Associate menu/toolbar items with their handlers.
         menu_handlers = [
             (wx.ID_OPEN, self.onOpen),
-            (wx.ID_CLOSE, self.OnClose),
-            #(wx.ID_EXIT, self.OnExit),
+            (wx.ID_CLOSE, self.onClose),
+            #(wx.ID_EXIT, self.onExit),
             (wx.ID_SAVE, self.onSave),
             (wx.ID_HELP, self.onHelp),
-            (wx.ID_ABOUT, self.OnAbout),
+            (wx.ID_ABOUT, self.onAbout),
         ]
                                                             
         for combo in menu_handlers:
@@ -302,20 +331,26 @@ allows you to scan a set of possible values for the generation of the pseudopote
             mid, handler = combo[:2]
             self.Bind(wx.EVT_MENU, handler, id=mid)
 
+    def onNewNotebookFromSymbol(self, event):
+        symbol = self._id2symbol[event.GetId()]
+        self.BuildUI(notebook=OncvNotebook.from_symbol(self, symbol))
+
     def onShowInput(self, event):
         """Show the input file in a new frame."""
-        text = self.wxoncv_input.makeInputString()
+        text = self.notebook.makeInputString()
         SimpleTextViewer(self, text=text, title="Oncvpsp Input").Show()
 
     def onRunInput(self, event):
         """Build a new generator from the input file, and add it to the queue."""
-        text = self.wxoncv_input.makeInputString()
+        text = self.notebook.makeInputString()
         try:
-            psgen = OncvGenerator(text, calc_type=self.wxoncv_input.calc_type)
+            psgen = OncvGenerator(text, calc_type=self.notebook.calc_type)
         except:
             return awx.showErrorMessage(self)
 
-        PseudoGeneratorsFrame(self, [psgen], title="Run Input").Show()
+        frame = PseudoGeneratorsFrame(self, [psgen], title="Run Input")
+        frame.launch_psgens()
+        frame.Show()
 
     def onOpen(self, event):
         """Open a file"""
@@ -330,12 +365,12 @@ allows you to scan a set of possible values for the generation of the pseudopote
         self.file_history.Save(self.config)
         self.config.Flush()
 
-        self.BuildUI(wxoncv_input=WxOncvInput.from_file(self, filepath))
+        self.BuildUI(notebook=OncvNotebook.from_file(self, filepath))
 
     def onSave(self, event):
         """Save a file"""
-        dialog = wx.FileDialog(self, message="Save file as...",
-                               style=wx.SAVE | wx.OVERWRITE_PROMPT, wildcard="Dat files (*.dat)|*.dat|All files (*.*)|*.*")
+        dialog = wx.FileDialog(self, message="Save file as...", style=wx.SAVE | wx.OVERWRITE_PROMPT, 
+                               wildcard="Dat files (*.dat)|*.dat")
         if dialog.ShowModal() == wx.ID_CANCEL: return 
 
         filepath = dialog.GetPath()
@@ -347,13 +382,13 @@ allows you to scan a set of possible values for the generation of the pseudopote
         self.config.Flush()
 
         with open(filepath, "w") as fh:
-            fh.write(self.wxoncv_input.makeInputString())
+            fh.write(self.notebook.makeInputString())
 
-    def OnClose(self, event):
+    def onClose(self, event):
         """ Respond to the "Close" menu command."""
         self.Destroy()
 
-    def OnAbout(self, event):
+    def onAbout(self, event):
         return awx.makeAboutBox(
             codename=self.codename,
             version=self.VERSION,
@@ -370,7 +405,7 @@ class OptimizationFrame(awx.Frame):
         super(OptimizationFrame, self).__init__(parent, **kwargs)
 
         # All optimization buttons are disabled when we start an optimization.
-        self.main_frame.wxoncv_input.enable_all_optimize_buttons(False)
+        #self.main_frame.notebook.enable_all_optimize_buttons(False)
         #self.main_frame.Enable(False)
         #self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
 
@@ -380,7 +415,7 @@ class OptimizationFrame(awx.Frame):
 
     def onDestroy(self, event):
         """Enable all optimize_buttons before destroying the Frame."""
-        self.main_frame.wxoncv_input.enable_all_optimize_buttons(True)
+        #self.main_frame.notebook.enable_all_optimize_buttons(True)
         return super(OptimizationFrame, self).Destroy()
 
     def onCloseButton(self, event):
@@ -395,12 +430,14 @@ class OptimizationFrame(awx.Frame):
         psgens = []
         for inp in self.build_new_inps():
             try:
-                psgen = OncvGenerator(str(inp), calc_type=self.wxoncv_input.calc_type)
+                psgen = OncvGenerator(str(inp), calc_type=self.notebook.calc_type)
                 psgens.append(psgen)
             except:
                 return awx.showErrorMessage(self)
                                                                                    
-        PseudoGeneratorsFrame(self, psgens, title=self.opt_type).Show()
+        frame = PseudoGeneratorsFrame(self, psgens, title=self.opt_type)
+        frame.launch_psgens()
+        frame.Show()
 
     def make_buttons(self, parent=None):
         """
@@ -441,16 +478,16 @@ class LlocOptimizationFrame(OptimizationFrame):
     HELP_MSG = """\
 This window allows you to change/optimize the parameters governing the local part"""
 
-    def __init__(self, parent, wxoncv_input, **kwargs):
+    def __init__(self, parent, notebook, **kwargs):
         """
         Args:
-            wxoncv_input:
-                `WxOncvInput` containing the parameters of the template.
+            notebook:
+                `OncvNotebool` containing the parameters of the template.
         """
         super(LlocOptimizationFrame, self).__init__(parent, **kwargs)
 
         # Save reference to the input panel.
-        self.wxoncv_input = wxoncv_input
+        self.notebook = notebook
 
         panel = wx.Panel(self, -1)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -470,11 +507,50 @@ This window allows you to change/optimize the parameters governing the local par
         return "lloc optimization"
 
     def build_new_inps(self):
-        #fcfact_list = self.fcfact_ctl.getValues()
-
         # Generate new list of inputs.
-        base_inp = self.wxoncv_input.makeInput()
+        base_inp = self.notebook.makeInput()
         return base_inp.optimize_vloc()
+
+
+class Rc5OptimizationFrame(OptimizationFrame):
+    """
+    This frame allows the user to optimize the parameters for the local part of the pseudopotential
+    """
+    HELP_MSG = """\
+This window allows you to change/optimize the rc5 parameter"""
+
+    def __init__(self, parent, notebook, **kwargs):
+        """
+        Args:
+            notebook:
+                `OncvNotebool` containing the parameters of the template.
+        """
+        super(Rc5OptimizationFrame, self).__init__(parent, **kwargs)
+
+        # Save reference to the input panel.
+        self.notebook = notebook
+
+        panel = wx.Panel(self, -1)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        add_opts = dict(flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
+
+        self.rc5_ctlr = awx.IntervalControl(self, start=0.25, num=6, step=0.05, choices=[">", "centered", "<"])
+        main_sizer.Add(self.rc5_ctlr, 1, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
+
+        buttons_sizer = self.make_buttons()
+        main_sizer.Add(buttons_sizer, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
+
+        self.SetSizerAndFit(main_sizer)
+
+    @property
+    def opt_type(self):
+        return "rc5 optimization"
+
+    def build_new_inps(self):
+        # Generate new list of inputs.
+        base_inp = self.notebook.makeInput()
+        # TODO
+        return base_inp.optimize_rc5()
 
 
 class DeblOptimizationFrame(OptimizationFrame):
@@ -485,17 +561,17 @@ class DeblOptimizationFrame(OptimizationFrame):
     HELP_MSG = """\
 This window allows you to optimize the parameters used to construct the VKB projectors."""
 
-    def __init__(self, parent, wxoncv_input, **kwargs):
+    def __init__(self, parent, notebook, **kwargs):
         """
         Args:
-            wxoncv_input:
-                `WxOncvInput` containing the parameters of the template.
+            notebook:
+                Notebook containing the parameters of the template.
         """
         super(DeblOptimizationFrame, self).__init__(parent, **kwargs)
 
         # Save reference to the input panel.
-        self.wxoncv_input = wxoncv_input
-        lmax = wxoncv_input.lmax
+        self.notebook = notebook
+        lmax = notebook.lmax
 
         panel = wx.Panel(self, -1)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -506,7 +582,7 @@ This window allows you to optimize the parameters used to construct the VKB proj
         self.checkbox_l = [None] * (lmax + 1)
         self.debl_range_l = [None] * (lmax + 1)
 
-        debl_l = wxoncv_input.makeInput().debl_l
+        debl_l = notebook.makeInput().debl_l
 
         for l in range(lmax + 1):
             sbox_sizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, "Angular Channel L=%d" % l), wx.VERTICAL)
@@ -541,7 +617,7 @@ This window allows you to optimize the parameters used to construct the VKB proj
                 deblvals_list.append(wxrange.getValues())
 
         # Generate new list of inputs.
-        base_inp = self.wxoncv_input.makeInput()
+        base_inp = self.notebook.makeInput()
         new_inps = []
         for l, new_debls in zip(l_list, deblvals_list):
             new_inps.extend(base_inp.optimize_debls_for_l(l=l, new_debls=new_debls))
@@ -557,16 +633,16 @@ class FcfactOptimizationFrame(OptimizationFrame):
     HELP_MSG = """\
 This window allows you to change/optimize the parameters governing the model core charge"""
 
-    def __init__(self, parent, wxoncv_input, **kwargs):
+    def __init__(self, parent, notebook, **kwargs):
         """
         Args:
-            wxoncv_input:
-                `WxOncvInput` containing the parameters of the template.
+            notebook:
+                Notebook containing the parameters of the template.
         """
         super(FcfactOptimizationFrame, self).__init__(parent, **kwargs)
 
         # Save reference to the input panel.
-        self.wxoncv_input = wxoncv_input
+        self.notebook = notebook
 
         panel = wx.Panel(self, -1)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -590,7 +666,7 @@ This window allows you to change/optimize the parameters governing the model cor
         print(fcfact_list)
 
         # Generate new list of inputs.
-        base_inp = self.wxoncv_input.makeInput()
+        base_inp = self.notebook.makeInput()
         return base_inp.optimize_modelcore(fcfact_list, add_icmod0=True)
 
 
@@ -606,17 +682,17 @@ the different angular channel. Use the checkboxes to select the l-channel(s) to 
 analyzed, and the other controls to specify the list of qc values to test. 
 """
 
-    def __init__(self, parent, wxoncv_input, **kwargs):
+    def __init__(self, parent, notebook, **kwargs):
         """
         Args:
-            wxoncv_input:
-                WxOncvInput` containing the parameters of the template.
+            notebook:
+                Notebook containing the parameters of the template.
         """
         super(QcutOptimizationFrame, self).__init__(parent, **kwargs)
 
         # Save reference to the input panel.
-        self.wxoncv_input = wxoncv_input
-        lmax = wxoncv_input.lmax
+        self.notebook = notebook
+        lmax = notebook.lmax
 
         panel = wx.Panel(self, -1)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -627,7 +703,7 @@ analyzed, and the other controls to specify the list of qc values to test.
         self.checkbox_l = [None] * (lmax + 1)
         self.wxqcut_range_l = [None] * (lmax + 1)
 
-        qcut_l = wxoncv_input.makeInput().qcut_l
+        qcut_l = notebook.makeInput().qcut_l
 
         for l in range(lmax + 1):
             sbox_sizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, "Angular Channel L=%d" % l), wx.VERTICAL)
@@ -637,7 +713,7 @@ analyzed, and the other controls to specify the list of qc values to test.
             check_l.SetToolTipString("Enable/Disable optimization for this l-channel")
             check_l.SetValue(True)
 
-            self.wxqcut_range_l[l] = qcrange_l = awx.IntervalControl(self, start=qcut_l[l], num=4, step=0.2)
+            self.wxqcut_range_l[l] = qcrange_l = awx.IntervalControl(self, start=qcut_l[l], num=4, step=0.5)
 
             vsz.Add(check_l, **add_opts)
             vsz.Add(qcrange_l, **add_opts)
@@ -664,7 +740,7 @@ analyzed, and the other controls to specify the list of qc values to test.
         #print("\nl_list:", l_list, "\nqcvals_list", qcvals_list)
 
         # Generate new list of inputs.
-        base_inp = self.wxoncv_input.makeInput()
+        base_inp = self.notebook.makeInput()
         new_inps = []
         for l, new_qcuts in zip(l_list, qcvals_list):
             new_inps.extend(base_inp.optimize_qcuts_for_l(l=l, new_qcuts=new_qcuts))
@@ -682,11 +758,11 @@ class RcOptimizationFrame(OptimizationFrame):
 This window allows you to change/optimize the value of the rc parameters (core radius)
 for  the different angular channel."""
 
-    def __init__(self, parent, wxoncv_input, **kwargs):
+    def __init__(self, parent, notebook, **kwargs):
         """
         Args:
-            wxoncv_input:
-                `WxOncvInput` containing the parameters of the template.
+            notebook:
+                Notebook containing the parameters of the template.
         """
         super(RcOptimizationFrame, self).__init__(parent, **kwargs)
 
@@ -694,8 +770,8 @@ for  the different angular channel."""
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         # Save reference to the input panel.
-        self.wxoncv_input = wxoncv_input
-        lmax = wxoncv_input.lmax
+        self.notebook = notebook
+        lmax = notebook.lmax
 
         # Build list of controls to allow the user to select the list of
         # qcut values for the different l-channels.
@@ -703,7 +779,7 @@ for  the different angular channel."""
         self.checkbox_l = [None] * (lmax + 1)
         self.wxrc_range_l = [None] * (lmax + 1)
 
-        rc_l = wxoncv_input.makeInput().rc_l
+        rc_l = notebook.makeInput().rc_l
 
         add_opts = dict(flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
         for l in range(lmax + 1):
@@ -714,7 +790,7 @@ for  the different angular channel."""
             check_l.SetToolTipString("Enable/Disable optimization for this l-channel")
             check_l.SetValue(True)
 
-            self.wxrc_range_l[l] = qcrange_l = awx.IntervalControl(self, start=rc_l[l], num=4, step=0.1)
+            self.wxrc_range_l[l] = qcrange_l = awx.IntervalControl(self, start=rc_l[l], num=4, step=0.05)
 
             vsz.Add(check_l, **add_opts)
             vsz.Add(qcrange_l, **add_opts)
@@ -739,7 +815,7 @@ for  the different angular channel."""
                 rc_list.append(wxrange.getValues())
 
         # Generate new list of inputs.
-        base_inp = self.wxoncv_input.makeInput()
+        base_inp = self.notebook.makeInput()
         new_inps = []
         for l, new_rcs in zip(l_list, rc_list):
             new_inps.extend(base_inp.optimize_rcs_for_l(l, new_rcs))
@@ -1059,11 +1135,11 @@ class PseudoConfField(TableField):
 
     WXCTRL_PARAMS = OrderedDict([
         ("l", dict(dtype="i", value=0)),
-        ("rc", dict(dtype="f", value=1.6)),
+        ("rc", dict(dtype="f", value=3.0)),
         ("ep", dict(dtype="f", value=0.0)),
         ("ncon", dict(dtype="i", value=4)),
         ("nbas", dict(dtype="i", value=7)),
-        ("qcut", dict(dtype="f", value=8.0))])
+        ("qcut", dict(dtype="f", value=6.0))])
 
     @classmethod
     def nrows_from_dims(cls, oncv_dims):
@@ -1089,7 +1165,7 @@ class VlocalField(RowField):
     WXCTRL_PARAMS = OrderedDict([
         ("lloc", dict(dtype="i", value=4)),
         ("lpopt", dict(dtype="i", value=5)),
-        ("rc5", dict(dtype="f", value=1.6)),
+        ("rc5", dict(dtype="f", value=3.0)),
         ("dvloc0", dict(dtype="f", value=0.0))])
 
 
@@ -1116,7 +1192,7 @@ class ModelCoreField(RowField):
     name = "MODEL CORE CHARGE"
 
     WXCTRL_PARAMS = OrderedDict([
-        ("icmod", dict(dtype="i", value=1)),
+        ("icmod", dict(dtype="i", value=0)),
         ("fcfact", dict(dtype="f", value=0.25))])
 
 
@@ -1220,7 +1296,7 @@ class OncvInput(object):
     """
     @classmethod
     def from_file(cls, filepath):
-        """Initialize the object from an external file."""
+        """Initialize the object from an external input file."""
         # Read input lines: ignore empty lines or line starting with #
         lines = []
         with open(filepath) as fh:
@@ -1251,6 +1327,7 @@ class OncvInput(object):
         start = 0
         for field in new:
             stop = start + field.nrows
+            #print(type(field))
             field.set_vars_from_lines(lines[start:stop])
             start = stop
 
@@ -1258,25 +1335,37 @@ class OncvInput(object):
 
     @classmethod
     def from_symbol(cls, symbol):
+        """
+        Return a tentative input file for generating a pseudo for the given chemical symbol 
+
+        .. note:
+              Assume default values that might not be optimal.
+        """
         nc, nv, lmax = 0, 0, 0
         #atom = nist.get_neutral_entry(symbol=symbol)
         #for state in atom.states:
         #    lmax = max(lmax, state.l)
 
+        # E.g., The electronic structure for Fe is represented as:
+        # [(1, "s", 2), (2, "s", 2), (2, "p", 6), (3, "s", 2), (3, "p", 6), (3, "d", 6), (4, "s", 2)]
         element = periodic_table.Element(symbol)
         for (n, lchar, f) in element.full_electronic_structure:
             nc += 1
             lmax = max(lmax, periodic_table.char2l(lchar))
 
+        # FIXME
+        lmax = 1
+        lmax = 2
+        #lmax = 3
+
         ncnf = 0
         oncv_dims = dict(atsym=symbol, nc=nc, nv=nv, lmax=lmax, ncnf=ncnf)
 
         new = cls(oncv_dims)
-        #header = new.fields[_FIELD_LIST.index(AtomConfField)]
 
         field = new.fields[_FIELD_LIST.index(RefConfField)]
         for row, (n, lchar, f) in zip(field.data, element.full_electronic_structure):
-           row["n"], row["l"], row["f"] = n, periodic_table.char2l(lchar), f
+            row["n"], row["l"], row["f"] = n, periodic_table.char2l(lchar), f
 
         return new
 
@@ -1378,7 +1467,7 @@ class OncvInput(object):
 
         s = "\n".join(lines)
         # FIXME needed to bypass problems with tests
-        return s + "\n 0"
+        return s + "\n 0\n"
 
     def __setitem__(self, key, value):
         ncount = 0
@@ -1534,25 +1623,95 @@ class OncvInput(object):
         return inps
 
 
-# TODO Try this
-#import wx.lib.foldpanelbar as foldpanel
-#class WxOncvInput(foldpanel.FoldPanelBar):
-from wx.lib.scrolledpanel import ScrolledPanel
+class OncvNotebook(wx.Notebook):
 
-#class WxOncvInput(awx.Panel):
-class WxOncvInput(ScrolledPanel):
-    """
-    Panel with widgets allowing the user to select the input parameters.
-    """
-    def __init__(self, parent, oncv_dims, **kwargs):
-        """
-        Args:
-            oncv_dims:
-                Basic dimensions of the calculation.
-        """
-        super(WxOncvInput, self).__init__(parent, id=-1, style=wx.VSCROLL | wx.HSCROLL)
+    @classmethod
+    def from_file(cls, parent, filename):
+        inp = OncvInput.from_file(filename)
+        new = cls(parent, inp.dims)
+                                                    
+        for field in inp:
+            wxctrl = new.wxctrls[field.__class__]
+            wxctrl.SetParams(field.data)
+                                                    
+        return new
 
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
+    @classmethod
+    def from_symbol(cls, parent, symbol):
+        inp = OncvInput.from_symbol(symbol)
+        new = cls(parent, inp.dims)
+
+        for field in inp:
+            wxctrl = new.wxctrls[field.__class__]
+            wxctrl.SetParams(field.data)
+                                                    
+        return new
+
+    #def fromInput(cls)
+
+    def __init__(self, parent, oncv_dims):
+        super(OncvNotebook, self).__init__(parent)
+
+        # Build tabs
+        self.oncv_dims = oncv_dims
+        self.ae_tab = AeConfTab(self, oncv_dims)
+        self.ps_tab = PsConfTab(self, oncv_dims)
+        self.pstests_tab = PsTestsTab(self, oncv_dims)
+
+        # Add tabs
+        self.AddPage(self.ae_tab, "AE config") 
+        self.AddPage(self.ps_tab, "PP config") 
+        self.AddPage(self.pstests_tab, "Tests")
+
+    @property
+    def tabs(self):
+        return (self.ae_tab, self.ps_tab, self.pstests_tab)
+
+    @property
+    def wxctrls(self):
+        d = {}
+        for tab in self.tabs:
+            d.update(tab.wxctrls)
+        return d
+
+    @property
+    def calc_type(self):
+        return self.ae_tab.calctype_cbox.GetValue()
+
+    @property
+    def lmax(self):
+        # TODO: property or method?
+        return self.ps_tab.wxctrls[LmaxField].GetParams()["lmax"]
+
+    def getElement(self):
+        symbol = self.ae_tab.wxctrls[AtomConfField].GetParams()["atsym"]
+        return periodic_table.Element(symbol)
+
+    def makeInput(self):
+        """Build an OncvInput instance from the values specified in the controllers."""
+        inp = OncvInput(self.oncv_dims)
+
+        for cls, wxctrl in self.wxctrls.items():
+            i = _FIELD_LIST.index(cls)
+            inp.fields[i].set_vars(wxctrl.GetParams())
+
+        return inp
+
+    def makeInputString(self):
+        """Return a string with the input passed to the pp generator."""
+        return str(self.makeInput())
+
+
+class AeConfTab(awx.Panel):
+    def __init__(self, parent, oncv_dims):
+        super(AeConfTab, self).__init__(parent)
+
+        # Set the dimensions and build the widgets.
+        self.oncv_dims = oncv_dims
+        self.buildUI()
+
+    def buildUI(self):
+        self.main_sizer = main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         stext = wx.StaticText(self, -1, "Calculation type:")
         choices = ["scalar-relativistic", "fully-relativistic", "non-relativistic"]
@@ -1560,6 +1719,7 @@ class WxOncvInput(ScrolledPanel):
             self, id=-1, name='Calculation type', choices=choices, value=choices[0], style=wx.CB_READONLY)
 
         add_opts = dict(proportion=0, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
+        sizer_addopts = dict(proportion=0, flag=wx.ALL, border=5)
 
         hbox0 = wx.BoxSizer(wx.HORIZONTAL)
         hbox0.Add(stext, **add_opts)
@@ -1567,151 +1727,363 @@ class WxOncvInput(ScrolledPanel):
 
         main_sizer.Add(hbox0, **add_opts)
 
-        # Set the dimensions and build the widgets.
-        self.oncv_dims = oncv_dims
+        #(list_of_classes_on_row, show)
+        layout = [
+            AtomConfField,
+            RefConfField,
+            RadGridField,
+            ]
 
-        # FieldClass: [(label, OptimizationFrame), ....]
-        self.fields_with_optimization = {
-            PseudoConfField: [
-                ("Optimize rc", RcOptimizationFrame),
-                ("Optimize qcut", QcutOptimizationFrame),
-                ],
-            VlocalField: [("Optimize lloc", LlocOptimizationFrame)],
-            ModelCoreField: [("Optimize fcfact", FcfactOptimizationFrame)],
-            VkbConfsField: [("Optimize debl", DeblOptimizationFrame)],
-        }
+        # Each field has a widget that returns the variables in a dictionary
+        self.wxctrls = {}
+        self.sbox_sizers = {}
+        #self.sboxes = {}
+
+        for cls in layout:
+            i = _FIELD_LIST.index(cls)
+            f = empty_field(i, self.oncv_dims)
+            wxctrl = f.make_wxctrl(self)
+            sbox = wx.StaticBox(self, -1, f.name + ":")
+            sbox_sizer = wx.StaticBoxSizer(sbox, wx.VERTICAL)
+            #sbox_sizer = wx.BoxSizer(wx.VERTICAL)
+            sbox_sizer.Add(wxctrl, **sizer_addopts)
+            #sz = wx.FlexGridSizer(wx.VERTICAL)
+            #sz.Add(sbox_sizer)
+
+            self.wxctrls[cls] = wxctrl
+            self.sbox_sizers[cls] = sbox_sizer
+            #self.sboxes[cls] = sz
+
+            main_sizer.Add(sbox_sizer, **add_opts)
+
+        lda_levels_button = wx.Button(self, -1, "LDA levels (NIST)")
+        lda_levels_button.Bind(wx.EVT_BUTTON, self.onShowLdaLevels)
+        main_sizer.Add(lda_levels_button, **add_opts)
+
+        add_button = wx.Button(self, -1, "Add level")
+        add_button.action = "add"
+        add_button.Bind(wx.EVT_BUTTON, self.onAddRemoveLevel)
+        main_sizer.Add(add_button, **add_opts)
+
+        remove_button = wx.Button(self, -1, "Remove level")
+        remove_button.action = "remove"
+        remove_button.Bind(wx.EVT_BUTTON, self.onAddRemoveLevel)
+        main_sizer.Add(remove_button, **add_opts)
+
+        self.SetSizerAndFit(main_sizer)
+
+    @property
+    def atomconf(self):
+        return self.wxctrls[AtomConfField].GetParams()
+
+    @property
+    def nc(self):
+        return self.atomconf["nc"]
+
+    @property
+    def nv(self):
+        return self.atomconf["nv"]
+
+    @property
+    def symbol(self):
+        return self.atomconf["atsym"]
+
+    def get_core(self):
+        # E.g., The electronic structure for Fe is represented as:
+        # [(1, "s", 2), (2, "s", 2), (2, "p", 6), (3, "s", 2), (3, "p", 6), (3, "d", 6), (4, "s", 2)]
+        core = []
+        refconf = self.wxctrls[RefConfField]
+        for ic in range(self.nc):
+            d = refconf[ic].GetParams()
+            t = [d[k] for k in ("n", "l", "f")]
+            core.append(tuple(t))
+
+        return core
+
+    def get_valence(self):
+        valence = []
+        refconf = self.wxctrls[RefConfField]
+        for iv in range(self.nc, self.nc + self.nv):
+            d = refconf[iv].GetParams()
+            t = [d[k] for k in ("n", "l", "f")]
+            valence.append(tuple(t))
+                                                
+        return valence
+
+    def onAddRemoveLevel(self, event):
+        button = event.GetEventObject()
+        sbox_sizer = self.sbox_sizers[RefConfField] 
+        old = self.wxctrls[RefConfField]
+        sbox_sizer.Hide(0)
+        sbox_sizer.Remove(0)
+
+        if button.action == "add":
+            old.appendRow()
+        elif button.action == "remove":
+            old.removeRow()
 
         sizer_addopts = dict(proportion=0, flag=wx.ALL, border=5)
-                                                                                
-        # We have nfields sections in the input file.
-        # Each field has a widget that returns the variables in a dictionary
-        self.wxctrls = _NFIELDS * [None]
-        self.sbox_sizers = _NFIELDS * [None]
-                                                                               
-        # Keep an internal list of buttons so that we can disable them easily.
-        self.all_optimize_buttons = []
+        sbox_sizer.Insert(0, old, **sizer_addopts)
 
-        """
-        (list_of_classes_on_row, show)
+        #self.sboxes[RefConfField].Layout()
+        sbox_sizer.Show(0)
+        sbox_sizer.Layout()
+        #self.main_sizer.Layout()
+        self.Layout()
+        self.Fit()
+
+        #frame = self.GetParent().GetParent()
+        #frame.fSizer.Layout()
+        #frame.Fit()
+
+    def onShowLdaLevels(self, event):
+        # Get the LDA levels of the neutral atom.
+        # (useful to decide if semicore states should be included in the valence).
+        entry = nist.get_neutral_entry(self.symbol)
+        frame = awx.Frame(self, title="LDA levels for neutral %s (NIST database)" % self.symbol)
+        awx.ListCtrlFromTable(frame, table=entry.to_table())
+        frame.Show()
+
+
+class PsConfTab(awx.Panel):
+    def __init__(self, parent, oncv_dims):
+        super(PsConfTab, self).__init__(parent)
+
+        self.notebook = parent
+
+        # Set the dimensions and build the widgets.
+        self.oncv_dims = oncv_dims
+        self.buildUI()
+
+    def buildUI(self):
+        sizer_addopts = dict(proportion=0, flag=wx.ALL, border=5)
+        add_opts = dict(proportion=0, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
+
+        self.main_sizer = main_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # list_of_classes
         layout = [
-            ((AtomConfField,), True),
-            ((RefConfField, LmaxField), False),
-            ((PseudoConfField,), True),
-            ((VlocalField,), True),
-            ((VkbConfsField, ModelCoreField,), True),
-            ((LogDerField, RadGridField), True),
-            #TestConfigsField,
+            LmaxField,
+            PseudoConfField,
+            VkbConfsField,
+            VlocalField,
+            ModelCoreField,
         ]
 
-        for fields, show in layout:
-            hsizer = wx.BoxSizer(wx.HORIZONTAL)
-            for cls in fields:
-                i = _FIELD_LIST.index(cls)
-                f = empty_field(i, oncv_dims)
-                #i = f.filepos
-                wxctrl = f.make_wxctrl(self)
-                sbox_sizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, f.name + ":"), wx.VERTICAL)
-                sbox_sizer.Add(wxctrl, **sizer_addopts)
-                self.wxctrls[i] = wxctrl
-                self.sbox_sizers[i] = sbox_sizer
-                hsizer.Add(sbox_sizer, 0, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
-            main_sizer.Add(hsizer, **add_opts)
+        # FieldClass: [(label, OptimizationFrame), ....]
+        fields_with_optimization = {
+            PseudoConfField: [
+                ("Change rc", RcOptimizationFrame),
+                ("Change qcut", QcutOptimizationFrame),
+                ],
+            VlocalField: [
+                ("Change lloc", LlocOptimizationFrame),
+                ("Change rc5", Rc5OptimizationFrame),
+                ],
+            ModelCoreField: [("Change fcfact", FcfactOptimizationFrame)],
+            VkbConfsField: [("Change debl", DeblOptimizationFrame)],
+        }
 
-        """
-        for i in range(_NFIELDS):
-            f = empty_field(i, oncv_dims)
+        # Each field has a widget that returns the variables in a dictionary
+        self.wxctrls = {}
+
+        # Keep an internal list of buttons so that we can disable them easily.
+        self.all_optimize_buttons = []
+        self.sboxes = {}
+
+        for cls in layout:
+            i = _FIELD_LIST.index(cls)
+            f = empty_field(i, self.oncv_dims)
             wxctrl = f.make_wxctrl(self)
-            self.wxctrls[i] = wxctrl
+
             sbox_sizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, f.name + ":"), wx.VERTICAL)
+            #sbox_sizer = wx.BoxSizer(wx.VERTICAL)
             sbox_sizer.Add(wxctrl, **sizer_addopts)
 
+            self.sboxes[cls] = sbox_sizer
+            self.wxctrls[cls] = wxctrl
+
             # add optimization button if the field supports it.
-            if f.__class__ in self.fields_with_optimization:
+            if f.__class__ in fields_with_optimization:
                 hsz = wx.BoxSizer(wx.HORIZONTAL)
-                for label, opt_frame in self.fields_with_optimization[f.__class__]:
+                for label, opt_frame in fields_with_optimization[f.__class__]:
                     optimize_button = wx.Button(self, -1, label)
                     optimize_button.Bind(wx.EVT_BUTTON, self.onOptimize)
                     optimize_button.field_class = f.__class__
                     optimize_button.opt_frame = opt_frame
-
+                                                                                                    
                     self.all_optimize_buttons.append(optimize_button)
                     hsz.Add(optimize_button, 0, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, border=5)
 
                 sbox_sizer.Add(hsz, 0, flag=wx.ALL | wx.ALIGN_CENTER_HORIZONTAL)
 
-            self.sbox_sizers[i] = sbox_sizer
             main_sizer.Add(sbox_sizer, **add_opts)
 
-        #for i in [1,2]:
-        #    main_sizer.Hide(self.sbox_sizers[i])
+        #self.old_lmax = self.lmax_ctrl.GetParams()["lmax"]
+        #self.wxctrls[LmaxField].Bind(
+
+        add_button = wx.Button(self, -1, "Add row")
+        add_button.Bind(wx.EVT_BUTTON, self.onLmaxChanged)
+        main_sizer.Add(add_button)
 
         self.SetSizerAndFit(main_sizer)
-        self.SetupScrolling()
 
-    @classmethod
-    def from_symbol(cls, parent, symbol):
-        inp = OncvInput.from_symbol(symbol)
-        #print("Input_from_symbol\n", inp)
-        new = cls(parent, inp.dims)
-                                                    
-        for field, wxctrl in zip(inp, new.wxctrls):
-            print(field.name)
-            print(field.data)
-            wxctrl.SetParams(field.data)
-                                                    
-        return new
+    @property
+    def lmax_ctrl(self):
+        return self.wxctrls[LmaxField]
 
-    @classmethod
-    def from_file(cls, parent, filename):
-        inp = OncvInput.from_file(filename)
-        new = cls(parent, inp.dims)
+    def onLmaxChanged(self, event):
+        #self.wxctrls[PseudoConfField].appendRow()
+        #self.wxctrls[VkbConfsField].appendRow()
 
-        for field, wxctrl in zip(inp, new.wxctrls):
-            wxctrl.SetParams(field.data)
+        #main_sizer = self.main_sizer
+        #main_sizer.Hide(1)
+        #main_sizer.Remove(1)
+        #main_sizer.Insert(1, self.wxctrls[PseudoConfField], 0, wx.EXPAND | wx.ALL, 5)
 
-        return new
+        #for sbox in self.sboxes.values():
+        #    sbox.Layout()
+        self.main_sizer.Layout()
 
-    def fill_from_file(self, filename):
-        """Build a panel from an input file."""
-        inp = OncvInput.from_file(filename)
-        for field, wxctrl in zip(inp, self.wxctrls):
-            wxctrl.SetParams(field.data)
+    def onOptimize(self, event):
+        button = event.GetEventObject()
+        #self.enable_all_optimize_buttons(False)
+        opt_frame = button.opt_frame
+
+        try:
+            opt_frame(self, notebook=self.notebook).Show()
+        finally:
+            self.enable_all_optimize_buttons(True)
 
     def enable_all_optimize_buttons(self, enable=True):
         """Enable/disable the optimization buttons."""
         for button in self.all_optimize_buttons:
             button.Enable(enable)
 
-    def onOptimize(self, event):
+
+class PsTestsTab(awx.Panel):
+    def __init__(self, parent, oncv_dims):
+        super(PsTestsTab, self).__init__(parent)
+        self.notebook = parent
+
+        self.main_sizer = main_sizer = wx.BoxSizer(wx.VERTICAL)
+        add_opts = dict(proportion=0, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL | wx.EXPAND, border=5)
+
+        layout = [
+            LogDerField,
+        ]
+
+        self.wxctrls = {}
+
+        for cls in layout:
+            i = _FIELD_LIST.index(cls)
+            f = empty_field(i, oncv_dims)
+            wxctrl = f.make_wxctrl(self)
+            self.wxctrls[cls] = wxctrl
+            sbox_sizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, f.name + ":"), wx.VERTICAL)
+            sbox_sizer.Add(wxctrl, **add_opts)
+            main_sizer.Add(sbox_sizer, **add_opts)
+
+        self.conf_txtctrl = wx.TextCtrl(self, -1, "#TEST CONFIGURATIONS\n  0", style=wx.TE_MULTILINE | wx.TE_LEFT)
+        main_sizer.Add(self.conf_txtctrl, **add_opts)
+
+        common_button = wx.Button(self, -1, label='Common Oxidation States')
+        common_button.Bind(wx.EVT_BUTTON, self.addOxiStates)
+        common_button.test_mode = "common_oxis"
+
+        all_button = wx.Button(self, -1, label='All Oxidation States')
+        all_button.Bind(wx.EVT_BUTTON, self.addOxiStates)
+        all_button.test_mode = "all_oxis"
+
+        hsz = wx.BoxSizer(wx.HORIZONTAL)
+        hsz.Add(common_button, **add_opts)
+        hsz.Add(all_button, **add_opts)
+        main_sizer.Add(hsz, **add_opts)
+
+        self.SetSizerAndFit(main_sizer)
+
+    def conftests_str(self):
+        return self.conf_txtctrl.GetValue()
+
+    def addOxiStates(self, event):
         button = event.GetEventObject()
-        self.enable_all_optimize_buttons(False)
-        opt_frame = button.opt_frame
+        test_mode = button.test_mode
 
-        try:
-            opt_frame(self, wxoncv_input=self).Show()
-        finally:
-            self.enable_all_optimize_buttons(True)
+        element = self.notebook.getElement()
 
-    @property
-    def lmax(self):
-        return self.oncv_dims["lmax"]
+        if test_mode == "common_oxis":
+            oxi_states = element.common_oxidation_states
+            title = "(common oxidation states)"
+        elif test_mode == "all_oxis":
+            oxi_states = element.oxidation_states
+            title = "(all oxidation states)"
+        else:
+            raise ValueError("Wrong test_mode %s" % test_mode)
 
-    @property
-    def calc_type(self):
-        """"Return a string with the calculation type."""
-        return self.calctype_cbox.GetValue()
+        self.conf_txtctrl.Clear()
+        self.conf_txtctrl.WriteText("# TEST CONFIGURATIONS" + title + "\n")
 
-    def makeInput(self):
-        """Build an instance of OncvInput from the data specified in the Wx controllers."""
-        inp = OncvInput(self.oncv_dims)
-        for i, field in enumerate(self.wxctrls):
-            inp.fields[i].set_vars(field.GetParams())
+        core_aeatom = self.notebook.ae_tab.get_core()
+        val_aeatom = self.notebook.ae_tab.get_valence()
+        print("core", core_aeatom)
+        print("val", val_aeatom)
 
-        return inp
+        """
+        # TEST CONFIGURATIONS
+        # ncnf
+            3
+        #
+        #   nvcnf (repeated ncnf times)
+        #   n, l, f  (nvcnf lines, repeated follwing nvcnf's ncnf times)
+            2
+            2    0    2.0
+            2    1    3.0
+        #
+            2
+            2    0    1.0
+            2    1    4.0
+        #
+            2
+            2    0    1.0
+            2    1    3.0
+        """
+        test_confs = []
+        
+        for oxi in oxi_states:
+            #self.conf_txtctrl.WriteText(str(oxi) + "\n")
+            
+            # Get the electronic configuration of atom with Z = Z + oxi
+            if oxi == 0: continue
 
-    def makeInputString(self):
-        """Return a string with the input passed to the pp generator."""
-        return str(self.makeInput())
+            # Here we found the valence configuration by comparing
+            # the full configuration of oxiele and the one of the initial element.
+            oxi_element = periodic_table.Element.from_Z(element.Z - oxi)
+            oxi_estruct = oxi_element.full_electronic_structure
+            char2l = periodic_table.char2l
+            oxi_estruct = [(t[0], char2l(t[1]), t[2]) for t in oxi_estruct]
+
+            if oxi < 0:
+                test_conf = [t for t in oxi_estruct if t not in core_aeatom]
+            else:
+                test_conf = [t for t in oxi_estruct if t not in core_aeatom]
+
+            self.conf_txtctrl.WriteText(str(oxi) + "\n")
+            self.conf_txtctrl.WriteText(str(oxi_element) + "\n")
+            self.conf_txtctrl.WriteText(str(test_conf) + "\n")
+
+        self.conf_txtctrl.WriteText("# ncnf\n" + str(len(test_confs)) + "\n")
+        self.conf_txtctrl.WriteText("""\
+#
+#   nvcnf (repeated ncnf times)
+#   n, l, f  (nvcnf lines, repeated follwing nvcnf's ncnf times)\n""")
+
+        #for test in test_confs:
+        #    self.conf_txtctrl.WriteText(len(test) + "\n")
+        #    for row in test:
+        #        self.conf_txtctrl.WriteText(str(row) + "\n")
+
+        self.main_sizer.Layout()
+
 
 # Event posted when we start an optimization.
 #EVT_OPTIMIZATION_TYPE = wx.NewEventType()
@@ -1733,13 +2105,12 @@ class WxOncvInput(ScrolledPanel):
 #    #wx.PostEvent(self.console, event)
 
 
-
 class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.ListCtrlAutoWidthMixin):
     """
     ListCtrl that allows the user to interact with a list of pseudogenerators. Supports column sorting 
     """
     # List of columns
-    _COLUMNS = ["#", 'status', "max_ecut", "atan_logder_err", "max_psexc_abserr", "herm_err"]
+    _COLUMNS = ["#", 'status', "max_ecut", "atan_logder_err", "max_psexc_abserr", "herm_err", "warnings"]
 
     def __init__(self, parent, psgens=(), **kwargs):
         """
@@ -1783,10 +2154,10 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRightClick)
 
     @property
-    def wxinput(self):
+    def notebook(self):
         """Reference to the Wx window with the input file."""
         try:
-            return self._wxinput
+            return self._notebook
         except AttributeError:
             parent = self.GetParent()
             cls = WxOncvFrame
@@ -1801,8 +2172,8 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
                     parent = parent.GetParent()
 
             # The input we need is an attribute of WxOncvFrame.
-            self._wxinput = parent.wxoncv_input
-            return self._wxinput
+            self._notebook = parent.notebook
+            return self._notebook
 
     @staticmethod
     def make_entry(index, psgen):
@@ -1811,6 +2182,9 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
         max_atan_logder_l1err = None
         max_psexc_abserr = None
         herm_err = None
+
+        if psgen.results is None and psgen.status == psgen.S_OK:
+            psgen.check_status()
 
         if psgen.results is not None:
             max_ecut = psgen.results.max_ecut
@@ -1825,6 +2199,7 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
             "%s" % max_atan_logder_l1err,
             "%s" % max_psexc_abserr,
             "%s" % herm_err,
+            "%s" % len(psgen.warnings),
         ]
 
     def doRefresh(self):
@@ -1898,6 +2273,8 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
         self.ID_POPUP_STDOUT = wx.NewId()
         self.ID_POPUP_STDERR = wx.NewId()
         self.ID_POPUP_CHANGE_INPUT = wx.NewId()
+        self.ID_POPUP_COMPUTE_HINTS = wx.NewId()
+        self.ID_POPUP_COMPUTE_GBRV = wx.NewId()
 
         menu = wx.Menu()
 
@@ -1927,6 +2304,8 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
         menu.Append(self.ID_POPUP_STDOUT, "Show standard output")
         menu.Append(self.ID_POPUP_STDERR, "Show standard error")
         menu.Append(self.ID_POPUP_CHANGE_INPUT, "Use these variables as new template")
+        menu.Append(self.ID_POPUP_COMPUTE_HINTS, "Compute hints for ecut")
+        menu.Append(self.ID_POPUP_COMPUTE_GBRV, "Perform GBRV tests")
 
         # Associate menu/toolbar items with their handlers.
         menu_handlers = [
@@ -1934,6 +2313,8 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
             (self.ID_POPUP_STDOUT, self.onShowStdout),
             (self.ID_POPUP_STDERR, self.onShowStderr),
             (self.ID_POPUP_CHANGE_INPUT, self.onChangeInput),
+            (self.ID_POPUP_COMPUTE_HINTS, self.onComputeHints),
+            (self.ID_POPUP_COMPUTE_GBRV, self.onGBRV),
         ]
 
         for combo in menu_handlers:
@@ -1947,11 +2328,60 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
         psgen = self.getSelectedPseudoGen()
         if psgen is None: return
 
-        # Change the parameters in wxinput using those in psgen.stdin_path
+        # Change the parameters in the notebook using those in psgen.stdin_path
         if not os.path.exists(psgen.stdin_path):
             return awx.showErrorMessage(self, "Input file %s does not exist" % psgen.stdin_path)
 
-        self.wxinput.fill_from_file(psgen.stdin_path)
+        main_frame = self.notebook.GetParent()
+        new_notebook = OncvNotebook.from_file(main_frame, psgen.stdin_path)
+        main_frame.BuildUI(notebook=new_notebook)
+
+    def onComputeHints(self, event):
+        psgen = self.getSelectedPseudoGen()
+        if psgen is None: return
+        print("workdir", psgen.workdir)
+
+        # Change the parameters in the notebook using those in psgen.stdin_path
+        #if not os.path.exists(psgen.stdin_path):
+        #    return awx.showErrorMessage(self, "Input file %s does not exist" % psgen.stdin_path)
+        from abipy import abilab
+        from pseudo_dojo.dojo.dojo_workflows import PPConvergenceFactory
+        factory = PPConvergenceFactory()
+
+        print("pseudo", psgen.pseudo)
+        workdir = os.path.join("HINTS_", psgen.pseudo.name)
+        flow = abilab.AbinitFlow(workdir, pickle_protocol=0)
+
+        work = factory.work_for_pseudo(psgen.pseudo, ecut_slice=slice(4, None, 1), nlaunch=2)
+        flow.register_work(work)
+        flow.allocate()
+        flow.build_and_pickle_dump()
+        scheduler = abilab.PyFlowScheduler.from_user_config()
+        scheduler.add_flow(flow)
+        scheduler.start()
+
+    def onGBRV(self, event):
+        psgen = self.getSelectedPseudoGen()
+        if psgen is None: return
+
+        # Change the parameters in the notebook using those in psgen.stdin_path
+        #if not os.path.exists(psgen.stdin_path):
+        #    return awx.showErrorMessage(self, "Input file %s does not exist" % psgen.stdin_path)
+        from abipy import abilab
+        from pseudo_dojo.dojo.dojo_workflows import GbrvFactory
+        factory = GbrvFactory()
+
+        flow = abilab.AbinitFlow(workdir="GBRV", pickle_protocol=0)
+        print("pseudo", psgen.pseudo)
+        for struct_type in ["fcc", "bcc"]:
+            work = factory.relax_and_eos_work(psgen.pseudo, struct_type)
+            flow.register_work(work)
+
+        flow.allocate()
+        flow.build_and_pickle_dump()
+        scheduler = abilab.PyFlowScheduler.from_user_config()
+        scheduler.add_flow(flow)
+        scheduler.start()
 
     #def onAddToHistory(self, event):
     #    psgen = self.getSelectedPseudoGen()
@@ -2071,8 +2501,6 @@ This window allows you to generate and analyze multiple pseudopotentials.
     def __init__(self, parent, psgens=(), **kwargs):
         """
         Args:
-            wxoncv_input:
-                Instance of `WxOncvInput`
             psgens:
                 List of `PseudoGenerators`.
         """
@@ -2118,6 +2546,9 @@ This window allows you to generate and analyze multiple pseudopotentials.
     def psgens(self):
         """List of PseudoGenerators."""
         return self.psgens_wxlist.psgens
+
+    def launch_psgens(self):
+        return self.psgens_wxlist.psgen_list_ctrl.launch_psges()
 
     def makeToolBar(self):
         """Create toolbar."""
@@ -2165,6 +2596,9 @@ This window allows you to generate and analyze multiple pseudopotentials.
         the list containing the generators in executions
         Submit up to max_nlauch tasks (-1 to run'em all)
         """
+        self.launch_psgens()
+
+    def launch_psgens(self):
         max_nlaunch = int(self.max_nlaunch.GetValue())
 
         nlaunch = 0
@@ -2196,7 +2630,7 @@ This window allows you to generate and analyze multiple pseudopotentials.
         main_sizer.Hide(0)
         main_sizer.Remove(0)
         new_psgen_wxlist = PseudoGeneratorsPanel(self.panel, self.psgens)
-        main_sizer.Insert(0, new_psgen_wxlist, 1, wx.EXPAND, 5)
+        main_sizer.Insert(0, new_psgen_wxlist, 1, wx.ALL | wx.EXPAND, 5)
         self.psgen_wxlist = new_psgen_wxlist
 
         self.panel.Layout()
@@ -2209,7 +2643,7 @@ This window allows you to generate and analyze multiple pseudopotentials.
         """Function executed when the GUI is idle."""
         now = time.time()
         if (now - self.last_refresh) > self.REFRESH_INTERVAL:
-            self.CheckStatusAndRedraw()
+            self.checkStatusAndRedraw()
             self.last_refresh = time.time()
 
     def onShowInputs(self, event):
@@ -2252,9 +2686,9 @@ This window allows you to generate and analyze multiple pseudopotentials.
 
         MyFrame(self, choices=keys, title="MultiPlotter").Show()
 
+
 def wxapp_oncvpsp(filepath=None):
     """Standalone application."""
-
     class OncvApp(awx.App):
         def OnInit(self):
             # The code for the splash screen.
@@ -2289,11 +2723,24 @@ if __name__ == "__main__":
     #    print("new model\n", inp)
     #sys.exit(0)
     try:
-        filepath = sys.argv[1]
+        filepaths = sys.argv[1:]
     except IndexError:
-        filepath = None
+        filepaths = None
 
-    wxapp_oncvpsp(filepath).MainLoop()
+    if filepaths is not None:
+        if filepaths[0] == "table":
+            for symbol in periodic_table.all_symbols():
+                path = symbol + ".dat"
+                if os.path.exists(path):
+                    print("Will open file %s" % path)
+                    wxapp_oncvpsp(path).MainLoop()
+        else:
+            for filepath in filepaths:
+                #print(filepath)
+                wxapp_oncvpsp(filepath).MainLoop()
+    else:
+        wxapp_oncvpsp().MainLoop()
+
     #app = awx.App()
     #frame = QcutOptimizationFrame(None, lmax=1)
     #frame.Show()
