@@ -108,7 +108,7 @@ class Structure(pymatgen.Structure):
                 Lattice parameter in Angstrom.
             species:
                 Chemical species. See Structure.__init__
-            **kwargs:
+            kwargs:
                 All keyword arguments accepted by Structure.__init__
         """
         lattice = 0.5 * float(a) * np.array([
@@ -128,7 +128,7 @@ class Structure(pymatgen.Structure):
                 Lattice parameter in Angstrom.
             species:
                 Chemical species. See Structure.__init__
-            **kwargs:
+            kwargs:
                 All keyword arguments accepted by Structure.__init__
         """
         # This is problematic

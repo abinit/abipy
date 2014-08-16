@@ -1261,7 +1261,7 @@ class AnaddbInput(mixins.MappingMixin):
         self[varname] = value
 
     def set_variables(self, **vars):
-        """Set the value of the variables provided in the dictionary **vars"""
+        """Set the value of the variables provided in the dictionary vars"""
         for varname, varvalue in vars.items():
             self.set_variable(varname, varvalue)
 

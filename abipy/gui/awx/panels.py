@@ -297,9 +297,7 @@ centered if values are centered on start,
 
 
 class RowMultiCtrl(wx.Panel):
-    """
-    A panel with control widgets for integer, floats, ... placed on a row.
-    """
+    """A panel with control widgets for integer, floats, ... placed on a row."""
     # Default parameters passed to SpinCtrl and SpinCtrlDouble.
     SPIN_DEFAULTS = dict(value="0", min=0, max=10000, initial=1)
 
@@ -330,13 +328,14 @@ class RowMultiCtrl(wx.Panel):
         """
         super(RowMultiCtrl, self).__init__(parent, -1)
 
-        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.ctrls = collections.OrderedDict()
-
         # Accepts lists or tuples as well.
         if isinstance(ctrl_params, (list, tuple)):
             ctrl_params = collections.OrderedDict(ctrl_params)
+
+        self.ctrl_params = ctrl_params
+        self.ctrls = collections.OrderedDict()
+
+        self.main_sizer = main_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         for label, params in ctrl_params.items():
             params = AttrDict(**params)
@@ -388,8 +387,11 @@ class RowMultiCtrl(wx.Panel):
 
             self.ctrls[label] = ctrl
 
-            main_sizer.Add(txt, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
-            main_sizer.Add(ctrl, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+            hsizer = wx.BoxSizer(wx.HORIZONTAL)
+            hsizer.Add(txt, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+            hsizer.Add(ctrl, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
+            main_sizer.Add(hsizer)
 
         self.SetSizerAndFit(main_sizer)
 
@@ -426,26 +428,44 @@ class TableMultiCtrl(wx.Panel):
         super(TableMultiCtrl, self).__init__(parent, -1)
 
         # Allow the user to customize RowMultiCtrl
-        rowmctrl_class = RowMultiCtrl if rowmctrl_class is None else rowmctrl_class
+        self.rowmctrl_class = RowMultiCtrl if rowmctrl_class is None else rowmctrl_class
 
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.ctrl_list = []
+        self.ctrl_list, self.ctrls = [], ctrls
         for row in range(nrows):
-            rowmc = rowmctrl_class(self, ctrls)
-            main_sizer.Add(rowmc, 1, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL)
+            rowmc = self.rowmctrl_class(self, ctrls)
+            self.main_sizer.Add(rowmc, 1, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL)
             self.ctrl_list.append(rowmc)
 
-        self.SetSizerAndFit(main_sizer)
+        self.SetSizerAndFit(self.main_sizer)
+
+    def __getitem__(self, item):
+        return self.ctrl_list.__getitem__(item)
 
     def __iter__(self):
         return self.ctrl_list.__iter__()
 
-    #def addRow(self, index=-1):
-    #    """Add a new row."""
+    def __len__(self):
+        return len(self.ctrl_list)
 
-    #def removeRow(self, index=-1):
-    #    """Remove row with the give index (default: last row)."""
+    def removeRow(self, index=-1):
+        """Remove row with the give index (default: last row)."""
+        if index == -1: index = len(self) - 1
+        if index >= len(self) or len(self) == 0: return
+        #print("removing row with index: %s/%s" % (index, len(self)))
+
+        self.main_sizer.Hide(index)
+        self.main_sizer.Remove(index)
+        self.ctrl_list.pop(index)
+        self.main_sizer.Layout()
+                                           
+    def appendRow(self):
+        """Add a new row."""
+        rowmc = self.rowmctrl_class(self, self.ctrls)
+        self.main_sizer.Add(rowmc, 1, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL)
+        self.ctrl_list.append(rowmc)
+        self.main_sizer.Layout()
 
     def GetParams(self):
         """Return the parameters selected by the user in a list of `AttrDict` dictionary"""
@@ -564,8 +584,8 @@ if __name__ == "__main__":
     app = wx.App()
     frame = wx.Frame(None)
 
-    table = [["ciao", "values"], [1,2], ["3", "4"]]
-    ctrl = ListCtrlFromTable(frame, table)
+    #table = [["ciao", "values"], [1,2], ["3", "4"]]
+    #ctrl = ListCtrlFromTable(frame, table)
 
     #panel = LinspaceControl(frame)
     #panel = ArangeControl(frame, start=10, stop=15, step=1)
@@ -578,10 +598,12 @@ if __name__ == "__main__":
     #    ("combo", dict(dtype="cbox", choices=["default", "another"])),
     #])
 
-    #panel = TableMultiCtrl(frame, 3, [
-    #    ("hello", dict(dtype="f", tooltip="Tooltip for hello")),
-    #    ("integer", dict(dtype="i", value=-1)),
-    #])
+    panel = TableMultiCtrl(frame, 1, [
+        ("hello", dict(dtype="f", tooltip="Tooltip for hello")),
+        ("integer", dict(dtype="i", value=-1)),
+    ])
+    panel.appendRow()
+    panel.removeRow()
 
     frame.Show()
     app.MainLoop()

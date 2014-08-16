@@ -740,7 +740,7 @@ class MassLauncher(object):
                     self.__dict__[setter] = self._distributed(setter)
 
     def properties(self):
-        """Return the list of properties with a 'set_' function."""
+        """Return the list of properties with a `set_` function."""
         funcs = filter(lambda s: s.startswith('set_'), dir(self))
         return [ f.split('set_', 1)[-1] for f in funcs ]
 

@@ -26,6 +26,7 @@ def generate_example_rst(app):
     head, tail = os.path.split(app.builder.srcdir)
     rootdir = os.path.join(head, "abipy", "examples")
     exampledir = os.path.join(app.builder.srcdir, 'examples')
+    #print(head, rootdir, exampledir)
 
     if not os.path.exists(exampledir): 
         os.makedirs(exampledir)
@@ -120,7 +121,6 @@ Abipy Examples
             fh.write('.. _%s-%s:\n\n'%(subdir, basename))
             title = '%s example code: %s'%(subdir, fname)
             #title = '<img src=%s> %s example code: %s'%(thumbfile, subdir, fname)
-
 
             fh.write(title + '\n')
             fh.write('='*len(title) + '\n\n')
