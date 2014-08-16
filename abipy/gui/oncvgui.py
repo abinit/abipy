@@ -6,7 +6,6 @@ import os
 import copy
 import time
 import abc
-import shutil
 import wx
 import awx
 import wx.lib.mixins.listctrl as listmix
@@ -195,10 +194,8 @@ allows you to scan a set of possible values for the generation of the pseudopote
         self.makeToolBar()
         #self.toolbar.Enable(False)
 
-        self.input_file = None
         if filepath is not None:
             if os.path.exists(filepath):
-                self.input_file = filepath
                 self.BuildUI(notebook=OncvNotebook.from_file(self, filepath))
             else:
                 # Assume symbol
@@ -2278,7 +2275,6 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
         self.ID_POPUP_CHANGE_INPUT = wx.NewId()
         self.ID_POPUP_COMPUTE_HINTS = wx.NewId()
         self.ID_POPUP_COMPUTE_GBRV = wx.NewId()
-        self.ID_POPUP_SAVE_PSEUDO = wx.NewId()
 
         menu = wx.Menu()
 
@@ -2310,7 +2306,6 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
         menu.Append(self.ID_POPUP_CHANGE_INPUT, "Use these variables as new template")
         menu.Append(self.ID_POPUP_COMPUTE_HINTS, "Compute hints for ecut")
         menu.Append(self.ID_POPUP_COMPUTE_GBRV, "Perform GBRV tests")
-        menu.Append(self.ID_POPUP_SAVE_PSEUDO, "Save Pseudo")
 
         # Associate menu/toolbar items with their handlers.
         menu_handlers = [
@@ -2320,7 +2315,6 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
             (self.ID_POPUP_CHANGE_INPUT, self.onChangeInput),
             (self.ID_POPUP_COMPUTE_HINTS, self.onComputeHints),
             (self.ID_POPUP_COMPUTE_GBRV, self.onGBRV),
-            (self.ID_POPUP_SAVE_PSEUDO, self.onSavePseudo),
         ]
 
         for combo in menu_handlers:
@@ -2365,42 +2359,6 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
         scheduler = abilab.PyFlowScheduler.from_user_config()
         scheduler.add_flow(flow)
         scheduler.start()
-
-    def onSavePseudo(self, event):
-        """Copy the pseudopotential file and the output file in the current directory."""
-        psgen = self.getSelectedPseudoGen()
-        if psgen is None: return
-
-        # Will save data in the directory of the input file.
-        main_frame = self.notebook.GetParent()
-        if main_frame.input_file:
-            # Should open a dialog to get the directory.
-            raise NotImplementedError()
-        else:
-            dirpath = os.path.dirname(main_frame.input_file)
-            base = os.path.basename(main_frame.input_file).split(".")[0]
-
-        # Create the names of the new files using base as prefix.
-        dst_pseudo = base + ".psp8" 
-        dst_output = base + ".out"
-
-        # Make sure we are not going to overwrite old files.
-        files = [os.path.basename(f) for f in os.listdir(dirpath)]
-        exists = []
-
-        if dst_pseduo in files:
-            exists.append(dst_pseudo)
-
-        if dts_output in files:
-            exists.append(dst_output)
-
-        if exists:
-            # Should open a dialog to ask for confirmation.
-            raise NotImplementedError()
-
-        # Copy files.
-        shutil.copy(pseudo.path, os.path.join(dirpath, dst_pseudo))
-        shutil.copy(psgen.stdout_path, os.path.join(dirpath, std_output))
 
     def onGBRV(self, event):
         psgen = self.getSelectedPseudoGen()
