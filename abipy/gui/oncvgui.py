@@ -5,6 +5,7 @@ from __future__ import print_function, division
 import os
 import copy
 import time
+import shutil
 import abc
 import wx
 import awx
@@ -18,7 +19,7 @@ from abipy.tools import AttrDict
 from abipy.gui.editor import TextNotebookFrame, SimpleTextViewer
 from abipy.gui.oncvtooltips import oncv_tip
 from abipy.gui import mixins as mix
-from pseudo_dojo.refdata.nist import nist_database as nist
+from pseudo_dojo.refdata.nist import database as nist
 from pseudo_dojo.ppcodes.ppgen import OncvGenerator
 from pseudo_dojo.ppcodes.oncvpsp import MultiPseudoGenDataPlotter
 
@@ -194,8 +195,10 @@ allows you to scan a set of possible values for the generation of the pseudopote
         self.makeToolBar()
         #self.toolbar.Enable(False)
 
+        self.input_file = None
         if filepath is not None:
             if os.path.exists(filepath):
+                self.input_file = os.path.abspath(filepath)
                 self.BuildUI(notebook=OncvNotebook.from_file(self, filepath))
             else:
                 # Assume symbol
@@ -2275,6 +2278,7 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
         self.ID_POPUP_CHANGE_INPUT = wx.NewId()
         self.ID_POPUP_COMPUTE_HINTS = wx.NewId()
         self.ID_POPUP_COMPUTE_GBRV = wx.NewId()
+        self.ID_POPUP_SAVE_PSGEN = wx.NewId()
 
         menu = wx.Menu()
 
@@ -2306,6 +2310,7 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
         menu.Append(self.ID_POPUP_CHANGE_INPUT, "Use these variables as new template")
         menu.Append(self.ID_POPUP_COMPUTE_HINTS, "Compute hints for ecut")
         menu.Append(self.ID_POPUP_COMPUTE_GBRV, "Perform GBRV tests")
+        menu.Append(self.ID_POPUP_SAVE_PSGEN, "Save PS generation")
 
         # Associate menu/toolbar items with their handlers.
         menu_handlers = [
@@ -2315,6 +2320,7 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
             (self.ID_POPUP_CHANGE_INPUT, self.onChangeInput),
             (self.ID_POPUP_COMPUTE_HINTS, self.onComputeHints),
             (self.ID_POPUP_COMPUTE_GBRV, self.onGBRV),
+            (self.ID_POPUP_SAVE_PSGEN, self.onSavePsgen),
         ]
 
         for combo in menu_handlers:
@@ -2359,6 +2365,41 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
         scheduler = abilab.PyFlowScheduler.from_user_config()
         scheduler.add_flow(flow)
         scheduler.start()
+
+    def onSavePsgen(self, event):
+        # Update the notebook
+        self.onChangeInput(event)
+
+        psgen = self.getSelectedPseudoGen()
+        if psgen is None: return
+
+        main_frame = self.notebook.GetParent()
+        input_file = main_frame.input_file
+
+        if input_file is None:
+            raise NotImplementedError()
+
+        dirpath = os.path.dirname(input_file)
+        basename = os.path.basename(input_file).replace(".in", "")
+
+        ps_dest = os.path.join(dirpath, basename + ".psp8")
+        out_dest = os.path.join(dirpath, basename + ".out")
+
+        exists = []
+        for f in [input_file, ps_dest, out_dest]:
+            if os.path.exists(f): exists.append(os.path.basename(f))
+
+        if exists:
+            msg = "File(s):\n%s already exist.\nDo you want to owerwrite them?" % "\n".join(exists)
+            answer = awx.askUser(self, msg)
+            if not answer: return
+
+        # Update the input file, then copy the pseudo file and the output file.
+        with open(input_file, "w") as fh:
+            fh.write(self.notebook.makeInputString())
+
+        shutil.copy(psgen.pseudo.path, ps_dest)
+        shutil.copy(psgen.stdout_path, out_dest)
 
     def onGBRV(self, event):
         psgen = self.getSelectedPseudoGen()

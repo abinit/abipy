@@ -106,6 +106,14 @@ def treat_flow(flow, options):
         num_cancelled = flow.cancel()
         print("Number of jobs cancelled %d" % num_cancelled)
 
+    if options.command == "tail":
+        paths = [t.stdout_file.path for t in flow.iflat_tasks(status="S_RUNNING")]
+        print("Pres CTRL+C to interrupe. Will follow output file %s" % str(paths))
+        try:
+            os.system("tail %s" % " ".join(paths))
+        except KeyboardInterrupt
+            pass
+
     return retcode
 
 
@@ -175,18 +183,17 @@ def main():
     #p_cancel = subparsers.add_parser('cancel', help="Cancel the tasks in the queue.")
 
     # Subparser for open command.
-    p_open = subparsers.add_parser('open', help="Open files (command line interface)")
-
+    p_open = subparsers.add_parser('open', help="Open files in $EDITOR, type `abirun.py ... open --help` for help)")
     p_open.add_argument('what', default="o", 
         help="""\
 Specify the files to open. Possible choices:\n
-i ==> input_file\n
-o ==> output_file\n
-f ==> files_file\n              
-j ==> job_file\n                
-l ==> log_file\n                
-e ==> stderr_file\n             
-q ==> qerr_file\n
+    i ==> input_file\n
+    o ==> output_file\n
+    f ==> files_file\n              
+    j ==> job_file\n                
+    l ==> log_file\n                
+    e ==> stderr_file\n             
+    q ==> qerr_file\n
 """)
 
     # Subparser for gui command.
@@ -194,10 +201,12 @@ q ==> qerr_file\n
     p_gui.add_argument("--chroot", default="", type=str, help=("Use chroot as new directory of the flow.\n" +
                        "Mainly used for opening a flow located on a remote filesystem mounted with sshfs.\n" +
                        "In this case chroot is the absolute path to the flow on the **localhost**\n",
-                       "Note that it's not possible to change the flow from remote when chroot is used."))
+                       "Note that it is not possible to change the flow from remote when chroot is used."))
 
     p_new_manager = subparsers.add_parser('new_manager', help="Change the TaskManager.")
     p_new_manager.add_argument("manager_file", default="", type=str, help="YAML file with the new manager")
+
+    p_tail = subparsers.add_parser('tail', help="Use tail to follow the main output file of the flow.")
 
     # Parse command line.
     try:

@@ -59,7 +59,7 @@ from elements import ELEMENTS, SERIES
 
 from abipy.gui.awx.panels import ListCtrlFromTable
 try:
-    from pseudo_dojo.refdata.nist import nist_database as nist
+    from pseudo_dojo.refdata.nist import database as nist
 except ImportError:
     pass
 

@@ -660,7 +660,7 @@ class Structure(pymatgen.Structure):
 
         return np.reshape(shiftk, (-1,3))
 
-    def calc_nvalence(self, pseudos):
+    def num_valence_electrons(self, pseudos):
         """
         Returns the number of valence electrons.
 
@@ -678,6 +678,8 @@ class Structure(pymatgen.Structure):
             nval += pseudos[0].Z_val 
 
         return nval
+
+    #calc_nvalence = num_valence_electrons
 
 
 class StructureModifier(object):

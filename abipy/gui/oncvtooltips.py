@@ -72,8 +72,8 @@ Maximum radius for Abinit psp code 8 format output.
 Must be greater than maximum rc (including lloc=4 rc), but also determines
 range of diagnostic plots, so  ~2*rcmax is usually good""",
 drl="""\
-Mesh spacing of linear radial mesh for Abinit output. 0.02 is good
-for "softer" psps, 0.01 is probably better with 1st row, 3d's, or semi-core psps.""",
+Mesh spacing of linear radial mesh for Abinit output. 
+0.02 is good for "softer" psps, 0.01 is probably better with 1st row, 3d's, or semi-core psps.""",
 ncnf="""\
 Number of test configurations (<=4).
 The reference config is always run first as a consistency check.  
