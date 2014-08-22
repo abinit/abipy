@@ -679,8 +679,6 @@ class Structure(pymatgen.Structure):
 
         return nval
 
-    #calc_nvalence = num_valence_electrons
-
 
 class StructureModifier(object):
     """
