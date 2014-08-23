@@ -107,12 +107,15 @@ def treat_flow(flow, options):
         print("Number of jobs cancelled %d" % num_cancelled)
 
     if options.command == "tail":
-        paths = [t.stdout_file.path for t in flow.iflat_tasks(status="S_RUNNING")]
-        print("Pres CTRL+C to interrupe. Will follow output file %s" % str(paths))
-        try:
-            os.system("tail %s" % " ".join(paths))
-        except KeyboardInterrupt
-            pass
+        paths = [t.stdout_file.path for t in flow.iflat_tasks(status="S_RUN")]
+        if not paths:
+            print("No job is running. Exiting!")
+        else:
+            print("Pres CTRL+C to interrupt. Will follow output file %s" % str(paths))
+            try:
+                os.system("tail %s" % " ".join(paths))
+            except KeyboardInterrupt:
+                pass
 
     return retcode
 
