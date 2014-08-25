@@ -93,7 +93,7 @@ def treat_flow(flow, options):
             except KeyboardInterrupt:
                 pass
         else:
-            flow.show_status()
+            flow.show_status(verbose=options.verbose)
         #import pstats, cProfile
         #cProfile.runctx("flow.show_status()", globals(), locals(), "Profile.prof")
         #s = pstats.Stats("Profile.prof")
@@ -103,17 +103,16 @@ def treat_flow(flow, options):
         flow.open_files(what=options.what, wti=None, status=None, op="==")
 
     if options.command == "cancel":
-        num_cancelled = flow.cancel()
-        print("Number of jobs cancelled %d" % num_cancelled)
+        print("Number of jobs cancelled %d" % flow.cancel())
 
     if options.command == "tail":
-        paths = [t.stdout_file.path for t in flow.iflat_tasks(status="S_RUN")]
+        paths = [t.output_file.path for t in flow.iflat_tasks(status="S_RUN")]
         if not paths:
             print("No job is running. Exiting!")
         else:
-            print("Pres CTRL+C to interrupt. Will follow output file %s" % str(paths))
+            print("Press CTRL+C to interrupt. Will follow %d output files" % len(paths))
             try:
-                os.system("tail %s" % " ".join(paths))
+                os.system("tail -f %s" % " ".join(paths))
             except KeyboardInterrupt:
                 pass
 
@@ -183,7 +182,7 @@ def main():
                           "If > 0, enter an infinite loop and delay execution for the given number of seconds."))
 
     # Subparser for scheduler command.
-    #p_cancel = subparsers.add_parser('cancel', help="Cancel the tasks in the queue.")
+    p_cancel = subparsers.add_parser('cancel', help="Cancel the tasks in the queue.")
 
     # Subparser for open command.
     p_open = subparsers.add_parser('open', help="Open files in $EDITOR, type `abirun.py ... open --help` for help)")
