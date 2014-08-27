@@ -530,6 +530,87 @@ class Structure(pymatgen.Structure):
         # Fortran 2 python!!!
         return scale_matrix.T
 
+    def get_trans_vect(self, scale_matrix):
+        """
+        Returns the translation vectors for a given scale matrix
+        :param scale_matrix: Scale matrix defining the new lattice vectors in term of the old ones
+        :return: the translation vectors
+        """
+
+        scale_matrix = np.array(scale_matrix, np.int16)
+        if scale_matrix.shape != (3, 3):
+            scale_matrix = np.array(scale_matrix * np.eye(3), np.int16)
+
+        def range_vec(i):
+            low = 0
+            high = 0
+            for z in scale_matrix[:, i]:
+                if z > 0:
+                    high += z
+                else:
+                    low += z
+            return np.arange(low, high+1)
+        arange = range_vec(0)[:, None] * np.array([1, 0, 0])[None, :]
+        brange = range_vec(1)[:, None] * np.array([0, 1, 0])[None, :]
+        crange = range_vec(2)[:, None] * np.array([0, 0, 1])[None, :]
+        all_points = arange[:, None, None] + brange[None, :, None] +\
+            crange[None, None, :]
+        all_points = all_points.reshape((-1, 3))
+
+        #find the translation vectors (in terms of the initial lattice vectors)
+        #that are inside the unit cell defined by the scale matrix
+        #we're using a slightly offset interval from 0 to 1 to avoid numerical
+        #precision issues
+        frac_points = np.dot(all_points, np.linalg.inv(scale_matrix))
+        tvects = all_points[np.where(np.all(frac_points < 1-1e-10, axis=1)
+                                     & np.all(frac_points >= -1e-10, axis=1))]
+        assert len(tvects) == np.round(abs(np.linalg.det(scale_matrix)))
+
+        return tvects
+
+    def write_vib_file(self, xyz_file, qpoint, displ, do_real=True, frac_coords=True, scale_matrix=None, max_supercell=None):
+        """ write into the file descriptor xyz_file the positions and displacements of the atoms
+        :param xyz_file: file_descriptor
+        :param qpoint: qpoint to be analyzed
+        :param displ: eigendisplacements to be analyzed
+        :param do_real: True if you want to get only real part, False means imaginary part
+        :param frac_coords: True if the eigendisplacements are given in fractional coordinates
+        :param scale_matrix: Scale matrix for supercell
+        :param max_supercell: Maximum size of supercell vectors with respect to primitive cell
+        :return: nothing
+        """
+
+        if scale_matrix is None:
+            if max_supercell is None:
+                raise ValueError("If scale_matrix is not provided, please provide max_supercell !")
+
+            scale_matrix = self.get_smallest_supercell(qpoint, max_supercell=max_supercell)
+
+        old_lattice = self._lattice
+
+        tvects = self.get_trans_vect(scale_matrix)
+
+        new_displ = np.zeros(3, dtype=np.float)
+
+        fmtstr = "{{}} {{:.{0}f}} {{:.{0}f}} {{:.{0}f}} {{:.{0}f}} {{:.{0}f}} {{:.{0}f}}\n".format(6)
+
+        for at,site in enumerate(self):
+            for t in tvects:
+                if(do_real):
+                    new_displ[:] = np.real(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ[at,:])
+                else:
+                    new_displ[:] = np.imag(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ[at,:])
+                if frac_coords:
+                    # Convert to fractional coordinates.
+                    new_displ = self.lattice.get_cartesian_coords()
+
+                # We don't normalize here !!!
+                fcoords = site.frac_coords + t
+                coords = old_lattice.get_cartesian_coords(fcoords)
+
+                xyz_file.write(fmtstr.format(site.specie, coords[0], coords[1], coords[2], new_displ[0], new_displ[1],
+                                             new_displ[2]))
+
     def frozen_phonon(self, qpoint, displ, do_real=True, frac_coords=True, scale_matrix=None, max_supercell=None):
         """
         Compute the supercell needed for a given qpoint and add the displacement
@@ -560,31 +641,7 @@ class Structure(pymatgen.Structure):
         old_lattice = self._lattice
         new_lattice = Lattice(np.dot(scale_matrix, old_lattice.matrix))
 
-        def range_vec(i):
-            low = 0
-            high = 0
-            for z in scale_matrix[:, i]:
-                if z > 0:
-                    high += z
-                else:
-                    low += z
-            return np.arange(low, high+1)
-        arange = range_vec(0)[:, None] * np.array([1, 0, 0])[None, :]
-        brange = range_vec(1)[:, None] * np.array([0, 1, 0])[None, :]
-        crange = range_vec(2)[:, None] * np.array([0, 0, 1])[None, :]
-        all_points = arange[:, None, None] + brange[None, :, None] +\
-            crange[None, None, :]
-        all_points = all_points.reshape((-1, 3))
-
-        #find the translation vectors (in terms of the initial lattice vectors)
-        #that are inside the unit cell defined by the scale matrix
-        #we're using a slightly offset interval from 0 to 1 to avoid numerical
-        #precision issues
-        frac_points = np.dot(all_points, np.linalg.inv(scale_matrix))
-        tvects = all_points[np.where(np.all(frac_points < 1-1e-10, axis=1)
-                                     & np.all(frac_points >= -1e-10, axis=1))]
-        assert len(tvects) == np.round(abs(np.linalg.det(scale_matrix)))
-
+        tvects = self.get_trans_vect(scale_matrix)
 
         new_displ = np.zeros(3, dtype=np.float)
         new_sites = []
