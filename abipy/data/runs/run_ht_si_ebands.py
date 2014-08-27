@@ -4,37 +4,15 @@ from __future__ import division, print_function
 
 import sys
 import os
-import abipy.data as data  
+import abipy.data as abidata  
 
 from abipy import abilab
-from pymatgen.io.abinitio.abiobjects import AbiStructure
+#from pymatgen.io.abinitio.abiobjects import AbiStructure
 from pymatgen.io.abinitio.calculations import bandstructure
-
-from abipy.data.runs import AbipyTest, MixinTest
-
-
-class HtSiEbandsFlowTest(AbipyTest, MixinTest):
-    """
-    Unit test for the flow defined in this module.  
-    Users who just want to learn how to use this flow can ignore this section.
-    """
-    def setUp(self):
-        super(HtSiEbandsFlowTest, self).setUp()
-        self.init_dirs()
-        self.flow = build_flow()
-
-    # Remove all files except those matching these regular expression.
-    #work[0].rename("out_WFK_0-etsf.nc", "si_scf_WFK-etsf.nc")
-    #work[0].rename("out_DEN-etsf.nc", "si_DEN-etsf.nc")
-    #work[0].rename("out_GSR.nc", "si_scf_GSR.nc")
-                                                                                 
-    #work[1].rename("out_GSR.nc", "si_nscf_GSR.nc")
-                                                                                 
-    #work.rmtree(exclude_wildcard="*.abin|*.about|*_WFK*|*_GSR.nc|*DEN-etsf.nc")
 
 
 def build_flow(options):
-    structure = AbiStructure.asabistructure(data.cif_file("si.cif"))
+    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
 
     scf_kppa = 40
     nscf_nband = 6
@@ -61,7 +39,7 @@ def build_flow(options):
     # FIXME  Abistructure is not pickleable with protocol -1
     flow = abilab.AbinitFlow(workdir=workdir, manager=manager, pickle_protocol=0)
 
-    work = bandstructure(structure, data.pseudos("14si.pspnc"), scf_kppa, nscf_nband, ndivsm, 
+    work = bandstructure(structure, abidata.pseudos("14si.pspnc"), scf_kppa, nscf_nband, ndivsm, 
                          spin_mode="unpolarized", smearing=None, **extra_abivars)
 
     flow.register_work(work)

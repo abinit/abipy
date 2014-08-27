@@ -55,7 +55,7 @@ class EliashbergFunction(object):
 
 class EPH_Reader(ETSF_Reader):
 
-    def __init__(file):
+    def __init__(self, file):
         super(EPH_Reader, self).__init__(file)
 
         self.eph_lambda = self.read_value("eph_coupling")

@@ -31,7 +31,6 @@ class TestFilesFile(AbipyFileTest):
             msg = str(w[-1].message)
             self.assertRegexpMatches(msg, "file not found")
 
-
     def test_str(self):
         """Test the FilesFile is printed correctly."""
         self.assertContains("""

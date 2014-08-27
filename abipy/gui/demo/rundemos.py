@@ -10,7 +10,7 @@ def str_examples():
     examples = (
       "Usage example:\n"
       "run.py               => Run all demo scripts.\n"
-      "run.py -m auto -t 5  => Run all tests, close the demo after 5 seconds.\n"
+      "run.py -m auto -t 7  => Run all tests, close the demo after 7 seconds.\n"
       )
     return examples
 
@@ -28,7 +28,7 @@ def main():
     parser.add_argument('-m', '--mode', type=str, default="automatic",
                         help="execution mode. Either s (sequential) or a (automatic)")
 
-    parser.add_argument('-t', '--time', type=float, default=3,
+    parser.add_argument('-t', '--time', type=float, default=5,
                         help="wait time seconds before running next demo.")
 
     options = parser.parse_args()

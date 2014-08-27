@@ -22,7 +22,10 @@ def ucell(name):
 
 def structure_from_ucell(name):
     """Returns a `Structure` from the name of entry in the database."""
-    return Structure.from_abivars(ucell(name))
+    try:
+        return Structure.from_abivars(ucell(name))
+    except KeyError:
+        raise KeyError("Cannot find key %s in:\n %s" % (name, list(_UCELLS.keys())))
 
 
 _UCELLS = {

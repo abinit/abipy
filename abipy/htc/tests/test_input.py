@@ -6,6 +6,7 @@ import abipy.data as abidata
 from abipy.core.testing import AbipyTest
 from abipy.htc.input import *
 
+
 class AbiInputTest(AbipyTest):
 
     def test_si_input(self):
@@ -28,15 +29,15 @@ class AbiInputTest(AbipyTest):
         # One can create a dictionary mapping keywords to values 
         unit_cell = {
             "acell": 3*[10.217],       
-            'rprim': [ [.0, .5, .5],
-                       [.5, .0, .5],
-                       [.5, .5, .0]],
+            'rprim': [[.0, .5, .5],
+                      [.5, .0, .5],
+                      [.5, .5, .0]],
             'ntypat': 1,
             'znucl': [14,],
             'natom': 2,
             'typat': [1, 1],
-            'xred': [ [.0, .0, .0],
-                      [.25,.25,.25] ]
+            'xred': [[.0, .0, .0],
+                     [.25,.25,.25]]
         }
 
         # and set the variables in the input file with the call:
@@ -73,7 +74,7 @@ class AbiInputTest(AbipyTest):
 
         # pseudo file must exist.
         with self.assertRaises(AbinitInputError):
-            inp = AbiInput(pseudos="foobar.pspnc", pseudo_dir=abidata.pseudo_dir, ndtset=2)
+            AbiInput(pseudos="foobar.pspnc", pseudo_dir=abidata.pseudo_dir, ndtset=2)
 
         tsmear_list = [0.005, 0.01]
         ngkpt_list = [[4,4,4], [8,8,8]]
@@ -182,6 +183,35 @@ class LdauLexxTest(AbipyTest):
             lexx_params.lexx_for_symbol("Ni", l=1)
 
 
-if __name__ == "__main__": 
+class AnaddbInputTest(AbipyTest):
+    """Tests for AnaddbInput."""
+
+    def test_phbands_and_dos(self):
+        """Test phbands_and_dos constructor."""
+        structure = abidata.structure_from_ucell("Si")
+        inp = AnaddbInput(structure, comment="hello anaddb", brav=1)
+        self.assertTrue("brav" in inp)
+        self.assertEqual(inp["brav"], 1)
+        self.assertEqual(inp.get("brav"), 1)
+
+        # Unknown variable.
+        with self.assertRaises(AnaddbInput.Error):
+            AnaddbInput(structure, foo=1)
+
+        ndivsm = 1
+        nqsmall = 3
+        ngqpt = (4, 4, 4)
+
+        inp2 = AnaddbInput.phbands_and_dos(structure, ngqpt, ndivsm, nqsmall, asr=0, dos_method="tetra")
+        s2 = inp2.to_string(sortmode="a")
+        print(s2)
+
+        inp3 = AnaddbInput.phbands_and_dos(structure, ngqpt, ndivsm, nqsmall,
+                                           qptbounds=[0,0,0,1,1,1], dos_method="gaussian:0.001 eV")
+        s3 = inp3.to_string(sortmode="a")
+        print(s3)
+
+
+if __name__ == "__main__":
     import unittest
     unittest.main()

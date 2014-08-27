@@ -2,7 +2,6 @@
 from __future__ import print_function, division
 
 import collections
-import itertools
 import numpy as np
 
 from abipy.core.kpoints import Kpoint
@@ -106,7 +105,7 @@ class GSphere(collections.Sequence):
     def tostring(self, prtvol=0):
         """String representation."""
         name = str(self.__class__)
-        s = name + ": kpoint = %(kpoint)s, ecut = %(ecut)f, npw = %(npw)d, istwfk = %(istwfk)d" % (self.__dict__)
+        s = name + ": kpoint = %(kpoint)s, ecut = %(ecut)f, npw = %(npw)d, istwfk = %(istwfk)d" % self.__dict__
         return s
 
     def _new_array(self, dtype=np.float, zero=True, extra_dims=()):
@@ -182,7 +181,7 @@ class GSphere(collections.Sequence):
                 if i2 < 0: i2 = i2 + n2
                 i3 = gvec[2]
                 if i3 < 0: i3 = i3 + n3
-                arr_on_mesh[...,i1,i2,i3] = arr_on_sphere[...,sph_idx]
+                arr_on_mesh[..., i1, i2, i3] = arr_on_sphere[..., sph_idx]
 
         else:
             raise NotImplementedError("istwfk = %s not implemented" % self.istwfk)
@@ -219,7 +218,7 @@ class GSphere(collections.Sequence):
                 if i2 < 0: i2 = i2 + n2
                 i3 = gvec[2]
                 if i3 < 0: i3 = i3 + n3
-                arr_on_sphere[...,sph_idx] = arr_on_mesh[...,i1,i2,i3]
+                arr_on_sphere[..., sph_idx] = arr_on_mesh[..., i1, i2, i3]
 
         else:
             raise NotImplementedError("istwfk %s is not implemented" % self.istwfk)
@@ -278,6 +277,7 @@ class GSphere(collections.Sequence):
 #        rec_vec = lattice.matrix[dim,:]
 #
 #        # Compute g_max and g_min for this direction.
+#        import itertools
 #        for ig in itertools.count(start=0, step=1):
 #            kpg = kcoords + (ig * rec_vec)
 #            kpg2 = norm2(kpg)

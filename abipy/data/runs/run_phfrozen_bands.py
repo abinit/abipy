@@ -10,19 +10,6 @@ import numpy as np
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from abipy.data.runs import AbipyTest, MixinTest
-
-
-class PhFrozenEbandsFlowTest(AbipyTest, MixinTest):
-    """
-    Unit test for the flow defined in this module.  
-    Users who just want to learn how to use this flow can ignore this section.
-    """
-    def setUp(self):
-        super(PhFrozenEbandsFlowTest, self).setUp()
-        self.init_dirs()
-        self.flow = build_flow()
-
 
 def make_scf_nscf_inputs(structure):
     inp = abilab.AbiInput(pseudos=data.pseudos("14si.pspnc"), ndtset=2)

@@ -9,17 +9,6 @@ import numpy as np
 import abipy.abilab as abilab
 import abipy.data as data
 
-from abipy.data.runs import AbipyTest, MixinTest
-
-class SicRelaxFlowTest(AbipyTest, MixinTest):
-    """
-    Unit test for the flow defined in this module.  
-    Users who just want to learn how to use this flow can ignore this section.
-    """
-    def setUp(self):
-        super(SicRelaxFlowTest, self).setUp()
-        self.init_dirs()
-        self.flow = build_flow()
 
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")

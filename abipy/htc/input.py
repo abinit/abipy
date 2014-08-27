@@ -12,15 +12,19 @@ import itertools
 import copy
 import abc
 import numpy as np
+import pymatgen.core.units as units
+import abipy.tools.mixins as mixins
 
 from pymatgen.io.abinitio.pseudos import PseudoTable, Pseudo
-from pymatgen.io.abinitio.strategies import select_pseudos
+from pymatgen.core.units import Energy
 from abipy.core import Structure
 from abipy.tools import is_string, list_strings
-from pymatgen.core.units import Energy
-
 from abipy.htc.variable import InputVariable
-from abipy.htc.abivars import is_abivar
+from abipy.htc.abivars import is_abivar, is_anaddb_var
+
+import logging
+logger = logging.getLogger(__file__)
+
 
 __all__ = [
     "AbinitInputError",
@@ -28,6 +32,7 @@ __all__ = [
     "LdauParams",
     "LexxParams",
     "input_gen",
+    "AnaddbInput",
 ]
 
 # Variables that must have a unique value throughout all the datasets.
@@ -82,7 +87,7 @@ class Input(object):
         # Write the input file.
         input_string = str(self)
         with open(filepath, "w") as fh:
-           fh.write(input_string)
+            fh.write(input_string)
 
         return input_string
 
@@ -121,13 +126,8 @@ class Input(object):
     #        self[idt].remove_variables(keys)
 
 
-
 class AbinitInputError(Exception):
     """Base error class for exceptions raised by `AbiInput`"""
-
-
-class UnknownVariable(AbinitInputError):
-    """Raises when we receive a variable that is not registered in abivars."""
 
 
 class AbiInput(Input):
@@ -256,7 +256,7 @@ class AbiInput(Input):
                         break
 
                 idt = int("".join(reversed(idt)))
-                if not (self.ndtset >= idt  >= 1):
+                if not (self.ndtset >= idt >= 1):
                     raise self.Error("Invalid dataset index %d, ndtset %d " % (idt, self.ndtset))
 
                 # Strip the numeric index.
@@ -269,7 +269,7 @@ class AbiInput(Input):
 
                     if varname in self[0]:
                         glob_value = np.array(self[0][varname])
-                        isok  = np.all(glob_value == np.array(value))
+                        isok = np.all(glob_value == np.array(value))
                         if not isok:
                             err_msg = "NO_MULTI variable: dataset 0: %s, dataset %d: %s" % (str(glob_value), idt, str(value))
                             raise self.Error(err_msg)
@@ -313,8 +313,11 @@ class AbiInput(Input):
         raise ValueError("Cannot extract a unique structure from an input file with multiple datasets!\n" + 
                          "Please DON'T use multiple datasets with different unit cells!")
 
-    @staticmethod
-    def _dtset2range(dtset):
+    def is_abivar(self, varname):
+        """True if varname is a valid Abinit variable."""
+        return is_abivar(varname)
+
+    def _dtset2range(self, dtset):
         """
         Helper function to convert dtset into a range. Accepts int, slice objects or iterable.
         """
@@ -497,7 +500,7 @@ class AbiInput(Input):
         idt = 0
         for names, values in zip(varnames, values):
             idt += 1
-            self[idt].set_variables(**{k:v for k, v in zip(names, values)})
+            self[idt].set_variables(**{k: v for k, v in zip(names, values)})
         
         if idt != self.ndtset:
             raise self.Error("The number of configurations must equal ndtset while %d != %d" % (idt, self.ndtset))
@@ -563,82 +566,28 @@ class AbiInput(Input):
         for idt in self._dtset2range(dtset):
             self[idt].set_kptgw(kptgw, bdgw)
 
-_UNITS = {
-    'bohr' : 1.0,
-    'angstrom' : 1.8897261328856432,
-    'hartree' : 1.0,
-    'Ha' : 1.0,
-    'eV' : 0.03674932539796232,
-}
 
-
-# TODO this should be the "actual" input file!
-class Dataset(collections.Mapping):
+class Dataset(mixins.MappingMixin):
     """
     This object stores the ABINIT variables for a single dataset.
     """
+    # TODO this should be the "actual" input file
     Error = AbinitInputError
 
     def __init__(self, index, dt0, *args, **kwargs):
-        self.vars = collections.OrderedDict(*args, **kwargs)
+        self._mapping_mixin_ = collections.OrderedDict(*args, **kwargs)
         self._index = index
         self._dt0 = dt0
 
     def __repr__(self):
-        "<%s at %s>" % self.__class__.__name__, id(self)
+        "<%s at %s>" % (self.__class__.__name__, id(self))
 
     def __str__(self):
         return self.to_string()
 
-    def __len__(self):
-        return self.vars
-
-    def __iter__(self):
-        return self.vars.__iter__()
-
-    def __getitem__(self, key):
-        return self.vars[key]
-
-    def __setitem__(self, key, value):
-        self.vars[key] = value
-
-    def __contains__(self, key):
-        return key in self.vars
-
-    def deepcopy(self):
-        """Deepcopy of the `Dataset`"""
-        return copy.deepcopy(self)
-
-    def keys(self):
-        return self.vars.keys()
-
-    def items(self):
-        return self.vars.items()
-
-    def get(self, value, default=None):
-        try:
-            return self[value]
-        except KeyError:
-            return default
-
-    def pop(self, k, *d):
-        """
-        D.pop(k[,d]) -> v, remove specified key and return the corresponding value.
-        If key is not found, d is returned if given, otherwise KeyError is raised
-        """
-        if d:
-            return self.vars.pop(k, d[0])
-        else:
-            return self.vars.pop(k)
-
-    def update(self, e, **f):
-        """
-        D.update([E, ]**F) -> None.  Update D from dict/iterable E and F.
-        If E present and has a .keys() method, does:     for k in E: D[k] = E[k]
-        If E present and lacks .keys() method, does:     for (k, v) in E: D[k] = v
-        In either case, this is followed by: for k in F: D[k] = F[k]
-        """
-        self.vars.update(e, **f)
+    @property
+    def vars(self):
+        return self._mapping_mixin_
 
     @property
     def index(self):
@@ -664,6 +613,10 @@ class Dataset(collections.Mapping):
         all_vars.update(self.vars)
         return all_vars.copy()
 
+    def deepcopy(self):
+        """Deepcopy of the `Dataset`"""
+        return copy.deepcopy(self)
+
     #@property
     #def geoformat(self):
     #    """
@@ -685,7 +638,7 @@ class Dataset(collections.Mapping):
 
         Args:
             sortmode:
-                Not available
+                "a" for alphabetical order, None if no sorting is wanterd
             post:
                 String that will be appended to the name of the variables
                 Note that post is usually autodetected when we have multiple datatasets
@@ -709,11 +662,9 @@ class Dataset(collections.Mapping):
         if sortmode is None:
             # no sorting.
             keys = self.keys()
-        elif sortmode is "a":
+        elif sortmode == "a":
             # alphabetical order.
             keys = sorted(self.keys())
-        #elif sortmode is "t": TODO
-            # group variables by topic
         else:
             raise ValueError("Unsupported value for sortmode %s" % str(sortmode))
 
@@ -748,7 +699,11 @@ class Dataset(collections.Mapping):
         self._comment = comment
 
     def set_variable(self, varname, value):
-        """Set a single variable."""
+        """Set a the value of a variable."""
+        # Check if varname is in the internal database.
+        if not is_abivar(varname):
+            raise self.Error("%s is not a valid ABINIT variable." % varname)
+
         if varname in self:
             try: 
                 iseq = (self[varname] == value)
@@ -760,14 +715,9 @@ class Dataset(collections.Mapping):
                 iseq = False
 
             if not iseq:
-                msg = "%s is already defined with a different value:\n old: %s, new %s" % (
+                msg = "%s is already defined with a different value:\nOLD:\n %s,\nNEW\n %s" % (
                     varname, str(self[varname]), str(value))
                 warnings.warn(msg)
-
-        # Check if varname is in the internal database.
-        if not is_abivar(varname):
-            err_msg = "%s is not a valid ABINIT variable." % varname
-            raise UnknownVariable(err_msg)
 
         self[varname] = value
 
@@ -776,7 +726,7 @@ class Dataset(collections.Mapping):
                                                                                                                       
             if varname in self.dt0:
                 glob_value = np.array(self.dt0[varname])
-                isok  = np.all(glob_value == np.array(value))
+                isok = np.all(glob_value == np.array(value))
                 if not isok:
                     err_msg = "NO_MULTI variable: dataset 0: %s, dataset %d: %s" % (
                         str(glob_value), self.index, str(value))
@@ -786,13 +736,16 @@ class Dataset(collections.Mapping):
 
     def set_variables(self, **vars):
         """Set the value of the variables provied in the dictionary **vars"""
-        for (varname, varvalue) in vars.items():
+        for varname, varvalue in vars.items():
             self.set_variable(varname, varvalue)
 
     def remove_variables(self, keys):
         """Remove the variables listed in keys."""
         for key in list_strings(keys):
-            self.pop(key, None)
+            if key not in self:
+                raise KeyError("key: %s not in self:\n %s" % (key, list(self.keys())))
+            #self.pop(key, None)
+            self.pop(key)
 
     @property
     def structure(self):
@@ -807,8 +760,8 @@ class Dataset(collections.Mapping):
             return self._structure
 
     def set_structure(self, structure):
-        if hasattr(self, "_structure") and self._structure != structure:
-            raise self.Error("Dataset object already has a structure object, cannot overwrite")
+        #if hasattr(self, "_structure") and self._structure != structure:
+        #    raise self.Error("Dataset object already has a structure object, cannot overwrite")
 
         self._structure = structure
         if structure is None:
@@ -835,8 +788,7 @@ class Dataset(collections.Mapping):
         self.set_variables(ngkpt=ngkpt,
                            kptopt=kptopt,
                            nshiftk=len(shiftk),
-                           shiftk=shiftk,
-                           )
+                           shiftk=shiftk)
 
     def set_autokmesh(self, nksmall, kptopt=1):
         """
@@ -854,8 +806,7 @@ class Dataset(collections.Mapping):
         self.set_variables(ngkpt=ngkpt,
                            kptopt=kptopt,
                            nshiftk=len(shiftk),
-                           shiftk=shiftk,
-                           )
+                           shiftk=shiftk)
 
     def set_kpath(self, ndivsm, kptbounds=None, iscf=-2):
         """
@@ -877,8 +828,7 @@ class Dataset(collections.Mapping):
         self.set_variables(kptbounds=kptbounds,
                            kptopt=-(len(kptbounds)-1),
                            ndivsm=ndivsm,
-                           iscf=iscf,
-                           )
+                           iscf=iscf)
 
     def set_kptgw(self, kptgw, bdgw):
         """
@@ -900,8 +850,7 @@ class Dataset(collections.Mapping):
 
         self.set_variables(kptgw=kptgw,
                            nkptgw=nkptgw,
-                           bdgw=np.reshape(bdgw, (nkptgw, 2)),
-                           )
+                           bdgw=np.reshape(bdgw, (nkptgw, 2)))
 
 
 class LujForSpecie(collections.namedtuple("LdauForSpecie", "l u j unit")):
@@ -1008,7 +957,7 @@ class LdauParams(object):
         return dict(
             usepawu=self.usepawu,
             lpawu=" ".join(map(str, lpawu)),
-            upawu=" ".join(map(str, upawu))  + " eV",
+            upawu=" ".join(map(str, upawu)) + " eV",
             jpawu=" ".join(map(str, jpawu)) + " eV",
         )
 
@@ -1073,9 +1022,7 @@ class LexxParams(object):
             l = self._lexx_for_symbol.get(symbol, -1)
             lexx_typat.append(int(l)) 
 
-        return dict(
-            useexexch=1,
-            lexexch=" ".join(map(str, lexx_typat)))
+        return dict(useexexch=1, lexexch=" ".join(map(str, lexx_typat)))
 
 
 def input_gen(inp, **kwargs):
@@ -1113,7 +1060,7 @@ def input_gen(inp, **kwargs):
 
 def product_dict(d):
     """
-    This function receives a dictionary where each key defines a list of items or a simple scalar.
+    This function receives a dictionary d where each key defines a list of items or a simple scalar.
     It constructs the Cartesian product of the values (equivalent to nested for-loops),
     and returns a list of dictionaries with the values that would be used inside the loop.
 
@@ -1152,3 +1099,215 @@ def product_dict(d):
         vars_prod.append(dprod)
 
     return vars_prod
+
+
+class AnaddbInputError(Exception):
+    """Exceptions raised by AnaddbInput."""
+
+
+class AnaddbInput(mixins.MappingMixin):
+    #TODO: Abstract interface to that we can provide
+    # tools for AbinitInput and AnaddbInput
+    #deepcopy
+    #removevariable
+    Error = AnaddbInputError
+
+    def __init__(self, structure, comment="", **kwargs):
+        """
+        Args:
+            structure:
+                Crystalline structure.
+            comment:
+                Optional string with a comment that will be placed at the beginning of the file.
+        """
+        self._structure = structure
+        self.comment = comment
+
+        for k in kwargs:
+            if not self.is_anaddb_var(k):
+                raise self.Error("%s is not a registered Anaddb variable" % k)
+
+        self._mapping_mixin_ = collections.OrderedDict(**kwargs)
+
+    @property
+    def vars(self):
+        return self._mapping_mixin_
+
+    @classmethod
+    def phbands_and_dos(cls, structure, ngqpt, ndivsm, nqsmall, q1shft=(0,0,0),
+                        qptbounds=None, asr=1, chneut=0, dipdip=1, dos_method="tetra", **kwargs):
+        """
+        Build an anaddb input file for the computation of phonon bands and phonon DOS.
+
+        Args:
+            Structure:
+                Structure object
+            ngqpt:
+                Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
+            ndivsm:
+                Used to generate a normalized path for the phonon bands.
+                If gives the number of divisions for the smallest segment of the path.
+            nqsmall:
+                Used to generate the (dense) mesh for the DOS.
+                It defines the number of q-points used to sample the smallest lattice vector.
+            q1shft:
+                Shifts used for the coarse Q-mesh
+            qptbounds
+                Boundaries of the path. If None, the path is generated from an internal database
+                depending on the input structure.
+            asr, chneut, dipdp:
+                Anaddb input variable. See official documentation.
+            dos_method:
+                Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
+                In the later case, the value 0.001 eV is used as gaussian broadening
+        """
+        dosdeltae, dossmear = None, None
+
+        if dos_method == "tetra":
+            prtdos = 2
+        elif "gaussian" in dos_method:
+            prtdos = 1
+            i = dos_method.find(":")
+            if i != -1:
+                value, eunit = dos_method[i+1:].split()
+                dossmear = units.Energy(float(value), eunit).to("Ha")
+        else:
+            raise cls.Error("Wrong value for dos_method: %s" % dos_method)
+
+        new = cls(structure, comment="ANADB input for phonon bands and DOS", **kwargs)
+
+        new.set_qpath(ndivsm, qptbounds=qptbounds)
+        new.set_autoqmesh(nqsmall)
+
+        q1shft = np.reshape(q1shft, (-1, 3))
+
+        new.set_variables(
+            ifcflag=1,
+            ngqpt=np.array(ngqpt),
+            q1shft=q1shft,
+            nqshft=len(q1shft),
+            asr=asr,
+            chneut=chneut,
+            dipdip=dipdip,
+            prtdos=prtdos,
+            dosdeltae=dosdeltae,
+            dossmear=dossmear,
+        )
+
+        return new
+
+    @property
+    def structure(self):
+        return self._structure
+
+    def __repr__(self):
+        return "<%s at %s>" % (self.__class__.__name__, id(self))
+
+    def __str__(self):
+        return self.to_string()
+
+    def make_input(self):
+        return self.to_string()
+
+    def to_string(self, sortmode=None):
+        """
+        String representation.
+
+        Args:
+            sortmode:
+                "a" for alphabetical order, None if no sorting is wanterd
+        """
+        lines = []
+        app = lines.append
+
+        if self.comment:
+            app("# " + self.comment.replace("\n", "\n#"))
+
+        if sortmode is None:
+            # no sorting.
+            keys = self.keys()
+        elif sortmode == "a":
+            # alphabetical order.
+            keys = sorted(self.keys())
+        else:
+            raise ValueError("Unsupported value for sortmode %s" % str(sortmode))
+
+        for varname in keys:
+            value = self[varname]
+            app(str(InputVariable(varname, value)))
+
+        return "\n".join(lines)
+
+    def set_variable(self, varname, value):
+        """Set a single variable."""
+        if varname in self:
+            try:
+                iseq = (self[varname] == value)
+                iseq = np.all(iseq)
+            except ValueError:
+                # array like.
+                iseq = np.allclose(self[varname], value)
+            else:
+                iseq = False
+
+            if not iseq:
+                msg = "%s is already defined with a different value:\nOLD:\n %s,\nNEW\n %s" % (
+                    varname, str(self[varname]), str(value))
+                warnings.warn(msg)
+
+        if not self.is_anaddb_var(varname):
+            raise self.Error("%s is not a valid ANADDB variable." % varname)
+
+        self[varname] = value
+
+    def set_variables(self, **vars):
+        """Set the value of the variables provided in the dictionary vars"""
+        for varname, varvalue in vars.items():
+            self.set_variable(varname, varvalue)
+
+    def add_extra_abivars(self, abivars):
+        """
+        This method is needed not to break the API used for strategies
+
+        Connection is explicit via the input file
+        since we can pass the paths of the output files
+        produced by the previous runs.
+        """
+
+    def is_anaddb_var(self, varname):
+        """"True if varname is a valid anaddb variable."""
+        return is_anaddb_var(varname)
+
+    def set_qpath(self, ndivsm, qptbounds=None):
+        """
+        Set the variables for the computation of the phonon band structure.
+
+        Args:
+            ndivsm:
+                Number of divisions for the smallest segment.
+            qptbounds
+                q-points defining the path in k-space.
+                If None, we use the default high-symmetry k-path
+                defined in the pymatgen database.
+        """
+        if qptbounds is None:
+            qptbounds = self.structure.calc_kptbounds()
+
+        qptbounds = np.reshape(qptbounds, (-1, 3))
+
+        # TODO: Add support for ndivsm in anaddb
+        self.set_variables(
+            #ndivsm=ndivsm,
+            nqpath=len(qptbounds),
+            qpath=qptbounds,
+        )
+
+    def set_autoqmesh(self, nqsmall):
+        """
+        Set the variabls nqpt for the sampling of the BZ.
+
+        Args:
+            nqsmall:
+                Number of q-points used to sample the smallest lattice vector.
+        """
+        self.set_variables(ng2qpt=self.structure.calc_ngkpt(nqsmall))

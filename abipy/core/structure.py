@@ -99,6 +99,66 @@ class Structure(pymatgen.Structure):
 
         return new
 
+    @classmethod
+    def bcc(cls, a, species, **kwargs):
+        """
+        Build a primitive bcc crystal structure.
+
+        Args:
+            a:
+                Lattice parameter in Angstrom.
+            species:
+                Chemical species. See Structure.__init__
+            kwargs:
+                All keyword arguments accepted by Structure.__init__
+        """
+        lattice = 0.5 * float(a) * np.array([
+            -1,  1,  1,
+             1, -1,  1,
+             1,  1, -1])
+
+        return cls(lattice, species, coords=[[0, 0, 0]],  **kwargs)
+
+    @classmethod
+    def fcc(cls, a, species, **kwargs):
+        """
+        Build a primitive fcc crystal structure.
+
+        Args:
+            a:
+                Lattice parameter in Angstrom.
+            species:
+                Chemical species. See Structure.__init__
+            kwargs:
+                All keyword arguments accepted by Structure.__init__
+        """
+        # This is problematic
+        lattice = 0.5 * float(a) * np.array([
+            0,  1,  1,
+            1,  0,  1,
+            1,  1,  0])
+
+        return cls(lattice, species, coords=[[0, 0, 0]], **kwargs)
+
+    @classmethod
+    def rocksalt(cls, a, sites, **kwargs):
+        lattice = 0.5 * float(a) * np.array([
+            0,  1,  1,
+            1,  0,  1,
+            1,  1,  0])
+
+        coords = np.reshape([0, 0, 0, 0.5, 0.5, 0.5], (2,3))
+        return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
+
+    #@classmethod
+    #def ABO3(cls, a, sites, **kwargs)
+    #   """Peroviskite structures."""
+    #    return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
+
+    #@classmethod
+    #def hH(cls, a, sites, **kwargs)
+    #    return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
+
     @property
     def spacegroup(self):
         """`SpaceGroup` instance."""
@@ -237,7 +297,7 @@ class Structure(pymatgen.Structure):
             filename = tempfile.mkstemp(suffix="." + ext, text=True)[1]
 
         with open(filename, mode="w") as fh:
-            if ext == "xsf": # xcrysden
+            if ext == "xsf":  # xcrysden
                 xsf.xsf_write_structure(fh, structures=[self])
             else:
                 raise Visualizer.Error("extension %s is not supported." % ext)
@@ -289,7 +349,7 @@ class Structure(pymatgen.Structure):
         #xred = np.where(np.abs(xred) > 1e-8, xred, 0.0)
 
         # Info on atoms.
-        d =  dict(
+        d = dict(
             natom=natom,
             ntypat=len(types_of_specie),
             typat=typat,
@@ -339,10 +399,10 @@ class Structure(pymatgen.Structure):
         znucl_type, typat = d["znucl"], d["typat"]
 
         if not isinstance(znucl_type, collections.Iterable):
-            znucl_type = [znucl_type,]
+            znucl_type = [znucl_type]
 
         if not isinstance(typat, collections.Iterable):
-            typat = [typat,]
+            typat = [typat]
 
         assert len(typat) == len(coords)
 
@@ -398,7 +458,7 @@ class Structure(pymatgen.Structure):
     #    # For each site in self:
     #    # 1) Get the radius of the pseudopotential sphere 
     #    # 2) Get the neighbors of the site (considering the periodic images).
-    #    pseudos = PseudoTable.astable(pseudos)
+    #    pseudos = PseudoTable.as_table(pseudos)
 
     #    max_overlap, ovlp_sites = 0.0, None
 
@@ -456,7 +516,7 @@ class Structure(pymatgen.Structure):
 
         # Displace the sites.
         for i in range(len(self)):
-           self.translate_sites(indices=i, vector=eta * displ[i, :], frac_coords=True)
+            self.translate_sites(indices=i, vector=eta * displ[i, :], frac_coords=True)
 
     def get_smallest_supercell(self, qpoint, max_supercell):
         """
@@ -698,7 +758,8 @@ class Structure(pymatgen.Structure):
         ngkpt = np.ones(3, dtype=np.int)
         for i in range(3):
             ngkpt[i] = int(round(nksmall * lengths[i] / lmin))
-            if (ngkpt[i] == 0): ngkpt[i] = 1
+            if ngkpt[i] == 0:
+                ngkpt[i] = 1
 
         return ngkpt
 
@@ -797,7 +858,7 @@ class Structure(pymatgen.Structure):
 
         return np.reshape(shiftk, (-1,3))
 
-    def calc_nvalence(self, pseudos):
+    def num_valence_electrons(self, pseudos):
         """
         Returns the number of valence electrons.
 
@@ -805,7 +866,7 @@ class Structure(pymatgen.Structure):
             pseudos:
                 List of `Pseudo` objects or list of pseudopotential filenames.
         """
-        table = PseudoTable.astable(pseudos)
+        table = PseudoTable.as_table(pseudos)
 
         nval = 0
         for site in self:

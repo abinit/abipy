@@ -26,8 +26,8 @@ pre_run: "source ~/env.sh"
 #    PATH: "~/Coding/Abinit/bzr_archives/773/gmatteo-private/gcc/src/98_main/:$PATH"
 #    DYLD_LIBRARY_PATH: /opt/intel/composerxe-2011.0.085/mkl/lib/:/opt/intel/composerxe-2011.0.085/compiler/lib/:$DYLD_LIBRARY_PATH
 policy:
-    autoparal: 0
-    max_ncpus: 0
+    autoparal: 1
+    max_ncpus: 4
     automemory: 0
     #mode: aggressive
     #condition: {mem_per_cpu: {$le: 10}}}

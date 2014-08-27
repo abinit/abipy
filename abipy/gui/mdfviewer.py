@@ -7,8 +7,8 @@ import wx.lib.agw.flatnotebook as fnb
 import abipy.gui.awx as awx
 
 from wx.py.shell import Shell
+from monty.string import marquee
 from abipy.abilab import abiopen
-from abipy.tools import marquee, list_strings 
 from abipy.electrons.bse import MDF_Plotter
 from abipy.iotools.visualizer import Visualizer
 from abipy.gui.kpoints import KpointsPanel

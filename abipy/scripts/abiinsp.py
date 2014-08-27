@@ -70,7 +70,9 @@ def main():
     p_plot = subparsers.add_parser('plot', aliases=["p"], help="Plot data")
     #p_plot.add_argument('visualizer', nargs="?", default="xcrysden", type=str, help="Visualizer.")
 
-    p_timer = subparsers.add_parser('timer', aliases=["t"], help="Show timing data.")
+    subparsers.add_parser('timer', aliases=["t"], help="Show timing data.")
+
+    subparsers.add_parser('pseudo', help="Show info on pseudopotential file.")
 
     # Parse command line.
     try:
@@ -101,6 +103,10 @@ def main():
         #parser.show_efficiency),
         #parser.show_stacked_hist),
 
+    elif options.command == "pseudo":
+        from pymatgen.io.abinitio.pseudos import PseudoParser
+        pseudo = PseudoParser().parse(options.filepath)
+        print(pseudo)
 
     else:
         raise ValueError("Unsupported command %s" % options.command)

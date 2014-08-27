@@ -168,11 +168,12 @@ def raman_workflow(structure, pseudos, ngkpt, shiftk, ddk_manager, shell_manager
     ddk_inputs = [ddk1, ddk2, ddk3]
 
     workflow = abilab.Workflow()
-    scf_t = workflow.register(scf_inp, task_class=abilab.ScfTask)
-    nscf_t = workflow.register(nscf_inp, deps={scf_t: "DEN"}, task_class=abilab.NscfTask)
+    scf_t = workflow.register_scf_task(scf_inp)
+    nscf_t = workflow.register_nscf_task(nscf_inp, deps={scf_t: "DEN"})
+
     ddk_nodes = []
     for inp in ddk_inputs:
-        ddk_t = workflow.register(inp, deps={nscf_t: "WFK"}, task_class=abilab.DDK_Task)
+        ddk_t = workflow.register_ddk_task(inp, deps={nscf_t: "WFK"})
         ddk_t.set_manager(ddk_manager)
         ddk_nodes.append(ddk_t)
 

@@ -1,8 +1,8 @@
+"""Core objects and helper functions."""
 from __future__ import print_function, division
 
 import os
 import sys
-import warnings
 import wx
 
 import abipy.tools.decorators as dec
@@ -14,13 +14,11 @@ from abipy.tools.text import list_strings
 
 
 __all__ = [
-    "Error",
     "path_img",
     "makeAboutBox",
     "verbose",
     "Panel",
     "Frame",
-    "FRAME_SIZE",
     "get_width_height",
 ]
 
@@ -36,11 +34,8 @@ else:
         return func
 
 
-FRAME_SIZE = (800, 600)
-
-
-class Error(Exception):
-    """Base class for exceptions raised by awx library"""
+#class Error(Exception):
+#    """Base class for exceptions raised by awx library"""
 
 
 def path_img(filename):
@@ -85,6 +80,7 @@ Suite 330, Boston, MA  02111-1307  USA""" % {"codename": codename}
     info.SetName(codename)
     info.SetVersion(version)
     info.SetDescription(description)
+    info.SetCopyright('(C) Abipy group')
 
     if website is not None:
         info.SetWebSite(website)
@@ -97,7 +93,7 @@ Suite 330, Boston, MA  02111-1307  USA""" % {"codename": codename}
     wx.AboutBox(info)
 
 
-def get_width_height(window, string, pads=(10,10)):
+def get_width_height(window, string, pads=(10, 10)):
     """
     Returns the width and the height (in pixels) of a string used in window.
     Returns are padded with pads
@@ -112,7 +108,14 @@ def get_width_height(window, string, pads=(10,10)):
 
 
 class MyWindow(object):
-    """Mixin class providing helper functions."""
+    """
+    Mixin class providing helper functions and commonly used callbacks.
+
+    Attributes:
+        HELP_MSG:
+            string with a short help (will be displayed in MessageDialog in onHelp callback)
+    """
+    HELP_MSG = "No help available"
 
     def getParentWithType(self, cls):
         """
@@ -132,6 +135,12 @@ class MyWindow(object):
             else:
                 parent = parent.GetParent()
 
+    def onHelp(self, event):
+        """Short help."""
+        dialog = wx.MessageDialog(self, self.HELP_MSG, " Quick Reference", wx.OK | wx.ICON_INFORMATION)
+        dialog.ShowModal()
+        dialog.Destroy()
+
 
 class Panel(wx.Panel, MyWindow):
     def __init__(self, parent, *args, **kwargs):
@@ -139,10 +148,9 @@ class Panel(wx.Panel, MyWindow):
 
 
 class Frame(wx.Frame, MyWindow):
-    def __init__(self, parent, *args, **kwargs):
-        if "size" not in kwargs:
-            kwargs["size"] = FRAME_SIZE
+    """Base class for frames."""
 
+    def __init__(self, parent, *args, **kwargs):
         if "title" not in kwargs:
             kwargs["title"] = self.__class__.__name__
         

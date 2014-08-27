@@ -6,7 +6,6 @@ import collections
 import numpy as np
 import warnings
 
-from abipy.core.exceptions import AbipyException
 from abipy.iotools import as_etsfreader, ETSF_Reader
 from abipy.tools import AttrDict
 from abipy.tools.derivatives import finite_diff
@@ -25,6 +24,7 @@ __all__ = [
 
 # Tolerance used to compare k-points.
 _ATOL_KDIFF = 1e-8
+
 
 def isinteger(x, atol=_ATOL_KDIFF):
     """
@@ -160,7 +160,7 @@ def kmesh_from_mpdivs(mpdivs, shifts, pbc=False, order="bz"):
     return np.array(kbz)
 
 
-class KpointsError(AbipyException):
+class KpointsError(Exception):
     """Base error class for KpointList exceptions."""
 
 

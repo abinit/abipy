@@ -18,6 +18,7 @@ __all__ = [
     "Has_PhononBands",
 ]
 
+
 class AbinitFile(object):
     """
     Abstract base class defining the methods that must be  implemented 

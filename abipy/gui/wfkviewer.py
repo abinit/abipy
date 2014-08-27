@@ -3,11 +3,10 @@ from __future__ import print_function, division
 import os
 import wx
 
-import wx.lib.agw.flatnotebook as fnb
 import abipy.gui.awx as awx
 
 from wx.py.shell import Shell
-from abipy.tools import marquee, list_strings 
+from monty.string import marquee
 from abipy.abilab import abiopen
 from abipy.iotools.visualizer import Visualizer
 from abipy.gui import mixins as mix 

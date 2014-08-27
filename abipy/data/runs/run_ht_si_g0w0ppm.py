@@ -4,36 +4,16 @@ from __future__ import division, print_function
 
 import sys
 import os
-import abipy.data as data  
+import abipy.data as abidata  
 
-
-from pymatgen.io.abinitio.abiobjects import AbiStructure
 from pymatgen.io.abinitio.calculations import g0w0_with_ppmodel
 from abipy import abilab
-from abipy.data.runs import AbipyTest, MixinTest
-
-
-class HtSiEbandsFlowTest(AbipyTest, MixinTest):
-    """
-    Unit test for the flow defined in this module.  
-    Users who just want to learn how to use this flow can ignore this section.
-    """
-    def setUp(self):
-        super(HtSiEbandsFlowTest, self).setUp()
-        self.init_dirs()
-        self.flow = build_flow()
-
-    # Remove all files except those matching these regular expression.
-    #work[3].rename("out_SIGRES.nc", "si_g0w0ppm_SIGRES.nc")
-    #work.rmtree(exclude_wildcard="*.abin|*.about|*_SIGRES.nc")
-    #tester.finalize()
-    #return tester.retcode
 
 
 def build_flow(options):
-    structure = AbiStructure.asabistructure(data.cif_file("si.cif"))
+    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
 
-    pseudos = data.pseudos("14si.pspnc")
+    pseudos = abidata.pseudos("14si.pspnc")
 
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
@@ -46,20 +26,19 @@ def build_flow(options):
     # Initialize the flow.
     # FIXME
     # Don't know why protocol=-1 does not work here.
-    flow = abilab.AbinitFlow(workdir, manager, pickle_protocol=0)
+    flow = abilab.AbinitFlow(workdir, manager) #, pickle_protocol=0)
 
-    scf_kppa = 40
-    nscf_nband = 100
+    scf_kppa = 10
+    nscf_nband = 10
     #nscf_ngkpt = [4,4,4]
     #nscf_shiftk = [0.0, 0.0, 0.0]
-    ecuteps, ecutsigx = 6, 8
+    ecut, ecuteps, ecutsigx = 4, 2, 3
     #scr_nband = 50
     #sigma_nband = 50
 
     extra_abivars = dict(
-        ecut=8, 
+        ecut=ecut, 
         istwfk="*1",
-        timopt=-1,
     )
 
     work = g0w0_with_ppmodel(structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx,

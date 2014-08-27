@@ -110,7 +110,7 @@ def file_doesnt_end_with(test, endings):
 #---------------------------------------------------------------------------
 
 # release.py contains version, authors, license, url, keywords, etc.
-release_file = os.path.join('abipy','core','release.py')
+release_file = os.path.join('abipy', 'core', 'release.py')
 
 with open(release_file) as f:
     code = compile(f.read(), release_file, 'exec')
@@ -132,12 +132,13 @@ with open(release_file) as f:
 #---------------------------------------------------------------------------
 
 def find_package_data():
-    "Find abipy's package_data."
+    """Find abipy's package_data."""
     # This is not enough for these things to appear in an sdist.
     # We need to muck with the MANIFEST to get this to work
     package_data = {
         'abipy.data' : ['*','pseudos/*','runs/*','cifs/*','benchmarks/*'],
         'abipy.data.runs' : ['data_*/outdata/*','tmp_*/outdata/*'],
+        'abipy.htc': ["abinit_vars.json", 'anaddb_vars.json'],
         'abipy.gui.awx' : ['images/*'],
     }
     return package_data
@@ -158,14 +159,14 @@ def find_scripts():
     """Find abipy scripts."""
     scripts = []
     # All python files in abipy/scripts
-    pyfiles = glob(os.path.join('abipy','scripts',"*.py"))
+    pyfiles = glob(os.path.join('abipy', 'scripts', "*.py"))
     scripts.extend(pyfiles)
     return scripts
 
 
 def get_long_desc():
-    with open("README.rst") as f:
-        return f.read()
+    with open("README.rst") as fh:
+        return fh.read()
 
 
 #-----------------------------------------------------------------------------
@@ -189,14 +190,14 @@ def cleanup():
 # List of external packages we rely on.
 # Note setup install will download them from Pypi if they are not available.
 install_requires = [
-    "termcolor>=1.1.0",
-    "apscheduler>=2.1.1",
+    "termcolor",
+    "apscheduler",
     "PyDispatcher",
     "numpy",
     #"numpy>=1.8",  # We need this one for the ufuncs
-    "scipy>=0.10",
+    "scipy",
     #"matplotlib>=1.1",
-    "pyyaml>=3.1.0",
+    "pyyaml",
     "netCDF4",
     "pymatgen>=2.9.0",
     #"fabric",

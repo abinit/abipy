@@ -1,7 +1,9 @@
+"""Frames for text visualization."""
 from __future__ import print_function, division
 
 import os
 import wx
+import tempfile
 import wx.lib.agw.flatnotebook as fnb
 import abipy.gui.awx as awx
 
@@ -9,28 +11,33 @@ from abipy.tools.text import WildCard
 from wx.py.editor import EditorFrame, EditorNotebookFrame  
 
 __all__ = [
+    "SimpleTextViewer",
     "TextNotebookFrame",
 ]
+
+
+def add_size(kwargs, size=(800, 600)):
+    """Add size to kwargs if not present."""
+    if "size" not in kwargs:
+        kwargs["size"] = size
+
+    return kwargs
 
 
 class SimpleTextViewer(awx.Frame):
     """Very simple frame that displays text (string ) in read-only mode."""
     def __init__(self, parent, text, **kwargs):
-        super(SimpleTextViewer, self).__init__(parent, **kwargs)
-        wx.TextCtrl(self, -1, text, style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
+        super(SimpleTextViewer, self).__init__(parent, **add_size(kwargs))
+        wx.TextCtrl(self, -1, text, style=wx.TE_MULTILINE | wx.TE_LEFT | wx.TE_READONLY)
 
 
 class MyEditorFrame(EditorFrame):
     def __init__(self, parent, filename, **kwargs):
-        if "size" not in kwargs:
-            kwargs["size"] = awx.FRAME_SIZE
-
-        super(MyEditorFrame, self).__init__(parent, filename=filename, **kwargs)
+        super(MyEditorFrame, self).__init__(parent, filename=filename, **add_size(kwargs))
 
     @classmethod
     def from_text(cls, parent, text, **kwargs):
         """Hack so that we can open a string in the Editor."""
-        import tempfile
         fd, filename = tempfile.mkstemp(text=True)
 
         with open(filename, "w") as fh:
@@ -55,10 +62,7 @@ class TextNotebookFrame(awx.Frame):
             num_dirs:
                 Maximum number of directories that will be shown in the tab.
         """
-        if "title" not in kwargs:
-            kwargs["title"] = self.__class__.__name__
-
-        super(TextNotebookFrame, self).__init__(parent, **kwargs)
+        super(TextNotebookFrame, self).__init__(parent, **add_size(kwargs))
 
         # Add the pages to the notebook with the name to show on the tab
         if not isinstance(text_list, (list, tuple)):
