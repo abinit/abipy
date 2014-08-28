@@ -7,6 +7,7 @@ import numpy as np
 
 from pymatgen.io.abinitio.pseudos import PseudoTable
 from pymatgen.core.design_patterns import AttrDict
+from pymatgen.core.structure import PeriodicSite
 from abipy.core.constants import ArrayWithUnit
 from abipy.core.symmetries import SpaceGroup
 from abipy.iotools import as_etsfreader, Visualizer
@@ -517,17 +518,236 @@ class Structure(pymatgen.Structure):
         for i in range(len(self)):
             self.translate_sites(indices=i, vector=eta * displ[i, :], frac_coords=True)
 
-    #def frozen_phonon(self, qpoint, displ, eta):
-    #    old_lattice = self.lattice.copy()
-    #    scaling_matrix = 
-    #    self.make_supercell(scaling_matrix)
-    #    supercell_dipl = np.empty((len(self),3))
-    #    for at, site in enumerate(self):
-    #       l = 
-    #       base_atm = 
-    #       supercell_displ[at,:] = np.real(np.exp(2i * np.pi qpoint . l) displ[base_atm, :])
-    #
-    #    self.displace(supercell_displ, eta)
+    def get_smallest_supercell(self, qpoint, max_supercell):
+        """
+
+        :param qpoint: q vector in reduced coordinate in reciprocal space
+        :param max_supercell: vector with the maximum supercell size
+        :return: the scaling matrix of the supercell
+        """
+        if np.allclose(qpoint, 0):
+            scale_matrix = np.eye(3, 3)
+            return scale_matrix
+
+        l = max_supercell
+
+        # Inspired from Exciting Fortran code phcell.F90
+        # It should be possible to improve this code taking advantage of python !
+        scale_matrix = np.zeros((3,3),dtype=np.int)
+        dmin = np.inf
+        found = False
+
+        # Try to reduce the matrix
+        rprimd = self.lattice.matrix
+        for l1 in np.arange(-l[0], l[0]+1):
+            for l2 in np.arange(-l[1], l[1]+1):
+                for l3 in np.arange(-l[2], l[2]+1):
+                    lnew = np.array([l1, l2, l3])
+                    ql = np.dot(lnew, qpoint)
+                    # Check if integer and non zero !
+                    if np.abs(ql - np.round(ql)) < 1e-6:
+                        Rl = np.dot(lnew, rprimd)
+                        # Normalize the displacement so that the maximum atomic displacement is 1 Angstrom.
+                        dnorm = np.sqrt(np.dot(Rl,Rl))
+                        if dnorm < dmin and dnorm > 1e-6:
+                            found = True
+                            scale_matrix[:, 0] = lnew
+                            dmin = dnorm
+        if not found:
+            raise ValueError('max_supercell is not large enough for this q-point')
+
+        found = False
+        dmin = np.inf
+        for l1 in np.arange(-l[0], l[0]+1):
+            for l2 in np.arange(-l[1], l[1]+1):
+                for l3 in np.arange(-l[2], l[2]+1):
+                    lnew = np.array([l1, l2, l3])
+                    # Check if not parallel !
+                    cp = np.cross(lnew, scale_matrix[:,0])
+                    if np.dot(cp,cp) > 1e-6:
+                        ql = np.dot(lnew, qpoint)
+                        # Check if integer and non zero !
+                        if np.abs(ql - np.round(ql)) < 1e-6:
+                            Rl = np.dot(lnew, rprimd)
+                            dnorm = np.sqrt(np.dot(Rl, Rl))
+                            if dnorm < dmin and dnorm > 1e-6:
+                                found = True
+                                scale_matrix[:, 1] = lnew
+                                dmin = dnorm
+        if not found:
+            raise ValueError('max_supercell is not large enough for this q-point')
+
+        dmin = np.inf
+        found = False
+        for l1 in np.arange(-l[0], l[0]+1):
+            for l2 in np.arange(-l[1], l[1]+1):
+                for l3 in np.arange(-l[2], l[2]+1):
+                    lnew = np.array([l1, l2, l3])
+                    # Check if not parallel !
+                    cp = np.dot(np.cross(lnew, scale_matrix[:, 0]), scale_matrix[:, 1])
+                    if cp > 1e-6:
+                        # Should be positive as (R3 X R1).R2 > 0 for abinit !
+                        ql = np.dot(lnew, qpoint)
+                        # Check if integer and non zero !
+                        if np.abs(ql - np.round(ql)) < 1e-6:
+                            Rl = np.dot(lnew, rprimd)
+                            dnorm = np.sqrt(np.dot(Rl,Rl))
+                            if dnorm < dmin and dnorm > 1e-6:
+                                found = True
+                                scale_matrix[:, 2] = lnew
+                                dmin = dnorm
+        if not found:
+            raise ValueError('max_supercell is not large enough for this q-point')
+
+        # Fortran 2 python!!!
+        return scale_matrix.T
+
+    def get_trans_vect(self, scale_matrix):
+        """
+        Returns the translation vectors for a given scale matrix
+        :param scale_matrix: Scale matrix defining the new lattice vectors in term of the old ones
+        :return: the translation vectors
+        """
+
+        scale_matrix = np.array(scale_matrix, np.int16)
+        if scale_matrix.shape != (3, 3):
+            scale_matrix = np.array(scale_matrix * np.eye(3), np.int16)
+
+        def range_vec(i):
+            low = 0
+            high = 0
+            for z in scale_matrix[:, i]:
+                if z > 0:
+                    high += z
+                else:
+                    low += z
+            return np.arange(low, high+1)
+        arange = range_vec(0)[:, None] * np.array([1, 0, 0])[None, :]
+        brange = range_vec(1)[:, None] * np.array([0, 1, 0])[None, :]
+        crange = range_vec(2)[:, None] * np.array([0, 0, 1])[None, :]
+        all_points = arange[:, None, None] + brange[None, :, None] +\
+            crange[None, None, :]
+        all_points = all_points.reshape((-1, 3))
+
+        #find the translation vectors (in terms of the initial lattice vectors)
+        #that are inside the unit cell defined by the scale matrix
+        #we're using a slightly offset interval from 0 to 1 to avoid numerical
+        #precision issues
+        inv_matrix = np.linalg.inv(scale_matrix)
+
+
+        frac_points = np.dot(all_points, inv_matrix)
+        tvects = all_points[np.where(np.all(frac_points < 1-1e-10, axis=1)
+                                     & np.all(frac_points >= -1e-10, axis=1))]
+        assert len(tvects) == np.round(abs(np.linalg.det(scale_matrix)))
+
+        return tvects
+
+    def write_vib_file(self, xyz_file, qpoint, displ, do_real=True, frac_coords=True, scale_matrix=None, max_supercell=None):
+        """ write into the file descriptor xyz_file the positions and displacements of the atoms
+        :param xyz_file: file_descriptor
+        :param qpoint: qpoint to be analyzed
+        :param displ: eigendisplacements to be analyzed
+        :param do_real: True if you want to get only real part, False means imaginary part
+        :param frac_coords: True if the eigendisplacements are given in fractional coordinates
+        :param scale_matrix: Scale matrix for supercell
+        :param max_supercell: Maximum size of supercell vectors with respect to primitive cell
+        :return: nothing
+        """
+
+        if scale_matrix is None:
+            if max_supercell is None:
+                raise ValueError("If scale_matrix is not provided, please provide max_supercell !")
+
+            scale_matrix = self.get_smallest_supercell(qpoint, max_supercell=max_supercell)
+
+        old_lattice = self._lattice
+        new_lattice = Lattice(np.dot(scale_matrix, old_lattice.matrix))
+
+        tvects = self.get_trans_vect(scale_matrix)
+
+        new_displ = np.zeros(3, dtype=np.float)
+
+        fmtstr = "{{}} {{:.{0}f}} {{:.{0}f}} {{:.{0}f}} {{:.{0}f}} {{:.{0}f}} {{:.{0}f}}\n".format(6)
+
+        for at,site in enumerate(self):
+            for t in tvects:
+                if do_real:
+                    new_displ[:] = np.real(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ[at,:])
+                else:
+                    new_displ[:] = np.imag(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ[at,:])
+                if frac_coords:
+                    # Convert to fractional coordinates.
+                    new_displ = self.lattice.get_cartesian_coords(new_displ)
+
+                # We don't normalize here !!!
+                fcoords = site.frac_coords + t
+
+                coords = old_lattice.get_cartesian_coords(fcoords)
+
+                new_fcoords = new_lattice.get_fractional_coords(coords)
+
+                # New_fcoords -> map into 0 - 1
+                new_fcoords = np.mod(new_fcoords, 1)
+                coords = new_lattice.get_cartesian_coords(new_fcoords)
+
+                xyz_file.write(fmtstr.format(site.specie, coords[0], coords[1], coords[2], new_displ[0], new_displ[1], new_displ[2]))
+
+    def frozen_phonon(self, qpoint, displ, do_real=True, frac_coords=True, scale_matrix=None, max_supercell=None):
+        """
+        Compute the supercell needed for a given qpoint and add the displacement
+        Args:
+            qpoint:
+                q vector in reduced coordinate in reciprocal space
+            displ:
+                displacement in real space of the atoms, will be normalized to 1 Angstrom
+            eta:
+                pre-factor multiplying the displacement
+            do_real:
+                true if we want only the real part of the displacement
+        """
+
+        # I've copied code from make_supercell since the loop over supercell images
+        #  is inside make_supercell and I don't want to create a mapping
+
+        if scale_matrix is None:
+            if max_supercell is None:
+                raise ValueError("If scale_matrix is not provided, please provide max_supercell !")
+
+            scale_matrix = self.get_smallest_supercell(qpoint, max_supercell=max_supercell)
+
+        scale_matrix = np.array(scale_matrix, np.int16)
+        if scale_matrix.shape != (3, 3):
+            scale_matrix = np.array(scale_matrix * np.eye(3), np.int16)
+
+        old_lattice = self._lattice
+        new_lattice = Lattice(np.dot(scale_matrix, old_lattice.matrix))
+
+        tvects = self.get_trans_vect(scale_matrix)
+
+        new_displ = np.zeros(3, dtype=np.float)
+        new_sites = []
+        for at,site in enumerate(self):
+            for t in tvects:
+                if(do_real):
+                    new_displ[:] = np.real(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ[at,:])
+                else:
+                    new_displ[:] = np.imag(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ[at,:])
+                if not frac_coords:
+                    # Convert to fractional coordinates.
+                    new_displ = self.lattice.get_fractional_coords(new_displ)
+
+                # We don't normalize here !!!
+                fcoords = site.frac_coords + t + new_displ
+                coords = old_lattice.get_cartesian_coords(fcoords)
+                new_site = PeriodicSite(
+                    site.species_and_occu, coords, new_lattice,
+                    coords_are_cartesian=True, properties=site.properties,
+                    to_unit_cell=True)
+                new_sites.append(new_site)
+
+        self._sites = new_sites
+        self._lattice = new_lattice
 
     def calc_kptbounds(self):
         """Returns the suggested value for kptbounds."""
@@ -788,13 +1008,9 @@ class StructureModifier(object):
 
         return news
 
-    #def frozen_phonon(self, qpoint, displ, etas):
-    #   if not isinstance(etas, collections.Iterable):
-    #       etas = [etas]
-    #    news = []
-    #    for eta in etas:
-    #        new_structure = self.copy_structure()
-    #        new_structure.frozen_phonon(qpoint, displ, eta)
-    #        news.append(new_structure)
-    #                                                               
-    #    return news
+    def frozen_phonon(self, qpoint, displ, do_real=True, frac_coords=True, scale_matrix=None, max_supercell=None):
+
+        new_structure = self.copy_structure()
+        new_structure.frozen_phonon(qpoint, displ, do_real, frac_coords, scale_matrix, max_supercell)
+
+        return new_structure

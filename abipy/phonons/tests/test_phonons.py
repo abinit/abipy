@@ -23,6 +23,9 @@ class PhononBandsTest(AbipyTest):
 
         #dos = phbands.get_dos()
 
+        # Test XYZ vib
+        phbands.create_xyz_vib(iqpt=0, filename="trf2_5.xyz", max_supercell=[4,4,4])
+
 if __name__ == "__main__":
     import unittest
     unittest.main()

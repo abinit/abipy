@@ -136,17 +136,17 @@ def find_package_data():
     # This is not enough for these things to appear in an sdist.
     # We need to muck with the MANIFEST to get this to work
     package_data = {
-        'abipy.data': ['*', 'pseudos/*', 'runs/*', 'cifs/*', 'benchmarks/*'],
-        'abipy.data.runs': ['data_*/outdata/*'],
+        'abipy.data' : ['*','pseudos/*','runs/*','cifs/*','benchmarks/*'],
+        'abipy.data.runs' : ['data_*/outdata/*','tmp_*/outdata/*'],
         'abipy.htc': ["abinit_vars.json", 'anaddb_vars.json'],
-        'abipy.gui.awx': ['images/*'],
+        'abipy.gui.awx' : ['images/*'],
     }
     return package_data
 
 
 def find_exclude_package_data():
     package_data = {
-        'abipy.data': ['pseudos', 'runs', 'cifs', 'benchmarks', 'runs/data_*'],
+        'abipy.data' : ['pseudos','runs','cifs','benchmarks','runs/data_*','runs/tmp_*'],
     }
     return package_data
 

@@ -410,6 +410,33 @@ class PhononBands(object):
 
         return PhononDOS(mesh, values)
 
+    def create_xyz_vib(self, iqpt, filename, pre_factor=200, do_real=True, scale_matrix = None, max_supercell = None):
+        """
+        Create vibration XYZ file for visualization of phonons
+        :param iqpt: index of qpoint in self
+        :param filename: name of the XYZ file that will be created
+        :param pre_factor: Multiplication factor of the eigendisplacements
+        :param do_real: True if we want only real part of the displacement, False means imaginary part
+        :param scale_matrix: Scaling matrix of the supercell
+        :param max_supercell: Maximum size of the supercell with respect to primitive cell
+        :return nothing
+        """
+
+        if scale_matrix is None:
+            if max_supercell is None:
+                raise ValueError("If scale_matrix is not provided, please provide max_supercell !")
+
+            scale_matrix = self.structure.get_smallest_supercell(self.qpoints[iqpt].frac_coords, max_supercell=max_supercell)
+
+        natoms = int(np.round(len(self.structure)*np.linalg.det(scale_matrix)))
+        with open(filename, "w") as xyz_file:
+            for imode in np.arange(self.num_branches):
+                xyz_file.write(str(natoms)+"\n")
+                xyz_file.write("Mode "+str(imode)+" : "+str(self.phfreqs[iqpt, imode])+"\n")
+                self.structure.write_vib_file(xyz_file, self.qpoints[iqpt].frac_coords, pre_factor*np.reshape(self.phdispl_cart[iqpt, imode,:],(-1,3)), do_real=True,
+                                              frac_coords=False, max_supercell=max_supercell,
+                                              scale_matrix=scale_matrix)
+
     def decorate_ax(self, ax, **kwargs):
         title = kwargs.pop("title", None)
         if title is not None:
