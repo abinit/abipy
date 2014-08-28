@@ -426,7 +426,7 @@ class PhononBands(object):
             if max_supercell is None:
                 raise ValueError("If scale_matrix is not provided, please provide max_supercell !")
 
-            scale_matrix = self.get_smallest_supercell(self.qpoints[iqpt], max_supercell=max_supercell)
+            scale_matrix = self.structure.get_smallest_supercell(self.qpoints[iqpt].frac_coords, max_supercell=max_supercell)
 
         natoms = int(np.round(len(self.structure)*np.linalg.det(scale_matrix)))
         with open(filename, "w") as xyz_file:
