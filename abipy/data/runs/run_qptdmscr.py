@@ -116,7 +116,8 @@ def qptdm_flow(options):
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
+    manager = abilab.TaskManager.from_user_config() if not options.manager else \
+              abilab.TaskManager.from_file(options.manager)
 
     # Build the input files for GS, NSCF, SCR and SIGMA runs.
     gs, nscf, scr_input, sigma_input = all_inputs()
