@@ -191,7 +191,7 @@ def cleanup():
 # Note setup install will download them from Pypi if they are not available.
 install_requires = [
     "termcolor",
-    "apscheduler",
+    "apscheduler>=3.0.0",
     "PyDispatcher",
     "numpy",
     #"numpy>=1.8",  # We need this one for the ufuncs
@@ -199,7 +199,7 @@ install_requires = [
     #"matplotlib>=1.1",
     "pyyaml",
     "netCDF4",
-    "pymatgen>=2.9.0",
+    "pymatgen>=2.10.3",
     #"fabric",
     #"paramiko",
     "wxmplot",
