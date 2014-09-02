@@ -216,9 +216,6 @@ Specify the files to open. Possible choices:\n
     except Exception as exc: 
         show_examples_and_exit(error_code=1)
 
-    if options.verbose:
-        print("options", options)
-
     # loglevel is bound to the string value obtained from the command line argument. 
     # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
     import logging
@@ -264,5 +261,3 @@ Specify the files to open. Possible choices:\n
 
 if __name__ == "__main__":
     sys.exit(main())
-    #from abipy.tools.devtools import profile
-    #profile("main()", globals(), locals())
