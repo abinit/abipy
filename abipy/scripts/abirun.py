@@ -122,6 +122,10 @@ def treat_flow(flow, options):
                 excs.append(straceback())
 
         print("Number of jobs restarted %d" % nlaunch)
+        if nlaunch:
+            # update database
+            flow.pickle_dump()
+
         if excs:
             print("Exceptions raised\n")
             pprint(excs)
