@@ -94,13 +94,16 @@ def treat_flow(flow, options):
             try:
                 while True:
                     print(2*"\n" + time.asctime() + "\n")
+                    flow.check_status()
                     flow.show_status()
+                    if flow.all_ok: break
                     time.sleep(options.delay)
 
             except KeyboardInterrupt:
                 pass
         else:
             flow.show_status(verbose=options.verbose)
+
         #import pstats, cProfile
         #cProfile.runctx("flow.show_status()", globals(), locals(), "Profile.prof")
         #s = pstats.Stats("Profile.prof")
@@ -210,7 +213,7 @@ def main():
     p_cancel = subparsers.add_parser('cancel', help="Cancel the tasks in the queue.")
 
     # Subparser for restart command.
-    p_restart = subparsers.add_parser('restart', help="Restart the tasks.")
+    p_restart = subparsers.add_parser('restart', help="Restart the tasks of the flow that are not converged.")
 
     # Subparser for open command.
     p_open = subparsers.add_parser('open', help="Open files in $EDITOR, type `abirun.py ... open --help` for help)")
