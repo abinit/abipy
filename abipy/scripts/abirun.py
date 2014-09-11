@@ -114,6 +114,9 @@ def treat_flow(flow, options):
 
     if options.command == "cancel":
         print("Number of jobs cancelled %d" % flow.cancel())
+        # Remove directory
+        if options.rmtree:
+            flow.rmtree()
 
     if options.command == "restart":
         nlaunch, excs = 0, []
@@ -132,6 +135,19 @@ def treat_flow(flow, options):
         if excs:
             print("Exceptions raised\n")
             pprint(excs)
+
+    if options.command == "reset":
+        count = 0
+        for task, wi, ti in flow.iflat_tasks_wti(status=options.task_status):
+            task.reset()
+            count += 1	
+        print("%d tasks have been resetted" % count)
+
+        #if count:
+        #    flow.pickle_dump()
+
+        nlaunch = PyLauncher(flow).rapidfire()
+        print("Number of tasks launched %d" % nlaunch)
 
     if options.command == "tail":
         paths = [t.output_file.path for t in flow.iflat_tasks(status="S_RUN")]
@@ -211,9 +227,14 @@ def main():
 
     # Subparser for cancel command.
     p_cancel = subparsers.add_parser('cancel', help="Cancel the tasks in the queue.")
+    p_cancel.add_argument("-r", "--rmtree", action="store_true", default=False, help="Remove flow directory.")
 
     # Subparser for restart command.
     p_restart = subparsers.add_parser('restart', help="Restart the tasks of the flow that are not converged.")
+
+    # Subparser for restart command.
+    p_reset = subparsers.add_parser('reset', help="Reset the tasks of the flow with the specified status.")
+    p_reset.add_argument('task_status', default="QueueCritical") 
 
     # Subparser for open command.
     p_open = subparsers.add_parser('open', help="Open files in $EDITOR, type `abirun.py ... open --help` for help)")
@@ -277,7 +298,9 @@ Specify the files to open. Possible choices:\n
         new_manager = abilab.TaskManager.from_file(options.manager_file)
 
         # Change the manager of the errored tasks.
-        for task in flow.iflat_tasks(status="S_ERROR"):
+        status = "S_QUEUECRITICAL"
+        #status = "S_ERROR"
+        for task, wi, ti in flow.iflat_tasks_wti(status=status):
             task.reset()
             task.set_manager(new_manager)
             
