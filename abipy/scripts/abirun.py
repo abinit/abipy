@@ -10,12 +10,19 @@ import os
 import argparse
 import time
 
+from pprint import pprint
 from pymatgen.io.abinitio.launcher import PyFlowScheduler, PyLauncher
 import abipy.abilab as abilab
 
 # Replace python open to detect open files.
 #from abipy.tools import open_hook
 #open_hook.install()
+
+
+def straceback():
+    """Returns a string with the traceback."""
+    import traceback
+    return traceback.format_exc()
 
 
 def str_examples():
@@ -87,13 +94,16 @@ def treat_flow(flow, options):
             try:
                 while True:
                     print(2*"\n" + time.asctime() + "\n")
+                    flow.check_status()
                     flow.show_status()
+                    if flow.all_ok: break
                     time.sleep(options.delay)
 
             except KeyboardInterrupt:
                 pass
         else:
-            flow.show_status()
+            flow.show_status(verbose=options.verbose)
+
         #import pstats, cProfile
         #cProfile.runctx("flow.show_status()", globals(), locals(), "Profile.prof")
         #s = pstats.Stats("Profile.prof")
@@ -103,8 +113,52 @@ def treat_flow(flow, options):
         flow.open_files(what=options.what, wti=None, status=None, op="==")
 
     if options.command == "cancel":
-        num_cancelled = flow.cancel()
-        print("Number of jobs cancelled %d" % num_cancelled)
+        print("Number of jobs cancelled %d" % flow.cancel())
+        # Remove directory
+        if options.rmtree:
+            flow.rmtree()
+
+    if options.command == "restart":
+        nlaunch, excs = 0, []
+        for task in flow.unconverged_tasks:
+            try:
+                fired = task.restart()
+                if fired: nlaunch += 1
+            except Exception:
+                excs.append(straceback())
+
+        print("Number of jobs restarted %d" % nlaunch)
+        if nlaunch:
+            # update database
+            flow.pickle_dump()
+
+        if excs:
+            print("Exceptions raised\n")
+            pprint(excs)
+
+    if options.command == "reset":
+        count = 0
+        for task, wi, ti in flow.iflat_tasks_wti(status=options.task_status):
+            task.reset()
+            count += 1	
+        print("%d tasks have been resetted" % count)
+
+        #if count:
+        #    flow.pickle_dump()
+
+        nlaunch = PyLauncher(flow).rapidfire()
+        print("Number of tasks launched %d" % nlaunch)
+
+    if options.command == "tail":
+        paths = [t.output_file.path for t in flow.iflat_tasks(status="S_RUN")]
+        if not paths:
+            print("No job is running. Exiting!")
+        else:
+            print("Press CTRL+C to interrupt. Will follow %d output files" % len(paths))
+            try:
+                os.system("tail -f %s" % " ".join(paths))
+            except KeyboardInterrupt:
+                pass
 
     return retcode
 
@@ -171,22 +225,29 @@ def main():
     p_status.add_argument('-d', '--delay', default=0, type=int, help=("If 0, exit after the first analysis.\n" + 
                           "If > 0, enter an infinite loop and delay execution for the given number of seconds."))
 
-    # Subparser for scheduler command.
-    #p_cancel = subparsers.add_parser('cancel', help="Cancel the tasks in the queue.")
+    # Subparser for cancel command.
+    p_cancel = subparsers.add_parser('cancel', help="Cancel the tasks in the queue.")
+    p_cancel.add_argument("-r", "--rmtree", action="store_true", default=False, help="Remove flow directory.")
+
+    # Subparser for restart command.
+    p_restart = subparsers.add_parser('restart', help="Restart the tasks of the flow that are not converged.")
+
+    # Subparser for restart command.
+    p_reset = subparsers.add_parser('reset', help="Reset the tasks of the flow with the specified status.")
+    p_reset.add_argument('task_status', default="QueueCritical") 
 
     # Subparser for open command.
-    p_open = subparsers.add_parser('open', help="Open files (command line interface)")
-
+    p_open = subparsers.add_parser('open', help="Open files in $EDITOR, type `abirun.py ... open --help` for help)")
     p_open.add_argument('what', default="o", 
         help="""\
 Specify the files to open. Possible choices:\n
-i ==> input_file\n
-o ==> output_file\n
-f ==> files_file\n              
-j ==> job_file\n                
-l ==> log_file\n                
-e ==> stderr_file\n             
-q ==> qerr_file\n
+    i ==> input_file\n
+    o ==> output_file\n
+    f ==> files_file\n              
+    j ==> job_file\n                
+    l ==> log_file\n                
+    e ==> stderr_file\n             
+    q ==> qerr_file\n
 """)
 
     # Subparser for gui command.
@@ -194,19 +255,18 @@ q ==> qerr_file\n
     p_gui.add_argument("--chroot", default="", type=str, help=("Use chroot as new directory of the flow.\n" +
                        "Mainly used for opening a flow located on a remote filesystem mounted with sshfs.\n" +
                        "In this case chroot is the absolute path to the flow on the **localhost**\n",
-                       "Note that it's not possible to change the flow from remote when chroot is used."))
+                       "Note that it is not possible to change the flow from remote when chroot is used."))
 
     p_new_manager = subparsers.add_parser('new_manager', help="Change the TaskManager.")
     p_new_manager.add_argument("manager_file", default="", type=str, help="YAML file with the new manager")
+
+    p_tail = subparsers.add_parser('tail', help="Use tail to follow the main output file of the flow.")
 
     # Parse command line.
     try:
         options = parser.parse_args()
     except Exception as exc: 
         show_examples_and_exit(error_code=1)
-
-    if options.verbose:
-        print("options", options)
 
     # loglevel is bound to the string value obtained from the command line argument. 
     # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
@@ -238,7 +298,9 @@ q ==> qerr_file\n
         new_manager = abilab.TaskManager.from_file(options.manager_file)
 
         # Change the manager of the errored tasks.
-        for task in flow.iflat_tasks(status="S_ERROR"):
+        status = "S_QUEUECRITICAL"
+        #status = "S_ERROR"
+        for task, wi, ti in flow.iflat_tasks_wti(status=status):
             task.reset()
             task.set_manager(new_manager)
             
@@ -253,5 +315,3 @@ q ==> qerr_file\n
 
 if __name__ == "__main__":
     sys.exit(main())
-    #from abipy.tools.devtools import profile
-    #profile("main()", globals(), locals())

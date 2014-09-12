@@ -35,6 +35,3 @@ pre_run: |
     echo "------------------ Checking limits -------------"
     ulimit
     echo "------------- Loading environment --------------"
-#mpirun -np 96 ${ABINIT} < files > log
-
-

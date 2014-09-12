@@ -136,17 +136,17 @@ def find_package_data():
     # This is not enough for these things to appear in an sdist.
     # We need to muck with the MANIFEST to get this to work
     package_data = {
-        'abipy.data': ['*', 'pseudos/*', 'runs/*', 'cifs/*', 'benchmarks/*'],
-        'abipy.data.runs': ['data_*/outdata/*'],
+        'abipy.data' : ['*','pseudos/*','runs/*','cifs/*','benchmarks/*'],
+        'abipy.data.runs' : ['data_*/outdata/*','tmp_*/outdata/*'],
         'abipy.htc': ["abinit_vars.json", 'anaddb_vars.json'],
-        'abipy.gui.awx': ['images/*'],
+        'abipy.gui.awx' : ['images/*'],
     }
     return package_data
 
 
 def find_exclude_package_data():
     package_data = {
-        'abipy.data': ['pseudos', 'runs', 'cifs', 'benchmarks', 'runs/data_*'],
+        'abipy.data' : ['pseudos','runs','cifs','benchmarks','runs/data_*','runs/tmp_*'],
     }
     return package_data
 
@@ -191,7 +191,7 @@ def cleanup():
 # Note setup install will download them from Pypi if they are not available.
 install_requires = [
     "termcolor",
-    "apscheduler",
+    "apscheduler>=3.0.0",
     "PyDispatcher",
     "numpy",
     #"numpy>=1.8",  # We need this one for the ufuncs
@@ -199,7 +199,7 @@ install_requires = [
     #"matplotlib>=1.1",
     "pyyaml",
     "netCDF4",
-    "pymatgen>=2.9.0",
+    "pymatgen>=2.10.3",
     #"fabric",
     #"paramiko",
     "wxmplot",

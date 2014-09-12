@@ -99,7 +99,7 @@ def itest_optic_flow(fwp, tvars):
     # workflow with DDK tasks.
     ddk_work = abilab.Workflow()
     for inp in [ddk1, ddk2, ddk3]:
-        ddk_work.register(inp, deps={bands_work.nscf_task: "WFK"}, task_class=abilab.DDK_Task)
+        ddk_work.register(inp, deps={bands_work.nscf_task: "WFK"}, task_class=abilab.DdkTask)
 
     flow.register_work(ddk_work)
     flow.allocate()
