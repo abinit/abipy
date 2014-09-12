@@ -2,9 +2,8 @@
 from __future__ import print_function, division
 
 import tempfile
-import itertools
-import numpy as np
 import copy
+import numpy as np
 
 from abipy.iotools import Visualizer
 from abipy.iotools.xsf import xsf_write_structure, xsf_write_data
@@ -35,7 +34,9 @@ class WaveFunction(object):
 
     def __iter__(self):
         """Yields G, ug[0:nspinor, G]"""
-        return itertools.izip(self.gvecs, self.ug.T)
+        #import itertools
+        #return itertools.izip(self.gvecs, self.ug.T)
+        return zip(self.gvecs, self.ug.T)
 
     def __getitem__(self, slice):
         return self.gvecs[slice], self.ug[:, slice]

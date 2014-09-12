@@ -2,6 +2,7 @@ from __future__ import print_function, division
 
 import abc
 import os
+import six
 import wx
 import wx.lib.dialogs as wxdg
 import abipy.gui.awx as awx
@@ -16,13 +17,12 @@ from abipy.gui.converter import ConverterFrame
 from abipy.gui.wxncview import NcViewerFrame
 
 
+@six.add_metaclass(abc.ABCMeta)
 class Has_Structure(object):
     """
     Mixin class that provides a menu and callbacks 
     for analyzing the crystalline structure.
     """
-    __metaclass__ = abc.ABCMeta
-
     @abc.abstractproperty
     def structure(self):
         """Structure object."""
@@ -77,13 +77,11 @@ class Has_Structure(object):
         """"Visualize the Brillouin zone with matplotlib."""
         self.structure.show_bz()
 
-
+@six.add_metaclass(abc.ABCMeta)
 class Has_Ebands(object):
     """
     Mixin class that provides a menu and callbacks for analyzing electron bands.
     """
-    __metaclass__ = abc.ABCMeta
-
     @abc.abstractproperty
     def ebands(self):
         """`ElectronBands` object."""
@@ -161,14 +159,12 @@ class Has_Ebands(object):
     #    new_ebands.plot()
     #    new_ebands.pickle_dump()
 
-
+@six.add_metaclass(abc.ABCMeta)
 class Has_MultipleEbands(Has_Ebands):
     """
     Mixin class that provides a menu and callbacks 
     for analyzing and comparing multiple electron bands.
     """
-    __metaclass__ = abc.ABCMeta
-
     def CreateEbandsMenu(self):
         """Creates the ebands menu."""
         menu = super(Has_MultipleEbands, self).CreateEbandsMenu()
@@ -266,12 +262,11 @@ class Has_MultipleEbands(Has_Ebands):
             awx.showErrorMessage(self)
 
 
+#@six.add_metaclass(abc.ABCMeta)
 #class Has_GsResults(object):
 #    """
 #    Mixin class for GUIs with ground-state results (etotal, forces, stresses...)
 #    """
-#    __metaclass__ = abc.ABCMeta
-
 #    def CreateToolsMenu(self):
 #        """Create the tools menu."""
 #        # Tools Menu ID's
@@ -314,9 +309,8 @@ class Has_Tools(object):
         """Open new frame with the unit converter."""
         ConverterFrame(self).Show()
 
-
+@six.add_metaclass(abc.ABCMeta)
 class Has_NetcdfFiles(object):
-    __metaclass__ = abc.ABCMeta
     """
     Mixin class that provides a menu and callbacks 
     for analyzing and comparing netcdf files.

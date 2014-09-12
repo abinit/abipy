@@ -10,6 +10,7 @@ import collections
 import warnings
 import itertools
 import copy
+import six
 import abc
 import numpy as np
 import pymatgen.core.units as units
@@ -59,7 +60,7 @@ def straceback():
     import traceback
     return traceback.format_exc()
 
-
+@six.add_metaclass(abc.ABCMeta)
 class Input(object): 
     """
     Base class foor Input objects.
@@ -67,8 +68,6 @@ class Input(object):
     An input object must define have a make_input method 
     that returns the string representation used by the client code.
     """
-    __metaclass__ = abc.ABCMeta
-
     def copy(self):
         """Shallow copy of the input."""
         return copy.copy(self)

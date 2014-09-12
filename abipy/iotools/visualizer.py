@@ -3,6 +3,8 @@ from __future__ import division, print_function
 
 import sys
 import os
+import abc
+import six
 
 from collections import namedtuple, OrderedDict
 from abipy.tools import ask_yes_no, which
@@ -63,12 +65,11 @@ class MetaClass(type):
     def __str__(self):
         return "%s: bin: %s, macosx_app: %s" % (self.__class__.__name__, self.bin, self.is_macosx_app)
 
-
+@six.add_metaclass(abc.ABCMeta)
 class Visualizer(object):
     """
     Handle the visualization of data.
     """
-    __metaclass__ = MetaClass
 
     # True if its a Mac OsX applications (default is unix executable).
     # If we have a Mac OsX application we have to run it with "open -a app_name --args"

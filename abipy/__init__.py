@@ -21,7 +21,7 @@ from abipy.core import release
 
 # Release data
 __author__ = ''
-for author, email in release.authors.itervalues():
+for author, email in release.authors.values():
   __author__ += author + ' <' + email + '>\n'
 del author, email
 

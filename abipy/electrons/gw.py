@@ -4,9 +4,9 @@ import sys
 import copy
 import collections
 import warnings
-import cStringIO as StringIO
 import numpy as np
 
+from six.moves import cStringIO
 from abipy.tools import find_le, find_ge, list_strings, is_string, pprint_table, AttrDict
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import KpointList
@@ -159,7 +159,7 @@ class QPList(list):
         """String representation."""
         table = self.to_table()
 
-        strio = StringIO.StringIO()
+        strio = cStringIO()
         pprint_table(table, out=strio)
         strio.write("\n")
         strio.seek(0)

@@ -5,10 +5,9 @@ common tasks such as algebraic operations, integrations, differentiations, plots
 """
 from __future__ import print_function, division
 
-import itertools
-import cStringIO as StringIO
 import numpy as np
 
+from six.moves import cStringIO
 from abipy.tools.derivatives import finite_diff
 
 __all__ = [
@@ -44,7 +43,9 @@ class Function1D(object):
         return len(self.mesh)
 
     def __iter__(self):
-        return itertools.izip(self.mesh, self.values)
+        #import itertools
+        #return itertools.izip(self.mesh, self.values)
+        return zip(self.mesh, self.values)
 
     def __getitem__(self, slice):
         return self.mesh[slice], self.values[slice]
@@ -159,6 +160,7 @@ class Function1D(object):
         Save self to a text file. See :func:`np.savetext` for the description of the variables
         """
         data = zip(self.mesh, self.values)
+        #data = (self.mesh, self.values)
         np.savetxt(path, data, fmt=fmt, delimiter=delimiter, newline=newline,
                    header=header, footer=footer, comments=comments)
 
@@ -166,7 +168,7 @@ class Function1D(object):
         return "%s at %s, size = %d" % (self.__class__.__name__, id(self), len(self))
 
     def __str__(self):
-        stream = StringIO.StringIO()
+        stream = cStringIO()
         self.to_file(stream)
         return "\n".join(stream.getvalue())
 

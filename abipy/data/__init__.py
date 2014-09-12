@@ -42,7 +42,7 @@ def pseudo(filename):
 
 def pseudos(*filenames):
     """Returns a PseudoTable constructed from the input filenames  located in tests/data/pseudos."""
-    pseudos = map(pseudo, filenames)
+    pseudos = list(map(pseudo, filenames))
     return PseudoTable(pseudos)
 
 
@@ -92,7 +92,8 @@ def ref_file(basename):
 
 
 def ref_files(*basenames):
-    return map(ref_file, basenames)
+    """List with the absolute path of basenames in tests/data directory."""
+    return list(map(ref_file, basenames))
 
 
 def ncfiles_with_ext(ext):

@@ -191,15 +191,16 @@ def cleanup():
 # Note setup install will download them from Pypi if they are not available.
 install_requires = [
     "termcolor",
-    "apscheduler>=3.0.0",
-    "PyDispatcher",
-    "numpy",
-    #"numpy>=1.8",  # We need this one for the ufuncs
+    "apscheduler==2.1.0",
+    "pydispatcher>=2.0.3",
+    #"numpy",
+    "numpy>=1.8",  # We need this one for the ufuncs
     "scipy",
     #"matplotlib>=1.1",
-    "pyyaml",
+    "pyyaml>=3.11",
     "netCDF4",
-    "pymatgen>=2.10.3",
+    "pymatgen>=3.0.0",
+    #"pymatgen>=2.10.3",
     #"fabric",
     #"paramiko",
     "wxmplot",
@@ -249,12 +250,13 @@ setup_args = dict(
       license          = license,
       platforms        = platforms,
       keywords         = keywords,
+      classifiers      = classifiers,
       install_requires = install_requires,
       packages         = my_packages,
       package_data     = my_package_data,
       exclude_package_data = my_excl_package_data,
       scripts          = my_scripts,
-      #download_url     = download_url,
+      #download_url    = download_url,
       cmdclass={'install': MyInstall},
       ext_modules=ext_modules,
       )

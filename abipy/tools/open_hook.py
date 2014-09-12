@@ -20,7 +20,11 @@ http://stackoverflow.com/questions/2023608/check-what-files-are-open-in-python
 from __future__ import print_function
 
 import sys
-import __builtin__
+try:
+    import __builtin__
+except ImportError:
+    # Py3k
+    import builtins as __builtin__
 
 # Save the builtin version (do not change!)
 _builtin_file = __builtin__.file

@@ -5,9 +5,10 @@ import sys
 import abc
 import warnings
 import collections
+import six
 import numpy as np
-import cStringIO as StringIO
 
+from six.moves import cStringIO
 from pymatgen.util.num_utils import iuptri
 from pymatgen.util.string_utils import is_string
 from pymatgen.symmetry.finder import SymmetryFinder, get_point_group
@@ -101,13 +102,12 @@ def _get_det(mat):
 
     return det
 
-
+@six.add_metaclass(abc.ABCMeta)
 class Operation(object):
     """
     Abstract base class that defines the methods that must be 
     implememted by the concrete class representing some sort of operation
     """
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def __eq__(self, other):
@@ -206,7 +206,7 @@ class SymmOp(Operation):
         `Symmop` can be used as keys in dictionaries.
         Note that the hash is computed from integer values. 
         """
-        return 8 * self.trace + 4 * self.det + 2 * self.time_sign
+        return int(8 * self.trace + 4 * self.det + 2 * self.time_sign)
 
 
     def inverse(self):
@@ -590,7 +590,7 @@ class SpaceGroup(OpSequence):
         self._has_timerev = has_timerev
         self._time_signs = [+1, -1] if self.has_timerev else [+1]
 
-        self._symrel, self._tnons, self._symafm = map(np.asarray, (symrel, tnons, symafm))
+        self._symrel, self._tnons, self._symafm = list(map(np.asarray, (symrel, tnons, symafm)))
 
         if len(self.symrel) != len(self.tnons) or len(self.symrel) != len(self.symafm):
             raise ValueError("symrel, tnons and symafm must have equal shape[0]")
@@ -820,7 +820,7 @@ class LittleGroup(OpSequence):
     def __str__(self):
         lines = [repr(self)]
 
-        strio = StringIO.StringIO()
+        strio = cStringIO()
         bilbao_ptgrp = bilbao_ptgroup(self.kgroup.sch_symbol)
         bilbao_ptgrp.show_character_table(stream=strio)
         strio.seek(0)
@@ -945,7 +945,7 @@ class LatticeRotation(Operation):
         return self.__class__(self.mat * other.mat)
 
     def __hash__(self):
-        return 8 * self.trace + 4 * self.det 
+        return int(8 * self.trace + 4 * self.det)
 
     def inverse(self): 
         """
@@ -1194,7 +1194,7 @@ class BilbaoPointGroup(object):
                                                                                                               
         # Add row: irrep_name, character.
         for irrep in self.irreps:
-            character = map(str, irrep.character)
+            character = list(map(str, irrep.character))
             app([irrep.name] + character)
 
         return table

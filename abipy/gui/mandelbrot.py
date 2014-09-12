@@ -38,7 +38,7 @@ def mandelbrot(extent=None, ndivs=(1000,1000), iterations=100):
     m = np.zeros((nx, ny))
      
     # iterations
-    for n in xrange(iterations):
+    for n in range(iterations):
         print("Completed %d %%" % (100 * n/iterations))
      
         # indices of the numbers c such that |z(c)|<=10, with z = z_n

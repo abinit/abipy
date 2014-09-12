@@ -3,18 +3,19 @@ from __future__ import division, print_function
 
 import abc
 import os
+import six
 import time
 import subprocess
 import collections
 import readline
 import pprint
 import warnings
-import cStringIO as StringIO 
 import json
 import yaml
 import socket
 import paramiko
 
+from six.moves import cStringIO
 from abipy.tools import which
 from pymatgen.core.design_patterns import AttrDict
 from pymatgen.util.string_utils import is_string
@@ -83,7 +84,7 @@ def read_clusters(filepath=None):
 
     return clusters
 
-
+@six.add_metaclass(abc.ABCMeta)
 class Cluster(object):
     """
     This object stores the basic parameters needed to establish SSH, SFTP connections with a remote machine. 
@@ -95,8 +96,6 @@ class Cluster(object):
 
     A cluster has a remote working directory where we are going the generate and run Flows.
     """
-    __metaclass__ = abc.ABCMeta
-
     def __init__(self, username, hostname, workdir, sshfs_mountpoint=None):
         """
         Args:
@@ -551,7 +550,7 @@ class MyShell(paramiko.Channel):
         #    result += o
         #self.settimeout(30)
 
-        stdout, stderr = StringIO.StringIO(), StringIO.StringIO()
+        stdout, stderr = cStringIO(), cStringIO()
 
         #try: #TODO: add exeption here 
         # Need to read the entire buffer to caputure output
@@ -1014,7 +1013,7 @@ class FlowsDatabase(collections.MutableMapping):
 
     def __str__(self):
         """String representation."""
-        strio = StringIO.StringIO()
+        strio = cStringIO()
         pprint.pprint(self.db, stream=strio, indent=1)
         return "%s: %s\n" % (self.__class__.__name__, self.filepath) + strio.getvalue()
 

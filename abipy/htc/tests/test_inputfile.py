@@ -4,7 +4,6 @@ import warnings
 from abipy.htc import *
 from abipy.core.testing import *
 
-# =========================================================================== #
 
 class TestInputVariable(AbipyFileTest):
     """Unit tests for AbinitVariable."""

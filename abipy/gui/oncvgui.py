@@ -7,6 +7,7 @@ import copy
 import time
 import shutil
 import abc
+import sis
 import wx
 import awx
 import wx.lib.mixins.listctrl as listmix
@@ -399,11 +400,9 @@ allows you to scan a set of possible values for the generation of the pseudopote
             developers=["Matteo Giantomassi"],
             website="http://www.mat-simresearch.com/")
 
-
+@six.add_metaclass(abc.ABCMeta)
 class OptimizationFrame(awx.Frame):
     """Base class for optimization frames."""
-    __metaclass__ = abc.ABCMeta
-
     def __init__(self, parent, **kwargs):
         super(OptimizationFrame, self).__init__(parent, **kwargs)
 

@@ -2,6 +2,12 @@
 import unittest
 import tempfile
 
+try:
+    import __builtin__
+except ImportError:
+    # Py3k
+    import builtins as __builtin__
+
 
 class OpenHookTest(unittest.TestCase):
     """Test open_hook module."""
@@ -23,7 +29,7 @@ class OpenHookTest(unittest.TestCase):
     def tearDown(self):
         self.open_hook.remove()
         # Here we should have the __builtin__ version
-        import __builtin__
+
         self.assertTrue(file is __builtin__.file)
         self.assertTrue(open is __builtin__.open)
 

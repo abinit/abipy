@@ -3,15 +3,15 @@ from __future__ import print_function, division
 import os
 import wx
 import abc
+import sis
 
 import wx.lib.agw.flatnotebook as fnb
 import abipy.gui.awx as awx
 
 from abipy.tools import list_strings 
 
-
+@six.add_metaclass(abc.ABCMeta)
 class MultiViewerFrame(awx.Frame):
-    __metaclass__ = abc.ABCMeta
     """
     Base class for Viewers that can handle the multiple netcdf files
     of the same type. A `MultiViewerFrame` has a notebook where
