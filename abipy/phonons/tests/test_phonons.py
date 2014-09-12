@@ -1,6 +1,7 @@
 """Tests for phonons"""
 from __future__ import print_function, division
 
+import tempfile
 import abipy.data as data
 
 from abipy.phonons import PhononBands
@@ -24,7 +25,9 @@ class PhononBandsTest(AbipyTest):
         #dos = phbands.get_dos()
 
         # Test XYZ vib
-        phbands.create_xyz_vib(iqpt=0, filename="trf2_5.xyz", max_supercell=[4,4,4])
+        _, filename = tempfile.mkstemp(text=True)
+        phbands.create_xyz_vib(iqpt=0, filename=filename, max_supercell=[4,4,4])
+
 
 if __name__ == "__main__":
     import unittest
