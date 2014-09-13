@@ -3,7 +3,7 @@ from __future__ import print_function, division
 import os
 import wx
 import abc
-import sis
+import six
 
 import wx.lib.agw.flatnotebook as fnb
 import abipy.gui.awx as awx

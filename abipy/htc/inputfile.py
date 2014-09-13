@@ -1,4 +1,3 @@
-
 from __future__ import print_function, division
 
 import string
@@ -12,10 +11,12 @@ from collections import OrderedDict
 from copy import deepcopy
 
 from .utils import flatten, listify, is_number, is_iter
-
 from .variable import InputVariable, SpecialInputVariable, _UNITS
 
-__all__ = ['InputFile', 'VariableBlock']
+__all__ = [
+    'InputFile', 
+    'VariableBlock',
+]
 
 
 _input_variable_blocks = OrderedDict((
@@ -213,7 +214,7 @@ class InputFile(object):
             block.clear()
 
         # Sort variables in blocks
-        for variable in self.variables.itervalues():
+        for variable in self.variables.values():
             placed = False
             for block in self.variables_blocks:
                 if variable.basename in block.register:

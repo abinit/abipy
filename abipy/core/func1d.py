@@ -5,6 +5,8 @@ common tasks such as algebraic operations, integrations, differentiations, plots
 """
 from __future__ import print_function, division
 
+import six
+import itertools
 import numpy as np
 
 from six.moves import cStringIO
@@ -43,9 +45,10 @@ class Function1D(object):
         return len(self.mesh)
 
     def __iter__(self):
-        #import itertools
-        #return itertools.izip(self.mesh, self.values)
-        return zip(self.mesh, self.values)
+        if six.PY2:
+            return itertools.izip(self.mesh, self.values)
+        else:
+            return zip(self.mesh, self.values)
 
     def __getitem__(self, slice):
         return self.mesh[slice], self.values[slice]

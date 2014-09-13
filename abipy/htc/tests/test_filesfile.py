@@ -3,7 +3,7 @@ from __future__ import print_function, division
 
 import warnings
 
-from abipy.htc import *
+from abipy.htc.filesfile import FilesFile
 from abipy.core.testing import *
 
 # =========================================================================== #

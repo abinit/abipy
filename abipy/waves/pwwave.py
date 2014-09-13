@@ -3,6 +3,8 @@ from __future__ import print_function, division
 
 import tempfile
 import copy
+import six
+import itertools
 import numpy as np
 
 from abipy.iotools import Visualizer
@@ -34,9 +36,10 @@ class WaveFunction(object):
 
     def __iter__(self):
         """Yields G, ug[0:nspinor, G]"""
-        #import itertools
-        #return itertools.izip(self.gvecs, self.ug.T)
-        return zip(self.gvecs, self.ug.T)
+        if six.PY2:
+            return itertools.izip(self.gvecs, self.ug.T)
+        else:
+            return zip(self.gvecs, self.ug.T)
 
     def __getitem__(self, slice):
         return self.gvecs[slice], self.ug[:, slice]

@@ -2,13 +2,15 @@
 import unittest
 import tempfile
 
+py3k = False
 try:
     import __builtin__
 except ImportError:
-    # Py3k
+    py3k = True
     import builtins as __builtin__
 
 
+@unittest.skipIf(py3k, "OpenHook not compatible with py3k")
 class OpenHookTest(unittest.TestCase):
     """Test open_hook module."""
     def setUp(self):
