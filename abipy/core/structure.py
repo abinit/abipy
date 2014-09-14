@@ -695,20 +695,20 @@ class Structure(pymatgen.Structure):
 
     def frozen_phonon(self, qpoint, displ, do_real=True, frac_coords=True, scale_matrix=None, max_supercell=None):
         """
-        Compute the supercell needed for a given qpoint and add the displacement
+        Compute the supercell needed for a given qpoint and add the displacement.
+
         Args:
             qpoint:
-                q vector in reduced coordinate in reciprocal space
+                q vector in reduced coordinate in reciprocal space.
             displ:
-                displacement in real space of the atoms, will be normalized to 1 Angstrom
+                displacement in real space of the atoms, will be normalized to 1 Angstrom.
             eta:
-                pre-factor multiplying the displacement
+                pre-factor multiplying the displacement.
             do_real:
-                true if we want only the real part of the displacement
+                true if we want only the real part of the displacement.
         """
-
         # I've copied code from make_supercell since the loop over supercell images
-        #  is inside make_supercell and I don't want to create a mapping
+        # is inside make_supercell and I don't want to create a mapping
 
         if scale_matrix is None:
             if max_supercell is None:
