@@ -3,7 +3,7 @@ This module defines the object Function1D that described a functions.
 of a single variables and provides simple interfaces for performing
 common tasks such as algebraic operations, integrations, differentiations, plots ...
 """
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import six
 import itertools
@@ -164,7 +164,7 @@ class Function1D(object):
         """
         data = zip(self.mesh, self.values)
         #data = (self.mesh, self.values)
-        np.savetxt(path, data, fmt=fmt, delimiter=delimiter, newline=newline,
+        np.savetxt(path, data, fmt=fmt.encode("ascii", "ignore"), delimiter=delimiter, newline=newline,
                    header=header, footer=footer, comments=comments)
 
     def __repr__(self):

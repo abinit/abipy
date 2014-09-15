@@ -1,4 +1,5 @@
-from __future__ import print_function, division
+"""Classes for the analysis of BSE calculations"""
+from __future__ import print_function, division, unicode_literals
 
 import sys
 import os

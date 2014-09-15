@@ -1,7 +1,7 @@
 """
 This module contains classes representing tensors and helper functions to change lattice.
 """
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import itertools
 import numpy as np

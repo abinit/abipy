@@ -2,7 +2,7 @@
 """
 Fabric file providing useful tools for the synchronization of the code on the CECI clusters.
 """
-from __future__ import division, print_function
+from __future__ import print_function, division, unicode_literals
 
 import os
 import cStringIO as StringIO

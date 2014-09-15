@@ -3,7 +3,7 @@ This module defines objects that faciliate the creation of the
 ABINIT input files. The syntax is similar to the one used 
 in ABINIT with small differences. 
 """
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import os
 import collections

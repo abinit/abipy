@@ -4,7 +4,7 @@ Preferred way to import the module is via the import syntax:
 
 import abipy.data as data
 """
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import os
 

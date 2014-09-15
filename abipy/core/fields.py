@@ -1,5 +1,5 @@
 """This module contains the class describing densities in real space on uniform 3D meshes."""
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import numpy as np
 

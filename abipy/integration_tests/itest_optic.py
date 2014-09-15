@@ -1,5 +1,5 @@
 """Optical spectra with Optic."""
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import pytest
 import abipy.data as abidata

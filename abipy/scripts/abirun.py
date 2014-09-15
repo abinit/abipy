@@ -3,7 +3,7 @@
 This script allows the user to submit the calculations contained in the `AbinitFlow`.
 It provides both a command line interface as well as a graphical interfaced based on wxpython.
 """
-from __future__ import division, print_function
+from __future__ import print_function, division, unicode_literals
 
 import sys
 import os

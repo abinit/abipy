@@ -1,4 +1,5 @@
 """This module import all WxWidgets applications provides by Abipy in a single namespace."""
+from __future__ import print_function, division, unicode_literals
 
 from .events import wxapp_events
 from .browser import wxapp_dirbrowser, wxapp_listbrowser

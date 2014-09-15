@@ -1,5 +1,5 @@
 """Widgets for browsing and/or analyzing the output files produced by Abinit."""
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import os
 import wx

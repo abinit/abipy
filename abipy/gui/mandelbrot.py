@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-# MANDELBROT SET
-from __future__ import division, print_function
+"""MANDELBROT SET"""
+from __future__ import print_function, division, unicode_literals
 
 import numpy as np
 

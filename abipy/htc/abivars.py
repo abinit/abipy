@@ -1,5 +1,5 @@
 """This module contains lookup table with the name of the ABINIT variables."""
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import os
 import json

@@ -3,7 +3,7 @@
 Taken from http://eli.thegreenplace.net/2013/04/20/bootstrapping-virtualenv/
 See also http://stackoverflow.com/questions/4324558/whats-the-proper-way-to-install-pip-virtualenv-and-distribute-for-python
 """
-from __future__ import print_function
+from __future__ import print_function, division, unicode_literals
 import sys
 import subprocess
 
