@@ -9,8 +9,8 @@ import six
 import numpy as np
 
 from six.moves import cStringIO
+from monty.string import is_string
 from pymatgen.util.num_utils import iuptri
-from pymatgen.util.string_utils import is_string
 from pymatgen.symmetry.finder import SymmetryFinder, get_point_group
 from abipy.core.kpoints import wrap_to_ws, issamek
 from abipy.iotools import as_etsfreader

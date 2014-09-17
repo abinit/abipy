@@ -1,11 +1,10 @@
 from __future__ import print_function, division, unicode_literals
 
 import wx
-
 import abipy.gui.awx as awx
 
+from monty.string import is_string
 from pymatgen.core import Structure
-from pymatgen.util.string_utils import is_string
 from abipy.abilab import abiopen
 from abipy.gui.editor import SimpleTextViewer
 

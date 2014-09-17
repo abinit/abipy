@@ -16,9 +16,9 @@ import socket
 import paramiko
 
 from six.moves import cStringIO
+from monty.string import is_string
 from abipy.tools import which
 from pymatgen.core.design_patterns import AttrDict
-from pymatgen.util.string_utils import is_string
 
 import logging
 logger = logging.getLogger(__name__)

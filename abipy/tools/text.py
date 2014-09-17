@@ -4,15 +4,8 @@ from __future__ import print_function, division, unicode_literals
 import sys
 import os
 
-from pymatgen.util.string_utils import is_string, list_strings, pprint_table, WildCard
-
-
-#from string import maketrans, punctuation
-#_TABLE = maketrans("", "")
-#
-#def strip_punct(s):
-#    """Remove punctuation characters from string s."""
-#    return s.translate(_TABLE, punctuation)
+from monty.string import is_string, list_strings
+from pymatgen.util.string_utils import pprint_table, WildCard
 
 
 def tonumber(s):
