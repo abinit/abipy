@@ -9,7 +9,7 @@ try:
 except ImportError:
     pass
 
-from abipy.tools import AttrDict
+from monty.collections import AttrDict
 from abipy.electrons import ElectronBands
 
 

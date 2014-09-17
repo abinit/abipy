@@ -7,8 +7,10 @@ import collections
 import warnings
 import numpy as np
 
+from monty.string import list_strings, is_string
+from monty.collections import  AttrDict
 from six.moves import cStringIO
-from abipy.tools import find_le, find_ge, list_strings, is_string, pprint_table, AttrDict
+from abipy.tools import find_le, find_ge, pprint_table
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import KpointList
 from abipy.iotools import AbinitNcFile, ETSF_Reader, Has_Structure, Has_ElectronBands

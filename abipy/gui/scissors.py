@@ -3,7 +3,7 @@ from __future__ import print_function, division, unicode_literals
 
 import wx
 
-from abipy.tools import AttrDict
+from monty.collections import AttrDict
 from abipy.gui import awx
 from abipy.electrons import ScissorsBuilder
 

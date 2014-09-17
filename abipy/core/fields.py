@@ -3,7 +3,8 @@ from __future__ import print_function, division, unicode_literals
 
 import numpy as np
 
-from abipy.tools import transpose_last3dims, AttrDict
+from monty.collections import AttrDict
+from abipy.tools import transpose_last3dims
 from abipy.iotools import Visualizer, xsf, ETSF_Reader
 from abipy.core.constants import bohr_to_angstrom
 from abipy.core.mesh3d import Mesh3D

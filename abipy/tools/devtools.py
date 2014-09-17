@@ -1,7 +1,5 @@
 from __future__ import print_function, division, unicode_literals
 
-from pymatgen.util.io_utils import FileLock
-
 import os
 import re
 import subprocess

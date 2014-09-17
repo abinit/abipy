@@ -6,8 +6,8 @@ import collections
 import numpy as np
 import warnings
 
+from monty.collections import AttrDict
 from abipy.iotools import as_etsfreader, ETSF_Reader
-from abipy.tools import AttrDict
 from abipy.tools.derivatives import finite_diff
 
 __all__ = [

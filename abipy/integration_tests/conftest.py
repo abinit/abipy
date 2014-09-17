@@ -7,7 +7,7 @@ import yaml
 import copy
 import abipy.abilab as abilab
 
-from pymatgen.core.design_patterns import AttrDict
+from monty.collections import AttrDict
 
 # Create the list of TaskManager configurations used for the integration tests.
 # Note that the items in _manager_confs must be hashable hence we cannot use dictionaries directly

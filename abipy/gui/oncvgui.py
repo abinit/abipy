@@ -16,7 +16,7 @@ import pymatgen.core.periodic_table as periodic_table
 
 from collections import OrderedDict
 from monty.dev import get_ncpus
-from abipy.tools import AttrDict
+from monty.collections import AttrDict
 from abipy.gui.editor import TextNotebookFrame, SimpleTextViewer
 from abipy.gui.oncvtooltips import oncv_tip
 from abipy.gui import mixins as mix

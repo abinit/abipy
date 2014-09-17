@@ -17,8 +17,8 @@ import paramiko
 
 from six.moves import cStringIO
 from monty.string import is_string
+from monty.collections import AttrDict
 from abipy.tools import which
-from pymatgen.core.design_patterns import AttrDict
 
 import logging
 logger = logging.getLogger(__name__)

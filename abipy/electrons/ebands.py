@@ -10,10 +10,10 @@ import itertools
 import warnings
 import numpy as np
 
+from monty.collections import AttrDict
 from abipy.core import constants as const
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, Kpath, IrredZone, KpointsReaderMixin, kmesh_from_mpdivs
-from abipy.tools import AttrDict
 from abipy.iotools import ETSF_Reader, Visualizer, bxsf_write
 from abipy.tools import gaussian
 from abipy.electrons.edos import ElectronDOS

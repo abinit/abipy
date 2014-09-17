@@ -5,7 +5,7 @@ import numpy as np
 
 from six.moves import cPickle as pickle
 from collections import OrderedDict
-from abipy.tools import AttrDict
+from monty.collections import AttrDict
 
 __all__ = [
     "Scissors",

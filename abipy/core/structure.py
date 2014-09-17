@@ -5,8 +5,8 @@ import collections
 import pymatgen
 import numpy as np
 
+from monty.collections import AttrDict
 from pymatgen.io.abinitio.pseudos import PseudoTable
-from pymatgen.core.design_patterns import AttrDict
 from pymatgen.core.structure import PeriodicSite
 from abipy.core.constants import ArrayWithUnit
 from abipy.core.symmetries import SpaceGroup
