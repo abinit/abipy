@@ -5,7 +5,7 @@ import wx
 import collections
 import numpy as np
 
-from abipy.tools import AttrDict
+from monty.collections import AttrDict
 
 __all__ = [
     "LinspaceControl",

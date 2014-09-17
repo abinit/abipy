@@ -18,7 +18,7 @@ try:
 except ImportError:
     pass
 
-from abipy.tools.text import list_strings 
+from monty.string import list_strings 
 
 
 #def ndcontract_var(var):

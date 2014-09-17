@@ -4,4 +4,3 @@ from .iotools  import *
 from .numtools import *
 from .text     import *
 from .decorators import *
-from .design_patterns import *

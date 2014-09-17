@@ -2,13 +2,12 @@ from __future__ import print_function, division, unicode_literals
 
 import os
 import wx
-
 import wx.lib.agw.flatnotebook as fnb
 import abipy.gui.awx as awx
 
 from collections import OrderedDict
+from monty.string import list_strings, is_string
 from pymatgen.io.abinitio.events import EventsParser
-from abipy.tools import list_strings, is_string
 
 
 class AbinitEventsPanel(awx.Panel):

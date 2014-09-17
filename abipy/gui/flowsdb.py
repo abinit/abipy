@@ -9,7 +9,7 @@ import wx.lib.newevent
 import abipy.gui.awx as awx
 
 from collections import OrderedDict
-from abipy.tools import which
+from monty.os.path import which
 from abipy.gui.editor import  SimpleTextViewer, MyEditorFrame
 from abipy.gui.flowviewer import FlowViewerFrame
 from abipy.htc.clusters import FlowsDatabase

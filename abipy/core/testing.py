@@ -8,8 +8,8 @@ from __future__ import print_function, division, unicode_literals
 
 import subprocess
 
+from monty.os.path import which
 from pymatgen.util.testing import PymatgenTest
-from abipy.tools import which
 
 import logging
 logger = logging.getLogger(__file__)

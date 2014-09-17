@@ -7,7 +7,8 @@ import abc
 import six
 
 from collections import namedtuple, OrderedDict
-from abipy.tools import ask_yes_no, which
+from monty.os.path import which 
+from abipy.tools import ask_yes_no
 
 __all__ = [
     "Visualizer",

@@ -56,25 +56,3 @@ def tail_file(fname, n, aslist=False):
     else:
         return p.stdout.read()
 
-
-def which(program):
-    """
-    python version of the unix tool which locates a program file in the user's path
-
-    Returns None if program cannot be found.
-    """
-    def is_exe(fpath):
-        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-
-    fpath, fname = os.path.split(program)
-    if fpath:
-        if is_exe(program):
-            return program
-    else:
-        for path in os.environ["PATH"].split(os.pathsep):
-            exe_file = os.path.join(path, program)
-            if is_exe(exe_file):
-                return exe_file
-
-    return None
-

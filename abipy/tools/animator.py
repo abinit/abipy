@@ -5,7 +5,7 @@ import collections
 import subprocess
 import tempfile
 
-from abipy.tools import which
+from monty.os.path import which
 
 import logging
 logger = logging.getLogger(__name__)

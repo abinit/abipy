@@ -7,10 +7,10 @@ import itertools
 import collections
 import numpy as np
 
+from monty.string import is_string
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList
 from abipy.iotools import ETSF_Reader, AbinitNcFile, Has_Structure
-from abipy.tools import is_string
 from abipy.core.tensor import SymmetricTensor
 
 __all__ = [

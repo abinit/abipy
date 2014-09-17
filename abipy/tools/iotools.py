@@ -5,23 +5,7 @@ import os
 import tempfile
 
 from subprocess import call
-from .text import list_strings
-
-
-def file_read(filename):
-    """Read a file and close it.  Return the file source using read()."""
-    fobj = open(filename, 'r')
-    source = fobj.read()
-    fobj.close()
-    return source
-
-
-def file_readlines(filename):
-    """Read a file and close it.  Return the file source using readlines()."""
-    fobj = open(filename, 'r')
-    lines = fobj.readlines()
-    fobj.close()
-    return lines
+from monty.string import list_strings
 
 
 def diff_files(fname1, fname2, no_dupspace=True):
@@ -32,8 +16,10 @@ def diff_files(fname1, fname2, no_dupspace=True):
     """
     from difflib import ndiff
 
-    lines1 = file_readlines(fname1)
-    lines2 = file_readlines(fname2)
+    with open(fname1, "r") as fh:
+        lines1 = fh.read()
+    with open(fname2, "r") as fh:
+        lines2 = fh.read()
 
     if no_dupspace:
         for idx, l1 in enumerate(lines1): lines1[idx] = " ".join(l1.split()) + "\n"

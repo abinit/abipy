@@ -8,7 +8,7 @@ import wx.lib.dialogs as wxdg
 import abipy.gui.awx as awx
 import abipy.gui.electronswx as ewx
 
-from abipy.tools import which 
+from monty.os.path import which
 from abipy.iotools.visualizer import Visualizer
 from abipy.iotools.files import NcDumper
 from abipy.electrons.ebands import ElectronBandsPlotter, ElectronDosPlotter

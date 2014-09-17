@@ -16,10 +16,10 @@ import numpy as np
 import pymatgen.core.units as units
 import abipy.tools.mixins as mixins
 
+from monty.string import is_string, list_strings
 from pymatgen.io.abinitio.pseudos import PseudoTable, Pseudo
 from pymatgen.core.units import Energy
 from abipy.core import Structure
-from abipy.tools import is_string, list_strings
 from abipy.htc.variable import InputVariable
 from abipy.htc.abivars import is_abivar, is_anaddb_var
 

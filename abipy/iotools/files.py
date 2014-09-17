@@ -7,8 +7,8 @@ import six
 import collections
 
 from time import ctime
+from monty.os.path import which
 from pymatgen.io.abinitio.events import EventsParser
-from abipy.tools import which
 from abipy.iotools.visualizer import Visualizer
 
 

@@ -10,7 +10,8 @@ import tempfile
 import numpy as np
 
 from subprocess import Popen, PIPE
-from abipy.tools import which, WildCard
+from monty.os.path import which
+from abipy.tools import WildCard
 
 __all__ = [
     "FFT_Benchmark",
