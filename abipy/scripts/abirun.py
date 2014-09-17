@@ -150,7 +150,7 @@ def treat_flow(flow, options):
         print("Number of tasks launched %d" % nlaunch)
 
     if options.command == "tail":
-        paths = [t.output_file.path for t in flow.iflat_tasks(status="S_RUN")]
+        paths = [t.output_file.path for t in flow.iflat_tasks(status="Running")]
         if not paths:
             print("No job is running. Exiting!")
         else:
