@@ -10,24 +10,6 @@ import functools
 from pymatgen.util.decorators import *
 
 
-def benchmark(func):
-    """
-    A decorator that computes the time a function takes to execute 
-    and stores it in the __etime attribute.
-    """
-    import time
-
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        t = time.clock()
-        res = func(*args, **kwargs)
-        etime = time.clock()-t
-        print(func.__name__, etime)
-        func.__etime = etime
-        return res
-    return wrapper
-
-
 def logging(func):
     """
     A decorator that logs the activity of the script.

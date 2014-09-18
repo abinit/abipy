@@ -12,14 +12,6 @@ __all__ = [
     "bxsf_write",
 ]
 
-#class DataWriter(object)
-#    EXTENSIONS = ["xsf, "bxsf"]
-#    def write_structure(self, filepath, structure):
-#    def write_stuctures(self, filepath, structures):
-#    def write_datar(self, filepath, structure, datar, add_replicas=True, cplx_mode=None):
-#    def write_fermi_surface(self, filepath, structure, nsppol, nband, ndivs, emesh_sbk, fermie, unit="eV"):
-#    def from_filepath(cls, filepath)
-
 
 def xsf_write_structure(file, structures):
     """

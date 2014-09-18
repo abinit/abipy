@@ -105,6 +105,7 @@ class AbinitOutputFile(AbinitTextFile):
 class AbinitLogFile(AbinitTextFile):
     """Class representing the log file."""
 
+
 @six.add_metaclass(abc.ABCMeta)
 class AbinitNcFile(AbinitFile):
     """
