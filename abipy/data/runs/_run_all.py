@@ -7,6 +7,7 @@ from __future__ import print_function
 import sys
 import os 
 import argparse
+import shutil
 
 from subprocess import call, Popen
 
@@ -35,6 +36,11 @@ def main():
     parser.add_argument('-e', '--exclude', type=str, default="",
                         help="Exclude scripts.")
 
+    parser.add_argument('--keep-dirs', action="store_true", default=False,
+                        help="Do not remove flowdirectories.")
+
+    #parser.add_argument("scripts", nargs="+",help="List of scripts to be executed")
+
     options = parser.parse_args()
 
     # Find scripts.
@@ -52,17 +58,23 @@ def main():
                 scripts.append(path)
 
     # Run scripts according to mode.
+    dirpaths = []
     if options.mode in ["s", "sequential"]:
         for script in scripts:
             retcode = call(["python", script])
-            if retcode != 0: break
+            if retcode != 0: 
+                print("retcode %d while running %s" % (retcode, script))
+                break
 
-    #elif options.mode in ["a", "automatic"]:
-    #    for script in scripts:
-    #        p = Popen(["python", script])
-    #        time.sleep(options.time)
-    #        p.kill()
-    #    retcode = 0
+            dirpaths.append(script.replace(".py", "").replace("run_", "flow_"))
+
+        # Remove directories.
+        if not options.keep_dirs:
+            for dirpath in dirpaths:
+                try:
+                    shutil.rmtree(dirpath, ignore_errors=False)
+                except OSError:
+                    print("Exception while removing %s" % dirpath)
 
     else:
         show_examples_and_exit(err_msg="Wrong value for mode: %s" % options.mode)

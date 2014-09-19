@@ -47,6 +47,7 @@ abipy/extensions/*.html
 .coverage
 .tox
 nosetests.xml
+_integration_tests_
 
 # ipython notebooks
 .ipynb*
