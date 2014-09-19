@@ -30,29 +30,3 @@ def unzip(gz_fname, dest=None):
         out_fh.write(file_content)
     finally:
         out_fh.close()
-
-
-def touch(filename):
-    try:
-        open(fname,"w").close()
-        return 0
-    except:
-        raise IOError("trying to create file = %s" % filename)
-
-
-def tail_file(fname, n, aslist=False):
-    """Assumes a unix-like system."""
-
-    args = ["tail", "-n " + str(n), fname]
-
-    p = Popen(args, shell=False, stdout=PIPE, stderr=PIPE)
-    ret_code = p.wait()
-
-    if ret_code != 0:
-        raise RuntimeError("return_code = %s, cmd = %s" %(ret_code, " ".join(args) ))
-
-    if aslist:
-        return p.stdout.readlines()
-    else:
-        return p.stdout.read()
-

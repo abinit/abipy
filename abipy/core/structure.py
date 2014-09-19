@@ -297,7 +297,8 @@ class Structure(pymatgen.Structure):
             filename = tempfile.mkstemp(suffix="." + ext, text=True)[1]
 
         with open(filename, mode="w") as fh:
-            if ext == "xsf":  # xcrysden
+            if ext == "xsf":  
+                # xcrysden
                 xsf.xsf_write_structure(fh, structures=[self])
             else:
                 raise Visualizer.Error("extension %s is not supported." % ext)
@@ -520,7 +521,6 @@ class Structure(pymatgen.Structure):
 
     def get_smallest_supercell(self, qpoint, max_supercell):
         """
-
         :param qpoint: q vector in reduced coordinate in reciprocal space
         :param max_supercell: vector with the maximum supercell size
         :return: the scaling matrix of the supercell

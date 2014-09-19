@@ -9,7 +9,6 @@ import os
 import argparse
 
 from subprocess import call, Popen
-from abipy.tools.devtools import number_of_cpus
 
 def str_examples():
     examples = """
@@ -33,16 +32,15 @@ def main():
     parser.add_argument('-m', '--mode', type=str, default="sequential",
                         help="execution mode. Default is sequential.")
 
-    parser.add_argument('-e', '--exclude', nargs="+", type=str, default="",
+    parser.add_argument('-e', '--exclude', type=str, default="",
                         help="Exclude scripts.")
 
     options = parser.parse_args()
 
-    #max_ncpus = number_of_cpus()
-
     # Find scripts.
     if options.exclude:
-        print("Will exclude: ", options.exclude)
+        options.exclude = options.exclude.split()
+        print("Will exclude:\n", options.exclude)
 
     dir = os.path.join(os.path.dirname(__file__))
     scripts = []

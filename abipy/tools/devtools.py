@@ -22,11 +22,11 @@ def profile(statement, global_vars=None, local_vars=None):
     """
     Run statement under profiler, supplying your own globals and locals,
     """
+    global_vars = globals() if global_vars is None else global_vars
+    local_vars = locals() if local_vars is None else local_vars
     import pstats
     import cProfile
     import tempfile
-    global_vars = globals() if global_vars is None else global_vars
-    local_vars = locals() if local_vars is None else local_vars
 
     _, filename = tempfile.mkstemp()
     cProfile.runctx(statement, global_vars, local_vars, filename=filename)

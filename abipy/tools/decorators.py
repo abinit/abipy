@@ -6,10 +6,6 @@ import os
 import linecache
 import functools
 
-# Import all pymatgen decorators in namespace.
-from pymatgen.util.decorators import *
-
-
 def logging(func):
     """
     A decorator that logs the activity of the script.
