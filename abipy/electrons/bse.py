@@ -726,7 +726,7 @@ class MDF_Plotter(object):
 #
 #        if qpoint is not None:
 #            # Will compute scalar product with q
-#            qpoint = Kpoint.askpoint(qpoint, self.structure.reciprocal_lattice).versor()
+#            qpoint = Kpoint.as_kpoint(qpoint, self.structure.reciprocal_lattice).versor()
 #        else:
 #            # Will plot |<psi|r|psi>|.
 #            qpoint = Kpoint((1, 1, 1), self.structure.reciprocal_lattice)

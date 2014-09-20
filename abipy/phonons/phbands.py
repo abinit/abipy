@@ -39,7 +39,7 @@ class PhononMode(object):
             structure:
                 Pymatgen structure.
         """
-        self.qpoint = Kpoint.askpoint(qpoint, structure.reciprocal_lattice)
+        self.qpoint = Kpoint.as_kpoint(qpoint, structure.reciprocal_lattice)
         self.freq = freq
         self.displ_cart = displ_cart
         self.structure = structure

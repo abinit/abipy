@@ -1,8 +1,10 @@
-PyCifRW>=3.5
-pymatgen>=2.8.7
-matplotlib>=1.1
-scipy>=0.10
-numpy>=1.6
-PyDispatcher
-pyyaml>=3.1.0
 apscheduler>=2.1.1
+numpy>=1.8
+pydispatcher>=2.0.3
+pyyaml>=3.11
+scipy>=0.10
+netCDF4
+scipy>=0.10
+pymatgen>=3.0.0
+wxmplot
+#matplotlib>=1.1

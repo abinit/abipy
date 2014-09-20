@@ -18,12 +18,10 @@ class NumPyArangeEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def profile(statement, global_vars=None, local_vars=None):
+def profile(statement, global_vars, local_vars):
     """
     Run statement under profiler, supplying your own globals and locals,
     """
-    global_vars = globals() if global_vars is None else global_vars
-    local_vars = locals() if local_vars is None else local_vars
     import pstats
     import cProfile
     import tempfile

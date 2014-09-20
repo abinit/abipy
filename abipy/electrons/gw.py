@@ -735,7 +735,7 @@ class SIGRES_Plotter(collections.Iterable):
             `matplotlib` figure
         """
         spin_range = range(self.nsppol) if spin is None else to_range(spin)
-        kpoints_for_plot = self.computed_gwkpoints #if kpoint is None else KpointList.askpoints(kpoint)
+        kpoints_for_plot = self.computed_gwkpoints #if kpoint is None else KpointList.as_kpoints(kpoint)
 
         title = kwargs.pop("title", None)
         show = kwargs.pop("show", True)
@@ -787,7 +787,7 @@ class SIGRES_Plotter(collections.Iterable):
         """
         spin_range = range(self.nsppol) if spin is None else to_range(spin)
         band_range = range(self.max_gwbstart, self.min_gwbstop) if band is None else to_range(band)
-        kpoints_for_plot = self.computed_gwkpoints #if kpoint is None else KpointList.askpoints(kpoint)
+        kpoints_for_plot = self.computed_gwkpoints #if kpoint is None else KpointList.as_kpoints(kpoint)
 
         self.prepare_plot()
 

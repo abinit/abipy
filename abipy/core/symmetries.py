@@ -27,15 +27,15 @@ def wrap_in_ucell(x):
     """
     return x % 1
 
-def isinteger(x, atol=1e-08):
+def is_integer(x, atol=1e-08):
     """
     True if all x is integer within the absolute tolerance atol.
 
-    >>> isinteger([1., 2.])
+    >>> is_integer([1., 2.])
     True
-    >>> isinteger(1.01, atol=0.011)
+    >>> is_integer(1.01, atol=0.011)
     True
-    >>> isinteger([1.01, 2])
+    >>> is_integer([1.01, 2])
     False
     """
     int_x = np.around(x)
@@ -186,7 +186,7 @@ class SymmOp(Operation):
     def __eq__(self, other):
         # Note the two fractional traslations are equivalent if they differ by a lattice vector.
         return (np.all(self.rot_r == other.rot_r) and
-                isinteger(self.tau-other.tau, atol=self._ATOL_TAU) and
+                is_integer(self.tau-other.tau, atol=self._ATOL_TAU) and
                 self.afm_sign == other.afm_sign and
                 self.time_sign == other.time_sign
                 )
@@ -220,7 +220,7 @@ class SymmOp(Operation):
     def isE(self):
         """True is self is the identity operator."""
         return (np.all(self.rot_r == np.eye(3, dtype=np.int)) and
-                isinteger(self.tau, atol=self._ATOL_TAU) and
+                is_integer(self.tau, atol=self._ATOL_TAU) and
                 self.time_sign == 1 and
                 self.afm_sign == 1)
     # end operator protocol.
