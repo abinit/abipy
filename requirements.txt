@@ -4,7 +4,6 @@ pydispatcher>=2.0.3
 pyyaml>=3.11
 scipy>=0.10
 netCDF4
-scipy>=0.10
 pymatgen>=3.0.0
 wxmplot
 #matplotlib>=1.1
