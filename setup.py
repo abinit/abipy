@@ -150,29 +150,13 @@ def cleanup():
 # List of external packages we rely on.
 # Note setup install will download them from Pypi if they are not available.
 install_requires = [
-<<<<<<< HEAD
-    "termcolor>=1.1.0",
-    "apscheduler>=2.1.1",
-    "PyDispatcher",
-    "numpy",
-    #"numpy>=1.8",  # We need this one for the ufuncs
-    "scipy>=0.10",
-    "matplotlib>=1.1",
-    "pyyaml>=3.1.0",
-    #"netCDF4",
-    "pymatgen>=2.9.0",
-    "fabric",
-    "paramiko",
-=======
-    #"termcolor",
     "apscheduler==2.1.0",
     "numpy>=1.8",  
     "pydispatcher>=2.0.3",
     "pyyaml>=3.11",
     "scipy>=0.10",
-    "netCDF4",
+    #"netCDF4",
     "pymatgen>=3.0.0",
->>>>>>> matteos-abipy/master
     "wxmplot",
     #"matplotlib>=1.1",
     #"asciitable",
@@ -229,13 +213,8 @@ setup_args = dict(
       package_data     = my_package_data,
       exclude_package_data = my_excl_package_data,
       scripts          = my_scripts,
-<<<<<<< HEAD
-      #download_url     = download_url,
-      cmdclass = cmdclass,
-=======
       #download_url    = download_url,
-      cmdclass={'install': MyInstall},
->>>>>>> matteos-abipy/master
+      #cmdclass={'install': MyInstall},
       ext_modules=ext_modules,
       )
 
