@@ -112,9 +112,9 @@ BEGIN_BLOCK_BANDGRID_3D
 2
 2 2 2
 0 0 0
-1.175502 2.036029 -0.000000
+1.175502 2.036029 0.000000
 -1.175502 2.036029 0.000000
-0.000000 -0.000000 1.783476
+0.000000 0.000000 1.783476
  BAND: 1
 0.000000000000000000e+00
 1.000000000000000000e+00
@@ -137,7 +137,11 @@ BEGIN_BLOCK_BANDGRID_3D
 END_BLOCK_BANDGRID_3D
 """
         tmp_file.seek(0)
-        self.assertMultiLineEqual(tmp_file.read(), xsf_string)
+        s = tmp_file.read()
+        print(s)
+        print(xsf_string)
+        self.maxDiff = None
+        self.assertMultiLineEqual(s, xsf_string)
 
 
 if __name__ == "__main__":

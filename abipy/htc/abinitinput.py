@@ -1,4 +1,4 @@
-from __future__ import print_function, division
+from __future__ import print_function, division #, unicode_literals
 
 import subprocess
 
@@ -6,8 +6,10 @@ from os import makedirs, readlink, symlink
 from os.path import basename, dirname, exists, join, realpath
 
 from abipy.profile import abipy_env
-from . import AbinitFiles, InputFile, FilesFile
-from . import JobFile, PBSJobFile, SGEJobFile, SlurmJobFile
+from .filesfile import FilesFile
+from .abinitfiles import AbinitFiles
+from .inputfile import InputFile 
+from .jobfile import JobFile, PBSJobFile, SGEJobFile, SlurmJobFile
 
 __all__ = ['AbinitInput']
 

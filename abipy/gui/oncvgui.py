@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 """Gui for the oncvpsp norm-conserving pseudopotential generator."""
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import os
 import copy
 import time
 import shutil
 import abc
+import sis
 import wx
 import awx
 import wx.lib.mixins.listctrl as listmix
@@ -15,7 +16,7 @@ import pymatgen.core.periodic_table as periodic_table
 
 from collections import OrderedDict
 from monty.dev import get_ncpus
-from abipy.tools import AttrDict
+from monty.collections import AttrDict
 from abipy.gui.editor import TextNotebookFrame, SimpleTextViewer
 from abipy.gui.oncvtooltips import oncv_tip
 from abipy.gui import mixins as mix
@@ -399,11 +400,9 @@ allows you to scan a set of possible values for the generation of the pseudopote
             developers=["Matteo Giantomassi"],
             website="http://www.mat-simresearch.com/")
 
-
+@six.add_metaclass(abc.ABCMeta)
 class OptimizationFrame(awx.Frame):
     """Base class for optimization frames."""
-    __metaclass__ = abc.ABCMeta
-
     def __init__(self, parent, **kwargs):
         super(OptimizationFrame, self).__init__(parent, **kwargs)
 

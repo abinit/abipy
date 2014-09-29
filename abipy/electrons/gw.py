@@ -1,13 +1,16 @@
-from __future__ import print_function, division
+"""Classes for the analysis of GW calculations."""
+from __future__ import print_function, division, unicode_literals
 
 import sys
 import copy
 import collections
 import warnings
-import cStringIO as StringIO
 import numpy as np
 
-from abipy.tools import find_le, find_ge, list_strings, is_string, pprint_table, AttrDict
+from monty.string import list_strings, is_string
+from monty.collections import  AttrDict
+from six.moves import cStringIO
+from abipy.tools import find_le, find_ge, pprint_table
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import KpointList
 from abipy.iotools import AbinitNcFile, ETSF_Reader, Has_Structure, Has_ElectronBands
@@ -159,7 +162,7 @@ class QPList(list):
         """String representation."""
         table = self.to_table()
 
-        strio = StringIO.StringIO()
+        strio = cStringIO()
         pprint_table(table, out=strio)
         strio.write("\n")
         strio.seek(0)
@@ -753,7 +756,7 @@ class SIGRES_Plotter(collections.Iterable):
             `matplotlib` figure
         """
         spin_range = range(self.nsppol) if spin is None else torange(spin)
-        kpoints_for_plot = self.computed_gwkpoints #if kpoint is None else KpointList.askpoints(kpoint)
+        kpoints_for_plot = self.computed_gwkpoints  #if kpoint is None else KpointList.as_kpoints(kpoint)
 
         title = kwargs.pop("title", None)
         show = kwargs.pop("show", True)

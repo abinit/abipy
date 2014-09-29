@@ -1,4 +1,5 @@
-from __future__ import print_function, division
+"""Classes for the analysis of BSE calculations"""
+from __future__ import print_function, division, unicode_literals
 
 import sys
 import os
@@ -6,10 +7,10 @@ import itertools
 import collections
 import numpy as np
 
+from monty.string import is_string
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList
 from abipy.iotools import ETSF_Reader, AbinitNcFile, Has_Structure
-from abipy.tools import is_string
 from abipy.core.tensor import SymmetricTensor
 
 __all__ = [
@@ -725,7 +726,7 @@ class MDF_Plotter(object):
 #
 #        if qpoint is not None:
 #            # Will compute scalar product with q
-#            qpoint = Kpoint.askpoint(qpoint, self.structure.reciprocal_lattice).versor()
+#            qpoint = Kpoint.as_kpoint(qpoint, self.structure.reciprocal_lattice).versor()
 #        else:
 #            # Will plot |<psi|r|psi>|.
 #            qpoint = Kpoint((1, 1, 1), self.structure.reciprocal_lattice)

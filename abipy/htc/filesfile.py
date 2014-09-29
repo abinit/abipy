@@ -1,11 +1,11 @@
-from __future__ import print_function, division
+from __future__ import print_function, division #, unicode_literals
 import warnings
 
 from os import makedirs
 from os.path import dirname, join, exists, realpath
 from copy import deepcopy
 
-from . import AbinitFiles
+from .abinitfiles import AbinitFiles
 
 __all__ = ['FilesFile']
 
@@ -68,7 +68,7 @@ class FilesFile(object):
         self.pseudodir = '.'
         self.pseudos = list()
 
-        for (arg, val) in kwargs.iteritems():
+        for (arg, val) in kwargs.items():
             getattr(self, 'set_' + arg)(val)
 
     def set_input(self, name):

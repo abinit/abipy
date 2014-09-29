@@ -1,13 +1,14 @@
 """This module ..."""
-from __future__ import division, print_function
+from __future__ import print_function, division, unicode_literals
 
 import abc
 import os
+import six
 import collections
 
 from time import ctime
+from monty.os.path import which
 from pymatgen.io.abinitio.events import EventsParser
-from abipy.tools import which
 from abipy.iotools.visualizer import Visualizer
 
 
@@ -18,14 +19,12 @@ __all__ = [
     "Has_PhononBands",
 ]
 
-
+@six.add_metaclass(abc.ABCMeta)
 class AbinitFile(object):
     """
     Abstract base class defining the methods that must be  implemented 
     by the concrete classes representing the different files produced by ABINIT.
     """
-    __metaclass__ = abc.ABCMeta
-
     def __init__(self, filepath):
         self._filepath = os.path.abspath(filepath)
 
@@ -107,21 +106,20 @@ class AbinitLogFile(AbinitTextFile):
     """Class representing the log file."""
 
 
+@six.add_metaclass(abc.ABCMeta)
 class AbinitNcFile(AbinitFile):
     """
     Abstract class representing a Netcdf file with data saved
     according to the ETSF-IO specifications (when available).
     """
-    __metaclass__ = abc.ABCMeta
-
     def ncdump(self, *nc_args, **nc_kwargs):
         """Returns a string with the output of ncdump."""
         return NcDumper(*nc_args, **nc_kwargs).dump(self.filepath)
 
 
+@six.add_metaclass(abc.ABCMeta)
 class Has_Structure(object):
     """Mixin class for `AbinitNcFile` containing crystallographic data."""
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractproperty
     def structure(self):
@@ -160,9 +158,9 @@ class Has_Structure(object):
             raise visu.Error("Don't know how to export data for visu_name %s" % visu_name)
 
 
+@six.add_metaclass(abc.ABCMeta)
 class Has_ElectronBands(object):
     """Mixin class for `AbinitNcFile` containing electron data."""
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractproperty
     def ebands(self):
@@ -186,10 +184,9 @@ class Has_ElectronBands(object):
         """
         return self.ebands.plot(**kwargs)
 
-
+@six.add_metaclass(abc.ABCMeta)
 class Has_PhononBands(object):
     """Mixin class for `AbinitNcFile` containing phonon data."""
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractproperty
     def phbands(self):
@@ -229,11 +226,11 @@ class NcDumper(object):
 
 
 _ABBREVS = [
-    (1 << 50L, 'Pb'),
-    (1 << 40L, 'Tb'),
-    (1 << 30L, 'Gb'),
-    (1 << 20L, 'Mb'),
-    (1 << 10L, 'kb'),
+    (1 << 50, 'Pb'),
+    (1 << 40, 'Tb'),
+    (1 << 30, 'Gb'),
+    (1 << 20, 'Mb'),
+    (1 << 10, 'kb'),
     (1, 'b'),
 ]
 

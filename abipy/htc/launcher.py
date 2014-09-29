@@ -1,4 +1,4 @@
-from __future__ import print_function, division
+from __future__ import print_function, division #, unicode_literals
 
 import sys
 import os
@@ -11,10 +11,11 @@ from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from collections import OrderedDict
 from copy import deepcopy
 
-from .utils import parse_ewc
 from abipy.core import release, Structure, Density
 from abipy.profile import abipy_env
-from . import AbinitInput
+from .utils import parse_ewc
+from .abinitinput import AbinitInput
+
 
 __all__ = [
     'Launcher', 

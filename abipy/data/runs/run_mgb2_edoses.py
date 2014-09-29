@@ -64,7 +64,7 @@ def build_flow(options):
     pseudos = data.pseudos("12mg.pspnc", "5b.pspnc")
     structure = data.structure_from_ucell("MgB2")
 
-    nval = structure.calc_nvalence(pseudos)
+    nval = structure.num_valence_electrons(pseudos)
     #print(nval)
 
     inputs = make_scf_nscf_inputs(structure, pseudos)

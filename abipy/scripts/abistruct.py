@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Script to export/visualize the crystal structure saved in the netcdf files produced by ABINIT."""
-from __future__ import division, print_function
+from __future__ import print_function, division, unicode_literals
 
 import sys
 import os

@@ -8,6 +8,7 @@ Usage:
 It prints summaries and if chosen, line-by-line info of where \\t or \\r
 characters can be found in our source tree.
 """
+from __future__ import print_function, division, unicode_literals
 
 # Config
 # If true, all lines that have tabs are printed, with line number

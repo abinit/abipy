@@ -17,10 +17,14 @@ open_hook.remove()
 Initial version taken from
 http://stackoverflow.com/questions/2023608/check-what-files-are-open-in-python
 """
-from __future__ import print_function
+from __future__ import print_function, division, unicode_literals
 
 import sys
-import __builtin__
+try:
+    import __builtin__
+except ImportError:
+    # Py3k
+    import builtins as __builtin__
 
 # Save the builtin version (do not change!)
 _builtin_file = __builtin__.file

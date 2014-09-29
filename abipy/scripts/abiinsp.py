@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Script to inspect the status of Abinit calculations at run-time."""
-from __future__ import division, print_function
+from __future__ import print_function, division, unicode_literals
 
 import sys
 import os

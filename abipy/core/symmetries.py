@@ -1,15 +1,16 @@
 """Objects used to deal with symmetry operations in crystals."""
-from __future__ import division, print_function
+from __future__ import print_function, division, unicode_literals
 
 import sys
 import abc
 import warnings
 import collections
+import six
 import numpy as np
-import cStringIO as StringIO
 
-from pymatgen.util.num_utils import iuptri
-from pymatgen.util.string_utils import is_string
+from six.moves import cStringIO
+from monty.string import is_string
+from monty.itertools import iuptri
 from pymatgen.symmetry.finder import SymmetryFinder, get_point_group
 from abipy.core.kpoints import wrap_to_ws, issamek
 from abipy.iotools import as_etsfreader
@@ -26,15 +27,15 @@ def wrap_in_ucell(x):
     """
     return x % 1
 
-def isinteger(x, atol=1e-08):
+def is_integer(x, atol=1e-08):
     """
     True if all x is integer within the absolute tolerance atol.
 
-    >>> isinteger([1., 2.])
+    >>> is_integer([1., 2.])
     True
-    >>> isinteger(1.01, atol=0.011)
+    >>> is_integer(1.01, atol=0.011)
     True
-    >>> isinteger([1.01, 2])
+    >>> is_integer([1.01, 2])
     False
     """
     int_x = np.around(x)
@@ -101,13 +102,12 @@ def _get_det(mat):
 
     return det
 
-
+@six.add_metaclass(abc.ABCMeta)
 class Operation(object):
     """
     Abstract base class that defines the methods that must be 
     implememted by the concrete class representing some sort of operation
     """
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def __eq__(self, other):
@@ -186,7 +186,7 @@ class SymmOp(Operation):
     def __eq__(self, other):
         # Note the two fractional traslations are equivalent if they differ by a lattice vector.
         return (np.all(self.rot_r == other.rot_r) and
-                isinteger(self.tau-other.tau, atol=self._ATOL_TAU) and
+                is_integer(self.tau-other.tau, atol=self._ATOL_TAU) and
                 self.afm_sign == other.afm_sign and
                 self.time_sign == other.time_sign
                 )
@@ -206,7 +206,7 @@ class SymmOp(Operation):
         `Symmop` can be used as keys in dictionaries.
         Note that the hash is computed from integer values. 
         """
-        return 8 * self.trace + 4 * self.det + 2 * self.time_sign
+        return int(8 * self.trace + 4 * self.det + 2 * self.time_sign)
 
 
     def inverse(self):
@@ -220,7 +220,7 @@ class SymmOp(Operation):
     def isE(self):
         """True is self is the identity operator."""
         return (np.all(self.rot_r == np.eye(3, dtype=np.int)) and
-                isinteger(self.tau, atol=self._ATOL_TAU) and
+                is_integer(self.tau, atol=self._ATOL_TAU) and
                 self.time_sign == 1 and
                 self.afm_sign == 1)
     # end operator protocol.
@@ -590,7 +590,7 @@ class SpaceGroup(OpSequence):
         self._has_timerev = has_timerev
         self._time_signs = [+1, -1] if self.has_timerev else [+1]
 
-        self._symrel, self._tnons, self._symafm = map(np.asarray, (symrel, tnons, symafm))
+        self._symrel, self._tnons, self._symafm = list(map(np.asarray, (symrel, tnons, symafm)))
 
         if len(self.symrel) != len(self.tnons) or len(self.symrel) != len(self.symafm):
             raise ValueError("symrel, tnons and symafm must have equal shape[0]")
@@ -820,7 +820,7 @@ class LittleGroup(OpSequence):
     def __str__(self):
         lines = [repr(self)]
 
-        strio = StringIO.StringIO()
+        strio = cStringIO()
         bilbao_ptgrp = bilbao_ptgroup(self.kgroup.sch_symbol)
         bilbao_ptgrp.show_character_table(stream=strio)
         strio.seek(0)
@@ -945,7 +945,7 @@ class LatticeRotation(Operation):
         return self.__class__(self.mat * other.mat)
 
     def __hash__(self):
-        return 8 * self.trace + 4 * self.det 
+        return int(8 * self.trace + 4 * self.det)
 
     def inverse(self): 
         """
@@ -1194,7 +1194,7 @@ class BilbaoPointGroup(object):
                                                                                                               
         # Add row: irrep_name, character.
         for irrep in self.irreps:
-            character = map(str, irrep.character)
+            character = list(map(str, irrep.character))
             app([irrep.name] + character)
 
         return table

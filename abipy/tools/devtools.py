@@ -1,6 +1,4 @@
-from __future__ import print_function, division
-
-from pymatgen.util.io_utils import FileLock
+from __future__ import print_function, division, unicode_literals
 
 import os
 import re
@@ -20,15 +18,13 @@ class NumPyArangeEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def profile(statement, global_vars=None, local_vars=None):
+def profile(statement, global_vars, local_vars):
     """
     Run statement under profiler, supplying your own globals and locals,
     """
     import pstats
     import cProfile
     import tempfile
-    global_vars = globals() if global_vars is None else global_vars
-    local_vars = locals() if local_vars is None else local_vars
 
     _, filename = tempfile.mkstemp()
     cProfile.runctx(statement, global_vars, local_vars, filename=filename)

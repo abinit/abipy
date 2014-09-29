@@ -1,6 +1,7 @@
 """Wavefunction file."""
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
+import six
 import numpy as np
 
 from abipy.core import Mesh3D, GSphere, Structure
@@ -280,7 +281,10 @@ class WFK_Reader(ElectronsReader):
             return self._basis_set
         except AttributeError:
             basis_set = self.read_value("basis_set")
-            self._basis_set = "".join(basis_set).strip()
+            if six.PY2:
+                self._basis_set = "".join(basis_set).strip()
+            else:
+                self._basis_set = "".join(str(basis_set, encoding='UTF-8')).strip()
             return self._basis_set
 
     @property

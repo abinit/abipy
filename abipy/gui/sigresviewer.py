@@ -1,4 +1,4 @@
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import os
 import wx
@@ -6,10 +6,10 @@ import wx
 import wx.lib.agw.flatnotebook as fnb
 import abipy.gui.awx as awx
 
+from monty.string import  marquee
+from monty.collections import AttrDict
 from wx.py.shell import Shell
 from abipy.abilab import abiopen
-from monty.string import  marquee
-from abipy.tools import AttrDict
 from abipy.electrons import SIGRES_Plotter
 from abipy.gui.scissors import ScissorsBuilderFrame
 from abipy.gui.baseviewer import MultiViewerFrame

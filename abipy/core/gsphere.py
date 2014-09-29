@@ -1,10 +1,10 @@
 """This module contains the class defining the G-sphere for wavefunctions, densities and potentials"""
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import collections
 import numpy as np
 
-from abipy.core.kpoints import Kpoint
+from .kpoints import Kpoint
 
 __all__ = [
     "GSphere",
@@ -30,7 +30,7 @@ class GSphere(collections.Sequence):
         """
         self.ecut = ecut
         self.lattice = lattice
-        self.kpoint = Kpoint.askpoint(kpoint, lattice)
+        self.kpoint = Kpoint.as_kpoint(kpoint, lattice)
 
         self._gvecs = np.reshape(np.array(gvecs), (-1, 3))
         self.npw = self.gvecs.shape[0]

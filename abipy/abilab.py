@@ -1,6 +1,9 @@
 """
 This module gathers the most important classes and helper functions used for scripting.
 """
+from __future__ import print_function, division, unicode_literals
+
+from monty.os.path import which
 from pymatgen.io.abinitio.eos import EOS
 from pymatgen.io.abinitio.pseudos import PseudoTable
 from pymatgen.io.abinitio.wrappers import Mrgscr, Mrgddb, Mrggkk
@@ -19,7 +22,6 @@ from pymatgen.io.abinitio.launcher import PyFlowScheduler
 
 from abipy.core import constants
 from abipy.core.structure import Structure, StructureModifier
-from abipy.tools import which
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen, AnaddbInput
 from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter, SIGRES_Plotter
 from abipy.phonons import PhononBands, PHDOS_Reader, PHDOS_File

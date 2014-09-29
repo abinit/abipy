@@ -3,22 +3,23 @@ This module defines objects that faciliate the creation of the
 ABINIT input files. The syntax is similar to the one used 
 in ABINIT with small differences. 
 """
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import os
 import collections
 import warnings
 import itertools
 import copy
+import six
 import abc
 import numpy as np
 import pymatgen.core.units as units
 import abipy.tools.mixins as mixins
 
+from monty.string import is_string, list_strings
 from pymatgen.io.abinitio.pseudos import PseudoTable, Pseudo
 from pymatgen.core.units import Energy
 from abipy.core import Structure
-from abipy.tools import is_string, list_strings
 from abipy.htc.variable import InputVariable
 from abipy.htc.abivars import is_abivar, is_anaddb_var
 
@@ -59,7 +60,7 @@ def straceback():
     import traceback
     return traceback.format_exc()
 
-
+@six.add_metaclass(abc.ABCMeta)
 class Input(object): 
     """
     Base class foor Input objects.
@@ -67,8 +68,6 @@ class Input(object):
     An input object must define have a make_input method 
     that returns the string representation used by the client code.
     """
-    __metaclass__ = abc.ABCMeta
-
     def copy(self):
         """Shallow copy of the input."""
         return copy.copy(self)

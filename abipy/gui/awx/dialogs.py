@@ -3,8 +3,8 @@ from __future__ import print_function, division
 import os
 import wx
 
-from abipy.tools import which
-from pymatgen.util.string_utils import is_string
+from monty.os.path import which
+from monty.string import is_string
 
 
 __all__ = [

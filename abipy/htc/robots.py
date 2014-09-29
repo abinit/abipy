@@ -1,9 +1,10 @@
 #!/usr/bin/env python
-from __future__ import division, print_function
+from __future__ import print_function, division, unicode_literals
 
 import os
 import sys
 import abc
+import six
 import numpy as np
 
 from abipy import abilab
@@ -18,6 +19,7 @@ __all__ = [
     "SigresRobot",
 ]
 
+@six.add_metaclass(abc.ABCMeta)
 class FlowRobot(object):
     """
     The main function of a `FlowRobot` is facilitating the extraction of the 
@@ -33,8 +35,6 @@ class FlowRobot(object):
     Client code will use robot.run() to produce the results.
     The run method will call collect_data and analyze_data.
     """
-    __metaclass__ = abc.ABCMeta
-
     def __init__(self, path):
         """
         Base contructor.

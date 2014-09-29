@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """This script wraps the Fortran executable mrgddb."""
-from __future__ import division, print_function
+from __future__ import print_function, division, unicode_literals
 
 import os
 import sys

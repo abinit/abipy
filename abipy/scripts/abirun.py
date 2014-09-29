@@ -3,7 +3,7 @@
 This script allows the user to submit the calculations contained in the `AbinitFlow`.
 It provides both a command line interface as well as a graphical interfaced based on wxpython.
 """
-from __future__ import division, print_function
+from __future__ import print_function, division, unicode_literals
 
 import sys
 import os
@@ -150,7 +150,7 @@ def treat_flow(flow, options):
         print("Number of tasks launched %d" % nlaunch)
 
     if options.command == "tail":
-        paths = [t.output_file.path for t in flow.iflat_tasks(status="S_RUN")]
+        paths = [t.output_file.path for t in flow.iflat_tasks(status="Running")]
         if not paths:
             print("No job is running. Exiting!")
         else:

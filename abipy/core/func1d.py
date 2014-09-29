@@ -3,12 +3,13 @@ This module defines the object Function1D that described a functions.
 of a single variables and provides simple interfaces for performing
 common tasks such as algebraic operations, integrations, differentiations, plots ...
 """
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
+import six
 import itertools
-import cStringIO as StringIO
 import numpy as np
 
+from six.moves import cStringIO
 from abipy.tools.derivatives import finite_diff
 
 __all__ = [
@@ -44,7 +45,10 @@ class Function1D(object):
         return len(self.mesh)
 
     def __iter__(self):
-        return itertools.izip(self.mesh, self.values)
+        if six.PY2:
+            return itertools.izip(self.mesh, self.values)
+        else:
+            return zip(self.mesh, self.values)
 
     def __getitem__(self, slice):
         return self.mesh[slice], self.values[slice]
@@ -159,14 +163,15 @@ class Function1D(object):
         Save self to a text file. See :func:`np.savetext` for the description of the variables
         """
         data = zip(self.mesh, self.values)
-        np.savetxt(path, data, fmt=fmt, delimiter=delimiter, newline=newline,
+        #data = (self.mesh, self.values)
+        np.savetxt(path, data, fmt=fmt.encode("ascii", "ignore"), delimiter=delimiter, newline=newline,
                    header=header, footer=footer, comments=comments)
 
     def __repr__(self):
         return "%s at %s, size = %d" % (self.__class__.__name__, id(self), len(self))
 
     def __str__(self):
-        stream = StringIO.StringIO()
+        stream = cStringIO()
         self.to_file(stream)
         return "\n".join(stream.getvalue())
 

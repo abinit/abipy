@@ -1,32 +1,10 @@
 """This module contains useful decorators for a variety of functions."""
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import sys
 import os
 import linecache
 import functools
-
-# Import all pymatgen decorators in namespace.
-from pymatgen.util.decorators import *
-
-
-def benchmark(func):
-    """
-    A decorator that computes the time a function takes to execute 
-    and stores it in the __etime attribute.
-    """
-    import time
-
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        t = time.clock()
-        res = func(*args, **kwargs)
-        etime = time.clock()-t
-        print(func.__name__, etime)
-        func.__etime = etime
-        return res
-    return wrapper
-
 
 def logging(func):
     """

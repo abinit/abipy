@@ -1,0 +1,11 @@
+dependencies:
+  override:
+    - pip install -q numpy
+    - pip install -r requirements.txt
+    #- pip install -r requirements-optional.txt
+    - python setup.py develop
+#test:
+#  override:
+#    - nosetests:
+#        environment:
+#            PYTHONPATH: $PYTHONPATH:/usr/lib/python2.7/dist-packages/

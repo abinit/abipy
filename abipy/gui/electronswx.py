@@ -1,4 +1,4 @@
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import os
 import wx
@@ -9,7 +9,7 @@ try:
 except ImportError:
     pass
 
-from abipy.tools import AttrDict
+from monty.collections import AttrDict
 from abipy.electrons import ElectronBands
 
 

@@ -1,5 +1,5 @@
 """Database with the names of the input variables used in Abinit and in other main programs."""
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import os
 import json
