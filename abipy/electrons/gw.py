@@ -329,6 +329,7 @@ class QPList(list):
         qps = self.sort_by_e0()
         e0mesh, qpcorrs = qps.get_e0mesh(), qps.get_qpeme0()
 
+
         # Check domains.
         domains = np.atleast_2d(domains)
         dsize, dflat = domains.size, domains.ravel()
@@ -348,6 +349,8 @@ class QPList(list):
 
         # Create the sub_domains and the spline functions in each subdomain.
         func_list = []
+        residues = []
+
         for dom in domains[:]:
             low, high = dom[0], dom[1]
             start, stop = find_ge(e0mesh, low), find_le(e0mesh, high)
@@ -360,9 +363,10 @@ class QPList(list):
             from scipy.interpolate import UnivariateSpline
             f = UnivariateSpline(dom_e0, dom_corr, w=None, bbox=[None, None], k=k, s=None)
             func_list.append(f)
+            residues.append(f.get_residual())
 
         # Build the scissors operator.
-        sciss = Scissors(func_list, domains, bounds)
+        sciss = Scissors(func_list, domains, residues, bounds)
 
         title = kwargs.pop("title", None)
 
@@ -377,7 +381,7 @@ class QPList(list):
                 plt.plot(2*[dom[1]], [min(qpcorrs), max(qpcorrs)])
             intp_qpc = [sciss.apply(e0) for e0 in e0mesh]
             plt.plot(e0mesh, intp_qpc, label="scissor")
-            plt.legend()
+            plt.legend(bbox_to_anchor=(0.9, 0.2))
             plt.show()
 
         # Return the object.

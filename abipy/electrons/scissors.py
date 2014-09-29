@@ -32,7 +32,7 @@ class Scissors(object):
     """
     Error = ScissorsError
 
-    def __init__(self, func_list, domains, bounds=None):
+    def __init__(self, func_list, domains, residues, bounds=None):
         """
         Args:
             func_list:
@@ -43,17 +43,22 @@ class Scissors(object):
             bounds:
                 Specify how to handle energies that do not fall inside one of the domains. 
                 At present, only constant boundaries are implemented.
+            residues:
+                A list of the residues of the fitting per domain
 
         .. note:
-
             - Domains should not overlap, cover e0mesh, and given in increasing order.
 
             - Holes are permitted but the interpolation will raise an exception if the
               eigenvalue falls inside the hole.
+
+            - Errors contains a list of the fitting errors per domain
+
         """
         # TODO Add consistency check.
         self.func_list = func_list
         self.domains = np.atleast_2d(domains)
+        self.residues = residues
         assert len(self.func_list) == len(self.domains)
 
         # Treat the out-of-boundary conditions.
