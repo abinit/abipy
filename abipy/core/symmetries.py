@@ -12,7 +12,7 @@ from six.moves import cStringIO
 from monty.string import is_string
 from monty.itertools import iuptri
 from pymatgen.symmetry.finder import SymmetryFinder
-from pymatgen.symmetry.analyser import get_point_group
+from pymatgen.symmetry.analyzer import get_point_group
 from abipy.core.kpoints import wrap_to_ws, issamek
 from abipy.iotools import as_etsfreader
 

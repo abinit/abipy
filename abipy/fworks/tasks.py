@@ -21,9 +21,10 @@ class FireTaskWithFlow(FireTaskBase):
         # Most of the serious stuff is delegated to flow.
         # Note that FireTask converts all the objects to strings
         # hence self["flow"] is the workdir of the flow from which
-        # we can reconstruct our object via pickle.
-        flow = AbinitFlow.pickle_load(self["flow"])
-        #print("In MyTask with flow %s" % flow)
+        # we can reconstruct our object with pickle.
+        print("In MyTask with flow %s" % self["flow"])
+        workdir = self["flow"]["workdir"]
+        flow = AbinitFlow.pickle_load(workdir)
 
         flow.build_and_pickle_dump()
         try:

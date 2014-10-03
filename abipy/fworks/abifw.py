@@ -11,14 +11,16 @@ def main():
     launchpad.reset('', require_password=False)
 
     # Build the flow
-    flow = build_flow()
-    flow.build_and_pickle_dump()
+    nflows = 2
+    for i in range(nflows):
+        flow = build_flow("flow_" + str(i))
+        flow.build_and_pickle_dump()
 
-    # create the Firework consisting of a single task
-    firework = Firework(FireTaskWithFlow(flow=flow))
+        # create the Firework consisting of a single task
+        firework = Firework(FireTaskWithFlow(flow=flow))
 
-    # store workflow 
-    launchpad.add_wf(firework)
+        # store workflow 
+        launchpad.add_wf(firework)
 
     #launch it locally
     #launch_rocket(launchpad)
@@ -39,7 +41,7 @@ def make_scf_nscf_inputs():
     #pseudos = data.pseudos("Si.GGA_PBE-JTH-paw.xml")
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
-    print(inp.pseudos)
+    #print(inp.pseudos)
     structure = inp.set_structure_from_file(abidata.cif_file("si.cif"))
 
     # Global variables
@@ -76,9 +78,8 @@ def make_scf_nscf_inputs():
     scf_input, nscf_input = inp.split_datasets()
     return scf_input, nscf_input
 
-def build_flow():
-    # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
-    workdir = "flow_test"
+def build_flow(workdir):
+    #workdir = "flow_test"
 
     # Instantiate the TaskManager.
     manager = abilab.TaskManager.from_user_config()
