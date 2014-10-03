@@ -1,7 +1,7 @@
 # coding: utf-8
 from __future__ import print_function, division, unicode_literals
 
-from fireworks import FireTaskBase, FWAction, FireWork, explicit_serialize
+from fireworks import FireTaskBase, FWAction, Firework, explicit_serialize
 from abipy.abilab import AbinitFlow
 
 @explicit_serialize
@@ -37,5 +37,5 @@ class FireTaskWithFlow(FireTaskBase):
         else:
             print("launched %s" % flow.rapidfire(check_status=True))
             all_ok = flow.all_ok
-            new_fw = FireWork(FireTaskWithFlow(flow=flow), {'all_ok': all_ok})
+            new_fw = Firework(FireTaskWithFlow(flow=flow), {'all_ok': all_ok})
             return FWAction(stored_data={'all_ok': all_ok}, additions=new_fw)

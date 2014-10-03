@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from fireworks import FireTaskBase, FWAction, FireWork, LaunchPad, ScriptTask
+from fireworks import FireTaskBase, FWAction, Firework, LaunchPad, ScriptTask
 from fireworks.utilities.fw_serializers import FWSerializable
 from fireworks.core.rocket_launcher import launch_rocket
 
@@ -14,8 +14,8 @@ def main():
     flow = build_flow()
     flow.build_and_pickle_dump()
 
-    # create the FireWork consisting of a single task
-    firework = FireWork(FireTaskWithFlow(flow=flow))
+    # create the Firework consisting of a single task
+    firework = Firework(FireTaskWithFlow(flow=flow))
 
     # store workflow 
     launchpad.add_wf(firework)
