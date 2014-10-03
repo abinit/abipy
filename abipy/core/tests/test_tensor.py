@@ -6,7 +6,7 @@ import abipy.data as data
 
 from pymatgen.core.structure import Structure
 from pymatgen.core.lattice import Lattice
-from pymatgen.symmetry.finder import SymmetryFinder
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from abipy.core.tensor import *
 from abipy.core.testing import *
 
@@ -23,7 +23,8 @@ class TestTensor(AbipyTest):
         structure = Structure(lattice, ["Ga", "As"],
                                       [[0, 0, 0], [0.5, 0.5, 0.5]])
 
-        finder = SymmetryFinder(structure)
+        #finder = SymmetryFinder(structure)
+        finder = SpacegroupAnalyzer(structure)
 
         spacegroup = finder.get_spacegroup()
         pointgroup = finder.get_point_group()
