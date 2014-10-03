@@ -1,9 +1,10 @@
 dependencies:
-  override:
+  ovyerride:
     - pip install -q numpy
+    - pip install distribute --upgrade
     - pip install -r requirements.txt
     #- pip install -r requirements-optional.txt
-    - python setup.py develop
+    - python setup.py install
 #test:
 #  override:
 #    - nosetests:
