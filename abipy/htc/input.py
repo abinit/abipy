@@ -504,13 +504,17 @@ class AbiInput(Input):
         if idt != self.ndtset:
             raise self.Error("The number of configurations must equal ndtset while %d != %d" % (idt, self.ndtset))
 
-    def set_structure(self, structure, dtset=0):
+    def set_structure(self, structure, dtset=None):
         """Set the `Structure` object for the specified dtset."""
+        if dtset is None:
+            dtset = slice(self.ndtset+1)
         for idt in self._dtset2range(dtset):
             self[idt].set_structure(structure)
 
-    def set_structure_from_file(self, filepath, dtset=0):
+    def set_structure_from_file(self, filepath, dtset=None):
         """Set the `Structure` object for the specified dtset (data is read from filepath)."""
+        if dtset is None:
+            dtset = slice(self.ndtset+1)
         structure = Structure.from_file(filepath)
         self.set_structure(structure, dtset=dtset)
         return structure
