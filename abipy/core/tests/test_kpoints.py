@@ -88,14 +88,14 @@ class TestKpointList(AbipyTest):
     def test_askpoints(self):
         """Test askpoints."""
         lattice = self.lattice
-        kpts = askpoints([1, 2, 3], lattice)
+        kpts = as_kpoints([1, 2, 3], lattice)
 
         self.serialize_with_pickle(kpts, protocols=[-1])
 
-        newkpts = askpoints(kpts, lattice)
+        newkpts = as_kpoints(kpts, lattice)
         self.assertTrue(kpts is newkpts)
 
-        kpts = askpoints([1, 2, 3, 4, 5, 6], lattice)
+        kpts = as_kpoints([1, 2, 3, 4, 5, 6], lattice)
         self.assertTrue(len(kpts) == 2)
         self.assertTrue(kpts[0] == Kpoint([1, 2, 3], lattice))
         self.assertTrue(kpts[1] == Kpoint([4, 5, 6], lattice))

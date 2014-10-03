@@ -1,7 +1,7 @@
 # coding: utf-8
 from __future__ import print_function, division, unicode_literals
 
-from fireworks import FireTaskBase, FWAction, FireWork, explicit_serialize
+from fireworks import FireTaskBase, FWAction, Firework, explicit_serialize
 from abipy.abilab import AbinitFlow
 
 @explicit_serialize
@@ -21,9 +21,10 @@ class FireTaskWithFlow(FireTaskBase):
         # Most of the serious stuff is delegated to flow.
         # Note that FireTask converts all the objects to strings
         # hence self["flow"] is the workdir of the flow from which
-        # we can reconstruct our object via pickle.
-        flow = AbinitFlow.pickle_load(self["flow"])
-        #print("In MyTask with flow %s" % flow)
+        # we can reconstruct our object with pickle.
+        print("In MyTask with flow %s" % self["flow"])
+        workdir = self["flow"]["workdir"]
+        flow = AbinitFlow.pickle_load(workdir)
 
         flow.build_and_pickle_dump()
         try:
@@ -37,5 +38,5 @@ class FireTaskWithFlow(FireTaskBase):
         else:
             print("launched %s" % flow.rapidfire(check_status=True))
             all_ok = flow.all_ok
-            new_fw = FireWork(FireTaskWithFlow(flow=flow), {'all_ok': all_ok})
+            new_fw = Firework(FireTaskWithFlow(flow=flow), {'all_ok': all_ok})
             return FWAction(stored_data={'all_ok': all_ok}, additions=new_fw)

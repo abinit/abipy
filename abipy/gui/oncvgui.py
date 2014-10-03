@@ -7,7 +7,8 @@ import copy
 import time
 import shutil
 import abc
-import sis
+import sys
+import six
 import wx
 import awx
 import wx.lib.mixins.listctrl as listmix
