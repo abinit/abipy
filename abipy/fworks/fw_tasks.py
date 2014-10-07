@@ -13,7 +13,7 @@ import abipy.data as abidata
 import abipy.abilab as abilab
 from pymatgen.io.abinitio.tasks import AbinitTask, ScfTask, NscfTask, RelaxTask, DdkTask, PhononTask, \
     SigmaTask, BseTask, OpticTask, AnaddbTask
-from pymatgen.io.abinitio.tasks import FileNode
+from pymatgen.io.abinitio.tasks import Node, FileNode
 import numpy as np
 import time
 import re
@@ -156,7 +156,18 @@ class AbiFireTaskBase(FireTaskBase):
                 self.manager.set_mpi_ncpus(fw_spec['_queueadapter']['ntasks'])
 
     def config_run(self, fw_spec):
-        logging.basicConfig(filename='abipy.log', level=logging.WARNING)
+        # Set a logger for abinitio and abipy
+        log_handler = logging.FileHandler('abipy.log')
+        log_handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
+        logging.getLogger('pymatgen.io.abinitio').addHandler(log_handler)
+        logging.getLogger('abipy').addHandler(log_handler)
+
+        # Check dependencies
+        for dep in self.deps:
+            if dep.status is not Node.S_OK:
+                raise RuntimeError("Dependency is not satisfied: {}".format(str(dep)))
+
+        # Update data from spec
         self._update_task_manager(fw_spec)
         self._update_abinit_vars(fw_spec)
 
