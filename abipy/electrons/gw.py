@@ -77,14 +77,16 @@ class QPState(collections.namedtuple("QPState", "spin kpoint band e0 qpe qpe_dia
         return tuple(fields)
 
     def _asdict(self):
-        od = super(QPState, self)._asdict()
+        #od = super(QPState, self)._asdict()
+        od = collections.OrderedDict(zip(self._fields, self))
         od["qpeme0"] = self.qpeme0
+        #print("od",od)
         return od
 
     def to_strdict(self, fmt=None):
         """Ordered dictionary mapping fields --> strings."""
         d = self._asdict()
-        for (k, v) in d.items():
+        for k, v in d.items():
             if np.iscomplexobj(v):
                 if abs(v.imag) < 1.e-3:
                     d[k] = "%.2f" % v.real
