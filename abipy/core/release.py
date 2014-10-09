@@ -1,4 +1,5 @@
 """Release data for the abipy project."""
+from __future__ import print_function, division, unicode_literals
 
 # Name of the package for release purposes.  This is the name which labels
 # the tarballs and RPMs made by distutils, so it's best to lowercase it.
@@ -54,4 +55,21 @@ url = 'http://abinit.org'
 
 platforms = ['Linux', 'darwin']
 
-keywords = ["ABINIT", "DFT", "PAW", "GW", "ab initio", "first principles"]
+keywords = ["ABINIT", "ab initio", "first principles"]
+
+classifiers=[
+    "Programming Language :: Python :: 2",
+    "Programming Language :: Python :: 2.7",
+    "Programming Language :: Python :: 3",
+    #"Programming Language :: Python :: 3.2",
+    #"Programming Language :: Python :: 3.3",
+    #"Programming Language :: Python :: 3.4",
+    #"Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    #"License :: OSI Approved :: MIT License",
+    #"Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+],

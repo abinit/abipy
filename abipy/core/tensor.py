@@ -1,13 +1,15 @@
 """
 This module contains classes representing tensors and helper functions to change lattice.
 """
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import itertools
 import numpy as np
 
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+#from pymatgen.symmetry.finder import SymmetryFinder
 from abipy.core import Structure
-from pymatgen.symmetry.finder import SymmetryFinder
+
 
 __all__ = [
     "Tensor",
@@ -83,7 +85,7 @@ class Tensor(object):
         else:
             real_lattice = self._lattice.reciprocal_lattice
 
-        real_finder = SymmetryFinder(structure)
+        real_finder = SpacegroupAnalyzer(structure)
 
         real_symmops = real_finder.get_point_group_operations(cartesian=True)
 

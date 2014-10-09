@@ -4,6 +4,7 @@ from __future__ import division, print_function
 
 import sys
 import os
+import numpy as np
 import abipy.abilab as abilab
 import abipy.data as abidata  
 
@@ -78,7 +79,8 @@ def build_flow(options):
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
     # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else options.manager
+    manager = abilab.TaskManager.from_user_config() if not options.manager else \
+              abilab.TaskManager.from_file(options.manager)
 
     all_inps = scf_ph_inputs()
     scf_input, ph_inputs = all_inps[0], all_inps[1:]

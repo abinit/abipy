@@ -1,10 +1,11 @@
 """Tests for htc.InputFile."""
 import warnings
 
-from abipy.htc import *
-from abipy.core.testing import *
+from abipy.core.testing import AbipyFileTest
+from abipy.htc.jobfile import JobFile
+from abipy.htc.inputfile import InputFile
+from abipy.htc.variable import SpecialInputVariable
 
-# =========================================================================== #
 
 class TestInputVariable(AbipyFileTest):
     """Unit tests for AbinitVariable."""

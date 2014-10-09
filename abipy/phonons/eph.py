@@ -1,5 +1,5 @@
 """This module contains objects for the postprocessing of EPH calculations."""
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import numpy as np
 

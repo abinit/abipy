@@ -5,9 +5,9 @@ import os
 import sys
 import wx
 
+from monty.string import list_strings
 import abipy.tools.decorators as dec
 
-from abipy.tools.text import list_strings
 
 #import logging
 #logger = logging.getLogger(__name__)

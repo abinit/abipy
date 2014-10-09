@@ -1,10 +1,11 @@
 """This module contains the class describing a planewave wavefunction."""
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import tempfile
+import copy
+import six
 import itertools
 import numpy as np
-import copy
 
 from abipy.iotools import Visualizer
 from abipy.iotools.xsf import xsf_write_structure, xsf_write_data
@@ -35,7 +36,10 @@ class WaveFunction(object):
 
     def __iter__(self):
         """Yields G, ug[0:nspinor, G]"""
-        return itertools.izip(self.gvecs, self.ug.T)
+        if six.PY2:
+            return itertools.izip(self.gvecs, self.ug.T)
+        else:
+            return zip(self.gvecs, self.ug.T)
 
     def __getitem__(self, slice):
         return self.gvecs[slice], self.ug[:, slice]

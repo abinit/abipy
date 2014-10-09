@@ -1,5 +1,5 @@
 """Electronic density of states."""
-from __future__ import division, print_function
+from __future__ import print_function, division, unicode_literals
 
 import numpy as np
 import collections

@@ -3,22 +3,24 @@ This module defines objects that faciliate the creation of the
 ABINIT input files. The syntax is similar to the one used 
 in ABINIT with small differences. 
 """
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import os
 import collections
 import warnings
 import itertools
 import copy
+import six
 import abc
 import numpy as np
 import pymatgen.core.units as units
 import abipy.tools.mixins as mixins
 
+from collections import OrderedDict
+from monty.string import is_string, list_strings
 from pymatgen.io.abinitio.pseudos import PseudoTable, Pseudo
 from pymatgen.core.units import Energy
 from abipy.core import Structure
-from abipy.tools import is_string, list_strings
 from abipy.htc.variable import InputVariable
 from abipy.htc.abivars import is_abivar, is_anaddb_var
 
@@ -59,7 +61,7 @@ def straceback():
     import traceback
     return traceback.format_exc()
 
-
+@six.add_metaclass(abc.ABCMeta)
 class Input(object): 
     """
     Base class foor Input objects.
@@ -67,8 +69,6 @@ class Input(object):
     An input object must define have a make_input method 
     that returns the string representation used by the client code.
     """
-    __metaclass__ = abc.ABCMeta
-
     def copy(self):
         """Shallow copy of the input."""
         return copy.copy(self)
@@ -1064,19 +1064,17 @@ def product_dict(d):
     It constructs the Cartesian product of the values (equivalent to nested for-loops),
     and returns a list of dictionaries with the values that would be used inside the loop.
 
-    >>> d = {"foo": [2, 4], "bar": 1}
-    >>> product_dict(d) == [{'bar': 1, 'foo': 2}, {'bar': 1, 'foo': 4}]
-    True
-    >>> d =  {'bar': [1,2], 'foo': [3,4]} 
-    >>> product_dict(d) == [
-    ...    {'bar': 1, 'foo': 3},
-    ...    {'bar': 2, 'foo': 3},
-    ...    {'bar': 1, 'foo': 4},
-    ...    {'bar': 2, 'foo': 4}]
+    >>> d = OrderedDict([("foo", [2, 4]), ("bar", 1)])
+    >>> product_dict(d)
+    [OrderedDict([('foo', 2), ('bar', 1)]), OrderedDict([('foo', 4), ('bar', 1)])]
+    >>> d = OrderedDict([("bar", [1,2]), ('foo', [3,4])]) 
+    >>> product_dict(d) == [{'bar': 1, 'foo': 3},
+    ... {'bar': 1, 'foo': 4},
+    ... {'bar': 2, 'foo': 3},
+    ... {'bar': 2, 'foo': 4}]
     True
 
     .. warning:
-
         Dictionaries are not ordered, therefore one cannot assume that 
         the order of the keys in the output equals the one used to loop.
         If the order is important, one should pass a `OrderedDict` in input
@@ -1095,7 +1093,7 @@ def product_dict(d):
     vars_prod = [] 
 
     for prod_values in itertools.product(*values):
-        dprod = collections.OrderedDict(zip(keys, prod_values))
+        dprod = OrderedDict(zip(keys, prod_values))
         vars_prod.append(dprod)
 
     return vars_prod

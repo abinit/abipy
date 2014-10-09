@@ -1,20 +1,7 @@
 """Utilities for working with strings and text."""
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
-import sys
-import os
-
-from string import maketrans, punctuation
-from pymatgen.util.string_utils import is_string, list_strings, pprint_table, WildCard
-
-
-_TABLE = maketrans("", "")
-
-
-def strip_punct(s):
-    """Remove punctuation characters from string s."""
-    return s.translate(_TABLE, punctuation)
-
+from pymatgen.util.string_utils import pprint_table, WildCard
 
 def tonumber(s):
     """Convert string to number, raise ValueError if s cannot be converted."""

@@ -1,4 +1,4 @@
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import os
 import collections
@@ -18,7 +18,7 @@ try:
 except ImportError:
     pass
 
-from abipy.tools.text import list_strings 
+from monty.string import list_strings 
 
 
 #def ndcontract_var(var):

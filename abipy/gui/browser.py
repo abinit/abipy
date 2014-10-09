@@ -1,5 +1,5 @@
 """Widgets for browsing and/or analyzing the output files produced by Abinit."""
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import os
 import wx
@@ -12,7 +12,8 @@ try:
     from wxmplot import PlotApp, PlotFrame
 except ImportError:
     pass
-from abipy.tools.text import list_strings, is_string, WildCard
+from monty.string import list_strings, is_string
+from abipy.tools.text import WildCard
 from abipy.gui.popupmenus import popupmenu_for_filename
 
 

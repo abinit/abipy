@@ -1,5 +1,5 @@
 """Integration tests for phonon flows."""
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import pytest
 import numpy as np

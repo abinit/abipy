@@ -1,16 +1,14 @@
 #!/usr/bin/env python
-
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import os
 import wx
-
 import abipy.gui.awx as awx
 import wx.lib.mixins.listctrl as listmix
 import wx.lib.dialogs as wxdg
 
+from monty.string import is_string 
 from pymatgen.io.abinitio.pseudos import PseudoParser
-from abipy.tools.text import is_string #, list_strings, WildCard
 
 
 class MyListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):

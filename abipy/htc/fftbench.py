@@ -2,7 +2,7 @@
 Python interface to fftprof. Provides objects to benchmark
 the FFT libraries used by ABINIT and plot the results with matplotlib.
 """
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import sys
 import os
@@ -10,7 +10,8 @@ import tempfile
 import numpy as np
 
 from subprocess import Popen, PIPE
-from abipy.tools import which, WildCard
+from monty.os.path import which
+from abipy.tools import WildCard
 
 __all__ = [
     "FFT_Benchmark",

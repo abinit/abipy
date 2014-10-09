@@ -1,5 +1,5 @@
 """Generic helper functions"""
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import os
 
@@ -30,51 +30,3 @@ def unzip(gz_fname, dest=None):
         out_fh.write(file_content)
     finally:
         out_fh.close()
-
-
-def touch(filename):
-    try:
-        open(fname,"w").close()
-        return 0
-    except:
-        raise IOError("trying to create file = %s" % filename)
-
-
-def tail_file(fname, n, aslist=False):
-    """Assumes a unix-like system."""
-
-    args = ["tail", "-n " + str(n), fname]
-
-    p = Popen(args, shell=False, stdout=PIPE, stderr=PIPE)
-    ret_code = p.wait()
-
-    if ret_code != 0:
-        raise RuntimeError("return_code = %s, cmd = %s" %(ret_code, " ".join(args) ))
-
-    if aslist:
-        return p.stdout.readlines()
-    else:
-        return p.stdout.read()
-
-
-def which(program):
-    """
-    python version of the unix tool which locates a program file in the user's path
-
-    Returns None if program cannot be found.
-    """
-    def is_exe(fpath):
-        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-
-    fpath, fname = os.path.split(program)
-    if fpath:
-        if is_exe(program):
-            return program
-    else:
-        for path in os.environ["PATH"].split(os.pathsep):
-            exe_file = os.path.join(path, program)
-            if is_exe(exe_file):
-                return exe_file
-
-    return None
-

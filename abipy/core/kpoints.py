@@ -1,20 +1,20 @@
 """This module defines objects describing the sampling of the Brillouin Zone."""
-from __future__ import division, print_function
+from __future__ import print_function, division, unicode_literals
 
 import os
 import collections
 import numpy as np
 import warnings
 
+from monty.collections import AttrDict
 from abipy.iotools import as_etsfreader, ETSF_Reader
-from abipy.tools import AttrDict
 from abipy.tools.derivatives import finite_diff
 
 __all__ = [
     "issamek",
     "wrap_to_ws",
     "wrap_to_bz",
-    "askpoints",
+    "as_kpoints",
     "Kpoint",
     "Kpath",
     "IrredZone",
@@ -26,15 +26,15 @@ __all__ = [
 _ATOL_KDIFF = 1e-8
 
 
-def isinteger(x, atol=_ATOL_KDIFF):
+def is_integer(x, atol=_ATOL_KDIFF):
     """
     True if all x is integer within the absolute tolerance atol.
 
-    >>> isinteger([1., 2.])
+    >>> is_integer([1., 2.])
     True
-    >>> isinteger(1.01, atol=0.011)
+    >>> is_integer(1.01, atol=0.011)
     True
-    >>> isinteger([1.01, 2])
+    >>> is_integer([1.01, 2])
     False
     """
     int_x = np.around(x)
@@ -58,7 +58,7 @@ def issamek(k1, k2, atol=1e-08):
     >>> issamek(0.00003, 1)
     False
     """
-    return isinteger(np.asarray(k1)-np.asarray(k2), atol=atol)
+    return is_integer(np.asarray(k1)-np.asarray(k2), atol=atol)
 
 
 def wrap_to_ws(x):
@@ -164,7 +164,7 @@ class KpointsError(Exception):
     """Base error class for KpointList exceptions."""
 
 
-def askpoints(obj, lattice, weights=None, names=None):
+def as_kpoints(obj, lattice, weights=None, names=None):
     """
     Convert obj into a list of k-points.
 
@@ -342,7 +342,7 @@ class Kpoint(object):
         return self.frac_coords[slice]
 
     @classmethod
-    def askpoint(cls, obj, lattice):
+    def as_kpoint(cls, obj, lattice):
         """
         Convert obj into a Kpoint instance.
 

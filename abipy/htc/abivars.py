@@ -1,5 +1,5 @@
 """This module contains lookup table with the name of the ABINIT variables."""
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import os
 import json
@@ -128,7 +128,7 @@ def extract_abivars(f90file, pretty_print=True):
 # The variables below have been extracted from the file src/57_iovars/chkvars.F90. 
 # See the function extract_abivars defined in this module.
 # Tokens are divides in 3 classes: variable names, unit names, operators
-from abivars_db import ABI_VARNAMES, ABI_UNITS, ABI_OPS
+from .abivars_db import ABI_VARNAMES, ABI_UNITS, ABI_OPS
 
 # All tokens supported by the abinit parser.
 ABI_ALLTOKENS = ABI_VARNAMES + ABI_OPS + ABI_UNITS 

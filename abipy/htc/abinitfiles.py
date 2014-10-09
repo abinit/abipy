@@ -1,11 +1,11 @@
 """
 Base class for an ABINIT calculation.
 """
-from __future__ import print_function, division
+from __future__ import print_function, division #, unicode_literals
+from os.path import basename, dirname, join, splitext, realpath
 
 __all__ = ["AbinitFiles"]
 
-from os.path import basename, dirname, join, splitext, realpath
 
 # =========================================================================== #
 

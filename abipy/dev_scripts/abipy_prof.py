@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function, division, unicode_literals
+
 import sys
 import os
 from os.path import exists, join as pj

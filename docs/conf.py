@@ -54,8 +54,11 @@ extensions += [
           'matplotlib.sphinxext.mathmpl',
           'matplotlib.sphinxext.only_directives',
           'matplotlib.sphinxext.plot_directive',
-          'ipython_directive',               # MG deprecated but we continue using it
-          'ipython_console_highlighting',
+          'IPython.sphinxext.ipython_directive',
+          'IPython.sphinxext.ipython_console_highlighting',
+          # MG deprecated but we continue using it
+          #'ipython_directive',               
+          #'ipython_console_highlighting',
           'numpydoc',
           'gen_rst',
           'sphinxcontrib.autorun',

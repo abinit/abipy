@@ -1,5 +1,5 @@
 """Integration tests for pseudodojo."""
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import pytest
 import abipy.data as abidata
@@ -35,7 +35,7 @@ def itest_deltafactor(fwp, tvars):
     ecut = 2
     pawecutdg = ecut * 2 if pseudo.ispaw else None
 
-    from pseudo_dojo.dojo.deltaworks import DeltaFactory
+    from pseudo_dojo.dojo.dojo_workflows import DeltaFactory
     work = DeltaFactory().work_for_pseudo(pseudo, kppa=kppa, ecut=ecut, pawecutdg=pawecutdg, paral_kgb=tvars.paral_kgb)
 
     # Register the workflow.
@@ -61,7 +61,7 @@ def itest_deltafactor(fwp, tvars):
 
 def itest_gbrv_flow(fwp, tvars):
     """The the GBRV flow: relaxation + EOS computation."""
-    from pseudo_dojo.dojo.gbrvworks import GbrvFactory
+    from pseudo_dojo.dojo.dojo_workflows import GbrvFactory
     factory = GbrvFactory()
 
     #pseudo = "si_pbe_v1_abinit.paw"

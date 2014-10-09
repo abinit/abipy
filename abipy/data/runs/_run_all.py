@@ -7,9 +7,9 @@ from __future__ import print_function
 import sys
 import os 
 import argparse
+import shutil
 
 from subprocess import call, Popen
-from abipy.tools.devtools import number_of_cpus
 
 def str_examples():
     examples = """
@@ -33,16 +33,20 @@ def main():
     parser.add_argument('-m', '--mode', type=str, default="sequential",
                         help="execution mode. Default is sequential.")
 
-    parser.add_argument('-e', '--exclude', nargs="+", type=str, default="",
+    parser.add_argument('-e', '--exclude', type=str, default="",
                         help="Exclude scripts.")
+
+    parser.add_argument('--keep-dirs', action="store_true", default=False,
+                        help="Do not remove flowdirectories.")
+
+    #parser.add_argument("scripts", nargs="+",help="List of scripts to be executed")
 
     options = parser.parse_args()
 
-    #max_ncpus = number_of_cpus()
-
     # Find scripts.
     if options.exclude:
-        print("Will exclude: ", options.exclude)
+        options.exclude = options.exclude.split()
+        print("Will exclude:\n", options.exclude)
 
     dir = os.path.join(os.path.dirname(__file__))
     scripts = []
@@ -54,17 +58,23 @@ def main():
                 scripts.append(path)
 
     # Run scripts according to mode.
+    dirpaths = []
     if options.mode in ["s", "sequential"]:
         for script in scripts:
             retcode = call(["python", script])
-            if retcode != 0: break
+            if retcode != 0: 
+                print("retcode %d while running %s" % (retcode, script))
+                break
 
-    #elif options.mode in ["a", "automatic"]:
-    #    for script in scripts:
-    #        p = Popen(["python", script])
-    #        time.sleep(options.time)
-    #        p.kill()
-    #    retcode = 0
+            dirpaths.append(script.replace(".py", "").replace("run_", "flow_"))
+
+        # Remove directories.
+        if not options.keep_dirs:
+            for dirpath in dirpaths:
+                try:
+                    shutil.rmtree(dirpath, ignore_errors=False)
+                except OSError:
+                    print("Exception while removing %s" % dirpath)
 
     else:
         show_examples_and_exit(err_msg="Wrong value for mode: %s" % options.mode)

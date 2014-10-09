@@ -1,4 +1,4 @@
-from __future__ import print_function, division
+from __future__ import print_function, division #, unicode_literals
 
 from os import makedirs
 from os.path import basename, dirname, join, abspath, exists, realpath
@@ -117,7 +117,7 @@ class JobFile(object):
         self.submission_command = 'qsub'
 
         # Set attributes
-        for (arg, val) in kwargs.iteritems():
+        for (arg, val) in kwargs.items():
             try:
                 getattr(self, 'set_' + arg)(val)
             except:
@@ -779,7 +779,7 @@ class MoabJobFile(JobFile):
             add('-j oe')
 
         if self.resources:
-            for (arg, val) in self.resources.iteritems():
+            for (arg, val) in self.resources.items():
                 add('-l ' + arg + '=' + val)
 
         if self.mail:

@@ -1,3 +1,4 @@
+from __future__ import print_function, division #, unicode_literals
 
 import string
 import warnings
@@ -357,9 +358,13 @@ class InputVariable(object):
     @property
     def sorting_name(self):
         """Name for sorting purposes."""
+        try:
+            letters = string.letters
+        except AttributeError:  # Py3
+            letters = string.ascii_letters
 
         dataset = self.dataset
-        for this, that in zip(_DATASET_INDICES, string.letters):
+        for this, that in zip(_DATASET_INDICES, letters):
             dataset = dataset.replace(this, that)
 
         return self.basename + '_' + dataset

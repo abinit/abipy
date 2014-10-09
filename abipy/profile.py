@@ -24,7 +24,7 @@ class FrozenDict(dict):
 
     def update(self, *args, **kwargs):
         #print 'in frozen update', args, kwargs
-        for (k, v) in dict(*args, **kwargs).iteritems():
+        for (k, v) in dict(*args, **kwargs).items():
             self[k] = v
 
 class AbipyEnvironment(FrozenDict):

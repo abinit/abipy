@@ -1,5 +1,5 @@
 """This module contains the class defining Uniform 3D meshes."""
-from __future__ import division, print_function
+from __future__ import print_function, division, unicode_literals
 
 import numpy as np
 from itertools import product as iproduct

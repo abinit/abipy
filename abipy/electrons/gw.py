@@ -1,13 +1,16 @@
-from __future__ import print_function, division
+"""Classes for the analysis of GW calculations."""
+from __future__ import print_function, division, unicode_literals
 
 import sys
 import copy
 import collections
 import warnings
-import cStringIO as StringIO
 import numpy as np
 
-from abipy.tools import find_le, find_ge, list_strings, is_string, pprint_table, AttrDict
+from monty.string import list_strings, is_string
+from monty.collections import  AttrDict
+from six.moves import cStringIO
+from abipy.tools import find_le, find_ge, pprint_table
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import KpointList
 from abipy.iotools import AbinitNcFile, ETSF_Reader, Has_Structure, Has_ElectronBands
@@ -74,14 +77,16 @@ class QPState(collections.namedtuple("QPState", "spin kpoint band e0 qpe qpe_dia
         return tuple(fields)
 
     def _asdict(self):
-        od = super(QPState, self)._asdict()
+        #od = super(QPState, self)._asdict()
+        od = collections.OrderedDict(zip(self._fields, self))
         od["qpeme0"] = self.qpeme0
+        #print("od",od)
         return od
 
     def to_strdict(self, fmt=None):
         """Ordered dictionary mapping fields --> strings."""
         d = self._asdict()
-        for (k, v) in d.items():
+        for k, v in d.items():
             if np.iscomplexobj(v):
                 if abs(v.imag) < 1.e-3:
                     d[k] = "%.2f" % v.real
@@ -159,7 +164,7 @@ class QPList(list):
         """String representation."""
         table = self.to_table()
 
-        strio = StringIO.StringIO()
+        strio = cStringIO()
         pprint_table(table, out=strio)
         strio.write("\n")
         strio.seek(0)
@@ -732,7 +737,7 @@ class SIGRES_Plotter(collections.Iterable):
             `matplotlib` figure
         """
         spin_range = range(self.nsppol) if spin is None else to_range(spin)
-        kpoints_for_plot = self.computed_gwkpoints #if kpoint is None else KpointList.askpoints(kpoint)
+        kpoints_for_plot = self.computed_gwkpoints #if kpoint is None else KpointList.as_kpoints(kpoint)
 
         title = kwargs.pop("title", None)
         show = kwargs.pop("show", True)
@@ -784,7 +789,7 @@ class SIGRES_Plotter(collections.Iterable):
         """
         spin_range = range(self.nsppol) if spin is None else to_range(spin)
         band_range = range(self.max_gwbstart, self.min_gwbstop) if band is None else to_range(band)
-        kpoints_for_plot = self.computed_gwkpoints #if kpoint is None else KpointList.askpoints(kpoint)
+        kpoints_for_plot = self.computed_gwkpoints #if kpoint is None else KpointList.as_kpoints(kpoint)
 
         self.prepare_plot()
 

@@ -1,7 +1,7 @@
 """
 Integration tests for flows (require pytest, ABINIT and a properly configured environment)
 """
-from __future__ import division, print_function
+from __future__ import print_function, division, unicode_literals
 
 import pytest
 import abipy.data as abidata
@@ -21,7 +21,7 @@ def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
     inp = abilab.AbiInput(pseudos=abidata.pseudos(pp_paths), ndtset=2)
     structure = inp.set_structure_from_file(abidata.cif_file("si.cif"))
 
-    nval = structure.calc_nvalence(inp.pseudos)
+    nval = structure.num_valence_electrons(inp.pseudos)
     assert nval == 8
 
     # Global variables

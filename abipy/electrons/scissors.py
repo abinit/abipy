@@ -1,10 +1,11 @@
-from __future__ import print_function, division
+"""Scissors operator."""
+from __future__ import print_function, division, unicode_literals
 
 import numpy as np
-import cPickle as pickle
 
+from six.moves import cPickle as pickle
 from collections import OrderedDict
-from abipy.tools import AttrDict
+from monty.collections import AttrDict
 
 __all__ = [
     "Scissors",

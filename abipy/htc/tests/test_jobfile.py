@@ -3,10 +3,9 @@ from __future__ import print_function, division
 
 import warnings
 
-from abipy.htc import *
-from abipy.core.testing import *
+from abipy.core.testing import AbipyFileTest
+from abipy.htc.jobfile import JobFile
 
-# =========================================================================== #
 
 class TestJobFile(AbipyFileTest):
     """Unit tests for JobFile."""

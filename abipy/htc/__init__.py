@@ -1,6 +1,7 @@
 """
 Abinit files handling library
 """
+from __future__ import print_function, division, unicode_literals
 
 __all__ = []
 
@@ -16,7 +17,6 @@ _mods = [
 ]
 
 for _mod in _mods:
-    exec('import ' + _mod)
-    exec('from ' + _mod + ' import *')
+    exec('from .' + _mod + ' import *')
     exec('__all__.extend(' + _mod + '.__all__)')
     exec('del ' + _mod)

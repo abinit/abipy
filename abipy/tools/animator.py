@@ -1,11 +1,11 @@
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import os
 import collections
 import subprocess
 import tempfile
 
-from abipy.tools import which
+from monty.os.path import which
 
 import logging
 logger = logging.getLogger(__name__)
