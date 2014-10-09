@@ -10,7 +10,7 @@ import os
 import numpy as np
 
 import abipy.abilab as abilab
-import abipy.data as abidata  
+import abipy.data as data  
 #from pymatgen.io.abinitio.tasks import TaskPolicy
 
 optic_input = """\
@@ -52,8 +52,6 @@ global_vars = dict(
 def raman_flow():
 
     # Get the unperturbed structure.
-    base_structure = abilab.Structure.from_abivars(unit_cell)
-
     pseudos=data.pseudos("14si.pspnc")
 
     base_structure = data.structure_from_ucell("Si")
