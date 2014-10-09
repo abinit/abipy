@@ -1,7 +1,7 @@
 """Utilities for working with strings and text."""
 from __future__ import print_function, division, unicode_literals
 
-from pymatgen.util.string_utils import pprint_table, WildCard
+from pymatgen.util.string_utils import WildCard
 
 def tonumber(s):
     """Convert string to number, raise ValueError if s cannot be converted."""

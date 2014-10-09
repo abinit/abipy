@@ -4,8 +4,7 @@ import os
 import wx
 
 from collections import OrderedDict
-#from six import StringIO
-from pymatgen.util.string_utils import pprint_table
+from monty.pprint import pprint_table
 from pymatgen.io.abinitio.abitimer import AbinitTimerSection, AbinitTimerParser
 import abipy.gui.awx as awx
 
