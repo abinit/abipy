@@ -10,7 +10,7 @@ import os
 import numpy as np
 
 import abipy.abilab as abilab
-import abipy.data as abidata  
+import abipy.data as data  
 #from pymatgen.io.abinitio.tasks import TaskPolicy
 
 optic_input = """\
@@ -24,27 +24,6 @@ optic_input = """\
       ! Non-linear coefficients to be computed
 """
 
-
-unit_cell = dict(
-            acell=3*[1.0385008112E+01],
-            natom=10,
-           ntypat=3,
-            typat=[1,1,2,2,3,3,3,3,3,3],
-            znucl=[26,83,8],
-             xred=[[1.4071110772E-03,1.4071110772E-03,1.4071110772E-03],
-                   [ 5.0140711108E-01, 5.0140711108E-01, 5.0140711108E-01],
-                   [ 2.7037366934E-01, 2.7037366934E-01, 2.7037366934E-01],
-                   [ 7.7037366934E-01, 7.7037366934E-01, 7.7037366934E-01],
-                   [ 3.1190076695E-01, 1.6941360694E-01, 7.1602835037E-01],
-                   [ 1.6941360694E-01, 7.1602835037E-01, 3.1190076695E-01],
-                   [ 7.1602835037E-01, 3.1190076695E-01, 1.6941360694E-01],
-                   [ 2.1602835037E-01, 6.6941360694E-01, 8.1190076695E-01],
-                   [ 8.1190076695E-01, 2.1602835037E-01, 6.6941360694E-01],
-                   [ 6.6941360694E-01, 8.1190076695E-01, 2.1602835037E-01]],
-            rprim=[[ 5.7864276271E-01,  0.0000000000E+00,  8.1558111379E-01],
-                   [ -2.8932138135E-01,  5.0111933222E-01,  8.1558111379E-01],
-                   [ -2.8932138135E-01, -5.0111933222E-01,  8.1558111379E-01]],
-)
 
 global_vars = dict(
     istwfk="*1",
@@ -73,16 +52,9 @@ global_vars = dict(
 def raman_flow():
 
     # Get the unperturbed structure.
-    base_structure = abilab.Structure.from_abivars(unit_cell)
+    pseudos=data.pseudos("14si.pspnc")
 
-    pseudos=["/home/naps/ygillet/BFO-pyt/fe.pot",
-             "/home/naps/ygillet/BFO-pyt/bi.pot",
-             "/home/naps/ygillet/BFO-pyt/o.pot"]
-
-
-    #data.pseudos=("26fe.pspnc",
-    #         "/home/naps/ygillet/BFO-pyt/bi.pot",
-    #         "/home/naps/ygillet/BFO-pyt/8o.pot"]
+    base_structure = data.structure_from_ucell("Si")
 
     ngkpt = [6,6,6]
 
