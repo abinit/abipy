@@ -958,8 +958,7 @@ class LdauParams(object):
             usepawu=self.usepawu,
             lpawu=" ".join(map(str, lpawu)),
             upawu=" ".join(map(str, upawu)) + " eV",
-            jpawu=" ".join(map(str, jpawu)) + " eV",
-        )
+            jpawu=" ".join(map(str, jpawu)) + " eV")
 
 
 class LexxParams(object):
@@ -1065,8 +1064,8 @@ def product_dict(d):
     and returns a list of dictionaries with the values that would be used inside the loop.
 
     >>> d = OrderedDict([("foo", [2, 4]), ("bar", 1)])
-    >>> product_dict(d)
-    [OrderedDict([('foo', 2), ('bar', 1)]), OrderedDict([('foo', 4), ('bar', 1)])]
+    >>> product_dict(d) == [OrderedDict([('foo', 2), ('bar', 1)]), OrderedDict([('foo', 4), ('bar', 1)])]
+    True
     >>> d = OrderedDict([("bar", [1,2]), ('foo', [3,4])]) 
     >>> product_dict(d) == [{'bar': 1, 'foo': 3},
     ... {'bar': 1, 'foo': 4},
