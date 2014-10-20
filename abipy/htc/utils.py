@@ -3,10 +3,11 @@ from __future__ import print_function, division #, unicode_literals
 
 import os.path
 import collections 
+
 from copy import deepcopy
 from itertools import chain
-
-from abipy.tools import StringColorizer, list_strings
+from monty.string import list_strings
+from abipy.tools import StringColorizer
 
 ##########################################################################################
 

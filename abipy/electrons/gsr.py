@@ -4,8 +4,8 @@ from __future__ import print_function, division, unicode_literals
 import collections
 import warnings
 
+from monty.string import list_strings
 from abipy.iotools import AbinitNcFile, Has_Structure, Has_ElectronBands
-from abipy.tools import list_strings
 from .ebands import ElectronsReader
 
 __all__ = [
