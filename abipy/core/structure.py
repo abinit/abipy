@@ -421,8 +421,9 @@ class Structure(pymatgen.Structure):
             raise NotImplementedError("Cannot write a structure to a netcdfile file yet")
 
         else:
-            from pymatgen.io.smartio import write_structure
-            write_structure(self, filename)
+            #from pymatgen.io.smartio import write_structure
+            #write_structure(self, filename)
+            self.to(filename=filename)
 
     def convert(self, format="cif"):
         """

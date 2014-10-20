@@ -1796,7 +1796,7 @@ class ElectronBandsPlotter(object):
             if i == 0:
                 bands.decorate_ax(ax)
 
-        ax.legend(lines, legends, 'best', shadow=True)
+        ax.legend(lines, legends, loc='best', shadow=True)
 
         # Add DOSes
         if self.edoses_dict:
