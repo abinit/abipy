@@ -71,9 +71,17 @@ def build_flow(options):
 @abilab.flow_main
 def main(options):
     flow = build_flow(options)
-    #return flow.build_and_pickle_dump()
-    flow.build_and_pickle_dump()
-    flow.make_scheduler().start()
+    return flow.build_and_pickle_dump()
+
+    #from pymatgen.io.abinitio.db import install_excepthook
+    #install_excepthook()
+    #flow = abilab.AbinitFlow.pickle_load("flow_si_ebands")
+    #errors = flow.validate_json_schema()
+    #return
+    #flow.build_and_pickle_dump()
+    #flow.make_scheduler().start()
+    #errors = flow.validate_json_schema()
+    #if errors: print(errors)
 
 
 if __name__ == "__main__":

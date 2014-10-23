@@ -105,4 +105,5 @@ def itest_gbrv_flow(fwp, tvars):
     flow.show_status()
     assert all(work.finalized for work in flow)
     assert flow.all_ok
+    #assert flow.validate_json_schema()
     #assert 0

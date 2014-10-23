@@ -109,6 +109,8 @@ def itest_unconverged_scf(fwp, tvars):
     flow.show_status()
     assert flow.all_ok
 
+    #assert flow.validate_json_schema()
+
 
 def itest_bandstructure_flow(fwp, tvars):
     """
@@ -194,6 +196,7 @@ def itest_bandstructure_flow(fwp, tvars):
     for task in flow.iflat_tasks():
         assert len(task.outdir.list_filepaths(wildcard="*GSR.nc")) == 1
 
+    #assert flow.validate_json_schema()
     #assert 0
 
 
@@ -224,6 +227,8 @@ def itest_bandstructure_schedflow(fwp, tvars):
     flow.show_status()
     assert flow.all_ok
     assert all(work.finalized for work in flow)
+
+    #assert flow.validate_json_schema()
     #assert 0
 
 
@@ -286,3 +291,4 @@ def itest_htc_bandstructure(fwp, tvars):
             assert ebands.has_bzmesh
             gsr.bands.get_edos()
 
+    #assert flow.validate_json_schema()

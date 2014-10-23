@@ -126,6 +126,8 @@ def itest_g0w0_flow(fwp, tvars):
     sigres = abilab.abiopen(sigfile)
     assert sigres.nsppol == 1
 
+    #assert flow.validate_json_schema()
+
 
 def itest_g0w0qptdm_flow(fwp, tvars):
     """Integration test for G0W0WithQptdmFlow."""
@@ -164,6 +166,8 @@ def itest_g0w0qptdm_flow(fwp, tvars):
     flow.show_status()
     assert all(work.finalized for work in flow)
     assert flow.all_ok
+
+    #assert flow.validate_json_schema()
 
 
 def itest_htc_g0w0(fwp, tvars):
@@ -209,6 +213,8 @@ def itest_htc_g0w0(fwp, tvars):
     assert flow.all_ok
     assert all(work.finalized for work in flow)
 
+    #assert flow.validate_json_schema()
+
 
 #def itest_bse_with_mdf(fwp, tvars):
 #    pseudos = abidata.pseudos("14si.pspnc")
@@ -251,4 +257,5 @@ def itest_htc_g0w0(fwp, tvars):
 #    flow.show_status()
 #    assert all(work.finalized for work in flow)
 #    assert flow.all_ok
+#    assert flow.validate_json_schema()
 

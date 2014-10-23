@@ -152,3 +152,4 @@ def itest_optic_flow(fwp, tvars):
     assert flow.all_ok
     assert all(work.finalized for work in flow)
 
+    #assert flow.validate_json_schema()

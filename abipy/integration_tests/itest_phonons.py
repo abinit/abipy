@@ -152,3 +152,4 @@ def itest_phonon_flow(fwp, tvars):
         #assert len(atask.outdir.list_filepaths(wildcard="*PHBST.nc")) == 1
         #assert len(atask.outdir.list_filepaths(wildcard="*PHDOS.nc")) == 1
 
+    #assert flow.validate_json_schema()

@@ -97,6 +97,7 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         Returns:
             ComputedStructureEntry/ComputedEntry
         """
+        #raise NotImplementedError("")
         # TODO
         #param_names = {"is_hubbard", "hubbards", "potcar_symbols", "run_type"}
         #if parameters:
@@ -113,10 +114,11 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
                                  parameters=params, data=data)
 
     def as_dict(self, **kwargs):
+        # TODO: Add info depending on the run_type e.g. max_resid is NSCF
         return dict( 
             structure=self.structure.as_dict(),
-            #ebands=self.ebands.to_pymatgen().as_dict(),
-            number_of_electrons=self.nelect,
+            ebands=self.ebands.to_pymatgen().as_dict(),
+            #number_of_electrons=self.nelect,
             #final_energy= gsr.etotal
             #final_energy_per_atom=gsr.etotal / len(structure),
             #magnetization=gsr.magnetization,
@@ -129,7 +131,6 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
             #vbm=
             #efermi=
             #max_residuals
-            #gsr.as_dict()
             #etotal:
             #forces:
             #stresses:
