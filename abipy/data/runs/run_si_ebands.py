@@ -71,7 +71,9 @@ def build_flow(options):
 @abilab.flow_main
 def main(options):
     flow = build_flow(options)
-    return flow.build_and_pickle_dump()
+    #return flow.build_and_pickle_dump()
+    flow.build_and_pickle_dump()
+    flow.make_scheduler().start()
 
 
 if __name__ == "__main__":

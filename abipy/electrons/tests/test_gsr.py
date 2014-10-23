@@ -1,13 +1,13 @@
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import numpy as np
 import abipy.data as data
 import abipy.core
 
 from abipy.core.testing import *
-from abipy.electrons.gsr import GSR_Reader
+from abipy.electrons.gsr import GSR_Reader, GSR_File
 
-class GSR_Reader_TestCase(AbipyTest):
+class GSRReaderTestCase(AbipyTest):
 
     def test_read_Si2(self):
         """Test the reading of GSR file."""
@@ -62,6 +62,22 @@ class GSR_Reader_TestCase(AbipyTest):
             # Initialize pymatgen structure from GSR.
             structure = r.read_structure()
             self.assertTrue(isinstance(structure, abipy.core.Structure))
+
+class GSRFileTestCase(AbipyTest):
+
+    def test_methods(self):
+        """GSRFile methods"""
+        gsr = GSR_File(data.ref_file("si_scf_GSR.nc"))
+
+        # Test as_dict
+        gsr.as_dict()
+
+        # Test pymatgen computed_entries
+        for inc_structure in (True, False):
+            e = gsr.get_computed_entry(inc_structure=False)
+            print(e)
+            print(e.as_dict())
+            assert gsr.energy == e.energy
 
 
 if __name__ == "__main__":

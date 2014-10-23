@@ -287,7 +287,7 @@ Specify the files to open. Possible choices:\n
     if options.command == "gui":
         if options.chroot:
             # Change the workdir of flow.
-            print("Will chroot to %s" % options.chroot)
+            print("Will chroot to %s..." % options.chroot)
             flow.chroot(options.chroot)
 
         from abipy.gui.flowviewer import wxapp_flow_viewer

@@ -33,5 +33,12 @@ policy:
     #condition: {mem_per_cpu: {$le: 10}}}
     #condition: {efficiency: {$gt: 0.99}}}
     #condition: {$and: [ {efficiency: {$gt: 0.99}}, {tot_ncpus: {$divisible: 2}} ]}
+db_connector:
+    database: abinit 
+    collection: test
+    #host: 0.0.0.0 
+    #port: 8080 
+    #user: gmatteo
+    #password: helloworld
 ...
 
