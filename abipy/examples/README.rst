@@ -15,3 +15,5 @@ Below is a brief description of the different directories found here:
 
   * misc - miscellaneous examples. 
 
+  * notebooks - ipython notebooks
+

@@ -9,8 +9,9 @@ import numpy as np
 
 from monty.string import list_strings, is_string
 from monty.collections import  AttrDict
+from monty.pprint import pprint_table
 from six.moves import cStringIO
-from abipy.tools import find_le, find_ge, pprint_table
+from abipy.tools import find_le, find_ge
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import KpointList
 from abipy.iotools import AbinitNcFile, ETSF_Reader, Has_Structure, Has_ElectronBands
@@ -77,14 +78,16 @@ class QPState(collections.namedtuple("QPState", "spin kpoint band e0 qpe qpe_dia
         return tuple(fields)
 
     def _asdict(self):
-        od = super(QPState, self)._asdict()
+        #od = super(QPState, self)._asdict()
+        od = collections.OrderedDict(zip(self._fields, self))
         od["qpeme0"] = self.qpeme0
+        #print("od",od)
         return od
 
     def to_strdict(self, fmt=None):
         """Ordered dictionary mapping fields --> strings."""
         d = self._asdict()
-        for (k, v) in d.items():
+        for k, v in d.items():
             if np.iscomplexobj(v):
                 if abs(v.imag) < 1.e-3:
                     d[k] = "%.2f" % v.real

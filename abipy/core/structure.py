@@ -8,6 +8,7 @@ import numpy as np
 from monty.collections import AttrDict
 from pymatgen.io.abinitio.pseudos import PseudoTable
 from pymatgen.core.structure import PeriodicSite
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from abipy.core.constants import ArrayWithUnit
 from abipy.core.symmetries import SpaceGroup
 from abipy.iotools import as_etsfreader, Visualizer
@@ -92,8 +93,9 @@ class Structure(pymatgen.Structure):
                 file.close()
         else:
             # TODO: Spacegroup is missing here.
-            from pymatgen.io.smartio import read_structure
-            new = read_structure(filepath)
+            #from pymatgen.io.smartio import read_structure
+            #new = read_structure(filepath)
+            new = super(Structure, cls).from_file(filepath)
             # Change the class of new.
             new.__class__ = cls
 
@@ -419,8 +421,9 @@ class Structure(pymatgen.Structure):
             raise NotImplementedError("Cannot write a structure to a netcdfile file yet")
 
         else:
-            from pymatgen.io.smartio import write_structure
-            write_structure(self, filename)
+            #from pymatgen.io.smartio import write_structure
+            #write_structure(self, filename)
+            self.to(filename=filename)
 
     def convert(self, format="cif"):
         """
@@ -837,8 +840,7 @@ class Structure(pymatgen.Structure):
             to keep the shift along the symmetry axis. 
         """
         # Find lattice type.
-        from pymatgen.symmetry.finder import SymmetryFinder
-        sym = SymmetryFinder(self, symprec=symprec, angle_tolerance=angle_tolerance)
+        sym = SpacegroupAnalyzer(self, symprec=symprec, angle_tolerance=angle_tolerance)
         lattice_type = sym.get_lattice_type() 
         spg_symbol = sym.get_spacegroup_symbol()
 
