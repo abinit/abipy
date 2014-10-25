@@ -113,8 +113,8 @@ def itest_optic_flow(fwp, tvars):
     flow.check_status()
     assert flow.all_ok
 
-    # Optic does not support MPI with ncpus > 1 hence we have to construct a manager with mpi_ncpus==1
-    shell_manager = fwp.manager.to_shell_manager(mpi_ncpus=1)
+    # Optic does not support MPI with ncores > 1 hence we have to construct a manager with mpi_procs==1
+    shell_manager = fwp.manager.to_shell_manager(mpi_procs=1)
 
     # Build optic task and register it
     optic_task1 = abilab.OpticTask(optic_input, nscf_node=bands_work.nscf_task, ddk_nodes=ddk_work,
