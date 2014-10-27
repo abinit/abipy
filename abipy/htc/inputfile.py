@@ -214,7 +214,8 @@ class InputFile(object):
             block.clear()
 
         # Sort variables in blocks
-        for variable in self.variables.values():
+        for name, value in self.variables.iteritems():
+            variable = SpecialInputVariable(name, value)
             placed = False
             for block in self.variables_blocks:
                 if variable.basename in block.register:
@@ -229,6 +230,7 @@ class InputFile(object):
             if block:
                 lines.append(str(block))
                 lines.append('')
+            block.clear()
 
         return '\n'.join(lines)
 
@@ -305,7 +307,7 @@ class InputFile(object):
         # Initialize all variables.
         for var_string in var_list:
             variable = SpecialInputVariable.from_str(var_string)
-            self.variables[variable.name] = variable
+            self.variables[variable.name] = variable.get_value()
                 
     @classmethod
     def from_str(cls, bigstring):
@@ -324,7 +326,7 @@ class InputFile(object):
 
     def set_variable(self, name, value):
         """Set a single variable."""
-        self.variables[name] = SpecialInputVariable(name, value)
+        self.variables[name] = value
 
     def set_variables(self, variables=dict(), dataset=0, **kwargs):
         """
@@ -383,14 +385,8 @@ class InputFile(object):
 
     def get_variables(self):
         """Return a dictionary of the variables."""
-        variables = dict()
-        for name, var in self.variables:
-            variables[name] = var.get_value()
-        return variables
+        return deepcopy(self.variables)
 
     def get_variable(self, variable):
         """Return the value of a variable, or None if it is not set."""
-        if variable not in self.variables:
-            return None
-        return self.variables.get(variable).get_value()
-
+        return self.variables.get(variable)
