@@ -31,7 +31,7 @@ def has_abinit(version, cmp=">="):
         return False
 
     try:
-        abiver = subprocess.check_output(["abinit", "-v"])
+        abiver = str(subprocess.check_output(["abinit", "-v"]))
 
     except subprocess.CalledProcessError:
         # Some MPI implementations require the mpirunner.

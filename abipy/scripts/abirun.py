@@ -56,10 +56,12 @@ def treat_flow(flow, options):
     if options.command in ["single", "singleshot"]:
         nlaunch = PyLauncher(flow).single_shot()
         print("Number of tasks launched %d" % nlaunch)
+        flow.show_status()
 
     if options.command in ["rapid", "rapidfire"]:
         nlaunch = PyLauncher(flow).rapidfire()
         print("Number of tasks launched %d" % nlaunch)
+        flow.show_status()
 
     if options.command == "scheduler":
 
@@ -148,6 +150,7 @@ def treat_flow(flow, options):
 
         nlaunch = PyLauncher(flow).rapidfire()
         print("Number of tasks launched %d" % nlaunch)
+        flow.show_status()
 
     if options.command == "tail":
         paths = [t.output_file.path for t in flow.iflat_tasks(status="Running")]
