@@ -108,7 +108,7 @@ def build_flow(options):
     # in an arbitrary way or do we have to pass (x,y,z)?
 
     # Optic does not support MPI with ncpus > 1.
-    shell_manager = manager.to_shell_manager(mpi_ncpus=1)
+    shell_manager = manager.to_shell_manager(mpi_procs=1)
 
     optic_task = abilab.OpticTask(optic_input, nscf_node=bands_work.nscf_task, ddk_nodes=ddk_work, 
                                   manager=shell_manager)
