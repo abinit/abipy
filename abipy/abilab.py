@@ -48,9 +48,9 @@ def abifile_subclass_from_filename(filename):
         "SIGRES.nc": SIGRES_File,
         "WFK-etsf.nc": WFK_File,
         "MDF.nc": MDF_File,
-        "GSR.nc": GSR_File
+        "GSR.nc": GSR_File,
+        "PHBST.nc": PhononBands
         #"PHDOS.nc": PHDOS_File,
-        #"PHBST.nc": PHBST_File,
     }
 
     #if filename.endswith(".abi"):
