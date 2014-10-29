@@ -220,7 +220,7 @@ def itest_bandstructure_schedflow(fwp, tvars):
     with pytest.raises(fwp.scheduler.Error):
         fwp.scheduler.add_flow(flow)
 
-    fwp.scheduler.start()
+    assert fwp.scheduler.start() 
     assert fwp.scheduler.num_excs == 0
     assert fwp.scheduler.nlaunch == 2
 
@@ -261,7 +261,7 @@ def itest_htc_bandstructure(fwp, tvars):
     flow.build_and_pickle_dump()
 
     fwp.scheduler.add_flow(flow)
-    fwp.scheduler.start()
+    assert fwp.scheduler.start()
     assert fwp.scheduler.num_excs == 0
     assert fwp.scheduler.nlaunch == 3
 
