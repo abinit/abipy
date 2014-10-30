@@ -119,7 +119,8 @@ def build_flow(options):
 
 def optic_flow_from_files():
     # Optic does not support MPI with ncpus > 1.
-    manager = abilab.TaskManager.sequential()
+    manager = abilab.TaskManager.from_user_config()
+    manager.set_mpi_procs(1)
 
     flow = abilab.AbinitFlow(workdir="OPTIC_FROM_FILE", manager=manager)
     

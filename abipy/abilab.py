@@ -7,7 +7,6 @@ from monty.os.path import which
 from pymatgen.io.abinitio.eos import EOS
 from pymatgen.io.abinitio.pseudos import PseudoTable
 from pymatgen.io.abinitio.wrappers import Mrgscr, Mrgddb, Mrggkk
-from pymatgen.io.abinitio import qadapters
 #from pymatgen.io.abinitio.tasks import (TaskManager, ScfTask, NscfTask, RelaxTask, DDK_Task,
 #    PhononTask, G_Task, HaydockBseTask, OpticTask, AnaddbTask)
 #from pymatgen.io.abinitio.workflows import (Workflow, IterativeWorkflow, BandStructureWorkflow,
@@ -17,8 +16,6 @@ from pymatgen.io.abinitio.tasks import *
 from pymatgen.io.abinitio.workflows import *
 from pymatgen.io.abinitio.flows import *
 from pymatgen.io.abinitio.launcher import PyFlowScheduler
-#from pymatgen.io.gwwrapper.helpers import refine_structure
-#from pymatgen.io.gwwrapper.convergence import test_conv
 
 from abipy.core import constants
 from abipy.core.structure import Structure, StructureModifier
@@ -49,7 +46,6 @@ def abifile_subclass_from_filename(filename):
         "MDF.nc": MDF_File,
         "GSR.nc": GSR_File,
         "PHBST.nc": PHBST_File,
-        #"PHDOS.nc": PHDOS_File,
     }
 
     #if filename.endswith(".abi"):
