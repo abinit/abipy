@@ -11,6 +11,7 @@ import argparse
 import time
 
 from pprint import pprint
+from monty import termcolor
 from pymatgen.io.abinitio.launcher import PyFlowScheduler, PyLauncher
 import abipy.abilab as abilab
 
@@ -195,6 +196,8 @@ def main():
     parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                         help='verbose, can be supplied multiple times to increase verbosity')
 
+    parser.add_argument('--no-colors', default=False, help='Disable ASCII colors')
+
     parser.add_argument('--loglevel', default="ERROR", type=str,
                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
@@ -278,6 +281,9 @@ Specify the files to open. Possible choices:\n
     if not isinstance(numeric_level, int):
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
+
+    if options.no_colors:
+        termcolor.enable(False)
 
     # Read the flow from the pickle database.
     if options.path is None:
