@@ -208,10 +208,10 @@ def main():
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for single command.
-    p_single = subparsers.add_parser('singleshot', aliases=["single"], help="Run single task.")
+    p_single = subparsers.add_parser('single', aliases=["singleshot"], help="Run single task.")
 
     # Subparser for rapidfire command.
-    p_rapid = subparsers.add_parser('rapidfire', aliases=["rapid"], help="Run all tasks in rapidfire mode")
+    p_rapid = subparsers.add_parser('rapid', aliases=["rapidfire"], help="Run all tasks in rapidfire mode")
 
     # Subparser for scheduler command.
     p_scheduler = subparsers.add_parser('scheduler', aliases=["sched"], help="Run all tasks with a Python scheduler.")
@@ -240,7 +240,7 @@ def main():
 
     # Subparser for restart command.
     p_reset = subparsers.add_parser('reset', help="Reset the tasks of the flow with the specified status.")
-    p_reset.add_argument('task_status', default="QueueCritical") 
+    p_reset.add_argument('task_status', default="QCritical") 
 
     # Subparser for open command.
     p_open = subparsers.add_parser('open', help="Open files in $EDITOR, type `abirun.py ... open --help` for help)")
