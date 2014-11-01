@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Flow for computing the band structure of silicon."""
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import sys
 import os

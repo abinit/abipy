@@ -158,7 +158,7 @@ def itest_g0w0qptdm_flow(fwp, tvars):
     # Run the flow.
     fwp.scheduler.add_flow(flow)
     assert fwp.scheduler.start() 
-    assert fwp.scheduler.num_excs == 0
+    assert not fwp.scheduler.exceptions
 
     # The scr workflow should produce a SIGRES file.
     assert len(scr_work.outdir.list_filepaths(wildcard="*SCR")) == 1
@@ -203,7 +203,7 @@ def itest_htc_g0w0(fwp, tvars):
     #flow.build_and_pickle_dump()
     fwp.scheduler.add_flow(flow)
     assert fwp.scheduler.start()
-    assert fwp.scheduler.num_excs == 0
+    assert not fwp.scheduler.exceptions
     assert fwp.scheduler.nlaunch == 4
 
     # The sigma task should produce a SCR file.

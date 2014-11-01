@@ -2,7 +2,7 @@
 """
 Band structure and the electron DOS of MgB2 with different k-point samplings.
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import os
 import sys
@@ -69,7 +69,7 @@ def build_flow(options):
 
     inputs = make_scf_nscf_inputs(structure, pseudos)
     scf_input, nscf_input, dos_inputs = inputs[0], inputs[1], inputs[2:]
-    print(scf_input.pseudos)
+    #print(scf_input.pseudos)
                                                                
     return abilab.bandstructure_flow(workdir, manager, scf_input, nscf_input, dos_inputs=dos_inputs)
 

@@ -82,7 +82,7 @@ def itest_gbrv_flow(fwp, tvars):
 
     fwp.scheduler.add_flow(flow)
     assert fwp.scheduler.start()
-    assert fwp.scheduler.num_excs == 0
+    assert not fwp.scheduler.exceptions
 
     #work = flow[0]
     #t0 = work[0]

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """G0W0 convergence study wrt ecuteps and the number of bands in W."""
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import sys
 import os

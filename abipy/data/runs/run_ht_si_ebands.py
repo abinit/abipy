@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 """Band structure of silicon with the HT interface."""
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import sys
 import os
 import abipy.data as abidata  
 
 from abipy import abilab
-#from pymatgen.io.abinitio.abiobjects import AbiStructure
 from pymatgen.io.abinitio.calculations import bandstructure
 
 

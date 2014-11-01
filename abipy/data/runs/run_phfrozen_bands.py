@@ -2,7 +2,7 @@
 """
 Band structure of silicon in a distorted geometry (frozen phonon at q=0)
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import sys
 import os

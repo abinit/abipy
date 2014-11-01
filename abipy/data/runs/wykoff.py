@@ -3,7 +3,7 @@
 This example shows how to compute the band structure of a set of 
 crystalline structures obtained by changing a set of internal paramaters
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import os
 import sys 

@@ -3,7 +3,7 @@
 This example shows how to compute the SCR file by splitting the calculation of the SCR file
 over q-points with the input variables nqptdm and qptdm.
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import sys
 import os

@@ -6,7 +6,7 @@ This script shows how to perform a structural relaxation in two steps:
 
     2) Full relaxation (atoms + cell) with the initial configuration read from step 1)
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import sys
 import os

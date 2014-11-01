@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """LDA+U band structure of NiO for several values of U-J."""
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import sys
 import os

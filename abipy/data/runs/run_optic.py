@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Optical spectra with Optic."""
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import sys
 import os

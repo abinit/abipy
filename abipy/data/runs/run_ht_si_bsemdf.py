@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Calculation of the BSE spectrum with the HT interface."""
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import sys
 import os

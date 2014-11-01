@@ -2,7 +2,7 @@
 """
 This script runs all the python scripts located in this directory 
 """
-from __future__ import print_function
+from __future__ import print_function, division, unicode_literals
 
 import sys
 import os 
