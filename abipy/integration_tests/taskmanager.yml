@@ -14,12 +14,12 @@ db_connector:
     #password: helloworld
 qadapters:
   - qtype: shell
+    qname: fast
     mpi_runner: mpirun
     pre_run:
       - "source ~/Coding/Abinit/bzr_archives/env.sh"
     partition: 
         # Mandatory
-        name: fast
         num_nodes: 1
         sockets_per_node: 1
         cores_per_socket: 2
@@ -31,12 +31,12 @@ qadapters:
         # Optional
         #condition: {"$eq": {omp_threads: 2}} 
   - qtype: shell
+    qname: large
     mpi_runner: mpirun
     pre_run:
       - "source ~/Coding/Abinit/bzr_archives/env.sh"
     partition: 
         # Mandatory
-        name: large
         num_nodes: 1
         sockets_per_node: 1
         cores_per_socket: 2

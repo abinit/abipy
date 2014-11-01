@@ -19,7 +19,7 @@ policy:
     #condition: {$and: [ {efficiency: {$gt: 0.99}}, {tot_ncpus: {$divisible: 2}} ]}
 #qtype: shell
 qadapters: 
-    - name: gmac
+    - qname: gmac
       qtype: shell
       mpi_runner: mpirun
       pre_run: 
@@ -27,7 +27,6 @@ qadapters:
        - ulimit
       partition:
          # Mandatory
-         name: foo
          num_nodes: 1
          sockets_per_node: 1
          cores_per_socket: 2
@@ -37,7 +36,7 @@ qadapters:
          min_cores: 1
          max_cores: 2
          # Optional
-         condition: {"$eq": {omp_threads: 2}} 
+         #condition: {"$eq": {omp_threads: 2}} 
 db_connector:
     enabled: no
     database: abinit 
