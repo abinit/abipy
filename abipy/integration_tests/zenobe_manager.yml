@@ -1,0 +1,61 @@
+policy:
+    # Enable autoparal, use maximum 48 CPUS and force npfft==1 
+    # (autoparal==1 must be passed explicitly)
+    autoparal: 1
+    max_ncpus: 128
+    automemory: 0
+    #condition: {$and: [ {efficiency: {$gt: 0.99}}, {tot_ncpus: {$divisible: 2}} ]}
+    #mode: aggressive
+qadapters:
+  - qname: main
+    qtype: pbspro
+    mpi_runner: mpirun
+    shell_env:
+         PATH: /home/acad/ucl/naps/mgiantom/bzr_repos/793/gmatteo-private/build_impi/src/98_main:$PATH
+    modules:
+        - compiler/intel/composerxe/2013_sp1.1.106
+        - intelmpi
+        - python/2.7
+    # pre_run is a string in verbatim mode (note |)
+    pre_run: |
+        ulimit
+    qparams:
+      group_list: naps
+    qverbatim: |
+      #PBS -r y
+    partition:
+      num_nodes: 274
+      sockets_per_node: 2
+      cores_per_socket: 6
+      mem_per_node: 24 Gb
+      timelimit: 15:00
+      priority: 1
+      min_cores: 1
+      max_cores: 24
+
+  # Ivybridge large
+  - qname: large
+    qtype: pbspro
+    mpi_runner: mpirun
+    shell_env:
+         PATH: /home/acad/ucl/naps/mgiantom/bzr_repos/793/gmatteo-private/build_impi/src/98_main:$PATH
+    modules:
+        - compiler/intel/composerxe/2013_sp1.1.106
+        - intelmpi
+        - python/2.7
+    # pre_run is a string in verbatim mode (note |)
+    pre_run: |
+        ulimit
+    qparams:
+      group_list: naps
+    qverbatim: |
+      #PBS -r y
+    partition:
+      num_nodes: 342
+      sockets_per_node: 2
+      cores_per_socket: 12
+      mem_per_node: 64 Gb
+      timelimit: 15:00
+      priority: 99
+      min_cores: 96
+      max_cores: 3888
