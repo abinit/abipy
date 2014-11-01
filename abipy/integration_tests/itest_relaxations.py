@@ -140,3 +140,4 @@ def itest_simple_atomic_relaxation(fwp, tvars):
     flow.show_status()
     assert all(work.finalized for work in flow)
     assert flow.all_ok
+    #assert flow.validate_json_schema()

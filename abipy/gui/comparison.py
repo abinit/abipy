@@ -5,9 +5,9 @@ import collections
 import fnmatch
 import abipy.gui.awx as awx
 
+from monty.string import list_strings
 from abipy.electrons import ElectronBandsPlotter, ElectronDosPlotter, MDF_Plotter, SIGRES_Plotter
 from abipy.gui.electronswx import ElectronDosDialog
-from abipy.tools import list_strings
 
 
 class FileCheckBoxPanel(awx.Panel):

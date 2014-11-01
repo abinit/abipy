@@ -74,7 +74,7 @@ def raman_flow():
     workdir = os.path.join(os.path.dirname(__file__), base_structure.formula.replace(" ","") + "_RAMAN")
 
     manager = abilab.TaskManager.from_user_config()
-    shell_manager = manager.to_shell_manager(mpi_ncpus=1)
+    shell_manager = manager.to_shell_manager(mpi_procs=1)
     ddk_manager = manager.deepcopy()
 
     flow = abilab.AbinitFlow(workdir, manager)

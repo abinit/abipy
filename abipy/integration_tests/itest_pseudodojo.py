@@ -81,7 +81,7 @@ def itest_gbrv_flow(fwp, tvars):
     flow.build_and_pickle_dump()
 
     fwp.scheduler.add_flow(flow)
-    fwp.scheduler.start()
+    assert fwp.scheduler.start()
     assert fwp.scheduler.num_excs == 0
 
     #work = flow[0]
@@ -105,4 +105,5 @@ def itest_gbrv_flow(fwp, tvars):
     flow.show_status()
     assert all(work.finalized for work in flow)
     assert flow.all_ok
+    #assert flow.validate_json_schema()
     #assert 0

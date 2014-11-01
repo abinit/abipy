@@ -183,20 +183,18 @@ class AbiInput(Input):
         else:
             # String(s)
             pseudo_dir = os.path.abspath(pseudo_dir)
-
             pseudo_paths = [os.path.join(pseudo_dir, p) for p in list_strings(pseudos)]
 
             missing = [p for p in pseudo_paths if not os.path.exists(p)]
             if missing:
                 raise self.Error("Cannot find the following pseudopotential files:\n%s" % str(missing)) 
 
-            try:
-                self._pseudos = PseudoTable(pseudo_paths)
-
-            except Exception as exc:
-                msg = "\nIgnoring error raised while parsing pseudopotential files:\n Backtrace:" + straceback()
-                warnings.warn(msg)
-                self._pseudos = []
+            #try:
+            self._pseudos = PseudoTable(pseudo_paths)
+            #except Exception as exc:
+            #    msg = "\nIgnoring error raised while parsing pseudopotential files:\n Backtrace:" + straceback()
+            #    warnings.warn(msg)
+            #    self._pseudos = []
 
         if comment:
             self.set_comment(comment)

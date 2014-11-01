@@ -39,6 +39,8 @@ def main():
     parser.add_argument('--keep-dirs', action="store_true", default=False,
                         help="Do not remove flowdirectories.")
 
+    parser.add_argument('-b', '--bail-on-failure', default=False, help="Exit at the first error.")
+
     #parser.add_argument("scripts", nargs="+",help="List of scripts to be executed")
 
     options = parser.parse_args()
@@ -58,13 +60,15 @@ def main():
                 scripts.append(path)
 
     # Run scripts according to mode.
-    dirpaths = []
+    dirpaths, retcode = [], 0
     if options.mode in ["s", "sequential"]:
         for script in scripts:
-            retcode = call(["python", script])
-            if retcode != 0: 
-                print("retcode %d while running %s" % (retcode, script))
-                break
+            ret = call(["python", script])
+            retcode += ret
+
+            if ret != 0: 
+                print("retcode %d while running %s" % (ret, script))
+                if options.bail_on_failure: break
 
             dirpaths.append(script.replace(".py", "").replace("run_", "flow_"))
 
@@ -79,6 +83,7 @@ def main():
     else:
         show_examples_and_exit(err_msg="Wrong value for mode: %s" % options.mode)
 
+    print("retcode %d" % retcode)
     return retcode
 
 if __name__ == "__main__":

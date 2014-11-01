@@ -4,11 +4,11 @@ import os
 import wx
 import abc
 import six
-
 import wx.lib.agw.flatnotebook as fnb
 import abipy.gui.awx as awx
 
-from abipy.tools import list_strings 
+from monty.string import list_strings 
+
 
 @six.add_metaclass(abc.ABCMeta)
 class MultiViewerFrame(awx.Frame):

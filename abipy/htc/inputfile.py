@@ -214,7 +214,7 @@ class InputFile(object):
             block.clear()
 
         # Sort variables in blocks
-        for name, value in self.variables.iteritems():
+        for name, value in self.variables.items():
             variable = SpecialInputVariable(name, value)
             placed = False
             for block in self.variables_blocks:

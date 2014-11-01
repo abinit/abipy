@@ -24,7 +24,7 @@ from abipy.core import constants
 from abipy.core.structure import Structure, StructureModifier
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen, AnaddbInput
 from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter, SIGRES_Plotter
-from abipy.phonons import PhononBands, PHDOS_Reader, PHDOS_File
+from abipy.phonons import PHBST_File, PhononBands, PHDOS_File
 
 # Tools for unit conversion
 FloatWithUnit = constants.FloatWithUnit
@@ -42,15 +42,14 @@ def abifile_subclass_from_filename(filename):
     from abipy.iotools.files import AbinitFile, AbinitLogFile, AbinitOutputFile
     from abipy.electrons import SIGRES_File, GSR_File, MDF_File
     from abipy.waves import WFK_File
-    #from abipy.phonons import PHDOS_File, PHBST_File
 
     ext2ncfile = {
         "SIGRES.nc": SIGRES_File,
         "WFK-etsf.nc": WFK_File,
         "MDF.nc": MDF_File,
-        "GSR.nc": GSR_File
+        "GSR.nc": GSR_File,
+        "PHBST.nc": PHBST_File,
         #"PHDOS.nc": PHDOS_File,
-        #"PHBST.nc": PHBST_File,
     }
 
     #if filename.endswith(".abi"):
