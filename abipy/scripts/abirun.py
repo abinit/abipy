@@ -97,20 +97,18 @@ def treat_flow(flow, options):
             try:
                 while True:
                     print(2*"\n" + time.asctime() + "\n")
-                    flow.check_status()
-                    flow.show_status()
+                    flow.check_status(show=True)
                     if flow.all_ok: break
                     time.sleep(options.delay)
-
             except KeyboardInterrupt:
                 pass
         else:
             flow.show_status(verbose=options.verbose)
 
-        #import pstats, cProfile
-        #cProfile.runctx("flow.show_status()", globals(), locals(), "Profile.prof")
-        #s = pstats.Stats("Profile.prof")
-        #s.strip_dirs().sort_stats("time").print_stats()
+        
+        
+        
+        
 
     if options.command == "open":
         flow.open_files(what=options.what, wti=None, status=None, op="==")
@@ -324,3 +322,7 @@ Specify the files to open. Possible choices:\n
 
 if __name__ == "__main__":
     sys.exit(main())
+    #import pstats, cProfile
+    #cProfile.runctx("main()", globals(), locals(), "Profile.prof")
+    #s = pstats.Stats("Profile.prof")
+    #s.strip_dirs().sort_stats("time").print_stats()
