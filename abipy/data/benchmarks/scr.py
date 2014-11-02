@@ -97,7 +97,7 @@ def g0w0_benchmark(options):
     Build an `AbinitWorkflow` used for benchmarking ABINIT.
     """
     gs_inp, nscf_inp, scr_inp, sigma_inp = make_inputs(paw=options.paw, paral_kgb=options.paral_kgb)
-    flow = abilab.AbinitFlow(workdir="bench_g0w0")
+    flow = abilab.AbinitFlow(workdir="bench_scr")
     # Instantiate the TaskManager.
     manager = abilab.TaskManager.from_user_config() if not options.manager else \
               abilab.TaskManager.from_file(options.manager)

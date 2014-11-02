@@ -44,7 +44,7 @@ def make_template(paral_kgb=1, paw=False):
 def build_flow(options):
     template = make_template()
 
-    flow = abilab.AbinitFlow(workdir="bench_pfft")
+    flow = abilab.AbinitFlow(workdir="bench_mpifft")
     # Instantiate the TaskManager.
     manager = abilab.TaskManager.from_user_config() if not options.manager else \
               abilab.TaskManager.from_file(options.manager)
