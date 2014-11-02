@@ -105,11 +105,6 @@ def treat_flow(flow, options):
         else:
             flow.show_status(verbose=options.verbose)
 
-        
-        
-        
-        
-
     if options.command == "open":
         flow.open_files(what=options.what, wti=None, status=None, op="==")
 
@@ -305,7 +300,7 @@ Specify the files to open. Possible choices:\n
         new_manager = abilab.TaskManager.from_file(options.manager_file)
 
         # Change the manager of the errored tasks.
-        status = "S_QUEUECRITICAL"
+        status = "S_QCRITICAL"
         #status = "S_ERROR"
         for task, wi, ti in flow.iflat_tasks_wti(status=status):
             task.reset()
@@ -321,8 +316,18 @@ Specify the files to open. Possible choices:\n
     
 
 if __name__ == "__main__":
-    sys.exit(main())
-    #import pstats, cProfile
-    #cProfile.runctx("main()", globals(), locals(), "Profile.prof")
-    #s = pstats.Stats("Profile.prof")
-    #s.strip_dirs().sort_stats("time").print_stats()
+    # perform profiling if `abirun.py prof ...` else run script.
+    do_prof = False
+    try:
+        do_prof = sys.argv[1] == "prof"
+        if do_prof: sys.argv.pop(1)
+    except: 
+        pass
+
+    if not do_prof:
+        sys.exit(main())
+    else:
+        import pstats, cProfile
+        cProfile.runctx("main()", globals(), locals(), "Profile.prof")
+        s = pstats.Stats("Profile.prof")
+        s.strip_dirs().sort_stats("time").print_stats()

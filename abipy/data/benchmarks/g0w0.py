@@ -1,8 +1,10 @@
 #!/usr/bin/env python
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals, absolute_import
 
 import abipy.abilab as abilab
 import abipy.data as abidata  
+
+from abipy.data.benchmarks import bench_main
 
 
 def make_inputs(paral_kgb=1, paw=False):
@@ -16,9 +18,9 @@ def make_inputs(paral_kgb=1, paw=False):
     pseudos = abidata.pseudos("14si.pspnc") if not paw else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
 
     ecut = 6
-
     global_vars = dict(
         ecut=ecut,
+        pawecutdg=ecut*4,
         gwpara=2,
         timopt=-1,
         istwfk="*1",
@@ -90,13 +92,15 @@ def make_inputs(paral_kgb=1, paw=False):
     return gs, nscf, scr, sigma
 
 
-def g0w0_benchmark():
+def g0w0_benchmark(options):
     """
     Build an `AbinitWorkflow` used for benchmarking ABINIT.
     """
-    gs_inp, nscf_inp, scr_inp, sigma_inp = make_inputs()
-    flow = abilab.AbinitFlow(workdir="g0w0_benchmark")
-    manager = abilab.TaskManager.from_user_config()
+    gs_inp, nscf_inp, scr_inp, sigma_inp = make_inputs(paw=options.paw, paral_kgb=options.paral_kgb)
+    flow = abilab.AbinitFlow(workdir="bench_g0w0")
+    # Instantiate the TaskManager.
+    manager = abilab.TaskManager.from_user_config() if not options.manager else \
+              abilab.TaskManager.from_file(options.manager)
 
     bands = abilab.BandStructureWorkflow(gs_inp, nscf_inp)
     flow.register_work(bands)
@@ -113,8 +117,9 @@ def g0w0_benchmark():
     return flow.allocate()
 
 
-def main():
-    flow = g0w0_benchmark()
+@bench_main
+def main(options):
+    flow = g0w0_benchmark(options)
     flow.build_and_pickle_dump()
     flow.make_scheduler().start()
     return 0
