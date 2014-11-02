@@ -6,7 +6,7 @@ dependencies:
     - easy_install -U setuptools
     - pip install distribute --upgrade
     - pip install pymatgen
-    - pip install -r requirements.txt
+    #- pip install -r requirements.txt
     #- pip install -r requirements-optional.txt
     - python setup.py develop
 #test:
