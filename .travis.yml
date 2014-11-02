@@ -2,6 +2,7 @@ language: python
 python:
   - "2.7"
 before_install:
+  - easy_install -U setuptools
   - pip install -Iv https://bitbucket.org/jamesrhester/pycifrw/downloads/PyCifRW-3.6.1.tar.gz
   - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
