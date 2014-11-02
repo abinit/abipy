@@ -700,7 +700,8 @@ class Dataset(mixins.MappingMixin):
         """Set a the value of a variable."""
         # Check if varname is in the internal database.
         if not is_abivar(varname):
-            raise self.Error("%s is not a valid ABINIT variable." % varname)
+            raise self.Error("varname %s is not a valid ABINIT variable\n."
+                             "Modify abipy/htc/abinit_vars.json" % varname)
 
         if varname in self:
             try: 

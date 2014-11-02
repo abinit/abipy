@@ -21,6 +21,7 @@ def make_template():
                        npkpt=1,
                        npband=1,
                        npfft=1,
+                       fftalg=112,
                        #
                        istwfk="*1",
                        timopt=-1,
@@ -31,28 +32,26 @@ def make_template():
                        nstep=10,
                        )
     inp.set_variables(**global_vars)
-
     return inp
 
 
 def build_flow():
     template = make_template()
 
-    #policy = dict(autoparal=0, max_ncpus=mpi_ncpus)
-    #manager = abilab.TaskManager.simple_mpi(mpi_ncpus=1, policy=policy)
+    flow = abilab.AbinitFlow(workdir="gs_pfft")
     manager = abilab.TaskManager.from_user_config()
-    flow = abilab.AbinitFlow(workdir="gs_pfft", manager=manager)
 
-    #ncpus = [1, 2, 4, 8]
-    ncpu_list = [4]
+    mpi_list = [2]
     fftalg_list = [312, 402, 401]
     ecut_list = list(range(400, 410, 10)) 
 
     for fftalg in fftalg_list: 
         work = abilab.Workflow()
-        for npfft in ncpu_list:
-            manager.set_mpi_ncpus(npfft)
+        for npfft in mpi_list:
+            manager.set_mpi_procs(npfft)
             for inp in abilab.input_gen(template, fftalg=fftalg, npfft=npfft, ecut=ecut_list):
+                manager.set_autoparal(0)
+                #manager.set_mpi_procs(mpi_procs)
                 work.register(inp, manager=manager)
         flow.register_work(work)
 
@@ -61,7 +60,9 @@ def build_flow():
 
 def main():
     flow = build_flow()
-    return flow.build_and_pickle_dump()
+    flow.build_and_pickle_dump()
+    flow.make_scheduler().start()
+    return 0
 
 
 if __name__ == "__main__":

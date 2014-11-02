@@ -49,6 +49,7 @@
     "dmftqmc_therm", 
     "enunit", 
     "exchn2n3d", 
+    "fftalg",
     "fftgw", 
     "fft_opt_lob", 
     "frzfermi", 
