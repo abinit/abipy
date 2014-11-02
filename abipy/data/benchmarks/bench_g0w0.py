@@ -2,18 +2,18 @@
 from __future__ import division, print_function
 
 import abipy.abilab as abilab
-import abipy.data as data  
+import abipy.data as abidata  
 
 
-def make_inputs():
+def make_inputs(paral_kgb=1, paw=False):
     # Crystalline silicon
     # Calculation of the GW correction to the direct band gap in Gamma
     # Dataset 1: ground state calculation 
     # Dataset 2: NSCF calculation 
     # Dataset 3: calculation of the screening 
     # Dataset 4: calculation of the Self-Energy matrix elements (GW corrections)
-    structure = abilab.Structure.from_file(data.cif_file("si.cif"))
-    pseudos = data.pseudos("14si.pspnc")
+    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
+    pseudos = abidata.pseudos("14si.pspnc") if not paw else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
 
     ecut = 6
 
@@ -94,21 +94,20 @@ def g0w0_benchmark():
     """
     Build an `AbinitWorkflow` used for benchmarking ABINIT.
     """
-    #max_ncpus = manager.policy.max_ncpus
+    gs_inp, nscf_inp, scr_inp, sigma_inp = make_inputs()
+    flow = abilab.AbinitFlow(workdir="g0w0_benchmark")
     manager = abilab.TaskManager.from_user_config()
-    flow = abilab.AbinitFlow(workdir="g0w0_benchmark", manager=manager)
 
-    gs, nscf, scr, sigma = make_inputs()
-
-    bands = abilab.BandStructureWorkflow(gs, nscf)
+    bands = abilab.BandStructureWorkflow(gs_inp, nscf_inp)
     flow.register_work(bands)
 
-    ncpu_list = [1, 2]
+    mpi_list = [1, 2]
     scr_work = abilab.Workflow()
 
-    for ncpu in ncpu_list:
-        manager.set_mpi_ncpus(ncpu)
-        scr_work.register(scr, manager=manager, deps={bands.nscf_task: "WFK"})
+    for mpi_procs in mpi_list:
+        manager.set_autoparal(0)
+        manager.set_mpi_procs(mpi_procs)
+        scr_work.register(scr_inp, manager=manager, deps={bands.nscf_task: "WFK"})
     flow.register_work(scr_work)
 
     return flow.allocate()
@@ -116,7 +115,9 @@ def g0w0_benchmark():
 
 def main():
     flow = g0w0_benchmark()
-    return flow.build_and_pickle_dump()
+    flow.build_and_pickle_dump()
+    flow.make_scheduler().start()
+    return 0
 
 
 if __name__ == "__main__":

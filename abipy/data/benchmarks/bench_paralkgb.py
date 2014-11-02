@@ -10,7 +10,7 @@ def make_input(paral_kgb=1, paw=False):
     pseudos = abidata.pseudos("14si.pspnc") if not paw else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
     inp = abilab.AbiInput(pseudos=pseudos)
 
-    inp.set_structure(data.structure_from_ucell("Si"))
+    inp.set_structure(abidata.structure_from_ucell("Si"))
     inp.set_kmesh(ngkpt=[1,1,1], shiftk=[0,0,0])
 
     # Global variables
@@ -37,25 +37,27 @@ def make_input(paral_kgb=1, paw=False):
 def build_flow():
     inp = make_input(paral_kgb=1, paw=False)
 
-    manager = abilab.TaskManager.from_user_config()
-    manager.set_autoparal(0)
-    flow = abilab.AbinitFlow(workdir="paralkgb_benchmark", manager=manager)
-
-    ncpu_list = [1, 2] #, 4, 8]
-
+    flow = abilab.AbinitFlow(workdir="paralkgb_benchmark")
     work = abilab.Workflow()
-    for ncpus in ncpu_list:
-        #manager.set_max_ncpus(ncpus)
-        manager.set_mpi_ncpus(ncpus)
-        work.register(inp, manager=manager)
-    flow.register_work(work)
+    #import yaml
+    #d = yaml.load("taskmanager.yml")
+    manager = abilab.TaskManager.from_user_config()
 
+    mpi_list = [1, 2] #, 4, 8]
+    for mpi_procs in mpi_list:
+        manager.set_autoparal(0)
+        manager.set_mpi_procs(mpi_procs)
+        work.register(inp, manager=manager)
+
+    flow.register_work(work)
     return flow.allocate()
 
 
 def main():
     flow = build_flow()
-    return flow.build_and_pickle_dump()
+    flow.build_and_pickle_dump()
+    flow.make_scheduler().start()
+    return 0
 
 
 if __name__ == "__main__":

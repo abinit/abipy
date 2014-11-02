@@ -16,7 +16,7 @@ before_install:
   - sudo apt-get install libnetcdf-dev
   #- pip install -Iv https://netcdf4-python.googlecode.com/files/netCDF4-1.0.2.tar.gz
   #- pip install netCDF4
-  - conda install netCDF4
+  - conda install netCDF4 && /usr/bin/yes
   #- sudo apt-get update -qq
   #- sudo apt-get install -qq liblapack-dev 
   #- sudo apt-get install libzmq3-dev
