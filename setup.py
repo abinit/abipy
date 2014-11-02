@@ -195,7 +195,7 @@ install_requires = [
     "numpy>=1.8",  
     "pydispatcher>=2.0.3",
     "pyyaml>=3.11",
-    "scipy>=0.10",
+    #"scipy>=0.10",
     "netCDF4",
     "pymatgen>=3.0.7",
     "wxmplot",
