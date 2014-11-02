@@ -1,3 +1,24 @@
+# partitions available on zenobe.
+westmere: &westmere
+   num_nodes: 274
+   sockets_per_node: 2
+   cores_per_socket: 6
+   mem_per_node: 24 Gb
+   timelimit: 15:00
+   priority: 1
+   min_cores: 1
+   max_cores: 24
+
+ivybridge: &ivybridge
+   num_nodes: 342
+   sockets_per_node: 2
+   cores_per_socket: 12
+   mem_per_node: 64 Gb
+   timelimit: 15:00
+   priority: 99
+   min_cores: 96
+   max_cores: 3888
+
 policy:
     # Enable autoparal, use maximum 48 CPUS and force npfft==1 
     # (autoparal==1 must be passed explicitly)
@@ -23,15 +44,7 @@ qadapters:
       group_list: naps
     qverbatim: |
       #PBS -r y
-    partition:
-      num_nodes: 274
-      sockets_per_node: 2
-      cores_per_socket: 6
-      mem_per_node: 24 Gb
-      timelimit: 15:00
-      priority: 1
-      min_cores: 1
-      max_cores: 24
+    partition: *westmere 
 
   # Ivybridge large
   - qname: large
@@ -50,12 +63,4 @@ qadapters:
       group_list: naps
     qverbatim: |
       #PBS -r y
-    partition:
-      num_nodes: 342
-      sockets_per_node: 2
-      cores_per_socket: 12
-      mem_per_node: 64 Gb
-      timelimit: 15:00
-      priority: 99
-      min_cores: 96
-      max_cores: 3888
+    partition: *ivybridge
