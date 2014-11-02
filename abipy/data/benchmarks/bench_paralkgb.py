@@ -2,22 +2,22 @@
 from __future__ import division, print_function
 
 import abipy.abilab as abilab
-import abipy.data as data
+import abipy.data as abidata
 
 
-def make_input():
+def make_input(paral_kgb=1, paw=False):
     """Build a template input file for GS calculations with paral_kgb"""
-    inp = abilab.AbiInput(pseudos=data.pseudos("14si.pspnc"))
-    inp.set_structure(data.structure_from_ucell("Si"))
+    pseudos = abidata.pseudos("14si.pspnc") if not paw else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
+    inp = abilab.AbiInput(pseudos=pseudos)
 
-    # GS run with paral_kgb
+    inp.set_structure(data.structure_from_ucell("Si"))
     inp.set_kmesh(ngkpt=[1,1,1], shiftk=[0,0,0])
 
     # Global variables
     global_vars = dict(ecut=20,
                        nsppol=1,
                        nband=20,
-                       paral_kgb=1,
+                       paral_kgb=paral_kgb,
                        npkpt=1,
                        npband=1,
                        npfft=1,
@@ -27,15 +27,15 @@ def make_input():
                        chksymbreak=0,
                        prtwf=0,
                        prtden=0,
-                       tolvrs=1e-8,
-                       nstep=20,
+                       tolvrs=1e-10,
+                       nstep=50,
                        )
     inp.set_variables(**global_vars)
     return inp
 
 
 def build_flow():
-    inp = make_input()
+    inp = make_input(paral_kgb=1, paw=False)
 
     manager = abilab.TaskManager.from_user_config()
     manager.set_autoparal(0)
