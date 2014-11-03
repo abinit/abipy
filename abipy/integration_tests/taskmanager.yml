@@ -13,36 +13,41 @@ db_connector:
     #user: gmatteo
     #password: helloworld
 qadapters:
-  - qtype: shell
-    qname: fast
-    mpi_runner: mpirun
-    pre_run:
-      - "source ~/Coding/Abinit/bzr_archives/env.sh"
-    partition: 
+  - queue:
+      qtype: shell
+      qname: fast
+    priority: 1
+    job:
+      mpi_runner: mpirun
+      pre_run:
+        - "source ~/Coding/Abinit/bzr_archives/env.sh"
+    hardware:
         # Mandatory
         num_nodes: 1
         sockets_per_node: 1
         cores_per_socket: 2
         mem_per_node: 4 Gb
+    limits:
         timelimit: 1:00:00
-        priority: 1
         min_cores: 1
         max_cores: 2
         # Optional
         #condition: {"$eq": {omp_threads: 2}} 
-  - qtype: shell
-    qname: large
-    mpi_runner: mpirun
-    pre_run:
-      - "source ~/Coding/Abinit/bzr_archives/env.sh"
-    partition: 
-        # Mandatory
+  - priority: 99
+    queue:
+        qtype: shell
+        qname: large
+    job:
+        mpi_runner: mpirun
+        pre_run:
+          - "source ~/Coding/Abinit/bzr_archives/env.sh"
+    hardware:
         num_nodes: 1
         sockets_per_node: 1
         cores_per_socket: 2
         mem_per_node: 24 Gb
+    limits:
         timelimit: 2:00:00
-        priority: 99
         min_cores: 1
         max_cores: 2
         # Optional

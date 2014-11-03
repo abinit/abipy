@@ -29,13 +29,13 @@ def straceback():
 def str_examples():
     examples = """
 Usage example:\n
-    abirun.py [DIRPATH] singleshot              => Fetch the first available task and run it.
-    abirun.py [DIRPATH] rapidfire               => Keep repeating, stop when no task can be executed
-                                                  due to inter-dependency.
+    abirun.py [DIRPATH] single                   => Fetch the first available task and run it.
+    abirun.py [DIRPATH] rapid                    => Keep repeating, stop when no task can be executed
+                                                    due to inter-dependency.
     abirun.py [DIRPATH] gui                      => Open the GUI 
     nohup abirun.py [DIRPATH] sheduler -s 30 &   => Use a scheduler to schedule task submission
 
-    If DIRPATH is not given, abirun.py selects automatically the database located within 
+    If DIRPATH is not given, abirun.py automatically selects the database located within 
     the working directory. An Exception is raised if multiple databases are found.
 """
     return examples
@@ -54,17 +54,17 @@ def treat_flow(flow, options):
     retcode = 0
 
     # Dispatch.
-    if options.command in ["single", "singleshot"]:
+    if options.command in ("single", "singleshot"):
         nlaunch = PyLauncher(flow).single_shot()
         print("Number of tasks launched %d" % nlaunch)
         flow.show_status()
 
-    if options.command in ["rapid", "rapidfire"]:
+    elif options.command in ("rapid", "rapidfire"):
         nlaunch = PyLauncher(flow).rapidfire()
         print("Number of tasks launched %d" % nlaunch)
         flow.show_status()
 
-    if options.command == "scheduler":
+    elif options.command == "scheduler":
 
         opt_names = [
             "weeks",
@@ -84,6 +84,9 @@ def treat_flow(flow, options):
         # Check that the env on the local machine is properly setup 
         # before starting the scheduler.
         abilab.abicheck()
+        #errors = flow.loop_before_you_leap()
+        #if errors:
+        #    raise RuntimeError("look_before_you_leap returned:\n %s" % str(errors))
 
         sched.add_flow(flow)
         print(sched)
@@ -91,7 +94,7 @@ def treat_flow(flow, options):
 
         #open_hook.print_open_files()
 
-    if options.command == "status":
+    elif options.command == "status":
         if options.delay:
             print("Entering infinite loop. Press CTRL+C to exit")
             try:
@@ -105,16 +108,16 @@ def treat_flow(flow, options):
         else:
             flow.show_status(verbose=options.verbose)
 
-    if options.command == "open":
+    elif options.command == "open":
         flow.open_files(what=options.what, wti=None, status=None, op="==")
 
-    if options.command == "cancel":
+    elif options.command == "cancel":
         print("Number of jobs cancelled %d" % flow.cancel())
         # Remove directory
         if options.rmtree:
             flow.rmtree()
 
-    if options.command == "restart":
+    elif options.command == "restart":
         nlaunch, excs = 0, []
         for task in flow.unconverged_tasks:
             try:
@@ -132,7 +135,7 @@ def treat_flow(flow, options):
             print("Exceptions raised\n")
             pprint(excs)
 
-    if options.command == "reset":
+    elif options.command == "reset":
         count = 0
         for task, wi, ti in flow.iflat_tasks_wti(status=options.task_status):
             task.reset()
@@ -146,7 +149,7 @@ def treat_flow(flow, options):
         print("Number of tasks launched %d" % nlaunch)
         flow.show_status()
 
-    if options.command == "tail":
+    elif options.command == "tail":
         paths = [t.output_file.path for t in flow.iflat_tasks(status="Running")]
         if not paths:
             print("No job is running. Exiting!")
@@ -156,6 +159,8 @@ def treat_flow(flow, options):
                 os.system("tail -f %s" % " ".join(paths))
             except KeyboardInterrupt:
                 pass
+    else:
+        raise RuntimeError("You should not be here!")
 
     return retcode
 
@@ -316,10 +321,10 @@ Specify the files to open. Possible choices:\n
     
 
 if __name__ == "__main__":
-    # perform profiling if `abirun.py prof ...` else run script.
+    # profile if `abirun.py prof ...` else run script.
     do_prof = False
     try:
-        do_prof = sys.argv[1] == "prof"
+        do_prof = sys.argv[1] in ("prof", "perf")
         if do_prof: sys.argv.pop(1)
     except: 
         pass
