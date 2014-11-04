@@ -87,8 +87,10 @@ def build_flow(structure, workdir, options):
     return abilab.phonon_flow(workdir, manager, scf_input, ph_inputs)
 
 
-@abilab.flow_main
-def main(options):
+#@abilab.flow_main
+def main():
+
+    options = {}
 
     cifs = [f for f in os.listdir('.') if 'cif' in f]
     convtests = {'ecut': [4, 8, 12], 'ngkpt': [[4, 4, 4], [6, 6, 6]]}
@@ -96,6 +98,7 @@ def main(options):
     for cif in cifs:
         structure = Structure.from_file(cif, primitive=False)
         structure = AbiStructure.asabistructure(structure)
+        structure.item = cif
         for convtest in convtests:
             for value in convtests[convtest]:
 
