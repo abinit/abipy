@@ -1086,6 +1086,6 @@ class StructureModifier(object):
     def frozen_2phonon(self, qpoint, displ1, displ2, do_real1=True, do_real2=True, frac_coords=True, scale_matrix=None, max_supercell=None):
 
         new_structure = self.copy_structure()
-        new_structure.frozen_phonon(qpoint, displ1, displ2, do_real1, do_real2, frac_coords, scale_matrix, max_supercell)
+        new_structure.frozen_2phonon(qpoint, displ1, displ2, do_real1, do_real2, frac_coords, scale_matrix, max_supercell)
 
         return new_structure
