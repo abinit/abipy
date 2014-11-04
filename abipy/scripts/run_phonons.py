@@ -11,6 +11,7 @@ import abipy.data as abidata
 from pymatgen.core.structure import Structure
 from pymatgen.io.abinitio.abiobjects import AbiStructure
 from pymatgen.io.gwwrapper.helpers import s_name
+from pymatgen.io.abinitio.pseudos import PseudoTable
 
 
 def scf_ph_inputs(structure, options):
@@ -19,7 +20,13 @@ def scf_ph_inputs(structure, options):
     GS input + the input files for the phonon calculation.
     """
 
-    pseudos = abidata.pseudos("13al.981214.fhi", "33as.pspnc")
+    abi_pseudo = os.environ['ABINIT_PS_EXT']
+    abi_pseudo_dir = os.environ['ABINIT_PS']
+    pseudos = []
+    for element in structure.composition.element_composition:
+        pseudo = os.path.join(abi_pseudo_dir, str(element) + abi_pseudo)
+        pseudos.append(pseudo)
+    pseudos = PseudoTable(pseudos)
 
     # List of q-points for the phonon calculation.
     qpoints = [
@@ -111,4 +118,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
