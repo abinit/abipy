@@ -28,6 +28,12 @@ def scf_ph_inputs(structure, options):
         pseudos.append(pseudo)
     pseudos = PseudoTable(pseudos)
 
+    qptbounds = structure.calc_kptbounds()
+    qptbounds = np.reshape(qptbounds, (-1, 3))
+    print(qptbounds)
+    ng2qpt = structure.calc_ngkpt(nqsmall)
+    print(ng2qpt)
+
     # List of q-points for the phonon calculation.
     qpoints = [
              0.00000000E+00,  0.00000000E+00,  0.00000000E+00, 
@@ -37,6 +43,7 @@ def scf_ph_inputs(structure, options):
              5.00000000E-01,  2.50000000E-01,  0.00000000E+00,
             -2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
              5.00000000E-01,  5.00000000E-01,  0.00000000E+00,
+             0.00000000E+00,  0.00000000E+00,  2.50000000E-01,
             -2.50000000E-01,  5.00000000E-01,  2.50000000E-01,
             ]
     qpoints = np.reshape(qpoints, (-1,3))
