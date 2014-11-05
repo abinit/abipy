@@ -31,7 +31,7 @@ def scf_ph_inputs(structure, options):
     qptbounds = structure.calc_kptbounds()
     qptbounds = np.reshape(qptbounds, (-1, 3))
     print(qptbounds)
-    ng2qpt = structure.calc_ngkpt(nqsmall)
+    ng2qpt = structure.calc_ngkpt(2)
     print(ng2qpt)
 
     # List of q-points for the phonon calculation.
