@@ -41,12 +41,12 @@ db_connector:
 # List of qdapters. 
 qadapters:
   # Westmere default.
-  - priority: 1
+  - priority: 99
     queue: 
        qname: main
        qtype: pbspro
        qparams:
-       group_list: naps
+         group_list: naps
          #qverbatim: |
          #  #PBS -r y
     limits:
@@ -57,7 +57,7 @@ qadapters:
     hardware: *westmere 
   
   # Ivybridge large.
-  - priority: 99
+  - priority: 1
     queue: 
        qname: large
        qtype: pbspro

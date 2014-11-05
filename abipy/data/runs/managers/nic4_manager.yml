@@ -1,0 +1,34 @@
+# nic4 hardware. see http://www.ceci-hpc.be/clusters.html#nic4
+hardware: &hardware
+   num_nodes: 120
+   sockets_per_node: 2
+   cores_per_socket: 8
+   mem_per_node: 64Gb
+
+job: &job
+    mpi_runner: mpirun
+    shell_env:
+        PATH: $HOME/local/bin:$PATH
+    modules:
+        - python/2.7
+    # pre_run is a string in verbatim mode (note |)
+    pre_run: |
+        ulimit unlimited
+
+policy:
+    autoparal: 1
+    automemory: 0
+    max_ncpus: 256
+
+# queues 
+qadapters:
+  - priority: 1
+    queue:
+       qname: main
+       qtype: slurm
+    limits:
+       timelimit: 2-0:0:0
+       min_cores: 1
+       max_cores: 256
+    hardware: *hardware
+    job: *job

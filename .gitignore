@@ -42,6 +42,7 @@ abipy/extensions/*.html
 # vim files
 *.swp
 *.swo
+*.swn
 
 # Unit test / coverage reports
 .coverage
