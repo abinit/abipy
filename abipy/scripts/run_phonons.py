@@ -102,7 +102,7 @@ def run_annaddb(flow, structure):
 
     # Build new workflow with Anaddb tasks.
     # Construct a manager with mpi_ncpus==1 since  anaddb do not support mpi_ncpus > 1 (except in elphon)
-    shell_manager = manager.to_shell_manager(mpi_ncpus=1)
+    shell_manager = manager.to_shell_manager()
     awork = abilab.Workflow(manager=shell_manager)
 
     # Phonons bands and DOS with gaussian method
