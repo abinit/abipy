@@ -52,6 +52,13 @@ def scf_ph_inputs(structure, options):
 
     global_vars.update(options)
 
+    print(global_vars['ngkpt'])
+    ngkpt = global_vars['ngkpt']
+    print(ngkpt)
+    ngkpt = 3*[ngkpt] if not isinstance(ngkpt, list) else ngkpt
+    print(ngkpt)
+    print(global_vars['ngkpt'])
+
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=1+len(qpoints))
 
     inp.set_structure(structure)
@@ -100,7 +107,7 @@ def main():
     options = {}
 
     cifs = [f for f in os.listdir('.') if 'cif' in f]
-    convtests = {'ecut': [4, 8, 12], 'ngkpt': [[4, 4, 4], [6, 6, 6]]}
+    convtests = {'ecut': [4, 8, 12], 'ngkpt': [4, 6, 8]}
 
     for cif in cifs:
         structure = Structure.from_file(cif, primitive=False)
