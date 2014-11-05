@@ -14,6 +14,12 @@ from pymatgen.io.gwwrapper.helpers import s_name
 from pymatgen.io.abinitio.pseudos import PseudoTable
 
 
+def unique_rows(a):
+    a = np.ascontiguousarray(a)
+    unique_a = np.unique(a.view([('', a.dtype)]*a.shape[1]))
+    return unique_a.view(a.dtype).reshape((unique_a.shape[0], a.shape[1]))
+
+
 def scf_ph_inputs(structure, options):
     """
     This function constructs the input files for the phonon calculation: 
@@ -46,9 +52,9 @@ def scf_ph_inputs(structure, options):
              0.00000000E+00,  0.00000000E+00,  2.50000000E-01,
             -2.50000000E-01,  5.00000000E-01,  2.50000000E-01,
             ]
-    qpoints = np.reshape(qpoints, (-1,3))
+    qpoints = np.reshape(qpoints, (-1, 3))
 
-    qpoints = set(qptbounds)
+    qpoints = unique_rows(qptbounds)
 
     print(qpoints)
 
@@ -197,7 +203,7 @@ def main():
                     run_annaddb(flow=flow, structure=structure)
                 except NotReady:
                     pass
-                except (IOError, OSError):
+                except ValueError:
                     options[convtest] = value
                     flow = build_flow(structure=structure, workdir=workdir, options=options)
                     flow.build_and_pickle_dump()
