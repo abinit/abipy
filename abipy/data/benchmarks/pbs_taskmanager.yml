@@ -30,8 +30,9 @@ pre_run: |
     echo "queue      : $PBS_O_QUEUE"
     echo "user       : $PBS_O_LOGNAME"
     echo "threads    : $OMP_NUM_THREADS"
-    echo "------------------ $PBS_NODEFILE ---------------"
-    cat $PBS_NODEFILE
+# if $PBS_NODEFILE is not set the cat will hang at this point
+#    echo "------------------ $PBS_NODEFILE ---------------"
+#    cat $PBS_NODEFILE
     echo "------------------ Checking limits -------------"
     ulimit
     echo "------------- Loading environment --------------"
