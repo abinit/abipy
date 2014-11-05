@@ -130,7 +130,7 @@ def itest_phonon_flow(fwp, tvars):
     atask = abilab.AnaddbTask(anaddb_input, ddb_node=ddb_path, manager=shell_manager)
     awork.register(atask)
 
-    # Phonons bands and DOS with gaussian method
+    # Phonons bands and DOS with tetrahedron method
     anaddb_input = abilab.AnaddbInput.phbands_and_dos(
         scf_input.structure, ngqpt=(4, 4, 4), ndivsm=5, nqsmall=10, dos_method="tetra")
 
