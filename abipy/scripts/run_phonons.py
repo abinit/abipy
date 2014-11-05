@@ -52,12 +52,9 @@ def scf_ph_inputs(structure, options):
 
     global_vars.update(options)
 
-    print(global_vars['ngkpt'])
     ngkpt = global_vars['ngkpt']
-    print(ngkpt)
     ngkpt = 3*[ngkpt] if not isinstance(ngkpt, list) else ngkpt
-    print(ngkpt)
-    print(global_vars['ngkpt'])
+    global_vars['ngkpt'] = ngkpt
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=1+len(qpoints))
 
