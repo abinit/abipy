@@ -18,7 +18,7 @@ job: &job
 policy:
     autoparal: 1
     automemory: 0
-    max_ncpus: 256
+    max_ncpus: 16
 
 # queues 
 qadapters:
@@ -29,6 +29,6 @@ qadapters:
     limits:
        timelimit: 2-0:0:0
        min_cores: 1
-       max_cores: 256
+       max_cores: 16
     hardware: *hardware
     job: *job

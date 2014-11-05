@@ -29,6 +29,6 @@ qadapters:
     limits:
        timelimit: 3-0:0:0
        min_cores: 1
-       max_cores: 120
+       max_cores: 12
     hardware: *hardware
     job: *job
