@@ -190,6 +190,8 @@ def flow_main(main):
         parser.add_argument("-m", '--manager', default="", type=str,
                             help="YAML file with the parameters of the task manager")
 
+        parser.add_argument("--prof", action="store_true", default=False, help="Profile code wth cProfile ")
+
         options = parser.parse_args()
 
         # loglevel is bound to the string value obtained from the command line argument. 
@@ -200,6 +202,13 @@ def flow_main(main):
             raise ValueError('Invalid log level: %s' % options.loglevel)
         logging.basicConfig(level=numeric_level)
 
-        return main(options)
+        if options.prof:
+            import pstats, cProfile
+            cProfile.runctx("main(options)", globals(), locals(), "Profile.prof")
+            s = pstats.Stats("Profile.prof")
+            s.strip_dirs().sort_stats("time").print_stats()
+            return 0
+        else:
+            return main(options)
 
     return wrapper
