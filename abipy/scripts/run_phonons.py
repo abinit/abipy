@@ -203,7 +203,7 @@ def main():
                     run_annaddb(flow=flow, structure=structure)
                 except NotReady:
                     pass
-                except ValueError:
+                except (ValueError, IOError):
                     options[convtest] = value
                     flow = build_flow(structure=structure, workdir=workdir, options=options)
                     flow.build_and_pickle_dump()
