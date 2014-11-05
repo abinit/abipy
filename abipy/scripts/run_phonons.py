@@ -183,7 +183,9 @@ def main():
                     if not flow.all_ok:
                         raise NotReady
                     run_annaddb(flow=flow, structure=structure)
-                except (NotReady, IOError, OSError):
+                except NotReady:
+                    pass
+                except (IOError, OSError):
                     options[convtest] = value
                     flow = build_flow(structure=structure, workdir=workdir, options=options)
                     flow.build_and_pickle_dump()
