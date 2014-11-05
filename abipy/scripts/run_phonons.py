@@ -36,9 +36,6 @@ def scf_ph_inputs(structure, options):
 
     qptbounds = structure.calc_kptbounds()
     qptbounds = np.reshape(qptbounds, (-1, 3))
-    print(qptbounds)
-    ng2qpt = structure.calc_ngkpt(2)
-    print(ng2qpt)
 
     # List of q-points for the phonon calculation.
     qpoints = [
@@ -64,7 +61,7 @@ def scf_ph_inputs(structure, options):
                        ecut=3.0,         
                        ngkpt=[4, 4, 4],
                        shiftk=[0, 0, 0],
-                       tolvrs=1.0e-8,
+                       tolvrs=1.0e-10,
                        paral_kgb=0,
                        )
 
@@ -78,6 +75,8 @@ def scf_ph_inputs(structure, options):
 
     inp.set_structure(structure)
     inp.set_variables(**global_vars)
+
+    #inp[1].set_variables()
 
     for i, qpt in enumerate(qpoints):
         # Response-function calculation for phonons.
