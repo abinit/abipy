@@ -8,7 +8,7 @@ import numpy as np
 import abipy.abilab as abilab
 import abipy.data as abidata
 
-from pymatgen.core.structure import Structure
+from abipy.core.structure import Structure
 from pymatgen.io.abinitio.abiobjects import AbiStructure
 from pymatgen.io.gwwrapper.helpers import s_name
 from pymatgen.io.abinitio.pseudos import PseudoTable
@@ -170,8 +170,8 @@ def main():
     convtests = {'ecut': [4, 8, 12], 'ngkpt': [4, 6, 8]}
 
     for cif in cifs:
-        structure = Structure.from_file(cif, primitive=False)
-        structure = AbiStructure.asabistructure(structure)
+        structure = Structure.from_file(cif)
+        #structure = AbiStructure.asabistructure(structure)
         structure.item = cif
         for convtest in convtests:
             for value in convtests[convtest]:

@@ -754,7 +754,7 @@ class Structure(pymatgen.Structure):
     def calc_kptbounds(self):
         """Returns the suggested value for kptbounds."""
         kptbounds = [k.frac_coords for k in self.hsym_kpoints]
-        return np.reshape(kptbounds, (-1,3))
+        return np.reshape(kptbounds, (-1, 3))
 
     def calc_ksampling(self, nksmall, symprec=0.01, angle_tolerance=5):
         """

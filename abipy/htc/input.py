@@ -61,6 +61,7 @@ def straceback():
     import traceback
     return traceback.format_exc()
 
+
 @six.add_metaclass(abc.ABCMeta)
 class Input(object): 
     """
