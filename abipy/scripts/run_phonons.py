@@ -55,7 +55,7 @@ def scf_ph_inputs(structure, options):
             -2.50000000E-01,  5.00000000E-01,  2.50000000E-01,
             ]
     qpoints = np.reshape(qpoints, (-1, 3))
-    qpoints = np.concatenate((qpoints, unique_rows(qptbounds)), axis=0)
+    qpoints = unique_rows(np.concatenate((qpoints, qptbounds), axis=0))
 
     # Global variables used both for the GS and the DFPT run.
     global_vars = dict(ecut=16.0,
