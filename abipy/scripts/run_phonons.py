@@ -58,10 +58,10 @@ def scf_ph_inputs(structure, options):
     qpoints = np.concatenate( (qpoints, unique_rows(qptbounds)), axis=0)
 
     # Global variables used both for the GS and the DFPT run.
-    global_vars = dict(ecut=3.0,
+    global_vars = dict(ecut=16.0,
                        ngkpt=[4, 4, 4],
                        shiftk=[0, 0, 0],
-                       tolwfr=1.0e-24,
+                       tolwfr=1.0e-20,
                        paral_kgb=0,
                        nstep=60
                        )
@@ -188,7 +188,7 @@ class NotReady(Exception):
 def main():
 
     cifs = [f for f in os.listdir('.') if f.endswith('cif')]
-    convtests = {'ecut': [8], 'ngkpt': [6]}
+    convtests = {'ecut': [16, 20, 24], 'ngkpt': [4, 8]}
 
     for cif in cifs:
         structure = Structure.from_file(cif)
