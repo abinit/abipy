@@ -175,7 +175,7 @@ def build_flow(structure, workdir, options):
     all_inps = scf_ph_inputs(structure, options)
     scf_input, ph_inputs = all_inps[0], all_inps[1:]
 
-    return abilab.phonon_flow(workdir, manager, scf_input, ph_inputs, with_nscf=True, with_ddk=False)
+    return abilab.phonon_flow(workdir, manager, scf_input, ph_inputs, with_nscf=True, with_ddk=True)
 
 
 class NotReady(Exception):
