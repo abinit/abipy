@@ -26,28 +26,36 @@ def straceback():
     return traceback.format_exc()
 
 
-def str_examples():
-    examples = """
-Usage example:\n
-    abirun.py [DIRPATH] single                   => Fetch the first available task and run it.
-    abirun.py [DIRPATH] rapid                    => Keep repeating, stop when no task can be executed
-                                                    due to inter-dependency.
-    abirun.py [DIRPATH] gui                      => Open the GUI 
-    nohup abirun.py [DIRPATH] sheduler -s 30 &   => Use a scheduler to schedule task submission
+def as_slice(obj):
+    """
+    Convert an integer, a string or a slice object into slice.
 
-    If DIRPATH is not given, abirun.py automatically selects the database located within 
-    the working directory. An Exception is raised if multiple databases are found.
-"""
-    return examples
+    >>> assert as_slice(5) == slice(5, 6, 1)
+    >>> assert as_slice("[1:4]") == slice(1, 4, 1)
+    >>> assert as_slice("[1::2]") == slice(1, None, 2)
+    """
+    if isinstance(obj, slice): return obj
 
+    try:
+        # integer.
+        if int(obj) == float(obj): return slice(int(obj), int(obj)+1)
+    except:
+        # assume string defining a python slice [start:stop:step]
+        if not obj: return None
+        #if obj.count("[") + obj.count("]") != 2: raise ValueError("Invalid string %s" % obj)
 
-def show_examples_and_exit(err_msg=None, error_code=1):
-    """Display the usage of the script."""
-    sys.stderr.write(str_examples())
-    if err_msg: 
-        sys.stderr.write("Fatal Error\n" + err_msg + "\n")
+        obj = obj.replace("[", "").replace("]", "")
+        n = obj.count(":") 
+        if n == 0:
+            obj = int(obj)
+            return slice(obj, obj+1)
+        tokens = [int(f) if f else None for f in obj.split(":")]
+        if len(tokens) == 2: tokens.append(1)
+        if tokens[2] is None: tokens[2] = 1
 
-    sys.exit(error_code)
+        return slice(*tokens)
+
+    raise ValueError("Cannot convert %s into a slice:\n%s" % (type(obj), obj))
 
 
 def treat_flow(flow, options):
@@ -95,18 +103,22 @@ def treat_flow(flow, options):
         #open_hook.print_open_files()
 
     elif options.command == "status":
+        work_slice = as_slice(options.work_slice)
+        #print(work_slice, options.work_slice)
+
         if options.delay:
             print("Entering infinite loop. Press CTRL+C to exit")
             try:
                 while True:
                     print(2*"\n" + time.asctime() + "\n")
-                    flow.check_status(show=True)
+                    flow.check_status()
+                    flow.show_status(verbose=options.verbose, work_slice=work_slice)
                     if flow.all_ok: break
                     time.sleep(options.delay)
             except KeyboardInterrupt:
                 pass
         else:
-            flow.show_status(verbose=options.verbose)
+            flow.show_status(verbose=options.verbose, work_slice=work_slice)
 
     elif options.command == "open":
         flow.open_files(what=options.what, wti=None, status=None, op="==")
@@ -189,6 +201,30 @@ def main():
                     # Wrong call.
                     raise exc
 
+    def str_examples():
+        examples = """
+    Usage example:\n
+        abirun.py [DIRPATH] single                   => Fetch the first available task and run it.
+        abirun.py [DIRPATH] rapid                    => Keep repeating, stop when no task can be executed
+                                                        due to inter-dependency.
+        abirun.py [DIRPATH] gui                      => Open the GUI 
+        nohup abirun.py [DIRPATH] sheduler -s 30 &   => Use a scheduler to schedule task submission
+
+        If DIRPATH is not given, abirun.py automatically selects the database located within 
+        the working directory. An Exception is raised if multiple databases are found.
+    """
+        return examples
+
+
+    def show_examples_and_exit(err_msg=None, error_code=1):
+        """Display the usage of the script."""
+        sys.stderr.write(str_examples())
+        if err_msg: 
+            sys.stderr.write("Fatal Error\n" + err_msg + "\n")
+
+        sys.exit(error_code)
+
+    # Build the parser.
     parser = MyArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
@@ -228,6 +264,9 @@ def main():
     p_status = subparsers.add_parser('status', help="Show task status.")
     p_status.add_argument('-d', '--delay', default=0, type=int, help=("If 0, exit after the first analysis.\n" + 
                           "If > 0, enter an infinite loop and delay execution for the given number of seconds."))
+    p_status.add_argument("-w", '--work-slice', default="", type=str, 
+                          help=("Select the list of works to analyze (python syntax for slices):\n"
+                          "-w1 to select the second workflow, -w:3 for 0,1,2, -w-1 for the last workflow, -w::2 for even indices"))
 
     # Subparser for cancel command.
     p_cancel = subparsers.add_parser('cancel', help="Cancel the tasks in the queue.")
