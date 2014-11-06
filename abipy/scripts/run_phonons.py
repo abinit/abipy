@@ -61,7 +61,6 @@ def scf_ph_inputs(structure, options):
     global_vars = dict(ecut=16.0,
                        ngkpt=[4, 4, 4],
                        shiftk=[0, 0, 0],
-                       tolwfr=1.0e-20,
                        paral_kgb=0,
                        nstep=60
                        )
