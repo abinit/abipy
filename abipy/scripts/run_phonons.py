@@ -34,6 +34,10 @@ def scf_ph_inputs(structure, options):
         pseudos.append(pseudo)
     pseudos = PseudoTable(pseudos)
 
+    print(structure.calc_kptbounds)
+    print(structure.calc_ngkpt(4))
+    print(structure.calc_ksampling(4))
+
     qptbounds = structure.calc_kptbounds()
     qptbounds = np.reshape(qptbounds, (-1, 3))
 
@@ -169,7 +173,7 @@ def build_flow(structure, workdir, options):
     all_inps = scf_ph_inputs(structure, options)
     scf_input, ph_inputs = all_inps[0], all_inps[1:]
 
-    return abilab.phonon_flow(workdir, manager, scf_input, ph_inputs, with_nscf=True)
+    return abilab.phonon_flow(workdir, manager, scf_input, ph_inputs, with_nscf=True, with_ddk=True)
 
 
 class NotReady(Exception):
