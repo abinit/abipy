@@ -1206,9 +1206,6 @@ class AnaddbInput(mixins.MappingMixin):
                 Structure object
             ngqpt:
                 Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
-            ndivsm:
-                Used to generate a normalized path for the phonon bands.
-                If gives the number of divisions for the smallest segment of the path.
             nqsmall:
                 Used to generate the (dense) mesh for the DOS.
                 It defines the number of q-points used to sample the smallest lattice vector.
@@ -1254,7 +1251,7 @@ class AnaddbInput(mixins.MappingMixin):
         new = cls(structure, comment="ANADB input for themodynamics", **kwargs)
 
         #new.set_qpath(ndivsm, qptbounds=qptbounds)
-        #new.set_autoqmesh(nqsmall)
+        new.set_autoqmesh(nqsmall)
 
         q1shft = np.reshape(q1shft, (-1, 3))
 
