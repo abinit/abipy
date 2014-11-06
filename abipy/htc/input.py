@@ -1195,6 +1195,88 @@ class AnaddbInput(mixins.MappingMixin):
 
         return new
 
+    @classmethod
+    def thermo(cls, structure, ngqpt, ndivsm, nqsmall, q1shft=(0, 0, 0), nchan=1250, nwchan=5, thmtol=0.120,
+               ntemper = 10, temperinc = 20, tempermin = 20., asr=1, chneut=1, dipdip=1, **kwargs):
+        """
+        Build an anaddb input file for the computation of phonon bands and phonon DOS.
+
+        Args:
+            Structure:
+                Structure object
+            ngqpt:
+                Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
+            ndivsm:
+                Used to generate a normalized path for the phonon bands.
+                If gives the number of divisions for the smallest segment of the path.
+            nqsmall:
+                Used to generate the (dense) mesh for the DOS.
+                It defines the number of q-points used to sample the smallest lattice vector.
+            q1shft:
+                Shifts used for the coarse Q-mesh
+            qptbounds
+                Boundaries of the path. If None, the path is generated from an internal database
+                depending on the input structure.
+            asr, chneut, dipdp:
+                Anaddb input variable. See official documentation.
+            dos_method:
+                Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
+                In the later case, the value 0.001 eV is used as gaussian broadening
+
+            #!Flags
+             # ifcflag   1     ! Interatomic force constant flag
+             # thmflag   1     ! Thermodynamical properties flag
+            #!Wavevector grid number 1 (coarse grid, from DDB)
+            #  brav    2      ! Bravais Lattice : 1-S.C., 2-F.C., 3-B.C., 4-Hex.)
+             #  ngqpt   4  4  4   ! Monkhorst-Pack indices
+             #  nqshft  1         ! number of q-points in repeated basic q-cell
+             #  q1shft  3*0.0
+            #!Effective charges
+             #     asr   1     ! Acoustic Sum Rule. 1 => imposed asymetrically
+             #  chneut   1     ! Charge neutrality requirement for effective charges.
+            #!Interatomic force constant info
+             #  dipdip  1      ! Dipole-dipole interaction treatment
+            #!Wavevector grid number 2 (series of fine grids, extrapolated from interat forces)
+            #  ng2qpt   20 20 20  ! sample the BZ up to ngqpt2
+            #  ngrids   5         ! number of grids of increasing size#  q2shft   3*0.0
+            #!Thermal information
+             #  nchan   1250   ! # of channels for the DOS with channel width 1 cm-1
+             #  nwchan  5      ! # of different channel widths from this integer down to 1 cm-1
+             #  thmtol  0.120  ! Tolerance on thermodynamical function fluctuations
+             #  ntemper 10     ! Number of temperatures
+             #  temperinc 20.  ! Increment of temperature in K for temperature dependency
+             #  tempermin 20.  ! Minimal temperature in Kelvin
+            # This line added when defaults were changed (v5.3) to keep the previous, old behaviour
+            #  symdynmat 0
+
+        """
+
+        new = cls(structure, comment="ANADB input for themodynamics", **kwargs)
+
+        #new.set_qpath(ndivsm, qptbounds=qptbounds)
+        #new.set_autoqmesh(nqsmall)
+
+        q1shft = np.reshape(q1shft, (-1, 3))
+
+        new.set_variables(
+            ifcflag=1,
+            thmflag=1,
+            ngqpt=np.array(ngqpt),
+            q1shft=q1shft,
+            nqshft=len(q1shft),
+            asr=asr,
+            chneut=chneut,
+            dipdip=dipdip,
+            nchan=nchan,
+            nwchan=nwchan,
+            thmtol=thmtol,
+            ntemper=ntemper,
+            temperinc=temperinc,
+            tempermin=tempermin,
+        )
+
+        return new
+
     @property
     def structure(self):
         return self._structure
