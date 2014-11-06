@@ -205,7 +205,7 @@ install_requires = [
     #"paramiko",
 ]
 
-if with_ipython:
+if False and with_ipython:
     install_requires += [
         "ipython>=1.1.0",
         "pyzmq",     # for the notebook
