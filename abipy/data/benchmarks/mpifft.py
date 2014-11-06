@@ -70,7 +70,8 @@ def build_flow(options):
 def main(options):
     flow = build_flow(options)
     flow.build_and_pickle_dump()
-    flow.make_scheduler().start()
+    flow.rapidfire()
+    #flow.make_scheduler().start()
     return 0
 
 

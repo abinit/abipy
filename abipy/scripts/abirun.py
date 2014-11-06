@@ -121,7 +121,10 @@ def treat_flow(flow, options):
             flow.show_status(verbose=options.verbose, work_slice=work_slice)
 
     elif options.command == "open":
-        flow.open_files(what=options.what, wti=None, status=None, op="==")
+        if options.wti is not None:
+            options.wti = [int(t) for t in options.wti.split(":")]
+            
+        flow.open_files(what=options.what, wti=options.wti, status=None, op="==")
 
     elif options.command == "cancel":
         print("Number of jobs cancelled %d" % flow.cancel())
@@ -292,6 +295,7 @@ Specify the files to open. Possible choices:\n
     e ==> stderr_file\n             
     q ==> qerr_file\n
 """)
+    p_open.add_argument('--wti', default=None, help="Index of workflow:task")
 
     # Subparser for gui command.
     p_gui = subparsers.add_parser('gui', help="Open GUI.")

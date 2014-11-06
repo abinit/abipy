@@ -67,10 +67,15 @@ def write_temp_file(src, suffix='', prefix='tmp', dir=None, text=True):
 
 def raw_input_ext(prompt='', ps2='... '):
     """Similar to raw_input(), but accepts extended lines if input ends with \\."""
+    # Fix py2.x
+    try:
+        my_input = raw_input
+    except NameError:
+        my_input = input
 
-    line = raw_input(prompt)
+    line = my_input(prompt)
     while line.endswith('\\'):
-        line = line[:-1] + raw_input(ps2)
+        line = line[:-1] + my_input(ps2)
     return line
 
 
@@ -86,12 +91,17 @@ def ask_yes_no(prompt, default=None):
 
     Valid answers are: y/yes/n/no (match is not case sensitive).
     """
+    # Fixes py2.x
+    try:
+        my_input = raw_input
+    except NameError:
+        my_input = input
 
     answers = {'y': True, 'n': False, 'yes': True, 'no': False}
     ans = None
     while ans not in answers.keys():
         try:
-            ans = raw_input(prompt + ' ').lower()
+            ans = my_input(prompt + ' ').lower()
             if not ans:
                 # response was an empty string
                 ans = default
@@ -151,8 +161,14 @@ class StringColorizer(object):
 
 
 def _user_wants_to_exit():
+    # Fixes py2.x
     try:
-        answer = raw_input("Do you want to continue [Y/n]")
+        my_input = raw_input
+    except NameError:
+        my_input = input
+
+    try:
+        answer = my_input("Do you want to continue [Y/n]")
     except EOFError:
         return True
 

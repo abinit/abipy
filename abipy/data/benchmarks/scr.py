@@ -92,7 +92,7 @@ def make_inputs(paral_kgb=1, paw=False):
     return gs, nscf, scr, sigma
 
 
-def g0w0_benchmark(options):
+def scr_benchmark(options):
     """
     Build an `AbinitWorkflow` used for benchmarking ABINIT.
     """
@@ -119,9 +119,10 @@ def g0w0_benchmark(options):
 
 @bench_main
 def main(options):
-    flow = g0w0_benchmark(options)
+    flow = scr_benchmark(options)
     flow.build_and_pickle_dump()
-    flow.make_scheduler().start()
+    flow.rapidfire()
+    #flow.make_scheduler().start()
     return 0
 
 
