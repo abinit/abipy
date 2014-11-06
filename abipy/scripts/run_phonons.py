@@ -36,7 +36,7 @@ def scf_ph_inputs(structure, options):
 
     #print('bounds:\n', structure.calc_kptbounds)
     #print('ngkpt:\n', structure.calc_ngkpt(4))
-    print('ks:\n', structure.calc_ksampling(4))
+    print('ks:\n', structure.calc_ksampling(4)) # try to get the qpoints from this ...
 
     qptbounds = structure.calc_kptbounds()
     qptbounds = np.reshape(qptbounds, (-1, 3))
@@ -55,7 +55,7 @@ def scf_ph_inputs(structure, options):
             -2.50000000E-01,  5.00000000E-01,  2.50000000E-01,
             ]
     qpoints = np.reshape(qpoints, (-1, 3))
-    qpoints = np.concatenate( (qpoints, unique_rows(qptbounds)), axis=0)
+    qpoints = np.concatenate((qpoints, unique_rows(qptbounds)), axis=0)
 
     # Global variables used both for the GS and the DFPT run.
     global_vars = dict(ecut=16.0,
@@ -188,7 +188,7 @@ class NotReady(Exception):
 def main():
 
     cifs = [f for f in os.listdir('.') if f.endswith('cif')]
-    convtests = {'ecut': [16], 'ngkpt': [8]}
+    convtests = {'ecut': [16], 'ngkpt': [8], 'sizes': [0.96, 0.98, 1.0, 1.02, 1.04]}
 
     for cif in cifs:
         structure = Structure.from_file(cif)
