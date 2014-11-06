@@ -188,7 +188,7 @@ class NotReady(Exception):
 def main():
 
     cifs = [f for f in os.listdir('.') if f.endswith('cif')]
-    convtests = {'ecut': [16, 20, 24], 'ngkpt': [4, 8]}
+    convtests = {'ecut': [16], 'ngkpt': [8]}
 
     for cif in cifs:
         structure = Structure.from_file(cif)
