@@ -164,6 +164,14 @@ def treat_flow(flow, options):
         print("Number of tasks launched %d" % nlaunch)
         flow.show_status()
 
+        if nlauch == 0:
+            deadlocked, runnables, running = flow.detectdeadlocked_runnables_running()
+            print("deadlocked:", deadlocked)
+            print("runnables:", runnables)
+            print("running:", running)
+            if deadlocked and not (runnables or running):
+                print("*** Flow is deadlocked ***")
+
     elif options.command == "tail":
         paths = [t.output_file.path for t in flow.iflat_tasks(status="Running")]
         if not paths:
