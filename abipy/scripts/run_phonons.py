@@ -34,9 +34,9 @@ def scf_ph_inputs(structure, options):
         pseudos.append(pseudo)
     pseudos = PseudoTable(pseudos)
 
-    print('bounds:\n', structure.calc_kptbounds)
-    print('ngkpt:\n', structure.calc_ngkpt(4))
-    print('ks:\n', structure.calc_ksampling(4))
+    #print('bounds:\n', structure.calc_kptbounds)
+    #print('ngkpt:\n', structure.calc_ngkpt(4))
+    #print('ks:\n', structure.calc_ksampling(4))
 
     qptbounds = structure.calc_kptbounds()
     qptbounds = np.reshape(qptbounds, (-1, 3))
@@ -57,7 +57,7 @@ def scf_ph_inputs(structure, options):
 
     qpoints = unique_rows(qptbounds)
 
-    print(qpoints)
+    #print(qpoints)
 
 
     # Global variables used both for the GS and the DFPT run.
@@ -184,10 +184,8 @@ class NotReady(Exception):
 #@abilab.flow_main
 def main():
 
-    options = {}
-
     cifs = [f for f in os.listdir('.') if 'cif' in f]
-    convtests = {'ecut': [4, 8, 12], 'ngkpt': [4, 6, 8]}
+    convtests = {'ecut': [8], 'ngkpt': [6]}
 
     for cif in cifs:
         structure = Structure.from_file(cif)
@@ -206,7 +204,7 @@ def main():
                 except NotReady:
                     pass
                 except (ValueError, IOError):
-                    options[convtest] = value
+                    options = {convtest: value}
                     flow = build_flow(structure=structure, workdir=workdir, options=options)
                     flow.build_and_pickle_dump()
 
