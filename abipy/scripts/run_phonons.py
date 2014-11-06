@@ -55,9 +55,9 @@ def scf_ph_inputs(structure, options):
             ]
     qpoints = np.reshape(qpoints, (-1, 3))
 
-    qpoints = unique_rows(qptbounds)
+    qpoints += unique_rows(qptbounds)
 
-    #print(qpoints)
+    print(qpoints)
 
 
     # Global variables used both for the GS and the DFPT run.
