@@ -8,12 +8,11 @@ hardware: &hardware
 job: &job
     mpi_runner: mpirun
     shell_env:
-        PATH: $HOME/local/bin:$PATH
-    modules:
-        - python/2.7
-    # pre_run is a string in verbatim mode (note |)
-    pre_run: |
-        ulimit unlimited
+        PATH: /home/ucl/naps/gmatteo/bzr_repos/gmatteo_7.9.1-private/build_mvapich2_intel/src/98_main:$PATH
+    setup:
+        - "source /home/ucl/naps/gmatteo/.bashrc"
+    #modules:
+    #    - python/2.7
 
 policy:
     autoparal: 1
@@ -24,11 +23,12 @@ policy:
 qadapters:
   - priority: 1
     queue:
-       qname: main
+       qname: defq
        qtype: slurm
     limits:
-       timelimit: 2-0:0:0
+       timelimit: 0:10:0
        min_cores: 1
        max_cores: 16
+       min_mem_per_proc: 700
     hardware: *hardware
     job: *job
