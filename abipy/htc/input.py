@@ -1196,8 +1196,8 @@ class AnaddbInput(mixins.MappingMixin):
         return new
 
     @classmethod
-    def thermo(cls, structure, ngqpt, nqsmall, q1shft=(0, 0, 0), nchan=1250, nwchan=5, thmtol=0.120,
-               ntemper = 79, temperinc = 5, tempermin = 5., asr=1, chneut=1, dipdip=1, ngrids=5, **kwargs):
+    def thermo(cls, structure, ngqpt, nqsmall, q1shft=(0, 0, 0), nchan=1250, nwchan=5, thmtol=0.5,
+               ntemper = 79, temperinc = 5, tempermin = 5., asr=1, chneut=1, dipdip=1, ngrids=10, **kwargs):
         """
         Build an anaddb input file for the computation of phonon bands and phonon DOS.
 
