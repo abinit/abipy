@@ -34,9 +34,9 @@ def scf_ph_inputs(structure, options):
         pseudos.append(pseudo)
     pseudos = PseudoTable(pseudos)
 
-    print(structure.calc_kptbounds)
-    print(structure.calc_ngkpt(4))
-    print(structure.calc_ksampling(4))
+    print('bounds:\n', structure.calc_kptbounds)
+    print('ngkpt:\n', structure.calc_ngkpt(4))
+    print('ks:\n', structure.calc_ksampling(4))
 
     qptbounds = structure.calc_kptbounds()
     qptbounds = np.reshape(qptbounds, (-1, 3))
