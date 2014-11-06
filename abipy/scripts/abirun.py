@@ -56,13 +56,13 @@ def treat_flow(flow, options):
     # Dispatch.
     if options.command in ("single", "singleshot"):
         nlaunch = PyLauncher(flow).single_shot()
-        print("Number of tasks launched %d" % nlaunch)
         flow.show_status()
+        print("Number of tasks launched %d" % nlaunch)
 
     elif options.command in ("rapid", "rapidfire"):
         nlaunch = PyLauncher(flow).rapidfire()
-        print("Number of tasks launched %d" % nlaunch)
         flow.show_status()
+        print("Number of tasks launched %d" % nlaunch)
 
     elif options.command == "scheduler":
 
