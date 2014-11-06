@@ -137,6 +137,12 @@ def run_annaddb(flow, structure):
     atask = abilab.AnaddbTask(anaddb_input, ddb_node=ddb_path, manager=shell_manager)
     awork.register(atask)
 
+    # Thermodynamics
+    anaddb_input = abilab.AnaddbInput.thermo(structure, ngqpt=(4, 4, 4), ndivsm=5, nqsmall=20)
+
+    atask = abilab.AnaddbTask(anaddb_input, ddb_node=ddb_path, manager=shell_manager)
+    awork.register(atask)
+
     flow.register_work(awork)
     flow.allocate()
     flow.build()
