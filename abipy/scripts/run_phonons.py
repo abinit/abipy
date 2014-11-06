@@ -36,7 +36,7 @@ def scf_ph_inputs(structure, options):
 
     #print('bounds:\n', structure.calc_kptbounds)
     #print('ngkpt:\n', structure.calc_ngkpt(4))
-    #print('ks:\n', structure.calc_ksampling(4))
+    print('ks:\n', structure.calc_ksampling(4))
 
     qptbounds = structure.calc_kptbounds()
     qptbounds = np.reshape(qptbounds, (-1, 3))
@@ -45,6 +45,7 @@ def scf_ph_inputs(structure, options):
     qpoints = [
              0.00000000E+00,  0.00000000E+00,  0.00000000E+00, 
              2.50000000E-01,  0.00000000E+00,  0.00000000E+00,
+             2.50000000E-01,  0.00000000E+00,  2.50000000E+00,
              5.00000000E-01,  0.00000000E+00,  0.00000000E+00,
              2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
              5.00000000E-01,  2.50000000E-01,  0.00000000E+00,
@@ -54,17 +55,13 @@ def scf_ph_inputs(structure, options):
             -2.50000000E-01,  5.00000000E-01,  2.50000000E-01,
             ]
     qpoints = np.reshape(qpoints, (-1, 3))
-
-    print(qpoints)
-    print(unique_rows(qptbounds))
     qpoints = np.concatenate( (qpoints, unique_rows(qptbounds)), axis=0)
-    print(qpoints)
 
     # Global variables used both for the GS and the DFPT run.
     global_vars = dict(ecut=3.0,
                        ngkpt=[4, 4, 4],
                        shiftk=[0, 0, 0],
-                       tolvrs=1.0e-10,
+                       tolwfr=1.0e-24,
                        paral_kgb=0,
                        )
 
@@ -85,6 +82,7 @@ def scf_ph_inputs(structure, options):
         # Response-function calculation for phonons.
         inp[i+2].set_variables(
             nstep=20,
+            tolvrs=1.0e-15,
             rfphon=1,        # Will consider phonon-type perturbation
             nqpt=1,          # One wavevector is to be considered
             qpt=qpt,         # This wavevector is q=0 (Gamma)
@@ -184,7 +182,7 @@ class NotReady(Exception):
 #@abilab.flow_main
 def main():
 
-    cifs = [f for f in os.listdir('.') if 'cif' in f]
+    cifs = [f for f in os.listdir('.') if f.endswith('cif')]
     convtests = {'ecut': [8], 'ngkpt': [6]}
 
     for cif in cifs:
