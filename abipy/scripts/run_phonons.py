@@ -63,6 +63,7 @@ def scf_ph_inputs(structure, options):
                        shiftk=[0, 0, 0],
                        tolwfr=1.0e-24,
                        paral_kgb=0,
+                       nstep=60
                        )
 
     global_vars.update(options)
@@ -81,7 +82,6 @@ def scf_ph_inputs(structure, options):
     for i, qpt in enumerate(qpoints):
         # Response-function calculation for phonons.
         inp[i+2].set_variables(
-            nstep=20,
             tolvrs=1.0e-15,
             rfphon=1,        # Will consider phonon-type perturbation
             nqpt=1,          # One wavevector is to be considered
