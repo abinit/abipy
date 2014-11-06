@@ -77,11 +77,12 @@ def scf_ph_inputs(structure, options):
     inp.set_structure(structure)
     inp.set_variables(**global_vars)
 
-    #inp[1].set_variables()
+    inp[1].set_variables(tolwfr=1.0e-20)
 
     for i, qpt in enumerate(qpoints):
         # Response-function calculation for phonons.
         inp[i+2].set_variables(
+            tolvrs=1.0e-10,
             rfphon=1,        # Will consider phonon-type perturbation
             nqpt=1,          # One wavevector is to be considered
             qpt=qpt,         # This wavevector is q=0 (Gamma)
