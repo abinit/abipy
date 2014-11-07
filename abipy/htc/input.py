@@ -1276,7 +1276,7 @@ class AnaddbInput(mixins.MappingMixin):
         return new
 
     @classmethod
-    def modes(cls, structure, nqsmall, q1shft=(0, 0, 0), enunit=2, asr=1, chneut=1, **kwargs):
+    def modes(cls, structure, enunit=2, asr=1, chneut=1, **kwargs):
         """
         Build an anaddb input file for the computation of phonon modes.
 
