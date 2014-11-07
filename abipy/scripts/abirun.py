@@ -12,7 +12,7 @@ import time
 
 from pprint import pprint
 from monty import termcolor
-from termcolor import cprint
+from monty.termcolor import cprint
 from pymatgen.io.abinitio.launcher import PyFlowScheduler, PyLauncher
 import abipy.abilab as abilab
 
@@ -237,13 +237,13 @@ def main():
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for single command.
-    p_single = subparsers.add_parser('single', aliases=["singleshot"], help="Run single task.")
+    p_single = subparsers.add_parser('single', help="Run single task.")
 
     # Subparser for rapidfire command.
-    p_rapid = subparsers.add_parser('rapid', aliases=["rapidfire"], help="Run all tasks in rapidfire mode")
+    p_rapid = subparsers.add_parser('rapid', help="Run all tasks in rapidfire mode")
 
     # Subparser for scheduler command.
-    p_scheduler = subparsers.add_parser('scheduler', aliases=["sched"], help="Run all tasks with a Python scheduler.")
+    p_scheduler = subparsers.add_parser('scheduler', help="Run all tasks with a Python scheduler.")
 
     p_scheduler.add_argument('-w', '--weeks', default=0, type=int, help="number of weeks to wait")
 

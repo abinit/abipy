@@ -13,10 +13,10 @@ def make_input(paral_kgb=1, paw=False):
     inp = abilab.AbiInput(pseudos=pseudos)
 
     inp.set_structure(abidata.structure_from_ucell("Si"))
-    inp.set_kmesh(ngkpt=[1,1,1], shiftk=[0,0,0])
+    inp.set_kmesh(ngkpt=[2,2,2], shiftk=[0,0,0])
 
     # Global variables
-    ecut = 20
+    ecut = 10
     inp.set_variables(
         ecut=ecut,
         pawecutdg=ecut*4,
@@ -47,9 +47,12 @@ def build_flow(options):
     # Instantiate the TaskManager.
     manager = abilab.TaskManager.from_user_config() if not options.manager else \
               abilab.TaskManager.from_file(options.manager)
+    manager.set_autoparal(0)
 
     for mpi_procs in options.mpi_range:
-        manager.set_autoparal(0)
+	for qad in manager.qads:
+		qad.min_cores = 1
+		qad.max_cores = mpi_procs
         manager.set_mpi_procs(mpi_procs)
         work.register(inp, manager=manager)
 
