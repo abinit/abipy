@@ -57,7 +57,7 @@ def scf_ph_inputs(structure, options):
     qpoints = np.reshape(qpoints, (-1, 3))
     qpoints = unique_rows(np.concatenate((qpoints, qptbounds), axis=0))
 
-    qpoints = [[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]]
+    qpoints = [[0.0, 0.0, 0.0]]
 
     # Global variables used both for the GS and the DFPT run.
     global_vars = dict(ecut=16.0,
@@ -124,23 +124,25 @@ def run_annaddb(flow, structure):
     shell_manager = manager.to_shell_manager()
     awork = abilab.Workflow(manager=shell_manager)
 
+    # modes
+    anaddb_input = abilab.AnaddbInput.modes(structure)
+    atask = abilab.AnaddbTask(anaddb_input, ddb_node=ddb_path, manager=shell_manager)
+    awork.register(atask)
+
+    # Thermodynamicsono
+    anaddb_input = abilab.AnaddbInput.thermo(structure, ngqpt=(4, 4, 4), nqsmall=20)
+    atask = abilab.AnaddbTask(anaddb_input, ddb_node=ddb_path, manager=shell_manager)
+    awork.register(atask)
+
     # Phonons bands and DOS with gaussian method
     anaddb_input = abilab.AnaddbInput.phbands_and_dos(
         structure, ngqpt=(4, 4, 4), ndivsm=5, nqsmall=10, dos_method="gaussian: 0.001 eV")
-
     atask = abilab.AnaddbTask(anaddb_input, ddb_node=ddb_path, manager=shell_manager)
     awork.register(atask)
 
     # Phonons bands and DOS with tetrahedron method
     anaddb_input = abilab.AnaddbInput.phbands_and_dos(
         structure, ngqpt=(4, 4, 4), ndivsm=5, nqsmall=10, dos_method="tetra")
-
-    atask = abilab.AnaddbTask(anaddb_input, ddb_node=ddb_path, manager=shell_manager)
-    awork.register(atask)
-
-    # Thermodynamicsono
-    anaddb_input = abilab.AnaddbInput.thermo(structure, ngqpt=(4, 4, 4), nqsmall=20)
-
     atask = abilab.AnaddbTask(anaddb_input, ddb_node=ddb_path, manager=shell_manager)
     awork.register(atask)
 
@@ -176,8 +178,10 @@ def build_flow(structure, workdir, options):
 
     all_inps = scf_ph_inputs(structure, options)
     scf_input, ph_inputs = all_inps[0], all_inps[1:]
-
-    return abilab.phonon_flow(workdir, manager, scf_input, ph_inputs, with_nscf=True, with_ddk=True, with_dde=True)
+    if len(ph_inputs) == 1:
+        return abilab.phonon_flow(workdir, manager, scf_input, ph_inputs, with_nscf=False, with_ddk=True, with_dde=True)
+    else:
+        return abilab.phonon_flow(workdir, manager, scf_input, ph_inputs, with_nscf=True, with_ddk=False, with_dde=False)
 
 
 class NotReady(Exception):
