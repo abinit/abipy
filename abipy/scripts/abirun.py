@@ -12,6 +12,7 @@ import time
 
 from pprint import pprint
 from monty import termcolor
+from termcolor import cprint
 from pymatgen.io.abinitio.launcher import PyFlowScheduler, PyLauncher
 import abipy.abilab as abilab
 
@@ -65,24 +66,17 @@ def treat_flow(flow, options):
     if options.command in ("single", "singleshot"):
         nlaunch = PyLauncher(flow).single_shot()
         flow.show_status()
-        print("Number of tasks launched %d" % nlaunch)
+        print("Number of tasks launched: %d" % nlaunch)
 
     elif options.command in ("rapid", "rapidfire"):
         nlaunch = PyLauncher(flow).rapidfire()
         flow.show_status()
-        print("Number of tasks launched %d" % nlaunch)
+        print("Number of tasks launched: %d" % nlaunch)
 
     elif options.command == "scheduler":
 
-        opt_names = [
-            "weeks",
-            "days",
-            "hours",
-            "minutes",
-            "seconds",
-        ]
-
-        sched_options = {oname: getattr(options, oname) for oname in opt_names}
+        sched_options = {oname: getattr(options, oname) for oname in 
+            ("weeks", "days", "hours", "minutes", "seconds")}
 
         if all(v == 0 for v in sched_options.values()):
             sched = PyFlowScheduler.from_user_config()
@@ -107,7 +101,7 @@ def treat_flow(flow, options):
         #print(work_slice, options.work_slice)
 
         if options.delay:
-            print("Entering infinite loop. Press CTRL+C to exit")
+            cprint("Entering infinite loop. Press CTRL+C to exit", "blue")
             try:
                 while True:
                     print(2*"\n" + time.asctime() + "\n")
@@ -119,6 +113,7 @@ def treat_flow(flow, options):
                 pass
         else:
             flow.show_status(verbose=options.verbose, work_slice=work_slice)
+            print("Total number of jobs in queue: %s" % flow.manager.get_njobs_in_queue())
 
     elif options.command == "open":
         if options.wti is not None:
@@ -141,7 +136,7 @@ def treat_flow(flow, options):
             except Exception:
                 excs.append(straceback())
 
-        print("Number of jobs restarted %d" % nlaunch)
+        cprint("Number of jobs restarted %d" % nlaunch, "blue")
         if nlaunch:
             # update database
             flow.pickle_dump()
@@ -151,33 +146,44 @@ def treat_flow(flow, options):
             pprint(excs)
 
     elif options.command == "reset":
+        print("Will reset tasks with status: %s" % options.task_status)
+
         count = 0
         for task, wi, ti in flow.iflat_tasks_wti(status=options.task_status):
             task.reset()
             count += 1	
-        print("%d tasks have been resetted" % count)
-
-        #if count:
-        #    flow.pickle_dump()
+        cprint("%d tasks have been resetted" % count, "blue")
 
         nlaunch = PyLauncher(flow).rapidfire()
-        print("Number of tasks launched %d" % nlaunch)
         flow.show_status()
+        print("Number of tasks launched: %d" % nlaunch)
 
         if nlauch == 0:
-            deadlocked, runnables, running = flow.detectdeadlocked_runnables_running()
+            deadlocked, runnables, running = flow.deadlocked_runnables_running()
             print("deadlocked:", deadlocked)
             print("runnables:", runnables)
             print("running:", running)
             if deadlocked and not (runnables or running):
                 print("*** Flow is deadlocked ***")
 
+        flow.pickle_dump()
+
     elif options.command == "tail":
-        paths = [t.output_file.path for t in flow.iflat_tasks(status="Running")]
+
+        def get_path(task):
+            """Helper function used to select the files of a task."""
+            choices = {
+                "o": task.output_file,
+                "l": task.log_file,
+                "e": task.stderr_file,
+            }
+            return getattr(choices[options.what_tail], "path")
+
+        paths = [get_path(task )for task in flow.iflat_tasks(status="Running")]
         if not paths:
-            print("No job is running. Exiting!")
+            cprint("No job is running. Exiting!", "red")
         else:
-            print("Press CTRL+C to interrupt. Will follow %d output files" % len(paths))
+            cprint("Press CTRL+C to interrupt. Will follow %d output files" % len(paths), "blue")
             try:
                 os.system("tail -f %s" % " ".join(paths))
             except KeyboardInterrupt:
@@ -189,28 +195,6 @@ def treat_flow(flow, options):
 
 
 def main():
-
-    # Decorate argparse classes to add portable support for aliases in add_subparsers
-    class MyArgumentParser(argparse.ArgumentParser):
-        def add_subparsers(self, **kwargs):
-            new = super(MyArgumentParser, self).add_subparsers(**kwargs)
-            # Use my class
-            new.__class__ = MySubParserAction
-            return new
-
-    class MySubParserAction(argparse._SubParsersAction):
-        def add_parser(self, name, **kwargs):
-            """Allows one to pass the aliases option even if this version of ArgumentParser does not support it."""
-            try:
-                return super(MySubParserAction, self).add_parser(name, **kwargs)
-            except Exception as exc:
-                if "aliases" in kwargs: 
-                    # Remove aliases and try again.
-                    kwargs.pop("aliases")
-                    return super(MySubParserAction, self).add_parser(name, **kwargs)
-                else:
-                    # Wrong call.
-                    raise exc
 
     def str_examples():
         examples = """
@@ -236,7 +220,7 @@ def main():
         sys.exit(error_code)
 
     # Build the parser.
-    parser = MyArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                         help='verbose, can be supplied multiple times to increase verbosity')
@@ -294,14 +278,14 @@ def main():
     p_open = subparsers.add_parser('open', help="Open files in $EDITOR, type `abirun.py ... open --help` for help)")
     p_open.add_argument('what', default="o", 
         help="""\
-Specify the files to open. Possible choices:\n
-    i ==> input_file\n
-    o ==> output_file\n
-    f ==> files_file\n              
-    j ==> job_file\n                
-    l ==> log_file\n                
-    e ==> stderr_file\n             
-    q ==> qerr_file\n
+Specify the files to open. Possible choices:
+    i ==> input_file
+    o ==> output_file
+    f ==> files_file
+    j ==> job_file
+    l ==> log_file
+    e ==> stderr_file
+    q ==> qerr_file
 """)
     p_open.add_argument('--wti', default=None, help="Index of workflow:task")
 
@@ -316,6 +300,7 @@ Specify the files to open. Possible choices:\n
     p_new_manager.add_argument("manager_file", default="", type=str, help="YAML file with the new manager")
 
     p_tail = subparsers.add_parser('tail', help="Use tail to follow the main output file of the flow.")
+    p_tail.add_argument('what_tail', nargs="?", type=str, default="o", help="What to follow: o for output (default), l for logfile, e for stderr")
 
     # Parse command line.
     try:
