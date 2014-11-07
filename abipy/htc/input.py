@@ -1276,7 +1276,7 @@ class AnaddbInput(mixins.MappingMixin):
         return new
 
     @classmethod
-    def modes(cls, structure, ngqpt, nqsmall, q1shft=(0, 0, 0), enunit=2, nchan=1250, nwchan=5, asr=1, chneut=1, dipdip=1, ngrids=10, **kwargs):
+    def modes(cls, structure, nqsmall, q1shft=(0, 0, 0), enunit=2, asr=1, chneut=1, **kwargs):
         """
         Build an anaddb input file for the computation of phonon modes.
 
@@ -1302,41 +1302,34 @@ class AnaddbInput(mixins.MappingMixin):
         #!Flags
          #dieflag   1
          #ifcflag   1
-        #ngqpt     1 1 1
+         #ngqpt     1 1 1
         #!Effective charges
          #asr       2
          #chneut    2
         #!Wavevector list number 1
-        #nph1l     1
-        #qph1l   0.0  0.0  0.0    1.0   ! (Gamma point)
+         #nph1l     1
+         #qph1l   0.0  0.0  0.0    1.0   ! (Gamma point)
         #!Wavevector list number 2
-        #nph2l     3      ! number of phonons in list 1
-        #qph2l   1.0  0.0  0.0    0.0
-        #        0.0  1.0  0.0    0.0
-        #        0.0  0.0  1.0    0.0
+         #nph2l     3      ! number of phonons in list 1
+         #qph2l   1.0  0.0  0.0    0.0
+         #        0.0  1.0  0.0    0.0
+         #        0.0  0.0  1.0    0.0
         """
 
         new = cls(structure, comment="ANADB input for modes", **kwargs)
-
-        #new.set_qpath(ndivsm, qptbounds=qptbounds)
-        new.set_autoqmesh(nqsmall)
-
-        q1shft = np.reshape(q1shft, (-1, 3))
 
         new.set_variables(
             enunit=enunit,
             eivec=1,
             ifcflag=1,
             dieflag=1,
+            ngqpt=[1.0, 1.0, 1.0],
             asr=asr,
             chneut=chneut,
-            ngqpt=np.array(ngqpt),
-            ngrids=ngrids,
-            q1shft=q1shft,
-            nqshft=len(q1shft),
-            dipdip=dipdip,
-            nchan=nchan,
-            nwchan=nwchan,
+            nph1l=1,
+            qph1l=[0.0, 0.0, 0.0, 1.0],
+            nph2l=3,
+            qph2l=[[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]]
         )
 
         return new
