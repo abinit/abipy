@@ -169,7 +169,6 @@ def treat_flow(flow, options):
         flow.pickle_dump()
 
     elif options.command == "tail":
-
         def get_path(task):
             """Helper function used to select the files of a task."""
             choices = {
@@ -188,6 +187,15 @@ def treat_flow(flow, options):
                 os.system("tail -f %s" % " ".join(paths))
             except KeyboardInterrupt:
                 pass
+
+    elif options.command == "qstat":
+        for task in flow.iflat_tasks(): #status=
+            if not task.qjob: continue
+            print("qjob", task.qjob)
+            print("info", task.qjob.get_info())
+            print("e start-time", task.qjob.estimated_start_time())
+            print("qstats", task.qjob.get_stats())
+
     else:
         raise RuntimeError("You should not be here!")
 
@@ -301,6 +309,9 @@ Specify the files to open. Possible choices:
 
     p_tail = subparsers.add_parser('tail', help="Use tail to follow the main output file of the flow.")
     p_tail.add_argument('what_tail', nargs="?", type=str, default="o", help="What to follow: o for output (default), l for logfile, e for stderr")
+
+    p_qstat = subparsers.add_parser('qstat', help="Show additional info on the jobs in the queue.")
+    #p_qstat.add_argument('what_tail', nargs="?", type=str, default="o", help="What to follow: o for output (default), l for logfile, e for stderr")
 
     # Parse command line.
     try:
