@@ -552,7 +552,7 @@ class Structure(pymatgen.Structure):
                         Rl = np.dot(lnew, rprimd)
                         # Normalize the displacement so that the maximum atomic displacement is 1 Angstrom.
                         dnorm = np.sqrt(np.dot(Rl,Rl))
-                        if dnorm < dmin and dnorm > 1e-6:
+                        if dnorm < (dmin-1e-6) and dnorm > 1e-6:
                             found = True
                             scale_matrix[:, 0] = lnew
                             dmin = dnorm
@@ -573,7 +573,7 @@ class Structure(pymatgen.Structure):
                         if np.abs(ql - np.round(ql)) < 1e-6:
                             Rl = np.dot(lnew, rprimd)
                             dnorm = np.sqrt(np.dot(Rl, Rl))
-                            if dnorm < dmin and dnorm > 1e-6:
+                            if dnorm < (dmin-1e-6) and dnorm > 1e-6:
                                 found = True
                                 scale_matrix[:, 1] = lnew
                                 dmin = dnorm
@@ -595,7 +595,7 @@ class Structure(pymatgen.Structure):
                         if np.abs(ql - np.round(ql)) < 1e-6:
                             Rl = np.dot(lnew, rprimd)
                             dnorm = np.sqrt(np.dot(Rl,Rl))
-                            if dnorm < dmin and dnorm > 1e-6:
+                            if dnorm < (dmin-1e-6) and dnorm > 1e-6:
                                 found = True
                                 scale_matrix[:, 2] = lnew
                                 dmin = dnorm
