@@ -70,8 +70,12 @@ def build_flow(options):
 def main(options):
     flow = build_flow(options)
     flow.build_and_pickle_dump()
-    flow.rapidfire()
-    #flow.make_scheduler().start()
+
+    if options.sched:
+        flow.make_scheduler().start()
+    else
+        print("nlaunches", flow.rapidfire())
+
     return 0
 
 

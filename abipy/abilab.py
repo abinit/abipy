@@ -21,7 +21,7 @@ from abipy.core import constants
 from abipy.core.structure import Structure, StructureModifier
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen, AnaddbInput
 from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter, SIGRES_Plotter
-from abipy.phonons import PHBST_File, PhononBands, PHDOS_File
+from abipy.phonons import PHBST_File, PhononBands, PHDOS_File, PHDOS_Reader
 
 # Tools for unit conversion
 FloatWithUnit = constants.FloatWithUnit

@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-from __future__ import division
+from __future__ import division, print_function
 
-import abipy.data as data
-from abipy.htc.input import AbiInput
+import abipy.abilab as abilab 
+import abipy.data as abidata
 
-inp = AbiInput(pseudos=data.pseudos("14si.pspnc"), ndtset=2)
-structure = inp.set_structure_from_file(data.cif_file("si.cif"))
+inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)
+structure = inp.set_structure_from_file(abidata.cif_file("si.cif"))
 
 inp.set_kmesh(ngkpt=[4,4,4], shiftk=[0,0,0], dtset=1)
 

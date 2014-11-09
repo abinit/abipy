@@ -105,12 +105,14 @@ def scr_benchmark(options):
     bands = abilab.BandStructureWorkflow(gs_inp, nscf_inp)
     flow.register_work(bands)
 
-    mpi_list = [1, 2]
     scr_work = abilab.Workflow()
+    manager.set_autoparal(0)
 
-    for mpi_procs in mpi_list:
-        manager.set_autoparal(0)
+    for mpi_procs in options.mpi_range:
         manager.set_mpi_procs(mpi_procs)
+        for qad in manager.qads:
+            qad.min_cores = 1
+            qad.max_cores = mpi_procs
         scr_work.register(scr_inp, manager=manager, deps={bands.nscf_task: "WFK"})
     flow.register_work(scr_work)
 
@@ -121,8 +123,13 @@ def scr_benchmark(options):
 def main(options):
     flow = scr_benchmark(options)
     flow.build_and_pickle_dump()
-    flow.rapidfire()
-    #flow.make_scheduler().start()
+
+
+    if options.sched:
+        flow.make_scheduler().start()
+    else:
+        print("nlaunches", flow.rapidfire())
+
     return 0
 
 

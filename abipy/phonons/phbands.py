@@ -593,7 +593,7 @@ class PhononBands(object):
             d = self._auto_qlabels
 
         # Return ticks, labels
-        return d.keys(), d.values()
+        return list(d.keys()), list(d.values())
 
     def plot_fatbands(self, colormap="jet", max_stripe_width_mev=3.0, qlabels=None, **kwargs):
                       #select_specie, select_red_dir

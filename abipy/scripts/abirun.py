@@ -33,7 +33,7 @@ def as_slice(obj):
 
     >>> assert as_slice(5) == slice(5, 6, 1)
     >>> assert as_slice("[1:4]") == slice(1, 4, 1)
-    >>> assert as_slice("[1::2]") == slice(1, None, 2)
+    >>> assert as_slice("1::2") == slice(1, None, 2)
     """
     if isinstance(obj, slice): return obj
 
@@ -43,13 +43,15 @@ def as_slice(obj):
     except:
         # assume string defining a python slice [start:stop:step]
         if not obj: return None
-        #if obj.count("[") + obj.count("]") != 2: raise ValueError("Invalid string %s" % obj)
+        if obj.count("[") + obj.count("]") not in (0, 2): 
+            raise ValueError("Invalid string %s" % obj)
 
         obj = obj.replace("[", "").replace("]", "")
         n = obj.count(":") 
         if n == 0:
             obj = int(obj)
             return slice(obj, obj+1)
+
         tokens = [int(f) if f else None for f in obj.split(":")]
         if len(tokens) == 2: tokens.append(1)
         if tokens[2] is None: tokens[2] = 1
@@ -59,172 +61,27 @@ def as_slice(obj):
     raise ValueError("Cannot convert %s into a slice:\n%s" % (type(obj), obj))
 
 
-def treat_flow(flow, options):
-    retcode = 0
-
-    # Dispatch.
-    if options.command in ("single", "singleshot"):
-        nlaunch = PyLauncher(flow).single_shot()
-        flow.show_status()
-        print("Number of tasks launched: %d" % nlaunch)
-
-    elif options.command in ("rapid", "rapidfire"):
-        nlaunch = PyLauncher(flow).rapidfire()
-        flow.show_status()
-        print("Number of tasks launched: %d" % nlaunch)
-
-    elif options.command == "scheduler":
-
-        sched_options = {oname: getattr(options, oname) for oname in 
-            ("weeks", "days", "hours", "minutes", "seconds")}
-
-        if all(v == 0 for v in sched_options.values()):
-            sched = PyFlowScheduler.from_user_config()
-        else:
-            sched = PyFlowScheduler(**sched_options)
-
-        # Check that the env on the local machine is properly setup 
-        # before starting the scheduler.
-        abilab.abicheck()
-        #errors = flow.loop_before_you_leap()
-        #if errors:
-        #    raise RuntimeError("look_before_you_leap returned:\n %s" % str(errors))
-
-        sched.add_flow(flow)
-        print(sched)
-        sched.start()
-
-        #open_hook.print_open_files()
-
-    elif options.command == "status":
-        work_slice = as_slice(options.work_slice)
-        #print(work_slice, options.work_slice)
-
-        if options.delay:
-            cprint("Entering infinite loop. Press CTRL+C to exit", "blue")
-            try:
-                while True:
-                    print(2*"\n" + time.asctime() + "\n")
-                    flow.check_status()
-                    flow.show_status(verbose=options.verbose, work_slice=work_slice)
-                    if flow.all_ok: break
-                    time.sleep(options.delay)
-            except KeyboardInterrupt:
-                pass
-        else:
-            flow.show_status(verbose=options.verbose, work_slice=work_slice)
-            print("Total number of jobs in queue: %s" % flow.manager.get_njobs_in_queue())
-
-    elif options.command == "open":
-        if options.wti is not None:
-            options.wti = [int(t) for t in options.wti.split(":")]
-            
-        flow.open_files(what=options.what, wti=options.wti, status=None, op="==")
-
-    elif options.command == "cancel":
-        print("Number of jobs cancelled %d" % flow.cancel())
-        # Remove directory
-        if options.rmtree:
-            flow.rmtree()
-
-    elif options.command == "restart":
-        nlaunch, excs = 0, []
-        for task in flow.unconverged_tasks:
-            try:
-                fired = task.restart()
-                if fired: nlaunch += 1
-            except Exception:
-                excs.append(straceback())
-
-        cprint("Number of jobs restarted %d" % nlaunch, "blue")
-        if nlaunch:
-            # update database
-            flow.pickle_dump()
-
-        if excs:
-            print("Exceptions raised\n")
-            pprint(excs)
-
-    elif options.command == "reset":
-        print("Will reset tasks with status: %s" % options.task_status)
-
-        count = 0
-        for task, wi, ti in flow.iflat_tasks_wti(status=options.task_status):
-            task.reset()
-            count += 1	
-        cprint("%d tasks have been resetted" % count, "blue")
-
-        nlaunch = PyLauncher(flow).rapidfire()
-        flow.show_status()
-        print("Number of tasks launched: %d" % nlaunch)
-
-        if nlauch == 0:
-            deadlocked, runnables, running = flow.deadlocked_runnables_running()
-            print("deadlocked:", deadlocked)
-            print("runnables:", runnables)
-            print("running:", running)
-            if deadlocked and not (runnables or running):
-                print("*** Flow is deadlocked ***")
-
-        flow.pickle_dump()
-
-    elif options.command == "tail":
-        def get_path(task):
-            """Helper function used to select the files of a task."""
-            choices = {
-                "o": task.output_file,
-                "l": task.log_file,
-                "e": task.stderr_file,
-            }
-            return getattr(choices[options.what_tail], "path")
-
-        paths = [get_path(task )for task in flow.iflat_tasks(status="Running")]
-        if not paths:
-            cprint("No job is running. Exiting!", "red")
-        else:
-            cprint("Press CTRL+C to interrupt. Will follow %d output files" % len(paths), "blue")
-            try:
-                os.system("tail -f %s" % " ".join(paths))
-            except KeyboardInterrupt:
-                pass
-
-    elif options.command == "qstat":
-        for task in flow.iflat_tasks(): #status=
-            if not task.qjob: continue
-            print("qjob", task.qjob)
-            print("info", task.qjob.get_info())
-            print("e start-time", task.qjob.estimated_start_time())
-            print("qstats", task.qjob.get_stats())
-
-    else:
-        raise RuntimeError("You should not be here!")
-
-    return retcode
-
-
 def main():
 
     def str_examples():
-        examples = """
-    Usage example:\n
-        abirun.py [DIRPATH] single                   => Fetch the first available task and run it.
-        abirun.py [DIRPATH] rapid                    => Keep repeating, stop when no task can be executed
-                                                        due to inter-dependency.
-        abirun.py [DIRPATH] gui                      => Open the GUI 
-        nohup abirun.py [DIRPATH] sheduler -s 30 &   => Use a scheduler to schedule task submission
+        examples = """\
+Usage example:\n
+    abirun.py [DIRPATH] single                   => Fetch the first available task and run it.
+    abirun.py [DIRPATH] rapid                    => Keep repeating, stop when no task can be executed
+                                                    due to inter-dependency.
+    abirun.py [DIRPATH] gui                      => Open the GUI 
+    nohup abirun.py [DIRPATH] sheduler -s 30 &   => Use a scheduler to schedule task submission
 
-        If DIRPATH is not given, abirun.py automatically selects the database located within 
-        the working directory. An Exception is raised if multiple databases are found.
-    """
+    If DIRPATH is not given, abirun.py automatically selects the database located within 
+    the working directory. An Exception is raised if multiple databases are found.
+"""
         return examples
 
 
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""
         sys.stderr.write(str_examples())
-        if err_msg: 
-            sys.stderr.write("Fatal Error\n" + err_msg + "\n")
-
+        if err_msg: sys.stderr.write("Fatal Error\n" + err_msg + "\n")
         sys.exit(error_code)
 
     # Build the parser.
@@ -361,8 +218,140 @@ Specify the files to open. Possible choices:
         # Update the database.
         return flow.build_and_pickle_dump()
 
+    elif options.command in ("single", "singleshot"):
+        nlaunch = PyLauncher(flow).single_shot()
+        flow.show_status()
+        print("Number of tasks launched: %d" % nlaunch)
+
+    elif options.command in ("rapid", "rapidfire"):
+        nlaunch = PyLauncher(flow).rapidfire()
+        flow.show_status()
+        print("Number of tasks launched: %d" % nlaunch)
+
+    elif options.command == "scheduler":
+
+        sched_options = {oname: getattr(options, oname) for oname in 
+            ("weeks", "days", "hours", "minutes", "seconds")}
+
+        if all(v == 0 for v in sched_options.values()):
+            sched = PyFlowScheduler.from_user_config()
+        else:
+            sched = PyFlowScheduler(**sched_options)
+
+        # Check that the env on the local machine is properly setup 
+        # before starting the scheduler.
+        abilab.abicheck()
+        #errors = flow.loop_before_you_leap()
+        #if errors:
+        #    raise RuntimeError("look_before_you_leap returned:\n %s" % str(errors))
+
+        sched.add_flow(flow)
+        print(sched)
+        sched.start()
+
+        #open_hook.print_open_files()
+
+    elif options.command == "status":
+        work_slice = as_slice(options.work_slice)
+        #print(work_slice, options.work_slice)
+
+        if options.delay:
+            cprint("Entering infinite loop. Press CTRL+C to exit", "blue")
+            try:
+                while True:
+                    print(2*"\n" + time.asctime() + "\n")
+                    flow.check_status()
+                    flow.show_status(verbose=options.verbose, work_slice=work_slice)
+                    if flow.all_ok: break
+                    time.sleep(options.delay)
+            except KeyboardInterrupt:
+                pass
+        else:
+            flow.show_status(verbose=options.verbose, work_slice=work_slice)
+            print("Total number of jobs in queue: %s" % flow.manager.get_njobs_in_queue())
+
+    elif options.command == "open":
+        if options.wti is not None:
+            options.wti = [int(t) for t in options.wti.split(":")]
+            
+        flow.open_files(what=options.what, wti=options.wti, status=None, op="==")
+
+    elif options.command == "cancel":
+        print("Number of jobs cancelled %d" % flow.cancel())
+        # Remove directory
+        if options.rmtree: flow.rmtree()
+
+    elif options.command == "restart":
+        nlaunch, excs = 0, []
+        for task in flow.unconverged_tasks:
+            try:
+                fired = task.restart()
+                if fired: nlaunch += 1
+            except Exception:
+                excs.append(straceback())
+
+        cprint("Number of jobs restarted %d" % nlaunch, "blue")
+        if nlaunch:
+            # update database
+            flow.pickle_dump()
+
+        if excs:
+            print("Exceptions raised\n")
+            pprint(excs)
+
+    elif options.command == "reset":
+        print("Will reset tasks with status: %s" % options.task_status)
+
+        count = 0
+        for task, wi, ti in flow.iflat_tasks_wti(status=options.task_status):
+            task.reset()
+            count += 1	
+        cprint("%d tasks have been resetted" % count, "blue")
+
+        nlaunch = PyLauncher(flow).rapidfire()
+        flow.show_status()
+        print("Number of tasks launched: %d" % nlaunch)
+
+        if nlauch == 0:
+            deadlocked, runnables, running = flow.deadlocked_runnables_running()
+            print("deadlocked:", deadlocked)
+            print("runnables:", runnables)
+            print("running:", running)
+            if deadlocked and not (runnables or running):
+                print("*** Flow is deadlocked ***")
+
+        flow.pickle_dump()
+
+    elif options.command == "tail":
+        def get_path(task):
+            """Helper function used to select the files of a task."""
+            choices = {
+                "o": task.output_file,
+                "l": task.log_file,
+                "e": task.stderr_file,
+            }
+            return getattr(choices[options.what_tail], "path")
+
+        paths = [get_path(task )for task in flow.iflat_tasks(status="Running")]
+        if not paths:
+            cprint("No job is running. Exiting!", "red")
+        else:
+            cprint("Press CTRL+C to interrupt. Will follow %d output files" % len(paths), "blue")
+            try:
+                os.system("tail -f %s" % " ".join(paths))
+            except KeyboardInterrupt:
+                pass
+
+    elif options.command == "qstat":
+        for task in flow.iflat_tasks(): #status=
+            if not task.qjob: continue
+            print("qjob", task.qjob)
+            print("info", task.qjob.get_info())
+            print("e start-time", task.qjob.estimated_start_time())
+            print("qstats", task.qjob.get_stats())
+
     else:
-        retcode = treat_flow(flow, options)
+        raise RuntimeError("You should not be here!")
 
     return retcode
     
@@ -371,7 +360,7 @@ if __name__ == "__main__":
     # profile if `abirun.py prof ...` else run script.
     do_prof = False
     try:
-        do_prof = sys.argv[1] in ("prof", "perf")
+        do_prof = sys.argv[1] == "prof"
         if do_prof: sys.argv.pop(1)
     except: 
         pass

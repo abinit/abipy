@@ -7,7 +7,6 @@ import tempfile
 import collections
 import copy
 import itertools
-import warnings
 import numpy as np
 
 from monty.collections import AttrDict
@@ -1159,14 +1158,9 @@ class ElectronBands(object):
 
         plt.legend(loc="best")
 
-        if title is not None:
-            fig.suptitle(title)
-
-        if show:
-            plt.show()
-
-        if savefig:
-            fig.savefig(savefig)
+        if title is not None: fig.suptitle(title)
+        if show: plt.show()
+        if savefig: fig.savefig(savefig)
 
         return fig
 
@@ -1249,7 +1243,6 @@ class ElectronBands(object):
 
         import matplotlib.pyplot as plt
         fig = plt.figure()
-
         ax = fig.add_subplot(1,1,1)
 
         # Decorate the axis (e.g add ticks and labels).
@@ -1286,11 +1279,8 @@ class ElectronBands(object):
 
             self.plot_width_ax(ax, key, fact=fact)
 
-        if show:
-            plt.show()
-
-        if savefig is not None:
-            fig.savefig(savefig)
+        if show: plt.show()
+        if savefig is not None: fig.savefig(savefig)
 
         return fig
 
@@ -1438,7 +1428,7 @@ class ElectronBands(object):
             d = self._auto_klabels
 
         # Return ticks, labels
-        return d.keys(), d.values()
+        return list(d.keys()), list(d.values())
 
     def plot_with_edos(self, dos, klabels=None, **kwargs):
         """
@@ -2038,7 +2028,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
 
         # FIXME there's a problem in smearing_scheme
         if scheme is None:
-            warnings.warn("warning scheme is None, occopt %s" % occopt)
+            logger.warning("warning: scheme is None, occopt %s" % occopt)
 
         return Smearing(
             scheme=scheme,

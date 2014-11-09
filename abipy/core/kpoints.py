@@ -857,7 +857,7 @@ class KSamplingInfo(AttrDict):
 
     def __init__(self, *args, **kwargs):
         super(KSamplingInfo, self).__init__(*args, **kwargs)
-        print("ksampling", self)
+        #print("ksampling", self)
         #for k in self:
         #   if k not in self.KNOWN_KEYS:
         #       raise ValueError("Unknow key %s" % k)

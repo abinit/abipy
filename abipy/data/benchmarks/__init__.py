@@ -37,6 +37,8 @@ def bench_main(main):
         parser.add_argument('--paw', default=False, action="store_true", help="Run PAW calculation if present")
         parser.add_argument('--paral_kgb', default=1, type=int, help="paral_kgb input variable")
 
+        parser.add_argument("--sched", default=False, action="store_true", help="Scheduler or rapidfire mode")
+
         options = parser.parse_args()
 
         # loglevel is bound to the string value obtained from the command line argument. 
