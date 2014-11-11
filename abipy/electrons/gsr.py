@@ -143,12 +143,15 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         # TODO: Add info depending on the run_type e.g. max_resid is NSCF
         return dict( 
             structure=self.structure.as_dict(),
-            ebands=self.ebands.to_pymatgen().as_dict(),
-            number_of_electrons=self.nelect,
             final_energy=self.energy,
             final_energy_per_atom=self.energy_per_atom,
+            #forces:
             #max_force=gsr.max_force,
+            cartesian_stress_tensor=self.cartesian_stress_tensor,
             pressure=self.pressure,
+            number_of_electrons=self.nelect,
+            ebands=self.ebands.to_pymatgen().as_dict(),
+            #max_residual=
             #magnetization=gsr.magnetization,
             #band_gap=
             #optical_gap=
@@ -156,10 +159,6 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
             #cbm=
             #vbm=
             #efermi=
-            #max_residuals
-            #etotal:
-            #forces:
-            #stresses:
             #band_gap:
             #optical_gap:
             #efermi:

@@ -363,15 +363,19 @@ class MDF_File(AbinitNcFile, Has_Structure):
     def __init__(self, filepath):
         super(MDF_File, self).__init__(filepath)
 
-        with MDF_Reader(filepath) as r:
-            self._structure = r.read_structure()
-            # TODO Add electron Bands.
-            #self._ebands = r.read_ebands()
+        self.reader = r = MDF_Reader(filepath)
 
-            self.qpoints = r.qpoints
-            self.exc_mdf = r.read_exc_mdf()
-            self.rpanlf_mdf = r.read_rpanlf_mdf()
-            self.gwnlf_mdf = r.read_gwnlf_mdf()
+        self._structure = r.read_structure()
+        # TODO Add electron Bands.
+        #self._ebands = r.read_ebands()
+
+        self.qpoints = r.qpoints
+        self.exc_mdf = r.read_exc_mdf()
+        self.rpanlf_mdf = r.read_rpanlf_mdf()
+        self.gwnlf_mdf = r.read_gwnlf_mdf()
+
+    def close(self):
+        self.reader.close()
 
     @classmethod
     def from_file(cls, filepath):

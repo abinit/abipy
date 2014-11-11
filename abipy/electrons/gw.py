@@ -3,9 +3,9 @@ from __future__ import print_function, division, unicode_literals
 
 import sys
 import copy
-import collections
 import numpy as np
 
+from collections import namedtuple, OrderedDict, Iterable, defaultdict
 from monty.string import list_strings, is_string
 from monty.collections import  AttrDict
 from monty.bisect import find_le, find_ge 
@@ -27,7 +27,7 @@ __all__ = [
 ]
 
 
-class QPState(collections.namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sigxme sigcmee0 vUme ze0")):
+class QPState(namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sigxme sigcmee0 vUme ze0")):
     """
     Quasi-particle result for given (spin, kpoint, band).
 
@@ -81,7 +81,7 @@ class QPState(collections.namedtuple("QPState", "spin kpoint band e0 qpe qpe_dia
 
     def _asdict(self):
         #od = super(QPState, self)._asdict()
-        od = collections.OrderedDict(zip(self._fields, self))
+        od = OrderedDict(zip(self._fields, self))
         od["qpeme0"] = self.qpeme0
         #print("od",od)
         return od
@@ -519,7 +519,7 @@ def to_range(obj):
             raise TypeError("Don't know how to convert %s into a range object" % str(obj))
 
 
-class SIGRES_Plotter(collections.Iterable):
+class SIGRES_Plotter(Iterable):
     """
     This object receives a list of `SIGRES_File` objects and provides
     methods to inspect/analyze the GW results (useful for convergence studies)
@@ -542,7 +542,7 @@ class SIGRES_Plotter(collections.Iterable):
         plotter.plot_qpgaps()
     """
     def __init__(self):
-        self._sigres_files = collections.OrderedDict()
+        self._sigres_files = OrderedDict()
         self._labels = []
 
     def __len__(self):
@@ -610,7 +610,7 @@ class SIGRES_Plotter(collections.Iterable):
 
     def _get_param_list(self):
         """Return a dictionary with the values of the parameters extracted from the SIGRES files."""
-        param_list = collections.defaultdict(list)
+        param_list = defaultdict(list)
                                                                
         for sigres in self:
             for pname in sigres.params.keys():
@@ -658,7 +658,7 @@ class SIGRES_Plotter(collections.Iterable):
                                                                                              
             files = self._sigres_files.values()
                                                                                              
-            newd = collections.OrderedDict()
+            newd = OrderedDict()
             for i in indices:
                 sigres = files[i]
                 newd[sigres.filepath] = sigres
@@ -852,6 +852,11 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         sigres.plot_qps_vs_e0()
         sigres.plot_ksbands_with_qpmarkers()
     """
+    @classmethod
+    def from_file(cls, filepath):
+        """Initialize an instance from file."""
+        return cls(filepath)
+
     def __init__(self, filepath):
         """Read data from the netcdf file path."""
         super(SIGRES_File, self).__init__(filepath)
@@ -897,23 +902,12 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         # TODO handle the case in which nkptgw < nkibz
         self.qpgaps = reader.read_qpgaps()
         self.qpenes = reader.read_qpenes()
-
         self.params = reader.read_params()
 
-    #def __del__(self):
-    #    print("in %s __del__" % self.__class__.__name__)
-    #    self.reader.close()
-    #    super(SIGRES_File, self).__del__()
-
-    @classmethod
-    def from_file(cls, filepath):
-        """Initialize an instance from file."""
-        return cls(filepath)
-
-    @property
-    def nsppol(self):
-        """Number of spins"""
-        return self.ebands.nsppol
+    #@property
+    #def nsppol(self):
+    #    """Number of spins"""
+    #    return self.ebands.nsppol
 
     def close(self):
         """Close the netcdf file."""
@@ -990,8 +984,7 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         show = kwargs.pop("show", True)
         savefig = kwargs.pop("savefig", None)
 
-        if not isinstance(bands, collections.Iterable):
-            bands = [bands]
+        if not isinstance(bands, Iterable): bands = [bands]
 
         import matplotlib.pyplot as plt
         fig = plt.figure()
@@ -1002,14 +995,9 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
             label = "skb = %s, %s, %s" % (spin, kpoint, band)
             sigw.plot_ax(ax, label="$A(\omega)$:" + label, **kwargs)
 
-        if title is not None:
-            fig.suptitle(title)
-
-        if show:
-            plt.show()
-
-        if savefig is not None:
-            fig.savefig(savefig)
+        if title is not None: fig.suptitle(title)
+        if show: plt.show()
+        if savefig is not None: fig.savefig(savefig)
 
         return fig
 
@@ -1045,7 +1033,6 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         """
         with_marker = qpattr + ":" + str(fact)
         gwband_range = (self.min_gwbstart, self.max_gwbstop)
-
         fig = self.ebands.plot(marker=with_marker, band_range=gwband_range, **kwargs)
 
         return fig

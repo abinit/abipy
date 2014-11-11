@@ -52,18 +52,15 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         """
         super(WFK_File, self).__init__(filepath)
 
-        with WFK_Reader(filepath) as reader:
-            # Read the electron bands 
-            self._ebands = reader.read_ebands()
+        self.reader = reader = WFK_Reader(filepath)
 
-            assert reader.has_pwbasis_set
-            assert reader.cplex_ug == 2
-            self.npwarr = reader.npwarr
-            self.nband_sk = reader.nband_sk
+        # Read the electron bands 
+        self._ebands = reader.read_ebands()
 
-            #self.nspinor = reader.nspinor
-            #self.nsppol = reader.nsppol
-            #self.nspden = reader.nspden
+        assert reader.has_pwbasis_set
+        assert reader.cplex_ug == 2
+        self.npwarr = reader.npwarr
+        self.nband_sk = reader.nband_sk
 
         # FFT mesh (augmented divisions reported in the WFK file)
         self.fft_mesh = Mesh3D(reader.fft_divs, self.structure.lattice_vectors())
@@ -80,6 +77,9 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         # Save reference to the reader.
         self.reader = reader
 
+    def close(self):
+        self.reader.close()
+
     @property
     def structure(self):
         """`Structure` object"""
@@ -91,11 +91,6 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         return self._ebands
 
     @property
-    def kpoints(self):
-        """List of k-points in the WFK file."""
-        return self.ebands.kpoints
-
-    @property
     def nkpt(self):
         """Number of k-points."""
         return len(self.kpoints)
@@ -104,11 +99,6 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     def gspheres(self):
         """List of `GSphere` objects ordered by k-points."""
         return self._gspheres
-
-    @property
-    def mband(self):
-        """Maximum band index"""
-        return np.max(self.nband_sk)
 
     def __str__(self):
         return self.tostring()
