@@ -11,7 +11,6 @@ import numpy as np
 
 import abipy.abilab as abilab
 import abipy.data as data  
-#from pymatgen.io.abinitio.tasks import TaskPolicy
 
 optic_input = """\
 0.002         ! Value of the smearing factor, in Hartree
@@ -49,8 +48,7 @@ global_vars = dict(
     #accesswff=3
 )
 
-def raman_flow():
-
+def raman_flow(options):
     # Get the unperturbed structure.
     pseudos=data.pseudos("14si.pspnc")
 
@@ -71,9 +69,15 @@ def raman_flow():
     displaced_structures = modifier.displace(ph_displ, etas, frac_coords=False)
 
     # Initialize flow. Each workflow in the flow defines a complete BSE calculation for given eta.
-    workdir = os.path.join(os.path.dirname(__file__), base_structure.formula.replace(" ","") + "_RAMAN")
+    workdir = options.workdir
+    if not options.workdir:
+        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
+    #workdir = os.path.join(os.path.dirname(__file__), base_structure.formula.replace(" ","") + "_RAMAN")
 
-    manager = abilab.TaskManager.from_user_config()
+    # Instantiate the TaskManager.
+    manager = abilab.TaskManager.from_user_config() if not options.manager else \
+              abilab.TaskManager.from_file(options.manager)
+
     shell_manager = manager.to_shell_manager(mpi_procs=1)
     ddk_manager = manager.deepcopy()
 
@@ -124,16 +128,16 @@ def raman_workflow(structure, pseudos, ngkpt, shiftk, ddk_manager, shell_manager
 
         inp[3+dir].set_variables(
            iscf=-3,
-	   nband=100,
-          nstep=1,
-          nline=0,
-          prtwf=3,
-         kptopt=1,
+	       nband=100,
+           nstep=1,
+           nline=0,
+           prtwf=3,
+           kptopt=1,
            nqpt=1,
            qpt=[0.0, 0.0, 0.0],
-          rfdir=rfdir,
-         rfelfd=2,
-         tolwfr=1.e+12,
+           rfdir=rfdir,
+           rfelfd=2,
+           tolwfr=1.e+12,
         )
 
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = inp.split_datasets()
@@ -156,10 +160,11 @@ def raman_workflow(structure, pseudos, ngkpt, shiftk, ddk_manager, shell_manager
     return workflow
 
 
-def main():
+@abilab.flow_main
+def main(options):
     # Define the flow, build files and dirs 
     # and save the object in cpickle format.
-    flow = raman_flow()
+    flow = raman_flow(options)
     return flow.build_and_pickle_dump()
 
 
