@@ -268,7 +268,8 @@ Specify the files to open. Possible choices:
                 pass
         else:
             flow.show_status(verbose=options.verbose, work_slice=work_slice)
-            print("Total number of jobs in queue: %s" % flow.manager.get_njobs_in_queue())
+            if flow.manager.has_queue:
+                print("Total number of jobs in queue: %s" % flow.manager.get_njobs_in_queue())
 
     elif options.command == "open":
         if options.wti is not None:

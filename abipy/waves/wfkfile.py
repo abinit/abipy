@@ -61,9 +61,9 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
             self.npwarr = reader.npwarr
             self.nband_sk = reader.nband_sk
 
-            self.nspinor = reader.nspinor
-            self.nsppol = reader.nsppol
-            self.nspden = reader.nspden
+            #self.nspinor = reader.nspinor
+            #self.nsppol = reader.nsppol
+            #self.nspden = reader.nspden
 
         # FFT mesh (augmented divisions reported in the WFK file)
         self.fft_mesh = Mesh3D(reader.fft_divs, self.structure.lattice_vectors())

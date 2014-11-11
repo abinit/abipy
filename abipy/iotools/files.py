@@ -67,8 +67,16 @@ class AbinitFile(object):
         """Dictionary with file metadata"""
         return get_filestat(self.filepath)
 
-    #@abc.abstractmethod
-    #def close(self):
+    @abc.abstractmethod
+    def close(self):
+        """Close file."""
+    
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Activated at the end of the with statement. It automatically closes the file."""
+        self.close()
 
 
 class AbinitTextFile(AbinitFile):
@@ -166,23 +174,45 @@ class Has_ElectronBands(object):
     def ebands(self):
         """Returns the `ElectronBands` object."""
 
-    #@property
-    #def nsppol(self):
-    #    return self.ebands.nsppol
+    @property
+    def nsppol(self):
+        """Number of spin polarizations"""
+        return self.ebands.nsppol
 
-    #@property
-    #def nspinor(self):
-    #    return self.ebands.nspinor
+    @property
+    def nspinor(self):
+        """Number of spinors"""
+        return self.ebands.nspinor
 
-    #@property
-    #def nspden(self):
-    #    return self.ebands.nspden
+    @property
+    def nspden(self):
+        """Number of indepedendent spin-density components."""
+        return self.ebands.nspden
+
+    @property
+    def mband(self):
+        """Maximum number of bands."""
+        return self.ebands.mband
+
+    @property
+    def nband(self):
+        """Maximum number of bands."""
+        return self.ebands.nband
+
+    @property
+    def nelect(self):
+        """Number of elecrons per unit cell"""
+        return self.ebands.nelect
+
+    @property
+    def kpoints(self):
+        """Iterable with the Kpoints."""
+        return self.ebands.kpoints
 
     def plot_ebands(self, **kwargs):
-        """
-        Plot the electron energy bands. See the :func:`ElectronBands.plot` for the signature.""
-        """
+        """Plot the electron energy bands. See the :func:`ElectronBands.plot` for the signature."""
         return self.ebands.plot(**kwargs)
+
 
 @six.add_metaclass(abc.ABCMeta)
 class Has_PhononBands(object):

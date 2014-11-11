@@ -44,7 +44,7 @@ tools Package
    :show-inheritance:
 
 :mod:`generic` Module
-----------------------
+---------------------
 
 .. automodule:: abipy.tools.generic
    :members:
@@ -52,7 +52,7 @@ tools Package
    :show-inheritance:
 
 :mod:`iotools` Module
-----------------------
+---------------------
 
 .. automodule:: abipy.tools.iotools
    :members:
@@ -75,8 +75,16 @@ tools Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`prettytable` Module
+-------------------------
+
+.. automodule:: abipy.tools.prettytable
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`text` Module
-----------------------
+------------------
 
 .. automodule:: abipy.tools.text
    :members:

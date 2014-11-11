@@ -25,20 +25,30 @@ def structure_from_ucell(name):
     try:
         return Structure.from_abivars(ucell(name))
     except KeyError:
-        raise KeyError("Cannot find key %s in:\n %s" % (name, list(_UCELLS.keys())))
+        raise KeyError("Cannot find key %s in:\n %s" % (name, _UCELLS.keys()))
 
 
 _UCELLS = {
     "Si": dict(ntypat=1,         
-               natom=2,           
+               natom=2,
                typat=[1, 1],
-               znucl=14,         
+               znucl=14,
                acell=3*[10.217],
                rprim=[[0.0,  0.5,  0.5],   
-                      [0.5,  0.0,  0.5],  
+                      [0.5,  0.0,  0.5],
                       [0.5,  0.5,  0.0]],
                xred=[ [0.0 , 0.0 , 0.0],
                       [0.25, 0.25, 0.25]],
+                    ),
+    "Al": dict(ntypat=1,         
+               natom=1,
+               typat=[1],
+               znucl=13,         
+               acell=3*[7.60],
+               rprim=[[0.0,  0.5,  0.5],   
+                      [0.5,  0.0,  0.5],  
+                      [0.5,  0.5,  0.0]],
+               xred=[ [0.0 , 0.0 , 0.0]],
                     ),
 
     "ZnO": dict(ntypat=2,

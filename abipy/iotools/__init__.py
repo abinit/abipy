@@ -8,6 +8,7 @@ import pymatgen.io.abinitio.netcdf as ionc
 
 as_etsfreader = ionc.as_etsfreader
 
+
 class ETSF_Reader(ionc.ETSF_Reader):
     """
     Overrides the read_structure method so that we always return

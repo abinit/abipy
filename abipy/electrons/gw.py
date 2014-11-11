@@ -4,7 +4,6 @@ from __future__ import print_function, division, unicode_literals
 import sys
 import copy
 import collections
-import warnings
 import numpy as np
 
 from monty.string import list_strings, is_string
@@ -17,6 +16,9 @@ from abipy.core.kpoints import KpointList
 from abipy.iotools import AbinitNcFile, ETSF_Reader, Has_Structure, Has_ElectronBands
 from abipy.electrons.ebands import ElectronBands
 from abipy.electrons.scissors import Scissors
+
+import logging
+logger = logging.getLogger(__name__)
 
 __all__ = [
     "QPState",
@@ -639,8 +641,8 @@ class SIGRES_Plotter(collections.Iterable):
                     param_name = key
                 else:
                     problem = True
-                    warnings.warn("Cannot perform automatic detection of convergence parameter.\n" + 
-                                  "Found multiple parameters with different values. Will use filepaths as plot labels.")
+                    logger.warning("Cannot perform automatic detection of convergence parameter.\n" + 
+                                   "Found multiple parameters with different values. Will use filepaths as plot labels.")
 
         self.set_param_name(param_name if not problem else None)
 

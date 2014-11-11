@@ -5,7 +5,6 @@ from __future__ import print_function
 import sys
 import os
 import shutil
-import numpy as np
 
 from glob import glob
 from setuptools import find_packages, setup, Extension
@@ -75,6 +74,7 @@ ext_modules = []
 # Disable cython for the time being.
 with_cython = False
 if with_cython:
+    import numpy as np
     #define_macros = [("CYTHON_TRACE", "1")]
     ext_modules += [
         Extension("abipy.extensions.klib", ["abipy/extensions/klib.pyx"], include_dirs=[np.get_include()])
@@ -190,7 +190,6 @@ def cleanup():
 # List of external packages we rely on.
 # Note setup install will download them from Pypi if they are not available.
 install_requires = [
-    #"termcolor",
     "apscheduler==2.1.0",
     "numpy>=1.8",  
     "pydispatcher>=2.0.3",
@@ -199,6 +198,7 @@ install_requires = [
     "netCDF4",
     "pymatgen>=3.0.7",
     "wxmplot",
+    "prettytable",
     #"matplotlib>=1.1",
     #"psutil",
     #"fabric",

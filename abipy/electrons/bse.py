@@ -41,7 +41,7 @@ class DielectricTensor(object):
 
         # One tensor for each frequency
         all_tensors = []
-        for (ifrq,freq) in enumerate(mdf.wmesh):
+        for (ifrq, freq) in enumerate(mdf.wmesh):
             tensor = SymmetricTensor.from_directions(mdf.qfrac_coords, all_emacros[:,ifrq], structure.lattice.reciprocal_lattice, space="g")
             all_tensors.append(tensor)
 
@@ -119,11 +119,8 @@ class DielectricTensor(object):
         for icomponent in [0,4,8,1,2,5]: 
             self.plot_ax(ax, icomponent, red_coords, *args, **kwargs)
 
-        if show:
-            plt.show()
-
-        if savefig is not None:
-            fig.savefig(savefig)
+        if show: plt.show()
+        if savefig is not None: fig.savefig(savefig)
 
         return fig
 
@@ -308,11 +305,8 @@ class DielectricFunction(object):
         # Plot the average value
         self.plot_ax(ax, qpoint=None, **kwargs)
 
-        if show:
-            plt.show()
-
-        if savefig is not None:
-            fig.savefig(savefig)
+        if show: plt.show()
+        if savefig is not None: fig.savefig(savefig)
 
         return fig
 
@@ -632,8 +626,7 @@ class MDF_Plotter(object):
         ax.set_xlabel('Frequency [eV]')
         ax.set_ylabel('Macroscopic DF')
 
-        if title is not None:
-            ax.set_title(title)
+        if title is not None: ax.set_title(title)
 
         cmodes = cplx_mode.split("-")
         qtag = "average" if qpoint is None else repr(qpoint)
@@ -655,11 +648,8 @@ class MDF_Plotter(object):
         # Set legends.
         ax.legend(lines, legends, loc='best', shadow=False)
 
-        if show:
-            plt.show()
-
-        if savefig:
-            fig.savefig(savefig)
+        if show: plt.show()
+        if savefig: fig.savefig(savefig)
 
         return fig
 

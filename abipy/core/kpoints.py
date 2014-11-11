@@ -4,11 +4,13 @@ from __future__ import print_function, division, unicode_literals
 import os
 import collections
 import numpy as np
-import warnings
 
 from monty.collections import AttrDict
 from abipy.iotools import as_etsfreader, ETSF_Reader
 from abipy.tools.derivatives import finite_diff
+
+import logging
+logger = logging.getLogger(__name__)
 
 __all__ = [
     "issamek",
@@ -734,9 +736,9 @@ class IrredZone(KpointList):
         if abs(wsum - 1) > 1.e-6:
             err_msg = "Kpoint weights should sum up to one while sum_weights is %.3f\n" % wsum
             err_msg += "The list of kpoints does not represent a homogeneous sampling of the BZ\n" 
-            err_msg += str(type(self)) + "\n" + str(self)
+            #err_msg += str(type(self)) + "\n" + str(self)
             #raise ValueError(err_msg)  # GA : Should not prevent a band structure from being read!
-            warnings.warn(err_msg)
+            logger.warning(err_msg)
 
         # FIXME
         # Quick and dirty hack to allow the reading of the k-points from WFK files

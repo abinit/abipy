@@ -4,6 +4,7 @@ import numpy as np
 import abipy.data as data
 import abipy.core
 
+from pprint import pprint
 from abipy.core.testing import *
 from abipy.electrons.gsr import GSR_Reader, GSR_File
 
@@ -29,7 +30,6 @@ class GSRReaderTestCase(AbipyTest):
 
         with GSR_Reader(path) as r:
             self.assertEqual(r.ngroups, 1)
-
             print(r.read_varnames())
 
             # Test dimensions.
@@ -49,11 +49,8 @@ class GSRReaderTestCase(AbipyTest):
 
             # Reading non-existent variables or dims should raise
             # a subclass of NetcdReder.
-            with self.assertRaises(GSR_Reader.Error):
-                r.read_value("foobar")
-
-            with self.assertRaises(GSR_Reader.Error):
-                r.read_dimvalue("foobar")
+            with self.assertRaises(GSR_Reader.Error): r.read_value("foobar")
+            with self.assertRaises(GSR_Reader.Error): r.read_dimvalue("foobar")
 
             r.print_tree()
             for group in r.walk_tree():
@@ -63,21 +60,44 @@ class GSRReaderTestCase(AbipyTest):
             structure = r.read_structure()
             self.assertTrue(isinstance(structure, abipy.core.Structure))
 
+
 class GSRFileTestCase(AbipyTest):
 
     def test_methods(self):
         """GSRFile methods"""
-        gsr = GSR_File(data.ref_file("si_scf_GSR.nc"))
+        almost_equal = self.assertAlmostEqual
 
-        # Test as_dict
-        gsr.as_dict()
+        with GSR_File(data.ref_file("si_scf_GSR.nc")) as gsr:
+            print(repr(gsr))
+            print(gsr)
+            assert gsr.filepath == data.ref_file("si_scf_GSR.nc")
+            assert gsr.nsppol == 1 and gsr.nspden == 1 and gsr.nspinor == 1
+            assert gsr.mband == 8 and gsr.nband == 8 and gsr.nelect == 8 and len(gsr.kpoints) == 29
+            almost_equal(gsr.energy.to("Ha"), -8.86527676798556)
 
-        # Test pymatgen computed_entries
-        for inc_structure in (True, False):
-            e = gsr.get_computed_entry(inc_structure=False)
-            print(e)
-            print(e.as_dict())
-            assert gsr.energy == e.energy
+            # Forces and stress
+            self.assert_almost_equal(gsr.cartesian_forces.flat, 
+                [-5.98330096024095e-30, -5.64111024387213e-30, 1.49693284867669e-29,
+                  5.98330096024095e-30, 5.64111024387213e-30, -1.49693284867669e-29])
+
+            #self.assert_almost_equal(gsr.stress_tensor.flat, 
+            #    [0.000177139315441305, 0.0001771393154385, 0.000177139315437277, 
+            #     0, 0, 5.34581779880965e-15])
+            #self.assert_almost_equal(gsr.pressure, 0)
+
+            # Test as_dict
+            pprint(gsr.as_dict())
+            #import json
+            #with open("hello.json", "w") as fp:
+            #    json.dump(gsr.as_dict(), fp)
+            #assert 0
+
+            # Test pymatgen computed_entries
+            for inc_structure in (True, False):
+                e = gsr.get_computed_entry(inc_structure=False)
+                print(e)
+                print(e.as_dict())
+                assert gsr.energy == e.energy
 
 
 if __name__ == "__main__":

@@ -4,7 +4,6 @@ from __future__ import print_function, division, unicode_literals
 
 import sys
 import os
-import warnings
 import argparse
 
 from pymatgen.io.abinitio.events import EventsParser
@@ -12,49 +11,26 @@ from pymatgen.io.abinitio.abiinspect import plottable_from_outfile
 from pymatgen.io.abinitio.abitimer import AbinitTimerParser
 from abipy import abilab
 
-def str_examples():
-    examples = """
-Usage example:\n
-    abiinsp.py OUTFILE status  ==> Report the list of Warning, Commments, Errors
-    abiinsp.py OUTFILE plot    ==> Plot results of the GS Scf cycle, Phonon Scf cycle...
-    abiinsp.py OUTFILE timer   ==> Visualize timing data with matplotlib.
-"""
-    return examples
-
-
-def show_examples_and_exit(err_msg=None, error_code=1):
-    """Display the usage of the script."""
-    sys.stderr.write(str_examples())
-    if err_msg: 
-        sys.stderr.write("Fatal Error\n" + err_msg + "\n")
-
-    sys.exit(error_code)
 
 def main():
 
-    # Decorate argparse classes to add portable support for aliases in add_subparsers
-    class MyArgumentParser(argparse.ArgumentParser):
-        def add_subparsers(self, **kwargs):
-            new = super(MyArgumentParser, self).add_subparsers(**kwargs)
-            # Use my class
-            new.__class__ = MySubParserAction
-            return new
-                                                                                                                    
-    class MySubParserAction(argparse._SubParsersAction):
-        def add_parser(self, name, **kwargs):
-            """Allows one to pass the aliases option even if this version of ArgumentParser does not support it."""
-            try:
-                return super(MySubParserAction, self).add_parser(name, **kwargs)
-            except Exception as exc:
-                if "aliases" in kwargs: 
-                    # Remove aliases and try again.
-                    kwargs.pop("aliases")
-                    return super(MySubParserAction, self).add_parser(name, **kwargs)
-                else:
-                    # Wrong call.
-                    raise exc
+    def str_examples():
+        examples = """
+    Usage example:\n
+        abiinsp.py OUTFILE status  ==> Report the list of Warning, Commments, Errors
+        abiinsp.py OUTFILE plot    ==> Plot results of the GS Scf cycle, Phonon Scf cycle...
+        abiinsp.py OUTFILE timer   ==> Visualize timing data with matplotlib.
+    """
+        return examples
 
-    parser = MyArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
+
+    def show_examples_and_exit(err_msg=None, error_code=1):
+        """Display the usage of the script."""
+        sys.stderr.write(str_examples())
+        if err_msg: sys.stderr.write("Fatal Error\n" + err_msg + "\n")
+        sys.exit(error_code)
+
+    parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('filepath', nargs="?", help="File to inspect (output file or log file)")
 
