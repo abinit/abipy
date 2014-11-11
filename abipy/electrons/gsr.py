@@ -76,6 +76,21 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     def cartesian_forces(self):
         return self.reader.read_cartesian_forces()
 
+    @property
+    def max_force(self):
+        fmods = np.sqrt([np.dot(force, force) for force in self.cartesian_forces])
+        return fmods.max()
+        #return FloatWithUnit(fmods.max(), unit_type=force
+
+    def force_stats(self, **kwargs):
+        fsum = self.cartesian_forces.sum(axis=0)
+        fmods = np.sqrt([np.dot(force, force) for force in self.cartesian_forces])
+        fmods_mean, fmod_std = fmods.mean(), fmods.std()
+        imin, imax = fmods.argmin(), fmods.argmax()
+
+        #lines = []
+        #return "\n".join(lines)
+
     @lazy_property
     def cartesian_stress_tensor(self):
         return self.reader.read_cartesian_stress_tensor()
@@ -85,9 +100,6 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         HaBohr3_GPa = 29421.033 # 1 Ha/Bohr^3, in GPa
         pressure = - (HaBohr3_GPa/3) * self.cartesian_stress_tensor.trace()
         return units.FloatWithUnit(pressure, unit="GPa", unit_type="pressure")
-
-    #magnetization=gsr.magnetization,
-    #max_force=gsr.max_force,
 
     def close(self):
         self.reader.close()
@@ -135,9 +147,9 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
             number_of_electrons=self.nelect,
             final_energy=self.energy,
             final_energy_per_atom=self.energy_per_atom,
-            #magnetization=gsr.magnetization,
             #max_force=gsr.max_force,
             pressure=self.pressure,
+            #magnetization=gsr.magnetization,
             #band_gap=
             #optical_gap=
             #is_direct=
@@ -151,9 +163,6 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
             #band_gap:
             #optical_gap:
             #efermi:
-            #ionic_steps: self.ionic_steps,
-            #final_energy: self.final_energy,
-            #final_energy_per_atom: self.final_energy / nsites,
         )
 
 

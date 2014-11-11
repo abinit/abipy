@@ -85,6 +85,9 @@ class GSRFileTestCase(AbipyTest):
             #     0, 0, 5.34581779880965e-15])
             #self.assert_almost_equal(gsr.pressure, 0)
 
+            print(gsr.max_force)
+            print(gsr.force_stats())
+
             # Test as_dict
             pprint(gsr.as_dict())
             #import json
