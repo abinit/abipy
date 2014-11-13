@@ -12,7 +12,7 @@ from monty.bisect import find_le, find_ge
 from monty.pprint import pprint_table
 from six.moves import cStringIO
 from abipy.core.func1d import Function1D
-from abipy.core.kpoints import KpointList
+from abipy.core.kpoints import Kpoint, KpointList
 from abipy.iotools import AbinitNcFile, ETSF_Reader, Has_Structure, Has_ElectronBands
 from abipy.electrons.ebands import ElectronBands
 from abipy.electrons.scissors import Scissors
@@ -90,13 +90,16 @@ class QPState(namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sig
         """Ordered dictionary mapping fields --> strings."""
         d = self._asdict()
         for k, v in d.items():
-            if np.iscomplexobj(v):
+            print(type(v), v)
+            if isinstance(v, int):
+                d[k] = "%d" % v
+            elif isinstance(v, Kpoint):
+                d[k] = "%s" % v
+            elif np.iscomplexobj(v):
                 if abs(v.imag) < 1.e-3:
                     d[k] = "%.2f" % v.real
                 else:
                     d[k] = "%.2f%+.2fj" % (v.real, v.imag)
-            elif isinstance(v, int):
-                d[k] = "%d" % v
             else:
                 try:
                     d[k] = "%.2f" % v
@@ -903,11 +906,6 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         self.qpgaps = reader.read_qpgaps()
         self.qpenes = reader.read_qpenes()
         self.params = reader.read_params()
-
-    #@property
-    #def nsppol(self):
-    #    """Number of spins"""
-    #    return self.ebands.nsppol
 
     def close(self):
         """Close the netcdf file."""
