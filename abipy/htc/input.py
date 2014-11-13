@@ -1134,7 +1134,7 @@ class AnaddbInput(mixins.MappingMixin):
 
     @classmethod
     def phbands_and_dos(cls, structure, ngqpt, ndivsm, nqsmall, q1shft=(0,0,0),
-                        qptbounds=None, asr=1, chneut=0, dipdip=1, dos_method="tetra", **kwargs):
+                        qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", **kwargs):
         """
         Build an anaddb input file for the computation of phonon bands and phonon DOS.
 
@@ -1197,7 +1197,7 @@ class AnaddbInput(mixins.MappingMixin):
 
     @classmethod
     def thermo(cls, structure, ngqpt, nqsmall, q1shft=(0, 0, 0), nchan=1250, nwchan=5, thmtol=0.5,
-               ntemper = 79, temperinc = 5, tempermin = 5., asr=1, chneut=1, dipdip=1, ngrids=10, **kwargs):
+               ntemper = 79, temperinc = 5, tempermin = 5., asr=2, chneut=1, dipdip=1, ngrids=10, **kwargs):
         """
         Build an anaddb input file for the computation of phonon bands and phonon DOS.
 
@@ -1276,7 +1276,7 @@ class AnaddbInput(mixins.MappingMixin):
         return new
 
     @classmethod
-    def modes(cls, structure, enunit=2, asr=1, chneut=1, **kwargs):
+    def modes(cls, structure, enunit=2, asr=2, chneut=1, **kwargs):
         """
         Build an anaddb input file for the computation of phonon modes.
 
