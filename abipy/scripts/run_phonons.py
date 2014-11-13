@@ -78,7 +78,7 @@ def scf_ph_inputs(structure, options):
     inp.set_structure(structure)
     inp.set_variables(**global_vars)
 
-    inp[1].set_variables(tolwfr=1.0e-20, prtden=1)
+    inp[1].set_variables(tolwfr=1.0e-18, prtden=1)
 
     for i, qpt in enumerate(qpoints):
         # Response-function calculation for phonons.
