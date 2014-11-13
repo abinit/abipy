@@ -57,7 +57,7 @@ def scf_ph_inputs(structure, options):
     qpoints = np.reshape(qpoints, (-1, 3))
     qpoints = unique_rows(np.concatenate((qpoints, qptbounds), axis=0))
 
-    #qpoints = [[0.0, 0.0, 0.0]]
+    qpoints = [[0.0, 0.0, 0.0]]
 
     # Global variables used both for the GS and the DFPT run.
     global_vars = dict(ecut=16.0,
@@ -78,7 +78,7 @@ def scf_ph_inputs(structure, options):
     inp.set_structure(structure)
     inp.set_variables(**global_vars)
 
-    inp[1].set_variables(tolwfr=1.0e-20)
+    inp[1].set_variables(tolwfr=1.0e-20, prtden=1)
 
     for i, qpt in enumerate(qpoints):
         # Response-function calculation for phonons.
@@ -180,7 +180,7 @@ def build_flow(structure, workdir, options):
 
     all_inps = scf_ph_inputs(structure, options)
     scf_input, ph_inputs = all_inps[0], all_inps[1:]
-    if len(ph_inputs) == 1:
+    if False:  #len(ph_inputs) == 1:
         return abilab.phonon_flow(workdir, manager, scf_input, ph_inputs, with_nscf=False, with_ddk=True, with_dde=True)
     else:
         return abilab.phonon_flow(workdir, manager, scf_input, ph_inputs, with_nscf=True, with_ddk=False, with_dde=False)
