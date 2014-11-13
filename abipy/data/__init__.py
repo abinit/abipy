@@ -144,6 +144,10 @@ class AbinitFilesGenerator(object):
         if not hasattr(self, "pseudos") or not hasattr(self, "files_to_save"):
             raise ValueError("pseudos and files_to_save are not defined")
 
+        from monty.os.path import which
+        if which("abinit") is None:
+            raise RuntimeError("Cannot find abinit in $PATH")
+
         # Absolute path for the pseudopotentials.
         self.pseudos = [p.filepath for p in pseudos(*self.pseudos)]
         self.filesfile = "\n".join(["run.abi", "run.abo", "in", "out","tmp"] + self.pseudos)
