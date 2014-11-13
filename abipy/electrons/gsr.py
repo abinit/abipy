@@ -24,14 +24,15 @@ logger = logging.getLogger(__name__)
 
 class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     """
-    File containing the results of a Ground-state calculation.
+    File containing the results of a ground-state calculation.
 
     Usage example:
                                                                   
     .. code-block:: python
         
-        gsr = GSR_File("foo_GSR.nc")
-        gsr.ebands.plot()
+        with GSR_File("foo_GSR.nc") as gsr:
+            print("energy: ", gsr.energy)
+            gsr.ebands.plot()
     """
     @classmethod
     def from_file(cls, filepath):
@@ -41,16 +42,13 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     def __init__(self, filepath):
         super(GSR_File, self).__init__(filepath)
 
-        #with GSR_Reader(filepath) as r:
         self.reader = r = GSR_Reader(filepath)
 
         # Initialize the electron bands from file
         self._ebands = r.read_ebands()
 
-        #self.cartesian_forces = r.read_cartesian_forces()
-        #self.cartesian_stress_tensor = r.read_cartesian_stress_tensor()
-        #self.structure.set_forces()
-        #self.structure.set_stress(r.read_stress())
+        # Add forces to structure
+        self.structure.add_site_property("cartesian_forces", self.cartesian_forces)
 
     @property
     def ebands(self):
@@ -73,6 +71,10 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         return self.energy / len(self.structure)
 
     @lazy_property
+    def energy_terms(self):
+        return self.reader.read_energy_terms()
+
+    @lazy_property
     def cartesian_forces(self):
         return self.reader.read_cartesian_forces()
 
@@ -80,7 +82,6 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     def max_force(self):
         fmods = np.sqrt([np.dot(force, force) for force in self.cartesian_forces])
         return fmods.max()
-        #return FloatWithUnit(fmods.max(), unit_type=force
 
     def force_stats(self, **kwargs):
         fsum = self.cartesian_forces.sum(axis=0)
@@ -95,11 +96,16 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     def cartesian_stress_tensor(self):
         return self.reader.read_cartesian_stress_tensor()
 
-    @property 
+    @lazy_property 
     def pressure(self):
         HaBohr3_GPa = 29421.033 # 1 Ha/Bohr^3, in GPa
         pressure = - (HaBohr3_GPa/3) * self.cartesian_stress_tensor.trace()
         return units.FloatWithUnit(pressure, unit="GPa", unit_type="pressure")
+
+    @lazy_property
+    def residm(self):
+        """Maximum of the residuals"""
+        return self.read_value("residm")
 
     def close(self):
         self.reader.close()
@@ -145,7 +151,6 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
             structure=self.structure.as_dict(),
             final_energy=self.energy,
             final_energy_per_atom=self.energy_per_atom,
-            #forces:
             #max_force=gsr.max_force,
             cartesian_stress_tensor=self.cartesian_stress_tensor,
             pressure=self.pressure,
@@ -166,9 +171,8 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
 
 class EnergyTerms(AttrDict):
-    """
-    Contributions to the total energy. See energies_type in m_energies.F90
-    """
+    """Contributions to the total GS energy. See energies_type in m_energies.F90"""
+
     _NAME2DOC = OrderedDict([
         # (Name, help)
         ("e_localpsp", "Local psp energy (hartree)"),
@@ -245,12 +249,10 @@ class GSR_Reader(ElectronsReader):
         return tensor
 
     def read_energy_terms(self):
-        d = {k: self.read_value(k) for k in EnergyTerms.ALL_KEYS}
-        return EnergyTerms(**d)
+        convert = lambda e: Energy(e, unit="Ha").to("eV")
+        d = {k: convert(self.read_value(k)) for k in EnergyTerms.ALL_KEYS}
 
-    #def read_residuals(self):
-    #    """Return the residuals."""
-    #    return self.read_value("residm")
+        return EnergyTerms(**d)
 
 
 class GSR_Plotter(Iterable):
