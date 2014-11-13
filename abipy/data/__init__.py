@@ -71,10 +71,11 @@ def find_ncfiles(top):
                     err_msg += "Stored: %s, new %s\n" % (ncfiles[basename], apath)
 
                     if not SILENT:
+                        import warnings
+                        warnings.warn(err_msg)
+                        raise ValueError(err_msg)
                         SILENT += 1
-                        #import warnings
-                        #warnings.warn(err_msg)
-                        #raise ValueError(err_msg)
+
                 else:
                     ncfiles[basename] = apath 
 
