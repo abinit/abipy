@@ -20,6 +20,25 @@ def unique_rows(a):
     return unique_a.view(a.dtype).reshape((unique_a.shape[0], a.shape[1]))
 
 
+def to_vec(var_dict, var):
+    """
+    turn the entry var in the dictionary var_dict into an vector length 3
+    """
+    tmp = var_dict[var]
+    tmp = 3*[tmp] if not isinstance(tmp, (list, tuple)) else tmp
+    var_dict[var] = tmp
+
+
+def to_vecs(var_dict):
+    """
+    turn the items in list into vectors if they are present
+    """
+    vec_list = ['ngkpt', 'acell']
+    for var in vec_list:
+        if var in var_dict.keys():
+            to_vec(var_dict, var)
+
+
 def scf_ph_inputs(structure, options):
     """
     This function constructs the input files for the phonon calculation: 
@@ -69,9 +88,7 @@ def scf_ph_inputs(structure, options):
 
     global_vars.update(options)
 
-    ngkpt = global_vars['ngkpt']
-    ngkpt = 3*[ngkpt] if not isinstance(ngkpt, list) else ngkpt
-    global_vars['ngkpt'] = ngkpt
+    to_vecs(global_vars)
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=1+len(qpoints))
 
@@ -196,7 +213,7 @@ class NotReady(Exception):
 def main():
 
     cifs = [f for f in os.listdir('.') if f.endswith('cif')]
-    convtests = {'ecut': [16], 'ngkpt': [8]} #, 'sizes': [0.96, 0.98, 1.0, 1.02, 1.04]}
+    convtests = {'ecut': [16], 'ngkpt': [8], 'acell': [1.0]}
 
     for cif in cifs:
         structure = Structure.from_file(cif)
