@@ -7,8 +7,9 @@ import abipy.data as abidata
 def gs_input(x=0.7):
     # H2 molecule in a big box
     # TODO
-    #inp = abilab.AbiInput(pseudos=abidata.pseudos("01h.pspgth"))
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("01H.revPBEx.fhi"))
+    inp = abilab.AbiInput(pseudos=abidata.pseudos("01h.pspgth"))
+    #print("pseudos", inp.pseudos[1])
+    #inp = abilab.AbiInput(pseudos=abidata.pseudos("01H.revPBEx.fhi"))
     structure = abilab.Structure.from_abivars(dict(
         ntypat=1,  
         znucl=1,
@@ -56,19 +57,18 @@ def scf_manual():
 
     table = abilab.PrettyTable(["length", "energy"])
     for task in flow.iflat_tasks():
-        gsr = task.read_gsr()
-        structure = gsr.structure
-        cart_coords = structure.cart_coords
-        l = np.sqrt(np.linalg.norm(cart_coords[1] - cart_coords[0]))
-        table.add_row([l, gsr.energy])
+        with task.read_gsr() as gsr:
+            cart_coords = gsr.structure.cart_coords
+            l = np.sqrt(np.linalg.norm(cart_coords[1] - cart_coords[0]))
+            table.add_row([l, gsr.energy])
 
     print(table)
     table.plot(title="Etotal vs interatomic distance")
 
     # Quadratic fit
-    #a, b, c = np.polyfit(lengths, energies, 2)
-    #d0 = -b/(2*a)
-    #a*d0**2 + b*d0 + c
+    fit = table.quadfit()
+    print(fit)
+    #fit.plot()
 
 
 if __name__ == "__main__":

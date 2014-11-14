@@ -75,9 +75,10 @@ def relax_flow():
     table = PrettyTable(["nkibz", "abc", "angles", "volume"])
 
     for task in flow[0]:
-        gsr = task.read_gsr()
-        lattice = gsr.structure.lattice
-        table.add_row([len(gsr.kpoints), lattice.abc[0], lattice.angles[0], lattice.volume])
+        with task.read_gsr() as gsr:
+            lattice = gsr.structure.lattice
+            table.add_row([len(gsr.kpoints), lattice.abc[0], lattice.angles[0], lattice.volume])
+
     print(table)
 
 def bands_flow():
@@ -104,8 +105,8 @@ def bands_flow():
     flow.show_status()
     
     nscf_task = flow[0][1]
-    gsr = nscf_task.read_gsr()
-    gsr.ebands.plot()
+    with nscf_task.read_gsr() as gsr:
+        gsr.ebands.plot()
 
 
 if __name__ == "__main__":

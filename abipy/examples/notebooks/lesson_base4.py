@@ -58,13 +58,12 @@ def relax_flow():
 
     #table = abilab.PrettyTable(["nkibz", "etotal"])
     gs_task = flow[0][0]
-    gsr = gs_task.read_gsr()
-
-    print("input structure:\n", structure)
-    print("relaxed structure:\n", gsr.structure)
-    # TODO
-    #print(gsr.energy_components)
-    #return gsr
+    with gs_task.read_gsr() as gsr:
+        print("input structure:\n", structure)
+        print("relaxed structure:\n", gsr.structure)
+        # TODO
+        #print(gsr.energy_components)
+        #return gsr
 
 def convergence():
     tsmear_list = [0.01, 0.02, 0.03, 0.04]
@@ -72,7 +71,7 @@ def convergence():
 
     work = abilab.Workflow()
 
-    # Cartesian product of input iterables.  Equivalent to nested for-loops.
+    # Cartesian product of input iterables. Equivalent to nested for-loops.
     from itertools import product
     for tsmear, nksmall in product(tsmear_list, nksmall_list):
         inp = relax_input(tsmear, nksmall)
@@ -93,26 +92,25 @@ def convergence():
 
     rows = []
     for task in flow.iflat_tasks():
-        gsr = task.read_gsr()
-        info = task.user_info
-        a = gsr.structure.lattice.abc[0]
-        nkibz = len(gsr.ebands.kpoints)
-        data = dict(tsmear=info.tsmear, nksmall=info.nksmall, a=a, nkibz=nkibz)
-        rows.append(data)
+        with task.read_gsr() as gsr:
+            info = task.user_info
+            a = gsr.structure.lattice.abc[0]
+            nkibz = len(gsr.kpoints)
+            data = dict(tsmear=info.tsmear, nksmall=info.nksmall, a=a, nkibz=nkibz)
+            rows.append(data)
 
     import pandas as pd
     import matplotlib.pyplot as plt
-    #dframe = pd.DataFrame()
-    #dframe = pd.DataFrame(rows, index=names, columns=data.keys())
-    dframe = pd.DataFrame(rows, columns=data.keys())
-    print(dframe)
+    #df = pd.DataFrame(rows, index=names, columns=data.keys())
+    df = pd.DataFrame(rows, columns=data.keys())
+    print(df)
 
-    g = dframe.groupby("tsmear")
+    g = df.groupby("tsmear")
     print(g.describe())
     #g.plot()
     #plt.show()
 
-    g = dframe.groupby("nkibz")
+    g = df.groupby("nkibz")
     print(g.describe())
     #g.plot()
     #plt.show()
