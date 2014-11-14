@@ -1204,7 +1204,8 @@ class FlowsDatabase(collections.MutableMapping):
         print("Uploading %s to %s:%s" % (script, hostname, script_rpath))
         sftp = cluster.sftp
         sftp.put(localpath=script, remotepath=script_rpath, confirm=True)
-        sftp.chmod(script_rpath, mode=0700)
+        raise NotImplementedError("mode=0700")
+        #sftp.chmod(script_rpath, mode=0700)
         #sftp.close()
 
         # Start a shell on the remote host and run the script to build the flow.

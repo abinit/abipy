@@ -70,7 +70,7 @@ def build_flow(options):
     # there's a node who needs a file produced in the future.
     work = abilab.Workflow()
 
-    f = "./data_si_ebands/outdata/si_DEN-etsf.nc"
+    f = abidata.ref_file("si_DEN-etsf.nc")
     work.register(nscf_input, required_files=f)
     print(work[0].required_files)
 
