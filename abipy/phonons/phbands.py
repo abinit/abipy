@@ -5,6 +5,7 @@ import functools
 import collections
 import numpy as np
 
+from monty.functools import lazy_property
 from abipy.iotools import ETSF_Reader, AbinitNcFile, Has_Structure, Has_PhononBands
 from abipy.core.kpoints import Kpoint
 from abipy.tools import gaussian
@@ -530,11 +531,8 @@ class PhononBands(object):
 
             self.plot_width_ax(ax, key, fact=fact)
 
-        if show:
-            plt.show()
-
-        if savefig is not None:
-            fig.savefig(savefig)
+        if show: plt.show()
+        if savefig is not None: fig.savefig(savefig)
 
         return fig
 
@@ -694,14 +692,9 @@ class PhononBands(object):
             if ylim is not None:
                 ax.set_ylim(ylim)
 
-        if title is not None:
-            fig.suptitle(title)
-
-        if show:
-            plt.show()
-
-        if savefig is not None:
-            fig.savefig(savefig)
+        if title is not None: fig.suptitle(title)
+        if show: plt.show()
+        if savefig is not None: fig.savefig(savefig)
 
         return fig
 
@@ -764,16 +757,12 @@ class PhononBands(object):
         ax2.yaxis.set_ticks_position("right")
         ax2.yaxis.set_label_position("right")
 
-        if show:
-            plt.show()
+        if show: plt.show()
 
         fig = plt.gcf()
 
-        if title:
-            fig.suptitle(title)
-
-        if savefig is not None:
-            fig.savefig(savefig)
+        if title: fig.suptitle(title)
+        if savefig is not None: fig.savefig(savefig)
 
         return fig
 
@@ -813,6 +802,8 @@ class PHBST_File(AbinitNcFile, Has_Structure, Has_PhononBands):
         """
         super(PHBST_File, self).__init__(filepath)
 
+        self.reader = PHBST_Reader(filepath)
+
         # Initialize Phonon bands
         self._phbands = PhononBands.from_file(filepath)
 
@@ -825,6 +816,9 @@ class PHBST_File(AbinitNcFile, Has_Structure, Has_PhononBands):
     def phbands(self):
         """`PhononBands` object"""
         return self._phbands
+
+    def close(self):
+        self.reader.close()
 
     #def __str__(self):
     #    return self.tostring()

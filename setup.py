@@ -72,21 +72,21 @@ except ImportError:
 ext_modules = []
 
 # Disable cython for the time being.
-with_cython = False
-if with_cython:
-    import numpy as np
-    #define_macros = [("CYTHON_TRACE", "1")]
-    ext_modules += [
-        Extension("abipy.extensions.klib", ["abipy/extensions/klib.pyx"], include_dirs=[np.get_include()])
-    ]
-    cmdclass.update({'build_ext': build_ext})
+with_cexts = False
+if with_cexts:
+    with_cython = False
+    if with_cython:
+        import numpy as np
+        #define_macros = [("CYTHON_TRACE", "1")]
+        ext_modules += [
+            Extension("abipy.extensions.klib", ["abipy/extensions/klib.pyx"], include_dirs=[np.get_include()])
+        ]
+        cmdclass.update({'build_ext': build_ext})
 
-else:
-    ext_modules += [
-        Extension("abipy.extensions.klib", ["abipy/extensions/klib.c"], include_dirs=[np.get_include()])
-    ]
-
-ext_modules = []
+    else:
+        ext_modules += [
+            Extension("abipy.extensions.klib", ["abipy/extensions/klib.c"], include_dirs=[np.get_include()])
+        ]
 
 #-------------------------------------------------------------------------------
 # Useful globals and utility functions

@@ -8,6 +8,7 @@ import numpy as np
 from collections import namedtuple, OrderedDict, Iterable, defaultdict
 from monty.string import list_strings, is_string
 from monty.collections import  AttrDict
+from monty.functools import lazy_property
 from monty.bisect import find_le, find_ge 
 from monty.pprint import pprint_table
 from six.moves import cStringIO
@@ -90,7 +91,6 @@ class QPState(namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sig
         """Ordered dictionary mapping fields --> strings."""
         d = self._asdict()
         for k, v in d.items():
-            print(type(v), v)
             if isinstance(v, int):
                 d[k] = "%d" % v
             elif isinstance(v, Kpoint):
@@ -285,11 +285,8 @@ class QPList(list):
             ax_list[-1].plot([0,1], [0,1], lw=0)
             ax_list[-1].axis('off')
 
-        if show:
-            plt.show()
-
-        if savefig is not None:
-            fig.savefig(savefig)
+        if show: plt.show()
+        if savefig is not None: fig.savefig(savefig)
 
         return fig
 
@@ -485,11 +482,8 @@ class Sigmaw(object):
 
             self.plot_ax(ax, w=w, **kwargs)
 
-        if show:
-            plt.show()
-
-        if savefig is not None:
-            fig.savefig(savefig)
+        if show: plt.show()
+        if savefig is not None: fig.savefig(savefig)
 
         return fig
 
@@ -921,14 +915,10 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         """`ElectronBands` with the KS energies."""
         return self._ebands
 
-    @property
+    @lazy_property
     def qplist_spin(self):
         """Tuple of QPList objects indexed by spin."""
-        try:
-            return self._qplist_spin
-        except AttributeError:
-            self._qplist_spin = self.reader.read_allqps()
-            return self._qplist_spin
+        return self.reader.read_allqps()
 
     def get_qplist(self, spin, kpoint):
         return self.reader.read_qplist_sk(spin, kpoint)
@@ -1043,9 +1033,6 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     #    matrix = self.reader.read_mlda_to_qps(spin, kpoint)
     #    return plot_matrix(matrix, *args, **kwargs)
 
-
-#class SIGRES_Merger(object):
-#    """This object merges multiple SIGRES files."""
 
 
 class SIGRES_Reader(ETSF_Reader):

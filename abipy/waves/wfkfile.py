@@ -4,6 +4,7 @@ from __future__ import print_function, division, unicode_literals
 import six
 import numpy as np
 
+from monty.functools import lazy_property
 from abipy.core import Mesh3D, GSphere, Structure
 from abipy.iotools import ETSF_Reader, Visualizer, AbinitNcFile, Has_Structure, Has_ElectronBands
 from abipy.electrons import ElectronsReader
@@ -264,18 +265,14 @@ class WFK_Reader(ElectronsReader):
         else:
             raise NotImplementedError("")
 
-    @property
+    @lazy_property
     def basis_set(self):
         """String defining the basis set."""
-        try:
-            return self._basis_set
-        except AttributeError:
-            basis_set = self.read_value("basis_set")
-            if six.PY2:
-                self._basis_set = "".join(basis_set).strip()
-            else:
-                self._basis_set = "".join(str(basis_set, encoding='UTF-8')).strip()
-            return self._basis_set
+        basis_set = self.read_value("basis_set")
+        if six.PY2:
+            return "".join(basis_set).strip()
+        else:
+            return "".join(str(basis_set, encoding='UTF-8')).strip()
 
     @property
     def has_pwbasis_set(self):

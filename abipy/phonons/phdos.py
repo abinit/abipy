@@ -4,6 +4,7 @@ from __future__ import print_function, division, unicode_literals
 import collections
 import numpy as np
 
+from monty.functools import lazy_property
 from abipy.core.func1d import Function1D
 from abipy.iotools import ETSF_Reader, AbinitNcFile, Has_Structure
 
@@ -96,23 +97,18 @@ class PhononDOS(object):
             ax.grid(True)
 
         ax2.set_xlabel('Energy [eV]')
-
         ax1.set_ylabel("IDOS")
         ax2.set_ylabel("DOS")
 
-        if title:
-            ax1.set_title(title)
+        if title: ax1.set_title(title)
 
         self.plot_ax(ax1, what="i", *args, **kwargs)
         self.plot_ax(ax2, what="d", *args, **kwargs)
 
-        if show:
-            plt.show()
+        if show: plt.show()
 
         fig = plt.gcf()
-
-        if savefig is not None:
-            fig.savefig(savefig)
+        if savefig is not None: fig.savefig(savefig)
 
         return fig
 
@@ -200,14 +196,15 @@ class PHDOS_File(AbinitNcFile, Has_Structure):
         super(PHDOS_File, self).__init__(filepath)
 
         pjdos_type_dict = collections.OrderedDict()
-        with PHDOS_Reader(filepath) as r:
-            self._structure = r.structure
-            self.wmesh = r.wmesh
-            self.phdos = r.read_phdos()
+        self.reader = r = PHDOS_Reader(filepath)
 
-            for symbol in r.chemical_symbols:
-                #print(symbol, ncdata.typeidx_from_symbol(symbol))
-                pjdos_type_dict[symbol] = r.read_pjdos_type(symbol)
+        self._structure = r.structure
+        self.wmesh = r.wmesh
+        self.phdos = r.read_phdos()
+
+        for symbol in r.chemical_symbols:
+            #print(symbol, ncdata.typeidx_from_symbol(symbol))
+            pjdos_type_dict[symbol] = r.read_pjdos_type(symbol)
 
         self.pjdos_type_dict = pjdos_type_dict
 
@@ -215,6 +212,9 @@ class PHDOS_File(AbinitNcFile, Has_Structure):
     def structure(self):
         """Returns the `Structure` object."""
         return self._structure
+
+    def close(self):
+        self.reader.close()
 
     def plot_pjdos_type(self, colormap="jet", **kwargs):
         """
@@ -258,8 +258,7 @@ class PHDOS_File(AbinitNcFile, Has_Structure):
         ax.set_xlabel('Frequency [eV]')
         ax.set_ylabel('PJDOS [states/eV]')
 
-        if title:
-            ax.set_title(title)
+        if title: ax.set_title(title)
 
         # Type projected DOSes.
         num_plots = len(self.pjdos_type_dict)
@@ -279,10 +278,7 @@ class PHDOS_File(AbinitNcFile, Has_Structure):
 
         ax.legend(loc="best")
 
-        if show:
-            plt.show()
-
-        if savefig is not None:
-            fig.savefig(savefig)
+        if show: plt.show()
+        if savefig is not None: fig.savefig(savefig)
 
         return fig

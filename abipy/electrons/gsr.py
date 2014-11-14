@@ -248,8 +248,11 @@ class GSR_Reader(ElectronsReader):
             tensor[j,i] = c[3+p] 
         return tensor
 
-    def read_energy_terms(self):
-        convert = lambda e: Energy(e, unit="Ha").to("eV")
+    def read_energy_terms(self, unit="eV"):
+        """
+        Return a dictionary of `Energies` with the different contributions to the total electronic energy.
+        """
+        convert = lambda e: units.Energy(e, unit="Ha").to(unit)
         d = {k: convert(self.read_value(k)) for k in EnergyTerms.ALL_KEYS}
 
         return EnergyTerms(**d)

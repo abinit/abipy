@@ -8,6 +8,7 @@ import collections
 import numpy as np
 
 from monty.string import is_string
+from monty.functools import lazy_property
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList
 from abipy.iotools import ETSF_Reader, AbinitNcFile, Has_Structure
@@ -394,7 +395,6 @@ class MDF_File(AbinitNcFile, Has_Structure):
 
     def get_mdf(self, mdf_type="exc"):
         """"Returns the macroscopic dielectric function."""
-
         d = {"exc": self.exc_mdf,
              "rpa": self.rpanlf_mdf,
              "gwrpa": self.gwnlf_mdf}
@@ -458,7 +458,7 @@ class MDF_File(AbinitNcFile, Has_Structure):
 
     def get_tensor(self, mdf_type="exc"):
         """Get the macroscopic dielectric tensor from the MDF."""
-        return DielectricTensor(self.get_mdf(mdf_type), self._structure)
+        return DielectricTensor(self.get_mdf(mdf_type), self.structure)
         
 
 # TODO
@@ -478,26 +478,18 @@ class MDF_Reader(ETSF_Reader):
     def structure(self):
         return self._structure
 
-    @property
+    @lazy_property
     def qpoints(self):
         """List of q-points (ndarray)."""
-        try:
-            return self._qpoints
-        except AttributeError:
-            # Read the fractional coordinates and convert them to KpointList.
-            frac_coords = self.read_value("qpoints")
-            #self._qpoints = frac_coords
-            self._qpoints = KpointList(self.structure.reciprocal_lattice, frac_coords)
-            return self._qpoints
+        # Read the fractional coordinates and convert them to KpointList.
+        frac_coords = self.read_value("qpoints")
+        #self._qpoints = frac_coords
+        return KpointList(self.structure.reciprocal_lattice, frac_coords)
 
-    @property
+    @lazy_property
     def wmesh(self):
         """The frequency mesh in eV."""
-        try:
-            return self._wmesh
-        except AttributeError:
-            self._wmesh = self.read_value("wmesh")
-            return self._wmesh
+        return self.read_value("wmesh")
 
     def read_run_params(self):
         """Dictionary with the parameters of the run."""
