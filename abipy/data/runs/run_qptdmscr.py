@@ -123,7 +123,7 @@ def qptdm_flow(options):
     gs, nscf, scr_input, sigma_input = all_inputs()
 
     # Construct the flow.
-    return abilab.G0W0WithQptdmFlow(workdir, manager, gs, nscf, scr_input, sigma_input)
+    return abilab.G0W0WithQptdmFlow(workdir, gs, nscf, scr_input, sigma_input, manager=manager)
 
 
 @abilab.flow_main

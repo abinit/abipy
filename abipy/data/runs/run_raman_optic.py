@@ -81,7 +81,7 @@ def raman_flow(options):
     shell_manager = manager.to_shell_manager(mpi_procs=1)
     ddk_manager = manager.deepcopy()
 
-    flow = abilab.AbinitFlow(workdir, manager)
+    flow = abilab.AbinitFlow(workdir, manager=manager)
 
     # Generate the different shifts to average
     ndiv = 1

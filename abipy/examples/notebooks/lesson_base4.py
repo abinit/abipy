@@ -47,7 +47,7 @@ def relax_flow():
     work = abilab.Workflow()
     work.register_relax_task(inp)
 
-    flow = abilab.AbinitFlow(workdir="flow_al_relax", manager=abilab.TaskManager.from_user_config())
+    flow = abilab.AbinitFlow(workdir="flow_al_relax")
     flow.register_work(work)
     flow.allocate()
     flow.build()
@@ -78,7 +78,7 @@ def convergence():
         task = work.register_relax_task(inp)
         task.set_user_info(tsmear=tsmear, nksmall=nksmall)
 
-    flow = abilab.AbinitFlow(workdir="flow_al_conv_relax", manager=abilab.TaskManager.from_user_config())
+    flow = abilab.AbinitFlow(workdir="flow_al_conv_relax",)
     flow.register_work(work)
     flow.allocate()
     flow.build()

@@ -92,7 +92,7 @@ def build_flow(options):
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = inp.split_datasets()
 
     # Initialize the flow.
-    flow = abilab.AbinitFlow(workdir, manager)
+    flow = abilab.AbinitFlow(workdir=workdir, manager=manager)
 
     bands_work = abilab.BandStructureWorkflow(scf_inp, nscf_inp)
     flow.register_work(bands_work)

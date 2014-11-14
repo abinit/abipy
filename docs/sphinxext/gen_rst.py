@@ -38,15 +38,17 @@ def generate_example_rst(app):
                  or fname.startswith('_') or not fname.endswith('.py') ): continue
 
             fullpath = os.path.join(root,fname)
-            contents = file(fullpath).read()
+            with open(fullpath, "r") as f:
+                contents = f.read()
             # indent
             relpath = os.path.split(root)[-1]
             datad.setdefault(relpath, []).append((fullpath, fname, contents))
 
-    subdirs = datad.keys()
-    subdirs.sort()
+    subdirs = sorted(datad.keys())
+    #subdirs.sort()
 
-    fhindex = file(os.path.join(exampledir, 'index.rst'), 'w')
+    fhindex = open(os.path.join(exampledir, 'index.rst'), 'w')
+
     fhindex.write("""\
 .. _examples-index:
 
@@ -78,7 +80,7 @@ Abipy Examples
             os.makedirs(outputdir)
 
         subdirIndexFile = os.path.join(rstdir, 'index.rst')
-        fhsubdirIndex = file(subdirIndexFile, 'w')
+        fhsubdirIndex = open(subdirIndexFile, 'w')
         fhindex.write('    %s/index.rst\n\n'%subdir)
 
         fhsubdirIndex.write("""\
@@ -157,8 +159,7 @@ Abipy Examples
         fhsubdirIndex.close()
 
     fhindex.close()
-
-    print
+    print("")
 
 def setup(app):
     app.connect('builder-inited', generate_example_rst)

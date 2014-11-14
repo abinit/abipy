@@ -79,7 +79,7 @@ def build_flow(options):
     manager = abilab.TaskManager.from_user_config() if not options.manager else \
               abilab.TaskManager.from_file(options.manager)
 
-    flow = abilab.AbinitFlow(workdir, manager)
+    flow = abilab.AbinitFlow(workdir=workdir, manager=manager)
 
     # Create the workflow for the band structure calculation.
     structure = data.structure_from_ucell("NiO")

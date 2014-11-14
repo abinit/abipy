@@ -62,7 +62,7 @@ def build_flow(options):
     scf_input, nscf_input = make_scf_nscf_inputs()
 
     # Build the flow.
-    flow = abilab.AbinitFlow(workdir, manager)
+    flow = abilab.AbinitFlow(workdir=workdir, manager=manager)
 
     # Create a Workflow, all tasks in work will read the file f
     # Note that the file must exist when the workflow is created

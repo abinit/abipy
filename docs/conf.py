@@ -18,8 +18,8 @@ import os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
-sys.path.insert(0, os.path.abspath('sphinxext'))
-#sys.path.insert(0, os.path.dirname('../abipy'))
+#sys.path.insert(0, os.path.abspath('sphinxext'))
+sys.path.append(os.path.abspath('sphinxext'))
 
 import imp
 mod_name = "../abipy/core/release.py"
@@ -50,18 +50,20 @@ extensions = [
 
 # Add any Sphinx extension module names here, as strings. They can
 # be extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
+import matplotlib #.sphinxext
 extensions += [
           'matplotlib.sphinxext.mathmpl',
           'matplotlib.sphinxext.only_directives',
           'matplotlib.sphinxext.plot_directive',
           'IPython.sphinxext.ipython_directive',
-          'IPython.sphinxext.ipython_console_highlighting',
+          #'IPython.sphinxext.ipython_console_highlighting',
           # MG deprecated but we continue using it
           #'ipython_directive',               
           #'ipython_console_highlighting',
           'numpydoc',
           'gen_rst',
-          'sphinxcontrib.autorun',
+          # This does not work with py3k
+          #'sphinxcontrib.autorun',
           #'gen_gallery',  Generate gallery of PICS a la' matplotlib.
           ]
 

@@ -27,7 +27,7 @@ def build_flow(options):
     # Initialize the flow.
     # FIXME
     # Don't know why protocol=-1 does not work here.
-    flow = abilab.AbinitFlow(workdir, manager) #, pickle_protocol=0)
+    flow = abilab.AbinitFlow(workdir=workdir, manager=manager) #, pickle_protocol=0)
 
     scf_kppa = 10
     nscf_nband = 10

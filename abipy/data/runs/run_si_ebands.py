@@ -64,7 +64,7 @@ def build_flow(options):
     scf_input, nscf_input = make_scf_nscf_inputs()
 
     # Build the flow.
-    return abilab.bandstructure_flow(workdir, manager, scf_input, nscf_input)
+    return abilab.bandstructure_flow(workdir, scf_input, nscf_input, manager=manager)
     
 
 @abilab.flow_main

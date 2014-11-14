@@ -26,7 +26,7 @@ def build_flow(options):
     #if workdir is None:
     #    workdir = os.path.join(os.path.dirname(__file__), base_structure.formula.replace(" ","") + "_RAMAN")
                                                                                                                  
-    flow = abilab.AbinitFlow(workdir, manager)
+    flow = abilab.AbinitFlow(workdir, manager=manager)
 
     pseudos = data.pseudos("14si.pspnc")
 

@@ -9,7 +9,6 @@ def gs_input(x=0.7):
     # TODO
     inp = abilab.AbiInput(pseudos=abidata.pseudos("01h.pspgth"))
     #print("pseudos", inp.pseudos[1])
-    #inp = abilab.AbiInput(pseudos=abidata.pseudos("01H.revPBEx.fhi"))
     structure = abilab.Structure.from_abivars(dict(
         ntypat=1,  
         znucl=1,
@@ -45,9 +44,8 @@ def scf_manual():
         inp = gs_input(x)
         #print(inp)
         work.register_scf_task(inp)
-    #return
 
-    flow = abilab.AbinitFlow(workdir="flow_h", manager=abilab.TaskManager.from_user_config())
+    flow = abilab.AbinitFlow(workdir="flow_h")
     flow.register_work(work)
     flow.allocate()
     flow.build()

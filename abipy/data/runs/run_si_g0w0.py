@@ -117,7 +117,7 @@ def build_flow(options):
     # Change the value of ngkpt below to perform a GW calculation with a different k-mesh.
     scf, nscf, scr, sig1, sig2, sig3 = make_inputs(ngkpt=[2,2,2])
 
-    return abilab.g0w0_flow(workdir, manager, scf, nscf, scr, [sig1, sig2, sig3])
+    return abilab.g0w0_flow(workdir, scf, nscf, scr, [sig1, sig2, sig3], manager=manager)
 
 
 @abilab.flow_main

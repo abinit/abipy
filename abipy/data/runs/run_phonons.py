@@ -85,7 +85,7 @@ def build_flow(options):
     all_inps = scf_ph_inputs()
     scf_input, ph_inputs = all_inps[0], all_inps[1:]
 
-    return abilab.phonon_flow(workdir, manager, scf_input, ph_inputs)
+    return abilab.phonon_flow(workdir, scf_input, ph_inputs, manager=manager)
 
 
 @abilab.flow_main

@@ -21,7 +21,7 @@ def ngkpt_flow():
     for dataset in inp.split_datasets():
         work.register_scf_task(dataset)
 
-    flow = abilab.AbinitFlow(workdir="flow_ngkpt", manager=abilab.TaskManager.from_user_config())
+    flow = abilab.AbinitFlow(workdir="flow_ngkpt")
     flow.register_work(work)
     flow.allocate()
     flow.build()
@@ -64,7 +64,7 @@ def relax_flow():
         #print(dataset)
         work.register_relax_task(dataset)
 
-    flow = abilab.AbinitFlow(workdir="flow_relax", manager=abilab.TaskManager.from_user_config())
+    flow = abilab.AbinitFlow(workdir="flow_relax"))
     flow.register_work(work)
     flow.allocate()
     flow.build()
@@ -98,7 +98,7 @@ def bands_flow():
 
     scf_input, nscf_input = inp.split_datasets()
 
-    flow = abilab.bandstructure_flow(workdir="flow_bands", manager=abilab.TaskManager.from_user_config(), scf_input=scf_input, nscf_input=nscf_input)
+    flow = abilab.bandstructure_flow(workdir="flow_bands", scf_input=scf_input, nscf_input=nscf_input)
     flow.build_and_pickle_dump()
 
     flow.make_scheduler().start()
