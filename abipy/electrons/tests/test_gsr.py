@@ -95,7 +95,7 @@ class GSRFileTestCase(AbipyTest):
             #  sigma(1 1)=  1.77139311E-04  sigma(3 2)=  0.00000000E+00
             #  sigma(2 2)=  1.77139311E-04  sigma(3 1)=  0.00000000E+00
             #  sigma(3 3)=  1.77139311E-04  sigma(2 1)=  2.67294316E-15
-            self.assert_almost_equal(gsr.pressure, -5.21162150)
+            almost_equal(gsr.pressure, -5.21162150)
 
             print(gsr.max_force)
             print(gsr.force_stats())
