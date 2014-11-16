@@ -32,12 +32,9 @@ def is_integer(x, atol=_ATOL_KDIFF):
     """
     True if all x is integer within the absolute tolerance atol.
 
-    >>> is_integer([1., 2.])
-    True
-    >>> is_integer(1.01, atol=0.011)
-    True
-    >>> is_integer([1.01, 2])
-    False
+    >>> assert is_integer([1., 2.])
+    >>> assert is_integer(1.01, atol=0.011)
+    >>> assert is_integer([1.01, 2])
     """
     int_x = np.around(x)
     return np.allclose(int_x, x, atol=atol)
@@ -53,12 +50,9 @@ def issamek(k1, k2, atol=1e-08):
 
     Examples
 
-    >>> issamek([1,1,1], [0,0,0])
-    True
-    >>> issamek([1.1,1,1], [0,0,0], atol=0.1)
-    True
-    >>> issamek(0.00003, 1)
-    False
+    >>> assert issamek([1,1,1], [0,0,0])
+    >>> assert issamek([1.1,1,1], [0,0,0], atol=0.1)
+    >>> assert not issamek(0.00003, 1)
     """
     return is_integer(np.asarray(k1)-np.asarray(k2), atol=atol)
 

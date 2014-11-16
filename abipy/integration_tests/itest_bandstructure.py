@@ -64,7 +64,7 @@ def itest_unconverged_scf(fwp, tvars):
     scf_input, nscf_input = make_scf_nscf_inputs(tvars, pp_paths="14si.pspnc", nstep=1)
 
     # Build the flow and create the database.
-    flow = abilab.bandstructure_flow(fwp.workdir, fwp.manager, scf_input, nscf_input)
+    flow = abilab.bandstructure_flow(fwp.workdir, scf_input, nscf_input, manager=fwp.manager)
 
     flow.allocate()
     flow.build_and_pickle_dump()
@@ -122,7 +122,7 @@ def itest_bandstructure_flow(fwp, tvars):
     scf_input, nscf_input = make_scf_nscf_inputs(tvars, pp_paths="14si.pspnc")
 
     # Build the flow and create the database.
-    flow = abilab.bandstructure_flow(fwp.workdir, fwp.manager, scf_input, nscf_input)
+    flow = abilab.bandstructure_flow(fwp.workdir, scf_input, nscf_input, manager=fwp.manager)
 
     flow.build_and_pickle_dump()
 
@@ -210,7 +210,7 @@ def itest_bandstructure_schedflow(fwp, tvars):
     scf_input, nscf_input = make_scf_nscf_inputs(tvars, pp_paths="Si.GGA_PBE-JTH-paw.xml")
 
     # Build the flow and create the database.
-    flow = abilab.bandstructure_flow(fwp.workdir, fwp.manager, scf_input, nscf_input)
+    flow = abilab.bandstructure_flow(fwp.workdir, scf_input, nscf_input, manager=fwp.manager)
 
     flow.build_and_pickle_dump()
 

@@ -107,7 +107,7 @@ def itest_g0w0_flow(fwp, tvars):
     """Test flow for G0W0 calculations."""
     scf, nscf, scr, sig = make_g0w0_inputs(ngkpt=[2, 2, 2], tvars=tvars)
 
-    flow = abilab.g0w0_flow(fwp.workdir, fwp.manager, scf, nscf, scr, sig)
+    flow = abilab.g0w0_flow(fwp.workdir, scf, nscf, scr, sig, manager=fwp.manager)
     flow.build_and_pickle_dump()
 
     for task in flow[0]:
@@ -133,7 +133,7 @@ def itest_g0w0qptdm_flow(fwp, tvars):
     """Integration test for G0W0WithQptdmFlow."""
     scf, nscf, scr, sig = make_g0w0_inputs(ngkpt=[2, 2, 2], tvars=tvars)
 
-    flow = abilab.G0W0WithQptdmFlow(fwp.workdir, fwp.manager, scf, nscf, scr, sig)
+    flow = abilab.G0W0WithQptdmFlow(fwp.workdir, scf, nscf, scr, sig, manager=fwp.manager)
 
     assert len(flow) == 3
     bands_work = flow[0]
@@ -175,7 +175,7 @@ def itest_htc_g0w0(fwp, tvars):
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
     pseudos = abidata.pseudos("14si.pspnc")
 
-    flow = abilab.AbinitFlow(fwp.workdir, fwp.manager)
+    flow = abilab.AbinitFlow(fwp.workdir, manager=fwp.manager)
 
     scf_kppa = 10
     nscf_nband = 10

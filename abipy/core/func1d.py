@@ -163,7 +163,6 @@ class Function1D(object):
         Save self to a text file. See :func:`np.savetext` for the description of the variables
         """
         data = zip(self.mesh, self.values)
-        #data = (self.mesh, self.values)
         np.savetxt(path, data, fmt=fmt.encode("ascii", "ignore"), delimiter=delimiter, newline=newline,
                    header=header, footer=footer, comments=comments)
 

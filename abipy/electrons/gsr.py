@@ -202,8 +202,8 @@ class EnergyTerms(AttrDict):
         ("e_electronpositron", "Electron-positron: electron-positron interaction energy"),
         ("edc_electronpositron", "Electron-positron: double-counting electron-positron interaction energy"),
         ("e0_electronpositron", "Electron-positron: energy only due to unchanged particles\n" + 
-                                 "(if calctype=1, energy due to electrons only)\n" + 
-                                 "(if calctype=2, energy due to positron only)\n"),
+                                "(if calctype=1, energy due to electrons only)\n" +
+                                "(if calctype=2, energy due to positron only)\n"),
         ("e_monopole", "Monopole correction to the total energy for charged supercells"),
         ("e_xc_vdw", "vdW-DF correction to the XC energy"),
     ])
@@ -245,7 +245,8 @@ class GSR_Reader(ElectronsReader):
         for i in range(3): tensor[i,i] = c[i]
         for p, (i, j) in enumerate(((2,1), (2,0), (1,0))):
             tensor[i,j] = c[3+p] 
-            tensor[j,i] = c[3+p] 
+            tensor[j,i] = c[3+p]
+
         return tensor
 
     def read_energy_terms(self, unit="eV"):
@@ -282,10 +283,7 @@ class GSR_Plotter(Iterable):
         return iter(self._gsr_files.values())
 
     def __str__(self):
-        s = ""
-        for gsr in self:
-            s += str(gsr) + "\n"
-        return s
+        return "\n".join(str(gsr) for gsr in self)
 
     def add_files(self, filepaths):
         """Add a list of filenames to the plotter"""
@@ -439,14 +437,9 @@ class GSR_Plotter(Iterable):
             last = yy[-1]
             ax.axhspan(last-hspan, last+hspan, facecolor='0.5', alpha=0.5)
 
-        if title is not None:
-            fig.suptitle(title)
-                                 
-        if show:
-            plt.show()
-                                 
-        if savefig is not None:
-            fig.savefig(savefig)
+        if title is not None: fig.suptitle(title)
+        if show: plt.show()
+        if savefig is not None: fig.savefig(savefig)
                                  
         return fig
 

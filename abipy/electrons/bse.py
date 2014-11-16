@@ -2,12 +2,10 @@
 from __future__ import print_function, division, unicode_literals
 
 import sys
-import os
 import itertools
 import collections
 import numpy as np
 
-from monty.string import is_string
 from monty.functools import lazy_property
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList
@@ -43,7 +41,8 @@ class DielectricTensor(object):
         # One tensor for each frequency
         all_tensors = []
         for (ifrq, freq) in enumerate(mdf.wmesh):
-            tensor = SymmetricTensor.from_directions(mdf.qfrac_coords, all_emacros[:,ifrq], structure.lattice.reciprocal_lattice, space="g")
+            tensor = SymmetricTensor.from_directions(mdf.qfrac_coords, all_emacros[:,ifrq],
+                                                     structure.lattice.reciprocal_lattice, space="g")
             all_tensors.append(tensor)
 
         self._all_tensors = all_tensors
