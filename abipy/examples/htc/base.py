@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-from __future__ import division
+from __future__ import division, print_function, unicode_literals
 
-import abipy.data as data
+import abipy.data as abidata
 from abipy.abilab import AbiInput
 
 # Create an ABINIT input file with 1 dataset. 

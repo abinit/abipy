@@ -1,3 +1,4 @@
+# coding: utf-8
 """This module defines objects describing the sampling of the Brillouin Zone."""
 from __future__ import print_function, division, unicode_literals
 

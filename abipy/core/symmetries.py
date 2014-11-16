@@ -1,3 +1,4 @@
+# coding: utf-8
 """Objects used to deal with symmetry operations in crystals."""
 from __future__ import print_function, division, unicode_literals
 

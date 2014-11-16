@@ -1,3 +1,4 @@
+# coding: utf-8
 """Customiced version fo PrettyTable with methods to plot the data with matplotlib."""
 from __future__ import division, print_function, absolute_import
 

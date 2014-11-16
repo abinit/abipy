@@ -1,3 +1,4 @@
+# coding: utf-8
 """Classes for the analysis of electronic structures."""
 from __future__ import print_function, division, unicode_literals
 

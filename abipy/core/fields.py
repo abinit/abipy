@@ -1,3 +1,4 @@
+# coding: utf-8
 """This module contains the class describing densities in real space on uniform 3D meshes."""
 from __future__ import print_function, division, unicode_literals
 
@@ -8,7 +9,6 @@ from abipy.tools import transpose_last3dims
 from abipy.iotools import Visualizer, xsf, ETSF_Reader
 from abipy.core.constants import bohr_to_angstrom
 from abipy.core.mesh3d import Mesh3D
-from abipy.core.structure import Structure
 
 
 __all__ = [
@@ -68,14 +68,13 @@ class ScalarField(object):
 
     def tostring(self, prtvol=0):
         """String representation"""
-        s  = "%s: nspinor = %i, nsppol = %i, nspden = %i" % (
-            self.__class__.__name__, self.nspinor, self.nsppol, self.nspden)
-        s += "  " + self.mesh.tostring(prtvol)
+        lines = ["%s: nspinor = %i, nsppol = %i, nspden = %i" %
+                 (self.__class__.__name__, self.nspinor, self.nsppol, self.nspden)]
+        app = lines.append
+        app(self.mesh.tostring(prtvol))
+        if prtvol > 0: app(str(self.structure))
 
-        if prtvol > 0:
-            s += "  " + str(self.structure)
-
-        return s
+        return "\n".join(lines)
 
     @property
     def datar(self):
@@ -296,14 +295,19 @@ class ScalarField(object):
     #    return np.reshape(plane, new_shape)
 
 
-
 class Density(ScalarField):
     """
-    Electron density
+    Electronic density
     """
     # TODO 
     #  "exchange_functional",      # "exchange_functional"
     #  "valence_charges",          # "valence_charges"
+    @classmethod
+    def from_file(cls, filepath):
+        """Initialize the object from a netCDF file."""
+        with DensityReader(filepath) as r:
+            return r.read_density(cls=cls)
+
     def __init__(self, nspinor, nsppol, nspden, rhor, structure, iorder="c"):
         """
         Args:
@@ -321,35 +325,6 @@ class Density(ScalarField):
                 Order of the array. "c" for C ordering, "f" for Fortran ordering.
         """
         super(Density, self).__init__(nspinor, nsppol, nspden, rhor, structure, iorder=iorder)
-
-    @classmethod
-    def from_file(cls, filepath):
-        """
-        Read density from an external netCDF file.
-
-        Args:
-            filepath:
-                string or file object.
-        """
-        with DensityReader(filepath) as r:
-            structure = r.read_structure()
-            dims = r.read_dendims()
-            rhor = r.read_rhor()
-
-        # use iorder="f" to transpose the last 3 dimensions since ETSF
-        # stores data in Fortran order while abipy uses C-ordering.
-        if dims.cplex_den == 1:
-
-            # Get rid of fake last dimensions (cplex).
-            rhor = np.reshape(rhor, (dims.nspden, dims.nfft1, dims.nfft2, dims.nfft3))
-
-            # Structure uses Angstrom. Abinit uses bohr.
-            rhor = rhor / bohr_to_angstrom ** 3
-
-            return Density(dims.nspinor, dims.nsppol, dims.nspden, rhor, structure, iorder="f")
-
-        else:
-            raise NotImplementedError("cplex_den %s not coded" % dims.cplex_den)
 
     def get_nelect(self, spin=None):
         """
@@ -408,7 +383,7 @@ class Density(ScalarField):
         #print rhog_tot
 
         # Compute |G| for each G in the mesh and treat G=0.
-        gvec  = self.mesh.get_gvecs()
+        gvec = self.mesh.get_gvecs()
 
         gwork = self.mesh.zeros().ravel()
 
@@ -450,8 +425,9 @@ class Density(ScalarField):
 
 class DensityReader(ETSF_Reader):
     """This object reads density data from a netcdf file."""
-    def read_dendims(self):
-        """Returns an `AttrDict` dictionary with the basic dimensions."""
+
+    def read_den_dims(self):
+        """Returns an `AttrDict` dictionary with the dimensions characterizing the density"""
         return AttrDict(
             cplex_den=self.read_dimvalue("real_or_complex_density"),
             nspinor=self.read_dimvalue("number_of_spinor_components"),
@@ -463,8 +439,27 @@ class DensityReader(ETSF_Reader):
         )
 
     def read_rhor(self):
-        """Return the density in real space."""
+        """Return a `numpy` array with the density in real space"""
         return self.read_value("density")
+
+    def read_density(self, cls=Density):
+        """Factory function that builds and returns a `Density` object."""
+        structure = self.read_structure()
+        dims = self.read_den_dims()
+        rhor = self.read_rhor()
+
+        # use iorder="f" to transpose the last 3 dimensions since ETSF
+        # stores data in Fortran order while abipy uses C-ordering.
+        if dims.cplex_den == 1:
+            # Get rid of fake last dimensions (cplex).
+            rhor = np.reshape(rhor, (dims.nspden, dims.nfft1, dims.nfft2, dims.nfft3))
+
+            # Structure uses Angstrom. Abinit uses bohr.
+            rhor /= (bohr_to_angstrom ** 3)
+            return cls(dims.nspinor, dims.nsppol, dims.nspden, rhor, structure, iorder="f")
+
+        else:
+            raise NotImplementedError("cplex_den %s not coded" % dims.cplex_den)
 
 
 # Global variables

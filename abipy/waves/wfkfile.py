@@ -1,3 +1,4 @@
+# coding: utf-8
 """Wavefunction file."""
 from __future__ import print_function, division, unicode_literals
 

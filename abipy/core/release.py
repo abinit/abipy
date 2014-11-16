@@ -1,3 +1,4 @@
+# coding: utf-8
 """Release data for the abipy project."""
 #from __future__ import print_function, division, unicode_literals
 

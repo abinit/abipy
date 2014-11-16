@@ -1,3 +1,4 @@
+# coding: utf-8
 """This module contains the class describing a planewave wavefunction."""
 from __future__ import print_function, division, unicode_literals
 

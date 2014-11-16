@@ -1,3 +1,4 @@
+# coding: utf-8
 """Electronic density of states."""
 from __future__ import print_function, division, unicode_literals
 

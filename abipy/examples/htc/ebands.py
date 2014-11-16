@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import abipy.abilab as abilab 
 import abipy.data as abidata

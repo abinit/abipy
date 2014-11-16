@@ -1,3 +1,4 @@
+# coding: utf-8
 """This module contains useful decorators for a variety of functions."""
 from __future__ import print_function, division, unicode_literals
 

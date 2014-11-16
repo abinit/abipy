@@ -1,3 +1,4 @@
+# coding: utf-8
 """Tools for writing Xcrysden files."""
 from __future__ import print_function, division, unicode_literals
 

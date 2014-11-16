@@ -1,3 +1,4 @@
+# coding: utf-8
 """This module contains the class defining the G-sphere for wavefunctions, densities and potentials"""
 from __future__ import print_function, division, unicode_literals
 

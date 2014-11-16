@@ -1,3 +1,4 @@
+# coding: utf-8
 """
 This module defines the object Function1D that described a functions.
 of a single variables and provides simple interfaces for performing
