@@ -2,22 +2,20 @@
 from __future__ import print_function
 import sys
 
-from abipy.data import AbinitFilesGenerator
+from abipy.data import AnaddbFilesGenerator
 
 class MyGenerator(AbinitFilesGenerator):
     """This class generates the output files used in the unit tests and in the examples."""
-    # Subclasses must define the following class attributes:
-    # List of pseudos in (basenames in abipy/data/pseudos
-    pseudos = ["14si.pspnc"]
 
     # Mapping old_name --> new_name for the output files that must be preserved.
     files_to_save = {
-        "out_DS3_MDF.nc": "tbs_4o_DS2_MDF.nc"
+        "trf2_5.out_PHBST.nc": "trf2_5.out_PHBST.nc",
+        "trf2_5.out_PHDOS.nc": "trf2_5.out_PHDOS.nc",
     }
 
 
 def main():
-    return MyGenerator(finalize=False).run()
+    return MyGenerator().run()
 
 if __name__ == "__main__":
     sys.exit(main())

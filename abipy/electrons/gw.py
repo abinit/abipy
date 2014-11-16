@@ -1033,6 +1033,7 @@ class SIGRES_Reader(ETSF_Reader):
     """
     This object provides method to read data from the SIGRES file produced ABINIT.
     # See 70gw/m_sigma_results.F90
+
     # Name of the diagonal matrix elements stored in the file.
     # b1gw:b2gw,nkibz,nsppol*nsig_ab))
     #_DIAGO_MELS = [
@@ -1045,137 +1046,137 @@ class SIGRES_Reader(ETSF_Reader):
     #    "ze0",
     #]
 
-      integer :: b1gw,b2gw      ! min and Max gw band indeces over spin and k-points (used to dimension)
-      integer :: gwcalctyp      ! Flag defining the calculation type.
-      integer :: nkptgw         ! No. of points calculated
-      integer :: nkibz          ! No. of irreducible k-points.
-      integer :: nbnds          ! Total number of bands
-      integer :: nomega_r       ! No. of real frequencies for the spectral function.
-      integer :: nomega_i       ! No. of frequencies along the imaginary axis.
-      integer :: nomega4sd      ! No. of real frequencies to evaluate the derivative of $\Sigma(E)$.
-      integer :: nsig_ab        ! 1 if nspinor=1,4 for noncollinear case.
-      integer :: nsppol         ! No. of spin polarizations.
-      integer :: usepawu        ! 1 if we are using LDA+U as starting point (only for PAW)
+    integer :: b1gw,b2gw      ! min and Max gw band indeces over spin and k-points (used to dimension)
+    integer :: gwcalctyp      ! Flag defining the calculation type.
+    integer :: nkptgw         ! No. of points calculated
+    integer :: nkibz          ! No. of irreducible k-points.
+    integer :: nbnds          ! Total number of bands
+    integer :: nomega_r       ! No. of real frequencies for the spectral function.
+    integer :: nomega_i       ! No. of frequencies along the imaginary axis.
+    integer :: nomega4sd      ! No. of real frequencies to evaluate the derivative of $\Sigma(E)$.
+    integer :: nsig_ab        ! 1 if nspinor=1,4 for noncollinear case.
+    integer :: nsppol         ! No. of spin polarizations.
+    integer :: usepawu        ! 1 if we are using LDA+U as starting point (only for PAW)
 
-      real(dp) :: deltae       ! Frequency step for the calculation of d\Sigma/dE
-      real(dp) :: maxomega4sd  ! Max frequency around E_ks for d\Sigma/dE.
-      real(dp) :: maxomega_r   ! Max frequency for spectral function.
-      real(dp) :: scissor_ene  ! Scissor energy value. zero for None.
+    real(dp) :: deltae       ! Frequency step for the calculation of d\Sigma/dE
+    real(dp) :: maxomega4sd  ! Max frequency around E_ks for d\Sigma/dE.
+    real(dp) :: maxomega_r   ! Max frequency for spectral function.
+    real(dp) :: scissor_ene  ! Scissor energy value. zero for None.
 
-      integer,pointer :: maxbnd(:,:)   SET2NULL
-      ! maxbnd(nkptgw,nsppol)
-      ! Max band index considered in GW for this k-point.
+    integer,pointer :: maxbnd(:,:)
+    ! maxbnd(nkptgw,nsppol)
+    ! Max band index considered in GW for this k-point.
 
-      integer,pointer :: minbnd(:,:)   SET2NULL
-      ! minbnd(nkptgw,nsppol)
-      ! Min band index considered in GW for this k-point.
+    integer,pointer :: minbnd(:,:)
+    ! minbnd(nkptgw,nsppol)
+    ! Min band index considered in GW for this k-point.
 
-      real(dp),pointer :: degwgap(:,:)   SET2NULL
-      ! degwgap(nkibz,nsppol)
-      ! Difference btw the QPState and the KS optical gap.
+    real(dp),pointer :: degwgap(:,:)
+    ! degwgap(nkibz,nsppol)
+    ! Difference btw the QPState and the KS optical gap.
 
-      real(dp),pointer :: egwgap(:,:)   SET2NULL
-      ! egwgap(nkibz,nsppol))
-      ! QPState optical gap at each k-point and spin.
+    real(dp),pointer :: egwgap(:,:)
+    ! egwgap(nkibz,nsppol))
+    ! QPState optical gap at each k-point and spin.
 
-      real(dp),pointer :: en_qp_diago(:,:,:)   SET2NULL
-      ! en_qp_diago(nbnds,nkibz,nsppol))
-      ! QPState energies obtained from the diagonalization of the Hermitian approximation to Sigma (QPSCGW)
+    real(dp),pointer :: en_qp_diago(:,:,:)
+    ! en_qp_diago(nbnds,nkibz,nsppol))
+    ! QPState energies obtained from the diagonalization of the Hermitian approximation to Sigma (QPSCGW)
 
-      real(dp),pointer :: e0(:,:,:)    SET2NULL
-      ! e0(nbnds,nkibz,nsppol)
-      ! KS eigenvalues for each band, k-point and spin. In case of self-consistent?
+    real(dp),pointer :: e0(:,:,:)
+    ! e0(nbnds,nkibz,nsppol)
+    ! KS eigenvalues for each band, k-point and spin. In case of self-consistent?
 
-      real(dp),pointer :: e0gap(:,:)   SET2NULL
-      ! e0gap(nkibz,nsppol),
-      ! KS gap at each k-point, for each spin.
+    real(dp),pointer :: e0gap(:,:)
+    ! e0gap(nkibz,nsppol),
+    ! KS gap at each k-point, for each spin.
 
-      real(dp),pointer :: omega_r(:)   SET2NULL
-      ! omega_r(nomega_r)
-      ! real frequencies used for the self energy.
+    real(dp),pointer :: omega_r(:)
+    ! omega_r(nomega_r)
+    ! real frequencies used for the self energy.
 
-      real(dp),pointer :: kptgw(:,:)  SET2NULL
-      ! kptgw(3,nkptgw)
-      ! ! TODO there is a similar array in sigma_parameters
-      ! List of calculated k-points.
+    real(dp),pointer :: kptgw(:,:)
+    ! kptgw(3,nkptgw)
+    ! ! TODO there is a similar array in sigma_parameters
+    ! List of calculated k-points.
 
-      real(dp),pointer :: sigxme(:,:,:)  SET2NULL
-      ! sigxme(b1gw:b2gw,nkibz,nsppol*nsig_ab))
-      ! Diagonal matrix elements of $\Sigma_x$ i.e $\<nks|\Sigma_x|nks\>$
+    real(dp),pointer :: sigxme(:,:,:)
+    ! sigxme(b1gw:b2gw,nkibz,nsppol*nsig_ab))
+    ! Diagonal matrix elements of $\Sigma_x$ i.e $\<nks|\Sigma_x|nks\>$
 
-      real(dp),pointer :: vxcme(:,:,:)  SET2NULL
-      ! vxcme(b1gw:b2gw,nkibz,nsppol*nsig_ab))
-      ! $\<nks|v_{xc}[n_val]|nks\>$ matrix elements of vxc (valence-only contribution).
+    real(dp),pointer :: vxcme(:,:,:)
+    ! vxcme(b1gw:b2gw,nkibz,nsppol*nsig_ab))
+    ! $\<nks|v_{xc}[n_val]|nks\>$ matrix elements of vxc (valence-only contribution).
 
-      real(dp),pointer :: vUme(:,:,:)   SET2NULL
-      ! vUme(b1gw:b2gw,nkibz,nsppol*nsig_ab))
-      ! $\<nks|v_{U}|nks\>$ for LDA+U.
+    real(dp),pointer :: vUme(:,:,:)
+    ! vUme(b1gw:b2gw,nkibz,nsppol*nsig_ab))
+    ! $\<nks|v_{U}|nks\>$ for LDA+U.
 
-      complex(dpc),pointer :: degw(:,:,:)   SET2NULL
-      ! degw(b1gw:b2gw,nkibz,nsppol))
-      ! Difference between the QPState and the KS energies.
+    complex(dpc),pointer :: degw(:,:,:)
+    ! degw(b1gw:b2gw,nkibz,nsppol))
+    ! Difference between the QPState and the KS energies.
 
-      complex(dpc),pointer :: dsigmee0(:,:,:)  SET2NULL
-      ! dsigmee0(b1gw:b2gw,nkibz,nsppol*nsig_ab))
-      ! Derivative of $\Sigma_c(E)$ calculated at the KS eigenvalue.
+    complex(dpc),pointer :: dsigmee0(:,:,:)
+    ! dsigmee0(b1gw:b2gw,nkibz,nsppol*nsig_ab))
+    ! Derivative of $\Sigma_c(E)$ calculated at the KS eigenvalue.
 
-      complex(dpc),pointer :: egw(:,:,:)  SET2NULL
-      ! egw(nbnds,nkibz,nsppol))
-      ! QPState energies, $\epsilon_{nks}^{QPState}$.
+    complex(dpc),pointer :: egw(:,:,:)
+    ! egw(nbnds,nkibz,nsppol))
+    ! QPState energies, $\epsilon_{nks}^{QPState}$.
 
-      complex(dpc),pointer :: eigvec_qp(:,:,:,:)   SET2NULL
-      ! eigvec_qp(nbnds,nbnds,nkibz,nsppol))
-      ! Expansion of the QPState amplitude in the KS basis set.
+    complex(dpc),pointer :: eigvec_qp(:,:,:,:)
+    ! eigvec_qp(nbnds,nbnds,nkibz,nsppol))
+    ! Expansion of the QPState amplitude in the KS basis set.
 
-      complex(dpc),pointer :: hhartree(:,:,:,:)   SET2NULL
-      ! hhartree(b1gw:b2gw,b1gw:b2gw,nkibz,nsppol*nsig_ab)
-      ! $\<nks|T+v_H+v_{loc}+v_{nl}|mks\>$
+    complex(dpc),pointer :: hhartree(:,:,:,:)
+    ! hhartree(b1gw:b2gw,b1gw:b2gw,nkibz,nsppol*nsig_ab)
+    ! $\<nks|T+v_H+v_{loc}+v_{nl}|mks\>$
 
-      complex(dpc),pointer :: sigcme(:,:,:,:)   SET2NULL
-      ! sigcme(b1gw:b2gw,nkibz,nomega_r,nsppol*nsig_ab))
-      ! $\<nks|\Sigma_{c}(E)|nks\>$ at each nomega_r frequency
+    complex(dpc),pointer :: sigcme(:,:,:,:)
+    ! sigcme(b1gw:b2gw,nkibz,nomega_r,nsppol*nsig_ab))
+    ! $\<nks|\Sigma_{c}(E)|nks\>$ at each nomega_r frequency
 
-      complex(dpc),pointer :: sigmee(:,:,:)  SET2NULL
-      ! sigmee(b1gw:b2gw,nkibz,nsppol*nsig_ab))
-      ! $\Sigma_{xc}E_{KS} + (E_{QPState}- E_{KS})*dSigma/dE_KS
+    complex(dpc),pointer :: sigmee(:,:,:)
+    ! sigmee(b1gw:b2gw,nkibz,nsppol*nsig_ab))
+    ! $\Sigma_{xc}E_{KS} + (E_{QPState}- E_{KS})*dSigma/dE_KS
 
-      complex(dpc),pointer :: sigcmee0(:,:,:)   SET2NULL
-      ! sigcmee0(b1gw:b2gw,nkibz,nsppol*nsig_ab))
-      ! Diagonal mat. elements of $\Sigma_c(E)$ calculated at the KS energy $E_{KS}$
+    complex(dpc),pointer :: sigcmee0(:,:,:)
+    ! sigcmee0(b1gw:b2gw,nkibz,nsppol*nsig_ab))
+    ! Diagonal mat. elements of $\Sigma_c(E)$ calculated at the KS energy $E_{KS}$
 
-      complex(dpc),pointer :: sigcmesi(:,:,:,:)   SET2NULL
-      ! sigcmesi(b1gw:b2gw,nkibz,nomega_i,nsppol*nsig_ab))
-      ! Matrix elements of $\Sigma_c$ along the imaginary axis.
-      ! Only used in case of analytical continuation.
+    complex(dpc),pointer :: sigcmesi(:,:,:,:)
+    ! sigcmesi(b1gw:b2gw,nkibz,nomega_i,nsppol*nsig_ab))
+    ! Matrix elements of $\Sigma_c$ along the imaginary axis.
+    ! Only used in case of analytical continuation.
 
-      complex(dpc),pointer :: sigcme4sd(:,:,:,:)   SET2NULL
-      ! sigcme4sd(b1gw:b2gw,nkibz,nomega4sd,nsppol*nsig_ab))
-      ! Diagonal matrix elements of \Sigma_c around the zeroth order eigenvalue (usually KS).
+    complex(dpc),pointer :: sigcme4sd(:,:,:,:)
+    ! sigcme4sd(b1gw:b2gw,nkibz,nomega4sd,nsppol*nsig_ab))
+    ! Diagonal matrix elements of \Sigma_c around the zeroth order eigenvalue (usually KS).
 
-      complex(dpc),pointer :: sigxcme(:,:,:,:)   SET2NULL
-      ! sigxme(b1gw:b2gw,nkibz,nomega_r,nsppol*nsig_ab))
-      ! $\<nks|\Sigma_{xc}(E)|nks\>$ at each real frequency frequency.
+    complex(dpc),pointer :: sigxcme(:,:,:,:)
+    ! sigxme(b1gw:b2gw,nkibz,nomega_r,nsppol*nsig_ab))
+    ! $\<nks|\Sigma_{xc}(E)|nks\>$ at each real frequency frequency.
 
-      complex(dpc),pointer :: sigxcmesi(:,:,:,:)   SET2NULL
-      ! sigxcmesi(b1gw:b2gw,nkibz,nomega_i,nsppol*nsig_ab))
-      ! Matrix elements of $\Sigma_{xc}$ along the imaginary axis.
-      ! Only used in case of analytical continuation.
+    complex(dpc),pointer :: sigxcmesi(:,:,:,:)
+    ! sigxcmesi(b1gw:b2gw,nkibz,nomega_i,nsppol*nsig_ab))
+    ! Matrix elements of $\Sigma_{xc}$ along the imaginary axis.
+    ! Only used in case of analytical continuation.
 
-      complex(dpc),pointer :: sigxcme4sd(:,:,:,:)   SET2NULL
-      ! sigxcme4sd(b1gw:b2gw,nkibz,nomega4sd,nsppol*nsig_ab))
-      ! Diagonal matrix elements of \Sigma_xc for frequencies around the zeroth order eigenvalues.
+    complex(dpc),pointer :: sigxcme4sd(:,:,:,:)
+    ! sigxcme4sd(b1gw:b2gw,nkibz,nomega4sd,nsppol*nsig_ab))
+    ! Diagonal matrix elements of \Sigma_xc for frequencies around the zeroth order eigenvalues.
 
-      complex(dpc),pointer :: ze0(:,:,:)   SET2NULL
-      ! ze0(b1gw:b2gw,nkibz,nsppol))
-      ! renormalization factor. $(1-\dfrac{\partial\Sigma_c} {\partial E_{KS}})^{-1}$
+    complex(dpc),pointer :: ze0(:,:,:)
+    ! ze0(b1gw:b2gw,nkibz,nsppol))
+    ! renormalization factor. $(1-\dfrac{\partial\Sigma_c} {\partial E_{KS}})^{-1}$
 
-      complex(dpc),pointer :: omega_i(:)  SET2NULL
-      ! omegasi(nomega_i)
-      ! Frequencies along the imaginary axis used for the analytical continuation.
+    complex(dpc),pointer :: omega_i(:)
+    ! omegasi(nomega_i)
+    ! Frequencies along the imaginary axis used for the analytical continuation.
 
-      complex(dpc),pointer :: omega4sd(:,:,:,:)  SET2NULL
-      ! omega4sd(b1gw:b2gw,nkibz,nomega4sd,nsppol).
-      ! Frequencies used to evaluate the Derivative of Sigma.
+    complex(dpc),pointer :: omega4sd(:,:,:,:)
+    ! omega4sd(b1gw:b2gw,nkibz,nomega4sd,nsppol).
+    ! Frequencies used to evaluate the Derivative of Sigma.
     """
     def __init__(self, path):
         self.ks_bands = ElectronBands.from_file(path)
@@ -1413,11 +1414,12 @@ class SIGRES_Reader(ETSF_Reader):
 
     def print_qps(self, spin=None, kpoint=None, bands=None, fmt=None, stream=sys.stdout):
         """
-        :param spin:
+        :param spin: Spin index, if None all spins are considered
         :param kpoint:
         :param bands:
         :param fmt:
-        :param stream:
+        :param stream: file-like object.
+
         :return:
             List of tables.
         """
@@ -1453,12 +1455,12 @@ class SIGRES_Reader(ETSF_Reader):
     #    array = self.read_value(mel_name)
                                                                    
     #def read_mlda_to_qp(self, spin, kpoint, band=None):
-    #    """Returns the unitary transformation KS-->QPS"""
+    #    """Returns the unitary transformation KS --> QPS"""
     #    ik = self.kpt2fileindex(kpoint)
-    #if band is not None:
-    #    return self._mlda_to_qp[spin,ik,:,band]
-    #else:
-    #    return self._mlda_to_qp[spin,ik,:,:]
+    #    if band is not None:
+    #        return self._mlda_to_qp[spin,ik,:,band]
+    #    else:
+    #        return self._mlda_to_qp[spin,ik,:,:]
                                                                    
     #def read_qprhor(self):
     #    """Returns the QPState density in real space."""

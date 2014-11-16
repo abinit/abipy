@@ -73,7 +73,7 @@ def find_ncfiles(top):
                     if not SILENT:
                         import warnings
                         warnings.warn(err_msg)
-                        raise ValueError(err_msg)
+                        #raise ValueError(err_msg)
                         SILENT += 1
 
                 else:
@@ -118,20 +118,10 @@ SIGRES_NCFILES = ncfiles_with_ext("SIGRES")
 ALL_NCFILES = _DATA_NCFILES.values()
 
 
-
-class AbinitFilesGenerator(object):
+class FilesGenerator(object):
     """This class generates the output files used in the unit tests and in the examples."""
-    # Subclasses must define the following class attributes:
-    # List of pseudos in (basenames in abipy/data/pseudos
-    #pseudos = ["14si.pspnc"]
 
-    # Mapping old_name --> new_name for the output files that must be preserved.
-    #files_to_save = {
-    #    "out_DS1_DEN-etsf.nc": "si_DEN-etsf.nc",
-    #    "out_DS2_GSR.nc": "si_nscf_GSR.nc",
-    #}
-
-    def __init__(self, workdir=".", finalize=True, verbose=1):
+    def __init__(self, **kwargs):
         """
         Args:
             workdir:
@@ -141,27 +131,26 @@ class AbinitFilesGenerator(object):
             verbose:
                 Verbosity level.
         """
-        if not hasattr(self, "pseudos") or not hasattr(self, "files_to_save"):
-            raise ValueError("pseudos and files_to_save are not defined")
+        if not hasattr(self, "files_to_save"):
+            raise ValueError("files_to_save are not defined")
 
         from monty.os.path import which
-        if which("abinit") is None:
-            raise RuntimeError("Cannot find abinit in $PATH")
+        if which(self.executable) is None:
+            raise RuntimeError("Cannot find %s in $PATH" % self.executable)
 
         # Absolute path for the pseudopotentials.
-        self.pseudos = [p.filepath for p in pseudos(*self.pseudos)]
-        self.filesfile = "\n".join(["run.abi", "run.abo", "in", "out","tmp"] + self.pseudos)
-        self.workdir = os.path.abspath(workdir)
-        self.finalize, self.verbose = finalize, verbose
 
-        self.files_to_keep = \
-            ["run.abi", "run.abo", os.path.basename(__file__)] + list(self.files_to_save.keys())
+        self.workdir = os.path.abspath(kwargs.pop("workdir", "."))
+        self.finalize = kwargs.pop("finalize", True)
+        self.verbose = kwargs.pop("verbose", 1)
+
+        self.files_to_keep = set(os.path.basename(__file__), "run.abi", "run.abo", self.files_to_save.keys())
+        #self.filesfile = "\n".join(["run.abi", "run.abo", "in", "out","tmp"] + self.pseudos)
 
     def __str__(self):
         lines = []
         app = lines.append
-        app("workdir = %s" % self.workdir)
-        app("pseudos = %s" % self.pseudos)
+        app("%s: workdir:%s" % (self.__class__.__name__, self.workdir))
 
         return "\n".join(lines)
 
@@ -184,9 +173,9 @@ class AbinitFilesGenerator(object):
     def _run(self):
         from subprocess import Popen, PIPE
         with open(os.path.join(self.workdir, "run.files"), "w") as fh:
-            fh.write(self.filesfile)
+            fh.write(self.make_filesfile_str)
 
-        cmd = "abinit < run.files > run.log"
+        cmd = self.executable + " < run.files > run.log"
         return Popen(cmd, shell=True, stderr=PIPE, stdout=PIPE, cwd=self.workdir)
 
     def _finalize(self):
@@ -203,3 +192,58 @@ class AbinitFilesGenerator(object):
         for old, new in self.files_to_save.items():
             if self.verbose: print("Will rename %s --> %s" % (old, new))
             os.rename(old, new)
+
+
+class AbinitFilesGenerator(object):
+    # Subclasses must define the following class attributes:
+    # List of pseudos in (basenames in abipy/data/pseudos
+    #pseudos = ["14si.pspnc"]
+
+    # Mapping old_name --> new_name for the output files that must be preserved.
+    #files_to_save = {
+    #    "out_DS1_DEN-etsf.nc": "si_DEN-etsf.nc",
+    #    "out_DS2_GSR.nc": "si_nscf_GSR.nc",
+    #}
+    executable = "abinit"
+
+    def __init__(self, **kwargs):
+        super(AbinitFilesGenerator, self).__init__(**kwargs)
+
+        # Add pseudos
+        self.pseudos = [p.filepath for p in pseudos(*self.pseudos)]
+
+    def make_filesfile_str(self):
+        s = "\n".join(["run.abi", "run.abo", "in", "out","tmp"] + self.pseudos)
+        return s
+
+
+class AnaddbFilesGenerator(object):
+    # Subclasses must define the following class attributes:
+
+    # Mapping old_name --> new_name for the output files that must be preserved.
+    #files_to_save = {
+    #    "out_DS1_DEN-etsf.nc": "si_DEN-etsf.nc",
+    #    "out_DS2_GSR.nc": "si_nscf_GSR.nc",
+    #}
+    executable = "anaddb"
+
+    def __init__(self, **kwargs):
+        super(AbinitFilesGenerator, self).__init__(**kwargs)
+
+    def make_filesfile_str(self):
+        # 1) formatted input file
+        # 2) formatted output file e.g. t13.out
+        # 3) input derivative database e.g. t13.ddb.in
+        # 4) output molecular dynamics e.g. t13.md
+        # 5) input elphon matrix elements  (GKK file) :
+        # 6) base name for elphon output files e.g. t13
+        # 7) file containing ddk filenames for elphon/transport
+        return "\n".join([
+            "run.abi", 
+            "run.abo", 
+            "trf2_3.ddb.out",
+            "dummy1",
+            "dummy2",
+            "dummy3",
+            "dummy4",
+        ])
