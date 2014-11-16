@@ -4,7 +4,7 @@ import sys
 
 from abipy.data import AnaddbFilesGenerator
 
-class MyGenerator(AbinitFilesGenerator):
+class MyGenerator(AnaddbFilesGenerator):
     """This class generates the output files used in the unit tests and in the examples."""
 
     # Mapping old_name --> new_name for the output files that must be preserved.
@@ -12,6 +12,8 @@ class MyGenerator(AbinitFilesGenerator):
         "trf2_5.out_PHBST.nc": "trf2_5.out_PHBST.nc",
         "trf2_5.out_PHDOS.nc": "trf2_5.out_PHDOS.nc",
     }
+
+    in_ddb = "trf2_3.ddb.out"
 
 
 def main():

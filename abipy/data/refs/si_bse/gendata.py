@@ -17,7 +17,7 @@ class MyGenerator(AbinitFilesGenerator):
 
 
 def main():
-    return MyGenerator(finalize=False).run()
+    return MyGenerator().run()
 
 if __name__ == "__main__":
     sys.exit(main())

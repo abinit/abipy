@@ -138,14 +138,12 @@ class FilesGenerator(object):
         if which(self.executable) is None:
             raise RuntimeError("Cannot find %s in $PATH" % self.executable)
 
-        # Absolute path for the pseudopotentials.
-
         self.workdir = os.path.abspath(kwargs.pop("workdir", "."))
         self.finalize = kwargs.pop("finalize", True)
         self.verbose = kwargs.pop("verbose", 1)
 
-        self.files_to_keep = set(os.path.basename(__file__), "run.abi", "run.abo", self.files_to_save.keys())
-        #self.filesfile = "\n".join(["run.abi", "run.abo", "in", "out","tmp"] + self.pseudos)
+        self.files_to_keep = set([os.path.basename(__file__), "run.abi", "run.abo"] + 
+                list(self.files_to_save.keys()))
 
     def __str__(self):
         lines = []
@@ -173,7 +171,7 @@ class FilesGenerator(object):
     def _run(self):
         from subprocess import Popen, PIPE
         with open(os.path.join(self.workdir, "run.files"), "w") as fh:
-            fh.write(self.make_filesfile_str)
+            fh.write(self.make_filesfile_str())
 
         cmd = self.executable + " < run.files > run.log"
         return Popen(cmd, shell=True, stderr=PIPE, stdout=PIPE, cwd=self.workdir)
@@ -194,7 +192,7 @@ class FilesGenerator(object):
             os.rename(old, new)
 
 
-class AbinitFilesGenerator(object):
+class AbinitFilesGenerator(FilesGenerator):
     # Subclasses must define the following class attributes:
     # List of pseudos in (basenames in abipy/data/pseudos
     #pseudos = ["14si.pspnc"]
@@ -209,7 +207,7 @@ class AbinitFilesGenerator(object):
     def __init__(self, **kwargs):
         super(AbinitFilesGenerator, self).__init__(**kwargs)
 
-        # Add pseudos
+        # Add Absolute paths for the pseudopotentials.
         self.pseudos = [p.filepath for p in pseudos(*self.pseudos)]
 
     def make_filesfile_str(self):
@@ -217,18 +215,45 @@ class AbinitFilesGenerator(object):
         return s
 
 
-class AnaddbFilesGenerator(object):
+class AnaddbFilesGenerator(FilesGenerator):
     # Subclasses must define the following class attributes:
 
-    # Mapping old_name --> new_name for the output files that must be preserved.
+    # 1) Mapping old_name --> new_name for the output files that must be preserved.
     #files_to_save = {
-    #    "out_DS1_DEN-etsf.nc": "si_DEN-etsf.nc",
-    #    "out_DS2_GSR.nc": "si_nscf_GSR.nc",
+    #    "trf2_5.out_PHBST.nc": "trf2_5.out_PHBST.nc",
+    #    "trf2_5.out_PHDOS.nc": "trf2_5.out_PHDOS.nc",
     #}
+
+    # 2) Input DDB (mandatory)
+    in_ddb = None
+
+    # 3) output DDB (optional)
+    out_ddb = "dummy_out_ddb"
+
+    # 3) Input GKK (optional)
+    in_gkk = "dummy_in_gkk"
+
+    # 4) base name for elphon output files (optional)
+    elph_basename = "dummy_elph_basename"
+
+    # 5) file containing ddk filenames for elphon/transport
+    in_ddk = "dummy_in_ddk"
+
     executable = "anaddb"
 
     def __init__(self, **kwargs):
-        super(AbinitFilesGenerator, self).__init__(**kwargs)
+        super(AnaddbFilesGenerator, self).__init__(**kwargs)
+
+        if self.in_ddb is None:
+            raise ValueError("in_ddb must be specified")
+
+        self.files_to_keep.update([
+            self.in_ddb,
+            self.out_ddb,
+            self.in_gkk,
+            self.elph_basename,
+            self.in_ddk,
+        ])
 
     def make_filesfile_str(self):
         # 1) formatted input file
@@ -241,9 +266,9 @@ class AnaddbFilesGenerator(object):
         return "\n".join([
             "run.abi", 
             "run.abo", 
-            "trf2_3.ddb.out",
-            "dummy1",
-            "dummy2",
-            "dummy3",
-            "dummy4",
+            self.in_ddb,
+            self.out_ddb,
+            self.in_gkk,
+            self.elph_basename,
+            self.in_ddk,
         ])
