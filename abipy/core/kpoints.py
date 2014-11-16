@@ -34,7 +34,7 @@ def is_integer(x, atol=_ATOL_KDIFF):
 
     >>> assert is_integer([1., 2.])
     >>> assert is_integer(1.01, atol=0.011)
-    >>> assert is_integer([1.01, 2])
+    >>> assert not is_integer([1.01, 2])
     """
     int_x = np.around(x)
     return np.allclose(int_x, x, atol=atol)

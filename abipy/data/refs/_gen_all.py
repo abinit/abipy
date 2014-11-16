@@ -49,19 +49,23 @@ def main():
         options.exclude = options.exclude.split()
         print("Will exclude:\n", options.exclude)
 
-    dir = os.path.join(os.path.dirname(__file__))
     scripts = []
-    for fname in os.listdir(dir):
-        if fname in options.exclude: continue
-        if fname == "gendata.py":
-            path = os.path.join(dir, fname)
-            if path != __file__:
+    for dirpath, dirnames, filenames in os.walk(os.path.dirname(__file__)):
+        for fname in filenames:
+            if fname in options.exclude: continue
+            if fname == "gendata.py":
+                path = os.path.join(os.path.abspath(dirpath), fname)
+                #if path != __file__:
                 scripts.append(path)
+
+    #print(scripts)
+    #return 0
 
     # Run scripts according to mode.
     dirpaths, retcode = [], 0
     if options.mode in ["s", "sequential"]:
         for script in scripts:
+            os.chdir(os.path.dirname(script))
             ret = call(["python", script])
             retcode += ret
 
