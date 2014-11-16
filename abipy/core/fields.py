@@ -5,6 +5,7 @@ from __future__ import print_function, division, unicode_literals
 import numpy as np
 
 from monty.collections import AttrDict
+from monty.functools import lazy_property
 from abipy.tools import transpose_last3dims
 from abipy.iotools import Visualizer, xsf, ETSF_Reader
 from abipy.core.constants import bohr_to_angstrom
@@ -339,36 +340,54 @@ class Density(ScalarField):
 
         return np.sum(nelect) if spin is None else nelect[spin]
 
-    #def get_magnetization(self)
-
-    def get_rhor_tot(self):
+    @lazy_property
+    def total_rhor(self):
         """Returns the total density in real space."""
         if self.nsppol == 2:
             raise NotImplementedError("check whether ETSF-IO uses up-down storage mode")
 
         if self.is_collinear:
-            rhor_tot = np.sum(self.datar, axis=0)
+            tot_rhor = np.sum(self.datar, axis=0)
+            if self.nspden == 2 and self.nsppol == 1:
+                raise NotImplementedError
+        else:
+            raise NotImplementedError
+
+        return tot_rhor
+
+    @lazy_property
+    def total_rhog(self):
+        """Returns the total density in G-space."""
+        if self.nsppol == 2:
+            raise NotImplementedError("check whether ETSF-IO uses up-down storage mode")
+
+        if self.is_collinear:
+            tot_rhog = np.sum(self.datag, axis=0)
             if self.nspden == 2 and self.nsppol == 1:
                 raise NotImplementedError
 
         else:
             raise NotImplementedError
 
-        return rhor_tot
+        return tot_rhog
 
-    def get_rhog_tot(self):
-        """Returns the total density in G-space."""
-        if self.nsppol == 2:
-            raise NotImplementedError("check whether ETSF-IO uses up-down storage mode")
+    #@lazy_property
+    #def tot_magnetization
 
-        if self.is_collinear:
-            rhog_tot = np.sum(self.datag, axis=0)
-            if self.nspden == 2 and self.nsppol == 1: raise NotImplementedError
+    #@lazy_property
+    #def magnetization(self)
+    #    if self.is_collinear:
+    #        if self.nsppol == 1:
+    #            return np.zeros(shape=self.shape)
+    #        else:
+    #            return self.datar[0] - self.datar[1]
+    #    else:
+    #        raise NotImplementedError
 
-        else:
-            raise NotImplementedError
-
-        return rhog_tot
+    #@lazy_property
+    #def zeta(self)
+    #    fact = np.where(self.tot_rhor > 1e-16, 1/self.tot_rhor, 0.0)
+    #    return self.magnetization * fact
 
     def get_vh(self):
         """
@@ -379,14 +398,13 @@ class Density(ScalarField):
         """
         raise NotImplementedError("")
         # Compute total density in G-space.
-        rhog_tot = self.get_rhog_tot()
+        rhog_tot = self.total_rhog
         #print rhog_tot
 
         # Compute |G| for each G in the mesh and treat G=0.
         gvec = self.mesh.get_gvecs()
 
         gwork = self.mesh.zeros().ravel()
-
         gnorm = self.structure.gnorm(gvec)
 
         for idx, gg in enumerate(gvec):
@@ -410,7 +428,6 @@ class Density(ScalarField):
 
         # FFT to obtain vh in real space.
         vhg = rhog_tot * gwork
-
         vhr = self.mesh.fft_g2r(vhg, fg_ishifted=False)
         return vhr, vhg
 
@@ -418,7 +435,8 @@ class Density(ScalarField):
         #"""Compute the exchange-correlation potential in real- and reciprocal-space."""
         #return vxcr, vxcg
 
-    #def get_kinden(self):
+    #@lazy_property
+    #def kinden(self):
         #"""Compute the kinetic energy density in real- and reciprocal-space."""
         #return kindr, kindgg
 

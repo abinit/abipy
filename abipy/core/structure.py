@@ -7,6 +7,7 @@ import pymatgen
 import numpy as np
 
 from monty.collections import AttrDict
+from monty.functools import lazy_property
 from pymatgen.io.abinitio.pseudos import PseudoTable
 from pymatgen.core.structure import PeriodicSite
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -194,57 +195,41 @@ class Structure(pymatgen.Structure):
         """Tuple with Anti-ferromagnetic symmetries (time-reversal is included, if present)."""
         return self.spacegroup.symmops(afm_sign=-1)
 
-    @property
+    @lazy_property
     def hsym_kpath(self):
         """
         Returns an instance of the pymatgen class `HighSymmKpath`
         (Database of high symmetry k-points and high symmetry lines).
         """
-        try:
-            return self._hsym_kpath
+        from pymatgen.symmetry.bandstructure import HighSymmKpath
+        return HighSymmKpath(self)
 
-        except AttributeError:
-            from pymatgen.symmetry.bandstructure import HighSymmKpath
-            self._hsym_kpath = HighSymmKpath(self)
-            return self._hsym_kpath
-
-    @property
+    @lazy_property
     def hsym_kpoints(self):
         """`KpointList` object with the high-symmetry K-points."""
-        try:
-            return self._hsym_kpoints
+        # Get mapping name --> frac_coords for the special k-points in the database.
+        name2frac_coords = self.hsym_kpath.kpath["kpoints"]
+        kpath = self.hsym_kpath.kpath["path"]
 
-        except AttributeError:
-            # Get mapping name --> frac_coords for the special k-points in the database.
-            name2frac_coords = self.hsym_kpath.kpath["kpoints"]
-            kpath = self.hsym_kpath.kpath["path"]
+        frac_coords, names = [], []
+        for segment in kpath:
+            for name in segment:
+                fc = name2frac_coords[name]
+                frac_coords.append(fc)
+                names.append(name)
 
-            frac_coords, names = [], []
-            for segment in kpath:
-                for name in segment:
-                    fc = name2frac_coords[name]
-                    frac_coords.append(fc)
-                    names.append(name)
+        # Build KpointList instance.
+        from .kpoints import KpointList
+        return KpointList(self.reciprocal_lattice, frac_coords, weights=None, names=names) 
 
-            # Build KpointList instance.
-            from .kpoints import KpointList
-            self._hsym_kpoints = KpointList(self.reciprocal_lattice, frac_coords, weights=None, names=names) 
-
-            return self._hsym_kpoints
-
-    @property
+    @lazy_property
     def hsym_stars(self):
         """
         List of `Star` objects. Each star is associated to one of the special k-points 
         present in the pymatgen database.
         """
-        try:
-            return self._hsym_stars
-
-        except AttributeError:
-            # Construct the stars.
-            self._hsym_stars = [kpoint.compute_star(self.fm_symmops) for kpoint in self.hsym_kpoints]
-            return self._hsym_stars
+        # Construct the stars.
+        return [kpoint.compute_star(self.fm_symmops) for kpoint in self.hsym_kpoints]
 
     def findname_in_hsym_stars(self, kpoint):
         """Returns the name of the special k-point, None if kpoint is unknown.""" 
@@ -648,7 +633,9 @@ class Structure(pymatgen.Structure):
         return tvects
 
     def write_vib_file(self, xyz_file, qpoint, displ, do_real=True, frac_coords=True, scale_matrix=None, max_supercell=None):
-        """ write into the file descriptor xyz_file the positions and displacements of the atoms
+        """
+        write into the file descriptor xyz_file the positions and displacements of the atoms
+
         :param xyz_file: file_descriptor
         :param qpoint: qpoint to be analyzed
         :param displ: eigendisplacements to be analyzed
@@ -658,7 +645,6 @@ class Structure(pymatgen.Structure):
         :param max_supercell: Maximum size of supercell vectors with respect to primitive cell
         :return: nothing
         """
-
         if scale_matrix is None:
             if max_supercell is None:
                 raise ValueError("If scale_matrix is not provided, please provide max_supercell !")

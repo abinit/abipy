@@ -63,7 +63,7 @@ extensions += [
           'numpydoc',
           'gen_rst',
           # This does not work with py3k
-          #'sphinxcontrib.autorun',
+          'sphinxcontrib.autorun',
           #'gen_gallery',  Generate gallery of PICS a la' matplotlib.
           ]
 
