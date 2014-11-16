@@ -652,7 +652,7 @@ class SIGRES_Plotter(Iterable):
             items = sorted([iv for iv in enumerate(xvalues)], key=lambda item: item[1])
             indices = [item[0] for item in items]
                                                                                              
-            files = self._sigres_files.values()
+            files = list(self._sigres_files.values())
                                                                                              
             newd = OrderedDict()
             for i in indices:

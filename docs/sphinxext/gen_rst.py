@@ -119,7 +119,7 @@ Abipy Examples
 
             if not out_of_date(fullpath, outrstfile): continue
 
-            fh = file(outrstfile, 'w')
+            fh = open(outrstfile, 'w')
             fh.write('.. _%s-%s:\n\n'%(subdir, basename))
             title = '%s example code: %s'%(subdir, fname)
             #title = '<img src=%s> %s example code: %s'%(thumbfile, subdir, fname)
@@ -146,7 +146,7 @@ Abipy Examples
 
             else:
                 fh.write("[`source code <%s>`_]\n\n::\n\n" % fname)
-                fhstatic = file(outputfile, 'w')
+                fhstatic = open(outputfile, 'w')
                 fhstatic.write(contents)
                 fhstatic.close()
 
