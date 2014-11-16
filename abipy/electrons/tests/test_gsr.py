@@ -99,6 +99,7 @@ class GSRFileTestCase(AbipyTest):
 
             print(gsr.max_force)
             print(gsr.force_stats())
+            #assert 0
 
             # Test as_dict
             pprint(gsr.as_dict())
@@ -109,7 +110,7 @@ class GSRFileTestCase(AbipyTest):
 
             # Test pymatgen computed_entries
             for inc_structure in (True, False):
-                e = gsr.get_computed_entry(inc_structure=False)
+                e = gsr.get_computed_entry(inc_structure=inc_structure)
                 print(e)
                 print(e.as_dict())
                 assert gsr.energy == e.energy

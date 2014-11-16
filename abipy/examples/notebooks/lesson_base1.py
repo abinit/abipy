@@ -6,9 +6,8 @@ import abipy.data as abidata
 
 def gs_input(x=0.7):
     # H2 molecule in a big box
-    # TODO
     inp = abilab.AbiInput(pseudos=abidata.pseudos("01h.pspgth"))
-    #print("pseudos", inp.pseudos[1])
+
     structure = abilab.Structure.from_abivars(dict(
         ntypat=1,  
         znucl=1,
@@ -53,12 +52,12 @@ def scf_manual():
     flow.make_scheduler().start()
     flow.show_status()
 
-    table = abilab.PrettyTable(["length", "energy"])
+    table = abilab.PrettyTable(["length [Ang]", "energy [eV]"])
     for task in flow.iflat_tasks():
         with task.read_gsr() as gsr:
             cart_coords = gsr.structure.cart_coords
             l = np.sqrt(np.linalg.norm(cart_coords[1] - cart_coords[0]))
-            table.add_row([l, gsr.energy])
+            table.add_row([l, float(gsr.energy)])
 
     print(table)
     table.plot(title="Etotal vs interatomic distance")

@@ -72,7 +72,7 @@ def relax_flow():
     flow.make_scheduler().start()
     flow.show_status()
 
-    table = PrettyTable(["nkibz", "abc", "angles", "volume"])
+    table = PrettyTable(["nkibz", "a [Ang]", "angles", "volume [Ang^3]"])
 
     for task in flow[0]:
         with task.read_gsr() as gsr:
@@ -80,6 +80,7 @@ def relax_flow():
             table.add_row([len(gsr.kpoints), lattice.abc[0], lattice.angles[0], lattice.volume])
 
     print(table)
+    #table.plot()
 
 def bands_flow():
     inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)

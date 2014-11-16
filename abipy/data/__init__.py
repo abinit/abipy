@@ -173,7 +173,7 @@ class AbinitFilesGenerator(object):
 
         if process.returncode != 0: 
             print("returncode == %s" % process.returncode)
-            print(process.stderr.read())
+            print(process.stderr.readlines())
             return process.returncode
 
         if self.finalize:

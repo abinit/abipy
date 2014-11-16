@@ -4,7 +4,7 @@ from __future__ import print_function, division, unicode_literals
 import numpy as np
 import pymatgen.core.units as units
 
-from collections import OrderedDict, Iterable, namedtuple, defaultdict
+from collections import OrderedDict, Iterable, defaultdict
 from monty.string import list_strings
 from monty.collections import AttrDict
 from monty.functools import lazy_property
@@ -84,13 +84,16 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         return fmods.max()
 
     def force_stats(self, **kwargs):
-        fsum = self.cartesian_forces.sum(axis=0)
+        """Return string with information on the forces."""
         fmods = np.sqrt([np.dot(force, force) for force in self.cartesian_forces])
-        fmods_mean, fmod_std = fmods.mean(), fmods.std()
         imin, imax = fmods.argmin(), fmods.argmax()
 
-        #lines = []
-        #return "\n".join(lines)
+        return "\n".join([
+            "fsum: %s" % self.cartesian_forces.sum(axis=0),
+            "mean: %s, std %s" % (fmods.mean(), fmods.std()),
+            "minimum at site %s, cart force: %s" % (self.structure.sites[imin], self.cartesian_forces[imin]),
+            "maximum at site %s, cart force: %s" % (self.structure.sites[imax], self.cartesian_forces[imax]),
+        ])
 
     @lazy_property
     def cartesian_stress_tensor(self):
@@ -175,11 +178,11 @@ class EnergyTerms(AttrDict):
 
     _NAME2DOC = OrderedDict([
         # (Name, help)
-        ("e_localpsp", "Local psp energy (hartree)"),
-        ("e_eigenvalues", "Sum of the eigenvalues - Band energy (Hartree)\n" + 
+        ("e_localpsp", "Local psp energy"),
+        ("e_eigenvalues", "Sum of the eigenvalues - Band energy\n" +
                           "(valid for double-counting scheme dtset%optene == 1)"),
-        ("e_ewald",  "Ewald energy (hartree), store also the ion/ion energy for free boundary conditions."),
-        ("e_hartree", "Hartree part of total energy (hartree units)"),
+        ("e_ewald",  "Ewald energy, store also the ion/ion energy for free boundary conditions."),
+        ("e_hartree", "Hartree part of the total energy"),
         ("e_corepsp", "psp core-core energy"),
         ("e_corepspdc", "psp core-core energy double-counting"),
         ("e_kinetic", "Kinetic energy part of total energy. (valid for direct scheme, dtset%optene == 0"),
@@ -188,16 +191,16 @@ class EnergyTerms(AttrDict):
                       "Value is multiplied by dtset%tsmear, see %entropy for the entropy alone\n." +
                       "(valid for metals, dtset%occopt>=3 .and. dtset%occopt<=8)"),
         ("entropy", "Entropy term"),
-        ("e_xc", "Exchange-correlation energy (hartree)"),
-        ("e_vdw_dftd2", "Dispersion energy from DFT-D2 Van der Waals correction (hartree)"),
-        ("e_xcdc", "enxcdc=exchange-correlation double-counting energy (hartree)"),
+        ("e_xc", "Exchange-correlation energy"),
+        ("e_vdw_dftd2", "Dispersion energy from DFT-D2 Van der Waals correction"),
+        ("e_xcdc", "enxcdc=exchange-correlation double-counting energy"),
         ("e_paw", "PAW spherical part energy"),
         ("e_pawdc", "PAW spherical part double-counting energy"),
         ("e_elecfield", "Electric enthalpy, by adding both ionic and electronic contributions"),
         ("e_magfield", "Orbital magnetic enthalpy, by adding orbital contribution"),
         ("e_fermie", "Fermie energy"),
         ("e_sicdc", "Self-interaction energy double-counting"),
-        ("e_exactX", "Fock exact-exchange energy (hartree)"),
+        ("e_exactX", "Fock exact-exchange energy"),
         ("h0", "h0=e_kinetic+e_localpsp+e_nonlocalpsp"),
         ("e_electronpositron", "Electron-positron: electron-positron interaction energy"),
         ("edc_electronpositron", "Electron-positron: double-counting electron-positron interaction energy"),
@@ -211,7 +214,7 @@ class EnergyTerms(AttrDict):
     ALL_KEYS = _NAME2DOC.keys()
 
     def __str__(self):
-        return self.to_string()
+        return self.to_string(with_doc=False)
 
     def to_string(self, with_doc=True):
         """String representation, with documentation if with_doc."""
