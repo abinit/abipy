@@ -10,11 +10,11 @@ from monty.string import list_strings, is_string
 from monty.collections import  AttrDict
 from monty.functools import lazy_property
 from monty.bisect import find_le, find_ge 
-from monty.pprint import pprint_table
 from six.moves import cStringIO
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList
 from abipy.iotools import AbinitNcFile, ETSF_Reader, Has_Structure, Has_ElectronBands
+from abipy.tools.prettytable import PrettyTable
 from abipy.electrons.ebands import ElectronBands
 from abipy.electrons.scissors import Scissors
 
@@ -158,7 +158,6 @@ class QPState(namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sig
 
 class QPList(list):
     """A list of quasiparticle corrections."""
-
     def __init__(self, *args, **kwargs):
         super(QPList, self).__init__(*args)
         self.is_e0sorted = kwargs.get("is_e0sorted", False)
@@ -169,11 +168,11 @@ class QPList(list):
     def __str__(self):
         """String representation."""
         table = self.to_table()
-
         strio = cStringIO()
-        pprint_table(table, out=strio)
+        print(table, out=strio)
         strio.write("\n")
         strio.seek(0)
+
         return "".join(strio)
 
     def copy(self):
@@ -206,11 +205,11 @@ class QPList(list):
     def to_table(self):
         """Return a table (list of list of strings)."""
         header = QPState.get_fields(exclude=["spin", "kpoint"])
-        table = [header]
+        table = PrettyTable(header)
 
         for qp in self:
             d = qp.to_strdict(fmt=None)
-            table.append([d[k] for k in header])
+            table.add_row([d[k] for k in header])
 
         return table
 
@@ -825,14 +824,9 @@ class SIGRES_Plotter(Iterable):
 
             self.decorate_ax(ax, title="kpoint %s" % repr(kpoint))
 
-        if title is not None:
-            fig.suptitle(title)
-                                 
-        if show:
-            plt.show()
-                                 
-        if savefig is not None:
-            fig.savefig(savefig)
+        if title is not None: fig.suptitle(title)
+        if show: plt.show()
+        if savefig is not None: fig.savefig(savefig)
                                  
         return fig
 
@@ -1418,15 +1412,25 @@ class SIGRES_Reader(ETSF_Reader):
         return AttrDict(params)
 
     def print_qps(self, spin=None, kpoint=None, bands=None, fmt=None, stream=sys.stdout):
+        """
+        :param spin:
+        :param kpoint:
+        :param bands:
+        :param fmt:
+        :param stream:
+        :return:
+            List of tables.
+        """
         spins = range(self.nsppol) if spin is None else [spin]
         kpoints = self.gwkpoints if kpoint is None else [kpoint]
         if bands is not None: bands = [bands]
 
         header = QPState.get_fields(exclude=["spin", "kpoint"])
+        tables = []
 
         for spin in spins:
             for kpoint in kpoints:
-                table_sk = [header]
+                table_sk = PrettyTable(header)
                 if bands is None:
                     ik = self.gwkpt2seqindex(kpoint)
                     bands = range(self.gwbstart_sk[spin,ik], self.gwbstop_sk[spin,ik])
@@ -1434,11 +1438,16 @@ class SIGRES_Reader(ETSF_Reader):
                 for band in bands:
                     qp = self.read_qp(spin, kpoint, band)
                     d = qp.to_strdict(fmt=fmt)
-                    table_sk.append([d[k] for k in header])
+                    table_sk.add_row([d[k] for k in header])
 
                 stream.write("\nkpoint: %s, spin: %s, energy units: eV (NB: bands start from zero)\n" % (kpoint, spin))
-                pprint_table(table_sk, out=stream)
+                print(table_sk, file=stream)
                 stream.write("\n")
+
+                # Add it to tables.
+                tables.append(table_sk)
+
+        return tables
 
     #def read_mel(self, mel_name, spin, kpoint, band, band2=None):
     #    array = self.read_value(mel_name)
