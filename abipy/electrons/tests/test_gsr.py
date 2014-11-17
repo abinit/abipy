@@ -86,11 +86,11 @@ class GSRFileTestCase(AbipyTest):
             almost_equal(eterm.e_fermie.to("Ha"), 0.205739364929368)
 
             # Forces and stress
-            self.assert_almost_equal(gsr.cartesian_forces.flat, 
+            self.assert_almost_equal(gsr.cart_forces.flat,
                 [-5.98330096024095e-30, -5.64111024387213e-30, 1.49693284867669e-29,
                   5.98330096024095e-30, 5.64111024387213e-30, -1.49693284867669e-29])
 
-            #self.assert_almost_equal(gsr.stress_tensor.flat, 
+            #self.assert_almost_equal(gsr.cart_stress_tensor.flat,
             # Cartesian components of stress tensor (hartree/bohr^3)
             #  sigma(1 1)=  1.77139311E-04  sigma(3 2)=  0.00000000E+00
             #  sigma(2 2)=  1.77139311E-04  sigma(3 1)=  0.00000000E+00

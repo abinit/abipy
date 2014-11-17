@@ -2,12 +2,12 @@
 """This module defines objects describing the sampling of the Brillouin Zone."""
 from __future__ import print_function, division, unicode_literals
 
-import os
 import collections
 import numpy as np
 
 from monty.collections import AttrDict
-from abipy.iotools import as_etsfreader, ETSF_Reader
+from monty.functools import lazy_property
+from abipy.iotools import ETSF_Reader
 from abipy.tools.derivatives import finite_diff
 
 import logging
@@ -296,7 +296,7 @@ class Kpoint(object):
         if name is not None and name.startswith("\\"): name = "$" + name + "$"
         self._name = name
 
-    @property
+    @lazy_property
     def on_border(self):
         """
         True if the k-point is on the border of the BZ 
@@ -367,8 +367,7 @@ class Kpoint(object):
     @property
     def norm(self):
         """Norm of the kpoint."""
-        cart = self.lattice.get_cartesian_coords(self.frac_coords)
-        return np.sqrt(np.dot(cart, cart))
+        return np.sqrt(np.dot(self.cart_coords, self.cart_coords))
 
     def versor(self):
         """Returns the versor i.e. ||k|| = 1"""
@@ -440,7 +439,7 @@ class KpointList(collections.Sequence):
             assert len(names) == len(frac_coords)
 
         self._points = []
-        for (i, rcs) in enumerate(frac_coords):
+        for i, rcs in enumerate(frac_coords):
             name = None if names is None else names[i]
             self._points.append(Kpoint(rcs, self.reciprocal_lattice, weight=weights[i], name=name))
 
@@ -452,7 +451,7 @@ class KpointList(collections.Sequence):
         else:
             raise NotImplementedError("")
 
-        assert new.__class__ == cls
+        new.__class__ == cls
         return new
 
     @property
@@ -604,68 +603,53 @@ class Kpath(KpointList):
         """
         super(Kpath, self).__init__(reciprocal_lattice, frac_coords)
 
-    @property
+    @lazy_property
     def ds(self):
         """
         ndarray of len(self)-1 elements giving the distance between two
         consecutive k-points, i.e. ds[i] = ||k[i+1] - k[i]||.
         """
-        try:
-            return self._ds
+        ds = np.zeros(len(self) - 1)
+        for (i, kpoint) in enumerate(self[:-1]):
+            ds[i] = (self[i + 1] - kpoint).norm
+        return ds
 
-        except AttributeError:
-            self._ds = ds = np.zeros(len(self) - 1)
-            for (i, kpoint) in enumerate(self[:-1]):
-                ds[i] = (self[i + 1] - kpoint).norm
-
-            return self._ds
-
-    @property
+    @lazy_property
     def versors(self):
         """Tuple of len(self)-1 elements with the versors connecting k[i] to k[i+1]."""
-        try:
-            return self._versors
+        versors = (len(self) - 1) * [None, ]
+        versors[0] = Kpoint.gamma(self.reciprocal_lattice)
 
-        except AttributeError:
-            versors = (len(self) - 1) * [None, ]
-            versors[0] = Kpoint.gamma(self.reciprocal_lattice)
+        for (i, kpt) in enumerate(self[:-1]):
+            versors[i] = (self[i + 1] - kpt).versor()
 
-            for (i, kpt) in enumerate(self[:-1]):
-                versors[i] = (self[i + 1] - kpt).versor()
-            self._versors = tuple(versors)
-
-            return self._versors
+        return tuple(versors)
 
     @property
     def num_lines(self):
         """The number of lines forming the path."""
         return len(self.lines)
 
-    @property
+    @lazy_property
     def lines(self):
         """
         tuple with the list of indices of the points belonging to the same line.
         """
-        try:
-            return self._lines
+        lines = []
+        prev, indices = self.versors[0], [0]
 
-        except AttributeError:
-            lines = []
-            prev, indices = self.versors[0], [0]
-
-            for (i, v) in enumerate(self.versors[1:]):
-                i += 1
-                if v != prev:
-                    prev = v
-                    lines.append(indices + [i])
-                    indices = [i]
-                else:
-                    indices += [i]
+        for (i, v) in enumerate(self.versors[1:]):
+            i += 1
+            if v != prev:
+                prev = v
+                lines.append(indices + [i])
+                indices = [i]
+            else:
+                indices += [i]
 
             lines.append(indices + [len(self) - 1])
-            self._lines = tuple(lines)
 
-            return self._lines
+        return tuple(lines)
 
     def finite_diff(self, values, order=1, acc=4):
         """
@@ -792,15 +776,11 @@ class IrredZone(KpointList):
         """Number of points in the full BZ."""
         return self.mpdivs.prod() * self.num_shifts
 
-    #@property
+    #@lazy_property
     #def ktab(self):
-    #    try:
-    #        return self._ktab
-    #    except AttributeError:
-    #        # Compute the mapping bz --> ibz
-    #        from abipy.extensions.klib import map_bz2ibz
-    #        self._ktab = map_bz2ibz(structure=structure, bz_arr=self.bz_arr, ib_arr=self.ibz_arr)
-    #        return self._ktab
+    #Compute the mapping bz --> ibz
+    #from abipy.extensions.klib import map_bz2ibz
+    #return map_bz2ibz(structure=structure, bz_arr=self.bz_arr, ib_arr=self.ibz_arr)
 
     #def iter_bz_coords(self):
     #    """

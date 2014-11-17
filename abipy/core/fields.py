@@ -42,7 +42,7 @@ class ScalarField(object):
                 Order of the array. "c" for C ordering, "f" for Fortran ordering.
         """
         self.nspinor, self.nsppol, self.nspden = nspinor, nsppol, nspden
-        self.structure = structure
+        self._structure = structure
 
         iorder = iorder.lower()
         assert iorder in ["f", "c"]
@@ -59,20 +59,24 @@ class ScalarField(object):
         self._datar = np.reshape(datar, (nspden,) + self.mesh.shape)
 
         # FFT R --> G.
-        self._datag = self.mesh.fft_r2g(self.datar)
+        #self._datag = self.mesh.fft_r2g(self.datar)
 
     def __len__(self):
         return len(self.datar)
 
     def __str__(self):
-        return self.tostring()
+        return self.to_string()
 
-    def tostring(self, prtvol=0):
+    @property
+    def structure(self):
+        return self._structure
+
+    def to_string(self, prtvol=0):
         """String representation"""
         lines = ["%s: nspinor = %i, nsppol = %i, nspden = %i" %
                  (self.__class__.__name__, self.nspinor, self.nsppol, self.nspden)]
         app = lines.append
-        app(self.mesh.tostring(prtvol))
+        app(self.mesh.to_string(prtvol))
         if prtvol > 0: app(str(self.structure))
 
         return "\n".join(lines)
@@ -82,10 +86,11 @@ class ScalarField(object):
         """`ndarrray` with data in real space."""
         return self._datar
 
-    @property
+    @lazy_property
     def datag(self):
         """`ndarrray` with data in reciprocal space."""
-        return self._datag
+        # FFT R --> G.
+        return self.mesh.fft_r2g(self.datar)
 
     @property
     def mesh(self):
@@ -95,9 +100,8 @@ class ScalarField(object):
     @property
     def shape(self):
         """Shape of the array."""
-        shape_r, shape_g = self.datar.shape, self.datag.shape
-        assert shape_r == shape_g
-        return shape_r
+        assert self.datar.shape == self.datag.shape
+        return self.datar.shape
 
     @property
     def nx(self):
@@ -160,6 +164,7 @@ class ScalarField(object):
     #    """
     #    Compute the matrix element of <bra_wave|datar|ket_wave> in real space
     #    """
+
     #    if bra_wave.mesh != self.mesh:
     #       bra_ur = bra_wave.fft_ug(self.mesh)
     #    else:
@@ -170,11 +175,12 @@ class ScalarField(object):
     #    else:
     #       ket_ur = ket_wave.ur
 
-    #    assert self.nspinor == 1
-    #    assert bra_wave.spin == ket_wave.spin
-
-    #    datar_spin = self.datar[bra_wave.spin]
-    #    return self.mesh.integrate(bra_ur.conj() * datar_spin * ket_ur)
+    #    if self.nspinor == 1:
+    #        assert bra_wave.spin == ket_wave.spin
+    #       datar_spin = self.datar[bra_wave.spin]
+    #       return self.mesh.integrate(bra_ur.conj() * datar_spin * ket_ur)
+    #    else:
+    #        raise NotImplemented("nspinor != 1 not implmenented")
 
     #def map_coordinates(self, rcoords, order=3, frac_coords=True)
     #    """
@@ -239,7 +245,7 @@ class ScalarField(object):
 
         if not tokens[0]: # filename == ".ext" ==> Create temporary file.
             import tempfile
-            filename = tempfile.mkstemp(suffix="."+ext, text=True)[1]
+            filename = tempfile.mkstemp(suffix="." + ext, text=True)[1]
 
         with open(filename, mode="w") as fh:
             if ext == "xsf":
@@ -658,9 +664,9 @@ class DensityReader(ETSF_Reader):
 #        if len(flags) > 1: plus = "+"
 #        return plus.join([_vnames[flag] for flag in flags])
 #
-#    def tostring(self, prtvol=0):
+#    def to_string(self, prtvol=0):
 #        s = self.vname + "\n"
-#        s += super(Potential, self).tostring(self, prtvol)
+#        s += super(Potential, self).to_string(self, prtvol)
 #        return s
 #
 #    #def make_vector_field(self):

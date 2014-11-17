@@ -10,6 +10,7 @@ from monty.string import list_strings
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
+from abipy.core.fields import DensityReader
 from abipy.iotools import AbinitNcFile, Has_Structure, Has_ElectronBands
 from .ebands import ElectronsReader
 
@@ -49,7 +50,7 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         self._ebands = r.read_ebands()
 
         # Add forces to structure
-        self.structure.add_site_property("cartesian_forces", self.cartesian_forces)
+        self.structure.add_site_property("cartesian_forces", self.cart_forces)
 
     @property
     def ebands(self):
@@ -76,40 +77,45 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         return self.reader.read_energy_terms()
 
     @lazy_property
-    def cartesian_forces(self):
-        return self.reader.read_cartesian_forces()
+    def cart_forces(self):
+        return self.reader.read_cart_forces()
 
     @property
     def max_force(self):
-        fmods = np.sqrt([np.dot(force, force) for force in self.cartesian_forces])
+        fmods = np.sqrt([np.dot(force, force) for force in self.cart_forces])
         return fmods.max()
 
     def force_stats(self, **kwargs):
-        """Return string with information on the forces."""
-        fmods = np.sqrt([np.dot(force, force) for force in self.cartesian_forces])
+        """Return a string with information on the forces."""
+        fmods = np.sqrt([np.dot(force, force) for force in self.cart_forces])
         imin, imax = fmods.argmin(), fmods.argmax()
 
         return "\n".join([
-            "fsum: %s" % self.cartesian_forces.sum(axis=0),
+            "fsum: %s" % self.cart_forces.sum(axis=0),
             "mean: %s, std %s" % (fmods.mean(), fmods.std()),
-            "minimum at site %s, cart force: %s" % (self.structure.sites[imin], self.cartesian_forces[imin]),
-            "maximum at site %s, cart force: %s" % (self.structure.sites[imax], self.cartesian_forces[imax]),
+            "minimum at site %s, cart force: %s" % (self.structure.sites[imin], self.cart_forces[imin]),
+            "maximum at site %s, cart force: %s" % (self.structure.sites[imax], self.cart_forces[imax]),
         ])
 
     @lazy_property
-    def cartesian_stress_tensor(self):
-        return self.reader.read_cartesian_stress_tensor()
+    def cart_stress_tensor(self):
+        return self.reader.read_cart_stress_tensor()
 
     @lazy_property 
     def pressure(self):
         HaBohr3_GPa = 29421.033 # 1 Ha/Bohr^3, in GPa
-        pressure = - (HaBohr3_GPa/3) * self.cartesian_stress_tensor.trace()
+        pressure = - (HaBohr3_GPa/3) * self.cart_stress_tensor.trace()
         return units.FloatWithUnit(pressure, unit="GPa", unit_type="pressure")
 
     @lazy_property
     def residm(self):
         """Maximum of the residuals"""
-        return self.read_value("residm")
+        return self.reader.read_value("residm")
+
+    @lazy_property
+    def density(self):
+        """``Density object."""
+        return self.reader.read_density()
 
     def close(self):
         self.reader.close()
@@ -156,7 +162,7 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
             final_energy=self.energy,
             final_energy_per_atom=self.energy_per_atom,
             #max_force=gsr.max_force,
-            cartesian_stress_tensor=self.cartesian_stress_tensor,
+            cart_stress_tensor=self.cart_stress_tensor,
             pressure=self.pressure,
             number_of_electrons=self.nelect,
             ebands=self.ebands.to_pymatgen().as_dict(),
@@ -228,17 +234,17 @@ class EnergyTerms(AttrDict):
         return "\n".join(lines)
 
 
-class GSR_Reader(ElectronsReader):
+class GSR_Reader(ElectronsReader, DensityReader):
     """
     This object reads the results stored in the _GSR (Ground-State Results)
     file produced by ABINIT. It provides helper function to access the most
     important quantities.
     """
-    def read_cartesian_forces(self):
+    def read_cart_forces(self):
         """Return the cartesian forces."""
         return self.read_value("cartesian_forces")
 
-    def read_cartesian_stress_tensor(self):
+    def read_cart_stress_tensor(self):
         """
         Return the stress tensor in cartesian coordinates (Hartree/Bohr^3)
         6 unique components of this symmetric 3x3 tensor:

@@ -10,7 +10,6 @@ import collections
 from time import ctime
 from monty.os.path import which
 from pymatgen.io.abinitio.events import EventsParser
-from abipy.iotools.visualizer import Visualizer
 
 
 __all__ = [
@@ -155,6 +154,7 @@ class Has_Structure(object):
 
         See :class:`Visualizer` for the list of applications and formats supported.
         """
+        from abipy.iotools.visualizer import Visualizer
         visu = Visualizer.from_name(visu_name)
 
         for ext in visu.supported_extensions():
