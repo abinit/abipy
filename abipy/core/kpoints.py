@@ -372,10 +372,8 @@ class Kpoint(object):
     def versor(self):
         """Returns the versor i.e. ||k|| = 1"""
         cls = self.__class__
-
         try:
             return cls(self.frac_coords / self.norm, self.lattice, weight=self.weight)
-
         except ZeroDivisionError:
             return cls.gamma(self.lattice, weight=self.weight)
 

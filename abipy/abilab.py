@@ -4,6 +4,7 @@ This module gathers the most important classes and helper functions used for scr
 from __future__ import print_function, division, unicode_literals
 
 from monty.os.path import which
+from pymatgen.core.units import *
 from pymatgen.io.abinitio.eos import EOS
 from pymatgen.io.abinitio.pseudos import PseudoTable
 from pymatgen.io.abinitio.wrappers import Mrgscr, Mrgddb, Mrggkk
@@ -17,7 +18,6 @@ from pymatgen.io.abinitio.workflows import *
 from pymatgen.io.abinitio.flows import *
 from pymatgen.io.abinitio.launcher import PyFlowScheduler
 
-from abipy.core import constants
 from abipy.core.structure import Structure, StructureModifier
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen, AnaddbInput
 from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter, SIGRES_Plotter
@@ -25,9 +25,9 @@ from abipy.phonons import PHBST_File, PhononBands, PHDOS_File, PHDOS_Reader
 from abipy.tools.prettytable import PrettyTable
 
 # Tools for unit conversion
-FloatWithUnit = constants.FloatWithUnit
-ArrayWithUnit = constants.ArrayWithUnit
-
+#from abipy.core import constants
+#FloatWithUnit = constants.FloatWithUnit
+#ArrayWithUnit = constants.ArrayWithUnit
 
 def _straceback():
     """Returns a string with the traceback."""

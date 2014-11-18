@@ -8,6 +8,7 @@ from pprint import pprint
 from abipy.core.testing import *
 from abipy.electrons.gsr import GSR_Reader, GSR_File
 
+
 class GSRReaderTestCase(AbipyTest):
 
     def test_read_Si2(self):
@@ -47,8 +48,7 @@ class GSRReaderTestCase(AbipyTest):
                 value = r.read_value(varname)
                 self.assert_almost_equal(value, float_ref)
 
-            # Reading non-existent variables or dims should raise
-            # a subclass of NetcdReder.
+            # Reading non-existent variables or dims should raise a subclass of NetcdReder.
             with self.assertRaises(GSR_Reader.Error): r.read_value("foobar")
             with self.assertRaises(GSR_Reader.Error): r.read_dimvalue("foobar")
 
@@ -63,8 +63,8 @@ class GSRReaderTestCase(AbipyTest):
 
 class GSRFileTestCase(AbipyTest):
 
-    def test_methods(self):
-        """GSRFile methods"""
+    def test_gsr_silicon(self):
+        """spin unpolarized GSR file"""
         almost_equal = self.assertAlmostEqual
 
         with GSR_File(data.ref_file("si_scf_GSR.nc")) as gsr:
@@ -88,7 +88,10 @@ class GSRFileTestCase(AbipyTest):
             # Forces and stress
             self.assert_almost_equal(gsr.cart_forces.flat,
                 [-5.98330096024095e-30, -5.64111024387213e-30, 1.49693284867669e-29,
-                  5.98330096024095e-30, 5.64111024387213e-30, -1.49693284867669e-29])
+                  5.98330096024095e-30,  5.64111024387213e-30, -1.49693284867669e-29])
+
+            almost_equal(gsr.max_force, 0)
+            print(gsr.force_stats())
 
             #self.assert_almost_equal(gsr.cart_stress_tensor.flat,
             # Cartesian components of stress tensor (hartree/bohr^3)
@@ -97,9 +100,9 @@ class GSRFileTestCase(AbipyTest):
             #  sigma(3 3)=  1.77139311E-04  sigma(2 1)=  2.67294316E-15
             almost_equal(gsr.pressure, -5.21162150)
 
-            print(gsr.max_force)
-            print(gsr.force_stats())
-            #assert 0
+            # Test gsr.density.
+            print(gsr.density)
+            almost_equal(gsr.magnetization, 0)
 
             # Test as_dict
             pprint(gsr.as_dict())
@@ -114,6 +117,8 @@ class GSRFileTestCase(AbipyTest):
                 print(e)
                 print(e.as_dict())
                 assert gsr.energy == e.energy
+
+            #assert 0
 
 
 if __name__ == "__main__":

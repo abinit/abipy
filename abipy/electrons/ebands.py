@@ -11,6 +11,7 @@ import numpy as np
 
 from collections import OrderedDict, namedtuple, Iterable
 from monty.collections import AttrDict
+from monty.functools import lazy_property
 from monty.bisect import find_le, find_gt
 from abipy.core import constants as const
 from abipy.core.func1d import Function1D
@@ -306,17 +307,6 @@ class ElectronBands(object):
         # Fix the Fermi level and use efermi as the energy zero.
         self._fix_fermie()
 
-        # Find the k-point names in the pymatgen database.
-        # We'll use _auto_klabels to label the point in the matplotlib plot
-        # if klabels are not specified by the user.
-        self._auto_klabels = OrderedDict()
-        for idx, kpoint in enumerate(self.kpoints):
-            name = self.structure.findname_in_hsym_stars(kpoint)
-            if name is not None:
-                self._auto_klabels[idx] = name
-                if kpoint.name is None:
-                    kpoint.set_name(name)
-
         if markers is not None:
             for key, xys in markers.items():
                 self.set_marker(key, xys)
@@ -324,6 +314,20 @@ class ElectronBands(object):
         if widths is not None:
             for key, width in widths.items():
                 self.set_width(key, width)
+
+    @lazy_property
+    def _auto_klabels(self):
+        # Find the k-point names in the pymatgen database.
+        # We'll use _auto_klabels to label the point in the matplotlib plot
+        # if klabels are not specified by the user.
+        _auto_klabels = OrderedDict()
+        for idx, kpoint in enumerate(self.kpoints):
+            name = self.structure.findname_in_hsym_stars(kpoint)
+            if name is not None:
+                _auto_klabels[idx] = name
+                if kpoint.name is None:
+                    kpoint.set_name(name)
+        return _auto_klabels
 
     #def __repr__(self):
     #    return self.info
@@ -1971,7 +1975,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
 
     def read_fermie(self):
         """Fermi level in eV."""
-        return const.FloatWithUnit(self.read_value("fermi_energy"), "Ha").to("eV")
+        return const.Energy(self.read_value("fermi_energy"), "Ha").to("eV")
 
     def read_nelect(self):
         """Number of valence electrons."""
@@ -1993,7 +1997,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
         return Smearing(
             scheme=scheme,
             occopt=occopt,
-            tsmear_ev=const.FloatWithUnit(self.read_value("smearing_width"), "Ha").to("eV")
+            tsmear_ev=const.Energy(self.read_value("smearing_width"), "Ha").to("eV")
         )
 
     #def read_xcinfo(self):

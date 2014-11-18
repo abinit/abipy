@@ -41,7 +41,7 @@ class Lattice(pymatgen.Lattice):
         if rprim is not None:
             assert angdeg is None
             rprim = np.reshape(rprim, (3,3))
-            rprimd = [acell[i] * rprim[i] for i in range(3)]
+            rprimd = [float(acell[i]) * rprim[i] for i in range(3)]
             return cls(ArrayWithUnit(rprimd, "bohr").to("ang"))
 
         elif angdeg is not None:

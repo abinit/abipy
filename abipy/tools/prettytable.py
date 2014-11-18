@@ -13,12 +13,17 @@ class PrettyTable(prettytable.PrettyTable):
     Extends ``prettytable.PrettyTable`` adding methods for numerical analysis and 
     methods to produce ``matplotlib`` plots.
     """
+    def get_column(self, fieldname):
+        """Return the column associated to fieldnname"""
+        ix = self.field_names.index(fieldname)
+        return [row[ix] for row in self._rows]
+
     def quadfit(self, xname=None, yname=None):
         """
         Quadratic fit. Return namedtuple with the parameters of the fix a*x**2 + b*x + c,
         the position of the minimum in x0 and the value of the minimum in y0
         """
-        xvals, yvals = self.get_float_cols(xname, yname)
+        xvals, yvals = self._get_float_cols(xname, yname)
 
         a, b, c = np.polyfit(xvals, yvals, 2)
         x0 = -b/(2*a)
@@ -50,7 +55,7 @@ class PrettyTable(prettytable.PrettyTable):
         ax = fig.add_subplot(1,1,1)
 
         # Extract data from the table.
-        xvals, yvals = self.get_float_cols(xname, yname)
+        xvals, yvals = self._get_float_cols(xname, yname)
 
         ax.plot(xvals, yvals, **kwargs)
 
@@ -60,7 +65,7 @@ class PrettyTable(prettytable.PrettyTable):
 
         return fig
 
-    def get_float_cols(self, xname, yname):
+    def _get_float_cols(self, xname, yname):
         """
         Extract values in columns xname, yname. Return numpy array of floats.
         if xname and yname are None, the first two columns are returned.
