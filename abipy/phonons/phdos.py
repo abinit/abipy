@@ -7,7 +7,8 @@ import numpy as np
 
 from monty.functools import lazy_property
 from abipy.core.func1d import Function1D
-from abipy.iotools import ETSF_Reader, AbinitNcFile, Has_Structure
+from abipy.core.mixins import AbinitNcFile, Has_Structure
+from abipy.iotools import ETSF_Reader
 
 __all__ = [
     "PhononDOS",

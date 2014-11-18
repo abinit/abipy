@@ -18,11 +18,11 @@ from pymatgen.io.abinitio.workflows import *
 from pymatgen.io.abinitio.flows import *
 from pymatgen.io.abinitio.launcher import PyFlowScheduler
 
+from abipy.tools.prettytable import PrettyTable
 from abipy.core.structure import Structure, StructureModifier
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen, AnaddbInput
 from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter, SIGRES_Plotter
 from abipy.phonons import PHBST_File, PhononBands, PHDOS_File, PHDOS_Reader
-from abipy.tools.prettytable import PrettyTable
 
 # Tools for unit conversion
 #from abipy.core import constants
@@ -37,7 +37,7 @@ def _straceback():
 
 def abifile_subclass_from_filename(filename):
     """Returns the appropriate class associated to the given filename."""
-    from abipy.iotools.files import AbinitFile, AbinitLogFile, AbinitOutputFile
+    from abipy.core.mixins import AbinitFile, AbinitLogFile, AbinitOutputFile
     from abipy.electrons import SIGRES_File, GSR_File, MDF_File
     from abipy.waves import WFK_File
 
@@ -52,11 +52,8 @@ def abifile_subclass_from_filename(filename):
     #if filename.endswith(".abi"):
     #    return AbinitInputFile
                                                                                         
-    if filename.endswith(".abo"):
-        return AbinitOutputFile
-    
-    if filename.endswith(".log"):
-        return AbinitLogFile
+    if filename.endswith(".abo"): return AbinitOutputFile
+    if filename.endswith(".log"): return AbinitLogFile
 
     # CIF files.
     if filename.endswith(".cif"):

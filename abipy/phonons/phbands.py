@@ -7,9 +7,10 @@ import collections
 import numpy as np
 
 from monty.functools import lazy_property
-from abipy.iotools import ETSF_Reader, AbinitNcFile, Has_Structure, Has_PhononBands
+from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands
 from abipy.core.kpoints import Kpoint
 from abipy.tools import gaussian
+from abipy.iotools import ETSF_Reader
 from .phdos import PhononDOS
 
 __all__ = [

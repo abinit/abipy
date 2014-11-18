@@ -6,10 +6,11 @@ import numpy as np
 
 from monty.collections import AttrDict
 from monty.functools import lazy_property
-from abipy.tools import transpose_last3dims
-from abipy.iotools import Visualizer, xsf, ETSF_Reader
 from abipy.core.constants import bohr_to_angstrom
 from abipy.core.mesh3d import Mesh3D
+from abipy.core.mixins import Has_Structure
+from abipy.tools import transpose_last3dims
+from abipy.iotools import Visualizer, xsf, ETSF_Reader
 
 
 __all__ = [
@@ -19,7 +20,7 @@ __all__ = [
 ]
 
 
-class ScalarField(object):
+class ScalarField(Has_Structure):
     """
     Base class representing a typical scalar field generated electrons (e.g. densities, potentials).
     The field is represented on a homogenous real-space mesh.
@@ -464,7 +465,7 @@ class DensityReader(ETSF_Reader):
             cplex_den=self.read_dimvalue("real_or_complex_density"),
             nspinor=self.read_dimvalue("number_of_spinor_components"),
             nsppol=self.read_dimvalue("number_of_spins"),
-            nspden=self.read_dimvalue("number_of_components"),
+            nspden=self.read_dimvalue("number_of_spin_density_components"),
             nfft1=self.read_dimvalue("number_of_grid_points_vector1"),
             nfft2=self.read_dimvalue("number_of_grid_points_vector2"),
             nfft3=self.read_dimvalue("number_of_grid_points_vector3"),

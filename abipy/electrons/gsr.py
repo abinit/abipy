@@ -11,7 +11,7 @@ from monty.collections import AttrDict
 from monty.functools import lazy_property
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
 from abipy.core.fields import DensityReader
-from abipy.iotools import AbinitNcFile, Has_Structure, Has_ElectronBands
+from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands
 from abipy.tools.prettytable import PrettyTable
 from .ebands import ElectronsReader
 

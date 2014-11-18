@@ -215,7 +215,7 @@ class Mesh3D(object):
 
         :param data: Input array defined on this mesh
         :param new_mesh: Mesh where data is interpolated
-        :param inspace: string specifying if data is given in real space "r" or reciprocal space "g".
+        :param inspace: string specifying if data is given in real space "r" or in reciprocal space "g".
         :return: Numpy array in real space on the new_mesh
         """
         raise NotImplementedError("gtransfer is missing")

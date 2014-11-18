@@ -10,8 +10,9 @@ import numpy as np
 from monty.functools import lazy_property
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList
-from abipy.iotools import ETSF_Reader, AbinitNcFile, Has_Structure
+from abipy.core.mixins import AbinitNcFile, Has_Structure
 from abipy.core.tensor import SymmetricTensor
+from abipy.iotools import ETSF_Reader
 
 __all__ = [
     "DielectricTensor",

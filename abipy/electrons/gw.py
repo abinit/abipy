@@ -14,7 +14,8 @@ from monty.bisect import find_le, find_ge
 from six.moves import cStringIO
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList
-from abipy.iotools import AbinitNcFile, ETSF_Reader, Has_Structure, Has_ElectronBands
+from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands
+from abipy.iotools import ETSF_Reader
 from abipy.tools.prettytable import PrettyTable
 from abipy.electrons.ebands import ElectronBands
 from abipy.electrons.scissors import Scissors

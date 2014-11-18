@@ -7,7 +7,8 @@ import numpy as np
 
 from monty.functools import lazy_property
 from abipy.core import Mesh3D, GSphere, Structure
-from abipy.iotools import ETSF_Reader, Visualizer, AbinitNcFile, Has_Structure, Has_ElectronBands
+from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands
+from abipy.iotools import ETSF_Reader, Visualizer 
 from abipy.electrons import ElectronsReader
 from abipy.waves.pwwave import PWWaveFunction
 
