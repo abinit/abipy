@@ -1372,8 +1372,8 @@ class SIGRES_Reader(ETSF_Reader):
 
         den = np.zeros(self.nomega_r)
         for (io, omega) in enumerate(self._omega_r):
-            den[io] = (omega - self._hhartree[spin,ik,ib,ib] - self._sigxcme[spin,io,ik,ib].real) ** 2 + \
-                np.imag(self._sigcme[spin,io,ik,ib]) ** 2
+            den[io] = (omega - self._hhartree[spin,ik,ib,ib].real - self._sigxcme[spin,io,ik,ib].real) ** 2 + \
+                self._sigcme[spin,io,ik,ib].imag ** 2
 
         return self._omega_r, 1./np.pi * (aim_sigc/den)
 
