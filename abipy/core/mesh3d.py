@@ -5,6 +5,7 @@ from __future__ import print_function, division, unicode_literals
 import numpy as np
 from itertools import product as iproduct
 
+from monty.functools import lazy_property
 from numpy.random import random
 from numpy.fft import fftn, ifftn, fftshift, ifftshift, fftfreq
 
@@ -59,7 +60,7 @@ class Mesh3D(object):
         self.vectors = np.reshape(vectors, (3,3))
 
         cross12 = np.cross(self.vectors[1], self.vectors[2])
-        self.dv = abs(np.sum( self.vectors[0] * cross12.T)) / self.size
+        self.dv = abs(np.sum(self.vectors[0] * cross12.T)) / self.size
 
     def __len__(self):
         return self.size
@@ -72,9 +73,9 @@ class Mesh3D(object):
         return not self == other
 
     def __str__(self):
-        return self.tostring()
+        return self.to_string()
 
-    def tostring(self, prtvol=0):
+    def to_string(self, prtvol=0):
         s = self.__class__.__name__ + ": nx=%d, ny=%d, nz=%d" % self.shape
         return s
 
@@ -141,7 +142,7 @@ class Mesh3D(object):
         if dtype == np.float:
             return re
         elif dtype == np.complex:
-            im = self.random(extra_dims = extra_dims)
+            im = self.random(extra_dims=extra_dims)
             return re + 1j*im
         else:
             raise ValueError("Wrong dtype = " + str(dtype))
@@ -186,11 +187,11 @@ class Mesh3D(object):
 
     def fft_g2r(self, fg, fg_ishifted=False):
         """FFT of array fg given in G-space."""
-        ndim, shape  = fg.ndim, fg.shape
+        ndim, shape = fg.ndim, fg.shape
 
         if ndim == 1:
             fg = np.reshape(fg, self.shape)
-            return self.fft_rg2r(fg, fh_isshifted=fg_isshifted).flatten()
+            return self.fft_g2r(fg, fh_isshifted=fg_ishifted).flatten()
 
         if ndim == 3:
             assert self.size == np.prod(shape[-3:])
@@ -208,6 +209,25 @@ class Mesh3D(object):
 
         return fr * self.size
 
+    def fourier_interp(self, data, new_mesh, inspace="r"):
+        """
+        Fourier interpolation of data.
+
+        :param data: Input array defined on this mesh
+        :param new_mesh: Mesh where data is interpolated
+        :param inspace: string specifying if data is given in real space "r" or reciprocal space "g".
+        :return: Numpy array in real space on the new_mesh
+        """
+        raise NotImplementedError("gtransfer is missing")
+        assert inspace in ("r", "g")
+
+        # Insert data in the FFT box of new mesh.
+        if inspace == "r": data = self.fft_r2g(data)
+        intp_datag = new_mesh.gtransfer_from(self, data)
+
+        # FFT transform G --> R.
+        return new_mesh.fft_g2r(intp_datag)
+
     def integrate(self, fr):
         """Integrate array(s) fr."""
         shape, ndim = fr.shape, fr.ndim
@@ -216,21 +236,16 @@ class Mesh3D(object):
         if ndim == 3:
             return fr.sum() * self.dv
 
-        elif ndim > 3 :
+        elif ndim > 3:
             sums = np.sum(np.reshape(fr, shape[:-3] + (-1,)), axis=-1)
             return sums * self.dv
 
         else:
             raise NotImplementedError("ndim < 3 are not supported")
 
-    #@staticmethod
-    #def _check_space(space):
-    #    space = space.lower()
-    #    if space not in ("r", "g"):
-    #        raise ValueError("Wrong space %s" % space)
-    #    return space
-
-    def get_gvecs(self):
+    @lazy_property
+    def gvecs(self):
+        """Array with the reduced coordinates of the G-vectors."""
         gx_list = np.rint(fftfreq(self.nx) * self.nx)
         gy_list = np.rint(fftfreq(self.ny) * self.ny)
         gz_list = np.rint(fftfreq(self.nz) * self.nz)
@@ -243,20 +258,18 @@ class Mesh3D(object):
             for gy in gy_list:
                 for gz in gz_list:
                     idx += 1
-                    gvecs[idx,0] = gx
-                    gvecs[idx,1] = gy
-                    gvecs[idx,2] = gz
-                                                      
+                    gvecs[idx,:] = gx, gy, gz
+
         return gvecs
-    
-    def get_rpoints(self):
+
+    @lazy_property
+    def rpoints(self):
+        """Array with the points in real space in reduced coordinates."""
         nx, ny, nz = self.nx, self.ny, self.nz
         rpoints = np.empty((self.size,3))
 
         for ifft, p1_fft in enumerate(iproduct(range(nx), range(ny), range(nz))):
-            rpoints[ifft,0] = p1_fft[0] / nx
-            rpoints[ifft,1] = p1_fft[1] / ny
-            rpoints[ifft,2] = p1_fft[2] / nz
+            rpoints[ifft,:] = p1_fft[0]/nx, p1_fft[1]/ny, p1_fft[2]/nz
 
         return rpoints
 

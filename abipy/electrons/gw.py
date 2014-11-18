@@ -1029,7 +1029,6 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     #    return plot_matrix(matrix, *args, **kwargs)
 
 
-
 class SIGRES_Reader(ETSF_Reader):
     """
     This object provides method to read data from the SIGRES file produced ABINIT.

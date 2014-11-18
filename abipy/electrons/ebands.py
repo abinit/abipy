@@ -1652,8 +1652,7 @@ class ElectronBandsPlotter(object):
 
     def bands_statdiff(self, ref=0):
         """
-        Compare the reference bands with index ref with the other bands 
-        stored in the plotter.
+        Compare the reference bands with index ref with the other bands  stored in the plotter.
         """
         for i, label in enumerate(self._bands_dict.keys()):
             if i == ref:
@@ -1852,7 +1851,7 @@ class ElectronDosPlotter(object):
         """
         Adds a dos for plotting. Reads data from a Netcd file
         """
-        from abipy import abiopen
+        from abipy.abilab import abiopen
         ebands = abiopen(filepath).ebands
         edos = ebands.get_edos(method=method, step=step, width=width)
 
@@ -1939,9 +1938,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
         return ElectronBands(
             # FIXME
             nspinor=self.read_nspinor(),
-            #nspinor=1,
-            nspden=1,
-            #nspinor=self.read_nspden(),
+            nspden=self.read_nspden(),
             structure=self.read_structure(),
             kpoints=self.read_kpoints(),
             eigens=self.read_eigenvalues(),
@@ -1962,7 +1959,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
 
     def read_nspden(self):
         """Number of spin-density components"""
-        return self.read_dimvalue("number_of_spin_density_components")
+        return self.read_dimvalue("number_of_components")
 
     def read_eigenvalues(self):
         """Eigenvalues in eV."""

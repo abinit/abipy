@@ -12,6 +12,7 @@ from monty.functools import lazy_property
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
 from abipy.core.fields import DensityReader
 from abipy.iotools import AbinitNcFile, Has_Structure, Has_ElectronBands
+from abipy.tools.prettytable import PrettyTable
 from .ebands import ElectronsReader
 
 
@@ -90,12 +91,19 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         fmods = np.sqrt([np.dot(force, force) for force in self.cart_forces])
         imin, imax = fmods.argmin(), fmods.argmax()
 
-        return "\n".join([
+        s = "\n".join([
             "fsum: %s" % self.cart_forces.sum(axis=0),
             "mean: %s, std %s" % (fmods.mean(), fmods.std()),
             "minimum at site %s, cart force: %s" % (self.structure.sites[imin], self.cart_forces[imin]),
             "maximum at site %s, cart force: %s" % (self.structure.sites[imax], self.cart_forces[imax]),
         ])
+
+        table = PrettyTable(["Site", "Cartesian Force", "Length"])
+        for i, fmod in enumerate(fmods):
+            table.add_row([self.structure.sites[i], self.cart_forces[i], fmod])
+
+        s += "\n" + str(table)
+        return s
 
     @lazy_property
     def cart_stress_tensor(self):
@@ -116,6 +124,14 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     def density(self):
         """``Density object."""
         return self.reader.read_density()
+
+    @property
+    def magnetization(self):
+        return self.density.magnetization
+
+    @property
+    def nelect_updown(self):
+        return self.density.nelect_updown
 
     def close(self):
         self.reader.close()
@@ -222,23 +238,30 @@ class EnergyTerms(AttrDict):
 
     def __str__(self):
         return self.to_string(with_doc=False)
+    __repr__ = __str__
+
+    @property
+    def table(self):
+        """PrettyTable object with the results."""
+        table = PrettyTable(["Term", "Value"])
+        for k, doc in self._NAME2DOC.items():
+            table.add_row([k, self[k]])
+        return table
 
     def to_string(self, with_doc=True):
         """String representation, with documentation if with_doc."""
-        lines = []
-        app = lines.append
-        for k, doc in self._NAME2DOC.items():
-            if with_doc: app(doc)
-            app("%s = %s" % (k, self[k]))
+        lines = [str(self.table)]
+        if with_doc:
+            for k, doc in self._NAME2DOC.items():
+                lines.append("%s: %s" % (k, doc))
 
         return "\n".join(lines)
 
 
 class GSR_Reader(ElectronsReader, DensityReader):
     """
-    This object reads the results stored in the _GSR (Ground-State Results)
-    file produced by ABINIT. It provides helper function to access the most
-    important quantities.
+    This object reads the results stored in the _GSR (Ground-State Results) file produced by ABINIT.
+    It provides helper function to access the most important quantities.
     """
     def read_cart_forces(self):
         """Return the cartesian forces."""
@@ -283,8 +306,8 @@ class GSR_Plotter(Iterable):
         plotter.add_file("bar_GSR.nc")
         plotter.plot_variables("ecut", "etotal")
     """
-    def __init__(self):
-        self._gsr_files = OrderedDict()
+    def __init__(self, *args):
+        self._gsr_files = OrderedDict(*args)
 
     def __len__(self):
         return len(self._gsr_files)
