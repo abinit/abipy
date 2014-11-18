@@ -552,6 +552,20 @@ class SIGRES_Plotter(Iterable):
     def __str__(self):
         return "\n".join(str(sigres) for sigres in self)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Activated at the end of the with statement. It automatically closes the file."""
+        self.close()
+
+    def close(self):
+        for sigres in self:
+            try:
+                sigres.close()
+            except:
+                pass
+
     def add_files(self, filepaths, labels=None):
         """Add a list of filenames to the plotter"""
         for i, filepath in enumerate(list_strings(filepaths)):

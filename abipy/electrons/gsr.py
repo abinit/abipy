@@ -318,6 +318,20 @@ class GSR_Plotter(Iterable):
     def __str__(self):
         return "\n".join(str(gsr) for gsr in self)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Activated at the end of the with statement. It automatically closes the file."""
+        self.close()
+
+    def close(self):
+        for gsr in self:
+            try:
+                gsr.close()
+            except:
+                pass
+
     def add_files(self, filepaths):
         """Add a list of filenames to the plotter"""
         for filepath in list_strings(filepaths):

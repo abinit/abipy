@@ -1606,11 +1606,10 @@ class ElectronBandsPlotter(object):
         Adds a band structure for plotting. Reads data from a Netcdfile
         """
         from abipy.abilab import abiopen
-        ncfile = abiopen(filepath)
-        if label is None:
-            label = ncfile.filepath
-
-        self.add_ebands(label, ncfile.ebands)
+        with abiopen(filepath) as ncfile:
+            if label is None:
+                label = ncfile.filepath
+            self.add_ebands(label, ncfile.ebands)
 
     def add_ebands(self, label, bands, dos=None):
         """
@@ -1856,9 +1855,10 @@ class ElectronDosPlotter(object):
         Adds a dos for plotting. Reads data from a Netcd file
         """
         from abipy.abilab import abiopen
-        ebands = abiopen(filepath).ebands
-        edos = ebands.get_edos(method=method, step=step, width=width)
+        with abiopen(filepath) as ncfile:
+            ebands = ncfile.ebands
 
+        edos = ebands.get_edos(method=method, step=step, width=width)
         if label is None: label = filepath
         self.add_edos(label, edos)
 

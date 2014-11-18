@@ -290,5 +290,6 @@ def itest_htc_bandstructure(fwp, tvars):
             # DOS case
             assert ebands.has_bzmesh
             gsr.bands.get_edos()
+        gsr.close()
 
     #assert flow.validate_json_schema()

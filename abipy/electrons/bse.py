@@ -568,12 +568,11 @@ class MDF_Plotter(object):
                 Optional string used to name the plot.
         """
         from abipy.abilab import abiopen
+        with abiopen(filepath) as ncfile:
+            mdf = ncfile.get_mdf(mdf_type=mdf_type)
 
-        ncfile = abiopen(filepath)
-        mdf = ncfile.get_mdf(mdf_type=mdf_type)
         if label is None:
             label = mdf_type + ncfile.filepath
-
         self.add_mdf(label, mdf)
 
     def plot(self, cplx_mode="Im", qpoint=None, **kwargs):

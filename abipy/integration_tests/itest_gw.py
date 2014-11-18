@@ -123,8 +123,8 @@ def itest_g0w0_flow(fwp, tvars):
     assert sigfile
 
     # TODO Add more tests
-    sigres = abilab.abiopen(sigfile)
-    assert sigres.nsppol == 1
+    with abilab.abiopen(sigfile) as sigres:
+        assert sigres.nsppol == 1
 
     #assert flow.validate_json_schema()
 

@@ -53,22 +53,19 @@ class Scissors(object):
               eigenvalue falls inside the hole.
         """
         # TODO Add consistency check.
-        self.func_list = func_list
-        self.domains = np.atleast_2d(domains)
+        self.func_list, self.domains = func_list, np.atleast_2d(domains)
         assert len(self.func_list) == len(self.domains)
 
         # Treat the out-of-boundary conditions.
         # func_low and func_high are used to handle energies 
         # that are below or above the min/max energy given in domains.
-        blow, bhigh  = "c", "c"
+        blow, bhigh = "c", "c"
         if bounds is not None:
-            blow  = bounds[0][0]
-            bhigh = bounds[0][1]
+            blow, bhigh = bounds[0][0], bounds[0][1]
 
         if blow.lower() == "c":
             try:
                 self.func_low = lambda x: float(bounds[0][1])
-
             except:
                 x_low = self.domains[0,0]
                 fx_low = func_list[0](x_low)
@@ -79,7 +76,6 @@ class Scissors(object):
         if bhigh.lower() == "c":
             try:
                 self.func_high = lambda x: float(bounds[1][1])
-
             except:
                 x_high  = self.domains[1, -1]
                 fx_high = func_list[-1](x_high)
@@ -154,8 +150,8 @@ class ScissorsBuilder(object):
         Main entry point for client code.
         """
         from abipy.abilab import abiopen
-        ncfile = abiopen(filepath)
-        return cls(qps_spin=ncfile.qplist_spin)
+        with abiopen(filepath) as ncfile:
+            return cls(qps_spin=ncfile.qplist_spin)
 
     @property
     def nsppol(self):
@@ -292,8 +288,8 @@ class AutomaticScissorsBuilder(ScissorsBuilder):
         Main entry point for client code.
         """
         from abipy.abilab import abiopen
-        ncfile = abiopen(filepath)
-        return cls(qps_spin=ncfile.qplist_spin, e_bands=ncfile.ebands)
+        with abiopen(filepath) as ncfile:
+            return cls(qps_spin=ncfile.qplist_spin, e_bands=ncfile.ebands)
 
     def set_domains(self, number_of_domains):
         self.number_of_domains = number_of_domains
