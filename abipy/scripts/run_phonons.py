@@ -22,7 +22,7 @@ def unique_rows(a):
 
 def to_vec(var_dict, var):
     """
-    turn the entry var in the dictionary var_dict into an vector length 3
+    turn the entry var in the dictionary var_dict into an  vector length 3
     """
     tmp = var_dict[var]
     tmp = 3*[tmp] if not isinstance(tmp, (list, tuple)) else tmp
