@@ -263,8 +263,7 @@ class QPList(list):
         fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, squeeze=False)
         ax_list = ax_list.ravel()
 
-        if title:
-            fig.suptitle(title)
+        if title: fig.suptitle(title)
 
         if self.is_e0sorted:
             qps = self
@@ -340,7 +339,6 @@ class QPList(list):
 
             if idx == dsize-1 and dflat[idx] < dflat[idx-1]:
                 raise ValueError("domain boundaries should be given in increasing order.")
-
         # Create the sub_domains and the spline functions in each subdomain.
         func_list = []
         for dom in domains[:]:
@@ -348,10 +346,9 @@ class QPList(list):
             start, stop = find_ge(e0mesh, low), find_le(e0mesh, high)
 
             dom_e0 = e0mesh[start:stop+1]
-            dom_corr = qpcorrs[start:stop+1]
+            dom_corr = qpcorrs[start:stop+1].real
 
             # todo check if the number of non degenerate data points > k
-
             from scipy.interpolate import UnivariateSpline
             f = UnivariateSpline(dom_e0, dom_corr, w=None, bbox=[None, None], k=k, s=None)
             func_list.append(f)
