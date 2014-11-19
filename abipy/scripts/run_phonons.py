@@ -90,7 +90,7 @@ def scf_ph_inputs(structure, options):
 
     if os.path.isfile('qpoints'):
         f = open('qpoints', 'r')
-        qpoints = np.reshape(ast.literal_eval(f.read()))
+        qpoints = np.reshape(ast.literal_eval(f.read()), (-1,3))
         f.close()
 
 
