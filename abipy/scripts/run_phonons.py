@@ -189,7 +189,7 @@ def build_flow(structure, workdir, options):
 
         2) nqpt workflows for phonon calculations. Each workflow contains 
            nirred tasks where nirred is the number of irreducible phonon perturbations
-           for that particular q-point.
+           for that particular q-poin t.
     """
 
     # Instantiate the TaskManager.
