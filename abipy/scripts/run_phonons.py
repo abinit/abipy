@@ -3,6 +3,7 @@
 from __future__ import division, print_function
 
 import sys
+import ast
 import os
 import numpy as np
 import abipy.abilab as abilab
@@ -73,8 +74,26 @@ def scf_ph_inputs(structure, options):
              0.00000000E+00,  0.00000000E+00,  2.50000000E-01,
             -2.50000000E-01,  5.00000000E-01,  2.50000000E-01,
             ]
+    qpoints2 = [
+             0.00000000E+00,  0.00000000E+00,  0.00000000E+00,
+             5.00000000E-01,  0.00000000E+00,  0.00000000E+00,
+             0.00000000E-01,  5.00000000E-01,  0.00000000E+00,
+             0.00000000E+00,  0.00000000E+00,  5.00000000E-01,
+             5.00000000E-01,  5.00000000E-01,  0.00000000E+00,
+             0.00000000E+00,  5.00000000E-01,  5.00000000E-01,
+             5.00000000E-01,  0.00000000E+00,  5.00000000E-01,
+             5.00000000E-01,  5.00000000E-01,  5.00000000E-01,
+            ]
+
     qpoints = np.reshape(qpoints, (-1, 3))
     qpoints = unique_rows(np.concatenate((qpoints, qptbounds), axis=0))
+
+    if os.path.isfile('qpoints'):
+        f = open('qpoints', 'r')
+        qpoints = ast.literal_eval(f.read())
+        f.close()
+
+    print(qpoints)
 
     #qpoints = [[0.0, 0.0, 0.0]]
 
@@ -83,7 +102,7 @@ def scf_ph_inputs(structure, options):
                        ngkpt=[4, 4, 4],
                        shiftk=[0, 0, 0],
                        paral_kgb=0,
-                       nstep=60
+                       nstep=200
                        )
 
     global_vars.update(options)
@@ -213,7 +232,7 @@ class NotReady(Exception):
 def main():
 
     cifs = [f for f in os.listdir('.') if f.endswith('cif')]
-    convtests = {'ecut': [16], 'ngkpt': [8], 'acell': [1.0]}
+    convtests = {'ecut': [37], 'ngkpt': [8], 'acell': [1.0]}
 
     for cif in cifs:
         structure = Structure.from_file(cif)
