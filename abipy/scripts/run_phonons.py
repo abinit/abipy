@@ -9,7 +9,7 @@ import abipy.abilab as abilab
 import abipy.data as abidata
 
 from abipy.core.structure import Structure
-from pymatgen.io.abinitio.abiobjects import AbiStructure
+import abipy.abilab
 from pymatgen.io.gwwrapper.helpers import refine_structure
 from pymatgen.io.abinitio.pseudos import PseudoTable
 
@@ -217,7 +217,7 @@ def main():
 
     for cif in cifs:
         structure = Structure.from_file(cif)
-        structure = AbiStructure.asabistructure(structure).get_sorted_structure()
+        structure = structure.get_sorted_structure()
         structure.item = cif
         for convtest in convtests:
             for value in convtests[convtest]:
