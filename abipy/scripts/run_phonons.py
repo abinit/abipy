@@ -222,7 +222,7 @@ def main():
         for convtest in convtests:
             for value in convtests[convtest]:
 
-                workdir = '%s_%s_%s' % (s_name(structure), str(convtest), str(value))
+                workdir = '%s_%s_%s' % (structure.item, str(convtest), str(value))
 
                 try:
                     flow = abilab.AbinitFlow.pickle_load(workdir)
