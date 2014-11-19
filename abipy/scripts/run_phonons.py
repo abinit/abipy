@@ -217,7 +217,9 @@ def main():
 
     for cif in cifs:
         structure = Structure.from_file(cif)
-        structure = structure.get_sorted_structure()
+        print(type(structure))
+        structure = structure.get_sorted_structure_z()
+        print(structure)
         structure.item = cif
         for convtest in convtests:
             for value in convtests[convtest]:
