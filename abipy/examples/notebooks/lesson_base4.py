@@ -58,7 +58,7 @@ def relax_flow():
 
     #table = abilab.PrettyTable(["nkibz", "etotal"])
     gs_task = flow[0][0]
-    with gs_task.read_gsr() as gsr:
+    with gs_task.open_gsr() as gsr:
         print("input structure:\n", structure)
         print("relaxed structure:\n", gsr.structure)
         # TODO
@@ -92,9 +92,9 @@ def convergence():
 
     rows = []
     for task in flow.iflat_tasks():
-        with task.read_gsr() as gsr:
+        with task.open_gsr() as gsr:
             info = task.user_info
-            a = gsr.structure.lattice.abc[0]
+            a, b, c = gsr.structure.lattice.abc
             nkibz = len(gsr.kpoints)
             data = dict(tsmear=info.tsmear, nksmall=info.nksmall, a=a, nkibz=nkibz)
             rows.append(data)

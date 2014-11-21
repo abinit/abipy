@@ -190,15 +190,16 @@ def cleanup():
 # List of external packages we rely on.
 # Note setup install will download them from Pypi if they are not available.
 install_requires = [
+    "six",
+    "prettytable",
     "apscheduler==2.1.0",
     "numpy>=1.8",  
     "pydispatcher>=2.0.3",
     "pyyaml>=3.11",
-    #"scipy>=0.10",
+    "scipy>=0.10",
     "netCDF4",
     "pymatgen>=3.0.7",
     "wxmplot",
-    "prettytable",
     #"matplotlib>=1.1",
     #"psutil",
     #"fabric",

@@ -273,12 +273,12 @@ class QPList(list):
         e0mesh = qps.get_e0mesh()
 
         linestyle = kwargs.pop("linestyle", "o")
-        for (field, ax) in zip(fields, ax_list):
+        for field, ax in zip(fields, ax_list):
             ax.grid(True)
             ax.set_xlabel('e0 [eV]')
             ax.set_ylabel(field)
             yy = qps.get_field(field)
-            ax.plot(e0mesh, yy, linestyle, **kwargs)
+            ax.plot(e0mesh, yy.real, linestyle, **kwargs)
 
         # Get around a bug in matplotlib
         if (num_plots % ncols) != 0:
@@ -290,7 +290,7 @@ class QPList(list):
 
         return fig
 
-    def build_scissors(self, domains, bounds=None, plot=False, k=3, **kwargs):
+    def build_scissors(self, domains, bounds=None, k=3, **kwargs):
         """
         Construct a scissors operator by interpolating the QPState corrections 
         as function of the initial energies E0.
@@ -304,8 +304,12 @@ class QPList(list):
             bounds:
                 Specify how to handle out-of-boundary conditions, i.e. how to treat
                 energies that do not fall inside one of the domains (not used at present)
-            plot:
-                If true, use `matplolib` to compare input data  and fit.
+
+        ==============  ==============================================================
+        kwargs          Meaning
+        ==============  ==============================================================
+        plot             If true, use `matplolib` to compare input data  and fit.
+        ==============  ==============================================================
 
         Return:
             instance of `Scissors`operator
@@ -317,7 +321,6 @@ class QPList(list):
 
             # Compute list of interpolated QP energies.
             qp_enes = [scissors.apply(e0) for e0 in ks_energies]
-
         """
         # Sort QP corrections according to the initial KS energy.
         qps = self.sort_by_e0()
@@ -357,7 +360,7 @@ class QPList(list):
         sciss = Scissors(func_list, domains, bounds)
 
         # Compare fit with input data.
-        if plot:
+        if kwargs.pop("plot", False):
             import matplotlib.pyplot as plt
             plt.plot(e0mesh, qpcorrs, label="input data")
             intp_qpc = [sciss.apply(e0) for e0 in e0mesh]

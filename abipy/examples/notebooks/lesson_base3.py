@@ -33,8 +33,8 @@ def ngkpt_flow():
     table = abilab.PrettyTable(["nkibz", "etotal"])
 
     for task in flow[0]:
-        gsr = task.read_gsr()
-        table.add_row([len(gsr.kpoints), gsr.energy])
+        with task.open_gsr() as gsr:
+            table.add_row([len(gsr.kpoints), gsr.energy])
 
     print(table)
     #table.plot("nkibz", "etotal", title="etotal vs nkibz")
@@ -74,8 +74,8 @@ def relax_flow():
 
     table = PrettyTable(["nkibz", "a [Ang]", "angles", "volume [Ang^3]"])
 
-    for task in flow[0]:
-        with task.read_gsr() as gsr:
+    for task in flow.iflat_tasks():
+        with task.open_gsr() as gsr:
             lattice = gsr.structure.lattice
             table.add_row([len(gsr.kpoints), lattice.abc[0], lattice.angles[0], lattice.volume])
 
@@ -106,7 +106,7 @@ def bands_flow():
     flow.show_status()
     
     nscf_task = flow[0][1]
-    with nscf_task.read_gsr() as gsr:
+    with nscf_task.open_gsr() as gsr:
         gsr.ebands.plot()
 
 

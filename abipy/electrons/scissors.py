@@ -34,8 +34,7 @@ class Scissors(object):
         """
         Args:
             func_list:
-                List of callable objects. Each function takes an eigenvalue and returns
-                the corrected value.
+                List of callable objects. Each function takes an eigenvalue and returns the corrected value.
             domains:
                  Domains of each function. List of tuples [(emin1, emax1), (emin2, emax2), ...]
             bounds:
@@ -46,15 +45,13 @@ class Scissors(object):
 
             - Domains should not overlap, cover e0mesh, and given in increasing order.
 
-            - Holes are permitted but the interpolation will raise an exception if the
-              eigenvalue falls inside the hole.
+            - Holes are permitted but the interpolation will raise an exception if the eigenvalue falls inside the hole.
         """
         # TODO Add consistency check.
         self.func_list, self.domains = func_list, np.atleast_2d(domains)
         assert len(self.func_list) == len(self.domains)
 
-        # Treat the out-of-boundary conditions.
-        # func_low and func_high are used to handle energies 
+        # Treat the out-of-boundary conditions. func_low and func_high are used to handle energies 
         # that are below or above the min/max energy given in domains.
         blow, bhigh = "c", "c"
         if bounds is not None:
@@ -91,14 +88,14 @@ class Scissors(object):
         if eig < domains[0,0]:
             # Eig is below the first point of the first domain.
             # Call func_low
-            print("left ", eig, domains[0,0])
+            print("left ", eig, " < ", domains[0,0])
             self.out_bounds[0] += 1
             return self.func_low(eig)
 
         if eig > domains[-1,1]:
             # Eig is above the last point of the last domain.
             # Call func_high
-            print("right ", eig, domains[-1,1])
+            print("right ", eig, " > ", domains[-1,1])
             self.out_bounds[1] += 1
             return self.func_high(eig)
 
@@ -134,28 +131,23 @@ class ScissorsBuilder(object):
     """
     @classmethod
     def from_file(cls, filepath):
-        """
-        Generate an instance of `ScissorsBuilder` from file.
-        Main entry point for client code.
-        """
+        """Generate an instance of `ScissorsBuilder` from file. Main entry point for client code."""
         from abipy.abilab import abiopen
         with abiopen(filepath) as ncfile:
             return cls(qps_spin=ncfile.qplist_spin, sigres_ebands=ncfile.ebands)
 
     @classmethod
     def pickle_load(cls, filepath):
-        """Load the scissors parameters from a pickle file."""
+        """Load the object from a pickle file."""
         with open(filepath, "rb") as fh:
             d = AttrDict(pickle.load(fh))
-            #print("In load_data with d:\n%s" % d)
             # Costruct the object and compute the scissors.
             new = cls(d.qps_spin, d.sigres_ebands)
             new.build(d.domains_spin, d.bounds_spin)
-
             return new
 
     def pickle_dump(self, filepath, protocol=-1):
-        """Save scissors parameters in Pickle format"""
+        """Save the object in Pickle format"""
         assert all(s1 == s2 for s1, s2 in zip(self.domains_spin.keys(), self.bounds_spin.keys()))
         assert all(s1 == s2 for s1, s2 in zip(self.domains_spin.keys(), range(self.nsppol)))
 
@@ -163,7 +155,7 @@ class ScissorsBuilder(object):
         if any(v is not None for v in self.bounds_spin.values()):
             bounds_spin = [a.tolist() for a in self.bounds_spin.values()]
 
-        # This trick is needed because we cannot pickle bound methods in the scissors operator.
+        # This trick is needed because we cannot pickle bound methods of the scissors operator.
         d = dict(qps_spin=self._qps_spin,
                  sigres_ebands=self.sigres_ebands,
                  domains_spin=[a for a in self.domains_spin.values()],
@@ -178,10 +170,7 @@ class ScissorsBuilder(object):
         :param sigres_ebands: ``ElectronBands` read from the sigres file
         """
         # Sort quasiparticle data by e0.
-        qpsort = []
-        for qps in qps_spin:
-            qpsort.append(qps.sort_by_e0())
-        self._qps_spin = tuple(qpsort)
+        self._qps_spin = tuple([qps.sort_by_e0() for qps in qps_spin])
 
         # Compute the boundaries of the E0 mesh.
         e0min, e0max = np.inf, -np.inf
@@ -195,7 +184,7 @@ class ScissorsBuilder(object):
         # The KS bands stored in the sigres file (used to compute automatically the boundaries)
         self.sigres_ebands = sigres_ebands
 
-        # Start with default domains
+        # Start with default values for domains.
         self.build()
 
     @property
@@ -213,7 +202,8 @@ class ScissorsBuilder(object):
         """Maximum KS energy in eV (takes into account spin)"""
         return self._e0max
 
-    def get_scissors_spin(self):
+    @property
+    def scissors_spin(self):
         """Returns a tuple of `Scissors` indexed by the spin value."""
         try:
             return self._scissors_spin
@@ -240,25 +230,23 @@ class ScissorsBuilder(object):
 
         if domains_spin is None:
             # Use sigres_ebands and the position of the homo, lumo to compute the domains.
-            domains_spin = self.nsppol * [None]
+            domains_spin = nsppol * [None]
             e_bands = self.sigres_ebands
             for spin in e_bands.spins:
                 gap_mid = (e_bands.homos[spin].eig + e_bands.lumos[spin].eig) / 2
-                domains_spin[spin] = [[self.e0min - 0.1 * abs(self.e0min), gap_mid],
-                                      [gap_mid, self.e0max + 0.1 * abs(self.e0max)]]
+                domains_spin[spin] = [[self.e0min - 0.2 * abs(self.e0min), gap_mid],
+                                      [gap_mid, self.e0max + 0.2 * abs(self.e0max)]]
                 #print("domains", domains_spin[spin])
-
         else:
-            if nsppol == 1:
-                domains_spin = np.reshape(domains_spin, (1, -1, 2))
-                if bounds_spin is not None:
-                    bounds_spin = np.reshape(bounds_spin, (1, -1, 2))
-
-            elif nsppol == 2:
-                assert len(domains_spin) == nsppol
-                if bounds_spin is not None: assert len(bounds_spin) == nsppol
-            else:
-                raise ValueError("Wrong number of spins %d" % nsppol)
+            #if nsppol == 1:
+            #    domains_spin = np.reshape(domains_spin, (1, -1, 2))
+            #elif nsppol == 2:
+            #    assert len(domains_spin) == nsppol
+            #    if bounds_spin is not None: assert len(bounds_spin) == nsppol
+            #else:
+            #    raise ValueError("Wrong number of spins %d" % nsppol)
+            if len(domains_spin) != nsppol:
+                raise ValueError("len(domains_spin) == %s != nsppol %s" % (len(domains_spin, nsppol)))
 
         # Construct the scissors operator for each spin.
         scissors_spin = nsppol * [None]
@@ -275,7 +263,8 @@ class ScissorsBuilder(object):
 
     def plot_qpe_vs_e0(self, with_fields="all", **kwargs):
         """Plot the quasiparticle corrections as function of the KS energy."""
-        for (spin, qps) in enumerate(self._qps_spin):
+        for spin, qps in enumerate(self._qps_spin):
+            kwargs["title"] = "spin %s" % spin
             qps.plot_qps_vs_e0(with_fields=with_fields, **kwargs)
 
     def plot_fit(self, **kwargs):
@@ -283,11 +272,11 @@ class ScissorsBuilder(object):
         import matplotlib.pyplot as plt
 
         for spin in range(self.nsppol):
-            scissors = self._scissors_spin[spin]
             qps = self._qps_spin[spin]
             e0mesh, qpcorrs = qps.get_e0mesh(), qps.get_qpeme0().real
 
             plt.plot(e0mesh, qpcorrs, label="Input QP corrections, spin %s" % spin)
+            scissors = self._scissors_spin[spin]
             intp_qpc = [scissors.apply(e0) for e0 in e0mesh]
             plt.plot(e0mesh, intp_qpc, label="Scissors operator, spin %s" % spin)
 
@@ -341,56 +330,3 @@ class ScissorsBuilder(object):
         plotter.add_ebands(bands_label + " + scissors", qp_bands, dos=qp_dos)
 
         return plotter.plot(**kwargs)
-
-
-class AutomaticScissorsBuilder(ScissorsBuilder):
-    """
-    todo: complete spin
-    Object to create a Scissors instance without specifing domians
-
-    .number_of_domains is a tuple containing the number of domains in the valence conduction region
-    default (1, 1)
-
-    other than (1, 1) is not implemented jet.
-    """
-
-    def __init__(self, qps_spin, e_bands):
-        super(AutomaticScissorsBuilder, self).__init__(qps_spin=qps_spin)
-        if self.nsppol > 1:
-            raise NotImplementedError('2 spin channels is not implemented yet')
-        self.gap_mid = self.nsppol*[None]
-        for spin in e_bands.spins:
-            self.gap_mid[spin] = (e_bands.homos[spin].eig + e_bands.lumos[spin].eig) / 2
-        self.number_of_domains = (1, 1)
-        self.create_domains()
-
-    @classmethod
-    def from_file(cls, filepath):
-        """
-        Generate an instance of `AutomaticScissorsBuilder` from file.
-        Main entry point for client code.
-        """
-        from abipy.abilab import abiopen
-        with abiopen(filepath) as ncfile:
-            return cls(qps_spin=ncfile.qplist_spin, e_bands=ncfile.ebands)
-
-    def set_domains(self, number_of_domains):
-        self.number_of_domains = number_of_domains
-        self.create_domains()
-
-    def create_domains(self):
-
-        domains = [[self.e0min, self.gap_mid[0]], [self.gap_mid[0], self.e0max]]
-
-        if self.number_of_domains[0] > 1:
-            # do something smart to sub divide the valence region into more domains
-            raise NotImplementedError('only one domain in the valence region')
-
-        if self.number_of_domains[1] > 1:
-            # do something smart to sub divide the conduction region into more domains
-            raise NotImplementedError('only one domain in the conduction region')
-
-        self.domains_spin = domains
-
-    def build(self):
-        super(AutomaticScissorsBuilder, self).build(domains_spin=self.domains_spin, bounds_spin=None, k=2)

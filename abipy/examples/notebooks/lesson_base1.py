@@ -54,7 +54,7 @@ def scf_manual():
 
     table = abilab.PrettyTable(["length [Ang]", "energy [eV]"])
     for task in flow.iflat_tasks():
-        with task.read_gsr() as gsr:
+        with task.open_gsr() as gsr:
             cart_coords = gsr.structure.cart_coords
             l = np.sqrt(np.linalg.norm(cart_coords[1] - cart_coords[0]))
             table.add_row([l, float(gsr.energy)])

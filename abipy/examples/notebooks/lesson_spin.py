@@ -90,13 +90,13 @@ def gs_flow():
     flow.build()
 
     #flow.rapidfire()
-    #flow.make_scheduler().start()
+    flow.make_scheduler().start()
     flow.show_status()
 
     gstask_nospin, gstask_spin = flow[0][0], flow[0][1] 
 
     table = abilab.PrettyTable(["property", "unpolarized", "polarized"])
-    with gstask_nospin.read_gsr() as gsr_nospin, gstask_spin.read_gsr() as gsr_spin:
+    with gstask_nospin.open_gsr() as gsr_nospin, gstask_spin.open_gsr() as gsr_spin:
         properties = ["energy", "pressure", "magnetization", "nelect_updown"]
         for p in properties:
             row = [p, getattr(gsr_nospin, p), getattr(gsr_spin, p)]
@@ -109,7 +109,6 @@ def gs_flow():
 
         #gsr_spin.plot_ebands()
         #gsr_nospin.plot_ebands_with_dos()
-
         #plotter = abilab.ElectronBandsPlotter()
         #plotter.add_ebands_from_file(gsr_spin.filepath, label="spin")
         #plotter.plot()
@@ -130,7 +129,7 @@ def afm_flow():
     #flow.make_scheduler().start()
     flow.show_status()
 
-    with flow[0][0].read_gsr() as gsr:
+    with flow[0][0].open_gsr() as gsr:
         print("Energy: ", gsr.energy.to("Ha"))
         print("Magnetization: ",gsr.magnetization)
 
@@ -184,12 +183,12 @@ def tantalum_flow():
     #flow.make_scheduler().start()
     flow.show_status()
 
-    with flow[0][0].read_gsr() as gsr:
+    with flow[0][0].open_gsr() as gsr:
         print("Energy: ", gsr.energy.to("Ha"))
         print("Magnetization: ",gsr.magnetization)
 
 
 if __name__ == "__main__":
-    #gs_flow()
+    gs_flow()
     #afm_flow()
-    tantalum_flow()
+    #tantalum_flow()

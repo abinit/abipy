@@ -55,7 +55,7 @@ def ecutconv_flow():
 
     table = abilab.PrettyTable(["ecut", "energy"])
     for task in flow.iflat_tasks():
-        with task.read_gsr() as gsr:
+        with task.open_gsr() as gsr:
             #table.add_row([gsr.ecut, gsr.energy])
             table.add_row([None, gsr.energy.to("Ha")])
 
@@ -77,7 +77,7 @@ def pawecutdgconv_flow():
 
     table = abilab.PrettyTable(["pawecutdg", "energy"])
     for task in flow.iflat_tasks():
-        with task.read_gsr() as gsr:
+        with task.open_gsr() as gsr:
             #table.add_row([gsr.ecut, gsr.energy])
             table.add_row([None, gsr.energy.to("Ha")])
 
@@ -100,7 +100,7 @@ def eos_flow():
 
     energies, volumes = [], []
     for task in flow.iflat_tasks():
-        with task.read_gsr() as gsr:
+        with task.open_gsr() as gsr:
             energies.append(gsr.energy)
             volumes.append(gsr.structure.volume)
 
