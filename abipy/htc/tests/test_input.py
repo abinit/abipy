@@ -216,23 +216,26 @@ class AnaddbInputTest(AbipyTest):
         s3 = inp3.to_string(sortmode="a")
         print(s3)
 
+        for i in (inp, inp2, inp3):
+            self.serialize_with_pickle(i, test_eq=False)
+
     def test_thermo(self):
         """Test the thermodynamics constructor"""
         anaddb_input = AnaddbInput.thermo(self.structure, ngqpt=(40, 40, 40), nqsmall=20)
         self.assertTrue(anaddb_input.make_input())
-        self.assertTrue(anaddb_input['thmtol'] > 0)
-        self.assertTrue(anaddb_input['ntemper'] > 0)
-        self.assertTrue(anaddb_input['temperinc'] > 0)
-        self.assertTrue(anaddb_input['tempermin'] >= 0)
-        self.assertEqual(anaddb_input['ifcflag'], 1)
-        self.assertEqual(anaddb_input['thmflag'], 1)
+        for var in ('thmtol', 'ntemper', 'temperinc', 'thmtol'):
+            self.assertTrue(anaddb_input[var] >= 0)
+        for flag in ('ifcflag', 'thmflag'):
+            self.assertEqual(anaddb_input[flag], 1)
+        self.serialize_with_pickle(anaddb_input, test_eq=False)
 
     def modes(self):
         """Test the modes constructor"""
         anaddb_input = AnaddbInput.modes(self.structure)
         self.assertTrue(anaddb_input.make_input())
-        self.assertEqual(anaddb_input['ifcflag'], 1)
-        self.assertEqual(anaddb_input['dieflag'], 1)
+        for flag in ('ifcflag', 'dieflag'):
+            self.assertEqual(anaddb_input[flag], 1)
+        self.serialize_with_pickle(anaddb_input, test_eq=False)
 
 if __name__ == "__main__":
     import unittest
