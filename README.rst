@@ -64,19 +64,13 @@ Requirements
 All required dependencies should be automatically taken care of if you install abipy using easy_install or pip. 
 Otherwise, these packages should be available on `PyPI <http://pypi.python.org>`_.
 
-  1. Python 2.7 required (Python 3.0+ not supported) 
-
-  2. pymatgen 2.8.7+
-
-  3. numpy 
-
-  4. matplotlib 1.1+
-
-  5. scipy 0.10+
-
-  6. netCDF4
-
-  7. pyYaml 3.1.0+
+  #. Python 2.7 required (Python 3.0+ not supported) 
+  #. pymatgen 2.8.7+
+  #. numpy 
+  #. matplotlib 1.1+
+  #. scipy 0.10+
+  #. netCDF4
+  #. pyYaml 3.1.0+
 
 The following packages are much easier to install with easy_install:
 
@@ -114,25 +108,20 @@ Using abipy
 Basic usage
 -----------
 
-Here are some quick examples of the core capabilities and objects.
-For a more detailed list of the features, look at the 
-`example page http://pythonhosted.org/abipy/examples/index.html`_ of the 
-official documentation.
+There are a variety of ways to use abipy, and most of them are illustrated in the `abipy/examples` directory.
+Below is a brief description of the different directories found there:
 
-.. code-block:: pycon
+  * plot - scripts showing how to produce plots with matplotlib
 
-    >>> from abipy import abilab
-    >>>
+  * htc -  usage examples of the High-throughput API.
 
-The above example illustrates only the most basic capabilities of abipy.
+  * notebooks - ipython notebooks 
+    (use `ipython notebook FILE` to open the notebook in your browser)
 
-.. note:: Examples
+The directory `abipy/data/runs` contains scripts that can be used to automate typical ab-initio calculations.
 
-    A good way to explore the functionality of abipy is to look at examples.
-    We have created a `Github wiki page <https://github.com/gmatteo/abipy/wiki>`_ 
-    to allow users to share their Github gists (essentially mini git repos of scripts)
-    performing various kinds of functions with abipy. 
-    Please feel free to check them out and we welcome your contributions as well!
+Examples of the basic capabilities can be found in the 
+`example page http://pythonhosted.org/abipy/examples/index.html`_ of the  official documentation.
 
 Advanced Usage
 --------------

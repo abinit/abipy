@@ -252,7 +252,7 @@ class ElectronDOSPlotter(object):
             legends.append("DOS: %s" % label)
 
         # Set legends.
-        ax.legend(lines, legends, 'upper right', shadow=True)
+        ax.legend(lines, legends, loc='upper right', shadow=True)
 
         if show:
             plt.show()

@@ -8,3 +8,25 @@ policy:
     max_ncpus: 2
     #condition:
     #vars_condition: {"npfft": {"$eq": 1}}
+
+db_connector:
+    enabled: no
+    database: abinit 
+    collection: test
+    #host: 0.0.0.0 
+    #port: 8080 
+    #user: gmatteo
+    #password: helloworld
+
+partitions: 
+    - name: gmac
+      # Mandatory
+      num_nodes: 1
+      sockets_per_node: 1
+      cores_per_socket: 2
+      mem_per_node: 4 Gb
+      timelimit: 1:00:00
+      # Optional
+      #condition: {tot_cores: {$divisible: 8}} 
+      #condition: {"$eq": {omp_threads: 2}} 
+      #priority: 1

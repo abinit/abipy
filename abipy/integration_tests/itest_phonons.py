@@ -119,8 +119,8 @@ def itest_phonon_flow(fwp, tvars):
     assert ddb_path == out_ddb
 
     # Build new workflow with Anaddb tasks.
-    # Construct a manager with mpi_ncpus==1 since  anaddb do not support mpi_ncpus > 1 (except in elphon)
-    shell_manager = fwp.manager.to_shell_manager(mpi_ncpus=1)
+    # Construct a manager with mpi_procs==1 since anaddb do not support mpi_procs > 1 (except in elphon)
+    shell_manager = fwp.manager.to_shell_manager(mpi_procs=1)
     awork = abilab.Workflow(manager=shell_manager)
 
     # Phonons bands and DOS with gaussian method
@@ -152,3 +152,4 @@ def itest_phonon_flow(fwp, tvars):
         #assert len(atask.outdir.list_filepaths(wildcard="*PHBST.nc")) == 1
         #assert len(atask.outdir.list_filepaths(wildcard="*PHDOS.nc")) == 1
 
+    #assert flow.validate_json_schema()

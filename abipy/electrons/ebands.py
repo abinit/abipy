@@ -286,8 +286,8 @@ class ElectronBands(object):
         assert self.nkpt == len(self.kpoints)
 
         self.smearing = {} if smearing is None else smearing
-        self.nelect = nelect
-        self.fermie = fermie
+        self.nelect = float(nelect)
+        self.fermie = float(fermie)
 
         # Fix the Fermi level and use efermi as the energy zero.
         self._fix_fermie()
@@ -1796,7 +1796,7 @@ class ElectronBandsPlotter(object):
             if i == 0:
                 bands.decorate_ax(ax)
 
-        ax.legend(lines, legends, 'best', shadow=True)
+        ax.legend(lines, legends, loc='best', shadow=True)
 
         # Add DOSes
         if self.edoses_dict:

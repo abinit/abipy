@@ -653,7 +653,7 @@ class MDF_Plotter(object):
                 legends.append("%s: %s, %s $\,\\varepsilon$" % (cmode, qtag, label))
 
         # Set legends.
-        ax.legend(lines, legends, 'best', shadow=False)
+        ax.legend(lines, legends, loc='best', shadow=False)
 
         if show:
             plt.show()

@@ -951,7 +951,7 @@ class KpointsReaderMixin(object):
     @returns_None_onfail
     def read_kptrlatt(self):
         """Returns ABINIT variable kptrlatt. None if not found."""
-        return self.read_value("kpoint_grid vectors")
+        return self.read_value("kpoint_grid_vectors")
 
     @returns_None_onfail
     def read_kptopt(self):

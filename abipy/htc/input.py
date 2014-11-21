@@ -183,20 +183,18 @@ class AbiInput(Input):
         else:
             # String(s)
             pseudo_dir = os.path.abspath(pseudo_dir)
-
             pseudo_paths = [os.path.join(pseudo_dir, p) for p in list_strings(pseudos)]
 
             missing = [p for p in pseudo_paths if not os.path.exists(p)]
             if missing:
                 raise self.Error("Cannot find the following pseudopotential files:\n%s" % str(missing)) 
 
-            try:
-                self._pseudos = PseudoTable(pseudo_paths)
-
-            except Exception as exc:
-                msg = "\nIgnoring error raised while parsing pseudopotential files:\n Backtrace:" + straceback()
-                warnings.warn(msg)
-                self._pseudos = []
+            #try:
+            self._pseudos = PseudoTable(pseudo_paths)
+            #except Exception as exc:
+            #    msg = "\nIgnoring error raised while parsing pseudopotential files:\n Backtrace:" + straceback()
+            #    warnings.warn(msg)
+            #    self._pseudos = []
 
         if comment:
             self.set_comment(comment)
@@ -962,8 +960,7 @@ class LdauParams(object):
             usepawu=self.usepawu,
             lpawu=" ".join(map(str, lpawu)),
             upawu=" ".join(map(str, upawu)) + " eV",
-            jpawu=" ".join(map(str, jpawu)) + " eV",
-        )
+            jpawu=" ".join(map(str, jpawu)) + " eV")
 
 
 class LexxParams(object):
@@ -1069,8 +1066,8 @@ def product_dict(d):
     and returns a list of dictionaries with the values that would be used inside the loop.
 
     >>> d = OrderedDict([("foo", [2, 4]), ("bar", 1)])
-    >>> product_dict(d)
-    [OrderedDict([('foo', 2), ('bar', 1)]), OrderedDict([('foo', 4), ('bar', 1)])]
+    >>> product_dict(d) == [OrderedDict([('foo', 2), ('bar', 1)]), OrderedDict([('foo', 4), ('bar', 1)])]
+    True
     >>> d = OrderedDict([("bar", [1,2]), ('foo', [3,4])]) 
     >>> product_dict(d) == [{'bar': 1, 'foo': 3},
     ... {'bar': 1, 'foo': 4},
