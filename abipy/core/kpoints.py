@@ -296,7 +296,7 @@ class Kpoint(object):
         if name is not None and name.startswith("\\"): name = "$" + name + "$"
         self._name = name
 
-    @lazy_property
+    @property
     def on_border(self):
         """
         True if the k-point is on the border of the BZ 

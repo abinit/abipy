@@ -13,6 +13,9 @@
 
 import sys
 import os
+#import sphinx_bootstrap_theme
+#import matplotlib as mpl
+#mpl.use("Agg")
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -38,6 +41,8 @@ release = imp.load_source(mod_name, mod_name)
 extensions = [
 'sphinx.ext.autodoc', 
 'sphinx.ext.doctest', 
+#'sphinx.ext.coverage', 
+#'sphinx.ext.autosummary', 
 'sphinx.ext.intersphinx', 
 'sphinx.ext.todo', 
 'sphinx.ext.coverage', 
@@ -63,10 +68,13 @@ extensions += [
           'numpydoc',
           'gen_rst',
           # This does not work with py3k
-          'sphinxcontrib.autorun',
+          #'sphinxcontrib.autorun',
           #'gen_gallery',  Generate gallery of PICS a la' matplotlib.
           ]
 
+# Generate the API documentation when building
+autosummary_generate = True
+numpydoc_show_class_members = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

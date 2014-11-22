@@ -84,7 +84,7 @@ def pawecutdgconv_flow():
 def eos_flow():
     inputs = [gs_input(ecut=12, pawecutdg=24, acell_ang=acell_ang)
               for acell_ang in np.linspace(start=3.52, stop=3.55, num=7)]
-    flow = abilab.AbinitFlow.from_inputs("eos_flow", inputs)
+    flow = abilab.AbinitFlow.from_inputs("flow_eos", inputs)
     flow.build()
 
     flow.make_scheduler().start()
