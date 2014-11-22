@@ -79,17 +79,10 @@ def afm_input():
     return inp
 
 def gs_flow():
-    work = abilab.Workflow()
-    for nsppol in [1,2]:
-        inp = gs_input(nsppol)
-        work.register_scf_task(inp)
-
-    flow = abilab.AbinitFlow(workdir="flow_spin")
-    flow.register_work(work)
-    flow.allocate()
+    inputs = [gs_input(nsppol) for nsppol in [1,2]]
+    flow = abilab.AbinitFlow.from_inputs(workdir="flow_spin", inputs=inputs)
     flow.build()
 
-    #flow.rapidfire()
     flow.make_scheduler().start()
     flow.show_status()
 
@@ -117,16 +110,10 @@ def gs_flow():
     print(table)
 
 def afm_flow():
-    flow = abilab.AbinitFlow(workdir="flow_afm")
-    inp = afm_input()
-    work = abilab.Workflow()
-    work.register_scf_task(inp)
-    flow.register_work(work)
-    flow.allocate()
+    flow = abilab.AbinitFlow.from_inputs(workdir="flow_afm", inputs=afm_input())
     flow.build()
 
-    #flow.rapidfire()
-    #flow.make_scheduler().start()
+    flow.make_scheduler().start()
     flow.show_status()
 
     with flow[0][0].open_gsr() as gsr:
@@ -169,23 +156,17 @@ def tantalum_gsinput(nspinor=2):
 
 
 def tantalum_flow():
-    flow = abilab.AbinitFlow(workdir="flow_tantalum")
-    work = abilab.Workflow()
-    for nspinor in [2]:
-        inp = tantalum_gsinput(nspinor)
-        work.register_scf_task(inp)
-
-    flow.register_work(work)
-    flow.allocate()
+    inputs = [tantalum_gsinput(nspinor) for nspinor in [2]]
+    flow = abilab.AbinitFlow.from_inputs(workdir="flow_tantalum", inputs=inputs)
     flow.build()
 
-    #flow.rapidfire()
-    #flow.make_scheduler().start()
+    flow.make_scheduler().start()
     flow.show_status()
 
-    with flow[0][0].open_gsr() as gsr:
-        print("Energy: ", gsr.energy.to("Ha"))
-        print("Magnetization: ",gsr.magnetization)
+    for task in flow.iflat_tasks():
+        with task.open_gsr() as gsr:
+            print("Energy: ", gsr.energy.to("Ha"))
+            print("Magnetization: ",gsr.magnetization)
 
 
 if __name__ == "__main__":

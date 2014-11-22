@@ -43,13 +43,9 @@ def gs_input(ecut, pawecutdg, acell_ang=3.567):
 
 
 def ecutconv_flow():
-    flow = abilab.AbinitFlow(workdir="flow_ecutconv")
-    work = abilab.Workflow()
-    for ecut in np.linspace(start=8, stop=24, num=9):
-        work.register_scf_task(gs_input(ecut=ecut, pawecutdg=50))
-
-    flow.register_work(work)
-    flow.allocate()
+    inputs = [gs_input(ecut=ecut, pawecutdg=50) 
+              for ecut in np.linspace(start=8, stop=24, num=9)]
+    flow = abilab.AbinitFlow.from_inputs("flow_ecutconv", inputs)
     flow.build()
     flow.make_scheduler().start()
 
@@ -65,14 +61,12 @@ def ecutconv_flow():
     print(table)
 
 def pawecutdgconv_flow():
-    flow = abilab.AbinitFlow(workdir="flow_ecutconv")
-    work = abilab.Workflow()
-    for pawecutdg in np.linspace(start=12, stop=39, num=10):
-        work.register_scf_task(gs_input(ecut=12, pawecutdg=pawecutdg))
 
-    flow.register_work(work)
-    flow.allocate()
+    inputs = [gs_input(ecut=12, pawecutdg=pawecutdg)
+              for pawecutdg in np.linspace(start=12, stop=39, num=10)]
+    flow = abilab.AbinitFlow.from_inputs("flow_ecutconv", inputs)
     flow.build()
+
     flow.make_scheduler().start()
 
     table = abilab.PrettyTable(["pawecutdg", "energy"])
@@ -88,14 +82,11 @@ def pawecutdgconv_flow():
 
 
 def eos_flow():
-    flow = abilab.AbinitFlow(workdir="eos_flow")
-    work = abilab.Workflow()
-    for acell_ang in np.linspace(start=3.52, stop=3.55, num=7):
-        work.register_scf_task(gs_input(ecut=12, pawecutdg=24, acell_ang=acell_ang))
-
-    flow.register_work(work)
-    flow.allocate()
+    inputs = [gs_input(ecut=12, pawecutdg=24, acell_ang=acell_ang)
+              for acell_ang in np.linspace(start=3.52, stop=3.55, num=7)]
+    flow = abilab.AbinitFlow.from_inputs("eos_flow", inputs)
     flow.build()
+
     flow.make_scheduler().start()
 
     energies, volumes = [], []
@@ -110,10 +101,10 @@ def eos_flow():
     fit.plot()
 
 if __name__ == "__main__":
-    import pstats, cProfile
-    cProfile.runctx("ecutconv_flow()", globals(), locals(), "Profile.prof")
-    s = pstats.Stats("Profile.prof")
-    s.strip_dirs().sort_stats("time").print_stats()
+    #import pstats, cProfile
+    #cProfile.runctx("ecutconv_flow()", globals(), locals(), "Profile.prof")
+    #s = pstats.Stats("Profile.prof")
+    #s.strip_dirs().sort_stats("time").print_stats()
     #ecutconv_flow()
     #pawecutdgconv_flow()
-    #eos_flow()
+    eos_flow()

@@ -44,12 +44,7 @@ def relax_input(tsmear, nksmall):
 
 def relax_flow():
     inp = relax_input(tsmear=0.05, nksmall=2)
-    work = abilab.Workflow()
-    work.register_relax_task(inp)
-
-    flow = abilab.AbinitFlow(workdir="flow_al_relax")
-    flow.register_work(work)
-    flow.allocate()
+    flow = abilab.AbinitFlow.from_inputs("flow_al_relax", inp)
     flow.build()
 
     #flow.rapidfire()
@@ -83,8 +78,7 @@ def convergence():
     flow.allocate()
     flow.build()
 
-    #flow.rapidfire()
-    #flow.make_scheduler().start()
+    flow.make_scheduler().start()
     flow.show_status()
 
     #table = abilab.PrettyTable(["nkibz", "etotal"])

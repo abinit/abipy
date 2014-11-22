@@ -17,13 +17,8 @@ def ngkpt_flow():
     for i, ngkpt in enumerate(ngkpt_list):
         inp[i+1].set_kmesh(ngkpt=ngkpt, shiftk=[0,0,0])
 
-    work = abilab.Workflow()
-    for dataset in inp.split_datasets():
-        work.register_scf_task(dataset)
-
-    flow = abilab.AbinitFlow(workdir="flow_ngkpt")
-    flow.register_work(work)
-    flow.allocate()
+    inputs = inp.split_datasets()
+    flow = abilab.AbinitFlow.from_inputs("flow_ngkpt", inputs)
     flow.build()
 
     #flow.rapidfire()
@@ -58,20 +53,15 @@ def relax_flow():
     for i, ngkpt in enumerate(ngkpt_list):
         inp[i+1].set_kmesh(ngkpt=ngkpt, shiftk=[0,0,0])
 
-    work = abilab.Workflow()
-    for dataset in inp.split_datasets():
-        #print(dataset)
-        work.register_relax_task(dataset)
+    inputs = inp.split_datasets()
+    flow = abilab.AbinitFlow.from_inputs("flow_relax", inputs, 
+                                         task_class=abilab.RelaxTask)
 
-    flow = abilab.AbinitFlow(workdir="flow_relax")
-    flow.register_work(work)
-    flow.allocate()
     flow.build()
-
     flow.make_scheduler().start()
     flow.show_status()
 
-    table = PrettyTable(["nkibz", "a [Ang]", "angles", "volume [Ang^3]"])
+    table = abilab.PrettyTable(["nkibz", "a [Ang]", "angles", "volume [Ang^3]"])
 
     for task in flow.iflat_tasks():
         with task.open_gsr() as gsr:
@@ -110,6 +100,6 @@ def bands_flow():
 
 
 if __name__ == "__main__":
-    ngkpt_flow()
-    #relax_flow()
+    #ngkpt_flow()
+    relax_flow()
     #bands_flow()

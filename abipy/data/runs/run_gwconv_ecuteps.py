@@ -66,8 +66,7 @@ def make_inputs():
         ecuteps=ecuteps,
         )
 
-    inp[4].set_kptgw(kptgw=[[0,0,0], [0.5, 0, 0]],
-                     bdgw=[1, 8])
+    inp[4].set_kptgw(kptgw=[[0,0,0], [0.5, 0, 0]], bdgw=[1, 8])
 
     return inp.split_datasets()
 

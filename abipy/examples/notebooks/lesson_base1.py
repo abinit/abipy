@@ -36,19 +36,12 @@ def scf_manual():
     # H2 molecule in a big box
     # This file to compute the total energy and forces as a function of the interatomic distance
     import numpy as np
-    
-    work = abilab.Workflow()
-    for x in np.linspace(0.5, 1.025, 21):
-        inp = gs_input(x)
-        #print(inp)
-        work.register_scf_task(inp)
 
-    flow = abilab.AbinitFlow(workdir="flow_h")
-    flow.register_work(work)
-    flow.allocate()
+    inputs = [gs_input(x) for x in np.linspace(0.5, 1.025, 21)]
+    flow = abilab.AbinitFlow.from_inputs("flow_h", inputs)
     flow.build()
 
-    #flow.make_scheduler().start()
+    flow.make_scheduler().start()
     flow.show_status()
 
     table = abilab.PrettyTable(["length [Ang]", "energy [eV]"])
