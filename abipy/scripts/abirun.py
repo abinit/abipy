@@ -268,6 +268,8 @@ Specify the files to open. Possible choices:\n
 
     p_tail = subparsers.add_parser('tail', help="Use tail to follow the main output file of the flow.")
 
+    p_deps = subparsers.add_parser('deps', help="Show dependencies.")
+
     # Parse command line.
     try:
         options = parser.parse_args()
@@ -315,6 +317,10 @@ Specify the files to open. Possible choices:\n
             
         # Update the database.
         return flow.build_and_pickle_dump()
+
+    elif options.command == "deps":
+        flow.check_status()
+        flow.show_dependencies()
 
     else:
         retcode = treat_flow(flow, options)
