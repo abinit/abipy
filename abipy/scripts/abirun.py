@@ -170,6 +170,8 @@ Specify the files to open. Possible choices:
     p_qstat = subparsers.add_parser('qstat', help="Show additional info on the jobs in the queue.")
     #p_qstat.add_argument('what_tail', nargs="?", type=str, default="o", help="What to follow: o for output (default), l for logfile, e for stderr")
 
+    p_deps = subparsers.add_parser('deps', help="Show dependencies.")
+
     # Parse command line.
     try:
         options = parser.parse_args()
@@ -218,6 +220,7 @@ Specify the files to open. Possible choices:
         # Update the database.
         return flow.build_and_pickle_dump()
 
+<<<<<<< HEAD
     elif options.command in ("single", "singleshot"):
         nlaunch = PyLauncher(flow).single_shot()
         flow.show_status()
@@ -350,6 +353,10 @@ Specify the files to open. Possible choices:
             print("info", task.qjob.get_info())
             print("e start-time", task.qjob.estimated_start_time())
             print("qstats", task.qjob.get_stats())
+
+    elif options.command == "deps":
+        flow.check_status()
+        flow.show_dependencies()
 
     else:
         raise RuntimeError("You should not be here!")
