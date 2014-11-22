@@ -57,7 +57,14 @@ class PrettyTable(prettytable.PrettyTable):
         # Extract data from the table.
         xvals, yvals = self._get_float_cols(xname, yname)
 
-        ax.plot(xvals, yvals, **kwargs)
+        if not kwargs:
+            ax.plot(xvals, yvals, "bo-")
+        else:
+            ax.plot(xvals, yvals, **kwargs)
+
+        ax.grid(True)
+        ax.set_xlabel(xname if xname is not None else self.field_names[0])
+        ax.set_ylabel(yname if yname is not None else self.field_names[1])
 
         if title is not None: fig.suptitle(title)
         if show: plt.show()
@@ -81,5 +88,3 @@ class PrettyTable(prettytable.PrettyTable):
         yvals = np.array([float(row[iy]) for row in self._rows])
 
         return xvals, yvals
-
-

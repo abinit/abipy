@@ -238,15 +238,15 @@ class ScissorsBuilder(object):
                                       [gap_mid, self.e0max + 0.2 * abs(self.e0max)]]
                 #print("domains", domains_spin[spin])
         else:
-            #if nsppol == 1:
-            #    domains_spin = np.reshape(domains_spin, (1, -1, 2))
-            #elif nsppol == 2:
-            #    assert len(domains_spin) == nsppol
-            #    if bounds_spin is not None: assert len(bounds_spin) == nsppol
-            #else:
-            #    raise ValueError("Wrong number of spins %d" % nsppol)
-            if len(domains_spin) != nsppol:
-                raise ValueError("len(domains_spin) == %s != nsppol %s" % (len(domains_spin, nsppol)))
+            if nsppol == 1:
+                domains_spin = np.reshape(domains_spin, (1, -1, 2))
+            elif nsppol == 2:
+                assert len(domains_spin) == nsppol
+                if bounds_spin is not None: assert len(bounds_spin) == nsppol
+            else:
+                raise ValueError("Wrong number of spins %d" % nsppol)
+            #if len(domains_spin) != nsppol:
+            #    raise ValueError("len(domains_spin) == %s != nsppol %s" % (len(domains_spin), nsppol))
 
         # Construct the scissors operator for each spin.
         scissors_spin = nsppol * [None]

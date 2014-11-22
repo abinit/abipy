@@ -4,7 +4,7 @@ from __future__ import division, print_function
 import abipy.abilab as abilab 
 import abipy.data as abidata
 
-def gs_input(x=0.7):
+def gs_input(x=0.7, acell=(10, 10, 10)):
     # H2 molecule in a big box
     inp = abilab.AbiInput(pseudos=abidata.pseudos("01h.pspgth"))
 
@@ -15,7 +15,7 @@ def gs_input(x=0.7):
         typat=(1, 1),
         xcart=[-x, 0.0, 0.0,
                +x, 0.0, 0.0],
-        acell=[10, 10, 10],
+        acell=acell,
         rprim=[1, 0, 0, 0, 1, 0, 0, 0, 1]
     ))
     inp.set_structure(structure)
@@ -34,8 +34,7 @@ def gs_input(x=0.7):
 
 def scf_manual():
     # H2 molecule in a big box
-    # This file to compute the total energy and forces as a function
-    # of the interatomic distance
+    # This file to compute the total energy and forces as a function of the interatomic distance
     import numpy as np
     
     work = abilab.Workflow()
@@ -49,7 +48,7 @@ def scf_manual():
     flow.allocate()
     flow.build()
 
-    flow.make_scheduler().start()
+    #flow.make_scheduler().start()
     flow.show_status()
 
     table = abilab.PrettyTable(["length [Ang]", "energy [eV]"])

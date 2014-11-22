@@ -30,14 +30,13 @@ def ngkpt_flow():
     flow.make_scheduler().start()
     flow.show_status()
 
-    table = abilab.PrettyTable(["nkibz", "etotal"])
-
+    table = abilab.PrettyTable(["nkibz", "etotal [eV]"])
     for task in flow[0]:
         with task.open_gsr() as gsr:
-            table.add_row([len(gsr.kpoints), gsr.energy])
-
+            table.add_row([len(gsr.kpoints), float(gsr.energy)])
     print(table)
-    #table.plot("nkibz", "etotal", title="etotal vs nkibz")
+    table.plot(title="Etotal vs nkibz")
+
 
 def relax_flow():
     # Structural relaxation
@@ -64,7 +63,7 @@ def relax_flow():
         #print(dataset)
         work.register_relax_task(dataset)
 
-    flow = abilab.AbinitFlow(workdir="flow_relax"))
+    flow = abilab.AbinitFlow(workdir="flow_relax")
     flow.register_work(work)
     flow.allocate()
     flow.build()
@@ -111,6 +110,6 @@ def bands_flow():
 
 
 if __name__ == "__main__":
-    #ngkpt_flow()
+    ngkpt_flow()
     #relax_flow()
-    bands_flow()
+    #bands_flow()
