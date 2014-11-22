@@ -220,7 +220,6 @@ Specify the files to open. Possible choices:
         # Update the database.
         return flow.build_and_pickle_dump()
 
-<<<<<<< HEAD
     elif options.command in ("single", "singleshot"):
         nlaunch = PyLauncher(flow).single_shot()
         flow.show_status()
