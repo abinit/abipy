@@ -538,6 +538,7 @@ class AbiInput(Input):
             self[idt].set_autokmesh(nksmall, kptopt=kptopt)
 
     def set_autokpath(self, ndivsm, dtset=0):
+
         for idt in self._dtset2range(dtset):
             self[idt].set_kpath(ndivsm, kptbounds=None)
 
