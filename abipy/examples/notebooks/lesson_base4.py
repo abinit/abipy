@@ -47,7 +47,6 @@ def relax_flow():
     flow = abilab.AbinitFlow.from_inputs("flow_al_relax", inp)
     flow.build()
 
-    #flow.rapidfire()
     flow.make_scheduler().start()
     flow.show_status()
 
@@ -78,39 +77,86 @@ def convergence():
     flow.allocate()
     flow.build()
 
-    flow.make_scheduler().start()
+    #flow.make_scheduler().start()
     flow.show_status()
 
     #table = abilab.PrettyTable(["nkibz", "etotal"])
     #gs_task = flow[0][0]
 
-    rows = []
+    rows, row_names = [], []
     for task in flow.iflat_tasks():
         with task.open_gsr() as gsr:
             info = task.user_info
-            a, b, c = gsr.structure.lattice.abc
+            structure = gsr.structure
+            abc, angles = structure.lattice.abc, structure.lattice.angles
             nkibz = len(gsr.kpoints)
-            data = dict(tsmear=info.tsmear, nksmall=info.nksmall, a=a, nkibz=nkibz)
-            rows.append(data)
+            row_names.append(task.pos_str)
+            rows.append(dict(
+                tsmear=info.tsmear, nksmall=info.nksmall, nkibz=nkibz, 
+                nsppol=gsr.nsppol, nspinor=gsr.nspinor, nspden=gsr.nspden,
+                energy=gsr.energy, magnetization=gsr.magnetization,
+                a=abc[0], b=abc[1], c=abc[2], volume=structure.volume,
+                angle0=angles[0], angle1=angles[1], angle2=angles[2],
+                ))
+
 
     import pandas as pd
+    data = pd.DataFrame(rows, index=row_names, columns=rows[0].keys())
+    print(data)
+    #data.plot(x="nkibz", y="energy")
+
     import matplotlib.pyplot as plt
-    #df = pd.DataFrame(rows, index=names, columns=data.keys())
-    df = pd.DataFrame(rows, columns=data.keys())
-    print(df)
+    import seaborn as sns
+    grid = sns.FacetGrid(data, col="tsmear", size=7) #, col_wrap=4, size=7)
+    grid.map(sns.pointplot, "nkibz", "a", color=".3", ci=None)
 
-    g = df.groupby("tsmear")
-    print(g.describe())
-    #g.plot()
-    #plt.show()
+    sns.pairplot(data, x_vars="nkibz", y_vars=["energy", "a", "volume"], hue="tsmear")
+    plt.show()
 
-    g = df.groupby("nkibz")
-    print(g.describe())
-    #g.plot()
-    #plt.show()
 
-    #print(gsr.energy_components)
-    #return gsr
+from collections import Iterable, OrderedDict
+
+class GsrRobot(Iterable):
+    # TODO: Write mixin HasGsrFiles
+    def __init__(self, *args):
+        self._gsr_files = OrderedDict()
+        for label, ncfile in args:
+            self.add_file(label, ncfile)
+
+    def add_file(self, label, ncfile)
+        self._gsr_files[label] = ncfile
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Activated at the end of the with statement."""
+        self.close()
+
+    def close(self):
+        """It automatically closes all the files that have been opened by self"""
+        for i, gsr in enumerate(self):
+            if self._doclose[i]: 
+                gsr.close()
+
+    def get_dataframe(self, **kwargs)
+        rows, row_names = [], []
+        for gsr in self:
+            structure = gsr.structure
+            abc, angles = structure.lattice.abc, structure.lattice.angles
+            nkibz = len(gsr.kpoints)
+            row_names.append(task.pos_str)
+            rows.append(dict(
+                #tsmear=info.tsmear, nksmall=info.nksmall, nkibz=nkibz, 
+                nsppol=gsr.nsppol, nspinor=gsr.nspinor, nspden=gsr.nspden,
+                energy=gsr.energy, magnetization=gsr.magnetization,
+                a=abc[0], b=abc[1], c=abc[2], volume=structure.volume,
+                angle0=angles[0], angle1=angles[1], angle2=angles[2],
+                ))
+
+        import pandas as pd
+        return pd.DataFrame(rows, index=row_names, columns=rows[0].keys())
+
 
 if __name__ == "__main__":
     #relax_flow()

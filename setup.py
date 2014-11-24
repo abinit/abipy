@@ -201,6 +201,8 @@ install_requires = [
     "pymatgen>=3.0.7",
     "wxmplot",
     #"matplotlib>=1.1",
+    #"pandas",
+    #"seaborn",
     #"psutil",
     #"fabric",
     #"paramiko",

@@ -5,7 +5,7 @@ import abipy.abilab as abilab
 import abipy.data as abidata
 
 def gs_input(x=0.7, acell=(10, 10, 10)):
-    # H2 molecule in a big box
+    """H2 molecule in a big box"""
     inp = abilab.AbiInput(pseudos=abidata.pseudos("01h.pspgth"))
 
     structure = abilab.Structure.from_abivars(dict(
@@ -20,7 +20,6 @@ def gs_input(x=0.7, acell=(10, 10, 10)):
     ))
     inp.set_structure(structure)
 
-    # Optimization of the lattice parameters
     inp.set_variables(
         ecut=10, 
         nband=1,
@@ -33,8 +32,10 @@ def gs_input(x=0.7, acell=(10, 10, 10)):
     return inp
 
 def scf_manual():
-    # H2 molecule in a big box
-    # This file to compute the total energy and forces as a function of the interatomic distance
+    """
+    H2 molecule in a big box
+    Generate a flow to compute the total energy and forces as a function of the interatomic distance
+    """
     import numpy as np
 
     inputs = [gs_input(x) for x in np.linspace(0.5, 1.025, 21)]

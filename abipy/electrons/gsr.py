@@ -306,8 +306,8 @@ class GSR_Plotter(Iterable):
         plotter.add_file("bar_GSR.nc")
         plotter.plot_variables("ecut", "etotal")
     """
-    def __init__(self, *args):
-        self._gsr_files = OrderedDict(*args)
+    def __init__(self, *files):
+        self._gsr_files = OrderedDict(*files)
 
     def __len__(self):
         return len(self._gsr_files)
