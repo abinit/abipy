@@ -21,9 +21,14 @@ from pymatgen.io.abinitio.launcher import PyFlowScheduler
 from abipy.tools.prettytable import PrettyTable
 from abipy.core.structure import Structure, StructureModifier
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen, AnaddbInput
-from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter, SIGRES_Plotter
+from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter
+from abipy.electrons.gsr import GSR_File, GsrRobot 
+from abipy.electrons.gw import SIGRES_File, SIGRES_Plotter 
+from abipy.electrons.bse import MDF_File
 from abipy.electrons.scissors import ScissorsBuilder
 from abipy.phonons import PHBST_File, PhononBands, PHDOS_File, PHDOS_Reader
+from abipy.core.mixins import AbinitFile, AbinitLogFile, AbinitOutputFile
+from abipy.waves import WFK_File
 
 # Tools for unit conversion
 #from abipy.core import constants
@@ -38,10 +43,6 @@ def _straceback():
 
 def abifile_subclass_from_filename(filename):
     """Returns the appropriate class associated to the given filename."""
-    from abipy.core.mixins import AbinitFile, AbinitLogFile, AbinitOutputFile
-    from abipy.electrons import SIGRES_File, GSR_File, MDF_File
-    from abipy.waves import WFK_File
-
     ext2ncfile = {
         "SIGRES.nc": SIGRES_File,
         "WFK-etsf.nc": WFK_File,

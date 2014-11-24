@@ -4,6 +4,7 @@ from __future__ import division, print_function
 import numpy as np
 import abipy.abilab as abilab 
 import abipy.data as abidata
+from abipy.electrons.gsr import GsrRobot
 
 def gs_input(ecut, pawecutdg, acell_ang=3.567):
     # tpaw1_2.in
@@ -45,40 +46,64 @@ def gs_input(ecut, pawecutdg, acell_ang=3.567):
 def ecutconv_flow():
     inputs = [gs_input(ecut=ecut, pawecutdg=50) 
               for ecut in np.linspace(start=8, stop=24, num=9)]
+
     flow = abilab.AbinitFlow.from_inputs("flow_ecutconv", inputs)
-    flow.build()
     flow.make_scheduler().start()
 
-    table = abilab.PrettyTable(["ecut", "energy"])
-    for task in flow.iflat_tasks():
-        with task.open_gsr() as gsr:
-            #table.add_row([gsr.ecut, gsr.energy])
-            table.add_row([None, gsr.energy.to("Ha")])
+    with GsrRobot.from_flow(flow) as robot:
+        data = robot.get_dataframe()
 
-    energies = table.get_column("energy")
-    table.add_column("Delta_energy", [e - energies[-1] for e in energies])
+    #data = abilab.PrettyTable(["ecut", "energy"])
+    #for task in flow.iflat_tasks():
+    #    with task.open_gsr() as gsr:
+    #        data.add_row([gsr.ecut, gsr.energy])
 
-    print(table)
+    #energies = data.get_column("energy")
+    #data.add_column("Delta_energy", [e - energies[-1] for e in energies])
+    print(data)
+    data.plot(x="ecut", y="energy", title="Energy vs ecut")
 
 def pawecutdgconv_flow():
-
     inputs = [gs_input(ecut=12, pawecutdg=pawecutdg)
               for pawecutdg in np.linspace(start=12, stop=39, num=10)]
+
     flow = abilab.AbinitFlow.from_inputs("flow_ecutconv", inputs)
     flow.build()
-
     flow.make_scheduler().start()
 
-    table = abilab.PrettyTable(["pawecutdg", "energy"])
+    data = abilab.PrettyTable(["pawecutdg", "energy"])
     for task in flow.iflat_tasks():
         with task.open_gsr() as gsr:
-            #table.add_row([gsr.ecut, gsr.energy])
-            table.add_row([None, gsr.energy.to("Ha")])
+            #data.add_row([gsr.pawecutdg, gsr.energy])
+            data.add_row([None, gsr.energy.to("Ha")])
 
-    energies = table.get_column("energy")
-    table.add_column("Delta_energy", [e - energies[-1] for e in energies])
+    energies = data.get_column("energy")
+    data.add_column("Delta_energy", [e - energies[-1] for e in energies])
+    print(data)
 
-    print(table)
+def flow_ecut_pawecutdg():
+    import itertools
+    ecut_list = np.linspace(start=8, stop=24, num=9)
+    pawecutdg_list = [24, 30]
+    inputs = [gs_input(ecut, pawecutdg) 
+              for pawecutdg, ecut in itertools.product(pawecutdg_list, ecut_list)]
+
+    flow = abilab.AbinitFlow.from_inputs("flow_pawecutdg_ecut", inputs)
+    flow.build()
+    flow.make_scheduler().start()
+
+    with GsrRobot.from_flow(flow) as robot:
+        data = robot.get_dataframe()
+        print(data)
+
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
+    grid = sns.PairGrid(data, x_vars="ecut", y_vars="energy", hue="pawecutdg")
+    grid.map(plt.plot, marker="o")
+    grid.add_legend()
+                                                                                              
+    plt.show()
 
 
 def eos_flow():
@@ -87,16 +112,11 @@ def eos_flow():
     flow = abilab.AbinitFlow.from_inputs("flow_eos", inputs)
     flow.build()
 
-    flow.make_scheduler().start()
+    #flow.make_scheduler().start()
 
-    energies, volumes = [], []
-    for task in flow.iflat_tasks():
-        with task.open_gsr() as gsr:
-            energies.append(gsr.energy)
-            volumes.append(gsr.structure.volume)
+    with GsrRobot.from_flow(flow) as robot:
+        fit = robot.eos_fit()
 
-    eos = abilab.EOS(eos_name='birch_murnaghan')
-    fit = eos.fit(volumes, energies)
     print(fit)
     fit.plot()
 
@@ -108,3 +128,4 @@ if __name__ == "__main__":
     #ecutconv_flow()
     #pawecutdgconv_flow()
     eos_flow()
+    #flow_ecut_pawecutdg()

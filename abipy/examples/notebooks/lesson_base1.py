@@ -40,10 +40,8 @@ def scf_manual():
 
     inputs = [gs_input(x) for x in np.linspace(0.5, 1.025, 21)]
     flow = abilab.AbinitFlow.from_inputs("flow_h", inputs)
-    flow.build()
 
     flow.make_scheduler().start()
-    flow.show_status()
 
     table = abilab.PrettyTable(["length [Ang]", "energy [eV]"])
     for task in flow.iflat_tasks():

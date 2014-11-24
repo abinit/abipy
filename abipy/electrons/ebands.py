@@ -1965,6 +1965,9 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
         """Number of spin-density components"""
         return self.read_dimvalue("number_of_components")
 
+    def read_tsmear(self):
+        return self.read_value("smearing_width")
+
     def read_eigenvalues(self):
         """Eigenvalues in eV."""
         return const.ArrayWithUnit(self.read_value("eigenvalues"), "Ha").to("eV")

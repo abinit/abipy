@@ -6,10 +6,11 @@ import numpy as np
 import pymatgen.core.units as units
 
 from collections import OrderedDict, Iterable, defaultdict
-from monty.string import list_strings
+from monty.string import is_string, list_strings
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
+from pymatgen.io.abinitio.flows import AbinitFlow
 from abipy.core.fields import DensityReader
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands
 from abipy.tools.prettytable import PrettyTable
@@ -57,6 +58,21 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     def ebands(self):
         """`ElectronBands` object."""
         return self._ebands
+
+    #FIXME
+    @property
+    def tsmear(self):
+        return self.ebands.smearing.tsmear_ev.to("Ha")
+
+    @lazy_property
+    def ecut(self):
+        """Cutoff energy in Hartree (Abinit input variable)"""
+        return units.Energy(self.reader.read_value("ecut"), "Ha")
+
+    @lazy_property
+    def pawecutdg(self):
+        """Cutoff energy in Hartree for the PAW double grid (Abinit input variable)"""
+        return units.Energy(self.reader.read_value("pawecutdg"), "Ha")
 
     @property
     def structure(self):
@@ -490,21 +506,99 @@ class GSR_Plotter(Iterable):
                                  
         return fig
 
-    #def eos_fit(eos_name='murnaghan'):
-    #    """Fit E(V)"""
-    #    # Read the value of varname from the files.
-    #    volumes, energies = [], []
-    #    for filepath in self.filepaths:
-    #        with GSR_Reader(filepath) as r:
-    #            volumes.append(r.read_value(varname_x))
-    #            energies.append(r.read_value("etotal"))
 
-    #    # For the list of available models, see EOS.MODELS
-    #    from pymatgen.io.abinitio.eos import EOS
-    #    eos = EOS(eos_name=eos_name)
+class GsrRobot(object):
+    # TODO: Write mixin HasGsrFiles
 
-    #    # Note that eos.fit expects lengths in Angstrom, energies are in eV.
-    #    # To specify different units use len_units and ene_units 
-    #    fit = eos.fit(volumes, energies, vol_unit="bohr**3", ene_unit="Ha")
-    #    #fit.plot()
-    #    return fit
+    @classmethod
+    def from_flow(cls, flow, **kwargs):
+        if is_string(flow): flow = AbinitFlow.pickle_load(flow)
+        return cls(*[(task.pos_str, task.open_gsr()) for task in flow.iflat_tasks()])
+
+    def __init__(self, *args):
+        self._gsr_files, self._do_close = OrderedDict(), OrderedDict()
+        for label, ncfile in args:
+            self.add_file(label, ncfile)
+
+    def __str__(self):
+        return "\n".join(
+            ["%s --> %s" % (label, ncfile.filepath) for label, ncfile in self._gsr_files.items()]
+        )
+
+    def add_file(self, label, ncfile):
+        if is_string(ncfile):
+            from abipy.abilab import abiopen
+            ncfile = abiopen(ncfile)
+            self._do_close[ncfile.filepath] = True
+
+        self._gsr_files[label] = ncfile
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Activated at the end of the with statement."""
+        self.close()
+
+    def close(self):
+        """It automatically closes all the files that have been opened by self"""
+        for gsr in self._gsr_files.values():
+            if self._do_close.pop(gsr.filepath, False): 
+                try:
+                    gsr.close()
+                except:
+                    pass
+
+    def get_dataframe(self, **kwargs):
+        attributes = kwargs.pop("attributes", [])
+        callables = kwargs.pop("callables", [])
+
+        rows, row_names = [], []
+        for label, gsr in self._gsr_files.items():
+            structure = gsr.structure
+            abc, angles = structure.lattice.abc, structure.lattice.angles
+            row_names.append(label)
+            # TODO add more columns
+            d = dict(
+                nsppol=gsr.nsppol, nspinor=gsr.nspinor, nspden=gsr.nspden,
+                ecut=gsr.ecut, pawecutdg=gsr.pawecutdg,
+                tsmear=gsr.tsmear, nkibz=len(gsr.kpoints), 
+                energy=gsr.energy, magnetization=gsr.magnetization, pressure=gsr.pressure,
+                a=abc[0], b=abc[1], c=abc[2], volume=structure.volume,
+                angle0=angles[0], angle1=angles[1], angle2=angles[2],
+            )
+
+            # Add attributes specified by the users
+            d.update({aname: getattr(gsr, aname) for aname in attributes})
+
+            # Execute callables.
+            for func in callables:
+                key, value = func(gsr)
+                d[key] = value
+
+            rows.append(d)
+
+
+
+        import pandas as pd
+        return pd.DataFrame(rows, index=row_names, columns=rows[0].keys())
+
+    def eos_fit(self, eos_name="murnaghan"):
+        """
+        Fit E(V)
+        For the list of available models, see EOS.MODELS
+
+        TODO: which default? all should return a list of fits
+        """
+        # Read volumes and energies from GSR files.
+        energies, volumes = [], []
+        for label, gsr in self._gsr_files.items():
+            energies.append(gsr.energy)
+            volumes.append(gsr.structure.volume)
+
+        # Note that eos.fit expects lengths in Angstrom, energies are in eV.
+        # To specify different units use len_units and ene_units 
+        from abipy.abilab import EOS 
+        eos = EOS(eos_name=eos_name)
+        fit = eos.fit(volumes, energies, vol_unit="ang^3", ene_unit="eV")
+        return fit

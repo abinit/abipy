@@ -82,16 +82,15 @@ class QPState(namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sig
             fields.remove(e)
         return tuple(fields)
 
-    def _asdict(self):
-        #od = super(QPState, self)._asdict()
+    def as_dict(self, **kwargs):
+        """Convert self into a dictionary."""
         od = OrderedDict(zip(self._fields, self))
         od["qpeme0"] = self.qpeme0
-        #print("od",od)
         return od
 
     def to_strdict(self, fmt=None):
         """Ordered dictionary mapping fields --> strings."""
-        d = self._asdict()
+        d = self.as_dict()
         for k, v in d.items():
             if isinstance(v, int):
                 d[k] = "%d" % v
@@ -179,7 +178,7 @@ class QPList(list):
 
     def copy(self):
         """Copy of self."""
-        return QPList([qp.copy() for qp in self], is_e0sorted=self.is_e0sorted)
+        return self.__class__([qp.copy() for qp in self], is_e0sorted=self.is_e0sorted)
 
     def sort_by_e0(self):
         """Return a new object with the E0 energies sorted in ascending order."""
@@ -388,7 +387,7 @@ class QPList(list):
         else:
             qps = self + other
 
-        return QPList(qps)
+        return self.__class__(qps)
 
 
 class Sigmaw(object):
@@ -701,8 +700,7 @@ class SIGRES_Plotter(Iterable):
         ax.legend(loc="best")
 
         title = kwargs.pop("title", None)
-        if title is not None:
-            ax.set_title(title)
+        if title is not None: ax.set_title(title)
                                                                                  
         # Set ticks and labels. 
         if self.param_name is None:
@@ -777,14 +775,9 @@ class SIGRES_Plotter(Iterable):
 
         self.decorate_ax(ax)
 
-        if title is not None:
-            fig.suptitle(title)
-                                 
-        if show:
-            plt.show()
-                                 
-        if savefig is not None:
-            fig.savefig(savefig)
+        if title is not None: fig.suptitle(title)
+        if show: plt.show()
+        if savefig is not None: fig.savefig(savefig)
                                  
         return fig
 
@@ -1034,6 +1027,22 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         fig = self.ebands.plot(marker=with_marker, band_range=gwband_range, **kwargs)
 
         return fig
+
+    def get_dataframe_sk(self, spin, kpoint):
+        """Returns pandas DataFrame"""
+        rows, bands = [], []
+        # FIXME start and stop should depend on k
+        for band in range(self.min_gwbstart, self.max_gwbstop):
+            bands.append(band)
+            # Build dictionary with the QP results.
+            qpstate = self.reader.read_qp(spin, kpoint, band)
+            d = qpstate.as_dict()
+            # Add other entries that may be useful when comparing different calculations.
+            d.update(self.reader.read_params())
+            rows.append(d)
+
+        import pandas as pd
+        return pd.DataFrame(rows, index=bands, columns=rows[0].keys())
 
     #def plot_matrix_elements(self, mel_name, spin, kpoint, *args, **kwargs):
     #   matrix = self.reader.read_mel(mel_name, spin, kpoint):
@@ -1322,12 +1331,9 @@ class SIGRES_Reader(ETSF_Reader):
 
     def read_qplist_sk(self, spin, kpoint):
         ik = self.gwkpt2seqindex(kpoint)
-        bstart = self.gwbstart_sk[spin, ik]
-        bstop = self.gwbstop_sk[spin, ik]
+        bstart, bstop = self.gwbstart_sk[spin, ik], self.gwbstop_sk[spin, ik]
 
-        qps = [self.read_qp(spin, kpoint, band) for band in range(bstart, bstop)]
-
-        return QPList(qps)
+        return QPList([self.read_qp(spin, kpoint, band) for band in range(bstart, bstop)])
 
     #def read_qpene(self, spin, kpoint, band)
 
@@ -1413,6 +1419,7 @@ class SIGRES_Reader(ETSF_Reader):
             "ecuteps",
             "ecutsigx",
             "sigma_nband",
+            #nkibz=
         ]
 
         params = {}

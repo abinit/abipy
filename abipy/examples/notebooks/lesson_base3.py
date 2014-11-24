@@ -19,18 +19,15 @@ def ngkpt_flow():
 
     inputs = inp.split_datasets()
     flow = abilab.AbinitFlow.from_inputs("flow_ngkpt", inputs)
-    flow.build()
 
-    #flow.rapidfire()
-    flow.make_scheduler().start()
-    flow.show_status()
+    #flow.make_scheduler().start()
 
-    table = abilab.PrettyTable(["nkibz", "etotal [eV]"])
-    for task in flow[0]:
-        with task.open_gsr() as gsr:
-            table.add_row([len(gsr.kpoints), float(gsr.energy)])
-    print(table)
-    table.plot(title="Etotal vs nkibz")
+    with abilab.GsrRobot.from_flow(flow) as robot:
+        data = robot.get_dataframe()
+
+    import matplotlib.pyplot as plt
+    data.plot(x="nkibz", y="energy", title="Total energy vs nkibz", legend="Energy [eV]", style="b-o")
+    plt.show()
 
 
 def relax_flow():
@@ -57,19 +54,21 @@ def relax_flow():
     flow = abilab.AbinitFlow.from_inputs("flow_relax", inputs, 
                                          task_class=abilab.RelaxTask)
 
-    flow.build()
-    flow.make_scheduler().start()
+    #flow.make_scheduler().start()
     flow.show_status()
 
-    table = abilab.PrettyTable(["nkibz", "a [Ang]", "angles", "volume [Ang^3]"])
+    with abilab.GsrRobot.from_flow(flow) as robot:
+        data = robot.get_dataframe()
 
-    for task in flow.iflat_tasks():
-        with task.open_gsr() as gsr:
-            lattice = gsr.structure.lattice
-            table.add_row([len(gsr.kpoints), lattice.abc[0], lattice.angles[0], lattice.volume])
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    #data.plot(x="nkibz", y="a", style="b-o")
 
-    print(table)
-    #table.plot()
+    grid = sns.PairGrid(data, x_vars="nkibz", y_vars=["a", "volume"]) #, hue="tsmear")
+    grid.map(plt.plot, marker="o")
+    grid.add_legend()
+    plt.show()
+
 
 def bands_flow():
     inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)
@@ -89,10 +88,7 @@ def bands_flow():
     scf_input, nscf_input = inp.split_datasets()
 
     flow = abilab.bandstructure_flow(workdir="flow_bands", scf_input=scf_input, nscf_input=nscf_input)
-    flow.build_and_pickle_dump()
-
     flow.make_scheduler().start()
-    flow.show_status()
     
     nscf_task = flow[0][1]
     with nscf_task.open_gsr() as gsr:

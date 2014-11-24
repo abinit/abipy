@@ -78,22 +78,34 @@ def afm_input():
     print(inp)
     return inp
 
+
 def gs_flow():
     inputs = [gs_input(nsppol) for nsppol in [1,2]]
     flow = abilab.AbinitFlow.from_inputs(workdir="flow_spin", inputs=inputs)
-    flow.build()
 
-    flow.make_scheduler().start()
-    flow.show_status()
+    #flow.make_scheduler().start()
+
+    with abilab.GsrRobot.from_flow(flow) as robot:
+        data = robot.get_dataframe()
+        print(data)
+
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
+    grid = sns.PairGrid(data, x_vars="nsppol", y_vars=["energy", "a", "volume", "pressure"])
+    grid.map(plt.plot, marker="o")
+    grid.add_legend()
+
+    plt.show()
+    return
 
     gstask_nospin, gstask_spin = flow[0][0], flow[0][1] 
-
-    table = abilab.PrettyTable(["property", "unpolarized", "polarized"])
+    data = abilab.PrettyTable(["property", "unpolarized", "polarized"])
     with gstask_nospin.open_gsr() as gsr_nospin, gstask_spin.open_gsr() as gsr_spin:
         properties = ["energy", "pressure", "magnetization", "nelect_updown"]
         for p in properties:
             row = [p, getattr(gsr_nospin, p), getattr(gsr_spin, p)]
-            table.add_row(row)
+            data.add_row(row)
 
         plotter = abilab.ElectronDosPlotter()
         plotter.add_edos_from_file(gsr_spin.filepath, label="spin")
@@ -107,14 +119,12 @@ def gs_flow():
         #plotter.plot()
         #plotter = abilab.GSR_Plotter(gsr_nospin.filepath, gsr_spin.filepath)
         #plotter.add_ebands_from_file(gsr_nospin.filepath, label="nospin")
-    print(table)
+    print(data)
 
 def afm_flow():
     flow = abilab.AbinitFlow.from_inputs(workdir="flow_afm", inputs=afm_input())
-    flow.build()
 
     flow.make_scheduler().start()
-    flow.show_status()
 
     with flow[0][0].open_gsr() as gsr:
         print("Energy: ", gsr.energy.to("Ha"))
@@ -156,20 +166,32 @@ def tantalum_gsinput(nspinor=2):
 
 
 def tantalum_flow():
-    inputs = [tantalum_gsinput(nspinor) for nspinor in [2]]
+    inputs = [tantalum_gsinput(nspinor) for nspinor in [1, 2]]
     flow = abilab.AbinitFlow.from_inputs(workdir="flow_tantalum", inputs=inputs)
-    flow.build()
 
     flow.make_scheduler().start()
-    flow.show_status()
 
-    for task in flow.iflat_tasks():
-        with task.open_gsr() as gsr:
-            print("Energy: ", gsr.energy.to("Ha"))
-            print("Magnetization: ",gsr.magnetization)
+    with abilab.GsrRobot.from_flow(flow) as robot:
+        data = robot.get_dataframe()
+        print(data)
+
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
+    grid = sns.PairGrid(data, x_vars="nspinor", y_vars=["energy", "magnetization", "pressure"])
+    grid.map(plt.plot, marker="o")
+    grid.add_legend()
+
+    plt.show()
+    return
+
+    #for task in flow.iflat_tasks():
+    #    with task.open_gsr() as gsr:
+    #        print("Energy: ", gsr.energy.to("Ha"))
+    #        print("Magnetization: ",gsr.magnetization)
 
 
 if __name__ == "__main__":
-    gs_flow()
+    #gs_flow()
     #afm_flow()
-    #tantalum_flow()
+    tantalum_flow()
