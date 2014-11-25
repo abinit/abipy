@@ -210,6 +210,11 @@ class Has_ElectronBands(object):
         """Iterable with the Kpoints."""
         return self.ebands.kpoints
 
+    @property
+    def nkpts(self):
+        """Number of k-points."""
+        return len(self.kpoints)
+
     def plot_ebands(self, **kwargs):
         """Plot the electron energy bands. See the :func:`ElectronBands.plot` for the signature."""
         return self.ebands.plot(**kwargs)

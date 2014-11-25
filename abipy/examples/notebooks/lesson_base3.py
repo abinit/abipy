@@ -26,7 +26,7 @@ def ngkpt_flow():
         data = robot.get_dataframe()
 
     import matplotlib.pyplot as plt
-    data.plot(x="nkibz", y="energy", title="Total energy vs nkibz", legend="Energy [eV]", style="b-o")
+    data.plot(x="nkpts", y="energy", title="Total energy vs nkpts", legend="Energy [eV]", style="b-o")
     plt.show()
 
 
@@ -62,9 +62,9 @@ def relax_flow():
 
     import matplotlib.pyplot as plt
     import seaborn as sns
-    #data.plot(x="nkibz", y="a", style="b-o")
+    #data.plot(x="nkpts", y="a", style="b-o")
 
-    grid = sns.PairGrid(data, x_vars="nkibz", y_vars=["a", "volume"]) #, hue="tsmear")
+    grid = sns.PairGrid(data, x_vars="nkpts", y_vars=["a", "volume"]) #, hue="tsmear")
     grid.map(plt.plot, marker="o")
     grid.add_legend()
     plt.show()

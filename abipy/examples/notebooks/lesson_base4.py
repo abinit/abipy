@@ -42,13 +42,14 @@ def relax_input(tsmear, nksmall):
     #print(inp)
     return inp
 
+
 def relax_flow():
     inp = relax_input(tsmear=0.05, nksmall=2)
     flow = abilab.AbinitFlow.from_inputs("flow_al_relax", inp)
 
     flow.make_scheduler().start()
 
-    #table = abilab.PrettyTable(["nkibz", "etotal"])
+    #table = abilab.PrettyTable(["nkpts", "etotal"])
     gs_task = flow[0][0]
     with gs_task.open_gsr() as gsr:
         print("input structure:\n", structure)
@@ -59,40 +60,33 @@ def relax_flow():
 
 
 def convergence():
+    # Cartesian product of input iterables. Equivalent to nested for-loops.
+    from itertools import product
     tsmear_list = [0.01, 0.02, 0.03, 0.04]
     nksmall_list = [2, 4, 6]
 
-    work = abilab.Workflow()
-
-    # Cartesian product of input iterables. Equivalent to nested for-loops.
-    from itertools import product
     inputs = [relax_input(tsmear, nksmall) for tsmear, nksmall in product(tsmear_list, nksmall_list)]
 
     flow = abilab.AbinitFlow.from_inputs(workdir="flow_al_conv_relax", inputs=inputs)
-    flow.build()
 
     #flow.make_scheduler().start()
 
-    from abipy.electrons.gsr import GsrRobot
-    with GsrRobot.from_flow(flow) as robot:
+    with abilab.GsrRobot.from_flow(flow) as robot:
         data = robot.get_dataframe()
-
-    print(data)
-    #print(data.columns)
-    #data.plot(x="nkibz", y="energy")
 
     import matplotlib.pyplot as plt
     import seaborn as sns
-    #grid = sns.FacetGrid(data, col="tsmear") 
-    #grid.map(sns.pointplot, "nkibz", "a") 
 
-    #sns.pairplot(data, x_vars="nkibz", y_vars=["energy", "a", "volume"], hue="tsmear")
-    #grid.map(plt.scatter, s=50)
-    grid = sns.PairGrid(data, x_vars="nkibz", y_vars=["energy", "a", "volume"], hue="tsmear")
+    print(data)
+    grid = sns.PairGrid(data, x_vars="nkpts", y_vars=["energy", "a", "volume"], hue="tsmear")
     grid.map(plt.plot, marker="o")
     grid.add_legend()
 
     plt.show()
+    #grid = sns.FacetGrid(data, col="tsmear") 
+    #grid.map(sns.pointplot, "nkpts", "a") 
+    #sns.pairplot(data, x_vars="nkpts", y_vars=["energy", "a", "volume"], hue="tsmear")
+    #grid.map(plt.scatter, s=50)
 
 
 if __name__ == "__main__":

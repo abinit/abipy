@@ -193,7 +193,7 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
             structure=self.structure.as_dict(),
             final_energy=self.energy,
             final_energy_per_atom=self.energy_per_atom,
-            #max_force=gsr.max_force,
+            max_force=gsr.max_force,
             cart_stress_tensor=self.cart_stress_tensor,
             pressure=self.pressure,
             number_of_electrons=self.nelect,
@@ -506,24 +506,21 @@ class GSR_Plotter(Iterable):
                                  
         return fig
 
+import abc
+import six
 
-class GsrRobot(object):
-    # TODO: Write mixin HasGsrFiles
-
-    @classmethod
-    def from_flow(cls, flow, **kwargs):
-        if is_string(flow): flow = AbinitFlow.pickle_load(flow)
-        return cls(*[(task.pos_str, task.open_gsr()) for task in flow.iflat_tasks()])
-
+#@six.add_metaclass(abc.ABCMeta)
+class Robot(object):
+    """
+    The main function of a `Robot` is facilitating the extraction of the 
+    output data produced by multiple tasks an `AbinitFlow` or the runtime inspections of the 
+    calculations. This is the base class from which all Robot classes should 
+    derive. It provides helper functions to select the output files of the flow.
+    """
     def __init__(self, *args):
-        self._gsr_files, self._do_close = OrderedDict(), OrderedDict()
+        self._ncfiles, self._do_close = OrderedDict(), OrderedDict()
         for label, ncfile in args:
             self.add_file(label, ncfile)
-
-    def __str__(self):
-        return "\n".join(
-            ["%s --> %s" % (label, ncfile.filepath) for label, ncfile in self._gsr_files.items()]
-        )
 
     def add_file(self, label, ncfile):
         if is_string(ncfile):
@@ -531,7 +528,10 @@ class GsrRobot(object):
             ncfile = abiopen(ncfile)
             self._do_close[ncfile.filepath] = True
 
-        self._gsr_files[label] = ncfile
+        self._ncfiles[label] = ncfile
+
+    def __iter__(self):
+        return iter(self._ncfiles.items())
 
     def __enter__(self):
         return self
@@ -540,48 +540,82 @@ class GsrRobot(object):
         """Activated at the end of the with statement."""
         self.close()
 
+    def __str__(self):
+        return "\n".join(["%s --> %s" % (label, ncfile.filepath) for label, ncfile in self])
+
+    @property
+    def ncfiles(self):
+        return self._ncfiles.values()
+
     def close(self):
-        """It automatically closes all the files that have been opened by self"""
-        for gsr in self._gsr_files.values():
-            if self._do_close.pop(gsr.filepath, False): 
+        """Close all the files that have been opened by the Robot"""
+        for ncfile in self.ncfiles:
+            if self._do_close.pop(ncfile.filepath, False): 
                 try:
-                    gsr.close()
+                    ncfile.close()
                 except:
                     pass
 
+    @classmethod
+    def _from_flow(cls, flow, open_method, **kwargs):
+        if is_string(flow): flow = AbinitFlow.pickle_load(flow)
+
+        items = []
+        for task in flow.iflat_tasks():
+            if hasattr(task, open_method):
+                ncfile = getattr(task, open_method)()
+                #print("got ncfile", ncfile)
+                if ncfile is not None: 
+                    items.append((task.pos_str, ncfile))
+
+        return cls(*items)
+
+
+class GsrRobot(Robot):
+    @classmethod
+    def from_flow(cls, flow, **kwargs):
+        return cls._from_flow(flow, "open_gsr", **kwargs)
+
     def get_dataframe(self, **kwargs):
-        attributes = kwargs.pop("attributes", [])
-        callables = kwargs.pop("callables", [])
+        """Return a pandas DataFrame"""
+        # TODO add more columns
+        # Add attributes specified by the users
+        attrs = [
+            "nsppol", "nspinor", "nspden", "ecut", "pawecutdg",
+            "tsmear", "nkpts",
+            "energy", "magnetization", "pressure", "max_force",
+            #a=abc[0], b=abc[1], c=abc[2], volume=structure.volume,
+            #angle0=angles[0], angle1=angles[1], angle2=angles[2],
+        ] + kwargs.pop("attrs", [])
 
         rows, row_names = [], []
-        for label, gsr in self._gsr_files.items():
+        for label, gsr in self:
             structure = gsr.structure
             abc, angles = structure.lattice.abc, structure.lattice.angles
+
             row_names.append(label)
-            # TODO add more columns
-            d = dict(
-                nsppol=gsr.nsppol, nspinor=gsr.nspinor, nspden=gsr.nspden,
-                ecut=gsr.ecut, pawecutdg=gsr.pawecutdg,
-                tsmear=gsr.tsmear, nkibz=len(gsr.kpoints), 
-                energy=gsr.energy, magnetization=gsr.magnetization, pressure=gsr.pressure,
+            d = {aname: getattr(gsr, aname) for aname in attrs}
+            # Add info on structure.
+            d.update(
                 a=abc[0], b=abc[1], c=abc[2], volume=structure.volume,
                 angle0=angles[0], angle1=angles[1], angle2=angles[2],
             )
 
-            # Add attributes specified by the users
-            d.update({aname: getattr(gsr, aname) for aname in attributes})
-
             # Execute callables.
-            for func in callables:
+            for func in kwargs.get("callables", []):
                 key, value = func(gsr)
                 d[key] = value
 
             rows.append(d)
 
-
-
         import pandas as pd
         return pd.DataFrame(rows, index=row_names, columns=rows[0].keys())
+
+    #def get_ebands_plotter(self):
+    #    plotter = abilab.ElectronBandsPlotter()
+    #    for label, gsr in self:
+    #        plotter.add_ebands(label, gsr.ebands)
+    #    return plotter
 
     def eos_fit(self, eos_name="murnaghan"):
         """
@@ -590,15 +624,63 @@ class GsrRobot(object):
 
         TODO: which default? all should return a list of fits
         """
-        # Read volumes and energies from GSR files.
+        # Read volumes and energies from the GSR files.
         energies, volumes = [], []
-        for label, gsr in self._gsr_files.items():
+        for label, gsr in self:
             energies.append(gsr.energy)
             volumes.append(gsr.structure.volume)
 
-        # Note that eos.fit expects lengths in Angstrom, energies are in eV.
-        # To specify different units use len_units and ene_units 
+        # Note that eos.fit expects lengths in Angstrom, and energies in eV.
         from abipy.abilab import EOS 
-        eos = EOS(eos_name=eos_name)
-        fit = eos.fit(volumes, energies, vol_unit="ang^3", ene_unit="eV")
-        return fit
+        return EOS(eos_name=eos_name).fit(volumes, energies, vol_unit="ang^3", ene_unit="eV")
+
+
+class SigresRobot(Robot):
+
+    @classmethod
+    def from_flow(cls, flow, **kwargs):
+        return cls._from_flow(flow, "open_sigres", **kwargs)
+
+    def get_dataframe_sk(self, spin, kpoint, **kwargs):
+        attrs = [
+            "nsppol", "nspinor", "nspden", #"ecut", "pawecutdg",
+            #"tsmear", "nkpts",
+        ] + kwargs.pop("attrs", [])
+
+        rows, row_names = [], []
+        for label, sigr in self:
+            structure = sigr.structure
+            abc, angles = structure.lattice.abc, structure.lattice.angles
+
+            row_names.append(label)
+            d = {aname: getattr(sigr, aname) for aname in attrs}
+            d = dict(
+                nsppol=sigr.nsppol, nspinor=sigr.nspinor, nspden=sigr.nspden,
+                #ecut=gsr.ecut, pawecutdg=gsr.pawecutdg,
+                #tsmear=gsr.tsmear, nkpts=gsr.nkpts,
+                #a=abc[0], b=abc[1], c=abc[2], volume=structure.volume,
+                #angle0=angles[0], angle1=angles[1], angle2=angles[2],
+                #ecutwfn=sigr.ecutwfn,
+                #ecuteps=sigr.ecuteps,
+                #ecutsigx=sigr.ecutsigx,
+                #sigma_nband=sigr.nband,
+            )
+
+            # Add info on structure.
+            d.update(
+                a=abc[0], b=abc[1], c=abc[2], volume=structure.volume,
+                angle0=angles[0], angle1=angles[1], angle2=angles[2],
+            )
+
+
+            # Execute callables.
+            for func in kwargs.get("callables", []):
+                key, value = func(sigres)
+                d[key] = value
+
+            rows.append(d)
+
+        import pandas as pd
+        frame = pd.DataFrame(rows, index=row_names, columns=rows[0].keys())
+        frame.spin, frame.kpoint = spin, kpoint
+        return frame
