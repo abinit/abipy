@@ -90,21 +90,17 @@ def scf_ph_inputs(structure, options):
 
     if os.path.isfile('qpoints'):
         f = open('qpoints', 'r')
-        qpoints = np.reshape(ast.literal_eval(f.read()), (-1,3))
+        qpoints = np.reshape(ast.literal_eval(f.read()), (-1, 3))
         f.close()
 
-
-    print(qpoints)
-
-    #qpoints = [[0.0, 0.0, 0.0]]
-
     # Global variables used both for the GS and the DFPT run.
-    global_vars = dict(ecut=16.0,
-                       ngkpt=[4, 4, 4],
-                       shiftk=[0, 0, 0],
-                       paral_kgb=0,
-                       nstep=200
-                       )
+    global_vars = dict(
+        istwfk=1,
+        ecut=16.0,
+        ngkpt=[4, 4, 4],
+        shiftk=[0, 0, 0],
+        paral_kgb=0,
+        nstep=200)
 
     global_vars.update(options)
 
