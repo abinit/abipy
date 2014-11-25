@@ -74,6 +74,10 @@ Usage example:\n
 
     If DIRPATH is not given, abirun.py automatically selects the database located within 
     the working directory. An Exception is raised if multiple databases are found.
+
+    Options for developers:
+        abirun.py prof ABIRUN_OPTIONS      to profile abirun.py
+        abirun.py tracemalloc ABIRUN_ARGS  to trace memory blocks allocated by Python
 """
         return examples
 
@@ -368,14 +372,29 @@ if __name__ == "__main__":
     do_prof = False
     try:
         do_prof = sys.argv[1] == "prof"
-        if do_prof: sys.argv.pop(1)
+        do_tracemalloc = sys.argv[1] == "tracemalloc"
+        if do_prof or do_tracemalloc: sys.argv.pop(1)
     except: 
         pass
 
-    if not do_prof:
-        sys.exit(main())
-    else:
+    if do_prof:
         import pstats, cProfile
         cProfile.runctx("main()", globals(), locals(), "Profile.prof")
         s = pstats.Stats("Profile.prof")
         s.strip_dirs().sort_stats("time").print_stats()
+
+    elif do_tracemalloc:
+        # Requires py3.4
+        import tracemalloc
+        tracemalloc.start()
+
+        main()
+
+        snapshot = tracemalloc.take_snapshot()
+        top_stats = snapshot.statistics('lineno')
+
+        print("[ Top 10 ]")
+        for stat in top_stats[:10]:
+            print(stat)
+    else:
+        sys.exit(main())
