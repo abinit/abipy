@@ -564,11 +564,18 @@ class Robot(object):
         for task in flow.iflat_tasks():
             if hasattr(task, open_method):
                 ncfile = getattr(task, open_method)()
-                #print("got ncfile", ncfile)
-                if ncfile is not None: 
-                    items.append((task.pos_str, ncfile))
+                #print("got ncfile:", ncfile)
+                if ncfile is not None: items.append((task.pos_str, ncfile))
 
         return cls(*items)
+
+    def _get_geodict(self, structure):
+        """Return a dictionary with info on structure to be used in pandas dataframe."""
+        abc, angles = structure.lattice.abc, structure.lattice.angles
+        return dict(
+            a=abc[0], b=abc[1], c=abc[2], volume=structure.volume,
+            angle0=angles[0], angle1=angles[1], angle2=angles[2],
+        )
 
 
 class GsrRobot(Robot):
@@ -582,10 +589,7 @@ class GsrRobot(Robot):
         # Add attributes specified by the users
         attrs = [
             "nsppol", "nspinor", "nspden", "ecut", "pawecutdg",
-            "tsmear", "nkpts",
-            "energy", "magnetization", "pressure", "max_force",
-            #a=abc[0], b=abc[1], c=abc[2], volume=structure.volume,
-            #angle0=angles[0], angle1=angles[1], angle2=angles[2],
+            "tsmear", "nkpts", "energy", "magnetization", "pressure", "max_force",
         ] + kwargs.pop("attrs", [])
 
         rows, row_names = [], []
@@ -595,11 +599,10 @@ class GsrRobot(Robot):
 
             row_names.append(label)
             d = {aname: getattr(gsr, aname) for aname in attrs}
+
             # Add info on structure.
-            d.update(
-                a=abc[0], b=abc[1], c=abc[2], volume=structure.volume,
-                angle0=angles[0], angle1=angles[1], angle2=angles[2],
-            )
+            if kwargs.get("with_geo", True):
+                d.update(self._get_geodict(gsr.structure))
 
             # Execute callables.
             for func in kwargs.get("callables", []):
@@ -641,46 +644,72 @@ class SigresRobot(Robot):
     def from_flow(cls, flow, **kwargs):
         return cls._from_flow(flow, "open_sigres", **kwargs)
 
-    def get_dataframe_sk(self, spin, kpoint, **kwargs):
+    #def get_dataframe(self, **kwargs):
+    #    attrs = [
+    #        "nsppol", "nspinor", "nspden", #"ecut", "pawecutdg",
+    #        #"tsmear", "nkpts",
+    #    ] + kwargs.pop("attrs", [])
+
+    #    rows, row_names = [], []
+    #    for label, sigr in self:
+    #        row_names.append(label)
+    #        d = {aname: getattr(sigr, aname) for aname in attrs}
+
+    #        # Add convergenze parameters
+    #        d.update(sigr.params)
+
+    #        # Add info on structure.
+    #        if kwargs.get("with_geo", False):
+    #            d.update(self._get_geodict(sigr.structure))
+
+    #        # Execute callables.
+    #        for func in kwargs.get("callables", []):
+    #            key, value = func(sigres)
+    #            d[key] = value
+
+    #        rows.append(d)
+
+    #    import pandas as pd
+    #    return pd.DataFrame(rows, index=row_names, columns=rows[0].keys())
+
+    def merge_dataframes_sk(self, spin, kpoint, **kwargs):
+        for i, (label, sigr) in enumerate(self):
+            frame = sigr.get_dataframe_sk(spin, kpoint, index=label)
+            if i == 0:
+                table = frame
+            else:
+                table = table.append(frame)
+        
+        #print(table)
+        return table
+
+    def get_qpgaps_dataframe(self, **kwargs):
+        # FIXME
+        spin, kpoint = 0, 0
+
         attrs = [
             "nsppol", "nspinor", "nspden", #"ecut", "pawecutdg",
             #"tsmear", "nkpts",
         ] + kwargs.pop("attrs", [])
 
         rows, row_names = [], []
-        for label, sigr in self:
-            structure = sigr.structure
-            abc, angles = structure.lattice.abc, structure.lattice.angles
-
+        for i, (label, sigr) in enumerate(self):
             row_names.append(label)
             d = {aname: getattr(sigr, aname) for aname in attrs}
-            d = dict(
-                nsppol=sigr.nsppol, nspinor=sigr.nspinor, nspden=sigr.nspden,
-                #ecut=gsr.ecut, pawecutdg=gsr.pawecutdg,
-                #tsmear=gsr.tsmear, nkpts=gsr.nkpts,
-                #a=abc[0], b=abc[1], c=abc[2], volume=structure.volume,
-                #angle0=angles[0], angle1=angles[1], angle2=angles[2],
-                #ecutwfn=sigr.ecutwfn,
-                #ecuteps=sigr.ecuteps,
-                #ecutsigx=sigr.ecutsigx,
-                #sigma_nband=sigr.nband,
-            )
+            d.update({"qpgap": sigr.get_qpgap(spin, kpoint)})
+            rows.append(d)
 
+            # Add convergenze parameters
+            d.update(sigr.params)
+                                                        
             # Add info on structure.
-            d.update(
-                a=abc[0], b=abc[1], c=abc[2], volume=structure.volume,
-                angle0=angles[0], angle1=angles[1], angle2=angles[2],
-            )
-
+            if kwargs.get("with_geo", False):
+                d.update(self._get_geodict(sigr.structure))
 
             # Execute callables.
             for func in kwargs.get("callables", []):
                 key, value = func(sigres)
                 d[key] = value
 
-            rows.append(d)
-
         import pandas as pd
-        frame = pd.DataFrame(rows, index=row_names, columns=rows[0].keys())
-        frame.spin, frame.kpoint = spin, kpoint
-        return frame
+        return pd.DataFrame(rows, index=row_names, columns=rows[0].keys())

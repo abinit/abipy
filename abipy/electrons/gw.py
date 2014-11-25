@@ -902,7 +902,11 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         # TODO handle the case in which nkptgw < nkibz
         self.qpgaps = reader.read_qpgaps()
         self.qpenes = reader.read_qpenes()
-        self.params = reader.read_params()
+
+    @lazy_property
+    def params(self):
+        """AttrDict dictionary with the GW convergence parameters, e.g. ecuteps"""
+        return self.reader.read_params()
 
     def close(self):
         """Close the netcdf file."""
@@ -930,9 +934,14 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         """Returns the `QPState` object for the given (s, k, b)"""
         return self.reader.read_qp(spin, kpoint, band)
 
+    @lazy_property
+    def qpgaps(self):
+        """ndarray with shape [nsppol, nkibz] in eV"""
+        return self.reader.read_qpgaps()
+
     def get_qpgap(self, spin, kpoint):
         k = self.reader.kpt2fileindex(kpoint)
-        return self.gwgaps[spin, k]
+        return self.qpgaps[spin, k]
 
     def get_sigmaw(self, spin, kpoint, band):
         wmesh, sigxc_values = self.reader.read_sigmaw(spin, kpoint, band)
@@ -1028,7 +1037,7 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
         return fig
 
-    def get_dataframe_sk(self, spin, kpoint):
+    def get_dataframe_sk(self, spin, kpoint, index=None):
         """Returns pandas DataFrame"""
         rows, bands = [], []
         # FIXME start and stop should depend on k
@@ -1038,11 +1047,12 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
             qpstate = self.reader.read_qp(spin, kpoint, band)
             d = qpstate.as_dict()
             # Add other entries that may be useful when comparing different calculations.
-            d.update(self.reader.read_params())
+            d.update(self.params)
             rows.append(d)
 
         import pandas as pd
-        return pd.DataFrame(rows, index=bands, columns=rows[0].keys())
+        index = len(bands) * [index] if index is not None else bands
+        return pd.DataFrame(rows, index=index, columns=rows[0].keys())
 
     #def plot_matrix_elements(self, mel_name, spin, kpoint, *args, **kwargs):
     #   matrix = self.reader.read_mel(mel_name, spin, kpoint):
@@ -1422,17 +1432,14 @@ class SIGRES_Reader(ETSF_Reader):
             #nkibz=
         ]
 
-        params = {}
+        params = AttrDict()
         for pname in param_names:
-            try:
-                params[pname] = self.read_value(pname)
-            except self.Error:
-                pass
+            params[pname] = self.read_value(pname)
         
         # Other quantities that might be subject to convergence studies.
         params["nkibz"] = len(self.ibz)
 
-        return AttrDict(params)
+        return params
 
     def print_qps(self, spin=None, kpoint=None, bands=None, fmt=None, stream=sys.stdout):
         """
