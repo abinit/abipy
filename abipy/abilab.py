@@ -21,8 +21,9 @@ from pymatgen.io.abinitio.launcher import PyFlowScheduler
 from abipy.tools.prettytable import PrettyTable
 from abipy.core.structure import Structure, StructureModifier
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen, AnaddbInput
+from abipy.htc.robots import GsrRobot, SigresRobot 
 from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter
-from abipy.electrons.gsr import GSR_File, GsrRobot, SigresRobot 
+from abipy.electrons.gsr import GSR_File
 from abipy.electrons.gw import SIGRES_File, SIGRES_Plotter 
 from abipy.electrons.bse import MDF_File
 from abipy.electrons.scissors import ScissorsBuilder

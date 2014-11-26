@@ -413,7 +413,7 @@ class PhononBands(object):
 
         return PhononDOS(mesh, values)
 
-    def create_xyz_vib(self, iqpt, filename, pre_factor=200, do_real=True, scale_matrix = None, max_supercell = None):
+    def create_xyz_vib(self, iqpt, filename, pre_factor=200, do_real=True, scale_matrix=None, max_supercell=None):
         """
         Create vibration XYZ file for visualization of phonons
         :param iqpt: index of qpoint in self

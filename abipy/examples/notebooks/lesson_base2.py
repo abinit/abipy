@@ -71,6 +71,7 @@ def ecut_convergence_study():
     inputs = []
     for ecut in range(10, 40, 5):
         inputs += h2_h_input(ecut=ecut)
+
     flow = abilab.AbinitFlow.from_inputs("flow_h2h_ecut", inputs)
 
     #flow.make_scheduler().start()
