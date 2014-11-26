@@ -52,16 +52,8 @@ def ecutconv_flow():
 
     with GsrRobot.from_flow(flow) as robot:
         data = robot.get_dataframe()
-
-    #data = abilab.PrettyTable(["ecut", "energy"])
-    #for task in flow.iflat_tasks():
-    #    with task.open_gsr() as gsr:
-    #        data.add_row([gsr.ecut, gsr.energy])
-
-    #energies = data.get_column("energy")
-    #data.add_column("Delta_energy", [e - energies[-1] for e in energies])
-    print(data)
-    data.plot(x="ecut", y="energy", title="Energy vs ecut")
+        print(data)
+        data.plot(x="ecut", y="energy", title="Energy vs ecut")
 
 def pawecutdgconv_flow():
     inputs = [gs_input(ecut=12, pawecutdg=pawecutdg)
@@ -71,15 +63,10 @@ def pawecutdgconv_flow():
     flow.build()
     flow.make_scheduler().start()
 
-    data = abilab.PrettyTable(["pawecutdg", "energy"])
-    for task in flow.iflat_tasks():
-        with task.open_gsr() as gsr:
-            #data.add_row([gsr.pawecutdg, gsr.energy])
-            data.add_row([None, gsr.energy.to("Ha")])
-
-    energies = data.get_column("energy")
-    data.add_column("Delta_energy", [e - energies[-1] for e in energies])
-    print(data)
+    with GsrRobot.from_flow(flow) as robot:
+        data = robot.get_dataframe()
+        print(data)
+        data.plot(x="pawecutdg", y="energy", title="Energy vs pawecutdg")
 
 def flow_ecut_pawecutdg():
     import itertools
@@ -121,11 +108,7 @@ def eos_flow():
     fit.plot()
 
 if __name__ == "__main__":
-    #import pstats, cProfile
-    #cProfile.runctx("ecutconv_flow()", globals(), locals(), "Profile.prof")
-    #s = pstats.Stats("Profile.prof")
-    #s.strip_dirs().sort_stats("time").print_stats()
     #ecutconv_flow()
     #pawecutdgconv_flow()
-    eos_flow()
-    #flow_ecut_pawecutdg()
+    #eos_flow()
+    flow_ecut_pawecutdg()

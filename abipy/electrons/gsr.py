@@ -512,10 +512,8 @@ import six
 #@six.add_metaclass(abc.ABCMeta)
 class Robot(object):
     """
-    The main function of a `Robot` is facilitating the extraction of the 
-    output data produced by multiple tasks an `AbinitFlow` or the runtime inspections of the 
-    calculations. This is the base class from which all Robot classes should 
-    derive. It provides helper functions to select the output files of the flow.
+    The main function of a `Robot` is facilitating the extraction of the output data produced by multiple tasks in a `AbinitFlow`. 
+    This is the base class from which all Robot subclasses should derive. 
     """
     def __init__(self, *args):
         self._ncfiles, self._do_close = OrderedDict(), OrderedDict()
@@ -575,6 +573,7 @@ class Robot(object):
         return dict(
             a=abc[0], b=abc[1], c=abc[2], volume=structure.volume,
             angle0=angles[0], angle1=angles[1], angle2=angles[2],
+            formula=structure.formula,
         )
 
 
@@ -584,7 +583,17 @@ class GsrRobot(Robot):
         return cls._from_flow(flow, "open_gsr", **kwargs)
 
     def get_dataframe(self, **kwargs):
-        """Return a pandas DataFrame"""
+        """
+        Return a pandas DataFrame
+
+        kwargs:
+            attrs:
+                List of additional attributes of the gsr file to add to the DataFrame
+            funcs:
+                Function or list of functions to execute to add more data to the DataFrame.
+                Each function receives a GSR_File object and returns a tuple (key, value)
+                where key is a string with the name of column and value is the value to be inserted.
+        """
         # TODO add more columns
         # Add attributes specified by the users
         attrs = [
@@ -592,11 +601,11 @@ class GsrRobot(Robot):
             "tsmear", "nkpts", "energy", "magnetization", "pressure", "max_force",
         ] + kwargs.pop("attrs", [])
 
+        funcs = kwargs.get("funcs", [])
+        if not isinstance(funcs, (list, tuple)): funcs = [funcs]
+
         rows, row_names = [], []
         for label, gsr in self:
-            structure = gsr.structure
-            abc, angles = structure.lattice.abc, structure.lattice.angles
-
             row_names.append(label)
             d = {aname: getattr(gsr, aname) for aname in attrs}
 
@@ -604,8 +613,8 @@ class GsrRobot(Robot):
             if kwargs.get("with_geo", True):
                 d.update(self._get_geodict(gsr.structure))
 
-            # Execute callables.
-            for func in kwargs.get("callables", []):
+            # Execute funcs.
+            for func in funcs:
                 key, value = func(gsr)
                 d[key] = value
 
@@ -614,11 +623,12 @@ class GsrRobot(Robot):
         import pandas as pd
         return pd.DataFrame(rows, index=row_names, columns=rows[0].keys())
 
-    #def get_ebands_plotter(self):
-    #    plotter = abilab.ElectronBandsPlotter()
-    #    for label, gsr in self:
-    #        plotter.add_ebands(label, gsr.ebands)
-    #    return plotter
+    def ebands_plotter(self):
+        from abipy import abilab
+        plotter = abilab.ElectronBandsPlotter()
+        for label, gsr in self:
+            plotter.add_ebands(label, gsr.ebands)
+        return plotter
 
     def eos_fit(self, eos_name="murnaghan"):
         """
@@ -644,34 +654,6 @@ class SigresRobot(Robot):
     def from_flow(cls, flow, **kwargs):
         return cls._from_flow(flow, "open_sigres", **kwargs)
 
-    #def get_dataframe(self, **kwargs):
-    #    attrs = [
-    #        "nsppol", "nspinor", "nspden", #"ecut", "pawecutdg",
-    #        #"tsmear", "nkpts",
-    #    ] + kwargs.pop("attrs", [])
-
-    #    rows, row_names = [], []
-    #    for label, sigr in self:
-    #        row_names.append(label)
-    #        d = {aname: getattr(sigr, aname) for aname in attrs}
-
-    #        # Add convergenze parameters
-    #        d.update(sigr.params)
-
-    #        # Add info on structure.
-    #        if kwargs.get("with_geo", False):
-    #            d.update(self._get_geodict(sigr.structure))
-
-    #        # Execute callables.
-    #        for func in kwargs.get("callables", []):
-    #            key, value = func(sigres)
-    #            d[key] = value
-
-    #        rows.append(d)
-
-    #    import pandas as pd
-    #    return pd.DataFrame(rows, index=row_names, columns=rows[0].keys())
-
     def merge_dataframes_sk(self, spin, kpoint, **kwargs):
         for i, (label, sigr) in enumerate(self):
             frame = sigr.get_dataframe_sk(spin, kpoint, index=label)
@@ -680,17 +662,20 @@ class SigresRobot(Robot):
             else:
                 table = table.append(frame)
         
-        #print(table)
         return table
 
-    def get_qpgaps_dataframe(self, **kwargs):
-        # FIXME
-        spin, kpoint = 0, 0
+    def get_qpgaps_dataframe(self, spin=None, kpoint=None, **kwargs):
+        # TODO: Ideally one should select the k-point for which we have the fundamental gap for the given spin
+        if spin is None: spin = 0
+        if kpoint is None: kpoint = 0
 
         attrs = [
             "nsppol", "nspinor", "nspden", #"ecut", "pawecutdg",
             #"tsmear", "nkpts",
         ] + kwargs.pop("attrs", [])
+
+        funcs = kwargs.get("funcs", [])
+        if not isinstance(funcs, (list, tuple)): funcs = [funcs]
 
         rows, row_names = [], []
         for i, (label, sigr) in enumerate(self):
@@ -706,8 +691,8 @@ class SigresRobot(Robot):
             if kwargs.get("with_geo", False):
                 d.update(self._get_geodict(sigr.structure))
 
-            # Execute callables.
-            for func in kwargs.get("callables", []):
+            # Execute funcs.
+            for func in funcs:
                 key, value = func(sigres)
                 d[key] = value
 

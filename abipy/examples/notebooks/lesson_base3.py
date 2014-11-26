@@ -20,9 +20,10 @@ def ngkpt_flow():
     inputs = inp.split_datasets()
     flow = abilab.AbinitFlow.from_inputs("flow_ngkpt", inputs)
 
-    #flow.make_scheduler().start()
+    flow.make_scheduler().start()
 
     with abilab.GsrRobot.from_flow(flow) as robot:
+        #robot.ebands_plotter().plot()
         data = robot.get_dataframe()
 
     import matplotlib.pyplot as plt
@@ -96,6 +97,6 @@ def bands_flow():
 
 
 if __name__ == "__main__":
-    #ngkpt_flow()
-    relax_flow()
+    ngkpt_flow()
+    #relax_flow()
     #bands_flow()
