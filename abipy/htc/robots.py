@@ -19,10 +19,12 @@ __all__ = [
 ]
 
 
-def abirobot(obj, ext):
+def abirobot(obj, ext, nids=None):
     """
     Factory function that builds and return the Robot subclass from the file extension ext and 
     obj where obj can be a dirpath, a flow ...
+
+    nids is an optional list of node identifiers used to filter the tasks.
 
     Usage example:
 
@@ -36,7 +38,7 @@ def abirobot(obj, ext):
     """
     for cls in Robot.__subclasses__():
         if cls.EXT in (ext, ext.upper()):
-            return cls.open(obj)
+            return cls.open(obj, nids=nids)
 
     raise ValueError(
         "Cannot find Robot subclass associated to extension %s" % ext + 
@@ -109,7 +111,7 @@ class Robot(object):
                     pass
 
     @classmethod
-    def open(cls, obj, **kwargs):
+    def open(cls, obj, nids=None, **kwargs):
         """
         Flexible constructor. obj can be a Flow, Workflow, or string with the directory name.
         """
@@ -125,24 +127,18 @@ class Robot(object):
         if not has_dirpath:
             # The name of the Task method used to open the file.
             smeth = "open_" + cls.EXT.lower()
-
-            if hasattr(obj, "iflat_tasks"):
                 # Flow
-                for task in obj.iflat_tasks():
-                    open_method = getattr(task, smeth, None)
-                    if open_method is None: continue
-                    ncfile = open_method()
-                    if ncfile is not None: items.append((task.pos_str, ncfile))
-            else:
-                # Work
-                for task in obj:
-                    open_method = getattr(task, smeth, None)
-                    if open_method is None: continue
-                    ncfile = open_method()
-                    if ncfile is not None: items.append((task.pos_str, ncfile))
+            for task in obj.iflat_tasks(nids=nids):
+                open_method = getattr(task, smeth, None)
+                if open_method is None: continue
+                ncfile = open_method()
+                if ncfile is not None: items.append((task.pos_str, ncfile))
+
         else:
-            from abipy.abilab import abiopen
             # directory --> search for files with the appropriate extension and open it with abiopen.
+            if nids is not None: raise ValueError("nids cannot be used when obj is a directory.")
+
+            from abipy.abilab import abiopen
             for dirpath, dirnames, filenames in os.walk(obj):
                 filenames = [f for f in filenames if f.endswith(self.EXT + ".nc")]
                 for f in filenames:

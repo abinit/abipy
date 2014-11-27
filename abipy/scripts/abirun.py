@@ -16,10 +16,6 @@ from monty.termcolor import cprint
 from pymatgen.io.abinitio.launcher import PyFlowScheduler, PyLauncher
 import abipy.abilab as abilab
 
-# Replace python open to detect open files.
-#from abipy.tools import open_hook
-#open_hook.install()
-
 
 def straceback():
     """Returns a string with the traceback."""
@@ -35,11 +31,11 @@ def as_slice(obj):
     >>> assert as_slice("[1:4]") == slice(1, 4, 1)
     >>> assert as_slice("1::2") == slice(1, None, 2)
     """
-    if isinstance(obj, slice): return obj
+    if isinstance(obj, slice) or obj is None: return obj
 
     try:
         # integer.
-        if int(obj) == float(obj): return slice(int(obj), int(obj)+1)
+        if int(obj) == float(obj): return slice(int(obj), int(obj)+1, 1)
     except:
         # assume string defining a python slice [start:stop:step]
         if not obj: return None
@@ -59,6 +55,29 @@ def as_slice(obj):
         return slice(*tokens)
 
     raise ValueError("Cannot convert %s into a slice:\n%s" % (type(obj), obj))
+
+
+def selected_tasks(flow, options):
+    """Return the list of tasks in the flow selected by the user via the command line interface."""
+    if options.nids is not None:
+        tasks = flow.tasks_from_nids(options.nids)
+
+    elif options.wslice is not None:
+        tasks = []
+        for work in flow[options.wslice]:
+            tasks.extend([t for t in work])
+    else:
+        # All tasks selected if no option is provided.
+        tasks = list(flow.iflat_tasks())
+
+    #print(options)
+    #print("selected_tasks:", tasks)
+    return tasks
+
+
+def selected_nids(flow, options):
+    """Return the list of node ids selected by the user via the command line interface."""
+    return [task.node_id for task in selected_tasks(flow, options)]
 
 
 def main():
@@ -87,20 +106,45 @@ Usage example:\n
         if err_msg: sys.stderr.write("Fatal Error\n" + err_msg + "\n")
         sys.exit(error_code)
 
-    # Parent parser for commands that need to know on which subset of tasks/workflows we have to operate.
     def parse_nids(s):
         """parse nids argument"""
         if s is None: return s
         try:
-            return [int(t) for t in s.split(",")]
+            if "," in s:
+                return [int(t) for t in s.split(",")]
+            else:
+                # Convert string to slice and return list.
+                s = as_slice(s)
+                #print(s)
+                if s.stop is None: raise argparse.ArgumentTypeError("stop must be specified")
+                return list(range(s.start, s.stop, s.step))
         except:
-            raise argparse.ArgumentTypeError("Invalid nids string %s\n Expecting None or int or comma-separated integers" % s)
+            raise argparse.ArgumentTypeError("Invalid nids string %s\n Expecting None or int or comma-separated integers or slice sintax" % s)
 
+    def parse_wslice(s):
+        s = as_slice(s)
+        if s is None: return s
+        if s.stop is None: raise argparse.ArgumentTypeError("stop must be specified")
+        #return list(range(s.start, s.stop, s.step))
+        return s
+
+    # Parent parser for commands that need to know on which subset of tasks/workflows we have to operate.
+    # wslide and nids are mutually exclusive.
     flow_selector_parser = argparse.ArgumentParser(add_help=False)
-    flow_selector_parser.add_argument('--wti', default=None, help="Index of workflow:task")
-    flow_selector_parser.add_argument('--nids', default=None, type=parse_nids, help="Node identifier(s) used to select the task")
+    group = flow_selector_parser.add_mutually_exclusive_group()
+    group.add_argument('--nids', default=None, type=parse_nids, help=(
+        "Node identifier(s) used to select the task. Integer or comma-separated list of integers. Use `status` command to get the node ids.\n"
+        "Examples: --nids=12 --nids=12,13,16 --nids=10:12 to select 10 and 11, --nids=2:5:2 to select 2,4"  
+        ))
 
-    # Build the parser.
+    group.add_argument('--wslice', default=None, type=parse_wslice, 
+                                      help=("Select the list of works to analyze (python syntax for slices):\n"
+                                      "Examples: --wslice=1 to select the second workflow, --wslice=:3 for 0,1,2,"
+                                      "--wslice=-1 for the last workflow, --wslice::2 for even indices"))
+
+    #flow_selector_parser.add_argument('--wti', default=None, help="Index of workflow:task")
+
+    # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
@@ -133,22 +177,19 @@ Usage example:\n
     p_scheduler.add_argument('-s', '--seconds', default=0, type=int, help="number of seconds to wait")
 
     # Subparser for status command.
-    p_status = subparsers.add_parser('status', help="Show task status.")
+    p_status = subparsers.add_parser('status', parents=[flow_selector_parser], help="Show task status.")
     p_status.add_argument('-d', '--delay', default=0, type=int, help=("If 0, exit after the first analysis.\n" + 
                           "If > 0, enter an infinite loop and delay execution for the given number of seconds."))
-    p_status.add_argument("-w", '--work-slice', default="", type=str, 
-                          help=("Select the list of works to analyze (python syntax for slices):\n"
-                          "-w1 to select the second workflow, -w:3 for 0,1,2, -w-1 for the last workflow, -w::2 for even indices"))
 
     # Subparser for cancel command.
-    p_cancel = subparsers.add_parser('cancel', help="Cancel the tasks in the queue.")
+    p_cancel = subparsers.add_parser('cancel', parents=[flow_selector_parser], help="Cancel the tasks in the queue.")
     p_cancel.add_argument("-r", "--rmtree", action="store_true", default=False, help="Remove flow directory.")
 
     # Subparser for restart command.
     p_restart = subparsers.add_parser('restart', help="Restart the tasks of the flow that are not converged.")
 
     # Subparser for restart command.
-    p_reset = subparsers.add_parser('reset', help="Reset the tasks of the flow with the specified status.")
+    p_reset = subparsers.add_parser('reset', parents=[flow_selector_parser], help="Reset the tasks of the flow with the specified status.")
     p_reset.add_argument('task_status', default="QCritical") 
 
     # Subparser for open command.
@@ -176,10 +217,10 @@ Specify the files to open. Possible choices:
                        "In this case chroot is the absolute path to the flow on the **localhost**\n",
                        "Note that it is not possible to change the flow from remote when chroot is used."))
 
-    p_new_manager = subparsers.add_parser('new_manager', help="Change the TaskManager.")
+    p_new_manager = subparsers.add_parser('new_manager', parents=[flow_selector_parser], help="Change the TaskManager.")
     p_new_manager.add_argument("manager_file", default="", type=str, help="YAML file with the new manager")
 
-    p_tail = subparsers.add_parser('tail', help="Use tail to follow the main output file of the flow.")
+    p_tail = subparsers.add_parser('tail', parents=[flow_selector_parser], help="Use tail to follow the main output file of the flow.")
     p_tail.add_argument('what_tail', nargs="?", type=str, default="o", help="What to follow: o for output (default), l for logfile, e for stderr")
 
     p_qstat = subparsers.add_parser('qstat', help="Show additional info on the jobs in the queue.")
@@ -187,13 +228,14 @@ Specify the files to open. Possible choices:
 
     p_deps = subparsers.add_parser('deps', help="Show dependencies.")
 
-    p_robot = subparsers.add_parser('robot', help="Use a robot to analyze the results of multiple tasks (requires ipython)")
+    p_robot = subparsers.add_parser('robot', parents=[flow_selector_parser], help="Use a robot to analyze the results of multiple tasks (requires ipython)")
     p_robot.add_argument('robot_ext', nargs="?", type=str, default="GSR", help="The file extension of the netcdf file")
 
     p_inspect = subparsers.add_parser('inspect', parents=[flow_selector_parser], help="Inspect the tasks")
 
-    p_embed = subparsers.add_parser('embed', help=("Embed IPython. Useful for debugging or for performing advanced operations. 
-        THIS OPTION IF FOR EXPERT USERS!"))
+    p_embed = subparsers.add_parser('embed', help=( 
+        "Embed IPython. Useful for debugging or for performing advanced operations.\n"
+        "THIS OPTION IF FOR EXPERT USERS!"))
 
     # Parse command line.
     try:
@@ -210,6 +252,7 @@ Specify the files to open. Possible choices:
     logging.basicConfig(level=numeric_level)
 
     if options.no_colors:
+        # Disable colors
         termcolor.enable(False)
 
     # Read the flow from the pickle database.
@@ -236,7 +279,8 @@ Specify the files to open. Possible choices:
         # Change the manager of the errored tasks.
         status = "S_QCRITICAL"
         #status = "S_ERROR"
-        for task, wi, ti in flow.iflat_tasks_wti(status=status):
+        for task in flow.iflat_tasks(status=status, nids=selected_nids(flow, options)):
+            print("Resetting task %s" % task)
             task.reset()
             task.set_manager(new_manager)
             
@@ -254,7 +298,6 @@ Specify the files to open. Possible choices:
         print("Number of tasks launched: %d" % nlaunch)
 
     elif options.command == "scheduler":
-
         sched_options = {oname: getattr(options, oname) for oname in 
             ("weeks", "days", "hours", "minutes", "seconds")}
 
@@ -263,22 +306,15 @@ Specify the files to open. Possible choices:
         else:
             sched = PyFlowScheduler(**sched_options)
 
-        # Check that the env on the local machine is properly setup 
-        # before starting the scheduler.
+        # Check that the env on the local machine is properly setup before starting the scheduler.
         abilab.abicheck()
-        #errors = flow.loop_before_you_leap()
-        #if errors:
-        #    raise RuntimeError("look_before_you_leap returned:\n %s" % str(errors))
 
         sched.add_flow(flow)
         print(sched)
         sched.start()
 
-        #open_hook.print_open_files()
-
     elif options.command == "status":
-        work_slice = as_slice(options.work_slice)
-        #print(work_slice, options.work_slice)
+        #work_slice = as_slice(options.work_slice)
 
         if options.delay:
             cprint("Entering infinite loop. Press CTRL+C to exit", color="magenta", end="", flush=True)
@@ -286,38 +322,24 @@ Specify the files to open. Possible choices:
                 while True:
                     print(2*"\n" + time.asctime() + "\n")
                     flow.check_status()
-                    flow.show_status(verbose=options.verbose, work_slice=work_slice)
+                    flow.show_status(verbose=options.verbose, nids=selected_nids(flow, options))
                     if flow.all_ok: break
                     time.sleep(options.delay)
             except KeyboardInterrupt:
                 pass
         else:
-            flow.show_status(verbose=options.verbose, work_slice=work_slice)
+            flow.show_status(verbose=options.verbose, nids=selected_nids(flow, options))
             if flow.manager.has_queue:
                 print("Total number of jobs in queue: %s" % flow.manager.get_njobs_in_queue())
 
     elif options.command == "open":
-        if options.nids is not None:
-            wti = flow.wti_from_nids(options.nids)
-        elif options.wti is not None:
-            wti = [int(t) for t in options.wti.split(":")]
-        else:
-            raise ValueError("Either nids or wti option must be specified")
-
-        flow.open_files(what=options.what, wti=wti, status=None, op="==")
+        flow.open_files(what=options.what, status=None, op="==", nids=selected_nids(flow, options))
 
     elif options.command == "ncopen":
-        #print(options.nids)
-        if options.nids is not None:
-            tasks = flow.tasks_from_nids(options.nids)
-        else:
-            raise NotImplementedError("only nids are supported")
-
+        # The name of the method associated to this netcdf file.
         methname = "open_" + options.ncext.lower()
-        ncfiles = []
-        for task in tasks:
-            if hasattr(task, methname):
-                ncfiles.append(getattr(task, methname)())
+        # List of netcdf file objects.
+        ncfiles = [getattr(task, methname)() for task in selected_tasks(flow, options) if hasattr(task, methname)]
         
         if ncfiles:
             # Start ipython shell with namespace 
@@ -330,7 +352,7 @@ Specify the files to open. Possible choices:
             cprint("Cannot find any netcdf file with extension %s" % options.ncext, color="magenta")
 
     elif options.command == "cancel":
-        print("Number of jobs cancelled %d" % flow.cancel())
+        print("Number of jobs cancelled %d" % flow.cancel(nids=selected_nids(flow, options)))
         # Remove directory
         if options.rmtree: flow.rmtree()
 
@@ -356,16 +378,17 @@ Specify the files to open. Possible choices:
         print("Will reset tasks with status: %s" % options.task_status)
 
         count = 0
-        for task, wi, ti in flow.iflat_tasks_wti(status=options.task_status):
+        for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
+            print("Resetting task %s" % task)
             task.reset()
             count += 1	
-        cprint("%d tasks have been resetted" % count, "blue")
 
+        cprint("%d tasks have been resetted" % count, "blue")
         nlaunch = PyLauncher(flow).rapidfire()
         flow.show_status()
         print("Number of tasks launched: %d" % nlaunch)
 
-        if nlauch == 0:
+        if nlaunch == 0:
             deadlocked, runnables, running = flow.deadlocked_runnables_running()
             print("deadlocked:", deadlocked)
             print("runnables:", runnables)
@@ -385,7 +408,8 @@ Specify the files to open. Possible choices:
             }
             return getattr(choices[options.what_tail], "path")
 
-        paths = [get_path(task )for task in flow.iflat_tasks(status="Running")]
+        paths = [get_path(task) for task in flow.iflat_tasks(status="Running", nids=selected_nids(flow, options))]
+
         if not paths:
             cprint("No job is running. Exiting!", "red")
         else:
@@ -396,7 +420,7 @@ Specify the files to open. Possible choices:
                 pass
 
     elif options.command == "qstat":
-        for task in flow.iflat_tasks(): #status=
+        for task in selected_tasks(flow, options):
             if not task.qjob: continue
             print("qjob", task.qjob)
             print("info", task.qjob.get_info())
@@ -409,15 +433,12 @@ Specify the files to open. Possible choices:
 
     elif options.command == "robot":
         import IPython
-        with abilab.abirobot(flow, options.robot_ext) as robot:
+        with abilab.abirobot(flow, options.robot_ext, nids=selected_nids(flow, options)) as robot:
             #IPython.embed(header=str(robot) + "\nType `robot` in the terminal and use <TAB> to list its methods",  robot=robot)
             IPython.start_ipython(argv=[], user_ns={"robot": robot})
 
     elif options.command == "inspect":
-        if options.nids is not None:
-            tasks = flow.tasks_from_nids(options.nids)
-        else:
-            tasks = list(flow.iflat_tasks())
+        tasks = selected_tasks(flow, options)
 
         # Use different thread to inspect the task so that master can catch KeyboardInterrupt and exit.
         # One could use matplotlib non-blocking interface with show(block=False) but this one seems to work well.
@@ -455,8 +476,11 @@ Specify the files to open. Possible choices:
     
 
 if __name__ == "__main__":
-    # profile if `abirun.py prof ...` else run script.
-    do_prof = False
+    # Replace python open to detect open files.
+    #from abipy.tools import open_hook
+    #open_hook.install()
+    retcode = 0
+    do_prof, do_tracemalloc = 2* [False]
     try:
         do_prof = sys.argv[1] == "prof"
         do_tracemalloc = sys.argv[1] == "tracemalloc"
@@ -475,13 +499,16 @@ if __name__ == "__main__":
         import tracemalloc
         tracemalloc.start()
 
-        main()
+        retcode = main()
 
         snapshot = tracemalloc.take_snapshot()
         top_stats = snapshot.statistics('lineno')
 
-        print("[ Top 10 ]")
+        print("[Top 10]")
         for stat in top_stats[:10]:
             print(stat)
     else:
         sys.exit(main())
+
+    #open_hook.print_open_files()
+    sys.exit(retcode)
