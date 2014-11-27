@@ -95,7 +95,7 @@ def scf_ph_inputs(structure, options):
 
     # Global variables used both for the GS and the DFPT run.
     global_vars = dict(
-        istwfk=1,
+        istwfk=100000*1,
         ecut=16.0,
         ngkpt=[4, 4, 4],
         shiftk=[0, 0, 0],
