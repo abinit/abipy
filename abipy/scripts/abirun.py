@@ -81,12 +81,24 @@ Usage example:\n
 """
         return examples
 
-
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""
         sys.stderr.write(str_examples())
         if err_msg: sys.stderr.write("Fatal Error\n" + err_msg + "\n")
         sys.exit(error_code)
+
+    # Parent parser for commands that need to know on which subset of tasks/workflows we have to operate.
+    def parse_nids(s):
+        """parse nids argument"""
+        if s is None: return s
+        try:
+            return [int(t) for t in s.split(",")]
+        except:
+            raise argparse.ArgumentTypeError("Invalid nids string %s\n Expecting None or int or comma-separated integers" % s)
+
+    flow_selector_parser = argparse.ArgumentParser(add_help=False)
+    flow_selector_parser.add_argument('--wti', default=None, help="Index of workflow:task")
+    flow_selector_parser.add_argument('--nids', default=None, type=parse_nids, help="Node identifier(s) used to select the task")
 
     # Build the parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -115,13 +127,9 @@ Usage example:\n
     p_scheduler = subparsers.add_parser('scheduler', help="Run all tasks with a Python scheduler.")
 
     p_scheduler.add_argument('-w', '--weeks', default=0, type=int, help="number of weeks to wait")
-
     p_scheduler.add_argument('-d', '--days', default=0, type=int, help="number of days to wait")
-
     p_scheduler.add_argument('-hs', '--hours', default=0, type=int, help="number of hours to wait")
-
     p_scheduler.add_argument('-m', '--minutes', default=0, type=int, help="number of minutes to wait")
-
     p_scheduler.add_argument('-s', '--seconds', default=0, type=int, help="number of seconds to wait")
 
     # Subparser for status command.
@@ -144,7 +152,7 @@ Usage example:\n
     p_reset.add_argument('task_status', default="QCritical") 
 
     # Subparser for open command.
-    p_open = subparsers.add_parser('open', help="Open files in $EDITOR, type `abirun.py ... open --help` for help)")
+    p_open = subparsers.add_parser('open', parents=[flow_selector_parser], help="Open files in $EDITOR, type `abirun.py DIRPATH open --help` for help)")
     p_open.add_argument('what', default="o", 
         help="""\
 Specify the files to open. Possible choices:
@@ -156,8 +164,10 @@ Specify the files to open. Possible choices:
     e ==> stderr_file
     q ==> qerr_file
 """)
-    p_open.add_argument('--wti', default=None, help="Index of workflow:task")
-    p_open.add_argument('--nids', default=None, help="Node identifier(s) used to select the task")
+
+    p_ncopen = subparsers.add_parser('ncopen', parents=[flow_selector_parser], 
+                                      help="Open netcdf files in ipython, type `abirun.py DIRPATH ncopen --help` for help)")
+    p_ncopen.add_argument('ncext', nargs="?", default="GSR", help="Select the type of file to open")
 
     # Subparser for gui command.
     p_gui = subparsers.add_parser('gui', help="Open GUI.")
@@ -180,9 +190,10 @@ Specify the files to open. Possible choices:
     p_robot = subparsers.add_parser('robot', help="Use a robot to analyze the results of multiple tasks (requires ipython)")
     p_robot.add_argument('robot_ext', nargs="?", type=str, default="GSR", help="The file extension of the netcdf file")
 
-    p_inspect = subparsers.add_parser('inspect', help="Inspect the tasks")
-    #p_inspect.add_argument('--wti', default=None, help="Index of workflow:task")
-    p_inspect.add_argument('--nids', default=None, help="Node identifier(s) used to select the task")
+    p_inspect = subparsers.add_parser('inspect', parents=[flow_selector_parser], help="Inspect the tasks")
+
+    p_embed = subparsers.add_parser('embed', help=("Embed IPython. Useful for debugging or for performing advanced operations. 
+        THIS OPTION IF FOR EXPERT USERS!"))
 
     # Parse command line.
     try:
@@ -286,17 +297,37 @@ Specify the files to open. Possible choices:
                 print("Total number of jobs in queue: %s" % flow.manager.get_njobs_in_queue())
 
     elif options.command == "open":
-
         if options.nids is not None:
-            nids = map(int, options.nids.split(","))
-            wti = flow.wti_from_nids(nids)
-
+            wti = flow.wti_from_nids(options.nids)
         elif options.wti is not None:
             wti = [int(t) for t in options.wti.split(":")]
         else:
             raise ValueError("Either nids or wti option must be specified")
 
         flow.open_files(what=options.what, wti=wti, status=None, op="==")
+
+    elif options.command == "ncopen":
+        #print(options.nids)
+        if options.nids is not None:
+            tasks = flow.tasks_from_nids(options.nids)
+        else:
+            raise NotImplementedError("only nids are supported")
+
+        methname = "open_" + options.ncext.lower()
+        ncfiles = []
+        for task in tasks:
+            if hasattr(task, methname):
+                ncfiles.append(getattr(task, methname)())
+        
+        if ncfiles:
+            # Start ipython shell with namespace 
+            import IPython
+            if len(ncfiles) == 1:
+                IPython.start_ipython(argv=[], user_ns={"ncfile": ncfiles[0]})
+            else:
+                IPython.start_ipython(argv=[], user_ns={"ncfiles": ncfiles})
+        else:
+            cprint("Cannot find any netcdf file with extension %s" % options.ncext, color="magenta")
 
     elif options.command == "cancel":
         print("Number of jobs cancelled %d" % flow.cancel())
@@ -379,15 +410,12 @@ Specify the files to open. Possible choices:
     elif options.command == "robot":
         import IPython
         with abilab.abirobot(flow, options.robot_ext) as robot:
-            IPython.embed(
-                header=str(robot) + "\nType `robot` in the terminal and use <TAB> to list its methods", 
-                robot=robot
-            )
+            #IPython.embed(header=str(robot) + "\nType `robot` in the terminal and use <TAB> to list its methods",  robot=robot)
+            IPython.start_ipython(argv=[], user_ns={"robot": robot})
 
     elif options.command == "inspect":
         if options.nids is not None:
-            nids = map(int, options.nids.split(","))
-            tasks = flow.tasks_from_nids(nids)
+            tasks = flow.tasks_from_nids(options.nids)
         else:
             tasks = list(flow.iflat_tasks())
 
@@ -415,6 +443,10 @@ Specify the files to open. Possible choices:
             except KeyboardInterrupt:
                 print("\nTerminating thread...")
                 p.terminate()
+
+    elif options.command == "embed":
+        import IPython
+        IPython.embed(header="")
 
     else:
         raise RuntimeError("Don't know what to do with command %s!" % options.command)
