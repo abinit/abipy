@@ -20,13 +20,28 @@ __all__ = [
 
 
 def abirobot(obj, ext):
-    for cls in Robot.__subclasses__():
-        if cls.EXT in (ext, ext.upper()): break
-    else:
-        raise ValueError("Cannot find Robot subclass associated to extension %s" % ext)
+    """
+    Factory function that builds and return the Robot subclass from the file extension ext and 
+    obj where obj can be a dirpath, a flow ...
 
-    return cls.open(obj)
-            
+    Usage example:
+
+    .. code-block:: python
+
+        with abirobot(flow, "GSR") as robot:
+            # do something with robot and close the GSR files when done.
+
+        with abirobot("dirpath", "SIGRES") as robot:
+            # do something with robot and close the SIGRES files when done.
+    """
+    for cls in Robot.__subclasses__():
+        if cls.EXT in (ext, ext.upper()):
+            return cls.open(obj)
+
+    raise ValueError(
+        "Cannot find Robot subclass associated to extension %s" % ext + 
+        "The list of supported extensions is:\n%s" % [cls.EXT for cls in Robot.__subclasses__()]
+        )
 
 
 class Robot(object):
@@ -35,10 +50,12 @@ class Robot(object):
     multiple tasks in a `AbinitFlow`. This is the base class from which all Robot subclasses should derive.
     A Robot supports the `with` context manager:
 
-    with Robot(**filepaths) as robot:
-        # Do something with robot.
-        # files are automatically closed when we exit.
+    Usage example:
 
+    .. code-block:: python
+
+        with Robot(**filepaths) as robot:
+            # Do something with robot. files are automatically closed when we exit.
     """
     def __init__(self, *args):
         """args is a list of tuples (label, filepath)"""
@@ -104,8 +121,6 @@ class Robot(object):
                 has_dirpath = True
 
         items = []
-
-
 
         if not has_dirpath:
             # The name of the Task method used to open the file.

@@ -157,6 +157,7 @@ Specify the files to open. Possible choices:
     q ==> qerr_file
 """)
     p_open.add_argument('--wti', default=None, help="Index of workflow:task")
+    p_open.add_argument('--nids', default=None, help="Node identifier(s) used to select the task")
 
     # Subparser for gui command.
     p_gui = subparsers.add_parser('gui', help="Open GUI.")
@@ -176,8 +177,12 @@ Specify the files to open. Possible choices:
 
     p_deps = subparsers.add_parser('deps', help="Show dependencies.")
 
-    p_robot = subparsers.add_parser('robot', help="Use a robot to inspect the results of multiple tasks (requires ipython)")
+    p_robot = subparsers.add_parser('robot', help="Use a robot to analyze the results of multiple tasks (requires ipython)")
     p_robot.add_argument('robot_ext', nargs="?", type=str, default="GSR", help="The file extension of the netcdf file")
+
+    p_inspect = subparsers.add_parser('inspect', help="Inspect the tasks")
+    #p_inspect.add_argument('--wti', default=None, help="Index of workflow:task")
+    p_inspect.add_argument('--nids', default=None, help="Node identifier(s) used to select the task")
 
     # Parse command line.
     try:
@@ -265,7 +270,7 @@ Specify the files to open. Possible choices:
         #print(work_slice, options.work_slice)
 
         if options.delay:
-            cprint("Entering infinite loop. Press CTRL+C to exit", "blue")
+            cprint("Entering infinite loop. Press CTRL+C to exit", color="magenta", end="", flush=True)
             try:
                 while True:
                     print(2*"\n" + time.asctime() + "\n")
@@ -281,10 +286,17 @@ Specify the files to open. Possible choices:
                 print("Total number of jobs in queue: %s" % flow.manager.get_njobs_in_queue())
 
     elif options.command == "open":
-        if options.wti is not None:
-            options.wti = [int(t) for t in options.wti.split(":")]
-            
-        flow.open_files(what=options.what, wti=options.wti, status=None, op="==")
+
+        if options.nids is not None:
+            nids = map(int, options.nids.split(","))
+            wti = flow.wti_from_nids(nids)
+
+        elif options.wti is not None:
+            wti = [int(t) for t in options.wti.split(":")]
+        else:
+            raise ValueError("Either nids or wti option must be specified")
+
+        flow.open_files(what=options.what, wti=wti, status=None, op="==")
 
     elif options.command == "cancel":
         print("Number of jobs cancelled %d" % flow.cancel())
@@ -346,7 +358,7 @@ Specify the files to open. Possible choices:
         if not paths:
             cprint("No job is running. Exiting!", "red")
         else:
-            cprint("Press CTRL+C to interrupt. Will follow %d output files" % len(paths), "blue")
+            cprint("Press CTRL+C to interrupt. Number of output files %d" % len(paths), color="magenta", end="", flush=True)
             try:
                 os.system("tail -f %s" % " ".join(paths))
             except KeyboardInterrupt:
@@ -372,8 +384,40 @@ Specify the files to open. Possible choices:
                 robot=robot
             )
 
+    elif options.command == "inspect":
+        if options.nids is not None:
+            nids = map(int, options.nids.split(","))
+            tasks = flow.tasks_from_nids(nids)
+        else:
+            tasks = list(flow.iflat_tasks())
+
+        # Use different thread to inspect the task so that master can catch KeyboardInterrupt and exit.
+        # One could use matplotlib non-blocking interface with show(block=False) but this one seems to work well.
+        from multiprocessing import Process
+
+        def plot_graphs():
+            for task in tasks:
+                if hasattr(task, "inspect"):
+                    task.inspect()
+                else:
+                    cprint("Task %s does not provide an inspect method" % task, color="blue")
+
+        p = Process(target=plot_graphs)
+        p.start()
+        num_tasks = len(tasks)
+
+        if num_tasks == 1:
+            p.join()
+        else:
+            cprint("Will produce %d matplotlib plots. Press CTRL+C to interrupt..." % num_tasks, color="magenta", end="", flush=True)
+            try:
+                p.join()
+            except KeyboardInterrupt:
+                print("\nTerminating thread...")
+                p.terminate()
+
     else:
-        raise RuntimeError("You should not be here!")
+        raise RuntimeError("Don't know what to do with command %s!" % options.command)
 
     return retcode
     
