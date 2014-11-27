@@ -22,7 +22,7 @@ def ngkpt_flow():
 
     flow.make_scheduler().start()
 
-    with abilab.GsrRobot.from_flow(flow) as robot:
+    with abilab.GsrRobot.open(flow) as robot:
         #robot.ebands_plotter().plot()
         data = robot.get_dataframe()
 
@@ -58,7 +58,7 @@ def relax_flow():
     #flow.make_scheduler().start()
     flow.show_status()
 
-    with abilab.GsrRobot.from_flow(flow) as robot:
+    with abilab.GsrRobot.open(flow) as robot:
         data = robot.get_dataframe()
 
     import matplotlib.pyplot as plt

@@ -4,7 +4,6 @@ from __future__ import division, print_function
 import numpy as np
 import abipy.abilab as abilab 
 import abipy.data as abidata
-from abipy.electrons.gsr import GsrRobot
 
 def gs_input(ecut, pawecutdg, acell_ang=3.567):
     # tpaw1_2.in
@@ -50,7 +49,7 @@ def ecutconv_flow():
     flow = abilab.AbinitFlow.from_inputs("flow_ecutconv", inputs)
     flow.make_scheduler().start()
 
-    with GsrRobot.from_flow(flow) as robot:
+    with abilab.GsrRobot.open(flow) as robot:
         data = robot.get_dataframe()
         print(data)
         data.plot(x="ecut", y="energy", title="Energy vs ecut")
@@ -63,7 +62,7 @@ def pawecutdgconv_flow():
     flow.build()
     flow.make_scheduler().start()
 
-    with GsrRobot.from_flow(flow) as robot:
+    with abilab.GsrRobot.open(flow) as robot:
         data = robot.get_dataframe()
         print(data)
         data.plot(x="pawecutdg", y="energy", title="Energy vs pawecutdg")
@@ -79,7 +78,7 @@ def flow_ecut_pawecutdg():
     flow.build()
     flow.make_scheduler().start()
 
-    with GsrRobot.from_flow(flow) as robot:
+    with abilab.GsrRobot.open(flow) as robot:
         data = robot.get_dataframe()
         print(data)
 
@@ -101,8 +100,10 @@ def eos_flow():
 
     #flow.make_scheduler().start()
 
-    with GsrRobot.from_flow(flow) as robot:
+    with abilab.GsrRobot.open(flow) as robot:
         fit = robot.eos_fit()
+        fits, table = robot.eos_fit("all")
+        print(table)
 
     print(fit)
     fit.plot()
@@ -110,5 +111,5 @@ def eos_flow():
 if __name__ == "__main__":
     #ecutconv_flow()
     #pawecutdgconv_flow()
-    #eos_flow()
-    flow_ecut_pawecutdg()
+    eos_flow()
+    #flow_ecut_pawecutdg()

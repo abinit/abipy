@@ -79,12 +79,12 @@ def ecut_convergence_study():
     import matplotlib.pyplot as plt
     import pandas as pd
 
-    with abilab.GsrRobot.from_flow(flow) as robot:
-        table = robot.get_dataframe()
-        table = table[["formula", "ecut", "energy"]]
-        print(table)
+    with abilab.GsrRobot.open(flow) as robot:
+        frame = robot.get_dataframe()
+        frame = frame[["formula", "ecut", "energy"]]
+        print(frame)
 
-        grouped = table.groupby("ecut")
+        grouped = frame.groupby("ecut")
         rows = []
         for ecut, group in grouped:
             group = group.set_index("formula")
@@ -92,10 +92,10 @@ def ecut_convergence_study():
             atomization = abilab.Energy(atomization, "eV").to("Ha")
             rows.append(dict(ecut=ecut, atomization=atomization))
 
-        atable = pd.DataFrame(rows)
-        print(atable)
+        atomization_frame = pd.DataFrame(rows)
+        print(atomization_frame)
 
-        atable.plot("ecut", "atomization")
+        atomization_frame.plot("ecut", "atomization")
         plt.show()
 
 def acell_convergence_study():
@@ -122,12 +122,12 @@ def acell_convergence_study():
     import matplotlib.pyplot as plt
     import pandas as pd
 
-    with abilab.GsrRobot.from_flow(flow) as robot:
-        table = robot.get_dataframe(funcs=hh_dist)
-        table = table[["formula", "a", "energy", "hh_dist"]]
-        print(table)
+    with abilab.GsrRobot.open(flow) as robot:
+        frame = robot.get_dataframe(funcs=hh_dist)
+        frame = frame[["formula", "a", "energy", "hh_dist"]]
+        print(frame)
 
-        grouped = table.groupby("a")
+        grouped = frame.groupby("a")
         rows = []
         for a, group in grouped:
             group = group.set_index("formula")
@@ -136,10 +136,10 @@ def acell_convergence_study():
             # FIXME Values for hh_dist are wrong! why?
             rows.append(dict(a=a, atomization=atomization, hh_dist=group["hh_dist"]["H2"]))
 
-        atable = pd.DataFrame(rows)
-        print(atable)
+        atomization_frame = pd.DataFrame(rows)
+        print(atomization_frame)
 
-        atable.plot("a", "atomization")
+        atomization_frame.plot("a", "atomization")
         plt.show()
 
 

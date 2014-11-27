@@ -176,6 +176,9 @@ Specify the files to open. Possible choices:
 
     p_deps = subparsers.add_parser('deps', help="Show dependencies.")
 
+    p_robot = subparsers.add_parser('robot', help="Use a robot to inspect the results of multiple tasks (requires ipython)")
+    p_robot.add_argument('robot_ext', nargs="?", type=str, default="GSR", help="The file extension of the netcdf file")
+
     # Parse command line.
     try:
         options = parser.parse_args()
@@ -360,6 +363,14 @@ Specify the files to open. Possible choices:
     elif options.command == "deps":
         flow.check_status()
         flow.show_dependencies()
+
+    elif options.command == "robot":
+        import IPython
+        with abilab.abirobot(flow, options.robot_ext) as robot:
+            IPython.embed(
+                header=str(robot) + "\nType `robot` in the terminal and use <TAB> to list its methods", 
+                robot=robot
+            )
 
     else:
         raise RuntimeError("You should not be here!")

@@ -7,6 +7,7 @@ import itertools
 import collections
 import numpy as np
 
+from monty.collections import AttrDict
 from monty.functools import lazy_property
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList
@@ -203,6 +204,9 @@ class DielectricFunction(object):
         # TODO: One should take into account the star of q, but I need the symops
         self.emacro_avg = Function1D(wmesh, em_avg / self.num_qpoints)
 
+    def __str__(self):
+        return self.__class__.__name__
+
     def __iter__(self):
         """Iterate over (q, em_q)."""
         return itertools.izip(self.qpoints, self.emacros_q)
@@ -275,6 +279,7 @@ class DielectricFunction(object):
         title           Title of the plot (Default: None).
         show            True to show the figure (Default).
         savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
+        only_mean       True if only the averaged spectrum is wanted (default True)
         ==============  ==============================================================
 
         Returns:
@@ -283,15 +288,14 @@ class DielectricFunction(object):
         title = kwargs.pop("title", None)
         show = kwargs.pop("show", True)
         savefig = kwargs.pop("savefig", None)
+        only_mean = kwargs.pop("only_mean", True)
 
         import matplotlib.pyplot as plt
 
         fig = plt.figure()
 
         ax = fig.add_subplot(1, 1, 1)
-
-        if title is not None:
-            ax.set_title(title)
+        if title is not None: ax.set_title(title)
 
         ax.grid(True)
         ax.set_xlabel('Frequency [eV]')
@@ -300,19 +304,20 @@ class DielectricFunction(object):
         #if not kwargs:
         #    kwargs = {"color": "black", "linewidth": 2.0}
 
-        # Plot the q-points
-        for (iq, qpoint) in enumerate(self.qpoints):
-            self.plot_ax(ax, iq, **kwargs)
-
         # Plot the average value
         self.plot_ax(ax, qpoint=None, **kwargs)
+
+        if not only_mean:
+            # Plot the q-points
+            for iq, qpoint in enumerate(self.qpoints):
+                self.plot_ax(ax, iq, **kwargs)
 
         if show: plt.show()
         if savefig is not None: fig.savefig(savefig)
 
         return fig
 
-    def plot_ax(self, ax, qpoint, **kwargs):
+    def plot_ax(self, ax, qpoint=None, **kwargs):
         """
         Helper function to plot data on the axis ax.
 
@@ -362,37 +367,54 @@ class MDF_File(AbinitNcFile, Has_Structure):
         mdf_file = MDF_File("foo_MDF.nc")
         mdf_file.plot_mdfs()
     """
-    def __init__(self, filepath):
-        super(MDF_File, self).__init__(filepath)
-
-        self.reader = r = MDF_Reader(filepath)
-
-        self._structure = r.read_structure()
-        # TODO Add electron Bands.
-        #self._ebands = r.read_ebands()
-
-        self.qpoints = r.qpoints
-        self.exc_mdf = r.read_exc_mdf()
-        self.rpanlf_mdf = r.read_rpanlf_mdf()
-        self.gwnlf_mdf = r.read_gwnlf_mdf()
-
-    def close(self):
-        self.reader.close()
-
     @classmethod
     def from_file(cls, filepath):
         """Initialize the object from a Netcdf file"""
         return cls(filepath)
 
-    @property
+    def __init__(self, filepath):
+        super(MDF_File, self).__init__(filepath)
+        self.reader = MDF_Reader(filepath)
+
+        # TODO Add electron Bands.
+        #self._ebands = r.read_ebands()
+
+    def close(self):
+        self.reader.close()
+
+    @lazy_property
     def structure(self):
         """Returns the `Structure` object."""
-        return self._structure
+        return self.reader.read_structure()
+
+    @lazy_property
+    def exc_mdf(self):
+        "Excitonic macroscopic dieletric function."""
+        return self.reader.read_exc_mdf()
+
+    @lazy_property
+    def rpanlf_mdf(self):
+        """RPA dielectric function without local-field effects."""
+        return self.reader.read_rpanlf_mdf()
+
+    @lazy_property
+    def gwnlf_mdf(self):
+        """RPA-GW dielectric function without local-field effects."""
+        return self.reader.read_gwnlf_mdf()
+
+    @property
+    def qpoints(self):
+        return self.reader.qpoints
 
     @property
     def qfrac_coords(self):
         """The fractional coordinates of the q-points as a ndarray."""
         return self.qpoints.frac_coords
+
+    @lazy_property
+    def params(self):
+        """Dictionary with the parameters that are usually tested for convergence."""
+        return self.reader.read_params()
 
     def get_mdf(self, mdf_type="exc"):
         """"Returns the macroscopic dielectric function."""
@@ -483,25 +505,22 @@ class MDF_Reader(ETSF_Reader):
     def qpoints(self):
         """List of q-points (ndarray)."""
         # Read the fractional coordinates and convert them to KpointList.
-        frac_coords = self.read_value("qpoints")
-        #self._qpoints = frac_coords
-        return KpointList(self.structure.reciprocal_lattice, frac_coords)
+        return KpointList(self.structure.reciprocal_lattice, frac_coords=self.read_value("qpoints"))
 
     @lazy_property
     def wmesh(self):
         """The frequency mesh in eV."""
         return self.read_value("wmesh")
 
-    def read_run_params(self):
+    def read_params(self):
         """Dictionary with the parameters of the run."""
-        return {}
         # TODO
-        #try:
-        #    return self._run_params
-        #except AttributeError:
-        #    self._run_params = params = {}
-        #    # Fill the dictionary with basic parameters of the run.
-        #    return self._run_params.copy()
+        keys = [
+            "nsppol", #"ecut", "ecuteps", "nband",
+            "eps_inf", "soenergy", "broad", "nkibz", "nkbz", #"nkibz_interp", "nkbz_interp",
+            #"wtype", "interp_mode",
+        ]
+        return self.read_keys(keys)
 
     def _read_mdf(self, mdf_type):
         """Read the MDF from file, returns numpy complex array."""
@@ -509,19 +528,19 @@ class MDF_Reader(ETSF_Reader):
 
     def read_exc_mdf(self):
         """Returns the excitonic MDF."""
-        info = self.read_run_params()
+        info = self.read_params()
         emacros_q = self._read_mdf("exc_mdf")
         return DielectricFunction(self.structure, self.qpoints, self.wmesh, emacros_q, info)
 
     def read_rpanlf_mdf(self):
         """Returns the KS-RPA MDF without LF effects."""
-        info = self.read_run_params()
+        info = self.read_params()
         emacros_q = self._read_mdf("rpanlf_mdf")
         return DielectricFunction(self.structure, self.qpoints, self.wmesh, emacros_q, info)
 
     def read_gwnlf_mdf(self):
         """Returns the GW-RPA MDF without LF effects."""
-        info = self.read_run_params()
+        info = self.read_params()
         emacros_q = self._read_mdf("gwnlf_mdf")
         return DielectricFunction(self.structure, self.qpoints, self.wmesh, emacros_q, info)
 
@@ -648,123 +667,4 @@ class MDF_Plotter(object):
         if savefig: fig.savefig(savefig)
 
         return fig
-
-
-#class DIPME_File(object):
-#    """
-#    This object provides tools to analyze the dipole matrix elements produced by the BSE code.
-#    """
-#    def __init__(self, path):
-#        self.path = os.path.abspath(path)
-#
-#        # Save useful quantities
-#        with OME_Reader(self.path) as reader:
-#            self.structure = reader.structure
-#            self.nsppol = reader.nsppol
-#            self.kibz = reader.kibz
-#            self.minb_sk = reader.minb_sk
-#            self.maxb_sk = reader.maxb_sk
-#
-#            # Dipole matrix elements.
-#            # opt_cvk(minb:maxb,minb:maxb,nkbz,Wfd%nsppol)
-#            self.dipme_scvk = reader.read_dipme_scvk()
-#
-#    @classmethod
-#    def from_file(cls, path):
-#        return cls(path)
-#
-#    def kpoint_index(self, kpoint):
-#        """The index of the kpoint"""
-#        return self.kibz.find(kpoint)
-#
-#    def plot(self, qpoint=None, spin=None, kpoints=None, color_map=None, **kwargs):
-#        """
-#        Plot the dipole matrix elements.
-#
-#        Args:
-#            qpoint:
-#                The qpoint for the optical limit.
-#                if qpoint is None, we plot  |<k|r|k>| else |<k|q.r|k>|
-#            spin:
-#                spin index. None if all spins are wanted
-#            kpoints:
-#                List of Kpoint objects, None if all k-points are wanted.
-#
-#        ==============  ==============================================================
-#        kwargs          Meaning
-#        ==============  ==============================================================
-#        title           Title of the plot (Default: None).
-#        show            True to show the figure (Default).
-#        savefig:        'abc.png' or 'abc.eps'* to save the figure to a file.
-#        colormap        matplotlib colormap, see link below.
-#        ==============  ==============================================================
-#
-#        Returns:
-#            matplotlib figure.
-#
-#        .. see: 
-#            http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
-#        """
-#        title = kwargs.pop("title", None)
-#        show = kwargs.pop("show", True)
-#        savefig = kwargs.pop("savefig", None)
-#        color_map = kwargs.pop("color_map", None)
-#
-#        if qpoint is not None:
-#            # Will compute scalar product with q
-#            qpoint = Kpoint.as_kpoint(qpoint, self.structure.reciprocal_lattice).versor()
-#        else:
-#            # Will plot |<psi|r|psi>|.
-#            qpoint = Kpoint((1, 1, 1), self.structure.reciprocal_lattice)
-#
-#        if spin in None:
-#            spins = range(self.nsppol)
-#        else:
-#            spins = [spin]
-#
-#        if kpoints is None:
-#            kpoints = self.ibz
-#
-#        # Extract the matrix elements for the plot.
-#        from abipy.tools.plotting_utils import ArrayPlotter
-#        plotter = ArrayPlotter()
-#        for spin in spins:
-#            for kpoint in kpoints:
-#                ik = self.kpoint_index(kpoint)
-#                rme = self.dipme_scvk[spin, ik, :, :, :]
-#
-#                #qrme = qpoint * rme
-#                label = "qpoint %s, spin %s, kpoint = %s" % (qpoint, spin, kpoint)
-#                plotter.add_array(label, rme)
-#
-#        # Plot matrix elements and return matplotlib figure.
-#        return plotter.plot(title=title, color_map=color_map, show=show, savefig=savefig, **kwargs)
-
-
-#class DIPME_Reader(ETSF_Reader):
-#    """"
-#    This object reads the optical matrix elements from the OME.nc file.
-#    """
-#
-#    def __init__(self, path):
-#        super(DIPME_Reader, self).__init__(path)
-#
-#        # Read important dimensions and variables.
-#        frac_coords = self.read_value("kpoints_reduced_coordinates")
-#        self.kibz = kpoints_factory(self)
-#
-#        # Minimum and maximum band index as function of [s,k]
-#        self.minb_ks = self.read_value("minb")
-#        self.maxb_ks = self.read_value("maxb")
-#
-#        # Dipole matrix elements
-#        self.dipme_skvc = self.read_value("dipme", cmode="c")
-#
-#    def kpoint_index(self, kpoint):
-#        return self.kibz.find(kpoint)
-#
-#    def read_dipme(self, spin, kpoint):
-#        """Read the dipole matrix elements."""
-#        ik = self.kpoint_index(kpoint)
-#        return self.dipme_skvc[spin, ik, :, :, :]
 

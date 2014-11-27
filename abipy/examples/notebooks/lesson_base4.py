@@ -4,6 +4,7 @@ from __future__ import division, print_function
 import abipy.abilab as abilab 
 import abipy.data as abidata
 
+
 def relax_input(tsmear, nksmall):
     # Crystalline aluminum : optimization of the lattice parameter
     # at fixed number of k points and broadening.
@@ -71,7 +72,7 @@ def convergence():
 
     #flow.make_scheduler().start()
 
-    with abilab.GsrRobot.from_flow(flow) as robot:
+    with abilab.GsrRobot.open(flow) as robot:
         data = robot.get_dataframe()
 
     import matplotlib.pyplot as plt

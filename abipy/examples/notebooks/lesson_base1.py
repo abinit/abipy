@@ -62,7 +62,7 @@ def scf_manual():
         l = np.sqrt(np.linalg.norm(cart_coords[1] - cart_coords[0]))
         return "hh_dist", l
 
-    with abilab.GsrRobot.from_flow(flow) as robot:
+    with abilab.abirobot(flow, "GSR") as robot:
         table = robot.get_dataframe(funcs=hh_dist)
         print(table)
         #robot.ebands_plotter().plot()

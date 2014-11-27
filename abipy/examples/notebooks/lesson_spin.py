@@ -85,7 +85,7 @@ def gs_flow():
 
     #flow.make_scheduler().start()
 
-    with abilab.GsrRobot.from_flow(flow) as robot:
+    with abilab.GsrRobot.open(flow) as robot:
         data = robot.get_dataframe()
         print(data)
 
@@ -171,7 +171,7 @@ def tantalum_flow():
 
     flow.make_scheduler().start()
 
-    with abilab.GsrRobot.from_flow(flow) as robot:
+    with abilab.GsrRobot.open(flow) as robot:
         data = robot.get_dataframe()
         print(data)
 
