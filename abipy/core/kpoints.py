@@ -49,8 +49,6 @@ def issamek(k1, k2, atol=1e-08):
     """
     True if k1 and k2 are equal modulo a lattice vector.
 
-    Examples
-
     >>> assert issamek([1,1,1], [0,0,0])
     >>> assert issamek([1.1,1,1], [0,0,0], atol=0.1)
     >>> assert not issamek(0.00003, 1)
@@ -130,15 +128,11 @@ def kmesh_from_mpdivs(mpdivs, shifts, pbc=False, order="bz"):
     k-points from the MP divisions and the shifts.
 
     Args:
-        mpdivs
-            The three MP divisions
-        shifts:
-            Array-like object with the MP shift.
-        pbc:
-            If True, periodic images of the k-points will be includes i.e. closed mesh.
-        order:
-            "unit_cell" if the kpoint coordinates must be in [0,1)
-            "bz" if the kpoint coordinates must be in [-1/2, +1/2)
+        mpdivs: The three MP divisions
+        shifts: Array-like object with the MP shift.
+        pbc: If True, periodic images of the k-points will be includes i.e. closed mesh.
+        order: "unit_cell" if the kpoint coordinates must be in [0,1)
+               "bz" if the kpoint coordinates must be in [-1/2, +1/2)
     """
     shifts = np.reshape(shifts, (-1,3))
     assert np.all(np.abs(shifts) <= 0.5)
@@ -166,16 +160,12 @@ def as_kpoints(obj, lattice, weights=None, names=None):
     Convert obj into a list of k-points.
 
     Args:
-        obj:
-            Kpoint or list of Kpoint objects or array-like object.
-        lattice:
-            Reciprocal lattice.
-        weights:
-            k-point weights. Ignored if obj is already a `Kpoint` instance or a list
-            of `Kpoint` items.
-        name:
-            string with the name of the k-point. Ignored if obj is already a `Kpoint`
-            instance or a list of `Kpoint` items.
+        obj: :class:`Kpoint` or list of Kpoint objects or array-like object.
+        lattice: Reciprocal lattice.
+        weights: k-point weights. Ignored if obj is already a `Kpoint` instance or a list
+                 of `Kpoint` items.
+        name: string with the name of the k-point. Ignored if obj is already a `Kpoint`
+              instance or a list of `Kpoint` items.
     """
     # K-point?
     if isinstance(obj, Kpoint):
@@ -224,14 +214,10 @@ class Kpoint(object):
     def __init__(self, frac_coords, lattice, weight=None, name=None):
         """
         Args:
-            frac_coords:
-                Reduced coordinates.
-            lattice:
-                `Lattice` object describing the reciprocal lattice.
-            weights: 
-                k-point weight (optional, set to zero if not given).
-            name:
-                string with the name of the k-point (optional)
+            frac_coords: Reduced coordinates.
+            lattice: :class:`Lattice` object describing the reciprocal lattice.
+            weights: k-point weight (optional, set to zero if not given).
+            name: string with the name of the k-point (optional)
         """
         self._frac_coords = np.asarray(frac_coords)
         assert len(self.frac_coords) == 3
@@ -244,7 +230,7 @@ class Kpoint(object):
         """
         Kpoint objects can be used as keys in dictionaries.
         
-        .. warning: 
+        .. warning::
 
             The hash is computed from the fractional coordinates (floats). 
             Hence one should avoid using hashes for implementing search algorithms
@@ -300,8 +286,7 @@ class Kpoint(object):
     @property
     def on_border(self):
         """
-        True if the k-point is on the border of the BZ 
-        (lattice translations are taken into account).
+        True if the k-point is on the border of the BZ  (lattice translations are taken into account).
         """
         kreds = wrap_to_ws(self.frac_coords)
         diff = np.abs(np.abs(kreds) - 0.5)
@@ -346,9 +331,9 @@ class Kpoint(object):
 
         Args:
             obj:
-                `Kpoint` instance or array-like with the reduced coordinates
+                :class:`Kpoint` instance or array-like with the reduced coordinates.
             lattice:
-                `Lattice` object defining the reciprocal lattice.
+                :class:`Lattice` object defining the reciprocal lattice.
         """
         if isinstance(obj, cls):
             return obj
@@ -407,7 +392,7 @@ class Kpoint(object):
 
 class KpointList(collections.Sequence):
     """
-    Base class defining a sequence of `Kpoint` objects. Essentially consists 
+    Base class defining a sequence of :class:`Kpoint` objects. Essentially consists
     of base methods implementing the sequence protocol and helper functions.
     """
     Error = KpointsError
@@ -415,14 +400,10 @@ class KpointList(collections.Sequence):
     def __init__(self, reciprocal_lattice, frac_coords, weights=None, names=None):
         """
         Args:
-            reciprocal_lattice:
-                `Lattice` object.
-            frac_coords:
-                Array-like object with the reduced coordinates of the k-points.
-            weights:
-                List of k-point weights.
-            names:
-                List of k-point names.
+            reciprocal_lattice: :class:`Lattice` object.
+            frac_coords: Array-like object with the reduced coordinates of the k-points.
+            weights: List of k-point weights.
+            names: List of k-point names.
         """
         self._reciprocal_lattice = reciprocal_lattice
 
@@ -502,7 +483,9 @@ class KpointList(collections.Sequence):
 
     def index(self, kpoint):
         """
-        Returns the first index of kpoint in self. Raises ValueError if not found.
+        Returns: the first index of kpoint in self.
+
+        Raises: ValueError if not found.
         """
         try:
             return self._points.index(kpoint)
@@ -512,7 +495,7 @@ class KpointList(collections.Sequence):
 
     def find(self, kpoint):
         """
-        Returns first index of kpoint. -1 if not found
+        Returns: first index of kpoint. -1 if not found
         """
         try:
             return self.index(kpoint)
@@ -595,10 +578,8 @@ class Kpath(KpointList):
     def __init__(self, reciprocal_lattice, frac_coords):
         """
         Args:
-            reciprocal_lattice:
-                `Lattice` object.
-            frac_coords:
-                Array-like object with the reduced coordinates of the k-points.
+            reciprocal_lattice: :class:`Lattice` object.
+            frac_coords: Array-like object with the reduced coordinates of the k-points.
         """
         super(Kpath, self).__init__(reciprocal_lattice, frac_coords)
 
@@ -655,12 +636,9 @@ class Kpath(KpointList):
         Compute the derivatives of values by finite differences.
 
         Args:
-            values:
-                array-like object with the values of the path.
-            order:
-                Order of the derivative.
-            acc:
-                Accuracy: 4 corresponds to a central difference with 5 points.
+            values: array-like object with the values of the path.
+            order: Order of the derivative.
+            acc: Accuracy: 4 corresponds to a central difference with 5 points.
 
         Returns:
             ndarray with the derivative.
@@ -689,10 +667,9 @@ class Kpath(KpointList):
 class IrredZone(KpointList):
     """
     An IrredZone is a (immutable) sequence of points in the irreducible wedge of the BZ.
-    Each point has a weight whose sum must equal 1 so that we can integrate quantities 
-    in the full Brillouin zone.
-    Provides methods to symmetrize k-dependent quantities with the full
-    symmetry of the structure. e.g. bands, occupation factors, phonon frequencies.
+    Each point has a weight whose sum must equal 1 so that we can integrate quantities in the full Brillouin zone.
+    Provides methods to symmetrize k-dependent quantities with the full symmetry of the structure. e.g.
+    bands, occupation factors, phonon frequencies.
     """
     def __init__(self, reciprocal_lattice, frac_coords, weights, ksampling):
         """
