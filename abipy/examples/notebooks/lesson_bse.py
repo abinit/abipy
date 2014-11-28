@@ -63,6 +63,7 @@ def make_inputs(ngkpt=(4,4,4), ecut=8, ecuteps=2):
     scf_input, nscf_input, bse_input = inp.split_datasets()
     return scf_input, nscf_input, bse_input
 
+
 def eh_convergence_study():
     """
     """
@@ -89,7 +90,7 @@ def eh_convergence_study():
     for inp in bse_template.generate(zcut=["0.1 eV", "0.2 eV", "0.3 eV"]):
         work.register_bse_task(inp, deps={wfk_file: "WFK"})
 
-    flow = abilab.AbinitFlow(workdir="flow_bse_ecuteps")
+    flow = abilab.Flow(workdir="flow_bse_ecuteps")
     flow.register_work(work)
     flow.allocate()
     flow.build()

@@ -20,9 +20,9 @@ __all__ = [
 
 def abirobot(obj, ext, nids=None):
     """
-    Factory function that builds and return the Robot subclass from the file extension ext and 
-    obj where obj can be a dirpath, or a Flow instance.
-    nids is an optional list of node identifiers used to filter the tasks.
+    Factory function that builds and return the :class:`Robot` subclass from the file
+    extension `ext`. `obj` can be a directory path, or a :class:`Flow` instance.
+    `nids` is an optional list of node identifiers used to filter the tasks in the flow.
 
     Usage example:
 
@@ -45,7 +45,7 @@ def abirobot(obj, ext, nids=None):
 class Robot(object):
     """
     The main function of a `Robot` is facilitating the extraction of the output data produced by
-    multiple tasks in a `Flow`. This is the base class from which all Robot subclasses should derive.
+    multiple tasks in a :class:`Flow`. This is the base class from which all Robot subclasses should derive.
     A Robot supports the `with` context manager:
 
     Usage example:
@@ -109,7 +109,8 @@ class Robot(object):
     @classmethod
     def open(cls, obj, nids=None, **kwargs):
         """
-        Flexible constructor. obj can be a Flow, Work, or string with the directory name.
+        Flexible constructor. obj can be a :class:`Flow` or a string with the directory containing the Flow.
+        nids is an optional list of :class:`Node` identifiers used to filter the set of :class:`Task` in the Flow.
         """
         has_dirpath = False
         if is_string(obj): 
@@ -121,8 +122,7 @@ class Robot(object):
         items = []
 
         if not has_dirpath:
-            # Flow
-            # The name of the Task method used to open the file.
+            # We have a Flow. smeth is the name of the Task method used to open the file.
             smeth = "open_" + cls.EXT.lower()
             for task in obj.iflat_tasks(nids=nids):
                 open_method = getattr(task, smeth, None)
@@ -142,18 +142,13 @@ class Robot(object):
                     if ncfile is not None: items.append((ncfile.filepath, ncfile))
 
         new = cls(*items)
-        # Save a reference to the initial object so that we can reload data if needed
+        # Save a reference to the initial object so that we can reload it if needed
         new._initial_object = obj
         return new
 
-    def reload(self, inplace=True):
-        """Reload data."""
-        # Don't know if inplace is safe here because this implies that we cannot use lazy_properties
-        new = self.__class__.open(self._initial_object)
-        if inplace:
-            self = new
-        else:
-            return new
+    def reload(self):
+        """Reload data. Return new Robot object."""
+        return self.__class__.open(self._initial_object)
 
     @staticmethod
     def _get_geodict(structure):
@@ -166,7 +161,7 @@ class Robot(object):
         )
 
     def _exec_funcs(self, funcs, arg):
-        # Execute funcs.
+        """Execute list of callables funcs. Each func receives arg as argument."""
         if not isinstance(funcs, (list, tuple)): funcs = [funcs]
         d = {}
         for func in funcs:
@@ -188,10 +183,10 @@ class GsrRobot(Robot):
 
         kwargs:
             attrs:
-                List of additional attributes of the gsr file to add to the DataFrame
+                List of additional attributes of the :class:`GsrFile` to add to the pandas :class:`DataFrame`
             funcs:
                 Function or list of functions to execute to add more data to the DataFrame.
-                Each function receives a GSR_File object and returns a tuple (key, value)
+                Each function receives a GsrFile object and returns a tuple (key, value)
                 where key is a string with the name of column and value is the value to be inserted.
         """
         # TODO add more columns
@@ -300,7 +295,7 @@ class SigresRobot(Robot):
 
     def plot_conv_qpgap(self, x_vars, **kwargs):
         """
-        Plot the convergence of the QP Gap. kwargs are passed to seaborn.PairGrid
+        Plot the convergence of the Quasi-particle gap. kwargs are passed to :class:`seaborn.PairGrid`.
         """
         import matplotlib.pyplot as plt
         import seaborn as sns

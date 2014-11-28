@@ -40,38 +40,29 @@ def relax_input(tsmear, nksmall):
         ixc=1,
     )
 
-    #print(inp)
     return inp
 
 
 def relax_flow():
-    inp = relax_input(tsmear=0.05, nksmall=2)
-    flow = abilab.Flow.from_inputs("flow_al_relax", inp)
-
+    flow = abilab.Flow.from_inputs("flow_al_relax", inputs=relax_input(tsmear=0.05, nksmall=2))
     flow.make_scheduler().start()
 
-    #table = abilab.PrettyTable(["nkpts", "etotal"])
-    gs_task = flow[0][0]
-    with gs_task.open_gsr() as gsr:
-        print("input structure:\n", structure)
-        print("relaxed structure:\n", gsr.structure)
-        # TODO
-        #print(gsr.energy_components)
-        #return gsr
+    #gs_task = flow[0][0]
+    #with gs_task.open_gsr() as gsr:
+    #    print("input structure:\n", structure)
+    #    print("relaxed structure:\n", gsr.structure)
+    #    # TODO
+    #    #print(gsr.energy_components)
+    #    #return gsr
 
 
-def convergence():
+def tsmear_nkpts_convergence(tsmear_list=(0.01, 0.02, 0.03, 0.04), nksmall_list=(2, 4, 6)):
     # Cartesian product of input iterables. Equivalent to nested for-loops.
     from itertools import product
-    tsmear_list = [0.01, 0.02, 0.03, 0.04]
-    nksmall_list = [2, 4, 6]
-
     inputs = [relax_input(tsmear, nksmall) for tsmear, nksmall in product(tsmear_list, nksmall_list)]
-
-    flow = abilab.AbinitFlow.from_inputs(workdir="flow_al_conv_relax", inputs=inputs)
+    flow = abilab.Flow.from_inputs(workdir="flow_al_conv_relax", inputs=inputs)
 
     #flow.make_scheduler().start()
-
     with abilab.GsrRobot.open(flow) as robot:
         data = robot.get_dataframe()
 
@@ -92,4 +83,4 @@ def convergence():
 
 if __name__ == "__main__":
     #relax_flow()
-    convergence()
+    tsmear_nkpts_convergence()

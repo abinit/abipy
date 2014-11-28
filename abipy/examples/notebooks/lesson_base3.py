@@ -9,7 +9,7 @@ def ngkpt_flow():
     ngkpt_list = [(2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)]
 
     inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=len(ngkpt_list))
-    structure = inp.set_structure_from_file(abidata.cif_file("si.cif"))
+    inp.set_structure_from_file(abidata.cif_file("si.cif"))
 
     # Global variables
     inp.set_variables(ecut=10, tolvrs=1e-9)
@@ -17,9 +17,7 @@ def ngkpt_flow():
     for i, ngkpt in enumerate(ngkpt_list):
         inp[i+1].set_kmesh(ngkpt=ngkpt, shiftk=[0,0,0])
 
-    inputs = inp.split_datasets()
-    flow = abilab.Flow.from_inputs("flow_ngkpt", inputs)
-
+    flow = abilab.Flow.from_inputs("flow_base3_ngkpt", inputs=inp.split_datasets())
     flow.make_scheduler().start()
 
     with abilab.GsrRobot.open(flow) as robot:
@@ -35,7 +33,7 @@ def relax_flow():
     # Structural relaxation
     ngkpt_list = [(2, 2, 2), (4, 4, 4)]
     inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=len(ngkpt_list))
-    structure = inp.set_structure_from_file(abidata.cif_file("si.cif"))
+    inp.set_structure_from_file(abidata.cif_file("si.cif"))
 
     # Global variables
     inp.set_variables(
@@ -51,8 +49,7 @@ def relax_flow():
     for i, ngkpt in enumerate(ngkpt_list):
         inp[i+1].set_kmesh(ngkpt=ngkpt, shiftk=[0,0,0])
 
-    inputs = inp.split_datasets()
-    flow = abilab.Flow.from_inputs("flow_relax", inputs, 
+    flow = abilab.Flow.from_inputs("flow_relax", inputs=inp.split_datasets(),
                                          task_class=abilab.RelaxTask)
 
     #flow.make_scheduler().start()
@@ -73,7 +70,7 @@ def relax_flow():
 
 def bands_flow():
     inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)
-    structure = inp.set_structure_from_file(abidata.cif_file("si.cif"))
+    inp.set_structure_from_file(abidata.cif_file("si.cif"))
 
     # Global variables
     inp.ecut = 10

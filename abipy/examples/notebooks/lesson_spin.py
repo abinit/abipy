@@ -4,6 +4,7 @@ from __future__ import division, print_function
 import abipy.abilab as abilab 
 import abipy.data as abidata
 
+
 def gs_input(nsppol):
     # Fe normal bcc structure for test of a ferromagnetic calculation
     # The first dataset is without magnetization for comparison
@@ -38,8 +39,8 @@ def gs_input(nsppol):
     if nsppol == 2:
         inp.set_variables(spinat=[0.0, 0.0, 4.0])
 
-    print(inp)
     return inp
+
 
 def afm_input():
     # Fe fcc structure with two atoms per unit cell for test of antiferromagnetic
@@ -75,14 +76,12 @@ def afm_input():
         nstep=70,
     )
 
-    print(inp)
     return inp
 
 
 def gs_flow():
-    inputs = [gs_input(nsppol) for nsppol in [1,2]]
+    inputs = [gs_input(nsppol) for nsppol in [1, 2]]
     flow = abilab.Flow.from_inputs(workdir="flow_spin", inputs=inputs)
-
     #flow.make_scheduler().start()
 
     with abilab.GsrRobot.open(flow) as robot:
@@ -121,14 +120,16 @@ def gs_flow():
         #plotter.add_ebands_from_file(gsr_nospin.filepath, label="nospin")
     print(data)
 
+
 def afm_flow():
-    flow = abilab.AbinitFlow.from_inputs(workdir="flow_afm", inputs=afm_input())
+    flow = abilab.Flow.from_inputs(workdir="flow_afm", inputs=afm_input())
 
     flow.make_scheduler().start()
 
     with flow[0][0].open_gsr() as gsr:
         print("Energy: ", gsr.energy.to("Ha"))
         print("Magnetization: ",gsr.magnetization)
+
 
 def tantalum_gsinput(nspinor=2):
     #  Single Ta atom in a big box (BCC), treated with spin-orbit coupling.
@@ -167,7 +168,7 @@ def tantalum_gsinput(nspinor=2):
 
 def tantalum_flow():
     inputs = [tantalum_gsinput(nspinor) for nspinor in [1, 2]]
-    flow = abilab.AbinitFlow.from_inputs(workdir="flow_tantalum", inputs=inputs)
+    flow = abilab.Flow.from_inputs(workdir="flow_tantalum", inputs=inputs)
 
     flow.make_scheduler().start()
 

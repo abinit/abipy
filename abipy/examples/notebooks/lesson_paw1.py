@@ -54,11 +54,12 @@ def ecutconv_flow():
         print(data)
         data.plot(x="ecut", y="energy", title="Energy vs ecut")
 
+
 def pawecutdgconv_flow():
     inputs = [gs_input(ecut=12, pawecutdg=pawecutdg)
               for pawecutdg in np.linspace(start=12, stop=39, num=10)]
 
-    flow = abilab.AbinitFlow.from_inputs("flow_ecutconv", inputs)
+    flow = abilab.Flow.from_inputs("flow_ecutconv", inputs)
     flow.build()
     flow.make_scheduler().start()
 
@@ -74,7 +75,7 @@ def flow_ecut_pawecutdg():
     inputs = [gs_input(ecut, pawecutdg) 
               for pawecutdg, ecut in itertools.product(pawecutdg_list, ecut_list)]
 
-    flow = abilab.AbinitFlow.from_inputs("flow_pawecutdg_ecut", inputs)
+    flow = abilab.Flow.from_inputs("flow_pawecutdg_ecut", inputs)
     flow.build()
     flow.make_scheduler().start()
 
@@ -95,7 +96,7 @@ def flow_ecut_pawecutdg():
 def eos_flow():
     inputs = [gs_input(ecut=12, pawecutdg=24, acell_ang=acell_ang)
               for acell_ang in np.linspace(start=3.52, stop=3.55, num=7)]
-    flow = abilab.AbinitFlow.from_inputs("flow_eos", inputs)
+    flow = abilab.Flow.from_inputs("flow_eos", inputs)
     flow.build()
 
     #flow.make_scheduler().start()
@@ -107,6 +108,7 @@ def eos_flow():
 
     print(fit)
     fit.plot()
+
 
 if __name__ == "__main__":
     #ecutconv_flow()
