@@ -20,8 +20,8 @@ from pymatgen.io.abinitio.launcher import PyFlowScheduler
 from abipy.core import constants
 from abipy.core.structure import Structure, StructureModifier
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen, AnaddbInput
-from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter, SIGRES_Plotter
-from abipy.phonons import PHBST_File, PhononBands, PHDOS_File
+from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter, SigresPlotter
+from abipy.phonons import PhbstFile, PhononBands, PhdosFile
 
 # Tools for unit conversion
 FloatWithUnit = constants.FloatWithUnit
@@ -37,15 +37,15 @@ def _straceback():
 def abifile_subclass_from_filename(filename):
     """Returns the appropriate class associated to the given filename."""
     from abipy.iotools.files import AbinitFile, AbinitLogFile, AbinitOutputFile
-    from abipy.electrons import SIGRES_File, GSR_File, MDF_File
-    from abipy.waves import WFK_File
+    from abipy.electrons import SigresFile, GsrFile, MdfFile
+    from abipy.waves import WfkFile
 
     ext2ncfile = {
-        "SIGRES.nc": SIGRES_File,
-        "WFK-etsf.nc": WFK_File,
-        "MDF.nc": MDF_File,
-        "GSR.nc": GSR_File,
-        "PHBST.nc": PHBST_File,
+        "SIGRES.nc": SigresFile,
+        "WFK-etsf.nc": WfkFile,
+        "MDF.nc": MdfFile,
+        "GSR.nc": GsrFile,
+        "PHBST.nc": PhbstFile,
     }
 
     #if filename.endswith(".abi"):

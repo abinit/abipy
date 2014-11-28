@@ -11,12 +11,12 @@ from .ebands import ElectronsReader
 
 
 __all__ = [
-    "GSR_File",
-    "GSR_Plotter",
+    "GsrFile",
+    "GsrPlotter",
 ]
 
 
-class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
+class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
     """
     File containing the results of a Ground-state calculation.
 
@@ -24,13 +24,13 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
                                                                   
     .. code-block:: python
         
-        gsr = GSR_File("foo_GSR.nc")
+        gsr = GsrFile("foo_GSR.nc")
         gsr.ebands.plot()
     """
     def __init__(self, filepath):
-        super(GSR_File, self).__init__(filepath)
+        super(GsrFile, self).__init__(filepath)
 
-        with GSR_Reader(filepath) as r:
+        with GsrReader(filepath) as r:
             # Initialize the electron bands from file
             self._ebands = r.read_ebands()
 
@@ -143,7 +143,7 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         )
 
 
-class GSR_Reader(ElectronsReader):
+class GsrReader(ElectronsReader):
     """
     This object reads the results stored in the _GSR (Ground-State Results)
     file produced by ABINIT. It provides helper function to access the most
@@ -164,16 +164,16 @@ class GSR_Reader(ElectronsReader):
     #    return self.read_value("residm")
 
 
-class GSR_Plotter(collections.Iterable):
+class GsrPlotter(collections.Iterable):
     """
-    This object receives a list of `GSR_File` objects and provides
+    This object receives a list of `GsrFile` objects and provides
     methods to inspect/analyze the results (useful for convergence studies)
 
     Usage example:
                                                                   
     .. code-block:: python
         
-        plotter = GSR_Plotter()
+        plotter = GsrPlotter()
         plotter.add_file("foo_GSR.nc")
         plotter.add_file("bar_GSR.nc")
         plotter.plot_variables("ecut", "etotal")
@@ -333,7 +333,7 @@ class GSR_Plotter(collections.Iterable):
         # Read the value of varname from the files.
         xx, yy = [], []
         for filepath in self.filepaths:
-            with GSR_Reader(filepath) as r:
+            with GsrReader(filepath) as r:
                 xx.append(r.read_value(varname_x))
                 yy.append(r.read_value(varname_y))
 
@@ -363,7 +363,7 @@ class GSR_Plotter(collections.Iterable):
     #    # Read the value of varname from the files.
     #    volumes, energies = [], []
     #    for filepath in self.filepaths:
-    #        with GSR_Reader(filepath) as r:
+    #        with GsrReader(filepath) as r:
     #            volumes.append(r.read_value(varname_x))
     #            energies.append(r.read_value("etotal"))
 

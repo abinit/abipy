@@ -20,8 +20,8 @@ from abipy.electrons.scissors import Scissors
 
 __all__ = [
     "QPState",
-    "SIGRES_File",
-    "SIGRES_Plotter",
+    "SigresFile",
+    "SigresPlotter",
 ]
 
 
@@ -539,9 +539,9 @@ def torange(obj):
             raise TypeError("Don't know how to convert %s into a range object" % str(obj))
 
 
-class SIGRES_Plotter(collections.Iterable):
+class SigresPlotter(collections.Iterable):
     """
-    This object receives a list of `SIGRES_File` objects and provides
+    This object receives a list of `SigresFile` objects and provides
     methods to inspect/analyze the GW results (useful for convergence studies)
 
     .. Attributes:
@@ -556,7 +556,7 @@ class SIGRES_Plotter(collections.Iterable):
                                                                   
     .. code-block:: python
         
-        plotter = SIGRES_Plotter()
+        plotter = SigresPlotter()
         plotter.add_file("foo_SIGRES.nc", label="foo bands")
         plotter.add_file("bar_SIGRES.nc", label="bar bands")
         plotter.plot_qpgaps()
@@ -864,7 +864,7 @@ class SIGRES_Plotter(collections.Iterable):
         return fig
 
 
-class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
+class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
     """
     Container storing the GW results reported in the SIGRES.nc file.
 
@@ -872,16 +872,16 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
                                                                   
     .. code-block:: python
         
-        sigres = SIGRES_File("foo_SIGRES.nc")
+        sigres = SigresFile("foo_SIGRES.nc")
         sigres.plot_qps_vs_e0()
         sigres.plot_ksbands_with_qpmarkers()
     """
     def __init__(self, filepath):
         """Read data from the netcdf file path."""
-        super(SIGRES_File, self).__init__(filepath)
+        super(SigresFile, self).__init__(filepath)
 
-        # Keep a reference to the SIGRES_Reader.
-        self.reader = reader = SIGRES_Reader(self.filepath)
+        # Keep a reference to the SigresReader.
+        self.reader = reader = SigresReader(self.filepath)
 
         self._structure = reader.read_structure()
         self.gwcalctyp = reader.gwcalctyp
@@ -927,7 +927,7 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     #def __del__(self):
     #    print("in %s __del__" % self.__class__.__name__)
     #    self.reader.close()
-    #    super(SIGRES_File, self).__del__()
+    #    super(SigresFile, self).__del__()
 
     @classmethod
     def from_file(cls, filepath):
@@ -1088,7 +1088,7 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
 #    """This object merges multiple SIGRES files."""
 
 
-class SIGRES_Reader(ETSF_Reader):
+class SigresReader(ETSF_Reader):
     """This object provides method to read data from the SIGRES file produced ABINIT.
     # See 70gw/m_sigma_results.F90
     # Name of the diagonal matrix elements stored in the file.
@@ -1239,7 +1239,7 @@ class SIGRES_Reader(ETSF_Reader):
         self.ks_bands = ElectronBands.from_file(path)
         self.nsppol = self.ks_bands.nsppol
 
-        super(SIGRES_Reader, self).__init__(path)
+        super(SigresReader, self).__init__(path)
 
         try:
             self.nomega_r = self.read_dimvalue("nomega_r")

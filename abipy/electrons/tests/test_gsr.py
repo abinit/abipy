@@ -5,7 +5,7 @@ import abipy.data as data
 import abipy.core
 
 from abipy.core.testing import *
-from abipy.electrons.gsr import GSR_Reader, GSR_File
+from abipy.electrons.gsr import GsrReader, GsrFile
 
 class GSRReaderTestCase(AbipyTest):
 
@@ -27,7 +27,7 @@ class GSRReaderTestCase(AbipyTest):
         #                                     5.125, 5.125, 0], (3,3)),
         }
 
-        with GSR_Reader(path) as r:
+        with GsrReader(path) as r:
             self.assertEqual(r.ngroups, 1)
 
             print(r.read_varnames())
@@ -49,10 +49,10 @@ class GSRReaderTestCase(AbipyTest):
 
             # Reading non-existent variables or dims should raise
             # a subclass of NetcdReder.
-            with self.assertRaises(GSR_Reader.Error):
+            with self.assertRaises(GsrReader.Error):
                 r.read_value("foobar")
 
-            with self.assertRaises(GSR_Reader.Error):
+            with self.assertRaises(GsrReader.Error):
                 r.read_dimvalue("foobar")
 
             r.print_tree()
@@ -67,7 +67,7 @@ class GSRFileTestCase(AbipyTest):
 
     def test_methods(self):
         """GSRFile methods"""
-        gsr = GSR_File(data.ref_file("si_scf_GSR.nc"))
+        gsr = GsrFile(data.ref_file("si_scf_GSR.nc"))
 
         # Test as_dict
         gsr.as_dict()
