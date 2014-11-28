@@ -104,7 +104,7 @@ def itest_simple_atomic_relaxation(fwp, tvars):
     Test ion relaxation with automatic restart.
     """
     # Build the flow
-    flow = abilab.AbinitFlow(fwp.workdir, manager=fwp.manager)
+    flow = abilab.Flow(fwp.workdir, manager=fwp.manager)
 
     ion_input = ion_relaxation(tvars, ntime=2)
     work = flow.register_task(ion_input, task_class=abilab.RelaxTask)

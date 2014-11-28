@@ -7,8 +7,8 @@ import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
 
-from abipy.core.testing import has_abinit
 from pymatgen.io.abinitio.calculations import bandstructure_work
+from abipy.core.testing import has_abinit
 
 # Tests in this module require abinit >= 7.9.0
 #pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")

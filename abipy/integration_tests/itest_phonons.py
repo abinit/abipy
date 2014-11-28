@@ -69,7 +69,7 @@ def scf_ph_inputs(tvars):
 
 def itest_phonon_flow(fwp, tvars):
     """
-    Create an `AbinitFlow` for phonon calculations:
+    Create an `Abinit` for phonon calculations:
 
         1) One work for the GS run.
 

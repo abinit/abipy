@@ -191,10 +191,10 @@ def itest_htc_g0w0(fwp, tvars):
         paral_kgb=tvars.paral_kgb,
     )
 
-    work = g0w0_with_ppmodel(structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx,
-                             accuracy="normal", spin_mode="unpolarized", smearing=None,
-                             ppmodel="godby", charge=0.0, inclvkb=2, sigma_nband=None, gw_qprange=1,
-                             scr_nband=None, **extra_abivars)
+    work = g0w0_with_ppmodel_work(structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx,
+                                  accuracy="normal", spin_mode="unpolarized", smearing=None,
+                                  ppmodel="godby", charge=0.0, inclvkb=2, sigma_nband=None, gw_qprange=1,
+                                  scr_nband=None, **extra_abivars)
 
     flow.register_work(work)
     flow.allocate()
