@@ -90,14 +90,14 @@ def build_flow(options):
 
     flow = abilab.AbinitFlow(workdir=workdir, manager=manager)
 
-    # Band structure workflow to produce the WFK file
-    bands = abilab.BandStructureWorkflow(scf_inp, nscf_inp)
+    # Band structure work to produce the WFK file
+    bands = abilab.BandStructureWork(scf_inp, nscf_inp)
     flow.register_work(bands)
 
-    # Build a workflow made of two SCR runs with different value of nband
+    # Build a work made of two SCR runs with different value of nband
     # Use max_ecuteps for the dielectric matrix (sigma tasks will 
     # read a submatrix when we test the convergence wrt to ecuteps.
-    scr_work = abilab.Workflow()
+    scr_work = abilab.Work()
 
     for inp in abilab.input_gen(scr_inp, nband=[10, 15]):
         inp.set_variables(ecuteps=max_ecuteps)
@@ -105,14 +105,14 @@ def build_flow(options):
 
     flow.register_work(scr_work)
 
-    # Do a convergence study wrt ecuteps, each workflow is connected to a
+    # Do a convergence study wrt ecuteps, each work is connected to a
     # different SCR file computed with a different value of nband.
 
     # Build a list of sigma inputs with different ecuteps
     sigma_inputs = list(abilab.input_gen(sig_inp, ecuteps=ecuteps_list))
 
     for scr_task in scr_work:
-        sigma_conv = abilab.SigmaConvWorkflow(wfk_node=bands.nscf_task, scr_node=scr_task, sigma_inputs=sigma_inputs)
+        sigma_conv = abilab.SigmaConvWork(wfk_node=bands.nscf_task, scr_node=scr_task, sigma_inputs=sigma_inputs)
         flow.register_work(sigma_conv)
 
     return flow.allocate()

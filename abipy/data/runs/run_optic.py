@@ -94,10 +94,10 @@ def build_flow(options):
     # Initialize the flow.
     flow = abilab.AbinitFlow(workdir, manager)
 
-    bands_work = abilab.BandStructureWorkflow(scf_inp, nscf_inp)
+    bands_work = abilab.BandStructureWork(scf_inp, nscf_inp)
     flow.register_work(bands_work)
 
-    ddk_work = abilab.Workflow()
+    ddk_work = abilab.Work()
     for inp in [ddk1, ddk2, ddk3]:
         ddk_work.register_ddk_task(inp, deps={bands_work.nscf_task: "WFK"})
 

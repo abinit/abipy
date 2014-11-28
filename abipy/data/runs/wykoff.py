@@ -96,7 +96,7 @@ def make_workflow(structure, pseudos):
 
     gs_inp, nscf_inp = inp.split_datasets()
 
-    return abilab.BandStructureWorkflow(gs_inp, nscf_inp)
+    return abilab.BandStructureWork(gs_inp, nscf_inp)
 
 
 @abilab.flow_main

@@ -64,11 +64,11 @@ def build_flow(options):
     # Build the flow.
     flow = abilab.AbinitFlow(workdir, manager)
 
-    # Create a Workflow, all tasks in work will read the file f
-    # Note that the file must exist when the workflow is created
-    # Use the standard approach based on tasks and workflows if
+    # Create a Work, all tasks in work will read the file f
+    # Note that the file must exist when the work is created
+    # Use the standard approach based on tasks and works if
     # there's a node who needs a file produced in the future.
-    work = abilab.Workflow()
+    work = abilab.Work()
 
     f = "./data_si_ebands/outdata/si_DEN-etsf.nc"
     work.register(nscf_input, required_files=f)

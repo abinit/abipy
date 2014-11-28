@@ -61,10 +61,10 @@ def build_flow(options):
 
     relax_inp, nscf_inp = inp.split_datasets()
 
-    # Initialize the workflow.
+    # Initialize the work.
     relax_task = flow.register_task(relax_inp, task_class=abilab.RelaxTask)
 
-    #work = RelaxWorkflow(self, ion_input, ioncell_input, workdir=None, manager=None):
+    #work = RelaxWork(self, ion_input, ioncell_input, workdir=None, manager=None):
 
     nscf_task = flow.register_task(nscf_inp, deps={relax_task: "DEN"}, task_class=abilab.NscfTask)
 

@@ -69,7 +69,7 @@ def build_flow(options):
 
         1) One workflow for the GS run.
 
-        2) nqpt workflows for phonon calculations. Each workflow contains 
+        2) nqpt works for phonon calculations. Each work contains 
            nirred tasks where nirred is the number of irreducible phonon perturbations
            for that particular q-point.
     """

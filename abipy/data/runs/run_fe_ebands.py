@@ -62,7 +62,7 @@ def build_flow(options):
     # Create the task defining the calculation and run and register it in the flow
     for nsppol in [1,2]:
         scf_input, nscf_input = make_scf_nscf_inputs(nsppol)
-        work = abilab.BandStructureWorkflow(scf_input, nscf_input)
+        work = abilab.BandStructureWork(scf_input, nscf_input)
         flow.register_work(work)
 
     return flow.allocate()

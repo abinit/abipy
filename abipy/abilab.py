@@ -13,7 +13,7 @@ from pymatgen.io.abinitio.wrappers import Mrgscr, Mrgddb, Mrggkk
 #    RelaxWorkflow, DeltaFactorWorkflow, G0W0_Workflow, SigmaConvWorkflow, BSEMDF_Workflow,
 #    PhononWorkflow)
 from pymatgen.io.abinitio.tasks import *
-from pymatgen.io.abinitio.workflows import *
+from pymatgen.io.abinitio.works import *
 from pymatgen.io.abinitio.flows import *
 from pymatgen.io.abinitio.launcher import PyFlowScheduler
 
