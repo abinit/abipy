@@ -21,8 +21,7 @@ __all__ = [
 def abirobot(obj, ext, nids=None):
     """
     Factory function that builds and return the Robot subclass from the file extension ext and 
-    obj where obj can be a dirpath, a flow ...
-
+    obj where obj can be a dirpath, or a Flow instance.
     nids is an optional list of node identifiers used to filter the tasks.
 
     Usage example:
@@ -53,7 +52,7 @@ class Robot(object):
 
     .. code-block:: python
 
-        with Robot(**filepaths) as robot:
+        with Robot([("label1", "file1"), (label2, "file2")]) as robot:
             # Do something with robot. files are automatically closed when we exit.
     """
     def __init__(self, *args):
@@ -110,7 +109,7 @@ class Robot(object):
     @classmethod
     def open(cls, obj, nids=None, **kwargs):
         """
-        Flexible constructor. obj can be a Flow, Workflow, or string with the directory name.
+        Flexible constructor. obj can be a Flow, Work, or string with the directory name.
         """
         has_dirpath = False
         if is_string(obj): 
@@ -137,7 +136,7 @@ class Robot(object):
 
             from abipy.abilab import abiopen
             for dirpath, dirnames, filenames in os.walk(obj):
-                filenames = [f for f in filenames if f.endswith(self.EXT + ".nc")]
+                filenames = [f for f in filenames if f.endswith(cls.EXT + ".nc")]
                 for f in filenames:
                     ncfile = abiopen(f)
                     if ncfile is not None: items.append((ncfile.filepath, ncfile))
@@ -151,8 +150,7 @@ class Robot(object):
         """Reload data."""
         # Don't know if inplace is safe here because this implies that we cannot use lazy_properties
         new = self.__class__.open(self._initial_object)
-        print(new)
-        if inplace: 
+        if inplace:
             self = new
         else:
             return new
@@ -319,8 +317,8 @@ class MdfRobot(Robot):
     EXT = "MDF"
 
     def get_mdf_plotter(self):
-        from abipy.electrons.bse import MDF_Plotter
-        plotter = MDF_Plotter()
+        from abipy.electrons.bse import MdfPlotter
+        plotter = MdfPlotter()
         for label, mdf in self:
             plotter.add_mdf(label, mdf.exc_mdf)
         return plotter
