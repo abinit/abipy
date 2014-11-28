@@ -10,6 +10,7 @@
 #
 # All configuration values have a default; values that are commented out
 # serve to show the default.
+from __future__ import print_function, absolute_import
 
 import sys
 import os
@@ -18,8 +19,12 @@ import os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
-sys.path.insert(0, os.path.abspath('sphinxext'))
-#sys.path.insert(0, os.path.dirname('../abipy'))
+#sys.path.append(os.path.abspath('sphinxext'))
+#sys.path.insert(0, os.path.abspath('sphinxext'))
+#sys.path.insert(0, os.path.abspath('.'))
+#sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('../abipy'))
+#sys.path.insert(0, os.path.abspath('../..'))
 
 import imp
 mod_name = "../abipy/core/release.py"
@@ -51,17 +56,18 @@ extensions = [
 # Add any Sphinx extension module names here, as strings. They can
 # be extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions += [
-          'matplotlib.sphinxext.mathmpl',
-          'matplotlib.sphinxext.only_directives',
-          'matplotlib.sphinxext.plot_directive',
-          'IPython.sphinxext.ipython_directive',
-          'IPython.sphinxext.ipython_console_highlighting',
+          'sphinxcontrib.napoleon',   # For Google Python Style Guide
+          #'matplotlib.sphinxext.mathmpl',
+          #'matplotlib.sphinxext.only_directives',
+          #'matplotlib.sphinxext.plot_directive',
+          #'IPython.sphinxext.ipython_directive',
+          #'IPython.sphinxext.ipython_console_highlighting',
           # MG deprecated but we continue using it
           #'ipython_directive',               
           #'ipython_console_highlighting',
-          'numpydoc',
-          'gen_rst',
-          'sphinxcontrib.autorun',
+          #'numpydoc',
+          #'gen_rst',
+          #'sphinxcontrib.autorun',
           #'gen_gallery',  Generate gallery of PICS a la' matplotlib.
           ]
 
@@ -283,4 +289,7 @@ texinfo_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'http://docs.python.org/': None}
+intersphinx_mapping = {
+"python": ('http://docs.python.org/', None),
+"pymatgen": ("http://pymatgen.org/", None),
+}

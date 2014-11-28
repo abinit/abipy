@@ -31,30 +31,20 @@ class QPState(collections.namedtuple("QPState", "spin kpoint band e0 qpe qpe_dia
 
     .. Attributes:
 
-        spin:
-            spin index (C convention, i.e >= 0)
-        kpoint:
-            `Kpoint` object.
-        band:
-            band index. (C convention, i.e >= 0).
-        e0:
-            Initial KS energy.
-        qpe:
-            Quasiparticle energy (complex) computed with the perturbative approach.
-        qpe_diago:
-            Quasiparticle energy (real) computed by diagonalizing the self-energy.
-        vxcme:
-            Matrix element of vxc[n_val] with nval the valence charge density.
-        sigxme:
-            Matrix element of Sigma_x.
-        sigcmee0:
-            Matrix element of Sigma_c(e0) with e0 being the KS energy.
-        vUme:
-            Matrix element of the vU term of the LDA+U Hamiltonian.
-        ze0:
-            Renormalization factor computed at e=e0.
+        spin: spin index (C convention, i.e >= 0)
+        kpoint: :class:`Kpoint` object.
+        band: band index. (C convention, i.e >= 0).
+        e0: Initial KS energy.
+        qpe: Quasiparticle energy (complex) computed with the perturbative approach.
+        qpe_diago: Quasiparticle energy (real) computed by diagonalizing the self-energy.
+        vxcme: Matrix element of vxc[n_val] with nval the valence charge density.
+        sigxme: Matrix element of Sigma_x.
+        sigcmee0: Matrix element of Sigma_c(e0) with e0 being the KS energy.
+        vUme: Matrix element of the vU term of the LDA+U Hamiltonian.
+        ze0: Renormalization factor computed at e=e0.
 
-    .. note:: Energies are in eV.
+    .. note::
+        Energies are in eV.
     """
     @property
     def qpeme0(self):
@@ -187,22 +177,22 @@ class QPList(list):
         return np.array([qp.e0 for qp in self])
 
     def get_field(self, field):
-        """ndarray containing the values of field."""
+        """`ndarray` containing the values of field."""
         return np.array([getattr(qp, field) for qp in self])
 
     def get_value(self, skb_tup, field):
-        """ return the value of field for the given spin kp band tuple, None if not found"""
+        """Return the value of field for the given spin kp band tuple, None if not found"""
         for qp in self:
             if qp.skb == skb_tup:
                 return getattr(qp, field)
         return None
 
     def get_qpenes(self):
-        """Return an array with the QPState energies."""
+        """Return an array with the :class:`QPState` energies."""
         return self.get_field("qpe")
 
     def get_qpeme0(self):
-        """Return an arrays with the QPState corrections."""
+        """Return an arrays with the :class:`QPState` corrections."""
         return self.get_field("qpeme0")
 
     def to_table(self):
@@ -219,13 +209,10 @@ class QPList(list):
     def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, **kwargs):
         """
         Args:
-            with_fields:
-                The names of the qp attributes to plot as function of e0.
-                Accepts:
-                    List of strings or string with tokens separated by blanks.
-                    See `QPState` for the list of available fields.
-            args:
-                Positional arguments passed to :mod:`matplotlib`.
+            with_fields: The names of the qp attributes to plot as function of e0.
+                Accepts: List of strings or string with tokens separated by blanks.
+                See :class:`QPState` for the list of available fields.
+            exclude_fields: Simiar to `with_field` but it excludes
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -305,28 +292,25 @@ class QPList(list):
         as function of the initial energies E0.
 
         Args:
-            domains:
-                list in the form [ [start1, stop1], [start2, stop2]
-                Domains should not overlap, cover e0mesh, and given in increasing order.
-                Holes are permitted but the interpolation will raise an exception if the
-                point is not in domains.
-            bounds:
-                Specify how to handle out-of-boundary conditions, i.e. how to treat
-                energies that do not fall inside one of the domains (not used at present)
-            plot:
-                If true, use `matplolib` to compare input data  and fit.
+            domains: list in the form [ [start1, stop1], [start2, stop2]
+                     Domains should not overlap, cover e0mesh, and given in increasing order.
+                     Holes are permitted but the interpolation will raise an exception if the point is not in domains.
+            bounds: Specify how to handle out-of-boundary conditions, i.e. how to treat
+                    energies that do not fall inside one of the domains (not used at present)
+            plot: If true, use `matplolib` to compare input data  and fit.
 
         Return:
-            instance of `Scissors`operator
+            instance of :class:`Scissors`operator
 
-        Example:
+        Usage example:
+
+        .. code-block:: python
 
             # Build the scissors operator.
             scissors = qplist_spin[0].build_scissors(domains)
 
             # Compute list of interpolated QP energies.
             qp_enes = [scissors.apply(e0) for e0 in ks_energies]
-
         """
         # Sort QP corrections according to the initial KS energy.
         qps = self.sort_by_e0()
@@ -392,7 +376,7 @@ class QPList(list):
 
     def merge(self, other, copy=False):
         """
-        Merge self with other. Return new QPList
+        Merge self with other. Return new :class:`QPList` object
 
         Raise:
             ValueError if merge cannot be done.
@@ -456,13 +440,10 @@ class Sigmaw(object):
         Plot the self-energy and the spectral function
 
         Args:
-            what:
-                String specifying what to plot:
-                    s for the self-energy
-                    a for spectral function
-                Characters can be concatenated.
-            args:
-                Positional arguments passed to :mod:`matplotlib`.
+            what: String specifying what to plot:
+                    - s for the self-energy
+                    - a for spectral function
+                  Characters can be concatenated.
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -513,8 +494,7 @@ class Sigmaw(object):
 
 def torange(obj):
     """
-    Convert obj into a range. Accepts integer, slice object 
-    or any object with an __iter__ method.
+    Convert obj into a range. Accepts integer, slice object  or any object with an __iter__ method.
     Note that an integer is converted into range(int, int+1)
 
     >>> torange(1)
@@ -541,8 +521,8 @@ def torange(obj):
 
 class SigresPlotter(collections.Iterable):
     """
-    This object receives a list of `SigresFile` objects and provides
-    methods to inspect/analyze the GW results (useful for convergence studies)
+    This object receives a list of :class:`SigresFile` objects and provides methods
+    to inspect/analyze the GW results (useful for convergence studies)
 
     .. Attributes:
         
@@ -955,7 +935,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
     @property
     def qplist_spin(self):
-        """Tuple of QPList objects indexed by spin."""
+        """Tuple of :class:`QPList` objects indexed by spin."""
         try:
             return self._qplist_spin
         except AttributeError:
@@ -967,7 +947,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         return qplist
 
     def get_qpcorr(self, spin, kpoint, band):
-        """Returns the `QPState` object for the given (s, k, b)"""
+        """Returns the :class:`QPState` object for the given (s, k, b)"""
         return self.reader.read_qp(spin, kpoint, band)
 
     def get_qpgap(self, spin, kpoint):
@@ -984,7 +964,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         return Function1D(wmesh, spf_values)
 
     def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, **kwargs):
-        """Plot QPState data as functio of the KS energy."""
+        """Plot :class:`QPState` data as function of the KS energy."""
         for spin in range(self.nsppol):
             qps = self.qplist_spin[spin].sort_by_e0()
             qps.plot_qps_vs_e0(with_fields=with_fields, exclude_fields=exclude_fields, **kwargs)
@@ -992,12 +972,9 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
     def plot_spectral_functions(self, spin, kpoint, bands, **kwargs):
         """
         Args:
-            spin:
-                Spin index.
-            kpoint:
-                Required kpoint.
-            bands:
-                List of bands
+            spin: Spin index.
+            kpoint: Required kpoint.
+            bands: List of bands
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -1321,9 +1298,9 @@ class SigresReader(ETSF_Reader):
         Raise:
             `KpointsError` if kpoint cannot be found.
 
-        .. note:
+        .. note::
 
-            This tool is needed since arrays in the netcdf file are dimensioned
+            This function is needed since arrays in the netcdf file are dimensioned
             with the total number of k-points in the IBZ.
         """
         if isinstance(kpoint, int):
@@ -1435,9 +1412,7 @@ class SigresReader(ETSF_Reader):
 
     def read_eigvec_qp(self, spin, kpoint, band=None):
         """
-        Returns <KS|QPState> for the given spin, kpoint and band.
-
-        If band is None, <KS_b|QP_{b'}> is returned.
+        Returns <KS|QPState> for the given spin, kpoint and band. If band is None, <KS_b|QP_{b'}> is returned.
         """
         ik = self.kpt2fileindex(kpoint)
         if band is not None:
@@ -1448,7 +1423,7 @@ class SigresReader(ETSF_Reader):
     def read_params(self):
         """
         Read the parameters of the calculation. 
-        Returns `AttrDict` instance with the value of the parameters.
+        Returns :class:`AttrDict` instance with the value of the parameters.
         """
         param_names = [
             "ecutwfn",

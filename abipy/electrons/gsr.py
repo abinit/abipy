@@ -47,12 +47,12 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
     @property
     def ebands(self):
-        """`ElectronBands` object."""
+        """:class:`ElectronBands` object."""
         return self._ebands
 
     @property
     def structure(self):
-        """`Structure` object."""
+        """:class:`Structure` object."""
         return self.ebands.structure
 
     @property
@@ -80,7 +80,7 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
     def get_computed_entry(self, inc_structure=False, parameters=None, data=None):
         """
-        Returns a ComputedStructureEntry from the GSR file.
+        Returns a pymatgen :class:`ComputedStructureEntry` from the GSR file.
         Same API as the one used in vasp_output.get_computed_entry.
 
         Args:
