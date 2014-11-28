@@ -251,7 +251,7 @@ def itest_htc_bandstructure(fwp, tvars):
     )
 
     # Initialize the flow.
-    flow = abilab.AbinitFlow(workdir=fwp.workdir, manager=fwp.manager)
+    flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager)
 
     work = bandstructure(structure, abidata.pseudos("14si.pspnc"), scf_kppa, nscf_nband, ndivsm,
                          spin_mode="unpolarized", smearing=None, dos_kppa=dos_kppa, **extra_abivars)

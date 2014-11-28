@@ -20,7 +20,7 @@ def build_flow(options):
     manager = abilab.TaskManager.from_user_config() if not options.manager else \
               abilab.TaskManager.from_file(options.manager)
 
-    flow = abilab.AbinitFlow(workdir, manager)
+    flow = abilab.Flow(workdir, manager)
 
     pseudos = data.pseudos("14si.pspnc", "6c.pspnc")
     structure = data.structure_from_ucell("SiC")

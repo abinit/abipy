@@ -1332,8 +1332,6 @@ class AnaddbInput(mixins.MappingMixin):
 
         return new
 
-
-
     @property
     def structure(self):
         return self._structure

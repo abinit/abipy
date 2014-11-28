@@ -210,13 +210,14 @@ def as_kpoints(obj, lattice, weights=None, names=None):
 class Kpoint(object):
     """Class defining one k-point."""
 
-    __slots__ = [
-        "_frac_coords",
-        "_lattice",
-        "_weight",
-        "_name",
-        "_hash",
-    ]
+    # TODO: Fix problem with pickle
+    #__slots__ = [
+    #    "_frac_coords",
+    #    "_lattice",
+    #    "_weight",
+    #    "_name",
+    #    "_hash",
+    #]
 
     # Tolerance used to compare k-points.
     @property

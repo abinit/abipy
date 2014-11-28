@@ -162,7 +162,7 @@ def abicheck():
 
 def flow_main(main):
     """
-    This decorator is used to decorate main functions producing `AbinitFlows`.
+    This decorator is used to decorate main functions producing `Flows`.
     It adds the initialization of the logger and an argument parser that allows one to select 
     the loglevel, the workdir of the flow as well as the YAML file with the parameters of the `TaskManager`.
     The main function shall have the signature:

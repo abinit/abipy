@@ -65,7 +65,7 @@ def scf_ph_inputs():
 
 def build_flow(options):
     """
-    Create an `AbinitFlow` for phonon calculations:
+    Create an `Flow` for phonon calculations:
 
         1) One workflow for the GS run.
 

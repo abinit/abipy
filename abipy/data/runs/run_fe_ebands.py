@@ -57,7 +57,7 @@ def build_flow(options):
               abilab.TaskManager.from_file(options.manager)
 
     # Create the Flow.
-    flow = abilab.AbinitFlow(workdir, manager)
+    flow = abilab.Flow(workdir, manager)
 
     # Create the task defining the calculation and run and register it in the flow
     for nsppol in [1,2]:

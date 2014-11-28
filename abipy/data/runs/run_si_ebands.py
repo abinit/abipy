@@ -85,7 +85,7 @@ def main(options):
 
     #from monty.dev import install_excepthook
     #install_excepthook()
-    #flow = abilab.AbinitFlow.pickle_load("flow_si_ebands")
+    #flow = abilab.Flow.pickle_load("flow_si_ebands")
     #errors = flow.validate_json_schema()
     #return
     #flow.build_and_pickle_dump()

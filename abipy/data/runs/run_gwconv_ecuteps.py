@@ -88,7 +88,7 @@ def build_flow(options):
     ecuteps_list = np.arange(2, 8, 2)
     max_ecuteps = max(ecuteps_list)
 
-    flow = abilab.AbinitFlow(workdir=workdir, manager=manager)
+    flow = abilab.Flow(workdir=workdir, manager=manager)
 
     # Band structure work to produce the WFK file
     bands = abilab.BandStructureWork(scf_inp, nscf_inp)

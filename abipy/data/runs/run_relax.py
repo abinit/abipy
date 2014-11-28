@@ -77,7 +77,7 @@ def build_flow(options):
               abilab.TaskManager.from_file(options.manager)
 
     # Create the flow
-    flow = abilab.AbinitFlow(workdir, manager)
+    flow = abilab.Flow(workdir, manager)
 
     # Create a relaxation work and add it to the flow.
     ion_inp, ioncell_inp = make_ion_ioncell_inputs()
