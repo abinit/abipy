@@ -24,7 +24,7 @@ def itest_deltafactor(fwp, tvars):
     # Path of the pseudopotential to test.
     pseudo = abidata.pseudo("Si.GGA_PBE-JTH-paw.xml")
 
-    flow = abilab.AbinitFlow(workdir=fwp.workdir, manager=fwp.manager)
+    flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager)
 
     # Build the workflow for the computation of the deltafactor.
     # The workflow will produce a pdf file with the equation of state
@@ -69,7 +69,7 @@ def itest_gbrv_flow(fwp, tvars):
     ecut = 2
     pawecutdg = 2 * ecut if pseudo.ispaw else None
 
-    flow = abilab.AbinitFlow(workdir=fwp.workdir, manager=fwp.manager, pickle_protocol=0)
+    flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager, pickle_protocol=0)
 
     struct_types = ["fcc"] #, "bcc"]
 

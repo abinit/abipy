@@ -50,9 +50,9 @@
         
 qtype: shell
 mpi_runner: mpirun
-pre_run: "source ~/env.sh"
+#pre_run: "source ~/env.sh"
 shell_env:
-    PATH: "~/Coding/Abinit/bzr_archives/773/gmatteo-private/gcc/src/98_main/:$PATH"
+    PATH: "~/Coding/Abinit/bzr_archives/773/gmatteo-private/fftw3/src/98_main/:$PATH"
     DYLD_LIBRARY_PATH: /opt/intel/composerxe-2011.0.085/mkl/lib/:/opt/intel/composerxe-2011.0.085/compiler/lib/:$DYLD_LIBRARY_PATH
 #omp_env:
 #    OMP_NUM_THREADS: 4

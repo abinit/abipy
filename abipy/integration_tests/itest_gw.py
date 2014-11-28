@@ -5,7 +5,7 @@ import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
 
-from pymatgen.io.abinitio.calculations import g0w0_with_ppmodel
+from pymatgen.io.abinitio.calculations import g0w0_with_ppmodel_work
 from abipy.core.testing import has_abinit
 
 # Tests in this module require abinit >= 7.9.0
@@ -175,7 +175,7 @@ def itest_htc_g0w0(fwp, tvars):
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
     pseudos = abidata.pseudos("14si.pspnc")
 
-    flow = abilab.AbinitFlow(fwp.workdir, fwp.manager)
+    flow = abilab.Flow(fwp.workdir, fwp.manager)
 
     scf_kppa = 10
     nscf_nband = 10
@@ -191,10 +191,10 @@ def itest_htc_g0w0(fwp, tvars):
         paral_kgb=tvars.paral_kgb,
     )
 
-    work = g0w0_with_ppmodel(structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx,
-                             accuracy="normal", spin_mode="unpolarized", smearing=None,
-                             ppmodel="godby", charge=0.0, inclvkb=2, sigma_nband=None, gw_qprange=1,
-                             scr_nband=None, **extra_abivars)
+    work = g0w0_with_ppmodel_work(structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx,
+                                  accuracy="normal", spin_mode="unpolarized", smearing=None,
+                                  ppmodel="godby", charge=0.0, inclvkb=2, sigma_nband=None, gw_qprange=1,
+                                  scr_nband=None, **extra_abivars)
 
     flow.register_work(work)
     flow.allocate()
@@ -236,7 +236,7 @@ def itest_htc_g0w0(fwp, tvars):
 #        istwfk="*1",
 #    )
 #
-#    flow = abilab.AbinitFlow(workdir=fwp.workdir, manager=fwp.manager)
+#    flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager)
 #
 #    # BSE calculation with model dielectric function.
 #    from pymatgen.io.abinitio.calculations import bse_with_mdf

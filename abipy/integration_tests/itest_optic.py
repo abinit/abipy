@@ -91,7 +91,7 @@ def itest_optic_flow(fwp, tvars):
 
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = make_inputs(tvars)
 
-    flow = abilab.AbinitFlow(fwp.workdir, fwp.manager)
+    flow = abilab.Flow(fwp.workdir, fwp.manager)
 
     bands_work = abilab.BandStructureWork(scf_inp, nscf_inp)
     flow.register_work(bands_work)
