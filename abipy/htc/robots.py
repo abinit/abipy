@@ -4,7 +4,6 @@ from __future__ import print_function, division, unicode_literals
 
 import sys
 import os
-#import numpy as np
 import pandas as pd
 
 from collections import OrderedDict, deque 
@@ -40,10 +39,8 @@ def abirobot(obj, ext, nids=None):
         if cls.EXT in (ext, ext.upper()):
             return cls.open(obj, nids=nids)
 
-    raise ValueError(
-        "Cannot find Robot subclass associated to extension %s" % ext + 
-        "The list of supported extensions is:\n%s" % [cls.EXT for cls in Robot.__subclasses__()]
-        )
+    raise ValueError("Cannot find Robot subclass associated to extension %s\n" % ext + 
+                     "The list of supported extensions is:\n%s" % [cls.EXT for cls in Robot.__subclasses__()])
 
 
 class Robot(object):
@@ -125,9 +122,9 @@ class Robot(object):
         items = []
 
         if not has_dirpath:
+            # Flow
             # The name of the Task method used to open the file.
             smeth = "open_" + cls.EXT.lower()
-                # Flow
             for task in obj.iflat_tasks(nids=nids):
                 open_method = getattr(task, smeth, None)
                 if open_method is None: continue
@@ -162,7 +159,7 @@ class Robot(object):
 
     @staticmethod
     def _get_geodict(structure):
-        """Return a dictionary with info on structure to be used in pandas dataframe."""
+        """Return a dictionary with info on the structure (used to build pandas dataframes)."""
         abc, angles = structure.lattice.abc, structure.lattice.angles
         return dict(
             a=abc[0], b=abc[1], c=abc[2], volume=structure.volume,
@@ -303,6 +300,19 @@ class SigresRobot(Robot):
 
         return pd.DataFrame(rows, index=row_names, columns=rows[0].keys())
 
+    def plot_conv_qpgap(self, x_vars, **kwargs):
+        """
+        Plot the convergence of the QP Gap. kwargs are passed to seaborn.PairGrid
+        """
+        import matplotlib.pyplot as plt
+        import seaborn as sns
+
+        data = self.get_qpgaps_dataframe()
+        grid = sns.PairGrid(data, x_vars=x_vars, y_vars="qpgap", **kwargs)
+        grid.map(plt.plot, marker="o")
+        grid.add_legend()
+        plt.show()
+
 
 class MdfRobot(Robot):
     """This robot analyzes the results contained in multiple MDF files."""
@@ -340,3 +350,20 @@ class MdfRobot(Robot):
             rows.append(d)
 
         return pd.DataFrame(rows, index=row_names, columns=rows[0].keys())
+
+    def plot_conv_mdf(self, hue, mdf_type="exc_mdf", **kwargs):
+        import matplotlib.pyplot as plt
+        frame = self.get_dataframe()
+        grouped = frame.groupby(hue)
+
+        fig, ax_list = plt.subplots(nrows=len(grouped), ncols=1, sharex=True, sharey=True, squeeze=True)
+
+        for i, (hue_val, group) in enumerate(grouped):
+            #print(group)
+            mdfs = group[mdf_type] 
+            ax = ax_list[i]
+            ax.set_title("%s = %s" % (hue, hue_val))
+            for mdf in mdfs:
+                mdf.plot_ax(ax)
+
+        plt.show()

@@ -70,8 +70,7 @@ def selected_tasks(flow, options):
         # All tasks selected if no option is provided.
         tasks = list(flow.iflat_tasks())
 
-    #print(options)
-    #print("selected_tasks:", tasks)
+    #print(options, "\nselected_tasks:", tasks)
     return tasks
 
 
@@ -314,8 +313,6 @@ Specify the files to open. Possible choices:
         sched.start()
 
     elif options.command == "status":
-        #work_slice = as_slice(options.work_slice)
-
         if options.delay:
             cprint("Entering infinite loop. Press CTRL+C to exit", color="magenta", end="", flush=True)
             try:
