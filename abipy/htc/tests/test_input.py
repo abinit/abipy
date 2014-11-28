@@ -205,14 +205,14 @@ class AnaddbInputTest(AbipyTest):
         ngqpt = (4, 4, 4)
 
         inp2 = AnaddbInput.phbands_and_dos(self.structure, ngqpt, ndivsm, nqsmall, asr=0, dos_method="tetra")
-        self.assertEqual(inp2['dieflag'], 1)
+        self.assertEqual(inp2['ifcflag'], 1)
 
         s2 = inp2.to_string(sortmode="a")
         print(s2)
 
         inp3 = AnaddbInput.phbands_and_dos(self.structure, ngqpt, ndivsm, nqsmall,
                                            qptbounds=[0,0,0,1,1,1], dos_method="gaussian:0.001 eV")
-        self.assertEqual(inp3['dieflag'], 1)
+        self.assertEqual(inp3['ifcflag'], 1)
         s3 = inp3.to_string(sortmode="a")
         print(s3)
 
