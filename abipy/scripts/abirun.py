@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This script allows the user to submit the calculations contained in the `AbinitFlow`.
+This script allows the user to submit the calculations contained in the `Flow`.
 It provides both a command line interface as well as a graphical interfaced based on wxpython.
 """
 from __future__ import print_function, division, unicode_literals
@@ -292,7 +292,7 @@ Specify the files to open. Possible choices:\n
         # Will try to figure out the location of the Flow.
         options.path = os.getcwd()
 
-    flow = abilab.AbinitFlow.pickle_load(options.path)
+    flow = abilab.Flow.pickle_load(options.path)
     retcode = 0
 
     if options.command == "gui":
