@@ -5,11 +5,11 @@ import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
 
-from pymatgen.io.abinitio.calculations import g0w0_with_ppmodel
+from pymatgen.io.abinitio.calculations import g0w0_with_ppmodel_work
 from abipy.core.testing import has_abinit
 
 # Tests in this module require abinit >= 7.9.0
-pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
+#pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
 
 
 def make_g0w0_inputs(ngkpt, tvars):
@@ -175,7 +175,7 @@ def itest_htc_g0w0(fwp, tvars):
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
     pseudos = abidata.pseudos("14si.pspnc")
 
-    flow = abilab.AbinitFlow(fwp.workdir, manager=fwp.manager)
+    flow = abilab.Flow(fwp.workdir, manager=fwp.manager)
 
     scf_kppa = 10
     nscf_nband = 10
@@ -236,7 +236,7 @@ def itest_htc_g0w0(fwp, tvars):
 #        istwfk="*1",
 #    )
 #
-#    flow = abilab.AbinitFlow(workdir=fwp.workdir, manager=fwp.manager)
+#    flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager)
 #
 #    # BSE calculation with model dielectric function.
 #    from pymatgen.io.abinitio.calculations import bse_with_mdf

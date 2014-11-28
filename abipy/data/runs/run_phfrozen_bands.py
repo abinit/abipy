@@ -67,13 +67,13 @@ def build_flow(options):
 
     displaced_structures = modifier.displace(ph_displ, etas, frac_coords=False)
 
-    flow = abilab.AbinitFlow(workdir=workdir, manager=manager)
+    flow = abilab.Flow(workdir, manager=manager)
 
     for structure in displaced_structures:
-        # Create the workflow for the band structure calculation.
+        # Create the work for the band structure calculation.
         scf_input, nscf_input = make_scf_nscf_inputs(structure)
                                                                    
-        work = abilab.BandStructureWorkflow(scf_input, nscf_input)
+        work = abilab.BandStructureWork(scf_input, nscf_input)
         flow.register_work(work)
 
     return flow.allocate()

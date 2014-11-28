@@ -92,12 +92,12 @@ def build_flow(options):
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = inp.split_datasets()
 
     # Initialize the flow.
-    flow = abilab.AbinitFlow(workdir=workdir, manager=manager)
+    flow = abilab.Flow(workdir, manager=manager)
 
-    bands_work = abilab.BandStructureWorkflow(scf_inp, nscf_inp)
+    bands_work = abilab.BandStructureWork(scf_inp, nscf_inp)
     flow.register_work(bands_work)
 
-    ddk_work = abilab.Workflow()
+    ddk_work = abilab.Work()
     for inp in [ddk1, ddk2, ddk3]:
         ddk_work.register_ddk_task(inp, deps={bands_work.nscf_task: "WFK"})
 
@@ -122,7 +122,7 @@ def optic_flow_from_files():
     manager = abilab.TaskManager.from_user_config()
     manager.set_mpi_procs(1)
 
-    flow = abilab.AbinitFlow(workdir="OPTIC_FROM_FILE", manager=manager)
+    flow = abilab.Flow(workdir="OPTIC_FROM_FILE", manager=manager)
     
     ddk_nodes = [
         "/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTIC/work_1/task_0/outdata/out_1WF",

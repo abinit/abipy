@@ -79,9 +79,9 @@ def build_flow(options):
     manager = abilab.TaskManager.from_user_config() if not options.manager else \
               abilab.TaskManager.from_file(options.manager)
 
-    flow = abilab.AbinitFlow(workdir=workdir, manager=manager)
+    flow = abilab.Flow(workdir, manager=manager)
 
-    # Create the workflow for the band structure calculation.
+    # Create the work for the band structure calculation.
     structure = data.structure_from_ucell("NiO")
     pseudos = data.pseudos("28ni.paw", "8o.2.paw")
 
@@ -100,7 +100,7 @@ def build_flow(options):
 
         scf_input, nscf_input, dos_input = make_scf_nscf_dos_inputs(structure, pseudos, luj_params)
                                                                        
-        work = abilab.BandStructureWorkflow(scf_input, nscf_input, dos_inputs=dos_input)
+        work = abilab.BandStructureWork(scf_input, nscf_input, dos_inputs=dos_input)
         flow.register_work(work)
 
     return flow.allocate()

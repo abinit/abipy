@@ -81,7 +81,7 @@ def afm_input():
 
 def gs_flow():
     inputs = [gs_input(nsppol) for nsppol in [1,2]]
-    flow = abilab.AbinitFlow.from_inputs(workdir="flow_spin", inputs=inputs)
+    flow = abilab.Flow.from_inputs(workdir="flow_spin", inputs=inputs)
 
     #flow.make_scheduler().start()
 

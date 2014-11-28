@@ -4,7 +4,7 @@
 # See tutorial/lesson_rf2.html
 
 # FIXME: LO-TO splitting and phonon displacements instead of eigenvectors.
-from abipy.abilab import PhononBands, PHDOS_Reader, PHDOS_File
+from abipy.abilab import PhononBands, PhdosReader, PhdosFile
 import abipy.data as abidata
 
 # Path to the PHBST file produced by anaddb.
@@ -16,7 +16,7 @@ phbands = PhononBands.from_file(phbst_file)
 # Read the Phonon DOS from the netcd file produced by anaddb (prtdos 2)
 phdos_file = abidata.ref_file("trf2_5.out_PHDOS.nc")
 
-with PHDOS_Reader(phdos_file) as r:
+with PhdosReader(phdos_file) as r:
     phdos = r.read_phdos()
 
 # plot phonon bands and DOS.

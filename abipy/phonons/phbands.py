@@ -15,7 +15,7 @@ from .phdos import PhononDOS
 
 __all__ = [
     "PhononBands",
-    "PHBST_File",
+    "PhbstFile",
 ]
 
 
@@ -66,7 +66,6 @@ class PhononMode(object):
     #def export(self, path):
 
     #def visualize(self, visualizer):
-
 
 
 class PhononBands(object):
@@ -792,7 +791,7 @@ class PHBST_Reader(ETSF_Reader):
         return self.read_value("phdispl_cart", cmode="c")
 
 
-class PHBST_File(AbinitNcFile, Has_Structure, Has_PhononBands):
+class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands):
 
     def __init__(self, filepath):
         """
@@ -802,7 +801,7 @@ class PHBST_File(AbinitNcFile, Has_Structure, Has_PhononBands):
             path:
                 path to the file
         """
-        super(PHBST_File, self).__init__(filepath)
+        super(PhbstFile, self).__init__(filepath)
 
         self.reader = PHBST_Reader(filepath)
 

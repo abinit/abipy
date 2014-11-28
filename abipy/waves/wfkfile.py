@@ -13,7 +13,7 @@ from abipy.electrons import ElectronsReader
 from abipy.waves.pwwave import PWWaveFunction
 
 __all__ = [
-    "WFK_File",
+    "WfkFile",
 ]
 
 
@@ -24,7 +24,7 @@ def straceback():
     return traceback.format_exc()
 
 
-class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
+class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
     """
     This object provides a simple interface to access and analyze
     the data stored in the WFK file produced by ABINIT.
@@ -33,7 +33,7 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
                                                                   
     .. code-block:: python
         
-        wfk = WFK_File("foo_WFK.nc")
+        wfk = WfkFile("foo_WFK.nc")
 
         # Plot band energies.
         wfk.plot_ebands()
@@ -53,7 +53,7 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         """
         Initialize the object from a Netcdf file.
         """
-        super(WFK_File, self).__init__(filepath)
+        super(WfkFile, self).__init__(filepath)
 
         self.reader = reader = WFK_Reader(filepath)
 

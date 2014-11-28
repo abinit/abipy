@@ -22,11 +22,11 @@ def build_flow(options):
     manager = abilab.TaskManager.from_user_config() if not options.manager else \
               abilab.TaskManager.from_file(options.manager)
 
-    # Initialize flow. Each workflow in the flow defines a complete BSE calculation for given eta.
+    # Initialize flow. Each work in the flow defines a complete BSE calculation for given eta.
     #if workdir is None:
     #    workdir = os.path.join(os.path.dirname(__file__), base_structure.formula.replace(" ","") + "_RAMAN")
                                                                                                                  
-    flow = abilab.AbinitFlow(workdir, manager=manager)
+    flow = abilab.Flow(workdir, manager=manager)
 
     pseudos = data.pseudos("14si.pspnc")
 
@@ -53,12 +53,12 @@ def build_flow(options):
 
     for structure, eta in zip(displaced_structures, etas):
         for shift in all_shifts:
-            flow.register_work(raman_workflow(structure, pseudos, shift))
+            flow.register_work(raman_work(structure, pseudos, shift))
 
     return flow.allocate()
 
 
-def raman_workflow(structure, pseudos, shiftk):
+def raman_work(structure, pseudos, shiftk):
     # Generate 3 different input files for computing optical properties with BSE.
 
     # Global variables
@@ -119,8 +119,8 @@ def raman_workflow(structure, pseudos, shiftk):
         bs_hayd_term=0,      # No terminator
     )
 
-    # Build the workflow representing a BSE run with model dielectric function.
-    return abilab.BSEMDF_Workflow(scf_inp, nscf_inp, bse_inp)
+    # Build the work representing a BSE run with model dielectric function.
+    return abilab.BseMdfWork(scf_inp, nscf_inp, bse_inp)
 
 
 @abilab.flow_main

@@ -2,7 +2,7 @@
 #
 # This example shows how to visualize the convergence of the 
 # QP results stored in the SIGRES produced by the GW code (sigma run).
-from abipy.abilab import SIGRES_Plotter
+from abipy.abilab import SigresPlotter
 import abipy.data as abidata
 
 # List of SIGRES files computed with different values of nband.
@@ -15,7 +15,7 @@ filenames = [
 filepaths = [abidata.ref_file(fname) for fname in filenames]
 
 # Instanciate the plotter and add the filepaths to the plotter.
-plotter = SIGRES_Plotter()
+plotter = SigresPlotter()
 plotter.add_files(filepaths)
 
 # Plot the convergence of the QP gaps.

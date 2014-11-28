@@ -6,7 +6,7 @@ import abipy.core
 
 from pprint import pprint
 from abipy.core.testing import *
-from abipy.electrons.gsr import GSR_Reader, GSR_File
+from abipy.electrons.gsr import GsrReader, GsrFile
 
 
 class GSRReaderTestCase(AbipyTest):
@@ -29,7 +29,7 @@ class GSRReaderTestCase(AbipyTest):
         #                                     5.125, 5.125, 0], (3,3)),
         }
 
-        with GSR_Reader(path) as r:
+        with GsrReader(path) as r:
             self.assertEqual(r.ngroups, 1)
             print(r.read_varnames())
 
@@ -49,8 +49,8 @@ class GSRReaderTestCase(AbipyTest):
                 self.assert_almost_equal(value, float_ref)
 
             # Reading non-existent variables or dims should raise a subclass of NetcdReder.
-            with self.assertRaises(GSR_Reader.Error): r.read_value("foobar")
-            with self.assertRaises(GSR_Reader.Error): r.read_dimvalue("foobar")
+            with self.assertRaises(GsrReader.Error): r.read_value("foobar")
+            with self.assertRaises(GsrReader.Error): r.read_dimvalue("foobar")
 
             r.print_tree()
             for group in r.walk_tree():
@@ -60,14 +60,13 @@ class GSRReaderTestCase(AbipyTest):
             structure = r.read_structure()
             self.assertTrue(isinstance(structure, abipy.core.Structure))
 
-
 class GSRFileTestCase(AbipyTest):
 
     def test_gsr_silicon(self):
         """spin unpolarized GSR file"""
         almost_equal = self.assertAlmostEqual
 
-        with GSR_File(data.ref_file("si_scf_GSR.nc")) as gsr:
+        with GsrFile(data.ref_file("si_scf_GSR.nc")) as gsr:
             print(repr(gsr))
             print(gsr)
             print(gsr.ebands)

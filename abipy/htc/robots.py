@@ -8,7 +8,7 @@ import pandas as pd
 
 from collections import OrderedDict, deque 
 from monty.string import is_string
-from pymatgen.io.abinitio.flows import AbinitFlow
+from pymatgen.io.abinitio.flows import Flow
 
 
 __all__ = [
@@ -46,7 +46,7 @@ def abirobot(obj, ext, nids=None):
 class Robot(object):
     """
     The main function of a `Robot` is facilitating the extraction of the output data produced by
-    multiple tasks in a `AbinitFlow`. This is the base class from which all Robot subclasses should derive.
+    multiple tasks in a `Flow`. This is the base class from which all Robot subclasses should derive.
     A Robot supports the `with` context manager:
 
     Usage example:
@@ -115,7 +115,7 @@ class Robot(object):
         has_dirpath = False
         if is_string(obj): 
             try:
-                obj = AbinitFlow.pickle_load(obj)
+                obj = Flow.pickle_load(obj)
             except:
                 has_dirpath = True
 

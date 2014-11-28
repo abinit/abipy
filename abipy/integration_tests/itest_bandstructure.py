@@ -8,10 +8,10 @@ import abipy.data as abidata
 import abipy.abilab as abilab
 
 from abipy.core.testing import has_abinit
-from pymatgen.io.abinitio.calculations import bandstructure
+from pymatgen.io.abinitio.calculations import bandstructure_work
 
 # Tests in this module require abinit >= 7.9.0
-pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
+#pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
 
 
 def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
@@ -251,10 +251,10 @@ def itest_htc_bandstructure(fwp, tvars):
     )
 
     # Initialize the flow.
-    flow = abilab.AbinitFlow(workdir=fwp.workdir, manager=fwp.manager)
+    flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager)
 
-    work = bandstructure(structure, abidata.pseudos("14si.pspnc"), scf_kppa, nscf_nband, ndivsm,
-                         spin_mode="unpolarized", smearing=None, dos_kppa=dos_kppa, **extra_abivars)
+    work = bandstructure_work(structure, abidata.pseudos("14si.pspnc"), scf_kppa, nscf_nband, ndivsm,
+                              spin_mode="unpolarized", smearing=None, dos_kppa=dos_kppa, **extra_abivars)
 
     flow.register_work(work)
     flow.allocate()

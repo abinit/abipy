@@ -10,7 +10,7 @@ from monty.string import is_string, list_strings
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
-from pymatgen.io.abinitio.flows import AbinitFlow
+from pymatgen.io.abinitio.flows import Flow
 from abipy.core.fields import DensityReader
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands
 from abipy.tools.prettytable import PrettyTable
@@ -18,15 +18,15 @@ from .ebands import ElectronsReader
 
 
 __all__ = [
-    "GSR_File",
-    "GSR_Plotter",
+    "GsrFile",
+    "GsrPlotter",
 ]
 
 import logging
 logger = logging.getLogger(__name__)
 
 
-class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
+class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
     """
     File containing the results of a ground-state calculation.
 
@@ -34,7 +34,7 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
                                                                   
     .. code-block:: python
         
-        with GSR_File("foo_GSR.nc") as gsr:
+        with GsrFile("foo_GSR.nc") as gsr:
             print("energy: ", gsr.energy)
             gsr.ebands.plot()
     """
@@ -44,9 +44,9 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(GSR_File, self).__init__(filepath)
+        super(GsrFile, self).__init__(filepath)
 
-        self.reader = r = GSR_Reader(filepath)
+        self.reader = r = GsrReader(filepath)
 
         # Initialize the electron bands from file
         self._ebands = r.read_ebands()
@@ -274,7 +274,7 @@ class EnergyTerms(AttrDict):
         return "\n".join(lines)
 
 
-class GSR_Reader(ElectronsReader, DensityReader):
+class GsrReader(ElectronsReader, DensityReader):
     """
     This object reads the results stored in the _GSR (Ground-State Results) file produced by ABINIT.
     It provides helper function to access the most important quantities.
@@ -308,16 +308,16 @@ class GSR_Reader(ElectronsReader, DensityReader):
         return EnergyTerms(**d)
 
 
-class GSR_Plotter(Iterable):
+class GsrPlotter(Iterable):
     """
-    This object receives a list of `GSR_File` objects and provides
+    This object receives a list of `GsrFile` objects and provides
     methods to inspect/analyze the results (useful for convergence studies)
 
     Usage example:
                                                                   
     .. code-block:: python
         
-        plotter = GSR_Plotter()
+        plotter = GsrPlotter()
         plotter.add_file("foo_GSR.nc")
         plotter.add_file("bar_GSR.nc")
         plotter.plot_variables("ecut", "etotal")
@@ -486,7 +486,7 @@ class GSR_Plotter(Iterable):
         # Read the value of varname from the files.
         xx, yy = [], []
         for filepath in self.filepaths:
-            with GSR_Reader(filepath) as r:
+            with GsrReader(filepath) as r:
                 xx.append(r.read_value(varname_x))
                 yy.append(r.read_value(varname_y))
 

@@ -18,7 +18,7 @@ def ngkpt_flow():
         inp[i+1].set_kmesh(ngkpt=ngkpt, shiftk=[0,0,0])
 
     inputs = inp.split_datasets()
-    flow = abilab.AbinitFlow.from_inputs("flow_ngkpt", inputs)
+    flow = abilab.Flow.from_inputs("flow_ngkpt", inputs)
 
     flow.make_scheduler().start()
 
@@ -52,7 +52,7 @@ def relax_flow():
         inp[i+1].set_kmesh(ngkpt=ngkpt, shiftk=[0,0,0])
 
     inputs = inp.split_datasets()
-    flow = abilab.AbinitFlow.from_inputs("flow_relax", inputs, 
+    flow = abilab.Flow.from_inputs("flow_relax", inputs, 
                                          task_class=abilab.RelaxTask)
 
     #flow.make_scheduler().start()

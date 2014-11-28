@@ -78,8 +78,8 @@ def build_flow(options):
     all_inps = scf_ph_inputs()
     scf_input, ph_inputs = all_inps[0], all_inps[1:]
 
-    flow = abilab.AbinitFlow(workdir=workdir, manager=manager)
-    from pymatgen.io.abinitio.workflows import build_oneshot_phononwork
+    flow = abilab.Flow(workdir, manager=manager)
+    from pymatgen.io.abinitio.works import build_oneshot_phononwork
     work = build_oneshot_phononwork(scf_input, ph_inputs)
     flow.register_work(work)
 

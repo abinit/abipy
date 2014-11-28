@@ -25,8 +25,8 @@ logger = logging.getLogger(__name__)
 
 __all__ = [
     "QPState",
-    "SIGRES_File",
-    "SIGRES_Plotter",
+    "SigresFile",
+    "SigresPlotter",
 ]
 
 
@@ -195,6 +195,13 @@ class QPList(list):
         """ndarray containing the values of field."""
         return np.array([getattr(qp, field) for qp in self])
 
+    def get_value(self, skb_tup, field):
+        """ return the value of field for the given spin kp band tuple, None if not found"""
+        for qp in self:
+            if qp.skb == skb_tup:
+                return getattr(qp, field)
+        return None
+
     def get_qpenes(self):
         """Return an array with the QPState energies."""
         return self.get_field("qpe")
@@ -239,6 +246,7 @@ class QPList(list):
         title = kwargs.pop("title", None)
         show = kwargs.pop("show", True)
         savefig = kwargs.pop("savefig", None)
+        fermi = kwargs.pop("fermi", None)
 
         if is_string(with_fields):
             if with_fields == "all":
@@ -278,6 +286,9 @@ class QPList(list):
             ax.set_ylabel(field)
             yy = qps.get_field(field)
             ax.plot(e0mesh, yy.real, linestyle, **kwargs)
+            ax.plot(e0mesh, e0mesh)
+            if fermi is not None:
+                ax.plot(2*[fermi], [min(yy), max(yy)])
 
         # Get around a bug in matplotlib
         if (num_plots % ncols) != 0:
@@ -325,6 +336,7 @@ class QPList(list):
         qps = self.sort_by_e0()
         e0mesh, qpcorrs = qps.get_e0mesh(), qps.get_qpeme0()
 
+
         # Check domains.
         domains = np.atleast_2d(domains)
         dsize, dflat = domains.size, domains.ravel()
@@ -343,6 +355,8 @@ class QPList(list):
                 raise ValueError("domain boundaries should be given in increasing order.")
         # Create the sub_domains and the spline functions in each subdomain.
         func_list = []
+        residues = []
+
         for dom in domains[:]:
             low, high = dom[0], dom[1]
             start, stop = find_ge(e0mesh, low), find_le(e0mesh, high)
@@ -354,17 +368,25 @@ class QPList(list):
             from scipy.interpolate import UnivariateSpline
             f = UnivariateSpline(dom_e0, dom_corr, w=None, bbox=[None, None], k=k, s=None)
             func_list.append(f)
+            residues.append(f.get_residual())
 
         # Build the scissors operator.
-        sciss = Scissors(func_list, domains, bounds)
+        sciss = Scissors(func_list, domains, residues, bounds)
+
+        title = kwargs.pop("title", None)
 
         # Compare fit with input data.
         if kwargs.pop("plot", False):
             import matplotlib.pyplot as plt
-            plt.plot(e0mesh, qpcorrs, label="input data")
+            plt.plot(e0mesh, qpcorrs, 'o', label="input data")
+            if title:
+                plt.suptitle(title)
+            for dom in domains[:]:
+                plt.plot(2*[dom[0]], [min(qpcorrs), max(qpcorrs)])
+                plt.plot(2*[dom[1]], [min(qpcorrs), max(qpcorrs)])
             intp_qpc = [sciss.apply(e0) for e0 in e0mesh]
             plt.plot(e0mesh, intp_qpc, label="scissor")
-            plt.legend()
+            plt.legend(bbox_to_anchor=(0.9, 0.2))
             plt.show()
 
         # Return the object.
@@ -488,17 +510,17 @@ class Sigmaw(object):
         return fig
 
 
-def to_range(obj):
+def torange(obj):
     """
     Convert obj into a range. Accepts integer, slice object 
     or any object with an __iter__ method.
     Note that an integer is converted into range(int, int+1)
 
-    >>> list(to_range(1))
+    >>> torange(1)
     [1]
-    >>> list(to_range(slice(0,4,2)))
+    >>> torange(slice(0,4,2))
     [0, 2]
-    >>> list(to_range([1,4,2]))
+    >>> list(torange([1,4,2]))
     [1, 4, 2]
     """
     if isinstance(obj, int):
@@ -516,9 +538,9 @@ def to_range(obj):
             raise TypeError("Don't know how to convert %s into a range object" % str(obj))
 
 
-class SIGRES_Plotter(Iterable):
+class SigresPlotter(Iterable):
     """
-    This object receives a list of `SIGRES_File` objects and provides
+    This object receives a list of `SigresFile` objects and provides
     methods to inspect/analyze the GW results (useful for convergence studies)
 
     .. Attributes:
@@ -533,7 +555,7 @@ class SIGRES_Plotter(Iterable):
                                                                   
     .. code-block:: python
         
-        plotter = SIGRES_Plotter()
+        plotter = SigresPlotter()
         plotter.add_file("foo_SIGRES.nc", label="foo bands")
         plotter.add_file("bar_SIGRES.nc", label="bar bands")
         plotter.plot_qpgaps()
@@ -549,7 +571,10 @@ class SIGRES_Plotter(Iterable):
         return iter(self._sigres_files.values())
 
     def __str__(self):
-        return "\n".join(str(sigres) for sigres in self)
+        s = ""
+        for sigres in self:
+            s += str(sigres) + "\n"
+        return s
 
     def __enter__(self):
         return self
@@ -640,7 +665,7 @@ class SIGRES_Plotter(Iterable):
     def prepare_plot(self):
         """
         This method must be called before plotting data.
-        It tries to figure the name of parameter we are converging
+        It tries to figure the name of paramenter we are converging 
         by looking at the set of parameters used to compute the different SIGRES files.
         """
         param_list = self._get_param_list()
@@ -749,8 +774,8 @@ class SIGRES_Plotter(Iterable):
         Returns:
             `matplotlib` figure
         """
-        spin_range = range(self.nsppol) if spin is None else to_range(spin)
-        kpoints_for_plot = self.computed_gwkpoints #if kpoint is None else KpointList.as_kpoints(kpoint)
+        spin_range = range(self.nsppol) if spin is None else torange(spin)
+        kpoints_for_plot = self.computed_gwkpoints  #if kpoint is None else KpointList.as_kpoints(kpoint)
 
         title = kwargs.pop("title", None)
         show = kwargs.pop("show", True)
@@ -795,9 +820,9 @@ class SIGRES_Plotter(Iterable):
         Returns:
             `matplotlib` figure
         """
-        spin_range = range(self.nsppol) if spin is None else to_range(spin)
-        band_range = range(self.max_gwbstart, self.min_gwbstop) if band is None else to_range(band)
-        kpoints_for_plot = self.computed_gwkpoints #if kpoint is None else KpointList.as_kpoints(kpoint)
+        spin_range = range(self.nsppol) if spin is None else torange(spin)
+        band_range = range(self.max_gwbstart, self.min_gwbstop) if band is None else torange(band)
+        kpoints_for_plot = self.computed_gwkpoints #if kpoint is None else KpointList.askpoints(kpoint)
 
         self.prepare_plot()
 
@@ -821,6 +846,7 @@ class SIGRES_Plotter(Iterable):
 
         xx = self.xvalues
         for kpoint, ax in zip(kpoints_for_plot, ax_list):
+            
             for spin in spin_range:
                 for band in band_range:
                     label = "spin %d, band %d" % (spin, band)
@@ -840,7 +866,7 @@ class SIGRES_Plotter(Iterable):
         return fig
 
 
-class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
+class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
     """
     Container storing the GW results reported in the SIGRES.nc file.
 
@@ -848,7 +874,7 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
                                                                   
     .. code-block:: python
         
-        sigres = SIGRES_File("foo_SIGRES.nc")
+        sigres = SigresFile("foo_SIGRES.nc")
         sigres.plot_qps_vs_e0()
         sigres.plot_ksbands_with_qpmarkers()
     """
@@ -859,10 +885,10 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
     def __init__(self, filepath):
         """Read data from the netcdf file path."""
-        super(SIGRES_File, self).__init__(filepath)
+        super(SigresFile, self).__init__(filepath)
 
-        # Keep a reference to the SIGRES_Reader.
-        self.reader = reader = SIGRES_Reader(self.filepath)
+        # Keep a reference to the SigresReader.
+        self.reader = reader = SigresReader(self.filepath)
 
         self._structure = reader.read_structure()
         self.gwcalctyp = reader.gwcalctyp
@@ -928,7 +954,8 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         return self.reader.read_allqps()
 
     def get_qplist(self, spin, kpoint):
-        return self.reader.read_qplist_sk(spin, kpoint)
+        qplist = self.reader.read_qplist_sk(spin, kpoint)
+        return qplist
 
     def get_qpcorr(self, spin, kpoint, band):
         """Returns the `QPState` object for the given (s, k, b)"""
@@ -1063,9 +1090,8 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     #    return plot_matrix(matrix, *args, **kwargs)
 
 
-class SIGRES_Reader(ETSF_Reader):
-    """
-    This object provides method to read data from the SIGRES file produced ABINIT.
+class SigresReader(ETSF_Reader):
+    """This object provides method to read data from the SIGRES file produced ABINIT.
     # See 70gw/m_sigma_results.F90
 
     # Name of the diagonal matrix elements stored in the file.
@@ -1216,7 +1242,7 @@ class SIGRES_Reader(ETSF_Reader):
         self.ks_bands = ElectronBands.from_file(path)
         self.nsppol = self.ks_bands.nsppol
 
-        super(SIGRES_Reader, self).__init__(path)
+        super(SigresReader, self).__init__(path)
 
         try:
             self.nomega_r = self.read_dimvalue("nomega_r")

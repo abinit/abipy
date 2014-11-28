@@ -1,54 +1,62 @@
 # TaskManager configuration options.
+hardware:  &hardware
+   num_nodes: 2
+   sockets_per_node: 1
+   cores_per_socket: 2
+   mem_per_node: 4Gb
+
+job: &job
+   mpi_runner: mpirun
+   pre_run:
+     - "source ~/Coding/Abinit/bzr_archives/env.sh"
+
 policy:
     autoparal: 1
     max_ncpus: 2
     #condition:
     #vars_condition: {"npfft": {"$eq": 1}}
-db_connector:
-    enabled: no
-    database: abinit 
-    collection: test
-    #host: 0.0.0.0 
-    #port: 8080 
-    #user: gmatteo
-    #password: helloworld
+
 qadapters:
-  - queue:
-      qtype: shell
-      qname: fast
-    priority: 1
-    job:
-      mpi_runner: mpirun
-      pre_run:
-        - "source ~/Coding/Abinit/bzr_archives/env.sh"
-    hardware:
-        # Mandatory
-        num_nodes: 1
-        sockets_per_node: 1
-        cores_per_socket: 2
-        mem_per_node: 4 Gb
-    limits:
-        timelimit: 1:00:00
-        min_cores: 1
-        max_cores: 2
-        # Optional
-        #condition: {"$eq": {omp_threads: 2}} 
-  - priority: 99
+  - priority: 1 
     queue:
-        qtype: shell
-        qname: large
-    job:
-        mpi_runner: mpirun
-        pre_run:
-          - "source ~/Coding/Abinit/bzr_archives/env.sh"
-    hardware:
-        num_nodes: 1
-        sockets_per_node: 1
-        cores_per_socket: 2
-        mem_per_node: 24 Gb
+      qname: fast
+      qtype: shell
+    job: *job
+    hardware: *hardware
     limits:
-        timelimit: 2:00:00
-        min_cores: 1
-        max_cores: 2
-        # Optional
-        #condition: {"$eq": {omp_threads: 2}} 
+       timelimit: 3-0:0:0
+       min_cores: 1
+       max_cores: 2
+        
+#qtype: shell
+#mpi_runner: mpirun
+#pre_run: "source ~/env.sh"
+#shell_env:
+#    PATH: "~/Coding/Abinit/bzr_archives/773/gmatteo-private/gcc/src/98_main/:$PATH"
+#    DYLD_LIBRARY_PATH: /opt/intel/composerxe-2011.0.085/mkl/lib/:/opt/intel/composerxe-2011.0.085/compiler/lib/:$DYLD_LIBRARY_PATH
+##omp_env:
+##    OMP_NUM_THREADS: 4
+#policy:
+#    autoparal: 1
+#    max_ncpus: 2
+#db_connector:
+#    enabled: no
+#    database: abinit 
+#    collection: test
+#    #host: 0.0.0.0 
+#    #port: 8080 
+#    #user: gmatteo
+#    #password: helloworld
+
+
+
+
+
+#db_connector:
+#    enabled: no
+#    database: abinit 
+#    collection: test
+#    #host: 0.0.0.0 
+#    #port: 8080 
+#    #user: gmatteo
+#    #password: helloworld

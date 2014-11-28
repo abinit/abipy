@@ -46,7 +46,7 @@ def ecutconv_flow():
     inputs = [gs_input(ecut=ecut, pawecutdg=50) 
               for ecut in np.linspace(start=8, stop=24, num=9)]
 
-    flow = abilab.AbinitFlow.from_inputs("flow_ecutconv", inputs)
+    flow = abilab.Flow.from_inputs("flow_ecutconv", inputs)
     flow.make_scheduler().start()
 
     with abilab.GsrRobot.open(flow) as robot:

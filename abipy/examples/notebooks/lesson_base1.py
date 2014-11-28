@@ -38,7 +38,7 @@ def scf_manual():
     Generate a flow to compute the total energy and forces as a function of the interatomic distance
     """
     inputs = [gs_input(x) for x in np.linspace(0.5, 1.025, 21)]
-    flow = abilab.AbinitFlow.from_inputs("flow_h", inputs)
+    flow = abilab.Flow.from_inputs("flow_h", inputs)
 
     flow.make_scheduler().start()
 

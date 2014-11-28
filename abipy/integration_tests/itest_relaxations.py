@@ -8,7 +8,7 @@ import abipy.abilab as abilab
 from abipy.core.testing import has_abinit
 
 # Tests in this module require abinit >= 7.9.0
-pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
+#pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
 
 
 def ion_relaxation(tvars, ntime=50):
@@ -107,7 +107,8 @@ def itest_simple_atomic_relaxation(fwp, tvars):
     flow = abilab.AbinitFlow(fwp.workdir, manager=fwp.manager)
 
     ion_input = ion_relaxation(tvars, ntime=2)
-    t0 = flow.register_task(ion_input, task_class=abilab.RelaxTask)
+    work = flow.register_task(ion_input, task_class=abilab.RelaxTask)
+    t0 = work[0]
 
     flow.allocate()
     flow.build_and_pickle_dump()

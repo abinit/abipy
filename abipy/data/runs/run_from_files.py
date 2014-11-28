@@ -62,13 +62,13 @@ def build_flow(options):
     scf_input, nscf_input = make_scf_nscf_inputs()
 
     # Build the flow.
-    flow = abilab.AbinitFlow(workdir=workdir, manager=manager)
+    flow = abilab.Flow(workdir, manager=manager)
 
-    # Create a Workflow, all tasks in work will read the file f
-    # Note that the file must exist when the workflow is created
-    # Use the standard approach based on tasks and workflows if
+    # Create a Work, all tasks in work will read the file f
+    # Note that the file must exist when the work is created
+    # Use the standard approach based on tasks and works if
     # there's a node who needs a file produced in the future.
-    work = abilab.Workflow()
+    work = abilab.Work()
 
     f = abidata.ref_file("si_DEN-etsf.nc")
     work.register(nscf_input, required_files=f)

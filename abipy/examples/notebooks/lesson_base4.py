@@ -46,7 +46,7 @@ def relax_input(tsmear, nksmall):
 
 def relax_flow():
     inp = relax_input(tsmear=0.05, nksmall=2)
-    flow = abilab.AbinitFlow.from_inputs("flow_al_relax", inp)
+    flow = abilab.Flow.from_inputs("flow_al_relax", inp)
 
     flow.make_scheduler().start()
 

@@ -8,7 +8,7 @@ import abipy.abilab as abilab
 from abipy.core.testing import has_abinit
 
 # Tests in this module require abinit >= 7.9.0
-pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
+#pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
 
 
 def make_inputs(tvars):
@@ -91,13 +91,13 @@ def itest_optic_flow(fwp, tvars):
 
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = make_inputs(tvars)
 
-    flow = abilab.AbinitFlow(fwp.workdir, manager=fwp.manager)
+    flow = abilab.Flow(fwp.workdir, manager=fwp.manager)
 
-    bands_work = abilab.BandStructureWorkflow(scf_inp, nscf_inp)
+    bands_work = abilab.BandStructureWork(scf_inp, nscf_inp)
     flow.register_work(bands_work)
 
-    # workflow with DDK tasks.
-    ddk_work = abilab.Workflow()
+    # work with DDK tasks.
+    ddk_work = abilab.Work()
     for inp in [ddk1, ddk2, ddk3]:
         ddk_work.register(inp, deps={bands_work.nscf_task: "WFK"}, task_class=abilab.DdkTask)
 

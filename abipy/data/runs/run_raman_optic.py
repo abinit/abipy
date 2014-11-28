@@ -81,7 +81,7 @@ def raman_flow(options):
     shell_manager = manager.to_shell_manager(mpi_procs=1)
     ddk_manager = manager.deepcopy()
 
-    flow = abilab.AbinitFlow(workdir, manager=manager)
+    flow = abilab.Flow(workdir, manager=manager)
 
     # Generate the different shifts to average
     ndiv = 1
@@ -90,12 +90,12 @@ def raman_flow(options):
 
     for structure, eta in zip(displaced_structures, etas):
         for ishift,shift in enumerate(all_shifts):
-            flow.register_work(raman_workflow(structure, pseudos, ngkpt, shift, ddk_manager, shell_manager),workdir="eta_"+str(eta)+"shift_"+str(ishift))
+            flow.register_work(raman_work(structure, pseudos, ngkpt, shift, ddk_manager, shell_manager),workdir="eta_"+str(eta)+"shift_"+str(ishift))
 
     return flow.allocate()
 
 
-def raman_workflow(structure, pseudos, ngkpt, shiftk, ddk_manager, shell_manager):
+def raman_work(structure, pseudos, ngkpt, shiftk, ddk_manager, shell_manager):
     # Generate 3 different input files for computing optical properties with BSE.
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=5)
@@ -143,21 +143,21 @@ def raman_workflow(structure, pseudos, ngkpt, shiftk, ddk_manager, shell_manager
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = inp.split_datasets()
     ddk_inputs = [ddk1, ddk2, ddk3]
 
-    workflow = abilab.Workflow()
-    scf_t = workflow.register_scf_task(scf_inp)
-    nscf_t = workflow.register_nscf_task(nscf_inp, deps={scf_t: "DEN"})
+    work = abilab.Work()
+    scf_t = work.register_scf_task(scf_inp)
+    nscf_t = work.register_nscf_task(nscf_inp, deps={scf_t: "DEN"})
 
     ddk_nodes = []
     for inp in ddk_inputs:
-        ddk_t = workflow.register_ddk_task(inp, deps={nscf_t: "WFK"})
+        ddk_t = work.register_ddk_task(inp, deps={nscf_t: "WFK"})
         ddk_t.set_manager(ddk_manager)
         ddk_nodes.append(ddk_t)
 
     optic_t = abilab.OpticTask(optic_input, nscf_node=nscf_t, ddk_nodes=ddk_nodes, manager=shell_manager)
 
-    workflow.register(optic_t)
+    work.register(optic_t)
 
-    return workflow
+    return work
 
 
 @abilab.flow_main

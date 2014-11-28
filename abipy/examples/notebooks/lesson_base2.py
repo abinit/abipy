@@ -72,7 +72,7 @@ def ecut_convergence_study():
     for ecut in range(10, 40, 5):
         inputs += h2_h_input(ecut=ecut)
 
-    flow = abilab.AbinitFlow.from_inputs("flow_h2h_ecut", inputs)
+    flow = abilab.Flow.from_inputs("flow_h2h_ecut", inputs)
 
     #flow.make_scheduler().start()
 
@@ -106,7 +106,7 @@ def acell_convergence_study():
     inputs = []
     for acell in range(8, 20, 2):
         inputs += h2_h_input(ecut=10, acell=3*[acell])
-    flow = abilab.AbinitFlow.from_inputs("flow_h2h_acell", inputs)
+    flow = abilab.Flow.from_inputs("flow_h2h_acell", inputs)
 
     #flow.make_scheduler().start()
 

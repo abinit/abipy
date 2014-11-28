@@ -18,9 +18,9 @@ from abipy.iotools import ETSF_Reader
 __all__ = [
     "DielectricTensor",
     "DielectricFunction",
-    "MDF_File",
-    "MDF_Reader",
-    "MDF_Plotter",
+    "MdfFile",
+    "MdfReader",
+    "MdfPlotter",
 ]
 
 
@@ -358,14 +358,14 @@ class DielectricFunction(object):
         return f.plot_ax(ax, **kwargs)
 
 
-class MDF_File(AbinitNcFile, Has_Structure):
+class MdfFile(AbinitNcFile, Has_Structure):
     """
     Usage example:
                                                                   
     .. code-block:: python
         
-        mdf_file = MDF_File("foo_MDF.nc")
-        mdf_file.plot_mdfs()
+        with MdfFile("foo_MDF.nc") as mdf:
+            mdf.plot_mdfs()
     """
     @classmethod
     def from_file(cls, filepath):
@@ -373,8 +373,8 @@ class MDF_File(AbinitNcFile, Has_Structure):
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(MDF_File, self).__init__(filepath)
-        self.reader = MDF_Reader(filepath)
+        super(MdfFile, self).__init__(filepath)
+        self.reader = MdfReader(filepath)
 
         # TODO Add electron Bands.
         #self._ebands = r.read_ebands()
@@ -462,7 +462,7 @@ class MDF_File(AbinitNcFile, Has_Structure):
         mdf_type = mdf_type.split("-")
 
         # Build the plotter.
-        plotter = MDF_Plotter()
+        plotter = MdfPlotter()
 
         # Excitonic MDF.
         if "exc" in mdf_type or plot_all:
@@ -487,13 +487,13 @@ class MDF_File(AbinitNcFile, Has_Structure):
 # TODO
 #from abipy.electrons import ElectronsReader
 #class MDF_Reader(ElectronsReader):
-class MDF_Reader(ETSF_Reader):
+class MdfReader(ETSF_Reader):
     """
     This object reads data from the MDF.nc file produced by ABINIT.
     """
     def __init__(self, path):
         """Initialize the object from a filename."""
-        super(MDF_Reader, self).__init__(path)
+        super(MdfReader, self).__init__(path)
         # Read the structure here to facilitate the creation of the other objects.
         self._structure = self.read_structure()
 
@@ -545,7 +545,7 @@ class MDF_Reader(ETSF_Reader):
         return DielectricFunction(self.structure, self.qpoints, self.wmesh, emacros_q, info)
 
 
-class MDF_Plotter(object):
+class MdfPlotter(object):
     """
     Class for plotting multiple MDFs.
 
@@ -553,7 +553,7 @@ class MDF_Plotter(object):
                                                                   
     .. code-block:: python
         
-        plotter = MDF_Plotter()
+        plotter = MdfPlotter()
         plotter.add_mdf_from_file("foo_MDF.nc", label="foo mdf")
         plotter.add_mdf_from_file("bar_MDF.nc", label="bar mdf")
         plotter.plot()

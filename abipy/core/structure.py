@@ -231,6 +231,13 @@ class Structure(pymatgen.Structure):
         # Construct the stars.
         return [kpoint.compute_star(self.fm_symmops) for kpoint in self.hsym_kpoints]
 
+    def get_sorted_structure_z(self):
+        """
+        orders the structure according to increasing Z of the elements
+        """
+        sites = sorted(self.sites, key=lambda site: site.specie.Z)
+        return self.__class__.from_sites(sites)
+
     def findname_in_hsym_stars(self, kpoint):
         """Returns the name of the special k-point, None if kpoint is unknown.""" 
         for star in self.hsym_stars:
@@ -742,7 +749,7 @@ class Structure(pymatgen.Structure):
     def calc_kptbounds(self):
         """Returns the suggested value for kptbounds."""
         kptbounds = [k.frac_coords for k in self.hsym_kpoints]
-        return np.reshape(kptbounds, (-1,3))
+        return np.reshape(kptbounds, (-1, 3))
 
     def calc_ksampling(self, nksmall, symprec=0.01, angle_tolerance=5):
         """

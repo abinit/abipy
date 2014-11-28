@@ -1,23 +1,12 @@
----
-#host: gmac
 #qtype: shell
 #mpi_runner: mpirun
 #pre_run: "source ~/env.sh"
 #shell_env:
 #    PATH: "~/Coding/Abinit/bzr_archives/773/gmatteo-private/gcc/src/98_main/:$PATH"
 #    DYLD_LIBRARY_PATH: /opt/intel/composerxe-2011.0.085/mkl/lib/:/opt/intel/composerxe-2011.0.085/compiler/lib/:$DYLD_LIBRARY_PATH
-###omp_env:
-##    OMP_NUM_THREADS: 4
-policy:
-    autoparal: 1
-    max_ncpus: 2
-#    #automemory: 0
-#    #mode: aggressive
-#    #condition: {omp_ncpus: {$eq: 2}}}
-#    #condition: {mem_per_cpu: {$le: 10}}}
-#    #condition: {efficiency: {$gt: 0.99}}}
-#    #condition: {$and: [ {efficiency: {$gt: 0.99}}, {tot_ncpus: {$divisible: 2}} ]}
-#qtype: shell
+#policy:
+#    autoparal: 1
+#    max_ncpus: 2
 qadapters: 
     - priority: 1 
       queue:
@@ -46,64 +35,3 @@ qadapters:
 #    #port: 8080 
 #    #user: gmatteo
 #    #password: helloworld
-...
-#---
-#qtype: pbs
-#mpi_runner: mpirun
-#policy:
-#    # Enable autoparal, use maximum 48 CPUS and force npfft==1 (autoparal==1 must be passed explicitly)
-#    autoparal: 1
-#    max_ncpus: 200
-#    automemory: 0
-#    #vars_condition: {"npfft": {$eq: 1}}
-#    #condition: {mem_per_cpu: {$le: 10}}}
-#    condition: {$and: [{tot_cpus: {$gt: 96}}, {omp_ncpus: {$eq: 4}}, {npfft: {$eq: 1}}]}
-#    #condition: {$and: [ {efficiency: {$gt: 0.99}}, {tot_ncpus: {$divisible: 2}} ]}
-#    #mode: aggressive
-#omp_env:
-#    OMP_NUM_THREADS: 4
-#qparams:
-#    #queue: main
-#    queue: large
-#    #model: ivybridge
-#    #model: ivy
-#    #place: excl
-#    walltime: |
-#        24:00:00
-#    group_list: naps
-#    #pvmem: 8000
-#    #vmem: 8000
-#    pvmem: 1900
-#    vmem: 1900
-#    select: 24
-#    ompthreads: 4
-#mpi_runner: mpirun
-#shell_env:
-#     PATH: /home/acad/ucl/naps/mgiantom/bzr_repos/793/gmatteo-private/build_omp/src/98_main:$PATH
-#modules:
-#    - compiler/intel/composerxe/2013_sp1.1.106
-#    - intelmpi
-#    - python/2.7
-## pre_run is a string in verbatim mode (note |)
-#pre_run: |
-#    ulimit
-#...
-#---
-#host: manneback:Oban
-#qtype: slurm
-#qparams:
-#    ntasks: 2
-#    time: 0:20:00
-#    partition: Oban
-##setup:"SetEnv intel13_intel",
-#modules:
-#    - intel/compilerpro/13.0.1.117
-#    - fftw3/intel/3.3
-#shell_env:
-#     PATH: /home/naps/ygillet/NAPS/src/abinit-7.4.3-public/tmp_intel13/src/98_main/:/home/naps/ygillet/NAPS/intel13/bin:$PATH
-#     LD_LIBRARY_PATH: /home/naps/ygillet/NAPS/intel13/lib:$LD_LIBRARY_PATH
-#mpi_runner: mpirun
-#policy:
-#    autoparal: 1
-#    max_ncpus: 2
-#...

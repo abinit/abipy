@@ -14,7 +14,7 @@ from pymatgen.io.abinitio.wrappers import Mrgscr, Mrgddb, Mrggkk
 #    RelaxWorkflow, DeltaFactorWorkflow, G0W0_Workflow, SigmaConvWorkflow, BSEMDF_Workflow,
 #    PhononWorkflow)
 from pymatgen.io.abinitio.tasks import *
-from pymatgen.io.abinitio.workflows import *
+from pymatgen.io.abinitio.works import *
 from pymatgen.io.abinitio.flows import *
 from pymatgen.io.abinitio.launcher import PyFlowScheduler
 
@@ -22,14 +22,14 @@ from abipy.tools.prettytable import PrettyTable
 from abipy.core.structure import Structure, StructureModifier
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen, AnaddbInput
 from abipy.htc.robots import GsrRobot, SigresRobot, MdfRobot, abirobot
-from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter
-from abipy.electrons.gsr import GSR_File
-from abipy.electrons.gw import SIGRES_File, SIGRES_Plotter 
-from abipy.electrons.bse import MDF_File
+from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter, SigresPlotter
+from abipy.electrons.gsr import GsrFile
+from abipy.electrons.gw import SigresFile, SigresPlotter 
+from abipy.electrons.bse import MdfFile
 from abipy.electrons.scissors import ScissorsBuilder
-from abipy.phonons import PHBST_File, PhononBands, PHDOS_File, PHDOS_Reader
+from abipy.phonons import PhbstFile, PhononBands, PhdosFile
 from abipy.core.mixins import AbinitFile, AbinitLogFile, AbinitOutputFile
-from abipy.waves import WFK_File
+from abipy.waves import WfkFile
 
 # Tools for unit conversion
 #from abipy.core import constants
@@ -44,12 +44,16 @@ def _straceback():
 
 def abifile_subclass_from_filename(filename):
     """Returns the appropriate class associated to the given filename."""
+    #from abipy.iotools.files import AbinitFile, AbinitLogFile, AbinitOutputFile
+    #from abipy.electrons import SigresFile, GsrFile, MdfFile
+    #from abipy.waves import WfkFile
+
     ext2ncfile = {
-        "SIGRES.nc": SIGRES_File,
-        "WFK-etsf.nc": WFK_File,
-        "MDF.nc": MDF_File,
-        "GSR.nc": GSR_File,
-        "PHBST.nc": PHBST_File,
+        "SIGRES.nc": SigresFile,
+        "WFK-etsf.nc": WfkFile,
+        "MDF.nc": MdfFile,
+        "GSR.nc": GsrFile,
+        "PHBST.nc": PhbstFile,
     }
 
     #if filename.endswith(".abi"):
@@ -163,7 +167,7 @@ def abicheck():
 
 def flow_main(main):
     """
-    This decorator is used to decorate main functions producing `AbinitFlows`.
+    This decorator is used to decorate main functions producing `Flows`.
     It adds the initialization of the logger and an argument parser that allows one to select 
     the loglevel, the workdir of the flow as well as the YAML file with the parameters of the `TaskManager`.
     The main function shall have the signature:

@@ -53,7 +53,7 @@ def build_flow(options):
         new = special_positions(base_structure.lattice, u)
         news.append(new)
 
-    flow = abilab.AbinitFlow(workdir, manager=manager)
+    flow = abilab.Flow(workdir, manager=manager)
 
     # Create the list of workflows. Each workflow defines a band structure calculation.
     for new_structure, u in zip(news, uparams):
@@ -97,7 +97,7 @@ def make_workflow(structure, pseudos):
 
     gs_inp, nscf_inp = inp.split_datasets()
 
-    return abilab.BandStructureWorkflow(gs_inp, nscf_inp)
+    return abilab.BandStructureWork(gs_inp, nscf_inp)
 
 
 @abilab.flow_main
