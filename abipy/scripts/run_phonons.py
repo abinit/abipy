@@ -97,7 +97,7 @@ def scf_ph_inputs(structure, options):
     global_vars = dict(
         istwfk='*1',
         ecut=16.0,
-        ngkpt=[4, 4, 4],
+        ngkpt=[8, 8, 8],
         shiftk=[0, 0, 0],
         paral_kgb=0,
         nstep=200)
@@ -229,7 +229,7 @@ class NotReady(Exception):
 def main():
 
     cifs = [f for f in os.listdir('.') if f.endswith('cif')]
-    convtests = {'ecut': [37], 'ngkpt': [8], 'acell': [1.0]}
+    convtests = {'ecut': [16, 20, 24, 37], 'ngkpt': [8], 'acell': [1.0]}
 
     for cif in cifs:
         structure = Structure.from_file(cif)
