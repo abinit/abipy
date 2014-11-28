@@ -1,49 +1,67 @@
 # TaskManager configuration options.
+#policy:
+#    autoparal: 1
+#    max_ncpus: 2
+#    #condition:
+#    #vars_condition: {"npfft": {"$eq": 1}}
+#db_connector:
+#    enabled: no
+#    database: abinit 
+#    collection: test
+#    #host: 0.0.0.0 
+#    #port: 8080 
+#    #user: gmatteo
+#    #password: helloworld
+#qadapters:
+#  - qtype: shell
+#    qname: fast
+#    mpi_runner: mpirun
+#    pre_run:
+#      - "source ~/Coding/Abinit/bzr_archives/env.sh"
+#    partition: 
+#        # Mandatory
+#        num_nodes: 1
+#        sockets_per_node: 1
+#        cores_per_socket: 2
+#        mem_per_node: 4 Gb
+#        timelimit: 1:00:00
+#        priority: 1
+#        min_cores: 1
+#        max_cores: 2
+#        # Optional
+#        #condition: {"$eq": {omp_threads: 2}} 
+#  - qtype: shell
+#    qname: large
+#    mpi_runner: mpirun
+#    pre_run:
+#      - "source ~/Coding/Abinit/bzr_archives/env.sh"
+#    partition: 
+#        # Mandatory
+#        num_nodes: 1
+#        sockets_per_node: 1
+#        cores_per_socket: 2
+#        mem_per_node: 24 Gb
+#        timelimit: 2:00:00
+#        priority: 99
+#        min_cores: 1
+#        max_cores: 2
+#        # Optional
+#        #condition: {"$eq": {omp_threads: 2}} 
+        
+qtype: shell
+mpi_runner: mpirun
+pre_run: "source ~/env.sh"
+shell_env:
+    PATH: "~/Coding/Abinit/bzr_archives/773/gmatteo-private/gcc/src/98_main/:$PATH"
+    DYLD_LIBRARY_PATH: /opt/intel/composerxe-2011.0.085/mkl/lib/:/opt/intel/composerxe-2011.0.085/compiler/lib/:$DYLD_LIBRARY_PATH
+#omp_env:
+#    OMP_NUM_THREADS: 4
 policy:
     autoparal: 1
     max_ncpus: 2
-    #condition:
-    #vars_condition: {"npfft": {"$eq": 1}}
-db_connector:
-    enabled: no
-    database: abinit 
-    collection: test
-    #host: 0.0.0.0 
-    #port: 8080 
-    #user: gmatteo
-    #password: helloworld
-qadapters:
-  - qtype: shell
-    qname: fast
-    mpi_runner: mpirun
-    pre_run:
-      - "source ~/Coding/Abinit/bzr_archives/env.sh"
-    partition: 
-        # Mandatory
-        num_nodes: 1
-        sockets_per_node: 1
-        cores_per_socket: 2
-        mem_per_node: 4 Gb
-        timelimit: 1:00:00
-        priority: 1
-        min_cores: 1
-        max_cores: 2
-        # Optional
-        #condition: {"$eq": {omp_threads: 2}} 
-  - qtype: shell
-    qname: large
-    mpi_runner: mpirun
-    pre_run:
-      - "source ~/Coding/Abinit/bzr_archives/env.sh"
-    partition: 
-        # Mandatory
-        num_nodes: 1
-        sockets_per_node: 1
-        cores_per_socket: 2
-        mem_per_node: 24 Gb
-        timelimit: 2:00:00
-        priority: 99
-        min_cores: 1
-        max_cores: 2
-        # Optional
-        #condition: {"$eq": {omp_threads: 2}} 
+    #automemory: 0
+    #mode: aggressive
+    #condition: {omp_ncpus: {$eq: 2}}}
+    #condition: {mem_per_cpu: {$le: 10}}}
+    #condition: {efficiency: {$gt: 0.99}}}
+    #condition: {$and: [ {efficiency: {$gt: 0.99}}, {tot_ncpus: {$divisible: 2}} ]}

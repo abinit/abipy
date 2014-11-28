@@ -11,7 +11,7 @@ from abipy.core.testing import has_abinit
 from pymatgen.io.abinitio.calculations import bandstructure
 
 # Tests in this module require abinit >= 7.9.0
-pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
+#pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
 
 
 def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):

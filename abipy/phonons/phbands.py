@@ -65,7 +65,6 @@ class PhononMode(object):
     #def visualize(self, visualizer):
 
 
-
 class PhononBands(object):
     """
     Container object storing the phonon band structure.

@@ -186,31 +186,56 @@ class LdauLexxTest(AbipyTest):
 class AnaddbInputTest(AbipyTest):
     """Tests for AnaddbInput."""
 
+    def setUp(self):
+        self.structure = abidata.structure_from_ucell("Si")
+
     def test_phbands_and_dos(self):
         """Test phbands_and_dos constructor."""
-        structure = abidata.structure_from_ucell("Si")
-        inp = AnaddbInput(structure, comment="hello anaddb", brav=1)
+        inp = AnaddbInput(self.structure, comment="hello anaddb", brav=1)
         self.assertTrue("brav" in inp)
         self.assertEqual(inp["brav"], 1)
         self.assertEqual(inp.get("brav"), 1)
 
         # Unknown variable.
         with self.assertRaises(AnaddbInput.Error):
-            AnaddbInput(structure, foo=1)
+            AnaddbInput(self.structure, foo=1)
 
         ndivsm = 1
         nqsmall = 3
         ngqpt = (4, 4, 4)
 
-        inp2 = AnaddbInput.phbands_and_dos(structure, ngqpt, ndivsm, nqsmall, asr=0, dos_method="tetra")
+        inp2 = AnaddbInput.phbands_and_dos(self.structure, ngqpt, ndivsm, nqsmall, asr=0, dos_method="tetra")
+        self.assertEqual(inp2['dieflag'], 1)
+
         s2 = inp2.to_string(sortmode="a")
         print(s2)
 
-        inp3 = AnaddbInput.phbands_and_dos(structure, ngqpt, ndivsm, nqsmall,
+        inp3 = AnaddbInput.phbands_and_dos(self.structure, ngqpt, ndivsm, nqsmall,
                                            qptbounds=[0,0,0,1,1,1], dos_method="gaussian:0.001 eV")
+        self.assertEqual(inp3['dieflag'], 1)
         s3 = inp3.to_string(sortmode="a")
         print(s3)
 
+        for i in (inp, inp2, inp3):
+            self.serialize_with_pickle(i, test_eq=False)
+
+    def test_thermo(self):
+        """Test the thermodynamics constructor"""
+        anaddb_input = AnaddbInput.thermo(self.structure, ngqpt=(40, 40, 40), nqsmall=20)
+        self.assertTrue(anaddb_input.make_input())
+        for var in ('thmtol', 'ntemper', 'temperinc', 'thmtol'):
+            self.assertTrue(anaddb_input[var] >= 0)
+        for flag in ('ifcflag', 'thmflag'):
+            self.assertEqual(anaddb_input[flag], 1)
+        self.serialize_with_pickle(anaddb_input, test_eq=False)
+
+    def modes(self):
+        """Test the modes constructor"""
+        anaddb_input = AnaddbInput.modes(self.structure)
+        self.assertTrue(anaddb_input.make_input())
+        for flag in ('ifcflag', 'dieflag'):
+            self.assertEqual(anaddb_input[flag], 1)
+        self.serialize_with_pickle(anaddb_input, test_eq=False)
 
 if __name__ == "__main__":
     import unittest

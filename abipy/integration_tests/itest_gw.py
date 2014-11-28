@@ -9,7 +9,7 @@ from pymatgen.io.abinitio.calculations import g0w0_with_ppmodel
 from abipy.core.testing import has_abinit
 
 # Tests in this module require abinit >= 7.9.0
-pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
+#pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
 
 
 def make_g0w0_inputs(ngkpt, tvars):

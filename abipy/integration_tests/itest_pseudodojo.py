@@ -14,8 +14,8 @@ except ImportError:
     has_pseudodojo = False
 
 # Tests in this module require abinit >= 7.9.0 and pseudodojo.
-pytestmark = pytest.mark.skipif(not has_abinit("7.9.0") or not has_pseudodojo,
-                                reason="Requires abinit >= 7.9.0 and pseudodojo")
+#pytestmark = pytest.mark.skipif(not has_abinit("7.9.0") or not has_pseudodojo,
+#                                reason="Requires abinit >= 7.9.0 and pseudodojo")
 
 
 def itest_deltafactor(fwp, tvars):
