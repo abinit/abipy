@@ -146,8 +146,8 @@ class ElectronDOS(object):
         if title:
             ax1.set_title(title)
 
-        self.plot_ax(ax1, spin=spin, what="i", *args, **kwargs)
-        self.plot_ax(ax2, spin=spin, what="d", *args, **kwargs)
+        self.plot_ax(ax1, spin=spin, what="i", **kwargs)
+        self.plot_ax(ax2, spin=spin, what="d", **kwargs)
 
         if show:
             plt.show()
