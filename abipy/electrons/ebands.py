@@ -9,9 +9,9 @@ import copy
 import itertools
 import warnings
 import numpy as np
+import pymatgen.core.units as units
 
 from monty.collections import AttrDict
-from abipy.core import constants as const
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, Kpath, IrredZone, KpointsReaderMixin, kmesh_from_mpdivs
 from abipy.iotools import ETSF_Reader, Visualizer, bxsf_write
@@ -1530,7 +1530,7 @@ class ElectronBands(object):
 
     def effective_masses(self, spin, band, acc=4):
         """Compute the effective masses."""
-        ders2 = self.derivatives(spin, band, acc=acc) * const.eV_to_Ha / const.bohr_to_ang**2
+        ders2 = self.derivatives(spin, band, acc=acc) * units.eV_to_Ha / units.bohr_to_ang**2
         return 1.0/ders2
 
 
@@ -1937,7 +1937,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
 
     def read_eigenvalues(self):
         """Eigenvalues in eV."""
-        return const.ArrayWithUnit(self.read_value("eigenvalues"), "Ha").to("eV")
+        return units.ArrayWithUnit(self.read_value("eigenvalues"), "Ha").to("eV")
 
     def read_occupations(self):
         """Occupancies."""
@@ -1945,7 +1945,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
 
     def read_fermie(self):
         """Fermi level in eV."""
-        return const.FloatWithUnit(self.read_value("fermi_energy"), "Ha").to("eV")
+        return units.FloatWithUnit(self.read_value("fermi_energy"), "Ha").to("eV")
 
     def read_nelect(self):
         """Number of valence electrons."""
@@ -1967,7 +1967,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
         return Smearing(
             scheme=scheme,
             occopt=occopt,
-            tsmear_ev=const.FloatWithUnit(self.read_value("smearing_width"), "Ha").to("eV")
+            tsmear_ev=units.FloatWithUnit(self.read_value("smearing_width"), "Ha").to("eV")
         )
 
     #def read_xcinfo(self):

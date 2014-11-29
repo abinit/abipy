@@ -17,15 +17,15 @@ from pymatgen.io.abinitio.works import *
 from pymatgen.io.abinitio.flows import *
 from pymatgen.io.abinitio.launcher import PyFlowScheduler
 
-from abipy.core import constants
 from abipy.core.structure import Structure, StructureModifier
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen, AnaddbInput
 from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter, SigresPlotter
 from abipy.phonons import PhbstFile, PhononBands, PhdosFile
 
 # Tools for unit conversion
-FloatWithUnit = constants.FloatWithUnit
-ArrayWithUnit = constants.ArrayWithUnit
+import pymatgen.core.units as units
+FloatWithUnit = units.FloatWithUnit
+ArrayWithUnit = units.ArrayWithUnit
 
 
 def _straceback():
