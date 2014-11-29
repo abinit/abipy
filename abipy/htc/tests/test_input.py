@@ -229,7 +229,7 @@ class AnaddbInputTest(AbipyTest):
             self.assertEqual(anaddb_input[flag], 1)
         self.serialize_with_pickle(anaddb_input, test_eq=False)
 
-    def modes(self):
+    def test_modes(self):
         """Test the modes constructor"""
         anaddb_input = AnaddbInput.modes(self.structure)
         self.assertTrue(anaddb_input.make_input())
