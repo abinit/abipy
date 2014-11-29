@@ -22,10 +22,8 @@ class Function1D(object):
     def __init__(self, mesh, values):
         """
         Args:
-            mesh:
-                array-like object with the real points of the grid.
-            values:
-                array-like object with the values of the function (can be complex-valued)
+            mesh: array-like object with the real points of the grid.
+            values: array-like object with the values of the function (can be complex-valued)
         """
         self._mesh = np.ascontiguousarray(mesh)
         self._values = np.ascontiguousarray(values)
@@ -130,9 +128,9 @@ class Function1D(object):
         """
         Initialize the object from a callable.
 
-        .. example:
+        .. example::
 
-            Function1D.from_func(np.sin, mesh=np.arange(1,10))
+           >>> Function1D.from_func(np.sin, mesh=np.arange(1,10))
         """
         return cls(mesh, np.vectorize(func)(mesh))
 
@@ -143,15 +141,10 @@ class Function1D(object):
         see also :func:`np.loadtxt`
 
         Args:
-            path:
-                Path to the file containing data.
-            comments:
-                The character used to indicate the start of a comment; default: '#'.
-            delimiter: str, optional
-                The string used to separate values. By default, this is any whitespace.
-            usecols:
-                sequence, optional
-                Which columns to read, with 0 being the first.
+            path: Path to the file containing data.
+            comments: The character used to indicate the start of a comment; default: '#'.
+            delimiter: str, optional The string used to separate values. By default, this is any whitespace.
+            usecols: sequence, optional. Which columns to read, with 0 being the first.
                 For example, usecols = (1,4) will extract data from the 2nd, and 5th columns.
         """
         mesh, values = np.loadtxt(path, comments=comments, delimiter=delimiter,
@@ -246,10 +239,8 @@ class Function1D(object):
         Compute the derivatives by finite differences.
 
         Args:
-            order:
-                Order of the derivative.
-            acc:
-                Accuracy. 4 is fine in many cases.
+            order: Order of the derivative.
+            acc: Accuracy. 4 is fine in many cases.
 
         Returns:
             new `Function1d` instance with the derivative.
@@ -297,10 +288,8 @@ class Function1D(object):
         Returns the definite integral of the spline of f between two given points a and b
 
         Args:
-            a:
-                First point. mesh[0] if a is None
-            b:
-                Last point. mesh[-1] if a is None
+            a: First point. mesh[0] if a is None
+            b: Last point. mesh[-1] if a is None
         """
         a = self.mesh[0] if a is None else a
         b = self.mesh[-1] if b is None else b
@@ -374,24 +363,20 @@ class Function1D(object):
         Helper function to plot self on axis ax.
 
         Args:
-            ax:
-                `matplotlib` axis.
-            exchange_xy:
-                True to exchange the axis in the plot
-            args:
-                Positional arguments passed to ax.plot
-            kwargs:
-                Keyword arguments passed to `matplotlib`.
-                Accepts also:
+            ax: `matplotlib` axis.
+            exchange_xy: True to exchange the axis in the plot
+            args: Positional arguments passed to ax.plot
+            kwargs: Keyword arguments passed to `matplotlib`.  Accepts also:
 
-                cplx_mode:
-                    string defining the data to print. Possible choices are (case-insensitive):
-
-                        - "re"  for real part.
-                        - "im" for imaginary part.
-                        - "abs" for the absolute value
-
-                    Options can be concatenated with "-"
+        ==============  ==============================================================
+        kwargs          Meaning
+        ==============  ==============================================================
+        cplx_mode       string defining the data to print. Possible choices are (case-insensitive):
+                            - "re"  for real part.
+                            - "im" for imaginary part.
+                            - "abs" for the absolute value
+                        Options can be concatenated with "-"
+        ==============  ==============================================================
 
         Returns:
             List of lines added.
@@ -420,16 +405,12 @@ class Function1D(object):
 
     def plot(self, **kwargs):
         """
-        Args:
-            args:
-                Positional arguments passed to `matplotlib`.
-
         ==============  ==============================================================
         kwargs          Meaning
         ==============  ==============================================================
         title           Title of the plot (Default: None).
         show            True to show the figure (Default: True).
-        savefig:        'abc.png' or 'abc.eps'* to save the figure to a file.
+        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
         ==============  ==============================================================
 
         Returns:

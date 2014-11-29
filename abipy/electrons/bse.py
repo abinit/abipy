@@ -132,24 +132,23 @@ class DielectricTensor(object):
         Helper function to plot data on the axis ax.
 
         Args:
-            ax:
-                plot axis
-            what:
-                Sequential index of the tensor matrix element. 
-            args:
-                Positional arguments passed to ax.plot
-            kwargs:
-                Keyword arguments passed to matplotlib. Accepts also:
+            ax: plot axis
+            what: Sequential index of the tensor matrix element. 
+            args: Positional arguments passed to ax.plot
+            kwargs: Keyword arguments passed to matplotlib. Accepts also:
 
-                cplx_mode:
-                    string defining the data to print (case-insensitive).
-                    Possible choices are 
+        ==============  ==============================================================
+        kwargs          Meaning
+        ==============  ==============================================================
+        cplx_mode:      string defining the data to print (case-insensitive).
+                        Possible choices are:
 
-                        - "re"  for real part 
-                        - "im" for imaginary part only.
-                        - "abs' for the absolute value
+                            - "re"  for real part 
+                            - "im" for imaginary part only.
+                            - "abs' for the absolute value
 
-                    Options can be concated with "-".
+                        Options can be concated with "-".
+        ==============  ==============================================================
         """
         # Extract the function to plot according to qpoint.
         if isinstance(what, int):
@@ -172,18 +171,12 @@ class DielectricFunction(object):
     def __init__(self, structure, qpoints, wmesh, emacros_q, info):
         """
         Args:
-            structure:
-                Structure object.
-            qpoints:
-                `KpointList` with the qpoints in reduced coordinates.
-            wmesh:
-                Array-like object with the frequency mesh (eV).
-            emacros_q:
-                Iterable with the macroscopic dielectric function for the
-                different q-points.
-            info:
-                Dictionary containing info on the calculation that produced
-                the results (read from file). It must contain the following keywords:
+            structure: :class: Structure object.
+            qpoints: :class:`KpointList` with the qpoints in reduced coordinates.
+            wmesh: Array-like object with the frequency mesh (eV).
+            emacros_q: Iterable with the macroscopic dielectric function for the different q-points.
+            info: Dictionary containing info on the calculation that produced
+                  the results (read from file). It must contain the following keywords:
 
                     - "lfe": True if local field effects are included.
                     - "calc_type": string defining the calculation type.
@@ -238,14 +231,11 @@ class DielectricFunction(object):
         Write data on stream with format fmt. See also `numpy.savetxt`.
 
         Args:
-            stream:
-                filename or file handle. If the filename ends in .gz, the file is automatically
-                saved in compressed gzip format.
-            fmt: 
-                str or sequence of strings, optional. A single format (%10.5f), a sequence of formats,
-                or a multi-format string,
-            delimiter:
-                Character separating columns.
+            stream: filename or file handle. If the filename ends in .gz, the file is automatically
+                    saved in compressed gzip format.
+            fmt:  str or sequence of strings, optional. A single format (%10.5f), a sequence of formats,
+                  or a multi-format string,
+            delimiter: Character separating columns.
         """
         header = \
             """
@@ -321,12 +311,8 @@ class DielectricFunction(object):
         Helper function to plot data on the axis ax.
 
         Args:
-            ax:
-                plot axis.
-            qpoint:
-                index of the q-point or Kpoint object or None) to plot emacro_avg.
-            args:
-                Positional arguments passed to ax.plot
+            ax: plot axis.
+            qpoint: index of the q-point or Kpoint object or None) to plot emacro_avg.
             kwargs:
                 Keyword arguments passed to matplotlib. Accepts also:
 
@@ -556,10 +542,8 @@ class MdfPlotter(object):
         Adds a MDF for plotting.
 
         Args:
-            name:
-                name for the MDF. Must be unique.
-            mdf:
-                `DielectricFunction` object.
+            name: name for the MDF. Must be unique.
+            mdf: `DielectricFunction` object.
         """
         if label in self._mdfs:
             raise ValueError("name %s is already in %s" % (label, self._mdfs.keys()))
@@ -571,10 +555,8 @@ class MdfPlotter(object):
         Adds a mdf for plotting. Reads data from file filepaths.
 
         Args:
-            mdf_type:
-                String defining the type of mdf.
-            name:
-                Optional string used to name the plot.
+            mdf_type: String defining the type of mdf.
+            name: Optional string used to name the plot.
         """
         from abipy.abilab import abiopen
 
@@ -590,17 +572,15 @@ class MdfPlotter(object):
         Get a matplotlib plot showing the MDFs.
 
         Args:
-            qpoint:
-                index of the q-point or Kpoint object or None to plot emacro_avg.
-            cplx_mode:
-                string defining the data to print (case-insensitive).
-                Possible choices are 
+            qpoint: index of the q-point or Kpoint object or None to plot emacro_avg.
+            cplx_mode: string defining the data to print (case-insensitive).
+                       Possible choices are 
                                                                       
-                    - "re"  for real part 
-                    - "im" for imaginary part only.
-                    - "abs' for the absolute value
+                        - "re"  for real part 
+                        - "im" for imaginary part only.
+                        - "abs' for the absolute value
                                                                        
-                Options can be concated with "-".
+                       Options can be concated with "-".
 
         ==============  ==============================================================
         kwargs          Meaning

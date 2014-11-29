@@ -8,24 +8,22 @@ from abipy.core.func1d import Function1D
 from abipy.iotools import ETSF_Reader, AbinitNcFile, Has_Structure
 
 __all__ = [
-    "PhononDOS",
+    "PhononDos",
     "PhdosReader",
     "PhdosFile",
 ]
 
 
-class PhononDOS(object):
+class PhononDos(object):
     """This object stores the phonon density of states."""
 
     def __init__(self, mesh, values):
         """
         Args:
-            mesh:
-                array-like object with the points of the mesh.
-            mesh:
-                array-like object with the DOS values.
+            mesh: array-like object with the points of the mesh.
+            mesh: array-like object with the DOS values.
 
-        .. note:
+        .. note::
             mesh is given in eV, values are in states/eV.
         """
         self.dos = Function1D(mesh, values)
@@ -36,18 +34,16 @@ class PhononDOS(object):
         Helper function to plot the data on the axis ax.
 
         Args:
-            ax:
-                matplotlib axis
-            what:
-                string selecting the quantity to plot:
+            ax: matplotlib axis
+            what: string selecting the quantity to plot:
                 "d" for DOS, "i" for IDOS. chars can be concatenated
                 hence what="id" plots both IDOS and DOS. (default "d").
-            exchange_xy:
-                True to exchange exis
+            exchange_xy: True to exchange exis
             args, kwargs:
                 Options passes to matplotlib.
 
-        Return value is a list of lines that were added.
+        Return:
+            list of lines added to the plot
         """
         opts = [c.lower() for c in what]
 
@@ -121,7 +117,7 @@ class PhdosReader(ETSF_Reader):
     """
     This object reads data from the PHDOS.nc file produced by anaddb.
 
-    .. note:
+    .. note::
             Frequencies are in eV, DOSes are in states/eV.
     """
 
@@ -161,17 +157,17 @@ class PhdosReader(ETSF_Reader):
             self.__structure = self.read_structure()
         return self.__structure
 
-    def read_phdos(self):
-        """Return the PhononDOS."""
-        return PhononDOS(self.wmesh, self.read_value("phdos"))
+    def read_phdos(self, cls=PhononDos):
+        """Return the :class:`PhononDOS`."""
+        return cls(self.wmesh, self.read_value("phdos"))
 
-    def read_pjdos_type(self, symbol):
+    def read_pjdos_type(self, symbol, cls=PhononDos):
         """
         The contribution to the DOS due to the atoms of given chemical symbol.
         pjdos_type(ntypat,nomega)
         """
         type_idx = self.typeidx_from_symbol(symbol)
-        return PhononDOS(self.wmesh, self.pjdos_type[type_idx])
+        return cls(self.wmesh, self.pjdos_type[type_idx])
 
         # def read_pjdos(self, atom_idx=None):
         #     """
@@ -213,7 +209,7 @@ class PhdosFile(AbinitNcFile, Has_Structure):
 
     @property
     def structure(self):
-        """Returns the `Structure` object."""
+        """Returns the :class:`Structure` object."""
         return self._structure
 
     def plot_pjdos_type(self, colormap="jet", **kwargs):

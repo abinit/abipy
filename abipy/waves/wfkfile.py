@@ -82,12 +82,12 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
     @property
     def structure(self):
-        """`Structure` object"""
+        """:class:`Structure` object"""
         return self.ebands.structure
 
     @property
     def ebands(self):
-        """`ElectronBands` object"""
+        """:class:`ElectronBands` object"""
         return self._ebands
 
     @property
@@ -102,7 +102,7 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
     @property
     def gspheres(self):
-        """List of `GSphere` objects ordered by k-points."""
+        """List of :class:`GSphere` objects ordered by k-points."""
         return self._gspheres
 
     @property
@@ -118,8 +118,7 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         String representation
 
         Args:
-            prtvol:
-                verbosity level.
+            prtvol: verbosity level.
         """
         keys = ["nspinor", "nspden"]
         lines = []
@@ -136,7 +135,7 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         return "\n".join(lines)
 
     def kindex(self, kpoint):
-        """The index of the k-point in the file. Accepts: `Kpoint` object or int."""
+        """The index of the k-point in the file. Accepts :class:`Kpoint` object or int."""
         return self.reader.kindex(kpoint)
 
     def get_wave(self, spin, kpoint, band):
@@ -144,15 +143,12 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         Read and return the wavefunction with the given spin, band and kpoint.
 
         Args:
-            spin:
-                spin index (0,1)
-            kpoint:
-                Either `Kpoint` instance or integer giving the sequential index in the IBZ (C-convention).
-            band:
-                band index.
+            spin: spin index. Must be in (0, 1)
+            kpoint: Either :class:`Kpoint` instance or integer giving the sequential index in the IBZ (C-convention).
+            band: band index.
 
             returns:
-                `WaveFunction` instance.
+                :class:`WaveFunction` instance.
         """
         k = self.kindex(kpoint)
 
@@ -207,14 +203,10 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         Analyze the caracter of the bands at the given k-point and spin.
 
         Args:
-            spin:
-                Spin index.
-            kpoint:
-                K-point index or `Kpoint` object 
-            bands_range:
-                Range of band indices to analyze.
-            tol_ediff:
-                Tolerance on the energy difference (in eV)
+            spin: Spin index.
+            kpoint: K-point index or :class:`Kpoint` object 
+            bands_range: Range of band indices to analyze.
+            tol_ediff: Tolerance on the energy difference (in eV)
         """
         # Extract the k-point index to speed up the calls belows
         k = self.kindex(kpoint)
@@ -301,7 +293,7 @@ class WFK_Reader(ElectronsReader):
         """
         Index of the k-point in the internal tables.
 
-        Accepts: `Kpoint` instance or integer.
+        Accepts: :class:`Kpoint` instance or integer.
         """
         if isinstance(kpoint, int):
             return kpoint
@@ -311,7 +303,7 @@ class WFK_Reader(ElectronsReader):
     def read_gvecs_istwfk(self, kpoint):
         """
         Read the set of G-vectors and the value of istwfk for the given k-point.
-        Accepts `Kpoint` object or integer.
+        Accepts :class:`Kpoint` object or integer.
         """
         k = self.kindex(kpoint)
         npw_k, istwfk = self.npwarr[k], self.istwfk[k]

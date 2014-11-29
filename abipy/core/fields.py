@@ -27,18 +27,12 @@ class ScalarField(object):
     def __init__(self, nspinor, nsppol, nspden, datar, structure, iorder="c"):
         """
         Args:
-            nspinor:
-                Number of spinorial components.
-            nsppol:
-                Number of spins.
-            nspden:
-                Number of spin density components.
-            datar:
-                numpy array with the scalar field in real space. shape [..., nx, ny, nz]
-            structure:
-                `Structure` object describing the crystalline structure.
-            iorder:
-                Order of the array. "c" for C ordering, "f" for Fortran ordering.
+            nspinor: Number of spinorial components.
+            nsppol: Number of spins.
+            nspden: Number of spin density components.
+            datar: numpy array with the scalar field in real space. shape [..., nx, ny, nz]
+            structure: :class:`Structure` object describing the crystalline structure.
+            iorder: Order of the array. "c" for C ordering, "f" for Fortran ordering.
         """
         self.nspinor, self.nsppol, self.nspden = nspinor, nsppol, nspden
         self.structure = structure
@@ -79,17 +73,17 @@ class ScalarField(object):
 
     @property
     def datar(self):
-        """`ndarrray` with data in real space."""
+        """`ndarray` with data in real space."""
         return self._datar
 
     @property
     def datag(self):
-        """`ndarrray` with data in reciprocal space."""
+        """`ndarray` with data in reciprocal space."""
         return self._datag
 
     @property
     def mesh(self):
-        """`Mesh3D`"""
+        """:class:`Mesh3D`"""
         return self._mesh
 
     @property
@@ -218,12 +212,11 @@ class ScalarField(object):
         Export the real space data on file filename. 
 
         Args:
-            filename:
-                String specifying the file path and the file format.
+            filename: String specifying the file path and the file format.
                 The format is defined by the file extension. filename="prefix.xsf", for example, 
                 will produce a file in XSF format. An *empty* prefix, e.g. ".xsf" makes the code use a temporary file.
             visu:
-               `Visualizer` subclass. By default, this method returns the first available
+               :class:`Visualizer` subclass. By default, this method returns the first available
                 visualizer that supports the given file format. If visu is not None, an
                 instance of visu is returned. See :class:`Visualizer` for the list of 
                 applications and formats supported.
@@ -307,18 +300,13 @@ class Density(ScalarField):
     def __init__(self, nspinor, nsppol, nspden, rhor, structure, iorder="c"):
         """
         Args:
-            nspinor:
-                Number of spinorial components.
-            nsppol:
-                Number of spins.
-            nspden:
-                Number of spin density components.
+            nspinor: Number of spinorial components.
+            nsppol: Number of spins.
+            nspden: Number of spin density components.
             datar:
-                numpy array with the field in real space.
-            structure:
-                pymatgen structure
-            iorder:
-                Order of the array. "c" for C ordering, "f" for Fortran ordering.
+                `numpy` array with the field in real space.
+            structure: pymatgen structure
+            iorder: Order of the array. "c" for C ordering, "f" for Fortran ordering.
         """
         super(Density, self).__init__(nspinor, nsppol, nspden, rhor, structure, iorder=iorder)
 
@@ -328,8 +316,7 @@ class Density(ScalarField):
         Read density from an external netCDF file.
 
         Args:
-            filepath:
-                string or file object.
+            filepath: string or file object.
         """
         with DensityReader(filepath) as r:
             structure = r.read_structure()
@@ -451,7 +438,7 @@ class Density(ScalarField):
 class DensityReader(ETSF_Reader):
     """This object reads density data from a netcdf file."""
     def read_dendims(self):
-        """Returns an `AttrDict` dictionary with the basic dimensions."""
+        """Returns an :class:`AttrDict` dictionary with the basic dimensions."""
         return AttrDict(
             cplex_den=self.read_dimvalue("real_or_complex_density"),
             nspinor=self.read_dimvalue("number_of_spinor_components"),

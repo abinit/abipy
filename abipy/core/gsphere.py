@@ -17,16 +17,11 @@ class GSphere(collections.Sequence):
     def __init__(self, ecut, lattice, kpoint, gvecs, istwfk=1):
         """
         Args:
-            ecut:
-                Cutoff energy in Hartree.
-            lattice:
-                Reciprocal lattice.
-            kpoint:
-                Reduced coordinates of the k-point.
-            gvecs:
-                Array with the reduced coordinates of the G-vectors.
-            istwfk:
-                Storage option (time-reversal symmetry, see abinit variable)
+            ecut: Cutoff energy in Hartree.
+            lattice: Reciprocal lattice.
+            kpoint: Reduced coordinates of the k-point.
+            gvecs: Array with the reduced coordinates of the G-vectors.
+            istwfk: Storage option (time-reversal symmetry, see abinit variable)
         """
         self.ecut = ecut
         self.lattice = lattice
@@ -234,8 +229,7 @@ class GSphere(collections.Sequence):
         Returns a new `GSphere` centered on Sk.
 
         Args:
-            symmop:
-                Symmetry operation
+            symmop: Symmetry operation object.
         """
         # The problem in this approach is that G-spheres centered on the 
         # same k-point might have G-vectors ordered in a different way

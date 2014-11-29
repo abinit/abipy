@@ -20,7 +20,7 @@ from pymatgen.io.abinitio.launcher import PyFlowScheduler
 from abipy.core.structure import Structure, StructureModifier
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen, AnaddbInput
 from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter, SigresPlotter
-from abipy.phonons import PhbstFile, PhononBands, PhdosFile
+from abipy.phonons import PhbstFile, PhononBands, PhdosFile, PhdosReader
 
 # Tools for unit conversion
 import pymatgen.core.units as units

@@ -269,7 +269,7 @@ class QPList(list):
             ax.set_ylabel(field)
             yy = qps.get_field(field)
             ax.plot(e0mesh, yy, linestyle, **kwargs)
-            ax.plot(e0mesh, e0mesh)
+            #ax.plot(e0mesh, e0mesh)
             if fermi is not None:
                 ax.plot(2*[fermi], [min(yy), max(yy)])
 
