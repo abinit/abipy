@@ -20,7 +20,7 @@ def ngkpt_flow():
     flow = abilab.Flow.from_inputs("flow_base3_ngkpt", inputs=inp.split_datasets())
     flow.make_scheduler().start()
 
-    with abilab.GsrRobot.open(flow) as robot:
+    with abilab.abirobot(flow, "GSR") as robot:
         #robot.ebands_plotter().plot()
         data = robot.get_dataframe()
 

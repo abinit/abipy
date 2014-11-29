@@ -84,7 +84,7 @@ def gs_flow():
     flow = abilab.Flow.from_inputs(workdir="flow_spin", inputs=inputs)
     #flow.make_scheduler().start()
 
-    with abilab.GsrRobot.open(flow) as robot:
+    with abilab.abirobot(flow, "GSR") as robot:
         data = robot.get_dataframe()
         print(data)
 

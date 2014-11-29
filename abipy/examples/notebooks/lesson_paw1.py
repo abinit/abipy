@@ -49,7 +49,7 @@ def ecutconv_flow():
     flow = abilab.Flow.from_inputs("flow_ecutconv", inputs)
     flow.make_scheduler().start()
 
-    with abilab.GsrRobot.open(flow) as robot:
+    with abilab.abirobot(flow, "GSR") as robot:
         data = robot.get_dataframe()
         print(data)
         data.plot(x="ecut", y="energy", title="Energy vs ecut")
@@ -63,7 +63,7 @@ def pawecutdgconv_flow():
     flow.build()
     flow.make_scheduler().start()
 
-    with abilab.GsrRobot.open(flow) as robot:
+    with abilab.abirobot(flow, "GSR") as robot:
         data = robot.get_dataframe()
         print(data)
         data.plot(x="pawecutdg", y="energy", title="Energy vs pawecutdg")
@@ -79,7 +79,7 @@ def flow_ecut_pawecutdg():
     flow.build()
     flow.make_scheduler().start()
 
-    with abilab.GsrRobot.open(flow) as robot:
+    with abilab.abirobot(flow, "GSR") as robot:
         data = robot.get_dataframe()
         print(data)
 
@@ -101,7 +101,7 @@ def eos_flow():
 
     #flow.make_scheduler().start()
 
-    with abilab.GsrRobot.open(flow) as robot:
+    with abilab.abirobot(flow, "GSR") as robot:
         fit = robot.eos_fit()
         fits, table = robot.eos_fit("all")
         print(table)

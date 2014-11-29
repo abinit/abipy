@@ -79,7 +79,7 @@ def ecut_convergence_study():
     import matplotlib.pyplot as plt
     import pandas as pd
 
-    with abilab.GsrRobot.open(flow) as robot:
+    with abilab.abirobot(flow, "GSR") as robot:
         frame = robot.get_dataframe()
         frame = frame[["formula", "ecut", "energy"]]
         print(frame)

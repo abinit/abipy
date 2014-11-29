@@ -63,7 +63,7 @@ def tsmear_nkpts_convergence(tsmear_list=(0.01, 0.02, 0.03, 0.04), nksmall_list=
     flow = abilab.Flow.from_inputs(workdir="flow_al_conv_relax", inputs=inputs)
 
     #flow.make_scheduler().start()
-    with abilab.GsrRobot.open(flow) as robot:
+    with abilab.abirobot(flow, "GSR") as robot:
         data = robot.get_dataframe()
 
     import matplotlib.pyplot as plt
