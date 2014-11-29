@@ -5,7 +5,7 @@ from __future__ import print_function, division, unicode_literals
 import numpy as np
 
 from abipy.tools import transpose_last3dims, add_periodic_replicas
-from abipy.core.constants import Energy, EnergyArray
+from pymatgen.core.units import Energy, EnergyArray
 
 __all__ = [
     "xsf_write_structure",

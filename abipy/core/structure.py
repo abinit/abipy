@@ -8,10 +8,11 @@ import numpy as np
 
 from monty.collections import AttrDict
 from monty.functools import lazy_property
+from pymatgen.core.units import ArrayWithUnit
 from pymatgen.io.abinitio.pseudos import PseudoTable
 from pymatgen.core.structure import PeriodicSite
+from pymatgen.io.abinitio.pseudos import PseudoTable
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from abipy.core.constants import ArrayWithUnit
 from abipy.core.symmetries import SpaceGroup
 from abipy.iotools import as_etsfreader, Visualizer
 from abipy.iotools import xsf

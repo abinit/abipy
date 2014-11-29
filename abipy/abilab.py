@@ -18,7 +18,7 @@ from pymatgen.io.abinitio.works import *
 from pymatgen.io.abinitio.flows import *
 from pymatgen.io.abinitio.launcher import PyFlowScheduler
 
-from abipy.tools.prettytable import PrettyTable
+#from abipy.tools.prettytable import PrettyTable
 from abipy.core.structure import Structure, StructureModifier
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen, AnaddbInput
 from abipy.htc.robots import GsrRobot, SigresRobot, MdfRobot, abirobot
@@ -32,9 +32,10 @@ from abipy.core.mixins import AbinitFile, AbinitLogFile, AbinitOutputFile
 from abipy.waves import WfkFile
 
 # Tools for unit conversion
-#from abipy.core import constants
-#FloatWithUnit = constants.FloatWithUnit
-#ArrayWithUnit = constants.ArrayWithUnit
+import pymatgen.core.units as units
+FloatWithUnit = units.FloatWithUnit
+ArrayWithUnit = units.ArrayWithUnit
+
 
 def _straceback():
     """Returns a string with the traceback."""
