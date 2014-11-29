@@ -31,21 +31,12 @@ class ScalarField(Has_Structure):
     def __init__(self, nspinor, nsppol, nspden, datar, structure, iorder="c"):
         """
         Args:
-            nspinor:
-                Number of spinorial components.
-            nsppol:
-                Number of spins.
-            nspden:
-                Number of spin density components.
-            datar:
-                numpy array with the scalar field in real space. shape [nspden, nx, ny, nz]
-                Note that here, unlike, abinit we store the spin-components instead of the
-                sum over spins. For spin-polarized calculation, for example, datar[0] contains
-                the spin-up term whereas datar[1] stores the spin-up contribution.
-            structure:
-                `Structure` object describing the crystalline structure.
-            iorder:
-                Order of the array. "c" for C ordering, "f" for Fortran ordering.
+            nspinor: Number of spinorial components.
+            nsppol: Number of spins.
+            nspden: Number of spin density components.
+            datar: numpy array with the scalar field in real space. shape [..., nx, ny, nz]
+            structure: :class:`Structure` object describing the crystalline structure.
+            iorder: Order of the array. "c" for C ordering, "f" for Fortran ordering.
         """
         self.nspinor, self.nsppol, self.nspden = nspinor, nsppol, nspden
         self._structure = structure
@@ -86,7 +77,7 @@ class ScalarField(Has_Structure):
 
     @property
     def datar(self):
-        """`ndarrray` with data in real space."""
+        """`ndarray` with data in real space."""
         return self._datar
 
     @lazy_property
@@ -97,7 +88,7 @@ class ScalarField(Has_Structure):
 
     @property
     def mesh(self):
-        """`Mesh3D`"""
+        """:class:`Mesh3D`"""
         return self._mesh
 
     @property
@@ -223,12 +214,11 @@ class ScalarField(Has_Structure):
         Export the real space data on file filename. 
 
         Args:
-            filename:
-                String specifying the file path and the file format.
+            filename: String specifying the file path and the file format.
                 The format is defined by the file extension. filename="prefix.xsf", for example, 
                 will produce a file in XSF format. An *empty* prefix, e.g. ".xsf" makes the code use a temporary file.
             visu:
-               `Visualizer` subclass. By default, this method returns the first available
+               :class:`Visualizer` subclass. By default, this method returns the first available
                 visualizer that supports the given file format. If visu is not None, an
                 instance of visu is returned. See :class:`Visualizer` for the list of 
                 applications and formats supported.
@@ -311,23 +301,18 @@ class Density(ScalarField):
         with DensityReader(filepath) as r:
             return r.read_density(cls=cls)
 
-    #def __init__(self, nspinor, nsppol, nspden, rhor, structure, iorder="c"):
-    #    """
-    #    Args:
-    #        nspinor:
-    #            Number of spinorial components.
-    #        nsppol:
-    #            Number of spins.
-    #        nspden:
-    #            Number of spin density components.
-    #        datar:
-    #            numpy array with the field in real space.
-    #        structure:
-    #            pymatgen structure
-    #        iorder:
-    #            Order of the array. "c" for C ordering, "f" for Fortran ordering.
-    #    """
-    #    super(Density, self).__init__(nspinor, nsppol, nspden, rhor, structure, iorder=iorder)
+    def __init__(self, nspinor, nsppol, nspden, rhor, structure, iorder="c"):
+        """
+        Args:
+            nspinor: Number of spinorial components.
+            nsppol: Number of spins.
+            nspden: Number of spin density components.
+            datar:
+                `numpy` array with the field in real space.
+            structure: pymatgen structure
+            iorder: Order of the array. "c" for C ordering, "f" for Fortran ordering.
+        """
+        super(Density, self).__init__(nspinor, nsppol, nspden, rhor, structure, iorder=iorder)
 
     def get_nelect(self, spin=None):
         """
@@ -462,7 +447,7 @@ class DensityReader(ETSF_Reader):
     """This object reads density data from a netcdf file."""
 
     def read_den_dims(self):
-        """Returns an `AttrDict` dictionary with the dimensions characterizing the density"""
+        """Returns an :class:`AttrDict` dictionary with the basic dimensions."""
         return AttrDict(
             cplex_den=self.read_dimvalue("real_or_complex_density"),
             nspinor=self.read_dimvalue("number_of_spinor_components"),

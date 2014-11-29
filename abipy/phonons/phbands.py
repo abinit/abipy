@@ -11,7 +11,7 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands
 from abipy.core.kpoints import Kpoint
 from abipy.tools import gaussian
 from abipy.iotools import ETSF_Reader
-from .phdos import PhononDOS
+from .phdos import PhononDos
 
 __all__ = [
     "PhononBands",
@@ -33,14 +33,10 @@ class PhononMode(object):
     def __init__(self, qpoint, freq, displ_cart, structure):
         """
         Args:
-            qpoint:
-                qpoint in reduced coordinates.
-            freq:
-                Phonon frequency in eV.
-            displ:
-                Displacement (Cartesian coordinates, Angstrom)
-            structure:
-                Pymatgen structure.
+            qpoint: qpoint in reduced coordinates.
+            freq: Phonon frequency in eV.
+            displ: Displacement (Cartesian coordinates, Angstrom)
+            structure: Pymatgen :class:`Structure`.
         """
         self.qpoint = Kpoint.as_kpoint(qpoint, structure.reciprocal_lattice)
         self.freq = freq
@@ -74,16 +70,15 @@ class PhononBands(object):
 
     .. Attributes:
 
-        phfreqs:
-            # (nqpt, 3*natom)
-        phdispl_cart:
-            # (nqpt, 3*natom, 3*natom)
-            # the last dimension stores the cartesian components.
+        phfreqs: array with phonon frequencies. Shape=(nqpt, 3*natom)
+        phdispl_cart: phonon displacements in Cartesian coordinates.
+            `ndarray` of shape (nqpt, 3*natom, 3*natom).
+            The last dimension stores the cartesian components.
         qpoints:
-            # qpoints and wtq are replaced by self.ibz that is a list of KpointList.
+            qpoints and wtq are replaced by self.ibz that is a list of KpointList.
         weights:
 
-    .. note:
+    .. note::
         Frequencies are in eV. Cartesian displacements are in Angstrom.
     """
 
@@ -92,19 +87,14 @@ class PhononBands(object):
         Args:
             structure:
                 Structure object
-            qpoints:
-                KpointList instance.
-            phfreqs:
-                Phonon frequencies in eV.
-            phdispl_cart:
-                Displacement in Cartesian coordinates.
-            markers:
-                Optional dictionary containing markers labelled by a string.
+            qpoints: :class:`KpointList` instance.
+            phfreqs: Phonon frequencies in eV.
+            phdispl_cart: Displacement in Cartesian coordinates.
+            markers: Optional dictionary containing markers labelled by a string.
                 Each marker is a list of tuple(x, y, s) where x,and y are the position 
                 in the graph and s is the size of the marker.
                 Used for plotting purpose e.g. QP data, energy derivatives...
-            widths:
-                Optional dictionary containing data used for the so-called fatbands
+            widths: Optional dictionary containing data used for the so-called fatbands
                 Each entry is an array of shape [nsppol, nkpt, mband] giving the width
                 of the band at that particular point. Used for plotting purpose e.g. fatbands.
         """
@@ -252,10 +242,8 @@ class PhononBands(object):
         Set an entry in the markers dictionary.
 
         Args:
-            key:
-                string used to label the set of markers.
-            xys:
-                Three iterables x,y,s where x[i],y[i] gives the
+            key: string used to label the set of markers.
+            xys: Three iterables x,y,s where x[i],y[i] gives the
                 positions of the i-th markers in the plot and
                 s[i] is the size of the marker.
             extend:
@@ -306,10 +294,8 @@ class PhononBands(object):
         Set an entry in the widths dictionary.
 
         Args:
-            key:
-                string used to label the set of markers.
-            width
-                array-like of positive numbers, shape is [nqpt, num_modes].
+            key: string used to label the set of markers.
+            width: array-like of positive numbers, shape is [nqpt, num_modes].
         """
         width = np.reshape(width, self.shape)
 
@@ -371,17 +357,14 @@ class PhononBands(object):
         Compute the phonon DOS on a linear mesh.
 
         Args:
-            method:
-                String defining the method
-            step:
-                Energy step (eV) of the linear mesh.
-            width:
-                Standard deviation (eV) of the gaussian.
+            method: String defining the method
+            step: Energy step (eV) of the linear mesh.
+            width: Standard deviation (eV) of the gaussian.
 
         Returns:
-            `PhononDOS` object.
+            :class:`PhononDos` object.
 
-        .. warning:
+        .. warning::
 
             Requires a homogeneous sampling of the Brillouin zone.
         """
@@ -410,7 +393,7 @@ class PhononBands(object):
         else:
             raise ValueError("Method %s is not supported" % method)
 
-        return PhononDOS(mesh, values)
+        return PhononDos(mesh, values)
 
     def create_xyz_vib(self, iqpt, filename, pre_factor=200, do_real=True, scale_matrix=None, max_supercell=None):
         """
@@ -461,17 +444,13 @@ class PhononBands(object):
         Plot the phonon band structure.
 
         Args:
-            qlabels:
-                dictionary whose keys are tuple with the reduced
+            qlabels: dictionary whose keys are tuple with the reduced
                 coordinates of the q-points. The values are the labels.
                 e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
-            branch_range:
-                Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted)
-            marker:
-                String defining the marker to plot. Accepts the syntax "markername:fact" where
+            branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted)
+            marker: String defining the marker to plot. Accepts the syntax "markername:fact" where
                 fact is a float used to scale the marker size.
-            width:
-                String defining the width to plot. Accepts the syntax "widthname:fact" where
+            width: String defining the width to plot. Accepts the syntax "widthname:fact" where
                 fact is a float used to scale the stripe size.
 
         ==============  ==============================================================
@@ -578,7 +557,6 @@ class PhononBands(object):
 
     def _make_ticks_and_labels(self, qlabels):
         """Return ticks and labels from the mapping {qred: qstring} given in qlabels."""
-
         if qlabels is not None:
             d = collections.OrderedDict()
 
@@ -600,19 +578,12 @@ class PhononBands(object):
         Plot phonon fatbands
 
         Args:
-            title:
-                Plot title.
-            colormap
-                Have a look at the colormaps here and decide which one you'd like:
+            colormap: Have a look at the colormaps here and decide which one you'd like:
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
-            max_stripe_width_mev:
-                The maximum width of the stripe in meV.
-            qlabels:
-                dictionary whose keys are tuple with the reduced
+            max_stripe_width_mev: The maximum width of the stripe in meV.
+            qlabels: dictionary whose keys are tuple with the reduced
                 coordinates of the q-points. The values are the labels.
                 e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
-            args:
-                Positional arguments passed to matplotlib.
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -704,10 +675,8 @@ class PhononBands(object):
         Plot the phonon band structure with the phonon DOS.
 
         Args:
-            dos:
-                An instance of :class:`PhononDOS`.
-            qlabels:
-                dictionary whose keys are tuple with the reduced
+            dos: An instance of :class:`PhononDos`.
+            qlabels: dictionary whose keys are tuple with the reduced
                 coordinates of the q-points. The values are the labels.
                 e.g. qlabels = {(0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L"}.
 
@@ -798,8 +767,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands):
         Object used to access data stored in the PHBST file produced by ABINIT.
 
         Args:
-            path:
-                path to the file
+            path: path to the file
         """
         super(PhbstFile, self).__init__(filepath)
 
@@ -810,12 +778,12 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands):
 
     @property
     def structure(self):
-        """`Structure` object"""
+        """:class:`Structure` object"""
         return self.phbands.structure
 
     @property
     def phbands(self):
-        """`PhononBands` object"""
+        """:class:`PhononBands` object"""
         return self._phbands
 
     def close(self):
@@ -842,19 +810,16 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands):
 
     def get_phonon_mode(self, qpoint, nu):
         """
-        Returns the `PhononMode` with the given qpoint and branch nu.
+        Returns the :class:`PhononMode` with the given qpoint and branch nu.
 
         Args:
-            qpoint:
-                Either a vector with the reduced components of the q-point
+            qpoint: Either a vector with the reduced components of the q-point
                 or an integer giving the sequential index (C-convention).
-            nu:
-                branch index (C-convention)
+            nu: branch index (C-convention)
 
-            returns:
-                `PhononMode` instance.
+        Returns:
+            :class:`PhononMode` instance.
         """
         q = self.qindex(qpoint)
         raise NotImplementedError("")
         #return PHMode(qpoint, freq, displ_cart, structure)
-
