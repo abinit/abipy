@@ -130,7 +130,7 @@ class Function1D(object):
 
         .. example::
 
-           >>> Function1D.from_func(np.sin, mesh=np.arange(1,10))
+           Function1D.from_func(np.sin, mesh=np.arange(1,10))
         """
         return cls(mesh, np.vectorize(func)(mesh))
 
