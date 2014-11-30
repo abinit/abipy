@@ -129,9 +129,9 @@ class Function1D(object):
         """
         Initialize the object from a callable.
 
-        .. example::
+        example:
 
-           >>> Function1D.from_func(np.sin, mesh=np.arange(1,10))
+           Function1D.from_func(np.sin, mesh=np.arange(1,10))
         """
         return cls(mesh, np.vectorize(func)(mesh))
 
@@ -371,7 +371,8 @@ class Function1D(object):
         ==============  ==============================================================
         kwargs          Meaning
         ==============  ==============================================================
-        cplx_mode       string defining the data to print. Possible choices are (case-insensitive):
+        cplx_mode       string defining the data to print. 
+                        Possible choices are (case-insensitive):
                             - "re"  for real part.
                             - "im" for imaginary part.
                             - "abs" for the absolute value

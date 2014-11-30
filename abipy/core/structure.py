@@ -10,8 +10,6 @@ from monty.collections import AttrDict
 from monty.functools import lazy_property
 from pymatgen.core.units import ArrayWithUnit
 from pymatgen.io.abinitio.pseudos import PseudoTable
-from pymatgen.core.structure import PeriodicSite
-from pymatgen.io.abinitio.pseudos import PseudoTable
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from abipy.core.symmetries import SpaceGroup
 from abipy.iotools import as_etsfreader, Visualizer
@@ -53,9 +51,7 @@ class Lattice(pymatgen.Lattice):
             angles = angdeg
             angles[1] = -angles[1]
             l = ArrayWithUnit(acell, "bohr").to("ang")
-            new = cls.from_lengths_and_angles(l, angdeg)
-            new.__class__ = cls
-            return new
+            return cls.from_lengths_and_angles(l, angdeg)
 
         else:
             raise ValueError("Don't know how to construct a Lattice from dict: %s" % str(d))
@@ -93,18 +89,47 @@ class Structure(pymatgen.Structure):
             new.__class__ = cls
 
             new.set_spacegroup(SpaceGroup.from_file(file))
+            if closeit: file.close()
 
-            if closeit:
-                file.close()
         else:
             # TODO: Spacegroup is missing here.
-            #from pymatgen.io.smartio import read_structure
-            #new = read_structure(filepath)
             new = super(Structure, cls).from_file(filepath)
             # Change the class of new.
-            new.__class__ = cls
+            if new.__class__ != cls: new.__class__ = cls
 
         return new
+
+    @classmethod
+    def boxed_molecule(cls, pseudos, cart_coords, acell=3*(10,)):
+        """
+        Creates a molecule in a periodic box of lengths acell [Bohr]
+
+        Args:
+            pseudos: List of pseudopotentials
+            cart_coords: Cartesian coordinates
+            acell: Lengths of the box in *Bohr*
+        """
+        cart_coords = np.atleast_2d(cart_coords)
+
+        molecule = Molecule([p.symbol for p in pseudos], cart_coords)
+
+        l = ArrayWithUnit(acell, "bohr").to("ang")
+
+        structure = molecule.get_boxed_structure(l[0], l[1], l[2])
+
+        return cls(structure)
+
+    @classmethod
+    def boxed_atom(cls, pseudo, cart_coords=3*(0,), acell=3*(10,)):
+        """
+        Creates an atom in a periodic box of lengths acell [Bohr]
+
+        Args:
+            pseudo: Pseudopotential object.
+            cart_coords: Cartesian coordinates
+            acell: Lengths of the box in *Bohr*
+        """
+        return cls.boxed_molecule([pseudo], cart_coords, acell=acell)
 
     @classmethod
     def bcc(cls, a, species, **kwargs):
@@ -401,8 +426,6 @@ class Structure(pymatgen.Structure):
             raise NotImplementedError("Cannot write a structure to a netcdfile file yet")
 
         else:
-            #from pymatgen.io.smartio import write_structure
-            #write_structure(self, filename)
             self.to(filename=filename)
 
     def convert(self, format="cif"):
@@ -441,7 +464,6 @@ class Structure(pymatgen.Structure):
     #    # For each site in self:
     #    # 1) Get the radius of the pseudopotential sphere 
     #    # 2) Get the neighbors of the site (considering the periodic images).
-    #    pseudos = PseudoTable.as_table(pseudos)
 
     #    max_overlap, ovlp_sites = 0.0, None
 
