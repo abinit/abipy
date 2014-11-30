@@ -42,14 +42,14 @@ def scf_manual():
 
     flow.make_scheduler().start()
 
-    table = abilab.PrettyTable(["length [Ang]", "energy [eV]"])
-    for task in flow.iflat_tasks():
-        with task.open_gsr() as gsr:
-            cart_coords = gsr.structure.cart_coords
-            l = np.sqrt(np.linalg.norm(cart_coords[1] - cart_coords[0]))
-            table.add_row([l, float(gsr.energy)])
+    #table = abilab.PrettyTable(["length [Ang]", "energy [eV]"])
+    #for task in flow.iflat_tasks():
+    #    with task.open_gsr() as gsr:
+    #        cart_coords = gsr.structure.cart_coords
+    #        l = np.sqrt(np.linalg.norm(cart_coords[1] - cart_coords[0]))
+    #        table.add_row([l, float(gsr.energy)])
 
-    print(table)
+    #print(table)
     #table.plot(title="Etotal vs interatomic distance")
     # Quadratic fit
     #fit = table.quadfit()

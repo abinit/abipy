@@ -98,27 +98,27 @@ def gs_flow():
     plt.show()
     return
 
-    gstask_nospin, gstask_spin = flow[0][0], flow[0][1] 
-    data = abilab.PrettyTable(["property", "unpolarized", "polarized"])
-    with gstask_nospin.open_gsr() as gsr_nospin, gstask_spin.open_gsr() as gsr_spin:
-        properties = ["energy", "pressure", "magnetization", "nelect_updown"]
-        for p in properties:
-            row = [p, getattr(gsr_nospin, p), getattr(gsr_spin, p)]
-            data.add_row(row)
+    #gstask_nospin, gstask_spin = flow[0][0], flow[0][1] 
+    #data = abilab.PrettyTable(["property", "unpolarized", "polarized"])
+    #with gstask_nospin.open_gsr() as gsr_nospin, gstask_spin.open_gsr() as gsr_spin:
+    #    properties = ["energy", "pressure", "magnetization", "nelect_updown"]
+    #    for p in properties:
+    #        row = [p, getattr(gsr_nospin, p), getattr(gsr_spin, p)]
+    #        data.add_row(row)
 
-        plotter = abilab.ElectronDosPlotter()
-        plotter.add_edos_from_file(gsr_spin.filepath, label="spin")
-        plotter.add_edos_from_file(gsr_nospin.filepath, label="nospin")
-        plotter.plot()
+    #    plotter = abilab.ElectronDosPlotter()
+    #    plotter.add_edos_from_file(gsr_spin.filepath, label="spin")
+    #    plotter.add_edos_from_file(gsr_nospin.filepath, label="nospin")
+    #    plotter.plot()
 
-        #gsr_spin.plot_ebands()
-        #gsr_nospin.plot_ebands_with_dos()
-        #plotter = abilab.ElectronBandsPlotter()
-        #plotter.add_ebands_from_file(gsr_spin.filepath, label="spin")
-        #plotter.plot()
-        #plotter = abilab.GSR_Plotter(gsr_nospin.filepath, gsr_spin.filepath)
-        #plotter.add_ebands_from_file(gsr_nospin.filepath, label="nospin")
-    print(data)
+    #    #gsr_spin.plot_ebands()
+    #    #gsr_nospin.plot_ebands_with_dos()
+    #    #plotter = abilab.ElectronBandsPlotter()
+    #    #plotter.add_ebands_from_file(gsr_spin.filepath, label="spin")
+    #    #plotter.plot()
+    #    #plotter = abilab.GSR_Plotter(gsr_nospin.filepath, gsr_spin.filepath)
+    #    #plotter.add_ebands_from_file(gsr_nospin.filepath, label="nospin")
+    #print(data)
 
 
 def afm_flow():
