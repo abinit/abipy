@@ -95,7 +95,8 @@ class Robot(object):
 
     @property
     def ncfiles(self):
-        return self._ncfiles.values()
+        """List of netcdf files."""
+        return list(self._ncfiles.values())
 
     def close(self):
         """Close all the files that have been opened by the Robot"""
@@ -269,12 +270,12 @@ class SigresRobot(Robot):
         if kpoint is None: kpoint = 0
 
         attrs = [
-            "nsppol", "nspinor", "nspden", #"ecut", "pawecutdg",
-            #"tsmear", "nkpts",
+            "nsppol", "nbzspinor", "nspden", #"ecut", "pawecutdg",
+            #"tsmear", "nkibz",
         ] + kwargs.pop("attrs", [])
 
         rows, row_names = [], []
-        for i, (label, sigr) in enumerate(self):
+        for label, sigr in self:
             row_names.append(label)
             d = {aname: getattr(sigr, aname) for aname in attrs}
             d.update({"qpgap": sigr.get_qpgap(spin, kpoint)})

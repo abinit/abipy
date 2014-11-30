@@ -28,7 +28,6 @@ class ElectronDOS(object):
             mesh is given in eV, spin_dos is in states/eV.
         """
         spin_dos = np.atleast_2d(spin_dos)
-        assert spin_dos.ndim == 2
         self.nsppol = len(spin_dos)
 
         # Save DOS and IDOS for each spin.

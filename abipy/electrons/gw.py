@@ -1432,7 +1432,8 @@ class SigresReader(ETSF_Reader):
             "ecuteps",
             "ecutsigx",
             "sigma_nband",
-            #nkibz=
+            "gwcalctyp",
+            "scissor_ene",
         ]
 
         params = AttrDict()
@@ -1444,19 +1445,20 @@ class SigresReader(ETSF_Reader):
 
         return params
 
-    def print_qps(self, spin=None, kpoint=None, bands=None, fmt=None, stream=sys.stdout):
+    def print_qps(self, spin=None, kpoints=None, bands=None, fmt=None, stream=sys.stdout):
         """
-        :param spin: Spin index, if None all spins are considered
-        :param kpoint:
-        :param bands:
-        :param fmt:
-        :param stream: file-like object.
+        Args:
+            spin: Spin index, if None all spins are considered
+            kpoint: List of k-points to select. Default: all kpoints
+            bands: List of bands to select. Default is all bands
+            fmt: Format string passe to `to_strdict`
+            stream: file-like object.
 
-        :return:
+        Returns
             List of tables.
         """
         spins = range(self.nsppol) if spin is None else [spin]
-        kpoints = self.gwkpoints if kpoint is None else [kpoint]
+        kpoints = self.gwkpoints if kpoints is None else [kpoints]
         if bands is not None: bands = [bands]
 
         header = QPState.get_fields(exclude=["spin", "kpoint"])

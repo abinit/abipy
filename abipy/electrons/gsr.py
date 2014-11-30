@@ -10,7 +10,6 @@ from monty.string import is_string, list_strings
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
-from pymatgen.io.abinitio.flows import Flow
 from abipy.core.fields import DensityReader
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands
 from abipy.tools.prettytable import PrettyTable
