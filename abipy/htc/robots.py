@@ -12,9 +12,7 @@ from pymatgen.io.abinitio.flows import Flow
 
 
 __all__ = [
-    "GsrRobot",
-    "SigresRobot",
-    "MdfRobot",
+    "abirobot",
 ]
 
 
@@ -39,7 +37,8 @@ def abirobot(obj, ext, nids=None):
             return cls.open(obj, nids=nids)
 
     raise ValueError("Cannot find Robot subclass associated to extension %s\n" % ext + 
-                     "The list of supported extensions is:\n%s" % [cls.EXT for cls in Robot.__subclasses__()])
+                     "The list of supported extensions is:\n%s" %
+                     [cls.EXT for cls in Robot.__subclasses__()])
 
 
 class Robot(object):
@@ -148,7 +147,7 @@ class Robot(object):
         return new
 
     def reload(self):
-        """Reload data. Return new Robot object."""
+        """Reload data. Return new :class:`Robot` object."""
         return self.__class__.open(self._initial_object)
 
     @staticmethod

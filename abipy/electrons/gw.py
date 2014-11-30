@@ -1431,6 +1431,7 @@ class SigresReader(ETSF_Reader):
             "ecutwfn",
             "ecuteps",
             "ecutsigx",
+            "scr_nband",
             "sigma_nband",
             "gwcalctyp",
             "scissor_ene",

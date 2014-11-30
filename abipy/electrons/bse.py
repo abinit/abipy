@@ -470,10 +470,9 @@ class MdfFile(AbinitNcFile, Has_Structure):
         return DielectricTensor(self.get_mdf(mdf_type), self.structure)
         
 
-# TODO
+# TODO Add band energies to MDF file.
 #from abipy.electrons import ElectronsReader
-#class MDF_Reader(ElectronsReader):
-class MdfReader(ETSF_Reader):
+class MdfReader(ETSF_Reader): #ElectronsReader
     """
     This object reads data from the MDF.nc file produced by ABINIT.
     """
@@ -502,9 +501,9 @@ class MdfReader(ETSF_Reader):
         """Dictionary with the parameters of the run."""
         # TODO
         keys = [
-            "nsppol", #"ecut", "ecuteps", "nband",
-            "eps_inf", "soenergy", "broad", "nkibz", "nkbz", #"nkibz_interp", "nkbz_interp",
-            #"wtype", "interp_mode",
+            "nsppol", "ecutwfn", "ecuteps",
+            "eps_inf", "soenergy", "broad", "nkibz", "nkbz", "nkibz_interp", "nkbz_interp",
+            "wtype", "interp_mode", "nreh", "lomo_spin", "humo_spin"
         ]
         return self.read_keys(keys)
 
