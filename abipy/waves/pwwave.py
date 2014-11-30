@@ -373,7 +373,7 @@ class PWWaveFunction(WaveFunction):
         Rotate the pwwave by the symmetry operation symmop.
 
         Args:
-            symmop: :classl:`Symmetry` operation
+            symmop: :class:`Symmetry` operation
             mesh: mesh for the FFT, if None the mesh of self is used.
 
         Returns:
