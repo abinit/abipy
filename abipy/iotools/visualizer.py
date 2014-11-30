@@ -1,18 +1,17 @@
-"Define a class used to execute a visualizer within the Python interpreter."
+# coding: utf-8
+"""Define a class used to execute a visualizer within the Python interpreter."""
 from __future__ import print_function, division, unicode_literals
 
-import sys
 import os
 import abc
 import six
 
-from collections import namedtuple, OrderedDict
-from monty.os.path import which 
-from abipy.tools import ask_yes_no
+from monty.os.path import which
 
 __all__ = [
     "Visualizer",
 ]
+
 
 def is_macosx():
     """True if we are running on Mac."""
@@ -71,7 +70,6 @@ class Visualizer(object):
     """
     Handle the visualization of data.
     """
-
     # True if its a Mac OsX applications (default is unix executable).
     # If we have a Mac OsX application we have to run it with "open -a app_name --args"
     is_macosx_app = False
@@ -81,8 +79,7 @@ class Visualizer(object):
     def __init__(self, filepath):
         """
         Args:
-            filepath: 
-                Name of the file to visualize
+            filepath: Name of the file to visualize
         """
         self.filepath = os.path.abspath(filepath)
 
@@ -145,10 +142,10 @@ class Visualizer(object):
     @classmethod
     def from_file(cls, filepath):
         """
-        Initialize a subclass of `Visualizer` from filepath, the application 
+        Initialize a subclass of :class:`Visualizer` from filepath, the application
         is chosen automatically depending on the file extension.
 
-        Raiseds:
+        Raise:
             `VisualizerError` if no visualizer is available for the given file.
         """
         # Get the file extension.
@@ -182,6 +179,7 @@ class Visualizer(object):
 # Concrete classes #
 ####################
 
+
 class Xcrysden(Visualizer):
     name = "xcrysden"
     bin = find_loc(name)
@@ -191,6 +189,7 @@ class Xcrysden(Visualizer):
         ("bxsf", "--bxsf")
     ]
 
+
 class V_Sim(Visualizer):
     name = "v_sim"
     bin = find_loc(name)
@@ -198,6 +197,7 @@ class V_Sim(Visualizer):
     EXTS = [
         ("xsf", "--xsf"),
     ]
+
 
 class Vesta(Visualizer):
     is_macosx_app = is_macosx()
@@ -220,7 +220,7 @@ class Vesta(Visualizer):
 
 if __name__ == "__main__":
     print("available visualizers:") 
-    for visu in _Visualizer.get_available(): print(visu)
+    for visu in Visualizer.get_available(): print(visu)
     import sys
     filename = sys.argv[1]
     v = Xcrysden(filename)
