@@ -111,7 +111,7 @@ class Structure(pymatgen.Structure):
         """
         cart_coords = np.atleast_2d(cart_coords)
 
-        molecule = Molecule([p.symbol for p in pseudos], cart_coords)
+        molecule = pymatgen.Molecule([p.symbol for p in pseudos], cart_coords)
 
         l = ArrayWithUnit(acell, "bohr").to("ang")
 
