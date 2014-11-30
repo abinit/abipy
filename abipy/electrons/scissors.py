@@ -173,8 +173,9 @@ class ScissorsBuilder(object):
 
     def __init__(self, qps_spin, sigres_ebands):
         """
-        :param qps_spin: List of ``QPlist``, for each spin.
-        :param sigres_ebands: ``ElectronBands` read from the sigres file
+        Args:
+            qps_spin: List of :class:`QPlist`, for each spin.
+            sigres_ebands: :class:`ElectronBands` read from the SIGRES file
         """
         # Sort quasiparticle data by e0.
         self._qps_spin = tuple([qps.sort_by_e0() for qps in qps_spin])
@@ -221,13 +222,12 @@ class ScissorsBuilder(object):
         """
         Build the scissors operator.
 
-        :param domains_spin:
-            list of domains in eV for each spin. If domains is None, domains are computed automatically
-            from the sigres bands (two domains separated by the middle of the gap).
-        :param bounds_spin:
-            Options specifying the boundary conditions (not used at present)
-        :param k:
-            Parameter defining the order of the fit.
+        Args:
+            domains_spin: list of domains in eV for each spin. If domains is None,
+                domains are computed automatically from the sigres bands
+                (two domains separated by the middle of the gap).
+            bounds_spin: Options specifying the boundary conditions (not used at present)
+            k: Parameter defining the order of the fit.
         """
         nsppol = self.nsppol
 
@@ -296,18 +296,13 @@ class ScissorsBuilder(object):
         and the corrected ones) with matplotlib. The plot contains the KS and the QP DOS if dos_filepath is not None.
 
         Args:
-            bands_filepath:
-                Path to the netcdf file containing the initial KS energies to be corrected.
-            bands_label
-                String used to label the KS bands in the plot.
-            dos_filepath
-                Optional path to a netcdf file with the initial KS energies on a homogeneous k-mesh (used to
-                compute the KS and the QP dos)
-            dos_args
-                Dictionary with the arguments passed to get_dos to compute the DOS
+            bands_filepath: Path to the netcdf file containing the initial KS energies to be corrected.
+            bands_label String used to label the KS bands in the plot.
+            dos_filepath: Optional path to a netcdf file with the initial KS energies on a homogeneous k-mesh
+                (used to compute the KS and the QP dos)
+            dos_args: Dictionary with the arguments passed to get_dos to compute the DOS
                 Used if dos_filepath is not None.
-            kwargs:
-                Options passed to the plotter.
+            kwargs: Options passed to the plotter.
 
         Returns:
             matplotlib figure

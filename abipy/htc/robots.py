@@ -212,7 +212,7 @@ class GsrRobot(Robot):
 
         return pd.DataFrame(rows, index=row_names, columns=rows[0].keys())
 
-    def ebands_plotter(self):
+    def get_ebands_plotter(self):
         from abipy import abilab
         plotter = abilab.ElectronBandsPlotter()
         for label, gsr in self:
