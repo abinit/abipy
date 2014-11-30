@@ -19,10 +19,8 @@ def xsf_write_structure(file, structures):
     Write the crystalline structure in the Xcrysden format (XSF)
 
     Args:
-        file:
-            file-like object.
-        structures:
-            `Structure` or list of `Structure` objects.
+        file: file-like object.
+        structures: :class:`Structure` or list of :class:`Structure` objects.
     """
     if not isinstance(structures, (list, tuple)):
         structures = [structures]
@@ -64,17 +62,12 @@ def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None):
     Write data in the Xcrysden format (XSF)
 
     Args:
-        file:
-            file-like object.
-        structure:
-            Structure object.
-        data:
-            array-like object in C-order, i.e data[nx,ny,nz]
-        add_replicas:
-            If True, data is padded with redundant data points.
+        file: file-like object.
+        structure: :class:`Structure` object.
+        data: array-like object in C-order, i.e data[nx,ny,nz]
+        add_replicas: If True, data is padded with redundant data points.
             in order to have a periodic 3D array of shape=(nx+1,ny+1,nz+1).
-        cplx_mode:
-            string defining the data to print when data is a complex array.
+        cplx_mode: string defining the data to print when data is a complex array.
             Possible choices are (case-insensitive):
                                                                                         
                 - "re"  for real part.
@@ -146,22 +139,15 @@ def bxsf_write(file, structure, nsppol, nband, ndivs, emesh_sbk, fermie, unit="e
     Write band structure data in the Xcrysden format (XSF)
 
     Args:
-        file:
-            file-like object.
-        structure:
-            `Structure` object.
-        nsppol:
-            Number of spins.
-        nband:
-            Number of bands.
-        ndivs:
-            Number of divisions of the full k-mesh.
-        emesh_sbk:
-            Array [nsppol, nband, ndivs[0], ndivs[1], mpdvis[2]] with the emesh_sbk in energy unit `unit`.
-        fermie:
-            Fermi energy.
+        file: file-like object.
+        structure: :class:`Structure` object.
+        nsppol: Number of spins.
+        nband: Number of bands.
+        ndivs: Number of divisions of the full k-mesh.
+        emesh_sbk: Array [nsppol, nband, ndivs[0], ndivs[1], mpdvis[2]] with the emesh_sbk in energy unit `unit`.
+        fermie: Fermi energy.
 
-    .. note:
+    .. note::
 
         #. The k-points must span the reciprocal unit cell, not the Brillouin zone.
 

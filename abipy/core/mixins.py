@@ -127,11 +127,11 @@ class AbinitNcFile(AbinitFile):
 
 @six.add_metaclass(abc.ABCMeta)
 class Has_Structure(object):
-    """Mixin class for `AbinitNcFile` containing crystallographic data."""
+    """Mixin class for :class:`AbinitNcFile` containing crystallographic data."""
 
     @abc.abstractproperty
     def structure(self):
-        """Returns the `Structure` object."""
+        """Returns the :class:`Structure` object."""
 
     def show_bz(self):
         """
@@ -169,11 +169,11 @@ class Has_Structure(object):
 
 @six.add_metaclass(abc.ABCMeta)
 class Has_ElectronBands(object):
-    """Mixin class for `AbinitNcFile` containing electron data."""
+    """Mixin class for :class:`AbinitNcFile` containing electron data."""
 
     @abc.abstractproperty
     def ebands(self):
-        """Returns the `ElectronBands` object."""
+        """Returns the :class:`ElectronBands` object."""
 
     @property
     def nsppol(self):
@@ -222,11 +222,11 @@ class Has_ElectronBands(object):
 
 @six.add_metaclass(abc.ABCMeta)
 class Has_PhononBands(object):
-    """Mixin class for `AbinitNcFile` containing phonon data."""
+    """Mixin class for :class:`AbinitNcFile` containing phonon data."""
 
     @abc.abstractproperty
     def phbands(self):
-        """Returns the `PhononBands` object."""
+        """Returns the :class:`PhononBands` object."""
 
     def plot_phbands(self, **kwargs):
         """
@@ -241,10 +241,8 @@ class NcDumper(object):
     def __init__(self, *nc_args, **nc_kwargs):
         """
         Args:
-            nc_args:
-                Arguments passed to ncdump.
-            nc_kwargs:
-                Keyword arguments passed to ncdump
+            nc_args: Arguments passed to ncdump.
+            nc_kwargs: Keyword arguments passed to ncdump
         """
         self.nc_args = nc_args
         self.nc_kwargs = nc_kwargs
