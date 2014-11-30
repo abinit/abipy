@@ -2,6 +2,7 @@
 """Define a class used to execute a visualizer within the Python interpreter."""
 from __future__ import print_function, division, unicode_literals
 
+import sys
 import os
 import abc
 import six
