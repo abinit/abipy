@@ -5,11 +5,11 @@ import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
 
-from pymatgen.io.abinitio.calculations import g0w0_with_ppmodel
+from pymatgen.io.abinitio.calculations import g0w0_with_ppmodel_work
 from abipy.core.testing import has_abinit
 
 # Tests in this module require abinit >= 7.9.0
-pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
+#pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
 
 
 def make_g0w0_inputs(ngkpt, tvars):
@@ -126,6 +126,8 @@ def itest_g0w0_flow(fwp, tvars):
     sigres = abilab.abiopen(sigfile)
     assert sigres.nsppol == 1
 
+    #assert flow.validate_json_schema()
+
 
 def itest_g0w0qptdm_flow(fwp, tvars):
     """Integration test for G0W0WithQptdmFlow."""
@@ -155,8 +157,8 @@ def itest_g0w0qptdm_flow(fwp, tvars):
 
     # Run the flow.
     fwp.scheduler.add_flow(flow)
-    fwp.scheduler.start()
-    assert fwp.scheduler.num_excs == 0
+    assert fwp.scheduler.start() 
+    assert not fwp.scheduler.exceptions
 
     # The scr workflow should produce a SIGRES file.
     assert len(scr_work.outdir.list_filepaths(wildcard="*SCR")) == 1
@@ -165,13 +167,15 @@ def itest_g0w0qptdm_flow(fwp, tvars):
     assert all(work.finalized for work in flow)
     assert flow.all_ok
 
+    #assert flow.validate_json_schema()
+
 
 def itest_htc_g0w0(fwp, tvars):
     """G0W0 corrections with the HT interface."""
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
     pseudos = abidata.pseudos("14si.pspnc")
 
-    flow = abilab.AbinitFlow(fwp.workdir, fwp.manager)
+    flow = abilab.Flow(fwp.workdir, fwp.manager)
 
     scf_kppa = 10
     nscf_nband = 10
@@ -187,10 +191,10 @@ def itest_htc_g0w0(fwp, tvars):
         paral_kgb=tvars.paral_kgb,
     )
 
-    work = g0w0_with_ppmodel(structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx,
-                             accuracy="normal", spin_mode="unpolarized", smearing=None,
-                             ppmodel="godby", charge=0.0, inclvkb=2, sigma_nband=None, gw_qprange=1,
-                             scr_nband=None, **extra_abivars)
+    work = g0w0_with_ppmodel_work(structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx,
+                                  accuracy="normal", spin_mode="unpolarized", smearing=None,
+                                  ppmodel="godby", charge=0.0, inclvkb=2, sigma_nband=None, gw_qprange=1,
+                                  scr_nband=None, **extra_abivars)
 
     flow.register_work(work)
     flow.allocate()
@@ -198,8 +202,8 @@ def itest_htc_g0w0(fwp, tvars):
 
     #flow.build_and_pickle_dump()
     fwp.scheduler.add_flow(flow)
-    fwp.scheduler.start()
-    assert fwp.scheduler.num_excs == 0
+    assert fwp.scheduler.start()
+    assert not fwp.scheduler.exceptions
     assert fwp.scheduler.nlaunch == 4
 
     # The sigma task should produce a SCR file.
@@ -208,6 +212,8 @@ def itest_htc_g0w0(fwp, tvars):
     flow.show_status()
     assert flow.all_ok
     assert all(work.finalized for work in flow)
+
+    #assert flow.validate_json_schema()
 
 
 #def itest_bse_with_mdf(fwp, tvars):
@@ -230,7 +236,7 @@ def itest_htc_g0w0(fwp, tvars):
 #        istwfk="*1",
 #    )
 #
-#    flow = abilab.AbinitFlow(workdir=fwp.workdir, manager=fwp.manager)
+#    flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager)
 #
 #    # BSE calculation with model dielectric function.
 #    from pymatgen.io.abinitio.calculations import bse_with_mdf
@@ -251,4 +257,5 @@ def itest_htc_g0w0(fwp, tvars):
 #    flow.show_status()
 #    assert all(work.finalized for work in flow)
 #    assert flow.all_ok
+#    assert flow.validate_json_schema()
 

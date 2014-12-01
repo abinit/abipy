@@ -6,7 +6,7 @@ This script shows how to perform a structural relaxation in two steps:
 
     2) Full relaxation (atoms + cell) with the initial configuration read from step 1)
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import sys
 import os
@@ -77,15 +77,15 @@ def build_flow(options):
               abilab.TaskManager.from_file(options.manager)
 
     # Create the flow
-    flow = abilab.AbinitFlow(workdir, manager)
+    flow = abilab.Flow(workdir, manager)
 
-    # Create a relaxation workflow and add it to the flow.
+    # Create a relaxation work and add it to the flow.
     ion_inp, ioncell_inp = make_ion_ioncell_inputs()
 
-    work = abilab.RelaxWorkflow(ion_inp, ioncell_inp)
+    work = abilab.RelaxWork(ion_inp, ioncell_inp)
     flow.register_work(work)
 
-    #bands_work = abilab.BandStructureWorkflow(scf_input, nscf_input)
+    #bands_work = abilab.BandStructureWork(scf_input, nscf_input)
     return flow.allocate()
 
 

@@ -85,7 +85,7 @@ def read_clusters(filepath=None):
     return clusters
 
 @six.add_metaclass(abc.ABCMeta)
-class Cluster(object):
+class RemoteCluster(object):
     """
     This object stores the basic parameters needed to establish SSH, SFTP connections with a remote machine. 
     It also provides helper functions for monitoring the resource manager.
@@ -94,7 +94,7 @@ class Cluster(object):
     by the concrete subclasses. Every subclass must define the class attribute `qtype` that 
     specifies the type of resource manager installed on the cluster.
 
-    A cluster has a remote working directory where we are going the generate and run Flows.
+    A RemoteCluster has a remote working directory where we are going the generate and run Flows.
     """
     def __init__(self, username, hostname, workdir, sshfs_mountpoint=None):
         """
@@ -446,7 +446,7 @@ class Cluster(object):
     #    """Return a string with the load of the cluster"""
 
 
-class SlurmCluster(Cluster):
+class SlurmCluster(RemoteCluster):
     """A cluster that uses Slurm to submit jobs."""
     qtype = "slurm"
 
@@ -467,7 +467,7 @@ class SlurmCluster(Cluster):
     #    return self.prefix_str(result.out) if prefix else result.out
 
 
-class SgeCluster(Cluster):
+class SgeCluster(RemoteCluster):
     """A cluster that uses SGE to submit jobs."""
     qtype = "sge"
 

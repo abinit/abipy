@@ -4,17 +4,19 @@ from __future__ import print_function, division, unicode_literals
 import collections
 import warnings
 
+from monty.string import list_strings
+from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
 from abipy.iotools import AbinitNcFile, Has_Structure, Has_ElectronBands
-from abipy.tools import list_strings
 from .ebands import ElectronsReader
 
+
 __all__ = [
-    "GSR_File",
-    "GSR_Plotter",
+    "GsrFile",
+    "GsrPlotter",
 ]
 
 
-class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
+class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
     """
     File containing the results of a Ground-state calculation.
 
@@ -22,13 +24,13 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
                                                                   
     .. code-block:: python
         
-        gsr = GSR_File("foo_GSR.nc")
+        gsr = GsrFile("foo_GSR.nc")
         gsr.ebands.plot()
     """
     def __init__(self, filepath):
-        super(GSR_File, self).__init__(filepath)
+        super(GsrFile, self).__init__(filepath)
 
-        with GSR_Reader(filepath) as r:
+        with GsrReader(filepath) as r:
             # Initialize the electron bands from file
             self._ebands = r.read_ebands()
 
@@ -40,14 +42,17 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         """Initialize the object from a Netcdf file"""
         return cls(filepath)
 
+    #@property
+    #def run_type(self)
+
     @property
     def ebands(self):
-        """`ElectronBands` object."""
+        """:class:`ElectronBands` object."""
         return self._ebands
 
     @property
     def structure(self):
-        """`Structure` object."""
+        """:class:`Structure` object."""
         return self.ebands.structure
 
     @property
@@ -63,35 +68,112 @@ class GSR_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     def mband(self):
         return self.ebands.mband
 
+    @property
+    def nelect(self):
+        """Number of electrons per unit cell."""
+        return self.ebands.nelect
 
-class GSR_Reader(ElectronsReader):
+    @property
+    def energy(self):
+        # TODO
+        return 0.0
+
+    def get_computed_entry(self, inc_structure=False, parameters=None, data=None):
+        """
+        Returns a pymatgen :class:`ComputedStructureEntry` from the GSR file.
+        Same API as the one used in vasp_output.get_computed_entry.
+
+        Args:
+            inc_structure (bool): Set to True if you want
+                ComputedStructureEntries to be returned instead of
+                ComputedEntries.
+            parameters (list): Input parameters to include. It has to be one of
+                the properties supported by the GSR object. If
+                parameters == None, a default set of parameters that are
+                necessary for typical post-processing will be set.
+            data (list): Output data to include. Has to be one of the properties
+                supported by the GSR object.
+
+        Returns:
+            ComputedStructureEntry/ComputedEntry
+        """
+        #raise NotImplementedError("")
+        # TODO
+        #param_names = {"is_hubbard", "hubbards", "potcar_symbols", "run_type"}
+        #if parameters:
+        #    param_names.update(parameters)
+        #params = {p: getattr(self, p) for p in param_names}
+        #data = {p: getattr(self, p) for p in data} if data is not None else {}
+        params, data = {}, {}
+
+        if inc_structure:
+            return ComputedStructureEntry(self.structure, self.energy, 
+                                          parameters=params, data=data)
+        else:
+            return ComputedEntry(self.structure.composition, self.energy,   
+                                 parameters=params, data=data)
+
+    def as_dict(self, **kwargs):
+        # TODO: Add info depending on the run_type e.g. max_resid is NSCF
+        return dict( 
+            structure=self.structure.as_dict(),
+            ebands=self.ebands.to_pymatgen().as_dict(),
+            #number_of_electrons=self.nelect,
+            #final_energy= gsr.etotal
+            #final_energy_per_atom=gsr.etotal / len(structure),
+            #magnetization=gsr.magnetization,
+            #max_force=gsr.max_force,
+            #pressure=gsr.pressure,
+            #band_gap=
+            #optical_gap=
+            #is_direct=
+            #cbm=
+            #vbm=
+            #efermi=
+            #max_residuals
+            #etotal:
+            #forces:
+            #stresses:
+            #band_gap:
+            #optical_gap:
+            #efermi:
+            #ionic_steps: self.ionic_steps,
+            #final_energy: self.final_energy,
+            #final_energy_per_atom: self.final_energy / nsites,
+        )
+
+
+class GsrReader(ElectronsReader):
     """
     This object reads the results stored in the _GSR (Ground-State Results)
     file produced by ABINIT. It provides helper function to access the most
     important quantities.
     """
-    #def __init__(self, filepath):
-    #    """Initialize the object from a filepath."""
-    #    super(GSR_Reader, self).__init__(filepath)
-
     #def read_forces(self):
+    #    return self.read_value("cartesian_forces")
 
-    #def read_stress(self):
+    #def read_stress_tensor(self):
+    #    return self.read_value("cartesian_stree_tensor")
 
-    #def read_energies(self):
-    #    return AttrDict()
+    #def read_all_energies(self):
+    #    keys = ["etotal", "entropy", "fermie"]
+    #    d = {k: self.read_value(k) for k in keys}
+    #    return d
+
+    #def read_maxresid(self):
+    #    return self.read_value("residm")
 
 
-class GSR_Plotter(collections.Iterable):
+class GsrPlotter(collections.Iterable):
     """
-    This object receives a list of `GSR_File` objects and provides
+    This object receives a list of `GsrFile` objects and provides
     methods to inspect/analyze the results (useful for convergence studies)
 
     Usage example:
                                                                   
     .. code-block:: python
         
-        plotter = GSR_Plotter()
+        plotter = GsrPlotter()
         plotter.add_file("foo_GSR.nc")
         plotter.add_file("bar_GSR.nc")
         plotter.plot_variables("ecut", "etotal")
@@ -251,7 +333,7 @@ class GSR_Plotter(collections.Iterable):
         # Read the value of varname from the files.
         xx, yy = [], []
         for filepath in self.filepaths:
-            with GSR_Reader(filepath) as r:
+            with GsrReader(filepath) as r:
                 xx.append(r.read_value(varname_x))
                 yy.append(r.read_value(varname_y))
 
@@ -281,7 +363,7 @@ class GSR_Plotter(collections.Iterable):
     #    # Read the value of varname from the files.
     #    volumes, energies = [], []
     #    for filepath in self.filepaths:
-    #        with GSR_Reader(filepath) as r:
+    #        with GsrReader(filepath) as r:
     #            volumes.append(r.read_value(varname_x))
     #            energies.append(r.read_value("etotal"))
 

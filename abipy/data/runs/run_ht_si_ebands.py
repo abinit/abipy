@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 """Band structure of silicon with the HT interface."""
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import sys
 import os
 import abipy.data as abidata  
 
 from abipy import abilab
-#from pymatgen.io.abinitio.abiobjects import AbiStructure
-from pymatgen.io.abinitio.calculations import bandstructure
+from pymatgen.io.abinitio.calculations import bandstructure_work
 
 
 def build_flow(options):
@@ -38,16 +37,16 @@ def build_flow(options):
 
     # Initialize the flow.
     # FIXME  Abistructure is not pickleable with protocol -1
-    flow = abilab.AbinitFlow(workdir=workdir, manager=manager, pickle_protocol=0)
+    flow = abilab.Flow(workdir=workdir, manager=manager, pickle_protocol=0)
 
-    work = bandstructure(structure, abidata.pseudos("14si.pspnc"), scf_kppa, nscf_nband, ndivsm, 
-                         spin_mode="unpolarized", smearing=None, **extra_abivars)
+    work = bandstructure_work(structure, abidata.pseudos("14si.pspnc"), scf_kppa, nscf_nband, ndivsm, 
+                              spin_mode="unpolarized", smearing=None, **extra_abivars)
 
     flow.register_work(work)
     return flow.allocate()
 
     #dos_kppa = 10
-    #bands = bandstructure("hello_dos", runmode, structure, pseudos, scf_kppa, nscf_nband,
+    #bands = bandstructure_work("hello_dos", runmode, structure, pseudos, scf_kppa, nscf_nband,
     #                      ndivsm, accuracy="normal", spin_mode="polarized",
     #                      smearing="fermi_dirac:0.1 eV", charge=0.0, scf_solver=None,
     #                      dos_kppa=dos_kppa)

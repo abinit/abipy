@@ -2,7 +2,7 @@ from __future__ import division, print_function
 
 import io
 import wxversion
-wxversion.ensureMinimal('2.8')
+#wxversion.ensureMinimal('2.8')
 import wx
 from wx.lib import buttons
 

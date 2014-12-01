@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Optical spectra with Optic."""
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import sys
 import os
@@ -92,12 +92,12 @@ def build_flow(options):
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = inp.split_datasets()
 
     # Initialize the flow.
-    flow = abilab.AbinitFlow(workdir, manager)
+    flow = abilab.Flow(workdir, manager)
 
-    bands_work = abilab.BandStructureWorkflow(scf_inp, nscf_inp)
+    bands_work = abilab.BandStructureWork(scf_inp, nscf_inp)
     flow.register_work(bands_work)
 
-    ddk_work = abilab.Workflow()
+    ddk_work = abilab.Work()
     for inp in [ddk1, ddk2, ddk3]:
         ddk_work.register_ddk_task(inp, deps={bands_work.nscf_task: "WFK"})
 
@@ -108,7 +108,7 @@ def build_flow(options):
     # in an arbitrary way or do we have to pass (x,y,z)?
 
     # Optic does not support MPI with ncpus > 1.
-    shell_manager = manager.to_shell_manager(mpi_ncpus=1)
+    shell_manager = manager.to_shell_manager(mpi_procs=1)
 
     optic_task = abilab.OpticTask(optic_input, nscf_node=bands_work.nscf_task, ddk_nodes=ddk_work, 
                                   manager=shell_manager)
@@ -119,9 +119,10 @@ def build_flow(options):
 
 def optic_flow_from_files():
     # Optic does not support MPI with ncpus > 1.
-    manager = abilab.TaskManager.sequential()
+    manager = abilab.TaskManager.from_user_config()
+    manager.set_mpi_procs(1)
 
-    flow = abilab.AbinitFlow(workdir="OPTIC_FROM_FILE", manager=manager)
+    flow = abilab.Flow(workdir="OPTIC_FROM_FILE", manager=manager)
     
     ddk_nodes = [
         "/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTIC/work_1/task_0/outdata/out_1WF",

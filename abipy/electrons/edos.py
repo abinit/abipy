@@ -18,16 +18,12 @@ class ElectronDOS(object):
     def __init__(self, mesh, spin_dos):
         """
         Args:
-            mesh:
-                array-like object with the mesh points.
-            spin_dos:
-                array-like object with the DOS value for the different spins.
-                Example::
+            mesh: array-like object with the mesh points.
+            spin_dos: array-like object with the DOS value for the different spins.
+                      spin_dos[nw] if spin-unpolarized.
+                      spin_dos[nsppol, nw] if spin-polarized case.
 
-                     spin_dos[nw] if spin-unpolarized.
-                     spin_dos[nsppol, nw] if spin-polarized case.
-
-        .. note:
+        .. note::
             mesh is given in eV, spin_dos is in states/eV.
         """
         spin_dos = np.atleast_2d(spin_dos)
@@ -83,20 +79,17 @@ class ElectronDOS(object):
         Helper function to plot the data on the axis ax.
 
         Args:
-            ax:
-                matplotlib axis.
-            spin:
-                selects the spin component, None for total DOS, IDOS.
-            what:
-                string selecting what will be plotted:
-                "d" for DOS, "i" for IDOS. chars can be concatenated
-                hence what="id" plots both IDOS and DOS. (default "d").
-            exchange_xy:
-                True to exchange axis.
-            args, kwargs:
+            ax: matplotlib axis.
+            spin: selects the spin component, None for total DOS, IDOS.
+            what: string selecting what will be plotted:
+                  "d" for DOS, "i" for IDOS. chars can be concatenated
+                  hence what="id" plots both IDOS and DOS. (default "d").
+            exchange_xy: True to exchange axis.
+            kwargs:
                 Options passes to matplotlib.
 
-        Return value is a list of lines that were added.
+        Return:
+            list of lines that were added.
         """
         #print("spin",spin)
         dosf, idosf = self.dos_idos(spin=spin)
@@ -111,15 +104,13 @@ class ElectronDOS(object):
             lines.extend(ls)
         return lines
 
-    def plot(self, spin=None, *args, **kwargs):
+    def plot(self, spin=None, **kwargs):
         """
         Plot DOS and IDOS.
 
         Args:
-            spin:
-                Selects the spin component, None if total DOS is wanted.
-            args:
-                Positional arguments passed to :mod:`matplotlib`.
+            spin: Selects the spin component, None if total DOS is wanted.
+            args: Positional arguments passed to :mod:`matplotlib`.
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -154,8 +145,8 @@ class ElectronDOS(object):
         if title:
             ax1.set_title(title)
 
-        self.plot_ax(ax1, spin=spin, what="i", *args, **kwargs)
-        self.plot_ax(ax2, spin=spin, what="d", *args, **kwargs)
+        self.plot_ax(ax1, spin=spin, what="i", **kwargs)
+        self.plot_ax(ax2, spin=spin, what="d", **kwargs)
 
         if show:
             plt.show()
@@ -179,10 +170,8 @@ class ElectronDOSPlotter(object):
         Adds a DOS for plotting.
 
         Args:
-            label:
-                label for the MDF. Must be unique.
-            dos:
-                MacroscopicDielectricFunction object.
+            label: label for the MDF. Must be unique.
+            dos: :class:`MacroscopicDielectricFunction` object.
         """
         if label in self._doses:
             raise ValueError("label %s is already in %s" % (label, self._doses.keys()))
@@ -194,10 +183,8 @@ class ElectronDOSPlotter(object):
         Add a dictionary of DOSes, with an optional sorting function for the keys.
 
         Args:
-            dos_dict:
-                dict of {label: dos}
-            key_sort_func:
-                function used to sort the dos_dict keys.
+            dos_dict: dict of {label: dos}
+            key_sort_func: function used to sort the dos_dict keys.
         """
         if key_sort_func:
             keys = sorted(dos_dict.keys(), key=key_sort_func)
@@ -210,8 +197,6 @@ class ElectronDOSPlotter(object):
     def plot(self, *args, **kwargs):
         """
         Get a matplotlib plot showing the DOSes.
-
-
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -252,7 +237,7 @@ class ElectronDOSPlotter(object):
             legends.append("DOS: %s" % label)
 
         # Set legends.
-        ax.legend(lines, legends, 'upper right', shadow=True)
+        ax.legend(lines, legends, loc='upper right', shadow=True)
 
         if show:
             plt.show()

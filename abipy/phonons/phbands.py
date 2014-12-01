@@ -12,7 +12,7 @@ from .phdos import PhononDOS
 
 __all__ = [
     "PhononBands",
-    "PHBST_File",
+    "PhbstFile",
 ]
 
 
@@ -800,7 +800,7 @@ class PHBST_Reader(ETSF_Reader):
         return self.read_value("phdispl_cart", cmode="c")
 
 
-class PHBST_File(AbinitNcFile, Has_Structure, Has_PhononBands):
+class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands):
 
     def __init__(self, filepath):
         """
@@ -810,7 +810,7 @@ class PHBST_File(AbinitNcFile, Has_Structure, Has_PhononBands):
             path:
                 path to the file
         """
-        super(PHBST_File, self).__init__(filepath)
+        super(PhbstFile, self).__init__(filepath)
 
         # Initialize Phonon bands
         self._phbands = PhononBands.from_file(filepath)

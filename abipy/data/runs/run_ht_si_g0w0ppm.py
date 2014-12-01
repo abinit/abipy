@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 """G0W0 corrections with the HT interface."""
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import sys
 import os
 import abipy.data as abidata  
 
-from pymatgen.io.abinitio.calculations import g0w0_with_ppmodel
+from pymatgen.io.abinitio.calculations import g0w0_with_ppmodel_work
 from abipy import abilab
 
 
@@ -27,7 +27,7 @@ def build_flow(options):
     # Initialize the flow.
     # FIXME
     # Don't know why protocol=-1 does not work here.
-    flow = abilab.AbinitFlow(workdir, manager) #, pickle_protocol=0)
+    flow = abilab.Flow(workdir, manager) #, pickle_protocol=0)
 
     scf_kppa = 10
     nscf_nband = 10
@@ -42,10 +42,10 @@ def build_flow(options):
         istwfk="*1",
     )
 
-    work = g0w0_with_ppmodel(structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx,
-                             accuracy="normal", spin_mode="unpolarized", smearing=None, 
-                             ppmodel="godby", charge=0.0, inclvkb=2, sigma_nband=None, gw_qprange=1,
-                             scr_nband=None, **extra_abivars)
+    work = g0w0_with_ppmodel_work(structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx,
+                                  accuracy="normal", spin_mode="unpolarized", smearing=None, 
+                                  ppmodel="godby", charge=0.0, inclvkb=2, sigma_nband=None, gw_qprange=1,
+                                  scr_nband=None, **extra_abivars)
     
     flow.register_work(work)
     return flow.allocate()

@@ -154,10 +154,10 @@ def run_annaddb(flow, structure):
                                      cwd=flow.outdir.path)
     assert ddb_path == out_ddb
 
-    # Build new workflow with Anaddb tasks.
+    # Build new work with Anaddb tasks.
     # Construct a manager with mpi_ncpus==1 since  anaddb do not support mpi_ncpus > 1 (except in elphon)
     shell_manager = manager.to_shell_manager()
-    awork = abilab.Workflow(manager=shell_manager)
+    awork = abilab.Work(manager=shell_manager)
 
     # modes
     anaddb_input = abilab.AnaddbInput.modes(structure)
@@ -201,7 +201,7 @@ def build_flow(structure, workdir, options):
     """
     Create an `AbinitFlow` for phonon calculations:
 
-        1) One workflow for the GS run.
+        1) One work for the GS run.
 
         2) nqpt workflows for phonon calculations. Each workflow contains 
            nirred tasks where nirred is the number of irreducible phonon perturbations

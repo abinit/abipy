@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Flow for computing the band structure of silicon."""
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import sys
 import os
@@ -14,7 +14,6 @@ def make_scf_nscf_inputs():
     #pseudos = data.pseudos("Si.GGA_PBE-JTH-paw.xml")
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
-    print(inp.pseudos)
     structure = inp.set_structure_from_file(abidata.cif_file("si.cif"))
 
     # Global variables
@@ -71,7 +70,28 @@ def build_flow(options):
 @abilab.flow_main
 def main(options):
     flow = build_flow(options)
-    return flow.build_and_pickle_dump()
+    flow.build_and_pickle_dump()
+    #try:
+    #    flow.rmtree()
+    #except:
+    #    pass
+    #flow = build_flow(options)
+    #flow.show_dependencies()
+    #print(flow.manager)
+    #for task in flow.iflat_tasks():
+    #    task.manager.set_omp_threads(3)
+    #    task.manager.set_mpi_procs(3)
+    #return flow.build_and_pickle_dump()
+
+    #from monty.dev import install_excepthook
+    #install_excepthook()
+    #flow = abilab.Flow.pickle_load("flow_si_ebands")
+    #errors = flow.validate_json_schema()
+    #return
+    #flow.build_and_pickle_dump()
+    #flow.make_scheduler().start()
+    #errors = flow.validate_json_schema()
+    #if errors: print(errors)
 
 
 if __name__ == "__main__":

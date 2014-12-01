@@ -1,5 +1,5 @@
 """Release data for the abipy project."""
-from __future__ import print_function, division, unicode_literals
+#from __future__ import print_function, division, unicode_literals
 
 # Name of the package for release purposes.  This is the name which labels
 # the tarballs and RPMs made by distutils, so it's best to lowercase it.
@@ -22,7 +22,7 @@ __version__ = '.'.join(map(str, _ver))
 
 version = __version__  # backwards compatibility name
 
-description = "Set of python modules and scripts to analyze the results of ABINIT computations."
+description = "Python modules and scripts to analyze the results of ab-initio calculation performed with ABINIT"
 
 long_description = \
     """
@@ -35,8 +35,7 @@ long_description = \
     * A set of scripts for performing common tasks such as plotting the results
       of the calculation.
 
-    The latest development version is always available from ...
-    site <http://??>.
+    The latest development version is always available from site <https://github.com/gmatteo/abipy>
     """
 
 license = 'GPL'
@@ -49,9 +48,9 @@ author = 'The ABINIT group'
 
 author_email = 'gmatteo at gmail com'
 
-url = 'http://abinit.org'
+url = 'https://github.com/gmatteo/abipy'
 
-#download_url = 'http://abinit.org/abipy'
+#download_url = 'https://github.com/gmatteo/abipy'
 
 platforms = ['Linux', 'darwin']
 

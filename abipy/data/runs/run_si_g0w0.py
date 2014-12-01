@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """This script shows how to compute the G0W0 corrections in silicon."""
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import os
 import sys

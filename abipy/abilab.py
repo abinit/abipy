@@ -7,28 +7,25 @@ from monty.os.path import which
 from pymatgen.io.abinitio.eos import EOS
 from pymatgen.io.abinitio.pseudos import PseudoTable
 from pymatgen.io.abinitio.wrappers import Mrgscr, Mrgddb, Mrggkk
-from pymatgen.io.abinitio import qadapters
 #from pymatgen.io.abinitio.tasks import (TaskManager, ScfTask, NscfTask, RelaxTask, DDK_Task,
 #    PhononTask, G_Task, HaydockBseTask, OpticTask, AnaddbTask)
 #from pymatgen.io.abinitio.workflows import (Workflow, IterativeWorkflow, BandStructureWorkflow,
 #    RelaxWorkflow, DeltaFactorWorkflow, G0W0_Workflow, SigmaConvWorkflow, BSEMDF_Workflow,
 #    PhononWorkflow)
 from pymatgen.io.abinitio.tasks import *
-from pymatgen.io.abinitio.workflows import *
+from pymatgen.io.abinitio.works import *
 from pymatgen.io.abinitio.flows import *
 from pymatgen.io.abinitio.launcher import PyFlowScheduler
-#from pymatgen.io.gwwrapper.helpers import refine_structure
-#from pymatgen.io.gwwrapper.convergence import test_conv
 
-from abipy.core import constants
 from abipy.core.structure import Structure, StructureModifier
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen, AnaddbInput
-from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter, SIGRES_Plotter
-from abipy.phonons import PhononBands, PHDOS_Reader, PHDOS_File
+from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter, SigresPlotter
+from abipy.phonons import PhbstFile, PhononBands, PhdosFile
 
 # Tools for unit conversion
-FloatWithUnit = constants.FloatWithUnit
-ArrayWithUnit = constants.ArrayWithUnit
+import pymatgen.core.units as units
+FloatWithUnit = units.FloatWithUnit
+ArrayWithUnit = units.ArrayWithUnit
 
 
 def _straceback():
@@ -40,17 +37,15 @@ def _straceback():
 def abifile_subclass_from_filename(filename):
     """Returns the appropriate class associated to the given filename."""
     from abipy.iotools.files import AbinitFile, AbinitLogFile, AbinitOutputFile
-    from abipy.electrons import SIGRES_File, GSR_File, MDF_File
-    from abipy.waves import WFK_File
-    #from abipy.phonons import PHDOS_File, PHBST_File
+    from abipy.electrons import SigresFile, GsrFile, MdfFile
+    from abipy.waves import WfkFile
 
     ext2ncfile = {
-        "SIGRES.nc": SIGRES_File,
-        "WFK-etsf.nc": WFK_File,
-        "MDF.nc": MDF_File,
-        "GSR.nc": GSR_File
-        #"PHDOS.nc": PHDOS_File,
-        #"PHBST.nc": PHBST_File,
+        "SIGRES.nc": SigresFile,
+        "WFK-etsf.nc": WfkFile,
+        "MDF.nc": MdfFile,
+        "GSR.nc": GsrFile,
+        "PHBST.nc": PhbstFile,
     }
 
     #if filename.endswith(".abi"):
@@ -167,7 +162,7 @@ def abicheck():
 
 def flow_main(main):
     """
-    This decorator is used to decorate main functions producing `AbinitFlows`.
+    This decorator is used to decorate main functions producing `Flows`.
     It adds the initialization of the logger and an argument parser that allows one to select 
     the loglevel, the workdir of the flow as well as the YAML file with the parameters of the `TaskManager`.
     The main function shall have the signature:

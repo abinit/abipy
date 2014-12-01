@@ -14,45 +14,40 @@ __all__ = [
 
 
 class ScissorsError(Exception):
-    """Base class for the exceptions raised by `Scissors`"""
+    """Base class for the exceptions raised by :class:`Scissors`"""
 
 
 class Scissors(object):
     """
-    This object represents an energy-dependent scissors operator.
-    The operator is defined by a list of domains (energy intervals)
-    and a list of functions defined in these domains. The domains
-    should fulfill the constraints documented in the main constructor.
-    eV units are assumed.
+    This object represents an energy-dependent scissors operator. The operator is defined by a list of domains
+    (energy intervals) and a list of functions defined in these domains. The domains should fulfill the constraints
+    documented in the main constructor.
 
-    The standard way to create this object is via the methods
-    provided by the factory class `ScissorBuilder`.
-    Once the instance has been created, one can correct the
-    band structure by calling the `apply` method.
+    .. note::
+        eV units are assumed.
+
+    The standard way to create this object is via the methods provided by the factory class :class:`ScissorBuilder`.
+    Once the instance has been created, one can correct the band structure by calling the `apply` method.
     """
     Error = ScissorsError
 
     def __init__(self, func_list, domains, residues, bounds=None):
         """
         Args:
-            func_list:
-                List of callable objects. Each function takes an eigenvalue and returns
-                the corrected value.
-            domains:
-                 Domains of each function. List of tuples [(emin1, emax1), (emin2, emax2), ...]
-            bounds:
-                Specify how to handle energies that do not fall inside one of the domains. 
-                At present, only constant boundaries are implemented.
-            residues:
-                A list of the residues of the fitting per domain
+            func_list: List of callable objects. Each function takes an eigenvalue and returns
+                       the corrected value.
+            domains: Domains of each function. List of tuples [(emin1, emax1), (emin2, emax2), ...]
+            bounds: Specify how to handle energies that do not fall inside one of the domains.
+                    At present, only constant boundaries are implemented.
+            residues: A list of the residues of the fitting per domain
 
-        .. note:
-            - Domains should not overlap, cover e0mesh, and given in increasing order.
+        .. note::
+            #. Domains should not overlap, cover e0mesh, and given in increasing order.
 
-            - Holes are permitted but the interpolation will raise an exception if the
-              eigenvalue falls inside the hole.
+            #. Holes are permitted but the interpolation will raise an exception if the
+               eigenvalue falls inside the hole.
 
-            - Errors contains a list of the fitting errors per domain
+            #. Errors contains a list of the fitting errors per domain
 
         """
         # TODO Add consistency check.
@@ -125,7 +120,7 @@ class Scissors(object):
 
 class ScissorsBuilder(object):
     """
-    This object facilitates the creation of `Scissors` instances.
+    This object facilitates the creation of :class:`Scissors` instances.
 
     Usage:
     """
@@ -154,8 +149,7 @@ class ScissorsBuilder(object):
     @classmethod
     def from_file(cls, filepath):
         """
-        Generate an instance of `ScissorsBuilder` from file.
-        Main entry point for client code.
+        Generate an instance of :class:`ScissorsBuilder` from file. Main entry point for client code.
         """
         from abipy.abilab import abiopen
         ncfile = abiopen(filepath)
@@ -177,7 +171,7 @@ class ScissorsBuilder(object):
         return self._e0max
 
     def get_scissors_spin(self):
-        """Returns a tuple of `Scissors` indexed by the spin value."""
+        """Returns a tuple of :class:`Scissors` indexed by the spin value."""
         try:
             return self._scissors_spin
         except AttributeError:

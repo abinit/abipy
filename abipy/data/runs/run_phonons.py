@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Phonon band structure of AlAs."""
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import sys
 import os
@@ -65,11 +65,11 @@ def scf_ph_inputs():
 
 def build_flow(options):
     """
-    Create an `AbinitFlow` for phonon calculations:
+    Create an `Flow` for phonon calculations:
 
         1) One workflow for the GS run.
 
-        2) nqpt workflows for phonon calculations. Each workflow contains 
+        2) nqpt works for phonon calculations. Each work contains 
            nirred tasks where nirred is the number of irreducible phonon perturbations
            for that particular q-point.
     """

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Compute the deltafactor for a given pseudopotential."""
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import os
 import sys
@@ -27,7 +27,7 @@ def build_flow(options):
 
     # Initialize the flow.
     # FIXME  Abistructure is not pickleable with protocol -1
-    flow = abilab.AbinitFlow(workdir=workdir, manager=manager, pickle_protocol=0)
+    flow = abilab.Flow(workdir=workdir, manager=manager, pickle_protocol=0)
 
     # Build the workflow for the computation of the deltafactor.
     # The calculation is done with the parameters and the cif files

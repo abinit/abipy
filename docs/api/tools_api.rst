@@ -35,14 +35,6 @@ tools Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`design_patterns` Module
------------------------------
-
-.. automodule:: abipy.tools.design_patterns
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 :mod:`devtools` Module
 ----------------------
 

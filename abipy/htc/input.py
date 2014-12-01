@@ -153,14 +153,10 @@ class AbiInput(Input):
     def __init__(self, pseudos, pseudo_dir="", ndtset=1, comment=""):
         """
         Args:
-            pseudos:
-                String or list of string with the name of the pseudopotential files.
-            pseudo_dir:
-                Name of the directory where the pseudopotential files are located.
-            ndtset:
-                Number of datasets.
-            comment:
-                Optional string with a comment that will be placed at the beginning of the file.
+            pseudos: String or list of string with the name of the pseudopotential files.
+            pseudo_dir: Name of the directory where the pseudopotential files are located.
+            ndtset: Number of datasets.
+            comment: Optional string with a comment that will be placed at the beginning of the file.
         """
         # Dataset[0] contains the global variables common to the different datasets
         # Dataset[1:ndtset+1] stores the variables specific to the different datasets.
@@ -184,20 +180,18 @@ class AbiInput(Input):
         else:
             # String(s)
             pseudo_dir = os.path.abspath(pseudo_dir)
-
             pseudo_paths = [os.path.join(pseudo_dir, p) for p in list_strings(pseudos)]
 
             missing = [p for p in pseudo_paths if not os.path.exists(p)]
             if missing:
                 raise self.Error("Cannot find the following pseudopotential files:\n%s" % str(missing)) 
 
-            try:
-                self._pseudos = PseudoTable(pseudo_paths)
-
-            except Exception as exc:
-                msg = "\nIgnoring error raised while parsing pseudopotential files:\n Backtrace:" + straceback()
-                warnings.warn(msg)
-                self._pseudos = []
+            #try:
+            self._pseudos = PseudoTable(pseudo_paths)
+            #except Exception as exc:
+            #    msg = "\nIgnoring error raised while parsing pseudopotential files:\n Backtrace:" + straceback()
+            #    warnings.warn(msg)
+            #    self._pseudos = []
 
         if comment:
             self.set_comment(comment)
@@ -284,23 +278,23 @@ class AbiInput(Input):
 
     @property
     def pseudos(self):
-        """List of `Pseudo` objecst."""
+        """List of :class:`Pseudo` objecst."""
         return self._pseudos
 
     @property
     def ispaw(self):
-        """True if we have a PAW calculation."""
+        """True if PAW calculation."""
         return all(p.ispaw for p in self.pseudos)
 
     @property
     def isnc(self):
-        """True if we have a norm-conserving calculation."""
+        """True if norm-conserving calculation."""
         return all(p.isnc for p in self.pseudos)
 
     @property
     def structure(self):
         """
-        Returns the `Structure` associated to the ABINIT input.
+        Returns the :class:`Structure` associated to the ABINIT input.
 
         Raises:
             ValueError if we have multi datasets with different 
@@ -366,10 +360,8 @@ class AbiInput(Input):
         Set the value of a set of input variables.
 
         Args:
-            dtset:
-                Int with the index of the dataset, slice object of iterable 
-            vars:
-                Dictionary with the variables.
+            dtset: Int with the index of the dataset, slice object of iterable 
+            vars: Dictionary with the variables.
         """
         for idt in self._dtset2range(dtset):
             self[idt].set_variables(**vars)
@@ -379,10 +371,8 @@ class AbiInput(Input):
         Remove the variable listed in keys
                                                                              
         Args:
-            dtset:
-                Int with the index of the dataset, slice object of iterable 
-            keys:
-                List of variables to remove.
+            dtset: Int with the index of the dataset, slice object of iterable 
+            keys: List of variables to remove.
         """
         for idt in self._dtset2range(dtset):
             self[idt].remove_variables(keys)
@@ -430,10 +420,8 @@ class AbiInput(Input):
         The endpoint of the interval can optionally be excluded.
 
         Args:
-            start: 
-                The starting value of the sequence.
-            stop:
-                The end value of the sequence, unless `endpoint` is set to False.
+            start:  The starting value of the sequence.
+            stop: The end value of the sequence, unless `endpoint` is set to False.
                 In that case, the sequence consists of all but the last of ``ndtset + 1``
                 evenly spaced samples, so that `stop` is excluded.  Note that the step
                 size changes when `endpoint` is False.
@@ -457,13 +445,10 @@ class AbiInput(Input):
         be consistent.  It is better to use ``linspace`` for these cases.
 
         Args:
-            start: 
-                Start of interval.  The interval includes this value. The default start value is 0.
-            stop:
-                End of interval.  The interval does not include this value, except
+            start:  Start of interval. The interval includes this value. The default start value is 0.
+            stop: End of interval.  The interval does not include this value, except
                 in some cases where `step` is not an integer and floating point
-            step: 
-                Spacing between values.  For any output `out`, this is the distance
+            step: Spacing between values.  For any output `out`, this is the distance
                 between two adjacent values, ``out[i+1] - out[i]``.  The default
                 step size is 1.  If `step` is specified, `start` must also be given.
         """
@@ -507,20 +492,21 @@ class AbiInput(Input):
             raise self.Error("The number of configurations must equal ndtset while %d != %d" % (idt, self.ndtset))
 
     def set_structure(self, structure, dtset=0):
-        """Set the `Structure` object for the specified dtset."""
+        """Set the :class:`Structure` object for the specified dtset."""
         for idt in self._dtset2range(dtset):
             self[idt].set_structure(structure)
 
-    def set_structure_from_file(self, filepath, dtset=0):
-        """Set the `Structure` object for the specified dtset (data is read from filepath)."""
-        structure = Structure.from_file(filepath)
+    def set_structure_from_file(self, filepath, dtset=0, cls=Structure):
+        """
+        Set the :class:`Structure` object for the specified dtset. 
+        data is read from filepath. cls specified that class to instantiate.
+        """
+        structure = cls.from_file(filepath)
         self.set_structure(structure, dtset=dtset)
         return structure
 
     def set_kmesh(self, ngkpt, shiftk, kptopt=1, dtset=0):
-        """
-        Set the variables defining the k-point sampling for the specified dtset.
-        """
+        """Set the variables defining the k-point sampling for the specified dtset."""
         for idt in self._dtset2range(dtset):
             self[idt].set_kmesh(ngkpt, shiftk, kptopt=kptopt)
 
@@ -529,42 +515,36 @@ class AbiInput(Input):
         Set the variables (ngkpt, shift, kptopt) for the sampling of the BZ.
                                                        
         Args:
-            nksmall:
-                Number of k-points used to sample the smallest lattice vector.
-            kptopt:
-                Option for the generation of the mesh.
+            nksmall: Number of k-points used to sample the smallest lattice vector.
+            kptopt: Option for the generation of the mesh (ABINIT variable).
         """
         for idt in self._dtset2range(dtset):
             self[idt].set_autokmesh(nksmall, kptopt=kptopt)
 
     def set_autokpath(self, ndivsm, dtset=0):
-
+        """
+        Set automatically the k-path from the lattice 
+        and the number of divisions for the smallest segment (ndism)
+        """
         for idt in self._dtset2range(dtset):
             self[idt].set_kpath(ndivsm, kptbounds=None)
 
     def set_kpath(self, ndivsm, kptbounds=None, iscf=-2, dtset=0):
         """
         Set the variables defining the k-path for the specified dtset.
-
-        The list of K-points is taken from the pymatgen database if kptbounds is None
+        The list of K-points is taken from the pymatgen database if `kptbounds` is None.
 
         Args:
-            ndivsm:
-                Number of divisions for the smallest segment.
-            kptbounds:
-                k-points defining the path in k-space.
-            iscf:
-                iscf variable.
-            dtset:
-                Index of the dataset. 0 for global variables.
+            ndivsm: Number of divisions for the smallest segment.
+            kptbounds: k-points defining the path in k-space.
+            iscf: iscf variable.
+            dtset: Index of the dataset. 0 for global variables.
         """
         for idt in self._dtset2range(dtset):
             self[idt].set_kpath(ndivsm, kptbounds=kptbounds, iscf=iscf)
 
     def set_kptgw(self, kptgw, bdgw, dtset=0):
-        """
-        Set the variables defining the k point for the GW corrections
-        """
+        """Set the variables defining the k point for the GW corrections"""
         for idt in self._dtset2range(dtset):
             self[idt].set_kptgw(kptgw, bdgw)
 
@@ -639,10 +619,8 @@ class Dataset(mixins.MappingMixin):
         String representation.
 
         Args:
-            sortmode:
-                "a" for alphabetical order, None if no sorting is wanterd
-            post:
-                String that will be appended to the name of the variables
+            sortmode: "a" for alphabetical order, None if no sorting is wanted
+            post: String that will be appended to the name of the variables
                 Note that post is usually autodetected when we have multiple datatasets
                 It is mainly used when we have an input file with a single dataset
                 so that we can prevent the code from adding "1" to the name of the variables 
@@ -751,7 +729,7 @@ class Dataset(mixins.MappingMixin):
 
     @property
     def structure(self):
-        """Returns the `Structure` associated to this dataset."""
+        """Returns the :class:`Structure` associated to this dataset."""
         try:
             return self._structure
 
@@ -778,12 +756,9 @@ class Dataset(mixins.MappingMixin):
         Set the variables for the sampling of the BZ.
 
         Args:
-            ngkpt:
-                Monkhorst-Pack divisions
-            shiftk:
-                List of shifts.
-            kptopt:
-                Option for the generation of the mesh.
+            ngkpt: Monkhorst-Pack divisions
+            shiftk: List of shifts.
+            kptopt: Option for the generation of the mesh.
         """
         shiftk = np.reshape(shiftk, (-1,3))
         
@@ -797,10 +772,8 @@ class Dataset(mixins.MappingMixin):
         Set the variables (ngkpt, shift, kptopt) for the sampling of the BZ.
                                                        
         Args:
-            nksmall:
-                Number of k-points used to sample the smallest lattice vector.
-            kptopt:
-                Option for the generation of the mesh.
+            nksmall: Number of k-points used to sample the smallest lattice vector.
+            kptopt: Option for the generation of the mesh.
         """
         shiftk = self.structure.calc_shiftk()
         ngkpt = self.structure.calc_ngkpt(nksmall)
@@ -815,12 +788,9 @@ class Dataset(mixins.MappingMixin):
         Set the variables for the computation of the band structure.
 
         Args:
-            ndivsm:
-                Number of divisions for the smallest segment.
-            kptbounds
-                k-points defining the path in k-space.
-                If None, we use the default high-symmetry k-path 
-                defined in the pymatgen database.
+            ndivsm: Number of divisions for the smallest segment.
+            kptbounds: k-points defining the path in k-space.
+                If None, we use the default high-symmetry k-path defined in the pymatgen database.
         """
         if kptbounds is None:
             kptbounds = self.structure.calc_kptbounds()
@@ -837,10 +807,8 @@ class Dataset(mixins.MappingMixin):
         Set the variables (k-points, bands) for the computation of the GW corrections.
 
         Args
-            kptgw:
-                List of k-points in reduced coordinates.
-            bdgw:
-                Specifies the range of bands for the GW corrections.
+            kptgw: List of k-points in reduced coordinates.
+            bdgw: Specifies the range of bands for the GW corrections.
                 Accepts iterable that be reshaped to (nkptgw, 2) 
                 or a tuple of two integers if the extrema are the same for each k-point.
         """
@@ -862,18 +830,13 @@ class LujForSpecie(collections.namedtuple("LdauForSpecie", "l u j unit")):
     def __new__(cls, l, u, j, unit):
         """
         Args:
-            l: 
-                Angular momentum (int or string).
-            u:
-                U value
-            j:
-                J Value
-            unit:
-                Energy unit for u and j.
+            l: Angular momentum (int or string).
+            u: U value
+            j: J Value
+            unit: Energy unit for u and j.
         """
         l = l
-        u = Energy(u, unit)
-        j = Energy(j, unit)
+        u, j = Energy(u, unit), Energy(j, unit)
         return super(cls, LujForSpecie).__new__(cls, l, u, j, unit)
 
 
@@ -899,10 +862,8 @@ class LdauParams(object):
     def __init__(self, usepawu, structure):
         """
         Arg:
-            usepawu:
-                Abinit variable `usepawu` defining the LDA+U method.
-            structure:
-                `Structure` object.
+            usepawu: ABINIT variable `usepawu` defining the LDA+U method.
+            structure: :class:`Structure` object.
         """
         self.usepawu = usepawu
         self.structure = structure
@@ -915,16 +876,11 @@ class LdauParams(object):
     def luj_for_symbol(self, symbol, l, u, j, unit="eV"):
         """
         Args:
-            symbol:
-                Chemical symbol of the atoms on which LDA+U should be applied.
-            l:
-                Angular momentum.
-            u: 
-                Value of U.
-            j:
-                Value of J.
-            unit:
-                Energy unit of U and J.
+            symbol: Chemical symbol of the atoms on which LDA+U should be applied.
+            l: Angular momentum.
+            u:  Value of U.
+            j: Value of J.
+            unit: Energy unit of U and J.
         """
         if symbol not in self.symbols_by_typat:
             err_msg = "Symbol %s not in symbols_by_typat:\n%s" % (symbol, self.symbols_by_typat)
@@ -937,9 +893,7 @@ class LdauParams(object):
         self._params[symbol] = LujForSpecie(l=l, u=u, j=j, unit=unit)
 
     def to_abivars(self):
-        """
-        Returns a dict with the Abinit variables.
-        """
+        """Returns a dict with the Abinit variables."""
         lpawu, upawu, jpawu = [], [], []
 
         for symbol in self.symbols_by_typat:
@@ -960,8 +914,7 @@ class LdauParams(object):
             usepawu=self.usepawu,
             lpawu=" ".join(map(str, lpawu)),
             upawu=" ".join(map(str, upawu)) + " eV",
-            jpawu=" ".join(map(str, jpawu)) + " eV",
-        )
+            jpawu=" ".join(map(str, jpawu)) + " eV")
 
 
 class LexxParams(object):
@@ -984,8 +937,7 @@ class LexxParams(object):
     def __init__(self, structure):
         """
         Arg:
-            structure:
-                `Structure` object.
+            structure: :class:`Structure` object.
         """
         self.structure = structure
         self._lexx_for_symbol = {} 
@@ -999,10 +951,8 @@ class LexxParams(object):
         Enable LEXX for the given chemical symbol and the angular momentum l 
 
         Args:
-            symbol:
-                Chemical symbol of the atoms on which LEXX should be applied.
-            l:
-                Angular momentum.
+            symbol: Chemical symbol of the atoms on which LEXX should be applied.
+            l: Angular momentum.
         """
         if symbol not in self.symbols_by_typat:
             err_msg = "Symbol %s not in symbols_by_typat:\n%s" % (symbol, self.symbols_by_typat)
@@ -1015,9 +965,7 @@ class LexxParams(object):
         self._lexx_for_symbol[symbol] = l
 
     def to_abivars(self):
-        """
-        Returns a dict with the Abinit variables.
-        """
+        """Returns a dict with the Abinit variables."""
         lexx_typat = []
 
         for symbol in self.symbols_by_typat:
@@ -1029,14 +977,12 @@ class LexxParams(object):
 
 def input_gen(inp, **kwargs):
     """
-    This function receives an `AbiInput` and generates
+    This function receives an :class:`AbiInput` and generates
     new inputs by replacing the variables specified in kwargs.
 
     Args:
-        inp:
-            `AbiInput` file.
-        kwargs:
-            keyword arguments with the values used for each variable.
+        inp: :class:`AbiInput` file.
+        kwargs: keyword arguments with the values used for each variable.
 
     .. code-block:: python
 
@@ -1067,8 +1013,8 @@ def product_dict(d):
     and returns a list of dictionaries with the values that would be used inside the loop.
 
     >>> d = OrderedDict([("foo", [2, 4]), ("bar", 1)])
-    >>> product_dict(d)
-    [OrderedDict([('foo', 2), ('bar', 1)]), OrderedDict([('foo', 4), ('bar', 1)])]
+    >>> product_dict(d) == [OrderedDict([('foo', 2), ('bar', 1)]), OrderedDict([('foo', 4), ('bar', 1)])]
+    True
     >>> d = OrderedDict([("bar", [1,2]), ('foo', [3,4])]) 
     >>> product_dict(d) == [{'bar': 1, 'foo': 3},
     ... {'bar': 1, 'foo': 4},
@@ -1115,10 +1061,8 @@ class AnaddbInput(mixins.MappingMixin):
     def __init__(self, structure, comment="", **kwargs):
         """
         Args:
-            structure:
-                Crystalline structure.
-            comment:
-                Optional string with a comment that will be placed at the beginning of the file.
+            structure: :class:`Structure` object 
+            comment: Optional string with a comment that will be placed at the beginning of the file.
         """
         self._structure = structure
         self.comment = comment
@@ -1140,25 +1084,17 @@ class AnaddbInput(mixins.MappingMixin):
         Build an anaddb input file for the computation of phonon bands and phonon DOS.
 
         Args:
-            Structure:
-                Structure object
-            ngqpt:
-                Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
-            ndivsm:
-                Used to generate a normalized path for the phonon bands.
+            Structure: :class:`Structure` object
+            ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
+            ndivsm: Used to generate a normalized path for the phonon bands.
                 If gives the number of divisions for the smallest segment of the path.
-            nqsmall:
-                Used to generate the (dense) mesh for the DOS.
+            nqsmall: Used to generate the (dense) mesh for the DOS.
                 It defines the number of q-points used to sample the smallest lattice vector.
-            q1shft:
-                Shifts used for the coarse Q-mesh
-            qptbounds
-                Boundaries of the path. If None, the path is generated from an internal database
+            q1shft: Shifts used for the coarse Q-mesh
+            qptbounds Boundaries of the path. If None, the path is generated from an internal database
                 depending on the input structure.
-            asr, chneut, dipdp:
-                Anaddb input variable. See official documentation.
-            dos_method:
-                Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
+            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            dos_method: Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening
         """
         dosdeltae, dossmear = None, None
@@ -1203,47 +1139,40 @@ class AnaddbInput(mixins.MappingMixin):
         Build an anaddb input file for the computation of phonon bands and phonon DOS.
 
         Args:
-            Structure:
-                Structure object
-            ngqpt:
-                Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
-            nqsmall:
-                Used to generate the (dense) mesh for the DOS.
+            Structure: :class:`Structure` object
+            ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
+            nqsmall: Used to generate the (dense) mesh for the DOS.
                 It defines the number of q-points used to sample the smallest lattice vector.
-            q1shft:
-                Shifts used for the coarse Q-mesh
-            qptbounds
-                Boundaries of the path. If None, the path is generated from an internal database
+            q1shft: Shifts used for the coarse Q-mesh
+            qptbounds: Boundaries of the path. If None, the path is generated from an internal database
                 depending on the input structure.
-            asr, chneut, dipdp:
-                Anaddb input variable. See official documentation.
-            dos_method:
-                Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
+            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            dos_method: Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening
 
             #!Flags
-             # ifcflag   1     ! Interatomic force constant flag
-             # thmflag   1     ! Thermodynamical properties flag
+            # ifcflag   1     ! Interatomic force constant flag
+            # thmflag   1     ! Thermodynamical properties flag
             #!Wavevector grid number 1 (coarse grid, from DDB)
             #  brav    2      ! Bravais Lattice : 1-S.C., 2-F.C., 3-B.C., 4-Hex.)
-             #  ngqpt   4  4  4   ! Monkhorst-Pack indices
-             #  nqshft  1         ! number of q-points in repeated basic q-cell
-             #  q1shft  3*0.0
+            #  ngqpt   4  4  4   ! Monkhorst-Pack indices
+            #  nqshft  1         ! number of q-points in repeated basic q-cell
+            #  q1shft  3*0.0
             #!Effective charges
-             #     asr   1     ! Acoustic Sum Rule. 1 => imposed asymetrically
-             #  chneut   1     ! Charge neutrality requirement for effective charges.
+            #     asr   1     ! Acoustic Sum Rule. 1 => imposed asymetrically
+            #  chneut   1     ! Charge neutrality requirement for effective charges.
             #!Interatomic force constant info
-             #  dipdip  1      ! Dipole-dipole interaction treatment
+            #  dipdip  1      ! Dipole-dipole interaction treatment
             #!Wavevector grid number 2 (series of fine grids, extrapolated from interat forces)
             #  ng2qpt   20 20 20  ! sample the BZ up to ngqpt2
             #  ngrids   5         ! number of grids of increasing size#  q2shft   3*0.0
             #!Thermal information
-             #  nchan   1250   ! # of channels for the DOS with channel width 1 cm-1
-             #  nwchan  5      ! # of different channel widths from this integer down to 1 cm-1
-             #  thmtol  0.120  ! Tolerance on thermodynamical function fluctuations
-             #  ntemper 10     ! Number of temperatures
-             #  temperinc 20.  ! Increment of temperature in K for temperature dependency
-             #  tempermin 20.  ! Minimal temperature in Kelvin
+            #  nchan   1250   ! # of channels for the DOS with channel width 1 cm-1
+            #  nwchan  5      ! # of different channel widths from this integer down to 1 cm-1
+            #  thmtol  0.120  ! Tolerance on thermodynamical function fluctuations
+            #  ntemper 10     ! Number of temperatures
+            #  temperinc 20.  ! Increment of temperature in K for temperature dependency
+            #  tempermin 20.  ! Minimal temperature in Kelvin
             # This line added when defaults were changed (v5.3) to keep the previous, old behaviour
             #  symdynmat 0
 
@@ -1282,20 +1211,14 @@ class AnaddbInput(mixins.MappingMixin):
         Build an anaddb input file for the computation of phonon modes.
 
         Args:
-            Structure:
-                Structure object
-            ngqpt:
-                Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
-            nqsmall:
-                Used to generate the (dense) mesh for the DOS.
+            Structure: :class:`Structure` object
+            ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
+            nqsmall: Used to generate the (dense) mesh for the DOS.
                 It defines the number of q-points used to sample the smallest lattice vector.
-            q1shft:
-                Shifts used for the coarse Q-mesh
-            qptbounds
-                Boundaries of the path. If None, the path is generated from an internal database
+            q1shft: Shifts used for the coarse Q-mesh
+            qptbounds Boundaries of the path. If None, the path is generated from an internal database
                 depending on the input structure.
-            asr, chneut, dipdp:
-                Anaddb input variable. See official documentation.
+            asr, chneut, dipdp: Anaddb input variable. See official documentation.
 
         #!General information
          #enunit    2
@@ -1335,8 +1258,6 @@ class AnaddbInput(mixins.MappingMixin):
 
         return new
 
-
-
     @property
     def structure(self):
         return self._structure
@@ -1355,8 +1276,7 @@ class AnaddbInput(mixins.MappingMixin):
         String representation.
 
         Args:
-            sortmode:
-                "a" for alphabetical order, None if no sorting is wanterd
+            sortmode: "a" for alphabetical order, None if no sorting is wanterd
         """
         lines = []
         app = lines.append
@@ -1424,12 +1344,9 @@ class AnaddbInput(mixins.MappingMixin):
         Set the variables for the computation of the phonon band structure.
 
         Args:
-            ndivsm:
-                Number of divisions for the smallest segment.
-            qptbounds
-                q-points defining the path in k-space.
-                If None, we use the default high-symmetry k-path
-                defined in the pymatgen database.
+            ndivsm: Number of divisions for the smallest segment.
+            qptbounds: q-points defining the path in k-space.
+                If None, we use the default high-symmetry k-path defined in the pymatgen database.
         """
         if qptbounds is None:
             qptbounds = self.structure.calc_kptbounds()
@@ -1448,7 +1365,6 @@ class AnaddbInput(mixins.MappingMixin):
         Set the variabls nqpt for the sampling of the BZ.
 
         Args:
-            nqsmall:
-                Number of q-points used to sample the smallest lattice vector.
+            nqsmall: Number of q-points used to sample the smallest lattice vector.
         """
         self.set_variables(ng2qpt=self.structure.calc_ngkpt(nqsmall))

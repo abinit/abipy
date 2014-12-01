@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This script allows the user to submit the calculations contained in the `AbinitFlow`.
+This script allows the user to submit the calculations contained in the `Flow`.
 It provides both a command line interface as well as a graphical interfaced based on wxpython.
 """
 from __future__ import print_function, division, unicode_literals
@@ -11,6 +11,7 @@ import argparse
 import time
 
 from pprint import pprint
+from monty import termcolor
 from pymatgen.io.abinitio.launcher import PyFlowScheduler, PyLauncher
 import abipy.abilab as abilab
 
@@ -56,10 +57,12 @@ def treat_flow(flow, options):
     if options.command in ["single", "singleshot"]:
         nlaunch = PyLauncher(flow).single_shot()
         print("Number of tasks launched %d" % nlaunch)
+        flow.show_status()
 
     if options.command in ["rapid", "rapidfire"]:
         nlaunch = PyLauncher(flow).rapidfire()
         print("Number of tasks launched %d" % nlaunch)
+        flow.show_status()
 
     if options.command == "scheduler":
 
@@ -148,6 +151,7 @@ def treat_flow(flow, options):
 
         nlaunch = PyLauncher(flow).rapidfire()
         print("Number of tasks launched %d" % nlaunch)
+        flow.show_status()
 
     if options.command == "tail":
         paths = [t.output_file.path for t in flow.iflat_tasks(status="Running")]
@@ -192,6 +196,8 @@ def main():
     parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                         help='verbose, can be supplied multiple times to increase verbosity')
 
+    parser.add_argument('--no-colors', default=False, help='Disable ASCII colors')
+
     parser.add_argument('--loglevel', default="ERROR", type=str,
                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
@@ -202,10 +208,10 @@ def main():
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for single command.
-    p_single = subparsers.add_parser('singleshot', aliases=["single"], help="Run single task.")
+    p_single = subparsers.add_parser('single', aliases=["singleshot"], help="Run single task.")
 
     # Subparser for rapidfire command.
-    p_rapid = subparsers.add_parser('rapidfire', aliases=["rapid"], help="Run all tasks in rapidfire mode")
+    p_rapid = subparsers.add_parser('rapid', aliases=["rapidfire"], help="Run all tasks in rapidfire mode")
 
     # Subparser for scheduler command.
     p_scheduler = subparsers.add_parser('scheduler', aliases=["sched"], help="Run all tasks with a Python scheduler.")
@@ -234,7 +240,7 @@ def main():
 
     # Subparser for restart command.
     p_reset = subparsers.add_parser('reset', help="Reset the tasks of the flow with the specified status.")
-    p_reset.add_argument('task_status', default="QueueCritical") 
+    p_reset.add_argument('task_status', default="QCritical") 
 
     # Subparser for open command.
     p_open = subparsers.add_parser('open', help="Open files in $EDITOR, type `abirun.py ... open --help` for help)")
@@ -262,6 +268,8 @@ Specify the files to open. Possible choices:\n
 
     p_tail = subparsers.add_parser('tail', help="Use tail to follow the main output file of the flow.")
 
+    p_deps = subparsers.add_parser('deps', help="Show dependencies.")
+
     # Parse command line.
     try:
         options = parser.parse_args()
@@ -276,18 +284,21 @@ Specify the files to open. Possible choices:\n
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
 
+    if options.no_colors:
+        termcolor.enable(False)
+
     # Read the flow from the pickle database.
     if options.path is None:
         # Will try to figure out the location of the Flow.
         options.path = os.getcwd()
 
-    flow = abilab.AbinitFlow.pickle_load(options.path)
+    flow = abilab.Flow.pickle_load(options.path)
     retcode = 0
 
     if options.command == "gui":
         if options.chroot:
             # Change the workdir of flow.
-            print("Will chroot to %s" % options.chroot)
+            print("Will chroot to %s..." % options.chroot)
             flow.chroot(options.chroot)
 
         from abipy.gui.flowviewer import wxapp_flow_viewer
@@ -306,6 +317,10 @@ Specify the files to open. Possible choices:\n
             
         # Update the database.
         return flow.build_and_pickle_dump()
+
+    elif options.command == "deps":
+        flow.check_status()
+        flow.show_dependencies()
 
     else:
         retcode = treat_flow(flow, options)

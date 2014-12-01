@@ -10,7 +10,7 @@ from abipy.core.testing import has_abinit
 
 
 # Tests in this module require abinit >= 7.9.0 and pseudodojo.
-pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
+#pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
 
 
 def scf_ph_inputs(tvars):
@@ -69,11 +69,11 @@ def scf_ph_inputs(tvars):
 
 def itest_phonon_flow(fwp, tvars):
     """
-    Create an `AbinitFlow` for phonon calculations:
+    Create an `Abinit` for phonon calculations:
 
-        1) One workflow for the GS run.
+        1) One work for the GS run.
 
-        2) nqpt workflows for phonon calculations. Each workflow contains
+        2) nqpt works for phonon calculations. Each work contains
            nirred tasks where nirred is the number of irreducible phonon perturbations
            for that particular q-point.
     """
@@ -118,10 +118,10 @@ def itest_phonon_flow(fwp, tvars):
                                      cwd=flow.outdir.path)
     assert ddb_path == out_ddb
 
-    # Build new workflow with Anaddb tasks.
-    # Construct a manager with mpi_ncpus==1 since  anaddb do not support mpi_ncpus > 1 (except in elphon)
-    shell_manager = fwp.manager.to_shell_manager(mpi_ncpus=1)
-    awork = abilab.Workflow(manager=shell_manager)
+    # Build new work with Anaddb tasks.
+    # Construct a manager with mpi_procs==1 since anaddb do not support mpi_procs > 1 (except in elphon)
+    shell_manager = fwp.manager.to_shell_manager(mpi_procs=1)
+    awork = abilab.Work(manager=shell_manager)
 
     # Phonons bands and DOS with gaussian method
     anaddb_input = abilab.AnaddbInput.phbands_and_dos(
@@ -152,3 +152,4 @@ def itest_phonon_flow(fwp, tvars):
         #assert len(atask.outdir.list_filepaths(wildcard="*PHBST.nc")) == 1
         #assert len(atask.outdir.list_filepaths(wildcard="*PHDOS.nc")) == 1
 
+    #assert flow.validate_json_schema()

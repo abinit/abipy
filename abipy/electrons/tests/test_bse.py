@@ -9,10 +9,10 @@ from abipy.core.testing import *
 class TestMDF_Reader(AbipyTest):
 
     def test_MDF_reading(self):
-        """Test MDF_Reader."""
+        """Test MdfReader."""
         mdf_file = data.ref_file("tbs_4o_DS2_MDF.nc")
 
-        with MDF_Reader(mdf_file) as r:
+        with MdfReader(mdf_file) as r:
             self.assertTrue(len(r.wmesh) == r.read_dimvalue("number_of_frequencies"))
             self.assertTrue(len(r.qpoints) == r.read_dimvalue("number_of_qpoints"))
 
@@ -23,7 +23,7 @@ class TestMDF_Reader(AbipyTest):
             gwnlf_mdf = r.read_gwnlf_mdf()
 
             #exc_mdf.plot()
-            plotter = MDF_Plotter()
+            plotter = MdfPlotter()
 
             plotter.add_mdf("EXC", exc_mdf)
             plotter.add_mdf("KS-RPA", rpanlf_mdf)
@@ -32,7 +32,7 @@ class TestMDF_Reader(AbipyTest):
 
     def test_TSR(self):
         """Test the computation of Tensor"""
-        mdf_file = MDF_File(data.ref_file("tbs_4o_DS2_MDF.nc"))
+        mdf_file = MdfFile(data.ref_file("tbs_4o_DS2_MDF.nc"))
  
         exc_tsr = mdf_file.get_tensor("exc")
         rpa_tsr = mdf_file.get_tensor("rpa")

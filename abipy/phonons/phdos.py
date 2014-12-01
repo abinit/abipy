@@ -9,8 +9,8 @@ from abipy.iotools import ETSF_Reader, AbinitNcFile, Has_Structure
 
 __all__ = [
     "PhononDOS",
-    "PHDOS_Reader",
-    "PHDOS_File",
+    "PhdosReader",
+    "PhdosFile",
 ]
 
 
@@ -117,7 +117,7 @@ class PhononDOS(object):
         return fig
 
 
-class PHDOS_Reader(ETSF_Reader):
+class PhdosReader(ETSF_Reader):
     """
     This object reads data from the PHDOS.nc file produced by anaddb.
 
@@ -188,7 +188,7 @@ class PHDOS_Reader(ETSF_Reader):
         #     return self.read_value("phonon_frequencies")
 
 
-class PHDOS_File(AbinitNcFile, Has_Structure):
+class PhdosFile(AbinitNcFile, Has_Structure):
     """
     Container object storing the different DOSes stored in the
     PHDOS.nc file produced by anaddb. Provides helper function
@@ -197,10 +197,10 @@ class PHDOS_File(AbinitNcFile, Has_Structure):
 
     def __init__(self, filepath):
         # Open the file, read data and create objects.
-        super(PHDOS_File, self).__init__(filepath)
+        super(PhdosFile, self).__init__(filepath)
 
         pjdos_type_dict = collections.OrderedDict()
-        with PHDOS_Reader(filepath) as r:
+        with PhdosReader(filepath) as r:
             self._structure = r.structure
             self.wmesh = r.wmesh
             self.phdos = r.read_phdos()

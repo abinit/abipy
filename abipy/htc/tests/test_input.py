@@ -213,6 +213,7 @@ class AnaddbInputTest(AbipyTest):
         inp3 = AnaddbInput.phbands_and_dos(self.structure, ngqpt, ndivsm, nqsmall,
                                            qptbounds=[0,0,0,1,1,1], dos_method="gaussian:0.001 eV")
         self.assertEqual(inp3['ifcflag'], 1)
+        self.assertEqual(inp3['prtdos'], 1)
         s3 = inp3.to_string(sortmode="a")
         print(s3)
 
@@ -229,7 +230,7 @@ class AnaddbInputTest(AbipyTest):
             self.assertEqual(anaddb_input[flag], 1)
         self.serialize_with_pickle(anaddb_input, test_eq=False)
 
-    def modes(self):
+    def test_modes(self):
         """Test the modes constructor"""
         anaddb_input = AnaddbInput.modes(self.structure)
         self.assertTrue(anaddb_input.make_input())

@@ -11,6 +11,7 @@ import numpy as np
 from six.moves import cStringIO
 from monty.string import is_string
 from monty.itertools import iuptri
+from monty.pprint import pprint_table
 from pymatgen.symmetry.finder import SymmetryFinder
 from pymatgen.symmetry.analyzer import get_point_group
 from abipy.core.kpoints import wrap_to_ws, issamek
@@ -1202,7 +1203,6 @@ class BilbaoPointGroup(object):
 
     def show_character_table(self, stream=sys.stdout):
         """Write a string with the character_table on the given stream."""
-        from abipy.tools import pprint_table
         table = self.character_table
         pprint_table(table, out=stream)
 
