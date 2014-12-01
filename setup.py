@@ -159,7 +159,7 @@ install_requires = [
     "scipy>=0.10",
     "pandas",
     "netCDF4",
-    "pymatgen>=3.0.7",
+    "pymatgen>=3.0.8",
     "wxmplot",
     #"matplotlib>=1.1",
     #"seaborn",
