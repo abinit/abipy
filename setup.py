@@ -156,7 +156,7 @@ install_requires = [
     "pyyaml>=3.11",
     "scipy>=0.10",
     "netCDF4",
-    "pymatgen>=3.0.7",
+    "pymatgen>=3.0.8",
     "wxmplot",
     #"matplotlib>=1.1",
     #"psutil",

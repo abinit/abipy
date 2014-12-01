@@ -8,7 +8,7 @@ import six
 import numpy as np
 
 from abipy import abilab
-from abipy.electrons.gsr import GSR_Reader
+from abipy.electrons.gsr import GsrReader
 
 from pymatgen.io.abinitio.flows import AbinitFlow
 
