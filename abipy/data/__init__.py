@@ -81,7 +81,7 @@ def find_ncfiles(top):
 
     return ncfiles
 
-_DATA_NCFILES = find_ncfiles(top=os.path.dirname(__file__))
+_DATA_NCFILES = find_ncfiles(top=os.path.join(os.path.dirname(__file__), "refs"))
 
 
 def ref_file(basename):

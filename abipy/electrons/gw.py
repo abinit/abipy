@@ -160,7 +160,7 @@ class QPList(list):
         """String representation."""
         table = self.to_table()
         strio = cStringIO()
-        print(table, out=strio)
+        print(table, file=strio)
         strio.write("\n")
         strio.seek(0)
 

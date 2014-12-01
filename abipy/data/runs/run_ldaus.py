@@ -17,7 +17,7 @@ def make_scf_nscf_dos_inputs(structure, pseudos, luj_params):
     # Global variables
     global_vars = dict(
         # 
-        ecut=15,
+        ecut=12,
         pawecutdg=30,
         nband=40,
         occopt=7,

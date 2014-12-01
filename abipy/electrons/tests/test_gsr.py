@@ -71,7 +71,7 @@ class GSRFileTestCase(AbipyTest):
             print(gsr)
             print(gsr.ebands)
             assert gsr.filepath == data.ref_file("si_scf_GSR.nc")
-            assert gsr.nsppol == 1 and gsr.nspden == 1 and gsr.nspinor == 1
+            assert gsr.nsppol == 1 
             assert gsr.mband == 8 and gsr.nband == 8 and gsr.nelect == 8 and len(gsr.kpoints) == 29
             almost_equal(gsr.energy.to("Ha"), -8.86527676798556)
             almost_equal(gsr.energy_per_atom * len(gsr.structure), gsr.energy)

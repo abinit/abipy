@@ -11,6 +11,7 @@ import shutil
 import tempfile
 
 from subprocess import call, Popen
+from abipy.abilab import Flow
 
 
 def main():
@@ -71,8 +72,13 @@ def main():
                 print("retcode %d while running %s" % (ret, script))
                 if options.bail_on_failure: break
 
-            #dirpaths.append(script.replace(".py", "").replace("run_", "flow_"))
             dirpaths.append(workdir)
+
+            execute_flow = False
+            if execute_flow:
+                flow = Flow.pickle_load(workdir)
+                print(flow)
+                flow.make_scheduler().start()
 
         # Remove directories.
         if not options.keep_dirs:

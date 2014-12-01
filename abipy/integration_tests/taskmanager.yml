@@ -7,8 +7,11 @@ hardware:  &hardware
 
 job: &job
    mpi_runner: mpirun
-   pre_run:
-     - "source ~/Coding/Abinit/bzr_archives/env.sh"
+   shell_env:
+    PATH: "~/Coding/Abinit/bzr_archives/7113/gmatteo-private/fftw3/src/98_main/:$PATH"
+    DYLD_LIBRARY_PATH: /opt/intel/composerxe-2011.0.085/mkl/lib/:/opt/intel/composerxe-2011.0.085/compiler/lib/:$DYLD_LIBRARY_PATH
+   #pre_run:
+   #  - "source ~/Coding/Abinit/bzr_archives/env.sh"
 
 policy:
     autoparal: 1
@@ -90,22 +93,21 @@ qadapters:
 #        max_cores: 2
 #        # Optional
 #        #condition: {"$eq": {omp_threads: 2}} 
-        
-qtype: shell
-mpi_runner: mpirun
-#pre_run: "source ~/env.sh"
-shell_env:
-    #PATH: "~/Coding/Abinit/bzr_archives/773/gmatteo-private/fftw3/src/98_main/:$PATH"
-    PATH: "~/Coding/Abinit/bzr_archives/7113/gmatteo-private/fftw3/src/98_main/:$PATH"
-    DYLD_LIBRARY_PATH: /opt/intel/composerxe-2011.0.085/mkl/lib/:/opt/intel/composerxe-2011.0.085/compiler/lib/:$DYLD_LIBRARY_PATH
-#omp_env:
-#    OMP_NUM_THREADS: 4
-policy:
-    autoparal: 1
-    max_ncpus: 2
-    #automemory: 0
-    #mode: aggressive
-    #condition: {omp_ncpus: {$eq: 2}}}
-    #condition: {mem_per_cpu: {$le: 10}}}
-    #condition: {efficiency: {$gt: 0.99}}}
-    #condition: {$and: [ {efficiency: {$gt: 0.99}}, {tot_ncpus: {$divisible: 2}} ]}
+#qtype: shell
+#mpi_runner: mpirun
+##pre_run: "source ~/env.sh"
+#shell_env:
+#    #PATH: "~/Coding/Abinit/bzr_archives/773/gmatteo-private/fftw3/src/98_main/:$PATH"
+#    PATH: "~/Coding/Abinit/bzr_archives/7113/gmatteo-private/fftw3/src/98_main/:$PATH"
+#    DYLD_LIBRARY_PATH: /opt/intel/composerxe-2011.0.085/mkl/lib/:/opt/intel/composerxe-2011.0.085/compiler/lib/:$DYLD_LIBRARY_PATH
+##omp_env:
+##    OMP_NUM_THREADS: 4
+#policy:
+#    autoparal: 1
+#    max_ncpus: 2
+#    #automemory: 0
+#    #mode: aggressive
+#    #condition: {omp_ncpus: {$eq: 2}}}
+#    #condition: {mem_per_cpu: {$le: 10}}}
+#    #condition: {efficiency: {$gt: 0.99}}}
+#    #condition: {$and: [ {efficiency: {$gt: 0.99}}, {tot_ncpus: {$divisible: 2}} ]}

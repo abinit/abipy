@@ -243,7 +243,7 @@ class ElectronBands(object):
         assert new.__class__ == cls
         return new
 
-    def __init__(self, nspinor, nspden, structure, kpoints, eigens, fermie, occfacts, nelect,
+    def __init__(self, structure, kpoints, eigens, fermie, occfacts, nelect,
                  nband_sk=None, smearing=None, markers=None, widths=None):
         """
         Args:
@@ -267,7 +267,6 @@ class ElectronBands(object):
                     Used for plotting purpose e.g. L-projections.
         """
         self.structure = structure
-        self.nspinor, self.nspden = nspinor, nspden
 
         # Eigenvalues and occupancies are stored in ndarrays ordered by [spin,kpt,band]
         self._eigens = np.atleast_3d(eigens)
@@ -920,7 +919,7 @@ class ElectronBands(object):
         e_max = self.enemax()
         e_max += 0.1 * abs(e_max)
 
-        nw = 1 + (e_max - e_min) / step
+        nw = int(1 + (e_max - e_min) / step)
         mesh, step = np.linspace(e_min, e_max, num=nw, endpoint=True, retstep=True)
 
         dos = np.zeros((self.nsppol, nw))
@@ -983,7 +982,7 @@ class ElectronBands(object):
             e_max = cmax - vmin
             e_max += 0.1 * abs(e_max)
 
-            nw = 1 + (e_max - e_min) / step
+            nw = int(1 + (e_max - e_min) / step)
             mesh, step = np.linspace(e_min, e_max, num=nw, endpoint=True, retstep=True)
         else:
             nw = len(mesh)
@@ -1120,7 +1119,7 @@ class ElectronBands(object):
 
         # Change the energies (NB: occupations and fermie are left unchanged).
         return ElectronBands(
-            self.nspinor, self.nspden, self.structure, self.kpoints, qp_energies, self.fermie, self.occfacts, self.nelect, 
+            self.structure, self.kpoints, qp_energies, self.fermie, self.occfacts, self.nelect,
             nband_sk=self.nband_sk, smearing=self.smearing, markers=self.markers)
 
     def plot(self, klabels=None, band_range=None, marker=None, width=None, **kwargs):
@@ -1863,9 +1862,6 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
         Returns an instance of :class:`ElectronBands`. Main entry point for client code
         """
         return ElectronBands(
-            # FIXME
-            nspinor=self.read_nspinor(),
-            nspden=self.read_nspden(),
             structure=self.read_structure(),
             kpoints=self.read_kpoints(),
             eigens=self.read_eigenvalues(),

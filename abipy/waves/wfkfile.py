@@ -62,6 +62,7 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
         assert reader.has_pwbasis_set
         assert reader.cplex_ug == 2
+        self.nspinor = reader.nspinor
         self.npwarr = reader.npwarr
         self.nband_sk = reader.nband_sk
 
@@ -304,7 +305,6 @@ class WFK_Reader(ElectronsReader):
         npw_k, istwfk = self.npwarr[k], self.istwfk[k]
         # TODO use variables to avoid storing the full block.
         return self.ug_block[spin, k, band, :, :npw_k]
-
 
 
 class DmatsError(Exception):

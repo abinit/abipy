@@ -15,8 +15,7 @@ __date__ = "Mar 24, 2014"
 import unittest
 
 from pymatgen.util.testing import PymatgenTest
-from pymatgen.io.abinitio.qadapters import *
-from pymatgen.io.abinitio.qadapters import AbstractQueueAdapter
+#from pymatgen.io.abinitio.qadapters import *
 
 
 class QueueErrorParseTest(unittest.TestCase):

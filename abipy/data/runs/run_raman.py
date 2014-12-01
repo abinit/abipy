@@ -63,7 +63,7 @@ def raman_work(structure, pseudos, shiftk):
 
     # Global variables
     global_vars = dict(
-        ecut=12,
+        ecut=8,
         istwfk="*1",
         chksymbreak=0,
         #nstep=4,
@@ -86,7 +86,7 @@ def raman_work(structure, pseudos, shiftk):
     nscf_inp.set_variables(**global_vars)
     nscf_inp.set_kmesh(ngkpt=[2,2,2], shiftk=shiftk)
 
-    nscf_inp.set_variables(tolwfr=1e-12,
+    nscf_inp.set_variables(tolwfr=1e-8,
                            nband=12,
                            nbdbuf=4,
                            iscf=-2,
@@ -114,7 +114,7 @@ def raman_work(structure, pseudos, shiftk):
         soenergy="0.8 eV",
         bs_coupling=0,
         bs_loband=2,
-        nband=8,
+        nband=6,
         #bs_freq_mesh="0 10 0.1 eV",
         bs_hayd_term=0,      # No terminator
     )

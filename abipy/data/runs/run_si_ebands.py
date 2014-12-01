@@ -23,8 +23,7 @@ def make_scf_nscf_inputs():
                        timopt=-1,
                        istwfk="*1",
                        nstep=15,
-                       paral_kgb=0,
-                       #accesswff=3,
+                       paral_kgb=1,
                     )
 
     if inp.ispaw:
@@ -71,28 +70,6 @@ def build_flow(options):
 def main(options):
     flow = build_flow(options)
     flow.build_and_pickle_dump()
-    #try:
-    #    flow.rmtree()
-    #except:
-    #    pass
-    #flow = build_flow(options)
-    #flow.show_dependencies()
-    #print(flow.manager)
-    #for task in flow.iflat_tasks():
-    #    task.manager.set_omp_threads(3)
-    #    task.manager.set_mpi_procs(3)
-    #return flow.build_and_pickle_dump()
-
-    #from monty.dev import install_excepthook
-    #install_excepthook()
-    #flow = abilab.Flow.pickle_load("flow_si_ebands")
-    #errors = flow.validate_json_schema()
-    #return
-    #flow.build_and_pickle_dump()
-    #flow.make_scheduler().start()
-    #errors = flow.validate_json_schema()
-    #if errors: print(errors)
-
 
 if __name__ == "__main__":
     sys.exit(main())

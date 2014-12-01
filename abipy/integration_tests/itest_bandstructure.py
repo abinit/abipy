@@ -271,25 +271,23 @@ def itest_htc_bandstructure(fwp, tvars):
 
     # Test if GSR files are produced and are readable.
     for i, task in enumerate(work):
-        gsr_path = task.outdir.list_filepaths(wildcard="*GSR.nc")[0]
-        gsr = abilab.abiopen(gsr_path)
-        print(gsr)
-        assert gsr.nsppol == 1
-        assert gsr.structure == structure
-        ebands = gsr.ebands
+        with task.open_gsr() as gsr:
+            print(gsr)
+            assert gsr.nsppol == 1
+            #assert gsr.structure == structure
+            ebands = gsr.ebands
 
-        # TODO: This does not work yet because GSR files do not contain
-        # enough info to understand if we have a path or a mesh.
-        #if i == 2:
-            # Bandstructure case
-            #assert ebands.has_bzpath
-            #with pytest.raises(ebands.Error):
-            #    ebands.get_edos()
+            # TODO: This does not work yet because GSR files do not contain
+            # enough info to understand if we have a path or a mesh.
+            #if i == 2:
+                # Bandstructure case
+                #assert ebands.has_bzpath
+                #with pytest.raises(ebands.Error):
+                #    ebands.get_edos()
 
-        if i == 3:
-            # DOS case
-            assert ebands.has_bzmesh
-            gsr.bands.get_edos()
-        gsr.close()
+            if i == 3:
+                # DOS case
+                assert ebands.has_bzmesh
+                gsr.bands.get_edos()
 
     #assert flow.validate_json_schema()
