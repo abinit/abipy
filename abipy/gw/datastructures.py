@@ -36,9 +36,9 @@ from pymatgen.matproj.rest import MPRester, MPRestError
 from pymatgen.serializers.json_coders import MSONable
 from pymatgen.util.convergence import determine_convergence
 from pymatgen.io.abinitio.helpers import print_gnuplot_header, s_name, add_gg_gap, refine_structure
-from gw.codeinterfaces import get_code_interface
 from pymatgen.core.structure import Structure
 from pymatgen.core.units import eV_to_Ha
+from abipy.gw.codeinterfaces import get_code_interface
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 

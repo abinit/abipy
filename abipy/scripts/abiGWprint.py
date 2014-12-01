@@ -1,12 +1,9 @@
 # coding: utf-8
-
-from __future__ import unicode_literals, division, print_function
-
 #!/usr/bin/env python
-
 """
 Script to print GW results for VASP and ABINIT.
 """
+from __future__ import unicode_literals, division, print_function
 
 __author__ = "Michiel van Setten"
 __copyright__ = " "

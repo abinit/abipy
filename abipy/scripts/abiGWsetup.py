@@ -1,12 +1,9 @@
 # coding: utf-8
-
-from __future__ import unicode_literals, division, print_function
-
 #!/usr/bin/env python
-
 """
 Script to write GW Input for VASP and ABINIT / set up work flows.
 """
+from __future__ import unicode_literals, division, print_function
 
 __author__ = "Michiel van Setten"
 __copyright__ = " "

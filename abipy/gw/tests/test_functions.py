@@ -3,8 +3,8 @@ from __future__ import division, print_function, unicode_literals
 __author__ = 'setten'
 
 from pymatgen.util.testing import PymatgenTest
-from gw.codeinterfaces import AbinitInterface, NewCodeInterface, VaspInterface
-from gw.codeinterfaces import get_all_ecuteps, get_all_nbands, CODE_CLASSES
+from abipy.gw.codeinterfaces import AbinitInterface, NewCodeInterface, VaspInterface
+from abipy.gw.codeinterfaces import get_all_ecuteps, get_all_nbands, CODE_CLASSES
 
 
 class GWFunctionsTest(PymatgenTest):

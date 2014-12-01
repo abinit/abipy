@@ -25,9 +25,9 @@ from pymatgen.io.abinitio.flows import Flow
 from pymatgen.io.abinitio.calculations import g0w0_extended_work
 from pymatgen.io.abinitio.tasks import TaskManager
 from pymatgen.io.abinitio.pseudos import PseudoTable
-from gw.GWtasks import *
 from pymatgen.io.abinitio.helpers import now, s_name, expand, read_grid_from_file, is_converged
 from pymatgen.io.abinitio.helpers import read_extra_abivars
+from abipy.gw.GWtasks import *
 
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))

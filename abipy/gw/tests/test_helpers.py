@@ -3,14 +3,14 @@ from __future__ import division, print_function, unicode_literals
 __author__ = 'setten'
 
 import os
-
 import unittest
+
 from pymatgen.util.testing import PymatgenTest
 from pymatgen.core.structure import Structure
-from gw.datastructures import get_spec
-from gw.GWworks import GWG0W0VaspInputSet, SingleAbinitGWWork
 from pymatgen.io.abinitio.helpers import clean, read_extra_abivars
 from pymatgen.io.abinitio.helpers import expand
+from abipy.gw.datastructures import get_spec
+from abipy.gw.GWworks import GWG0W0VaspInputSet, SingleAbinitGWWork
 
 #test_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "..",'test_files')
 

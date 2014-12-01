@@ -1,7 +1,4 @@
 # coding: utf-8
-
-from __future__ import unicode_literals, division, print_function
-
 """
 Classes for code interfaces.
 Uses code specific GWworkflows defined in GWworkflows. These may also be moved into the code interface.
@@ -10,6 +7,7 @@ The VASP GWworkflow is currently coded here directly this still needs to be move
 A new implementation can be created from the New_Code template, the new class should be added to the get_code_interface
 factory function at the end.
 """
+from __future__ import unicode_literals, division, print_function
 
 __author__ = "Michiel van Setten"
 __copyright__ = " "
@@ -31,10 +29,10 @@ from pymatgen.io.vaspio.vasp_output import Vasprun
 from pymatgen.core.units import Ha_to_eV
 from pymatgen.io.abinitio.helpers import is_converged, read_grid_from_file, s_name, expand, store_conv_results
 from pymatgen.io.vaspio.GWvaspinputsets import SingleVaspGWWork
-from gw.GWworks import VaspGWFWWorkFlow
-from gw.GWworks import SingleAbinitGWWork
 from pymatgen.io.vaspio.GWvaspinputsets import GWscDFTPrepVaspInputSet, GWDFTDiagVaspInputSet, \
     GWG0W0VaspInputSet
+from abipy.gw.GWworks import VaspGWFWWorkFlow
+from abipy.gw.GWworks import SingleAbinitGWWork
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
