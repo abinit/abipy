@@ -1,17 +1,37 @@
 #!/usr/bin/env python
-"""Phonon band structure of AlAs."""
+"""
+abi script to generate and post process flows for phonons.
+
+needs a cif file in the working dir,
+needs the ABINIT_PS and ABINIT_PS_EXT environmental variables set to obtain pseudo's.
+Pseudo's wil be read as:
+
+$ABINIT_PS/element$ABINIT_PS_EXT
+
+optionally a qpoint file, if this is not present a 444 mesh will be used.
+TODO automatic QPOINT setup
+
+if no flow is present a new flow will be generated for the cif file
+if a finished flow is found the DDB files will be fully merged and various anaddb tasks are executed.
+the anaddb task will appear in a new work in the flow.
+
+TODO include the same interface as in abiGWsetup to enable precision setting, multiple input sources, ...
+
+"""
 from __future__ import division, print_function
 
-import sys
+__author__ = "Michiel van Setten, Matteo Giantomassi"
+__copyright__ = " "
+__version__ = "0.9"
+__maintainer__ = "Michiel van Setten"
+__email__ = "mjvansetten@gmail.com"
+__date__ = "Dec. 2014"
+
 import ast
 import os
 import numpy as np
 import abipy.abilab as abilab
-import abipy.data as abidata
 
-from abipy.core.structure import Structure
-import abipy.abilab
-from pymatgen.io.gwwrapper.helpers import refine_structure
 from pymatgen.io.abinitio.pseudos import PseudoTable
 
 
@@ -232,7 +252,7 @@ def main():
     convtests = {'ecut': [16, 20, 24, 37], 'ngkpt': [8], 'acell': [1.0]}
 
     for cif in cifs:
-        structure = Structure.from_file(cif)
+        structure = abilab.Structure.from_file(cif)
         print(type(structure))
         structure = structure.get_sorted_structure_z()
         print(structure)

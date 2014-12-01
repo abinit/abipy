@@ -7,7 +7,6 @@ import os
 from abipy import abilab
 import abipy.data as abidata  
 
-from pymatgen.io.abinitio.abiobjects import AbiStructure
 from pymatgen.io.abinitio.calculations import bse_with_mdf_work
 
 
