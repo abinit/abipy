@@ -79,7 +79,6 @@ class Structure(pymatgen.Structure):
 
         Args:
             filename: netcdf file with crystallographic data in the ETSF-IO format.
-                      or any other file format supported by `pymatgen.io.smartio`.
         """
         if filepath.endswith(".nc"):
             file, closeit = as_etsfreader(filepath)
@@ -437,7 +436,7 @@ class Structure(pymatgen.Structure):
                    to_unit_cell=False, coords_are_cartesian=coords_are_cartesian)
 
     def write_structure(self, filename):
-        """See :ref:`pymatgen.io.smartio.write_structure`"""
+        """Write structure fo file."""
         if filename.endswith(".nc"):
             raise NotImplementedError("Cannot write a structure to a netcdfile file yet")
 
