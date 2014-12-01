@@ -65,16 +65,8 @@ def tsmear_nkpts_convergence(tsmear_list=(0.01, 0.02, 0.03, 0.04), nksmall_list=
     #flow.make_scheduler().start()
     with abilab.abirobot(flow, "GSR") as robot:
         data = robot.get_dataframe()
+        robot.pairplot(x_vars="nkpts", y_vars=["energy", "a", "volume"], hue="tsmear")
 
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-
-    print(data)
-    grid = sns.PairGrid(data, x_vars="nkpts", y_vars=["energy", "a", "volume"], hue="tsmear")
-    grid.map(plt.plot, marker="o")
-    grid.add_legend()
-
-    plt.show()
     #grid = sns.FacetGrid(data, col="tsmear") 
     #grid.map(sns.pointplot, "nkpts", "a") 
     #sns.pairplot(data, x_vars="nkpts", y_vars=["energy", "a", "volume"], hue="tsmear")

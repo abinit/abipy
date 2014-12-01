@@ -21,8 +21,8 @@ def ngkpt_flow():
     flow.make_scheduler().start()
 
     with abilab.abirobot(flow, "GSR") as robot:
-        #robot.ebands_plotter().plot()
         data = robot.get_dataframe()
+        #robot.ebands_plotter().plot()
 
     import matplotlib.pyplot as plt
     data.plot(x="nkpts", y="energy", title="Total energy vs nkpts", legend="Energy [eV]", style="b-o")
@@ -50,22 +50,18 @@ def relax_flow():
         inp[i+1].set_kmesh(ngkpt=ngkpt, shiftk=[0,0,0])
 
     flow = abilab.Flow.from_inputs("flow_relax", inputs=inp.split_datasets(),
-                                         task_class=abilab.RelaxTask)
+                                   task_class=abilab.RelaxTask)
 
-    #flow.make_scheduler().start()
-    flow.show_status()
+    flow.make_scheduler().start()
 
     with abilab.GsrRobot.open(flow) as robot:
         data = robot.get_dataframe()
+        robot.pairplot(x_vars="nkpts", y_vars=["a", "volume"]) #, hue="tsmear")
 
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-    #data.plot(x="nkpts", y="a", style="b-o")
-
-    grid = sns.PairGrid(data, x_vars="nkpts", y_vars=["a", "volume"]) #, hue="tsmear")
-    grid.map(plt.plot, marker="o")
-    grid.add_legend()
-    plt.show()
+    #grid = sns.PairGrid(data, x_vars="nkpts", y_vars=["a", "volume"]) #, hue="tsmear")
+    #grid.map(plt.plot, marker="o")
+    #grid.add_legend()
+    #plt.show()
 
 
 def bands_flow():
@@ -94,6 +90,6 @@ def bands_flow():
 
 
 if __name__ == "__main__":
-    ngkpt_flow()
-    #relax_flow()
+    #ngkpt_flow()
+    relax_flow()
     #bands_flow()

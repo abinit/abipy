@@ -75,10 +75,10 @@ tools Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`prettytable` Module
--------------------------
+:mod:`dataframe` Module
+-----------------------
 
-.. automodule:: abipy.tools.prettytable
+.. automodule:: abipy.tools.dataframe
    :members:
    :undoc-members:
    :show-inheritance:

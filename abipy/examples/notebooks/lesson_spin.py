@@ -62,7 +62,7 @@ def afm_input():
 
     inp.set_kmesh(ngkpt=[6, 6, 4], shiftk=[0.5, 0.5, 0.5])
 
-    # Antiferromagnet order
+    # Antiferromagnetic order
     inp.set_variables(
         nsppol=1,
         nspden=2,
@@ -82,20 +82,13 @@ def afm_input():
 def gs_flow():
     inputs = [gs_input(nsppol) for nsppol in [1, 2]]
     flow = abilab.Flow.from_inputs(workdir="flow_spin", inputs=inputs)
-    #flow.make_scheduler().start()
+    flow.make_scheduler().start()
 
     with abilab.abirobot(flow, "GSR") as robot:
         data = robot.get_dataframe()
         print(data)
+        robot.pairplot(x_vars="nsppol", y_vars=["energy", "a", "volume", "pressure"])
 
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-
-    grid = sns.PairGrid(data, x_vars="nsppol", y_vars=["energy", "a", "volume", "pressure"])
-    grid.map(plt.plot, marker="o")
-    grid.add_legend()
-
-    plt.show()
     return
 
     #gstask_nospin, gstask_spin = flow[0][0], flow[0][1] 
@@ -175,16 +168,7 @@ def tantalum_flow():
     with abilab.GsrRobot.open(flow) as robot:
         data = robot.get_dataframe()
         print(data)
-
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-
-    grid = sns.PairGrid(data, x_vars="nspinor", y_vars=["energy", "magnetization", "pressure"])
-    grid.map(plt.plot, marker="o")
-    grid.add_legend()
-
-    plt.show()
-    return
+        robot.pairplot(x_vars="nspinor", y_vars=["energy", "magnetization", "pressure"])
 
     #for task in flow.iflat_tasks():
     #    with task.open_gsr() as gsr:
@@ -193,6 +177,6 @@ def tantalum_flow():
 
 
 if __name__ == "__main__":
-    #gs_flow()
+    gs_flow()
     #afm_flow()
-    tantalum_flow()
+    #tantalum_flow()

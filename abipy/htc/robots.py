@@ -8,6 +8,7 @@ import pandas as pd
 
 from collections import OrderedDict, deque 
 from monty.string import is_string
+from pymatgen.io.abinitio.eos import EOS
 from pymatgen.io.abinitio.flows import Flow
 
 
@@ -172,6 +173,23 @@ class Robot(object):
                 self._exceptions.append(str(exc))
         return d
 
+    def pairplot(self, getter="get_dataframe", map_kws=None, show=True, **kwargs):
+        import matplotlib.pyplot as plt
+        import seaborn as sns
+        data = getattr(self, getter)()
+
+        #grid = sns.PairGrid(data, x_vars="nkpts", y_vars=["a", "volume"]) #, hue="tsmear")
+        grid = sns.PairGrid(data, **kwargs)
+        if map_kws is None:
+            grid.map(plt.plot, marker="o")
+        else:
+            func = map_kws.pop("func", plt.plot)
+            grid.map(func, **map_kws)
+
+        grid.add_legend()
+        if show: plt.show()
+        return grid
+
 
 class GsrRobot(Robot):
     """This robot analyzes the results contained in multiple GSR files."""
@@ -183,7 +201,8 @@ class GsrRobot(Robot):
 
         kwargs:
             attrs:
-                List of additional attributes of the :class:`GsrFile` to add to the pandas :class:`DataFrame`
+                List of additional attributes of the :class:`GsrFile` to add to
+                the pandas :class:`DataFrame`
             funcs:
                 Function or list of functions to execute to add more data to the DataFrame.
                 Each function receives a GsrFile object and returns a tuple (key, value)
@@ -233,8 +252,6 @@ class GsrRobot(Robot):
             volumes.append(gsr.structure.volume)
 
         # Note that eos.fit expects lengths in Angstrom, and energies in eV.
-        from abipy.abilab import EOS
-
         if eos_name != "all":
             return EOS(eos_name=eos_name).fit(volumes, energies)
         else:
@@ -269,7 +286,7 @@ class SigresRobot(Robot):
         if kpoint is None: kpoint = 0
 
         attrs = [
-            "nsppol", "nbzspinor", "nspden", #"ecut", "pawecutdg",
+            "nsppol", "nspinor", "nspden", #"ecut", "pawecutdg",
             #"tsmear", "nkibz",
         ] + kwargs.pop("attrs", [])
 
@@ -295,7 +312,8 @@ class SigresRobot(Robot):
 
     def plot_conv_qpgap(self, x_vars, **kwargs):
         """
-        Plot the convergence of the Quasi-particle gap. kwargs are passed to :class:`seaborn.PairGrid`.
+        Plot the convergence of the Quasi-particle gap. 
+        kwargs are passed to :class:`seaborn.PairGrid`.
         """
         import matplotlib.pyplot as plt
         import seaborn as sns

@@ -8,15 +8,15 @@ import numpy as np
 
 from collections import namedtuple, OrderedDict, Iterable, defaultdict
 from monty.string import list_strings, is_string
-from monty.collections import  AttrDict
+from monty.collections import AttrDict
 from monty.functools import lazy_property
 from monty.bisect import find_le, find_ge 
+from prettytable import PrettyTable
 from six.moves import cStringIO
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands
 from abipy.iotools import ETSF_Reader
-from abipy.tools.prettytable import PrettyTable
 from abipy.electrons.ebands import ElectronBands
 from abipy.electrons.scissors import Scissors
 

@@ -98,6 +98,7 @@ def ecut_convergence_study():
         atomization_frame.plot("ecut", "atomization")
         plt.show()
 
+
 def acell_convergence_study():
     """
     H2 molecule in a big box

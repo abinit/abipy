@@ -48,7 +48,6 @@ def scf_manual():
     #        cart_coords = gsr.structure.cart_coords
     #        l = np.sqrt(np.linalg.norm(cart_coords[1] - cart_coords[0]))
     #        table.add_row([l, float(gsr.energy)])
-
     #print(table)
     #table.plot(title="Etotal vs interatomic distance")
     # Quadratic fit

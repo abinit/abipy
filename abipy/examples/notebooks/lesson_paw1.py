@@ -10,7 +10,6 @@ def gs_input(ecut, pawecutdg, acell_ang=3.567):
     # Input for PAW1 tutorial
     # Diamond at experimental volume
 
-    #inp = abilab.AbiInput(pseudos=abidata.pseudos("6c.pspnc"))
     inp = abilab.AbiInput(pseudos=abidata.pseudos("6c.lda.atompaw"))
     structure = abilab.Structure.from_abivars(dict(
         natom=2,
@@ -38,7 +37,6 @@ def gs_input(ecut, pawecutdg, acell_ang=3.567):
         nstep=20,
     )
 
-    print(inp)
     return inp
 
 
@@ -60,7 +58,6 @@ def pawecutdgconv_flow():
               for pawecutdg in np.linspace(start=12, stop=39, num=10)]
 
     flow = abilab.Flow.from_inputs("flow_ecutconv", inputs)
-    flow.build()
     flow.make_scheduler().start()
 
     with abilab.abirobot(flow, "GSR") as robot:
@@ -76,30 +73,20 @@ def flow_ecut_pawecutdg():
               for pawecutdg, ecut in itertools.product(pawecutdg_list, ecut_list)]
 
     flow = abilab.Flow.from_inputs("flow_pawecutdg_ecut", inputs)
-    flow.build()
     flow.make_scheduler().start()
 
     with abilab.abirobot(flow, "GSR") as robot:
         data = robot.get_dataframe()
         print(data)
-
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-
-    grid = sns.PairGrid(data, x_vars="ecut", y_vars="energy", hue="pawecutdg")
-    grid.map(plt.plot, marker="o")
-    grid.add_legend()
-                                                                                              
-    plt.show()
-
+        robot.pair_plot(x_vars="ecut", y_vars="energy", hue="pawecutdg")
 
 def eos_flow():
     inputs = [gs_input(ecut=12, pawecutdg=24, acell_ang=acell_ang)
               for acell_ang in np.linspace(start=3.52, stop=3.55, num=7)]
     flow = abilab.Flow.from_inputs("flow_eos", inputs)
-    flow.build()
+    #flow.build()
 
-    #flow.make_scheduler().start()
+    flow.make_scheduler().start()
 
     with abilab.abirobot(flow, "GSR") as robot:
         fit = robot.eos_fit()
@@ -113,5 +100,5 @@ def eos_flow():
 if __name__ == "__main__":
     #ecutconv_flow()
     #pawecutdgconv_flow()
-    eos_flow()
-    #flow_ecut_pawecutdg()
+    #eos_flow()
+    flow_ecut_pawecutdg()
