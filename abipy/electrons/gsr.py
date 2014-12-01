@@ -192,13 +192,13 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
             structure=self.structure.as_dict(),
             final_energy=self.energy,
             final_energy_per_atom=self.energy_per_atom,
-            max_force=gsr.max_force,
+            max_force=self.max_force,
             cart_stress_tensor=self.cart_stress_tensor,
             pressure=self.pressure,
             number_of_electrons=self.nelect,
             ebands=self.ebands.to_pymatgen().as_dict(),
             #max_residual=
-            #magnetization=gsr.magnetization,
+            #magnetization=self.magnetization,
             #band_gap=
             #optical_gap=
             #is_direct=
