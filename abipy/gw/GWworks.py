@@ -136,7 +136,7 @@ class VaspGWFWWorkFlow():
 
 class SingleAbinitGWWork():
     """
-    GW workflow for Abinit
+    GW flow for Abinit
     """
     RESPONSE_MODELS = ["cd", "godby", "hybersten", "linden", "farid"]
     TESTS = {'ecuteps': {'test_range': (10, 14), 'method': 'direct', 'control': "gap", 'level': "sigma"},
