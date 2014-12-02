@@ -69,11 +69,8 @@ def build_flow(options):
     # Use the standard approach based on tasks and works if
     # there's a node who needs a file produced in the future.
     work = abilab.Work()
-
-    f = abidata.ref_file("si_DEN-etsf.nc")
-    work.register(nscf_input, required_files=f)
-    print(work[0].required_files)
-
+    denfile = abidata.ref_file("si_DEN-etsf.nc")
+    work.register(nscf_input, deps={denfile: "DEN"})
     flow.register_work(work)
 
     return flow.allocate()
