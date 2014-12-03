@@ -23,7 +23,7 @@ import os
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
 #sys.path.append(os.path.abspath('sphinxext'))
-#sys.path.insert(0, os.path.abspath('sphinxext'))
+sys.path.insert(0, os.path.abspath('sphinxext'))
 #sys.path.insert(0, os.path.abspath('.'))
 #sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('../abipy'))
@@ -63,18 +63,18 @@ extensions = [
 import matplotlib #.sphinxext
 extensions += [
           'sphinxcontrib.napoleon',   # For Google Python Style Guide
-          #'matplotlib.sphinxext.mathmpl',
-          #'matplotlib.sphinxext.only_directives',
-          #'matplotlib.sphinxext.plot_directive',
-          #'IPython.sphinxext.ipython_directive',
-          #'IPython.sphinxext.ipython_console_highlighting',
+          'matplotlib.sphinxext.mathmpl',
+          'matplotlib.sphinxext.only_directives',
+          'matplotlib.sphinxext.plot_directive',
+          'IPython.sphinxext.ipython_directive',
+          'IPython.sphinxext.ipython_console_highlighting',
           # MG deprecated but we continue using it
           #'ipython_directive',               
           #'ipython_console_highlighting',
           # This does not work with py3k
-          #'numpydoc',
-          #'gen_rst',
-          #'sphinxcontrib.autorun',
+          'numpydoc',
+          'gen_rst',
+          'sphinxcontrib.autorun',
           #'gen_gallery',  Generate gallery of PICS a la' matplotlib.
           ]
 

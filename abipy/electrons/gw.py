@@ -1030,7 +1030,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
     def print_qps(self, spin=None, kpoints=None, bands=None, fmt=None, stream=sys.stdout):
         # TODO Is it still used?
-        self.reader.print_qps(spin=spin, kpoint=kpoints, bands=bands, fmt=None, stream=stream)
+        self.reader.print_qps(spin=spin, kpoints=kpoints, bands=bands, fmt=None, stream=stream)
 
     def plot_ksbands_with_qpmarkers(self, qpattr="qpeme0", fact=1, **kwargs):
         """

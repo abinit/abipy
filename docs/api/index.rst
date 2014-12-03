@@ -16,6 +16,7 @@
    tools_api.rst
    iotools_api.rst
    electrons_api.rst
+   gw_ap.rst
    phonons_api.rst
    waves_api.rst
    htc/index.rst
