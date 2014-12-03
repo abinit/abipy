@@ -14,7 +14,6 @@ def build_flow(options):
     # Path of the pseudopotential to test.
     #pseudo = data.pseudo("14si.pspnc")
     pseudo = data.pseudo("Si.GGA_PBE-JTH-paw.xml")
-    #pseudo = data.pseudo("pseudo_to_test")
 
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
@@ -26,8 +25,7 @@ def build_flow(options):
               abilab.TaskManager.from_file(options.manager)
 
     # Initialize the flow.
-    # FIXME  Abistructure is not pickleable with protocol -1
-    flow = abilab.Flow(workdir=workdir, manager=manager, pickle_protocol=0)
+    flow = abilab.Flow(workdir=workdir, manager=manager)
 
     # Build the workflow for the computation of the deltafactor.
     # The calculation is done with the parameters and the cif files
@@ -41,10 +39,8 @@ def build_flow(options):
     kppa = 6750  # Use this to have the official k-point sampling
     kppa = 50    # this value is for testing purpose.
 
-    #extra = {}
-
     ecut = 8
-    pawecutdg = ecut * 2 #if pseudo.ispaw else None
+    pawecutdg = ecut * 2 if pseudo.ispaw else None
 
     work = factory.work_for_pseudo(pseudo, accuracy="normal", kppa=kppa, 
                                    ecut=ecut, pawecutdg=pawecutdg,

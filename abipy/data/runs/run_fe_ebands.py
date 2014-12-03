@@ -11,7 +11,7 @@ import abipy.data as data
 import abipy.abilab as abilab
 
 
-def make_scf_nscf_inputs(nsppol):
+def make_scf_nscf_inputs(nsppol, paral_kgb=1):
     """Generate two input files for the GS and the NSCF run for given nsppol"""
     inp = abilab.AbiInput(pseudos=data.pseudos("26fe.pspnc"), ndtset=2)
 
@@ -25,7 +25,7 @@ def make_scf_nscf_inputs(nsppol):
                        nband=8,
                        occopt=3,
                        tsmear=0.01,
-                       paral_kgb=0,
+                       paral_kgb=paral_kgb,
                     )
     if nsppol == 2:
         global_vars.update(spinat=[0.0, 0.0, 4.0])

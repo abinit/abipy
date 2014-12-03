@@ -58,7 +58,7 @@ def build_flow(options):
     return flow.allocate()
 
 
-def raman_work(structure, pseudos, shiftk):
+def raman_work(structure, pseudos, shiftk, paral_kgb=1):
     # Generate 3 different input files for computing optical properties with BSE.
 
     # Global variables
@@ -68,7 +68,7 @@ def raman_work(structure, pseudos, shiftk):
         chksymbreak=0,
         #nstep=4,
         nstep=10,
-        paral_kgb=0,
+        paral_kgb=paral_kgb,
     )
 
     # GS run

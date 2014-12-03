@@ -14,7 +14,7 @@ import abipy.data as abidata
 import abipy.abilab as abilab
 
 
-def make_ion_ioncell_inputs():
+def make_ion_ioncell_inputs(paral_kgb=1):
     cif_file = abidata.cif_file("si.cif")
     structure = abilab.Structure.from_file(cif_file)
 
@@ -29,7 +29,7 @@ def make_ion_ioncell_inputs():
         shiftk=[0,0,0],
         nshiftk=1,
         chksymbreak=0,
-        paral_kgb=0,
+        paral_kgb=paral_kgb,
     )
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)

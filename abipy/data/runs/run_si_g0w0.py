@@ -7,7 +7,7 @@ import sys
 import abipy.data as data  
 import abipy.abilab as abilab
 
-def make_inputs(ngkpt):
+def make_inputs(ngkpt, paral_kgb=1):
     # Crystalline silicon
     # Calculation of the GW correction to the direct band gap in Gamma
     # Dataset 1: ground state calculation 
@@ -45,7 +45,7 @@ def make_inputs(ngkpt):
         ecut=ecut,
         timopt=-1,
         istwfk="*1",
-        paral_kgb=0,
+        paral_kgb=paral_kgb,
         gwpara=2,
     )
     inp.set_kmesh(**gw_kmesh)

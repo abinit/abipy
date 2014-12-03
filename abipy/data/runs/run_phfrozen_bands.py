@@ -11,7 +11,7 @@ import abipy.data as data
 import abipy.abilab as abilab
 
 
-def make_scf_nscf_inputs(structure):
+def make_scf_nscf_inputs(structure, paral_kgb=1):
     inp = abilab.AbiInput(pseudos=data.pseudos("14si.pspnc"), ndtset=2)
     structure = inp.set_structure(structure)
 

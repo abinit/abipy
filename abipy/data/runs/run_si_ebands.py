@@ -8,7 +8,7 @@ import abipy.data as abidata
 import abipy.abilab as abilab
 
 
-def make_scf_nscf_inputs():
+def make_scf_nscf_inputs(paral_kgb=1):
     """Returns two input files: GS run and NSCF on a high symmetry k-mesh."""
     pseudos = abidata.pseudos("14si.pspnc")
     #pseudos = data.pseudos("Si.GGA_PBE-JTH-paw.xml")
@@ -23,7 +23,7 @@ def make_scf_nscf_inputs():
                        timopt=-1,
                        istwfk="*1",
                        nstep=15,
-                       paral_kgb=1,
+                       paral_kgb=paral_kgb,
                     )
 
     if inp.ispaw:

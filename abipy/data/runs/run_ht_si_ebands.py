@@ -21,9 +21,6 @@ def build_flow(options):
 
     extra_abivars = dict(
         ecut=6, 
-        timopt=-1,
-        accesswff=3, 
-        istwfk="*1",
     )
 
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
@@ -36,8 +33,7 @@ def build_flow(options):
               abilab.TaskManager.from_file(options.manager)
 
     # Initialize the flow.
-    # FIXME  Abistructure is not pickleable with protocol -1
-    flow = abilab.Flow(workdir=workdir, manager=manager, pickle_protocol=0)
+    flow = abilab.Flow(workdir=workdir, manager=manager)
 
     work = bandstructure_work(structure, abidata.pseudos("14si.pspnc"), scf_kppa, nscf_nband, ndivsm, 
                               spin_mode="unpolarized", smearing=None, **extra_abivars)

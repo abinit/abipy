@@ -10,7 +10,7 @@ import abipy.data as data
 import abipy.abilab as abilab
 
 
-def make_scf_nscf_inputs(structure, pseudos):
+def make_scf_nscf_inputs(structure, pseudos, paral_kgb=1):
     """return GS, NSCF (band structure), and DOSes input."""
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=5)
@@ -22,15 +22,13 @@ def make_scf_nscf_inputs(structure, pseudos):
                        timopt=-1,
                        occopt=4,    # Marzari smearing
                        tsmear=0.03,
-                       paral_kgb=0,
+                       paral_kgb=paral_kgb,
                     )
 
     inp.set_variables(**global_vars)
 
     # Dataset 1 (GS run)
-    inp[1].set_kmesh(ngkpt=[8,8,8], 
-                    shiftk=structure.calc_shiftk(),
-                   )
+    inp[1].set_kmesh(ngkpt=[8,8,8],  shiftk=structure.calc_shiftk())
 
     inp[1].set_variables(tolvrs=1e-6)
 

@@ -219,6 +219,9 @@ class Has_ElectronBands(object):
         """Plot the electron energy bands. See the :func:`ElectronBands.plot` for the signature."""
         return self.ebands.plot(**kwargs)
 
+    def plot_ebands_with_edos(self, **kwargs):
+        return self.ebands.plot_with_edos(**kwargs)
+
 
 @six.add_metaclass(abc.ABCMeta)
 class Has_PhononBands(object):

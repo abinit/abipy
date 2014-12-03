@@ -9,7 +9,7 @@ import numpy as np
 import abipy.abilab as abilab
 import abipy.data as abidata
 
-def make_inputs():
+def make_inputs(paral_kgb=1):
     """
     Returns a tuple of 4 input files for SCF, NSCF, SCR, SIGMA calculations.
     These files are then used as templates for the convergence study
@@ -22,7 +22,7 @@ def make_inputs():
     global_vars = dict(
         ecut=ecut,
         istwfk="*1",
-        paral_kgb=0,
+        paral_kgb=paral_kgb,
         gwpara=2
     )
 
@@ -100,7 +100,7 @@ def build_flow(options):
 
     for inp in abilab.input_gen(scr_inp, nband=[10, 15]):
         inp.set_variables(ecuteps=max_ecuteps)
-        scr_work.register(inp, deps={bands.nscf_task: "WFK"})
+        scr_work.register_scr_task(inp, deps={bands.nscf_task: "WFK"})
 
     flow.register_work(scr_work)
 

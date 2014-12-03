@@ -11,7 +11,7 @@ import abipy.abilab as abilab
 import abipy.data as data  
 
 
-def all_inputs():
+def all_inputs(paral_kgb=1):
     """
     Build the input files of the calculation.
     Returns: gs_input, nscf_input, scr_input, sigma_input
@@ -24,7 +24,7 @@ def all_inputs():
     global_vars = dict(
         ecut=ecut,
         istwfk="*1",
-        paral_kgb=0,
+        paral_kgb=paral_kgb,
     )
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=4)
@@ -81,7 +81,7 @@ def all_inputs():
 
     sigma.set_variables(
             optdriver=4,
-            nband=6,
+            nband=8,
             ecutwfn=ecutwfn,
             ecuteps=2.0,
             ecutsigx=2.0,

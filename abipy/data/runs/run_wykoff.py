@@ -63,7 +63,7 @@ def build_flow(options):
     return flow.allocate()
 
 
-def make_workflow(structure, pseudos):
+def make_workflow(structure, pseudos, paral_kgb=1):
     """
     Return a `Workflow` object defining a band structure calculation
     for given `Structure`.
@@ -71,7 +71,7 @@ def make_workflow(structure, pseudos):
     # Variables global to the SCF and the NSCF run.
     global_vars = dict(
         ecut=FloatWithUnit(100, "eV").to("Ha"),
-        paral_kgb=0,
+        paral_kgb=paral_kgb,
         #nband=8,
     )
 

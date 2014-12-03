@@ -9,7 +9,7 @@ import abipy.abilab as abilab
 import abipy.data as abidata  
 
 
-def scf_ph_inputs():
+def scf_ph_inputs(paral_kgb=1):
     """
     This function constructs the input files for the phonon calculation: 
     GS input + the input files for the phonon calculation.
@@ -31,7 +31,7 @@ def scf_ph_inputs():
                        ngkpt=[4, 4, 4],
                        shiftk=[0, 0, 0],
                        tolvrs=1.0e-8,
-                       paral_kgb=0,
+                       paral_kgb=paral_kgb,
                     )
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=1+len(qpoints))
