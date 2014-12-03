@@ -75,6 +75,7 @@ def main():
             dirpaths.append(workdir)
 
             execute_flow = False
+            execute_flow = True
             if execute_flow:
                 flow = Flow.pickle_load(workdir)
                 print(flow)

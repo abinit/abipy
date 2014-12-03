@@ -19,7 +19,7 @@ optic_input = """\
 123 222       ! Non-linear coefficients to be computed
 """
 
-def build_flow(options, paral_kgb=1):
+def build_flow(options, paral_kgb=0):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
     if not options.workdir:
