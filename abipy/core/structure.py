@@ -28,11 +28,13 @@ class Lattice(pymatgen.Lattice):
     to construct a Lattice object from ABINIT variables.
     """
     @classmethod
-    def from_abivars(cls, d):
+    def from_abivars(cls, *args, **kwargs):
         """
         Returns a new instance from a dictionary with the variables 
         used in ABINIT to define the unit cell.
         """
+        kwargs.update(dict(*args))
+        d = kwargs
         rprim = d.get("rprim", None)
         angdeg = d.get("angdeg", None)
         acell = d["acell"]
@@ -392,10 +394,12 @@ class Structure(pymatgen.Structure):
         return d
 
     @classmethod
-    def from_abivars(cls, d):
+    def from_abivars(cls, *args, **kwargs):
         """Build a :class:`Structure` object from a dictionary with ABINIT variables."""
-        lattice = Lattice.from_abivars(d)
+        kwargs.update(dict(*args))
+        d = kwargs
 
+        lattice = Lattice.from_abivars(d)
         coords, coords_are_cartesian = d.get("xred", None), False
 
         if coords is None:

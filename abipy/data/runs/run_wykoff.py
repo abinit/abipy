@@ -43,7 +43,7 @@ def build_flow(options):
     manager = abilab.TaskManager.from_user_config() if not options.manager else \
               abilab.TaskManager.from_file(options.manager)
 
-    pseudos = data.pseudos("14si.pspnc")
+    pseudos = data.pseudos("14si.pspnc", "8o.pspnc")
 
     base_structure = abilab.Structure.from_file(data.cif_file("si.cif"))
 
