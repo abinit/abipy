@@ -1,7 +1,12 @@
 # coding: utf-8
 from __future__ import print_function, division, unicode_literals
 
-from fireworks import FireTaskBase, FWAction, Firework, explicit_serialize
+try:
+    from fireworks import FireTaskBase, FWAction, Firework, explicit_serialize
+except ImportError:
+    FireTaskBase, FWAction, Firework = 3 * [object]
+    explicit_serialize = lambda x: x
+
 from abipy.abilab import Flow
 
 @explicit_serialize

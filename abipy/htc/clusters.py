@@ -13,7 +13,15 @@ import warnings
 import json
 import yaml
 import socket
-import paramiko
+try:
+   import paramiko
+except ImportError:
+   class Fake(object): pass
+   paramiko = Fake()
+   paramiko.SSHClient = object
+   paramiko.SFTPClient = object
+   paramiko.Channel = object
+   pass
 
 from six.moves import cStringIO
 from monty.string import is_string
