@@ -74,26 +74,34 @@ class Structure(pymatgen.Structure):
     to construct a Structure object from ABINIT variables.
     """
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath, primitive=True, sort=False):
         """
-        Return a new Structure instance from a NetCDF file 
+        Reads a structure from a file. For example, anything ending in
+        a "cif" is assumed to be a Crystallographic Information Format file.
+        Supported formats include CIF, POSCAR/CONTCAR, CHGCAR, LOCPOT,
+        vasprun.xml, CSSR, Netcdf and pymatgen's JSON serialized structures.
 
         Args:
-            filename: netcdf file with crystallographic data in the ETSF-IO format.
+            filename (str): The filename to read from.
+            primitive (bool): Whether to convert to a primitive cell
+                Only available for cifs, POSCAR, CSSR, JSON, YAML
+                Defaults to True.
+            sort (bool): Whether to sort sites. Default to False.
+
+        Returns:
+            Structure.
         """
         if filepath.endswith(".nc"):
+            from pymatgen.io.abinitio.netcdf import as_etsfreader
             file, closeit = as_etsfreader(filepath)
 
-            new = file.read_structure()
-            # Change the class of new.
-            new.__class__ = cls
-
+            new = file.read_structure(cls=cls)
             new.set_spacegroup(SpaceGroup.from_file(file))
             if closeit: file.close()
 
         else:
             # TODO: Spacegroup is missing here.
-            new = super(Structure, cls).from_file(filepath)
+            new = super(Structure, cls).from_file(filepath, primitive=primitive, sort=sort)
             # Change the class of new.
             if new.__class__ != cls: new.__class__ = cls
 
@@ -253,8 +261,7 @@ class Structure(pymatgen.Structure):
 
     def get_sorted_structure_z(self):
         """Orders the structure according to increasing Z of the elements"""
-        sites = sorted(self.sites, key=lambda site: site.specie.Z)
-        return self.__class__.from_sites(sites)
+        return self.__class__.from_sites(sorted(self.sites, key=lambda site: site.specie.Z))
 
     def findname_in_hsym_stars(self, kpoint):
         """Returns the name of the special k-point, None if kpoint is unknown.""" 
@@ -386,7 +393,7 @@ class Structure(pymatgen.Structure):
 
     @classmethod
     def from_abivars(cls, d):
-        """Build a `Structure` object from a dictionary containing ABINIT variables."""
+        """Build a :class:`Structure` object from a dictionary with ABINIT variables."""
         lattice = Lattice.from_abivars(d)
 
         coords, coords_are_cartesian = d.get("xred", None), False
@@ -639,7 +646,6 @@ class Structure(pymatgen.Structure):
         #precision issues
         inv_matrix = np.linalg.inv(scale_matrix)
 
-
         frac_points = np.dot(all_points, inv_matrix)
         tvects = all_points[np.where(np.all(frac_points < 1-1e-10, axis=1)
                                      & np.all(frac_points >= -1e-10, axis=1))]
@@ -651,15 +657,14 @@ class Structure(pymatgen.Structure):
         """
         write into the file descriptor xyz_file the positions and displacements of the atoms
 
-        :param xyz_file: file_descriptor
-        :param qpoint: qpoint to be analyzed
-        :param displ: eigendisplacements to be analyzed
-        :param do_real: True if you want to get only real part, False means imaginary part
-        :param frac_coords: True if the eigendisplacements are given in fractional coordinates
-        :param scale_matrix: Scale matrix for supercell
-        :param max_supercell: Maximum size of supercell vectors with respect to primitive cell
-
-        :return: nothing
+        Args:
+            xyz_file: file_descriptor
+            qpoint: qpoint to be analyzed
+            displ: eigendisplacements to be analyzed
+            do_real: True if you want to get only real part, False means imaginary part
+            frac_coords: True if the eigendisplacements are given in fractional coordinates
+            scale_matrix: Scale matrix for supercell
+            max_supercell: Maximum size of supercell vectors with respect to primitive cell
         """
         if scale_matrix is None:
             if max_supercell is None:
@@ -676,7 +681,7 @@ class Structure(pymatgen.Structure):
 
         fmtstr = "{{}} {{:.{0}f}} {{:.{0}f}} {{:.{0}f}} {{:.{0}f}} {{:.{0}f}} {{:.{0}f}}\n".format(6)
 
-        for at,site in enumerate(self):
+        for at, site in enumerate(self):
             for t in tvects:
                 if do_real:
                     new_displ[:] = np.real(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ[at,:])
@@ -731,7 +736,7 @@ class Structure(pymatgen.Structure):
         new_sites = []
         for at,site in enumerate(self):
             for t in tvects:
-                if(do_real):
+                if do_real:
                     new_displ[:] = np.real(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ[at,:])
                 else:
                     new_displ[:] = np.imag(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ[at,:])
@@ -839,8 +844,7 @@ class Structure(pymatgen.Structure):
         """
         # Find lattice type.
         sym = SpacegroupAnalyzer(self, symprec=symprec, angle_tolerance=angle_tolerance)
-        lattice_type = sym.get_lattice_type() 
-        spg_symbol = sym.get_spacegroup_symbol()
+        lattice_type, spg_symbol = sym.get_lattice_type(), sym.get_spacegroup_symbol()
 
         # Generate the appropriate set of shifts.
         shiftk = None
@@ -887,14 +891,10 @@ class Structure(pymatgen.Structure):
         Args:
             pseudos: List of :class:`Pseudo` objects or list of filenames.
         """
-        table = PseudoTable.as_table(pseudos)
-
-        nval = 0
+        nval, table = 0, PseudoTable.as_table(pseudos)
         for site in self:
-            symbol = site.species_string
-            pseudos = table.pseudos_with_symbol(symbol)
-            assert len(pseudos) == 1
-            nval += pseudos[0].Z_val 
+            pseudo = table.pseudo_with_symbol(site.species_string)
+            nval += pseudo.Z_val
 
         return nval
 
@@ -951,20 +951,16 @@ class StructureModifier(object):
         Create a supercell.
 
         Args:
-            scaling_matrix:
-                A scaling matrix for transforming the lattice vectors.
+            scaling_matrix: A scaling matrix for transforming the lattice vectors.
                 Has to be all integers. Several options are possible:
 
-                a. A full 3x3 scaling matrix defining the linear combination
-                   the old lattice vectors. E.g., [[2,1,0],[0,3,0],[0,0,
-                   1]] generates a new structure with lattice vectors a' =
-                   2a + b, b' = 3b, c' = c where a, b, and c are the lattice
-                   vectors of the original structure.
-                b. An sequence of three scaling factors. E.g., [2, 1, 1]
-                   specifies that the supercell should have dimensions 2a x b x
-                   c.
-                c. A number, which simply scales all lattice vectors by the
-                   same factor.
+                a. A full 3x3 scaling matrix defining the linear combination of the old lattice vectors.
+                    E.g., [[2,1,0],[0,3,0],[0,0,1]] generates a new structure with lattice vectors
+                    a' = 2a + b, b' = 3b, c' = c
+                    where a, b, and c are the lattice vectors of the original structure.
+                b. A sequence of three scaling factors. E.g., [2, 1, 1]
+                   specifies that the supercell should have dimensions 2a x b x c.
+                c. A number, which simply scales all lattice vectors by the same factor.
 
         Returns:
             New structure.
@@ -982,13 +978,9 @@ class StructureModifier(object):
         all the atoms so that the maximum atomic displacement is 0.001 Angstrom.
 
         Args:
-            displ:
-                Displacement vector with 3*len(self) entries (fractional coordinates).
-            eta:
-                Scaling factor. 
-            frac_coords:
-                Boolean stating whether the vector corresponds to fractional or
-                cartesian coordinates.
+            displ: Displacement vector with 3*len(self) entries (fractional coordinates).
+            eta: Scaling factor.
+            frac_coords: Boolean stating whether the vector corresponds to fractional or cartesian coordinates.
 
         Returns:
             List of new structures with displaced atoms.

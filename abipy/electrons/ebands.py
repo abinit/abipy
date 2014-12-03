@@ -1122,6 +1122,8 @@ class ElectronBands(object):
             self.structure, self.kpoints, qp_energies, self.fermie, self.occfacts, self.nelect,
             nband_sk=self.nband_sk, smearing=self.smearing, markers=self.markers)
 
+    from pymatgen.util.plotting_utils import add_fig_kwargs
+    @add_fig_kwargs
     def plot(self, klabels=None, band_range=None, marker=None, width=None, **kwargs):
         """
         Plot the band structure.
@@ -1147,9 +1149,9 @@ class ElectronBands(object):
         Returns:
             `matplotlib` figure
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
+        #title = kwargs.pop("title", None)
+        #show = kwargs.pop("show", True)
+        #savefig = kwargs.pop("savefig", None)
 
         # Select the band range.
         if band_range is None:
@@ -1162,7 +1164,7 @@ class ElectronBands(object):
         ax = fig.add_subplot(1,1,1)
 
         # Decorate the axis (e.g add ticks and labels).
-        self.decorate_ax(ax, klabels=klabels, title=title)
+        self.decorate_ax(ax, klabels=klabels) #, title=title)
 
         # Plot the band energies.
         for spin in self.spins:
@@ -1195,8 +1197,8 @@ class ElectronBands(object):
 
             self.plot_width_ax(ax, key, fact=fact)
 
-        if show: plt.show()
-        if savefig is not None: fig.savefig(savefig)
+        #if show: plt.show()
+        #if savefig is not None: fig.savefig(savefig)
 
         return fig
 
@@ -1932,21 +1934,14 @@ class EBands3D(object):
     def __init__(self, structure, ibz_arr, ene_ibz, ndivs, shifts, pbc=False, order="unit_cell"):
         """
         Args:
-            structure:
-                `Structure` object.
-            ibz_arr:
-                `ndarray` with the k-points in the IBZ in reduced coordinates.
-            ene_ibz:
-                Energies in the IBZ. shape = (nsppol, nk_ibz, nband)
-            ndivs:
-                Number of divisions used to generate the k-mesh
-            shifts:
-                List of shifts used to generate the k-mesh
-            pbc=
-                True if periodic boundary conditions should be enfored
+            structure: :class:`Structure` object.
+            ibz_arr: `ndarray` with the k-points in the IBZ in reduced coordinates.
+            ene_ibz: Energies in the IBZ. shape = (nsppol, nk_ibz, nband)
+            ndivs: Number of divisions used to generate the k-mesh
+            shifts: List of shifts used to generate the k-mesh
+            pbc: True if periodic boundary conditions should be enfored
                 during the generation of the k-mesh
-            order:
-                String defining the order of the k-point in the k-mesh.
+            order: String defining the order of the k-point in the k-mesh.
                 "unit_cell":
                     Point are located in the unit_cell, i.e kx in [0, 1]
                 "bz":
@@ -1989,8 +1984,7 @@ class EBands3D(object):
 
     def get_emesh_sbk(self):
         """
-        Returns a `ndarray` with shape [nsppol, nband, len_bz] with
-        the eigevanalues in the full zone.
+        Returns a `ndarray` with shape [nsppol, nband, len_bz] with the eigevanalues in the full zone.
         """
         emesh_sbk = np.empty((self.nsppol, self.nband, self.len_bz))
 
@@ -2002,8 +1996,7 @@ class EBands3D(object):
 
     def get_emesh_k(self, spin, band):
         """
-        Return a `ndarray` with shape [len_bz] with
-        the energies in the full zone for given spin and band.
+        Return a `ndarray` with shape [len_bz] with the energies in the full zone for given spin and band.
         """
         emesh_k = np.empty(self.len_bz)
 
@@ -2034,30 +2027,3 @@ class EBands3D(object):
                                                                         
     #    kx, ky = np.meshgrid(kx, ky)
     #    return kx, ky, plane
-
-
-#class NestingFactor(object):
-#
-#    def __init__(self, ebands):
-#
-#        self.ebands = ebands
-#
-#        # Check whether k-points form a homogeneous sampling.
-#        if not ebands.has_bzmesh:
-#            err_msg = "The computation of the nesting factor requires a homogeneous k-point sampling"
-#            raise ValueError(err_msg)
-#
-#    @classmethod
-#    def from_file(cls, filepath):
-#        """
-#        Initialize the object from a netcdf file containing an electronic band structure.
-#        """
-#        return cls(ElectronBands.from_file(filepath))
-#
-#    def compute_nesting(self, qpath):
-#        mesh, values = None, None
-#        return Function1D(mesh, values)
-#
-#    def plot(self, qpath):
-#        nesting = self.compute_nesting(qpath)
-#        nesting.plot()
