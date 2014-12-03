@@ -54,7 +54,6 @@ class TestStructure(AbipyTest):
                                       [[0, 0, 0], [0.25, 0.25, 0.25]])
         old_structure = structure.copy()
 
-
         print(old_structure.lattice._matrix)
         for site in old_structure:
             print(structure.lattice.get_cartesian_coords(site.frac_coords))
