@@ -89,7 +89,7 @@ class Structure(pymatgen.Structure):
             sort (bool): Whether to sort sites. Default to False.
 
         Returns:
-            Structure.
+            :class:`Structure` object
         """
         if filepath.endswith(".nc"):
             from pymatgen.io.abinitio.netcdf import as_etsfreader

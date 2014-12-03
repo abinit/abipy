@@ -1028,9 +1028,9 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
         return fig
 
-    def print_qps(self, spin=None, kpoint=None, bands=None, fmt=None, stream=sys.stdout):
+    def print_qps(self, spin=None, kpoints=None, bands=None, fmt=None, stream=sys.stdout):
         # TODO Is it still used?
-        self.reader.print_qps(spin=spin, kpoint=kpoint, bands=bands, fmt=None, stream=stream)
+        self.reader.print_qps(spin=spin, kpoint=kpoints, bands=bands, fmt=None, stream=stream)
 
     def plot_ksbands_with_qpmarkers(self, qpattr="qpeme0", fact=1, **kwargs):
         """
@@ -1450,7 +1450,7 @@ class SigresReader(ETSF_Reader):
         """
         Args:
             spin: Spin index, if None all spins are considered
-            kpoint: List of k-points to select. Default: all kpoints
+            kpoints: List of k-points to select. Default: all kpoints
             bands: List of bands to select. Default is all bands
             fmt: Format string passe to `to_strdict`
             stream: file-like object.
