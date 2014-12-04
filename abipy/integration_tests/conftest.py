@@ -27,18 +27,18 @@ from monty.collections import AttrDict
 #    """
 
 # Read the base configuration from file
-with open(os.path.join(os.path.dirname(__file__), "taskmanager.yml")) as fh:
+with open(os.path.join(os.path.dirname(__file__), "manager.yml")) as fh:
     base_conf = yaml.load(fh)
 
 # Build list of configurations.
 _manager_confs = []
 
 for autoparal in [1]: #, 1]:
-    max_ncpus = 1 if autoparal == 0 else 2
+
 
     newd = copy.deepcopy(base_conf)
     newd["policy"]["autoparal"] = autoparal
-    newd["policy"]["max_ncpus"] = max_ncpus
+    #newd["policy"]["max_ncpus"] = 1 if autoparal == 0 else 2
     _manager_confs.append(newd)
 
 _manager_confs = [yaml.dump(d) for d in _manager_confs]
@@ -50,7 +50,7 @@ def fwp(tmpdir, request):
     """
     Parameters used to initialize Flows.
 
-    This fixture allows us to change the TaskManager
+    This fixture allows us to change the :class:`TaskManager`
     so that we can easily test different configurations.
     """
     # Temporary working directory

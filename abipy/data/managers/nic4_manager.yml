@@ -12,12 +12,7 @@ job: &job
     setup:
         - "source /home/ucl/naps/gmatteo/.bashrc"
     #modules:
-    #    - python/2.7
-
-policy:
-    autoparal: 1
-    automemory: 0
-    max_ncpus: 16
+    #    - abipy-python
 
 # queues 
 qadapters:
@@ -25,9 +20,12 @@ qadapters:
     queue:
        qname: defq
        qtype: slurm
+       qparams:
+         mail_user: nobody@nowhere
+         mail_type: FAIL
+         # Othere slurm options ... 
     limits:
        timelimit: 0:10:0
-       min_cores: 1
        max_cores: 16
        min_mem_per_proc: 700
     hardware: *hardware

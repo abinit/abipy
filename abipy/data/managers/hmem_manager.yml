@@ -28,11 +28,6 @@ job: &job
     pre_run: |
         ulimit unlimited
 
-policy:
-    autoparal: 1
-    automemory: 0
-    max_ncpus: 256
-
 # queues 
 qadapters:
   - priority: 1

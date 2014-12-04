@@ -23,10 +23,6 @@ job: &job
     pre_run: |
         ulimit  # pre_run is a string in verbatim mode (note |)
 
-policy:
-    autoparal: 1
-    max_ncpus: 128
-
 # List of qdapters. 
 qadapters:
   # Westmere default.

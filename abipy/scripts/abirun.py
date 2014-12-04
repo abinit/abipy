@@ -231,9 +231,12 @@ Specify the files to open. Possible choices:
     p_robot.add_argument('robot_ext', nargs="?", type=str, default="GSR", help="The file extension of the netcdf file")
 
     p_plot = subparsers.add_parser('plot', parents=[flow_selector_parser], help="Plot data")
-    p_plot = p_plot.add_argument("what", nargs="?", type=str, default="ebands", help="Object to plot")
+    p_plot.add_argument("what", nargs="?", type=str, default="ebands", help="Object to plot")
 
     p_inspect = subparsers.add_parser('inspect', parents=[flow_selector_parser], help="Inspect the tasks")
+
+    p_docmanager = subparsers.add_parser('docmanager', help="Document the TaskManager options")
+    p_docmanager.add_argument("qtype", nargs="?", default=None, help="Document qparams section for the given qtype")
 
     p_embed = subparsers.add_parser('embed', help=( 
         "Embed IPython. Useful for debugging or for performing advanced operations.\n"
@@ -256,6 +259,48 @@ Specify the files to open. Possible choices:
     if options.no_colors:
         # Disable colors
         termcolor.enable(False)
+
+    if options.command == "docmanager":
+        print(abilab.TaskManager.autodoc())
+
+        import yaml
+        QDICT = yaml.load("""\
+priority: 5
+queue:
+  qtype: slurm
+  qname: Oban
+  qparams:
+      account: user_account
+      mail_user: user@mail.com
+limits:
+  timelimit: 10:00
+  min_cores: 3
+  max_cores: 16
+job:
+  mpi_runner: mpirun
+  # pre_run is a string in verbatim mode (note |)
+  setup:
+      - echo ${SLURM_JOB_NODELIST}
+      - ulimit -s unlimited
+  modules:
+      - intel/compilerpro/13.0.1.117
+      - fftw3/intel/3.3
+  shell_env:
+      PATH: /home/user/bin:$PATH
+hardware:
+   # Mandatory
+   num_nodes: 2
+   sockets_per_node: 2
+   cores_per_socket: 4
+   mem_per_node: 8 Gb
+""")
+        from pymatgen.io.abinitio.qadapters import make_qadapter
+        if options.qtype is not None:
+            qad = make_qadapter(**QDICT)
+            print(qad.QTEMPLATE)
+            #print(qad.supported_qparams)
+
+        sys.exit(0)
 
     # Read the flow from the pickle database.
     if options.path is None:
@@ -481,6 +526,9 @@ Specify the files to open. Possible choices:
             except KeyboardInterrupt:
                 print("\nTerminating thread...")
                 p.terminate()
+
+
+
 
     elif options.command == "embed":
         import IPython
