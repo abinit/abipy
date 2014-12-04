@@ -2,7 +2,7 @@
 Functions providing access to file data for unit tests and tutorials.
 Preferred way to import the module is via the import syntax:
 
-import abipy.data as data
+import abipy.abidata as abidata
 """
 from __future__ import print_function, division, unicode_literals
 
@@ -124,12 +124,9 @@ class FilesGenerator(object):
     def __init__(self, **kwargs):
         """
         Args:
-            workdir:
-                Working directory.
-            finalize:
-                True if self.finalize is called
-            verbose:
-                Verbosity level.
+            workdir: Working directory.
+            finalize: True if self.finalize is called
+            verbose: Verbosity level.
         """
         if not hasattr(self, "files_to_save"):
             raise ValueError("files_to_save are not defined")
