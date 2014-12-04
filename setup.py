@@ -92,26 +92,30 @@ with open(release_file) as f:
 #---------------------------------------------------------------------------
 
 def find_package_data():
-    "Find abipy's package_data."
+    """Find abipy's package_data."""
+    #top = os.path.join("abipy", "data", "refs")
+    #ref_files = {}
+    #for root, dirs, files in os.walk(top):
+    #    root = root.replace("/", ".")
+    #    ref_files[root] = [os.path.join(root, f) for f in files]
+    #print(ref_files)
+
     # This is not enough for these things to appear in an sdist.
     # We need to muck with the MANIFEST to get this to work
     package_data = {
-        'abipy.data.cifs' : ["*"],
-        'abipy.data.refs' : ["*"],
-        'abipy.data.pseudos' : ["*"],
-        'abipy.data.runs' : ['*'],
+        'abipy.data': ["cifs/*.cif", "pseudos/*", "runs/*"],
+        'abipy.data.refs' : [
+            "al_g0w0_spfunc/*",
+            "alas_phonons/*",
+            "si_bse/*",
+            "si_ebands/*",
+            "si_g0w0/*",
+            ],
         'abipy.htc': ["*.json"],
         'abipy.gui.awx' : ['images/*'],
     }
 
-
-    top = os.path.join("abipy", "data", "refs")
-    ref_files = {}
-    for root, dirs, files in os.walk(top):
-        ref_files[root] = [os.path.join(root, f) for f in files]
-    #print(ref_files)
-    package_data.update(ref_files)
-
+    #package_data.update(ref_files)
     return package_data
 
 
@@ -200,14 +204,12 @@ if False and with_ipython:
 #---------------------------------------------------------------------------
 
 # Get the set of packages to be included.
-#all_packages = find_packages(exclude=())
 my_packages = find_packages(exclude=())
 
 my_scripts = find_scripts()
 
 my_package_data = find_package_data()
 my_excl_package_data = find_exclude_package_data()
-#data_files = find_data_files()
 
 # Create a dict with the basic information
 # This dict is eventually passed to setup after additional keys are added.
