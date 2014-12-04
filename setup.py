@@ -103,6 +103,15 @@ def find_package_data():
         'abipy.htc': ["*.json"],
         'abipy.gui.awx' : ['images/*'],
     }
+
+
+    top = os.path.join("abipy", "data", "refs")
+    ref_files = {}
+    for root, dirs, files in os.walk(top):
+        ref_files[root] = [os.path.join(root, f) for f in files]
+    #print(ref_files)
+    package_data.update(ref_files)
+
     return package_data
 
 
