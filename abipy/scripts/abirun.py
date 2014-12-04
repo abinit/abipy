@@ -230,6 +230,9 @@ Specify the files to open. Possible choices:
     p_robot = subparsers.add_parser('robot', parents=[flow_selector_parser], help="Use a robot to analyze the results of multiple tasks (requires ipython)")
     p_robot.add_argument('robot_ext', nargs="?", type=str, default="GSR", help="The file extension of the netcdf file")
 
+    p_plot = subparsers.add_parser('plot', parents=[flow_selector_parser], help="Plot data")
+    p_plot = p_plot.add_argument("what", nargs="?", type=str, default="ebands", help="Object to plot")
+
     p_inspect = subparsers.add_parser('inspect', parents=[flow_selector_parser], help="Inspect the tasks")
 
     p_embed = subparsers.add_parser('embed', help=( 
@@ -433,6 +436,23 @@ Specify the files to open. Possible choices:
         with abilab.abirobot(flow, options.robot_ext, nids=selected_nids(flow, options)) as robot:
             #IPython.embed(header=str(robot) + "\nType `robot` in the terminal and use <TAB> to list its methods",  robot=robot)
             IPython.start_ipython(argv=[], user_ns={"robot": robot})
+
+    elif options.command == "plot":
+        fext = dict(
+            ebands="gsr",
+        )[options.what]
+
+        open_method = "open_" + fext
+        plot_method = "plot_" + options.what
+
+        for task in selected_tasks(flow, options):
+            try:
+                with getattr(task, open_method)() as ncfile: 
+                    print(ncfile)
+                    #print(dir(ncfile))
+                    getattr(ncfile, plot_method)()
+            except:
+                pass
 
     elif options.command == "inspect":
         tasks = selected_tasks(flow, options)
