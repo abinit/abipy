@@ -11,6 +11,7 @@ from monty.string import list_strings, is_string
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from monty.bisect import find_le, find_ge 
+from pymatgen.util.plotting_utils import add_fig_kwargs
 from prettytable import PrettyTable
 from six.moves import cStringIO
 from abipy.core.func1d import Function1D
@@ -211,6 +212,7 @@ class QPList(list):
 
         return table
 
+    @add_fig_kwargs
     def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, **kwargs):
         """
         Args:
@@ -222,17 +224,12 @@ class QPList(list):
         ==============  ==============================================================
         kwargs          Meaning
         ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
+        fermi           True to plot the Fermi level.
         ==============  ==============================================================
 
         Returns:
             `matplotlib` figure.
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
         fermi = kwargs.pop("fermi", None)
 
         if is_string(with_fields):
@@ -257,8 +254,6 @@ class QPList(list):
         fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, squeeze=False)
         ax_list = ax_list.ravel()
 
-        if title: fig.suptitle(title)
-
         if self.is_e0sorted:
             qps = self
         else:
@@ -281,9 +276,6 @@ class QPList(list):
         if (num_plots % ncols) != 0:
             ax_list[-1].plot([0,1], [0,1], lw=0)
             ax_list[-1].axis('off')
-
-        if show: plt.show()
-        if savefig is not None: fig.savefig(savefig)
 
         return fig
 
@@ -359,14 +351,12 @@ class QPList(list):
         # Build the scissors operator.
         sciss = Scissors(func_list, domains, residues, bounds)
 
-        title = kwargs.pop("title", None)
-
         # Compare fit with input data.
         if kwargs.pop("plot", False):
+            title = kwargs.pop("title", None)
             import matplotlib.pyplot as plt
             plt.plot(e0mesh, qpcorrs, 'o', label="input data")
-            if title:
-                plt.suptitle(title)
+            if title: plt.suptitle(title)
             for dom in domains[:]:
                 plt.plot(2*[dom[0]], [min(qpcorrs), max(qpcorrs)])
                 plt.plot(2*[dom[1]], [min(qpcorrs), max(qpcorrs)])
@@ -439,6 +429,7 @@ class Sigmaw(object):
 
         return lines
 
+    @add_fig_kwargs
     def plot(self, what="sa", **kwargs):
         """
         Plot the self-energy and the spectral function
@@ -449,30 +440,16 @@ class Sigmaw(object):
                     - a for spectral function
                   Characters can be concatenated.
 
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
-        ==============  ==============================================================
-
         Returns:
             `matplotlib` figure.
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
-
         import matplotlib.pyplot as plt
 
         nrows = len(what)
         fig, ax_list = plt.subplots(nrows=nrows, ncols=1, sharex=True, squeeze=False)
         ax_list = ax_list.ravel()
 
-        if title is None:
-            title = 'spin %s, k-point %s, band %s' % (self.spin, self.kpoint, self.band)
-
+        title = 'spin %s, k-point %s, band %s' % (self.spin, self.kpoint, self.band)
         fig.suptitle(title)
 
         for i, w in enumerate(what):
@@ -486,9 +463,6 @@ class Sigmaw(object):
                 kwargs = {"color": "black", "linewidth": 2.0}
 
             self.plot_ax(ax, w=w, **kwargs)
-
-        if show: plt.show()
-        if savefig is not None: fig.savefig(savefig)
 
         return fig
 
@@ -743,6 +717,7 @@ class SigresPlotter(Iterable):
         
         return np.array(qpenes)
 
+    @add_fig_kwargs
     def plot_qpgaps(self, spin=None, kpoint=None, hspan=0.01, **kwargs):
         """
         Plot the QP gaps as function of the convergence parameter.
@@ -758,10 +733,6 @@ class SigresPlotter(Iterable):
         """
         spin_range = range(self.nsppol) if spin is None else torange(spin)
         kpoints_for_plot = self.computed_gwkpoints  #if kpoint is None else KpointList.as_kpoints(kpoint)
-
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
 
         self.prepare_plot()
 
@@ -781,13 +752,9 @@ class SigresPlotter(Iterable):
                     ax.axhspan(last-hspan, last+hspan, facecolor='0.5', alpha=0.5)
 
         self.decorate_ax(ax)
-
-        if title is not None: fig.suptitle(title)
-        if show: plt.show()
-        if savefig is not None: fig.savefig(savefig)
-                                 
         return fig
 
+    @add_fig_kwargs
     def plot_qpenes(self, spin=None, kpoint=None, band=None, hspan=0.01, **kwargs):
         """
         Plot the QP energies as function of the convergence parameter.
@@ -808,10 +775,6 @@ class SigresPlotter(Iterable):
 
         self.prepare_plot()
 
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
-                                              
         import matplotlib.pyplot as plt
 
         # Build grid of plots.
@@ -841,10 +804,6 @@ class SigresPlotter(Iterable):
 
             self.decorate_ax(ax, title="kpoint %s" % repr(kpoint))
 
-        if title is not None: fig.suptitle(title)
-        if show: plt.show()
-        if savefig is not None: fig.savefig(savefig)
-                                 
         return fig
 
 
@@ -968,6 +927,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
             qps = self.qplist_spin[spin].sort_by_e0()
             qps.plot_qps_vs_e0(with_fields=with_fields, exclude_fields=exclude_fields, **kwargs)
 
+    @add_fig_kwargs
     def plot_spectral_functions(self, spin, kpoint, bands, **kwargs):
         """
         Args:
@@ -975,21 +935,9 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
             kpoint: Required kpoint.
             bands: List of bands
 
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
-        ==============  ==============================================================
-
         Returns:
             `matplotlib` figure
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
-
         if not isinstance(bands, Iterable): bands = [bands]
 
         import matplotlib.pyplot as plt
@@ -1001,16 +949,9 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
             label = "skb = %s, %s, %s" % (spin, kpoint, band)
             sigw.plot_ax(ax, label="$A(\omega)$:" + label, **kwargs)
 
-        if title is not None: fig.suptitle(title)
-        if show: plt.show()
-        if savefig is not None: fig.savefig(savefig)
-
         return fig
 
     def plot_eigvec_qp(self, spin, kpoint, band=None, **kwargs):
-
-        title = kwargs.pop("title", None)
-
         if kpoint is None:
             from abipy.tools.plotting_utils import ArrayPlotter
             plotter = ArrayPlotter()
@@ -1018,13 +959,13 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
                 ksqp_arr = self.reader.read_eigvec_qp(spin, kpoint, band=band)
                 plotter.add_array(str(kpoint), ksqp_arr)
 
-            fig = plotter.plot(title=title)
+            fig = plotter.plot(**kwargs)
 
         else:
             from abipy.tools.plotting_utils import plot_array
             ksqp_arr = self.reader.read_eigvec_qp(spin, kpoint, band=band)
 
-            fig = plot_array(ksqp_arr)
+            fig = plot_array(ksqp_arr, **kwargs)
 
         return fig
 
@@ -1040,7 +981,6 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         with_marker = qpattr + ":" + str(fact)
         gwband_range = (self.min_gwbstart, self.max_gwbstop)
         fig = self.ebands.plot(marker=with_marker, band_range=gwband_range, **kwargs)
-
         return fig
 
     def get_dataframe_sk(self, spin, kpoint, index=None):

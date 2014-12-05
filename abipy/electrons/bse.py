@@ -9,6 +9,7 @@ import numpy as np
 
 from monty.collections import AttrDict
 from monty.functools import lazy_property
+from pymatgen.util.plotting_utils import add_fig_kwargs
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList
 from abipy.core.mixins import AbinitNcFile, Has_Structure
@@ -78,6 +79,7 @@ class DielectricTensor(object):
 
         return all_funcs
 
+    @add_fig_kwargs
     def plot(self, *args, **kwargs):
         """
         Plot all the components of the tensor
@@ -88,28 +90,17 @@ class DielectricTensor(object):
         ==============  ==============================================================
         kwargs          Meaning
         ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
         red_coords      True to plot the reduced coordinate tensor (Default: True)
         ==============  ==============================================================
 
         Returns:
             matplotlib figure
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
         red_coords = kwargs.pop("red_coords", True)
-
         import matplotlib.pyplot as plt
 
         fig = plt.figure()
-
         ax = fig.add_subplot(1, 1, 1)
-
-        if title is not None:
-            ax.set_title(title)
 
         ax.grid(True)
         ax.set_xlabel('Frequency [eV]')
@@ -121,9 +112,6 @@ class DielectricTensor(object):
         # Plot the 6 independent components
         for icomponent in [0,4,8,1,2,5]: 
             self.plot_ax(ax, icomponent, red_coords, *args, **kwargs)
-
-        if show: plt.show()
-        if savefig is not None: fig.savefig(savefig)
 
         return fig
 
@@ -255,33 +243,23 @@ class DielectricFunction(object):
 
         np.savetxt(stream, table, fmt=fmt, delimiter=delimiter, header=header)
 
+    @add_fig_kwargs
     def plot(self, **kwargs):
         """
         Plot the MDF.
 
-        args:
-            Optional arguments passed to :mod:`matplotlib`.
-
-
         ==============  ==============================================================
         kwargs          Meaning
         ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
         only_mean       True if only the averaged spectrum is wanted (default True)
         ==============  ==============================================================
 
         Returns:
             matplotlib figure
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
         only_mean = kwargs.pop("only_mean", True)
 
         import matplotlib.pyplot as plt
-
         fig = plt.figure()
 
         ax = fig.add_subplot(1, 1, 1)
@@ -302,9 +280,6 @@ class DielectricFunction(object):
             for iq, qpoint in enumerate(self.qpoints):
                 self.plot_ax(ax, iq, **kwargs)
 
-        if show: plt.show()
-        if savefig is not None: fig.savefig(savefig)
-
         return fig
 
     def plot_ax(self, ax, qpoint=None, **kwargs):
@@ -314,8 +289,7 @@ class DielectricFunction(object):
         Args:
             ax: plot axis.
             qpoint: index of the q-point or Kpoint object or None) to plot emacro_avg.
-            kwargs:
-                Keyword arguments passed to matplotlib. Accepts also:
+            kwargs: Keyword arguments passed to matplotlib. Accepts also:
 
                 cplx_mode:
                     string defining the data to print (case-insensitive).
@@ -574,7 +548,8 @@ class MdfPlotter(object):
         if label is None:
             label = mdf_type + ncfile.filepath
         self.add_mdf(label, mdf)
-
+                
+    @add_fig_kwargs
     def plot(self, cplx_mode="Im", qpoint=None, **kwargs):
         """
         Get a matplotlib plot showing the MDFs.
@@ -593,17 +568,10 @@ class MdfPlotter(object):
         ==============  ==============================================================
         kwargs          Meaning
         ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig:        'abc.png' or 'abc.eps'* to save the figure to a file.
         xlim            x-axis limits. None (Default) for automatic determination.
         ylim            y-axis limits. None (Default) for automatic determination.
         ==============  ==============================================================
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
-
         import matplotlib.pyplot as plt
 
         fig = plt.figure()
@@ -619,8 +587,6 @@ class MdfPlotter(object):
 
         ax.set_xlabel('Frequency [eV]')
         ax.set_ylabel('Macroscopic DF')
-
-        if title is not None: ax.set_title(title)
 
         cmodes = cplx_mode.split("-")
         qtag = "average" if qpoint is None else repr(qpoint)
@@ -641,9 +607,5 @@ class MdfPlotter(object):
 
         # Set legends.
         ax.legend(lines, legends, loc='best', shadow=False)
-
-        if show: plt.show()
-        if savefig: fig.savefig(savefig)
-
         return fig
 

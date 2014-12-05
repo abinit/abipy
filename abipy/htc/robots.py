@@ -212,7 +212,7 @@ class GsrRobot(Robot):
         # TODO add more columns
         # Add attributes specified by the users
         attrs = [
-            "nsppol", "nspinor", "nspden", "ecut", "pawecutdg",
+            "nsppol", "ecut", "pawecutdg", #"nspinor", "nspden", 
             "tsmear", "nkpts", "energy", "magnetization", "pressure", "max_force",
         ] + kwargs.pop("attrs", [])
 
@@ -287,7 +287,7 @@ class SigresRobot(Robot):
         if kpoint is None: kpoint = 0
 
         attrs = [
-            "nsppol", "nspinor", "nspden", #"ecut", "pawecutdg",
+            "nsppol", #"nspinor", "nspden", #"ecut", "pawecutdg",
             #"tsmear", "nkibz",
         ] + kwargs.pop("attrs", [])
 

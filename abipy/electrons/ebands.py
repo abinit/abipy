@@ -14,6 +14,7 @@ from collections import OrderedDict, namedtuple, Iterable
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from monty.bisect import find_le, find_gt
+from pymatgen.util.plotting_utils import add_fig_kwargs
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, Kpath, IrredZone, KpointsReaderMixin, kmesh_from_mpdivs
 from abipy.iotools import ETSF_Reader, Visualizer, bxsf_write
@@ -1009,6 +1010,7 @@ class ElectronBands(object):
 
         return Function1D(mesh, jdos)
 
+    @add_fig_kwargs
     def plot_ejdosvc(self, vrange, crange, method="gaussian", step=0.1, width=0.2, cumulative=True, **kwargs):
         """
         Plot the decomposition of the joint-density of States (JDOS).
@@ -1021,26 +1023,13 @@ class ElectronBands(object):
             width: Standard deviation (eV) of the gaussian.
             cumulative: True for cumulative plots (default).
 
-            ================  ==============================================================
-            kwargs            Meaning
-            ================  ==============================================================
-            title             Title of the plot (Default: None).
-            show              True to show the figure (Default).
-            savefig           'abc.png' or 'abc.eps'* to save the figure to a file.
-            ================  ==============================================================
-
         Returns:
             `matplotlib` figure
         """
         if not isinstance(crange, Iterable): crange = [crange]
         if not isinstance(vrange, Iterable): vrange = [vrange]
 
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
-
         import matplotlib.pyplot as plt
-
         fig = plt.figure()
 
         for s in self.spins:
@@ -1077,11 +1066,6 @@ class ElectronBands(object):
                     jdos.plot_ax(ax, label="val=%s --> cond=%s, s=%s" % (v,c,s), **kwargs)
 
         plt.legend(loc="best")
-
-        if title is not None: fig.suptitle(title)
-        if show: plt.show()
-        if savefig: fig.savefig(savefig)
-
         return fig
 
     def apply_scissors(self, scissors):
@@ -1122,7 +1106,6 @@ class ElectronBands(object):
             self.structure, self.kpoints, qp_energies, self.fermie, self.occfacts, self.nelect,
             nband_sk=self.nband_sk, smearing=self.smearing, markers=self.markers)
 
-    from pymatgen.util.plotting_utils import add_fig_kwargs
     @add_fig_kwargs
     def plot(self, klabels=None, band_range=None, marker=None, width=None, **kwargs):
         """
@@ -1138,21 +1121,9 @@ class ElectronBands(object):
             width: String defining the width to plot. Accepts the syntax "widthname:fact" where
                    fact is a float used to scale the stripe size.
 
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
-        ==============  ==============================================================
-
         Returns:
             `matplotlib` figure
         """
-        #title = kwargs.pop("title", None)
-        #show = kwargs.pop("show", True)
-        #savefig = kwargs.pop("savefig", None)
-
         # Select the band range.
         if band_range is None:
             band_range = range(self.mband)
@@ -1197,11 +1168,9 @@ class ElectronBands(object):
 
             self.plot_width_ax(ax, key, fact=fact)
 
-        #if show: plt.show()
-        #if savefig is not None: fig.savefig(savefig)
-
         return fig
 
+    @add_fig_kwargs
     def plot_fatbands(self, klabels=None, **kwargs):  #colormap="jet", max_stripe_width_mev=3.0, qlabels=None, **kwargs):
         """
         Plot the electronic fatbands.
@@ -1213,21 +1182,9 @@ class ElectronBands(object):
             width: String defining the width to plot. accepts the syntax "widthname:fact" where
                    fact is a float used to scale the stripe size.
 
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
-        ==============  ==============================================================
-
         Returns:
             `matplotlib` figure
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
-
         # Build grid of plots.
         num_plots, ncols, nrows = len(self.widths), 1, 1
         if num_plots > 1:
@@ -1248,10 +1205,6 @@ class ElectronBands(object):
             # Add width around each band.
             self.plot_width_ax(ax, key)
 
-        if title is not None: fig.suptitle(title)
-        if show: plt.show()
-        if savefig is not None: fig.savefig(savefig)
-                                 
         return fig
 
     def decorate_ax(self, ax, **kwargs):
@@ -1337,6 +1290,7 @@ class ElectronBands(object):
         # Return ticks, labels
         return list(d.keys()), list(d.values())
 
+    @add_fig_kwargs
     def plot_with_edos(self, dos, klabels=None, **kwargs):
         """
         Plot the band structure and the DOS.
@@ -1346,21 +1300,9 @@ class ElectronBands(object):
             klabels: dictionary whose keys are tuple with the reduced coordinates of the k-points.
                      The values are the labels. e.g. klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
 
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
-        ==============  ==============================================================
-
         Returns:
             `matplotlib` figure.
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
-
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
 
@@ -1394,11 +1336,6 @@ class ElectronBands(object):
         ax2.yaxis.set_label_position("right")
 
         fig = plt.gcf()
-
-        if title: fig.suptitle(title)
-        if show: plt.show()
-        if savefig is not None: fig.savefig(savefig)
-
         return fig
 
     def export_bxsf(self, filepath):
@@ -1602,6 +1539,7 @@ class ElectronBandsPlotter(object):
 
         return "\n\n".join(text)
 
+    @add_fig_kwargs
     def plot(self, klabels=None, **kwargs):
         """
         Plot the band structure and the DOS.
@@ -1614,9 +1552,6 @@ class ElectronBandsPlotter(object):
         ==============  ==============================================================
         kwargs          Meaning
         ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
         xlim            x-axis limits. None (default) for automatic determination.
         ylim            y-axis limits. None (default) for automatic determination.
         ==============  ==============================================================
@@ -1624,10 +1559,6 @@ class ElectronBandsPlotter(object):
         Returns:
             matplotlib figure.
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
-
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
 
@@ -1643,8 +1574,6 @@ class ElectronBandsPlotter(object):
             fig = plt.figure()
             ax1 = fig.add_subplot(111)
             ax_list = [ax1]
-
-        if title is not None: fig.suptitle(title)
 
         for ax in ax_list:
             ax.grid(True)
@@ -1682,9 +1611,6 @@ class ElectronBandsPlotter(object):
             ax = ax_list[1]
             for (label, dos) in self.edoses_dict.items():
                 dos.plot_ax(ax, exchange_xy=True, **opts_label[label])
-
-        if show: plt.show()
-        if savefig is not None: fig.savefig(savefig)
 
         return fig
 
@@ -1801,27 +1727,15 @@ class ElectronDosPlotter(object):
 
         self._edoses_dict[label] = edos
 
+    @add_fig_kwargs
     def plot(self, **kwargs):
         """
         Plot the band structure and the DOS.
 
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
-        ==============  ==============================================================
-
         Returns:
             `matplotlib` figure.
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
-
-        import matplotlib.pyplot as plt
-
+        import matplolib.pyplot as plt
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
 
@@ -1837,10 +1751,6 @@ class ElectronDosPlotter(object):
         ax.set_ylabel("DOS")
         ax.legend(loc="best")
 
-        if title is not None: fig.suptitle(title)
-        if show: plt.show()
-        if savefig is not None: fig.savefig(savefig)
-
         return fig
 
     #def animate(self, **kwargs):
@@ -1855,10 +1765,7 @@ class ElectronDosPlotter(object):
 
 
 class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
-    """
-    This object reads band structure data from a netcdf file written
-    according to the ETSF-IO specifications.
-    """
+    """This object reads band structure data from a netcdf file written"""
     def read_ebands(self):
         """
         Returns an instance of :class:`ElectronBands`. Main entry point for client code
