@@ -15,16 +15,6 @@ from monty.collections import AttrDict
 # and then we convert the dictionary to string with yaml.dump. This string will be passed
 # to TasksManager.from_string in fwp. base_conf looks like:
 
-#base_conf =
-#    """
-#    qtype: shell
-#    mpi_runner: mpirun
-#    pre_run:
-#        - "source ~/Coding/Abinit/bzr_archives/env.sh"
-#    policy:
-#        autoparal: 0
-#        max_ncpus: 1
-#    """
 
 # Read the base configuration from file
 with open(os.path.join(os.path.dirname(__file__), "manager.yml")) as fh:
@@ -34,11 +24,8 @@ with open(os.path.join(os.path.dirname(__file__), "manager.yml")) as fh:
 _manager_confs = []
 
 for autoparal in [1]: #, 1]:
-
-
     newd = copy.deepcopy(base_conf)
     newd["policy"]["autoparal"] = autoparal
-    #newd["policy"]["max_ncpus"] = 1 if autoparal == 0 else 2
     _manager_confs.append(newd)
 
 _manager_confs = [yaml.dump(d) for d in _manager_confs]

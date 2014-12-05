@@ -9,8 +9,9 @@ job: &job
     mpi_runner: mpirun
     shell_env:
         PATH: /home/ucl/naps/gmatteo/bzr_repos/gmatteo_7.9.1-private/build_mvapich2_intel/src/98_main:$PATH
-    setup:
-        - "source /home/ucl/naps/gmatteo/.bashrc"
+    pre_run:
+       - source /home/ucl/naps/gmatteo/.bashrc
+       - ulimit -s unlimited
     #modules:
     #    - abipy-python
 

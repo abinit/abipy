@@ -13,11 +13,12 @@ seconds: 4
 # Send mail to the specified address (accepts string or list of strings).
 #mailto: matteo.giantomassi@uclouvain.be
 
-# The scheduler will shutdown when the number of python exceptions is > MAX_NUM_PYEXCS
-#MAX_NUM_PYEXCS = 2
-# The scheduler will shutdown when the number of Abinit errors is > MAX_NUM_ABIERRS
-#MAX_NUM_ABIERRS = 0
-# The scheduler will shutdows when the number of tasks launched is > SAFETY_RATIO * tot_num_tasks.
-#SAFETY_RATIO = 3
-#REMINDME_S: 20
-#MAX_TIME_S:
+# The scheduler will shutdown when the number of python exceptions is > max_num_pyexcs
+#max_num_pyexcs: 2
+# The scheduler will shutdown when the number of Abinit errors is > max_num_abierrs
+#max_num_abierrs = 0
+# The scheduler will shutdows when the number of tasks launched is > safety_ratio * tot_num_tasks.
+#safety_ratio: 3
+#remind_me_s: 20
+#max_etime_s:
+#max_nlaunches: 2

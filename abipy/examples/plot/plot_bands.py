@@ -21,11 +21,11 @@ ebands.plot(title="Silicon band structure")
 
 # Alternatively you can use the optional argument klabels 
 # that defines the mapping reduced_coordinates --> name of the k-point.
-klabels = {
-    (0.5, 0.0, 0.0) : "L",
-    (0.0, 0.0, 0.0) : "$\Gamma$",
-    (0.0, 0.5, 0.5) : "X",
-}
+#klabels = {
+#    (0.5, 0.0, 0.0) : "L",
+#    (0.0, 0.0, 0.0) : "$\Gamma$",
+#    (0.0, 0.5, 0.5) : "X",
+#}
 
 # and pass it to the plot method:
 #ebands.plot(title="Silicon band structure", klabels=klabels)
