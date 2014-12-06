@@ -9,7 +9,9 @@ import collections
 
 from time import ctime
 from monty.os.path import which
+from monty.functools import lazy_property
 from pymatgen.io.abinitio.events import EventsParser
+from pymatgen.io.abinitio.abitimer import AbinitTimerParser
 
 
 __all__ = [
@@ -82,28 +84,15 @@ class AbinitFile(object):
 class AbinitTextFile(AbinitFile):
     """Class for the ABINIT main output file and the log file."""
 
-    @property
+    @lazy_property
     def events(self):
         """List of ABINIT events reported in the file."""
-        try:
-            return self._events
-        except AttributeError:
-            self._events = EventsParser().parse(self.filepath)
-            return self._events
+        return EventsParser().parse(self.filepath)
 
     @property
     def timer_data(self):
         """Timer data."""
-        return self._timer_data
-        # FIXME AbinitTimerParser no longer in pymatgen...
-        #try:
-        #    return self._timer_data
-
-        #except AttributeError:
-        #    parser = AbinitTimerParser()
-        #    parser.parse(self.filepath)
-        #    self._timer_data = parser
-        #    return self._timer_data
+        return AbinitTimerParser().parse(self.filepath)
 
 
 class AbinitOutputFile(AbinitTextFile):

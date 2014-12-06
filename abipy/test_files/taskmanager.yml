@@ -1,6 +1,6 @@
-policy:
-    autoparal: 1
-    max_ncpus: 2
+#policy:
+#    autoparal: 1
+#    max_ncpus: 2
 
 hardware: &hardware
    num_nodes: 1

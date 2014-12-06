@@ -7,6 +7,7 @@ import collections
 import numpy as np
 
 from monty.functools import lazy_property
+from pymatgen.util.plotting_utils import add_fig_kwargs
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands
 from abipy.core.kpoints import Kpoint
 from abipy.tools import gaussian
@@ -439,6 +440,7 @@ class PhononBands(object):
             ax.set_xticks(ticks, minor=False)
             ax.set_xticklabels(labels, fontdict=None, minor=False)
 
+    @add_fig_kwargs
     def plot(self, qlabels=None, branch_range=None, marker=None, width=None, **kwargs):
         """
         Plot the phonon band structure.
@@ -453,21 +455,9 @@ class PhononBands(object):
             width: String defining the width to plot. Accepts the syntax "widthname:fact" where
                 fact is a float used to scale the stripe size.
 
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
-        ==============  ==============================================================
-
         Returns:
             `matplotlib` figure.
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
-
         # Select the band range.
         if branch_range is None:
             branch_range = range(self.num_branches)
@@ -475,13 +465,12 @@ class PhononBands(object):
             branch_range = range(branch_range[0], branch_range[1], 1)
 
         import matplotlib.pyplot as plt
-
         fig = plt.figure()
 
         ax = fig.add_subplot(1, 1, 1)
 
         # Decorate the axis (e.g add ticks and labels).
-        self.decorate_ax(ax, qlabels=qlabels, title=title)
+        self.decorate_ax(ax, qlabels=qlabels)
 
         if not kwargs:
             kwargs = {"color": "black", "linewidth": 2.0}
@@ -510,9 +499,6 @@ class PhononBands(object):
                 fact = 1
 
             self.plot_width_ax(ax, key, fact=fact)
-
-        if show: plt.show()
-        if savefig is not None: fig.savefig(savefig)
 
         return fig
 
@@ -572,6 +558,7 @@ class PhononBands(object):
         # Return ticks, labels
         return list(d.keys()), list(d.values())
 
+    @add_fig_kwargs
     def plot_fatbands(self, colormap="jet", max_stripe_width_mev=3.0, qlabels=None, **kwargs):
                       #select_specie, select_red_dir
         """
@@ -585,23 +572,11 @@ class PhononBands(object):
                 coordinates of the q-points. The values are the labels.
                 e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
 
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
-        ==============  ==============================================================
-
         Returns:
             `matplotlib` figure.
         """
         # FIXME there's a bug in anaddb since we should orthogonalize
         # wrt the phonon displacement as done (correctly) here
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
-
         import matplotlib.pyplot as plt
 
         structure = self.structure
@@ -628,7 +603,7 @@ class PhononBands(object):
         for (ax_idx, symbol) in enumerate(structure.symbol_set):
             ax = ax_list[ax_idx]
 
-            self.decorate_ax(ax, qlabels=qlabels, title=symbol)
+            self.decorate_ax(ax, qlabels=qlabels)
 
             # dir_indices lists the coordinate indices for the atoms of the same type.
             atom_indices = structure.indices_from_symbol(symbol)
@@ -664,12 +639,9 @@ class PhononBands(object):
             if ylim is not None:
                 ax.set_ylim(ylim)
 
-        if title is not None: fig.suptitle(title)
-        if show: plt.show()
-        if savefig is not None: fig.savefig(savefig)
-
         return fig
 
+    @add_fig_kwargs
     def plot_with_phdos(self, dos, qlabels=None, **kwargs):
         """
         Plot the phonon band structure with the phonon DOS.
@@ -680,21 +652,9 @@ class PhononBands(object):
                 coordinates of the q-points. The values are the labels.
                 e.g. qlabels = {(0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L"}.
 
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
-        ==============  ==============================================================
-
         Returns:
             `matplotlib` figure.
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
-
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
 
@@ -727,13 +687,7 @@ class PhononBands(object):
         ax2.yaxis.set_ticks_position("right")
         ax2.yaxis.set_label_position("right")
 
-        if show: plt.show()
-
         fig = plt.gcf()
-
-        if title: fig.suptitle(title)
-        if savefig is not None: fig.savefig(savefig)
-
         return fig
 
 

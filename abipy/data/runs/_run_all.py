@@ -18,7 +18,7 @@ def main():
     def str_examples():
         examples = """
           Usage example:\n\n
-          runall.py               => Run all scripts.
+          runall.py => Run all scripts.
         """
         return examples
 

@@ -282,7 +282,7 @@ class AbiInput(Input):
 
     @property
     def pseudos(self):
-        """List of :class:`Pseudo` objecst."""
+        """List of :class:`Pseudo` objects."""
         return self._pseudos
 
     @property
@@ -371,16 +371,17 @@ class AbiInput(Input):
     
         return news
 
-    def set_variables(self, dtset=0, **vars):
+    def set_variables(self, dtset=0, *args, **kwargs):
         """
         Set the value of a set of input variables.
 
         Args:
             dtset: Int with the index of the dataset, slice object of iterable 
-            vars: Dictionary with the variables.
+            kwargs: Dictionary with the variables.
         """
+        kwargs.update(dict(*args))
         for idt in self._dtset2range(dtset):
-            self[idt].set_variables(**vars)
+            self[idt].set_variables(**kwargs)
 
     def remove_variables(self, keys, dtset=0):
         """
@@ -432,7 +433,7 @@ class AbiInput(Input):
     def get_ibz(self, ngkpt=None, shiftk=None, qpoint=None, workdir=None, manager=None):
         """
         This function, computes the list of points in the IBZ and the corresponding weights.
-        It should be called with an input file that contains all the mandatory variables  required by ABINIT.
+        It should be called with an input file that contains all the mandatory variables required by ABINIT.
 
         Args:
             ngkpt: Number of divisions for the k-mesh (default None i.e. use ngkpt from self)
@@ -466,7 +467,7 @@ class AbiInput(Input):
         # Construct the task and run it
         if manager is None: manager = TaskManager.from_user_config()
         workdir = tempfile.mkdtemp() if workdir is None else workdir  
-        task  = AbinitTask.from_input(inp, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
+        task = AbinitTask.from_input(inp, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
         task.start_and_wait(autoparal=False)
 
         # Read the list of k-points from the netcdf file.
@@ -541,7 +542,7 @@ class AbiInput(Input):
         if len(varnames) != len(values):
             raise self.Error("The number of variables must equal the number of lists")
 
-        #varnames = [ [varnames[i]] * len(values[i]) for i in range(len(values))]
+        varnames = [ [varnames[i]] * len(values[i]) for i in range(len(values))]
         varnames = itertools.product(*varnames)
         values = itertools.product(*values)
 
@@ -561,7 +562,7 @@ class AbiInput(Input):
     def set_structure_from_file(self, filepath, dtset=0, cls=Structure):
         """
         Set the :class:`Structure` object for the specified dtset. 
-        data is read from filepath. cls specified that class to instantiate.
+        data is read from filepath. cls specifies the class to instantiate.
         """
         structure = cls.from_file(filepath)
         self.set_structure(structure, dtset=dtset)
@@ -776,9 +777,10 @@ class Dataset(mixins.MappingMixin):
             else:
                 self.dt0.set_variable(varname, value)
 
-    def set_variables(self, **vars):
-        """Set the value of the variables provied in the dictionary **vars"""
-        for varname, varvalue in vars.items():
+    def set_variables(self, *args, **kwargs):
+        """Set the value of the variables provied in the dictionary **kwargs"""
+        kwargs.update(dict(*args))
+        for varname, varvalue in kwargs.items():
             self.set_variable(varname, varvalue)
 
     def remove_variables(self, keys):
@@ -837,9 +839,8 @@ class Dataset(mixins.MappingMixin):
             kptopt: Option for the generation of the mesh.
         """
         shiftk = self.structure.calc_shiftk()
-        ngkpt = self.structure.calc_ngkpt(nksmall)
         
-        self.set_variables(ngkpt=ngkpt,
+        self.set_variables(ngkpt=self.structure.calc_ngkpt(nksmall),
                            kptopt=kptopt,
                            nshiftk=len(shiftk),
                            shiftk=shiftk)
@@ -905,7 +906,7 @@ class LdauParams(object):
     """
     This object stores the parameters for LDA+U calculations with the PAW method
     It facilitates the specification of the U-J parameters in the Abinit input file.
-    (see `to_abivars`). The U-J operator will be applied only on  the atomic species 
+    (see `to_abivars`). The U-J operator will be applied only on the atomic species 
     that have been selected by calling `lui_for_symbol`.
 
     To setup the Abinit variables for a LDA+U calculation in NiO with a 
@@ -939,7 +940,7 @@ class LdauParams(object):
         Args:
             symbol: Chemical symbol of the atoms on which LDA+U should be applied.
             l: Angular momentum.
-            u:  Value of U.
+            u: Value of U.
             j: Value of J.
             unit: Energy unit of U and J.
         """
@@ -1083,7 +1084,8 @@ def product_dict(d):
     ... {'bar': 2, 'foo': 4}]
     True
 
-    .. warning:
+    .. warning::
+
         Dictionaries are not ordered, therefore one cannot assume that 
         the order of the keys in the output equals the one used to loop.
         If the order is important, one should pass a `OrderedDict` in input
@@ -1119,25 +1121,23 @@ class AnaddbInput(mixins.MappingMixin):
     #removevariable
     Error = AnaddbInputError
 
-    def __init__(self, structure, comment="", **kwargs):
-        """
-        Args:
-            structure: :class:`Structure` object 
-            comment: Optional string with a comment that will be placed at the beginning of the file.
-        """
-        self._structure = structure
-        self.comment = comment
-
-        for k in kwargs:
-            if not self.is_anaddb_var(k):
-                raise self.Error("%s is not a registered Anaddb variable" % k)
-
-        self._mapping_mixin_ = collections.OrderedDict(**kwargs)
-
-    @property
-    def vars(self):
-        """Dictionary with the Anaddb variables."""
-        return self._mapping_mixin_
+    #@classmethod
+    #def foo(cls, qpoint, **kwargs):
+    #    new = cls(structure, 
+    #              comment="ANADB input for the computation of phonon frequencies for one q-point", 
+    #              **kwargs)
+    #    qpoint = (0.25, 0, 0)
+    #    new.set_variables(
+    #        ifcflag=1,        # Interatomic force constant flag
+    #        ngqpt=(1, 1,  1), # Monkhorst-Pack indices
+    #        nqshft=1,         # number of q-points in repeated basic q-cell
+    #        q1shft=qpoint,
+    #        asr=1,            # Acoustic Sum Rule. 1 => imposed asymetrically
+    #        chneut=1,         # Charge neutrality requirement for effective charges.
+    #        dipdip=1,         # Dipole-dipole interaction treatment
+    #        nqpath=2,
+    #        qpath=[qpoint, 0 0 0],
+    #        ndivsmall=1
 
     @classmethod
     def phbands_and_dos(cls, structure, ngqpt, ndivsm, nqsmall, q1shft=(0,0,0),
@@ -1196,7 +1196,7 @@ class AnaddbInput(mixins.MappingMixin):
 
     @classmethod
     def thermo(cls, structure, ngqpt, nqsmall, q1shft=(0, 0, 0), nchan=1250, nwchan=5, thmtol=0.5,
-               ntemper = 199, temperinc = 5, tempermin = 5., asr=2, chneut=1, dipdip=1, ngrids=10, **kwargs):
+               ntemper=199, temperinc=5, tempermin=5., asr=2, chneut=1, dipdip=1, ngrids=10, **kwargs):
         """
         Build an anaddb input file for the computation of phonon bands and phonon DOS.
 
@@ -1239,8 +1239,7 @@ class AnaddbInput(mixins.MappingMixin):
             #  symdynmat 0
 
         """
-
-        new = cls(structure, comment="ANADB input for themodynamics", **kwargs)
+        new = cls(structure, comment="ANADB input for thermodynamics", **kwargs)
 
         #new.set_qpath(ndivsm, qptbounds=qptbounds)
         new.set_autoqmesh(nqsmall)
@@ -1283,25 +1282,24 @@ class AnaddbInput(mixins.MappingMixin):
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
 
         #!General information
-         #enunit    2
-         #eivec     1
+        #enunit    2
+        #eivec     1
         #!Flags
-         #dieflag   1
-         #ifcflag   1
-         #ngqpt     1 1 1
+        #dieflag   1
+        #ifcflag   1
+        #ngqpt     1 1 1
         #!Effective charges
-         #asr       2
-         #chneut    2
-        #!Wavevector list number 1
-         #nph1l     1
-         #qph1l   0.0  0.0  0.0    1.0   ! (Gamma point)
+        #asr       2
+        #chneut    2
+        # Wavevector list number 1
+        #nph1l     1
+        #qph1l   0.0  0.0  0.0    1.0   ! (Gamma point)
         #!Wavevector list number 2
-         #nph2l     3      ! number of phonons in list 1
-         #qph2l   1.0  0.0  0.0    0.0
-         #        0.0  1.0  0.0    0.0
-         #        0.0  0.0  1.0    0.0
+        #nph2l     3      ! number of phonons in list 1
+        #qph2l   1.0  0.0  0.0    0.0
+        #        0.0  1.0  0.0    0.0
+        #        0.0  0.0  1.0    0.0
         """
-
         new = cls(structure, comment="ANADB input for modes", **kwargs)
 
         new.set_variables(
@@ -1319,6 +1317,26 @@ class AnaddbInput(mixins.MappingMixin):
         )
 
         return new
+
+    def __init__(self, structure, comment="", **kwargs):
+        """
+        Args:
+            structure: :class:`Structure` object 
+            comment: Optional string with a comment that will be placed at the beginning of the file.
+        """
+        self._structure = structure
+        self.comment = comment
+
+        for k in kwargs:
+            if not self.is_anaddb_var(k):
+                raise self.Error("%s is not a registered Anaddb variable" % k)
+
+        self._mapping_mixin_ = collections.OrderedDict(**kwargs)
+
+    @property
+    def vars(self):
+        """Dictionary with the Anaddb variables."""
+        return self._mapping_mixin_ 
 
     @property
     def structure(self):
@@ -1383,21 +1401,23 @@ class AnaddbInput(mixins.MappingMixin):
 
         self[varname] = value
 
-    def set_variables(self, **vars):
-        """Set the value of the variables provided in the dictionary vars"""
-        for varname, varvalue in vars.items():
+    def set_variables(self, *args, **kwargs):
+        """Set the value of the variables"""
+        kwargs.update(dict(*args))
+        for varname, varvalue in kwargs.items():
             self.set_variable(varname, varvalue)
 
     def add_extra_abivars(self, abivars):
         """
-        This method is needed not to break the API used for strategies
+        This method is needed in order not to break the API used for strategies
 
         Connection is explicit via the input file
         since we can pass the paths of the output files
         produced by the previous runs.
         """
 
-    def is_anaddb_var(self, varname):
+    @staticmethod
+    def is_anaddb_var(varname):
         """"True if varname is a valid anaddb variable."""
         return is_anaddb_var(varname)
 
@@ -1412,7 +1432,6 @@ class AnaddbInput(mixins.MappingMixin):
         """
         if qptbounds is None:
             qptbounds = self.structure.calc_kptbounds()
-
         qptbounds = np.reshape(qptbounds, (-1, 3))
 
         # TODO: Add support for ndivsm in anaddb
@@ -1424,9 +1443,9 @@ class AnaddbInput(mixins.MappingMixin):
 
     def set_autoqmesh(self, nqsmall):
         """
-        Set the variabls nqpt for the sampling of the BZ.
+        Set the variable nqpt for the sampling of the BZ.
 
         Args:
-            nqsmall: Number of q-points used to sample the smallest lattice vector.
+            nqsmall: Number of divisions used to sample the smallest lattice vector.
         """
         self.set_variables(ng2qpt=self.structure.calc_ngkpt(nqsmall))

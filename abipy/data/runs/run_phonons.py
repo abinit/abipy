@@ -45,7 +45,8 @@ def scf_ph_inputs(paral_kgb=0):
     gs_inp.set_structure(structure)
     gs_inp.set_variables(**global_vars)
 
-    # Get the qpoints in the IBZ (use same k-mesh as the one in gs_inp)
+    # Get the qpoints in the IBZ. Note that here we use a q-mesh with ngkpt=(4,4,4) and shiftk=(0,0,0)
+    # i.e. the same parameters used for the k-mesh in gs_inp.
     qpoints = gs_inp.get_ibz().points
     #print("get_ibz", qpoints)
 

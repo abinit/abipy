@@ -6,6 +6,7 @@ import collections
 import numpy as np
 
 from monty.functools import lazy_property
+from pymatgen.util.plotting_utils import add_fig_kwargs
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import AbinitNcFile, Has_Structure
 from abipy.iotools import ETSF_Reader
@@ -61,6 +62,7 @@ class PhononDos(object):
 
         return lines
 
+    @add_fig_kwargs
     def plot(self, *args, **kwargs):
         """
         Plot DOS and IDOS.
@@ -69,21 +71,9 @@ class PhononDos(object):
             args:
                 Positional arguments passed to :mod:`matplotlib`.
 
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
-        ==============  ==============================================================
-
         Returns:
             `matplotlib` figure.
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
-
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
 
@@ -98,16 +88,10 @@ class PhononDos(object):
         ax1.set_ylabel("IDOS")
         ax2.set_ylabel("DOS")
 
-        if title: ax1.set_title(title)
-
         self.plot_ax(ax1, what="i", *args, **kwargs)
         self.plot_ax(ax2, what="d", *args, **kwargs)
 
-        if show: plt.show()
-
         fig = plt.gcf()
-        if savefig is not None: fig.savefig(savefig)
-
         return fig
 
 
@@ -214,6 +198,7 @@ class PhdosFile(AbinitNcFile, Has_Structure):
     def close(self):
         self.reader.close()
 
+    @add_fig_kwargs
     def plot_pjdos_type(self, colormap="jet", **kwargs):
         """
         Stacked Plot of the  projected DOS (projection is for atom types)
@@ -223,21 +208,9 @@ class PhdosFile(AbinitNcFile, Has_Structure):
                 Have a look at the colormaps here and decide which one you'd like:
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
 
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
-        ==============  ==============================================================
-
         Returns:
             matplotlib figure.
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
-
         import matplotlib.pyplot as plt
 
         fig = plt.figure()
@@ -256,8 +229,6 @@ class PhdosFile(AbinitNcFile, Has_Structure):
         ax.set_xlabel('Frequency [eV]')
         ax.set_ylabel('PJDOS [states/eV]')
 
-        if title: ax.set_title(title)
-
         # Type projected DOSes.
         num_plots = len(self.pjdos_type_dict)
         cumulative = np.zeros(len(self.wmesh))
@@ -275,8 +246,5 @@ class PhdosFile(AbinitNcFile, Has_Structure):
         ax.plot(x, y, lw=2, label="Total PHDOS", color='black')
 
         ax.legend(loc="best")
-
-        if show: plt.show()
-        if savefig is not None: fig.savefig(savefig)
 
         return fig
