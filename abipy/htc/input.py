@@ -8,6 +8,7 @@ from __future__ import print_function, division, unicode_literals
 import os
 import collections
 import warnings
+import tempfile
 import itertools
 import copy
 import six
@@ -16,10 +17,13 @@ import numpy as np
 import pymatgen.core.units as units
 import abipy.tools.mixins as mixins
 
+
 from collections import OrderedDict
 from monty.string import is_string, list_strings
-from pymatgen.io.abinitio.pseudos import PseudoTable, Pseudo
 from pymatgen.core.units import Energy
+from pymatgen.io.abinitio.pseudos import PseudoTable, Pseudo
+from pymatgen.io.abinitio.tasks import TaskManager, AbinitTask
+from pymatgen.io.abinitio.netcdf import NetcdfReader
 from abipy.core import Structure
 from abipy.htc.variable import InputVariable
 from abipy.htc.abivars import is_abivar, is_anaddb_var
@@ -425,6 +429,52 @@ class AbiInput(Input):
     #    assert format in ["angdeg", "rprim"]
     #    self._geoformat = format
 
+    def get_ibz(self, ngkpt=None, shiftk=None, qpoint=None, workdir=None, manager=None):
+        """
+        This function, computes the list of points in the IBZ and the corresponding weights.
+        It should be called with an input file that contains all the mandatory variables  required by ABINIT.
+
+        Args:
+            ngkpt: Number of divisions for the k-mesh (default None i.e. use ngkpt from self)
+            shiftk: Shiftks (default None i.e. use shiftk from self)
+            qpoint: qpoint in reduced coordinates. Used to shift the k-mesh (default None i.e no shift)
+            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
+            manager: TaskManager of the task. If None, the :class:`TaskManager` is initialized from the config file.
+
+        Returns:
+            `namedtuple` with attributes:
+                points: `ndarray` with points in the IBZ in reduced coordinates.
+                weights: `ndarray` with weights of the points.
+        """
+        #assert self.ndtset == 1
+        # Avoid modifications in self.
+        inp = self.split_datasets()[0].deepcopy()
+
+        # The magic value that makes ABINIT print the ibz and then stop.
+        inp.prtkpt = -2
+
+        if ngkpt is not None: inp.ngkpt = ngkpt
+        if shiftk is not None:
+            inp.shiftk = np.reshape(shiftk, (-1,3))
+            inp.nshiftk = len(inp.shiftk)
+
+        if qpoint is not None:
+            inp.qptn = qpoint
+            inp.nqpt = 1
+
+        # Build a simple manager to run the job in a shell subprocess
+        # Construct the task and run it
+        if manager is None: manager = TaskManager.from_user_config()
+        workdir = tempfile.mkdtemp() if workdir is None else workdir  
+        task  = AbinitTask.from_input(inp, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
+        task.start_and_wait(autoparal=False)
+
+        # Read the list of k-points from the netcdf file.
+        with NetcdfReader(os.path.join(workdir, "kpts.nc")) as r:
+            ibz = collections.namedtuple("ibz", "points weights")
+            return ibz(points=r.read_value("reduced_coordinates_of_kpoints"),
+                       weights=r.read_value("kpoint_weights"))
+                    
     def linspace(self, varname, start, stop, endpoint=True):
         """
         Returns `ndtset` evenly spaced samples, calculated over the interval [`start`, `stop`].
@@ -432,7 +482,7 @@ class AbiInput(Input):
         The endpoint of the interval can optionally be excluded.
 
         Args:
-            start:  The starting value of the sequence.
+            start: The starting value of the sequence.
             stop: The end value of the sequence, unless `endpoint` is set to False.
                 In that case, the sequence consists of all but the last of ``ndtset + 1``
                 evenly spaced samples, so that `stop` is excluded.  Note that the step
@@ -491,7 +541,7 @@ class AbiInput(Input):
         if len(varnames) != len(values):
             raise self.Error("The number of variables must equal the number of lists")
 
-        varnames = [ [varnames[i]] * len(values[i]) for i in range(len(values))]
+        #varnames = [ [varnames[i]] * len(values[i]) for i in range(len(values))]
         varnames = itertools.product(*varnames)
         values = itertools.product(*values)
 
@@ -536,7 +586,7 @@ class AbiInput(Input):
     def set_autokpath(self, ndivsm, dtset=0):
         """
         Set automatically the k-path from the lattice 
-        and the number of divisions for the smallest segment (ndism)
+        and the number of divisions for the smallest segment (ndivsm)
         """
         for idt in self._dtset2range(dtset):
             self[idt].set_kpath(ndivsm, kptbounds=None)
@@ -682,7 +732,6 @@ class Dataset(mixins.MappingMixin):
     def comment(self):
         try:
             return self._comment
-
         except AttributeError:
             return None
 
@@ -737,7 +786,6 @@ class Dataset(mixins.MappingMixin):
         for key in list_strings(keys):
             if key not in self:
                 raise KeyError("key: %s not in self:\n %s" % (key, list(self.keys())))
-            #self.pop(key, None)
             self.pop(key)
 
     @property
@@ -1088,6 +1136,7 @@ class AnaddbInput(mixins.MappingMixin):
 
     @property
     def vars(self):
+        """Dictionary with the Anaddb variables."""
         return self._mapping_mixin_
 
     @classmethod
@@ -1289,7 +1338,7 @@ class AnaddbInput(mixins.MappingMixin):
         String representation.
 
         Args:
-            sortmode: "a" for alphabetical order, None if no sorting is wanterd
+            sortmode: "a" for alphabetical order, None if no sorting is wanted
         """
         lines = []
         app = lines.append

@@ -4,7 +4,6 @@ from __future__ import division, print_function, unicode_literals
 
 import sys
 import os
-import numpy as np
 import abipy.abilab as abilab
 import abipy.data as abidata  
 
@@ -19,18 +18,18 @@ def scf_ph_inputs(paral_kgb=0):
     pseudos = abidata.pseudos("13al.981214.fhi", "33as.pspnc")
 
     # List of q-points for the phonon calculation.
-    qpoints = [
-             0.00000000E+00,  0.00000000E+00,  0.00000000E+00, 
-             2.50000000E-01,  0.00000000E+00,  0.00000000E+00,
-             5.00000000E-01,  0.00000000E+00,  0.00000000E+00,
-             2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
-             5.00000000E-01,  2.50000000E-01,  0.00000000E+00,
-            -2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
-             5.00000000E-01,  5.00000000E-01,  0.00000000E+00,
-            -2.50000000E-01,  5.00000000E-01,  2.50000000E-01,
-            ]
+    #qpoints = [
+    #         0.00000000E+00,  0.00000000E+00,  0.00000000E+00, 
+    #         2.50000000E-01,  0.00000000E+00,  0.00000000E+00,
+    #         5.00000000E-01,  0.00000000E+00,  0.00000000E+00,
+    #         2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
+    #         5.00000000E-01,  2.50000000E-01,  0.00000000E+00,
+    #        -2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
+    #         5.00000000E-01,  5.00000000E-01,  0.00000000E+00,
+    #        -2.50000000E-01,  5.00000000E-01,  2.50000000E-01,
+    #        ]
 
-    qpoints = np.reshape(qpoints, (-1,3))
+    #qpoints = np.reshape(qpoints, (-1,3))
 
     # Global variables used both for the GS and the DFPT run.
     global_vars = dict(nband=4,             
@@ -41,14 +40,22 @@ def scf_ph_inputs(paral_kgb=0):
                        paral_kgb=paral_kgb,
                     )
 
-    inp = abilab.AbiInput(pseudos=pseudos, ndtset=1+len(qpoints))
+    gs_inp = abilab.AbiInput(pseudos=pseudos)
 
-    inp.set_structure(structure)
-    inp.set_variables(**global_vars)
+    gs_inp.set_structure(structure)
+    gs_inp.set_variables(**global_vars)
 
-    for i, qpt in enumerate(qpoints):
+    # Get the qpoints in the IBZ (use same k-mesh as the one in gs_inp)
+    qpoints = gs_inp.get_ibz().points
+    #print("get_ibz", qpoints)
+
+    ph_inputs = abilab.AbiInput(pseudos=pseudos, ndtset=len(qpoints))
+
+    for ph_inp, qpt in zip(ph_inputs, qpoints):
         # Response-function calculation for phonons.
-        inp[i+2].set_variables(
+        ph_inp.set_structure(structure)
+        ph_inp.set_variables(**global_vars)
+        ph_inp.set_variables(
             nstep=20,
             rfphon=1,        # Will consider phonon-type perturbation
             nqpt=1,          # One wavevector is to be considered
@@ -60,7 +67,9 @@ def scf_ph_inputs(paral_kgb=0):
             #kptopt   2      # Automatic generation of k points, taking
 
     # Split input into gs_inp and ph_inputs
-    return inp.split_datasets()
+    all_inps = [gs_inp] 
+    all_inps.extend(ph_inputs.split_datasets())
+    return all_inps
 
 
 def build_flow(options):
