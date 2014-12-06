@@ -10,6 +10,13 @@ phonons Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`ddb` Module
+-----------------
+
+.. automodule:: abipy.phonons.ddb
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 :mod:`eph` Module
 -----------------
@@ -34,4 +41,3 @@ phonons Package
    :members:
    :undoc-members:
    :show-inheritance:
-
