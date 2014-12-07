@@ -1,11 +1,11 @@
-phonons Package
-===============
+dfpt Package
+============
 
 
-:mod:`phonons` Package
+:mod:`dpft` Package
 ----------------------
 
-.. automodule:: abipy.phonons
+.. automodule:: abipy.dfpt
    :members:
    :undoc-members:
    :show-inheritance:
@@ -13,7 +13,7 @@ phonons Package
 :mod:`ddb` Module
 -----------------
 
-.. automodule:: abipy.phonons.ddb
+.. automodule:: abipy.dfpt.ddb
    :members:
    :undoc-members:
    :show-inheritance:
@@ -21,7 +21,7 @@ phonons Package
 :mod:`eph` Module
 -----------------
 
-.. automodule:: abipy.phonons.eph
+.. automodule:: abipy.dfpt.eph
    :members:
    :undoc-members:
    :show-inheritance:
@@ -29,7 +29,7 @@ phonons Package
 :mod:`phbands` Module
 ---------------------
 
-.. automodule:: abipy.phonons.phbands
+.. automodule:: abipy.dfpt.phbands
    :members:
    :undoc-members:
    :show-inheritance:
@@ -37,7 +37,7 @@ phonons Package
 :mod:`phdos` Module
 --------------------
 
-.. automodule:: abipy.phonons.phdos
+.. automodule:: abipy.dfpt.phdos
    :members:
    :undoc-members:
    :show-inheritance:

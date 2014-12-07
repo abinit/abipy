@@ -4,7 +4,7 @@ from __future__ import print_function, division
 import tempfile
 import abipy.data as data
 
-from abipy.phonons import PhononBands
+from abipy.dfpt import PhononBands
 from abipy.core.testing import *
 
 

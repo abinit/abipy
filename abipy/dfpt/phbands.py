@@ -59,9 +59,7 @@ class PhononMode(object):
     #    return np.dot(self.xred, self.rprimd)
 
     #def make_supercell(self, delta):
-
     #def export(self, path):
-
     #def visualize(self, visualizer):
 
 
@@ -399,15 +397,15 @@ class PhononBands(object):
     def create_xyz_vib(self, iqpt, filename, pre_factor=200, do_real=True, scale_matrix=None, max_supercell=None):
         """
         Create vibration XYZ file for visualization of phonons
-        :param iqpt: index of qpoint in self
-        :param filename: name of the XYZ file that will be created
-        :param pre_factor: Multiplication factor of the eigendisplacements
-        :param do_real: True if we want only real part of the displacement, False means imaginary part
-        :param scale_matrix: Scaling matrix of the supercell
-        :param max_supercell: Maximum size of the supercell with respect to primitive cell
-        :return nothing
-        """
 
+        Args:
+            iqpt: index of qpoint in self
+            filename: name of the XYZ file that will be created
+            pre_factor: Multiplication factor of the eigendisplacements
+            do_real: True if we want only real part of the displacement, False means imaginary part
+            scale_matrix: Scaling matrix of the supercell
+            max_supercell: Maximum size of the supercell with respect to primitive cell
+        """
         if scale_matrix is None:
             if max_supercell is None:
                 raise ValueError("If scale_matrix is not provided, please provide max_supercell !")

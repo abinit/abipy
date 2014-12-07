@@ -89,7 +89,7 @@ class AbinitTextFile(AbinitFile):
         """List of ABINIT events reported in the file."""
         return EventsParser().parse(self.filepath)
 
-    @property
+    @lazy_property
     def timer_data(self):
         """Timer data."""
         return AbinitTimerParser().parse(self.filepath)
@@ -247,8 +247,7 @@ class NcDumper(object):
             return "Cannot find ncdump tool in PATH"
         else:
             from subprocess import check_output
-            cmd = ["ncdump", filepath]
-            return check_output(cmd)
+            return check_output(["ncdump", filepath])
 
 
 _ABBREVS = [

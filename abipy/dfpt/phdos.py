@@ -25,7 +25,7 @@ class PhononDos(object):
         """
         Args:
             mesh: array-like object with the points of the mesh.
-            mesh: array-like object with the DOS values.
+            values: array-like object with the DOS values.
 
         .. note::
             mesh is given in eV, values are in states/eV.
@@ -151,19 +151,19 @@ class PhdosReader(ETSF_Reader):
         type_idx = self.typeidx_from_symbol(symbol)
         return cls(self.wmesh, self.pjdos_type[type_idx])
 
-        # def read_pjdos(self, atom_idx=None):
-        #     """
-        #     projected DOS (over atoms)
-        #     """
-        #     return self.read_value("phonon_frequencies")
+    # def read_pjdos(self, atom_idx=None):
+    #     """
+    #     projected DOS (over atoms)
+    #     """
+    #     return self.read_value("phonon_frequencies")
 
-        # def read_pjdos_rc_type(self, symbol=None):
-        #     """
-        #     phdos(3,ntypat,nomega)
-        #     phonon DOS contribution arising from a particular atom-type
-        #     decomposed along the three reduced directions.
-        #     """
-        #     return self.read_value("phonon_frequencies")
+    # def read_pjdos_rc_type(self, symbol=None):
+    #     """
+    #     phdos(3,ntypat,nomega)
+    #     phonon DOS contribution arising from a particular atom-type
+    #     decomposed along the three reduced directions.
+    #     """
+    #     return self.read_value("phonon_frequencies")
 
 
 class PhdosFile(AbinitNcFile, Has_Structure):

@@ -17,6 +17,28 @@ from abipy.htc.input import AnaddbInput
 import logging
 logger = logging.getLogger(__name__)
 
+
+class TaskException(Exception):
+    def __init__(self, *args, **kwargs):
+        self.task = kwargs.pop("task")
+        self.report = kwargs.pop("report")
+        super(TaskException, self).__init__(*args, **kwargs)
+
+    def __str__(self):
+        lines = ["\nworkdir = %s" % self.task.workdir]
+        app = lines.append
+
+        if self.report.errors: 
+            app("Found %d errors" % len(self.report.errors))
+            lines += [str(err) for err in self.report.errors]
+
+        if self.report.bugs: 
+            app("Found %d bugs" % len(self.report.bugs))
+            lines += [str(bug) for bug in self.report.bugs]
+
+        return "\n".join(lines)
+
+
 class DdbFile(Has_Structure):
     """
     This object provides an interface to the DDB file produced by ABINIT
@@ -30,7 +52,9 @@ class DdbFile(Has_Structure):
         self.filepath = os.path.abspath(filepath)
 
     def __enter__(self):
-        return self._file
+        # Open the file
+        self._file
+        return self
 
     def __iter__(self):
         return iter(self._file)
@@ -43,7 +67,6 @@ class DdbFile(Has_Structure):
     def _file(self):
         return open(self.filepath, mode="rt")
 
-
     def close(self):
         try:
             self._file.close()
@@ -51,18 +74,7 @@ class DdbFile(Has_Structure):
             pass
 
     def seek(self, offset, whence=0):
-        """
-        seek(offset[, whence])
-        Set the file's current position, like stdio's fseek(). 
-        The whence argument is optional and defaults to 0 (absolute file positioning); other values
-        are 1 (seek relative to the current position) and 2 (seek relative to the file's end). 
-        There is no return value. Note that if the file is opened
-        for appending (mode 'a' or 'a+'), any seek() operations will be undone at the next write. 
-        If the file is only opened for writing in append mode (mode 'a'), this method is essentially a no-op, 
-        but it remains useful for files opened in append mode with reading enabled (mode 'a+'). If the
-        file is opened in text mode (without 'b'), only offsets returned by tell() are legal. 
-        Use of other offsets causes undefined behavior.
-        """
+        """Set the file's current position, like stdio's fseek()."""
         self._file.seek(offset, whence)
 
     @lazy_property
@@ -120,9 +132,9 @@ class DdbFile(Has_Structure):
             if len(value) == 1: value = value[0]
             h[key] = value
 
-        # Convert to array. Note that znucl is converted into nucl 
+        # Convert to array. Note that znucl is converted into integer
         # to avoid problems with pymatgen routines that expect integral Z
-        # This of course will break any calculation that uses alchemical mixing
+        # This of course will break any code for alchemical mixing.
         arrays = {
             "kpt": dict(shape=(h.nkpt, 3), dtype=np.double),
             "rprim": dict(shape=(3, 3), dtype=np.double),
@@ -190,26 +202,26 @@ class DdbFile(Has_Structure):
 
         for q in all_qpoints: 
             q[q == 0] = np.inf
-        print(all_qpoints)
+        #print(all_qpoints)
 
         smalls = np.abs(all_qpoints).min(axis=0)
         smalls[smalls == 0] = 1
         ngqpt = np.rint(1 / smalls)
         ngqpt[ngqpt == 0] = 1
-        print(smalls)
-        print(ngqpt)
+        #print("smalls: ", smalls, "ngqpt", ngqpt)
 
         return np.array(ngqpt, dtype=np.int)
 
     def calc_phmodes_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, 
-        workdir=None, manager=None, verbose=0, **kwargs):
+                               workdir=None, manager=None, verbose=0, **kwargs):
         """
+        Execute anaddb to compute phonon modes at the given q-point.
 
         Args:
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             workdir: Working directory. If None, a temporary directory is created.
             manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
-            verbose:
+            verbose: verbosity level. Set it to a value > 0 to get more information
             kwargs: Additional variables you may want to pass to Anaddb.
         """
         if qpoint is None:
@@ -218,30 +230,32 @@ class DdbFile(Has_Structure):
                 raise ValueError("%s contains %s qpoints and the choice is ambiguous.\n" 
                                  "Please specify the qpoint in calc_phmodes_at_qpoint" % (self, len(self.qpoints)))
 
-        inp = AnaddbInput.modes_at_qpoint(self.structure, qpoint,  asr=asr, chneut=chneut, dipdip=dipdip)
+        inp = AnaddbInput.modes_at_qpoint(self.structure, qpoint, asr=asr, chneut=chneut, dipdip=dipdip)
 
-        if verbose: print(inp)
         if manager is None: manager = TaskManager.from_user_config()
         if workdir is None: workdir = tempfile.mkdtemp()
+        if verbose: 
+            print("workdir:", workdir)
+            print("ANADDB INPUT:\n", inp)
 
         task = AnaddbTask(inp, self.filepath, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
         task.start_and_wait(autoparal=False)
 
-        report = self.get_event_report()
-        if report.run_completed:
-            return task.open_phbst()
-        else:
-            #if report.errors or report.bugs:
-            logger.critical('"Found errors in report')
-            raise RuntimeError("Errors or bugs")
+        report = task.get_event_report()
+        if not report.run_completed:
+            raise TaskException(task=task, report=report)
+
+        return task.open_phbst()
 
     def calc_phbands_and_dos(self, ngqpt=None, ndivsm=20, nqsmall=10, workdir=None, manager=None, verbose=0, **kwargs):
         """
+        Execute anaddb to compute phonon band structure and phonon DOS
+
         Args:
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             workdir: Working directory. If None, a temporary directory is created.
             manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
-            verbose:
+            verbose: verbosity level. Set it to a value > 0 to get more information
             kwargs: Additional variables you may want to pass to Anaddb.
         """
         if ngqpt is None: ngqpt = self.guessed_ngqpt
@@ -250,39 +264,48 @@ class DdbFile(Has_Structure):
             self.structure, ngqpt, ndivsm, nqsmall, 
             q1shft=(0,0,0), qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", **kwargs)
 
-        if verbose: print(inp)
         if manager is None: manager = TaskManager.from_user_config()
         if workdir is None: workdir = tempfile.mkdtemp()
+        if verbose: 
+            print("workdir:", workdir)
+            print("ANADDB INPUT:\n", inp)
 
         task = AnaddbTask(inp, self.filepath, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
         task.start_and_wait(autoparal=False)
 
-        report = self.get_event_report()
-        if report.run_completed:
-            return task.open_phbst()
-        else:
-            #if report.errors or report.bugs:
-            logger.critical('"Found errors in report')
-            raise RuntimeError(str(report.errors))
+        report = task.get_event_report()
+        if not report.run_completed:
+            raise TaskException(task=task, report=report)
 
-    def calc_thermo(self, workdir=None, manager=None, verbose=0, **kwargs):
+        return task.open_phbst(), task.open_phdos()
+
+    def calc_thermo(self, nqsmall, ngqpt=None, workdir=None, manager=None, verbose=0, **kwargs):
         """
+        Execute anaddb to compute tehrmodinamical properties.
+
         Args:
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             workdir: Working directory. If None, a temporary directory is created.
             manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
-            verbose:
+            verbose: verbosity level. Set it to a value > 0 to get more information
             kwargs: Additional variables you may want to pass to Anaddb.
         """
         if ngqpt is None: ngqpt = self.guessed_ngqpt
-        #inp = AnaddbInput.thermo(self.structure, ngqpt, nqsmall, q1shft=(0, 0, 0), nchan=1250, nwchan=5, thmtol=0.5,
-        #       ntemper=199, temperinc=5, tempermin=5., asr=2, chneut=1, dipdip=1, ngrids=10, **kwargs):
 
-        if verbose: print(inp)
+        inp = AnaddbInput.thermo(self.structure, ngqpt, nqsmall, q1shft=(0, 0, 0), nchan=1250, nwchan=5, thmtol=0.5,
+               ntemper=199, temperinc=5, tempermin=5., asr=2, chneut=1, dipdip=1, ngrids=10, **kwargs)
+
         if manager is None: manager = TaskManager.from_user_config()
         if workdir is None: workdir = tempfile.mkdtemp()
+        if verbose: 
+            print("workdir:", workdir)
+            print("ANADDB INPUT:\n", inp)
 
         task = AnaddbTask(inp, self.filepath, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
         task.start_and_wait(autoparal=False)
-                                                                                                              
+
+        report = task.get_event_report()
+        if not report.run_completed:
+            raise TaskException(task=task, report=report)
+
         #return task.open_phbst()

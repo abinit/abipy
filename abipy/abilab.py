@@ -27,8 +27,8 @@ from abipy.electrons.gsr import GsrFile
 from abipy.electrons.gw import SigresFile, SigresPlotter 
 from abipy.electrons.bse import MdfFile
 from abipy.electrons.scissors import ScissorsBuilder
-from abipy.phonons import PhbstFile, PhononBands, PhdosFile, PhdosReader
-from abipy.phonons.ddb import DdbFile
+from abipy.dfpt import PhbstFile, PhononBands, PhdosFile, PhdosReader
+from abipy.dfpt.ddb import DdbFile
 from abipy.core.mixins import AbinitFile, AbinitLogFile, AbinitOutputFile
 from abipy.waves import WfkFile
 

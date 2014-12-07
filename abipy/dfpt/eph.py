@@ -70,8 +70,6 @@ class EPH_Reader(ETSF_Reader):
         """
         Reads the EPH couping matrix elements 
 
-        spin:
-            Spin index.
-        qpoint:
-            Qpoint or int. If None all the matrix elements for this spin are read.
+        spin: Spin index.
+        qpoint: Qpoint or int. If None all the matrix elements for this spin are read.
         """

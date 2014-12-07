@@ -24,7 +24,8 @@ from pymatgen.core.units import Energy
 from pymatgen.io.abinitio.pseudos import PseudoTable, Pseudo
 from pymatgen.io.abinitio.tasks import TaskManager, AbinitTask
 from pymatgen.io.abinitio.netcdf import NetcdfReader
-from abipy.core import Structure
+from abipy.core.structure import Structure
+from abipy.core.mixins import Has_Structure
 from abipy.htc.variable import InputVariable
 from abipy.htc.abivars import is_abivar, is_anaddb_var
 
@@ -135,7 +136,7 @@ class AbinitInputError(Exception):
     """Base error class for exceptions raised by `AbiInput`"""
 
 
-class AbiInput(Input):
+class AbiInput(Input, Has_Structure):
     """
     This object represents an ABINIT input file. It supports multi-datasets a
     and provides an easy-to-use interface for defining the variables of the calculation.
@@ -612,7 +613,7 @@ class AbiInput(Input):
             self[idt].set_kptgw(kptgw, bdgw)
 
 
-class Dataset(mixins.MappingMixin):
+class Dataset(mixins.MappingMixin, Has_Structure):
     """
     This object stores the ABINIT variables for a single dataset.
     """
@@ -1114,7 +1115,7 @@ class AnaddbInputError(Exception):
     """Exceptions raised by AnaddbInput."""
 
 
-class AnaddbInput(mixins.MappingMixin):
+class AnaddbInput(mixins.MappingMixin, Has_Structure):
     #TODO: Abstract interface to that we can provide
     # tools for AbinitInput and AnaddbInput
     #deepcopy
@@ -1153,7 +1154,14 @@ class AnaddbInput(mixins.MappingMixin):
         return new
 
     @classmethod
-    def phbands_and_dos(cls, structure, ngqpt, ndivsm, nqsmall, q1shft=(0,0,0),
+    def phdos(cls, structure, ngqpt, nqsmall, q1shft=(0,0,0),
+              asr=2, chneut=0, dipdip=1, dos_method="tetra", **kwargs):
+        """
+        Build an anaddb input file for the computation of phonon bands and phonon DOS.
+        """
+
+    @classmethod
+    def phbands_and_dos(cls, structure, ngqpt, nqsmall, ndivsm=20, q1shft=(0,0,0),
                         qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", **kwargs):
         """
         Build an anaddb input file for the computation of phonon bands and phonon DOS.
@@ -1161,10 +1169,10 @@ class AnaddbInput(mixins.MappingMixin):
         Args:
             Structure: :class:`Structure` object
             ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
-            ndivsm: Used to generate a normalized path for the phonon bands.
-                If gives the number of divisions for the smallest segment of the path.
             nqsmall: Used to generate the (dense) mesh for the DOS.
                 It defines the number of q-points used to sample the smallest lattice vector.
+            ndivsm: Used to generate a normalized path for the phonon bands.
+                If gives the number of divisions for the smallest segment of the path.
             q1shft: Shifts used for the coarse Q-mesh
             qptbounds Boundaries of the path. If None, the path is generated from an internal database
                 depending on the input structure.
@@ -1187,9 +1195,15 @@ class AnaddbInput(mixins.MappingMixin):
 
         new = cls(structure, comment="ANADB input for phonon bands and DOS", **kwargs)
 
-        new.set_qpath(ndivsm, qptbounds=qptbounds)
+        # Parameters for the dos.
         new.set_autoqmesh(nqsmall)
+        new.set_variables(
+            prtdos=prtdos,
+            dosdeltae=dosdeltae,
+            dossmear=dossmear,
+        )
 
+        new.set_qpath(ndivsm, qptbounds=qptbounds)
         q1shft = np.reshape(q1shft, (-1, 3))
 
         new.set_variables(
@@ -1200,9 +1214,6 @@ class AnaddbInput(mixins.MappingMixin):
             asr=asr,
             chneut=chneut,
             dipdip=dipdip,
-            prtdos=prtdos,
-            dosdeltae=dosdeltae,
-            dossmear=dossmear,
         )
 
         return new
@@ -1214,16 +1225,20 @@ class AnaddbInput(mixins.MappingMixin):
         Build an anaddb input file for the computation of phonon bands and phonon DOS.
 
         Args:
-            Structure: :class:`Structure` object
+            structure: :class:`Structure` object
             ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
             nqsmall: Used to generate the (dense) mesh for the DOS.
                 It defines the number of q-points used to sample the smallest lattice vector.
             q1shft: Shifts used for the coarse Q-mesh
-            qptbounds: Boundaries of the path. If None, the path is generated from an internal database
-                depending on the input structure.
+            nchan:
+            nwchan:
+            thmtol:
+            ntemper:
+            temperinc:
+            tempermin:
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
-            dos_method: Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
-                In the later case, the value 0.001 eV is used as gaussian broadening
+            ngrids:
+            kwargs: Additional variables you may want to pass to Anaddb.
 
             #!Flags
             # ifcflag   1     ! Interatomic force constant flag
@@ -1445,7 +1460,6 @@ class AnaddbInput(mixins.MappingMixin):
         if qptbounds is None: qptbounds = self.structure.calc_kptbounds()
         qptbounds = np.reshape(qptbounds, (-1, 3))
 
-        # TODO: Add support for ndivsm in anaddb
         self.set_variables(
             ndivsm=ndivsm,
             nqpath=len(qptbounds),

@@ -4,8 +4,8 @@ from __future__ import print_function, division
 import os
 import numpy as np
 
-from abipy.phonons.ddb import DdbFile
 from abipy.core.testing import *
+from abipy.dfpt.ddb import DdbFile
 
 
 test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')

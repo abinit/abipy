@@ -18,7 +18,7 @@ the anaddb task will appear in a new work in the flow.
 TODO include the same interface as in abiGWsetup to enable precision setting, multiple input sources, ...
 
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 __author__ = "Michiel van Setten, Matteo Giantomassi"
 __copyright__ = " "
@@ -29,6 +29,7 @@ __date__ = "Dec. 2014"
 
 import ast
 import os
+import sys
 import numpy as np
 import abipy.abilab as abilab
 
@@ -191,13 +192,13 @@ def run_annaddb(flow, structure):
 
     # Phonons bands and DOS with gaussian method
     anaddb_input = abilab.AnaddbInput.phbands_and_dos(
-        structure, ngqpt=(4, 4, 4), ndivsm=5, nqsmall=10, dos_method="gaussian: 0.001 eV")
+        structure, ngqpt=(4, 4, 4), nqsmall=10, ndivsm=5, dos_method="gaussian: 0.001 eV")
     atask = abilab.AnaddbTask(anaddb_input, ddb_node=ddb_path, manager=shell_manager)
     awork.register(atask)
 
     # Phonons bands and DOS with tetrahedron method
     anaddb_input = abilab.AnaddbInput.phbands_and_dos(
-        structure, ngqpt=(4, 4, 4), ndivsm=5, nqsmall=10, dos_method="tetra")
+        structure, ngqpt=(4, 4, 4), nqsmall=10, ndivsm=5, dos_method="tetra")
     atask = abilab.AnaddbTask(anaddb_input, ddb_node=ddb_path, manager=shell_manager)
     awork.register(atask)
 
@@ -219,7 +220,7 @@ def run_annaddb(flow, structure):
 
 def build_flow(structure, workdir, options):
     """
-    Create an `AbinitFlow` for phonon calculations:
+    Create a :class:`Flow` for phonon calculations:
 
         1) One work for the GS run.
 
@@ -263,7 +264,7 @@ def main():
                 workdir = '%s_%s_%s' % (structure.item, str(convtest), str(value))
 
                 try:
-                    flow = abilab.AbinitFlow.pickle_load(workdir)
+                    flow = abilab.Flow.pickle_load(workdir)
                     if not flow.all_ok:
                         raise NotReady
                     run_annaddb(flow=flow, structure=structure)
@@ -273,7 +274,8 @@ def main():
                     options = {convtest: value}
                     flow = build_flow(structure=structure, workdir=workdir, options=options)
                     flow.build_and_pickle_dump()
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
