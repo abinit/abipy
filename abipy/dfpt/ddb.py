@@ -19,6 +19,11 @@ logger = logging.getLogger(__name__)
 
 
 class TaskException(Exception):
+    """
+    Exceptions raised when we try to execute AnaddbTasks in the :class:`DdbFile` methods
+
+    A TaskException has a reference to the task and to the :class:`EventsReport`.
+    """
     def __init__(self, *args, **kwargs):
         self.task = kwargs.pop("task")
         self.report = kwargs.pop("report")

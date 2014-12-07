@@ -137,7 +137,7 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
     @lazy_property
     def density(self):
-        """``Density object."""
+        """:class:`Density` object."""
         return self.reader.read_density()
 
     @property

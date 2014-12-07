@@ -444,13 +444,12 @@ class PhononBands(object):
         Plot the phonon band structure.
 
         Args:
-            qlabels: dictionary whose keys are tuple with the reduced
-                coordinates of the q-points. The values are the labels.
-                e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
+            qlabels: dictionary whose keys are tuple with the reduced coordinates of the q-points. 
+                The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
             branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted)
-            marker: String defining the marker to plot. Accepts the syntax "markername:fact" where
+            marker: String defining the marker to plot. Accepts the syntax `markername:fact` where
                 fact is a float used to scale the marker size.
-            width: String defining the width to plot. Accepts the syntax "widthname:fact" where
+            width: String defining the width to plot. Accepts the syntax `widthname:fact` where
                 fact is a float used to scale the stripe size.
 
         Returns:
@@ -563,12 +562,11 @@ class PhononBands(object):
         Plot phonon fatbands
 
         Args:
-            colormap: Have a look at the colormaps here and decide which one you'd like:
+            colormap: Have a look at the colormaps here and decide which one you like:
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
             max_stripe_width_mev: The maximum width of the stripe in meV.
-            qlabels: dictionary whose keys are tuple with the reduced
-                coordinates of the q-points. The values are the labels.
-                e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
+            qlabels: dictionary whose keys are tuple with the reduced coordinates of the q-points. 
+                The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
 
         Returns:
             `matplotlib` figure.
@@ -646,9 +644,8 @@ class PhononBands(object):
 
         Args:
             dos: An instance of :class:`PhononDos`.
-            qlabels: dictionary whose keys are tuple with the reduced
-                coordinates of the q-points. The values are the labels.
-                e.g. qlabels = {(0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L"}.
+            qlabels: dictionary whose keys are tuple with the reduced coordinates of the q-points. 
+                The values are the labels e.g. qlabels = {(0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L"}.
 
         Returns:
             `matplotlib` figure.

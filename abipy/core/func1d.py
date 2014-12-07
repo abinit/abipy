@@ -368,16 +368,14 @@ class Function1D(object):
             args: Positional arguments passed to ax.plot
             kwargs: Keyword arguments passed to `matplotlib`.  Accepts also:
 
-        ==============  ==============================================================
+        ==============  ===============================================================
         kwargs          Meaning
-        ==============  ==============================================================
+        ==============  ===============================================================
         cplx_mode       string defining the data to print. 
-                        Possible choices are (case-insensitive):
-                            - "re"  for real part.
-                            - "im" for imaginary part.
-                            - "abs" for the absolute value
+                        Possible choices are (case-insensitive): `re` for the real part
+                        "im" for the imaginary part, "abs" for the absolute value.
                         Options can be concatenated with "-"
-        ==============  ==============================================================
+        ==============  ===============================================================
 
         Returns:
             List of lines added.

@@ -557,12 +557,8 @@ class MdfPlotter(object):
         Args:
             qpoint: index of the q-point or Kpoint object or None to plot emacro_avg.
             cplx_mode: string defining the data to print (case-insensitive).
-                       Possible choices are 
-                                                                      
-                        - "re"  for real part 
-                        - "im" for imaginary part only.
-                        - "abs' for the absolute value
-                                                                       
+                       Possible choices are: `re`  for the real part,
+                       `im` for imaginary part only. `abs` for the absolute value
                        Options can be concated with "-".
 
         ==============  ==============================================================

@@ -319,17 +319,17 @@ class AbiInput(Input, Has_Structure):
 
     def generate(self, **kwargs):
         """
-        generate new inputs by replacing the variables specified in kwargs.
+        Generate new inputs by replacing the variables specified in kwargs.
 
         .. code-block:: python
 
-        # To generate two input files with different values of ecut:
-        for inp_ecut in gs_inp.generate(ecut=[10, 20])):
-            print("do something with inp_ecut %s" % inp_ecut)
+            # To generate two input files with different values of ecut:
+            for inp_ecut in gs_inp.generate(ecut=[10, 20])):
+                print("do something with inp_ecut %s" % inp_ecut)
 
-        # To generate four input files with all the possible combinations of ecut and nsppol:
-        for inp_ecut in gs_inp.generate(ecut=[10, 20], nsppol=[1, 2]):
-            print("do something with inp_ecut %s" % inp_ecut)
+            # To generate four input files with all the possible combinations of ecut and nsppol:
+            for inp_ecut in gs_inp.generate(ecut=[10, 20], nsppol=[1, 2]):
+                print("do something with inp_ecut %s" % inp_ecut)
         """
         if self.ndtset != 1: raise ValueError("Cannot use generate methods when ndtset != 1")
         return input_gen(self, **kwargs)
