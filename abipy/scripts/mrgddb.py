@@ -8,31 +8,26 @@ import argparse
 
 from pymatgen.io.abinitio.wrappers import Mrgddb
 
-##########################################################################################
-# Helper functions.
-
-def str_examples():
-    examples = (
-        "Example usage:\n\n"
-        "mrgddb -o output_DDB file1_DDB file2_DDB\n"
-        "mrgddb -o output_DDB -d 'String with description' file1_DDB file2_DDB\n"
-        "mrgddb -o output_DDB  *_DDB\n"
-    )
-    return examples
-
-
-def show_examples_and_exit(err_msg=None, error_code=0):
-    "Display the usage of the script."
-    sys.stderr.write(str_examples())
-    if err_msg: 
-        sys.stderr.write("Fatal Error\n" + err_msg + "\n")
-    sys.exit(error_code)
-
-
-##########################################################################################
-
-
 def main():
+
+    def str_examples():
+        examples = (
+            "Example usage:\n\n"
+            "mrgddb -o output_DDB file1_DDB file2_DDB\n"
+            "mrgddb -o output_DDB -d 'String with description' file1_DDB file2_DDB\n"
+            "mrgddb -o output_DDB  *_DDB\n"
+        )
+        return examples
+
+
+    def show_examples_and_exit(err_msg=None, error_code=0):
+        "Display the usage of the script."
+        sys.stderr.write(str_examples())
+        if err_msg: 
+            sys.stderr.write("Fatal Error\n" + err_msg + "\n")
+        sys.exit(error_code)
+
+    #print(sys.argv)
     parser = argparse.ArgumentParser(epilog=str_examples(),
                                      formatter_class=argparse.RawDescriptionHelpFormatter,)
 
@@ -59,11 +54,14 @@ def main():
 
     mrgddb = Mrgddb(executable=options.executable, verbose=options.verbose)
 
-    mrgddb.merge(options.ddb_files, options.out_ddb, options.description, cwd=None)
+
+    try:
+        mrgddb.merge(options.ddb_files, options.out_ddb, options.description, cwd=None)
+    except:
+        print("got ddb_files: ", options.ddb_files)
                                   
     return 0
 
-##########################################################################################
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -1121,23 +1121,36 @@ class AnaddbInput(mixins.MappingMixin):
     #removevariable
     Error = AnaddbInputError
 
-    #@classmethod
-    #def foo(cls, qpoint, **kwargs):
-    #    new = cls(structure, 
-    #              comment="ANADB input for the computation of phonon frequencies for one q-point", 
-    #              **kwargs)
-    #    qpoint = (0.25, 0, 0)
-    #    new.set_variables(
-    #        ifcflag=1,        # Interatomic force constant flag
-    #        ngqpt=(1, 1,  1), # Monkhorst-Pack indices
-    #        nqshft=1,         # number of q-points in repeated basic q-cell
-    #        q1shft=qpoint,
-    #        asr=1,            # Acoustic Sum Rule. 1 => imposed asymetrically
-    #        chneut=1,         # Charge neutrality requirement for effective charges.
-    #        dipdip=1,         # Dipole-dipole interaction treatment
-    #        nqpath=2,
-    #        qpath=[qpoint, 0 0 0],
-    #        ndivsmall=1
+    @classmethod
+    def modes_at_qpoint(cls, structure, qpoint, asr=2, chneut=1, dipdip=1, **kwargs):
+        """
+        Input file for the calculation of the phonon frequencies at a given q-point.
+
+        Args:
+            Structure: :class:`Structure` object
+            qpoint: Reduced coordinates of the q-point where phonon frequencies and modes are wanted
+            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            kwargs:
+        """
+        new = cls(structure, 
+                  comment="ANADB input for the computation of phonon frequencies for one q-point", 
+                  **kwargs)
+
+        new.set_variables(
+            ifcflag=1,        # Interatomic force constant flag
+            asr=asr,          # Acoustic Sum Rule
+            chneut=chneut,    # Charge neutrality requirement for effective charges.
+            dipdip=dipdip,    # Dipole-dipole interaction treatment
+            # This part if fixed
+            ngqpt=(1, 1,  1), 
+            nqshft=1,         
+            q1shft=qpoint,
+            nqpath=2,
+            qpath=list(qpoint) + [0, 0, 0],
+            ndivsm=1
+            )
+
+        return new
 
     @classmethod
     def phbands_and_dos(cls, structure, ngqpt, ndivsm, nqsmall, q1shft=(0,0,0),
@@ -1241,7 +1254,6 @@ class AnaddbInput(mixins.MappingMixin):
         """
         new = cls(structure, comment="ANADB input for thermodynamics", **kwargs)
 
-        #new.set_qpath(ndivsm, qptbounds=qptbounds)
         new.set_autoqmesh(nqsmall)
 
         q1shft = np.reshape(q1shft, (-1, 3))
@@ -1430,13 +1442,12 @@ class AnaddbInput(mixins.MappingMixin):
             qptbounds: q-points defining the path in k-space.
                 If None, we use the default high-symmetry k-path defined in the pymatgen database.
         """
-        if qptbounds is None:
-            qptbounds = self.structure.calc_kptbounds()
+        if qptbounds is None: qptbounds = self.structure.calc_kptbounds()
         qptbounds = np.reshape(qptbounds, (-1, 3))
 
         # TODO: Add support for ndivsm in anaddb
         self.set_variables(
-            #ndivsm=ndivsm,
+            ndivsm=ndivsm,
             nqpath=len(qptbounds),
             qpath=qptbounds,
         )

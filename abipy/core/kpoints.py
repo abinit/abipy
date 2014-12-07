@@ -666,7 +666,7 @@ class Kpath(KpointList):
 
 class IrredZone(KpointList):
     """
-    An IrredZone is a (immutable) sequence of points in the irreducible wedge of the BZ.
+    An :class:`IrredZone` is a (immutable) sequence of points in the irreducible wedge of the BZ.
     Each point has a weight whose sum must equal 1 so that we can integrate quantities in the full Brillouin zone.
     Provides methods to symmetrize k-dependent quantities with the full symmetry of the structure. e.g.
     bands, occupation factors, phonon frequencies.
@@ -674,12 +674,9 @@ class IrredZone(KpointList):
     def __init__(self, reciprocal_lattice, frac_coords, weights, ksampling):
         """
         Args:
-            reciprocal_lattice:
-                `Lattice`
-            frac_coords:
-                Array-like object with the reduced coordinates of the points.
-            weights:
-                Array-like with the weights of the k-points.
+            reciprocal_lattice: :class:`Lattice` object
+            frac_coords: Array-like object with the reduced coordinates of the points.
+            weights: Array-like with the weights of the k-points.
             ksampling:
                 TODO
         """

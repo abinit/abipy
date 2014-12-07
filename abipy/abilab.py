@@ -28,6 +28,7 @@ from abipy.electrons.gw import SigresFile, SigresPlotter
 from abipy.electrons.bse import MdfFile
 from abipy.electrons.scissors import ScissorsBuilder
 from abipy.phonons import PhbstFile, PhononBands, PhdosFile, PhdosReader
+from abipy.phonons.ddb import DdbFile
 from abipy.core.mixins import AbinitFile, AbinitLogFile, AbinitOutputFile
 from abipy.waves import WfkFile
 
@@ -45,21 +46,16 @@ def _straceback():
 
 def abifile_subclass_from_filename(filename):
     """Returns the appropriate class associated to the given filename."""
-    #from abipy.iotools.files import AbinitFile, AbinitLogFile, AbinitOutputFile
-    #from abipy.electrons import SigresFile, GsrFile, MdfFile
-    #from abipy.waves import WfkFile
-
     ext2ncfile = {
         "SIGRES.nc": SigresFile,
         "WFK-etsf.nc": WfkFile,
         "MDF.nc": MdfFile,
         "GSR.nc": GsrFile,
         "PHBST.nc": PhbstFile,
+        "DDB": DdbFile,
     }
 
-    #if filename.endswith(".abi"):
-    #    return AbinitInputFile
-                                                                                        
+    #if filename.endswith(".abi"): return AbinitInputFile
     if filename.endswith(".abo"): return AbinitOutputFile
     if filename.endswith(".log"): return AbinitLogFile
 
@@ -79,8 +75,7 @@ def abiopen(filepath):
     Factory function that opens any file supported by abipy.
 
     Args:
-        filepath:
-            string with the filename. 
+        filepath: string with the filename. 
     """
     cls = abifile_subclass_from_filename(filepath)
     return cls.from_file(filepath)

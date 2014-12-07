@@ -2,27 +2,35 @@
 """DDB File."""
 from __future__ import print_function, division, unicode_literals
 
-
-
 import os
+import tempfile
 import numpy as np
 
 from monty.collections import AttrDict
 from monty.functools import lazy_property
+from pymatgen.io.abinitio.tasks import AnaddbTask, TaskManager
+from abipy.core.mixins import Has_Structure
+from abipy.core.symmetries import SpaceGroup
 from abipy.core.structure import Structure
+from abipy.htc.input import AnaddbInput
 
+import logging
+logger = logging.getLogger(__name__)
 
-class DdbFile(object):
+class DdbFile(Has_Structure):
+    """
+    This object provides an interface to the DDB file produced by ABINIT
+    as well as methods to compute phonon band structures, phonon DOS, thermodinamical properties ...
+    """
+    @classmethod
+    def from_file(cls, filepath):
+        return cls(filepath)
 
     def __init__(self, filepath):
         self.filepath = os.path.abspath(filepath)
 
     def __enter__(self):
-        return self.open()
-
-    def open(self, mode="r"):
-        self._file = open(self.filepath, mode=mode)
-        return self
+        return self._file
 
     def __iter__(self):
         return iter(self._file)
@@ -30,6 +38,11 @@ class DdbFile(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Activated at the end of the with statement. It automatically closes the file."""
         self.close()
+
+    @lazy_property
+    def _file(self):
+        return open(self.filepath, mode="rt")
+
 
     def close(self):
         try:
@@ -54,7 +67,11 @@ class DdbFile(object):
 
     @lazy_property
     def structure(self):
-        return Structure.from_abivars(**self.header)
+        structure = Structure.from_abivars(**self.header)
+        # FIXME: has_timerev is always True
+        spgid, has_timerev, h = 0, True, self.header
+        structure.set_spacegroup(SpaceGroup(spgid, h.symrel, h.tnons, h.symafm, has_timerev))
+        return structure
 
     @lazy_property
     def header(self):
@@ -118,6 +135,9 @@ class DdbFile(object):
         for k, ainfo in arrays.items():
             h[k] = np.reshape(np.array(h[k], dtype=ainfo["dtype"]), ainfo["shape"])
 
+        # Transpose symrel because Abinit write matrices by colums.
+        h.symrel = np.array([s.T for s in h.symrel])
+        
         return h
 
     @lazy_property
@@ -149,37 +169,120 @@ class DdbFile(object):
 
         return np.reshape(qpoints, (-1,3))
 
-    #def calc_phbands_and_dos(self):
-    #def calc_thermo(self):
+    @lazy_property
+    def guessed_ngqpt(self):
+        """
+        This function tries to figure out the value of ngqpt from the list of 
+        points reported in the DDB file.
 
-#from pymatgen.io.abinitio.tasks import AnaddbTask, TaskManager
-#task = AnaddbTask(Mock(), "out_DDB", workdir="test", manager=TaskManager.from_user_config())
-#task.start_and_wait(autoparal=False)
+        .. warning::
+            
+            The mesh may not be correct if the DDB file contains points belonging 
+            to different meshes.
+        """
+        # Build the union of the stars of the q-points
+        all_qpoints = np.empty((len(self.qpoints) * len(self.structure.spacegroup), 3))
+        count = 0
+        for qpoint in self.qpoints:
+            for op in self.structure.spacegroup:
+                all_qpoints[count] = op.rotate_k(qpoint, wrap_tows=False)
+                count += 1
 
-class Mock(object):
-    anaddb_input = """
-!Flags
-ifcflag   1     ! Interatomic force constant flag
+        for q in all_qpoints: 
+            q[q == 0] = np.inf
+        print(all_qpoints)
 
-!Wavevector grid number 1 (coarse grid, from DDB)
-ngqpt   1  1  1   ! Monkhorst-Pack indices
-nqshft  1         ! number of q-points in repeated basic q-cell
-q1shft  0.25 0 0 
+        smalls = np.abs(all_qpoints).min(axis=0)
+        smalls[smalls == 0] = 1
+        ngqpt = np.rint(1 / smalls)
+        ngqpt[ngqpt == 0] = 1
+        print(smalls)
+        print(ngqpt)
 
-!Effective charges
-asr   1     ! Acoustic Sum Rule. 1 => imposed asymetrically
-chneut   1  ! Charge neutrality requirement for effective charges.
+        return np.array(ngqpt, dtype=np.int)
 
-!Interatomic force constant info
-dipdip  1   ! Dipole-dipole interaction treatment
+    def calc_phmodes_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, 
+        workdir=None, manager=None, verbose=0, **kwargs):
+        """
 
-nqpath 2
-qpath 0.25 0 0    
-       0.0 0 0 
-ndivsmall 1
-"""
-    def add_extra_abivars(self, extra):
-        pass
+        Args:
+            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            workdir: Working directory. If None, a temporary directory is created.
+            manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
+            verbose:
+            kwargs: Additional variables you may want to pass to Anaddb.
+        """
+        if qpoint is None:
+            qpoint = self.qpoints[0] 
+            if len(self.qpoints) != 1:
+                raise ValueError("%s contains %s qpoints and the choice is ambiguous.\n" 
+                                 "Please specify the qpoint in calc_phmodes_at_qpoint" % (self, len(self.qpoints)))
 
-    def make_input(self):
-        return self.anaddb_input
+        inp = AnaddbInput.modes_at_qpoint(self.structure, qpoint,  asr=asr, chneut=chneut, dipdip=dipdip)
+
+        if verbose: print(inp)
+        if manager is None: manager = TaskManager.from_user_config()
+        if workdir is None: workdir = tempfile.mkdtemp()
+
+        task = AnaddbTask(inp, self.filepath, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
+        task.start_and_wait(autoparal=False)
+
+        report = self.get_event_report()
+        if report.run_completed:
+            return task.open_phbst()
+        else:
+            #if report.errors or report.bugs:
+            logger.critical('"Found errors in report')
+            raise RuntimeError("Errors or bugs")
+
+    def calc_phbands_and_dos(self, ngqpt=None, ndivsm=20, nqsmall=10, workdir=None, manager=None, verbose=0, **kwargs):
+        """
+        Args:
+            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            workdir: Working directory. If None, a temporary directory is created.
+            manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
+            verbose:
+            kwargs: Additional variables you may want to pass to Anaddb.
+        """
+        if ngqpt is None: ngqpt = self.guessed_ngqpt
+
+        inp = AnaddbInput.phbands_and_dos(
+            self.structure, ngqpt, ndivsm, nqsmall, 
+            q1shft=(0,0,0), qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", **kwargs)
+
+        if verbose: print(inp)
+        if manager is None: manager = TaskManager.from_user_config()
+        if workdir is None: workdir = tempfile.mkdtemp()
+
+        task = AnaddbTask(inp, self.filepath, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
+        task.start_and_wait(autoparal=False)
+
+        report = self.get_event_report()
+        if report.run_completed:
+            return task.open_phbst()
+        else:
+            #if report.errors or report.bugs:
+            logger.critical('"Found errors in report')
+            raise RuntimeError(str(report.errors))
+
+    def calc_thermo(self, workdir=None, manager=None, verbose=0, **kwargs):
+        """
+        Args:
+            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            workdir: Working directory. If None, a temporary directory is created.
+            manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
+            verbose:
+            kwargs: Additional variables you may want to pass to Anaddb.
+        """
+        if ngqpt is None: ngqpt = self.guessed_ngqpt
+        #inp = AnaddbInput.thermo(self.structure, ngqpt, nqsmall, q1shft=(0, 0, 0), nchan=1250, nwchan=5, thmtol=0.5,
+        #       ntemper=199, temperinc=5, tempermin=5., asr=2, chneut=1, dipdip=1, ngrids=10, **kwargs):
+
+        if verbose: print(inp)
+        if manager is None: manager = TaskManager.from_user_config()
+        if workdir is None: workdir = tempfile.mkdtemp()
+
+        task = AnaddbTask(inp, self.filepath, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
+        task.start_and_wait(autoparal=False)
+                                                                                                              
+        #return task.open_phbst()
