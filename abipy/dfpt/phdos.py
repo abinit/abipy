@@ -222,12 +222,10 @@ class PhdosFile(AbinitNcFile, Has_Structure):
         ax.grid(True)
 
         xlim = kwargs.pop("xlim", None)
-        if xlim is not None:
-            ax.set_xlim(xlim)
+        if xlim is not None: ax.set_xlim(xlim)
 
         ylim = kwargs.pop("ylim", None)
-        if ylim is not None:
-            ax.set_ylim(ylim)
+        if ylim is not None: ax.set_ylim(ylim)
 
         ax.set_xlabel('Frequency [eV]')
         ax.set_ylabel('PJDOS [states/eV]')

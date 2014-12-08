@@ -1,5 +1,9 @@
 # coding: utf-8
-"""This module contains objects for the postprocessing of EPH calculations."""
+"""
+This module contains objects for the postprocessing of EPH calculations.
+Warning:
+    Work in progress, DO NOT USE IT
+"""
 from __future__ import print_function, division, unicode_literals
 
 import numpy as np
@@ -10,6 +14,14 @@ from abipy.iotools import ETSF_Reader
 
 class EliashbergFunction(object):
     """This object stores the Eliashberg function a2F(w)."""
+
+    @classmethod
+    def from_file(cls, path):
+        """Initialize the object from the data stored in a netcdf file."""
+        with ETSF_Reader(path) as r:
+            mesh = r.get_a2fmesh()
+            values = r.get_a2fvalues()
+            return cls(mesh, values)
 
     def __init__(self, mesh, values):
         values = np.atleast_2d(values)
@@ -24,14 +36,6 @@ class EliashbergFunction(object):
         # Spin dependent and total a2F(w)
         self.a2f_spin = tuple(self.a2f_spin)
         self.a2f = Function1D(mesh, a2f_tot)
-
-    @classmethod
-    def from_file(cls, path):
-        """Initialize the object from the data stored in a netcdf file."""
-        with ETSF_Reader(path) as r:
-            mesh = r.get_a2fmesh()
-            values = r.get_a2fvalues()
-            return cls(mesh, values)
 
     def get_lambdaw(self, spin=None):
         """Returns lambda(w)."""

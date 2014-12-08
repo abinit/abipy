@@ -33,6 +33,7 @@ class TestFunction1D(AbipyTest):
 
         self.assert_almost_equal(cosf.spline_integral(), 0.0)
         self.assert_almost_equal(cosf.spline.roots(), [np.pi/2, 3*np.pi/2])
+        self.assertEqual(cosf.spline_on_mesh(cosf.mesh), cosf)
 
         stream = StringIO()
         cosf.to_file(stream)
@@ -83,6 +84,7 @@ class TestFunction1D(AbipyTest):
         same_sinf = sinf.fft().ifft()
         self.assert_almost_equal(same_sinf.values, sinf.values)
         self.assert_almost_equal(same_sinf.mesh, sinf.mesh)
+
 
 if __name__ == "__main__": 
     import unittest

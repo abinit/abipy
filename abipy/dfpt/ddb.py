@@ -223,12 +223,16 @@ class DdbFile(TextFile, Has_Structure):
         with task.open_phbst() as phbst_file:
             return phbst_file.phbands
 
-    def calc_phbands_and_dos(self, ngqpt=None, ndivsm=20, nqsmall=10, workdir=None, manager=None, verbose=0, **kwargs):
+    #def calc_phbands(self, ngqpt=None, ndivsm=20, asr=2, chneut=1, dipdip=1, workdir=None, manager=None, verbose=0, **kwargs):
+    #def calc_phdos(self, ngqpt=None, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra" workdir=None, manager=None, verbose=0, **kwargs):
+
+    def calc_phbands_and_dos(self, ngqpt=None, ndivsm=20, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra",
+                             workdir=None, manager=None, verbose=0, **kwargs):
         """
         Execute anaddb to compute phonon band structure and phonon DOS
 
         Args:
-            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if it is None
+            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             workdir: Working directory. If None, a temporary directory is created.
             manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
@@ -238,8 +242,8 @@ class DdbFile(TextFile, Has_Structure):
 
         #kwargs["brav"] = 2
         inp = AnaddbInput.phbands_and_dos(
-            self.structure, ngqpt, ndivsm, nqsmall, 
-            q1shft=(0,0,0), qptbounds=None, asr=2, chneut=1, dipdip=1, dos_method="tetra")
+            self.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, 
+            q1shft=(0,0,0), qptbounds=None, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method)
 
         if manager is None: manager = TaskManager.from_user_config()
         if workdir is None: workdir = tempfile.mkdtemp()
@@ -265,7 +269,7 @@ class DdbFile(TextFile, Has_Structure):
 
     #def calc_thermo(self, nqsmall, ngqpt=None, workdir=None, manager=None, verbose=0):
     #    """
-    #    Execute anaddb to compute tehrmodinamical properties.
+    #    Execute anaddb to compute thermodinamical properties.
 
     #    Args:
     #        ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if it is None
@@ -310,13 +314,17 @@ class DdbFile(TextFile, Has_Structure):
 #        """Activated at the end of the with statement. It automatically closes the file."""
 #        self.ddb.close()
 #
-#    def conv_phdos(self,)
+#    def converge_phdos(self, nqsmall_slice):
 #        phdos_list = []
-#        #self.ddb.calc_phbands_and_dos(ngqpt=None, ndivsm=20, nqsmall=10, workdir=None, manager=self.manager)
+#        for nqs in nsmall_range:
+#           #self.ddb.calc_phbands_and_dos(ngqpt=None, ndivsm=20, nqsmall=10, workdir=None, manager=self.manager)
+#           phdos_list.append(phdos)
 #
 #        # Compare last three phonon DOSes.
 #        # Be careful here because the DOS may be defined on different frequency meshes
+#        last_mesh = ...
 #        converged = False
+#        phdos.dos.spline_on_mesh(last_mesh)
 #
 #        if converged:
 #            return collections.namedtuple("results", "phdos ngsmall plotter")

@@ -11,6 +11,8 @@ import itertools
 import numpy as np
 
 from six.moves import cStringIO
+from monty.functools import lazy_property
+from pymatgen.util.plotting_utils import add_fig_kwargs
 from abipy.tools.derivatives import finite_diff
 
 __all__ = [
@@ -19,7 +21,7 @@ __all__ = [
 
 
 class Function1D(object):
-    """A (real|complex) function of a real variable."""
+    """Immutable object representing a (real|complex) function of real variable."""
     def __init__(self, mesh, values):
         """
         Args:
@@ -112,16 +114,16 @@ class Function1D(object):
 
     @property
     def real(self):
-        """Return new `Function1D` with the real part of self."""
+        """Return new :class:`Function1D` with the real part of self."""
         return self.__class__(self.mesh, self.values.real)
 
     @property
     def imag(self):
-        """Return new `Function1D` with the imaginary part of self."""
+        """Return new :class:`Function1D` with the imaginary part of self."""
         return self.__class__(self.mesh, self.values.real)
 
     def conjugate(self):
-        """Return new `Function1D` with the complex conjugate."""
+        """Return new :class:`Function1D` with the complex conjugate."""
         return self.__class__(self.mesh, self.values.conjugate)
 
     @classmethod
@@ -170,8 +172,14 @@ class Function1D(object):
 
     def has_same_mesh(self, other):
         """True if self and other have the same mesh."""
-        return np.allclose(self.mesh, other.mesh)
+        if (self.h, other.h) == (None, None):
+            # Generic meshes.
+            return np.allclose(self.mesh, other.mesh)
+        else:
+            # Check for linear meshes
+            return len(self.mesh) == len(other.mesh) and self.h == other.h
 
+    @property
     def bma(self):
         """Return b-a. f(x) is defined in [a,b]"""
         return self.mesh[-1] - self.mesh[0]
@@ -202,27 +210,21 @@ class Function1D(object):
         """
         return np.iscomplexobj(self.values)
 
-    @property
+    @lazy_property
     def h(self):
         """The spacing of the mesh. None if mesh is not homogeneous."""
-        try:
-            return self._h
-        except AttributeError:
-            return self.dx[0] if np.allclose(self.dx[0], self.dx) else None
+        return self.dx[0] if np.allclose(self.dx[0], self.dx) else None
 
-    @property
+    @lazy_property
     def dx(self):
         """
         ndarray of len(self)-1 elements giving the distance between two
         consecutive points of the mesh, i.e. dx[i] = ||x[i+1] - x[i]||.
         """
-        try:
-            return self._dx
-        except AttributeError:
-            self._dx = dx = np.zeros(len(self)-1)
-            for (i, x) in enumerate(self.mesh[:-1]):
-                dx[i] = self.mesh[i+1] - x
-            return self._dx
+        dx = np.zeros(len(self)-1)
+        for (i, x) in enumerate(self.mesh[:-1]):
+            dx[i] = self.mesh[i+1] - x
+        return dx
 
     def find_mesh_index(self, value):
         """
@@ -255,7 +257,7 @@ class Function1D(object):
         Cumulatively integrate y(x) using the composite trapezoidal rule.
 
         Returns:
-            `Function1d` with :math:`\int y(x) dx`
+            :class:`Function1d` with :math:`\int y(x) dx`
         """
         from scipy.integrate import cumtrapz
         integ = cumtrapz(self.values, x=self.mesh)
@@ -264,20 +266,20 @@ class Function1D(object):
 
         return self.__class__(self.mesh, pad_intg)
 
-    @property
+    @lazy_property
     def spline(self):
         """Cubic spline with s=0"""
-        try:
-            return self._spline
-        except AttributeError:
-            from scipy.interpolate import UnivariateSpline
-            self._spline = UnivariateSpline(self.mesh, self.values, s=0)
-            return self._spline
+        from scipy.interpolate import UnivariateSpline
+        return UnivariateSpline(self.mesh, self.values, s=0)
 
     @property
     def spline_roots(self):
         """Zeros of the spline."""
         return self.spline.roots()
+
+    def spline_on_mesh(self, mesh):
+        """Spline the function on the given mesh, returns :class:`Func1d` object."""
+        return self.__class__(mesh, self.spline(mesh))
 
     def spline_derivatives(self, x):
         """Returns all derivatives of the spline at point x."""
@@ -402,39 +404,21 @@ class Function1D(object):
 
         return lines
 
+    @add_fig_kwargs
     def plot(self, **kwargs):
         """
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default: True).
-        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
-        ==============  ==============================================================
+        Plot the function 
 
         Returns:
             `matplotlib` figure.
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
-
         import matplotlib.pyplot as plt
 
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
 
         ax.grid(True)
-        if title:
-            ax.set_title(title)
-
         exchange_xy = kwargs.pop("exchange_xy", False)
         self.plot_ax(ax, exchange_xy=exchange_xy, **kwargs)
-
-        if show:
-            plt.show()
-
-        if savefig is not None:
-            fig.savefig(savefig)
 
         return fig
