@@ -26,14 +26,6 @@ electrons Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`edos` Module
-------------------
-
-.. automodule:: abipy.electrons.edos
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 :mod:`gsr` Module
 -----------------
 

@@ -887,35 +887,25 @@ class PhdosReader(ETSF_Reader):
     .. note::
             Frequencies are in eV, DOSes are in states/eV.
     """
-
-    def _lazy_get(self, varname):
-        """Helper function used to create lazy properties."""
-        hiddename = "__" + varname
-        try:
-            return getattr(self, hiddename)
-        except AttributeError:
-            setattr(self, hiddename, self.read_value(varname))
-            return self._lazy_get(varname)
-
-    @property
+    @lazy_property
     def wmesh(self):
         """The frequency mesh in eV."""
-        return self._lazy_get("wmesh")
+        return self.read_value("wmesh")
 
-    @property
+    @lazy_property
     def pjdos_type(self):
         """DOS projected over atom types e.g. pjdos_type(ntypat,nomega)."""
-        return self._lazy_get("pjdos_type")
+        return self.read_value("pjdos_type")
 
-    @property
+    @lazy_property
     def pjdos_rc_type(self):
         """DOS projected over atom types and reduced directions e.g. pjdos_type(3,ntypat,nomega)."""
-        return self._lazy_get("pjdos__rc_type")
+        return self.read_value("pjdos__rc_type")
 
-    @property
+    @lazy_property
     def pjdos(self):
         """DOS projected over atoms and reduced directions pjdos(natom,3,nomega)."""
-        return self._lazy_get("pjdos")
+        return self.read_value("pjdos")
 
     @property
     def structure(self):
