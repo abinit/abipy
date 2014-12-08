@@ -4,6 +4,7 @@ from __future__ import division, print_function, unicode_literals
 
 import sys
 import os
+import numpy as np
 import abipy.abilab as abilab
 import abipy.data as abidata  
 
@@ -18,36 +19,44 @@ def scf_ph_inputs(paral_kgb=0):
     pseudos = abidata.pseudos("13al.981214.fhi", "33as.pspnc")
 
     # List of q-points for the phonon calculation.
-    #qpoints = [
-    #         0.00000000E+00,  0.00000000E+00,  0.00000000E+00, 
-    #         2.50000000E-01,  0.00000000E+00,  0.00000000E+00,
-    #         5.00000000E-01,  0.00000000E+00,  0.00000000E+00,
-    #         2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
-    #         5.00000000E-01,  2.50000000E-01,  0.00000000E+00,
-    #        -2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
-    #         5.00000000E-01,  5.00000000E-01,  0.00000000E+00,
-    #        -2.50000000E-01,  5.00000000E-01,  2.50000000E-01,
-    #        ]
+    qpoints = [
+             0.00000000E+00,  0.00000000E+00,  0.00000000E+00, 
+             2.50000000E-01,  0.00000000E+00,  0.00000000E+00,
+             5.00000000E-01,  0.00000000E+00,  0.00000000E+00,
+             2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
+             5.00000000E-01,  2.50000000E-01,  0.00000000E+00,
+            -2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
+             5.00000000E-01,  5.00000000E-01,  0.00000000E+00,
+            -2.50000000E-01,  5.00000000E-01,  2.50000000E-01,
+            ]
 
-    #qpoints = np.reshape(qpoints, (-1,3))
+    qpoints = np.reshape(qpoints, (-1,3))
 
     # Global variables used both for the GS and the DFPT run.
     global_vars = dict(nband=4,             
                        ecut=3.0,         
+                       #ecut=12.0,
                        ngkpt=[4, 4, 4],
-                       shiftk=[0, 0, 0],
-                       tolvrs=1.0e-8,
+                       nshiftk=4,
+                       shiftk=[0.0, 0.0, 0.5,   # This gives the usual fcc Monkhorst-Pack grid
+                               0.0, 0.5, 0.0,
+                               0.5, 0.0, 0.0,
+                               0.5, 0.5, 0.5],
+                       #shiftk=[0, 0, 0],
                        paral_kgb=paral_kgb,
+                       ixc=1,
+                       nstep=25,
+                       diemac=9.0,
                     )
 
     gs_inp = abilab.AbiInput(pseudos=pseudos)
-
     gs_inp.set_structure(structure)
     gs_inp.set_variables(**global_vars)
+    gs_inp.set_variables(tolvrs=1.0e-18)
 
     # Get the qpoints in the IBZ. Note that here we use a q-mesh with ngkpt=(4,4,4) and shiftk=(0,0,0)
     # i.e. the same parameters used for the k-mesh in gs_inp.
-    qpoints = gs_inp.get_ibz().points
+    #qpoints = gs_inp.get_ibz().points
     #print("get_ibz", qpoints)
 
     ph_inputs = abilab.AbiInput(pseudos=pseudos, ndtset=len(qpoints))
@@ -57,10 +66,11 @@ def scf_ph_inputs(paral_kgb=0):
         ph_inp.set_structure(structure)
         ph_inp.set_variables(**global_vars)
         ph_inp.set_variables(
-            nstep=20,
             rfphon=1,        # Will consider phonon-type perturbation
             nqpt=1,          # One wavevector is to be considered
             qpt=qpt,         # This wavevector is q=0 (Gamma)
+            tolwfr=1.0e-20,
+            kptopt=3,
             )
 
             #rfatpol   1 1   # Only the first atom is displaced

@@ -22,9 +22,9 @@ __all__ = [
 ]
 
 @six.add_metaclass(abc.ABCMeta)
-class AbinitFile(object):
+class _File(object):
     """
-    Abstract base class defining the methods that must be  implemented 
+    Abstract base class defining the methods that must be implemented 
     by the concrete classes representing the different files produced by ABINIT.
     """
     def __init__(self, filepath):
@@ -81,7 +81,33 @@ class AbinitFile(object):
         self.close()
 
 
-class AbinitTextFile(AbinitFile):
+class TextFile(_File):
+    def __enter__(self):
+        # Open the file
+        self._file
+        return self
+
+    def __iter__(self):
+        return iter(self._file)
+
+    @lazy_property
+    def _file(self):
+        """File object open in read-only mode."""
+        return open(self.filepath, mode="rt")
+
+    def close(self):
+        """Close the file."""
+        try:
+            self._file.close()
+        except:
+            pass
+
+    def seek(self, offset, whence=0):
+        """Set the file's current position, like stdio's fseek()."""
+        self._file.seek(offset, whence)
+
+
+class AbinitTextFile(TextFile):
     """Class for the ABINIT main output file and the log file."""
 
     @lazy_property
@@ -95,6 +121,10 @@ class AbinitTextFile(AbinitFile):
         return AbinitTimerParser().parse(self.filepath)
 
 
+class AbinitInputFile(TextFile):
+    """Class representing the input file."""
+
+
 class AbinitOutputFile(AbinitTextFile):
     """Class representing the main output file."""
 
@@ -104,7 +134,7 @@ class AbinitLogFile(AbinitTextFile):
 
 
 @six.add_metaclass(abc.ABCMeta)
-class AbinitNcFile(AbinitFile):
+class AbinitNcFile(_File):
     """
     Abstract class representing a Netcdf file with data saved
     according to the ETSF-IO specifications (when available).
@@ -225,6 +255,9 @@ class Has_PhononBands(object):
         Plot the electron energy bands. See the :func:`PhononBands.plot` for the signature.""
         """
         return self.phbands.plot(**kwargs)
+
+    #def plot_phbands_with_phdos(self, phdos, **kwargs):
+    #    return self.phbands.plot_with_phdos(phdos, **kwargs)
 
 
 class NcDumper(object):

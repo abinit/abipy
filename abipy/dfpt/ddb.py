@@ -9,7 +9,7 @@ import numpy as np
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from pymatgen.io.abinitio.tasks import AnaddbTask, TaskManager
-from abipy.core.mixins import Has_Structure
+from abipy.core.mixins import TextFile, Has_Structure
 from abipy.core.symmetries import SpaceGroup
 from abipy.core.structure import Structure
 from abipy.htc.input import AnaddbInput
@@ -20,9 +20,10 @@ logger = logging.getLogger(__name__)
 
 class TaskException(Exception):
     """
-    Exceptions raised when we try to execute AnaddbTasks in the :class:`DdbFile` methods
+    Exceptions raised when we try to execute :class:`AnaddbTask` in the :class:`DdbFile` methods
 
-    A TaskException has a reference to the task and to the :class:`EventsReport`.
+    A `TaskException` has a reference to the task and to the :class:`EventsReport` that contains
+    the error messages of the run.
     """
     def __init__(self, *args, **kwargs):
         self.task = kwargs.pop("task")
@@ -44,44 +45,11 @@ class TaskException(Exception):
         return "\n".join(lines)
 
 
-class DdbFile(Has_Structure):
+class DdbFile(TextFile, Has_Structure):
     """
     This object provides an interface to the DDB file produced by ABINIT
     as well as methods to compute phonon band structures, phonon DOS, thermodinamical properties ...
     """
-    @classmethod
-    def from_file(cls, filepath):
-        return cls(filepath)
-
-    def __init__(self, filepath):
-        self.filepath = os.path.abspath(filepath)
-
-    def __enter__(self):
-        # Open the file
-        self._file
-        return self
-
-    def __iter__(self):
-        return iter(self._file)
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Activated at the end of the with statement. It automatically closes the file."""
-        self.close()
-
-    @lazy_property
-    def _file(self):
-        return open(self.filepath, mode="rt")
-
-    def close(self):
-        try:
-            self._file.close()
-        except:
-            pass
-
-    def seek(self, offset, whence=0):
-        """Set the file's current position, like stdio's fseek()."""
-        self._file.seek(offset, whence)
-
     @lazy_property
     def structure(self):
         structure = Structure.from_abivars(**self.header)
@@ -104,7 +72,7 @@ class DdbFile(Has_Structure):
         #kpt  0.00000000000000D+00  0.00000000000000D+00  0.00000000000000D+00
         #     0.25000000000000D+00  0.00000000000000D+00  0.00000000000000D+00
         self.seek(0)
-        keyvals, in_header = [], False
+        keyvals = []
         for i, line in enumerate(self):
             line = line.strip()
             if not line: continue
@@ -115,9 +83,9 @@ class DdbFile(Has_Structure):
             if line == "Description of the potentials (KB energies)":
                 # Skip section with psps info.
                 break
-            if i == 6: in_header = True
 
-            if in_header:
+            # header starts here
+            if i >= 6:
                 # Python does not support exp format with D 
                 line = line.replace("D+", "E+").replace("D-", "E-")
                 tokens = line.split()
@@ -195,9 +163,9 @@ class DdbFile(Has_Structure):
         .. warning::
             
             The mesh may not be correct if the DDB file contains points belonging 
-            to different meshes.
+            to different meshes and/or the Q-mesh is shifted.
         """
-        # Build the union of the stars of the q-points
+        # Build the union of the stars of the q-points.
         all_qpoints = np.empty((len(self.qpoints) * len(self.structure.spacegroup), 3))
         count = 0
         for qpoint in self.qpoints:
@@ -205,10 +173,12 @@ class DdbFile(Has_Structure):
                 all_qpoints[count] = op.rotate_k(qpoint, wrap_tows=False)
                 count += 1
 
+        # Set zero to np.inf
         for q in all_qpoints: 
             q[q == 0] = np.inf
-        #print(all_qpoints)
 
+        # Compute the minimum of the fract coordinates along the 3 directions and invert
+        #print(all_qpoints)
         smalls = np.abs(all_qpoints).min(axis=0)
         smalls[smalls == 0] = 1
         ngqpt = np.rint(1 / smalls)
@@ -218,16 +188,16 @@ class DdbFile(Has_Structure):
         return np.array(ngqpt, dtype=np.int)
 
     def calc_phmodes_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, 
-                               workdir=None, manager=None, verbose=0, **kwargs):
+                               workdir=None, manager=None, verbose=0):
         """
         Execute anaddb to compute phonon modes at the given q-point.
 
         Args:
+            qpoint: Reduced coordinates of the qpoint where phonon modes are computed
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             workdir: Working directory. If None, a temporary directory is created.
             manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information
-            kwargs: Additional variables you may want to pass to Anaddb.
         """
         if qpoint is None:
             qpoint = self.qpoints[0] 
@@ -250,24 +220,26 @@ class DdbFile(Has_Structure):
         if not report.run_completed:
             raise TaskException(task=task, report=report)
 
-        return task.open_phbst()
+        with task.open_phbst() as phbst_file:
+            return phbst_file.phbands
 
     def calc_phbands_and_dos(self, ngqpt=None, ndivsm=20, nqsmall=10, workdir=None, manager=None, verbose=0, **kwargs):
         """
         Execute anaddb to compute phonon band structure and phonon DOS
 
         Args:
+            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if it is None
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             workdir: Working directory. If None, a temporary directory is created.
             manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information
-            kwargs: Additional variables you may want to pass to Anaddb.
         """
         if ngqpt is None: ngqpt = self.guessed_ngqpt
 
+        #kwargs["brav"] = 2
         inp = AnaddbInput.phbands_and_dos(
             self.structure, ngqpt, ndivsm, nqsmall, 
-            q1shft=(0,0,0), qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", **kwargs)
+            q1shft=(0,0,0), qptbounds=None, asr=2, chneut=1, dipdip=1, dos_method="tetra")
 
         if manager is None: manager = TaskManager.from_user_config()
         if workdir is None: workdir = tempfile.mkdtemp()
@@ -282,35 +254,72 @@ class DdbFile(Has_Structure):
         if not report.run_completed:
             raise TaskException(task=task, report=report)
 
-        return task.open_phbst(), task.open_phdos()
+        plot = kwargs.pop("plot", True)
+        with task.open_phbst() as phbst_file, task.open_phdos() as phdos_file:
+            phbands = phbst_file.phbands 
+            phdos = phdos_file.phdos
+            if plot:
+                phbands.plot_with_phdos(phdos, title="Phonon bands and DOS of %s" % self.structure.formula)
 
-    def calc_thermo(self, nqsmall, ngqpt=None, workdir=None, manager=None, verbose=0, **kwargs):
-        """
-        Execute anaddb to compute tehrmodinamical properties.
+            return phbands, phdos
 
-        Args:
-            asr, chneut, dipdp: Anaddb input variable. See official documentation.
-            workdir: Working directory. If None, a temporary directory is created.
-            manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
-            verbose: verbosity level. Set it to a value > 0 to get more information
-            kwargs: Additional variables you may want to pass to Anaddb.
-        """
-        if ngqpt is None: ngqpt = self.guessed_ngqpt
+    #def calc_thermo(self, nqsmall, ngqpt=None, workdir=None, manager=None, verbose=0):
+    #    """
+    #    Execute anaddb to compute tehrmodinamical properties.
 
-        inp = AnaddbInput.thermo(self.structure, ngqpt, nqsmall, q1shft=(0, 0, 0), nchan=1250, nwchan=5, thmtol=0.5,
-               ntemper=199, temperinc=5, tempermin=5., asr=2, chneut=1, dipdip=1, ngrids=10, **kwargs)
+    #    Args:
+    #        ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if it is None
+    #        asr, chneut, dipdp: Anaddb input variable. See official documentation.
+    #        workdir: Working directory. If None, a temporary directory is created.
+    #        manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
+    #        verbose: verbosity level. Set it to a value > 0 to get more information
+    #        kwargs: Additional variables you may want to pass to Anaddb.
+    #    """
+    #    if ngqpt is None: ngqpt = self.guessed_ngqpt
 
-        if manager is None: manager = TaskManager.from_user_config()
-        if workdir is None: workdir = tempfile.mkdtemp()
-        if verbose: 
-            print("workdir:", workdir)
-            print("ANADDB INPUT:\n", inp)
+    #    inp = AnaddbInput.thermo(self.structure, ngqpt, nqsmall, q1shft=(0, 0, 0), nchan=1250, nwchan=5, thmtol=0.5,
+    #           ntemper=199, temperinc=5, tempermin=5., asr=2, chneut=1, dipdip=1, ngrids=10)
 
-        task = AnaddbTask(inp, self.filepath, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
-        task.start_and_wait(autoparal=False)
+    #    if manager is None: manager = TaskManager.from_user_config()
+    #    if workdir is None: workdir = tempfile.mkdtemp()
+    #    if verbose: 
+    #        print("workdir:", workdir)
+    #        print("ANADDB INPUT:\n", inp)
 
-        report = task.get_event_report()
-        if not report.run_completed:
-            raise TaskException(task=task, report=report)
+    #    task = AnaddbTask(inp, self.filepath, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
+    #    task.start_and_wait(autoparal=False)
 
-        #return task.open_phbst()
+    #    report = task.get_event_report()
+    #    if not report.run_completed:
+    #        raise TaskException(task=task, report=report)
+
+
+#class DdbConverger(object):
+#    def __init__(self, ddb, workdir=workdir, manager=None, num_cores=None):
+#        self.ddb = DdbFile(ddb)
+#        from monty.dev import get_ncpus
+#        self.num_cores = get_num_cpus if num_cores is None else num_cores
+#        
+#        self.manager = TaskManager.from_user_config() if manager is None else manager
+#        self.workdir = tempfile.mkdtemp() if workdir is None else workdir
+#
+#    def __enter__(self):
+#        return self
+#
+#    def __exit__(self, exc_type, exc_val, exc_tb):
+#        """Activated at the end of the with statement. It automatically closes the file."""
+#        self.ddb.close()
+#
+#    def conv_phdos(self,)
+#        phdos_list = []
+#        #self.ddb.calc_phbands_and_dos(ngqpt=None, ndivsm=20, nqsmall=10, workdir=None, manager=self.manager)
+#
+#        # Compare last three phonon DOSes.
+#        # Be careful here because the DOS may be defined on different frequency meshes
+#        converged = False
+#
+#        if converged:
+#            return collections.namedtuple("results", "phdos ngsmall plotter")
+#                (phdos=phdos, nqsmall=nqsmall, plotter=plotter)
+#        else:
+#            raise self.Error("Cannot converge the DOS wrt nqsmall")

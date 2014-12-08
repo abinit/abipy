@@ -57,6 +57,7 @@ def scf_ph_inputs(tvars):
             rfphon=1,        # Will consider phonon-type perturbation
             nqpt=1,          # One wavevector is to be considered
             qpt=qpt,         # This wavevector is q=0 (Gamma)
+            kptopt=3,
             )
 
             #rfatpol   1 1   # Only the first atom is displaced

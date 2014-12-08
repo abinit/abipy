@@ -177,26 +177,29 @@ class PhdosFile(AbinitNcFile, Has_Structure):
         # Open the file, read data and create objects.
         super(PhdosFile, self).__init__(filepath)
 
-        pjdos_type_dict = collections.OrderedDict()
         self.reader = r = PhdosReader(filepath)
-
-        self._structure = r.structure
         self.wmesh = r.wmesh
-        self.phdos = r.read_phdos()
-
-        for symbol in r.chemical_symbols:
-            #print(symbol, ncdata.typeidx_from_symbol(symbol))
-            pjdos_type_dict[symbol] = r.read_pjdos_type(symbol)
-
-        self.pjdos_type_dict = pjdos_type_dict
-
-    @property
-    def structure(self):
-        """Returns the :class:`Structure` object."""
-        return self._structure
 
     def close(self):
         self.reader.close()
+
+    @lazy_property
+    def structure(self):
+        """Returns the :class:`Structure` object."""
+        return self.reader.structure
+
+    @lazy_property
+    def phdos(self):
+        return self.reader.read_phdos()
+
+    @lazy_property
+    def pjdos_type_dict(self):
+        pjdos_type_dict = collections.OrderedDict()
+        for symbol in self.reader.chemical_symbols:
+            #print(symbol, ncdata.typeidx_from_symbol(symbol))
+            pjdos_type_dict[symbol] = self.reader.read_pjdos_type(symbol)
+
+        return pjdos_type_dict
 
     @add_fig_kwargs
     def plot_pjdos_type(self, colormap="jet", **kwargs):
