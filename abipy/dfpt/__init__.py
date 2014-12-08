@@ -1,3 +1,2 @@
-from .phbands import *
-from .phdos import *
+from .phonons import *
 from .eph import *

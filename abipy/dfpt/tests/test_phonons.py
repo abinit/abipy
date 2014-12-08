@@ -2,9 +2,9 @@
 from __future__ import print_function, division
 
 import tempfile
-import abipy.data as data
+import abipy.data as abidata
 
-from abipy.dfpt import PhononBands
+from abipy.dfpt.phonons import PhononBands
 from abipy.core.testing import *
 
 
@@ -12,7 +12,7 @@ class PhononBandsTest(AbipyTest):
 
     def test_base(self):
         """Base tests for PhononBands"""
-        filename = data.ref_file("trf2_5.out_PHBST.nc")
+        filename = abidata.ref_file("trf2_5.out_PHBST.nc")
 
         phbands = PhononBands.from_file(filename)
         print(phbands)

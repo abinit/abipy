@@ -26,18 +26,10 @@ dfpt Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`phbands` Module
+:mod:`phonons` Module
 ---------------------
 
-.. automodule:: abipy.dfpt.phbands
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-:mod:`phdos` Module
---------------------
-
-.. automodule:: abipy.dfpt.phdos
+.. automodule:: abipy.dfpt.phonons
    :members:
    :undoc-members:
    :show-inheritance:
