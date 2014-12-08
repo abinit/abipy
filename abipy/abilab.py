@@ -52,16 +52,17 @@ def abifile_subclass_from_filename(filename):
         "MDF.nc": MdfFile,
         "GSR.nc": GsrFile,
         "PHBST.nc": PhbstFile,
+        "PHDOS.nc": PhdosFile,
         "DDB": DdbFile,
     }
 
+    # Abinit text files.
     if filename.endswith(".abi"): return AbinitInputFile
     if filename.endswith(".abo"): return AbinitOutputFile
     if filename.endswith(".log"): return AbinitLogFile
 
     # CIF files.
-    if filename.endswith(".cif"):
-        return Structure
+    if filename.endswith(".cif"): return Structure
 
     ext = filename.split("_")[-1]
     try:

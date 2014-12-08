@@ -9,11 +9,9 @@ import abipy.data as abidata
 # Replace filename with the path to your GSR file or your WFK file.
 filename = abidata.ref_file("si_nscf_GSR.nc")
 
-# Open the GSR file and read data. 
-abifile = abiopen(filename)
-
-# Extract the band structure. 
-ebands = abifile.ebands
+# Open the GSR file and extract the band structure. 
+with abiopen(filename) as ncfile:
+    ebands = ncfile.ebands
 
 # Plot the band energies. Note that the labels for the k-points
 # are found automatically by searching in an internal database.

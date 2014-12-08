@@ -13,6 +13,7 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands
 from abipy.core.kpoints import Kpoint
 from abipy.tools import gaussian
 from abipy.iotools import ETSF_Reader
+from abipy.tools.plotting_utils import Marker
 
 __all__ = [
     "PhononBands",
@@ -50,7 +51,7 @@ class PhononMode(object):
     #def __str__(self):
 
     # Rich comparison support (ordered is based on the frequency).
-    # Note that missing operators are filled by total_ordering.
+    # Missing operators are automatically filled by total_ordering.
     def __eq__(self, other):
         return self.freq == other.freq
 
@@ -76,60 +77,13 @@ class PhononBands(object):
         phdispl_cart: phonon displacements in Cartesian coordinates.
             `ndarray` of shape (nqpt, 3*natom, 3*natom).
             The last dimension stores the cartesian components.
-        qpoints:
-            qpoints and wtq are replaced by self.ibz that is a list of KpointList.
+        qpoints: qpoints and wtq are replaced by self.ibz that is a list of KpointList.
         weights:
 
     .. note::
+
         Frequencies are in eV. Cartesian displacements are in Angstrom.
     """
-
-    def __init__(self, structure, qpoints, phfreqs, phdispl_cart, markers=None, widths=None):
-        """
-        Args:
-            structure:
-                Structure object
-            qpoints: :class:`KpointList` instance.
-            phfreqs: Phonon frequencies in eV.
-            phdispl_cart: Displacement in Cartesian coordinates.
-            markers: Optional dictionary containing markers labelled by a string.
-                Each marker is a list of tuple(x, y, s) where x,and y are the position 
-                in the graph and s is the size of the marker.
-                Used for plotting purpose e.g. QP data, energy derivatives...
-            widths: Optional dictionary containing data used for the so-called fatbands
-                Each entry is an array of shape [nsppol, nkpt, mband] giving the width
-                of the band at that particular point. Used for plotting purpose e.g. fatbands.
-        """
-        self.structure = structure
-        self.qpoints = qpoints
-
-        self.phfreqs = phfreqs
-        self.phdispl_cart = phdispl_cart
-
-        self.num_qpoints = len(self.qpoints)
-
-        # Handy variables used to loop.
-        self.num_atoms = structure.num_sites
-        self.num_branches = 3 * self.num_atoms
-        self.branches = range(self.num_branches)
-
-        # Find the q-point names in the pymatgen database.
-        # We'll use _auto_klabels to label the point in the matplotlib plot
-        # if qlabels are not specified by the user.
-        self._auto_qlabels = collections.OrderedDict()
-        for idx, qpoint in enumerate(self.qpoints):
-            name = self.structure.findname_in_hsym_stars(qpoint)
-            if name is not None:
-                self._auto_qlabels[idx] = name
-                                                                            
-        if markers is not None:
-            for key, xys in markers.items():
-                self.set_marker(key, xys)
-                                                                            
-        if widths is not None:
-            for key, width in widths.items():
-                self.set_width(key, width)
-
     @classmethod
     def from_file(cls, filepath):
         """Create the object from a netCDF file."""
@@ -154,6 +108,42 @@ class PhononBands(object):
                        phdispl_cart=r.read_phdispl_cart()
                        )
 
+    def __init__(self, structure, qpoints, phfreqs, phdispl_cart, markers=None, widths=None):
+        """
+        Args:
+            structure: :class:`Structure` object.
+            qpoints: :class:`KpointList` instance.
+            phfreqs: Phonon frequencies in eV.
+            phdispl_cart: Displacement in Cartesian coordinates.
+            markers: Optional dictionary containing markers labelled by a string.
+                Each marker is a list of tuple(x, y, s) where x,and y are the position 
+                in the graph and s is the size of the marker.
+                Used for plotting purpose e.g. QP data, energy derivatives...
+            widths: Optional dictionary containing data used for the so-called fatbands
+                Each entry is an array of shape [nsppol, nkpt, mband] giving the width
+                of the band at that particular point. Used for plotting purpose e.g. fatbands.
+        """
+        self.structure = structure
+        self.qpoints = qpoints
+
+        self.phfreqs = phfreqs
+        self.phdispl_cart = phdispl_cart
+
+        self.num_qpoints = len(self.qpoints)
+
+        # Handy variables used to loop.
+        self.num_atoms = structure.num_sites
+        self.num_branches = 3 * self.num_atoms
+        self.branches = range(self.num_branches)
+
+        if markers is not None:
+            for key, xys in markers.items():
+                self.set_marker(key, xys)
+                                                                            
+        if widths is not None:
+            for key, width in widths.items():
+                self.set_width(key, width)
+
     def __str__(self):
         return self.tostring()
 
@@ -162,7 +152,7 @@ class PhononBands(object):
         lines = []
         app = lines.append
 
-        for (key, value) in self.__dict__.items():
+        for key, value in self.__dict__.items():
             if key.startswith("_"): continue
             if prtvol == 0 and isinstance(value, np.ndarray):
                 continue
@@ -181,6 +171,19 @@ class PhononBands(object):
                 displ_specie.append(self.phdispl_cart[:, :, i, :])
 
         return displ_specie
+
+    @lazy_property
+    def _auto_qlabels(self):
+        # Find the q-point names in the pymatgen database.
+        # We'll use _auto_klabels to label the point in the matplotlib plot
+        # if qlabels are not specified by the user.
+        _auto_qlabels = collections.OrderedDict()
+        for idx, qpoint in enumerate(self.qpoints):
+            name = self.structure.findname_in_hsym_stars(qpoint)
+            if name is not None:
+                _auto_qlabels[idx] = name
+
+        return _auto_qlabels
 
     @property
     def displ_shape(self):
@@ -251,7 +254,6 @@ class PhononBands(object):
             extend:
                 True if the values xys should be added to a pre-existing marker.
         """
-        from abipy.tools.plotting_utils import Marker
         if not hasattr(self, "_markers"):
             self._markers = collections.OrderedDict()
 
@@ -261,7 +263,6 @@ class PhononBands(object):
             else:
                 # Add xys to the previous marker set.
                 self._markers[key].extend(*xys)
-        
         else:
             if key in self.markers:
                 raise ValueError("Cannot overwrite key %s in data" % key)
@@ -711,6 +712,9 @@ class PHBST_Reader(ETSF_Reader):
         """
         return self.read_value("phdispl_cart", cmode="c")
 
+    #def get_modes_frame(self, qpoint):
+    #    import pandas as pd
+
 
 class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands):
 
@@ -747,7 +751,6 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands):
     #def tostring(self, prtvol=0):
     #    """
     #    String representation
-
     #    Args:
     #        prtvol:
     #            verbosity level.
@@ -755,10 +758,32 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands):
     #    return "\n".join(lines)
 
     def qindex(self, qpoint):
+        """Returns the index of the qpoint. Accepts integer or reduced coordinates."""
         if isinstance(qpoint, int):
             return qpoint
         else:
             return self.qpoints.index(qpoint)
+
+    def qindex_qpoint(self, qpoint):
+        """Returns (qindex, qpoint) from an intege or a qpoint."""
+        qindex = self.qindex(qpoint)
+        qpoint = self.qpoints(qindex)
+        return qindex, qpoint
+
+    #def get_modes_frame(self, qpoint):
+    #    """Return a pandas :class:`DataFrame` with the phonon frequencies at the given q-point."""
+    #    qindex, qpoint = self.qindex_qpoint(qpoint)
+
+    #    d = dict
+    #        omega=phfreqs[qindex, :],
+    #        modes=list(range(len(self.structure))),
+    #    }
+
+    #    import pandas as pd
+    #    frame = pd.DataFrame(d, colums=d.keys())
+    #    frame.qpoint = self.qpoints(qindex)
+
+    #    return frame
 
     def get_phonon_mode(self, qpoint, nu):
         """
@@ -772,9 +797,11 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands):
         Returns:
             :class:`PhononMode` instance.
         """
-        q = self.qindex(qpoint)
         raise NotImplementedError("")
-        #return PHMode(qpoint, freq, displ_cart, structure)
+        qindex, qpoint = self.qindex_qpoint(qpoint)
+        #omega=phfreqs[qindex, :],
+        #displ_cart = self.phdispl_cart[qindex, nu, :]
+        return PhononMode(qpoint, freq, displ_cart, self.structure)
 
 
 class PhononDos(object):
@@ -827,8 +854,7 @@ class PhononDos(object):
         Plot DOS and IDOS.
 
         Args:
-            args:
-                Positional arguments passed to :mod:`matplotlib`.
+            args: Positional arguments passed to :mod:`matplotlib`.
 
         Returns:
             `matplotlib` figure.

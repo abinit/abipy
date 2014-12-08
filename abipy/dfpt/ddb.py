@@ -302,7 +302,7 @@ class DdbFile(TextFile, Has_Structure):
 #    def __init__(self, ddb, workdir=workdir, manager=None, num_cores=None):
 #        self.ddb = DdbFile(ddb)
 #        from monty.dev import get_ncpus
-#        self.num_cores = get_num_cpus if num_cores is None else num_cores
+#        self.num_cores = get_num_cpus() if num_cores is None else num_cores
 #        
 #        self.manager = TaskManager.from_user_config() if manager is None else manager
 #        self.workdir = tempfile.mkdtemp() if workdir is None else workdir

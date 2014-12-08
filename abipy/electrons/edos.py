@@ -2,9 +2,10 @@
 """Electronic density of states."""
 from __future__ import print_function, division, unicode_literals
 
-import numpy as np
 import collections
+import numpy as np
 
+from pymatgen.util.plotting_utils import add_fig_kwargs
 from abipy.core.func1d import Function1D
 
 __all__ = [
@@ -104,29 +105,17 @@ class ElectronDOS(object):
             lines.extend(ls)
         return lines
 
+    @add_fig_kwargs
     def plot(self, spin=None, **kwargs):
         """
         Plot DOS and IDOS.
 
         Args:
             spin: Selects the spin component, None if total DOS is wanted.
-            args: Positional arguments passed to :mod:`matplotlib`.
-
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
-        ==============  ==============================================================
 
         Returns:
             matplotlib figure.
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
-
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
 
@@ -142,19 +131,10 @@ class ElectronDOS(object):
         ax1.set_ylabel("TOT IDOS" if spin is None else "IDOS (spin %s)" % spin)
         ax2.set_ylabel("TOT DOS" if spin is None else "DOS (spin %s)" % spin)
 
-        if title:
-            ax1.set_title(title)
-
         self.plot_ax(ax1, spin=spin, what="i", **kwargs)
         self.plot_ax(ax2, spin=spin, what="d", **kwargs)
 
-        if show:
-            plt.show()
-
         fig = plt.gcf()
-        if savefig is not None:
-            fig.savefig(savefig)
-
         return fig
 
 
@@ -194,6 +174,7 @@ class ElectronDOSPlotter(object):
         for label in keys:
             self.add_dos(label, dos_dict[label])
 
+    @add_fig_kwargs
     def plot(self, *args, **kwargs):
         """
         Get a matplotlib plot showing the DOSes.
@@ -201,16 +182,10 @@ class ElectronDOSPlotter(object):
         ==============  ==============================================================
         kwargs          Meaning
         ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
         xlim            x-axis limits. None (default) for automatic determination.
         ylim            y-axis limits.  None (default) for automatic determination.
         ==============  ==============================================================
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
         import matplotlib.pyplot as plt
         fig = plt.figure()
 
@@ -226,9 +201,6 @@ class ElectronDOSPlotter(object):
         ax.set_xlabel('Energy [eV]')
         ax.set_ylabel('DOS [states/eV]')
 
-        if title is not None:
-            ax.set_title(title)
-
         lines, legends = [], []
         for (label, dos) in self._doses.items():
             l = dos.plot_ax(ax, *args, **kwargs)[0]
@@ -238,11 +210,5 @@ class ElectronDOSPlotter(object):
 
         # Set legends.
         ax.legend(lines, legends, loc='upper right', shadow=True)
-
-        if show:
-            plt.show()
-
-        if savefig is not None:
-            fig.savefig(savefig)
 
         return fig
