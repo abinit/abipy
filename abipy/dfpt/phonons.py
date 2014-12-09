@@ -6,13 +6,15 @@ import functools
 import collections
 import numpy as np
 
+from monty.collections import AttrDict
 from monty.functools import lazy_property
+from pymatgen.core.units import Ha_to_eV, eV_to_Ha
 from pymatgen.util.plotting_utils import add_fig_kwargs
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands
 from abipy.core.kpoints import Kpoint
-from abipy.tools import gaussian
 from abipy.iotools import ETSF_Reader
+from abipy.tools import gaussian
 from abipy.tools.plotting_utils import Marker
 
 __all__ = [
@@ -41,14 +43,12 @@ class PhononMode(object):
             qpoint: qpoint in reduced coordinates.
             freq: Phonon frequency in eV.
             displ: Displacement (Cartesian coordinates, Angstrom)
-            structure: Pymatgen :class:`Structure`.
+            structure: :class:`Structure` object.
         """
         self.qpoint = Kpoint.as_kpoint(qpoint, structure.reciprocal_lattice)
         self.freq = freq
         self.displ_cart = displ_cart
         self.structure = structure
-
-    #def __str__(self):
 
     # Rich comparison support (ordered is based on the frequency).
     # Missing operators are automatically filled by total_ordering.
@@ -58,13 +58,26 @@ class PhononMode(object):
     def __lt__(self, other):
         return self.freq < other.freq
 
+    def __str__(self):
+        return self.to_string()
+
+    def to_string(self, with_displ=False):
+        lines = ["%s: q-point %s, frequency %.5f [eV]" % (self.__class__.__name__, self.qpoint, self.freq)]
+        app = lines.append
+
+        if with_displ:
+            app("Phonon displacement in cartesian coordinates [Angstrom]")
+            app(str(self.displ_cart))
+
+        return "\n".join(lines)
+
     #@property
     #def displ_red(self)
     #    return np.dot(self.xred, self.rprimd)
 
-    #def make_supercell(self, delta):
     #def export(self, path):
     #def visualize(self, visualizer):
+    #def build_supercell(self):
 
 
 class PhononBands(object):
@@ -124,12 +137,13 @@ class PhononBands(object):
                 of the band at that particular point. Used for plotting purpose e.g. fatbands.
         """
         self.structure = structure
+
+        #self.qpoints = as_kpoints(qpoint, structure.reciprocal_lattice, weights=None):
         self.qpoints = qpoints
+        self.num_qpoints = len(self.qpoints)
 
         self.phfreqs = phfreqs
         self.phdispl_cart = phdispl_cart
-
-        self.num_qpoints = len(self.qpoints)
 
         # Handy variables used to loop.
         self.num_atoms = structure.num_sites
@@ -145,9 +159,9 @@ class PhononBands(object):
                 self.set_width(key, width)
 
     def __str__(self):
-        return self.tostring()
+        return self.to_string()
 
-    def tostring(self, prtvol=0):
+    def to_string(self, prtvol=0):
         """String representation."""
         lines = []
         app = lines.append
@@ -341,19 +355,42 @@ class PhononBands(object):
         stream.writelines(sep.join(lines))
         stream.flush()
 
+    def qindex(self, qpoint):
+        """Returns the index of the qpoint. Accepts integer or reduced coordinates."""
+        if isinstance(qpoint, int):
+            return qpoint
+        else:
+            return self.qpoints.index(qpoint)
+
+    def qindex_qpoint(self, qpoint):
+        """Returns (qindex, qpoint) from an integer or a qpoint."""
+        qindex = self.qindex(qpoint)
+        qpoint = self.qpoints(qindex)
+        return qindex, qpoint
+
     def get_unstable_modes(self, below_mev=-5.0):
-        """Return the list of unstable phonon modes."""
-        raise NotImplemetedError("this is a stub")
+        """
+        Return a list of :class:`PhononMode` objects with the unstable modes.
+        A mode is unstable if its frequency is < below_mev. Output list is sorted
+        and modes with lowest frequency come first.
+        """
         umodes = []
 
-        for (q, qpoint) in enumerate(self.qpoints):
+        for iq, qpoint in enumerate(self.qpoints):
             for nu in self.branches:
-                freq = self.phfreqs[q, nu]
+                freq = self.phfreqs[iq, nu]
                 if freq < below_mev * 1000:
-                    displ_cart = self.phdispl_cart[q, nu, :]
+                    displ_cart = self.phdispl_cart[iq, nu, :]
                     umodes.append(PhononMode(qpoint, freq, displ_cart, self.structure))
 
-        return umodes
+        return sorted(umodes)
+
+    #def find_irreps(self, qpoint, tolerance):
+    #    """
+    #    Find the irreducible representation at this q-point
+    #    Raise: QIrrepsError if algorithm fails
+    #    """
+    #    qindex, qpoint = self.qindex_qpoint(qpoint)
 
     def get_phdos(self, method="gaussian", step=1.e-4, width=4.e-4):
         """
@@ -419,16 +456,15 @@ class PhononBands(object):
         natoms = int(np.round(len(self.structure)*np.linalg.det(scale_matrix)))
         with open(filename, "w") as xyz_file:
             for imode in np.arange(self.num_branches):
-                xyz_file.write(str(natoms)+"\n")
-                xyz_file.write("Mode "+str(imode)+" : "+str(self.phfreqs[iqpt, imode])+"\n")
-                self.structure.write_vib_file(xyz_file, self.qpoints[iqpt].frac_coords, pre_factor*np.reshape(self.phdispl_cart[iqpt, imode,:],(-1,3)), do_real=True,
-                                              frac_coords=False, max_supercell=max_supercell,
-                                              scale_matrix=scale_matrix)
+                xyz_file.write(str(natoms) + "\n")
+                xyz_file.write("Mode " + str(imode) + " : " + str(self.phfreqs[iqpt, imode]) + "\n")
+                self.structure.write_vib_file(
+                    xyz_file, self.qpoints[iqpt].frac_coords, pre_factor*np.reshape(self.phdispl_cart[iqpt, imode,:],(-1,3)), do_real=True,
+                    frac_coords=False, max_supercell=max_supercell, scale_matrix=scale_matrix)
 
     def decorate_ax(self, ax, **kwargs):
         title = kwargs.pop("title", None)
-        if title is not None:
-            ax.set_title(title)
+        if title is not None: ax.set_title(title)
                                                                    
         ax.grid(True)
         ax.set_xlabel('q-point')
@@ -547,10 +583,10 @@ class PhononBands(object):
         if qlabels is not None:
             d = collections.OrderedDict()
 
-            for (qcoord, qname) in qlabels.items():
+            for qcoord, qname in qlabels.items():
                 # Build Kpoint instancee
                 qtick = Kpoint(qcoord, self.structure.reciprocal_lattice)
-                for (q, qpoint) in enumerate(self.qpoints):
+                for q, qpoint in enumerate(self.qpoints):
                     if qtick == qpoint:
                         d[q] = qname
         else:
@@ -712,9 +748,6 @@ class PHBST_Reader(ETSF_Reader):
         """
         return self.read_value("phdispl_cart", cmode="c")
 
-    #def get_modes_frame(self, qpoint):
-    #    import pandas as pd
-
 
 class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands):
 
@@ -738,24 +771,16 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands):
         return self.phbands.structure
 
     @property
+    def qpoints(self):
+        return self.phbands.qpoints
+
+    @property
     def phbands(self):
         """:class:`PhononBands` object"""
         return self._phbands
 
     def close(self):
         self.reader.close()
-
-    #def __str__(self):
-    #    return self.tostring()
-
-    #def tostring(self, prtvol=0):
-    #    """
-    #    String representation
-    #    Args:
-    #        prtvol:
-    #            verbosity level.
-    #    """
-    #    return "\n".join(lines)
 
     def qindex(self, qpoint):
         """Returns the index of the qpoint. Accepts integer or reduced coordinates."""
@@ -767,41 +792,59 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands):
     def qindex_qpoint(self, qpoint):
         """Returns (qindex, qpoint) from an intege or a qpoint."""
         qindex = self.qindex(qpoint)
-        qpoint = self.qpoints(qindex)
+        qpoint = self.qpoints[qindex]
         return qindex, qpoint
 
-    #def get_modes_frame(self, qpoint):
-    #    """Return a pandas :class:`DataFrame` with the phonon frequencies at the given q-point."""
-    #    qindex, qpoint = self.qindex_qpoint(qpoint)
+    def get_phframe(self, qpoint):
+        """
+        Return a pandas :class:`DataFrame` with the phonon frequencies at the given q-point and 
+        information on the crystal structure (used for convergence studies).
 
-    #    d = dict
-    #        omega=phfreqs[qindex, :],
-    #        modes=list(range(len(self.structure))),
-    #    }
+        Args:
+            qpoint: integer, vector of reduced coordinates or :class:`Kpoint` object.
+        """
+        qindex, qpoint = self.qindex_qpoint(qpoint)
+        phfreqs = self.phbands.phfreqs
 
-    #    import pandas as pd
-    #    frame = pd.DataFrame(d, colums=d.keys())
-    #    frame.qpoint = self.qpoints(qindex)
+        d = dict(
+            omega=phfreqs[qindex, :],
+            branch=list(range(3 * len(self.structure))),
+        )
 
-    #    return frame
+        # Add geo information
+        structure = self.structure
+        abc, angles = structure.lattice.abc, structure.lattice.angles
+        d.update(dict(
+            a=abc[0], b=abc[1], c=abc[2], volume=structure.volume,
+            angle0=angles[0], angle1=angles[1], angle2=angles[2],
+            formula=structure.formula,
+        ))
 
-    def get_phonon_mode(self, qpoint, nu):
+        # Build the pandas Frame and add the q-point as attribute.
+        import pandas as pd
+        frame = pd.DataFrame(d, columns=d.keys())
+        frame.qpoint = qpoint
+
+        return frame
+
+    def get_phmode(self, qpoint, branch):
         """
         Returns the :class:`PhononMode` with the given qpoint and branch nu.
 
         Args:
             qpoint: Either a vector with the reduced components of the q-point
                 or an integer giving the sequential index (C-convention).
-            nu: branch index (C-convention)
+            branch: branch index (C-convention)
 
         Returns:
             :class:`PhononMode` instance.
         """
-        raise NotImplementedError("")
         qindex, qpoint = self.qindex_qpoint(qpoint)
-        #omega=phfreqs[qindex, :],
-        #displ_cart = self.phdispl_cart[qindex, nu, :]
-        return PhononMode(qpoint, freq, displ_cart, self.structure)
+
+        return PhononMode(qpoint=qpoint, 
+                          freq=self.phbands.phfreqs[qindex, branch], 
+                          displ_cart=self.phbands.phdispl_cart[qindex, branch, :],
+                          structure=self.structure)
 
 
 class PhononDos(object):
@@ -817,7 +860,16 @@ class PhononDos(object):
             mesh is given in eV, values are in states/eV.
         """
         self.dos = Function1D(mesh, values)
-        self.idos = self.dos.integral()
+
+    @lazy_property
+    def idos(self):
+        """Integrated DOS."""
+        return self.dos.integral()
+
+    #@lazy_property
+    #def zpm(self)
+    #    """Zero point motion"""
+    #    return 0.5 * hbar * (self.dos * self.dos.mesh).integral[-1]
 
     def plot_ax(self, ax, what="d", exchange_xy=False, *args, **kwargs):
         """
@@ -840,7 +892,7 @@ class PhononDos(object):
         cases = {"d": self.dos,
                  "i": self.idos}
 
-        lines = list()
+        lines = []
         for c in opts:
             f = cases[c]
             ls = f.plot_ax(ax, exchange_xy=exchange_xy, *args, **kwargs)
@@ -879,6 +931,101 @@ class PhononDos(object):
         fig = plt.gcf()
         return fig
 
+    def harmonic_thermo(self, tstart, tstop, num=50):
+        """
+        Compute thermodinamic properties from the phonon DOS within the harmonic approximation.
+
+        start: scalar
+            The starting value (in Kelvin) of the temperature mesh. 
+        stop: scalar
+            The end value (in Kelvin) of the mesh.
+        num: int, optional
+            Number of samples to generate. Default is 50.
+        """
+        tmesh = np.linspace(tstart, tstop, num=num)
+
+        coth = lambda x: 1.0 / np.tanh(x)
+        csch2 = lambda x: 1.0 / (np.sinh(x) ** 2)
+
+        # Boltzmann constant in Ha/K
+        kb_HaK = 8.617343e-5 / Ha_to_eV 
+
+        for i, gw in enumerate(self.dos.values):
+            if gw > 0: break
+        #i = self.dos.find_mesh_index(0.0)
+
+        # Use atomic units
+        w =  self.dos.mesh[i:] * eV_to_Ha
+        gw = self.dos.values[i:] * Ha_to_eV
+
+        from scipy.integrate import cumtrapz
+        def integrate(values):
+            return cumtrapz(values, x=w)[-1]
+
+        #w, gw = w[i:], gw[i:]
+        # TODO
+        # Check for possible numerical instabilities when w ~ 0 or negative
+        # Prefactors are missing!
+        df, de, cv, s = map(np.empty, 4 * (len(tmesh),))
+        for i, temp in enumerate(tmesh):
+            # Equations in Xavier's paper.
+            kt = kb_HaK * temp
+            wd2kt = w / (2 * kt)
+            df[i] = kt * integrate(np.log(2 * np.sinh(wd2kt)) * gw)
+            de[i] = integrate(w * coth(wd2kt) * gw)
+            cv[i] = integrate(wd2kt * wd2kt * csch2(wd2kt) * gw)
+            s[i] = integrate((wd2kt * coth(wd2kt) - np.log(2 * np.sinh(wd2kt))) * gw)
+
+        locvars = locals()
+        return HarmonicThermo(**{name: Function1D(tmesh, locvars[name]) for name in ("df", "de", "cv", "s")})
+
+
+class HarmonicThermo(AttrDict):
+    """
+    This object gather the thermodinamic properties computed within the harmonic approximation.
+    It also provides methods to plot the data and to compare two calculations.
+    """
+    latex_labels = dict(
+        df="$\Delta F(T)$",
+        de="$\Delta E(T)$",
+        cv="$C_{v}(T)$",
+        s="S(T)",
+    )
+
+    @add_fig_kwargs
+    def plot(self, **kwargs):
+        """Plot thermodinamic properties with matplotlib."""
+        import matplotlib.pyplot as plt
+        fig, ax_list = plt.subplots(nrows=2, ncols=2, sharex=True, squeeze=True)
+        ax_list = ax_list.ravel()
+
+        for (name, func), ax in zip(self.items(), ax_list):
+            func.plot_ax(ax)
+            ax.grid(True)
+            ax.set_xlabel('Temperature ')
+            ax.set_ylabel(self.latex_labels[name])
+
+        return fig
+
+    def compare(self, other, tol=0.1, ret_diffs=False):
+        """
+        Compare two :class:`HarmonicThermo` objects
+
+        Returns: 
+            (isok, diffs) 
+            where isok is True if all values are converged withing tol 
+            and diffs is a :class:`AttrDict`that gives, for each property the  l2 norm of (f1 - f2)
+        """
+        # TODO: Relative diff or absolute diff?
+        diffs, isok = AttrDict(), True
+        for name, self_func in self.items():
+            other_func = other[name]
+            diffs[name] = (self_func - other_func).l2_norm
+            if diffs[name] > tol: isok = False
+
+        if ret_diffs: return isok, diffs
+        return isok
+
 
 class PhdosReader(ETSF_Reader):
     """
@@ -907,12 +1054,10 @@ class PhdosReader(ETSF_Reader):
         """DOS projected over atoms and reduced directions pjdos(natom,3,nomega)."""
         return self.read_value("pjdos")
 
-    @property
+    @lazy_property
     def structure(self):
         """The crystalline structure."""
-        if not hasattr(self, "__structure"):
-            self.__structure = self.read_structure()
-        return self.__structure
+        return self.read_structure()
 
     def read_phdos(self, cls=PhononDos):
         """Return the :class:`PhononDOS`."""
@@ -982,8 +1127,7 @@ class PhdosFile(AbinitNcFile, Has_Structure):
         Stacked Plot of the  projected DOS (projection is for atom types)
 
         Args:
-            colormap
-                Have a look at the colormaps here and decide which one you'd like:
+            colormap: Have a look at the colormaps here and decide which one you'd like:
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
 
         Returns:

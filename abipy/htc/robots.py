@@ -10,7 +10,6 @@ from collections import OrderedDict, deque
 from monty.string import is_string
 from pymatgen.io.abinitio.eos import EOS
 from pymatgen.io.abinitio.flows import Flow
-#from abipy import abilab
 
 
 __all__ = [

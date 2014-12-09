@@ -59,7 +59,7 @@ class TestFunction1D(AbipyTest):
         def primitive(x):
             return 0.5 * x - 0.25 * np.sin(2*x)
 
-        self.assert_almost_equal(sinf.l2_norm, primitive(self.xmax) - primitive(self.xmin))
+        self.assert_almost_equal(sinf.l2_norm**2, primitive(self.xmax) - primitive(self.xmin))
 
         # Derivatives
         self.assertTrue(sinf.finite_diff(order=1, acc=4) == cosf)

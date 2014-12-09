@@ -11,11 +11,11 @@ class AbiInputTest(AbipyTest):
 
     def test_si_input(self):
         """Testing Silicon input with NC pseudo."""
-        aequal = self.assertEqual
-        atrue = self.assertTrue
+        aequal, atrue = self.assertEqual, self.assertTrue
 
         # Create an ABINIT input file with 1 dataset. 
         inp = AbiInput(pseudos="14si.pspnc", pseudo_dir=abidata.pseudo_dir, ndtset=1)
+        
 
         aequal(inp.isnc, True)
 
@@ -53,6 +53,10 @@ class AbiInputTest(AbipyTest):
         # To print the input to stdout use:
         print(inp)
 
+        # Compatible with deepcopy and Pickle?
+        inp.deepcopy()
+        self.serialize_with_pickle(inp, test_eq=False)
+
         # A slightly more complicated example: input file with two datasets
         inp = AbiInput(pseudos="14si.pspnc", pseudo_dir=abidata.pseudo_dir, ndtset=2)
 
@@ -69,11 +73,12 @@ class AbiInputTest(AbipyTest):
 
         print(inp)
 
-        # Compatible with Pickle?
+        # Compatible with deepcopy and Pickle?
+        inp.deepcopy()
         self.serialize_with_pickle(inp, test_eq=False)
 
         # pseudo file must exist.
-        with self.assertRaises(AbinitInputError):
+        with self.assertRaises(inp.Error):
             AbiInput(pseudos="foobar.pspnc", pseudo_dir=abidata.pseudo_dir, ndtset=2)
 
         tsmear_list = [0.005, 0.01]
@@ -127,7 +132,8 @@ class AbiInputTest(AbipyTest):
         # Set global variables.
         inp.set_variables(ecut=10)
 
-        # Compatible with Pickle?
+        # Compatible with deepcopy and Pickle?
+        inp.deepcopy()
         self.serialize_with_pickle(inp, test_eq=False)
 
         # Setting an unknown variable should raise an error.
@@ -139,8 +145,7 @@ class LdauLexxTest(AbipyTest):
 
     def test_nio(self):
         """Test LdauParams and LexxParams."""
-        aequal = self.assertEqual
-        atrue = self.assertTrue
+        aequal, atrue = self.assertEqual, self.assertTrue
 
         structure = abidata.structure_from_ucell("NiO")
         pseudos = abidata.pseudos("28ni.paw", "8o.2.paw")
@@ -217,8 +222,10 @@ class AnaddbInputTest(AbipyTest):
         s3 = inp3.to_string(sortmode="a")
         print(s3)
 
+        # Compatible with deepcopy and Pickle?
         for i in (inp, inp2, inp3):
             self.serialize_with_pickle(i, test_eq=False)
+            i.deepcopy()
 
     def test_thermo(self):
         """Test the thermodynamics constructor"""
@@ -228,7 +235,9 @@ class AnaddbInputTest(AbipyTest):
             self.assertTrue(anaddb_input[var] >= 0)
         for flag in ('ifcflag', 'thmflag'):
             self.assertEqual(anaddb_input[flag], 1)
+
         self.serialize_with_pickle(anaddb_input, test_eq=False)
+        anaddb_input.deepcopy()
 
     def test_modes(self):
         """Test the modes constructor"""
@@ -236,7 +245,10 @@ class AnaddbInputTest(AbipyTest):
         self.assertTrue(anaddb_input.make_input())
         for flag in ('ifcflag', 'dieflag'):
             self.assertEqual(anaddb_input[flag], 1)
+
         self.serialize_with_pickle(anaddb_input, test_eq=False)
+        anaddb_input.deepcopy()
+
 
 if __name__ == "__main__":
     import unittest

@@ -53,6 +53,7 @@ class DdbFile(TextFile, Has_Structure):
     @lazy_property
     def structure(self):
         structure = Structure.from_abivars(**self.header)
+        # Add Spacegroup (needed in guessed_ngkpt)
         # FIXME: has_timerev is always True
         spgid, has_timerev, h = 0, True, self.header
         structure.set_spacegroup(SpaceGroup(spgid, h.symrel, h.tnons, h.symafm, has_timerev))
@@ -173,11 +174,11 @@ class DdbFile(TextFile, Has_Structure):
                 all_qpoints[count] = op.rotate_k(qpoint, wrap_tows=False)
                 count += 1
 
-        # Set zero to np.inf
+        # Replace zeros with np.inf
         for q in all_qpoints: 
             q[q == 0] = np.inf
 
-        # Compute the minimum of the fract coordinates along the 3 directions and invert
+        # Compute the minimum of the fractional coordinates along the 3 directions and invert
         #print(all_qpoints)
         smalls = np.abs(all_qpoints).min(axis=0)
         smalls[smalls == 0] = 1
@@ -188,7 +189,7 @@ class DdbFile(TextFile, Has_Structure):
         return np.array(ngqpt, dtype=np.int)
 
     def calc_phmodes_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, 
-                               workdir=None, manager=None, verbose=0):
+                               workdir=None, manager=None, verbose=0, ret_task=False):
         """
         Execute anaddb to compute phonon modes at the given q-point.
 
@@ -214,22 +215,26 @@ class DdbFile(TextFile, Has_Structure):
             print("ANADDB INPUT:\n", inp)
 
         task = AnaddbTask(inp, self.filepath, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
-        task.start_and_wait(autoparal=False)
 
+        if ret_task:
+            return task
+
+        # Run the task here
+        task.start_and_wait(autoparal=False)
         report = task.get_event_report()
         if not report.run_completed:
             raise TaskException(task=task, report=report)
 
-        with task.open_phbst() as phbst_file:
-            return phbst_file.phbands
+        with task.open_phbst() as ncfile:
+            return ncfile.phbands
 
     #def calc_phbands(self, ngqpt=None, ndivsm=20, asr=2, chneut=1, dipdip=1, workdir=None, manager=None, verbose=0, **kwargs):
     #def calc_phdos(self, ngqpt=None, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra" workdir=None, manager=None, verbose=0, **kwargs):
 
     def calc_phbands_and_dos(self, ngqpt=None, ndivsm=20, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra",
-                             workdir=None, manager=None, verbose=0, **kwargs):
+                             workdir=None, manager=None, verbose=0, plot=True, ret_task=False):
         """
-        Execute anaddb to compute phonon band structure and phonon DOS
+        Execute anaddb to compute the phonon band structure and the phonon DOS
 
         Args:
             ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)
@@ -240,7 +245,6 @@ class DdbFile(TextFile, Has_Structure):
         """
         if ngqpt is None: ngqpt = self.guessed_ngqpt
 
-        #kwargs["brav"] = 2
         inp = AnaddbInput.phbands_and_dos(
             self.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, 
             q1shft=(0,0,0), qptbounds=None, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method)
@@ -252,16 +256,19 @@ class DdbFile(TextFile, Has_Structure):
             print("ANADDB INPUT:\n", inp)
 
         task = AnaddbTask(inp, self.filepath, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
+
+        if ret_task:
+            return task
+
+        # Run the task here.
         task.start_and_wait(autoparal=False)
 
         report = task.get_event_report()
         if not report.run_completed:
             raise TaskException(task=task, report=report)
 
-        plot = kwargs.pop("plot", True)
-        with task.open_phbst() as phbst_file, task.open_phdos() as phdos_file:
-            phbands = phbst_file.phbands 
-            phdos = phdos_file.phdos
+        with task.open_phbst() as phbst_ncfile, task.open_phdos() as phdos_ncfile:
+            phbands, phdos = phbst_ncfile.phbands, phdos_ncfile.phdos
             if plot:
                 phbands.plot_with_phdos(phdos, title="Phonon bands and DOS of %s" % self.structure.formula)
 
@@ -315,16 +322,18 @@ class DdbFile(TextFile, Has_Structure):
 #        self.ddb.close()
 #
 #    def converge_phdos(self, nqsmall_slice):
-#        phdos_list = []
+#        doses = []
 #        for nqs in nsmall_range:
 #           #self.ddb.calc_phbands_and_dos(ngqpt=None, ndivsm=20, nqsmall=10, workdir=None, manager=self.manager)
-#           phdos_list.append(phdos)
+#           doses.append(phdos)
 #
 #        # Compare last three phonon DOSes.
 #        # Be careful here because the DOS may be defined on different frequency meshes
-#        last_mesh = ...
+#        last_mesh = doses[-1].mesh
 #        converged = False
-#        phdos.dos.spline_on_mesh(last_mesh)
+#         for dos in doses[:-1]:
+#            dos = dos.spline_on_mesh(last_mesh)
+#            diffs.append(dos - doses[-1])
 #
 #        if converged:
 #            return collections.namedtuple("results", "phdos ngsmall plotter")

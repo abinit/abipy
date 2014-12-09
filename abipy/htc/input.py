@@ -14,9 +14,7 @@ import copy
 import six
 import abc
 import numpy as np
-import pymatgen.core.units as units
 import abipy.tools.mixins as mixins
-
 
 from collections import OrderedDict
 from monty.string import is_string, list_strings
@@ -34,7 +32,6 @@ logger = logging.getLogger(__file__)
 
 
 __all__ = [
-    "AbinitInputError",
     "AbiInput",
     "LdauParams",
     "LexxParams",
@@ -75,10 +72,6 @@ class Input(object):
     An input object must define have a make_input method 
     that returns the string representation used by the client code.
     """
-    def copy(self):
-        """Shallow copy of the input."""
-        return copy.copy(self)
-                                   
     def deepcopy(self):
         """Deep copy of the input."""
         return copy.deepcopy(self)
@@ -132,7 +125,7 @@ class Input(object):
     #        self[idt].remove_variables(keys)
 
 
-class AbinitInputError(Exception):
+class InputError(Exception):
     """Base error class for exceptions raised by `AbiInput`"""
 
 
@@ -153,7 +146,7 @@ class AbiInput(Input, Has_Structure):
 
         print(inp)
     """
-    Error = AbinitInputError
+    Error = InputError
 
     def __init__(self, pseudos, pseudo_dir="", ndtset=1, comment=""):
         """
@@ -317,6 +310,12 @@ class AbiInput(Input, Has_Structure):
         """True if varname is a valid Abinit variable."""
         return is_abivar(varname)
 
+    #def new_with_variables(self, *args, **kwargs):
+    #    """Generate a new input (deep copy) with these variables"""
+    #    new = self.deepcopy()
+    #    new.set_variables(*args, **kwargs)
+    #    return new
+
     def generate(self, **kwargs):
         """
         Generate new inputs by replacing the variables specified in kwargs.
@@ -431,7 +430,7 @@ class AbiInput(Input, Has_Structure):
     #    assert format in ["angdeg", "rprim"]
     #    self._geoformat = format
 
-    def get_ibz(self, ngkpt=None, shiftk=None, qpoint=None, workdir=None, manager=None):
+    def get_ibz(self, ngkpt=None, shiftk=None, kptopt=None, qpoint=None, workdir=None, manager=None):
         """
         This function, computes the list of points in the IBZ and the corresponding weights.
         It should be called with an input file that contains all the mandatory variables required by ABINIT.
@@ -447,6 +446,10 @@ class AbiInput(Input, Has_Structure):
             `namedtuple` with attributes:
                 points: `ndarray` with points in the IBZ in reduced coordinates.
                 weights: `ndarray` with weights of the points.
+
+        .. warning::
+
+            Multiple datasets are ignored. Only the list of k-points for dataset 1 are returned.
         """
         #assert self.ndtset == 1
         # Avoid modifications in self.
@@ -460,14 +463,17 @@ class AbiInput(Input, Has_Structure):
             inp.shiftk = np.reshape(shiftk, (-1,3))
             inp.nshiftk = len(inp.shiftk)
 
+        if kptopt is not None:
+            inp.kptopt = kptopt
+
         if qpoint is not None:
-            inp.qptn = qpoint
-            inp.nqpt = 1
+            inp.qptn, inp.nqpt = qpoint, 1
 
         # Build a simple manager to run the job in a shell subprocess
         # Construct the task and run it
         if manager is None: manager = TaskManager.from_user_config()
         workdir = tempfile.mkdtemp() if workdir is None else workdir  
+
         task = AbinitTask.from_input(inp, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
         task.start_and_wait(autoparal=False)
 
@@ -618,7 +624,7 @@ class Dataset(mixins.MappingMixin, Has_Structure):
     This object stores the ABINIT variables for a single dataset.
     """
     # TODO this should be the "actual" input file
-    Error = AbinitInputError
+    Error = InputError
 
     def __init__(self, index, dt0, *args, **kwargs):
         self._mapping_mixin_ = collections.OrderedDict(*args, **kwargs)
@@ -1111,19 +1117,13 @@ def product_dict(d):
     return vars_prod
 
 
-class AnaddbInputError(Exception):
-    """Exceptions raised by AnaddbInput."""
-
-
 class AnaddbInput(mixins.MappingMixin, Has_Structure):
-    #TODO: Abstract interface to that we can provide
-    # tools for AbinitInput and AnaddbInput
-    #deepcopy
+    #TODO: Abstract interface so that we can provide tools for AbinitInput and AnaddbInput
     #removevariable
-    Error = AnaddbInputError
+    Error = InputError
 
     @classmethod
-    def modes_at_qpoint(cls, structure, qpoint, asr=2, chneut=1, dipdip=1, **kwargs):
+    def modes_at_qpoint(cls, structure, qpoint, asr=2, chneut=1, dipdip=1):
         """
         Input file for the calculation of the phonon frequencies at a given q-point.
 
@@ -1133,9 +1133,7 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             kwargs:
         """
-        new = cls(structure, 
-                  comment="ANADB input for the computation of phonon frequencies for one q-point", 
-                  **kwargs)
+        new = cls(structure, comment="ANADB input for the computation of phonon frequencies for one q-point")
 
         new.set_variables(
             ifcflag=1,        # Interatomic force constant flag
@@ -1153,12 +1151,19 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
 
         return new
 
-    @classmethod
-    def phdos(cls, structure, ngqpt, nqsmall, q1shft=(0,0,0),
-              asr=2, chneut=0, dipdip=1, dos_method="tetra", **kwargs):
-        """
-        Build an anaddb input file for the computation of phonon bands and phonon DOS.
-        """
+    #@classmethod
+    #def phbands(cls, structure, ngqpt, nqsmall, q1shft=(0,0,0),
+    #          asr=2, chneut=0, dipdip=1, dos_method="tetra", **kwargs):
+    #    """
+    #    Build an anaddb input file for the computation of phonon band structure.
+    #    """
+
+    #@classmethod
+    #def phdos(cls, structure, ngqpt, nqsmall, q1shft=(0,0,0),
+    #          asr=2, chneut=0, dipdip=1, dos_method="tetra", **kwargs):
+    #    """
+    #    Build an anaddb input file for the computation of phonon DOS.
+    #    """
 
     @classmethod
     def phbands_and_dos(cls, structure, ngqpt, nqsmall, ndivsm=20, q1shft=(0,0,0),
@@ -1167,7 +1172,7 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
         Build an anaddb input file for the computation of phonon bands and phonon DOS.
 
         Args:
-            Structure: :class:`Structure` object
+            structure: :class:`Structure` object
             ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
             nqsmall: Used to generate the (dense) mesh for the DOS.
                 It defines the number of q-points used to sample the smallest lattice vector.
@@ -1189,7 +1194,7 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
             i = dos_method.find(":")
             if i != -1:
                 value, eunit = dos_method[i+1:].split()
-                dossmear = units.Energy(float(value), eunit).to("Ha")
+                dossmear = Energy(float(value), eunit).to("Ha")
         else:
             raise cls.Error("Wrong value for dos_method: %s" % dos_method)
 
@@ -1405,6 +1410,10 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
             app(str(InputVariable(varname, value)))
 
         return "\n".join(lines)
+
+    def deepcopy(self):
+        """Deep copy of the input."""
+        return copy.deepcopy(self)
 
     def set_variable(self, varname, value):
         """Set a single variable."""

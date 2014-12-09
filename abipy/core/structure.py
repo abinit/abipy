@@ -638,9 +638,7 @@ class Structure(pymatgen.Structure):
         ngkpt = self.calc_ngkpt(nksmall)
         shiftk = self.calc_shiftk(symprec=symprec, angle_tolerance=angle_tolerance)
 
-        return AttrDict(
-            ngkpt=ngkpt,
-            shiftk=shiftk)
+        return AttrDict(ngkpt=ngkpt, shiftk=shiftk)
 
     def calc_ngkpt(self, nksmall): 
         """

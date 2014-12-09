@@ -245,7 +245,7 @@ class Function1D(object):
             acc: Accuracy. 4 is fine in many cases.
 
         Returns:
-            new `Function1d` instance with the derivative.
+            new :class:`Function1d` instance with the derivative.
         """
         if self.h is None:
             raise ValueError("Finite differences with inhomogeneous meshes are not supported")
@@ -297,15 +297,15 @@ class Function1D(object):
         b = self.mesh[-1] if b is None else b
         return self.spline.integral(a, b)
 
-    @property
+    @lazy_property
     def l1_norm(self):
         """Compute :math:`\int |f(x)| dx`."""
         return abs(self).integral()[-1][1]
 
-    @property
+    @lazy_property
     def l2_norm(self):
-        """Compute :math:`\int |f(x)|^2 dx`."""
-        return (abs(self)**2).integral()[-1][1]
+        """Compute :math:`\sqrt{\int |f(x)|^2 dx}`."""
+        return np.sqrt( (abs(self)**2).integral()[-1][1] )
 
     def fft(self):
         """Compute the FFT transform (negative sign)."""
