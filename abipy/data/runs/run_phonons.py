@@ -51,12 +51,12 @@ def scf_ph_inputs(paral_kgb=0):
 
     gs_inp = abilab.AbiInput(pseudos=pseudos)
     gs_inp.set_structure(structure)
-    gs_inp.set_variables(**global_vars)
-    gs_inp.set_variables(tolvrs=1.0e-18)
+    gs_inp.set_vars(**global_vars)
+    gs_inp.set_vars(tolvrs=1.0e-18)
 
     # Get the qpoints in the IBZ. Note that here we use a q-mesh with ngkpt=(4,4,4) and shiftk=(0,0,0)
     # i.e. the same parameters used for the k-mesh in gs_inp.
-    qpoints = gs_inp.get_ibz(ngkpt=(4,4,4), shiftk=(0,0,0), kptopt=1).qpoints
+    qpoints = gs_inp.get_ibz(ngkpt=(4,4,4), shiftk=(0,0,0), kptopt=1).points
     #print("get_ibz", qpoints)
 
     ph_inputs = abilab.AbiInput(pseudos=pseudos, ndtset=len(qpoints))
@@ -64,8 +64,8 @@ def scf_ph_inputs(paral_kgb=0):
     for ph_inp, qpt in zip(ph_inputs, qpoints):
         # Response-function calculation for phonons.
         ph_inp.set_structure(structure)
-        ph_inp.set_variables(**global_vars)
-        ph_inp.set_variables(
+        ph_inp.set_vars(**global_vars)
+        ph_inp.set_vars(
             rfphon=1,        # Will consider phonon-type perturbation
             nqpt=1,          # One wavevector is to be considered
             qpt=qpt,         # This wavevector is q=0 (Gamma)

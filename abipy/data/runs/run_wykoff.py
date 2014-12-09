@@ -78,16 +78,16 @@ def make_workflow(structure, pseudos, paral_kgb=1):
     # GS + NSCF run 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
     inp.set_structure(structure)
-    inp.set_variables(**global_vars)
+    inp.set_vars(**global_vars)
 
     # (GS run)
     inp[1].set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
 
-    inp[1].set_variables(
+    inp[1].set_vars(
           tolvrs=1e-6)
 
     # (NSCF run)
-    inp[2].set_variables(
+    inp[2].set_vars(
         iscf=-2,
         tolwfr=1e-12,
         kptopt=0,

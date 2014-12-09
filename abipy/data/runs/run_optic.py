@@ -50,16 +50,16 @@ def build_flow(options, paral_kgb=0):
 
     global_vars.update(kmesh)
 
-    inp.set_variables(**global_vars)
+    inp.set_vars(**global_vars)
 
     # Dataset 1 (GS run)
-    inp[1].set_variables(
+    inp[1].set_vars(
         tolvrs=1e-6,
         nband=4,
     )
 
     # NSCF run with large number of bands, and points in the the full BZ
-    inp[2].set_variables(
+    inp[2].set_vars(
         iscf=-2,
        nband=20, 
        nstep=25,
@@ -75,7 +75,7 @@ def build_flow(options, paral_kgb=0):
         rfdir = 3 * [0]
         rfdir[dir] = 1
 
-        inp[3+dir].set_variables(
+        inp[3+dir].set_vars(
            iscf=-3,
           nband=20,  
           nstep=1,

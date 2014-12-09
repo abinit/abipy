@@ -101,17 +101,17 @@ def raman_work(structure, pseudos, ngkpt, shiftk, ddk_manager, shell_manager):
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=5)
 
     inp.set_structure(structure)
-    inp.set_variables(**global_vars)
+    inp.set_vars(**global_vars)
     inp.set_kmesh(ngkpt=ngkpt, shiftk=shiftk)
 
     # GS run
-    inp[1].set_variables(
+    inp[1].set_vars(
         tolvrs=1e+8,
         nband=59,
     )
 
     # NSCF run
-    inp[2].set_variables(
+    inp[2].set_vars(
         iscf=-2,
        nband=100,
        kptopt=1,
@@ -126,7 +126,7 @@ def raman_work(structure, pseudos, ngkpt, shiftk, ddk_manager, shell_manager):
         rfdir = 3 * [0]
         rfdir[dir] = 1
 
-        inp[3+dir].set_variables(
+        inp[3+dir].set_vars(
            iscf=-3,
 	       nband=100,
            nstep=1,

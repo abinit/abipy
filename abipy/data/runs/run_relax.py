@@ -36,10 +36,10 @@ def make_ion_ioncell_inputs(paral_kgb=1):
     inp.set_structure(structure)
 
     # Global variables
-    inp.set_variables(**global_vars)
+    inp.set_vars(**global_vars)
 
     # Dataset 1 (Atom Relaxation)
-    inp[1].set_variables(
+    inp[1].set_vars(
         optcell=0,
         ionmov=2,
         tolrff=0.02,
@@ -50,7 +50,7 @@ def make_ion_ioncell_inputs(paral_kgb=1):
     )
 
     # Dataset 2 (Atom + Cell Relaxation)
-    inp[2].set_variables(
+    inp[2].set_vars(
         optcell=1,
         ionmov=2,
         ecutsm=0.5,

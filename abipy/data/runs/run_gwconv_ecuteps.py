@@ -33,21 +33,21 @@ def make_inputs(paral_kgb=1):
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=4)
 
     inp.set_structure(structure)
-    inp.set_variables(**global_vars)
+    inp.set_vars(**global_vars)
     inp.set_kmesh(ngkpt=ngkpt, shiftk=shiftk)
 
-    inp[1].set_variables(
+    inp[1].set_vars(
         nband=10,
         tolvrs=1.e-8,
     )
 
-    inp[2].set_variables(
+    inp[2].set_vars(
         nband=25,
         tolwfr=1.e-8,
         iscf=-2
     )
 
-    inp[3].set_variables(
+    inp[3].set_vars(
         optdriver=3,
         ecutwfn=ecut,
         nband=20,
@@ -56,7 +56,7 @@ def make_inputs(paral_kgb=1):
         ecuteps=ecuteps,
     )
         
-    inp[4].set_variables(
+    inp[4].set_vars(
         optdriver=4,
         nband=20,
         ecutwfn=ecut,
@@ -99,7 +99,7 @@ def build_flow(options):
     scr_work = abilab.Work()
 
     for inp in abilab.input_gen(scr_inp, nband=[10, 15]):
-        inp.set_variables(ecuteps=max_ecuteps)
+        inp.set_vars(ecuteps=max_ecuteps)
         scr_work.register_scr_task(inp, deps={bands.nscf_task: "WFK"})
 
     flow.register_work(scr_work)

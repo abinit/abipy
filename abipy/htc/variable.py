@@ -67,9 +67,7 @@ class InputVariable(object):
         self.value = value
         self._units = units
 
-        if (is_iter(self.value)
-            and isinstance(self.value[-1], str)
-            and self.value[-1] in _UNITS):
+        if (is_iter(self.value) and isinstance(self.value[-1], str) and self.value[-1] in _UNITS):
             self.value = list(self.value)
             self._units = self.value.pop(-1)
 

@@ -17,6 +17,7 @@ import numpy as np
 import abipy.tools.mixins as mixins
 
 from collections import OrderedDict
+from monty.dev import deprecated
 from monty.string import is_string, list_strings
 from pymatgen.core.units import Energy
 from pymatgen.io.abinitio.pseudos import PseudoTable, Pseudo
@@ -64,6 +65,30 @@ def straceback():
     return traceback.format_exc()
 
 
+def _idt_varname(varname):
+    """
+    Find the dataset index from the name of the variable.
+    Return the dataset index and the name of the variable with the numeric index removed.
+    dataset index is set to 0 for global variable.
+
+    >>> assert _idt_varname("foo") == (0, "foo")
+    >>> assert _idt_varname("foo1") == (1, "foo")
+    """
+    if not varname[-1].isdigit(): 
+        return 0, varname
+
+    # Find the index of the dataset.
+    idt = ""
+    for i, c in enumerate(reversed(varname)):
+        if c.isdigit():
+            idt += c
+        else:
+            break
+
+    # Strip the numeric index in varname
+    return int("".join(reversed(idt))), varname[:len(varname)-i]
+
+
 @six.add_metaclass(abc.ABCMeta)
 class Input(object): 
     """
@@ -98,7 +123,7 @@ class Input(object):
 
     #def set_structure(self, structure):
 
-    #def set_variables(self, dtset=0, **vars):
+    #def set_vars(self, dtset=0, **vars):
     #    """
     #    Set the value of a set of input variables.
 
@@ -109,9 +134,9 @@ class Input(object):
     #            Dictionary with the variables.
     #    """
     #    for idt in self._dtset2range(dtset):
-    #        self[idt].set_variables(**vars)
+    #        self[idt].set_vars(**vars)
 
-    #def remove_variables(self, keys, dtset=0):
+    #def remove_vars(self, keys, dtset=0):
     #    """
     #    Remove the variable listed in keys
     #                                                                         
@@ -122,7 +147,7 @@ class Input(object):
     #            List of variables to remove.
     #    """
     #    for idt in self._dtset2range(dtset):
-    #        self[idt].remove_variables(keys)
+    #        self[idt].remove_vars(keys)
 
 
 class InputError(Exception):
@@ -141,9 +166,10 @@ class AbiInput(Input, Has_Structure):
         inp = AbiInput(pseudos="si.pspnc", pseudo_dir="directory_with_pseudos")
 
         inp.set_structure_from_file("si.cif")
-        inp.set_variables(ecut=10, nband=3)
+        inp.set_vars(ecut=10, nband=3)
         # Add other variables. See the other methods provided by this object.
 
+        # Print it to get the final input.
         print(inp)
     """
     Error = InputError
@@ -184,15 +210,9 @@ class AbiInput(Input, Has_Structure):
             if missing:
                 raise self.Error("Cannot find the following pseudopotential files:\n%s" % str(missing)) 
 
-            #try:
             self._pseudos = PseudoTable(pseudo_paths)
-            #except Exception as exc:
-            #    msg = "\nIgnoring error raised while parsing pseudopotential files:\n Backtrace:" + straceback()
-            #    warnings.warn(msg)
-            #    self._pseudos = []
 
-        if comment:
-            self.set_comment(comment)
+        if comment: self.set_comment(comment)
 
     #def make_input(self):
     #    return str(self)
@@ -201,7 +221,7 @@ class AbiInput(Input, Has_Structure):
         """String representation i.e. the input file read by Abinit."""
         if self.ndtset > 1:
             s = ""
-            for (i, dataset) in enumerate(self):
+            for i, dataset in enumerate(self):
                 header = "### DATASET %d ###" % i
                 if i == 0: 
                     header = "### GLOBAL VARIABLES ###"
@@ -226,6 +246,16 @@ class AbiInput(Input, Has_Structure):
     def __getitem__(self, key):
         return self._datasets[key]
 
+    def __getattr__(self, varname):
+        try:
+            return super(AbiInput, self).__geattr__(self, varname)
+        except AttributeError:
+            try:
+                idt, varname = _idt_varname(varname)
+                return self._datasets[idt][varname]
+            except Exception as exc:
+                raise AttributeError(str(exc))
+
     def __setattr__(self, varname, value):
         if varname.startswith("ndtset"):
             raise self.Error("Cannot change read-only variable ndtset")
@@ -235,27 +265,16 @@ class AbiInput(Input, Has_Structure):
             super(AbiInput, self).__setattr__(varname, value)
 
         else:
-            if not varname[-1].isdigit():
+            idt, varname = _idt_varname(varname)
+
+            if idt == 0:
                 # Global variable.
-                self[0].set_variable(varname, value)
-
+                self[0].set_var(varname, value)
             else:
-                # Find the index of the dataset.
-                idt = ""
-                for i, c in enumerate(reversed(varname)):
-                    if c.isdigit():
-                        idt += c
-                    else:
-                        break
-
-                idt = int("".join(reversed(idt)))
                 if not (self.ndtset >= idt >= 1):
                     raise self.Error("Invalid dataset index %d, ndtset %d " % (idt, self.ndtset))
 
-                # Strip the numeric index.
-                varname = varname[:len(varname)-i]
-
-                self[idt].set_variable(varname, value)
+                self[idt].set_var(varname, value)
 
                 # Handle no_multi variables.
                 if varname in _ABINIT_NO_MULTI:
@@ -267,7 +286,7 @@ class AbiInput(Input, Has_Structure):
                             err_msg = "NO_MULTI variable: dataset 0: %s, dataset %d: %s" % (str(glob_value), idt, str(value))
                             raise self.Error(err_msg)
                     else:
-                        self[0].set_variable(varname, value)
+                        self[0].set_var(varname, value)
 
     @property
     def ndtset(self):
@@ -310,11 +329,11 @@ class AbiInput(Input, Has_Structure):
         """True if varname is a valid Abinit variable."""
         return is_abivar(varname)
 
-    #def new_with_variables(self, *args, **kwargs):
-    #    """Generate a new input (deep copy) with these variables"""
-    #    new = self.deepcopy()
-    #    new.set_variables(*args, **kwargs)
-    #    return new
+    def new_with_vars(self, *args, **kwargs):
+        """Generate a new input (deep copy) with these variables"""
+        new = self.deepcopy()
+        new.set_vars(*args, **kwargs)
+        return new
 
     def generate(self, **kwargs):
         """
@@ -365,13 +384,13 @@ class AbiInput(Input, Has_Structure):
                     raise self.Error(err_msg)
 
             new = self.__class__(pseudos=self.pseudos, ndtset=1)
-            new.set_variables(**my_vars)
+            new.set_vars(**my_vars)
             #new.set_geoformat(self.geoformat)
             news.append(new)
     
         return news
 
-    def set_variables(self, dtset=0, *args, **kwargs):
+    def set_vars(self, dtset=0, *args, **kwargs):
         """
         Set the value of a set of input variables.
 
@@ -380,35 +399,43 @@ class AbiInput(Input, Has_Structure):
             kwargs: Dictionary with the variables.
         """
         kwargs.update(dict(*args))
+        #print(kwargs)
         for idt in self._dtset2range(dtset):
-            self[idt].set_variables(**kwargs)
+            self[idt].set_vars(**kwargs)
 
-    def remove_variables(self, keys, dtset=0):
+    # Alias
+    set_variables = set_vars
+    set_variables = deprecated(replacement=set_vars)(set_variables)
+
+    def remove_vars(self, keys, dtset=0):
         """
-        Remove the variable listed in keys
+        Remove the variables listed in keys
                                                                              
         Args:
             dtset: Int with the index of the dataset, slice object of iterable 
             keys: List of variables to remove.
         """
         for idt in self._dtset2range(dtset):
-            self[idt].remove_variables(keys)
+            self[idt].remove_vars(keys)
 
-    def list_variable(self, varname):
-        # Global value
-        glob = self[0].get(varname, None)
-        # Values defined in the datasets.
-        vals = [self[idt].get(varname, None) for idt in range(1,self.ndtset+1)]
-        
-        # Replace None with glob.
-        values = []
-        for v in vals:
-            if v is not None:
-                values.append(v)
-            else:
-                values.append(glob)
+    # Alias
+    remove_variables = remove_vars
+    remove_variables = deprecated(replacement=remove_vars)(remove_variables)
 
-        return values
+    #def list_vars(self, varname):
+    #    # Global value
+    #    glob = self[0].get(varname, None)
+    #    # Values defined in the datasets.
+    #    vals = [self[idt].get(varname, None) for idt in range(1,self.ndtset+1)]
+    #    
+    #    # Replace None with glob.
+    #    values = []
+    #    for v in vals:
+    #        if v is not None:
+    #            values.append(v)
+    #        else:
+    #            values.append(glob)
+    #    return values
 
     def set_comment(self, comment, dtset=0):
         """Set the main comment in the input file."""
@@ -460,8 +487,9 @@ class AbiInput(Input, Has_Structure):
 
         if ngkpt is not None: inp.ngkpt = ngkpt
         if shiftk is not None:
-            inp.shiftk = np.reshape(shiftk, (-1,3))
-            inp.nshiftk = len(inp.shiftk)
+            shiftk = np.reshape(shiftk, (-1,3))
+            inp.shiftk = shiftk
+            inp.nshiftk = len(shiftk)
 
         if kptopt is not None:
             inp.kptopt = kptopt
@@ -501,8 +529,8 @@ class AbiInput(Input, Has_Structure):
             
         lspace = np.linspace(start, stop, num=self.ndtset, endpoint=endpoint, retstep=False)
 
-        for (dataset, value) in zip(self[1:], lspace):
-            dataset.set_variable(varname, value)
+        for dataset, value in zip(self[1:], lspace):
+            dataset.set_var(varname, value)
 
     def arange(self, varname, start, stop, step):
         """
@@ -530,7 +558,7 @@ class AbiInput(Input, Has_Structure):
             raise self.Error("len(arang) %d != ndtset %d" % (len(arang), self.ndtset))
 
         for (dataset, value) in zip(self[1:], arang):
-            dataset.set_variable(varname, value)
+            dataset.set_var(varname, value)
 
     def product(self, *items):
         """
@@ -556,16 +584,20 @@ class AbiInput(Input, Has_Structure):
         idt = 0
         for names, values in zip(varnames, values):
             idt += 1
-            self[idt].set_variables(**{k: v for k, v in zip(names, values)})
+            self[idt].set_vars(**{k: v for k, v in zip(names, values)})
         
         if idt != self.ndtset:
             raise self.Error("The number of configurations must equal ndtset while %d != %d" % (idt, self.ndtset))
 
     def set_structure(self, structure, dtset=0):
         """Set the :class:`Structure` object for the specified dtset."""
+        if is_string(structure): structure = Structure.from_file(structure)
+        if isinstance(structure, collections.Mapping): structure = Structure.from_abivars(**structure)
+
         for idt in self._dtset2range(dtset):
             self[idt].set_structure(structure)
 
+    @deprecated(set_structure)
     def set_structure_from_file(self, filepath, dtset=0, cls=Structure):
         """
         Set the :class:`Structure` object for the specified dtset. 
@@ -747,7 +779,7 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         """Set a comment to be included at the top of the file."""
         self._comment = comment
 
-    def set_variable(self, varname, value):
+    def set_var(self, varname, value):
         """Set a the value of a variable."""
         # Check if varname is in the internal database.
         if not is_abivar(varname):
@@ -767,7 +799,8 @@ class Dataset(mixins.MappingMixin, Has_Structure):
             if not iseq:
                 msg = "%s is already defined with a different value:\nOLD:\n %s,\nNEW\n %s" % (
                     varname, str(self[varname]), str(value))
-                warnings.warn(msg)
+                logger.debug(msg)
+                #warnings.warn(msg)
 
         self[varname] = value
 
@@ -782,20 +815,32 @@ class Dataset(mixins.MappingMixin, Has_Structure):
                         str(glob_value), self.index, str(value))
                     raise self.Error(err_msg)
             else:
-                self.dt0.set_variable(varname, value)
+                self.dt0.set_var(varname, value)
 
-    def set_variables(self, *args, **kwargs):
+    # Alias
+    set_variable = set_var
+    set_variable = deprecated(replacement=set_var)(set_variable)
+
+    def set_vars(self, *args, **kwargs):
         """Set the value of the variables provied in the dictionary **kwargs"""
         kwargs.update(dict(*args))
         for varname, varvalue in kwargs.items():
-            self.set_variable(varname, varvalue)
+            self.set_var(varname, varvalue)
 
-    def remove_variables(self, keys):
+    # Alias
+    set_variables = set_vars
+    set_variables = deprecated(replacement=set_vars)(set_variables)
+
+    def remove_vars(self, keys):
         """Remove the variables listed in keys."""
         for key in list_strings(keys):
             if key not in self:
                 raise KeyError("key: %s not in self:\n %s" % (key, list(self.keys())))
             self.pop(key)
+
+    # Alias
+    remove_variables = remove_vars
+    remove_variables = deprecated(replacement=remove_vars)(remove_variables)
 
     @property
     def structure(self):
@@ -810,15 +855,14 @@ class Dataset(mixins.MappingMixin, Has_Structure):
             return self._structure
 
     def set_structure(self, structure):
-        #if hasattr(self, "_structure") and self._structure != structure:
-        #    raise self.Error("Dataset object already has a structure object, cannot overwrite")
+        if is_string(structure): structure = Structure.from_file(filepath)
+        if isinstance(structure, collections.Mapping): structure = Structure.from_abivars(**structure)
 
         self._structure = structure
-        if structure is None:
-            return
+        if structure is None: return
 
         geoformat = "rprim"
-        self.set_variables(**structure.to_abivars())
+        self.set_vars(**structure.to_abivars())
 
     # Helper functions to facilitate the specification of several variables.
     def set_kmesh(self, ngkpt, shiftk, kptopt=1):
@@ -832,10 +876,10 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         """
         shiftk = np.reshape(shiftk, (-1,3))
         
-        self.set_variables(ngkpt=ngkpt,
-                           kptopt=kptopt,
-                           nshiftk=len(shiftk),
-                           shiftk=shiftk)
+        self.set_vars(ngkpt=ngkpt,
+                      kptopt=kptopt,
+                      nshiftk=len(shiftk),
+                      shiftk=shiftk)
 
     def set_autokmesh(self, nksmall, kptopt=1):
         """
@@ -847,10 +891,10 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         """
         shiftk = self.structure.calc_shiftk()
         
-        self.set_variables(ngkpt=self.structure.calc_ngkpt(nksmall),
-                           kptopt=kptopt,
-                           nshiftk=len(shiftk),
-                           shiftk=shiftk)
+        self.set_vars(ngkpt=self.structure.calc_ngkpt(nksmall),
+                      kptopt=kptopt,
+                      nshiftk=len(shiftk),
+                      shiftk=shiftk)
 
     def set_kpath(self, ndivsm, kptbounds=None, iscf=-2):
         """
@@ -866,10 +910,10 @@ class Dataset(mixins.MappingMixin, Has_Structure):
 
         kptbounds = np.reshape(kptbounds, (-1,3))
 
-        self.set_variables(kptbounds=kptbounds,
-                           kptopt=-(len(kptbounds)-1),
-                           ndivsm=ndivsm,
-                           iscf=iscf)
+        self.set_vars(kptbounds=kptbounds,
+                      kptopt=-(len(kptbounds)-1),
+                      ndivsm=ndivsm,
+                      iscf=iscf)
 
     def set_kptgw(self, kptgw, bdgw):
         """
@@ -887,9 +931,9 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         if len(bdgw) == 2:
             bdgw = len(kptgw) * bdgw
 
-        self.set_variables(kptgw=kptgw,
-                           nkptgw=nkptgw,
-                           bdgw=np.reshape(bdgw, (nkptgw, 2)))
+        self.set_vars(kptgw=kptgw,
+                      nkptgw=nkptgw,
+                      bdgw=np.reshape(bdgw, (nkptgw, 2)))
 
 
 class LujForSpecie(collections.namedtuple("LdauForSpecie", "l u j unit")):
@@ -1069,8 +1113,8 @@ def input_gen(inp, **kwargs):
         new_inp = inp.deepcopy()
         # Remove the variable names to avoid annoying warnings.
         # if the variable is overwritten.
-        new_inp.remove_variables(new_vars.keys())
-        new_inp.set_variables(**new_vars)
+        new_inp.remove_vars(new_vars.keys())
+        new_inp.set_vars(**new_vars)
 
         yield new_inp
 
@@ -1135,7 +1179,7 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
         """
         new = cls(structure, comment="ANADB input for the computation of phonon frequencies for one q-point")
 
-        new.set_variables(
+        new.set_vars(
             ifcflag=1,        # Interatomic force constant flag
             asr=asr,          # Acoustic Sum Rule
             chneut=chneut,    # Charge neutrality requirement for effective charges.
@@ -1202,7 +1246,7 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
 
         # Parameters for the dos.
         new.set_autoqmesh(nqsmall)
-        new.set_variables(
+        new.set_vars(
             prtdos=prtdos,
             dosdeltae=dosdeltae,
             dossmear=dossmear,
@@ -1211,7 +1255,7 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
         new.set_qpath(ndivsm, qptbounds=qptbounds)
         q1shft = np.reshape(q1shft, (-1, 3))
 
-        new.set_variables(
+        new.set_vars(
             ifcflag=1,
             ngqpt=np.array(ngqpt),
             q1shft=q1shft,
@@ -1278,7 +1322,7 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
 
         q1shft = np.reshape(q1shft, (-1, 3))
 
-        new.set_variables(
+        new.set_vars(
             ifcflag=1,
             thmflag=1,
             ngqpt=np.array(ngqpt),
@@ -1334,7 +1378,7 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
         """
         new = cls(structure, comment="ANADB input for modes", **kwargs)
 
-        new.set_variables(
+        new.set_vars(
             enunit=enunit,
             eivec=1,
             ifcflag=1,
@@ -1415,7 +1459,7 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
         """Deep copy of the input."""
         return copy.deepcopy(self)
 
-    def set_variable(self, varname, value):
+    def set_var(self, varname, value):
         """Set a single variable."""
         if varname in self:
             try:
@@ -1437,11 +1481,19 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
 
         self[varname] = value
 
-    def set_variables(self, *args, **kwargs):
+    # Alias 
+    set_variable = set_var
+    set_variable = deprecated(replacement=set_var)(set_variable)
+
+    def set_vars(self, *args, **kwargs):
         """Set the value of the variables"""
         kwargs.update(dict(*args))
         for varname, varvalue in kwargs.items():
-            self.set_variable(varname, varvalue)
+            self.set_var(varname, varvalue)
+
+    # Alias 
+    set_variables = set_vars
+    set_variables = deprecated(replacement=set_vars)(set_variables)
 
     def add_extra_abivars(self, abivars):
         """
@@ -1469,11 +1521,7 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
         if qptbounds is None: qptbounds = self.structure.calc_kptbounds()
         qptbounds = np.reshape(qptbounds, (-1, 3))
 
-        self.set_variables(
-            ndivsm=ndivsm,
-            nqpath=len(qptbounds),
-            qpath=qptbounds,
-        )
+        self.set_vars(ndivsm=ndivsm, nqpath=len(qptbounds), qpath=qptbounds)
 
     def set_autoqmesh(self, nqsmall):
         """
@@ -1482,4 +1530,4 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
         Args:
             nqsmall: Number of divisions used to sample the smallest lattice vector.
         """
-        self.set_variables(ng2qpt=self.structure.calc_ngkpt(nqsmall))
+        self.set_vars(ng2qpt=self.structure.calc_ngkpt(nqsmall))

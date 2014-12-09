@@ -1,6 +1,7 @@
 """Tests for htc.FilesFile."""
 from __future__ import print_function, division
 
+import numpy as np
 import abipy.data as abidata
 
 from abipy.core.testing import AbipyTest
@@ -15,7 +16,6 @@ class AbiInputTest(AbipyTest):
 
         # Create an ABINIT input file with 1 dataset. 
         inp = AbiInput(pseudos="14si.pspnc", pseudo_dir=abidata.pseudo_dir, ndtset=1)
-        
 
         aequal(inp.isnc, True)
 
@@ -41,17 +41,27 @@ class AbiInputTest(AbipyTest):
         }
 
         # and set the variables in the input file with the call:
-        inp.set_variables(**unit_cell)
+        inp.set_vars(**unit_cell)
 
         # Alternatively, it's possible to create a dictionary on the fly with the syntax.
-        inp.set_variables(kptopt=1, 
-                          ngkpt=[2, 2, 2], 
-                          nshiftk=1, 
-                          shiftk=[0.0, 0.0, 0.0]
-                          )
+        inp.set_vars(kptopt=1, 
+                     ngkpt=[2, 2, 2], 
+                     nshiftk=1, 
+                     shiftk=np.reshape([0.0, 0.0, 0.0], (-1,3))
+                     )
+
+        inp.nshiftk = len(inp.shiftk) 
+        assert inp.nshiftk == 1
+
+        inp.remove_vars("nshiftk")
+        with self.assertRaises(AttributeError): print(inp.nshiftk)
 
         # To print the input to stdout use:
         print(inp)
+
+        # To create a new input with a different variable.
+        new = inp.new_with_vars(kptopt=3)
+        assert new.kptopt == 3 and inp.kptopt == 1
 
         # Compatible with deepcopy and Pickle?
         inp.deepcopy()
@@ -67,10 +77,14 @@ class AbiInputTest(AbipyTest):
         inp.ecut1 = 10
         inp.ecut2 = 20
 
-        # or by passing the index of the dataset to set_variables via the dtset argument.
-        inp.set_variables(ngkpt=[2,2,2], tsmear=0.004, dtset=1)
-        inp.set_variables(kptopt=[4,4,4], tsmear=0.008, dtset=2)
+        with self.assertRaises(AttributeError): print(inp.ecut)
+        inp.remove_vars("ecut", dtset=2)
+        assert inp.ecut1 == 10
+        with self.assertRaises(AttributeError): print(inp.ecut2)
 
+        # or by passing the index of the dataset to set_vars via the dtset argument.
+        inp.set_vars(ngkpt=[2,2,2], tsmear=0.004, dtset=1)
+        inp.set_vars(kptopt=[4,4,4], tsmear=0.008, dtset=2)
         print(inp)
 
         # Compatible with deepcopy and Pickle?
@@ -113,7 +127,7 @@ class AbiInputTest(AbipyTest):
         inp.split_datasets()
 
         # Cannot split datasets when we have get* or ird* variables.
-        inp[2].set_variables(getwfk=-1)
+        inp[2].set_vars(getwfk=-1)
 
         with self.assertRaises(inp.Error):
             inp.split_datasets()
@@ -130,7 +144,7 @@ class AbiInputTest(AbipyTest):
         aequal(inp.ispaw, True)
 
         # Set global variables.
-        inp.set_variables(ecut=10)
+        inp.set_vars(ecut=10)
 
         # Compatible with deepcopy and Pickle?
         inp.deepcopy()
@@ -138,7 +152,7 @@ class AbiInputTest(AbipyTest):
 
         # Setting an unknown variable should raise an error.
         with self.assertRaises(inp.Error):
-            inp.set_variables(foobar=10)
+            inp.set_vars(foobar=10)
 
 
 class LdauLexxTest(AbipyTest):

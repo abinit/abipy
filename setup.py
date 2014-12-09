@@ -177,6 +177,7 @@ install_requires = [
     "netCDF4",
     "pymatgen>=3.0.8",
     "wxmplot",
+    "gnuplot-py",
     #"matplotlib>=1.1",
     #"seaborn",
     #"psutil",

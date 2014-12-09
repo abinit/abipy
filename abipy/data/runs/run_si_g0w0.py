@@ -41,7 +41,7 @@ def make_inputs(ngkpt, paral_kgb=1):
     # Global variables. gw_kmesh is used in all datasets except DATASET 1.
     ecut = 6
        
-    inp.set_variables(
+    inp.set_vars(
         ecut=ecut,
         timopt=-1,
         istwfk="*1",
@@ -52,21 +52,21 @@ def make_inputs(ngkpt, paral_kgb=1):
 
     # Dataset 1 (GS run)
     inp[1].set_kmesh(**scf_kmesh)
-    inp[1].set_variables(
+    inp[1].set_vars(
         tolvrs=1e-6,
         nband=4,
     )
 
     # Dataset 2 (NSCF run)
     # Here we select the second dataset directly with the syntax inp[2]
-    inp[2].set_variables(iscf=-2,
-                         tolwfr=1e-12,
-                         nband=35,
-                         nbdbuf=5,
-                        )
+    inp[2].set_vars(iscf=-2,
+                    tolwfr=1e-12,
+                    nband=35,
+                    nbdbuf=5,
+                   )
 
     # Dataset3: Calculation of the screening.
-    inp[3].set_variables(
+    inp[3].set_vars(
         optdriver=3,   
         nband=25,    
         ecutwfn=ecut,   
@@ -89,7 +89,7 @@ def make_inputs(ngkpt, paral_kgb=1):
     bdgw = [1,8]
 
     for idx, nband in enumerate([10, 20, 30]):
-        inp[4+idx].set_variables(
+        inp[4+idx].set_vars(
             optdriver=4,
             nband=nband,      
             ecutwfn=ecut,

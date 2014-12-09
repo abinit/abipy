@@ -30,15 +30,15 @@ def make_scf_nscf_inputs(nsppol, paral_kgb=1):
     if nsppol == 2:
         global_vars.update(spinat=[0.0, 0.0, 4.0])
 
-    inp.set_variables(**global_vars)
+    inp.set_vars(**global_vars)
 
     # Dataset 1 (GS run)
     inp[1].set_kmesh(ngkpt=[4,4,4], shiftk=[0.5,0.5,0.5])
-    inp[1].set_variables(tolvrs=1e-6)
+    inp[1].set_vars(tolvrs=1e-6)
 
     # Dataset 2 (NSCF run)
     inp[2].set_kpath(ndivsm=4)
-    inp[2].set_variables(tolwfr=1e-8)
+    inp[2].set_vars(tolwfr=1e-8)
     
     # Generate two input files for the GS and the NSCF run 
     scf_input, nscf_input = inp.split_datasets()

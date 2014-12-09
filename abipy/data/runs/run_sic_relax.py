@@ -40,12 +40,12 @@ def build_flow(options):
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
     inp.set_structure(structure)
-    inp.set_variables(**global_vars)
+    inp.set_vars(**global_vars)
 
     relax_inp, nscf_inp = inp[1:]
 
     relax_inp.set_kmesh(ngkpt=ngkpt, shiftk=shiftk)
-    relax_inp.set_variables(
+    relax_inp.set_vars(
         toldff=1e-6,
         tolmxf=1e-5,
         strfact=100,

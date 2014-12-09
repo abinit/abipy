@@ -25,20 +25,20 @@ def make_scf_nscf_inputs(structure, pseudos, paral_kgb=1):
                        paral_kgb=paral_kgb,
                     )
 
-    inp.set_variables(**global_vars)
+    inp.set_vars(**global_vars)
 
     # Dataset 1 (GS run)
     inp[1].set_kmesh(ngkpt=[8,8,8],  shiftk=structure.calc_shiftk())
 
-    inp[1].set_variables(tolvrs=1e-6)
+    inp[1].set_vars(tolvrs=1e-6)
 
     # Dataset 2 (NSCF Band Structure)
     inp[2].set_kpath(ndivsm=6)
-    inp[2].set_variables(tolwfr=1e-12)
+    inp[2].set_vars(tolwfr=1e-12)
 
     # Dos calculations with increasing k-point sampling.
     for i, nksmall in enumerate([4, 8, 16]):
-        inp[i+3].set_variables(
+        inp[i+3].set_vars(
             iscf=-3,   # NSCF calculation
             ngkpt=structure.calc_ngkpt(nksmall),      
             shiftk=[0.0, 0.0, 0.0],

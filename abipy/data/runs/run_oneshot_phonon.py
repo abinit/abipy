@@ -37,11 +37,11 @@ def scf_ph_inputs(paral_kgb=0):
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=1+len(qpoints))
 
     inp.set_structure(structure)
-    inp.set_variables(**global_vars)
+    inp.set_vars(**global_vars)
 
     for i, qpt in enumerate(qpoints):
         # Response-function calculation for phonons.
-        inp[i+2].set_variables(
+        inp[i+2].set_vars(
             nstep=20,
             rfphon=1,                     # Will consider phonon-type perturbation
             nqpt=1,                       # One one wavevector is to be considered
