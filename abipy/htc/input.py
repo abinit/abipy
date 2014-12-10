@@ -174,11 +174,12 @@ class AbiInput(Input, Has_Structure):
     """
     Error = InputError
 
-    def __init__(self, pseudos, pseudo_dir="", ndtset=1, comment=""):
+    def __init__(self, pseudos, pseudo_dir="", structure=None, ndtset=1, comment=""):
         """
         Args:
             pseudos: String or list of string with the name of the pseudopotential files.
             pseudo_dir: Name of the directory where the pseudopotential files are located.
+            structure: file with the structure, :class:`Structure` object or dictionary with ABINIT geo variable
             ndtset: Number of datasets.
             comment: Optional string with a comment that will be placed at the beginning of the file.
         """
@@ -212,7 +213,8 @@ class AbiInput(Input, Has_Structure):
 
             self._pseudos = PseudoTable(pseudo_paths)
 
-        if comment: self.set_comment(comment)
+        if structure is not None: self.set_structure(structure)
+        if comment is not None: self.set_comment(comment)
 
     #def make_input(self):
     #    return str(self)
@@ -487,9 +489,8 @@ class AbiInput(Input, Has_Structure):
 
         if ngkpt is not None: inp.ngkpt = ngkpt
         if shiftk is not None:
-            shiftk = np.reshape(shiftk, (-1,3))
-            inp.shiftk = shiftk
-            inp.nshiftk = len(shiftk)
+            inp.shiftk = np.reshape(shiftk, (-1,3))
+            inp.nshiftk = len(inp.shiftk)
 
         if kptopt is not None:
             inp.kptopt = kptopt
@@ -562,7 +563,7 @@ class AbiInput(Input, Has_Structure):
 
     def product(self, *items):
         """
-        Cartesian product of input iterables.  Equivalent to nested for-loops.
+        Cartesian product of input iterables. Equivalent to nested for-loops.
 
         .. code-block:: python
 
@@ -591,8 +592,10 @@ class AbiInput(Input, Has_Structure):
 
     def set_structure(self, structure, dtset=0):
         """Set the :class:`Structure` object for the specified dtset."""
-        if is_string(structure): structure = Structure.from_file(structure)
-        if isinstance(structure, collections.Mapping): structure = Structure.from_abivars(**structure)
+        if is_string(structure): 
+            structure = Structure.from_file(structure)
+        elif isinstance(structure, collections.Mapping): 
+            structure = Structure.from_abivars(**structure)
 
         for idt in self._dtset2range(dtset):
             self[idt].set_structure(structure)

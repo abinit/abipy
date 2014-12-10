@@ -16,8 +16,7 @@ def make_inputs(ngkpt, paral_kgb=1):
     # Dataset 4-5-6: Self-Energy matrix elements (GW corrections) with different values of nband
 
     inp = abilab.AbiInput(pseudos=data.pseudos("14si.pspnc"), ndtset=6)
-
-    inp.set_structure_from_file(data.cif_file("si.cif"))
+    inp.set_structure(data.cif_file("si.cif"))
 
     # This grid is the most economical, but does not contain the Gamma point.
     scf_kmesh = dict(
@@ -124,6 +123,7 @@ def build_flow(options):
 def main(options):
     flow = build_flow(options)
     return flow.build_and_pickle_dump()
+
 
 if __name__ == "__main__":
     sys.exit(main())

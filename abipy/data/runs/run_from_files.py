@@ -13,7 +13,7 @@ def make_scf_nscf_inputs(paral_kgb=1):
     pseudos = abidata.pseudos("14si.pspnc")
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
-    structure = inp.set_structure_from_file(abidata.cif_file("si.cif"))
+    structure = inp.set_structure(abidata.cif_file("si.cif"))
 
     # Global variables
     ecut = 6
