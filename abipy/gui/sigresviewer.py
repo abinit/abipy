@@ -10,7 +10,7 @@ from monty.string import  marquee
 from monty.collections import AttrDict
 from wx.py.shell import Shell
 from abipy.abilab import abiopen
-from abipy.electrons import SIGRES_Plotter
+from abipy.electrons import SigresPlotter
 from abipy.gui.scissors import ScissorsBuilderFrame
 from abipy.gui.baseviewer import MultiViewerFrame
 from abipy.gui import mixins as mix
@@ -130,7 +130,7 @@ Also, these key bindings can be used
     def OnQpGapsCompare(self, event):
         """Compare the QP gaps reported in the SIGRES files."""
         # Instanciate the plotter and add the filepaths to the plotter.
-        plotter = SIGRES_Plotter()
+        plotter = SigresPlotter()
         plotter.add_files(self.sigres_filepaths)
 
         # Plot the convergence of the QP gaps.
@@ -139,7 +139,7 @@ Also, these key bindings can be used
     def OnQpEnesCompare(self, event):
         """Compare the QP energies reported in the SIGRES files."""
         # Instanciate the plotter and add the filepaths to the plotter.
-        plotter = SIGRES_Plotter()
+        plotter = SigresPlotter()
         plotter.add_files(self.sigres_filepaths)
                                                                              
         # Plot the convergence of the QP energies.

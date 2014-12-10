@@ -26,8 +26,7 @@ class TaskException(Exception):
     the error messages of the run.
     """
     def __init__(self, *args, **kwargs):
-        self.task = kwargs.pop("task")
-        self.report = kwargs.pop("report")
+        self.task, self.report = kwargs.pop("task"), kwargs.pop("report")
         super(TaskException, self).__init__(*args, **kwargs)
 
     def __str__(self):
