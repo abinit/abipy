@@ -7,7 +7,7 @@ import sys
 import abipy.data as data  
 import abipy.abilab as abilab
 
-from pseudo_dojo.dojo.dojo_workflows import DeltaFactory
+from pseudo_dojo.dojo.works import DeltaFactory
 
 
 def build_flow(options):

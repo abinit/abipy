@@ -84,6 +84,12 @@ The following packages are much easier to install with easy_install:
 for netcdf4 and hdf see http://www.unidata.ucar.edu/software/netcdf/docs/build_default.html
 
 
+pyhull:
+ export CC=gcc 
+ and optionally:
+ export CFLAGS='-O3 -g' 
+
+
 Optional dependencies
 ---------------------
 

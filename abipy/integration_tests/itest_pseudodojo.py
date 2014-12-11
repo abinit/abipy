@@ -6,6 +6,7 @@ import abipy.data as abidata
 import abipy.abilab as abilab
 
 from abipy.core.testing import has_abinit
+from pseudo_dojo.dojo.works import DeltaFactory
 
 has_pseudodojo = True
 try:
@@ -35,7 +36,6 @@ def itest_deltafactor(fwp, tvars):
     ecut = 2
     pawecutdg = ecut * 2 if pseudo.ispaw else None
 
-    from pseudo_dojo.dojo.dojo_workflows import DeltaFactory
     work = DeltaFactory().work_for_pseudo(pseudo, kppa=kppa, ecut=ecut, pawecutdg=pawecutdg, paral_kgb=tvars.paral_kgb)
 
     # Register the workflow.
