@@ -131,7 +131,7 @@ Usage example:\n
     # wslide and nids are mutually exclusive.
     flow_selector_parser = argparse.ArgumentParser(add_help=False)
     group = flow_selector_parser.add_mutually_exclusive_group()
-    group.add_argument('--nids', default=None, type=parse_nids, help=(
+    group.add_argument("-n", '--nids', default=None, type=parse_nids, help=(
         "Node identifier(s) used to select the task. Integer or comma-separated list of integers. Use `status` command to get the node ids.\n"
         "Examples: --nids=12 --nids=12,13,16 --nids=10:12 to select 10 and 11, --nids=2:5:2 to select 2,4"  
         ))
