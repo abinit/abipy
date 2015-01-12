@@ -326,8 +326,8 @@ hardware:
         # Change the manager of the errored tasks.
         status = "S_QCRITICAL"
         #status = "S_ERROR"
+        #print("Resetting tasks with status: %s" % options.task_status)
         for task in flow.iflat_tasks(status=status, nids=selected_nids(flow, options)):
-            print("Resetting task %s" % task)
             task.reset()
             task.set_manager(new_manager)
             

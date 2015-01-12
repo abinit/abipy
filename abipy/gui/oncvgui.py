@@ -2291,6 +2291,7 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
             "projectors",
             "densities",
             "potentials",
+            "der_potentials",
             "atan_logders",
             "ene_vs_ecut",
         ]
