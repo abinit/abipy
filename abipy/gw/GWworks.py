@@ -144,7 +144,7 @@ class SingleAbinitGWWork():
              'response_model': {'test_range': RESPONSE_MODELS, 'method': 'direct', 'control': 'gap', 'level': 'screening'}}
     # scf level test are run independently, the last value will be used in the nscf and sigma tests
     #'test': {'test_range': (1, 2, 3), 'method': 'direct', 'control': "e_ks_max", 'level': "scf"},
-    CONVS = {'ecut': {'test_range': (52, 48, 44), 'method': 'direct', 'control': "e_ks_max", 'level': "scf"},
+    CONVS = {'ecut': {'test_range': (50, 48, 46, 44), 'method': 'direct', 'control': "e_ks_max", 'level': "scf"},
              'ecuteps': {'test_range': (4, 8, 12, 16, 20), 'method': 'direct', 'control': "gap", 'level': "sigma"},
              'nscf_nbands': {'test_range': (5, 10, 20, 30), 'method': 'set_bands', 'control': "gap", 'level': "nscf"}}
 
@@ -248,8 +248,8 @@ class SingleAbinitGWWork():
         gamma = True
 
         # 'standard' parameters for stand alone calculation
-        nb = self.get_bands(self.structure)
-        nscf_nband = [10 * nb]
+        scf_nband = self.get_bands(self.structure)
+        nscf_nband = [10 * scf_nband]
 
         nksmall = None
         ecuteps = [8]
@@ -264,7 +264,8 @@ class SingleAbinitGWWork():
             getden=-1,
             istwfk="*1",
             timopt=-1,
-            nbdbuf=8
+            nbdbuf=8,
+            prtsuscep=0
         )
 
         # read user defined extra abivars from file  'extra_abivars' should be dictionary
@@ -350,7 +351,7 @@ class SingleAbinitGWWork():
         logger.info('extra   : ', extra_abivars)
         logger.info('nscf_nb : ', nscf_nband)
 
-        work = g0w0_extended_work(abi_structure, self.pseudo_table, scf_kppa, nscf_nband, ecuteps, ecutsigx,
+        work = g0w0_extended_work(abi_structure, self.pseudo_table, scf_kppa, nscf_nband, ecuteps, ecutsigx, scf_nband,
                              accuracy="normal", spin_mode="unpolarized", smearing=None, response_models=response_models,
                              charge=0.0, sigma_nband=None, scr_nband=None, gamma=gamma, nksmall=nksmall, **extra_abivars)
 
@@ -368,6 +369,7 @@ class SingleAbinitGWWork():
         job_file = open("job_collection", mode='a')
         if serial:
             job_file.write('abirun.py ' + self.work_dir + ' scheduler > ' + self.work_dir + '.log\n')
+            job_file.write('rm ' + self.work_dir + '/w*/t*/outdata/out_SCR\n')
         else:
             job_file.write('nohup abirun.py ' + self.work_dir + ' scheduler > ' + self.work_dir + '.log & \n')
             job_file.write('sleep 2\n')

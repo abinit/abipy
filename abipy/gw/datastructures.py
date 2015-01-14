@@ -221,14 +221,26 @@ class AbstractAbinitioSpec(MSONable):
                 structure.item = item
             print(item, s_name(structure))
             if mode == 'i':
-                self.excecute_flow(structure)
+                try:
+                    self.excecute_flow(structure)
+                except:
+                    print('input generation failed')
             elif mode == 'w':
-                self.print_results(structure)
+                try:
+                    self.print_results(structure)
+                except:
+                    print('writing output failed')
             elif mode == 's':
-                self.insert_in_database(structure)
+                try:
+                    self.insert_in_database(structure)
+                except:
+                    print('database insertion failed')
             elif mode == 'o':
                 # if os.path.isdir(s_name(structure)) or os.path.isdir(s_name(structure)+'.conv'):
-                self.process_data(structure)
+                try:
+                    self.process_data(structure)
+                except:
+                    print('output parsing failed')
 
         if 'ceci' in self.data['mode'] and mode == 'i':
             os.chmod("job_collection", stat.S_IRWXU)

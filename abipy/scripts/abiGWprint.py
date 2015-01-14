@@ -1,9 +1,6 @@
-# coding: utf-8
-
-from __future__ import unicode_literals, division, print_function
-
 #!/usr/bin/env python
-
+# coding: utf-8
+from __future__ import unicode_literals, division, print_function
 """
 Script to print GW results for VASP and ABINIT.
 """
@@ -18,7 +15,7 @@ __date__ = "May 2014"
 import os
 import os.path
 
-from gw.datastructures import get_spec
+from abipy.gw.datastructures import get_spec
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
