@@ -1,4 +1,3 @@
-# coding: utf-8
 #!/usr/bin/env python
 """
 Script to print GW results for VASP and ABINIT.

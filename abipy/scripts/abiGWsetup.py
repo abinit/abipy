@@ -1,4 +1,3 @@
-# coding: utf-8
 #!/usr/bin/env python
 """
 Script to write GW Input for VASP and ABINIT / set up work flows.
