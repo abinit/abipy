@@ -14,7 +14,7 @@ __date__ = "May 2014"
 import os
 import os.path
 
-from gw.datastructures import get_spec
+from abipy.gw.datastructures import get_spec
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
