@@ -84,22 +84,36 @@ the convergence for a metal. By using:
 you will generate a flow for aluminum. Actually, you can pass the path to any cif file to perform a
 
 If you have time left it is also a good exercise to open the python file that contains this lesson and study the
-implementations of the class, methods and functions we used. Try to find what to change to change the set of k-point
-meshes that are used in the convergence study.
+implementations of the class, methods and functions we used. You can get a copy of the file by using:
+
+[]: lesson.get_local_copy()
+
+Try to find what to change to change the set of k-point meshes that are used in the convergence study.
 """
 
 from __future__ import division, print_function
 
 import sys
-import abipy.abilab as abilab 
+import os
+import shutil
+import abipy.abilab as abilab
 import abipy.data as abidata
 
+
+# should n't we put these functions in a separate module and import them, we'll need them in any lesson...
 
 def help(stream=sys.stdout):
     """
     Display the tutorial text.
     """
     stream.write(__doc__)
+
+
+def get_local_copy():
+    """
+    Copy this script to the current working dir to explore and edit
+    """
+    shutil.copyfile(os.path.join(__file__, '.'))
 
 
 class NgkptFlow(abilab.Flow):
