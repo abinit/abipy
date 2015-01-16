@@ -2,8 +2,15 @@
 """
 Template for lessons: paragraph with a brief description of the lesson separated by a blank line from the text below.
 
-Additional info go here. 
-Users will import the module to have access to its public API
+Detailed description of the tutorial (goals, step-by-step description of the operations to be performed)
+Users will import this module to access the public API. Each module should provide a help method
+that prints this doc string. One of more factory functions (make_flow, make_convergence_flow ...)
+that build and return a subclass of abilab.Flow. The Flow subclass provides a `analyze` method 
+that performs the post-processing of the results and produces the final results (matplotlib plots, pandas dataframes, ...)
+Users should be able to run the tutorial either via this script, or interactively inside ipython or ipython notebooks
+The working directory of the flow should be named: flow_[name_of_the_lesson][_extra_info] so that each 
+lesson will be done in different directories.
+
 Example::
 
 from abipy.tutorias import lesson_base1 as lesson
@@ -17,10 +24,10 @@ flow = lesson.make_ngkpt_flow()
 # To print the input files 
 flow.show_inputs()
 
-# start the flow with
+# Start the flow with the scheduler and wait for completion.
 flow.make_scheduler().start()
 
-# Wait for completion and analyze the results.
+# To analyze the results.
 flow.analyze()
 """
 from __future__ import division, print_function
@@ -126,6 +133,7 @@ if __name__ == "__main__":
     flow = make_ngkpt_flow()
     #flow = make_relax_flow()
     #flow = make_ebands_flow()
+
     #flow.show_inputs()
-    #flow.make_scheduler().start()
-    #flow.analyze()
+    flow.make_scheduler().start()
+    flow.analyze()
