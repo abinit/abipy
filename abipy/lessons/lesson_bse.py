@@ -11,7 +11,7 @@ def make_inputs(ngkpt=(4,4,4), ecut=8, ecuteps=2):
     """
     """
     inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=3)
-    #inp.set_structure_from_file(abidata.cif_file("si.cif"))
+    #inp.set_structure(abidata.cif_file("si.cif"))
     inp.set_structure(abidata.structure_from_ucell("Si"))
 
     inp.set_variables(

@@ -564,7 +564,7 @@ class TaskListCtrl(wx.ListCtrl):
             except:
                 pass
 
-            cpu_info = [task.mpi_ncpus, task.omp_ncpus]
+            cpu_info = [task.mpi_procs, task.omp_threads]
             entry = map(str, [task.name, str(task.status), task.queue_id] + 
                               events + 
                               cpu_info + 

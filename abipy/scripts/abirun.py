@@ -149,6 +149,8 @@ Usage example:\n
     parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                         help='verbose, can be supplied multiple times to increase verbosity')
 
+    parser.add_argument('--remove-lock', default=False, type=bool, help="Remove the lock file of the pickle file storing the flow.")
+
     parser.add_argument('--no-colors', default=False, help='Disable ASCII colors')
 
     parser.add_argument('--loglevel', default="ERROR", type=str,
@@ -190,6 +192,14 @@ Usage example:\n
     # Subparser for restart command.
     p_reset = subparsers.add_parser('reset', parents=[flow_selector_parser], help="Reset the tasks of the flow with the specified status.")
     p_reset.add_argument('task_status', default="QCritical") 
+
+    # Subparser for unlock command.
+    #p_unlock = subparsers.add_parser('unlock', parents=[flow_selector_parser], help="Reset the tasks of the flow with the specified status.")
+    #p_reset.add_argument('task_status', default="QCritical") 
+
+    # Subparser for unlock command.
+    p_move = subparsers.add_parser('move', help="Move the flow to a new directory and change the absolute paths")
+    p_move.add_argument('dest', nargs=1) 
 
     # Subparser for open command.
     p_open = subparsers.add_parser('open', parents=[flow_selector_parser], help="Open files in $EDITOR, type `abirun.py DIRPATH open --help` for help)")
@@ -234,6 +244,7 @@ Specify the files to open. Possible choices:
     p_plot.add_argument("what", nargs="?", type=str, default="ebands", help="Object to plot")
 
     p_inspect = subparsers.add_parser('inspect', parents=[flow_selector_parser], help="Inspect the tasks")
+    #p_analyze= subparsers.add_parser('analyze', help="Call flow.analyze method")
 
     p_docmanager = subparsers.add_parser('docmanager', help="Document the TaskManager options")
     p_docmanager.add_argument("qtype", nargs="?", default=None, help="Document qparams section for the given qtype")
@@ -307,7 +318,7 @@ hardware:
         # Will try to figure out the location of the Flow.
         options.path = os.getcwd()
 
-    flow = abilab.Flow.pickle_load(options.path)
+    flow = abilab.Flow.pickle_load(options.path, remove_lock=options.remove_lock)
     retcode = 0
 
     if options.command == "gui":
@@ -443,6 +454,14 @@ hardware:
 
         flow.pickle_dump()
 
+    #elif options.command == "unlock":
+    #    self.start_lockfile.remove()
+
+    elif options.command == "move":
+        print("Will move flow to %s..." % options.dest)
+        flow.chroot(options.dest)
+        flow.move(options.dest)
+
     elif options.command == "tail":
         def get_path(task):
             """Helper function used to select the files of a task."""
@@ -526,9 +545,6 @@ hardware:
             except KeyboardInterrupt:
                 print("\nTerminating thread...")
                 p.terminate()
-
-
-
 
     elif options.command == "embed":
         import IPython
