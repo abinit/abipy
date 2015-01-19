@@ -189,7 +189,7 @@ Usage example:\n
 
     # Subparser for restart command.
     p_reset = subparsers.add_parser('reset', parents=[flow_selector_parser], help="Reset the tasks of the flow with the specified status.")
-    p_reset.add_argument('task_status', default="QCritical") 
+    p_reset.add_argument('-s', '--task-status', default="QCritical", help="Select the status of the task to reset. Defaults QCritical") 
 
     # Subparser for open command.
     p_open = subparsers.add_parser('open', parents=[flow_selector_parser], help="Open files in $EDITOR, type `abirun.py DIRPATH open --help` for help)")
