@@ -369,7 +369,11 @@ hardware:
 
         sched.add_flow(flow)
         print(sched)
-        sched.start()
+        try:
+            sched.start()
+        except KeyboardInterrupt:
+            # Save the status of the flow before exiting.
+            flow.pickle_dump()
 
     elif options.command == "status":
         if options.delay:
