@@ -113,7 +113,10 @@ def get_local_copy():
     """
     Copy this script to the current working dir to explore and edit
     """
-    shutil.copyfile(os.path.join(__file__, '.'))
+    dst = os.path.basename(__file__) 
+    if os.path.exists(dst):
+        raise RuntimeError("file %s already exists. Remove it before calling get_local_copy" % dst)
+    shutil.copyfile(__file__, dst)
 
 
 class NgkptFlow(abilab.Flow):
