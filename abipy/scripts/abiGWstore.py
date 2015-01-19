@@ -1,4 +1,3 @@
-# coding: utf-8
 #!/usr/bin/env python
 """
 Script to store GW results for VASP and ABINIT in a database.
@@ -15,7 +14,7 @@ __date__ = "May 2014"
 import os
 import os.path
 
-from gw.datastructures import get_spec
+from abipy.gw.datastructures import get_spec
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
