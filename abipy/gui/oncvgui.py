@@ -401,6 +401,7 @@ allows you to scan a set of possible values for the generation of the pseudopote
             developers=["Matteo Giantomassi"],
             website="http://www.mat-simresearch.com/")
 
+
 @six.add_metaclass(abc.ABCMeta)
 class OptimizationFrame(awx.Frame):
     """Base class for optimization frames."""

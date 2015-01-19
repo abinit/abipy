@@ -123,7 +123,6 @@ def itest_bandstructure_flow(fwp, tvars):
 
     # Build the flow and create the database.
     flow = abilab.bandstructure_flow(fwp.workdir, scf_input, nscf_input, manager=fwp.manager)
-
     flow.build_and_pickle_dump()
 
     t0 = flow[0][0]
@@ -212,6 +211,8 @@ def itest_bandstructure_schedflow(fwp, tvars):
     # Build the flow and create the database.
     flow = abilab.bandstructure_flow(fwp.workdir, scf_input, nscf_input, manager=fwp.manager)
 
+    # Will remove output files (WFK)
+    flow.set_cleanup_exts()
     flow.build_and_pickle_dump()
 
     fwp.scheduler.add_flow(flow)
@@ -227,6 +228,10 @@ def itest_bandstructure_schedflow(fwp, tvars):
     flow.show_status()
     assert flow.all_ok
     assert all(work.finalized for work in flow)
+
+    # The WFK files should have been removed because we called set_cleanup_exts
+    for task in flow[0]:
+        assert not task.outdir.has_abiext("WFK")
 
     #assert flow.validate_json_schema()
     #assert 0

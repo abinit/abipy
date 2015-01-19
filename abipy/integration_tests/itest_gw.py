@@ -108,6 +108,8 @@ def itest_g0w0_flow(fwp, tvars):
     scf, nscf, scr, sig = make_g0w0_inputs(ngkpt=[2, 2, 2], tvars=tvars)
 
     flow = abilab.g0w0_flow(fwp.workdir, scf, nscf, scr, sig, manager=fwp.manager)
+    # Will remove output files at run-time.
+    flow.set_cleanup_exts()
     flow.build_and_pickle_dump()
 
     for task in flow[0]:
@@ -118,14 +120,25 @@ def itest_g0w0_flow(fwp, tvars):
     assert all(work.finalized for work in flow)
     assert flow.all_ok
 
-    # The sigma task should produce a SIGRES file.
-    sigfile = flow[0][-1].outdir.list_filepaths(wildcard="*SIGRES.nc")[0]
-    assert sigfile
+    scf_task = flow[0][0]
+    nscf_task = flow[0][1]
+    scr_task = flow[0][2]
+    sig_task = flow[0][3]
 
-    # TODO Add more tests
+    # Test set_cleanup_exts
+    # The WFK|SCR file should have been removed because we call set_cleanup_exts
+    assert not scf_task.outdir.has_abiext("WFK")
+    assert not nscf_task.outdir.has_abiext("WFK")
+    assert not scr_task.outdir.has_abiext("SCR")
+    assert not scr_task.outdir.has_abiext("SUS")
+
+    # The sigma task should produce a SIGRES file.
+    sigfile = sig_task.outdir.list_filepaths(wildcard="*SIGRES.nc")[0]
+    assert sigfile
     with abilab.abiopen(sigfile) as sigres:
         assert sigres.nsppol == 1
 
+    # TODO Add more tests
     #assert flow.validate_json_schema()
 
 
@@ -149,6 +162,10 @@ def itest_g0w0qptdm_flow(fwp, tvars):
         assert not sigma_task.depends_on(bands_work.scf_task)
         assert sigma_task.depends_on(scr_work)
 
+    # FIXME this does not work yet because tasks are created dynamically
+    # Will remove output files at run-time.
+    #flow.set_cleanup_exts()
+
     flow.build_and_pickle_dump()
     flow.show_dependencies()
     # This call is needed to connect the node and enable
@@ -160,12 +177,19 @@ def itest_g0w0qptdm_flow(fwp, tvars):
     assert fwp.scheduler.start() 
     assert not fwp.scheduler.exceptions
 
-    # The scr workflow should produce a SIGRES file.
-    assert len(scr_work.outdir.list_filepaths(wildcard="*SCR")) == 1
-
     flow.show_status()
     assert all(work.finalized for work in flow)
     assert flow.all_ok
+
+    # Test set_cleanup_exts
+    # The WFK|SCR file should have been removed because we call set_cleanup_exts
+    #assert not scf_task.outdir.has_abiext("WFK")
+    #assert not nscf_task.outdir.has_abiext("WFK")
+    #assert not scr_task.outdir.has_abiext("SCR")
+    #assert not scr_task.outdir.has_abiext("SUS")
+
+    # The scr workflow should produce a SIGRES file.
+    assert scr_work.outdir.has_abiext("SCR")
 
     #assert flow.validate_json_schema()
 

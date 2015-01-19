@@ -16,9 +16,11 @@ job: &job
 policy:
     autoparal: 1
     #max_ncpus: 2
-    #condition:
     #vars_condition: {"npfft": {"$eq": 1}}
     #condition: {$and: [ {efficiency: {$gt: 0.99}}, {tot_ncpus: {$divisible: 2}} ]}
+    #autoparal_priorities: [speedup, efficiecy, memory]
+    #search_mode: qadapter_first
+    #search_mode: paralleconf_first
 
 qadapters:
   - priority: 1 

@@ -63,6 +63,7 @@ def h2_h_input(x=0.7, ecut=10, acell=(10, 10, 10)):
 
     return inp.split_datasets()
 
+
 def ecut_convergence_study():
     """
     H2 molecule in a big box
