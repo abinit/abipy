@@ -19,7 +19,6 @@ from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, Kpath, IrredZone, KpointsReaderMixin, kmesh_from_mpdivs
 from abipy.iotools import ETSF_Reader, Visualizer, bxsf_write
 from abipy.tools import gaussian
-from abipy.electrons.edos import ElectronDOS
 from abipy.tools.animator import FilesAnimator
 
 import logging

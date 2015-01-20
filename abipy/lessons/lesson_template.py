@@ -13,10 +13,21 @@ lesson will be done in different directories.
 
 Example::
 
-from abipy.tutorias import lesson_base1 as lesson
+  Title
 
-# To get help:
-lesson.help()
+  Background
+
+  The abipy flows in this lesson
+
+  The cource of this lesson
+
+Start this lessen by importing in a new namespace
+
+[]: from abipy.tutorias import lesson_base1 as lesson
+
+As always you can reread this lessons text using the command:
+
+[]: lesson.help()
 
 # To build the flow:
 flow = lesson.make_ngkpt_flow()
