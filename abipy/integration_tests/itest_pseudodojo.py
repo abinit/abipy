@@ -6,7 +6,7 @@ import abipy.data as abidata
 import abipy.abilab as abilab
 
 from abipy.core.testing import has_abinit
-from pseudo_dojo.dojo.works import DeltaFactory
+from pseudo_dojo.dojo.works import DeltaFactory, GbrvFactory
 
 has_pseudodojo = True
 try:
@@ -61,7 +61,6 @@ def itest_deltafactor(fwp, tvars):
 
 def itest_gbrv_flow(fwp, tvars):
     """The the GBRV flow: relaxation + EOS computation."""
-    from pseudo_dojo.dojo.dojo_workflows import GbrvFactory
     factory = GbrvFactory()
 
     #pseudo = "si_pbe_v1_abinit.paw"

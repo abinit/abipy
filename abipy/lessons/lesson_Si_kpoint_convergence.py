@@ -113,7 +113,10 @@ def get_local_copy():
     """
     Copy this script to the current working dir to explore and edit
     """
-    shutil.copyfile(__file__[:-1], '.')
+    dst = os.path.basename(__file__[:-1])
+    if os.path.exists(dst):
+        raise RuntimeError("file %s already exists. Remove it before calling get_local_copy" % dst)
+    shutil.copyfile(__file__[:-1], dst)
 
 
 def abinit_help(inputvariable):
