@@ -2,31 +2,33 @@
 """
 \033[91m K-point convergence study for a semi-conductor and an introduction some of the basic concepts of the abipy library. \033[0m
 
-\033[93m Background.\033[0m
+\033[94m Background\033[0m
 
-This lesson deals with basic k-point convergence study that is needed in any DFT calculation of a solid. In a DFT
+This lesson deals with the basic k-point convergence study that is needed in any DFT calculation of a solid. In a DFT
 calculation of a solid the first Brillouin zone needs to be discritized to enable the integration of various quantities.
-Effectively these integrals are turned in to sums over k-point. For any result to be converged we need a k-point mesh
-that is dense enough, but at corse as possible to make for an efficient calculation. Various types of materials require
-in general different densities of the k-point meshes. Metals need denser meshes than semiconductors. Your first
-investigation into a new compound will quit often be a k-point convergence study.
+Effectively the integrals are turned in to sums over k-points. For any result to be converged we need a k-point mesh
+that is dense enough, but at the same time as corse as possible to make for an efficient calculation. Various types
+of materials require in general different densities of the k-point meshes. In general metals need denser meshes than
+semiconductors. Your first investigation into a new compound will quit often be a k-point convergence study.
 
-
-\033[93m The related abinit variables.\033[0m
+\033[94m The related abinit variables\033[0m
 
 Yannick could you fill this? maybe even an interactive interface to you input parameter database work?
 
+\033[1m ngkpt \033[0m
+\033[1m kptshift \033[0m
+\033[1m kptopt \033[0m
 
-\033[93m The abipy flows of this lesson.\033[0m
+
+\033[94m The abipy flows of this lesson\033[0m
 
 When performed manually, a k-point convergence study would require the preparation of a series of input-files, running
-abinit for all the inputs and extracting and studying the parameter that is needed to be converged. This lesson shows
+abinit for all the inputs and extracting and studying the quantity that is needed to be converged. This lesson shows
 how this process can be greatly facilitated by using python scripts in the abipy framework. We fill construct a single
 python object, a abipy flow, that contains all the information needed for the calculations but also provides methods
 for acually running abinit, inspecting the input and output, and analyzing the results.
 
-
-\033[93m The Course of this lesson.\033[0m
+\033[94m The Course of this lesson\033[0m
 
 This lesson can be started in ipython by importing it:
 
@@ -39,14 +41,14 @@ tools to follow this lesson. For instance the command:
 
 displays this lessons information text, and can be recalled at any moment. The main object we use to pack
 (connected series of) calculations is a flow. This lesson provides a method that returns a flow designed to perform
-k-point convergence studies. The flow is made by the command:
+k-point convergence studies. This flow is made by the command:
 
 \033[92m In []:\033[0m flow = lesson.make_ngkpt_flow()
 
 'flow' is now an object that contains al the information needed to generate abinit input. In this case it is a special
-flow for a k-point convergence study and since we did not specify any thing in generating the flow the example case
-of silicon is generated. Our flow however inherited from the base abinit flow so we have a lot of 'standard' methods
-vailable. For instance:
+flow for a k-point convergence study and since we did not specify anything when generating the flow the example case
+of silicon is generated. Our flow however inherited from the abinit base flow so we have a lot of 'standard' methods
+available. For instance:
 
 \033[92m In []:\033[0m flow.show_inputs()
 
@@ -56,15 +58,16 @@ To start the the execution of calculations packed in this flow we an use the fol
 
 \033[92m In []:\033[0m flow.make_scheduler().start()
 
-This starts the actual execution via a scheduler. The scheduler 'knows' about the computer we are on and how to run
-calculations on this computer. In a later lesson we will revisit this topic in more detail. Now we just wait for the
-calculations to complete.
+This starts the actual execution via a scheduler. The scheduler is a sort of daemon that starts to submit tasks that
+are ready to run. In our case al the tasks in the flow are independent so the first cycle of the scheduler directly
+submitted all of them. More complicated flows may have tasks that can only start using input from a previous task. We
+will encounter some of those later.
 
 The last step of analyzing the results can be done again in with a single command:
 
 \033[92m In []:\033[0m flow.analyze()
 
-This method of flow will open the nessesary output files, retrieve the data, and produce a plot.
+This method of flow will open the necessary output files, retrieve the data, and produce a plot.
 
 Finally, once you are through with this lesson and exited ipython:
 
@@ -81,10 +84,11 @@ the convergence for a metal. By using:
 
 \033[92m In []:\033[0m flow = lesson.make_ngkpt_flow(structure_file=abidata.cif_file('al.cif'))
 
-you will generate a flow for aluminum. Actually, you can pass the path to any cif file to perform a
+you will generate a flow for aluminum. Actually, you can pass the path to any cif file to perform a convergence study
+on that material.
 
 If you have time left it is also a good exercise to open the python file that contains this lesson and study the
-implementations of the class, methods and functions we used. You can get a copy of the file by using:
+implementations of the classes, methods and functions we used. You can get a copy of the file by using:
 
 \033[92m In []:\033[0m lesson.get_local_copy()
 
@@ -98,6 +102,7 @@ import os
 import shutil
 import abipy.abilab as abilab
 import abipy.data as abidata
+from abipy.lessons.lesson_helper_functions import help, abinit_help, get_local_copy
 
 
 # should n't we put these functions in a separate module and import them, we'll need them in any lesson...
@@ -154,7 +159,7 @@ def make_ngkpt_flow(structure_file=None):
         workdir = "lesson_Si_kpoint_convergence"
     else:
         structure = abilab.Structure.from_file(structure_file)
-        pseudos = abilab.PseudoTable()  ## todo fix this
+        pseudos = abilab.p  ## todo fix this
         inp = abilab.AbiInput(pseudos=pseudos, ndtset=len(ngkpt_list))
         inp.set_structure(structure)
         workdir = "lesson_" + structure.composition.reduced_formula + "_kpoint_convergence"
