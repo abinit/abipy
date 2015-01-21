@@ -443,7 +443,7 @@ hardware:
             task.reset()
             count += 1	
 
-        cprint("%d tasks have been resetted" % count, "blue")
+        cprint("%d tasks have been reset" % count, "blue")
         nlaunch = PyLauncher(flow).rapidfire()
         flow.show_status()
         print("Number of tasks launched: %d" % nlaunch)
