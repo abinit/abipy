@@ -130,10 +130,12 @@ def make_ebands_flow():
 
 
 if __name__ == "__main__":
-    flow = make_ngkpt_flow()
+    from abipy.lessons.lesson_helper_functions import abinit_help
+    print(abinit_help("tsmear"))
+    #flow = make_ngkpt_flow()
     #flow = make_relax_flow()
     #flow = make_ebands_flow()
 
     #flow.show_inputs()
-    flow.make_scheduler().start()
-    flow.analyze()
+    #flow.make_scheduler().start()
+    #flow.analyze()
