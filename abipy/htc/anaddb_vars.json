@@ -25,6 +25,7 @@
     "natom", 
     "natprj_bs", 
     "nchan", 
+    "ndivsm",
     "nfreq", 
     "ngrids", 
     "nlflag", 

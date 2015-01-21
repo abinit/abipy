@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-from __future__ import division
+from __future__ import division, print_function, unicode_literals
 
 import numpy as np
 
-import abipy.data as data
+import abipy.data as abidata
 from abipy.abilab import Structure, StructureModifier, AbiInput
 
 structure = Structure.from_file(data.cif_file("si.cif"))
@@ -13,7 +13,7 @@ modifier = StructureModifier(structure)
 # From 98% to 102% of the initial volume.
 new_structures = modifier.scale_lattice(vol_ratios=np.arange(98, 104, 2) / 100.)
 
-inp = AbiInput(pseudos=data.pseudos("14si.pspnc"), ndtset=len(new_structures))
+inp = AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=len(new_structures))
 
 for (idt, new_structure) in enumerate(new_structures):
     inp.set_structure(new_structure, dtset=idt+1)
@@ -21,7 +21,7 @@ for (idt, new_structure) in enumerate(new_structures):
 print(inp)
 
 # Supercell
-inp = AbiInput(pseudos=data.pseudos("14si.pspnc"), ndtset=1)
+inp = AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=1)
 
 new_structure = modifier.make_supercell(scaling_matrix=[1,2,3])
 inp.set_structure(new_structure)
@@ -49,7 +49,7 @@ etas = [0.01, 0.02, 0.03]
 new_structures = modifier.displace(frac_displ, etas)
 
 # Frozen Phonon at q=0
-inp = AbiInput(pseudos=data.pseudos("14si.pspnc"), ndtset=len(new_structures))
+inp = AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=len(new_structures))
 
 for (idt, new_structure) in enumerate(new_structures):
     inp.set_structure(new_structure, dtset=idt+1)

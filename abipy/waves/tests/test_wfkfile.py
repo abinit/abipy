@@ -4,18 +4,18 @@ import numpy as np
 import abipy.data as data
 
 from abipy.core.testing import *
-from abipy.waves import WFK_File
+from abipy.waves import WfkFile
 
 
 class TestWFKFile(AbipyTest):
     """Unit tests for WFKFile."""
 
     def test_read_wfkfile(self):
-        """Read WFK_File and waves from NC example data files."""
+        """Read WfkFile and waves from NC example data files."""
         assert data.WFK_NCFILES
 
         for path in data.WFK_NCFILES:
-            wfk = WFK_File(path)
+            wfk = WfkFile(path)
             print(wfk)
 
             spin, kpoint, band = (0, 0, 0)

@@ -9,10 +9,8 @@ from abipy.abilab import abiopen
 
 # Open the wavefunction file computed with a homogeneous sampling of the BZ 
 # and extract the band structure on the k-mesh.
-
-gs_wfk = abiopen(abidata.ref_file("si_scf_WFK-etsf.nc"))
-
-gs_ebands = gs_wfk.ebands
+with abiopen(abidata.ref_file("si_scf_WFK-etsf.nc")) as gs_wfk:
+    gs_ebands = gs_wfk.ebands
 
 # Compute the DOS with the Gaussian method.
 width = 0.1

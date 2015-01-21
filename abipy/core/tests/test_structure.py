@@ -8,7 +8,7 @@ import abipy.data as data
 from abipy.core.structure import *
 from abipy.core.testing import *
 from pymatgen.core.lattice import Lattice
-from pymatgen.symmetry.finder import SymmetryFinder
+
 
 class TestStructure(AbipyTest):
     """Unit tests for Structure."""
@@ -20,6 +20,7 @@ class TestStructure(AbipyTest):
             print("About to read file %s" % filename)
             structure = Structure.from_file(filename)
             print(structure)
+            assert structure.__class__ is Structure
 
             # All nc files produced by ABINIT should have info on the spacegroup.
             self.assertTrue(structure.has_spacegroup)
@@ -52,7 +53,6 @@ class TestStructure(AbipyTest):
         structure = Structure(lattice, ["Ga", "As"],
                                       [[0, 0, 0], [0.25, 0.25, 0.25]])
         old_structure = structure.copy()
-
 
         print(old_structure.lattice._matrix)
         for site in old_structure:

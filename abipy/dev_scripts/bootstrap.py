@@ -7,8 +7,8 @@ from __future__ import print_function, division, unicode_literals
 import sys
 import subprocess
 
-VENV_VERSION = '1.9.1'
-#VENV_VERSION = '1.10.1'
+#VENV_VERSION = '1.9.1'
+VENV_VERSION = '1.10.1'
 PYPI_VENV_BASE = 'https://pypi.python.org/packages/source/v/virtualenv'
 
 PYTHON = 'python'

@@ -3,7 +3,7 @@
 This script shows how to perform a RAMAN calculation with excitonic effects 
 included with the BSE formalism.
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import sys 
 import os
@@ -11,7 +11,6 @@ import numpy as np
 
 import abipy.abilab as abilab
 import abipy.data as data  
-#from pymatgen.io.abinitio.tasks import TaskPolicy
 
 optic_input = """\
 0.002         ! Value of the smearing factor, in Hartree
@@ -49,8 +48,7 @@ global_vars = dict(
     #accesswff=3
 )
 
-def raman_flow():
-
+def raman_flow(options):
     # Get the unperturbed structure.
     pseudos=data.pseudos("14si.pspnc")
 
@@ -71,13 +69,19 @@ def raman_flow():
     displaced_structures = modifier.displace(ph_displ, etas, frac_coords=False)
 
     # Initialize flow. Each workflow in the flow defines a complete BSE calculation for given eta.
-    workdir = os.path.join(os.path.dirname(__file__), base_structure.formula.replace(" ","") + "_RAMAN")
+    workdir = options.workdir
+    if not options.workdir:
+        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
+    #workdir = os.path.join(os.path.dirname(__file__), base_structure.formula.replace(" ","") + "_RAMAN")
 
-    manager = abilab.TaskManager.from_user_config()
+    # Instantiate the TaskManager.
+    manager = abilab.TaskManager.from_user_config() if not options.manager else \
+              abilab.TaskManager.from_file(options.manager)
+
     shell_manager = manager.to_shell_manager(mpi_procs=1)
     ddk_manager = manager.deepcopy()
 
-    flow = abilab.AbinitFlow(workdir, manager)
+    flow = abilab.Flow(workdir, manager=manager)
 
     # Generate the different shifts to average
     ndiv = 1
@@ -86,28 +90,28 @@ def raman_flow():
 
     for structure, eta in zip(displaced_structures, etas):
         for ishift,shift in enumerate(all_shifts):
-            flow.register_work(raman_workflow(structure, pseudos, ngkpt, shift, ddk_manager, shell_manager),workdir="eta_"+str(eta)+"shift_"+str(ishift))
+            flow.register_work(raman_work(structure, pseudos, ngkpt, shift, ddk_manager, shell_manager),workdir="eta_"+str(eta)+"shift_"+str(ishift))
 
     return flow.allocate()
 
 
-def raman_workflow(structure, pseudos, ngkpt, shiftk, ddk_manager, shell_manager):
+def raman_work(structure, pseudos, ngkpt, shiftk, ddk_manager, shell_manager):
     # Generate 3 different input files for computing optical properties with BSE.
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=5)
 
     inp.set_structure(structure)
-    inp.set_variables(**global_vars)
+    inp.set_vars(**global_vars)
     inp.set_kmesh(ngkpt=ngkpt, shiftk=shiftk)
 
     # GS run
-    inp[1].set_variables(
+    inp[1].set_vars(
         tolvrs=1e+8,
         nband=59,
     )
 
     # NSCF run
-    inp[2].set_variables(
+    inp[2].set_vars(
         iscf=-2,
        nband=100,
        kptopt=1,
@@ -122,44 +126,45 @@ def raman_workflow(structure, pseudos, ngkpt, shiftk, ddk_manager, shell_manager
         rfdir = 3 * [0]
         rfdir[dir] = 1
 
-        inp[3+dir].set_variables(
+        inp[3+dir].set_vars(
            iscf=-3,
-	   nband=100,
-          nstep=1,
-          nline=0,
-          prtwf=3,
-         kptopt=1,
+	       nband=100,
+           nstep=1,
+           nline=0,
+           prtwf=3,
+           kptopt=1,
            nqpt=1,
            qpt=[0.0, 0.0, 0.0],
-          rfdir=rfdir,
-         rfelfd=2,
-         tolwfr=1.e+12,
+           rfdir=rfdir,
+           rfelfd=2,
+           tolwfr=1.e+12,
         )
 
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = inp.split_datasets()
     ddk_inputs = [ddk1, ddk2, ddk3]
 
-    workflow = abilab.Workflow()
-    scf_t = workflow.register_scf_task(scf_inp)
-    nscf_t = workflow.register_nscf_task(nscf_inp, deps={scf_t: "DEN"})
+    work = abilab.Work()
+    scf_t = work.register_scf_task(scf_inp)
+    nscf_t = work.register_nscf_task(nscf_inp, deps={scf_t: "DEN"})
 
     ddk_nodes = []
     for inp in ddk_inputs:
-        ddk_t = workflow.register_ddk_task(inp, deps={nscf_t: "WFK"})
+        ddk_t = work.register_ddk_task(inp, deps={nscf_t: "WFK"})
         ddk_t.set_manager(ddk_manager)
         ddk_nodes.append(ddk_t)
 
     optic_t = abilab.OpticTask(optic_input, nscf_node=nscf_t, ddk_nodes=ddk_nodes, manager=shell_manager)
 
-    workflow.register(optic_t)
+    work.register(optic_t)
 
-    return workflow
+    return work
 
 
-def main():
+@abilab.flow_main
+def main(options):
     # Define the flow, build files and dirs 
     # and save the object in cpickle format.
-    flow = raman_flow()
+    flow = raman_flow(options)
     return flow.build_and_pickle_dump()
 
 

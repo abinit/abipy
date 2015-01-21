@@ -9,7 +9,7 @@ from abipy.abilab import abiopen
 mdf_file = abiopen(abidata.ref_file("tbs_4o_DS2_MDF.nc"))
 
 # Plot the imaginary part of the macroscopic 
-# dielectric function (EXC, RPA, GWRPA) betwee 2 and 5 eV.
+# dielectric function (EXC, RPA, GWRPA) between 2 and 5 eV.
 title = "Si absorption spectrum: EXC vs RPA"
 mdf_file.plot_mdfs(title=title, xlim=(2, 5))
 

@@ -5,11 +5,11 @@ import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
 
-from pymatgen.io.abinitio.calculations import g0w0_with_ppmodel
+from pymatgen.io.abinitio.calculations import g0w0_with_ppmodel_work
 from abipy.core.testing import has_abinit
 
 # Tests in this module require abinit >= 7.9.0
-pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
+#pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
 
 
 def make_g0w0_inputs(ngkpt, tvars):
@@ -107,7 +107,9 @@ def itest_g0w0_flow(fwp, tvars):
     """Test flow for G0W0 calculations."""
     scf, nscf, scr, sig = make_g0w0_inputs(ngkpt=[2, 2, 2], tvars=tvars)
 
-    flow = abilab.g0w0_flow(fwp.workdir, fwp.manager, scf, nscf, scr, sig)
+    flow = abilab.g0w0_flow(fwp.workdir, scf, nscf, scr, sig, manager=fwp.manager)
+    # Will remove output files at run-time.
+    flow.set_cleanup_exts()
     flow.build_and_pickle_dump()
 
     for task in flow[0]:
@@ -118,14 +120,25 @@ def itest_g0w0_flow(fwp, tvars):
     assert all(work.finalized for work in flow)
     assert flow.all_ok
 
+    scf_task = flow[0][0]
+    nscf_task = flow[0][1]
+    scr_task = flow[0][2]
+    sig_task = flow[0][3]
+
+    # Test set_cleanup_exts
+    # The WFK|SCR file should have been removed because we call set_cleanup_exts
+    assert not scf_task.outdir.has_abiext("WFK")
+    assert not nscf_task.outdir.has_abiext("WFK")
+    assert not scr_task.outdir.has_abiext("SCR")
+    assert not scr_task.outdir.has_abiext("SUS")
+
     # The sigma task should produce a SIGRES file.
-    sigfile = flow[0][-1].outdir.list_filepaths(wildcard="*SIGRES.nc")[0]
+    sigfile = sig_task.outdir.list_filepaths(wildcard="*SIGRES.nc")[0]
     assert sigfile
+    with abilab.abiopen(sigfile) as sigres:
+        assert sigres.nsppol == 1
 
     # TODO Add more tests
-    sigres = abilab.abiopen(sigfile)
-    assert sigres.nsppol == 1
-
     #assert flow.validate_json_schema()
 
 
@@ -133,7 +146,7 @@ def itest_g0w0qptdm_flow(fwp, tvars):
     """Integration test for G0W0WithQptdmFlow."""
     scf, nscf, scr, sig = make_g0w0_inputs(ngkpt=[2, 2, 2], tvars=tvars)
 
-    flow = abilab.G0W0WithQptdmFlow(fwp.workdir, fwp.manager, scf, nscf, scr, sig)
+    flow = abilab.G0W0WithQptdmFlow(fwp.workdir, scf, nscf, scr, sig, manager=fwp.manager)
 
     assert len(flow) == 3
     bands_work = flow[0]
@@ -149,6 +162,10 @@ def itest_g0w0qptdm_flow(fwp, tvars):
         assert not sigma_task.depends_on(bands_work.scf_task)
         assert sigma_task.depends_on(scr_work)
 
+    # FIXME this does not work yet because tasks are created dynamically
+    # Will remove output files at run-time.
+    #flow.set_cleanup_exts()
+
     flow.build_and_pickle_dump()
     flow.show_dependencies()
     # This call is needed to connect the node and enable
@@ -158,14 +175,21 @@ def itest_g0w0qptdm_flow(fwp, tvars):
     # Run the flow.
     fwp.scheduler.add_flow(flow)
     assert fwp.scheduler.start() 
-    assert fwp.scheduler.num_excs == 0
-
-    # The scr workflow should produce a SIGRES file.
-    assert len(scr_work.outdir.list_filepaths(wildcard="*SCR")) == 1
+    assert not fwp.scheduler.exceptions
 
     flow.show_status()
     assert all(work.finalized for work in flow)
     assert flow.all_ok
+
+    # Test set_cleanup_exts
+    # The WFK|SCR file should have been removed because we call set_cleanup_exts
+    #assert not scf_task.outdir.has_abiext("WFK")
+    #assert not nscf_task.outdir.has_abiext("WFK")
+    #assert not scr_task.outdir.has_abiext("SCR")
+    #assert not scr_task.outdir.has_abiext("SUS")
+
+    # The scr workflow should produce a SIGRES file.
+    assert scr_work.outdir.has_abiext("SCR")
 
     #assert flow.validate_json_schema()
 
@@ -175,7 +199,7 @@ def itest_htc_g0w0(fwp, tvars):
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
     pseudos = abidata.pseudos("14si.pspnc")
 
-    flow = abilab.AbinitFlow(fwp.workdir, fwp.manager)
+    flow = abilab.Flow(fwp.workdir, manager=fwp.manager)
 
     scf_kppa = 10
     nscf_nband = 10
@@ -191,10 +215,10 @@ def itest_htc_g0w0(fwp, tvars):
         paral_kgb=tvars.paral_kgb,
     )
 
-    work = g0w0_with_ppmodel(structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx,
-                             accuracy="normal", spin_mode="unpolarized", smearing=None,
-                             ppmodel="godby", charge=0.0, inclvkb=2, sigma_nband=None, gw_qprange=1,
-                             scr_nband=None, **extra_abivars)
+    work = g0w0_with_ppmodel_work(structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx,
+                                  accuracy="normal", spin_mode="unpolarized", smearing=None,
+                                  ppmodel="godby", charge=0.0, inclvkb=2, sigma_nband=None, gw_qprange=1,
+                                  scr_nband=None, **extra_abivars)
 
     flow.register_work(work)
     flow.allocate()
@@ -203,7 +227,7 @@ def itest_htc_g0w0(fwp, tvars):
     #flow.build_and_pickle_dump()
     fwp.scheduler.add_flow(flow)
     assert fwp.scheduler.start()
-    assert fwp.scheduler.num_excs == 0
+    assert not fwp.scheduler.exceptions
     assert fwp.scheduler.nlaunch == 4
 
     # The sigma task should produce a SCR file.
@@ -236,7 +260,7 @@ def itest_htc_g0w0(fwp, tvars):
 #        istwfk="*1",
 #    )
 #
-#    flow = abilab.AbinitFlow(workdir=fwp.workdir, manager=fwp.manager)
+#    flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager)
 #
 #    # BSE calculation with model dielectric function.
 #    from pymatgen.io.abinitio.calculations import bse_with_mdf

@@ -67,9 +67,7 @@ class InputVariable(object):
         self.value = value
         self._units = units
 
-        if (is_iter(self.value)
-            and isinstance(self.value[-1], str)
-            and self.value[-1] in _UNITS):
+        if (is_iter(self.value) and isinstance(self.value[-1], str) and self.value[-1] in _UNITS):
             self.value = list(self.value)
             self._units = self.value.pop(-1)
 
@@ -135,10 +133,10 @@ class InputVariable(object):
             value = list(value)
     
         # values in lists
-        if isinstance(value, list):
+        if isinstance(value, (list, tuple)):
     
             # Reshape a list of lists into a single list
-            if all(isinstance(v, list) for v in value):
+            if all(isinstance(v, (list, tuple)) for v in value):
                 line += self.format_list2d(value, floatdecimal)
     
             else:

@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 """Calculation of the BSE spectrum with the HT interface."""
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import sys
 import os
 from abipy import abilab
 import abipy.data as abidata  
 
-from pymatgen.io.abinitio.abiobjects import AbiStructure
-from pymatgen.io.abinitio.calculations import bse_with_mdf
+from pymatgen.io.abinitio.calculations import bse_with_mdf_work
 
 
 def build_flow(options):
@@ -40,13 +39,13 @@ def build_flow(options):
         istwfk="*1",
     )
 
-    flow = abilab.AbinitFlow(workdir=workdir, manager=manager)
+    flow = abilab.Flow(workdir=workdir, manager=manager)
 
     # BSE calculation with model dielectric function.
-    work = bse_with_mdf(structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,
-                       ecuteps, bs_loband, bs_nband, soenergy, mdf_epsinf,
-                       accuracy="normal", spin_mode="unpolarized", smearing=None,
-                       charge=0.0, scf_solver=None, **extra_abivars)
+    work = bse_with_mdf_work(structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,
+                             ecuteps, bs_loband, bs_nband, soenergy, mdf_epsinf,
+                             accuracy="normal", spin_mode="unpolarized", smearing=None,
+                             charge=0.0, scf_solver=None, **extra_abivars)
 
     flow.register_work(work)
     return flow.allocate()

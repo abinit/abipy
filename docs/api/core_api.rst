@@ -9,15 +9,6 @@ core Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`constants` Module
------------------------
-
-.. automodule:: abipy.core.constants
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
 :mod:`structure` Module
 -----------------------
 

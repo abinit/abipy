@@ -8,7 +8,7 @@ import abipy.abilab as abilab
 from abipy.core.testing import has_abinit
 
 # Tests in this module require abinit >= 7.9.0
-pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
+#pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
 
 
 def make_inputs(tvars):
@@ -26,9 +26,7 @@ def make_inputs(tvars):
                          [0.0, 0.5, 0.0],
                          [0.0, 0.0, 0.5]])
 
-    global_vars = dict(ecut=2,
-                       paral_kgb=tvars.paral_kgb)
-
+    global_vars = dict(ecut=2, paral_kgb=tvars.paral_kgb)
     global_vars.update(kmesh)
 
     inp.set_variables(**global_vars)
@@ -91,15 +89,15 @@ def itest_optic_flow(fwp, tvars):
 
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = make_inputs(tvars)
 
-    flow = abilab.AbinitFlow(fwp.workdir, fwp.manager)
+    flow = abilab.Flow(fwp.workdir, manager=fwp.manager)
 
-    bands_work = abilab.BandStructureWorkflow(scf_inp, nscf_inp)
+    bands_work = abilab.BandStructureWork(scf_inp, nscf_inp)
     flow.register_work(bands_work)
 
-    # workflow with DDK tasks.
-    ddk_work = abilab.Workflow()
+    # work with DDK tasks.
+    ddk_work = abilab.Work()
     for inp in [ddk1, ddk2, ddk3]:
-        ddk_work.register(inp, deps={bands_work.nscf_task: "WFK"}, task_class=abilab.DdkTask)
+        ddk_work.register_ddk_task(inp, deps={bands_work.nscf_task: "WFK"})
 
     flow.register_work(ddk_work)
     flow.allocate()
@@ -130,6 +128,7 @@ def itest_optic_flow(fwp, tvars):
     # Now we do a similar calculation but the dependencies are represented by
     # strings with the path to the input files instead of task objects.
     ddk_nodes = [task.outdir.has_abiext("1WF") for task in ddk_work]
+    #ddk_nodes = [task.outdir.has_abiext("DDK") for task in ddk_work]
     print("ddk_nodes:", ddk_nodes)
     assert all(ddk_nodes)
 

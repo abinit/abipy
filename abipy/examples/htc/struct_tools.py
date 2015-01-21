@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-from __future__ import division
+from __future__ import division, print_function, unicode_literals
 
-import abipy.data as data
+import abipy.data as abidata
 from abipy import abilab 
 
 # One can export the crystalline structure stored in the Netcdf files
@@ -9,7 +9,7 @@ from abipy import abilab
 # See also abipy/scripts/abistruct.py for a handy command line interface.
 
 # Read the structure from a netcdf file
-filepath = data.ref_file("si_nscf_GSR.nc")
+filepath = abidata.ref_file("si_nscf_GSR.nc")
 structure = abilab.Structure.from_file(filepath)
 
 # Call convert to get the string representation in the new format.

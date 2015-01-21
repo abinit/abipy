@@ -3,7 +3,7 @@
 Calculation of the band structure of Fe with and without magnetization.
 See tutorial/Input/tspin_1.in
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import os
 import sys
@@ -11,7 +11,7 @@ import abipy.data as data
 import abipy.abilab as abilab
 
 
-def make_scf_nscf_inputs(nsppol):
+def make_scf_nscf_inputs(nsppol, paral_kgb=1):
     """Generate two input files for the GS and the NSCF run for given nsppol"""
     inp = abilab.AbiInput(pseudos=data.pseudos("26fe.pspnc"), ndtset=2)
 
@@ -25,20 +25,20 @@ def make_scf_nscf_inputs(nsppol):
                        nband=8,
                        occopt=3,
                        tsmear=0.01,
-                       paral_kgb=0,
+                       paral_kgb=paral_kgb,
                     )
     if nsppol == 2:
         global_vars.update(spinat=[0.0, 0.0, 4.0])
 
-    inp.set_variables(**global_vars)
+    inp.set_vars(**global_vars)
 
     # Dataset 1 (GS run)
     inp[1].set_kmesh(ngkpt=[4,4,4], shiftk=[0.5,0.5,0.5])
-    inp[1].set_variables(tolvrs=1e-6)
+    inp[1].set_vars(tolvrs=1e-6)
 
     # Dataset 2 (NSCF run)
     inp[2].set_kpath(ndivsm=4)
-    inp[2].set_variables(tolwfr=1e-8)
+    inp[2].set_vars(tolwfr=1e-8)
     
     # Generate two input files for the GS and the NSCF run 
     scf_input, nscf_input = inp.split_datasets()
@@ -57,12 +57,12 @@ def build_flow(options):
               abilab.TaskManager.from_file(options.manager)
 
     # Create the Flow.
-    flow = abilab.AbinitFlow(workdir, manager)
+    flow = abilab.Flow(workdir, manager=manager)
 
     # Create the task defining the calculation and run and register it in the flow
     for nsppol in [1,2]:
         scf_input, nscf_input = make_scf_nscf_inputs(nsppol)
-        work = abilab.BandStructureWorkflow(scf_input, nscf_input)
+        work = abilab.BandStructureWork(scf_input, nscf_input)
         flow.register_work(work)
 
     return flow.allocate()

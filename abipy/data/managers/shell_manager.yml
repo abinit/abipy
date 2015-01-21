@@ -1,0 +1,18 @@
+qadapters: 
+    - priority: 1 
+      queue:
+        qname: localhost
+        qtype: shell
+      job:
+        mpi_runner: mpirun
+        #pre_run: 
+        # - source ~/env.sh
+      limits:
+         min_cores: 1
+         max_cores: 2
+         timelimit: 1:00:00
+      hardware:
+         num_nodes: 1
+         sockets_per_node: 1
+         cores_per_socket: 2
+         mem_per_node: 4 Gb

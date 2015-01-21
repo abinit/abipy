@@ -1,15 +1,16 @@
 #!/usr/bin/env python
-#
 # This example shows how to plot the phonon band structure of AlAs.
 # See tutorial/lesson_rf2.html
-from abipy.phonons import PhononBands
+from abipy.abilab import abiopen
 import abipy.data as abidata
 
-# Path to the PHBST file produced by anaddb.
-filename = abidata.ref_file("trf2_5.out_PHBST.nc")
+# Open PHBST file produced by anaddb.
+ncfile = abiopen(abidata.ref_file("trf2_5.out_PHBST.nc"))
 
 # Create the object from file.
-phbands = PhononBands.from_file(filename)
+#phbands = PhononBands.from_file(filename)
+phbands = ncfile.phbands
+ncfile.close()
 
 # Plot the phonon frequencies. Note that the labels for the q-points
 # are found automatically by searching in an internal database.

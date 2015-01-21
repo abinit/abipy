@@ -3,7 +3,7 @@
 This script shows how to perform a RAMAN calculation with 
 excitonic effects included with the BSE formalism.
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import sys 
 import os
@@ -22,11 +22,11 @@ def build_flow(options):
     manager = abilab.TaskManager.from_user_config() if not options.manager else \
               abilab.TaskManager.from_file(options.manager)
 
-    # Initialize flow. Each workflow in the flow defines a complete BSE calculation for given eta.
+    # Initialize flow. Each work in the flow defines a complete BSE calculation for given eta.
     #if workdir is None:
     #    workdir = os.path.join(os.path.dirname(__file__), base_structure.formula.replace(" ","") + "_RAMAN")
                                                                                                                  
-    flow = abilab.AbinitFlow(workdir, manager)
+    flow = abilab.Flow(workdir, manager=manager)
 
     pseudos = data.pseudos("14si.pspnc")
 
@@ -53,29 +53,29 @@ def build_flow(options):
 
     for structure, eta in zip(displaced_structures, etas):
         for shift in all_shifts:
-            flow.register_work(raman_workflow(structure, pseudos, shift))
+            flow.register_work(raman_work(structure, pseudos, shift))
 
     return flow.allocate()
 
 
-def raman_workflow(structure, pseudos, shiftk):
+def raman_work(structure, pseudos, shiftk, paral_kgb=1):
     # Generate 3 different input files for computing optical properties with BSE.
 
     # Global variables
     global_vars = dict(
-        ecut=12,
+        ecut=8,
         istwfk="*1",
         chksymbreak=0,
         #nstep=4,
         nstep=10,
-        paral_kgb=0,
+        paral_kgb=paral_kgb,
     )
 
     # GS run
     scf_inp = abilab.AbiInput(pseudos=pseudos)
 
     scf_inp.set_structure(structure)
-    scf_inp.set_variables(**global_vars)
+    scf_inp.set_vars(**global_vars)
     scf_inp.set_kmesh(ngkpt=[2,2,2], shiftk=shiftk)
     scf_inp.tolvrs = 1e-6
 
@@ -83,24 +83,24 @@ def raman_workflow(structure, pseudos, shiftk):
     nscf_inp = abilab.AbiInput(pseudos=pseudos)
 
     nscf_inp.set_structure(structure)
-    nscf_inp.set_variables(**global_vars)
+    nscf_inp.set_vars(**global_vars)
     nscf_inp.set_kmesh(ngkpt=[2,2,2], shiftk=shiftk)
 
-    nscf_inp.set_variables(tolwfr=1e-12,
-                           nband=12,
-                           nbdbuf=4,
-                           iscf=-2,
-                           )
+    nscf_inp.set_vars(tolwfr=1e-8,
+                      nband=12,
+                      nbdbuf=4,
+                      iscf=-2,
+                      )
 
     # BSE run with Model dielectric function and Haydock (only resonant + W + v)
     # Note that SCR file is not needed here
     bse_inp = abilab.AbiInput(pseudos=pseudos)
 
     bse_inp.set_structure(structure)
-    bse_inp.set_variables(**global_vars)
+    bse_inp.set_vars(**global_vars)
     bse_inp.set_kmesh(ngkpt=[2,2,2], shiftk=shiftk)
 
-    bse_inp.set_variables(
+    bse_inp.set_vars(
         optdriver=99,
         ecutwfn=global_vars["ecut"],
         ecuteps=3,
@@ -114,13 +114,13 @@ def raman_workflow(structure, pseudos, shiftk):
         soenergy="0.8 eV",
         bs_coupling=0,
         bs_loband=2,
-        nband=8,
+        nband=6,
         #bs_freq_mesh="0 10 0.1 eV",
         bs_hayd_term=0,      # No terminator
     )
 
-    # Build the workflow representing a BSE run with model dielectric function.
-    return abilab.BSEMDF_Workflow(scf_inp, nscf_inp, bse_inp)
+    # Build the work representing a BSE run with model dielectric function.
+    return abilab.BseMdfWork(scf_inp, nscf_inp, bse_inp)
 
 
 @abilab.flow_main

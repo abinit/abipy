@@ -33,6 +33,7 @@ class TestFunction1D(AbipyTest):
 
         self.assert_almost_equal(cosf.spline_integral(), 0.0)
         self.assert_almost_equal(cosf.spline.roots(), [np.pi/2, 3*np.pi/2])
+        self.assertEqual(cosf.spline_on_mesh(cosf.mesh), cosf)
 
         stream = StringIO()
         cosf.to_file(stream)
@@ -58,7 +59,7 @@ class TestFunction1D(AbipyTest):
         def primitive(x):
             return 0.5 * x - 0.25 * np.sin(2*x)
 
-        self.assert_almost_equal(sinf.l2_norm, primitive(self.xmax) - primitive(self.xmin))
+        self.assert_almost_equal(sinf.l2_norm**2, primitive(self.xmax) - primitive(self.xmin))
 
         # Derivatives
         self.assertTrue(sinf.finite_diff(order=1, acc=4) == cosf)
@@ -83,6 +84,7 @@ class TestFunction1D(AbipyTest):
         same_sinf = sinf.fft().ifft()
         self.assert_almost_equal(same_sinf.values, sinf.values)
         self.assert_almost_equal(same_sinf.mesh, sinf.mesh)
+
 
 if __name__ == "__main__": 
     import unittest

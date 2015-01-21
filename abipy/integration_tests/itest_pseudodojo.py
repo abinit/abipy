@@ -6,6 +6,7 @@ import abipy.data as abidata
 import abipy.abilab as abilab
 
 from abipy.core.testing import has_abinit
+from pseudo_dojo.dojo.works import DeltaFactory, GbrvFactory
 
 has_pseudodojo = True
 try:
@@ -14,8 +15,8 @@ except ImportError:
     has_pseudodojo = False
 
 # Tests in this module require abinit >= 7.9.0 and pseudodojo.
-pytestmark = pytest.mark.skipif(not has_abinit("7.9.0") or not has_pseudodojo,
-                                reason="Requires abinit >= 7.9.0 and pseudodojo")
+#pytestmark = pytest.mark.skipif(not has_abinit("7.9.0") or not has_pseudodojo,
+#                                reason="Requires abinit >= 7.9.0 and pseudodojo")
 
 
 def itest_deltafactor(fwp, tvars):
@@ -24,7 +25,7 @@ def itest_deltafactor(fwp, tvars):
     # Path of the pseudopotential to test.
     pseudo = abidata.pseudo("Si.GGA_PBE-JTH-paw.xml")
 
-    flow = abilab.AbinitFlow(workdir=fwp.workdir, manager=fwp.manager)
+    flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager)
 
     # Build the workflow for the computation of the deltafactor.
     # The workflow will produce a pdf file with the equation of state
@@ -35,7 +36,6 @@ def itest_deltafactor(fwp, tvars):
     ecut = 2
     pawecutdg = ecut * 2 if pseudo.ispaw else None
 
-    from pseudo_dojo.dojo.dojo_workflows import DeltaFactory
     work = DeltaFactory().work_for_pseudo(pseudo, kppa=kppa, ecut=ecut, pawecutdg=pawecutdg, paral_kgb=tvars.paral_kgb)
 
     # Register the workflow.
@@ -61,7 +61,6 @@ def itest_deltafactor(fwp, tvars):
 
 def itest_gbrv_flow(fwp, tvars):
     """The the GBRV flow: relaxation + EOS computation."""
-    from pseudo_dojo.dojo.dojo_workflows import GbrvFactory
     factory = GbrvFactory()
 
     #pseudo = "si_pbe_v1_abinit.paw"
@@ -69,7 +68,7 @@ def itest_gbrv_flow(fwp, tvars):
     ecut = 2
     pawecutdg = 2 * ecut if pseudo.ispaw else None
 
-    flow = abilab.AbinitFlow(workdir=fwp.workdir, manager=fwp.manager, pickle_protocol=0)
+    flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager, pickle_protocol=0)
 
     struct_types = ["fcc"] #, "bcc"]
 
@@ -82,7 +81,7 @@ def itest_gbrv_flow(fwp, tvars):
 
     fwp.scheduler.add_flow(flow)
     assert fwp.scheduler.start()
-    assert fwp.scheduler.num_excs == 0
+    assert not fwp.scheduler.exceptions
 
     #work = flow[0]
     #t0 = work[0]

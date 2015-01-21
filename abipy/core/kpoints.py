@@ -1,14 +1,17 @@
+# coding: utf-8
 """This module defines objects describing the sampling of the Brillouin Zone."""
 from __future__ import print_function, division, unicode_literals
 
-import os
 import collections
 import numpy as np
-import warnings
 
 from monty.collections import AttrDict
-from abipy.iotools import as_etsfreader, ETSF_Reader
+from monty.functools import lazy_property
+from abipy.iotools import ETSF_Reader
 from abipy.tools.derivatives import finite_diff
+
+import logging
+logger = logging.getLogger(__name__)
 
 __all__ = [
     "issamek",
@@ -30,12 +33,9 @@ def is_integer(x, atol=_ATOL_KDIFF):
     """
     True if all x is integer within the absolute tolerance atol.
 
-    >>> is_integer([1., 2.])
-    True
-    >>> is_integer(1.01, atol=0.011)
-    True
-    >>> is_integer([1.01, 2])
-    False
+    >>> assert is_integer([1., 2.])
+    >>> assert is_integer(1.01, atol=0.011)
+    >>> assert not is_integer([1.01, 2])
     """
     int_x = np.around(x)
     return np.allclose(int_x, x, atol=atol)
@@ -49,14 +49,9 @@ def issamek(k1, k2, atol=1e-08):
     """
     True if k1 and k2 are equal modulo a lattice vector.
 
-    Examples
-
-    >>> issamek([1,1,1], [0,0,0])
-    True
-    >>> issamek([1.1,1,1], [0,0,0], atol=0.1)
-    True
-    >>> issamek(0.00003, 1)
-    False
+    >>> assert issamek([1,1,1], [0,0,0])
+    >>> assert issamek([1.1,1,1], [0,0,0], atol=0.1)
+    >>> assert not issamek(0.00003, 1)
     """
     return is_integer(np.asarray(k1)-np.asarray(k2), atol=atol)
 
@@ -133,15 +128,11 @@ def kmesh_from_mpdivs(mpdivs, shifts, pbc=False, order="bz"):
     k-points from the MP divisions and the shifts.
 
     Args:
-        mpdivs
-            The three MP divisions
-        shifts:
-            Array-like object with the MP shift.
-        pbc:
-            If True, periodic images of the k-points will be includes i.e. closed mesh.
-        order:
-            "unit_cell" if the kpoint coordinates must be in [0,1)
-            "bz" if the kpoint coordinates must be in [-1/2, +1/2)
+        mpdivs: The three MP divisions
+        shifts: Array-like object with the MP shift.
+        pbc: If True, periodic images of the k-points will be includes i.e. closed mesh.
+        order: "unit_cell" if the kpoint coordinates must be in [0,1)
+               "bz" if the kpoint coordinates must be in [-1/2, +1/2)
     """
     shifts = np.reshape(shifts, (-1,3))
     assert np.all(np.abs(shifts) <= 0.5)
@@ -169,16 +160,12 @@ def as_kpoints(obj, lattice, weights=None, names=None):
     Convert obj into a list of k-points.
 
     Args:
-        obj:
-            Kpoint or list of Kpoint objects or array-like object.
-        lattice:
-            Reciprocal lattice.
-        weights:
-            k-point weights. Ignored if obj is already a `Kpoint` instance or a list
-            of `Kpoint` items.
-        name:
-            string with the name of the k-point. Ignored if obj is already a `Kpoint`
-            instance or a list of `Kpoint` items.
+        obj: :class:`Kpoint` or list of Kpoint objects or array-like object.
+        lattice: Reciprocal lattice.
+        weights: k-point weights. Ignored if obj is already a `Kpoint` instance or a list
+                 of `Kpoint` items.
+        name: string with the name of the k-point. Ignored if obj is already a `Kpoint`
+              instance or a list of `Kpoint` items.
     """
     # K-point?
     if isinstance(obj, Kpoint):
@@ -210,13 +197,14 @@ def as_kpoints(obj, lattice, weights=None, names=None):
 class Kpoint(object):
     """Class defining one k-point."""
 
-    __slots__ = [
-        "_frac_coords",
-        "_lattice",
-        "_weight",
-        "_name",
-        "_hash",
-    ]
+    # TODO: Fix problem with pickle
+    #__slots__ = [
+    #    "_frac_coords",
+    #    "_lattice",
+    #    "_weight",
+    #    "_name",
+    #    "_hash",
+    #]
 
     # Tolerance used to compare k-points.
     @property
@@ -226,14 +214,10 @@ class Kpoint(object):
     def __init__(self, frac_coords, lattice, weight=None, name=None):
         """
         Args:
-            frac_coords:
-                Reduced coordinates.
-            lattice:
-                `Lattice` object describing the reciprocal lattice.
-            weights: 
-                k-point weight (optional, set to zero if not given).
-            name:
-                string with the name of the k-point (optional)
+            frac_coords: Reduced coordinates.
+            lattice: :class:`Lattice` object describing the reciprocal lattice.
+            weights: k-point weight (optional, set to zero if not given).
+            name: string with the name of the k-point (optional)
         """
         self._frac_coords = np.asarray(frac_coords)
         assert len(self.frac_coords) == 3
@@ -246,7 +230,7 @@ class Kpoint(object):
         """
         Kpoint objects can be used as keys in dictionaries.
         
-        .. warning: 
+        .. warning::
 
             The hash is computed from the fractional coordinates (floats). 
             Hence one should avoid using hashes for implementing search algorithms
@@ -302,8 +286,7 @@ class Kpoint(object):
     @property
     def on_border(self):
         """
-        True if the k-point is on the border of the BZ 
-        (lattice translations are taken into account).
+        True if the k-point is on the border of the BZ  (lattice translations are taken into account).
         """
         kreds = wrap_to_ws(self.frac_coords)
         diff = np.abs(np.abs(kreds) - 0.5)
@@ -348,9 +331,9 @@ class Kpoint(object):
 
         Args:
             obj:
-                `Kpoint` instance or array-like with the reduced coordinates
+                :class:`Kpoint` instance or array-like with the reduced coordinates.
             lattice:
-                `Lattice` object defining the reciprocal lattice.
+                :class:`Lattice` object defining the reciprocal lattice.
         """
         if isinstance(obj, cls):
             return obj
@@ -370,16 +353,13 @@ class Kpoint(object):
     @property
     def norm(self):
         """Norm of the kpoint."""
-        cart = self.lattice.get_cartesian_coords(self.frac_coords)
-        return np.sqrt(np.dot(cart, cart))
+        return np.sqrt(np.dot(self.cart_coords, self.cart_coords))
 
     def versor(self):
         """Returns the versor i.e. ||k|| = 1"""
         cls = self.__class__
-
         try:
             return cls(self.frac_coords / self.norm, self.lattice, weight=self.weight)
-
         except ZeroDivisionError:
             return cls.gamma(self.lattice, weight=self.weight)
 
@@ -412,7 +392,7 @@ class Kpoint(object):
 
 class KpointList(collections.Sequence):
     """
-    Base class defining a sequence of `Kpoint` objects. Essentially consists 
+    Base class defining a sequence of :class:`Kpoint` objects. Essentially consists
     of base methods implementing the sequence protocol and helper functions.
     """
     Error = KpointsError
@@ -420,14 +400,10 @@ class KpointList(collections.Sequence):
     def __init__(self, reciprocal_lattice, frac_coords, weights=None, names=None):
         """
         Args:
-            reciprocal_lattice:
-                `Lattice` object.
-            frac_coords:
-                Array-like object with the reduced coordinates of the k-points.
-            weights:
-                List of k-point weights.
-            names:
-                List of k-point names.
+            reciprocal_lattice: :class:`Lattice` object.
+            frac_coords: Array-like object with the reduced coordinates of the k-points.
+            weights: List of k-point weights.
+            names: List of k-point names.
         """
         self._reciprocal_lattice = reciprocal_lattice
 
@@ -443,7 +419,7 @@ class KpointList(collections.Sequence):
             assert len(names) == len(frac_coords)
 
         self._points = []
-        for (i, rcs) in enumerate(frac_coords):
+        for i, rcs in enumerate(frac_coords):
             name = None if names is None else names[i]
             self._points.append(Kpoint(rcs, self.reciprocal_lattice, weight=weights[i], name=name))
 
@@ -455,7 +431,7 @@ class KpointList(collections.Sequence):
         else:
             raise NotImplementedError("")
 
-        assert new.__class__ == cls
+        new.__class__ == cls
         return new
 
     @property
@@ -507,7 +483,9 @@ class KpointList(collections.Sequence):
 
     def index(self, kpoint):
         """
-        Returns the first index of kpoint in self. Raises ValueError if not found.
+        Returns: the first index of kpoint in self.
+
+        Raises: ValueError if not found.
         """
         try:
             return self._points.index(kpoint)
@@ -517,7 +495,7 @@ class KpointList(collections.Sequence):
 
     def find(self, kpoint):
         """
-        Returns first index of kpoint. -1 if not found
+        Returns: first index of kpoint. -1 if not found
         """
         try:
             return self.index(kpoint)
@@ -600,87 +578,67 @@ class Kpath(KpointList):
     def __init__(self, reciprocal_lattice, frac_coords):
         """
         Args:
-            reciprocal_lattice:
-                `Lattice` object.
-            frac_coords:
-                Array-like object with the reduced coordinates of the k-points.
+            reciprocal_lattice: :class:`Lattice` object.
+            frac_coords: Array-like object with the reduced coordinates of the k-points.
         """
         super(Kpath, self).__init__(reciprocal_lattice, frac_coords)
 
-    @property
+    @lazy_property
     def ds(self):
         """
         ndarray of len(self)-1 elements giving the distance between two
         consecutive k-points, i.e. ds[i] = ||k[i+1] - k[i]||.
         """
-        try:
-            return self._ds
+        ds = np.zeros(len(self) - 1)
+        for (i, kpoint) in enumerate(self[:-1]):
+            ds[i] = (self[i + 1] - kpoint).norm
+        return ds
 
-        except AttributeError:
-            self._ds = ds = np.zeros(len(self) - 1)
-            for (i, kpoint) in enumerate(self[:-1]):
-                ds[i] = (self[i + 1] - kpoint).norm
-
-            return self._ds
-
-    @property
+    @lazy_property
     def versors(self):
         """Tuple of len(self)-1 elements with the versors connecting k[i] to k[i+1]."""
-        try:
-            return self._versors
+        versors = (len(self) - 1) * [None, ]
+        versors[0] = Kpoint.gamma(self.reciprocal_lattice)
 
-        except AttributeError:
-            versors = (len(self) - 1) * [None, ]
-            versors[0] = Kpoint.gamma(self.reciprocal_lattice)
+        for (i, kpt) in enumerate(self[:-1]):
+            versors[i] = (self[i + 1] - kpt).versor()
 
-            for (i, kpt) in enumerate(self[:-1]):
-                versors[i] = (self[i + 1] - kpt).versor()
-            self._versors = tuple(versors)
-
-            return self._versors
+        return tuple(versors)
 
     @property
     def num_lines(self):
         """The number of lines forming the path."""
         return len(self.lines)
 
-    @property
+    @lazy_property
     def lines(self):
         """
         tuple with the list of indices of the points belonging to the same line.
         """
-        try:
-            return self._lines
+        lines = []
+        prev, indices = self.versors[0], [0]
 
-        except AttributeError:
-            lines = []
-            prev, indices = self.versors[0], [0]
-
-            for (i, v) in enumerate(self.versors[1:]):
-                i += 1
-                if v != prev:
-                    prev = v
-                    lines.append(indices + [i])
-                    indices = [i]
-                else:
-                    indices += [i]
+        for (i, v) in enumerate(self.versors[1:]):
+            i += 1
+            if v != prev:
+                prev = v
+                lines.append(indices + [i])
+                indices = [i]
+            else:
+                indices += [i]
 
             lines.append(indices + [len(self) - 1])
-            self._lines = tuple(lines)
 
-            return self._lines
+        return tuple(lines)
 
     def finite_diff(self, values, order=1, acc=4):
         """
         Compute the derivatives of values by finite differences.
 
         Args:
-            values:
-                array-like object with the values of the path.
-            order:
-                Order of the derivative.
-            acc:
-                Accuracy: 4 corresponds to a central difference with 5 points.
+            values: array-like object with the values of the path.
+            order: Order of the derivative.
+            acc: Accuracy: 4 corresponds to a central difference with 5 points.
 
         Returns:
             ndarray with the derivative.
@@ -708,21 +666,17 @@ class Kpath(KpointList):
 
 class IrredZone(KpointList):
     """
-    An IrredZone is a (immutable) sequence of points in the irreducible wedge of the BZ.
-    Each point has a weight whose sum must equal 1 so that we can integrate quantities 
-    in the full Brillouin zone.
-    Provides methods to symmetrize k-dependent quantities with the full
-    symmetry of the structure. e.g. bands, occupation factors, phonon frequencies.
+    An :class:`IrredZone` is a (immutable) sequence of points in the irreducible wedge of the BZ.
+    Each point has a weight whose sum must equal 1 so that we can integrate quantities in the full Brillouin zone.
+    Provides methods to symmetrize k-dependent quantities with the full symmetry of the structure. e.g.
+    bands, occupation factors, phonon frequencies.
     """
     def __init__(self, reciprocal_lattice, frac_coords, weights, ksampling):
         """
         Args:
-            reciprocal_lattice:
-                `Lattice`
-            frac_coords:
-                Array-like object with the reduced coordinates of the points.
-            weights:
-                Array-like with the weights of the k-points.
+            reciprocal_lattice: :class:`Lattice` object
+            frac_coords: Array-like object with the reduced coordinates of the points.
+            weights: Array-like with the weights of the k-points.
             ksampling:
                 TODO
         """
@@ -734,9 +688,9 @@ class IrredZone(KpointList):
         if abs(wsum - 1) > 1.e-6:
             err_msg = "Kpoint weights should sum up to one while sum_weights is %.3f\n" % wsum
             err_msg += "The list of kpoints does not represent a homogeneous sampling of the BZ\n" 
-            err_msg += str(type(self)) + "\n" + str(self)
+            #err_msg += str(type(self)) + "\n" + str(self)
             #raise ValueError(err_msg)  # GA : Should not prevent a band structure from being read!
-            warnings.warn(err_msg)
+            logger.warning(err_msg)
 
         # FIXME
         # Quick and dirty hack to allow the reading of the k-points from WFK files
@@ -795,15 +749,11 @@ class IrredZone(KpointList):
         """Number of points in the full BZ."""
         return self.mpdivs.prod() * self.num_shifts
 
-    #@property
+    #@lazy_property
     #def ktab(self):
-    #    try:
-    #        return self._ktab
-    #    except AttributeError:
-    #        # Compute the mapping bz --> ibz
-    #        from abipy.extensions.klib import map_bz2ibz
-    #        self._ktab = map_bz2ibz(structure=structure, bz_arr=self.bz_arr, ib_arr=self.ibz_arr)
-    #        return self._ktab
+    #Compute the mapping bz --> ibz
+    #from abipy.extensions.klib import map_bz2ibz
+    #return map_bz2ibz(structure=structure, bz_arr=self.bz_arr, ib_arr=self.ibz_arr)
 
     #def iter_bz_coords(self):
     #    """
@@ -857,7 +807,7 @@ class KSamplingInfo(AttrDict):
 
     def __init__(self, *args, **kwargs):
         super(KSamplingInfo, self).__init__(*args, **kwargs)
-        print("ksampling", self)
+        #print("ksampling", self)
         #for k in self:
         #   if k not in self.KNOWN_KEYS:
         #       raise ValueError("Unknow key %s" % k)

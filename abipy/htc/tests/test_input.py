@@ -1,6 +1,7 @@
 """Tests for htc.FilesFile."""
 from __future__ import print_function, division
 
+import numpy as np
 import abipy.data as abidata
 
 from abipy.core.testing import AbipyTest
@@ -11,8 +12,7 @@ class AbiInputTest(AbipyTest):
 
     def test_si_input(self):
         """Testing Silicon input with NC pseudo."""
-        aequal = self.assertEqual
-        atrue = self.assertTrue
+        aequal, atrue = self.assertEqual, self.assertTrue
 
         # Create an ABINIT input file with 1 dataset. 
         inp = AbiInput(pseudos="14si.pspnc", pseudo_dir=abidata.pseudo_dir, ndtset=1)
@@ -41,17 +41,31 @@ class AbiInputTest(AbipyTest):
         }
 
         # and set the variables in the input file with the call:
-        inp.set_variables(**unit_cell)
+        inp.set_vars(**unit_cell)
 
         # Alternatively, it's possible to create a dictionary on the fly with the syntax.
-        inp.set_variables(kptopt=1, 
-                          ngkpt=[2, 2, 2], 
-                          nshiftk=1, 
-                          shiftk=[0.0, 0.0, 0.0]
-                          )
+        inp.set_vars(kptopt=1, 
+                     ngkpt=[2, 2, 2], 
+                     nshiftk=1, 
+                     shiftk=np.reshape([0.0, 0.0, 0.0], (-1,3))
+                     )
+
+        inp.nshiftk = len(inp.shiftk) 
+        assert inp.nshiftk == 1
+
+        inp.remove_vars("nshiftk")
+        with self.assertRaises(AttributeError): print(inp.nshiftk)
 
         # To print the input to stdout use:
         print(inp)
+
+        # To create a new input with a different variable.
+        new = inp.new_with_vars(kptopt=3)
+        assert new.kptopt == 3 and inp.kptopt == 1
+
+        # Compatible with deepcopy and Pickle?
+        inp.deepcopy()
+        self.serialize_with_pickle(inp, test_eq=False)
 
         # A slightly more complicated example: input file with two datasets
         inp = AbiInput(pseudos="14si.pspnc", pseudo_dir=abidata.pseudo_dir, ndtset=2)
@@ -63,17 +77,22 @@ class AbiInputTest(AbipyTest):
         inp.ecut1 = 10
         inp.ecut2 = 20
 
-        # or by passing the index of the dataset to set_variables via the dtset argument.
-        inp.set_variables(ngkpt=[2,2,2], tsmear=0.004, dtset=1)
-        inp.set_variables(kptopt=[4,4,4], tsmear=0.008, dtset=2)
+        with self.assertRaises(AttributeError): print(inp.ecut)
+        inp.remove_vars("ecut", dtset=2)
+        assert inp.ecut1 == 10
+        with self.assertRaises(AttributeError): print(inp.ecut2)
 
+        # or by passing the index of the dataset to set_vars via the dtset argument.
+        inp.set_vars(ngkpt=[2,2,2], tsmear=0.004, dtset=1)
+        inp.set_vars(kptopt=[4,4,4], tsmear=0.008, dtset=2)
         print(inp)
 
-        # Compatible with Pickle?
+        # Compatible with deepcopy and Pickle?
+        inp.deepcopy()
         self.serialize_with_pickle(inp, test_eq=False)
 
         # pseudo file must exist.
-        with self.assertRaises(AbinitInputError):
+        with self.assertRaises(inp.Error):
             AbiInput(pseudos="foobar.pspnc", pseudo_dir=abidata.pseudo_dir, ndtset=2)
 
         tsmear_list = [0.005, 0.01]
@@ -108,7 +127,7 @@ class AbiInputTest(AbipyTest):
         inp.split_datasets()
 
         # Cannot split datasets when we have get* or ird* variables.
-        inp[2].set_variables(getwfk=-1)
+        inp[2].set_vars(getwfk=-1)
 
         with self.assertRaises(inp.Error):
             inp.split_datasets()
@@ -125,22 +144,22 @@ class AbiInputTest(AbipyTest):
         aequal(inp.ispaw, True)
 
         # Set global variables.
-        inp.set_variables(ecut=10)
+        inp.set_vars(ecut=10)
 
-        # Compatible with Pickle?
+        # Compatible with deepcopy and Pickle?
+        inp.deepcopy()
         self.serialize_with_pickle(inp, test_eq=False)
 
         # Setting an unknown variable should raise an error.
         with self.assertRaises(inp.Error):
-            inp.set_variables(foobar=10)
+            inp.set_vars(foobar=10)
 
 
 class LdauLexxTest(AbipyTest):
 
     def test_nio(self):
         """Test LdauParams and LexxParams."""
-        aequal = self.assertEqual
-        atrue = self.assertTrue
+        aequal, atrue = self.assertEqual, self.assertTrue
 
         structure = abidata.structure_from_ucell("NiO")
         pseudos = abidata.pseudos("28ni.paw", "8o.2.paw")
@@ -186,30 +205,63 @@ class LdauLexxTest(AbipyTest):
 class AnaddbInputTest(AbipyTest):
     """Tests for AnaddbInput."""
 
+    def setUp(self):
+        self.structure = abidata.structure_from_ucell("Si")
+
     def test_phbands_and_dos(self):
         """Test phbands_and_dos constructor."""
-        structure = abidata.structure_from_ucell("Si")
-        inp = AnaddbInput(structure, comment="hello anaddb", brav=1)
+        inp = AnaddbInput(self.structure, comment="hello anaddb", brav=1)
         self.assertTrue("brav" in inp)
         self.assertEqual(inp["brav"], 1)
         self.assertEqual(inp.get("brav"), 1)
 
         # Unknown variable.
         with self.assertRaises(AnaddbInput.Error):
-            AnaddbInput(structure, foo=1)
+            AnaddbInput(self.structure, foo=1)
 
         ndivsm = 1
         nqsmall = 3
         ngqpt = (4, 4, 4)
 
-        inp2 = AnaddbInput.phbands_and_dos(structure, ngqpt, ndivsm, nqsmall, asr=0, dos_method="tetra")
+        inp2 = AnaddbInput.phbands_and_dos(self.structure, ngqpt, ndivsm, nqsmall, asr=0, dos_method="tetra")
+        self.assertEqual(inp2['ifcflag'], 1)
+
         s2 = inp2.to_string(sortmode="a")
         print(s2)
 
-        inp3 = AnaddbInput.phbands_and_dos(structure, ngqpt, ndivsm, nqsmall,
+        inp3 = AnaddbInput.phbands_and_dos(self.structure, ngqpt, ndivsm, nqsmall,
                                            qptbounds=[0,0,0,1,1,1], dos_method="gaussian:0.001 eV")
+        self.assertEqual(inp3['ifcflag'], 1)
+        self.assertEqual(inp3['prtdos'], 1)
         s3 = inp3.to_string(sortmode="a")
         print(s3)
+
+        # Compatible with deepcopy and Pickle?
+        for i in (inp, inp2, inp3):
+            self.serialize_with_pickle(i, test_eq=False)
+            i.deepcopy()
+
+    def test_thermo(self):
+        """Test the thermodynamics constructor"""
+        anaddb_input = AnaddbInput.thermo(self.structure, ngqpt=(40, 40, 40), nqsmall=20)
+        self.assertTrue(anaddb_input.make_input())
+        for var in ('thmtol', 'ntemper', 'temperinc', 'thmtol'):
+            self.assertTrue(anaddb_input[var] >= 0)
+        for flag in ('ifcflag', 'thmflag'):
+            self.assertEqual(anaddb_input[flag], 1)
+
+        self.serialize_with_pickle(anaddb_input, test_eq=False)
+        anaddb_input.deepcopy()
+
+    def test_modes(self):
+        """Test the modes constructor"""
+        anaddb_input = AnaddbInput.modes(self.structure)
+        self.assertTrue(anaddb_input.make_input())
+        for flag in ('ifcflag', 'dieflag'):
+            self.assertEqual(anaddb_input[flag], 1)
+
+        self.serialize_with_pickle(anaddb_input, test_eq=False)
+        anaddb_input.deepcopy()
 
 
 if __name__ == "__main__":

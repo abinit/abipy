@@ -1,3 +1,4 @@
+# coding: utf-8
 """Tools for computing derivatives by finite differences."""
 from __future__ import print_function, division, unicode_literals
 

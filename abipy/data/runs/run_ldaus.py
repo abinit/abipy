@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """LDA+U band structure of NiO for several values of U-J."""
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import sys
 import os
@@ -9,7 +9,7 @@ import abipy.data as data
 import abipy.abilab as abilab
 
 
-def make_scf_nscf_dos_inputs(structure, pseudos, luj_params):
+def make_scf_nscf_dos_inputs(structure, pseudos, luj_params, paral_kgb=1):
     # Input file taken from tldau_2.in
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=3)
     inp.set_structure(structure)
@@ -17,13 +17,13 @@ def make_scf_nscf_dos_inputs(structure, pseudos, luj_params):
     # Global variables
     global_vars = dict(
         # 
-        ecut=15,
+        ecut=12,
         pawecutdg=30,
         nband=40,
         occopt=7,
         tsmear=0.015,
         nstep=50,
-        paral_kgb=0,
+        paral_kgb=paral_kgb,
         #
         # Spin
         nsppol=1,
@@ -38,11 +38,11 @@ def make_scf_nscf_dos_inputs(structure, pseudos, luj_params):
         # for the ground-state, this is not a problem.
     )
 
-    inp.set_variables(**global_vars)
-    inp.set_variables(**luj_params.to_abivars())
+    inp.set_vars(**global_vars)
+    inp.set_vars(**luj_params.to_abivars())
 
     # GS run.
-    inp[1].set_variables(
+    inp[1].set_vars(
         iscf=17,
         toldfe=1.0e-8,
         ngkpt=[2, 2, 2],
@@ -51,10 +51,10 @@ def make_scf_nscf_dos_inputs(structure, pseudos, luj_params):
 
     # Band structure run.
     inp[2].set_kpath(ndivsm=6)
-    inp[2].set_variables(tolwfr=1e-10)
+    inp[2].set_vars(tolwfr=1e-10)
 
     # Dos calculation.
-    inp[3].set_variables(
+    inp[3].set_vars(
         iscf=-3,   # NSCF calculation
         ngkpt=structure.calc_ngkpt(nksmall=8),      
         shiftk=[0.0, 0.0, 0.0],
@@ -79,9 +79,9 @@ def build_flow(options):
     manager = abilab.TaskManager.from_user_config() if not options.manager else \
               abilab.TaskManager.from_file(options.manager)
 
-    flow = abilab.AbinitFlow(workdir, manager)
+    flow = abilab.Flow(workdir, manager=manager)
 
-    # Create the workflow for the band structure calculation.
+    # Create the work for the band structure calculation.
     structure = data.structure_from_ucell("NiO")
     pseudos = data.pseudos("28ni.paw", "8o.2.paw")
 
@@ -100,7 +100,7 @@ def build_flow(options):
 
         scf_input, nscf_input, dos_input = make_scf_nscf_dos_inputs(structure, pseudos, luj_params)
                                                                        
-        work = abilab.BandStructureWorkflow(scf_input, nscf_input, dos_inputs=dos_input)
+        work = abilab.BandStructureWork(scf_input, nscf_input, dos_inputs=dos_input)
         flow.register_work(work)
 
     return flow.allocate()
