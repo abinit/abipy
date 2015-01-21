@@ -26,6 +26,8 @@ _CIF_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "cifs"))
 
 _PSEUDOS_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "pseudos"))
 
+_VARIABLES_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "variables"))
+
 
 def cif_file(filename):
     """Returns the absolute path of the CIF file in tests/data/cifs."""
@@ -44,6 +46,11 @@ def pseudos(*filenames):
     """Returns a PseudoTable constructed from the input filenames  located in tests/data/pseudos."""
     pseudos = list(map(pseudo, filenames))
     return PseudoTable(pseudos)
+
+
+def var_file(filename):
+    """Returns a yml file located in data/variables."""
+    return os.path.join(_VARIABLES_DIRPATH, filename)
 
 
 def find_ncfiles(top):

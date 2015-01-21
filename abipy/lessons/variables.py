@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
 import yaml
+import abipy.data as abidata
 
-f = open('characteristics.yml','r')
+f = open(abidata.var_file('characteristics.yml'),'r')
 list_chars=yaml.load(f);
 f.close();
 
-f = open('sections.yml','r')
+f = open(abidata.var_file('sections.yml'),'r')
 list_sections=yaml.load(f);
 f.close();
 
