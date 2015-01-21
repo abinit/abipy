@@ -13,43 +13,48 @@ lesson will be done in different directories.
 
 Example::
 
-  Title
+\033[91m Title\033[0m
 
-  Background
+\033[94m Background\033[0m
 
-  The abipy flows in this lesson
+\033[94m The related abinit variables\033[0m
 
-  The cource of this lesson
+\033[1m ngkpt \033[0m
 
-Start this lessen by importing in a new namespace
+\033[94m The abipy flows in this lesson\033[0m
 
-[]: from abipy.tutorias import lesson_base1 as lesson
+\033[94m The cource of this lesson\033[0m
+
+Start this lessen by importing it in a new namespace:
+
+\033[92m In []:\033[0m from abipy.tutorias import lesson_base1 as lesson
 
 As always you can reread this lessons text using the command:
 
-[]: lesson.help()
+\033[92m In []:\033[0m lesson.help()
 
-# To build the flow:
-flow = lesson.make_ngkpt_flow()
+To build the flow:
 
-# To print the input files 
-flow.show_inputs()
+\033[92m In []:\033[0m flow = lesson.make_flow()
 
-# Start the flow with the scheduler and wait for completion.
-flow.make_scheduler().start()
+To print the input files
 
-# To analyze the results.
-flow.analyze()
+\033[92m In []:\033[0m flow.show_inputs()
+
+Start the flow with the scheduler and wait for completion.
+
+\033[92m In []:\033[0m flow.make_scheduler().start()
+
+To analyze the results.
+
+\033[92m In []:\033[0m flow.analyze()
 """
 from __future__ import division, print_function
 
 import sys
 import abipy.abilab as abilab 
 import abipy.data as abidata
-
-
-def help(stream=sys.stdout):
-    stream.write(__doc__)
+from abipy.lessons.lesson_helper_functions import help, abinit_help, get_local_copy
 
 
 class NgkptFlow(abilab.Flow):
