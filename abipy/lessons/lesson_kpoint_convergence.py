@@ -13,12 +13,16 @@ semiconductors. Your first investigation into a new compound will quit often be 
 
 \033[94m The related abinit variables\033[0m
 
-Yannick could you fill this? maybe even an interactive interface to you input parameter database work?
-
 \033[1m ngkpt \033[0m
-\033[1m kptshift \033[0m
-\033[1m kptopt \033[0m
+\033[1m shiftk \033[0m
+\033[1m occopt \033[0m (see exercises)
+\033[1m tsmear \033[0m (see exercises)
 
+More info on the inputvariables and their use can be obtained using the following function:
+
+\033[92m In []:\033[0m lesson.abinit_help(inputvariable)
+
+This will print the official abinit description of this inputvariable.
 
 \033[94m The abipy flows of this lesson\033[0m
 
@@ -82,10 +86,13 @@ Have a look at these folders and the files that are in them.
 As an exercise you can now start this lesson again but in stead of performing the convergence study for silicon study
 the convergence for a metal. By using:
 
-\033[92m In []:\033[0m flow = lesson.make_ngkpt_flow(structure_file=abidata.cif_file('al.cif'))
+\033[92m In []:\033[0m flow = lesson.make_ngkpt_flow(structure_file=abidata.cif_file('al.cif'), metal=True)
 
 you will generate a flow for aluminum. Actually, you can pass the path to any cif file to perform a convergence study
-on that material.
+on that material. Be careful however, aluminum is a metal and the default parameters for occopt and tsmear are for
+semiconductors. The keyword argument 'metal' fixes this. (you could also see what happens if you don't put this flag :-) )
+Look at the inputs to see what has been chnged and study the description of these inputvariables using the abinit_help
+function.
 
 If you have time left it is also a good exercise to open the python file that contains this lesson and study the
 implementations of the classes, methods and functions we used. You can get a copy of the file by using:
@@ -102,7 +109,7 @@ import os
 import shutil
 import abipy.abilab as abilab
 import abipy.data as abidata
-from abipy.lessons.lesson_helper_functions import abinit_help
+from abipy.lessons.lesson_helper_functions import abinit_help, get_pseudos
 
 
 def help(stream=sys.stdout):
@@ -137,7 +144,7 @@ class NgkptFlow(abilab.Flow):
         plt.show()
 
 
-def make_ngkpt_flow(structure_file=None):
+def make_ngkpt_flow(structure_file=None, metal=False):
     """
     A 'factory function' (a function that returns an instance of the class defined above. If no specific system is
     specified, structure_file=None, an example flow for silicon in constructed and returned.
@@ -151,13 +158,16 @@ def make_ngkpt_flow(structure_file=None):
         workdir = "lesson_Si_kpoint_convergence"
     else:
         structure = abilab.Structure.from_file(structure_file)
-        pseudos = abilab.p  ## todo fix this
+        pseudos = abidata.pseudos(get_pseudos(structure))
         inp = abilab.AbiInput(pseudos=pseudos, ndtset=len(ngkpt_list))
         inp.set_structure(structure)
         workdir = "lesson_" + structure.composition.reduced_formula + "_kpoint_convergence"
 
     # Global variables
     inp.set_variables(ecut=10, tolvrs=1e-9)
+
+    if metal:
+        inp.set_variables(occopt=7, tsmear=0.04)
 
     # Specific variables for the different calculations
     for i, ngkpt in enumerate(ngkpt_list):

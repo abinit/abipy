@@ -19,7 +19,16 @@ Example::
 
 \033[94m The related abinit variables\033[0m
 
-\033[1m ngkpt \033[0m
+\033[1m ... \033[0m
+\033[1m ... \033[0m
+\033[1m ... \033[0m
+\033[1m ... \033[0m
+
+More info on the inputvariables and their use can be obtianed using the following function:
+
+\033[92m In []:\033[0m lesson.abinit_help(inputvariable)
+
+This will print the official abinit description of this inputvariable.
 
 \033[94m The abipy flows in this lesson\033[0m
 
@@ -135,6 +144,7 @@ def make_relax_flow():
         inp[i+1].set_kmesh(ngkpt=ngkpt, shiftk=[0,0,0])
 
     return RelaxFlow.from_inputs("flow_base3_relax", inputs=inp.split_datasets(), task_class=abilab.RelaxTask)
+
 
 class EbandsFlow(abilab.Flow):
     def analyze(self):
