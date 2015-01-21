@@ -102,10 +102,8 @@ import os
 import shutil
 import abipy.abilab as abilab
 import abipy.data as abidata
-from abipy.lessons.lesson_helper_functions import help, abinit_help, get_local_copy
+from abipy.lessons.lesson_helper_functions import abinit_help
 
-
-# should n't we put these functions in a separate module and import them, we'll need them in any lesson...
 
 def help(stream=sys.stdout):
     """
@@ -122,12 +120,6 @@ def get_local_copy():
     if os.path.exists(dst):
         raise RuntimeError("file %s already exists. Remove it before calling get_local_copy" % dst)
     shutil.copyfile(__file__[:-1], dst)
-
-
-def abinit_help(inputvariable):
-    """
-    Print the abinit documentation on the abinit input variable 'inputvariable'
-    """
 
 
 class NgkptFlow(abilab.Flow):

@@ -69,9 +69,28 @@ To analyze the results.
 from __future__ import division, print_function
 
 import sys
-import abipy.abilab as abilab 
+import os
+import shutil
+import abipy.abilab as abilab
 import abipy.data as abidata
-from abipy.lessons.lesson_helper_functions import help, abinit_help, get_local_copy
+from abipy.lessons.lesson_helper_functions import abinit_help
+
+
+def help(stream=sys.stdout):
+    """
+    Display the tutorial text.
+    """
+    stream.write(__doc__)
+
+
+def get_local_copy():
+    """
+    Copy this script to the current working dir to explore and edit
+    """
+    dst = os.path.basename(__file__[:-1])
+    if os.path.exists(dst):
+        raise RuntimeError("file %s already exists. Remove it before calling get_local_copy" % dst)
+    shutil.copyfile(__file__[:-1], dst)
 
 
 class EcutFlow(abilab.Flow):
