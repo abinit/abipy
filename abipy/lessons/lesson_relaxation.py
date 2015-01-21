@@ -76,10 +76,10 @@ def make_relax_gan_flow():
     # Global variables
     inp.set_variables(
         ecut=10,
-        tolvrs=1e-9,
-        optcell=1,
+        tolvrs=1e-16,
+        optcell=2,
         ionmov=3,
-        ntime=10,
+        ntime=50,
         dilatmx=1.05,
         ecutsm=0.5,
     )
