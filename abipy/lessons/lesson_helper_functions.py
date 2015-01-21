@@ -20,7 +20,7 @@ class VariableDatabase(object):
     all_vars = None
 
     def __init__(self):
-        self.load_vars('abinit_vars.yml')
+        self.load_vars(abidata.var_file('abinit_vars.yml'))
 
     def load_vars(self, file_yml):
 
