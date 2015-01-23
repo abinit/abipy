@@ -103,7 +103,7 @@ def find_package_data():
     # This is not enough for these things to appear in an sdist.
     # We need to muck with the MANIFEST to get this to work
     package_data = {
-        'abipy.data': ["cifs/*.cif", "pseudos/*", "runs/*", "refs/*.nc"],
+        'abipy.data': ["cifs/*.cif", "pseudos/*", "runs/*", "refs/*.nc", "variables/*"],
         'abipy.data.refs' : [
             "al_g0w0_spfunc/*",
             "alas_phonons/*",
@@ -177,6 +177,7 @@ install_requires = [
     "netCDF4",
     "pymatgen>=3.0.8",
     "wxmplot",
+    "html2text",
     #"gnuplot-py",
     #"matplotlib>=1.1",
     #"seaborn",

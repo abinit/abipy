@@ -244,7 +244,10 @@ Specify the files to open. Possible choices:
     p_plot.add_argument("what", nargs="?", type=str, default="ebands", help="Object to plot")
 
     p_inspect = subparsers.add_parser('inspect', parents=[flow_selector_parser], help="Inspect the tasks")
-    #p_analyze= subparsers.add_parser('analyze', help="Call flow.analyze method")
+
+    p_inputs= subparsers.add_parser('inputs', parents=[flow_selector_parser], help="Show the input files of the tasks")
+
+    p_analyze= subparsers.add_parser('analyze', help="Analyze the results produced by the flow (requires a flow with analyze method)")
 
     p_docmanager = subparsers.add_parser('docmanager', help="Document the TaskManager options")
     p_docmanager.add_argument("qtype", nargs="?", default=None, help="Document qparams section for the given qtype")
@@ -443,7 +446,7 @@ hardware:
             task.reset()
             count += 1	
 
-        cprint("%d tasks have been resetted" % count, "blue")
+        cprint("%d tasks have been reset" % count, "blue")
         nlaunch = PyLauncher(flow).rapidfire()
         flow.show_status()
         print("Number of tasks launched: %d" % nlaunch)
@@ -549,6 +552,15 @@ hardware:
             except KeyboardInterrupt:
                 print("\nTerminating thread...")
                 p.terminate()
+
+    elif options.command == "inputs":
+        flow.show_inputs(nids=selected_nids(flow, options))
+
+    elif options.command == "analyze":
+        if not hasattr(flow, "analyze"):
+            cprint("Flow does not provide the `analyze` method!", "red")
+            return 1
+            flow.analyze()
 
     elif options.command == "embed":
         import IPython

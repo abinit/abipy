@@ -427,7 +427,7 @@ class Structure(pymatgen.Structure):
                         Rl = np.dot(lnew, rprimd)
                         # Normalize the displacement so that the maximum atomic displacement is 1 Angstrom.
                         dnorm = np.sqrt(np.dot(Rl,Rl))
-                        if dnorm < dmin and dnorm > 1e-6:
+                        if dnorm < (dmin-1e-6) and dnorm > 1e-6:
                             found = True
                             scale_matrix[:, 0] = lnew
                             dmin = dnorm
@@ -448,7 +448,7 @@ class Structure(pymatgen.Structure):
                         if np.abs(ql - np.round(ql)) < 1e-6:
                             Rl = np.dot(lnew, rprimd)
                             dnorm = np.sqrt(np.dot(Rl, Rl))
-                            if dnorm < dmin and dnorm > 1e-6:
+                            if dnorm < (dmin-1e-6) and dnorm > 1e-6:
                                 found = True
                                 scale_matrix[:, 1] = lnew
                                 dmin = dnorm
@@ -470,7 +470,7 @@ class Structure(pymatgen.Structure):
                         if np.abs(ql - np.round(ql)) < 1e-6:
                             Rl = np.dot(lnew, rprimd)
                             dnorm = np.sqrt(np.dot(Rl,Rl))
-                            if dnorm < dmin and dnorm > 1e-6:
+                            if dnorm < (dmin-1e-6) and dnorm > 1e-6:
                                 found = True
                                 scale_matrix[:, 2] = lnew
                                 dmin = dnorm
@@ -572,6 +572,72 @@ class Structure(pymatgen.Structure):
                 coords = new_lattice.get_cartesian_coords(new_fcoords)
 
                 xyz_file.write(fmtstr.format(site.specie, coords[0], coords[1], coords[2], new_displ[0], new_displ[1], new_displ[2]))
+
+    def frozen_2phonon(self, qpoint, displ1, displ2, do_real1=True, do_real2=True, frac_coords=True, scale_matrix=None, max_supercell=None):
+        """
+        Compute the supercell needed for a given qpoint and add the displacement.
+
+        Args:
+            qpoint:
+                q vector in reduced coordinate in reciprocal space.
+            displ:
+                displacement in real space of the atoms, will be normalized to 1 Angstrom.
+            eta:
+                pre-factor multiplying the displacement.
+            do_real:
+                true if we want only the real part of the displacement.
+        """
+        # I've copied code from make_supercell since the loop over supercell images
+        # is inside make_supercell and I don't want to create a mapping
+
+        if scale_matrix is None:
+            if max_supercell is None:
+                raise ValueError("If scale_matrix is not provided, please provide max_supercell !")
+
+            scale_matrix = self.get_smallest_supercell(qpoint, max_supercell=max_supercell)
+
+        scale_matrix = np.array(scale_matrix, np.int16)
+        if scale_matrix.shape != (3, 3):
+            scale_matrix = np.array(scale_matrix * np.eye(3), np.int16)
+
+        old_lattice = self._lattice
+        new_lattice = Lattice(np.dot(scale_matrix, old_lattice.matrix))
+
+        tvects = self.get_trans_vect(scale_matrix)
+
+        new_displ1 = np.zeros(3, dtype=np.float)
+        new_displ2 = np.zeros(3, dtype=np.float)
+        new_sites = []
+        for at,site in enumerate(self):
+            for t in tvects:
+                if(do_real1):
+                    new_displ1[:] = np.real(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ1[at,:])
+                else:
+                    new_displ1[:] = np.imag(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ1[at,:])
+                if not frac_coords:
+                    # Convert to fractional coordinates.
+                    new_displ1 = self.lattice.get_fractional_coords(new_displ1)
+
+                if(do_real2):
+                    new_displ2[:] = np.real(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ2[at,:])
+                else:
+                    new_displ2[:] = np.imag(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ2[at,:])
+                if not frac_coords:
+                    # Convert to fractional coordinates.
+                    new_displ2 = self.lattice.get_fractional_coords(new_displ2)
+
+
+                # We don't normalize here !!!
+                fcoords = site.frac_coords + t + new_displ1 + new_displ2
+                coords = old_lattice.get_cartesian_coords(fcoords)
+                new_site = PeriodicSite(
+                    site.species_and_occu, coords, new_lattice,
+                    coords_are_cartesian=True, properties=site.properties,
+                    to_unit_cell=True)
+                new_sites.append(new_site)
+
+        self._sites = new_sites
+        self._lattice = new_lattice
 
     def frozen_phonon(self, qpoint, displ, do_real=True, frac_coords=True, scale_matrix=None, max_supercell=None):
         """
@@ -867,5 +933,12 @@ class StructureModifier(object):
 
         new_structure = self.copy_structure()
         new_structure.frozen_phonon(qpoint, displ, do_real, frac_coords, scale_matrix, max_supercell)
+
+        return new_structure
+
+    def frozen_2phonon(self, qpoint, displ1, displ2, do_real1=True, do_real2=True, frac_coords=True, scale_matrix=None, max_supercell=None):
+
+        new_structure = self.copy_structure()
+        new_structure.frozen_2phonon(qpoint, displ1, displ2, do_real1, do_real2, frac_coords, scale_matrix, max_supercell)
 
         return new_structure
