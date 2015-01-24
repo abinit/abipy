@@ -67,7 +67,10 @@ class MPConnection(object):
         return a structure from the materials datebase
         """
         with MPRester(self.mp_key) as mp_database:
-            return mp_database.get_structure_by_material_id(mpid, final=True)
+            structure = mp_database.get_structure_by_material_id(mpid, final=True)
+        structure.__class__ = abilab.Structure
+
+        return structure
 
 
 def get_pseudos(structure, extension='oncvpsp'):

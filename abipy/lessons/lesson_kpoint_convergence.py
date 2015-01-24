@@ -15,14 +15,17 @@ semiconductors. Your first investigation into a new compound will quit often be 
 
 \033[1m ngkpt \033[0m
 \033[1m shiftk \033[0m
+
 \033[1m occopt \033[0m (see exercises)
 \033[1m tsmear \033[0m (see exercises)
+\033[1m kptopt \033[0m (see exercises)
 
 More info on the inputvariables and their use can be obtained using the following function:
 
 \033[92m In []:\033[0m lesson.abinit_help(inputvariable)
 
 This will print the official abinit description of this inputvariable.
+=======
 
 \033[94m The abipy flows of this lesson\033[0m
 
