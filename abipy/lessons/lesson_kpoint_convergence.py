@@ -13,12 +13,11 @@ semiconductors. Your first investigation into a new compound will quit often be 
 
 \033[94m The related abinit variables\033[0m
 
-Yannick could you fill this? maybe even an interactive interface to you input parameter database work?
-
 \033[1m ngkpt \033[0m
-\033[1m kptshift \033[0m
+\033[1m shiftk \033[0m
 \033[1m kptopt \033[0m
-
+\033[1m tsmear \033[0m
+\033[1m occopt \033[0m
 
 \033[94m The abipy flows of this lesson\033[0m
 
