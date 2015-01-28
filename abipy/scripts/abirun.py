@@ -212,7 +212,7 @@ Specify the files to open. Possible choices:
     j ==> job_file
     l ==> log_file
     e ==> stderr_file
-    q ==> qerr_file
+    q ==> qout_file
 """)
 
     p_ncopen = subparsers.add_parser('ncopen', parents=[flow_selector_parser], 
