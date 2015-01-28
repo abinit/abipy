@@ -88,6 +88,7 @@ from abipy.core import Structure
 from pymatgen.io.abinitio.eos import EOS
 from abipy.lessons.lesson_helper_functions import abinit_help
 
+
 def help(stream=sys.stdout):
     """
     Display the tutorial text.
