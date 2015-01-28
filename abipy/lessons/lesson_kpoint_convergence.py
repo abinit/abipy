@@ -89,7 +89,7 @@ Have a look at these folders and the files that are in them.
 As an exercise you can now start this lesson again but in stead of performing the convergence study for silicon study
 the convergence for a metal. By using:
 
-\033[92m In []:\033[0m flow = lesson.make_ngkpt_flow(structure_file=abidata.cif_file('al.cif'), metal=True)
+\033[92m In []:\033[0m flow = lesson.make_ngkpt_flow(structure_file=lesson.abidata.cif_file('al.cif'), metal=True)
 
 you will generate a flow for aluminum. Actually, you can pass the path to any cif file to perform a convergence study
 on that material. Be careful however, aluminum is a metal and the default parameters for occopt and tsmear are for
