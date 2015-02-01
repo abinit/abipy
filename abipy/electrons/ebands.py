@@ -14,7 +14,7 @@ from collections import OrderedDict, namedtuple, Iterable
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from monty.bisect import find_le, find_gt
-from pymatgen.util.plotting_utils import add_fig_kwargs
+from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, Kpath, IrredZone, KpointsReaderMixin, kmesh_from_mpdivs
 from abipy.iotools import ETSF_Reader, Visualizer, bxsf_write
@@ -1108,11 +1108,12 @@ class ElectronBands(object):
             nband_sk=self.nband_sk, smearing=self.smearing, markers=self.markers)
 
     @add_fig_kwargs
-    def plot(self, klabels=None, band_range=None, marker=None, width=None, **kwargs):
+    def plot(self, ax=None, klabels=None, band_range=None, marker=None, width=None, **kwargs):
         """
         Plot the band structure.
 
         Args:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
             klabels: dictionary whose keys are tuple with the reduced
                      coordinates of the k-points. The values are the labels.
                      e.g. klabels = { (0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L"}.
@@ -1131,9 +1132,7 @@ class ElectronBands(object):
         else:
             band_range = range(band_range[0], band_range[1], 1)
 
-        import matplotlib.pyplot as plt
-        fig = plt.figure()
-        ax = fig.add_subplot(1,1,1)
+        ax, fig, plt = get_ax_fig_plt(ax)
 
         # Decorate the axis (e.g add ticks and labels).
         self.decorate_ax(ax, klabels=klabels) #, title=title)
@@ -1170,51 +1169,6 @@ class ElectronBands(object):
             self.plot_width_ax(ax, key, fact=fact)
 
         return fig
-
-    def gplot(self, klabels=None, band_range=None, marker=None, width=None, **kwargs):
-        """
-        Plot the band structure.
-
-        Args:
-            klabels: dictionary whose keys are tuple with the reduced
-                     coordinates of the k-points. The values are the labels.
-                     e.g. klabels = { (0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L"}.
-            band_range: Tuple specifying the minimum and maximum band to plot (default: all bands are plotted)
-            marker: String defining the marker to plot. Accepts the syntax `markername:fact` where
-                    fact is a float used to scale the marker size.
-            width: String defining the width to plot. Accepts the syntax `widthname:fact` where
-                   fact is a float used to scale the stripe size.
-
-        Returns:
-            `matplotlib` figure
-        """
-        import Gnuplot
-        g = Gnuplot.Gnuplot(debug=0)
-
-        g.title('Band structure example') 
-        g("set xlabel 'K point'")
-        g("set ylabel 'Energy [eV]'")
-        g('set style data lines')
-        g('set style line 1 lt 1 lw 3 pt 3 linecolor rgb "red"')
-        #g('set linetype 1 lc rgb "dark-violet" lw 2 pt 0')
-        #g('set data style lines') # give gnuplot an arbitrary command
-        #g.plot([[0,1.1], [1,5.8], [2,3.3], [3,4.2]])
-
-        spin, band = None, None
-
-        spin_range = range(self.nsppol) if spin is None else [spin]
-        band_range = range(self.mband) if band is None else [band]
-
-        xx = range(self.nkpt)
-        count = 0
-        for spin in spin_range:
-            for band in band_range:
-                yy = self.eigens[spin,:,band]
-                g.replot(xx, yy)
-                #d = Gnuplot.Data(xx, yy, with_='line lt 1')
-                #g.replot(d)
-
-        return g
 
     @add_fig_kwargs
     def plot_fatbands(self, klabels=None, **kwargs):  #colormap="jet", max_stripe_width_mev=3.0, qlabels=None, **kwargs):
