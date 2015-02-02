@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import print_function, division, unicode_literals
 
 _PTG_IRREPS_DB =\

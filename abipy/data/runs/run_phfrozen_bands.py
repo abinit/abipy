@@ -2,7 +2,7 @@
 """
 Band structure of silicon in a distorted geometry (frozen phonon at q=0)
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import sys
 import os
@@ -11,7 +11,7 @@ import abipy.data as data
 import abipy.abilab as abilab
 
 
-def make_scf_nscf_inputs(structure):
+def make_scf_nscf_inputs(structure, paral_kgb=1):
     inp = abilab.AbiInput(pseudos=data.pseudos("14si.pspnc"), ndtset=2)
     structure = inp.set_structure(structure)
 
@@ -24,11 +24,11 @@ def make_scf_nscf_inputs(structure):
                        nstep=10,
                     )
 
-    inp.set_variables(**global_vars)
+    inp.set_vars(**global_vars)
 
     # Dataset 1 (GS run)
     inp[1].set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
-    inp[1].set_variables(tolvrs=1e-6)
+    inp[1].set_vars(tolvrs=1e-6)
 
     # Dataset 2 (NSCF run)
     kptbounds = [
@@ -38,7 +38,7 @@ def make_scf_nscf_inputs(structure):
     ]
 
     inp[2].set_kpath(ndivsm=6, kptbounds=kptbounds)
-    inp[2].set_variables(tolwfr=1e-12)
+    inp[2].set_vars(tolwfr=1e-12)
     
     # Generate two input files for the GS and the NSCF run 
     scf_input, nscf_input = inp.split_datasets()
@@ -67,13 +67,13 @@ def build_flow(options):
 
     displaced_structures = modifier.displace(ph_displ, etas, frac_coords=False)
 
-    flow = abilab.AbinitFlow(workdir, manager)
+    flow = abilab.Flow(workdir, manager=manager)
 
     for structure in displaced_structures:
-        # Create the workflow for the band structure calculation.
+        # Create the work for the band structure calculation.
         scf_input, nscf_input = make_scf_nscf_inputs(structure)
                                                                    
-        work = abilab.BandStructureWorkflow(scf_input, nscf_input)
+        work = abilab.BandStructureWork(scf_input, nscf_input)
         flow.register_work(work)
 
     return flow.allocate()

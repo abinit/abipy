@@ -34,10 +34,10 @@ def make_ion_inputs():
     inp.set_structure(structure)
 
     # Global variables
-    inp.set_variables(**global_vars)
+    inp.set_vars(**global_vars)
 
     # Dataset 1 (Atom Relaxation)
-    inp.set_variables(
+    inp.set_vars(
         optcell=0,
         ionmov=2,
         tolrff=0.02,

@@ -1,24 +1,27 @@
+# coding: utf-8
 """Classes for the analysis of BSE calculations"""
 from __future__ import print_function, division, unicode_literals
 
 import sys
-import os
 import itertools
 import collections
 import numpy as np
 
-from monty.string import is_string
+from monty.collections import AttrDict
+from monty.functools import lazy_property
+from pymatgen.util.plotting_utils import add_fig_kwargs
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList
-from abipy.iotools import ETSF_Reader, AbinitNcFile, Has_Structure
+from abipy.core.mixins import AbinitNcFile, Has_Structure
 from abipy.core.tensor import SymmetricTensor
+from abipy.iotools import ETSF_Reader
 
 __all__ = [
     "DielectricTensor",
     "DielectricFunction",
-    "MDF_File",
-    "MDF_Reader",
-    "MDF_Plotter",
+    "MdfFile",
+    "MdfReader",
+    "MdfPlotter",
 ]
 
 
@@ -41,8 +44,9 @@ class DielectricTensor(object):
 
         # One tensor for each frequency
         all_tensors = []
-        for (ifrq,freq) in enumerate(mdf.wmesh):
-            tensor = SymmetricTensor.from_directions(mdf.qfrac_coords, all_emacros[:,ifrq], structure.lattice.reciprocal_lattice, space="g")
+        for (ifrq, freq) in enumerate(mdf.wmesh):
+            tensor = SymmetricTensor.from_directions(mdf.qfrac_coords, all_emacros[:,ifrq],
+                                                     structure.lattice.reciprocal_lattice, space="g")
             all_tensors.append(tensor)
 
         self._all_tensors = all_tensors
@@ -75,6 +79,7 @@ class DielectricTensor(object):
 
         return all_funcs
 
+    @add_fig_kwargs
     def plot(self, *args, **kwargs):
         """
         Plot all the components of the tensor
@@ -85,28 +90,17 @@ class DielectricTensor(object):
         ==============  ==============================================================
         kwargs          Meaning
         ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
         red_coords      True to plot the reduced coordinate tensor (Default: True)
         ==============  ==============================================================
 
         Returns:
             matplotlib figure
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
         red_coords = kwargs.pop("red_coords", True)
-
         import matplotlib.pyplot as plt
 
         fig = plt.figure()
-
         ax = fig.add_subplot(1, 1, 1)
-
-        if title is not None:
-            ax.set_title(title)
 
         ax.grid(True)
         ax.set_xlabel('Frequency [eV]')
@@ -119,12 +113,6 @@ class DielectricTensor(object):
         for icomponent in [0,4,8,1,2,5]: 
             self.plot_ax(ax, icomponent, red_coords, *args, **kwargs)
 
-        if show:
-            plt.show()
-
-        if savefig is not None:
-            fig.savefig(savefig)
-
         return fig
 
     def plot_ax(self, ax, what, red_coords, *args, **kwargs):
@@ -132,24 +120,23 @@ class DielectricTensor(object):
         Helper function to plot data on the axis ax.
 
         Args:
-            ax:
-                plot axis
-            what:
-                Sequential index of the tensor matrix element. 
-            args:
-                Positional arguments passed to ax.plot
-            kwargs:
-                Keyword arguments passed to matplotlib. Accepts also:
+            ax: plot axis
+            what: Sequential index of the tensor matrix element. 
+            args: Positional arguments passed to ax.plot
+            kwargs: Keyword arguments passed to matplotlib. Accepts also:
 
-                cplx_mode:
-                    string defining the data to print (case-insensitive).
-                    Possible choices are 
+        ==============  ==============================================================
+        kwargs          Meaning
+        ==============  ==============================================================
+        cplx_mode:      string defining the data to print (case-insensitive).
+                        Possible choices are:
 
-                        - "re"  for real part 
-                        - "im" for imaginary part only.
-                        - "abs' for the absolute value
+                            - "re"  for real part 
+                            - "im" for imaginary part only.
+                            - "abs' for the absolute value
 
-                    Options can be concated with "-".
+                        Options can be concated with "-".
+        ==============  ==============================================================
         """
         # Extract the function to plot according to qpoint.
         if isinstance(what, int):
@@ -172,18 +159,12 @@ class DielectricFunction(object):
     def __init__(self, structure, qpoints, wmesh, emacros_q, info):
         """
         Args:
-            structure:
-                Structure object.
-            qpoints:
-                `KpointList` with the qpoints in reduced coordinates.
-            wmesh:
-                Array-like object with the frequency mesh (eV).
-            emacros_q:
-                Iterable with the macroscopic dielectric function for the
-                different q-points.
-            info:
-                Dictionary containing info on the calculation that produced
-                the results (read from file). It must contain the following keywords:
+            structure: :class: Structure object.
+            qpoints: :class:`KpointList` with the qpoints in reduced coordinates.
+            wmesh: Array-like object with the frequency mesh (eV).
+            emacros_q: Iterable with the macroscopic dielectric function for the different q-points.
+            info: Dictionary containing info on the calculation that produced
+                  the results (read from file). It must contain the following keywords:
 
                     - "lfe": True if local field effects are included.
                     - "calc_type": string defining the calculation type.
@@ -203,6 +184,9 @@ class DielectricFunction(object):
         # Compute the average value.
         # TODO: One should take into account the star of q, but I need the symops
         self.emacro_avg = Function1D(wmesh, em_avg / self.num_qpoints)
+
+    def __str__(self):
+        return self.__class__.__name__
 
     def __iter__(self):
         """Iterate over (q, em_q)."""
@@ -238,14 +222,11 @@ class DielectricFunction(object):
         Write data on stream with format fmt. See also `numpy.savetxt`.
 
         Args:
-            stream:
-                filename or file handle. If the filename ends in .gz, the file is automatically
-                saved in compressed gzip format.
-            fmt: 
-                str or sequence of strings, optional. A single format (%10.5f), a sequence of formats,
-                or a multi-format string,
-            delimiter:
-                Character separating columns.
+            stream: filename or file handle. If the filename ends in .gz, the file is automatically
+                    saved in compressed gzip format.
+            fmt:  str or sequence of strings, optional. A single format (%10.5f), a sequence of formats,
+                  or a multi-format string,
+            delimiter: Character separating columns.
         """
         header = \
             """
@@ -262,37 +243,27 @@ class DielectricFunction(object):
 
         np.savetxt(stream, table, fmt=fmt, delimiter=delimiter, header=header)
 
+    @add_fig_kwargs
     def plot(self, **kwargs):
         """
         Plot the MDF.
 
-        args:
-            Optional arguments passed to :mod:`matplotlib`.
-
-
         ==============  ==============================================================
         kwargs          Meaning
         ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
+        only_mean       True if only the averaged spectrum is wanted (default True)
         ==============  ==============================================================
 
         Returns:
             matplotlib figure
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
+        only_mean = kwargs.pop("only_mean", True)
 
         import matplotlib.pyplot as plt
-
         fig = plt.figure()
 
         ax = fig.add_subplot(1, 1, 1)
-
-        if title is not None:
-            ax.set_title(title)
+        if title is not None: ax.set_title(title)
 
         ax.grid(True)
         ax.set_xlabel('Frequency [eV]')
@@ -301,34 +272,24 @@ class DielectricFunction(object):
         #if not kwargs:
         #    kwargs = {"color": "black", "linewidth": 2.0}
 
-        # Plot the q-points
-        for (iq, qpoint) in enumerate(self.qpoints):
-            self.plot_ax(ax, iq, **kwargs)
-
         # Plot the average value
         self.plot_ax(ax, qpoint=None, **kwargs)
 
-        if show:
-            plt.show()
-
-        if savefig is not None:
-            fig.savefig(savefig)
+        if not only_mean:
+            # Plot the q-points
+            for iq, qpoint in enumerate(self.qpoints):
+                self.plot_ax(ax, iq, **kwargs)
 
         return fig
 
-    def plot_ax(self, ax, qpoint, **kwargs):
+    def plot_ax(self, ax, qpoint=None, **kwargs):
         """
         Helper function to plot data on the axis ax.
 
         Args:
-            ax:
-                plot axis.
-            qpoint:
-                index of the q-point or Kpoint object or None) to plot emacro_avg.
-            args:
-                Positional arguments passed to ax.plot
-            kwargs:
-                Keyword arguments passed to matplotlib. Accepts also:
+            ax: plot axis.
+            qpoint: index of the q-point or Kpoint object or None) to plot emacro_avg.
+            kwargs: Keyword arguments passed to matplotlib. Accepts also:
 
                 cplx_mode:
                     string defining the data to print (case-insensitive).
@@ -357,46 +318,66 @@ class DielectricFunction(object):
         return f.plot_ax(ax, **kwargs)
 
 
-class MDF_File(AbinitNcFile, Has_Structure):
+class MdfFile(AbinitNcFile, Has_Structure):
     """
     Usage example:
                                                                   
     .. code-block:: python
         
-        mdf_file = MDF_File("foo_MDF.nc")
-        mdf_file.plot_mdfs()
+        with MdfFile("foo_MDF.nc") as mdf:
+            mdf.plot_mdfs()
     """
-    def __init__(self, filepath):
-        super(MDF_File, self).__init__(filepath)
-
-        with MDF_Reader(filepath) as r:
-            self._structure = r.read_structure()
-            # TODO Add electron Bands.
-            #self._ebands = r.read_ebands()
-
-            self.qpoints = r.qpoints
-            self.exc_mdf = r.read_exc_mdf()
-            self.rpanlf_mdf = r.read_rpanlf_mdf()
-            self.gwnlf_mdf = r.read_gwnlf_mdf()
-
     @classmethod
     def from_file(cls, filepath):
         """Initialize the object from a Netcdf file"""
         return cls(filepath)
 
-    @property
+    def __init__(self, filepath):
+        super(MdfFile, self).__init__(filepath)
+        self.reader = MdfReader(filepath)
+
+        # TODO Add electron Bands.
+        #self._ebands = r.read_ebands()
+
+    def close(self):
+        self.reader.close()
+
+    @lazy_property
     def structure(self):
         """Returns the `Structure` object."""
-        return self._structure
+        return self.reader.read_structure()
+
+    @lazy_property
+    def exc_mdf(self):
+        "Excitonic macroscopic dieletric function."""
+        return self.reader.read_exc_mdf()
+
+    @lazy_property
+    def rpanlf_mdf(self):
+        """RPA dielectric function without local-field effects."""
+        return self.reader.read_rpanlf_mdf()
+
+    @lazy_property
+    def gwnlf_mdf(self):
+        """RPA-GW dielectric function without local-field effects."""
+        return self.reader.read_gwnlf_mdf()
+
+    @property
+    def qpoints(self):
+        return self.reader.qpoints
 
     @property
     def qfrac_coords(self):
         """The fractional coordinates of the q-points as a ndarray."""
         return self.qpoints.frac_coords
 
+    @lazy_property
+    def params(self):
+        """Dictionary with the parameters that are usually tested for convergence."""
+        return self.reader.read_params()
+
     def get_mdf(self, mdf_type="exc"):
         """"Returns the macroscopic dielectric function."""
-
         d = {"exc": self.exc_mdf,
              "rpa": self.rpanlf_mdf,
              "gwrpa": self.gwnlf_mdf}
@@ -441,7 +422,7 @@ class MDF_File(AbinitNcFile, Has_Structure):
         mdf_type = mdf_type.split("-")
 
         # Build the plotter.
-        plotter = MDF_Plotter()
+        plotter = MdfPlotter()
 
         # Excitonic MDF.
         if "exc" in mdf_type or plot_all:
@@ -460,19 +441,18 @@ class MDF_File(AbinitNcFile, Has_Structure):
 
     def get_tensor(self, mdf_type="exc"):
         """Get the macroscopic dielectric tensor from the MDF."""
-        return DielectricTensor(self.get_mdf(mdf_type), self._structure)
+        return DielectricTensor(self.get_mdf(mdf_type), self.structure)
         
 
-# TODO
+# TODO Add band energies to MDF file.
 #from abipy.electrons import ElectronsReader
-#class MDF_Reader(ElectronsReader):
-class MDF_Reader(ETSF_Reader):
+class MdfReader(ETSF_Reader): #ElectronsReader
     """
     This object reads data from the MDF.nc file produced by ABINIT.
     """
     def __init__(self, path):
         """Initialize the object from a filename."""
-        super(MDF_Reader, self).__init__(path)
+        super(MdfReader, self).__init__(path)
         # Read the structure here to facilitate the creation of the other objects.
         self._structure = self.read_structure()
 
@@ -480,37 +460,26 @@ class MDF_Reader(ETSF_Reader):
     def structure(self):
         return self._structure
 
-    @property
+    @lazy_property
     def qpoints(self):
         """List of q-points (ndarray)."""
-        try:
-            return self._qpoints
-        except AttributeError:
-            # Read the fractional coordinates and convert them to KpointList.
-            frac_coords = self.read_value("qpoints")
-            #self._qpoints = frac_coords
-            self._qpoints = KpointList(self.structure.reciprocal_lattice, frac_coords)
-            return self._qpoints
+        # Read the fractional coordinates and convert them to KpointList.
+        return KpointList(self.structure.reciprocal_lattice, frac_coords=self.read_value("qpoints"))
 
-    @property
+    @lazy_property
     def wmesh(self):
         """The frequency mesh in eV."""
-        try:
-            return self._wmesh
-        except AttributeError:
-            self._wmesh = self.read_value("wmesh")
-            return self._wmesh
+        return self.read_value("wmesh")
 
-    def read_run_params(self):
+    def read_params(self):
         """Dictionary with the parameters of the run."""
-        return {}
         # TODO
-        #try:
-        #    return self._run_params
-        #except AttributeError:
-        #    self._run_params = params = {}
-        #    # Fill the dictionary with basic parameters of the run.
-        #    return self._run_params.copy()
+        keys = [
+            "nsppol", "ecutwfn", "ecuteps",
+            "eps_inf", "soenergy", "broad", "nkibz", "nkbz", "nkibz_interp", "nkbz_interp",
+            "wtype", "interp_mode", "nreh", "lomo_spin", "humo_spin"
+        ]
+        return self.read_keys(keys)
 
     def _read_mdf(self, mdf_type):
         """Read the MDF from file, returns numpy complex array."""
@@ -518,24 +487,24 @@ class MDF_Reader(ETSF_Reader):
 
     def read_exc_mdf(self):
         """Returns the excitonic MDF."""
-        info = self.read_run_params()
+        info = self.read_params()
         emacros_q = self._read_mdf("exc_mdf")
         return DielectricFunction(self.structure, self.qpoints, self.wmesh, emacros_q, info)
 
     def read_rpanlf_mdf(self):
         """Returns the KS-RPA MDF without LF effects."""
-        info = self.read_run_params()
+        info = self.read_params()
         emacros_q = self._read_mdf("rpanlf_mdf")
         return DielectricFunction(self.structure, self.qpoints, self.wmesh, emacros_q, info)
 
     def read_gwnlf_mdf(self):
         """Returns the GW-RPA MDF without LF effects."""
-        info = self.read_run_params()
+        info = self.read_params()
         emacros_q = self._read_mdf("gwnlf_mdf")
         return DielectricFunction(self.structure, self.qpoints, self.wmesh, emacros_q, info)
 
 
-class MDF_Plotter(object):
+class MdfPlotter(object):
     """
     Class for plotting multiple MDFs.
 
@@ -543,7 +512,7 @@ class MDF_Plotter(object):
                                                                   
     .. code-block:: python
         
-        plotter = MDF_Plotter()
+        plotter = MdfPlotter()
         plotter.add_mdf_from_file("foo_MDF.nc", label="foo mdf")
         plotter.add_mdf_from_file("bar_MDF.nc", label="bar mdf")
         plotter.plot()
@@ -556,10 +525,8 @@ class MDF_Plotter(object):
         Adds a MDF for plotting.
 
         Args:
-            name:
-                name for the MDF. Must be unique.
-            mdf:
-                `DielectricFunction` object.
+            name: name for the MDF. Must be unique.
+            mdf: `DielectricFunction` object.
         """
         if label in self._mdfs:
             raise ValueError("name %s is already in %s" % (label, self._mdfs.keys()))
@@ -571,51 +538,36 @@ class MDF_Plotter(object):
         Adds a mdf for plotting. Reads data from file filepaths.
 
         Args:
-            mdf_type:
-                String defining the type of mdf.
-            name:
-                Optional string used to name the plot.
+            mdf_type: String defining the type of mdf.
+            name: Optional string used to name the plot.
         """
         from abipy.abilab import abiopen
+        with abiopen(filepath) as ncfile:
+            mdf = ncfile.get_mdf(mdf_type=mdf_type)
 
-        ncfile = abiopen(filepath)
-        mdf = ncfile.get_mdf(mdf_type=mdf_type)
         if label is None:
             label = mdf_type + ncfile.filepath
-
         self.add_mdf(label, mdf)
-
+                
+    @add_fig_kwargs
     def plot(self, cplx_mode="Im", qpoint=None, **kwargs):
         """
         Get a matplotlib plot showing the MDFs.
 
         Args:
-            qpoint:
-                index of the q-point or Kpoint object or None to plot emacro_avg.
-            cplx_mode:
-                string defining the data to print (case-insensitive).
-                Possible choices are 
-                                                                      
-                    - "re"  for real part 
-                    - "im" for imaginary part only.
-                    - "abs' for the absolute value
-                                                                       
-                Options can be concated with "-".
+            qpoint: index of the q-point or Kpoint object or None to plot emacro_avg.
+            cplx_mode: string defining the data to print (case-insensitive).
+                       Possible choices are: `re`  for the real part,
+                       `im` for imaginary part only. `abs` for the absolute value
+                       Options can be concated with "-".
 
         ==============  ==============================================================
         kwargs          Meaning
         ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig:        'abc.png' or 'abc.eps'* to save the figure to a file.
         xlim            x-axis limits. None (Default) for automatic determination.
         ylim            y-axis limits. None (Default) for automatic determination.
         ==============  ==============================================================
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
-
         import matplotlib.pyplot as plt
 
         fig = plt.figure()
@@ -631,9 +583,6 @@ class MDF_Plotter(object):
 
         ax.set_xlabel('Frequency [eV]')
         ax.set_ylabel('Macroscopic DF')
-
-        if title is not None:
-            ax.set_title(title)
 
         cmodes = cplx_mode.split("-")
         qtag = "average" if qpoint is None else repr(qpoint)
@@ -654,131 +603,5 @@ class MDF_Plotter(object):
 
         # Set legends.
         ax.legend(lines, legends, loc='best', shadow=False)
-
-        if show:
-            plt.show()
-
-        if savefig:
-            fig.savefig(savefig)
-
         return fig
-
-
-#class DIPME_File(object):
-#    """
-#    This object provides tools to analyze the dipole matrix elements produced by the BSE code.
-#    """
-#    def __init__(self, path):
-#        self.path = os.path.abspath(path)
-#
-#        # Save useful quantities
-#        with OME_Reader(self.path) as reader:
-#            self.structure = reader.structure
-#            self.nsppol = reader.nsppol
-#            self.kibz = reader.kibz
-#            self.minb_sk = reader.minb_sk
-#            self.maxb_sk = reader.maxb_sk
-#
-#            # Dipole matrix elements.
-#            # opt_cvk(minb:maxb,minb:maxb,nkbz,Wfd%nsppol)
-#            self.dipme_scvk = reader.read_dipme_scvk()
-#
-#    @classmethod
-#    def from_file(cls, path):
-#        return cls(path)
-#
-#    def kpoint_index(self, kpoint):
-#        """The index of the kpoint"""
-#        return self.kibz.find(kpoint)
-#
-#    def plot(self, qpoint=None, spin=None, kpoints=None, color_map=None, **kwargs):
-#        """
-#        Plot the dipole matrix elements.
-#
-#        Args:
-#            qpoint:
-#                The qpoint for the optical limit.
-#                if qpoint is None, we plot  |<k|r|k>| else |<k|q.r|k>|
-#            spin:
-#                spin index. None if all spins are wanted
-#            kpoints:
-#                List of Kpoint objects, None if all k-points are wanted.
-#
-#        ==============  ==============================================================
-#        kwargs          Meaning
-#        ==============  ==============================================================
-#        title           Title of the plot (Default: None).
-#        show            True to show the figure (Default).
-#        savefig:        'abc.png' or 'abc.eps'* to save the figure to a file.
-#        colormap        matplotlib colormap, see link below.
-#        ==============  ==============================================================
-#
-#        Returns:
-#            matplotlib figure.
-#
-#        .. see: 
-#            http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
-#        """
-#        title = kwargs.pop("title", None)
-#        show = kwargs.pop("show", True)
-#        savefig = kwargs.pop("savefig", None)
-#        color_map = kwargs.pop("color_map", None)
-#
-#        if qpoint is not None:
-#            # Will compute scalar product with q
-#            qpoint = Kpoint.as_kpoint(qpoint, self.structure.reciprocal_lattice).versor()
-#        else:
-#            # Will plot |<psi|r|psi>|.
-#            qpoint = Kpoint((1, 1, 1), self.structure.reciprocal_lattice)
-#
-#        if spin in None:
-#            spins = range(self.nsppol)
-#        else:
-#            spins = [spin]
-#
-#        if kpoints is None:
-#            kpoints = self.ibz
-#
-#        # Extract the matrix elements for the plot.
-#        from abipy.tools.plotting_utils import ArrayPlotter
-#        plotter = ArrayPlotter()
-#        for spin in spins:
-#            for kpoint in kpoints:
-#                ik = self.kpoint_index(kpoint)
-#                rme = self.dipme_scvk[spin, ik, :, :, :]
-#
-#                #qrme = qpoint * rme
-#                label = "qpoint %s, spin %s, kpoint = %s" % (qpoint, spin, kpoint)
-#                plotter.add_array(label, rme)
-#
-#        # Plot matrix elements and return matplotlib figure.
-#        return plotter.plot(title=title, color_map=color_map, show=show, savefig=savefig, **kwargs)
-
-
-#class DIPME_Reader(ETSF_Reader):
-#    """"
-#    This object reads the optical matrix elements from the OME.nc file.
-#    """
-#
-#    def __init__(self, path):
-#        super(DIPME_Reader, self).__init__(path)
-#
-#        # Read important dimensions and variables.
-#        frac_coords = self.read_value("kpoints_reduced_coordinates")
-#        self.kibz = kpoints_factory(self)
-#
-#        # Minimum and maximum band index as function of [s,k]
-#        self.minb_ks = self.read_value("minb")
-#        self.maxb_ks = self.read_value("maxb")
-#
-#        # Dipole matrix elements
-#        self.dipme_skvc = self.read_value("dipme", cmode="c")
-#
-#    def kpoint_index(self, kpoint):
-#        return self.kibz.find(kpoint)
-#
-#    def read_dipme(self, spin, kpoint):
-#        """Read the dipole matrix elements."""
-#        ik = self.kpoint_index(kpoint)
-#        return self.dipme_skvc[spin, ik, :, :, :]
 

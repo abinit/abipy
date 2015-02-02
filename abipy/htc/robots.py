@@ -1,233 +1,387 @@
-#!/usr/bin/env python
+# coding: utf-8
+"""Robots."""
 from __future__ import print_function, division, unicode_literals
 
-import os
 import sys
-import abc
-import six
-import numpy as np
+import os
+import pandas as pd
 
-from abipy import abilab
-from abipy.electrons.gsr import GSR_Reader
+from collections import OrderedDict, deque 
+from monty.string import is_string
+from pymatgen.io.abinitio.eos import EOS
+from pymatgen.io.abinitio.flows import Flow
+from pymatgen.io.abinitio.netcdf import NetcdfReaderError
 
-from pymatgen.io.abinitio.flows import AbinitFlow
 
 __all__ = [
-    "EbandsRobot",
-    "EosRobot",
-    "FlowInspector",
-    "SigresRobot",
+    "abirobot",
 ]
 
-@six.add_metaclass(abc.ABCMeta)
-class FlowRobot(object):
+
+def abirobot(obj, ext, nids=None):
     """
-    The main function of a `FlowRobot` is facilitating the extraction of the 
-    output data produced by an `AbinitFlow` or the runtime inspections of the 
-    calculations. This is the base class from which all Robot classes should 
-    derive. It provides helper functions to select the output files of the flow.
+    Factory function that builds and return the :class:`Robot` subclass from the file
+    extension `ext`. `obj` can be a directory path, or a :class:`Flow` instance.
+    `nids` is an optional list of node identifiers used to filter the tasks in the flow.
 
-    Subclasses should provide the implementation of the two methods:
-        
-        - collect_data (optional) 
-        - analyze_data (mandatory)
+    Usage example:
 
-    Client code will use robot.run() to produce the results.
-    The run method will call collect_data and analyze_data.
+    .. code-block:: python
+
+        with abirobot(flow, "GSR") as robot:
+            # do something with robot and close the GSR files when done.
+
+        with abirobot("dirpath", "SIGRES") as robot:
+            # do something with robot and close the SIGRES files when done.
     """
-    def __init__(self, path):
-        """
-        Base contructor.
+    for cls in Robot.__subclasses__():
+        if cls.EXT in (ext, ext.upper()):
+            return cls.open(obj, nids=nids)
 
-        Args:
-            path:
-                Filename of the pickle file or directory name.
-                If path is a directory, we walk through the directory
-                tree starting from path and we read the `AbinitFlow`
-                from the first pickle file found.
-        """
-        self.flow = AbinitFlow.pickle_load(path, disable_signals=True)
-
-    #def walkdirs(self, dir="outdir"):
-    #    for task, wi, ti in self.iflat_tasks():
-    #        print(wi, ti, task)
-    #        #if wi in self.exclude_works or (wi, ti) in self.exclude_tasks: 
-    #        #directory = getattr(task, dir)
-    #        #if type(task) == abilab.NscfTask:
-    #        #    gsr_filepath = directory.has_abiext("GSR")
-
-    def show_flow_status(self, stream=sys.stdout):
-        """Print the status of the `AbinitFlow` on stream."""
-        return self.flow.show_status(stream=stream)
-
-    def all_outfiles(self, status=None, op="="):
-        """
-        List of abinit output files produced by the tasks in the flow.
-        If status is not None, only the tasks whose status satisfies
-        the condition: 
-
-            `task.status op status`
-
-        are selected.
-        """
-        all_outs = [task.output_file.path for task in 
-            self.flow.iflat_tasks(status, op=op)]
-
-        return all_outs
-
-    def all_files_with_abiext(self, abiext, dirname="outdir", 
-                              exclude_works=(), exclude_tasks=(),
-                              include_works=(), include_tasks=()):
-        """
-        Returns a list of files with extenxions `abiext` located 
-        in the drectory dirname
-        """
-        files = []
-        for task, wi, ti in self.flow.iflat_tasks_wti():
-
-            if wi in exclude_works or (wi, ti) in exclude_tasks: 
-                continue
-
-            if ( (include_works and wi not in include_works) or 
-                 (include_tasks and (wi, ti) not in include_tasks) ): 
-                continue
-
-            directory = getattr(task, dirname)
-            path = directory.has_abiext(abiext)
-            if path:
-                files.append(path)
-
-        return files
-
-    def collect_data(self, *args, **kwargs):
-        """
-        Collect the data. Subclasses should provide their own implementation (if needed).
-        """
-                                                     
-    @abc.abstractmethod
-    def analyze_data(self, *args, **kwargs):
-        """
-        Analyze the data collected in collect_data.
-        """
-                                                     
-    def run(self, *args, **kwargs):
-        """Entry point for client code."""
-        self.collect_data(*args, **kwargs)
-        return self.analyze_data(*args, **kwargs)
+    raise ValueError("Cannot find Robot subclass associated to extension %s\n" % ext + 
+                     "The list of supported extensions is:\n%s" %
+                     [cls.EXT for cls in Robot.__subclasses__()])
 
 
-class EbandsRobot(FlowRobot):
+class Robot(object):
     """
-    This robot collects the band energies from the GSR files
-    and returns an instance of `ElectronBandsPlotter`
+    The main function of a `Robot` is facilitating the extraction of the output data produced by
+    multiple tasks in a :class:`Flow`. This is the base class from which all Robot subclasses should derive.
+    A Robot supports the `with` context manager:
+
+    Usage example:
+
+    .. code-block:: python
+
+        with Robot([("label1", "file1"), (label2, "file2")]) as robot:
+            # Do something with robot. files are automatically closed when we exit.
     """
-    def __init__(self, flow):
-        super(EbandsRobot, self).__init__(flow)
+    def __init__(self, *args):
+        """args is a list of tuples (label, filepath)"""
+        self._ncfiles, self._do_close = OrderedDict(), OrderedDict()
+        self._exceptions = deque(maxlen=100)
 
-        self.plotter = abilab.ElectronBandsPlotter()
+        for label, ncfile in args:
+            self.add_file(label, ncfile)
 
-    def analyze_data(self, *args, **kwargs):
-        for task, in self.flow.iflat_tasks():
-            directory = getattr(task, "outdir")
+    def add_file(self, label, ncfile):
+        if is_string(ncfile):
+            from abipy.abilab import abiopen
+            ncfile = abiopen(ncfile)
+            self._do_close[ncfile.filepath] = True
 
-            if type(task) != abilab.NscfTask:
-                continue
+        self._ncfiles[label] = ncfile
 
-            gsr_filepath = directory.has_abiext("GSR")
-            if gsr_filepath:
-                self.plotter.add_ebands_from_file(gsr_filepath, label=gsr_filepath)
+    @property
+    def exceptions(self):
+        """List of exceptions."""
+        return self._exceptions
 
-        return self.plotter
+    def __iter__(self):
+        return iter(self._ncfiles.items())
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Activated at the end of the with statement."""
+        self.close()
+
+    def show_files(self, stream=sys.stdout):
+        s = "\n".join(["%s --> %s" % (label, ncfile.filepath) for label, ncfile in self])
+        stream.write(s)
+
+    def __str__(self):
+        return "%s with %d files in memory" % (self.__class__.__name__, len(self.ncfiles))
+
+    @property
+    def ncfiles(self):
+        """List of netcdf files."""
+        return list(self._ncfiles.values())
+
+    def close(self):
+        """Close all the files that have been opened by the Robot"""
+        for ncfile in self.ncfiles:
+            if self._do_close.pop(ncfile.filepath, False): 
+                try:
+                    ncfile.close()
+                except:
+                    pass
+
+    @classmethod
+    def open(cls, obj, nids=None, **kwargs):
+        """
+        Flexible constructor. obj can be a :class:`Flow` or a string with the directory containing the Flow.
+        nids is an optional list of :class:`Node` identifiers used to filter the set of :class:`Task` in the Flow.
+        """
+        has_dirpath = False
+        if is_string(obj): 
+            try:
+                obj = Flow.pickle_load(obj)
+            except:
+                has_dirpath = True
+
+        items = []
+
+        if not has_dirpath:
+            # We have a Flow. smeth is the name of the Task method used to open the file.
+            smeth = "open_" + cls.EXT.lower()
+            for task in obj.iflat_tasks(nids=nids):
+                open_method = getattr(task, smeth, None)
+                if open_method is None: continue
+                ncfile = open_method()
+                if ncfile is not None: items.append((task.pos_str, ncfile))
+
+        else:
+            # directory --> search for files with the appropriate extension and open it with abiopen.
+            if nids is not None: raise ValueError("nids cannot be used when obj is a directory.")
+
+            from abipy.abilab import abiopen
+            for dirpath, dirnames, filenames in os.walk(obj):
+                filenames = [f for f in filenames if f.endswith(cls.EXT + ".nc")]
+                for f in filenames:
+                    ncfile = abiopen(f)
+                    if ncfile is not None: items.append((ncfile.filepath, ncfile))
+
+        new = cls(*items)
+        # Save a reference to the initial object so that we can reload it if needed
+        new._initial_object = obj
+        return new
+
+    def reload(self):
+        """Reload data. Return new :class:`Robot` object."""
+        return self.__class__.open(self._initial_object)
+
+    @staticmethod
+    def _get_geodict(structure):
+        """Return a dictionary with info on the structure (used to build pandas dataframes)."""
+        abc, angles = structure.lattice.abc, structure.lattice.angles
+        return dict(
+            a=abc[0], b=abc[1], c=abc[2], volume=structure.volume,
+            angle0=angles[0], angle1=angles[1], angle2=angles[2],
+            formula=structure.formula,
+        )
+
+    def _exec_funcs(self, funcs, arg):
+        """Execute list of callables funcs. Each func receives arg as argument."""
+        if not isinstance(funcs, (list, tuple)): funcs = [funcs]
+        d = {}
+        for func in funcs:
+            try:
+                key, value = func(arg)
+                d[key] = value
+            except Exception as exc:
+                self._exceptions.append(str(exc))
+        return d
+
+    def pairplot(self, getter="get_dataframe", map_kws=None, show=True, **kwargs):
+        import matplotlib.pyplot as plt
+        import seaborn as sns
+        data = getattr(self, getter)()
+
+        #grid = sns.PairGrid(data, x_vars="nkpts", y_vars=["a", "volume"]) #, hue="tsmear")
+        grid = sns.PairGrid(data, **kwargs)
+        if map_kws is None:
+            grid.map(plt.plot, marker="o")
+        else:
+            func = map_kws.pop("func", plt.plot)
+            grid.map(func, **map_kws)
+
+        grid.add_legend()
+        if show: plt.show()
+        return grid
 
 
-class EosRobot(FlowRobot):
-    """
-    This robot computes the equation of state by 
-    fitting the total energy as function of the unit cell volume.
-    """
-    def collect_data(self, *args, **kwargs):
-        #self.volumes = [13.72, 14.83, 16.0, 17.23, 18.52]
-        #self.energies = [-56.29, -56.41, -56.46, -56.46, -56.42]
+class GsrRobot(Robot):
+    """This robot analyzes the results contained in multiple GSR files."""
+    EXT = "GSR"
 
-        volumes, etotals = [], []
-        for task in self.flow.iflat_tasks():
-            directory = getattr(task, "outdir")
-            if type(task) != abilab.ScfTask:
-                continue
-                                                                                    
-            gsr_filepath = directory.has_abiext("GSR")
-            if gsr_filepath:
-                with GSR_Reader(gsr_filepath) as r:
-                   structure = r.read_structure()
-                   # Volumes are in Ang^3
-                   volumes.append(structure.volume)
+    def get_dataframe(self, **kwargs):
+        """
+        Return a pandas DataFrame with the most important GS results.
 
-                   # Read energy in Hartree
-                   etotals.append(r.read_value("etotal"))
+        kwargs:
+            attrs:
+                List of additional attributes of the :class:`GsrFile` to add to
+                the pandas :class:`DataFrame`
+            funcs:
+                Function or list of functions to execute to add more data to the DataFrame.
+                Each function receives a GsrFile object and returns a tuple (key, value)
+                where key is a string with the name of column and value is the value to be inserted.
+        """
+        # TODO add more columns
+        # Add attributes specified by the users
+        attrs = [
+            "nsppol", "ecut", "pawecutdg", #"nspinor", "nspden",
+            "tsmear", "nkpts", "energy", "magnetization", "pressure", "max_force",
+        ] + kwargs.pop("attrs", [])
 
-        self.etotals = abilab.ArrayWithUnit(etotals, "Ha").to("eV")
-        self.volumes = np.array(volumes)
+        rows, row_names = [], []
+        for label, gsr in self:
+            row_names.append(label)
+            #d = {aname: getattr(gsr, aname) for aname in attrs}
+            d = {}
+            for aname in attrs:
+                try:
+                    d[aname] = getattr(gsr, aname)
+                except NetcdfReaderError:
+                    pass
 
-    def analyze_data(self, *args, **kwargs):
-        # Extract volumes and energies from the output files of the calculation.
-        # Here we use hardcoded values.
+            # Add info on structure.
+            if kwargs.get("with_geo", True):
+                d.update(self._get_geodict(gsr.structure))
 
-        fits = []
-        for eos_name in abilab.EOS.MODELS:
-           eos = abilab.EOS(eos_name=eos_name)
-           # Note that eos.fit expects lengths in Angstrom, energies are in eV.
-           # To specify different units use len_units and ene_units 
-           fits.append(eos.fit(self.volumes, self.etotals, vol_unit="ang^3", ene_unit="eV"))
+            # Execute funcs.
+            d.update(self._exec_funcs(kwargs.get("funcs", []), gsr))
 
-        return fits
+            rows.append(d)
 
+        return pd.DataFrame(rows, index=row_names, columns=rows[0].keys())
 
-class FlowInspector(FlowRobot):
-    """
-    This robot extract data from the main output files produced by Abinit
-    and returns a plottable object.
-    """
-    def analyze_data(self, *args, **kwargs):
-        """Analyze the collected data."""
-        # List of SIGRES files computed with different values of nband.
-        show = kwargs.get("show", True)
-
-        from pymatgen.io.abinitio.tasks import Task
-        from pymatgen.io.abinitio.abiinspect import plottable_from_outfile
-        out_files = self.all_outfiles(status=Task.S_RUN, op=">=")
-
-        figs = []
-        for out in out_files:
-            obj = plottable_from_outfile(out)
-            if obj is not None:
-                figs.append(obj.plot(title=os.path.relpath(out), show=show))
-
-        return figs
-
-
-class SigresRobot(FlowRobot):
-    """
-    This robot collect all the SIGRES files produced by the tasks
-    and returns an instance of `SIGRES_Plotter`.
-    """
-    def collect_data(self, *args, **kwargs):
-        """Collect the data"""
-        # List of SIGRES files computed with different values of nband.
-        self.sigres_files = self.all_files_with_abiext("SIGRES")
-
-    def analyze_data(self, *args, **kwargs):
-        """Analyze the collected data."""
-        # Instantiate the plotter 
-        from abipy.electrons.gw import SIGRES_Plotter
-        plotter = SIGRES_Plotter()
-
-        # Add the filepaths to the plotter.
-        print(self.sigres_files)
-        plotter.add_files(self.sigres_files)
-
+    def get_ebands_plotter(self):
+        from abipy import abilab
+        plotter = abilab.ElectronBandsPlotter()
+        for label, gsr in self:
+            plotter.add_ebands(label, gsr.ebands)
         return plotter
-        # Plot the convergence of the QP gaps.
-        #plotter.plot_qpgaps(title="QP gaps vs sigma_nband", hspan=0.05)
-        # Plot the convergence of the QP energies.
-        #plotter.plot_qpenes(title="QP energies vs sigma_nband", hspan=0.05)
 
+    def eos_fit(self, eos_name="murnaghan"):
+        """
+        Fit E(V)
+        For the list of available models, see EOS.MODELS
+
+        TODO: which default? all should return a list of fits
+        """
+        # Read volumes and energies from the GSR files.
+        energies, volumes = [], []
+        for label, gsr in self:
+            energies.append(gsr.energy)
+            volumes.append(gsr.structure.volume)
+
+        # Note that eos.fit expects lengths in Angstrom, and energies in eV.
+        if eos_name != "all":
+            return EOS(eos_name=eos_name).fit(volumes, energies)
+        else:
+            # Use all the available models.
+            fits, rows = [], []
+            for eos_name in EOS.MODELS:
+                fit = EOS(eos_name=eos_name).fit(volumes, energies)
+                fits.append(fit)
+                rows.append(fit.results)
+
+            frame = pd.DataFrame(rows, index=EOS.MODELS, columns=rows[0].keys())
+            return fits, frame
+
+
+class SigresRobot(Robot):
+    """This robot analyzes the results contained in multiple SIGRES files."""
+    EXT = "SIGRES"
+
+    def merge_dataframes_sk(self, spin, kpoint, **kwargs):
+        for i, (label, sigr) in enumerate(self):
+            frame = sigr.get_dataframe_sk(spin, kpoint, index=label)
+            if i == 0:
+                table = frame
+            else:
+                table = table.append(frame)
+        
+        return table
+
+    def get_qpgaps_dataframe(self, spin=None, kpoint=None, **kwargs):
+        # TODO: Ideally one should select the k-point for which we have the fundamental gap for the given spin
+        if spin is None: spin = 0
+        if kpoint is None: kpoint = 0
+
+        attrs = [
+            "nsppol", #"nspinor", "nspden", #"ecut", "pawecutdg",
+            #"tsmear", "nkibz",
+        ] + kwargs.pop("attrs", [])
+
+        rows, row_names = [], []
+        for label, sigr in self:
+            row_names.append(label)
+            d = {aname: getattr(sigr, aname) for aname in attrs}
+            d.update({"qpgap": sigr.get_qpgap(spin, kpoint)})
+
+            # Add convergence parameters
+            d.update(sigr.params)
+                                                        
+            # Add info on structure.
+            if kwargs.get("with_geo", False):
+                d.update(self._get_geodict(sigr.structure))
+
+            # Execute funcs.
+            d.update(self._exec_funcs(kwargs.get("funcs", []), sigr))
+
+            rows.append(d)
+
+        return pd.DataFrame(rows, index=row_names, columns=rows[0].keys())
+
+    def plot_conv_qpgap(self, x_vars, **kwargs):
+        """
+        Plot the convergence of the Quasi-particle gap. 
+        kwargs are passed to :class:`seaborn.PairGrid`.
+        """
+        import matplotlib.pyplot as plt
+        import seaborn as sns
+
+        data = self.get_qpgaps_dataframe()
+        grid = sns.PairGrid(data, x_vars=x_vars, y_vars="qpgap", **kwargs)
+        grid.map(plt.plot, marker="o")
+        grid.add_legend()
+        plt.show()
+
+
+class MdfRobot(Robot):
+    """This robot analyzes the results contained in multiple MDF files."""
+    EXT = "MDF"
+
+    def get_mdf_plotter(self):
+        from abipy.electrons.bse import MdfPlotter
+        plotter = MdfPlotter()
+        for label, mdf in self:
+            plotter.add_mdf(label, mdf.exc_mdf)
+        return plotter
+
+    def get_dataframe(self, **kwargs):
+        rows, row_names = [], []
+        for i, (label, mdf) in enumerate(self):
+            row_names.append(label)
+            d = dict(
+                exc_mdf=mdf.exc_mdf,
+                rpa_mdf=mdf.rpanlf_mdf,
+                gwrpa_mdf=mdf.gwnlf_mdf,
+            )
+            #d = {aname: getattr(mdf, aname) for aname in attrs}
+            #d.update({"qpgap": mdf.get_qpgap(spin, kpoint)})
+
+            # Add convergence parameters
+            d.update(mdf.params)
+                                                        
+            # Add info on structure.
+            if kwargs.get("with_geo", False):
+                d.update(self._get_geodict(mdf.structure))
+
+            # Execute funcs.
+            d.update(self._exec_funcs(kwargs.get("funcs", []), mdf))
+
+            rows.append(d)
+
+        return pd.DataFrame(rows, index=row_names, columns=rows[0].keys())
+
+    def plot_conv_mdf(self, hue, mdf_type="exc_mdf", **kwargs):
+        import matplotlib.pyplot as plt
+        frame = self.get_dataframe()
+        grouped = frame.groupby(hue)
+
+        fig, ax_list = plt.subplots(nrows=len(grouped), ncols=1, sharex=True, sharey=True, squeeze=True)
+
+        for i, (hue_val, group) in enumerate(grouped):
+            #print(group)
+            mdfs = group[mdf_type] 
+            ax = ax_list[i]
+            ax.set_title("%s = %s" % (hue, hue_val))
+            for mdf in mdfs:
+                mdf.plot_ax(ax)
+
+        plt.show()

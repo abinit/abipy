@@ -1,3 +1,4 @@
+# coding: utf-8
 """Objects used to deal with symmetry operations in crystals."""
 from __future__ import print_function, division, unicode_literals
 
@@ -49,11 +50,10 @@ def mati3inv(mat3, trans=True):
     Invert and transpose orthogonal 3x3 matrix of INTEGER elements.
 
     Args:
-        mat3:
-            3x3 matrix-like object with integer elements
+        mat3: 3x3 matrix-like object with integer elements
 
     Returns:
-        ndarray with the TRANSPOSE of the inverse of mat3 if trans==True.
+        `ndarray` with the TRANSPOSE of the inverse of mat3 if trans==True.
         If trans==False, the inverse of mat3 is returned.
 
     .. note::
@@ -104,13 +104,13 @@ def _get_det(mat):
 
     return det
 
+
 @six.add_metaclass(abc.ABCMeta)
 class Operation(object):
     """
     Abstract base class that defines the methods that must be 
     implememted by the concrete class representing some sort of operation
     """
-
     @abc.abstractmethod
     def __eq__(self, other):
         """O1 == O2"""
@@ -159,14 +159,10 @@ class SymmOp(Operation):
         This object represents a space group symmetry i.e. a symmetry of the crystal.
 
         Args:
-            rot_r:
-                3x3 integer matrix with the rotational part in real space in reduced coordinates (C order).
-            tau:
-                fractional translation in reduced coordinates.
-            time_sign:
-                -1 if time reversal can be used, otherwise +1.
-            afm_sign:
-                anti-ferromagnetic part [+1,-1].
+            rot_r: 3x3 integer matrix with the rotational part in real space in reduced coordinates (C order).
+            tau: fractional translation in reduced coordinates.
+            time_sign: -1 if time reversal can be used, otherwise +1.
+            afm_sign: anti-ferromagnetic part [+1,-1].
         """
         rot_r = np.asarray(rot_r)
 
@@ -195,7 +191,9 @@ class SymmOp(Operation):
 
     def __mul__(self, other):
         """
-        Returns a new SymmOp which is equivalent to apply  the "other" `SymmOp` followed by this one.
+        Returns a new :class:`SymmOp` which is equivalent to apply the "other" :class:`SymmOp` 
+        followed by this one i.e:
+
         {R,t} {S,u} = {RS, Ru + t}
         """
         return SymmOp(rot_r=np.dot(self.rot_r, other.rot_r),
@@ -205,7 +203,7 @@ class SymmOp(Operation):
 
     def __hash__(self):
         """
-        `Symmop` can be used as keys in dictionaries.
+        :class:`Symmop` can be used as keys in dictionaries.
         Note that the hash is computed from integer values. 
         """
         return int(8 * self.trace + 4 * self.det + 2 * self.time_sign)
@@ -304,10 +302,8 @@ class SymmOp(Operation):
         Check if the operation preserves the k-point modulo a reciprocal lattice vector.
 
         Args:
-            frac_coords:
-                Fractional coordinates of the k-point
-            ret_g0:
-                False if only the boolean result is wanted.
+            frac_coords: Fractional coordinates of the k-point
+            ret_g0: False if only the boolean result is wanted.
 
         Returns:
             bool, g0 = S(k) - k 
@@ -325,7 +321,7 @@ class SymmOp(Operation):
         """
         Apply the symmetry operation to a point in real space given in reduced coordinates.
 
-        .. note:
+        .. note::
 
             We use the convention: symmop(r) = R^{-1] (r - tau)
         """
@@ -338,11 +334,10 @@ class SymmOp(Operation):
         Apply the symmetry operation to the list of gvectors gvecs in reduced coordinates.
 
         Args:
-            gvecs:
-                ndarray with shape [ng, 3] containing the reduced coordinates of the G-vectors.
+            gvecs: `ndarray` with shape [ng, 3] containing the reduced coordinates of the G-vectors.
+
         Returns:
-            rot_gvecs:
-                ndarray with shape [ng, 3] containing the result of self(G).
+            rot_gvecs: `ndarray` with shape [ng, 3] containing the result of self(G).
         """
         rot_gvecs = np.empty_like(gvecs)
 
@@ -354,8 +349,7 @@ class SymmOp(Operation):
 
 class OpSequence(collections.Sequence):
     """
-    Mixin class providing the basic method that are common to 
-    containers of operations.
+    Mixin class providing the basic method that are common to  containers of operations.
     """
     def __len__(self):
         return len(self._ops)
@@ -373,10 +367,9 @@ class OpSequence(collections.Sequence):
         """
         Equality test. 
 
-        .. warning: 
+        .. warning: :
 
-                The order of the operations in self and 
-                in other is not relevant.
+            The order of the operations in self and  in other is not relevant.
         """
         if other is None: return False
         if len(self) != len(other): 
@@ -545,8 +538,7 @@ class OpSequence(collections.Sequence):
         Iterate over the operations grouped in symmetry classes.
 
         Args:
-            with_inds:
-                If True, [op0, op1, ...], [ind_op0, ind_op1, ...] is returned. 
+            with_inds: If True, [op0, op1, ...], [ind_op0, ind_op1, ...] is returned. 
         """
         if with_inds:
             for indices in self.class_indices:
@@ -562,23 +554,18 @@ class SpaceGroup(OpSequence):
     def __init__(self, spgid, symrel, tnons, symafm, has_timerev, inord="C"):
         """
         Args:
-            spgid:
-                space group number (from 1 to 232, 0 if cannot be specified).
-            symrel:
-                (nsym,3,3) array with the rotational part of the symmetries in real
+            spgid: space group number (from 1 to 232, 0 if cannot be specified).
+            symrel: (nsym,3,3) array with the rotational part of the symmetries in real
                 space (reduced coordinates are assumed, see also `inord` for the order.
-            tnons:
-                (nsym,3) array with fractional translation in reduced coordinates.
-            symafm:
-                (nsym) array with +1 for Ferromagnetic symmetry and -1 for AFM
-            has_timerev:
-                True if time-reversal symmetry is included.
-            inord:
-                storage order of mat in symrel[:]. If inord == "F", mat.T is stored
+            tnons: (nsym,3) array with fractional translation in reduced coordinates.
+            symafm: (nsym) array with +1 for Ferromagnetic symmetry and -1 for AFM
+            has_timerev: True if time-reversal symmetry is included.
+            inord: storage order of mat in symrel[:]. If inord == "F", mat.T is stored
                 as matrices are always stored in C-order. Use inord == "F" if you have 
                 read symrel from an external file produced by abinit.
 
-        .. note:
+        .. note::
+
             All the arrays are stored in C-order. Use as_fortran_arrays to extract data 
             that can be passes to Fortran routines.
         """
@@ -642,19 +629,16 @@ class SpaceGroup(OpSequence):
     @classmethod
     def from_structure(cls, structure, has_timerev=True, symprec=1e-5, angle_tolerance=5):
         """
-        Takes a `Structure` object. Uses pyspglib to perform various symmetry finding operations.
+        Takes a :class:`Structure` object. Uses pyspglib to perform various symmetry finding operations.
 
         Args:
-            structure:
-                Structure object
-            has_timerev:
-                True is time-reversal symmetry is included.
-            symprec:
-                Tolerance for symmetry finding
-            angle_tolerance:
-                Angle tolerance for symmetry finding.
+            structure: :class:`Structure` object
+            has_timerev: True is time-reversal symmetry is included.
+            symprec: Tolerance for symmetry finding
+            angle_tolerance: Angle tolerance for symmetry finding.
 
         .. warning::
+
             AFM symmetries are not supported.
         """
         # Call spglib to get the list of symmetry operations.
@@ -728,13 +712,11 @@ class SpaceGroup(OpSequence):
     def symmops(self, time_sign=None, afm_sign=None):
         """
         Args:
-            time_sign:
-                If specified, only symmetries with time-reversal sign time_sign are returned.
-            afm_sign:
-                If specified, only symmetries with anti-ferromagnetic part afm_sign are returned.
+            time_sign: If specified, only symmetries with time-reversal sign time_sign are returned.
+            afm_sign: If specified, only symmetries with anti-ferromagnetic part afm_sign are returned.
 
         returns:
-            tuple of `SymmOp` instances.
+            tuple of :class:`SymmOp` instances.
         """
         symmops = []
         for sym in self._ops:
@@ -773,11 +755,10 @@ class SpaceGroup(OpSequence):
         Find the little group of the kpoint
 
         Args:
-            kpoint:
-                Accept vector with the reduced coordinates or `Kpoint` object.
+            kpoint: Accept vector with the reduced coordinates or :class:`Kpoint` object.
 
         Returns:
-            `LittleGroup` object.
+            :class:`LittleGroup` object.
         """
         frac_coords = getattr(kpoint, "frac_coords", kpoint)
 
@@ -897,8 +878,7 @@ class LatticeRotation(Operation):
     that is a rotation which is compatible with a lattice. The rotation matrix is
     expressed in reduced coordinates, therefore its elements are integers.
 
-    See
-
+    See:
         http://xrayweb2.chem.ou.edu/notes/symmetry.html#rotation
 
     .. note::
@@ -1074,23 +1054,17 @@ class Irrep(object):
 
     .. attributes::
 
-        traces:
-            all_traces[nsym]. The trace of each irrep.
-        character:
-            character[num_classes]
+        traces: all_traces[nsym]. The trace of each irrep.
+        character: character[num_classes]
     """
     def __init__(self, name, dim, mats, class_range):
         """
         Args:
-            name: 
-                Name of the irreducible representation.
-            dim:
-                Dimension of the irreducible representation.
-            mats:
-                Array of shape [nsym,dim,dim] with the irreducible 
+            name:  Name of the irreducible representation.
+            dim: Dimension of the irreducible representation.
+            mats: Array of shape [nsym,dim,dim] with the irreducible 
                 representations of the group. mats are packed in classes.
-            class_range:
-                List of tuples, each tuple gives the start and stop index for the class.
+            class_range: List of tuples, each tuple gives the start and stop index for the class.
                 e.g. [(0, 2), (2,4), (4,n)]
         """
         self.name = name
@@ -1121,8 +1095,7 @@ class Irrep(object):
 
 def bilbao_ptgroup(sch_symbol):
     """
-    Returns an instance of `BilbaoPointGroup`.
-    from a string with the point group symbol
+    Returns an instance of :class:`BilbaoPointGroup` from a string with the point group symbol
     or a number with the spacegroup ID.
     """
     sch_symbol = any2sch(sch_symbol)
@@ -1137,7 +1110,7 @@ def bilbao_ptgroup(sch_symbol):
 
 class BilbaoPointGroup(object):
     """
-    A `BilbaoPointGroup` is a `Pointgroup` with irreducible representations
+    A :class:`BilbaoPointGroup` is a :class:`Pointgroup` with irreducible representations
     """ 
     def __init__(self, sch_symbol, rotations, class_names, class_range, irreps):
         # Rotations are grouped in classes.

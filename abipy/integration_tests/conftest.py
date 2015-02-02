@@ -15,30 +15,17 @@ from monty.collections import AttrDict
 # and then we convert the dictionary to string with yaml.dump. This string will be passed
 # to TasksManager.from_string in fwp. base_conf looks like:
 
-#base_conf =
-#    """
-#    qtype: shell
-#    mpi_runner: mpirun
-#    pre_run:
-#        - "source ~/Coding/Abinit/bzr_archives/env.sh"
-#    policy:
-#        autoparal: 0
-#        max_ncpus: 1
-#    """
 
 # Read the base configuration from file
-with open(os.path.join(os.path.dirname(__file__), "taskmanager.yml")) as fh:
+with open(os.path.join(os.path.dirname(__file__), "manager.yml")) as fh:
     base_conf = yaml.load(fh)
 
 # Build list of configurations.
 _manager_confs = []
 
 for autoparal in [1]: #, 1]:
-    max_ncpus = 1 if autoparal == 0 else 2
-
     newd = copy.deepcopy(base_conf)
     newd["policy"]["autoparal"] = autoparal
-    newd["policy"]["max_ncpus"] = max_ncpus
     _manager_confs.append(newd)
 
 _manager_confs = [yaml.dump(d) for d in _manager_confs]
@@ -50,7 +37,7 @@ def fwp(tmpdir, request):
     """
     Parameters used to initialize Flows.
 
-    This fixture allows us to change the TaskManager
+    This fixture allows us to change the :class:`TaskManager`
     so that we can easily test different configurations.
     """
     # Temporary working directory
@@ -95,7 +82,7 @@ def pytest_report_header(config):
 
     app("Assuming the enviroment is properly configured:")
     app("In particular, we assume that abinit is in $PATH and can be executed.")
-    app("Change taskmanager.yaml according to your platform.")
+    app("Change taskmanager.yml according to your platform.")
     app("Number of tasksmanager configurations used: %d" % len(_manager_confs))
 
     if config.option.verbose > 0:

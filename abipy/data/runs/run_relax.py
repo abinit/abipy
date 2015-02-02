@@ -6,7 +6,7 @@ This script shows how to perform a structural relaxation in two steps:
 
     2) Full relaxation (atoms + cell) with the initial configuration read from step 1)
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import sys
 import os
@@ -14,7 +14,7 @@ import abipy.data as abidata
 import abipy.abilab as abilab
 
 
-def make_ion_ioncell_inputs():
+def make_ion_ioncell_inputs(paral_kgb=1):
     cif_file = abidata.cif_file("si.cif")
     structure = abilab.Structure.from_file(cif_file)
 
@@ -29,17 +29,17 @@ def make_ion_ioncell_inputs():
         shiftk=[0,0,0],
         nshiftk=1,
         chksymbreak=0,
-        paral_kgb=0,
+        paral_kgb=paral_kgb,
     )
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
     inp.set_structure(structure)
 
     # Global variables
-    inp.set_variables(**global_vars)
+    inp.set_vars(**global_vars)
 
     # Dataset 1 (Atom Relaxation)
-    inp[1].set_variables(
+    inp[1].set_vars(
         optcell=0,
         ionmov=2,
         tolrff=0.02,
@@ -50,7 +50,7 @@ def make_ion_ioncell_inputs():
     )
 
     # Dataset 2 (Atom + Cell Relaxation)
-    inp[2].set_variables(
+    inp[2].set_vars(
         optcell=1,
         ionmov=2,
         ecutsm=0.5,
@@ -77,15 +77,15 @@ def build_flow(options):
               abilab.TaskManager.from_file(options.manager)
 
     # Create the flow
-    flow = abilab.AbinitFlow(workdir, manager)
+    flow = abilab.Flow(workdir, manager=manager)
 
-    # Create a relaxation workflow and add it to the flow.
+    # Create a relaxation work and add it to the flow.
     ion_inp, ioncell_inp = make_ion_ioncell_inputs()
 
-    work = abilab.RelaxWorkflow(ion_inp, ioncell_inp)
+    work = abilab.RelaxWork(ion_inp, ioncell_inp)
     flow.register_work(work)
 
-    #bands_work = abilab.BandStructureWorkflow(scf_input, nscf_input)
+    #bands_work = abilab.BandStructureWork(scf_input, nscf_input)
     return flow.allocate()
 
 

@@ -10,7 +10,7 @@ from abipy.core.testing import has_abinit
 
 
 # Tests in this module require abinit >= 7.9.0 and pseudodojo.
-pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
+#pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
 
 
 def scf_ph_inputs(tvars):
@@ -57,6 +57,7 @@ def scf_ph_inputs(tvars):
             rfphon=1,        # Will consider phonon-type perturbation
             nqpt=1,          # One wavevector is to be considered
             qpt=qpt,         # This wavevector is q=0 (Gamma)
+            kptopt=3,
             )
 
             #rfatpol   1 1   # Only the first atom is displaced
@@ -69,11 +70,11 @@ def scf_ph_inputs(tvars):
 
 def itest_phonon_flow(fwp, tvars):
     """
-    Create an `AbinitFlow` for phonon calculations:
+    Create an `Abinit` for phonon calculations:
 
-        1) One workflow for the GS run.
+        1) One work for the GS run.
 
-        2) nqpt workflows for phonon calculations. Each workflow contains
+        2) nqpt works for phonon calculations. Each work contains
            nirred tasks where nirred is the number of irreducible phonon perturbations
            for that particular q-point.
     """
@@ -83,7 +84,7 @@ def itest_phonon_flow(fwp, tvars):
     all_inps = scf_ph_inputs(tvars)
     scf_input, ph_inputs = all_inps[0], all_inps[1:]
 
-    flow = abilab.phonon_flow(fwp.workdir, fwp.manager, scf_input, ph_inputs)
+    flow = abilab.phonon_flow(fwp.workdir, scf_input, ph_inputs, manager=fwp.manager)
     flow.build_and_pickle_dump()
 
     t0 = flow[0][0]
@@ -118,10 +119,10 @@ def itest_phonon_flow(fwp, tvars):
                                      cwd=flow.outdir.path)
     assert ddb_path == out_ddb
 
-    # Build new workflow with Anaddb tasks.
+    # Build new work with Anaddb tasks.
     # Construct a manager with mpi_procs==1 since anaddb do not support mpi_procs > 1 (except in elphon)
     shell_manager = fwp.manager.to_shell_manager(mpi_procs=1)
-    awork = abilab.Workflow(manager=shell_manager)
+    awork = abilab.Work(manager=shell_manager)
 
     # Phonons bands and DOS with gaussian method
     anaddb_input = abilab.AnaddbInput.phbands_and_dos(
@@ -130,7 +131,7 @@ def itest_phonon_flow(fwp, tvars):
     atask = abilab.AnaddbTask(anaddb_input, ddb_node=ddb_path, manager=shell_manager)
     awork.register(atask)
 
-    # Phonons bands and DOS with gaussian method
+    # Phonons bands and DOS with tetrahedron method
     anaddb_input = abilab.AnaddbInput.phbands_and_dos(
         scf_input.structure, ngqpt=(4, 4, 4), ndivsm=5, nqsmall=10, dos_method="tetra")
 

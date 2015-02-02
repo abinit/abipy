@@ -16,7 +16,8 @@
    tools_api.rst
    iotools_api.rst
    electrons_api.rst
-   phonons_api.rst
+   gw_api.rst
+   dfpt_api.rst
    waves_api.rst
    htc/index.rst
    data_api.rst

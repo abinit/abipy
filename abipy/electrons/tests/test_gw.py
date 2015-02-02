@@ -7,7 +7,7 @@ import abipy.data as data
 
 from abipy.abilab import abiopen
 from abipy.electrons.gw import *
-from abipy.electrons.gw import SIGRES_Reader
+from abipy.electrons.gw import SigresReader
 from abipy.core.testing import *
 
 class TestQPList(AbipyTest):
@@ -55,13 +55,6 @@ class TestQPList(AbipyTest):
         self.assertAlmostEqual(qp.qpe.real, -4.76022137474714)
         self.assertAlmostEqual(qp.qpe.imag, -0.011501666037697)
         self.assertAlmostEqual(qp.sigxme, -16.549383605401)
-
-
-#class TestSigresReader(AbipyTest):
-#    def test_base(self):
-#        """Test SIGRES Reader."""
-#        with SIGRES_Reader(data.ref_file("tgw1_9o_DS4_SIGRES.nc")) as r:
-#            #params = r.read_params()
 
 
 class TestSigresFile(AbipyTest):

@@ -1,6 +1,6 @@
 **Official docs:** http://pythonhosted.org/abipy/
 
-Abipy is an open-source library for analyzing the results produced by ABINIT (http://www.abinit.org), 
+Abipy is an open-source library for the analysis of the results produced by ABINIT (http://www.abinit.org), 
 an open-source program for the ab-initio calculation of the physical properties of materials 
 within Density Functional Theory (DFT).
 Abipy is written in Python and is designed with the philosophy that you should be able to create 
@@ -35,7 +35,9 @@ Besides, abipy required additional dependencies such as netcdf4 and wxpython for
 Users who want to use the graphical interface are suggested to install the required python packages (wxpython)
 through one of the following python distributions::
 
-    https://www.enthought.com/products/canopy/
+    #. `Canopy <https://www.enthought.com/products/canopy>`_
+
+    #. `Anaconda <http://continuum.io/downloads`_
 
 
 Developmental version
@@ -65,12 +67,12 @@ All required dependencies should be automatically taken care of if you install a
 Otherwise, these packages should be available on `PyPI <http://pypi.python.org>`_.
 
   #. Python 2.7 required (Python 3.0+ not supported) 
-  #. pymatgen 2.8.7+
+  #. pymatgen 3.0.7+
   #. numpy 
   #. matplotlib 1.1+
   #. scipy 0.10+
   #. netCDF4
-  #. pyYaml 3.1.0+
+  #. pyYaml 3.11+
 
 The following packages are much easier to install with easy_install:
 
@@ -80,6 +82,12 @@ The following packages are much easier to install with easy_install:
   #. PyDispatcher
 
 for netcdf4 and hdf see http://www.unidata.ucar.edu/software/netcdf/docs/build_default.html
+
+
+pyhull:
+ export CC=gcc 
+ and optionally:
+ export CFLAGS='-O3 -g' 
 
 
 Optional dependencies

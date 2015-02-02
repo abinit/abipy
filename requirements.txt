@@ -1,9 +1,9 @@
-apscheduler>=2.1.1
-numpy>=1.8
+apscheduler==2.1.0
+numpy==1.8.2
 pydispatcher>=2.0.3
 pyyaml>=3.11
-scipy>=0.10
+#scipy>=0.10
 netCDF4
-pymatgen>=3.0.0
+pymatgen>=3.0.7
 wxmplot
 #matplotlib>=1.1

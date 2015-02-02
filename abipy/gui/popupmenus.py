@@ -11,9 +11,9 @@ from collections import OrderedDict
 from abipy.abilab import abifile_subclass_from_filename, abiopen
 from abipy.iotools.files import NcDumper, AbinitLogFile, AbinitOutputFile, get_filestat
 from abipy.iotools.visualizer import Visualizer
-from abipy.waves import WFK_File
-from abipy.electrons import SIGRES_File, GSR_File
-from abipy.electrons.bse import MDF_File
+from abipy.waves import WfkFile
+from abipy.electrons import SigresFile, GsrFile
+from abipy.electrons.bse import MdfFile
 from abipy.gui.events import AbinitEventsFrame
 from abipy.gui.timer import AbinitTimerFrame
 from abipy.gui.editor import SimpleTextViewer, MyEditorFrame
@@ -276,7 +276,7 @@ class EbandsPopupMenu(NcFilePopupMenu):
         ("eJdos", ewx.showElectronJdosFrame),
     ])
 
-    HANDLED_FILES = [WFK_File, GSR_File] 
+    HANDLED_FILES = [WfkFile, GsrFile] 
 
 
 def showQPData(parent, filepath):
@@ -292,11 +292,11 @@ class SigResPopupMenu(NcFilePopupMenu):
         ("qpDataPlot", showQPData),
     ])
 
-    HANDLED_FILES = [SIGRES_File] 
+    HANDLED_FILES = [SigresFile] 
 
 
 def showEXCMDF(parent, filepath):
-    mdf_file = MDF_File(filepath)
+    mdf_file = MdfFile(filepath)
     mdf_file.plot_mdfs()
 
 
@@ -306,5 +306,5 @@ class MDFPopupMenu(NcFilePopupMenu):
         ("mdfPlot", showEXCMDF),
     ])
 
-    HANDLED_FILES = [MDF_File] 
+    HANDLED_FILES = [MdfFile] 
 

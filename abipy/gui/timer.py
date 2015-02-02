@@ -4,7 +4,6 @@ import os
 import wx
 
 from collections import OrderedDict
-from monty.pprint import pprint_table
 from pymatgen.io.abinitio.abitimer import AbinitTimerSection, AbinitTimerParser
 import abipy.gui.awx as awx
 
@@ -85,7 +84,7 @@ class AbinitTimerFrame(awx.Frame):
     #    """Return a string with the timing data."""
     #    table = self.timer.totable()
     #    strio = StringIO.StringIO()
-    #    pprint_table(table, out=strio)
+    #    print(table, out=strio)
     #    return strio.getvalue()
 
 
@@ -155,10 +154,7 @@ class MultiTimerFrame(awx.Frame):
     #    for timer in self.timers:
     #        table = timer.totable()
     #        strio = StringIO.StringIO()
-    #        pprint_table(table, out=strio)
+    #        print(table, out=strio)
     #        strings.append(strio.get_value)
     #    return strings
-
-
-
 

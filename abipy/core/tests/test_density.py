@@ -2,7 +2,7 @@
 """Tests for core.density module"""
 from __future__ import print_function, division
 
-import abipy.data as data 
+import abipy.data as abidata 
 
 from abipy.core import Density
 from abipy.core.testing import *
@@ -14,9 +14,9 @@ class TestDensity(AbipyTest):
 
     def test_ncread_density(self):
         """Read density from NC example data files"""
-        assert data.DEN_NCFILES
+        assert abidata.DEN_NCFILES
 
-        for path in data.DEN_NCFILES:
+        for path in abidata.DEN_NCFILES:
             print("Reading DEN file %s " % path)
 
             # Read data directly from file.
@@ -27,8 +27,8 @@ class TestDensity(AbipyTest):
             den = Density.from_file(path)
             print(den)
             structure = den.structure
-            rhor_tot = den.get_rhor_tot()
-            rhog_tot = den.get_rhog_tot()
+            rhor_tot = den.total_rhor
+            rhog_tot = den.total_rhog
             nelect_calc = den.get_nelect().sum()
 
             # Diff between nelect computed and the one written on file.

@@ -1,16 +1,19 @@
+# coding: utf-8
 """Wavefunction file."""
 from __future__ import print_function, division, unicode_literals
 
 import six
 import numpy as np
 
+from monty.functools import lazy_property
 from abipy.core import Mesh3D, GSphere, Structure
-from abipy.iotools import ETSF_Reader, Visualizer, AbinitNcFile, Has_Structure, Has_ElectronBands
+from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands
+from abipy.iotools import ETSF_Reader, Visualizer 
 from abipy.electrons import ElectronsReader
 from abipy.waves.pwwave import PWWaveFunction
 
 __all__ = [
-    "WFK_File",
+    "WfkFile",
 ]
 
 
@@ -21,7 +24,7 @@ def straceback():
     return traceback.format_exc()
 
 
-class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
+class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
     """
     This object provides a simple interface to access and analyze
     the data stored in the WFK file produced by ABINIT.
@@ -30,7 +33,7 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
                                                                   
     .. code-block:: python
         
-        wfk = WFK_File("foo_WFK.nc")
+        wfk = WfkFile("foo_WFK.nc")
 
         # Plot band energies.
         wfk.plot_ebands()
@@ -50,20 +53,18 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         """
         Initialize the object from a Netcdf file.
         """
-        super(WFK_File, self).__init__(filepath)
+        super(WfkFile, self).__init__(filepath)
 
-        with WFK_Reader(filepath) as reader:
-            # Read the electron bands 
-            self._ebands = reader.read_ebands()
+        self.reader = reader = WFK_Reader(filepath)
 
-            assert reader.has_pwbasis_set
-            assert reader.cplex_ug == 2
-            self.npwarr = reader.npwarr
-            self.nband_sk = reader.nband_sk
+        # Read the electron bands 
+        self._ebands = reader.read_ebands()
 
-            self.nspinor = reader.nspinor
-            self.nsppol = reader.nsppol
-            self.nspden = reader.nspden
+        assert reader.has_pwbasis_set
+        assert reader.cplex_ug == 2
+        self.nspinor = reader.nspinor
+        self.npwarr = reader.npwarr
+        self.nband_sk = reader.nband_sk
 
         # FFT mesh (augmented divisions reported in the WFK file)
         self.fft_mesh = Mesh3D(reader.fft_divs, self.structure.lattice_vectors())
@@ -80,20 +81,18 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         # Save reference to the reader.
         self.reader = reader
 
+    def close(self):
+        self.reader.close()
+
     @property
     def structure(self):
-        """`Structure` object"""
+        """:class:`Structure` object"""
         return self.ebands.structure
 
     @property
     def ebands(self):
-        """`ElectronBands` object"""
+        """:class:`ElectronBands` object"""
         return self._ebands
-
-    @property
-    def kpoints(self):
-        """List of k-points in the WFK file."""
-        return self.ebands.kpoints
 
     @property
     def nkpt(self):
@@ -102,13 +101,8 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
     @property
     def gspheres(self):
-        """List of `GSphere` objects ordered by k-points."""
+        """List of :class:`GSphere` objects ordered by k-points."""
         return self._gspheres
-
-    @property
-    def mband(self):
-        """Maximum band index"""
-        return np.max(self.nband_sk)
 
     def __str__(self):
         return self.tostring()
@@ -118,8 +112,7 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         String representation
 
         Args:
-            prtvol:
-                verbosity level.
+            prtvol: verbosity level.
         """
         keys = ["nspinor", "nspden"]
         lines = []
@@ -136,7 +129,7 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         return "\n".join(lines)
 
     def kindex(self, kpoint):
-        """The index of the k-point in the file. Accepts: `Kpoint` object or int."""
+        """The index of the k-point in the file. Accepts :class:`Kpoint` object or int."""
         return self.reader.kindex(kpoint)
 
     def get_wave(self, spin, kpoint, band):
@@ -144,15 +137,12 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         Read and return the wavefunction with the given spin, band and kpoint.
 
         Args:
-            spin:
-                spin index (0,1)
-            kpoint:
-                Either `Kpoint` instance or integer giving the sequential index in the IBZ (C-convention).
-            band:
-                band index.
+            spin: spin index. Must be in (0, 1)
+            kpoint: Either :class:`Kpoint` instance or integer giving the sequential index in the IBZ (C-convention).
+            band: band index.
 
             returns:
-                `WaveFunction` instance.
+                :class:`WaveFunction` instance.
         """
         k = self.kindex(kpoint)
 
@@ -207,14 +197,10 @@ class WFK_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         Analyze the caracter of the bands at the given k-point and spin.
 
         Args:
-            spin:
-                Spin index.
-            kpoint:
-                K-point index or `Kpoint` object 
-            bands_range:
-                Range of band indices to analyze.
-            tol_ediff:
-                Tolerance on the energy difference (in eV)
+            spin: Spin index.
+            kpoint: K-point index or :class:`Kpoint` object 
+            bands_range: Range of band indices to analyze.
+            tol_ediff: Tolerance on the energy difference (in eV)
         """
         # Extract the k-point index to speed up the calls belows
         k = self.kindex(kpoint)
@@ -274,18 +260,14 @@ class WFK_Reader(ElectronsReader):
         else:
             raise NotImplementedError("")
 
-    @property
+    @lazy_property
     def basis_set(self):
         """String defining the basis set."""
-        try:
-            return self._basis_set
-        except AttributeError:
-            basis_set = self.read_value("basis_set")
-            if six.PY2:
-                self._basis_set = "".join(basis_set).strip()
-            else:
-                self._basis_set = "".join(str(basis_set, encoding='UTF-8')).strip()
-            return self._basis_set
+        basis_set = self.read_value("basis_set")
+        if six.PY2:
+            return "".join(basis_set).strip()
+        else:
+            return "".join(str(basis_set, encoding='UTF-8')).strip()
 
     @property
     def has_pwbasis_set(self):
@@ -301,7 +283,7 @@ class WFK_Reader(ElectronsReader):
         """
         Index of the k-point in the internal tables.
 
-        Accepts: `Kpoint` instance or integer.
+        Accepts: :class:`Kpoint` instance or integer.
         """
         if isinstance(kpoint, int):
             return kpoint
@@ -311,7 +293,7 @@ class WFK_Reader(ElectronsReader):
     def read_gvecs_istwfk(self, kpoint):
         """
         Read the set of G-vectors and the value of istwfk for the given k-point.
-        Accepts `Kpoint` object or integer.
+        Accepts :class:`Kpoint` object or integer.
         """
         k = self.kindex(kpoint)
         npw_k, istwfk = self.npwarr[k], self.istwfk[k]
@@ -323,7 +305,6 @@ class WFK_Reader(ElectronsReader):
         npw_k, istwfk = self.npwarr[k], self.istwfk[k]
         # TODO use variables to avoid storing the full block.
         return self.ug_block[spin, k, band, :, :npw_k]
-
 
 
 class DmatsError(Exception):

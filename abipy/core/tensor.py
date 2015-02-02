@@ -1,3 +1,4 @@
+# coding: utf-8
 """
 This module contains classes representing tensors and helper functions to change lattice.
 """

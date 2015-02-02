@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 """This script shows how to compute the G0W0 corrections in silicon."""
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import os
 import sys
 import abipy.data as data  
 import abipy.abilab as abilab
 
-def make_inputs(ngkpt):
+def make_inputs(ngkpt, paral_kgb=1):
     # Crystalline silicon
     # Calculation of the GW correction to the direct band gap in Gamma
     # Dataset 1: ground state calculation 
@@ -16,8 +16,7 @@ def make_inputs(ngkpt):
     # Dataset 4-5-6: Self-Energy matrix elements (GW corrections) with different values of nband
 
     inp = abilab.AbiInput(pseudos=data.pseudos("14si.pspnc"), ndtset=6)
-
-    inp.set_structure_from_file(data.cif_file("si.cif"))
+    inp.set_structure(data.cif_file("si.cif"))
 
     # This grid is the most economical, but does not contain the Gamma point.
     scf_kmesh = dict(
@@ -41,32 +40,32 @@ def make_inputs(ngkpt):
     # Global variables. gw_kmesh is used in all datasets except DATASET 1.
     ecut = 6
        
-    inp.set_variables(
+    inp.set_vars(
         ecut=ecut,
         timopt=-1,
         istwfk="*1",
-        paral_kgb=0,
+        paral_kgb=paral_kgb,
         gwpara=2,
     )
     inp.set_kmesh(**gw_kmesh)
 
     # Dataset 1 (GS run)
     inp[1].set_kmesh(**scf_kmesh)
-    inp[1].set_variables(
+    inp[1].set_vars(
         tolvrs=1e-6,
         nband=4,
     )
 
     # Dataset 2 (NSCF run)
     # Here we select the second dataset directly with the syntax inp[2]
-    inp[2].set_variables(iscf=-2,
-                         tolwfr=1e-12,
-                         nband=35,
-                         nbdbuf=5,
-                        )
+    inp[2].set_vars(iscf=-2,
+                    tolwfr=1e-12,
+                    nband=35,
+                    nbdbuf=5,
+                   )
 
     # Dataset3: Calculation of the screening.
-    inp[3].set_variables(
+    inp[3].set_vars(
         optdriver=3,   
         nband=25,    
         ecutwfn=ecut,   
@@ -89,7 +88,7 @@ def make_inputs(ngkpt):
     bdgw = [1,8]
 
     for idx, nband in enumerate([10, 20, 30]):
-        inp[4+idx].set_variables(
+        inp[4+idx].set_vars(
             optdriver=4,
             nband=nband,      
             ecutwfn=ecut,
@@ -117,13 +116,14 @@ def build_flow(options):
     # Change the value of ngkpt below to perform a GW calculation with a different k-mesh.
     scf, nscf, scr, sig1, sig2, sig3 = make_inputs(ngkpt=[2,2,2])
 
-    return abilab.g0w0_flow(workdir, manager, scf, nscf, scr, [sig1, sig2, sig3])
+    return abilab.g0w0_flow(workdir, scf, nscf, scr, [sig1, sig2, sig3], manager=manager)
 
 
 @abilab.flow_main
 def main(options):
     flow = build_flow(options)
     return flow.build_and_pickle_dump()
+
 
 if __name__ == "__main__":
     sys.exit(main())

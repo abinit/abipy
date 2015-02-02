@@ -1,10 +1,16 @@
-dependencies:
+machine:
+  python:
+    version: 2.7.8
+dependenciees:
+  only:
+     - master # list of branches to build
   ovyerride:
-    - pip install -q numpy
+    - easy_install -U setuptools
     - pip install distribute --upgrade
-    - pip install -r requirements.txt
+    - pip install pymatgen
+    #- pip install -r requirements.txt
     #- pip install -r requirements-optional.txt
-    - python setup.py install
+    - python setup.py develop
 #test:
 #  override:
 #    - nosetests:

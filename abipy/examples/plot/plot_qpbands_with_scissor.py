@@ -9,7 +9,8 @@ import abipy.data as abidata
 from abipy.abilab import abiopen, ElectronBandsPlotter
 
 # Get the quasiparticle results from the SIGRES.nc database.
-sigma_file = abiopen(abidata.ref_file("tgw1_9o_DS4_SIGRES.nc"))
+#sigma_file = abiopen(abidata.ref_file("tgw1_9o_DS4_SIGRES.nc"))
+sigma_file = abiopen(abidata.ref_file("si_g0w0ppm_nband30_SIGRES.nc"))
 #sigma_file.plot_qps_vs_e0()
 qplist_spin = sigma_file.qplist_spin
 

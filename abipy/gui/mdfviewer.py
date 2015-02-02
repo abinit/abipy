@@ -9,7 +9,7 @@ import abipy.gui.awx as awx
 from wx.py.shell import Shell
 from monty.string import marquee
 from abipy.abilab import abiopen
-from abipy.electrons.bse import MDF_Plotter
+from abipy.electrons.bse import MdfPlotter
 from abipy.iotools.visualizer import Visualizer
 from abipy.gui.kpoints import KpointsPanel
 from abipy.gui import mixins as mix 
@@ -158,7 +158,7 @@ Also, these key bindings can be used
         if mdf_type == "ALL":
             return awx.showErrorMessage(self, "ALL is not supported by Compare. Please use EXC, RPA, GWRPA")
 
-        plotter = MDF_Plotter()
+        plotter = MdfPlotter()
         for path, mdf_file in zip(self.mdf_filepaths, self.mdf_files_list):
             label = os.path.relpath(path)
             mdf = mdf_file.get_mdf(mdf_type)
@@ -230,7 +230,7 @@ Also, these key bindings can be used
         if mdf_type == "ALL":
             return awx.showErrorMessage(self, "ALL is not supported by Compare. Please use EXC, RPA, GWRPA")
 
-        plotter = MDF_Plotter()
+        plotter = MdfPlotter()
                                                                             
         # Extract the type of MDF we are interested in
         for path, mdf_file in zip(self.mdf_filepaths, self.mdf_files_list):

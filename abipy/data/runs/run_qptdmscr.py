@@ -3,7 +3,7 @@
 This example shows how to compute the SCR file by splitting the calculation of the SCR file
 over q-points with the input variables nqptdm and qptdm.
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import sys
 import os
@@ -11,7 +11,7 @@ import abipy.abilab as abilab
 import abipy.data as data  
 
 
-def all_inputs():
+def all_inputs(paral_kgb=1):
     """
     Build the input files of the calculation.
     Returns: gs_input, nscf_input, scr_input, sigma_input
@@ -24,12 +24,12 @@ def all_inputs():
     global_vars = dict(
         ecut=ecut,
         istwfk="*1",
-        paral_kgb=0,
+        paral_kgb=paral_kgb,
     )
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=4)
     inp.set_structure(structure)
-    inp.set_variables(**global_vars)
+    inp.set_vars(**global_vars)
 
     gs, nscf, scr, sigma = inp[1:]
 
@@ -54,13 +54,13 @@ def all_inputs():
 
     # Dataset 1 (GS run)
     gs.set_kmesh(**gs_kmesh)
-    gs.set_variables(tolvrs=1e-6, nband=4)
+    gs.set_vars(tolvrs=1e-6, nband=4)
 
     # Dataset 2 (NSCF run)
     # Here we select the second dataset directly with the syntax inp[2]
     nscf.set_kmesh(**gw_kmesh)
 
-    nscf.set_variables(iscf=-2,
+    nscf.set_vars(iscf=-2,
                        tolwfr=1e-10,
                        nband=15,
                        nbdbuf=5)
@@ -68,7 +68,7 @@ def all_inputs():
     # Dataset3: Calculation of the screening.
     scr.set_kmesh(**gw_kmesh)
 
-    scr.set_variables(
+    scr.set_vars(
         optdriver=3,   
         nband=6,
         ecutwfn=ecutwfn,   
@@ -79,9 +79,9 @@ def all_inputs():
     # Dataset4: Calculation of the Self-Energy matrix elements (GW corrections)
     sigma.set_kmesh(**gw_kmesh)
 
-    sigma.set_variables(
+    sigma.set_vars(
             optdriver=4,
-            nband=6,
+            nband=8,
             ecutwfn=ecutwfn,
             ecuteps=2.0,
             ecutsigx=2.0,
@@ -123,7 +123,7 @@ def qptdm_flow(options):
     gs, nscf, scr_input, sigma_input = all_inputs()
 
     # Construct the flow.
-    return abilab.G0W0WithQptdmFlow(workdir, manager, gs, nscf, scr_input, sigma_input)
+    return abilab.G0W0WithQptdmFlow(workdir, gs, nscf, scr_input, sigma_input, manager=manager)
 
 
 @abilab.flow_main

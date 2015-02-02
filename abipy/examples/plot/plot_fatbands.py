@@ -4,11 +4,10 @@
 from abipy.abilab import abiopen
 import abipy.data as abidata
 
-# Open the WKF file.
-gsr_file = abiopen(abidata.ref_file("si_nscf_GSR.nc"))
+# Open the WKF file and extract the band structure. 
 
-# Extract the band structure. 
-ebands = gsr_file.ebands
+with abiopen(abidata.ref_file("si_nscf_GSR.nc")) as gsr_file:
+    ebands = gsr_file.ebands
 
 # Define the mapping reduced_coordinates -> name of the k-point.
 klabels = {

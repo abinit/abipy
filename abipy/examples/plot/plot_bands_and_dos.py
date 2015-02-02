@@ -7,15 +7,14 @@ import abipy.data as abidata
 
 # Open the file with energies computed on a k-path in the BZ
 # and extract the band structure.
-nscf_file = abiopen(abidata.ref_file("si_nscf_GSR.nc"))
 
-nscf_ebands = nscf_file.ebands
+with abiopen(abidata.ref_file("si_nscf_GSR.nc")) as nscf_file:
+    nscf_ebands = nscf_file.ebands
 
-# Open thefile with energies computed with a homogeneous sampling of the BZ 
+# Open the file with energies computed with a homogeneous sampling of the BZ 
 # and extract the band structure.
-gs_file = abiopen(abidata.ref_file("si_scf_GSR.nc"))
-
-gs_ebands = gs_file.ebands
+with abiopen(abidata.ref_file("si_scf_GSR.nc")) as gs_file:
+    gs_ebands = gs_file.ebands
 
 # Compute the DOS with the Gaussian method (use default values for 
 # the broadening and the linear mesh step.

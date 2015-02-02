@@ -3,62 +3,42 @@ from __future__ import print_function, division, unicode_literals
 
 import sys
 import os
-import warnings
 import argparse 
 import collections
 
 from abipy.tools.text import WildCard 
 import abipy.gui.wxapps as wxapps 
 
-
-def str_examples():
-    examples = (
-      "\n"
-      "Usage example:\n\n" 
-      "abiopen.py files foo_WFK.nc          ==> Visualize the WFK file foo_WFK.nc\n"
-      "                                         (many other Abinit files are supported, just try!).\n"
-      "abiopen.py list dirpath              ==> Visualize all files in the directory dirpath (flat list mode) .\n"
-      "abiopen.py tree dirpath              ==> Visualize all files in the directory dirpath (tree mode).\n"
-      "abiopen.py scan dirpath              ==> Scan all the supported files in the given directory (recursive mode).\n"
-      "abiopen.py scan dirpath -w *GSR.nc   ==> Walk the directory tree starting from dirpath \n"
-      "                                         and open all the GSR.nc files encountered.\n"
-    )
-    return examples
-
-
-def show_examples_and_exit(err_msg=None, error_code=1):
-    """Display the usage of the script."""
-    sys.stderr.write(str_examples())
-    if err_msg: 
-        sys.stderr.write("Fatal Error\n" + err_msg + "\n")
-    sys.exit(error_code)
+import logging
+logger.getLogger(__name__)
 
 
 def main():
 
-    # Decorate argparse classes to add portable support for aliases in add_subparsers
-    class MyArgumentParser(argparse.ArgumentParser):
-        def add_subparsers(self, **kwargs):
-            new = super(MyArgumentParser, self).add_subparsers(**kwargs)
-            # Use my class
-            new.__class__ = MySubParserAction
-            return new
-                                                                                                                    
-    class MySubParserAction(argparse._SubParsersAction):
-        def add_parser(self, name, **kwargs):
-            """Allows one to pass the aliases option even if this version of ArgumentParser does not support it."""
-            try:
-                return super(MySubParserAction, self).add_parser(name, **kwargs)
-            except Exception as exc:
-                if "aliases" in kwargs: 
-                    # Remove aliases and try again.
-                    kwargs.pop("aliases")
-                    return super(MySubParserAction, self).add_parser(name, **kwargs)
-                else:
-                    # Wrong call.
-                    raise exc
+    def str_examples():
+        examples = (
+          "\n"
+          "Usage example:\n\n" 
+          "abiopen.py files foo_WFK.nc          ==> Visualize the WFK file foo_WFK.nc\n"
+          "                                         (many other Abinit files are supported, just try!).\n"
+          "abiopen.py list dirpath              ==> Visualize all files in the directory dirpath (flat list mode) .\n"
+          "abiopen.py tree dirpath              ==> Visualize all files in the directory dirpath (tree mode).\n"
+          "abiopen.py scan dirpath              ==> Scan all the supported files in the given directory (recursive mode).\n"
+          "abiopen.py scan dirpath -w *GSR.nc   ==> Walk the directory tree starting from dirpath \n"
+          "                                         and open all the GSR.nc files encountered.\n"
+        )
+        return examples
 
-    parser = MyArgumentParser(epilog=str_examples(),formatter_class=argparse.RawDescriptionHelpFormatter)
+
+    def show_examples_and_exit(err_msg=None, error_code=1):
+        """Display the usage of the script."""
+        sys.stderr.write(str_examples())
+        if err_msg: 
+            sys.stderr.write("Fatal Error\n" + err_msg + "\n")
+        sys.exit(error_code)
+
+
+    parser = argparse.ArgumentParser(epilog=str_examples(),formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('--loglevel', default="ERROR", type=str,
                          help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
@@ -155,7 +135,7 @@ def appclasses_from_files(filepaths):
     #print(acls2files)
 
     if bad_files:
-        warnings.warn("Cannot find wx application for files:\n%s" % bad_files)
+        logger.warning("Cannot find wx application for files:\n%s" % bad_files)
 
     return acls2files
 

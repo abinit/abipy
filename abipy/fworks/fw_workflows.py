@@ -10,8 +10,8 @@ import os
 
 from fireworks.core.launchpad import LaunchPad
 from fireworks.core.firework import Firework, Workflow
-from fw_tasks import RelaxFWTask, MultiStepRelaxFWTask, AutoparalFWTask
-from pymatgen.io.abinitio.tasks import Dependency
+from fw_tasks import * #RelaxFWTask, MultiStepRelaxFWTask, AutoparalFWTask, AbiFireTask
+from pymatgen.io.abinitio.tasks import Dependency, RelaxTask
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -29,9 +29,6 @@ class AbstractFWWorkflow():
         Creates a list of workdirs, one for each task, starting from the original workdir.
         If no workdir is passed it looks in the attributes, and otherwise the running directory is set
         """
-        #TODO improve the search for workdir
-        if workdir is None:
-            raise NotImplementedError('Set the workir in the workflow')
 
         #TODO maybe use a call to map()?
         task_workdirs = []
@@ -40,9 +37,10 @@ class AbstractFWWorkflow():
 
         return task_workdirs
 
-    def create_autoparal_fw(self, ion_task, max_ncpus=None):
+    @classmethod
+    def create_autoparal_fw(self, firetask, max_ncpus=None):
         spec = {'_queueadapter': {'ntasks': 1, 'walltime': '00:10:00'}}
-        autoparal_task = AutoparalFWTask.from_task(ion_task, max_ncpus)
+        autoparal_task = AutoparalFireTask(firetask, max_ncpus)
         autoparal_fw = Firework(autoparal_task, spec=spec)
         return autoparal_fw
 
@@ -55,25 +53,21 @@ class RelaxAtomsFWWorkflow(AbstractFWWorkflow):
     """
 
     #TODO check if manager is useful at this point
-    def __init__(self, ion_input, workdir=None, manager=None, autoparal=False):
+    def __init__(self, structure, pseudos, ksampling=1000, accuracy="normal",
+                 spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
+                 autoparal=False, max_ncpus=32, **extra_abivars):
         """
         Args:
-            ion_input:
-                Input for the relaxation of the ions (cell is fixed)
-            ioncell_input:
-                Input for the relaxation of the ions and the unit cell.
-            workdir:
-                Working directory.
-            manager:
-                `TaskManager` object.
+
         """
 
-        ion_task = RelaxFWTask.from_input(ion_input, workdir, manager)
-
-        fw = Firework(ion_task)
+        task = RelaxStrategyFireTask(structure=structure, pseudos=pseudos, ksampling=ksampling, relax_algo="atoms_only",
+                                     accuracy=accuracy, spin_mode=spin_mode, smearing=smearing, charge=charge,
+                                     scf_algorithm=scf_algorithm, **extra_abivars)
+        fw = Firework(task)
 
         if autoparal:
-            autoparal_fw = self.create_autoparal_fw(ion_task, 32)
+            autoparal_fw = self.create_autoparal_fw(task, max_ncpus)
             self.wf = Workflow([autoparal_fw, fw], {autoparal_fw: [fw]})
         else:
             self.wf = Workflow([fw])
@@ -86,37 +80,39 @@ class RelaxFWWorkflow(AbstractFWWorkflow):
     structure to perform a structural relaxation in which both the atomic positions
     and the lattice parameters are optimized.
     """
-    def __init__(self, ion_input, ioncell_input, workdir=None, manager=None):
+    def __init__(self, structure, pseudos, ksampling=1000, accuracy="normal",
+                 spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
+                 autoparal=False, max_ncpus=32, **extra_abivars):
         """
         Args:
-            ion_input:
-                Input for the relaxation of the ions (cell is fixed)
-            ioncell_input:
-                Input for the relaxation of the ions and the unit cell.
-            workdir:
-                Working directory.
-            manager:
-                `TaskManager` object.
+
         """
-        # Prepare the directories
-        task_workdirs = self.get_task_dirs(2,workdir)
 
         # Create the ionic relaxation fw
-        ion_task = RelaxFWTask.from_input(ion_input, task_workdirs[0], manager)
+        ion_task = RelaxStrategyFireTask(structure=structure, pseudos=pseudos, ksampling=ksampling,
+                                         relax_algo="atoms_only", accuracy=accuracy, spin_mode=spin_mode,
+                                         smearing=smearing, charge=charge,scf_algorithm=scf_algorithm, **extra_abivars)
 
         ion_fw = Firework(ion_task)
 
         # Create the ionic+cell relaxation fw
-        ioncell_task = RelaxFWTask.from_input(ioncell_input, task_workdirs[1], manager)
-
-
-        ioncell_task.add_deps(Dependency(ion_task, "WFK"))
+        ioncell_task = RelaxStrategyFireTask(structure=structure, pseudos=pseudos, ksampling=ksampling,
+                                             relax_algo="atoms_and_cell", accuracy=accuracy, spin_mode=spin_mode,
+                                             smearing=smearing, charge=charge,scf_algorithm=scf_algorithm,
+                                             deps={id(ion_task): "WFK structure"},**extra_abivars)
 
         ioncell_fw = Firework(ioncell_task)
 
         # Create the workflow
-        self.wf = Workflow([ion_fw, ioncell_fw], {ion_fw: [ioncell_fw]})
+        if autoparal:
+            autoparal_fw = self.create_autoparal_fw(ion_task, max_ncpus)
+            self.wf = Workflow([autoparal_fw, ion_fw, ioncell_fw],
+                               {autoparal_fw: [ion_fw], ion_fw: [ioncell_fw]})
+        else:
+            self.wf = Workflow([ion_fw, ioncell_fw], {ion_fw: [ioncell_fw]})
 
+
+#TODO fix after refactoring
 class MultiStepRelaxFWWorkflow(AbstractFWWorkflow):
     """
     Workflow for structural relaxations performed in a multi-step procedure.

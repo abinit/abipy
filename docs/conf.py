@@ -10,16 +10,24 @@
 #
 # All configuration values have a default; values that are commented out
 # serve to show the default.
+from __future__ import print_function, absolute_import
 
 import sys
 import os
+#import sphinx_bootstrap_theme
+#import matplotlib as mpl
+#mpl.use("Agg")
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
+#sys.path.append(os.path.abspath('sphinxext'))
 sys.path.insert(0, os.path.abspath('sphinxext'))
-#sys.path.insert(0, os.path.dirname('../abipy'))
+#sys.path.insert(0, os.path.abspath('.'))
+#sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('../abipy'))
+#sys.path.insert(0, os.path.abspath('../..'))
 
 import imp
 mod_name = "../abipy/core/release.py"
@@ -38,6 +46,8 @@ release = imp.load_source(mod_name, mod_name)
 extensions = [
 'sphinx.ext.autodoc', 
 'sphinx.ext.doctest', 
+#'sphinx.ext.coverage', 
+#'sphinx.ext.autosummary', 
 'sphinx.ext.intersphinx', 
 'sphinx.ext.todo', 
 'sphinx.ext.coverage', 
@@ -50,7 +60,9 @@ extensions = [
 
 # Add any Sphinx extension module names here, as strings. They can
 # be extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
+import matplotlib #.sphinxext
 extensions += [
+          'sphinxcontrib.napoleon',   # For Google Python Style Guide
           'matplotlib.sphinxext.mathmpl',
           'matplotlib.sphinxext.only_directives',
           'matplotlib.sphinxext.plot_directive',
@@ -59,12 +71,16 @@ extensions += [
           # MG deprecated but we continue using it
           #'ipython_directive',               
           #'ipython_console_highlighting',
+          # This does not work with py3k
           'numpydoc',
           'gen_rst',
           'sphinxcontrib.autorun',
           #'gen_gallery',  Generate gallery of PICS a la' matplotlib.
           ]
 
+# Generate the API documentation when building
+autosummary_generate = True
+numpydoc_show_class_members = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -283,4 +299,7 @@ texinfo_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'http://docs.python.org/': None}
+intersphinx_mapping = {
+"python": ('http://docs.python.org/', None),
+"pymatgen": ("http://pymatgen.org/", None),
+}

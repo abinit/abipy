@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Structural relaxation for SiC."""
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import sys
 import os
@@ -20,7 +20,7 @@ def build_flow(options):
     manager = abilab.TaskManager.from_user_config() if not options.manager else \
               abilab.TaskManager.from_file(options.manager)
 
-    flow = abilab.AbinitFlow(workdir, manager)
+    flow = abilab.Flow(workdir, manager)
 
     pseudos = data.pseudos("14si.pspnc", "6c.pspnc")
     structure = data.structure_from_ucell("SiC")
@@ -40,12 +40,12 @@ def build_flow(options):
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
     inp.set_structure(structure)
-    inp.set_variables(**global_vars)
+    inp.set_vars(**global_vars)
 
     relax_inp, nscf_inp = inp[1:]
 
     relax_inp.set_kmesh(ngkpt=ngkpt, shiftk=shiftk)
-    relax_inp.set_variables(
+    relax_inp.set_vars(
         toldff=1e-6,
         tolmxf=1e-5,
         strfact=100,
@@ -61,10 +61,10 @@ def build_flow(options):
 
     relax_inp, nscf_inp = inp.split_datasets()
 
-    # Initialize the workflow.
+    # Initialize the work.
     relax_task = flow.register_task(relax_inp, task_class=abilab.RelaxTask)
 
-    #work = RelaxWorkflow(self, ion_input, ioncell_input, workdir=None, manager=None):
+    #work = RelaxWork(self, ion_input, ioncell_input, workdir=None, manager=None):
 
     nscf_task = flow.register_task(nscf_inp, deps={relax_task: "DEN"}, task_class=abilab.NscfTask)
 

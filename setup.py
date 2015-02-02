@@ -9,54 +9,12 @@ import numpy as np
 
 from glob import glob
 from setuptools import find_packages, setup, Extension
-from setuptools.command.install import install
 
 # This check is also made in abipy/__init__, don't forget to update both when
 # changing Python version requirements.
 if sys.version[0:3] < '2.7':
     sys.stderr.write("abipy requires Python version 2.7 or above. Exiting.")
     sys.exit(1)
-
-class MyInstall(install):
-    """
-    Extends setuptools install so that we can create the abipy configuration files in ~/abinit/.abipy
-    """
-    def run(self):
-        install.run(self)
-        self.__write_user_cfgfiles()
-
-    def __write_user_cfgfiles(self, overwrite=False): 
-        """
-        This function creates the abipy configurations files.
-        
-            overwrite:
-                True if pre-existent files can be overwritten.
-        """
-        conf_dir = os.path.join(os.getenv("HOME"), ".abinit", "abipy")
-        print("Creating configuration files in %s ... " % conf_dir, end="")
-
-        if not os.path.exists(conf_dir): os.makedirs(conf_dir)
-
-        # TODO: add taskmanager and scheduler
-        path_data =[
-            ("nodecounter", "-1"),
-            #("taskmanager.yml", lambda: fh: fh.write(get_taskmanager_template()))
-            #("scheduler.yml", lambda: fh: fh.write(get_scheduler_template()))))
-        ]
-        path_data = [(os.path.join(conf_dir, f), _) for (f, _) in path_data]
-
-        count = 0
-        for p, data in path_data:
-            exist = os.path.exists(p) 
-            if exist and not overwrite: continue
-            # keep a backup copy if we are going to overwrite the file.
-            if exist: shutil.move(p, p + ".bkp") 
-            with open(p, "w") as fh:
-                fh.write(data)
-                count += 1
-
-        print("(Wrote %d configuration files)" % count)
-
 
 # Install ipython with notebook support.
 with_ipython = True
@@ -70,23 +28,25 @@ try:
 except ImportError:
     with_cython = False
 
+cmdclass = {}
 ext_modules = []
 
 # Disable cython for the time being.
-with_cython = False
-if with_cython:
-    #define_macros = [("CYTHON_TRACE", "1")]
-    ext_modules += [
-        Extension("abipy.extensions.klib", ["abipy/extensions/klib.pyx"], include_dirs=[np.get_include()])
-    ]
-    cmdclass.update({'build_ext': build_ext})
+with_cexts = False
+if with_cexts:
+    with_cython = False
+    if with_cython:
+        import numpy as np
+        #define_macros = [("CYTHON_TRACE", "1")]
+        ext_modules += [
+            Extension("abipy.extensions.klib", ["abipy/extensions/klib.pyx"], include_dirs=[np.get_include()])
+        ]
+        cmdclass.update({'build_ext': build_ext})
 
-else:
-    ext_modules += [
-        Extension("abipy.extensions.klib", ["abipy/extensions/klib.c"], include_dirs=[np.get_include()])
-    ]
-
-ext_modules = []
+    else:
+        ext_modules += [
+            Extension("abipy.extensions.klib", ["abipy/extensions/klib.c"], include_dirs=[np.get_include()])
+        ]
 
 #-------------------------------------------------------------------------------
 # Useful globals and utility functions
@@ -110,7 +70,7 @@ def file_doesnt_end_with(test, endings):
 #---------------------------------------------------------------------------
 
 # release.py contains version, authors, license, url, keywords, etc.
-release_file = os.path.join('abipy', 'core', 'release.py')
+release_file = os.path.join('abipy','core','release.py')
 
 with open(release_file) as f:
     code = compile(f.read(), release_file, 'exec')
@@ -133,20 +93,35 @@ with open(release_file) as f:
 
 def find_package_data():
     """Find abipy's package_data."""
+    #top = os.path.join("abipy", "data", "refs")
+    #ref_files = {}
+    #for root, dirs, files in os.walk(top):
+    #    root = root.replace("/", ".")
+    #    ref_files[root] = [os.path.join(root, f) for f in files]
+    #print(ref_files)
+
     # This is not enough for these things to appear in an sdist.
     # We need to muck with the MANIFEST to get this to work
     package_data = {
-        'abipy.data' : ['*','pseudos/*','runs/*','cifs/*','benchmarks/*'],
-        'abipy.data.runs' : ['data_*/outdata/*','tmp_*/outdata/*'],
-        'abipy.htc': ["abinit_vars.json", 'anaddb_vars.json'],
+        'abipy.data': ["cifs/*.cif", "pseudos/*", "runs/*", "refs/*.nc", "variables/*"],
+        'abipy.data.refs' : [
+            "al_g0w0_spfunc/*",
+            "alas_phonons/*",
+            "si_bse/*",
+            "si_ebands/*",
+            "si_g0w0/*",
+            ],
+        'abipy.htc': ["*.json"],
         'abipy.gui.awx' : ['images/*'],
     }
+
+    #package_data.update(ref_files)
     return package_data
 
 
 def find_exclude_package_data():
     package_data = {
-        'abipy.data' : ['pseudos','runs','cifs','benchmarks','runs/data_*','runs/tmp_*'],
+        'abipy.data' : ["managers", 'benchmarks','runs/flow_*'],
     }
     return package_data
 
@@ -159,14 +134,17 @@ def find_scripts():
     """Find abipy scripts."""
     scripts = []
     # All python files in abipy/scripts
-    pyfiles = glob(os.path.join('abipy', 'scripts', "*.py"))
+    pyfiles = glob(os.path.join('abipy','scripts',"*.py"))
     scripts.extend(pyfiles)
     return scripts
 
 
 def get_long_desc():
-    with open("README.rst") as fh:
-        return fh.read()
+    with open("README.rst") as f:
+        long_desc = f.read()
+        #ind = long_desc.find("\n")
+        #long_desc = long_desc[ind + 1:]
+        return long_desc
 
 
 #-----------------------------------------------------------------------------
@@ -177,7 +155,6 @@ def cleanup():
     """Clean up the junk left around by the build process."""
 
     if "develop" not in sys.argv:
-        import shutil
         try:
             shutil.rmtree('abipy.egg-info')
         except:
@@ -186,26 +163,30 @@ def cleanup():
             except:
                 pass
 
-
 # List of external packages we rely on.
 # Note setup install will download them from Pypi if they are not available.
 install_requires = [
-    #"termcolor",
+    "six",
+    "prettytable",
     "apscheduler==2.1.0",
     "numpy>=1.8",  
     "pydispatcher>=2.0.3",
     "pyyaml>=3.11",
     "scipy>=0.10",
+    "pandas",
     "netCDF4",
-    "pymatgen>=3.0.7",
+    "pymatgen>=3.0.8",
     "wxmplot",
+    "html2text",
+    #"gnuplot-py",
     #"matplotlib>=1.1",
+    #"seaborn",
     #"psutil",
     #"fabric",
     #"paramiko",
 ]
 
-if with_ipython:
+if False and with_ipython:
     install_requires += [
         "ipython>=1.1.0",
         "pyzmq",     # for the notebook
@@ -225,14 +206,12 @@ if with_ipython:
 #---------------------------------------------------------------------------
 
 # Get the set of packages to be included.
-#all_packages = find_packages(exclude=())
 my_packages = find_packages(exclude=())
 
 my_scripts = find_scripts()
 
 my_package_data = find_package_data()
 my_excl_package_data = find_exclude_package_data()
-#data_files = find_data_files()
 
 # Create a dict with the basic information
 # This dict is eventually passed to setup after additional keys are added.
@@ -254,7 +233,7 @@ setup_args = dict(
       exclude_package_data = my_excl_package_data,
       scripts          = my_scripts,
       #download_url    = download_url,
-      cmdclass={'install': MyInstall},
+      #cmdclass={'install': MyInstall},
       ext_modules=ext_modules,
       )
 

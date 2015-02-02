@@ -1,60 +1,56 @@
+# coding: utf-8
 """Classes for the analysis of GW calculations."""
 from __future__ import print_function, division, unicode_literals
 
 import sys
 import copy
-import collections
-import warnings
 import numpy as np
 
+from collections import namedtuple, OrderedDict, Iterable, defaultdict
 from monty.string import list_strings, is_string
-from monty.collections import  AttrDict
-from monty.pprint import pprint_table
+from monty.collections import AttrDict
+from monty.functools import lazy_property
+from monty.bisect import find_le, find_ge 
+from pymatgen.util.plotting_utils import add_fig_kwargs
+from prettytable import PrettyTable
 from six.moves import cStringIO
-from abipy.tools import find_le, find_ge
 from abipy.core.func1d import Function1D
-from abipy.core.kpoints import KpointList
-from abipy.iotools import AbinitNcFile, ETSF_Reader, Has_Structure, Has_ElectronBands
+from abipy.core.kpoints import Kpoint, KpointList
+from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands
+from abipy.iotools import ETSF_Reader
 from abipy.electrons.ebands import ElectronBands
 from abipy.electrons.scissors import Scissors
 
+import logging
+logger = logging.getLogger(__name__)
+
 __all__ = [
     "QPState",
-    "SIGRES_File",
-    "SIGRES_Plotter",
+    "SigresFile",
+    "SigresPlotter",
 ]
 
 
-class QPState(collections.namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sigxme sigcmee0 vUme ze0")):
+class QPState(namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sigxme sigcmee0 vUme ze0")):
     """
     Quasi-particle result for given (spin, kpoint, band).
 
     .. Attributes:
 
-        spin:
-            spin index (C convention, i.e >= 0)
-        kpoint:
-            `Kpoint` object.
-        band:
-            band index. (C convention, i.e >= 0).
-        e0:
-            Initial KS energy.
-        qpe:
-            Quasiparticle energy (complex) computed with the perturbative approach.
-        qpe_diago:
-            Quasiparticle energy (real) computed by diagonalizing the self-energy.
-        vxcme:
-            Matrix element of vxc[n_val] with nval the valence charge density.
-        sigxme:
-            Matrix element of Sigma_x.
-        sigcmee0:
-            Matrix element of Sigma_c(e0) with e0 being the KS energy.
-        vUme:
-            Matrix element of the vU term of the LDA+U Hamiltonian.
-        ze0:
-            Renormalization factor computed at e=e0.
+        spin: spin index (C convention, i.e >= 0)
+        kpoint: :class:`Kpoint` object.
+        band: band index. (C convention, i.e >= 0).
+        e0: Initial KS energy.
+        qpe: Quasiparticle energy (complex) computed with the perturbative approach.
+        qpe_diago: Quasiparticle energy (real) computed by diagonalizing the self-energy.
+        vxcme: Matrix element of vxc[n_val] with nval the valence charge density.
+        sigxme: Matrix element of Sigma_x.
+        sigcmee0: Matrix element of Sigma_c(e0) with e0 being the KS energy.
+        vUme: Matrix element of the vU term of the LDA+U Hamiltonian.
+        ze0: Renormalization factor computed at e=e0.
 
-    .. note:: Energies are in eV.
+    .. note::
+        Energies are in eV.
     """
     @property
     def qpeme0(self):
@@ -77,24 +73,25 @@ class QPState(collections.namedtuple("QPState", "spin kpoint band e0 qpe qpe_dia
             fields.remove(e)
         return tuple(fields)
 
-    def _asdict(self):
-        #od = super(QPState, self)._asdict()
-        od = collections.OrderedDict(zip(self._fields, self))
+    def as_dict(self, **kwargs):
+        """Convert self into a dictionary."""
+        od = OrderedDict(zip(self._fields, self))
         od["qpeme0"] = self.qpeme0
-        #print("od",od)
         return od
 
     def to_strdict(self, fmt=None):
         """Ordered dictionary mapping fields --> strings."""
-        d = self._asdict()
+        d = self.as_dict()
         for k, v in d.items():
-            if np.iscomplexobj(v):
+            if isinstance(v, int):
+                d[k] = "%d" % v
+            elif isinstance(v, Kpoint):
+                d[k] = "%s" % v
+            elif np.iscomplexobj(v):
                 if abs(v.imag) < 1.e-3:
                     d[k] = "%.2f" % v.real
                 else:
                     d[k] = "%.2f%+.2fj" % (v.real, v.imag)
-            elif isinstance(v, int):
-                d[k] = "%d" % v
             else:
                 try:
                     d[k] = "%.2f" % v
@@ -153,7 +150,6 @@ class QPState(collections.namedtuple("QPState", "spin kpoint band e0 qpe qpe_dia
 
 class QPList(list):
     """A list of quasiparticle corrections."""
-
     def __init__(self, *args, **kwargs):
         super(QPList, self).__init__(*args)
         self.is_e0sorted = kwargs.get("is_e0sorted", False)
@@ -164,16 +160,16 @@ class QPList(list):
     def __str__(self):
         """String representation."""
         table = self.to_table()
-
         strio = cStringIO()
-        pprint_table(table, out=strio)
+        print(table, file=strio)
         strio.write("\n")
         strio.seek(0)
+
         return "".join(strio)
 
     def copy(self):
         """Copy of self."""
-        return QPList([qp.copy() for qp in self], is_e0sorted=self.is_e0sorted)
+        return self.__class__([qp.copy() for qp in self], is_e0sorted=self.is_e0sorted)
 
     def sort_by_e0(self):
         """Return a new object with the E0 energies sorted in ascending order."""
@@ -187,53 +183,54 @@ class QPList(list):
         return np.array([qp.e0 for qp in self])
 
     def get_field(self, field):
-        """ndarray containing the values of field."""
+        """`ndarray` containing the values of field."""
         return np.array([getattr(qp, field) for qp in self])
 
+    def get_value(self, skb_tup, field):
+        """Return the value of field for the given spin kp band tuple, None if not found"""
+        for qp in self:
+            if qp.skb == skb_tup:
+                return getattr(qp, field)
+        return None
+
     def get_qpenes(self):
-        """Return an array with the QPState energies."""
+        """Return an array with the :class:`QPState` energies."""
         return self.get_field("qpe")
 
     def get_qpeme0(self):
-        """Return an arrays with the QPState corrections."""
+        """Return an arrays with the :class:`QPState` corrections."""
         return self.get_field("qpeme0")
 
     def to_table(self):
         """Return a table (list of list of strings)."""
         header = QPState.get_fields(exclude=["spin", "kpoint"])
-        table = [header]
+        table = PrettyTable(header)
 
         for qp in self:
             d = qp.to_strdict(fmt=None)
-            table.append([d[k] for k in header])
+            table.add_row([d[k] for k in header])
 
         return table
 
+    @add_fig_kwargs
     def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, **kwargs):
         """
         Args:
-            with_fields:
-                The names of the qp attributes to plot as function of e0.
-                Accepts:
-                    List of strings or string with tokens separated by blanks.
-                    See `QPState` for the list of available fields.
-            args:
-                Positional arguments passed to :mod:`matplotlib`.
+            with_fields: The names of the qp attributes to plot as function of e0.
+                Accepts: List of strings or string with tokens separated by blanks.
+                See :class:`QPState` for the list of available fields.
+            exclude_fields: Simiar to `with_field` but it excludes
 
         ==============  ==============================================================
         kwargs          Meaning
         ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
+        fermi           True to plot the Fermi level.
         ==============  ==============================================================
 
         Returns:
             `matplotlib` figure.
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
+        fermi = kwargs.pop("fermi", None)
 
         if is_string(with_fields):
             if with_fields == "all":
@@ -257,9 +254,6 @@ class QPList(list):
         fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, squeeze=False)
         ax_list = ax_list.ravel()
 
-        if title:
-            fig.suptitle(title)
-
         if self.is_e0sorted:
             qps = self
         else:
@@ -268,58 +262,58 @@ class QPList(list):
         e0mesh = qps.get_e0mesh()
 
         linestyle = kwargs.pop("linestyle", "o")
-        for (field, ax) in zip(fields, ax_list):
+        for field, ax in zip(fields, ax_list):
             ax.grid(True)
             ax.set_xlabel('e0 [eV]')
             ax.set_ylabel(field)
             yy = qps.get_field(field)
-            ax.plot(e0mesh, yy, linestyle, **kwargs)
+            ax.plot(e0mesh, yy.real, linestyle, **kwargs)
+            #ax.plot(e0mesh, e0mesh)
+            if fermi is not None:
+                ax.plot(2*[fermi], [min(yy), max(yy)])
 
         # Get around a bug in matplotlib
         if (num_plots % ncols) != 0:
             ax_list[-1].plot([0,1], [0,1], lw=0)
             ax_list[-1].axis('off')
 
-        if show:
-            plt.show()
-
-        if savefig is not None:
-            fig.savefig(savefig)
-
         return fig
 
-    def build_scissors(self, domains, bounds=None, plot=False, k=3, **kwargs):
+    def build_scissors(self, domains, bounds=None, k=3, **kwargs):
         """
         Construct a scissors operator by interpolating the QPState corrections 
         as function of the initial energies E0.
 
         Args:
-            domains:
-                list in the form [ [start1, stop1], [start2, stop2]
-                Domains should not overlap, cover e0mesh, and given in increasing order.
-                Holes are permitted but the interpolation will raise an exception if the
-                point is not in domains.
-            bounds:
-                Specify how to handle out-of-boundary conditions, i.e. how to treat
-                energies that do not fall inside one of the domains (not used at present)
-            plot:
-                If true, use `matplolib` to compare input data  and fit.
+            domains: list in the form [ [start1, stop1], [start2, stop2]
+                     Domains should not overlap, cover e0mesh, and given in increasing order.
+                     Holes are permitted but the interpolation will raise an exception if the point is not in domains.
+            bounds: Specify how to handle out-of-boundary conditions, i.e. how to treat
+                    energies that do not fall inside one of the domains (not used at present)
+
+        ==============  ==============================================================
+        kwargs          Meaning
+        ==============  ==============================================================
+        plot             If true, use `matplolib` to compare input data  and fit.
+        ==============  ==============================================================
 
         Return:
-            instance of `Scissors`operator
+            instance of :class:`Scissors`operator
 
-        Example:
+        Usage example:
+
+        .. code-block:: python
 
             # Build the scissors operator.
             scissors = qplist_spin[0].build_scissors(domains)
 
             # Compute list of interpolated QP energies.
             qp_enes = [scissors.apply(e0) for e0 in ks_energies]
-
         """
         # Sort QP corrections according to the initial KS energy.
         qps = self.sort_by_e0()
         e0mesh, qpcorrs = qps.get_e0mesh(), qps.get_qpeme0()
+
 
         # Check domains.
         domains = np.atleast_2d(domains)
@@ -337,32 +331,38 @@ class QPList(list):
 
             if idx == dsize-1 and dflat[idx] < dflat[idx-1]:
                 raise ValueError("domain boundaries should be given in increasing order.")
-
         # Create the sub_domains and the spline functions in each subdomain.
         func_list = []
+        residues = []
+
         for dom in domains[:]:
             low, high = dom[0], dom[1]
             start, stop = find_ge(e0mesh, low), find_le(e0mesh, high)
 
             dom_e0 = e0mesh[start:stop+1]
-            dom_corr = qpcorrs[start:stop+1]
+            dom_corr = qpcorrs[start:stop+1].real
 
             # todo check if the number of non degenerate data points > k
-
             from scipy.interpolate import UnivariateSpline
             f = UnivariateSpline(dom_e0, dom_corr, w=None, bbox=[None, None], k=k, s=None)
             func_list.append(f)
+            residues.append(f.get_residual())
 
         # Build the scissors operator.
-        sciss = Scissors(func_list, domains, bounds)
+        sciss = Scissors(func_list, domains, residues, bounds)
 
         # Compare fit with input data.
-        if plot:
+        if kwargs.pop("plot", False):
+            title = kwargs.pop("title", None)
             import matplotlib.pyplot as plt
-            plt.plot(e0mesh, qpcorrs, label="input data")
+            plt.plot(e0mesh, qpcorrs, 'o', label="input data")
+            if title: plt.suptitle(title)
+            for dom in domains[:]:
+                plt.plot(2*[dom[0]], [min(qpcorrs), max(qpcorrs)])
+                plt.plot(2*[dom[1]], [min(qpcorrs), max(qpcorrs)])
             intp_qpc = [sciss.apply(e0) for e0 in e0mesh]
             plt.plot(e0mesh, intp_qpc, label="scissor")
-            plt.legend()
+            plt.legend(bbox_to_anchor=(0.9, 0.2))
             plt.show()
 
         # Return the object.
@@ -370,7 +370,7 @@ class QPList(list):
 
     def merge(self, other, copy=False):
         """
-        Merge self with other. Return new QPList
+        Merge self with other. Return new :class:`QPList` object
 
         Raise:
             ValueError if merge cannot be done.
@@ -385,7 +385,7 @@ class QPList(list):
         else:
             qps = self + other
 
-        return QPList(qps)
+        return self.__class__(qps)
 
 
 class Sigmaw(object):
@@ -429,43 +429,27 @@ class Sigmaw(object):
 
         return lines
 
+    @add_fig_kwargs
     def plot(self, what="sa", **kwargs):
         """
         Plot the self-energy and the spectral function
 
         Args:
-            what:
-                String specifying what to plot:
-                    s for the self-energy
-                    a for spectral function
-                Characters can be concatenated.
-            args:
-                Positional arguments passed to :mod:`matplotlib`.
-
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
-        ==============  ==============================================================
+            what: String specifying what to plot:
+                    - s for the self-energy
+                    - a for spectral function
+                  Characters can be concatenated.
 
         Returns:
             `matplotlib` figure.
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
-
         import matplotlib.pyplot as plt
 
         nrows = len(what)
         fig, ax_list = plt.subplots(nrows=nrows, ncols=1, sharex=True, squeeze=False)
         ax_list = ax_list.ravel()
 
-        if title is None:
-            title = 'spin %s, k-point %s, band %s' % (self.spin, self.kpoint, self.band)
-
+        title = 'spin %s, k-point %s, band %s' % (self.spin, self.kpoint, self.band)
         fig.suptitle(title)
 
         for i, w in enumerate(what):
@@ -480,26 +464,19 @@ class Sigmaw(object):
 
             self.plot_ax(ax, w=w, **kwargs)
 
-        if show:
-            plt.show()
-
-        if savefig is not None:
-            fig.savefig(savefig)
-
         return fig
 
 
-def to_range(obj):
+def torange(obj):
     """
-    Convert obj into a range. Accepts integer, slice object 
-    or any object with an __iter__ method.
+    Convert obj into a range. Accepts integer, slice object  or any object with an __iter__ method.
     Note that an integer is converted into range(int, int+1)
 
-    >>> list(to_range(1))
+    >>> torange(1)
     [1]
-    >>> list(to_range(slice(0,4,2)))
+    >>> torange(slice(0,4,2))
     [0, 2]
-    >>> list(to_range([1,4,2]))
+    >>> list(torange([1,4,2]))
     [1, 4, 2]
     """
     if isinstance(obj, int):
@@ -517,10 +494,10 @@ def to_range(obj):
             raise TypeError("Don't know how to convert %s into a range object" % str(obj))
 
 
-class SIGRES_Plotter(collections.Iterable):
+class SigresPlotter(Iterable):
     """
-    This object receives a list of `SIGRES_File` objects and provides
-    methods to inspect/analyze the GW results (useful for convergence studies)
+    This object receives a list of :class:`SigresFile` objects and provides methods
+    to inspect/analyze the GW results (useful for convergence studies)
 
     .. Attributes:
         
@@ -534,13 +511,13 @@ class SIGRES_Plotter(collections.Iterable):
                                                                   
     .. code-block:: python
         
-        plotter = SIGRES_Plotter()
+        plotter = SigresPlotter()
         plotter.add_file("foo_SIGRES.nc", label="foo bands")
         plotter.add_file("bar_SIGRES.nc", label="bar bands")
         plotter.plot_qpgaps()
     """
     def __init__(self):
-        self._sigres_files = collections.OrderedDict()
+        self._sigres_files = OrderedDict()
         self._labels = []
 
     def __len__(self):
@@ -550,7 +527,24 @@ class SIGRES_Plotter(collections.Iterable):
         return iter(self._sigres_files.values())
 
     def __str__(self):
-        return "\n".join(str(sigres) for sigres in self)
+        s = ""
+        for sigres in self:
+            s += str(sigres) + "\n"
+        return s
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Activated at the end of the with statement. It automatically closes the file."""
+        self.close()
+
+    def close(self):
+        for sigres in self:
+            try:
+                sigres.close()
+            except:
+                pass
 
     def add_files(self, filepaths, labels=None):
         """Add a list of filenames to the plotter"""
@@ -608,7 +602,7 @@ class SIGRES_Plotter(collections.Iterable):
 
     def _get_param_list(self):
         """Return a dictionary with the values of the parameters extracted from the SIGRES files."""
-        param_list = collections.defaultdict(list)
+        param_list = defaultdict(list)
                                                                
         for sigres in self:
             for pname in sigres.params.keys():
@@ -627,7 +621,7 @@ class SIGRES_Plotter(collections.Iterable):
     def prepare_plot(self):
         """
         This method must be called before plotting data.
-        It tries to figure the name of parameter we are converging
+        It tries to figure the name of paramenter we are converging 
         by looking at the set of parameters used to compute the different SIGRES files.
         """
         param_list = self._get_param_list()
@@ -639,8 +633,8 @@ class SIGRES_Plotter(collections.Iterable):
                     param_name = key
                 else:
                     problem = True
-                    warnings.warn("Cannot perform automatic detection of convergence parameter.\n" + 
-                                  "Found multiple parameters with different values. Will use filepaths as plot labels.")
+                    logger.warning("Cannot perform automatic detection of convergence parameter.\n" + 
+                                   "Found multiple parameters with different values. Will use filepaths as plot labels.")
 
         self.set_param_name(param_name if not problem else None)
 
@@ -654,9 +648,9 @@ class SIGRES_Plotter(collections.Iterable):
             items = sorted([iv for iv in enumerate(xvalues)], key=lambda item: item[1])
             indices = [item[0] for item in items]
                                                                                              
-            files = self._sigres_files.values()
+            files = list(self._sigres_files.values())
                                                                                              
-            newd = collections.OrderedDict()
+            newd = OrderedDict()
             for i in indices:
                 sigres = files[i]
                 newd[sigres.filepath] = sigres
@@ -687,8 +681,7 @@ class SIGRES_Plotter(collections.Iterable):
         ax.legend(loc="best")
 
         title = kwargs.pop("title", None)
-        if title is not None:
-            ax.set_title(title)
+        if title is not None: ax.set_title(title)
                                                                                  
         # Set ticks and labels. 
         if self.param_name is None:
@@ -724,6 +717,7 @@ class SIGRES_Plotter(collections.Iterable):
         
         return np.array(qpenes)
 
+    @add_fig_kwargs
     def plot_qpgaps(self, spin=None, kpoint=None, hspan=0.01, **kwargs):
         """
         Plot the QP gaps as function of the convergence parameter.
@@ -737,12 +731,8 @@ class SIGRES_Plotter(collections.Iterable):
         Returns:
             `matplotlib` figure
         """
-        spin_range = range(self.nsppol) if spin is None else to_range(spin)
-        kpoints_for_plot = self.computed_gwkpoints #if kpoint is None else KpointList.as_kpoints(kpoint)
-
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
+        spin_range = range(self.nsppol) if spin is None else torange(spin)
+        kpoints_for_plot = self.computed_gwkpoints  #if kpoint is None else KpointList.as_kpoints(kpoint)
 
         self.prepare_plot()
 
@@ -762,18 +752,9 @@ class SIGRES_Plotter(collections.Iterable):
                     ax.axhspan(last-hspan, last+hspan, facecolor='0.5', alpha=0.5)
 
         self.decorate_ax(ax)
-
-        if title is not None:
-            fig.suptitle(title)
-                                 
-        if show:
-            plt.show()
-                                 
-        if savefig is not None:
-            fig.savefig(savefig)
-                                 
         return fig
 
+    @add_fig_kwargs
     def plot_qpenes(self, spin=None, kpoint=None, band=None, hspan=0.01, **kwargs):
         """
         Plot the QP energies as function of the convergence parameter.
@@ -788,16 +769,12 @@ class SIGRES_Plotter(collections.Iterable):
         Returns:
             `matplotlib` figure
         """
-        spin_range = range(self.nsppol) if spin is None else to_range(spin)
-        band_range = range(self.max_gwbstart, self.min_gwbstop) if band is None else to_range(band)
-        kpoints_for_plot = self.computed_gwkpoints #if kpoint is None else KpointList.as_kpoints(kpoint)
+        spin_range = range(self.nsppol) if spin is None else torange(spin)
+        band_range = range(self.max_gwbstart, self.min_gwbstop) if band is None else torange(band)
+        kpoints_for_plot = self.computed_gwkpoints #if kpoint is None else KpointList.askpoints(kpoint)
 
         self.prepare_plot()
 
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
-                                              
         import matplotlib.pyplot as plt
 
         # Build grid of plots.
@@ -814,6 +791,7 @@ class SIGRES_Plotter(collections.Iterable):
 
         xx = self.xvalues
         for kpoint, ax in zip(kpoints_for_plot, ax_list):
+            
             for spin in spin_range:
                 for band in band_range:
                     label = "spin %d, band %d" % (spin, band)
@@ -826,19 +804,10 @@ class SIGRES_Plotter(collections.Iterable):
 
             self.decorate_ax(ax, title="kpoint %s" % repr(kpoint))
 
-        if title is not None:
-            fig.suptitle(title)
-                                 
-        if show:
-            plt.show()
-                                 
-        if savefig is not None:
-            fig.savefig(savefig)
-                                 
         return fig
 
 
-class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
+class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
     """
     Container storing the GW results reported in the SIGRES.nc file.
 
@@ -846,16 +815,21 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
                                                                   
     .. code-block:: python
         
-        sigres = SIGRES_File("foo_SIGRES.nc")
+        sigres = SigresFile("foo_SIGRES.nc")
         sigres.plot_qps_vs_e0()
         sigres.plot_ksbands_with_qpmarkers()
     """
+    @classmethod
+    def from_file(cls, filepath):
+        """Initialize an instance from file."""
+        return cls(filepath)
+
     def __init__(self, filepath):
         """Read data from the netcdf file path."""
-        super(SIGRES_File, self).__init__(filepath)
+        super(SigresFile, self).__init__(filepath)
 
-        # Keep a reference to the SIGRES_Reader.
-        self.reader = reader = SIGRES_Reader(self.filepath)
+        # Keep a reference to the SigresReader.
+        self.reader = reader = SigresReader(self.filepath)
 
         self._structure = reader.read_structure()
         self.gwcalctyp = reader.gwcalctyp
@@ -896,22 +870,10 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         self.qpgaps = reader.read_qpgaps()
         self.qpenes = reader.read_qpenes()
 
-        self.params = reader.read_params()
-
-    #def __del__(self):
-    #    print("in %s __del__" % self.__class__.__name__)
-    #    self.reader.close()
-    #    super(SIGRES_File, self).__del__()
-
-    @classmethod
-    def from_file(cls, filepath):
-        """Initialize an instance from file."""
-        return cls(filepath)
-
-    @property
-    def nsppol(self):
-        """Number of spins"""
-        return self.ebands.nsppol
+    @lazy_property
+    def params(self):
+        """AttrDict dictionary with the GW convergence parameters, e.g. ecuteps"""
+        return self.reader.read_params()
 
     def close(self):
         """Close the netcdf file."""
@@ -927,25 +889,27 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         """`ElectronBands` with the KS energies."""
         return self._ebands
 
-    @property
+    @lazy_property
     def qplist_spin(self):
-        """Tuple of QPList objects indexed by spin."""
-        try:
-            return self._qplist_spin
-        except AttributeError:
-            self._qplist_spin = self.reader.read_allqps()
-            return self._qplist_spin
+        """Tuple of :class:`QPList` objects indexed by spin."""
+        return self.reader.read_allqps()
 
     def get_qplist(self, spin, kpoint):
-        return self.reader.read_qplist_sk(spin, kpoint)
+        qplist = self.reader.read_qplist_sk(spin, kpoint)
+        return qplist
 
     def get_qpcorr(self, spin, kpoint, band):
-        """Returns the `QPState` object for the given (s, k, b)"""
+        """Returns the :class:`QPState` object for the given (s, k, b)"""
         return self.reader.read_qp(spin, kpoint, band)
+
+    @lazy_property
+    def qpgaps(self):
+        """ndarray with shape [nsppol, nkibz] in eV"""
+        return self.reader.read_qpgaps()
 
     def get_qpgap(self, spin, kpoint):
         k = self.reader.kpt2fileindex(kpoint)
-        return self.gwgaps[spin, k]
+        return self.qpgaps[spin, k]
 
     def get_sigmaw(self, spin, kpoint, band):
         wmesh, sigxc_values = self.reader.read_sigmaw(spin, kpoint, band)
@@ -958,38 +922,23 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         return Function1D(wmesh, spf_values)
 
     def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, **kwargs):
-        """Plot QPState data as functio of the KS energy."""
+        """Plot :class:`QPState` data as function of the KS energy."""
         for spin in range(self.nsppol):
             qps = self.qplist_spin[spin].sort_by_e0()
             qps.plot_qps_vs_e0(with_fields=with_fields, exclude_fields=exclude_fields, **kwargs)
 
+    @add_fig_kwargs
     def plot_spectral_functions(self, spin, kpoint, bands, **kwargs):
         """
         Args:
-            spin:
-                Spin index.
-            kpoint:
-                Required kpoint.
-            bands:
-                List of bands
-
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
-        ==============  ==============================================================
+            spin: Spin index.
+            kpoint: Required kpoint.
+            bands: List of bands
 
         Returns:
             `matplotlib` figure
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
-
-        if not isinstance(bands, collections.Iterable):
-            bands = [bands]
+        if not isinstance(bands, Iterable): bands = [bands]
 
         import matplotlib.pyplot as plt
         fig = plt.figure()
@@ -1000,21 +949,9 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
             label = "skb = %s, %s, %s" % (spin, kpoint, band)
             sigw.plot_ax(ax, label="$A(\omega)$:" + label, **kwargs)
 
-        if title is not None:
-            fig.suptitle(title)
-
-        if show:
-            plt.show()
-
-        if savefig is not None:
-            fig.savefig(savefig)
-
         return fig
 
     def plot_eigvec_qp(self, spin, kpoint, band=None, **kwargs):
-
-        title = kwargs.pop("title", None)
-
         if kpoint is None:
             from abipy.tools.plotting_utils import ArrayPlotter
             plotter = ArrayPlotter()
@@ -1022,19 +959,19 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
                 ksqp_arr = self.reader.read_eigvec_qp(spin, kpoint, band=band)
                 plotter.add_array(str(kpoint), ksqp_arr)
 
-            fig = plotter.plot(title=title)
+            fig = plotter.plot(**kwargs)
 
         else:
             from abipy.tools.plotting_utils import plot_array
             ksqp_arr = self.reader.read_eigvec_qp(spin, kpoint, band=band)
 
-            fig = plot_array(ksqp_arr)
+            fig = plot_array(ksqp_arr, **kwargs)
 
         return fig
 
-    def print_qps(self, spin=None, kpoint=None, bands=None, fmt=None, stream=sys.stdout):
+    def print_qps(self, spin=None, kpoints=None, bands=None, fmt=None, stream=sys.stdout):
         # TODO Is it still used?
-        self.reader.print_qps(spin=spin, kpoint=kpoint, bands=bands, fmt=None, stream=stream)
+        self.reader.print_qps(spin=spin, kpoints=kpoints, bands=bands, fmt=None, stream=stream)
 
     def plot_ksbands_with_qpmarkers(self, qpattr="qpeme0", fact=1, **kwargs):
         """
@@ -1043,10 +980,25 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
         """
         with_marker = qpattr + ":" + str(fact)
         gwband_range = (self.min_gwbstart, self.max_gwbstop)
-
         fig = self.ebands.plot(marker=with_marker, band_range=gwband_range, **kwargs)
-
         return fig
+
+    def get_dataframe_sk(self, spin, kpoint, index=None):
+        """Returns pandas DataFrame"""
+        rows, bands = [], []
+        # FIXME start and stop should depend on k
+        for band in range(self.min_gwbstart, self.max_gwbstop):
+            bands.append(band)
+            # Build dictionary with the QP results.
+            qpstate = self.reader.read_qp(spin, kpoint, band)
+            d = qpstate.as_dict()
+            # Add other entries that may be useful when comparing different calculations.
+            d.update(self.params)
+            rows.append(d)
+
+        import pandas as pd
+        index = len(bands) * [index] if index is not None else bands
+        return pd.DataFrame(rows, index=index, columns=rows[0].keys())
 
     #def plot_matrix_elements(self, mel_name, spin, kpoint, *args, **kwargs):
     #   matrix = self.reader.read_mel(mel_name, spin, kpoint):
@@ -1057,14 +1009,10 @@ class SIGRES_File(AbinitNcFile, Has_Structure, Has_ElectronBands):
     #    return plot_matrix(matrix, *args, **kwargs)
 
 
-#class SIGRES_Merger(object):
-#    """This object merges multiple SIGRES files."""
-
-
-class SIGRES_Reader(ETSF_Reader):
-    """
-    This object provides method to read data from the SIGRES file produced ABINIT.
+class SigresReader(ETSF_Reader):
+    """This object provides method to read data from the SIGRES file produced ABINIT.
     # See 70gw/m_sigma_results.F90
+
     # Name of the diagonal matrix elements stored in the file.
     # b1gw:b2gw,nkibz,nsppol*nsig_ab))
     #_DIAGO_MELS = [
@@ -1077,143 +1025,143 @@ class SIGRES_Reader(ETSF_Reader):
     #    "ze0",
     #]
 
-      integer :: b1gw,b2gw      ! min and Max gw band indeces over spin and k-points (used to dimension)
-      integer :: gwcalctyp      ! Flag defining the calculation type.
-      integer :: nkptgw         ! No. of points calculated
-      integer :: nkibz          ! No. of irreducible k-points.
-      integer :: nbnds          ! Total number of bands
-      integer :: nomega_r       ! No. of real frequencies for the spectral function.
-      integer :: nomega_i       ! No. of frequencies along the imaginary axis.
-      integer :: nomega4sd      ! No. of real frequencies to evaluate the derivative of $\Sigma(E)$.
-      integer :: nsig_ab        ! 1 if nspinor=1,4 for noncollinear case.
-      integer :: nsppol         ! No. of spin polarizations.
-      integer :: usepawu        ! 1 if we are using LDA+U as starting point (only for PAW)
+    integer :: b1gw,b2gw      ! min and Max gw band indeces over spin and k-points (used to dimension)
+    integer :: gwcalctyp      ! Flag defining the calculation type.
+    integer :: nkptgw         ! No. of points calculated
+    integer :: nkibz          ! No. of irreducible k-points.
+    integer :: nbnds          ! Total number of bands
+    integer :: nomega_r       ! No. of real frequencies for the spectral function.
+    integer :: nomega_i       ! No. of frequencies along the imaginary axis.
+    integer :: nomega4sd      ! No. of real frequencies to evaluate the derivative of $\Sigma(E)$.
+    integer :: nsig_ab        ! 1 if nspinor=1,4 for noncollinear case.
+    integer :: nsppol         ! No. of spin polarizations.
+    integer :: usepawu        ! 1 if we are using LDA+U as starting point (only for PAW)
 
-      real(dp) :: deltae       ! Frequency step for the calculation of d\Sigma/dE
-      real(dp) :: maxomega4sd  ! Max frequency around E_ks for d\Sigma/dE.
-      real(dp) :: maxomega_r   ! Max frequency for spectral function.
-      real(dp) :: scissor_ene  ! Scissor energy value. zero for None.
+    real(dp) :: deltae       ! Frequency step for the calculation of d\Sigma/dE
+    real(dp) :: maxomega4sd  ! Max frequency around E_ks for d\Sigma/dE.
+    real(dp) :: maxomega_r   ! Max frequency for spectral function.
+    real(dp) :: scissor_ene  ! Scissor energy value. zero for None.
 
-      integer,pointer :: maxbnd(:,:)   SET2NULL
-      ! maxbnd(nkptgw,nsppol)
-      ! Max band index considered in GW for this k-point.
+    integer,pointer :: maxbnd(:,:)
+    ! maxbnd(nkptgw,nsppol)
+    ! Max band index considered in GW for this k-point.
 
-      integer,pointer :: minbnd(:,:)   SET2NULL
-      ! minbnd(nkptgw,nsppol)
-      ! Min band index considered in GW for this k-point.
+    integer,pointer :: minbnd(:,:)
+    ! minbnd(nkptgw,nsppol)
+    ! Min band index considered in GW for this k-point.
 
-      real(dp),pointer :: degwgap(:,:)   SET2NULL
-      ! degwgap(nkibz,nsppol)
-      ! Difference btw the QPState and the KS optical gap.
+    real(dp),pointer :: degwgap(:,:)
+    ! degwgap(nkibz,nsppol)
+    ! Difference btw the QPState and the KS optical gap.
 
-      real(dp),pointer :: egwgap(:,:)   SET2NULL
-      ! egwgap(nkibz,nsppol))
-      ! QPState optical gap at each k-point and spin.
+    real(dp),pointer :: egwgap(:,:)
+    ! egwgap(nkibz,nsppol))
+    ! QPState optical gap at each k-point and spin.
 
-      real(dp),pointer :: en_qp_diago(:,:,:)   SET2NULL
-      ! en_qp_diago(nbnds,nkibz,nsppol))
-      ! QPState energies obtained from the diagonalization of the Hermitian approximation to Sigma (QPSCGW)
+    real(dp),pointer :: en_qp_diago(:,:,:)
+    ! en_qp_diago(nbnds,nkibz,nsppol))
+    ! QPState energies obtained from the diagonalization of the Hermitian approximation to Sigma (QPSCGW)
 
-      real(dp),pointer :: e0(:,:,:)    SET2NULL
-      ! e0(nbnds,nkibz,nsppol)
-      ! KS eigenvalues for each band, k-point and spin. In case of self-consistent?
+    real(dp),pointer :: e0(:,:,:)
+    ! e0(nbnds,nkibz,nsppol)
+    ! KS eigenvalues for each band, k-point and spin. In case of self-consistent?
 
-      real(dp),pointer :: e0gap(:,:)   SET2NULL
-      ! e0gap(nkibz,nsppol),
-      ! KS gap at each k-point, for each spin.
+    real(dp),pointer :: e0gap(:,:)
+    ! e0gap(nkibz,nsppol),
+    ! KS gap at each k-point, for each spin.
 
-      real(dp),pointer :: omega_r(:)   SET2NULL
-      ! omega_r(nomega_r)
-      ! real frequencies used for the self energy.
+    real(dp),pointer :: omega_r(:)
+    ! omega_r(nomega_r)
+    ! real frequencies used for the self energy.
 
-      real(dp),pointer :: kptgw(:,:)  SET2NULL
-      ! kptgw(3,nkptgw)
-      ! ! TODO there is a similar array in sigma_parameters
-      ! List of calculated k-points.
+    real(dp),pointer :: kptgw(:,:)
+    ! kptgw(3,nkptgw)
+    ! ! TODO there is a similar array in sigma_parameters
+    ! List of calculated k-points.
 
-      real(dp),pointer :: sigxme(:,:,:)  SET2NULL
-      ! sigxme(b1gw:b2gw,nkibz,nsppol*nsig_ab))
-      ! Diagonal matrix elements of $\Sigma_x$ i.e $\<nks|\Sigma_x|nks\>$
+    real(dp),pointer :: sigxme(:,:,:)
+    ! sigxme(b1gw:b2gw,nkibz,nsppol*nsig_ab))
+    ! Diagonal matrix elements of $\Sigma_x$ i.e $\<nks|\Sigma_x|nks\>$
 
-      real(dp),pointer :: vxcme(:,:,:)  SET2NULL
-      ! vxcme(b1gw:b2gw,nkibz,nsppol*nsig_ab))
-      ! $\<nks|v_{xc}[n_val]|nks\>$ matrix elements of vxc (valence-only contribution).
+    real(dp),pointer :: vxcme(:,:,:)
+    ! vxcme(b1gw:b2gw,nkibz,nsppol*nsig_ab))
+    ! $\<nks|v_{xc}[n_val]|nks\>$ matrix elements of vxc (valence-only contribution).
 
-      real(dp),pointer :: vUme(:,:,:)   SET2NULL
-      ! vUme(b1gw:b2gw,nkibz,nsppol*nsig_ab))
-      ! $\<nks|v_{U}|nks\>$ for LDA+U.
+    real(dp),pointer :: vUme(:,:,:)
+    ! vUme(b1gw:b2gw,nkibz,nsppol*nsig_ab))
+    ! $\<nks|v_{U}|nks\>$ for LDA+U.
 
-      complex(dpc),pointer :: degw(:,:,:)   SET2NULL
-      ! degw(b1gw:b2gw,nkibz,nsppol))
-      ! Difference between the QPState and the KS energies.
+    complex(dpc),pointer :: degw(:,:,:)
+    ! degw(b1gw:b2gw,nkibz,nsppol))
+    ! Difference between the QPState and the KS energies.
 
-      complex(dpc),pointer :: dsigmee0(:,:,:)  SET2NULL
-      ! dsigmee0(b1gw:b2gw,nkibz,nsppol*nsig_ab))
-      ! Derivative of $\Sigma_c(E)$ calculated at the KS eigenvalue.
+    complex(dpc),pointer :: dsigmee0(:,:,:)
+    ! dsigmee0(b1gw:b2gw,nkibz,nsppol*nsig_ab))
+    ! Derivative of $\Sigma_c(E)$ calculated at the KS eigenvalue.
 
-      complex(dpc),pointer :: egw(:,:,:)  SET2NULL
-      ! egw(nbnds,nkibz,nsppol))
-      ! QPState energies, $\epsilon_{nks}^{QPState}$.
+    complex(dpc),pointer :: egw(:,:,:)
+    ! egw(nbnds,nkibz,nsppol))
+    ! QPState energies, $\epsilon_{nks}^{QPState}$.
 
-      complex(dpc),pointer :: eigvec_qp(:,:,:,:)   SET2NULL
-      ! eigvec_qp(nbnds,nbnds,nkibz,nsppol))
-      ! Expansion of the QPState amplitude in the KS basis set.
+    complex(dpc),pointer :: eigvec_qp(:,:,:,:)
+    ! eigvec_qp(nbnds,nbnds,nkibz,nsppol))
+    ! Expansion of the QPState amplitude in the KS basis set.
 
-      complex(dpc),pointer :: hhartree(:,:,:,:)   SET2NULL
-      ! hhartree(b1gw:b2gw,b1gw:b2gw,nkibz,nsppol*nsig_ab)
-      ! $\<nks|T+v_H+v_{loc}+v_{nl}|mks\>$
+    complex(dpc),pointer :: hhartree(:,:,:,:)
+    ! hhartree(b1gw:b2gw,b1gw:b2gw,nkibz,nsppol*nsig_ab)
+    ! $\<nks|T+v_H+v_{loc}+v_{nl}|mks\>$
 
-      complex(dpc),pointer :: sigcme(:,:,:,:)   SET2NULL
-      ! sigcme(b1gw:b2gw,nkibz,nomega_r,nsppol*nsig_ab))
-      ! $\<nks|\Sigma_{c}(E)|nks\>$ at each nomega_r frequency
+    complex(dpc),pointer :: sigcme(:,:,:,:)
+    ! sigcme(b1gw:b2gw,nkibz,nomega_r,nsppol*nsig_ab))
+    ! $\<nks|\Sigma_{c}(E)|nks\>$ at each nomega_r frequency
 
-      complex(dpc),pointer :: sigmee(:,:,:)  SET2NULL
-      ! sigmee(b1gw:b2gw,nkibz,nsppol*nsig_ab))
-      ! $\Sigma_{xc}E_{KS} + (E_{QPState}- E_{KS})*dSigma/dE_KS
+    complex(dpc),pointer :: sigmee(:,:,:)
+    ! sigmee(b1gw:b2gw,nkibz,nsppol*nsig_ab))
+    ! $\Sigma_{xc}E_{KS} + (E_{QPState}- E_{KS})*dSigma/dE_KS
 
-      complex(dpc),pointer :: sigcmee0(:,:,:)   SET2NULL
-      ! sigcmee0(b1gw:b2gw,nkibz,nsppol*nsig_ab))
-      ! Diagonal mat. elements of $\Sigma_c(E)$ calculated at the KS energy $E_{KS}$
+    complex(dpc),pointer :: sigcmee0(:,:,:)
+    ! sigcmee0(b1gw:b2gw,nkibz,nsppol*nsig_ab))
+    ! Diagonal mat. elements of $\Sigma_c(E)$ calculated at the KS energy $E_{KS}$
 
-      complex(dpc),pointer :: sigcmesi(:,:,:,:)   SET2NULL
-      ! sigcmesi(b1gw:b2gw,nkibz,nomega_i,nsppol*nsig_ab))
-      ! Matrix elements of $\Sigma_c$ along the imaginary axis.
-      ! Only used in case of analytical continuation.
+    complex(dpc),pointer :: sigcmesi(:,:,:,:)
+    ! sigcmesi(b1gw:b2gw,nkibz,nomega_i,nsppol*nsig_ab))
+    ! Matrix elements of $\Sigma_c$ along the imaginary axis.
+    ! Only used in case of analytical continuation.
 
-      complex(dpc),pointer :: sigcme4sd(:,:,:,:)   SET2NULL
-      ! sigcme4sd(b1gw:b2gw,nkibz,nomega4sd,nsppol*nsig_ab))
-      ! Diagonal matrix elements of \Sigma_c around the zeroth order eigenvalue (usually KS).
+    complex(dpc),pointer :: sigcme4sd(:,:,:,:)
+    ! sigcme4sd(b1gw:b2gw,nkibz,nomega4sd,nsppol*nsig_ab))
+    ! Diagonal matrix elements of \Sigma_c around the zeroth order eigenvalue (usually KS).
 
-      complex(dpc),pointer :: sigxcme(:,:,:,:)   SET2NULL
-      ! sigxme(b1gw:b2gw,nkibz,nomega_r,nsppol*nsig_ab))
-      ! $\<nks|\Sigma_{xc}(E)|nks\>$ at each real frequency frequency.
+    complex(dpc),pointer :: sigxcme(:,:,:,:)
+    ! sigxme(b1gw:b2gw,nkibz,nomega_r,nsppol*nsig_ab))
+    ! $\<nks|\Sigma_{xc}(E)|nks\>$ at each real frequency frequency.
 
-      complex(dpc),pointer :: sigxcmesi(:,:,:,:)   SET2NULL
-      ! sigxcmesi(b1gw:b2gw,nkibz,nomega_i,nsppol*nsig_ab))
-      ! Matrix elements of $\Sigma_{xc}$ along the imaginary axis.
-      ! Only used in case of analytical continuation.
+    complex(dpc),pointer :: sigxcmesi(:,:,:,:)
+    ! sigxcmesi(b1gw:b2gw,nkibz,nomega_i,nsppol*nsig_ab))
+    ! Matrix elements of $\Sigma_{xc}$ along the imaginary axis.
+    ! Only used in case of analytical continuation.
 
-      complex(dpc),pointer :: sigxcme4sd(:,:,:,:)   SET2NULL
-      ! sigxcme4sd(b1gw:b2gw,nkibz,nomega4sd,nsppol*nsig_ab))
-      ! Diagonal matrix elements of \Sigma_xc for frequencies around the zeroth order eigenvalues.
+    complex(dpc),pointer :: sigxcme4sd(:,:,:,:)
+    ! sigxcme4sd(b1gw:b2gw,nkibz,nomega4sd,nsppol*nsig_ab))
+    ! Diagonal matrix elements of \Sigma_xc for frequencies around the zeroth order eigenvalues.
 
-      complex(dpc),pointer :: ze0(:,:,:)   SET2NULL
-      ! ze0(b1gw:b2gw,nkibz,nsppol))
-      ! renormalization factor. $(1-\dfrac{\partial\Sigma_c} {\partial E_{KS}})^{-1}$
+    complex(dpc),pointer :: ze0(:,:,:)
+    ! ze0(b1gw:b2gw,nkibz,nsppol))
+    ! renormalization factor. $(1-\dfrac{\partial\Sigma_c} {\partial E_{KS}})^{-1}$
 
-      complex(dpc),pointer :: omega_i(:)  SET2NULL
-      ! omegasi(nomega_i)
-      ! Frequencies along the imaginary axis used for the analytical continuation.
+    complex(dpc),pointer :: omega_i(:)
+    ! omegasi(nomega_i)
+    ! Frequencies along the imaginary axis used for the analytical continuation.
 
-      complex(dpc),pointer :: omega4sd(:,:,:,:)  SET2NULL
-      ! omega4sd(b1gw:b2gw,nkibz,nomega4sd,nsppol).
-      ! Frequencies used to evaluate the Derivative of Sigma.
+    complex(dpc),pointer :: omega4sd(:,:,:,:)
+    ! omega4sd(b1gw:b2gw,nkibz,nomega4sd,nsppol).
+    ! Frequencies used to evaluate the Derivative of Sigma.
     """
     def __init__(self, path):
         self.ks_bands = ElectronBands.from_file(path)
         self.nsppol = self.ks_bands.nsppol
 
-        super(SIGRES_Reader, self).__init__(path)
+        super(SigresReader, self).__init__(path)
 
         try:
             self.nomega_r = self.read_dimvalue("nomega_r")
@@ -1295,9 +1243,9 @@ class SIGRES_Reader(ETSF_Reader):
         Raise:
             `KpointsError` if kpoint cannot be found.
 
-        .. note:
+        .. note::
 
-            This tool is needed since arrays in the netcdf file are dimensioned
+            This function is needed since arrays in the netcdf file are dimensioned
             with the total number of k-points in the IBZ.
         """
         if isinstance(kpoint, int):
@@ -1338,12 +1286,9 @@ class SIGRES_Reader(ETSF_Reader):
 
     def read_qplist_sk(self, spin, kpoint):
         ik = self.gwkpt2seqindex(kpoint)
-        bstart = self.gwbstart_sk[spin, ik]
-        bstop = self.gwbstop_sk[spin, ik]
+        bstart, bstop = self.gwbstart_sk[spin, ik], self.gwbstop_sk[spin, ik]
 
-        qps = [self.read_qp(spin, kpoint, band) for band in range(bstart, bstop)]
-
-        return QPList(qps)
+        return QPList([self.read_qp(spin, kpoint, band) for band in range(bstart, bstop)])
 
     #def read_qpene(self, spin, kpoint, band)
 
@@ -1402,16 +1347,14 @@ class SIGRES_Reader(ETSF_Reader):
 
         den = np.zeros(self.nomega_r)
         for (io, omega) in enumerate(self._omega_r):
-            den[io] = (omega - self._hhartree[spin,ik,ib,ib] - self._sigxcme[spin,io,ik,ib].real) ** 2 + \
-                np.imag(self._sigcme[spin,io,ik,ib]) ** 2
+            den[io] = (omega - self._hhartree[spin,ik,ib,ib].real - self._sigxcme[spin,io,ik,ib].real) ** 2 + \
+                self._sigcme[spin,io,ik,ib].imag ** 2
 
         return self._omega_r, 1./np.pi * (aim_sigc/den)
 
     def read_eigvec_qp(self, spin, kpoint, band=None):
         """
-        Returns <KS|QPState> for the given spin, kpoint and band.
-
-        If band is None, <KS_b|QP_{b'}> is returned.
+        Returns <KS|QPState> for the given spin, kpoint and band. If band is None, <KS_b|QP_{b'}> is returned.
         """
         ik = self.kpt2fileindex(kpoint)
         if band is not None:
@@ -1422,37 +1365,49 @@ class SIGRES_Reader(ETSF_Reader):
     def read_params(self):
         """
         Read the parameters of the calculation. 
-        Returns `AttrDict` instance with the value of the parameters.
+        Returns :class:`AttrDict` instance with the value of the parameters.
         """
         param_names = [
             "ecutwfn",
             "ecuteps",
             "ecutsigx",
+            "scr_nband",
             "sigma_nband",
+            "gwcalctyp",
+            "scissor_ene",
         ]
 
-        params = {}
+        params = AttrDict()
         for pname in param_names:
-            try:
-                params[pname] = self.read_value(pname)
-            except self.Error:
-                pass
+            params[pname] = self.read_value(pname)
         
         # Other quantities that might be subject to convergence studies.
         params["nkibz"] = len(self.ibz)
 
-        return AttrDict(params)
+        return params
 
-    def print_qps(self, spin=None, kpoint=None, bands=None, fmt=None, stream=sys.stdout):
+    def print_qps(self, spin=None, kpoints=None, bands=None, fmt=None, stream=sys.stdout):
+        """
+        Args:
+            spin: Spin index, if None all spins are considered
+            kpoints: List of k-points to select. Default: all kpoints
+            bands: List of bands to select. Default is all bands
+            fmt: Format string passe to `to_strdict`
+            stream: file-like object.
+
+        Returns
+            List of tables.
+        """
         spins = range(self.nsppol) if spin is None else [spin]
-        kpoints = self.gwkpoints if kpoint is None else [kpoint]
+        kpoints = self.gwkpoints if kpoints is None else [kpoints]
         if bands is not None: bands = [bands]
 
         header = QPState.get_fields(exclude=["spin", "kpoint"])
+        tables = []
 
         for spin in spins:
             for kpoint in kpoints:
-                table_sk = [header]
+                table_sk = PrettyTable(header)
                 if bands is None:
                     ik = self.gwkpt2seqindex(kpoint)
                     bands = range(self.gwbstart_sk[spin,ik], self.gwbstop_sk[spin,ik])
@@ -1460,22 +1415,27 @@ class SIGRES_Reader(ETSF_Reader):
                 for band in bands:
                     qp = self.read_qp(spin, kpoint, band)
                     d = qp.to_strdict(fmt=fmt)
-                    table_sk.append([d[k] for k in header])
+                    table_sk.add_row([d[k] for k in header])
 
                 stream.write("\nkpoint: %s, spin: %s, energy units: eV (NB: bands start from zero)\n" % (kpoint, spin))
-                pprint_table(table_sk, out=stream)
+                print(table_sk, file=stream)
                 stream.write("\n")
+
+                # Add it to tables.
+                tables.append(table_sk)
+
+        return tables
 
     #def read_mel(self, mel_name, spin, kpoint, band, band2=None):
     #    array = self.read_value(mel_name)
                                                                    
     #def read_mlda_to_qp(self, spin, kpoint, band=None):
-    #    """Returns the unitary transformation KS-->QPS"""
+    #    """Returns the unitary transformation KS --> QPS"""
     #    ik = self.kpt2fileindex(kpoint)
-    #if band is not None:
-    #    return self._mlda_to_qp[spin,ik,:,band]
-    #else:
-    #    return self._mlda_to_qp[spin,ik,:,:]
+    #    if band is not None:
+    #        return self._mlda_to_qp[spin,ik,:,band]
+    #    else:
+    #        return self._mlda_to_qp[spin,ik,:,:]
                                                                    
     #def read_qprhor(self):
     #    """Returns the QPState density in real space."""

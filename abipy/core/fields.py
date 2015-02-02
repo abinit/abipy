@@ -1,14 +1,18 @@
+# coding: utf-8
 """This module contains the class describing densities in real space on uniform 3D meshes."""
 from __future__ import print_function, division, unicode_literals
 
 import numpy as np
 
 from monty.collections import AttrDict
+from monty.functools import lazy_property
+from pymatgen.core.units import bohr_to_angstrom
 from abipy.tools import transpose_last3dims
 from abipy.iotools import Visualizer, xsf, ETSF_Reader
-from abipy.core.constants import bohr_to_angstrom
 from abipy.core.mesh3d import Mesh3D
-from abipy.core.structure import Structure
+from abipy.core.mixins import Has_Structure
+from abipy.tools import transpose_last3dims
+from abipy.iotools import Visualizer, xsf, ETSF_Reader
 
 
 __all__ = [
@@ -18,7 +22,7 @@ __all__ = [
 ]
 
 
-class ScalarField(object):
+class ScalarField(Has_Structure):
     """
     Base class representing a typical scalar field generated electrons (e.g. densities, potentials).
     The field is represented on a homogenous real-space mesh.
@@ -27,21 +31,15 @@ class ScalarField(object):
     def __init__(self, nspinor, nsppol, nspden, datar, structure, iorder="c"):
         """
         Args:
-            nspinor:
-                Number of spinorial components.
-            nsppol:
-                Number of spins.
-            nspden:
-                Number of spin density components.
-            datar:
-                numpy array with the scalar field in real space. shape [..., nx, ny, nz]
-            structure:
-                `Structure` object describing the crystalline structure.
-            iorder:
-                Order of the array. "c" for C ordering, "f" for Fortran ordering.
+            nspinor: Number of spinorial components.
+            nsppol: Number of spins.
+            nspden: Number of spin density components.
+            datar: numpy array with the scalar field in real space. shape [..., nx, ny, nz]
+            structure: :class:`Structure` object describing the crystalline structure.
+            iorder: Order of the array. "c" for C ordering, "f" for Fortran ordering.
         """
         self.nspinor, self.nsppol, self.nspden = nspinor, nsppol, nspden
-        self.structure = structure
+        self._structure = structure
 
         iorder = iorder.lower()
         assert iorder in ["f", "c"]
@@ -57,47 +55,47 @@ class ScalarField(object):
         # Make sure we have the correct shape.
         self._datar = np.reshape(datar, (nspden,) + self.mesh.shape)
 
-        # FFT R --> G.
-        self._datag = self.mesh.fft_r2g(self.datar)
-
     def __len__(self):
         return len(self.datar)
 
     def __str__(self):
-        return self.tostring()
+        return self.to_string()
 
-    def tostring(self, prtvol=0):
+    @property
+    def structure(self):
+        return self._structure
+
+    def to_string(self, prtvol=0):
         """String representation"""
-        s  = "%s: nspinor = %i, nsppol = %i, nspden = %i" % (
-            self.__class__.__name__, self.nspinor, self.nsppol, self.nspden)
-        s += "  " + self.mesh.tostring(prtvol)
+        lines = ["%s: nspinor = %i, nsppol = %i, nspden = %i" %
+                 (self.__class__.__name__, self.nspinor, self.nsppol, self.nspden)]
+        app = lines.append
+        app(self.mesh.to_string(prtvol))
+        if prtvol > 0: app(str(self.structure))
 
-        if prtvol > 0:
-            s += "  " + str(self.structure)
-
-        return s
+        return "\n".join(lines)
 
     @property
     def datar(self):
-        """`ndarrray` with data in real space."""
+        """`ndarray` with data in real space."""
         return self._datar
 
-    @property
+    @lazy_property
     def datag(self):
         """`ndarrray` with data in reciprocal space."""
-        return self._datag
+        # FFT R --> G.
+        return self.mesh.fft_r2g(self.datar)
 
     @property
     def mesh(self):
-        """`Mesh3D`"""
+        """:class:`Mesh3D`"""
         return self._mesh
 
     @property
     def shape(self):
         """Shape of the array."""
-        shape_r, shape_g = self.datar.shape, self.datag.shape
-        assert shape_r == shape_g
-        return shape_r
+        assert self.datar.shape == self.datag.shape
+        return self.datar.shape
 
     @property
     def nx(self):
@@ -160,6 +158,7 @@ class ScalarField(object):
     #    """
     #    Compute the matrix element of <bra_wave|datar|ket_wave> in real space
     #    """
+
     #    if bra_wave.mesh != self.mesh:
     #       bra_ur = bra_wave.fft_ug(self.mesh)
     #    else:
@@ -170,11 +169,12 @@ class ScalarField(object):
     #    else:
     #       ket_ur = ket_wave.ur
 
-    #    assert self.nspinor == 1
-    #    assert bra_wave.spin == ket_wave.spin
-
-    #    datar_spin = self.datar[bra_wave.spin]
-    #    return self.mesh.integrate(bra_ur.conj() * datar_spin * ket_ur)
+    #    if self.nspinor == 1:
+    #        assert bra_wave.spin == ket_wave.spin
+    #       datar_spin = self.datar[bra_wave.spin]
+    #       return self.mesh.integrate(bra_ur.conj() * datar_spin * ket_ur)
+    #    else:
+    #        raise NotImplemented("nspinor != 1 not implmenented")
 
     #def map_coordinates(self, rcoords, order=3, frac_coords=True)
     #    """
@@ -206,11 +206,7 @@ class ScalarField(object):
     #    return np.array(interp_data)
 
     #def fourier_interp(self, new_mesh):
-        # Insert self.datag in the FFT box of new mesh.
-        #intp_datag = np.empty_like(self.datag)
-        #intp_datag = new_mesh.transferg_from(self.mesh, self.datag)
-        # FFT transform G --> R.
-        #intp_datar = new_mesh.fft_g2r(intp_datag)
+        #intp_datar = self.mesh.fourier_interp(self.datar, new_mesh, inspace="r")
         #return self.__class__(self.nspinor, self.nsppol, self.nspden, self.structure, intp_datar)
 
     def export(self, filename, visu=None):
@@ -218,12 +214,11 @@ class ScalarField(object):
         Export the real space data on file filename. 
 
         Args:
-            filename:
-                String specifying the file path and the file format.
+            filename: String specifying the file path and the file format.
                 The format is defined by the file extension. filename="prefix.xsf", for example, 
                 will produce a file in XSF format. An *empty* prefix, e.g. ".xsf" makes the code use a temporary file.
             visu:
-               `Visualizer` subclass. By default, this method returns the first available
+               :class:`Visualizer` subclass. By default, this method returns the first available
                 visualizer that supports the given file format. If visu is not None, an
                 instance of visu is returned. See :class:`Visualizer` for the list of 
                 applications and formats supported.
@@ -239,7 +234,7 @@ class ScalarField(object):
 
         if not tokens[0]: # filename == ".ext" ==> Create temporary file.
             import tempfile
-            filename = tempfile.mkstemp(suffix="."+ext, text=True)[1]
+            filename = tempfile.mkstemp(suffix="." + ext, text=True)[1]
 
         with open(filename, mode="w") as fh:
             if ext == "xsf":
@@ -296,60 +291,28 @@ class ScalarField(object):
     #    return np.reshape(plane, new_shape)
 
 
-
 class Density(ScalarField):
     """
-    Electron density
+    Electronic density
     """
-    # TODO 
-    #  "exchange_functional",      # "exchange_functional"
-    #  "valence_charges",          # "valence_charges"
+    @classmethod
+    def from_file(cls, filepath):
+        """Initialize the object from a netCDF file."""
+        with DensityReader(filepath) as r:
+            return r.read_density(cls=cls)
+
     def __init__(self, nspinor, nsppol, nspden, rhor, structure, iorder="c"):
         """
         Args:
-            nspinor:
-                Number of spinorial components.
-            nsppol:
-                Number of spins.
-            nspden:
-                Number of spin density components.
+            nspinor: Number of spinorial components.
+            nsppol: Number of spins.
+            nspden: Number of spin density components.
             datar:
-                numpy array with the field in real space.
-            structure:
-                pymatgen structure
-            iorder:
-                Order of the array. "c" for C ordering, "f" for Fortran ordering.
+                `numpy` array with the field in real space.
+            structure: pymatgen structure
+            iorder: Order of the array. "c" for C ordering, "f" for Fortran ordering.
         """
         super(Density, self).__init__(nspinor, nsppol, nspden, rhor, structure, iorder=iorder)
-
-    @classmethod
-    def from_file(cls, filepath):
-        """
-        Read density from an external netCDF file.
-
-        Args:
-            filepath:
-                string or file object.
-        """
-        with DensityReader(filepath) as r:
-            structure = r.read_structure()
-            dims = r.read_dendims()
-            rhor = r.read_rhor()
-
-        # use iorder="f" to transpose the last 3 dimensions since ETSF
-        # stores data in Fortran order while abipy uses C-ordering.
-        if dims.cplex_den == 1:
-
-            # Get rid of fake last dimensions (cplex).
-            rhor = np.reshape(rhor, (dims.nspden, dims.nfft1, dims.nfft2, dims.nfft3))
-
-            # Structure uses Angstrom. Abinit uses bohr.
-            rhor = rhor / bohr_to_angstrom ** 3
-
-            return Density(dims.nspinor, dims.nsppol, dims.nspden, rhor, structure, iorder="f")
-
-        else:
-            raise NotImplementedError("cplex_den %s not coded" % dims.cplex_den)
 
     def get_nelect(self, spin=None):
         """
@@ -357,45 +320,82 @@ class Density(ScalarField):
 
         If spin is None, the total number of electrons is computed.
         """
-        if not self.is_collinear:
-            raise NotImplementedError("Non collinear not implemented")
-
-        nelect = self.mesh.integrate(self.datar)
-
-        return np.sum(nelect) if spin is None else nelect[spin]
-
-    #def get_magnetization(self)
-
-    def get_rhor_tot(self):
-        """Returns the total density in real space."""
-        if self.nsppol == 2:
-            raise NotImplementedError("check whether ETSF-IO uses up-down storage mode")
-
         if self.is_collinear:
-            rhor_tot = np.sum(self.datar, axis=0)
-            if self.nspden == 2 and self.nsppol == 1:
-                raise NotImplementedError
-
+            nelect = self.mesh.integrate(self.datar)
+            return np.sum(nelect) if spin is None else nelect[spin]
         else:
-            raise NotImplementedError
+            return self.mesh.integrate(self.datar[0])
 
-        return rhor_tot
-
-    def get_rhog_tot(self):
-        """Returns the total density in G-space."""
-        if self.nsppol == 2:
-            raise NotImplementedError("check whether ETSF-IO uses up-down storage mode")
-
+    @lazy_property
+    def total_rhor(self):
+        """numpy array with the total density in real space on the FFT mesh"""
         if self.is_collinear:
-            rhog_tot = np.sum(self.datag, axis=0)
-            if self.nspden == 2 and self.nsppol == 1: raise NotImplementedError
+            if self.nsppol == 1:
+                if self.nspden == 2: raise NotImplementedError()
+                return self.datar[0]
+            elif self.nsppol == 2:
+                #tot_rhor = np.sum(self.datar, axis=0)
+                return self.datar[0] + self.datar[1]
+            else:
+                raise ValueError("You should not be here")
 
+        # Non collinear case.
+        raise NotImplementedError
+
+    @lazy_property
+    def total_rhog(self):
+        """numpy array with the total density in G-space."""
+        # FFT R --> G.
+        return self.mesh.fft_r2g(self.total_rhor)
+
+    @lazy_property
+    def magnetization_field(self):
+        """
+        :return: numpy array with the magnetization field in real space on the FFT mesh:
+
+            #. 0 if spin-unpolarized calculation
+            #. spin_up - spin_down if collinear spin-polarized
+            #. numpy array with (mx, my, mz) components if non-collinear magnetism
+        """
+        if self.is_collinear:
+            if self.nsppol == 1 and self.nspden == 1:
+                # zero magnetization by definition.
+                return self.mesh.zeros()
+            else:
+                # spin_up - spin_down.
+                return self.datar[0] - self.datar[1]
         else:
-            raise NotImplementedError
+            # mx, my, mz
+            return self.datar[1:]
 
-        return rhog_tot
+    @lazy_property
+    def magnetization(self):
+        """
+        Magnetization field integrated over the unit cell.
+        Scalar if collinear, vector with mx, my, mz components if non-collinear.
+        """
+        return self.mesh.integrate(self.magnetization_field)
 
-    def get_vh(self):
+    @lazy_property
+    def nelect_updown(self):
+        if not self.is_collinear: return None, None
+
+        if self.nsppol == 1:
+            if self.nspden == 2: raise NotImplementedError()
+            nup = ndown = self.mesh.integrate(self.datar[0]/2)
+        else:
+            nup = self.mesh.integrate(self.datar[0])
+            ndown = self.mesh.integrate(self.datar[1])
+
+        return nup, ndown
+
+    @lazy_property
+    def zeta(self):
+        """Magnetization(r) / total_density(r)"""
+        fact = np.where(self.tot_rhor > 1e-16, 1/self.tot_rhor, 0.0)
+        return self.magnetization * fact
+
+    def vhartree(self):
         """
         Solve the Poisson's equation in reciprocal space.
 
@@ -403,18 +403,12 @@ class Density(ScalarField):
             (vhr, vhg) Hartree potential in real, reciprocal space.
         """
         raise NotImplementedError("")
-        # Compute total density in G-space.
-        rhog_tot = self.get_rhog_tot()
-        #print rhog_tot
-
         # Compute |G| for each G in the mesh and treat G=0.
-        gvec  = self.mesh.get_gvecs()
-
+        gvecs = self.mesh.gvecs
         gwork = self.mesh.zeros().ravel()
-
         gnorm = self.structure.gnorm(gvec)
 
-        for idx, gg in enumerate(gvec):
+        for idx, gg in enumerate(gvecs):
             #gnorm = self.structure.gnorm(gg)
             gnorm = 1.0  # self.structure.gnorm(gg)
 
@@ -434,223 +428,69 @@ class Density(ScalarField):
         #gwork = self.mesh.reshape(gwork)
 
         # FFT to obtain vh in real space.
-        vhg = rhog_tot * gwork
-
+        vhg = self.total_rhog * gwork
         vhr = self.mesh.fft_g2r(vhg, fg_ishifted=False)
+
         return vhr, vhg
 
-    #def get_vxc(self, xc_type=None):
-        #"""Compute the exchange-correlation potential in real- and reciprocal-space."""
-        #return vxcr, vxcg
-
-    #def get_kinden(self):
+    #@lazy_property
+    #def kinden(self):
         #"""Compute the kinetic energy density in real- and reciprocal-space."""
         #return kindr, kindgg
+
+    #def vxc(self, xc_type=None):
+        #"""Compute the exchange-correlation potential in real- and reciprocal-space."""
+        #return vxcr, vxcg
 
 
 class DensityReader(ETSF_Reader):
     """This object reads density data from a netcdf file."""
-    def read_dendims(self):
-        """Returns an `AttrDict` dictionary with the basic dimensions."""
+
+    def read_den_dims(self):
+        """Returns an :class:`AttrDict` dictionary with the basic dimensions."""
         return AttrDict(
             cplex_den=self.read_dimvalue("real_or_complex_density"),
             nspinor=self.read_dimvalue("number_of_spinor_components"),
             nsppol=self.read_dimvalue("number_of_spins"),
+            #nspden=self.read_dimvalue("number_of_spin_density_components"),
             nspden=self.read_dimvalue("number_of_components"),
             nfft1=self.read_dimvalue("number_of_grid_points_vector1"),
             nfft2=self.read_dimvalue("number_of_grid_points_vector2"),
             nfft3=self.read_dimvalue("number_of_grid_points_vector3"),
         )
 
-    def read_rhor(self):
-        """Return the density in real space."""
-        return self.read_value("density")
+    def read_density(self, cls=Density):
+        """Factory function that builds and returns a `Density` object."""
+        structure = self.read_structure()
+        dims = self.read_den_dims()
 
+        # Abinit conventions:
+        # rhor(nfft,nspden) = electron density in r space
+        # (if spin polarized, array contains total density in first half and spin-up density in second half)
+        # (for non-collinear magnetism, first element: total density, 3 next ones: mx,my,mz in units of hbar/2)
+        rhor = self.read_value("density")
 
-# Global variables
-#: Flags denoting the potential type. Note bit order.
-#VNONE = 1
-#VLOC  = 2
-#VH    = 4
-#VX    = 8
-#VC    = 16
-#
-##: Mapping flag --> potential name.
-#_vnames =  {
-#VNONE: "None potential",
-#VLOC : "Local potential",
-#VH   : "Hartree potential",
-#VX   : "Exchange potential",
-#VC   : "Correlation potential",
-#}
-#
-##: List of allowed potential types.
-#VTYPES = _vnames.keys()
-#
-#
-#class PotentialInfo(object):
-#
-#    def __init__(self, vtype, **kwargs):
-#        self.vtype = vtype
-#        self._dict = kwargs
-#
-#    def __str__(self):
-#        s = self.vname() + "\n"
-#        for k, v in self._dict.items:
-#            s += str(k) + " = " + str(v) + "\n"
-#        return s
-#
-#    def __add__(self, other):
-#        new_vtype = self.vtype + other.vtype
-#
-#        new_dict = self._dict.copy()
-#
-#        for k in other._dict:
-#            if k not in self._dict:
-#                new_dict[k] = other._dict[k]
-#            else:
-#                # Append values if key is already present.
-#                lst = list()
-#                lst.append(new_dict[k])
-#                lst.append(other._dict[k])
-#                new_dict[k] = lst
-#
-#        return PotentialInfo(vtype, kwargs=new_dict)
-#
-#    @property
-#    def vname(self):
-#        """Return the name of the potential."""
-#        s = bin(self.vtype)[2:][::-1]
-#        flags = [ 2**idx for idx, c in enumerate(s) if c == "1" ]
-#
-#        plus = ""
-#        if len(flags) > 1: plus = "+"
-#        return plus.join( [_vnames[flag] for flag in flags] )
-#
-#
-#class Potential(ScalarField):
-#    """This module contains the class describing local potentials in real space on uniform 3D meshes."""
-#    #
-#    #: Attributes read from the netCDF file.
-#    _slots = [
-#      "cplex_pot",                # "real_or_complex_potential"
-#      "nsppol",                   # "number_of_spins"
-#      "nspinor",                  # "number_of_spinor_components"
-#      "nspden",                   # "number_of_components"
-#      "nfft1",                    # "number_of_grid_points_vector1"
-#      "nfft2",                    # "number_of_grid_points_vector2"
-#      "nfft3",                    # "number_of_grid_points_vector3"
-#      "nelect",                   # "number_of_electrons"
-#      "valence_charges",          # "valence_charges"
-#    ]
-#                                                                    
-#    _potopts = [
-#      "exchange_potential",              #"vx",
-#      "correlation_potential",           #"vc",
-#      "exchange_correlation_potential",  #"vxc",
-#      "exchange_functional",             #"exchange_functional"
-#      "correlation_functional",          #"correlation_functional"
-#    ]
-#
-#    @classmethod
-#    def from_file(cls, filepath):
-#        """
-#        Read density from a the netCDF file.
-#
-#        Args:
-#            filepath:
-#                string with the file path
-#        returns:
-#            :class:`Potential`
-#        """
-#        raise NotImplementedError("Potential must be rewritten from scrath")
-#        # Read all the keywords present in fname so that we know the potential type.
-#        #dim_names, var_names = ncread_keys(path)
-#
-#        nfound = 0
-#        for pot in cls._potopts:
-#            if pot in var_names:
-#                nfound += 1
-#                v = Record()
-#                pot_vars = ["data"]
-#                map["data"] = pot
-#                pot_vars += _potopts[pot]
-#
-#                #missing = ncread_varsdims(v, path, pot_vars, map_names=map)
-#                #
-#                # Handle the error
-#                if missing:
-#                    for miss in missing:
-#                        print("potential variables %s are missing!" % str(miss[0]))
-#                    raise ValueError("Fatal Eror")
-#
-#        if nfound != 1:  # No potential or more than one.
-#            raise ValueError("Number of potential found in file is %s" % nfound )
-#
-#        # Build potential descriptor.
-#        #vinfo = PotentialInfo(vtype, **kwargs)
-#
-#        structure = Structure.from_file(path)
-#
-#        rec = Record()
-#        #
-#        # Handle the error
-#        if missing:
-#            for miss in missing:
-#                print("internal name= " + miss[0] + ", ETSF name= " + miss[1] + " is missing!")
-#
-#        # use iorder="f" to transpose the last 3 dimensions since ETSF
-#        # stores data in Fortran order while abipy uses C-ordering.
-#
-#        if rec.cplex_pot == 1:
-#            # Get rid of fake last dimensions (cplex).
-#            vr = np.reshape(v.data, (rec.nspden, rec.nfft3, rec.nfft2, rec.nfft1))
-#            return Potential(rec.nspinor, rec.nsppol, rec.nspden, vtype, vr, structure, iorder="f")
-#
-#        else:
-#            raise NotImplementedError("cplex_den = " + str(rec.cplex_den) + "not coded")
-#
-#
-#    def __init__(self, nspinor, nsppol, nspden, vtype, vr, structure, iorder="c"):
-#        """
-#        Args:
-#            nspinor:
-#                Number of spinorial components.
-#            nsppol:
-#                Number of spins.
-#            nspden:
-#                Number of spin density components.
-#            vtype:
-#                Flag defining the potential type.
-#            vr:
-#                numpy array with the potential in real space.
-#            structure:
-#                pymatgen structure
-#            iorder:
-#                Order of the array. "c" for C ordering, "f" for Fortran ordering.
-#        """
-#        super(Potential, self).__init__(nspinor, nsppol, nspden, vr, structure, iorder=iorder)
-#
-#        if vtype not in VTYPES:
-#            raise ValueError("Unknow vtype: " + str(vtype))
-#        self.vtype = vtype
-#
-#    @property
-#    def vname(self):
-#        """The name of the potential."""
-#        s = bin(self.vtype)[2:][::-1]
-#        flags = [2**idx for idx, c in enumerate(s) if c == "1"]
-#
-#        plus = ""
-#        if len(flags) > 1: plus = "+"
-#        return plus.join([_vnames[flag] for flag in flags])
-#
-#    def tostring(self, prtvol=0):
-#        s = self.vname + "\n"
-#        s += super(Potential, self).tostring(self, prtvol)
-#        return s
-#
-#    #def make_vector_field(self):
-#    #  """Return vector field."""
-#    #  if self.iscollinear: return None
+        if dims.nspden == 1:
+            pass
+        elif dims.nspden == 2:
+            # Store rho_up, rho_down instead of rho_total, rho_up
+            total = rhor[0].copy()
+            rhor[0] = rhor[1]
+            rhor[1] = total - rhor[1]
+        elif dims.nspden == 4:
+            raise NotImplementedError("nspden == 4 not coded")
+        else:
+            raise RuntimeError("You should not be here")
 
+        # use iorder="f" to transpose the last 3 dimensions since ETSF
+        # stores data in Fortran order while abipy uses C-ordering.
+        if dims.cplex_den == 1:
+            # Get rid of fake last dimensions (cplex).
+            rhor = np.reshape(rhor, (dims.nspden, dims.nfft1, dims.nfft2, dims.nfft3))
+
+            # Structure uses Angstrom. Abinit uses bohr.
+            rhor /= (bohr_to_angstrom ** 3)
+            return cls(dims.nspinor, dims.nsppol, dims.nspden, rhor, structure, iorder="f")
+
+        else:
+            raise NotImplementedError("cplex_den %s not coded" % dims.cplex_den)

@@ -14,7 +14,7 @@ seconds: 10
 #mailto: matteo.giantomassi@uclouvain.be
 #True if the task manager must be re-initialized from 
 #file before launching the jobs. Default: False
-use_dynamic_manager: False
+#use_dynamic_manager: False
 
 # The scheduler will shutdown when the number of python exceptions is > MAX_NUM_PYEXCS
 #MAX_NUM_PYEXCS = 2

@@ -1,3 +1,4 @@
+# coding: utf-8
 """
 This module defines the object Function1D that described a functions.
 of a single variables and provides simple interfaces for performing
@@ -10,6 +11,8 @@ import itertools
 import numpy as np
 
 from six.moves import cStringIO
+from monty.functools import lazy_property
+from pymatgen.util.plotting_utils import add_fig_kwargs
 from abipy.tools.derivatives import finite_diff
 
 __all__ = [
@@ -18,14 +21,12 @@ __all__ = [
 
 
 class Function1D(object):
-    """A (real|complex) function of a real variable."""
+    """Immutable object representing a (real|complex) function of real variable."""
     def __init__(self, mesh, values):
         """
         Args:
-            mesh:
-                array-like object with the real points of the grid.
-            values:
-                array-like object with the values of the function (can be complex-valued)
+            mesh: array-like object with the real points of the grid.
+            values: array-like object with the values of the function (can be complex-valued)
         """
         self._mesh = np.ascontiguousarray(mesh)
         self._values = np.ascontiguousarray(values)
@@ -113,16 +114,16 @@ class Function1D(object):
 
     @property
     def real(self):
-        """Return new `Function1D` with the real part of self."""
+        """Return new :class:`Function1D` with the real part of self."""
         return self.__class__(self.mesh, self.values.real)
 
     @property
     def imag(self):
-        """Return new `Function1D` with the imaginary part of self."""
+        """Return new :class:`Function1D` with the imaginary part of self."""
         return self.__class__(self.mesh, self.values.real)
 
     def conjugate(self):
-        """Return new `Function1D` with the complex conjugate."""
+        """Return new :class:`Function1D` with the complex conjugate."""
         return self.__class__(self.mesh, self.values.conjugate)
 
     @classmethod
@@ -130,9 +131,9 @@ class Function1D(object):
         """
         Initialize the object from a callable.
 
-        .. example:
+        example:
 
-            Function1D.from_func(np.sin, mesh=np.arange(1,10))
+           Function1D.from_func(np.sin, mesh=np.arange(1,10))
         """
         return cls(mesh, np.vectorize(func)(mesh))
 
@@ -143,15 +144,10 @@ class Function1D(object):
         see also :func:`np.loadtxt`
 
         Args:
-            path:
-                Path to the file containing data.
-            comments:
-                The character used to indicate the start of a comment; default: '#'.
-            delimiter: str, optional
-                The string used to separate values. By default, this is any whitespace.
-            usecols:
-                sequence, optional
-                Which columns to read, with 0 being the first.
+            path: Path to the file containing data.
+            comments: The character used to indicate the start of a comment; default: '#'.
+            delimiter: str, optional The string used to separate values. By default, this is any whitespace.
+            usecols: sequence, optional. Which columns to read, with 0 being the first.
                 For example, usecols = (1,4) will extract data from the 2nd, and 5th columns.
         """
         mesh, values = np.loadtxt(path, comments=comments, delimiter=delimiter,
@@ -163,7 +159,6 @@ class Function1D(object):
         Save self to a text file. See :func:`np.savetext` for the description of the variables
         """
         data = zip(self.mesh, self.values)
-        #data = (self.mesh, self.values)
         np.savetxt(path, data, fmt=fmt.encode("ascii", "ignore"), delimiter=delimiter, newline=newline,
                    header=header, footer=footer, comments=comments)
 
@@ -177,8 +172,14 @@ class Function1D(object):
 
     def has_same_mesh(self, other):
         """True if self and other have the same mesh."""
-        return np.allclose(self.mesh, other.mesh)
+        if (self.h, other.h) == (None, None):
+            # Generic meshes.
+            return np.allclose(self.mesh, other.mesh)
+        else:
+            # Check for linear meshes
+            return len(self.mesh) == len(other.mesh) and self.h == other.h
 
+    @property
     def bma(self):
         """Return b-a. f(x) is defined in [a,b]"""
         return self.mesh[-1] - self.mesh[0]
@@ -209,27 +210,21 @@ class Function1D(object):
         """
         return np.iscomplexobj(self.values)
 
-    @property
+    @lazy_property
     def h(self):
         """The spacing of the mesh. None if mesh is not homogeneous."""
-        try:
-            return self._h
-        except AttributeError:
-            return self.dx[0] if np.allclose(self.dx[0], self.dx) else None
+        return self.dx[0] if np.allclose(self.dx[0], self.dx) else None
 
-    @property
+    @lazy_property
     def dx(self):
         """
         ndarray of len(self)-1 elements giving the distance between two
         consecutive points of the mesh, i.e. dx[i] = ||x[i+1] - x[i]||.
         """
-        try:
-            return self._dx
-        except AttributeError:
-            self._dx = dx = np.zeros(len(self)-1)
-            for (i, x) in enumerate(self.mesh[:-1]):
-                dx[i] = self.mesh[i+1] - x
-            return self._dx
+        dx = np.zeros(len(self)-1)
+        for (i, x) in enumerate(self.mesh[:-1]):
+            dx[i] = self.mesh[i+1] - x
+        return dx
 
     def find_mesh_index(self, value):
         """
@@ -246,13 +241,11 @@ class Function1D(object):
         Compute the derivatives by finite differences.
 
         Args:
-            order:
-                Order of the derivative.
-            acc:
-                Accuracy. 4 is fine in many cases.
+            order: Order of the derivative.
+            acc: Accuracy. 4 is fine in many cases.
 
         Returns:
-            new `Function1d` instance with the derivative.
+            new :class:`Function1d` instance with the derivative.
         """
         if self.h is None:
             raise ValueError("Finite differences with inhomogeneous meshes are not supported")
@@ -264,7 +257,7 @@ class Function1D(object):
         Cumulatively integrate y(x) using the composite trapezoidal rule.
 
         Returns:
-            `Function1d` with :math:`\int y(x) dx`
+            :class:`Function1d` with :math:`\int y(x) dx`
         """
         from scipy.integrate import cumtrapz
         integ = cumtrapz(self.values, x=self.mesh)
@@ -273,20 +266,20 @@ class Function1D(object):
 
         return self.__class__(self.mesh, pad_intg)
 
-    @property
+    @lazy_property
     def spline(self):
         """Cubic spline with s=0"""
-        try:
-            return self._spline
-        except AttributeError:
-            from scipy.interpolate import UnivariateSpline
-            self._spline = UnivariateSpline(self.mesh, self.values, s=0)
-            return self._spline
+        from scipy.interpolate import UnivariateSpline
+        return UnivariateSpline(self.mesh, self.values, s=0)
 
     @property
     def spline_roots(self):
         """Zeros of the spline."""
         return self.spline.roots()
+
+    def spline_on_mesh(self, mesh):
+        """Spline the function on the given mesh, returns :class:`Func1d` object."""
+        return self.__class__(mesh, self.spline(mesh))
 
     def spline_derivatives(self, x):
         """Returns all derivatives of the spline at point x."""
@@ -297,24 +290,22 @@ class Function1D(object):
         Returns the definite integral of the spline of f between two given points a and b
 
         Args:
-            a:
-                First point. mesh[0] if a is None
-            b:
-                Last point. mesh[-1] if a is None
+            a: First point. mesh[0] if a is None
+            b: Last point. mesh[-1] if a is None
         """
         a = self.mesh[0] if a is None else a
         b = self.mesh[-1] if b is None else b
         return self.spline.integral(a, b)
 
-    @property
+    @lazy_property
     def l1_norm(self):
         """Compute :math:`\int |f(x)| dx`."""
         return abs(self).integral()[-1][1]
 
-    @property
+    @lazy_property
     def l2_norm(self):
-        """Compute :math:`\int |f(x)|^2 dx`."""
-        return (abs(self)**2).integral()[-1][1]
+        """Compute :math:`\sqrt{\int |f(x)|^2 dx}`."""
+        return np.sqrt( (abs(self)**2).integral()[-1][1] )
 
     def fft(self):
         """Compute the FFT transform (negative sign)."""
@@ -374,24 +365,19 @@ class Function1D(object):
         Helper function to plot self on axis ax.
 
         Args:
-            ax:
-                `matplotlib` axis.
-            exchange_xy:
-                True to exchange the axis in the plot
-            args:
-                Positional arguments passed to ax.plot
-            kwargs:
-                Keyword arguments passed to `matplotlib`.
-                Accepts also:
+            ax: `matplotlib` axis.
+            exchange_xy: True to exchange the axis in the plot
+            args: Positional arguments passed to ax.plot
+            kwargs: Keyword arguments passed to `matplotlib`.  Accepts also:
 
-                cplx_mode:
-                    string defining the data to print. Possible choices are (case-insensitive):
-
-                        - "re"  for real part.
-                        - "im" for imaginary part.
-                        - "abs" for the absolute value
-
-                    Options can be concatenated with "-"
+        ==============  ===============================================================
+        kwargs          Meaning
+        ==============  ===============================================================
+        cplx_mode       string defining the data to print. 
+                        Possible choices are (case-insensitive): `re` for the real part
+                        "im" for the imaginary part, "abs" for the absolute value.
+                        Options can be concatenated with "-"
+        ==============  ===============================================================
 
         Returns:
             List of lines added.
@@ -418,43 +404,21 @@ class Function1D(object):
 
         return lines
 
+    @add_fig_kwargs
     def plot(self, **kwargs):
         """
-        Args:
-            args:
-                Positional arguments passed to `matplotlib`.
-
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default: True).
-        savefig:        'abc.png' or 'abc.eps'* to save the figure to a file.
-        ==============  ==============================================================
+        Plot the function 
 
         Returns:
             `matplotlib` figure.
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
-
         import matplotlib.pyplot as plt
 
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
 
         ax.grid(True)
-        if title:
-            ax.set_title(title)
-
         exchange_xy = kwargs.pop("exchange_xy", False)
         self.plot_ax(ax, exchange_xy=exchange_xy, **kwargs)
-
-        if show:
-            plt.show()
-
-        if savefig is not None:
-            fig.savefig(savefig)
 
         return fig

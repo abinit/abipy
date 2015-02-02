@@ -1,3 +1,4 @@
+# coding: utf-8
 """This module contains the class describing a planewave wavefunction."""
 from __future__ import print_function, division, unicode_literals
 
@@ -57,12 +58,12 @@ class WaveFunction(object):
 
     @property
     def gsphere(self):
-        """`GSphere` object"""
+        """:class:`GSphere` object"""
         return self._gsphere
 
     @property
     def kpoint(self):
-        """`Kpoint` object"""
+        """:class:`Kpoint` object"""
         return self.gsphere.kpoint
 
     @property
@@ -120,16 +121,14 @@ class WaveFunction(object):
     @property
     def ur_xyz(self):
         """
-        Returns a copy with ur[nspinor, nx, ny, nz]. 
-        Mainly used for post-processing.
+        Returns a copy with ur[nspinor, nx, ny, nz]. Mainly used for post-processing.
         """
         return self.mesh.reshape(self.ur).copy()
 
     @property
     def ur2_xyz(self):
         """
-        Returns ur2[nx, ny, nz]. 
-        Mainly used for post-processing.
+        Returns ur2[nx, ny, nz]. Mainly used for post-processing.
         """
         return self.mesh.reshape(self.ur2)
 
@@ -153,7 +152,7 @@ class WaveFunction(object):
         Returns u(G) on the FFT mesh,
 
         Args:
-            mesh: `Mesh3d` object. If mesh is None, self.mesh is used.
+            mesh: :class:`Mesh3d` object. If mesh is None, self.mesh is used.
         """
         mesh = self.mesh if mesh is None else mesh
         ug_mesh = self.gsphere.tofftmesh(mesh, self.ug)
@@ -164,9 +163,10 @@ class WaveFunction(object):
         Performs the FFT transform of :math:`u(g)` on mesh.
 
         Args:
-            mesh: `Mesh3d` object. If mesh is None, self.mesh is used.
+            mesh: :class:`Mesh3d` object. If mesh is None, self.mesh is used.
 
-        Returns :math:`u(r)` on the real space FFT box.
+        Returns:
+            :math:`u(r)` on the real space FFT box.
         """
         mesh = self.mesh if mesh is None else mesh
         ug_mesh = self.ug_mesh(mesh)
@@ -208,16 +208,11 @@ class PWWaveFunction(WaveFunction):
         Creation method.
 
         Args:
-            nspinor:
-                number of spinorial components.
-            spin:
-                spin index.
-            band:
-                band index (>=0)
-            gsphere
-                `GSphere` instance.
-            ug:
-                2D array containing u[nspinor,G] for G in gsphere.
+            nspinor: number of spinorial components.
+            spin: spin index.
+            band: band index (>=0)
+            gsphere :class:`GSphere` instance.
+            ug: 2D array containing u[nspinor,G] for G in gsphere.
         """
         self.nspinor, self.spin, self.band = nspinor, spin, band
         # Sanity check.
@@ -246,14 +241,11 @@ class PWWaveFunction(WaveFunction):
         Export u(r)**2 on file filename.
 
         Args:
-            filename:
-                String specifying the file path and the file format.
+            filename: String specifying the file path and the file format.
                 The format is defined by the file extension. filename="prefix.xsf", for example, 
                 will produce a file in XSF format. An *empty* prefix, e.g. ".xsf" makes the code use a temporary file.
-            structure:
-                Structure object.
-            visu:
-               `Visualizer` subclass. By default, this method returns the first available
+            structure: :class:`Structure` object.
+            visu: :class:`Visualizer` subclass. By default, this method returns the first available
                 visualizer that supports the given file format. If visu is not None, an
                 instance of visu is returned. See :class:`Visualizer` for the list of 
                 applications and formats supported.
@@ -318,10 +310,8 @@ class PWWaveFunction(WaveFunction):
         computed in G-space or r-space, depending on the value of space.
 
         Args:
-            other: 
-                Other wave (right-hand side)
-            space: 
-                Integration space. Possible values ["g", "gsphere", "r"]
+            other: Other wave (right-hand side)
+            space:  Integration space. Possible values ["g", "gsphere", "r"]
                 if "g" or "r" the scalar product is computed in G- or R-space on the FFT box.
                 if space="gsphere" the integration is done on the G-sphere. Note that
                 this option assumes that self and other have the same list of G-vectors. 
@@ -384,10 +374,8 @@ class PWWaveFunction(WaveFunction):
         Rotate the pwwave by the symmetry operation symmop.
 
         Args:
-            symmop:
-                `Symmetry` operation
-            mesh:
-                mesh for the FFT, if None the mesh of self is used.
+            symmop: :class:`Symmetry` operation
+            mesh: mesh for the FFT, if None the mesh of self is used.
 
         Returns:
             New wavefunction object.

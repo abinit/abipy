@@ -24,8 +24,8 @@ class TestMesh3D(AbipyTest):
 
         print(mesh_444)
 
-        mesh_444.get_gvecs()
-        mesh_444.get_rpoints()
+        mesh_444.gvecs
+        mesh_444.rpoints
 
     def test_fft(self):
         """FFT transforms"""

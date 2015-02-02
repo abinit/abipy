@@ -4,31 +4,30 @@ from __future__ import print_function, division, unicode_literals
 
 import sys
 import os
-import warnings
 import argparse
 
 from abipy import abilab
 
-
-def str_examples():
-    examples = """
-Usage example:\n
-    abistruct.py NCFILE convert cif         => Read the structure from the netcdf FILE.nc and create the CIF file.
-    abistruct.py NCFILE visualize xcrysden  => Visualize the structure with XcrysDen.
-"""
-    return examples
-
-
-def show_examples_and_exit(err_msg=None, error_code=1):
-    """Display the usage of the script."""
-    sys.stderr.write(str_examples())
-    if err_msg: 
-        sys.stderr.write("Fatal Error\n" + err_msg + "\n")
-
-    sys.exit(error_code)
-
-
 def main():
+
+    def str_examples():
+        examples = """\
+    Usage example:\n
+        abistruct.py NCFILE convert cif         => Read the structure from the netcdf FILE.nc and create the CIF file.
+        abistruct.py NCFILE visualize xcrysden  => Visualize the structure with XcrysDen.
+    """
+        return examples
+
+
+    def show_examples_and_exit(err_msg=None, error_code=1):
+        """Display the usage of the script."""
+        sys.stderr.write(str_examples())
+        if err_msg: 
+            sys.stderr.write("Fatal Error\n" + err_msg + "\n")
+
+        sys.exit(error_code)
+
+
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('filepath', nargs="?", help="Netcdf file with the crystalline structure")
