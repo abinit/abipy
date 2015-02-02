@@ -7,12 +7,18 @@ from __future__ import print_function, division, unicode_literals
 import abc
 import six
 import os
-
+import logging
+import sys
 from fireworks.core.launchpad import LaunchPad
 from fireworks.core.firework import Firework, Workflow
-from fw_tasks import * #RelaxFWTask, MultiStepRelaxFWTask, AutoparalFWTask, AbiFireTask
-from pymatgen.io.abinitio.tasks import Dependency, RelaxTask
+from fw_tasks import ScfStrategyFireTask, RelaxStrategyFireTask, NscfStrategyFireTask, AutoparalFireTask, \
+    MultiStepRelaxStrategyFireTask, relaxation_methods
+from fw_utils import parse_workflow
+from pymatgen.io.abinitio.abiobjects import KSampling
 
+# logging.basicConfig()
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.StreamHandler(sys.stdout))
 
 @six.add_metaclass(abc.ABCMeta)
 class AbstractFWWorkflow():
@@ -38,12 +44,37 @@ class AbstractFWWorkflow():
         return task_workdirs
 
     @classmethod
-    def create_autoparal_fw(self, firetask, max_ncpus=None):
+    def create_autoparal_fw(cls, firetask,):
         spec = {'_queueadapter': {'ntasks': 1, 'walltime': '00:10:00'}}
-        autoparal_task = AutoparalFireTask(firetask, max_ncpus)
+        autoparal_task = AutoparalFireTask(firetask)
         autoparal_fw = Firework(autoparal_task, spec=spec)
         return autoparal_fw
 
+
+class ScfFWWorkflow(AbstractFWWorkflow):
+    """
+    Workflow for atomic position relaxations.
+    The unit cell parameters are kept fixed
+    """
+
+    def __init__(self, structure, pseudos, ksampling=1000, accuracy="normal",
+                 spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
+                 use_symmetries=True, autoparal=False, **extra_abivars):
+        """
+        Args:
+
+        """
+
+        self.task = ScfStrategyFireTask(structure=structure, pseudos=pseudos, ksampling=ksampling,
+                                        accuracy=accuracy, spin_mode=spin_mode, smearing=smearing, charge=charge,
+                                        scf_algorithm=scf_algorithm, use_symmetries=use_symmetries, **extra_abivars)
+        fw = Firework(self.task)
+
+        if autoparal:
+            autoparal_fw = self.create_autoparal_fw(self.task)
+            self.wf = Workflow([autoparal_fw, fw], {autoparal_fw: [fw]})
+        else:
+            self.wf = Workflow([fw])
 
 
 class RelaxAtomsFWWorkflow(AbstractFWWorkflow):
@@ -52,22 +83,22 @@ class RelaxAtomsFWWorkflow(AbstractFWWorkflow):
     The unit cell parameters are kept fixed
     """
 
-    #TODO check if manager is useful at this point
     def __init__(self, structure, pseudos, ksampling=1000, accuracy="normal",
                  spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
-                 autoparal=False, max_ncpus=32, **extra_abivars):
+                 autoparal=False, **extra_abivars):
         """
         Args:
 
         """
 
-        task = RelaxStrategyFireTask(structure=structure, pseudos=pseudos, ksampling=ksampling, relax_algo="atoms_only",
-                                     accuracy=accuracy, spin_mode=spin_mode, smearing=smearing, charge=charge,
-                                     scf_algorithm=scf_algorithm, **extra_abivars)
-        fw = Firework(task)
+        self.task = RelaxStrategyFireTask(structure=structure, pseudos=pseudos, ksampling=ksampling,
+                                          relax_algo="atoms_only", accuracy=accuracy, spin_mode=spin_mode,
+                                          smearing=smearing, charge=charge, scf_algorithm=scf_algorithm,
+                                          **extra_abivars)
+        fw = Firework(self.task)
 
         if autoparal:
-            autoparal_fw = self.create_autoparal_fw(task, max_ncpus)
+            autoparal_fw = self.create_autoparal_fw(self.task)
             self.wf = Workflow([autoparal_fw, fw], {autoparal_fw: [fw]})
         else:
             self.wf = Workflow([fw])
@@ -82,59 +113,110 @@ class RelaxFWWorkflow(AbstractFWWorkflow):
     """
     def __init__(self, structure, pseudos, ksampling=1000, accuracy="normal",
                  spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
-                 autoparal=False, max_ncpus=32, **extra_abivars):
+                 autoparal=False, **extra_abivars):
         """
         Args:
 
         """
 
         # Create the ionic relaxation fw
-        ion_task = RelaxStrategyFireTask(structure=structure, pseudos=pseudos, ksampling=ksampling,
-                                         relax_algo="atoms_only", accuracy=accuracy, spin_mode=spin_mode,
-                                         smearing=smearing, charge=charge,scf_algorithm=scf_algorithm, **extra_abivars)
+        self.ion_task = RelaxStrategyFireTask(
+            structure=structure, pseudos=pseudos, ksampling=ksampling, relax_algo="atoms_only", accuracy=accuracy,
+            spin_mode=spin_mode, smearing=smearing, charge=charge, scf_algorithm=scf_algorithm, **extra_abivars)
 
-        ion_fw = Firework(ion_task)
+        ion_fw = Firework(self.ion_task)
 
         # Create the ionic+cell relaxation fw
-        ioncell_task = RelaxStrategyFireTask(structure=structure, pseudos=pseudos, ksampling=ksampling,
-                                             relax_algo="atoms_and_cell", accuracy=accuracy, spin_mode=spin_mode,
-                                             smearing=smearing, charge=charge,scf_algorithm=scf_algorithm,
-                                             deps={id(ion_task): "WFK structure"},**extra_abivars)
+        self.ioncell_task = RelaxStrategyFireTask(
+            structure=structure, pseudos=pseudos, ksampling=ksampling, relax_algo="atoms_and_cell", accuracy=accuracy,
+            spin_mode=spin_mode, smearing=smearing, charge=charge, scf_algorithm=scf_algorithm,
+            deps={id(self.ion_task): "WFK structure"}, **extra_abivars)
 
-        ioncell_fw = Firework(ioncell_task)
+        ioncell_fw = Firework(self.ioncell_task)
 
         # Create the workflow
         if autoparal:
-            autoparal_fw = self.create_autoparal_fw(ion_task, max_ncpus)
+            autoparal_fw = self.create_autoparal_fw(self.ion_task)
             self.wf = Workflow([autoparal_fw, ion_fw, ioncell_fw],
                                {autoparal_fw: [ion_fw], ion_fw: [ioncell_fw]})
         else:
             self.wf = Workflow([ion_fw, ioncell_fw], {ion_fw: [ioncell_fw]})
 
 
-#TODO fix after refactoring
 class MultiStepRelaxFWWorkflow(AbstractFWWorkflow):
     """
     Workflow for structural relaxations performed in a multi-step procedure.
     Using a small number of maximum relaxation steps the overall process is
     automatically split in as many FWs are needed.
     """
-    #TODO check if manager is useful at this point
-    def __init__(self, input, workdir=None, manager=None):
+    def __init__(self, structure, pseudos, ksampling=1000, relax_algo="atoms_only", accuracy="normal",
+                 spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
+                 autoparal=False, max_restart=10, **extra_abivars):
         """
         Args:
-            ion_input:
-                Input for the relaxation of the ions (cell is fixed)
-            ioncell_input:
-                Input for the relaxation of the ions and the unit cell.
-            workdir:
-                Working directory.
-            manager:
-                `TaskManager` object.
+
         """
 
-        task = MultiStepRelaxFWTask.from_input(input, workdir, manager)
+        task = MultiStepRelaxStrategyFireTask(structure=structure, pseudos=pseudos, ksampling=ksampling,
+                                              relax_algo=relax_algo, accuracy=accuracy, spin_mode=spin_mode,
+                                              smearing=smearing, charge=charge, scf_algorithm=scf_algorithm,
+                                              deps={}, additional_steps=max_restart, **extra_abivars)
 
         fw = Firework(task)
 
-        self.wf = Workflow([fw])
+        # Create the workflow
+        if autoparal:
+            autoparal_fw = self.create_autoparal_fw(task)
+            self.wf = Workflow([autoparal_fw, fw], {autoparal_fw: [fw]})
+        else:
+            self.wf = Workflow([fw])
+
+
+class BandStructureFWWorkflow(AbstractFWWorkflow):
+    """
+    Workflow to calculate the band structure.
+    Can perform a relaxation or just a scf depending on the relax_algo parameter
+    """
+    def __init__(self, structure, pseudos, ksampling=1000, relax_algo="atoms_and_cell", accuracy="normal",
+                 spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
+                 use_symmetries=True, ksampling_band=8, nscf_bands=None, nscf_algorithm=None, autoparal=False,
+                 **extra_abivars):
+
+        # workflow to obtain the density
+        if relax_algo in relaxation_methods.keys():
+            if relax_algo == "atoms_and_cell":
+                dens_wf = RelaxFWWorkflow(structure=structure, pseudos=pseudos, ksampling=ksampling, accuracy=accuracy,
+                                          spin_mode=spin_mode, smearing=smearing, charge=charge,
+                                          scf_algorithm=scf_algorithm, autoparal=autoparal, **extra_abivars)
+                last_task = dens_wf.ioncell_task
+            else:
+                dens_wf = RelaxAtomsFWWorkflow(structure=structure, pseudos=pseudos, ksampling=ksampling,
+                                               accuracy=accuracy, spin_mode=spin_mode, smearing=smearing, charge=charge,
+                                               scf_algorithm=scf_algorithm, autoparal=autoparal, **extra_abivars)
+                last_task = dens_wf.task
+            deps = {id(last_task): 'DEN structure'}
+        else:
+            if relax_algo not in (None, 'scf', 'scf_only', 'no_relax'):
+                logger.warning('relax_algo value "%s" not recognized. Perorming a scf calculation.' % relax_algo)
+
+            dens_wf = ScfFWWorkflow(structure=structure, pseudos=pseudos, ksampling=ksampling, accuracy=accuracy,
+                                    spin_mode=spin_mode, smearing=smearing, charge=charge, scf_algorithm=scf_algorithm,
+                                    use_symmetries=use_symmetries, autoparal=autoparal, **extra_abivars)
+            last_task = dens_wf.task
+            deps = {id(last_task): 'DEN'}
+
+        # Create the ksampling based on high symmetry lines of the structure
+        if isinstance(ksampling_band, int):
+            # ksampling_band = KSampling.automatic_density(structure, 100)
+            ksampling_band = KSampling.path_from_structure(ksampling_band, structure)
+
+        # Create the nscf FW
+        nscf_task = NscfStrategyFireTask(scf_task=last_task, ksampling=ksampling_band, nscf_bands=nscf_bands,
+                                         nscf_algorithm=nscf_algorithm, deps=deps, **extra_abivars)
+        nscf_fw = Firework(nscf_task)
+
+        # Expand the first part to get the proper list of FWs and links
+        fws, links = parse_workflow([dens_wf.wf, nscf_fw], {dens_wf.wf: [nscf_fw]})
+
+        self.wf = Workflow(fws, links)
+

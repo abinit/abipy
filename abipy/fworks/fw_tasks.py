@@ -21,14 +21,13 @@ from pymatgen.io.abinitio.strategies import *
 import numpy as np
 import time
 import re
+import glob
 import logging
 import os
 import inspect
 from monty.json import MontyEncoder, MontyDecoder
 from functools import wraps
 import json
-
-
 
 logger = logging.getLogger(__name__)
 
@@ -52,8 +51,11 @@ class AbinitRuntimeError(Exception):
         return "Final status: {}. Hystory: {}".format(self.task.abitask.status, tuple(self.task.abitask.history))
 
     def to_dict(self):
-        report = self.task.get_event_report()
+        report = self.task.abitask.get_event_report()
         d = {'@class': self.__class__.__name__}
+        d['num_errors'] = report.num_errors
+        d['num_warnings'] = report.num_warnings
+        d['num_errors'] = report.num_errors
         if report.num_errors:
             errors = []
             for error in report.errors:
@@ -65,7 +67,7 @@ class AbinitRuntimeError(Exception):
                 warnings.append({'name': warning.name, 'message': warning.message})
             d['warnings'] = warnings
 
-        if self.task.status == self.task.S_UNCONVERGED:
+        if self.task.abitask.status == self.task.abitask.S_UNCONVERGED:
             d['error_code'] = ErrorCode.UNCONVERGED
         elif report.num_errors > 0:
             d['error_code'] = ErrorCode.UNRECOVERABLE
@@ -81,10 +83,10 @@ class InitializationError(Exception):
 
     def __str__(self):
         return "Error during task initilization. Status: {}. {}".format(
-            self.task.status, self.msg)
+            self.task.abitask.status, self.msg)
 
     def to_dict(self):
-        return {'@class': self.__class__.__name__, 'task_status': self.status,
+        return {'@class': self.__class__.__name__, 'task_status': self.task.abitask.status,
                 'message': self.msg, 'error_code': ErrorCode.INITIALIZATION}
 
 
@@ -127,10 +129,10 @@ class AbiFireTask(FireTaskBase):
         """
         dec = MontyDecoder()
         kwargs = {k: dec.process_decoded(v) for k, v in d.items()
-                if k in inspect.getargspec(cls.__init__).args}
+                  if k in inspect.getargspec(cls.__init__).args}
         # varargs = [dec.process_decoded(c) for c in d.get(inspect.getargspec(cls.__init__).varargs, [])]
         kwargs.update({kk: dec.process_decoded(vv)
-                  for kk, vv in d.get(inspect.getargspec(cls.__init__).keywords, {}).items()})
+                      for kk, vv in d.get(inspect.getargspec(cls.__init__).keywords, {}).items()})
         # return cls(**args, *varargs, **kwargs)
         return cls(**kwargs)
 
@@ -249,7 +251,22 @@ class AbiFireTask(FireTaskBase):
         """
         if '_queueadapter' in fw_spec:
             if 'ntasks' in fw_spec['_queueadapter']:
-                self.abitask.manager.set_mpi_ncpus(fw_spec['_queueadapter']['ntasks'])
+                self.abitask.manager.set_mpi_procs(fw_spec['_queueadapter']['ntasks'])
+
+    def _get_dep_path(self, dirname, ext):
+        filepath = os.path.join(dirname, self.abitask.prefix.odata + "_" + ext)
+        if os.path.isfile(filepath):
+            return filepath
+        else:
+            # if not existent it could be a multiple file. try to retrieve it
+            dirname = os.path.dirname(filepath)
+            files = glob.glob(os.path.join(dirname, '*[0-9]_'+ext))
+            if not files:
+                return filepath
+            new_path = sorted(glob.glob(os.path.join(dirname, '*[0-9]_'+ext)),
+                              key=lambda k: int(re.search('(\d+)(?!.*\d)', k).group()))[-1]
+            logger.warning("Path %s does not exist, used %s instead." % (filepath, new_path))
+            return new_path
 
     def config_run(self, fw_spec):
         # Set a logger for abinitio and abipy
@@ -264,22 +281,22 @@ class AbiFireTask(FireTaskBase):
         #         raise InitializationError(self, "Dependency is not satisfied: {}".format(str(dep)))
 
         # Resolve dependencies for structure and files and check
+        abi_deps = fw_spec.get('abi_deps', {})
         for node_id, refs in self.deps.items():
             refs_list = refs.split()
             if 'structure' in refs_list:
                 refs_list.remove('structure')
-                if not fw_spec.get('struct_'+str(node_id), None):
+                if not abi_deps.get('struct_'+str(node_id), None):
                     raise InitializationError(self, "No dependency information in spec for task id: {}".format(node_id))
-                updated_structure = abilab.Structure.from_dict(fw_spec['struct_'+str(node_id)])
-                self.abitask.change_structure(updated_structure)
-            if len(refs_list) > 0:
-                refs = ' '.join(refs_list)
+                updated_structure = abilab.Structure.from_dict(abi_deps['struct_'+str(node_id)])
+                self.abitask.strategy.structure = updated_structure
+            for ref in refs_list:
                 # Check for path in fw_spec
-                if not fw_spec.get('dep_'+str(node_id), None):
+                if not abi_deps.get('dep_'+str(node_id), None):
                     raise InitializationError(self, "No dependency information in spec for task id: {}".format(node_id))
-                path = fw_spec.get('dep_'+node_id)
-                path = os.path.join(path, self.abitask.prefix.odata + "_" + refs)
-                dep = Dependency(FileNode(path), refs)
+                path = abi_deps.get('dep_'+node_id)
+                path =  self._get_dep_path(path, ref)# os.path.join(path, self.abitask.prefix.odata + "_" + ref)
+                dep = Dependency(FileNode(path), ref)
                 # Check if dep is satisfied
                 if dep.status is not Node.S_OK:
                     raise InitializationError(self, "Dependency is not satisfied: {}".format(str(dep)))
@@ -365,149 +382,16 @@ class AbiFireTask(FireTaskBase):
 
         stored_data = {'history': list(self.abitask.history)}
 
-
-        update_spec = {'dep_'+str(self.task_id): os.getcwd()}
-
-        return FWAction(stored_data=stored_data, update_spec=update_spec)
-
-
-#########################################################################################
-# AbiFlow derived tasks
-#########################################################################################
-
-@explicit_serialize
-class ScfFWTask(ScfTask, FireTaskBase):
-    pass
-
-
-@explicit_serialize
-class NscfFWTask(NscfTask, FireTaskBase):
-    pass
-
-
-@explicit_serialize
-class RelaxFWTask(AbiFireTask):
-    def run_task(self, fw_spec):
-        if 'updated_structure' in fw_spec:
-            updated_structure = abilab.Structure.from_dict(fw_spec['updated_structure'])
-            self.abitask.change_structure(updated_structure)
-
-        return super(RelaxFWTask, self).run_task(fw_spec)
-
-    def task_analysis(self, fw_spec):
-        """
-        A relax task updates forwards an updated structure for the following tasks/FWs
-        """
-
-        # Raise an exception if the final status is not OK.
-        if self.abitask.status < self.abitask.S_OK:
-            raise AbinitRuntimeError(self)
-
-        stored_data = {'history': list(self.abitask.history)}
-
-        update_spec = {'updated_structure': self.abitask.read_final_structure().as_dict()}
+        # Forward previous dependencies and add the current one
+        update_spec = dict(abi_deps=dict({'dep_'+str(self.task_id): os.getcwd()}), **fw_spec.get('abi_deps', {}))
 
         return FWAction(stored_data=stored_data, update_spec=update_spec)
 
 
-@explicit_serialize
-class DdkFWTask(DdkTask, FireTaskBase):
-    pass
-
-
-@explicit_serialize
-class PhononFWTask(PhononTask, FireTaskBase):
-    pass
-
-
-@explicit_serialize
-class SigmaFWTask(SigmaTask, FireTaskBase):
-    pass
-
-
-@explicit_serialize
-class BseFWTask(BseTask, FireTaskBase):
-    pass
-
-
-@explicit_serialize
-class OpticFWTask(OpticTask, FireTaskBase):
-    pass
-
-
-@explicit_serialize
-class AnaddbFWTask(AnaddbTask, FireTaskBase):
-    pass
 
 #########################################################################################
 # Additional tasks
 #########################################################################################
-
-#TODO fix after refactoring
-@explicit_serialize
-class MultiStepRelaxFWTask(RelaxFWTask):
-    """
-    This class derives from RelaxFWTask, but allows a multi-FW relaxation.
-    If the final status is not converged, it creates a new FW to continue the relaxation.
-
-    This can be useful to split long relaxations in short jobs.
-    """
-
-    def __init__(self, *args, **kwargs):
-        self.max_steps = kwargs.pop('max_steps', 5)
-        super(MultiStepRelaxFWTask, self).__init__(*args, **kwargs)
-
-    def to_dict(self):
-        d = super(MultiStepRelaxFWTask, self).to_dict()
-        d['max_steps'] = self.max_steps
-
-        return d
-
-    @classmethod
-    def from_dict(cls, m_dict):
-        strategy, deps = cls._basic_from_dict(m_dict)
-
-        task = cls(strategy, workdir=m_dict['workdir'],
-                   manager=abilab.TaskManager.from_user_config(), deps=deps,
-                   max_steps=m_dict['max_steps'])
-
-        return task
-
-    # Generates the directory for the new task
-    def new_workdir(self):
-        if re.search(r'relaxstep\d+$', self.abitask.workdir):
-            num = int(re.search(r'\d+$', self.abitask.workdir).group())
-            return re.sub(r'\d+$', str(num+1), self.abitask.workdir)
-        else:
-            return self.abitask.workdir+'_relaxstep2'
-
-    def task_analysis(self, fw_spec):
-        """
-        A relax task updates forwards an updated structure for the following tasks/FWs.
-
-        If the status if Unconverged does raise an exception, but creates a new FW.
-        """
-
-        # Raise an exception if the final status is not Unconverged or OK.
-        if self.abitask.status < self.abitask.S_UNCONVERGED or self.abitask.status == self.abitask.S_ERROR:
-            raise AbinitRuntimeError(self)
-
-        stored_data = {'history': list(self.abitask.history)}
-        updated_structure = self.abitask.read_final_structure()
-
-        if self.abitask.status == self.abitask.S_UNCONVERGED:
-            if self.max_steps <= 1:
-                raise AbinitRuntimeError(self)
-            new_task = MultiStepRelaxFWTask(
-                self.abitask.strategy.deepcopy(), workdir=self.abitask.new_workdir(),
-                deps={self: "WFK"}, max_steps=self.max_steps-1)
-            new_task.change_structure(updated_structure)
-            new_step = Firework(new_task)
-            return FWAction(stored_data=stored_data, detours=new_step)
-
-        update_spec = {'updated_structure': updated_structure.as_dict()}
-        return FWAction(stored_data=stored_data, update_spec=update_spec)
-
 
 # @explicit_serialize
 # class AutoparalFWTask(AbiFireTask):
@@ -572,20 +456,25 @@ class AutoparalFireTask(AbiFireTask):
     tasks in the workflow.
     """
 
-    #TODO maybe the init should be modified to be independent of the task type
-    def __init__(self, firetask, max_ncpus=None):
+    def __init__(self, firetask, deps={}):
         self.firetask = firetask
         self.abitask = firetask.abitask
-        self.max_ncpus = max_ncpus
+        self.deps = deps
         self.firetask.abitask.manager.policy.autoparal = 1
-        if self.max_ncpus:
-            self.abitask.manager.policy.max_ncpus = self.max_ncpus
+        # if self.max_ncpus:
+        #     self.abitask.manager.policy.max_ncpus = self.max_ncpus
 
-    def run_task(self, fw_spec):
+    def run_abitask(self, fw_spec):
         """
         Runs the autoparal_fake_run method and updates queuadapter information
         for the following tasks.
         """
+
+        # Build here because it won't do that in the autoparal_run
+        self.abitask.build()
+        self.abitask.make_links()
+        self.abitask.setup()
+
         #TODO add a try?
         stauts = self.abitask.autoparal_run()
 
@@ -594,11 +483,12 @@ class AutoparalFireTask(AbiFireTask):
 
         output = os.path.join(self.abitask.workdir, "autoparal.json")
         with open(output, "r") as f:
-            optimal = json.load(f)
+            self.report = json.load(f)
 
+    def task_analysis(self, fw_spec):
         #TODO this will probably need to become a mod_spec
-        update_spec = {'_queueadapter': {'ntasks': optimal['mpi_ncpus']},
-                       'updated_abinit_vars': optimal['vars']}
+        update_spec = {'_queueadapter': {'ntasks': self.report['optimal_conf']['mpi_ncpus']},
+                       'updated_abinit_vars': self.report['optimal_conf']['vars']}
 
         return FWAction(update_spec=update_spec)
 
@@ -628,6 +518,10 @@ def initializer(func):
         func(self, *args, **kargs)
 
     return wrapper
+
+#########################################################################################
+# Strategy based tasks
+#########################################################################################
 
 
 class AbiStrategyFireTask(AbiFireTask):
@@ -734,19 +628,15 @@ class RelaxStrategyFireTask(AbiStrategyFireTask):
 
     def task_analysis(self, fw_spec):
         """
-        A relax task updates forwards an updated structure for the following tasks/FWs
+        A relax task updates forwards an updated structure for the following tasks/FW
         """
 
-        # Raise an exception if the final status is not OK.
-        if self.abitask.status < self.abitask.S_OK:
-            raise AbinitRuntimeError(self)
+        action = super(RelaxStrategyFireTask, self).task_analysis(fw_spec)
+        # FIXME here the code assumes that 'abi_dept' is already in the update_spec
+        action.update_spec['abi_deps'].update(
+            {'struct_'+str(self.task_id): self.abitask.read_final_structure().as_dict()})
 
-        stored_data = {'history': list(self.abitask.history)}
-
-        update_spec = {'struct_'+str(self.task_id): self.abitask.read_final_structure().as_dict(),
-                       'dep_'+str(self.task_id): os.getcwd()}
-
-        return FWAction(stored_data=stored_data, update_spec=update_spec)
+        return action
 
 
 @explicit_serialize
@@ -776,28 +666,6 @@ class NscfStrategyFireTask(AbiStrategyFireTask):
 
         self.abitask = NscfTask(strategy, workdir=None, manager=abilab.TaskManager.from_user_config(), deps={})
 
-    # def run_task(self, fw_spec):
-    #     if 'updated_structure' in fw_spec:
-    #         updated_structure = abilab.Structure.from_dict(fw_spec['updated_structure'])
-    #         self.abitask.change_structure(updated_structure)
-    #
-    #     return super(RelaxStrategyFireTask, self).run_task(fw_spec)
-    #
-    # def task_analysis(self, fw_spec):
-    #     """
-    #     A relax task updates forwards an updated structure for the following tasks/FWs
-    #     """
-    #
-    #     # Raise an exception if the final status is not OK.
-    #     if self.abitask.status < self.abitask.S_OK:
-    #         raise AbinitRuntimeError(self)
-    #
-    #     stored_data = {'history': list(self.abitask.history)}
-    #
-    #     update_spec = {'updated_structure': self.abitask.read_final_structure().as_dict(),
-    #                    'dep_'+self.task_id: os.getcwd()}
-    #
-    #     return FWAction(stored_data=stored_data, update_spec=update_spec)
 
 @explicit_serialize
 class StrategyWithInputFireTask(AbiStrategyFireTask):
@@ -827,7 +695,135 @@ class StrategyWithInputFireTask(AbiStrategyFireTask):
         self.abitask = task_cls(strategy, workdir=None, manager=abilab.TaskManager.from_user_config(), deps={})
 
 
+
+#TODO fix after refactoring
+@explicit_serialize
+class MultiStepRelaxStrategyFireTask(RelaxStrategyFireTask):
+    """
+    This class derives from RelaxFWTask, but allows a multi-FW relaxation.
+    If the final status is not converged, it creates a new FW to continue the relaxation.
+
+    This can be useful to split long relaxations in short jobs.
+    """
+
+    def __init__(self, structure, pseudos, ksampling=1000, relax_algo="atoms_only", accuracy="normal",
+                 spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
+                 deps={}, additional_steps=10, task_id=None, **extra_abivars):
+
+        super(MultiStepRelaxStrategyFireTask, self).__init__(
+            structure=structure, pseudos=pseudos, ksampling=ksampling, relax_algo=relax_algo, accuracy=accuracy,
+            spin_mode=spin_mode, smearing=smearing, charge=charge, scf_algorithm=scf_algorithm, deps=deps,
+            task_id=task_id, **extra_abivars)
+        self.additional_steps = additional_steps
+
+    @classmethod
+    def new_workdir(cls, dir):
+        " Generates the directory for the new task"
+        if re.search(r'relaxstep\d+$', dir):
+            num = int(re.search(r'\d+$', dir).group())
+            return re.sub(r'\d+$', str(num+1), dir)
+        else:
+            return dir+'_relaxstep2'
+
+    def task_analysis(self, fw_spec):
+        """
+        A relax task updates forwards an updated structure for the following tasks/FWs.
+        If the status is Unconverged does not raise an exception, but creates a new FW.
+        Previous dependencies are not forwarded to the new FW
+        """
+
+        # Raise an exception if the final status is not Unconverged or OK.
+        if self.abitask.status < self.abitask.S_UNCONVERGED or self.abitask.status == self.abitask.S_ERROR:
+            raise AbinitRuntimeError(self)
+
+        if self.abitask.status == self.abitask.S_UNCONVERGED:
+            stored_data = {'history': list(self.abitask.history)}
+            if self.additional_steps <= 1:
+                raise AbinitRuntimeError(self)
+            new_task = self.copy()
+            new_task.structure = self.abitask.read_final_structure()
+            new_task.deps = self.parse_deps({self: "WFK"})
+            new_task.additional_steps = self.additional_steps-1
+            new_spec = {'abi_deps': {'dep_'+str(self.task_id): os.getcwd()}}
+            if '_queueadapter' in fw_spec:
+                new_spec['_queueadapter'] = fw_spec.get('_queueadapter')
+            if '_launch_dir' in fw_spec:
+                new_spec['_launch_dir'] = self.new_workdir(fw_spec['_launch_dir'])
+            new_step = Firework(new_task, spec=new_spec)
+            return FWAction(stored_data=stored_data, detours=new_step)
+        else:
+            return super(MultiStepRelaxStrategyFireTask, self).task_analysis(fw_spec)
+
 relaxation_methods = {
     'atoms_only': RelaxationMethod.atoms_only,
     'atoms_and_cell': RelaxationMethod.atoms_and_cell
 }
+
+#########################################################################################
+# AbiFlow derived tasks
+#########################################################################################
+
+@explicit_serialize
+class ScfFWTask(StrategyWithInputFireTask):
+    def __init__(self, *args, **kwargs):
+        super(ScfFWTask, self).__init__(task_type=ScfTask, *args, **kwargs)
+
+
+@explicit_serialize
+class NscfFWTask(StrategyWithInputFireTask):
+    def __init__(self, *args, **kwargs):
+        super(NscfFWTask, self).__init__(task_type=ScfTask, *args, **kwargs)
+
+
+@explicit_serialize
+class RelaxFWTask(StrategyWithInputFireTask):
+    def __init__(self, *args, **kwargs):
+        super(RelaxFWTask, self).__init__(task_type=ScfTask, *args, **kwargs)
+
+    def task_analysis(self, fw_spec):
+        """
+        A relax task updates forwards an updated structure for the following tasks/FW
+        """
+
+        action = super(RelaxStrategyFireTask, self).task_analysis(fw_spec)
+        # FIXME here the code assumes that 'abi_dept' is already in the update_spec
+        action.update_spec['abi_deps'].update(
+            {'struct_'+str(self.task_id): self.abitask.read_final_structure().as_dict()})
+
+        return action
+
+
+@explicit_serialize
+class DdkFWTask(StrategyWithInputFireTask):
+    def __init__(self, *args, **kwargs):
+        super(DdkFWTask, self).__init__(task_type=ScfTask, *args, **kwargs)
+
+
+@explicit_serialize
+class PhononFWTask(StrategyWithInputFireTask):
+    def __init__(self, *args, **kwargs):
+        super(PhononFWTask, self).__init__(task_type=ScfTask, *args, **kwargs)
+
+
+@explicit_serialize
+class SigmaFWTask(StrategyWithInputFireTask):
+    def __init__(self, *args, **kwargs):
+        super(SigmaFWTask, self).__init__(task_type=ScfTask, *args, **kwargs)
+
+
+@explicit_serialize
+class BseFWTask(StrategyWithInputFireTask):
+    def __init__(self, *args, **kwargs):
+        super(BseFWTask, self).__init__(task_type=ScfTask, *args, **kwargs)
+
+
+@explicit_serialize
+class OpticFWTask(StrategyWithInputFireTask):
+    def __init__(self, *args, **kwargs):
+        super(OpticFWTask, self).__init__(task_type=ScfTask, *args, **kwargs)
+
+
+@explicit_serialize
+class AnaddbFWTask(StrategyWithInputFireTask):
+    def __init__(self, *args, **kwargs):
+        super(AnaddbFWTask, self).__init__(task_type=ScfTask, *args, **kwargs)
