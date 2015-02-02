@@ -9,6 +9,7 @@ import os
 import shutil
 import yaml
 import html2text
+from pymatgen.matproj.rest import MPRester, MPRestError
 import abipy.abilab as abilab
 import abipy.data as abidata
 
@@ -23,7 +24,6 @@ def get_abinit_variables():
     if __VARS_DATABASE is None: __VARS_DATABASE = VariableDatabase()
     return __VARS_DATABASE
         
-
 
 class VariableDatabase(object):
 
@@ -47,21 +47,45 @@ class VariableDatabase(object):
         return self.all_vars[variable]
 
 
-def help(stream=sys.stdout):
+class MPConnection(object):
     """
-    Display the tutorial text.
+    connection to the materials project database, should maby be sitting elsewhere ..
     """
-    stream.write(__doc__)
+    def __init__(self, mp_key=None):
+        if mp_key is None:
+            try:
+                mp_key = os.environ['MP_KEY']
+            except OSError:
+                mp_key = raw_input("there is no key for accesing the materials projects database\n"
+                                   "please provide one. (if you don't have one visit the materials \n"
+                                   "project website to generate one) :")
+        if len(mp_key) > 4:
+            self.mp_key = mp_key
+
+    def structure_from_mp(self, mpid):
+        """
+        return a structure from the materials datebase
+        """
+        with MPRester(self.mp_key) as mp_database:
+            structure = mp_database.get_structure_by_material_id(mpid, final=True)
+        structure.__class__ = abilab.Structure
+
+        return structure
 
 
-def get_local_copy():
+def get_pseudos(structure, extension='oncvpsp'):
     """
-    Copy this script to the current working dir to explore and edit
+    returns a list of pseudos names for structure. This list should be fed to abidata.pseudos like
+    abidata.pseudos(get_pseudos(structure))
     """
-    dst = os.path.basename(__file__[:-1])
-    if os.path.exists(dst):
-        raise RuntimeError("file %s already exists. Remove it before calling get_local_copy" % dst)
-    shutil.copyfile(__file__[:-1], dst)
+    pseudos = []
+    for element in structure.composition.elements:
+        pseudos.append(element+'.'+extension)
+        #todo test if the pseudo potential file exists
+    return pseudos
+
+
+
 
 
 def abinit_help(inputvariable):

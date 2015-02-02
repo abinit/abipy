@@ -19,7 +19,16 @@ Example::
 
 \033[94m The related abinit variables\033[0m
 
-\033[1m ngkpt \033[0m
+\033[1m ... \033[0m
+\033[1m ... \033[0m
+\033[1m ... \033[0m
+\033[1m ... \033[0m
+
+More info on the inputvariables and their use can be obtianed using the following function:
+
+\033[92m In []:\033[0m lesson.abinit_help(inputvariable)
+
+This will print the official abinit description of this inputvariable.
 
 \033[94m The abipy flows in this lesson\033[0m
 
@@ -52,9 +61,28 @@ To analyze the results.
 from __future__ import division, print_function
 
 import sys
-import abipy.abilab as abilab 
+import os
+import shutil
+import abipy.abilab as abilab
 import abipy.data as abidata
-from abipy.lessons.lesson_helper_functions import help, abinit_help, get_local_copy
+from abipy.lessons.lesson_helper_functions import abinit_help
+
+
+def help(stream=sys.stdout):
+    """
+    Display the tutorial text.
+    """
+    stream.write(__doc__)
+
+
+def get_local_copy():
+    """
+    Copy this script to the current working dir to explore and edit
+    """
+    dst = os.path.basename(__file__[:-1])
+    if os.path.exists(dst):
+        raise RuntimeError("file %s already exists. Remove it before calling get_local_copy" % dst)
+    shutil.copyfile(__file__[:-1], dst)
 
 
 class NgkptFlow(abilab.Flow):
@@ -116,6 +144,7 @@ def make_relax_flow():
         inp[i+1].set_kmesh(ngkpt=ngkpt, shiftk=[0,0,0])
 
     return RelaxFlow.from_inputs("flow_base3_relax", inputs=inp.split_datasets(), task_class=abilab.RelaxTask)
+
 
 class EbandsFlow(abilab.Flow):
     def analyze(self):
