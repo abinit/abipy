@@ -578,10 +578,14 @@ class Structure(pymatgen.Structure):
         Compute the supercell needed for a given qpoint and add the displacement.
 
         Args:
-            qpoint: q vector in reduced coordinate in reciprocal space.
-            displ: displacement in real space of the atoms, will be normalized to 1 Angstrom.
-            eta: pre-factor multiplying the displacement.
-            do_real: true if we want only the real part of the displacement.
+            qpoint:
+                q vector in reduced coordinate in reciprocal space.
+            displ:
+                displacement in real space of the atoms, will be normalized to 1 Angstrom.
+            eta:
+                pre-factor multiplying the displacement.
+            do_real:
+                true if we want only the real part of the displacement.
         """
         # I've copied code from make_supercell since the loop over supercell images
         # is inside make_supercell and I don't want to create a mapping
