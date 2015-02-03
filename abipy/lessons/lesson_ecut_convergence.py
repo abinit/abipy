@@ -5,20 +5,33 @@
 \033[94m Background\033[0m
 
 This lesson focuses on the convergence study of the completeness of the basis set used. In our case the basis consists
-of plane waves. Plane waves are inherently well suited to capture the periodic nature of a crystalline solid. The
-sharp features of the wavefunctions near the nucleus is however more problematic for plane waves. Describing these
+of plane waves. Plane waves are inherently well suited to capture the periodic nature of a crystalline solid. In addition
+a plane wave basis set has the advantage that it introduces only one convergence parameter, the kinetic energy cutoff.
+
+The sharp features of the wavefunctions near the nucleus are however problematic for plane waves. Describing these
 features would require very high frequency plane waves. In practice we will always use pseudo-potentials in stead of
-the actual ....
+the actual nuclear potential to improve convergence. Effectively a speudopotential replaces the sharp coulomb potential
+of the nucleus and the core electrons by someting more smooth inside the pseudization region that connects smoothly to
+the real potential outside the pseudization region.
 
 Needless to say a different pseudo potential will require a different cutoff for the calculation to be converged. In
 general normconserving pseudos require a larger cut-off that ultra-soft pseudos and Projector Augmented Wave 'pseudos'
 require even smaller cutoffs. Moreover two pseudo's of the same type for the same element may requier different cutoffs
-as well. 'Harder' (having a smaller radius of the region in which the pseudization takes place) require larger cutoffs
-than 'softer' pseudo's. There are however many more properties of a pseudo tha determine the cutoff needed.
+as well. 'Harder' (having a smaller pseudization radius) require larger cutoffs than 'softer' pseudo's. There are
+however many more properties of a pseudo tha determine the cutoff needed.
 
 \033[94m The related abinit variables\033[0m
 
+As said the most important parameter in the energy cutoff, in abinit ecut.
+
 \033[1m ecut \033[0m
+\033[1m dilatms \033[0m
+\033[1m ecutsm \033[0m
+\033[1m \033[0m
+
+More info on the inputvariables and their use can be obtained using the following function:
+
+\033[92m In []:\033[0m lesson.abinit_help(inputvariable)
 
 \033[94m The abipy flows in this lesson \033[0m
 
@@ -64,6 +77,14 @@ Start the flow with the scheduler and wait for completion.
 To analyze the results.
 
 \033[92m In []:\033[0m flow.analyze()
+
+\033[93m Exercises \033[0m
+
+
+
+\033[93m Next \033[0m
+
+A logical next lesson would be lesson_relaxation
 
 """
 from __future__ import division, print_function

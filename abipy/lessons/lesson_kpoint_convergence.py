@@ -103,6 +103,11 @@ implementations of the classes, methods and functions we used. You can get a cop
 \033[92m In []:\033[0m lesson.get_local_copy()
 
 Try to find what to change to change the set of k-point meshes that are used in the convergence study.
+
+
+\033[93m Next \033[0m
+
+A logical next lesson would be lesson_ecut_convergence
 """
 
 from __future__ import division, print_function
@@ -161,7 +166,7 @@ def make_ngkpt_flow(structure_file=None, metal=False):
         workdir = "lesson_Si_kpoint_convergence"
     else:
         structure = abilab.Structure.from_file(structure_file)
-        pseudos = abidata.pseudos(get_pseudos(structure))
+        pseudos = get_pseudos(structure)
         inp = abilab.AbiInput(pseudos=pseudos, ndtset=len(ngkpt_list))
         inp.set_structure(structure)
         workdir = "lesson_" + structure.composition.reduced_formula + "_kpoint_convergence"

@@ -80,7 +80,7 @@ def get_pseudos(structure, extension='oncvpsp'):
     """
     pseudos = []
     for element in structure.composition.elements:
-        pseudos.append(element+'.'+extension)
+        pseudos.append(abidata.pseudo(str(element)+'.'+extension))
         #todo test if the pseudo potential file exists
     return pseudos
 
