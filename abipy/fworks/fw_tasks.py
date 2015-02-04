@@ -4,10 +4,14 @@ Task classes for Fireworks.
 """
 from __future__ import print_function, division, unicode_literals
 
-#TODO check if this raises exceptions in environments without fireworks
-from fireworks.core.firework import Firework, FireTaskBase, FWAction
-from fireworks.utilities.fw_utilities import explicit_serialize
-from fireworks.utilities.fw_serializers import serialize_fw, recursive_deserialize, recursive_serialize
+try:
+    from fireworks.core.firework import Firework, FireTaskBase, FWAction
+    from fireworks.utilities.fw_utilities import explicit_serialize
+    from fireworks.utilities.fw_serializers import serialize_fw
+except ImportError:
+    FireTaskBase, FWAction, Firework = 3 * [object]
+    explicit_serialize = lambda x: x
+    serialize_fw = lambda x: x
 
 import abipy.data as abidata
 import abipy.abilab as abilab
@@ -16,9 +20,8 @@ from pymatgen.io.abinitio.tasks import AbinitTask, ScfTask, NscfTask, RelaxTask,
     SigmaTask, BseTask, OpticTask, AnaddbTask
 from pymatgen.io.abinitio.tasks import TaskRestartError
 from pymatgen.io.abinitio.tasks import Node, FileNode, Dependency
-from pymatgen.io.abinitio.pseudos import PseudoParser
-from pymatgen.io.abinitio.strategies import *
-import numpy as np
+from pymatgen.io.abinitio.pseudos import PseudoParser, PseudoTable
+from pymatgen.io.abinitio.strategies import ScfStrategy, NscfStrategy, RelaxStrategy, StrategyWithInput
 import time
 import re
 import glob
@@ -55,7 +58,6 @@ class AbinitRuntimeError(Exception):
         d = {'@class': self.__class__.__name__}
         d['num_errors'] = report.num_errors
         d['num_warnings'] = report.num_warnings
-        d['num_errors'] = report.num_errors
         if report.num_errors:
             errors = []
             for error in report.errors:
@@ -364,7 +366,6 @@ class AbiFireTask(FireTaskBase):
 
         return self.task_analysis(fw_spec)
 
-    #TODO find a better name. Set it to abstract?
     def task_analysis(self, fw_spec):
         """
         Analyzes the final status of the task and prepares the action.
@@ -381,6 +382,19 @@ class AbiFireTask(FireTaskBase):
             raise AbinitRuntimeError(self)
 
         stored_data = {'history': list(self.abitask.history)}
+        report = self.abitask.get_event_report()
+        stored_data['num_comments'] = report.num_comments
+        if report.num_comments:
+            comments = []
+            for comment in report.comments:
+                comments.append({'name': comment.name, 'message': comment.message})
+            stored_data['comments'] = comments
+        stored_data['num_warnings'] = report.num_warnings
+        if report.num_warnings:
+            warnings = []
+            for warning in report.warnings:
+                warnings.append({'name': warning.name, 'message': warning.message})
+            stored_data['warnings'] = warnings
 
         # Forward previous dependencies and add the current one
         update_spec = dict(abi_deps=dict({'dep_'+str(self.task_id): os.getcwd()}), **fw_spec.get('abi_deps', {}))

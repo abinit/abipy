@@ -1,6 +1,9 @@
 from __future__ import print_function, division, unicode_literals
 
-from fireworks import Workflow
+try:
+    from fireworks import Workflow
+except ImportError:
+    Workflow = object
 
 
 def parse_workflow(fws, links_dict):

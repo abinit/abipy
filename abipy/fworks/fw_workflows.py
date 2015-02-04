@@ -4,13 +4,17 @@ Firework workflows based on abipy Tasks.
 """
 from __future__ import print_function, division, unicode_literals
 
+try:
+    from fireworks.core.launchpad import LaunchPad
+    from fireworks.core.firework import Firework, Workflow
+except ImportError:
+    LaunchPad, Workflow, Firework = 3 * [object]
+
 import abc
 import six
 import os
 import logging
 import sys
-from fireworks.core.launchpad import LaunchPad
-from fireworks.core.firework import Firework, Workflow
 from fw_tasks import ScfStrategyFireTask, RelaxStrategyFireTask, NscfStrategyFireTask, AutoparalFireTask, \
     MultiStepRelaxStrategyFireTask, relaxation_methods
 from fw_utils import parse_workflow
