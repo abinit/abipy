@@ -4,10 +4,13 @@
 
 \033[94m Background\033[0m
 
-One of the tasks that is most performed using DFT is the relaxation of an atomic structure. Effectively we search
-for that structure for which the total energy is minimal. Since the total energy is in principal exact in DFT the atomic
-position are in general rather good. 'In principal' means if the echange-correlation functional would be exact. However
-since we are comparing differences in total energies an certain amount of error-cancelation can be expected.
+One of the tasks that is most performed using DFT is the relaxation of an
+atomic structure. Effectively we search for that structure for which the
+total energy is minimal. Since the total energy is in principal exact in
+DFT the atomic position are in general rather good. 'In principal' means
+if the exchange-correlation functional would be exact. However, since we
+are comparing differences in total energies an certain amount of
+error-cancellation can be expected.
 
 In this lesson we focus on different types of structure relaxations.
 
@@ -19,12 +22,23 @@ In this lesson we focus on different types of structure relaxations.
 \033[1m ecutsm \033[0m
 \033[1m ntime \033[0m
 
+More info on the inputvariables and their use can be obtained using
+the following function:
+
+\033[92m In []:\033[0m lesson.abinit_help(inputvariable)
+
+
 \033[94m The abipy flows in this lesson\033[0m
 
-In this lesson we will use two different relaxation flows. One flow will calculate the total energies of a compound
-at various volumes and fit an equation of state to the energy v.s. volume data. Besides the optimal volume, where the
-energy is minimal, this will also provide the bulk modulus, the 'compressebility' of the systems. The other flow will
-automatically optimize all degrees of freedom.
+In this lesson we will use two different relaxation flows. One flow will
+calculate the total energies of a compound at various volumes and fit an
+equation of state to the energy v.s. volume data. Besides the optimal
+volume, where the energy is minimal, this will also provide the bulk modulus,
+the 'compressebility' of the systems. The other flow will automatically
+optimize all degrees of freedom. In our first example Si, there is only
+one degree of freedom, due to the symmetry of the crystal, the volume of
+the unit cell, or the lattice parameter. In the second example, GaN, the
+symmetry is lower and one internal degree of freedom appears.
 
 
 \033[94m The course of this lesson\033[0m
@@ -57,32 +71,37 @@ To analyze the results.
 
 \033[92m In []:\033[0m flow.analyze()
 
-In the case of silicon, it will show a fit of the total energy vs the volume of the unit cell.
-The minimum of this curve is the equilibrium volume. From this fit, we can also obtain the bulk modulus.
+In the case of silicon, it will show a fit of the total energy vs the
+volume of the unit cell. The minimum of this curve is the equilibrium
+volume. From this fit, we can also obtain the bulk modulus.
 
 Volume of the unit cell of silicon : XXX A^3 [ source ?]
 Bulk modulus : 98.8 GPa [ source ? ]
 
-In the case of gallium arsenide, you will see the change of equilibrium volume and length of the box
-with respect to the k-point mesh.
+In the case of gallium arsenide, you will see the change of equilibrium
+volume and length of the box with respect to the k-point mesh.
 
 Volume of the unit cell of GaN : XXX A^3 [ source ?]
 Vertical distance between Ga and N : XXX A [ source ?]
 
-Of course you will need to converge your results with respect to the kpoint sampling and with respect with ecut...
+Of course you will need to converge your results with respect to
+the kpoint sampling and with respect with ecut...
 
 \033[93m Exercises \033[0m
 
-As an exercise you can now try to get the equilibrium unit cell of silicon automatically using abinit.
-You can inspire yourself from the GaN relaxation.
-First download a local copy of the python script.
+As an exercise you can now try to get the equilibrium unit cell
+of silicon automatically using abinit. You can inspire yourself
+from the GaN relaxation. First download a local copy of the python
+script.
 
 \033[92m In []:\033[0m lesson.get_local_copy()
 
-And have a look in make_relax_gan_flow(), try to do the same with 'si.cif' file instead of 'gan.cif'
+And have a look in make_relax_gan_flow(), try to do the same
+with 'si.cif' file instead of 'gan.cif'
 
-As a second exercice, you can try to converge the results obtained here with respect to the k-point sampling
-and with respect to ecut and compare the converged results with experimental data.
+As a second exercice, you can try to converge the results obtained
+here with respect to the k-point sampling and with respect to ecut
+and compare the converged results with experimental data.
 
 \033[93m Next \033[0m
 
