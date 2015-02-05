@@ -15,7 +15,7 @@ from pymatgen.io.abinitio.wrappers import Mrgscr, Mrgddb, Mrggkk
 #    PhononWorkflow)
 from pymatgen.io.abinitio.tasks import *
 from pymatgen.io.abinitio.works import *
-from pymatgen.io.abinitio.flows import *
+from pymatgen.io.abinitio.flows import Flow, G0W0WithQptdmFlow, bandstructure_flow, g0w0_flow, phonon_flow
 from pymatgen.io.abinitio.launcher import PyFlowScheduler
 
 #from abipy.tools.prettytable import PrettyTable

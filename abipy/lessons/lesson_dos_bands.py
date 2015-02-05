@@ -74,17 +74,28 @@ def get_local_copy():
 
 class DosFlow(abilab.Flow):
     def analyze(self):
-        with abilab.abirobot(self, "GSR") as robot:
-            data = robot.get_dataframe()
-            #robot.ebands_plotter().plot()
+        #with abilab.abirobot(self, "GSR") as robot:
+        #    data = robot.get_dataframe()
+        #    #robot.ebands_plotter().plot()
 
-        import matplotlib.pyplot as plt
-        data.plot(x="energy", y="dos", title="Density Of States", legend="Energy [eV]", style="b-o")
-        #todo correct plot matteo could you please?
-        plt.show()
+        #import matplotlib.pyplot as plt
+        #data.plot(x="energy", y="dos", title="Density Of States", legend="Energy [eV]", style="b-o")
+        ##todo correct plot matteo could you please?
+        #plt.show()
+
+        plotter = abilab.ElectronDosPlotter()
+        for task in self[0]:
+            with task.open_gsr() as gsr:
+                edos = gsr.ebands.get_edos(method="gaussian", step=0.01, width=0.1)
+                ngkpt = task.strategy.abinit_input[0]["ngkpt"]
+                plotter.add_edos("ngkpt %s" % str(ngkpt), edos)
+        
+        return plotter.plot()
 
 
 def make_kptdos_flow():
+    # Here we compute DOSes with SCF runs, a more standard and efficient approach would be 
+    # to a SCF run and then multiple NSCF runs to get the DOS.
     ngkpt_list = [(2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)]
 
     inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=len(ngkpt_list))
@@ -110,7 +121,7 @@ class EbandsFlow(abilab.Flow):
 
 def make_electronic_structure_flow():
     """Band structure calculation."""
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)
+    inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=3)
     inp.set_structure(abidata.cif_file("si.cif"))
 
     # Global variables
@@ -125,8 +136,8 @@ def make_electronic_structure_flow():
     inp[2].set_kpath(ndivsm=5)
 
     # Dataset 3
-    inp[2].set_variables(tolwfr=1e-15)
-    inp[1].set_kmesh(ngkpt=[6,6,6], shiftk=[0,0,0])
+    inp[3].set_variables(tolwfr=1e-15)
+    inp[3].set_kmesh(ngkpt=[6,6,6], shiftk=[0,0,0])
 
     scf_input, nscf_input, dos_input = inp.split_datasets()
 
@@ -135,6 +146,8 @@ def make_electronic_structure_flow():
 
 
 if __name__ == "__main__":
-    flow = make_electronic_structure_flow()
+    #flow = make_electronic_structure_flow()
+    flow = make_kptdos_flow()
     flow.make_scheduler().start()
+    #flow = abilab.Flow.pickle_load("flow_kptdos")
     flow.analyze()

@@ -2,7 +2,6 @@
 #
 # This example shows how to compute the gaussian DOS from
 # the eigenvalues stored in the WFK file.
-import matplotlib.pyplot as plt
 
 import abipy.data as abidata
 from abipy.abilab import abiopen
