@@ -597,6 +597,8 @@ class AbiInput(Input, Has_Structure):
         elif isinstance(structure, collections.Mapping): 
             structure = Structure.from_abivars(**structure)
 
+        if dtset is None:
+            dtset = slice(self.ndtset+1)
         for idt in self._dtset2range(dtset):
             self[idt].set_structure(structure)
 
@@ -653,6 +655,41 @@ class AbiInput(Input, Has_Structure):
         for idt in self._dtset2range(dtset):
             self[idt].set_kptgw(kptgw, bdgw)
 
+    def as_dict(self):
+        dtsets = []
+        for ds in self:
+            ds_copy = ds.deepcopy()
+            for key, value in ds_copy.iteritems():
+                if isinstance(value, np.ndarray):
+                    ds_copy[key] = value.tolist()
+            dtsets.append(dict(ds_copy))
+        #for ds in self:
+        #    dtsets.append(ds.as_dict())
+        d = {'pseudos': [p.as_dict() for p in self.pseudos], 'datasets': dtsets,
+             '@module': self.__class__.__module__, '@class': self.__class__.__name__}
+        return d
+
+    @classmethod
+    def from_dict(cls, d):
+        pseudos_dict = d['pseudos']
+        pseudos = []
+        for pseudo in pseudos_dict:
+            # Try first to get from abidata for testing purposes
+            #TODO to be removed
+            try:
+                import abipy.data as abidata
+                pseudos.append(abidata.pseudo(pseudo['basename']))
+            except:
+                pseudos.append(Pseudo.from_file(pseudo['path']))
+
+        dtsets = d['datasets']
+        abiintput = cls(pseudos, ndtset=dtsets[0]['ndtset'])
+        n = 0
+        for ds in dtsets:
+            abiintput.set_vars(dtset=n, **ds)
+            n += 1
+
+        return abiintput
 
 class Dataset(mixins.MappingMixin, Has_Structure):
     """
