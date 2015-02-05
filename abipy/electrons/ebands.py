@@ -1338,6 +1338,23 @@ class ElectronBands(object):
         fig = plt.gcf()
         return fig
 
+    def widget_plot(self):
+        from IPython.html import widgets # Widget definitions
+        from IPython.display import display # Used to display widgets in the notebook
+ 
+        widget = widgets.FloatSliderWidget()
+
+        #def on_value_change(name, value):
+        def on_value_change():
+            #print(value)
+            #print(self)
+            from IPython.display import clear_output
+            clear_output()
+            self.get_edos().plot() #method=method, step=step, width=width)
+
+        widget.on_trait_change(on_value_change)
+        return widget
+
     def export_bxsf(self, filepath):
         """
         Export the full band structure on filepath in the BXSF format
