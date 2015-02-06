@@ -899,7 +899,7 @@ class ElectronBands(object):
         Compute the electronic DOS on a linear mesh.
 
         Args:
-            method: String defining the method
+            method: String defining the method for the computation of the DOS.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
 
@@ -1745,22 +1745,21 @@ class ElectronDosPlotter(object):
         self._edoses_dict[label] = edos
 
     @add_fig_kwargs
-    def plot(self, **kwargs):
+    def plot(self, ax=None, **kwargs):
         """
         Plot the band structure and the DOS.
+
+        Args:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
 
         Returns:
             `matplotlib` figure.
         """
-        import matplotlib.pyplot as plt
-        fig = plt.figure()
-        ax = fig.add_subplot(1, 1, 1)
+        ax, fig, plt = get_ax_fig_plt(ax)
 
         for (label, dos) in self.edoses_dict.items():
             # Use relative paths if label is a file.
-            if os.path.isfile(label):
-                label = os.path.relpath(label)
-
+            if os.path.isfile(label): label = os.path.relpath(label)
             dos.plot_ax(ax, label=label)
 
         ax.grid(True)
@@ -2114,9 +2113,12 @@ class ElectronDOSPlotter(object):
             self.add_dos(label, dos_dict[label])
 
     @add_fig_kwargs
-    def plot(self, *args, **kwargs):
+    def plot(self, ax=None, *args, **kwargs):
         """
         Get a matplotlib plot showing the DOSes.
+
+        Args:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -2125,10 +2127,7 @@ class ElectronDOSPlotter(object):
         ylim            y-axis limits.  None (default) for automatic determination.
         ==============  ==============================================================
         """
-        import matplotlib.pyplot as plt
-        fig = plt.figure()
-
-        ax = fig.add_subplot(1,1,1)
+        ax, fig, plt = get_ax_fig_plt(ax)
         ax.grid(True)
 
         xlim = kwargs.pop("xlim", None)
@@ -2148,6 +2147,6 @@ class ElectronDOSPlotter(object):
             legends.append("DOS: %s" % label)
 
         # Set legends.
-        ax.legend(lines, legends, loc='upper right', shadow=True)
+        ax.legend(lines, legends, loc='best', shadow=True)
 
         return fig

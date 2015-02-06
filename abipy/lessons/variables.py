@@ -1,15 +1,14 @@
-#!/usr/bin/env python
+from __future__ import division, print_function, unicode_literals
 
 import yaml
+import html2text
 import abipy.data as abidata
 
-f = open(abidata.var_file('characteristics.yml'),'r')
-list_chars=yaml.load(f);
-f.close();
+with open(abidata.var_file('characteristics.yml'),'r') as f:
+    list_chars = yaml.load(f);
 
-f = open(abidata.var_file('sections.yml'),'r')
-list_sections=yaml.load(f);
-f.close();
+with open(abidata.var_file('sections.yml'),'r') as f:
+    list_sections = yaml.load(f)
 
 list_specials = [
 ('AUTO_FROM_PSP','Means that the value is read from the PSP file'),
@@ -161,3 +160,51 @@ class MultipleValue(yaml.YAMLObject):
            return "*"+str(self.value)
         else:
 	   return str(self.number)+"*"+str(self.value)
+
+
+
+# Public API
+__VARS_DATABASE = None
+
+
+def get_abinit_variables():
+    """Returns the database with the description of the ABINIT variables."""
+    global __VARS_DATABASE
+    if __VARS_DATABASE is None: __VARS_DATABASE = VariableDatabase()
+    return __VARS_DATABASE
+        
+
+class VariableDatabase(object):
+
+    all_vars = None
+
+    def __init__(self):
+        self.load_vars(abidata.var_file('abinit_vars.yml'))
+
+    def load_vars(self, file_yml):
+        f_var = open(file_yml, 'r')
+        variables = yaml.load(f_var)
+        f_var.close()
+
+        self.all_vars = dict()
+
+        for var in variables:
+            self.all_vars[var.varname] = var
+
+    def get_var(self, variable):
+        return self.all_vars[variable]
+
+
+def abinit_help(varname):
+    """
+    Print the abinit documentation on the ABINIT input variable `varname`
+    """
+    database = get_abinit_variables()
+    try:
+        var = database.get_var(varname)
+    except KeyError:
+        print("Variable %s not in the database" % varname)
+        return
+        
+    text = html2text.html2text("<h2>Default value : </h2>"+str(var.defaultval)+"<br /><h2>Description</h2>"+str(var.text))
+    print(text.replace("[[", "\033[1m").replace("]]", "\033[0m"))

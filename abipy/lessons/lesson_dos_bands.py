@@ -52,6 +52,7 @@ import os
 import shutil
 import abipy.abilab as abilab
 import abipy.data as abidata
+
 from abipy.lessons.lesson_helper_functions import abinit_help
 
 
@@ -102,7 +103,7 @@ def make_kptdos_flow():
     inp.set_structure(abidata.cif_file("si.cif"))
 
     # Global variables
-    inp.set_variables(ecut=10, tolvrs=1e-9)
+    inp.set_vars(ecut=10, tolvrs=1e-9)
 
     for i, ngkpt in enumerate(ngkpt_list):
         inp[i+1].set_kmesh(ngkpt=ngkpt, shiftk=[0,0,0])
@@ -116,38 +117,63 @@ class EbandsFlow(abilab.Flow):
         with nscf_task.open_gsr() as gsr:
             return gsr.ebands.plot()
 
+    def plot_edoses(self, method="gaussian", step=0.01, width=0.1, **kwargs):
+        plotter = abilab.ElectronDosPlotter()
+        for task in self.dos_tasks:
+            with task.open_gsr() as gsr:
+                edos = gsr.ebands.get_edos(method=method, step=step, width=width)
+                ngkpt = task.get_inpvar("ngkpt")
+                plotter.add_edos("ngkpt %s" % str(ngkpt), edos)
+
+        return plotter.plot(**kwargs)
+
+    def plot_ebands_and_dos(self, dos_idx=0, **kwargs):
         # plot dos
+        with self.nscf_task.open_gsr() as gsr: 
+            gs_ebands = gsr.ebands
+
+        with self.dos_tasks[dos_idx].open_gsr() as gsr: 
+            dos_ebands = gsr.ebands
+
+        edos = dos_ebands.get_edos(method="gaussian", step=0.01, width=0.1)
+        return gs_ebands.plot_with_edos(edos, **kwargs)
 
 
-def make_electronic_structure_flow():
+def make_electronic_structure_flow(ngkpts_for_dos = [(2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)]):
     """Band structure calculation."""
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=3)
+    inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=2 + len(ngkpts_for_dos))
     inp.set_structure(abidata.cif_file("si.cif"))
 
     # Global variables
     inp.ecut = 10
 
     # Dataset 1
-    inp[1].set_variables(tolvrs=1e-9)
+    inp[1].set_vars(tolvrs=1e-9)
     inp[1].set_kmesh(ngkpt=[4,4,4], shiftk=[0,0,0])
 
     # Dataset 2
-    inp[2].set_variables(tolwfr=1e-15)
+    inp[2].set_vars(tolwfr=1e-15)
     inp[2].set_kpath(ndivsm=5)
 
     # Dataset 3
-    inp[3].set_variables(tolwfr=1e-15)
-    inp[3].set_kmesh(ngkpt=[6,6,6], shiftk=[0,0,0])
+    for i, ngkpt in enumerate(ngkpts_for_dos):
+        inp[3+i].set_vars(tolwfr=1e-15)
+        inp[3+i].set_kmesh(ngkpt=ngkpt, shiftk=[0,0,0])
 
-    scf_input, nscf_input, dos_input = inp.split_datasets()
+    inputs = inp.split_datasets()
+    scf_input, nscf_input, dos_input = inputs[0], inputs[1], inputs[2:]
 
     return abilab.bandstructure_flow(workdir="flow_base3_ebands", scf_input=scf_input, nscf_input=nscf_input,
-                                     dos_inputs=dos_input, flow_class=EbandsFlow, manager=None)
+                                     dos_inputs=dos_input, flow_class=EbandsFlow)
 
 
 if __name__ == "__main__":
     #flow = make_electronic_structure_flow()
-    flow = make_kptdos_flow()
-    flow.make_scheduler().start()
+    #flow.build_and_pickle_dump()
+    #flow = make_kptdos_flow()
+    #flow.make_scheduler().start()
     #flow = abilab.Flow.pickle_load("flow_kptdos")
-    flow.analyze()
+    flow = abilab.Flow.pickle_load("flow_base3_ebands")
+    #flow.analyze()
+    #flow.plot_ebands_and_dos()
+    flow.plot_edoses()
