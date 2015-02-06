@@ -174,7 +174,7 @@ class EosFlow(abilab.Flow):
 
 def make_relax_flow(structure_file=None):
     # Structural relaxation for different k-point samplings.
-    ngkpt_list = [[2, 2, 2], [4, 4, 4], [6, 6, 6]]
+    ngkpt_list = [[3, 3, 2], [6, 6, 4], [8, 8, 6]]
 
 
     if structure_file is None:
