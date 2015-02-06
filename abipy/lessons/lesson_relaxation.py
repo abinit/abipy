@@ -118,8 +118,9 @@ import numpy as np
 import abipy.abilab as abilab
 import abipy.data as abidata
 from abipy.core import Structure
+from abipy.abilab import abinit_help
 from pymatgen.io.abinitio.eos import EOS
-from abipy.lessons.lesson_helper_functions import abinit_help, get_pseudos
+from abipy.lessons.lesson_helper_functions import get_pseudos
 
 
 def help(stream=sys.stdout):
@@ -142,7 +143,8 @@ def get_local_copy():
 class RelaxFlow(abilab.Flow):
     def analyze(self):
         with abilab.GsrRobot.open(self) as robot:
-            data = robot.get_dataframe()
+            data = robot.get_dataframe("xcart")
+            print(data)
             robot.pairplot(x_vars="nkpts", y_vars=["a", "volume"]) #, hue="tsmear")
 
             #grid = sns.PairGrid(data, x_vars="nkpts", y_vars=["a", "volume"]) #, hue="tsmear")
@@ -165,20 +167,27 @@ class EosFlow(abilab.Flow):
         eos_fit.plot()
 
 
-def make_relax_flow():
+def make_relax_flow(structure_file=None):
     # Structural relaxation for different k-point samplings.
-    ngkpt_list = [[2, 2, 2], [4, 4, 4], [6, 6, 6], [8, 8, 8]]
-    structure = abilab.Structure.from_file(abidata.cif_file("gan2.cif"))
+    ngkpt_list = [[2, 2, 2], [4, 4, 4], [6, 6, 6]]
+
+
+    if structure_file is None:
+        structure = abilab.Structure.from_file(abidata.cif_file("gan2.cif"))
+    else:
+        structure = abilab.Structure.from_file(structure_file)
+
     inp = abilab.AbiInput(pseudos=get_pseudos(structure), ndtset=len(ngkpt_list))
     inp.set_structure(structure)
 
     # Global variables
     inp.set_variables(
-        ecut=10,
-        tolvrs=1e-10,
+        ecut=30,
+        tolrff=1.0e-2,
+        nstep=100,
         optcell=2,
         ionmov=3,
-        ntime=50,
+        ntime=500,
         dilatmx=1.05,
         ecutsm=0.5,
     )
