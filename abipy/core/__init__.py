@@ -1,4 +1,4 @@
-from .func1d import *
+#from .func1d import *
 from .kpoints import *
 from .structure import *
 from .symmetries import *

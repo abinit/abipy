@@ -5,9 +5,6 @@ reusable functions for lessons
 from __future__ import division, print_function, unicode_literals, division
 
 import sys
-import os
-import shutil
-import yaml
 
 import abipy.abilab as abilab
 import abipy.data as abidata

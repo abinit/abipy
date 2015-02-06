@@ -35,7 +35,7 @@ Usage example:\n
     except Exception as exc: 
         show_examples_and_exit(error_code=1)
 
-    from abipy.lessons.variables import abinit_help
+    from abipy.abilab import abinit_help
     abinit_help(options.varname)
 
 

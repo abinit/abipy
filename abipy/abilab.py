@@ -37,7 +37,8 @@ import pymatgen.core.units as units
 FloatWithUnit = units.FloatWithUnit
 ArrayWithUnit = units.ArrayWithUnit
 
-#from abinit_help
+# Documentation.
+from abipy.htc.abivars_db import abinit_help
 
 
 def _straceback():

@@ -73,7 +73,7 @@ def main(options):
 
     if options.sched:
         flow.make_scheduler().start()
-    else
+    else:
         print("nlaunches", flow.rapidfire())
 
     return 0

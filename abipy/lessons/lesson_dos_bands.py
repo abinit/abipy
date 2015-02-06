@@ -53,7 +53,7 @@ import shutil
 import abipy.abilab as abilab
 import abipy.data as abidata
 
-from abipy.lessons.lesson_helper_functions import abinit_help
+abinit_help = abilab.abinit_help
 
 
 def help(stream=sys.stdout):
