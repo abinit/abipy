@@ -179,7 +179,7 @@ class NgkptFlow(abilab.Flow):
             #robot.ebands_plotter().plot()
 
         import matplotlib.pyplot as plt
-        data.plot(x="nkpts", y="energy", title="Total energy vs nkpts", legend="Energy [eV]", style="b-o")
+        data.plot(x="nkpts", y="energy", title="Total energy vs nkpts", legend=False, style="b-o")
         plt.show()
 
 
