@@ -174,10 +174,11 @@ class Robot(object):
                 self._exceptions.append(str(exc))
         return d
 
-    def pairplot(self, getter="get_dataframe", map_kws=None, show=True, **kwargs):
+    def pairplot(self, data=None, getter="get_dataframe", map_kws=None, show=True, **kwargs):
         import matplotlib.pyplot as plt
         import seaborn as sns
-        data = getattr(self, getter)()
+        if data is None:
+          data = getattr(self, getter)()
 
         #grid = sns.PairGrid(data, x_vars="nkpts", y_vars=["a", "volume"]) #, hue="tsmear")
         grid = sns.PairGrid(data, **kwargs)

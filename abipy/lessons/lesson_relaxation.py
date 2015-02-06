@@ -140,12 +140,17 @@ def get_local_copy():
     shutil.copyfile(__file__[:-1], dst)
 
 
+def get_dist(gsrfile):
+    struct = gsrfile.structure
+    red_dist = struct.frac_coords[2][2] - struct.frac_coords[0][2]
+    return 'u',red_dist
+
 class RelaxFlow(abilab.Flow):
+
     def analyze(self):
         with abilab.GsrRobot.open(self) as robot:
-            data = robot.get_dataframe("xcart")
-            print(data)
-            robot.pairplot(x_vars="nkpts", y_vars=["a", "volume"]) #, hue="tsmear")
+            data = robot.get_dataframe(funcs=get_dist)
+            robot.pairplot(data, x_vars="nkpts", y_vars=["a", "c", "u"]) #, hue="tsmear")
 
             #grid = sns.PairGrid(data, x_vars="nkpts", y_vars=["a", "volume"]) #, hue="tsmear")
             #grid.map(plt.plot, marker="o")
