@@ -89,7 +89,7 @@ class EbandsDosFlow(abilab.Flow):
 
         return plotter.plot(**kwargs)
 
-    def plot_ebands_and_dos(self, dos_idx=0, **kwargs):
+    def plot_ebands_with_edos(self, dos_idx=0, **kwargs):
         # plot dos
         with self.nscf_task.open_gsr() as gsr: 
             gs_ebands = gsr.ebands
@@ -101,7 +101,7 @@ class EbandsDosFlow(abilab.Flow):
         return gs_ebands.plot_with_edos(edos, **kwargs)
 
 
-def make_electronic_structure_flow(ngkpts_for_dos = [(2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)]):
+def make_electronic_structure_flow(ngkpts_for_dos=[(2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)]):
     """Band structure calculation."""
     inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=2 + len(ngkpts_for_dos))
     inp.set_structure(abidata.cif_file("si.cif"))
@@ -133,5 +133,5 @@ if __name__ == "__main__":
     flow = make_electronic_structure_flow()
     flow.make_scheduler().start()
     #flow = abilab.Flow.pickle_load("flow_base3_ebands")
-    flow.plot_ebands_and_dos()
-    #flow.plot_edoses()
+    flow[0].plot_ebands_with_edos()
+    flow[0].plot_edoses()

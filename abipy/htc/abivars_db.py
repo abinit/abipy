@@ -7,11 +7,7 @@ import json
 import yaml
 import html2text
 
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
-
+from six.moves import cPickle as pickle
 from collections import OrderedDict
 from monty.functools import lazy_property
 

@@ -34,7 +34,7 @@ def make_inputs(ngkpt=(4,4,4), ecut=8, ecuteps=2):
     )
 
     # This shift breaks the symmetry of the k-mesh.
-    inp[2].set_kmesh(ngkpt=ngkpt, shiftk=(0.11,0.21,0.31))
+    inp[2].set_kmesh(ngkpt=ngkpt, shiftk=(0.11, 0.21, 0.31))
 
     # BSE run with Haydock iterative method (only resonant + W + v)
     inp[3].set_vars(
