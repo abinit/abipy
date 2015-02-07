@@ -26,7 +26,7 @@ def relax_input(tsmear, nksmall):
     inp.set_autokmesh(nksmall=nksmall)
 
     # Optimization of the lattice parameters
-    inp.set_variables(
+    inp.set_vars(
         ecut=6, 
         occopt=4,
         tsmear=tsmear,

@@ -130,9 +130,8 @@ def make_electronic_structure_flow(ngkpts_for_dos = [(2, 2, 2), (4, 4, 4), (6, 6
 
 
 if __name__ == "__main__":
-    #flow = make_kptdos_flow()
-    #flow.make_scheduler().start()
+    flow = make_electronic_structure_flow()
+    flow.make_scheduler().start()
     #flow = abilab.Flow.pickle_load("flow_base3_ebands")
-    #flow.analyze()
-    #flow.plot_ebands_and_dos()
-    flow.plot_edoses()
+    flow.plot_ebands_and_dos()
+    #flow.plot_edoses()

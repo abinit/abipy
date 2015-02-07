@@ -201,10 +201,10 @@ def make_ngkpt_flow(ngkpt_list=[(2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)], str
         workdir = "lesson_" + structure.composition.reduced_formula + "_kpoint_convergence"
 
     # Global variables
-    inp.set_variables(ecut=10, tolvrs=1e-9)
+    inp.set_vars(ecut=10, tolvrs=1e-9)
 
     if metal:
-        inp.set_variables(occopt=7, tsmear=0.04)
+        inp.set_vars(occopt=7, tsmear=0.04)
 
     # Specific variables for the different calculations
     for i, ngkpt in enumerate(ngkpt_list):

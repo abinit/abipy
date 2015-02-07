@@ -186,7 +186,7 @@ def make_relax_flow(structure_file=None):
     inp.set_structure(structure)
 
     # Global variables
-    inp.set_variables(
+    inp.set_vars(
         ecut=30,
         tolrff=1.0e-2,
         nstep=100,
@@ -216,7 +216,7 @@ def make_eos_flow(structure_file=None):
     inp.set_structure(structure)
 
     # Global variables
-    inp.set_variables(
+    inp.set_vars(
         ecut=16,
         tolvrs=1e-16
     )

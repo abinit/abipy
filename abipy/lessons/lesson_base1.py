@@ -22,7 +22,7 @@ def gs_input(x=0.7, acell=(10, 10, 10)):
     ))
     inp.set_structure(structure)
 
-    inp.set_variables(
+    inp.set_vars(
         ecut=10, 
         nband=1,
         diemac=2.0,
