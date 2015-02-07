@@ -25,8 +25,8 @@ from pymatgen.io.abinitio.tasks import TaskManager, AbinitTask
 from pymatgen.io.abinitio.netcdf import NetcdfReader
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
-from abipy.htc.variable import InputVariable
-from abipy.htc.abivars import is_abivar, is_anaddb_var
+from .variable import InputVariable
+from .abivars import is_abivar, is_anaddb_var
 
 import logging
 logger = logging.getLogger(__file__)

@@ -79,6 +79,61 @@ def selected_nids(flow, options):
     return [task.node_id for task in selected_tasks(flow, options)]
 
 
+def write_notebook(flow, options):
+    """See http://nbviewer.ipython.org/gist/fperez/9716279"""
+    from IPython.nbformat import current as nbf
+    nb = nbf.new_notebook()
+
+    cells = [
+        #nbf.new_text_cell('heading', "This is an auto-generated notebook for %s" % os.path.basename(pseudopath)),
+        nbf.new_code_cell("""\
+%%javascript
+IPython.OutputArea.auto_scroll_threshold = 9999;
+
+from __future__ import print_function
+from abipy import abilab
+mpld3 = abilab.mpld3_enable_notebook()
+%matplotlib inline
+
+import pylab
+pylab.rcParams['figure.figsize'] = (25.0, 10.0)
+import seaborn as sns
+#sns.set(style="dark", palette="Set2")
+sns.set(style='ticks', palette='Set2')"""),
+
+        nbf.new_code_cell("flow = abilab.Flow.pickle_load('%s')" % flow.workdir),
+        nbf.new_code_cell("flow.check_status(show=True, verbose=0)"),
+        nbf.new_code_cell("flow.show_inputs()"),
+        nbf.new_code_cell("flow.show_abierrors()"),
+        nbf.new_code_cell("flow.show_qouts()"),
+        nbf.new_code_cell("flow.show_dependencies()"),
+
+        nbf.new_code_cell("""\
+%matplotlib inline
+for task in flow.iflat_tasks(): 
+    try:
+        task.inspect()
+    except:
+        pass"""),
+    ]
+
+    # Now that we have the cells, we can make a worksheet with them and add it to the notebook:
+    nb['worksheets'].append(nbf.new_worksheet(cells=cells))
+
+    # Next, we write it to a file on disk that we can then open as a new notebook.
+    # Note: This should be as easy as: nbf.write(nb, fname), but the current api is a little more verbose and needs a real file-like object.
+    import tempfile
+    _, tmpfname = tempfile.mkstemp(suffix='.ipynb', text=True)
+
+    with open(tmpfname, 'w') as fh:
+        nbf.write(nb, fh, 'ipynb')
+
+    os.system("ipython notebook %s" % tmpfname)
+    #os.execv("/Users/gmatteo/Library/Enthought/Canopy_64bit/User/bin/ipython", ["notebook %s" % tmpfname])
+    #os.execv("/Users/gmatteo/Library/Enthought/Canopy_64bit/User/bin/ipython", ["notebook"])
+    #os.execv("/Users/gmatteo/Library/Enthought/Canopy_64bit/User/bin/python", ["ipython", "notebook", tmpfname])
+
+
 def main():
 
     def str_examples():
@@ -251,6 +306,8 @@ Specify the files to open. Possible choices:
 
     p_docmanager = subparsers.add_parser('docmanager', help="Document the TaskManager options")
     p_docmanager.add_argument("qtype", nargs="?", default=None, help="Document qparams section for the given qtype")
+
+    p_notebook = subparsers.add_parser('notebook', help="Create and open an ipython notebook to interact with the flow.")
 
     p_embed = subparsers.add_parser('embed', help=( 
         "Embed IPython. Useful for debugging or for performing advanced operations.\n"
@@ -561,6 +618,9 @@ hardware:
             cprint("Flow does not provide the `analyze` method!", "red")
             return 1
             flow.analyze()
+
+    elif options.command == "notebook":
+        write_notebook(flow, options)
 
     elif options.command == "embed":
         import IPython

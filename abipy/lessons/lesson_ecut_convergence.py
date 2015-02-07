@@ -15,19 +15,19 @@ The sharp features of the wavefunctions near the nucleus are however
 problematic for plane waves. Describing these features would require
 very high frequency plane waves. In practice we will always use
 pseudo-potentials in stead of the actual nuclear potential to improve
-convergence. Effectively a speudopotential replaces the sharp coulomb
-potential of the nucleus and the core electrons by someting more smooth
+convergence. Effectively a pseudopotential replaces the sharp coulomb
+potential of the nucleus and the core electrons by something more smooth
 inside the pseudization region that connects smoothly to the real potential
 outside the pseudization region.
 
 Needless to say a different pseudo potential will require a different
-cutoff for the calculation to be converged. In general normconserving
+cutoff for the calculation to be converged. In general norm-conserving
 pseudos require a larger cut-off that ultra-soft pseudos and Projector
 Augmented Wave 'pseudos' require even smaller cutoffs. Moreover two
-pseudo's of the same type for the same element may requier different
+pseudos of the same type for the same element may require different
 cutoffs as well. 'Harder' (having a smaller pseudization radius) require
-larger cutoffs than 'softer' pseudo's. There are however many more
-properties of a pseudo tha determine the cutoff needed.
+larger cutoffs than 'softer' pseudos. There are however many more
+properties of a pseudo that determine the cutoff needed.
 
 \033[94m The related abinit variables\033[0m
 
@@ -47,7 +47,7 @@ following function:
 
 \033[94m The course of this lesson \033[0m
 
-Start this lessen by importing it in a new namespace
+Start this lesson by importing it in a new namespace
 
 \033[92m In []:\033[0m from abipy.lessons import lesson_ecut_convergence as lesson
 
@@ -140,10 +140,8 @@ class EcutFlow(abilab.Flow):
         plt.show()
 
 
-def make_ecut_flow(structure_file=None):
-    ecut_list = [10, 12, 14, 16, 18]
-
-    #define the structure and add the nessesary pseudo's:
+def make_ecut_flow(structure_file=None, ecut_list = (10, 12, 14, 16, 18)):
+    #define the structure and add the necessary pseudos:
     if structure_file is None:
         inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=len(ecut_list))
         inp.set_structure(abidata.cif_file("si.cif"))
