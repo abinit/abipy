@@ -8,6 +8,7 @@ import yaml
 import html2text
 
 from six.moves import cPickle as pickle
+from monty.string import is_string, list_strings
 from collections import OrderedDict
 from monty.functools import lazy_property
 
@@ -141,7 +142,7 @@ class Variable(yaml.YAMLObject):
         def astr(obj):
             return str(obj).replace("[[", "").replace("]]", "")
 
-        d =  {k: astr(getattr(self, k)) for k in attrs if getattr(self, k) is not None}
+        d =  {k: astr(getattr(self, k)) for k in attrs} #if getattr(self, k) is not None}
         from six.moves import StringIO
         stream = StringIO()
         json.dump(d, stream, indent=4, sort_keys=True)
@@ -266,19 +267,6 @@ def get_abinit_variables():
 class VariableDatabase(OrderedDict):
     """Stores the mapping varname --> variable object."""
 
-    def apropos(self, varname, retvars=True):
-        """Return the list of variables that are related` to the given varname"""
-        vars = []
-        for v in self.values():
-            if (varname in v.text or 
-               (v.dimensions is not None and varname in str(v.dimensions)) or
-               (v.requires is not None and varname in v.requires) or
-               (v.excludes is not None and varname in v.excludes)):
-                vars.append(v)
-
-        if retvars: return vars
-        return [v.varname for v in vars]
-
     @lazy_property
     def characteristics(self):
         from abipy import data as abidata
@@ -291,26 +279,37 @@ class VariableDatabase(OrderedDict):
         with open(abidata.var_file('sections.yml'),'r') as f:
             return yaml.load(f)
 
-    #def required(self, varname, retvars=True)
-    #    vars = []
-    #    for v in self.all_vars.values():
-    #        if v.requires is not None and varname in v.requires:
-    #            vars.append(v)
-    #                                                                          
-    #    if retvars: return vars
-    #    return [v.varname for v in vars]
+    def apropos(self, varname):
+        """Return the list of variables that are related` to the given varname"""
+        vars = []
+        for v in self.values():
+            if (varname in v.text or 
+               (v.dimensions is not None and varname in str(v.dimensions)) or
+               (v.requires is not None and varname in v.requires) or
+               (v.excludes is not None and varname in v.excludes)):
+                vars.append(v)
 
-    #def exclude(self, varname, retvars=True)
-    #    vars = []
-    #    for v in self.all_vars.values():
-    #        if (v.excludes is not None and varname in v.excludes):
-    #            vars.append(v)
-    #                                                                          
-    #    if retvars: return vars
-    #    return [v.varname for v in vars]
+        return vars
+
+    def vars_with_section(self, sections):
+        sections = set(list_strings(sections))
+        vars = []
+        for v in self.values():
+            if v.section in sections:
+                vars.append(v)
+        return vars
+
+    def vars_with_char(self, chars):
+        chars = set(list_strings(chars))
+        vars = []
+        for v in self.values():
+            if v.characteristic: print(v.characteristic)
+            if v.characteristic in chars:
+                vars.append(v)
+        return vars
 
 
-def abinit_help(varname, stream=sys.stdout):
+def abinit_help(varname, info=True, stream=sys.stdout):
     """
     Print the abinit documentation on the ABINIT input variable `varname`
     """
@@ -323,4 +322,5 @@ def abinit_help(varname, stream=sys.stdout):
         return
         
     text = html2text.html2text("<h2>Default value : </h2>"+str(var.defaultval)+"<br /><h2>Description</h2>"+str(var.text))
+    if info: text += var.info
     stream.write(text.replace("[[", "\033[1m").replace("]]", "\033[0m"))

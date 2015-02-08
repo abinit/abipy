@@ -40,7 +40,7 @@ When performed manually, a k-point convergence study would require
 the preparation of a series of input-files, running abinit for all
 the inputs and extracting and studying the quantity that is needed
 to be converged. This lesson shows how this process can be greatly
-facilitated by using python scripts in the abipy framework. We fill
+facilitated by using python scripts in the abipy framework. We will
 construct a single python object, a abipy flow, that contains all
 the information needed for the calculations but also provides methods
 for acually running abinit, inspecting the input and output, and
@@ -192,13 +192,13 @@ def make_ngkpt_flow(ngkpt_list=[(2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)], str
     if structure_file is None:
         inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=len(ngkpt_list))
         inp.set_structure(abidata.cif_file("si.cif"))
-        workdir = "lesson_Si_kpoint_convergence"
+        workdir = "flow_lesson_Si_kpoint_convergence"
     else:
         structure = abilab.Structure.from_file(structure_file)
         pseudos = get_pseudos(structure)
         inp = abilab.AbiInput(pseudos=pseudos, ndtset=len(ngkpt_list))
         inp.set_structure(structure)
-        workdir = "lesson_" + structure.composition.reduced_formula + "_kpoint_convergence"
+        workdir = "flow_lesson_" + structure.composition.reduced_formula + "_kpoint_convergence"
 
     # Global variables
     inp.set_vars(ecut=10, tolvrs=1e-9)

@@ -149,7 +149,7 @@ class QPState(namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sig
 
 
 class QPList(list):
-    """A list of quasiparticle corrections."""
+    """A list of quasiparticle corrections for a given spin."""
     def __init__(self, *args, **kwargs):
         super(QPList, self).__init__(*args)
         self.is_e0sorted = kwargs.get("is_e0sorted", False)

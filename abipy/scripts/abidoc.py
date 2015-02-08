@@ -48,28 +48,26 @@ Usage example:
     base_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                         help='verbose, can be supplied multiple times to increase verbosity')
 
-    base_parser.add_argument('varname', help="ABINIT variable")
+    var_parser = argparse.ArgumentParser(add_help=False)
+    var_parser.add_argument('varname', help="ABINIT variable")
 
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for man.
-    p_man = subparsers.add_parser('man', parents=[base_parser], help="Show documentation for varname.")
+    p_man = subparsers.add_parser('man', parents=[base_parser, var_parser], help="Show documentation for varname.")
 
     # Subparser for apropos.
-    p_apropos = subparsers.add_parser('apropos', parents=[base_parser], help="Find variables related to varname.")
+    p_apropos = subparsers.add_parser('apropos', parents=[base_parser, var_parser], help="Find variables related to varname.")
 
     # Subparser for find.
-    p_find = subparsers.add_parser('find', parents=[base_parser], help="Find all variables whose name contains varname.")
+    p_find = subparsers.add_parser('find', parents=[base_parser, var_parser], help="Find all variables whose name contains varname.")
 
     # Subparser for require.
     #p_require = subparsers.add_parser('require', parents=[base_parser], help="Find all variables required by varname.")
 
-    # Subparser for exclude.
-    #p_exclude = subparsers.add_parser('exclude', parents=[base_parser], help="Find all variables exclude by varname.")
-
     # Subparser for list.
-    p_list = subparsers.add_parser('list', help="List all variables.")
+    p_list = subparsers.add_parser('list', parents=[base_parser], help="List all variables.")
 
     try:
         options = parser.parse_args()
@@ -79,34 +77,33 @@ Usage example:
     database = get_abinit_variables()
 
     if options.command == "man":
-        varname = options.varname
-        abinit_help(varname)
-        var = database[varname]
-        print(var.info)
+        abinit_help(options.varname)
 
     elif options.command == "apropos":
-        varname = options.varname
-        vlist = database.apropos(varname)
+        vlist = database.apropos(options.varname)
         print("apropos results:\n")
         print_vlist(vlist, options)
 
     elif options.command == "find":
-        varname = options.varname
-        vlist = [v for v in database.values() if varname in v.varname]
+        vlist = [v for v in database.values() if options.varname in v.varname]
         print("find results:\n")
         print_vlist(vlist, options)
 
-    #elif options.command == "require":
-    #    vlist = database.require(varname)
-    #    print_vlist(vlist, options)
-
-    #elif options.command == "exclude":
-    #    vlist = database.exclude(varname)
-    #    print_vlist(vlist, options)
-
     elif options.command == "list":
-        for i, var in enumerate(database.values()):
-            print(i, repr(var))
+
+        # Alphabetical
+        #for i, var in enumerate(database.values()):
+        #    print(i, repr(var))
+
+        # Grouped by sections.
+        #for section in database.sections:
+        #    print("Section:", section)
+        #    print_vlist(database.vars_with_section(section), options)
+
+        # Grouped by characteristics.
+        for char in database.characteristics:
+            print("Characteristic:", char)
+            print_vlist(database.vars_with_char(char), options)
 
     else:
         raise ValueError("Don't know how to handle command %s" % options.command)

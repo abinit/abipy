@@ -8,6 +8,8 @@ import numpy as np
 from six.moves import cPickle as pickle
 from collections import OrderedDict
 from monty.collections import AttrDict
+from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
+
 
 __all__ = [
     "Scissors",
@@ -274,23 +276,33 @@ class ScissorsBuilder(object):
             kwargs["title"] = "spin %s" % spin
             qps.plot_qps_vs_e0(with_fields=with_fields, **kwargs)
 
-    def plot_fit(self, **kwargs):
-        """Compare fit functions with input quasi-particle corrections."""
-        import matplotlib.pyplot as plt
+    @add_fig_kwargs
+    def plot_fit(self, ax=None, **kwargs):
+        """
+        Compare fit functions with input quasi-particle corrections.
+
+        Args:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+        """
+        ax, fig, plt = get_ax_fig_plt(ax)
 
         for spin in range(self.nsppol):
             qps = self._qps_spin[spin]
             e0mesh, qpcorrs = qps.get_e0mesh(), qps.get_qpeme0().real
 
-            plt.plot(e0mesh, qpcorrs, label="Input QP corrections, spin %s" % spin)
+            ax.plot(e0mesh, qpcorrs, label="Input QP corrections, spin %s" % spin)
             scissors = self._scissors_spin[spin]
             intp_qpc = [scissors.apply(e0) for e0 in e0mesh]
-            plt.plot(e0mesh, intp_qpc, label="Scissors operator, spin %s" % spin)
+            ax.plot(e0mesh, intp_qpc, label="Scissors operator, spin %s" % spin)
+        
+        ax.grid(True)
+        ax.set_xlabel('KS energy [eV]')
+        ax.set_ylabel('QP-KS [eV]')
+        ax.legend(loc="best", shadow=True)
 
-        plt.legend(loc="best")
-        plt.show()
+        return fig
 
-    def plot_qpbands(self, bands_filepath, bands_label=None, dos_filepath=None, dos_args=None, **kwargs):
+    def plot_qpbands(self, bands_filepath, bands_label=None, dos_filepath=None, dos_args=None, qp_marker=None, **kwargs):
         """
         Correct the energies found in the netcdf file bands_filepath and plot the band energies (both the initial
         and the corrected ones) with matplotlib. The plot contains the KS and the QP DOS if dos_filepath is not None.
@@ -302,6 +314,7 @@ class ScissorsBuilder(object):
                 (used to compute the KS and the QP dos)
             dos_args: Dictionary with the arguments passed to get_dos to compute the DOS
                 Used if dos_filepath is not None.
+            qp_marker: if int > 0, markers for the ab-initio QP energies are displayed. e.g qp_marker=50
             kwargs: Options passed to the plotter.
 
         Returns:
@@ -310,7 +323,10 @@ class ScissorsBuilder(object):
         from abipy.abilab import abiopen, ElectronBandsPlotter
 
         # Read the KS band energies from bands_filepath and apply the scissors operator.
-        with abiopen(bands_filepath) as ncfile: ks_bands = ncfile.ebands
+        with abiopen(bands_filepath) as ncfile: 
+            ks_bands = ncfile.ebands
+            #structure = ncfile.structure
+
         qp_bands = ks_bands.apply_scissors(self._scissors_spin)
 
         # Read the band energies computed on the Monkhorst-Pack (MP) mesh and compute the DOS.
@@ -330,5 +346,20 @@ class ScissorsBuilder(object):
         bands_label = bands_label if bands_label is not None else os.path.basename(bands_filepath)
         plotter.add_ebands(bands_label, ks_bands, dos=ks_dos)
         plotter.add_ebands(bands_label + " + scissors", qp_bands, dos=qp_dos)
+
+        if qp_marker is not None:
+            # Compute correspondence between the k-points in qp_list and the k-path in qp_bands.
+            # WARNING: strictly speaking one should check if qp_kpoint is in the star of k-point.
+            x, y, s = [], [], []
+            for spin in range(self.nsppol):
+                for ik_qp, qp in enumerate(self._qps_spin[spin]):
+                    qp_kpoint = qp.kpoint
+                    for ik_path, kpoint in enumerate(qp_bands.kpoints):
+                        if qp_kpoint == kpoint:
+                        #if qp_kpoint in kpoint.compute_star(structure.fm_symmops):
+                            x.append(ik_path)
+                            y.append(np.real(qp.qpe))
+                            s.append(qp_marker)
+            plotter.set_marker("ab-initio QP", [x, y, s])
 
         return plotter.plot(**kwargs)

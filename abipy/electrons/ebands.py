@@ -1463,6 +1463,7 @@ class ElectronBandsPlotter(object):
     def __init__(self):
         self._bands_dict = OrderedDict()
         self._edoses_dict = OrderedDict()
+        self._markers = OrderedDict()
 
     @property
     def bands_dict(self):
@@ -1483,6 +1484,10 @@ class ElectronBandsPlotter(object):
     def edoses_list(self):
         """"List of :class:`ElectronDos`."""
         return list(self._edoses_dict.values())
+
+    @property
+    def markers(self):
+        return self._markers
 
     def iter_lineopt(self):
         """Generates style options for lines."""
@@ -1556,6 +1561,31 @@ class ElectronBandsPlotter(object):
 
         return "\n\n".join(text)
 
+    def set_marker(self, key, xys, extend=False):
+        """
+        Set an entry in the markers dictionary.
+
+        Args:
+            key: string used to label the set of markers.
+            xys: Three iterables x,y,s where x[i],y[i] gives the
+                 positions of the i-th markers in the plot and s[i] is the size of the marker.
+            extend: True if the values xys should be added to a pre-existing marker.
+        """
+        from abipy.tools.plotting_utils import Marker
+
+        if extend:
+            if key not in self._markers:
+                self._markers[key] = Marker(*xys)
+            else:
+                # Add xys to the previous marker set.
+                self._markers[key].extend(*xys)
+        
+        else:
+            if key in self._markers:
+                raise ValueError("Cannot overwrite key %s in data" % key)
+
+            self._markers[key] = Marker(*xys)
+
     @add_fig_kwargs
     def plot(self, klabels=None, **kwargs):
         """
@@ -1619,9 +1649,21 @@ class ElectronBandsPlotter(object):
 
             # Set ticks and labels, legends.
             if i == 0:
-                bands.decorate_ax(ax)
+                bands.decorate_ax(ax1)
 
-        ax.legend(lines, legends, loc='best', shadow=True)
+        if self.markers:
+            for key, markers in self.markers.items():
+                pos, neg = markers.posneg_marker()
+                # Use different symbols depending on the value of s.
+                # Cannot use negative s.
+                fact = 1
+                if pos:
+                    ax1.scatter(pos.x, pos.y, s=np.abs(pos.s)*fact, marker="^", label=key + " >0")
+
+                if neg:
+                    ax1.scatter(neg.x, neg.y, s=np.abs(neg.s)*fact, marker="v", label=key + " <0")
+
+        ax1.legend(lines, legends, loc='best', shadow=True)
 
         # Add DOSes
         if self.edoses_dict:
