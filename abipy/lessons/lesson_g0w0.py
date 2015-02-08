@@ -4,7 +4,8 @@
 
 \033[94m Background\033[0m
 
-Standard approximations for XC functionals (LDA, GGA) severely underestimate band-gaps and BLABLABLA
+Kohn-Sham (KS) eigenvalues are Lagrangian multipliers 
+Standard approximations for XC functionals (e.g. LDA, GGA) severely underestimate band-gaps
 
 \033[94m The related abinit variables\033[0m
 
@@ -23,7 +24,7 @@ This will print the official abinit description of this variables.
 In this lesson, we will construct an abipy flow made of two works.
 The first work is a standard KS band-structure calculation that consists of 
 an initial GS calculation to get the density followed by two NSCF calculations.
-The first NSCF task computes the KS eigenvalues of a high-symmetry path in the BZ,
+The first NSCF task computes the KS eigenvalues on a high-symmetry path in the BZ,
 whereas the second NSCF task is done on a homogeneous k-mesh so that one can calculate 
 the DOS from the KS eigenvalues. These two NSCF tasks 
 
@@ -107,7 +108,6 @@ of the classes, methods and functions we used.
 You can get a copy of the file by using:
 
 \033[92m In []:\033[0m lesson.get_local_copy()
-
 """
 from __future__ import division, print_function, unicode_literals
 
@@ -261,7 +261,7 @@ def analyze_flow(flow, domains_spin=[[-10, 6.02], [6.1, 20]]):
 
     bands_task = flow[0][1]
     bands_filepath = bands_task.outdir.has_abiext("GSR")
-    builder.plot_qpbands(bands_filepath, title="Silicon Bands (KS and KS+scissors)")
+    builder.plot_qpbands(bands_filepath, bands_label="KS Bands", title="Silicon Bands (KS and KS+scissors)")
 
     # TODO: Fix problems with boundaries!
     #dos_task = flow[0][2]

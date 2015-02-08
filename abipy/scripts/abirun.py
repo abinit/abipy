@@ -309,8 +309,8 @@ Specify the files to open. Possible choices:
 
     p_notebook = subparsers.add_parser('notebook', help="Create and open an ipython notebook to interact with the flow.")
 
-    p_embed = subparsers.add_parser('embed', help=( 
-        "Embed IPython. Useful for debugging or for performing advanced operations.\n"
+    p_embed = subparsers.add_parser('ipython', help=( 
+        "Embed IPython. Useful for performing advanced operations or debugging purposes.\n"
         "THIS OPTION IF FOR EXPERT USERS!"))
 
     # Parse command line.
@@ -576,8 +576,7 @@ hardware:
         for task in selected_tasks(flow, options):
             try:
                 with getattr(task, open_method)() as ncfile: 
-                    print(ncfile)
-                    #print(dir(ncfile))
+                    #print(ncfile)
                     getattr(ncfile, plot_method)()
             except:
                 pass
@@ -617,14 +616,15 @@ hardware:
         if not hasattr(flow, "analyze"):
             cprint("Flow does not provide the `analyze` method!", "red")
             return 1
-            flow.analyze()
+        flow.analyze()
 
     elif options.command == "notebook":
         write_notebook(flow, options)
 
-    elif options.command == "embed":
+    elif options.command == "ipython":
         import IPython
-        IPython.embed(header="")
+        #IPython.embed(header="")
+        IPython.start_ipython(argv=[], user_ns={"flow": flow})# , header="flow.show_status()")
 
     else:
         raise RuntimeError("Don't know what to do with command %s!" % options.command)

@@ -290,7 +290,7 @@ class ScissorsBuilder(object):
             qps = self._qps_spin[spin]
             e0mesh, qpcorrs = qps.get_e0mesh(), qps.get_qpeme0().real
 
-            ax.plot(e0mesh, qpcorrs, label="Input QP corrections, spin %s" % spin)
+            ax.scatter(e0mesh, qpcorrs, label="Input QP corrections, spin %s" % spin)
             scissors = self._scissors_spin[spin]
             intp_qpc = [scissors.apply(e0) for e0 in e0mesh]
             ax.plot(e0mesh, intp_qpc, label="Scissors operator, spin %s" % spin)
@@ -347,16 +347,19 @@ class ScissorsBuilder(object):
         plotter.add_ebands(bands_label, ks_bands, dos=ks_dos)
         plotter.add_ebands(bands_label + " + scissors", qp_bands, dos=qp_dos)
 
+        #qp_marker = 50
         if qp_marker is not None:
             # Compute correspondence between the k-points in qp_list and the k-path in qp_bands.
+            # TODO
             # WARNING: strictly speaking one should check if qp_kpoint is in the star of k-point.
+            # but compute_star is too slow if written in pure python.
             x, y, s = [], [], []
-            for spin in range(self.nsppol):
-                for ik_qp, qp in enumerate(self._qps_spin[spin]):
-                    qp_kpoint = qp.kpoint
-                    for ik_path, kpoint in enumerate(qp_bands.kpoints):
-                        if qp_kpoint == kpoint:
-                        #if qp_kpoint in kpoint.compute_star(structure.fm_symmops):
+            for ik_path, kpoint in enumerate(qp_bands.kpoints):
+                #kstar = kpoint.compute_star(structure.fm_symmops)
+                for spin in range(self.nsppol):
+                    for ik_qp, qp in enumerate(self._qps_spin[spin]):
+                        if qp.kpoint == kpoint:
+                        #if qp.kpoint in kstar:
                             x.append(ik_path)
                             y.append(np.real(qp.qpe))
                             s.append(qp_marker)
