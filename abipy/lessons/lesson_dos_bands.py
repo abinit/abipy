@@ -49,6 +49,18 @@ Start the flow with the scheduler and wait for completion.
 To analyze the results.
 
 \033[92m In []:\033[0m flow.analyze()
+
+
+
+\033[93m Exercises \033[0m
+
+
+
+\033[93m Next \033[0m
+
+A logical next lesson would be lesson_g0w0
+
+
 """
 from __future__ import division, print_function
 
