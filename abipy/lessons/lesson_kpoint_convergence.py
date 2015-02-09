@@ -7,11 +7,11 @@ and an introduction some of the basic concepts of the abipy library. \033[0m
 
 This lesson deals with the basic k-point convergence study that
 is needed in any DFT calculation of a solid. In a DFT calculation
-of a solid the first Brillouin zone needs to be discritized to
+of a solid the first Brillouin zone needs to be discretized to
 enable the integration of various quantities. Effectively the
 integrals are turned in to sums over k-points. For any result to
 be converged we need a k-point mesh that is dense enough, but at
-the same time as corse as possible to make for an efficient
+the same time as coarse as possible to make for an efficient
 calculation. Various types of materials require in general different
 densities of the k-point meshes. In general metals need denser meshes
 than semiconductors. Your first investigation into a new compound
@@ -40,7 +40,7 @@ When performed manually, a k-point convergence study would require
 the preparation of a series of input-files, running abinit for all
 the inputs and extracting and studying the quantity that is needed
 to be converged. This lesson shows how this process can be greatly
-facilitated by using python scripts in the abipy framework. We fill
+facilitated by using python scripts in the abipy framework. We will
 construct a single python object, a abipy flow, that contains all
 the information needed for the calculations but also provides methods
 for acually running abinit, inspecting the input and output, and
@@ -77,14 +77,14 @@ a lot of 'standard' methods available. For instance:
 
 This will display all the inputs as they will be 'given' to abinit.
 
-To start the the execution of calculations packed in this flow we
-an use the following command:
+To start the execution of calculations packed in this flow we
+and use the following command:
 
 \033[92m In []:\033[0m flow.make_scheduler().start()
 
 This starts the actual execution via a scheduler. The scheduler is
 a sort of daemon that starts to submit tasks that are ready to run.
-In our case al the tasks in the flow are independent so the first
+In our case all the tasks in the flow are independent so the first
 cycle of the scheduler directly submitted all of them. More
 complicated flows may have tasks that can only start using input
 from a previous task. We will encounter some of those later.
@@ -146,7 +146,9 @@ import os
 import shutil
 import abipy.abilab as abilab
 import abipy.data as abidata
-from abipy.lessons.lesson_helper_functions import abinit_help, get_pseudos
+from abipy.lessons.lesson_helper_functions import get_pseudos
+
+abinit_help = abilab.abinit_help
 
 
 def help(stream=sys.stdout):
@@ -169,7 +171,7 @@ def get_local_copy():
 class NgkptFlow(abilab.Flow):
     """
     A flow class for the study of k-point convergence studies. It inherits from the base class abilab.Flow, and in
-    addion implements a method for analyzing specifically the k-point convergence data.
+    addition implements a method for analyzing specifically the k-point convergence data.
     """
     def analyze(self):
         with abilab.abirobot(self, "GSR") as robot:
@@ -177,34 +179,32 @@ class NgkptFlow(abilab.Flow):
             #robot.ebands_plotter().plot()
 
         import matplotlib.pyplot as plt
-        data.plot(x="nkpts", y="energy", title="Total energy vs nkpts", legend="Energy [eV]", style="b-o")
+        data.plot(x="nkpts", y="energy", title="Total energy vs nkpts", legend=False, style="b-o")
         plt.show()
 
 
-def make_ngkpt_flow(structure_file=None, metal=False):
+def make_ngkpt_flow(ngkpt_list=[(2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)], structure_file=None, metal=False):
     """
     A 'factory function' (a function that returns an instance of the class defined above. If no specific system is
     specified, structure_file=None, an example flow for silicon in constructed and returned.
     """
-    ngkpt_list = [(2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)]
-
     # Defining the structure and adding the appropriate pseudo potentials
     if structure_file is None:
         inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=len(ngkpt_list))
         inp.set_structure(abidata.cif_file("si.cif"))
-        workdir = "lesson_Si_kpoint_convergence"
+        workdir = "flow_lesson_Si_kpoint_convergence"
     else:
         structure = abilab.Structure.from_file(structure_file)
         pseudos = get_pseudos(structure)
         inp = abilab.AbiInput(pseudos=pseudos, ndtset=len(ngkpt_list))
         inp.set_structure(structure)
-        workdir = "lesson_" + structure.composition.reduced_formula + "_kpoint_convergence"
+        workdir = "flow_lesson_" + structure.composition.reduced_formula + "_kpoint_convergence"
 
     # Global variables
-    inp.set_variables(ecut=10, tolvrs=1e-9)
+    inp.set_vars(ecut=10, tolvrs=1e-9)
 
     if metal:
-        inp.set_variables(occopt=7, tsmear=0.04)
+        inp.set_vars(occopt=7, tsmear=0.04)
 
     # Specific variables for the different calculations
     for i, ngkpt in enumerate(ngkpt_list):

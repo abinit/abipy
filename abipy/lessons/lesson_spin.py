@@ -26,7 +26,7 @@ def gs_input(nsppol):
     inp.set_kmesh(ngkpt=[4, 4, 4], shiftk=[0.5, 0.5, 0.5])
 
     # Optimization of the lattice parameters
-    inp.set_variables(
+    inp.set_vars(
         nsppol=nsppol,
         ecut=18, 
         nband=8,
@@ -37,7 +37,7 @@ def gs_input(nsppol):
     )
 
     if nsppol == 2:
-        inp.set_variables(spinat=[0.0, 0.0, 4.0])
+        inp.set_vars(spinat=[0.0, 0.0, 4.0])
 
     return inp
 
@@ -63,7 +63,7 @@ def afm_input():
     inp.set_kmesh(ngkpt=[6, 6, 4], shiftk=[0.5, 0.5, 0.5])
 
     # Antiferromagnetic order
-    inp.set_variables(
+    inp.set_vars(
         nsppol=1,
         nspden=2,
         spinat=[0.0, 0.0,  4.0,
@@ -142,7 +142,7 @@ def tantalum_gsinput(nspinor=2):
 
     inp.set_kmesh(ngkpt=[1, 1, 1], shiftk=[0.0, 0.0, 0.0])
 
-    inp.set_variables(
+    inp.set_vars(
         nspinor=nspinor,
         ecut=10, 
         ixc=2,

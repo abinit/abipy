@@ -37,6 +37,9 @@ import pymatgen.core.units as units
 FloatWithUnit = units.FloatWithUnit
 ArrayWithUnit = units.ArrayWithUnit
 
+# Documentation.
+from abipy.htc.abivars_db import abinit_help
+
 
 def _straceback():
     """Returns a string with the traceback."""
@@ -213,3 +216,12 @@ def flow_main(main):
             return main(options)
 
     return wrapper
+
+
+def mpld3_enable_notebook():
+    """Change the default plugins, enable ipython notebook mode and return mpld3 module."""
+    import mpld3
+    from mpld3 import plugins as plugs
+    plugs.DEFAULT_PLUGINS = [plugs.Reset(), plugs.Zoom(), plugs.BoxZoom(), plugs.MousePosition()]
+    mpld3.enable_notebook()
+    return mpld3

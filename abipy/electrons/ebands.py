@@ -899,7 +899,7 @@ class ElectronBands(object):
         Compute the electronic DOS on a linear mesh.
 
         Args:
-            method: String defining the method
+            method: String defining the method for the computation of the DOS.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
 
@@ -1463,6 +1463,7 @@ class ElectronBandsPlotter(object):
     def __init__(self):
         self._bands_dict = OrderedDict()
         self._edoses_dict = OrderedDict()
+        self._markers = OrderedDict()
 
     @property
     def bands_dict(self):
@@ -1483,6 +1484,10 @@ class ElectronBandsPlotter(object):
     def edoses_list(self):
         """"List of :class:`ElectronDos`."""
         return list(self._edoses_dict.values())
+
+    @property
+    def markers(self):
+        return self._markers
 
     def iter_lineopt(self):
         """Generates style options for lines."""
@@ -1556,6 +1561,31 @@ class ElectronBandsPlotter(object):
 
         return "\n\n".join(text)
 
+    def set_marker(self, key, xys, extend=False):
+        """
+        Set an entry in the markers dictionary.
+
+        Args:
+            key: string used to label the set of markers.
+            xys: Three iterables x,y,s where x[i],y[i] gives the
+                 positions of the i-th markers in the plot and s[i] is the size of the marker.
+            extend: True if the values xys should be added to a pre-existing marker.
+        """
+        from abipy.tools.plotting_utils import Marker
+
+        if extend:
+            if key not in self._markers:
+                self._markers[key] = Marker(*xys)
+            else:
+                # Add xys to the previous marker set.
+                self._markers[key].extend(*xys)
+        
+        else:
+            if key in self._markers:
+                raise ValueError("Cannot overwrite key %s in data" % key)
+
+            self._markers[key] = Marker(*xys)
+
     @add_fig_kwargs
     def plot(self, klabels=None, **kwargs):
         """
@@ -1619,9 +1649,21 @@ class ElectronBandsPlotter(object):
 
             # Set ticks and labels, legends.
             if i == 0:
-                bands.decorate_ax(ax)
+                bands.decorate_ax(ax1)
 
-        ax.legend(lines, legends, loc='best', shadow=True)
+        if self.markers:
+            for key, markers in self.markers.items():
+                pos, neg = markers.posneg_marker()
+                # Use different symbols depending on the value of s.
+                # Cannot use negative s.
+                fact = 1
+                if pos:
+                    ax1.scatter(pos.x, pos.y, s=np.abs(pos.s)*fact, marker="^", label=key + " >0")
+
+                if neg:
+                    ax1.scatter(neg.x, neg.y, s=np.abs(neg.s)*fact, marker="v", label=key + " <0")
+
+        ax1.legend(lines, legends, loc='best', shadow=True)
 
         # Add DOSes
         if self.edoses_dict:
@@ -1745,22 +1787,21 @@ class ElectronDosPlotter(object):
         self._edoses_dict[label] = edos
 
     @add_fig_kwargs
-    def plot(self, **kwargs):
+    def plot(self, ax=None, **kwargs):
         """
         Plot the band structure and the DOS.
+
+        Args:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
 
         Returns:
             `matplotlib` figure.
         """
-        import matplotlib.pyplot as plt
-        fig = plt.figure()
-        ax = fig.add_subplot(1, 1, 1)
+        ax, fig, plt = get_ax_fig_plt(ax)
 
         for (label, dos) in self.edoses_dict.items():
             # Use relative paths if label is a file.
-            if os.path.isfile(label):
-                label = os.path.relpath(label)
-
+            if os.path.isfile(label): label = os.path.relpath(label)
             dos.plot_ax(ax, label=label)
 
         ax.grid(True)
@@ -2114,9 +2155,12 @@ class ElectronDOSPlotter(object):
             self.add_dos(label, dos_dict[label])
 
     @add_fig_kwargs
-    def plot(self, *args, **kwargs):
+    def plot(self, ax=None, *args, **kwargs):
         """
         Get a matplotlib plot showing the DOSes.
+
+        Args:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -2125,10 +2169,7 @@ class ElectronDOSPlotter(object):
         ylim            y-axis limits.  None (default) for automatic determination.
         ==============  ==============================================================
         """
-        import matplotlib.pyplot as plt
-        fig = plt.figure()
-
-        ax = fig.add_subplot(1,1,1)
+        ax, fig, plt = get_ax_fig_plt(ax)
         ax.grid(True)
 
         xlim = kwargs.pop("xlim", None)
@@ -2148,6 +2189,6 @@ class ElectronDOSPlotter(object):
             legends.append("DOS: %s" % label)
 
         # Set legends.
-        ax.legend(lines, legends, loc='upper right', shadow=True)
+        ax.legend(lines, legends, loc='best', shadow=True)
 
         return fig

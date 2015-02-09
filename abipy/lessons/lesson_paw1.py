@@ -28,7 +28,7 @@ def gs_input(ecut, pawecutdg, acell_ang=3.567):
     inp.set_autokmesh(nksmall=6) #ngkpt=[6, 6, 6], shiftk=[0.5, 0.5, 0.5])
 
     # Optimization of the lattice parameters
-    inp.set_variables(
+    inp.set_vars(
         ecut=ecut, 
         pawecutdg=pawecutdg,
         ecutsm=0.5,

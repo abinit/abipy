@@ -12,7 +12,7 @@ def h2_h_input(x=0.7, ecut=10, acell=(10, 10, 10)):
     """
     inp = abilab.AbiInput(pseudos=abidata.pseudos("01h.pspgth"), ndtset=2)
 
-    inp.set_variables(
+    inp.set_vars(
         ecut=ecut, 
         nband=1,
         diemac=2.0,
@@ -34,7 +34,7 @@ def h2_h_input(x=0.7, ecut=10, acell=(10, 10, 10)):
     ))
 
     inp[1].set_structure(h2)
-    inp[1].set_variables(
+    inp[1].set_vars(
         ionmov=3,
         ntime=10,
         tolmxf=5e-4,
@@ -52,7 +52,7 @@ def h2_h_input(x=0.7, ecut=10, acell=(10, 10, 10)):
     ))
 
     inp[2].set_structure(h)
-    inp[2].set_variables(
+    inp[2].set_vars(
         nsppol=2,
         nband=(1, 1),
         occopt=2,
