@@ -2,6 +2,7 @@
 """This module defines basic objects representing the crystalline structure."""
 from __future__ import print_function, division, unicode_literals
 
+import os
 import collections
 import pymatgen
 import numpy as np
@@ -84,6 +85,10 @@ class Structure(pymatgen.Structure):
         Returns:
             Structure object.
         """
+        if api_key is None:
+            # Check if MP_KEY is defined, otherwise fallback to MAPI_KEY.
+            api_key = os.environ.get('MP_KEY', None)
+
         # Get pytmatgen structure and convert it to abipy structure
         from pymatgen.matproj.rest import MPRester, MPRestError
         with MPRester(api_key=api_key, host=host) as database:
