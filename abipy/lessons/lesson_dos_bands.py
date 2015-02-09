@@ -1,62 +1,75 @@
 #!/usr/bin/env python
 """
-\033[91m The calculation of the density of states and the bandstructure.\033[0m
+The calculation of the density of states and the bandstructure.
+===============================================================
 
-\033[94m Background\033[0m
+Background
+----------
 
-\033[94m The related abinit variables\033[0m
+The related abinit variables
+----------------------------
 
-\033[1m ... \033[0m
-\033[1m ... \033[0m
-\033[1m ... \033[0m
-\033[1m ... \033[0m
+    * 1
+    * 2
 
 More info on the inputvariables and their use can be obtained using the following function:
 
-\033[92m In []:\033[0m lesson.abinit_help(inputvariable)
+    .. code-block :: python
+        lesson.docvar("inputvariable")
 
 This will print the official abinit description of this inputvariable.
 
-\033[94m The abipy flows in this lesson\033[0m
+The abipy flows in this lesson
+------------------------------
 
 The flow that we use in this lesson contains for the first time dependencies.
 This means that some tasks in the flow can only be started if an other task is
 ready. We will first perform one selfconsistend calculation to obtain a proper
 density. Using this density we calculate
 
-\033[94m The cource of this lesson\033[0m
+The cource of this lesson
+-------------------------
 
 Start this lessen by importing it in a new namespace:
 
-\033[92m In []:\033[0m from abipy.tutorials import lesson_base1 as lesson
+    .. code-block :: python
+        from abipy.lesson.lesson_dos_bands import Lesson()
+        lesson = Lesson()
 
 As always you can reread this lessons text using the command:
 
-\033[92m In []:\033[0m lesson.help()
+    .. code-block :: python
+        lesson
 
 To build the flow:
 
-\033[92m In []:\033[0m flow = lesson.make_flow()
+    .. code-block :: python
+        flow = lesson.make_flow()
 
 To print the input files
 
-\033[92m In []:\033[0m flow.show_inputs()
+    .. code-block :: python
+        flow.show_inputs()
 
 Start the flow with the scheduler and wait for completion.
 
-\033[92m In []:\033[0m flow.make_scheduler().start()
+    .. code-block :: python
+        flow.make_scheduler().start()
 
 To analyze the results.
 
-\033[92m In []:\033[0m flow.analyze()
+    .. code-block :: python
+        flow.analyze()
 
 
 
-\033[93m Exercises \033[0m
+Exercises
+---------
 
 
 
-\033[93m Next \033[0m
+Next
+----
 
 A logical next lesson would be lesson_g0w0
 
@@ -64,30 +77,10 @@ A logical next lesson would be lesson_g0w0
 """
 from __future__ import division, print_function
 
-import sys
 import os
-import shutil
 import abipy.abilab as abilab
 import abipy.data as abidata
-
-abinit_help = abilab.abinit_help
-
-
-def help(stream=sys.stdout):
-    """
-    Display the tutorial text.
-    """
-    stream.write(__doc__)
-
-
-def get_local_copy():
-    """
-    Copy this script to the current working dir to explore and edit
-    """
-    dst = os.path.basename(__file__[:-1])
-    if os.path.exists(dst):
-        raise RuntimeError("file %s already exists. Remove it before calling get_local_copy" % dst)
-    shutil.copyfile(__file__[:-1], dst)
+from abipy.lessons.core import BaseLesson, get_pseudos
 
 
 class EbandsDosFlow(abilab.Flow):
@@ -146,9 +139,21 @@ def make_electronic_structure_flow(ngkpts_for_dos=[(2, 2, 2), (4, 4, 4), (6, 6, 
                                      dos_inputs=dos_input, flow_class=EbandsDosFlow)
 
 
+class Lesson(BaseLesson):
+
+    @property
+    def doc_string(self):
+        return __doc__
+
+    @property
+    def pyfile(self):
+        return os.path.basename(__file__[:-1])
+
+    @staticmethod
+    def make_electronic_structure_flow():
+        return make_electronic_structure_flow()
+
+
 if __name__ == "__main__":
-    flow = make_electronic_structure_flow()
-    flow.make_scheduler().start()
-    #flow = abilab.Flow.pickle_load("flow_base3_ebands")
-    flow[0].plot_ebands_with_edos()
-    flow[0].plot_edoses()
+    l = Lesson()
+    print(l.pyfile)

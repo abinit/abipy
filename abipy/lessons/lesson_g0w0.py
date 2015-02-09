@@ -185,6 +185,8 @@ import abipy.data as abidata
 import abipy.abilab as abilab
 from abipy.lessons.core import BaseLesson
 
+abinit_help = abilab.abinit_help
+
 
 def make_inputs(ngkpt, paral_kgb=0):
     # Crystalline silicon
