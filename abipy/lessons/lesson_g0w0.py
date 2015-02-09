@@ -301,6 +301,7 @@ class Lesson(BaseLesson):
     def pyfile(self):
         return os.path.basename(__file__[:-1])
 
+    @staticmethod
     def make_flow(self):
         return make_g0w0_scissors_flow()
 
