@@ -105,7 +105,7 @@ and compare the converged results with experimental data.
 
 \033[93m Next \033[0m
 
-A logical next lesson would be lesson_relaxation
+A logical next lesson would be lesson_dos_bands
 
 
 """

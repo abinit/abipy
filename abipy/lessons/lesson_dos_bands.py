@@ -19,6 +19,11 @@ This will print the official abinit description of this inputvariable.
 
 \033[94m The abipy flows in this lesson\033[0m
 
+The flow that we use in this lesson contains for the first time dependencies.
+This means that some tasks in the flow can only be started if an other task is
+ready. We will first perform one selfconsistend calculation to obtain a proper
+density. Using this density we calculate
+
 \033[94m The cource of this lesson\033[0m
 
 Start this lessen by importing it in a new namespace:
