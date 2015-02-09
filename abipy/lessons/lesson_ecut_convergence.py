@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 """
-\033[91m Basis set convergence study and some more on flows, works, and tasks. \033[0m
+Basis set convergence study and some more on flows, works, and tasks. 
+=====================================================================
 
-\033[94m Background\033[0m
+Background
+----------
 
 This lesson focuses on the convergence study of the completeness
 of the basis set used. In our case the basis consists of plane
@@ -29,50 +31,61 @@ cutoffs as well. 'Harder' (having a smaller pseudization radius) require
 larger cutoffs than 'softer' pseudos. There are however many more
 properties of a pseudo that determine the cutoff needed.
 
-\033[94m The related abinit variables\033[0m
+The related abinit variables
+----------------------------
 
 As said the most important parameter in the energy cutoff, in abinit ecut.
 
-\033[1m ecut \033[0m
-\033[1m dilatms \033[0m
-\033[1m ecutsm \033[0m
-\033[1m \033[0m
+    * ecut
+    * dilatms
+    * ecutsm
+
 
 More info on the inputvariables and their use can be obtained using the
 following function:
 
-\033[92m In []:\033[0m lesson.abinit_help(inputvariable)
+    .. code-block :: python
+        lesson.docvar("inputvariable")
 
-\033[94m The abipy flows in this lesson \033[0m
+The abipy flows in this lesson
+------------------------------
 
-\033[94m The course of this lesson \033[0m
+The course of this lesson
+-------------------------
 
 Start this lesson by importing it in a new namespace
 
-\033[92m In []:\033[0m from abipy.lessons import lesson_ecut_convergence as lesson
+    .. code-block :: python
+        from abipy.lessons.lesson_ecut_convergence import Lesson()
+        lesson = Lesson()
 
 As always you can reread this lesson's text using the command:
 
-\033[92m In []:\033[0m lesson.help()
+    .. code-block :: python
+        lesson
 
 To build the flow:
 
-\033[92m In []:\033[0m flow = lesson.make_ecut_flow()
+    .. code-block :: python
+        flow = lesson.make_ecut_flow()
 
 To print the input files
 
-\033[92m In []:\033[0m flow.show_inputs()
+    .. code-block :: python
+        flow.show_inputs()
 
 In this lesson we take a closer look at the structure of a Flow. In general
 a flow is a container that contains 'works'. Works are (connected) series
 of abinit executions we call tasks. To show the works contained in a flow
 use the 'works()' method:
 
-\033[92m In []:\033[0m flow.works()
+    .. code-block :: python
+        flow.works()
 
 to show the status of a flow:
 
-\033[92m In []:\033[0m flow.show_status()
+    .. code-block :: python
+        flow.show_status()
 
 There are many more properties and methods of a flow than may also come in
 handy. By typing [tab] in ipython after the period, you will be presented
@@ -80,53 +93,37 @@ with all the option. Feel free to experiment a bit at this point. By adding
 a questionmark to the method or property ipython will show the information
 and description of it:
 
-\033[92m In []:\033[0m flow.open_files?
+    .. code-block :: python
+        flow.open_files?
 
 Will explain what this method is supposed to do.
 
 Start the flow with the scheduler and wait for completion.
 
-\033[92m In []:\033[0m flow.make_scheduler().start()
+    .. code-block :: python
+        flow.make_scheduler().start()
 
 To analyze the results.
 
-\033[92m In []:\033[0m flow.analyze()
+    .. code-block :: python
+        flow.analyze()
 
-\033[93m Exercises \033[0m
+Exercises
+---------
 
 
-
-\033[93m Next \033[0m
+Next
+----
 
 A logical next lesson would be lesson_relaxation
 
 """
 from __future__ import division, print_function
 
-import sys
 import os
-import shutil
 import abipy.abilab as abilab
 import abipy.data as abidata
-
-abinit_help = abilab.abinit_help
-
-
-def help(stream=sys.stdout):
-    """
-    Display the tutorial text.
-    """
-    stream.write(__doc__)
-
-
-def get_local_copy():
-    """
-    Copy this script to the current working dir to explore and edit
-    """
-    dst = os.path.basename(__file__[:-1])
-    if os.path.exists(dst):
-        raise RuntimeError("file %s already exists. Remove it before calling get_local_copy" % dst)
-    shutil.copyfile(__file__[:-1], dst)
+from abipy.lessons.core import BaseLesson
 
 
 class EcutFlow(abilab.Flow):
@@ -163,7 +160,21 @@ def make_ecut_flow(structure_file=None, ecut_list = (10, 12, 14, 16, 18)):
     return EcutFlow.from_inputs(workdir=workdir, inputs=inp.split_datasets())
 
 
+class Lesson(BaseLesson):
+
+    @property
+    def doc_string(self):
+        return __doc__
+
+    @property
+    def pyfile(self):
+        return os.path.basename(__file__[:-1])
+
+    @staticmethod
+    def make_flow():
+        return make_ecut_flow()
+
+
 if __name__ == "__main__":
-    flow = make_ecut_flow()
-    flow.make_scheduler().start()
-    flow.analyze()
+    l = Lesson()
+    print(l.pyfile)

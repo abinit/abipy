@@ -28,7 +28,8 @@ Related ABINIT variables
     * ecuteps
     * ecutsigx
 
-More info on the input variables and their use can be obtained using the following function:
+More info on the input variables and their use can be obtained
+using the following function:
 
     .. code:: python
 
@@ -71,22 +72,50 @@ This lesson can be started in ipython by importing it:
 
         from abipy.lessons import lesson_g0w0 as lesson
 
-The lesson is now imported in your ipython session in its own namespace 'lesson'. 
-This object now gives us all the tools to follow this lesson. 
-For instance the command:
+The lesson is now imported in your ipython session in its own
+namespace 'lesson'. This object now gives us all the tools to
+follow this lesson. As before:
 
     .. code-block:: python
 
         lesson.help()
 
-displays this lessons information text, and can be recalled at any moment. 
+displays this lessons information text. This lesson provides a
+factory function that returns a flow designed to perform a standard
+G0W0 calculation.
+
+In the previous lesson we have actually been running job directly on
+the frontend. These calculations were so small that this was not a
+problem. GW calculations, however, (even the underconverged examples
+we are using here) are much more involved. To run submit calculations
+to the actual worknodes of the cluster we only need to provide abipy
+with different manager settings. First have a look at the current
+manager.yml file. This one tells abipy what it needs to know to run
+shell jobs. Next copy the file we prepared for this cluster:
+
+\033[92m In []:\033[0m cp /data/euspec/doc/abinit-templates/manager_viper.yml .
+
+Have a look at this file as well. It may look complicated but if fact it
+is just a translation of the user manual of the cluster. For a new cluster
+one person has to create it once. Also note the it only mentions which queueing
+systems is installed how to use this systems is programmed in abipy. To
+use this manager move it to manager.yml. (abipy will first look for a manager
+file in you current folder and secondly in ~/.abinit/abipy, so you can put
+one there an don't bother about it for every calculation)
+
+displays this lessons information text, and can be recalled at any moment.
 The main object we use to pack (connected series of) calculations is a flow. 
 This lesson provides a method that returns a flow designed to perform k-point convergence studies. 
+
 This flow is made by the command:
 
     .. code-block:: python
 
+'flow' is now an object that contains al the information needed
+to generate abinit inputs.
+
         flow = lesson.make_g0w0_scissors_flow()
+
 
 `flow` is now an object that contains al the information needed to generate abinit inputs. 
 
@@ -94,7 +123,10 @@ This flow is made by the command:
 
         flow.show_inputs()
 
-will display all the inputs as they will be 'given' to abinit.
+will display all the inputs as they will be 'given' to abinit. In
+previous lessons we ran the flows each time directly inside ipython.
+For relatively small calculations this is very practical. There are
+however other ways more suited for large calculations.
 
 To start the execution of calculations packed in this flow we use the following command:
 
@@ -148,11 +180,13 @@ You can get a copy of the file by using:
 """
 from __future__ import division, print_function, unicode_literals
 
-
-import sys
 import os
-import abipy.data as abidata  
+import abipy.data as abidata
 import abipy.abilab as abilab
+from abipy.lessons.core import BaseLesson
+
+abinit_help = abilab.abinit_help
+
 
 def make_inputs(ngkpt, paral_kgb=0):
     # Crystalline silicon
@@ -290,7 +324,6 @@ def analyze_flow(flow, domains_spin=[[-10, 6.02], [6.1, 20]]):
     #                     title="Silicon Bands and DOS (KS and KS+scissors)")
 
 
-from abipy.lessons.core import BaseLesson
 class Lesson(BaseLesson):
 
     @property
