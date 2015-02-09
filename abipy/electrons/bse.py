@@ -518,11 +518,11 @@ class MdfPlotter(object):
 
     def add_mdf(self, label, mdf):
         """
-        Adds a MDF for plotting.
+        Adds a :class:`DielectricFunction` for plotting.
 
         Args:
             name: name for the MDF. Must be unique.
-            mdf: `DielectricFunction` object.
+            mdf: :class:`DielectricFunction` object.
         """
         if label in self._mdfs:
             raise ValueError("name %s is already in %s" % (label, self._mdfs.keys()))
@@ -553,17 +553,16 @@ class MdfPlotter(object):
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
             cplx_mode: string defining the data to print (case-insensitive).
-                       Possible choices are: `re`  for the real part,
-                       `im` for imaginary part only. `abs` for the absolute value
-                       Options can be concated with "-".
+                Possible choices are: `re` for the real part, `im` for imaginary part only. `abs` for the absolute value.
+                Options can be concated with "-".
             qpoint: index of the q-point or Kpoint object or None to plot emacro_avg.
 
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        xlim            x-axis limits. None (Default) for automatic determination.
-        ylim            y-axis limits. None (Default) for automatic determination.
-        ==============  ==============================================================
+            ==============  ==============================================================
+            kwargs          Meaning
+            ==============  ==============================================================
+            xlim            x-axis limits. None (Default) for automatic determination.
+            ylim            y-axis limits. None (Default) for automatic determination.
+            ==============  ==============================================================
         """
         ax, fig, plt = get_ax_fig_plt(ax)
         ax.grid(True)

@@ -68,6 +68,7 @@ Usage example:
 
     # Subparser for list.
     p_list = subparsers.add_parser('list', parents=[base_parser], help="List all variables.")
+    p_list.add_argument('--mode', default="a", help="Sorte mode, `a` for alphabethical, `s` for sections, `c` for characteristics.")
 
     try:
         options = parser.parse_args()
@@ -91,19 +92,27 @@ Usage example:
 
     elif options.command == "list":
 
-        # Alphabetical
-        #for i, var in enumerate(database.values()):
-        #    print(i, repr(var))
+        if options.mode == "a":
+            # Alphabetical
+            for i, var in enumerate(database.values()):
+                print(i, repr(var))
 
-        # Grouped by sections.
-        #for section in database.sections:
-        #    print("Section:", section)
-        #    print_vlist(database.vars_with_section(section), options)
+        elif options.mode == "s":
+            # Grouped by sections.
+            for section in database.sections:
+                header = 30*"#" +  " Section: " + section + " " + 30*"#"
+                print(header)
+                print_vlist(database.vars_with_section(section), options)
 
-        # Grouped by characteristics.
-        for char in database.characteristics:
-            print("Characteristic:", char)
-            print_vlist(database.vars_with_char(char), options)
+        elif options.mode == "c":
+            # Grouped by characteristics.
+            for char in database.characteristics:
+                header = 30*"#" +  " Characteristic: " + char + 30*"#"
+                print(header)
+                print_vlist(database.vars_with_char(char), options)
+
+        else:
+            raise ValueError("Wrong mode %s" % options.mode)
 
     else:
         raise ValueError("Don't know how to handle command %s" % options.command)

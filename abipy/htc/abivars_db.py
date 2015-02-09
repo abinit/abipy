@@ -125,10 +125,16 @@ class Variable(yaml.YAMLObject):
 
     def __str__(self):
         return "Variable " + str(self.varname) + " (default = " + str(self.defaultval) + ")"
+        #return html2text.html2text("<h2>Default value:</h2>" + str(self.defaultval) + "<br/><h2>Description</h2>" +str(self.text))
 
     def __repr__(self):
         """variable name + mnemonics"""
         return self.varname + "  <" + str(self.definition) + ">"
+
+    def _repr_html_(self):
+        """For Ipython notebook"""
+        html = "<h2>Default value:</h2>" + str(self.defaultval) + "<br/><h2>Description</h2>" + str(self.text)
+        return html.replace("[[", "<b>").replace("]]", "</b>")
 
     @property
     def info(self):
@@ -321,6 +327,6 @@ def abinit_help(varname, info=True, stream=sys.stdout):
         stream.write("Variable %s not in the database" % varname)
         return
         
-    text = html2text.html2text("<h2>Default value : </h2>"+str(var.defaultval)+"<br /><h2>Description</h2>"+str(var.text))
+    text = html2text.html2text("<h2>Default value:</h2>" + str(var.defaultval) + "<br/><h2>Description</h2>" + str(var.text))
     if info: text += var.info
     stream.write(text.replace("[[", "\033[1m").replace("]]", "\033[0m"))
