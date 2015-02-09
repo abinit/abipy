@@ -54,7 +54,7 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
          try:
             import pypandoc
             return pypandoc.convert(self.doc_string, to, "rst", extra_args=extra_args)
-         except OSError, ImportError:
+         except (OSError, ImportError):
             return "pypandoc.convert failed. Please install pandoc and pypandoc"
 
     #def publish_string(self, writer_name="manpage"):
