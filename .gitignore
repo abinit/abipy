@@ -1,3 +1,13 @@
+# abipy files
+abinit_vars.pickle
+Profile.prof
+
+# cython generated code
+abipy/extensions/*.c
+abipy/extensions/*.html
+
+
+# python object files.
 *.py[cod]
 
 # Temporary files or directories
@@ -28,10 +38,6 @@ pip-log.txt
 # Sphinx autodoc
 docs/_build
 docs/examples
-
-# cython generated code
-abipy/extensions/*.c
-abipy/extensions/*.html
 
 # MacOSX stuff
 .DS_Store

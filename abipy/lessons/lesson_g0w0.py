@@ -1,138 +1,158 @@
 #!/usr/bin/env python
 """
-\033[91m Computation of the G0W0 band structure of silicon with a energy-dependent scissors operator.\033[0m
+$G_0W_0$ band structure of silicon with a energy-dependent scissors operator
+============================================================================
 
-\033[94m Background\033[0m
+Background
+----------
 
-Kohn-Sham (KS) eigenvalues are Lagrangian multipliers 
-Standard approximations for XC functionals (e.g. LDA, GGA) severely underestimate band-gaps
+Standard functionals (LDA and GGA), systematically underestimate band gaps, giving values 
+that are about 30-40% smaller than experimental data.
+The inability of standard Kohn-Sham (KS) theory to give band gaps close to experiment is often  referred to as the **band-gap problem**. 
+From a theoretical point of view this is not surprising  since KS eigenvalues are not supposed to give the correct band energies.
+The band structure of a crystal is rigorously defined as the energies needed to add or subtract electrons from the many-body system
+which, in turn, are related to the difference between total energies of many-body states differing by one electron. 
+An alternative, more traditional, approach to the study of exchange-correlation effects in 
+many-body systems is provided by Many-Body Perturbation Theory (MBPT) which defines a rigorous approach to the description of excited-state properties, 
+based on the Green's function formalism.
+In this lesson, we discuss how to use the MBPT part of ABINIT to compute the band-structure of silicon within the so-called $G_0W_0$ approximation.
 
-\033[94m The related abinit variables\033[0m
+For a very brief introduction see MBPT_NOTES_. 
 
-\033[1m optdriver \033[0m
-\033[1m ecuteps \033[0m
-\033[1m ecutsigx \033[0m
+.. _MBPT_NOTES: http://www.abinit.org/documentation/helpfiles/for-v7.10/tutorial/theory_mbt.html 
+
+Related ABINIT variables
+------------------------
+
+    * optdriver
+    * ecuteps
+    * ecutsigx
 
 More info on the input variables and their use can be obtained using the following function:
 
-\033[92m In []:\033[0m lesson.abinit_help(inputvariable)
+    .. code:: python
+
+        lesson.abinit_help(inputvariable)
 
 This will print the official abinit description of this variables.
 
-\033[94m The abipy flows of this lesson\033[0m
+To open the python script in ipython use:
 
-In this lesson, we will construct an abipy flow made of two works.
+    .. code:: python
+
+        %load $lesson.pyfile
+
+The abipy flows of this lesson
+------------------------------
+
+In this lesson, we will construct an `abipy` flow made of two works.
 The first work is a standard KS band-structure calculation that consists of 
 an initial GS calculation to get the density followed by two NSCF calculations.
 The first NSCF task computes the KS eigenvalues on a high-symmetry path in the BZ,
 whereas the second NSCF task is done on a homogeneous k-mesh so that one can calculate 
 the DOS from the KS eigenvalues. These two NSCF tasks 
 
-The second work represents a typical GW workflow in which we read the density computed 
-in the first task of the previous work to obtain and compute the KS eigenvalues and eigenvectors
-for many empty states. The WFK file produced in this step is then used to compute the 
-screened interaction W. Finally we do a self-energy calculation in which we use the W produced
+The second work represents a GW workflow in which we read the density computed  in the first task of 
+the previous work to obtain and compute the KS eigenvalues and eigenvectors for many empty states. 
+The WFK file produced in this step is then used to compute the screened interaction $W$. 
+Finally we do a self-energy calculation in which we use the $W$ produced
 in the previous step and the WFK file to compute the matrix elements of the self-energy and 
-the G0W0 corrections for all the k-points in the IBZ and 8 bands (4 occupied + 4 empty)
+the $G_0W_0$ corrections for all the k-points in the IBZ and 8 bands (4 occupied + 4 empty)
 
-Once the flow is completed, we can post-process the results and compute the G0W0 band-structure
-of silicon with a scissors operator...
+Once the flow is completed, we can post-process the results and compute the $G_0W_0$ band-structure
+of silicon with a scissors operator.
 
-\033[94m The Course of this lesson\033[0m
+The course of this lesson
+-------------------------
 
 This lesson can be started in ipython by importing it:
 
-\033[92m In []:\033[0m from abipy.lessons import lesson_g0w0 as lesson
+    .. code:: python
+
+        from abipy.lessons import lesson_g0w0 as lesson
 
 The lesson is now imported in your ipython session in its own namespace 'lesson'. 
 This object now gives us all the tools to follow this lesson. 
 For instance the command:
 
-\033[92m In []:\033[0m lesson.help()
+    .. code-block:: python
 
-displays this lessons information text, and can be recalled at
-any moment. The main object we use to pack (connected series of)
-calculations is a flow. This lesson provides a method that returns
-a flow designed to perform k-point convergence studies. This flow
-is made by the command:
+        lesson.help()
 
-\033[92m In []:\033[0m flow = lesson.make_g0w0_scissors_flow()
+displays this lessons information text, and can be recalled at any moment. 
+The main object we use to pack (connected series of) calculations is a flow. 
+This lesson provides a method that returns a flow designed to perform k-point convergence studies. 
+This flow is made by the command:
 
-'flow' is now an object that contains al the information needed to generate abinit inputs. 
+    .. code-block:: python
 
-\033[92m In []:\033[0m flow.show_inputs()
+        flow = lesson.make_g0w0_scissors_flow()
+
+`flow` is now an object that contains al the information needed to generate abinit inputs. 
+
+    .. code-block:: python
+
+        flow.show_inputs()
 
 will display all the inputs as they will be 'given' to abinit.
 
 To start the execution of calculations packed in this flow we use the following command:
 
-\033[92m In []:\033[0m flow.make_scheduler().start()
+    .. code-block:: python
+
+        flow.make_scheduler().start()
 
 This starts the actual execution via a scheduler. 
 
 The last step of analyzing the results can be done again in with a single command:
 
-\033[92m In []:\033[0m flow.analyze()
+    .. code-block:: python
 
-This method of flow will open the necessary output files, retrieve
-the data, and produce a plot.
+        flow.analyze()
+
+This method of flow will open the necessary output files, retrieve the data, and produce a plot.
 
 Finally, once you are through with this lesson and exited ipython:
 
-\033[92m In []:\033[0m exit
+    .. code-block:: python
+
+        exit
 
 You can see that in the directory that you were working there is
-now a subdir were the calculation have been performed. Have a look
-at these folders and the files that are in them.
+now a subdir were the calculation have been performed. 
+Have a look at these folders and the files that are in them.
 
-\033[93m Exercises \033[0m
+Exercises
+---------
 
-As an exercise you can now start this lesson again but in stead
-of performing the convergence study for silicon study the
+As an exercise you can now start this lesson again but instead of performing the convergence study for silicon study the
 convergence for a metal. By using:
 
-\033[92m In []:\033[0m flow = lesson.make_ngkpt_flow(structure_file=lesson.abidata.cif_file('al.cif'), metal=True)
+    .. code-block:: python
 
-you will generate a flow for aluminum. Actually, you can pass
-the path to any cif file to perform a convergence study on that
-material. Be careful however, aluminum is a metal and the default
-parameters for occopt and tsmear are for semiconductors. The
-keyword argument 'metal' fixes this. (you could also see what
-happens if you don't put this flag :-) ) Look at the inputs to
-see what has been changed and study the description of these
-inputvariables using the abinit_help() method.
+        flow = lesson.make_ngkpt_flow(structure_file=lesson.abidata.cif_file('al.cif'), metal=True)
 
-If you have time left it is also a good exercise to open the
-python file that contains this lesson and study the implementations
+you will generate a flow for aluminum. 
+Actually, you can pass the path to any cif file to perform a convergence study on that material. 
+Be careful however, aluminum is a metal and the default parameters for `occopt` and `tsmear` are for semiconductors. 
+The keyword argument 'metal' fixes this. (you could also see what happens if you don't put this flag :-) ) 
+Look at the inputs to see what has been changed and study the description of these inputvariables using the `abinit_help()` method.
+
+If you have time left it is also a good exercise to open the python file that contains this lesson and study the implementations
 of the classes, methods and functions we used. 
 You can get a copy of the file by using:
 
-\033[92m In []:\033[0m lesson.get_local_copy()
+    .. code-block:: python
+
+        lesson.get_local_copy()
 """
 from __future__ import division, print_function, unicode_literals
 
-import os
+
 import sys
+import os
 import abipy.data as abidata  
 import abipy.abilab as abilab
-
-
-def help(stream=sys.stdout):
-    """
-    Display the tutorial text.
-    """
-    stream.write(__doc__)
-
-
-def get_local_copy():
-    """
-    Copy this script to the current working dir to explore and edit
-    """
-    dst = os.path.basename(__file__[:-1])
-    if os.path.exists(dst):
-        raise RuntimeError("file %s already exists. Remove it before calling get_local_copy" % dst)
-    shutil.copyfile(__file__[:-1], dst)
-
 
 def make_inputs(ngkpt, paral_kgb=0):
     # Crystalline silicon
@@ -234,11 +254,11 @@ def make_inputs(ngkpt, paral_kgb=0):
     return inp.split_datasets()
 
 
-def make_g0w0_scissors_flow():
+def make_g0w0_scissors_flow(workdir="flow_lesson_g0w0"):
     # Change the value of ngkpt below to perform a GW calculation with a different k-mesh.
     scf, bands_nscf, dos_nscf, gw_nscf, scr, sig = make_inputs(ngkpt=[2,2,2])
 
-    flow = abilab.Flow(workdir="flow_lesson_g0w0")
+    flow = abilab.Flow(workdir=workdir)
     work0 = abilab.BandStructureWork(scf, bands_nscf, dos_inputs=dos_nscf)
     flow.register_work(work0)
 
@@ -270,11 +290,26 @@ def analyze_flow(flow, domains_spin=[[-10, 6.02], [6.1, 20]]):
     #                     title="Silicon Bands and DOS (KS and KS+scissors)")
 
 
+from abipy.lessons.core import BaseLesson
+class Lesson(BaseLesson):
+
+    @property
+    def doc_string(self):
+        return __doc__
+
+    @property
+    def pyfile(self):
+        return os.path.basename(__file__[:-1])
+
+    def make_flow(self):
+        return make_g0w0_scissors_flow()
+
+
 if __name__ == "__main__":
     #flow = make_g0w0_scissors_flow()
     #flow.show_inputs()
     #flow.make_scheduler().start()
-
-    flow = abilab.Flow.pickle_load("flow_lesson_g0w0")
-    analyze_flow(flow)
-
+    #flow = abilab.Flow.pickle_load("flow_lesson_g0w0")
+    #analyze_flow(flow)
+    l = Lesson()
+    print(l.pyfile)

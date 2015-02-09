@@ -488,11 +488,9 @@ class PhononBands(object):
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
             qlabels: dictionary whose keys are tuple with the reduced coordinates of the q-points. 
                 The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
-            branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted)
-            marker: String defining the marker to plot. Accepts the syntax `markername:fact` where
-                fact is a float used to scale the marker size.
-            width: String defining the width to plot. Accepts the syntax `widthname:fact` where
-                fact is a float used to scale the stripe size.
+            branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted).
+            marker: String defining the marker to plot. Syntax `markername:fact` where fact is a float used to scale the marker size.
+            width: String defining the width to plot. Syntax `widthname:fact` where fact is a float used to scale the stripe size.
 
         Returns:
             `matplotlib` figure.
