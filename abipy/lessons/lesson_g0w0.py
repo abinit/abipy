@@ -302,15 +302,15 @@ class Lesson(BaseLesson):
         return os.path.basename(__file__[:-1])
 
     @staticmethod
-    def make_flow(self):
-        return make_g0w0_scissors_flow()
+    def make_flow(**kwargs):
+        return make_g0w0_scissors_flow(**kwargs)
 
 
 if __name__ == "__main__":
     #flow = make_g0w0_scissors_flow()
     #flow.show_inputs()
     #flow.make_scheduler().start()
-    #flow = abilab.Flow.pickle_load("flow_lesson_g0w0")
-    #analyze_flow(flow)
-    l = Lesson()
-    print(l.pyfile)
+    flow = abilab.Flow.pickle_load("flow_lesson_g0w0")
+    analyze_flow(flow)
+    #l = Lesson()
+    #print(l.pyfile)

@@ -117,10 +117,11 @@ import shutil
 import numpy as np
 import abipy.abilab as abilab
 import abipy.data as abidata
+
+from pymatgen.io.abinitio.eos import EOS
 from abipy.core import Structure
 from abipy.abilab import abinit_help
-from pymatgen.io.abinitio.eos import EOS
-from abipy.lessons.lesson_helper_functions import get_pseudos
+from abipy.lessons.core import get_pseudos
 
 
 def help(stream=sys.stdout):

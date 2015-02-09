@@ -146,7 +146,8 @@ import os
 import shutil
 import abipy.abilab as abilab
 import abipy.data as abidata
-from abipy.lessons.lesson_helper_functions import get_pseudos
+
+from abipy.lessons.core import get_pseudos
 
 abinit_help = abilab.abinit_help
 
@@ -195,6 +196,7 @@ def make_ngkpt_flow(ngkpt_list=[(2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)], str
         workdir = "flow_lesson_Si_kpoint_convergence"
     else:
         structure = abilab.Structure.from_file(structure_file)
+
         pseudos = get_pseudos(structure)
         inp = abilab.AbiInput(pseudos=pseudos, ndtset=len(ngkpt_list))
         inp.set_structure(structure)

@@ -1,4 +1,4 @@
-"""Directory with abipy+abinit tutorials."""
+"""Directory with abipy + abinit tutorials."""
 
 def help():
     """List the available tutorials with a brief description."""
@@ -6,8 +6,8 @@ def help():
     from importlib import import_module
     
     docs = []
-    for pyfile in os.listdir("."):
-        if pyfile.startswith("_"): continue
+    for pyfile in os.listdir(__file__):
+        if not (pyfile.startswith("lesson") and pyfile.endswith(".py"): continue
         path = os.path.join(os.path.dirname(__file__), pyfile)
         mod = import_module(path)
         docs.appen(mod.__doc__)
