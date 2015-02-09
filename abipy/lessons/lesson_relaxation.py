@@ -19,11 +19,11 @@ In this lesson we focus on different types of structure relaxations.
 The related abinit variables
 ----------------------------
 
-\033[1m ionmov \033[0m
-\033[1m optcell \033[0m
-\033[1m dilatmx \033[0m
-\033[1m ecutsm \033[0m
-\033[1m ntime \033[0m
+    * ionmov
+    * optcell
+    * dilatmx
+    * ecutsm
+    * ntime
 
 More info on the inputvariables and their use can be obtained using
 the following function:
