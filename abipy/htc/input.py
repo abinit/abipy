@@ -596,9 +596,6 @@ class AbiInput(Input, Has_Structure):
             structure = Structure.from_file(structure)
         elif isinstance(structure, collections.Mapping): 
             structure = Structure.from_abivars(**structure)
-        #elif isinstance(structure, int):
-        #    from .matproj import MPConnection
-        #    structure = MPConnection().get_abistructure_from_mp(structure, final=True)
 
         if dtset is None:
             dtset = slice(self.ndtset+1)

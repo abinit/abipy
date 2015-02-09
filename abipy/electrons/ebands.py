@@ -1880,8 +1880,8 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
             scheme = None
 
         # FIXME there's a problem in smearing_scheme
-        if scheme is None:
-            logger.warning("warning: scheme is None, occopt %s" % occopt)
+        #if scheme is None:
+        #    logger.warning("warning: scheme is None, occopt %s" % occopt)
 
         return Smearing(
             scheme=scheme,
