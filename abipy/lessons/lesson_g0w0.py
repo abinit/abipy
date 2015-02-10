@@ -71,7 +71,8 @@ This lesson can be started in ipython by importing it:
 
     .. code:: python
 
-        from abipy.lessons import lesson_g0w0 as lesson
+        from abipy.lessons.lesson_g0w0 import Lesson()
+        lesson = Lesson()
 
 The lesson is now imported in your ipython session in its own
 namespace 'lesson'. This object now gives us all the tools to
@@ -79,7 +80,7 @@ follow this lesson. As before:
 
     .. code-block:: python
 
-        lesson.help()
+        lesson
 
 displays this lessons information text. This lesson provides a
 factory function that returns a flow designed to perform a standard
@@ -111,11 +112,6 @@ This lesson provides a method that returns a flow designed to perform k-point co
 This flow is made by the command:
 
     .. code-block:: python
-
-        lesson.make_flow()
-
-`flow` is now an object that contains al the information needed
-to generate abinit inputs.
 
         flow = lesson.make_g0w0_scissors_flow()
 
@@ -159,26 +155,6 @@ Have a look at these folders and the files that are in them.
 Exercises
 ---------
 
-As an exercise you can now start this lesson again but instead of performing the convergence study for silicon study the
-convergence for a metal. By using:
-
-    .. code-block:: python
-
-        flow = lesson.make_ngkpt_flow(structure_file=lesson.abidata.cif_file('al.cif'), metal=True)
-
-you will generate a flow for aluminum. 
-Actually, you can pass the path to any cif file to perform a convergence study on that material. 
-Be careful however, aluminum is a metal and the default parameters for `occopt` and `tsmear` are for semiconductors. 
-The keyword argument 'metal' fixes this. (you could also see what happens if you don't put this flag :-) ) 
-Look at the inputs to see what has been changed and study the description of these inputvariables using the `abinit_help()` method.
-
-If you have time left it is also a good exercise to open the python file that contains this lesson and study the implementations
-of the classes, methods and functions we used. 
-You can get a copy of the file by using:
-
-    .. code-block:: python
-
-        lesson.get_local_copy()
 """
 from __future__ import division, print_function, unicode_literals
 

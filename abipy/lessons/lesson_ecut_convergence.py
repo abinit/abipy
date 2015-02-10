@@ -7,7 +7,7 @@ Background
 ----------
 
 This lesson focuses on the convergence study of the completeness
-of the basis set used. In our case the basis consists of plane
+of the basis set used. In our case the basis set consists of plane
 waves. Plane waves are inherently well suited to capture the periodic
 nature of a crystalline solid. In addition a plane wave basis set
 has the advantage that it introduces only one convergence parameter,
@@ -35,16 +35,19 @@ The related abinit variables
 ----------------------------
 
 As said the most important parameter in the energy cutoff, in abinit ecut.
+The most important input parameters concerning the basis set are:
 
     * ecut
     * dilatms
     * ecutsm
+    * ecutdg
 
 
 More info on the inputvariables and their use can be obtained using the
 following function:
 
     .. code-block :: python
+
         lesson.docvar("inputvariable")
 
 The abipy flows in this lesson
@@ -56,22 +59,26 @@ The course of this lesson
 Start this lesson by importing it in a new namespace
 
     .. code-block :: python
+
         from abipy.lessons.lesson_ecut_convergence import Lesson()
         lesson = Lesson()
 
 As always you can reread this lesson's text using the command:
 
     .. code-block :: python
+
         lesson
 
 To build the flow:
 
     .. code-block :: python
+
         flow = lesson.make_ecut_flow()
 
 To print the input files
 
     .. code-block :: python
+
         flow.show_inputs()
 
 In this lesson we take a closer look at the structure of a Flow. In general
@@ -80,11 +87,13 @@ of abinit executions we call tasks. To show the works contained in a flow
 use the 'works()' method:
 
     .. code-block :: python
+
         flow.works()
 
 to show the status of a flow:
 
     .. code-block :: python
+
         flow.show_status()
 
 There are many more properties and methods of a flow than may also come in
@@ -94,6 +103,7 @@ a questionmark to the method or property ipython will show the information
 and description of it:
 
     .. code-block :: python
+
         flow.open_files?
 
 Will explain what this method is supposed to do.
@@ -101,11 +111,13 @@ Will explain what this method is supposed to do.
 Start the flow with the scheduler and wait for completion.
 
     .. code-block :: python
+
         flow.make_scheduler().start()
 
 To analyze the results.
 
     .. code-block :: python
+
         flow.analyze()
 
 Exercises

@@ -30,7 +30,7 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
         print(self.__class__.__module__)
         return self.__class__.__module__
 
-    def get_local_copy():
+    def get_local_copy(self):
         """Copy this script to the current working dir to explore and edit"""
         dst = os.path.basename(self.pyfile)
         if os.path.exists(dst):
@@ -51,10 +51,10 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
         return man_fname
 
     def _pandoc_convert(self, to, extra_args=()):
-         try:
+        try:
             import pypandoc
             return pypandoc.convert(self.doc_string, to, "rst", extra_args=extra_args)
-         except (OSError, ImportError):
+        except (OSError, ImportError):
             return "pypandoc.convert failed. Please install pandoc and pypandoc"
 
     #def publish_string(self, writer_name="manpage"):

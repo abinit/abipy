@@ -15,6 +15,7 @@ The related abinit variables
 More info on the inputvariables and their use can be obtained using the following function:
 
     .. code-block :: python
+
         lesson.docvar("inputvariable")
 
 This will print the official abinit description of this inputvariable.
@@ -27,38 +28,44 @@ This means that some tasks in the flow can only be started if an other task is
 ready. We will first perform one selfconsistend calculation to obtain a proper
 density. Using this density we calculate
 
-The cource of this lesson
+The course of this lesson
 -------------------------
 
 Start this lessen by importing it in a new namespace:
 
     .. code-block :: python
+
         from abipy.lesson.lesson_dos_bands import Lesson()
         lesson = Lesson()
 
 As always you can reread this lessons text using the command:
 
     .. code-block :: python
+
         lesson
 
 To build the flow:
 
     .. code-block :: python
+
         flow = lesson.make_flow()
 
 To print the input files
 
     .. code-block :: python
+
         flow.show_inputs()
 
 Start the flow with the scheduler and wait for completion.
 
     .. code-block :: python
+
         flow.make_scheduler().start()
 
 To analyze the results.
 
     .. code-block :: python
+
         flow.analyze()
 
 
