@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-$G_0W_0$ band structure of silicon with a energy-dependent scissors operator
-============================================================================
+$G_0W_0$ band structure with an energy-dependent scissors operator
+==================================================================
 
 Background
 ----------
@@ -12,6 +12,7 @@ The inability of standard Kohn-Sham (KS) theory to give band gaps close to exper
 From a theoretical point of view this is not surprising  since KS eigenvalues are not supposed to give the correct band energies.
 The band structure of a crystal is rigorously defined as the energies needed to add or subtract electrons from the many-body system
 which, in turn, are related to the difference between total energies of many-body states differing by one electron. 
+
 An alternative, more traditional, approach to the study of exchange-correlation effects in 
 many-body systems is provided by Many-Body Perturbation Theory (MBPT) which defines a rigorous approach to the description of excited-state properties, 
 based on the Green's function formalism.
@@ -93,7 +94,7 @@ with different manager settings. First have a look at the current
 manager.yml file. This one tells abipy what it needs to know to run
 shell jobs. Next copy the file we prepared for this cluster:
 
-\033[92m In []:\033[0m cp /data/euspec/doc/abinit-templates/manager_viper.yml .
+cp /data/euspec/doc/abinit-templates/manager_viper.yml.
 
 Have a look at this file as well. It may look complicated but if fact it
 is just a translation of the user manual of the cluster. For a new cluster
@@ -111,11 +112,12 @@ This flow is made by the command:
 
     .. code-block:: python
 
-'flow' is now an object that contains al the information needed
+        lesson.make_flow()
+
+`flow` is now an object that contains al the information needed
 to generate abinit inputs.
 
         flow = lesson.make_g0w0_scissors_flow()
-
 
 `flow` is now an object that contains al the information needed to generate abinit inputs. 
 
@@ -314,7 +316,7 @@ def analyze_flow(flow, domains_spin=[[-10, 6.02], [6.1, 20]]):
     builder.plot_fit()
 
     bands_task = flow[0][1]
-    bands_filepath = bands_task.outdir.has_abiext("GSR")
+    bands_filepath = bands_task.gsr_path
     builder.plot_qpbands(bands_filepath, bands_label="KS Bands", title="Silicon Bands (KS and KS+scissors)")
 
     # TODO: Fix problems with boundaries!

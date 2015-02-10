@@ -680,8 +680,9 @@ class ElectronBands(object):
             return
 
         new_fermie = max(esb_levels)
-        if abs(new_fermie - self.fermie) > 0.2:
-            print("old_fermie %s, new fermie %s" % (self.fermie, new_fermie))
+
+        #if abs(new_fermie - self.fermie) > 0.2:
+        #    print("old_fermie %s, new fermie %s" % (self.fermie, new_fermie))
 
         # Use fermilevel as zero of energies.
         self.fermie = new_fermie
@@ -1213,7 +1214,7 @@ class ElectronBands(object):
             ax.set_title(title)
 
         ax.grid(True)
-        ax.set_xlabel('k-point')
+        #ax.set_xlabel('k-point')
         ax.set_ylabel('Energy [eV]')
 
         # FIXME:
@@ -1880,8 +1881,8 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
             scheme = None
 
         # FIXME there's a problem in smearing_scheme
-        if scheme is None:
-            logger.warning("warning: scheme is None, occopt %s" % occopt)
+        #if scheme is None:
+        #    logger.warning("warning: scheme is None, occopt %s" % occopt)
 
         return Smearing(
             scheme=scheme,

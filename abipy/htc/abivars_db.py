@@ -248,12 +248,12 @@ def get_abinit_variables():
         pickle_file = os.path.join(os.path.dirname(__file__), "abinit_vars.pickle")
         
         if os.path.exists(pickle_file): 
-            print("Reading from pickle")
+            #print("Reading from pickle")
             with open(pickle_file, "rb") as fh:
                 __VARS_DATABASE = pickle.load(fh)
 
         else:
-            print("Reading database from YAML file and generating pickle version. It may take a while...")
+            #print("Reading database from YAML file and generating pickle version. It may take a while...")
             from abipy import data as abidata
             yaml_file = abidata.var_file('abinit_vars.yml')
             with open(yaml_file, "r") as fh:

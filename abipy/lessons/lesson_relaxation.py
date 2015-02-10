@@ -192,7 +192,7 @@ def make_relax_flow(structure_file=None):
 
     # Global variables
     inp.set_vars(
-        ecut=30,
+        ecut=10,
         tolrff=1.0e-2,
         nstep=100,
         optcell=2,
