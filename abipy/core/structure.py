@@ -2,6 +2,7 @@
 """This module defines basic objects representing the crystalline structure."""
 from __future__ import print_function, division, unicode_literals
 
+import os
 import collections
 import pymatgen
 import numpy as np
@@ -60,6 +61,40 @@ class Structure(pymatgen.Structure):
             if new.__class__ != cls: new.__class__ = cls
 
         return new
+
+    @classmethod
+    def from_material_id(cls, material_id, final=True, api_key=None, host="www.materialsproject.org"):
+        """
+        Get a Structure corresponding to a material_id.
+
+        Args:
+            material_id (str): Materials Project material_id (a string, e.g., mp-1234).
+            final (bool): Whether to get the final structure, or the initial
+                (pre-relaxation) structure. Defaults to True.
+            api_key (str): A String API key for accessing the MaterialsProject
+                REST interface. Please apply on the Materials Project website for one.
+                If this is None, the code will check if there is a "MAPI_KEY"
+                environment variable set. If so, it will use that environment
+                variable. This makes easier for heavy users to simply add
+                this environment variable to their setups and MPRester can
+                then be called without any arguments.
+            host (str): Url of host to access the MaterialsProject REST interface.
+                Defaults to the standard Materials Project REST address, but
+                can be changed to other urls implementing a similar interface.
+
+        Returns:
+            Structure object.
+        """
+        if api_key is None:
+            # Check if MP_KEY is defined, otherwise fallback to MAPI_KEY.
+            api_key = os.environ.get('MP_KEY', None)
+
+        # Get pytmatgen structure and convert it to abipy structure
+        from pymatgen.matproj.rest import MPRester, MPRestError
+        with MPRester(api_key=api_key, host=host) as database:
+            new = database.get_structure_by_material_id(material_id, final=final)
+            new.__class__ = cls
+            return new
 
     @classmethod
     def boxed_molecule(cls, pseudos, cart_coords, acell=3*(10,)):
@@ -299,7 +334,7 @@ class Structure(pymatgen.Structure):
     def write_structure(self, filename):
         """Write structure fo file."""
         if filename.endswith(".nc"):
-            raise NotImplementedError("Cannot write a structure to a netcdfile file yet")
+            raise NotImplementedError("Cannot write a structure to a netcdf file yet")
 
         else:
             self.to(filename=filename)

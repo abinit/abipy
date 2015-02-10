@@ -18,7 +18,6 @@ from pymatgen.io.abinitio.works import *
 from pymatgen.io.abinitio.flows import Flow, G0W0WithQptdmFlow, bandstructure_flow, g0w0_flow, phonon_flow
 from pymatgen.io.abinitio.launcher import PyFlowScheduler
 
-#from abipy.tools.prettytable import PrettyTable
 from abipy.core.structure import Structure, StructureModifier
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen, AnaddbInput
 from abipy.htc.robots import GsrRobot, SigresRobot, MdfRobot, abirobot
