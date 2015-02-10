@@ -21,16 +21,20 @@ will quit often be a k-point convergence study.
 The related abinit variables
 ----------------------------
 
+The abinit parameters concerned with the k-point grid are:
+
     * ngkpt
     * shiftk
     * occopt (see exercises)
     * tsmear (see exercises)
     * kptopt (see exercises)
 
-More info on the inputvariables and their use can be obtained
-using the following function:
+At this place they will not be discussed in detail. In stead you are
+invited to read the abinit documentation on them. The full description,
+directly from the abinit description is available via the following function:
 
-    .. code-block :: pyhton
+    .. code-block :: python
+
         lesson.docvar("inputvariable")
 
 This will print the official abinit description of this inputvariable.
@@ -48,12 +52,15 @@ the information needed for the calculations but also provides methods
 for actually running abinit, inspecting the input and output, and
 analyzing the results.
 
+All calculations will however still be run in parallel.
+
 The Course of this lesson
 -------------------------
 
 This lesson can be started in ipython by importing it:
 
     .. code-block :: python
+
         from abipy.lessons.lesson_kpoint_convergence import Lesson
         lesson = Lesson()
 
@@ -62,6 +69,7 @@ namespace 'lesson'. This object now gives us all the tools to
 follow this lesson. For instance the command:
 
     .. code-block :: python
+
         lesson
 
 displays this lessons information text, and can be recalled at
@@ -71,6 +79,7 @@ a flow designed to perform k-point convergence studies. This flow
 is made by the command:
 
     .. code-block :: python
+
         flow = lesson.make_ngkpt_flow()
 
 'flow' is now an object that contains al the information needed
@@ -81,6 +90,7 @@ Our flow however, inherited from the abinit base flow so we have
 a lot of 'standard' methods available. For instance:
 
     .. code-block :: python
+
         flow.show_inputs()
 
 This will display all the inputs as they will be 'given' to abinit.
@@ -89,6 +99,7 @@ To start the execution of calculations packed in this flow we
 and use the following command:
 
     .. code-block :: python
+
         flow.make_scheduler().start()
 
 This starts the actual execution via a scheduler. The scheduler is
@@ -102,6 +113,7 @@ The last step of analyzing the results can be done again in with
 a single command:
 
     .. code-block :: python
+
         flow.analyze()
 
 This method of flow will open the necessary output files, retrieve
@@ -110,6 +122,7 @@ the data, and produce a plot.
 Finally, once you are through with this lesson and exited ipython:
 
     .. code-block :: python
+
         exit
 
 You can see that in the directory that you were working there is
@@ -125,6 +138,7 @@ of performing the convergence study for silicon study the
 convergence for a metal. By using:
 
     .. code-block :: python
+
         flow = lesson.make_ngkpt_flow(structure_file=lesson.abidata.cif_file('al.cif'), metal=True)
 
 you will generate a flow for aluminum. Actually, you can pass
@@ -142,6 +156,7 @@ of the classes, methods and functions we used. You can get a copy
 of the file by using:
 
     .. code-block :: python
+
         lesson.get_local_copy()
 
 Try to find what to change to change the set of k-point meshes that
@@ -158,7 +173,7 @@ from __future__ import division, print_function
 import os
 import abipy.abilab as abilab
 import abipy.data as abidata
-from abipy.lessons.core import BaseLesson
+from abipy.lessons.core import BaseLesson, get_pseudos
 
 
 class NgkptFlow(abilab.Flow):

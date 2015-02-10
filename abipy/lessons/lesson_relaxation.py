@@ -29,6 +29,7 @@ More info on the inputvariables and their use can be obtained using
 the following function:
 
     .. code-block :: python
+
         lesson.docvar("inputvariable")
 
 
@@ -52,37 +53,44 @@ The course of this lesson
 Start this lesson by importing it in a new namespace:
 
     .. code-block :: python
+
         from abipy.lessons.lesson_relaxation import Lesson()
         lesson = Lesson()
 
 As always you can reread this lessons text using the command:
 
     .. code-block :: python
+
         lesson
 
 To build the flow for silicon
 
     .. code-block :: python
+
         flow = lesson.make_relax_eos_flow()
 
 For Gallium Arsenide, use
 
     .. code-block :: python
+
         flow = lesson.make_relax_relax_flow()
 
 To print the input files
 
     .. code-block :: python
+
         flow.show_inputs()
 
 Start the flow with the scheduler and wait for completion.
 
     .. code-block :: python
+
         flow.make_scheduler().start()
 
 To analyze the results.
 
     .. code-block :: python
+
         flow.analyze()
 
 In the case of silicon, it will show a fit of the total energy vs the
@@ -110,6 +118,7 @@ from the GaN relaxation. First download a local copy of the python
 script.
 
     .. code-block :: python
+
         lesson.get_local_copy()
 
 And have a look in make_relax_gan_flow(), try to do the same
@@ -126,7 +135,6 @@ A logical next lesson would be lesson_dos_bands
 """
 from __future__ import division, print_function
 
-import sys
 import os
 import numpy as np
 import abipy.abilab as abilab
