@@ -1378,7 +1378,7 @@ class SigresReader(ETSF_Reader):
 
         params = AttrDict()
         for pname in param_names:
-            params[pname] = self.read_value(pname)
+            params[pname] = self.read_value(pname, default=None)
         
         # Other quantities that might be subject to convergence studies.
         params["nkibz"] = len(self.ibz)
