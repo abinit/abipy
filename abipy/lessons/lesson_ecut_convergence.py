@@ -183,7 +183,7 @@ class Lesson(BaseLesson):
         return os.path.basename(__file__[:-1])
 
     @staticmethod
-    def make_flow():
+    def make_ecut_flow():
         return make_ecut_flow()
 
 
