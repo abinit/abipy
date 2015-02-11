@@ -157,8 +157,8 @@ class Lesson(BaseLesson):
         return os.path.basename(__file__[:-1])
 
     @staticmethod
-    def make_electronic_structure_flow():
-        return make_electronic_structure_flow()
+    def make_flow(**kwargs):
+        return make_electronic_structure_flow(**kwargs)
 
 
 if __name__ == "__main__":

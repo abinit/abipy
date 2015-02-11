@@ -251,12 +251,12 @@ class Lesson(BaseLesson):
         return os.path.basename(__file__[:-1])
 
     @staticmethod
-    def make_eos_flow(structure_file=None):
-        return make_eos_flow(structure_file)
+    def make_eos_flow(**kwargs)
+        return make_eos_flow(**kwargs)
 
     @staticmethod
-    def make_relax_flow(structure_file=None):
-        return make_relax_flow(structure_file)
+    def make_relax_flow(**kwargs):
+        return make_relax_flow(**kwargs)
 
 if __name__ == "__main__":
     l = Lesson()
