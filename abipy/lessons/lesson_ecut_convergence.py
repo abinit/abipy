@@ -42,7 +42,10 @@ The most important input parameters concerning the basis set are:
     * ecutsm
     * ecutdg
 
+"""
+from __future__ import division, print_function
 
+_ipython_lesson_ = """
 More info on the inputvariables and their use can be obtained using the
 following function:
 
@@ -130,23 +133,26 @@ Next
 A logical next lesson would be lesson_relaxation
 
 """
-from __future__ import division, print_function
+
+_commandline_lesson_ = """
+At this place they will not be discussed in detail. In stead you are
+invited to read the abinit documentation on them. The full description,
+directly from the abinit description is available via the following function:
+
+    .. code-block :: shell
+
+        abidocs.py man inputvariable
+
+This will print the official abinit description of this inputvariable.
+
+text for the commandline lesson
+
+"""
 
 import os
 import abipy.abilab as abilab
 import abipy.data as abidata
 from abipy.lessons.core import BaseLesson
-
-
-class EcutFlow(abilab.Flow):
-    def analyze(self):
-        with abilab.abirobot(self, "GSR") as robot:
-            data = robot.get_dataframe()
-            #robot.ebands_plotter().plot()
-
-        import matplotlib.pyplot as plt
-        data.plot(x="ecut", y="energy", title="Total energy vs ecut", legend="Energy [eV]", style="b-o")
-        plt.show()
 
 
 def make_ecut_flow(structure_file=None, ecut_list = (10, 12, 14, 16, 18)):
@@ -169,24 +175,41 @@ def make_ecut_flow(structure_file=None, ecut_list = (10, 12, 14, 16, 18)):
     for i, ecut in enumerate(ecut_list):
         inp[i+1].set_vars(ecut=ecut)
 
-    return EcutFlow.from_inputs(workdir=workdir, inputs=inp.split_datasets())
+    return abilab.Flow.from_inputs(workdir=workdir, inputs=inp.split_datasets())
 
 
 class Lesson(BaseLesson):
 
     @property
-    def doc_string(self):
-        return __doc__
+    def abipy_string(self):
+        return __doc__+_ipython_lesson_
+
+    @property
+    def comline_string(self):
+        return __doc__+_commandline_lesson_
 
     @property
     def pyfile(self):
-        return os.path.basename(__file__[:-1])
+        return os.path.basename(__file__)
 
     @staticmethod
     def make_ecut_flow(**kwargs):
         return make_ecut_flow(**kwargs)
 
+    @staticmethod
+    def analyze(my_flow, **kwargs):
+        with abilab.abirobot(my_flow, "GSR") as robot:
+            data = robot.get_dataframe()
+            #robot.ebands_plotter().plot()
+
+        import matplotlib.pyplot as plt
+        data.plot(x="ecut", y="energy", title="Total energy vs ecut", legend="Energy [eV]", style="b-o")
+        return plt.show(**kwargs)
+
 
 if __name__ == "__main__":
     l = Lesson()
-    print(l.pyfile)
+    flow = l.make_ecut_flow()
+    flow.build_and_pickle_dump()
+    l.manfile(l.comline_string)
+    l.instruct()

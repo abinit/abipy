@@ -19,6 +19,11 @@ The related abinit variables
     * 1
     * 2
 
+"""
+from __future__ import division, print_function
+
+
+_ipython_lesson_ = """
 More info on the inputvariables and their use can be obtained using the following function:
 
     .. code-block :: python
@@ -37,7 +42,6 @@ density. Using this density we calculate in two more steps the DOS and the bands
 For the DOS this not stricktly nessesary since the DOS will also be calculated on a regular grid.
 In general the density will be converged already before the DOS is converged. For large systems it may become
 nessesary to split. For the bandstructure we have a non-uniform grid so we do need to fix the density.
-
 
 The course of this lesson
 -------------------------
@@ -99,40 +103,27 @@ A logical next lesson would be lesson_g0w0
 
 
 """
-from __future__ import division, print_function
+
+_commandline_lesson_ = """
+At this place they will not be discussed in detail. In stead you are
+invited to read the abinit documentation on them. The full description,
+directly from the abinit description is available via the following function:
+
+    .. code-block :: shell
+
+        abidocs.py man inputvariable
+
+This will print the official abinit description of this inputvariable.
+
+
+The course of this lesson
+-------------------------
+"""
 
 import os
 import abipy.abilab as abilab
 import abipy.data as abidata
 from abipy.lessons.core import BaseLesson, get_pseudos
-
-
-class EbandsDosFlow(abilab.Flow):
-    def analyze(self):
-        nscf_task = self[0][1]
-        with nscf_task.open_gsr() as gsr:
-            return gsr.ebands.plot()
-
-    def plot_edoses(self, method="gaussian", step=0.01, width=0.1, **kwargs):
-        plotter = abilab.ElectronDosPlotter()
-        for task in self.dos_tasks:
-            with task.open_gsr() as gsr:
-                edos = gsr.ebands.get_edos(method=method, step=step, width=width)
-                ngkpt = task.get_inpvar("ngkpt")
-                plotter.add_edos("ngkpt %s" % str(ngkpt), edos)
-
-        return plotter.plot(**kwargs)
-
-    def plot_ebands_with_edos(self, dos_idx=0, **kwargs):
-        # plot dos
-        with self.nscf_task.open_gsr() as gsr: 
-            gs_ebands = gsr.ebands
-
-        with self.dos_tasks[dos_idx].open_gsr() as gsr: 
-            dos_ebands = gsr.ebands
-
-        edos = dos_ebands.get_edos(method="gaussian", step=0.01, width=0.1)
-        return gs_ebands.plot_with_edos(edos, **kwargs)
 
 
 def make_electronic_structure_flow(ngkpts_for_dos=[(2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)]):
@@ -145,7 +136,7 @@ def make_electronic_structure_flow(ngkpts_for_dos=[(2, 2, 2), (4, 4, 4), (6, 6, 
 
     # Dataset 1
     inp[1].set_vars(tolvrs=1e-9)
-    inp[1].set_kmesh(ngkpt=[4,4,4], shiftk=[0,0,0])
+    inp[1].set_kmesh(ngkpt=[4, 4, 4], shiftk=[0, 0, 0])
 
     # Dataset 2
     inp[2].set_vars(tolwfr=1e-15)
@@ -160,24 +151,36 @@ def make_electronic_structure_flow(ngkpts_for_dos=[(2, 2, 2), (4, 4, 4), (6, 6, 
     scf_input, nscf_input, dos_input = inputs[0], inputs[1], inputs[2:]
 
     return abilab.bandstructure_flow(workdir="flow_base3_ebands", scf_input=scf_input, nscf_input=nscf_input,
-                                     dos_inputs=dos_input, flow_class=EbandsDosFlow)
+                                     dos_inputs=dos_input)
 
 
 class Lesson(BaseLesson):
 
     @property
-    def doc_string(self):
-        return __doc__
+    def abipy_string(self):
+        return __doc__+_ipython_lesson_
+
+    @property
+    def comline_string(self):
+        return __doc__+_commandline_lesson_
 
     @property
     def pyfile(self):
-        return os.path.basename(__file__[:-1])
+        return os.path.basename(__file__)
 
     @staticmethod
-    def make_flow(**kwargs):
+    def make_electronic_structure_flow(**kwargs):
         return make_electronic_structure_flow(**kwargs)
 
+    @staticmethod
+    def analyze(my_flow):
+        nscf_task = my_flow[0][1]
+        with nscf_task.open_gsr() as gsr:
+            return gsr.ebands.plot()
 
 if __name__ == "__main__":
     l = Lesson()
-    print(l.pyfile)
+    flow = l.make_electronic_structure_flow()
+    flow.build_and_pickle_dump()
+    l.manfile(l.comline_string)
+    l.instruct()

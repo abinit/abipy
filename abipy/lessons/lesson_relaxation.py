@@ -25,6 +25,11 @@ The related abinit variables
     * ecutsm
     * ntime
 
+"""
+from __future__ import division, print_function
+
+_ipython_lesson_ = """
+
 More info on the inputvariables and their use can be obtained using
 the following function:
 
@@ -133,7 +138,24 @@ Next
 
 A logical next lesson would be lesson_dos_bands
 """
-from __future__ import division, print_function
+
+_commandline_lesson_ = """
+At this place they will not be discussed in detail. In stead you are
+invited to read the abinit documentation on them. The full description,
+directly from the abinit description is available via the following function:
+
+    .. code-block :: shell
+
+        abidocs.py man inputvariable
+
+This will print the official abinit description of this inputvariable.
+
+
+The course of this lesson
+-------------------------
+"""
+
+
 
 import os
 import numpy as np
@@ -241,12 +263,16 @@ def make_eos_flow(structure_file=None):
 class Lesson(BaseLesson):
 
     @property
-    def doc_string(self):
-        return __doc__
+    def abipy_string(self):
+        return __doc__+_ipython_lesson_
+
+    @property
+    def comline_string(self):
+        return __doc__+_commandline_lesson_
 
     @property
     def pyfile(self):
-        return os.path.basename(__file__[:-1])
+        return os.path.basename(__file__)
 
     @staticmethod
     def make_eos_flow(**kwargs):
@@ -258,4 +284,10 @@ class Lesson(BaseLesson):
 
 if __name__ == "__main__":
     l = Lesson()
-    print(l.pyfile)
+    l = Lesson()
+    flow = l.make_eos_flow()
+    flow.build_and_pickle_dump()
+    flow = l.make_relax_flow()
+    flow.build_and_pickle_dump()
+    l.manfile(l.comline_string)
+    l.instruct()

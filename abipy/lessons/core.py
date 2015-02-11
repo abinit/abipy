@@ -21,8 +21,12 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
             mpld3_enable_notebook()
 
     @abc.abstractproperty
-    def doc_string(self):
-        """docstring of the lesson."""
+    def abipy_string(self):
+        """the abipy lesson."""
+
+    @abc.abstractproperty
+    def comline_string(self):
+        """the commandline lesson."""
 
     @abc.abstractproperty
     def pyfile(self):
@@ -41,19 +45,29 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
         """String representation."""
         return self.doc_string
 
-    @lazy_property
-    def manfile(self):
+    def manfile(self, what=None):
         """The path to the man file of the lesson. Use `%man %lesson.manfile` to open it in ipython"""
-        import tempfile
-        _, man_fname = tempfile.mkstemp(suffix='.man', text=True)
-        with open(man_fname, 'wt') as fh: 
-            fh.write(self._pandoc_convert(to="man", extra_args=("-s",)))
-        return man_fname
+        man_path = self.pyfile.replace('.py', '.man')
+        try:
+            shutil.copy(os.path.join(os.path.dirname(os.path.realpath(__file__)), man_path), '.')
+        except IOError:
+            with open(man_path, "wt") as fh:
+                fh.write(self._pandoc_convert(to="man", what=what, extra_args=("-s",)))
 
-    def _pandoc_convert(self, to, extra_args=()):
+    def instruct(self):
+            print("\n"
+                  "The lesson "+self.pyfile[:-3]+
+                  " is prepared. \n"
+                  "Use \n\n"
+                  " man ./"+self.pyfile[:-3]+".man\n\n"
+                  "to view the text of the lesson.\n")
+
+    def _pandoc_convert(self, to, what, extra_args=()):
+        if what is None:
+            what = self.abipy_string
         try:
             import pypandoc
-            return pypandoc.convert(self.doc_string, to, "rst", extra_args=extra_args)
+            return pypandoc.convert(what, to, "rst", extra_args=extra_args)
         except (OSError, ImportError):
             return "pypandoc.convert failed. Please install pandoc and pypandoc"
 
