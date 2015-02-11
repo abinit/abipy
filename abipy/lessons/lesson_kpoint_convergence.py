@@ -29,6 +29,10 @@ The abinit parameters concerned with the k-point grid are:
     * tsmear (see exercises)
     * kptopt (see exercises)
 
+"""
+from __future__ import division, print_function
+
+_ipython_lesson_ = """
 At this place they will not be discussed in detail. In stead you are
 invited to read the abinit documentation on them. The full description,
 directly from the abinit description is available via the following function:
@@ -39,9 +43,6 @@ directly from the abinit description is available via the following function:
 
 This will print the official abinit description of this inputvariable.
 
-"""
-
-_abipy_lesson_ = """
 The abipy flows of this lesson
 ------------------------------
 
@@ -171,25 +172,34 @@ Next
 A logical next lesson would be lesson_ecut_convergence
 """
 
-_command_line_ = """
-The cource of this lesson
+_commandline_lesson_ = """
+At this place they will not be discussed in detail. In stead you are
+invited to read the abinit documentation on them. The full description,
+directly from the abinit description is available via the following function:
+
+    .. code-block :: shell
+
+        abidocs.py man inputvariable
+
+This will print the official abinit description of this inputvariable.
+
+
+The course of this lesson
 -------------------------
 
 In the generation of this lesson by the python script all the input files have been generated automatically.
 You will.......
 
 
+Executing the calculations using abirun
+
+abirun.py
+
 """
-
-
-from __future__ import division, print_function
-
 import os
 import abipy.abilab as abilab
 import abipy.data as abidata
 from abipy.lessons.core import BaseLesson, get_pseudos
-
-
 
 
 def make_ngkpt_flow(ngkpt_list=[(2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)], structure_file=None, metal=False):
@@ -227,23 +237,23 @@ class Lesson(BaseLesson):
 
     @property
     def abipy_string(self):
-        return __doc__+_abipy_lesson_
+        return __doc__+_ipython_lesson_
 
     @property
     def comline_string(self):
-        return __doc__+_command_line_
+        return __doc__+_commandline_lesson_
 
     @property
     def pyfile(self):
-        return os.path.basename(__file__[:-1])
+        return os.path.basename(__file__)
 
     @staticmethod
     def make_ngkpt_flow(**kwargs):
         return make_ngkpt_flow(**kwargs)
 
     @staticmethod
-    def analyze(flow, **kwargs):
-        with abilab.abirobot(flow, "GSR") as robot:
+    def analyze(my_flow, **kwargs):
+        with abilab.abirobot(my_flow, "GSR") as robot:
             data = robot.get_dataframe()
         import matplotlib.pyplot as plt
         data.plot(x="nkpts", y="energy", title="Total energy vs nkpts", legend=False, style="b-o")
@@ -254,4 +264,5 @@ if __name__ == "__main__":
     l = Lesson()
     flow = l.make_ngkpt_flow()
     flow.build_and_pickle_dump()
-    l.make_command_line_lesson()
+    l.manfile(l.comline_string)
+    l.instruct()

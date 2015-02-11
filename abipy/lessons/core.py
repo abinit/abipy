@@ -45,14 +45,24 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
         """String representation."""
         return self.doc_string
 
-    @lazy_property
-    def manfile(self):
+    def manfile(self, what=None):
         """The path to the man file of the lesson. Use `%man %lesson.manfile` to open it in ipython"""
         man_path = self.pyfile.replace('.py', '.man')
-        with open(man_path, "wt") as fh:
-            fh.write(self._pandoc_convert(to="man", extra_args=("-s",)))
+        try:
+            shutil.copy(os.path.join(os.path.dirname(os.path.realpath(__file__)), man_path), '.')
+        except IOError:
+            with open(man_path, "wt") as fh:
+                fh.write(self._pandoc_convert(to="man", what=what, extra_args=("-s",)))
 
-    def _pandoc_convert(self, to, what=None, extra_args=()):
+    def instruct(self):
+            print("\n"
+                  "The lesson "+self.pyfile[:-3]+
+                  " is prepared. \n"
+                  "Use \n\n"
+                  " man ./"+self.pyfile[:-3]+".man\n\n"
+                  "to view the text of the lesson.\n")
+
+    def _pandoc_convert(self, to, what, extra_args=()):
         if what is None:
             what = self.abipy_string
         try:
@@ -60,9 +70,6 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
             return pypandoc.convert(what, to, "rst", extra_args=extra_args)
         except (OSError, ImportError):
             return "pypandoc.convert failed. Please install pandoc and pypandoc"
-
-    def make_command_line_lesson(self):
-        self._pandoc_convert(self.manfile, what=self.comline_string)
 
     #def publish_string(self, writer_name="manpage"):
     #    from docutils.core import publish_string, publish_parts
