@@ -6,6 +6,13 @@ The calculation of the density of states and the bandstructure.
 Background
 ----------
 
+This lesson focuses on calculating the density of states (DOS) and the band structure. On thing one should always
+keep in mind is that these are the densities of states
+
+
+
+
+
 The related abinit variables
 ----------------------------
 
@@ -25,8 +32,12 @@ The abipy flows in this lesson
 
 The flow that we use in this lesson contains for the first time dependencies.
 This means that some tasks in the flow can only be started if an other task is
-ready. We will first perform one selfconsistend calculation to obtain a proper
-density. Using this density we calculate
+ready. We will first perform one self-consistent calculation to obtain a proper
+density. Using this density we calculate in two more steps the DOS and the bandstructure.
+For the DOS this not stricktly nessesary since the DOS will also be calculated on a regular grid.
+In general the density will be converged already before the DOS is converged. For large systems it may become
+nessesary to split. For the bandstructure we have a non-uniform grid so we do need to fix the density.
+
 
 The course of this lesson
 -------------------------
@@ -55,6 +66,12 @@ To print the input files
     .. code-block :: python
 
         flow.show_inputs()
+
+To visualize the dependencies in the flow:
+
+    .. code-block :: python
+
+        flow.show_dependencies()
 
 Start the flow with the scheduler and wait for completion.
 
