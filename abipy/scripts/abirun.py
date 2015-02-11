@@ -141,16 +141,15 @@ def main():
 Usage example:\n
     abirun.py [DIRPATH] single                   => Fetch the first available task and run it.
     abirun.py [DIRPATH] rapid                    => Keep repeating, stop when no task can be executed
-                                                    due to inter-dependency.
     abirun.py [DIRPATH] gui                      => Open the GUI 
-    nohup abirun.py [DIRPATH] sheduler -s 30 &   => Use a scheduler to schedule task submission
+    nohup abirun.py [DIRPATH] sheduler -s 30 &   => Start the scheduler to schedule task submission
 
     If DIRPATH is not given, abirun.py automatically selects the database located within 
     the working directory. An Exception is raised if multiple databases are found.
 
     Options for developers:
-        abirun.py prof ABIRUN_OPTIONS      to profile abirun.py
-        abirun.py tracemalloc ABIRUN_ARGS  to trace memory blocks allocated by Python
+        abirun.py prof ABIRUN_ARGS               => to profile abirun.py
+        abirun.py tracemalloc ABIRUN_ARGS        => to trace memory blocks allocated by Python
 """
         return examples
 
@@ -271,11 +270,11 @@ Specify the files to open. Possible choices:
 """)
 
     p_ncopen = subparsers.add_parser('ncopen', parents=[flow_selector_parser], 
-                                      help="Open netcdf files in ipython, type `abirun.py DIRPATH ncopen --help` for help)")
+                                      help="Open netcdf files in ipython. Use --help` for more info")
     p_ncopen.add_argument('ncext', nargs="?", default="GSR", help="Select the type of file to open")
 
     # Subparser for gui command.
-    p_gui = subparsers.add_parser('gui', help="Open GUI.")
+    p_gui = subparsers.add_parser('gui', help="Open the GUI (requires wxPython).")
     p_gui.add_argument("--chroot", default="", type=str, help=("Use chroot as new directory of the flow.\n" +
                        "Mainly used for opening a flow located on a remote filesystem mounted with sshfs.\n" +
                        "In this case chroot is the absolute path to the flow on the **localhost**\n",
@@ -284,7 +283,7 @@ Specify the files to open. Possible choices:
     p_new_manager = subparsers.add_parser('new_manager', parents=[flow_selector_parser], help="Change the TaskManager.")
     p_new_manager.add_argument("manager_file", default="", type=str, help="YAML file with the new manager")
 
-    p_tail = subparsers.add_parser('tail', parents=[flow_selector_parser], help="Use tail to follow the main output file of the flow.")
+    p_tail = subparsers.add_parser('tail', parents=[flow_selector_parser], help="Use tail to follow the main output files of the flow.")
     p_tail.add_argument('what_tail', nargs="?", type=str, default="o", help="What to follow: o for output (default), l for logfile, e for stderr")
 
     p_qstat = subparsers.add_parser('qstat', help="Show additional info on the jobs in the queue.")
@@ -295,23 +294,21 @@ Specify the files to open. Possible choices:
     p_robot = subparsers.add_parser('robot', parents=[flow_selector_parser], help="Use a robot to analyze the results of multiple tasks (requires ipython)")
     p_robot.add_argument('robot_ext', nargs="?", type=str, default="GSR", help="The file extension of the netcdf file")
 
-    p_plot = subparsers.add_parser('plot', parents=[flow_selector_parser], help="Plot data")
+    p_plot = subparsers.add_parser('plot', parents=[flow_selector_parser], help="Plot data. Use --help for more info.")
     p_plot.add_argument("what", nargs="?", type=str, default="ebands", help="Object to plot")
 
     p_inspect = subparsers.add_parser('inspect', parents=[flow_selector_parser], help="Inspect the tasks")
 
     p_inputs= subparsers.add_parser('inputs', parents=[flow_selector_parser], help="Show the input files of the tasks")
 
-    p_analyze= subparsers.add_parser('analyze', help="Analyze the results produced by the flow (requires a flow with analyze method)")
+    p_analyze= subparsers.add_parser('analyze', help="Analyze the results produced by the flow.")
 
     p_docmanager = subparsers.add_parser('docmanager', help="Document the TaskManager options")
     p_docmanager.add_argument("qtype", nargs="?", default=None, help="Document qparams section for the given qtype")
 
     p_notebook = subparsers.add_parser('notebook', help="Create and open an ipython notebook to interact with the flow.")
 
-    p_embed = subparsers.add_parser('ipython', help=( 
-        "Embed IPython. Useful for performing advanced operations or debugging purposes.\n"
-        "THIS OPTION IF FOR EXPERT USERS!"))
+    p_embed = subparsers.add_parser('ipython', help="Embed IPython. Useful for performing advanced operations or debugging purposes.")
 
     # Parse command line.
     try:

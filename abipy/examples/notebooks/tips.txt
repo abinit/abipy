@@ -12,3 +12,11 @@ Enter edit mode by pressing `Enter`
 Don't try to type into a cell in command mode
 </div>
 
+
+# To load one of the abipy scripts inside the notebook.
+
+pyscript= abidata.pyscript("plot_spectral_functions.py")
+%load $pyscript
+
+# To run it
+%run $pyscript
