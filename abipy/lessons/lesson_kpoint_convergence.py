@@ -233,7 +233,7 @@ class Lesson(BaseLesson):
         return os.path.basename(__file__[:-1])
 
     @staticmethod
-    def make_flow(**kwargs):
+    def make_ngkpt_flow(**kwargs):
         return make_ngkpt_flow(**kwargs)
 
 

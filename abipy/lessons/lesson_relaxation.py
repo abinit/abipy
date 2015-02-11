@@ -169,13 +169,11 @@ class EosFlow(abilab.Flow):
         work = self.works[0]
         etotals = work.read_etotals(unit="eV")
 
-        eos_fit = EOS.DeltaFactor().fit(self.volumes, etotals)
-
-        eos_fit.plot()
+        #eos_fit = EOS.DeltaFactor().fit(self.volumes, etotals)
+        #eos_fit.plot()
 
         eos_fit = EOS.Birch_Murnaghan().fit(self.volumes, etotals)
-
-        eos_fit.plot()
+        return eos_fit.plot()
 
 
 def make_relax_flow(structure_file=None):
@@ -251,7 +249,7 @@ class Lesson(BaseLesson):
         return os.path.basename(__file__[:-1])
 
     @staticmethod
-    def make_eos_flow(**kwargs)
+    def make_eos_flow(**kwargs):
         return make_eos_flow(**kwargs)
 
     @staticmethod

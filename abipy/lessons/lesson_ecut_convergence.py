@@ -154,13 +154,13 @@ def make_ecut_flow(structure_file=None, ecut_list = (10, 12, 14, 16, 18)):
     if structure_file is None:
         inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=len(ecut_list))
         inp.set_structure(abidata.cif_file("si.cif"))
-        workdir = "lesson_Si_ecut_convergence"
+        workdir = "flow_Si_ecut_convergence"
     else:
         structure = abilab.Structure.from_file(structure_file)
         pseudos = abilab.PseudoTable()  ## todo fix this
         inp = abilab.AbiInput(pseudos=pseudos, ndtset=len(ecut_list))
         inp.set_structure(structure)
-        workdir = "lesson_" + structure.composition.reduced_formula + "_ecut_convergence"
+        workdir = "flow_" + structure.composition.reduced_formula + "_ecut_convergence"
 
     # Global variables
     inp.set_vars(tolvrs=1e-9)
@@ -183,7 +183,7 @@ class Lesson(BaseLesson):
         return os.path.basename(__file__[:-1])
 
     @staticmethod
-    def make_flow(**kwargs):
+    def make_ecut_flow(**kwargs):
         return make_ecut_flow(**kwargs)
 
 
