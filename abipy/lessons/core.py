@@ -31,11 +31,11 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
     @abc.abstractproperty
     def pyfile(self):
         """Path of the python script."""
-        print(self.__class__.__module__)
-        return self.__class__.__module__
+        #p = self.__class__.__module__.__file__
+        #return p
 
     def get_local_copy(self):
-        """Copy this script to the current working dir to explore and edit"""
+        """Copy this script to the current working dir to explore it and edit"""
         dst = os.path.basename(self.pyfile)
         if os.path.exists(dst):
             raise RuntimeError("file %s already exists. Remove it before calling get_local_copy" % dst)
@@ -43,7 +43,7 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
 
     def __repr__(self):
         """String representation."""
-        return self.doc_string
+        return self.abipy_string
 
     def manfile(self, what=None):
         """The path to the man file of the lesson. Use `%man %lesson.manfile` to open it in ipython"""
@@ -56,10 +56,10 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
 
     def instruct(self):
             print("\n"
-                  "The lesson "+self.pyfile[:-3]+
+                  "The lesson " + self.pyfile[:-3]+
                   " is prepared. \n"
                   "Use \n\n"
-                  " man ./"+self.pyfile[:-3]+".man\n\n"
+                  " man ./" + self.pyfile[:-3] + ".man\n\n"
                   "to view the text of the lesson.\n")
 
     def _pandoc_convert(self, to, what, extra_args=()):
@@ -71,15 +71,10 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
         except (OSError, ImportError):
             return "pypandoc.convert failed. Please install pandoc and pypandoc"
 
-    #def publish_string(self, writer_name="manpage"):
-    #    from docutils.core import publish_string, publish_parts
-    #    return publish_string(self.doc_string, writer_name=writer_name)
-
     def _repr_html_(self):
         """Support for ipython notebooks."""
         from docutils.core import publish_string, publish_parts
-        return publish_string(self.doc_string, writer_name="html")
-        #return publish_parts(self.doc_string, writer_name='html')['html_body']
+        return publish_string(self.abipy_string, writer_name="html")
 
     @staticmethod
     def docvar(varname):

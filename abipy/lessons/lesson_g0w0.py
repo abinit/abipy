@@ -30,6 +30,7 @@ Related ABINIT variables
     * ecutsigx
 
 """
+from __future__ import division, print_function, unicode_literals
 
 _ipython_lesson_ = """
 More info on the input variables and their use can be obtained
@@ -175,11 +176,10 @@ The course of this lesson
 -------------------------
 
 """
-from __future__ import division, print_function, unicode_literals
-
 import os
 import abipy.data as abidata
 import abipy.abilab as abilab
+
 from abipy.lessons.core import BaseLesson
 
 abinit_help = abilab.abinit_help
@@ -301,48 +301,47 @@ def make_g0w0_scissors_flow(workdir="flow_lesson_g0w0"):
 
     return flow.allocate()
 
-
-def analyze_flow(flow, domains_spin=[[-10, 6.02], [6.1, 20]]):
-    sigma_task = flow[1][2]
-    builder = sigma_task.get_scissors_builder()
-
-    #builder.plot_qpe_vs_e0()
-    builder.build(domains_spin=domains_spin)
-    builder.plot_fit()
-
-    bands_task = flow[0][1]
-    bands_filepath = bands_task.gsr_path
-    builder.plot_qpbands(bands_filepath, bands_label="KS Bands", title="Silicon Bands (KS and KS+scissors)")
-
-    # TODO: Fix problems with boundaries!
-    #dos_task = flow[0][2]
-    #dos_filepath = dos_task.outdir.has_abiext("GSR")
-    #builder.plot_qpbands(bands_filepath, dos_filepath=dos_filepath,
-    #                     title="Silicon Bands and DOS (KS and KS+scissors)")
-
-
 class Lesson(BaseLesson):
 
     @property
     def abipy_string(self):
-        return __doc__+_ipython_lesson_
+        return __doc__ + _ipython_lesson_
 
     @property
     def comline_string(self):
-        return __doc__+_commandline_lesson_
+        return __doc__ + _commandline_lesson_
 
     @property
     def pyfile(self):
-        return os.path.basename(__file__)
+        return __file__
 
     @staticmethod
     def make_flow(**kwargs):
         return make_g0w0_scissors_flow(**kwargs)
 
+    @staticmethod
+    def analyze_flow(flow, domains_spin=[[-10, 6.02], [6.1, 20]]):
+        sigma_task = flow[1][2]
+        builder = sigma_task.get_scissors_builder()
+
+        #builder.plot_qpe_vs_e0()
+        builder.build(domains_spin=domains_spin)
+        builder.plot_fit()
+
+        bands_task = flow[0][1]
+        bands_filepath = bands_task.gsr_path
+        builder.plot_qpbands(bands_filepath, bands_label="KS Bands", title="Silicon Bands (KS and KS+scissors)")
+
+        # TODO: Fix problems with boundaries!
+        #dos_task = flow[0][2]
+        #dos_filepath = dos_task.outdir.has_abiext("GSR")
+        #builder.plot_qpbands(bands_filepath, dos_filepath=dos_filepath,
+        #                     title="Silicon Bands and DOS (KS and KS+scissors)")
+
 
 if __name__ == "__main__":
     l = Lesson()
-    flow = l.make_g0w0_scissors_flow()
+    flow = l.make_flow()
     flow.build_and_pickle_dump()
     l.manfile(l.comline_string)
     l.instruct()
