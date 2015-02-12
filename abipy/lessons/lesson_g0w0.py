@@ -36,7 +36,7 @@ _ipython_lesson_ = """
 More info on the input variables and their use can be obtained
 using the following function:
 
-    .. code:: python
+    .. code-block:: python
 
         lesson.abinit_help(inputvariable)
 
@@ -44,7 +44,7 @@ This will print the official abinit description of this variables.
 
 To open the python script in ipython use:
 
-    .. code:: python
+    .. code-block:: python
 
         %load $lesson.pyfile
 
@@ -73,7 +73,7 @@ The course of this lesson
 
 This lesson can be started in ipython by importing it:
 
-    .. code:: python
+    .. code-block:: python
 
         from abipy.lessons.lesson_g0w0 import Lesson()
         lesson = Lesson()
@@ -166,7 +166,7 @@ At this place they will not be discussed in detail. In stead you are
 invited to read the abinit documentation on them. The full description,
 directly from the abinit description is available via the following function:
 
-    .. code-block :: shell
+    .. code-block:: shell
 
         abidocs.py man inputvariable
 

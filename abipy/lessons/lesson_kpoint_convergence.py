@@ -37,7 +37,7 @@ At this place they will not be discussed in detail. In stead you are
 invited to read the abinit documentation on them. The full description,
 directly from the abinit description is available via the following function:
 
-    .. code-block :: python
+    .. code-block:: python
 
         lesson.docvar("inputvariable")
 
@@ -63,7 +63,7 @@ The Course of this lesson
 
 This lesson can be started in ipython by importing it:
 
-    .. code-block :: python
+    .. code-block:: python
 
         from abipy.lessons.lesson_kpoint_convergence import Lesson
         lesson = Lesson()
@@ -72,7 +72,7 @@ The lesson is now imported in your ipython session in its own
 namespace 'lesson'. This object now gives us all the tools to
 follow this lesson. For instance the command:
 
-    .. code-block :: python
+    .. code-block:: python
 
         lesson
 
@@ -82,7 +82,7 @@ calculations is a flow. This lesson provides a method that returns
 a flow designed to perform k-point convergence studies. This flow
 is made by the command:
 
-    .. code-block :: python
+    .. code-block:: python
 
         flow = lesson.make_ngkpt_flow()
 
@@ -93,7 +93,7 @@ when generating the flow the example case of silicon is generated.
 Our flow however, inherited from the abinit base flow so we have
 a lot of 'standard' methods available. For instance:
 
-    .. code-block :: python
+    .. code-block:: python
 
         flow.show_inputs()
 
@@ -102,7 +102,7 @@ This will display all the inputs as they will be 'given' to abinit.
 To start the execution of calculations packed in this flow we
 and use the following command:
 
-    .. code-block :: python
+    .. code-block:: python
 
         flow.make_scheduler().start()
 
@@ -116,7 +116,7 @@ from a previous task. We will encounter some of those later.
 The last step of analyzing the results can be done again in with
 a single command:
 
-    .. code-block :: python
+    .. code-block:: python
 
         lesson.analyze(flow)
 
@@ -125,7 +125,7 @@ the data, and produce a plot.
 
 Finally, once you are through with this lesson and exited ipython:
 
-    .. code-block :: python
+    .. code-block:: python
 
         exit
 
@@ -141,7 +141,7 @@ As an exercise you can now start this lesson again but in stead
 of performing the convergence study for silicon study the
 convergence for a metal. By using:
 
-    .. code-block :: python
+    .. code-block:: python
 
         flow = lesson.make_ngkpt_flow(structure_file=lesson.abidata.cif_file('al.cif'), metal=True)
 
@@ -159,7 +159,7 @@ python file that contains this lesson and study the implementations
 of the classes, methods and functions we used. You can get a copy
 of the file by using:
 
-    .. code-block :: python
+    .. code-block:: python
 
         lesson.get_local_copy()
 
@@ -177,7 +177,7 @@ At this place they will not be discussed in detail. In stead you are
 invited to read the abinit documentation on them. The full description,
 directly from the abinit description is available via the following function:
 
-    .. code-block :: shell
+    .. code-block:: shell
 
         abidocs.py man inputvariable
 

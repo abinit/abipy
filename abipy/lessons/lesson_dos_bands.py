@@ -26,7 +26,7 @@ from __future__ import division, print_function
 _ipython_lesson_ = """
 More info on the inputvariables and their use can be obtained using the following function:
 
-    .. code-block :: python
+    .. code-block:: python
 
         lesson.docvar("inputvariable")
 
@@ -48,44 +48,44 @@ The course of this lesson
 
 Start this lessen by importing it in a new namespace:
 
-    .. code-block :: python
+    .. code-block:: python
 
         from abipy.lesson.lesson_dos_bands import Lesson()
         lesson = Lesson()
 
 As always you can reread this lessons text using the command:
 
-    .. code-block :: python
+    .. code-block:: python
 
         lesson
 
 To build the flow:
 
-    .. code-block :: python
+    .. code-block:: python
 
         flow = lesson.make_flow()
 
 To print the input files
 
-    .. code-block :: python
+    .. code-block:: python
 
         flow.show_inputs()
 
 To visualize the dependencies in the flow:
 
-    .. code-block :: python
+    .. code-block:: python
 
         flow.show_dependencies()
 
 Start the flow with the scheduler and wait for completion.
 
-    .. code-block :: python
+    .. code-block:: python
 
         flow.make_scheduler().start()
 
 To analyze the results.
 
-    .. code-block :: python
+    .. code-block:: python
 
         flow.analyze()
 
@@ -109,7 +109,7 @@ At this place they will not be discussed in detail. In stead you are
 invited to read the abinit documentation on them. The full description,
 directly from the abinit description is available via the following function:
 
-    .. code-block :: shell
+    .. code-block:: shell
 
         abidocs.py man inputvariable
 

@@ -71,6 +71,12 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
         except (OSError, ImportError):
             return "pypandoc.convert failed. Please install pandoc and pypandoc"
 
+    def _gen_manfile(self):
+        _, ext = os.path.splitext(self.pyfile)
+        man_path = self.pyfile.replace(ext, '.man')
+        with open(man_path, "wt") as fh:
+            fh.write(self._pandoc_convert(to="man", what=self.abipy_string, extra_args=("-s",)))
+
     def _repr_html_(self):
         """Support for ipython notebooks."""
         from docutils.core import publish_string, publish_parts

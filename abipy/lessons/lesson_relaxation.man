@@ -1,0 +1,167 @@
+.TH Relaxation "" "" "of the unit cell with two different techniques"
+.SH Background
+.PP
+One of the tasks that is most performed using DFT is the relaxation of
+an atomic structure.
+Effectively we search for that structure for which the total energy is
+minimal.
+Since the total energy is in principal exact in DFT the atomic position
+are in general rather good.
+\[aq]In principal\[aq] means if the exchange\-correlation functional
+would be exact.
+However, since we are comparing differences in total energies an certain
+amount of error\-cancellation can be expected.
+.PP
+In this lesson we focus on different types of structure relaxations.
+.SH The related abinit variables
+.RS
+.IP \[bu] 2
+ionmov
+.IP \[bu] 2
+optcell
+.IP \[bu] 2
+dilatmx
+.IP \[bu] 2
+ecutsm
+.IP \[bu] 2
+ntime
+.RE
+.PP
+More info on the inputvariables and their use can be obtained using the
+following function:
+.RS
+.IP
+.nf
+\f[C]
+lesson.docvar("inputvariable")
+\f[]
+.fi
+.RE
+.SH The abipy flows in this lesson
+.PP
+In this lesson we will use two different relaxation flows.
+One flow will calculate the total energies of a compound at various
+volumes and fit an equation of state to the energy v.s.
+volume data.
+Besides the optimal volume, where the energy is minimal, this will also
+provide the bulk modulus, the \[aq]compressebility\[aq] of the systems.
+The other flow will automatically optimize all degrees of freedom.
+In our first example Si, there is only one degree of freedom, due to the
+symmetry of the crystal, the volume of the unit cell, or the lattice
+parameter.
+In the second example, GaN, the symmetry is lower and one internal
+degree of freedom appears.
+.SH The course of this lesson
+.PP
+Start this lesson by importing it in a new namespace:
+.RS
+.IP
+.nf
+\f[C]
+from\ abipy.lessons.lesson_relaxation\ import\ Lesson()
+lesson\ =\ Lesson()
+\f[]
+.fi
+.RE
+.PP
+As always you can reread this lessons text using the command:
+.RS
+.IP
+.nf
+\f[C]
+lesson
+\f[]
+.fi
+.RE
+.PP
+To build the flow for silicon
+.RS
+.IP
+.nf
+\f[C]
+flow\ =\ lesson.make_relax_eos_flow()
+\f[]
+.fi
+.RE
+.PP
+For Gallium Arsenide, use
+.RS
+.IP
+.nf
+\f[C]
+flow\ =\ lesson.make_relax_relax_flow()
+\f[]
+.fi
+.RE
+.PP
+To print the input files
+.RS
+.IP
+.nf
+\f[C]
+flow.show_inputs()
+\f[]
+.fi
+.RE
+.PP
+Start the flow with the scheduler and wait for completion.
+.RS
+.IP
+.nf
+\f[C]
+flow.make_scheduler().start()
+\f[]
+.fi
+.RE
+.PP
+To analyze the results.
+.RS
+.IP
+.nf
+\f[C]
+flow.analyze()
+\f[]
+.fi
+.RE
+.PP
+In the case of silicon, it will show a fit of the total energy vs the
+volume of the unit cell.
+The minimum of this curve is the equilibrium volume.
+From this fit, we can also obtain the bulk modulus.
+.PP
+Volume of the unit cell of silicon : XXX A^3 [ source ?] Bulk modulus :
+98.8 GPa [ source ?
+]
+.PP
+In the case of gallium arsenide, you will see the change of equilibrium
+volume and length of the box with respect to the k\-point mesh.
+.PP
+Volume of the unit cell of GaN : XXX A^3 [ source ?] Vertical distance
+between Ga and N : XXX A [ source ?]
+.PP
+Of course you will need to converge your results with respect to the
+kpoint sampling and with respect with ecut...
+.SH Exercises
+.PP
+As an exercise you can now try to get the equilibrium unit cell of
+silicon automatically using abinit.
+You can inspire yourself from the GaN relaxation.
+First download a local copy of the python script.
+.RS
+.IP
+.nf
+\f[C]
+lesson.get_local_copy()
+\f[]
+.fi
+.RE
+.PP
+And have a look in make_relax_gan_flow(), try to do the same with
+\[aq]si.cif\[aq] file instead of \[aq]gan.cif\[aq]
+.PP
+As a second exercice, you can try to converge the results obtained here
+with respect to the k\-point sampling and with respect to ecut and
+compare the converged results with experimental data.
+.SH Next
+.PP
+A logical next lesson would be lesson_dos_bands
