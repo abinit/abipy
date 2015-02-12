@@ -30,6 +30,7 @@ from abipy.dfpt import PhbstFile, PhononBands, PhdosFile, PhdosReader
 from abipy.dfpt.ddb import DdbFile
 from abipy.core.mixins import AbinitInputFile, AbinitLogFile, AbinitOutputFile
 from abipy.waves import WfkFile
+from abipy.iotools import Visualizer
 
 # Tools for unit conversion
 import pymatgen.core.units as units

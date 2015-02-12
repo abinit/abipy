@@ -57,26 +57,9 @@ def as_slice(obj):
     raise ValueError("Cannot convert %s into a slice:\n%s" % (type(obj), obj))
 
 
-def selected_tasks(flow, options):
-    """Return the list of tasks in the flow selected by the user via the command line interface."""
-    if options.nids is not None:
-        tasks = flow.tasks_from_nids(options.nids)
-
-    elif options.wslice is not None:
-        tasks = []
-        for work in flow[options.wslice]:
-            tasks.extend([t for t in work])
-    else:
-        # All tasks selected if no option is provided.
-        tasks = list(flow.iflat_tasks())
-
-    #print(options, "\nselected_tasks:", tasks)
-    return tasks
-
-
 def selected_nids(flow, options):
     """Return the list of node ids selected by the user via the command line interface."""
-    return [task.node_id for task in selected_tasks(flow, options)]
+    return [task.node_id for task in flow.select_tasks(nids=options.nids, wslice=options.wslice)]
 
 
 def write_notebook(flow, options):
@@ -92,8 +75,8 @@ IPython.OutputArea.auto_scroll_threshold = 9999;
 
 from __future__ import print_function
 from abipy import abilab
-mpld3 = abilab.mpld3_enable_notebook()
 %matplotlib inline
+mpld3 = abilab.mpld3_enable_notebook()
 
 import pylab
 pylab.rcParams['figure.figsize'] = (25.0, 10.0)
@@ -102,19 +85,12 @@ import seaborn as sns
 sns.set(style='ticks', palette='Set2')"""),
 
         nbf.new_code_cell("flow = abilab.Flow.pickle_load('%s')" % flow.workdir),
+        nbf.new_code_cell("flow.show_dependencies()"),
         nbf.new_code_cell("flow.check_status(show=True, verbose=0)"),
-        nbf.new_code_cell("flow.show_inputs()"),
+        nbf.new_code_cell("flow.show_inputs(nids=None, wslice=None)"),
+        nbf.new_code_cell("flow.show_inspect(nids=None, wslice=None)"),
         nbf.new_code_cell("flow.show_abierrors()"),
         nbf.new_code_cell("flow.show_qouts()"),
-        nbf.new_code_cell("flow.show_dependencies()"),
-
-        nbf.new_code_cell("""\
-%matplotlib inline
-for task in flow.iflat_tasks(): 
-    try:
-        task.inspect()
-    except:
-        pass"""),
     ]
 
     # Now that we have the cells, we can make a worksheet with them and add it to the notebook:
@@ -139,12 +115,12 @@ def main():
     def str_examples():
         examples = """\
 Usage example:\n
-    abirun.py [DIRPATH] single                   => Fetch the first available task and run it.
-    abirun.py [DIRPATH] rapid                    => Keep repeating, stop when no task can be executed
-    abirun.py [DIRPATH] gui                      => Open the GUI 
-    nohup abirun.py [DIRPATH] sheduler -s 30 &   => Start the scheduler to schedule task submission
+    abirun.py [FLOWDIR] single                   => Fetch the first available task and run it.
+    abirun.py [FLOWDIR] rapid                    => Keep repeating, stop when no task can be executed
+    abirun.py [FLOWDIR] gui                      => Open the GUI 
+    nohup abirun.py [FLOWDIR] sheduler -s 30 &   => Start the scheduler to schedule task submission
 
-    If DIRPATH is not given, abirun.py automatically selects the database located within 
+    If FLOWDIR is not given, abirun.py automatically selects the database located within 
     the working directory. An Exception is raised if multiple databases are found.
 
     Options for developers:
@@ -194,8 +170,6 @@ Usage example:\n
                                       help=("Select the list of works to analyze (python syntax for slices):\n"
                                       "Examples: --wslice=1 to select the second workflow, --wslice=:3 for 0,1,2,"
                                       "--wslice=-1 for the last workflow, --wslice::2 for even indices"))
-
-    #flow_selector_parser.add_argument('--wti', default=None, help="Index of workflow:task")
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -256,7 +230,7 @@ Usage example:\n
     p_move.add_argument('dest', nargs=1) 
 
     # Subparser for open command.
-    p_open = subparsers.add_parser('open', parents=[flow_selector_parser], help="Open files in $EDITOR, type `abirun.py DIRPATH open --help` for help)")
+    p_open = subparsers.add_parser('open', parents=[flow_selector_parser], help="Open files in $EDITOR, type `abirun.py FLOWDIR open --help` for help)")
     p_open.add_argument('what', default="o", 
         help="""\
 Specify the files to open. Possible choices:
@@ -308,7 +282,7 @@ Specify the files to open. Possible choices:
 
     p_notebook = subparsers.add_parser('notebook', help="Create and open an ipython notebook to interact with the flow.")
 
-    p_embed = subparsers.add_parser('ipython', help="Embed IPython. Useful for performing advanced operations or debugging purposes.")
+    p_embed = subparsers.add_parser('ipython', help="Embed IPython. Useful for advanced operations or debugging purposes.")
 
     # Parse command line.
     try:
@@ -329,44 +303,16 @@ Specify the files to open. Possible choices:
         termcolor.enable(False)
 
     if options.command == "docmanager":
+        # Document TaskManager options and qparams.
         print(abilab.TaskManager.autodoc())
+        from pymatgen.io.abinitio.qadapters import show_qparams, all_qtypes
 
-        import yaml
-        QDICT = yaml.load("""\
-priority: 5
-queue:
-  qtype: slurm
-  qname: Oban
-  qparams:
-      account: user_account
-      mail_user: user@mail.com
-limits:
-  timelimit: 10:00
-  min_cores: 3
-  max_cores: 16
-job:
-  mpi_runner: mpirun
-  # pre_run is a string in verbatim mode (note |)
-  setup:
-      - echo ${SLURM_JOB_NODELIST}
-      - ulimit -s unlimited
-  modules:
-      - intel/compilerpro/13.0.1.117
-      - fftw3/intel/3.3
-  shell_env:
-      PATH: /home/user/bin:$PATH
-hardware:
-   # Mandatory
-   num_nodes: 2
-   sockets_per_node: 2
-   cores_per_socket: 4
-   mem_per_node: 8 Gb
-""")
-        from pymatgen.io.abinitio.qadapters import make_qadapter
+        print("qtype supported: %s" % all_qtypes())
+        print("Use `abirun.py . docmanager slurm` to have the list of qparams for slurm.\n")
+
         if options.qtype is not None:
-            qad = make_qadapter(**QDICT)
-            print(qad.QTEMPLATE)
-            #print(qad.supported_qparams)
+            print("QPARAMS for %s" % options.qtype)
+            show_qparams(options.qtype)
 
         sys.exit(0)
 
@@ -456,7 +402,8 @@ hardware:
         # The name of the method associated to this netcdf file.
         methname = "open_" + options.ncext.lower()
         # List of netcdf file objects.
-        ncfiles = [getattr(task, methname)() for task in selected_tasks(flow, options) if hasattr(task, methname)]
+        ncfiles = [getattr(task, methname)() for task in flow.select_tasks(nids=options.nids, wslice=options.wslice) 
+                    if hasattr(task, methname)]
         
         if ncfiles:
             # Start ipython shell with namespace 
@@ -545,7 +492,7 @@ hardware:
                 pass
 
     elif options.command == "qstat":
-        for task in selected_tasks(flow, options):
+        for task in flow.select_tasks(nids=options.nids, wslice=options.wslice):
             if not task.qjob: continue
             print("qjob", task.qjob)
             print("info", task.qjob.get_info())
@@ -570,16 +517,15 @@ hardware:
         open_method = "open_" + fext
         plot_method = "plot_" + options.what
 
-        for task in selected_tasks(flow, options):
+        for task in flow.select_tasks(nids=options.nids, wslice=options.wslice):
             try:
                 with getattr(task, open_method)() as ncfile: 
-                    #print(ncfile)
                     getattr(ncfile, plot_method)()
-            except:
-                pass
+            except Exception as exc:
+                print(exc)
 
     elif options.command == "inspect":
-        tasks = selected_tasks(flow, options)
+        tasks = flow.select_tasks(nids=options.nids, wslice=options.wslice)
 
         # Use different thread to inspect the task so that master can catch KeyboardInterrupt and exit.
         # One could use matplotlib non-blocking interface with show(block=False) but this one seems to work well.

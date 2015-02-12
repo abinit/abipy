@@ -325,7 +325,7 @@ class Structure(pymatgen.Structure):
         for ext in visu.supported_extensions():
             ext = "." + ext
             try:
-                return self.export(ext, visu=visu)
+                return self.export(ext, visu=visu)()
             except visu.Error:
                 pass
         else:

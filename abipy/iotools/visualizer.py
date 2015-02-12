@@ -66,6 +66,7 @@ class MetaClass(type):
     def __str__(self):
         return "%s: bin: %s, macosx_app: %s" % (self.__class__.__name__, self.bin, self.is_macosx_app)
 
+
 @six.add_metaclass(abc.ABCMeta)
 class Visualizer(object):
     """
@@ -175,6 +176,12 @@ class Visualizer(object):
                 return visu
 
         raise cls.Error("visu_name is not among the list of supported visualizers %s " % visu_name)
+
+    @classmethod
+    def all_visunames(cls):
+        """List with the names of the visualizers supported."""
+        return [visu.name for visu in cls.__subclasses__()]
+
 
 ####################
 # Concrete classes #

@@ -7,6 +7,9 @@ Abipy is written in Python and is designed with the philosophy that you should b
 simple plots with just a few commands.
 Check out the the list of plotting scripts available in the 
 `examples/plot <http://pythonhosted.org/abipy/examples/plot/index.html>`_ directory.
+To learn more about abipy, you can visit our example collection of ipython `notebooks 
+<https://github.com/gmatteo/abipy/blob/master/abipy/examples/notebooks/index.ipynb>`_.
+
 
 Abipy is free to use. However, we also welcome your help to improve this library by making your own contributions.  
 These contributions can be in the form of additional tools or modules you develop, or even simple things 
