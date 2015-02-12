@@ -188,7 +188,13 @@ The course of this lesson
 -------------------------
 
 In the generation of this lesson by the python script all the input files have been generated automatically.
-You will.......
+The input files have been organized in a workdir "flow_lesson_Si_kpoint_convergence". Inside you'll find a single work,
+w0, with four tasks, t0 - t3. Have a look at the input files, run.abi, in the four tasks to see what is different.
+
+You'll see that also the files file and the jobs submission script are generated. In the job scripts you'll see that
+the jobs are prepared to run just on the front end.
+
+To perform the kpoint convergence study execute abinit with the four input sets.
 
 
 Executing the calculations using abirun

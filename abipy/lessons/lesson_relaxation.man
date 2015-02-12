@@ -1,0 +1,38 @@
+.TH "Relaxation of the unit cell with two different techniques" "" "" "" ""
+.SH Background
+.PP
+One of the tasks that is most performed using DFT is the relaxation of
+an atomic structure.
+Effectively we search for that structure for which the total energy is
+minimal.
+Since the total energy is in principal exact in DFT the atomic position
+are in general rather good.
+\[aq]In principal\[aq] means if the exchange\-correlation functional
+would be exact.
+However, since we are comparing differences in total energies an certain
+amount of error\-cancellation can be expected.
+.PP
+In this lesson we focus on different types of structure relaxations.
+.SH The related abinit variables
+.RS
+.IP \[bu] 2
+ionmov
+.IP \[bu] 2
+optcell
+.IP \[bu] 2
+dilatmx
+.IP \[bu] 2
+ecutsm
+.IP \[bu] 2
+ntime
+.RE
+.PP
+At this place they will not be discussed in detail.
+In stead you are invited to read the abinit documentation on them.
+The full description, directly from the abinit description is available
+via the following function:
+.RS
+.RE
+.PP
+This will print the official abinit description of this inputvariable.
+.SH The course of this lesson

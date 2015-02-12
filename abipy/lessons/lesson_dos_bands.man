@@ -1,0 +1,24 @@
+.TH "The calculation of the density of states and the bandstructure." "" "" "" ""
+.SH Background
+.PP
+This lesson focuses on calculating the density of states (DOS) and the
+band structure.
+On thing one should always keep in mind is that these are the densities
+of states
+.SH The related abinit variables
+.RS
+.IP \[bu] 2
+1
+.IP \[bu] 2
+2
+.RE
+.PP
+At this place they will not be discussed in detail.
+In stead you are invited to read the abinit documentation on them.
+The full description, directly from the abinit description is available
+via the following function:
+.RS
+.RE
+.PP
+This will print the official abinit description of this inputvariable.
+.SH The course of this lesson
