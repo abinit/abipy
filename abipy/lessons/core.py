@@ -31,8 +31,6 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
     @abc.abstractproperty
     def pyfile(self):
         """Path of the python script."""
-        #p = self.__class__.__module__.__file__
-        #return p
 
     def get_local_copy(self):
         """Copy this script to the current working dir to explore it and edit"""
@@ -47,7 +45,9 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
 
     def manfile(self, what=None):
         """The path to the man file of the lesson. Use `%man %lesson.manfile` to open it in ipython"""
-        man_path = self.pyfile.replace('.py', '.man')
+        _, ext = os.path.splitext(self.pyfile)
+        man_path = self.pyfile.replace(ext, '.man')
+
         try:
             shutil.copy(os.path.join(os.path.dirname(os.path.realpath(__file__)), man_path), '.')
         except IOError:

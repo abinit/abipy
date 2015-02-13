@@ -115,15 +115,17 @@ def main():
     def str_examples():
         examples = """\
 Usage example:\n
-    abirun.py [FLOWDIR] single                   => Fetch the first available task and run it.
-    abirun.py [FLOWDIR] rapid                    => Keep repeating, stop when no task can be executed
-    abirun.py [FLOWDIR] gui                      => Open the GUI 
-    nohup abirun.py [FLOWDIR] sheduler -s 30 &   => Start the scheduler to schedule task submission
+
+    abirun.py [FLOWDIR] rapid                    => Keep repeating, stop when no task can be executed.
+    abirun.py [FLOWDIR] gui                      => Open the GUI .
+    abirun.py [FLOWDIR] docmanager slurm         => Document the TaskManager options availabe for Slurm.
+    nohup abirun.py [FLOWDIR] sheduler -s 30 &   => Start the scheduler to schedule task submission.
 
     If FLOWDIR is not given, abirun.py automatically selects the database located within 
     the working directory. An Exception is raised if multiple databases are found.
 
     Options for developers:
+
         abirun.py prof ABIRUN_ARGS               => to profile abirun.py
         abirun.py tracemalloc ABIRUN_ARGS        => to trace memory blocks allocated by Python
 """
@@ -144,7 +146,6 @@ Usage example:\n
             else:
                 # Convert string to slice and return list.
                 s = as_slice(s)
-                #print(s)
                 if s.stop is None: raise argparse.ArgumentTypeError("stop must be specified")
                 return list(range(s.start, s.stop, s.step))
         except:
@@ -278,7 +279,7 @@ Specify the files to open. Possible choices:
     p_analyze= subparsers.add_parser('analyze', help="Analyze the results produced by the flow.")
 
     p_docmanager = subparsers.add_parser('docmanager', help="Document the TaskManager options")
-    p_docmanager.add_argument("qtype", nargs="?", default=None, help="Document qparams section for the given qtype")
+    p_docmanager.add_argument("qtype", nargs="?", default=None, help="Document the qparams for the given QueueAdapter qtype")
 
     p_notebook = subparsers.add_parser('notebook', help="Create and open an ipython notebook to interact with the flow.")
 

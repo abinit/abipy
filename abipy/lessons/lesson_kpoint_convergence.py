@@ -264,5 +264,5 @@ if __name__ == "__main__":
     l = Lesson()
     flow = l.make_ngkpt_flow()
     flow.build_and_pickle_dump()
-    l.manfile(l.comline_string)
+    #l.manfile(l.comline_string)
     l.instruct()
