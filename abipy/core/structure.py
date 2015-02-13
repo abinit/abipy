@@ -204,7 +204,7 @@ class Structure(pymatgen.Structure):
         structure = remove_ox.apply_transformation(self)
 
         # Refine structure
-        if symprec is not None
+        if symprec is not None:
             sym_finder = SpacegroupAnalyzer(structure=structure, symprec=symprec)
             structure = sym_finder.get_refined_structure()
 
