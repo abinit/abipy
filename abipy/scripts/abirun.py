@@ -118,7 +118,8 @@ Usage example:\n
 
     abirun.py [FLOWDIR] rapid                    => Keep repeating, stop when no task can be executed.
     abirun.py [FLOWDIR] gui                      => Open the GUI .
-    abirun.py [FLOWDIR] docmanager slurm         => Document the TaskManager options availabe for Slurm.
+    abirun.py [FLOWDIR] manager slurm            => Document the TaskManager options availabe for Slurm.
+    abirun.py [FLOWDIR] manager script           => Show the job script that will be produced.
     nohup abirun.py [FLOWDIR] sheduler -s 30 &   => Start the scheduler to schedule task submission.
 
     If FLOWDIR is not given, abirun.py automatically selects the database located within 
@@ -278,8 +279,9 @@ Specify the files to open. Possible choices:
 
     p_analyze= subparsers.add_parser('analyze', help="Analyze the results produced by the flow.")
 
-    p_docmanager = subparsers.add_parser('docmanager', help="Document the TaskManager options")
-    p_docmanager.add_argument("qtype", nargs="?", default=None, help="Document the qparams for the given QueueAdapter qtype")
+    p_manager = subparsers.add_parser('manager', help="Document the TaskManager options")
+    p_manager.add_argument("qtype", nargs="?", default=None, help=("Write job script to terminal if qtype='script' else" 
+        " document the qparams for the given QueueAdapter qtype e.g. slurm"))
 
     p_notebook = subparsers.add_parser('notebook', help="Create and open an ipython notebook to interact with the flow.")
 
@@ -303,17 +305,34 @@ Specify the files to open. Possible choices:
         # Disable colors
         termcolor.enable(False)
 
-    if options.command == "docmanager":
+    if options.command == "manager":
         # Document TaskManager options and qparams.
-        print(abilab.TaskManager.autodoc())
-        from pymatgen.io.abinitio.qadapters import show_qparams, all_qtypes
+        qtype = options.qtype
 
-        print("qtype supported: %s" % all_qtypes())
-        print("Use `abirun.py . docmanager slurm` to have the list of qparams for slurm.\n")
+        if qtype == "script":
+            manager = abilab.TaskManager.from_user_config()
+            script = manager.qadapter.get_script_str(
+                job_name="job_name", 
+                launch_dir="workdir",
+                executable="executable",
+                qout_path="qout_file.path",
+                qerr_path="qerr_file.path",
+                stdin="stdin", 
+                stdout="stdout",
+                stderr="stderr",
+            )
+            print(script)
 
-        if options.qtype is not None:
-            print("QPARAMS for %s" % options.qtype)
-            show_qparams(options.qtype)
+        else:
+            print(abilab.TaskManager.autodoc())
+            from pymatgen.io.abinitio.qadapters import show_qparams, all_qtypes
+                                                                                                 
+            print("qtype supported: %s" % all_qtypes())
+            print("Use `abirun.py . manager slurm` to have the list of qparams for slurm.\n")
+
+            if qtype is not None:
+                print("QPARAMS for %s" % qtype)
+                show_qparams(qtype)
 
         sys.exit(0)
 
