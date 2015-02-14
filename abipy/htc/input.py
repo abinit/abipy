@@ -676,20 +676,19 @@ class AbiInput(Input, Has_Structure):
         for pseudo in pseudos_dict:
             # Try first to get from abidata for testing purposes
             #TODO to be removed
-            try:
-                import abipy.data as abidata
-                pseudos.append(abidata.pseudo(pseudo['basename']))
-            except:
-                pseudos.append(Pseudo.from_file(pseudo['path']))
+            #try:
+            #    import abipy.data as abidata
+            #    pseudos.append(abidata.pseudo(pseudo['basename']))
+            #except:
+            pseudos.append(Pseudo.from_file(pseudo['path']))
 
         dtsets = d['datasets']
-        abiintput = cls(pseudos, ndtset=dtsets[0]['ndtset'])
-        n = 0
-        for ds in dtsets:
-            abiintput.set_vars(dtset=n, **ds)
-            n += 1
+        abiinput = cls(pseudos, ndtset=dtsets[0]['ndtset'])
 
-        return abiintput
+        for n, ds in enumerate(dtsets):
+            abiinput.set_vars(dtset=n, **ds)
+
+        return abiinput
 
 class Dataset(mixins.MappingMixin, Has_Structure):
     """
@@ -790,6 +789,11 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         else:
             raise ValueError("Unsupported value for sortmode %s" % str(sortmode))
 
+        with_mnemonics = True
+        if with_mnemonics:
+            from .abivars_db import get_abinit_variables
+            var_database = get_abinit_variables()
+
         for var in keys:
             value = self[var]
             # Do not print NO_MULTI variables except for dataset 0.
@@ -801,6 +805,10 @@ class Dataset(mixins.MappingMixin, Has_Structure):
             # thus complicating the creation of workflows made of separated calculations.
             if var == "ndtset" and value == 1:
                 continue
+
+            if with_mnemonics:
+                v = var_database[var]
+                app("# <" + v.definition + ">")
 
             varname = var + post
             variable = InputVariable(varname, value)
