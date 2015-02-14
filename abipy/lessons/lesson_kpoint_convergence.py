@@ -220,6 +220,9 @@ def make_ngkpt_flow(ngkpt_list=[(2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)], str
         inp.set_structure(structure)
         workdir = "flow_lesson_" + structure.composition.reduced_formula + "_kpoint_convergence"
 
+    # Add mnemonics to input file.
+    inp.set_mnemonics(True)
+
     # Global variables
     inp.set_vars(ecut=10, tolvrs=1e-9)
 

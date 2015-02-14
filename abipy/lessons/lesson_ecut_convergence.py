@@ -168,6 +168,9 @@ def make_ecut_flow(structure_file=None, ecut_list = (10, 12, 14, 16, 18)):
         inp.set_structure(structure)
         workdir = "flow_" + structure.composition.reduced_formula + "_ecut_convergence"
 
+    # Add mnemonics to input file.
+    inp.set_mnemonics(True)
+
     # Global variables
     inp.set_vars(tolvrs=1e-9)
     inp.set_kmesh(ngkpt=[4, 4, 4], shiftk=[0, 0, 0])

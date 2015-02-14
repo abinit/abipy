@@ -14,6 +14,7 @@ def make_scf_nscf_inputs(paral_kgb=1):
     #pseudos = data.pseudos("Si.GGA_PBE-JTH-paw.xml")
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
+    #inp.set_mnemonics(True)
     structure = inp.set_structure(abidata.cif_file("si.cif"))
 
     # Global variables

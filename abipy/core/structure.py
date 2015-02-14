@@ -182,7 +182,7 @@ class Structure(pymatgen.Structure):
     #    return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
 
     @property
-    def abinit_string(self):
+    def abi_string(self):
         """Return a string with the ABINIT input associated to this structure.""" 
         from abipy.htc.variable import InputVariable
         lines = []

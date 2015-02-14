@@ -210,6 +210,9 @@ def make_relax_flow(structure_file=None):
     inp = abilab.AbiInput(pseudos=get_pseudos(structure), ndtset=len(ngkpt_list))
     inp.set_structure(structure)
 
+    # Add mnemonics to input file.
+    inp.set_mnemonics(True)
+
     # Global variables
     inp.set_vars(
         ecut=20,

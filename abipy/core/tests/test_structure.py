@@ -36,6 +36,7 @@ class TestStructure(AbipyTest):
         """Test utilities for the generation of Abinit inputs."""
         structure = data.structure_from_ucell("MgB2")
         structure.abi_sanitize()
+        print(structure.abi_string)
 
         self.serialize_with_pickle(structure)
 

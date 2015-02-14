@@ -51,7 +51,7 @@ Usage example:\n
         "List of visualizer supported: %s" % ", ".join(Visualizer.all_visunames())))
 
     # Subparser for pmgid command.
-    p_pmgdata = subparsers.add_parser('pmgdata', help="Get structure from the pymatgen database. Requires internet connection amd MAPI_KEY")
+    p_pmgdata = subparsers.add_parser('pmgdata', help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY")
     p_pmgdata.add_argument("pmgid", type=str, default=None, help="Pymatgen identifier")
     p_pmgdata.add_argument("--mapi-key", default=None, help="Pymatgen MAPI_KEY. Use env variable if not specified.")
     p_pmgdata.add_argument("--host", default="www.materialsproject.org", help="Pymatgen database.")
@@ -72,7 +72,7 @@ Usage example:\n
         print(s)
 
     if options.command == "abivars":
-        print(structure.abinit_string)
+        print(structure.abi_string)
 
     elif options.command == "visualize":
         structure.visualize(options.visualizer)
@@ -88,7 +88,7 @@ Usage example:\n
         print(s)
 
     else:
-        raise ValueError("Unsupported command %s" % options.command)
+        raise ValueError("Unsupported command: %s" % options.command)
 
     return 0
 

@@ -16,6 +16,7 @@ class AbiInputTest(AbipyTest):
 
         # Create an ABINIT input file with 1 dataset. 
         inp = AbiInput(pseudos="14si.pspnc", pseudo_dir=abidata.pseudo_dir, ndtset=1)
+        inp.set_mnemonics(True)
 
         aequal(inp.isnc, True)
 

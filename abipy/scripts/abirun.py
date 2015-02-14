@@ -70,8 +70,8 @@ def write_notebook(flow, options):
     cells = [
         #nbf.new_text_cell('heading', "This is an auto-generated notebook for %s" % os.path.basename(pseudopath)),
         nbf.new_code_cell("""\
-%%javascript
-IPython.OutputArea.auto_scroll_threshold = 9999;
+##%%javascript
+##IPython.OutputArea.auto_scroll_threshold = 9999;
 
 from __future__ import print_function
 from abipy import abilab
@@ -88,7 +88,7 @@ sns.set(style='ticks', palette='Set2')"""),
         nbf.new_code_cell("flow.show_dependencies()"),
         nbf.new_code_cell("flow.check_status(show=True, verbose=0)"),
         nbf.new_code_cell("flow.show_inputs(nids=None, wslice=None)"),
-        nbf.new_code_cell("flow.show_inspect(nids=None, wslice=None)"),
+        nbf.new_code_cell("flow.inspect(nids=None, wslice=None)"),
         nbf.new_code_cell("flow.show_abierrors()"),
         nbf.new_code_cell("flow.show_qouts()"),
     ]

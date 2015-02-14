@@ -201,6 +201,9 @@ def make_inputs(ngkpt, paral_kgb=0):
     inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=6)
     inp.set_structure(abidata.cif_file("si.cif"))
 
+    # Add mnemonics to input file.
+    inp.set_mnemonics(True)
+
     # This grid is the most economical, but does not contain the Gamma point.
     scf_kmesh = dict(
         ngkpt=ngkpt,
