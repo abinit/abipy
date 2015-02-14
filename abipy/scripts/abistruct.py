@@ -6,6 +6,7 @@ import sys
 import os
 import argparse
 
+from pprint import pprint
 from abipy import abilab
 from abipy.iotools.visualizer import Visualizer
 
@@ -17,6 +18,7 @@ Usage example:\n
 
     abistruct.py convert filepath cif         => Read the structure from file and print CIF file.
     abistruct.py visualize filepath xcrysden  => Visualize the structure with XcrysDen.
+    abistruct.py abivars filepath             => Print the ABINIT variables defining the structure.
     abistruct.py pmgdata mp-149               => Get structure from pymatgen database and print its JSON representation.
 """
         return examples
@@ -39,6 +41,9 @@ Usage example:\n
     # Subparser for convert command.
     p_convert = subparsers.add_parser('convert', parents=[path_selector], help="Convert structure to the specified format.")
     p_convert.add_argument('format', nargs="?", default="cif", type=str, help="Format of the output file (cif, cssr, POSCAR, json, mson).")
+
+    # Subparser for abivars command.
+    p_convert = subparsers.add_parser('abivars', parents=[path_selector], help="Print the ABINIT variables defining the structure.")
 
     # Subparser for visualize command.
     p_visualize = subparsers.add_parser('visualize', parents=[path_selector], help="Visualize the structure with the specified visualizer")
@@ -65,6 +70,18 @@ Usage example:\n
         s = structure.convert(format=options.format)
         #print((" Abinit --> %s " % format).center(80, "*"))
         print(s)
+
+    if options.command == "abivars":
+        abivars = structure.to_abivars()
+        #pprint(abivars)
+
+        from abipy.htc.variable import InputVariable
+        lines = []
+        app = lines.append
+        for varname, value in abivars.items():
+            app(str(InputVariable(varname, value)))
+                                                    
+        print("\n".join(lines))
 
     elif options.command == "visualize":
         structure.visualize(options.visualizer)
