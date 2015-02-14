@@ -180,6 +180,18 @@ class Structure(pymatgen.Structure):
     #@classmethod
     #def hH(cls, a, sites, **kwargs)
     #    return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
+
+    @property
+    def abinit_string(self):
+        """Return a string with the ABINIT input associated to this structure.""" 
+        from abipy.htc.variable import InputVariable
+        lines = []
+        app = lines.append
+        abivars = self.to_abivars()
+        for varname, value in abivars.items():
+            app(str(InputVariable(varname, value)))
+                                                    
+        return("\n".join(lines))
     
     def abi_sanitize(self, symprec=1e-3, primitive=True):
         """

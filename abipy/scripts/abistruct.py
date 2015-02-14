@@ -72,16 +72,7 @@ Usage example:\n
         print(s)
 
     if options.command == "abivars":
-        abivars = structure.to_abivars()
-        #pprint(abivars)
-
-        from abipy.htc.variable import InputVariable
-        lines = []
-        app = lines.append
-        for varname, value in abivars.items():
-            app(str(InputVariable(varname, value)))
-                                                    
-        print("\n".join(lines))
+        print(structure.abinit_string)
 
     elif options.command == "visualize":
         structure.visualize(options.visualizer)
