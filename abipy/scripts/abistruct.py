@@ -71,7 +71,7 @@ Usage example:\n
         #print((" Abinit --> %s " % format).center(80, "*"))
         print(s)
 
-    if options.command == "abivars":
+    elif options.command == "abivars":
         print(structure.abi_string)
 
     elif options.command == "visualize":
@@ -83,8 +83,8 @@ Usage example:\n
             host=options.host)
 
         # Convert to json and print it.
-        #s = structure.convert(format="json")
-        s = structure.convert(format="mson")
+        s = structure.convert(format="json")
+        #s = structure.convert(format="mson")
         print(s)
 
     else:

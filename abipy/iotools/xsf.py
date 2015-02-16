@@ -22,10 +22,16 @@ def xsf_write_structure(file, structures):
         file: file-like object.
         structures: :class:`Structure` or list of :class:`Structure` objects.
     """
+    animation = True
     if not isinstance(structures, (list, tuple)):
         structures = [structures]
+        animation = False
 
     fwrite = file.write
+
+    if animation:
+        # axsf file.
+        fwrite('ANIMSTEPS %s\n' % len(structures))
 
     fwrite('CRYSTAL\n')
 
