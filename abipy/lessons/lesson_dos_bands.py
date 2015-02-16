@@ -7,10 +7,14 @@ Background
 ----------
 
 This lesson focuses on calculating the density of states (DOS) and the band structure. On thing one should always
-keep in mind is that these are the densities of states
+keep in mind is that these are the densities of states and the bandstructure of the KS-particles. If you feel patronised
+by this remark please continue to the next section, else keep reading :-).
 
-
-
+In contrast to the total energy and derivatives of it, the energies of the KS-levels have no exact physical meaning,
+except for the highest occupied state that actually would be the first ionization energy if the functional would be
+exact. So why would we even want to calculate the KS-DOS and band structure? In most cases the KS spectrum is
+qualitatively in agreement with the spectum of ionization energies. Moreover in general we are able to make good
+predictions on trends.
 
 
 The related abinit variables
@@ -87,7 +91,7 @@ To analyze the results.
 
     .. code-block:: python
 
-        flow.analyze()
+        lesson.analyze(flow)
 
 
 
