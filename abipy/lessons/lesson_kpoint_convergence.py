@@ -15,8 +15,8 @@ be converged we need a k-point mesh that is dense enough, but at
 the same time as coarse as possible to make for an efficient
 calculation. Various types of materials require in general different
 densities of the k-point meshes. In general metals need denser meshes
-than semiconductors. Your first investigation into a new compound
-will quit often be a k-point convergence study.
+than semiconductors, because of the need to accurately sample the fermi surface. Your first investigation into a new
+compound will quit often be a k-point convergence study.
 
 The related abinit variables
 ----------------------------
@@ -35,7 +35,7 @@ from __future__ import division, print_function
 _ipython_lesson_ = """
 At this place they will not be discussed in detail. In stead you are
 invited to read the abinit documentation on them. The full description,
-directly from the abinit description is available via the following function:
+directly from the official abinit description is available via the following function:
 
     .. code-block :: python
 
