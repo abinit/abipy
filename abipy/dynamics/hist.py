@@ -51,6 +51,11 @@ class HistFile(AbinitNcFile):
         return self.reader.num_steps
 
     @lazy_property
+    def steps(self):
+        """step indices."""
+        return list(range(self.num_steps))
+
+    @lazy_property
     def structures(self):
         """List of :class:`Structure` objects at the different steps."""
         return self.reader.read_all_structures()
@@ -75,6 +80,8 @@ class HistFile(AbinitNcFile):
         Returns: Instance of :class:`Visualizer`
         """
         print("Warning: work in progress")
+        raise NotImplementedError("typat is missing in HIST --> wrong structures")
+
         if "." not in filename:
             raise ValueError("Cannot detect extension in filename %s: " % filename)
 
@@ -85,12 +92,10 @@ class HistFile(AbinitNcFile):
             xsf_write_structure(fh, self.structures)
 
     @add_fig_kwargs
-    def plot_lattice_hist(self, **kwargs):
+    def plot(self, **kwargs):
         """
-        Plot the evolution of the lattice parameters (abc parameters, angles and lattice volume)
-
-        Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+        Plot the evolution of importan structural parameters (lattice lengths, angles and volume)
+        as well as pressure, info on forces and total energy.
 
         Returns:
             `matplotlib` figure
@@ -101,28 +106,24 @@ class HistFile(AbinitNcFile):
         ax0, ax1, ax2, ax3, ax4, ax5 = ax_list
         for ax in ax_list: ax.grid(True)
 
-        steps = list(range(self.num_steps))
-
         # Lattice parameters.
         for i, label in enumerate(["a", "b", "c"]):
-            ax0.plot(steps, [s.lattice.abc[i] for s in self.structures], marker="o", label=label)
+            ax0.plot(self.steps, [s.lattice.abc[i] for s in self.structures], marker="o", label=label)
         ax0.set_ylabel('Lattice lengths [A]')
         ax0.legend(loc='best', shadow=True)
 
         # Lattice Angles
         for i, label in enumerate(["alpha", "beta", "gamma"]):
-            ax1.plot(steps, [s.lattice.angles[i] for s in self.structures], marker="o", label=label)
+            ax1.plot(self.steps, [s.lattice.angles[i] for s in self.structures], marker="o", label=label)
         ax1.set_ylabel('Lattice Angles [degree]')
         ax1.legend(loc='best', shadow=True)
 
-        ax2.plot(steps, [s.lattice.volume for s in self.structures], marker="o") 
+        ax2.plot(self.steps, [s.lattice.volume for s in self.structures], marker="o") 
         ax2.set_ylabel('Lattice volume [A^3]')
-        #ax2.legend(loc='best', shadow=True)
 
         stress_cart_tensors, pressures = self.reader.read_cart_stress_tensors()
-        ax3.plot(steps, pressures, marker="o", label="Pressure")
+        ax3.plot(self.steps, pressures, marker="o", label="Pressure")
         ax3.set_ylabel('Pressure [GPa]')
-        #ax3.legend(loc='best', shadow=True)
 
         # Forces
         forces_hist = self.reader.read_cart_forces()
@@ -135,16 +136,16 @@ class HistFile(AbinitNcFile):
             fmin_steps.append(fmods.min())
             fmax_steps.append(fmods.max())
 
-        ax4.plot(steps, fmin_steps, marker="o", label="min |F|") 
-        ax4.plot(steps, fmax_steps, marker="o", label="max |F|") 
-        ax4.plot(steps, fmean_steps, marker="o", label="mean |F|") 
-        ax4.plot(steps, fstd_steps, marker="o", label="std |F|") 
+        ax4.plot(self.steps, fmin_steps, marker="o", label="min |F|") 
+        ax4.plot(self.steps, fmax_steps, marker="o", label="max |F|") 
+        ax4.plot(self.steps, fmean_steps, marker="o", label="mean |F|") 
+        ax4.plot(self.steps, fstd_steps, marker="o", label="std |F|") 
         ax4.set_ylabel('Force stats [eV/A]')
         ax4.legend(loc='best', shadow=True)
         ax4.set_xlabel('Step')
 
         # Total energy.
-        ax5.plot(steps, self.etotals, marker="o", label="Energy") 
+        ax5.plot(self.steps, self.etotals, marker="o", label="Energy") 
         ax5.set_ylabel('Total energy [eV]')
         ax5.set_xlabel('Step')
 
@@ -152,7 +153,7 @@ class HistFile(AbinitNcFile):
         return fig
 
     @add_fig_kwargs
-    def plot_energy_hist(self, **kwargs):
+    def plot_energies(self, **kwargs):
         """
         Plot the evolution of the different contributions to the total energy.
 
@@ -165,11 +166,10 @@ class HistFile(AbinitNcFile):
         # TODO max force and pressure
         ax, fig, plt = get_ax_fig_plt(None)
 
-        steps = list(range(self.num_steps))
         terms = self.reader.read_eterms()
         for key, values in terms.items():
             if np.all(values == 0.0): continue
-            ax.plot(steps, values, marker="o", label=key)
+            ax.plot(self.steps, values, marker="o", label=key)
 
         ax.set_xlabel('Step')
         ax.set_ylabel('Energies [eV]')

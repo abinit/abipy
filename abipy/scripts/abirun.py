@@ -558,19 +558,22 @@ Specify the files to open. Possible choices:
                 else:
                     cprint("Task %s does not provide an inspect method" % task, color="blue")
 
-        p = Process(target=plot_graphs)
-        p.start()
-        num_tasks = len(tasks)
+        plot_graphs()
 
-        if num_tasks == 1:
-            p.join()
-        else:
-            cprint("Will produce %d matplotlib plots. Press CTRL+C to interrupt..." % num_tasks, color="magenta", end="", flush=True)
-            try:
-                p.join()
-            except KeyboardInterrupt:
-                print("\nTerminating thread...")
-                p.terminate()
+        # This works with py3k but not with py2
+        #p = Process(target=plot_graphs)
+        #p.start()
+        #num_tasks = len(tasks)
+
+        #if num_tasks == 1:
+        #    p.join()
+        #else:
+        #    cprint("Will produce %d matplotlib plots. Press CTRL+C to interrupt..." % num_tasks, color="magenta", end="", flush=True)
+        #    try:
+        #        p.join()
+        #    except KeyboardInterrupt:
+        #        print("\nTerminating thread...")
+        #        p.terminate()
 
     elif options.command == "inputs":
         flow.show_inputs(nids=selected_nids(flow, options))
