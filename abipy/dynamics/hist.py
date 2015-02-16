@@ -40,8 +40,7 @@ class HistFile(AbinitNcFile):
     def __init__(self, filepath):
         super(HistFile, self).__init__(filepath)
 
-        self.reader = r = HistReader(filepath)
-        print(self)
+        self.reader = HistReader(filepath)
 
     def close(self):
         self.reader.close()
@@ -53,12 +52,12 @@ class HistFile(AbinitNcFile):
 
     @lazy_property
     def structures(self):
-        """List of structures at the different steps."""
+        """List of :class:`Structure` objects at the different steps."""
         return self.reader.read_all_structures()
 
     @lazy_property
     def etotals(self):
-        """numpy array with total energies at the different steps."""
+        """numpy array with total energies in eV at the different steps."""
         return self.reader.read_eterms().etotals
 
     def export(self, filename, visu=None):
@@ -97,9 +96,9 @@ class HistFile(AbinitNcFile):
             `matplotlib` figure
         """
         import matplotlib.pyplot as plt
-        fig, ax_list = plt.subplots(nrows=5, ncols=1, sharex=True, squeeze=False)
+        fig, ax_list = plt.subplots(nrows=3, ncols=2, sharex=True, squeeze=False)
         ax_list = ax_list.ravel()
-        ax0, ax1, ax2, ax3, ax4 = ax_list
+        ax0, ax1, ax2, ax3, ax4, ax5 = ax_list
         for ax in ax_list: ax.grid(True)
 
         steps = list(range(self.num_steps))
@@ -118,13 +117,12 @@ class HistFile(AbinitNcFile):
 
         ax2.plot(steps, [s.lattice.volume for s in self.structures], marker="o") 
         ax2.set_ylabel('Lattice volume [A^3]')
-        ax2.legend(loc='best', shadow=True)
+        #ax2.legend(loc='best', shadow=True)
 
         stress_cart_tensors, pressures = self.reader.read_cart_stress_tensors()
-        axp = ax2.twinx()
-        axp.plot(steps, pressures, marker="o", label="Pressure")
-        axp.set_ylabel('Pressure [GPa]')
-        axp.legend(loc='best', shadow=True)
+        ax3.plot(steps, pressures, marker="o", label="Pressure")
+        ax3.set_ylabel('Pressure [GPa]')
+        #ax3.legend(loc='best', shadow=True)
 
         # Forces
         forces_hist = self.reader.read_cart_forces()
@@ -137,18 +135,20 @@ class HistFile(AbinitNcFile):
             fmin_steps.append(fmods.min())
             fmax_steps.append(fmods.max())
 
-        ax3.plot(steps, fmin_steps, marker="o", label="min |F|") 
-        ax3.plot(steps, fmax_steps, marker="o", label="max |F|") 
-        ax3.plot(steps, fmean_steps, marker="o", label="mean |F|") 
-        ax3.plot(steps, fstd_steps, marker="o", label="std |F|") 
-        ax3.set_ylabel('Force stats [eV/A]')
-        ax3.legend(loc='best', shadow=True)
-
-        # Total energy.
-        ax4.plot(steps, self.etotals, marker="o") 
-        ax4.set_ylabel('Total energy [eV]')
+        ax4.plot(steps, fmin_steps, marker="o", label="min |F|") 
+        ax4.plot(steps, fmax_steps, marker="o", label="max |F|") 
+        ax4.plot(steps, fmean_steps, marker="o", label="mean |F|") 
+        ax4.plot(steps, fstd_steps, marker="o", label="std |F|") 
+        ax4.set_ylabel('Force stats [eV/A]')
+        ax4.legend(loc='best', shadow=True)
         ax4.set_xlabel('Step')
 
+        # Total energy.
+        ax5.plot(steps, self.etotals, marker="o", label="Energy") 
+        ax5.set_ylabel('Total energy [eV]')
+        ax5.set_xlabel('Step')
+
+        fig.tight_layout()
         return fig
 
     @add_fig_kwargs
@@ -184,12 +184,12 @@ class HistReader(ETSF_Reader):
 
     @lazy_property
     def num_steps(self):
-        """Number of iterations on file."""
+        """Number of iterations present in the HIST file."""
         return self.read_dimvalue("time")
 
     @lazy_property
     def natom(self):
-        """Number of atoms."""
+        """Number of atoms un the unit cell"""
         return self.read_dimvalue("natom")
 
     def read_all_structures(self):
@@ -219,17 +219,17 @@ class HistReader(ETSF_Reader):
         )
 
     def read_cart_forces(self, unit="eV ang^-1"):
-        """Read and return an array with the cartesian forces, shape (num_steps, natom, 3)"""
+        """Read and return a numpy array with the cartesian forces. Shape (num_steps, natom, 3)"""
         return ArrayWithUnit(self.read_value("fcart"), "Ha bohr^-1").to(unit)
 
     def read_reduced_forces(self):
-        """Read and return an array with the forces in reduced coordinates, shape (num_steps, natom, 3)"""
+        """Read and return a numpy array with the forces in reduced coordinates, shape (num_steps, natom, 3)"""
         return self.read_value("fred")
 
     def read_cart_stress_tensors(self):
         """
-        Return the stress tensors (nstepx3x3 matrix) in cartesian coordinates (Hartree/Bohr^3)
-        and the pressures in GPa.
+        Return the stress tensors (nstep x 3 x 3) in cartesian coordinates (Hartree/Bohr^3)
+        and the list of pressures in GPa unit.
         """
         # Abinit stores 6 unique components of this symmetric 3x3 tensor:
         # Given in order (1,1), (2,2), (3,3), (3,2), (3,1), (2,1).

@@ -316,6 +316,19 @@ class Structure(pymatgen.Structure):
         else:
             return None
 
+    def get_symbol2coords(self):
+        """Return a dictionary mapping chemical symbols to coordinates."""
+        # TODO: 
+        #use structure.frac_coords but add reshape in pymatgen.
+        #fcoords = np.reshape([s.frac_coords for s in self], (-1, 3))
+        coords = {}
+        for symbol in self.symbol_set:
+            coords[symbol] = np.reshape(
+                [site.frac_coords for site in self if site.specie.symbol == symbol], (-1, 3))
+
+        return coords
+
+
     def show_bz(self, **kwargs):
         """
         Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
