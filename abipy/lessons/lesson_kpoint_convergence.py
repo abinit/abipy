@@ -194,12 +194,45 @@ w0, with four tasks, t0 - t3. Have a look at the input files, run.abi, in the fo
 You'll see that also the files file and the jobs submission script are generated. In the job scripts you'll see that
 the jobs are prepared to run just on the front end.
 
+You'll also see that the files file has been created as well.
+
 To perform the kpoint convergence study execute abinit with the four input sets.
 
+Once the calcualtions are ready, you'll see three important output files.
 
-Executing the calculations using abirun
+    * run.out
+    * run.log
+    * run.err
 
-abirun.py
+The main summary of the calculation can be found in the .out file, we'll go there soon :-). The .err file should be
+empty. If it's not something went wrong. If something went wrong read the .err. file. The .log file contains extensive
+information on you calculation that could help to find out what went wrong in the case of errors. Especially there are
+three types of messages that could help
+
+    * COMMENT
+    * WARNING
+    * ERROR
+
+In case of an error message abinit stopped the execution by itself, because of that error.
+
+Now the .out file. Some interesting keywords to look for:
+
+    * Symmetries
+    * Citation for XC functional:
+    * ETOT (the total energies during the electronic structure convergence)
+    * Eigenvalues
+    * Etotal (the total energy of an ionic step)
+
+Obviously there is much more.
+
+Collect the total energies of the four calculations and plot them as a function of the number of k-points in the
+calculation.
+
+Alternative to execution of the manual execution the calculations can also be executed using the abipy scheduler.
+
+    .. code-block:: shell
+
+    abirun.py flow_lesson_Si_kpoint_convergence scheduler
 
 """
 import os
