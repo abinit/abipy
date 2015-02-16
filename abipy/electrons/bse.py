@@ -555,14 +555,14 @@ class MdfPlotter(object):
             cplx_mode: string defining the data to print (case-insensitive).
                 Possible choices are: `re` for the real part, `im` for imaginary part only. `abs` for the absolute value.
                 Options can be concated with "-".
-            qpoint: index of the q-point or Kpoint object or None to plot emacro_avg.
+            qpoint: index of the q-point or :class:`Kpoint` object or None to plot emacro_avg.
 
-            ==============  ==============================================================
-            kwargs          Meaning
-            ==============  ==============================================================
-            xlim            x-axis limits. None (Default) for automatic determination.
-            ylim            y-axis limits. None (Default) for automatic determination.
-            ==============  ==============================================================
+        ==============  ==============================================================
+        kwargs          Meaning
+        ==============  ==============================================================
+        xlim            x-axis limits. None (Default) for automatic determination.
+        ylim            y-axis limits. None (Default) for automatic determination.
+        ==============  ==============================================================
         """
         ax, fig, plt = get_ax_fig_plt(ax)
         ax.grid(True)

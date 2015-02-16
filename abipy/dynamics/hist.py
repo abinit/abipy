@@ -197,6 +197,15 @@ class HistReader(ETSF_Reader):
         rprimd_list = self.read_value("rprimd")
         xred_list = self.read_value("xred")
 
+        # Alchemical mixing is not supported.
+        num_pseudos = self.read_dimvalue("npsp")
+        ntypat = self.read_dimvalue("ntypat")
+        if num_pseudos != ntypat:
+            raise NotImplementedError("Alchemical mixing is not supported, num_pseudos != ntypat")
+
+        znucl, typat = self.read_value("znucl"), self.read_value("typat")
+        print(znucl.dtype, typat)
+
         structures = []
         for step in range(self.num_steps):
             s = Structure.from_abivars(
@@ -204,8 +213,8 @@ class HistReader(ETSF_Reader):
                 rprim=rprimd_list[step],
                 acell=3 * [1.0],
                 # FIXME ntypat, typat, znucl are missing!
-                znucl=[14, 14],
-                typat=[1, 1],
+                znucl=znucl,
+                typat=typat,
             )
             structures.append(s)
 

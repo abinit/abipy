@@ -1117,13 +1117,12 @@ class ElectronBands(object):
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
             klabels: dictionary whose keys are tuple with the reduced
-                     coordinates of the k-points. The values are the labels.
-                     e.g. klabels = { (0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L"}.
+                coordinates of the k-points. The values are the labels. e.g. `klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0):"L"}`.
             band_range: Tuple specifying the minimum and maximum band to plot (default: all bands are plotted)
             marker: String defining the marker to plot. Accepts the syntax `markername:fact` where
-                    fact is a float used to scale the marker size.
+                fact is a float used to scale the marker size.
             width: String defining the width to plot. Accepts the syntax `widthname:fact` where
-                   fact is a float used to scale the stripe size.
+                fact is a float used to scale the stripe size.
 
         Returns:
             `matplotlib` figure
@@ -1179,7 +1178,7 @@ class ElectronBands(object):
 
         Args:
             klabels: Dictionary whose keys are tuple with the reduced coordinates of the k-points.
-                     The values are the labels. e.g. klabels = { (0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L" }.
+                     The values are the labels. e.g. ~klabels = { (0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L" }`.
             band_range: Tuple specifying the minimum and maximum band to plot (default: all bands are plotted)
             width: String defining the width to plot. accepts the syntax `widthname:fact` where
                    fact is a float used to scale the stripe size.
@@ -1300,7 +1299,7 @@ class ElectronBands(object):
         Args:
             dos: An instance of :class:`ElectronDOS`.
             klabels: dictionary whose keys are tuple with the reduced coordinates of the k-points.
-                The values are the labels. e.g. klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
+                The values are the labels. e.g. `klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}`.
 
         Returns:
             `matplotlib` figure.

@@ -145,7 +145,7 @@ class InputFile(object):
     """
     Abinit input file.
 
-    Example::
+    .. code-block:: python
 
         >> f = InputFile('myfile.in')
         >> f.read('otherfile.in')
