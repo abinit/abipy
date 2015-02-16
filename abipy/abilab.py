@@ -18,7 +18,7 @@ from pymatgen.io.abinitio.works import *
 from pymatgen.io.abinitio.flows import Flow, G0W0WithQptdmFlow, bandstructure_flow, g0w0_flow, phonon_flow
 from pymatgen.io.abinitio.launcher import PyFlowScheduler
 
-from abipy.core.structure import Structure, StructureModifier
+from abipy.core.structure import Lattice, Structure, StructureModifier
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen, AnaddbInput
 from abipy.htc.robots import GsrRobot, SigresRobot, MdfRobot, abirobot
 from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter, SigresPlotter
@@ -28,8 +28,10 @@ from abipy.electrons.bse import MdfFile
 from abipy.electrons.scissors import ScissorsBuilder
 from abipy.dfpt import PhbstFile, PhononBands, PhdosFile, PhdosReader
 from abipy.dfpt.ddb import DdbFile
+from abipy.dynamics.hist import HistFile
 from abipy.core.mixins import AbinitInputFile, AbinitLogFile, AbinitOutputFile
 from abipy.waves import WfkFile
+from abipy.iotools import Visualizer
 
 # Tools for unit conversion
 import pymatgen.core.units as units
@@ -60,6 +62,7 @@ def abifile_subclass_from_filename(filename):
         "PHBST.nc": PhbstFile,
         "PHDOS.nc": PhdosFile,
         "DDB": DdbFile,
+        "HIST": HistFile,
     }
 
     # Abinit text files.

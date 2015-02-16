@@ -57,26 +57,9 @@ def as_slice(obj):
     raise ValueError("Cannot convert %s into a slice:\n%s" % (type(obj), obj))
 
 
-def selected_tasks(flow, options):
-    """Return the list of tasks in the flow selected by the user via the command line interface."""
-    if options.nids is not None:
-        tasks = flow.tasks_from_nids(options.nids)
-
-    elif options.wslice is not None:
-        tasks = []
-        for work in flow[options.wslice]:
-            tasks.extend([t for t in work])
-    else:
-        # All tasks selected if no option is provided.
-        tasks = list(flow.iflat_tasks())
-
-    #print(options, "\nselected_tasks:", tasks)
-    return tasks
-
-
 def selected_nids(flow, options):
     """Return the list of node ids selected by the user via the command line interface."""
-    return [task.node_id for task in selected_tasks(flow, options)]
+    return [task.node_id for task in flow.select_tasks(nids=options.nids, wslice=options.wslice)]
 
 
 def write_notebook(flow, options):
@@ -87,13 +70,13 @@ def write_notebook(flow, options):
     cells = [
         #nbf.new_text_cell('heading', "This is an auto-generated notebook for %s" % os.path.basename(pseudopath)),
         nbf.new_code_cell("""\
-%%javascript
-IPython.OutputArea.auto_scroll_threshold = 9999;
+##%%javascript
+##IPython.OutputArea.auto_scroll_threshold = 9999;
 
 from __future__ import print_function
 from abipy import abilab
-mpld3 = abilab.mpld3_enable_notebook()
 %matplotlib inline
+mpld3 = abilab.mpld3_enable_notebook()
 
 import pylab
 pylab.rcParams['figure.figsize'] = (25.0, 10.0)
@@ -102,19 +85,12 @@ import seaborn as sns
 sns.set(style='ticks', palette='Set2')"""),
 
         nbf.new_code_cell("flow = abilab.Flow.pickle_load('%s')" % flow.workdir),
+        nbf.new_code_cell("flow.show_dependencies()"),
         nbf.new_code_cell("flow.check_status(show=True, verbose=0)"),
-        nbf.new_code_cell("flow.show_inputs()"),
+        nbf.new_code_cell("flow.show_inputs(nids=None, wslice=None)"),
+        nbf.new_code_cell("flow.inspect(nids=None, wslice=None)"),
         nbf.new_code_cell("flow.show_abierrors()"),
         nbf.new_code_cell("flow.show_qouts()"),
-        nbf.new_code_cell("flow.show_dependencies()"),
-
-        nbf.new_code_cell("""\
-%matplotlib inline
-for task in flow.iflat_tasks(): 
-    try:
-        task.inspect()
-    except:
-        pass"""),
     ]
 
     # Now that we have the cells, we can make a worksheet with them and add it to the notebook:
@@ -139,15 +115,18 @@ def main():
     def str_examples():
         examples = """\
 Usage example:\n
-    abirun.py [DIRPATH] single                   => Fetch the first available task and run it.
-    abirun.py [DIRPATH] rapid                    => Keep repeating, stop when no task can be executed
-    abirun.py [DIRPATH] gui                      => Open the GUI 
-    nohup abirun.py [DIRPATH] sheduler -s 30 &   => Start the scheduler to schedule task submission
 
-    If DIRPATH is not given, abirun.py automatically selects the database located within 
+    abirun.py [FLOWDIR] rapid                    => Keep repeating, stop when no task can be executed.
+    abirun.py [FLOWDIR] gui                      => Open the GUI .
+    abirun.py [FLOWDIR] manager slurm            => Document the TaskManager options availabe for Slurm.
+    abirun.py [FLOWDIR] manager script           => Show the job script that will be produced.
+    nohup abirun.py [FLOWDIR] sheduler -s 30 &   => Start the scheduler to schedule task submission.
+
+    If FLOWDIR is not given, abirun.py automatically selects the database located within 
     the working directory. An Exception is raised if multiple databases are found.
 
     Options for developers:
+
         abirun.py prof ABIRUN_ARGS               => to profile abirun.py
         abirun.py tracemalloc ABIRUN_ARGS        => to trace memory blocks allocated by Python
 """
@@ -168,7 +147,6 @@ Usage example:\n
             else:
                 # Convert string to slice and return list.
                 s = as_slice(s)
-                #print(s)
                 if s.stop is None: raise argparse.ArgumentTypeError("stop must be specified")
                 return list(range(s.start, s.stop, s.step))
         except:
@@ -186,16 +164,14 @@ Usage example:\n
     flow_selector_parser = argparse.ArgumentParser(add_help=False)
     group = flow_selector_parser.add_mutually_exclusive_group()
     group.add_argument("-n", '--nids', default=None, type=parse_nids, help=(
-        "Node identifier(s) used to select the task. Integer or comma-separated list of integers. Use `status` command to get the node ids.\n"
+        "Node identifier(s) used to select the task. Integer or comma-separated list of integers. Use `status` command to get the node ids."
         "Examples: --nids=12 --nids=12,13,16 --nids=10:12 to select 10 and 11, --nids=2:5:2 to select 2,4"  
         ))
 
     group.add_argument('--wslice', default=None, type=parse_wslice, 
-                                      help=("Select the list of works to analyze (python syntax for slices):\n"
+                                      help=("Select the list of works to analyze (python syntax for slices):"
                                       "Examples: --wslice=1 to select the second workflow, --wslice=:3 for 0,1,2,"
                                       "--wslice=-1 for the last workflow, --wslice::2 for even indices"))
-
-    #flow_selector_parser.add_argument('--wti', default=None, help="Index of workflow:task")
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -210,7 +186,7 @@ Usage example:\n
     parser.add_argument('--loglevel', default="ERROR", type=str,
                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
-    parser.add_argument('path', nargs="?", help=("File or directory containing the ABINIT flow\n" +
+    parser.add_argument('path', nargs="?", help=("File or directory containing the ABINIT flow"
                                                  "If not given, the first flow in the current workdir is selected"))
 
     # Create the parsers for the sub-commands
@@ -256,7 +232,7 @@ Usage example:\n
     p_move.add_argument('dest', nargs=1) 
 
     # Subparser for open command.
-    p_open = subparsers.add_parser('open', parents=[flow_selector_parser], help="Open files in $EDITOR, type `abirun.py DIRPATH open --help` for help)")
+    p_open = subparsers.add_parser('open', parents=[flow_selector_parser], help="Open files in $EDITOR, type `abirun.py FLOWDIR open --help` for help)")
     p_open.add_argument('what', default="o", 
         help="""\
 Specify the files to open. Possible choices:
@@ -303,12 +279,13 @@ Specify the files to open. Possible choices:
 
     p_analyze= subparsers.add_parser('analyze', help="Analyze the results produced by the flow.")
 
-    p_docmanager = subparsers.add_parser('docmanager', help="Document the TaskManager options")
-    p_docmanager.add_argument("qtype", nargs="?", default=None, help="Document qparams section for the given qtype")
+    p_manager = subparsers.add_parser('manager', help="Document the TaskManager options")
+    p_manager.add_argument("qtype", nargs="?", default=None, help=("Write job script to terminal if qtype='script' else" 
+        " document the qparams for the given QueueAdapter qtype e.g. slurm"))
 
     p_notebook = subparsers.add_parser('notebook', help="Create and open an ipython notebook to interact with the flow.")
 
-    p_embed = subparsers.add_parser('ipython', help="Embed IPython. Useful for performing advanced operations or debugging purposes.")
+    p_embed = subparsers.add_parser('ipython', help="Embed IPython. Useful for advanced operations or debugging purposes.")
 
     # Parse command line.
     try:
@@ -328,45 +305,34 @@ Specify the files to open. Possible choices:
         # Disable colors
         termcolor.enable(False)
 
-    if options.command == "docmanager":
-        print(abilab.TaskManager.autodoc())
+    if options.command == "manager":
+        # Document TaskManager options and qparams.
+        qtype = options.qtype
 
-        import yaml
-        QDICT = yaml.load("""\
-priority: 5
-queue:
-  qtype: slurm
-  qname: Oban
-  qparams:
-      account: user_account
-      mail_user: user@mail.com
-limits:
-  timelimit: 10:00
-  min_cores: 3
-  max_cores: 16
-job:
-  mpi_runner: mpirun
-  # pre_run is a string in verbatim mode (note |)
-  setup:
-      - echo ${SLURM_JOB_NODELIST}
-      - ulimit -s unlimited
-  modules:
-      - intel/compilerpro/13.0.1.117
-      - fftw3/intel/3.3
-  shell_env:
-      PATH: /home/user/bin:$PATH
-hardware:
-   # Mandatory
-   num_nodes: 2
-   sockets_per_node: 2
-   cores_per_socket: 4
-   mem_per_node: 8 Gb
-""")
-        from pymatgen.io.abinitio.qadapters import make_qadapter
-        if options.qtype is not None:
-            qad = make_qadapter(**QDICT)
-            print(qad.QTEMPLATE)
-            #print(qad.supported_qparams)
+        if qtype == "script":
+            manager = abilab.TaskManager.from_user_config()
+            script = manager.qadapter.get_script_str(
+                job_name="job_name", 
+                launch_dir="workdir",
+                executable="executable",
+                qout_path="qout_file.path",
+                qerr_path="qerr_file.path",
+                stdin="stdin", 
+                stdout="stdout",
+                stderr="stderr",
+            )
+            print(script)
+
+        else:
+            print(abilab.TaskManager.autodoc())
+            from pymatgen.io.abinitio.qadapters import show_qparams, all_qtypes
+                                                                                                 
+            print("qtype supported: %s" % all_qtypes())
+            print("Use `abirun.py . manager slurm` to have the list of qparams for slurm.\n")
+
+            if qtype is not None:
+                print("QPARAMS for %s" % qtype)
+                show_qparams(qtype)
 
         sys.exit(0)
 
@@ -456,7 +422,8 @@ hardware:
         # The name of the method associated to this netcdf file.
         methname = "open_" + options.ncext.lower()
         # List of netcdf file objects.
-        ncfiles = [getattr(task, methname)() for task in selected_tasks(flow, options) if hasattr(task, methname)]
+        ncfiles = [getattr(task, methname)() for task in flow.select_tasks(nids=options.nids, wslice=options.wslice) 
+                    if hasattr(task, methname)]
         
         if ncfiles:
             # Start ipython shell with namespace 
@@ -545,7 +512,7 @@ hardware:
                 pass
 
     elif options.command == "qstat":
-        for task in selected_tasks(flow, options):
+        for task in flow.select_tasks(nids=options.nids, wslice=options.wslice):
             if not task.qjob: continue
             print("qjob", task.qjob)
             print("info", task.qjob.get_info())
@@ -570,16 +537,15 @@ hardware:
         open_method = "open_" + fext
         plot_method = "plot_" + options.what
 
-        for task in selected_tasks(flow, options):
+        for task in flow.select_tasks(nids=options.nids, wslice=options.wslice):
             try:
                 with getattr(task, open_method)() as ncfile: 
-                    #print(ncfile)
                     getattr(ncfile, plot_method)()
-            except:
-                pass
+            except Exception as exc:
+                print(exc)
 
     elif options.command == "inspect":
-        tasks = selected_tasks(flow, options)
+        tasks = flow.select_tasks(nids=options.nids, wslice=options.wslice)
 
         # Use different thread to inspect the task so that master can catch KeyboardInterrupt and exit.
         # One could use matplotlib non-blocking interface with show(block=False) but this one seems to work well.
@@ -592,19 +558,22 @@ hardware:
                 else:
                     cprint("Task %s does not provide an inspect method" % task, color="blue")
 
-        p = Process(target=plot_graphs)
-        p.start()
-        num_tasks = len(tasks)
+        plot_graphs()
 
-        if num_tasks == 1:
-            p.join()
-        else:
-            cprint("Will produce %d matplotlib plots. Press CTRL+C to interrupt..." % num_tasks, color="magenta", end="", flush=True)
-            try:
-                p.join()
-            except KeyboardInterrupt:
-                print("\nTerminating thread...")
-                p.terminate()
+        # This works with py3k but not with py2
+        #p = Process(target=plot_graphs)
+        #p.start()
+        #num_tasks = len(tasks)
+
+        #if num_tasks == 1:
+        #    p.join()
+        #else:
+        #    cprint("Will produce %d matplotlib plots. Press CTRL+C to interrupt..." % num_tasks, color="magenta", end="", flush=True)
+        #    try:
+        #        p.join()
+        #    except KeyboardInterrupt:
+        #        print("\nTerminating thread...")
+        #        p.terminate()
 
     elif options.command == "inputs":
         flow.show_inputs(nids=selected_nids(flow, options))

@@ -182,6 +182,62 @@ class Structure(pymatgen.Structure):
     #    return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
 
     @property
+    def abi_string(self):
+        """Return a string with the ABINIT input associated to this structure.""" 
+        from abipy.htc.variable import InputVariable
+        lines = []
+        app = lines.append
+        abivars = self.to_abivars()
+        for varname, value in abivars.items():
+            app(str(InputVariable(varname, value)))
+                                                    
+        return("\n".join(lines))
+    
+    def abi_sanitize(self, symprec=1e-3, primitive=True):
+        """
+        Returns a new structure in which:
+
+            * Oxidation states are removed.
+            * Structure is refined.
+            * Reduced to primitive settings.
+            * Lattice vectors are exchanged if the triple product is negative 
+
+            Args:
+                symprec: Symmetry precision used to refine the structure.
+                    if `symprec` is None, so structure refinement is peformed.
+                primitive (bool): Whether to convert to a primitive cell.
+        """
+
+        from pymatgen.transformations.standard_transformations import OxidationStateRemovalTransformation, \
+            PrimitiveCellTransformation, SupercellTransformation
+
+        # Remove oxidation states.
+        remove_ox = OxidationStateRemovalTransformation()
+        structure = remove_ox.apply_transformation(self)
+
+        # Refine structure
+        if symprec is not None:
+            sym_finder = SpacegroupAnalyzer(structure=structure, symprec=symprec)
+            structure = sym_finder.get_refined_structure()
+
+        # Convert to primitive structure.
+        if primitive:
+            get_prim = PrimitiveCellTransformation()
+            structure = get_prim.apply_transformation(structure)
+
+        # Exchange last two lattice vectors if triple product is negative.
+        m = structure.lattice.matrix
+        x_prod = np.dot(np.cross(m[0], m[1]), m[2])
+        if x_prod < 0:
+            trans = SupercellTransformation(((1, 0, 0), (0, 0, 1), (0, 1, 0)))
+            structure = trans.apply_transformation(structure)
+            m = structure.lattice.matrix
+            x_prod = np.dot(np.cross(m[0], m[1]), m[2])
+            if x_prod < 0: raise RuntimeError("x_prod is still negative!")
+
+        return structure
+
+    @property
     def spacegroup(self):
         """:class:`SpaceGroup` instance."""
         try:
@@ -260,6 +316,19 @@ class Structure(pymatgen.Structure):
         else:
             return None
 
+    def get_symbol2coords(self):
+        """Return a dictionary mapping chemical symbols to coordinates."""
+        # TODO: 
+        #use structure.frac_coords but add reshape in pymatgen.
+        #fcoords = np.reshape([s.frac_coords for s in self], (-1, 3))
+        coords = {}
+        for symbol in self.symbol_set:
+            coords[symbol] = np.reshape(
+                [site.frac_coords for site in self if site.specie.symbol == symbol], (-1, 3))
+
+        return coords
+
+
     def show_bz(self, **kwargs):
         """
         Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
@@ -325,7 +394,7 @@ class Structure(pymatgen.Structure):
         for ext in visu.supported_extensions():
             ext = "." + ext
             try:
-                return self.export(ext, visu=visu)
+                return self.export(ext, visu=visu)()
             except visu.Error:
                 pass
         else:

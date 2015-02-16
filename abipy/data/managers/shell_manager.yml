@@ -1,16 +1,16 @@
-qadapters: 
-    - priority: 1 
+qadapters:
+    # List of qadapters objects 
+    - priority: 1
       queue:
-        qname: localhost
         qtype: shell
+        qname: localhost
       job:
         mpi_runner: mpirun
-        #pre_run: 
-        # - source ~/env.sh
+        # source a script to setup the environment.
+        pre_run: "source ~/env.sh"
       limits:
-         min_cores: 1
-         max_cores: 2
-         timelimit: 1:00:00
+        timelimit: 1:00:00
+        max_cores: 2
       hardware:
          num_nodes: 1
          sockets_per_node: 1

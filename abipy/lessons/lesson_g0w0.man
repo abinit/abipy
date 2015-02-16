@@ -1,0 +1,209 @@
+.TH $G_0W_0$ "" "" "band structure with an energy\-dependent scissors operator"
+.SH Background
+.PP
+Standard functionals (LDA and GGA), systematically underestimate band
+gaps, giving values that are about 30\-40% smaller than experimental
+data.
+The inability of standard Kohn\-Sham (KS) theory to give band gaps close
+to experiment is often referred to as the \f[B]band\-gap problem\f[].
+From a theoretical point of view this is not surprising since KS
+eigenvalues are not supposed to give the correct band energies.
+The band structure of a crystal is rigorously defined as the energies
+needed to add or subtract electrons from the many\-body system which, in
+turn, are related to the difference between total energies of many\-body
+states differing by one electron.
+.PP
+An alternative, more traditional, approach to the study of
+exchange\-correlation effects in many\-body systems is provided by
+Many\-Body Perturbation Theory (MBPT) which defines a rigorous approach
+to the description of excited\-state properties, based on the
+Green\[aq]s function formalism.
+In this lesson, we discuss how to use the MBPT part of ABINIT to compute
+the band\-structure of silicon within the so\-called $G_0W_0$
+approximation.
+.PP
+For a very brief introduction see
+MBPTNNOTES (http://www.abinit.org/documentation/helpfiles/for-v7.10/tutorial/theory_mbt.html).
+.SH Related ABINIT variables
+.RS
+.IP \[bu] 2
+optdriver
+.IP \[bu] 2
+ecuteps
+.IP \[bu] 2
+ecutsigx
+.RE
+.PP
+More info on the input variables and their use can be obtained using the
+following function:
+.RS
+.IP
+.nf
+\f[C]
+lesson.abinit_help(inputvariable)
+\f[]
+.fi
+.RE
+.PP
+This will print the official abinit description of this variables.
+.PP
+To open the python script in ipython use:
+.RS
+.IP
+.nf
+\f[C]
+%load\ $lesson.pyfile
+\f[]
+.fi
+.RE
+.SH The abipy flows of this lesson
+.PP
+In this lesson, we will construct an abipy flow made of two works.
+The first work is a standard KS band\-structure calculation that
+consists of an initial GS calculation to get the density followed by two
+NSCF calculations.
+The first NSCF task computes the KS eigenvalues on a high\-symmetry path
+in the BZ, whereas the second NSCF task is done on a homogeneous k\-mesh
+so that one can calculate the DOS from the KS eigenvalues.
+These two NSCF tasks
+.PP
+The second work represents a GW workflow in which we read the density
+computed in the first task of the previous work to obtain and compute
+the KS eigenvalues and eigenvectors for many empty states.
+The WFK file produced in this step is then used to compute the screened
+interaction $W$.
+Finally we do a self\-energy calculation in which we use the $W$
+produced in the previous step and the WFK file to compute the matrix
+elements of the self\-energy and the $G_0W_0$ corrections for all the
+k\-points in the IBZ and 8 bands (4 occupied + 4 empty)
+.PP
+Once the flow is completed, we can post\-process the results and compute
+the $G_0W_0$ band\-structure of silicon with a scissors operator.
+.SH The course of this lesson
+.PP
+This lesson can be started in ipython by importing it:
+.RS
+.IP
+.nf
+\f[C]
+from\ abipy.lessons.lesson_g0w0\ import\ Lesson()
+lesson\ =\ Lesson()
+\f[]
+.fi
+.RE
+.PP
+The lesson is now imported in your ipython session in its own namespace
+\[aq]lesson\[aq].
+This object now gives us all the tools to follow this lesson.
+As before:
+.RS
+.IP
+.nf
+\f[C]
+lesson
+\f[]
+.fi
+.RE
+.PP
+displays this lessons information text.
+This lesson provides a factory function that returns a flow designed to
+perform a standard G0W0 calculation.
+.PP
+In the previous lesson we have actually been running job directly on the
+frontend.
+These calculations were so small that this was not a problem.
+GW calculations, however, (even the underconverged examples we are using
+here) are much more involved.
+To run submit calculations to the actual worknodes of the cluster we
+only need to provide abipy with different manager settings.
+First have a look at the current manager.yml file.
+This one tells abipy what it needs to know to run shell jobs.
+Next copy the file we prepared for this cluster:
+.PP
+cp /data/euspec/doc/abinit\-templates/manager_viper.yml.
+.PP
+Have a look at this file as well.
+It may look complicated but if fact it is just a translation of the user
+manual of the cluster.
+For a new cluster one person has to create it once.
+Also note the it only mentions which queueing systems is installed how
+to use this systems is programmed in abipy.
+To use this manager move it to manager.yml.
+(abipy will first look for a manager file in you current folder and
+secondly in ~/.abinit/abipy, so you can put one there an don\[aq]t
+bother about it for every calculation)
+.PP
+displays this lessons information text, and can be recalled at any
+moment.
+The main object we use to pack (connected series of) calculations is a
+flow.
+This lesson provides a method that returns a flow designed to perform
+k\-point convergence studies.
+.PP
+This flow is made by the command:
+.RS
+.IP
+.nf
+\f[C]
+flow\ =\ lesson.make_g0w0_scissors_flow()
+\f[]
+.fi
+.RE
+.PP
+flow is now an object that contains al the information needed to
+generate abinit inputs.
+.RS
+.IP
+.nf
+\f[C]
+flow.show_inputs()
+\f[]
+.fi
+.RE
+.PP
+will display all the inputs as they will be \[aq]given\[aq] to abinit.
+In previous lessons we ran the flows each time directly inside ipython.
+For relatively small calculations this is very practical.
+There are however other ways more suited for large calculations.
+.PP
+To start the execution of calculations packed in this flow we use the
+following command:
+.RS
+.IP
+.nf
+\f[C]
+flow.make_scheduler().start()
+\f[]
+.fi
+.RE
+.PP
+This starts the actual execution via a scheduler.
+.PP
+The last step of analyzing the results can be done again in with a
+single command:
+.RS
+.IP
+.nf
+\f[C]
+flow.analyze()
+\f[]
+.fi
+.RE
+.PP
+This method of flow will open the necessary output files, retrieve the
+data, and produce a plot.
+.PP
+Finally, once you are through with this lesson and exited ipython:
+.RS
+.IP
+.nf
+\f[C]
+exit
+\f[]
+.fi
+.RE
+.PP
+You can see that in the directory that you were working there is now a
+subdir were the calculation have been performed.
+Have a look at these folders and the files that are in them.
+.SH Exercises

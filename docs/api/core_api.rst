@@ -17,6 +17,13 @@ core Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`wyckoff` Module
+---------------------
+
+.. automodule:: abipy.core.wyckoff
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 :mod:`fields` Module
 --------------------

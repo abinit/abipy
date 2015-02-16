@@ -49,7 +49,7 @@ _ipython_lesson_ = """
 More info on the inputvariables and their use can be obtained using the
 following function:
 
-    .. code-block :: python
+    .. code-block:: python
 
         lesson.docvar("inputvariable")
 
@@ -61,26 +61,26 @@ The course of this lesson
 
 Start this lesson by importing it in a new namespace
 
-    .. code-block :: python
+    .. code-block:: python
 
         from abipy.lessons.lesson_ecut_convergence import Lesson()
         lesson = Lesson()
 
 As always you can reread this lesson's text using the command:
 
-    .. code-block :: python
+    .. code-block:: python
 
         lesson
 
 To build the flow:
 
-    .. code-block :: python
+    .. code-block:: python
 
         flow = lesson.make_ecut_flow()
 
 To print the input files
 
-    .. code-block :: python
+    .. code-block:: python
 
         flow.show_inputs()
 
@@ -89,13 +89,13 @@ a flow is a container that contains 'works'. Works are (connected) series
 of abinit executions we call tasks. To show the works contained in a flow
 use the 'works()' method:
 
-    .. code-block :: python
+    .. code-block:: python
 
         flow.works()
 
 to show the status of a flow:
 
-    .. code-block :: python
+    .. code-block:: python
 
         flow.show_status()
 
@@ -105,7 +105,7 @@ with all the option. Feel free to experiment a bit at this point. By adding
 a questionmark to the method or property ipython will show the information
 and description of it:
 
-    .. code-block :: python
+    .. code-block:: python
 
         flow.open_files?
 
@@ -113,13 +113,13 @@ Will explain what this method is supposed to do.
 
 Start the flow with the scheduler and wait for completion.
 
-    .. code-block :: python
+    .. code-block:: python
 
         flow.make_scheduler().start()
 
 To analyze the results.
 
-    .. code-block :: python
+    .. code-block:: python
 
         flow.analyze()
 
@@ -139,7 +139,7 @@ At this place they will not be discussed in detail. In stead you are
 invited to read the abinit documentation on them. The full description,
 directly from the abinit description is available via the following function:
 
-    .. code-block :: shell
+    .. code-block:: shell
 
         abidocs.py man inputvariable
 
@@ -167,6 +167,9 @@ def make_ecut_flow(structure_file=None, ecut_list = (10, 12, 14, 16, 18)):
         inp = abilab.AbiInput(pseudos=pseudos, ndtset=len(ecut_list))
         inp.set_structure(structure)
         workdir = "flow_" + structure.composition.reduced_formula + "_ecut_convergence"
+
+    # Add mnemonics to input file.
+    inp.set_mnemonics(True)
 
     # Global variables
     inp.set_vars(tolvrs=1e-9)

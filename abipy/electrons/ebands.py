@@ -627,16 +627,17 @@ class ElectronBands(object):
 
         if self.nsppol == 2: 
             eigenvals[Spin.down] = self.eigens[1,:,:].T.copy().tolist()
+        
+        # FIXME: is_path does not work since info is missing in the netcdf file.
+        #if self.kpoints.is_path:
+        #    labels_dict = {k.name: k.frac_coords for k in self.kpoints if k.name is not None}
+        #    logger.info("calling pmg BandStructureSymmLine with labels_dict %s" % str(labels_dict))
+        #    return BandStructureSymmLine(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, fermie, labels_dict,
+        #                                 coords_are_cartesian=False, structure=self.structure, projections=None)
 
-        if self.kpoints.is_path:
-            labels_dict = {k.name: k.frac_coords for k in self.kpoints if k.name is not None}
-            logger.info("calling pmg BandStructureSymmLine with labels_dict %s" % str(labels_dict))
-            return BandStructureSymmLine(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, fermie, labels_dict,
-                                         coords_are_cartesian=False, structure=self.structure, projections=None)
-
-        else:
-            logger.info("Calling pmg BandStructure")
-            return BandStructure(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, fermie,
+        #else:
+        logger.info("Calling pmg BandStructure")
+        return BandStructure(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, fermie,
                                  labels_dict=None, coords_are_cartesian=False, structure=self.structure, projections=None)
 
     def _electron_state(self, spin, kpoint, band):
