@@ -131,7 +131,6 @@ class WyckoffPositions(Sequence):
         return frac_errors
 
 
-
 class Wyckoff(object):
     """
     """
@@ -220,8 +219,8 @@ def test_sio2():
     from abipy.core.structure import Lattice
     lattice = Lattice.hexagonal(a=4.971, c=5.473)
 
-    #for to_unit_cell in [False]:
-    for to_unit_cell in [False, True]:
+    for to_unit_cell in [False]:
+    #for to_unit_cell in [False, True]:
         structure = wyck.gen_structure(lattice, site2params, to_unit_cell=to_unit_cell)
         print("to_unit_cell %s\n" % to_unit_cell, structure)
 
@@ -231,6 +230,9 @@ def test_sio2():
         #print("Refined:", structure)
 
         wyck_params = wyck.find_params(structure)
+
+        #structure.perturb(distance=0.01)
+        #wyck_params = wyck.find_params(structure)
 
         print("Error of params")
         wyck.error_of_params(wyck_params, structure)

@@ -56,25 +56,27 @@ Usage example:\n
     p_pmgdata.add_argument("--mapi-key", default=None, help="Pymatgen MAPI_KEY. Use env variable if not specified.")
     p_pmgdata.add_argument("--host", default="www.materialsproject.org", help="Pymatgen database.")
 
+    # Subparser for abivars command.
+    p_animate = subparsers.add_parser('animate', parents=[path_selector], help="Read structures from HIST or XDATCAR and...")
+
     # Parse command line.
     try:
         options = parser.parse_args()
     except: 
         show_examples_and_exit(error_code=1)
 
-    # Read structure form file
-    if hasattr(options, "filepath"):
-        structure = abilab.Structure.from_file(options.filepath)
-
     if options.command == "convert":
+        structure = abilab.Structure.from_file(options.filepath)
         s = structure.convert(format=options.format)
         #print((" Abinit --> %s " % format).center(80, "*"))
         print(s)
 
     elif options.command == "abivars":
+        structure = abilab.Structure.from_file(options.filepath)
         print(structure.abi_string)
 
     elif options.command == "visualize":
+        structure = abilab.Structure.from_file(options.filepath)
         structure.visualize(options.visualizer)
 
     elif options.command == "pmgdata":
@@ -86,6 +88,23 @@ Usage example:\n
         s = structure.convert(format="json")
         #s = structure.convert(format="mson")
         print(s)
+
+    elif options.command == "animate":
+        from  abipy.iotools import xsf_write_structure
+        filepath = options.filepath
+
+        if filepath.endswith("HIST"):
+            with abilab.abiopen(filepath) as hist: 
+                structures = hist.structures
+
+        elif "XDATCAR" in filepath:
+            from pymatgen.io.vaspio import Xdatcar
+            structures = Xdatcar(filepath).structures
+
+        else:
+            raise ValueError("Don't know how to handle file %s" % filepath)
+
+        xsf_write_structure(sys.stdout, structures)
 
     else:
         raise ValueError("Unsupported command: %s" % options.command)

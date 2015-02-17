@@ -333,7 +333,7 @@ class InputFile(object):
         Sets variables by providing a dictionary, or expanding a dictionary,
         and possibly append them by a dataset index.
 
-        Example::
+        .. code-block:: python
 
             >> kpoint_grid_shifted = {
             >>     'kptopt' : 1,
