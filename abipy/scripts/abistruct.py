@@ -57,7 +57,8 @@ Usage example:\n
     p_pmgdata.add_argument("--host", default="www.materialsproject.org", help="Pymatgen database.")
 
     # Subparser for abivars command.
-    p_animate = subparsers.add_parser('animate', parents=[path_selector], help="Read structures from HIST or XDATCAR and...")
+    p_animate = subparsers.add_parser('animate', parents=[path_selector], 
+        help="Read structures from HIST or XDATCAR. Print structures in Xrysden AXSF format to stdout")
 
     # Parse command line.
     try:
@@ -100,6 +101,10 @@ Usage example:\n
         elif "XDATCAR" in filepath:
             from pymatgen.io.vaspio import Xdatcar
             structures = Xdatcar(filepath).structures
+            if not structures:
+                raise RuntimError("Your Xdatcar contains only one structure. Due to a bug " 
+                    "in the pymatgen routine, your structures won't be parsed correctly" 
+                    "Solution: Add another structure at the end of the file.")
 
         else:
             raise ValueError("Don't know how to handle file %s" % filepath)
