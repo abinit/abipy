@@ -15,8 +15,8 @@ be converged we need a k-point mesh that is dense enough, but at
 the same time as coarse as possible to make for an efficient
 calculation. Various types of materials require in general different
 densities of the k-point meshes. In general metals need denser meshes
-than semiconductors. Your first investigation into a new compound
-will quit often be a k-point convergence study.
+than semiconductors, because of the need to accurately sample the fermi surface. Your first investigation into a new
+compound will quit often be a k-point convergence study.
 
 The related abinit variables
 ----------------------------
@@ -35,7 +35,7 @@ from __future__ import division, print_function
 _ipython_lesson_ = """
 At this place they will not be discussed in detail. In stead you are
 invited to read the abinit documentation on them. The full description,
-directly from the abinit description is available via the following function:
+directly from the official abinit description is available via the following function:
 
     .. code-block:: python
 
@@ -188,12 +188,51 @@ The course of this lesson
 -------------------------
 
 In the generation of this lesson by the python script all the input files have been generated automatically.
-You will.......
+The input files have been organized in a workdir "flow_lesson_Si_kpoint_convergence". Inside you'll find a single work,
+w0, with four tasks, t0 - t3. Have a look at the input files, run.abi, in the four tasks to see what is different.
 
+You'll see that also the files file and the jobs submission script are generated. In the job scripts you'll see that
+the jobs are prepared to run just on the front end.
 
-Executing the calculations using abirun
+You'll also see that the files file has been created as well.
 
-abirun.py
+To perform the kpoint convergence study execute abinit with the four input sets.
+
+Once the calcualtions are ready, you'll see three important output files.
+
+    * run.out
+    * run.log
+    * run.err
+
+The main summary of the calculation can be found in the .out file, we'll go there soon :-). The .err file should be
+empty. If it's not something went wrong. If something went wrong read the .err. file. The .log file contains extensive
+information on you calculation that could help to find out what went wrong in the case of errors. Especially there are
+three types of messages that could help
+
+    * COMMENT
+    * WARNING
+    * ERROR
+
+In case of an error message abinit stopped the execution by itself, because of that error.
+
+Now the .out file. Some interesting keywords to look for:
+
+    * Symmetries
+    * Citation for XC functional:
+    * ETOT (the total energies during the electronic structure convergence)
+    * Eigenvalues
+    * Etotal (the total energy of an ionic step)
+
+Obviously there is much more.
+
+Collect the total energies of the four calculations and plot them as a function of the number of k-points in the
+calculation.
+
+Alternative to execution of the manual execution the calculations can also be executed using the abipy scheduler.
+
+    .. code-block:: shell
+
+    abirun.py flow_lesson_Si_kpoint_convergence scheduler
 
 """
 import os
