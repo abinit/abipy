@@ -86,9 +86,10 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
     def docvar(varname):
         from abipy.htc.abivars_db import get_abinit_variables
         if varname == "inputvariable":
-            return ("When we said that you should pass `inputvariable` to docvar we meant that" 
-                    "you should pass a string with the name of a valid ABINT variable e.g. `ecut`"
-                    "not `inputvariable` :)")
+            return ("inputvariable is a very complicated input variable. Better to ask for help immediately")
+#            return ("When we said that you should pass `inputvariable` to docvar we meant that"
+#                    "you should pass a string with the name of a valid ABINT variable e.g. `ecut`"
+#                    "not `inputvariable` :)")
         return get_abinit_variables()[varname]
 
 

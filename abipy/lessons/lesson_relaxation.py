@@ -96,7 +96,7 @@ To analyze the results.
 
     .. code-block:: python
 
-        flow.analyze()
+        lesson.analyze(flow)
 
 In the case of silicon, it will show a fit of the total energy vs the
 volume of the unit cell. The minimum of this curve is the equilibrium

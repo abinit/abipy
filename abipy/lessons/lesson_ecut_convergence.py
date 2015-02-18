@@ -56,6 +56,9 @@ following function:
 The abipy flows in this lesson
 ------------------------------
 
+This lesson contains a factory function for a ecut convergence study. In this lesson we will discuss a few more
+properties and methods of flows.
+
 The course of this lesson
 -------------------------
 
@@ -126,6 +129,15 @@ To analyze the results.
 Exercises
 ---------
 
+As for the kpoint convergence study, try to run the convergence study for Al.
+
+Get a copy of the python script we use in this lesson like before. In the lesson class definition you'll find the
+analyze method. Execute the parts to get the dataframe. Use the commands you learned in this lesson to find out what
+else is contained in the dataframe. Make some more convergence plots.
+
+If you like to dig in more look up the pandas package on internet. The dataframe the robot returns is a pandas dataframe
+all the thing that have been programmed in that package are at your disposal.
+
 
 Next
 ----
@@ -135,8 +147,7 @@ A logical next lesson would be lesson_relaxation
 """
 
 _commandline_lesson_ = """
-At this place they will not be discussed in detail. In stead you are
-invited to read the abinit documentation on them. The full description,
+The full description,
 directly from the abinit description is available via the following function:
 
     .. code-block:: shell
@@ -145,7 +156,17 @@ directly from the abinit description is available via the following function:
 
 This will print the official abinit description of this inputvariable.
 
-text for the commandline lesson
+As in the previous lesson, executing the python script created the folder structure with the in input files for this
+lesson.
+
+One of the standard thing to look for to be converged in the total energy. We did that already in th previous lesson.
+This time have a look at some of the other important properties. Look for instance at the convergence rate of the
+forces, stress-tensor or the energies of the KS-orbitals.
+
+Exercises
+---------
+
+Edit the input files to run the same convergence study for a different k-point mesh. Best to start small.
 
 """
 

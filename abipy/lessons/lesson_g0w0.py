@@ -145,7 +145,7 @@ The last step of analyzing the results can be done again in with a single comman
 
     .. code-block:: python
 
-        flow.analyze()
+        lesson.analyze(flow)
 
 This method of flow will open the necessary output files, retrieve the data, and produce a plot.
 
