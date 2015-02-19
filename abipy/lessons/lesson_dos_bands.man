@@ -1,0 +1,131 @@
+.TH The "" "" "calculation of the density of states and the bandstructure."
+.SH Background
+.PP
+This lesson focuses on calculating the density of states (DOS) and the
+band structure.
+On thing one should always keep in mind is that these are the densities
+of states and the bandstructure of the KS\-particles.
+If you feel patronised by this remark please continue to the next
+section, else keep reading :\-).
+.PP
+In contrast to the total energy and derivatives of it, the energies of
+the KS\-levels have no exact physical meaning, except for the highest
+occupied state that actually would be the first ionization energy if the
+functional would be exact.
+So why would we even want to calculate the KS\-DOS and band structure?
+In most cases the KS spectrum is qualitatively in agreement with the
+spectum of ionization energies.
+Moreover in general we are able to make good predictions on trends.
+.SH The related abinit variables
+.RS
+.IP \[bu] 2
+1
+.IP \[bu] 2
+2
+.RE
+.PP
+More info on the inputvariables and their use can be obtained using the
+following function:
+.RS
+.IP
+.nf
+\f[C]
+lesson.docvar("inputvariable")
+\f[]
+.fi
+.RE
+.PP
+This will print the official abinit description of this inputvariable.
+.SH The abipy flows in this lesson
+.PP
+The flow that we use in this lesson contains for the first time
+dependencies.
+This means that some tasks in the flow can only be started if an other
+task is ready.
+We will first perform one self\-consistent calculation to obtain a
+proper density.
+Using this density we calculate in two more steps the DOS and the
+bandstructure.
+For the DOS this not stricktly nessesary since the DOS will also be
+calculated on a regular grid.
+In general the density will be converged already before the DOS is
+converged.
+For large systems it may become nessesary to split.
+For the bandstructure we have a non\-uniform grid so we do need to fix
+the density.
+.SH The course of this lesson
+.PP
+Start this lessen by importing it in a new namespace:
+.RS
+.IP
+.nf
+\f[C]
+from\ abipy.lesson.lesson_dos_bands\ import\ Lesson()
+lesson\ =\ Lesson()
+\f[]
+.fi
+.RE
+.PP
+As always you can reread this lessons text using the command:
+.RS
+.IP
+.nf
+\f[C]
+lesson
+\f[]
+.fi
+.RE
+.PP
+To build the flow:
+.RS
+.IP
+.nf
+\f[C]
+flow\ =\ lesson.make_flow()
+\f[]
+.fi
+.RE
+.PP
+To print the input files
+.RS
+.IP
+.nf
+\f[C]
+flow.show_inputs()
+\f[]
+.fi
+.RE
+.PP
+To visualize the dependencies in the flow:
+.RS
+.IP
+.nf
+\f[C]
+flow.show_dependencies()
+\f[]
+.fi
+.RE
+.PP
+Start the flow with the scheduler and wait for completion.
+.RS
+.IP
+.nf
+\f[C]
+flow.make_scheduler().start()
+\f[]
+.fi
+.RE
+.PP
+To analyze the results.
+.RS
+.IP
+.nf
+\f[C]
+lesson.analyze(flow)
+\f[]
+.fi
+.RE
+.SH Exercises
+.SH Next
+.PP
+A logical next lesson would be lesson_g0w0

@@ -32,6 +32,10 @@ optdriver
 ecuteps
 .IP \[bu] 2
 ecutsigx
+.IP \[bu] 2
+nband
+.IP \[bu] 2
+gwcalctype
 .RE
 .PP
 More info on the input variables and their use can be obtained using the
@@ -65,11 +69,10 @@ NSCF calculations.
 The first NSCF task computes the KS eigenvalues on a high\-symmetry path
 in the BZ, whereas the second NSCF task is done on a homogeneous k\-mesh
 so that one can calculate the DOS from the KS eigenvalues.
-These two NSCF tasks
 .PP
-The second work represents a GW workflow in which we read the density
-computed in the first task of the previous work to obtain and compute
-the KS eigenvalues and eigenvectors for many empty states.
+The second work represents the real GW workflow in which we read the
+density computed in the first task of the previous work to compute the
+KS bands for many empty states.
 The WFK file produced in this step is then used to compute the screened
 interaction $W$.
 Finally we do a self\-energy calculation in which we use the $W$
@@ -77,8 +80,11 @@ produced in the previous step and the WFK file to compute the matrix
 elements of the self\-energy and the $G_0W_0$ corrections for all the
 k\-points in the IBZ and 8 bands (4 occupied + 4 empty)
 .PP
-Once the flow is completed, we can post\-process the results and compute
-the $G_0W_0$ band\-structure of silicon with a scissors operator.
+Once the flow is completed, we can interpolate the $G_0W_0$ corrections
+as function of the initial KS energy to obtain an energy\-dependent
+scissors operator.
+At this point, we can apply the scissors operator onto the KS band
+structure to obtained an approximated $G_0W_0$ band dispersion.
 .SH The course of this lesson
 .PP
 This lesson can be started in ipython by importing it:
@@ -185,7 +191,7 @@ single command:
 .IP
 .nf
 \f[C]
-flow.analyze()
+lesson.analyze(flow)
 \f[]
 .fi
 .RE
