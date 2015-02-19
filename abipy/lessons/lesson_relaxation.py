@@ -24,6 +24,8 @@ The related abinit variables
     * dilatmx
     * ecutsm
     * ntime
+    * tolmxf
+    * tolrff
 
 """
 from __future__ import division, print_function
@@ -49,7 +51,8 @@ the 'compressebility' of the systems. The other flow will automatically
 optimize all degrees of freedom. In our first example Si, there is only
 one degree of freedom, due to the symmetry of the crystal, the volume of
 the unit cell, or the lattice parameter. In the second example, GaN, the
-symmetry is lower and one internal degree of freedom appears.
+symmetry is lower and one additional internal degree of freedom appears,
+for example the distance between gallium and arsenide.
 
 
 The course of this lesson
@@ -101,18 +104,28 @@ To analyze the results.
 In the case of silicon, it will show a fit of the total energy vs the
 volume of the unit cell. The minimum of this curve is the equilibrium
 volume. From this fit, we can also obtain the bulk modulus.
+This approach is only applicable for isotropic materials since we are
+scaling the entire volume.
 
-Volume of the unit cell of silicon : XXX A^3 [ source ?]
-Bulk modulus : 98.8 GPa [ source ? ]
+Try to compare the results with these experimental results:
+Volume of the unit cell of silicon : 40.05 A^3 [NSM]
+Bulk modulus : 98 GPa [NSM]
 
+For gallium arsenide
 In the case of gallium arsenide, you will see the change of equilibrium
 volume and length of the box with respect to the k-point mesh.
 
-Volume of the unit cell of GaN : XXX A^3 [ source ?]
-Vertical distance between Ga and N : XXX A [ source ?]
+Try to compare the results with these experimental results:
+Volume of the unit cell of GaN : 45.73 A^3 [Schulz & Thiemann 1977]
+Lattice parameters of GaN : a = 3.190 A, c = 5.189 A [Schulz & Thiemann 1977]
+Vertical distance between Ga and N : about 0.377 * c [ Schulz & Thiemann, 1977]
 
 Of course you will need to converge your results with respect to
 the kpoint sampling and with respect with ecut...
+
+The pseudopotentials we are using are of GGA type, which tends to
+overestimate the lattice parameters. If you use LDA-type pseudopotentials,
+you will observe that they would tend to underestimate the parameters.
 
 Exercises
 ---------
@@ -129,7 +142,12 @@ script.
 And have a look in make_relax_gan_flow(), try to do the same
 with 'si.cif' file instead of 'gan.cif'
 
-As a second exercice, you can try to converge the results obtained
+Pay attention to the fact that for silicon, you cannot use tolrff
+to stop your self-consistent cycle. Actually, as silicon has no
+internal degree of freedom the forces are zero in the unit cell and
+this criterion makes no sense.
+
+As a second exercise, you can try to converge the results obtained
 here with respect to the k-point sampling and with respect to ecut
 and compare the converged results with experimental data.
 
@@ -216,13 +234,14 @@ def make_relax_flow(structure_file=None):
     # Global variables
     inp.set_vars(
         ecut=20,
-        tolrff=1.0e-2,
-        nstep=100,
+        tolrff=5.0e-2,
+        nstep=30,
         optcell=2,
         ionmov=3,
-        ntime=500,
+        ntime=50,
         dilatmx=1.05,
         ecutsm=0.5,
+        tolmxf=5.0e-5,
     )
 
     for i, ngkpt in enumerate(ngkpt_list):
@@ -286,7 +305,6 @@ class Lesson(BaseLesson):
         return make_relax_flow(**kwargs)
 
 if __name__ == "__main__":
-    l = Lesson()
     l = Lesson()
     flow = l.make_eos_flow()
     flow.build_and_pickle_dump()

@@ -149,7 +149,7 @@ class HistFile(AbinitNcFile):
         ax5.set_ylabel('Total energy [eV]')
         ax5.set_xlabel('Step')
 
-        fig.tight_layout()
+        #fig.tight_layout()
         return fig
 
     @add_fig_kwargs
