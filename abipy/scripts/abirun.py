@@ -283,6 +283,13 @@ Specify the files to open. Possible choices:
     p_manager.add_argument("qtype", nargs="?", default=None, help=("Write job script to terminal if qtype='script' else" 
         " document the qparams for the given QueueAdapter qtype e.g. slurm"))
 
+    p_events = subparsers.add_parser('events', parents=[flow_selector_parser], 
+                                    help="Show ABINIT events (error messages, warnings, comments)")
+    #p_events.add_argumet("-t", "event-type", default=)
+
+    p_history = subparsers.add_parser('history', parents=[flow_selector_parser], help="Show Node history.")
+    #p_history.add_argumet("-t", "event-type", default=)
+
     p_notebook = subparsers.add_parser('notebook', help="Create and open an ipython notebook to interact with the flow.")
 
     p_embed = subparsers.add_parser('ipython', help="Embed IPython. Useful for advanced operations or debugging purposes.")
@@ -367,6 +374,17 @@ Specify the files to open. Possible choices:
             
         # Update the database.
         return flow.build_and_pickle_dump()
+
+    elif options.command == "events":
+        for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
+            report = task.get_event_report()
+            #report = report.filter_types()
+            print(report)
+
+    elif options.command == "history":
+        for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
+            for log in task.history:
+                print(log + "\n")
 
     elif options.command in ("single", "singleshot"):
         nlaunch = PyLauncher(flow).single_shot()
