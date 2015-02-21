@@ -17,8 +17,8 @@ def main():
 Usage example:\n
 
     abistruct.py convert filepath cif         => Read the structure from file and print CIF file.
+    abistruct.py convert filepath abivars     => Print the ABINIT variables defining the structure.
     abistruct.py visualize filepath xcrysden  => Visualize the structure with XcrysDen.
-    abistruct.py abivars filepath             => Print the ABINIT variables defining the structure.
     abistruct.py pmgdata mp-149               => Get structure from pymatgen database and print its JSON representation.
 """
         return examples
@@ -40,10 +40,7 @@ Usage example:\n
 
     # Subparser for convert command.
     p_convert = subparsers.add_parser('convert', parents=[path_selector], help="Convert structure to the specified format.")
-    p_convert.add_argument('format', nargs="?", default="cif", type=str, help="Format of the output file (cif, cssr, POSCAR, json, mson).")
-
-    # Subparser for abivars command.
-    p_convert = subparsers.add_parser('abivars', parents=[path_selector], help="Print the ABINIT variables defining the structure.")
+    p_convert.add_argument('format', nargs="?", default="cif", type=str, help="Format of the output file (cif, cssr, POSCAR, json, mson, abivars).")
 
     # Subparser for visualize command.
     p_visualize = subparsers.add_parser('visualize', parents=[path_selector], help="Visualize the structure with the specified visualizer")
@@ -56,7 +53,7 @@ Usage example:\n
     p_pmgdata.add_argument("--mapi-key", default=None, help="Pymatgen MAPI_KEY. Use env variable if not specified.")
     p_pmgdata.add_argument("--host", default="www.materialsproject.org", help="Pymatgen database.")
 
-    # Subparser for abivars command.
+    # Subparser for animate command.
     p_animate = subparsers.add_parser('animate', parents=[path_selector], 
         help="Read structures from HIST or XDATCAR. Print structures in Xrysden AXSF format to stdout")
 
@@ -68,13 +65,12 @@ Usage example:\n
 
     if options.command == "convert":
         structure = abilab.Structure.from_file(options.filepath)
-        s = structure.convert(format=options.format)
-        #print((" Abinit --> %s " % format).center(80, "*"))
-        print(s)
 
-    elif options.command == "abivars":
-        structure = abilab.Structure.from_file(options.filepath)
-        print(structure.abi_string)
+        if options.format == "abivars":
+            print(structure.abi_string)
+        else:
+            s = structure.convert(format=options.format)
+            print(s)
 
     elif options.command == "visualize":
         structure = abilab.Structure.from_file(options.filepath)
