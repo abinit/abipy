@@ -113,6 +113,7 @@ def find_package_data():
             ],
         'abipy.htc': ["*.json"],
         'abipy.gui.awx' : ['images/*'],
+        'abipy.lessons': ["*.man"],
     }
 
     #package_data.update(ref_files)

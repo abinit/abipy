@@ -174,7 +174,7 @@ def make_electronic_structure_flow(ngkpts_for_dos=[(2, 2, 2), (4, 4, 4), (6, 6, 
     inputs = inp.split_datasets()
     scf_input, nscf_input, dos_input = inputs[0], inputs[1], inputs[2:]
 
-    return abilab.bandstructure_flow(workdir="flow_base3_ebands", scf_input=scf_input, nscf_input=nscf_input,
+    return abilab.bandstructure_flow(workdir="flow_dos_bands", scf_input=scf_input, nscf_input=nscf_input,
                                      dos_inputs=dos_input)
 
 
