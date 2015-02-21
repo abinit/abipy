@@ -91,12 +91,22 @@ At this point, we can apply the scissors operator onto the KS band
 structure to obtain an approximated $G_0W_0$ band dispersion.
 .SH The course of this lesson
 .PP
+Start ipython with matplotlib integration with the command:
+.RS
+.IP
+.nf
+\f[C]
+ipython\ \-\-matplotlib
+\f[]
+.fi
+.RE
+.PP
 This lesson can be started in ipython by importing it:
 .RS
 .IP
 .nf
 \f[C]
-from\ abipy.lessons.lesson_g0w0\ import\ Lesson()
+from\ abipy.lessons.lesson_g0w0\ import\ Lesson
 lesson\ =\ Lesson()
 \f[]
 .fi
@@ -155,7 +165,7 @@ This flow is made by the command:
 .IP
 .nf
 \f[C]
-flow\ =\ lesson.make_g0w0_scissors_flow()
+flow\ =\ lesson.make_flow()
 \f[]
 .fi
 .RE

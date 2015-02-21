@@ -62,6 +62,16 @@ and analyzing the results.
 All calculations will however still be run in parallel.
 .SH The Course of this lesson
 .PP
+Start ipython with matplotlib integration with the command:
+.RS
+.IP
+.nf
+\f[C]
+ipython\ \-\-matplotlib
+\f[]
+.fi
+.RE
+.PP
 This lesson can be started in ipython by importing it:
 .RS
 .IP

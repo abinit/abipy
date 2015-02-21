@@ -61,6 +61,12 @@ All calculations will however still be run in parallel.
 The Course of this lesson
 -------------------------
 
+Start ipython with matplotlib integration with the command:
+
+    .. code-block:: shell
+
+        ipython --matplotlib
+
 This lesson can be started in ipython by importing it:
 
     .. code-block:: python
@@ -287,7 +293,7 @@ class Lesson(BaseLesson):
 
     @property
     def pyfile(self):
-        return os.path.basename(__file__)
+        return __file__.replace(".pyc", ".py")
 
     @staticmethod
     def make_ngkpt_flow(**kwargs):
@@ -298,7 +304,9 @@ class Lesson(BaseLesson):
         with abilab.abirobot(my_flow, "GSR") as robot:
             data = robot.get_dataframe()
         import matplotlib.pyplot as plt
-        data.plot(x="nkpts", y="energy", title="Total energy vs nkpts", legend=False, style="b-o")
+        ax = data.plot(x="nkpts", y="energy", title="Total energy vs nkpts", legend=False, style="b-o")
+        ax.set_xlabel('Number of k-points')
+        ax.set_ylabel('Total Energy [eV]')
         return plt.show(**kwargs)
 
 

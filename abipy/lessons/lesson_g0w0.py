@@ -77,11 +77,17 @@ band dispersion.
 The course of this lesson
 -------------------------
 
+Start ipython with matplotlib integration with the command:
+
+    .. code-block:: shell
+
+        ipython --matplotlib
+
 This lesson can be started in ipython by importing it:
 
     .. code-block:: python
 
-        from abipy.lessons.lesson_g0w0 import Lesson()
+        from abipy.lessons.lesson_g0w0 import Lesson
         lesson = Lesson()
 
 The lesson is now imported in your ipython session in its own namespace 'lesson'. 
@@ -122,7 +128,7 @@ This flow is made by the command:
 
     .. code-block:: python
 
-        flow = lesson.make_g0w0_scissors_flow()
+        flow = lesson.make_flow()
 
 `flow` is now an object that contains al the information needed to generate abinit inputs. 
 
@@ -186,8 +192,6 @@ import abipy.data as abidata
 import abipy.abilab as abilab
 
 from abipy.lessons.core import BaseLesson
-
-abinit_help = abilab.abinit_help
 
 
 def make_inputs(ngkpt, paral_kgb=0):
@@ -321,7 +325,7 @@ class Lesson(BaseLesson):
 
     @property
     def pyfile(self):
-        return __file__
+        return __file__.replace(".pyc", ".py")
 
     @staticmethod
     def make_flow(**kwargs):

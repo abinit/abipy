@@ -6,24 +6,22 @@ The calculation of the density of states and the bandstructure.
 Background
 ----------
 
-This lesson focuses on calculating the density of states (DOS) and the band structure. On thing one should always
-keep in mind is that these are the densities of states and the bandstructure of the KS-particles. If you feel patronised
-by this remark please continue to the next section, else keep reading :-).
+This lesson focuses on the calculation of the density of states (DOS) and the electronic band structure withing the 
+Kohn-Sham (KS) formalism. 
 
-In contrast to the total energy and derivatives of it, the energies of the KS-levels have no exact physical meaning,
+In contrast to the total energy and its derivatives, the energies of the KS-levels have no exact physical meaning,
 except for the highest occupied state that actually would be the first ionization energy if the functional would be
 exact. So why would we even want to calculate the KS-DOS and band structure? In most cases the KS spectrum is
-qualitatively in agreement with the spectum of ionization energies. Moreover in general we are able to make good
-predictions on trends.
+qualitatively in agreement with experiments. Moreover in general we are able to make good predictions on trends.
 
+In lesson_g0w0.py, we discuss a more elaborated and accurate approach for the calculation of band energies and band gaps.
 
 The related abinit variables
 ----------------------------
 
     * kptopt (negative values)
-    * ndivsm
-    * prtdos (if you want Abinit to compute the dos)
     * kptbounds (if you want to specify the bounds of the k-path)
+    * ndivsm
 
 """
 from __future__ import division, print_function
@@ -45,18 +43,24 @@ The flow that we use in this lesson contains for the first time dependencies.
 This means that some tasks in the flow can only be started if an other task is
 ready. We will first perform one self-consistent calculation to obtain a proper
 density. Using this density we calculate in two more steps the DOS and the bandstructure.
-For the DOS this not stricktly nessesary since the DOS will also be calculated on a regular grid.
+For the DOS this not strictly necessary since the DOS will also be calculated on a regular grid.
 In general the density will be converged already before the DOS is converged. For large systems it may become
-nessesary to split. For the bandstructure we have a non-uniform grid so we do need to fix the density.
+nessesary to split. For the bandstructure, we have a non-uniform grid so we do need to fix the density.
 
 The course of this lesson
 -------------------------
 
-Start this lessen by importing it in a new namespace:
+Start ipython with matplotlib integration with the command:
+
+    .. code-block:: shell
+
+        ipython --matplotlib
+
+Start this lesson by importing it in a new namespace:
 
     .. code-block:: python
 
-        from abipy.lesson.lesson_dos_bands import Lesson()
+        from abipy.lessons.lesson_dos_bands import Lesson
         lesson = Lesson()
 
 As always you can reread this lessons text using the command:
@@ -71,7 +75,7 @@ To build the flow:
 
         flow = lesson.make_flow()
 
-To print the input files
+To print the input files:
 
     .. code-block:: python
 
@@ -95,19 +99,33 @@ To analyze the results.
 
         lesson.analyze(flow)
 
-
-
 Exercises
 ---------
 
+At this point, you may want to interact more with the underlying python objects
+so that you can start to develop your own script or your post-processing tool.
 
+Our flow consists of a BandStructureWork object that provide many tools for post-processing.
+Use
+
+    .. code-block:: python
+
+            work = flow[0]
+
+to have access to the band structure work and look at the `plot` methods that 
+are available (hint: type work.plot in ipython and press TAB to get a list of methods)
+
+1) Use the plot methods to visualize the convergence of the DOS wrt to the number of k-points.
+   Then change the value of the gaussian broadening.
+
+2) Plot bands and DOS on the same figure.
+
+Rememeber that, in ipython, one can access the documentation of a method with `work.plot_edoses?`
 
 Next
 ----
 
 A logical next lesson would be lesson_g0w0
-
-
 """
 
 _commandline_lesson_ = """
@@ -164,23 +182,23 @@ class Lesson(BaseLesson):
 
     @property
     def abipy_string(self):
-        return __doc__+_ipython_lesson_
+        return __doc__ + _ipython_lesson_
 
     @property
     def comline_string(self):
-        return __doc__+_commandline_lesson_
+        return __doc__ + _commandline_lesson_
 
     @property
     def pyfile(self):
-        return os.path.basename(__file__)
+        return __file__.replace(".pyc", ".py")
 
     @staticmethod
-    def make_electronic_structure_flow(**kwargs):
+    def make_flow(**kwargs):
         return make_electronic_structure_flow(**kwargs)
 
     @staticmethod
-    def analyze(my_flow):
-        nscf_task = my_flow[0][1]
+    def analyze(flow):
+        nscf_task = flow[0][1]
         with nscf_task.open_gsr() as gsr:
             return gsr.ebands.plot()
 

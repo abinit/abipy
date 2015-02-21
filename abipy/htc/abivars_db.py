@@ -124,8 +124,8 @@ class Variable(yaml.YAMLObject):
                         commentdims=array["commentdims"])
 
     def __str__(self):
-        return "Variable " + str(self.varname) + " (default = " + str(self.defaultval) + ")"
-        #return html2text.html2text("<h2>Default value:</h2>" + str(self.defaultval) + "<br/><h2>Description</h2>" +str(self.text))
+        #return "Variable " + str(self.varname) + " (default = " + str(self.defaultval) + ")"
+        return html2text.html2text("<h2>Default value:</h2>" + str(self.defaultval) + "<br/><h2>Description</h2>" +str(self.text))
 
     def __repr__(self):
         """variable name + mnemonics"""

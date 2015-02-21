@@ -54,16 +54,26 @@ In our first example Si, there is only one degree of freedom, due to the
 symmetry of the crystal, the volume of the unit cell, or the lattice
 parameter.
 In the second example, GaN, the symmetry is lower and one additional
-internal degree of freedom appears, for example the distance between
-gallium and arsenide.
+internal degree of freedom appears, for example the distance between Ga
+and N.
 .SH The course of this lesson
+.PP
+Start ipython with matplotlib integration with the command:
+.RS
+.IP
+.nf
+\f[C]
+ipython\ \-\-matplotlib
+\f[]
+.fi
+.RE
 .PP
 Start this lesson by importing it in a new namespace:
 .RS
 .IP
 .nf
 \f[C]
-from\ abipy.lessons.lesson_relaxation\ import\ Lesson()
+from\ abipy.lessons.lesson_relaxation\ import\ Lesson
 lesson\ =\ Lesson()
 \f[]
 .fi
@@ -84,17 +94,17 @@ To build the flow for silicon
 .IP
 .nf
 \f[C]
-flow\ =\ lesson.make_relax_eos_flow()
+si_flow\ =\ lesson.make_eos_flow()
 \f[]
 .fi
 .RE
 .PP
-For Gallium Arsenide, use
+For Gallium Nitride, use
 .RS
 .IP
 .nf
 \f[C]
-flow\ =\ lesson.make_relax_relax_flow()
+gan_flow\ =\ lesson.make_relax_flow()
 \f[]
 .fi
 .RE
@@ -104,7 +114,7 @@ To print the input files
 .IP
 .nf
 \f[C]
-flow.show_inputs()
+si_flow.show_inputs()
 \f[]
 .fi
 .RE
@@ -114,7 +124,7 @@ Start the flow with the scheduler and wait for completion.
 .IP
 .nf
 \f[C]
-flow.make_scheduler().start()
+si_flow.make_scheduler().start()
 \f[]
 .fi
 .RE
@@ -124,7 +134,11 @@ To analyze the results.
 .IP
 .nf
 \f[C]
-lesson.analyze(flow)
+#\ For\ Silicon
+lesson.analyze_eos_flow(si_flow)
+
+#\ For\ Gallium\ Nitride,\ use
+lesson.analyze_eos_flow(gan_flow)
 \f[]
 .fi
 .RE
@@ -137,15 +151,15 @@ This approach is only applicable for isotropic materials since we are
 scaling the entire volume.
 .PP
 Try to compare the results with these experimental results: Volume of
-the unit cell of silicon : 40.05 A^3 [NSM] Bulk modulus : 98 GPa [NSM]
+the unit cell of silicon: 40.05 A^3 [NSM] Bulk modulus: 98 GPa [NSM]
 .PP
-For gallium arsenide In the case of gallium arsenide, you will see the
+For gallium nitride In the case of gallium nitride, you will see the
 change of equilibrium volume and length of the box with respect to the
 k\-point mesh.
 .PP
 Try to compare the results with these experimental results: Volume of
-the unit cell of GaN : 45.73 A^3 [Schulz & Thiemann 1977] Lattice
-parameters of GaN : a = 3.190 A, c = 5.189 A [Schulz & Thiemann 1977]
+the unit cell of GaN: 45.73 A^3 [Schulz & Thiemann 1977] Lattice
+parameters of GaN: a = 3.190 A, c = 5.189 A [Schulz & Thiemann 1977]
 Vertical distance between Ga and N : about 0.377 * c [ Schulz &
 Thiemann, 1977]
 .PP

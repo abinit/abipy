@@ -28,7 +28,6 @@ The related abinit variables
     * tolrff
 
 """
-from __future__ import division, print_function
 
 _ipython_lesson_ = """
 
@@ -52,17 +51,23 @@ optimize all degrees of freedom. In our first example Si, there is only
 one degree of freedom, due to the symmetry of the crystal, the volume of
 the unit cell, or the lattice parameter. In the second example, GaN, the
 symmetry is lower and one additional internal degree of freedom appears,
-for example the distance between gallium and arsenide.
+for example the distance between Ga and N.
 
 
 The course of this lesson
 -------------------------
 
+Start ipython with matplotlib integration with the command:
+
+    .. code-block:: shell
+
+        ipython --matplotlib
+
 Start this lesson by importing it in a new namespace:
 
     .. code-block:: python
 
-        from abipy.lessons.lesson_relaxation import Lesson()
+        from abipy.lessons.lesson_relaxation import Lesson
         lesson = Lesson()
 
 As always you can reread this lessons text using the command:
@@ -75,31 +80,35 @@ To build the flow for silicon
 
     .. code-block:: python
 
-        flow = lesson.make_relax_eos_flow()
+        si_flow = lesson.make_eos_flow()
 
-For Gallium Arsenide, use
+For Gallium Nitride, use
 
     .. code-block:: python
 
-        flow = lesson.make_relax_relax_flow()
+        gan_flow = lesson.make_relax_flow()
 
 To print the input files
 
     .. code-block:: python
 
-        flow.show_inputs()
+        si_flow.show_inputs()
 
 Start the flow with the scheduler and wait for completion.
 
     .. code-block:: python
 
-        flow.make_scheduler().start()
+        si_flow.make_scheduler().start()
 
 To analyze the results.
 
     .. code-block:: python
 
-        lesson.analyze(flow)
+        # For Silicon
+        lesson.analyze_eos_flow(si_flow)
+
+        # For Gallium Nitride, use
+        lesson.analyze_eos_flow(gan_flow)
 
 In the case of silicon, it will show a fit of the total energy vs the
 volume of the unit cell. The minimum of this curve is the equilibrium
@@ -108,16 +117,16 @@ This approach is only applicable for isotropic materials since we are
 scaling the entire volume.
 
 Try to compare the results with these experimental results:
-Volume of the unit cell of silicon : 40.05 A^3 [NSM]
-Bulk modulus : 98 GPa [NSM]
+Volume of the unit cell of silicon: 40.05 A^3 [NSM]
+Bulk modulus: 98 GPa [NSM]
 
-For gallium arsenide
-In the case of gallium arsenide, you will see the change of equilibrium
+For gallium nitride
+In the case of gallium nitride, you will see the change of equilibrium
 volume and length of the box with respect to the k-point mesh.
 
 Try to compare the results with these experimental results:
-Volume of the unit cell of GaN : 45.73 A^3 [Schulz & Thiemann 1977]
-Lattice parameters of GaN : a = 3.190 A, c = 5.189 A [Schulz & Thiemann 1977]
+Volume of the unit cell of GaN: 45.73 A^3 [Schulz & Thiemann 1977]
+Lattice parameters of GaN: a = 3.190 A, c = 5.189 A [Schulz & Thiemann 1977]
 Vertical distance between Ga and N : about 0.377 * c [ Schulz & Thiemann, 1977]
 
 Of course you will need to converge your results with respect to
@@ -157,6 +166,7 @@ Next
 A logical next lesson would be lesson_dos_bands
 """
 
+
 _commandline_lesson_ = """
 The full description of the variables, directly from the abinit description is available via the following function:
 
@@ -187,7 +197,6 @@ Finally, try to generate the input file for silicon, and try to guess why settin
 work in that case !
 """
 
-
 import os
 import numpy as np
 import abipy.abilab as abilab
@@ -196,37 +205,6 @@ import abipy.data as abidata
 from pymatgen.io.abinitio.eos import EOS
 from abipy.core import Structure
 from abipy.lessons.core import BaseLesson, get_pseudos
-
-
-def get_dist(gsrfile):
-    struct = gsrfile.structure
-    red_dist = struct.frac_coords[2][2] - struct.frac_coords[0][2]
-    return 'u',red_dist
-
-
-class RelaxFlow(abilab.Flow):
-
-    def analyze(self):
-        with abilab.GsrRobot.open(self) as robot:
-            data = robot.get_dataframe(funcs=get_dist)
-            robot.pairplot(data, x_vars="nkpts", y_vars=["a", "c", "u"]) #, hue="tsmear")
-
-            #grid = sns.PairGrid(data, x_vars="nkpts", y_vars=["a", "volume"]) #, hue="tsmear")
-            #grid.map(plt.plot, marker="o")
-            #grid.add_legend()
-            #plt.show()
-
-
-class EosFlow(abilab.Flow):
-    def analyze(self):
-        work = self.works[0]
-        etotals = work.read_etotals(unit="eV")
-
-        #eos_fit = EOS.DeltaFactor().fit(self.volumes, etotals)
-        #eos_fit.plot()
-
-        eos_fit = EOS.Birch_Murnaghan().fit(self.volumes, etotals)
-        return eos_fit.plot()
 
 
 def make_relax_flow(structure_file=None):
@@ -260,7 +238,7 @@ def make_relax_flow(structure_file=None):
     for i, ngkpt in enumerate(ngkpt_list):
         inp[i+1].set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])
 
-    return RelaxFlow.from_inputs("flow_gan_relax", inputs=inp.split_datasets(), task_class=abilab.RelaxTask)
+    return abilab.Flow.from_inputs("flow_gan_relax", inputs=inp.split_datasets(), task_class=abilab.RelaxTask)
 
 
 def make_eos_flow(structure_file=None):
@@ -290,8 +268,8 @@ def make_eos_flow(structure_file=None):
 
         inp[idt+1].set_structure(new_structure)
 
-    eos_flow = EosFlow.from_inputs("flow_si_relax", inputs=inp.split_datasets(), task_class=abilab.RelaxTask)
-    eos_flow.volumes = structure.volume*scale_volumes
+    eos_flow = abilab.Flow.from_inputs("flow_si_relax", inputs=inp.split_datasets(), task_class=abilab.RelaxTask)
+    eos_flow.volumes = structure.volume * scale_volumes
     return eos_flow
 
 
@@ -307,15 +285,34 @@ class Lesson(BaseLesson):
 
     @property
     def pyfile(self):
-        return os.path.basename(__file__)
+        return __file__.replace(".pyc", ".py")
 
     @staticmethod
     def make_eos_flow(**kwargs):
         return make_eos_flow(**kwargs)
 
     @staticmethod
+    def analyze_eos_flow(flow, **kwargs):
+        work = flow[0]
+        etotals = work.read_etotals(unit="eV")
+        eos_fit = EOS.Birch_Murnaghan().fit(flow.volumes, etotals)
+        return eos_fit.plot(**kwargs)
+
+    @staticmethod
     def make_relax_flow(**kwargs):
         return make_relax_flow(**kwargs)
+
+    @staticmethod
+    def analyze_relax_flow(flow, **kwargs):
+        def get_dist(gsrfile):
+            struct = gsrfile.structure
+            red_dist = struct.frac_coords[2][2] - struct.frac_coords[0][2]
+            return 'u', red_dist
+
+        with abilab.GsrRobot.open(flow) as robot:
+            data = robot.get_dataframe(funcs=get_dist)
+            return robot.pairplot(data, x_vars="nkpts", y_vars=["a", "c", "volume", "u"]) 
+
 
 if __name__ == "__main__":
     l = Lesson()

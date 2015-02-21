@@ -1,29 +1,28 @@
 .TH Basis "" "" "set convergence study and some more on flows, works, and tasks."
 .SH Background
 .PP
-This lesson focuses on the convergence study of the completeness of the
-basis set used.
+This lesson focuses on the convergence study on the completeness of the
+basis set.
 In our case the basis set consists of plane waves.
 Plane waves are inherently well suited to capture the periodic nature of
 a crystalline solid.
 In addition a plane wave basis set has the advantage that it introduces
-only one convergence parameter, the kinetic energy cutoff.
+only one convergence parameter, the kinetic energy cutoff (ecut).
 .PP
 The sharp features of the wavefunctions near the nucleus are however
 problematic for plane waves.
-Describing these features would require very high frequency plane waves.
-In practice we will always use pseudo\-potentials in stead of the actual
-nuclear potential to improve convergence.
+Describing these features would require very high energy plane waves.
+In practice we will always use pseudo\-potentials instead of the actual
+nuclear potential to facilitate convergence.
 Effectively a pseudopotential replaces the sharp coulomb potential of
-the nucleus and the core electrons by something more smooth inside the
+the nucleus and the core electrons by something smoother inside the
 pseudization region that connects smoothly to the real potential outside
 the pseudization region.
 .PP
 Needless to say a different pseudo potential will require a different
 cutoff for the calculation to be converged.
 In general norm\-conserving pseudos require a larger cut\-off that
-ultra\-soft pseudos and Projector Augmented Wave \[aq]pseudos\[aq]
-require even smaller cutoffs.
+ultra\-soft pseudos or Projector Augmented Wave \[aq]pseudos\[aq].
 Moreover two pseudos of the same type for the same element may require
 different cutoffs as well.
 \[aq]Harder\[aq] (having a smaller pseudization radius) require larger
@@ -32,18 +31,16 @@ There are however many more properties of a pseudo that determine the
 cutoff needed.
 .SH The related abinit variables
 .PP
-As said the most important parameter in the energy cutoff, in abinit
-ecut.
+As said, the most important parameter is the energy cutoff (ecut input
+variable).
 The most important input parameters concerning the basis set are:
 .RS
 .IP \[bu] 2
 ecut
 .IP \[bu] 2
-dilatms
+pawecutdg (additional variable for PAW)
 .IP \[bu] 2
 ecutsm
-.IP \[bu] 2
-ecutdg
 .RE
 .PP
 More info on the inputvariables and their use can be obtained using the
@@ -63,12 +60,22 @@ In this lesson we will discuss a few more properties and methods of
 flows.
 .SH The course of this lesson
 .PP
+Start ipython with matplotlib integration with the command:
+.RS
+.IP
+.nf
+\f[C]
+ipython\ \-\-matplotlib
+\f[]
+.fi
+.RE
+.PP
 Start this lesson by importing it in a new namespace
 .RS
 .IP
 .nf
 \f[C]
-from\ abipy.lessons.lesson_ecut_convergence\ import\ Lesson()
+from\ abipy.lessons.lesson_ecut_convergence\ import\ Lesson
 lesson\ =\ Lesson()
 \f[]
 .fi
@@ -160,7 +167,7 @@ To analyze the results.
 .IP
 .nf
 \f[C]
-flow.analyze()
+lesson.analyze(flow)
 \f[]
 .fi
 .RE

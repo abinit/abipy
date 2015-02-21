@@ -30,7 +30,7 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
 
     @abc.abstractproperty
     def pyfile(self):
-        """Path of the python script."""
+        """Absolute Path of the python script."""
 
     def get_local_copy(self):
         """Copy this script to the current working dir to explore it and edit"""
@@ -55,11 +55,11 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
                 fh.write(self._pandoc_convert(to="man", what=what, extra_args=("-s",)))
 
     def instruct(self):
+            lesson_name = os.path.basename(self.pyfile)[:-3]
             print("\n"
-                  "The lesson " + self.pyfile[:-3]+
-                  " is prepared. \n"
-                  "Use \n\n"
-                  " man ./" + self.pyfile[:-3] + ".man\n\n"
+                  "The lesson %s " % lesson_name + "is prepared.\n"
+                  "Use\n\n"
+                  "     man ./" + lesson_name + ".man\n\n"
                   "to view the text of the lesson.\n")
 
     def _pandoc_convert(self, to, what, extra_args=()):
@@ -91,6 +91,11 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
 #                    "you should pass a string with the name of a valid ABINT variable e.g. `ecut`"
 #                    "not `inputvariable` :)")
         return get_abinit_variables()[varname]
+
+    @property
+    def abidata(self):
+        """Abipy data files."""
+        return abidata
 
 
 def get_pseudos(structure, extension='oncvpsp'):

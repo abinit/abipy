@@ -6,27 +6,27 @@ Basis set convergence study and some more on flows, works, and tasks.
 Background
 ----------
 
-This lesson focuses on the convergence study of the completeness
-of the basis set used. In our case the basis set consists of plane
+This lesson focuses on the convergence study on the completeness
+of the basis set. In our case the basis set consists of plane
 waves. Plane waves are inherently well suited to capture the periodic
 nature of a crystalline solid. In addition a plane wave basis set
 has the advantage that it introduces only one convergence parameter,
-the kinetic energy cutoff.
+the kinetic energy cutoff (ecut).
 
 The sharp features of the wavefunctions near the nucleus are however
 problematic for plane waves. Describing these features would require
-very high frequency plane waves. In practice we will always use
-pseudo-potentials in stead of the actual nuclear potential to improve
+very high energy plane waves. In practice we will always use
+pseudo-potentials instead of the actual nuclear potential to facilitate
 convergence. Effectively a pseudopotential replaces the sharp coulomb
-potential of the nucleus and the core electrons by something more smooth
+potential of the nucleus and the core electrons by something smoother
 inside the pseudization region that connects smoothly to the real potential
 outside the pseudization region.
 
 Needless to say a different pseudo potential will require a different
 cutoff for the calculation to be converged. In general norm-conserving
-pseudos require a larger cut-off that ultra-soft pseudos and Projector
-Augmented Wave 'pseudos' require even smaller cutoffs. Moreover two
-pseudos of the same type for the same element may require different
+pseudos require a larger cut-off that ultra-soft pseudos or Projector
+Augmented Wave 'pseudos'. 
+Moreover two pseudos of the same type for the same element may require different
 cutoffs as well. 'Harder' (having a smaller pseudization radius) require
 larger cutoffs than 'softer' pseudos. There are however many more
 properties of a pseudo that determine the cutoff needed.
@@ -34,13 +34,12 @@ properties of a pseudo that determine the cutoff needed.
 The related abinit variables
 ----------------------------
 
-As said the most important parameter in the energy cutoff, in abinit ecut.
+As said, the most important parameter is the energy cutoff (ecut input variable).
 The most important input parameters concerning the basis set are:
 
-    * ecut
-    * dilatms
+    * ecut 
+    * pawecutdg (additional variable for PAW)
     * ecutsm
-    * ecutdg
 
 """
 from __future__ import division, print_function
@@ -62,11 +61,17 @@ properties and methods of flows.
 The course of this lesson
 -------------------------
 
+Start ipython with matplotlib integration with the command:
+
+    .. code-block:: shell
+
+        ipython --matplotlib
+
 Start this lesson by importing it in a new namespace
 
     .. code-block:: python
 
-        from abipy.lessons.lesson_ecut_convergence import Lesson()
+        from abipy.lessons.lesson_ecut_convergence import Lesson
         lesson = Lesson()
 
 As always you can reread this lesson's text using the command:
@@ -124,7 +129,7 @@ To analyze the results.
 
     .. code-block:: python
 
-        flow.analyze()
+        lesson.analyze(flow)
 
 Exercises
 ---------
@@ -159,7 +164,7 @@ This will print the official abinit description of this inputvariable.
 As in the previous lesson, executing the python script created the folder structure with the in input files for this
 lesson.
 
-One of the standard thing to look for to be converged in the total energy. We did that already in th previous lesson.
+One of the standard thing to look for to be converged in the total energy. We did that already in the previous lesson.
 This time have a look at some of the other important properties. Look for instance at the convergence rate of the
 forces, stress-tensor or the energies of the KS-orbitals.
 
@@ -167,7 +172,6 @@ Exercises
 ---------
 
 Edit the input files to run the same convergence study for a different k-point mesh. Best to start small.
-
 """
 
 import os
@@ -214,20 +218,21 @@ class Lesson(BaseLesson):
 
     @property
     def pyfile(self):
-        return os.path.basename(__file__)
+        return __file__.replace(".pyc", ".py")
 
     @staticmethod
     def make_ecut_flow(**kwargs):
         return make_ecut_flow(**kwargs)
 
     @staticmethod
-    def analyze(my_flow, **kwargs):
-        with abilab.abirobot(my_flow, "GSR") as robot:
+    def analyze(flow, **kwargs):
+        with abilab.abirobot(flow, "GSR") as robot:
             data = robot.get_dataframe()
-            #robot.ebands_plotter().plot()
 
         import matplotlib.pyplot as plt
-        data.plot(x="ecut", y="energy", title="Total energy vs ecut", legend="Energy [eV]", style="b-o")
+        ax = data.plot(x="ecut", y="energy", title="Total energy vs ecut", legend=False, style="b-o")
+        ax.set_xlabel('Ecut [Ha]')
+        ax.set_ylabel('Total Energy [eV]')
         return plt.show(**kwargs)
 
 
