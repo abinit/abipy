@@ -164,10 +164,8 @@ class AbiInput(Input, Has_Structure):
     .. code-block:: python
 
         inp = AbiInput(pseudos="si.pspnc", pseudo_dir="directory_with_pseudos")
-
-        inp.set_structure_from_file("si.cif")
+        inp.set_structure("si.cif")
         inp.set_vars(ecut=10, nband=3)
-        # Add other variables. See the other methods provided by this object.
 
         # Print it to get the final input.
         print(inp)
@@ -387,7 +385,6 @@ class AbiInput(Input, Has_Structure):
 
             new = self.__class__(pseudos=self.pseudos, ndtset=1)
             new.set_vars(**my_vars)
-            #new.set_geoformat(self.geoformat)
             new.set_mnemonics(self.mnemonics)
             news.append(new)
     
@@ -402,7 +399,6 @@ class AbiInput(Input, Has_Structure):
             kwargs: Dictionary with the variables.
         """
         kwargs.update(dict(*args))
-        #print(kwargs)
         for idt in self._dtset2range(dtset):
             self[idt].set_vars(**kwargs)
 
@@ -425,21 +421,6 @@ class AbiInput(Input, Has_Structure):
     remove_variables = remove_vars
     remove_variables = deprecated(replacement=remove_vars)(remove_variables)
 
-    #def list_vars(self, varname):
-    #    # Global value
-    #    glob = self[0].get(varname, None)
-    #    # Values defined in the datasets.
-    #    vals = [self[idt].get(varname, None) for idt in range(1,self.ndtset+1)]
-    #    
-    #    # Replace None with glob.
-    #    values = []
-    #    for v in vals:
-    #        if v is not None:
-    #            values.append(v)
-    #        else:
-    #            values.append(glob)
-    #    return values
-
     def set_comment(self, comment, dtset=0):
         """Set the main comment in the input file."""
         for idt in self._dtset2range(dtset):
@@ -459,21 +440,6 @@ class AbiInput(Input, Has_Structure):
         except AttributeError:
             return False
         
-    #@property
-    #def geoformat(self):
-    #    """
-    #    angdeg if the crystalline structure should be specified with angdeg and acell, 
-    #    rprim otherwise (default format)
-    #    """
-    #    try:
-    #        return self._geoformat
-    #    except AttributeError
-    #        return "rprim" # default
-
-    #def set_geoformat(self, format):
-    #    assert format in ["angdeg", "rprim"]
-    #    self._geoformat = format
-
     def get_ibz(self, ngkpt=None, shiftk=None, kptopt=None, qpoint=None, workdir=None, manager=None):
         """
         This function, computes the list of points in the IBZ and the corresponding weights.
@@ -689,12 +655,6 @@ class AbiInput(Input, Has_Structure):
         pseudos_dict = d['pseudos']
         pseudos = []
         for pseudo in pseudos_dict:
-            # Try first to get from abidata for testing purposes
-            #TODO to be removed
-            #try:
-            #    import abipy.data as abidata
-            #    pseudos.append(abidata.pseudo(pseudo['basename']))
-            #except:
             pseudos.append(Pseudo.from_file(pseudo['path']))
 
         dtsets = d['datasets']
@@ -861,7 +821,8 @@ class Dataset(mixins.MappingMixin, Has_Structure):
             raise self.Error("varname %s is not a valid ABINIT variable\n."
                              "Modify abipy/htc/abinit_vars.json" % varname)
 
-        if varname in self:
+        # Debugging section.
+        if False and varname in self:
             try: 
                 iseq = (self[varname] == value)
                 iseq = np.all(iseq)
@@ -875,7 +836,7 @@ class Dataset(mixins.MappingMixin, Has_Structure):
                 msg = "%s is already defined with a different value:\nOLD:\n %s,\nNEW\n %s" % (
                     varname, str(self[varname]), str(value))
                 logger.debug(msg)
-                #warnings.warn(msg)
+                #logger.critical(msg)
 
         self[varname] = value
 
@@ -920,14 +881,17 @@ class Dataset(mixins.MappingMixin, Has_Structure):
     @property
     def structure(self):
         """Returns the :class:`Structure` associated to this dataset."""
-        try:
-            return self._structure
+        return Structure.from_abivars(self.allvars)
+        # Cannot use lazy properties here because we may want to change the structure
 
-        except AttributeError:
-            structure = Structure.from_abivars(self.allvars)
-
-            self.set_structure(structure)
-            return self._structure
+        #if hasattr(self, "_structure") and self._structure is None:
+        #    return self._structure
+        #try:
+        #    return self._structure
+        #except AttributeError:
+        #    structure = Structure.from_abivars(self.allvars)
+        #    self.set_structure(structure)
+        #    return self._structure
 
     def set_structure(self, structure):
         if is_string(structure): structure = Structure.from_file(filepath)
@@ -936,7 +900,6 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         self._structure = structure
         if structure is None: return
 
-        geoformat = "rprim"
         self.set_vars(**structure.to_abivars())
 
     # Helper functions to facilitate the specification of several variables.
@@ -1006,9 +969,7 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         if len(bdgw) == 2:
             bdgw = len(kptgw) * bdgw
 
-        self.set_vars(kptgw=kptgw,
-                      nkptgw=nkptgw,
-                      bdgw=np.reshape(bdgw, (nkptgw, 2)))
+        self.set_vars(kptgw=kptgw, nkptgw=nkptgw, bdgw=np.reshape(bdgw, (nkptgw, 2)))
 
 
 class LujForSpecie(collections.namedtuple("LdauForSpecie", "l u j unit")):

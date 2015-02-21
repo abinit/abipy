@@ -16,7 +16,9 @@ class AbiInputTest(AbipyTest):
 
         # Create an ABINIT input file with 1 dataset. 
         inp = AbiInput(pseudos="14si.pspnc", pseudo_dir=abidata.pseudo_dir, ndtset=1)
+        inp.set_comment("Input file with 1 dataset")
         inp.set_mnemonics(True)
+        assert inp.mnemonics
 
         aequal(inp.isnc, True)
 
@@ -43,13 +45,12 @@ class AbiInputTest(AbipyTest):
 
         # and set the variables in the input file with the call:
         inp.set_vars(**unit_cell)
+        # Now we have a structure
+        assert len(inp.structure) == 2
 
         # Alternatively, it's possible to create a dictionary on the fly with the syntax.
-        inp.set_vars(kptopt=1, 
-                     ngkpt=[2, 2, 2], 
-                     nshiftk=1, 
-                     shiftk=np.reshape([0.0, 0.0, 0.0], (-1,3))
-                     )
+        inp.set_vars(kptopt=1,  ngkpt=[2, 2, 2],  nshiftk=1, 
+                     shiftk=np.reshape([0.0, 0.0, 0.0], (-1,3)))
 
         inp.nshiftk = len(inp.shiftk) 
         assert inp.nshiftk == 1
@@ -59,6 +60,12 @@ class AbiInputTest(AbipyTest):
 
         # To print the input to stdout use:
         print(inp)
+
+        # Test set_structure 
+        new_structure = inp.structure.copy() 
+        new_structure.perturb(distance=0.1)
+        inp.set_structure(new_structure)
+        assert inp.structure == new_structure
 
         # To create a new input with a different variable.
         new = inp.new_with_vars(kptopt=3)
@@ -99,7 +106,6 @@ class AbiInputTest(AbipyTest):
         tsmear_list = [0.005, 0.01]
         ngkpt_list = [[4,4,4], [8,8,8]]
         occopt_list = [3, 4]
-
         inp = AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=len(tsmear_list))
 
         inp.linspace("tsmear", start=tsmear_list[0], stop=tsmear_list[-1])
@@ -129,9 +135,7 @@ class AbiInputTest(AbipyTest):
 
         # Cannot split datasets when we have get* or ird* variables.
         inp[2].set_vars(getwfk=-1)
-
-        with self.assertRaises(inp.Error):
-            inp.split_datasets()
+        with self.assertRaises(inp.Error): inp.split_datasets()
 
     def test_niopaw_input(self):
         """Testing AbiInput for NiO with PAW."""
@@ -152,8 +156,7 @@ class AbiInputTest(AbipyTest):
         self.serialize_with_pickle(inp, test_eq=False)
 
         # Setting an unknown variable should raise an error.
-        with self.assertRaises(inp.Error):
-            inp.set_vars(foobar=10)
+        with self.assertRaises(inp.Error): inp.set_vars(foobar=10)
 
 
 class LdauLexxTest(AbipyTest):

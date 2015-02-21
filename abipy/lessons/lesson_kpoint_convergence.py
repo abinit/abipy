@@ -279,11 +279,11 @@ class Lesson(BaseLesson):
 
     @property
     def abipy_string(self):
-        return __doc__+_ipython_lesson_
+        return __doc__ + _ipython_lesson_ + _commandline_lesson_ 
 
     @property
     def comline_string(self):
-        return __doc__+_commandline_lesson_
+        return __doc__ + _commandline_lesson_
 
     @property
     def pyfile(self):

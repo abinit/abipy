@@ -173,6 +173,8 @@ Usage example:\n
                                       "Examples: --wslice=1 to select the second workflow, --wslice=:3 for 0,1,2,"
                                       "--wslice=-1 for the last workflow, --wslice::2 for even indices"))
 
+    #group.add_argument("-s", '--node-status', default=None, type=parse_wslice, 
+
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
 
@@ -227,7 +229,7 @@ Usage example:\n
     #p_unlock = subparsers.add_parser('unlock', parents=[flow_selector_parser], help="Reset the tasks of the flow with the specified status.")
     #p_reset.add_argument('task_status', default="QCritical") 
 
-    # Subparser for unlock command.
+    # Subparser for move command.
     p_move = subparsers.add_parser('move', help="Move the flow to a new directory and change the absolute paths")
     p_move.add_argument('dest', nargs=1) 
 
@@ -251,9 +253,9 @@ Specify the files to open. Possible choices:
 
     # Subparser for gui command.
     p_gui = subparsers.add_parser('gui', help="Open the GUI (requires wxPython).")
-    p_gui.add_argument("--chroot", default="", type=str, help=("Use chroot as new directory of the flow.\n" +
-                       "Mainly used for opening a flow located on a remote filesystem mounted with sshfs.\n" +
-                       "In this case chroot is the absolute path to the flow on the **localhost**\n",
+    p_gui.add_argument("--chroot", default="", type=str, help=("Use chroot as new directory of the flow." +
+                       "Mainly used for opening a flow located on a remote filesystem mounted with sshfs." +
+                       "In this case chroot is the absolute path to the flow on the **localhost**",
                        "Note that it is not possible to change the flow from remote when chroot is used."))
 
     p_new_manager = subparsers.add_parser('new_manager', parents=[flow_selector_parser], help="Change the TaskManager.")
@@ -285,10 +287,10 @@ Specify the files to open. Possible choices:
 
     p_events = subparsers.add_parser('events', parents=[flow_selector_parser], 
                                     help="Show ABINIT events (error messages, warnings, comments)")
-    #p_events.add_argumet("-t", "event-type", default=)
+    #p_events.add_argument("-t", "event-type", default=)
 
     p_history = subparsers.add_parser('history', parents=[flow_selector_parser], help="Show Node history.")
-    #p_history.add_argumet("-t", "event-type", default=)
+    #p_history.add_argument("-t", "event-type", default=)
 
     p_notebook = subparsers.add_parser('notebook', help="Create and open an ipython notebook to interact with the flow.")
 
@@ -384,7 +386,7 @@ Specify the files to open. Possible choices:
     elif options.command == "history":
         for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
             for log in task.history:
-                print(log + "\n")
+                print(log)
 
     elif options.command in ("single", "singleshot"):
         nlaunch = PyLauncher(flow).single_shot()

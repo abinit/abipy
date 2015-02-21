@@ -158,7 +158,7 @@ A logical next lesson would be lesson_dos_bands
 """
 
 _commandline_lesson_ = """
-At this place they will not be discussed in detail. In stead you are
+At this place they will not be discussed in detail. Instead you are
 invited to read the abinit documentation on them. The full description,
 directly from the abinit description is available via the following function:
 
@@ -286,11 +286,11 @@ class Lesson(BaseLesson):
 
     @property
     def abipy_string(self):
-        return __doc__+_ipython_lesson_
+        return __doc__ + _ipython_lesson_
 
     @property
     def comline_string(self):
-        return __doc__+_commandline_lesson_
+        return __doc__ + _commandline_lesson_
 
     @property
     def pyfile(self):
