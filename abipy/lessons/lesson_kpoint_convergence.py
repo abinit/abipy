@@ -238,7 +238,7 @@ Alternative to execution of the manual execution the calculations can also be ex
 
     .. code-block:: shell
 
-    abirun.py flow_lesson_Si_kpoint_convergence scheduler
+        abirun.py flow_lesson_Si_kpoint_convergence scheduler
 
 """
 import os
