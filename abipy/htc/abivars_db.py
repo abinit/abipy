@@ -266,6 +266,7 @@ def get_abinit_variables():
             # Save object to pickle file so that can we can reload it from pickle instead of yaml (slower)
             with open(pickle_file, "wb") as fh:
                 pickle.dump(__VARS_DATABASE, fh)
+                os.chmod(pickle_file, 444)
 
     return __VARS_DATABASE
         
