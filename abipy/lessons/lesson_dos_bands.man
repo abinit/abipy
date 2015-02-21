@@ -19,9 +19,13 @@ Moreover in general we are able to make good predictions on trends.
 .SH The related abinit variables
 .RS
 .IP \[bu] 2
-1
+kptopt (negative values)
 .IP \[bu] 2
-2
+ndivsm
+.IP \[bu] 2
+prtdos (if you want Abinit to compute the dos)
+.IP \[bu] 2
+kptbounds (if you want to specify the bounds of the k\-path)
 .RE
 .PP
 More info on the inputvariables and their use can be obtained using the

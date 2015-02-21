@@ -35,7 +35,11 @@ ecutsigx
 .IP \[bu] 2
 nband
 .IP \[bu] 2
-gwcalctype
+gwcalctyp
+.IP \[bu] 2
+gw_qprange
+.IP \[bu] 2
+all gw** variables
 .RE
 .PP
 More info on the input variables and their use can be obtained using the
@@ -84,7 +88,7 @@ Once the flow is completed, we can interpolate the $G_0W_0$ corrections
 as function of the initial KS energy to obtain an energy\-dependent
 scissors operator.
 At this point, we can apply the scissors operator onto the KS band
-structure to obtained an approximated $G_0W_0$ band dispersion.
+structure to obtain an approximated $G_0W_0$ band dispersion.
 .SH The course of this lesson
 .PP
 This lesson can be started in ipython by importing it:
@@ -116,12 +120,12 @@ This lesson provides a factory function that returns a flow designed to
 perform a standard G0W0 calculation.
 .PP
 In the previous lesson we have actually been running job directly on the
-frontend.
+front\-end.
 These calculations were so small that this was not a problem.
-GW calculations, however, (even the underconverged examples we are using
-here) are much more involved.
-To run submit calculations to the actual worknodes of the cluster we
-only need to provide abipy with different manager settings.
+GW calculations, however, (even the under converged examples we are
+using here) are much more involved.
+To run submit calculations to the actual nodes of the cluster we only
+need to provide abipy with different manager settings.
 First have a look at the current manager.yml file.
 This one tells abipy what it needs to know to run shell jobs.
 Next copy the file we prepared for this cluster:

@@ -48,7 +48,7 @@ One flow will calculate the total energies of a compound at various
 volumes and fit an equation of state to the energy v.s.
 volume data.
 Besides the optimal volume, where the energy is minimal, this will also
-provide the bulk modulus, the \[aq]compressebility\[aq] of the systems.
+provide the bulk modulus, the \[aq]compressibility\[aq] of the systems.
 The other flow will automatically optimize all degrees of freedom.
 In our first example Si, there is only one degree of freedom, due to the
 symmetry of the crystal, the volume of the unit cell, or the lattice
