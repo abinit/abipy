@@ -293,7 +293,7 @@ class Lesson(BaseLesson):
 
     @property
     def pyfile(self):
-        return __file__.replace(".pyc", ".py")
+        return os.path.abspath(__file__).replace(".pyc", ".py")
 
     @staticmethod
     def make_ngkpt_flow(**kwargs):
@@ -314,5 +314,4 @@ if __name__ == "__main__":
     l = Lesson()
     flow = l.make_ngkpt_flow()
     flow.build_and_pickle_dump()
-    l.manfile(l.comline_string)
-    l.instruct()
+    l.setup()

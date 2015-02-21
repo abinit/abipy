@@ -285,7 +285,7 @@ class Lesson(BaseLesson):
 
     @property
     def pyfile(self):
-        return __file__.replace(".pyc", ".py")
+        return os.path.abspath(__file__).replace(".pyc", ".py")
 
     @staticmethod
     def make_eos_flow(**kwargs):
@@ -320,5 +320,4 @@ if __name__ == "__main__":
     flow.build_and_pickle_dump()
     flow = l.make_relax_flow()
     flow.build_and_pickle_dump()
-    l.manfile(l.comline_string)
-    l.instruct()
+    l.setup()
