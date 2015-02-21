@@ -204,6 +204,6 @@ class Lesson(BaseLesson):
 
 if __name__ == "__main__":
     l = Lesson()
-    flow = l.make_electronic_structure_flow()
+    flow = l.make_flow()
     flow.build_and_pickle_dump()
     l.setup()
