@@ -20,8 +20,10 @@ predictions on trends.
 The related abinit variables
 ----------------------------
 
-    * 1
-    * 2
+    * kptopt (negative values)
+    * ndivsm
+    * prtdos (if you want Abinit to compute the dos)
+    * kptbounds (if you want to specify the bounds of the k-path)
 
 """
 from __future__ import division, print_function

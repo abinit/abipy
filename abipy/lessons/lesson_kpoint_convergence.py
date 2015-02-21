@@ -198,7 +198,7 @@ You'll also see that the files file has been created as well.
 
 To perform the kpoint convergence study execute abinit with the four input sets.
 
-Once the calcualtions are ready, you'll see three important output files.
+Once the calculations are ready, you'll see three important output files.
 
     * run.out
     * run.log
@@ -306,5 +306,5 @@ if __name__ == "__main__":
     l = Lesson()
     flow = l.make_ngkpt_flow()
     flow.build_and_pickle_dump()
-    #l.manfile(l.comline_string)
+    l.manfile(l.comline_string)
     l.instruct()

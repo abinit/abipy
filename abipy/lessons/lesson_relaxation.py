@@ -47,7 +47,7 @@ In this lesson we will use two different relaxation flows. One flow will
 calculate the total energies of a compound at various volumes and fit an
 equation of state to the energy v.s. volume data. Besides the optimal
 volume, where the energy is minimal, this will also provide the bulk modulus,
-the 'compressebility' of the systems. The other flow will automatically
+the 'compressibility' of the systems. The other flow will automatically
 optimize all degrees of freedom. In our first example Si, there is only
 one degree of freedom, due to the symmetry of the crystal, the volume of
 the unit cell, or the lattice parameter. In the second example, GaN, the
@@ -158,9 +158,7 @@ A logical next lesson would be lesson_dos_bands
 """
 
 _commandline_lesson_ = """
-At this place they will not be discussed in detail. Instead you are
-invited to read the abinit documentation on them. The full description,
-directly from the abinit description is available via the following function:
+The full description of the variables, directly from the abinit description is available via the following function:
 
     .. code-block:: shell
 
@@ -168,11 +166,26 @@ directly from the abinit description is available via the following function:
 
 This will print the official abinit description of this inputvariable.
 
+As in the previous lessons, executing the python script created the folder structure with the input files for this
+lesson.
 
-The course of this lesson
--------------------------
+For the flow_si_relax folder, look in particular to the changes in the unit cell (rprim) in the input files and the
+corresponding change in unit cell volume (ucvol), total energy (etotal) and stresses (strten) in the output file.
+For the flow_gan_relax, observe in the input and output files how the automatic relaxation takes place.
+At each step of the relaxation a full SCF-cycle is done, to compute the forces and the stress, the ions are moved and
+then a new SCF-cycle is done until convergence is done. That's why there are two stopping criterion for this task :
+tolrff or tolvrs for the SCF cycle and tolmxf for the relaxation in itself.
+
+Exercises
+---------
+
+Edit the input files to run the same jobs with different ecut values for example.
+
+You can also try to change the stopping criterion to see what are the effects of them.
+
+Finally, try to generate the input file for silicon, and try to guess why setting stopping criterion on forces won't
+work in that case !
 """
-
 
 
 import os
