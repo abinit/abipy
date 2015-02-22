@@ -109,7 +109,10 @@ and description of it:
 
     .. code-block:: python
 
+        flow.build()
         flow.open_files?
+
+The build() method will create the input files, open_files() can be used to open them.
 
 Will explain what this method is supposed to do.
 
