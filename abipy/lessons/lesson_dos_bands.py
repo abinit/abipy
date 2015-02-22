@@ -51,12 +51,6 @@ nessesary to split. For the bandstructure, we have a non-uniform grid so we do n
 The course of this lesson
 -------------------------
 
-Start ipython with matplotlib integration with the command:
-
-    .. code-block:: shell
-
-        ipython --matplotlib
-
 Start this lesson by importing it in a new namespace:
 
     .. code-block:: python

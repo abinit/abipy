@@ -61,12 +61,6 @@ All calculations will however still be run in parallel.
 The Course of this lesson
 -------------------------
 
-Start ipython with matplotlib integration with the command:
-
-    .. code-block:: shell
-
-        ipython --matplotlib
-
 This lesson can be started in ipython by importing it:
 
     .. code-block:: python
