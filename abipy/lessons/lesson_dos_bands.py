@@ -13,7 +13,7 @@ by this remark please continue to the next section, else keep reading :-).
 In contrast to the total energy and derivatives of it, the energies of the KS-levels have no exact physical meaning,
 except for the highest occupied state that actually would be the first ionization energy if the functional would be
 exact. So why would we even want to calculate the KS-DOS and band structure? In most cases the KS spectrum is
-qualitatively in agreement with the spectum of ionization energies. Moreover in general we are able to make good
+qualitatively in agreement with the spectrum of ionization energies. Moreover in general we are able to make good
 predictions on trends.
 
 
