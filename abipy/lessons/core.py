@@ -38,6 +38,7 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
         if os.path.exists(dst):
             raise RuntimeError("file %s already exists. Remove it before calling get_local_copy" % dst)
         shutil.copyfile(self.pyfile, dst)
+        self.get_local_copy()
 
     def __repr__(self):
         """String representation."""
