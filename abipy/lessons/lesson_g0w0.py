@@ -101,22 +101,12 @@ displays this lessons information text. This lesson provides a
 factory function that returns a flow designed to perform a standard
 G0W0 calculation.
 
-In the previous lesson we have actually been running job directly on
-the front-end. These calculations were so small that this was not a
-problem. GW calculations, however, (even the under converged examples
-we are using here) are much more involved. To run submit calculations
-to the actual nodes of the cluster we only need to provide abipy
-with different manager settings. First have a look at the current
-manager.yml file. This one tells abipy what it needs to know to run
-shell jobs. Next copy the file we prepared for this cluster:
-
-cp /data/euspec/doc/abinit-templates/manager_viper.yml.
-
-Have a look at this file as well. It may look complicated but if fact it
+To run calculations on a cluster abipy needs to know about the queing system, the number of nodes and memory a job is
+allowed to use, etc... Abipy takes this infomation from the manager.yml file. Have a look at the current
+manager.yml file. It may look complicated but if fact it
 is just a translation of the user manual of the cluster. For a new cluster
 one person has to create it once. Also note the it only mentions which queueing
-systems is installed how to use this systems is programmed in abipy. To
-use this manager move it to manager.yml. (abipy will first look for a manager
+systems is installed how to use this systems is programmed in abipy. (abipy will first look for a manager
 file in you current folder and secondly in ~/.abinit/abipy, so you can put
 one there an don't bother about it for every calculation)
 
@@ -313,6 +303,7 @@ def make_g0w0_scissors_flow(workdir="flow_lesson_g0w0"):
 
     return flow.allocate()
 
+
 class Lesson(BaseLesson):
 
     @property
@@ -332,7 +323,7 @@ class Lesson(BaseLesson):
         return make_g0w0_scissors_flow(**kwargs)
 
     @staticmethod
-    def analyze_flow(flow, domains_spin=[[-10, 6.02], [6.1, 20]]):
+    def analyze(flow, domains_spin=[[-10, 6.02], [6.1, 20]]):
         # Read the G0W0 correction form the output file of the sigma_task
         # and construct the scissors_builder object.
         sigma_task = flow[1][2]
