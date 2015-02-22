@@ -200,6 +200,12 @@ def flow_main(main):
         parser.add_argument("-m", '--manager', default="", type=str,
                             help="YAML file with the parameters of the task manager")
 
+        parser.add_argument("-s", '--scheduler', action="store_true", default=False, 
+                            help="Run the flow with the scheduler")
+
+        #parser.add_argument("-r", '--remove', action="store_true", default=False, 
+        #                    help="Run the flow with the scheduler")
+
         parser.add_argument("--prof", action="store_true", default=False, help="Profile code wth cProfile ")
 
         options = parser.parse_args()
@@ -219,6 +225,12 @@ def flow_main(main):
             s.strip_dirs().sort_stats("time").print_stats()
             return 0
         else:
-            return main(options)
+            flow = main(options)
+
+            if options.scheduler:
+                flow.rmtree()
+                return flow.make_scheduler().start()
+
+            return 0
 
     return wrapper

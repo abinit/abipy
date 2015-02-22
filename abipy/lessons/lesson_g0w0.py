@@ -9,7 +9,7 @@ Background
 Standard functionals (LDA and GGA), systematically underestimate band gaps, giving values 
 that are about 30-40% smaller than experimental data.
 The inability of standard Kohn-Sham (KS) theory to give band gaps close to experiment is often referred to as the **band-gap problem**. 
-From a theoretical point of view this is not surprising  since KS eigenvalues are not supposed to give the correct band energies.
+From a theoretical point of view this is not surprising since KS eigenvalues are not supposed to give the correct band energies.
 The band structure of a crystal is rigorously defined as the energies needed to add or subtract electrons from the many-body system
 which, in turn, are related to the difference between total energies of many-body states differing by one electron. 
 
@@ -29,7 +29,9 @@ Related ABINIT variables
     * ecuteps
     * ecutsigx
     * nband
-    * gwcalctype
+    * gwcalctyp
+    * gw_qprange
+    * all gw** variables
 
 """
 from __future__ import division, print_function, unicode_literals
@@ -69,17 +71,23 @@ the $G_0W_0$ corrections for all the k-points in the IBZ and 8 bands (4 occupied
 
 Once the flow is completed, we can interpolate the $G_0W_0$ corrections as function of the initial KS energy 
 to obtain an energy-dependent scissors operator. 
-At this point, we can apply the scissors operator onto the KS band structure to obtained an approximated $G_0W_0$
+At this point, we can apply the scissors operator onto the KS band structure to obtain an approximated $G_0W_0$
 band dispersion.
 
 The course of this lesson
 -------------------------
 
+Start ipython with matplotlib integration with the command:
+
+    .. code-block:: shell
+
+        ipython --matplotlib
+
 This lesson can be started in ipython by importing it:
 
     .. code-block:: python
 
-        from abipy.lessons.lesson_g0w0 import Lesson()
+        from abipy.lessons.lesson_g0w0 import Lesson
         lesson = Lesson()
 
 The lesson is now imported in your ipython session in its own namespace 'lesson'. 
@@ -94,10 +102,10 @@ factory function that returns a flow designed to perform a standard
 G0W0 calculation.
 
 In the previous lesson we have actually been running job directly on
-the frontend. These calculations were so small that this was not a
-problem. GW calculations, however, (even the underconverged examples
+the front-end. These calculations were so small that this was not a
+problem. GW calculations, however, (even the under converged examples
 we are using here) are much more involved. To run submit calculations
-to the actual worknodes of the cluster we only need to provide abipy
+to the actual nodes of the cluster we only need to provide abipy
 with different manager settings. First have a look at the current
 manager.yml file. This one tells abipy what it needs to know to run
 shell jobs. Next copy the file we prepared for this cluster:
@@ -120,7 +128,7 @@ This flow is made by the command:
 
     .. code-block:: python
 
-        flow = lesson.make_g0w0_scissors_flow()
+        flow = lesson.make_flow()
 
 `flow` is now an object that contains al the information needed to generate abinit inputs. 
 
@@ -184,8 +192,6 @@ import abipy.data as abidata
 import abipy.abilab as abilab
 
 from abipy.lessons.core import BaseLesson
-
-abinit_help = abilab.abinit_help
 
 
 def make_inputs(ngkpt, paral_kgb=0):
@@ -319,7 +325,7 @@ class Lesson(BaseLesson):
 
     @property
     def pyfile(self):
-        return __file__
+        return os.path.abspath(__file__).replace(".pyc", ".py")
 
     @staticmethod
     def make_flow(**kwargs):
@@ -358,5 +364,4 @@ if __name__ == "__main__":
     l = Lesson()
     flow = l.make_flow()
     flow.build_and_pickle_dump()
-    l.manfile(l.comline_string)
-    l.instruct()
+    l.setup()

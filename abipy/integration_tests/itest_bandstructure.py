@@ -34,11 +34,11 @@ def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
     if inp.ispaw:
         global_vars.update(pawecutdg=2*ecut)
 
-    inp.set_variables(**global_vars)
+    inp.set_vars(**global_vars)
 
     # Dataset 1 (GS run)
     inp[1].set_kmesh(ngkpt=[4, 4, 4], shiftk=[0, 0, 0])
-    inp[1].set_variables(tolvrs=1e-4)
+    inp[1].set_vars(tolvrs=1e-4)
 
     # Dataset 2 (NSCF run)
     kptbounds = [
@@ -48,7 +48,7 @@ def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
     ]
 
     inp[2].set_kpath(ndivsm=2, kptbounds=kptbounds)
-    inp[2].set_variables(tolwfr=1e-6)
+    inp[2].set_vars(tolwfr=1e-6)
     
     # Generate two input files for the GS and the NSCF run.
     scf_input, nscf_input = inp.split_datasets()

@@ -30,7 +30,7 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
 
     @abc.abstractproperty
     def pyfile(self):
-        """Path of the python script."""
+        """Absolute Path of the python script."""
 
     def get_local_copy(self):
         """Copy this script to the current working dir to explore it and edit"""
@@ -43,24 +43,33 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
         """String representation."""
         return self.abipy_string
 
-    def manfile(self, what=None):
-        """The path to the man file of the lesson. Use `%man %lesson.manfile` to open it in ipython"""
-        _, ext = os.path.splitext(self.pyfile)
-        man_path = self.pyfile.replace(ext, '.man')
+    @property
+    def manpath(self):
+        return self.pyfile.replace(".py", ".man")
 
-        try:
-            shutil.copy(os.path.join(os.path.dirname(os.path.realpath(__file__)), man_path), '.')
-        except IOError:
-            with open(man_path, "wt") as fh:
-                fh.write(self._pandoc_convert(to="man", what=what, extra_args=("-s",)))
+    #def manfile(self, what=None):
+    #    """The path to the man file of the lesson. Use `%man %lesson.manfile` to open it in ipython"""
+    #    _, ext = os.path.splitext(self.pyfile)
+    #    man_path = self.pyfile.replace(ext, '.man')
+    #    try:
+    #        shutil.copy(os.path.join(os.path.dirname(os.path.realpath(__file__)), man_path), '.')
+    #    except IOError:
+    #        with open(man_path, "wt") as fh:
+    #            fh.write(self._pandoc_convert(to="man", what=what, extra_args=("-s",)))
 
-    def instruct(self):
-            print("\n"
-                  "The lesson " + self.pyfile[:-3]+
-                  " is prepared. \n"
-                  "Use \n\n"
-                  " man ./" + self.pyfile[:-3] + ".man\n\n"
-                  "to view the text of the lesson.\n")
+    def setup(self):
+        lesson_name = os.path.basename(self.pyfile)[:-3]
+        print("\n"
+              "The lesson %s " % lesson_name + "is prepared.\n"
+              "Use\n\n"
+              "     man ./" + lesson_name + ".man\n\n"
+              "to view the text of the lesson.\n")
+
+        # Copy man file (except when we are running inside lessons in develop mode
+        # Use. python __setup__.py to regenerate the man files.
+        dst = os.path.join(os.path.abspath(os.getcwd()), os.path.basename(self.manpath))
+        if not dst == self.manpath:
+            shutil.copyfile(self.manpath, dst)
 
     def _pandoc_convert(self, to, what, extra_args=()):
         if what is None:
@@ -91,6 +100,11 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
 #                    "you should pass a string with the name of a valid ABINT variable e.g. `ecut`"
 #                    "not `inputvariable` :)")
         return get_abinit_variables()[varname]
+
+    @property
+    def abidata(self):
+        """Abipy data files."""
+        return abidata
 
 
 def get_pseudos(structure, extension='oncvpsp'):

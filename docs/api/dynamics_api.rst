@@ -11,7 +11,7 @@ dynamics Package
    :show-inheritance:
 
 :mod:`hist` Module
------------------
+------------------
 
 .. automodule:: abipy.dynamics.hist
    :members:

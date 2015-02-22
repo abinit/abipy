@@ -14,7 +14,6 @@ def get_mods():
     for pyfile in os.listdir(dirpath):
         if not (pyfile.startswith("lesson") and pyfile.endswith(".py")): continue
         path = os.path.join(os.path.dirname(dirpath), pyfile)
-        print(path)
         mods.append(import_module(pyfile.replace(".py", "")))
     return mods
 
@@ -24,9 +23,13 @@ def generate_manfiles():
     for mod in get_mods():
         try:
             lesson = mod.Lesson()
+
         except AttributeError:
+            print("Exception in mod %s" % mod.__name__)
             continue
+
         lesson._gen_manfile()
+        print("[%s] man file generated" % mod.__name__)
 
 
 if __name__ == "__main__":

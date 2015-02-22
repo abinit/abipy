@@ -1,0 +1,322 @@
+.TH K\-point "" "" "convergence study for a semi\-conductor and an introduction
+  some of the basic concepts of the abipy library."
+.SH Background
+.PP
+This lesson deals with the basic k\-point convergence study that is
+needed in any DFT calculation of a solid.
+In a DFT calculation of a solid the first Brillouin zone needs to be
+discretized to enable the integration of various quantities.
+Effectively the integrals are turned in to sums over k\-points.
+For any result to be converged we need a k\-point mesh that is dense
+enough, but at the same time as coarse as possible to make for an
+efficient calculation.
+Various types of materials require in general different densities of the
+k\-point meshes.
+In general metals need denser meshes than semiconductors, because of the
+need to accurately sample the fermi surface.
+Your first investigation into a new compound will quit often be a
+k\-point convergence study.
+.SH The related abinit variables
+.PP
+The abinit parameters concerned with the k\-point grid are:
+.RS
+.IP \[bu] 2
+ngkpt
+.IP \[bu] 2
+shiftk
+.IP \[bu] 2
+occopt (see exercises)
+.IP \[bu] 2
+tsmear (see exercises)
+.IP \[bu] 2
+kptopt (see exercises)
+.RE
+.PP
+At this place they will not be discussed in detail.
+In stead you are invited to read the abinit documentation on them.
+The full description, directly from the official abinit description is
+available via the following function:
+.RS
+.IP
+.nf
+\f[C]
+lesson.docvar("inputvariable")
+\f[]
+.fi
+.RE
+.PP
+This will print the official abinit description of this inputvariable.
+.SH The abipy flows of this lesson
+.PP
+When performed manually, a k\-point convergence study would require the
+preparation of a series of input\-files, running abinit for all the
+inputs and extracting and studying the quantity that is needed to be
+converged.
+This lesson shows how this process can be greatly facilitated by using
+python scripts in the abipy framework.
+We will construct a single python object, a abipy flow, that contains
+all the information needed for the calculations but also provides
+methods for actually running abinit, inspecting the input and output,
+and analyzing the results.
+.PP
+All calculations will however still be run in parallel.
+.SH The Course of this lesson
+.PP
+Start ipython with matplotlib integration with the command:
+.RS
+.IP
+.nf
+\f[C]
+ipython\ \-\-matplotlib
+\f[]
+.fi
+.RE
+.PP
+This lesson can be started in ipython by importing it:
+.RS
+.IP
+.nf
+\f[C]
+from\ abipy.lessons.lesson_kpoint_convergence\ import\ Lesson
+lesson\ =\ Lesson()
+\f[]
+.fi
+.RE
+.PP
+The lesson is now imported in your ipython session in its own namespace
+\[aq]lesson\[aq].
+This object now gives us all the tools to follow this lesson.
+For instance the command:
+.RS
+.IP
+.nf
+\f[C]
+lesson
+\f[]
+.fi
+.RE
+.PP
+displays this lessons information text, and can be recalled at any
+moment.
+The main object we use to pack (connected series of) calculations is a
+flow.
+This lesson provides a method that returns a flow designed to perform
+k\-point convergence studies.
+This flow is made by the command:
+.RS
+.IP
+.nf
+\f[C]
+flow\ =\ lesson.make_ngkpt_flow()
+\f[]
+.fi
+.RE
+.PP
+\[aq]flow\[aq] is now an object that contains al the information needed
+to generate abinit input.
+In this case it is a special flow for a k\-point convergence study and
+since we did not specify anything when generating the flow the example
+case of silicon is generated.
+Our flow however, inherited from the abinit base flow so we have a lot
+of \[aq]standard\[aq] methods available.
+For instance:
+.RS
+.IP
+.nf
+\f[C]
+flow.show_inputs()
+\f[]
+.fi
+.RE
+.PP
+This will display all the inputs as they will be \[aq]given\[aq] to
+abinit.
+.PP
+To start the execution of calculations packed in this flow we and use
+the following command:
+.RS
+.IP
+.nf
+\f[C]
+flow.make_scheduler().start()
+\f[]
+.fi
+.RE
+.PP
+This starts the actual execution via a scheduler.
+The scheduler is a sort of daemon that starts to submit tasks that are
+ready to run.
+In our case all the tasks in the flow are independent so the first cycle
+of the scheduler directly submitted all of them.
+More complicated flows may have tasks that can only start using input
+from a previous task.
+We will encounter some of those later.
+.PP
+The last step of analyzing the results can be done again in with a
+single command:
+.RS
+.IP
+.nf
+\f[C]
+lesson.analyze(flow)
+\f[]
+.fi
+.RE
+.PP
+This method of flow will open the necessary output files, retrieve the
+data, and produce a plot.
+.PP
+Finally, once you are through with this lesson and exited ipython:
+.RS
+.IP
+.nf
+\f[C]
+exit
+\f[]
+.fi
+.RE
+.PP
+You can see that in the directory that you were working there is now a
+subdir were the calculation have been performed.
+Have a look at these folders and the files that are in them.
+.SH Exercises
+.PP
+As an exercise you can now start this lesson again but in stead of
+performing the convergence study for silicon study the convergence for a
+metal.
+By using:
+.RS
+.IP
+.nf
+\f[C]
+flow\ =\ lesson.make_ngkpt_flow(structure_file=lesson.abidata.cif_file(\[aq]al.cif\[aq]),\ metal=True)
+\f[]
+.fi
+.RE
+.PP
+you will generate a flow for aluminum.
+Actually, you can pass the path to any cif file to perform a convergence
+study on that material.
+Be careful however, aluminum is a metal and the default parameters for
+occopt and tsmear are for semiconductors.
+The keyword argument \[aq]metal\[aq] fixes this.
+(you could also see what happens if you don\[aq]t put this flag :\-) )
+Look at the inputs to see what has been changed and study the
+description of these inputvariables using the abinit_help() method.
+.PP
+If you have time left it is also a good exercise to open the python file
+that contains this lesson and study the implementations of the classes,
+methods and functions we used.
+You can get a copy of the file by using:
+.RS
+.IP
+.nf
+\f[C]
+lesson.get_local_copy()
+\f[]
+.fi
+.RE
+.PP
+Try to find what to change to change the set of k\-point meshes that are
+used in the convergence study.
+.SH Next
+.PP
+A logical next lesson would be lesson_ecut_convergence
+.PP
+At this place they will not be discussed in detail.
+In stead you are invited to read the abinit documentation on them.
+The full description, directly from the abinit description is available
+via the following function:
+.RS
+.IP
+.nf
+\f[C]
+abidocs.py\ man\ inputvariable
+\f[]
+.fi
+.RE
+.PP
+This will print the official abinit description of this inputvariable.
+.SH The course of this lesson
+.PP
+In the generation of this lesson by the python script all the input
+files have been generated automatically.
+The input files have been organized in a workdir
+"flow_lesson_Si_kpoint_convergence".
+Inside you\[aq]ll find a single work, w0, with four tasks, t0 \- t3.
+Have a look at the input files, run.abi, in the four tasks to see what
+is different.
+.PP
+You\[aq]ll see that also the files file and the jobs submission script
+are generated.
+In the job scripts you\[aq]ll see that the jobs are prepared to run just
+on the front end.
+.PP
+You\[aq]ll also see that the files file has been created as well.
+.PP
+To perform the kpoint convergence study execute abinit with the four
+input sets.
+.PP
+Once the calculations are ready, you\[aq]ll see three important output
+files.
+.RS
+.IP \[bu] 2
+run.out
+.IP \[bu] 2
+run.log
+.IP \[bu] 2
+run.err
+.RE
+.PP
+The main summary of the calculation can be found in the .out file,
+we\[aq]ll go there soon :\-).
+The .err file should be empty.
+If it\[aq]s not something went wrong.
+If something went wrong read the .err.
+file.
+The .log file contains extensive information on you calculation that
+could help to find out what went wrong in the case of errors.
+Especially there are three types of messages that could help
+.RS
+.IP \[bu] 2
+COMMENT
+.IP \[bu] 2
+WARNING
+.IP \[bu] 2
+ERROR
+.RE
+.PP
+In case of an error message abinit stopped the execution by itself,
+because of that error.
+.PP
+Now the .out file.
+Some interesting keywords to look for:
+.RS
+.IP \[bu] 2
+Symmetries
+.IP \[bu] 2
+Citation for XC functional:
+.IP \[bu] 2
+ETOT (the total energies during the electronic structure convergence)
+.IP \[bu] 2
+Eigenvalues
+.IP \[bu] 2
+Etotal (the total energy of an ionic step)
+.RE
+.PP
+Obviously there is much more.
+.PP
+Collect the total energies of the four calculations and plot them as a
+function of the number of k\-points in the calculation.
+.PP
+Alternative to execution of the manual execution the calculations can
+also be executed using the abipy scheduler.
+.RS
+.IP
+.nf
+\f[C]
+\f[]
+.fi
+.PP
+abirun.py flow_lesson_Si_kpoint_convergence scheduler
+.RE

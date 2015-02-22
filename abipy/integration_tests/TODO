@@ -2,3 +2,7 @@ TODO LIST:
 
   #. Replace yaml qpoints in screening with netcdf files.
   DONE
+ 
+  #. Add integration test for dilatmx error handler
+
+  # Fix issue with DOJO_REPORT and PAW XML files.

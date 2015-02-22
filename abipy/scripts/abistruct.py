@@ -17,8 +17,8 @@ def main():
 Usage example:\n
 
     abistruct.py convert filepath cif         => Read the structure from file and print CIF file.
+    abistruct.py convert filepath abivars     => Print the ABINIT variables defining the structure.
     abistruct.py visualize filepath xcrysden  => Visualize the structure with XcrysDen.
-    abistruct.py abivars filepath             => Print the ABINIT variables defining the structure.
     abistruct.py pmgdata mp-149               => Get structure from pymatgen database and print its JSON representation.
 """
         return examples
@@ -40,10 +40,7 @@ Usage example:\n
 
     # Subparser for convert command.
     p_convert = subparsers.add_parser('convert', parents=[path_selector], help="Convert structure to the specified format.")
-    p_convert.add_argument('format', nargs="?", default="cif", type=str, help="Format of the output file (cif, cssr, POSCAR, json, mson).")
-
-    # Subparser for abivars command.
-    p_convert = subparsers.add_parser('abivars', parents=[path_selector], help="Print the ABINIT variables defining the structure.")
+    p_convert.add_argument('format', nargs="?", default="cif", type=str, help="Format of the output file (cif, cssr, POSCAR, json, mson, abivars).")
 
     # Subparser for visualize command.
     p_visualize = subparsers.add_parser('visualize', parents=[path_selector], help="Visualize the structure with the specified visualizer")
@@ -56,25 +53,27 @@ Usage example:\n
     p_pmgdata.add_argument("--mapi-key", default=None, help="Pymatgen MAPI_KEY. Use env variable if not specified.")
     p_pmgdata.add_argument("--host", default="www.materialsproject.org", help="Pymatgen database.")
 
+    # Subparser for animate command.
+    p_animate = subparsers.add_parser('animate', parents=[path_selector], 
+        help="Read structures from HIST or XDATCAR. Print structures in Xrysden AXSF format to stdout")
+
     # Parse command line.
     try:
         options = parser.parse_args()
     except: 
         show_examples_and_exit(error_code=1)
 
-    # Read structure form file
-    if hasattr(options, "filepath"):
+    if options.command == "convert":
         structure = abilab.Structure.from_file(options.filepath)
 
-    if options.command == "convert":
-        s = structure.convert(format=options.format)
-        #print((" Abinit --> %s " % format).center(80, "*"))
-        print(s)
-
-    elif options.command == "abivars":
-        print(structure.abi_string)
+        if options.format == "abivars":
+            print(structure.abi_string)
+        else:
+            s = structure.convert(format=options.format)
+            print(s)
 
     elif options.command == "visualize":
+        structure = abilab.Structure.from_file(options.filepath)
         structure.visualize(options.visualizer)
 
     elif options.command == "pmgdata":
@@ -86,6 +85,27 @@ Usage example:\n
         s = structure.convert(format="json")
         #s = structure.convert(format="mson")
         print(s)
+
+    elif options.command == "animate":
+        from  abipy.iotools import xsf_write_structure
+        filepath = options.filepath
+
+        if filepath.endswith("HIST"):
+            with abilab.abiopen(filepath) as hist: 
+                structures = hist.structures
+
+        elif "XDATCAR" in filepath:
+            from pymatgen.io.vaspio import Xdatcar
+            structures = Xdatcar(filepath).structures
+            if not structures:
+                raise RuntimError("Your Xdatcar contains only one structure. Due to a bug " 
+                    "in the pymatgen routine, your structures won't be parsed correctly" 
+                    "Solution: Add another structure at the end of the file.")
+
+        else:
+            raise ValueError("Don't know how to handle file %s" % filepath)
+
+        xsf_write_structure(sys.stdout, structures)
 
     else:
         raise ValueError("Unsupported command: %s" % options.command)

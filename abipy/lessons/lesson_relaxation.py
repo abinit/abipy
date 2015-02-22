@@ -24,9 +24,10 @@ The related abinit variables
     * dilatmx
     * ecutsm
     * ntime
+    * tolmxf
+    * tolrff
 
 """
-from __future__ import division, print_function
 
 _ipython_lesson_ = """
 
@@ -45,21 +46,28 @@ In this lesson we will use two different relaxation flows. One flow will
 calculate the total energies of a compound at various volumes and fit an
 equation of state to the energy v.s. volume data. Besides the optimal
 volume, where the energy is minimal, this will also provide the bulk modulus,
-the 'compressebility' of the systems. The other flow will automatically
+the 'compressibility' of the systems. The other flow will automatically
 optimize all degrees of freedom. In our first example Si, there is only
 one degree of freedom, due to the symmetry of the crystal, the volume of
 the unit cell, or the lattice parameter. In the second example, GaN, the
-symmetry is lower and one internal degree of freedom appears.
+symmetry is lower and one additional internal degree of freedom appears,
+for example the distance between Ga and N.
 
 
 The course of this lesson
 -------------------------
 
+Start ipython with matplotlib integration with the command:
+
+    .. code-block:: shell
+
+        ipython --matplotlib
+
 Start this lesson by importing it in a new namespace:
 
     .. code-block:: python
 
-        from abipy.lessons.lesson_relaxation import Lesson()
+        from abipy.lessons.lesson_relaxation import Lesson
         lesson = Lesson()
 
 As always you can reread this lessons text using the command:
@@ -72,47 +80,61 @@ To build the flow for silicon
 
     .. code-block:: python
 
-        flow = lesson.make_relax_eos_flow()
+        si_flow = lesson.make_eos_flow()
 
-For Gallium Arsenide, use
+For Gallium Nitride, use
 
     .. code-block:: python
 
-        flow = lesson.make_relax_relax_flow()
+        gan_flow = lesson.make_relax_flow()
 
 To print the input files
 
     .. code-block:: python
 
-        flow.show_inputs()
+        si_flow.show_inputs()
 
 Start the flow with the scheduler and wait for completion.
 
     .. code-block:: python
 
-        flow.make_scheduler().start()
+        si_flow.make_scheduler().start()
 
 To analyze the results.
 
     .. code-block:: python
 
-        lesson.analyze(flow)
+        # For Silicon
+        lesson.analyze_eos_flow(si_flow)
+
+        # For Gallium Nitride, use
+        lesson.analyze_eos_flow(gan_flow)
 
 In the case of silicon, it will show a fit of the total energy vs the
 volume of the unit cell. The minimum of this curve is the equilibrium
 volume. From this fit, we can also obtain the bulk modulus.
+This approach is only applicable for isotropic materials since we are
+scaling the entire volume.
 
-Volume of the unit cell of silicon : XXX A^3 [ source ?]
-Bulk modulus : 98.8 GPa [ source ? ]
+Try to compare the results with these experimental results:
+Volume of the unit cell of silicon: 40.05 A^3 [NSM]
+Bulk modulus: 98 GPa [NSM]
 
-In the case of gallium arsenide, you will see the change of equilibrium
+For gallium nitride
+In the case of gallium nitride, you will see the change of equilibrium
 volume and length of the box with respect to the k-point mesh.
 
-Volume of the unit cell of GaN : XXX A^3 [ source ?]
-Vertical distance between Ga and N : XXX A [ source ?]
+Try to compare the results with these experimental results:
+Volume of the unit cell of GaN: 45.73 A^3 [Schulz & Thiemann 1977]
+Lattice parameters of GaN: a = 3.190 A, c = 5.189 A [Schulz & Thiemann 1977]
+Vertical distance between Ga and N : about 0.377 * c [ Schulz & Thiemann, 1977]
 
 Of course you will need to converge your results with respect to
 the kpoint sampling and with respect with ecut...
+
+The pseudopotentials we are using are of GGA type, which tends to
+overestimate the lattice parameters. If you use LDA-type pseudopotentials,
+you will observe that they would tend to underestimate the parameters.
 
 Exercises
 ---------
@@ -129,7 +151,12 @@ script.
 And have a look in make_relax_gan_flow(), try to do the same
 with 'si.cif' file instead of 'gan.cif'
 
-As a second exercice, you can try to converge the results obtained
+Pay attention to the fact that for silicon, you cannot use tolrff
+to stop your self-consistent cycle. Actually, as silicon has no
+internal degree of freedom the forces are zero in the unit cell and
+this criterion makes no sense.
+
+As a second exercise, you can try to converge the results obtained
 here with respect to the k-point sampling and with respect to ecut
 and compare the converged results with experimental data.
 
@@ -139,10 +166,9 @@ Next
 A logical next lesson would be lesson_dos_bands
 """
 
+
 _commandline_lesson_ = """
-At this place they will not be discussed in detail. In stead you are
-invited to read the abinit documentation on them. The full description,
-directly from the abinit description is available via the following function:
+The full description of the variables, directly from the abinit description is available via the following function:
 
     .. code-block:: shell
 
@@ -150,12 +176,26 @@ directly from the abinit description is available via the following function:
 
 This will print the official abinit description of this inputvariable.
 
+As in the previous lessons, executing the python script created the folder structure with the input files for this
+lesson.
 
-The course of this lesson
--------------------------
+For the flow_si_relax folder, look in particular to the changes in the unit cell (rprim) in the input files and the
+corresponding change in unit cell volume (ucvol), total energy (etotal) and stresses (strten) in the output file.
+For the flow_gan_relax, observe in the input and output files how the automatic relaxation takes place.
+At each step of the relaxation a full SCF-cycle is done, to compute the forces and the stress, the ions are moved and
+then a new SCF-cycle is done until convergence is done. That's why there are two stopping criterion for this task :
+tolrff or tolvrs for the SCF cycle and tolmxf for the relaxation in itself.
+
+Exercises
+---------
+
+Edit the input files to run the same jobs with different ecut values for example.
+
+You can also try to change the stopping criterion to see what are the effects of them.
+
+Finally, try to generate the input file for silicon, and try to guess why setting stopping criterion on forces won't
+work in that case !
 """
-
-
 
 import os
 import numpy as np
@@ -165,37 +205,6 @@ import abipy.data as abidata
 from pymatgen.io.abinitio.eos import EOS
 from abipy.core import Structure
 from abipy.lessons.core import BaseLesson, get_pseudos
-
-
-def get_dist(gsrfile):
-    struct = gsrfile.structure
-    red_dist = struct.frac_coords[2][2] - struct.frac_coords[0][2]
-    return 'u',red_dist
-
-
-class RelaxFlow(abilab.Flow):
-
-    def analyze(self):
-        with abilab.GsrRobot.open(self) as robot:
-            data = robot.get_dataframe(funcs=get_dist)
-            robot.pairplot(data, x_vars="nkpts", y_vars=["a", "c", "u"]) #, hue="tsmear")
-
-            #grid = sns.PairGrid(data, x_vars="nkpts", y_vars=["a", "volume"]) #, hue="tsmear")
-            #grid.map(plt.plot, marker="o")
-            #grid.add_legend()
-            #plt.show()
-
-
-class EosFlow(abilab.Flow):
-    def analyze(self):
-        work = self.works[0]
-        etotals = work.read_etotals(unit="eV")
-
-        #eos_fit = EOS.DeltaFactor().fit(self.volumes, etotals)
-        #eos_fit.plot()
-
-        eos_fit = EOS.Birch_Murnaghan().fit(self.volumes, etotals)
-        return eos_fit.plot()
 
 
 def make_relax_flow(structure_file=None):
@@ -216,19 +225,20 @@ def make_relax_flow(structure_file=None):
     # Global variables
     inp.set_vars(
         ecut=20,
-        tolrff=1.0e-2,
-        nstep=100,
+        tolrff=5.0e-2,
+        nstep=30,
         optcell=2,
         ionmov=3,
-        ntime=500,
+        ntime=50,
         dilatmx=1.05,
         ecutsm=0.5,
+        tolmxf=5.0e-5,
     )
 
     for i, ngkpt in enumerate(ngkpt_list):
         inp[i+1].set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])
 
-    return RelaxFlow.from_inputs("flow_gan_relax", inputs=inp.split_datasets(), task_class=abilab.RelaxTask)
+    return abilab.Flow.from_inputs("flow_gan_relax", inputs=inp.split_datasets(), task_class=abilab.RelaxTask)
 
 
 def make_eos_flow(structure_file=None):
@@ -258,8 +268,8 @@ def make_eos_flow(structure_file=None):
 
         inp[idt+1].set_structure(new_structure)
 
-    eos_flow = EosFlow.from_inputs("flow_si_relax", inputs=inp.split_datasets(), task_class=abilab.RelaxTask)
-    eos_flow.volumes = structure.volume*scale_volumes
+    eos_flow = abilab.Flow.from_inputs("flow_si_relax", inputs=inp.split_datasets(), task_class=abilab.RelaxTask)
+    eos_flow.volumes = structure.volume * scale_volumes
     return eos_flow
 
 
@@ -267,30 +277,47 @@ class Lesson(BaseLesson):
 
     @property
     def abipy_string(self):
-        return __doc__+_ipython_lesson_
+        return __doc__ + _ipython_lesson_
 
     @property
     def comline_string(self):
-        return __doc__+_commandline_lesson_
+        return __doc__ + _commandline_lesson_
 
     @property
     def pyfile(self):
-        return os.path.basename(__file__)
+        return os.path.abspath(__file__).replace(".pyc", ".py")
 
     @staticmethod
     def make_eos_flow(**kwargs):
         return make_eos_flow(**kwargs)
 
     @staticmethod
+    def analyze_eos_flow(flow, **kwargs):
+        work = flow[0]
+        etotals = work.read_etotals(unit="eV")
+        eos_fit = EOS.Birch_Murnaghan().fit(flow.volumes, etotals)
+        return eos_fit.plot(**kwargs)
+
+    @staticmethod
     def make_relax_flow(**kwargs):
         return make_relax_flow(**kwargs)
 
+    @staticmethod
+    def analyze_relax_flow(flow, **kwargs):
+        def get_dist(gsrfile):
+            struct = gsrfile.structure
+            red_dist = struct.frac_coords[2][2] - struct.frac_coords[0][2]
+            return 'u', red_dist
+
+        with abilab.GsrRobot.open(flow) as robot:
+            data = robot.get_dataframe(funcs=get_dist)
+            return robot.pairplot(data, x_vars="nkpts", y_vars=["a", "c", "volume", "u"]) 
+
+
 if __name__ == "__main__":
-    l = Lesson()
     l = Lesson()
     flow = l.make_eos_flow()
     flow.build_and_pickle_dump()
     flow = l.make_relax_flow()
     flow.build_and_pickle_dump()
-    l.manfile(l.comline_string)
-    l.instruct()
+    l.setup()

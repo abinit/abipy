@@ -17,6 +17,7 @@ class FilesFile(object):
     A .files file used as input for abinit.
 
     **Keyword arguments:**
+
         input: Input file.
         output: Output file.
         idat_root: Root for input data.
@@ -25,7 +26,7 @@ class FilesFile(object):
         pseudodir: The directory for the pseudopotentials.
         pseudos: List of pseudopotential files.
 
-    Example::
+    .. code-block:: python
 
         >> filesfile = Filesfile('run/abinit.files',
         ..                       input='abinit.in',
@@ -45,7 +46,6 @@ class FilesFile(object):
         tmp_files/tmp_
         /path/to/pseudopotential/directory/H.psp
         /path/to/pseudopotential/directory/O.psp
-
     """
 
     def __init__(self, name='calc.files', **kwargs):

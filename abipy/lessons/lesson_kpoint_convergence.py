@@ -61,6 +61,12 @@ All calculations will however still be run in parallel.
 The Course of this lesson
 -------------------------
 
+Start ipython with matplotlib integration with the command:
+
+    .. code-block:: shell
+
+        ipython --matplotlib
+
 This lesson can be started in ipython by importing it:
 
     .. code-block:: python
@@ -198,7 +204,7 @@ You'll also see that the files file has been created as well.
 
 To perform the kpoint convergence study execute abinit with the four input sets.
 
-Once the calcualtions are ready, you'll see three important output files.
+Once the calculations are ready, you'll see three important output files.
 
     * run.out
     * run.log
@@ -232,7 +238,7 @@ Alternative to execution of the manual execution the calculations can also be ex
 
     .. code-block:: shell
 
-    abirun.py flow_lesson_Si_kpoint_convergence scheduler
+        abirun.py flow_lesson_Si_kpoint_convergence scheduler
 
 """
 import os
@@ -279,15 +285,15 @@ class Lesson(BaseLesson):
 
     @property
     def abipy_string(self):
-        return __doc__+_ipython_lesson_
+        return __doc__ + _ipython_lesson_ + _commandline_lesson_ 
 
     @property
     def comline_string(self):
-        return __doc__+_commandline_lesson_
+        return __doc__ + _commandline_lesson_
 
     @property
     def pyfile(self):
-        return os.path.basename(__file__)
+        return os.path.abspath(__file__).replace(".pyc", ".py")
 
     @staticmethod
     def make_ngkpt_flow(**kwargs):
@@ -298,7 +304,9 @@ class Lesson(BaseLesson):
         with abilab.abirobot(my_flow, "GSR") as robot:
             data = robot.get_dataframe()
         import matplotlib.pyplot as plt
-        data.plot(x="nkpts", y="energy", title="Total energy vs nkpts", legend=False, style="b-o")
+        ax = data.plot(x="nkpts", y="energy", title="Total energy vs nkpts", legend=False, style="b-o")
+        ax.set_xlabel('Number of k-points')
+        ax.set_ylabel('Total Energy [eV]')
         return plt.show(**kwargs)
 
 
@@ -306,5 +314,4 @@ if __name__ == "__main__":
     l = Lesson()
     flow = l.make_ngkpt_flow()
     flow.build_and_pickle_dump()
-    #l.manfile(l.comline_string)
-    l.instruct()
+    l.setup()

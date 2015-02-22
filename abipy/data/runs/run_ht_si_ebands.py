@@ -35,7 +35,8 @@ def build_flow(options):
     # Initialize the flow.
     flow = abilab.Flow(workdir=workdir, manager=manager)
 
-    work = bandstructure_work(structure, abidata.pseudos("14si.pspnc"), scf_kppa, nscf_nband, ndivsm, 
+    pseudos = abidata.pseudos("14si.pspnc")
+    work = bandstructure_work(structure,  pseudos, scf_kppa, nscf_nband, ndivsm, 
                               spin_mode="unpolarized", smearing=None, **extra_abivars)
 
     flow.register_work(work)
@@ -51,7 +52,8 @@ def build_flow(options):
 @abilab.flow_main
 def main(options):
     flow = build_flow(options)
-    return flow.build_and_pickle_dump()
+    flow.build_and_pickle_dump()
+    return flow
 
 
 if __name__ == "__main__":

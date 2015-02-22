@@ -124,8 +124,8 @@ class Variable(yaml.YAMLObject):
                         commentdims=array["commentdims"])
 
     def __str__(self):
-        return "Variable " + str(self.varname) + " (default = " + str(self.defaultval) + ")"
-        #return html2text.html2text("<h2>Default value:</h2>" + str(self.defaultval) + "<br/><h2>Description</h2>" +str(self.text))
+        #return "Variable " + str(self.varname) + " (default = " + str(self.defaultval) + ")"
+        return html2text.html2text("<h2>Default value:</h2>" + str(self.defaultval) + "<br/><h2>Description</h2>" +str(self.text))
 
     def __repr__(self):
         """variable name + mnemonics"""
@@ -266,6 +266,7 @@ def get_abinit_variables():
             # Save object to pickle file so that can we can reload it from pickle instead of yaml (slower)
             with open(pickle_file, "wb") as fh:
                 pickle.dump(__VARS_DATABASE, fh)
+                os.chmod(pickle_file, 444)
 
     return __VARS_DATABASE
         
