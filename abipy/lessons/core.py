@@ -84,7 +84,7 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
         _, ext = os.path.splitext(self.pyfile)
         man_path = self.pyfile.replace(ext, '.man')
         with open(man_path, "wt") as fh:
-            fh.write(self._pandoc_convert(to="man", what=self.abipy_string, extra_args=("-s",)))
+            fh.write(self._pandoc_convert(to="man", what=self.comline_string, extra_args=("-s",)))
 
     def _repr_html_(self):
         """Support for ipython notebooks."""
