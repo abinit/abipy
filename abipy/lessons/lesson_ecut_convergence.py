@@ -61,12 +61,6 @@ properties and methods of flows.
 The course of this lesson
 -------------------------
 
-Start ipython with matplotlib integration with the command:
-
-    .. code-block:: shell
-
-        ipython --matplotlib
-
 Start this lesson by importing it in a new namespace
 
     .. code-block:: python
@@ -95,11 +89,11 @@ To print the input files
 In this lesson we take a closer look at the structure of a Flow. In general
 a flow is a container that contains 'works'. Works are (connected) series
 of abinit executions we call tasks. To show the works contained in a flow
-use the 'works()' method:
+use the 'works' method:
 
     .. code-block:: python
 
-        flow.works()
+        flow.works
 
 to show the status of a flow:
 
@@ -160,6 +154,9 @@ directly from the abinit description is available via the following function:
         abidocs.py man inputvariable
 
 This will print the official abinit description of this inputvariable.
+
+The cource of this lesson
+-------------------------
 
 As in the previous lesson, executing the python script created the folder structure with the in input files for this
 lesson.
