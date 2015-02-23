@@ -49,12 +49,13 @@ via the following function:
 .IP
 .nf
 \f[C]
-abidocs.py\ man\ inputvariable
+abidoc.py\ man\ inputvariable
 \f[]
 .fi
 .RE
 .PP
 This will print the official abinit description of this inputvariable.
+.SH The course of this lesson
 .PP
 As in the previous lesson, executing the python script created the
 folder structure with the in input files for this lesson.

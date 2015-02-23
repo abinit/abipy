@@ -158,7 +158,7 @@ directly from the abinit description is available via the following function:
 
 This will print the official abinit description of this inputvariable.
 
-The cource of this lesson
+The course of this lesson
 -------------------------
 
 As in the previous lesson, executing the python script created the folder structure with the in input files for this
