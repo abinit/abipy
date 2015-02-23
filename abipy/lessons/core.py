@@ -38,6 +38,7 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
         if os.path.exists(dst):
             raise RuntimeError("file %s already exists. Remove it before calling get_local_copy" % dst)
         shutil.copyfile(self.pyfile, dst)
+        self.get_local_copy()
 
     def __repr__(self):
         """String representation."""
@@ -84,7 +85,7 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
         _, ext = os.path.splitext(self.pyfile)
         man_path = self.pyfile.replace(ext, '.man')
         with open(man_path, "wt") as fh:
-            fh.write(self._pandoc_convert(to="man", what=self.abipy_string, extra_args=("-s",)))
+            fh.write(self._pandoc_convert(to="man", what=self.comline_string, extra_args=("-s",)))
 
     def _repr_html_(self):
         """Support for ipython notebooks."""

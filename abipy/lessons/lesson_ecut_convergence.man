@@ -1,4 +1,4 @@
-.TH Basis "" "" "set convergence study and some more on flows, works, and tasks."
+.TH "Basis set convergence study and some more on flows, works, and tasks." "" "" "" ""
 .SH Background
 .PP
 This lesson focuses on the convergence study on the completeness of the
@@ -43,149 +43,30 @@ pawecutdg (additional variable for PAW)
 ecutsm
 .RE
 .PP
-More info on the inputvariables and their use can be obtained using the
-following function:
+The full description, directly from the abinit description is available
+via the following function:
 .RS
 .IP
 .nf
 \f[C]
-lesson.docvar("inputvariable")
-\f[]
-.fi
-.RE
-.SH The abipy flows in this lesson
-.PP
-This lesson contains a factory function for a ecut convergence study.
-In this lesson we will discuss a few more properties and methods of
-flows.
-.SH The course of this lesson
-.PP
-Start ipython with matplotlib integration with the command:
-.RS
-.IP
-.nf
-\f[C]
-ipython\ \-\-matplotlib
+abidocs.py\ man\ inputvariable
 \f[]
 .fi
 .RE
 .PP
-Start this lesson by importing it in a new namespace
-.RS
-.IP
-.nf
-\f[C]
-from\ abipy.lessons.lesson_ecut_convergence\ import\ Lesson
-lesson\ =\ Lesson()
-\f[]
-.fi
-.RE
+This will print the official abinit description of this inputvariable.
 .PP
-As always you can reread this lesson\[aq]s text using the command:
-.RS
-.IP
-.nf
-\f[C]
-lesson
-\f[]
-.fi
-.RE
+As in the previous lesson, executing the python script created the
+folder structure with the in input files for this lesson.
 .PP
-To build the flow:
-.RS
-.IP
-.nf
-\f[C]
-flow\ =\ lesson.make_ecut_flow()
-\f[]
-.fi
-.RE
-.PP
-To print the input files
-.RS
-.IP
-.nf
-\f[C]
-flow.show_inputs()
-\f[]
-.fi
-.RE
-.PP
-In this lesson we take a closer look at the structure of a Flow.
-In general a flow is a container that contains \[aq]works\[aq].
-Works are (connected) series of abinit executions we call tasks.
-To show the works contained in a flow use the \[aq]works()\[aq] method:
-.RS
-.IP
-.nf
-\f[C]
-flow.works()
-\f[]
-.fi
-.RE
-.PP
-to show the status of a flow:
-.RS
-.IP
-.nf
-\f[C]
-flow.show_status()
-\f[]
-.fi
-.RE
-.PP
-There are many more properties and methods of a flow than may also come
-in handy.
-By typing [tab] in ipython after the period, you will be presented with
-all the option.
-Feel free to experiment a bit at this point.
-By adding a questionmark to the method or property ipython will show the
-information and description of it:
-.RS
-.IP
-.nf
-\f[C]
-flow.open_files?
-\f[]
-.fi
-.RE
-.PP
-Will explain what this method is supposed to do.
-.PP
-Start the flow with the scheduler and wait for completion.
-.RS
-.IP
-.nf
-\f[C]
-flow.make_scheduler().start()
-\f[]
-.fi
-.RE
-.PP
-To analyze the results.
-.RS
-.IP
-.nf
-\f[C]
-lesson.analyze(flow)
-\f[]
-.fi
-.RE
+One of the standard thing to look for to be converged in the total
+energy.
+We did that already in the previous lesson.
+This time have a look at some of the other important properties.
+Look for instance at the convergence rate of the forces, stress\-tensor
+or the energies of the KS\-orbitals.
 .SH Exercises
 .PP
-As for the kpoint convergence study, try to run the convergence study
-for Al.
-.PP
-Get a copy of the python script we use in this lesson like before.
-In the lesson class definition you\[aq]ll find the analyze method.
-Execute the parts to get the dataframe.
-Use the commands you learned in this lesson to find out what else is
-contained in the dataframe.
-Make some more convergence plots.
-.PP
-If you like to dig in more look up the pandas package on internet.
-The dataframe the robot returns is a pandas dataframe all the thing that
-have been programmed in that package are at your disposal.
-.SH Next
-.PP
-A logical next lesson would be lesson_relaxation
+Edit the input files to run the same convergence study for a different
+k\-point mesh.
+Best to start small.
