@@ -100,7 +100,7 @@ Exercises
 At this point, you may want to interact more with the underlying python objects
 so that you can start to develop your own script or your post-processing tool.
 
-Our flow consists of a BandStructureWork object that provide many tools for post-processing.
+Our flow consists of a BandStructureWork object that provides many tools for post-processing.
 Use
 
     .. code-block:: python
@@ -110,8 +110,8 @@ Use
 to have access to the band structure work and look at the `plot` methods that 
 are available (hint: type work.plot in ipython and press TAB to get a list of methods)
 
-1) Use the plot methods to visualize the convergence of the DOS wrt to the number of k-points.
-   Then change the value of the gaussian broadening.
+1) Use the `plot_` methods to visualize the convergence of the DOS wrt to the number of k-points.
+   Then change the value of the gaussian broadening (`width` parameter).
 
 2) Plot bands and DOS on the same figure.
 
@@ -124,7 +124,7 @@ A logical next lesson would be lesson_g0w0
 """
 
 _commandline_lesson_ = """
-At this place they will not be discussed in detail. In stead you are
+At this place they will not be discussed in detail. Instead you are
 invited to read the abinit documentation on them. The full description,
 directly from the abinit description is available via the following function:
 

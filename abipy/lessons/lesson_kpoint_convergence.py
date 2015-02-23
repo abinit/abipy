@@ -51,7 +51,7 @@ the preparation of a series of input-files, running abinit for all
 the inputs and extracting and studying the quantity that is needed
 to be converged. This lesson shows how this process can be greatly
 facilitated by using python scripts in the abipy framework. We will
-construct a single python object, a abipy flow, that contains all
+construct a single python object, an abipy flow, that contains all
 the information needed for the calculations but also provides methods
 for actually running abinit, inspecting the input and output, and
 analyzing the results.
@@ -137,7 +137,7 @@ at these folders and the files that are in them.
 Exercises
 ---------
 
-As an exercise you can now start this lesson again but in stead
+As an exercise you can now start this lesson again but instead
 of performing the convergence study for silicon study the
 convergence for a metal. By using:
 

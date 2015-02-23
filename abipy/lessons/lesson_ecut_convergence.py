@@ -55,7 +55,7 @@ following function:
 The abipy flows in this lesson
 ------------------------------
 
-This lesson contains a factory function for a ecut convergence study. In this lesson we will discuss a few more
+This lesson contains a factory function for an ecut convergence study. In this lesson we will discuss a few more
 properties and methods of flows.
 
 The course of this lesson
