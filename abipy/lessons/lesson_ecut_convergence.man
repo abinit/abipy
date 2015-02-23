@@ -1,4 +1,4 @@
-.TH "Basis set convergence study and some more on flows, works, and tasks." "" "" "" ""
+.TH Basis "" "" "set convergence study and some more on flows, works, and tasks."
 .SH Background
 .PP
 This lesson focuses on the convergence study on the completeness of the

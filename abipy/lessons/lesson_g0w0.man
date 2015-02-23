@@ -1,4 +1,4 @@
-.TH "$G_0W_0$ band structure with an energy\-dependent scissors operator" "" "" "" ""
+.TH $G_0W_0$ "" "" "band structure with an energy\-dependent scissors operator"
 .SH Background
 .PP
 Standard functionals (LDA and GGA), systematically underestimate band

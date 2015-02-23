@@ -1,4 +1,4 @@
-.TH "Relaxation of the unit cell with two different techniques" "" "" "" ""
+.TH Relaxation "" "" "of the unit cell with two different techniques"
 .SH Background
 .PP
 One of the tasks that is most performed using DFT is the relaxation of

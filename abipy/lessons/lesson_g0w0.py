@@ -287,9 +287,9 @@ def make_inputs(ngkpt, paral_kgb=0):
     return inp.split_datasets()
 
 
-def make_g0w0_scissors_flow(workdir="flow_lesson_g0w0"):
+def make_g0w0_scissors_flow(workdir="flow_lesson_g0w0", ngkpt=[2,2,2]):
     # Change the value of ngkpt below to perform a GW calculation with a different k-mesh.
-    scf, bands_nscf, dos_nscf, gw_nscf, scr, sig = make_inputs(ngkpt=[2,2,2])
+    scf, bands_nscf, dos_nscf, gw_nscf, scr, sig = make_inputs(ngkpt=ngkpt)
 
     flow = abilab.Flow(workdir=workdir)
     work0 = abilab.BandStructureWork(scf, bands_nscf, dos_inputs=dos_nscf)

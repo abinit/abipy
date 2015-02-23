@@ -1,5 +1,5 @@
-.TH "K\-point convergence study for a semi\-conductor and an introduction
-some of the basic concepts of the abipy library." "" "" "" ""
+.TH K\-point "" "" "convergence study for a semi\-conductor and an introduction
+  some of the basic concepts of the abipy library."
 .SH Background
 .PP
 This lesson deals with the basic k\-point convergence study that is
