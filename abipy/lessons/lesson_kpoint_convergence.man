@@ -40,7 +40,7 @@ via the following function:
 .IP
 .nf
 \f[C]
-abidocs.py\ man\ inputvariable
+abidoc.py\ man\ inputvariable
 \f[]
 .fi
 .RE
