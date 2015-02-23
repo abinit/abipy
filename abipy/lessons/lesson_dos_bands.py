@@ -12,7 +12,8 @@ Kohn-Sham (KS) formalism.
 In contrast to the total energy and its derivatives, the energies of the KS-levels have no exact physical meaning,
 except for the highest occupied state that actually would be the first ionization energy if the functional would be
 exact. So why would we even want to calculate the KS-DOS and band structure? In most cases the KS spectrum is
-qualitatively in agreement with experiments. Moreover in general we are able to make good predictions on trends.
+qualitatively in agreement with the spectrum of ionization energies. Moreover in general we are able to make good
+predictions on trends.
 
 In lesson_g0w0.py, we discuss a more elaborated and accurate approach for the calculation of band energies and band gaps.
 
@@ -49,12 +50,6 @@ nessesary to split. For the bandstructure, we have a non-uniform grid so we do n
 
 The course of this lesson
 -------------------------
-
-Start ipython with matplotlib integration with the command:
-
-    .. code-block:: shell
-
-        ipython --matplotlib
 
 Start this lesson by importing it in a new namespace:
 
