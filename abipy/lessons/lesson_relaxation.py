@@ -166,7 +166,7 @@ The full description of the variables, directly from the abinit description is a
 
     .. code-block:: shell
 
-        abidocs.py man inputvariable
+        abidoc.py man inputvariable
 
 This will print the official abinit description of this inputvariable.
 

@@ -329,7 +329,7 @@ def abinit_help(varname, info=True, stream=sys.stdout):
     try:
         var = database[varname]
     except KeyError:
-        stream.write("Variable %s not in the database" % varname)
+        stream.write("Variable %s not in the database\n" % varname)
         return
         
     text = html2text.html2text("<h2>Default value:</h2>" + str(var.defaultval) + "<br/><h2>Description</h2>" + str(var.text))
