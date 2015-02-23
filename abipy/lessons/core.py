@@ -71,6 +71,7 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
         dst = os.path.join(os.path.abspath(os.getcwd()), os.path.basename(self.manpath))
         if not dst == self.manpath:
             shutil.copyfile(self.manpath, dst)
+        self.get_local_copy()
 
     def _pandoc_convert(self, to, what, extra_args=()):
         if what is None:
