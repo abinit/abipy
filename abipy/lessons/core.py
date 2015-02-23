@@ -17,8 +17,12 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
 
     def __init__(self, **kwargs):
         mode = kwargs.get("mode") #, "ipython-shell")
+        if mode is None: return
+            
         if mode == "mpld3": 
             mpld3_enable_notebook()
+        else:
+            raise ValueError("Don't know how to handle mode %s" % mode)
 
     @abc.abstractproperty
     def abipy_string(self):

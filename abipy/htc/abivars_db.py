@@ -316,6 +316,10 @@ class VariableDatabase(OrderedDict):
         return vars
 
 
+def docvar(varname):
+    return get_abinit_variables()[varname]
+
+
 def abinit_help(varname, info=True, stream=sys.stdout):
     """
     Print the abinit documentation on the ABINIT input variable `varname`
