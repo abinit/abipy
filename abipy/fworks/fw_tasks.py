@@ -51,7 +51,7 @@ class AbinitRuntimeError(Exception):
         self.task = task
 
     def __str__(self):
-        return "Final status: {}. Hystory: {}".format(self.task.abitask.status, tuple(self.task.abitask.history))
+        return "Final status: {}. History: {}".format(self.task.abitask.status, tuple(self.task.abitask.history))
 
     def to_dict(self):
         report = self.task.abitask.get_event_report()
@@ -381,6 +381,9 @@ class AbiFireTask(FireTaskBase):
         if self.abitask.status < self.abitask.S_OK:
             raise AbinitRuntimeError(self)
 
+        if 'create_file' in fw_spec:
+            open(fw_spec['create_file'], 'a').close()
+
         stored_data = {'history': list(self.abitask.history)}
         report = self.abitask.get_event_report()
         stored_data['num_comments'] = report.num_comments
@@ -539,8 +542,6 @@ def initializer(func):
 
 
 class AbiStrategyFireTask(AbiFireTask):
-    def __init__(self):
-        pass
 
     @classmethod
     def parse_deps(cls, deps):

@@ -48,8 +48,10 @@ class AbstractFWWorkflow():
         return task_workdirs
 
     @classmethod
-    def create_autoparal_fw(cls, firetask,):
+    def create_autoparal_fw(cls, firetask, folder=None):
         spec = {'_queueadapter': {'ntasks': 1, 'walltime': '00:10:00'}}
+        if folder:
+            spec['_launch_dir'] = folder + '_autoparal'
         autoparal_task = AutoparalFireTask(firetask)
         autoparal_fw = Firework(autoparal_task, spec=spec)
         return autoparal_fw
@@ -63,7 +65,7 @@ class ScfFWWorkflow(AbstractFWWorkflow):
 
     def __init__(self, structure, pseudos, ksampling=1000, accuracy="normal",
                  spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
-                 use_symmetries=True, autoparal=False, **extra_abivars):
+                 use_symmetries=True, autoparal=False, folder=None, **extra_abivars):
         """
         Args:
 
@@ -72,10 +74,14 @@ class ScfFWWorkflow(AbstractFWWorkflow):
         self.task = ScfStrategyFireTask(structure=structure, pseudos=pseudos, ksampling=ksampling,
                                         accuracy=accuracy, spin_mode=spin_mode, smearing=smearing, charge=charge,
                                         scf_algorithm=scf_algorithm, use_symmetries=use_symmetries, **extra_abivars)
-        fw = Firework(self.task)
+
+        spec = {}
+        if folder:
+            spec['_launch_dir'] = os.path.join(folder, 'scf')
+        fw = Firework(self.task, spec=spec)
 
         if autoparal:
-            autoparal_fw = self.create_autoparal_fw(self.task)
+            autoparal_fw = self.create_autoparal_fw(self.task, spec['_launch_dir'])
             self.wf = Workflow([autoparal_fw, fw], {autoparal_fw: [fw]})
         else:
             self.wf = Workflow([fw])
@@ -89,7 +95,7 @@ class RelaxAtomsFWWorkflow(AbstractFWWorkflow):
 
     def __init__(self, structure, pseudos, ksampling=1000, accuracy="normal",
                  spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
-                 autoparal=False, **extra_abivars):
+                 autoparal=False, folder=None, **extra_abivars):
         """
         Args:
 
@@ -99,10 +105,14 @@ class RelaxAtomsFWWorkflow(AbstractFWWorkflow):
                                           relax_algo="atoms_only", accuracy=accuracy, spin_mode=spin_mode,
                                           smearing=smearing, charge=charge, scf_algorithm=scf_algorithm,
                                           **extra_abivars)
-        fw = Firework(self.task)
+
+        spec = {}
+        if folder:
+            spec['_launch_dir'] = os.path.join(folder, 'atomic_relax')
+        fw = Firework(self.task, spec=spec)
 
         if autoparal:
-            autoparal_fw = self.create_autoparal_fw(self.task)
+            autoparal_fw = self.create_autoparal_fw(self.task, spec['_launch_dir'])
             self.wf = Workflow([autoparal_fw, fw], {autoparal_fw: [fw]})
         else:
             self.wf = Workflow([fw])
@@ -117,7 +127,7 @@ class RelaxFWWorkflow(AbstractFWWorkflow):
     """
     def __init__(self, structure, pseudos, ksampling=1000, accuracy="normal",
                  spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
-                 autoparal=False, **extra_abivars):
+                 autoparal=False, folder=None, **extra_abivars):
         """
         Args:
 
@@ -128,7 +138,11 @@ class RelaxFWWorkflow(AbstractFWWorkflow):
             structure=structure, pseudos=pseudos, ksampling=ksampling, relax_algo="atoms_only", accuracy=accuracy,
             spin_mode=spin_mode, smearing=smearing, charge=charge, scf_algorithm=scf_algorithm, **extra_abivars)
 
-        ion_fw = Firework(self.ion_task)
+        spec = {}
+        if folder:
+            spec['_launch_dir'] = os.path.join(folder, 'atomic_relax')
+
+        ion_fw = Firework(self.ion_task, spec=spec)
 
         # Create the ionic+cell relaxation fw
         self.ioncell_task = RelaxStrategyFireTask(
@@ -136,15 +150,32 @@ class RelaxFWWorkflow(AbstractFWWorkflow):
             spin_mode=spin_mode, smearing=smearing, charge=charge, scf_algorithm=scf_algorithm,
             deps={id(self.ion_task): "WFK structure"}, **extra_abivars)
 
-        ioncell_fw = Firework(self.ioncell_task)
+        spec = {}
+        if folder:
+            spec['_launch_dir'] = os.path.join(folder, 'atomic_and_cell_relax')
+
+        ioncell_fw = Firework(self.ioncell_task, spec=spec)
+
+        # Scf calculation to get the requested value of the cutoff
+        self.scf_task = ScfStrategyFireTask(
+            structure=structure, pseudos=pseudos, ksampling=ksampling, accuracy=accuracy,
+            spin_mode=spin_mode, smearing=smearing, charge=charge, scf_algorithm=scf_algorithm,
+            deps={id(self.ioncell_task): "WFK structure"}, **extra_abivars)
+
+        spec = {'create_file': 'final'}
+        if folder:
+            spec['_launch_dir'] = os.path.join(folder, 'scf')
+
+        scf_fw = Firework(self.scf_task, spec=spec)
+
 
         # Create the workflow
         if autoparal:
-            autoparal_fw = self.create_autoparal_fw(self.ion_task)
-            self.wf = Workflow([autoparal_fw, ion_fw, ioncell_fw],
-                               {autoparal_fw: [ion_fw], ion_fw: [ioncell_fw]})
+            autoparal_fw = self.create_autoparal_fw(self.ion_task, ion_fw.spec['_launch_dir'])
+            self.wf = Workflow([autoparal_fw, ion_fw, ioncell_fw, scf_fw],
+                               {autoparal_fw: [ion_fw], ion_fw: [ioncell_fw], ioncell_fw: [scf_fw]})
         else:
-            self.wf = Workflow([ion_fw, ioncell_fw], {ion_fw: [ioncell_fw]})
+            self.wf = Workflow([ion_fw, ioncell_fw, scf_fw], {ion_fw: [ioncell_fw], ioncell_fw: [scf_fw]})
 
 
 class MultiStepRelaxFWWorkflow(AbstractFWWorkflow):
@@ -155,7 +186,7 @@ class MultiStepRelaxFWWorkflow(AbstractFWWorkflow):
     """
     def __init__(self, structure, pseudos, ksampling=1000, relax_algo="atoms_only", accuracy="normal",
                  spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
-                 autoparal=False, max_restart=10, **extra_abivars):
+                 autoparal=False, max_restart=10, folder=None, **extra_abivars):
         """
         Args:
 
@@ -166,11 +197,15 @@ class MultiStepRelaxFWWorkflow(AbstractFWWorkflow):
                                               smearing=smearing, charge=charge, scf_algorithm=scf_algorithm,
                                               deps={}, additional_steps=max_restart, **extra_abivars)
 
-        fw = Firework(task)
+        spec = {}
+        if folder:
+            spec['_launch_dir'] = os.path.join(folder, 'relax')
+
+        fw = Firework(task, spec=spec)
 
         # Create the workflow
         if autoparal:
-            autoparal_fw = self.create_autoparal_fw(task)
+            autoparal_fw = self.create_autoparal_fw(task, spec['_launch_dir'])
             self.wf = Workflow([autoparal_fw, fw], {autoparal_fw: [fw]})
         else:
             self.wf = Workflow([fw])
@@ -184,19 +219,21 @@ class BandStructureFWWorkflow(AbstractFWWorkflow):
     def __init__(self, structure, pseudos, ksampling=1000, relax_algo="atoms_and_cell", accuracy="normal",
                  spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
                  use_symmetries=True, ksampling_band=8, nscf_bands=None, nscf_algorithm=None, autoparal=False,
-                 **extra_abivars):
+                 folder=None, **extra_abivars):
 
         # workflow to obtain the density
         if relax_algo in relaxation_methods.keys():
             if relax_algo == "atoms_and_cell":
                 dens_wf = RelaxFWWorkflow(structure=structure, pseudos=pseudos, ksampling=ksampling, accuracy=accuracy,
                                           spin_mode=spin_mode, smearing=smearing, charge=charge,
-                                          scf_algorithm=scf_algorithm, autoparal=autoparal, **extra_abivars)
+                                          scf_algorithm=scf_algorithm, autoparal=autoparal, folder=folder,
+                                          **extra_abivars)
                 last_task = dens_wf.ioncell_task
             else:
                 dens_wf = RelaxAtomsFWWorkflow(structure=structure, pseudos=pseudos, ksampling=ksampling,
                                                accuracy=accuracy, spin_mode=spin_mode, smearing=smearing, charge=charge,
-                                               scf_algorithm=scf_algorithm, autoparal=autoparal, **extra_abivars)
+                                               scf_algorithm=scf_algorithm, autoparal=autoparal, folder=folder,
+                                               **extra_abivars)
                 last_task = dens_wf.task
             deps = {id(last_task): 'DEN structure'}
         else:
@@ -205,7 +242,7 @@ class BandStructureFWWorkflow(AbstractFWWorkflow):
 
             dens_wf = ScfFWWorkflow(structure=structure, pseudos=pseudos, ksampling=ksampling, accuracy=accuracy,
                                     spin_mode=spin_mode, smearing=smearing, charge=charge, scf_algorithm=scf_algorithm,
-                                    use_symmetries=use_symmetries, autoparal=autoparal, **extra_abivars)
+                                    use_symmetries=use_symmetries, autoparal=autoparal, folder=folder, **extra_abivars)
             last_task = dens_wf.task
             deps = {id(last_task): 'DEN'}
 
@@ -217,7 +254,12 @@ class BandStructureFWWorkflow(AbstractFWWorkflow):
         # Create the nscf FW
         nscf_task = NscfStrategyFireTask(scf_task=last_task, ksampling=ksampling_band, nscf_bands=nscf_bands,
                                          nscf_algorithm=nscf_algorithm, deps=deps, **extra_abivars)
-        nscf_fw = Firework(nscf_task)
+
+        spec = {'create_file': 'band_structure'}
+        if folder:
+            spec['_launch_dir'] = os.path.join(folder, 'band_structure')
+
+        nscf_fw = Firework(nscf_task, spec=spec)
 
         # Expand the first part to get the proper list of FWs and links
         fws, links = parse_workflow([dens_wf.wf, nscf_fw], {dens_wf.wf: [nscf_fw]})
