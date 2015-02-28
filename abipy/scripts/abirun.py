@@ -117,7 +117,10 @@ def main():
 Usage example:\n
 
     abirun.py [FLOWDIR] rapid                    => Keep repeating, stop when no task can be executed.
-    abirun.py [FLOWDIR] gui                      => Open the GUI .
+    abirun.py [FLOWDIR] scheduler                => Execute flow with the scheduler
+    abirun.py [FLOWDIR] events                   => Print ABINIT events (Warning/Error/Comment)
+    abirun.py [FLOWDIR] history                  => Print Task history.
+    abirun.py [FLOWDIR] gui                      => Open the GUI.
     abirun.py [FLOWDIR] manager slurm            => Document the TaskManager options availabe for Slurm.
     abirun.py [FLOWDIR] manager script           => Show the job script that will be produced.
     nohup abirun.py [FLOWDIR] sheduler -s 30 &   => Start the scheduler to schedule task submission.
@@ -188,8 +191,8 @@ Usage example:\n
     parser.add_argument('--loglevel', default="ERROR", type=str,
                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
-    parser.add_argument('path', nargs="?", help=("File or directory containing the ABINIT flow"
-                                                 "If not given, the first flow in the current workdir is selected"))
+    parser.add_argument('flowdir', nargs="?", help=("File or directory containing the ABINIT flow"
+                                                    "If not given, the first flow in the current workdir is selected"))
 
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
@@ -290,6 +293,7 @@ Specify the files to open. Possible choices:
     #p_events.add_argument("-t", "event-type", default=)
 
     p_history = subparsers.add_parser('history', parents=[flow_selector_parser], help="Show Node history.")
+    p_history.add_argument("-m", "--metadata", action="store_true", default=False, help="Print history metadata")
     #p_history.add_argument("-t", "event-type", default=)
 
     p_notebook = subparsers.add_parser('notebook', help="Create and open an ipython notebook to interact with the flow.")
@@ -346,11 +350,11 @@ Specify the files to open. Possible choices:
         sys.exit(0)
 
     # Read the flow from the pickle database.
-    if options.path is None:
+    if options.flowdir is None:
         # Will try to figure out the location of the Flow.
-        options.path = os.getcwd()
+        options.flowdir = os.getcwd()
 
-    flow = abilab.Flow.pickle_load(options.path, remove_lock=options.remove_lock)
+    flow = abilab.Flow.pickle_load(options.flowdir, remove_lock=options.remove_lock)
     retcode = 0
 
     if options.command == "gui":
@@ -385,8 +389,7 @@ Specify the files to open. Possible choices:
 
     elif options.command == "history":
         for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
-            for log in task.history:
-                print(log)
+            print(task.history.to_string(metadata=options.metadata))
 
     elif options.command in ("single", "singleshot"):
         nlaunch = PyLauncher(flow).single_shot()
