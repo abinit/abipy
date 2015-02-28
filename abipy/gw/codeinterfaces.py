@@ -356,6 +356,7 @@ class AbinitInterface(AbstractCodeInterface):
             else:
                 raise Exception
             gwgap = data.read_value('egwgap')[0][0]
+            #gwgap = min(data.read_value('egwgap')[0])
             if not isinstance(gwgap, float):
                 raise Exception
             results = {'ecuteps': float(Ha_to_eV * ecuteps),
