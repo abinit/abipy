@@ -300,6 +300,18 @@ Specify the files to open. Possible choices:
 
     p_embed = subparsers.add_parser('ipython', help="Embed IPython. Useful for advanced operations or debugging purposes.")
 
+    p_tar = subparsers.add_parser('tar', help="Create tarball file.")
+    p_tar.add_argument("-s", "--max-filesize", default=None, 
+                       help="Exclude file whose size > max-filesize bytes. Accept integer or string e.g `1Mb`.")
+
+    def parse_strings(s): return s.split(",") if s is not None else s
+
+    p_tar.add_argument("-e", "--exclude-exts", default=None, type=parse_strings,
+                       help="Exclude file extensions. Accept string or comma-separated strings. Ex: -eWFK or --exclude-exts=WFK,GSR")
+
+    p_tar.add_argument("-d", "--exclude-dirs", default=None, type=parse_strings,
+                       help="Exclude directories. Accept string or comma-separated strings. Ex: --exlude-dirs=indir,outdir")
+
     # Parse command line.
     try:
         options = parser.parse_args()
@@ -614,6 +626,16 @@ Specify the files to open. Possible choices:
         import IPython
         #IPython.embed(header="")
         IPython.start_ipython(argv=[], user_ns={"flow": flow})# , header="flow.show_status()")
+
+    elif options.command == "tar":
+        tarfile = flow.make_tarfile(name=None, 
+                                    max_filesize=options.max_filesize, 
+                                    exclude_exts=options.exclude_exts, 
+                                    exclude_dirs=options.exclude_dirs,
+                                    verbose=options.verbose)
+
+        print("Created tarball file %s" % tarfile.name)
+        tarfile.close()
 
     else:
         raise RuntimeError("Don't know what to do with command %s!" % options.command)
