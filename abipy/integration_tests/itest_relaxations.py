@@ -114,7 +114,10 @@ def make_ion_ioncell_inputs(tvars, dilatmx=1.01):
     structure = abilab.Structure.from_file(cif_file)
 
     # Perturb the structure (random perturbation of 0.1 Angstrom)
-    structure.perturb(distance=0.01)
+    #structure.perturb(distance=0.01)
+
+    # Compress the lattice so that ABINIT complains about dilatmx
+    structure.scale_lattice(structure.volume * 0.9)
 
     pseudos = abidata.pseudos("14si.pspnc")
 
@@ -161,23 +164,26 @@ def make_ion_ioncell_inputs(tvars, dilatmx=1.01):
     return ion_inp, ioncell_inp
 
 
-def itest_atoms_cell_relaxation(fwp, tvars):
+def itest_dilatmx_error_handler(fwp, tvars):
      """
-     Test atoms + cell relaxation with automatic restart and dilatmax error.
+     Test cell relaxation with automatic restart and dilatmax error.
      """
      # Build the flow
      flow = abilab.Flow(fwp.workdir, manager=fwp.manager)
  
-     ion_input, ioncell_input = make_ion_ioncell_inputs(tvars)
-     flow.register_work(abilab.RelaxWork(ion_input, ioncell_input))
+     ion_input, ioncell_input = make_ion_ioncell_inputs(tvars, dilatmx=1.001)
+     work = abilab.Work()
+     work.register_relax_task(ioncell_input)
+     #flow.register_work(abilab.RelaxWork(ion_input, ioncell_input))
  
+     flow.register_work(work)
      flow.allocate()
      flow.build_and_pickle_dump()
 
      flow.make_scheduler().start()
  
      # Run t0, and check status
-     #t0 = work[0]
+     t0 = work[0]
      #t0.start_and_wait()
      #assert t0.returncode == 0
      #t0.check_status()
@@ -211,6 +217,8 @@ def itest_atoms_cell_relaxation(fwp, tvars):
      flow.show_status()
      assert all(work.finalized for work in flow)
      assert flow.all_ok
+
+     #assert t0.num_corrections == 1 and DilatmxFixer in t0.corrections
  
      ## post-processing tools
      #t0.inspect(show=False)
