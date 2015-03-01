@@ -70,7 +70,7 @@ def itest_atomic_relaxation(fwp, tvars):
     assert t0.status == t0.S_UNCONVERGED
 
     assert t0.initial_structure == ion_input.structure
-    unconverged_structure = t0.read_final_structure() 
+    unconverged_structure = t0.get_final_structure() 
     assert unconverged_structure != t0.initial_structure 
 
     # Remove ntime from the input so that the next run will
@@ -91,7 +91,7 @@ def itest_atomic_relaxation(fwp, tvars):
     t0.check_status()
     assert t0.status == t0.S_OK
 
-    final_structure = t0.read_final_structure()
+    final_structure = t0.get_final_structure()
     assert final_structure != unconverged_structure
 
     flow.show_status()
@@ -107,6 +107,8 @@ def itest_atomic_relaxation(fwp, tvars):
     with t0.open_gsr() as gsr:
         print(gsr)
         gsr.pressure == 1.8280
+
+    t0.get_results()
 
 
 def make_ion_ioncell_inputs(tvars, dilatmx=1.01):
@@ -190,7 +192,7 @@ def itest_dilatmx_error_handler(fwp, tvars):
      #assert t0.status == t0.S_UNCONVERGED
  
      #assert t0.initial_structure == ion_input.structure
-     #unconverged_structure = t0.read_final_structure() 
+     #unconverged_structure = t0.get_final_structure() 
      #assert unconverged_structure != t0.initial_structure 
  
      ## Remove ntime from the input so that the next run will
@@ -211,7 +213,7 @@ def itest_dilatmx_error_handler(fwp, tvars):
      #t0.check_status()
      #assert t0.status == t0.S_OK
  
-     #final_structure = t0.read_final_structure()
+     #final_structure = t0.get_final_structure()
      #assert final_structure != unconverged_structure
  
      flow.show_status()

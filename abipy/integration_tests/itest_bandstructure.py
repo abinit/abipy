@@ -109,6 +109,13 @@ def itest_unconverged_scf(fwp, tvars):
     flow.show_status()
     assert flow.all_ok
 
+    # Test inspect methods
+    t0.inspect(show=False)
+
+    # Test get_results
+    t0.get_results()
+    t1.get_results()
+
     # Build tarball file.
     #tarfile = flow.make_tarfile()
     #tarfile.close()

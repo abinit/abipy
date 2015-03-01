@@ -37,7 +37,7 @@ def bench_main(main):
         parser.add_argument('--paw', default=False, action="store_true", help="Run PAW calculation if present")
         parser.add_argument('--paral_kgb', default=1, type=int, help="paral_kgb input variable")
 
-        parser.add_argument("--sched", default=False, action="store_true", help="Scheduler or rapidfire mode")
+        parser.add_argument("--scheduler", "-s", default=False, action="store_true", help="Run with the scheduler")
 
         options = parser.parse_args()
 
@@ -57,6 +57,11 @@ def bench_main(main):
             options.mpi_range = range(t[0], t[1], t[2])
             #print(lst(options.mpi_range))
 
-        return main(options)
+        flow = main(options)
+
+        if options.scheduler:
+            flow.make_scheduler().start()
+
+        return 0
 
     return wrapper

@@ -119,6 +119,13 @@ def itest_phonon_flow(fwp, tvars):
                                      cwd=flow.outdir.path)
     assert ddb_path == out_ddb
 
+    # Test PhononTask inspect method
+    ph_task = flow[1][0]
+    ph_task.inspect(show=False)
+
+    # Test get_results
+    ph_task.get_results()
+
     # Build new work with Anaddb tasks.
     # Construct a manager with mpi_procs==1 since anaddb do not support mpi_procs > 1 (except in elphon)
     shell_manager = fwp.manager.to_shell_manager(mpi_procs=1)
