@@ -31,20 +31,20 @@ import abipy.abilab as abilab
 #from pymatgen import *
 from abipy.abilab import *
 
-abi_builtins = [n for n in dir(abilab) if not n.startswith("_")]
-               #[n for n in dir(pymatgen) if not n.startswith("_")] + \
+_abi_builtins_ = [n for n in dir(abilab) if not n.startswith("_")]
+                 #[n for n in dir(pymatgen) if not n.startswith("_")] + \
 del abilab #, pymatgen
 
-abi_builtins = sorted(set(abi_builtins))
+_abi_builtins_ = sorted(set(_abi_builtins_))
 
 import textwrap
-banner = textwrap.fill(str(abi_builtins), width=70)
+banner = textwrap.fill(str(_abi_builtins_), width=70)
 del textwrap
 
-banner = ("Custom ipython environment for abipy. Useful aliases such as:\n" + 
-          banner + "\n" + 
+banner = ("Custom ipython environment for abipy. Useful aliases such as abiopen:\n" + 
+          #banner + "\n" + 
           "have been loaded.\n" + 
-          "Type abi_builtins to get the complete list."
+          "Type _abi_builtins_ to get the complete list."
           )
 
 ipshell = InteractiveShellEmbed(
