@@ -159,7 +159,6 @@ Usage example:\n
         s = as_slice(s)
         if s is None: return s
         if s.stop is None: raise argparse.ArgumentTypeError("stop must be specified")
-        #return list(range(s.start, s.stop, s.step))
         return s
 
     # Parent parser for commands that need to know on which subset of tasks/workflows we have to operate.
@@ -171,12 +170,13 @@ Usage example:\n
         "Examples: --nids=12 --nids=12,13,16 --nids=10:12 to select 10 and 11, --nids=2:5:2 to select 2,4"  
         ))
 
-    group.add_argument('--wslice', default=None, type=parse_wslice, 
+    group.add_argument("-w", '--wslice', default=None, type=parse_wslice, 
                                       help=("Select the list of works to analyze (python syntax for slices):"
                                       "Examples: --wslice=1 to select the second workflow, --wslice=:3 for 0,1,2,"
                                       "--wslice=-1 for the last workflow, --wslice::2 for even indices"))
 
-    #group.add_argument("-s", '--node-status', default=None, type=parse_wslice, 
+    #group.add_argument("-p", "--task-pos", default=None, type=parse_wslice, help="List of tuples with the position of the tasl in the flow.")
+    #group.add_argument("-s", '--task-status', default=None, type=parse_wslice, help="Select only the tasks with the given status.")
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -281,8 +281,6 @@ Specify the files to open. Possible choices:
     p_inspect = subparsers.add_parser('inspect', parents=[flow_selector_parser], help="Inspect the tasks")
 
     p_inputs= subparsers.add_parser('inputs', parents=[flow_selector_parser], help="Show the input files of the tasks")
-
-    p_analyze= subparsers.add_parser('analyze', help="Analyze the results produced by the flow.")
 
     p_manager = subparsers.add_parser('manager', help="Document the TaskManager options")
     p_manager.add_argument("qtype", nargs="?", default=None, help=("Write job script to terminal if qtype='script' else" 
@@ -612,12 +610,6 @@ Specify the files to open. Possible choices:
 
     elif options.command == "inputs":
         flow.show_inputs(nids=selected_nids(flow, options))
-
-    elif options.command == "analyze":
-        if not hasattr(flow, "analyze"):
-            cprint("Flow does not provide the `analyze` method!", "red")
-            return 1
-        flow.analyze()
 
     elif options.command == "notebook":
         write_notebook(flow, options)
