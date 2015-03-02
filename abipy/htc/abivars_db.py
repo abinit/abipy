@@ -266,18 +266,20 @@ class VariableDatabase(OrderedDict):
 
     @lazy_property
     def characteristics(self):
+        """List of characteristics."""
         from abipy import data as abidata
         with open(abidata.var_file('characteristics.yml'),'r') as f:
             return yaml.load(f)
     
     @lazy_property
     def sections(self):
+        """List of sections"""
         from abipy import data as abidata
         with open(abidata.var_file('sections.yml'),'r') as f:
             return yaml.load(f)
 
     def apropos(self, varname):
-        """Return the list of variables that are related` to the given varname"""
+        """Return the list of :class:`Variable` objects that are related` to the given varname"""
         vars = []
         for v in self.values():
             if (varname in v.text or 
@@ -289,6 +291,10 @@ class VariableDatabase(OrderedDict):
         return vars
 
     def vars_with_section(self, sections):
+        """
+        List of :class:`Variable` assocated to the given sections.
+        sections can be a string or a list of strings.
+        """
         sections = set(list_strings(sections))
         vars = []
         for v in self.values():
@@ -297,6 +303,10 @@ class VariableDatabase(OrderedDict):
         return vars
 
     def vars_with_char(self, chars):
+        """
+        List of :class:`Variable` with the specified characteristic.
+        chars can be a string or a list of strings.
+        """
         chars = set(list_strings(chars))
         vars = []
         for v in self.values():

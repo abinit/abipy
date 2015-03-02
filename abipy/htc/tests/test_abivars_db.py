@@ -11,6 +11,7 @@ def test_database():
     var = database["cd_frqim_method"]
     print(var)
 
+    # Print all variables in the database.
     for name, var in database.items():
         print("testing variable: ", name)
         print(repr(var))
