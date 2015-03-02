@@ -185,10 +185,9 @@ def itest_dilatmx_error_handler(fwp, tvars):
      assert all(work.finalized for work in flow)
      assert flow.all_ok
  
-     # t0 should have reached S_OK, and we should two DilatmxError in the corrections.
+     # t0 should have reached S_OK, and we should have DilatmxError in the corrections.
      t0 = work[0]
      assert t0.status == t0.S_OK
      print(t0.corrections)
-     assert t0.num_corrections == 2
-     for i in range(t0.num_corrections):
-        assert t0.corrections[i]["event"]["@class"] == "DilatmxError"
+     assert t0.num_corrections == 1
+     assert t0.corrections[0]["event"]["@class"] == "DilatmxError"

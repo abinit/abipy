@@ -117,8 +117,8 @@ def itest_unconverged_scf(fwp, tvars):
     t1.get_results()
 
     # Build tarball file.
-    #tarfile = flow.make_tarfile()
-    #tarfile.close()
+    tarfile = flow.make_tarfile()
+    tarfile.close()
 
     #assert flow.validate_json_schema()
 

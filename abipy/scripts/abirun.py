@@ -24,6 +24,13 @@ def straceback():
     return traceback.format_exc()
 
 
+# TODO: Add banner function to monty.
+def make_banner(s, width=92, mark="*"):
+    banner = marquee(s, width=width, mark=mark)
+    banner = "\n" + len(banner) * mark + "\n" + banner + "\n" + len(banner) * mark
+    return banner
+
+
 def as_slice(obj):
     """
     Convert an integer, a string or a slice object into slice.
@@ -291,6 +298,8 @@ Specify the files to open. Possible choices:
                                     help="Show ABINIT events (error messages, warnings, comments)")
     #p_events.add_argument("-t", "event-type", default=)
 
+    p_corrections = subparsers.add_parser('corrections', parents=[flow_selector_parser], help="Show abipy corrections")
+
     p_history = subparsers.add_parser('history', parents=[flow_selector_parser], help="Show Node history.")
     p_history.add_argument("-m", "--metadata", action="store_true", default=False, help="Print history metadata")
     #p_history.add_argument("-t", "event-type", default=)
@@ -393,22 +402,22 @@ Specify the files to open. Possible choices:
         return flow.build_and_pickle_dump()
 
     elif options.command == "events":
-        mark = "="
         for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
             report = task.get_event_report()
             #report = report.filter_types()
-            banner = marquee(str(task), width=92, mark=mark)
-            banner = "\n" + len(banner) * mark + "\n" + banner + "\n" + len(banner) * mark
-            print(banner)
+            print(make_banner(str(task), width=92, mark="="))
             print(report)
 
-    elif options.command == "history":
-        mark = "="
+    elif options.command == "corrections":
         for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
-            # TODO: Add banner function to monty.
-            banner = marquee(str(task), width=92, mark=mark)
-            banner = "\n" + len(banner) * mark + "\n" + banner + "\n" + len(banner) * mark
-            print(banner)
+            if task.num_corrections == 0: continue
+            print(make_banner(str(task), width=92, mark="="))
+            for corr in task.corrections:
+                print(corr)
+
+    elif options.command == "history":
+        for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
+            print(make_banner(str(task), width=92, mark="="))
             print(task.history.to_string(metadata=options.metadata))
 
     elif options.command in ("single", "singleshot"):
