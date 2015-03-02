@@ -241,7 +241,14 @@ class AbiInput(Input, Has_Structure):
             d.update(self[1])
             s = d.to_string(post="")
 
-        return s
+        # Add info on pseudo potentials.
+        ppinfo = []
+        ppinfo.append("\n# Pseudopotentials:")
+        for pseudo in self.pseudos:
+            ppinfo.append("# " + repr(pseudo))
+
+        return s + "\n".join(ppinfo)
+
 
     def __getitem__(self, key):
         return self._datasets[key]

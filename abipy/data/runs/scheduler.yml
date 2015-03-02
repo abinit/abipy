@@ -26,3 +26,5 @@ seconds: 2
 # Default is 2 weeks, the scheduler will shutdown if the mail cannot be sent. 
 #REMINDME_S: 1209600
 #MAX_TIME_S:
+
+#max_ncores_used: 2

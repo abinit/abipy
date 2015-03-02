@@ -12,3 +12,9 @@ TODO LIST:
   # Check xsf_write_data
 
   # Add treatment of out-of-boundary conditions in scissors operator.
+
+  # Remove strategies, replace them with AbiInput and a flexible API 
+    with getters and setters.
+
+  # Add possibility of specifying the max number of CPUs that can be used  
+    for a flow at the level of the scheduler.
