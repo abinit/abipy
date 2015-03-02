@@ -442,6 +442,7 @@ Specify the files to open. Possible choices:
             flow.pickle_dump()
 
     elif options.command == "status":
+
         if options.delay:
             cprint("Entering infinite loop. Press CTRL+C to exit", color="magenta", end="", flush=True)
             try:
