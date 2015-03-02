@@ -172,7 +172,7 @@ def itest_dilatmx_error_handler(fwp, tvars):
      flow = abilab.Flow(fwp.workdir, manager=fwp.manager)
  
      # Decrease the volume to trigger DilatmxError
-     ion_input, ioncell_input = make_ion_ioncell_inputs(tvars, dilatmx=1.01, scalevol=0.6)
+     ion_input, ioncell_input = make_ion_ioncell_inputs(tvars, dilatmx=1.01, scalevol=0.8)
 
      work = abilab.Work()
      work.register_relax_task(ioncell_input)
@@ -185,9 +185,8 @@ def itest_dilatmx_error_handler(fwp, tvars):
      assert all(work.finalized for work in flow)
      assert flow.all_ok
  
+     # t0 should have reached S_OK, and we should two DilatmxError in the corrections.
      t0 = work[0]
- 
-     # t0 should have reached S_OK, and we should two0 DilatmxError in the corrections.
      assert t0.status == t0.S_OK
      print(t0.corrections)
      assert t0.num_corrections == 2
