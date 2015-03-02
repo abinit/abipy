@@ -20,6 +20,7 @@ from collections import OrderedDict
 from monty.dev import deprecated
 from monty.string import is_string, list_strings
 from pymatgen.core.units import Energy
+from pymatgen.serializers.json_coders import PMGSONable, pmg_serialize
 from pymatgen.io.abinitio.pseudos import PseudoTable, Pseudo
 from pymatgen.io.abinitio.tasks import TaskManager, AbinitTask
 from pymatgen.io.abinitio.netcdf import NetcdfReader
@@ -90,7 +91,7 @@ def _idt_varname(varname):
 
 
 @six.add_metaclass(abc.ABCMeta)
-class Input(object): 
+class Input(six.with_metaclass(abc.ABCMeta, PMGSONable, object)):
     """
     Base class foor Input objects.
 
@@ -213,9 +214,6 @@ class AbiInput(Input, Has_Structure):
 
         if structure is not None: self.set_structure(structure)
         if comment is not None: self.set_comment(comment)
-
-    #def make_input(self):
-    #    return str(self)
 
     def __str__(self):
         """String representation i.e. the input file read by Abinit."""
@@ -643,6 +641,7 @@ class AbiInput(Input, Has_Structure):
         for idt in self._dtset2range(dtset):
             self[idt].set_kptgw(kptgw, bdgw)
 
+    @pmg_serialize
     def as_dict(self):
         dtsets = []
         for ds in self:
@@ -651,18 +650,15 @@ class AbiInput(Input, Has_Structure):
                 if isinstance(value, np.ndarray):
                     ds_copy[key] = value.tolist()
             dtsets.append(dict(ds_copy))
-        #for ds in self:
-        #    dtsets.append(ds.as_dict())
-        d = {'pseudos': [p.as_dict() for p in self.pseudos], 'datasets': dtsets,
-             '@module': self.__class__.__module__, '@class': self.__class__.__name__}
-        return d
+        #for ds in self: dtsets.append(ds.as_dict())
+
+        return {'pseudos': [p.as_dict() for p in self.pseudos], 'datasets': dtsets}
 
     @classmethod
     def from_dict(cls, d):
-        pseudos_dict = d['pseudos']
         pseudos = []
-        for pseudo in pseudos_dict:
-            pseudos.append(Pseudo.from_file(pseudo['path']))
+        for p in d['pseudos']:
+            pseudos.append(Pseudo.from_file(p['filepath']))
 
         dtsets = d['datasets']
         abiinput = cls(pseudos, ndtset=dtsets[0]['ndtset'])
@@ -671,6 +667,7 @@ class AbiInput(Input, Has_Structure):
             abiinput.set_vars(dtset=n, **ds)
 
         return abiinput
+
 
 class Dataset(mixins.MappingMixin, Has_Structure):
     """
