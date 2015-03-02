@@ -6,3 +6,9 @@ TODO LIST:
   #. Add integration test for dilatmx error handler
 
   # Fix issue with DOJO_REPORT and PAW XML files.
+
+  # run_qptdm_flow does not work anymore
+
+  # Check xsf_write_data
+
+  # Add treatment of out-of-boundary conditions in scissors operator.

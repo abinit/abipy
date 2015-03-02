@@ -16,15 +16,6 @@ from monty.functools import lazy_property
 with open(os.path.join(os.path.dirname(__file__), "abinit_vars.json")) as fh:
     ABI_VARNAMES = json.load(fh)
 
-# Add internal variables i.e. those variables that are not declared in dtset%
-ABI_VARNAMES += [
-    "acell",
-    "xred",
-    "rprim",
-    "kptbounds",
-    "ndivsm",
-    "qpt",
-]
 
 # Unit names.
 ABI_UNITS = [
@@ -50,21 +41,22 @@ ABI_UNITS = [
 ABI_OPS = ['sqrt', 'end', '*', '/']
 
 
-
 # NEW VERSION BASED ON Yannick's database.
 
 list_specials = [
-('AUTO_FROM_PSP','Means that the value is read from the PSP file'),
-('CUDA','True if CUDA is enabled (compilation)'),
-('ETSF_IO','True if ETSF_IO is enabled (compilation)'),
-('FFTW3','True if FFTW3 is enabled (compilation)'),
-('MPI_IO','True if MPI_IO is enabled (compilation)'),
-('NPROC','Number of processors used for Abinit'),
-('PARALLEL','True if the code is compiled with MPI'),
-('SEQUENTIAL','True if the code is compiled without MPI'),
+    ('AUTO_FROM_PSP','Means that the value is read from the PSP file'),
+    ('CUDA','True if CUDA is enabled (compilation)'),
+    ('ETSF_IO','True if ETSF_IO is enabled (compilation)'),
+    ('FFTW3','True if FFTW3 is enabled (compilation)'),
+    ('MPI_IO','True if MPI_IO is enabled (compilation)'),
+    ('NPROC','Number of processors used for Abinit'),
+    ('PARALLEL','True if the code is compiled with MPI'),
+    ('SEQUENTIAL','True if the code is compiled without MPI'),
 ]
 
-class literal(str): pass
+
+class literal(str): 
+    pass
 
 def literal_unicode_representer(dumper, data):
     return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='|')
@@ -266,7 +258,7 @@ def get_abinit_variables():
             # Save object to pickle file so that can we can reload it from pickle instead of yaml (slower)
             with open(pickle_file, "wb") as fh:
                 pickle.dump(__VARS_DATABASE, fh)
-                os.chmod(pickle_file, 444)
+                os.chmod(pickle_file, 0o444)
 
     return __VARS_DATABASE
         
@@ -315,15 +307,17 @@ class VariableDatabase(OrderedDict):
                 vars.append(v)
         return vars
 
+    def json_dumps_varnames(self):
+        return json.dumps(list(self.keys()))
+
 
 def docvar(varname):
+    """Return the `Variable` object associated to this name."""
     return get_abinit_variables()[varname]
 
 
 def abinit_help(varname, info=True, stream=sys.stdout):
-    """
-    Print the abinit documentation on the ABINIT input variable `varname`
-    """
+    """Print the abinit documentation on the ABINIT input variable `varname`"""
     database = get_abinit_variables()
     if isinstance(varname, Variable): varname = varname.varname
     try:

@@ -881,6 +881,7 @@ class Dataset(mixins.MappingMixin, Has_Structure):
     @property
     def structure(self):
         """Returns the :class:`Structure` associated to this dataset."""
+        # TODO: Avoid calling Structure.from_abivars, find a way to cache the object and invalidate it.
         return Structure.from_abivars(self.allvars)
         # Cannot use lazy properties here because we may want to change the structure
 
@@ -1073,13 +1074,13 @@ class LexxParams(object):
     (see `to_abivars`). The LEXX operator will be applied only on the atomic species 
     that have been selected by calling `lexx_for_symbol`.
 
-    To perform a LEXX calculation for NiO in which the LEXX is compute only for the l=2
+    To perform a LEXX calculation for NiO in which the LEXX is computed only for the l=2
     channel of the nickel atoms:
                                                                          
     .. code-block:: python
 
         lexx_params = LexxParams(nio_structure)
-        lexx_params.lexx_for_symbol("Ni", l=2)                                                                         
+        lexx_params.lexx_for_symbol("Ni", l=2)
 
         print(lexc_params.to_abivars())
     """
@@ -1171,11 +1172,11 @@ def product_dict(d):
     ... {'bar': 2, 'foo': 4}]
     True
 
-    .. warning::
+    .. warning:
 
         Dictionaries are not ordered, therefore one cannot assume that 
         the order of the keys in the output equals the one used to loop.
-        If the order is important, one should pass a `OrderedDict` in input
+        If the order is important, one should pass a `OrderedDict` in input.
     """
     keys, vals = d.keys(), d.values()
 
