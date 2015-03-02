@@ -137,7 +137,7 @@ class Input(six.with_metaclass(abc.ABCMeta, PMGSONable, object)):
     #    for idt in self._dtset2range(dtset):
     #        self[idt].set_vars(**vars)
 
-    #def remove_vars(self, keys, dtset=0):
+    #def pop_vars(self, keys, dtset=0):
     #    """
     #    Remove the variable listed in keys
     #                                                                         
@@ -919,10 +919,7 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         """
         shiftk = np.reshape(shiftk, (-1,3))
         
-        self.set_vars(ngkpt=ngkpt,
-                      kptopt=kptopt,
-                      nshiftk=len(shiftk),
-                      shiftk=shiftk)
+        self.set_vars(ngkpt=ngkpt, kptopt=kptopt, nshiftk=len(shiftk), shiftk=shiftk)
 
     def set_autokmesh(self, nksmall, kptopt=1):
         """
@@ -935,9 +932,7 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         shiftk = self.structure.calc_shiftk()
         
         self.set_vars(ngkpt=self.structure.calc_ngkpt(nksmall),
-                      kptopt=kptopt,
-                      nshiftk=len(shiftk),
-                      shiftk=shiftk)
+                      kptopt=kptopt, nshiftk=len(shiftk), shiftk=shiftk)
 
     def set_kpath(self, ndivsm, kptbounds=None, iscf=-2):
         """
@@ -953,10 +948,8 @@ class Dataset(mixins.MappingMixin, Has_Structure):
 
         kptbounds = np.reshape(kptbounds, (-1,3))
 
-        self.set_vars(kptbounds=kptbounds,
-                      kptopt=-(len(kptbounds)-1),
-                      ndivsm=ndivsm,
-                      iscf=iscf)
+        self.set_vars(kptbounds=kptbounds, kptopt=-(len(kptbounds)-1),
+                      ndivsm=ndivsm, iscf=iscf)
 
     def set_kptgw(self, kptgw, bdgw):
         """
@@ -1204,7 +1197,6 @@ def product_dict(d):
 
 class AnaddbInput(mixins.MappingMixin, Has_Structure):
     #TODO: Abstract interface so that we can provide tools for AbinitInput and AnaddbInput
-    #removevariable
     Error = InputError
 
     @classmethod

@@ -13,6 +13,7 @@ import time
 from pprint import pprint
 from monty import termcolor
 from monty.termcolor import cprint
+from monty.string import marquee
 from pymatgen.io.abinitio.launcher import PyFlowScheduler, PyLauncher
 import abipy.abilab as abilab
 
@@ -392,13 +393,22 @@ Specify the files to open. Possible choices:
         return flow.build_and_pickle_dump()
 
     elif options.command == "events":
+        mark = "="
         for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
             report = task.get_event_report()
             #report = report.filter_types()
+            banner = marquee(str(task), width=92, mark=mark)
+            banner = "\n" + len(banner) * mark + "\n" + banner + "\n" + len(banner) * mark
+            print(banner)
             print(report)
 
     elif options.command == "history":
+        mark = "="
         for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
+            # TODO: Add banner function to monty.
+            banner = marquee(str(task), width=92, mark=mark)
+            banner = "\n" + len(banner) * mark + "\n" + banner + "\n" + len(banner) * mark
+            print(banner)
             print(task.history.to_string(metadata=options.metadata))
 
     elif options.command in ("single", "singleshot"):
