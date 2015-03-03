@@ -461,7 +461,7 @@ Specify the files to open. Possible choices:
             count += 1
             print(make_banner(str(task), width=ncols, mark="="))
             for corr in task.corrections:
-                print(corr)
+                pprint(corr)
 
         if not count: 
             print("No correction found.")
