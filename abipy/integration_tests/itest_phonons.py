@@ -99,8 +99,7 @@ def itest_phonon_flow(fwp, tvars):
             task.start_and_wait()
             assert task.status == t0.S_DONE
 
-    flow.check_status()
-    flow.show_status()
+    flow.check_status(show=True)
 
     # We should have a DDB files with IFC(q) in work.outdir
     ddb_files = []
@@ -150,7 +149,7 @@ def itest_phonon_flow(fwp, tvars):
     flow.build()
 
     for i, atask in enumerate(awork):
-        print("about to run anaddb task: %d" % i)
+        atask.history.info("about to run anaddb task: %d", i)
         atask.start_and_wait()
         assert atask.status == atask.S_DONE
         atask.check_status()

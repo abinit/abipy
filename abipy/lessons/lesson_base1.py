@@ -38,13 +38,15 @@ def analyze_flow(flow):
     def hh_dist(gsr):
         """This function receives a GSR file and computes the H-H distance"""
         cart_coords = gsr.structure.cart_coords
-        l = np.sqrt(np.linalg.norm(cart_coords[1] - cart_coords[0]))
+        l = np.sqrt(np.dot(cart_coords[1] - cart_coords[0]))
         return "hh_dist", l
 
     with abilab.abirobot(flow, "GSR") as robot:
         table = robot.get_dataframe(funcs=hh_dist)
         print(table)
         #robot.ebands_plotter().plot()
+
+    return table
 
 
 def build_flow():
