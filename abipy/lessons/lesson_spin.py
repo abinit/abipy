@@ -89,8 +89,6 @@ def gs_flow():
         print(data)
         robot.pairplot(x_vars="nsppol", y_vars=["energy", "a", "volume", "pressure"])
 
-    return
-
     #gstask_nospin, gstask_spin = flow[0][0], flow[0][1] 
     #data = abilab.PrettyTable(["property", "unpolarized", "polarized"])
     #with gstask_nospin.open_gsr() as gsr_nospin, gstask_spin.open_gsr() as gsr_spin:
@@ -127,7 +125,7 @@ def afm_flow():
 def tantalum_gsinput(nspinor=2):
     #  Single Ta atom in a big box (BCC), treated with spin-orbit coupling.
     inp = abilab.AbiInput(pseudos=abidata.pseudos("73ta.hghsc"))
-    structure = abilab.Structure.from_abivars(dict(
+    structure = abilab.Structure.from_abivars(
         natom=1,
         ntypat=1,
         typat=[1],
@@ -137,7 +135,7 @@ def tantalum_gsinput(nspinor=2):
                -0.5,  0.5,  0.5,
                 0.5, -0.5,  0.5],
         xred=[0.0, 0.0, 0.0]
-        ))
+    )
     inp.set_structure(structure)
 
     inp.set_kmesh(ngkpt=[1, 1, 1], shiftk=[0.0, 0.0, 0.0])

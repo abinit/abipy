@@ -154,7 +154,7 @@ def itest_bandstructure_flow(fwp, tvars):
     assert not flow.all_ok
     assert flow.ncores_reserved == 0
     assert flow.ncores_allocated == 0
-    assert flow.ncores_inuse == 0
+    assert flow.ncores_used == 0
     flow.check_dependencies()
     flow.show_status()
     flow.show_receivers()
