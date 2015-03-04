@@ -88,10 +88,9 @@ def build_flow(options):
     #bands_work = abilab.BandStructureWork(scf_input, nscf_input)
     bands_work = abilab.Work()
     deps = {relax_work[-1]: "@structure"}
+    #deps = {relax_work[-1]: ["DEN", "@structure"]}  --> This is not possible because the file ext is changed!
+    #deps = {relax_work[-1]: ["WFK", "@structure"]}  --> This triggers an infamous bug in abinit
     bands_work.register_relax_task(ioncell_inp, deps=deps)
-    #bands_work.add_deps({relax_work[-1]: "DEN"})
-    #bands_work.add_deps({relax_work[-1]: "WFK"})
-    #bands_work.add_deps(
     flow.register_work(bands_work)
 
     return flow.allocate()

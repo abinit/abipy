@@ -13,8 +13,9 @@ import time
 from pprint import pprint
 from monty import termcolor
 from monty.termcolor import cprint
-from monty.string import marquee
+from monty.string import make_banner
 from pymatgen.io.abinitio.launcher import PyFlowScheduler, PyLauncher
+from pymatgen.io.abinitio.events import autodoc_event_handlers
 import abipy.abilab as abilab
 
 
@@ -22,14 +23,6 @@ def straceback():
     """Returns a string with the traceback."""
     import traceback
     return traceback.format_exc()
-
-
-# TODO: Add banner function to monty.
-def make_banner(s, width=92, mark="*"):
-    banner = marquee(s, width=width, mark=mark)
-    banner = "\n" + len(banner) * mark + "\n" + banner + "\n" + len(banner) * mark
-    return banner
-
 
 def get_terminal_size():
     """"http://stackoverflow.com/questions/566746/how-to-get-console-window-width-in-python"""
@@ -343,6 +336,10 @@ Specify the files to open. Possible choices:
     p_history.add_argument("-m", "--metadata", action="store_true", default=False, help="Print history metadata")
     #p_history.add_argument("-t", "event-type", default=)
 
+    p_handlers = subparsers.add_parser('handlers', help="Show event handlers installed in the flow")
+    p_handlers.add_argument("-d", "--doc", action="store_true", default=False, 
+                            help="Show documentation about all the handlers that can be installed.")
+
     p_notebook = subparsers.add_parser('notebook', help="Create and open an ipython notebook to interact with the flow.")
 
     p_embed = subparsers.add_parser('ipython', help="Embed IPython. Useful for advanced operations or debugging purposes.")
@@ -470,6 +467,12 @@ Specify the files to open. Possible choices:
         for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
             print(make_banner(str(task), width=ncols, mark="="))
             print(task.history.to_string(metadata=options.metadata))
+
+    elif options.command == "handlers":
+        if options.doc:
+            autodoc_event_handlers()
+        else:
+            flow.show_event_handlers()
 
     elif options.command in ("single", "singleshot"):
         nlaunch = PyLauncher(flow).single_shot()
