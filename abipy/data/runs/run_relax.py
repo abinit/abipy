@@ -82,10 +82,18 @@ def build_flow(options):
     # Create a relaxation work and add it to the flow.
     ion_inp, ioncell_inp = make_ion_ioncell_inputs()
 
-    work = abilab.RelaxWork(ion_inp, ioncell_inp)
-    flow.register_work(work)
+    relax_work = abilab.RelaxWork(ion_inp, ioncell_inp)
+    flow.register_work(relax_work)
 
     #bands_work = abilab.BandStructureWork(scf_input, nscf_input)
+    bands_work = abilab.Work()
+    deps = {relax_work[-1]: "@structure"}
+    bands_work.register_relax_task(ioncell_inp, deps=deps)
+    #bands_work.add_deps({relax_work[-1]: "DEN"})
+    #bands_work.add_deps({relax_work[-1]: "WFK"})
+    #bands_work.add_deps(
+    flow.register_work(bands_work)
+
     return flow.allocate()
 
 

@@ -195,14 +195,14 @@ class AbiFireTask(FireTaskBase):
                 pass
             pseudo_path = os.path.expandvars(pseudo['path'])
             pseudos.append(PseudoParser().parse(pseudo_path))
-        abiintput = abilab.AbiInput(pseudos, ndtset=dtsets[0]['ndtset'])
+        abiinput = abilab.AbiInput(pseudos, ndtset=dtsets[0]['ndtset'])
         n = 0
         for ds in dtsets:
             #TODO save and set explicitly the structure object?
-            abiintput.set_variables(dtset=n, **ds)
+            abiintput.set_vars(dtset=n, **ds)
             n += 1
 
-        return abiintput
+        return abiinput
 
     @classmethod
     def _basic_from_dict(cls, m_dict):
