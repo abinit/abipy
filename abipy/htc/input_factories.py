@@ -253,3 +253,76 @@ def g0w0_with_ppmodel_input(structure, pseudos, scf_kppa, nscf_nband, ecuteps, e
     inp.set_vars(istwfk="*1")
 
     return inp
+
+#TODO
+#def g0w0_extended_work(structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx, scf_nband, accuracy="normal",
+
+
+def bse_with_mdf_input(structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk, 
+                       ecuteps, bs_loband, bs_nband, soenergy, mdf_epsinf, 
+                       exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="polarized", 
+                       smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
+    """
+    Returns a :class:`AbiInput` object that performs a GS + NSCF + Bethe-Salpeter calculation.
+    The self-energy corrections are approximated with the scissors operator.
+    The screening in modeled with the model dielectric function.
+
+    Args:
+        structure: :class:`Structure` object.
+        pseudos: List of `Pseudo` objects.
+        scf_kppa: Defines the sampling used for the SCF run.
+        nscf_nband: Number of bands included in the NSCF run.
+        nscf_ngkpt: Divisions of the k-mesh used for the NSCF and the BSE run.
+        nscf_shiftk: Shifts used for the NSCF and the BSE run.
+        ecuteps: Cutoff energy [Ha] for the screening matrix.
+        bs_loband: Index of the first occupied band included the e-h basis set
+            (ABINIT convention i.e. first band starts at 1).
+            Can be scalar or array of shape (nsppol,)
+        bs_nband: Highest band idex used for the construction of the e-h basis set.
+        soenergy: Scissor energy in Hartree.
+        mdf_epsinf: Value of the macroscopic dielectric function used in expression for the model dielectric function.
+        exc_type: Approximation used for the BSE Hamiltonian (Tamm-Dancoff or coupling).
+        bs_algo: Algorith for the computatio of the macroscopic dielectric function.
+        accuracy: Accuracy of the calculation.
+        spin_mode: Spin polarization.
+        smearing: Smearing technique.
+        charge: Electronic charge added to the unit cell.
+        scf_algorithm: Algorithm used for solving the SCF cycle.
+    """
+    inp = AbiInput(pseudos, ndtset=3)
+    inp.set_structure(structure)
+
+    # Ground-state 
+    scf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
+
+    scf_electrons = Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
+                              charge=charge) #, nband=None, fband=None)
+
+    inp[1].set_vars(scf_ksampling.to_abivars())
+    inp[1].set_vars(scf_electrons.to_abivars())
+    inp[1].set_vars(stopping_criterion("scf", accuracy))
+
+    # NSCF calculation with the randomly-shifted k-mesh.
+    nscf_ksampling = KSampling.monkhorst(nscf_ngkpt, shiftk=nscf_shiftk, chksymbreak=0)
+
+    nscf_electrons = Electrons(spin_mode=spin_mode, smearing=smearing, algorithm={"iscf": -2},
+                               charge=charge, nband=nscf_nband) # fband=None)
+
+    inp[2].set_vars(nscf_ksampling.to_abivars())
+    inp[2].set_vars(nscf_electrons.to_abivars())
+    inp[2].set_vars(stopping_criterion("nscf", accuracy))
+
+    # BSE calculation.
+    exc_ham = ExcHamiltonian(bs_loband, bs_nband, soenergy, coulomb_mode="model_df", ecuteps=ecuteps, 
+                             spin_mode=spin_mode, mdf_epsinf=mdf_epsinf, exc_type=exc_type, algo=bs_algo,
+                             bs_freq_mesh=None, with_lf=True, zcut=None)
+
+    inp[3].set_vars(nscf_ksampling.to_abivars())
+    inp[3].set_vars(nscf_electrons.to_abivars())
+    inp[3].set_vars(exc_ham.to_abivars())
+    #inp[3].set_vars(stopping_criterion("nscf", accuracy))
+
+    # TODO: Cannot use istwfk != 1.
+    inp.set_vars(istwfk="*1")
+
+    return inp
