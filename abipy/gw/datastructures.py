@@ -610,10 +610,10 @@ class GWSpecs(AbstractAbinitioSpec):
             #todo remove the workfolders
 
 
-class PhononSpecs(AbstractAbinitioSpec):
-    """
-    under construction
-    """
+#class PhononSpecs(AbstractAbinitioSpec):
+#    """
+#    under construction
+#    """
 
 
 class GWConvergenceData():
@@ -927,7 +927,7 @@ def get_spec(comp_type):
     """
     Main entry point
     """
-    return {'GW': GWSpecs(), 'phonons': PhononSpecs()}[comp_type]
+    return {'GW': GWSpecs()}[comp_type]
 
 
 def get_convergence_data_structure(comp_type, spec, structure):
