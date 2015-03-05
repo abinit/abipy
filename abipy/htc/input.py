@@ -396,7 +396,7 @@ class AbiInput(Input, Has_Structure):
     
         return news
 
-    def set_vars(self, dtset=0, *args, **kwargs):
+    def set_vars(self, *args, **kwargs):
         """
         Set the value of a set of input variables.
 
@@ -404,6 +404,7 @@ class AbiInput(Input, Has_Structure):
             dtset: Int with the index of the dataset, slice object of iterable 
             kwargs: Dictionary with the variables.
         """
+        dtset = kwargs.pop("dtset", 0)
         kwargs.update(dict(*args))
         for idt in self._dtset2range(dtset):
             self[idt].set_vars(**kwargs)
