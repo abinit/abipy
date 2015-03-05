@@ -11,7 +11,7 @@ seconds: 2
 # when to first execute the job and start the counter (default is after the given interval).
 #start_date:
 # Send mail to the specified address (accepts string or list of strings).
-mailto: matteo.giantomassi@uclouvain.be
+#mailto: matteo.giantomassi@uclouvain.be
 #True if the task manager must be re-initialized from 
 #file before launching the jobs. Default: False
 #use_dynamic_manager: False
