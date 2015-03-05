@@ -247,7 +247,6 @@ class AbiInput(Input, Has_Structure):
 
         return s + "\n".join(ppinfo)
 
-
     def __getitem__(self, key):
         return self._datasets[key]
 
@@ -333,6 +332,8 @@ class AbiInput(Input, Has_Structure):
     def is_abivar(self, varname):
         """True if varname is a valid Abinit variable."""
         return is_abivar(varname)
+
+    #def add_dataset(self, *args, **kwargs):
 
     def new_with_vars(self, *args, **kwargs):
         """Generate a new input (deep copy) with these variables"""
