@@ -3,7 +3,7 @@ machine:
     version: 2.7.8
 dependenciees:
   only:
-     - master # list of branches to build
+     - none # list of branches to build
   ovyerride:
     - easy_install -U setuptools
     - pip install distribute --upgrade

@@ -109,6 +109,16 @@ def itest_unconverged_scf(fwp, tvars):
     flow.show_status()
     assert flow.all_ok
 
+    # Test inspect methods
+    t0.inspect(show=False)
+
+    # Test get_results
+    t0.get_results()
+    t1.get_results()
+
+    # Build tarball file.
+    tarfile = flow.make_tarfile()
+
     #assert flow.validate_json_schema()
 
 
@@ -143,7 +153,7 @@ def itest_bandstructure_flow(fwp, tvars):
     assert not flow.all_ok
     assert flow.ncores_reserved == 0
     assert flow.ncores_allocated == 0
-    assert flow.ncores_inuse == 0
+    assert flow.ncores_used == 0
     flow.check_dependencies()
     flow.show_status()
     flow.show_receivers()
@@ -194,6 +204,12 @@ def itest_bandstructure_flow(fwp, tvars):
 
     for task in flow.iflat_tasks():
         assert len(task.outdir.list_filepaths(wildcard="*GSR.nc")) == 1
+
+    # Test GSR robot
+    with abilab.abirobot(flow, "GSR") as robot:
+        table = robot.get_dataframe()
+        assert table is not None
+        print(table)
 
     #assert flow.validate_json_schema()
     #assert 0

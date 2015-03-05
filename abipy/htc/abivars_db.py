@@ -7,24 +7,15 @@ import json
 import yaml
 import html2text
 
-from six.moves import cPickle as pickle
-from monty.string import is_string, list_strings
 from collections import OrderedDict
+from six.moves import StringIO, cPickle as pickle
+from monty.string import is_string, list_strings
 from monty.functools import lazy_property
 
 
 with open(os.path.join(os.path.dirname(__file__), "abinit_vars.json")) as fh:
     ABI_VARNAMES = json.load(fh)
 
-# Add internal variables i.e. those variables that are not declared in dtset%
-ABI_VARNAMES += [
-    "acell",
-    "xred",
-    "rprim",
-    "kptbounds",
-    "ndivsm",
-    "qpt",
-]
 
 # Unit names.
 ABI_UNITS = [
@@ -50,21 +41,23 @@ ABI_UNITS = [
 ABI_OPS = ['sqrt', 'end', '*', '/']
 
 
-
 # NEW VERSION BASED ON Yannick's database.
 
 list_specials = [
-('AUTO_FROM_PSP','Means that the value is read from the PSP file'),
-('CUDA','True if CUDA is enabled (compilation)'),
-('ETSF_IO','True if ETSF_IO is enabled (compilation)'),
-('FFTW3','True if FFTW3 is enabled (compilation)'),
-('MPI_IO','True if MPI_IO is enabled (compilation)'),
-('NPROC','Number of processors used for Abinit'),
-('PARALLEL','True if the code is compiled with MPI'),
-('SEQUENTIAL','True if the code is compiled without MPI'),
+    ('AUTO_FROM_PSP','Means that the value is read from the PSP file'),
+    ('CUDA','True if CUDA is enabled (compilation)'),
+    ('ETSF_IO','True if ETSF_IO is enabled (compilation)'),
+    ('FFTW3','True if FFTW3 is enabled (compilation)'),
+    ('MPI_IO','True if MPI_IO is enabled (compilation)'),
+    ('NPROC','Number of processors used for Abinit'),
+    ('PARALLEL','True if the code is compiled with MPI'),
+    ('SEQUENTIAL','True if the code is compiled without MPI'),
 ]
 
-class literal(str): pass
+
+class literal(str): 
+    pass
+
 
 def literal_unicode_representer(dumper, data):
     return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='|')
@@ -73,63 +66,60 @@ yaml.add_representer(literal, literal_unicode_representer)
 
 
 class Variable(yaml.YAMLObject):
-
-    vartype = ''          # String containing the type
-    characteristic = None # String containing the characteristics
-    definition = None     # String containing the mnemonics
-    dimensions = None     # Array containing either int, formula or another variable
-    defaultval = None     # Either constant number, formula or another variable
-    text = None           # Description (str)
-    varname = None        # Name of the variable (str)
-    commentdefault = None
-    commentdims = None
-    section = None
-    range = None
-    requires = None       # str
-    excludes = None       # str
-
     yaml_tag = u'!variable'
-    
-    def attrs(self):
-        return ['vartype','characteristic','definition','dimensions','defaultval','text',
-                'varname','section']
 
-    def __init__(self, vartype=None, characteristic=None,
-                definition=None,dimensions=None,default=None,
-                text=None, varname=None,section=None,range=None,
-                commentdefault=None,commentdims=None):
+    #def attrs(self):
+    #    return ['vartype','characteristic','definition','dimensions','defaultval','text',
+    #            'varname','section']
 
+    def __init__(self, vartype=None, characteristics=None, definition=None, dimensions=None, 
+                default=None, text=None, varname=None, section=None, range=None, 
+                commentdefault=None, commentdims=None, requires=None, excludes=None):
+        """
+        Args:
+            vartype: String containing the type
+            characteristic: String containing the characteristics
+            definition: String containing the mnemonics
+            dimensions: Array containing either int, formula or another variable
+            default: Either constant number, formula or another variable
+            text: Description (str)
+            varname: Name of the variable (str)
+            commentdefault:
+            commentdims:
+            section:
+            range:
+            requires:
+            excludes:
+        """
         self.vartype = vartype
-        self.characteristic = characteristic
+        self.characteristics = characteristics
         self.definition = definition
         self.dimensions = dimensions
         self.defaultval = default
-        self.text = literal(text)
+        #self.text = literal(text)
         self.varname = varname
         self.section = section
+        self.range = range
         self.commentdefault = commentdefault
         self.commentdims = commentdims
-        self.range = range
+
+        self.text = unicode(text)
 
         # Fix mnemonics with newlines!
         if self.definition is not None:
             self.definition = self.definition.replace("\n", "")
 
     @classmethod
-    def from_array(cls, array):
-        return Variable(vartype=array["vartype"],characteristic=array["characteristic"],
-                        definition=array["definition"],dimensions=array["dimensions"],
-                        default=array["default"],text=array["text"],varname=array["varname"],
-                        section=array["section"],range=array["range"],commentdefault=array["commentdefault"],
-                        commentdims=array["commentdims"])
-
-    def __str__(self):
-        #return "Variable " + str(self.varname) + " (default = " + str(self.defaultval) + ")"
-        return html2text.html2text("<h2>Default value:</h2>" + str(self.defaultval) + "<br/><h2>Description</h2>" +str(self.text))
+    def from_dict(cls, d):
+        return cls(**d)
 
     def __repr__(self):
         """variable name + mnemonics"""
         return self.varname + "  <" + str(self.definition) + ">"
+
+    def __str__(self):
+        s = html2text.html2text("<h2>Default value:</h2>" + str(self.defaultval) + "<br/><h2>Description</h2>" + str(self.text))
+        return s.encode("utf-8", errors="ignore")
 
     def _repr_html_(self):
         """For Ipython notebook"""
@@ -140,8 +130,8 @@ class Variable(yaml.YAMLObject):
     def info(self):
         """String with Extra info on the variable."""
         attrs = [
-            "vartype", "characteristic",  "definition", "dimensions", "defaultval", #"text", 
-            "varname", "commentdefault", "commentdims", "section", "range",
+            "vartype", "characteristics",  "definition", "dimensions", "defaultval", #"text", 
+            "varname", "commentdefault", "commentdims", "section", #"range",
             "requires", "excludes"
             ]
 
@@ -149,17 +139,16 @@ class Variable(yaml.YAMLObject):
             return str(obj).replace("[[", "").replace("]]", "")
 
         d =  {k: astr(getattr(self, k)) for k in attrs} #if getattr(self, k) is not None}
-        from six.moves import StringIO
         stream = StringIO()
         json.dump(d, stream, indent=4, sort_keys=True)
         return stream.getvalue()
 
 
 class ValueWithUnit(yaml.YAMLObject):
+    yaml_tag = u'!valuewithunit'
     
     value = None
     units = None
-    yaml_tag = u'!valuewithunit'
     
     def __init__(self, value=None, units=None):
         self.value = value
@@ -172,15 +161,14 @@ class ValueWithUnit(yaml.YAMLObject):
         return str(self)
     
 def valuewithunit_representer(dumper, data):
-    
     return dumper.represent_mapping('!valuewithunit',data.__dict__)
     
+
 class Range(yaml.YAMLObject):
+    yaml_tag = u'!range'
     
     start = None
     stop = None
-    
-    yaml_tag = u'!range'
     
     def __init__(self, start=None, stop=None):
         self.start = start
@@ -204,8 +192,8 @@ class Range(yaml.YAMLObject):
         else:
             return None
 
+
 class ValueWithConditions(yaml.YAMLObject):
-    
     yaml_tag = u'!valuewithconditions'
     
     def __repr__(self):
@@ -219,12 +207,12 @@ class ValueWithConditions(yaml.YAMLObject):
     def __str__(self):
         return self.__repr__()
 
+
 class MultipleValue(yaml.YAMLObject):
+    yaml_tag = u'!multiplevalue'
 
     number = None
     value = None
-    
-    yaml_tag = u'!multiplevalue'
 
     def __init__(self, number=None, value=None):
         self.number = number
@@ -232,13 +220,15 @@ class MultipleValue(yaml.YAMLObject):
 
     def __repr__(self):
         if self.number == None:
-            return "*"+str(self.value)
+            return "*" + str(self.value)
         else:
-	        return str(self.number)+"*"+str(self.value)
+	        return str(self.number) + "*" + str(self.value)
 
-# Public API
 __VARS_DATABASE = None
 
+##################
+### Public API ###
+##################
 
 def get_abinit_variables():
     """Returns the database with the description of the ABINIT variables."""
@@ -266,7 +256,7 @@ def get_abinit_variables():
             # Save object to pickle file so that can we can reload it from pickle instead of yaml (slower)
             with open(pickle_file, "wb") as fh:
                 pickle.dump(__VARS_DATABASE, fh)
-                os.chmod(pickle_file, 444)
+                os.chmod(pickle_file, 0o444)
 
     return __VARS_DATABASE
         
@@ -276,18 +266,20 @@ class VariableDatabase(OrderedDict):
 
     @lazy_property
     def characteristics(self):
+        """List of characteristics."""
         from abipy import data as abidata
         with open(abidata.var_file('characteristics.yml'),'r') as f:
             return yaml.load(f)
     
     @lazy_property
     def sections(self):
+        """List of sections"""
         from abipy import data as abidata
         with open(abidata.var_file('sections.yml'),'r') as f:
             return yaml.load(f)
 
     def apropos(self, varname):
-        """Return the list of variables that are related` to the given varname"""
+        """Return the list of :class:`Variable` objects that are related` to the given varname"""
         vars = []
         for v in self.values():
             if (varname in v.text or 
@@ -299,6 +291,10 @@ class VariableDatabase(OrderedDict):
         return vars
 
     def vars_with_section(self, sections):
+        """
+        List of :class:`Variable` assocated to the given sections.
+        sections can be a string or a list of strings.
+        """
         sections = set(list_strings(sections))
         vars = []
         for v in self.values():
@@ -307,30 +303,36 @@ class VariableDatabase(OrderedDict):
         return vars
 
     def vars_with_char(self, chars):
+        """
+        List of :class:`Variable` with the specified characteristic.
+        chars can be a string or a list of strings.
+        """
         chars = set(list_strings(chars))
         vars = []
         for v in self.values():
-            if v.characteristic: print(v.characteristic)
+            #if v.characteristic: print(v.characteristic)
             if v.characteristic in chars:
                 vars.append(v)
         return vars
 
+    def json_dumps_varnames(self):
+        """JSON string with the list of variable names extracted from the database."""
+        return json.dumps(list(self.keys()))
+
 
 def docvar(varname):
+    """Return the `Variable` object associated to this name."""
     return get_abinit_variables()[varname]
 
 
 def abinit_help(varname, info=True, stream=sys.stdout):
-    """
-    Print the abinit documentation on the ABINIT input variable `varname`
-    """
+    """Print the abinit documentation on the ABINIT input variable `varname`"""
     database = get_abinit_variables()
     if isinstance(varname, Variable): varname = varname.varname
     try:
         var = database[varname]
     except KeyError:
-        stream.write("Variable %s not in the database\n" % varname)
-        return
+        return stream.write("Variable %s not in the database\n" % varname)
         
     text = html2text.html2text("<h2>Default value:</h2>" + str(var.defaultval) + "<br/><h2>Description</h2>" + str(var.text))
     if info: text += var.info

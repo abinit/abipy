@@ -196,7 +196,10 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
             cart_stress_tensor=self.cart_stress_tensor,
             pressure=self.pressure,
             number_of_electrons=self.nelect,
-            ebands=self.ebands.to_pymatgen().as_dict(),
+            # FIXME: this call raises
+            #>       if kpointcbm.label is not None:
+            #E       AttributeError: 'NoneType' object has no attribute 'label'
+            #ebands=self.ebands.to_pymatgen().as_dict(),
             #max_residual=
             #magnetization=self.magnetization,
             #band_gap=

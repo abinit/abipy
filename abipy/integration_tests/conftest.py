@@ -77,13 +77,13 @@ def pytest_addoption(parser):
 
 def pytest_report_header(config):
     """Write the initial header."""
-    lines = ["\n*** Integration tests for abipy+abinit+pymatgen ***\n"]
+    lines = ["\n*** Integration tests for abipy + abinit + pymatgen ***\n"]
     app = lines.append
 
     app("Assuming the enviroment is properly configured:")
-    app("In particular, we assume that abinit is in $PATH and can be executed.")
+    app("In particular, we assume that the abinit executable is in $PATH and can be executed.")
     app("Change taskmanager.yml according to your platform.")
-    app("Number of tasksmanager configurations used: %d" % len(_manager_confs))
+    app("Number of taskmanager configurations: %d" % len(_manager_confs))
 
     if config.option.verbose > 0:
         for i, s in enumerate(_manager_confs):

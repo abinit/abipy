@@ -50,9 +50,7 @@ def ion_relaxation(tvars, ntime=50):
 
 
 def itest_atomic_relaxation(fwp, tvars):
-    """
-    Test atomic relaxation with automatic restart.
-    """
+    """Test atomic relaxation with automatic restart."""
     # Build the flow
     flow = abilab.Flow(fwp.workdir, manager=fwp.manager)
 
@@ -70,7 +68,7 @@ def itest_atomic_relaxation(fwp, tvars):
     assert t0.status == t0.S_UNCONVERGED
 
     assert t0.initial_structure == ion_input.structure
-    unconverged_structure = t0.read_final_structure() 
+    unconverged_structure = t0.get_final_structure() 
     assert unconverged_structure != t0.initial_structure 
 
     # Remove ntime from the input so that the next run will
@@ -91,7 +89,7 @@ def itest_atomic_relaxation(fwp, tvars):
     t0.check_status()
     assert t0.status == t0.S_OK
 
-    final_structure = t0.read_final_structure()
+    final_structure = t0.get_final_structure()
     assert final_structure != unconverged_structure
 
     flow.show_status()
@@ -108,13 +106,18 @@ def itest_atomic_relaxation(fwp, tvars):
         print(gsr)
         gsr.pressure == 1.8280
 
+    t0.get_results()
 
-def make_ion_ioncell_inputs(tvars, dilatmx=1.01):
+
+def make_ion_ioncell_inputs(tvars, dilatmx, scalevol):
     cif_file = abidata.cif_file("si.cif")
     structure = abilab.Structure.from_file(cif_file)
 
     # Perturb the structure (random perturbation of 0.1 Angstrom)
-    structure.perturb(distance=0.01)
+    #structure.perturb(distance=0.01)
+
+    # Compress the lattice so that ABINIT complains about dilatmx
+    structure.scale_lattice(structure.volume * scalevol)
 
     pseudos = abidata.pseudos("14si.pspnc")
 
@@ -161,63 +164,30 @@ def make_ion_ioncell_inputs(tvars, dilatmx=1.01):
     return ion_inp, ioncell_inp
 
 
-def itest_atoms_cell_relaxation(fwp, tvars):
+def itest_dilatmx_error_handler(fwp, tvars):
      """
-     Test atoms + cell relaxation with automatic restart and dilatmax error.
+     Test cell relaxation with automatic restart in the presence of dilatmx error.
      """
      # Build the flow
      flow = abilab.Flow(fwp.workdir, manager=fwp.manager)
  
-     ion_input, ioncell_input = make_ion_ioncell_inputs(tvars)
-     flow.register_work(abilab.RelaxWork(ion_input, ioncell_input))
- 
-     flow.allocate()
-     flow.build_and_pickle_dump()
+     # Decrease the volume to trigger DilatmxError
+     ion_input, ioncell_input = make_ion_ioncell_inputs(tvars, dilatmx=1.01, scalevol=0.8)
 
+     work = abilab.Work()
+     work.register_relax_task(ioncell_input)
+ 
+     flow.register_work(work)
+     flow.allocate()
      flow.make_scheduler().start()
- 
-     # Run t0, and check status
-     #t0 = work[0]
-     #t0.start_and_wait()
-     #assert t0.returncode == 0
-     #t0.check_status()
-     #assert t0.status == t0.S_UNCONVERGED
- 
-     #assert t0.initial_structure == ion_input.structure
-     #unconverged_structure = t0.read_final_structure() 
-     #assert unconverged_structure != t0.initial_structure 
- 
-     ## Remove ntime from the input so that the next run will
-     ## use the default value ntime=50 and we can converge the calculation.
-     ## This one does not work
-     #print("Before Input:\n", t0.strategy.abinit_input)
-     ##t0.strategy.abinit_input.remove_vars("ntime")
-     #t0.strategy.abinit_input.set_vars(ntime=50)
-     #print("After input:\n", t0.strategy.abinit_input)
- 
-     #t0.build()
-     #assert t0.restart()
-     #t0.wait()
-     #assert t0.num_restarts == 1
- 
-     ## At this point, we should have reached S_OK.
-     #assert t0.status == t0.S_DONE
-     #t0.check_status()
-     #assert t0.status == t0.S_OK
- 
-     #final_structure = t0.read_final_structure()
-     #assert final_structure != unconverged_structure
- 
      flow.show_status()
+
      assert all(work.finalized for work in flow)
      assert flow.all_ok
  
-     ## post-processing tools
-     #t0.inspect(show=False)
- 
-     #with t0.open_hist() as hist:
-     #    print(hist)
- 
-     #with t0.open_gsr() as gsr:
-     #    print(gsr)
-     #    gsr.pressure == 1.8280
+     # t0 should have reached S_OK, and we should have DilatmxError in the corrections.
+     t0 = work[0]
+     assert t0.status == t0.S_OK
+     print(t0.corrections)
+     assert t0.num_corrections == 1
+     assert t0.corrections[0]["event"]["@class"] == "DilatmxError"

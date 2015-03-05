@@ -148,7 +148,7 @@ class DdbFile(TextFile, Has_Structure):
 
         qpoints, weights = [], []
         for tok in tokens:
-            nums = map(float, tok.split())
+            nums = list(map(float, tok.split()))
             qpoints.append(nums[:3])
             weights.append(nums[3])
 

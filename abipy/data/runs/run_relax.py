@@ -15,13 +15,13 @@ import abipy.abilab as abilab
 
 
 def make_ion_ioncell_inputs(paral_kgb=1):
-    cif_file = abidata.cif_file("si.cif")
-    structure = abilab.Structure.from_file(cif_file)
+    pseudos = abidata.pseudos("14si.pspnc")
+    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
 
     # Perturb the structure (random perturbation of 0.1 Angstrom)
+    # then compress the volume to trigger dilatmx.
     structure.perturb(distance=0.1)
-
-    pseudos = abidata.pseudos("14si.pspnc")
+    structure.scale_lattice(structure.volume * 0.6)
 
     global_vars = dict(
         ecut=4,  
@@ -44,9 +44,9 @@ def make_ion_ioncell_inputs(paral_kgb=1):
         ionmov=2,
         tolrff=0.02,
         tolmxf=5.0e-5,
-        ntime=50,
-        #ntime=5, To test the restart
-        dilatmx=1.1, # FIXME: abinit crashes if I don't use this
+        #ntime=50,
+        ntime=5,  #To test the restart
+        #dilatmx=1.1, # FIXME: abinit crashes if I don't use this
     )
 
     # Dataset 2 (Atom + Cell Relaxation)
@@ -54,12 +54,12 @@ def make_ion_ioncell_inputs(paral_kgb=1):
         optcell=1,
         ionmov=2,
         ecutsm=0.5,
-        dilatmx=1.1,
+        dilatmx=1.02,
         tolrff=0.02,
         tolmxf=5.0e-5,
         strfact=100,
-        ntime=50,
-        #ntime=5, To test the restart
+        #ntime=50,
+        ntime=5,  # To test the restart
         )
 
     ion_inp, ioncell_inp = inp.split_datasets()
@@ -82,10 +82,17 @@ def build_flow(options):
     # Create a relaxation work and add it to the flow.
     ion_inp, ioncell_inp = make_ion_ioncell_inputs()
 
-    work = abilab.RelaxWork(ion_inp, ioncell_inp)
-    flow.register_work(work)
+    relax_work = abilab.RelaxWork(ion_inp, ioncell_inp)
+    flow.register_work(relax_work)
 
     #bands_work = abilab.BandStructureWork(scf_input, nscf_input)
+    bands_work = abilab.Work()
+    deps = {relax_work[-1]: "@structure"}
+    #deps = {relax_work[-1]: ["DEN", "@structure"]}  --> This is not possible because the file ext is changed!
+    #deps = {relax_work[-1]: ["WFK", "@structure"]}  --> This triggers an infamous bug in abinit
+    bands_work.register_relax_task(ioncell_inp, deps=deps)
+    flow.register_work(bands_work)
+
     return flow.allocate()
 
 

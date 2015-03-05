@@ -103,11 +103,10 @@ def make_workflow(structure, pseudos, paral_kgb=1):
 @abilab.flow_main
 def main(options):
     flow = build_flow(options)
-    return flow.build_and_pickle_dump()
+    flow.build_and_pickle_dump()
+    return flow
+
 
 if __name__ == "__main__":
     sys.exit(main())
 
-    
-    
-    

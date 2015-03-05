@@ -13,7 +13,9 @@ import time
 from pprint import pprint
 from monty import termcolor
 from monty.termcolor import cprint
+from monty.string import make_banner
 from pymatgen.io.abinitio.launcher import PyFlowScheduler, PyLauncher
+from pymatgen.io.abinitio.events import autodoc_event_handlers
 import abipy.abilab as abilab
 
 
@@ -21,6 +23,44 @@ def straceback():
     """Returns a string with the traceback."""
     import traceback
     return traceback.format_exc()
+
+def get_terminal_size():
+    """"http://stackoverflow.com/questions/566746/how-to-get-console-window-width-in-python"""
+    import os
+    try:
+        rc = os.popen('stty size', 'r').read().split()
+        return int(rc[0]), int(rc[1])
+    except:
+        pass
+
+    env = os.environ
+    def ioctl_GWINSZ(fd):
+        try:
+            import fcntl, termios, struct, os
+            rc = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))
+            return rc
+        except:
+            return None
+
+    rc = ioctl_GWINSZ(0) or ioctl_GWINSZ(1) or ioctl_GWINSZ(2)
+
+    if not rc:
+        try:
+            fd = os.open(os.ctermid(), os.O_RDONLY)
+            rc = ioctl_GWINSZ(fd)
+            os.close(fd)
+        except:
+            pass
+
+    if not rc:
+        rc = (env.get('LINES', 25), env.get('COLUMNS', 80))
+        ### Use get(key[, default]) instead of a try/catch
+        #try:
+        #    rc = (env['LINES'], env['COLUMNS'])
+        #except:
+        #    rc = (25, 80)
+
+    return int(rc[0]), int(rc[1])
 
 
 def as_slice(obj):
@@ -117,7 +157,10 @@ def main():
 Usage example:\n
 
     abirun.py [FLOWDIR] rapid                    => Keep repeating, stop when no task can be executed.
-    abirun.py [FLOWDIR] gui                      => Open the GUI .
+    abirun.py [FLOWDIR] scheduler                => Execute flow with the scheduler
+    abirun.py [FLOWDIR] events                   => Print ABINIT events (Warning/Error/Comment)
+    abirun.py [FLOWDIR] history                  => Print Task history.
+    abirun.py [FLOWDIR] gui                      => Open the GUI.
     abirun.py [FLOWDIR] manager slurm            => Document the TaskManager options availabe for Slurm.
     abirun.py [FLOWDIR] manager script           => Show the job script that will be produced.
     nohup abirun.py [FLOWDIR] sheduler -s 30 &   => Start the scheduler to schedule task submission.
@@ -156,7 +199,6 @@ Usage example:\n
         s = as_slice(s)
         if s is None: return s
         if s.stop is None: raise argparse.ArgumentTypeError("stop must be specified")
-        #return list(range(s.start, s.stop, s.step))
         return s
 
     # Parent parser for commands that need to know on which subset of tasks/workflows we have to operate.
@@ -168,12 +210,13 @@ Usage example:\n
         "Examples: --nids=12 --nids=12,13,16 --nids=10:12 to select 10 and 11, --nids=2:5:2 to select 2,4"  
         ))
 
-    group.add_argument('--wslice', default=None, type=parse_wslice, 
+    group.add_argument("-w", '--wslice', default=None, type=parse_wslice, 
                                       help=("Select the list of works to analyze (python syntax for slices):"
                                       "Examples: --wslice=1 to select the second workflow, --wslice=:3 for 0,1,2,"
                                       "--wslice=-1 for the last workflow, --wslice::2 for even indices"))
 
-    #group.add_argument("-s", '--node-status', default=None, type=parse_wslice, 
+    #group.add_argument("-p", "--task-pos", default=None, type=parse_wslice, help="List of tuples with the position of the tasl in the flow.")
+    #group.add_argument("-s", '--task-status', default=None, type=parse_wslice, help="Select only the tasks with the given status.")
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -188,8 +231,8 @@ Usage example:\n
     parser.add_argument('--loglevel', default="ERROR", type=str,
                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
-    parser.add_argument('path', nargs="?", help=("File or directory containing the ABINIT flow"
-                                                 "If not given, the first flow in the current workdir is selected"))
+    parser.add_argument('flowdir', nargs="?", help=("File or directory containing the ABINIT flow"
+                                                    "If not given, the first flow in the current workdir is selected"))
 
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
@@ -279,8 +322,6 @@ Specify the files to open. Possible choices:
 
     p_inputs= subparsers.add_parser('inputs', parents=[flow_selector_parser], help="Show the input files of the tasks")
 
-    p_analyze= subparsers.add_parser('analyze', help="Analyze the results produced by the flow.")
-
     p_manager = subparsers.add_parser('manager', help="Document the TaskManager options")
     p_manager.add_argument("qtype", nargs="?", default=None, help=("Write job script to terminal if qtype='script' else" 
         " document the qparams for the given QueueAdapter qtype e.g. slurm"))
@@ -289,12 +330,35 @@ Specify the files to open. Possible choices:
                                     help="Show ABINIT events (error messages, warnings, comments)")
     #p_events.add_argument("-t", "event-type", default=)
 
+    p_corrections = subparsers.add_parser('corrections', parents=[flow_selector_parser], help="Show abipy corrections")
+
     p_history = subparsers.add_parser('history', parents=[flow_selector_parser], help="Show Node history.")
+    p_history.add_argument("-m", "--metadata", action="store_true", default=False, help="Print history metadata")
     #p_history.add_argument("-t", "event-type", default=)
+
+    p_handlers = subparsers.add_parser('handlers', help="Show event handlers installed in the flow")
+    p_handlers.add_argument("-d", "--doc", action="store_true", default=False, 
+                            help="Show documentation about all the handlers that can be installed.")
 
     p_notebook = subparsers.add_parser('notebook', help="Create and open an ipython notebook to interact with the flow.")
 
     p_embed = subparsers.add_parser('ipython', help="Embed IPython. Useful for advanced operations or debugging purposes.")
+
+    p_tar = subparsers.add_parser('tar', help="Create tarball file.")
+
+    p_tar.add_argument("-s", "--max-filesize", default=None, 
+                       help="Exclude file whose size > max-filesize bytes. Accept integer or string e.g `1Mb`.")
+
+    def parse_strings(s): return s.split(",") if s is not None else s
+
+    p_tar.add_argument("-e", "--exclude-exts", default=None, type=parse_strings,
+                       help="Exclude file extensions. Accept string or comma-separated strings. Ex: -eWFK or --exclude-exts=WFK,GSR")
+
+    p_tar.add_argument("-d", "--exclude-dirs", default=None, type=parse_strings,
+                       help="Exclude directories. Accept string or comma-separated strings. Ex: --exlude-dirs=indir,outdir")
+
+    p_tar.add_argument("-l", "--light", default=False, action="store_true",
+                       help="Create light-weight version of the tarball for debugging purposes. Other options are ignored.")
 
     # Parse command line.
     try:
@@ -346,12 +410,15 @@ Specify the files to open. Possible choices:
         sys.exit(0)
 
     # Read the flow from the pickle database.
-    if options.path is None:
+    if options.flowdir is None:
         # Will try to figure out the location of the Flow.
-        options.path = os.getcwd()
+        options.flowdir = os.getcwd()
 
-    flow = abilab.Flow.pickle_load(options.path, remove_lock=options.remove_lock)
+    flow = abilab.Flow.pickle_load(options.flowdir, remove_lock=options.remove_lock)
     retcode = 0
+
+    nrows, ncols = get_terminal_size()
+    #print(nrows, ncols)
 
     if options.command == "gui":
         if options.chroot:
@@ -381,12 +448,31 @@ Specify the files to open. Possible choices:
         for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
             report = task.get_event_report()
             #report = report.filter_types()
+            print(make_banner(str(task), width=ncols, mark="="))
             print(report)
+
+    elif options.command == "corrections":
+        count = 0
+        for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
+            if task.num_corrections == 0: continue
+            count += 1
+            print(make_banner(str(task), width=ncols, mark="="))
+            for corr in task.corrections:
+                pprint(corr)
+
+        if not count: 
+            print("No correction found.")
 
     elif options.command == "history":
         for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
-            for log in task.history:
-                print(log)
+            print(make_banner(str(task), width=ncols, mark="="))
+            print(task.history.to_string(metadata=options.metadata))
+
+    elif options.command == "handlers":
+        if options.doc:
+            autodoc_event_handlers()
+        else:
+            flow.show_event_handlers()
 
     elif options.command in ("single", "singleshot"):
         nlaunch = PyLauncher(flow).single_shot()
@@ -419,6 +505,7 @@ Specify the files to open. Possible choices:
             flow.pickle_dump()
 
     elif options.command == "status":
+
         if options.delay:
             cprint("Entering infinite loop. Press CTRL+C to exit", color="magenta", end="", flush=True)
             try:
@@ -598,12 +685,6 @@ Specify the files to open. Possible choices:
     elif options.command == "inputs":
         flow.show_inputs(nids=selected_nids(flow, options))
 
-    elif options.command == "analyze":
-        if not hasattr(flow, "analyze"):
-            cprint("Flow does not provide the `analyze` method!", "red")
-            return 1
-        flow.analyze()
-
     elif options.command == "notebook":
         write_notebook(flow, options)
 
@@ -611,6 +692,18 @@ Specify the files to open. Possible choices:
         import IPython
         #IPython.embed(header="")
         IPython.start_ipython(argv=[], user_ns={"flow": flow})# , header="flow.show_status()")
+
+    elif options.command == "tar":
+        if not options.light:
+            tarfile = flow.make_tarfile(name=None, 
+                                        max_filesize=options.max_filesize, 
+                                        exclude_exts=options.exclude_exts, 
+                                        exclude_dirs=options.exclude_dirs,
+                                        verbose=options.verbose)
+            print("Created tarball file %s" % tarfile)
+        else:
+            tarfile = flow.make_light_tarfile()
+            print("Created light tarball file %s" % tarfile)
 
     else:
         raise RuntimeError("Don't know what to do with command %s!" % options.command)

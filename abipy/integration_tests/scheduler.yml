@@ -22,3 +22,5 @@ seconds: 4
 #remind_me_s: 20
 #max_etime_s:
 #max_nlaunches: 2
+
+max_ncores_used: 2

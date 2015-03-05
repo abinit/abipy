@@ -4,8 +4,7 @@ Utilities for generating matplotlib plots.
 
 .. note:
 
-    Avoid importing these tools in the top-level namespace of the module
-    since they rely on matplotlib whose startup is very slow.
+    Avoid importing matplotlib in the module namespace otherwise startup is very slow.
 """
 from __future__ import print_function, division, unicode_literals
 
@@ -14,12 +13,6 @@ import collections
 
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 
-try:
-    import matplotlib as mpl
-    import matplotlib.cm as cmap
-    from matplotlib import pyplot as plt
-except ImportError:
-    pass
 
 __all__ = [
     "plot_array",
@@ -66,6 +59,7 @@ def plot_array(array, color_map=None, cplx_mode="abs", **kwargs):
         color_map = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
                                                                  ['blue', 'black', 'red'], 256)
 
+    from matplotlib import pyplot as plt
     img = plt.imshow(array, interpolation='nearest', cmap=color_map, origin='lower')
 
     # make a color bar

@@ -178,7 +178,7 @@ class Robot(object):
         import matplotlib.pyplot as plt
         import seaborn as sns
         if data is None:
-          data = getattr(self, getter)()
+            data = getattr(self, getter)()
 
         #grid = sns.PairGrid(data, x_vars="nkpts", y_vars=["a", "volume"]) #, hue="tsmear")
         grid = sns.PairGrid(data, **kwargs)

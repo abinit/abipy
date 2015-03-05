@@ -138,6 +138,13 @@ def itest_g0w0_flow(fwp, tvars):
     with abilab.abiopen(sigfile) as sigres:
         assert sigres.nsppol == 1
 
+    # Test SigmaTask inspect method
+    #sig_task.inspect(show=False)
+
+    # Test get_results for Sigma and Scr
+    scr_task.get_results()
+    sig_task.get_results()
+
     # TODO Add more tests
     #assert flow.validate_json_schema()
 

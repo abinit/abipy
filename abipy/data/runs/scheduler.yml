@@ -11,7 +11,7 @@ seconds: 2
 # when to first execute the job and start the counter (default is after the given interval).
 #start_date:
 # Send mail to the specified address (accepts string or list of strings).
-#mailto: matteo.giantomassi@uclouvain.be
+mailto: matteo.giantomassi@uclouvain.be
 #True if the task manager must be re-initialized from 
 #file before launching the jobs. Default: False
 #use_dynamic_manager: False
@@ -26,3 +26,6 @@ seconds: 2
 # Default is 2 weeks, the scheduler will shutdown if the mail cannot be sent. 
 #REMINDME_S: 1209600
 #MAX_TIME_S:
+
+#max_ncores_used: 2
+#customer_service_dir: customer

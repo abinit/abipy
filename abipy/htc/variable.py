@@ -116,9 +116,9 @@ class InputVariable(object):
         floatdecimal = 0
     
         # For some inputs, impose number of decimal points...
-        if any(inp in var for inp in ('xred', 'xcart', 'qpt', 'kpt')):
+        if any(inp in var for inp in ('xred', 'xcart', 'rprim', 'qpt', 'kpt')):
             #TODO Shouldn't do that
-            floatdecimal = 10
+            floatdecimal = 16
     
         # ...but not for those
         if any(inp in var for inp in ('ngkpt', 'kptrlatt', 'ngqpt', 'ng2qpt')):

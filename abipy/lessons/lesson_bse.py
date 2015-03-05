@@ -93,9 +93,8 @@ def eh_convergence_study():
     flow = abilab.Flow(workdir="flow_bse_ecuteps")
     flow.register_work(work)
     flow.allocate()
-    flow.build()
-
-    #flow.make_scheduler().start()
+    #flow.build()
+    flow.make_scheduler().start()
 
     import matplotlib.pyplot as plt
     import pandas as pd
@@ -105,7 +104,6 @@ def eh_convergence_study():
         #print(frame)
         #plotter = robot.get_mdf_plotter()
         #plotter.plot()
-
         robot.plot_conv_mdf(hue="broad")
 
         #grouped = frame.groupby("broad")
