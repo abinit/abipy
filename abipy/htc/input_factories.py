@@ -179,3 +179,77 @@ def ion_ioncell_relax_input(structure, pseudos, kppa, nband,
     inp[2].set_vars(ioncell_relax.to_abivars())
 
     return inp
+
+
+def g0w0_with_ppmodel_input(structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx,
+                            accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
+                            ppmodel="godby", charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
+                            sigma_nband=None, gw_qprange=1):
+    """
+    Returns a :class:`AbiInput` object that performs G0W0 calculations with the plasmon pole approximation.
+
+    Args:
+        structure: Pymatgen structure.
+        pseudos: List of `Pseudo` objects.
+        scf_kppa: Defines the sampling used for the SCF run.
+        nscf_nband: Number of bands included in the NSCF run.
+        ecuteps: Cutoff energy [Ha] for the screening matrix.
+        ecutsigx: Cutoff energy [Ha] for the exchange part of the self-energy.
+        accuracy: Accuracy of the calculation.
+        spin_mode: Spin polarization.
+        smearing: Smearing technique.
+        ppmodel: Plasmonpole technique.
+        charge: Electronic charge added to the unit cell.
+        scf_algorithm: Algorithm used for solving of the SCF cycle.
+        inclvkb: Treatment of the dipole matrix elements (see abinit variable).
+        scr_nband: Number of bands used to compute the screening (default is nscf_nband)
+        sigma_nband: Number of bands used to compute the self-energy (default is nscf_nband)
+        gw_qprange: Option for the automatic selection of k-points and bands for GW corrections.
+            See Abinit docs for more detail. The default value makes the code compute the
+            QP energies for all the point in the IBZ and one band above and one band below the Fermi level.
+    """
+    inp = AbiInput(pseudos, ndtset=4)
+    inp.set_structure(structure)
+
+    scf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
+
+    scf_electrons = Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
+                              charge=charge) #, nband=None, fband=None)
+
+    #scf_strategy = ScfStrategy(structure, pseudos, scf_ksampling,
+    #                           accuracy=accuracy, spin_mode=spin_mode,
+    #                           smearing=smearing, charge=charge,
+    #                           scf_algorithm=scf_algorithm)
+
+    inp[1].set_vars(scf_ksampling.to_abivars())
+    inp[1].set_vars(scf_electrons.to_abivars())
+    inp[1].set_vars(stopping_criterion("scf", accuracy))
+
+    nscf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
+    nscf_electrons = Electrons(spin_mode=spin_mode, smearing=smearing, algorithm={"iscf": -2},
+                               charge=charge, nband=nscf_nband) # fband=None)
+    #nscf_strategy = NscfStrategy(scf_strategy, nscf_ksampling, nscf_nband)
+
+    inp[2].set_vars(nscf_ksampling.to_abivars())
+    inp[2].set_vars(nscf_electrons.to_abivars())
+    inp[2].set_vars(stopping_criterion("nscf", accuracy))
+    # nbdbuf
+
+    # Screening.
+    if scr_nband is None: scr_nband = nscf_nband
+    screening = Screening(ecuteps, scr_nband, w_type="RPA", sc_mode="one_shot",
+                          hilbert=None, ecutwfn=None, inclvkb=inclvkb)
+    inp[3].set_vars(screening.to_abivars())
+    #scr_strategy = ScreeningStrategy(scf_strategy, nscf_strategy, screening)
+
+    # Sigma.
+    if sigma_nband is None: sigma_nband = nscf_nband
+    self_energy = SelfEnergy("gw", "one_shot", sigma_nband, ecutsigx, screening,
+                             gw_qprange=gw_qprange, ppmodel=ppmodel)
+    inp[4].set_vars(self_energy.to_abivars())
+    #sigma_strategy = SelfEnergyStrategy(scf_strategy, nscf_strategy, scr_strategy, self_energy)
+
+    # TODO: Cannot use istwfk != 1.
+    inp.set_vars(istwfk="*1")
+
+    return inp
