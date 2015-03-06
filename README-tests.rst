@@ -9,3 +9,11 @@ Running tests
 To run unittest::
 
     nosetests
+
+If nosetest fails with error: 
+
+   `Error reading config file 'setup.cfg': no such option 'exclude-dir`
+
+install the nose-exclude plugin with:
+
+   `pip install nose-exclude` 

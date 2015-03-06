@@ -17,9 +17,8 @@ import abipy.data as abidata
 import abipy.abilab as abilab
 from pymatgen.io.abinitio.abiobjects import KSampling, RelaxationMethod
 from pymatgen.io.abinitio.tasks import AbinitTask, ScfTask, NscfTask, RelaxTask, DdkTask, PhononTask, \
-    SigmaTask, BseTask, OpticTask, AnaddbTask
-from pymatgen.io.abinitio.tasks import TaskRestartError
-from pymatgen.io.abinitio.tasks import Node, FileNode, Dependency
+    SigmaTask, BseTask, OpticTask, AnaddbTask, TaskRestartError
+from pymatgen.io.abinitio.nodes import Node, FileNode, Dependency
 from pymatgen.io.abinitio.pseudos import PseudoParser, PseudoTable
 from pymatgen.io.abinitio.strategies import ScfStrategy, NscfStrategy, RelaxStrategy, StrategyWithInput
 import time

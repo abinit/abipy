@@ -9,6 +9,7 @@ import numpy as np
 
 from monty.collections import AttrDict
 from monty.functools import lazy_property
+from monty.string import is_string
 from pymatgen.core.units import ArrayWithUnit
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
@@ -28,6 +29,17 @@ class Structure(pymatgen.Structure):
     Extends :class:`pymatgen.Structure` with methods that allows one
     to construct a Structure object from ABINIT variables.
     """
+    @classmethod
+    def as_structure(cls, obj):
+        """Convert obj into a structure."""
+        if isinstance(obj, cls): return obj
+        if is_string(obj): return cls.from_file(obj)
+        if isinstance(obj, pymatgen.Structure): 
+            obj.__class__ = cls
+            return obj
+
+        raise TypeError("Don't know how to convert %s into a structure" % type(obj))
+
     @classmethod
     def from_file(cls, filepath, primitive=True, sort=False):
         """

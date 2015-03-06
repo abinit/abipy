@@ -12,7 +12,7 @@ import time
 
 from pprint import pprint
 from monty import termcolor
-from monty.termcolor import cprint
+from monty.termcolor import cprint, get_terminal_size
 from monty.string import make_banner
 from pymatgen.io.abinitio.launcher import PyFlowScheduler, PyLauncher
 from pymatgen.io.abinitio.events import autodoc_event_handlers
@@ -23,44 +23,6 @@ def straceback():
     """Returns a string with the traceback."""
     import traceback
     return traceback.format_exc()
-
-def get_terminal_size():
-    """"http://stackoverflow.com/questions/566746/how-to-get-console-window-width-in-python"""
-    import os
-    try:
-        rc = os.popen('stty size', 'r').read().split()
-        return int(rc[0]), int(rc[1])
-    except:
-        pass
-
-    env = os.environ
-    def ioctl_GWINSZ(fd):
-        try:
-            import fcntl, termios, struct, os
-            rc = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))
-            return rc
-        except:
-            return None
-
-    rc = ioctl_GWINSZ(0) or ioctl_GWINSZ(1) or ioctl_GWINSZ(2)
-
-    if not rc:
-        try:
-            fd = os.open(os.ctermid(), os.O_RDONLY)
-            rc = ioctl_GWINSZ(fd)
-            os.close(fd)
-        except:
-            pass
-
-    if not rc:
-        rc = (env.get('LINES', 25), env.get('COLUMNS', 80))
-        ### Use get(key[, default]) instead of a try/catch
-        #try:
-        #    rc = (env['LINES'], env['COLUMNS'])
-        #except:
-        #    rc = (25, 80)
-
-    return int(rc[0]), int(rc[1])
 
 
 def as_slice(obj):
@@ -251,6 +213,9 @@ Usage example:\n
     p_scheduler.add_argument('-hs', '--hours', default=0, type=int, help="number of hours to wait")
     p_scheduler.add_argument('-m', '--minutes', default=0, type=int, help="number of minutes to wait")
     p_scheduler.add_argument('-s', '--seconds', default=0, type=int, help="number of seconds to wait")
+
+    # Subparser for batch command.
+    p_batch = subparsers.add_parser('batch', help="Run scheduler in batch script.")
 
     # Subparser for status command.
     p_status = subparsers.add_parser('status', parents=[flow_selector_parser], help="Show task status.")
@@ -485,6 +450,9 @@ Specify the files to open. Possible choices:
         print("Number of tasks launched: %d" % nlaunch)
 
     elif options.command == "scheduler":
+        # Check that the env on the local machine is properly setup before starting the scheduler.
+        abilab.abicheck()
+
         sched_options = {oname: getattr(options, oname) for oname in 
             ("weeks", "days", "hours", "minutes", "seconds")}
 
@@ -493,16 +461,12 @@ Specify the files to open. Possible choices:
         else:
             sched = PyFlowScheduler(**sched_options)
 
-        # Check that the env on the local machine is properly setup before starting the scheduler.
-        abilab.abicheck()
-
         sched.add_flow(flow)
         print(sched)
-        try:
-            sched.start()
-        except KeyboardInterrupt:
-            # Save the status of the flow before exiting.
-            flow.pickle_dump()
+        sched.start()
+
+    elif options.command == "batch":
+        flow.batch()
 
     elif options.command == "status":
 
