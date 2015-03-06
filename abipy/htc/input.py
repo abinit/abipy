@@ -13,6 +13,7 @@ import itertools
 import copy
 import six
 import abc
+import json
 import numpy as np
 import abipy.tools.mixins as mixins
 
@@ -239,13 +240,13 @@ class AbiInput(Input, Has_Structure):
             d.update(self[1])
             s = d.to_string(post="")
 
-        # Add info on pseudo potentials.
-        ppinfo = []
-        ppinfo.append("\n# Pseudopotentials:")
-        for pseudo in self.pseudos:
-            ppinfo.append("# " + repr(pseudo))
+        # Add JSON section with pseudo potentials.
+        ppinfo = ["\n#<JSON>"]
+        d = {"pseudos": [p.as_dict() for p in self.pseudos]}
+        ppinfo.extend(json.dumps(d, indent=4).splitlines())
+        ppinfo.append("</JSON>")
 
-        return s + "\n".join(ppinfo)
+        return s + "\n#".join(ppinfo)
 
     def __getitem__(self, key):
         return self._datasets[key]

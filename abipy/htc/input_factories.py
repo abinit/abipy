@@ -2,32 +2,17 @@
 """Factory function for Abinit input files """
 from __future__ import print_function, division, unicode_literals
 
-import os
+#import os
 import collections
-import warnings
-import tempfile
-import itertools
-import copy
-import six
-import abc
-import numpy as np
-import abipy.tools.mixins as mixins
+#import copy
+#import numpy as np
 
 from collections import OrderedDict
-from monty.dev import deprecated
 from monty.string import is_string, list_strings
-from pymatgen.core.units import Energy
-from pymatgen.serializers.json_coders import PMGSONable, pmg_serialize
+#from pymatgen.core.units import Energy
 from pymatgen.io.abinitio.pseudos import PseudoTable, Pseudo
-from pymatgen.io.abinitio.tasks import TaskManager, AbinitTask
-from pymatgen.io.abinitio.netcdf import NetcdfReader
 from pymatgen.io.abinitio.abiobjects import KSampling, Electrons, RelaxationMethod, Screening, SelfEnergy, ExcHamiltonian, HilbertTransform
-from pymatgen.io.abinitio.strategies import ScfStrategy, NscfStrategy, ScreeningStrategy, SelfEnergyStrategy, MdfBse_Strategy
-from pymatgen.io.abinitio.works import BandStructureWork, G0W0Work, BseMdfWork
 from abipy.core.structure import Structure
-from abipy.core.mixins import Has_Structure
-from .variable import InputVariable
-from .abivars import is_abivar, is_anaddb_var
 from .input import AbiInput
 
 import logging
@@ -61,10 +46,17 @@ def stopping_criterion(runlevel, accuracy):
     return {tolname: getattr(_tolerances[tolname], accuracy)}
 
 
+def get_ecut_pawecutdg(ecut, pawecutdg, pseudos):
+    return ecut, pawecutdg
+    #if ecut is None: 
+    #  ecut = max(p.hint for p in pseudos)
+    #if pawecutdg is None and any(p.ispaw for p in pseudos):
+    #    pawecutdg = max(p.hint for p in pseudos)
+
+
 def ebands_input(structure, pseudos, scf_kppa, nscf_nband, ndivsm, 
-                 accuracy="normal", spin_mode="polarized",
-                 smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
-                 dos_kppa=None, **extra_abivars):
+                 ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
+                 smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None, dos_kppa=None):
     """
     Returns a :class:`AbiInput` for band structure calculations.
 
@@ -74,6 +66,8 @@ def ebands_input(structure, pseudos, scf_kppa, nscf_nband, ndivsm,
         scf_kppa: Defines the sampling used for the SCF run.
         nscf_nband: Number of bands included in the NSCF run.
         ndivsm: Number of divisions used to sample the smallest segment of the k-path.
+        ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
+        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos according to accuracy)
         accuracy: Accuracy of the calculation.
         spin_mode: Spin polarization.
         smearing: Smearing technique.
@@ -81,7 +75,6 @@ def ebands_input(structure, pseudos, scf_kppa, nscf_nband, ndivsm,
         scf_algorithm: Algorithm used for solving of the SCF cycle.
         dos_kppa: Defines the k-point sampling used for the computation of the DOS
             (None if DOS is not wanted).
-        extra_abivars: Dictionary with extra variables passed to ABINIT.
     """
     # TODO: To be discussed: 
     #    1) extra_abivars is more similar to a hack. The factory functions are designed for
@@ -93,21 +86,20 @@ def ebands_input(structure, pseudos, scf_kppa, nscf_nband, ndivsm,
     #       occupied states in metals (can write EventHandler but it would be nice if we could
     #       fix this problem in advance.
     #   
-    #structure = Structure.as_structure(structure)
+    structure = Structure.as_structure(structure)
     pseudos = PseudoTable.as_table(pseudos).get_pseudos_for_structure(structure)
 
     inp = AbiInput(pseudos, ndtset=2 if dos_kppa is None else 3)
     inp.set_structure(structure)
 
+    # Set the cutoff energy
+    ecut, pawecutdg = get_ecut_pawecutdg(ecut, pawecutdg, pseudos)
+    inp.set_vars(ecut=ecut, pawecutdg=pawecutdg)
+
     # SCF calculation.
     scf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
     scf_electrons = Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
                               charge=charge) #, nband=None, fband=None)
-
-    #scf_strategy = ScfStrategy(structure, pseudos, scf_ksampling,
-    #                           accuracy=accuracy, spin_mode=spin_mode,
-    #                           smearing=smearing, charge=charge,
-    #                           scf_algorithm=scf_algorithm, **extra_abivars)
 
     inp[1].set_vars(scf_ksampling.to_abivars())
     inp[1].set_vars(scf_electrons.to_abivars())
@@ -139,7 +131,7 @@ def ebands_input(structure, pseudos, scf_kppa, nscf_nband, ndivsm,
 
 
 def ion_ioncell_relax_input(structure, pseudos, kppa, nband,
-                            accuracy="normal", spin_mode="polarized",
+                            ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
                             smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
     """
     Returns a :class:`AbiInput` for band structure calculations.
@@ -155,11 +147,15 @@ def ion_ioncell_relax_input(structure, pseudos, kppa, nband,
         charge: Electronic charge added to the unit cell.
         scf_algorithm: Algorithm used for solving of the SCF cycle.
     """
-    #structure = Structure.as_structure(structure)
+    structure = Structure.as_structure(structure)
     pseudos = PseudoTable.as_table(pseudos).get_pseudos_for_structure(structure)
 
     inp = AbiInput(pseudos, ndtset=2)
     inp.set_structure(structure)
+
+    # Set the cutoff energy
+    ecut, pawecutdg = get_ecut_pawecutdg(ecut, pawecutdg, pseudos)
+    inp.set_vars(ecut=ecut, pawecutdg=pawecutdg)
 
     ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0)
     electrons = Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
@@ -182,6 +178,7 @@ def ion_ioncell_relax_input(structure, pseudos, kppa, nband,
 
 
 def g0w0_with_ppmodel_input(structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx,
+                            ecut=None, pawecutdg=None,
                             accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
                             ppmodel="godby", charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
                             sigma_nband=None, gw_qprange=1):
@@ -195,6 +192,8 @@ def g0w0_with_ppmodel_input(structure, pseudos, scf_kppa, nscf_nband, ecuteps, e
         nscf_nband: Number of bands included in the NSCF run.
         ecuteps: Cutoff energy [Ha] for the screening matrix.
         ecutsigx: Cutoff energy [Ha] for the exchange part of the self-energy.
+        ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
+        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos according to accuracy)
         accuracy: Accuracy of the calculation.
         spin_mode: Spin polarization.
         smearing: Smearing technique.
@@ -208,8 +207,15 @@ def g0w0_with_ppmodel_input(structure, pseudos, scf_kppa, nscf_nband, ecuteps, e
             See Abinit docs for more detail. The default value makes the code compute the
             QP energies for all the point in the IBZ and one band above and one band below the Fermi level.
     """
+    structure = Structure.as_structure(structure)
+    pseudos = PseudoTable.as_table(pseudos).get_pseudos_for_structure(structure)
+
     inp = AbiInput(pseudos, ndtset=4)
     inp.set_structure(structure)
+
+    # Set the cutoff energy
+    ecut, pawecutdg = get_ecut_pawecutdg(ecut, pawecutdg, pseudos)
+    inp.set_vars(ecut=ecut, pawecutdg=pawecutdg)
 
     scf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
 
@@ -260,6 +266,7 @@ def g0w0_with_ppmodel_input(structure, pseudos, scf_kppa, nscf_nband, ecuteps, e
 
 def bse_with_mdf_input(structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk, 
                        ecuteps, bs_loband, bs_nband, soenergy, mdf_epsinf, 
+                       ecut=None, pawecutdg=None, 
                        exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="polarized", 
                        smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
     """
@@ -281,6 +288,8 @@ def bse_with_mdf_input(structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nsc
         bs_nband: Highest band idex used for the construction of the e-h basis set.
         soenergy: Scissor energy in Hartree.
         mdf_epsinf: Value of the macroscopic dielectric function used in expression for the model dielectric function.
+        ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
+        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos according to accuracy)
         exc_type: Approximation used for the BSE Hamiltonian (Tamm-Dancoff or coupling).
         bs_algo: Algorith for the computatio of the macroscopic dielectric function.
         accuracy: Accuracy of the calculation.
@@ -289,8 +298,15 @@ def bse_with_mdf_input(structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nsc
         charge: Electronic charge added to the unit cell.
         scf_algorithm: Algorithm used for solving the SCF cycle.
     """
+    structure = Structure.as_structure(structure)
+    pseudos = PseudoTable.as_table(pseudos).get_pseudos_for_structure(structure)
+
     inp = AbiInput(pseudos, ndtset=3)
     inp.set_structure(structure)
+
+    # Set the cutoff energy
+    ecut, pawecutdg = get_ecut_pawecutdg(ecut, pawecutdg, pseudos)
+    inp.set_vars(ecut=ecut, pawecutdg=pawecutdg)
 
     # Ground-state 
     scf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
