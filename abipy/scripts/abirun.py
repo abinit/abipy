@@ -335,10 +335,13 @@ hardware:
         new_manager = abilab.TaskManager.from_file(options.manager_file)
 
         # Change the manager of the errored tasks.
-        status = "S_QCRITICAL"
+        status = "QCritical"
         #status = "S_ERROR"
         #print("Resetting tasks with status: %s" % options.task_status)
         for task in flow.iflat_tasks(status=status, nids=selected_nids(flow, options)):
+        #for work in flow:
+        #    for task in work:
+        #        if task.status in
             task.reset()
             task.set_manager(new_manager)
             
@@ -389,8 +392,8 @@ hardware:
                 pass
         else:
             flow.show_status(verbose=options.verbose, nids=selected_nids(flow, options))
-            if flow.manager.has_queue:
-                print("Total number of jobs in queue: %s" % flow.manager.get_njobs_in_queue())
+            #if flow.manager.has_queue:
+            #    print("Total number of jobs in queue: %s" % flow.manager.get_njobs_in_queue())
 
     elif options.command == "open":
         flow.open_files(what=options.what, status=None, op="==", nids=selected_nids(flow, options))
