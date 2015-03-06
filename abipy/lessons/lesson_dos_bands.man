@@ -1,0 +1,42 @@
+.TH The "" "" "calculation of the density of states and the bandstructure."
+.SH Background
+.PP
+This lesson focuses on the calculation of the density of states (DOS)
+and the electronic band structure withing the Kohn\-Sham (KS) formalism.
+.PP
+In contrast to the total energy and its derivatives, the energies of the
+KS\-levels have no exact physical meaning, except for the highest
+occupied state that actually would be the first ionization energy if the
+functional would be exact.
+So why would we even want to calculate the KS\-DOS and band structure?
+In most cases the KS spectrum is qualitatively in agreement with the
+spectrum of ionization energies.
+Moreover in general we are able to make good predictions on trends.
+.PP
+In lesson_g0w0.py, we discuss a more elaborated and accurate approach
+for the calculation of band energies and band gaps.
+.SH The related abinit variables
+.RS
+.IP \[bu] 2
+kptopt (negative values)
+.IP \[bu] 2
+kptbounds (if you want to specify the bounds of the k\-path)
+.IP \[bu] 2
+ndivsm
+.RE
+.PP
+At this place they will not be discussed in detail.
+Instead you are invited to read the abinit documentation on them.
+The full description, directly from the abinit description is available
+via the following function:
+.RS
+.IP
+.nf
+\f[C]
+abidoc.py\ man\ inputvariable
+\f[]
+.fi
+.RE
+.PP
+This will print the official abinit description of this inputvariable.
+.SH The course of this lesson

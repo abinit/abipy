@@ -12,17 +12,16 @@ def h2_h_input(x=0.7, ecut=10, acell=(10, 10, 10)):
     """
     inp = abilab.AbiInput(pseudos=abidata.pseudos("01h.pspgth"), ndtset=2)
 
-    inp.set_variables(
+    inp.set_vars(
         ecut=ecut, 
         nband=1,
         diemac=2.0,
         nstep=10,
-        
     )
 
     inp.set_kmesh(ngkpt=(1,1,1), shiftk=(0,0,0))
 
-    h2 = abilab.Structure.from_abivars(dict(
+    h2 = abilab.Structure.from_abivars(
         natom=2,        
         ntypat=1,  
         typat=(1, 1),
@@ -31,17 +30,17 @@ def h2_h_input(x=0.7, ecut=10, acell=(10, 10, 10)):
                +x, 0.0, 0.0],
         acell=acell,
         rprim=[1, 0, 0, 0, 1, 0, 0, 0, 1],
-    ))
+    )
 
     inp[1].set_structure(h2)
-    inp[1].set_variables(
+    inp[1].set_vars(
         ionmov=3,
         ntime=10,
         tolmxf=5e-4,
         toldff=5e-5,
     )
 
-    h = abilab.Structure.from_abivars(dict(
+    h = abilab.Structure.from_abivars(
         natom=1,        
         ntypat=1,  
         typat=1,
@@ -49,10 +48,10 @@ def h2_h_input(x=0.7, ecut=10, acell=(10, 10, 10)):
         xcart=[0.0, 0.0, 0.0],
         acell=acell,
         rprim=[1, 0, 0, 0, 1, 0, 0, 0, 1],
-    ))
+    )
 
     inp[2].set_structure(h)
-    inp[2].set_variables(
+    inp[2].set_vars(
         nsppol=2,
         nband=(1, 1),
         occopt=2,
@@ -64,18 +63,17 @@ def h2_h_input(x=0.7, ecut=10, acell=(10, 10, 10)):
     return inp.split_datasets()
 
 
-def ecut_convergence_study():
+def ecut_convergence_study(ecuts=range(10, 40, 5)):
     """
     H2 molecule in a big box
     Generate a flow to compute the total energy and forces as a function of the interatomic distance
     """
     inputs = []
-    for ecut in range(10, 40, 5):
+    for ecut in ecuts:
         inputs += h2_h_input(ecut=ecut)
 
     flow = abilab.Flow.from_inputs("flow_h2h_ecut", inputs)
-
-    #flow.make_scheduler().start()
+    flow.make_scheduler().start()
 
     import matplotlib.pyplot as plt
     import pandas as pd
@@ -100,17 +98,16 @@ def ecut_convergence_study():
         plt.show()
 
 
-def acell_convergence_study():
+def acell_convergence_study(acell_list=range(8, 20, 2), ecut=10):
     """
     H2 molecule in a big box
-    Generate a flow to compute the total energy and forces as a function of the interatomic distance
+    Generate a flow to compute the total energy and the forces as function of the interatomic distance
     """
     inputs = []
-    for acell in range(8, 20, 2):
-        inputs += h2_h_input(ecut=10, acell=3*[acell])
+    for acell in acell_list:
+        inputs += h2_h_input(ecut=ecut, acell=3*[acell])
     flow = abilab.Flow.from_inputs("flow_h2h_acell", inputs)
-
-    #flow.make_scheduler().start()
+    flow.make_scheduler().start()
 
     def hh_dist(gsr):
         """This function receives a GSR file and computes the H-H distance"""
@@ -124,7 +121,7 @@ def acell_convergence_study():
     import matplotlib.pyplot as plt
     import pandas as pd
 
-    with abilab.GsrRobot.open(flow) as robot:
+    with abilab.abirobot(flow, "GSR") as robot:
         frame = robot.get_dataframe(funcs=hh_dist)
         frame = frame[["formula", "a", "energy", "hh_dist"]]
         print(frame)

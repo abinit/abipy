@@ -26,7 +26,7 @@ def gs_input(nsppol):
     inp.set_kmesh(ngkpt=[4, 4, 4], shiftk=[0.5, 0.5, 0.5])
 
     # Optimization of the lattice parameters
-    inp.set_variables(
+    inp.set_vars(
         nsppol=nsppol,
         ecut=18, 
         nband=8,
@@ -37,7 +37,7 @@ def gs_input(nsppol):
     )
 
     if nsppol == 2:
-        inp.set_variables(spinat=[0.0, 0.0, 4.0])
+        inp.set_vars(spinat=[0.0, 0.0, 4.0])
 
     return inp
 
@@ -63,7 +63,7 @@ def afm_input():
     inp.set_kmesh(ngkpt=[6, 6, 4], shiftk=[0.5, 0.5, 0.5])
 
     # Antiferromagnetic order
-    inp.set_variables(
+    inp.set_vars(
         nsppol=1,
         nspden=2,
         spinat=[0.0, 0.0,  4.0,
@@ -88,8 +88,6 @@ def gs_flow():
         data = robot.get_dataframe()
         print(data)
         robot.pairplot(x_vars="nsppol", y_vars=["energy", "a", "volume", "pressure"])
-
-    return
 
     #gstask_nospin, gstask_spin = flow[0][0], flow[0][1] 
     #data = abilab.PrettyTable(["property", "unpolarized", "polarized"])
@@ -127,7 +125,7 @@ def afm_flow():
 def tantalum_gsinput(nspinor=2):
     #  Single Ta atom in a big box (BCC), treated with spin-orbit coupling.
     inp = abilab.AbiInput(pseudos=abidata.pseudos("73ta.hghsc"))
-    structure = abilab.Structure.from_abivars(dict(
+    structure = abilab.Structure.from_abivars(
         natom=1,
         ntypat=1,
         typat=[1],
@@ -137,12 +135,12 @@ def tantalum_gsinput(nspinor=2):
                -0.5,  0.5,  0.5,
                 0.5, -0.5,  0.5],
         xred=[0.0, 0.0, 0.0]
-        ))
+    )
     inp.set_structure(structure)
 
     inp.set_kmesh(ngkpt=[1, 1, 1], shiftk=[0.0, 0.0, 0.0])
 
-    inp.set_variables(
+    inp.set_vars(
         nspinor=nspinor,
         ecut=10, 
         ixc=2,

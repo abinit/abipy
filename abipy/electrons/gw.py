@@ -11,7 +11,7 @@ from monty.string import list_strings, is_string
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from monty.bisect import find_le, find_ge 
-from pymatgen.util.plotting_utils import add_fig_kwargs
+from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from prettytable import PrettyTable
 from six.moves import cStringIO
 from abipy.core.func1d import Function1D
@@ -149,7 +149,7 @@ class QPState(namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sig
 
 
 class QPList(list):
-    """A list of quasiparticle corrections."""
+    """A list of quasiparticle corrections for a given spin."""
     def __init__(self, *args, **kwargs):
         super(QPList, self).__init__(*args)
         self.is_e0sorted = kwargs.get("is_e0sorted", False)
@@ -718,11 +718,12 @@ class SigresPlotter(Iterable):
         return np.array(qpenes)
 
     @add_fig_kwargs
-    def plot_qpgaps(self, spin=None, kpoint=None, hspan=0.01, **kwargs):
+    def plot_qpgaps(self, ax=None, spin=None, kpoint=None, hspan=0.01, **kwargs):
         """
         Plot the QP gaps as function of the convergence parameter.
 
         Args:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
             spin:
             kpoint: 
             hspan:
@@ -736,9 +737,7 @@ class SigresPlotter(Iterable):
 
         self.prepare_plot()
 
-        import matplotlib.pyplot as plt
-        fig = plt.figure()
-        ax = fig.add_subplot(1,1,1)
+        ax, fig, plt = get_ax_fig_plt(ax)
 
         xx = self.xvalues
         for spin in spin_range:
@@ -928,21 +927,20 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
             qps.plot_qps_vs_e0(with_fields=with_fields, exclude_fields=exclude_fields, **kwargs)
 
     @add_fig_kwargs
-    def plot_spectral_functions(self, spin, kpoint, bands, **kwargs):
+    def plot_spectral_functions(self, spin, kpoint, bands, ax=None, **kwargs):
         """
         Args:
             spin: Spin index.
             kpoint: Required kpoint.
             bands: List of bands
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
 
         Returns:
             `matplotlib` figure
         """
         if not isinstance(bands, Iterable): bands = [bands]
 
-        import matplotlib.pyplot as plt
-        fig = plt.figure()
-        ax = fig.add_subplot(1,1,1)
+        ax, fig, plt = get_ax_fig_plt(ax)
 
         for band in bands:
             sigw = self.get_sigmaw(spin, kpoint, band)
@@ -952,6 +950,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         return fig
 
     def plot_eigvec_qp(self, spin, kpoint, band=None, **kwargs):
+
         if kpoint is None:
             from abipy.tools.plotting_utils import ArrayPlotter
             plotter = ArrayPlotter()
@@ -1379,7 +1378,7 @@ class SigresReader(ETSF_Reader):
 
         params = AttrDict()
         for pname in param_names:
-            params[pname] = self.read_value(pname)
+            params[pname] = self.read_value(pname, default=None)
         
         # Other quantities that might be subject to convergence studies.
         params["nkibz"] = len(self.ibz)

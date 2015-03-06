@@ -15,14 +15,14 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands
 from prettytable import PrettyTable
 from .ebands import ElectronsReader
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 __all__ = [
     "GsrFile",
     "GsrPlotter",
 ]
-
-import logging
-logger = logging.getLogger(__name__)
 
 
 class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
@@ -196,7 +196,10 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
             cart_stress_tensor=self.cart_stress_tensor,
             pressure=self.pressure,
             number_of_electrons=self.nelect,
-            ebands=self.ebands.to_pymatgen().as_dict(),
+            # FIXME: this call raises
+            #>       if kpointcbm.label is not None:
+            #E       AttributeError: 'NoneType' object has no attribute 'label'
+            #ebands=self.ebands.to_pymatgen().as_dict(),
             #max_residual=
             #magnetization=self.magnetization,
             #band_gap=
@@ -284,10 +287,10 @@ class GsrReader(ElectronsReader, DensityReader):
 
     def read_cart_stress_tensor(self):
         """
-        Return the stress tensor in cartesian coordinates (Hartree/Bohr^3)
-        6 unique components of this symmetric 3x3 tensor:
-        Given in order (1,1), (2,2), (3,3), (3,2), (3,1), (2,1).
+        Return the stress tensor (3x3 matrix) in cartesian coordinates (Hartree/Bohr^3)
         """
+        # Abinit stores 6 unique components of this symmetric 3x3 tensor:
+        # Given in order (1,1), (2,2), (3,3), (3,2), (3,1), (2,1).
         c = self.read_value("cartesian_stress_tensor")
         tensor = np.empty((3,3), dtype=np.float)
         for i in range(3): tensor[i,i] = c[i]

@@ -6,7 +6,7 @@ from __future__ import division, print_function, unicode_literals
 
 import os
 import sys
-import abipy.data as data  
+import abipy.data as abidata  
 import abipy.abilab as abilab
 
 
@@ -59,8 +59,12 @@ def build_flow(options):
     manager = abilab.TaskManager.from_user_config() if not options.manager else \
               abilab.TaskManager.from_file(options.manager)
 
-    pseudos = data.pseudos("12mg.pspnc", "5b.pspnc")
-    structure = data.structure_from_ucell("MgB2")
+    #pseudos = abidata.pseudos("12mg.pspnc", "5b.pspnc")
+    structure = abidata.structure_from_ucell("MgB2")
+
+    # Get pseudos from a table. 
+    table = abilab.PseudoTable(abidata.pseudos("12mg.pspnc", "5b.pspnc"))
+    pseudos = table.get_pseudos_for_structure(structure)
 
     nval = structure.num_valence_electrons(pseudos)
     #print(nval)
@@ -76,7 +80,8 @@ def build_flow(options):
 @abilab.flow_main
 def main(options):
     flow = build_flow(options)
-    return flow.build_and_pickle_dump()
+    flow.build_and_pickle_dump()
+    return flow
 
 
 if __name__ == "__main__":

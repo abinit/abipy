@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 #
-# This examples shows how to plot the GW spectral functions A(w)
-# See lesson tgw2_4
+# This examples shows how to plot the G0W0 spectral functions A(w)
+# at the gamma point, for the first band). See lesson tgw2_4
+
 import abipy.data as abidata
 from abipy.abilab import abiopen
 

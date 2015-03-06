@@ -59,7 +59,7 @@ def make_ngkpt_flow():
     inp.set_structure(abidata.cif_file("si.cif"))
 
     # Global variables
-    inp.set_variables(ecut=10, tolvrs=1e-9)
+    inp.set_vars(ecut=10, tolvrs=1e-9)
 
     for i, ngkpt in enumerate(ngkpt_list):
         inp[i+1].set_kmesh(ngkpt=ngkpt, shiftk=[0,0,0])
@@ -86,7 +86,7 @@ def make_relax_flow():
     inp.set_structure(abidata.cif_file("si.cif"))
 
     # Global variables
-    inp.set_variables(
+    inp.set_vars(
         ecut=10,
         tolvrs=1e-9,
         optcell=1,
@@ -117,11 +117,11 @@ def make_ebands_flow():
     inp.ecut = 10
 
     # Dataset 1
-    inp[1].set_variables(tolvrs=1e-9)
+    inp[1].set_vars(tolvrs=1e-9)
     inp[1].set_kmesh(ngkpt=[4,4,4], shiftk=[0,0,0])
 
     # Dataset 2
-    inp[2].set_variables(tolwfr=1e-15)
+    inp[2].set_vars(tolwfr=1e-15)
     inp[2].set_kpath(ndivsm=5)
 
     scf_input, nscf_input = inp.split_datasets()
@@ -130,10 +130,12 @@ def make_ebands_flow():
 
 
 if __name__ == "__main__":
-    flow = make_ngkpt_flow()
+    from abipy.lessons.lesson_helper_functions import abinit_help
+    print(abinit_help("tsmear"))
+    #flow = make_ngkpt_flow()
     #flow = make_relax_flow()
     #flow = make_ebands_flow()
 
     #flow.show_inputs()
-    flow.make_scheduler().start()
-    flow.analyze()
+    #flow.make_scheduler().start()
+    #flow.analyze()

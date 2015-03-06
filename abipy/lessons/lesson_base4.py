@@ -9,6 +9,7 @@ def relax_input(tsmear, nksmall):
     # Crystalline aluminum : optimization of the lattice parameter
     # at fixed number of k points and broadening.
     inp = abilab.AbiInput(pseudos=abidata.pseudos("13al.981214.fhi"))
+
     structure = abidata.ucells.structure_from_ucell("Al")
     inp.set_structure(structure)
 
@@ -23,10 +24,10 @@ def relax_input(tsmear, nksmall):
     #       0.5 0.0 0.0
     #       0.0 0.5 0.0
     #       0.0 0.0 0.5
-    inp.set_autokmesh(nksmall=nksmall)
+    inp[1].set_autokmesh(nksmall=nksmall)
 
     # Optimization of the lattice parameters
-    inp.set_variables(
+    inp[1].set_vars(
         ecut=6, 
         occopt=4,
         tsmear=tsmear,
@@ -44,7 +45,8 @@ def relax_input(tsmear, nksmall):
 
 
 def relax_flow():
-    flow = abilab.Flow.from_inputs("flow_al_relax", inputs=relax_input(tsmear=0.05, nksmall=2))
+    flow = abilab.Flow.from_inputs("flow_al_relax", inputs=relax_input(tsmear=0.05, nksmall=2), 
+                                    task_class=abilab.RelaxTask)
     flow.make_scheduler().start()
 
     #gs_task = flow[0][0]
@@ -60,11 +62,14 @@ def tsmear_nkpts_convergence(tsmear_list=(0.01, 0.02, 0.03, 0.04), nksmall_list=
     # Cartesian product of input iterables. Equivalent to nested for-loops.
     from itertools import product
     inputs = [relax_input(tsmear, nksmall) for tsmear, nksmall in product(tsmear_list, nksmall_list)]
-    flow = abilab.Flow.from_inputs(workdir="flow_al_conv_relax", inputs=inputs)
 
-    #flow.make_scheduler().start()
+    flow = abilab.Flow.from_inputs(workdir="flow_al_conv_relax", inputs=inputs, 
+                                   task_class=abilab.RelaxTask)
+    flow.make_scheduler().start()
+
     with abilab.abirobot(flow, "GSR") as robot:
         data = robot.get_dataframe()
+        print(data)
         robot.pairplot(x_vars="nkpts", y_vars=["energy", "a", "volume"], hue="tsmear")
 
     #grid = sns.FacetGrid(data, col="tsmear") 
@@ -74,5 +79,5 @@ def tsmear_nkpts_convergence(tsmear_list=(0.01, 0.02, 0.03, 0.04), nksmall_list=
 
 
 if __name__ == "__main__":
-    #relax_flow()
-    tsmear_nkpts_convergence()
+    relax_flow()
+    #tsmear_nkpts_convergence()

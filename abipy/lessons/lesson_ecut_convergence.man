@@ -1,0 +1,73 @@
+.TH Basis "" "" "set convergence study and some more on flows, works, and tasks."
+.SH Background
+.PP
+This lesson focuses on the convergence study on the completeness of the
+basis set.
+In our case the basis set consists of plane waves.
+Plane waves are inherently well suited to capture the periodic nature of
+a crystalline solid.
+In addition a plane wave basis set has the advantage that it introduces
+only one convergence parameter, the kinetic energy cutoff (ecut).
+.PP
+The sharp features of the wavefunctions near the nucleus are however
+problematic for plane waves.
+Describing these features would require very high energy plane waves.
+In practice we will always use pseudo\-potentials instead of the actual
+nuclear potential to facilitate convergence.
+Effectively a pseudopotential replaces the sharp coulomb potential of
+the nucleus and the core electrons by something smoother inside the
+pseudization region that connects smoothly to the real potential outside
+the pseudization region.
+.PP
+Needless to say a different pseudo potential will require a different
+cutoff for the calculation to be converged.
+In general norm\-conserving pseudos require a larger cut\-off that
+ultra\-soft pseudos or Projector Augmented Wave \[aq]pseudos\[aq].
+Moreover two pseudos of the same type for the same element may require
+different cutoffs as well.
+\[aq]Harder\[aq] (having a smaller pseudization radius) require larger
+cutoffs than \[aq]softer\[aq] pseudos.
+There are however many more properties of a pseudo that determine the
+cutoff needed.
+.SH The related abinit variables
+.PP
+As said, the most important parameter is the energy cutoff (ecut input
+variable).
+The most important input parameters concerning the basis set are:
+.RS
+.IP \[bu] 2
+ecut
+.IP \[bu] 2
+pawecutdg (additional variable for PAW)
+.IP \[bu] 2
+ecutsm
+.RE
+.PP
+The full description, directly from the abinit description is available
+via the following function:
+.RS
+.IP
+.nf
+\f[C]
+abidoc.py\ man\ inputvariable
+\f[]
+.fi
+.RE
+.PP
+This will print the official abinit description of this inputvariable.
+.SH The course of this lesson
+.PP
+As in the previous lesson, executing the python script created the
+folder structure with the in input files for this lesson.
+.PP
+One of the standard thing to look for to be converged in the total
+energy.
+We did that already in the previous lesson.
+This time have a look at some of the other important properties.
+Look for instance at the convergence rate of the forces, stress\-tensor
+or the energies of the KS\-orbitals.
+.SH Exercises
+.PP
+Edit the input files to run the same convergence study for a different
+k\-point mesh.
+Best to start small.

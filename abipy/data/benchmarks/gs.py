@@ -17,7 +17,7 @@ def make_input(paral_kgb=1, paw=False):
 
     # Global variables
     ecut = 10
-    inp.set_variables(
+    inp.set_vars(
         ecut=ecut,
         pawecutdg=ecut*4,
         nsppol=1,
@@ -64,13 +64,7 @@ def build_flow(options):
 def main(options):
     flow = build_flow(options)
     flow.build_and_pickle_dump()
-
-    if options.sched:
-        flow.make_scheduler().start()
-    else:
-        print("nlaunches", flow.rapidfire())
-
-    return 0
+    return flow
 
 
 if __name__ == "__main__":

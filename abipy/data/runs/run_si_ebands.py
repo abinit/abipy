@@ -14,6 +14,7 @@ def make_scf_nscf_inputs(paral_kgb=1):
     #pseudos = data.pseudos("Si.GGA_PBE-JTH-paw.xml")
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
+    #inp.set_mnemonics(True)
     structure = inp.set_structure(abidata.cif_file("si.cif"))
 
     # Global variables
@@ -70,6 +71,8 @@ def build_flow(options):
 def main(options):
     flow = build_flow(options)
     flow.build_and_pickle_dump()
+    flow.set_pyfile(__file__)
+    return flow
 
 if __name__ == "__main__":
     sys.exit(main())

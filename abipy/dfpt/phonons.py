@@ -9,13 +9,14 @@ import numpy as np
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from pymatgen.core.units import Ha_to_eV, eV_to_Ha
-from pymatgen.util.plotting_utils import add_fig_kwargs
+from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands
 from abipy.core.kpoints import Kpoint
 from abipy.iotools import ETSF_Reader
 from abipy.tools import gaussian
 from abipy.tools.plotting_utils import Marker
+
 
 __all__ = [
     "PhononBands",
@@ -479,18 +480,17 @@ class PhononBands(object):
             ax.set_xticklabels(labels, fontdict=None, minor=False)
 
     @add_fig_kwargs
-    def plot(self, qlabels=None, branch_range=None, marker=None, width=None, **kwargs):
+    def plot(self, ax=None, qlabels=None, branch_range=None, marker=None, width=None, **kwargs):
         """
         Plot the phonon band structure.
 
         Args:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
             qlabels: dictionary whose keys are tuple with the reduced coordinates of the q-points. 
-                The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
-            branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted)
-            marker: String defining the marker to plot. Accepts the syntax `markername:fact` where
-                fact is a float used to scale the marker size.
-            width: String defining the width to plot. Accepts the syntax `widthname:fact` where
-                fact is a float used to scale the stripe size.
+                     The values are the labels. e.g. `qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}`.
+            branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted).
+            marker: String defining the marker to plot. Syntax `markername:fact` where fact is a float used to scale the marker size.
+            width: String defining the width to plot. Syntax `widthname:fact` where fact is a float used to scale the stripe size.
 
         Returns:
             `matplotlib` figure.
@@ -501,10 +501,7 @@ class PhononBands(object):
         else:
             branch_range = range(branch_range[0], branch_range[1], 1)
 
-        import matplotlib.pyplot as plt
-        fig = plt.figure()
-
-        ax = fig.add_subplot(1, 1, 1)
+        ax, fig, plt = get_ax_fig_plt(ax)
 
         # Decorate the axis (e.g add ticks and labels).
         self.decorate_ax(ax, qlabels=qlabels)
@@ -606,7 +603,7 @@ class PhononBands(object):
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
             max_stripe_width_mev: The maximum width of the stripe in meV.
             qlabels: dictionary whose keys are tuple with the reduced coordinates of the q-points. 
-                The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
+                The values are the labels. e.g. `qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}`.
 
         Returns:
             `matplotlib` figure.
@@ -1122,22 +1119,19 @@ class PhdosFile(AbinitNcFile, Has_Structure):
         return pjdos_type_dict
 
     @add_fig_kwargs
-    def plot_pjdos_type(self, colormap="jet", **kwargs):
+    def plot_pjdos_type(self, ax=None, colormap="jet", **kwargs):
         """
-        Stacked Plot of the  projected DOS (projection is for atom types)
+        Stacked Plot of the projected DOS (projection is for atom types)
 
         Args:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
             colormap: Have a look at the colormaps here and decide which one you'd like:
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
 
         Returns:
             matplotlib figure.
         """
-        import matplotlib.pyplot as plt
-
-        fig = plt.figure()
-
-        ax = fig.add_subplot(1, 1, 1)
+        ax, fig, plt = get_ax_fig_plt(ax)
         ax.grid(True)
 
         xlim = kwargs.pop("xlim", None)

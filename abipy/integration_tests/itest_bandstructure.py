@@ -34,11 +34,11 @@ def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
     if inp.ispaw:
         global_vars.update(pawecutdg=2*ecut)
 
-    inp.set_variables(**global_vars)
+    inp.set_vars(**global_vars)
 
     # Dataset 1 (GS run)
     inp[1].set_kmesh(ngkpt=[4, 4, 4], shiftk=[0, 0, 0])
-    inp[1].set_variables(tolvrs=1e-4)
+    inp[1].set_vars(tolvrs=1e-4)
 
     # Dataset 2 (NSCF run)
     kptbounds = [
@@ -48,7 +48,7 @@ def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
     ]
 
     inp[2].set_kpath(ndivsm=2, kptbounds=kptbounds)
-    inp[2].set_variables(tolwfr=1e-6)
+    inp[2].set_vars(tolwfr=1e-6)
     
     # Generate two input files for the GS and the NSCF run.
     scf_input, nscf_input = inp.split_datasets()
@@ -109,6 +109,16 @@ def itest_unconverged_scf(fwp, tvars):
     flow.show_status()
     assert flow.all_ok
 
+    # Test inspect methods
+    t0.inspect(show=False)
+
+    # Test get_results
+    t0.get_results()
+    t1.get_results()
+
+    # Build tarball file.
+    tarfile = flow.make_tarfile()
+
     #assert flow.validate_json_schema()
 
 
@@ -143,7 +153,7 @@ def itest_bandstructure_flow(fwp, tvars):
     assert not flow.all_ok
     assert flow.ncores_reserved == 0
     assert flow.ncores_allocated == 0
-    assert flow.ncores_inuse == 0
+    assert flow.ncores_used == 0
     flow.check_dependencies()
     flow.show_status()
     flow.show_receivers()
@@ -194,6 +204,12 @@ def itest_bandstructure_flow(fwp, tvars):
 
     for task in flow.iflat_tasks():
         assert len(task.outdir.list_filepaths(wildcard="*GSR.nc")) == 1
+
+    # Test GSR robot
+    with abilab.abirobot(flow, "GSR") as robot:
+        table = robot.get_dataframe()
+        assert table is not None
+        print(table)
 
     #assert flow.validate_json_schema()
     #assert 0

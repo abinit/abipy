@@ -32,10 +32,12 @@ def ion_relaxation(tvars, ntime=50):
     inp.set_structure(structure)
 
     # Global variables
-    inp.set_variables(**global_vars)
+    inp.set_vars(**global_vars)
 
     # Dataset 1 (Atom Relaxation)
-    inp[1].set_variables(
+    #inp[1].set_vars(
+    # FIXME here there's a bug
+    inp.set_vars(
         optcell=0,
         ionmov=2,
         tolrff=0.02,
@@ -47,17 +49,81 @@ def ion_relaxation(tvars, ntime=50):
     return inp
 
 
-def make_ion_ioncell_inputs(tvars):
+def itest_atomic_relaxation(fwp, tvars):
+    """Test atomic relaxation with automatic restart."""
+    # Build the flow
+    flow = abilab.Flow(fwp.workdir, manager=fwp.manager)
+
+    ion_input = ion_relaxation(tvars, ntime=2)
+    work = flow.register_task(ion_input, task_class=abilab.RelaxTask)
+
+    flow.allocate()
+    flow.build_and_pickle_dump()
+
+    # Run t0, and check status
+    t0 = work[0]
+    t0.start_and_wait()
+    assert t0.returncode == 0
+    t0.check_status()
+    assert t0.status == t0.S_UNCONVERGED
+
+    assert t0.initial_structure == ion_input.structure
+    unconverged_structure = t0.get_final_structure() 
+    assert unconverged_structure != t0.initial_structure 
+
+    # Remove ntime from the input so that the next run will
+    # use the default value ntime=50 and we can converge the calculation.
+    # This one does not work
+    print("Before Input:\n", t0.strategy.abinit_input)
+    #t0.strategy.abinit_input.remove_vars("ntime")
+    t0.strategy.abinit_input.set_vars(ntime=50)
+    print("After input:\n", t0.strategy.abinit_input)
+
+    t0.build()
+    assert t0.restart()
+    t0.wait()
+    assert t0.num_restarts == 1
+
+    # At this point, we should have reached S_OK.
+    assert t0.status == t0.S_DONE
+    t0.check_status()
+    assert t0.status == t0.S_OK
+
+    final_structure = t0.get_final_structure()
+    assert final_structure != unconverged_structure
+
+    flow.show_status()
+    assert all(work.finalized for work in flow)
+    assert flow.all_ok
+
+    # post-processing tools
+    t0.inspect(show=False)
+
+    with t0.open_hist() as hist:
+        print(hist)
+
+    with t0.open_gsr() as gsr:
+        print(gsr)
+        gsr.pressure == 1.8280
+
+    t0.get_results()
+
+
+def make_ion_ioncell_inputs(tvars, dilatmx, scalevol):
     cif_file = abidata.cif_file("si.cif")
     structure = abilab.Structure.from_file(cif_file)
 
     # Perturb the structure (random perturbation of 0.1 Angstrom)
-    structure.perturb(distance=0.01)
+    #structure.perturb(distance=0.01)
+
+    # Compress the lattice so that ABINIT complains about dilatmx
+    structure.scale_lattice(structure.volume * scalevol)
 
     pseudos = abidata.pseudos("14si.pspnc")
 
     global_vars = dict(
         ecut=6,
+        ecutsm=0.5,
         ngkpt=[4,4,4],
         shiftk=[0,0,0],
         nshiftk=1,
@@ -69,25 +135,24 @@ def make_ion_ioncell_inputs(tvars):
     inp.set_structure(structure)
 
     # Global variables
-    inp.set_variables(**global_vars)
+    inp.set_vars(**global_vars)
 
     # Dataset 1 (Atom Relaxation)
-    inp[1].set_variables(
+    inp[1].set_vars(
         optcell=0,
         ionmov=2,
         tolrff=0.02,
         tolmxf=5.0e-5,
         ntime=50,
         #ntime=5, To test the restart
-        dilatmx=1.05, # FIXME: abinit crashes if I don't use this
+        #dilatmx=1.05, # FIXME: abinit crashes if I don't use this
     )
 
     # Dataset 2 (Atom + Cell Relaxation)
-    inp[2].set_variables(
+    inp[2].set_vars(
         optcell=1,
         ionmov=2,
-        ecutsm=0.5,
-        dilatmx=1.05,
+        dilatmx=dilatmx,
         tolrff=0.02,
         tolmxf=5.0e-5,
         strfact=100,
@@ -99,46 +164,30 @@ def make_ion_ioncell_inputs(tvars):
     return ion_inp, ioncell_inp
 
 
-def itest_simple_atomic_relaxation(fwp, tvars):
-    """
-    Test ion relaxation with automatic restart.
-    """
-    # Build the flow
-    flow = abilab.Flow(fwp.workdir, manager=fwp.manager)
+def itest_dilatmx_error_handler(fwp, tvars):
+     """
+     Test cell relaxation with automatic restart in the presence of dilatmx error.
+     """
+     # Build the flow
+     flow = abilab.Flow(fwp.workdir, manager=fwp.manager)
+ 
+     # Decrease the volume to trigger DilatmxError
+     ion_input, ioncell_input = make_ion_ioncell_inputs(tvars, dilatmx=1.01, scalevol=0.8)
 
-    ion_input = ion_relaxation(tvars, ntime=2)
-    work = flow.register_task(ion_input, task_class=abilab.RelaxTask)
-    t0 = work[0]
+     work = abilab.Work()
+     work.register_relax_task(ioncell_input)
+ 
+     flow.register_work(work)
+     flow.allocate()
+     flow.make_scheduler().start()
+     flow.show_status()
 
-    flow.allocate()
-    flow.build_and_pickle_dump()
-
-    # Run t0, and check status
-    assert t0.returncode == 0
-    t0.start_and_wait()
-    assert t0.returncode == 0
-    t0.check_status()
-    assert t0.status == t0.S_UNCONVERGED
-
-    # Remove ntime from the input so that the next run will
-    # use the default value ntime=50 and we can converge the calculation.
-    # This one does not work
-    #t0.strategy.remove_extra_abivars(["ntime"])
-    t0.strategy.add_extra_abivars(dict(ntime=50))
-    #t0.strategy.abinit_input.pop("ntime")
-    #t0.strategy.abinit_input.remove_variables("ntime")
-    #t0.strategy.abinit_input.set_variables(ntime=50)
-    print("new input:\n", t0.strategy.abinit_input)
-    t0.build()
-    assert t0.restart()
-    t0.wait()
-    assert t0.num_restarts == 1
-
-    assert t0.status == t0.S_DONE
-    t0.check_status()
-    assert t0.status == t0.S_OK
-
-    flow.show_status()
-    assert all(work.finalized for work in flow)
-    assert flow.all_ok
-    #assert flow.validate_json_schema()
+     assert all(work.finalized for work in flow)
+     assert flow.all_ok
+ 
+     # t0 should have reached S_OK, and we should have DilatmxError in the corrections.
+     t0 = work[0]
+     assert t0.status == t0.S_OK
+     print(t0.corrections)
+     assert t0.num_corrections == 1
+     assert t0.corrections[0]["event"]["@class"] == "DilatmxError"

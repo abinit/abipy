@@ -1,0 +1,70 @@
+.TH Relaxation "" "" "of the unit cell with two different techniques"
+.SH Background
+.PP
+One of the tasks that is most performed using DFT is the relaxation of
+an atomic structure.
+Effectively we search for that structure for which the total energy is
+minimal.
+Since the total energy is in principal exact in DFT the atomic position
+are in general rather good.
+\[aq]In principal\[aq] means if the exchange\-correlation functional
+would be exact.
+However, since we are comparing differences in total energies an certain
+amount of error\-cancellation can be expected.
+.PP
+In this lesson we focus on different types of structure relaxations.
+.SH The related abinit variables
+.RS
+.IP \[bu] 2
+ionmov
+.IP \[bu] 2
+optcell
+.IP \[bu] 2
+dilatmx
+.IP \[bu] 2
+ecutsm
+.IP \[bu] 2
+ntime
+.IP \[bu] 2
+tolmxf
+.IP \[bu] 2
+tolrff
+.RE
+.PP
+The full description of the variables, directly from the abinit
+description is available via the following function:
+.RS
+.IP
+.nf
+\f[C]
+abidoc.py\ man\ inputvariable
+\f[]
+.fi
+.RE
+.PP
+This will print the official abinit description of this inputvariable.
+.PP
+As in the previous lessons, executing the python script created the
+folder structure with the input files for this lesson.
+.PP
+For the flow_si_relax folder, look in particular to the changes in the
+unit cell (rprim) in the input files and the corresponding change in
+unit cell volume (ucvol), total energy (etotal) and stresses (strten) in
+the output file.
+For the flow_gan_relax, observe in the input and output files how the
+automatic relaxation takes place.
+At each step of the relaxation a full SCF\-cycle is done, to compute the
+forces and the stress, the ions are moved and then a new SCF\-cycle is
+done until convergence is done.
+That\[aq]s why there are two stopping criterion for this task : tolrff
+or tolvrs for the SCF cycle and tolmxf for the relaxation in itself.
+.SH Exercises
+.PP
+Edit the input files to run the same jobs with different ecut values for
+example.
+.PP
+You can also try to change the stopping criterion to see what are the
+effects of them.
+.PP
+Finally, try to generate the input file for silicon, and try to guess
+why setting stopping criterion on forces won\[aq]t work in that case !

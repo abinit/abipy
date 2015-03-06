@@ -15,11 +15,10 @@ from pymatgen.io.abinitio.wrappers import Mrgscr, Mrgddb, Mrggkk
 #    PhononWorkflow)
 from pymatgen.io.abinitio.tasks import *
 from pymatgen.io.abinitio.works import *
-from pymatgen.io.abinitio.flows import *
+from pymatgen.io.abinitio.flows import Flow, G0W0WithQptdmFlow, bandstructure_flow, g0w0_flow, phonon_flow
 from pymatgen.io.abinitio.launcher import PyFlowScheduler
 
-#from abipy.tools.prettytable import PrettyTable
-from abipy.core.structure import Structure, StructureModifier
+from abipy.core.structure import Lattice, Structure, StructureModifier
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen, AnaddbInput
 from abipy.htc.robots import GsrRobot, SigresRobot, MdfRobot, abirobot
 from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter, SigresPlotter
@@ -29,13 +28,21 @@ from abipy.electrons.bse import MdfFile
 from abipy.electrons.scissors import ScissorsBuilder
 from abipy.dfpt import PhbstFile, PhononBands, PhdosFile, PhdosReader
 from abipy.dfpt.ddb import DdbFile
+from abipy.dynamics.hist import HistFile
 from abipy.core.mixins import AbinitInputFile, AbinitLogFile, AbinitOutputFile
 from abipy.waves import WfkFile
+from abipy.iotools import Visualizer
 
 # Tools for unit conversion
 import pymatgen.core.units as units
 FloatWithUnit = units.FloatWithUnit
 ArrayWithUnit = units.ArrayWithUnit
+
+# Documentation.
+from abipy.htc.abivars_db import get_abinit_variables, abinit_help, docvar
+
+# Utils for notebooks.
+from abipy.tools.notebooks import mpld3_enable_notebook
 
 
 def _straceback():
@@ -54,6 +61,7 @@ def abifile_subclass_from_filename(filename):
         "PHBST.nc": PhbstFile,
         "PHDOS.nc": PhdosFile,
         "DDB": DdbFile,
+        "HIST": HistFile,
     }
 
     # Abinit text files.
@@ -191,6 +199,12 @@ def flow_main(main):
         parser.add_argument("-m", '--manager', default="", type=str,
                             help="YAML file with the parameters of the task manager")
 
+        parser.add_argument("-s", '--scheduler', action="store_true", default=False, 
+                            help="Run the flow with the scheduler")
+
+        #parser.add_argument("-r", '--remove', action="store_true", default=False, 
+        #                    help="Run the flow with the scheduler")
+
         parser.add_argument("--prof", action="store_true", default=False, help="Profile code wth cProfile ")
 
         options = parser.parse_args()
@@ -210,6 +224,12 @@ def flow_main(main):
             s.strip_dirs().sort_stats("time").print_stats()
             return 0
         else:
-            return main(options)
+            flow = main(options)
+
+            if options.scheduler:
+                flow.rmtree()
+                return flow.make_scheduler().start()
+
+            return 0
 
     return wrapper

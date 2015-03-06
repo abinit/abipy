@@ -14,7 +14,7 @@ def make_inputs(ngkpt=(4,4,4), ecut=8, ecuteps=2):
     #inp.set_structure(abidata.cif_file("si.cif"))
     inp.set_structure(abidata.structure_from_ucell("Si"))
 
-    inp.set_variables(
+    inp.set_vars(
         ecut=ecut, 
         nband=8,
         istwfk="*1",
@@ -22,11 +22,11 @@ def make_inputs(ngkpt=(4,4,4), ecut=8, ecuteps=2):
         paral_kgb=1,
     )
 
-    inp[1].set_variables(tolvrs=1e-8)
+    inp[1].set_vars(tolvrs=1e-8)
     #inp[1].set_autokmesh(nksmall=min(ngkpt))
     inp[1].set_kmesh(ngkpt=ngkpt, shiftk=(0, 0, 0))
 
-    inp[2].set_variables(
+    inp[2].set_vars(
         iscf=-2,
         nband=15,
         tolwfr=1e-8,
@@ -34,10 +34,10 @@ def make_inputs(ngkpt=(4,4,4), ecut=8, ecuteps=2):
     )
 
     # This shift breaks the symmetry of the k-mesh.
-    inp[2].set_kmesh(ngkpt=ngkpt, shiftk=(0.11,0.21,0.31))
+    inp[2].set_kmesh(ngkpt=ngkpt, shiftk=(0.11, 0.21, 0.31))
 
     # BSE run with Haydock iterative method (only resonant + W + v)
-    inp[3].set_variables(
+    inp[3].set_vars(
         optdriver=99,               # BS calculation
         chksymbreak=0,              # To skip the check on the k-mesh.
         bs_calctype=1,              # L0 is contstructed with KS orbitals and energies.
@@ -93,9 +93,8 @@ def eh_convergence_study():
     flow = abilab.Flow(workdir="flow_bse_ecuteps")
     flow.register_work(work)
     flow.allocate()
-    flow.build()
-
-    #flow.make_scheduler().start()
+    #flow.build()
+    flow.make_scheduler().start()
 
     import matplotlib.pyplot as plt
     import pandas as pd
@@ -105,7 +104,6 @@ def eh_convergence_study():
         #print(frame)
         #plotter = robot.get_mdf_plotter()
         #plotter.plot()
-
         robot.plot_conv_mdf(hue="broad")
 
         #grouped = frame.groupby("broad")

@@ -4,7 +4,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from abipy.core import Function1D
+from abipy.core.func1d import Function1D
 
 # Build mesh [0, 2pi] with 100 points.
 mesh = np.linspace(0, 2*np.pi, num=100)
@@ -35,5 +35,4 @@ for order in [1,2]:
 (1 - sine.integral()).plot_ax(ax, marker=".", label="$1 - \int\,\sin(x)\,dx$")
 
 plt.legend(loc="best")
-
 plt.show()

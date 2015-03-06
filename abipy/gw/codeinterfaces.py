@@ -356,6 +356,7 @@ class AbinitInterface(AbstractCodeInterface):
             else:
                 raise Exception
             gwgap = data.read_value('egwgap')[0][0]
+            #gwgap = min(data.read_value('egwgap')[0])
             if not isinstance(gwgap, float):
                 raise Exception
             results = {'ecuteps': float(Ha_to_eV * ecuteps),
@@ -414,7 +415,7 @@ class AbinitInterface(AbstractCodeInterface):
         store_conv_results(name, folder)
         w = 'w' + str(read_grid_from_file(name+".full_res")['grid'])
         try:
-            shutil.copyfile(os.path.join(name+".conv", w, "t6", "outdata", "out_SIGRES.nc"),
+            shutil.copyfile(os.path.join(name+".conv", w, "t9", "outdata", "out_SIGRES.nc"),
                             os.path.join(folder, "out_SIGRES.nc"))
         except (OSError, IOError):  # compatibility issue
             shutil.copyfile(os.path.join(name+".conv", "work_0", "task_6", "outdata", "out_SIGRES.nc"),

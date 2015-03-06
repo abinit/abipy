@@ -70,13 +70,7 @@ def build_flow(options):
 def main(options):
     flow = build_flow(options)
     flow.build_and_pickle_dump()
-
-    if options.sched:
-        flow.make_scheduler().start()
-    else
-        print("nlaunches", flow.rapidfire())
-
-    return 0
+    return flow
 
 
 if __name__ == "__main__":

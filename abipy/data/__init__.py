@@ -26,6 +26,29 @@ _CIF_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "cifs"))
 
 _PSEUDOS_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "pseudos"))
 
+_VARIABLES_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "variables"))
+
+
+_SCRIPTS_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "examples"))
+_SCRIPTS = None
+
+
+def pyscript(basename):
+    """Return the absolute name of one of the scripts in the `examples` directory from its basename."""
+
+    global _SCRIPTS 
+    if _SCRIPTS is None:
+        # Build mapping basename --> path.
+        from monty.os.path import find_exts
+        pypaths = find_exts(_SCRIPTS_DIRPATH, ".py", exclude_dirs="_*|.*")
+        _SCRIPTS = {}
+        for p in pypaths:
+            k = os.path.basename(p)
+            assert k not in _SCRIPTS
+            _SCRIPTS[k] = p
+
+    return _SCRIPTS[basename]
+
 
 def cif_file(filename):
     """Returns the absolute path of the CIF file in tests/data/cifs."""
@@ -44,6 +67,11 @@ def pseudos(*filenames):
     """Returns a PseudoTable constructed from the input filenames  located in tests/data/pseudos."""
     pseudos = list(map(pseudo, filenames))
     return PseudoTable(pseudos)
+
+
+def var_file(filename):
+    """Returns a yml file located in data/variables."""
+    return os.path.join(_VARIABLES_DIRPATH, filename)
 
 
 def find_ncfiles(top):
@@ -269,3 +297,7 @@ class AnaddbFilesGenerator(FilesGenerator):
             self.elph_basename,
             self.in_ddk,
         ])
+
+
+if __name__ == "__main__":
+    print(pyscript("plot_spectral_functions.py"))

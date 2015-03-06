@@ -51,7 +51,7 @@ class EliashbergFunction(object):
         """""
         raise NotImplementedError()
 
-    def plot(self, spin=None):
+    def plot(self, ax=None, spin=None):
         """
         Plot a2F(w) with matplotlib.
         """""

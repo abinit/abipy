@@ -4,21 +4,15 @@ Utilities for generating matplotlib plots.
 
 .. note:
 
-    Avoid importing these tools in the top-level namespace of the module
-    since they rely on matplotlib whose startup is very slow.
+    Avoid importing matplotlib in the module namespace otherwise startup is very slow.
 """
 from __future__ import print_function, division, unicode_literals
 
 import numpy as np
 import collections
 
-try:
-    import matplotlib as mpl
-    import matplotlib.cm as cmap
-    from matplotlib import pyplot as plt
+from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 
-except ImportError:
-    pass
 
 __all__ = [
     "plot_array",
@@ -26,40 +20,28 @@ __all__ = [
 ]
 
 
-def plot_array(array, color_map=None, cplx_mode="abs", *args, **kwargs):
+@add_fig_kwargs
+def plot_array(array, color_map=None, cplx_mode="abs", **kwargs):
     """
     Use imshow for plotting 2D or 1D arrays.
 
     Example::
+
         plot_array(np.random.rand(10,10))
 
     See http://stackoverflow.com/questions/7229971/2d-grid-data-visualization-in-python
 
     Args:
-        array:
-            Array-like object (1D or 2D).
-        color_map:
-            color map.
+        array: Array-like object (1D or 2D).
+        color_map: color map.
         cplx_mode:
             Flag defining how to handle complex arrays. Possible values are "abs", "angle"
             "abs" means that the absolute value of the complex number is shown.
             "angle" will display the phase of the complex number in radians.
 
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
-        ==============  ==============================================================
-
     Returns:
         `matplotlib` figure.
     """
-    title = kwargs.pop("title", None)
-    show = kwargs.pop("show", True)
-    savefig = kwargs.pop("savefig", None)
-
     # Handle vectors
     array = np.atleast_2d(array)
 
@@ -77,6 +59,7 @@ def plot_array(array, color_map=None, cplx_mode="abs", *args, **kwargs):
         color_map = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
                                                                  ['blue', 'black', 'red'], 256)
 
+    from matplotlib import pyplot as plt
     img = plt.imshow(array, interpolation='nearest', cmap=color_map, origin='lower')
 
     # make a color bar
@@ -85,16 +68,7 @@ def plot_array(array, color_map=None, cplx_mode="abs", *args, **kwargs):
     # Set grid
     plt.grid(True, color='white')
 
-    if title:
-        plt.title(title)
-
-    if show:
-        plt.show()
-
     fig = plt.gcf()
-    if savefig is not None:
-        fig.savefig(savefig)
-
     return fig
 
 
@@ -124,38 +98,27 @@ class ArrayPlotter(object):
         Add a list of arrays
 
         Args:
-            labels:
-                List of labels.
-            arr_list:
-                List of arrays.
+            labels: List of labels.
+            arr_list: List of arrays.
         """
         assert len(labels) == len(arr_list)
         for (label, arr) in zip(labels, arr_list):
             self.add_array(label, arr)
 
+    @add_fig_kwargs
     def plot(self, color_map="jet", **kwargs):
         """
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        title           Title of the plot (Default: None).
-        show            True to show the figure (Default).
-        savefig         'abc.png' or 'abc.eps'* to save the figure to a file.
-        ==============  ==============================================================
+        Args:
+            color_map: matplotlib colormap
         """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
+        import matplotlib.pyplot as plt
+        fig = plt.figure()
 
         # Grid parameters
         num_plots, ncols, nrows = len(self), 1, 1
         if num_plots > 1:
             ncols = 2
             nrows = (num_plots//ncols) + (num_plots % ncols)
-
-        import matplotlib.pyplot as plt
-
-        fig = plt.figure()
 
         for n, (label, arr) in enumerate(self.items()):
             fig.add_subplot(nrows, ncols, n)
@@ -166,17 +129,7 @@ class ArrayPlotter(object):
             # Set grid
             plt.grid(True, color='white')
 
-        if title:
-            fig.suptitle(title)
-
-        #plt.tight_layout()
-
-        if show:
-            plt.show()
-
-        if savefig is not None:
-            fig.savefig(savefig)
-
+        #fig.tight_layout()
         return fig
 
 

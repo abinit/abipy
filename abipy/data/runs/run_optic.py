@@ -142,7 +142,8 @@ def main(options):
     flow = build_flow(options)
     #flow = optic_flow_from_files(options)
     #print("optic manager after allocate", flow[2][0].manager)
-    return flow.build_and_pickle_dump()
+    flow.build_and_pickle_dump()
+    return flow
 
 
 if __name__ == "__main__":

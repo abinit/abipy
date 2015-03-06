@@ -58,11 +58,11 @@ def make_scf_nscf_inputs():
     if inp.ispaw:
         global_vars.update(pawecutdg=2*ecut)
 
-    inp.set_variables(**global_vars)
+    inp.set_vars(**global_vars)
 
     # Dataset 1 (GS run)
     inp[1].set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
-    inp[1].set_variables(tolvrs=1e-6)
+    inp[1].set_vars(tolvrs=1e-6)
 
     # Dataset 2 (NSCF run)
     kptbounds = [
@@ -72,7 +72,7 @@ def make_scf_nscf_inputs():
     ]
 
     inp[2].set_kpath(ndivsm=6, kptbounds=kptbounds)
-    inp[2].set_variables(tolwfr=1e-12)
+    inp[2].set_vars(tolwfr=1e-12)
     
     # Generate two input files for the GS and the NSCF run 
     scf_input, nscf_input = inp.split_datasets()
@@ -88,7 +88,7 @@ def build_flow(workdir):
     scf_input, nscf_input = make_scf_nscf_inputs()
 
     # Build the flow.
-    return abilab.bandstructure_flow(workdir, manager, scf_input, nscf_input)
+    return abilab.bandstructure_flow(workdir, scf_input, nscf_input, manager=manager)
     
 
 if __name__ == "__main__":

@@ -9,7 +9,7 @@ import numpy as np
 
 from monty.collections import AttrDict
 from monty.functools import lazy_property
-from pymatgen.util.plotting_utils import add_fig_kwargs
+from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList
 from abipy.core.mixins import AbinitNcFile, Has_Structure
@@ -80,12 +80,12 @@ class DielectricTensor(object):
         return all_funcs
 
     @add_fig_kwargs
-    def plot(self, *args, **kwargs):
+    def plot(self, ax=None, *args, **kwargs):
         """
         Plot all the components of the tensor
 
         args:
-            Optional arguments passed to :mod:`matplotlib`.
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -97,10 +97,7 @@ class DielectricTensor(object):
             matplotlib figure
         """
         red_coords = kwargs.pop("red_coords", True)
-        import matplotlib.pyplot as plt
-
-        fig = plt.figure()
-        ax = fig.add_subplot(1, 1, 1)
+        ax, fig, plt = get_ax_fig_plt(ax)
 
         ax.grid(True)
         ax.set_xlabel('Frequency [eV]')
@@ -244,9 +241,12 @@ class DielectricFunction(object):
         np.savetxt(stream, table, fmt=fmt, delimiter=delimiter, header=header)
 
     @add_fig_kwargs
-    def plot(self, **kwargs):
+    def plot(self, ax=None, **kwargs):
         """
         Plot the MDF.
+
+        Args:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -259,11 +259,7 @@ class DielectricFunction(object):
         """
         only_mean = kwargs.pop("only_mean", True)
 
-        import matplotlib.pyplot as plt
-        fig = plt.figure()
-
-        ax = fig.add_subplot(1, 1, 1)
-        if title is not None: ax.set_title(title)
+        ax, fig, plt = get_ax_fig_plt(ax)
 
         ax.grid(True)
         ax.set_xlabel('Frequency [eV]')
@@ -522,11 +518,11 @@ class MdfPlotter(object):
 
     def add_mdf(self, label, mdf):
         """
-        Adds a MDF for plotting.
+        Adds a :class:`DielectricFunction` for plotting.
 
         Args:
             name: name for the MDF. Must be unique.
-            mdf: `DielectricFunction` object.
+            mdf: :class:`DielectricFunction` object.
         """
         if label in self._mdfs:
             raise ValueError("name %s is already in %s" % (label, self._mdfs.keys()))
@@ -550,16 +546,16 @@ class MdfPlotter(object):
         self.add_mdf(label, mdf)
                 
     @add_fig_kwargs
-    def plot(self, cplx_mode="Im", qpoint=None, **kwargs):
+    def plot(self, ax=None, cplx_mode="Im", qpoint=None, **kwargs):
         """
         Get a matplotlib plot showing the MDFs.
 
         Args:
-            qpoint: index of the q-point or Kpoint object or None to plot emacro_avg.
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
             cplx_mode: string defining the data to print (case-insensitive).
-                       Possible choices are: `re`  for the real part,
-                       `im` for imaginary part only. `abs` for the absolute value
-                       Options can be concated with "-".
+                Possible choices are: `re` for the real part, `im` for imaginary part only. `abs` for the absolute value.
+                Options can be concated with "-".
+            qpoint: index of the q-point or :class:`Kpoint` object or None to plot emacro_avg.
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -568,11 +564,7 @@ class MdfPlotter(object):
         ylim            y-axis limits. None (Default) for automatic determination.
         ==============  ==============================================================
         """
-        import matplotlib.pyplot as plt
-
-        fig = plt.figure()
-
-        ax = fig.add_subplot(1, 1, 1)
+        ax, fig, plt = get_ax_fig_plt(ax)
         ax.grid(True)
 
         xlim = kwargs.pop("xlim", None)

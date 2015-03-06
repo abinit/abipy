@@ -10,6 +10,7 @@ from collections import OrderedDict, deque
 from monty.string import is_string
 from pymatgen.io.abinitio.eos import EOS
 from pymatgen.io.abinitio.flows import Flow
+from pymatgen.io.abinitio.netcdf import NetcdfReaderError
 
 
 __all__ = [
@@ -173,10 +174,11 @@ class Robot(object):
                 self._exceptions.append(str(exc))
         return d
 
-    def pairplot(self, getter="get_dataframe", map_kws=None, show=True, **kwargs):
+    def pairplot(self, data=None, getter="get_dataframe", map_kws=None, show=True, **kwargs):
         import matplotlib.pyplot as plt
         import seaborn as sns
-        data = getattr(self, getter)()
+        if data is None:
+            data = getattr(self, getter)()
 
         #grid = sns.PairGrid(data, x_vars="nkpts", y_vars=["a", "volume"]) #, hue="tsmear")
         grid = sns.PairGrid(data, **kwargs)
@@ -211,14 +213,20 @@ class GsrRobot(Robot):
         # TODO add more columns
         # Add attributes specified by the users
         attrs = [
-            "nsppol", "ecut", "pawecutdg", #"nspinor", "nspden", 
+            "nsppol", "ecut", "pawecutdg", #"nspinor", "nspden",
             "tsmear", "nkpts", "energy", "magnetization", "pressure", "max_force",
         ] + kwargs.pop("attrs", [])
 
         rows, row_names = [], []
         for label, gsr in self:
             row_names.append(label)
-            d = {aname: getattr(gsr, aname) for aname in attrs}
+            #d = {aname: getattr(gsr, aname) for aname in attrs}
+            d = {}
+            for aname in attrs:
+                try:
+                    d[aname] = getattr(gsr, aname)
+                except NetcdfReaderError:
+                    pass
 
             # Add info on structure.
             if kwargs.get("with_geo", True):

@@ -35,16 +35,17 @@ class TestStructure(AbipyTest):
     def test_utils(self):
         """Test utilities for the generation of Abinit inputs."""
         structure = data.structure_from_ucell("MgB2")
+        structure.abi_sanitize()
+        print(structure.abi_string)
 
         self.serialize_with_pickle(structure)
 
         pseudos = data.pseudos("12mg.pspnc", "5b.pspnc")
         nval = structure.num_valence_electrons(pseudos)
         self.assertEqual(nval, 8)
-        shiftk = structure.calc_shiftk()
-        self.assert_equal(shiftk, [[0.0, 0.0, 0.5]])
+        self.assert_equal(structure.calc_shiftk() , [[0.0, 0.0, 0.5]])
 
-    def test_fphonons(self):
+    def test_frozen_phonons(self):
         """ This is not a real test, just to show how to use it ! """
         rprimd = np.array([[0.5,0.5,0],[0.5,0,0.5],[0,0.5,0.5]])
         #rprimd = rprimd*6.7468

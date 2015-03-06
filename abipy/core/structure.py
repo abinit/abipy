@@ -2,12 +2,14 @@
 """This module defines basic objects representing the crystalline structure."""
 from __future__ import print_function, division, unicode_literals
 
+import os
 import collections
 import pymatgen
 import numpy as np
 
 from monty.collections import AttrDict
 from monty.functools import lazy_property
+from monty.string import is_string
 from pymatgen.core.units import ArrayWithUnit
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
@@ -27,6 +29,17 @@ class Structure(pymatgen.Structure):
     Extends :class:`pymatgen.Structure` with methods that allows one
     to construct a Structure object from ABINIT variables.
     """
+    @classmethod
+    def as_structure(cls, obj):
+        """Convert obj into a structure."""
+        if isinstance(obj, cls): return obj
+        if is_string(obj): return cls.from_file(obj)
+        if isinstance(obj, pymatgen.Structure): 
+            obj.__class__ = cls
+            return obj
+
+        raise TypeError("Don't know how to convert %s into a structure" % type(obj))
+
     @classmethod
     def from_file(cls, filepath, primitive=True, sort=False):
         """
@@ -60,6 +73,40 @@ class Structure(pymatgen.Structure):
             if new.__class__ != cls: new.__class__ = cls
 
         return new
+
+    @classmethod
+    def from_material_id(cls, material_id, final=True, api_key=None, host="www.materialsproject.org"):
+        """
+        Get a Structure corresponding to a material_id.
+
+        Args:
+            material_id (str): Materials Project material_id (a string, e.g., mp-1234).
+            final (bool): Whether to get the final structure, or the initial
+                (pre-relaxation) structure. Defaults to True.
+            api_key (str): A String API key for accessing the MaterialsProject
+                REST interface. Please apply on the Materials Project website for one.
+                If this is None, the code will check if there is a "MAPI_KEY"
+                environment variable set. If so, it will use that environment
+                variable. This makes easier for heavy users to simply add
+                this environment variable to their setups and MPRester can
+                then be called without any arguments.
+            host (str): Url of host to access the MaterialsProject REST interface.
+                Defaults to the standard Materials Project REST address, but
+                can be changed to other urls implementing a similar interface.
+
+        Returns:
+            Structure object.
+        """
+        if api_key is None:
+            # Check if MP_KEY is defined, otherwise fallback to MAPI_KEY.
+            api_key = os.environ.get('MP_KEY', None)
+
+        # Get pytmatgen structure and convert it to abipy structure
+        from pymatgen.matproj.rest import MPRester, MPRestError
+        with MPRester(api_key=api_key, host=host) as database:
+            new = database.get_structure_by_material_id(material_id, final=final)
+            new.__class__ = cls
+            return new
 
     @classmethod
     def boxed_molecule(cls, pseudos, cart_coords, acell=3*(10,)):
@@ -147,6 +194,62 @@ class Structure(pymatgen.Structure):
     #    return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
 
     @property
+    def abi_string(self):
+        """Return a string with the ABINIT input associated to this structure.""" 
+        from abipy.htc.variable import InputVariable
+        lines = []
+        app = lines.append
+        abivars = self.to_abivars()
+        for varname, value in abivars.items():
+            app(str(InputVariable(varname, value)))
+                                                    
+        return("\n".join(lines))
+    
+    def abi_sanitize(self, symprec=1e-3, primitive=True):
+        """
+        Returns a new structure in which:
+
+            * Oxidation states are removed.
+            * Structure is refined.
+            * Reduced to primitive settings.
+            * Lattice vectors are exchanged if the triple product is negative 
+
+        Args:
+            symprec: Symmetry precision used to refine the structure.
+                if `symprec` is None, so structure refinement is peformed.
+            primitive (bool): Whether to convert to a primitive cell.
+        """
+
+        from pymatgen.transformations.standard_transformations import OxidationStateRemovalTransformation, \
+            PrimitiveCellTransformation, SupercellTransformation
+
+        # Remove oxidation states.
+        remove_ox = OxidationStateRemovalTransformation()
+        structure = remove_ox.apply_transformation(self)
+
+        # Refine structure
+        if symprec is not None:
+            sym_finder = SpacegroupAnalyzer(structure=structure, symprec=symprec)
+            structure = sym_finder.get_refined_structure()
+
+        # Convert to primitive structure.
+        if primitive:
+            get_prim = PrimitiveCellTransformation()
+            structure = get_prim.apply_transformation(structure)
+
+        # Exchange last two lattice vectors if triple product is negative.
+        m = structure.lattice.matrix
+        x_prod = np.dot(np.cross(m[0], m[1]), m[2])
+        if x_prod < 0:
+            trans = SupercellTransformation(((1, 0, 0), (0, 0, 1), (0, 1, 0)))
+            structure = trans.apply_transformation(structure)
+            m = structure.lattice.matrix
+            x_prod = np.dot(np.cross(m[0], m[1]), m[2])
+            if x_prod < 0: raise RuntimeError("x_prod is still negative!")
+
+        return structure
+
+    @property
     def spacegroup(self):
         """:class:`SpaceGroup` instance."""
         try:
@@ -225,6 +328,19 @@ class Structure(pymatgen.Structure):
         else:
             return None
 
+    def get_symbol2coords(self):
+        """Return a dictionary mapping chemical symbols to coordinates."""
+        # TODO: 
+        #use structure.frac_coords but add reshape in pymatgen.
+        #fcoords = np.reshape([s.frac_coords for s in self], (-1, 3))
+        coords = {}
+        for symbol in self.symbol_set:
+            coords[symbol] = np.reshape(
+                [site.frac_coords for site in self if site.specie.symbol == symbol], (-1, 3))
+
+        return coords
+
+
     def show_bz(self, **kwargs):
         """
         Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
@@ -290,7 +406,7 @@ class Structure(pymatgen.Structure):
         for ext in visu.supported_extensions():
             ext = "." + ext
             try:
-                return self.export(ext, visu=visu)
+                return self.export(ext, visu=visu)()
             except visu.Error:
                 pass
         else:
@@ -299,7 +415,7 @@ class Structure(pymatgen.Structure):
     def write_structure(self, filename):
         """Write structure fo file."""
         if filename.endswith(".nc"):
-            raise NotImplementedError("Cannot write a structure to a netcdfile file yet")
+            raise NotImplementedError("Cannot write a structure to a netcdf file yet")
 
         else:
             self.to(filename=filename)
@@ -427,7 +543,7 @@ class Structure(pymatgen.Structure):
                         Rl = np.dot(lnew, rprimd)
                         # Normalize the displacement so that the maximum atomic displacement is 1 Angstrom.
                         dnorm = np.sqrt(np.dot(Rl,Rl))
-                        if dnorm < dmin and dnorm > 1e-6:
+                        if dnorm < (dmin-1e-6) and dnorm > 1e-6:
                             found = True
                             scale_matrix[:, 0] = lnew
                             dmin = dnorm
@@ -448,7 +564,7 @@ class Structure(pymatgen.Structure):
                         if np.abs(ql - np.round(ql)) < 1e-6:
                             Rl = np.dot(lnew, rprimd)
                             dnorm = np.sqrt(np.dot(Rl, Rl))
-                            if dnorm < dmin and dnorm > 1e-6:
+                            if dnorm < (dmin-1e-6) and dnorm > 1e-6:
                                 found = True
                                 scale_matrix[:, 1] = lnew
                                 dmin = dnorm
@@ -470,7 +586,7 @@ class Structure(pymatgen.Structure):
                         if np.abs(ql - np.round(ql)) < 1e-6:
                             Rl = np.dot(lnew, rprimd)
                             dnorm = np.sqrt(np.dot(Rl,Rl))
-                            if dnorm < dmin and dnorm > 1e-6:
+                            if dnorm < (dmin-1e-6) and dnorm > 1e-6:
                                 found = True
                                 scale_matrix[:, 2] = lnew
                                 dmin = dnorm
@@ -573,6 +689,72 @@ class Structure(pymatgen.Structure):
 
                 xyz_file.write(fmtstr.format(site.specie, coords[0], coords[1], coords[2], new_displ[0], new_displ[1], new_displ[2]))
 
+    def frozen_2phonon(self, qpoint, displ1, displ2, do_real1=True, do_real2=True, frac_coords=True, scale_matrix=None, max_supercell=None):
+        """
+        Compute the supercell needed for a given qpoint and add the displacement.
+
+        Args:
+            qpoint:
+                q vector in reduced coordinate in reciprocal space.
+            displ:
+                displacement in real space of the atoms, will be normalized to 1 Angstrom.
+            eta:
+                pre-factor multiplying the displacement.
+            do_real:
+                true if we want only the real part of the displacement.
+        """
+        # I've copied code from make_supercell since the loop over supercell images
+        # is inside make_supercell and I don't want to create a mapping
+
+        if scale_matrix is None:
+            if max_supercell is None:
+                raise ValueError("If scale_matrix is not provided, please provide max_supercell !")
+
+            scale_matrix = self.get_smallest_supercell(qpoint, max_supercell=max_supercell)
+
+        scale_matrix = np.array(scale_matrix, np.int16)
+        if scale_matrix.shape != (3, 3):
+            scale_matrix = np.array(scale_matrix * np.eye(3), np.int16)
+
+        old_lattice = self._lattice
+        new_lattice = Lattice(np.dot(scale_matrix, old_lattice.matrix))
+
+        tvects = self.get_trans_vect(scale_matrix)
+
+        new_displ1 = np.zeros(3, dtype=np.float)
+        new_displ2 = np.zeros(3, dtype=np.float)
+        new_sites = []
+        for at,site in enumerate(self):
+            for t in tvects:
+                if(do_real1):
+                    new_displ1[:] = np.real(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ1[at,:])
+                else:
+                    new_displ1[:] = np.imag(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ1[at,:])
+                if not frac_coords:
+                    # Convert to fractional coordinates.
+                    new_displ1 = self.lattice.get_fractional_coords(new_displ1)
+
+                if(do_real2):
+                    new_displ2[:] = np.real(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ2[at,:])
+                else:
+                    new_displ2[:] = np.imag(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ2[at,:])
+                if not frac_coords:
+                    # Convert to fractional coordinates.
+                    new_displ2 = self.lattice.get_fractional_coords(new_displ2)
+
+
+                # We don't normalize here !!!
+                fcoords = site.frac_coords + t + new_displ1 + new_displ2
+                coords = old_lattice.get_cartesian_coords(fcoords)
+                new_site = PeriodicSite(
+                    site.species_and_occu, coords, new_lattice,
+                    coords_are_cartesian=True, properties=site.properties,
+                    to_unit_cell=True)
+                new_sites.append(new_site)
+
+        self._sites = new_sites
+        self._lattice = new_lattice
+
     def frozen_phonon(self, qpoint, displ, do_real=True, frac_coords=True, scale_matrix=None, max_supercell=None):
         """
         Compute the supercell needed for a given qpoint and add the displacement.
@@ -662,52 +844,49 @@ class Structure(pymatgen.Structure):
         """
         Find the values of `shiftk` and `nshiftk` appropriated for the sampling of the Brillouin zone.
 
-        Returns
+        When the primitive vectors of the lattice do NOT form a FCC or a BCC lattice, 
+        the usual (shifted) Monkhorst-Pack grids are formed by using nshiftk=1 and shiftk 0.5 0.5 0.5 . 
+        This is often the preferred k point sampling. For a non-shifted Monkhorst-Pack grid, 
+        use nshiftk=1 and shiftk 0.0 0.0 0.0 , but there is little reason to do that.
+
+        2) When the primitive vectors of the lattice form a FCC lattice, with rprim:
+
+                0.0 0.5 0.5
+                0.5 0.0 0.5
+                0.5 0.5 0.0
+
+           the (very efficient) usual Monkhorst-Pack sampling will be generated by using nshiftk= 4 and shiftk
+
+                0.5 0.5 0.5
+                0.5 0.0 0.0
+                0.0 0.5 0.0
+                0.0 0.0 0.5
+
+        3) When the primitive vectors of the lattice form a BCC lattice, with rprim:
+
+                -0.5  0.5  0.5
+                0.5 -0.5  0.5
+                0.5  0.5 -0.5
+
+           the usual Monkhorst-Pack sampling will be generated by using nshiftk= 2 and shiftk:
+
+                0.25  0.25  0.25
+                -0.25 -0.25 -0.25
+
+           However, the simple sampling nshiftk=1 and shiftk 0.5 0.5 0.5 is excellent.
+
+        4) For hexagonal lattices with hexagonal axes, e.g. rprim
+
+                1.0  0.0       0.0
+               -0.5  sqrt(3)/2 0.0
+                0.0  0.0       1.0
+
+           one can use nshiftk= 1 and shiftk 0.0 0.0 0.5
+           In rhombohedral axes, e.g. using angdeg 3*60., this corresponds to shiftk 0.5 0.5 0.5, 
+           to keep the shift along the symmetry axis. 
+
+        Returns:
             Suggested value of shiftk.
-
-        .. note::
-
-            When the primitive vectors of the lattice do NOT form a FCC or a BCC lattice, 
-            the usual (shifted) Monkhorst-Pack grids are formed by using nshiftk=1 and shiftk 0.5 0.5 0.5 . 
-            This is often the preferred k point sampling. For a non-shifted Monkhorst-Pack grid, 
-            use nshiftk=1 and shiftk 0.0 0.0 0.0 , but there is little reason to do that.
-
-            2) When the primitive vectors of the lattice form a FCC lattice, with rprim
-
-                    0.0 0.5 0.5
-                    0.5 0.0 0.5
-                    0.5 0.5 0.0
-
-               the (very efficient) usual Monkhorst-Pack sampling will be generated by using nshiftk= 4 and shiftk
-
-                    0.5 0.5 0.5
-                    0.5 0.0 0.0
-                    0.0 0.5 0.0
-                    0.0 0.0 0.5
-
-            3) When the primitive vectors of the lattice form a BCC lattice, with rprim
-
-                    -0.5  0.5  0.5
-                    0.5 -0.5  0.5
-                    0.5  0.5 -0.5
-
-                the usual Monkhorst-Pack sampling will be generated by using nshiftk= 2 and shiftk
-
-                    0.25  0.25  0.25
-                    -0.25 -0.25 -0.25
-
-                However, the simple sampling nshiftk=1 and shiftk 0.5 0.5 0.5 is excellent.
-
-            4) For hexagonal lattices with hexagonal axes, e.g. rprim
-
-                    1.0  0.0       0.0
-                   -0.5  sqrt(3)/2 0.0
-                    0.0  0.0       1.0
-
-                one can use nshiftk= 1 and shiftk 0.0 0.0 0.5
-
-                In rhombohedral axes, e.g. using angdeg 3*60., this corresponds to shiftk 0.5 0.5 0.5, 
-                to keep the shift along the symmetry axis. 
         """
         # Find lattice type.
         sym = SpacegroupAnalyzer(self, symprec=symprec, angle_tolerance=angle_tolerance)
@@ -867,5 +1046,12 @@ class StructureModifier(object):
 
         new_structure = self.copy_structure()
         new_structure.frozen_phonon(qpoint, displ, do_real, frac_coords, scale_matrix, max_supercell)
+
+        return new_structure
+
+    def frozen_2phonon(self, qpoint, displ1, displ2, do_real1=True, do_real2=True, frac_coords=True, scale_matrix=None, max_supercell=None):
+
+        new_structure = self.copy_structure()
+        new_structure.frozen_2phonon(qpoint, displ1, displ2, do_real1, do_real2, frac_coords, scale_matrix, max_supercell)
 
         return new_structure

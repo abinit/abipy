@@ -13,6 +13,7 @@ import itertools
 import copy
 import six
 import abc
+import json
 import numpy as np
 import abipy.tools.mixins as mixins
 
@@ -20,13 +21,14 @@ from collections import OrderedDict
 from monty.dev import deprecated
 from monty.string import is_string, list_strings
 from pymatgen.core.units import Energy
+from pymatgen.serializers.json_coders import PMGSONable, pmg_serialize
 from pymatgen.io.abinitio.pseudos import PseudoTable, Pseudo
 from pymatgen.io.abinitio.tasks import TaskManager, AbinitTask
 from pymatgen.io.abinitio.netcdf import NetcdfReader
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
-from abipy.htc.variable import InputVariable
-from abipy.htc.abivars import is_abivar, is_anaddb_var
+from .variable import InputVariable
+from .abivars import is_abivar, is_anaddb_var
 
 import logging
 logger = logging.getLogger(__file__)
@@ -90,7 +92,7 @@ def _idt_varname(varname):
 
 
 @six.add_metaclass(abc.ABCMeta)
-class Input(object): 
+class Input(six.with_metaclass(abc.ABCMeta, PMGSONable, object)):
     """
     Base class foor Input objects.
 
@@ -136,7 +138,7 @@ class Input(object):
     #    for idt in self._dtset2range(dtset):
     #        self[idt].set_vars(**vars)
 
-    #def remove_vars(self, keys, dtset=0):
+    #def pop_vars(self, keys, dtset=0):
     #    """
     #    Remove the variable listed in keys
     #                                                                         
@@ -164,10 +166,8 @@ class AbiInput(Input, Has_Structure):
     .. code-block:: python
 
         inp = AbiInput(pseudos="si.pspnc", pseudo_dir="directory_with_pseudos")
-
-        inp.set_structure_from_file("si.cif")
+        inp.set_structure("si.cif")
         inp.set_vars(ecut=10, nband=3)
-        # Add other variables. See the other methods provided by this object.
 
         # Print it to get the final input.
         print(inp)
@@ -216,9 +216,6 @@ class AbiInput(Input, Has_Structure):
         if structure is not None: self.set_structure(structure)
         if comment is not None: self.set_comment(comment)
 
-    #def make_input(self):
-    #    return str(self)
-
     def __str__(self):
         """String representation i.e. the input file read by Abinit."""
         if self.ndtset > 1:
@@ -243,7 +240,13 @@ class AbiInput(Input, Has_Structure):
             d.update(self[1])
             s = d.to_string(post="")
 
-        return s
+        # Add JSON section with pseudo potentials.
+        ppinfo = ["\n#<JSON>"]
+        d = {"pseudos": [p.as_dict() for p in self.pseudos]}
+        ppinfo.extend(json.dumps(d, indent=4).splitlines())
+        ppinfo.append("</JSON>")
+
+        return s + "\n#".join(ppinfo)
 
     def __getitem__(self, key):
         return self._datasets[key]
@@ -331,6 +334,8 @@ class AbiInput(Input, Has_Structure):
         """True if varname is a valid Abinit variable."""
         return is_abivar(varname)
 
+    #def add_dataset(self, *args, **kwargs):
+
     def new_with_vars(self, *args, **kwargs):
         """Generate a new input (deep copy) with these variables"""
         new = self.deepcopy()
@@ -387,12 +392,12 @@ class AbiInput(Input, Has_Structure):
 
             new = self.__class__(pseudos=self.pseudos, ndtset=1)
             new.set_vars(**my_vars)
-            #new.set_geoformat(self.geoformat)
+            new.set_mnemonics(self.mnemonics)
             news.append(new)
     
         return news
 
-    def set_vars(self, dtset=0, *args, **kwargs):
+    def set_vars(self, *args, **kwargs):
         """
         Set the value of a set of input variables.
 
@@ -400,8 +405,8 @@ class AbiInput(Input, Has_Structure):
             dtset: Int with the index of the dataset, slice object of iterable 
             kwargs: Dictionary with the variables.
         """
+        dtset = kwargs.pop("dtset", 0)
         kwargs.update(dict(*args))
-        #print(kwargs)
         for idt in self._dtset2range(dtset):
             self[idt].set_vars(**kwargs)
 
@@ -424,41 +429,25 @@ class AbiInput(Input, Has_Structure):
     remove_variables = remove_vars
     remove_variables = deprecated(replacement=remove_vars)(remove_variables)
 
-    #def list_vars(self, varname):
-    #    # Global value
-    #    glob = self[0].get(varname, None)
-    #    # Values defined in the datasets.
-    #    vals = [self[idt].get(varname, None) for idt in range(1,self.ndtset+1)]
-    #    
-    #    # Replace None with glob.
-    #    values = []
-    #    for v in vals:
-    #        if v is not None:
-    #            values.append(v)
-    #        else:
-    #            values.append(glob)
-    #    return values
-
     def set_comment(self, comment, dtset=0):
         """Set the main comment in the input file."""
         for idt in self._dtset2range(dtset):
             self[idt].set_comment(comment)
 
-    #@property
-    #def geoformat(self):
-    #    """
-    #    angdeg if the crystalline structure should be specified with angdeg and acell, 
-    #    rprim otherwise (default format)
-    #    """
-    #    try:
-    #        return self._geoformat
-    #    except AttributeError
-    #        return "rprim" # default
+    def set_mnemonics(self, boolean):
+        """True if mnemonics should be printed"""
+        self._mnemonics = bool(boolean)
+        for idt in range(self.ndtset):
+            self[idt].set_mnemonics(boolean)
 
-    #def set_geoformat(self, format):
-    #    assert format in ["angdeg", "rprim"]
-    #    self._geoformat = format
-
+    @property
+    def mnemonics(self):
+        """Return True if mnemonics should be printed"""
+        try:
+            return self._mnemonics
+        except AttributeError:
+            return False
+        
     def get_ibz(self, ngkpt=None, shiftk=None, kptopt=None, qpoint=None, workdir=None, manager=None):
         """
         This function, computes the list of points in the IBZ and the corresponding weights.
@@ -597,6 +586,8 @@ class AbiInput(Input, Has_Structure):
         elif isinstance(structure, collections.Mapping): 
             structure = Structure.from_abivars(**structure)
 
+        if dtset is None:
+            dtset = slice(self.ndtset+1)
         for idt in self._dtset2range(dtset):
             self[idt].set_structure(structure)
 
@@ -652,6 +643,33 @@ class AbiInput(Input, Has_Structure):
         """Set the variables defining the k point for the GW corrections"""
         for idt in self._dtset2range(dtset):
             self[idt].set_kptgw(kptgw, bdgw)
+
+    @pmg_serialize
+    def as_dict(self):
+        dtsets = []
+        for ds in self:
+            ds_copy = ds.deepcopy()
+            for key, value in ds_copy.iteritems():
+                if isinstance(value, np.ndarray):
+                    ds_copy[key] = value.tolist()
+            dtsets.append(dict(ds_copy))
+        #for ds in self: dtsets.append(ds.as_dict())
+
+        return {'pseudos': [p.as_dict() for p in self.pseudos], 'datasets': dtsets}
+
+    @classmethod
+    def from_dict(cls, d):
+        pseudos = []
+        for p in d['pseudos']:
+            pseudos.append(Pseudo.from_file(p['filepath']))
+
+        dtsets = d['datasets']
+        abiinput = cls(pseudos, ndtset=dtsets[0]['ndtset'])
+
+        for n, ds in enumerate(dtsets):
+            abiinput.set_vars(dtset=n, **ds)
+
+        return abiinput
 
 
 class Dataset(mixins.MappingMixin, Has_Structure):
@@ -719,6 +737,18 @@ class Dataset(mixins.MappingMixin, Has_Structure):
     #    assert format in ["angdeg", "rprim"]
     #    self._geoformat = format
 
+    def set_mnemonics(self, boolean):
+        """True if mnemonics should be printed"""
+        self._mnemonics = bool(boolean)
+
+    @property
+    def mnemonics(self):
+        """Return True if mnemonics should be printed"""
+        try:
+            return self._mnemonics
+        except AttributeError:
+            return False
+
     def to_string(self, sortmode=None, post=None):
         """
         String representation.
@@ -753,6 +783,11 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         else:
             raise ValueError("Unsupported value for sortmode %s" % str(sortmode))
 
+        with_mnemonics = self.mnemonics
+        if with_mnemonics:
+            from .abivars_db import get_abinit_variables
+            var_database = get_abinit_variables()
+
         for var in keys:
             value = self[var]
             # Do not print NO_MULTI variables except for dataset 0.
@@ -764,6 +799,10 @@ class Dataset(mixins.MappingMixin, Has_Structure):
             # thus complicating the creation of workflows made of separated calculations.
             if var == "ndtset" and value == 1:
                 continue
+
+            if with_mnemonics:
+                v = var_database[var]
+                app("# <" + v.definition + ">")
 
             varname = var + post
             variable = InputVariable(varname, value)
@@ -789,7 +828,8 @@ class Dataset(mixins.MappingMixin, Has_Structure):
             raise self.Error("varname %s is not a valid ABINIT variable\n."
                              "Modify abipy/htc/abinit_vars.json" % varname)
 
-        if varname in self:
+        # Debugging section.
+        if False and varname in self:
             try: 
                 iseq = (self[varname] == value)
                 iseq = np.all(iseq)
@@ -803,7 +843,7 @@ class Dataset(mixins.MappingMixin, Has_Structure):
                 msg = "%s is already defined with a different value:\nOLD:\n %s,\nNEW\n %s" % (
                     varname, str(self[varname]), str(value))
                 logger.debug(msg)
-                #warnings.warn(msg)
+                #logger.critical(msg)
 
         self[varname] = value
 
@@ -848,14 +888,18 @@ class Dataset(mixins.MappingMixin, Has_Structure):
     @property
     def structure(self):
         """Returns the :class:`Structure` associated to this dataset."""
-        try:
-            return self._structure
+        # TODO: Avoid calling Structure.from_abivars, find a way to cache the object and invalidate it.
+        return Structure.from_abivars(self.allvars)
+        # Cannot use lazy properties here because we may want to change the structure
 
-        except AttributeError:
-            structure = Structure.from_abivars(self.allvars)
-
-            self.set_structure(structure)
-            return self._structure
+        #if hasattr(self, "_structure") and self._structure is None:
+        #    return self._structure
+        #try:
+        #    return self._structure
+        #except AttributeError:
+        #    structure = Structure.from_abivars(self.allvars)
+        #    self.set_structure(structure)
+        #    return self._structure
 
     def set_structure(self, structure):
         if is_string(structure): structure = Structure.from_file(filepath)
@@ -864,7 +908,6 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         self._structure = structure
         if structure is None: return
 
-        geoformat = "rprim"
         self.set_vars(**structure.to_abivars())
 
     # Helper functions to facilitate the specification of several variables.
@@ -879,10 +922,7 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         """
         shiftk = np.reshape(shiftk, (-1,3))
         
-        self.set_vars(ngkpt=ngkpt,
-                      kptopt=kptopt,
-                      nshiftk=len(shiftk),
-                      shiftk=shiftk)
+        self.set_vars(ngkpt=ngkpt, kptopt=kptopt, nshiftk=len(shiftk), shiftk=shiftk)
 
     def set_autokmesh(self, nksmall, kptopt=1):
         """
@@ -895,9 +935,7 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         shiftk = self.structure.calc_shiftk()
         
         self.set_vars(ngkpt=self.structure.calc_ngkpt(nksmall),
-                      kptopt=kptopt,
-                      nshiftk=len(shiftk),
-                      shiftk=shiftk)
+                      kptopt=kptopt, nshiftk=len(shiftk), shiftk=shiftk)
 
     def set_kpath(self, ndivsm, kptbounds=None, iscf=-2):
         """
@@ -913,10 +951,8 @@ class Dataset(mixins.MappingMixin, Has_Structure):
 
         kptbounds = np.reshape(kptbounds, (-1,3))
 
-        self.set_vars(kptbounds=kptbounds,
-                      kptopt=-(len(kptbounds)-1),
-                      ndivsm=ndivsm,
-                      iscf=iscf)
+        self.set_vars(kptbounds=kptbounds, kptopt=-(len(kptbounds)-1),
+                      ndivsm=ndivsm, iscf=iscf)
 
     def set_kptgw(self, kptgw, bdgw):
         """
@@ -934,9 +970,7 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         if len(bdgw) == 2:
             bdgw = len(kptgw) * bdgw
 
-        self.set_vars(kptgw=kptgw,
-                      nkptgw=nkptgw,
-                      bdgw=np.reshape(bdgw, (nkptgw, 2)))
+        self.set_vars(kptgw=kptgw, nkptgw=nkptgw, bdgw=np.reshape(bdgw, (nkptgw, 2)))
 
 
 class LujForSpecie(collections.namedtuple("LdauForSpecie", "l u j unit")):
@@ -1040,13 +1074,13 @@ class LexxParams(object):
     (see `to_abivars`). The LEXX operator will be applied only on the atomic species 
     that have been selected by calling `lexx_for_symbol`.
 
-    To perform a LEXX calculation for NiO in which the LEXX is compute only for the l=2
+    To perform a LEXX calculation for NiO in which the LEXX is computed only for the l=2
     channel of the nickel atoms:
                                                                          
     .. code-block:: python
 
         lexx_params = LexxParams(nio_structure)
-        lexx_params.lexx_for_symbol("Ni", l=2)                                                                         
+        lexx_params.lexx_for_symbol("Ni", l=2)
 
         print(lexc_params.to_abivars())
     """
@@ -1138,11 +1172,11 @@ def product_dict(d):
     ... {'bar': 2, 'foo': 4}]
     True
 
-    .. warning::
+    .. warning:
 
         Dictionaries are not ordered, therefore one cannot assume that 
         the order of the keys in the output equals the one used to loop.
-        If the order is important, one should pass a `OrderedDict` in input
+        If the order is important, one should pass a `OrderedDict` in input.
     """
     keys, vals = d.keys(), d.values()
 
@@ -1166,7 +1200,6 @@ def product_dict(d):
 
 class AnaddbInput(mixins.MappingMixin, Has_Structure):
     #TODO: Abstract interface so that we can provide tools for AbinitInput and AnaddbInput
-    #removevariable
     Error = InputError
 
     @classmethod

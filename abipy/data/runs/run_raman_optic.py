@@ -165,7 +165,8 @@ def main(options):
     # Define the flow, build files and dirs 
     # and save the object in cpickle format.
     flow = raman_flow(options)
-    return flow.build_and_pickle_dump()
+    flow.build_and_pickle_dump()
+    return flow
 
 
 if __name__ == "__main__":
