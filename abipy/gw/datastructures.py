@@ -35,7 +35,7 @@ from pymatgen.io.vaspio.vasp_input import Poscar
 from pymatgen.matproj.rest import MPRester, MPRestError
 from pymatgen.serializers.json_coders import MSONable
 from pymatgen.util.convergence import determine_convergence
-from pymatgen.io.abinitio.helpers import print_gnuplot_header, s_name, add_gg_gap, refine_structure
+from pymatgen.io.abinitio.helpers import print_gnuplot_header, s_name, add_gg_gap, refine_structure, read_extra_abivars
 from pymatgen.core.structure import Structure
 from pymatgen.core.units import eV_to_Ha
 from abipy.gw.codeinterfaces import get_code_interface
@@ -418,26 +418,28 @@ class GWSpecs(AbstractAbinitioSpec):
             while not done:
                 if data.type['parm_scr']:
                     data.read()
-                    #print data.data
-                    # determine the parameters that give converged results
+
                     if len(data.data) == 0:
                         print('| parm_scr type calculation but no data found.')
                         break
+
                     if len(data.data) < 9:  # todo this should be calculated
                         print('| parm_scr type calculation but no complete data found,'
-                              ' check is all calculations are done.')
+                              ' check if all calculations are done.')
                         break
 
                     if data.find_conv_pars_scf('ecut', 'full_width', self['tol'])[0]:
                         print('| parm_scr type calculation, converged scf values found')
-                        #print data.conv_res
                     else:
                         print('| parm_scr type calculation, no converged scf values found')
-                        data.full_res.update({'remark': 'No converged SCf parameter found. Solution not implemented.'})
-                        data.print_full_res()
+                        data.full_res.update({'remark': 'No converged SCf parameter found. Continue anyway.'})
                         data.conv_res['values'].update({'ecut': 40*eV_to_Ha})
                         data.conv_res['control'].update({'ecut': True})
-                        done = True
+
+                    #if ecut is provided in extra_abivars overwrite in any case ..
+                    if 'ecut' in read_extra_abivars().keys():
+                        data.conv_res['values'].update({'ecut': read_extra_abivars()['ecut']*eV_to_Ha})
+
                     # if converged ok, if not increase the grid parameter of the next set of calculations
                     extrapolated = data.find_conv_pars(self['tol'])
                     if data.conv_res['control']['nbands']:
@@ -446,13 +448,16 @@ class GWSpecs(AbstractAbinitioSpec):
                     else:
                         print('| parm_scr type calculation, no converged values found, increasing grid')
                         data.full_res['grid'] += 1
+
                     data.print_full_res()
                     data.print_conv_res()
+
                     # plot data:
                     print_gnuplot_header('plots', s_name(structure)+' tol = '+str(self['tol']), filetype=None)
                     data.print_gnuplot_line('plots')
                     data.print_plot_data()
                     done = True
+
                 elif data.type['full']:
                     if not data.read_conv_res_from_file(s_name(structure)+'.conv_res'):
                         print('| Full type calculation but the conv_res file is not available, trying to reconstruct')
@@ -462,12 +467,14 @@ class GWSpecs(AbstractAbinitioSpec):
                     data.read(subset='.conv')
                     if len(data.data) == 0:
                         print('| Full type calculation but no data found.')
-                        done = True
+                        break
+
                     if len(data.data) < 4:
                         print('| Full type calculation but no complete data found.')
                         for item in data.data:
                             print(item)
-                        done = True
+                        break
+
                     if data.test_full_kp_results(tol_rel=1, tol_abs=0.0015):
                         print('| Full type calculation and the full results agree with the parm_scr.'
                               ' All_done for this compound.')
@@ -480,12 +487,15 @@ class GWSpecs(AbstractAbinitioSpec):
                         print('| Full type calculation but the full results do not agree with the parm_scr.')
                         print('|   Increase the tol to find better converged parameters and test the full grid again.')
                         print('|   TODO')
+                        data.full_res.update({'remark': 'no agreement at high dens kp mesh,', 'all_done': True})
+
                         # read the system specific tol for System.conv_res
                         # if it's not there create it from the global tol
                         # reduce tol
                         # set data.type to convergence
                         # loop
                         done = True
+
         elif self.data['test']:
             data.read()
             data.set_type()
