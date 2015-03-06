@@ -25,6 +25,7 @@ from pymatgen.serializers.json_coders import PMGSONable, pmg_serialize
 from pymatgen.io.abinitio.pseudos import PseudoTable, Pseudo
 from pymatgen.io.abinitio.tasks import TaskManager, AbinitTask
 from pymatgen.io.abinitio.netcdf import NetcdfReader
+from pymatgen.io.abinitio.abiinspect import yaml_read_irred_perts
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
 from .variable import InputVariable
@@ -469,7 +470,7 @@ class AbiInput(Input, Has_Structure):
 
             Multiple datasets are ignored. Only the list of k-points for dataset 1 are returned.
         """
-        #assert self.ndtset == 1
+        assert self.ndtset == 1
         # Avoid modifications in self.
         inp = self.split_datasets()[0].deepcopy()
 
@@ -500,7 +501,65 @@ class AbiInput(Input, Has_Structure):
             ibz = collections.namedtuple("ibz", "points weights")
             return ibz(points=r.read_value("reduced_coordinates_of_kpoints"),
                        weights=r.read_value("kpoint_weights"))
-                    
+
+    def get_irred_perts(self, ngkpt=None, shiftk=None, kptopt=None, qpoint=None, workdir=None, manager=None):
+        """
+        This function, computes the list of irreducible perturbations for DFPT.
+        It should be called with an input file that contains all the mandatory variables required by ABINIT.
+
+        Args:
+            ngkpt: Number of divisions for the k-mesh (default None i.e. use ngkpt from self)
+            shiftk: Shiftks (default None i.e. use shiftk from self)
+            qpoint: qpoint in reduced coordinates. Used to shift the k-mesh (default None i.e no shift)
+            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
+            manager: TaskManager of the task. If None, the :class:`TaskManager` is initialized from the config file.
+
+        Returns:
+            List of dictionaries with the Abinit variables defining the irreducible perturbation
+            Example:
+
+                [{'idir': 1, 'ipert': 1, 'qpt': [0.25, 0.0, 0.0]},
+                 {'idir': 2, 'ipert': 1, 'qpt': [0.25, 0.0, 0.0]}]
+
+        .. warning::
+
+            Multiple datasets are ignored. Only the list of k-points for dataset 1 are returned.
+        """
+        assert self.ndtset == 1
+        warnings.warn("get_irred_perts is still under development.")
+        # Avoid modifications in self.
+        inp = self.split_datasets()[0].deepcopy()
+
+        # The magic value that makes ABINIT print the ibz and then stop.
+        #inp.prtkpt = -2
+        #if ngkpt is not None: inp.ngkpt = ngkpt
+        #if shiftk is not None:
+        #    inp.shiftk = np.reshape(shiftk, (-1,3))
+        #    inp.nshiftk = len(inp.shiftk)
+        #if kptopt is not None:
+        #    inp.kptopt = kptopt
+        #if qpoint is not None:
+        #    inp.qptn, inp.nqpt = qpoint, 1
+
+        # Use the magic value paral_rf = -1 to get the list of irreducible perturbations for this q-point.
+        d = dict(
+            paral_rf=-1,
+            rfatpol=[1, len(inp.structure)],  # Set of atoms to displace.
+            rfdir=[1, 1, 1],                  # Along this set of reduced coordinate axis.
+            )
+        inp.set_vars(d)
+
+        # Build a simple manager to run the job in a shell subprocess
+        # Construct the task and run it
+        if manager is None: manager = TaskManager.from_user_config()
+        workdir = tempfile.mkdtemp() if workdir is None else workdir  
+
+        task = AbinitTask.from_input(inp, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
+        task.start_and_wait(autoparal=False)
+
+        # Parse the file to get the perturbations.
+        return yaml_read_irred_perts(task.log_file.path)
+
     def linspace(self, varname, start, stop, endpoint=True):
         """
         Returns `ndtset` evenly spaced samples, calculated over the interval [`start`, `stop`].

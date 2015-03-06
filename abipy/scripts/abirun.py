@@ -214,6 +214,9 @@ Usage example:\n
     p_scheduler.add_argument('-m', '--minutes', default=0, type=int, help="number of minutes to wait")
     p_scheduler.add_argument('-s', '--seconds', default=0, type=int, help="number of seconds to wait")
 
+    # Subparser for batch command.
+    p_batch = subparsers.add_parser('batch', help="Run scheduler in batch script.")
+
     # Subparser for status command.
     p_status = subparsers.add_parser('status', parents=[flow_selector_parser], help="Show task status.")
     p_status.add_argument('-d', '--delay', default=0, type=int, help=("If 0, exit after the first analysis.\n" + 
@@ -450,6 +453,9 @@ Specify the files to open. Possible choices:
         print("Number of tasks launched: %d" % nlaunch)
 
     elif options.command == "scheduler":
+        # Check that the env on the local machine is properly setup before starting the scheduler.
+        abilab.abicheck()
+
         sched_options = {oname: getattr(options, oname) for oname in 
             ("weeks", "days", "hours", "minutes", "seconds")}
 
@@ -458,16 +464,12 @@ Specify the files to open. Possible choices:
         else:
             sched = PyFlowScheduler(**sched_options)
 
-        # Check that the env on the local machine is properly setup before starting the scheduler.
-        abilab.abicheck()
-
         sched.add_flow(flow)
         print(sched)
-        try:
-            sched.start()
-        except KeyboardInterrupt:
-            # Save the status of the flow before exiting.
-            flow.pickle_dump()
+        sched.start()
+
+    elif options.command == "batch":
+        flow.batch()
 
     elif options.command == "status":
 
