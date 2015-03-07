@@ -133,10 +133,8 @@ def abicheck():
         RuntimeError if not all the dependencies are fulfilled.
     """
     import os
-    # Executables must be in $PATH. Unfortunately we cannot
-    # test the version of the binaries.
-    # A possible approach would be to execute "exe -v"
-    # but supporting argv in Fortran is not trivial.
+    # Executables must be in $PATH. Unfortunately we cannot test the version of the binaries.
+    # A possible approach would be to execute "exe -v" but supporting argv in Fortran is not trivial.
     # Dynamic linking is tested by calling `ldd exe`
     executables = [
         "abinit",
@@ -202,6 +200,9 @@ def flow_main(main):
         parser.add_argument("-s", '--scheduler', action="store_true", default=False, 
                             help="Run the flow with the scheduler")
 
+        parser.add_argument("-b", '--batch', action="store_true", default=False, 
+                            help="Run the flow in batch mode")
+
         #parser.add_argument("-r", '--remove', action="store_true", default=False, 
         #                    help="Run the flow with the scheduler")
 
@@ -217,6 +218,8 @@ def flow_main(main):
             raise ValueError('Invalid log level: %s' % options.loglevel)
         logging.basicConfig(level=numeric_level)
 
+        #options.manager = TaskManager.as_manager(options.manager)
+
         if options.prof:
             import pstats, cProfile
             cProfile.runctx("main(options)", globals(), locals(), "Profile.prof")
@@ -229,6 +232,10 @@ def flow_main(main):
             if options.scheduler:
                 flow.rmtree()
                 return flow.make_scheduler().start()
+
+            elif options.batch:
+                flow.rmtree()
+                return flow.batch()
 
             return 0
 

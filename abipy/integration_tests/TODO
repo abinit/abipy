@@ -18,3 +18,5 @@ TODO LIST:
 
   # Add possibility of specifying the max number of CPUs that can be used  
     for a flow at the level of the scheduler.
+
+  # Propagate the manager to anaddb and mrgddb.

@@ -466,7 +466,21 @@ Specify the files to open. Possible choices:
 
         sched.add_flow(flow)
         print(sched)
-        sched.start()
+
+        if False:
+            from shutil import copy
+            bkp_pickle = "_bkp"
+            copy(flow.pickle_file, bkp_pickle)
+
+            while True:
+                sched.start()
+                flow.rmtree()
+                flow = abilab.Flow.pickle_load(bkp_pickle)
+                flow.build()
+                sched = PyFlowScheduler.from_user_config()
+                sched.add_flow(flow)
+        else:
+            sched.start()
 
     elif options.command == "batch":
         flow.batch()

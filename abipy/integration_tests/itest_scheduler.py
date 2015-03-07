@@ -7,7 +7,7 @@ import os
 import abipy.data as abidata  
 import abipy.abilab as abilab
 
-from pymatgen.io.abinitio.mocks import mock_task_start
+import pymatgen.io.abinitio.mocks as mocks
 
 
 def make_scf_nscf_inputs(paral_kgb=1):
@@ -73,7 +73,7 @@ def itest_flow_with_deadlocks(fwp):
     flow.allocate()
 
     # Mock an Errored nscf_task. This will cause a deadlock in the flow.
-    nscf_task = mock_task_start(nscf_task)
+    nscf_task = mocks.change_task_start(nscf_task)
 
     # Here we set max_num_abierrs to a very large number.
     sched = flow.make_scheduler()
@@ -108,7 +108,7 @@ def itest_flow_without_runnable_tasks(fwp):
     flow.allocate()
 
     # Mock an Errored nscf_task. This will cause a deadlock in the flow.
-    nscf_task = mock_task_start(nscf_task)
+    nscf_task = mocks.change_task_start(nscf_task)
 
     sched = flow.make_scheduler()
     sched.max_num_abierrs = 10000

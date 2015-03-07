@@ -70,8 +70,9 @@ def build_flow(options):
 @abilab.flow_main
 def main(options):
     flow = build_flow(options)
+    #import pymatgen.io.abinitio.mocks as mocks
+    #flow = mocks.infinite_flow(flow)
     flow.build_and_pickle_dump()
-    flow.set_pyfile(__file__)
     return flow
 
 if __name__ == "__main__":
