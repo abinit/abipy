@@ -38,15 +38,15 @@ def main():
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for status command.
-    p_status = subparsers.add_parser('status', aliases=["s", "stat"], help="Check the status of the run (errors, warning, completion)")
+    p_status = subparsers.add_parser('status', help="Check the status of the run (errors, warning, completion)")
 
     #p_status.add_argument('format', nargs="?", default="cif", type=str, help="Format of the output file (ciff, POSCAR, json).")
 
     # Subparser for plot command.
-    p_plot = subparsers.add_parser('plot', aliases=["p"], help="Plot data")
+    p_plot = subparsers.add_parser('plot', help="Plot data")
     #p_plot.add_argument('visualizer', nargs="?", default="xcrysden", type=str, help="Visualizer.")
 
-    subparsers.add_parser('timer', aliases=["t"], help="Show timing data.")
+    subparsers.add_parser('timer', help="Show timing data.")
 
     subparsers.add_parser('pseudo', help="Show info on pseudopotential file.")
 

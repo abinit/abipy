@@ -235,6 +235,7 @@ def flow_main(main):
 
             elif options.batch:
                 flow.rmtree()
+                flow.build_and_pickle_dump()
                 return flow.batch()
 
             return 0
