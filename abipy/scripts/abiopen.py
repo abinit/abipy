@@ -50,21 +50,21 @@ def main():
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for single command.
-    p_files = subparsers.add_parser('files', aliases=["file", "f"], help="Run the specified file(s).") 
+    p_files = subparsers.add_parser('files', help="Run the specified file(s).") 
     p_files.add_argument("filepaths", nargs="+", help="List of filepaths.")
 
     # Subparser for list command.
-    p_list = subparsers.add_parser('list', aliases=["l"], help="List files in directory.") 
+    p_list = subparsers.add_parser('list', help="List files in directory.") 
     p_list.add_argument("dirpaths", nargs="+", help="List of filepaths.")
     p_list.add_argument('-w', '--wildcard', type=str, default="*.nc", help="wildcards. Default *.nc")
 
     # Subparser for tree command.
-    p_tree = subparsers.add_parser('tree', aliases=["t"], help="Show files in directory tree.") 
+    p_tree = subparsers.add_parser('tree', help="Show files in directory tree.") 
     p_tree.add_argument("dirpaths", nargs="+", help="List of filepaths.")
     p_tree.add_argument('-w', '--wildcard', type=str, default="*.nc", help="wildcards. Default *.nc")
 
     # Subparser for scan command.
-    p_scan = subparsers.add_parser('scan', aliases=["s"], help="Show files in directory tree.") 
+    p_scan = subparsers.add_parser('scan', help="Show files in directory tree.") 
     p_scan.add_argument("top", help="Top.")
     p_scan.add_argument('-w', '--wildcard', type=str, default="*.nc", help="wildcards. Default *.nc")
     p_scan.add_argument('--no-walk', default=False, action="store_true", help="Disable walk mode.")

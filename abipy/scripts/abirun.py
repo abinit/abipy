@@ -382,9 +382,6 @@ Specify the files to open. Possible choices:
     flow = abilab.Flow.pickle_load(options.flowdir, remove_lock=options.remove_lock)
     retcode = 0
 
-    nrows, ncols = get_terminal_size()
-    #print(nrows, ncols)
-
     if options.command == "gui":
         if options.chroot:
             # Change the workdir of flow.
@@ -410,6 +407,9 @@ Specify the files to open. Possible choices:
         return flow.build_and_pickle_dump()
 
     elif options.command == "events":
+        nrows, ncols = get_terminal_size()
+        #print(nrows, ncols)
+
         for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
             report = task.get_event_report()
             #report = report.filter_types()
@@ -417,6 +417,7 @@ Specify the files to open. Possible choices:
             print(report)
 
     elif options.command == "corrections":
+        nrows, ncols = get_terminal_size()
         count = 0
         for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
             if task.num_corrections == 0: continue
@@ -429,6 +430,7 @@ Specify the files to open. Possible choices:
             print("No correction found.")
 
     elif options.command == "history":
+        nrows, ncols = get_terminal_size()
         for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
             print(make_banner(str(task), width=ncols, mark="="))
             print(task.history.to_string(metadata=options.metadata))
