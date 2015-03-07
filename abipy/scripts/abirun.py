@@ -233,10 +233,6 @@ Usage example:\n
     p_reset = subparsers.add_parser('reset', parents=[flow_selector_parser], help="Reset the tasks of the flow with the specified status.")
     p_reset.add_argument('task_status', default="QCritical") 
 
-    # Subparser for unlock command.
-    #p_unlock = subparsers.add_parser('unlock', parents=[flow_selector_parser], help="Reset the tasks of the flow with the specified status.")
-    #p_reset.add_argument('task_status', default="QCritical") 
-
     # Subparser for move command.
     p_move = subparsers.add_parser('move', help="Move the flow to a new directory and change the absolute paths")
     p_move.add_argument('dest', nargs=1) 
@@ -299,7 +295,9 @@ Specify the files to open. Possible choices:
 
     p_history = subparsers.add_parser('history', parents=[flow_selector_parser], help="Show Node history.")
     p_history.add_argument("-m", "--metadata", action="store_true", default=False, help="Print history metadata")
-    #p_history.add_argument("-t", "event-type", default=)
+    #p_history.add_argument("-t", "--task-history", action="store_true", default=True, help=)
+    #p_history.add_argument("-t", "--task-history", action="store_true", default=True, help=)
+    #p_history.add_argument("-t", "--task-history", action="store_true", default=True, help=)
 
     p_handlers = subparsers.add_parser('handlers', help="Show event handlers installed in the flow")
     p_handlers.add_argument("-d", "--doc", action="store_true", default=False, 
@@ -431,9 +429,20 @@ Specify the files to open. Possible choices:
 
     elif options.command == "history":
         nrows, ncols = get_terminal_size()
-        for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
-            print(make_banner(str(task), width=ncols, mark="="))
-            print(task.history.to_string(metadata=options.metadata))
+
+        #for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
+        #    print(make_banner(str(task), width=ncols, mark="="))
+        #    print(task.history.to_string(metadata=options.metadata))
+
+        for work in flow:
+            print(make_banner(str(work), width=ncols, mark="="))
+            print(work.history.to_string(metadata=options.metadata))
+            for task in work:
+                print(make_banner(str(task), width=ncols, mark="="))
+                print(task.history.to_string(metadata=options.metadata))
+
+        print(make_banner(str(flow), width=ncols, mark="="))
+        print(flow.history.to_string(metadata=options.metadata))
 
     elif options.command == "handlers":
         if options.doc:
@@ -441,18 +450,18 @@ Specify the files to open. Possible choices:
         else:
             flow.show_event_handlers()
 
-    elif options.command in ("single", "singleshot"):
+    elif options.command  == "single":
         nlaunch = PyLauncher(flow).single_shot()
         flow.show_status()
         print("Number of tasks launched: %d" % nlaunch)
 
-    elif options.command in ("rapid", "rapidfire"):
+    elif options.command == "rapid":
         nlaunch = PyLauncher(flow).rapidfire()
         flow.show_status()
         print("Number of tasks launched: %d" % nlaunch)
 
     elif options.command == "scheduler":
-        # Check that the env on the local machine is properly setup before starting the scheduler.
+        # Check that the env on the local machine is properly configured before starting the scheduler.
         abilab.abicheck()
 
         sched_options = {oname: getattr(options, oname) for oname in 
@@ -479,10 +488,10 @@ Specify the files to open. Possible choices:
                 sched = PyFlowScheduler.from_user_config()
                 sched.add_flow(flow)
         else:
-            sched.start()
+            return sched.start()
 
     elif options.command == "batch":
-        flow.batch()
+        return flow.batch()
 
     elif options.command == "status":
 
@@ -568,9 +577,6 @@ Specify the files to open. Possible choices:
                 print("*** Flow is deadlocked ***")
 
         flow.pickle_dump()
-
-    #elif options.command == "unlock":
-    #    self.start_lockfile.remove()
 
     elif options.command == "move":
         print("Will move flow to %s..." % options.dest)

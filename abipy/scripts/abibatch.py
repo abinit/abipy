@@ -60,10 +60,15 @@ Usage example:\n
     p_submit = subparsers.add_parser('submit', help="Find all flows in dir and submit them")
     p_submit.add_argument('paths', nargs="*", default=".", help=("Directories containing the object." 
                           "Use current working directory if not specified"))
+    p_submit.add_argument("-d", '--dry-run', default=False, action="store_true", help="Dry run mode")
 
     # Subparser for load.
     p_load = subparsers.add_parser('load', help="Load object from pickle file.")
     p_load.add_argument('top', help="File or directory containing the object")
+
+    # Subparser for info.
+    #p_load = subparsers.add_parser('info', help="Load object from pickle file and show info on the flows..")
+    #p_load.add_argument('top', help="File or directory containing the object")
 
     # Parse command line.
     try:
@@ -86,8 +91,12 @@ Usage example:\n
 
         launcher = BatchLauncher.from_dir(options.paths[0])
         print(launcher.to_string())
-        retcode = launcher.submit(verbose=options.verbose)
-        print("retcode", retcode)
+
+        retcode = launcher.submit(verbose=options.verbose, dry_run=options.dry_run)
+        if retcode:
+            print("Batch job submission failed. See batch directory for errors")
+        else:
+            print("Batch job has been submitted")
 
     elif options.command == "load":
         launcher = BatchLauncher.pickle_load(options.top)
