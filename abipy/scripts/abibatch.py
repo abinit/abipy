@@ -53,9 +53,9 @@ Usage example:\n
                           "Use current working directory if not specified"))
     p_submit.add_argument("-d", '--dry-run', default=False, action="store_true", help="Dry run mode")
 
-    # Subparser for load.
-    p_load = subparsers.add_parser('load', help="Load object from pickle file.")
-    p_load.add_argument('top', help="File or directory containing the object")
+    # Subparser for status.
+    p_status = subparsers.add_parser('status', help="Load object from pickle file and show status")
+    p_status.add_argument('top', help="File or directory containing the object")
 
     # Subparser for info.
     #p_load = subparsers.add_parser('info', help="Load object from pickle file and show info on the flows..")
@@ -93,11 +93,14 @@ Usage example:\n
         else:
             print("Batch job has been submitted")
 
-    elif options.command == "load":
+    elif options.command == "status":
         batch = BatchLauncher.pickle_load(options.top)
-        print(batch.to_string())
 
-        batch.show_summary(verbose=options.verbose)
+        for flow in batch.flows:
+            flow.show_summary()
+
+        #print(batch.to_string())
+        #batch.show_summary(verbose=options.verbose)
         #batch.show_status(verbose=options.verbose)
 
     else:

@@ -221,6 +221,7 @@ Usage example:\n
     p_status = subparsers.add_parser('status', parents=[flow_selector_parser], help="Show task status.")
     p_status.add_argument('-d', '--delay', default=0, type=int, help=("If 0, exit after the first analysis.\n" + 
                           "If > 0, enter an infinite loop and delay execution for the given number of seconds."))
+    p_status.add_argument('-s', '--summary', default=False, action="store_true", help="Print short version with status counters.")
 
     # Subparser for cancel command.
     p_cancel = subparsers.add_parser('cancel', parents=[flow_selector_parser], help="Cancel the tasks in the queue.")
@@ -495,19 +496,22 @@ Specify the files to open. Possible choices:
 
     elif options.command == "status":
 
+        # Select the method to call.
+        show_func = flow.show_status if not options.summary else flow.show_summary
+
         if options.delay:
             cprint("Entering infinite loop. Press CTRL+C to exit", color="magenta", end="", flush=True)
             try:
                 while True:
                     print(2*"\n" + time.asctime() + "\n")
                     flow.check_status()
-                    flow.show_status(verbose=options.verbose, nids=selected_nids(flow, options))
+                    show_func(verbose=options.verbose, nids=selected_nids(flow, options))
                     if flow.all_ok: break
                     time.sleep(options.delay)
             except KeyboardInterrupt:
                 pass
         else:
-            flow.show_status(verbose=options.verbose, nids=selected_nids(flow, options))
+            show_func(verbose=options.verbose, nids=selected_nids(flow, options))
             if flow.manager.has_queue:
                 print("Total number of jobs in queue: %s" % flow.manager.get_njobs_in_queue())
 
