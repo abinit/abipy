@@ -71,9 +71,9 @@ def main():
 
     # Submit to the queue in batch mode.
     # Use abibatch.py to inspect the status or resubmit.
-    retcode = batch.submit()
-    print("batch.submit() returned: ", retcode)
-    return retcode
+    job = batch.submit()
+    print("batch.submit() returned: ", job.retcode)
+    return job.retcode
 
 if __name__ == "__main__":
     sys.exit(main())
