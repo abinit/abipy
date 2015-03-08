@@ -2,13 +2,16 @@
 """Factory function for Abinit input files """
 from __future__ import print_function, division, unicode_literals
 
+import six
+import abc
 import numpy as np
+import pymatgen.io.abinitio.abiobjects as aobj 
 
 from collections import OrderedDict, namedtuple 
 from monty.string import is_string, list_strings
-#from pymatgen.core.units import Energy
-from pymatgen.io.abinitio.pseudos import PseudoTable, Pseudo
-from pymatgen.io.abinitio.abiobjects import KSampling, Electrons, RelaxationMethod, Screening, SelfEnergy, ExcHamiltonian, HilbertTransform
+from monty.collections import dict2namedtuple
+from pymatgen.io.abinitio.pseudos import PseudoTable
+#from pymatgen.serializers.json_coders import PMGSONable
 from abipy.core.structure import Structure
 from .input import AbiInput
 
@@ -25,7 +28,95 @@ logger = logging.getLogger(__file__)
 #       SCF fails if nband is too small or has problems if we don't have enough partially
 #       occupied states in metals (can write EventHandler but it would be nice if we could
 #       fix this problem in advance.
-#   
+#    3) How do we handle options related to parallelism e.g. paral_kgb?
+#    4) The API of the factory functions must be simple enough so that we can easily generate
+#       flows but, on the other hand, we would like to decorate the input with extra features
+#       e.g. we would like to do a LDA+U band structure, a LDA+U relaxation etc.
+#       For a possible solution based on factory functions see:
+#
+#            http://python-3-patterns-idioms-test.readthedocs.org/en/latest/Factory.html
+#
+#       for decorator pattern see:
+#
+#            http://www.tutorialspoint.com/design_pattern/decorator_pattern.htm
+
+class DecoratorError(Exception):
+    """Error class raised by :class:`InputDecorator`."""
+
+
+class InputDecorator(six.with_metaclass(abc.ABCMeta, object)):
+    """Abstract Base class."""
+    Error = DecoratorError
+
+    @abc.abstractmethod
+    def as_dict(self):
+
+    def decorate(self, inp, deepcopy=True):
+        new_inp = self._decorate(inp, deepcopy=deepcopy)
+        # Log the decoration in new_inp.
+        new_inp._decorators.append(self.as_dict())
+        return new_inp
+
+    @abc.abstractmethod
+    def _decorate(self, inp, deepcopy=True):
+        """
+
+        Args:
+            inp: :class:`AbiInput` object.
+            deepcopy: True if a deepcopy of inp should be performed 
+                before changing the object.
+
+        Returns:
+            decorated :class:`AbiInput` object (new object)
+        """
+
+#class SpinDecorator(InputDecorator):
+#    def __init__(self, spinmode):
+#        """Change the spin polarization."""
+#        self.spinmode = aobj.SpinMpde.as_spinmode(spin_mode)
+#
+#    def _decorate(self, inp, deepcopy=True)
+#        if deepcopy: inp = inp.deepcopy()
+#        inp.set_vars(self.spinmode.to_abivars())
+#        return inp
+
+#class SmearingDecorator(InputDecorator):
+#    """Change the electronic smearing."""
+#    def __init__(self, spinmode):
+#        self.smearing = aobj.Smearing.as_smearing(smearing)
+#
+#    def _decorate(self, inp, deepcopy=True)
+#        if deepcopy: inp = inp.deepcopy()
+#        inp.set_vars(self.smearing.to_abivars())
+#        return inp
+
+#class UJDecorator(InputDecorator):
+#    """Add LDA+U to an :class:`AbiInput` object."""
+#    def __init__(self, luj_for_symbol, usepawu=1):
+#        self.usepawu = usepawu
+#        self.luj_for_symbol = luj_for_symbol
+#
+#    def _decorate(self, inp, deepcopy=True)
+#        if not inp.ispaw: raise self.Error("LDA+U requires PAW!")
+#        if deepcopy: inp = inp.deepcopy()
+#
+#        inp.set_vars(usepawu=self.usepawu)
+#        return inp
+
+
+#class LexxDecorator(InputDecorator):
+#    """Add LDA+U to an :class:`AbiInput` object."""
+#    def __init__(self, luj_for_symbol, usepawu=1):
+#        self.usepawu = usepawu
+#        self.luj_for_symbol = luj_for_symbol
+#
+#    def _decorate(self, inp, deepcopy=True)
+#        if not inp.ispaw: raise self.Error("LDA+U requires PAW!")
+#        if deepcopy: inp = inp.deepcopy()
+#
+#        inp.set_vars(usepawu=self.usepawu)
+#        return inp
+
 
 # Name of the (default) tolerance used by the runlevels.
 _runl2tolname = {
@@ -56,6 +147,7 @@ def _stopping_criterion(runlevel, accuracy):
 
 def _find_ecut_pawecutdg(ecut, pawecutdg, pseudos):
     """Return the value of ecut and pawecutdg"""
+    #TODO: Get ecut and pawecutdg from the pseudo hints.
     #if ecut is None: 
     #  ecut = max(p.hint for p in pseudos)
 
@@ -78,6 +170,10 @@ def _find_scf_nband(structure, pseudos, electrons):
     # First guess (semiconductors)
     nband = nval // nsppol
 
+    # TODO: Find better algorithm
+    # If nband is too small we may kill the job, increase nband and restart
+    # but this change could cause problems in the other steps of the calculation
+    # if the change is not propagated e.g. phonons in metals.
     if smearing:
         # metallic occupation
         nband += 12
@@ -126,9 +222,9 @@ def ebands_input(structure, pseudos, scf_kppa, nscf_nband, ndivsm,
     inp.set_vars(ecut=ecut, pawecutdg=pawecutdg)
 
     # SCF calculation.
-    scf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
-    scf_electrons = Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
-                              charge=charge, nband=scf_nband, fband=None)
+    scf_ksampling = aobj.KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
+    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
+                                   charge=charge, nband=scf_nband, fband=None)
 
     if scf_electrons.nband is None:
         scf_electrons.nband = _find_scf_nband(structure, pseudos, scf_electrons)
@@ -138,9 +234,9 @@ def ebands_input(structure, pseudos, scf_kppa, nscf_nband, ndivsm,
     inp[1].set_vars(_stopping_criterion("scf", accuracy))
 
     # Band structure calculation.
-    nscf_ksampling = KSampling.path_from_structure(ndivsm, structure)
-    nscf_electrons = Electrons(spin_mode=spin_mode, smearing=smearing, algorithm={"iscf": -2},
-                               charge=charge, nband=nscf_nband, fband=None)
+    nscf_ksampling = aobj.KSampling.path_from_structure(ndivsm, structure)
+    nscf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm={"iscf": -2},
+                                    charge=charge, nband=nscf_nband, fband=None)
 
     inp[2].set_vars(nscf_ksampling.to_abivars())
     inp[2].set_vars(nscf_electrons.to_abivars())
@@ -149,18 +245,18 @@ def ebands_input(structure, pseudos, scf_kppa, nscf_nband, ndivsm,
     # DOS calculation with different values of kppa.
     if dos_kppa is not None:
         for i, kppa in enumerate(dos_kppa):
-            dos_ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0)
-            #dos_ksampling = KSampling.monkhorst(dos_ngkpt, shiftk=dos_shiftk, chksymbreak=0)
-            dos_electrons = Electrons(spin_mode=spin_mode, smearing=smearing, algorithm={"iscf": -2},
-                                      charge=charge, nband=nscf_nband) 
+            dos_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
+            #dos_ksampling = aobj.KSampling.monkhorst(dos_ngkpt, shiftk=dos_shiftk, chksymbreak=0)
+            dos_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm={"iscf": -2},
+                                           charge=charge, nband=nscf_nband) 
             dt = 3 + i
             inp[dt].set_vars(dos_ksampling.to_abivars())
             inp[dt].set_vars(dos_electrons.to_abivars())
             inp[dt].set_vars(_stopping_criterion("nscf", accuracy))
 
     return inp
-    #return namedtuple("Inputs", "scf_inp nscf_inp dos_inps")
     #scf_inp, nscf_inp, dos_inps = inp.split_datasets()
+    #return dict2namedtuple(scf_inp=scf_inp, nscf_inp=nscf_inp, dos_inps")
 
 
 def ion_ioncell_relax_input(structure, pseudos, kppa, nband=None,
@@ -191,15 +287,15 @@ def ion_ioncell_relax_input(structure, pseudos, kppa, nband=None,
     ecut, pawecutdg = _find_ecut_pawecutdg(ecut, pawecutdg, pseudos)
     inp.set_vars(ecut=ecut, pawecutdg=pawecutdg)
 
-    ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0)
-    electrons = Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
-                          charge=charge, nband=nband, fband=None)
+    ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
+    electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
+                               charge=charge, nband=nband, fband=None)
 
     if electrons.nband is None:
         electrons.nband = _find_scf_nband(structure, pseudos, electrons)
 
-    ion_relax = RelaxationMethod.atoms_only(atoms_constraints=None)
-    ioncell_relax = RelaxationMethod.atoms_and_cell(atoms_constraints=None)
+    ion_relax = aobj.RelaxationMethod.atoms_only(atoms_constraints=None)
+    ioncell_relax = aobj.RelaxationMethod.atoms_and_cell(atoms_constraints=None)
 
     inp.set_vars(electrons.to_abivars())
     inp.set_vars(ksampling.to_abivars())
@@ -212,6 +308,7 @@ def ion_ioncell_relax_input(structure, pseudos, kppa, nband=None,
     inp[2].set_vars(ioncell_relax.to_abivars())
 
     return inp
+    #return dict2namedtuple(scf_inp=scf_inp, nscf_inp=nscf_inp, dos_inps")
 
 
 def g0w0_with_ppmodel_input(structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx,
@@ -254,10 +351,9 @@ def g0w0_with_ppmodel_input(structure, pseudos, scf_kppa, nscf_nband, ecuteps, e
     ecut, pawecutdg = _find_ecut_pawecutdg(ecut, pawecutdg, pseudos)
     inp.set_vars(ecut=ecut, pawecutdg=pawecutdg)
 
-    scf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
-
-    scf_electrons = Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
-                              charge=charge, nband=None, fband=None)
+    scf_ksampling = aobj.KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
+    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
+                                   charge=charge, nband=None, fband=None)
 
     if scf_electrons.nband is None:
         scf_electrons.nband = _find_scf_nband(structure, pseudos, scf_electrons)
@@ -266,9 +362,9 @@ def g0w0_with_ppmodel_input(structure, pseudos, scf_kppa, nscf_nband, ecuteps, e
     inp[1].set_vars(scf_electrons.to_abivars())
     inp[1].set_vars(_stopping_criterion("scf", accuracy))
 
-    nscf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
-    nscf_electrons = Electrons(spin_mode=spin_mode, smearing=smearing, algorithm={"iscf": -2},
-                               charge=charge, nband=nscf_nband, fband=None)
+    nscf_ksampling = aobj.KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
+    nscf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm={"iscf": -2},
+                                    charge=charge, nband=nscf_nband, fband=None)
 
     inp[2].set_vars(nscf_ksampling.to_abivars())
     inp[2].set_vars(nscf_electrons.to_abivars())
@@ -277,22 +373,23 @@ def g0w0_with_ppmodel_input(structure, pseudos, scf_kppa, nscf_nband, ecuteps, e
 
     # Screening.
     if scr_nband is None: scr_nband = nscf_nband
-    screening = Screening(ecuteps, scr_nband, w_type="RPA", sc_mode="one_shot",
+    screening = aobj.Screening(ecuteps, scr_nband, w_type="RPA", sc_mode="one_shot",
                           hilbert=None, ecutwfn=None, inclvkb=inclvkb)
     inp[3].set_vars(screening.to_abivars())
     #scr_strategy = ScreeningStrategy(scf_strategy, nscf_strategy, screening)
 
     # Sigma.
     if sigma_nband is None: sigma_nband = nscf_nband
-    self_energy = SelfEnergy("gw", "one_shot", sigma_nband, ecutsigx, screening,
+    self_energy = aobj.SelfEnergy("gw", "one_shot", sigma_nband, ecutsigx, screening,
                              gw_qprange=gw_qprange, ppmodel=ppmodel)
     inp[4].set_vars(self_energy.to_abivars())
-    #sigma_strategy = SelfEnergyStrategy(scf_strategy, nscf_strategy, scr_strategy, self_energy)
+    #sigma_strategy = aobj.SelfEnergyStrategy(scf_strategy, nscf_strategy, scr_strategy, self_energy)
 
     # TODO: Cannot use istwfk != 1.
     inp.set_vars(istwfk="*1")
 
     return inp
+    #return dict2namedtuple(scf_inp=scf_inp, nscf_inp=nscf_inp, dos_inps")
 
 #TODO
 #def g0w0_extended_work(structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx, scf_nband, accuracy="normal",
@@ -343,10 +440,10 @@ def bse_with_mdf_input(structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nsc
     inp.set_vars(ecut=ecut, pawecutdg=pawecutdg)
 
     # Ground-state 
-    scf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
+    scf_ksampling = aobj.KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
 
-    scf_electrons = Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
-                              charge=charge, nband=None, fband=None)
+    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
+                                   charge=charge, nband=None, fband=None)
 
     if scf_electrons.nband is None:
         scf_electrons.nband = _find_scf_nband(structure, pseudos, scf_electrons)
@@ -356,19 +453,19 @@ def bse_with_mdf_input(structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nsc
     inp[1].set_vars(_stopping_criterion("scf", accuracy))
 
     # NSCF calculation with the randomly-shifted k-mesh.
-    nscf_ksampling = KSampling.monkhorst(nscf_ngkpt, shiftk=nscf_shiftk, chksymbreak=0)
+    nscf_ksampling = aobj.KSampling.monkhorst(nscf_ngkpt, shiftk=nscf_shiftk, chksymbreak=0)
 
-    nscf_electrons = Electrons(spin_mode=spin_mode, smearing=smearing, algorithm={"iscf": -2},
-                               charge=charge, nband=nscf_nband, fband=None)
+    nscf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm={"iscf": -2},
+                                    charge=charge, nband=nscf_nband, fband=None)
 
     inp[2].set_vars(nscf_ksampling.to_abivars())
     inp[2].set_vars(nscf_electrons.to_abivars())
     inp[2].set_vars(_stopping_criterion("nscf", accuracy))
 
     # BSE calculation.
-    exc_ham = ExcHamiltonian(bs_loband, bs_nband, soenergy, coulomb_mode="model_df", ecuteps=ecuteps, 
-                             spin_mode=spin_mode, mdf_epsinf=mdf_epsinf, exc_type=exc_type, algo=bs_algo,
-                             bs_freq_mesh=None, with_lf=True, zcut=None)
+    exc_ham = aobj.ExcHamiltonian(bs_loband, bs_nband, soenergy, coulomb_mode="model_df", ecuteps=ecuteps, 
+                                  spin_mode=spin_mode, mdf_epsinf=mdf_epsinf, exc_type=exc_type, algo=bs_algo,
+                                  bs_freq_mesh=None, with_lf=True, zcut=None)
 
     inp[3].set_vars(nscf_ksampling.to_abivars())
     inp[3].set_vars(nscf_electrons.to_abivars())
@@ -379,6 +476,7 @@ def bse_with_mdf_input(structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nsc
     inp.set_vars(istwfk="*1")
 
     return inp
+    #return dict2namedtuple(scf_inp=scf_inp, nscf_inp=nscf_inp, dos_inps")
 
 
 def scf_phonons_inputs(structure, pseudos, scf_kppa,
@@ -443,7 +541,7 @@ def scf_phonons_inputs(structure, pseudos, scf_kppa,
     ecut, pawecutdg = _find_ecut_pawecutdg(ecut, pawecutdg, pseudos)
     gs_inp.set_vars(ecut=ecut, pawecutdg=pawecutdg)
 
-    ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
+    ksampling = aobj.KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
     gs_inp.set_vars(ksampling.to_abivars())
     gs_inp.set_vars(tolvrs=1.0e-18)
     #gs_inp.set_vars(global_vars)
@@ -477,3 +575,4 @@ def scf_phonons_inputs(structure, pseudos, scf_kppa,
     all_inps.extend(ph_inputs.split_datasets())
 
     return all_inps
+    #return dict2namedtuple(scf_inp=scf_inp, nscf_inp=nscf_inp, dos_inps")

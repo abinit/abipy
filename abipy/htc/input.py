@@ -20,6 +20,7 @@ import abipy.tools.mixins as mixins
 from collections import OrderedDict
 from monty.dev import deprecated
 from monty.string import is_string, list_strings
+from monty.os.path import which
 from pymatgen.core.units import Energy
 from pymatgen.serializers.json_coders import PMGSONable, pmg_serialize
 from pymatgen.io.abinitio.pseudos import PseudoTable, Pseudo
@@ -729,6 +730,51 @@ class AbiInput(Input, Has_Structure):
             abiinput.set_vars(dtset=n, **ds)
 
         return abiinput
+
+    def apply_decorators(self, decorators):
+        if not istance(decorators, (list, tuple)): decorators = [decorators]
+        inp = self
+        for i, dec in decorators:
+            inp = dec.decorate(inp, deepcopy=(i == 0))
+        return inp
+
+    def validate(self, abinit="abinit"):
+        """
+        Run abinit in dry mode to validate the input file.
+
+        Return:
+            return code. 0 if success.
+        """
+        abinit = which(abinit)
+        if abinit is None:
+            raise RuntimeError("Cannot find %s in %PATH")
+
+        import tempfile
+        tmpdir = tempfile.mkdtemp()
+        print(tmpdir)
+
+        files_file = ["run.abi", "run.abo", "in", "out", "tmp"]
+        files_file.extend([p.path for p in self.pseudos])
+        ff_path = os.path.join(tmpdir, "run.files")
+
+        with open(ff_path, "wt") as fh:
+            fh.write("\n".join(files_file))
+
+        with open(os.path.join(tmpdir, "run.abi"), "wt") as fh:
+            fh.write(str(self))
+
+        # Run abinit in dry-run mode.
+        from subprocess import Popen, PIPE
+        cmd = " ".join([abinit, '--dry-run', "< run.files"])
+        process = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, cwd=tmpdir)
+        stdout, stderr = process.communicate()
+
+        print(stdout)
+        if process.returncode != 0:
+            print(stderr)
+
+        #shutil.rmtree(tmpdir)
+        return process.returncode
 
 
 class Dataset(mixins.MappingMixin, Has_Structure):

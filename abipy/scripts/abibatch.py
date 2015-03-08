@@ -105,8 +105,8 @@ Usage example:\n
             print("Empty list of flows! Returning")
             return 0
 
-        retcode = batch.submit(verbose=options.verbose, dry_run=options.dry_run)
-        if retcode:
+        job = batch.submit(verbose=options.verbose, dry_run=options.dry_run)
+        if job.retcode:
             print("Batch job submission failed. See batch directory for errors")
         else:
             print("Batch job has been submitted")
@@ -115,8 +115,8 @@ Usage example:\n
         batch = BatchLauncher.pickle_load(options.top)
         batch.show_summary()
 
-        retcode = batch.submit(verbose=options.verbose, dry_run=options.dry_run)
-        if retcode:
+        job = batch.submit(verbose=options.verbose, dry_run=options.dry_run)
+        if job.retcode:
             print("Batch job submission failed. See batch directory for errors")
         else:
             print("Batch job has been submitted")
