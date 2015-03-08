@@ -1,21 +1,14 @@
 #!/usr/bin/env python
 """
-This script allows the user to submit the calculations contained in the `Flow`.
-It provides both a command line interface as well as a graphical interfaced based on wxpython.
+This script allows the user to submit multiple flows 
 """
 from __future__ import print_function, division, unicode_literals
 
 import sys
 import os
 import argparse
-#import time
 
-#from pprint import pprint
-#from monty import termcolor
-#from monty.termcolor import cprint, get_terminal_size
-#from monty.string import make_banner
 from pymatgen.io.abinitio.launcher import  BatchLauncher
-#import abipy.abilab as abilab
 
 
 def main():
@@ -23,11 +16,9 @@ def main():
         examples = """\
 Usage example:\n
 
-    abibatch.py load    => Keep repeating, stop when no task can be executed.
-    abibatch.py load    => Keep repeating, stop when no task can be executed.
-
-    If FLOWDIR is not given, abirun.py automatically selects the database located within 
-    the working directory. An Exception is raised if multiple databases are found.
+    abibatch.py sub                => Submit all flows located in the current directory
+    abibatch.py sub flowdir_si_*   => Use shell wild cards to select flow directories
+    abibatch.py load batch_dir     => Load BatchLauncher object from batch_dir and show the status of the flows.
 
     Options for developers:
 
@@ -57,7 +48,7 @@ Usage example:\n
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for submit.
-    p_submit = subparsers.add_parser('submit', help="Find all flows in dir and submit them")
+    p_submit = subparsers.add_parser('sub', help="Find all flows in dir and submit them")
     p_submit.add_argument('paths', nargs="*", default=".", help=("Directories containing the object." 
                           "Use current working directory if not specified"))
     p_submit.add_argument("-d", '--dry-run', default=False, action="store_true", help="Dry run mode")
@@ -86,24 +77,28 @@ Usage example:\n
 
     retcode = 0
 
-    if options.command == "submit":
-        print("paths", options.paths)
+    if options.command == "sub":
+        #print("paths", options.paths)
 
-        launcher = BatchLauncher.from_dir(options.paths[0])
-        print(launcher.to_string())
+        batch = BatchLauncher.from_dir(options.paths, workdir=None, name=None)
+        print(batch.to_string())
 
-        retcode = launcher.submit(verbose=options.verbose, dry_run=options.dry_run)
+        if not batch.flows:
+            print("Empty list of flows! Returning")
+            return 0
+
+        retcode = batch.submit(verbose=options.verbose, dry_run=options.dry_run)
         if retcode:
             print("Batch job submission failed. See batch directory for errors")
         else:
             print("Batch job has been submitted")
 
     elif options.command == "load":
-        launcher = BatchLauncher.pickle_load(options.top)
-        print(launcher.to_string())
+        batch = BatchLauncher.pickle_load(options.top)
+        print(batch.to_string())
 
-        launcher.show_summary(verbose=options.verbose)
-        #launcher.show_status(verbose=options.verbose)
+        batch.show_summary(verbose=options.verbose)
+        #batch.show_status(verbose=options.verbose)
 
     else:
         raise RuntimeError("Don't know what to do with command %s!" % options.command)
