@@ -49,13 +49,21 @@ Usage example:\n
 
     # Subparser for submit.
     p_submit = subparsers.add_parser('sub', help="Find all flows in dir and submit them")
+
+    p_submit.add_argument("-d", '--dry-run', default=False, action="store_true", help="Dry run mode")
+    p_submit.add_argument("-w", '--workdir', default=None, help="The workdir of the BatchLauncher")
     p_submit.add_argument('paths', nargs="*", default=".", help=("Directories containing the object." 
                           "Use current working directory if not specified"))
-    p_submit.add_argument("-d", '--dry-run', default=False, action="store_true", help="Dry run mode")
+
+    # Subparser for resubmit.
+    p_resubmit = subparsers.add_parser('resub', help="Find all flows in dir and submit them")
+    p_resubmit.add_argument("-d", '--dry-run', default=False, action="store_true", help="Dry run mode")
+    p_resubmit.add_argument('top', help="File or directory containing the object")
 
     # Subparser for status.
     p_status = subparsers.add_parser('status', help="Load object from pickle file and show status")
     p_status.add_argument('top', help="File or directory containing the object")
+    p_status.add_argument('-s', '--summary', default=False, action="store_true", help="Print short version with status counters.")
 
     # Subparser for info.
     #p_load = subparsers.add_parser('info', help="Load object from pickle file and show info on the flows..")
@@ -79,8 +87,18 @@ Usage example:\n
 
     if options.command == "sub":
         #print("paths", options.paths)
+        workdir = options.workdir
+        if workdir is None:
+            workdir = "batch_launcher"
 
-        batch = BatchLauncher.from_dir(options.paths, workdir=None, name=None)
+        if os.path.exists(workdir):
+            msg = ("Directory %s already exists. Cannot overwrite" % workdir +
+                   "Use -w option to specify a not existent directory if you are generating a new BatchLauncher."
+                   "Use abibatch status to inspect the status of an already existing BatchLauncher."
+            )
+            raise RuntimeError(msg)
+
+        batch = BatchLauncher.from_dir(options.paths, workdir=workdir, name=None)
         print(batch.to_string())
 
         if not batch.flows:
@@ -93,15 +111,22 @@ Usage example:\n
         else:
             print("Batch job has been submitted")
 
+    elif options.command == "resub":
+        batch = BatchLauncher.pickle_load(options.top)
+        batch.show_summary()
+
+        retcode = batch.submit(verbose=options.verbose, dry_run=options.dry_run)
+        if retcode:
+            print("Batch job submission failed. See batch directory for errors")
+        else:
+            print("Batch job has been submitted")
+
     elif options.command == "status":
         batch = BatchLauncher.pickle_load(options.top)
 
-        for flow in batch.flows:
-            flow.show_summary()
-
-        #print(batch.to_string())
-        #batch.show_summary(verbose=options.verbose)
-        #batch.show_status(verbose=options.verbose)
+        # Select the method to call.
+        show_func = batch.show_status if not options.summary else batch.show_summary
+        show_func(verbose=options.verbose)
 
     else:
         raise RuntimeError("Don't know what to do with command %s!" % options.command)
