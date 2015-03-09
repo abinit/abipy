@@ -19,6 +19,7 @@ import abipy.tools.mixins as mixins
 
 from collections import OrderedDict
 from monty.dev import deprecated
+from monty.collections import dict2namedtuple
 from monty.string import is_string, list_strings
 from monty.os.path import which
 from pymatgen.core.units import Energy
@@ -389,7 +390,7 @@ class AbiInput(Input, Has_Structure):
             # Cannot use get*, ird* variables since links must be explicit.
             for varname in my_vars:
                 if varname.startswith("get") or varname.startswith("ird"):
-                    err_msg = ("get* or ird* variables should not be present in the input when you split it into datasets")
+                    err_msg = "get* or ird variables should not be present in the input when you split it into datasets"
                     raise self.Error(err_msg)
 
             new = self.__class__(pseudos=self.pseudos, ndtset=1)
@@ -547,7 +548,7 @@ class AbiInput(Input, Has_Structure):
             paral_rf=-1,
             rfatpol=[1, len(inp.structure)],  # Set of atoms to displace.
             rfdir=[1, 1, 1],                  # Along this set of reduced coordinate axis.
-            )
+        )
         inp.set_vars(d)
 
         # Build a simple manager to run the job in a shell subprocess
@@ -737,7 +738,7 @@ class AbiInput(Input, Has_Structure):
         applyes the decorators to the input and returns a new :class:`AbiInput` object.
         self is not changed.
         """
-        if not istance(decorators, (list, tuple)): decorators = [decorators]
+        if not isinstance(decorators, (list, tuple)): decorators = [decorators]
 
         # Deepcopy only at the first step to improve performance.
         inp = self
@@ -746,28 +747,41 @@ class AbiInput(Input, Has_Structure):
 
         return inp
 
-    def validate(self, abinit="abinit"):
+    def validate(self, executable="abinit"):
         """
-        Run abinit in dry mode to validate the input file.
+        Run ABINIT in dry mode to validate the input file.
+
+        Args:
+            executable:
+                String with the name of the Abinit executable (must be in $PATH).
 
         Return:
-            return code. 0 if success.
+            `namedtuple` with the following attributes:
+
+                retcode: Return code. 0 if OK.
+                out: String with stdout data.
+                err: String with stderr data.
+                tmpdir: Temporary directory used to run Abinit in dry mode.
+
+        Raises:
+            `RuntimeError` if executable is not in $PATH.
         """
-        abinit = which(abinit)
+        abinit = which(executable)
         if abinit is None:
-            raise RuntimeError("Cannot find %s in %PATH")
+            raise RuntimeError("Cannot find %s in $PATH" % executable)
 
         import tempfile
         tmpdir = tempfile.mkdtemp()
         print(tmpdir)
 
+        # Write files file.
         files_file = ["run.abi", "run.abo", "in", "out", "tmp"]
         files_file.extend([p.path for p in self.pseudos])
         ff_path = os.path.join(tmpdir, "run.files")
-
         with open(ff_path, "wt") as fh:
             fh.write("\n".join(files_file))
 
+        # Write input file.
         with open(os.path.join(tmpdir, "run.abi"), "wt") as fh:
             fh.write(str(self))
 
@@ -775,14 +789,9 @@ class AbiInput(Input, Has_Structure):
         from subprocess import Popen, PIPE
         cmd = " ".join([abinit, '--dry-run', "< run.files"])
         process = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, cwd=tmpdir)
-        stdout, stderr = process.communicate()
+        out, err = process.communicate()
 
-        print(stdout)
-        if process.returncode != 0:
-            print(stderr)
-
-        #shutil.rmtree(tmpdir)
-        return process.returncode
+        return dict2namedtuple(retcode=process.returncode, out=out, err=err, tmpdir=tmpdir)
 
 
 class Dataset(mixins.MappingMixin, Has_Structure):
@@ -1289,7 +1298,7 @@ def product_dict(d):
 
         Dictionaries are not ordered, therefore one cannot assume that 
         the order of the keys in the output equals the one used to loop.
-        If the order is important, one should pass a `OrderedDict` in input.
+        If the order is important, one should pass a :class:`OrderedDict` in input.
     """
     keys, vals = d.keys(), d.values()
 
@@ -1340,7 +1349,7 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
             nqpath=2,
             qpath=list(qpoint) + [0, 0, 0],
             ndivsm=1
-            )
+        )
 
         return new
 

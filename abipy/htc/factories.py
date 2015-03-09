@@ -1,17 +1,13 @@
 # coding: utf-8
-"""Factory function for Abinit input files """
+"""Factory functions for Abinit input files """
 from __future__ import print_function, division, unicode_literals
 
-import six
-import abc
-import numpy as np
-import pymatgen.io.abinitio.abiobjects as aobj 
+import pymatgen.io.abinitio.abiobjects as aobj
 
-from collections import OrderedDict, namedtuple 
-from monty.string import is_string, list_strings
-from monty.collections import dict2namedtuple
+from collections import namedtuple
+#from monty.string import is_string, list_strings
+#from monty.collections import dict2namedtuple
 from pymatgen.io.abinitio.pseudos import PseudoTable
-#from pymatgen.serializers.json_coders import PMGSONable
 from abipy.core.structure import Structure
 from .input import AbiInput
 
@@ -39,104 +35,6 @@ logger = logging.getLogger(__file__)
 #       for decorator pattern see:
 #
 #            http://www.tutorialspoint.com/design_pattern/decorator_pattern.htm
-
-
-class DecoratorError(Exception):
-    """Error class raised by :class:`InputDecorator`."""
-
-
-class InputDecorator(six.with_metaclass(abc.ABCMeta, object)):
-    """
-    An `InputDecorator` adds new options to an existing `AbiInput` without altering its structure. 
-    
-    This is an abstract Base class.
-
-    .. warning::
-
-        Please avoid introducing decorators acting on the structure (in particular the lattice) 
-        since the initial input may use the initial structure to  compute important variables. 
-        For instance, the list of k-points for band structure calculation depend on the bravais lattice 
-        and a decorator that changes it should recompute the path. 
-        This should  not represent a serious limitation because it's always possible to change the structure 
-        with its methods and then call the factory function without having to decorate an already existing object.
-    """
-    Error = DecoratorError
-
-    @abc.abstractmethod
-    def as_dict(self):
-        """Return a dict with the PMGSON representation."""
-
-    def decorate(self, inp, deepcopy=True):
-        new_inp = self._decorate(inp, deepcopy=deepcopy)
-        # Log the decoration in new_inp.
-        new_inp._decorators.append(self.as_dict())
-        return new_inp
-
-    @abc.abstractmethod
-    def _decorate(self, inp, deepcopy=True):
-        """
-        Abstract method that must be implemented by the concrete classes.
-        It receives a :class:`AbiInput` object, apply the decoration and 
-        returns a new `AbiInput`. 
-
-        Args:
-            inp: :class:`AbiInput` object.
-            deepcopy: True if a deepcopy of inp should be performed 
-                before changing the object.
-
-        Returns:
-            decorated :class:`AbiInput` object (new object)
-        """
-
-# Stubs
-#class SpinDecorator(InputDecorator):
-#    def __init__(self, spinmode):
-#        """Change the spin polarization."""
-#        self.spinmode = aobj.SpinMpde.as_spinmode(spin_mode)
-#
-#    def _decorate(self, inp, deepcopy=True)
-#        if deepcopy: inp = inp.deepcopy()
-#        inp.set_vars(self.spinmode.to_abivars())
-#        return inp
-#
-#
-#class SmearingDecorator(InputDecorator):
-#    """Change the electronic smearing."""
-#    def __init__(self, spinmode):
-#        self.smearing = aobj.Smearing.as_smearing(smearing)
-#
-#    def _decorate(self, inp, deepcopy=True)
-#        if deepcopy: inp = inp.deepcopy()
-#        inp.set_vars(self.smearing.to_abivars())
-#        return inp
-#
-#
-#class UJDecorator(InputDecorator):
-#    """Add LDA+U to an :class:`AbiInput` object."""
-#    def __init__(self, luj_for_symbol, usepawu=1):
-#        self.usepawu = usepawu
-#        self.luj_for_symbol = luj_for_symbol
-#
-#    def _decorate(self, inp, deepcopy=True)
-#        if not inp.ispaw: raise self.Error("LDA+U requires PAW!")
-#        if deepcopy: inp = inp.deepcopy()
-#
-#        inp.set_vars(usepawu=self.usepawu)
-#        return inp
-#
-#
-#class LexxDecorator(InputDecorator):
-#    """Add LDA+U to an :class:`AbiInput` object."""
-#    def __init__(self, luj_for_symbol, usepawu=1):
-#        self.usepawu = usepawu
-#        self.luj_for_symbol = luj_for_symbol
-#
-#    def _decorate(self, inp, deepcopy=True)
-#        if not inp.ispaw: raise self.Error("LDA+U requires PAW!")
-#        if deepcopy: inp = inp.deepcopy()
-#
-#        inp.set_vars(usepawu=self.usepawu)
-#        return inp
 
 
 # Name of the (default) tolerance used by the runlevels.
@@ -218,9 +116,10 @@ def ebands_input(structure, pseudos, scf_kppa, nscf_nband, ndivsm,
         nscf_nband: Number of bands included in the NSCF run.
         ndivsm: Number of divisions used to sample the smallest segment of the k-path.
         ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
-        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos according to accuracy)
-        scf_nband: Number of bands for SCF run. If scf_nband is None, nband is automatically initialized from the list of 
-            pseudos, the structure and the smearing option.
+        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos
+            according to accuracy)
+        scf_nband: Number of bands for SCF run. If scf_nband is None, nband is automatically initialized
+            from the list of pseudos, the structure and the smearing option.
         accuracy: Accuracy of the calculation.
         spin_mode: Spin polarization.
         smearing: Smearing technique.
@@ -442,7 +341,8 @@ def bse_with_mdf_input(structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nsc
         soenergy: Scissor energy in Hartree.
         mdf_epsinf: Value of the macroscopic dielectric function used in expression for the model dielectric function.
         ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
-        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos according to accuracy)
+        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos
+            according to accuracy)
         exc_type: Approximation used for the BSE Hamiltonian (Tamm-Dancoff or coupling).
         bs_algo: Algorith for the computatio of the macroscopic dielectric function.
         accuracy: Accuracy of the calculation.
@@ -514,7 +414,8 @@ def scf_phonons_inputs(structure, pseudos, scf_kppa,
         pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable: object.
         scf_kppa: Defines the sampling used for the SCF run.
         ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
-        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos according to accuracy)
+        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the
+            pseudos according to accuracy)
         scf_nband: Number of bands for SCF run. If scf_nband is None, nband is automatically initialized from the list of 
             pseudos, the structure and the smearing option.
         accuracy: Accuracy of the calculation.
@@ -587,7 +488,7 @@ def scf_phonons_inputs(structure, pseudos, scf_kppa,
             qpt=qpt,         # This wavevector is q=0 (Gamma)
             tolwfr=1.0e-20,
             kptopt=3,
-            )
+        )
             #rfatpol   1 1   # Only the first atom is displaced
             #rfdir   1 0 0   # Along the first reduced coordinate axis
             #kptopt   2      # Automatic generation of k points, taking
