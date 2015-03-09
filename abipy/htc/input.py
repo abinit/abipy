@@ -732,10 +732,18 @@ class AbiInput(Input, Has_Structure):
         return abiinput
 
     def apply_decorators(self, decorators):
+        """
+        This function receives a list of :class:`InputDecorator` objects or just a single object,
+        applyes the decorators to the input and returns a new :class:`AbiInput` object.
+        self is not changed.
+        """
         if not istance(decorators, (list, tuple)): decorators = [decorators]
+
+        # Deepcopy only at the first step to improve performance.
         inp = self
-        for i, dec in decorators:
+        for i, dec in enumerate(decorators):
             inp = dec.decorate(inp, deepcopy=(i == 0))
+
         return inp
 
     def validate(self, abinit="abinit"):

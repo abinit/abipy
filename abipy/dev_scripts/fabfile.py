@@ -37,7 +37,7 @@ git_repospaths = [os.path.join(GIT_REPOSDIR, dirpath) for dirpath in git_urls]
 # We store our bzr branches in this directory 
 bzr_reposdir = USER_HOME + "/bzr_repos"
 
-bzr_branchurl = "bzr+ssh://forge.abinit.org/abinit/gmatteo/7.7.3-public"
+bzr_branchurl = "bzr+ssh://forge.abinit.org/abinit/gmatteo/7.11.5-public"
 
 to_location = os.path.join(*bzr_branchurl.split("/")[-2:]).replace("/", "_")
 

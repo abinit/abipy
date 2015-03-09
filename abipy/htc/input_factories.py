@@ -40,16 +40,31 @@ logger = logging.getLogger(__file__)
 #
 #            http://www.tutorialspoint.com/design_pattern/decorator_pattern.htm
 
+
 class DecoratorError(Exception):
     """Error class raised by :class:`InputDecorator`."""
 
 
 class InputDecorator(six.with_metaclass(abc.ABCMeta, object)):
-    """Abstract Base class."""
+    """
+    An `InputDecorator` adds new options to an existing `AbiInput` without altering its structure. 
+    
+    This is an abstract Base class.
+
+    .. warning::
+
+        Please avoid introducing decorators acting on the structure (in particular the lattice) 
+        since the initial input may use the initial structure to  compute important variables. 
+        For instance, the list of k-points for band structure calculation depend on the bravais lattice 
+        and a decorator that changes it should recompute the path. 
+        This should  not represent a serious limitation because it's always possible to change the structure 
+        with its methods and then call the factory function without having to decorate an already existing object.
+    """
     Error = DecoratorError
 
     @abc.abstractmethod
     def as_dict(self):
+        """Return a dict with the PMGSON representation."""
 
     def decorate(self, inp, deepcopy=True):
         new_inp = self._decorate(inp, deepcopy=deepcopy)
@@ -60,6 +75,9 @@ class InputDecorator(six.with_metaclass(abc.ABCMeta, object)):
     @abc.abstractmethod
     def _decorate(self, inp, deepcopy=True):
         """
+        Abstract method that must be implemented by the concrete classes.
+        It receives a :class:`AbiInput` object, apply the decoration and 
+        returns a new `AbiInput`. 
 
         Args:
             inp: :class:`AbiInput` object.
@@ -70,6 +88,7 @@ class InputDecorator(six.with_metaclass(abc.ABCMeta, object)):
             decorated :class:`AbiInput` object (new object)
         """
 
+# Stubs
 #class SpinDecorator(InputDecorator):
 #    def __init__(self, spinmode):
 #        """Change the spin polarization."""
@@ -79,7 +98,8 @@ class InputDecorator(six.with_metaclass(abc.ABCMeta, object)):
 #        if deepcopy: inp = inp.deepcopy()
 #        inp.set_vars(self.spinmode.to_abivars())
 #        return inp
-
+#
+#
 #class SmearingDecorator(InputDecorator):
 #    """Change the electronic smearing."""
 #    def __init__(self, spinmode):
@@ -89,7 +109,8 @@ class InputDecorator(six.with_metaclass(abc.ABCMeta, object)):
 #        if deepcopy: inp = inp.deepcopy()
 #        inp.set_vars(self.smearing.to_abivars())
 #        return inp
-
+#
+#
 #class UJDecorator(InputDecorator):
 #    """Add LDA+U to an :class:`AbiInput` object."""
 #    def __init__(self, luj_for_symbol, usepawu=1):
@@ -102,8 +123,8 @@ class InputDecorator(six.with_metaclass(abc.ABCMeta, object)):
 #
 #        inp.set_vars(usepawu=self.usepawu)
 #        return inp
-
-
+#
+#
 #class LexxDecorator(InputDecorator):
 #    """Add LDA+U to an :class:`AbiInput` object."""
 #    def __init__(self, luj_for_symbol, usepawu=1):
@@ -327,7 +348,8 @@ def g0w0_with_ppmodel_input(structure, pseudos, scf_kppa, nscf_nband, ecuteps, e
         ecuteps: Cutoff energy [Ha] for the screening matrix.
         ecutsigx: Cutoff energy [Ha] for the exchange part of the self-energy.
         ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
-        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos according to accuracy)
+        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized 
+            from the pseudos according to accuracy)
         accuracy: Accuracy of the calculation.
         spin_mode: Spin polarization.
         smearing: Smearing technique.
