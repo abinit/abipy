@@ -95,7 +95,7 @@ def _find_scf_nband(structure, pseudos, electrons):
     # if the change is not propagated e.g. phonons in metals.
     if smearing:
         # metallic occupation
-        nband += 12
+        nband += 10
     else:
         nband += 4
 
@@ -103,7 +103,8 @@ def _find_scf_nband(structure, pseudos, electrons):
     return int(nband)
 
 
-def ebands_input(structure, pseudos, scf_kppa, nscf_nband, ndivsm, 
+def ebands_input(structure, pseudos, kppa, 
+                 nscf_nband=None, ndivsm=15, 
                  ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
                  smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None, dos_kppa=None):
     """
@@ -112,8 +113,8 @@ def ebands_input(structure, pseudos, scf_kppa, nscf_nband, ndivsm,
     Args:
         structure: :class:`Structure` object.
         pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable: object.
-        scf_kppa: Defines the sampling used for the SCF run.
-        nscf_nband: Number of bands included in the NSCF run.
+        kppa: Defines the sampling used for the SCF run.
+        nscf_nband: Number of bands included in the NSCF run. Set to scf_nband + 10 if None.
         ndivsm: Number of divisions used to sample the smallest segment of the k-path.
         ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
         pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos
@@ -142,7 +143,7 @@ def ebands_input(structure, pseudos, scf_kppa, nscf_nband, ndivsm,
     inp.set_vars(ecut=ecut, pawecutdg=pawecutdg)
 
     # SCF calculation.
-    scf_ksampling = aobj.KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
+    scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
     scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
                                    charge=charge, nband=scf_nband, fband=None)
 
@@ -155,6 +156,7 @@ def ebands_input(structure, pseudos, scf_kppa, nscf_nband, ndivsm,
 
     # Band structure calculation.
     nscf_ksampling = aobj.KSampling.path_from_structure(ndivsm, structure)
+    nscf_nband = scf_electrons.nband + 10 if nscf_nband is None else nscf_nband
     nscf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm={"iscf": -2},
                                     charge=charge, nband=nscf_nband, fband=None)
 
@@ -175,11 +177,10 @@ def ebands_input(structure, pseudos, scf_kppa, nscf_nband, ndivsm,
             inp[dt].set_vars(_stopping_criterion("nscf", accuracy))
 
     return inp
-    #scf_inp, nscf_inp, dos_inps = inp.split_datasets()
-    #return dict2namedtuple(scf_inp=scf_inp, nscf_inp=nscf_inp, dos_inps")
 
 
-def ion_ioncell_relax_input(structure, pseudos, kppa, nband=None,
+def ion_ioncell_relax_input(structure, pseudos, 
+                            kppa, nband=None,
                             ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
                             smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
     """
@@ -228,10 +229,10 @@ def ion_ioncell_relax_input(structure, pseudos, kppa, nband=None,
     inp[2].set_vars(ioncell_relax.to_abivars())
 
     return inp
-    #return dict2namedtuple(scf_inp=scf_inp, nscf_inp=nscf_inp, dos_inps")
 
 
-def g0w0_with_ppmodel_input(structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx,
+def g0w0_with_ppmodel_input(structure, pseudos, 
+                            kppa, nscf_nband, ecuteps, ecutsigx,
                             ecut=None, pawecutdg=None,
                             accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
                             ppmodel="godby", charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
@@ -242,7 +243,7 @@ def g0w0_with_ppmodel_input(structure, pseudos, scf_kppa, nscf_nband, ecuteps, e
     Args:
         structure: Pymatgen structure.
         pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable: object.
-        scf_kppa: Defines the sampling used for the SCF run.
+        kppa: Defines the sampling used for the SCF run.
         nscf_nband: Number of bands included in the NSCF run.
         ecuteps: Cutoff energy [Ha] for the screening matrix.
         ecutsigx: Cutoff energy [Ha] for the exchange part of the self-energy.
@@ -272,7 +273,7 @@ def g0w0_with_ppmodel_input(structure, pseudos, scf_kppa, nscf_nband, ecuteps, e
     ecut, pawecutdg = _find_ecut_pawecutdg(ecut, pawecutdg, pseudos)
     inp.set_vars(ecut=ecut, pawecutdg=pawecutdg)
 
-    scf_ksampling = aobj.KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
+    scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
     scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
                                    charge=charge, nband=None, fband=None)
 
@@ -283,7 +284,7 @@ def g0w0_with_ppmodel_input(structure, pseudos, scf_kppa, nscf_nband, ecuteps, e
     inp[1].set_vars(scf_electrons.to_abivars())
     inp[1].set_vars(_stopping_criterion("scf", accuracy))
 
-    nscf_ksampling = aobj.KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
+    nscf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
     nscf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm={"iscf": -2},
                                     charge=charge, nband=nscf_nband, fband=None)
 
@@ -310,13 +311,13 @@ def g0w0_with_ppmodel_input(structure, pseudos, scf_kppa, nscf_nband, ecuteps, e
     inp.set_vars(istwfk="*1")
 
     return inp
-    #return dict2namedtuple(scf_inp=scf_inp, nscf_inp=nscf_inp, dos_inps")
 
 #TODO
-#def g0w0_extended_work(structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx, scf_nband, accuracy="normal",
+#def g0w0_extended_work(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx, scf_nband, accuracy="normal",
 
 
-def bse_with_mdf_input(structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk, 
+def bse_with_mdf_input(structure, pseudos, 
+                       scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk, 
                        ecuteps, bs_loband, bs_nband, soenergy, mdf_epsinf, 
                        ecut=None, pawecutdg=None, 
                        exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="polarized", 
@@ -401,7 +402,7 @@ def bse_with_mdf_input(structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nsc
     #return dict2namedtuple(scf_inp=scf_inp, nscf_inp=nscf_inp, dos_inps")
 
 
-def scf_phonons_inputs(structure, pseudos, scf_kppa,
+def scf_phonons_inputs(structure, pseudos, kppa,
                        ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
                        smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
 
@@ -412,7 +413,7 @@ def scf_phonons_inputs(structure, pseudos, scf_kppa,
     Args:
         structure: :class:`Structure` object.
         pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable: object.
-        scf_kppa: Defines the sampling used for the SCF run.
+        kppa: Defines the sampling used for the SCF run.
         ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
         pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the
             pseudos according to accuracy)
@@ -464,7 +465,7 @@ def scf_phonons_inputs(structure, pseudos, scf_kppa,
     ecut, pawecutdg = _find_ecut_pawecutdg(ecut, pawecutdg, pseudos)
     gs_inp.set_vars(ecut=ecut, pawecutdg=pawecutdg)
 
-    ksampling = aobj.KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
+    ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
     gs_inp.set_vars(ksampling.to_abivars())
     gs_inp.set_vars(tolvrs=1.0e-18)
     #gs_inp.set_vars(global_vars)

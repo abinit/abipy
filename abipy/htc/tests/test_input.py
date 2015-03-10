@@ -86,6 +86,9 @@ class AbiInputTest(AbipyTest):
         inp.ecut1 = 10
         inp.ecut2 = 20
 
+        assert inp[1]["ecut"] == inp.ecut1 and inp[2]["ecut"] == inp.ecut2
+        assert inp[1].get("ecut") == inp.ecut1 and inp[2].get("foobar") is None
+
         with self.assertRaises(AttributeError): print(inp.ecut)
         inp.remove_vars("ecut", dtset=2)
         assert inp.ecut1 == 10

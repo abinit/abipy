@@ -1,0 +1,127 @@
+# coding: utf-8
+from __future__ import unicode_literals, division, print_function
+
+import sys
+import abipy.data as abidata  
+import abipy.abilab as abilab
+import abipy.htc.decorators as ideco
+
+from abipy.htc.factories import * 
+from abipy.core.testing import AbipyTest
+
+
+class DecoratorTest(AbipyTest):
+
+    def setUp(self):
+        # Si ebands
+        si_structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
+        self.si_ebands = ebands_input(si_structure, abidata.pseudos("14si.pspnc"), kppa=10)
+
+        # Reference input string. Used to test if decorators do not change the initial Input.
+        self.si_ebands_inpstr = str(self.si_ebands)
+
+        # NiO bands with PAW
+        nio_structure = abidata.structure_from_ucell("NiO")
+        self.nio_ebands = ebands_input(nio_structure, abidata.pseudos("28ni.paw", "8o.2.paw"), kppa=10)
+
+        self.nio_ebands_inpstr = str(self.nio_ebands)
+
+    def tearDown(self):
+        """Testing if initial inputs are unchanged."""
+        assert not self.si_ebands.decorators
+        assert self.si_ebands_inpstr == str(self.si_ebands)
+
+        assert not self.nio_ebands.decorators
+        assert self.nio_ebands_inpstr == str(self.nio_ebands)
+
+    def validate_inp(self, inp):
+        # Hack neede because ecut is not in the pseudos.
+        inp.set_vars(ecut=3)
+
+        v = inp.validate()
+        if v.retcode != 0:
+            raise RuntimeError(v.err)
+        else:
+            print("Valid input!")
+
+        # Test validity of individual datasets.
+        for dtset in inp.split_datasets():
+            v = dtset.validate()
+            assert dtset.decorators == inp.decorators
+
+            if v.retcode != 0:
+                raise RuntimeError(v.err)
+            else:
+                print("Valid input!")
+
+    def test_spin_decorator(self):
+        """Testing spin decorator."""
+        spinor_deco = ideco.SpinDecorator("spinor")
+        self.assertPMGSONable(spinor_deco)
+        print(spinor_deco)
+
+        new_inp = spinor_deco(self.si_ebands)
+        print(new_inp)
+
+        # kptopt is set to 4 if non-collinear magnetism and kptopt == 3 is not specified.
+        for dt in new_inp:
+            assert dt["nsppol"] == 1 and dt["nspinor"] == 2 and dt["kptopt"] == 4
+        self.validate_inp(new_inp)
+
+        # kptopt should not be changes if it's set to 3 and non-collinear magnetism
+        inp_with_kpt3 = self.si_ebands.deepcopy()
+        inp_with_kpt3.kptopt = 3
+
+        # FIXME: Here there's a bug because get should check the global variables!
+        #for dt in spinor_deco(inp_with_kpt3):
+        #    assert dt["nsppol"] == 1 and dt["nspinor"] == 2 and dt["kptopt"] == 3
+
+    def test_smearing_decorator(self):
+        """Testing electronic smearing decorator."""
+        smearing_deco = ideco.SmearingDecorator("nosmearing")
+        self.assertPMGSONable(smearing_deco)
+
+        new_inp = smearing_deco(self.si_ebands)
+        assert len(new_inp.decorators) == 1
+        self.validate_inp(new_inp)
+
+    def test_xcdecorator(self):
+        """Testing XCdecorator."""
+        xc_deco = ideco.XCDecorator(17)
+        self.assertPMGSONable(xc_deco)
+                                                              
+        new_inp = xc_deco(self.si_ebands)
+        assert len(new_inp.decorators) == 1
+        self.validate_inp(new_inp)
+
+    def test_ldau_decorators(self):
+        """Testing LdaUDecorator."""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    #def test_lexx_decorators(self):
+
+    def test_new_from_decorators(self):
+        """Testing AbiInput.new_from_decorators."""
+        spinor_deco = ideco.SpinDecorator("spinor")
+        smearing_deco = ideco.SmearingDecorator("nosmearing")
+        new_inp =  self.si_ebands.new_from_decorators(spinor_deco)
+        new_inp =  self.si_ebands.new_from_decorators([spinor_deco, smearing_deco])
+
+
+if __name__ == '__main__':
+    import unittest
+    unittest.main()

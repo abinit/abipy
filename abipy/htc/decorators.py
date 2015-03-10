@@ -4,22 +4,29 @@ from __future__ import print_function, division, unicode_literals
 
 import six
 import abc
+import pymatgen.io.abinitio.abiobjects as aobj
 
-from pymatgen.serializers.json_coders import PMGSONable
-
+from monty.inspect import initializer
+from pymatgen.serializers.json_coders import PMGSONable, pmg_serialize
+from .input import LdauParams, LexxParams
 
 import logging
 logger = logging.getLogger(__file__)
 
 
-class DecoratorError(Exception):
-    """Error class raised by :class:`InputDecorator`."""
+class InputDecoratorError(Exception):
+    """Error class raised by :class:`AbinitInputDecorator`."""
 
 
-class InputDecorator(six.with_metaclass(abc.ABCMeta, PMGSONable)):
+class AbinitInputDecorator(six.with_metaclass(abc.ABCMeta, PMGSONable)):
     """
-    An `InputDecorator` adds new options to an existing :class:`AbiInput` without altering its structure. 
+    An `AbinitInputDecorator` adds new options to an existing :class:`AbiInput` without altering its structure. 
     This is an abstract Base class.
+
+    Example:
+        
+        decorator = MyDecorator(arguments)
+        new_input = decorator(input)
 
     .. warning::
 
@@ -30,16 +37,15 @@ class InputDecorator(six.with_metaclass(abc.ABCMeta, PMGSONable)):
         This should  not represent a serious limitation because it's always possible to change the structure 
         with its methods and then call the factory function without having to decorate an already existing object.
     """
-    Error = DecoratorError
+    Error = InputDecoratorError
 
-    #@abc.abstractmethod
-    #def as_dict(self):
-    #    """Return a dict with the PMGSON representation."""
+    def __str__(self):
+        return str(self.as_dict())
 
-    def decorate(self, inp, deepcopy=True):
+    def __call__(self, inp, deepcopy=True):
         new_inp = self._decorate(inp, deepcopy=deepcopy)
         # Log the decoration in new_inp.
-        new_inp._decorators.append(self.as_dict())
+        new_inp.register_decorator(self)
         return new_inp
 
     @abc.abstractmethod
@@ -56,35 +62,175 @@ class InputDecorator(six.with_metaclass(abc.ABCMeta, PMGSONable)):
             decorated :class:`AbiInput` object (new object)
         """
 
+class SpinDecorator(AbinitInputDecorator):
+
+    def __init__(self, spinmode, kptopt_ifspinor=4):
+        """change the spin polarization."""
+        self.spinmode = aobj.SpinMode.as_spinmode(spinmode)
+        self.kptopt_ifspinor = kptopt_ifspinor
+
+    @pmg_serialize
+    def as_dict(self):
+        return dict(spinmode=self.spinmode.as_dict(), kptopt_ifspinor=self.kptopt_ifspinor)
+
+    @classmethod
+    def from_dict(cls, d):
+        return cls(aobj.SpinMode.from_dict(d["spinmode"]), kptopt_ifspinor=d["kptopt_ifspinor"])
+
+    def _decorate(self, inp, deepcopy=True):
+        if deepcopy: inp = inp.deepcopy()
+
+        for dataset in inp:
+            dataset.set_vars(self.spinmode.to_abivars())
+
+        # in version 7.11.5
+        # When non-collinear magnetism is activated (nspden=4),
+        # time-reversal symmetry cannot be used in the present
+        # state of the code (to be checked and validated).
+        # Action: choose kptopt different from 1 or 2.
+
+        # Here we set kptopt to 4 (spatial symmetries, no time-reversal)
+        # unless we already have a dataset with kptopt == 3 (no tr, no spatial)
+        # This case is needed for DFPT at q != 0.
+        if self.spinmode.nspinor == 2:
+            for dt in inp:
+                # FIXME: Here there's a bug because get should check the global variables!
+                if dt.get("kptopt") != 3:
+                    dt.set_vars(kptopt=self.kptopt_ifspinor)
+
+        return inp
+
+
+class SmearingDecorator(AbinitInputDecorator):
+    """Change the electronic smearing."""
+    def __init__(self, smearing):
+        self.smearing = aobj.Smearing.as_smearing(smearing)
+
+    @pmg_serialize
+    def as_dict(self):
+        return {"smearing": self.smearing.as_dict()}
+
+    @classmethod
+    def from_dict(cls, d):
+        return cls(aobj.Smearing.from_dict(d["smearing"]))
+
+    def _decorate(self, inp, deepcopy=True):
+        if deepcopy: inp = inp.deepcopy()
+        for dataset in inp:
+            dataset.set_vars(self.smearing.to_abivars())
+        return inp
+
+
+class XCDecorator(AbinitInputDecorator):
+    """Change the exchange-correlation functional."""
+    def __init__(self, ixc):
+        """
+        Args:
+            ixc: Abinit input variable
+        """
+        self.ixc = ixc
+
+    @pmg_serialize
+    def as_dict(self):
+        return {"ixc": self.ixc}
+
+    @classmethod
+    def from_dict(cls, d):
+        return cls(d["ixc"])
+
+    def _decorate(self, inp, deepcopy=True):
+        if deepcopy: inp = inp.deepcopy()
+        # TODO: Don't understand why abinit does not enable usekden if MGGA!
+        usekden = None
+        #usekden = 1 if ixc.ismgga() else None
+        for dataset in inp:
+            dataset.set_vars(ixc=self.ixc, usekden=usekden)
+
+        return inp
+
+
+class LdaUDecorator(AbinitInputDecorator):
+    """Add LDA+U to an :class:`AbiInput` object."""
+    def __init__(self, symbols_luj, usepawu=1, unit="eV"):
+        """
+        Args:
+            symbols_luj: dictionary mapping chemical symbols to another dict with (l, u, j) values
+            usepawu: Abinit input variable.
+            unit: Energy unit for U and J
+        """
+        self.symbols_luj, self.usepawu, self.unit = symbols_luj, usepawu, unit
+
+    @pmg_serialize
+    def as_dict(self):
+        return dict(symbols_luj=self.symbols_luj, usepawu=self.usepawu, unit=self.unit)
+
+    @classmethod
+    def from_dict(cls, d):
+        return cls(**{k: v for k, v in d.items() if not k.startswith("@")})
+
+    def _decorate(self, inp, deepcopy=True):
+        if not inp.ispaw: raise self.Error("LDA+U requires PAW!")
+        if deepcopy: inp = inp.deepcopy()
+        luj_params = LdauParams(usepawu=self.usepawu, structure=inp.structure)
+
+        for symbol in inp.structure.symbol_set:
+            args = self.symbols_luj[symbol]
+            luj_params.luj_for_symbol(symbol, l=args["l"], u=args["u"], j=args["j"], unit=self.unit)
+            #luj_params.luj_for_symbol("Ni", l=2, u=u, j=0.1*u, unit=self.unit)
+
+        for dataset in inp:
+            dataset.set_vars(luj_params.to_abivars())
+
+        return inp
+
+
+#class LexxDecorator(AbinitInputDecorator):
+#    """Add LDA+U to an :class:`AbiInput` object."""
+#    def __init__(self, symbols_lexx):
+#        self.symbols_lexx = symbols_lexx
+#
+#    def _decorate(self, inp, deepcopy=True)
+#        if not inp.ispaw: raise self.Error("LEXX requires PAW!")
+#        if deepcopy: inp = inp.deepcopy()
+#
+#        lexx_params = LexxParams(inp.structure)
+#         for symbol in inp.structure.symbol_set:
+#           lexx_params.lexx_for_symbol(symbol, l=[self.symbols_lexx["l"])
+#        return inp.set_vars(
+
+#        for dataset in inp:
+#            dataset.set_vars(lexx_params.to_abivars())
+#
+#        return inp
+
 # Stubs
-#class SpinDecorator(InputDecorator):
-#    def __init__(self, spinmode):
-#        """Change the spin polarization."""
-#        self.spinmode = aobj.SpinMpde.as_spinmode(spin_mode)
+#class ScfMixingDecorator(AbinitInputDecorator):
+
+
+#class MagneticMomentDecorator(AbinitInputDecorator):
+#    """Add reasonble guesses for the initial magnetic moments."""
+
+#class SpinOrbitDecorator(AbinitInputDecorator):
+#    """Enable spin-orbit in the input."""
+#     def __init__(self, no_spatial_symmetries=True, no_time_reversal=False, spnorbscl=None):
+#        self.use_spatial_symmetries = use_spati
+#        self.use_spatial_symmetries
 #
 #    def _decorate(self, inp, deepcopy=True)
 #        if deepcopy: inp = inp.deepcopy()
-#        inp.set_vars(self.spinmode.to_abivars())
-#        return inp
-#
-#
-#class SmearingDecorator(InputDecorator):
-#    """Change the electronic smearing."""
-#    def __init__(self, spinmode):
-#        self.smearing = aobj.Smearing.as_smearing(smearing)
-#
-#    def _decorate(self, inp, deepcopy=True)
-#        if deepcopy: inp = inp.deepcopy()
-#        inp.set_vars(self.smearing.to_abivars())
+#        kptopt = 
+#        if inp.ispaw:
+#            for dt in inp.datasets:
+#               dt.set_vars(pawspnorb=1)
+#               dt.set_vars(kptopt=kptopt)
 #        return inp
 
 
-#class ScfMixingDecorator(InputDecorator):
-
-#class MagneticMomentDecorator(InputDecorator):
-
-#class AccuracyDecorator(InputDecorator):
-#    """Change the electronic smearing."""
+#class PerformanceDecorator(AbinitInputDecorator):
+#    """Change the variables in order to speedup the calculation."""
+#    fftgw
+#    boxcutmin
+#    fft
 #    def __init__(self, accuracy):
 #        self.accuracy = accuracy
 #
@@ -95,29 +241,3 @@ class InputDecorator(six.with_metaclass(abc.ABCMeta, PMGSONable)):
 #        return inp
 #
 #
-#class UJDecorator(InputDecorator):
-#    """Add LDA+U to an :class:`AbiInput` object."""
-#    def __init__(self, luj_for_symbol, usepawu=1):
-#        self.usepawu = usepawu
-#        self.luj_for_symbol = luj_for_symbol
-#
-#    def _decorate(self, inp, deepcopy=True)
-#        if not inp.ispaw: raise self.Error("LDA+U requires PAW!")
-#        if deepcopy: inp = inp.deepcopy()
-#
-#        inp.set_vars(usepawu=self.usepawu)
-#        return inp
-#
-#
-#class LexxDecorator(InputDecorator):
-#    """Add LDA+U to an :class:`AbiInput` object."""
-#    def __init__(self, luj_for_symbol, usepawu=1):
-#        self.usepawu = usepawu
-#        self.luj_for_symbol = luj_for_symbol
-#
-#    def _decorate(self, inp, deepcopy=True)
-#        if not inp.ispaw: raise self.Error("LDA+U requires PAW!")
-#        if deepcopy: inp = inp.deepcopy()
-#
-#        inp.set_vars(usepawu=self.usepawu)
-#        return inp

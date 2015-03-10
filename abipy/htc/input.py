@@ -177,7 +177,7 @@ class AbiInput(Input, Has_Structure):
     """
     Error = InputError
 
-    def __init__(self, pseudos, pseudo_dir="", structure=None, ndtset=1, comment=""):
+    def __init__(self, pseudos, pseudo_dir="", structure=None, ndtset=1, comment="", decorators=None):
         """
         Args:
             pseudos: String or list of string with the name of the pseudopotential files.
@@ -185,6 +185,7 @@ class AbiInput(Input, Has_Structure):
             structure: file with the structure, :class:`Structure` object or dictionary with ABINIT geo variable
             ndtset: Number of datasets.
             comment: Optional string with a comment that will be placed at the beginning of the file.
+            decorators: List of `AbinitInputDecorator` objects.
         """
         # Dataset[0] contains the global variables common to the different datasets
         # Dataset[1:ndtset+1] stores the variables specific to the different datasets.
@@ -218,6 +219,8 @@ class AbiInput(Input, Has_Structure):
 
         if structure is not None: self.set_structure(structure)
         if comment is not None: self.set_comment(comment)
+
+        self._decorators = [] if not decorators else decorators
 
     def __str__(self):
         """String representation i.e. the input file read by Abinit."""
@@ -271,7 +274,6 @@ class AbiInput(Input, Has_Structure):
         if varname.startswith("_"):
             # Standard behaviour for "private" variables.
             super(AbiInput, self).__setattr__(varname, value)
-
         else:
             idt, varname = _idt_varname(varname)
 
@@ -316,6 +318,10 @@ class AbiInput(Input, Has_Structure):
         """True if norm-conserving calculation."""
         return all(p.isnc for p in self.pseudos)
 
+    #def num_valence_electrons(self):
+    #    """Number of valence electrons computed from the pseudos and the structure."""
+    #    return num_valence_electrons(self.pseudos, self.structure)
+
     @property
     def structure(self):
         """
@@ -344,6 +350,14 @@ class AbiInput(Input, Has_Structure):
         new = self.deepcopy()
         new.set_vars(*args, **kwargs)
         return new
+
+    @property
+    def decorators(self):
+        return self._decorators
+
+    def register_decorator(self, decorator):
+        """Register a :class:`AbinitInputDecorator`."""
+        self._decorators.append(decorator.as_dict())
 
     def generate(self, **kwargs):
         """
@@ -393,7 +407,7 @@ class AbiInput(Input, Has_Structure):
                     err_msg = "get* or ird variables should not be present in the input when you split it into datasets"
                     raise self.Error(err_msg)
 
-            new = self.__class__(pseudos=self.pseudos, ndtset=1)
+            new = self.__class__(pseudos=self.pseudos, ndtset=1, decorators=self._decorators)
             new.set_vars(**my_vars)
             new.set_mnemonics(self.mnemonics)
             news.append(new)
@@ -407,11 +421,16 @@ class AbiInput(Input, Has_Structure):
         Args:
             dtset: Int with the index of the dataset, slice object of iterable 
             kwargs: Dictionary with the variables.
+
+        Returns:
+            self
         """
         dtset = kwargs.pop("dtset", 0)
         kwargs.update(dict(*args))
         for idt in self._dtset2range(dtset):
             self[idt].set_vars(**kwargs)
+
+        return self
 
     # Alias
     set_variables = set_vars
@@ -714,9 +733,11 @@ class AbiInput(Input, Has_Structure):
                 if isinstance(value, np.ndarray):
                     ds_copy[key] = value.tolist()
             dtsets.append(dict(ds_copy))
-        #for ds in self: dtsets.append(ds.as_dict())
 
-        return {'pseudos': [p.as_dict() for p in self.pseudos], 'datasets': dtsets}
+        return {'pseudos': [p.as_dict() for p in self.pseudos], 
+                'datasets': dtsets,
+                "decorators": [dec.as_dict() for dec in self._decorators],
+                }
 
     @classmethod
     def from_dict(cls, d):
@@ -725,16 +746,16 @@ class AbiInput(Input, Has_Structure):
             pseudos.append(Pseudo.from_file(p['filepath']))
 
         dtsets = d['datasets']
-        abiinput = cls(pseudos, ndtset=dtsets[0]['ndtset'])
+        abiinput = cls(pseudos, ndtset=dtsets[0]['ndtset'], decorators=d["decorators"])
 
         for n, ds in enumerate(dtsets):
             abiinput.set_vars(dtset=n, **ds)
 
         return abiinput
 
-    def apply_decorators(self, decorators):
+    def new_from_decorators(self, decorators):
         """
-        This function receives a list of :class:`InputDecorator` objects or just a single object,
+        This function receives a list of :class:`AbinitInputDecorator` objects or just a single object,
         applyes the decorators to the input and returns a new :class:`AbiInput` object.
         self is not changed.
         """
@@ -743,7 +764,7 @@ class AbiInput(Input, Has_Structure):
         # Deepcopy only at the first step to improve performance.
         inp = self
         for i, dec in enumerate(decorators):
-            inp = dec.decorate(inp, deepcopy=(i == 0))
+            inp = dec(inp, deepcopy=(i == 0))
 
         return inp
 
@@ -843,6 +864,20 @@ class Dataset(mixins.MappingMixin, Has_Structure):
     def deepcopy(self):
         """Deepcopy of the `Dataset`"""
         return copy.deepcopy(self)
+
+    #@abc.property
+    #def runlevel(self):
+    #    """String defining the Runlevel. See _runl2optdriver."""
+    # Mapping runlevel --> optdriver variable
+    #_runl2optdriver = {
+    #    "scf": 0,
+    #    "nscf": 0,
+    #    "relax": 0,
+    #    "dfpt": 1,
+    #    "screening": 3,
+    #    "sigma": 4,
+    #    "bse": 99,
+    #}
 
     #@property
     #def geoformat(self):
@@ -1024,8 +1059,9 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         #    return self._structure
 
     def set_structure(self, structure):
-        if is_string(structure): structure = Structure.from_file(filepath)
-        if isinstance(structure, collections.Mapping): structure = Structure.from_abivars(**structure)
+        structure = Structure.as_structure(structure)
+        #if is_string(structure): structure = Structure.from_file(filepath)
+        #if isinstance(structure, collections.Mapping): structure = Structure.from_abivars(**structure)
 
         self._structure = structure
         if structure is None: return
@@ -1155,12 +1191,10 @@ class LdauParams(object):
             unit: Energy unit of U and J.
         """
         if symbol not in self.symbols_by_typat:
-            err_msg = "Symbol %s not in symbols_by_typat:\n%s" % (symbol, self.symbols_by_typat)
-            raise ValueError(err_msg)
+            raise ValueError("Symbol %s not in symbols_by_typat:\n%s" % (symbol, self.symbols_by_typat))
 
         if symbol in self._params:
-            err_msg = "Symbol %s is already present in LdauParams! Cannot overwrite:\n" % symbol
-            raise ValueError(err_msg)
+            raise ValueError("Symbol %s is already present in LdauParams! Cannot overwrite:\n" % symbol)
 
         self._params[symbol] = LujForSpecie(l=l, u=u, j=j, unit=unit)
 
@@ -1231,8 +1265,7 @@ class LexxParams(object):
             raise ValueError(err_msg)
 
         if symbol in self._lexx_for_symbol:
-            err_msg = "Symbol %s is already present in LdauParams! Cannot overwrite:\n" % symbol
-            raise ValueError(err_msg)
+            raise ValueError("Symbol %s is already present in LdauParams! Cannot overwrite:" % symbol)
 
         self._lexx_for_symbol[symbol] = l
 

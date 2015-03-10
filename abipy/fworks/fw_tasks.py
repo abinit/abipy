@@ -528,7 +528,7 @@ def initializer(func):
         if varkw:
             setattr(self, varkw, varkw)
 
-        func(self, *args, **kargs)
+        return func(self, *args, **kargs)
 
     return wrapper
 
