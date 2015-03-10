@@ -34,7 +34,6 @@ class GWSpecTest(PymatgenTest):
         self.assertEqual(len(spec.warnings), 0)
         self.assertEqual(len(spec.errors), 0)
 
-    @unittest.expectedFailure
     def test_GWget_spec(self):
         spec = get_spec('GW')
         self.assertIsInstance(spec, GWSpecs)
