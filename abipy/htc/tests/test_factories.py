@@ -33,29 +33,42 @@ class FactoryTest(AbipyTest):
 
     def test_ebands_input(self):
         """Testing ebands_input factory."""
-        scf_kppa, scf_nband, nscf_nband, dos_kppa = 1000, 10, 10, 4
 
-        inp = ebands_input(self.si_structure, self.si_pseudo, scf_kppa)
+        inp = ebands_input(self.si_structure, self.si_pseudo)
         print(inp)
         self.validate_inp(inp)
-        #sys.exit(0)
 
-        inp = ebands_input(self.si_structure, self.si_pseudo, scf_kppa, nscf_nband, dos_kppa=dos_kppa)
-        print(inp)
-        self.validate_inp(inp)
-        #sys.exit(0)
+        scf_inp, nscf_inp = inp.split_datasets()
 
-    def test_ioncell_relax_input(self):
+        #inp = ebands_input(self.si_structure, self.si_pseudo, scf_kppa, nscf_nband, dos_kppa=dos_kppa)
+        #print(inp)
+        #self.validate_inp(inp)
+
+        #return
+        flow = abilab.Flow("flow_ebands_input")
+        flow.register_work(abilab.BandStructureWork(scf_inp, nscf_inp))
+        flow.allocate()
+        flow.make_scheduler().start()
+
+    def test_ion_ioncell_relax_input(self):
         """Testing ioncell_relax_input factory."""
-        scf_kppa, scf_nband, nscf_nband, dos_kppa = 1000, 10, 10, 4
-        inp = ion_ioncell_relax_input(self.si_structure, self.si_pseudo, scf_kppa, scf_nband)
-                            #accuracy="normal", spin_mode="polarized",
+
+        inp = ion_ioncell_relax_input(self.si_structure, self.si_pseudo)
+                            #scf_kppa, scf_nband #accuracy="normal", spin_mode="polarized",
                             #smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None)
 
         self.validate_inp(inp)
+        ion_inp, ioncell_inp = inp.split_datasets()
+
+        #return
+        flow = abilab.Flow("flow_ion_ioncell_relax_input")
+        flow.register_work(abilab.RelaxWork(ion_inp, ioncell_inp))
+        flow.allocate()
+        flow.make_scheduler().start()
 
     def test_g0w0_with_ppmodel_input(self):
         """Testing g0w0_with_ppmodel_input factory."""
+
         scf_kppa, scf_nband, nscf_nband, dos_kppa = 1000, 10, 10, 4
         ecuteps, ecutsigx = 3, 2
 
@@ -65,6 +78,13 @@ class FactoryTest(AbipyTest):
                                       #sigma_nband=None, gw_qprange=1):
 
         self.validate_inp(inp)
+        
+        return
+        scf_input, nscf_input, scr_input, sigma_input = inp.split_datasets()
+        flow = abilab.Flow("flow_g0w0_with_ppmodel")
+        flow.register_work(abilab.G0W0Work(scf_input, nscf_input, scr_input, sigma_input))
+        flow.allocate()
+        flow.make_scheduler().start()
 
     def test_bse_with_mdf(self):
         """Testing bse_with_mdf input factory."""
@@ -80,11 +100,19 @@ class FactoryTest(AbipyTest):
         print(inp)
         self.validate_inp(inp)
 
-    def test_phonons(self):
+        return
+        scf_input, nscf_input, bse_input = inp.split_datasets()
+        flow = abilab.Flow("flow_bse_with_mdf")
+        flow.register_work(abilab.BseMdfWork(scf_input, nscf_input, bse_input))
+        flow.allocate()
+        flow.make_scheduler().start()
+
+    def test_scf_phonons_inputs(self):
+        """Testing scf_phonons_inputs."""
         scf_kppa, scf_nband, nscf_nband, dos_kppa = 1000, 10, 10, 4
         inps = scf_phonons_inputs(self.si_structure, self.si_pseudo, scf_kppa)
                                  #ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
-                                 #smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
+        return                         #smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
         print(inps[0])
         print(inps[1])
         print(inps[1].get_irred_perts())

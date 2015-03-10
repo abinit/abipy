@@ -58,6 +58,13 @@ _tolerances = {
 del T
 
 
+# Default values used if user do not specify them
+# TODO: Design an object similar to DictVaspInputSet
+_DEFAULTS = dict(
+    kppa=1000,
+)
+
+
 def _stopping_criterion(runlevel, accuracy):
     """Return the stopping criterion for this runlevel with the given accuracy."""
     tolname = _runl2tolname[runlevel]
@@ -103,8 +110,8 @@ def _find_scf_nband(structure, pseudos, electrons):
     return int(nband)
 
 
-def ebands_input(structure, pseudos, kppa, 
-                 nscf_nband=None, ndivsm=15, 
+def ebands_input(structure, pseudos, 
+                 kppa=None, nscf_nband=None, ndivsm=15, 
                  ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
                  smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None, dos_kppa=None):
     """
@@ -113,7 +120,7 @@ def ebands_input(structure, pseudos, kppa,
     Args:
         structure: :class:`Structure` object.
         pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable: object.
-        kppa: Defines the sampling used for the SCF run.
+        kppa: Defines the sampling used for the SCF run. Defaults to 1000 if not given.
         nscf_nband: Number of bands included in the NSCF run. Set to scf_nband + 10 if None.
         ndivsm: Number of divisions used to sample the smallest segment of the k-path.
         ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
@@ -143,6 +150,7 @@ def ebands_input(structure, pseudos, kppa,
     inp.set_vars(ecut=ecut, pawecutdg=pawecutdg)
 
     # SCF calculation.
+    kppa = _DEFAULTS.get("kppa") if kppa is None else kppa
     scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
     scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
                                    charge=charge, nband=scf_nband, fband=None)
@@ -180,7 +188,7 @@ def ebands_input(structure, pseudos, kppa,
 
 
 def ion_ioncell_relax_input(structure, pseudos, 
-                            kppa, nband=None,
+                            kppa=None, nband=None,
                             ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
                             smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
     """
@@ -208,6 +216,7 @@ def ion_ioncell_relax_input(structure, pseudos,
     ecut, pawecutdg = _find_ecut_pawecutdg(ecut, pawecutdg, pseudos)
     inp.set_vars(ecut=ecut, pawecutdg=pawecutdg)
 
+    kppa = _DEFAULTS.get("kppa") if kppa is None else kppa
     ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
     electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
                                charge=charge, nband=nband, fband=None)
@@ -222,11 +231,10 @@ def ion_ioncell_relax_input(structure, pseudos,
     inp.set_vars(ksampling.to_abivars())
 
     inp[1].set_vars(ion_relax.to_abivars())
-    # Stopping criterion is already in RelaxationMethod
-    # TODO: Use similar approach for Scf
-    #inp[1].set_vars(_stopping_criterion("relax", accuracy))
+    inp[1].set_vars(_stopping_criterion("relax", accuracy))
 
     inp[2].set_vars(ioncell_relax.to_abivars())
+    inp[2].set_vars(_stopping_criterion("relax", accuracy))
 
     return inp
 
@@ -297,14 +305,22 @@ def g0w0_with_ppmodel_input(structure, pseudos,
     if scr_nband is None: scr_nband = nscf_nband
     screening = aobj.Screening(ecuteps, scr_nband, w_type="RPA", sc_mode="one_shot",
                           hilbert=None, ecutwfn=None, inclvkb=inclvkb)
+
+    inp[3].set_vars(nscf_ksampling.to_abivars())
+    inp[3].set_vars(nscf_electrons.to_abivars())
     inp[3].set_vars(screening.to_abivars())
+    inp[3].set_vars(_stopping_criterion("screening", accuracy)) # Dummy
     #scr_strategy = ScreeningStrategy(scf_strategy, nscf_strategy, screening)
 
     # Sigma.
     if sigma_nband is None: sigma_nband = nscf_nband
     self_energy = aobj.SelfEnergy("gw", "one_shot", sigma_nband, ecutsigx, screening,
                              gw_qprange=gw_qprange, ppmodel=ppmodel)
+
+    inp[4].set_vars(nscf_ksampling.to_abivars())
+    inp[4].set_vars(nscf_electrons.to_abivars())
     inp[4].set_vars(self_energy.to_abivars())
+    inp[4].set_vars(_stopping_criterion("sigma", accuracy)) # Dummy
     #sigma_strategy = aobj.SelfEnergyStrategy(scf_strategy, nscf_strategy, scr_strategy, self_energy)
 
     # TODO: Cannot use istwfk != 1.
