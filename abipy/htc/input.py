@@ -797,7 +797,26 @@ class AbiInput(Input, Has_Structure):
 
         # Write files file.
         files_file = ["run.abi", "run.abo", "in", "out", "tmp"]
-        files_file.extend([p.path for p in self.pseudos])
+
+        # Paths to the pseudopotential files.
+        # Note that here the pseudos **must** be sorted according to znucl.
+        # Here we reorder the pseudos if the order is wrong.
+        ord_pseudos = []
+        znucl = self.znucl
+
+        for z in znucl:
+            for p in self.pseudos:
+                if p.Z == z:
+                    ord_pseudos.append(p)
+                    break
+            else:
+                raise ValueError("Cannot find pseudo with znucl %s in pseudos:\n%s" % (z, self.pseudos))
+
+        #for pseudo in ord_pseudos:
+        #    app(pseudo.path)
+        #files_file.extend([p.path for p in self.pseudos])
+        files_file.extend([p.path for p in ord_pseudos])
+
         ff_path = os.path.join(tmpdir, "run.files")
         with open(ff_path, "wt") as fh:
             fh.write("\n".join(files_file))

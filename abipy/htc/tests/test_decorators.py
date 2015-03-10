@@ -34,7 +34,7 @@ class DecoratorTest(AbipyTest):
         assert not self.nio_ebands.decorators
         assert self.nio_ebands_inpstr == str(self.nio_ebands)
 
-    def validate_inp(self, inp):
+    def validate_inp(self, inp, ndec=1):
         # Hack neede because ecut is not in the pseudos.
         inp.set_vars(ecut=3)
 
@@ -43,6 +43,8 @@ class DecoratorTest(AbipyTest):
             raise RuntimeError(v.err)
         else:
             print("Valid input!")
+
+        assert len(inp.decorators) == ndec
 
         # Test validity of individual datasets.
         for dtset in inp.split_datasets():
@@ -82,7 +84,6 @@ class DecoratorTest(AbipyTest):
         self.assertPMGSONable(smearing_deco)
 
         new_inp = smearing_deco(self.si_ebands)
-        assert len(new_inp.decorators) == 1
         self.validate_inp(new_inp)
 
     def test_xcdecorator(self):
@@ -91,28 +92,35 @@ class DecoratorTest(AbipyTest):
         self.assertPMGSONable(xc_deco)
                                                               
         new_inp = xc_deco(self.si_ebands)
-        assert len(new_inp.decorators) == 1
         self.validate_inp(new_inp)
 
     def test_ldau_decorators(self):
         """Testing LdaUDecorator."""
+        symbols_luj = dict(Ni=dict(l=2, u=5.0, j=0.5))
 
+        ldau_deco = ideco.LdaUDecorator(symbols_luj, usepawu=1, unit="eV")
+        self.assertPMGSONable(ldau_deco)
 
+        new_inp = ldau_deco(self.nio_ebands)
+        new_inp.set_vars(chkprim=0, ecut=3, pawecutdg=3)
+        print(new_inp)
+        self.validate_inp(new_inp)
+        #assert 0
 
+        # LDA+U only if PAW
+        with self.assertRaises(ldau_deco.Error):
+            ldau_deco(self.si_ebands)
 
-
-
-
-
-
-
-
-
-
-
-
-
-    #def test_lexx_decorators(self):
+    def test_lexx_decorators(self):
+        """Testing LexxDecorator."""
+        lexx_deco = ideco.LexxDecorator({"Ni": 2})
+        self.assertPMGSONable(lexx_deco)
+                                                                           
+        new_inp = lexx_deco(self.nio_ebands)
+        new_inp.set_vars(chkprim=0, ecut=3, pawecutdg=3)
+        print(new_inp)
+        self.validate_inp(new_inp)
+        #assert 0
 
     def test_new_from_decorators(self):
         """Testing AbiInput.new_from_decorators."""

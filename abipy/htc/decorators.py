@@ -173,7 +173,9 @@ class LdaUDecorator(AbinitInputDecorator):
         if deepcopy: inp = inp.deepcopy()
         luj_params = LdauParams(usepawu=self.usepawu, structure=inp.structure)
 
+        # Apply UJ on all the symbols present in symbols_lui.
         for symbol in inp.structure.symbol_set:
+            if symbol not in self.symbols_luj: continue
             args = self.symbols_luj[symbol]
             luj_params.luj_for_symbol(symbol, l=args["l"], u=args["u"], j=args["j"], unit=self.unit)
             #luj_params.luj_for_symbol("Ni", l=2, u=u, j=0.1*u, unit=self.unit)
@@ -184,24 +186,51 @@ class LdaUDecorator(AbinitInputDecorator):
         return inp
 
 
-#class LexxDecorator(AbinitInputDecorator):
-#    """Add LDA+U to an :class:`AbiInput` object."""
-#    def __init__(self, symbols_lexx):
-#        self.symbols_lexx = symbols_lexx
-#
-#    def _decorate(self, inp, deepcopy=True)
-#        if not inp.ispaw: raise self.Error("LEXX requires PAW!")
-#        if deepcopy: inp = inp.deepcopy()
-#
-#        lexx_params = LexxParams(inp.structure)
-#         for symbol in inp.structure.symbol_set:
-#           lexx_params.lexx_for_symbol(symbol, l=[self.symbols_lexx["l"])
-#        return inp.set_vars(
+class LexxDecorator(AbinitInputDecorator):
+    """Add Local exact exchange to an :class:`AbiInput` object."""
+    def __init__(self, symbols_lexx, exchmix=None):
+        """
+        Args:
+            symbols_lexx: dictionary mapping chemical symbols to the angular momentum l on which lexx is applied. 
+            exchmix: ratio of exact exchange when useexexch is used. The default value of 0.25 corresponds to PBE0. 
 
-#        for dataset in inp:
-#            dataset.set_vars(lexx_params.to_abivars())
-#
-#        return inp
+            Example. To perform a LEXX calculation for NiO in which the LEXX is computed only for the l=2
+            channel of the nickel atoms:
+
+                {"Ni": 2}
+        """
+        self.symbols_lexx, self.exchmix = symbols_lexx, exchmix
+
+    @classmethod
+    def from_dict(cls, d):
+        return cls(**{k:v for k, v in d.items() if not k.startswith("@")})
+
+    @pmg_serialize
+    def as_dict(self):
+        return {"symbols_lexx": self.symbols_lexx, "exchmix": self.exchmix}
+
+    def _decorate(self, inp, deepcopy=True):
+        if not inp.ispaw: raise self.Error("LEXX requires PAW!")
+        if deepcopy: inp = inp.deepcopy()
+
+        lexx_params = LexxParams(inp.structure)
+        for symbol in inp.structure.symbol_set:
+            if symbol not in self.symbols_lexx: continue
+            lexx_params.lexx_for_symbol(symbol, l=self.symbols_lexx[symbol])
+
+        # Context : the value of the variable useexexch is   1.
+        # The value of the input variable ixc is    7, while it must be
+        # equal to one of the following:  11  23
+        # Action : you should change the input variables ixc or useexexch.
+        for dataset in inp:
+            dataset.set_vars(lexx_params.to_abivars())
+            dt_ixc = dataset.get("ixc")
+            if dt_ixc is None or ixc not in [11, 23]:
+                dataset.set_vars(ixc=11)
+            if self.exchmix is not None:
+                dataset.set_vars(exchmix=self.exchmix)
+
+        return inp
 
 # Stubs
 #class ScfMixingDecorator(AbinitInputDecorator):
