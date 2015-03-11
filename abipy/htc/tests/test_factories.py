@@ -6,8 +6,9 @@ import abipy.data as abidata
 import abipy.abilab as abilab
 
 from pprint import pprint
-from abipy.htc.factories import *
 from abipy.core.testing import AbipyTest
+from abipy.htc.input import AbiInput
+from abipy.htc.factories import *
 
 
 class FactoryTest(AbipyTest):
@@ -31,10 +32,31 @@ class FactoryTest(AbipyTest):
         for dtset in inp.split_datasets():
             v = dtset.validate()
 
+    def test_factory_protocol(self):
+        """Testing factory protocol."""
+        # Ambiguous list of pseudos.
+        with self.assertRaises(AbiInput.Error):
+            ebands_input(self.si_structure, pseudos=abidata.pseudos("14si.pspnc", "Si.oncvpsp"), ecut=2)
+
+        # No ecut and pseudos without hints 
+        with self.assertRaises(AbiInput.Error):
+            ebands_input(self.si_structure, pseudos=abidata.pseudos("14si.pspnc", "Si.oncvpsp"))
+
+        # Negative triple product.
+        with self.assertRaises(AbiInput.Error):
+            s = abidata.structure_from_ucell("Al-negative-volume")
+            ebands_input(s, pseudos=abidata.pseudos("13al.981214.fhi"), ecut=2)
+
+        # Pseudos do not match structure.
+        with self.assertRaises(AbiInput.Error):
+            ebands_input(self.si_structure, pseudos=abidata.pseudos("13al.981214.fhi"), ecut=2)
+
+        #assert 0
+
     def test_ebands_input(self):
         """Testing ebands_input factory."""
-
-        inp = ebands_input(self.si_structure, self.si_pseudo)
+        return
+        inp = ebands_input(self.si_structure, self.si_pseudo, ecut=2)
         print(inp)
         self.validate_inp(inp)
 
@@ -44,7 +66,7 @@ class FactoryTest(AbipyTest):
         #print(inp)
         #self.validate_inp(inp)
 
-        #return
+        return
         flow = abilab.Flow("flow_ebands_input")
         flow.register_work(abilab.BandStructureWork(scf_inp, nscf_inp))
         flow.allocate()
@@ -52,6 +74,7 @@ class FactoryTest(AbipyTest):
 
     def test_ion_ioncell_relax_input(self):
         """Testing ioncell_relax_input factory."""
+        return
 
         inp = ion_ioncell_relax_input(self.si_structure, self.si_pseudo)
                             #scf_kppa, scf_nband #accuracy="normal", spin_mode="polarized",
@@ -68,8 +91,9 @@ class FactoryTest(AbipyTest):
 
     def test_g0w0_with_ppmodel_input(self):
         """Testing g0w0_with_ppmodel_input factory."""
+        return
 
-        scf_kppa, scf_nband, nscf_nband, dos_kppa = 1000, 10, 10, 4
+        scf_kppa, scf_nband, nscf_nband, dos_kppa = 100, 10, 10, 4
         ecuteps, ecutsigx = 3, 2
 
         inp = g0w0_with_ppmodel_input(self.si_structure, self.si_pseudo, scf_kppa, nscf_nband, ecuteps, ecutsigx)
@@ -88,6 +112,7 @@ class FactoryTest(AbipyTest):
 
     def test_bse_with_mdf(self):
         """Testing bse_with_mdf input factory."""
+        return
         scf_kppa, scf_nband, nscf_nband, dos_kppa = 1000, 10, 10, 4
         ecuteps, ecutsigx = 3, 2
         nscf_ngkpt, nscf_shiftk = [2,2,2], [[0,0,0]]
@@ -110,8 +135,9 @@ class FactoryTest(AbipyTest):
     def test_scf_phonons_inputs(self):
         """Testing scf_phonons_inputs."""
         scf_kppa, scf_nband, nscf_nband, dos_kppa = 1000, 10, 10, 4
-        inps = scf_phonons_inputs(self.si_structure, self.si_pseudo, scf_kppa)
-                                 #ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
+        ecut = 4
+        inps = scf_phonons_inputs(self.si_structure, self.si_pseudo, scf_kppa,
+                                  ecut=ecut) #, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
         return                         #smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
         print(inps[0])
         print(inps[1])

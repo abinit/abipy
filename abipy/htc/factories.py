@@ -2,11 +2,10 @@
 """Factory functions for Abinit input files """
 from __future__ import print_function, division, unicode_literals
 
+import numpy as np
 import pymatgen.io.abinitio.abiobjects as aobj
 
 from collections import namedtuple
-#from monty.string import is_string, list_strings
-#from monty.collections import dict2namedtuple
 from pymatgen.io.abinitio.pseudos import PseudoTable
 from abipy.core.structure import Structure
 from .input import AbiInput
@@ -73,12 +72,21 @@ def _stopping_criterion(runlevel, accuracy):
 
 def _find_ecut_pawecutdg(ecut, pawecutdg, pseudos):
     """Return the value of ecut and pawecutdg"""
-    #TODO: Get ecut and pawecutdg from the pseudo hints.
-    #if ecut is None: 
-    #  ecut = max(p.hint for p in pseudos)
+    # Get ecut and pawecutdg from the pseudo hints.
+    has_hints = all(p.has_hints for p in pseudos)
 
-    #if pawecutdg is None and any(p.ispaw for p in pseudos):
-    #    pawecutdg = max(p.hint for p in pseudos)
+    if ecut is None:
+        if has_hints:
+            ecut = max(p.hint_for_accuracy(accuracy).ecut for p in pseudos)
+        else:
+            raise AbiInput.Error("ecut is None but pseudos do not provide hints for ecut")
+
+    # TODO: This should be the new API.
+    if pawecutdg is None and any(p.ispaw for p in pseudos):
+        if has_hints:
+            pawecutdg = max(p.hint_for_accuracy(accuracy).pawecutdg for p in pseudos)
+        else:
+            raise RuntimeError("pawecutdg is None but pseudos do not provide hints")
 
     return ecut, pawecutdg
 
@@ -110,6 +118,48 @@ def _find_scf_nband(structure, pseudos, electrons):
     return int(nband)
 
 
+def _find_pseudos(pseudos, structure):
+    try:
+        pseudos = PseudoTable.as_table(pseudos).get_pseudos_for_structure(structure)
+        return pseudos
+    except ValueError as exc:
+        raise AbiInput.Error(str(exc))
+
+
+def check_inp(func):
+    """
+    Decorator for factory functions returning a :class:`AbiInput` object.
+    It add checks on the validity of the input file and detects possible
+    problems that will make ABINIT stop:
+
+        - Negative triple product of the lattice vectors.
+
+    Raise:
+        `ValueError` if errors are detected. 
+    """
+    from functools import wraps
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        inp = func(*args, **kwargs)
+
+        errors = []
+        eapp = errors.append
+
+        m = inp.structure.lattice.matrix
+        volume = np.dot(np.cross(m[0], m[1]), m[2])
+        print(volume)
+        if volume < 0:
+            eapp("The triple product is negative. Use structure abi_sanitize.")
+
+        #if inp.ispaw 
+
+        if errors:
+            raise AbiInput.Error("\n".join(errors))
+
+    return wrapper
+
+
+@check_inp
 def ebands_input(structure, pseudos, 
                  kppa=None, nscf_nband=None, ndivsm=15, 
                  ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
@@ -137,7 +187,7 @@ def ebands_input(structure, pseudos,
             to be used for the computation of the DOS (None if DOS is not wanted).
     """
     structure = Structure.as_structure(structure)
-    pseudos = PseudoTable.as_table(pseudos).get_pseudos_for_structure(structure)
+    pseudos = _find_pseudos(pseudos, structure)
 
     if dos_kppa is not None and not isinstance(dos_kppa, (list, tuple)):
         dos_kppa = [dos_kppa]
@@ -187,6 +237,7 @@ def ebands_input(structure, pseudos,
     return inp
 
 
+@check_inp
 def ion_ioncell_relax_input(structure, pseudos, 
                             kppa=None, nband=None,
                             ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
@@ -207,7 +258,7 @@ def ion_ioncell_relax_input(structure, pseudos,
         scf_algorithm: Algorithm used for solving of the SCF cycle.
     """
     structure = Structure.as_structure(structure)
-    pseudos = PseudoTable.as_table(pseudos).get_pseudos_for_structure(structure)
+    pseudos = _find_pseudos(pseudos, structure)
 
     inp = AbiInput(pseudos, ndtset=2)
     inp.set_structure(structure)
@@ -239,6 +290,7 @@ def ion_ioncell_relax_input(structure, pseudos,
     return inp
 
 
+@check_inp
 def g0w0_with_ppmodel_input(structure, pseudos, 
                             kppa, nscf_nband, ecuteps, ecutsigx,
                             ecut=None, pawecutdg=None,
@@ -272,7 +324,7 @@ def g0w0_with_ppmodel_input(structure, pseudos,
             QP energies for all the point in the IBZ and one band above and one band below the Fermi level.
     """
     structure = Structure.as_structure(structure)
-    pseudos = PseudoTable.as_table(pseudos).get_pseudos_for_structure(structure)
+    pseudos = _find_pseudos(pseudos, structure)
 
     inp = AbiInput(pseudos, ndtset=4)
     inp.set_structure(structure)
@@ -332,6 +384,7 @@ def g0w0_with_ppmodel_input(structure, pseudos,
 #def g0w0_extended_work(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx, scf_nband, accuracy="normal",
 
 
+@check_inp
 def bse_with_mdf_input(structure, pseudos, 
                        scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk, 
                        ecuteps, bs_loband, bs_nband, soenergy, mdf_epsinf, 
@@ -369,7 +422,7 @@ def bse_with_mdf_input(structure, pseudos,
         scf_algorithm: Algorithm used for solving the SCF cycle.
     """
     structure = Structure.as_structure(structure)
-    pseudos = PseudoTable.as_table(pseudos).get_pseudos_for_structure(structure)
+    pseudos = _find_pseudos(pseudos, structure)
 
     inp = AbiInput(pseudos, ndtset=3)
     inp.set_structure(structure)
@@ -418,6 +471,7 @@ def bse_with_mdf_input(structure, pseudos,
     #return dict2namedtuple(scf_inp=scf_inp, nscf_inp=nscf_inp, dos_inps")
 
 
+#@check_inp
 def scf_phonons_inputs(structure, pseudos, kppa,
                        ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
                        smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
@@ -442,7 +496,7 @@ def scf_phonons_inputs(structure, pseudos, kppa,
         scf_algorithm: Algorithm used for solving of the SCF cycle.
     """
     structure = Structure.as_structure(structure)
-    pseudos = PseudoTable.as_table(pseudos).get_pseudos_for_structure(structure)
+    pseudos = _find_pseudos(pseudos, structure)
 
     # List of q-points for the phonon calculation.
     #qpoints = np.reshape([

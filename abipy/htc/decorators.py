@@ -237,7 +237,7 @@ class LexxDecorator(AbinitInputDecorator):
 
 
 #class MagneticMomentDecorator(AbinitInputDecorator):
-#    """Add reasonble guesses for the initial magnetic moments."""
+#    """Add reasoanble guesses for the initial magnetic moments."""
 
 #class SpinOrbitDecorator(AbinitInputDecorator):
 #    """Enable spin-orbit in the input."""
@@ -250,8 +250,7 @@ class LexxDecorator(AbinitInputDecorator):
 #        kptopt = 
 #        if inp.ispaw:
 #            for dt in inp.datasets:
-#               dt.set_vars(pawspnorb=1)
-#               dt.set_vars(kptopt=kptopt)
+#               dt.set_vars(pawspnorb=1, kptopt=kptopt)
 #        return inp
 
 
@@ -268,5 +267,6 @@ class LexxDecorator(AbinitInputDecorator):
 #         for dt in inp[1:]:
 #            runlevel = dt.runlevel 
 #        return inp
-#
-#
+
+#class DmftDecorator(AbinitInputDecorator):
+#    """Add DMFT variables."""

@@ -812,9 +812,6 @@ class AbiInput(Input, Has_Structure):
             else:
                 raise ValueError("Cannot find pseudo with znucl %s in pseudos:\n%s" % (z, self.pseudos))
 
-        #for pseudo in ord_pseudos:
-        #    app(pseudo.path)
-        #files_file.extend([p.path for p in self.pseudos])
         files_file.extend([p.path for p in ord_pseudos])
 
         ff_path = os.path.join(tmpdir, "run.files")
@@ -897,6 +894,12 @@ class Dataset(mixins.MappingMixin, Has_Structure):
     #    "sigma": 4,
     #    "bse": 99,
     #}
+    #    # Find the value of optdriver (firt in self, then in globals finally use default value.
+    #    optdriver = self.get("optdriver")
+    #    if optdriver is None: optdriver = self.dt0.get("optdriver")
+    #    if optdriver is None: optdriver = 0
+
+    #    # At this point we have to understand the type of calculation.
 
     #@property
     #def geoformat(self):

@@ -51,6 +51,17 @@ _UCELLS = {
                xred=[ [0.0 , 0.0 , 0.0]],
                     ),
 
+    "Al-negative-volume": dict(ntypat=1,         
+               natom=1,
+               typat=[1],
+               znucl=13,         
+               acell=3*[7.60],
+               rprim=[[0.0,  0.5,  0.5],   
+                      [-0.5,  -0.0,  -0.5],  
+                      [0.5,  0.5,  0.0]],
+               xred=[ [0.0 , 0.0 , 0.0]],
+                    ),
+
     "ZnO": dict(ntypat=2,
                 natom=2,
                 typat=[1, 2],
