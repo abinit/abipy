@@ -282,10 +282,7 @@ def itest_htc_bandstructure(fwp, tvars):
     #dos_ngkpt = [4,4,4]
     #dos_shiftk = [0.1, 0.2, 0.3]
 
-    extra_abivars = dict(
-        ecut=2,
-        paral_kgb=tvars.paral_kgb,
-    )
+    extra_abivars = dict(ecut=2, paral_kgb=tvars.paral_kgb)
 
     # Initialize the flow.
     flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager)

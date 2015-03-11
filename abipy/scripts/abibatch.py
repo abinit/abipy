@@ -44,11 +44,17 @@ Usage example:\n
     #parser.add_argument('flowdir', nargs="?", help=("File or directory containing the ABINIT flow"
     #                                                "If not given, the first flow in the current workdir is selected"))
 
+    timelimit_parser = argparse.ArgumentParser(add_help=False)
+    timelimit_parser.add_argument("-t", '--timelimit', default=None, help=("Time limit for batch script. "
+                                  "Accept int with seconds or string with time given in the slurm convention: "
+                                  "`days-hours:minutes:seconds`. If timelimit is None, the default value specified"
+                                  " in the `batch_adapter` entry of `manager.yml` is used."))
+
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for submit.
-    p_submit = subparsers.add_parser('sub', help="Find all flows in dir and submit them")
+    p_submit = subparsers.add_parser('sub', parents=[timelimit_parser], help="Find all flows in dir and submit them")
 
     p_submit.add_argument("-d", '--dry-run', default=False, action="store_true", help="Dry run mode")
     p_submit.add_argument("-w", '--workdir', default=None, help="The workdir of the BatchLauncher")
@@ -56,7 +62,7 @@ Usage example:\n
                           "Use current working directory if not specified"))
 
     # Subparser for resubmit.
-    p_resubmit = subparsers.add_parser('resub', help="Find all flows in dir and submit them")
+    p_resubmit = subparsers.add_parser('resub', parents=[timelimit_parser], help="Find all flows in dir and submit them")
     p_resubmit.add_argument("-d", '--dry-run', default=False, action="store_true", help="Dry run mode")
     p_resubmit.add_argument('top', help="File or directory containing the object")
 
@@ -99,6 +105,9 @@ Usage example:\n
             raise RuntimeError(msg)
 
         batch = BatchLauncher.from_dir(options.paths, workdir=workdir, name=None)
+        if options.timelimit:
+            batch.set_timelimit(options.timelimit)
+            
         print(batch.to_string())
 
         if not batch.flows:
@@ -114,6 +123,9 @@ Usage example:\n
     elif options.command == "resub":
         batch = BatchLauncher.pickle_load(options.top)
         batch.show_summary()
+
+        if options.timelimit:
+            batch.set_timelimit(options.timelimit)
 
         job = batch.submit(verbose=options.verbose, dry_run=options.dry_run)
         if job.retcode:

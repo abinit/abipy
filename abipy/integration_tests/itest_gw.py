@@ -55,9 +55,7 @@ def make_g0w0_inputs(ngkpt, tvars):
 
     # Dataset 1 (GS run)
     inp[1].set_kmesh(**scf_kmesh)
-    inp[1].set_vars(
-        tolvrs=1e-6,
-        nband=4)
+    inp[1].set_vars(tolvrs=1e-6, nband=4)
 
     # Dataset 2 (NSCF run)
     # Here we select the second dataset directly with the syntax inp[2]
@@ -93,7 +91,6 @@ def make_g0w0_inputs(ngkpt, tvars):
             ecuteps=2.0,
             ecutsigx=2.0,
             symsigma=1,
-            #nkptgw=0,
             #gw_qprange=0,
     )
 
