@@ -342,7 +342,7 @@ class GWSpecs(AbstractAbinitioSpec):
                '              poscar will read files starting with POSCAR_ in the working folder \n' \
                'mode:         input, ceci, fw \n' \
                'functional:   PBE, LDA \n' \
-               'jobs:         prep, G0W0, GW0, scGW0, no option, just enter, remove the last option \n' \
+               'jobs:         prep, G0W0, GW0, scGW0, bands, no option, just enter, remove the last option \n' \
                'code:         VASP, ABINIT \n' \
                'kp_grid_dens: usually 500 - 1000, 1 gives gamma only, 2 gives a 2x2x2 mesh \n' \
                'tol:          tolerance for determining convergence d(gap)/d(encuteps) and d(gap)/d(nbands) < tol \n' \
