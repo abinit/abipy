@@ -333,7 +333,11 @@ class SingleAbinitGWWork():
             elif self.all_converged:
                 print('| setting up for testing the converged values at the high kp grid ')
                 # add a bandstructure and dos calculation
-                nksmall = 30
+                if os.path.isfile('bands'):
+                    nksmall = -30
+                    #negative value > only bandstructure
+                else:
+                    nksmall = 30
                 # in this case a convergence study has already been performed.
                 # The resulting parameters are passed as option
                 ecuteps = [self.option['ecuteps'], self.option['ecuteps'] + self.convs['ecuteps']['test_range'][1] -

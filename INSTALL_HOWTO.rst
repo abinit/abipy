@@ -3,6 +3,18 @@ dependencies that require external non-python libraries.
 
 under construction
 
+
+general
+-------
+
+If there are problems installing a new version of a python package, after a git pull, remover the build folder.
+This may solve issues like:
+
+ValueError: bad marshal data (unknown type code)
+
+
+
+
 python
 ------
 
