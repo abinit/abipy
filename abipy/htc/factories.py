@@ -135,7 +135,7 @@ def check_inp(func):
         - Negative triple product of the lattice vectors.
 
     Raise:
-        `ValueError` if errors are detected. 
+        `AbiInput.Error` if errors are detected. 
     """
     from functools import wraps
     @wraps(func)
@@ -147,14 +147,15 @@ def check_inp(func):
 
         m = inp.structure.lattice.matrix
         volume = np.dot(np.cross(m[0], m[1]), m[2])
-        print(volume)
         if volume < 0:
-            eapp("The triple product is negative. Use structure abi_sanitize.")
+            eapp("The triple product of the lattice vector is negative. Use structure abi_sanitize.")
 
         #if inp.ispaw 
 
         if errors:
             raise AbiInput.Error("\n".join(errors))
+
+        return inp
 
     return wrapper
 
@@ -383,7 +384,6 @@ def g0w0_with_ppmodel_input(structure, pseudos,
 #TODO
 #def g0w0_extended_work(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx, scf_nband, accuracy="normal",
 
-
 @check_inp
 def bse_with_mdf_input(structure, pseudos, 
                        scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk, 
@@ -429,7 +429,7 @@ def bse_with_mdf_input(structure, pseudos,
 
     # Set the cutoff energy
     ecut, pawecutdg = _find_ecut_pawecutdg(ecut, pawecutdg, pseudos)
-    inp.set_vars(ecut=ecut, pawecutdg=pawecutdg)
+    inp.set_vars(ecut=ecut, ecutwfn=ecut, pawecutdg=pawecutdg)
 
     # Ground-state 
     scf_ksampling = aobj.KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)

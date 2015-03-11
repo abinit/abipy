@@ -247,7 +247,7 @@ class AbiInput(Input, Has_Structure):
             s = d.to_string(post="")
 
         # Add JSON section with pseudo potentials.
-        ppinfo = ["\n#<JSON>"]
+        ppinfo = ["\n\n\n#<JSON>"]
         d = {"pseudos": [p.as_dict() for p in self.pseudos]}
         ppinfo.extend(json.dumps(d, indent=4).splitlines())
         ppinfo.append("</JSON>")

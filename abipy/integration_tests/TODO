@@ -20,3 +20,6 @@ TODO LIST:
     for a flow at the level of the scheduler.
 
   # Propagate the manager to anaddb and mrgddb.
+
+  # Fix problem with AbiniEvent format, src_file and scr_line (see src/67_common/scprqt.F90)
+    Introduce an integer flag (msg_level) to be passed to msg_hndl

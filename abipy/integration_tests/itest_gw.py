@@ -109,7 +109,7 @@ def itest_g0w0_flow(fwp, tvars):
 
     flow = abilab.g0w0_flow(fwp.workdir, scf, nscf, scr, sig, manager=fwp.manager)
     # Will remove output files at run-time.
-    flow.set_cleanup_exts()
+    flow.set_garbage_collector()
     flow.build_and_pickle_dump()
 
     for task in flow[0]:
@@ -125,8 +125,8 @@ def itest_g0w0_flow(fwp, tvars):
     scr_task = flow[0][2]
     sig_task = flow[0][3]
 
-    # Test set_cleanup_exts
-    # The WFK|SCR file should have been removed because we call set_cleanup_exts
+    # Test garbage)_collector
+    # The WFK|SCR file should have been removed because we call set_garbage_collector
     assert not scf_task.outdir.has_abiext("WFK")
     assert not nscf_task.outdir.has_abiext("WFK")
     assert not scr_task.outdir.has_abiext("SCR")
@@ -155,6 +155,11 @@ def itest_g0w0qptdm_flow(fwp, tvars):
 
     flow = abilab.G0W0WithQptdmFlow(fwp.workdir, scf, nscf, scr, sig, manager=fwp.manager)
 
+    # Enable garbage collector at the flow level.
+    # Note that here we have tp use this policy because tasks are created dynamically
+    #flow.set_garbage_collector(policy="task")
+    flow.set_garbage_collector(policy="flow")
+
     assert len(flow) == 3
     bands_work = flow[0]
     scr_work = flow[1]
@@ -168,10 +173,6 @@ def itest_g0w0qptdm_flow(fwp, tvars):
         assert sigma_task.depends_on(bands_work.nscf_task)
         assert not sigma_task.depends_on(bands_work.scf_task)
         assert sigma_task.depends_on(scr_work)
-
-    # FIXME this does not work yet because tasks are created dynamically
-    # Will remove output files at run-time.
-    #flow.set_cleanup_exts()
 
     flow.build_and_pickle_dump()
     flow.show_dependencies()
@@ -188,8 +189,8 @@ def itest_g0w0qptdm_flow(fwp, tvars):
     assert all(work.finalized for work in flow)
     assert flow.all_ok
 
-    # Test set_cleanup_exts
-    # The WFK|SCR file should have been removed because we call set_cleanup_exts
+    # Test set_garbage_collector
+    # The WFK|SCR file should have been removed because we call set_garbage_collector
     #assert not scf_task.outdir.has_abiext("WFK")
     #assert not nscf_task.outdir.has_abiext("WFK")
     #assert not scr_task.outdir.has_abiext("SCR")
@@ -199,6 +200,8 @@ def itest_g0w0qptdm_flow(fwp, tvars):
     assert scr_work.outdir.has_abiext("SCR")
 
     #assert flow.validate_json_schema()
+
+    flow.finalize()
 
 
 def itest_htc_g0w0(fwp, tvars):

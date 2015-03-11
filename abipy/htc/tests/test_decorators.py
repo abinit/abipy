@@ -35,7 +35,7 @@ class DecoratorTest(AbipyTest):
         assert self.nio_ebands_inpstr == str(self.nio_ebands)
 
     def validate_inp(self, inp, ndec=1):
-        # Hack neede because ecut is not in the pseudos.
+        # Hack needed because ecut is not in the pseudos.
         inp.set_vars(ecut=3)
 
         v = inp.validate()
@@ -126,8 +126,8 @@ class DecoratorTest(AbipyTest):
         """Testing AbiInput.new_from_decorators."""
         spinor_deco = ideco.SpinDecorator("spinor")
         smearing_deco = ideco.SmearingDecorator("nosmearing")
-        new_inp =  self.si_ebands.new_from_decorators(spinor_deco)
-        new_inp =  self.si_ebands.new_from_decorators([spinor_deco, smearing_deco])
+        new_inp = self.si_ebands.new_from_decorators(spinor_deco)
+        new_inp = self.si_ebands.new_from_decorators([spinor_deco, smearing_deco])
 
 
 if __name__ == '__main__':

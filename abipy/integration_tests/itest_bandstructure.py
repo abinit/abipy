@@ -65,8 +65,11 @@ def itest_unconverged_scf(fwp, tvars):
 
     # Build the flow and create the database.
     flow = abilab.bandstructure_flow(fwp.workdir, scf_input, nscf_input, manager=fwp.manager)
-
     flow.allocate()
+
+    # Use smart-io
+    flow.use_smartio()
+
     flow.build_and_pickle_dump()
 
     t0 = flow[0][0]
@@ -76,6 +79,9 @@ def itest_unconverged_scf(fwp, tvars):
     t0.start_and_wait()
     t0.check_status()
     assert t0.status == t0.S_UNCONVERGED
+    # Unconverged with smart-io --> WFK must be there
+    assert t0.outdir.has_abiext("WFK")
+    #assert 0
 
     # Remove nstep from the input so that we use the default value.
     # Then restart the GS task and test that GS is OK.
@@ -87,6 +93,9 @@ def itest_unconverged_scf(fwp, tvars):
     assert t0.num_restarts == 1
     t0.check_status()
     assert t0.status == t1.S_OK
+
+    # Converged with smart-io --> WFK is not written
+    assert not t0.outdir.has_abiext("WFK")
 
     # Now we can start the NSCF step
     assert t1.can_run
@@ -120,6 +129,13 @@ def itest_unconverged_scf(fwp, tvars):
     tarfile = flow.make_tarfile()
 
     #assert flow.validate_json_schema()
+
+    # Test reset_from_scratch
+    t0.reset_from_scratch()
+    assert t0.status == t0.S_READY
+    t0.start_and_wait()
+    t0.reset_from_scratch()
+    #assert 0
 
 
 def itest_bandstructure_flow(fwp, tvars):
@@ -228,7 +244,7 @@ def itest_bandstructure_schedflow(fwp, tvars):
     flow = abilab.bandstructure_flow(fwp.workdir, scf_input, nscf_input, manager=fwp.manager)
 
     # Will remove output files (WFK)
-    flow.set_cleanup_exts()
+    flow.set_garbage_collector()
     flow.build_and_pickle_dump()
 
     fwp.scheduler.add_flow(flow)
@@ -245,7 +261,7 @@ def itest_bandstructure_schedflow(fwp, tvars):
     assert flow.all_ok
     assert all(work.finalized for work in flow)
 
-    # The WFK files should have been removed because we called set_cleanup_exts
+    # The WFK files should have been removed because we called set_garbage_collector
     for task in flow[0]:
         assert not task.outdir.has_abiext("WFK")
 
