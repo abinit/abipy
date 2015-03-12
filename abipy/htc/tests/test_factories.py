@@ -132,11 +132,12 @@ class FactoryTest(AbipyTest):
                                   ecut=ecut) #, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
         print(inps[0])
         print(inps[1])
-        return 
-        for inp in inps:
-            self.validate_inp(inp)
+        #return 
+        #for inp in inps:
+        #    self.validate_inp(inp)
 
         print(inps[1].get_irred_perts())
+        #assert 0
 
 
 if __name__ == '__main__':

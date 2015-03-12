@@ -151,7 +151,6 @@ def check_inp(func):
             eapp("The triple product of the lattice vector is negative. Use structure abi_sanitize.")
 
         #if inp.ispaw 
-
         if errors:
             raise AbiInput.Error("\n".join(errors))
 

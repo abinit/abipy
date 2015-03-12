@@ -8,7 +8,6 @@ from __future__ import print_function, division, unicode_literals
 import os
 import collections
 import warnings
-import tempfile
 import itertools
 import copy
 import six
@@ -97,7 +96,7 @@ def _idt_varname(varname):
 @six.add_metaclass(abc.ABCMeta)
 class Input(six.with_metaclass(abc.ABCMeta, PMGSONable, object)):
     """
-    Base class foor Input objects.
+    Base class for Input objects.
 
     An input object must define have a make_input method 
     that returns the string representation used by the client code.
@@ -318,9 +317,10 @@ class AbiInput(Input, Has_Structure):
         """True if norm-conserving calculation."""
         return all(p.isnc for p in self.pseudos)
 
-    #def num_valence_electrons(self):
-    #    """Number of valence electrons computed from the pseudos and the structure."""
-    #    return num_valence_electrons(self.pseudos, self.structure)
+    @property
+    def num_valence_electrons(self):
+        """Number of valence electrons computed from the pseudos and the structure."""
+        return self.structure.num_valence_electrons(self.pseudos)
 
     @property
     def structure(self):
@@ -491,7 +491,9 @@ class AbiInput(Input, Has_Structure):
 
             Multiple datasets are ignored. Only the list of k-points for dataset 1 are returned.
         """
-        assert self.ndtset == 1
+        if self.ndtset != 1:
+            raise RuntimeError("get_ibz cannot be used if the input contains more than one dataset")
+
         # Avoid modifications in self.
         inp = self.split_datasets()[0].deepcopy()
 
@@ -509,16 +511,12 @@ class AbiInput(Input, Has_Structure):
         if qpoint is not None:
             inp.qptn, inp.nqpt = qpoint, 1
 
-        # Build a simple manager to run the job in a shell subprocess
-        # Construct the task and run it
-        if manager is None: manager = TaskManager.from_user_config()
-        workdir = tempfile.mkdtemp() if workdir is None else workdir  
-
-        task = AbinitTask.from_input(inp, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
+        # Build a Task to run Abinit in a shell subprocess
+        task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
         task.start_and_wait(autoparal=False)
 
         # Read the list of k-points from the netcdf file.
-        with NetcdfReader(os.path.join(workdir, "kpts.nc")) as r:
+        with NetcdfReader(os.path.join(task.workdir, "kpts.nc")) as r:
             ibz = collections.namedtuple("ibz", "points weights")
             return ibz(points=r.read_value("reduced_coordinates_of_kpoints"),
                        weights=r.read_value("kpoint_weights"))
@@ -546,21 +544,12 @@ class AbiInput(Input, Has_Structure):
 
             Multiple datasets are ignored. Only the list of k-points for dataset 1 are returned.
         """
-        assert self.ndtset == 1
+        if self.ndtset != 1:
+            raise RuntimeError("get_irred_perts cannot be used if the input contains more than one dataset")
+
         warnings.warn("get_irred_perts is still under development.")
         # Avoid modifications in self.
         inp = self.split_datasets()[0].deepcopy()
-
-        # The magic value that makes ABINIT print the ibz and then stop.
-        #inp.prtkpt = -2
-        #if ngkpt is not None: inp.ngkpt = ngkpt
-        #if shiftk is not None:
-        #    inp.shiftk = np.reshape(shiftk, (-1,3))
-        #    inp.nshiftk = len(inp.shiftk)
-        #if kptopt is not None:
-        #    inp.kptopt = kptopt
-        #if qpoint is not None:
-        #    inp.qptn, inp.nqpt = qpoint, 1
 
         # Use the magic value paral_rf = -1 to get the list of irreducible perturbations for this q-point.
         d = dict(
@@ -570,12 +559,8 @@ class AbiInput(Input, Has_Structure):
         )
         inp.set_vars(d)
 
-        # Build a simple manager to run the job in a shell subprocess
-        # Construct the task and run it
-        if manager is None: manager = TaskManager.from_user_config()
-        workdir = tempfile.mkdtemp() if workdir is None else workdir  
-
-        task = AbinitTask.from_input(inp, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
+        # Build a Task to run Abinit in a shell subprocess
+        task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
         task.start_and_wait(autoparal=False)
 
         # Parse the file to get the perturbations.
@@ -768,67 +753,23 @@ class AbiInput(Input, Has_Structure):
 
         return inp
 
-    def validate(self, executable="abinit"):
+    def validate(self):
         """
         Run ABINIT in dry mode to validate the input file.
-
-        Args:
-            executable:
-                String with the name of the Abinit executable (must be in $PATH).
 
         Return:
             `namedtuple` with the following attributes:
 
                 retcode: Return code. 0 if OK.
-                out: String with stdout data.
-                err: String with stderr data.
-                tmpdir: Temporary directory used to run Abinit in dry mode.
+                log_file:  log file of the Abinit run, use log_file.read() to access its content.
+                stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
 
         Raises:
             `RuntimeError` if executable is not in $PATH.
         """
-        abinit = which(executable)
-        if abinit is None:
-            raise RuntimeError("Cannot find %s in $PATH" % executable)
-
-        import tempfile
-        tmpdir = tempfile.mkdtemp()
-        print(tmpdir)
-
-        # Write files file.
-        files_file = ["run.abi", "run.abo", "in", "out", "tmp"]
-
-        # Paths to the pseudopotential files.
-        # Note that here the pseudos **must** be sorted according to znucl.
-        # Here we reorder the pseudos if the order is wrong.
-        ord_pseudos = []
-        znucl = self.znucl
-
-        for z in znucl:
-            for p in self.pseudos:
-                if p.Z == z:
-                    ord_pseudos.append(p)
-                    break
-            else:
-                raise ValueError("Cannot find pseudo with znucl %s in pseudos:\n%s" % (z, self.pseudos))
-
-        files_file.extend([p.path for p in ord_pseudos])
-
-        ff_path = os.path.join(tmpdir, "run.files")
-        with open(ff_path, "wt") as fh:
-            fh.write("\n".join(files_file))
-
-        # Write input file.
-        with open(os.path.join(tmpdir, "run.abi"), "wt") as fh:
-            fh.write(str(self))
-
-        # Run abinit in dry-run mode.
-        from subprocess import Popen, PIPE
-        cmd = " ".join([abinit, '--dry-run', "< run.files"])
-        process = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, cwd=tmpdir)
-        out, err = process.communicate()
-
-        return dict2namedtuple(retcode=process.returncode, out=out, err=err, tmpdir=tmpdir)
+        task = AbinitTask.temp_shell_task(inp=self) 
+        retcode = task.start_and_wait(autoparal=False, exec_args="--dry-run")
+        return dict2namedtuple(retcode=retcode, log_file=task.log_file, stderr_file=task.stderr_file)
 
 
 class Dataset(mixins.MappingMixin, Has_Structure):

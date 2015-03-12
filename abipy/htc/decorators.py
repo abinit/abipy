@@ -232,6 +232,7 @@ class LexxDecorator(AbinitInputDecorator):
 
         return inp
 
+
 # Stubs
 #class ScfMixingDecorator(AbinitInputDecorator):
 

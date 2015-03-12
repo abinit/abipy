@@ -15,14 +15,15 @@ class DecoratorTest(AbipyTest):
     def setUp(self):
         # Si ebands
         si_structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
-        self.si_ebands = ebands_input(si_structure, abidata.pseudos("14si.pspnc"), kppa=10)
+        self.si_ebands = ebands_input(si_structure, abidata.pseudos("14si.pspnc"), ecut=2, kppa=10)
 
         # Reference input string. Used to test if decorators do not change the initial Input.
         self.si_ebands_inpstr = str(self.si_ebands)
 
         # NiO bands with PAW
         nio_structure = abidata.structure_from_ucell("NiO")
-        self.nio_ebands = ebands_input(nio_structure, abidata.pseudos("28ni.paw", "8o.2.paw"), kppa=10)
+        self.nio_ebands = ebands_input(nio_structure, abidata.pseudos("28ni.paw", "8o.2.paw"), 
+                                       ecut=2, pawecutdg=4, kppa=10)
 
         self.nio_ebands_inpstr = str(self.nio_ebands)
 
