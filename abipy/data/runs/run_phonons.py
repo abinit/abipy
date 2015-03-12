@@ -29,12 +29,12 @@ def scf_ph_inputs(paral_kgb=0):
              5.00000000E-01,  5.00000000E-01,  0.00000000E+00,
             -2.50000000E-01,  5.00000000E-01,  2.50000000E-01,
             ]
-
     qpoints = np.reshape(qpoints, (-1,3))
+
 
     # Global variables used both for the GS and the DFPT run.
     global_vars = dict(nband=4,             
-                       ecut=3.0,         
+                       ecut=2.0,         
                        #ecut=12.0,
                        ngkpt=[4, 4, 4],
                        nshiftk=4,
@@ -58,6 +58,7 @@ def scf_ph_inputs(paral_kgb=0):
     # i.e. the same parameters used for the k-mesh in gs_inp.
     qpoints = gs_inp.get_ibz(ngkpt=(4,4,4), shiftk=(0,0,0), kptopt=1).points
     #print("get_ibz", qpoints)
+    #qpoints = qpoints[0:1]
 
     ph_inputs = abilab.AbiInput(pseudos=pseudos, ndtset=len(qpoints))
 

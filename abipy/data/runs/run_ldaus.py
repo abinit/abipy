@@ -5,7 +5,7 @@ from __future__ import division, print_function, unicode_literals
 import sys
 import os
 import numpy as np
-import abipy.data as data  
+import abipy.data as abidata  
 import abipy.abilab as abilab
 
 
@@ -82,8 +82,8 @@ def build_flow(options):
     flow = abilab.Flow(workdir, manager=manager)
 
     # Create the work for the band structure calculation.
-    structure = data.structure_from_ucell("NiO")
-    pseudos = data.pseudos("28ni.paw", "8o.2.paw")
+    structure = abidata.structure_from_ucell("NiO")
+    pseudos = abidata.pseudos("28ni.paw", "8o.2.paw")
 
     # The code below set up the parameters for the LDA+U calculation in NiO.
     #usepawu   1

@@ -74,6 +74,8 @@ def pytest_addoption(parser):
     parser.addoption('--loglevel', default="ERROR", type=str,
                      help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
+    #parser.addoption('--manager', default=None, help="TaskManager file (defaults to the manager.yml found in cwd"
+
 
 def pytest_report_header(config):
     """Write the initial header."""

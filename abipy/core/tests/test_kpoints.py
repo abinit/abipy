@@ -3,6 +3,7 @@
 from __future__ import print_function, division
 
 import itertools
+import unittest
 import numpy as np
 import abipy.data as data
 
@@ -139,8 +140,10 @@ class TestKpointList(AbipyTest):
         self.assertTrue(len(add_klist) == 4)
         self.assertTrue(add_klist == add_klist.remove_duplicated())
 
+
 class TestKpointsReader(AbipyTest):
 
+    @unittest.expectedFailure
     def test_reading(self):
         """Test the reading of Kpoints from netcdf files."""
 

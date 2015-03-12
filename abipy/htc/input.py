@@ -8,7 +8,6 @@ from __future__ import print_function, division, unicode_literals
 import os
 import collections
 import warnings
-import tempfile
 import itertools
 import copy
 import six
@@ -19,7 +18,9 @@ import abipy.tools.mixins as mixins
 
 from collections import OrderedDict
 from monty.dev import deprecated
+from monty.collections import dict2namedtuple
 from monty.string import is_string, list_strings
+from monty.os.path import which
 from pymatgen.core.units import Energy
 from pymatgen.serializers.json_coders import PMGSONable, pmg_serialize
 from pymatgen.io.abinitio.pseudos import PseudoTable, Pseudo
@@ -95,7 +96,7 @@ def _idt_varname(varname):
 @six.add_metaclass(abc.ABCMeta)
 class Input(six.with_metaclass(abc.ABCMeta, PMGSONable, object)):
     """
-    Base class foor Input objects.
+    Base class for Input objects.
 
     An input object must define have a make_input method 
     that returns the string representation used by the client code.
@@ -175,7 +176,7 @@ class AbiInput(Input, Has_Structure):
     """
     Error = InputError
 
-    def __init__(self, pseudos, pseudo_dir="", structure=None, ndtset=1, comment=""):
+    def __init__(self, pseudos, pseudo_dir="", structure=None, ndtset=1, comment="", decorators=None):
         """
         Args:
             pseudos: String or list of string with the name of the pseudopotential files.
@@ -183,6 +184,7 @@ class AbiInput(Input, Has_Structure):
             structure: file with the structure, :class:`Structure` object or dictionary with ABINIT geo variable
             ndtset: Number of datasets.
             comment: Optional string with a comment that will be placed at the beginning of the file.
+            decorators: List of `AbinitInputDecorator` objects.
         """
         # Dataset[0] contains the global variables common to the different datasets
         # Dataset[1:ndtset+1] stores the variables specific to the different datasets.
@@ -217,6 +219,8 @@ class AbiInput(Input, Has_Structure):
         if structure is not None: self.set_structure(structure)
         if comment is not None: self.set_comment(comment)
 
+        self._decorators = [] if not decorators else decorators
+
     def __str__(self):
         """String representation i.e. the input file read by Abinit."""
         if self.ndtset > 1:
@@ -242,7 +246,7 @@ class AbiInput(Input, Has_Structure):
             s = d.to_string(post="")
 
         # Add JSON section with pseudo potentials.
-        ppinfo = ["\n#<JSON>"]
+        ppinfo = ["\n\n\n#<JSON>"]
         d = {"pseudos": [p.as_dict() for p in self.pseudos]}
         ppinfo.extend(json.dumps(d, indent=4).splitlines())
         ppinfo.append("</JSON>")
@@ -269,7 +273,6 @@ class AbiInput(Input, Has_Structure):
         if varname.startswith("_"):
             # Standard behaviour for "private" variables.
             super(AbiInput, self).__setattr__(varname, value)
-
         else:
             idt, varname = _idt_varname(varname)
 
@@ -315,6 +318,11 @@ class AbiInput(Input, Has_Structure):
         return all(p.isnc for p in self.pseudos)
 
     @property
+    def num_valence_electrons(self):
+        """Number of valence electrons computed from the pseudos and the structure."""
+        return self.structure.num_valence_electrons(self.pseudos)
+
+    @property
     def structure(self):
         """
         Returns the :class:`Structure` associated to the ABINIT input.
@@ -342,6 +350,14 @@ class AbiInput(Input, Has_Structure):
         new = self.deepcopy()
         new.set_vars(*args, **kwargs)
         return new
+
+    @property
+    def decorators(self):
+        return self._decorators
+
+    def register_decorator(self, decorator):
+        """Register a :class:`AbinitInputDecorator`."""
+        self._decorators.append(decorator.as_dict())
 
     def generate(self, **kwargs):
         """
@@ -388,10 +404,10 @@ class AbiInput(Input, Has_Structure):
             # Cannot use get*, ird* variables since links must be explicit.
             for varname in my_vars:
                 if varname.startswith("get") or varname.startswith("ird"):
-                    err_msg = ("get* or ird* variables should not be present in the input when you split it into datasets")
+                    err_msg = "get* or ird variables should not be present in the input when you split it into datasets"
                     raise self.Error(err_msg)
 
-            new = self.__class__(pseudos=self.pseudos, ndtset=1)
+            new = self.__class__(pseudos=self.pseudos, ndtset=1, decorators=self._decorators)
             new.set_vars(**my_vars)
             new.set_mnemonics(self.mnemonics)
             news.append(new)
@@ -405,11 +421,16 @@ class AbiInput(Input, Has_Structure):
         Args:
             dtset: Int with the index of the dataset, slice object of iterable 
             kwargs: Dictionary with the variables.
+
+        Returns:
+            self
         """
         dtset = kwargs.pop("dtset", 0)
         kwargs.update(dict(*args))
         for idt in self._dtset2range(dtset):
             self[idt].set_vars(**kwargs)
+
+        return self
 
     # Alias
     set_variables = set_vars
@@ -470,7 +491,9 @@ class AbiInput(Input, Has_Structure):
 
             Multiple datasets are ignored. Only the list of k-points for dataset 1 are returned.
         """
-        assert self.ndtset == 1
+        if self.ndtset != 1:
+            raise RuntimeError("get_ibz cannot be used if the input contains more than one dataset")
+
         # Avoid modifications in self.
         inp = self.split_datasets()[0].deepcopy()
 
@@ -488,16 +511,12 @@ class AbiInput(Input, Has_Structure):
         if qpoint is not None:
             inp.qptn, inp.nqpt = qpoint, 1
 
-        # Build a simple manager to run the job in a shell subprocess
-        # Construct the task and run it
-        if manager is None: manager = TaskManager.from_user_config()
-        workdir = tempfile.mkdtemp() if workdir is None else workdir  
-
-        task = AbinitTask.from_input(inp, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
+        # Build a Task to run Abinit in a shell subprocess
+        task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
         task.start_and_wait(autoparal=False)
 
         # Read the list of k-points from the netcdf file.
-        with NetcdfReader(os.path.join(workdir, "kpts.nc")) as r:
+        with NetcdfReader(os.path.join(task.workdir, "kpts.nc")) as r:
             ibz = collections.namedtuple("ibz", "points weights")
             return ibz(points=r.read_value("reduced_coordinates_of_kpoints"),
                        weights=r.read_value("kpoint_weights"))
@@ -525,36 +544,23 @@ class AbiInput(Input, Has_Structure):
 
             Multiple datasets are ignored. Only the list of k-points for dataset 1 are returned.
         """
-        assert self.ndtset == 1
+        if self.ndtset != 1:
+            raise RuntimeError("get_irred_perts cannot be used if the input contains more than one dataset")
+
         warnings.warn("get_irred_perts is still under development.")
         # Avoid modifications in self.
         inp = self.split_datasets()[0].deepcopy()
-
-        # The magic value that makes ABINIT print the ibz and then stop.
-        #inp.prtkpt = -2
-        #if ngkpt is not None: inp.ngkpt = ngkpt
-        #if shiftk is not None:
-        #    inp.shiftk = np.reshape(shiftk, (-1,3))
-        #    inp.nshiftk = len(inp.shiftk)
-        #if kptopt is not None:
-        #    inp.kptopt = kptopt
-        #if qpoint is not None:
-        #    inp.qptn, inp.nqpt = qpoint, 1
 
         # Use the magic value paral_rf = -1 to get the list of irreducible perturbations for this q-point.
         d = dict(
             paral_rf=-1,
             rfatpol=[1, len(inp.structure)],  # Set of atoms to displace.
             rfdir=[1, 1, 1],                  # Along this set of reduced coordinate axis.
-            )
+        )
         inp.set_vars(d)
 
-        # Build a simple manager to run the job in a shell subprocess
-        # Construct the task and run it
-        if manager is None: manager = TaskManager.from_user_config()
-        workdir = tempfile.mkdtemp() if workdir is None else workdir  
-
-        task = AbinitTask.from_input(inp, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
+        # Build a Task to run Abinit in a shell subprocess
+        task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
         task.start_and_wait(autoparal=False)
 
         # Parse the file to get the perturbations.
@@ -712,9 +718,11 @@ class AbiInput(Input, Has_Structure):
                 if isinstance(value, np.ndarray):
                     ds_copy[key] = value.tolist()
             dtsets.append(dict(ds_copy))
-        #for ds in self: dtsets.append(ds.as_dict())
 
-        return {'pseudos': [p.as_dict() for p in self.pseudos], 'datasets': dtsets}
+        return {'pseudos': [p.as_dict() for p in self.pseudos], 
+                'datasets': dtsets,
+                "decorators": [dec.as_dict() for dec in self._decorators],
+                }
 
     @classmethod
     def from_dict(cls, d):
@@ -723,12 +731,45 @@ class AbiInput(Input, Has_Structure):
             pseudos.append(Pseudo.from_file(p['filepath']))
 
         dtsets = d['datasets']
-        abiinput = cls(pseudos, ndtset=dtsets[0]['ndtset'])
+        abiinput = cls(pseudos, ndtset=dtsets[0]['ndtset'], decorators=d["decorators"])
 
         for n, ds in enumerate(dtsets):
             abiinput.set_vars(dtset=n, **ds)
 
         return abiinput
+
+    def new_from_decorators(self, decorators):
+        """
+        This function receives a list of :class:`AbinitInputDecorator` objects or just a single object,
+        applyes the decorators to the input and returns a new :class:`AbiInput` object.
+        self is not changed.
+        """
+        if not isinstance(decorators, (list, tuple)): decorators = [decorators]
+
+        # Deepcopy only at the first step to improve performance.
+        inp = self
+        for i, dec in enumerate(decorators):
+            inp = dec(inp, deepcopy=(i == 0))
+
+        return inp
+
+    def validate(self):
+        """
+        Run ABINIT in dry mode to validate the input file.
+
+        Return:
+            `namedtuple` with the following attributes:
+
+                retcode: Return code. 0 if OK.
+                log_file:  log file of the Abinit run, use log_file.read() to access its content.
+                stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
+
+        Raises:
+            `RuntimeError` if executable is not in $PATH.
+        """
+        task = AbinitTask.temp_shell_task(inp=self) 
+        retcode = task.start_and_wait(autoparal=False, exec_args="--dry-run")
+        return dict2namedtuple(retcode=retcode, log_file=task.log_file, stderr_file=task.stderr_file)
 
 
 class Dataset(mixins.MappingMixin, Has_Structure):
@@ -780,6 +821,26 @@ class Dataset(mixins.MappingMixin, Has_Structure):
     def deepcopy(self):
         """Deepcopy of the `Dataset`"""
         return copy.deepcopy(self)
+
+    #@abc.property
+    #def runlevel(self):
+    #    """String defining the Runlevel. See _runl2optdriver."""
+    # Mapping runlevel --> optdriver variable
+    #_runl2optdriver = {
+    #    "scf": 0,
+    #    "nscf": 0,
+    #    "relax": 0,
+    #    "dfpt": 1,
+    #    "screening": 3,
+    #    "sigma": 4,
+    #    "bse": 99,
+    #}
+    #    # Find the value of optdriver (firt in self, then in globals finally use default value.
+    #    optdriver = self.get("optdriver")
+    #    if optdriver is None: optdriver = self.dt0.get("optdriver")
+    #    if optdriver is None: optdriver = 0
+
+    #    # At this point we have to understand the type of calculation.
 
     #@property
     #def geoformat(self):
@@ -961,8 +1022,9 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         #    return self._structure
 
     def set_structure(self, structure):
-        if is_string(structure): structure = Structure.from_file(filepath)
-        if isinstance(structure, collections.Mapping): structure = Structure.from_abivars(**structure)
+        structure = Structure.as_structure(structure)
+        #if is_string(structure): structure = Structure.from_file(filepath)
+        #if isinstance(structure, collections.Mapping): structure = Structure.from_abivars(**structure)
 
         self._structure = structure
         if structure is None: return
@@ -1092,12 +1154,10 @@ class LdauParams(object):
             unit: Energy unit of U and J.
         """
         if symbol not in self.symbols_by_typat:
-            err_msg = "Symbol %s not in symbols_by_typat:\n%s" % (symbol, self.symbols_by_typat)
-            raise ValueError(err_msg)
+            raise ValueError("Symbol %s not in symbols_by_typat:\n%s" % (symbol, self.symbols_by_typat))
 
         if symbol in self._params:
-            err_msg = "Symbol %s is already present in LdauParams! Cannot overwrite:\n" % symbol
-            raise ValueError(err_msg)
+            raise ValueError("Symbol %s is already present in LdauParams! Cannot overwrite:\n" % symbol)
 
         self._params[symbol] = LujForSpecie(l=l, u=u, j=j, unit=unit)
 
@@ -1168,8 +1228,7 @@ class LexxParams(object):
             raise ValueError(err_msg)
 
         if symbol in self._lexx_for_symbol:
-            err_msg = "Symbol %s is already present in LdauParams! Cannot overwrite:\n" % symbol
-            raise ValueError(err_msg)
+            raise ValueError("Symbol %s is already present in LdauParams! Cannot overwrite:" % symbol)
 
         self._lexx_for_symbol[symbol] = l
 
@@ -1235,7 +1294,7 @@ def product_dict(d):
 
         Dictionaries are not ordered, therefore one cannot assume that 
         the order of the keys in the output equals the one used to loop.
-        If the order is important, one should pass a `OrderedDict` in input.
+        If the order is important, one should pass a :class:`OrderedDict` in input.
     """
     keys, vals = d.keys(), d.values()
 
@@ -1286,7 +1345,7 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
             nqpath=2,
             qpath=list(qpoint) + [0, 0, 0],
             ndivsm=1
-            )
+        )
 
         return new
 

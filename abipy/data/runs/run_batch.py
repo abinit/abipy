@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-"""Flow for computing the band structure of silicon."""
+"""
+This example shows how to build multiple flows and use the BatchLauncher to execute them.
+"""
 from __future__ import division, print_function, unicode_literals
 
 import sys
@@ -10,8 +12,7 @@ import abipy.abilab as abilab
 
 def make_scf_nscf_inputs(paral_kgb=1):
     """Returns two input files: GS run and NSCF on a high symmetry k-mesh."""
-    pseudos = abidata.pseudos("14si.pspnc")
-    #pseudos = data.pseudos("Si.GGA_PBE-JTH-paw.xml")
+    pseudos = abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
     #inp.set_mnemonics(True)
@@ -21,8 +22,6 @@ def make_scf_nscf_inputs(paral_kgb=1):
     ecut = 6
     global_vars = dict(ecut=ecut,
                        nband=8,
-                       timopt=-1,
-                       istwfk="*1",
                        nstep=15,
                        paral_kgb=paral_kgb,
                     )
@@ -50,30 +49,31 @@ def make_scf_nscf_inputs(paral_kgb=1):
     scf_input, nscf_input = inp.split_datasets()
     return scf_input, nscf_input
 
-def build_flow(options):
-    # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
-    workdir = options.workdir
-    if not options.workdir:
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
-
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
-
+def build_flow(workdir, paral_kgb):
     # Get the SCF and the NSCF input.
-    scf_input, nscf_input = make_scf_nscf_inputs()
+    scf_input, nscf_input = make_scf_nscf_inputs(paral_kgb)
 
     # Build the flow.
-    return abilab.bandstructure_flow(workdir, scf_input, nscf_input, manager=manager)
-    
+    return abilab.bandstructure_flow(workdir, scf_input, nscf_input)
 
-@abilab.flow_main
-def main(options):
-    flow = build_flow(options)
-    #import pymatgen.io.abinitio.mocks as mocks
-    #flow = mocks.infinite_flow(flow)
-    flow.build_and_pickle_dump()
-    return flow
+
+def main():
+    batch_dir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
+
+    from pymatgen.io.abinitio.launcher import BatchLauncher
+    batch = BatchLauncher(workdir=batch_dir)
+
+    # Build multiple flows and add them to the BatchLauncher.
+    # Each flow has a unique wordir inside batch.workdir
+    for paral_kgb in range(2):
+        flow_dir = os.path.join(batch.workdir, "flow_paral_kgb_%d" % paral_kgb)
+        batch.add_flow(build_flow(workdir=flow_dir, paral_kgb=paral_kgb))
+
+    # Submit to the queue in batch mode.
+    # Use abibatch.py to inspect the status or resubmit.
+    job = batch.submit()
+    print("batch.submit() returned: ", job.retcode)
+    return job.retcode
 
 if __name__ == "__main__":
     sys.exit(main())

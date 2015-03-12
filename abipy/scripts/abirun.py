@@ -216,11 +216,16 @@ Usage example:\n
 
     # Subparser for batch command.
     p_batch = subparsers.add_parser('batch', help="Run scheduler in batch script.")
+    p_batch.add_argument("-t", '--timelimit', default=None, help=("Time limit for batch script. "
+                         "Accept int with seconds or string with time given in the slurm convention: "
+                         "`days-hours:minutes:seconds`. If timelimit is None, the default value specified"
+                         " in the `batch_adapter` entry of `manager.yml` is used."))
 
     # Subparser for status command.
     p_status = subparsers.add_parser('status', parents=[flow_selector_parser], help="Show task status.")
     p_status.add_argument('-d', '--delay', default=0, type=int, help=("If 0, exit after the first analysis.\n" + 
                           "If > 0, enter an infinite loop and delay execution for the given number of seconds."))
+    p_status.add_argument('-s', '--summary', default=False, action="store_true", help="Print short version with status counters.")
 
     # Subparser for cancel command.
     p_cancel = subparsers.add_parser('cancel', parents=[flow_selector_parser], help="Cancel the tasks in the queue.")
@@ -231,11 +236,7 @@ Usage example:\n
 
     # Subparser for restart command.
     p_reset = subparsers.add_parser('reset', parents=[flow_selector_parser], help="Reset the tasks of the flow with the specified status.")
-    p_reset.add_argument('task_status', default="QCritical") 
-
-    # Subparser for unlock command.
-    #p_unlock = subparsers.add_parser('unlock', parents=[flow_selector_parser], help="Reset the tasks of the flow with the specified status.")
-    #p_reset.add_argument('task_status', default="QCritical") 
+    p_reset.add_argument('-s', '--task-status', default="QCritical", help="Select the status of the task to reset. Defaults QCritical") 
 
     # Subparser for move command.
     p_move = subparsers.add_parser('move', help="Move the flow to a new directory and change the absolute paths")
@@ -243,7 +244,7 @@ Usage example:\n
 
     # Subparser for open command.
     p_open = subparsers.add_parser('open', parents=[flow_selector_parser], help="Open files in $EDITOR, type `abirun.py FLOWDIR open --help` for help)")
-    p_open.add_argument('what', default="o", 
+    p_open.add_argument('what', nargs="?", default="o", 
         help="""\
 Specify the files to open. Possible choices:
     i ==> input_file
@@ -299,7 +300,9 @@ Specify the files to open. Possible choices:
 
     p_history = subparsers.add_parser('history', parents=[flow_selector_parser], help="Show Node history.")
     p_history.add_argument("-m", "--metadata", action="store_true", default=False, help="Print history metadata")
-    #p_history.add_argument("-t", "event-type", default=)
+    #p_history.add_argument("-t", "--task-history", action="store_true", default=True, help=)
+    #p_history.add_argument("-t", "--task-history", action="store_true", default=True, help=)
+    #p_history.add_argument("-t", "--task-history", action="store_true", default=True, help=)
 
     p_handlers = subparsers.add_parser('handlers', help="Show event handlers installed in the flow")
     p_handlers.add_argument("-d", "--doc", action="store_true", default=False, 
@@ -382,9 +385,6 @@ Specify the files to open. Possible choices:
     flow = abilab.Flow.pickle_load(options.flowdir, remove_lock=options.remove_lock)
     retcode = 0
 
-    nrows, ncols = get_terminal_size()
-    #print(nrows, ncols)
-
     if options.command == "gui":
         if options.chroot:
             # Change the workdir of flow.
@@ -399,10 +399,13 @@ Specify the files to open. Possible choices:
         new_manager = abilab.TaskManager.from_file(options.manager_file)
 
         # Change the manager of the errored tasks.
-        status = "S_QCRITICAL"
+        status = "QCritical"
         #status = "S_ERROR"
         #print("Resetting tasks with status: %s" % options.task_status)
         for task in flow.iflat_tasks(status=status, nids=selected_nids(flow, options)):
+        #for work in flow:
+        #    for task in work:
+        #        if task.status in
             task.reset()
             task.set_manager(new_manager)
             
@@ -410,6 +413,9 @@ Specify the files to open. Possible choices:
         return flow.build_and_pickle_dump()
 
     elif options.command == "events":
+        nrows, ncols = get_terminal_size()
+        #print(nrows, ncols)
+
         for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
             report = task.get_event_report()
             #report = report.filter_types()
@@ -417,6 +423,7 @@ Specify the files to open. Possible choices:
             print(report)
 
     elif options.command == "corrections":
+        nrows, ncols = get_terminal_size()
         count = 0
         for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
             if task.num_corrections == 0: continue
@@ -429,9 +436,21 @@ Specify the files to open. Possible choices:
             print("No correction found.")
 
     elif options.command == "history":
-        for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
-            print(make_banner(str(task), width=ncols, mark="="))
-            print(task.history.to_string(metadata=options.metadata))
+        nrows, ncols = get_terminal_size()
+
+        #for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
+        #    print(make_banner(str(task), width=ncols, mark="="))
+        #    print(task.history.to_string(metadata=options.metadata))
+
+        for work in flow:
+            print(make_banner(str(work), width=ncols, mark="="))
+            print(work.history.to_string(metadata=options.metadata))
+            for task in work:
+                print(make_banner(str(task), width=ncols, mark="="))
+                print(task.history.to_string(metadata=options.metadata))
+
+        print(make_banner(str(flow), width=ncols, mark="="))
+        print(flow.history.to_string(metadata=options.metadata))
 
     elif options.command == "handlers":
         if options.doc:
@@ -439,18 +458,18 @@ Specify the files to open. Possible choices:
         else:
             flow.show_event_handlers()
 
-    elif options.command in ("single", "singleshot"):
+    elif options.command  == "single":
         nlaunch = PyLauncher(flow).single_shot()
         flow.show_status()
         print("Number of tasks launched: %d" % nlaunch)
 
-    elif options.command in ("rapid", "rapidfire"):
+    elif options.command == "rapid":
         nlaunch = PyLauncher(flow).rapidfire()
         flow.show_status()
         print("Number of tasks launched: %d" % nlaunch)
 
     elif options.command == "scheduler":
-        # Check that the env on the local machine is properly setup before starting the scheduler.
+        # Check that the env on the local machine is properly configured before starting the scheduler.
         abilab.abicheck()
 
         sched_options = {oname: getattr(options, oname) for oname in 
@@ -463,12 +482,30 @@ Specify the files to open. Possible choices:
 
         sched.add_flow(flow)
         print(sched)
-        sched.start()
+
+        if False:
+            from shutil import copy
+            bkp_pickle = "_bkp"
+            copy(flow.pickle_file, bkp_pickle)
+
+            while True:
+                sched.start()
+                flow.rmtree()
+                flow = abilab.Flow.pickle_load(bkp_pickle)
+                flow.build()
+                sched = PyFlowScheduler.from_user_config()
+                sched.add_flow(flow)
+        else:
+            return sched.start()
 
     elif options.command == "batch":
-        flow.batch()
+        #print(options.timelimit)
+        return flow.batch(timelimit=options.timelimit)
 
     elif options.command == "status":
+
+        # Select the method to call.
+        show_func = flow.show_status if not options.summary else flow.show_summary
 
         if options.delay:
             cprint("Entering infinite loop. Press CTRL+C to exit", color="magenta", end="", flush=True)
@@ -476,13 +513,13 @@ Specify the files to open. Possible choices:
                 while True:
                     print(2*"\n" + time.asctime() + "\n")
                     flow.check_status()
-                    flow.show_status(verbose=options.verbose, nids=selected_nids(flow, options))
+                    show_func(verbose=options.verbose, nids=selected_nids(flow, options))
                     if flow.all_ok: break
                     time.sleep(options.delay)
             except KeyboardInterrupt:
                 pass
         else:
-            flow.show_status(verbose=options.verbose, nids=selected_nids(flow, options))
+            show_func(verbose=options.verbose, nids=selected_nids(flow, options))
             if flow.manager.has_queue:
                 print("Total number of jobs in queue: %s" % flow.manager.get_njobs_in_queue())
 
@@ -553,9 +590,6 @@ Specify the files to open. Possible choices:
 
         flow.pickle_dump()
 
-    #elif options.command == "unlock":
-    #    self.start_lockfile.remove()
-
     elif options.command == "move":
         print("Will move flow to %s..." % options.dest)
         flow.chroot(options.dest)
@@ -583,7 +617,8 @@ Specify the files to open. Possible choices:
                 pass
 
     elif options.command == "qstat":
-        for task in flow.select_tasks(nids=options.nids, wslice=options.wslice):
+        #for task in flow.select_tasks(nids=options.nids, wslice=options.wslice):
+        for task in flow.iflat_tasks():
             if not task.qjob: continue
             print("qjob", task.qjob)
             print("info", task.qjob.get_info())
@@ -625,7 +660,11 @@ Specify the files to open. Possible choices:
         def plot_graphs():
             for task in tasks:
                 if hasattr(task, "inspect"):
-                    task.inspect()
+                    try:
+                        task.inspect()
+                    except Exception as exc:
+                        cprint("%s: inspect method raised %s " % (task, exc), color="blue")
+                        
                 else:
                     cprint("Task %s does not provide an inspect method" % task, color="blue")
 

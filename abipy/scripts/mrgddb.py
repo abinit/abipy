@@ -6,7 +6,8 @@ import os
 import sys
 import argparse
 
-from pymatgen.io.abinitio.wrappers import Mrgddb
+from abipy.abilab import Mrgddb
+
 
 def main():
 
@@ -52,11 +53,12 @@ def main():
     if not options.out_ddb:
         raise ValueError("out_ddb must be specified")
 
-    mrgddb = Mrgddb(executable=options.executable, verbose=options.verbose)
-
+    manager = TaskManager.from_user_config()
+    mrgddb = Mrgddb(manager=manager, executable=options.executable, verbose=options.verbose)
 
     try:
-        mrgddb.merge(options.ddb_files, options.out_ddb, options.description, cwd=None)
+        workdir = "."
+        mrgddb.merge(workdir, options.ddb_files, options.out_ddb, options.description)
     except:
         print("got ddb_files: ", options.ddb_files)
                                   
