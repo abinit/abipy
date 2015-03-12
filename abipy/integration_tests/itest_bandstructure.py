@@ -8,7 +8,7 @@ import abipy.data as abidata
 import abipy.abilab as abilab
 
 from pymatgen.io.abinitio.calculations import bandstructure_work
-from abipy.core.testing import has_abinit
+from abipy.core.testing import has_abinit, has_matplotlib
 
 # Tests in this module require abinit >= 7.9.0
 #pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
@@ -119,7 +119,8 @@ def itest_unconverged_scf(fwp, tvars):
     assert flow.all_ok
 
     # Test inspect methods
-    t0.inspect(show=False)
+    if has_matplotlib():
+        t0.inspect(show=False)
 
     # Test get_results
     t0.get_results()

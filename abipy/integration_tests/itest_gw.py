@@ -6,7 +6,7 @@ import abipy.data as abidata
 import abipy.abilab as abilab
 
 from pymatgen.io.abinitio.calculations import g0w0_with_ppmodel_work
-from abipy.core.testing import has_abinit
+from abipy.core.testing import has_abinit, has_matplotlib
 
 # Tests in this module require abinit >= 7.9.0
 #pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
@@ -136,7 +136,8 @@ def itest_g0w0_flow(fwp, tvars):
         assert sigres.nsppol == 1
 
     # Test SigmaTask inspect method
-    #sig_task.inspect(show=False)
+    #if has_matplotlib
+        #sig_task.inspect(show=False)
 
     # Test get_results for Sigma and Scr
     scr_task.get_results()

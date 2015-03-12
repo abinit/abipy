@@ -6,7 +6,7 @@ import numpy as np
 import abipy.data as abidata
 import abipy.abilab as abilab
 
-from abipy.core.testing import has_abinit
+from abipy.core.testing import has_abinit, has_matplotlib
 
 
 # Tests in this module require abinit >= 7.9.0 and pseudodojo.
@@ -120,7 +120,9 @@ def itest_phonon_flow(fwp, tvars):
 
     # Test PhononTask inspect method
     ph_task = flow[1][0]
-    ph_task.inspect(show=False)
+
+    if has_matplotlib():
+        ph_task.inspect(show=False)
 
     # Test get_results
     ph_task.get_results()

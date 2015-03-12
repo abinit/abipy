@@ -49,6 +49,14 @@ def has_abinit(version, cmp=">="):
             "==": abiver.strip() == version.strip()}[cmp]
 
 
+def has_matplotlib():
+    try:
+        import matplotlib.pyplot as plt
+        return True
+    except ImportError:
+        return False
+
+
 class AbipyTest(PymatgenTest):
     """Extend TestCase with functions from numpy.testing.utils that support ndarrays."""
 
