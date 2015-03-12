@@ -244,7 +244,7 @@ Usage example:\n
 
     # Subparser for open command.
     p_open = subparsers.add_parser('open', parents=[flow_selector_parser], help="Open files in $EDITOR, type `abirun.py FLOWDIR open --help` for help)")
-    p_open.add_argument('what', default="o", 
+    p_open.add_argument('what', nargs="?", default="o", 
         help="""\
 Specify the files to open. Possible choices:
     i ==> input_file
@@ -660,7 +660,11 @@ Specify the files to open. Possible choices:
         def plot_graphs():
             for task in tasks:
                 if hasattr(task, "inspect"):
-                    task.inspect()
+                    try:
+                        task.inspect()
+                    except Exception as exc:
+                        cprint("%s: inspect method raised %s " % (task, exc), color="blue")
+                        
                 else:
                     cprint("Task %s does not provide an inspect method" % task, color="blue")
 
