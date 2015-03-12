@@ -612,7 +612,8 @@ Specify the files to open. Possible choices:
                 pass
 
     elif options.command == "qstat":
-        for task in flow.select_tasks(nids=options.nids, wslice=options.wslice):
+        #for task in flow.select_tasks(nids=options.nids, wslice=options.wslice):
+        for task in flow.iflat_tasks():
             if not task.qjob: continue
             print("qjob", task.qjob)
             print("info", task.qjob.get_info())

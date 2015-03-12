@@ -55,11 +55,12 @@ Usage example:\n
     retcode = 0
 
     job = QueueJob.from_qtype_and_id(options.qtype, int(options.job_id))
-    print(job)
+    #print(job)
 
-    print("get_info\n", job.get_info())
-    print("get_stats\n", job.get_stats())
-    print("estimated_start_time\n", job.estimated_start_time())
+    print("get_info", job.get_info())
+    #print("get_stats", job.get_stats())
+    #print("estimated_start_time", job.estimated_start_time())
+    print(job)
 
     return retcode
 
