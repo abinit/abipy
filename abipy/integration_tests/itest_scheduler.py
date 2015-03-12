@@ -19,16 +19,12 @@ def make_scf_nscf_inputs(paral_kgb=1):
 
     # Global variables
     ecut = 4
-    global_vars = dict(ecut=ecut,
-                       nband=8,
-                       nstep=15,
-                       paral_kgb=paral_kgb,
-                    )
+    global_vars = dict(ecut=ecut, nband=8, nstep=15, paral_kgb=paral_kgb)
 
     if inp.ispaw:
         global_vars.update(pawecutdg=2*ecut)
 
-    inp.set_vars(**global_vars)
+    inp.set_vars(global_vars)
 
     # Dataset 1 (GS run)
     inp[1].set_kmesh(ngkpt=[2,2,2], shiftk=[0,0,0])
@@ -84,9 +80,9 @@ def itest_flow_with_deadlocks(fwp):
     assert not flow.all_ok
     assert all(task.status == task.S_OK for task in [scf_task, dos_task, work1[0]])
     assert all(task.status == task.S_ERROR for task in [nscf_task])
-    deadlocked, runnables, running = flow.deadlocked_runnables_running()
-    assert deadlocked and not runnables and not running
-    assert work1[1] in deadlocked
+    g = flow.find_deadlocks()
+    assert g.deadlocked and not g.runnables and not g.running
+    assert work1[1] in g.deadlocked
     #assert 0
 
 
@@ -119,6 +115,6 @@ def itest_flow_without_runnable_tasks(fwp):
     assert scf_task.status == scf_task.S_OK
     assert nscf_task.status == nscf_task.S_ERROR
 
-    deadlocked, runnables, running = flow.deadlocked_runnables_running()
-    assert not deadlocked and not runnables and not running
+    g = flow.find_deadlocks()
+    assert not g.deadlocked and not g.runnables and not g.running
     #assert 0

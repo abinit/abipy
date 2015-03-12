@@ -65,7 +65,7 @@ class GWTestHelpers(PymatgenTest):
         tests = SingleAbinitGWWork(structure, spec).convs
         tests_out = {'nscf_nbands': {'test_range': (40,),
                                      'control': 'gap', 'method': 'set_bands', 'level': 'nscf'},
-                     'ecut': {'test_range': (52, 48, 44),
+                     'ecut': {'test_range': (50, 48, 46, 44),
                               'control': 'e_ks_max', 'method': 'direct', 'level': 'scf'},
                      'ecuteps': {'test_range': (4, 8, 12, 16, 20),
                                  'control': 'gap', 'method': 'direct', 'level': 'sigma'}}

@@ -33,10 +33,21 @@ class Structure(pymatgen.Structure):
     def as_structure(cls, obj):
         """Convert obj into a structure."""
         if isinstance(obj, cls): return obj
+
         if is_string(obj): return cls.from_file(obj)
+
         if isinstance(obj, pymatgen.Structure): 
             obj.__class__ = cls
             return obj
+
+        if isinstance(obj, collections.Mapping): 
+            try:
+                return Structure.from_abivars(obj)
+            except:
+                try:
+                    return Structure.from_dict(obj)
+                except:
+                    raise TypeError("Don't know how to convert dict %s into a structure" % obj)
 
         raise TypeError("Don't know how to convert %s into a structure" % type(obj))
 

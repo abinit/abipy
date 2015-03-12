@@ -216,6 +216,10 @@ Usage example:\n
 
     # Subparser for batch command.
     p_batch = subparsers.add_parser('batch', help="Run scheduler in batch script.")
+    p_batch.add_argument("-t", '--timelimit', default=None, help=("Time limit for batch script. "
+                         "Accept int with seconds or string with time given in the slurm convention: "
+                         "`days-hours:minutes:seconds`. If timelimit is None, the default value specified"
+                         " in the `batch_adapter` entry of `manager.yml` is used."))
 
     # Subparser for status command.
     p_status = subparsers.add_parser('status', parents=[flow_selector_parser], help="Show task status.")
@@ -495,7 +499,8 @@ Specify the files to open. Possible choices:
             return sched.start()
 
     elif options.command == "batch":
-        return flow.batch()
+        #print(options.timelimit)
+        return flow.batch(timelimit=options.timelimit)
 
     elif options.command == "status":
 

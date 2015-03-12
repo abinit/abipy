@@ -1,5 +1,5 @@
 """Tests for htc.FilesFile."""
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
 import numpy as np
 import abipy.data as abidata
@@ -20,7 +20,7 @@ class AbiInputTest(AbipyTest):
         inp.set_mnemonics(True)
         assert inp.mnemonics
 
-        aequal(inp.isnc, True)
+        assert inp.isnc
 
         # One can set the value of the variables directly with the syntax.
         inp.ecut = 10.
@@ -47,6 +47,7 @@ class AbiInputTest(AbipyTest):
         inp.set_vars(**unit_cell)
         # Now we have a structure
         assert len(inp.structure) == 2
+        assert inp.num_valence_electrons == 8
 
         # Alternatively, it's possible to create a dictionary on the fly with the syntax.
         inp.set_vars(kptopt=1,  ngkpt=[2, 2, 2],  nshiftk=1, 
@@ -85,6 +86,9 @@ class AbiInputTest(AbipyTest):
         # To specify values for the different datasets, one can use the syntax
         inp.ecut1 = 10
         inp.ecut2 = 20
+
+        assert inp[1]["ecut"] == inp.ecut1 and inp[2]["ecut"] == inp.ecut2
+        assert inp[1].get("ecut") == inp.ecut1 and inp[2].get("foobar") is None
 
         with self.assertRaises(AttributeError): print(inp.ecut)
         inp.remove_vars("ecut", dtset=2)
