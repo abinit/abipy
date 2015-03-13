@@ -70,7 +70,7 @@ def _stopping_criterion(runlevel, accuracy):
     return {tolname: getattr(_tolerances[tolname], accuracy)}
 
 
-def _find_ecut_pawecutdg(ecut, pawecutdg, pseudos):
+def _find_ecut_pawecutdg(ecut, pawecutdg, pseudos, accuracy='normal'):
     """Return the value of ecut and pawecutdg"""
     # Get ecut and pawecutdg from the pseudo hints.
     has_hints = all(p.has_hints for p in pseudos)
