@@ -90,6 +90,8 @@ def itest_phonon_flow(fwp, tvars):
     t0 = flow[0][0]
     t0.start_and_wait()
 
+    assert t0.uses_paral_kgb(tvars.paral_kgb)
+
     flow.check_status()
     assert t0.status == t0.S_OK
     flow.show_status()
@@ -120,6 +122,9 @@ def itest_phonon_flow(fwp, tvars):
 
     # Test PhononTask inspect method
     ph_task = flow[1][0]
+
+    # paral_kgb does not make sense for DFPT!
+    assert not ph_task.uses_paral_kgb(tvars.paral_kgb)
 
     if has_matplotlib():
         ph_task.inspect(show=False)

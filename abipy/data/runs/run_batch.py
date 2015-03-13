@@ -49,25 +49,28 @@ def make_scf_nscf_inputs(paral_kgb=1):
     scf_input, nscf_input = inp.split_datasets()
     return scf_input, nscf_input
 
-def build_flow(workdir, paral_kgb):
-    # Get the SCF and the NSCF input.
-    scf_input, nscf_input = make_scf_nscf_inputs(paral_kgb)
-
-    # Build the flow.
-    return abilab.bandstructure_flow(workdir, scf_input, nscf_input)
-
 
 def main():
     batch_dir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
+    # intialize the BatchLauncher.
     from pymatgen.io.abinitio.launcher import BatchLauncher
     batch = BatchLauncher(workdir=batch_dir)
 
     # Build multiple flows and add them to the BatchLauncher.
-    # Each flow has a unique wordir inside batch.workdir
+
     for paral_kgb in range(2):
-        flow_dir = os.path.join(batch.workdir, "flow_paral_kgb_%d" % paral_kgb)
-        batch.add_flow(build_flow(workdir=flow_dir, paral_kgb=paral_kgb))
+        #flow_dir = os.path.join(batch.workdir, "flow_paral_kgb_%d" % paral_kgb)
+
+        # Get the SCF and the NSCF input and build the flow.
+        scf_input, nscf_input = make_scf_nscf_inputs(paral_kgb)
+
+        # Each flow will have a unique wordir inside batch.workdir. 
+        # Note that we have to pass workdir=None and use set_name to specify the dir basename
+        flow = abilab.bandstructure_flow(None, scf_input, nscf_input, allocate=False)
+        flow.set_name("flow_paral_kgb_%d" % paral_kgb)
+
+        batch.add_flow(flow)
 
     # Submit to the queue in batch mode.
     # Use abibatch.py to inspect the status or resubmit.
