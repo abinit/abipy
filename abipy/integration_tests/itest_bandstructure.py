@@ -75,6 +75,9 @@ def itest_unconverged_scf(fwp, tvars):
     t0 = flow[0][0]
     t1 = flow[0][1]
 
+    assert t0.uses_paral_kgb(tvars.paral_kgb)
+    assert t1.uses_paral_kgb(tvars.paral_kgb)
+
     # This run should not converge.
     t0.start_and_wait()
     t0.check_status()

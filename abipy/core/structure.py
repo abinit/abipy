@@ -86,7 +86,7 @@ class Structure(pymatgen.Structure):
         return new
 
     @classmethod
-    def from_material_id(cls, material_id, final=True, api_key=None, host="www.materialsproject.org"):
+    def from_material_id(cls, material_id, final=True, api_key=None, endpoint="https://www.materialsproject.org/rest/v2"):
         """
         Get a Structure corresponding to a material_id.
 
@@ -101,7 +101,7 @@ class Structure(pymatgen.Structure):
                 variable. This makes easier for heavy users to simply add
                 this environment variable to their setups and MPRester can
                 then be called without any arguments.
-            host (str): Url of host to access the MaterialsProject REST interface.
+            endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
                 Defaults to the standard Materials Project REST address, but
                 can be changed to other urls implementing a similar interface.
 
@@ -114,7 +114,7 @@ class Structure(pymatgen.Structure):
 
         # Get pytmatgen structure and convert it to abipy structure
         from pymatgen.matproj.rest import MPRester, MPRestError
-        with MPRester(api_key=api_key, host=host) as database:
+        with MPRester(api_key=api_key,endpoint=endpoint) as database:
             new = database.get_structure_by_material_id(material_id, final=final)
             new.__class__ = cls
             return new
