@@ -180,18 +180,18 @@ Usage example:\n
     #group.add_argument("-p", "--task-pos", default=None, type=parse_wslice, help="List of tuples with the position of the tasl in the flow.")
     #group.add_argument("-s", '--task-status', default=None, type=parse_wslice, help="Select only the tasks with the given status.")
 
+    # Parent parse for common options.
+    copts_parser = argparse.ArgumentParser(add_help=False)
+
+    copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
+                              help='verbose, can be supplied multiple times to increase verbosity')
+    copts_parser.add_argument('--remove-lock', default=False, type=bool, help="Remove the lock file of the pickle file storing the flow.")
+    copts_parser.add_argument('--no-colors', default=False, help='Disable ASCII colors')
+    copts_parser.add_argument('--loglevel', default="ERROR", type=str,
+                               help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
-
-    parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                        help='verbose, can be supplied multiple times to increase verbosity')
-
-    parser.add_argument('--remove-lock', default=False, type=bool, help="Remove the lock file of the pickle file storing the flow.")
-
-    parser.add_argument('--no-colors', default=False, help='Disable ASCII colors')
-
-    parser.add_argument('--loglevel', default="ERROR", type=str,
-                        help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
     parser.add_argument('flowdir', nargs="?", help=("File or directory containing the ABINIT flow"
                                                     "If not given, the first flow in the current workdir is selected"))
@@ -200,13 +200,13 @@ Usage example:\n
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for single command.
-    p_single = subparsers.add_parser('single', help="Run single task.")
+    p_single = subparsers.add_parser('single', parents=[copts_parser], help="Run single task.")
 
     # Subparser for rapidfire command.
-    p_rapid = subparsers.add_parser('rapid', help="Run all tasks in rapidfire mode")
+    p_rapid = subparsers.add_parser('rapid', parents=[copts_parser], help="Run all tasks in rapidfire mode")
 
     # Subparser for scheduler command.
-    p_scheduler = subparsers.add_parser('scheduler', help="Run all tasks with a Python scheduler.")
+    p_scheduler = subparsers.add_parser('scheduler', parents=[copts_parser], help="Run all tasks with a Python scheduler.")
 
     p_scheduler.add_argument('-w', '--weeks', default=0, type=int, help="number of weeks to wait")
     p_scheduler.add_argument('-d', '--days', default=0, type=int, help="number of days to wait")
@@ -215,35 +215,37 @@ Usage example:\n
     p_scheduler.add_argument('-s', '--seconds', default=0, type=int, help="number of seconds to wait")
 
     # Subparser for batch command.
-    p_batch = subparsers.add_parser('batch', help="Run scheduler in batch script.")
+    p_batch = subparsers.add_parser('batch', parents=[copts_parser], help="Run scheduler in batch script.")
     p_batch.add_argument("-t", '--timelimit', default=None, help=("Time limit for batch script. "
                          "Accept int with seconds or string with time given in the slurm convention: "
                          "`days-hours:minutes:seconds`. If timelimit is None, the default value specified"
                          " in the `batch_adapter` entry of `manager.yml` is used."))
 
     # Subparser for status command.
-    p_status = subparsers.add_parser('status', parents=[flow_selector_parser], help="Show task status.")
+    p_status = subparsers.add_parser('status', parents=[copts_parser, flow_selector_parser], help="Show task status.")
     p_status.add_argument('-d', '--delay', default=0, type=int, help=("If 0, exit after the first analysis.\n" + 
                           "If > 0, enter an infinite loop and delay execution for the given number of seconds."))
     p_status.add_argument('-s', '--summary', default=False, action="store_true", help="Print short version with status counters.")
 
     # Subparser for cancel command.
-    p_cancel = subparsers.add_parser('cancel', parents=[flow_selector_parser], help="Cancel the tasks in the queue.")
+    p_cancel = subparsers.add_parser('cancel', parents=[copts_parser, flow_selector_parser], help="Cancel the tasks in the queue.")
     p_cancel.add_argument("-r", "--rmtree", action="store_true", default=False, help="Remove flow directory.")
 
     # Subparser for restart command.
-    p_restart = subparsers.add_parser('restart', help="Restart the tasks of the flow that are not converged.")
+    p_restart = subparsers.add_parser('restart', parents=[copts_parser], help="Restart the tasks of the flow that are not converged.")
 
     # Subparser for restart command.
-    p_reset = subparsers.add_parser('reset', parents=[flow_selector_parser], help="Reset the tasks of the flow with the specified status.")
+    p_reset = subparsers.add_parser('reset', parents=[copts_parser, flow_selector_parser], 
+                                    help="Reset the tasks of the flow with the specified status.")
     p_reset.add_argument('-s', '--task-status', default="QCritical", help="Select the status of the task to reset. Defaults QCritical") 
 
     # Subparser for move command.
-    p_move = subparsers.add_parser('move', help="Move the flow to a new directory and change the absolute paths")
+    p_move = subparsers.add_parser('move', parents=[copts_parser], help="Move the flow to a new directory and change the absolute paths")
     p_move.add_argument('dest', nargs=1) 
 
     # Subparser for open command.
-    p_open = subparsers.add_parser('open', parents=[flow_selector_parser], help="Open files in $EDITOR, type `abirun.py FLOWDIR open --help` for help)")
+    p_open = subparsers.add_parser('open', parents=[copts_parser, flow_selector_parser], 
+                                   help="Open files in $EDITOR, type `abirun.py FLOWDIR open --help` for help)")
     p_open.add_argument('what', nargs="?", default="o", 
         help="""\
 Specify the files to open. Possible choices:
@@ -256,7 +258,7 @@ Specify the files to open. Possible choices:
     q ==> qout_file
 """)
 
-    p_ncopen = subparsers.add_parser('ncopen', parents=[flow_selector_parser], 
+    p_ncopen = subparsers.add_parser('ncopen', parents=[copts_parser, flow_selector_parser], 
                                       help="Open netcdf files in ipython. Use --help` for more info")
     p_ncopen.add_argument('ncext', nargs="?", default="GSR", help="Select the type of file to open")
 
@@ -267,58 +269,57 @@ Specify the files to open. Possible choices:
                        "In this case chroot is the absolute path to the flow on the **localhost**",
                        "Note that it is not possible to change the flow from remote when chroot is used."))
 
-    p_new_manager = subparsers.add_parser('new_manager', parents=[flow_selector_parser], help="Change the TaskManager.")
+    p_new_manager = subparsers.add_parser('new_manager', parents=[copts_parser, flow_selector_parser], help="Change the TaskManager.")
     p_new_manager.add_argument("manager_file", default="", type=str, help="YAML file with the new manager")
 
-    p_tail = subparsers.add_parser('tail', parents=[flow_selector_parser], help="Use tail to follow the main output files of the flow.")
+    p_tail = subparsers.add_parser('tail', parents=[copts_parser, flow_selector_parser], help="Use tail to follow the main output files of the flow.")
     p_tail.add_argument('what_tail', nargs="?", type=str, default="o", help="What to follow: o for output (default), l for logfile, e for stderr")
 
-    p_qstat = subparsers.add_parser('qstat', help="Show additional info on the jobs in the queue.")
+    p_qstat = subparsers.add_parser('qstat', parents=[copts_parser], help="Show additional info on the jobs in the queue.")
     #p_qstat.add_argument('what_tail', nargs="?", type=str, default="o", help="What to follow: o for output (default), l for logfile, e for stderr")
 
-    p_deps = subparsers.add_parser('deps', help="Show dependencies.")
+    p_deps = subparsers.add_parser('deps', parents=[copts_parser], help="Show dependencies.")
 
-    p_robot = subparsers.add_parser('robot', parents=[flow_selector_parser], help="Use a robot to analyze the results of multiple tasks (requires ipython)")
+    p_robot = subparsers.add_parser('robot', parents=[copts_parser, flow_selector_parser], 
+                                    help="Use a robot to analyze the results of multiple tasks (requires ipython)")
     p_robot.add_argument('robot_ext', nargs="?", type=str, default="GSR", help="The file extension of the netcdf file")
 
-    p_plot = subparsers.add_parser('plot', parents=[flow_selector_parser], help="Plot data. Use --help for more info.")
+    p_plot = subparsers.add_parser('plot', parents=[copts_parser, flow_selector_parser], help="Plot data. Use --help for more info.")
     p_plot.add_argument("what", nargs="?", type=str, default="ebands", help="Object to plot")
 
-    p_inspect = subparsers.add_parser('inspect', parents=[flow_selector_parser], help="Inspect the tasks")
+    p_inspect = subparsers.add_parser('inspect', parents=[copts_parser, flow_selector_parser], help="Inspect the tasks")
 
-    p_inputs= subparsers.add_parser('inputs', parents=[flow_selector_parser], help="Show the input files of the tasks")
+    p_inputs= subparsers.add_parser('inputs', parents=[copts_parser, flow_selector_parser], help="Show the input files of the tasks")
 
-    p_manager = subparsers.add_parser('manager', help="Document the TaskManager options")
+    p_manager = subparsers.add_parser('manager', parents=[copts_parser], help="Document the TaskManager options")
     p_manager.add_argument("qtype", nargs="?", default=None, help=("Write job script to terminal if qtype='script' else" 
         " document the qparams for the given QueueAdapter qtype e.g. slurm"))
 
-    p_events = subparsers.add_parser('events', parents=[flow_selector_parser], 
+    p_events = subparsers.add_parser('events', parents=[copts_parser, flow_selector_parser], 
                                     help="Show ABINIT events (error messages, warnings, comments)")
     #p_events.add_argument("-t", "event-type", default=)
 
-    p_corrections = subparsers.add_parser('corrections', parents=[flow_selector_parser], help="Show abipy corrections")
+    p_corrections = subparsers.add_parser('corrections', parents=[copts_parser, flow_selector_parser], help="Show abipy corrections")
 
-    p_history = subparsers.add_parser('history', parents=[flow_selector_parser], help="Show Node history.")
+    p_history = subparsers.add_parser('history', parents=[copts_parser, flow_selector_parser], help="Show Node history.")
     p_history.add_argument("-m", "--metadata", action="store_true", default=False, help="Print history metadata")
     #p_history.add_argument("-t", "--task-history", action="store_true", default=True, help=)
     #p_history.add_argument("-t", "--task-history", action="store_true", default=True, help=)
     #p_history.add_argument("-t", "--task-history", action="store_true", default=True, help=)
 
-    p_handlers = subparsers.add_parser('handlers', help="Show event handlers installed in the flow")
+    p_handlers = subparsers.add_parser('handlers', parents=[copts_parser], help="Show event handlers installed in the flow")
     p_handlers.add_argument("-d", "--doc", action="store_true", default=False, 
                             help="Show documentation about all the handlers that can be installed.")
 
-    p_notebook = subparsers.add_parser('notebook', help="Create and open an ipython notebook to interact with the flow.")
+    p_notebook = subparsers.add_parser('notebook', parents=[copts_parser], help="Create and open an ipython notebook to interact with the flow.")
 
-    p_embed = subparsers.add_parser('ipython', help="Embed IPython. Useful for advanced operations or debugging purposes.")
+    p_embed = subparsers.add_parser('ipython', parents=[copts_parser], help="Embed IPython. Useful for advanced operations or debugging purposes.")
 
-    p_tar = subparsers.add_parser('tar', help="Create tarball file.")
-
+    p_tar = subparsers.add_parser('tar', parents=[copts_parser], help="Create tarball file.")
     p_tar.add_argument("-s", "--max-filesize", default=None, 
                        help="Exclude file whose size > max-filesize bytes. Accept integer or string e.g `1Mb`.")
 
     def parse_strings(s): return s.split(",") if s is not None else s
-
     p_tar.add_argument("-e", "--exclude-exts", default=None, type=parse_strings,
                        help="Exclude file extensions. Accept string or comma-separated strings. Ex: -eWFK or --exclude-exts=WFK,GSR")
 
