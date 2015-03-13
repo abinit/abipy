@@ -8,8 +8,10 @@ in a single location, so that test scripts can just import it and work right awa
 from __future__ import print_function, division, unicode_literals
 
 import subprocess
+import json
 
 from monty.os.path import which
+from monty.json import MontyDecoder
 from pymatgen.util.testing import PymatgenTest
 
 import logging
@@ -69,6 +71,10 @@ class AbipyTest(PymatgenTest):
     def has_abinit(version, cmp=">="):
         """Return True if abinit is in $PATH and version is cmp min_version."""
         return has_abinit(version, cmp=cmp)
+
+    def assertFwSerializable(self, obj):
+        self.assertTrue(obj.to_dict().has_key('_fw_name'))
+        self.assertDictEqual(obj.to_dict(), obj.__class__.from_dict(obj.to_dict()).to_dict())
 
 
 class AbipyFileTest(AbipyTest):
