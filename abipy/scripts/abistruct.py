@@ -18,6 +18,8 @@ Usage example:\n
 
     abistruct.py convert filepath cif         => Read the structure from file and print CIF file.
     abistruct.py convert filepath abivars     => Print the ABINIT variables defining the structure.
+    abistrctu.py convert out_HIST abivars     => Read the last structure from the HIST file and 
+                                                 print the corresponding Abinit variables.
     abistruct.py visualize filepath xcrysden  => Visualize the structure with XcrysDen.
     abistruct.py pmgdata mp-149               => Get structure from pymatgen database and print its JSON representation.
 """

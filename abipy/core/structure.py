@@ -59,6 +59,10 @@ class Structure(pymatgen.Structure):
         Supported formats include CIF, POSCAR/CONTCAR, CHGCAR, LOCPOT,
         vasprun.xml, CSSR, Netcdf and pymatgen's JSON serialized structures.
 
+        Netcdf files supported:
+            All files produced by ABINIT with info of the crystalline geometry 
+            HIST_FILEs, in this case the last structure of the history is returned.
+
         Args:
             filename (str): The filename to read from.
             primitive (bool): Whether to convert to a primitive cell
@@ -76,6 +80,12 @@ class Structure(pymatgen.Structure):
             new = file.read_structure(cls=cls)
             new.set_spacegroup(SpaceGroup.from_file(file))
             if closeit: file.close()
+
+        elif filepath.endswith("_HIST") or filepath.endswith("_HIST.nc"):
+            # Abinit history file. In this case we return the last structure!
+            from abipy.dynamics.hist import HistFile
+            with HistFile(filepath) as hist:
+                return hist.structures[-1]
 
         else:
             # TODO: Spacegroup is missing here.

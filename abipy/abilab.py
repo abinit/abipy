@@ -16,7 +16,7 @@ from pymatgen.io.abinitio.wrappers import Mrgscr, Mrgddb, Mrggkk
 from pymatgen.io.abinitio.tasks import *
 from pymatgen.io.abinitio.works import *
 from pymatgen.io.abinitio.flows import Flow, G0W0WithQptdmFlow, bandstructure_flow, g0w0_flow, phonon_flow
-from pymatgen.io.abinitio.launcher import PyFlowScheduler
+from pymatgen.io.abinitio.launcher import PyFlowScheduler, BatchLauncher
 
 from abipy.core.structure import Lattice, Structure, StructureModifier
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen, AnaddbInput

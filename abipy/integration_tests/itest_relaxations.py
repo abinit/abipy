@@ -102,6 +102,8 @@ def itest_atomic_relaxation(fwp, tvars):
 
     with t0.open_hist() as hist:
         print(hist)
+        # from_file accepts HIST files as well.
+        assert hist.structures[-1] == abilab.Structure.from_file(hist.filepath)
 
     with t0.open_gsr() as gsr:
         print(gsr)
