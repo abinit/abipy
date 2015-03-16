@@ -31,7 +31,7 @@ qadapters:
        qname: main
        qtype: pbspro
        qparams:
-         group_list: naps
+         group_list: napsimu
          #qverbatim: |
          #  #PBS -r y
     limits:
@@ -47,7 +47,7 @@ qadapters:
        qname: large
        qtype: pbspro
        qparams:
-          group_list: naps
+          group_list: napsimu
           #qverbatim: |
           #  #PBS -r y
     limits:

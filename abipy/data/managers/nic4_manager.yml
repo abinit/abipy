@@ -22,7 +22,7 @@ qadapters:
        qname: defq
        qtype: slurm
        qparams:
-         mail_user: nobody@nowhere
+         mail_user:
          mail_type: FAIL
          # Othere slurm options ... 
     limits:
