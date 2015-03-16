@@ -203,7 +203,7 @@ class HistReader(ETSF_Reader):
             raise NotImplementedError("Alchemical mixing is not supported, num_pseudos != ntypat")
 
         znucl, typat = self.read_value("znucl"), self.read_value("typat")
-        print(znucl.dtype, typat)
+        #print(znucl.dtype, typat)
 
         structures = []
         for step in range(self.num_steps):

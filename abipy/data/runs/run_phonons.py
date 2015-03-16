@@ -58,7 +58,9 @@ def scf_ph_inputs(paral_kgb=0):
     # i.e. the same parameters used for the k-mesh in gs_inp.
     qpoints = gs_inp.get_ibz(ngkpt=(4,4,4), shiftk=(0,0,0), kptopt=1).points
     #print("get_ibz", qpoints)
-    #qpoints = qpoints[0:1]
+ 
+    # Select the first q-point to speedup the run.
+    qpoints = qpoints[0:1]
 
     ph_inputs = abilab.AbiInput(pseudos=pseudos, ndtset=len(qpoints))
 

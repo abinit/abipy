@@ -92,7 +92,7 @@ Usage example:\n
         from  abipy.iotools import xsf_write_structure
         filepath = options.filepath
 
-        if filepath.endswith("HIST"):
+        if any(filepath.endswith(ext) for ext in ("HIST", "HIST.nc")):
             with abilab.abiopen(filepath) as hist: 
                 structures = hist.structures
 

@@ -65,8 +65,7 @@ def build_flow(options):
     relax_task = flow.register_task(relax_inp, task_class=abilab.RelaxTask)
 
     #work = RelaxWork(self, ion_input, ioncell_input, workdir=None, manager=None):
-
-    nscf_task = flow.register_task(nscf_inp, deps={relax_task: "DEN"}, task_class=abilab.NscfTask)
+    #nscf_task = flow.register_task(nscf_inp, deps={relax_task: "DEN"}, task_class=abilab.NscfTask)
 
     return flow.allocate()
 
