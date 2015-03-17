@@ -14,6 +14,7 @@ from pprint import pprint
 from monty import termcolor
 from monty.termcolor import cprint, get_terminal_size
 from monty.string import make_banner
+from pymatgen.io.abinitio.nodes import Status
 from pymatgen.io.abinitio.launcher import PyFlowScheduler, PyLauncher
 from pymatgen.io.abinitio.events import autodoc_event_handlers
 import abipy.abilab as abilab
@@ -226,6 +227,10 @@ Usage example:\n
     p_status.add_argument('-d', '--delay', default=0, type=int, help=("If 0, exit after the first analysis.\n" + 
                           "If > 0, enter an infinite loop and delay execution for the given number of seconds."))
     p_status.add_argument('-s', '--summary', default=False, action="store_true", help="Print short version with status counters.")
+
+    # Subparser for set_status command.
+    p_set_status = subparsers.add_parser('set_status', parents=[copts_parser, flow_selector_parser], help="Change the status of task manually.")
+    p_set_status.add_argument("-s", '--new-status', help="New value of status.")
 
     # Subparser for cancel command.
     p_cancel = subparsers.add_parser('cancel', parents=[copts_parser, flow_selector_parser], help="Cancel the tasks in the queue.")
@@ -504,7 +509,6 @@ Specify the files to open. Possible choices:
         return flow.batch(timelimit=options.timelimit)
 
     elif options.command == "status":
-
         # Select the method to call.
         show_func = flow.show_status if not options.summary else flow.show_summary
 
@@ -523,6 +527,13 @@ Specify the files to open. Possible choices:
             show_func(verbose=options.verbose, nids=selected_nids(flow, options))
             if flow.manager.has_queue:
                 print("Total number of jobs in queue: %s" % flow.manager.get_njobs_in_queue())
+
+    elif options.command == "set_status":
+        new_status = Status.as_status(options.new_status)
+        print(new_status)
+
+        for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
+            task.set_status(new_status, msg="Changed by abirun from %s to %s" % (task.status, new_status))
 
     elif options.command == "open":
         flow.open_files(what=options.what, status=None, op="==", nids=selected_nids(flow, options))
