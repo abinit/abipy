@@ -16,7 +16,7 @@ How to run the tests
 ====================
 
     #. Change the configuration options for the task manager
-       reported in the file `taskmanager.yaml`
+       reported in the file `manager.yaml`
 
     #. Execute py.test in the current directory.
        Results are produced in the directory in `_mytests`
