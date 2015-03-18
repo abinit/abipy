@@ -71,6 +71,8 @@ Usage example:\n
     p_status.add_argument('top', help="File or directory containing the object")
     p_status.add_argument('-s', '--summary', default=False, action="store_true", help="Print short version with status counters.")
 
+    p_version = subparsers.add_parser('version', help="Show version number and exit.")
+
     # Subparser for info.
     #p_load = subparsers.add_parser('info', help="Load object from pickle file and show info on the flows..")
     #p_load.add_argument('top', help="File or directory containing the object")
@@ -91,7 +93,12 @@ Usage example:\n
 
     retcode = 0
 
-    if options.command == "sub":
+    if options.command == "version":
+        from abipy.core.release import version
+        print(version)
+        return 0
+
+    elif options.command == "sub":
         #print("paths", options.paths)
         workdir = options.workdir
         if workdir is None:

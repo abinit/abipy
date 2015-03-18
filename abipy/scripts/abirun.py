@@ -199,10 +199,10 @@ Usage example:\n
     parser.add_argument('flowdir', nargs="?", help=("File or directory containing the ABINIT flow"
                                                     "If not given, the first flow in the current workdir is selected"))
 
-    parser.add_argument('--version', action="store_true", help='Show version and exit')
-
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
+
+    subparsers.add_parser('version', parents=[copts_parser], help='Show version number and exit')
 
     # Subparser for single command.
     p_single = subparsers.add_parser('single', parents=[copts_parser], help="Run single task.")
@@ -352,7 +352,7 @@ Specify the files to open. Possible choices:
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
 
-    if options.version:
+    if options.command == "version":
         from abipy.core.release import version
         print(version)
         return 0
