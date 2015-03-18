@@ -50,7 +50,7 @@ def itest_tolsymerror_handler(fwp):
     flow.register_task(inp, task_class=abilab.RelaxTask)
 
     flow.allocate()
-    flow.make_scheduler().start()
+    assert flow.make_scheduler().start() == 0
 
     flow.show_status()
     assert flow.all_ok
@@ -115,7 +115,7 @@ def itest_dilatmxerror_handler(fwp):
     flow.register_task(inp, task_class=abilab.RelaxTask)
 
     flow.allocate()
-    flow.make_scheduler().start()
+    assert flow.make_scheduler().start() == 0 
 
     flow.show_status()
     assert flow.all_ok

@@ -80,7 +80,7 @@ def itest_gbrv_flow(fwp, tvars):
     flow.build_and_pickle_dump()
 
     fwp.scheduler.add_flow(flow)
-    assert fwp.scheduler.start()
+    assert fwp.scheduler.start() == 0
     assert not fwp.scheduler.exceptions
 
     #work = flow[0]

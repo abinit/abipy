@@ -74,7 +74,7 @@ def itest_flow_with_deadlocks(fwp):
     # Here we set max_num_abierrs to a very large number.
     sched = flow.make_scheduler()
     sched.max_num_abierrs = 10000
-    sched.start()
+    assert sched.start() == 0
     flow.check_status(show=True)
 
     assert not flow.all_ok
@@ -108,7 +108,7 @@ def itest_flow_without_runnable_tasks(fwp):
 
     sched = flow.make_scheduler()
     sched.max_num_abierrs = 10000
-    sched.start()
+    assert sched.start() == 0
     flow.check_status(show=True)
 
     assert not flow.all_ok

@@ -182,7 +182,7 @@ def itest_dilatmx_error_handler(fwp, tvars):
  
      flow.register_work(work)
      flow.allocate()
-     flow.make_scheduler().start()
+     assert flow.make_scheduler().start() == 0
      flow.show_status()
 
      assert all(work.finalized for work in flow)

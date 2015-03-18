@@ -508,7 +508,6 @@ Specify the files to open. Possible choices:
         return sched.start()
 
     elif options.command == "batch":
-        #print(options.timelimit)
         return flow.batch(timelimit=options.timelimit)
 
     elif options.command == "status":
