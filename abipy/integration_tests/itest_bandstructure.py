@@ -137,8 +137,17 @@ def itest_unconverged_scf(fwp, tvars):
     # Test reset_from_scratch
     t0.reset_from_scratch()
     assert t0.status == t0.S_READY
+    # Datetime counters shouls be set to None
+    dt = t0.datetimes
+    assert (dt.submission, dt.start, dt.end) == (None, None, None)
+
     t0.start_and_wait()
     t0.reset_from_scratch()
+
+    # Datetime counters shouls be set to None
+    dt = t0.datetimes
+    assert (dt.submission, dt.start, dt.end) == (None, None, None)
+
     #assert 0
 
 

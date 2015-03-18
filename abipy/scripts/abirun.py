@@ -178,8 +178,10 @@ Usage example:\n
                                       "Examples: --wslice=1 to select the second workflow, --wslice=:3 for 0,1,2,"
                                       "--wslice=-1 for the last workflow, --wslice::2 for even indices"))
 
+    group.add_argument("-S", '--task-status', default=None, type=Status.as_status, 
+                        help="Select only the tasks with the given status. Default: None i.e. ignored. Possible values: %s" %
+                        Status.all_status_strings())
     #group.add_argument("-p", "--task-pos", default=None, type=parse_wslice, help="List of tuples with the position of the tasl in the flow.")
-    #group.add_argument("-s", '--task-status', default=None, type=parse_wslice, help="Select only the tasks with the given status.")
 
     # Parent parse for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
@@ -196,6 +198,8 @@ Usage example:\n
 
     parser.add_argument('flowdir', nargs="?", help=("File or directory containing the ABINIT flow"
                                                     "If not given, the first flow in the current workdir is selected"))
+
+    parser.add_argument('--version', action="store_true", help='Show version and exit')
 
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
@@ -229,8 +233,9 @@ Usage example:\n
     p_status.add_argument('-s', '--summary', default=False, action="store_true", help="Print short version with status counters.")
 
     # Subparser for set_status command.
-    p_set_status = subparsers.add_parser('set_status', parents=[copts_parser, flow_selector_parser], help="Change the status of task manually.")
-    p_set_status.add_argument("-s", '--new-status', help="New value of status.")
+    p_set_status = subparsers.add_parser('set_status', parents=[copts_parser, flow_selector_parser], 
+        help="Change the status of the task. WARNING: Option for developers!")
+    p_set_status.add_argument('new_status', help="New value of status. Possible values: %s" % Status.all_status_strings())
 
     # Subparser for cancel command.
     p_cancel = subparsers.add_parser('cancel', parents=[copts_parser, flow_selector_parser], help="Cancel the tasks in the queue.")
@@ -242,7 +247,8 @@ Usage example:\n
     # Subparser for restart command.
     p_reset = subparsers.add_parser('reset', parents=[copts_parser, flow_selector_parser], 
                                     help="Reset the tasks of the flow with the specified status.")
-    p_reset.add_argument('-s', '--task-status', default="QCritical", help="Select the status of the task to reset. Defaults QCritical") 
+    #p_reset.add_argument('-s', '--task-status', default="QCritical", type=Status.as_status,
+    #                     help="Select the status of the task to reset. Defaults QCritical") 
 
     # Subparser for move command.
     p_move = subparsers.add_parser('move', parents=[copts_parser], help="Move the flow to a new directory and change the absolute paths")
@@ -309,8 +315,6 @@ Specify the files to open. Possible choices:
     p_history = subparsers.add_parser('history', parents=[copts_parser, flow_selector_parser], help="Show Node history.")
     p_history.add_argument("-m", "--metadata", action="store_true", default=False, help="Print history metadata")
     #p_history.add_argument("-t", "--task-history", action="store_true", default=True, help=)
-    #p_history.add_argument("-t", "--task-history", action="store_true", default=True, help=)
-    #p_history.add_argument("-t", "--task-history", action="store_true", default=True, help=)
 
     p_handlers = subparsers.add_parser('handlers', parents=[copts_parser], help="Show event handlers installed in the flow")
     p_handlers.add_argument("-d", "--doc", action="store_true", default=False, 
@@ -347,6 +351,11 @@ Specify the files to open. Possible choices:
     if not isinstance(numeric_level, int):
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
+
+    if options.version:
+        from abipy.core.release import version
+        print(version)
+        return 0
 
     if options.no_colors:
         # Disable colors
@@ -404,14 +413,15 @@ Specify the files to open. Possible choices:
         # Read the new manager from file.
         new_manager = abilab.TaskManager.from_file(options.manager_file)
 
+        # Default status for reset is QCritical
+        if options.task_status: options.task_status = Status.as_status("QCritical")
+
         # Change the manager of the errored tasks.
-        status = "QCritical"
-        #status = "S_ERROR"
-        #print("Resetting tasks with status: %s" % options.task_status)
-        for task in flow.iflat_tasks(status=status, nids=selected_nids(flow, options)):
-        #for work in flow:
-        #    for task in work:
-        #        if task.status in
+        print("Resetting tasks with status: %s" % options.task_status)
+        for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
+            #for work in flow:
+            #   for task in work:
+            #       if task.status in
             task.reset()
             task.set_manager(new_manager)
             
@@ -420,9 +430,8 @@ Specify the files to open. Possible choices:
 
     elif options.command == "events":
         nrows, ncols = get_terminal_size()
-        #print(nrows, ncols)
 
-        for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
+        for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
             report = task.get_event_report()
             #report = report.filter_types()
             print(make_banner(str(task), width=ncols, mark="="))
@@ -431,7 +440,7 @@ Specify the files to open. Possible choices:
     elif options.command == "corrections":
         nrows, ncols = get_terminal_size()
         count = 0
-        for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
+        for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
             if task.num_corrections == 0: continue
             count += 1
             print(make_banner(str(task), width=ncols, mark="="))
@@ -444,7 +453,7 @@ Specify the files to open. Possible choices:
     elif options.command == "history":
         nrows, ncols = get_terminal_size()
 
-        #for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
+        #for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
         #    print(make_banner(str(task), width=ncols, mark="="))
         #    print(task.history.to_string(metadata=options.metadata))
 
@@ -529,11 +538,17 @@ Specify the files to open. Possible choices:
                 print("Total number of jobs in queue: %s" % flow.manager.get_njobs_in_queue())
 
     elif options.command == "set_status":
+        # Default status for reset is QCritical
+        if options.task_status is None: options.task_status = Status.as_status("QCritical")
         new_status = Status.as_status(options.new_status)
-        print(new_status)
+        print("Will set all tasks with status: ", options.task_status, " to new_status", new_status)
 
+        count = 0
         for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
             task.set_status(new_status, msg="Changed by abirun from %s to %s" % (task.status, new_status))
+            count += 1
+
+        print("Number of tasks modified: %s" % count)
 
     elif options.command == "open":
         flow.open_files(what=options.what, status=None, op="==", nids=selected_nids(flow, options))
@@ -579,6 +594,8 @@ Specify the files to open. Possible choices:
             pprint(excs)
 
     elif options.command == "reset":
+        # Default status for reset is QCritical
+        if options.task_status: options.task_status = Status.as_status("QCritical")
         print("Will reset tasks with status: %s" % options.task_status)
 
         count = 0
@@ -593,11 +610,11 @@ Specify the files to open. Possible choices:
         print("Number of tasks launched: %d" % nlaunch)
 
         if nlaunch == 0:
-            deadlocked, runnables, running = flow.deadlocked_runnables_running()
-            print("deadlocked:", deadlocked)
-            print("runnables:", runnables)
-            print("running:", running)
-            if deadlocked and not (runnables or running):
+            g = flow.deadlocked_runnables_running()
+            #print("deadlocked:", gdeadlocked)
+            #print("runnables:", grunnables)
+            #print("running:", g.running)
+            if g.deadlocked and not (g.runnables or g.running):
                 print("*** Flow is deadlocked ***")
 
         flow.pickle_dump()
@@ -617,7 +634,10 @@ Specify the files to open. Possible choices:
             }
             return getattr(choices[options.what_tail], "path")
 
-        paths = [get_path(task) for task in flow.iflat_tasks(status="Running", nids=selected_nids(flow, options))]
+        # Default status for tail is Running
+        if options.status is None: status = Status.as_status("Running")
+
+        paths = [get_path(task) for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options))]
 
         if not paths:
             cprint("No job is running. Exiting!", "red")

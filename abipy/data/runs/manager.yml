@@ -4,6 +4,7 @@ qadapters:
       queue:
         qname: gmac
         qtype: shell
+        #qtype: slurm
       job:
         mpi_runner: mpirun
         pre_run: 
