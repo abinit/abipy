@@ -15,7 +15,7 @@ from monty import termcolor
 from monty.termcolor import cprint, get_terminal_size
 from monty.string import make_banner
 from pymatgen.io.abinitio.nodes import Status
-from pymatgen.io.abinitio.launcher import PyFlowScheduler, PyLauncher
+#from pymatgen.io.abinitio.launcher import PyFlowScheduler
 from pymatgen.io.abinitio.events import autodoc_event_handlers
 import abipy.abilab as abilab
 
@@ -483,16 +483,14 @@ Specify the files to open. Possible choices:
             flow.show_event_handlers()
 
     elif options.command  == "single":
-        flow.check_pid_file()
-        nlaunch = PyLauncher(flow).single_shot()
-        flow.show_status()
+        nlaunch = flow.single_shot()
         print("Number of tasks launched: %d" % nlaunch)
+        if nlaunch: flow.show_status()
 
     elif options.command == "rapid":
-        flow.check_pid_file()
-        nlaunch = PyLauncher(flow).rapidfire()
-        flow.show_status()
+        nlaunch = flow.rapidfire()
         print("Number of tasks launched: %d" % nlaunch)
+        if nlaunch: flow.show_status()
 
     elif options.command == "scheduler":
         # Check that the env on the local machine is properly configured before starting the scheduler.
@@ -502,27 +500,12 @@ Specify the files to open. Possible choices:
             ("weeks", "days", "hours", "minutes", "seconds")}
 
         if all(v == 0 for v in sched_options.values()):
-            sched = PyFlowScheduler.from_user_config()
+            sched = flow.make_scheduler()
         else:
-            sched = PyFlowScheduler(**sched_options)
+            sched = flow.make_scheduler(**sched_options)
 
-        sched.add_flow(flow)
         print(sched)
-
-        if False:
-            from shutil import copy
-            bkp_pickle = "_bkp"
-            copy(flow.pickle_file, bkp_pickle)
-
-            while True:
-                sched.start()
-                flow.rmtree()
-                flow = abilab.Flow.pickle_load(bkp_pickle)
-                flow.build()
-                sched = PyFlowScheduler.from_user_config()
-                sched.add_flow(flow)
-        else:
-            return sched.start()
+        return sched.start()
 
     elif options.command == "batch":
         #print(options.timelimit)
