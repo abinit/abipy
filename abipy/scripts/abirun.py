@@ -398,6 +398,7 @@ Specify the files to open. Possible choices:
         options.flowdir = os.getcwd()
 
     flow = abilab.Flow.pickle_load(options.flowdir, remove_lock=options.remove_lock)
+    #flow.set_spectator_mode(True)
     retcode = 0
 
     if options.command == "gui":
@@ -453,16 +454,24 @@ Specify the files to open. Possible choices:
     elif options.command == "history":
         nrows, ncols = get_terminal_size()
 
-        #for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
-        #    print(make_banner(str(task), width=ncols, mark="="))
-        #    print(task.history.to_string(metadata=options.metadata))
+        works_done = []
+        # Loop on the tasks and show the history of the work is not in works_done
+        for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
+            work = task.work
+            if work not in works_done:
+                works_done.append(work)
+                print(make_banner(str(work), width=ncols, mark="="))
+                print(work.history.to_string(metadata=options.metadata))
 
-        for work in flow:
-            print(make_banner(str(work), width=ncols, mark="="))
-            print(work.history.to_string(metadata=options.metadata))
-            for task in work:
-                print(make_banner(str(task), width=ncols, mark="="))
-                print(task.history.to_string(metadata=options.metadata))
+            print(make_banner(str(task), width=ncols, mark="="))
+            print(task.history.to_string(metadata=options.metadata))
+
+        #for work in flow:
+        #    print(make_banner(str(work), width=ncols, mark="="))
+        #    print(work.history.to_string(metadata=options.metadata))
+        #    for task in work:
+        #        print(make_banner(str(task), width=ncols, mark="="))
+        #        print(task.history.to_string(metadata=options.metadata))
 
         print(make_banner(str(flow), width=ncols, mark="="))
         print(flow.history.to_string(metadata=options.metadata))
@@ -474,11 +483,13 @@ Specify the files to open. Possible choices:
             flow.show_event_handlers()
 
     elif options.command  == "single":
+        flow.check_pid_file()
         nlaunch = PyLauncher(flow).single_shot()
         flow.show_status()
         print("Number of tasks launched: %d" % nlaunch)
 
     elif options.command == "rapid":
+        flow.check_pid_file()
         nlaunch = PyLauncher(flow).rapidfire()
         flow.show_status()
         print("Number of tasks launched: %d" % nlaunch)
