@@ -15,8 +15,7 @@ from monty import termcolor
 from monty.termcolor import cprint, get_terminal_size
 from monty.string import make_banner
 from pymatgen.io.abinitio.nodes import Status
-#from pymatgen.io.abinitio.launcher import PyFlowScheduler
-from pymatgen.io.abinitio.events import autodoc_event_handlers
+from pymatgen.io.abinitio.events import autodoc_event_handlers, EventsParser
 import abipy.abilab as abilab
 
 
@@ -338,6 +337,9 @@ Specify the files to open. Possible choices:
     p_tar.add_argument("-l", "--light", default=False, action="store_true",
                        help="Create light-weight version of the tarball for debugging purposes. Other options are ignored.")
 
+    p_debug = subparsers.add_parser('debug', parents=[copts_parser, flow_selector_parser], 
+                                     help="Scan error files and log files for possible error messages.")
+
     # Parse command line.
     try:
         options = parser.parse_args()
@@ -398,7 +400,7 @@ Specify the files to open. Possible choices:
         options.flowdir = os.getcwd()
 
     flow = abilab.Flow.pickle_load(options.flowdir, remove_lock=options.remove_lock)
-    #flow.set_spectator_mode(True)
+    #flow.set_spectator_mode(False)
     retcode = 0
 
     if options.command == "gui":
@@ -420,9 +422,6 @@ Specify the files to open. Possible choices:
         # Change the manager of the errored tasks.
         print("Resetting tasks with status: %s" % options.task_status)
         for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
-            #for work in flow:
-            #   for task in work:
-            #       if task.status in
             task.reset()
             task.set_manager(new_manager)
             
@@ -434,8 +433,8 @@ Specify the files to open. Possible choices:
 
         for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
             report = task.get_event_report()
-            #report = report.filter_types()
             print(make_banner(str(task), width=ncols, mark="="))
+            #report = report.filter_types()
             print(report)
 
     elif options.command == "corrections":
@@ -732,6 +731,69 @@ Specify the files to open. Possible choices:
         else:
             tarfile = flow.make_light_tarfile()
             print("Created light tarball file %s" % tarfile)
+
+    elif options.command == "debug":
+        nrows, ncols = get_terminal_size()
+
+        # Default status for reset is QCritical
+        if options.task_status is None: options.task_status = Status.as_status("QCritical")
+
+        # For each task selected:
+        #
+        #     1) Check the error files of the task. If not empty, print the content to stdout and we are done.
+        #     2) If error files are empty, look at the master log file for possible errors 
+        #     3) If also this check failes, scan the process log files.
+        #        TODO: This check is not needed if we introduce a new __abinit_error__ file 
+        #        that is created by the first MPI process that invokes MPI abort!
+        #     
+        ntasks = 0
+        for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
+            print(make_banner(str(task), width=ncols, mark="="))
+            ntasks += 1
+            count = 0 # count > 0 means we found some useful info that could explain the failures.
+
+            #  Start with error files.
+            for efname in ["qerr_file", "stderr_file",]:
+                err_file = getattr(task, efname)
+                if err_file.exists:
+                    s = err_file.read()
+                    if not s: continue
+                    print(make_banner(str(err_file), width=ncols, mark="="))
+                    cprint(s, color="red")
+                    count += 1 
+
+            if not count:
+                # Check main log file.
+                try:
+                    report = task.get_event_report()
+                    if report.num_errors: 
+                        s = "\n".join(e for e in report.errors)
+                    else:
+                        s = None
+                except Exception as exc:
+                    s = str(exc)
+
+                if s is not None:
+                    print(make_banner(report.filename), width=ncols, mark="=")
+                    cprint(s, color="red")
+                    count += 1
+
+            if not count:
+                log_files = task.tmpdir.list_filepaths(wildcard="*LOG_*")
+                if not log_files:
+                    cprint("No *LOG_* file in tmpdir. This usually happens if you are running with many CPUs", color="magenta")
+
+                for log_file in log_files:
+                    report = EventsParser().parse(log_file)
+                    if report.errors:
+                        print(report)
+                        count += 1
+                        break
+
+            if not count:
+                cprint("Houston, we could not find any error message that can explain the problem", color="magenta")
+
+        print("Number of tasks analyzed: %d" % ntasks)
 
     else:
         raise RuntimeError("Don't know what to do with command %s!" % options.command)

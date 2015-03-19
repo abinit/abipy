@@ -18,3 +18,8 @@ TODO LIST:
 
   # Fix problem with AbiniEvent format, src_file and scr_line (see src/67_common/scprqt.F90)
     Introduce an integer flag (msg_level) to be passed to msg_hndl
+
+  # Try to generalize the (very nice) approach used by Guido to handle target_dilatmx
+    WorkWithCondition(...) could be used to simulate a convergence study. The main 
+    problem is how to include input_generators (__next__) while preserving data persistence
+    with pickle! I've already done something related to this problem in FlowCallback...
