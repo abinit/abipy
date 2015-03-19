@@ -735,14 +735,14 @@ Specify the files to open. Possible choices:
     elif options.command == "debug":
         nrows, ncols = get_terminal_size()
 
-        # Default status for reset is QCritical
+        # Default status for debug is QCritical
         if options.task_status is None: options.task_status = Status.as_status("QCritical")
 
         # For each task selected:
         #
         #     1) Check the error files of the task. If not empty, print the content to stdout and we are done.
         #     2) If error files are empty, look at the master log file for possible errors 
-        #     3) If also this check failes, scan the process log files.
+        #     3) If also this check failes, scan all the process log files.
         #        TODO: This check is not needed if we introduce a new __abinit_error__ file 
         #        that is created by the first MPI process that invokes MPI abort!
         #     
@@ -779,14 +779,20 @@ Specify the files to open. Possible choices:
                     count += 1
 
             if not count:
+                # Inspect all log files produced by the other nodes.
                 log_files = task.tmpdir.list_filepaths(wildcard="*LOG_*")
                 if not log_files:
                     cprint("No *LOG_* file in tmpdir. This usually happens if you are running with many CPUs", color="magenta")
 
                 for log_file in log_files:
-                    report = EventsParser().parse(log_file)
-                    if report.errors:
-                        print(report)
+                    try:
+                        report = EventsParser().parse(log_file)
+                        if report.errors:
+                            print(report)
+                            count += 1
+                            break
+                    except Exception as exc:
+                        cprint(str(exc), color="red")
                         count += 1
                         break
 

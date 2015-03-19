@@ -30,6 +30,7 @@ def make_ion_ioncell_inputs(paral_kgb=1):
         nshiftk=1,
         chksymbreak=0,
         paral_kgb=paral_kgb,
+        prtwf=0,
     )
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
@@ -45,7 +46,7 @@ def make_ion_ioncell_inputs(paral_kgb=1):
         tolrff=0.02,
         tolmxf=5.0e-5,
         #ntime=50,
-        ntime=5,  #To test the restart
+        ntime=3,  #To test the restart
         #dilatmx=1.1, # FIXME: abinit crashes if I don't use this
     )
 
@@ -59,7 +60,7 @@ def make_ion_ioncell_inputs(paral_kgb=1):
         tolmxf=5.0e-5,
         strfact=100,
         #ntime=50,
-        ntime=5,  # To test the restart
+        ntime=3,  # To test the restart
         )
 
     ion_inp, ioncell_inp = inp.split_datasets()
@@ -90,8 +91,8 @@ def build_flow(options):
     deps = {relax_work[-1]: "@structure"}
     #deps = {relax_work[-1]: ["DEN", "@structure"]}  --> This is not possible because the file ext is changed!
     #deps = {relax_work[-1]: ["WFK", "@structure"]}  --> This triggers an infamous bug in abinit
-    bands_work.register_relax_task(ioncell_inp, deps=deps)
-    flow.register_work(bands_work)
+    #bands_work.register_relax_task(ioncell_inp, deps=deps)
+    #flow.register_work(bands_work)
 
     return flow.allocate()
 

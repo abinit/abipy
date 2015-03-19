@@ -112,7 +112,7 @@ def itest_atomic_relaxation(fwp, tvars):
     t0.get_results()
 
 
-def make_ion_ioncell_inputs(tvars, dilatmx, scalevol):
+def make_ion_ioncell_inputs(tvars, dilatmx, scalevol=1, ntime=50):
     cif_file = abidata.cif_file("si.cif")
     structure = abilab.Structure.from_file(cif_file)
 
@@ -146,9 +146,7 @@ def make_ion_ioncell_inputs(tvars, dilatmx, scalevol):
         ionmov=2,
         tolrff=0.02,
         tolmxf=5.0e-5,
-        ntime=50,
-        #ntime=5, To test the restart
-        #dilatmx=1.05, # FIXME: abinit crashes if I don't use this
+        ntime=ntime,
     )
 
     # Dataset 2 (Atom + Cell Relaxation)
@@ -159,12 +157,38 @@ def make_ion_ioncell_inputs(tvars, dilatmx, scalevol):
         tolrff=0.02,
         tolmxf=5.0e-5,
         strfact=100,
-        ntime=50,
-        #ntime=5, To test the restart
+        ntime=ntime,
         )
 
     ion_inp, ioncell_inp = inp.split_datasets()
     return ion_inp, ioncell_inp
+
+
+def itest_relaxation_with_restart_from_den(fwp, tvars):
+     """Test structural relaxations with automatic restart from DEN files."""
+     # Build the flow
+     flow = abilab.Flow(fwp.workdir, manager=fwp.manager)
+ 
+     # Use small value for ntime to trigger restart, then disable the output of the WFK file.
+     ion_input, ioncell_input = make_ion_ioncell_inputs(tvars, dilatmx=1.1, ntime=3)
+     ion_input.set_vars(prtwf=0)
+     ioncell_input.set_vars(prtwf=0)
+
+     relax_work = abilab.RelaxWork(ion_input, ioncell_input)
+     flow.register_work(relax_work)
+
+     assert flow.make_scheduler().start() == 0
+     flow.show_status()
+
+     assert all(work.finalized for work in flow)
+     assert flow.all_ok
+
+     # we should have (0, 1) restarts and no WFK file in outdir.
+     for i, task in enumerate(relax_work):
+        assert task.status == task.S_OK
+        assert task.num_restarts == i
+        assert task.num_corrections == 0
+        assert not task.outdir.has_abiext("WFK")
 
 
 def itest_dilatmx_error_handler(fwp, tvars):
