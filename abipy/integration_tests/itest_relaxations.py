@@ -190,6 +190,8 @@ def itest_relaxation_with_restart_from_den(fwp, tvars):
         assert task.num_corrections == 0
         assert not task.outdir.has_abiext("WFK")
 
+     flow.rmtree()
+
 
 def itest_dilatmx_error_handler(fwp, tvars):
      """

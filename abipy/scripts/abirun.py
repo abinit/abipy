@@ -11,6 +11,7 @@ import argparse
 import time
 
 from pprint import pprint
+from collections import defaultdict
 from monty import termcolor
 from monty.termcolor import cprint, get_terminal_size
 from monty.string import make_banner
@@ -339,6 +340,9 @@ Specify the files to open. Possible choices:
 
     p_debug = subparsers.add_parser('debug', parents=[copts_parser, flow_selector_parser], 
                                      help="Scan error files and log files for possible error messages.")
+
+    p_group = subparsers.add_parser('group', parents=[copts_parser, flow_selector_parser], 
+                                     help="Group tasks according to property.")
 
     # Parse command line.
     try:
@@ -800,6 +804,16 @@ Specify the files to open. Possible choices:
                 cprint("Houston, we could not find any error message that can explain the problem", color="magenta")
 
         print("Number of tasks analyzed: %d" % ntasks)
+
+    elif options.command == "group":
+        d = defaultdict(list)
+        for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
+            key = task.status
+            d[key].append(task.node_id)
+
+        print("Mapping status --> List of node identifiers")
+        for k, v in d.items():
+            print("   ",k, " --> ", v)
 
     else:
         raise RuntimeError("Don't know what to do with command %s!" % options.command)
