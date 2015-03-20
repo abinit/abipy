@@ -267,6 +267,7 @@ Specify the files to open. Possible choices:
     l ==> log_file
     e ==> stderr_file
     q ==> qout_file
+    all ==> all files.
 """)
 
     p_ncopen = subparsers.add_parser('ncopen', parents=[copts_parser, flow_selector_parser], 
@@ -469,13 +470,7 @@ Specify the files to open. Possible choices:
             print(make_banner(str(task), width=ncols, mark="="))
             print(task.history.to_string(metadata=options.metadata))
 
-        #for work in flow:
-        #    print(make_banner(str(work), width=ncols, mark="="))
-        #    print(work.history.to_string(metadata=options.metadata))
-        #    for task in work:
-        #        print(make_banner(str(task), width=ncols, mark="="))
-        #        print(task.history.to_string(metadata=options.metadata))
-
+        # Print the history of the flow.
         print(make_banner(str(flow), width=ncols, mark="="))
         print(flow.history.to_string(metadata=options.metadata))
 
@@ -740,7 +735,13 @@ Specify the files to open. Possible choices:
         nrows, ncols = get_terminal_size()
 
         # Default status for debug is QCritical
-        if options.task_status is None: options.task_status = Status.as_status("QCritical")
+        #options.task_status = Status.as_status("QCritical")
+        if options.task_status is None: 
+            errors = list(flow.iflat_tasks(status=flow.S_ERROR, nids=selected_nids(flow, options)))
+            qcriticals = list(flow.iflat_tasks(status=flow.S_QCRITICAL, nids=selected_nids(flow, options)))
+            tasks = errors + qcriticals 
+        else:
+            tasks = list(flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)))
 
         # For each task selected:
         #
@@ -751,10 +752,9 @@ Specify the files to open. Possible choices:
         #        that is created by the first MPI process that invokes MPI abort!
         #     
         ntasks = 0
-        for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
+        for task in tasks:
             print(make_banner(str(task), width=ncols, mark="="))
             ntasks += 1
-            count = 0 # count > 0 means we found some useful info that could explain the failures.
 
             #  Start with error files.
             for efname in ["qerr_file", "stderr_file",]:
@@ -764,23 +764,23 @@ Specify the files to open. Possible choices:
                     if not s: continue
                     print(make_banner(str(err_file), width=ncols, mark="="))
                     cprint(s, color="red")
-                    count += 1 
+                    #count += 1 
 
-            if not count:
-                # Check main log file.
-                try:
-                    report = task.get_event_report()
-                    if report.num_errors: 
-                        s = "\n".join(e for e in report.errors)
-                    else:
-                        s = None
-                except Exception as exc:
-                    s = str(exc)
+            # Check main log file.
+            try:
+                report = task.get_event_report()
+                if report.num_errors: 
+                    s = "\n".join(str(e) for e in report.errors)
+                else:
+                    s = None
+            except Exception as exc:
+                s = str(exc)
 
-                if s is not None:
-                    print(make_banner(report.filename), width=ncols, mark="=")
-                    cprint(s, color="red")
-                    count += 1
+            count = 0 # count > 0 means we found some useful info that could explain the failures.
+            if s is not None:
+                print(make_banner(report.filename, width=ncols, mark="="))
+                cprint(s, color="red")
+                count += 1
 
             if not count:
                 # Inspect all log files produced by the other nodes.
