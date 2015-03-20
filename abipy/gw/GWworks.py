@@ -233,18 +233,18 @@ class SingleAbinitGWWork():
         # kpoint grid defined over density 40 > ~ 3 3 3
         if self.spec['converge'] and not self.all_converged:
             # (2x2x2) gamma centered mesh for the convergence test on nbands and ecuteps
-            # if kp_in is present in the specs a kp_in X kp_in x kp_in mesh is used for the convergence studie
+            # if kp_in is present in the specs a kp_in X kp_in x kp_in mesh is used for the convergence study
             if 'kp_in' in self.spec.keys():
                 if self.spec['kp_in'] > 9:
-                    print('WARNING:\nkp_in should be < 10 to generate an n x n x n mesh\nfor larger values a grid with '
+                    print('WARNING:\nkp_in should be < 13 to generate an n x n x n mesh\nfor larger values a grid with '
                           'density kp_in will be generated')
-                scf_kppa = self.spec['kp_in']
+                kppa = self.spec['kp_in']
             else:
-                scf_kppa = 2
+                kppa = 2
         else:
             # use the specified density for the final calculation with the converged nbands and ecuteps of other
             # stand alone calculations
-            scf_kppa = self.spec['kp_grid_dens']
+            kppa = self.spec['kp_grid_dens']
         gamma = True
 
         # 'standard' parameters for stand alone calculation
@@ -355,7 +355,7 @@ class SingleAbinitGWWork():
         logger.info('extra   : ', extra_abivars)
         logger.info('nscf_nb : ', nscf_nband)
 
-        work = g0w0_extended_work(abi_structure, self.pseudo_table, scf_kppa, nscf_nband, ecuteps, ecutsigx, scf_nband,
+        work = g0w0_extended_work(abi_structure, self.pseudo_table, kppa, nscf_nband, ecuteps, ecutsigx, scf_nband,
                              accuracy="normal", spin_mode="unpolarized", smearing=None, response_models=response_models,
                              charge=0.0, sigma_nband=None, scr_nband=None, gamma=gamma, nksmall=nksmall, **extra_abivars)
 
