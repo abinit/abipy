@@ -78,6 +78,10 @@ def itest_unconverged_scf(fwp, tvars):
     assert t0.uses_paral_kgb(tvars.paral_kgb)
     assert t1.uses_paral_kgb(tvars.paral_kgb)
 
+    # Get info on the IBZ by calling abinit.
+    ibz = t0.get_ibz()
+    print(ibz.points, ibz.weights)
+
     # This run should not converge.
     t0.start_and_wait()
     t0.check_status()

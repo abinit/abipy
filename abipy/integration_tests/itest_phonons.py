@@ -20,7 +20,6 @@ def scf_ph_inputs(tvars):
     """
     # Crystalline AlAs: computation of the second derivative of the total energy
     structure = abidata.structure_from_ucell("AlAs")
-    pseudos = abidata.pseudos("13al.981214.fhi", "33as.pspnc")
 
     # List of q-points for the phonon calculation (4,4,4) mesh.
     qpoints = [
@@ -41,14 +40,14 @@ def scf_ph_inputs(tvars):
                        ecut=3.0,
                        ngkpt=[4, 4, 4],
                        shiftk=[0, 0, 0],
-                       tolvrs=1.0e-8,
+                       tolvrs=1.0e-6,
                        paral_kgb=tvars.paral_kgb,
                     )
 
-    inp = abilab.AbiInput(pseudos=pseudos, ndtset=1+len(qpoints))
+    inp = abilab.AbiInput(pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"), ndtset=1+len(qpoints))
 
     inp.set_structure(structure)
-    inp.set_vars(**global_vars)
+    inp.set_vars(global_vars)
 
     for i, qpt in enumerate(qpoints):
         # Response-function calculation for phonons.
@@ -110,7 +109,6 @@ def itest_phonon_flow(fwp, tvars):
         assert len(ddbs) == 1
         ddb_files.append(ddbs[0])
 
-    # TODO: Check automatic restart
     assert all(work.finalized for work in flow)
     assert flow.all_ok
 
@@ -167,3 +165,60 @@ def itest_phonon_flow(fwp, tvars):
         #assert len(atask.outdir.list_filepaths(wildcard="*PHDOS.nc")) == 1
 
     #assert flow.validate_json_schema()
+
+
+def itest_phonon_restart(fwp):
+    """Test the restart of phonon calculations with the scheduler."""
+    # Crystalline AlAs: computation of the second derivative of the total energy
+    structure = abidata.structure_from_ucell("AlAs")
+
+    # List of q-points for the phonon calculation (4,4,4) mesh.
+    qpoints = np.reshape([
+             0.00000000E+00,  0.00000000E+00,  0.00000000E+00,
+             2.50000000E-01,  0.00000000E+00,  0.00000000E+00,
+             #5.00000000E-01,  0.00000000E+00,  0.00000000E+00,
+            ], (-1, 3))
+
+    # Global variables used both for the GS and the DFPT run.
+    global_vars = dict(nband=4,
+                       ecut=3.0,
+                       ngkpt=[4, 4, 4],
+                       shiftk=[0, 0, 0],
+                       tolvrs=1.0e-5,
+                    )
+
+    inp = abilab.AbiInput(pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"), ndtset=1+len(qpoints))
+
+    inp.set_structure(structure)
+    inp.set_vars(global_vars)
+
+    for i, qpt in enumerate(qpoints):
+        # Response-function calculation for phonons.
+        inp[i+2].set_vars(
+            rfphon=1,        # Will consider phonon-type perturbation.
+            nqpt=1,          # One wavevector is to be considered.
+            qpt=qpt,         # q-wavevector.
+            kptopt=3,
+            nstep=5,         # This is to trigger the phonon restart.
+        )
+
+        #rfatpol   1 1   # Only the first atom is displaced
+        #rfdir   1 0 0   # Along the first reduced coordinate axis
+        #kptopt   2      # Automatic generation of k points, taking
+
+                                                           # i == 0 --> restart from WFK
+        if i == 1: inp[i+2].set_vars(prtwf=-1, nstep=5)    # Restart with WFK and smart- io.
+        #if i == 2: inp[i+2].set_vars(prtwf=0, nstep=8)    # Restart from 1DEN. Not portable and has been disabled.
+
+    all_inps = inp.split_datasets()
+    scf_input, ph_inputs = all_inps[0], all_inps[1:]
+
+    flow = abilab.phonon_flow(fwp.workdir, scf_input, ph_inputs, manager=fwp.manager)
+    flow.set_garbage_collector()
+    assert flow.make_scheduler().start() == 0
+
+    flow.check_status(show=True, verbose=1)
+    assert all(work.finalized for work in flow)
+    assert flow.all_ok
+
+    assert sum(task.num_restarts for task in flow.iflat_tasks()) > 0

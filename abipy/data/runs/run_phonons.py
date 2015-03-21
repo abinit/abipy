@@ -35,7 +35,6 @@ def scf_ph_inputs(paral_kgb=0):
     # Global variables used both for the GS and the DFPT run.
     global_vars = dict(nband=4,             
                        ecut=2.0,         
-                       #ecut=12.0,
                        ngkpt=[4, 4, 4],
                        nshiftk=4,
                        shiftk=[0.0, 0.0, 0.5,   # This gives the usual fcc Monkhorst-Pack grid
@@ -51,7 +50,7 @@ def scf_ph_inputs(paral_kgb=0):
 
     gs_inp = abilab.AbiInput(pseudos=pseudos)
     gs_inp.set_structure(structure)
-    gs_inp.set_vars(**global_vars)
+    gs_inp.set_vars(global_vars)
     gs_inp.set_vars(tolvrs=1.0e-18)
 
     # Get the qpoints in the IBZ. Note that here we use a q-mesh with ngkpt=(4,4,4) and shiftk=(0,0,0)
@@ -67,13 +66,14 @@ def scf_ph_inputs(paral_kgb=0):
     for ph_inp, qpt in zip(ph_inputs, qpoints):
         # Response-function calculation for phonons.
         ph_inp.set_structure(structure)
-        ph_inp.set_vars(**global_vars)
+        ph_inp.set_vars(global_vars)
         ph_inp.set_vars(
             rfphon=1,        # Will consider phonon-type perturbation
             nqpt=1,          # One wavevector is to be considered
             qpt=qpt,         # This wavevector is q=0 (Gamma)
             tolwfr=1.0e-20,
             kptopt=3,
+            nstep=4,         # This is to trigger the restart.
             )
 
             #rfatpol   1 1   # Only the first atom is displaced
@@ -83,6 +83,7 @@ def scf_ph_inputs(paral_kgb=0):
     # Split input into gs_inp and ph_inputs
     all_inps = [gs_inp] 
     all_inps.extend(ph_inputs.split_datasets())
+
     return all_inps
 
 

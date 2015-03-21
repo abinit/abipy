@@ -734,14 +734,13 @@ Specify the files to open. Possible choices:
     elif options.command == "debug":
         nrows, ncols = get_terminal_size()
 
-        # Default status for debug is QCritical
-        #options.task_status = Status.as_status("QCritical")
-        if options.task_status is None: 
+        if options.task_status is not None: 
+            tasks = list(flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)))
+        else:
             errors = list(flow.iflat_tasks(status=flow.S_ERROR, nids=selected_nids(flow, options)))
             qcriticals = list(flow.iflat_tasks(status=flow.S_QCRITICAL, nids=selected_nids(flow, options)))
-            tasks = errors + qcriticals 
-        else:
-            tasks = list(flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)))
+            abicriticals = list(flow.iflat_tasks(status=flow.S_ABICRITICAL, nids=selected_nids(flow, options)))
+            tasks = errors + qcriticals + abicriticals
 
         # For each task selected:
         #
@@ -769,7 +768,8 @@ Specify the files to open. Possible choices:
             # Check main log file.
             try:
                 report = task.get_event_report()
-                if report.num_errors: 
+                if report and report.num_errors: 
+                    print(make_banner(os.path.basename(report.filename), width=ncols, mark="="))
                     s = "\n".join(str(e) for e in report.errors)
                 else:
                     s = None
@@ -778,7 +778,6 @@ Specify the files to open. Possible choices:
 
             count = 0 # count > 0 means we found some useful info that could explain the failures.
             if s is not None:
-                print(make_banner(report.filename, width=ncols, mark="="))
                 cprint(s, color="red")
                 count += 1
 

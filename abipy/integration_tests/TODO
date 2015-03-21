@@ -23,3 +23,6 @@ TODO LIST:
     WorkWithCondition(...) could be used to simulate a convergence study. The main 
     problem is how to include input_generators (__next__) while preserving data persistence
     with pickle! I've already done something related to this problem in FlowCallback...
+
+  # ABINIT abort file should not be produced if we the exit is expected otherwise we 
+    can have IO race conditions and ABI_CRITICAL events!!!!!!!
