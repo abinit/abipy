@@ -242,13 +242,13 @@ Usage example:\n
     p_cancel.add_argument("-r", "--rmtree", action="store_true", default=False, help="Remove flow directory.")
 
     # Subparser for restart command.
-    p_restart = subparsers.add_parser('restart', parents=[copts_parser], help="Restart the tasks of the flow that are not converged.")
+    p_restart = subparsers.add_parser('restart', parents=[copts_parser, flow_selector_parser], 
+                help="Restart the tasks of the flow. By default, only the task with status==Unconverged are restarted."
+                     "Use -S `status` and/or -n node_ids to select particular tasks.")
 
-    # Subparser for restart command.
+    # Subparser for reset command.
     p_reset = subparsers.add_parser('reset', parents=[copts_parser, flow_selector_parser], 
                                     help="Reset the tasks of the flow with the specified status.")
-    #p_reset.add_argument('-s', '--task-status', default="QCritical", type=Status.as_status,
-    #                     help="Select the status of the task to reset. Defaults QCritical") 
 
     # Subparser for move command.
     p_move = subparsers.add_parser('move', parents=[copts_parser], help="Move the flow to a new directory and change the absolute paths")
@@ -540,6 +540,9 @@ Specify the files to open. Possible choices:
             count += 1
 
         print("Number of tasks modified: %s" % count)
+        if count:
+            # update database
+            flow.pickle_dump()
 
     elif options.command == "open":
         flow.open_files(what=options.what, status=None, op="==", nids=selected_nids(flow, options))
@@ -567,8 +570,14 @@ Specify the files to open. Possible choices:
         if options.rmtree: flow.rmtree()
 
     elif options.command == "restart":
+        # Default status for reset is Unconverged if no option is provided by the user.
+        if options.task_status is None and options.nids is None:
+            options.task_status = Status.as_status("Unconverged")
+
         nlaunch, excs = 0, []
-        for task in flow.unconverged_tasks:
+        for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
+            if options.verbose: 
+                print("Will try to restart %s, with status %s" % (task, task.status))
             try:
                 fired = task.restart()
                 if fired: nlaunch += 1

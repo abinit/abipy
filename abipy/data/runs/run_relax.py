@@ -30,7 +30,7 @@ def make_ion_ioncell_inputs(paral_kgb=1):
         nshiftk=1,
         chksymbreak=0,
         paral_kgb=paral_kgb,
-        prtwf=0,
+        #prtwf=0,
     )
 
     inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
