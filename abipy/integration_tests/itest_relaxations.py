@@ -98,7 +98,7 @@ def itest_atomic_relaxation(fwp, tvars):
 
     # post-processing tools
     if has_matplotlib():
-        t0.inspect(show=False)
+        assert t0.inspect(show=False) is not None
 
     with t0.open_hist() as hist:
         print(hist)
@@ -165,32 +165,36 @@ def make_ion_ioncell_inputs(tvars, dilatmx, scalevol=1, ntime=50):
 
 
 def itest_relaxation_with_restart_from_den(fwp, tvars):
-     """Test structural relaxations with automatic restart from DEN files."""
-     # Build the flow
-     flow = abilab.Flow(fwp.workdir, manager=fwp.manager)
+    """Test structural relaxations with automatic restart from DEN files."""
+    # Build the flow
+    flow = abilab.Flow(fwp.workdir, manager=fwp.manager)
  
-     # Use small value for ntime to trigger restart, then disable the output of the WFK file.
-     ion_input, ioncell_input = make_ion_ioncell_inputs(tvars, dilatmx=1.1, ntime=3)
-     ion_input.set_vars(prtwf=0)
-     ioncell_input.set_vars(prtwf=0)
+    # Use small value for ntime to trigger restart, then disable the output of the WFK file.
+    ion_input, ioncell_input = make_ion_ioncell_inputs(tvars, dilatmx=1.1, ntime=3)
+    ion_input.set_vars(prtwf=0)
+    ioncell_input.set_vars(prtwf=0)
 
-     relax_work = abilab.RelaxWork(ion_input, ioncell_input)
-     flow.register_work(relax_work)
+    relax_work = abilab.RelaxWork(ion_input, ioncell_input)
+    flow.register_work(relax_work)
 
-     assert flow.make_scheduler().start() == 0
-     flow.show_status()
+    assert flow.make_scheduler().start() == 0
+    flow.show_status()
 
-     assert all(work.finalized for work in flow)
-     assert flow.all_ok
+    assert all(work.finalized for work in flow)
+    assert flow.all_ok
 
-     # we should have (0, 1) restarts and no WFK file in outdir.
-     for i, task in enumerate(relax_work):
-        assert task.status == task.S_OK
-        assert task.num_restarts == i
-        assert task.num_corrections == 0
-        assert not task.outdir.has_abiext("WFK")
+    # we should have (0, 1) restarts and no WFK file in outdir.
+    for i, task in enumerate(relax_work):
+       assert task.status == task.S_OK
+       assert task.num_restarts == i
+       assert task.num_corrections == 0
+       assert not task.outdir.has_abiext("WFK")
 
-     flow.rmtree()
+    if has_matplotlib:
+        assert relax_work.plot_ion_relaxation(show=False) is not None
+        assert relax_work.plot_ioncell_relaxation(show=False) is not None
+
+    flow.rmtree()
 
 
 def itest_dilatmx_error_handler(fwp, tvars):
