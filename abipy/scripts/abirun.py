@@ -288,7 +288,6 @@ Specify the files to open. Possible choices:
     p_tail.add_argument('what_tail', nargs="?", type=str, default="o", help="What to follow: o for output (default), l for logfile, e for stderr")
 
     p_qstat = subparsers.add_parser('qstat', parents=[copts_parser], help="Show additional info on the jobs in the queue.")
-    #p_qstat.add_argument('what_tail', nargs="?", type=str, default="o", help="What to follow: o for output (default), l for logfile, e for stderr")
 
     p_deps = subparsers.add_parser('deps', parents=[copts_parser], help="Show dependencies.")
 
@@ -742,6 +741,13 @@ Specify the files to open. Possible choices:
 
     elif options.command == "debug":
         nrows, ncols = get_terminal_size()
+
+        # Test for scheduler exceptions first.
+        sched_excfile = os.path.join(flow.workdir, "_exceptions")
+        if os.path.exists(sched_excfile):
+            with open(sched_excfile, "r") as fh:
+                cprint(fh.read(), color="red")
+                return 0
 
         if options.task_status is not None: 
             tasks = list(flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)))
