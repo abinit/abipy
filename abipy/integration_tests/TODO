@@ -26,3 +26,6 @@ TODO LIST:
 
   # ABINIT abort file should not be produced if we the exit is expected otherwise we 
     can have IO race conditions and ABI_CRITICAL events!!!!!!!
+
+  # Rewrite AbiInput, Dataset should be the main object (Dict-like). AbiInput is only used 
+    to build datasets!

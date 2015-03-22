@@ -5,6 +5,7 @@ import pytest
 import numpy as np
 import abipy.data as abidata
 import abipy.abilab as abilab
+import numpy.testing.utils as nptu
 
 from abipy.core.testing import has_abinit, has_matplotlib
 
@@ -13,7 +14,7 @@ from abipy.core.testing import has_abinit, has_matplotlib
 #pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
 
 
-def scf_ph_inputs(tvars):
+def scf_ph_inputs(tvars=None):
     """
     This function constructs the input files for the phonon calculation:
     GS input + the input files for the phonon calculation.
@@ -41,7 +42,7 @@ def scf_ph_inputs(tvars):
                        ngkpt=[4, 4, 4],
                        shiftk=[0, 0, 0],
                        tolvrs=1.0e-6,
-                       paral_kgb=tvars.paral_kgb,
+                       paral_kgb=0 if tvars is None else tvars.paral_kgb,
                     )
 
     inp = abilab.AbiInput(pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"), ndtset=1+len(qpoints))
@@ -176,7 +177,8 @@ def itest_phonon_restart(fwp):
     qpoints = np.reshape([
              0.00000000E+00,  0.00000000E+00,  0.00000000E+00,
              2.50000000E-01,  0.00000000E+00,  0.00000000E+00,
-             #5.00000000E-01,  0.00000000E+00,  0.00000000E+00,
+             #5.00000000E-01,  0.00000000E+00,  0.00000000E+00,  # XXX Uncomment this line to test restart from 1DEN
+                                                                 # Too long --> disabled
             ], (-1, 3))
 
     # Global variables used both for the GS and the DFPT run.
@@ -201,20 +203,23 @@ def itest_phonon_restart(fwp):
             kptopt=3,
             nstep=5,         # This is to trigger the phonon restart.
         )
-
         #rfatpol   1 1   # Only the first atom is displaced
         #rfdir   1 0 0   # Along the first reduced coordinate axis
         #kptopt   2      # Automatic generation of k points, taking
 
-                                                           # i == 0 --> restart from WFK
-        if i == 1: inp[i+2].set_vars(prtwf=-1, nstep=5)    # Restart with WFK and smart- io.
-        #if i == 2: inp[i+2].set_vars(prtwf=0, nstep=8)    # Restart from 1DEN. Not portable and has been disabled.
+                                                         # i == 0 --> restart from WFK
+        if i == 1: inp[i+2].set_vars(prtwf=-1, nstep=5)  # Restart with WFK and smart- io.
+        if i == 2: inp[i+2].set_vars(prtwf=0, nstep=8)   # Restart from 1DEN. Too long --> disabled.
 
     all_inps = inp.split_datasets()
     scf_input, ph_inputs = all_inps[0], all_inps[1:]
 
     flow = abilab.phonon_flow(fwp.workdir, scf_input, ph_inputs, manager=fwp.manager)
     flow.set_garbage_collector()
+
+    for task in flow.iflat_tasks():
+        task.manager.qadapter.max_num_launches = 20
+
     assert flow.make_scheduler().start() == 0
 
     flow.check_status(show=True, verbose=1)
@@ -222,3 +227,52 @@ def itest_phonon_restart(fwp):
     assert flow.all_ok
 
     assert sum(task.num_restarts for task in flow.iflat_tasks()) > 0
+
+
+def itest_oneshot_phonon_work(fwp):
+    """
+    Test build_oneshot_phononwork i.e. computation of the phonon frequencies
+    for all modes in a single task.
+    """
+    all_inps = scf_ph_inputs()
+
+    # SCF + one-shot for the first 2 qpoints.
+    scf_input, ph_inputs = all_inps[0], all_inps[1:3]
+
+    from pymatgen.io.abinitio.works import build_oneshot_phononwork
+    flow = abilab.Flow(fwp.workdir)
+
+    # rfdir and rfatpol are missing!
+    with pytest.raises(ValueError):
+        phon_work = build_oneshot_phononwork(scf_input, ph_inputs)
+    for phinp in ph_inputs: phinp.set_vars(rfdir=[1, 1, 1])
+
+    with pytest.raises(ValueError):
+        phon_work = build_oneshot_phononwork(scf_input, ph_inputs)
+    for phinp in ph_inputs: phinp.set_vars(rfatpol=[1, len(phinp.structure)])
+
+    # Now ph_inputs is ok
+    phon_work = build_oneshot_phononwork(scf_input, ph_inputs)
+    flow.register_work(phon_work)
+
+    assert flow.make_scheduler().start() == 0
+
+    flow.check_status(show=True, verbose=1)
+    assert all(work.finalized for work in flow)
+    assert flow.all_ok
+    
+    # Read phonons from main output file.
+    phonons_list = phon_work.read_phonons()
+    assert len(phonons_list) == 2
+
+    ph0, ph1 = phonons_list[0], phonons_list[1]
+    assert ph0.qpt == [0, 0, 0]
+    assert ph1.qpt == [2.50000000E-01,  0.00000000E+00,  0.00000000E+00]
+    assert len(ph0.freqs) == 3 * len(scf_input.structure)
+    assert len(ph1.freqs) == 3 * len(scf_input.structure)
+    nptu.assert_almost_equal(ph0.freqs.to("Ha"), 
+        [-1.219120E-05, -1.201501E-05, -1.198453E-05,  1.577646E-03,  1.577647E-03, 1.577647E-03])
+    nptu.assert_almost_equal(ph1.freqs.to("Ha"), 
+        [2.644207E-04, 2.644236E-04, 6.420904E-04, 1.532696E-03, 1.532697E-03, 1.707196E-03])
+
+    #assert 0
