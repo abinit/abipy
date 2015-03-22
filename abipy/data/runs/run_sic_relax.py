@@ -16,11 +16,7 @@ def build_flow(options):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
-
-    flow = abilab.Flow(workdir, manager)
+    flow = abilab.Flow(workdir, manager=options.manager)
 
     pseudos = data.pseudos("14si.pspnc", "6c.pspnc")
     structure = data.structure_from_ucell("SiC")

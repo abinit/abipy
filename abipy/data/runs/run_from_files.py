@@ -54,15 +54,11 @@ def build_flow(options):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
-
     # Get the SCF and the NSCF input.
     scf_input, nscf_input = make_scf_nscf_inputs()
 
     # Build the flow.
-    flow = abilab.Flow(workdir, manager=manager)
+    flow = abilab.Flow(workdir, manager=options.manager)
 
     # Create a Work, all tasks in work will read the file f
     # Note that the file must exist when the work is created

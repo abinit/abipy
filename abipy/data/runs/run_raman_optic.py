@@ -74,10 +74,7 @@ def raman_flow(options):
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
     #workdir = os.path.join(os.path.dirname(__file__), base_structure.formula.replace(" ","") + "_RAMAN")
 
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
-
+    manager = options.manager
     shell_manager = manager.to_shell_manager(mpi_procs=1)
     ddk_manager = manager.deepcopy()
 
@@ -90,7 +87,8 @@ def raman_flow(options):
 
     for structure, eta in zip(displaced_structures, etas):
         for ishift,shift in enumerate(all_shifts):
-            flow.register_work(raman_work(structure, pseudos, ngkpt, shift, ddk_manager, shell_manager),workdir="eta_"+str(eta)+"shift_"+str(ishift))
+            flow.register_work(raman_work(structure, pseudos, ngkpt, shift, ddk_manager, shell_manager),
+                               workdir="eta_" +str(eta) + "shift_" + str(ishift))
 
     return flow.allocate()
 

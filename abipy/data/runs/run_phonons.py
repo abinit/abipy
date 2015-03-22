@@ -102,15 +102,11 @@ def build_flow(options):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
-
     all_inps = scf_ph_inputs()
     scf_input, ph_inputs = all_inps[0], all_inps[1:]
     scf_input, ph_inputs = all_inps[0], all_inps[1:3]
 
-    return abilab.phonon_flow(workdir, scf_input, ph_inputs, manager=manager)
+    return abilab.phonon_flow(workdir, scf_input, ph_inputs, manager=options.manager)
 
 
 @abilab.flow_main

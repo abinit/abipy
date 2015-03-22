@@ -30,7 +30,7 @@ def make_scf_nscf_inputs(paral_kgb=1):
     if inp.ispaw:
         global_vars.update(pawecutdg=2*ecut)
 
-    inp.set_vars(**global_vars)
+    inp.set_vars(global_vars)
 
     # Dataset 1 (GS run)
     inp[1].set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
@@ -56,15 +56,11 @@ def build_flow(options):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
-
     # Get the SCF and the NSCF input.
     scf_input, nscf_input = make_scf_nscf_inputs()
 
     # Build the flow.
-    return abilab.bandstructure_flow(workdir, scf_input, nscf_input, manager=manager)
+    return abilab.bandstructure_flow(workdir, scf_input, nscf_input, manager=options.manager)
     
 
 @abilab.flow_main

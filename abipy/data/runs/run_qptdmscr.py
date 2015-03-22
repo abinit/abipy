@@ -115,15 +115,12 @@ def qptdm_flow(options):
     if not options.workdir: 
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
-
     # Build the input files for GS, NSCF, SCR and SIGMA runs.
     gs, nscf, scr_input, sigma_input = all_inputs()
 
     # Construct the flow.
-    return abilab.G0W0WithQptdmFlow(workdir, gs, nscf, scr_input, sigma_input, manager=manager)
+    return abilab.G0W0WithQptdmFlow(workdir, gs, nscf, scr_input, sigma_input, 
+                                    manager=options.manager)
 
 
 @abilab.flow_main

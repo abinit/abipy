@@ -71,14 +71,10 @@ def build_flow(options):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
-
     all_inps = scf_ph_inputs()
     scf_input, ph_inputs = all_inps[0], all_inps[1:]
 
-    flow = abilab.Flow(workdir, manager=manager)
+    flow = abilab.Flow(workdir, manager=options.manager)
     from pymatgen.io.abinitio.works import build_oneshot_phononwork
     work = build_oneshot_phononwork(scf_input, ph_inputs)
     flow.register_work(work)

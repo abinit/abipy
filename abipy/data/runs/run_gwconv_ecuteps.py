@@ -77,17 +77,13 @@ def build_flow(options):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
-
     # Get our templates
     scf_inp, nscf_inp, scr_inp, sig_inp = make_inputs()
     
     ecuteps_list = np.arange(2, 8, 2)
     max_ecuteps = max(ecuteps_list)
 
-    flow = abilab.Flow(workdir=workdir, manager=manager)
+    flow = abilab.Flow(workdir=workdir, manager=options.manager)
 
     # Band structure work to produce the WFK file
     bands = abilab.BandStructureWork(scf_inp, nscf_inp)

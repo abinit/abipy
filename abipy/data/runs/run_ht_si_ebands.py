@@ -28,12 +28,8 @@ def build_flow(options):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
-
     # Initialize the flow.
-    flow = abilab.Flow(workdir=workdir, manager=manager)
+    flow = abilab.Flow(workdir=workdir, manager=options.manager)
 
     pseudos = abidata.pseudos("14si.pspnc")
     work = bandstructure_work(structure,  pseudos, scf_kppa, nscf_nband, ndivsm, 

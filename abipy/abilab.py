@@ -194,8 +194,10 @@ def flow_main(main):
 
         parser.add_argument("-w", '--workdir', default="", type=str, help="Working directory of the flow.")
 
-        parser.add_argument("-m", '--manager', default="", type=str,
-                            help="YAML file with the parameters of the task manager")
+        parser.add_argument("-m", '--manager', default=None, 
+                            help="YAML file with the parameters of the task manager. " 
+                                 "Default None i.e. the manager is read from standard locations: "
+                                 "working directory first then ~/.abinit/abipy/manager.yml.")
 
         parser.add_argument("-s", '--scheduler', action="store_true", default=False, 
                             help="Run the flow with the scheduler")
@@ -203,8 +205,7 @@ def flow_main(main):
         parser.add_argument("-b", '--batch', action="store_true", default=False, 
                             help="Run the flow in batch mode")
 
-        #parser.add_argument("-r", '--remove', action="store_true", default=False, 
-        #                    help="Run the flow with the scheduler")
+        #parser.add_argument("-r", '--remove', action="store_true", default=False, help="Run the flow with the scheduler")
 
         parser.add_argument("--prof", action="store_true", default=False, help="Profile code wth cProfile ")
 
@@ -218,7 +219,8 @@ def flow_main(main):
             raise ValueError('Invalid log level: %s' % options.loglevel)
         logging.basicConfig(level=numeric_level)
 
-        #options.manager = TaskManager.as_manager(options.manager)
+        # Istantiate the manager.
+        options.manager = TaskManager.as_manager(options.manager)
 
         if options.prof:
             import pstats, cProfile

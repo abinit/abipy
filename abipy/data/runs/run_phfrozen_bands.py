@@ -52,10 +52,6 @@ def build_flow(options):
     if not options.workdir: 
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
                                                                                                                          
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
-
     # build the structures
     base_structure = abilab.Structure.from_file(data.cif_file("si.cif"))
     modifier = abilab.StructureModifier(base_structure)
@@ -67,7 +63,7 @@ def build_flow(options):
 
     displaced_structures = modifier.displace(ph_displ, etas, frac_coords=False)
 
-    flow = abilab.Flow(workdir, manager=manager)
+    flow = abilab.Flow(workdir, manager=options.manager)
 
     for structure in displaced_structures:
         # Create the work for the band structure calculation.

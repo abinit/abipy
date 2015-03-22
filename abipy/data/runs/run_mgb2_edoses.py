@@ -55,10 +55,6 @@ def build_flow(options):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
-
     #pseudos = abidata.pseudos("12mg.pspnc", "5b.pspnc")
     structure = abidata.structure_from_ucell("MgB2")
 
@@ -74,7 +70,7 @@ def build_flow(options):
     #print(scf_input.pseudos)
                                                                
     return abilab.bandstructure_flow(workdir, scf_input, nscf_input, 
-                                     dos_inputs=dos_inputs, manager=manager)
+                                     dos_inputs=dos_inputs, manager=options.manager)
 
 
 @abilab.flow_main

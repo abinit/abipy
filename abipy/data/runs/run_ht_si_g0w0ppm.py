@@ -20,12 +20,8 @@ def build_flow(options):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
-
     # Initialize the flow.
-    flow = abilab.Flow(workdir, manager=manager) 
+    flow = abilab.Flow(workdir, manager=options.manager) 
 
     scf_kppa = 10
     nscf_nband = 10

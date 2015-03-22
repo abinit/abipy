@@ -25,10 +25,6 @@ def build_flow(options, paral_kgb=0):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
-
     structure = data.structure_from_ucell("GaAs")
 
     inp = abilab.AbiInput(pseudos=data.pseudos("31ga.pspnc", "33as.pspnc"), ndtset=5)
@@ -92,7 +88,7 @@ def build_flow(options, paral_kgb=0):
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = inp.split_datasets()
 
     # Initialize the flow.
-    flow = abilab.Flow(workdir, manager=manager)
+    flow = abilab.Flow(workdir, manager=options.manager)
 
     bands_work = abilab.BandStructureWork(scf_inp, nscf_inp)
     flow.register_work(bands_work)
@@ -108,10 +104,8 @@ def build_flow(options, paral_kgb=0):
     # in an arbitrary way or do we have to pass (x,y,z)?
 
     # Optic does not support MPI with ncpus > 1.
-    shell_manager = manager.to_shell_manager(mpi_procs=1)
-
     optic_task = abilab.OpticTask(optic_input, nscf_node=bands_work.nscf_task, ddk_nodes=ddk_work, 
-                                  manager=shell_manager)
+                                  manager=flow.manager.to_shell_manager(mpi_procs=1))
     flow.register_task(optic_task)
 
     return flow.allocate()

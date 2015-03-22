@@ -16,10 +16,6 @@ def build_flow(options):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
-
     pseudos = abidata.pseudos("14si.pspnc")
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
 
@@ -39,7 +35,7 @@ def build_flow(options):
         istwfk="*1",
     )
 
-    flow = abilab.Flow(workdir=workdir, manager=manager)
+    flow = abilab.Flow(workdir=workdir, manager=options.manager)
 
     # BSE calculation with model dielectric function.
     work = bse_with_mdf_work(structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,

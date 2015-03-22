@@ -39,10 +39,6 @@ def build_flow(options):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
-
     pseudos = data.pseudos("14si.pspnc", "8o.pspnc")
 
     base_structure = abilab.Structure.from_file(data.cif_file("si.cif"))
@@ -53,7 +49,7 @@ def build_flow(options):
         new = special_positions(base_structure.lattice, u)
         news.append(new)
 
-    flow = abilab.Flow(workdir, manager=manager)
+    flow = abilab.Flow(workdir, manager=options.manager)
 
     # Create the list of workflows. Each workflow defines a band structure calculation.
     for new_structure, u in zip(news, uparams):
