@@ -44,7 +44,7 @@ def build_flow(options):
 
     # Register the workflow.
     flow.register_work(work)
-    return flow.allocate()
+    return flow
 
 
 @abilab.flow_main

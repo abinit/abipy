@@ -8,6 +8,7 @@ from __future__ import print_function, division, unicode_literals
 import sys
 import os
 import argparse
+import shlex
 import time
 
 from pprint import pprint
@@ -322,7 +323,10 @@ Specify the files to open. Possible choices:
 
     p_notebook = subparsers.add_parser('notebook', parents=[copts_parser], help="Create and open an ipython notebook to interact with the flow.")
 
-    p_embed = subparsers.add_parser('ipython', parents=[copts_parser], help="Embed IPython. Useful for advanced operations or debugging purposes.")
+    p_ipython = subparsers.add_parser('ipython', parents=[copts_parser], help="Embed IPython. Useful for advanced operations or debugging purposes.")
+    p_ipython.add_argument('--argv', nargs="?", default="", type=shlex.split, 
+                           help="Command-line options passed to ipython. Must be enclosed by quotes. "
+                                "Example: --argv='--matplotlib=wx'")
 
     p_tar = subparsers.add_parser('tar', parents=[copts_parser], help="Create tarball file.")
     p_tar.add_argument("-s", "--max-filesize", default=None, 
@@ -730,7 +734,8 @@ Specify the files to open. Possible choices:
     elif options.command == "ipython":
         import IPython
         #IPython.embed(header="")
-        IPython.start_ipython(argv=[], user_ns={"flow": flow})# , header="flow.show_status()")
+        #print("options:", options.argv)
+        IPython.start_ipython(argv=options.argv, user_ns={"flow": flow})# , header="flow.show_status()")
 
     elif options.command == "tar":
         if not options.light:

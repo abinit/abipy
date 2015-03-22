@@ -51,7 +51,7 @@ def build_flow(options):
         for shift in all_shifts:
             flow.register_work(raman_work(structure, pseudos, shift))
 
-    return flow.allocate()
+    return flow
 
 
 def raman_work(structure, pseudos, shiftk, paral_kgb=1):

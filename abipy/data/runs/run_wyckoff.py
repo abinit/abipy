@@ -56,7 +56,7 @@ def build_flow(options):
         # Generate the workflow and register it.
         flow.register_work(make_workflow(new_structure, pseudos))
 
-    return flow.allocate()
+    return flow
 
 
 def make_workflow(structure, pseudos, paral_kgb=1):

@@ -79,7 +79,7 @@ def build_flow(options):
     work = build_oneshot_phononwork(scf_input, ph_inputs)
     flow.register_work(work)
 
-    return flow.allocate()
+    return flow
 
 
 @abilab.flow_main

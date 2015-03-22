@@ -61,7 +61,7 @@ def build_flow(options):
         work = abilab.BandStructureWork(scf_input, nscf_input)
         flow.register_work(work)
 
-    return flow.allocate()
+    return flow
 
 
 @abilab.flow_main

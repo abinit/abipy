@@ -63,7 +63,7 @@ def build_flow(options):
     #work = RelaxWork(self, ion_input, ioncell_input, workdir=None, manager=None):
     #nscf_task = flow.register_task(nscf_inp, deps={relax_task: "DEN"}, task_class=abilab.NscfTask)
 
-    return flow.allocate()
+    return flow
 
 
 @abilab.flow_main

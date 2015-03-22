@@ -90,7 +90,7 @@ def raman_flow(options):
             flow.register_work(raman_work(structure, pseudos, ngkpt, shift, ddk_manager, shell_manager),
                                workdir="eta_" +str(eta) + "shift_" + str(ishift))
 
-    return flow.allocate()
+    return flow
 
 
 def raman_work(structure, pseudos, ngkpt, shiftk, ddk_manager, shell_manager):

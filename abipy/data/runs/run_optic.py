@@ -108,7 +108,7 @@ def build_flow(options, paral_kgb=0):
                                   manager=flow.manager.to_shell_manager(mpi_procs=1))
     flow.register_task(optic_task)
 
-    return flow.allocate()
+    return flow
 
 
 def optic_flow_from_files():
@@ -128,7 +128,7 @@ def optic_flow_from_files():
     optic_task = abilab.OpticTask(optic_input, nscf_node=nscf_node, ddk_nodes=ddk_nodes)
     flow.register_task(optic_task)
                                                                                                                           
-    return flow.allocate()
+    return flow
 
 
 @abilab.flow_main

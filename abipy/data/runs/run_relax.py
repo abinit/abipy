@@ -91,7 +91,7 @@ def build_flow(options):
     bands_work.register_relax_task(ioncell_inp, deps=deps)
     flow.register_work(bands_work)
 
-    return flow.allocate()
+    return flow
 
 
 @abilab.flow_main

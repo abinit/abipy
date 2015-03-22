@@ -110,7 +110,7 @@ def build_flow(options):
         sigma_conv = abilab.SigmaConvWork(wfk_node=bands.nscf_task, scr_node=scr_task, sigma_inputs=sigma_inputs)
         flow.register_work(sigma_conv)
 
-    return flow.allocate()
+    return flow
 
 
 @abilab.flow_main

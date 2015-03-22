@@ -36,7 +36,7 @@ def build_flow(options):
                               spin_mode="unpolarized", smearing=None, **extra_abivars)
 
     flow.register_work(work)
-    return flow.allocate()
+    return flow
 
     #dos_kppa = 10
     #bands = bandstructure_work("hello_dos", runmode, structure, pseudos, scf_kppa, nscf_nband,

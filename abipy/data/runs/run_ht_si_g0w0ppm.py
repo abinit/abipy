@@ -42,7 +42,7 @@ def build_flow(options):
                                   scr_nband=None, **extra_abivars)
     
     flow.register_work(work)
-    return flow.allocate()
+    return flow
     
 
 @abilab.flow_main

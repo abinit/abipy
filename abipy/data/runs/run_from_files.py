@@ -69,7 +69,7 @@ def build_flow(options):
     work.register(nscf_input, deps={denfile: "DEN"})
     flow.register_work(work)
 
-    return flow.allocate()
+    return flow
     
 
 @abilab.flow_main

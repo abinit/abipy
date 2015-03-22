@@ -44,7 +44,7 @@ def build_flow(options):
                              charge=0.0, scf_solver=None, **extra_abivars)
 
     flow.register_work(work)
-    return flow.allocate()
+    return flow
 
 
 @abilab.flow_main
