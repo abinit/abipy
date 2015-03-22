@@ -344,6 +344,11 @@ Specify the files to open. Possible choices:
     p_group = subparsers.add_parser('group', parents=[copts_parser, flow_selector_parser], 
                                      help="Group tasks according to property.")
 
+    p_diff = subparsers.add_parser('diff', parents=[copts_parser, flow_selector_parser], 
+                                   help="Compare files produced by two or three nodes.")
+    p_diff.add_argument('what_diff', nargs="?", type=str, default="i", 
+                        help="What to diff: i for input (default), o for output, l for logfile, e for stderr")
+
     # Parse command line.
     try:
         options = parser.parse_args()
@@ -828,6 +833,30 @@ Specify the files to open. Possible choices:
         print("Mapping status --> List of node identifiers")
         for k, v in d.items():
             print("   ",k, " --> ", v)
+
+    elif options.command == "diff":
+        if options.nids is None:
+            raise ValueError("nids must be specified when using diff command")
+
+        tasks = list(flow.iflat_tasks(nids=selected_nids(flow, options)))
+
+        if len(tasks) not in (2, 3):
+            if len(tasks) == 1: 
+                cprint("task == task, returning\n" , color="magenta", end="", flush=True)
+                return 0
+            else:
+                raise ValueError("Don't know how to compare files produced by %d tasks" % len(tasks))
+
+        # Build list of lists. Each sub-list contains the files associated to the i-th task.
+        files_for_task = [None] * len(tasks)
+        for i, task in enumerate(tasks):
+            files_for_task[i] = task.select_files(options.what_diff)
+
+        for diff_files in zip(*files_for_task):
+            print("Comparing", ", ".join(os.path.relpath(p) for p in diff_files))
+            args = " ".join(os.path.relpath(p) for p in diff_files)
+            # TODO: I should have written a Differ object somewhere!
+            os.system("vimdiff %s" % args)
 
     else:
         raise RuntimeError("Don't know what to do with command %s!" % options.command)

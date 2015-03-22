@@ -3,9 +3,9 @@ from __future__ import print_function, division, unicode_literals
 
 import pytest
 import numpy as np
+import numpy.testing.utils as nptu
 import abipy.data as abidata
 import abipy.abilab as abilab
-import numpy.testing.utils as nptu
 
 from abipy.core.testing import has_abinit, has_matplotlib
 

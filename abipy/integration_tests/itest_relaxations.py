@@ -12,9 +12,7 @@ from abipy.core.testing import has_abinit, has_matplotlib
 
 
 def ion_relaxation(tvars, ntime=50):
-    pseudos = abidata.pseudos("14si.pspnc")
-    cif_file = abidata.cif_file("si.cif")
-    structure = abilab.Structure.from_file(cif_file)
+    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
 
     # Perturb the structure (random perturbation of 0.1 Angstrom)
     structure.perturb(distance=0.02)
@@ -28,7 +26,7 @@ def ion_relaxation(tvars, ntime=50):
         paral_kgb=tvars.paral_kgb,
     )
 
-    inp = abilab.AbiInput(pseudos=pseudos)
+    inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"))
     inp.set_structure(structure)
 
     # Global variables
@@ -113,16 +111,13 @@ def itest_atomic_relaxation(fwp, tvars):
 
 
 def make_ion_ioncell_inputs(tvars, dilatmx, scalevol=1, ntime=50):
-    cif_file = abidata.cif_file("si.cif")
-    structure = abilab.Structure.from_file(cif_file)
+    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
 
     # Perturb the structure (random perturbation of 0.1 Angstrom)
     #structure.perturb(distance=0.01)
 
     # Compress the lattice so that ABINIT complains about dilatmx
     structure.scale_lattice(structure.volume * scalevol)
-
-    pseudos = abidata.pseudos("14si.pspnc")
 
     global_vars = dict(
         ecut=6,
@@ -134,11 +129,11 @@ def make_ion_ioncell_inputs(tvars, dilatmx, scalevol=1, ntime=50):
         paral_kgb=tvars.paral_kgb,
     )
 
-    inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
+    inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)
     inp.set_structure(structure)
 
     # Global variables
-    inp.set_vars(**global_vars)
+    inp.set_vars(global_vars)
 
     # Dataset 1 (Atom Relaxation)
     inp[1].set_vars(
