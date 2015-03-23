@@ -480,7 +480,7 @@ class AbiInput(Input, Has_Structure):
             shiftk: Shiftks (default None i.e. use shiftk from self)
             qpoint: qpoint in reduced coordinates. Used to shift the k-mesh (default None i.e no shift)
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
-            manager: TaskManager of the task. If None, the :class:`TaskManager` is initialized from the config file.
+            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
 
         Returns:
             `namedtuple` with attributes:
@@ -516,10 +516,17 @@ class AbiInput(Input, Has_Structure):
         task.start_and_wait(autoparal=False)
 
         # Read the list of k-points from the netcdf file.
-        with NetcdfReader(os.path.join(task.workdir, "kpts.nc")) as r:
-            ibz = collections.namedtuple("ibz", "points weights")
-            return ibz(points=r.read_value("reduced_coordinates_of_kpoints"),
-                       weights=r.read_value("kpoint_weights"))
+        try:
+            with NetcdfReader(os.path.join(task.workdir, "kpts.nc")) as r:
+                ibz = collections.namedtuple("ibz", "points weights")
+                return ibz(points=r.read_value("reduced_coordinates_of_kpoints"),
+                           weights=r.read_value("kpoint_weights"))
+
+        except Exception as exc:
+            # Try to understand if it's a problem with the Abinit input.
+            report = task.get_event_report()
+            if report.errors: raise self.Error(str(report))
+            raise exc
 
     def get_irred_perts(self, ngkpt=None, shiftk=None, kptopt=None, qpoint=None, workdir=None, manager=None):
         """
@@ -531,7 +538,7 @@ class AbiInput(Input, Has_Structure):
             shiftk: Shiftks (default None i.e. use shiftk from self)
             qpoint: qpoint in reduced coordinates. Used to shift the k-mesh (default None i.e no shift)
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
-            manager: TaskManager of the task. If None, the :class:`TaskManager` is initialized from the config file.
+            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
 
         Returns:
             List of dictionaries with the Abinit variables defining the irreducible perturbation
@@ -564,7 +571,13 @@ class AbiInput(Input, Has_Structure):
         task.start_and_wait(autoparal=False)
 
         # Parse the file to get the perturbations.
-        return yaml_read_irred_perts(task.log_file.path)
+        try:
+            return yaml_read_irred_perts(task.log_file.path)
+        except Exception as exc:
+            # Try to understand if it's a problem with the Abinit input.
+            report = task.get_event_report()
+            if report.errors: raise self.Error(str(report))
+            raise exc
 
     def linspace(self, varname, start, stop, endpoint=True):
         """
@@ -646,10 +659,7 @@ class AbiInput(Input, Has_Structure):
 
     def set_structure(self, structure, dtset=0):
         """Set the :class:`Structure` object for the specified dtset."""
-        if is_string(structure): 
-            structure = Structure.from_file(structure)
-        elif isinstance(structure, collections.Mapping): 
-            structure = Structure.from_abivars(**structure)
+        structure = Structure.as_structure(structure)
 
         if dtset is None:
             dtset = slice(self.ndtset+1)
@@ -768,7 +778,7 @@ class AbiInput(Input, Has_Structure):
             `RuntimeError` if executable is not in $PATH.
         """
         task = AbinitTask.temp_shell_task(inp=self) 
-        retcode = task.start_and_wait(autoparal=False, exec_args="--dry-run")
+        retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
         return dict2namedtuple(retcode=retcode, log_file=task.log_file, stderr_file=task.stderr_file)
 
 
@@ -841,21 +851,6 @@ class Dataset(mixins.MappingMixin, Has_Structure):
     #    if optdriver is None: optdriver = 0
 
     #    # At this point we have to understand the type of calculation.
-
-    #@property
-    #def geoformat(self):
-    #    """
-    #    angdeg if the crystalline structure should be specified with angdeg and acell, 
-    #    rprim otherwise (default format)
-    #    """
-    #    try:
-    #        return self._geoformat
-    #    except AttributeError
-    #        return "rprim" # default
-    #                                                                                    
-    #def set_geoformat(self, format):
-    #    assert format in ["angdeg", "rprim"]
-    #    self._geoformat = format
 
     def set_mnemonics(self, boolean):
         """True if mnemonics should be printed"""
@@ -963,7 +958,6 @@ class Dataset(mixins.MappingMixin, Has_Structure):
                 msg = "%s is already defined with a different value:\nOLD:\n %s,\nNEW\n %s" % (
                     varname, str(self[varname]), str(value))
                 logger.debug(msg)
-                #logger.critical(msg)
 
         self[varname] = value
 
@@ -1023,8 +1017,6 @@ class Dataset(mixins.MappingMixin, Has_Structure):
 
     def set_structure(self, structure):
         structure = Structure.as_structure(structure)
-        #if is_string(structure): structure = Structure.from_file(filepath)
-        #if isinstance(structure, collections.Mapping): structure = Structure.from_abivars(**structure)
 
         self._structure = structure
         if structure is None: return
@@ -1266,8 +1258,7 @@ def input_gen(inp, **kwargs):
     """
     for new_vars in product_dict(kwargs):
         new_inp = inp.deepcopy()
-        # Remove the variable names to avoid annoying warnings.
-        # if the variable is overwritten.
+        # Remove the variable names to avoid annoying warnings if the variable is overwritten.
         new_inp.remove_vars(new_vars.keys())
         new_inp.set_vars(**new_vars)
 

@@ -497,35 +497,6 @@ def scf_phonons_inputs(structure, pseudos, kppa,
     structure = Structure.as_structure(structure)
     pseudos = _find_pseudos(pseudos, structure)
 
-    # List of q-points for the phonon calculation.
-    #qpoints = np.reshape([
-    #         0.00000000E+00,  0.00000000E+00,  0.00000000E+00, 
-    #         2.50000000E-01,  0.00000000E+00,  0.00000000E+00,
-    #         5.00000000E-01,  0.00000000E+00,  0.00000000E+00,
-    #         2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
-    #         5.00000000E-01,  2.50000000E-01,  0.00000000E+00,
-    #        -2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
-    #         5.00000000E-01,  5.00000000E-01,  0.00000000E+00,
-    #        -2.50000000E-01,  5.00000000E-01,  2.50000000E-01,
-    #        ], (-1, 3))
-
-    # Global variables used both for the GS and the DFPT run.
-    #global_vars = dict(nband=4,             
-    #                   #ecut=3.0,         
-    #                   #ecut=12.0,
-    #                   ngkpt=[4, 4, 4],
-    #                   nshiftk=4,
-    #                   shiftk=[0.0, 0.0, 0.5,   # This gives the usual fcc Monkhorst-Pack grid
-    #                           0.0, 0.5, 0.0,
-    #                           0.5, 0.0, 0.0,
-    #                           0.5, 0.5, 0.5],
-    #                   #shiftk=[0, 0, 0],
-    #                   #paral_kgb=paral_kgb,
-    #                   #ixc=1,
-    #                   #nstep=25,
-    #                   #diemac=9.0,
-    #                )
-
     # Build the input file for the GS run.
     gs_inp = AbiInput(pseudos=pseudos)
     gs_inp.set_structure(structure)
@@ -537,7 +508,6 @@ def scf_phonons_inputs(structure, pseudos, kppa,
     ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
     gs_inp.set_vars(ksampling.to_abivars())
     gs_inp.set_vars(tolvrs=1.0e-18)
-    #gs_inp.set_vars(global_vars)
 
     # Get the qpoints in the IBZ. Note that here we use a q-mesh with ngkpt=(4,4,4) and shiftk=(0,0,0)
     # i.e. the same parameters used for the k-mesh in gs_inp.
@@ -548,20 +518,21 @@ def scf_phonons_inputs(structure, pseudos, kppa,
     ph_inputs = AbiInput(pseudos=pseudos, ndtset=len(qpoints))
     ph_inputs.set_structure(structure)
 
-    #pprint(inp[1].get_irred_perts())
     for ph_inp, qpt in zip(ph_inputs, qpoints):
         # Response-function calculation for phonons.
-        #ph_inp.set_vars(global_vars)
         ph_inp.set_vars(
             rfphon=1,        # Will consider phonon-type perturbation
             nqpt=1,          # One wavevector is to be considered
             qpt=qpt,         # This wavevector is q=0 (Gamma)
             tolwfr=1.0e-20,
-            kptopt=3,
+            kptopt=3,        # One could used symmetries for Gamma.
         )
             #rfatpol   1 1   # Only the first atom is displaced
             #rfdir   1 0 0   # Along the first reduced coordinate axis
             #kptopt   2      # Automatic generation of k points, taking
+
+        #print(ph_inp.get_irred_perts())
+        #print(ph_inp.split_irred_perts())
 
     # Split input into gs_inp and ph_inputs
     all_inps = [gs_inp] 
@@ -569,3 +540,50 @@ def scf_phonons_inputs(structure, pseudos, kppa,
 
     return all_inps
     #return dict2namedtuple(scf_inp=scf_inp, nscf_inp=nscf_inp, dos_inps")
+
+
+def phonons_from_gs_input(gs_inp):
+
+    """
+    Returns a :class:`AbiInput` for performing phonon calculations.
+    GS input + the input files for the phonon calculation.
+
+    """
+    qpoints = gs_inp.get_ibz(ngkpt=(4,4,4), shiftk=(0,0,0), kptopt=1).points
+    print("get_ibz qpoints:", qpoints)
+
+    # Build the input files for the q-points in the IBZ.
+    # Response-function calculation for phonons.
+    ph_inputs = []
+    for qpt in qpoints:
+        q_inp = gs_inp.deepcopy()
+        q_inp.set_vars(
+            rfphon=1,        # Will consider phonon-type perturbation
+            nqpt=1,          # One wavevector is to be considered
+            qpt=qpt,         # This wavevector is q=0 (Gamma)
+            #tolwfr=1.0e-20,
+            kptopt=3,        # One could used symmetries for Gamma.
+        )
+            #rfatpol   1 1   # Only the first atom is displaced
+            #rfdir   1 0 0   # Along the first reduced coordinate axis
+            #kptopt   2      # Automatic generation of k points, taking
+        #print(tmp_inp)
+        irred_perts = q_inp.get_irred_perts()
+
+        for pert in irred_perts:
+            #print(pert)
+            # TODO this will work for phonons, but not for the other types of perturbations.
+            #print(tmp_inp.split_irred_perts())
+            ph_inp = q_inp.deepcopy()
+
+            rfdir = 3 * [0]
+            rfdir[pert.idir -1] = 1
+
+            ph_inp.set_vars(
+                rfdir=rfdir,
+                rfatpol=[pert.ipert, pert.ipert]
+            )
+
+            ph_inputs.append(ph_inp)
+
+    #return all_inps

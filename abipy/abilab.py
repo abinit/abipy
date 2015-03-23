@@ -222,13 +222,8 @@ def flow_main(main):
         # Istantiate the manager.
         options.manager = TaskManager.as_manager(options.manager)
 
-        if options.prof:
-            import pstats, cProfile
-            cProfile.runctx("main(options)", globals(), locals(), "Profile.prof")
-            s = pstats.Stats("Profile.prof")
-            s.strip_dirs().sort_stats("time").print_stats()
-            return 0
-        else:
+        def execute():
+            """This is the function that performs the work depending on options."""
             flow = main(options)
 
             if options.scheduler:
@@ -241,5 +236,15 @@ def flow_main(main):
                 return flow.batch()
 
             return 0
+
+        if options.prof:
+            # Profile execute
+            import pstats, cProfile
+            cProfile.runctx("execute()", globals(), locals(), "Profile.prof")
+            s = pstats.Stats("Profile.prof")
+            s.strip_dirs().sort_stats("time").print_stats()
+            return 0
+        else:
+            return execute()
 
     return wrapper

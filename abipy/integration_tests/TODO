@@ -29,3 +29,6 @@ TODO LIST:
 
   # Rewrite AbiInput, Dataset should be the main object (Dict-like). AbiInput is only used 
     to build datasets!
+
+  # Add ExpectedAbort to Abinit so that one can call the code to get data without triggerin
+    report.errors in task.get_event.report
