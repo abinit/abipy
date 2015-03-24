@@ -27,8 +27,8 @@ from pymatgen.io.abinitio.abiinspect import yaml_read_irred_perts
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
 from abipy.htc.variable import InputVariable
-from abipy.htc.abivars import is_abivar, is_anaddb_var
-from abipy.htc.abivars_db import get_abinit_variables
+from abipy.abio.abivars import is_abivar, is_anaddb_var
+from abipy.abio.abivars_db import get_abinit_variables
 
 import logging
 logger = logging.getLogger(__file__)

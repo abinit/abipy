@@ -1,7 +1,7 @@
 """Tests for htc.FilesFile."""
 from __future__ import print_function, division, unicode_literals
 
-from abipy.htc.abivars_db import get_abinit_variables
+from abipy.abio.abivars_db import get_abinit_variables
 
 def test_database():
     """Testing database of ABINIT variables."""

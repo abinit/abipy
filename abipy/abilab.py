@@ -40,7 +40,7 @@ FloatWithUnit = units.FloatWithUnit
 ArrayWithUnit = units.ArrayWithUnit
 
 # Documentation.
-from abipy.htc.abivars_db import get_abinit_variables, abinit_help, docvar
+from abipy.abio.abivars_db import get_abinit_variables, abinit_help, docvar
 
 # Utils for notebooks.
 from abipy.tools.notebooks import mpld3_enable_notebook
