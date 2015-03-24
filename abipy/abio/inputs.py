@@ -94,8 +94,9 @@ class AbinitInput(MutableMapping, Has_Structure):
 
     def __setitem__(self, key, value):
         if not is_abivar(key):
-            raise self.Error("%s is not a valid ABINIT variable\n."
-                             "Modify abipy/htc/abinit_vars.json" % key)
+            raise self.Error("%s is not a valid ABINIT variable.\n"
+                             "If you are sure the name is correct, please contact the abipy developers\n" 
+                             "or modify the JSON file abipy/htc/abinit_vars.json" % key)
 
         return self._vars.__setitem__(key, value)
 
@@ -148,12 +149,6 @@ class AbinitInput(MutableMapping, Has_Structure):
             return self._mnemonics
         except AttributeError:
             return False
-
-    def set_vars(self, *args, **kwargs):
-        """Set the value of the variables provied in the dictionary **kwargs"""
-        kwargs.update(dict(*args))
-        for varname, varvalue in kwargs.items():
-            self[varname] = varvalue
 
     def to_string(self, sortmode=None, post=None):
         """
@@ -213,7 +208,15 @@ class AbinitInput(MutableMapping, Has_Structure):
             variable = InputVariable(varname, value)
             app(str(variable))
 
-        return "\n".join(lines)
+        s = "\n".join(lines)
+
+        # Add JSON section with pseudo potentials.
+        ppinfo = ["\n\n\n#<JSON>"]
+        d = {"pseudos": [p.as_dict() for p in self.pseudos]}
+        ppinfo.extend(json.dumps(d, indent=4).splitlines())
+        ppinfo.append("</JSON>")
+                                                             
+        return s + "\n#".join(ppinfo)
 
     def write(self, filepath):
         """
@@ -245,6 +248,7 @@ class AbinitInput(MutableMapping, Has_Structure):
         kwargs.update(dict(*args))
         for varname, varvalue in kwargs.items():
             self[varname] = varvalue
+        return kwargs
 
     def remove_vars(self, keys):
         """Remove the variables listed in keys."""
@@ -279,6 +283,7 @@ class AbinitInput(MutableMapping, Has_Structure):
         if structure is None: return
 
         self.set_vars(**structure.to_abivars())
+        return structure
 
     # Helper functions to facilitate the specification of several variables.
     def set_kmesh(self, ngkpt, shiftk, kptopt=1):
@@ -291,7 +296,7 @@ class AbinitInput(MutableMapping, Has_Structure):
             kptopt: Option for the generation of the mesh.
         """
         shiftk = np.reshape(shiftk, (-1,3))
-        self.set_vars(ngkpt=ngkpt, kptopt=kptopt, nshiftk=len(shiftk), shiftk=shiftk)
+        return self.set_vars(ngkpt=ngkpt, kptopt=kptopt, nshiftk=len(shiftk), shiftk=shiftk)
 
     def set_autokmesh(self, nksmall, kptopt=1):
         """
@@ -302,8 +307,8 @@ class AbinitInput(MutableMapping, Has_Structure):
             kptopt: Option for the generation of the mesh.
         """
         shiftk = self.structure.calc_shiftk()
-        self.set_vars(ngkpt=self.structure.calc_ngkpt(nksmall), kptopt=kptopt, 
-                      nshiftk=len(shiftk), shiftk=shiftk)
+        return self.set_vars(ngkpt=self.structure.calc_ngkpt(nksmall), kptopt=kptopt, 
+                             nshiftk=len(shiftk), shiftk=shiftk)
 
     def set_kpath(self, ndivsm, kptbounds=None, iscf=-2):
         """
@@ -317,7 +322,7 @@ class AbinitInput(MutableMapping, Has_Structure):
         if kptbounds is None: kptbounds = self.structure.calc_kptbounds()
         kptbounds = np.reshape(kptbounds, (-1,3))
 
-        self.set_vars(kptbounds=kptbounds, kptopt=-(len(kptbounds)-1), ndivsm=ndivsm, iscf=iscf)
+        return self.set_vars(kptbounds=kptbounds, kptopt=-(len(kptbounds)-1), ndivsm=ndivsm, iscf=iscf)
 
     def set_kptgw(self, kptgw, bdgw):
         """
@@ -333,7 +338,7 @@ class AbinitInput(MutableMapping, Has_Structure):
         nkptgw = len(kptgw)
         if len(bdgw) == 2: bdgw = len(kptgw) * bdgw
 
-        self.set_vars(kptgw=kptgw, nkptgw=nkptgw, bdgw=np.reshape(bdgw, (nkptgw, 2)))
+        return self.set_vars(kptgw=kptgw, nkptgw=nkptgw, bdgw=np.reshape(bdgw, (nkptgw, 2)))
 
     @property
     def pseudos(self):
@@ -355,6 +360,98 @@ class AbinitInput(MutableMapping, Has_Structure):
         """Number of valence electrons computed from the pseudos and the structure."""
         return self.structure.num_valence_electrons(self.pseudos)
 
+    def linspace(self, varname, start, stop, num=50, endpoint=True):
+        """
+        Returns `num` evenly spaced samples, calculated over the interval [`start`, `stop`].
+
+        The endpoint of the interval can optionally be excluded.
+
+        Args:
+            start: The starting value of the sequence.
+            stop: The end value of the sequence, unless `endpoint` is set to False.
+                In that case, the sequence consists of all but the last of ``ndtset + 1``
+                evenly spaced samples, so that `stop` is excluded.  Note that the step
+                size changes when `endpoint` is False.
+            num : int, optional
+                Number of samples to generate. Default is 50.
+            endpoint : bool, optional
+                If True, `stop` is the last sample. Otherwise, it is not included.
+                Default is True.
+        """
+        inps = []
+        for value in np.linspace(start, stop, num=num, endpoint=endpoint, retstep=False):
+            inp = self.deepcopy()
+            inp[varname] = value
+            inps.append(inp)
+        return inps
+
+    def arange(self, varname, start, stop, step):
+        """
+        Return evenly spaced values within a given interval.
+
+        Values are generated within the half-open interval ``[start, stop)``
+        (in other words, the interval including `start` but excluding `stop`).
+
+        When using a non-integer step, such as 0.1, the results will often not
+        be consistent.  It is better to use ``linspace`` for these cases.
+
+        Args:
+            start:  Start of interval. The interval includes this value. The default start value is 0.
+            stop: End of interval.  The interval does not include this value, except
+                in some cases where `step` is not an integer and floating point
+            step: Spacing between values.  For any output `out`, this is the distance
+                between two adjacent values, ``out[i+1] - out[i]``.  The default
+                step size is 1.  If `step` is specified, `start` must also be given.
+        """
+        inps = []
+        for value in np.arange(start=start, stop=stop, step=step):
+            inp = self.deepcopy()
+            inp[varname] = value
+            inps.append(inp)
+        return inps
+
+    def product(self, *items):
+        """
+        Cartesian product of input iterables. Equivalent to nested for-loops.
+
+        .. code-block:: python
+
+            inp.product("ngkpt", "tsmear", [[2,2,2], [4,4,4]], [0.1, 0.2, 0.3])
+        """
+        # Split items into varnames and values
+        for i, item in enumerate(items):
+            if not is_string(item): break
+
+        varnames, values = items[:i], items[i:]
+        if len(varnames) != len(values):
+            raise self.Error("The number of variables must equal the number of lists")
+
+        varnames = [ [varnames[i]] * len(values[i]) for i in range(len(values))]
+        varnames = itertools.product(*varnames)
+        values = itertools.product(*values)
+
+        inps = []
+        for names, values in zip(varnames, values):
+            inp = self.deepcopy()
+            inp.set_vars(**{k: v for k, v in zip(names, values)})
+            inps.append(inp)
+        return inps
+
+    def new_from_decorators(self, decorators):
+        """
+        This function receives a list of :class:`AbinitInputDecorator` objects or just a single object,
+        applyes the decorators to the input and returns a new :class:`AbinitInput` object.
+        self is not changed.
+        """
+        if not isinstance(decorators, (list, tuple)): decorators = [decorators]
+
+        # Deepcopy only at the first step to improve performance.
+        inp = self
+        for i, dec in enumerate(decorators):
+            inp = dec(inp, deepcopy=(i == 0))
+
+        return inp
+        
     def validate(self):
         """
         Run ABINIT in dry mode to validate the input file.
@@ -485,3 +582,139 @@ class AbinitInput(MutableMapping, Has_Structure):
             report = task.get_event_report()
             if report.errors: raise self.Error(str(report))
             raise self.Error("Problem in temp Task executed in %s\n%s" % (task.workdir, exc))
+
+    def get_autoparal_pconfs(self, max_ncpus, autoparal=1, workdir=None, manager=None):
+        # Set the variables for the automatic parallelization
+        # Will get all the possible configurations up to max_ncpus
+        inp = self.deepcopy()
+        inp.set_vars(autoparal=autoparal, max_ncpus=max_ncpus)
+
+        # Run the job in a shell subprocess with mpi_procs = 1
+        # we don't want to make a request to the queue manager for this simple job!
+        # Return code is always != 0 
+        task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
+        task.start_and_wait(autoparal=False)
+        #print(task.workdir)
+
+        ##############################################################
+        # Parse the autoparal configurations from the main output file
+        ##############################################################
+        from pymatgen.io.abinitio.tasks import ParalHintsParser
+        parser = ParalHintsParser()
+        try:
+            pconfs = parser.parse(task.output_file.path)
+            return pconfs
+        except parser.Error:
+            raise 
+            #logger.critical("Error while parsing Autoparal section:\n%s" % straceback())
+            #return 2
+
+
+class MultiDataset(object):
+
+    def __init__(self, pseudos, pseudo_dir="", structure=None, ndtset=1):
+        """
+        Args:
+            pseudos: String or list of string with the name of the pseudopotential files.
+            pseudo_dir: Name of the directory where the pseudopotential files are located.
+            structure: file with the structure, :class:`Structure` object or dictionary with ABINIT geo variable
+            ndtset: Number of datasets.
+        """
+        # Setup of the pseudopotential files.
+        if isinstance(pseudos, PseudoTable):
+            pseudos = pseudos
+
+        elif all(isinstance(p, Pseudo) for p in pseudos):
+            pseudos = PseudoTable(pseudos)
+
+        else:
+            # String(s)
+            pseudo_dir = os.path.abspath(pseudo_dir)
+            pseudo_paths = [os.path.join(pseudo_dir, p) for p in list_strings(pseudos)]
+
+            missing = [p for p in pseudo_paths if not os.path.exists(p)]
+            if missing:
+                raise self.Error("Cannot find the following pseudopotential files:\n%s" % str(missing)) 
+
+            pseudos = PseudoTable(pseudo_paths)
+
+        self._inputs = [AbinitInput(pseudos, structure=structure) for i in range(ndtset)]
+
+    @property
+    def ndtset(self):
+        return len(self)
+
+    def __len__(self):
+        return len(self._inputs)
+
+    def __getitem__(self, key):
+        return self._inputs[key]
+
+    def __iter__(self):
+        return self._inputs.__iter__()
+
+    def __getattr__(self, attr):
+        print("in getattr with attr: %s" % attr)
+        isattr = not callable(getattr(self._inputs[0], attr))
+
+        def on_all(*args, **kwargs):
+            results = []
+            for obj in self._inputs:
+                a = getattr(obj, attr)
+                #print("attr", attr, ", type:", type(a), "callable: ",callable(a))
+                if callable(a):
+                    results.append(a(*args, **kwargs))
+                else:
+                    results.append(a)
+
+            return results
+
+        if isattr: 
+            on_all = on_all()
+        return on_all
+
+    def append(self, abinit_input):
+        self._inputs.append(abinit_input)
+
+    def newdataset_from(self, dtindex):
+        self.append(self[dtindex].deepcopy())
+
+    def split_datasets(self):
+        return self._inputs
+
+    #def __dir__(self):
+    #    """Interactive prompt"""
+    #    #return dir(self) + dir(self._inputs[0])
+    #    return dir(self._inputs[0])
+
+    #def __str__(self):
+    #    """String representation i.e. the input file read by Abinit."""
+    #    if self.ndtset > 1:
+    #        s = ""
+    #        for i, dataset in enumerate(self):
+    #            header = "### DATASET %d ###" % i
+    #            if i == 0: 
+    #                header = "### GLOBAL VARIABLES ###"
+
+    #            str_dataset = str(dataset)
+    #            if str_dataset:
+    #                header = len(header) * "#" + "\n" + header + "\n" + len(header) * "#" + "\n"
+    #                s += "\n" + header + str(dataset) + "\n"
+    #    else:
+    #        # single datasets ==> don't append the dataset index to the variables in self[1]
+    #        # this trick is needed because Abinit complains if ndtset is not specified 
+    #        # and we have variables that end with the dataset index e.g. acell1
+    #        # We don't want to specify ndtset here since abinit will start to add DS# to 
+    #        # the input and output files thus complicating the algorithms we have to use
+    #        # to locate the files.
+    #        d = self[0].deepcopy()
+    #        d.update(self[1])
+    #        s = d.to_string(post="")
+
+    #    # Add JSON section with pseudo potentials.
+    #    ppinfo = ["\n\n\n#<JSON>"]
+    #    d = {"pseudos": [p.as_dict() for p in self.pseudos]}
+    #    ppinfo.extend(json.dumps(d, indent=4).splitlines())
+    #    ppinfo.append("</JSON>")
+
+    #    return s + "\n#".join(ppinfo)

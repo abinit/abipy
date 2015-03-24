@@ -27,6 +27,7 @@ from IPython.frontend.terminal.embed import InteractiveShellEmbed
 # configuration can thus be specified here.
 import pymatgen as pymatgen
 import abipy.abilab as abilab
+import abipy.data as abidata
 
 #from pymatgen import *
 from abipy.abilab import *

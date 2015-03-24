@@ -318,8 +318,6 @@ class AbiInput(Input, Has_Structure):
         """True if varname is a valid Abinit variable."""
         return is_abivar(varname)
 
-    #def append_dataset_from(self, dtindex):
-
     def new_with_vars(self, *args, **kwargs):
         """Generate a new input (deep copy) with these variables"""
         new = self.deepcopy()

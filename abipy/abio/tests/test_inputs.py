@@ -4,6 +4,7 @@ from __future__ import print_function, division, unicode_literals
 import numpy as np
 import abipy.data as abidata
 
+from abipy import abilab
 from abipy.core.testing import *
 from abipy.abio.inputs import *
 
@@ -62,7 +63,7 @@ class TestAbinitInput(AbipyTest):
         inp.set_structure(new_structure)
         assert inp.structure == new_structure
 
-        # Compatible with deepcopy, Pickle and PMGSONable?
+        # Compatible with Pickle and PMGSONable?
         self.serialize_with_pickle(inp, test_eq=False)
         #self.assertPMGSONable(inp)
 
@@ -81,6 +82,17 @@ class TestAbinitInput(AbipyTest):
 
         inp.set_kptgw(kptgw=(1, 2, 3, 4, 5, 6), bdgw=(1, 2))
         assert inp["nkptgw"] == 2 and np.all(inp["bdgw"].ravel() == np.array(len(inp["kptgw"]) * [1,2]).ravel())
+
+        linps = inp.linspace("ecut", 2, 6, num=3, endpoint=True)
+        assert len(linps) == 3 and (linps[0]["ecut"] == 2 and (linps[-1]["ecut"] == 6))
+
+        ranginps = inp.arange("ecut", start=3, stop=5, step=1)
+        assert len(ranginps) == 2 and (ranginps[0]["ecut"] == 3 and (ranginps[-1]["ecut"] == 4))
+
+        prod_inps = inp.product("ngkpt", "tsmear", [[2,2,2], [4,4,4]], [0.1, 0.2, 0.3])
+        assert len(prod_inps) == 6 
+        assert prod_inps[0]["ngkpt"] == [2,2,2] and prod_inps[0]["tsmear"] == 0.1
+        assert prod_inps[-1]["ngkpt"] ==  [4,4,4] and prod_inps[-1]["tsmear"] == 0.3
 
     def test_abinit_calls(self):
         """Testing AbinitInput methods invoking Abinit."""
@@ -110,6 +122,41 @@ class TestAbinitInput(AbipyTest):
         pert = irred_perts[0]
         assert pert.idir == 1 and (pert.idir, pert.ipert) == (1, 1) and all(c == 0 for c in pert.qpt)
 
+        #assert 0
+
+
+class TestMultiDataset(AbipyTest):
+    """Unit tests for MultiDataset."""
+    def test_api(self):
+        """Test MultiDataset API."""
+        multi = MultiDataset(pseudos=abidata.pseudos("14si.pspnc"))
+        assert len(multi) == 1 and multi.ndtset == 1 
+        for i, inp in enumerate(multi):
+            assert inp.keys() ==  multi[i].keys()
+
+        multi.newdataset_from(0)
+        assert multi.ndtset == 2 and multi[0] is not multi[1]
+
+        multi.set_vars(ecut=2)
+        assert all(inp["ecut"] == 2 for inp in multi)
+        multi[1].set_vars(ecut=1)
+        assert multi[0]["ecut"] == 2 and multi[1]["ecut"] == 1
+
+        structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
+        pert_structure = structure.copy()
+        pert_structure.perturb(distance=0.1)
+        assert structure != pert_structure
+
+        assert multi.set_structure(structure) == multi.ndtset * [structure]
+        assert all(s == structure for s in multi.structure)
+        multi[1].set_structure(pert_structure)
+        assert multi[0].structure != multi[1].structure and multi[1].structure == pert_structure
+
+        split = multi.split_datasets()
+        assert len(split) == 2 and all(split[i] == multi[i] for i in range(multi.ndtset))
+
+        print(multi)
+        #print(dir(multi))
         #assert 0
 
 
