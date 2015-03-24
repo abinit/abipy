@@ -456,6 +456,22 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
             inp = dec(inp, deepcopy=(i == 0))
 
         return inp
+
+    def pycheck(self):
+        errors = []
+        eapp = errors.append
+
+        m = self.structure.lattice.matrix
+        volume = np.dot(np.cross(m[0], m[1]), m[2])
+        if volume < 0:
+            eapp("The triple product of the lattice vector is negative. Use structure abi_sanitize.")
+
+        #if sel.ispaw and "pawecutdg not in self 
+            
+        if errors:
+            raise self.Error("\n".join(errors))
+
+        return True
         
     def abivalidate(self):
         """
@@ -505,7 +521,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
         if ngkpt is not None: inp["ngkpt"] = ngkpt
         if shiftk is not None:
             shiftk = np.reshape(shiftk, (-1,3))
-            inp.set_vars(shiftk=shiftk, nshiftk=len(inp.shiftk))
+            inp.set_vars(shiftk=shiftk, nshiftk=len(shiftk))
 
         if kptopt is not None: inp["kptopt"] = kptopt
 
@@ -614,6 +630,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
 
 
 class MultiDataset(object):
+
+    Error = AbinitInputError
 
     def __init__(self, pseudos, pseudo_dir="", structure=None, ndtset=1):
         """

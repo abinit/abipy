@@ -1,5 +1,5 @@
 # coding: utf-8
-"""Decorators for AbiInput objects."""
+"""Decorators for AbinitInput objects."""
 from __future__ import print_function, division, unicode_literals
 
 import six
@@ -8,7 +8,7 @@ import pymatgen.io.abinitio.abiobjects as aobj
 
 from monty.inspect import initializer
 from pymatgen.serializers.json_coders import PMGSONable, pmg_serialize
-from .input import LdauParams, LexxParams
+from abipy.htc.input import LdauParams, LexxParams
 
 import logging
 logger = logging.getLogger(__file__)
@@ -20,8 +20,8 @@ class InputDecoratorError(Exception):
 
 class AbinitInputDecorator(six.with_metaclass(abc.ABCMeta, PMGSONable)):
     """
-    An `AbinitInputDecorator` adds new options to an existing :class:`AbiInput` without altering its structure. 
-    This is an abstract Base class.
+    An `AbinitInputDecorator` adds new options to an existing :class:`AbinitInput` 
+    without altering its structure. This is an abstract Base class.
 
     Example:
         
@@ -48,18 +48,24 @@ class AbinitInputDecorator(six.with_metaclass(abc.ABCMeta, PMGSONable)):
         new_inp.register_decorator(self)
         return new_inp
 
+        # TODO
+        #if isinstance(AbinitInput):
+        #elif isinstance(AbinitInput):
+        #else:
+        #    raise TypeError("Don't know how to decorate type %s" % type(inp)
+
     @abc.abstractmethod
     def _decorate(self, inp, deepcopy=True):
         """
         Abstract method that must be implemented by the concrete classes.
-        It receives a :class:`AbiInput` object, applies the decoration and returns a new `AbiInput`.
+        It receives a :class:`AbinitInput` object, applies the decoration and returns a new `AbinitInput`.
 
         Args:
-            inp: :class:`AbiInput` object.
+            inp: :class:`AbinitInput` object.
             deepcopy: True if a deepcopy of inp should be performed before changing the object.
 
         Returns:
-            decorated :class:`AbiInput` object (new object)
+            decorated :class:`AbinitInput` object (new object)
         """
 
 class SpinDecorator(AbinitInputDecorator):
@@ -150,7 +156,7 @@ class XCDecorator(AbinitInputDecorator):
 
 
 class LdaUDecorator(AbinitInputDecorator):
-    """Add LDA+U to an :class:`AbiInput` object."""
+    """Add LDA+U to an :class:`AbinitInput` object."""
     def __init__(self, symbols_luj, usepawu=1, unit="eV"):
         """
         Args:
@@ -187,7 +193,7 @@ class LdaUDecorator(AbinitInputDecorator):
 
 
 class LexxDecorator(AbinitInputDecorator):
-    """Add Local exact exchange to an :class:`AbiInput` object."""
+    """Add Local exact exchange to an :class:`AbinitInput` object."""
     def __init__(self, symbols_lexx, exchmix=None):
         """
         Args:

@@ -4,10 +4,11 @@ from __future__ import unicode_literals, division, print_function
 import sys
 import abipy.data as abidata  
 import abipy.abilab as abilab
-import abipy.htc.decorators as ideco
+import abipy.abio.decorators as ideco
 
-from abipy.htc.factories import * 
 from abipy.core.testing import AbipyTest
+from abipy.abio.factories import * 
+
 
 
 class DecoratorTest(AbipyTest):
@@ -124,7 +125,7 @@ class DecoratorTest(AbipyTest):
         #assert 0
 
     def test_new_from_decorators(self):
-        """Testing AbiInput.new_from_decorators."""
+        """Testing AbinitInput.new_from_decorators."""
         spinor_deco = ideco.SpinDecorator("spinor")
         smearing_deco = ideco.SmearingDecorator("nosmearing")
         new_inp = self.si_ebands.new_from_decorators(spinor_deco)

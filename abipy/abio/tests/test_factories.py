@@ -7,8 +7,8 @@ import abipy.abilab as abilab
 
 from pprint import pprint
 from abipy.core.testing import AbipyTest
-from abipy.htc.input import AbiInput
-from abipy.htc.factories import *
+from abipy.abio.inputs import AbinitInput
+from abipy.abio.factories import *
 
 
 class FactoryTest(AbipyTest):
@@ -22,33 +22,33 @@ class FactoryTest(AbipyTest):
         # Hack neede because ecut is not in the pseudos.
         inp.set_vars(ecut=3)
 
-        v = inp.validate()
-        if v.retcode != 0:
-            raise RuntimeError(v.err)
-        else:
-            print("Valid input!")
+        #v = inp.abivalidate()
+        #if v.retcode != 0:
+        #    raise RuntimeError(v.err)
+        #else:
+        #    print("Valid input!")
 
         # Test validity of individual datasets.
         for dtset in inp.split_datasets():
-            v = dtset.validate()
+            v = dtset.abivalidate()
 
     def test_factory_protocol(self):
         """Testing factory protocol."""
         # Ambiguous list of pseudos.
-        with self.assertRaises(AbiInput.Error):
+        with self.assertRaises(AbinitInput.Error):
             ebands_input(self.si_structure, pseudos=abidata.pseudos("14si.pspnc", "Si.oncvpsp"), ecut=2)
 
         # No ecut and pseudos without hints 
-        with self.assertRaises(AbiInput.Error):
+        with self.assertRaises(AbinitInput.Error):
             ebands_input(self.si_structure, pseudos=abidata.pseudos("14si.pspnc", "Si.oncvpsp"))
 
         # Negative triple product.
-        with self.assertRaises(AbiInput.Error):
+        with self.assertRaises(AbinitInput.Error):
             s = abidata.structure_from_ucell("Al-negative-volume")
             ebands_input(s, pseudos=abidata.pseudos("13al.981214.fhi"), ecut=2)
 
         # Pseudos do not match structure.
-        with self.assertRaises(AbiInput.Error):
+        with self.assertRaises(AbinitInput.Error):
             ebands_input(self.si_structure, pseudos=abidata.pseudos("13al.981214.fhi"), ecut=2)
 
     def test_ebands_input(self):
@@ -62,7 +62,7 @@ class FactoryTest(AbipyTest):
         #print(inp)
         #self.validate_inp(inp)
 
-        return
+        #return
         flow = abilab.Flow("flow_ebands_input")
         flow.register_work(abilab.BandStructureWork(scf_inp, nscf_inp))
         flow.allocate()
@@ -77,7 +77,7 @@ class FactoryTest(AbipyTest):
         self.validate_inp(inp)
         ion_inp, ioncell_inp = inp.split_datasets()
 
-        return
+        #return
         flow = abilab.Flow("flow_ion_ioncell_relax_input")
         flow.register_work(abilab.RelaxWork(ion_inp, ioncell_inp))
         flow.allocate()
@@ -96,7 +96,7 @@ class FactoryTest(AbipyTest):
 
         self.validate_inp(inp)
         
-        return
+        #return
         scf_input, nscf_input, scr_input, sigma_input = inp.split_datasets()
         flow = abilab.Flow("flow_g0w0_with_ppmodel")
         flow.register_work(abilab.G0W0Work(scf_input, nscf_input, scr_input, sigma_input))
@@ -136,7 +136,7 @@ class FactoryTest(AbipyTest):
         #for inp in inps:
         #    self.validate_inp(inp)
 
-        print(inps[1].get_irred_perts())
+        print(inps[1].abiget_irred_perts())
         #assert 0
 
 
