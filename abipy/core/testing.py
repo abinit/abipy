@@ -27,8 +27,8 @@ __all__ = [
 def has_abinit(version, cmp=">="):
     """
     Return True if abinit is in $PATH and version is cmp version.
-    False if condition is not fulfilled or the execution of `abinit -v` 
-    raised CalledProcessError 
+    False if condition is not fulfilled or the execution of `abinit -v`
+    raised CalledProcessError
     """
     if which("abinit") is None:
         return False
@@ -58,6 +58,26 @@ def has_matplotlib():
     except ImportError:
         return False
 
+
+def has_fireworks():
+    try:
+        import fireworks
+        return True
+    except ImportError:
+        return False
+
+
+def has_mongodb(host='localhost', port=27017, name='mongodb_test', username=None, password=None):
+    try:
+        from pymongo import MongoClient
+        connection = MongoClient(host, port, j=True)
+        db = connection[name]
+        if username:
+            db.authenticate(username, password)
+
+        return True
+    except:
+        return False
 
 class AbipyTest(PymatgenTest):
     """Extend TestCase with functions from numpy.testing.utils that support ndarrays."""

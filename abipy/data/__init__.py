@@ -28,6 +28,8 @@ _PSEUDOS_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "pseu
 
 _VARIABLES_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "variables"))
 
+_MPDATA_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "mpdata"))
+
 
 _SCRIPTS_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "examples"))
 _SCRIPTS = None
@@ -134,6 +136,15 @@ def ncfiles_with_ext(ext):
             ncfiles.append(path)
 
     return ncfiles
+
+
+def mp_structures():
+    """ Returns a dictionary containg the structures stored in mpdata/mp_structures. """
+    import json
+    from monty.json import MontyDecoder
+
+    with open(os.path.join(_MPDATA_DIRPATH, 'mp_structures.json'), 'r') as f:
+        return json.load(f, cls=MontyDecoder)
 
 WFK_NCFILES = ncfiles_with_ext("WFK")
 

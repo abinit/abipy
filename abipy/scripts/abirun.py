@@ -609,16 +609,19 @@ Specify the files to open. Possible choices:
         count = 0
         for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
             print("Resetting task %s" % task)
-            task.reset()
-            count += 1	
+            failed = task.reset()
+            if failed:
+                print("Task %s couldn't be reset" % task)
+            else:
+                count += 1
 
         cprint("%d tasks have been reset" % count, "blue")
-        nlaunch = PyLauncher(flow).rapidfire()
+        nlaunch = flow.rapidfire()
         flow.show_status()
         print("Number of tasks launched: %d" % nlaunch)
 
         if nlaunch == 0:
-            g = flow.deadlocked_runnables_running()
+            g = flow.find_deadlocks()
             #print("deadlocked:", gdeadlocked)
             #print("runnables:", grunnables)
             #print("running:", g.running)
@@ -867,7 +870,6 @@ Specify the files to open. Possible choices:
         raise RuntimeError("Don't know what to do with command %s!" % options.command)
 
     return retcode
-    
 
 if __name__ == "__main__":
     # Replace python open to detect open files.
