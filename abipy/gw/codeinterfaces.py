@@ -415,8 +415,14 @@ class AbinitInterface(AbstractCodeInterface):
         store_conv_results(name, folder)
         w = 'w' + str(read_grid_from_file(name+".full_res")['grid'])
         try:
-            shutil.copyfile(os.path.join(name+".conv", w, "t9", "outdata", "out_SIGRES.nc"),
-                            os.path.join(folder, "out_SIGRES.nc"))
+            if os.path.isdir(os.path.join(name+".conv", w, "t11", "outdata")):
+                shutil.copyfile(os.path.join(name+".conv", w, "t2", "outdata", "out_GSR.nc"),
+                                os.path.join(folder, "out_BANDS.nc"))
+                shutil.copyfile(os.path.join(name+".conv", w, "t11", "outdata", "out_SIGRES.nc"),
+                                os.path.join(folder, "out_SIGRES.nc"))
+            else:
+                shutil.copyfile(os.path.join(name+".conv", w, "t9", "outdata", "out_SIGRES.nc"),
+                                os.path.join(folder, "out_SIGRES.nc"))
         except (OSError, IOError):  # compatibility issue
             shutil.copyfile(os.path.join(name+".conv", "work_0", "task_6", "outdata", "out_SIGRES.nc"),
                             os.path.join(folder, "out_SIGRES.nc"))
