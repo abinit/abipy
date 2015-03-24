@@ -17,10 +17,10 @@ class AbiInputTest(AbipyTest):
         # Create an ABINIT input file with 1 dataset. 
         inp = AbiInput(pseudos="14si.pspnc", pseudo_dir=abidata.pseudo_dir, ndtset=1)
         inp.set_comment("Input file with 1 dataset")
+        assert inp.isnc
+
         inp.set_mnemonics(True)
         assert inp.mnemonics
-
-        assert inp.isnc
 
         # One can set the value of the variables directly with the syntax.
         inp.ecut = 10.
@@ -205,12 +205,10 @@ class LdauLexxTest(AbipyTest):
         aequal(vars["lexexch"], "2 -1"),
 
         # Cannot add LEXX for non-existent species.
-        with self.assertRaises(ValueError):
-            lexx_params.lexx_for_symbol("Foo", l=2)
+        with self.assertRaises(ValueError): lexx_params.lexx_for_symbol("Foo", l=2)
                                                                             
         # Cannot overwrite LEXX.
-        with self.assertRaises(ValueError):
-            lexx_params.lexx_for_symbol("Ni", l=1)
+        with self.assertRaises(ValueError): lexx_params.lexx_for_symbol("Ni", l=1)
 
 
 class AnaddbInputTest(AbipyTest):

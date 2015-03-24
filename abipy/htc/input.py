@@ -31,6 +31,7 @@ from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
 from .variable import InputVariable
 from .abivars import is_abivar, is_anaddb_var
+from .abivars_db import get_abinit_variables
 
 import logging
 logger = logging.getLogger(__file__)
@@ -107,54 +108,28 @@ class Input(six.with_metaclass(abc.ABCMeta, PMGSONable, object)):
 
     def write(self, filepath):
         """
-        Write the input file to file. Returns a string with the input.
+        Write the input file to file to `filepath`. Returns a string with the input.
         """
         dirname = os.path.dirname(filepath)
         if not os.path.exists(dirname): os.makedirs(dirname)
                                                                                       
         # Write the input file.
         input_string = str(self)
-        with open(filepath, "w") as fh:
+        with open(filepath, "wt") as fh:
             fh.write(input_string)
 
         return input_string
 
     #@abc.abstractmethod
-    #def make_input(self)
+    #def make_input(self):
 
     #@abc.abstractproperty
     #def structure(self):
 
     #def set_structure(self, structure):
 
-    #def set_vars(self, dtset=0, **vars):
-    #    """
-    #    Set the value of a set of input variables.
 
-    #    Args:
-    #        dtset:
-    #            Int with the index of the dataset, slice object of iterable 
-    #        vars:
-    #            Dictionary with the variables.
-    #    """
-    #    for idt in self._dtset2range(dtset):
-    #        self[idt].set_vars(**vars)
-
-    #def pop_vars(self, keys, dtset=0):
-    #    """
-    #    Remove the variable listed in keys
-    #                                                                         
-    #    Args:
-    #        dtset:
-    #            Int with the index of the dataset, slice object of iterable 
-    #        keys:
-    #            List of variables to remove.
-    #    """
-    #    for idt in self._dtset2range(dtset):
-    #        self[idt].remove_vars(keys)
-
-
-class InputError(Exception):
+class AbinitInputError(Exception):
     """Base error class for exceptions raised by `AbiInput`"""
 
 
@@ -174,7 +149,7 @@ class AbiInput(Input, Has_Structure):
         # Print it to get the final input.
         print(inp)
     """
-    Error = InputError
+    Error = AbinitInputError
 
     def __init__(self, pseudos, pseudo_dir="", structure=None, ndtset=1, comment="", decorators=None):
         """
@@ -342,8 +317,6 @@ class AbiInput(Input, Has_Structure):
     def is_abivar(self, varname):
         """True if varname is a valid Abinit variable."""
         return is_abivar(varname)
-
-    #def add_dataset(self, *args, **kwargs):
 
     def new_with_vars(self, *args, **kwargs):
         """Generate a new input (deep copy) with these variables"""
@@ -638,8 +611,7 @@ class AbiInput(Input, Has_Structure):
         """
         # Split items into varnames and values
         for i, item in enumerate(items):
-            if not is_string(item):
-                break
+            if not is_string(item): break
 
         varnames, values = items[:i], items[i:]
         if len(varnames) != len(values):
@@ -787,7 +759,7 @@ class Dataset(mixins.MappingMixin, Has_Structure):
     This object stores the ABINIT variables for a single dataset.
     """
     # TODO this should be the "actual" input file
-    Error = InputError
+    Error = AbinitInputError
 
     def __init__(self, index, dt0, *args, **kwargs):
         self._mapping_mixin_ = collections.OrderedDict(*args, **kwargs)
@@ -795,7 +767,7 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         self._dt0 = dt0
 
     def __repr__(self):
-        "<%s at %s>" % (self.__class__.__name__, id(self))
+        return "<%s at %s>" % (self.__class__.__name__, id(self))
 
     def __str__(self):
         return self.to_string()
@@ -900,7 +872,6 @@ class Dataset(mixins.MappingMixin, Has_Structure):
 
         with_mnemonics = self.mnemonics
         if with_mnemonics:
-            from .abivars_db import get_abinit_variables
             var_database = get_abinit_variables()
 
         for var in keys:
@@ -1047,8 +1018,8 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         """
         shiftk = self.structure.calc_shiftk()
         
-        self.set_vars(ngkpt=self.structure.calc_ngkpt(nksmall),
-                      kptopt=kptopt, nshiftk=len(shiftk), shiftk=shiftk)
+        self.set_vars(ngkpt=self.structure.calc_ngkpt(nksmall), kptopt=kptopt, 
+                      nshiftk=len(shiftk), shiftk=shiftk)
 
     def set_kpath(self, ndivsm, kptbounds=None, iscf=-2):
         """
@@ -1059,13 +1030,10 @@ class Dataset(mixins.MappingMixin, Has_Structure):
             kptbounds: k-points defining the path in k-space.
                 If None, we use the default high-symmetry k-path defined in the pymatgen database.
         """
-        if kptbounds is None:
-            kptbounds = self.structure.calc_kptbounds()
-
+        if kptbounds is None: kptbounds = self.structure.calc_kptbounds()
         kptbounds = np.reshape(kptbounds, (-1,3))
 
-        self.set_vars(kptbounds=kptbounds, kptopt=-(len(kptbounds)-1),
-                      ndivsm=ndivsm, iscf=iscf)
+        self.set_vars(kptbounds=kptbounds, kptopt=-(len(kptbounds)-1), ndivsm=ndivsm, iscf=iscf)
 
     def set_kptgw(self, kptgw, bdgw):
         """
@@ -1079,9 +1047,7 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         """
         kptgw = np.reshape(kptgw, (-1,3))
         nkptgw = len(kptgw)
-
-        if len(bdgw) == 2:
-            bdgw = len(kptgw) * bdgw
+        if len(bdgw) == 2: bdgw = len(kptgw) * bdgw
 
         self.set_vars(kptgw=kptgw, nkptgw=nkptgw, bdgw=np.reshape(bdgw, (nkptgw, 2)))
 
@@ -1307,9 +1273,13 @@ def product_dict(d):
     return vars_prod
 
 
+class AnaddbInputError(Exception):
+    """Base error class for exceptions raised by `AnaddbInput`"""
+
+
 class AnaddbInput(mixins.MappingMixin, Has_Structure):
     #TODO: Abstract interface so that we can provide tools for AbinitInput and AnaddbInput
-    Error = InputError
+    Error = AnaddbInputError
 
     @classmethod
     def modes_at_qpoint(cls, structure, qpoint, asr=2, chneut=1, dipdip=1):
