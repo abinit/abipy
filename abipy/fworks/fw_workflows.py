@@ -28,9 +28,19 @@ class AbstractFWWorkflow():
     Abstract Workflow class.
     """
 
-    def add_to_db(self):
-        lpad = LaunchPad.auto_load()
-        lpad.add_wf(self.wf)
+    def add_to_db(self, lpad=None):
+        if not lpad:
+            lpad = LaunchPad.auto_load()
+        return lpad.add_wf(self.wf)
+
+
+class InputFWWorkflow(AbstractFWWorkflow):
+    def __init__(self, abiinput):
+        abitask = AbiFireTask(abiinput)
+
+        self.fw = Firework(abitask)
+
+        self.wf = Workflow([self.fw])
 
 
 class ScfFWWorkflow(AbstractFWWorkflow):
@@ -39,6 +49,6 @@ class ScfFWWorkflow(AbstractFWWorkflow):
 
         abitask = AbiFireTask(abiinput)
 
-        scf_fw = Firework(abitask)
+        self.scf_fw = Firework(abitask)
 
-        self.wf = Workflow([scf_fw])
+        self.wf = Workflow([self.scf_fw])
