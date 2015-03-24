@@ -15,8 +15,9 @@ import six
 import os
 import logging
 import sys
+
 from fw_tasks import AbiFireTask
-from abipy.htc.factories import ion_ioncell_relax_input, ebands_input
+from abipy.abio.factories import ion_ioncell_relax_input, ebands_input
 
 # logging.basicConfig()
 logger = logging.getLogger(__name__)

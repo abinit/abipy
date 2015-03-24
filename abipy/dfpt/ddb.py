@@ -12,7 +12,7 @@ from pymatgen.io.abinitio.tasks import AnaddbTask, TaskManager
 from abipy.core.mixins import TextFile, Has_Structure
 from abipy.core.symmetries import SpaceGroup
 from abipy.core.structure import Structure
-from abipy.htc.input import AnaddbInput
+from abipy.abio.inputs import AnaddbInput
 
 import logging
 logger = logging.getLogger(__name__)

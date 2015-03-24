@@ -6,7 +6,7 @@ import abipy.data as abidata
 import abipy.abilab as abilab
 import abipy.fworks.fw_tasks as fw_tasks
 
-from abipy.htc.factories import *
+from abipy.abio.factories import *
 from abipy.core.testing import AbipyTest
 
 

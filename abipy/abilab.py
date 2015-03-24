@@ -19,9 +19,9 @@ from pymatgen.io.abinitio.flows import Flow, G0W0WithQptdmFlow, bandstructure_fl
 from pymatgen.io.abinitio.launcher import PyFlowScheduler, BatchLauncher
 
 from abipy.core.structure import Lattice, Structure, StructureModifier
-from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen, AnaddbInput
+from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
 from abipy.abio.robots import GsrRobot, SigresRobot, MdfRobot, abirobot
-from abipy.abio.inputs import AbinitInput, MultiDataset
+from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput
 from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter, SigresPlotter
 from abipy.electrons.gsr import GsrFile
 from abipy.electrons.gw import SigresFile, SigresPlotter 

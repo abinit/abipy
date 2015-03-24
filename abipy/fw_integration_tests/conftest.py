@@ -5,7 +5,7 @@ import os
 import pytest
 import abipy.abilab as abilab
 import abipy.data as abidata
-from abipy.htc.factories import ebands_input
+from abipy.abio.factories import ebands_input
 from abipy.data.benchmark_structures import simple_semiconductors, simple_metals
 
 from fireworks import LaunchPad, FWorker

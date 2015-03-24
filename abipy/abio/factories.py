@@ -544,8 +544,8 @@ def phonons_from_gs_input(gs_inp):
     GS input + the input files for the phonon calculation.
 
     """
-    qpoints = gs_inp.get_ibz(ngkpt=(4,4,4), shiftk=(0,0,0), kptopt=1).points
-    print("get_ibz qpoints:", qpoints)
+    qpoints = gs_inp.abiget_ibz(ngkpt=(4,4,4), shiftk=(0,0,0), kptopt=1).points
+    #print("get_ibz qpoints:", qpoints)
 
     # Build the input files for the q-points in the IBZ.
     # Response-function calculation for phonons.
@@ -563,7 +563,7 @@ def phonons_from_gs_input(gs_inp):
             #rfdir   1 0 0   # Along the first reduced coordinate axis
             #kptopt   2      # Automatic generation of k points, taking
         #print(tmp_inp)
-        irred_perts = q_inp.get_irred_perts()
+        irred_perts = q_inp.abiget_irred_perts()
 
         for pert in irred_perts:
             #print(pert)
