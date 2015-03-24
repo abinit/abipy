@@ -65,7 +65,7 @@ class TestAbinitInput(AbipyTest):
 
         # Compatible with Pickle and PMGSONable?
         self.serialize_with_pickle(inp, test_eq=False)
-        #self.assertPMGSONable(inp)
+        self.assertPMGSONable(inp)
 
     def test_helper_functions(self):
         """Testing AbinitInput helper functions."""
@@ -103,21 +103,21 @@ class TestAbinitInput(AbipyTest):
 
         # Test validate with wrong input
         inp.set_vars(ecut=-1)
-        v = inp.validate()
+        v = inp.abivalidate()
         assert v.retcode != 0 and v.log_file.read()
 
         # Test validate with correct input
         inp.set_vars(ecut=2, toldfe=1e-6)
-        v = inp.validate()
+        v = inp.abivalidate()
         assert v.retcode == 0
                                                     
-        # Test get_ibz
-        ibz = inp.get_ibz()
+        # Test abiget_ibz
+        ibz = inp.abiget_ibz()
         assert np.all(ibz.points == [[ 0. ,  0. ,  0. ], [ 0.5,  0. ,  0. ], [ 0.5,  0.5,  0. ]])
         assert np.all(ibz.weights == [0.125,  0.5,  0.375])
 
         # [{'idir': 1, 'ipert': 1, 'qpt': [0.0, 0.0, 0.0]}]
-        irred_perts = inp.get_irred_phperts(qpt=(0, 0, 0))
+        irred_perts = inp.abiget_irred_phperts(qpt=(0, 0, 0))
         assert len(irred_perts) == 1
         pert = irred_perts[0]
         assert pert.idir == 1 and (pert.idir, pert.ipert) == (1, 1) and all(c == 0 for c in pert.qpt)
@@ -134,7 +134,7 @@ class TestMultiDataset(AbipyTest):
         for i, inp in enumerate(multi):
             assert inp.keys() ==  multi[i].keys()
 
-        multi.newdataset_from(0)
+        multi.addnew_from(0)
         assert multi.ndtset == 2 and multi[0] is not multi[1]
 
         multi.set_vars(ecut=2)
@@ -149,15 +149,17 @@ class TestMultiDataset(AbipyTest):
 
         assert multi.set_structure(structure) == multi.ndtset * [structure]
         assert all(s == structure for s in multi.structure)
+        assert multi.has_same_structures
         multi[1].set_structure(pert_structure)
         assert multi[0].structure != multi[1].structure and multi[1].structure == pert_structure
+        assert not multi.has_same_structures
 
         split = multi.split_datasets()
         assert len(split) == 2 and all(split[i] == multi[i] for i in range(multi.ndtset))
 
         print(multi)
         #print(dir(multi))
-        #assert 0
+        assert 0
 
 
 if __name__ == "__main__":

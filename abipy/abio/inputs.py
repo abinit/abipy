@@ -14,17 +14,13 @@ import six
 import abc
 import json
 import numpy as np
-import abipy.tools.mixins as mixins
 
 from collections import OrderedDict, MutableMapping
-from monty.dev import deprecated
 from monty.collections import dict2namedtuple
 from monty.string import is_string, list_strings
-from monty.os.path import which
-from pymatgen.core.units import Energy
 from pymatgen.serializers.json_coders import PMGSONable, pmg_serialize
 from pymatgen.io.abinitio.pseudos import PseudoTable, Pseudo
-from pymatgen.io.abinitio.tasks import TaskManager, AbinitTask
+from pymatgen.io.abinitio.tasks import AbinitTask, ParalHintsParser
 from pymatgen.io.abinitio.netcdf import NetcdfReader
 from pymatgen.io.abinitio.abiinspect import yaml_read_irred_perts
 from abipy.core.structure import Structure
@@ -41,16 +37,13 @@ class AbinitInputError(Exception):
     """Base error class for exceptions raised by `AbiInput`"""
 
 
-#class AbinitInput(Input, Has_Structure):
-#@six.add_metaclass(abc.ABCMeta)
-#class Input(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, object)):
-class AbinitInput(MutableMapping, Has_Structure):
+class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Has_Structure, object)):
     """
     This object stores the ABINIT variables for a single dataset.
     """
     Error = AbinitInputError
 
-    def __init__(self, pseudos, pseudo_dir=None, structure=None, comment=None, decorators=None):
+    def __init__(self, pseudos, pseudo_dir=None, structure=None, comment=None, decorators=None, abivars=None):
         """
         Args:
             pseudos: String or list of strings with the name of the pseudopotential files.
@@ -59,6 +52,7 @@ class AbinitInput(MutableMapping, Has_Structure):
             ndtset: Number of datasets.
             comment: Optional string with a comment that will be placed at the beginning of the file.
             decorators: List of `AbinitInputDecorator` objects.
+            abivars: Dictionary with the initial set of variables. Default: Empty
         """
         if pseudo_dir is not None:
             pseudo_dir = os.path.abspath(pseudo_dir)
@@ -66,31 +60,43 @@ class AbinitInput(MutableMapping, Has_Structure):
             pseudos = [os.path.join(pseudo_dir, p) for p in list_strings(pseudos)]
 
         self._pseudos = PseudoTable.as_table(pseudos)
-        self._vars = OrderedDict()
+        abivars = {} if abivars is None else abivars
+        self._abivars = OrderedDict(**abivars)
 
         if structure is not None: self.set_structure(structure)
         if comment is not None: self.set_comment(comment)
 
         self._decorators = [] if not decorators else decorators
 
-    #@classmethod
-    #def from_dict(cls, d):
+    @pmg_serialize
+    def as_dict(self):
+        abivars = {}
+        for key, value in self.items():
+            if isinstance(value, np.ndarray): value = value.tolist()
+            abivars[key] = value
 
-    #@pmg_serialize
-    #def as_dict(self):
+        return dict(pseudos=[p.as_dict() for p in self.pseudos], 
+                    comment=self.comment,
+                    decorators=[dec.as_dict() for dec in self.decorators],
+                    abivars=abivars)
+
+    @classmethod
+    def from_dict(cls, d):
+        pseudos = [Pseudo.from_file(p['filepath']) for p in d['pseudos']]
+        return cls(pseudos, decorators=d["decorators"], comment=d["comment"], abivars=d["abivars"])
 
     # ABC protocol: __delitem__, __getitem__, __iter__, __len__, __setitem__
     def __delitem__(self, key):
-        return self._vars.__delitem__(key)
+        return self._abivars.__delitem__(key)
         
     def __getitem__(self, key):
-        return self._vars.__getitem__(key)
+        return self._abivars.__getitem__(key)
 
     def __iter__(self):
-        return self._vars.__iter__()
+        return self._abivars.__iter__()
 
     def __len__(self):
-        return len(self._vars)
+        return len(self._abivars)
 
     def __setitem__(self, key, value):
         if not is_abivar(key):
@@ -98,7 +104,7 @@ class AbinitInput(MutableMapping, Has_Structure):
                              "If you are sure the name is correct, please contact the abipy developers\n" 
                              "or modify the JSON file abipy/htc/abinit_vars.json" % key)
 
-        return self._vars.__setitem__(key, value)
+        return self._abivars.__setitem__(key, value)
 
     def __repr__(self):
         return "<%s at %s>" % (self.__class__.__name__, id(self))
@@ -150,7 +156,7 @@ class AbinitInput(MutableMapping, Has_Structure):
         except AttributeError:
             return False
 
-    def to_string(self, sortmode=None, post=None):
+    def to_string(self, sortmode=None, post=None, with_pseudos=True):
         """
         String representation.
 
@@ -163,17 +169,14 @@ class AbinitInput(MutableMapping, Has_Structure):
                 (In this case, indeed, Abinit complains if ndtset=1 is not specified 
                 and we don't want ndtset=1 simply because the code will start to add 
                 _DS1_ to all the input and output files.
+            with_pseudos: False if JSON section with pseudo data should not be added.
         """
         lines = []
         app = lines.append
 
         if self.comment: app("# " + self.comment.replace("\n", "\n#"))
 
-        post = ""
-        #if post is None:
-        #    post = "" if self.index == 0 else str(self.index)
-        #else:
-        #    post = post
+        post = post if post is not None else ""
 
         if sortmode is None:
             # no sorting.
@@ -209,6 +212,8 @@ class AbinitInput(MutableMapping, Has_Structure):
             app(str(variable))
 
         s = "\n".join(lines)
+
+        if not with_pseudos: return s 
 
         # Add JSON section with pseudo potentials.
         ppinfo = ["\n\n\n#<JSON>"]
@@ -264,7 +269,7 @@ class AbinitInput(MutableMapping, Has_Structure):
         """Returns the :class:`Structure` associated to this dataset."""
         # TODO: Avoid calling Structure.from_abivars, find a way to cache the object and invalidate it.
         # Copy a structure to avoid references?
-        return Structure.from_abivars(self._vars)
+        return Structure.from_abivars(self._abivars)
         # Cannot use lazy properties here because we may want to change the structure
 
         #if hasattr(self, "_structure") and self._structure is None:
@@ -437,7 +442,7 @@ class AbinitInput(MutableMapping, Has_Structure):
             inps.append(inp)
         return inps
 
-    def new_from_decorators(self, decorators):
+    def new_with_decorators(self, decorators):
         """
         This function receives a list of :class:`AbinitInputDecorator` objects or just a single object,
         applyes the decorators to the input and returns a new :class:`AbinitInput` object.
@@ -452,7 +457,7 @@ class AbinitInput(MutableMapping, Has_Structure):
 
         return inp
         
-    def validate(self):
+    def abivalidate(self):
         """
         Run ABINIT in dry mode to validate the input file.
 
@@ -470,7 +475,7 @@ class AbinitInput(MutableMapping, Has_Structure):
         retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
         return dict2namedtuple(retcode=retcode, log_file=task.log_file, stderr_file=task.stderr_file)
 
-    def get_ibz(self, ngkpt=None, shiftk=None, kptopt=None, qpoint=None, workdir=None, manager=None):
+    def abiget_ibz(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
         """
         This function, computes the list of points in the IBZ and the corresponding weights.
         It should be called with an input file that contains all the mandatory variables required by ABINIT.
@@ -478,7 +483,7 @@ class AbinitInput(MutableMapping, Has_Structure):
         Args:
             ngkpt: Number of divisions for the k-mesh (default None i.e. use ngkpt from self)
             shiftk: Shiftks (default None i.e. use shiftk from self)
-            qpoint: qpoint in reduced coordinates. Used to shift the k-mesh (default None i.e no shift)
+            kptopt: Option for k-point generation. If None, the value in self is used.
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
             manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
 
@@ -497,22 +502,16 @@ class AbinitInput(MutableMapping, Has_Structure):
         # The magic value that makes ABINIT print the ibz and then stop.
         inp["prtkpt"] = -2
 
-        # TODO: Redesign API
-        #if ngkpt is not None: inp.ngkpt = ngkpt
-        #if shiftk is not None:
-        #    inp.shiftk = np.reshape(shiftk, (-1,3))
-        #    inp.nshiftk = len(inp.shiftk)
+        if ngkpt is not None: inp["ngkpt"] = ngkpt
+        if shiftk is not None:
+            shiftk = np.reshape(shiftk, (-1,3))
+            inp.set_vars(shiftk=shiftk, nshiftk=len(inp.shiftk))
 
-        #if kptopt is not None:
-        #    inp.kptopt = kptopt
-
-        #if qpoint is not None:
-        #    inp.qptn, inp.nqpt = qpoint, 1
+        if kptopt is not None: inp["kptopt"] = kptopt
 
         # Build a Task to run Abinit in a shell subprocess
         task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
         task.start_and_wait(autoparal=False)
-        #print(task.workdir)
 
         # Read the list of k-points from the netcdf file.
         try:
@@ -524,18 +523,20 @@ class AbinitInput(MutableMapping, Has_Structure):
         except Exception as exc:
             # Try to understand if it's a problem with the Abinit input.
             report = task.get_event_report()
-            if report.errors: raise self.Error(str(report))
+            if report and report.errors: raise self.Error(str(report))
             raise self.Error("Problem in temp Task executed in %s\n%s" % (task.workdir, exc))
 
-    def get_irred_phperts(self, qpt=None, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
+    def abiget_irred_phperts(self, qpt=None, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
         """
         This function, computes the list of irreducible perturbations for DFPT.
         It should be called with an input file that contains all the mandatory variables required by ABINIT.
 
         Args:
+            qpt: qpoint of the phonon in reduced coordinates. Used to shift the k-mesh 
+                if qpt is not passed, self must already contain "qpt" otherwise an exception is raised.
             ngkpt: Number of divisions for the k-mesh (default None i.e. use ngkpt from self)
             shiftk: Shiftks (default None i.e. use shiftk from self)
-            qpoint: qpoint in reduced coordinates. Used to shift the k-mesh (default None i.e no shift)
+            kptopt: Option for k-point generation. If None, the value in self is used.
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
             manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
 
@@ -550,15 +551,21 @@ class AbinitInput(MutableMapping, Has_Structure):
 
             Multiple datasets are ignored. Only the list of k-points for dataset 1 are returned.
         """
-        # TODO: Redesign API
         warnings.warn("get_irred_perts is still under development.")
 
         # Avoid modifications in self.
         inp = self.deepcopy()
 
+        qpt = inp.get("qpt") if qpt is None else qpt
         if qpt is None:
-            qpt = inp.get("qpt")
-            if qpt is None: raise ValueError("qpt must be specified")
+            raise ValueError("qpt is not in the input and therefore it must be passed explicitly")
+
+        if ngkpt is not None: inp["ngkpt"] = ngkpt
+        if shiftk is not None:
+            shiftk = np.reshape(shiftk, (-1,3))
+            inp.set_vars(shiftk=shiftk, nshiftk=len(inp.shiftk))
+                                                                 
+        if kptopt is not None: inp["kptopt"] = kptopt
 
         inp.set_vars(
             rfphon=1,                         # Will consider phonon-type perturbation
@@ -572,7 +579,6 @@ class AbinitInput(MutableMapping, Has_Structure):
         # Build a Task to run Abinit in a shell subprocess
         task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
         task.start_and_wait(autoparal=False)
-        print(task.workdir)
 
         # Parse the file to get the perturbations.
         try:
@@ -580,34 +586,31 @@ class AbinitInput(MutableMapping, Has_Structure):
         except Exception as exc:
             # Try to understand if it's a problem with the Abinit input.
             report = task.get_event_report()
-            if report.errors: raise self.Error(str(report))
+            if report and report.errors: raise self.Error(str(report))
             raise self.Error("Problem in temp Task executed in %s\n%s" % (task.workdir, exc))
 
     def get_autoparal_pconfs(self, max_ncpus, autoparal=1, workdir=None, manager=None):
-        # Set the variables for the automatic parallelization
-        # Will get all the possible configurations up to max_ncpus
+        """Get all the possible configurations up to max_ncpus"""
         inp = self.deepcopy()
         inp.set_vars(autoparal=autoparal, max_ncpus=max_ncpus)
 
         # Run the job in a shell subprocess with mpi_procs = 1
-        # we don't want to make a request to the queue manager for this simple job!
         # Return code is always != 0 
         task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
         task.start_and_wait(autoparal=False)
-        #print(task.workdir)
 
         ##############################################################
         # Parse the autoparal configurations from the main output file
         ##############################################################
-        from pymatgen.io.abinitio.tasks import ParalHintsParser
         parser = ParalHintsParser()
         try:
             pconfs = parser.parse(task.output_file.path)
             return pconfs
         except parser.Error:
-            raise 
-            #logger.critical("Error while parsing Autoparal section:\n%s" % straceback())
-            #return 2
+            # Try to understand if it's a problem with the Abinit input.
+            report = task.get_event_report()
+            if report and report.errors: raise self.Error(str(report))
+            raise self.Error("Problem in temp Task executed in %s\n%s" % (task.workdir, exc))
 
 
 class MultiDataset(object):
@@ -653,15 +656,18 @@ class MultiDataset(object):
     def __iter__(self):
         return self._inputs.__iter__()
 
-    def __getattr__(self, attr):
-        print("in getattr with attr: %s" % attr)
-        isattr = not callable(getattr(self._inputs[0], attr))
+    def __getattr__(self, name):
+        #print("in getname with name: %s" % name)
+        m = getattr(self._inputs[0], name)
+        if m is None:
+            raise AttributeError("Cannot find attribute %s in AbinitInput object" % name)
+        isattr = not callable(m)
 
         def on_all(*args, **kwargs):
             results = []
             for obj in self._inputs:
-                a = getattr(obj, attr)
-                #print("attr", attr, ", type:", type(a), "callable: ",callable(a))
+                a = getattr(obj, name)
+                #print("name", name, ", type:", type(a), "callable: ",callable(a))
                 if callable(a):
                     results.append(a(*args, **kwargs))
                 else:
@@ -669,52 +675,52 @@ class MultiDataset(object):
 
             return results
 
-        if isattr: 
-            on_all = on_all()
+        if isattr: on_all = on_all()
         return on_all
 
-    def append(self, abinit_input):
+    def append_input(self, abinit_input):
         self._inputs.append(abinit_input)
 
-    def newdataset_from(self, dtindex):
-        self.append(self[dtindex].deepcopy())
+    def addnew_from(self, dtindex):
+        self.append_input(self[dtindex].deepcopy())
 
     def split_datasets(self):
         return self._inputs
+
+    @property
+    def has_same_structures(self):
+        return all(self[0].structure == inp.structure for inp in self)
+
+    def __str__(self):
+        """String representation i.e. the input file read by Abinit."""
+
+        if self.ndtset > 1:
+            # Multi dataset mode.
+            lines = ["ndtset %d" % self.ndtset]
+
+            #same_structures = self.has_same_structures
+            for i, inp in enumerate(self):
+                header = "### DATASET %d ###" % (i + 1)
+                is_last = (i==self.ndtset - 1)
+
+                s = inp.to_string(post=str(i+1), with_pseudos=is_last)
+                if s:
+                    header = len(header) * "#" + "\n" + header + "\n" + len(header) * "#" + "\n"
+                    s = "\n" + header + s + "\n"
+
+                lines.append(s)
+
+            return "\n".join(lines)
+
+        else:
+            # single datasets ==> don't append the dataset index to the variables.
+            # this trick is needed because Abinit complains if ndtset is not specified 
+            # and we have variables that end with the dataset index e.g. acell1
+            # We don't want to specify ndtset here since abinit will start to add DS# to 
+            # the input and output files thus complicating the algorithms we have to use to locate the files.
+            return self[0].to_string()
 
     #def __dir__(self):
     #    """Interactive prompt"""
     #    #return dir(self) + dir(self._inputs[0])
     #    return dir(self._inputs[0])
-
-    #def __str__(self):
-    #    """String representation i.e. the input file read by Abinit."""
-    #    if self.ndtset > 1:
-    #        s = ""
-    #        for i, dataset in enumerate(self):
-    #            header = "### DATASET %d ###" % i
-    #            if i == 0: 
-    #                header = "### GLOBAL VARIABLES ###"
-
-    #            str_dataset = str(dataset)
-    #            if str_dataset:
-    #                header = len(header) * "#" + "\n" + header + "\n" + len(header) * "#" + "\n"
-    #                s += "\n" + header + str(dataset) + "\n"
-    #    else:
-    #        # single datasets ==> don't append the dataset index to the variables in self[1]
-    #        # this trick is needed because Abinit complains if ndtset is not specified 
-    #        # and we have variables that end with the dataset index e.g. acell1
-    #        # We don't want to specify ndtset here since abinit will start to add DS# to 
-    #        # the input and output files thus complicating the algorithms we have to use
-    #        # to locate the files.
-    #        d = self[0].deepcopy()
-    #        d.update(self[1])
-    #        s = d.to_string(post="")
-
-    #    # Add JSON section with pseudo potentials.
-    #    ppinfo = ["\n\n\n#<JSON>"]
-    #    d = {"pseudos": [p.as_dict() for p in self.pseudos]}
-    #    ppinfo.extend(json.dumps(d, indent=4).splitlines())
-    #    ppinfo.append("</JSON>")
-
-    #    return s + "\n#".join(ppinfo)
