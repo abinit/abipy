@@ -248,8 +248,8 @@ class SingleAbinitGWWork():
         gamma = True
 
         # 'standard' parameters for stand alone calculation
-        scf_nband = self.get_bands(self.structure)
-        nscf_nband = [10 * scf_nband]
+        scf_nband = self.get_bands(self.structure) + 20 # additional bands to accommodate for nbdbuf and a bit extra
+        nscf_nband = [10 * self.get_bands(self.structure)]
 
         nksmall = None
         ecuteps = [8]
