@@ -636,7 +636,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
         try:
             pconfs = parser.parse(task.output_file.path)
             return pconfs
-        except parser.Error:
+        except parser.Error as exc:
             # Try to understand if it's a problem with the Abinit input.
             report = task.get_event_report()
             if report and report.errors: raise self.Error(str(report))
