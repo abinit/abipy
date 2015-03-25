@@ -26,11 +26,10 @@ def ion_relaxation(tvars, ntime=50):
         paral_kgb=tvars.paral_kgb,
     )
 
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"))
-    inp.set_structure(structure)
+    inp = abilab.AbinitInput(structure, pseudos=abidata.pseudos("14si.pspnc"))
 
     # Global variables
-    inp.set_vars(**global_vars)
+    inp.set_vars(global_vars)
 
     # Dataset 1 (Atom Relaxation)
     #inp[1].set_vars(
@@ -69,13 +68,8 @@ def itest_atomic_relaxation(fwp, tvars):
     unconverged_structure = t0.get_final_structure() 
     assert unconverged_structure != t0.initial_structure 
 
-    # Remove ntime from the input so that the next run will
-    # use the default value ntime=50 and we can converge the calculation.
-    # This one does not work
-    print("Before Input:\n", t0.strategy.abinit_input)
-    #t0.strategy.abinit_input.remove_vars("ntime")
-    t0.strategy.abinit_input.set_vars(ntime=50)
-    print("After input:\n", t0.strategy.abinit_input)
+    # Use the default value ntime=50 and we can converge the calculation.
+    t0.input.set_vars(ntime=50)
 
     t0.build()
     assert t0.restart()
@@ -129,14 +123,13 @@ def make_ion_ioncell_inputs(tvars, dilatmx, scalevol=1, ntime=50):
         paral_kgb=tvars.paral_kgb,
     )
 
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)
-    inp.set_structure(structure)
+    multi = abilab.MultiDataset(structure, pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)
 
     # Global variables
-    inp.set_vars(global_vars)
+    multi.set_vars(global_vars)
 
     # Dataset 1 (Atom Relaxation)
-    inp[1].set_vars(
+    multi[0].set_vars(
         optcell=0,
         ionmov=2,
         tolrff=0.02,
@@ -145,7 +138,7 @@ def make_ion_ioncell_inputs(tvars, dilatmx, scalevol=1, ntime=50):
     )
 
     # Dataset 2 (Atom + Cell Relaxation)
-    inp[2].set_vars(
+    multi[1].set_vars(
         optcell=1,
         ionmov=2,
         dilatmx=dilatmx,
@@ -153,9 +146,9 @@ def make_ion_ioncell_inputs(tvars, dilatmx, scalevol=1, ntime=50):
         tolmxf=5.0e-5,
         strfact=100,
         ntime=ntime,
-        )
+    )
 
-    ion_inp, ioncell_inp = inp.split_datasets()
+    ion_inp, ioncell_inp = multi.split_datasets()
     return ion_inp, ioncell_inp
 
 

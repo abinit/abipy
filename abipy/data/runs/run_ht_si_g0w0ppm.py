@@ -12,7 +12,6 @@ from abipy import abilab
 
 def build_flow(options):
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
-
     pseudos = abidata.pseudos("14si.pspnc")
 
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")

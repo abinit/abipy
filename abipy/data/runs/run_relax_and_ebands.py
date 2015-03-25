@@ -31,14 +31,13 @@ def make_ion_ioncell_inputs(paral_kgb=1):
         #prtwf=0,
     )
 
-    inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
-    inp.set_structure(structure)
+    multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=2)
 
     # Global variables
-    inp.set_vars(**global_vars)
+    multi.set_vars(global_vars)
 
     # Dataset 1 (Atom Relaxation)
-    inp[1].set_vars(
+    multi[0].set_vars(
         optcell=0,
         ionmov=2,
         tolrff=0.02,
@@ -49,7 +48,7 @@ def make_ion_ioncell_inputs(paral_kgb=1):
     )
 
     # Dataset 2 (Atom + Cell Relaxation)
-    inp[2].set_vars(
+    multi[1].set_vars(
         optcell=1,
         ionmov=2,
         ecutsm=0.5,
@@ -61,7 +60,7 @@ def make_ion_ioncell_inputs(paral_kgb=1):
         #ntime=3,  # To test the restart
         )
 
-    ion_inp, ioncell_inp = inp.split_datasets()
+    ion_inp, ioncell_inp = multi.split_datasets()
     return ion_inp, ioncell_inp
 
 
@@ -70,9 +69,8 @@ def make_scf_nscf_inputs(paral_kgb=1):
     pseudos = abidata.pseudos("14si.pspnc")
     #pseudos = data.pseudos("Si.GGA_PBE-JTH-paw.xml")
 
-    inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
+    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"), pseudos=pseudos, ndtset=2)
     #inp.set_mnemonics(True)
-    structure = inp.set_structure(abidata.cif_file("si.cif"))
 
     # Global variables
     ecut = 28
@@ -84,14 +82,14 @@ def make_scf_nscf_inputs(paral_kgb=1):
                        paral_kgb=paral_kgb,
                     )
 
-    if inp.ispaw:
+    if multi.ispaw:
         global_vars.update(pawecutdg=2*ecut)
 
-    inp.set_vars(**global_vars)
+    multi.set_vars(global_vars)
 
     # Dataset 1 (GS run)
-    inp[1].set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
-    inp[1].set_vars(tolvrs=1e-6)
+    multi[0].set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
+    multi[0].set_vars(tolvrs=1e-6)
 
     # Dataset 2 (NSCF run)
     kptbounds = [
@@ -100,11 +98,11 @@ def make_scf_nscf_inputs(paral_kgb=1):
         [0.0, 0.5, 0.5], # X point
     ]
 
-    inp[2].set_kpath(ndivsm=6, kptbounds=kptbounds)
-    inp[2].set_vars(tolwfr=1e-12)
+    multi[1].set_kpath(ndivsm=6, kptbounds=kptbounds)
+    multi[1].set_vars(tolwfr=1e-12)
     
     # Generate two input files for the GS and the NSCF run 
-    scf_input, nscf_input = inp.split_datasets()
+    scf_input, nscf_input = multi.split_datasets()
     return scf_input, nscf_input
 
 

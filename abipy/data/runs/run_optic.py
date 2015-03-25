@@ -25,11 +25,8 @@ def build_flow(options, paral_kgb=0):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    structure = data.structure_from_ucell("GaAs")
-
-    inp = abilab.AbiInput(pseudos=data.pseudos("31ga.pspnc", "33as.pspnc"), ndtset=5)
-
-    inp.set_structure(structure)
+    multi = abilab.MultiDataset(structure=data.structure_from_ucell("GaAs")
+                                pseudos=data.pseudos("31ga.pspnc", "33as.pspnc"), ndtset=5)
 
     # Global variables
     kmesh = dict(ngkpt=[4, 4, 4], 
@@ -40,28 +37,25 @@ def build_flow(options, paral_kgb=0):
                          [0.0, 0.0, 0.5]]
                 )
 
-    global_vars = dict(ecut=2,
-                       paral_kgb=paral_kgb,
-                      )
-
+    global_vars = dict(ecut=2, paral_kgb=paral_kgb)
     global_vars.update(kmesh)
 
-    inp.set_vars(**global_vars)
+    multi.set_vars(global_vars)
 
     # Dataset 1 (GS run)
-    inp[1].set_vars(
+    multi[0].set_vars(
         tolvrs=1e-6,
         nband=4,
     )
 
     # NSCF run with large number of bands, and points in the the full BZ
-    inp[2].set_vars(
+    multi[1].set_vars(
         iscf=-2,
-       nband=20, 
-       nstep=25,
-      kptopt=1,
-      tolwfr=1.e-9,
-      #kptopt=3,
+        nband=20, 
+        nstep=25,
+        kptopt=1,
+        tolwfr=1.e-9,
+        #kptopt=3,
     )
 
     # Fourth dataset : ddk response function along axis 1
@@ -71,21 +65,21 @@ def build_flow(options, paral_kgb=0):
         rfdir = 3 * [0]
         rfdir[dir] = 1
 
-        inp[3+dir].set_vars(
-           iscf=-3,
-          nband=20,  
-          nstep=1,
-          nline=0,  
-          prtwf=3,
-         kptopt=3,
-           nqpt=1, 
-           qpt=[0.0, 0.0, 0.0],
-          rfdir=rfdir,
-         rfelfd=2,
-         tolwfr=1.e-9,
+        multi[2+dir].set_vars(
+            iscf=-3,
+            nband=20,  
+            nstep=1,
+            nline=0,  
+            prtwf=3,
+            kptopt=3,
+            nqpt=1, 
+            qpt=[0.0, 0.0, 0.0],
+            rfdir=rfdir,
+            rfelfd=2,
+            tolwfr=1.e-9,
         )
 
-    scf_inp, nscf_inp, ddk1, ddk2, ddk3 = inp.split_datasets()
+    scf_inp, nscf_inp, ddk1, ddk2, ddk3 = multi.split_datasets()
 
     # Initialize the flow.
     flow = abilab.Flow(workdir, manager=options.manager)

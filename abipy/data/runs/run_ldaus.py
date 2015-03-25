@@ -11,8 +11,7 @@ import abipy.abilab as abilab
 
 def make_scf_nscf_dos_inputs(structure, pseudos, luj_params, paral_kgb=1):
     # Input file taken from tldau_2.in
-    inp = abilab.AbiInput(pseudos=pseudos, ndtset=3)
-    inp.set_structure(structure)
+    multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=3)
 
     # Global variables
     global_vars = dict(
@@ -38,11 +37,11 @@ def make_scf_nscf_dos_inputs(structure, pseudos, luj_params, paral_kgb=1):
         # for the ground-state, this is not a problem.
     )
 
-    inp.set_vars(**global_vars)
-    inp.set_vars(**luj_params.to_abivars())
+    multi.set_vars(global_vars)
+    multi.set_vars(luj_params.to_abivars())
 
     # GS run.
-    inp[1].set_vars(
+    multi[0].set_vars(
         iscf=17,
         toldfe=1.0e-8,
         ngkpt=[2, 2, 2],
@@ -50,11 +49,11 @@ def make_scf_nscf_dos_inputs(structure, pseudos, luj_params, paral_kgb=1):
     )
 
     # Band structure run.
-    inp[2].set_kpath(ndivsm=6)
-    inp[2].set_vars(tolwfr=1e-10)
+    multi[1].set_kpath(ndivsm=6)
+    multi[1].set_vars(tolwfr=1e-10)
 
     # Dos calculation.
-    inp[3].set_vars(
+    multi[2].set_vars(
         iscf=-3,   # NSCF calculation
         ngkpt=structure.calc_ngkpt(nksmall=8),      
         shiftk=[0.0, 0.0, 0.0],
@@ -64,7 +63,7 @@ def make_scf_nscf_dos_inputs(structure, pseudos, luj_params, paral_kgb=1):
     )
 
     # Generate two input files for the GS and the NSCF run 
-    scf_input, nscf_input, dos_input = inp.split_datasets()
+    scf_input, nscf_input, dos_input = multi.split_datasets()
 
     return scf_input, nscf_input, dos_input
 

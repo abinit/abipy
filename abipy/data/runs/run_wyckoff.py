@@ -30,8 +30,7 @@ def special_positions(lattice, u):
         species += len(positions) * [symbol]
         coords += positions
 
-    return abilab.Structure(lattice, species, coords, 
-                            validate_proximity=True, coords_are_cartesian=False)
+    return abilab.Structure(lattice, species, coords, validate_proximity=True, coords_are_cartesian=False)
 
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
@@ -72,18 +71,15 @@ def make_workflow(structure, pseudos, paral_kgb=1):
     )
 
     # GS + NSCF run 
-    inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
-    inp.set_structure(structure)
-    inp.set_vars(**global_vars)
+    multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=2)
+    multi.set_vars(global_vars)
 
     # (GS run)
-    inp[1].set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
-
-    inp[1].set_vars(
-          tolvrs=1e-6)
+    multi[0].set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
+    multi[0].set_vars(tolvrs=1e-6)
 
     # (NSCF run)
-    inp[2].set_vars(
+    multi[1].set_vars(
         iscf=-2,
         tolwfr=1e-12,
         kptopt=0,
@@ -91,7 +87,7 @@ def make_workflow(structure, pseudos, paral_kgb=1):
         kpt=[0, 0, 0],
     )
 
-    gs_inp, nscf_inp = inp.split_datasets()
+    gs_inp, nscf_inp = multi.split_datasets()
 
     return abilab.BandStructureWork(gs_inp, nscf_inp)
 

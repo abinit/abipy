@@ -33,39 +33,38 @@ def scf_ph_inputs(paral_kgb=0):
 
 
     # Global variables used both for the GS and the DFPT run.
-    global_vars = dict(nband=4,             
-                       ecut=2.0,         
-                       ngkpt=[4, 4, 4],
-                       nshiftk=4,
-                       shiftk=[0.0, 0.0, 0.5,   # This gives the usual fcc Monkhorst-Pack grid
-                               0.0, 0.5, 0.0,
-                               0.5, 0.0, 0.0,
-                               0.5, 0.5, 0.5],
-                       #shiftk=[0, 0, 0],
-                       paral_kgb=paral_kgb,
-                       ixc=1,
-                       nstep=25,
-                       diemac=9.0,
-                    )
+    global_vars = dict(
+        nband=4,             
+        ecut=2.0,         
+        ngkpt=[4, 4, 4],
+        nshiftk=4,
+        shiftk=[0.0, 0.0, 0.5,   # This gives the usual fcc Monkhorst-Pack grid
+                0.0, 0.5, 0.0,
+                0.5, 0.0, 0.0,
+                0.5, 0.5, 0.5],
+        #shiftk=[0, 0, 0],
+        paral_kgb=paral_kgb,
+        ixc=1,
+        nstep=25,
+        diemac=9.0,
+    )
 
-    gs_inp = abilab.AbiInput(pseudos=pseudos)
-    gs_inp.set_structure(structure)
+    gs_inp = abilab.AbinitInput(structure, pseudos=pseudos)
     gs_inp.set_vars(global_vars)
     gs_inp.set_vars(tolvrs=1.0e-18)
 
     # Get the qpoints in the IBZ. Note that here we use a q-mesh with ngkpt=(4,4,4) and shiftk=(0,0,0)
     # i.e. the same parameters used for the k-mesh in gs_inp.
-    qpoints = gs_inp.get_ibz(ngkpt=(4,4,4), shiftk=(0,0,0), kptopt=1).points
+    qpoints = gs_inp.abiget_ibz(ngkpt=(4,4,4), shiftk=(0,0,0), kptopt=1).points
     #print("get_ibz", qpoints)
  
     # Select the first q-point to speedup the run.
     qpoints = qpoints[0:1]
 
-    ph_inputs = abilab.AbiInput(pseudos=pseudos, ndtset=len(qpoints))
+    ph_inputs = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=len(qpoints))
 
     for ph_inp, qpt in zip(ph_inputs, qpoints):
         # Response-function calculation for phonons.
-        ph_inp.set_structure(structure)
         ph_inp.set_vars(global_vars)
         ph_inp.set_vars(
             rfphon=1,        # Will consider phonon-type perturbation
@@ -74,7 +73,7 @@ def scf_ph_inputs(paral_kgb=0):
             tolwfr=1.0e-20,
             kptopt=3,
             nstep=4,         # This is to trigger the restart.
-            )
+        )
 
             #rfatpol   1 1   # Only the first atom is displaced
             #rfdir   1 0 0   # Along the first reduced coordinate axis

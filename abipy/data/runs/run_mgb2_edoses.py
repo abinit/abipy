@@ -13,8 +13,7 @@ import abipy.abilab as abilab
 def make_scf_nscf_inputs(structure, pseudos, paral_kgb=1):
     """return GS, NSCF (band structure), and DOSes input."""
 
-    inp = abilab.AbiInput(pseudos=pseudos, ndtset=5)
-    inp.set_structure(structure)
+    multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=5)
 
     # Global variables
     global_vars = dict(ecut=10,
@@ -25,20 +24,20 @@ def make_scf_nscf_inputs(structure, pseudos, paral_kgb=1):
                        paral_kgb=paral_kgb,
                     )
 
-    inp.set_vars(**global_vars)
+    multi.set_vars(global_vars)
 
     # Dataset 1 (GS run)
-    inp[1].set_kmesh(ngkpt=[8,8,8],  shiftk=structure.calc_shiftk())
+    multi[0].set_kmesh(ngkpt=[8,8,8],  shiftk=structure.calc_shiftk())
 
-    inp[1].set_vars(tolvrs=1e-6)
+    multi[0].set_vars(tolvrs=1e-6)
 
     # Dataset 2 (NSCF Band Structure)
-    inp[2].set_kpath(ndivsm=6)
-    inp[2].set_vars(tolwfr=1e-12)
+    multi[1].set_kpath(ndivsm=6)
+    multi[1].set_vars(tolwfr=1e-12)
 
     # Dos calculations with increasing k-point sampling.
     for i, nksmall in enumerate([4, 8, 16]):
-        inp[i+3].set_vars(
+        multi[i+2].set_vars(
             iscf=-3,   # NSCF calculation
             ngkpt=structure.calc_ngkpt(nksmall),      
             shiftk=[0.0, 0.0, 0.0],
@@ -46,7 +45,7 @@ def make_scf_nscf_inputs(structure, pseudos, paral_kgb=1):
         )
     
     # return GS, NSCF (band structure), DOSes input.
-    return  inp.split_datasets()
+    return  multi.split_datasets()
 
 
 def build_flow(options):

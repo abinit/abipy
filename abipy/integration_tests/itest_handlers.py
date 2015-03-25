@@ -20,33 +20,35 @@ def itest_tolsymerror_handler(fwp):
     at the level of the symmetry finder and autoparal fails 
     because it cannot find the parallel configurations.
     """
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=1)
+    structure = dict(
+        acell=(1.0, 1.0, 1.0),
+        xred = [
+           1.0001907690, 1.0040151117, 0.0099335191,
+           0.2501907744, 0.2540150788, 0.2599335332],
+        rprim = [
+          -6.2733366562, 0.0000000000, -3.6219126071,
+          -6.2733366562, 0.0000000000,  3.6219126071,
+          -4.1822244376, 5.9145585205,  0.0000000000],
+        typat=(1, 1),
+        ntypat=1,
+        znucl=14,
+        natom=2,
+    )
+
+    inp = abilab.AbinitInput(structure=structure, pseudos=abidata.pseudos("14si.pspnc"))
 
     inp.set_vars(
-         acell=(1.0, 1.0, 1.0),
-         xred = [
-            1.0001907690, 1.0040151117, 0.0099335191,
-            0.2501907744, 0.2540150788, 0.2599335332],
          ntime=5,
          tolrff=0.02,
-         typat=(1, 1),
          shiftk=[0, 0, 0],
-         ntypat=1,
          ngkpt=(4, 4, 4),
-         znucl=14,
          chksymbreak=0,
-         rprim = [
-           -6.2733366562, 0.0000000000, -3.6219126071,
-           -6.2733366562, 0.0000000000,  3.6219126071,
-           -4.1822244376, 5.9145585205,  0.0000000000],
          ecut=4,
-         natom=2,
          tolmxf=5e-05,
          nshiftk=1,
-        )
+    )
 
     flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager)
-    #flow.register_task(inp, task_class=abilab.ScfTask)
     flow.register_task(inp, task_class=abilab.RelaxTask)
 
     flow.allocate()
@@ -82,23 +84,15 @@ def itest_dilatmxerror_handler(fwp):
     # Perturb the structure (random perturbation of 0.1 Angstrom)
     #structure.perturb(distance=0.1)
 
-    global_vars = dict(
+    inp = abilab.AbinitInput(structure=structure, pseudos=abidata.pseudos("14si.pspnc"))
+
+    inp.set_vars(
         ecut=4,  
         ngkpt=[4,4,4], 
         shiftk=[0,0,0],
         nshiftk=1,
         chksymbreak=0,
         paral_kgb=1, 
-    )
-
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=1)
-    inp.set_structure(structure)
-
-    # Global variables
-    inp.set_vars(**global_vars)
-
-    # Dataset 2 (Atom + Cell Relaxation)
-    inp[1].set_vars(
         optcell=1,
         ionmov=2,
         ecutsm=0.5,

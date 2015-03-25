@@ -739,6 +739,16 @@ class MultiDataset(object):
     def pseudos(self):
         return self[0].pseudos
 
+    @property
+    def ispaw(self):
+        """True if PAW calculation."""
+        return all(p.ispaw for p in self.pseudos)
+
+    @property
+    def isnc(self):
+        """True if norm-conserving calculation."""
+        return all(p.isnc for p in self.pseudos)
+
     def __len__(self):
         return len(self._inputs)
 

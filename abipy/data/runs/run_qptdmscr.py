@@ -16,22 +16,18 @@ def all_inputs(paral_kgb=1):
     Build the input files of the calculation.
     Returns: gs_input, nscf_input, scr_input, sigma_input
     """
-    structure = abilab.Structure.from_file(data.cif_file("si.cif"))
-    pseudos = data.pseudos("14si.pspnc")
-
     ecut = ecutwfn = 4
-
     global_vars = dict(
         ecut=ecut,
         istwfk="*1",
         paral_kgb=paral_kgb,
     )
 
-    inp = abilab.AbiInput(pseudos=pseudos, ndtset=4)
-    inp.set_structure(structure)
-    inp.set_vars(**global_vars)
+    multi = abilab.MultiDataset(structure=data.cif_file("si.cif"), 
+                                pseudos=data.pseudos("14si.pspnc"), ndtset=4)
+    multi.set_vars(global_vars)
 
-    gs, nscf, scr, sigma = inp[1:]
+    gs, nscf, scr, sigma = multi.split_datasets()
 
     # This grid is the most economical, but does not contain the Gamma point.
     gs_kmesh = dict(
@@ -59,11 +55,10 @@ def all_inputs(paral_kgb=1):
     # Dataset 2 (NSCF run)
     # Here we select the second dataset directly with the syntax inp[2]
     nscf.set_kmesh(**gw_kmesh)
-
     nscf.set_vars(iscf=-2,
-                       tolwfr=1e-10,
-                       nband=15,
-                       nbdbuf=5)
+                  tolwfr=1e-10,
+                  nband=15,
+                  nbdbuf=5)
 
     # Dataset3: Calculation of the screening.
     scr.set_kmesh(**gw_kmesh)
@@ -101,7 +96,7 @@ def all_inputs(paral_kgb=1):
 
     sigma.set_kptgw(kptgw, bdgw)
 
-    return inp.split_datasets()
+    return multi.split_datasets()
 
 
 def qptdm_flow(options):

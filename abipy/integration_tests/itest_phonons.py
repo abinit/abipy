@@ -45,14 +45,14 @@ def scf_ph_inputs(tvars=None):
                        paral_kgb=0 if tvars is None else tvars.paral_kgb,
                     )
 
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"), ndtset=1+len(qpoints))
+    multi = abilab.MultiDataset(structure=structure, pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"), 
+                              ndtset=1+len(qpoints))
 
-    inp.set_structure(structure)
-    inp.set_vars(global_vars)
+    multi.set_vars(global_vars)
 
     for i, qpt in enumerate(qpoints):
         # Response-function calculation for phonons.
-        inp[i+2].set_vars(
+        multi[i+1].set_vars(
             nstep=20,
             rfphon=1,        # Will consider phonon-type perturbation
             nqpt=1,          # One wavevector is to be considered
@@ -65,7 +65,7 @@ def scf_ph_inputs(tvars=None):
             #kptopt   2      # Automatic generation of k points, taking
 
     # Split input into gs_inp and ph_inputs
-    return inp.split_datasets()
+    return multi.split_datasets()
 
 
 def itest_phonon_flow(fwp, tvars):
@@ -189,14 +189,14 @@ def itest_phonon_restart(fwp):
                        tolvrs=1.0e-5,
                     )
 
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"), ndtset=1+len(qpoints))
+    multi = abilab.MultiDataset(structure=structure, pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"), 
+                                ndtset=1+len(qpoints))
 
-    inp.set_structure(structure)
-    inp.set_vars(global_vars)
+    multi.set_vars(global_vars)
 
     for i, qpt in enumerate(qpoints):
         # Response-function calculation for phonons.
-        inp[i+2].set_vars(
+        multi[i+1].set_vars(
             rfphon=1,        # Will consider phonon-type perturbation.
             nqpt=1,          # One wavevector is to be considered.
             qpt=qpt,         # q-wavevector.
@@ -207,11 +207,11 @@ def itest_phonon_restart(fwp):
         #rfdir   1 0 0   # Along the first reduced coordinate axis
         #kptopt   2      # Automatic generation of k points, taking
 
-                                                         # i == 0 --> restart from WFK
-        if i == 1: inp[i+2].set_vars(prtwf=-1, nstep=5)  # Restart with WFK and smart- io.
-        if i == 2: inp[i+2].set_vars(prtwf=0, nstep=8)   # Restart from 1DEN. Too long --> disabled.
+                                                           # i == 0 --> restart from WFK
+        if i == 1: multi[i+1].set_vars(prtwf=-1, nstep=5)  # Restart with WFK and smart- io.
+        if i == 2: multi[i+1].set_vars(prtwf=0, nstep=8)   # Restart from 1DEN. Too long --> disabled.
 
-    all_inps = inp.split_datasets()
+    all_inps = multi.split_datasets()
     scf_input, ph_inputs = all_inps[0], all_inps[1:]
 
     flow = abilab.phonon_flow(fwp.workdir, scf_input, ph_inputs, manager=fwp.manager)

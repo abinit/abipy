@@ -34,11 +34,10 @@ def build_flow(options):
               [0.0,0.0,0.5]]
 
 
-    inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
-    inp.set_structure(structure)
-    inp.set_vars(**global_vars)
+    multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=2)
+    multi.set_vars(global_vars)
 
-    relax_inp, nscf_inp = inp[1:]
+    relax_inp, nscf_inp = multi.split_datasets()
 
     relax_inp.set_kmesh(ngkpt=ngkpt, shiftk=shiftk)
     relax_inp.set_vars(
@@ -54,8 +53,6 @@ def build_flow(options):
 
     nscf_inp.set_kpath(ndivsm=20)
     nscf_inp.tolwfr = 1e-22
-
-    relax_inp, nscf_inp = inp.split_datasets()
 
     # Initialize the work.
     relax_task = flow.register_task(relax_inp, task_class=abilab.RelaxTask)

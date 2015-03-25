@@ -96,21 +96,19 @@ def raman_flow(options):
 def raman_work(structure, pseudos, ngkpt, shiftk, ddk_manager, shell_manager):
     # Generate 3 different input files for computing optical properties with BSE.
 
-    inp = abilab.AbiInput(pseudos=pseudos, ndtset=5)
-
-    inp.set_structure(structure)
-    inp.set_vars(**global_vars)
-    inp.set_kmesh(ngkpt=ngkpt, shiftk=shiftk)
+    multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=5)
+    multi.set_vars(global_vars)
+    multi.set_kmesh(ngkpt=ngkpt, shiftk=shiftk)
 
     # GS run
-    inp[1].set_vars(
+    multi[0].set_vars(
         tolvrs=1e+8,
         nband=59,
     )
 
     # NSCF run
-    inp[2].set_vars(
-        iscf=-2,
+    multi[1].set_vars(
+       iscf=-2,
        nband=100,
        kptopt=1,
        tolwfr=1.e+12,
@@ -124,7 +122,7 @@ def raman_work(structure, pseudos, ngkpt, shiftk, ddk_manager, shell_manager):
         rfdir = 3 * [0]
         rfdir[dir] = 1
 
-        inp[3+dir].set_vars(
+        multi[2+dir].set_vars(
            iscf=-3,
 	       nband=100,
            nstep=1,
@@ -138,7 +136,7 @@ def raman_work(structure, pseudos, ngkpt, shiftk, ddk_manager, shell_manager):
            tolwfr=1.e+12,
         )
 
-    scf_inp, nscf_inp, ddk1, ddk2, ddk3 = inp.split_datasets()
+    scf_inp, nscf_inp, ddk1, ddk2, ddk3 = multi.split_datasets()
     ddk_inputs = [ddk1, ddk2, ddk3]
 
     work = abilab.Work()

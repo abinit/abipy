@@ -19,8 +19,8 @@ def make_g0w0_inputs(ngkpt, tvars):
     Returns:
         gs_input, nscf_input, scr_input, sigma_input
     """
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=4)
-    inp.set_structure_from_file(abidata.cif_file("si.cif"))
+    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"), 
+                                pseudos=abidata.pseudos("14si.pspnc"), ndtset=4)
 
     # This grid is the most economical, but does not contain the Gamma point.
     scf_kmesh = dict(
@@ -44,28 +44,27 @@ def make_g0w0_inputs(ngkpt, tvars):
     # Global variables. gw_kmesh is used in all datasets except DATASET 1.
     ecut = 4
 
-    inp.set_vars(
+    multi.set_vars(
         ecut=ecut,
-        pawecutdg=ecut*2 if inp.pseudos.allpaw else None,
+        pawecutdg=ecut*2 if multi.ispaw else None,
         istwfk="*1",
         paral_kgb=tvars.paral_kgb,
         gwpara=2,
     )
-    inp.set_kmesh(**gw_kmesh)
+    multi.set_kmesh(**gw_kmesh)
 
     # Dataset 1 (GS run)
-    inp[1].set_kmesh(**scf_kmesh)
-    inp[1].set_vars(tolvrs=1e-6, nband=4)
+    multi[0].set_kmesh(**scf_kmesh)
+    multi[0].set_vars(tolvrs=1e-6, nband=4)
 
     # Dataset 2 (NSCF run)
-    # Here we select the second dataset directly with the syntax inp[2]
-    inp[2].set_vars(iscf=-2,
-                         tolwfr=1e-10,
-                         nband=10,
-                         nbdbuf=2)
+    multi[1].set_vars(iscf=-2,
+                      tolwfr=1e-10,
+                      nband=10,
+                      nbdbuf=2)
 
     # Dataset3: Calculation of the screening.
-    inp[3].set_vars(
+    multi[2].set_vars(
         optdriver=3,
         nband=8,
         ecutwfn=ecut,
@@ -84,7 +83,7 @@ def make_g0w0_inputs(ngkpt, tvars):
           0.00000000E+00,  0.00000000E+00,  0.00000000E+00,
       ]
 
-    inp[4].set_vars(
+    multi[3].set_vars(
             optdriver=4,
             nband=10,
             ecutwfn=ecut,
@@ -95,9 +94,9 @@ def make_g0w0_inputs(ngkpt, tvars):
     )
 
     bdgw = [4, 5]
-    inp[4].set_kptgw(kptgw, bdgw)
+    multi[3].set_kptgw(kptgw, bdgw)
 
-    return inp.split_datasets()
+    return multi.split_datasets()
 
 
 def itest_g0w0_flow(fwp, tvars):
@@ -248,6 +247,7 @@ def itest_htc_g0w0(fwp, tvars):
     #assert flow.validate_json_schema()
 
 
+# TODO
 #def itest_bse_with_mdf(fwp, tvars):
 #    pseudos = abidata.pseudos("14si.pspnc")
 #    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))

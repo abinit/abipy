@@ -12,23 +12,23 @@ import abipy.abilab as abilab
 
 
 def make_scf_nscf_inputs(structure, paral_kgb=1):
-    inp = abilab.AbiInput(pseudos=data.pseudos("14si.pspnc"), ndtset=2)
-    structure = inp.set_structure(structure)
+    multi = abilab.MultiDataset(structure, pseudos=data.pseudos("14si.pspnc"), ndtset=2)
 
     # Global variables
-    global_vars = dict(ecut=6,
-                       nband=8,
-                       timopt=-1,
-                       paral_kgb=0,
-                       #nstep=4, # This is not enough to converge. Used to test the automatic restart.
-                       nstep=10,
-                    )
+    global_vars = dict(
+        ecut=6,
+        nband=8,
+        timopt=-1,
+        paral_kgb=0,
+        #nstep=4, # This is not enough to converge. Used to test the automatic restart.
+        nstep=10,
+    )
 
-    inp.set_vars(**global_vars)
+    multi.set_vars(global_vars)
 
     # Dataset 1 (GS run)
-    inp[1].set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
-    inp[1].set_vars(tolvrs=1e-6)
+    multi[0].set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
+    multi[0].set_vars(tolvrs=1e-6)
 
     # Dataset 2 (NSCF run)
     kptbounds = [
@@ -37,11 +37,11 @@ def make_scf_nscf_inputs(structure, paral_kgb=1):
         [0.0, 0.5, 0.5], # X point
     ]
 
-    inp[2].set_kpath(ndivsm=6, kptbounds=kptbounds)
-    inp[2].set_vars(tolwfr=1e-12)
+    multi[1].set_kpath(ndivsm=6, kptbounds=kptbounds)
+    multi[1].set_vars(tolwfr=1e-12)
     
     # Generate two input files for the GS and the NSCF run 
-    scf_input, nscf_input = inp.split_datasets()
+    scf_input, nscf_input = multi.split_datasets()
 
     return scf_input, nscf_input
 
