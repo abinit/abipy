@@ -90,8 +90,7 @@ class AbinitInputDecorator(six.with_metaclass(abc.ABCMeta, PMGSONable)):
         """
 
 class SpinDecorator(AbinitInputDecorator):
-   """This decorator changes the spin polarization."""
-
+    """This decorator changes the spin polarization."""
     def __init__(self, spinmode, kptopt_ifspinor=4):
         self.spinmode = aobj.SpinMode.as_spinmode(spinmode)
         self.kptopt_ifspinor = kptopt_ifspinor

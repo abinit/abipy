@@ -34,6 +34,23 @@ import logging
 logger = logging.getLogger(__file__)
 
 
+# List of Abinit variables used to specify the structure.
+# This variables should not be passed to set_vars since 
+# they will be generated with structure.to_abivars()
+_GEOVARS = set([
+    "acell",
+    "rprim",
+    "rprimd"
+    "xred"
+    "xcart"
+    "xangst",
+    "znucl",
+    "typat",
+    "ntypat",
+    "natom",
+])
+
+
 class AbinitInputError(Exception):
     """Base error class for exceptions raised by `AbiInput`"""
 
@@ -44,27 +61,35 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
     """
     Error = AbinitInputError
 
-    def __init__(self, pseudos, pseudo_dir=None, structure=None, comment=None, decorators=None, abivars=None):
+    def __init__(self, structure, pseudos, pseudo_dir=None, comment=None, decorators=None, abivars=None):
         """
         Args:
-            pseudos: String or list of strings with the name of the pseudopotential files.
+            structure: Parameters defining the crystalline structure. Accepts :class:`Structure` object 
+            file with structure (CIF, netcdf file, ...) or dictionary with ABINIT geo variables.
+            pseudos: Pseudopotentials to be used for the calculation. Accepts: string or list of strings with the name 
+                of the pseudopotential files, list of :class:`Pseudo` objects or :class:`PseudoTable` object.
             pseudo_dir: Name of the directory where the pseudopotential files are located.
-            structure: file with the structure, :class:`Structure` object or dictionary with ABINIT geo variable.
             ndtset: Number of datasets.
             comment: Optional string with a comment that will be placed at the beginning of the file.
             decorators: List of `AbinitInputDecorator` objects.
             abivars: Dictionary with the initial set of variables. Default: Empty
         """
+        # Internal dict with variables.
+        abivars = {} if abivars is None else abivars
+        self._abivars = OrderedDict(**abivars)
+
+        self.set_structure(structure)
+
         if pseudo_dir is not None:
             pseudo_dir = os.path.abspath(pseudo_dir)
             if not os.path.exists(pseudo_dir): raise self.Error("Directory  %s does not exist")
             pseudos = [os.path.join(pseudo_dir, p) for p in list_strings(pseudos)]
 
-        self._pseudos = PseudoTable.as_table(pseudos)
-        abivars = {} if abivars is None else abivars
-        self._abivars = OrderedDict(**abivars)
+        try:
+            self._pseudos = PseudoTable.as_table(pseudos).get_pseudos_for_structure(self.structure)
+        except ValueError as exc:
+            raise self.Error(str(exc))
 
-        if structure is not None: self.set_structure(structure)
         if comment is not None: self.set_comment(comment)
 
         self._decorators = [] if not decorators else decorators
@@ -76,7 +101,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
             if isinstance(value, np.ndarray): value = value.tolist()
             abivars[key] = value
 
-        return dict(pseudos=[p.as_dict() for p in self.pseudos], 
+        return dict(structure=self.structure.as_dict(),
+                    pseudos=[p.as_dict() for p in self.pseudos], 
                     comment=self.comment,
                     decorators=[dec.as_dict() for dec in self.decorators],
                     abivars=abivars)
@@ -84,7 +110,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
     @classmethod
     def from_dict(cls, d):
         pseudos = [Pseudo.from_file(p['filepath']) for p in d['pseudos']]
-        return cls(pseudos, decorators=d["decorators"], comment=d["comment"], abivars=d["abivars"])
+        return cls(d["structure"], pseudos, decorators=d["decorators"], comment=d["comment"], abivars=d["abivars"])
 
     # ABC protocol: __delitem__, __getitem__, __iter__, __len__, __setitem__
     def __delitem__(self, key):
@@ -105,6 +131,9 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
                              "If you are sure the name is correct, please contact the abipy developers\n" 
                              "or modify the JSON file abipy/htc/abinit_vars.json" % key)
 
+        if key in _GEOVARS:
+            raise self.Error("You cannot set the value of a variable associate to the structure. Use set_structure")
+
         return self._abivars.__setitem__(key, value)
 
     def __repr__(self):
@@ -112,6 +141,9 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
 
     def __str__(self):
         return self.to_string()
+
+    #def __eq__(self, other)
+    #def __neq__(self, other)
 
     #@abc.property
     #def runlevel(self):
@@ -157,7 +189,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
         except AttributeError:
             return False
 
-    def to_string(self, sortmode=None, post=None, with_pseudos=True):
+    def to_string(self, sortmode=None, post=None, with_structure=True, with_pseudos=True):
         """
         String representation.
 
@@ -170,6 +202,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
                 (In this case, indeed, Abinit complains if ndtset=1 is not specified 
                 and we don't want ndtset=1 simply because the code will start to add 
                 _DS1_ to all the input and output files.
+            with_structure: False if section with structure variables should not be printed.
             with_pseudos: False if JSON section with pseudo data should not be added.
         """
         lines = []
@@ -181,10 +214,10 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
 
         if sortmode is None:
             # no sorting.
-            keys = self.keys()
+            keys = list(self.keys())
         elif sortmode == "a":
             # alphabetical order.
-            keys = sorted(self.keys())
+            keys = sorted(list(self.keys()))
         else:
             raise ValueError("Unsupported value for sortmode %s" % str(sortmode))
 
@@ -192,23 +225,17 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
         if with_mnemonics:
             var_database = get_abinit_variables()
 
-        for var in keys:
-            value = self[var]
-            # Do not print NO_MULTI variables except for dataset 0.
-            #if self.index != 0 and var in _ABINIT_NO_MULTI:
-            #    continue
+        # Extract the items from the dict and add the geo variables at the end
+        items = list(self.items())
+        if with_structure:
+            items.extend(list(self.structure.to_abivars().items()))
 
-            # Print ndtset only if we really have datasets. 
-            # This trick prevents abinit from adding DS# to the output files.
-            # thus complicating the creation of workflows made of separated calculations.
-            #if var == "ndtset" and value == 1:
-            #    continue
-
+        for name, value in items:
             if with_mnemonics:
-                v = var_database[var]
+                v = var_database[name]
                 app("# <" + v.definition + ">")
 
-            varname = var + post
+            varname = name + post
             variable = InputVariable(varname, value)
             app(str(variable))
 
@@ -267,29 +294,18 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
 
     @property
     def structure(self):
-        """Returns the :class:`Structure` associated to this dataset."""
-        # TODO: Avoid calling Structure.from_abivars, find a way to cache the object and invalidate it.
-        # Copy a structure to avoid references?
-        return Structure.from_abivars(self._abivars)
-        # Cannot use lazy properties here because we may want to change the structure
-
-        #if hasattr(self, "_structure") and self._structure is None:
-        #    return self._structure
-        #try:
-        #    return self._structure
-        #except AttributeError:
-        #    structure = Structure.from_abivars(self.allvars)
-        #    self.set_structure(structure)
-        #    return self._structure
+        """The :class:`Structure` associated to this input."""
+        return self._structure
 
     def set_structure(self, structure):
-        structure = Structure.as_structure(structure)
+        self._structure = Structure.as_structure(structure)
 
-        self._structure = structure
-        if structure is None: return
+        # Check volume
+        m = self.structure.lattice.matrix
+        if np.dot(np.cross(m[0], m[1]), m[2]) <= 0:
+            raise self.Error("The triple product of the lattice vector is negative. Use structure abi_sanitize.")
 
-        self.set_vars(**structure.to_abivars())
-        return structure
+        return self._structure
 
     # Helper functions to facilitate the specification of several variables.
     def set_kmesh(self, ngkpt, shiftk, kptopt=1):
@@ -622,9 +638,10 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
 class MultiDataset(object):
     """
     This object is essentially a list of :class:`AbinitInput objects.
-    and provides an easy-to-use interface to perform global changes 
-    on all the inputs in the objects.
-    Let's assume for example that multi contains two input files and we
+    that provides an easy-to-use interface to apply global changes to the 
+    the inputs stored in the objects.
+
+    Let's assume for example that multi contains two AbinitInput object and we
     want to set `ecut` to 1 in both dictionaries. The direct approach would be:
 
         for inp in multi:
@@ -639,6 +656,12 @@ class MultiDataset(object):
     MultiDataset provides its own implementaion of __getattr__ so that one simply use:
 
          multi.set_vars(ecut=1)
+
+    .. warning::
+
+        MultiDataset does not support calculations done with different sets of pseudopotentials.
+        The inputs can have different crystalline structures (as long as the atom types are equal)
+        but each input in MultiDataset must have the same set of pseudopotentials.
     """
     Error = AbinitInputError
 
@@ -648,18 +671,22 @@ class MultiDataset(object):
             if any(p1 != p2 for p1, p2 in zip(inputs[0].pseudos, inp.pseudos)):
                 raise ValueError("Pseudos must be consistent when from_inputs is invoked.")
 
-        # Build empty MultiDataset and add inputs.
-        new = cls(pseudos=inputs[0].pseudos, ndtset=0)
+        # Build MultiDataset from input structures and pseudos and add inputs.
+        multi = cls(structure=[inp.structure for inp in inputs], pseudos=inputs[0].pseudos, ndtset=len(inputs))
 
-        new.extend(inputs)
-        return new
+        for inp, new_inp in zip(inputs, multi):
+            new_inp.set_vars(**inp)
 
-    def __init__(self, pseudos, pseudo_dir="", structure=None, ndtset=1):
+        return multi
+
+    def __init__(self, structure, pseudos, pseudo_dir="", ndtset=1):
         """
         Args:
+            structure: file with the structure, :class:`Structure` object or dictionary with ABINIT geo variable
+                Accepts also list of objects that can be converted to Structure object.
+                In this case, however, ndtset must be equal to the length of the list.
             pseudos: String or list of string with the name of the pseudopotential files.
             pseudo_dir: Name of the directory where the pseudopotential files are located.
-            structure: file with the structure, :class:`Structure` object or dictionary with ABINIT geo variable
             ndtset: Number of datasets.
         """
         # Setup of the pseudopotential files.
@@ -680,17 +707,29 @@ class MultiDataset(object):
 
             pseudos = PseudoTable(pseudo_paths)
 
-        if ndtset == 0:
-            self._inputs = []
-        elif ndtset >= 1:
-            self._inputs = [AbinitInput(pseudos, structure=structure) for i in range(ndtset)]
+        # Build the list of AbinitInput objects.
+        if ndtset <= 0:
+            raise ValueError("ndtset %d cannot be <=0" % ndtset)
+
+        if not isinstance(structure, (list, tuple)):
+            self._inputs = [AbinitInput(structure=structure, pseudos=pseudos) for i in range(ndtset)]
         else:
-            raise ValueError("Negative ndtset %d" % ndtset)
+            assert len(structure) == ndtset
+            self._inputs = [AbinitInput(structure=s, pseudos=pseudos) for s in structure]
+
+        # Check pseudos
+        #for inp in inputs:
+        #    if any(p1 != p2 for p1, p2 in zip(inputs[0].pseudos, inp.pseudos)):
+        #        raise ValueError("Pseudos must be consistent when from_inputs is invoked.")
 
     @property
     def ndtset(self):
         """Number of inputs in self."""
         return len(self)
+
+    @property
+    def pseudos(self):
+        return self[0].pseudos
 
     def __len__(self):
         return len(self._inputs)
@@ -725,6 +764,7 @@ class MultiDataset(object):
 
     def append(self, abinit_input):
         """Add an :class:`AbinitInput` to the list."""
+        assert isinstance(abinit_input, AbinitInput)
         self._inputs.append(abinit_input)
 
     def extend(self, abinit_inputs):
@@ -753,9 +793,12 @@ class MultiDataset(object):
             lines = ["ndtset %d" % self.ndtset]
 
             #same_structures = self.has_same_structures
+
             for i, inp in enumerate(self):
                 header = "### DATASET %d ###" % (i + 1)
                 is_last = (i==self.ndtset - 1)
+                #with_structure = True 
+                #if same_structure and not is_last: with_structure = False
 
                 s = inp.to_string(post=str(i+1), with_pseudos=is_last)
                 if s:

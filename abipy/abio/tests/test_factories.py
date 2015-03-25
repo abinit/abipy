@@ -35,22 +35,10 @@ class FactoryTest(AbipyTest):
     def test_factory_protocol(self):
         """Testing factory protocol."""
         # XXX
-        # Ambiguous list of pseudos.
-        #with self.assertRaises(AbinitInput.Error):
-        #    ebands_input(self.si_structure, pseudos=abidata.pseudos("14si.pspnc", "Si.oncvpsp"), ecut=2)
 
         # No ecut and pseudos without hints 
         #with self.assertRaises(AbinitInput.Error):
         #    ebands_input(self.si_structure, pseudos=abidata.pseudos("14si.pspnc", "Si.oncvpsp"))
-
-        # Negative triple product.
-        #with self.assertRaises(AbinitInput.Error):
-        #    s = abidata.structure_from_ucell("Al-negative-volume")
-        #    ebands_input(s, pseudos=abidata.pseudos("13al.981214.fhi"), ecut=2)
-
-        # Pseudos do not match structure.
-        #with self.assertRaises(AbinitInput.Error):
-        #    ebands_input(self.si_structure, pseudos=abidata.pseudos("13al.981214.fhi"), ecut=2)
 
     def test_ebands_input(self):
         """Testing ebands_input factory."""
@@ -137,7 +125,7 @@ class FactoryTest(AbipyTest):
         #for inp in inps:
         #    self.validate_inp(inp)
 
-        print(inps[1].abiget_irred_perts())
+        print(inps[1].abiget_irred_phperts())
         #assert 0
 
 

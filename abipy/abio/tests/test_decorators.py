@@ -10,7 +10,6 @@ from abipy.core.testing import AbipyTest
 from abipy.abio.factories import * 
 
 
-
 class DecoratorTest(AbipyTest):
 
     def setUp(self):
@@ -91,7 +90,7 @@ class DecoratorTest(AbipyTest):
         """Testing XCdecorator."""
         xc_deco = ideco.XcDecorator(17)
         self.assertPMGSONable(xc_deco)
-                                                              
+
         new_inp = xc_deco(self.si_ebands)
         self.validate_inp(new_inp)
 

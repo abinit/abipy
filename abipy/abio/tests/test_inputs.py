@@ -14,28 +14,7 @@ class TestAbinitInput(AbipyTest):
 
     def test_api(self):
         """Test AbinitInput API."""
-        # Build empty input
-        inp = AbinitInput(pseudos=abidata.pseudos("14si.pspnc"))
-
-        print(repr(inp))
-        assert len(inp) == 0 and not inp 
-        assert inp.get("foo", "bar") == "bar" and inp.pop("foo", "bar") == "bar"
-        assert inp.comment is None
-        inp.set_comment("This is a comment")
-        assert inp.comment == "This is a comment"
-        assert inp.isnc and not inp.ispaw
-        assert not inp.decorators
-
-        # foo is not a valid Abinit variable
-        with self.assertRaises(inp.Error): inp["foo"] = 1
-        inp["ecut" ] = 1
-        assert inp.get("ecut") == 1 and len(inp) == 1 and "ecut" in inp.keys() and "foo" not in inp
-
-        assert inp.mnemonics == False
-        inp.set_mnemonics(True)
-        assert inp.mnemonics == True
-
-        inp.set_vars(ecut=5, toldfe=1e-6)
+        # Build simple input with structure and pseudos
         unit_cell = {
             "acell": 3*[10.217],       
             'rprim': [[.0, .5, .5],
@@ -48,14 +27,40 @@ class TestAbinitInput(AbipyTest):
             'xred': [[.0, .0, .0],
                      [.25,.25,.25]]
         }
-        inp.set_vars(unit_cell)
 
-        # Now we have a structure
+        inp = AbinitInput(structure=unit_cell, pseudos=abidata.pseudos("14si.pspnc"))
+
+        print(repr(inp))
+        assert len(inp) == 0 and not inp 
+        assert inp.get("foo", "bar") == "bar" and inp.pop("foo", "bar") == "bar"
+        assert inp.comment is None
+        inp.set_comment("This is a comment")
+        assert inp.comment == "This is a comment"
+        assert inp.isnc and not inp.ispaw
+        assert not inp.decorators
         assert len(inp.structure) == 2 and inp.num_valence_electrons == 8
 
+        # foo is not a valid Abinit variable
+        with self.assertRaises(inp.Error): inp["foo"] = 1
+        inp["ecut" ] = 1
+        assert inp.get("ecut") == 1 and len(inp) == 1 and "ecut" in inp.keys() and "foo" not in inp
+
+        assert inp.mnemonics == False
+        inp.set_mnemonics(True)
+        assert inp.mnemonics == True
+
+        inp.set_vars(ecut=5, toldfe=1e-6)
+
+        # Cannot change structure variables directly.
+        with self.assertRaises(inp.Error):
+            inp.set_vars(unit_cell)
+
+        # Test deepcopy and remove_vars.
+        inp["bdgw"] = [1, 2]
         inp_copy = inp.deepcopy()
-        inp_copy["typat"][1] = 2
-        assert inp["typat"] == [1, 1]
+        inp_copy["bdgw"][1] = 3
+        assert inp["bdgw"] == [1, 2]
+        assert inp.remove_vars("bdgw") and "bdgw" not in inp
 
         # Test set_structure 
         new_structure = inp.structure.copy() 
@@ -67,9 +72,26 @@ class TestAbinitInput(AbipyTest):
         self.serialize_with_pickle(inp, test_eq=False)
         self.assertPMGSONable(inp)
 
+    def test_input_errors(self):
+        """Testing typical AbinitInput Error"""
+        si_structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
+
+        # Ambiguous list of pseudos.
+        with self.assertRaises(AbinitInput.Error):
+            AbinitInput(si_structure, pseudos=abidata.pseudos("14si.pspnc", "Si.oncvpsp"))
+
+        # Pseudos do not match structure.
+        with self.assertRaises(AbinitInput.Error):
+            AbinitInput(si_structure, pseudos=abidata.pseudos("13al.981214.fhi"))
+
+        # Negative triple product.
+        with self.assertRaises(AbinitInput.Error):
+            s = abidata.structure_from_ucell("Al-negative-volume")
+            AbinitInput(s, pseudos=abidata.pseudos("13al.981214.fhi"))
+
     def test_helper_functions(self):
         """Testing AbinitInput helper functions."""
-        inp = AbinitInput(pseudos=abidata.pseudos("14si.pspnc"), structure=abidata.cif_file("si.cif"))
+        inp = AbinitInput(structure=abidata.cif_file("si.cif"), pseudos=abidata.pseudos("14si.pspnc"))
 
         inp.set_kmesh(ngkpt=(1, 2, 3), shiftk=(1, 2, 3, 4, 5, 6))
         assert inp["kptopt"] == 1 and inp["nshiftk"] == 2
@@ -96,8 +118,7 @@ class TestAbinitInput(AbipyTest):
 
     def test_abinit_calls(self):
         """Testing AbinitInput methods invoking Abinit."""
-        inp = AbinitInput(pseudos=abidata.pseudos("14si.pspnc"))
-        inp.set_structure(abidata.cif_file("si.cif"))
+        inp = AbinitInput(structure=abidata.cif_file("si.cif"), pseudos=abidata.pseudos("14si.pspnc"))
 
         inp.set_kmesh(ngkpt=(2, 2, 2), shiftk=(0, 0, 0))
 
@@ -129,27 +150,28 @@ class TestAbinitInput(AbipyTest):
         inp["paral_kgb"] = 1
         pconfs = inp.abiget_autoparal_pconfs(max_ncpus=5)
 
-        #assert 0
-
 
 class TestMultiDataset(AbipyTest):
     """Unit tests for MultiDataset."""
     def test_api(self):
         """Test MultiDataset API."""
-        multi = MultiDataset(pseudos=abidata.pseudos("14si.pspnc"))
+        structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
+        multi = MultiDataset(structure=structure, pseudos=abidata.pseudos("14si.pspnc"))
+
         assert len(multi) == 1 and multi.ndtset == 1 
         for i, inp in enumerate(multi):
             assert inp.keys() == multi[i].keys()
 
         multi.addnew_from(0)
         assert multi.ndtset == 2 and multi[0] is not multi[1]
+        assert multi[0].structure ==  multi[1].structure
+        assert not multi[0].structure is multi[1].structure
 
         multi.set_vars(ecut=2)
         assert all(inp["ecut"] == 2 for inp in multi)
         multi[1].set_vars(ecut=1)
         assert multi[0]["ecut"] == 2 and multi[1]["ecut"] == 1
 
-        structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
         pert_structure = structure.copy()
         pert_structure.perturb(distance=0.1)
         assert structure != pert_structure
@@ -167,6 +189,19 @@ class TestMultiDataset(AbipyTest):
         print(multi)
         #print(dir(multi))
         #assert 0
+
+        new_multi = MultiDataset.from_inputs([inp for inp in multi])
+        assert new_multi.ndtset == multi.ndtset
+        assert new_multi.structure == multi.structure
+
+        for old_inp, new_inp in zip(multi, new_multi):
+            assert not old_inp is new_inp
+            self.assertDictEqual(old_inp.as_dict(), new_inp.as_dict())
+
+        # Compatible with Pickle and PMGSONable?
+        #self.serialize_with_pickle(multi, test_eq=False)
+        #self.assertPMGSONable(multi)
+
 
 
 class AnaddbInputTest(AbipyTest):

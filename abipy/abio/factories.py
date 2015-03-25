@@ -118,13 +118,6 @@ def _find_scf_nband(structure, pseudos, electrons):
     return int(nband)
 
 
-def _find_pseudos(pseudos, structure):
-    try:
-        pseudos = PseudoTable.as_table(pseudos).get_pseudos_for_structure(structure)
-        return pseudos
-    except ValueError as exc:
-        raise AbinitInput.Error(str(exc))
-
 
 #def check_inp(func):
 #    """
@@ -186,16 +179,14 @@ def ebands_input(structure, pseudos,
             to be used for the computation of the DOS (None if DOS is not wanted).
     """
     structure = Structure.as_structure(structure)
-    pseudos = _find_pseudos(pseudos, structure)
 
     if dos_kppa is not None and not isinstance(dos_kppa, (list, tuple)):
         dos_kppa = [dos_kppa]
 
-    multi = MultiDataset(pseudos, ndtset=2 if dos_kppa is None else 2 + len(dos_kppa))
-    multi.set_structure(structure)
+    multi = MultiDataset(structure, pseudos, ndtset=2 if dos_kppa is None else 2 + len(dos_kppa))
 
     # Set the cutoff energy.
-    ecut, pawecutdg = _find_ecut_pawecutdg(ecut, pawecutdg, pseudos)
+    ecut, pawecutdg = _find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos)
     multi.set_vars(ecut=ecut, pawecutdg=pawecutdg)
 
     # SCF calculation.
@@ -205,7 +196,7 @@ def ebands_input(structure, pseudos,
                                    charge=charge, nband=scf_nband, fband=None)
 
     if scf_electrons.nband is None:
-        scf_electrons.nband = _find_scf_nband(structure, pseudos, scf_electrons)
+        scf_electrons.nband = _find_scf_nband(structure, multi.pseudos, scf_electrons)
 
     multi[0].set_vars(scf_ksampling.to_abivars())
     multi[0].set_vars(scf_electrons.to_abivars())
@@ -256,13 +247,10 @@ def ion_ioncell_relax_input(structure, pseudos,
         scf_algorithm: Algorithm used for solving of the SCF cycle.
     """
     structure = Structure.as_structure(structure)
-    pseudos = _find_pseudos(pseudos, structure)
-
-    multi = MultiDataset(pseudos, ndtset=2)
-    multi.set_structure(structure)
+    multi = MultiDataset(structure, pseudos, ndtset=2)
 
     # Set the cutoff energy
-    ecut, pawecutdg = _find_ecut_pawecutdg(ecut, pawecutdg, pseudos)
+    ecut, pawecutdg = _find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos)
     multi.set_vars(ecut=ecut, pawecutdg=pawecutdg)
 
     kppa = _DEFAULTS.get("kppa") if kppa is None else kppa
@@ -271,7 +259,7 @@ def ion_ioncell_relax_input(structure, pseudos,
                                charge=charge, nband=nband, fband=None)
 
     if electrons.nband is None:
-        electrons.nband = _find_scf_nband(structure, pseudos, electrons)
+        electrons.nband = _find_scf_nband(structure, multi.pseudos, electrons)
 
     ion_relax = aobj.RelaxationMethod.atoms_only(atoms_constraints=None)
     ioncell_relax = aobj.RelaxationMethod.atoms_and_cell(atoms_constraints=None)
@@ -321,13 +309,10 @@ def g0w0_with_ppmodel_input(structure, pseudos,
             QP energies for all the point in the IBZ and one band above and one band below the Fermi level.
     """
     structure = Structure.as_structure(structure)
-    pseudos = _find_pseudos(pseudos, structure)
-
-    multi = MultiDataset(pseudos, ndtset=4)
-    multi.set_structure(structure)
+    multi = MultiDataset(structure, pseudos, ndtset=4)
 
     # Set the cutoff energy
-    ecut, pawecutdg = _find_ecut_pawecutdg(ecut, pawecutdg, pseudos)
+    ecut, pawecutdg = _find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos)
     multi.set_vars(ecut=ecut, pawecutdg=pawecutdg)
 
     scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
@@ -335,7 +320,7 @@ def g0w0_with_ppmodel_input(structure, pseudos,
                                    charge=charge, nband=None, fband=None)
 
     if scf_electrons.nband is None:
-        scf_electrons.nband = _find_scf_nband(structure, pseudos, scf_electrons)
+        scf_electrons.nband = _find_scf_nband(structure, multi.pseudos, scf_electrons)
 
     multi[0].set_vars(scf_ksampling.to_abivars())
     multi[0].set_vars(scf_electrons.to_abivars())
@@ -417,13 +402,10 @@ def bse_with_mdf_input(structure, pseudos,
         scf_algorithm: Algorithm used for solving the SCF cycle.
     """
     structure = Structure.as_structure(structure)
-    pseudos = _find_pseudos(pseudos, structure)
-
-    multi = MultiDataset(pseudos, ndtset=3)
-    multi.set_structure(structure)
+    multi = MultiDataset(structure, pseudos, ndtset=3)
 
     # Set the cutoff energy
-    ecut, pawecutdg = _find_ecut_pawecutdg(ecut, pawecutdg, pseudos)
+    ecut, pawecutdg = _find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos)
     multi.set_vars(ecut=ecut, ecutwfn=ecut, pawecutdg=pawecutdg)
 
     # Ground-state 
@@ -433,7 +415,7 @@ def bse_with_mdf_input(structure, pseudos,
                                    charge=charge, nband=None, fband=None)
 
     if scf_electrons.nband is None:
-        scf_electrons.nband = _find_scf_nband(structure, pseudos, scf_electrons)
+        scf_electrons.nband = _find_scf_nband(structure, multi.pseudos, scf_electrons)
 
     multi[0].set_vars(scf_ksampling.to_abivars())
     multi[0].set_vars(scf_electrons.to_abivars())
@@ -489,18 +471,14 @@ def scf_phonons_inputs(structure, pseudos, kppa,
         charge: Electronic charge added to the unit cell.
         scf_algorithm: Algorithm used for solving of the SCF cycle.
     """
-    structure = Structure.as_structure(structure)
-    pseudos = _find_pseudos(pseudos, structure)
-
     # Build the input file for the GS run.
-    gs_inp = AbinitInput(pseudos=pseudos)
-    gs_inp.set_structure(structure)
+    gs_inp = AbinitInput(structure=structure, pseudos=pseudos)
 
     # Set the cutoff energy
-    ecut, pawecutdg = _find_ecut_pawecutdg(ecut, pawecutdg, pseudos)
+    ecut, pawecutdg = _find_ecut_pawecutdg(ecut, pawecutdg, gs_inp.pseudos)
     gs_inp.set_vars(ecut=ecut, pawecutdg=pawecutdg)
 
-    ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
+    ksampling = aobj.KSampling.automatic_density(gs_inp.structure, kppa, chksymbreak=0)
     gs_inp.set_vars(ksampling.to_abivars())
     gs_inp.set_vars(tolvrs=1.0e-18)
 
@@ -510,8 +488,7 @@ def scf_phonons_inputs(structure, pseudos, kppa,
     #print("get_ibz qpoints:", qpoints)
 
     # Build the input files for the q-points in the IBZ.
-    ph_inputs = MultiDataset(pseudos=pseudos, ndtset=len(qpoints))
-    ph_inputs.set_structure(structure)
+    ph_inputs = MultiDataset(gs_inp.structure, pseudos=gs_inp.pseudos, ndtset=len(qpoints))
 
     for ph_inp, qpt in zip(ph_inputs, qpoints):
         # Response-function calculation for phonons.
