@@ -246,7 +246,7 @@ class AnaddbInputTest(AbipyTest):
     def test_thermo(self):
         """Test the thermodynamics constructor"""
         anaddb_input = AnaddbInput.thermo(self.structure, ngqpt=(40, 40, 40), nqsmall=20)
-        self.assertTrue(anaddb_input.make_input())
+        self.assertTrue(str(anaddb_input))
         for var in ('thmtol', 'ntemper', 'temperinc', 'thmtol'):
             self.assertTrue(anaddb_input[var] >= 0)
         for flag in ('ifcflag', 'thmflag'):
@@ -258,7 +258,7 @@ class AnaddbInputTest(AbipyTest):
     def test_modes(self):
         """Test the modes constructor"""
         anaddb_input = AnaddbInput.modes(self.structure)
-        self.assertTrue(anaddb_input.make_input())
+        self.assertTrue(str(anaddb_input))
         for flag in ('ifcflag', 'dieflag'):
             self.assertEqual(anaddb_input[flag], 1)
 

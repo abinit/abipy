@@ -52,11 +52,84 @@ _GEOVARS = set([
 ])
 
 
+class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
+
+    # ABC protocol: __delitem__, __getitem__, __iter__, __len__, __setitem__
+    def __delitem__(self, key):
+        return self.vars.__delitem__(key)
+        
+    def __getitem__(self, key):
+        return self.vars.__getitem__(key)
+                                                                             
+    def __iter__(self):
+        return self.vars.__iter__()
+                                                                             
+    def __len__(self):
+        return len(self.vars)
+                                                                             
+    def __setitem__(self, key, value):
+        self._check_varname(key)
+        return self.vars.__setitem__(key, value)
+
+    def __repr__(self):
+        return "<%s at %s>" % (self.__class__.__name__, id(self))
+
+    def __str__(self):
+        return self.to_string()
+
+    def write(self, filepath):
+        """
+        Write the input file to file to `filepath`. Returns a string with the input.
+        """
+        dirname = os.path.dirname(filepath)
+        if not os.path.exists(dirname): os.makedirs(dirname)
+                                                                                      
+        # Write the input file.
+        input_string = str(self)
+        with open(filepath, "wt") as fh:
+            fh.write(input_string)
+
+        return input_string
+
+    def deepcopy(self):
+        """Deep copy of the input."""
+        return copy.deepcopy(self)
+
+    def set_vars(self, *args, **kwargs):
+        """Set the value of the variables provied in the dictionary **kwargs"""
+        kwargs.update(dict(*args))
+        for varname, varvalue in kwargs.items():
+            self[varname] = varvalue
+        return kwargs
+
+    def remove_vars(self, keys):
+        """Remove the variables listed in keys."""
+        values = []
+        for key in list_strings(keys):
+            if key not in self:
+                raise KeyError("key: %s not in self:\n %s" % (key, list(self.keys())))
+            values.append(self.pop(key))
+        return values
+
+    @abc.abstractproperty
+    def vars(self):
+        pass
+
+    @abc.abstractmethod
+    def to_string(self):
+        pass
+
+    @abc.abstractmethod
+    def _check_varname(self, key):
+        pass
+
+
+
 class AbinitInputError(Exception):
     """Base error class for exceptions raised by `AbiInput`"""
 
 
-class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Has_Structure, object)):
+class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has_Structure, object)):
     """
     This object stores the ABINIT variables for a single dataset.
     """
@@ -112,27 +185,14 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
                     decorators=[dec.as_dict() for dec in self.decorators],
                     vars=vars)
 
+    @property
+    def vars(self):
+        return self._vars
+
     @classmethod
     def from_dict(cls, d):
         pseudos = [Pseudo.from_file(p['filepath']) for p in d['pseudos']]
         return cls(d["structure"], pseudos, decorators=d["decorators"], comment=d["comment"], vars=d["vars"])
-
-    # ABC protocol: __delitem__, __getitem__, __iter__, __len__, __setitem__
-    def __delitem__(self, key):
-        return self._vars.__delitem__(key)
-        
-    def __getitem__(self, key):
-        return self._vars.__getitem__(key)
-
-    def __iter__(self):
-        return self._vars.__iter__()
-
-    def __len__(self):
-        return len(self._vars)
-
-    def __setitem__(self, key, value):
-        self._check_varname(key)
-        return self._vars.__setitem__(key, value)
 
     def _check_varname(self, key):
         if not is_abivar(key):
@@ -142,12 +202,6 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
                                                                                                                       
         if key in _GEOVARS:
             raise self.Error("You cannot set the value of a variable associated to the structure. Use set_structure")
-
-    def __repr__(self):
-        return "<%s at %s>" % (self.__class__.__name__, id(self))
-
-    def __str__(self):
-        return self.to_string()
 
     #def __eq__(self, other)
     #def __ne__(self, other)
@@ -172,10 +226,6 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
     #    if optdriver is None: optdriver = 0
 
     #    # At this point we have to understand the type of calculation.
-
-    def deepcopy(self):
-        """Deep copy of the input."""
-        return copy.deepcopy(self)
 
     @property
     def decorators(self):
@@ -259,20 +309,6 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
                                                              
         return s + "\n#".join(ppinfo)
 
-    def write(self, filepath):
-        """
-        Write the input file to file to `filepath`. Returns a string with the input.
-        """
-        dirname = os.path.dirname(filepath)
-        if not os.path.exists(dirname): os.makedirs(dirname)
-                                                                                      
-        # Write the input file.
-        input_string = str(self)
-        with open(filepath, "wt") as fh:
-            fh.write(input_string)
-
-        return input_string
-
     @property
     def comment(self):
         try:
@@ -283,22 +319,6 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
     def set_comment(self, comment):
         """Set a comment to be included at the top of the file."""
         self._comment = comment
-
-    def set_vars(self, *args, **kwargs):
-        """Set the value of the variables provied in the dictionary **kwargs"""
-        kwargs.update(dict(*args))
-        for varname, varvalue in kwargs.items():
-            self[varname] = varvalue
-        return kwargs
-
-    def remove_vars(self, keys):
-        """Remove the variables listed in keys."""
-        values = []
-        for key in list_strings(keys):
-            if key not in self:
-                raise KeyError("key: %s not in self:\n %s" % (key, list(self.keys())))
-            values.append(self.pop(key))
-        return values
 
     @property
     def structure(self):
@@ -781,7 +801,7 @@ class MultiDataset(object):
         return on_all
 
     def append(self, abinit_input):
-        """Add an :class:`AbinitInput` to the list."""
+        """Add a :class:`AbinitInput` to the list."""
         assert isinstance(abinit_input, AbinitInput)
         self._inputs.append(abinit_input)
 
@@ -845,7 +865,7 @@ class AnaddbInputError(Exception):
     """Base error class for exceptions raised by `AnaddbInput`"""
 
 
-class AnaddbInput(MutableMapping, Has_Structure):
+class AnaddbInput(AbstractInput, Has_Structure):
 
     Error = AnaddbInputError
 
@@ -864,6 +884,10 @@ class AnaddbInput(MutableMapping, Has_Structure):
             self._check_varname(key)
 
         self._vars = OrderedDict(**vars)
+
+    @property
+    def vars(self):
+        return self._vars
 
     def _check_varname(self, key):
         if not is_anaddb_var(key):
@@ -1100,35 +1124,9 @@ class AnaddbInput(MutableMapping, Has_Structure):
 
         return new
 
-    # ABC protocol: __delitem__, __getitem__, __iter__, __len__, __setitem__
-    def __delitem__(self, key):
-        return self._vars.__delitem__(key)
-        
-    def __getitem__(self, key):
-        return self._vars.__getitem__(key)
-
-    def __iter__(self):
-        return self._vars.__iter__()
-
-    def __len__(self):
-        return len(self._vars)
-
-    def __setitem__(self, key, value):
-        self._check_varname(key)
-        return self._vars.__setitem__(key, value)
-
     @property
     def structure(self):
         return self._structure
-
-    def __repr__(self):
-        return "<%s at %s>" % (self.__class__.__name__, id(self))
-
-    def __str__(self):
-        return self.to_string()
-
-    def make_input(self):
-        return self.to_string()
 
     def to_string(self, sortmode=None):
         """
@@ -1158,17 +1156,6 @@ class AnaddbInput(MutableMapping, Has_Structure):
 
         return "\n".join(lines)
 
-    def deepcopy(self):
-        """Deep copy of the input."""
-        return copy.deepcopy(self)
-
-    def set_vars(self, *args, **kwargs):
-        """Set the value of the variables"""
-        kwargs.update(dict(*args))
-        for varname, varvalue in kwargs.items():
-            self[varname] = varvalue
-        return kwargs
-
     def set_qpath(self, ndivsm, qptbounds=None):
         """
         Set the variables for the computation of the phonon band structure.
@@ -1191,3 +1178,115 @@ class AnaddbInput(MutableMapping, Has_Structure):
             nqsmall: Number of divisions used to sample the smallest lattice vector.
         """
         return self.set_vars(ng2qpt=self.structure.calc_ngkpt(nqsmall))
+
+
+class OpticVar(collections.namedtuple("OpticVar", "name value help")):
+    def __str__(self):
+        sval = str(self.value)
+        return (4*" ").join(sval, "!" + self.help)
+
+
+# TODO: OpticInput should implement AbstractInput!
+class OpticInput(collections.MutableMapping):
+    """
+    abo_1WF7      ! Name of the first d/dk response wavefunction file, produced by abinit
+    abo_1WF8      ! Name of the second d/dk response wavefunction file, produced by abinit
+    abo_1WF9      ! Name of the third d/dk response wavefunction file, produced by abinit
+    abo_WFK       ! Name of the ground-state wavefunction file, produced by abinit
+    0.01          ! Value of the *smearing factor*, in Hartree
+    0.010   1     ! frequency *step* and *maximum* frequency (Ha)
+    0.000         ! *Scissor* shift if needed, in Hartree
+    0.001         ! *Tolerance* on closeness of singularities (in Hartree)
+    3             ! *Number of components* of linear optic tensor to be computed
+    11 33 23      ! Linear *coefficients* to be computed (x=1, y=2, z=3)
+    2             ! Number of components of nonlinear optic tensor to be computed
+    123 222       ! Non-linear coefficients to be computed
+    """
+
+    # variable name --> default value.
+    _VARIABLES = [
+        OpticVar("ddkfile_x",       None, "Name of the first d/dk response wavefunction file"),
+        OpticVar("ddkfile_y",       None, "Name of the second d/dk response wavefunction file"),
+        OpticVar("ddkfile_z",       None, "Name of the third d/dk response wavefunction file"),
+        OpticVar("wfkfile",         None, "Name of the ground-state wavefunction file"),
+        OpticVar("zcut",            0.01, "Value of the *smearing factor*, in Hartree"),
+        OpticVar("wmesh",     (0.010, 1), "Frequency *step* and *maximum* frequency (Ha)"),
+        OpticVar("scissor",        0.000, "*Scissor* shift if needed, in Hartree"),
+        OpticVar("sing_tol",       0.001, "*Tolerance* on closeness of singularities (in Hartree)"),
+        OpticVar("num_lin_comp",    None, "*Number of components* of linear optic tensor to be computed"),
+        OpticVar("lin_comp",        None, "Linear *coefficients* to be computed (x=1, y=2, z=3)"),
+        OpticVar("num_nonlin_comp", None, "Number of components of nonlinear optic tensor to be computed"),
+        OpticVar("nonlin_comp",     None, "! Non-linear coefficients to be computed"),
+    ]
+
+    _VARNAMES = [v.name for v in _VARIABLES]
+
+    #def __init__(self, **kwargs):
+    #    # Default values
+    #    self.vars = collections.OrderedDict((v.name, v.value) for v in _VARIABLES)
+
+    #    # Update the variables with the values passed by the user
+    #    for k, v in kwargs:
+    #        if k not in self.VARNAMES:
+    #            raise ValueError("varname %s not in %s" % (k, str(self.VARNAMES)))
+    #        self.vars[k] = v
+
+    def __init__(self, zcut, wstep, wmax, scissor, sing_tol, linear_components,
+                 nonlinear_components=None, ddk_files=None, wfk=None):
+
+        self.vars = vars = collections.OrderedDict(*self.VAR_NAMES)
+
+        if ddk_files is not None:
+            assert len(ddk_files) == 3
+            assert wfk is not None
+            for dir, ddk in zip(["x", "y", "z"], ddk_files):
+                vars["ddkfile_" + dir] = os.path.abspath(ddk)
+
+        if wfk is not None:
+            vars["wfkfile"] = os.path.abspath(wfk)
+
+        vars["zcut"] = zcut
+        vars["wmesh"] = " ".join(map(str, (wstep, wmax)))
+        vars["sing_tol"] = sing_tol
+
+        vars["num_lin_comp"] = len(linear_components)
+        vars["lin_comp"] = " ".join(str(c) for c in linear_components)
+
+        vars["num_nonlin_comp"] = len(nonlinear_components)
+        vars["nonlin_comp"] = " ".join(str(c) for c in nonlinear_components)
+
+    def __init__(self, string):
+        self.string = string
+
+    # ABC protocol: __delitem__, __getitem__, __iter__, __len__, __setitem__
+    def __delitem__(self, key):
+        return self._vars.__delitem__(key)
+        
+    def __getitem__(self, key):
+        return self._vars.__getitem__(key)
+
+    def __iter__(self):
+        return self._vars.__iter__()
+
+    def __len__(self):
+        return len(self._vars)
+
+    def __setitem__(self, key, value):
+        #self._check_varname(key)
+        return self._vars.__setitem__(key, value)
+
+    def __str__(self):
+        return self.string
+
+    def to_string(self):
+        lines = []
+        app = lines.append
+
+        for name in self.VARNAMES:
+            var = self.vars[name]
+            app(str(var))
+
+        return "\n".join(lines)
+
+    def make_input(self):
+        return str(self)
