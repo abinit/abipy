@@ -492,7 +492,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
 
     def abiget_ibz(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
         """
-        This function, computes the list of points in the IBZ and the corresponding weights.
+        This function computes the list of points in the IBZ and the corresponding weights.
         It should be called with an input file that contains all the mandatory variables required by ABINIT.
 
         Args:
@@ -506,10 +506,6 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
             `namedtuple` with attributes:
                 points: `ndarray` with points in the IBZ in reduced coordinates.
                 weights: `ndarray` with weights of the points.
-
-        .. warning::
-
-            Multiple datasets are ignored. Only the list of k-points for dataset 1 are returned.
         """
         # Avoid modifications in self.
         inp = self.deepcopy()
@@ -562,12 +558,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
                 [{'idir': 1, 'ipert': 1, 'qpt': [0.25, 0.0, 0.0]},
                  {'idir': 2, 'ipert': 1, 'qpt': [0.25, 0.0, 0.0]}]
 
-        .. warning::
-
-            Multiple datasets are ignored. Only the list of k-points for dataset 1 are returned.
         """
-        warnings.warn("get_irred_perts is still under development.")
-
         # Avoid modifications in self.
         inp = self.deepcopy()
 
@@ -604,7 +595,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
             if report and report.errors: raise self.Error(str(report))
             raise self.Error("Problem in temp Task executed in %s\n%s" % (task.workdir, exc))
 
-    def get_autoparal_pconfs(self, max_ncpus, autoparal=1, workdir=None, manager=None):
+    def abiget_autoparal_pconfs(self, max_ncpus, autoparal=1, workdir=None, manager=None):
         """Get all the possible configurations up to max_ncpus"""
         inp = self.deepcopy()
         inp.set_vars(autoparal=autoparal, max_ncpus=max_ncpus)
@@ -629,8 +620,39 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
 
 
 class MultiDataset(object):
+    """
+    This object is essentially a list of :class:`AbinitInput objects.
+    and provides an easy-to-use interface to perform global changes 
+    on all the inputs in the objects.
+    Let's assume for example that multi contains two input files and we
+    want to set `ecut` to 1 in both dictionaries. The direct approach would be:
 
+        for inp in multi:
+            inp.set_vars(ecut=1)
+
+    or alternatively:
+
+        for i in range(multi.ndtset):
+            multi[i].set_vars(ecut=1)
+
+
+    MultiDataset provides its own implementaion of __getattr__ so that one simply use:
+
+         multi.set_vars(ecut=1)
+    """
     Error = AbinitInputError
+
+    @classmethod
+    def from_inputs(cls, inputs):
+        for inp in inputs:
+            if any(p1 != p2 for p1, p2 in zip(inputs[0].pseudos, inp.pseudos)):
+                raise ValueError("Pseudos must be consistent when from_inputs is invoked.")
+
+        # Build empty MultiDataset and add inputs.
+        new = cls(pseudos=inputs[0].pseudos, ndtset=0)
+
+        new.extend(inputs)
+        return new
 
     def __init__(self, pseudos, pseudo_dir="", structure=None, ndtset=1):
         """
@@ -658,10 +680,16 @@ class MultiDataset(object):
 
             pseudos = PseudoTable(pseudo_paths)
 
-        self._inputs = [AbinitInput(pseudos, structure=structure) for i in range(ndtset)]
+        if ndtset == 0:
+            self._inputs = []
+        elif ndtset >= 1:
+            self._inputs = [AbinitInput(pseudos, structure=structure) for i in range(ndtset)]
+        else:
+            raise ValueError("Negative ndtset %d" % ndtset)
 
     @property
     def ndtset(self):
+        """Number of inputs in self."""
         return len(self)
 
     def __len__(self):
@@ -695,14 +723,24 @@ class MultiDataset(object):
         if isattr: on_all = on_all()
         return on_all
 
-    def append_input(self, abinit_input):
+    def append(self, abinit_input):
+        """Add an :class:`AbinitInput` to the list."""
         self._inputs.append(abinit_input)
 
+    def extend(self, abinit_inputs):
+        """Extends self with a list of :class:`AbinitInput` objects."""
+        assert all(isinstance(inp, AbinitInput) for inp in abinit_inputs)
+        self._inputs.extend(abinit_inputs)
+
     def addnew_from(self, dtindex):
-        self.append_input(self[dtindex].deepcopy())
+        self.append(self[dtindex].deepcopy())
 
     def split_datasets(self):
         return self._inputs
+
+    def deepcopy(self):
+        """Deep copy of the object."""
+        return copy.deepcopy(self)
 
     @property
     def has_same_structures(self):
@@ -710,7 +748,6 @@ class MultiDataset(object):
 
     def __str__(self):
         """String representation i.e. the input file read by Abinit."""
-
         if self.ndtset > 1:
             # Multi dataset mode.
             lines = ["ndtset %d" % self.ndtset]
@@ -745,8 +782,6 @@ class MultiDataset(object):
 
 class AnaddbInputError(Exception):
     """Base error class for exceptions raised by `AnaddbInput`"""
-
-
 
 # TODO Remove!
 import abipy.tools.mixins as mixins

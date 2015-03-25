@@ -30,7 +30,7 @@ def make_scf_nscf_inputs(nsppol, paral_kgb=1):
     if nsppol == 2:
         global_vars.update(spinat=[0.0, 0.0, 4.0])
 
-    inp.set_vars(**global_vars)
+    inp.set_vars(global_vars)
 
     # Dataset 1 (GS run)
     inp[1].set_kmesh(ngkpt=[4,4,4], shiftk=[0.5,0.5,0.5])

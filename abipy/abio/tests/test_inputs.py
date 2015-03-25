@@ -116,11 +116,18 @@ class TestAbinitInput(AbipyTest):
         assert np.all(ibz.points == [[ 0. ,  0. ,  0. ], [ 0.5,  0. ,  0. ], [ 0.5,  0.5,  0. ]])
         assert np.all(ibz.weights == [0.125,  0.5,  0.375])
 
+        # Test abiget_irred_phperts
         # [{'idir': 1, 'ipert': 1, 'qpt': [0.0, 0.0, 0.0]}]
         irred_perts = inp.abiget_irred_phperts(qpt=(0, 0, 0))
         assert len(irred_perts) == 1
         pert = irred_perts[0]
         assert pert.idir == 1 and (pert.idir, pert.ipert) == (1, 1) and all(c == 0 for c in pert.qpt)
+
+        # Test abiget_autoparal_pconfs
+        inp["paral_kgb"] = 0
+        pconfs = inp.abiget_autoparal_pconfs(max_ncpus=5)
+        inp["paral_kgb"] = 1
+        pconfs = inp.abiget_autoparal_pconfs(max_ncpus=5)
 
         #assert 0
 
@@ -132,7 +139,7 @@ class TestMultiDataset(AbipyTest):
         multi = MultiDataset(pseudos=abidata.pseudos("14si.pspnc"))
         assert len(multi) == 1 and multi.ndtset == 1 
         for i, inp in enumerate(multi):
-            assert inp.keys() ==  multi[i].keys()
+            assert inp.keys() == multi[i].keys()
 
         multi.addnew_from(0)
         assert multi.ndtset == 2 and multi[0] is not multi[1]
@@ -159,7 +166,7 @@ class TestMultiDataset(AbipyTest):
 
         print(multi)
         #print(dir(multi))
-        assert 0
+        #assert 0
 
 
 class AnaddbInputTest(AbipyTest):
