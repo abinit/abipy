@@ -558,4 +558,4 @@ def phonons_from_gs_input(gs_inp):
 
             ph_inputs.append(ph_inp)
 
-    #return all_inps
+    #return MultiDataset.from_inputs(ph_inputs)

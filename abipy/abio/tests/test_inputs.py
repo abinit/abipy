@@ -212,14 +212,14 @@ class AnaddbInputTest(AbipyTest):
 
     def test_phbands_and_dos(self):
         """Test phbands_and_dos constructor."""
-        inp = AnaddbInput(self.structure, comment="hello anaddb", brav=1)
+        inp = AnaddbInput(self.structure, comment="hello anaddb", vars={"brav": 1})
         self.assertTrue("brav" in inp)
         self.assertEqual(inp["brav"], 1)
         self.assertEqual(inp.get("brav"), 1)
 
         # Unknown variable.
         with self.assertRaises(AnaddbInput.Error):
-            AnaddbInput(self.structure, foo=1)
+            AnaddbInput(self.structure, vars={"foo": 1})
 
         ndivsm = 1
         nqsmall = 3
@@ -264,7 +264,6 @@ class AnaddbInputTest(AbipyTest):
 
         self.serialize_with_pickle(anaddb_input, test_eq=False)
         anaddb_input.deepcopy()
-
 
 
 if __name__ == "__main__":

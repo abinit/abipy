@@ -41,6 +41,7 @@ _GEOVARS = set([
     "acell",
     "rprim",
     "rprimd"
+    "angdeg",
     "xred"
     "xcart"
     "xangst",
@@ -61,7 +62,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
     """
     Error = AbinitInputError
 
-    def __init__(self, structure, pseudos, pseudo_dir=None, comment=None, decorators=None, abivars=None):
+    def __init__(self, structure, pseudos, pseudo_dir=None, comment=None, decorators=None, vars=None):
         """
         Args:
             structure: Parameters defining the crystalline structure. Accepts :class:`Structure` object 
@@ -72,11 +73,15 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
             ndtset: Number of datasets.
             comment: Optional string with a comment that will be placed at the beginning of the file.
             decorators: List of `AbinitInputDecorator` objects.
-            abivars: Dictionary with the initial set of variables. Default: Empty
+            vars: Dictionary with the initial set of variables. Default: Empty
         """
-        # Internal dict with variables.
-        abivars = {} if abivars is None else abivars
-        self._abivars = OrderedDict(**abivars)
+        # Internal dict with variables. we use an ordered dict so that 
+        # variables will be likely grouped by `topics` when we fill the input.
+        vars = {} if vars is None else vars
+        for key in vars:
+            self._check_varname(key)
+
+        self._vars = OrderedDict(**vars)
 
         self.set_structure(structure)
 
@@ -96,45 +101,47 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
 
     @pmg_serialize
     def as_dict(self):
-        abivars = {}
+        vars = OrderedDict()
         for key, value in self.items():
             if isinstance(value, np.ndarray): value = value.tolist()
-            abivars[key] = value
+            vars[key] = value
 
         return dict(structure=self.structure.as_dict(),
                     pseudos=[p.as_dict() for p in self.pseudos], 
                     comment=self.comment,
                     decorators=[dec.as_dict() for dec in self.decorators],
-                    abivars=abivars)
+                    vars=vars)
 
     @classmethod
     def from_dict(cls, d):
         pseudos = [Pseudo.from_file(p['filepath']) for p in d['pseudos']]
-        return cls(d["structure"], pseudos, decorators=d["decorators"], comment=d["comment"], abivars=d["abivars"])
+        return cls(d["structure"], pseudos, decorators=d["decorators"], comment=d["comment"], vars=d["vars"])
 
     # ABC protocol: __delitem__, __getitem__, __iter__, __len__, __setitem__
     def __delitem__(self, key):
-        return self._abivars.__delitem__(key)
+        return self._vars.__delitem__(key)
         
     def __getitem__(self, key):
-        return self._abivars.__getitem__(key)
+        return self._vars.__getitem__(key)
 
     def __iter__(self):
-        return self._abivars.__iter__()
+        return self._vars.__iter__()
 
     def __len__(self):
-        return len(self._abivars)
+        return len(self._vars)
 
     def __setitem__(self, key, value):
+        self._check_varname(key)
+        return self._vars.__setitem__(key, value)
+
+    def _check_varname(self, key):
         if not is_abivar(key):
             raise self.Error("%s is not a valid ABINIT variable.\n"
                              "If you are sure the name is correct, please contact the abipy developers\n" 
-                             "or modify the JSON file abipy/htc/abinit_vars.json" % key)
-
+                             "or modify the JSON file abipy/abio/abinit_vars.json" % key)
+                                                                                                                      
         if key in _GEOVARS:
-            raise self.Error("You cannot set the value of a variable associate to the structure. Use set_structure")
-
-        return self._abivars.__setitem__(key, value)
+            raise self.Error("You cannot set the value of a variable associated to the structure. Use set_structure")
 
     def __repr__(self):
         return "<%s at %s>" % (self.__class__.__name__, id(self))
@@ -143,7 +150,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
         return self.to_string()
 
     #def __eq__(self, other)
-    #def __neq__(self, other)
+    #def __ne__(self, other)
+    #    return not self.__eq__(other)
 
     #@abc.property
     #def runlevel(self):
@@ -718,9 +726,9 @@ class MultiDataset(object):
             self._inputs = [AbinitInput(structure=s, pseudos=pseudos) for s in structure]
 
         # Check pseudos
-        #for inp in inputs:
-        #    if any(p1 != p2 for p1, p2 in zip(inputs[0].pseudos, inp.pseudos)):
-        #        raise ValueError("Pseudos must be consistent when from_inputs is invoked.")
+        #for i in range(self.ndtset):
+        #    if any(p1 != p2 for p1, p2 in zip(self[0].pseudos, self[i].pseudos)):
+        #        raise selfError("Pseudos must be consistent when from_inputs is invoked.")
 
     @property
     def ndtset(self):
@@ -826,15 +834,35 @@ class MultiDataset(object):
 class AnaddbInputError(Exception):
     """Base error class for exceptions raised by `AnaddbInput`"""
 
-# TODO Remove!
-import abipy.tools.mixins as mixins
 
+class AnaddbInput(MutableMapping, Has_Structure):
 
-class AnaddbInput(mixins.MappingMixin, Has_Structure):
     Error = AnaddbInputError
 
+    def __init__(self, structure, comment="", vars=None):
+        """
+        Args:
+            structure: :class:`Structure` object 
+            comment: Optional string with a comment that will be placed at the beginning of the file.
+            vars: Dictionary with Anaddb input variables (default: empty)
+        """
+        self._structure = structure
+        self.comment = comment
+
+        vars = {} if vars is None else vars
+        for key in vars:
+            self._check_varname(key)
+
+        self._vars = OrderedDict(**vars)
+
+    def _check_varname(self, key):
+        if not is_anaddb_var(key):
+            raise self.Error("%s is not a registered Anaddb variable\n"
+                             "If you are sure the name is correct, please contact the abipy developers\n" 
+                             "or modify the JSON file abipy/abio/anaddb_vars.json" % key)
+
     @classmethod
-    def modes_at_qpoint(cls, structure, qpoint, asr=2, chneut=1, dipdip=1):
+    def modes_at_qpoint(cls, structure, qpoint, asr=2, chneut=1, dipdip=1, vars=None):
         """
         Input file for the calculation of the phonon frequencies at a given q-point.
 
@@ -842,9 +870,9 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
             Structure: :class:`Structure` object
             qpoint: Reduced coordinates of the q-point where phonon frequencies and modes are wanted
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
-            kwargs:
+            vars: Dictionary with extra Anaddb input variables (default: empty)
         """
-        new = cls(structure, comment="ANADB input for the computation of phonon frequencies for one q-point")
+        new = cls(structure, comment="ANADB input for phonon frequencies at one q-point", vars=vars)
 
         new.set_vars(
             ifcflag=1,        # Interatomic force constant flag
@@ -878,7 +906,7 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
 
     @classmethod
     def phbands_and_dos(cls, structure, ngqpt, nqsmall, ndivsm=20, q1shft=(0,0,0),
-                        qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", **kwargs):
+                        qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", vars=None):
         """
         Build an anaddb input file for the computation of phonon bands and phonon DOS.
 
@@ -895,6 +923,7 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             dos_method: Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening
+            vars: Dictionary with extra Anaddb input variables (default: empty)
         """
         dosdeltae, dossmear = None, None
 
@@ -909,7 +938,7 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
         else:
             raise cls.Error("Wrong value for dos_method: %s" % dos_method)
 
-        new = cls(structure, comment="ANADB input for phonon bands and DOS", **kwargs)
+        new = cls(structure, comment="ANADB input for phonon bands and DOS", vars=vars)
 
         # Parameters for the dos.
         new.set_autoqmesh(nqsmall)
@@ -936,7 +965,7 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
 
     @classmethod
     def thermo(cls, structure, ngqpt, nqsmall, q1shft=(0, 0, 0), nchan=1250, nwchan=5, thmtol=0.5,
-               ntemper=199, temperinc=5, tempermin=5., asr=2, chneut=1, dipdip=1, ngrids=10, **kwargs):
+               ntemper=199, temperinc=5, tempermin=5., asr=2, chneut=1, dipdip=1, ngrids=10, vars=None):
         """
         Build an anaddb input file for the computation of phonon bands and phonon DOS.
 
@@ -954,7 +983,7 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
             tempermin:
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             ngrids:
-            kwargs: Additional variables you may want to pass to Anaddb.
+            vars: Dictionary with extra Anaddb input variables (default: empty)
 
             #!Flags
             # ifcflag   1     ! Interatomic force constant flag
@@ -983,8 +1012,7 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
             #  symdynmat 0
 
         """
-        new = cls(structure, comment="ANADB input for thermodynamics", **kwargs)
-
+        new = cls(structure, comment="ANADB input for thermodynamics", vars=vars)
         new.set_autoqmesh(nqsmall)
 
         q1shft = np.reshape(q1shft, (-1, 3))
@@ -1010,7 +1038,7 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
         return new
 
     @classmethod
-    def modes(cls, structure, enunit=2, asr=2, chneut=1, **kwargs):
+    def modes(cls, structure, enunit=2, asr=2, chneut=1, vars=None):
         """
         Build an anaddb input file for the computation of phonon modes.
 
@@ -1023,6 +1051,7 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
             qptbounds Boundaries of the path. If None, the path is generated from an internal database
                 depending on the input structure.
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            vars: Dictionary with extra Anaddb input variables (default: empty)
 
         #!General information
         #enunit    2
@@ -1043,7 +1072,7 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
         #        0.0  1.0  0.0    0.0
         #        0.0  0.0  1.0    0.0
         """
-        new = cls(structure, comment="ANADB input for modes", **kwargs)
+        new = cls(structure, comment="ANADB input for modes", vars=vars)
 
         new.set_vars(
             enunit=enunit,
@@ -1061,25 +1090,22 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
 
         return new
 
-    def __init__(self, structure, comment="", **kwargs):
-        """
-        Args:
-            structure: :class:`Structure` object 
-            comment: Optional string with a comment that will be placed at the beginning of the file.
-        """
-        self._structure = structure
-        self.comment = comment
+    # ABC protocol: __delitem__, __getitem__, __iter__, __len__, __setitem__
+    def __delitem__(self, key):
+        return self._vars.__delitem__(key)
+        
+    def __getitem__(self, key):
+        return self._vars.__getitem__(key)
 
-        for k in kwargs:
-            if not self.is_anaddb_var(k):
-                raise self.Error("%s is not a registered Anaddb variable" % k)
+    def __iter__(self):
+        return self._vars.__iter__()
 
-        self._mapping_mixin_ = collections.OrderedDict(**kwargs)
+    def __len__(self):
+        return len(self._vars)
 
-    @property
-    def vars(self):
-        """Dictionary with the Anaddb variables."""
-        return self._mapping_mixin_ 
+    def __setitem__(self, key, value):
+        self._check_varname(key)
+        return self._vars.__setitem__(key, value)
 
     @property
     def structure(self):
@@ -1126,49 +1152,12 @@ class AnaddbInput(mixins.MappingMixin, Has_Structure):
         """Deep copy of the input."""
         return copy.deepcopy(self)
 
-    def set_var(self, varname, value):
-        """Set a single variable."""
-        if varname in self:
-            try:
-                iseq = (self[varname] == value)
-                iseq = np.all(iseq)
-            except ValueError:
-                # array like.
-                iseq = np.allclose(self[varname], value)
-            else:
-                iseq = False
-
-            if not iseq:
-                msg = "%s is already defined with a different value:\nOLD:\n %s,\nNEW\n %s" % (
-                    varname, str(self[varname]), str(value))
-                warnings.warn(msg)
-
-        if not self.is_anaddb_var(varname):
-            raise self.Error("%s is not a valid ANADDB variable." % varname)
-
-        self[varname] = value
-
     def set_vars(self, *args, **kwargs):
         """Set the value of the variables"""
         kwargs.update(dict(*args))
         for varname, varvalue in kwargs.items():
-            self.set_var(varname, varvalue)
+            self[varname] = varvalue
         return kwargs
-
-    def add_extra_abivars(self, abivars):
-        """
-        This method is needed in order not to break the API used for strategies
-
-        Connection is explicit via the input file
-        since we can pass the paths of the output files
-        produced by the previous runs.
-        """
-        # XXX
-
-    @staticmethod
-    def is_anaddb_var(varname):
-        """"True if varname is a valid anaddb variable."""
-        return is_anaddb_var(varname)
 
     def set_qpath(self, ndivsm, qptbounds=None):
         """

@@ -89,6 +89,7 @@ class AbinitInputDecorator(six.with_metaclass(abc.ABCMeta, PMGSONable)):
             decorated :class:`AbinitInput` object (new object)
         """
 
+
 class SpinDecorator(AbinitInputDecorator):
     """This decorator changes the spin polarization."""
     def __init__(self, spinmode, kptopt_ifspinor=4):
@@ -256,6 +257,7 @@ class LexxDecorator(AbinitInputDecorator):
 #class MagneticMomentDecorator(AbinitInputDecorator):
 #    """Add reasoanble guesses for the initial magnetic moments."""
 
+
 #class SpinOrbitDecorator(AbinitInputDecorator):
 #    """Enable spin-orbit in the input."""
 #     def __init__(self, no_spatial_symmetries=True, no_time_reversal=False, spnorbscl=None):
@@ -284,6 +286,7 @@ class LexxDecorator(AbinitInputDecorator):
 #         for dt in inp[1:]:
 #            runlevel = dt.runlevel 
 #        return inp
+
 
 #class DmftDecorator(AbinitInputDecorator):
 #    """Add DMFT variables."""
