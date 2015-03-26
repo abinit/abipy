@@ -12,7 +12,7 @@ import numpy as np
 import abipy.abilab as abilab
 import abipy.data as data  
 
-optic_input = """\
+"""
 0.002         ! Value of the smearing factor, in Hartree
 0.0003  0.3   ! Difference between frequency values (in Hartree), and maximum frequency ( 1 Ha is about 27.211 eV)
 0.000         ! Scissor shift if needed, in Hartree
@@ -23,6 +23,18 @@ optic_input = """\
       ! Non-linear coefficients to be computed
 """
 
+optic_input = abilab.OpticInput(
+    zcut=0.002,
+    wmesh=(0.0003,  0.3),
+    scissor=0.000,
+    sing_tol=0.002,
+    num_lin_comp=6,
+    lin_comp=(11, 12, 13, 22, 23, 33),
+    num_nonlin_comp=0
+    #nonlin_comp=(123, 222),
+    )
+
+print(optic_input)
 
 global_vars = dict(
     istwfk="*1",

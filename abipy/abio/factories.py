@@ -6,6 +6,7 @@ import numpy as np
 import pymatgen.io.abinitio.abiobjects as aobj
 
 from collections import namedtuple
+from monty.collections import AttrDict
 from pymatgen.io.abinitio.pseudos import PseudoTable
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
@@ -71,7 +72,7 @@ def _stopping_criterion(runlevel, accuracy):
 
 
 def _find_ecut_pawecutdg(ecut, pawecutdg, pseudos, accuracy='normal'):
-    """Return the value of ecut and pawecutdg"""
+    """Return a :class:`AttrDict` with the value of ecut and pawecutdg"""
     # Get ecut and pawecutdg from the pseudo hints.
     has_hints = all(p.has_hints for p in pseudos)
 
@@ -88,7 +89,7 @@ def _find_ecut_pawecutdg(ecut, pawecutdg, pseudos, accuracy='normal'):
         else:
             raise RuntimeError("pawecutdg is None but pseudos do not provide hints")
 
-    return ecut, pawecutdg
+    return AttrDict(ecut=ecut, pawecutdg=pawecutdg)
 
 
 def _find_scf_nband(structure, pseudos, electrons):
@@ -116,40 +117,6 @@ def _find_scf_nband(structure, pseudos, electrons):
 
     nband += nband % 2
     return int(nband)
-
-
-
-#def check_inp(func):
-#    """
-#    Decorator for factory functions returning a :class:`AbinitInput` object.
-#    It add checks on the validity of the input file and detects possible
-#    problems that will make ABINIT stop:
-#
-#        - Negative triple product of the lattice vectors.
-#
-#    Raise:
-#        `AbinitInput.Error` if errors are detected. 
-#    """
-#    from functools import wraps
-#    @wraps(func)
-#    def wrapper(*args, **kwargs):
-#        inp = func(*args, **kwargs)
-#
-#        errors = []
-#        eapp = errors.append
-#
-#        m = inp.structure.lattice.matrix
-#        volume = np.dot(np.cross(m[0], m[1]), m[2])
-#        if volume < 0:
-#            eapp("The triple product of the lattice vector is negative. Use structure abi_sanitize.")
-#
-#        #if inp.ispaw 
-#        if errors:
-#            raise AbinitInput.Error("\n".join(errors))
-#
-#        return inp
-#
-#    return wrapper
 
 
 def ebands_input(structure, pseudos, 
@@ -185,9 +152,8 @@ def ebands_input(structure, pseudos,
 
     multi = MultiDataset(structure, pseudos, ndtset=2 if dos_kppa is None else 2 + len(dos_kppa))
 
-    # Set the cutoff energy.
-    ecut, pawecutdg = _find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos)
-    multi.set_vars(ecut=ecut, pawecutdg=pawecutdg)
+    # Set the cutoff energies.
+    multi.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos))
 
     # SCF calculation.
     kppa = _DEFAULTS.get("kppa") if kppa is None else kppa
@@ -230,7 +196,7 @@ def ebands_input(structure, pseudos,
 def ion_ioncell_relax_input(structure, pseudos, 
                             kppa=None, nband=None,
                             ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
-                            smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
+                            smearing="fermi_dirac:0.1 ev", charge=0.0, scf_algorithm=None):
     """
     Returns a :class:`AbinitInput` for a structural relaxation. The first dataset optmizes the 
     atomic positions at fixed unit cell. The second datasets optimizes both ions and unit cell parameters.
@@ -249,9 +215,8 @@ def ion_ioncell_relax_input(structure, pseudos,
     structure = Structure.as_structure(structure)
     multi = MultiDataset(structure, pseudos, ndtset=2)
 
-    # Set the cutoff energy
-    ecut, pawecutdg = _find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos)
-    multi.set_vars(ecut=ecut, pawecutdg=pawecutdg)
+    # Set the cutoff energies.
+    multi.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos))
 
     kppa = _DEFAULTS.get("kppa") if kppa is None else kppa
     ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
@@ -274,6 +239,40 @@ def ion_ioncell_relax_input(structure, pseudos,
     multi[1].set_vars(_stopping_criterion("relax", accuracy))
 
     return multi
+
+
+def ion_ioncell_relax_and_ebands_input(structure, pseudos, 
+                                        kppa=None, nband=None,
+                                        ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
+                                        smearing="fermi_dirac:0.1 ev", charge=0.0, scf_algorithm=None):
+    """
+    Returns a :class:`AbinitInput` for a structural relaxation. The first dataset optmizes the 
+    atomic positions at fixed unit cell. The second datasets optimizes both ions and unit cell parameters.
+
+    Args:
+        structure: :class:`Structure` object.
+        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable: object.
+        kppa: Defines the sampling used for the Brillouin zone.
+        nband: Number of bands included in the SCF run.
+        accuracy: Accuracy of the calculation.
+        spin_mode: Spin polarization.
+        smearing: Smearing technique.
+        charge: Electronic charge added to the unit cell.
+        scf_algorithm: Algorithm used for solving of the SCF cycle.
+    """
+    structure = Structure.as_structure(structure)
+
+    relax_multi = ion_ioncell_relax_input(structure, pseudos, 
+                                          kppa=kppa, nband=nband,
+                                          ecut=ecut, pawecutdg=pawecutdg, accuracy=accuracy, spin_mode=spin_mode,
+                                          smearing=smearing, charge=charge, scf_algorithm=scf_algorithm)
+
+    ebands_multi = ebands_input(structure, pseudos, 
+                                kppa=kppa, nscf_nband=None, ndivsm=15, 
+                                ecut=ecut, pawecutdg=pawecutdg, scf_nband=None, accuracy=accuracy, spin_mode=spin_mode,
+                                smearing=smearing, charge=charge, scf_algorithm=scf_algorithm, dos_kppa=None)
+
+    return relax_multi + ebands_multi
 
 
 def g0w0_with_ppmodel_input(structure, pseudos, 
@@ -311,9 +310,8 @@ def g0w0_with_ppmodel_input(structure, pseudos,
     structure = Structure.as_structure(structure)
     multi = MultiDataset(structure, pseudos, ndtset=4)
 
-    # Set the cutoff energy
-    ecut, pawecutdg = _find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos)
-    multi.set_vars(ecut=ecut, pawecutdg=pawecutdg)
+    # Set the cutoff energies.
+    multi.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos))
 
     scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
     scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
@@ -338,7 +336,7 @@ def g0w0_with_ppmodel_input(structure, pseudos,
     # Screening.
     if scr_nband is None: scr_nband = nscf_nband
     screening = aobj.Screening(ecuteps, scr_nband, w_type="RPA", sc_mode="one_shot",
-                          hilbert=None, ecutwfn=None, inclvkb=inclvkb)
+                               hilbert=None, ecutwfn=None, inclvkb=inclvkb)
 
     multi[2].set_vars(nscf_ksampling.to_abivars())
     multi[2].set_vars(nscf_electrons.to_abivars())
@@ -404,9 +402,9 @@ def bse_with_mdf_input(structure, pseudos,
     structure = Structure.as_structure(structure)
     multi = MultiDataset(structure, pseudos, ndtset=3)
 
-    # Set the cutoff energy
-    ecut, pawecutdg = _find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos)
-    multi.set_vars(ecut=ecut, ecutwfn=ecut, pawecutdg=pawecutdg)
+    # Set the cutoff energies.
+    d = _find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos)
+    multi.set_vars(ecut=d.ecut, ecutwfn=d.ecut, pawecutdg=d.pawecutdg)
 
     # Ground-state 
     scf_ksampling = aobj.KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
@@ -445,7 +443,6 @@ def bse_with_mdf_input(structure, pseudos,
     multi.set_vars(istwfk="*1")
 
     return multi
-    #return dict2namedtuple(scf_inp=scf_inp, nscf_inp=nscf_inp, dos_inps")
 
 
 def scf_phonons_inputs(structure, pseudos, kppa,
@@ -474,9 +471,8 @@ def scf_phonons_inputs(structure, pseudos, kppa,
     # Build the input file for the GS run.
     gs_inp = AbinitInput(structure=structure, pseudos=pseudos)
 
-    # Set the cutoff energy
-    ecut, pawecutdg = _find_ecut_pawecutdg(ecut, pawecutdg, gs_inp.pseudos)
-    gs_inp.set_vars(ecut=ecut, pawecutdg=pawecutdg)
+    # Set the cutoff energies.
+    gs_inp.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, gs_inp.pseudos))
 
     ksampling = aobj.KSampling.automatic_density(gs_inp.structure, kppa, chksymbreak=0)
     gs_inp.set_vars(ksampling.to_abivars())
@@ -503,23 +499,34 @@ def scf_phonons_inputs(structure, pseudos, kppa,
             #rfdir   1 0 0   # Along the first reduced coordinate axis
             #kptopt   2      # Automatic generation of k points, taking
 
-        #print(ph_inp.get_irred_perts())
-        #print(ph_inp.split_irred_perts())
+        irred_perts = ph_inp.abiget_irred_phperts())
+
+        #for pert in irred_perts:
+        #    #print(pert)
+        #    # TODO this will work for phonons, but not for the other types of perturbations.
+        #    ph_inp = q_inp.deepcopy()
+
+        #    rfdir = 3 * [0]
+        #    rfdir[pert.idir -1] = 1
+
+        #    ph_inp.set_vars(
+        #        rfdir=rfdir,
+        #        rfatpol=[pert.ipert, pert.ipert]
+        #    )
+
+        #    ph_inputs.append(ph_inp)
 
     # Split input into gs_inp and ph_inputs
     all_inps = [gs_inp] 
     all_inps.extend(ph_inputs.split_datasets())
 
     return all_inps
-    #return dict2namedtuple(scf_inp=scf_inp, nscf_inp=nscf_inp, dos_inps")
 
 
-def phonons_from_gs_input(gs_inp):
-
+def phonons_from_gsinput(gs_inp):
     """
     Returns a :class:`AbinitInput` for performing phonon calculations.
     GS input + the input files for the phonon calculation.
-
     """
     qpoints = gs_inp.abiget_ibz(ngkpt=(4,4,4), shiftk=(0,0,0), kptopt=1).points
     #print("get_ibz qpoints:", qpoints)
@@ -529,6 +536,7 @@ def phonons_from_gs_input(gs_inp):
     ph_inputs = []
     for qpt in qpoints:
         q_inp = gs_inp.deepcopy()
+        #q_inp.pop_tolerances()
         q_inp.set_vars(
             rfphon=1,        # Will consider phonon-type perturbation
             nqpt=1,          # One wavevector is to be considered
@@ -540,12 +548,11 @@ def phonons_from_gs_input(gs_inp):
             #rfdir   1 0 0   # Along the first reduced coordinate axis
             #kptopt   2      # Automatic generation of k points, taking
         #print(tmp_inp)
-        irred_perts = q_inp.abiget_irred_perts()
+        irred_perts = q_inp.abiget_irred_phperts()
 
         for pert in irred_perts:
             #print(pert)
             # TODO this will work for phonons, but not for the other types of perturbations.
-            #print(tmp_inp.split_irred_perts())
             ph_inp = q_inp.deepcopy()
 
             rfdir = 3 * [0]

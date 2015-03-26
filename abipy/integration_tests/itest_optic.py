@@ -68,23 +68,33 @@ def make_inputs(tvars):
     # scf_inp, nscf_inp, ddk1, ddk2, ddk3
     return multi.split_datasets()
 
-
-optic_input = """\
-0.002         ! Value of the smearing factor, in Hartree
-0.0003  0.3   ! Difference between frequency values (in Hartree), and maximum frequency ( 1 Ha is about 27.211 eV)
-0.000         ! Scissor shift if needed, in Hartree
-0.002         ! Tolerance on closeness of singularities (in Hartree)
-1             ! Number of components of linear optic tensor to be computed
-11            ! Linear coefficients to be computed (x=1, y=2, z=3)
-2             ! Number of components of nonlinear optic tensor to be computed
-123 222       ! Non-linear coefficients to be computed
-"""
-
-
 def itest_optic_flow(fwp, tvars):
     """Test optic calculations."""
     if tvars.paral_kgb == 1:
         pytest.xfail("Optic flow with paral_kgb==1 is expected to fail (implementation problem)")
+        
+    """
+    0.002         ! Value of the smearing factor, in Hartree
+    0.0003  0.3   ! Difference between frequency values (in Hartree), and maximum frequency ( 1 Ha is about 27.211 eV)
+    0.000         ! Scissor shift if needed, in Hartree
+    0.002         ! Tolerance on closeness of singularities (in Hartree)
+    1             ! Number of components of linear optic tensor to be computed
+    11            ! Linear coefficients to be computed (x=1, y=2, z=3)
+    2             ! Number of components of nonlinear optic tensor to be computed
+    123 222       ! Non-linear coefficients to be computed
+    """
+    optic_input = abilab.OpticInput(
+        zcut=0.002,
+        wmesh=(0.0003,  0.3),
+        scissor=0.000,
+        sing_tol=0.002,
+        num_lin_comp=1,
+        lin_comp=11,
+        num_nonlin_comp=2,
+        nonlin_comp=(123, 222),
+    )
+    print(optic_input)
+    #raise ValueError()
 
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = make_inputs(tvars)
 

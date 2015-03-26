@@ -301,3 +301,61 @@ def itest_bandstructure_schedflow(fwp, tvars):
 
     #assert flow.validate_json_schema()
     #assert 0
+
+
+def itest_htc_bandstructure(fwp, tvars):
+    """Test band-structure calculations done with the HTC interface."""
+    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
+
+    scf_kppa = 20
+    nscf_nband = 6
+    ndivsm = 5
+    dos_kppa = 40
+    # TODO: Add this options because I don't like the kppa approach
+    # I had to use it because it was the approach used in VaspIO
+    #dos_ngkpt = [4,4,4]
+    #dos_shiftk = [0.1, 0.2, 0.3]
+
+    extra_abivars = dict(ecut=2, paral_kgb=tvars.paral_kgb)
+
+    # Initialize the flow.
+    flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager)
+
+    work = bandstructure_work(structure, abidata.pseudos("14si.pspnc"), scf_kppa, nscf_nband, ndivsm,
+                              spin_mode="unpolarized", smearing=None, dos_kppa=dos_kppa, **extra_abivars)
+
+    flow.register_work(work)
+    flow.allocate()
+    flow.build_and_pickle_dump()
+
+    fwp.scheduler.add_flow(flow)
+    assert fwp.scheduler.start() == 0
+    assert not fwp.scheduler.exceptions
+    assert fwp.scheduler.nlaunch == 3
+
+    flow.show_status()
+    assert flow.all_ok
+    assert all(work.finalized for work in flow)
+
+    # Test if GSR files are produced and are readable.
+    for i, task in enumerate(work):
+        with task.open_gsr() as gsr:
+            print(gsr)
+            assert gsr.nsppol == 1
+            #assert gsr.structure == structure
+            ebands = gsr.ebands
+
+            # TODO: This does not work yet because GSR files do not contain
+            # enough info to understand if we have a path or a mesh.
+            #if i == 2:
+                # Bandstructure case
+                #assert ebands.has_bzpath
+                #with pytest.raises(ebands.Error):
+                #    ebands.get_edos()
+
+            if i == 3:
+                # DOS case
+                assert ebands.has_bzmesh
+                gsr.bands.get_edos()
+
+    #assert flow.validate_json_schema()

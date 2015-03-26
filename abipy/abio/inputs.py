@@ -102,11 +102,11 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
             self[varname] = varvalue
         return kwargs
 
-    def remove_vars(self, keys):
+    def remove_vars(self, keys, strict=True):
         """Remove the variables listed in keys."""
         values = []
         for key in list_strings(keys):
-            if key not in self:
+            if strict and key not in self:
                 raise KeyError("key: %s not in self:\n %s" % (key, list(self.keys())))
             values.append(self.pop(key))
         return values
@@ -116,11 +116,11 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
         pass
 
     @abc.abstractmethod
-    def to_string(self):
+    def _check_varname(self, key):
         pass
 
     @abc.abstractmethod
-    def _check_varname(self, key):
+    def to_string(self):
         pass
 
 
@@ -501,6 +501,10 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
             inp = dec(inp, deepcopy=(i == 0))
 
         return inp
+
+    #def pop_tolerance(self):
+    #    tolnames = ['toldfe', 'tolvrs', 'tolwfr', 'tolrff']
+    #    return self.remove_vars(tolnames, strict=False)
 
     def pycheck(self):
         errors = []
@@ -1180,14 +1184,19 @@ class AnaddbInput(AbstractInput, Has_Structure):
         return self.set_vars(ng2qpt=self.structure.calc_ngkpt(nqsmall))
 
 
-class OpticVar(collections.namedtuple("OpticVar", "name value help")):
+class OpticVar(collections.namedtuple("OpticVar", "name default help")):
     def __str__(self):
-        sval = str(self.value)
+        sval = str(self.default)
         return (4*" ").join(sval, "!" + self.help)
 
 
+class OpticError(Exception):
+    """Error class raised by OpticInput."""
+
+
 # TODO: OpticInput should implement AbstractInput!
-class OpticInput(collections.MutableMapping):
+#class OpticInput(collections.MutableMapping):
+class OpticInput(AbstractInput):
     """
     abo_1WF7      ! Name of the first d/dk response wavefunction file, produced by abinit
     abo_1WF8      ! Name of the second d/dk response wavefunction file, produced by abinit
@@ -1203,90 +1212,77 @@ class OpticInput(collections.MutableMapping):
     123 222       ! Non-linear coefficients to be computed
     """
 
+    Error = OpticError
+
     # variable name --> default value.
     _VARIABLES = [
-        OpticVar("ddkfile_x",       None, "Name of the first d/dk response wavefunction file"),
-        OpticVar("ddkfile_y",       None, "Name of the second d/dk response wavefunction file"),
-        OpticVar("ddkfile_z",       None, "Name of the third d/dk response wavefunction file"),
-        OpticVar("wfkfile",         None, "Name of the ground-state wavefunction file"),
-        OpticVar("zcut",            0.01, "Value of the *smearing factor*, in Hartree"),
-        OpticVar("wmesh",     (0.010, 1), "Frequency *step* and *maximum* frequency (Ha)"),
-        OpticVar("scissor",        0.000, "*Scissor* shift if needed, in Hartree"),
-        OpticVar("sing_tol",       0.001, "*Tolerance* on closeness of singularities (in Hartree)"),
-        OpticVar("num_lin_comp",    None, "*Number of components* of linear optic tensor to be computed"),
-        OpticVar("lin_comp",        None, "Linear *coefficients* to be computed (x=1, y=2, z=3)"),
-        OpticVar("num_nonlin_comp", None, "Number of components of nonlinear optic tensor to be computed"),
-        OpticVar("nonlin_comp",     None, "! Non-linear coefficients to be computed"),
+        #OpticVar(name="ddkfile_x", default=None, help="Name of the first d/dk response wavefunction file"),
+        #OpticVar(name="ddkfile_y", default=None, help="Name of the second d/dk response wavefunction file"),
+        #OpticVar(name="ddkfile_z", default=None, help="Name of the third d/dk response wavefunction file"),
+        #OpticVar(name="wfkfile",   default=None, help="Name of the ground-state wavefunction file"),
+        OpticVar(name="zcut",      default=0.01, help="Value of the *smearing factor*, in Hartree"),
+        OpticVar(name="wmesh",     default=(0.010, 1), help="Frequency *step* and *maximum* frequency (Ha)"),
+        OpticVar(name="scissor",   default=0.000, help="*Scissor* shift if needed, in Hartree"),
+        OpticVar(name="sing_tol",  default=0.001, help="*Tolerance* on closeness of singularities (in Hartree)"),
+        OpticVar(name="num_lin_comp", default=None, help="*Number of components* of linear optic tensor to be computed"),
+        OpticVar(name="lin_comp",     default=None, help="Linear *coefficients* to be computed (x=1, y=2, z=3)"),
+        OpticVar(name="num_nonlin_comp", default=None, help="Number of components of nonlinear optic tensor to be computed"),
+        OpticVar(name="nonlin_comp", default=" ", help="Non-linear coefficients to be computed"),
     ]
 
+    # Variable names supported
     _VARNAMES = [v.name for v in _VARIABLES]
 
-    #def __init__(self, **kwargs):
-    #    # Default values
-    #    self.vars = collections.OrderedDict((v.name, v.value) for v in _VARIABLES)
+    # Mapping name --> var object.
+    _NAME2VAR = {v.name: v for v in _VARIABLES}
 
-    #    # Update the variables with the values passed by the user
-    #    for k, v in kwargs:
-    #        if k not in self.VARNAMES:
-    #            raise ValueError("varname %s not in %s" % (k, str(self.VARNAMES)))
-    #        self.vars[k] = v
+    def __init__(self, **kwargs):
+        # Init with default values.
+        self._vars = collections.OrderedDict((v.name, v.default) for v in self._VARIABLES)
 
-    def __init__(self, zcut, wstep, wmax, scissor, sing_tol, linear_components,
-                 nonlinear_components=None, ddk_files=None, wfk=None):
-
-        self.vars = vars = collections.OrderedDict(*self.VAR_NAMES)
-
-        if ddk_files is not None:
-            assert len(ddk_files) == 3
-            assert wfk is not None
-            for dir, ddk in zip(["x", "y", "z"], ddk_files):
-                vars["ddkfile_" + dir] = os.path.abspath(ddk)
-
-        if wfk is not None:
-            vars["wfkfile"] = os.path.abspath(wfk)
-
-        vars["zcut"] = zcut
-        vars["wmesh"] = " ".join(map(str, (wstep, wmax)))
-        vars["sing_tol"] = sing_tol
-
-        vars["num_lin_comp"] = len(linear_components)
-        vars["lin_comp"] = " ".join(str(c) for c in linear_components)
-
-        vars["num_nonlin_comp"] = len(nonlinear_components)
-        vars["nonlin_comp"] = " ".join(str(c) for c in nonlinear_components)
-
-    def __init__(self, string):
-        self.string = string
-
-    # ABC protocol: __delitem__, __getitem__, __iter__, __len__, __setitem__
-    def __delitem__(self, key):
-        return self._vars.__delitem__(key)
-        
-    def __getitem__(self, key):
-        return self._vars.__getitem__(key)
-
-    def __iter__(self):
-        return self._vars.__iter__()
-
-    def __len__(self):
-        return len(self._vars)
-
-    def __setitem__(self, key, value):
-        #self._check_varname(key)
-        return self._vars.__setitem__(key, value)
+        # Update the variables with the values passed by the user
+        for k, v in kwargs.items():
+            if k not in self._VARNAMES:
+                raise self.Error("varname %s not in %s" % (k, str(self._VARNAMES)))
+            self[k] = v
 
     def __str__(self):
-        return self.string
+        return self.to_string()
+
+    @property
+    def vars(self):
+        return self._vars
+
+    def _check_varname(self, key):
+        if key not in self._VARNAMES:
+            raise self.Error("%s is not a valid optic variable.\n"
+                             "If you are sure the name is correct, please change the _VARIABLES list in:\n%s"  % 
+                             (key, __file__))
+
+    def get_default(self, key):
+        for var in self._VARIABLES:
+            if var.name == key: return var.default
+        raise KeyError("Cannot find %s in _VARIABLES" % key)
 
     def to_string(self):
-        lines = []
-        app = lines.append
+        table = []
+        app = table.append
 
-        for name in self.VARNAMES:
-            var = self.vars[name]
-            app(str(var))
+        for name in self._VARNAMES:
+            value = self.vars.get(name)
+            if value is None: value = self.get_default(name)
+            if value is None:
+                raise self.Error("Variable %s is missing" % name)
+
+            # One line per variable --> valperline set to None
+            variable = InputVariable("", value, valperline=None)
+            app([str(variable).strip(), "! " + self._NAME2VAR[name].help])
+
+        # Align
+        width = max(len(row[0]) for row in table)
+        lines = []
+        for row in table:
+            s = row[0].ljust(width) + "\t" + row[1]
+            lines.append(s)
 
         return "\n".join(lines)
-
-    def make_input(self):
-        return str(self)

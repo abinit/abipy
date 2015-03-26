@@ -8,24 +8,13 @@ import abipy.data as data
 import abipy.abilab as abilab
 
 
-optic_input = """\
-0.002         ! Value of the smearing factor, in Hartree
-0.0003  0.3   ! Difference between frequency values (in Hartree), and maximum frequency ( 1 Ha is about 27.211 eV)
-0.000         ! Scissor shift if needed, in Hartree
-0.002         ! Tolerance on closeness of singularities (in Hartree)
-1             ! Number of components of linear optic tensor to be computed
-11            ! Linear coefficients to be computed (x=1, y=2, z=3)
-2             ! Number of components of nonlinear optic tensor to be computed
-123 222       ! Non-linear coefficients to be computed
-"""
-
 def build_flow(options, paral_kgb=0):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
     if not options.workdir:
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
+        workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_") 
 
-    multi = abilab.MultiDataset(structure=data.structure_from_ucell("GaAs")
+    multi = abilab.MultiDataset(structure=data.structure_from_ucell("GaAs"),
                                 pseudos=data.pseudos("31ga.pspnc", "33as.pspnc"), ndtset=5)
 
     # Global variables
@@ -97,7 +86,30 @@ def build_flow(options, paral_kgb=0):
     # Check is the order of the 1WF files is relevant. Can we use DDK files ordered 
     # in an arbitrary way or do we have to pass (x,y,z)?
 
+    """
+    0.002         ! Value of the smearing factor, in Hartree
+    0.0003  0.3   ! Difference between frequency values (in Hartree), and maximum frequency ( 1 Ha is about 27.211 eV)
+    0.000         ! Scissor shift if needed, in Hartree
+    0.002         ! Tolerance on closeness of singularities (in Hartree)
+    1             ! Number of components of linear optic tensor to be computed
+    11            ! Linear coefficients to be computed (x=1, y=2, z=3)
+    2             ! Number of components of nonlinear optic tensor to be computed
+    123 222       ! Non-linear coefficients to be computed
+    """
+
     # Optic does not support MPI with ncpus > 1.
+    optic_input = abilab.OpticInput(
+        zcut=0.002,
+        wmesh=(0.0003,  0.3),
+        scissor=0.000,
+        sing_tol=0.002,
+        num_lin_comp=1,
+        lin_comp=11,
+        num_nonlin_comp=2,
+        nonlin_comp=(123, 222),
+    )
+    print(optic_input)
+
     optic_task = abilab.OpticTask(optic_input, nscf_node=bands_work.nscf_task, ddk_nodes=ddk_work, 
                                   manager=flow.manager.to_shell_manager(mpi_procs=1))
     flow.register_task(optic_task)

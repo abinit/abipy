@@ -11,9 +11,11 @@ __all__ = ['InputVariable', 'SpecialInputVariable']
 
 
 _SPECIAL_DATASET_INDICES = (':', '+', '?')
+
 _DATASET_INDICES = ''.join(list(string.digits) + list(_SPECIAL_DATASET_INDICES))
 
 _INTERNAL_DATASET_INDICES = ('__s', '__i', '__a')
+
 _SPECIAL_CONVERSION = zip(_INTERNAL_DATASET_INDICES, _SPECIAL_DATASET_INDICES)
 
 _UNITS = {
@@ -33,7 +35,6 @@ def convert_number(value):
     then to a float.
     The string '1.0d-03' will be treated the same as '1.0e-03'
     """
-
     if isinstance(value, float) or isinstance(value, int):
         return value
 
@@ -61,11 +62,17 @@ def convert_number(value):
 class InputVariable(object):
     """An Abinit input variable."""
 
-    def __init__(self, name, value, units=''):
+    def __init__(self, name, value, units='', valperline=3):
 
         self._name = name
         self.value = value
         self._units = units
+
+        # Maximum number of values per line.
+        self.valperline = valperline
+        if name in ['bdgw']:
+            #TODO Shouldn't do that
+            self.valperline = 2
 
         if (is_iter(self.value) and isinstance(self.value[-1], str) and self.value[-1] in _UNITS):
             self.value = list(self.value)
@@ -141,12 +148,12 @@ class InputVariable(object):
     
             else:
                 # Maximum number of values per line.
-                valperline = 3
-                if any(inp in var for inp in ['bdgw']):
-                    #TODO Shouldn't do that
-                    valperline = 2
+                #valperline = 3
+                #if any(inp in var for inp in ['bdgw']):
+                #    #TODO Shouldn't do that
+                #    valperline = 2
     
-                line += self.format_list(value, valperline, floatdecimal)
+                line += self.format_list(value, floatdecimal)
     
         # scalar values
         else:
@@ -229,18 +236,17 @@ class InputVariable(object):
     
         return line.rstrip('\n')
 
-    def format_list(self, values, valperline=3, floatdecimal=0):
+    def format_list(self, values, floatdecimal=0):
         """
         Format a list of values into a string.
         The result might be spread among several lines.
         """
-    
         line = ''
     
         # Format the line declaring the value
         for i, val in enumerate(values):
             line += ' ' + self.format_scalar(val, floatdecimal)
-            if (i+1) % valperline == 0:
+            if self.valperline is not None and (i+1) % self.valperline == 0:
                 line += '\n'
     
         # Add a carriage return in case of several lines
