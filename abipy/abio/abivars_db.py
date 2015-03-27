@@ -7,7 +7,7 @@ import json
 import yaml
 import html2text
 
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from six.moves import StringIO, cPickle as pickle
 from monty.string import is_string, list_strings
 from monty.functools import lazy_property
@@ -278,6 +278,35 @@ class VariableDatabase(OrderedDict):
         with open(abidata.var_file('sections.yml'),'r') as f:
             return yaml.load(f)
 
+    @lazy_property
+    def name2section(self):
+        """
+        Dictionary mapping the name of the variable to the section.
+        """
+        d = {}
+        for name, var in self.items():
+            d[name] = var.section
+        return d
+
+    def group_by_section(self, names):
+        """
+        Group a list of variable in sections.
+
+        Args:
+            names: string or list of strings with ABINIT variable names.
+
+        Return:
+            Ordered dict mapping section_name to the list of variable names belonging to the section.
+            The dict uses the same ordering as those in `self.sections`
+        """
+        d = defaultdict(list)
+
+        for name in list_strings(names):
+            sec = self.name2section[name]
+            d[sec].append(name)
+
+        return OrderedDict([(sec, d[sec]) for sec in self.sections if d[sec]])
+
     def apropos(self, varname):
         """Return the list of :class:`Variable` objects that are related` to the given varname"""
         vars = []
@@ -292,7 +321,7 @@ class VariableDatabase(OrderedDict):
 
     def vars_with_section(self, sections):
         """
-        List of :class:`Variable` assocated to the given sections.
+        List of :class:`Variable` associated to the given sections.
         sections can be a string or a list of strings.
         """
         sections = set(list_strings(sections))

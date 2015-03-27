@@ -270,32 +270,53 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
 
         post = post if post is not None else ""
 
-        if sortmode is None:
-            # no sorting.
-            keys = list(self.keys())
-        elif sortmode == "a":
-            # alphabetical order.
-            keys = sorted(list(self.keys()))
-        else:
-            raise ValueError("Unsupported value for sortmode %s" % str(sortmode))
-
-        with_mnemonics = self.mnemonics
-        if with_mnemonics:
+        if self.with_mnemonics or sortmode == "section": 
             var_database = get_abinit_variables()
 
-        # Extract the items from the dict and add the geo variables at the end
-        items = list(self.items())
-        if with_structure:
-            items.extend(list(self.structure.to_abivars().items()))
+        if sortmode in (None, "a"):
+            # Default is no sorting else alphabetical order.
+            keys = list(self.keys())
+            if sortmode == "a": keys = sorted(keys)
 
-        for name, value in items:
-            if with_mnemonics:
-                v = var_database[name]
-                app("# <" + v.definition + ">")
+            # Extract the items from the dict and add the geo variables at the end
+            items = list(self.items())
+            if with_structure:
+                items.extend(list(self.structure.to_abivars().items()))
 
-            varname = name + post
-            variable = InputVariable(varname, value)
-            app(str(variable))
+            for name, value in items:
+                if self.with_mnemonics:
+                    app("# <" + var_database[name].definition + ">")
+
+                # Build variable, convert to string and append it
+                app(str(InputVariable(name + post, value)))
+
+        elif sortmode == "section":
+            # Group variables by section.
+            # Get dict mapping section_name --> list of variable names belonging to the section.
+            sec2names = var_database.group_by_section(list(self.keys()))
+            w = 92
+
+            for sec, names in sec2names.items():
+                app(w * "#")
+                app("#" + ("SECTION: %s" % sec).center(w - 1))
+                app(w * "#")
+                for name in names:
+                    value = self[name]
+                    if self.with_mnemonics:
+                        app("# <" + var_database[name].definition + ">")
+
+                    # Build variable, convert to string and append it
+                    app(str(InputVariable(name + post, value)))
+
+            if with_structure:
+                app(w * "#")
+                app("#" + ("STRUCTURE").center(w - 1))
+                app(w * "#")
+                for name, value in self.structure.to_abivars().items():
+                    app(str(InputVariable(name + post, value)))
+
+        else:
+            raise ValueError("Unsupported value for sortmode %s" % str(sortmode))
 
         s = "\n".join(lines)
 
