@@ -56,10 +56,10 @@ def scf_ph_inputs(paral_kgb=0):
     # Get the qpoints in the IBZ. Note that here we use a q-mesh with ngkpt=(4,4,4) and shiftk=(0,0,0)
     # i.e. the same parameters used for the k-mesh in gs_inp.
     qpoints = gs_inp.abiget_ibz(ngkpt=(4,4,4), shiftk=(0,0,0), kptopt=1).points
-    #print("get_ibz", qpoints)
+    print("get_ibz", qpoints)
  
     # Select the first q-point to speedup the run.
-    qpoints = qpoints[0:1]
+    #qpoints = qpoints[0:1]
 
     ph_inputs = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=len(qpoints))
 
@@ -72,7 +72,7 @@ def scf_ph_inputs(paral_kgb=0):
             qpt=qpt,         # This wavevector is q=0 (Gamma)
             tolwfr=1.0e-20,
             kptopt=3,
-            nstep=4,         # This is to trigger the restart.
+            #nstep=4,         # This is to trigger the restart.
         )
 
             #rfatpol   1 1   # Only the first atom is displaced
@@ -103,7 +103,7 @@ def build_flow(options):
 
     all_inps = scf_ph_inputs()
     scf_input, ph_inputs = all_inps[0], all_inps[1:]
-    scf_input, ph_inputs = all_inps[0], all_inps[1:3]
+    #scf_input, ph_inputs = all_inps[0], all_inps[1:3]
 
     return abilab.phonon_flow(workdir, scf_input, ph_inputs, manager=options.manager)
 

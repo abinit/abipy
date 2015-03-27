@@ -37,10 +37,6 @@ class TaskException(Exception):
             app("Found %d errors" % len(self.report.errors))
             lines += [str(err) for err in self.report.errors]
 
-        if self.report.bugs: 
-            app("Found %d bugs" % len(self.report.bugs))
-            lines += [str(bug) for bug in self.report.bugs]
-
         return "\n".join(lines)
 
 

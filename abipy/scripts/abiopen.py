@@ -3,14 +3,19 @@ from __future__ import print_function, division, unicode_literals
 
 import sys
 import os
+import shlex
 import argparse 
 import collections
 
+from abipy import abilab
 from abipy.tools.text import WildCard 
-import abipy.gui.wxapps as wxapps 
+try:
+    import abipy.gui.wxapps as wxapps 
+except ImportError:
+    pass
 
 import logging
-logger.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def main():
@@ -71,6 +76,13 @@ def main():
     #p_scan.add_argument('-e', '--extension', type=str, default="GSR.nc", help="File extension to search for")
     #p_scan.add_argument('-t', '--type', type=string, default="", help="Recursive mode.")
 
+    # Subparser for single command.
+    p_ipython = subparsers.add_parser('ipython', help="Open file in ipython shell.") 
+    p_ipython.add_argument('--argv', nargs="?", default="", type=shlex.split, 
+                           help="Command-line options passed to ipython. Must be enclosed by quotes. "
+                                "Example: --argv='--matplotlib=wx'")
+    p_ipython.add_argument("filepath", help="File to open.")
+
     # Parse the command line.
     try:
         options = parser.parse_args()
@@ -89,7 +101,14 @@ def main():
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
 
-    if options.command == "list":
+    if options.command == "ipython": 
+        # Start ipython shell with namespace 
+        ncfile = abilab.abiopen(options.filepath)
+        import IPython
+        IPython.start_ipython(argv=options.argv, user_ns={"ncfile": ncfile})
+        return 0
+
+    elif options.command == "list":
         if not options.dirpaths: options.dirpaths = [os.getcwd()]
 
         wxapps.wxapp_listbrowser(dirpaths=options.dirpaths, 
