@@ -317,6 +317,10 @@ class AbinitInterface(AbstractCodeInterface):
     def gw_data_file(self):
         return 'out_SIGRES.nc'
 
+    @property
+    def ks_bands_file(self):
+        return 'out_GSR.nc'
+
     def read_ps_dir(self):
         location = os.environ['ABINIT_PS']
         return location
@@ -417,7 +421,7 @@ class AbinitInterface(AbstractCodeInterface):
         try:
             if os.path.isdir(os.path.join(name+".conv", w, "t11", "outdata")):
                 shutil.copyfile(os.path.join(name+".conv", w, "t2", "outdata", "out_GSR.nc"),
-                                os.path.join(folder, "out_BANDS.nc"))
+                                os.path.join(folder, "out_GSR.nc"))
                 shutil.copyfile(os.path.join(name+".conv", w, "t11", "outdata", "out_SIGRES.nc"),
                                 os.path.join(folder, "out_SIGRES.nc"))
             else:
