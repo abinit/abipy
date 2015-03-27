@@ -353,6 +353,12 @@ Specify the files to open. Possible choices:
     p_diff.add_argument('what_diff', nargs="?", type=str, default="i", 
                         help="What to diff: i for input (default), o for output, l for logfile, e for stderr")
 
+    p_networkx = subparsers.add_parser('networkx', parents=[copts_parser], #, flow_selector_parser], 
+                                     help="Draw flow and node dependecies with networkx package.")
+    p_networkx.add_argument('--nxmode', default="status",
+                            help="Type of network plot. Possible values: `status`, `network`")
+    p_networkx.add_argument('--edge-labels', action="store_true", default=False, help="Show edge labels")
+
     # Parse command line.
     try:
         options = parser.parse_args()
@@ -415,6 +421,8 @@ Specify the files to open. Possible choices:
     flow = abilab.Flow.pickle_load(options.flowdir, remove_lock=options.remove_lock)
     #flow.set_spectator_mode(False)
     retcode = 0
+
+
 
     if options.command == "gui":
         if options.chroot:
@@ -865,6 +873,10 @@ Specify the files to open. Possible choices:
             args = " ".join(os.path.relpath(p) for p in diff_files)
             # TODO: I should have written a Differ object somewhere!
             os.system("vimdiff %s" % args)
+
+    elif options.command == "networkx":
+        flow.plot_networkx(mode=options.nxmode, 
+                           with_edge_labels=options.edge_labels)
 
     else:
         raise RuntimeError("Don't know what to do with command %s!" % options.command)
