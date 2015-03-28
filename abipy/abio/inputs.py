@@ -18,6 +18,7 @@ import numpy as np
 from collections import OrderedDict, MutableMapping
 from monty.collections import dict2namedtuple
 from monty.string import is_string, list_strings
+from monty.json import MontyEncoder, MontyDecoder
 from pymatgen.core.units import Energy
 from pymatgen.serializers.json_coders import PMGSONable, pmg_serialize
 from pymatgen.io.abinitio.pseudos import PseudoTable, Pseudo
@@ -62,7 +63,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
     """
     Error = AbinitInputError
 
-    def __init__(self, structure, pseudos, pseudo_dir=None, comment=None, decorators=None, vars=None):
+    def __init__(self, structure, pseudos, pseudo_dir=None, comment=None, decorators=None, abi_args=None, abi_kwargs=None):
         """
         Args:
             structure: Parameters defining the crystalline structure. Accepts :class:`Structure` object 
@@ -73,15 +74,24 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
             ndtset: Number of datasets.
             comment: Optional string with a comment that will be placed at the beginning of the file.
             decorators: List of `AbinitInputDecorator` objects.
-            vars: Dictionary with the initial set of variables. Default: Empty
+            abi_args: list of tuples (key, value) with the initial set of variables. Default: Empty
+            abi_kwargs: Dictionary with the initial set of variables. Default: Empty
         """
         # Internal dict with variables. we use an ordered dict so that 
         # variables will be likely grouped by `topics` when we fill the input.
-        vars = {} if vars is None else vars
-        for key in vars:
+        abi_args = [] if abi_args is None else abi_args
+        for key, value in abi_args:
             self._check_varname(key)
 
-        self._vars = OrderedDict(**vars)
+        abi_kwargs = {} if abi_kwargs is None else abi_kwargs
+        for key in abi_kwargs:
+            self._check_varname(key)
+
+        args = list(abi_args)
+        args.extend(list(abi_kwargs.items()))
+        print(args)
+
+        self._vars = OrderedDict(args)
 
         self.set_structure(structure)
 
@@ -110,12 +120,14 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
                     pseudos=[p.as_dict() for p in self.pseudos], 
                     comment=self.comment,
                     decorators=[dec.as_dict() for dec in self.decorators],
-                    vars=vars)
+                    abi_kwargs=vars)
 
     @classmethod
     def from_dict(cls, d):
         pseudos = [Pseudo.from_file(p['filepath']) for p in d['pseudos']]
-        return cls(d["structure"], pseudos, decorators=d["decorators"], comment=d["comment"], vars=d["vars"])
+        dec = MontyDecoder()
+        return cls(d["structure"], pseudos, decorators=dec.process_decoded(d["decorators"]),
+                   comment=d["comment"], abi_kwargs=d["abi_kwargs"])
 
     # ABC protocol: __delitem__, __getitem__, __iter__, __len__, __setitem__
     def __delitem__(self, key):
@@ -183,7 +195,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
 
     def register_decorator(self, decorator):
         """Register a :class:`AbinitInputDecorator`."""
-        self._decorators.append(decorator.as_dict())
+        self._decorators.append(decorator)
 
     def set_mnemonics(self, boolean):
         """True if mnemonics should be printed"""
@@ -684,6 +696,7 @@ class MultiDataset(object):
 
         for inp, new_inp in zip(inputs, multi):
             new_inp.set_vars(**inp)
+            new_inp._decorators = inp.decorators
 
         return multi
 
@@ -839,21 +852,29 @@ class AnaddbInput(MutableMapping, Has_Structure):
 
     Error = AnaddbInputError
 
-    def __init__(self, structure, comment="", vars=None):
+    def __init__(self, structure, comment="", anaddb_args=None, anaddb_kwargs=None):
         """
         Args:
             structure: :class:`Structure` object 
             comment: Optional string with a comment that will be placed at the beginning of the file.
-            vars: Dictionary with Anaddb input variables (default: empty)
+            anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
+            anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
         """
         self._structure = structure
         self.comment = comment
 
-        vars = {} if vars is None else vars
-        for key in vars:
+        anaddb_args = [] if anaddb_args is None else anaddb_args
+        for key, value in anaddb_args:
             self._check_varname(key)
 
-        self._vars = OrderedDict(**vars)
+        anaddb_kwargs = {} if anaddb_kwargs is None else anaddb_kwargs
+        for key in anaddb_kwargs:
+            self._check_varname(key)
+
+        args = list(anaddb_args)
+        args.extend(list(anaddb_kwargs.items()))
+
+        self._vars = OrderedDict(args)
 
     def _check_varname(self, key):
         if not is_anaddb_var(key):
@@ -872,7 +893,7 @@ class AnaddbInput(MutableMapping, Has_Structure):
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             vars: Dictionary with extra Anaddb input variables (default: empty)
         """
-        new = cls(structure, comment="ANADB input for phonon frequencies at one q-point", vars=vars)
+        new = cls(structure, comment="ANADB input for phonon frequencies at one q-point", anaddb_kwargs=vars)
 
         new.set_vars(
             ifcflag=1,        # Interatomic force constant flag
@@ -938,7 +959,7 @@ class AnaddbInput(MutableMapping, Has_Structure):
         else:
             raise cls.Error("Wrong value for dos_method: %s" % dos_method)
 
-        new = cls(structure, comment="ANADB input for phonon bands and DOS", vars=vars)
+        new = cls(structure, comment="ANADB input for phonon bands and DOS", anaddb_kwargs=vars)
 
         # Parameters for the dos.
         new.set_autoqmesh(nqsmall)
@@ -1012,7 +1033,7 @@ class AnaddbInput(MutableMapping, Has_Structure):
             #  symdynmat 0
 
         """
-        new = cls(structure, comment="ANADB input for thermodynamics", vars=vars)
+        new = cls(structure, comment="ANADB input for thermodynamics", anaddb_kwargs=vars)
         new.set_autoqmesh(nqsmall)
 
         q1shft = np.reshape(q1shft, (-1, 3))
@@ -1072,7 +1093,7 @@ class AnaddbInput(MutableMapping, Has_Structure):
         #        0.0  1.0  0.0    0.0
         #        0.0  0.0  1.0    0.0
         """
-        new = cls(structure, comment="ANADB input for modes", vars=vars)
+        new = cls(structure, comment="ANADB input for modes", anaddb_kwargs=vars)
 
         new.set_vars(
             enunit=enunit,
