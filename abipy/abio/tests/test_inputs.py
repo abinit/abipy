@@ -158,7 +158,9 @@ class TestAbinitInput(AbipyTest):
         inp = ebands_input(abidata.cif_file("si.cif"), abidata.pseudos("14si.pspnc"), kppa=10, ecut=2)[0]
         inp = ideco.SpinDecorator("spinor")(inp)
         inp_dict = inp.as_dict()
-        self.assertIsInstance(inp_dict['abi_kwargs'], collections.OrderedDict)
+        #self.assertIsInstance(inp_dict['abi_kwargs'], collections.OrderedDict)
+        assert "abi_args" in inp_dict and len(inp_dict["abi_args"]) == len(inp)
+        assert all(k in inp for k, _ in inp_dict["abi_args"])
         self.assertPMGSONable(inp)
 
 

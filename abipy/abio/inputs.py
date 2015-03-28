@@ -87,7 +87,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
         for key in abi_kwargs:
             self._check_varname(key)
 
-        args = list(abi_args)
+        args = list(abi_args)[:]
         args.extend(list(abi_kwargs.items()))
         print(args)
 
@@ -111,23 +111,26 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, MutableMapping, PMGSONable, Ha
 
     @pmg_serialize
     def as_dict(self):
-        vars = OrderedDict()
+        #vars = OrderedDict()
+        # Use a list of (key, value) to serialize the OrderedDict
+        abi_args = []
         for key, value in self.items():
             if isinstance(value, np.ndarray): value = value.tolist()
-            vars[key] = value
+            #vars[key] = value
+            abi_args.append((key, value))
 
         return dict(structure=self.structure.as_dict(),
                     pseudos=[p.as_dict() for p in self.pseudos], 
                     comment=self.comment,
                     decorators=[dec.as_dict() for dec in self.decorators],
-                    abi_kwargs=vars)
+                    abi_args=abi_args)
 
     @classmethod
     def from_dict(cls, d):
         pseudos = [Pseudo.from_file(p['filepath']) for p in d['pseudos']]
         dec = MontyDecoder()
         return cls(d["structure"], pseudos, decorators=dec.process_decoded(d["decorators"]),
-                   comment=d["comment"], abi_kwargs=d["abi_kwargs"])
+                   comment=d["comment"], abi_args=d["abi_args"])
 
     # ABC protocol: __delitem__, __getitem__, __iter__, __len__, __setitem__
     def __delitem__(self, key):
@@ -871,7 +874,7 @@ class AnaddbInput(MutableMapping, Has_Structure):
         for key in anaddb_kwargs:
             self._check_varname(key)
 
-        args = list(anaddb_args)
+        args = list(anaddb_args)[:]
         args.extend(list(anaddb_kwargs.items()))
 
         self._vars = OrderedDict(args)
