@@ -196,7 +196,7 @@ def ebands_input(structure, pseudos,
 def ion_ioncell_relax_input(structure, pseudos, 
                             kppa=None, nband=None,
                             ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
-                            smearing="fermi_dirac:0.1 ev", charge=0.0, scf_algorithm=None):
+                            smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
     """
     Returns a :class:`AbinitInput` for a structural relaxation. The first dataset optmizes the 
     atomic positions at fixed unit cell. The second datasets optimizes both ions and unit cell parameters.
@@ -244,7 +244,7 @@ def ion_ioncell_relax_input(structure, pseudos,
 def ion_ioncell_relax_and_ebands_input(structure, pseudos, 
                                         kppa=None, nband=None,
                                         ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
-                                        smearing="fermi_dirac:0.1 ev", charge=0.0, scf_algorithm=None):
+                                        smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
     """
     Returns a :class:`AbinitInput` for a structural relaxation. The first dataset optmizes the 
     atomic positions at fixed unit cell. The second datasets optimizes both ions and unit cell parameters.
@@ -499,7 +499,7 @@ def scf_phonons_inputs(structure, pseudos, kppa,
             #rfdir   1 0 0   # Along the first reduced coordinate axis
             #kptopt   2      # Automatic generation of k points, taking
 
-        irred_perts = ph_inp.abiget_irred_phperts())
+        irred_perts = ph_inp.abiget_irred_phperts()
 
         #for pert in irred_perts:
         #    #print(pert)

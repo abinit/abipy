@@ -8,6 +8,9 @@ from abipy import abilab
 from abipy.core.testing import *
 from abipy.abio.inputs import *
 
+import abipy.abio.decorators as ideco
+from abipy.abio.factories import *
+
 
 class TestAbinitInput(AbipyTest):
     """Unit tests for AbinitInput."""
@@ -154,6 +157,16 @@ class TestAbinitInput(AbipyTest):
         inp["paral_kgb"] = 1
         pconfs = inp.abiget_autoparal_pconfs(max_ncpus=5)
 
+    def test_dict_methods(self):
+        """ Testing AbinitInput dict methods """
+        inp = ebands_input(abidata.cif_file("si.cif"), abidata.pseudos("14si.pspnc"), kppa=10, ecut=2)[0]
+        inp = ideco.SpinDecorator("spinor")(inp)
+        inp_dict = inp.as_dict()
+        #self.assertIsInstance(inp_dict['abi_kwargs'], collections.OrderedDict)
+        assert "abi_args" in inp_dict and len(inp_dict["abi_args"]) == len(inp)
+        assert all(k in inp for k, _ in inp_dict["abi_args"])
+        self.assertPMGSONable(inp)
+
 
 class TestMultiDataset(AbipyTest):
     """Unit tests for MultiDataset."""
@@ -216,14 +229,14 @@ class AnaddbInputTest(AbipyTest):
 
     def test_phbands_and_dos(self):
         """Test phbands_and_dos constructor."""
-        inp = AnaddbInput(self.structure, comment="hello anaddb", vars={"brav": 1})
+        inp = AnaddbInput(self.structure, comment="hello anaddb", anaddb_kwargs={"brav": 1})
         self.assertTrue("brav" in inp)
         self.assertEqual(inp["brav"], 1)
         self.assertEqual(inp.get("brav"), 1)
 
         # Unknown variable.
         with self.assertRaises(AnaddbInput.Error):
-            AnaddbInput(self.structure, vars={"foo": 1})
+            AnaddbInput(self.structure, anaddb_kwargs={"foo": 1})
 
         ndivsm = 1
         nqsmall = 3
