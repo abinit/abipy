@@ -93,7 +93,7 @@ class AbipyTest(PymatgenTest):
         return has_abinit(version, cmp=cmp)
 
     def assertFwSerializable(self, obj):
-        self.assertTrue(obj.to_dict().has_key('_fw_name'))
+        self.assertTrue('_fw_name' in obj.to_dict())
         self.assertDictEqual(obj.to_dict(), obj.__class__.from_dict(obj.to_dict()).to_dict())
 
 
