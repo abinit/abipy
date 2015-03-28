@@ -20,6 +20,7 @@ from abipy.tools.plotting_utils import Marker
 
 __all__ = [
     "PhononBands",
+    #"PhononBandsPlotter",
     "PhbstFile",
     "PhononDos",
     "PhdosReader",

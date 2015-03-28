@@ -4,10 +4,12 @@ from __future__ import print_function, division, unicode_literals
 
 import sys
 import os
+import numpy as np
 import pandas as pd
 
 from collections import OrderedDict, deque 
 from monty.string import is_string
+from monty.functools import lazy_property
 from pymatgen.io.abinitio.eos import EOS
 from pymatgen.io.abinitio.flows import Flow
 from pymatgen.io.abinitio.netcdf import NetcdfReaderError
@@ -56,6 +58,11 @@ class Robot(object):
         with Robot([("label1", "file1"), (label2, "file2")]) as robot:
             # Do something with robot. files are automatically closed when we exit.
     """
+    # TODO
+    # 1) Abstract interface from collections
+    # 2) should __iter__  return (label, ncfile) or ncfile (not __getitem__ returns ncfiles.__getitem__ !!!
+    # 3) replace ncfiles with files just to be consistent since we have DdbRobot!
+
     def __init__(self, *args):
         """args is a list of tuples (label, filepath)"""
         self._ncfiles, self._do_close = OrderedDict(), OrderedDict()
@@ -79,6 +86,9 @@ class Robot(object):
 
     def __iter__(self):
         return iter(self._ncfiles.items())
+
+    def __getitem__(self, key):
+        return self.ncfiles.__getitem__(key)
 
     def __enter__(self):
         return self
@@ -386,3 +396,88 @@ class MdfRobot(Robot):
                 mdf.plot_ax(ax)
 
         plt.show()
+        return fig
+
+
+class DdbRobot(Robot):
+    """This robot analyzes the results contained in multiple DDB files."""
+    EXT = "DDB"
+
+    @lazy_property
+    def qpoints_union(self):
+        """Return numpy array with the q-points in reduced coordinates found in the DDB files."""
+        qpoints = []
+        for (label, ddb) in enumerate(self):
+            qpoints.extend(q for q in ddb.qpoints if q not in qpoints)
+
+        return np.array(qpoints)
+
+    def get_dataframe_at_qpoint(self, qpoint=None, **kwargs):
+        """
+        Return a pandas table with the phonon frequencies at the given q-point
+        as computed from the different DDB files.
+
+        Args:
+            qpoint: Reduced coordinates of the qpoint where phonon modes are computed
+        """
+        # If qpoint is None, all the DDB must contain have the same q-point .
+        if qpoint is None:
+            if not all(len(ddb.qpoints) == 1 for ddb in self.ncfiles):
+                raise ValueError("Found more than one q-point in the DDB file. qpoint must be specified")
+            qpoint = self[0].qpoints[0] 
+            if any(np.any(ddb.qpoints[0] != qpoint) for ddb in self.ncfiles):
+                raise ValueError("All the q-points in the DDB files must be equal")
+
+        rows, row_names = [], []
+        for i, (label, ddb) in enumerate(self):
+            row_names.append(label)
+            d = dict(
+            #    exc_mdf=mdf.exc_mdf,
+            )
+            #d = {aname: getattr(ddb, aname) for aname in attrs}
+            #d.update({"qpgap": mdf.get_qpgap(spin, kpoint)})
+
+            # Call anaddb to get the phonon frequencies.
+            phbands = ddb.calc_phmodes_at_qpoint(qpoint=qpoint, asr=2, chneut=1, dipdip=1)
+            freqs = phbands.phfreqs[0, :] # (nq, nmodes)
+
+            d.update({"mode" + str(i): freqs[i] for i in range(len(freqs))})
+
+            # Add convergence parameters
+            d.update(ddb.params)
+
+            # Add info on structure.
+            if kwargs.get("with_geo", True):
+                d.update(self._get_geodict(phbands.structure))
+
+            # Execute funcs.
+            d.update(self._exec_funcs(kwargs.get("funcs", []), ddb))
+
+            rows.append(d)
+
+        return pd.DataFrame(rows, index=row_names, columns=rows[0].keys())
+
+    def plot_conv_phfreqs_qpoint(self, x_vars, qpoint=None, **kwargs): 
+        """
+        Plot the convergence of the phonon frequencies. 
+        kwargs are passed to :class:`seaborn.PairGrid`.
+        """
+        import matplotlib.pyplot as plt
+        import seaborn as sns
+
+        # Get the dataframe for this q-point.
+        data = self.get_dataframe_at_qpoint(qpoint=qpoint)
+
+        # Call seabort.
+        grid = sns.PairGrid(data, x_vars=x_vars, y_vars="mode3", **kwargs)
+        grid.map(plt.plot, marker="o")
+        grid.add_legend()
+        plt.show()
+
+    # TODO
+    #def get_phbands_plotter(self):
+    #    from abipy import abilab
+    #    plotter = abilab.PhononBandsPlotter()
+    #    for label, ddb in self:
+    #        plotter.add_ebands(label, ddb.ebands)
+    #    return plotter

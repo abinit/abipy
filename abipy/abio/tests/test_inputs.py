@@ -49,6 +49,10 @@ class TestAbinitInput(AbipyTest):
         inp.set_mnemonics(True)
         assert inp.mnemonics == True
 
+        # Test to_string
+        inp.to_string(sortmode="a", with_structure=True, with_pseudos=True)
+        inp.to_string(sortmode="section", with_structure=True, with_pseudos=True)
+
         inp.set_vars(ecut=5, toldfe=1e-6)
 
         # Cannot change structure variables directly.

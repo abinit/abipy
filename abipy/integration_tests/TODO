@@ -16,6 +16,7 @@ TODO LIST:
   # Add possibility of specifying the max number of CPUs that can be used  
     for a flow at the level of the scheduler.
 
+
   # Fix problem with AbiniEvent format, src_file and scr_line (see src/67_common/scprqt.F90)
     Introduce an integer flag (msg_level) to be passed to msg_hndl
 
@@ -32,3 +33,6 @@ TODO LIST:
 
   # Add ExpectedAbort to Abinit so that one can call the code to get data without triggerin
     report.errors in task.get_event.report
+
+  # Abiopen should be defined in a low level module so that we don't have to import abilab.
+    and possible circular dependencies

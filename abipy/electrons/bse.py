@@ -369,7 +369,10 @@ class MdfFile(AbinitNcFile, Has_Structure):
 
     @lazy_property
     def params(self):
-        """Dictionary with the parameters that are usually tested for convergence."""
+        """
+        Dictionary with the parameters that are usually tested for convergence.
+        Used to build Pandas dataframes in Robots.
+        """
         return self.reader.read_params()
 
     def get_mdf(self, mdf_type="exc"):

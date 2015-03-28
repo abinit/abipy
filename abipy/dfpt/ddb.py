@@ -183,6 +183,11 @@ class DdbFile(TextFile, Has_Structure):
 
         return np.array(ngqpt, dtype=np.int)
 
+    @property
+    def params(self):
+        """Dictionary with the parameters that are usually tested for convergence."""
+        return {k: v for k, v in self.header.items() if k in ("nkpt", "nsppol", "ecut", "tsmear", "ixc")}
+
     def calc_phmodes_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, 
                                workdir=None, manager=None, verbose=0, ret_task=False):
         """
@@ -194,6 +199,9 @@ class DdbFile(TextFile, Has_Structure):
             workdir: Working directory. If None, a temporary directory is created.
             manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information
+
+        Return:
+            :class:`PhononBands` object.
         """
         if qpoint is None:
             qpoint = self.qpoints[0] 

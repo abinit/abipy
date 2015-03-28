@@ -1515,7 +1515,7 @@ class ElectronBandsPlotter(object):
             dos: :class:`ElectronDos` object.
         """
         if label in self._bands_dict:
-            raise ValueError("label %s is already in %s" % (label, self._bands_dict.keys()))
+            raise ValueError("label %s is already in %s" % (label, list(self._bands_dict.keys())))
 
         self._bands_dict[label] = bands
 

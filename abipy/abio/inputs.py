@@ -270,7 +270,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
 
         post = post if post is not None else ""
 
-        if self.with_mnemonics or sortmode == "section": 
+        if self.mnemonics or sortmode == "section": 
             var_database = get_abinit_variables()
 
         if sortmode in (None, "a"):
@@ -284,7 +284,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
                 items.extend(list(self.structure.to_abivars().items()))
 
             for name, value in items:
-                if self.with_mnemonics:
+                if self.mnemonics:
                     app("# <" + var_database[name].definition + ">")
 
                 # Build variable, convert to string and append it
@@ -302,7 +302,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
                 app(w * "#")
                 for name in names:
                     value = self[name]
-                    if self.with_mnemonics:
+                    if self.mnemonics:
                         app("# <" + var_database[name].definition + ">")
 
                     # Build variable, convert to string and append it
@@ -694,7 +694,7 @@ class MultiDataset(object):
     that provides an easy-to-use interface to apply global changes to the 
     the inputs stored in the objects.
 
-    Let's assume for example that multi contains two AbinitInput object and we
+    Let's assume for example that multi contains two AbinitInput objects and we
     want to set `ecut` to 1 in both dictionaries. The direct approach would be:
 
         for inp in multi:
@@ -706,7 +706,7 @@ class MultiDataset(object):
             multi[i].set_vars(ecut=1)
 
 
-    MultiDataset provides its own implementaion of __getattr__ so that one simply use:
+    MultiDataset provides its own implementaion of __getattr__ so that one can simply use:
 
          multi.set_vars(ecut=1)
 
@@ -932,6 +932,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
             vars: Dictionary with extra Anaddb input variables (default: empty)
         """
         new = cls(structure, comment="ANADB input for phonon frequencies at one q-point", vars=vars)
+        qpoint = np.array(qpoint)
 
         new.set_vars(
             ifcflag=1,        # Interatomic force constant flag
@@ -943,7 +944,9 @@ class AnaddbInput(AbstractInput, Has_Structure):
             nqshft=1,         
             q1shft=qpoint,
             nqpath=2,
-            qpath=list(qpoint) + [0, 0, 0],
+            # FIXME
+            # ndivsm requires at least two q-points
+            qpath=np.array([qpoint, qpoint + 1]).ravel(),
             ndivsm=1
         )
 
