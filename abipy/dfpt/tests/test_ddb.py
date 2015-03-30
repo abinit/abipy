@@ -81,6 +81,7 @@ class DdbTest(AbipyTest):
         assert np.all(ddb.guessed_ngqpt == [4, 4, 4])
 
         phbands, phdos = ddb.anaget_phbands_and_dos(plot=False)
+        assert phdos.idos[-1] = 3 * len(ddb.structure)
 
         c = ddb.anaconverge_phdos(nqsmalls=[2,4,6], num_cpus=None)
         c.plotter.plot(show=False)
