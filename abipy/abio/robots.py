@@ -403,7 +403,7 @@ class DdbRobot(Robot):
     """This robot analyzes the results contained in multiple DDB files."""
     EXT = "DDB"
 
-    @lazy_property
+    @property
     def qpoints_union(self):
         """Return numpy array with the q-points in reduced coordinates found in the DDB files."""
         qpoints = []
@@ -411,6 +411,15 @@ class DdbRobot(Robot):
             qpoints.extend(q for q in ddb.qpoints if q not in qpoints)
 
         return np.array(qpoints)
+
+    #@property
+    #def qpoints_intersection(self):
+    #    """Return numpy array with the q-points in reduced coordinates found in the DDB files."""
+    #    qpoints = []
+    #    for (label, ddb) in enumerate(self):
+    #        qpoints.extend(q for q in ddb.qpoints if q not in qpoints)
+    #                                                                                              
+    #    return np.array(qpoints)
 
     def get_dataframe_at_qpoint(self, qpoint=None, **kwargs):
         """
@@ -438,7 +447,7 @@ class DdbRobot(Robot):
             #d.update({"qpgap": mdf.get_qpgap(spin, kpoint)})
 
             # Call anaddb to get the phonon frequencies.
-            phbands = ddb.calc_phmodes_at_qpoint(qpoint=qpoint, asr=2, chneut=1, dipdip=1)
+            phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, asr=2, chneut=1, dipdip=1)
             freqs = phbands.phfreqs[0, :] # (nq, nmodes)
 
             d.update({"mode" + str(i): freqs[i] for i in range(len(freqs))})
@@ -468,8 +477,11 @@ class DdbRobot(Robot):
         # Get the dataframe for this q-point.
         data = self.get_dataframe_at_qpoint(qpoint=qpoint)
 
-        # Call seabort.
-        grid = sns.PairGrid(data, x_vars=x_vars, y_vars="mode3", **kwargs)
+        y_vars = sorted([k for k in data if k.startswith("mode")])
+        #print(y_vars)
+
+        # Call seaborn.
+        grid = sns.PairGrid(data, x_vars=x_vars, y_vars=y_vars, **kwargs)
         grid.map(plt.plot, marker="o")
         grid.add_legend()
         plt.show()

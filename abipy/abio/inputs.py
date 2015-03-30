@@ -52,6 +52,18 @@ _GEOVARS = set([
     "natom",
 ])
 
+# Variables defining tolerances (used in pop_tolerances)
+_TOLVARS = set([
+    'toldfe', 
+    'tolvrs', 
+    'tolwfr', 
+    'tolrff',
+    "toldff",  
+    "tolimg", # ?
+    "tolmxf", 
+    "tolrde",  
+])
+
 
 class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
 
@@ -104,13 +116,18 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
         return kwargs
 
     def remove_vars(self, keys, strict=True):
-        """Remove the variables listed in keys."""
-        values = []
+        """
+        Remove the variables listed in keys.
+        Return dictionary with the variables that have been removed.
+        """
+        removed = {}
         for key in list_strings(keys):
             if strict and key not in self:
                 raise KeyError("key: %s not in self:\n %s" % (key, list(self.keys())))
-            values.append(self.pop(key))
-        return values
+            if key in self:
+                removed[key] = self.pop(key)
+
+        return removed
 
     @abc.abstractproperty
     def vars(self):
@@ -129,6 +146,9 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
 class AbinitInputError(Exception):
     """Base error class for exceptions raised by `AbiInput`"""
 
+
+# TODO: API to understand if one can use time-reversal symmetry and/or spatial symmetries
+#       Very important especially when we have to select the value of kptopt
 
 class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has_Structure, object)):
     """
@@ -162,7 +182,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
 
         args = list(abi_args)[:]
         args.extend(list(abi_kwargs.items()))
-        print(args)
+        #print(args)
 
         self._vars = OrderedDict(args)
 
@@ -262,7 +282,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
         except AttributeError:
             return False
 
-    def to_string(self, sortmode=None, post=None, with_structure=True, with_pseudos=True):
+    def to_string(self, sortmode="section", post=None, with_structure=True, with_pseudos=True):
         """
         String representation.
 
@@ -538,9 +558,128 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
 
         return inp
 
-    #def pop_tolerance(self):
-    #    tolnames = ['toldfe', 'tolvrs', 'tolwfr', 'tolrff']
-    #    return self.remove_vars(tolnames, strict=False)
+    def pop_tolerances(self):
+        """
+        Remove all the tolerance variables present in self. 
+        Return dictionary with the variables that have been removed."""
+        return self.remove_vars(_TOLVARS, strict=False)
+
+    def make_ph_inputs_qpoint(self, qpt, tolerance=None):
+        """
+        This functions should be called with an input the represents a GS run.
+        """
+        if tolerance is None:
+            tolerance = {"tolvrs": 1.0e-10}
+
+        if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
+            raise self.Error("Invalid tolerance: %s" % tolerance)
+
+        # Call Abinit to get the list of irred perts.
+        perts = self.abiget_irred_phperts(qpt=qpt)
+
+        # Build list of datasets (one input per perturbation)
+        ph_inputs = MultiDataset.replicate_input(input=self, ndtset=len(perts))
+
+        # TODO: Should propagate info on symmetries.
+        # use time-reversal if Gamma
+        kptopt = 3
+        if all(q == 0 for q in qpt): kptopt == 2
+
+        for pert, ph_input in zip(perts, ph_inputs):
+            # TODO this will work for phonons, but not for the other types of perturbations.
+            rfdir = 3 * [0]
+            rfdir[pert.idir -1] = 1
+
+            ph_input.set_vars(
+                rfphon=1,                           # Will consider phonon-type perturbation
+                nqpt=1,                             # One wavevector is to be considered
+                qpt=pert.qpt,                       # q-wavevector.
+                rfatpol=[pert.ipert, pert.ipert], 
+                rfdir=rfdir,
+                kptopt=kptopt,                           
+            )
+            ph_input.pop_tolerances()
+            ph_input.set_vars(tolerance)
+
+        return ph_inputs
+
+    def make_ddk_inputs(self, tolerance=None):
+        """
+        Return inputs for the DDK calculation.
+        This functions should be called with an input the represents a GS run.
+        """
+        if tolerance is None:
+            tolerance = {"tolwfr": 1.0e-22}
+
+        if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
+            raise self.Error("Invalid tolerance: %s" % tolerance)
+
+        if "tolvrs" in tolerance:
+            raise self.Error("tolvrs should not be used in a DDK calculation")
+
+        # Call Abinit to get the list of irred perts.
+        #perts = self.abiget_irred_phperts(qpt=qpt)
+        # TODO Add symmetries
+        ddk_rfdirs = [(1,0,0), (0,1,0), (0,0,1)]
+
+        # Build list of datasets (one input per perturbation)
+        ddk_inputs = MultiDataset.replicate_input(input=self, ndtset=len(ddk_rfdirs))
+
+        # See tutorespfn/Input/trf1_5.in
+        for rfdir, ddk_input in zip(ddk_rfdirs, ddk_inputs):
+            ddk_input.set_vars(
+                rfelfd=2,             # Activate the calculation of the d/dk perturbation
+                rfdir=rfdir,          # Direction of the per ddk.
+                nqpt=1,               # One wavevector is to be considered
+                qpt=(0, 0, 0),        # q-wavevector.
+                kptopt=2,             # Take into account time-reversal symmetry.           
+                iscf=-3,              # The d/dk perturbation must be treated in a non-self-consistent way
+            )
+
+            ddk_input.pop_tolerances()
+            ddk_input.set_vars(tolerance)
+
+        return ddk_inputs
+
+    def make_bec_inputs(self, tolerance=None):
+        """
+        Return inputs for the calculation of the Bron effective charges.
+
+        This functions should be called with an input the represents a gs run.
+        """
+        if tolerance is None:
+            tolerance = {"tolvrs": 1.0e-10}
+
+        if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
+            raise self.Error("Invalid tolerance: %s" % tolerance)
+
+        # Call Abinit to get the list of irred perts.
+        # TODO:
+        # Check that one can use the same list of irred perts as in phonons
+        perts = self.abiget_irred_phperts(qpt=(0, 0, 0))
+
+        # Build list of datasets (one input per perturbation)
+        multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
+
+        # See tutorespfn/Input/trf1_5.in dataset 3
+        for pert, inp in zip(perts, multi):
+            rfdir = 3 * [0]
+            rfdir[pert.idir -1] = 1
+
+            inp.set_vars(
+                rfphon=1,             # Activate the calculation of the atomic dispacement perturbations
+                rfatpol=[pert.ipert, pert.ipert], 
+                rfdir=rfdir,
+                rfelfd=3,             # Activate the calculation of the electric field perturbation
+                nqpt=1,               # One wavevector is to be considered
+                qpt=(0, 0, 0),        # q-wavevector.
+                kptopt=2,             # Take into account time-reversal symmetry.           
+            )
+
+            inp.pop_tolerances()
+            inp.set_vars(tolerance)
+
+        return multi
 
     def pycheck(self):
         errors = []
@@ -748,6 +887,16 @@ class MultiDataset(object):
 
         return multi
 
+    @classmethod
+    def replicate_input(cls, input, ndtset):
+        """Constructur a multidataset with ndtset from the :class:`AbinitInput` input."""
+        multi = cls(input.structure, input.pseudos, ndtset=ndtset)
+
+        for inp in multi: 
+            inp.set_vars({k: v for k, v in input.items()})
+
+        return multi
+
     def __init__(self, structure, pseudos, pseudo_dir="", ndtset=1):
         """
         Args:
@@ -823,7 +972,8 @@ class MultiDataset(object):
         #print("in getname with name: %s" % name)
         m = getattr(self._inputs[0], name)
         if m is None:
-            raise AttributeError("Cannot find attribute %s in AbinitInput object" % name)
+            raise AttributeError("Cannot find attribute %s. Tried in %s and then in AbinitInput object" 
+                                 % (self.__class__.__name__, name))
         isattr = not callable(m)
 
         def on_all(*args, **kwargs):
@@ -960,13 +1110,18 @@ class AnaddbInput(AbstractInput, Has_Structure):
         new = cls(structure, comment="ANADB input for phonon frequencies at one q-point", 
                   anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
 
+        #print(qpoint)
+        qpoint = np.array(qpoint)
+        #print(type(qpoint), qpoint.shape)
+        assert len(qpoint) == 3
+
         new.set_vars(
             ifcflag=1,        # Interatomic force constant flag
             asr=asr,          # Acoustic Sum Rule
             chneut=chneut,    # Charge neutrality requirement for effective charges.
             dipdip=dipdip,    # Dipole-dipole interaction treatment
-            # This part if fixed
-            ngqpt=(1, 1,  1), 
+            # This part is fixed
+            ngqpt=(1, 1, 1), 
             nqshft=1,         
             q1shft=qpoint,
             nqpath=2,

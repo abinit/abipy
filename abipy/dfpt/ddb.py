@@ -12,6 +12,9 @@ from pymatgen.io.abinitio.tasks import AnaddbTask, TaskManager
 from abipy.core.mixins import TextFile, Has_Structure
 from abipy.core.symmetries import SpaceGroup
 from abipy.core.structure import Structure
+from abipy.core.kpoints import KpointList
+from abipy.core.tensor import Tensor
+from abipy.iotools import ETSF_Reader
 from abipy.abio.inputs import AnaddbInput
 
 import logging
@@ -76,7 +79,8 @@ class DdbFile(TextFile, Has_Structure):
                 # +DDB, Version number    100401
                 version = int(line.split()[-1])
 
-            if line == "Description of the potentials (KB energies)":
+            if line in ("Description of the potentials (KB energies)",
+                        "No information on the potentials yet"):
                 # Skip section with psps info.
                 break
 
@@ -121,11 +125,6 @@ class DdbFile(TextFile, Has_Structure):
         
         return h
 
-    @lazy_property
-    def qpoints(self):
-        """`ndarray` with the list of q-points in reduced coordinates."""
-        return self._read_qpoints()
-
     def _read_qpoints(self):
         """Read the list q-points from the DDB file. Returns `ndarray`"""
         # 2nd derivatives (non-stat.)  - # elements :      36
@@ -151,6 +150,22 @@ class DdbFile(TextFile, Has_Structure):
         return np.reshape(qpoints, (-1,3))
 
     @lazy_property
+    def qpoints(self):
+        """:class:`KpointList` object with the list of q-points in reduced coordinates."""
+        frac_coords = self._read_qpoints()
+        return KpointList(self.structure.reciprocal_lattice, frac_coords, weights=None, names=None)
+
+    def qindex(self, qpoint):
+        """
+        The index of the q-point in the internal list of k-points.
+        Accepts: :class:`qpoint` instance or integer.
+        """
+        if isinstance(qpoint, int):
+            return qpoint
+        else:
+            return self.qpoints.index(qpoint)
+
+    @lazy_property
     def guessed_ngqpt(self):
         """
         This function tries to figure out the value of ngqpt from the list of 
@@ -166,7 +181,7 @@ class DdbFile(TextFile, Has_Structure):
         count = 0
         for qpoint in self.qpoints:
             for op in self.structure.spacegroup:
-                all_qpoints[count] = op.rotate_k(qpoint, wrap_tows=False)
+                all_qpoints[count] = op.rotate_k(qpoint.frac_coords, wrap_tows=False)
                 count += 1
 
         # Replace zeros with np.inf
@@ -188,8 +203,8 @@ class DdbFile(TextFile, Has_Structure):
         """Dictionary with the parameters that are usually tested for convergence."""
         return {k: v for k, v in self.header.items() if k in ("nkpt", "nsppol", "ecut", "tsmear", "ixc")}
 
-    def calc_phmodes_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, 
-                               workdir=None, manager=None, verbose=0, ret_task=False):
+    def anaget_phmodes_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, 
+                                 workdir=None, manager=None, verbose=0):
         """
         Execute anaddb to compute phonon modes at the given q-point.
 
@@ -207,20 +222,21 @@ class DdbFile(TextFile, Has_Structure):
             qpoint = self.qpoints[0] 
             if len(self.qpoints) != 1:
                 raise ValueError("%s contains %s qpoints and the choice is ambiguous.\n" 
-                                 "Please specify the qpoint in calc_phmodes_at_qpoint" % (self, len(self.qpoints)))
+                                 "Please specify the qpoint." % (self, len(self.qpoints)))
+
+        # Check if qpoint is in the DDB.
+        try:
+            self.qindex(qpoint)
+        except:
+            raise ValueError("input qpoint %s not in ddb.qpoints:%s\n" % (qpoint, self.qpoints))
 
         inp = AnaddbInput.modes_at_qpoint(self.structure, qpoint, asr=asr, chneut=chneut, dipdip=dipdip)
 
-        if manager is None: manager = TaskManager.from_user_config()
-        if workdir is None: workdir = tempfile.mkdtemp()
+        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager)
+
         if verbose: 
-            print("workdir:", workdir)
             print("ANADDB INPUT:\n", inp)
-
-        task = AnaddbTask(inp, self.filepath, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
-
-        if ret_task:
-            return task
+            print("workdir:", task.workdir)
 
         # Run the task here
         task.start_and_wait(autoparal=False)
@@ -231,11 +247,11 @@ class DdbFile(TextFile, Has_Structure):
         with task.open_phbst() as ncfile:
             return ncfile.phbands
 
-    #def calc_phbands(self, ngqpt=None, ndivsm=20, asr=2, chneut=1, dipdip=1, workdir=None, manager=None, verbose=0, **kwargs):
-    #def calc_phdos(self, ngqpt=None, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra" workdir=None, manager=None, verbose=0, **kwargs):
+    #def anaget_phbands(self, ngqpt=None, ndivsm=20, asr=2, chneut=1, dipdip=1, workdir=None, manager=None, verbose=0, **kwargs):
+    #def anaget_phdos(self, ngqpt=None, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra" workdir=None, manager=None, verbose=0, **kwargs):
 
-    def calc_phbands_and_dos(self, ngqpt=None, ndivsm=20, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra",
-                             workdir=None, manager=None, verbose=0, plot=True, ret_task=False):
+    def anaget_phbands_and_dos(self, ngqpt=None, ndivsm=20, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra",
+                             workdir=None, manager=None, verbose=0, plot=True):
         """
         Execute anaddb to compute the phonon band structure and the phonon DOS
 
@@ -252,16 +268,11 @@ class DdbFile(TextFile, Has_Structure):
             self.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, 
             q1shft=(0,0,0), qptbounds=None, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method)
 
-        if manager is None: manager = TaskManager.from_user_config()
-        if workdir is None: workdir = tempfile.mkdtemp()
+        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager)
+
         if verbose: 
-            print("workdir:", workdir)
             print("ANADDB INPUT:\n", inp)
-
-        task = AnaddbTask(inp, self.filepath, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
-
-        if ret_task:
-            return task
+            print("workdir:", task.workdir)
 
         # Run the task here.
         task.start_and_wait(autoparal=False)
@@ -277,7 +288,48 @@ class DdbFile(TextFile, Has_Structure):
 
             return phbands, phdos
 
-    #def calc_thermo(self, nqsmall, ngqpt=None, workdir=None, manager=None, verbose=0):
+    def anaget_emacro_and_becs(self, chneut=1, workdir=None, manager=None, verbose=0):
+        """
+        Call anaddb to compute the macroscopic dielectric tensor and the Born effective charges.
+
+        Args:
+            chneut: Anaddb input variable. See official documentation.
+            manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
+            verbose: verbosity level. Set it to a value > 0 to get more information
+
+        Return:
+            emacro: (3, 3) `ndarrary`
+            becs: (3, 3, natom) `ndarray`
+        """
+        inp = AnaddbInput(self.structure, anaddb_kwargs={"chneut": chneut})
+
+        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager)
+
+        if verbose: 
+            print("ANADDB INPUT:\n", inp)
+            print("workdir:", task.workdir)
+
+        # Run the task here.
+        task.start_and_wait(autoparal=False)
+
+        report = task.get_event_report()
+        if not report.run_completed:
+            raise TaskException(task=task, report=report)
+
+        # Read data from the netcdf output file produced by anaddb.
+        with ETSF_Reader(os.path.join(task.workdir, "anaddb.nc")) as r:
+            structure = r.read_structure()
+
+            # Frac or cart?
+            emacro_mat = r.read_value("emacro")
+            emacro = Tensor(emacro_mat, structure.lattice, space="r")
+
+            becs_arr = r.read_value("becs")
+            becs = Becs(becs_arr, structure, order="f")
+
+            return emacro, becs
+
+    #def anaget_thermo(self, nqsmall, ngqpt=None, workdir=None, manager=None, verbose=0):
     #    """
     #    Execute anaddb to compute thermodinamical properties.
 
@@ -294,52 +346,89 @@ class DdbFile(TextFile, Has_Structure):
     #    inp = AnaddbInput.thermo(self.structure, ngqpt, nqsmall, q1shft=(0, 0, 0), nchan=1250, nwchan=5, thmtol=0.5,
     #           ntemper=199, temperinc=5, tempermin=5., asr=2, chneut=1, dipdip=1, ngrids=10)
 
-    #    if manager is None: manager = TaskManager.from_user_config()
-    #    if workdir is None: workdir = tempfile.mkdtemp()
-    #    if verbose: 
-    #        print("workdir:", workdir)
-    #        print("ANADDB INPUT:\n", inp)
+    #    task = AnaddbTask.temp_shell_task(inp, self.filepath, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
 
-    #    task = AnaddbTask(inp, self.filepath, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
+    #    if verbose: 
+    #        print("ANADDB INPUT:\n", inp)
+    #        print("workdir:", task.workdir)
+
     #    task.start_and_wait(autoparal=False)
 
     #    report = task.get_event_report()
     #    if not report.run_completed:
     #        raise TaskException(task=task, report=report)
 
+    #    def converge_phdos(self, nqsmall_slice):
+    #        from monty.dev import get_ncpus
+    #        self.num_cores = get_num_cpus() if num_cores is None else num_cores
+    #        doses = []
+    #        for nqs in nsmall_range:
+    #           #self.ddb.anaget_phbands_and_dos(ngqpt=None, ndivsm=20, nqsmall=10, workdir=None, manager=self.manager)
+    #           doses.append(phdos)
+    #
+    #        # Compare last three phonon DOSes.
+    #        # Be careful here because the DOS may be defined on different frequency meshes
+    #        last_mesh = doses[-1].mesh
+    #        converged = False
+    #         for dos in doses[:-1]:
+    #            dos = dos.spline_on_mesh(last_mesh)
+    #            diffs.append(dos - doses[-1])
+    #
+    #        if converged:
+    #            return collections.namedtuple("results", "phdos ngsmall plotter")
+    #                (phdos=phdos, nqsmall=nqsmall, plotter=plotter)
+    #        else:
+    #            raise self.Error("Cannot converge the DOS wrt nqsmall")
 
-#class DdbConverger(object):
-#    def __init__(self, ddb, workdir=workdir, manager=None, num_cores=None):
-#        self.ddb = DdbFile(ddb)
-#        from monty.dev import get_ncpus
-#        self.num_cores = get_num_cpus() if num_cores is None else num_cores
-#        
-#        self.manager = TaskManager.from_user_config() if manager is None else manager
-#        self.workdir = tempfile.mkdtemp() if workdir is None else workdir
-#
-#    def __enter__(self):
-#        return self
-#
-#    def __exit__(self, exc_type, exc_val, exc_tb):
-#        """Activated at the end of the with statement. It automatically closes the file."""
-#        self.ddb.close()
-#
-#    def converge_phdos(self, nqsmall_slice):
-#        doses = []
-#        for nqs in nsmall_range:
-#           #self.ddb.calc_phbands_and_dos(ngqpt=None, ndivsm=20, nqsmall=10, workdir=None, manager=self.manager)
-#           doses.append(phdos)
-#
-#        # Compare last three phonon DOSes.
-#        # Be careful here because the DOS may be defined on different frequency meshes
-#        last_mesh = doses[-1].mesh
-#        converged = False
-#         for dos in doses[:-1]:
-#            dos = dos.spline_on_mesh(last_mesh)
-#            diffs.append(dos - doses[-1])
-#
-#        if converged:
-#            return collections.namedtuple("results", "phdos ngsmall plotter")
-#                (phdos=phdos, nqsmall=nqsmall, plotter=plotter)
-#        else:
-#            raise self.Error("Cannot converge the DOS wrt nqsmall")
+
+
+class Becs(Has_Structure):
+    """
+    This object stores the Born effective charges and provides analysis tools
+    """
+    def __init__(self, becs_arr, structure, order="c"):
+        """
+
+        Args:
+            becs_arr: (3, 3, natom) array wit the Born effective charges.
+            structure: Structure object.
+            order: "f" if becs_arr is in Fortran order.
+        """
+        assert len(becs_arr) == len(structure)
+        self._structure = structure
+
+        # Here we
+        self.becs = np.empty((len(structure), 3, 3))
+        for i, bec in enumerate(becs_arr):
+            mat = becs_arr[i]
+            if order == "f": mat = mat.T
+            self.becs[i] = mat
+
+    @property
+    def structure(self):
+        return self._structure
+
+    def __repr__(self):
+        return self.to_string()
+
+    def __str__(self):
+        return self.to_string()
+
+    def to_string(self):
+        lines = [str(self.structure)]
+        app = lines.append
+        app("")
+
+        for site, bec in zip(self.structure, self.becs):
+            # TODO: why PeriodicSite.__str__ does not give the frac_coords?
+            #print(type(site))
+            app("bec at site: %s" % (site))
+            app(str(bec))
+            app("")
+
+        return "\n".join(lines)
+
+    def check_sumrule(self):
+        becs_atomsum = self.becs.sum(axis=0)
+        print("Born effective charge neutrality sum-rule:")
+        print(bec_atomsum)

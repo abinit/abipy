@@ -8,7 +8,6 @@ import itertools
 import numpy as np
 
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-#from pymatgen.symmetry.finder import SymmetryFinder
 from abipy.core import Structure
 
 
@@ -23,15 +22,14 @@ def from_cart_to_red(cartesian_tensor,lattice):
     red_tensor = np.dot(np.dot(np.transpose(mat), cartesian_tensor), mat)
     return red_tensor
 
+
 class Tensor(object):
     """Representation of a 3x3 tensor"""
     def __init__(self, red_tensor, lattice, space="r"):
         """
         Args:
-            red_tensor:
-                array-like object with the 9 cartesian components of the tensor
-            lattice:
-                Lattice object defining the reference system
+            red_tensor: array-like object with the 9 cartesian components of the tensor
+            lattice: Lattice object defining the reference system
             space:
                 "r" if the lattice is a real space lattice
                 "g" if the lattice is a reciprocal space lattice
@@ -56,6 +54,9 @@ class Tensor(object):
     def __ne__(self, other):
         return not self == other
 
+    #def __repr__(self):
+    #def __str__(self):
+
     @property
     def lattice(self):
         return self._lattice
@@ -74,7 +75,7 @@ class Tensor(object):
         return np.dot(np.dot(np.transpose(mat),self._reduced_tensor),mat)
 
     @classmethod
-    def from_cartesian_tensor(cls, cartesian_tensor,lattice,space="r"):
+    def from_cartesian_tensor(cls, cartesian_tensor, lattice,space="r"):
         red_tensor = from_cart_to_red(cartesian_tensor,lattice)
         return cls(red_tensor, lattice,space)
 
@@ -150,4 +151,3 @@ class SymmetricTensor(Tensor):
                       [red_symm[4],red_symm[5],red_symm[2]]]
 
         return cls(red_tensor,lattice,space)
-

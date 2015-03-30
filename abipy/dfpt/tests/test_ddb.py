@@ -13,10 +13,11 @@ test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
 class DdbTest(AbipyTest):
 
     def test_ddb_methods(self):
+        """Testing ddb methods"""
         ddb_fname = os.path.join(test_dir, "AlAs_1qpt_DDB")
         with DdbFile(ddb_fname) as ddb:
             # Test qpoints.
-            self.assert_equal(ddb.qpoints, np.reshape([0.25, 0, 0], (-1,3)))
+            self.assert_equal(ddb.qpoints[0], [0.25, 0, 0])
 
             # Test header
             h = ddb.header
@@ -35,8 +36,14 @@ class DdbTest(AbipyTest):
             print(struct)
             assert struct.formula == "Al1 As1"
 
-            #ncfile = ddb.get_phmodes_at_qpoint()
-            #print(ncfile)
+            # Test interface with Anaddb.
+            print(ddb.qpoints[0])
+            phbands = ddb.anaget_phmodes_at_qpoint(qpoint=ddb.qpoints[0])
+            assert phbands is not None and hasattr(phbands, "phfreqs")
+
+            with self.assertRaises(ValueError): 
+                ddb.anaget_phmodes_at_qpoint(qpoint=(0,0,0))
+
             #ncfile = ddb.get_phbands_and_dos(ngqpt=(4,4,4))
             #print(ncfile)
 

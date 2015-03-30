@@ -69,6 +69,9 @@ class TestAbinitInput(AbipyTest):
         assert inp["bdgw"] == [1, 2]
         assert inp.remove_vars("bdgw") and "bdgw" not in inp
 
+        removed = inp.pop_tolerances()
+        assert len(removed) == 1 and removed["toldfe"] == 1e-6
+
         # Test set_structure 
         new_structure = inp.structure.copy() 
         new_structure.perturb(distance=0.1)
@@ -167,6 +170,61 @@ class TestAbinitInput(AbipyTest):
         assert all(k in inp for k, _ in inp_dict["abi_args"])
         self.assertPMGSONable(inp)
 
+    def test_dfpt_methods(self):
+        """Testing DFPT methods."""
+        gs_inp = AbinitInput(structure=abidata.structure_from_ucell("AlAs"),
+                             pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"))
+
+        gs_inp.set_vars(
+            nband=4,             
+            ecut=2,         
+            ngkpt=[4, 4, 4],
+            nshiftk=4,
+            shiftk=[0.0, 0.0, 0.5,   # This gives the usual fcc Monkhorst-Pack grid
+                    0.0, 0.5, 0.0,
+                    0.5, 0.0, 0.0,
+                    0.5, 0.5, 0.5],
+            #shiftk=[0, 0, 0],
+            paral_kgb=1,
+            nstep=25,
+            tolvrs=1.0e-10,
+        )
+
+        ################
+        # Phonon methods
+        ################
+        with self.assertRaises(gs_inp.Error):
+            ddk_inputs = gs_inp.make_ddk_inputs(tolerance={"tolfoo": 1e10})
+
+        phg_inputs = gs_inp.make_ph_inputs_qpoint(qpt=(0,0,0), tolerance=None)
+        print("phonon inputs at Gamma\n", phg_inputs)
+        assert len(phg_inputs) == 2
+        assert np.all(phg_inputs[0]["rfatpol"] == [1, 1])
+        assert np.all(phg_inputs[1]["rfatpol"] == [2, 2])
+        assert all(np.all(inp["rfdir"] == [1, 0, 0] for inp in phg_inputs))
+        assert all(np.all(inp["kptopt"] == 2 for inp in phg_inputs))
+
+        # Validate
+        vs = phg_inputs.abivalidate()
+        assert all(v.retcode == 0 for v in vs)
+
+        #############
+        # DDK methods
+        #############
+        with self.assertRaises(gs_inp.Error):
+            ddk_inputs = gs_inp.make_ddk_inputs(tolerance={"tolvrs": 1e10})
+
+        ddk_inputs = gs_inp.make_ddk_inputs(tolerance=None)
+        print("DDK inputs\n", ddk_inputs)
+        assert len(ddk_inputs) == 3
+        assert all(inp["iscf"] == -3 for inp in ddk_inputs)
+        assert all(inp["rfelfd"] == 2 for inp in ddk_inputs)
+
+        # Validate
+        vs = ddk_inputs.abivalidate()
+        assert all(v.retcode == 0 for v in vs)
+        #assert 0
+
 
 class TestMultiDataset(AbipyTest):
     """Unit tests for MultiDataset."""
@@ -212,8 +270,16 @@ class TestMultiDataset(AbipyTest):
         assert new_multi.structure == multi.structure
 
         for old_inp, new_inp in zip(multi, new_multi):
-            assert not old_inp is new_inp
+            assert old_inp is not new_inp
             self.assertDictEqual(old_inp.as_dict(), new_inp.as_dict())
+
+        ref_input = multi[0]
+        new_multi = MultiDataset.replicate_input(input=ref_input, ndtset=4)
+
+        assert new_multi.ndtset == 4
+        for inp in new_multi:
+            assert ref_input is not inp
+            self.assertDictEqual(ref_input.as_dict(), inp.as_dict())
 
         # Compatible with Pickle and PMGSONable?
         #self.serialize_with_pickle(multi, test_eq=False)
