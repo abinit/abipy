@@ -12,7 +12,7 @@ from pymatgen.core.units import Ha_to_eV, eV_to_Ha
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands
-from abipy.core.kpoints import Kpoint
+from abipy.core.kpoints import Kpoint, KpointList
 from abipy.iotools import ETSF_Reader
 from abipy.tools import gaussian
 from abipy.tools.plotting_utils import Marker
@@ -109,19 +109,15 @@ class PhononBands(object):
             structure = r.read_structure()
 
             # Build list of q-points
-            #qpoints = kpoints_factory(self)
-            qcoords = r.read_qredcoords()
-            qweights = r.read_qweights()
-
-            qpoints = []
-            for (qc, w) in zip(qcoords, qweights):
-                qpoints.append(Kpoint(qc, structure.reciprocal_lattice, weight=w))
+            qpoints = KpointList(structure.reciprocal_lattice, 
+                                 frac_coords=r.read_qredcoords(),
+                                 weights=r.read_qweights(),
+                                 names=None)
                                                                                    
             return cls(structure=structure,
                        qpoints=qpoints, 
                        phfreqs=r.read_phfreqs(),
-                       phdispl_cart=r.read_phdispl_cart()
-                       )
+                       phdispl_cart=r.read_phdispl_cart())
 
     def __init__(self, structure, qpoints, phfreqs, phdispl_cart, markers=None, widths=None):
         """
@@ -140,7 +136,6 @@ class PhononBands(object):
         """
         self.structure = structure
 
-        #self.qpoints = as_kpoints(qpoint, structure.reciprocal_lattice, weights=None):
         self.qpoints = qpoints
         self.num_qpoints = len(self.qpoints)
 
@@ -757,7 +752,6 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands):
             path: path to the file
         """
         super(PhbstFile, self).__init__(filepath)
-
         self.reader = PHBST_Reader(filepath)
 
         # Initialize Phonon bands
@@ -845,24 +839,25 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands):
                           structure=self.structure)
 
 
-class PhononDos(object):
-    """This object stores the phonon density of states."""
+#class PhononDos(object):
+class PhononDos(Function1D):
+    """
+    This object stores the phonon density of states.
 
-    def __init__(self, mesh, values):
-        """
-        Args:
-            mesh: array-like object with the points of the mesh.
-            values: array-like object with the DOS values.
+    .. attributes::
 
-        .. note::
-            mesh is given in eV, values are in states/eV.
-        """
-        self.dos = Function1D(mesh, values)
+        mesh: array-like object with the points of the mesh.
+        values: array-like object with the DOS values.
+
+    .. note::
+
+        mesh is given in eV, values are in states/eV.
+    """
 
     @lazy_property
     def idos(self):
         """Integrated DOS."""
-        return self.dos.integral()
+        return self.integral()
 
     #@lazy_property
     #def zpm(self)
@@ -887,7 +882,9 @@ class PhononDos(object):
         """
         opts = [c.lower() for c in what]
 
-        cases = {"d": self.dos, "i": self.idos}
+        # Use super because we are overwriting the plot_ax provided by Func1D
+        cases = {"d": super(PhononDos, self),  
+                 "i": self.idos}
 
         lines = []
         for c in opts:
@@ -928,7 +925,7 @@ class PhononDos(object):
         fig = plt.gcf()
         return fig
 
-    def harmonic_thermo(self, tstart, tstop, num=50):
+    def get_harmonic_thermo(self, tstart, tstop, num=50):
         """
         Compute thermodinamic properties from the phonon DOS within the harmonic approximation.
 
@@ -944,13 +941,13 @@ class PhononDos(object):
         # Boltzmann constant in Ha/K
         kb_HaK = 8.617343e-5 / Ha_to_eV 
 
-        for i, gw in enumerate(self.dos.values):
+        for i, gw in enumerate(self.values):
             if gw > 0: break
         #i = self.dos.find_mesh_index(0.0)
 
         # Use atomic units
-        w =  self.dos.mesh[i:] * eV_to_Ha
-        gw = self.dos.values[i:] * Ha_to_eV
+        w =  self.mesh[i:] * eV_to_Ha
+        gw = self.values[i:] * Ha_to_eV
 
         from scipy.integrate import cumtrapz
         def integrate(values):
