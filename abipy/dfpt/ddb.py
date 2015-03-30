@@ -321,10 +321,10 @@ class DdbFile(TextFile, Has_Structure):
             structure = r.read_structure()
 
             # Frac or cart?
-            emacro_mat = r.read_value("emacro")
-            emacro = Tensor(emacro_mat, structure.lattice, space="r")
+            emacro_cart = r.read_value("emacro_cart")
+            emacro = Tensor.from_cartesian_tensor(emacro_cart, structure.lattice, space="r")
 
-            becs_arr = r.read_value("becs")
+            becs_arr = r.read_value("becs_cart")
             becs = Becs(becs_arr, structure, order="f")
 
             return emacro, becs
@@ -381,7 +381,6 @@ class DdbFile(TextFile, Has_Structure):
     #            raise self.Error("Cannot converge the DOS wrt nqsmall")
 
 
-
 class Becs(Has_Structure):
     """
     This object stores the Born effective charges and provides analysis tools
@@ -390,7 +389,7 @@ class Becs(Has_Structure):
         """
 
         Args:
-            becs_arr: (3, 3, natom) array wit the Born effective charges.
+            becs_arr: (3, 3, natom) array with the Born effective charges in Cartesian coordinates.
             structure: Structure object.
             order: "f" if becs_arr is in Fortran order.
         """
@@ -403,6 +402,7 @@ class Becs(Has_Structure):
             mat = becs_arr[i]
             if order == "f": mat = mat.T
             self.becs[i] = mat
+            #self.becs[i] = Tensor.from_cartesian_tensor(mat, structure.lattice, space="r")
 
     @property
     def structure(self):

@@ -54,8 +54,23 @@ class Tensor(object):
     def __ne__(self, other):
         return not self == other
 
-    #def __repr__(self):
-    #def __str__(self):
+    def __repr__(self):
+        lines = []
+        app = lines.append
+        #app("%s at %s" % (self.__class__, id(self)))
+        app("Tensor in %s space. Reference system:" % self.space)
+        app(str(self.lattice))
+        app("")
+        app("Tensor in reduced coordinates:")
+        app(str(self.reduced_tensor))
+        app("")
+        app("Tensor in cartesian coordinates:")
+        app(str(self.cartesian_tensor))
+
+        return "\n".join(lines)
+
+    def __str__(self):
+        return repr(self)
 
     @property
     def lattice(self):
@@ -72,11 +87,11 @@ class Tensor(object):
     @property
     def cartesian_tensor(self):
         mat = self._lattice.matrix
-        return np.dot(np.dot(np.transpose(mat),self._reduced_tensor),mat)
+        return np.dot(np.dot(np.transpose(mat), self._reduced_tensor), mat)
 
     @classmethod
-    def from_cartesian_tensor(cls, cartesian_tensor, lattice,space="r"):
-        red_tensor = from_cart_to_red(cartesian_tensor,lattice)
+    def from_cartesian_tensor(cls, cartesian_tensor, lattice, space="r"):
+        red_tensor = from_cart_to_red(cartesian_tensor, lattice)
         return cls(red_tensor, lattice,space)
 
     def symmetrize(self, structure):
@@ -150,4 +165,4 @@ class SymmetricTensor(Tensor):
                       [red_symm[3],red_symm[1],red_symm[5]],
                       [red_symm[4],red_symm[5],red_symm[2]]]
 
-        return cls(red_tensor,lattice,space)
+        return cls(red_tensor, lattice, space)
