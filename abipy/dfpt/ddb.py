@@ -6,7 +6,7 @@ import os
 import tempfile
 import numpy as np
 
-from monty.collections import AttrDict
+from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from pymatgen.io.abinitio.tasks import AnaddbTask, TaskManager
 from abipy.core.mixins import TextFile, Has_Structure
@@ -247,16 +247,15 @@ class DdbFile(TextFile, Has_Structure):
         with task.open_phbst() as ncfile:
             return ncfile.phbands
 
-    #def anaget_phbands(self, ngqpt=None, ndivsm=20, asr=2, chneut=1, dipdip=1, workdir=None, manager=None, verbose=0, **kwargs):
-    #def anaget_phdos(self, ngqpt=None, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra" workdir=None, manager=None, verbose=0, **kwargs):
-
     def anaget_phbands_and_dos(self, ngqpt=None, ndivsm=20, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra",
-                             workdir=None, manager=None, verbose=0, plot=True):
+                               workdir=None, manager=None, verbose=0, plot=True):
         """
         Execute anaddb to compute the phonon band structure and the phonon DOS
 
         Args:
             ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)
+            nqsmall
+            dos_method
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             workdir: Working directory. If None, a temporary directory is created.
             manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
@@ -288,6 +287,35 @@ class DdbFile(TextFile, Has_Structure):
 
             return phbands, phdos
 
+    #def anaget_phbands(self, ngqpt=None, ndivsm=20, asr=2, chneut=1, dipdip=1, workdir=None, manager=None, verbose=0, **kwargs):
+    #def anaget_phdos(self, ngqpt=None, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra" workdir=None, manager=None, verbose=0, **kwargs):
+
+    def anaconverge_phdos(self): #, nqsmall_slice, tolerance):
+        #from monty.dev import get_ncpus
+        #self.num_cores = get_num_cpus() if num_cores is None else num_cores
+
+        nqsmall_range = [4, 8, 12]
+
+        doses = []
+        for nqsmall in nqsmall_range:
+            phbands, phdos = self.anaget_phbands_and_dos(
+                ngqpt=None, ndivsm=1, nqsmall=nqsmall, asr=2, chneut=1, dipdip=1, dos_method="tetra",
+                workdir=None, manager=None, verbose=0, plot=False)
+
+            doses.append(phdos)
+    
+        # Compare last three phonon DOSes.
+        # Be careful here because the DOS may be defined on different frequency meshes
+        #last_mesh = doses[-1].mesh
+        #converged = False
+        #for dos in doses[:-1]:
+        #    dos = dos.spline_on_mesh(last_mesh)
+        #    diff = dos - doses[-1]
+        #    print(diff)
+        #    diffs.append(diff)
+    
+        #return dict2namedtuple(converged=converged) #, phdos=phdos, nqsmall=nqsmall, plotter=plotter))
+
     def anaget_emacro_and_becs(self, chneut=1, workdir=None, manager=None, verbose=0):
         """
         Call anaddb to compute the macroscopic dielectric tensor and the Born effective charges.
@@ -298,8 +326,7 @@ class DdbFile(TextFile, Has_Structure):
             verbose: verbosity level. Set it to a value > 0 to get more information
 
         Return:
-            emacro: (3, 3) `ndarrary`
-            becs: (3, 3, natom) `ndarray`
+            emacro, becs 
         """
         inp = AnaddbInput(self.structure, anaddb_kwargs={"chneut": chneut})
 
@@ -320,12 +347,8 @@ class DdbFile(TextFile, Has_Structure):
         with ETSF_Reader(os.path.join(task.workdir, "anaddb.nc")) as r:
             structure = r.read_structure()
 
-            # Frac or cart?
-            emacro_cart = r.read_value("emacro_cart")
-            emacro = Tensor.from_cartesian_tensor(emacro_cart, structure.lattice, space="r")
-
-            becs_arr = r.read_value("becs_cart")
-            becs = Becs(becs_arr, structure, order="f")
+            emacro = Tensor.from_cartesian_tensor(r.read_value("emacro_cart"), structure.lattice, space="r"),
+            becs = Becs(r.read_value("becs_cart"), structure, chneut=inp["chneut"], order="f")
 
             return emacro, becs
 
@@ -358,45 +381,47 @@ class DdbFile(TextFile, Has_Structure):
     #    if not report.run_completed:
     #        raise TaskException(task=task, report=report)
 
-    #    def converge_phdos(self, nqsmall_slice):
-    #        from monty.dev import get_ncpus
-    #        self.num_cores = get_num_cpus() if num_cores is None else num_cores
-    #        doses = []
-    #        for nqs in nsmall_range:
-    #           #self.ddb.anaget_phbands_and_dos(ngqpt=None, ndivsm=20, nqsmall=10, workdir=None, manager=self.manager)
-    #           doses.append(phdos)
-    #
-    #        # Compare last three phonon DOSes.
-    #        # Be careful here because the DOS may be defined on different frequency meshes
-    #        last_mesh = doses[-1].mesh
-    #        converged = False
-    #         for dos in doses[:-1]:
-    #            dos = dos.spline_on_mesh(last_mesh)
-    #            diffs.append(dos - doses[-1])
-    #
-    #        if converged:
-    #            return collections.namedtuple("results", "phdos ngsmall plotter")
-    #                (phdos=phdos, nqsmall=nqsmall, plotter=plotter)
-    #        else:
-    #            raise self.Error("Cannot converge the DOS wrt nqsmall")
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
 
 class Becs(Has_Structure):
     """
-    This object stores the Born effective charges and provides analysis tools
+    This object stores the Born effective charges and provides simple tools for data analysis.
     """
-    def __init__(self, becs_arr, structure, order="c"):
+    def __init__(self, becs_arr, structure, chneut, order="c"):
         """
 
         Args:
             becs_arr: (3, 3, natom) array with the Born effective charges in Cartesian coordinates.
             structure: Structure object.
+            chneut: Option used for the treatment of the Charge Neutrality requirement 
+                for the effective charges (anaddb input variable)
             order: "f" if becs_arr is in Fortran order.
         """
         assert len(becs_arr) == len(structure)
         self._structure = structure
+        self.chneut = chneut
 
-        # Here we
         self.becs = np.empty((len(structure), 3, 3))
         for i, bec in enumerate(becs_arr):
             mat = becs_arr[i]
@@ -411,13 +436,10 @@ class Becs(Has_Structure):
     def __repr__(self):
         return self.to_string()
 
-    def __str__(self):
-        return self.to_string()
-
     def to_string(self):
         lines = [str(self.structure)]
         app = lines.append
-        app("")
+        app("Born effective charges computed with chneut: %d" % self.chneut)
 
         for site, bec in zip(self.structure, self.becs):
             # TODO: why PeriodicSite.__str__ does not give the frac_coords?
@@ -430,5 +452,5 @@ class Becs(Has_Structure):
 
     def check_sumrule(self):
         becs_atomsum = self.becs.sum(axis=0)
-        print("Born effective charge neutrality sum-rule:")
-        print(bec_atomsum)
+        print("Born effective charge neutrality sum-rule with chneut: %d" % self.chneut)
+        print(becs_atomsum)

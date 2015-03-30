@@ -439,7 +439,7 @@ class PhononBands(object):
 
     def create_xyz_vib(self, iqpt, filename, pre_factor=200, do_real=True, scale_matrix=None, max_supercell=None):
         """
-        Create vibration XYZ file for visualization of phonons
+        Create vibration XYZ file for visualization of phonons.
 
         Args:
             iqpt: index of qpoint in self
@@ -461,8 +461,8 @@ class PhononBands(object):
                 xyz_file.write(str(natoms) + "\n")
                 xyz_file.write("Mode " + str(imode) + " : " + str(self.phfreqs[iqpt, imode]) + "\n")
                 self.structure.write_vib_file(
-                    xyz_file, self.qpoints[iqpt].frac_coords, pre_factor*np.reshape(self.phdispl_cart[iqpt, imode,:],(-1,3)), do_real=True,
-                    frac_coords=False, max_supercell=max_supercell, scale_matrix=scale_matrix)
+                    xyz_file, self.qpoints[iqpt].frac_coords, pre_factor * np.reshape(self.phdispl_cart[iqpt, imode,:],(-1,3)), 
+                    do_real=True, frac_coords=False, max_supercell=max_supercell, scale_matrix=scale_matrix)
 
     def decorate_ax(self, ax, **kwargs):
         title = kwargs.pop("title", None)
@@ -887,8 +887,7 @@ class PhononDos(object):
         """
         opts = [c.lower() for c in what]
 
-        cases = {"d": self.dos,
-                 "i": self.idos}
+        cases = {"d": self.dos, "i": self.idos}
 
         lines = []
         for c in opts:
@@ -933,12 +932,9 @@ class PhononDos(object):
         """
         Compute thermodinamic properties from the phonon DOS within the harmonic approximation.
 
-        start: scalar
-            The starting value (in Kelvin) of the temperature mesh. 
-        stop: scalar
-            The end value (in Kelvin) of the mesh.
-        num: int, optional
-            Number of samples to generate. Default is 50.
+        start: The starting value (in Kelvin) of the temperature mesh. 
+        stop: The end value (in Kelvin) of the mesh.
+        num: int, optional Number of samples to generate. Default is 50.
         """
         tmesh = np.linspace(tstart, tstop, num=num)
 

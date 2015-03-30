@@ -130,15 +130,11 @@ class SymmetricTensor(Tensor):
         Build a `SymmetricTensor` from the values computed along 6 directions. 
 
         Args:
-            qpoints:
-                fractional coordinates of 6 independent q-directions
-            values:
-                values of (q^T E q)/(q^T q) along the 6 qpoints
-            lattice:
-                `Lattice` object defining the reference system
-            space:
-                "r" if the lattice is a real space lattice
-                "g" if the lattice is a reciprocal space lattice
+            qpoints: fractional coordinates of 6 independent q-directions
+            values: values of (q^T E q)/(q^T q) along the 6 qpoints
+            lattice: `Lattice` object defining the reference system
+            space: "r" if the lattice is a real space lattice
+                   "g" if the lattice is a reciprocal space lattice
         """
         assert len(qpoints) == 6 and len(values) == len(qpoints)
 
@@ -157,9 +153,7 @@ class SymmetricTensor(Tensor):
 
             coeffs_red[iqpt,:] = coeffs_red[iqpt,:] / normqpt_red
 
-
         red_symm = np.linalg.solve(coeffs_red,values)
-
 
         red_tensor = [[red_symm[0],red_symm[3],red_symm[4]],
                       [red_symm[3],red_symm[1],red_symm[5]],
