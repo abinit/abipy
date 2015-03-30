@@ -12,24 +12,25 @@ test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
 
 class DdbTest(AbipyTest):
 
-    def test_ddb_methods(self):
-        """Testing ddb methods"""
+    def test_alas_ddb_1qpt_phonons(self):
+        """Testing DDB with one q-point"""
         ddb_fname = os.path.join(test_dir, "AlAs_1qpt_DDB")
+
         with DdbFile(ddb_fname) as ddb:
             # Test qpoints.
-            self.assert_equal(ddb.qpoints[0], [0.25, 0, 0])
+            assert np.all(ddb.qpoints[0] == [0.25, 0, 0])
+            assert len(ddb.qpoints) == 1
 
             # Test header
             h = ddb.header
             #print(h)
-            assert h.version == 100401
-            self.assert_equal(h.ecut, 3)
-            self.assert_equal(h.occ, 4*[2])
+            assert h.version == 100401 and h.ecut == 3
+            assert h.occ == 4 * [2]
             assert h.xred.shape == (h.natom, 3) and h.kpt.shape == (h.nkpt, 3)
             print(h.znucl)
 
-            self.assert_equal(h.symrel[1].T.ravel(), [0, -1, 1, 0, -1, 0, 1, -1, 0])
-            self.assert_equal(h.symrel[2].T.ravel(), [-1, 0, 0, -1, 0, 1, -1, 1, 0])
+            assert np.all(h.symrel[1].T.ravel() == [0, -1, 1, 0, -1, 0, 1, -1, 0])
+            assert np.all(h.symrel[2].T.ravel() == [-1, 0, 0, -1, 0, 1, -1, 1, 0])
 
             # Test structure
             struct = ddb.structure
@@ -41,12 +42,50 @@ class DdbTest(AbipyTest):
             phbands = ddb.anaget_phmodes_at_qpoint(qpoint=ddb.qpoints[0])
             assert phbands is not None and hasattr(phbands, "phfreqs")
 
+            # Wrong qpoint
             with self.assertRaises(ValueError): 
                 ddb.anaget_phmodes_at_qpoint(qpoint=(0,0,0))
 
-            #ncfile = ddb.get_phbands_and_dos(ngqpt=(4,4,4))
-            #print(ncfile)
+            # Wrong ngqpt
+            with self.assertRaises(ddb.AnaddbError):
+                ddb.anaget_phbands_and_dos(ngqpt=(4,4,4))
 
+            # Cannot compute DOS since we need a mesh.
+            with self.assertRaises(ddb.AnaddbError):
+                ddb.anaget_phbands_and_dos()
+
+    def test_alas_ddb_444_nobecs(self):
+        """Testing DDB for AlAs on a 4x4x4x q-mesh without Born effective charges."""
+        ddb = DdbFile(os.path.join(test_dir, "AlAs_444_nobecs_DDB"))
+        print(ddb.header)
+
+        ref_qpoints = np.reshape([
+                 0.00000000E+00,  0.00000000E+00,  0.00000000E+00,
+                 2.50000000E-01,  0.00000000E+00,  0.00000000E+00,
+                 5.00000000E-01,  0.00000000E+00,  0.00000000E+00,
+                 2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
+                 5.00000000E-01,  2.50000000E-01,  0.00000000E+00,
+                -2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
+                 5.00000000E-01,  5.00000000E-01,  0.00000000E+00,
+                -2.50000000E-01,  5.00000000E-01,  2.50000000E-01,
+                ], (-1, 3))
+
+        assert len(ddb.qpoints) == 8
+        for qpt, ref_qpt in zip(ddb.qpoints, ref_qpoints):
+            assert qpt == ref_qpt
+
+        for qpoint in ddb.qpoints:
+            phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint)
+            assert phbands is not None and hasattr(phbands, "phfreqs")
+
+        assert np.all(ddb.guessed_ngqpt == [4, 4, 4])
+
+        phbands, phdos = ddb.anaget_phbands_and_dos(plot=False)
+
+        c = ddb.anaconverge_phdos(nqsmalls=[2,4,6], num_cpus=None)
+        c.plotter.plot(show=False)
+
+        ddb.close()
 
 if __name__ == "__main__": 
     import unittest

@@ -3,9 +3,9 @@ from __future__ import print_function, division, unicode_literals
 
 import sys
 import functools
-import collections
 import numpy as np
 
+from collections import OrderedDict
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from pymatgen.core.units import Ha_to_eV, eV_to_Ha
@@ -188,7 +188,7 @@ class PhononBands(object):
         # Find the q-point names in the pymatgen database.
         # We'll use _auto_klabels to label the point in the matplotlib plot
         # if qlabels are not specified by the user.
-        _auto_qlabels = collections.OrderedDict()
+        _auto_qlabels = OrderedDict()
         for idx, qpoint in enumerate(self.qpoints):
             name = self.structure.findname_in_hsym_stars(qpoint)
             if name is not None:
@@ -266,7 +266,7 @@ class PhononBands(object):
                 True if the values xys should be added to a pre-existing marker.
         """
         if not hasattr(self, "_markers"):
-            self._markers = collections.OrderedDict()
+            self._markers = OrderedDict()
 
         if extend:
             if key not in self.markers:
@@ -314,7 +314,7 @@ class PhononBands(object):
         width = np.reshape(width, self.shape)
 
         if not hasattr(self, "_widths"):
-            self._widths = collections.OrderedDict()
+            self._widths = OrderedDict()
 
         if key in self.widths:
             raise ValueError("Cannot overwrite key %s in data" % key)
@@ -574,7 +574,7 @@ class PhononBands(object):
     def _make_ticks_and_labels(self, qlabels):
         """Return ticks and labels from the mapping {qred: qstring} given in qlabels."""
         if qlabels is not None:
-            d = collections.OrderedDict()
+            d = OrderedDict()
 
             for qcoord, qname in qlabels.items():
                 # Build Kpoint instancee
@@ -1105,7 +1105,7 @@ class PhdosFile(AbinitNcFile, Has_Structure):
 
     @lazy_property
     def pjdos_type_dict(self):
-        pjdos_type_dict = collections.OrderedDict()
+        pjdos_type_dict = OrderedDict()
         for symbol in self.reader.chemical_symbols:
             #print(symbol, ncdata.typeidx_from_symbol(symbol))
             pjdos_type_dict[symbol] = self.reader.read_pjdos_type(symbol)
@@ -1154,5 +1154,83 @@ class PhdosFile(AbinitNcFile, Has_Structure):
         ax.plot(x, y, lw=2, label="Total PHDOS", color='black')
 
         ax.legend(loc="best")
+
+        return fig
+
+
+class PhononDosPlotter(object):
+    """
+    Class for plotting multiple phonon DOSes.
+    """
+    def __init__(self, *args):
+        self._phdoses_dict = OrderedDict()
+        for label, phdos in args:
+            self.add_dos(label, phdos)
+
+    def add_phdos(self, label, phdos):
+        """
+        Adds a DOS for plotting.
+
+        Args:
+            label: label for the phonon DOS. Must be unique.
+            phdos: :class:`PhononDos` object.
+        """
+        if label in self._phdoses_dict:
+            raise ValueError("label %s is already in %s" % (label, self._phdoses_dict.keys()))
+
+        self._phdoses_dict[label] = phdos
+
+    #def add_phdos_dict(self, dos_dict, key_sort_func=None):
+    #    """
+    #    Add a dictionary of DOSes, with an optional sorting function for the keys.
+
+    #    Args:
+    #        dos_dict: dict of {label: dos}
+    #        key_sort_func: function used to sort the dos_dict keys.
+    #    """
+    #    if key_sort_func:
+    #        keys = sorted(dos_dict.keys(), key=key_sort_func)
+    #    else:
+    #        keys = dos_dict.keys()
+
+    #    for label in keys:
+    #        self.add_dos(label, dos_dict[label])
+
+    @add_fig_kwargs
+    def plot(self, ax=None, *args, **kwargs):
+        """
+        Get a matplotlib plot showing the DOSes.
+
+        Args:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+
+        ==============  ==============================================================
+        kwargs          Meaning
+        ==============  ==============================================================
+        xlim            x-axis limits. None (default) for automatic determination.
+        ylim            y-axis limits.  None (default) for automatic determination.
+        ==============  ==============================================================
+        """
+        ax, fig, plt = get_ax_fig_plt(ax)
+        ax.grid(True)
+
+        xlim = kwargs.pop("xlim", None)
+        if xlim is not None: ax.set_xlim(xlim)
+
+        ylim = kwargs.pop("ylim", None)
+        if ylim is not None: ax.set_ylim(ylim)
+
+        ax.set_xlabel('Energy [eV]')
+        ax.set_ylabel('DOS [states/eV]')
+
+        lines, legends = [], []
+        for (label, dos) in self._phdoses_dict.items():
+            l = dos.plot_ax(ax, *args, **kwargs)[0]
+
+            lines.append(l)
+            legends.append("DOS: %s" % label)
+
+        # Set legends.
+        ax.legend(lines, legends, loc='best', shadow=True)
 
         return fig

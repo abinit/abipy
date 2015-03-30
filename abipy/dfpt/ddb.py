@@ -8,6 +8,7 @@ import numpy as np
 
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
+from monty.dev import get_ncpus
 from pymatgen.io.abinitio.tasks import AnaddbTask, TaskManager
 from abipy.core.mixins import TextFile, Has_Structure
 from abipy.core.symmetries import SpaceGroup
@@ -16,21 +17,26 @@ from abipy.core.kpoints import KpointList
 from abipy.core.tensor import Tensor
 from abipy.iotools import ETSF_Reader
 from abipy.abio.inputs import AnaddbInput
+from abipy.dfpt.phonons import PhononDosPlotter
 
 import logging
 logger = logging.getLogger(__name__)
 
 
-class TaskException(Exception):
+class DdbError(Exception):
+    """Error class raised by DDB."""
+
+
+class AnaddbError(DdbError):
     """
     Exceptions raised when we try to execute :class:`AnaddbTask` in the :class:`DdbFile` methods
 
-    A `TaskException` has a reference to the task and to the :class:`EventsReport` that contains
+    A `AnaddbException` has a reference to the task and to the :class:`EventsReport` that contains
     the error messages of the run.
     """
     def __init__(self, *args, **kwargs):
         self.task, self.report = kwargs.pop("task"), kwargs.pop("report")
-        super(TaskException, self).__init__(*args, **kwargs)
+        super(AnaddbError, self).__init__(*args, **kwargs)
 
     def __str__(self):
         lines = ["\nworkdir = %s" % self.task.workdir]
@@ -48,6 +54,9 @@ class DdbFile(TextFile, Has_Structure):
     This object provides an interface to the DDB file produced by ABINIT
     as well as methods to compute phonon band structures, phonon DOS, thermodinamical properties ...
     """
+    Error = DdbError
+    AnaddbError = AnaddbError
+
     @lazy_property
     def structure(self):
         structure = Structure.from_abivars(**self.header)
@@ -203,6 +212,18 @@ class DdbFile(TextFile, Has_Structure):
         """Dictionary with the parameters that are usually tested for convergence."""
         return {k: v for k, v in self.header.items() if k in ("nkpt", "nsppol", "ecut", "tsmear", "ixc")}
 
+    # TODO
+    # API to understand if the DDB contains the info we are looking for.
+    # NB: This requires a parsing of the dynamical matrix
+    #def has_phonon_terms(self, qpoint)
+    #    """True if the DDB file contains info on the phonon perturnation."""
+
+    #def has_emacro_terms(self)
+    #    """True if the DDB file contains info on the electric-field perturnation."""
+
+    #def has_bec_terms(self)
+    #    """True if the DDB file contains info on the Born effective charges."""
+
     def anaget_phmodes_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, 
                                  workdir=None, manager=None, verbose=0):
         """
@@ -242,7 +263,7 @@ class DdbFile(TextFile, Has_Structure):
         task.start_and_wait(autoparal=False)
         report = task.get_event_report()
         if not report.run_completed:
-            raise TaskException(task=task, report=report)
+            raise self.AnaddbError(task=task, report=report)
 
         with task.open_phbst() as ncfile:
             return ncfile.phbands
@@ -278,7 +299,7 @@ class DdbFile(TextFile, Has_Structure):
 
         report = task.get_event_report()
         if not report.run_completed:
-            raise TaskException(task=task, report=report)
+            raise self.AnaddbError(task=task, report=report)
 
         with task.open_phbst() as phbst_ncfile, task.open_phdos() as phdos_ncfile:
             phbands, phdos = phbst_ncfile.phbands, phdos_ncfile.phdos
@@ -290,31 +311,49 @@ class DdbFile(TextFile, Has_Structure):
     #def anaget_phbands(self, ngqpt=None, ndivsm=20, asr=2, chneut=1, dipdip=1, workdir=None, manager=None, verbose=0, **kwargs):
     #def anaget_phdos(self, ngqpt=None, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra" workdir=None, manager=None, verbose=0, **kwargs):
 
-    def anaconverge_phdos(self): #, nqsmall_slice, tolerance):
-        #from monty.dev import get_ncpus
-        #self.num_cores = get_num_cpus() if num_cores is None else num_cores
+    def anaconverge_phdos(self, nqsmalls, num_cpus=None): 
+        """
 
-        nqsmall_range = [4, 8, 12]
+        Args:
+            nqsmalls: List of integers, each integer defines the number of divisions
+                to be used to sample the smallest reciprocal lattice vector.
+            num_cpus: Number of CPUs (threads) used to parallellize the 
+                calculation of the DOSes. Autodetected if None.
 
-        doses = []
-        for nqsmall in nqsmall_range:
-            phbands, phdos = self.anaget_phbands_and_dos(
+        Return:
+            `namedtuple` with the following attributes:
+
+                phdoses:
+                plotter:
+        """
+        num_cpus = get_ncpus() if num_cpus is None else num_cpus
+        if num_cpus <= 0: num_cpus = 1
+        num_cpus = min(num_cpus, len(nqsmalls))
+        # TODO: threads, anaget_phdos, expose anaddb arguments
+        print("Computing %d phonon DOS with %d threads" % (len(nqsmalls), num_cpus) )
+
+        phdoses = []
+        for nqsmall in nqsmalls:
+            _, phdos = self.anaget_phbands_and_dos(
                 ngqpt=None, ndivsm=1, nqsmall=nqsmall, asr=2, chneut=1, dipdip=1, dos_method="tetra",
                 workdir=None, manager=None, verbose=0, plot=False)
+    
+            phdoses.append(phdos)
+    
+        # Compute wrt last phonon DOS. Be careful because the DOSes may be defined 
+        # on different frequency meshes ==> spline on the mesh of the last DOS. 
+        last_mesh, converged = phdoses[-1].mesh, False
+        for phdos in phdoses[:-1]:
+            splined_dos = phdos.spline_on_mesh(last_mesh)
+            diff = splined_dos - phdoses[-1]
+            print("int diff:", diff.integral().values[-1])
 
-            doses.append(phdos)
-    
-        # Compare last three phonon DOSes.
-        # Be careful here because the DOS may be defined on different frequency meshes
-        #last_mesh = doses[-1].mesh
-        #converged = False
-        #for dos in doses[:-1]:
-        #    dos = dos.spline_on_mesh(last_mesh)
-        #    diff = dos - doses[-1]
-        #    print(diff)
-        #    diffs.append(diff)
-    
-        #return dict2namedtuple(converged=converged) #, phdos=phdos, nqsmall=nqsmall, plotter=plotter))
+        # Fill the plotter.
+        plotter = PhononDosPlotter()
+        for nqsmall, phdos in zip(nqsmalls, phdoses):
+            plotter.add_phdos(label="nqsmall %d" % nqsmall, phdos=phdos)
+
+        return dict2namedtuple(phdoses=phdoses, plotter=plotter)
 
     def anaget_emacro_and_becs(self, chneut=1, workdir=None, manager=None, verbose=0):
         """
@@ -341,7 +380,7 @@ class DdbFile(TextFile, Has_Structure):
 
         report = task.get_event_report()
         if not report.run_completed:
-            raise TaskException(task=task, report=report)
+            raise self.AnaddbError(task=task, report=report)
 
         # Read data from the netcdf output file produced by anaddb.
         with ETSF_Reader(os.path.join(task.workdir, "anaddb.nc")) as r:
@@ -379,29 +418,7 @@ class DdbFile(TextFile, Has_Structure):
 
     #    report = task.get_event_report()
     #    if not report.run_completed:
-    #        raise TaskException(task=task, report=report)
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    #        raise self.AnaddbError(task=task, report=report)
 
 
 class Becs(Has_Structure):

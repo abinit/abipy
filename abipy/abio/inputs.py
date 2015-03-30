@@ -1110,10 +1110,15 @@ class AnaddbInput(AbstractInput, Has_Structure):
         new = cls(structure, comment="ANADB input for phonon frequencies at one q-point", 
                   anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
 
-        #print(qpoint)
-        qpoint = np.array(qpoint)
-        #print(type(qpoint), qpoint.shape)
-        assert len(qpoint) == 3
+        # We need a numpy array.
+        if hasattr(qpoint, "frac_coords"):
+            qpoint = qpoint.frac_coords
+        else:
+            qpoint = np.array(qpoint)
+
+        if len(qpoint) != 3:
+            print(type(qpoint), qpoint.shape)
+            raise ValueError("Wrong q-point %s" % qpoint)
 
         new.set_vars(
             ifcflag=1,        # Interatomic force constant flag

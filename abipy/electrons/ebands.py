@@ -30,6 +30,7 @@ __all__ = [
     "ElectronBandsPlotter",
     "ElectronDosPlotter",
     "ElectronsReader",
+# TODO Rename it, use camel case
     "ElectronDOS",
     "ElectronDOSPlotter",
 ]
@@ -1744,8 +1745,10 @@ class ElectronDosPlotter(object):
     #_LINE_STYLES = ["-",":","--","-.",]
     #_LINE_WIDTHS = [2,]
 
-    def __init__(self):
+    def __init__(self, *args):
         self._edoses_dict = OrderedDict()
+        for label, dos in args:
+            self.add_edos(label, dos)
 
     #def iter_lineopt(self):
     #    """Generates style options for lines."""
@@ -1764,7 +1767,7 @@ class ElectronDosPlotter(object):
 
     def add_edos_from_file(self, filepath, label=None, method="gaussian", step=0.1, width=0.2):
         """
-        Adds a dos for plotting. Reads data from a Netcd file
+        Adds a dos for plotting. Reads data from a Netcdf file
         """
         from abipy.abilab import abiopen
         with abiopen(filepath) as ncfile:
@@ -2121,7 +2124,7 @@ class ElectronDOS(object):
 
 class ElectronDOSPlotter(object):
     """
-    Class for plotting DOSes.
+    Class for plotting multiple electron DOSes.
     """
     def __init__(self):
         self._doses = OrderedDict()
@@ -2131,8 +2134,8 @@ class ElectronDOSPlotter(object):
         Adds a DOS for plotting.
 
         Args:
-            label: label for the MDF. Must be unique.
-            dos: :class:`MacroscopicDielectricFunction` object.
+            label: label for the DOS. Must be unique.
+            dos: :class:`ElectroDos` object.
         """
         if label in self._doses:
             raise ValueError("label %s is already in %s" % (label, self._doses.keys()))
