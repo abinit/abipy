@@ -311,7 +311,7 @@ class DdbFile(TextFile, Has_Structure):
     #def anaget_phbands(self, ngqpt=None, ndivsm=20, asr=2, chneut=1, dipdip=1, workdir=None, manager=None, verbose=0, **kwargs):
     #def anaget_phdos(self, ngqpt=None, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra" workdir=None, manager=None, verbose=0, **kwargs):
 
-    def anaconverge_phdos(self, nqsmalls, num_cpus=None): 
+    def anaconmpare_phdos(self, nqsmalls, num_cpus=None): 
         """
 
         Args:

@@ -101,8 +101,14 @@ class Robot(object):
         s = "\n".join(["%s --> %s" % (label, ncfile.filepath) for label, ncfile in self])
         stream.write(s)
 
-    def __str__(self):
+    def __repr__(self):
         return "%s with %d files in memory" % (self.__class__.__name__, len(self.ncfiles))
+
+    def __str__(self):
+        lines = repr(self)
+        for i, f in enumerate(self.ncfiles):
+            lines.append("\t[%d]  %s" % (i, f.filepath))
+        return "\n".join(lines)
 
     @property
     def ncfiles(self):

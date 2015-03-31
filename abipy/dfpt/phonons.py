@@ -839,7 +839,6 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands):
                           structure=self.structure)
 
 
-#class PhononDos(object):
 class PhononDos(Function1D):
     """
     This object stores the phonon density of states.
@@ -929,8 +928,8 @@ class PhononDos(Function1D):
         """
         Compute thermodinamic properties from the phonon DOS within the harmonic approximation.
 
-        start: The starting value (in Kelvin) of the temperature mesh. 
-        stop: The end value (in Kelvin) of the mesh.
+        tstart: The starting value (in Kelvin) of the temperature mesh. 
+        tstop: The end value (in Kelvin) of the mesh.
         num: int, optional Number of samples to generate. Default is 50.
         """
         tmesh = np.linspace(tstart, tstop, num=num)
@@ -976,7 +975,7 @@ class HarmonicThermo(AttrDict):
     This object gather the thermodinamic properties computed within the harmonic approximation.
     It also provides methods to plot the data and to compare two calculations.
     """
-    latex_labels = dict(
+    LATEX_LABELS = dict(
         df="$\Delta F(T)$",
         de="$\Delta E(T)$",
         cv="$C_{v}(T)$",
@@ -993,29 +992,29 @@ class HarmonicThermo(AttrDict):
         for (name, func), ax in zip(self.items(), ax_list):
             func.plot_ax(ax)
             ax.grid(True)
-            ax.set_xlabel('Temperature ')
-            ax.set_ylabel(self.latex_labels[name])
+            ax.set_xlabel('Temperature')
+            ax.set_ylabel(self.LATEX_LABELS[name])
 
         return fig
 
-    def compare(self, other, tol=0.1, ret_diffs=False):
-        """
-        Compare two :class:`HarmonicThermo` objects
+    #def compare(self, other, tol=0.1, ret_diffs=False):
+    #    """
+    #    Compare two :class:`HarmonicThermo` objects
 
-        Returns: 
-            (isok, diffs) 
-            where isok is True if all values are converged withing tol 
-            and diffs is a :class:`AttrDict`that gives, for each property the  l2 norm of (f1 - f2)
-        """
-        # TODO: Relative diff or absolute diff?
-        diffs, isok = AttrDict(), True
-        for name, self_func in self.items():
-            other_func = other[name]
-            diffs[name] = (self_func - other_func).l2_norm
-            if diffs[name] > tol: isok = False
+    #    Returns: 
+    #        (iseq, diffs) 
+    #        where iseq is True if all values are converged withing tol 
+    #        and diffs is a :class:`AttrDict`that gives, for each property the  l2 norm of (f1 - f2)
+    #    """
+    #    # TODO: Relative diff or absolute diff?
+    #    diffs, iseq = AttrDict(), True
+    #    for name, self_func in self.items():
+    #        other_func = other[name]
+    #        diffs[name] = (self_func - other_func).l2_norm
+    #        if diffs[name] > tol: iseq = False
 
-        if ret_diffs: return isok, diffs
-        return isok
+    #    if ret_diffs: return iseq, diffs
+    #    return iseq
 
 
 class PhdosReader(ETSF_Reader):

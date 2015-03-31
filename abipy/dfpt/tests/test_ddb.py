@@ -10,6 +10,7 @@ from abipy.dfpt.ddb import DdbFile
 
 test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
 
+
 class DdbTest(AbipyTest):
 
     def test_alas_ddb_1qpt_phonons(self):
@@ -25,6 +26,7 @@ class DdbTest(AbipyTest):
             h = ddb.header
             #print(h)
             assert h.version == 100401 and h.ecut == 3
+            assert "ecut" in h and h["ecut"] == h.ecut
             assert h.occ == 4 * [2]
             assert h.xred.shape == (h.natom, 3) and h.kpt.shape == (h.nkpt, 3)
             print(h.znucl)
@@ -80,10 +82,18 @@ class DdbTest(AbipyTest):
 
         assert np.all(ddb.guessed_ngqpt == [4, 4, 4])
 
+        # Get bands and Dos
         phbands, phdos = ddb.anaget_phbands_and_dos(plot=False)
-        assert phdos.idos[-1] = 3 * len(ddb.structure)
+        print(phbands)
+        print(phdos)
 
-        c = ddb.anaconverge_phdos(nqsmalls=[2,4,6], num_cpus=None)
+        # Thermodinamics in the Harmonic approximation
+        harmo = phdos.get_harmonic_thermo(tstart=10, tstop=50)
+        harmo.plot(show=False)
+
+        self.assert_almost_equal(phdos.idos.values[-1], 3 * len(ddb.structure), decimal=1)
+
+        c = ddb.anacompare_phdos(nqsmalls=[2, 4, 6], num_cpus=None)
         c.plotter.plot(show=False)
 
         ddb.close()
