@@ -1,7 +1,7 @@
 from __future__ import division, print_function, unicode_literals
 
 import numpy as np
-import abipy.data as data
+import abipy.data as abidata
 import abipy.core
 
 from pprint import pprint
@@ -13,7 +13,7 @@ class GSRReaderTestCase(AbipyTest):
 
     def test_read_Si2(self):
         """Test the reading of GSR file."""
-        path = data.ref_file("si_scf_GSR.nc")
+        path = abidata.ref_file("si_scf_GSR.nc")
 
         ref_dims = {
             "number_of_spins": 1
@@ -66,11 +66,11 @@ class GSRFileTestCase(AbipyTest):
         """spin unpolarized GSR file"""
         almost_equal = self.assertAlmostEqual
 
-        with GsrFile(data.ref_file("si_scf_GSR.nc")) as gsr:
+        with GsrFile(iabidata.ref_file("si_scf_GSR.nc")) as gsr:
             print(repr(gsr))
             print(gsr)
             print(gsr.ebands)
-            assert gsr.filepath == data.ref_file("si_scf_GSR.nc")
+            assert gsr.filepath == abidata.ref_file("si_scf_GSR.nc")
             assert gsr.nsppol == 1 
             assert gsr.mband == 8 and gsr.nband == 8 and gsr.nelect == 8 and len(gsr.kpoints) == 29
             almost_equal(gsr.energy.to("Ha"), -8.86527676798556)

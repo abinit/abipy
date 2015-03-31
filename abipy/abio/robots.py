@@ -10,14 +10,15 @@ import pandas as pd
 from collections import OrderedDict, deque 
 from monty.string import is_string
 from monty.functools import lazy_property
+from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from pymatgen.io.abinitio.eos import EOS
 from pymatgen.io.abinitio.flows import Flow
 from pymatgen.io.abinitio.netcdf import NetcdfReaderError
 
 
-__all__ = [
-    "abirobot",
-]
+#__all__ = [
+#    "abirobot",
+#]
 
 
 def abirobot(obj, ext, nids=None):
@@ -71,11 +72,93 @@ class Robot(object):
         for label, ncfile in args:
             self.add_file(label, ncfile)
 
+    @classmethod
+    def for_ext(cls, ext):
+        """Return the Robot subclass associated to the given extension."""
+        for subcls in cls.__subclasses__():
+            if subcls.EXT in (ext, ext.upper()): 
+                return subcls
+
+        raise ValueError("Cannot find Robot subclass associated to extension %s\n" % ext + 
+                         "The list of supported extensions is:\n%s" %
+                         [cls.EXT for cls in Robot.__subclasses__()])
+
+    @classmethod
+    def from_flow(cls, flow, outdirs="all", nids=None):
+        """
+
+        Args:
+            flow: :class:`Flow` object
+            outdirs: String used to select/ignore the files in the output directory of flow, works and tasks
+                e.g. outdirs="work" selects only the outdir of the Works,
+                     outdirs="flow+task" selects the outdir of the Flow and the outdirs of the tasks
+                     outdirs="-work" excludes the outdir of the Works.
+                     Cannot use `+` and `-` flags in the same string.
+                     Default: `all` that is equivalent to "flow+work+task"
+            nids: List of node identifiers used to select particular nodes. Not used if None
+
+        Returns:
+            `Robot` subclass.
+        """
+        robot = cls()
+        all = ["flow", "work", "task"]
+    
+        if outdirs == "all":
+            tokens = all
+        elif "+" in outdirs:
+            assert "-" not in outdirs
+            tokens = outdirs.split("+")
+        elif "-" in outdirs:
+            assert "+" not in outdirs
+            tokens = [s for s in all if s not in outdirs.split("-")]
+
+        if not all(t in all for t in tokens):
+            raise ValueError("Wrong outdirs string %s" % outdirs)
+
+        if "flow" in tokens:
+            robot.add_extfile_of_node(flow, nids=nids)
+
+        if "work" in tokens:
+            for work in flow:
+                robot.add_extfile_of_node(work, nids=nids)
+
+        if "task" in tokens:
+            for task in flow.iflat_tasks():
+                robot.add_extfile_of_node(task, nids=nids)
+
+        return robot
+
+    def add_extfile_of_node(self, node, nids=None):
+        """Add the file produced by this node to the robot."""
+        if nids and node.node_id in nids: return 
+        filepath = node.outdir.has_abiext(self.EXT)
+        if filepath:
+            try:
+                label = os.path.relpath(filepath)
+            except OSError:
+                # current working directory may not be defined!
+                label = filepath
+
+            self.add_file(label, filepath)
+
     def add_file(self, label, ncfile):
+        """
+        Add a file to the robot with the given label.
+
+        Args:
+            label: String used to identify the file (must be unique, ax exceptions is 
+                raised if label is already present.
+            ncfile:
+                Speccify the file to be added. Accepts strings (filepath) or abipy 
+                file-like objects.
+        """
         if is_string(ncfile):
             from abipy.abilab import abiopen
             ncfile = abiopen(ncfile)
             self._do_close[ncfile.filepath] = True
+
+        if label in self._ncfiles:
+            raise ValueError("label %s is already present!")
 
         self._ncfiles[label] = ncfile
 
@@ -83,6 +166,9 @@ class Robot(object):
     def exceptions(self):
         """List of exceptions."""
         return self._exceptions
+
+    def __len__(self):
+        return len(self._ncfiles)
 
     def __iter__(self):
         return iter(self._ncfiles.items())
@@ -105,9 +191,9 @@ class Robot(object):
         return "%s with %d files in memory" % (self.__class__.__name__, len(self.ncfiles))
 
     def __str__(self):
-        lines = repr(self)
+        lines = [repr(self)]
         for i, f in enumerate(self.ncfiles):
-            lines.append("\t[%d]  %s" % (i, f.filepath))
+            lines.append("\t[%d]  %s" % (i, f.relpath))
         return "\n".join(lines)
 
     @property
@@ -161,12 +247,12 @@ class Robot(object):
 
         new = cls(*items)
         # Save a reference to the initial object so that we can reload it if needed
-        new._initial_object = obj
+        #new._initial_object = obj
         return new
 
-    def reload(self):
-        """Reload data. Return new :class:`Robot` object."""
-        return self.__class__.open(self._initial_object)
+    #def reload(self):
+    #    """Reload data. Return new :class:`Robot` object."""
+    #    return self.__class__.open(self._initial_object)
 
     @staticmethod
     def _get_geodict(structure):
@@ -386,6 +472,7 @@ class MdfRobot(Robot):
 
         return pd.DataFrame(rows, index=row_names, columns=rows[0].keys())
 
+    @add_fig_kwargs
     def plot_conv_mdf(self, hue, mdf_type="exc_mdf", **kwargs):
         import matplotlib.pyplot as plt
         frame = self.get_dataframe()
@@ -401,7 +488,6 @@ class MdfRobot(Robot):
             for mdf in mdfs:
                 mdf.plot_ax(ax)
 
-        plt.show()
         return fig
 
 

@@ -2,10 +2,12 @@
 """DDB File."""
 from __future__ import print_function, division, unicode_literals
 
+import sys
 import os
 import tempfile
 import numpy as np
 
+from six.moves import map, zip, StringIO
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.dev import get_ncpus
@@ -203,7 +205,6 @@ class DdbFile(TextFile, Has_Structure):
         smalls[smalls == 0] = 1
         ngqpt = np.rint(1 / smalls)
         ngqpt[ngqpt == 0] = 1
-        #print("smalls: ", smalls, "ngqpt", ngqpt)
 
         return np.array(ngqpt, dtype=np.int)
 
@@ -308,8 +309,10 @@ class DdbFile(TextFile, Has_Structure):
 
             return phbands, phdos
 
-    #def anaget_phbands(self, ngqpt=None, ndivsm=20, asr=2, chneut=1, dipdip=1, workdir=None, manager=None, verbose=0, **kwargs):
-    #def anaget_phdos(self, ngqpt=None, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra" workdir=None, manager=None, verbose=0, **kwargs):
+    #def anaget_phbands(self, ngqpt=None, ndivsm=20, asr=2, chneut=1, dipdip=1, 
+    #                   workdir=None, manager=None, verbose=0, **kwargs):
+    #def anaget_phdos(self, ngqpt=None, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra" 
+    #                 workdir=None, manager=None, verbose=0, **kwargs):
 
     def anaconmpare_phdos(self, nqsmalls, num_cpus=None): 
         """
@@ -422,9 +425,7 @@ class DdbFile(TextFile, Has_Structure):
 
 
 class Becs(Has_Structure):
-    """
-    This object stores the Born effective charges and provides simple tools for data analysis.
-    """
+    """This object stores the Born effective charges and provides simple tools for data analysis."""
     def __init__(self, becs_arr, structure, chneut, order="c"):
         """
 
@@ -465,9 +466,14 @@ class Becs(Has_Structure):
             app(str(bec))
             app("")
 
+        # Add info on bec sum rule.
+        stream = StringIO()
+        self.check_sumrule(stream=stream)
+        app(stream.getvalue())
+
         return "\n".join(lines)
 
-    def check_sumrule(self):
+    def check_sumrule(self, stream=sys.stdout):
         becs_atomsum = self.becs.sum(axis=0)
-        print("Born effective charge neutrality sum-rule with chneut: %d" % self.chneut)
-        print(becs_atomsum)
+        stream.write("Born effective charge neutrality sum-rule with chneut: %d" % self.chneut)
+        stream.write(becs_atomsum)

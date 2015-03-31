@@ -131,15 +131,15 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
 
     @abc.abstractproperty
     def vars(self):
-        pass
+        """Dictionary with the input variables. Used to implement dict-like interface."""
 
     @abc.abstractmethod
     def _check_varname(self, key):
-        pass
+        """Check if key is a valid name. Raise self.Error if not valid."""
 
     @abc.abstractmethod
     def to_string(self):
-        pass
+        """Returns a string with the input."""
 
 
 
@@ -643,7 +643,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
 
     def make_bec_inputs(self, tolerance=None):
         """
-        Return inputs for the calculation of the Bron effective charges.
+        Return inputs for the calculation of the Born effective charges.
 
         This functions should be called with an input the represents a gs run.
         """

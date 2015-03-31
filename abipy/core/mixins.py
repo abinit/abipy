@@ -56,6 +56,15 @@ class _File(object):
         return self._filepath
 
     @property
+    def relpath(self):
+        """Relative path."""
+        try:
+            return os.path.relpath(self.filepath)
+        except OSError:
+            # current working directory may not be defined!
+            return self.filepath
+
+    @property
     def basename(self):
         """Basename of the file."""
         return os.path.basename(self.filepath)

@@ -55,22 +55,27 @@ class Tensor(object):
         return not self == other
 
     def __repr__(self):
-        lines = []
-        app = lines.append
-        #app("%s at %s" % (self.__class__, id(self)))
-        app("Tensor in %s space. Reference system:" % self.space)
-        app(str(self.lattice))
-        app("")
-        app("Tensor in reduced coordinates:")
-        app(str(self.reduced_tensor))
-        app("")
-        app("Tensor in cartesian coordinates:")
-        app(str(self.cartesian_tensor))
-
-        return "\n".join(lines)
+        return self.to_string() 
 
     def __str__(self):
         return repr(self)
+
+    def to_string(self, with_reduced=False):
+        lines = []
+        app = lines.append
+
+        app("Tensor in %s space. Reference system:" % self.space)
+        app("")
+        app("Cartesian coordinates:")
+        app(str(self.cartesian_tensor))
+
+        if with_reduced:
+            app("")
+            app(str(self.lattice))
+            app("Reduced coordinates:")
+            app(str(self.reduced_tensor))
+
+        return "\n".join(lines)
 
     @property
     def lattice(self):
