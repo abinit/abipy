@@ -359,6 +359,11 @@ Specify the files to open. Possible choices:
                             help="Type of network plot. Possible values: `status`, `network`")
     p_networkx.add_argument('--edge-labels', action="store_true", default=False, help="Show edge labels")
 
+    p_listext = subparsers.add_parser('listext', parents=[copts_parser], 
+                                     help="List all the output files with the given extension that have been produced by the nodes of the flow.")
+
+    p_listext.add_argument('listext', help="Abinit file extension. e.g DDB, GSR, WFK etc")
+
     # Parse command line.
     try:
         options = parser.parse_args()
@@ -877,6 +882,9 @@ Specify the files to open. Possible choices:
     elif options.command == "networkx":
         flow.plot_networkx(mode=options.nxmode, 
                            with_edge_labels=options.edge_labels)
+
+    elif options.command == "listext":
+        flow.listext(options.listext)
 
     else:
         raise RuntimeError("Don't know what to do with command %s!" % options.command)
