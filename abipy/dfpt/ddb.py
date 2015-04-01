@@ -104,12 +104,12 @@ class DdbFile(TextFile, Has_Structure):
                 try:
                     float(tokens[0])
                     parse = float if "." in tokens[0] else int
-                    keyvals[-1][1].extend(map(parse, tokens))
+                    keyvals[-1][1].extend(list(map(parse, tokens)))
                 except ValueError:
                     # We have a new key
                     key = tokens.pop(0)
                     parse = float if "." in tokens[0] else int
-                    keyvals.append((key, map(parse, tokens)))
+                    keyvals.append((key, list(map(parse, tokens))))
 
         h = AttrDict(version=version)
         for key, value in keyvals:
@@ -474,6 +474,6 @@ class Becs(Has_Structure):
         return "\n".join(lines)
 
     def check_sumrule(self, stream=sys.stdout):
-        becs_atomsum = self.becs.sum(axis=0)
         stream.write("Born effective charge neutrality sum-rule with chneut: %d" % self.chneut)
-        stream.write(becs_atomsum)
+        becs_atomsum = self.becs.sum(axis=0)
+        stream.write(str(becs_atomsum))

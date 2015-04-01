@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 from collections import OrderedDict, deque 
-from monty.string import is_string
+from monty.string import is_string, list_strings
 from monty.functools import lazy_property
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from pymatgen.io.abinitio.eos import EOS
@@ -101,18 +101,20 @@ class Robot(object):
             `Robot` subclass.
         """
         robot = cls()
-        all = ["flow", "work", "task"]
+        all_opts = ["flow", "work", "task"]
     
         if outdirs == "all":
-            tokens = all
+            tokens = all_opts
         elif "+" in outdirs:
             assert "-" not in outdirs
             tokens = outdirs.split("+")
         elif "-" in outdirs:
             assert "+" not in outdirs
             tokens = [s for s in all if s not in outdirs.split("-")]
+        else:
+            tokens = list_strings(outdirs)
 
-        if not all(t in all for t in tokens):
+        if not all(t in all_opts for t in tokens):
             raise ValueError("Wrong outdirs string %s" % outdirs)
 
         if "flow" in tokens:

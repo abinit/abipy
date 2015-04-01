@@ -282,12 +282,13 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
         except AttributeError:
             return False
 
-    def to_string(self, sortmode="section", post=None, with_structure=True, with_pseudos=True):
+    def to_string(self, sortmode="section", post=None, with_mnemonics=False, with_structure=True, with_pseudos=True):
         """
         String representation.
 
         Args:
             sortmode: "a" for alphabetical order, None if no sorting is wanted
+            with_mnemonics: True if mnemonics should be added.
             post: String that will be appended to the name of the variables
                 Note that post is usually autodetected when we have multiple datatasets
                 It is mainly used when we have an input file with a single dataset
@@ -305,7 +306,10 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
 
         post = post if post is not None else ""
 
-        if self.mnemonics or sortmode == "section": 
+        mnemonics = self.mnemonics
+        if with_mnemonics: mnemonics = with_mnemonics
+
+        if mnemonics or sortmode == "section": 
             var_database = get_abinit_variables()
 
         if sortmode in (None, "a"):
@@ -319,7 +323,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
                 items.extend(list(self.structure.to_abivars().items()))
 
             for name, value in items:
-                if self.mnemonics:
+                if mnemonics:
                     app("# <" + var_database[name].definition + ">")
 
                 # Build variable, convert to string and append it
@@ -337,7 +341,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
                 app(w * "#")
                 for name in names:
                     value = self[name]
-                    if self.mnemonics:
+                    if mnemonics:
                         app("# <" + var_database[name].definition + ">")
 
                     # Build variable, convert to string and append it
@@ -348,6 +352,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
                 app("#" + ("STRUCTURE").center(w - 1))
                 app(w * "#")
                 for name, value in self.structure.to_abivars().items():
+                    if mnemonics:
+                        app("# <" + var_database[name].definition + ">")
                     app(str(InputVariable(name + post, value)))
 
         else:
