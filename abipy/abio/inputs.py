@@ -536,7 +536,12 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
 
         varnames, values = items[:i], items[i:]
         if len(varnames) != len(values):
+            print(varnames, values)
             raise self.Error("The number of variables must equal the number of lists")
+
+        # TODO: group varnames and varvalues!
+        #varnames = [t[0] for t in items]
+        #values = [t[1] for t in items]
 
         varnames = [ [varnames[i]] * len(values[i]) for i in range(len(values))]
         varnames = itertools.product(*varnames)
@@ -547,6 +552,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
             inp = self.deepcopy()
             inp.set_vars(**{k: v for k, v in zip(names, values)})
             inps.append(inp)
+
         return inps
 
     def new_with_decorators(self, decorators):
@@ -589,7 +595,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
         # TODO: Should propagate info on symmetries.
         # use time-reversal if Gamma
         kptopt = 3
-        if all(q == 0 for q in qpt): kptopt == 2
+        if np.allclose(qpt, 0): kptopt = 2
 
         for pert, ph_input in zip(perts, ph_inputs):
             # TODO this will work for phonons, but not for the other types of perturbations.

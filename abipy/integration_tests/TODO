@@ -51,3 +51,5 @@ TODO LIST:
  
  # Should check if fourier_interp in Abinit gets called in ioarr if we don't use paral_kgb==1 (likely due to 
    accesswff branches)
+
+ # Add option max_num_launchers in scheduler.yml

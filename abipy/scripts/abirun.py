@@ -361,8 +361,7 @@ Specify the files to open. Possible choices:
 
     p_listext = subparsers.add_parser('listext', parents=[copts_parser], 
                                      help="List all the output files with the given extension that have been produced by the nodes of the flow.")
-
-    p_listext.add_argument('listext', help="Abinit file extension. e.g DDB, GSR, WFK etc")
+    p_listext.add_argument('listexts', nargs="+", help="List of Abinit file extensions. e.g DDB, GSR, WFK etc")
 
     # Parse command line.
     try:
@@ -884,7 +883,9 @@ Specify the files to open. Possible choices:
                            with_edge_labels=options.edge_labels)
 
     elif options.command == "listext":
-        flow.listext(options.listext)
+        for ext in options.listexts:
+            flow.listext(ext)
+            print("")
 
     else:
         raise RuntimeError("Don't know what to do with command %s!" % options.command)

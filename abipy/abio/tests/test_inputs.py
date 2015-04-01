@@ -122,6 +122,7 @@ class TestAbinitInput(AbipyTest):
         assert len(ranginps) == 2 and (ranginps[0]["ecut"] == 3 and (ranginps[-1]["ecut"] == 4))
 
         prod_inps = inp.product("ngkpt", "tsmear", [[2,2,2], [4,4,4]], [0.1, 0.2, 0.3])
+        #prod_inps = inp.product([("ngkpt", [[2,2,2], [4,4,4]]), ("tsmear", [0.1, 0.2, 0.3])])
         assert len(prod_inps) == 6 
         assert prod_inps[0]["ngkpt"] == [2,2,2] and prod_inps[0]["tsmear"] == 0.1
         assert prod_inps[-1]["ngkpt"] ==  [4,4,4] and prod_inps[-1]["tsmear"] == 0.3
@@ -196,7 +197,7 @@ class TestAbinitInput(AbipyTest):
         with self.assertRaises(gs_inp.Error):
             ddk_inputs = gs_inp.make_ddk_inputs(tolerance={"tolfoo": 1e10})
 
-        phg_inputs = gs_inp.make_ph_inputs_qpoint(qpt=(0,0,0), tolerance=None)
+        phg_inputs = gs_inp.make_ph_inputs_qpoint(qpt=(0, 0, 0), tolerance=None)
         print("phonon inputs at Gamma\n", phg_inputs)
         assert len(phg_inputs) == 2
         assert np.all(phg_inputs[0]["rfatpol"] == [1, 1])
