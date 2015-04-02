@@ -215,7 +215,7 @@ class DdbFile(TextFile, Has_Structure):
 
     # TODO
     # API to understand if the DDB contains the info we are looking for.
-    # NB: This requires a parsing of the dynamical matrix
+    # NB: This requires the parsing of the dynamical matrix
     #def has_phonon_terms(self, qpoint)
     #    """True if the DDB file contains info on the phonon perturnation."""
 
@@ -269,16 +269,19 @@ class DdbFile(TextFile, Has_Structure):
         with task.open_phbst() as ncfile:
             return ncfile.phbands
 
-    def anaget_phbands_and_dos(self, ngqpt=None, ndivsm=20, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra",
+    def anaget_phbands_and_dos(self, nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra", ngqpt=None, 
                                workdir=None, manager=None, verbose=0, plot=True):
         """
         Execute anaddb to compute the phonon band structure and the phonon DOS
 
         Args:
-            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)
-            nqsmall
-            dos_method
+            nqsmall: Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions 
+                used to sample the smallest lattice vector.
+            ndivsm: Number of division used for the smallest segment of the q-path
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
+                In the later case, the value 0.001 eV is used as gaussian broadening
+            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)
             workdir: Working directory. If None, a temporary directory is created.
             manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information
@@ -311,45 +314,84 @@ class DdbFile(TextFile, Has_Structure):
 
     #def anaget_phbands(self, ngqpt=None, ndivsm=20, asr=2, chneut=1, dipdip=1, 
     #                   workdir=None, manager=None, verbose=0, **kwargs):
+
     #def anaget_phdos(self, ngqpt=None, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra" 
     #                 workdir=None, manager=None, verbose=0, **kwargs):
 
-    def anaconmpare_phdos(self, nqsmalls, num_cpus=None): 
+    def anacompare_phdos(self, nqsmalls, asr=2, chneut=1, dipdip=1, dos_method="tetra", ngqpt=None, num_cpus=None): 
         """
-
         Args:
             nqsmalls: List of integers, each integer defines the number of divisions
                 to be used to sample the smallest reciprocal lattice vector.
+            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
+                In the later case, the value 0.001 eV is used as gaussian broadening
+            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)
             num_cpus: Number of CPUs (threads) used to parallellize the 
                 calculation of the DOSes. Autodetected if None.
 
         Return:
             `namedtuple` with the following attributes:
 
-                phdoses:
-                plotter:
+                phdoses: List of :class:`PhononDos` objects
+                plotter: :class:`PhononDosPlotter` object. Use plotter.plot() to visualize the results.
         """
         num_cpus = get_ncpus() if num_cpus is None else num_cpus
         if num_cpus <= 0: num_cpus = 1
         num_cpus = min(num_cpus, len(nqsmalls))
-        # TODO: threads, anaget_phdos, expose anaddb arguments
+
         print("Computing %d phonon DOS with %d threads" % (len(nqsmalls), num_cpus) )
+
+        # Sequential version
+        #if num_cpus == 1:
 
         phdoses = []
         for nqsmall in nqsmalls:
             _, phdos = self.anaget_phbands_and_dos(
-                ngqpt=None, ndivsm=1, nqsmall=nqsmall, asr=2, chneut=1, dipdip=1, dos_method="tetra",
-                workdir=None, manager=None, verbose=0, plot=False)
-    
+                nqsmall=nqsmall, ndivsm=1, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, ngqpt=ngqpt, plot=False)
             phdoses.append(phdos)
+
+        #else:
+        #    # TODO: threads, anaget_phdos, expose anaddb arguments
+        #    phdoses = [None] * len(nqsmalls)
+
+        #    def do_work(nqsmall):
+        #        _, phdos = self.anaget_phbands_and_dos(
+        #            nqsmall=nqsmall, ndivsm=1, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, ngqpt=ngqpt, plot=False)
+        #        return phdos
+
+        #    def worker():
+        #        while True:
+        #            nqsm, phdos_index = q.get()
+        #            phdos = do_work(nqsm)
+        #            phdoses[phdos_index] = phdos
+        #            q.task_done()
+
+        #    from threading import Thread
+        #    try:
+        #        from Queue import Queue # py2k
+        #    except ImportError:
+        #        from queue import Queue # py3k
+
+        #    q = Queue()
+        #    for i in range(num_cpus):
+        #         t = Thread(target=worker)
+        #         t.daemon = True
+        #         t.start()
+
+        #    for i, nqsmall in enumerate(nqsmalls):
+        #        q.put((nqsmall, i))
+
+        #    # block until all tasks are done
+        #    q.join()       
     
         # Compute wrt last phonon DOS. Be careful because the DOSes may be defined 
         # on different frequency meshes ==> spline on the mesh of the last DOS. 
         last_mesh, converged = phdoses[-1].mesh, False
         for phdos in phdoses[:-1]:
             splined_dos = phdos.spline_on_mesh(last_mesh)
-            diff = splined_dos - phdoses[-1]
-            print("int diff:", diff.integral().values[-1])
+            abs_diff = (splined_dos - phdoses[-1]).abs()
+            print("int diff:", abs_diff.integral().values[-1])
 
         # Fill the plotter.
         plotter = PhononDosPlotter()
@@ -393,6 +435,27 @@ class DdbFile(TextFile, Has_Structure):
             becs = Becs(r.read_value("becs_cart"), structure, chneut=inp["chneut"], order="f")
 
             return emacro, becs
+
+    #def get_harmonic_thermo(self, nqsmall, tstart, tstop, num=50,
+    #                        asr=2, chneut=1, dipdip=1, dos_method="tetra", ngqpt=None):
+    #    """
+    #    Compute thermodinamic properties from the phonon DOS within the harmonic approximation.
+
+    #    nqsmall: Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions 
+    #       used to sample the smallest lattice vector.
+    #    tstart: The starting value (in Kelvin) of the temperature mesh. 
+    #    tstop: The end value (in Kelvin) of the mesh.
+    #    num: int, optional Number of samples to generate. Default is 50.
+
+    #    Returns:
+    #        :class: HarmonicThermo` object.
+    #    """
+    #    # Get the phonon DOS
+    #    phbands, phdos = self.anaget_phbands_and_dos(nqsmall=nqsmall, ndivsm=1, asr=asr, chneut=chneut, dipdip=dipdip, 
+    #                            dos_method=dos_method, ngqpt=ngqpt, 
+    #                            workdir=None, manager=None, verbose=0, plot=False)
+
+    #    return phdos.get_harmonic_thermo(tstart, tstop, num=num)
 
     #def anaget_thermo(self, nqsmall, ngqpt=None, workdir=None, manager=None, verbose=0):
     #    """

@@ -126,6 +126,10 @@ class Function1D(object):
         """Return new :class:`Function1D` with the complex conjugate."""
         return self.__class__(self.mesh, self.values.conjugate)
 
+    def abs(self):
+        """Return the absolute value."""
+        return self.__class__(self.mesh, np.abs(self.values))
+
     @classmethod
     def from_func(cls, func, mesh):
         """

@@ -852,6 +852,9 @@ class PhononDos(Function1D):
 
         mesh is given in eV, values are in states/eV.
     """
+    #def __init__(self, mesh, values, qmesh):
+    #    super(PhononDos, self).__init__(mesh, values)
+    #    self.qmesh = qmesh
 
     @lazy_property
     def idos(self):
@@ -1178,22 +1181,6 @@ class PhononDosPlotter(object):
             raise ValueError("label %s is already in %s" % (label, self._phdoses_dict.keys()))
 
         self._phdoses_dict[label] = phdos
-
-    #def add_phdos_dict(self, dos_dict, key_sort_func=None):
-    #    """
-    #    Add a dictionary of DOSes, with an optional sorting function for the keys.
-
-    #    Args:
-    #        dos_dict: dict of {label: dos}
-    #        key_sort_func: function used to sort the dos_dict keys.
-    #    """
-    #    if key_sort_func:
-    #        keys = sorted(dos_dict.keys(), key=key_sort_func)
-    #    else:
-    #        keys = dos_dict.keys()
-
-    #    for label in keys:
-    #        self.add_dos(label, dos_dict[label])
 
     @add_fig_kwargs
     def plot(self, ax=None, *args, **kwargs):

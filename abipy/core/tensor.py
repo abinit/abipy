@@ -64,7 +64,7 @@ class Tensor(object):
         lines = []
         app = lines.append
 
-        app("Tensor in %s space. Reference system:" % self.space)
+        app("Tensor in %s space." % self.space)
         app("")
         app("Cartesian coordinates:")
         app(str(self.cartesian_tensor))
