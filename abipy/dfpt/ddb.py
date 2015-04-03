@@ -217,7 +217,7 @@ class DdbFile(TextFile, Has_Structure):
     # API to understand if the DDB contains the info we are looking for.
     # NB: This requires the parsing of the dynamical matrix
     #def has_phonon_terms(self, qpoint)
-    #    """True if the DDB file contains info on the phonon perturnation."""
+    #    """True if the DDB file contains info on the phonon perturbation."""
 
     #def has_emacro_terms(self)
     #    """True if the DDB file contains info on the electric-field perturnation."""
@@ -231,7 +231,7 @@ class DdbFile(TextFile, Has_Structure):
         Execute anaddb to compute phonon modes at the given q-point.
 
         Args:
-            qpoint: Reduced coordinates of the qpoint where phonon modes are computed
+            qpoint: Reduced coordinates of the qpoint where phonon modes are computed.
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             workdir: Working directory. If None, a temporary directory is created.
             manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
@@ -269,8 +269,14 @@ class DdbFile(TextFile, Has_Structure):
         with task.open_phbst() as ncfile:
             return ncfile.phbands
 
-    def anaget_phbands_and_dos(self, nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra", ngqpt=None, 
-                               workdir=None, manager=None, verbose=0, plot=True):
+    #def anaget_phbands(self, ngqpt=None, ndivsm=20, asr=2, chneut=1, dipdip=1, 
+    #                   workdir=None, manager=None, verbose=0, **kwargs):
+
+    #def anaget_phdos(self, ngqpt=None, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra" 
+    #                 workdir=None, manager=None, verbose=0, **kwargs):
+
+    def anaget_phbst_and_phdos_files(self, nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, 
+                                       dos_method="tetra", ngqpt=None, workdir=None, manager=None, verbose=0):
         """
         Execute anaddb to compute the phonon band structure and the phonon DOS
 
@@ -285,6 +291,10 @@ class DdbFile(TextFile, Has_Structure):
             workdir: Working directory. If None, a temporary directory is created.
             manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information
+
+        Returns:
+            :class:`PhbstFile`, netcdf file with the phonon band structure.
+            :class:`PhdosFile`, netcdf file the the phonon DOS.
         """
         if ngqpt is None: ngqpt = self.guessed_ngqpt
 
@@ -305,20 +315,9 @@ class DdbFile(TextFile, Has_Structure):
         if not report.run_completed:
             raise self.AnaddbError(task=task, report=report)
 
-        with task.open_phbst() as phbst_ncfile, task.open_phdos() as phdos_ncfile:
-            phbands, phdos = phbst_ncfile.phbands, phdos_ncfile.phdos
-            if plot:
-                phbands.plot_with_phdos(phdos, title="Phonon bands and DOS of %s" % self.structure.formula)
+        return task.open_phbst(), task.open_phdos()
 
-            return phbands, phdos
-
-    #def anaget_phbands(self, ngqpt=None, ndivsm=20, asr=2, chneut=1, dipdip=1, 
-    #                   workdir=None, manager=None, verbose=0, **kwargs):
-
-    #def anaget_phdos(self, ngqpt=None, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra" 
-    #                 workdir=None, manager=None, verbose=0, **kwargs):
-
-    def anacompare_phdos(self, nqsmalls, asr=2, chneut=1, dipdip=1, dos_method="tetra", ngqpt=None, num_cpus=None): 
+    def anacompare_phdos(self, nqsmalls, asr=2, chneut=1, dipdip=1, dos_method="tetra", ngqpt=None, num_cpus=1): 
         """
         Args:
             nqsmalls: List of integers, each integer defines the number of divisions
@@ -339,25 +338,24 @@ class DdbFile(TextFile, Has_Structure):
         num_cpus = get_ncpus() if num_cpus is None else num_cpus
         if num_cpus <= 0: num_cpus = 1
         num_cpus = min(num_cpus, len(nqsmalls))
-
-        print("Computing %d phonon DOS with %d threads" % (len(nqsmalls), num_cpus) )
+        #print("Computing %d phonon DOS with %d threads" % (len(nqsmalls), num_cpus) )
 
         # Sequential version
         #if num_cpus == 1:
 
         phdoses = []
         for nqsmall in nqsmalls:
-            _, phdos = self.anaget_phbands_and_dos(
-                nqsmall=nqsmall, ndivsm=1, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, ngqpt=ngqpt, plot=False)
-            phdoses.append(phdos)
+            _, phdos_file = self.anaget_phbst_and_phdos_files(
+                nqsmall=nqsmall, ndivsm=1, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, ngqpt=ngqpt)
+            phdoses.append(phdos_file.phdos)
 
         #else:
         #    # TODO: threads, anaget_phdos, expose anaddb arguments
         #    phdoses = [None] * len(nqsmalls)
 
         #    def do_work(nqsmall):
-        #        _, phdos = self.anaget_phbands_and_dos(
-        #            nqsmall=nqsmall, ndivsm=1, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, ngqpt=ngqpt, plot=False)
+        #        _, phdos = self.anaget_phbst_and_phdos_files(
+        #            nqsmall=nqsmall, ndivsm=1, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, ngqpt=ngqpt)
         #        return phdos
 
         #    def worker():
@@ -451,9 +449,9 @@ class DdbFile(TextFile, Has_Structure):
     #        :class: HarmonicThermo` object.
     #    """
     #    # Get the phonon DOS
-    #    phbands, phdos = self.anaget_phbands_and_dos(nqsmall=nqsmall, ndivsm=1, asr=asr, chneut=chneut, dipdip=dipdip, 
+    #    phbands, phdos = self.anaget_phbst_and_phdos_files(nqsmall=nqsmall, ndivsm=1, asr=asr, chneut=chneut, dipdip=dipdip, 
     #                            dos_method=dos_method, ngqpt=ngqpt, 
-    #                            workdir=None, manager=None, verbose=0, plot=False)
+    #                            workdir=None, manager=None, verbose=0)
 
     #    return phdos.get_harmonic_thermo(tstart, tstop, num=num)
 

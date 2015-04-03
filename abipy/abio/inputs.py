@@ -1129,7 +1129,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
             qpoint = np.array(qpoint)
 
         if len(qpoint) != 3:
-            print(type(qpoint), qpoint.shape)
+            #print(type(qpoint), qpoint.shape)
             raise ValueError("Wrong q-point %s" % qpoint)
 
         new.set_vars(
@@ -1151,18 +1151,24 @@ class AnaddbInput(AbstractInput, Has_Structure):
         return new
 
     #@classmethod
-    #def phbands(cls, structure, ngqpt, nqsmall, q1shft=(0,0,0),
-    #          asr=2, chneut=0, dipdip=1, dos_method="tetra", **kwargs):
+    #def phbands(cls, structure, ngqpt, nqsmall, q1shft=(0,0,0), asr=2, chneut=0, dipdip=1, 
+    #           anaddb_args=None, anaddb_kwargs=None):
     #    """
     #    Build an anaddb input file for the computation of phonon band structure.
     #    """
+    #    return self.phbands_and_dos(structure, ngqpt, nqsmall, ndivsm=20, q1shft=(0,0,0),
+    #                                qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", 
+    #                                anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
 
     #@classmethod
-    #def phdos(cls, structure, ngqpt, nqsmall, q1shft=(0,0,0),
-    #          asr=2, chneut=0, dipdip=1, dos_method="tetra", **kwargs):
+    #def phdos(cls, structure, ngqpt, nqsmall, q1shft=(0,0,0), asr=2, chneut=0, dipdip=1, dos_method="tetra", 
+    #           anaddb_args=None, anaddb_kwargs=None):
     #    """
     #    Build an anaddb input file for the computation of phonon DOS.
     #    """
+    #    return self.phbands_and_dos(structure, ngqpt, nqsmall, ndivsm=20, q1shft=(0,0,0),
+    #                                qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", 
+    #                                anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
 
     @classmethod
     def phbands_and_dos(cls, structure, ngqpt, nqsmall, ndivsm=20, q1shft=(0,0,0),
@@ -1205,11 +1211,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
 
         # Parameters for the dos.
         new.set_autoqmesh(nqsmall)
-        new.set_vars(
-            prtdos=prtdos,
-            dosdeltae=dosdeltae,
-            dossmear=dossmear,
-        )
+        new.set_vars(prtdos=prtdos, dosdeltae=dosdeltae, dossmear=dossmear)
 
         new.set_qpath(ndivsm, qptbounds=qptbounds)
         q1shft = np.reshape(q1shft, (-1, 3))
@@ -1340,8 +1342,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
         #        0.0  1.0  0.0    0.0
         #        0.0  0.0  1.0    0.0
         """
-        new = cls(structure, comment="ANADB input for modes", 
-                  anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
+        new = cls(structure, comment="ANADB input for modes", anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
 
         new.set_vars(
             enunit=enunit,

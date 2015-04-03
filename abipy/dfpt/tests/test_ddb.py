@@ -7,6 +7,12 @@ import numpy as np
 from abipy.core.testing import *
 from abipy.dfpt.ddb import DdbFile
 
+try:
+    import matplotlib
+    have_matplotlib = True
+except ImportError:
+    have_matplotlib = True
+
 
 test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
 
@@ -50,11 +56,11 @@ class DdbTest(AbipyTest):
 
             # Wrong ngqpt
             with self.assertRaises(ddb.AnaddbError):
-                ddb.anaget_phbands_and_dos(ngqpt=(4,4,4))
+                ddb.anaget_phbst_and_phdos_files(ngqpt=(4,4,4))
 
             # Cannot compute DOS since we need a mesh.
             with self.assertRaises(ddb.AnaddbError):
-                ddb.anaget_phbands_and_dos()
+                ddb.anaget_phbst_and_phdos_files()
 
     def test_alas_ddb_444_nobecs(self):
         """Testing DDB for AlAs on a 4x4x4x q-mesh without Born effective charges."""
@@ -83,15 +89,19 @@ class DdbTest(AbipyTest):
         assert np.all(ddb.guessed_ngqpt == [4, 4, 4])
 
         # Get bands and Dos
-        phbands, phdos = ddb.anaget_phbands_and_dos(plot=False)
-        print(phbands)
-        print(phdos)
+        phbands_file, phdos_file = ddb.anaget_phbst_and_phdos_files()
+        phbands, phdos = phbands_file.phbands, phdos_file.phdos
+
+        if have_matplotlib:
+            phbands.plot_with_phdos(phdos, title="Phonon bands and DOS of %s" % phbands.structure.formula, show=False)
 
         # Thermodinamics in the Harmonic approximation
         harmo = phdos.get_harmonic_thermo(tstart=10, tstop=50)
         harmo.plot(show=False)
 
         self.assert_almost_equal(phdos.idos.values[-1], 3 * len(ddb.structure), decimal=1)
+        phbands_file.close()
+        phdos_file.close()
 
         c = ddb.anacompare_phdos(nqsmalls=[2, 4, 6], num_cpus=None)
         c.plotter.plot(show=False)

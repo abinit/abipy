@@ -710,7 +710,7 @@ class PhononBands(object):
 
         ax2.grid(True)
         ax2.yaxis.set_ticks_position("right")
-        ax2.yaxis.set_label_position("right")
+        #ax2.yaxis.set_label_position("right")
 
         fig = plt.gcf()
         return fig
@@ -1140,8 +1140,7 @@ class PhdosFile(AbinitNcFile, Has_Structure):
         num_plots = len(self.pjdos_type_dict)
         cumulative = np.zeros(len(self.wmesh))
         for i, (symbol, pjdos) in enumerate(self.pjdos_type_dict.items()):
-            f = pjdos.dos
-            x, y = f.mesh, f.values
+            x, y = pjdos.mesh, pjdos.values
             color = plt.get_cmap(colormap)(float(i) / (num_plots - 1))
             ax.plot(x, cumulative + y, lw=2, label=symbol, color=color)
             ax.fill_between(x, cumulative, cumulative + y, facecolor=color, alpha=0.7)
