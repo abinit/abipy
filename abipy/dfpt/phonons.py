@@ -102,13 +102,10 @@ class PhononBands(object):
     @classmethod
     def from_file(cls, filepath):
         """Create the object from a netCDF file."""
-        if not filepath.endswith(".nc"):
-            raise NotImplementedError("")
-
         with PHBST_Reader(filepath) as r:
             structure = r.read_structure()
 
-            # Build list of q-points
+            # Build the list of q-points
             qpoints = KpointList(structure.reciprocal_lattice, 
                                  frac_coords=r.read_qredcoords(),
                                  weights=r.read_qweights(),
@@ -864,7 +861,7 @@ class PhononDos(Function1D):
     #@lazy_property
     #def zpm(self)
     #    """Zero point motion"""
-    #    return 0.5 * hbar * (self.dos * self.dos.mesh).integral[-1]
+    #    return 0.5 * hbar * (self.dos.values * self.dos.mesh).integral[-1]
 
     def plot_ax(self, ax, what="d", exchange_xy=False, *args, **kwargs):
         """
@@ -1040,7 +1037,7 @@ class PhdosReader(ETSF_Reader):
     @lazy_property
     def pjdos_rc_type(self):
         """DOS projected over atom types and reduced directions e.g. pjdos_type(3,ntypat,nomega)."""
-        return self.read_value("pjdos__rc_type")
+        return self.read_value("pjdos_rc_type")
 
     @lazy_property
     def pjdos(self):
@@ -1052,17 +1049,17 @@ class PhdosReader(ETSF_Reader):
         """The crystalline structure."""
         return self.read_structure()
 
-    def read_phdos(self, cls=PhononDos):
+    def read_phdos(self):
         """Return the :class:`PhononDOS`."""
-        return cls(self.wmesh, self.read_value("phdos"))
+        return PhononDos(self.wmesh, self.read_value("phdos"))
 
-    def read_pjdos_type(self, symbol, cls=PhononDos):
+    def read_pjdos_type(self, symbol):
         """
         The contribution to the DOS due to the atoms of given chemical symbol.
         pjdos_type(ntypat,nomega)
         """
         type_idx = self.typeidx_from_symbol(symbol)
-        return cls(self.wmesh, self.pjdos_type[type_idx])
+        return PhononDos(self.wmesh, self.pjdos_type[type_idx])
 
     # def read_pjdos(self, atom_idx=None):
     #     """
@@ -1151,9 +1148,7 @@ class PhdosFile(AbinitNcFile, Has_Structure):
             cumulative += y
 
         # Total PHDOS
-        f = self.phdos.dos
-        x, y = f.mesh, f.values
-        ax.plot(x, y, lw=2, label="Total PHDOS", color='black')
+        ax.plot(self.phdos.mesh, self.phdos.values, lw=2, label="Total PHDOS", color='black')
 
         ax.legend(loc="best")
 
