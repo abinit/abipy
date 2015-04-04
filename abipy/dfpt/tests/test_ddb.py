@@ -24,13 +24,13 @@ class DdbTest(AbipyTest):
         ddb_fname = os.path.join(test_dir, "AlAs_1qpt_DDB")
 
         with DdbFile(ddb_fname) as ddb:
+            print(ddb)
             # Test qpoints.
             assert np.all(ddb.qpoints[0] == [0.25, 0, 0])
             assert len(ddb.qpoints) == 1
 
             # Test header
             h = ddb.header
-            #print(h)
             assert h.version == 100401 and h.ecut == 3
             assert "ecut" in h and h["ecut"] == h.ecut
             assert h.occ == 4 * [2]
@@ -42,7 +42,6 @@ class DdbTest(AbipyTest):
 
             # Test structure
             struct = ddb.structure
-            print(struct)
             assert struct.formula == "Al1 As1"
 
             # Test interface with Anaddb.
@@ -65,6 +64,7 @@ class DdbTest(AbipyTest):
     def test_alas_ddb_444_nobecs(self):
         """Testing DDB for AlAs on a 4x4x4x q-mesh without Born effective charges."""
         ddb = DdbFile(os.path.join(test_dir, "AlAs_444_nobecs_DDB"))
+        print(ddb)
         print(ddb.header)
 
         ref_qpoints = np.reshape([

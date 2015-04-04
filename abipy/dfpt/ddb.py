@@ -11,7 +11,7 @@ from six.moves import map, zip, StringIO
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.dev import get_ncpus
-from pymatgen.io.abinitio.tasks import AnaddbTask, TaskManager
+from pymatgen.io.abinitio.tasks import AnaddbTask
 from abipy.core.mixins import TextFile, Has_Structure
 from abipy.core.symmetries import SpaceGroup
 from abipy.core.structure import Structure
@@ -76,7 +76,28 @@ class DdbFile(TextFile, Has_Structure):
         # Guess q-mesh
         self._guessed_ngqpt = self._guess_ngqpt()
 
-    @lazy_property
+    def __str__(self):
+        """String representation."""
+        lines = []
+        append, extend = lines.append, lines.extend
+        extend(super(DdbFile, self).__str__().splitlines())
+
+        append(" ")
+        append("@@Structure")
+        extend(str(self.structure).splitlines())
+        append(" ")
+        append("@@q-points")
+        extend(str(self.qpoints).splitlines())
+        append("guessed_ngqpt: %s" % self.guessed_ngqpt)
+
+        width = max(len(l) for l in lines)
+        for i, line in enumerate(lines):
+            if line.startswith("@@"):
+                lines[i] = (" " + line[2:] + " ").center(width, "=")
+
+        return "\n".join(lines)
+
+    @property
     def structure(self):
         return self._structure
 
@@ -287,11 +308,11 @@ class DdbFile(TextFile, Has_Structure):
         with task.open_phbst() as ncfile:
             return ncfile.phbands
 
-    #def anaget_phbands(self, ngqpt=None, ndivsm=20, asr=2, chneut=1, dipdip=1, 
-    #                   workdir=None, manager=None, verbose=0, **kwargs):
+    #def anaget_phbst_file(self, ngqpt=None, ndivsm=20, asr=2, chneut=1, dipdip=1, 
+    #                      workdir=None, manager=None, verbose=0, **kwargs):
 
-    #def anaget_phdos(self, ngqpt=None, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra" 
-    #                 workdir=None, manager=None, verbose=0, **kwargs):
+    #def anaget_phdos_file(self, ngqpt=None, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra" 
+    #                      workdir=None, manager=None, verbose=0, **kwargs):
 
     def anaget_phbst_and_phdos_files(self, nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, 
                                        dos_method="tetra", ngqpt=None, workdir=None, manager=None, verbose=0):
@@ -358,8 +379,7 @@ class DdbFile(TextFile, Has_Structure):
         if num_cpus <= 0: num_cpus = 1
         num_cpus = min(num_cpus, len(nqsmalls))
 
-        # TODO: threads, anaget_phdos, expose anaddb arguments
-
+        # TODO: anaget_phdos
         def do_work(nqsmall):
             _, phdos_file = self.anaget_phbst_and_phdos_files(
                 nqsmall=nqsmall, ndivsm=1, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, ngqpt=ngqpt)
@@ -524,7 +544,7 @@ class Becs(Has_Structure):
             app(str(bec))
             app("")
 
-        # Add info on bec sum rule.
+        # Add info on the bec sum rule.
         stream = StringIO()
         self.check_sumrule(stream=stream)
         app(stream.getvalue())
