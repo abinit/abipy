@@ -161,8 +161,8 @@ This will print the official abinit description of this inputvariable.
 The course of this lesson
 -------------------------
 
-As in the previous lesson, executing the python script created the folder structure with the in input files for this
-lesson.
+As in the previous lesson, executing the python script created the folder structure with 
+the in input files for this lesson.
 
 One of the standard thing to look for to be converged in the total energy. We did that already in the previous lesson.
 This time have a look at some of the other important properties. Look for instance at the convergence rate of the

@@ -80,9 +80,9 @@ The course of this lesson
 
 Start ipython with matplotlib integration with the command:
 
-    .. code-block:: shell
+    .. code-block:: python
 
-        ipython --matplotlib
+        ipython
 
 This lesson can be started in ipython by importing it:
 
