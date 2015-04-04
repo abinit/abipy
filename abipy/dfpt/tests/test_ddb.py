@@ -76,7 +76,7 @@ class DdbTest(AbipyTest):
                 -2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
                  5.00000000E-01,  5.00000000E-01,  0.00000000E+00,
                 -2.50000000E-01,  5.00000000E-01,  2.50000000E-01,
-                ], (-1, 3))
+        ], (-1, 3))
 
         assert len(ddb.qpoints) == 8
         for qpt, ref_qpt in zip(ddb.qpoints, ref_qpoints):

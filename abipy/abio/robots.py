@@ -514,13 +514,14 @@ class DdbRobot(Robot):
     #                                                                                              
     #    return np.array(qpoints)
 
-    def get_dataframe_at_qpoint(self, qpoint=None, **kwargs):
+    def get_dataframe_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, **kwargs):
         """
         Return a pandas table with the phonon frequencies at the given q-point
         as computed from the different DDB files.
 
         Args:
             qpoint: Reduced coordinates of the qpoint where phonon modes are computed
+            asr, chneut, dipdp: Anaddb input variable. See official documentation.
         """
         # If qpoint is None, all the DDB must contain have the same q-point .
         if qpoint is None:
@@ -540,7 +541,7 @@ class DdbRobot(Robot):
             #d.update({"qpgap": mdf.get_qpgap(spin, kpoint)})
 
             # Call anaddb to get the phonon frequencies.
-            phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, asr=2, chneut=1, dipdip=1)
+            phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, asr=asr, chneut=chneut, dipdip=dipdip)
             freqs = phbands.phfreqs[0, :] # (nq, nmodes)
 
             d.update({"mode" + str(i): freqs[i] for i in range(len(freqs))})

@@ -59,22 +59,34 @@ class DdbFile(TextFile, Has_Structure):
     Error = DdbError
     AnaddbError = AnaddbError
 
-    @lazy_property
-    def structure(self):
-        structure = Structure.from_abivars(**self.header)
+    def __init__(self, filepath):
+        super(DdbFile, self).__init__(filepath)
+
+        self._header = self._parse_header()
+
+        self._structure = Structure.from_abivars(**self.header)
         # Add Spacegroup (needed in guessed_ngkpt)
         # FIXME: has_timerev is always True
         spgid, has_timerev, h = 0, True, self.header
-        structure.set_spacegroup(SpaceGroup(spgid, h.symrel, h.tnons, h.symafm, has_timerev))
-        return structure
+        self._structure.set_spacegroup(SpaceGroup(spgid, h.symrel, h.tnons, h.symafm, has_timerev))
+
+        frac_coords = self._read_qpoints()
+        self._qpoints = KpointList(self.structure.reciprocal_lattice, frac_coords, weights=None, names=None)
+
+        # Guess q-mesh
+        self._guessed_ngqpt = self._guess_ngqpt()
 
     @lazy_property
+    def structure(self):
+        return self._structure
+
+    @property
     def header(self):
         """
         Dictionary with the values reported in the header section. 
         Use ddb.header.ecut to access its values
         """
-        return self._parse_header()
+        return self._header
 
     def _parse_header(self):
         """Parse the header sections. Returns :class:`AttrDict` dictionary."""
@@ -160,11 +172,10 @@ class DdbFile(TextFile, Has_Structure):
 
         return np.reshape(qpoints, (-1,3))
 
-    @lazy_property
+    @property
     def qpoints(self):
         """:class:`KpointList` object with the list of q-points in reduced coordinates."""
-        frac_coords = self._read_qpoints()
-        return KpointList(self.structure.reciprocal_lattice, frac_coords, weights=None, names=None)
+        return self._qpoints
 
     def qindex(self, qpoint):
         """
@@ -176,16 +187,23 @@ class DdbFile(TextFile, Has_Structure):
         else:
             return self.qpoints.index(qpoint)
 
-    @lazy_property
+    @property
     def guessed_ngqpt(self):
         """
-        This function tries to figure out the value of ngqpt from the list of 
-        points reported in the DDB file.
+        Guess for the q-mesh divisions (ngqpt) inferred from the list of 
+        q-points found in the DDB file.
 
         .. warning::
             
             The mesh may not be correct if the DDB file contains points belonging 
             to different meshes and/or the Q-mesh is shifted.
+        """
+        return self._guessed_ngqpt
+
+    def _guess_ngqpt(self):
+        """
+        This function tries to figure out the value of ngqpt from the list of 
+        points reported in the DDB file.
         """
         # Build the union of the stars of the q-points.
         all_qpoints = np.empty((len(self.qpoints) * len(self.structure.spacegroup), 3))
@@ -317,17 +335,18 @@ class DdbFile(TextFile, Has_Structure):
 
         return task.open_phbst(), task.open_phdos()
 
-    def anacompare_phdos(self, nqsmalls, asr=2, chneut=1, dipdip=1, dos_method="tetra", ngqpt=None, num_cpus=1): 
+    def anacompare_phdos(self, nqsmalls, asr=2, chneut=1, dipdip=1, dos_method="tetra", ngqpt=None, 
+                         num_cpus=None, stream=sys.stdout): 
         """
         Args:
-            nqsmalls: List of integers, each integer defines the number of divisions
-                to be used to sample the smallest reciprocal lattice vector.
+            nqsmalls: List of integers defining the q-mesh for the DOS. Each integer gives 
+            the number of divisions to be used to sample the smallest reciprocal lattice vector.
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening
             ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)
-            num_cpus: Number of CPUs (threads) used to parallellize the 
-                calculation of the DOSes. Autodetected if None.
+            num_cpus: Number of CPUs (threads) used to parallellize the calculation of the DOSes. Autodetected if None.
+            stream: File-like object used for printing.
 
         Return:
             `namedtuple` with the following attributes:
@@ -338,58 +357,56 @@ class DdbFile(TextFile, Has_Structure):
         num_cpus = get_ncpus() if num_cpus is None else num_cpus
         if num_cpus <= 0: num_cpus = 1
         num_cpus = min(num_cpus, len(nqsmalls))
-        #print("Computing %d phonon DOS with %d threads" % (len(nqsmalls), num_cpus) )
 
-        # Sequential version
-        #if num_cpus == 1:
+        # TODO: threads, anaget_phdos, expose anaddb arguments
 
-        phdoses = []
-        for nqsmall in nqsmalls:
+        def do_work(nqsmall):
             _, phdos_file = self.anaget_phbst_and_phdos_files(
                 nqsmall=nqsmall, ndivsm=1, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, ngqpt=ngqpt)
-            phdoses.append(phdos_file.phdos)
+            return phdos_file.phdos                                                                                          
 
-        #else:
-        #    # TODO: threads, anaget_phdos, expose anaddb arguments
-        #    phdoses = [None] * len(nqsmalls)
+        if num_cpus == 1:
+            # Sequential version
+            phdoses = [do_work(nqs) for nqs in nqsmalls]
 
-        #    def do_work(nqsmall):
-        #        _, phdos = self.anaget_phbst_and_phdos_files(
-        #            nqsmall=nqsmall, ndivsm=1, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, ngqpt=ngqpt)
-        #        return phdos
+        else:
+            # Threads
+            print("Computing %d phonon DOS with %d threads" % (len(nqsmalls), num_cpus) )
+            phdoses = [None] * len(nqsmalls)
 
-        #    def worker():
-        #        while True:
-        #            nqsm, phdos_index = q.get()
-        #            phdos = do_work(nqsm)
-        #            phdoses[phdos_index] = phdos
-        #            q.task_done()
+            def worker():
+                while True:
+                    nqsm, phdos_index = q.get()
+                    phdos = do_work(nqsm)
+                    phdoses[phdos_index] = phdos
+                    q.task_done()
 
-        #    from threading import Thread
-        #    try:
-        #        from Queue import Queue # py2k
-        #    except ImportError:
-        #        from queue import Queue # py3k
+            from threading import Thread
+            try:
+                from Queue import Queue # py2k
+            except ImportError:
+                from queue import Queue # py3k
 
-        #    q = Queue()
-        #    for i in range(num_cpus):
-        #         t = Thread(target=worker)
-        #         t.daemon = True
-        #         t.start()
+            q = Queue()
+            for i in range(num_cpus):
+                 t = Thread(target=worker)
+                 t.daemon = True
+                 t.start()
 
-        #    for i, nqsmall in enumerate(nqsmalls):
-        #        q.put((nqsmall, i))
+            for i, nqsmall in enumerate(nqsmalls):
+                q.put((nqsmall, i))
 
-        #    # block until all tasks are done
-        #    q.join()       
+            # block until all tasks are done
+            q.join()       
     
         # Compute wrt last phonon DOS. Be careful because the DOSes may be defined 
         # on different frequency meshes ==> spline on the mesh of the last DOS. 
         last_mesh, converged = phdoses[-1].mesh, False
-        for phdos in phdoses[:-1]:
+        for i, phdos in enumerate(phdoses[:-1]):
             splined_dos = phdos.spline_on_mesh(last_mesh)
             abs_diff = (splined_dos - phdoses[-1]).abs()
-            print("int diff:", abs_diff.integral().values[-1])
+            print(" Delta(Phdos[%d] - Phdos[%d]) / Phdos[%d]: %f" % 
+                (i, len(phdoses), len(phdoses), abs_diff.integral().values[-1]), file=stream)
 
         # Fill the plotter.
         plotter = PhononDosPlotter()
@@ -434,27 +451,6 @@ class DdbFile(TextFile, Has_Structure):
 
             return emacro, becs
 
-    #def get_harmonic_thermo(self, nqsmall, tstart, tstop, num=50,
-    #                        asr=2, chneut=1, dipdip=1, dos_method="tetra", ngqpt=None):
-    #    """
-    #    Compute thermodinamic properties from the phonon DOS within the harmonic approximation.
-
-    #    nqsmall: Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions 
-    #       used to sample the smallest lattice vector.
-    #    tstart: The starting value (in Kelvin) of the temperature mesh. 
-    #    tstop: The end value (in Kelvin) of the mesh.
-    #    num: int, optional Number of samples to generate. Default is 50.
-
-    #    Returns:
-    #        :class: HarmonicThermo` object.
-    #    """
-    #    # Get the phonon DOS
-    #    phbands, phdos = self.anaget_phbst_and_phdos_files(nqsmall=nqsmall, ndivsm=1, asr=asr, chneut=chneut, dipdip=dipdip, 
-    #                            dos_method=dos_method, ngqpt=ngqpt, 
-    #                            workdir=None, manager=None, verbose=0)
-
-    #    return phdos.get_harmonic_thermo(tstart, tstop, num=num)
-
     #def anaget_thermo(self, nqsmall, ngqpt=None, workdir=None, manager=None, verbose=0):
     #    """
     #    Execute anaddb to compute thermodinamical properties.
@@ -487,6 +483,7 @@ class DdbFile(TextFile, Has_Structure):
 
 class Becs(Has_Structure):
     """This object stores the Born effective charges and provides simple tools for data analysis."""
+
     def __init__(self, becs_arr, structure, chneut, order="c"):
         """
 
@@ -516,7 +513,7 @@ class Becs(Has_Structure):
         return self.to_string()
 
     def to_string(self):
-        lines = [str(self.structure)]
+        lines = []
         app = lines.append
         app("Born effective charges computed with chneut: %d" % self.chneut)
 
@@ -535,6 +532,6 @@ class Becs(Has_Structure):
         return "\n".join(lines)
 
     def check_sumrule(self, stream=sys.stdout):
-        stream.write("Born effective charge neutrality sum-rule with chneut: %d" % self.chneut)
+        stream.write("Born effective charge neutrality sum-rule with chneut: %d\n" % self.chneut)
         becs_atomsum = self.becs.sum(axis=0)
         stream.write(str(becs_atomsum))
