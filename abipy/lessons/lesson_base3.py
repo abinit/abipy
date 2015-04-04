@@ -55,16 +55,15 @@ class NgkptFlow(abilab.Flow):
 def make_ngkpt_flow():
     ngkpt_list = [(2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)]
 
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=len(ngkpt_list))
-    inp.set_structure(abidata.cif_file("si.cif"))
-
+    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif")),
+                                pseudos=abidata.pseudos("14si.pspnc"), ndtset=len(ngkpt_list))
     # Global variables
-    inp.set_vars(ecut=10, tolvrs=1e-9)
+    multi.set_vars(ecut=10, tolvrs=1e-9)
 
     for i, ngkpt in enumerate(ngkpt_list):
-        inp[i+1].set_kmesh(ngkpt=ngkpt, shiftk=[0,0,0])
+        multi[i].set_kmesh(ngkpt=ngkpt, shiftk=[0,0,0])
 
-    return NgkptFlow.from_inputs(workdir="flow_base3_ngkpt", inputs=inp.split_datasets())
+    return NgkptFlow.from_inputs(workdir="flow_base3_ngkpt", inputs=multi.split_datasets())
 
 
 class RelaxFlow(abilab.Flow):
@@ -82,11 +81,11 @@ class RelaxFlow(abilab.Flow):
 def make_relax_flow():
     # Structural relaxation for different k-point samplings.
     ngkpt_list = [(2, 2, 2), (4, 4, 4)]
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=len(ngkpt_list))
-    inp.set_structure(abidata.cif_file("si.cif"))
+    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"),
+                                pseudos=abidata.pseudos("14si.pspnc"), ndtset=len(ngkpt_list))
 
     # Global variables
-    inp.set_vars(
+    multi.set_vars(
         ecut=10,
         tolvrs=1e-9,
         optcell=1,
@@ -97,36 +96,29 @@ def make_relax_flow():
     )
 
     for i, ngkpt in enumerate(ngkpt_list):
-        inp[i+1].set_kmesh(ngkpt=ngkpt, shiftk=[0,0,0])
+        multi[i].set_kmesh(ngkpt=ngkpt, shiftk=[0,0,0])
 
-    return RelaxFlow.from_inputs("flow_base3_relax", inputs=inp.split_datasets(), task_class=abilab.RelaxTask)
-
-class EbandsFlow(abilab.Flow):
-    def analyze(self):
-        nscf_task = self[0][1]
-        with nscf_task.open_gsr() as gsr:
-            return gsr.ebands.plot()
+    return RelaxFlow.from_inputs("flow_base3_relax", inputs=multi.split_datasets(), task_class=abilab.RelaxTask)
 
 
 def make_ebands_flow():
     """Band structure calculation."""
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)
-    inp.set_structure(abidata.cif_file("si.cif"))
-
+    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"),
+                                pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)
     # Global variables
-    inp.ecut = 10
+    multi.set_vars(ecut=10)
 
     # Dataset 1
-    inp[1].set_vars(tolvrs=1e-9)
-    inp[1].set_kmesh(ngkpt=[4,4,4], shiftk=[0,0,0])
+    multi[0].set_vars(tolvrs=1e-9)
+    multi[0].set_kmesh(ngkpt=[4,4,4], shiftk=[0,0,0])
 
     # Dataset 2
-    inp[2].set_vars(tolwfr=1e-15)
-    inp[2].set_kpath(ndivsm=5)
+    multi[1].set_vars(tolwfr=1e-15)
+    multi[1].set_kpath(ndivsm=5)
 
-    scf_input, nscf_input = inp.split_datasets()
+    scf_input, nscf_input = multi.split_datasets()
 
-    return abilab.bandstructure_flow(workdir="flow_base3_ebands", scf_input=scf_input, nscf_input=nscf_input, flow_class=EbandsFlow)
+    return abilab.bandstructure_flow(workdir="flow_base3_ebands", scf_input=scf_input, nscf_input=nscf_input)
 
 
 if __name__ == "__main__":

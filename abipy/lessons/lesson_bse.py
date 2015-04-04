@@ -10,10 +10,10 @@ import abipy.data as abidata
 def make_inputs(ngkpt=(4,4,4), ecut=8, ecuteps=2):
     """
     """
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=3)
-    inp.set_structure(abidata.structure_from_ucell("Si"))
+    multi = abilab.MultiDataset(structure=abidata.structure_from_ucell("Si")),
+                                pseudos=abidata.pseudos("14si.pspnc"), ndtset=3)
 
-    inp.set_vars(
+    multi.set_vars(
         ecut=ecut, 
         nband=8,
         istwfk="*1",
@@ -21,11 +21,11 @@ def make_inputs(ngkpt=(4,4,4), ecut=8, ecuteps=2):
         paral_kgb=1,
     )
 
-    inp[1].set_vars(tolvrs=1e-8)
-    #inp[1].set_autokmesh(nksmall=min(ngkpt))
-    inp[1].set_kmesh(ngkpt=ngkpt, shiftk=(0, 0, 0))
+    multi[0].set_vars(tolvrs=1e-8)
+    #multi[0].set_autokmesh(nksmall=min(ngkpt))
+    multi[0].set_kmesh(ngkpt=ngkpt, shiftk=(0, 0, 0))
 
-    inp[2].set_vars(
+    multi[1].set_vars(
         iscf=-2,
         nband=15,
         tolwfr=1e-8,
@@ -33,10 +33,10 @@ def make_inputs(ngkpt=(4,4,4), ecut=8, ecuteps=2):
     )
 
     # This shift breaks the symmetry of the k-mesh.
-    inp[2].set_kmesh(ngkpt=ngkpt, shiftk=(0.11, 0.21, 0.31))
+    multi[1].set_kmesh(ngkpt=ngkpt, shiftk=(0.11, 0.21, 0.31))
 
     # BSE run with Haydock iterative method (only resonant + W + v)
-    inp[3].set_vars(
+    multi[2].set_vars(
         optdriver=99,               # BS calculation
         chksymbreak=0,              # To skip the check on the k-mesh.
         bs_calctype=1,              # L0 is contstructed with KS orbitals and energies.
@@ -57,9 +57,9 @@ def make_inputs(ngkpt=(4,4,4), ecut=8, ecuteps=2):
         inclvkb=2,                  # The commutator for the optical limit is correctly evaluated.
     )
 
-    inp[3].set_kmesh(ngkpt=ngkpt, shiftk=(0.11,0.21,0.31))
+    multi[2].set_kmesh(ngkpt=ngkpt, shiftk=(0.11,0.21,0.31))
 
-    scf_input, nscf_input, bse_input = inp.split_datasets()
+    scf_input, nscf_input, bse_input = multi.split_datasets()
     return scf_input, nscf_input, bse_input
 
 

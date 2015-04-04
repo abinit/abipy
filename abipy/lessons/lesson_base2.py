@@ -10,17 +10,6 @@ def h2_h_input(x=0.7, ecut=10, acell=(10, 10, 10)):
     This file to optimize the H2 bond length, compute the associated total
     energy, then to compute the total energy of the isolated H atom.
     """
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("01h.pspgth"), ndtset=2)
-
-    inp.set_vars(
-        ecut=ecut, 
-        nband=1,
-        diemac=2.0,
-        nstep=10,
-    )
-
-    inp.set_kmesh(ngkpt=(1,1,1), shiftk=(0,0,0))
-
     h2 = abilab.Structure.from_abivars(
         natom=2,        
         ntypat=1,  
@@ -30,14 +19,6 @@ def h2_h_input(x=0.7, ecut=10, acell=(10, 10, 10)):
                +x, 0.0, 0.0],
         acell=acell,
         rprim=[1, 0, 0, 0, 1, 0, 0, 0, 1],
-    )
-
-    inp[1].set_structure(h2)
-    inp[1].set_vars(
-        ionmov=3,
-        ntime=10,
-        tolmxf=5e-4,
-        toldff=5e-5,
     )
 
     h = abilab.Structure.from_abivars(
@@ -50,8 +31,28 @@ def h2_h_input(x=0.7, ecut=10, acell=(10, 10, 10)):
         rprim=[1, 0, 0, 0, 1, 0, 0, 0, 1],
     )
 
-    inp[2].set_structure(h)
-    inp[2].set_vars(
+    global_vars = dict(
+        ecut=ecut, 
+        nband=1,
+        diemac=2.0,
+        nstep=10,
+    )
+
+    h2_inp = abilab.AbinitInput(structure=h2, pseudos=abidata.pseudos("01h.pspgth"))
+
+    h2_inp.set_vars(global_vars)
+    h2_inp.set_kmesh(ngkpt=(1,1,1), shiftk=(0,0,0))
+    h2_inp.set_vars(
+        ionmov=3,
+        ntime=10,
+        tolmxf=5e-4,
+        toldff=5e-5,
+    )
+
+    h_inp = abilab.AbinitInput(structure=h, pseudos=abidata.pseudos("01h.pspgth"))
+    h_inp.set_vars(global_vars)
+
+    h_inp.set_vars(
         nsppol=2,
         nband=(1, 1),
         occopt=2,
@@ -60,7 +61,7 @@ def h2_h_input(x=0.7, ecut=10, acell=(10, 10, 10)):
         spinat=(0.0, 0.0, 1.0),
     )
 
-    return inp.split_datasets()
+    return h2_inp, h_inp
 
 
 def ecut_convergence_study(ecuts=range(10, 40, 5)):

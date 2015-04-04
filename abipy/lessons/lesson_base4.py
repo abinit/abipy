@@ -8,10 +8,9 @@ import abipy.data as abidata
 def relax_input(tsmear, nksmall):
     # Crystalline aluminum : optimization of the lattice parameter
     # at fixed number of k points and broadening.
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("13al.981214.fhi"))
-
-    structure = abidata.ucells.structure_from_ucell("Al")
-    inp.set_structure(structure)
+    
+    inp = abilab.AbinitInput(structure=abidata.ucells.structure_from_ucell("Al"),
+                             pseudos=abidata.pseudos("13al.981214.fhi"))
 
     # nshiftk and shift are automatically selected from the lattice.
     #Definition of the k-point grid
@@ -24,10 +23,10 @@ def relax_input(tsmear, nksmall):
     #       0.5 0.0 0.0
     #       0.0 0.5 0.0
     #       0.0 0.0 0.5
-    inp[1].set_autokmesh(nksmall=nksmall)
+    inp.set_autokmesh(nksmall=nksmall)
 
     # Optimization of the lattice parameters
-    inp[1].set_vars(
+    inp.set_vars(
         ecut=6, 
         occopt=4,
         tsmear=tsmear,
