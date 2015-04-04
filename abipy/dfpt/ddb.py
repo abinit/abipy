@@ -399,7 +399,7 @@ class DdbFile(TextFile, Has_Structure):
             # block until all tasks are done
             q.join()       
     
-        # Compute wrt last phonon DOS. Be careful because the DOSes may be defined 
+        # Compute relative difference wrt last phonon DOS. Be careful because the DOSes may be defined 
         # on different frequency meshes ==> spline on the mesh of the last DOS. 
         last_mesh, converged = phdoses[-1].mesh, False
         for i, phdos in enumerate(phdoses[:-1]):

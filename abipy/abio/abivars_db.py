@@ -13,8 +13,10 @@ from monty.string import is_string, list_strings
 from monty.functools import lazy_property
 
 
-with open(os.path.join(os.path.dirname(__file__), "abinit_vars.json")) as fh:
-    ABI_VARNAMES = json.load(fh)
+#from abipy import data as abidata
+#with open(os.path.join(os.path.dirname(__file__), "abinit_vars.json")) as fh:
+#with open(abidata.var_file("abinit_vars.json")) as fh:
+#    ABI_VARNAMES = json.load(fh)
 
 
 # Unit names.
@@ -235,7 +237,7 @@ def get_abinit_variables():
     global __VARS_DATABASE
 
     if __VARS_DATABASE is None: 
-        pickle_file = os.path.join(os.path.dirname(__file__), "abinit_vars.pickle")
+        pickle_file = os.path.join(os.getenv("HOME"), ".abinit", "abipy", "abinit_vars.pickle")
         
         if os.path.exists(pickle_file): 
             #print("Reading from pickle")
@@ -243,6 +245,10 @@ def get_abinit_variables():
                 __VARS_DATABASE = pickle.load(fh)
 
         else:
+            # Make dir and file if not present.
+            if not os.path.exists(os.path.dirname(pickle_file)):
+                os.makedirs(os.path.dirname(pickle_file))
+
             #print("Reading database from YAML file and generating pickle version. It may take a while...")
             from abipy import data as abidata
             yaml_file = abidata.var_file('abinit_vars.yml')
@@ -256,7 +262,7 @@ def get_abinit_variables():
             # Save object to pickle file so that can we can reload it from pickle instead of yaml (slower)
             with open(pickle_file, "wb") as fh:
                 pickle.dump(__VARS_DATABASE, fh)
-                os.chmod(pickle_file, 0o444)
+                #os.chmod(pickle_file, 0o444)
 
     return __VARS_DATABASE
         
