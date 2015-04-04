@@ -5,9 +5,9 @@ One of the tasks that is most performed using DFT is the relaxation of
 an atomic structure.
 Effectively we search for that structure for which the total energy is
 minimal.
-Since the total energy is in principal exact in DFT the atomic position
+Since the total energy is in principle exact in DFT the atomic position
 are in general rather good.
-\[aq]In principal\[aq] means if the exchange\-correlation functional
+\[aq]In principle\[aq] means if the exchange\-correlation functional
 would be exact.
 However, since we are comparing differences in total energies an certain
 amount of error\-cancellation can be expected.

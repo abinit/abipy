@@ -2,7 +2,7 @@
 .SH Background
 .PP
 This lesson focuses on the calculation of the density of states (DOS)
-and the electronic band structure withing the Kohn\-Sham (KS) formalism.
+and the electronic band structure within the Kohn\-Sham (KS) formalism.
 .PP
 In contrast to the total energy and its derivatives, the energies of the
 KS\-levels have no exact physical meaning, except for the highest

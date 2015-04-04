@@ -13,7 +13,7 @@ efficient calculation.
 Various types of materials require in general different densities of the
 k\-point meshes.
 In general metals need denser meshes than semiconductors, because of the
-need to accurately sample the fermi surface.
+need to accurately sample the Fermi surface.
 Your first investigation into a new compound will quit often be a
 k\-point convergence study.
 .SH The related abinit variables
