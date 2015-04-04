@@ -45,7 +45,7 @@ The most important input parameters concerning the basis set are:
 from __future__ import division, print_function
 
 _ipython_lesson_ = """
-More info on the inputvariables and their use can be obtained using the
+More info on the input variables and their use can be obtained using the
 following function:
 
     .. code-block:: python
@@ -104,7 +104,7 @@ to show the status of a flow:
 There are many more properties and methods of a flow than may also come in
 handy. By typing [tab] in ipython after the period, you will be presented
 with all the option. Feel free to experiment a bit at this point. By adding
-a questionmark to the method or property ipython will show the information
+a question mark to the method or property ipython will show the information
 and description of it:
 
     .. code-block:: python
@@ -183,27 +183,26 @@ from abipy.lessons.core import BaseLesson
 def make_ecut_flow(structure_file=None, ecut_list = (10, 12, 14, 16, 18)):
     #define the structure and add the necessary pseudos:
     if structure_file is None:
-        inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=len(ecut_list))
-        inp.set_structure(abidata.cif_file("si.cif"))
+        multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"), 
+                                  pseudos=abidata.pseudos("14si.pspnc"), ndtset=len(ecut_list))
         workdir = "flow_Si_ecut_convergence"
     else:
         structure = abilab.Structure.from_file(structure_file)
         pseudos = abilab.PseudoTable()  ## todo fix this
-        inp = abilab.AbiInput(pseudos=pseudos, ndtset=len(ecut_list))
-        inp.set_structure(structure)
+        multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=len(ecut_list))
         workdir = "flow_" + structure.composition.reduced_formula + "_ecut_convergence"
 
-    # Add mnemonics to input file.
-    inp.set_mnemonics(True)
+    # Add mnemonics to the input files.
+    multi.set_mnemonics(True)
 
     # Global variables
-    inp.set_vars(tolvrs=1e-9)
-    inp.set_kmesh(ngkpt=[4, 4, 4], shiftk=[0, 0, 0])
+    multi.set_vars(tolvrs=1e-9)
+    multi.set_kmesh(ngkpt=[4, 4, 4], shiftk=[0, 0, 0])
 
     for i, ecut in enumerate(ecut_list):
-        inp[i+1].set_vars(ecut=ecut)
+        multi[i].set_vars(ecut=ecut)
 
-    return abilab.Flow.from_inputs(workdir=workdir, inputs=inp.split_datasets())
+    return abilab.Flow.from_inputs(workdir=workdir, inputs=multi.split_datasets())
 
 
 class Lesson(BaseLesson):

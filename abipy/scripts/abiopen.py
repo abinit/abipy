@@ -3,16 +3,9 @@ from __future__ import print_function, division, unicode_literals
 
 import sys
 import os
-import shlex
 import argparse 
-import collections
 
 from abipy import abilab
-from abipy.tools.text import WildCard 
-try:
-    import abipy.gui.wxapps as wxapps 
-except ImportError:
-    pass
 
 import logging
 logger = logging.getLogger(__name__)
@@ -39,7 +32,7 @@ def main():
         sys.exit(error_code)
 
 
-    parser = argparse.ArgumentParser(epilog=str_examples(),formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('--loglevel', default="ERROR", type=str,
                          help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
@@ -67,7 +60,7 @@ def main():
     abifile = abilab.abiopen(options.filepath)
     import IPython
     # USe embed because I don't know how to show a header with start_ipython.
-    IPython.embed(header="The Abinit file object is bound to the `abifile` variable.")
+    IPython.embed(header="The Abinit file is bound to the `abifile` variable.\nTry `print(abifile)`")
     #IPython.start_ipython(argv=options.argv, 
     #                      user_ns={"abifile": abifile},
     #                      banner="hello",

@@ -14,9 +14,10 @@ The band structure of a crystal is rigorously defined as the energies needed to 
 which, in turn, are related to the difference between total energies of many-body states differing by one electron. 
 
 An alternative, more traditional, approach to the study of exchange-correlation effects in 
-many-body systems is provided by Many-Body Perturbation Theory (MBPT) which defines a rigorous approach to the description of excited-state properties, 
-based on the Green's function formalism.
-In this lesson, we discuss how to use the MBPT part of ABINIT to compute the band-structure of silicon within the so-called $G_0W_0$ approximation.
+many-body systems is provided by Many-Body Perturbation Theory (MBPT) which defines a rigorous approach to the description 
+of excited-state properties, based on the Green's function formalism.
+In this lesson, we discuss how to use the MBPT part of ABINIT to compute the band-structure of silicon 
+within the so-called $G_0W_0$ approximation.
 
 For a very brief introduction see MBPT_NOTES_. 
 
@@ -194,11 +195,10 @@ def make_inputs(ngkpt, paral_kgb=0):
     # Dataset 5: calculation of the screening from the WFK file computed in dataset 4.
     # Dataset 6: Use the SCR file computed at step 5 and the WFK file computed in dataset 4 to get the GW corrections.
 
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=6)
-    inp.set_structure(abidata.cif_file("si.cif"))
-
+    multi = abilab.MultiDataset(abidata.cif_file("si.cif"),
+                                pseudos=abidata.pseudos("14si.pspnc"), ndtset=6)
     # Add mnemonics to input file.
-    inp.set_mnemonics(True)
+    multi.set_mnemonics(True)
 
     # This grid is the most economical, but does not contain the Gamma point.
     scf_kmesh = dict(
@@ -225,7 +225,7 @@ def make_inputs(ngkpt, paral_kgb=0):
        
     # Global variables
     ecut = 6
-    inp.set_vars(
+    multi.set_vars(
         ecut=ecut,
         istwfk="*1",
         paral_kgb=paral_kgb,
@@ -233,37 +233,37 @@ def make_inputs(ngkpt, paral_kgb=0):
     )
 
     # Dataset 1 (GS run to get the density)
-    inp[1].set_kmesh(**scf_kmesh)
-    inp[1].set_vars(
+    multi[0].set_kmesh(**scf_kmesh)
+    multi[0].set_vars(
         tolvrs=1e-6,
         nband=4,
     )
-    inp[1].set_kmesh(**scf_kmesh)
+    multi[0].set_kmesh(**scf_kmesh)
 
     # Dataset 2 (NSCF run)
-    inp[2].set_vars(iscf=-2,
-                    tolwfr=1e-12,
-                    nband=8,
-                   )
-    inp[2].set_kpath(ndivsm=8)
+    multi[1].set_vars(iscf=-2,
+                      tolwfr=1e-12,
+                      nband=8,
+                      )
+    multi[1].set_kpath(ndivsm=8)
 
     # Dataset 3 (DOS NSCF)
-    inp[3].set_vars(iscf=-2,
-                    tolwfr=1e-12,
-                    nband=35,
-                    #nband=10,
-                   )
-    inp[3].set_kmesh(**dos_kmesh)
+    multi[2].set_vars(iscf=-2,
+                      tolwfr=1e-12,
+                      nband=35,
+                      #nband=10,
+                      )
+    multi[2].set_kmesh(**dos_kmesh)
 
     # Dataset 4 (NSCF run for GW)
-    inp[4].set_vars(iscf=-2,
-                    tolwfr=1e-12,
-                    nband=35,
-                   )
-    inp[4].set_kmesh(**gw_kmesh)
+    multi[3].set_vars(iscf=-2,
+                      tolwfr=1e-12,
+                      nband=35,
+                     )
+    multi[3].set_kmesh(**gw_kmesh)
 
     # Dataset3: Calculation of the screening.
-    inp[5].set_vars(
+    multi[4].set_vars(
         optdriver=3,   
         nband=25,    
         ecutwfn=ecut,   
@@ -271,9 +271,9 @@ def make_inputs(ngkpt, paral_kgb=0):
         inclvkb=0,
         ecuteps=4.0,    
     )
-    inp[5].set_kmesh(**gw_kmesh)
+    multi[4].set_kmesh(**gw_kmesh)
 
-    inp[6].set_vars(
+    multi[5].set_vars(
             optdriver=4,
             nband=10,      
             ecutwfn=ecut,
@@ -282,9 +282,9 @@ def make_inputs(ngkpt, paral_kgb=0):
             symsigma=1,
             gw_qprange=-4,  # Compute GW corrections for all kpts in IBZ, all occupied states and 4 empty states,
         )
-    inp[6].set_kmesh(**gw_kmesh)
+    multi[5].set_kmesh(**gw_kmesh)
 
-    return inp.split_datasets()
+    return multi.split_datasets()
 
 
 def make_g0w0_scissors_flow(workdir="flow_lesson_g0w0", ngkpt=[2,2,2]):

@@ -6,8 +6,8 @@ The calculation of the density of states and the bandstructure.
 Background
 ----------
 
-This lesson focuses on the calculation of the density of states (DOS) and the electronic band structure withing the 
-Kohn-Sham (KS) formalism. 
+This lesson focuses on the calculation of the density of states (DOS) and 
+the electronic band structure within the Kohn-Sham (KS) formalism. 
 
 In contrast to the total energy and its derivatives, the energies of the KS-levels have no exact physical meaning,
 except for the highest occupied state that actually would be the first ionization energy if the functional would be
@@ -147,26 +147,25 @@ from abipy.lessons.core import BaseLesson, get_pseudos
 
 def make_electronic_structure_flow(ngkpts_for_dos=[(2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)]):
     """Band structure calculation."""
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=2 + len(ngkpts_for_dos))
-    inp.set_structure(abidata.cif_file("si.cif"))
-
+    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"),
+                                pseudos=abidata.pseudos("14si.pspnc"), ndtset=2 + len(ngkpts_for_dos))
     # Global variables
-    inp.ecut = 10
+    multi.set_vars(ecut=10)
 
     # Dataset 1
-    inp[1].set_vars(tolvrs=1e-9)
-    inp[1].set_kmesh(ngkpt=[4, 4, 4], shiftk=[0, 0, 0])
+    multi[0].set_vars(tolvrs=1e-9)
+    multi[0].set_kmesh(ngkpt=[4, 4, 4], shiftk=[0, 0, 0])
 
     # Dataset 2
-    inp[2].set_vars(tolwfr=1e-15)
-    inp[2].set_kpath(ndivsm=5)
+    multi[1].set_vars(tolwfr=1e-15)
+    multi[1].set_kpath(ndivsm=5)
 
     # Dataset 3
     for i, ngkpt in enumerate(ngkpts_for_dos):
-        inp[3+i].set_vars(tolwfr=1e-15)
-        inp[3+i].set_kmesh(ngkpt=ngkpt, shiftk=[0,0,0])
+        multi[2+i].set_vars(tolwfr=1e-15)
+        multi[2+i].set_kmesh(ngkpt=ngkpt, shiftk=[0,0,0])
 
-    inputs = inp.split_datasets()
+    inputs = multi.split_datasets()
     scf_input, nscf_input, dos_input = inputs[0], inputs[1], inputs[2:]
 
     return abilab.bandstructure_flow(workdir="flow_dos_bands", scf_input=scf_input, nscf_input=nscf_input,

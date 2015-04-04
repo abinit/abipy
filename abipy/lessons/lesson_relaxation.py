@@ -8,8 +8,8 @@ Background
 
 One of the tasks that is most performed using DFT is the relaxation of an
 atomic structure. Effectively we search for that structure for which the
-total energy is minimal. Since the total energy is in principal exact in
-DFT the atomic position are in general rather good. 'In principal' means
+total energy is minimal. Since the total energy is in principle exact in
+DFT the atomic position are in general rather good. 'In principle' means
 if the exchange-correlation functional would be exact. However, since we
 are comparing differences in total energies an certain amount of
 error-cancellation can be expected.
@@ -210,14 +210,13 @@ def make_relax_flow(structure_file=None):
     else:
         structure = abilab.Structure.from_file(structure_file)
 
-    inp = abilab.AbiInput(pseudos=get_pseudos(structure), ndtset=len(ngkpt_list))
-    inp.set_structure(structure)
+    multi = abilab.MultiDataset(structure=structure, pseudos=get_pseudos(structure), ndtset=len(ngkpt_list))
 
     # Add mnemonics to input file.
-    inp.set_mnemonics(True)
+    multi.set_mnemonics(True)
 
     # Global variables
-    inp.set_vars(
+    multi.set_vars(
         ecut=20,
         tolrff=5.0e-2,
         nstep=30,
@@ -230,9 +229,9 @@ def make_relax_flow(structure_file=None):
     )
 
     for i, ngkpt in enumerate(ngkpt_list):
-        inp[i+1].set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])
+        multi[i].set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])
 
-    return abilab.Flow.from_inputs("flow_gan_relax", inputs=inp.split_datasets(), task_class=abilab.RelaxTask)
+    return abilab.Flow.from_inputs("flow_gan_relax", inputs=multi.split_datasets(), task_class=abilab.RelaxTask)
 
 
 def make_eos_flow(structure_file=None):
@@ -244,25 +243,24 @@ def make_eos_flow(structure_file=None):
     else:
         structure = abilab.Structure.from_file(structure_file)
 
-    inp = abilab.AbiInput(pseudos=get_pseudos(structure), ndtset=len(scale_volumes))
-    inp.set_structure(structure)
+    multi = abilab.MultiDataset(structure=structure, pseudos=get_pseudos(structure), ndtset=len(scale_volumes))
 
     # Global variables
-    inp.set_vars(
+    multi.set_vars(
         ecut=16,
         tolvrs=1e-16
     )
 
-    inp.set_kmesh(ngkpt=[4, 4, 4], shiftk=[[0.5, 0.5, 0.5], [0.5, 0.0, 0.0], [0.0, 0.5, 0.0], [0.0, 0.0, 0.5]])
+    multi.set_kmesh(ngkpt=[4, 4, 4], shiftk=[[0.5, 0.5, 0.5], [0.5, 0.0, 0.0], [0.0, 0.5, 0.0], [0.0, 0.0, 0.5]])
 
     for idt, scal_vol in enumerate(scale_volumes):
         new_lattice = structure.lattice.scale(structure.volume*scal_vol)
 
         new_structure = Structure(new_lattice, structure.species, structure.frac_coords)
 
-        inp[idt+1].set_structure(new_structure)
+        multi[idt].set_structure(new_structure)
 
-    eos_flow = abilab.Flow.from_inputs("flow_si_relax", inputs=inp.split_datasets(), task_class=abilab.RelaxTask)
+    eos_flow = abilab.Flow.from_inputs("flow_si_relax", inputs=multi.split_datasets(), task_class=abilab.RelaxTask)
     eos_flow.volumes = structure.volume * scale_volumes
     return eos_flow
 

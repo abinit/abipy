@@ -15,8 +15,8 @@ be converged we need a k-point mesh that is dense enough, but at
 the same time as coarse as possible to make for an efficient
 calculation. Various types of materials require in general different
 densities of the k-point meshes. In general metals need denser meshes
-than semiconductors, because of the need to accurately sample the fermi surface. Your first investigation into a new
-compound will quit often be a k-point convergence study.
+than semiconductors, because of the need to accurately sample the Fermi surface. 
+Your first investigation into a new compound will quit often be a k-point convergence study.
 
 The related abinit variables
 ----------------------------
@@ -86,7 +86,7 @@ is made by the command:
 
         flow = lesson.make_ngkpt_flow()
 
-'flow' is now an object that contains al the information needed
+'flow' is now an object that contains all the information needed
 to generate abinit input. In this case it is a special flow for
 a k-point convergence study and since we did not specify anything
 when generating the flow the example case of silicon is generated.
@@ -113,8 +113,7 @@ cycle of the scheduler directly submitted all of them. More
 complicated flows may have tasks that can only start using input
 from a previous task. We will encounter some of those later.
 
-The last step of analyzing the results can be done again in with
-a single command:
+The last step of analyzing the results can be done again in with a single command:
 
     .. code-block:: python
 
@@ -146,7 +145,7 @@ convergence for a metal. By using:
         flow = lesson.make_ngkpt_flow(structure_file=lesson.abidata.cif_file('al.cif'), metal=True)
 
 you will generate a flow for aluminum. Actually, you can pass
-the path to any cif file to perform a convergence study on that
+the path to any CIF file to perform a convergence study on that
 material. Be careful however, aluminum is a metal and the default
 parameters for occopt and tsmear are for semiconductors. The
 keyword argument 'metal' fixes this. (you could also see what
@@ -248,31 +247,29 @@ def make_ngkpt_flow(ngkpt_list=[(2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)], str
     """
     # Defining the structure and adding the appropriate pseudo potentials
     if structure_file is None:
-        inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=len(ngkpt_list))
-        inp.set_structure(abidata.cif_file("si.cif"))
+        multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"),
+                                    pseudos=abidata.pseudos("14si.pspnc"), ndtset=len(ngkpt_list))
         workdir = "flow_lesson_Si_kpoint_convergence"
     else:
         structure = abilab.Structure.from_file(structure_file)
-
         pseudos = get_pseudos(structure)
-        inp = abilab.AbiInput(pseudos=pseudos, ndtset=len(ngkpt_list))
-        inp.set_structure(structure)
+        multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=len(ngkpt_list))
         workdir = "flow_lesson_" + structure.composition.reduced_formula + "_kpoint_convergence"
 
     # Add mnemonics to input file.
-    inp.set_mnemonics(True)
+    multi.set_mnemonics(True)
 
     # Global variables
-    inp.set_vars(ecut=10, tolvrs=1e-9)
+    multi.set_vars(ecut=10, tolvrs=1e-9)
 
     if metal:
-        inp.set_vars(occopt=7, tsmear=0.04)
+        multi.set_vars(occopt=7, tsmear=0.04)
 
     # Specific variables for the different calculations
     for i, ngkpt in enumerate(ngkpt_list):
-        inp[i+1].set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])
+        multi[i].set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])
 
-    return abilab.Flow.from_inputs(workdir=workdir, inputs=inp.split_datasets())
+    return abilab.Flow.from_inputs(workdir=workdir, inputs=multi.split_datasets())
 
 
 class Lesson(BaseLesson):
