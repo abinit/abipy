@@ -70,10 +70,6 @@ yaml.add_representer(literal, literal_unicode_representer)
 class Variable(yaml.YAMLObject):
     yaml_tag = u'!variable'
 
-    #def attrs(self):
-    #    return ['vartype','characteristic','definition','dimensions','defaultval','text',
-    #            'varname','section']
-
     def __init__(self, vartype=None, characteristics=None, definition=None, dimensions=None, 
                 default=None, text=None, varname=None, section=None, range=None, 
                 commentdefault=None, commentdims=None, requires=None, excludes=None):
@@ -262,7 +258,6 @@ def get_abinit_variables():
             # Save object to pickle file so that can we can reload it from pickle instead of yaml (slower)
             with open(pickle_file, "wb") as fh:
                 pickle.dump(__VARS_DATABASE, fh)
-                #os.chmod(pickle_file, 0o444)
 
     return __VARS_DATABASE
         

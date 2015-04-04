@@ -66,7 +66,7 @@ class GSRFileTestCase(AbipyTest):
         """spin unpolarized GSR file"""
         almost_equal = self.assertAlmostEqual
 
-        with GsrFile(iabidata.ref_file("si_scf_GSR.nc")) as gsr:
+        with GsrFile(abidata.ref_file("si_scf_GSR.nc")) as gsr:
             print(repr(gsr))
             print(gsr)
             print(gsr.ebands)
