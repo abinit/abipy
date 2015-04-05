@@ -438,7 +438,7 @@ class SigresRobot(Robot):
 
 class MdfRobot(Robot):
     """This robot analyzes the results contained in multiple MDF files."""
-    EXT = "MDF"
+    EXT = "MDF.nc"
 
     def get_mdf_plotter(self):
         from abipy.electrons.bse import MdfPlotter

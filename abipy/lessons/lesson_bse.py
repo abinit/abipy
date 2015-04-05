@@ -7,10 +7,10 @@ import abipy.abilab as abilab
 import abipy.data as abidata
 
 
-def make_inputs(ngkpt=(4,4,4), ecut=8, ecuteps=2):
+def make_scf_nscf_bse_inputs(ngkpt=(8, 8, 8), ecut=6, ecuteps=3):
     """
     """
-    multi = abilab.MultiDataset(structure=abidata.structure_from_ucell("Si")),
+    multi = abilab.MultiDataset(structure=abidata.structure_from_ucell("Si"),
                                 pseudos=abidata.pseudos("14si.pspnc"), ndtset=3)
 
     multi.set_vars(
@@ -22,7 +22,6 @@ def make_inputs(ngkpt=(4,4,4), ecut=8, ecuteps=2):
     )
 
     multi[0].set_vars(tolvrs=1e-8)
-    #multi[0].set_autokmesh(nksmall=min(ngkpt))
     multi[0].set_kmesh(ngkpt=ngkpt, shiftk=(0, 0, 0))
 
     multi[1].set_vars(
@@ -45,9 +44,9 @@ def make_inputs(ngkpt=(4,4,4), ecut=8, ecuteps=2):
         bs_coulomb_term=21,         # Coulomb term with model dielectric function.
         mdf_epsinf=12.0,            # Parameter for the model dielectric function.
         bs_coupling=0,              # Tamm-Dancoff approximation.
-        bs_loband=3,
+        bs_loband=2,
         nband=6,
-        #bs_freq_mesh=0 6 0.02 eV,  # Frequency mesh.
+        bs_freq_mesh="0 6 0.02 eV", # Frequency mesh.
         bs_algorithm=2,             # Haydock method.
         #bs_haydock_niter=200       # Max number of iterations for the Haydock method.
         #bs_haydock_tol=0.05 0,     # Tolerance for the iterative method.
@@ -57,7 +56,7 @@ def make_inputs(ngkpt=(4,4,4), ecut=8, ecuteps=2):
         inclvkb=2,                  # The commutator for the optical limit is correctly evaluated.
     )
 
-    multi[2].set_kmesh(ngkpt=ngkpt, shiftk=(0.11,0.21,0.31))
+    multi[2].set_kmesh(ngkpt=ngkpt, shiftk=(0.11, 0.21, 0.31))
 
     scf_input, nscf_input, bse_input = multi.split_datasets()
     return scf_input, nscf_input, bse_input
@@ -66,44 +65,23 @@ def make_inputs(ngkpt=(4,4,4), ecut=8, ecuteps=2):
 def eh_convergence_study():
     """
     """
-    scf_input, nscf_input, bse_template = make_inputs()
-    workdir = "flow_bse_bands"
-
-    if not os.path.exists(workdir):
-        print("Calling the scheduler")
-        bands_flow = abilab.bandstructure_flow(workdir, scf_input, nscf_input)
-        bands_flow.make_scheduler().start()
-    else:
-        print("Initializing flow from %s" % workdir)
-        bands_flow = abilab.Flow.pickle_load(workdir)
-
-    if not bands_flow.all_ok:
-        raise RuntimeError("bands_flow must have reached all_ok")
-
-    wfk_file = bands_flow.nscf_task.outdir.has_abiext("WFK")
-    if not wfk_file:
-        raise RuntimeError("WFK file does not exist")
-
-    work = abilab.Work()
-    #for inp in bse_template.generate(ecuteps=range(2, 4, 1)):
-    for inp in bse_template.generate(zcut=["0.1 eV", "0.2 eV", "0.3 eV"]):
-        work.register_bse_task(inp, deps={wfk_file: "WFK"})
+    scf_input, nscf_input, bse_input = make_inputs()
 
     flow = abilab.Flow(workdir="flow_bse_ecuteps")
+    work = abilab.BseMdfWork(scf_input, nscf_input, bse_input)
+
     flow.register_work(work)
-    flow.allocate()
-    #flow.build()
     flow.make_scheduler().start()
 
     import matplotlib.pyplot as plt
     import pandas as pd
 
-    with abilab.abirobot(flow, "MDF") as robot:
-        frame = robot.get_dataframe()
+    #with abilab.abirobot(flow, "MDF") as robot:
+        #frame = robot.get_dataframe()
         #print(frame)
         #plotter = robot.get_mdf_plotter()
         #plotter.plot()
-        robot.plot_conv_mdf(hue="broad")
+        #robot.plot_conv_mdf(hue="broad")
 
         #grouped = frame.groupby("broad")
         #fig, ax_list = plt.subplots(nrows=len(grouped), ncols=1, sharex=True, sharey=True, squeeze=True)
