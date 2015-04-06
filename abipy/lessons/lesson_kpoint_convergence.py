@@ -1,62 +1,62 @@
 #!/usr/bin/env python
 """
-K-point convergence study for a semi-conductor and an introduction some of the basic concepts of the abipy library.
-===================================================================================================================
+K-point convergence study for a semi-conductor. An introduction to some of the basic concepts of AbiPy
+======================================================================================================
 
 Background
 ----------
 
-This lesson deals with the basic k-point convergence study that
-is needed in any DFT calculation of a solid. In a DFT calculation
-of a solid the first Brillouin zone needs to be discretized to
-enable the integration of various quantities. Effectively the
-integrals are turned in to sums over k-points. For any result to
-be converged we need a k-point mesh that is dense enough, but at
-the same time as coarse as possible to make for an efficient
-calculation. Various types of materials require in general different
-densities of the k-point meshes. In general metals need denser meshes
-than semiconductors, because of the need to accurately sample the Fermi surface. 
+This lesson deals with the basic k-point convergence study that is needed in any DFT calculation for periodic systems. 
+In such a systems, indeed, the first Brillouin zone (BZ) needs to be discretized when performing the 
+integration of several important quantities e.g. the electronic density or the electronic energy.
+Integrals over the BZ are therefore turned into sums over discrete k-points and the k-mesh should 
+be dense enough, but at the same time as coarse as possible to make for an efficient calculation. 
 Your first investigation into a new compound will quit often be a k-point convergence study.
+It is worth stressing that the density of the k-point mesh needed to reach converged results is system-dependent.
 
-The related abinit variables
+Note moreover that metals need much denser meshes than semiconductors. 
+The presence of the Fermi surface, indeed, induces discontinuities in the integrand functions and a 
+fictitious broadening of the occupation factors (tsmear) should be introduced in order to accelerate 
+the convergence of the integrals.
+
+The related Abinit variables
 ----------------------------
 
-The abinit parameters concerned with the k-point grid are:
+The variables used to specify the k-point sampling are:
 
     * ngkpt
     * shiftk
+    * kptopt (see exercises)
+
+The variables used to specify the occupation scheme in metals are:
+
     * occopt (see exercises)
     * tsmear (see exercises)
-    * kptopt (see exercises)
+
 
 """
 from __future__ import division, print_function
 
 _ipython_lesson_ = """
-At this place they will not be discussed in detail. In stead you are
-invited to read the abinit documentation on them. The full description,
-directly from the official abinit description is available via the following function:
+At this place they will not be discussed in detail, you are invited to consult the abinit documentation. 
+The full description, directly from the official abinit docs, is available via the following function:
 
     .. code-block:: python
 
         lesson.docvar("inputvariable")
 
-This will print the official abinit description of this inputvariable.
+that will print the official description of inputvariable.
 
 The abipy flows of this lesson
 ------------------------------
 
 When performed manually, a k-point convergence study would require
-the preparation of a series of input-files, running abinit for all
-the inputs and extracting and studying the quantity that is needed
-to be converged. This lesson shows how this process can be greatly
-facilitated by using python scripts in the abipy framework. We will
-construct a single python object, an abipy flow, that contains all
+the preparation of several input files, running abinit for all
+the inputs and then extracting and studying the quantity under investigation.
+This lesson shows how this process can be greatly facilitated thanks to abipy. 
+We will construct a single python object, an abipy flow, that contains all
 the information needed for the calculations but also provides methods
-for actually running abinit, inspecting the input and output, and
-analyzing the results.
-
-All calculations will however still be run in parallel.
+for actually running abinit, inspecting the input and output, and analyzing the final results.
 
 The Course of this lesson
 -------------------------
@@ -68,19 +68,18 @@ This lesson can be started in ipython by importing it:
         from abipy.lessons.lesson_kpoint_convergence import Lesson
         lesson = Lesson()
 
-The lesson is now imported in your ipython session in its own
-namespace 'lesson'. This object now gives us all the tools to
-follow this lesson. For instance the command:
+The lesson is now imported in your ipython session in its own namespace 'lesson'. 
+This object now gives us all the tools to follow this lesson. 
+For instance the command:
 
     .. code-block:: python
 
         lesson
 
 displays this lessons information text, and can be recalled at
-any moment. The main object we use to pack (connected series of)
-calculations is a flow. This lesson provides a method that returns
-a flow designed to perform k-point convergence studies. This flow
-is made by the command:
+any moment. The main object we use to connect different calculations is a flow. 
+This lesson provides a method that returns a flow that performs k-point convergence studies. 
+This flow is made by the command:
 
     .. code-block:: python
 
@@ -137,8 +136,9 @@ Exercises
 ---------
 
 As an exercise you can now start this lesson again but instead
-of performing the convergence study for silicon study the
-convergence for a metal. By using:
+of performing the convergence study for silicon, we could perform a 
+similar convergence analysis for a metal. 
+By using:
 
     .. code-block:: python
 
@@ -172,7 +172,7 @@ A logical next lesson would be lesson_ecut_convergence
 """
 
 _commandline_lesson_ = """
-At this place they will not be discussed in detail. In stead you are
+At this place they will not be discussed in detail. Instead you are
 invited to read the abinit documentation on them. The full description,
 directly from the abinit description is available via the following function:
 
@@ -187,15 +187,16 @@ The course of this lesson
 -------------------------
 
 In the generation of this lesson by the python script all the input files have been generated automatically.
-The input files have been organized in a workdir "flow_lesson_Si_kpoint_convergence". Inside you'll find a single work,
-w0, with four tasks, t0 - t3. Have a look at the input files, run.abi, in the four tasks to see what is different.
+The input files have been organized in a workdir "flow_lesson_Si_kpoint_convergence". 
+Inside this directory, you'll find a single work, w0, with four tasks, t0 - t3. 
+Have a look at the input files, run.abi, of the four tasks to see what is different.
 
-You'll see that also the files file and the jobs submission script are generated. In the job scripts you'll see that
-the jobs are prepared to run just on the front end.
+You'll see that also the files file and the jobs submission script are generated. 
+In the job scripts you'll see that the jobs are prepared to run just on the front end.
 
 You'll also see that the files file has been created as well.
 
-To perform the kpoint convergence study execute abinit with the four input sets.
+To perform the k-point convergence study execute abinit with the four input sets.
 
 Once the calculations are ready, you'll see three important output files.
 
@@ -243,7 +244,7 @@ from abipy.lessons.core import BaseLesson, get_pseudos
 def make_ngkpt_flow(ngkpt_list=[(2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)], structure_file=None, metal=False):
     """
     A `factory function` (a function that returns an instance of the class defined above. If no specific system is
-    specified, structure_file=None, an example flow for silicon in constructed and returned.
+    specified, structure_file=None, an flow for silicon in constructed and returned.
     """
     # Defining the structure and adding the appropriate pseudo potentials
     if structure_file is None:

@@ -6,47 +6,40 @@ Basis set convergence study and some more on flows, works, and tasks.
 Background
 ----------
 
-This lesson focuses on the convergence study on the completeness
-of the basis set. In our case the basis set consists of plane
-waves. Plane waves are inherently well suited to capture the periodic
-nature of a crystalline solid. In addition a plane wave basis set
-has the advantage that it introduces only one convergence parameter,
+This lesson focuses on the convergence study on the completeness of the basis set. 
+In our case the basis set consists of plane waves. 
+Plane waves (PWs) are inherently well suited to capture the periodic nature of crystalline solids. 
+In addition, a plane wave basis set has the advantage that it introduces only one convergence parameter,
 the kinetic energy cutoff (ecut).
 
-The sharp features of the wavefunctions near the nucleus are however
-problematic for plane waves. Describing these features would require
-very high energy plane waves. In practice we will always use
-pseudo-potentials instead of the actual nuclear potential to facilitate
-convergence. Effectively a pseudopotential replaces the sharp coulomb
-potential of the nucleus and the core electrons by something smoother
-inside the pseudization region that connects smoothly to the real potential
-outside the pseudization region.
+The sharp features of the wavefunctions near the nucleus are however problematic for plane waves. 
+Describing these features would require very high energy PWs. 
+In practice we will always use pseudo-potentials instead of the actual nuclear potential to facilitate convergence. 
+Effectively a pseudopotential replaces the sharp coulomb potential of the nucleus and the 
+core electrons by something smoother inside the pseudization region that connects smoothly to 
+the real potential outside the pseudization region.
 
 Needless to say a different pseudo potential will require a different
-cutoff for the calculation to be converged. In general norm-conserving
-pseudos require a larger cut-off that ultra-soft pseudos or Projector
-Augmented Wave 'pseudos'. 
+cutoff for the calculation to be converged. 
+In general norm-conserving pseudos require a larger cut-off that ultra-soft pseudos 
+or Projector Augmented Wave 'pseudos'. 
 Moreover two pseudos of the same type for the same element may require different
 cutoffs as well. 'Harder' (having a smaller pseudization radius) require
-larger cutoffs than 'softer' pseudos. There are however many more
-properties of a pseudo that determine the cutoff needed.
+larger cutoffs than 'softer' pseudos. 
+There are however many more properties of a pseudo that determine the cutoff needed.
 
 The related abinit variables
 ----------------------------
 
-As said, the most important parameter is the energy cutoff (ecut input variable).
-The most important input parameters concerning the basis set are:
-
-    * ecut 
-    * pawecutdg (additional variable for PAW)
-    * ecutsm
+    * ecut      (cutoff energy)
+    * pawecutdg (additional variable for the double-grid used in PAW)
+    * ecutsm    (smoothing of the kinetic energy)
 
 """
 from __future__ import division, print_function
 
 _ipython_lesson_ = """
-More info on the input variables and their use can be obtained using the
-following function:
+More info on the input variables and their use can be obtained using:
 
     .. code-block:: python
 
@@ -55,8 +48,8 @@ following function:
 The abipy flows in this lesson
 ------------------------------
 
-This lesson contains a factory function for an ecut convergence study. In this lesson we will discuss a few more
-properties and methods of flows.
+This lesson contains a factory function for an ecut convergence study. 
+In this lesson we will discuss a few more properties and methods of the flow.
 
 The course of this lesson
 -------------------------
@@ -68,7 +61,7 @@ Start this lesson by importing it in a new namespace
         from abipy.lessons.lesson_ecut_convergence import Lesson
         lesson = Lesson()
 
-As always you can reread this lesson's text using the command:
+As always you can reread this text using the command:
 
     .. code-block:: python
 
@@ -86,10 +79,9 @@ To print the input files
 
         flow.show_inputs()
 
-In this lesson we take a closer look at the structure of a Flow. In general
-a flow is a container that contains 'works'. Works are (connected) series
-of abinit executions we call tasks. To show the works contained in a flow
-use the 'works' method:
+In this lesson, we take a closer look at the structure of a Flow. In general
+a flow is a container of 'works'. Works are (connected) series of abinit runs a.k.a tasks. 
+To show the works contained in a flow use the 'works' method:
 
     .. code-block:: python
 
@@ -101,8 +93,8 @@ to show the status of a flow:
 
         flow.show_status()
 
-There are many more properties and methods of a flow than may also come in
-handy. By typing [tab] in ipython after the period, you will be presented
+There are many more properties and methods of a flow than may also come in handy. 
+By typing [tab] in ipython after the period, you will be presented
 with all the option. Feel free to experiment a bit at this point. By adding
 a question mark to the method or property ipython will show the information
 and description of it:
@@ -149,14 +141,13 @@ A logical next lesson would be lesson_relaxation
 """
 
 _commandline_lesson_ = """
-The full description,
-directly from the abinit description is available via the following function:
+The full description, directly from the abinit documentation, is available via the following function:
 
     .. code-block:: shell
 
         abidoc.py man inputvariable
 
-This will print the official abinit description of this inputvariable.
+This command will print the official description of inputvariable.
 
 The course of this lesson
 -------------------------
@@ -181,7 +172,15 @@ from abipy.lessons.core import BaseLesson
 
 
 def make_ecut_flow(structure_file=None, ecut_list = (10, 12, 14, 16, 18)):
-    #define the structure and add the necessary pseudos:
+    """
+    Build and return a `Flow` to perform a convergence study wrt to ecut.
+
+    Args:
+        structure_file: (optional) file containing the crystalline structure.  
+            If None, Silicon structure is used.
+        ecut_list: List of cutoff energies to be investigated.
+    """
+    # Define the structure and add the necessary pseudos:
     if structure_file is None:
         multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"), 
                                   pseudos=abidata.pseudos("14si.pspnc"), ndtset=len(ecut_list))
@@ -199,6 +198,7 @@ def make_ecut_flow(structure_file=None, ecut_list = (10, 12, 14, 16, 18)):
     multi.set_vars(tolvrs=1e-9)
     multi.set_kmesh(ngkpt=[4, 4, 4], shiftk=[0, 0, 0])
 
+    # Here we set the value of ecut used by the i-th task.
     for i, ecut in enumerate(ecut_list):
         multi[i].set_vars(ecut=ecut)
 

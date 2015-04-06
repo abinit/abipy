@@ -12,38 +12,37 @@ the electronic band structure within the Kohn-Sham (KS) formalism.
 In contrast to the total energy and its derivatives, the energies of the KS-levels have no exact physical meaning,
 except for the highest occupied state that actually would be the first ionization energy if the functional would be
 exact. So why would we even want to calculate the KS-DOS and band structure? In most cases the KS spectrum is
-qualitatively in agreement with the spectrum of ionization energies. Moreover in general we are able to make good
-predictions on trends.
+in qualitative agreement with experiments and KS bands allows us to make good predictions on trends.
 
 In lesson_g0w0.py, we discuss a more elaborated and accurate approach for the calculation of band energies and band gaps.
 
 The related abinit variables
 ----------------------------
 
-    * kptopt (negative values)
-    * kptbounds (if you want to specify the bounds of the k-path)
-    * ndivsm
+    * kptopt    (negative values if band structures are wanted.)
+    * kptbounds (the boundaries of the k-path)
+    * ndivsm    (number of points used to sample the smallest segment of the k-path)
 
 """
 from __future__ import division, print_function
 
 
 _ipython_lesson_ = """
-More info on the inputvariables and their use can be obtained using the following function:
+More info on the inputvariables and their use can be obtained using:
 
     .. code-block:: python
 
         lesson.docvar("inputvariable")
 
-This will print the official abinit description of this inputvariable.
+This command will print the official description of `inputvariable`.
 
 The abipy flows in this lesson
 ------------------------------
 
 The flow that we use in this lesson contains for the first time dependencies.
-This means that some tasks in the flow can only be started if an other task is
-ready. We will first perform one self-consistent calculation to obtain a proper
-density. Using this density we calculate in two more steps the DOS and the bandstructure.
+This means that some tasks in the flow can start only if its `parents` are completed.
+We will first perform one self-consistent calculation to obtain a proper density. 
+Using this density we calculate in two more steps the DOS and the bandstructure.
 For the DOS this not strictly necessary since the DOS will also be calculated on a regular grid.
 In general the density will be converged already before the DOS is converged. For large systems it may become
 nessesary to split. For the bandstructure, we have a non-uniform grid so we do need to fix the density.
@@ -58,7 +57,7 @@ Start this lesson by importing it in a new namespace:
         from abipy.lessons.lesson_dos_bands import Lesson
         lesson = Lesson()
 
-As always you can reread this lessons text using the command:
+As always you can reread this text using the command:
 
     .. code-block:: python
 
@@ -100,7 +99,7 @@ Exercises
 At this point, you may want to interact more with the underlying python objects
 so that you can start to develop your own script or your post-processing tool.
 
-Our flow consists of a BandStructureWork object that provides many tools for post-processing.
+Our flow consists of a `BandStructureWork` object that provides many tools for post-processing.
 Use
 
     .. code-block:: python

@@ -38,14 +38,13 @@ Related ABINIT variables
 from __future__ import division, print_function, unicode_literals
 
 _ipython_lesson_ = """
-More info on the input variables and their use can be obtained
-using the following function:
+More info on the input variables and their use can be obtained using the following function:
 
     .. code-block:: python
 
         lesson.abinit_help(inputvariable)
 
-This will print the official abinit description of this variables.
+This will print the official description of this variables.
 
 To open the python script in ipython use:
 
@@ -60,31 +59,25 @@ In this lesson, we will construct an `abipy` flow made of two works.
 The first work is a standard KS band-structure calculation that consists of 
 an initial GS calculation to get the density followed by two NSCF calculations.
 The first NSCF task computes the KS eigenvalues on a high-symmetry path in the BZ,
-whereas the second NSCF task is done on a homogeneous k-mesh so that one can calculate 
+whereas the second NSCF task employs a homogeneous k-mesh so that one can compute 
 the DOS from the KS eigenvalues. 
 
 The second work represents the real GW workflow in which we read the density computed in the first task of 
-the previous work to compute the KS bands for many empty states. 
+the previous work in order to compute the KS bands for many empty states. 
 The WFK file produced in this step is then used to compute the screened interaction $W$. 
-Finally we do a self-energy calculation in which we use the $W$ produced
+Finally we perform a self-energy calculation in which we use the $W$ produced
 in the previous step and the WFK file to compute the matrix elements of the self-energy and 
 the $G_0W_0$ corrections for all the k-points in the IBZ and 8 bands (4 occupied + 4 empty)
 
 Once the flow is completed, we can interpolate the $G_0W_0$ corrections as function of the initial KS energy 
 to obtain an energy-dependent scissors operator. 
-At this point, we can apply the scissors operator onto the KS band structure to obtain an approximated $G_0W_0$
-band dispersion.
+At this point, we can apply the scissors operator onto the KS band structure to obtain 
+an approximated $G_0W_0$ band dispersion.
 
 The course of this lesson
 -------------------------
 
-Start ipython with matplotlib integration with the command:
-
-    .. code-block:: python
-
-        ipython
-
-This lesson can be started in ipython by importing it:
+This lesson can be started in ipython by importing it with:
 
     .. code-block:: python
 
@@ -92,21 +85,21 @@ This lesson can be started in ipython by importing it:
         lesson = Lesson()
 
 The lesson is now imported in your ipython session in its own namespace 'lesson'. 
-This object now gives us all the tools to follow this lesson. As before:
+This `lesson` object gives us all the tools needed to execute this tutorial. As usual:
 
     .. code-block:: python
 
         lesson
 
-displays this lessons information text. This lesson provides a
-factory function that returns a flow designed to perform a standard
-G0W0 calculation.
+displays this text. 
+
+This lesson provides a factory function that returns a flow designed to perform a standard G0W0 calculation.
 
 To run calculations on a cluster abipy needs to know about the queing system, the number of nodes and memory a job is
 allowed to use, etc... Abipy takes this infomation from the manager.yml file. Have a look at the current
-manager.yml file. It may look complicated but if fact it
-is just a translation of the user manual of the cluster. For a new cluster
-one person has to create it once. Also note the it only mentions which queueing
+manager.yml file. 
+It may look complicated but if fact it is just a translation of the user manual of the cluster. 
+For a new cluster one person has to create it once. Also note the it only mentions which queueing
 systems is installed how to use this systems is programmed in abipy. (abipy will first look for a manager
 file in you current folder and secondly in ~/.abinit/abipy, so you can put
 one there an don't bother about it for every calculation)
@@ -115,19 +108,19 @@ displays this lessons information text, and can be recalled at any moment.
 The main object we use to pack (connected series of) calculations is a flow. 
 This lesson provides a method that returns a flow designed to perform k-point convergence studies. 
 
-This flow is made by the command:
+This flow is constructed with the command:
 
     .. code-block:: python
 
         flow = lesson.make_flow()
 
-`flow` is now an object that contains al the information needed to generate abinit inputs. 
+`flow` is now an object containing al the information needed to generate abinit inputs. 
 
     .. code-block:: python
 
         flow.show_inputs()
 
-will display all the inputs as they will be 'given' to abinit. In
+will display all the inputs that will be 'passed' to abinit. In the
 previous lessons we ran the flows each time directly inside ipython.
 For relatively small calculations this is very practical. There are
 however other ways more suited for large calculations.
@@ -164,7 +157,7 @@ Exercises
 """
 
 _commandline_lesson_ = """
-At this place they will not be discussed in detail. In stead you are
+At this place they will not be discussed in detail. Instead you are
 invited to read the abinit documentation on them. The full description,
 directly from the abinit description is available via the following function:
 

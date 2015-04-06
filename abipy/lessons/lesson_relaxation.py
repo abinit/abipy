@@ -31,8 +31,7 @@ The related abinit variables
 
 _ipython_lesson_ = """
 
-More info on the inputvariables and their use can be obtained using
-the following function:
+More info on the inputvariables and their use can be obtained using the following function:
 
     .. code-block:: python
 
@@ -64,7 +63,7 @@ Start this lesson by importing it in a new namespace:
         from abipy.lessons.lesson_relaxation import Lesson
         lesson = Lesson()
 
-As always you can reread this lessons text using the command:
+As always you can reread this text using the command:
 
     .. code-block:: python
 
@@ -104,7 +103,7 @@ To analyze the results.
         # For Gallium Nitride, use
         lesson.analyze_eos_flow(gan_flow)
 
-In the case of silicon, it will show a fit of the total energy vs the
+In the case of silicon, the python code will show a fit of the total energy vs the
 volume of the unit cell. The minimum of this curve is the equilibrium
 volume. From this fit, we can also obtain the bulk modulus.
 This approach is only applicable for isotropic materials since we are
@@ -124,11 +123,11 @@ Lattice parameters of GaN: a = 3.190 A, c = 5.189 A [Schulz & Thiemann 1977]
 Vertical distance between Ga and N : about 0.377 * c [ Schulz & Thiemann, 1977]
 
 Of course you will need to converge your results with respect to
-the kpoint sampling and with respect with ecut...
+the kpoint sampling and ecut...
 
 The pseudopotentials we are using are of GGA type, which tends to
 overestimate the lattice parameters. If you use LDA-type pseudopotentials,
-you will observe that they would tend to underestimate the parameters.
+you will observe that LDA tends to underestimate the parameters.
 
 Exercises
 ---------
@@ -168,7 +167,7 @@ The full description of the variables, directly from the abinit description is a
 
         abidoc.py man inputvariable
 
-This will print the official abinit description of this inputvariable.
+This will print the official abinit description of `inputvariable`.
 
 As in the previous lessons, executing the python script created the folder structure with the input files for this
 lesson.
@@ -177,8 +176,8 @@ For the flow_si_relax folder, look in particular to the changes in the unit cell
 corresponding change in unit cell volume (ucvol), total energy (etotal) and stresses (strten) in the output file.
 For the flow_gan_relax, observe in the input and output files how the automatic relaxation takes place.
 At each step of the relaxation a full SCF-cycle is done, to compute the forces and the stress, the ions are moved and
-then a new SCF-cycle is done until convergence is done. That's why there are two stopping criterion for this task :
-tolrff or tolvrs for the SCF cycle and tolmxf for the relaxation in itself.
+then a new SCF-cycle is done until convergence is achieved. That's why there are two stopping criterion for this task:
+tolrff or tolvrs for the SCF cycle and tolmxf for the relaxation algorithm.
 
 Exercises
 ---------
@@ -187,8 +186,8 @@ Edit the input files to run the same jobs with different ecut values for example
 
 You can also try to change the stopping criterion to see what are the effects of them.
 
-Finally, try to generate the input file for silicon, and try to guess why setting stopping criterion on forces won't
-work in that case !
+Finally, try to generate the input file for silicon, and try to guess why setting stopping criterion on the forces 
+won't work in this case!
 """
 
 import os
