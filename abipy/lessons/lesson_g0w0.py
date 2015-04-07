@@ -19,7 +19,7 @@ of excited-state properties, based on the Green's function formalism.
 In this lesson, we discuss how to use the MBPT part of ABINIT to compute the band-structure of silicon 
 within the so-called $G_0W_0$ approximation.
 
-For a very brief introduction see MBPT_NOTES_. 
+For a very brief introduction to the many-body formalism, see MBPT_NOTES_. 
 
 .. _MBPT_NOTES: http://www.abinit.org/documentation/helpfiles/for-v7.10/tutorial/theory_mbt.html 
 
@@ -38,13 +38,13 @@ Related ABINIT variables
 from __future__ import division, print_function, unicode_literals
 
 _ipython_lesson_ = """
-More info on the input variables and their use can be obtained using the following function:
+More info on the input variables and their usage can be obtained using the command:
 
     .. code-block:: python
 
         lesson.abinit_help(inputvariable)
 
-This will print the official description of this variables.
+that will print the official description of the variables.
 
 To open the python script in ipython use:
 
@@ -52,8 +52,8 @@ To open the python script in ipython use:
 
         %load $lesson.pyfile
 
-The abipy flows of this lesson
-------------------------------
+The abipy flow used in this lesson
+----------------------------------
 
 In this lesson, we will construct an `abipy` flow made of two works.
 The first work is a standard KS band-structure calculation that consists of 
@@ -61,11 +61,12 @@ an initial GS calculation to get the density followed by two NSCF calculations.
 The first NSCF task computes the KS eigenvalues on a high-symmetry path in the BZ,
 whereas the second NSCF task employs a homogeneous k-mesh so that one can compute 
 the DOS from the KS eigenvalues. 
+This work is similar to the one we have already encountered in lesson_dos_bands.
 
-The second work represents the real GW workflow in which we read the density computed in the first task of 
-the previous work in order to compute the KS bands for many empty states. 
+The second work represents the real GW workflow that uses the density computed in the first task of 
+the previous work  to compute the KS bands for many empty states. 
 The WFK file produced in this step is then used to compute the screened interaction $W$. 
-Finally we perform a self-energy calculation in which we use the $W$ produced
+Finally, we perform a self-energy calculation that uses the $W$ produced
 in the previous step and the WFK file to compute the matrix elements of the self-energy and 
 the $G_0W_0$ corrections for all the k-points in the IBZ and 8 bands (4 occupied + 4 empty)
 
@@ -74,7 +75,12 @@ to obtain an energy-dependent scissors operator.
 At this point, we can apply the scissors operator onto the KS band structure to obtain 
 an approximated $G_0W_0$ band dispersion.
 
-The course of this lesson
+Don't worry if there are steps of the entire procedure that are not clear to you.
+GW calculations are much more complicated than standard KS band structures and 
+the main goal of this lesson is to give you an overview of the Abipy capabilities.
+
+
+Description of the lesson
 -------------------------
 
 This lesson can be started in ipython by importing it with:
@@ -84,8 +90,7 @@ This lesson can be started in ipython by importing it with:
         from abipy.lessons.lesson_g0w0 import Lesson
         lesson = Lesson()
 
-The lesson is now imported in your ipython session in its own namespace 'lesson'. 
-This `lesson` object gives us all the tools needed to execute this tutorial. As usual:
+The `lesson` object gives us all the tools needed to execute this tutorial. As usual:
 
     .. code-block:: python
 
@@ -93,37 +98,23 @@ This `lesson` object gives us all the tools needed to execute this tutorial. As 
 
 displays this text. 
 
-This lesson provides a factory function that returns a flow designed to perform a standard G0W0 calculation.
-
-To run calculations on a cluster abipy needs to know about the queing system, the number of nodes and memory a job is
-allowed to use, etc... Abipy takes this infomation from the manager.yml file. Have a look at the current
-manager.yml file. 
-It may look complicated but if fact it is just a translation of the user manual of the cluster. 
-For a new cluster one person has to create it once. Also note the it only mentions which queueing
-systems is installed how to use this systems is programmed in abipy. (abipy will first look for a manager
-file in you current folder and secondly in ~/.abinit/abipy, so you can put
-one there an don't bother about it for every calculation)
-
-displays this lessons information text, and can be recalled at any moment.
-The main object we use to pack (connected series of) calculations is a flow. 
-This lesson provides a method that returns a flow designed to perform k-point convergence studies. 
-
-This flow is constructed with the command:
+The lesson object provides a factory function that returns a flow designed to perform standard G0W0 calculations.
+To build the flow, use
 
     .. code-block:: python
 
         flow = lesson.make_flow()
 
-`flow` is now an object containing al the information needed to generate abinit inputs. 
+`flow` is the object containing al the information needed to generate abinit inputs. 
 
     .. code-block:: python
 
         flow.show_inputs()
 
-will display all the inputs that will be 'passed' to abinit. In the
+displays all the inputs that will be 'passed' to abinit. In the
 previous lessons we ran the flows each time directly inside ipython.
 For relatively small calculations this is very practical. There are
-however other ways more suited for large calculations.
+however other approaches that are more suited for large and expensive calculations.
 
 To start the execution of calculations packed in this flow we use the following command:
 
@@ -157,15 +148,13 @@ Exercises
 """
 
 _commandline_lesson_ = """
-At this place they will not be discussed in detail. Instead you are
-invited to read the abinit documentation on them. The full description,
-directly from the abinit description is available via the following function:
+The full description, directly from the abinit documentation, is available via the following function:
 
     .. code-block:: shell
 
         abidoc.py man inputvariable
 
-This will print the official abinit description of this inputvariable.
+This command will print the official description of inputvariable.
 
 The course of this lesson
 -------------------------
@@ -179,14 +168,23 @@ from abipy.lessons.core import BaseLesson
 
 
 def make_inputs(ngkpt, paral_kgb=0):
-    # Crystalline silicon
-    # Calculation of the GW band structure with the scissors operator.
-    # Dataset 1: ground state run to get the density.
-    # Dataset 2: NSCF run to get the KS band structure on a high-symmetry k-path.
-    # Dataset 3: NSCF run with a homogeneous sampling of the BZ to compute the KS DOS.
-    # Dataset 4: NSCF run with empty states to prepare the GW steps.
-    # Dataset 5: calculation of the screening from the WFK file computed in dataset 4.
-    # Dataset 6: Use the SCR file computed at step 5 and the WFK file computed in dataset 4 to get the GW corrections.
+    """
+    Crystalline silicon: calculation of the G0W0 band structure with the scissors operator.
+
+    Args:
+        ngkpt: Abinit variable defining the k-point sampling.
+        paral_kgb: Option used to select the eigensolver in the GS part.
+
+    Return:
+        Six AbinitInput objects:
+
+        0: ground state run to get the density.
+        1: NSCF run to get the KS band structure on a high-symmetry k-path.
+        2: NSCF run with a homogeneous sampling of the BZ to compute the KS DOS.
+        3: NSCF run with empty states to prepare the GW steps.
+        4: calculation of the screening from the WFK file computed in dataset 4.
+        5: Use the SCR file computed at step 5 and the WFK file computed in dataset 4 to get the GW corrections.
+    """
 
     multi = abilab.MultiDataset(abidata.cif_file("si.cif"),
                                 pseudos=abidata.pseudos("14si.pspnc"), ndtset=6)

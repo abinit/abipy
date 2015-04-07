@@ -31,17 +31,17 @@ The related abinit variables
 
 _ipython_lesson_ = """
 
-More info on the inputvariables and their use can be obtained using the following function:
+More info on the input variables and their use can be obtained using:
 
     .. code-block:: python
 
         lesson.docvar("inputvariable")
 
 
-The abipy flows in this lesson
-------------------------------
+The abipy flows used in this lesson
+-----------------------------------
 
-In this lesson we will use two different relaxation flows. One flow will
+In this lesson, we will use two different relaxation flows. One flow will
 calculate the total energies of a compound at various volumes and fit an
 equation of state to the energy v.s. volume data. Besides the optimal
 volume, where the energy is minimal, this will also provide the bulk modulus,
@@ -63,7 +63,7 @@ Start this lesson by importing it in a new namespace:
         from abipy.lessons.lesson_relaxation import Lesson
         lesson = Lesson()
 
-As always you can reread this text using the command:
+As usual, you can reread this text using the command:
 
     .. code-block:: python
 
@@ -103,7 +103,7 @@ To analyze the results.
         # For Gallium Nitride, use
         lesson.analyze_eos_flow(gan_flow)
 
-In the case of silicon, the python code will show a fit of the total energy vs the
+In the case of silicon, python will show a fit of the total energy vs the
 volume of the unit cell. The minimum of this curve is the equilibrium
 volume. From this fit, we can also obtain the bulk modulus.
 This approach is only applicable for isotropic materials since we are
@@ -118,40 +118,39 @@ In the case of gallium nitride, you will see the change of equilibrium
 volume and length of the box with respect to the k-point mesh.
 
 Try to compare the results with these experimental results:
-Volume of the unit cell of GaN: 45.73 A^3 [Schulz & Thiemann 1977]
-Lattice parameters of GaN: a = 3.190 A, c = 5.189 A [Schulz & Thiemann 1977]
-Vertical distance between Ga and N : about 0.377 * c [ Schulz & Thiemann, 1977]
 
-Of course you will need to converge your results with respect to
-the kpoint sampling and ecut...
+    * Volume of the unit cell of GaN: 45.73 A^3 [Schulz & Thiemann 1977]
+    * Lattice parameters of GaN: a = 3.190 A, c = 5.189 A [Schulz & Thiemann 1977]
+    * Vertical distance between Ga and N : about 0.377 * c [ Schulz & Thiemann, 1977]
 
-The pseudopotentials we are using are of GGA type, which tends to
-overestimate the lattice parameters. If you use LDA-type pseudopotentials,
-you will observe that LDA tends to underestimate the parameters.
+Of course you will need to converge your results with respect to the k-point sampling and ecut...
+
+The pseudopotentials we are using are of GGA type, which tends to overestimate the lattice parameters. 
+If you use LDA-type pseudopotentials, you will observe that LDA tends to underestimate the parameters.
 
 Exercises
 ---------
 
 As an exercise you can now try to get the equilibrium unit cell
 of silicon automatically using abinit. You can inspire yourself
-from the GaN relaxation. First download a local copy of the python
-script.
+from the GaN relaxation. 
+First download a local copy of the python script.
 
     .. code-block:: python
 
         lesson.get_local_copy()
 
-And have a look in make_relax_gan_flow(), try to do the same
+And have a look at the code in make_relax_gan_flow(), try to do the same
 with 'si.cif' file instead of 'gan.cif'
 
 Pay attention to the fact that for silicon, you cannot use tolrff
-to stop your self-consistent cycle. Actually, as silicon has no
-internal degree of freedom the forces are zero in the unit cell and
-this criterion makes no sense.
+to stop your self-consistent cycle. 
+Silicon has no internal degree of freedom, the forces are zero by symmetry. 
+and hence the tolrff criterion makes no sense.
 
-As a second exercise, you can try to converge the results obtained
-here with respect to the k-point sampling and with respect to ecut
-and compare the converged results with experimental data.
+As a second exercise, you can try to converge the results 
+with respect to the k-point sampling and ecut.
+Compare the converged results with experimental data.
 
 Next
 ----
@@ -169,25 +168,27 @@ The full description of the variables, directly from the abinit description is a
 
 This will print the official abinit description of `inputvariable`.
 
-As in the previous lessons, executing the python script created the folder structure with the input files for this
+As in the previous lessons, executing the python script creates the folder structure with the input files for this
 lesson.
 
 For the flow_si_relax folder, look in particular to the changes in the unit cell (rprim) in the input files and the
-corresponding change in unit cell volume (ucvol), total energy (etotal) and stresses (strten) in the output file.
-For the flow_gan_relax, observe in the input and output files how the automatic relaxation takes place.
-At each step of the relaxation a full SCF-cycle is done, to compute the forces and the stress, the ions are moved and
-then a new SCF-cycle is done until convergence is achieved. That's why there are two stopping criterion for this task:
-tolrff or tolvrs for the SCF cycle and tolmxf for the relaxation algorithm.
+corresponding change in the unit cell volume (ucvol), total energy (etotal) and stresses (strten) in the output file.
+For the flow_gan_relax, observe in the output files how the automatic relaxation takes place.
+At each step of the relaxation, a full SCF-cycle is performed and forces and the stress are computed. 
+The ions are then moved according to the forces and a new SCF-cycle is started.
+The procedure is interated until convergence is achieved. 
+This is the reason why there are two stopping criteria for structural relaxation:
+tolrff or tolvrs are used for the SCF cycle whereas tolmxf govers the relaxation algorithm.
 
 Exercises
 ---------
 
-Edit the input files to run the same jobs with different ecut values for example.
+Edit the input files to run the same jobs with different values of ecut. 
 
-You can also try to change the stopping criterion to see what are the effects of them.
+You can also try to change the stopping criterion to see if this affects the final results.
 
-Finally, try to generate the input file for silicon, and try to guess why setting stopping criterion on the forces 
-won't work in this case!
+Finally, try to generate the input file for silicon, and try to guess why setting the stopping 
+criterion on the forces won't work in this case!
 """
 
 import os

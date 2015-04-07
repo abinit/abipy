@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-Basis set convergence study and some more on flows, works, and tasks. 
-=====================================================================
+Basis set convergence study and more info on flows, works, and tasks 
+====================================================================
 
 Background
 ----------
@@ -14,26 +14,25 @@ the kinetic energy cutoff (ecut).
 
 The sharp features of the wavefunctions near the nucleus are however problematic for plane waves. 
 Describing these features would require very high energy PWs. 
-In practice we will always use pseudo-potentials instead of the actual nuclear potential to facilitate convergence. 
-Effectively a pseudopotential replaces the sharp coulomb potential of the nucleus and the 
-core electrons by something smoother inside the pseudization region that connects smoothly to 
-the real potential outside the pseudization region.
+In practice we will always use pseudo-potentials instead of the actual nuclear potential in order to facilitate convergence. 
+A pseudopotential replaces the singular coulomb potential of the nucleus and the 
+core electrons by something smoother inside the so-called pseudization region. 
+The pseudopotential connects smoothly to the real potential outside the pseudization region.
 
-Needless to say a different pseudo potential will require a different
-cutoff for the calculation to be converged. 
-In general norm-conserving pseudos require a larger cut-off that ultra-soft pseudos 
+Note that different pseudo potentials could require a different cutoff energy to be converged. 
+In general norm-conserving pseudos require a larger cut-off than ultra-soft pseudos 
 or Projector Augmented Wave 'pseudos'. 
 Moreover two pseudos of the same type for the same element may require different
-cutoffs as well. 'Harder' (having a smaller pseudization radius) require
-larger cutoffs than 'softer' pseudos. 
-There are however many more properties of a pseudo that determine the cutoff needed.
+cutoff energies as well. 
+Pseudos with small pseudization radius usually require larger cutoffs than pseudos 
+with large pseudization radius.
 
 The related abinit variables
 ----------------------------
 
-    * ecut      (cutoff energy)
-    * pawecutdg (additional variable for the double-grid used in PAW)
-    * ecutsm    (smoothing of the kinetic energy)
+    * ecut        (cutoff energy)
+    * pawecutdg   (additional variable for the double-grid used in PAW)
+    * ecutsm      (smoothing of the kinetic energy)
 
 """
 from __future__ import division, print_function
@@ -49,7 +48,7 @@ The abipy flows in this lesson
 ------------------------------
 
 This lesson contains a factory function for an ecut convergence study. 
-In this lesson we will discuss a few more properties and methods of the flow.
+In this lesson we will discuss other properties and methods of the flow.
 
 The course of this lesson
 -------------------------
@@ -61,7 +60,7 @@ Start this lesson by importing it in a new namespace
         from abipy.lessons.lesson_ecut_convergence import Lesson
         lesson = Lesson()
 
-As always you can reread this text using the command:
+As usual, you can reread this text using the command:
 
     .. code-block:: python
 
@@ -79,9 +78,9 @@ To print the input files
 
         flow.show_inputs()
 
-In this lesson, we take a closer look at the structure of a Flow. In general
-a flow is a container of 'works'. Works are (connected) series of abinit runs a.k.a tasks. 
-To show the works contained in a flow use the 'works' method:
+Now we are going to take a closer look at the structure of a Flow. In general
+a flow is a container of 'works'. Works are (possibly connected) series of abinit runs a.k.a tasks. 
+To show the works contained in a flow use the 'works' property:
 
     .. code-block:: python
 
@@ -96,8 +95,8 @@ to show the status of a flow:
 There are many more properties and methods of a flow than may also come in handy. 
 By typing [tab] in ipython after the period, you will be presented
 with all the option. Feel free to experiment a bit at this point. By adding
-a question mark to the method or property ipython will show the information
-and description of it:
+a question mark to the method or the property in the ipython shell 
+you can get the description of the object:
 
     .. code-block:: python
 
@@ -105,8 +104,6 @@ and description of it:
         flow.open_files?
 
 The build() method will create the input files, open_files() can be used to open them.
-
-Will explain what this method is supposed to do.
 
 Start the flow with the scheduler and wait for completion.
 
@@ -152,8 +149,7 @@ This command will print the official description of inputvariable.
 The course of this lesson
 -------------------------
 
-As in the previous lesson, executing the python script created the folder structure with 
-the in input files for this lesson.
+As in the previous lesson, executing the python script creates the folder structure with the required input files.
 
 One of the standard thing to look for to be converged in the total energy. We did that already in the previous lesson.
 This time have a look at some of the other important properties. Look for instance at the convergence rate of the
@@ -177,7 +173,7 @@ def make_ecut_flow(structure_file=None, ecut_list = (10, 12, 14, 16, 18)):
 
     Args:
         structure_file: (optional) file containing the crystalline structure.  
-            If None, Silicon structure is used.
+            If None, crystalline silicon structure.
         ecut_list: List of cutoff energies to be investigated.
     """
     # Define the structure and add the necessary pseudos:

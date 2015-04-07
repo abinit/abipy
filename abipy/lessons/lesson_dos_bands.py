@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-The calculation of the density of states and the bandstructure.
-===============================================================
+The calculation of the density of states and the bandstructure
+==============================================================
 
 Background
 ----------
@@ -10,11 +10,12 @@ This lesson focuses on the calculation of the density of states (DOS) and
 the electronic band structure within the Kohn-Sham (KS) formalism. 
 
 In contrast to the total energy and its derivatives, the energies of the KS-levels have no exact physical meaning,
-except for the highest occupied state that actually would be the first ionization energy if the functional would be
-exact. So why would we even want to calculate the KS-DOS and band structure? In most cases the KS spectrum is
-in qualitative agreement with experiments and KS bands allows us to make good predictions on trends.
+except for the highest occupied state that actually would be the first ionization energy if the DFT XC functional would be
+exact. So why do we use the KS formalism to calculate electron DOSes and band structures? 
 
-In lesson_g0w0.py, we discuss a more elaborated and accurate approach for the calculation of band energies and band gaps.
+As a matter of fact, the KS energy spectrum is usually in qualitative agreement with experiments (let's ignore correlated systems).
+Standard KS band structures with LDA or GGA are relatively cheap and KS calculations allow us to make good predictions on trends.
+In lesson_g0w0.py, we discuss a more accurate and expensive approach for the calculation of band strtuctures and band gaps.
 
 The related abinit variables
 ----------------------------
@@ -28,7 +29,7 @@ from __future__ import division, print_function
 
 
 _ipython_lesson_ = """
-More info on the inputvariables and their use can be obtained using:
+More info on the inputvariables and their use can be obtained with:
 
     .. code-block:: python
 
@@ -36,16 +37,16 @@ More info on the inputvariables and their use can be obtained using:
 
 This command will print the official description of `inputvariable`.
 
-The abipy flows in this lesson
-------------------------------
+The abipy flow used in this lesson
+----------------------------------
 
-The flow that we use in this lesson contains for the first time dependencies.
-This means that some tasks in the flow can start only if its `parents` are completed.
+The flow used  in this lesson contains for the first time dependencies.
+This means that some of the tasks in the flow can start only if its `parents` are completed.
 We will first perform one self-consistent calculation to obtain a proper density. 
-Using this density we calculate in two more steps the DOS and the bandstructure.
-For the DOS this not strictly necessary since the DOS will also be calculated on a regular grid.
-In general the density will be converged already before the DOS is converged. For large systems it may become
-nessesary to split. For the bandstructure, we have a non-uniform grid so we do need to fix the density.
+From this density we then calculate the DOS and the bandstructure in two independent tasks. 
+The DOS calculation is done on a regular grid of k-points because the DOS is expressed in 
+terms on a integral over the first Brillouin zone.
+For the band structure task, we use a high symmetry path inside the BZ.
 
 The course of this lesson
 -------------------------
@@ -57,7 +58,7 @@ Start this lesson by importing it in a new namespace:
         from abipy.lessons.lesson_dos_bands import Lesson
         lesson = Lesson()
 
-As always you can reread this text using the command:
+As usual, you can reread this text using the command:
 
     .. code-block:: python
 
@@ -97,16 +98,16 @@ Exercises
 ---------
 
 At this point, you may want to interact more with the underlying python objects
-so that you can start to develop your own script or your post-processing tool.
+so that you can start to develop your script or your post-processing tools.
 
-Our flow consists of a `BandStructureWork` object that provides many tools for post-processing.
+Our flow consists of a `BandStructureWork` object that provides many tools for the post-processing.
 Use
 
     .. code-block:: python
 
             work = flow[0]
 
-to have access to the band structure work and look at the `plot` methods that 
+to access the band structure work and look at the `plot` methods that 
 are available (hint: type work.plot in ipython and press TAB to get a list of methods)
 
 1) Use the `plot_` methods to visualize the convergence of the DOS wrt to the number of k-points.
@@ -114,7 +115,7 @@ are available (hint: type work.plot in ipython and press TAB to get a list of me
 
 2) Plot bands and DOS on the same figure.
 
-Rememeber that, in ipython, one can access the documentation of a method with `work.plot_edoses?`
+Remember that, in ipython, one can access the documentation with `work.plot_edoses?`
 
 Next
 ----
@@ -123,9 +124,7 @@ A logical next lesson would be lesson_g0w0
 """
 
 _commandline_lesson_ = """
-At this place they will not be discussed in detail. Instead you are
-invited to read the abinit documentation on them. The full description,
-directly from the abinit description is available via the following function:
+The full description, directly from the abinit documentation, is available via the following function:
 
     .. code-block:: shell
 

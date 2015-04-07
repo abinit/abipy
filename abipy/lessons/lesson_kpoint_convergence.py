@@ -6,16 +6,16 @@ K-point convergence study for a semi-conductor. An introduction to some of the b
 Background
 ----------
 
-This lesson deals with the basic k-point convergence study that is needed in any DFT calculation for periodic systems. 
+This lesson deals with the basic k-point convergence study that is needed in any DFT calculation in periodic systems. 
 In such a systems, indeed, the first Brillouin zone (BZ) needs to be discretized when performing the 
 integration of several important quantities e.g. the electronic density or the electronic energy.
 Integrals over the BZ are therefore turned into sums over discrete k-points and the k-mesh should 
 be dense enough, but at the same time as coarse as possible to make for an efficient calculation. 
 Your first investigation into a new compound will quit often be a k-point convergence study.
-It is worth stressing that the density of the k-point mesh needed to reach converged results is system-dependent.
 
-Note moreover that metals need much denser meshes than semiconductors. 
-The presence of the Fermi surface, indeed, induces discontinuities in the integrand functions and a 
+It is worth stressing that the density of the k-mesh needed to reach converged results is system-dependent.
+Note that metals need much denser k-meshes than semiconductors. 
+The presence of the Fermi surface, indeed, introduces discontinuities in the integrand functions and a 
 fictitious broadening of the occupation factors (tsmear) should be introduced in order to accelerate 
 the convergence of the integrals.
 
@@ -38,8 +38,8 @@ The variables used to specify the occupation scheme in metals are:
 from __future__ import division, print_function
 
 _ipython_lesson_ = """
-At this place they will not be discussed in detail, you are invited to consult the abinit documentation. 
-The full description, directly from the official abinit docs, is available via the following function:
+For a more detailed description of the variables, you are invited to consult the abinit documentation. 
+The full description, directly from the official abinit docs, is available in ipython with the command:
 
     .. code-block:: python
 
@@ -47,21 +47,23 @@ The full description, directly from the official abinit docs, is available via t
 
 that will print the official description of inputvariable.
 
-The abipy flows of this lesson
-------------------------------
+Description of the lesson
+-------------------------
 
 When performed manually, a k-point convergence study would require
 the preparation of several input files, running abinit for all
 the inputs and then extracting and studying the quantity under investigation.
 This lesson shows how this process can be greatly facilitated thanks to abipy. 
-We will construct a single python object, an abipy flow, that contains all
-the information needed for the calculations but also provides methods
-for actually running abinit, inspecting the input and output, and analyzing the final results.
 
-The Course of this lesson
+We will construct a single python object, an abipy flow, that contains all
+the information needed for the calculations.
+The flow also provides methods for running abinit, inspecting the input and the output files, 
+and tool for analyzing the final results.
+
+Description of the lesson
 -------------------------
 
-This lesson can be started in ipython by importing it:
+This lesson can be started in ipython by importing it with:
 
     .. code-block:: python
 
@@ -69,101 +71,100 @@ This lesson can be started in ipython by importing it:
         lesson = Lesson()
 
 The lesson is now imported in your ipython session in its own namespace 'lesson'. 
-This object now gives us all the tools to follow this lesson. 
+This object gives us all the tools needed for the exercises.
 For instance the command:
 
     .. code-block:: python
 
         lesson
 
-displays this lessons information text, and can be recalled at
-any moment. The main object we use to connect different calculations is a flow. 
+displays this text and can be recalled at any moment. 
+
+The main object we use to connect different calculations is a flow. 
 This lesson provides a method that returns a flow that performs k-point convergence studies. 
-This flow is made by the command:
+This flow is constructed with the command:
 
     .. code-block:: python
 
         flow = lesson.make_ngkpt_flow()
 
-'flow' is now an object that contains all the information needed
-to generate abinit input. In this case it is a special flow for
-a k-point convergence study and since we did not specify anything
-when generating the flow the example case of silicon is generated.
-Our flow however, inherited from the abinit base flow so we have
-a lot of 'standard' methods available. For instance:
+'flow' is the object that contains all the information needed
+to generate abinit input files. In this case it is a special flow for
+a k-point convergence study for Silicon.
+This is the default behavior when the list of arguments is empty.
+
+Our flow has several useful methods. For instance:
 
     .. code-block:: python
 
         flow.show_inputs()
 
-This will display all the inputs as they will be 'given' to abinit.
+will display all the inputs that will be 'passed' to abinit.
 
-To start the execution of calculations packed in this flow we
-and use the following command:
+To start the calculation, use the following command:
 
     .. code-block:: python
 
         flow.make_scheduler().start()
 
-This starts the actual execution via a scheduler. The scheduler is
-a sort of daemon that starts to submit tasks that are ready to run.
+to start a scheduler. 
+The scheduler is a sort of daemon that submits all the tasks that are ready to run.
 In our case all the tasks in the flow are independent so the first
-cycle of the scheduler directly submitted all of them. More
-complicated flows may have tasks that can only start using input
-from a previous task. We will encounter some of those later.
+cycle of the scheduler will submit all the tasks in the flow. 
+More complicated flows may have tasks that can only started when their `parents` are completed.
+We will encounter similar flows later on when discussing band structure calculations with AbiPy.
 
-The last step of analyzing the results can be done again in with a single command:
+Once the flow is completed, you can analyze the results with
 
     .. code-block:: python
 
         lesson.analyze(flow)
 
-This method of flow will open the necessary output files, retrieve
-the data, and produce a plot.
+This call reads the output files, retrieve the data, and produce a plot.
 
-Finally, once you are through with this lesson and exited ipython:
+Finally, once you have completed this lesson you can exit ipython with:
 
     .. code-block:: python
 
         exit
 
-You can see that in the directory that you were working there is
-now a subdir were the calculation have been performed. Have a look
-at these folders and the files that are in them.
+Note that in your working directory there is a new sub-directory (flow_lesson_Si_kpoint_convergence)
+containing all the input and output files produced by the flow. 
+Have a look at these folders and the files that are in them.
 
 
 Exercises
 ---------
 
-As an exercise you can now start this lesson again but instead
-of performing the convergence study for silicon, we could perform a 
-similar convergence analysis for a metal. 
-By using:
+As an exercise, you can start this lesson again but instead
+of performing the convergence study for silicon, you could perform a 
+similar analysis for a metal. 
+
+Use:
 
     .. code-block:: python
 
         flow = lesson.make_ngkpt_flow(structure_file=lesson.abidata.cif_file('al.cif'), metal=True)
 
-you will generate a flow for aluminum. Actually, you can pass
-the path to any CIF file to perform a convergence study on that
-material. Be careful however, aluminum is a metal and the default
+to generate a flow for aluminum. 
+
+Be careful however, aluminum is a metal and the default
 parameters for occopt and tsmear are for semiconductors. The
 keyword argument 'metal' fixes this. (you could also see what
 happens if you don't put this flag :-) ) Look at the inputs to
 see what has been changed and study the description of these
-inputvariables using the abinit_help() method.
+inputvariables using lesson.docvar.
 
-If you have time left it is also a good exercise to open the
+If you have time left, it is also a good exercise to open the
 python file that contains this lesson and study the implementations
-of the classes, methods and functions we used. You can get a copy
-of the file by using:
+of the classes, methods and functions we used. 
+You can get a copy of the file with:
 
     .. code-block:: python
 
         lesson.get_local_copy()
 
-Try to find what to change to change the set of k-point meshes that
-are used in the convergence study.
+Try to find what to change the set of k-point meshes used in the convergence studies.
 
 Next
 ----
@@ -172,18 +173,16 @@ A logical next lesson would be lesson_ecut_convergence
 """
 
 _commandline_lesson_ = """
-At this place they will not be discussed in detail. Instead you are
-invited to read the abinit documentation on them. The full description,
-directly from the abinit description is available via the following function:
+For a more detailed description of the variables, you are invited to consult the abinit documentation. 
+The full description, directly from the official abinit docs, is available in ipython with the command:
 
     .. code-block:: shell
 
         abidoc.py man inputvariable
 
-This will print the official abinit description of this inputvariable.
+that will print the official description of inputvariable.
 
-
-The course of this lesson
+Description of the lesson
 -------------------------
 
 In the generation of this lesson by the python script all the input files have been generated automatically.
@@ -296,7 +295,8 @@ class Lesson(BaseLesson):
         with abilab.abirobot(my_flow, "GSR") as robot:
             data = robot.get_dataframe()
         import matplotlib.pyplot as plt
-        ax = data.plot(x="nkpts", y="energy", title="Total energy vs nkpts", legend=False, style="b-o")
+        ax = data.plot(x="nkpts", y="energy", title="Total energy vs nkpts", 
+                       legend=False, style="b-o")
         ax.set_xlabel('Number of k-points')
         ax.set_ylabel('Total Energy [eV]')
         return plt.show(**kwargs)
