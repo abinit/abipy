@@ -9,7 +9,7 @@ Check out the the list of plotting scripts available in the
 `examples/plot <http://pythonhosted.org/abipy/examples/plot/index.html>`_ directory.
 To learn more about abipy, you can visit our example collection of ipython `notebooks 
 <http://nbviewer.ipython.org/github/gmatteo/abipy/blob/master/abipy/examples/notebooks/index.ipynb>`_
-and the abipy `lessons`
+and the abipy `lessons
 <http://nbviewer.ipython.org/github/gmatteo/abipy/blob/master/abipy/examples/notebooks/lessons/index.ipynb>`_.
 
 Abipy is free to use. However, we also welcome your help to improve this library by making your own contributions.  
