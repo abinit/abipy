@@ -21,10 +21,11 @@ def make_scf_input(ecut=2, ngkpt=(4, 4, 4)):
     Return:
         `AbinitInput` object 
     """
-    # Crystalline AlAs: computation of the second derivative of the total energy
+    # Initialize the AlAs structure from an internal database. Use the pseudos shipped with AbiPy.
     gs_inp = abilab.AbinitInput(structure=abidata.structure_from_ucell("AlAs"),
                                 pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"))
     
+    # Set the value of the Abinit variables needed for GS runs.
     gs_inp.set_vars(
         nband=4,             
         ecut=ecut,         

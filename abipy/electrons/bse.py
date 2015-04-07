@@ -580,7 +580,7 @@ class MdfPlotter(object):
         ax.set_ylabel('Macroscopic DF')
 
         cmodes = cplx_mode.split("-")
-        qtag = "average" if qpoint is None else repr(qpoint)
+        qtag = "avg" if qpoint is None else repr(qpoint)
 
         lines, legends = [], []
         for (label, mdf) in self._mdfs.items():
