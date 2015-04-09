@@ -55,7 +55,7 @@ class NgkptFlow(abilab.Flow):
 def make_ngkpt_flow():
     ngkpt_list = [(2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)]
 
-    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif")),
+    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"),
                                 pseudos=abidata.pseudos("14si.pspnc"), ndtset=len(ngkpt_list))
     # Global variables
     multi.set_vars(ecut=10, tolvrs=1e-9)
