@@ -6,24 +6,22 @@ Basis set convergence study and more info on flows, works, and tasks
 Background
 ----------
 
-This lesson focuses on the convergence study on the completeness of the basis set. 
-In our case the basis set consists of plane waves. 
-Plane waves (PWs) are inherently well suited to capture the periodic nature of crystalline solids. 
-In addition, a plane wave basis set has the advantage that it introduces only one convergence parameter,
+This lesson focuses on the convergence study on the completeness of the plane wave (PW) basis set. 
+Plane waves are inherently well suited to capture the periodic nature of crystalline solids. 
+In addition, a PW basis set has the advantage that it introduces only one convergence parameter,
 the kinetic energy cutoff (ecut).
 
-The sharp features of the wavefunctions near the nucleus are however problematic for plane waves. 
-Describing these features would require very high energy PWs. 
-In practice we will always use pseudo-potentials instead of the actual nuclear potential in order to facilitate convergence. 
+The sharp features of the wavefunctions near the nucleus are however problematic for PWs. 
+Describing these features would require very high energy cutoff energies.
+For this reason PW codes use pseudo-potentials in order to facilitate convergence. 
 A pseudopotential replaces the singular coulomb potential of the nucleus and the 
 core electrons by something smoother inside the so-called pseudization region. 
-The pseudopotential connects smoothly to the real potential outside the pseudization region.
+The pseudopotential connects smoothly to the real all-electron potential outside the pseudization region.
 
-Note that different pseudo potentials could require a different cutoff energy to be converged. 
+Note that different pseudo potentials usually require a different cutoff energy to be converged. 
 In general norm-conserving pseudos require a larger cut-off than ultra-soft pseudos 
 or Projector Augmented Wave 'pseudos'. 
-Moreover two pseudos of the same type for the same element may require different
-cutoff energies as well. 
+Moreover two pseudos of the same type for the same element may require different  cutoff energies as well. 
 Pseudos with small pseudization radius usually require larger cutoffs than pseudos 
 with large pseudization radius.
 
@@ -44,16 +42,14 @@ More info on the input variables and their use can be obtained using:
 
         lesson.docvar("inputvariable")
 
-The abipy flows in this lesson
-------------------------------
-
-This lesson contains a factory function for an ecut convergence study. 
-In this lesson we will discuss other properties and methods of the flow.
-
-The course of this lesson
+Description of the lesson
 -------------------------
+This lesson contains a factory function for a convergence study with respect to ecut.
 
-Start this lesson by importing it in a new namespace
+Executing the lesson
+--------------------
+
+Start this lesson by importing it:
 
     .. code-block:: python
 
@@ -92,16 +88,15 @@ to show the status of a flow:
 
         flow.show_status()
 
-There are many more properties and methods of a flow than may also come in handy. 
+There are many more properties and methods of the flow than may also come in handy. 
 By typing [tab] in ipython after the period, you will be presented
-with all the option. Feel free to experiment a bit at this point. By adding
-a question mark to the method or the property in the ipython shell 
-you can get the description of the object:
+with all the option. Feel free to experiment a bit at this point. 
+In the ipython shell, one can get the description of the object by
+adding a question mark at the end of the object: 
 
     .. code-block:: python
 
-        flow.build()
-        flow.open_files?
+        flow.build()?
 
 The build() method will create the input files, open_files() can be used to open them.
 
@@ -138,13 +133,13 @@ A logical next lesson would be lesson_relaxation
 """
 
 _commandline_lesson_ = """
-The full description, directly from the abinit documentation, is available via the following function:
+The full description, directly from the abinit documentation, is available via the shell command:
 
     .. code-block:: shell
 
         abidoc.py man inputvariable
 
-This command will print the official description of inputvariable.
+that prints the official description of inputvariable.
 
 The course of this lesson
 -------------------------
@@ -205,11 +200,11 @@ class Lesson(BaseLesson):
 
     @property
     def abipy_string(self):
-        return __doc__+_ipython_lesson_
+        return __doc__ + _ipython_lesson_
 
     @property
     def comline_string(self):
-        return __doc__+_commandline_lesson_
+        return __doc__ + _commandline_lesson_
 
     @property
     def pyfile(self):

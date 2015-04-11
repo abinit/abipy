@@ -38,22 +38,16 @@ Related ABINIT variables
 from __future__ import division, print_function, unicode_literals
 
 _ipython_lesson_ = """
-More info on the input variables and their usage can be obtained using the command:
+More info on the input variables and it's usage can be obtained using the command:
 
     .. code-block:: python
 
         lesson.abinit_help(inputvariable)
 
-that will print the official description of the variables.
+that prints the official description of the variables.
 
-To open the python script in ipython use:
-
-    .. code-block:: python
-
-        %load $lesson.pyfile
-
-The abipy flow used in this lesson
-----------------------------------
+Description of the lesson
+-------------------------
 
 In this lesson, we will construct an `abipy` flow made of two works.
 The first work is a standard KS band-structure calculation that consists of 
@@ -79,9 +73,8 @@ Don't worry if there are steps of the entire procedure that are not clear to you
 GW calculations are much more complicated than standard KS band structures and 
 the main goal of this lesson is to give you an overview of the Abipy capabilities.
 
-
-Description of the lesson
--------------------------
+Executing the lesson
+--------------------
 
 This lesson can be started in ipython by importing it with:
 
@@ -98,7 +91,7 @@ The `lesson` object gives us all the tools needed to execute this tutorial. As u
 
 displays this text. 
 
-The lesson object provides a factory function that returns a flow designed to perform standard G0W0 calculations.
+The lesson module provides a factory function that returns a flow designed to perform standard G0W0 calculations.
 To build the flow, use
 
     .. code-block:: python
@@ -132,23 +125,25 @@ The last step of analyzing the results can be done again in with a single comman
 
 This method of flow will open the necessary output files, retrieve the data, and produce a plot.
 
-Finally, once you are through with this lesson and exited ipython:
+Finally, once you have completed this lesson you can exit ipython with:
 
     .. code-block:: python
 
         exit
 
-You can see that in the directory that you were working there is
+You can see that in the working directory, here is
 now a subdir were the calculation have been performed. 
 Have a look at these folders and the files that are in them.
 
-Exercises
----------
+Next
+----
 
+A logical next lesson would be lesson_bse. 
+Please consult the ipython notebook available on the abipy website
 """
 
 _commandline_lesson_ = """
-The full description, directly from the abinit documentation, is available via the following function:
+The full description, directly from the abinit documentation, is available via the following shell command:
 
     .. code-block:: shell
 
@@ -172,7 +167,7 @@ def make_inputs(ngkpt, paral_kgb=0):
     Crystalline silicon: calculation of the G0W0 band structure with the scissors operator.
 
     Args:
-        ngkpt: Abinit variable defining the k-point sampling.
+        ngkpt: list of 3 integers. Abinit variable defining the k-point sampling.
         paral_kgb: Option used to select the eigensolver in the GS part.
 
     Return:
@@ -224,12 +219,12 @@ def make_inputs(ngkpt, paral_kgb=0):
     )
 
     # Dataset 1 (GS run to get the density)
-    multi[0].set_kmesh(**scf_kmesh)
+    multi[0].set_kmesh(scf_kmesh)
     multi[0].set_vars(
         tolvrs=1e-6,
         nband=4,
     )
-    multi[0].set_kmesh(**scf_kmesh)
+    multi[0].set_kmesh(scf_kmesh)
 
     # Dataset 2 (NSCF run)
     multi[1].set_vars(iscf=-2,
@@ -244,14 +239,14 @@ def make_inputs(ngkpt, paral_kgb=0):
                       nband=35,
                       #nband=10,
                       )
-    multi[2].set_kmesh(**dos_kmesh)
+    multi[2].set_kmesh(dos_kmesh)
 
     # Dataset 4 (NSCF run for GW)
     multi[3].set_vars(iscf=-2,
                       tolwfr=1e-12,
                       nband=35,
                      )
-    multi[3].set_kmesh(**gw_kmesh)
+    multi[3].set_kmesh(gw_kmesh)
 
     # Dataset3: Calculation of the screening.
     multi[4].set_vars(
@@ -262,7 +257,7 @@ def make_inputs(ngkpt, paral_kgb=0):
         inclvkb=0,
         ecuteps=4.0,    
     )
-    multi[4].set_kmesh(**gw_kmesh)
+    multi[4].set_kmesh(gw_kmesh)
 
     multi[5].set_vars(
             optdriver=4,
@@ -271,9 +266,10 @@ def make_inputs(ngkpt, paral_kgb=0):
             ecuteps=4.0,
             ecutsigx=6.0,
             symsigma=1,
-            gw_qprange=-4,  # Compute GW corrections for all kpts in IBZ, all occupied states and 4 empty states,
+            gw_qprange=-4,  # Compute GW corrections for all kpts in IBZ, 
+                            # all occupied states and 4 empty states,
         )
-    multi[5].set_kmesh(**gw_kmesh)
+    multi[5].set_kmesh(gw_kmesh)
 
     return multi.split_datasets()
 

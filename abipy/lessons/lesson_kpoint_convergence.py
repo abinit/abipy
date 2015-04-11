@@ -7,11 +7,11 @@ Background
 ----------
 
 This lesson deals with the basic k-point convergence study that is needed in any DFT calculation in periodic systems. 
-In such a systems, indeed, the first Brillouin zone (BZ) needs to be discretized when performing the 
+In such systems, indeed, the first Brillouin zone (BZ) needs to be discretized when performing the 
 integration of several important quantities e.g. the electronic density or the electronic energy.
 Integrals over the BZ are therefore turned into sums over discrete k-points and the k-mesh should 
 be dense enough, but at the same time as coarse as possible to make for an efficient calculation. 
-Your first investigation into a new compound will quit often be a k-point convergence study.
+Your first investigation into a new compound will often be a k-point convergence study.
 
 It is worth stressing that the density of the k-mesh needed to reach converged results is system-dependent.
 Note that metals need much denser k-meshes than semiconductors. 
@@ -53,15 +53,15 @@ Description of the lesson
 When performed manually, a k-point convergence study would require
 the preparation of several input files, running abinit for all
 the inputs and then extracting and studying the quantity under investigation.
-This lesson shows how this process can be greatly facilitated thanks to abipy. 
+This lesson shows how this process can be facilitated thanks to abipy. 
 
 We will construct a single python object, an abipy flow, that contains all
 the information needed for the calculations.
-The flow also provides methods for running abinit, inspecting the input and the output files, 
-and tool for analyzing the final results.
+The flow also provides methods for running abinit, inspecting the input and the output
+as well tools for analyzing the final results.
 
-Description of the lesson
--------------------------
+Executing the lesson
+--------------------
 
 This lesson can be started in ipython by importing it with:
 
@@ -70,8 +70,7 @@ This lesson can be started in ipython by importing it with:
         from abipy.lessons.lesson_kpoint_convergence import Lesson
         lesson = Lesson()
 
-The lesson is now imported in your ipython session in its own namespace 'lesson'. 
-This object gives us all the tools needed for the exercises.
+This `lesson` module gives us all the tools needed for the exercises.
 For instance the command:
 
     .. code-block:: python
@@ -80,18 +79,15 @@ For instance the command:
 
 displays this text and can be recalled at any moment. 
 
-The main object we use to connect different calculations is a flow. 
-This lesson provides a method that returns a flow that performs k-point convergence studies. 
-This flow is constructed with the command:
+The main object we use to connect different calculations is the AbiPy flow. 
+The lesson module provides a method that builds and returns a flow to perform k-point convergence studies. 
+The flow is constructed with the command:
 
     .. code-block:: python
 
         flow = lesson.make_ngkpt_flow()
 
-'flow' is the object that contains all the information needed
-to generate abinit input files. In this case it is a special flow for
-a k-point convergence study for Silicon.
-This is the default behavior when the list of arguments is empty.
+In this case make_ngkpt_flow builds a flow for silicon since no argument is passed to the function.
 
 Our flow has several useful methods. For instance:
 
@@ -99,15 +95,14 @@ Our flow has several useful methods. For instance:
 
         flow.show_inputs()
 
-will display all the inputs that will be 'passed' to abinit.
+displays all the inputs that will be 'passed' to abinit.
 
-To start the calculation, use the following command:
+To start the calculation inside the python shell, use the following command:
 
     .. code-block:: python
 
         flow.make_scheduler().start()
 
-to start a scheduler. 
 The scheduler is a sort of daemon that submits all the tasks that are ready to run.
 In our case all the tasks in the flow are independent so the first
 cycle of the scheduler will submit all the tasks in the flow. 
@@ -120,7 +115,7 @@ Once the flow is completed, you can analyze the results with
 
         lesson.analyze(flow)
 
-This call reads the output files, retrieve the data, and produce a plot.
+This call reads the output files, retrieves the data, and produces a matplotlib plot.
 
 Finally, once you have completed this lesson you can exit ipython with:
 
@@ -153,11 +148,10 @@ parameters for occopt and tsmear are for semiconductors. The
 keyword argument 'metal' fixes this. (you could also see what
 happens if you don't put this flag :-) ) Look at the inputs to
 see what has been changed and study the description of these
-inputvariables using lesson.docvar.
+variables using lesson.docvar.
 
 If you have time left, it is also a good exercise to open the
-python file that contains this lesson and study the implementations
-of the classes, methods and functions we used. 
+python file that contains this lesson and study the internal implementation.
 You can get a copy of the file with:
 
     .. code-block:: python
@@ -174,28 +168,28 @@ A logical next lesson would be lesson_ecut_convergence
 
 _commandline_lesson_ = """
 For a more detailed description of the variables, you are invited to consult the abinit documentation. 
-The full description, directly from the official abinit docs, is available in ipython with the command:
+The full description, directly from the official abinit docs, is available via the shell command:
 
     .. code-block:: shell
 
         abidoc.py man inputvariable
 
-that will print the official description of inputvariable.
+that prints the official description of inputvariable.
 
 Description of the lesson
 -------------------------
 
 In the generation of this lesson by the python script all the input files have been generated automatically.
 The input files have been organized in a workdir "flow_lesson_Si_kpoint_convergence". 
-Inside this directory, you'll find a single work, w0, with four tasks, t0 - t3. 
+Inside this directory, you'll find a single work, w0, with four tasks, t0-t1-t2-t3. 
 Have a look at the input files, run.abi, of the four tasks to see what is different.
 
-You'll see that also the files file and the jobs submission script are generated. 
+You'll see that also the files file and the jobs submission script have been generated. 
 In the job scripts you'll see that the jobs are prepared to run just on the front end.
 
 You'll also see that the files file has been created as well.
 
-To perform the k-point convergence study execute abinit with the four input sets.
+To perform the k-point convergence study execute, abinit with the four input sets.
 
 Once the calculations are ready, you'll see three important output files.
 

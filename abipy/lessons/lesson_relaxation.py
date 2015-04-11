@@ -38,8 +38,8 @@ More info on the input variables and their use can be obtained using:
         lesson.docvar("inputvariable")
 
 
-The abipy flows used in this lesson
------------------------------------
+Description of the lesson
+-------------------------
 
 In this lesson, we will use two different relaxation flows. One flow will
 calculate the total energies of a compound at various volumes and fit an
@@ -53,8 +53,8 @@ symmetry is lower and one additional internal degree of freedom appears,
 for example the distance between Ga and N.
 
 
-The course of this lesson
--------------------------
+Executing the lesson
+--------------------
 
 Start this lesson by importing it in a new namespace:
 
@@ -132,8 +132,8 @@ Exercises
 ---------
 
 As an exercise you can now try to get the equilibrium unit cell
-of silicon automatically using abinit. You can inspire yourself
-from the GaN relaxation. 
+of silicon automatically using abinit. 
+You can inspire yourself from the GaN relaxation. 
 First download a local copy of the python script.
 
     .. code-block:: python
@@ -160,13 +160,13 @@ A logical next lesson would be lesson_dos_bands
 
 
 _commandline_lesson_ = """
-The full description of the variables, directly from the abinit description is available via the following function:
+The full description of the variables, directly from the abinit documentation is available via the shell command:
 
     .. code-block:: shell
 
         abidoc.py man inputvariable
 
-This will print the official abinit description of `inputvariable`.
+that prints the official description of `inputvariable`.
 
 As in the previous lessons, executing the python script creates the folder structure with the input files for this
 lesson.

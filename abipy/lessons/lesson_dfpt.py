@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Phonon band structure of AlAs."""
+"""DFPT lesson: phonon band structure of AlAs with Born effective charges."""
 from __future__ import division, print_function, unicode_literals
 
 import sys
@@ -12,11 +12,11 @@ import abipy.data as abidata
 def make_scf_input(ecut=2, ngkpt=(4, 4, 4)):
     """
     This function constructs an `AbinitInput` for performing a 
-    GS-SCF calculation for crystalline AlAs.
+    GS-SCF calculation in crystalline AlAs.
 
     Args:
-        ecut: cutoff energy in Ha
-        ngkpt: 3 integers specifying the k-mesh.
+        ecut: cutoff energy in Ha.
+        ngkpt: 3 integers specifying the k-mesh for the electrons.
 
     Return:
         `AbinitInput` object 
