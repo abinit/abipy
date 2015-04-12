@@ -90,11 +90,11 @@ class Robot(object):
         Args:
             flow: :class:`Flow` object
             outdirs: String used to select/ignore the files in the output directory of flow, works and tasks
-                e.g. outdirs="work" selects only the outdir of the Works,
-                     outdirs="flow+task" selects the outdir of the Flow and the outdirs of the tasks
-                     outdirs="-work" excludes the outdir of the Works.
-                     Cannot use `+` and `-` flags in the same string.
-                     Default: `all` that is equivalent to "flow+work+task"
+                outdirs="work" selects only the outdir of the Works,
+                outdirs="flow+task" selects the outdir of the Flow and the outdirs of the tasks
+                outdirs="-work" excludes the outdir of the Works.
+                Cannot use `+` and `-` flags in the same string.
+                Default: `all` that is equivalent to "flow+work+task"
             nids: List of node identifiers used to select particular nodes. Not used if None
 
         Returns:
@@ -150,9 +150,7 @@ class Robot(object):
         Args:
             label: String used to identify the file (must be unique, ax exceptions is 
                 raised if label is already present.
-            ncfile:
-                Speccify the file to be added. Accepts strings (filepath) or abipy 
-                file-like objects.
+            ncfile: Specify the file to be added. Accepts strings (filepath) or abipy file-like objects.
         """
         if is_string(ncfile):
             from abipy.abilab import abiopen

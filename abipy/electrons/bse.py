@@ -84,7 +84,7 @@ class DielectricTensor(object):
         """
         Plot all the components of the tensor
 
-        args:
+        Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
 
         ==============  ==============================================================

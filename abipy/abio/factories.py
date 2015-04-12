@@ -128,7 +128,7 @@ def ebands_input(structure, pseudos,
 
     Args:
         structure: :class:`Structure` object.
-        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable: object.
+        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.
         kppa: Defines the sampling used for the SCF run. Defaults to 1000 if not given.
         nscf_nband: Number of bands included in the NSCF run. Set to scf_nband + 10 if None.
         ndivsm: Number of divisions used to sample the smallest segment of the k-path.
@@ -203,7 +203,7 @@ def ion_ioncell_relax_input(structure, pseudos,
 
     Args:
         structure: :class:`Structure` object.
-        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable: object.
+        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.
         kppa: Defines the sampling used for the Brillouin zone.
         nband: Number of bands included in the SCF run.
         accuracy: Accuracy of the calculation.
@@ -251,7 +251,7 @@ def ion_ioncell_relax_and_ebands_input(structure, pseudos,
 
     Args:
         structure: :class:`Structure` object.
-        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable: object.
+        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.
         kppa: Defines the sampling used for the Brillouin zone.
         nband: Number of bands included in the SCF run.
         accuracy: Accuracy of the calculation.
@@ -286,7 +286,7 @@ def g0w0_with_ppmodel_input(structure, pseudos,
 
     Args:
         structure: Pymatgen structure.
-        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable: object.
+        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.
         kppa: Defines the sampling used for the SCF run.
         nscf_nband: Number of bands included in the NSCF run.
         ecuteps: Cutoff energy [Ha] for the screening matrix.
@@ -376,7 +376,7 @@ def bse_with_mdf_input(structure, pseudos,
 
     Args:
         structure: :class:`Structure` object.
-        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable: object.
+        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.
         scf_kppa: Defines the sampling used for the SCF run.
         nscf_nband: Number of bands included in the NSCF run.
         nscf_ngkpt: Divisions of the k-mesh used for the NSCF and the BSE run.
@@ -455,7 +455,7 @@ def scf_phonons_inputs(structure, pseudos, kppa,
 
     Args:
         structure: :class:`Structure` object.
-        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable: object.
+        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.
         kppa: Defines the sampling used for the SCF run.
         ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
         pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the

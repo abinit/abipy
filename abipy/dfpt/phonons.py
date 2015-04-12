@@ -86,15 +86,6 @@ class PhononBands(object):
     """
     Container object storing the phonon band structure.
 
-    .. Attributes:
-
-        phfreqs: array with phonon frequencies. Shape=(nqpt, 3*natom)
-        phdispl_cart: phonon displacements in Cartesian coordinates.
-            `ndarray` of shape (nqpt, 3*natom, 3*natom).
-            The last dimension stores the cartesian components.
-        qpoints: qpoints and wtq are replaced by self.ibz that is a list of KpointList.
-        weights:
-
     .. note::
 
         Frequencies are in eV. Cartesian displacements are in Angstrom.
@@ -133,10 +124,16 @@ class PhononBands(object):
         """
         self.structure = structure
 
+        #: :class:`KpointList` with the q-points
         self.qpoints = qpoints
         self.num_qpoints = len(self.qpoints)
 
+        #: numpy rray with phonon frequencies. Shape=(nqpt, 3*natom)
         self.phfreqs = phfreqs
+
+        #: phonon displacements in Cartesian coordinates.
+        #: `ndarray` of shape (nqpt, 3*natom, 3*natom).
+        #: The last dimension stores the cartesian components.
         self.phdispl_cart = phdispl_cart
 
         # Handy variables used to loop.
@@ -480,7 +477,7 @@ class PhononBands(object):
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
             qlabels: dictionary whose keys are tuple with the reduced coordinates of the q-points. 
-                     The values are the labels. e.g. `qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}`.
+                The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}
             branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted).
             marker: String defining the marker to plot. Syntax `markername:fact` where fact is a float used to scale the marker size.
             width: String defining the width to plot. Syntax `widthname:fact` where fact is a float used to scale the stripe size.
@@ -596,7 +593,7 @@ class PhononBands(object):
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
             max_stripe_width_mev: The maximum width of the stripe in meV.
             qlabels: dictionary whose keys are tuple with the reduced coordinates of the q-points. 
-                The values are the labels. e.g. `qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}`.
+                The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
 
         Returns:
             `matplotlib` figure.
@@ -839,11 +836,8 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands):
 class PhononDos(Function1D):
     """
     This object stores the phonon density of states.
-
-    .. attributes::
-
-        mesh: array-like object with the points of the mesh.
-        values: array-like object with the DOS values.
+    An instance of `PhononDos` has a `mesh` (numpy array with the points of the mesh)
+    and another numpy array, `values`, with the DOS on the mesh..
 
     .. note::
 
@@ -1118,8 +1112,9 @@ class PhdosFile(AbinitNcFile, Has_Structure):
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
-            colormap: Have a look at the colormaps here and decide which one you'd like:
-                http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
+            colormap: Have a look at the colormaps 
+                `here <http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html>`_
+                and decide which one you'd like:
 
         Returns:
             matplotlib figure.

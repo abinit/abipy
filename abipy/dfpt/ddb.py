@@ -201,7 +201,7 @@ class DdbFile(TextFile, Has_Structure):
     def qindex(self, qpoint):
         """
         The index of the q-point in the internal list of k-points.
-        Accepts: :class:`qpoint` instance or integer.
+        Accepts: :class:`Kpoint` instance or integer.
         """
         if isinstance(qpoint, int):
             return qpoint
@@ -332,8 +332,8 @@ class DdbFile(TextFile, Has_Structure):
             verbose: verbosity level. Set it to a value > 0 to get more information
 
         Returns:
-            :class:`PhbstFile`, netcdf file with the phonon band structure.
-            :class:`PhdosFile`, netcdf file the the phonon DOS.
+            :class:`PhbstFile` with the phonon band structure.
+            :class:`PhdosFile` with the the phonon DOS.
         """
         if ngqpt is None: ngqpt = self.guessed_ngqpt
 
