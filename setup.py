@@ -179,7 +179,6 @@ install_requires = [
     "pymatgen>=3.0.8",
     "wxmplot",
     "html2text",
-    #"gnuplot-py",
     #"matplotlib>=1.1",
     #"seaborn",
     #"psutil",
@@ -217,29 +216,26 @@ my_excl_package_data = find_exclude_package_data()
 # Create a dict with the basic information
 # This dict is eventually passed to setup after additional keys are added.
 setup_args = dict(
-      name             = name,
-      version          = version,
-      description      = description,
-      long_description = long_description,
-      author           = author,
-      author_email     = author_email,
-      url              = url,
-      license          = license,
-      platforms        = platforms,
-      keywords         = keywords,
-      classifiers      = classifiers,
-      install_requires = install_requires,
-      packages         = my_packages,
-      package_data     = my_package_data,
-      exclude_package_data = my_excl_package_data,
-      scripts          = my_scripts,
-      #download_url    = download_url,
-      #cmdclass={'install': MyInstall},
+      name=name,
+      version=version,
+      description=description,
+      long_description=long_description,
+      author=author,
+      author_email=author_email,
+      url=url,
+      license=license,
+      platforms=platforms,
+      keywords=keywords,
+      classifiers=classifiers,
+      install_requires=install_requires,
+      packages=my_packages,
+      package_data=my_package_data,
+      exclude_package_data=my_excl_package_data,
+      scripts=my_scripts,
+      #download_url=download_url,
       ext_modules=ext_modules,
       )
 
 if __name__ == "__main__":
     setup(**setup_args)
-    # Create the abipyrc file
-    #execfile('abipy/profile.py')
     cleanup()

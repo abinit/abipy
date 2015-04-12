@@ -5,11 +5,12 @@ python:
   #- "3.4"
   #
 before_install:
+ - sudo apt-get install build-essential gfortran python-dev
+  - sudo apt-get install -qq libatlas-dev libatlas-base-dev liblapack-dev 
   - sudo apt-get install libhdf5-serial-dev netcdf-bin libnetcdf-dev
   - pip install cython numpy python-dateutil
   - sudo apt-get install python-scipy
 #  - easy_install -U setuptools
-#  - pip install -Iv https://bitbucket.org/jamesrhester/pycifrw/downloads/PyCifRW-3.6.1.tar.gz
 #  - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
 #  - chmod +x miniconda.sh
 #  - ./miniconda.sh -b
@@ -26,7 +27,6 @@ before_install:
 #  #- sudo apt-get update -qq
 #  #- sudo apt-get install -qq liblapack-dev 
 #  #- sudo apt-get install libzmq3-dev
-#  #- sudo apt-get install build-essential gfortran python-dev
 #  #- sudo apt-get install python-nose python-numpy python-setuptools python-docutils
 #  #- sudo apt-get install python-h5py python-setuptools
 #  #- sudo apt-get install python-numpy 
@@ -45,9 +45,7 @@ install:
 before_script:
     - rm abipy/gui/__init__.py 
     - export LD_LIBRARY_PATH=/usr/lib/:$LD_LIBRARY_PATH
-    #- python -m netCDF4_utils
-    #- abipy/dev_scripts/check_netcdf4.py
-    #
+
 # command to run tests
 script: nosetests
 branches:
