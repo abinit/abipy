@@ -59,6 +59,14 @@ tools Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`notebooks` Module
+-----------------------
+
+.. automodule:: abipy.tools.notebooks
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`numtools` Module
 ----------------------
 

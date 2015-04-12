@@ -1,9 +1,13 @@
 language: python
 python:
   - "2.7"
+  #- "3.3"
+  #- "3.4"
+  #
 before_install:
   - sudo apt-get install libhdf5-serial-dev netcdf-bin libnetcdf-dev
-  - pip install numpy cython python-dateutil
+  - pip install cython numpy python-dateutil
+  - sudo apt-get install python-scipy
 #  - easy_install -U setuptools
 #  - pip install -Iv https://bitbucket.org/jamesrhester/pycifrw/downloads/PyCifRW-3.6.1.tar.gz
 #  - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
@@ -33,9 +37,9 @@ before_install:
 
 # command to install dependencies
 install:
-  - "sudo apt-get install python-scipy"
-  - "easy_install -U setuptools"
-  - "pip install -r requirements.txt"
+  #- "sudo apt-get install python-scipy"
+  - easy_install -U setuptools
+  - pip install -r requirements.txt
 
 # This is needed, otherwise, nosetests will import try to import wx.
 before_script:
