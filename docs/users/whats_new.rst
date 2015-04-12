@@ -10,7 +10,3 @@ This page just covers the highlights -- for the full story, see the CHANGELOG
 
 new in abipy-0.1
 ================
-
-Fermi surface 
--------------
-

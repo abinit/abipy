@@ -50,7 +50,7 @@ because these packages are needed.
 
 `bz2` is more fundamental than `_tkinter` because it is used to compress/uncompress files.
 AbiPy won't work without `bz2` and you have to install the `bzip` library with the C headers.
-The source code is available `here <www.bzip.org>`_
+The source code is available `from bzip.org <www.bzip.org>`_
 See also `this post <http://stackoverflow.com/questions/12806122/missing-python-bz2-module>`_ on stackoverflow.
 
 `Tkinter` is less important than `bz2` but without it you won't be able to use the `matplotlib` graphical back-end.
