@@ -130,36 +130,38 @@ class TestAbinitInput(AbipyTest):
     def test_abinit_calls(self):
         """Testing AbinitInput methods invoking Abinit."""
         inp = AbinitInput(structure=abidata.cif_file("si.cif"), pseudos=abidata.pseudos("14si.pspnc"))
-
         inp.set_kmesh(ngkpt=(2, 2, 2), shiftk=(0, 0, 0))
 
-        # Test validate with wrong input
-        inp.set_vars(ecut=-1)
-        v = inp.abivalidate()
-        assert v.retcode != 0 and v.log_file.read()
+        # The code below invokes Abinit.
+        if self.has_abinit():
 
-        # Test validate with correct input
-        inp.set_vars(ecut=2, toldfe=1e-6)
-        v = inp.abivalidate()
-        assert v.retcode == 0
-                                                    
-        # Test abiget_ibz
-        ibz = inp.abiget_ibz()
-        assert np.all(ibz.points == [[ 0. ,  0. ,  0. ], [ 0.5,  0. ,  0. ], [ 0.5,  0.5,  0. ]])
-        assert np.all(ibz.weights == [0.125,  0.5,  0.375])
+            # Test validate with wrong input
+            inp.set_vars(ecut=-1)
+            v = inp.abivalidate()
+            assert v.retcode != 0 and v.log_file.read()
 
-        # Test abiget_irred_phperts
-        # [{'idir': 1, 'ipert': 1, 'qpt': [0.0, 0.0, 0.0]}]
-        irred_perts = inp.abiget_irred_phperts(qpt=(0, 0, 0))
-        assert len(irred_perts) == 1
-        pert = irred_perts[0]
-        assert pert.idir == 1 and (pert.idir, pert.ipert) == (1, 1) and all(c == 0 for c in pert.qpt)
+            # Test validate with correct input
+            inp.set_vars(ecut=2, toldfe=1e-6)
+            v = inp.abivalidate()
+            assert v.retcode == 0
 
-        # Test abiget_autoparal_pconfs
-        inp["paral_kgb"] = 0
-        pconfs = inp.abiget_autoparal_pconfs(max_ncpus=5)
-        inp["paral_kgb"] = 1
-        pconfs = inp.abiget_autoparal_pconfs(max_ncpus=5)
+            # Test abiget_ibz
+            ibz = inp.abiget_ibz()
+            assert np.all(ibz.points == [[ 0. ,  0. ,  0. ], [ 0.5,  0. ,  0. ], [ 0.5,  0.5,  0. ]])
+            assert np.all(ibz.weights == [0.125,  0.5,  0.375])
+
+            # Test abiget_irred_phperts
+            # [{'idir': 1, 'ipert': 1, 'qpt': [0.0, 0.0, 0.0]}]
+            irred_perts = inp.abiget_irred_phperts(qpt=(0, 0, 0))
+            assert len(irred_perts) == 1
+            pert = irred_perts[0]
+            assert pert.idir == 1 and (pert.idir, pert.ipert) == (1, 1) and all(c == 0 for c in pert.qpt)
+
+            # Test abiget_autoparal_pconfs
+            inp["paral_kgb"] = 0
+            pconfs = inp.abiget_autoparal_pconfs(max_ncpus=5)
+            inp["paral_kgb"] = 1
+            pconfs = inp.abiget_autoparal_pconfs(max_ncpus=5)
 
     def test_dict_methods(self):
         """ Testing AbinitInput dict methods """
@@ -205,9 +207,10 @@ class TestAbinitInput(AbipyTest):
         assert all(np.all(inp["rfdir"] == [1, 0, 0] for inp in phg_inputs))
         assert all(np.all(inp["kptopt"] == 2 for inp in phg_inputs))
 
-        # Validate
-        vs = phg_inputs.abivalidate()
-        assert all(v.retcode == 0 for v in vs)
+        if self.has_abinit():
+            # Validate
+            vs = phg_inputs.abivalidate()
+            assert all(v.retcode == 0 for v in vs)
 
         #############
         # DDK methods
@@ -221,10 +224,11 @@ class TestAbinitInput(AbipyTest):
         assert all(inp["iscf"] == -3 for inp in ddk_inputs)
         assert all(inp["rfelfd"] == 2 for inp in ddk_inputs)
 
-        # Validate
-        vs = ddk_inputs.abivalidate()
-        assert all(v.retcode == 0 for v in vs)
-        #assert 0
+        if self.has_abinit():
+            # Validate
+            vs = ddk_inputs.abivalidate()
+            assert all(v.retcode == 0 for v in vs)
+            #assert 0
 
 
 class TestMultiDataset(AbipyTest):

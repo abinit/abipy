@@ -79,6 +79,7 @@ def has_mongodb(host='localhost', port=27017, name='mongodb_test', username=None
     except:
         return False
 
+
 class AbipyTest(PymatgenTest):
     """Extend TestCase with functions from numpy.testing.utils that support ndarrays."""
 

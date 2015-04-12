@@ -55,7 +55,7 @@ class FactoryTest(AbipyTest):
         flow = abilab.Flow("flow_ebands_input")
         flow.register_work(abilab.BandStructureWork(scf_inp, nscf_inp))
         flow.allocate()
-        flow.make_scheduler().start()
+        #flow.make_scheduler().start()
 
     def test_ion_ioncell_relax_input(self):
         """Testing ioncell_relax_input factory."""
@@ -70,7 +70,7 @@ class FactoryTest(AbipyTest):
         flow = abilab.Flow("flow_ion_ioncell_relax_input")
         flow.register_work(abilab.RelaxWork(ion_inp, ioncell_inp))
         flow.allocate()
-        flow.make_scheduler().start()
+        #flow.make_scheduler().start()
 
     def test_g0w0_with_ppmodel_input(self):
         """Testing g0w0_with_ppmodel_input factory."""
@@ -90,7 +90,7 @@ class FactoryTest(AbipyTest):
         flow = abilab.Flow("flow_g0w0_with_ppmodel")
         flow.register_work(abilab.G0W0Work(scf_input, nscf_input, scr_input, sigma_input))
         flow.allocate()
-        flow.make_scheduler().start()
+        #flow.make_scheduler().start()
 
     def test_bse_with_mdf(self):
         """Testing bse_with_mdf input factory."""
@@ -111,7 +111,7 @@ class FactoryTest(AbipyTest):
         flow = abilab.Flow("flow_bse_with_mdf")
         flow.register_work(abilab.BseMdfWork(scf_input, nscf_input, bse_input))
         flow.allocate()
-        flow.make_scheduler().start()
+        #flow.make_scheduler().start()
 
     def test_scf_phonons_inputs(self):
         """Testing scf_phonons_inputs."""
@@ -125,7 +125,8 @@ class FactoryTest(AbipyTest):
         #for inp in inps:
         #    self.validate_inp(inp)
 
-        print(inps[1].abiget_irred_phperts())
+        if self.has_abinit():
+            print(inps[1].abiget_irred_phperts())
         #assert 0
 
 
