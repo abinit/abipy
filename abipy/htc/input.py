@@ -694,7 +694,7 @@ class AbiInput(Input, Has_Structure):
         dtsets = []
         for ds in self:
             ds_copy = ds.deepcopy()
-            for key, value in ds_copy.iteritems():
+            for key, value in ds_copy.items():
                 if isinstance(value, np.ndarray):
                     ds_copy[key] = value.tolist()
             dtsets.append(dict(ds_copy))

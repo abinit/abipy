@@ -24,14 +24,15 @@ __all__ = [
 ]
 
 
-def has_abinit(version, cmp=">="):
+def has_abinit(version=None, cmp=">="):
     """
     Return True if abinit is in $PATH and version is cmp version.
     False if condition is not fulfilled or the execution of `abinit -v`
     raised CalledProcessError
     """
-    if which("abinit") is None:
-        return False
+    abinit = which("abinit") 
+    if abinit is None: return False
+    if version is None: return abinit is not None
 
     try:
         abiver = str(subprocess.check_output(["abinit", "-v"]))
