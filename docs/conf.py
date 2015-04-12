@@ -96,7 +96,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'abipy'
-copyright = u'2013, ' + release.author
+copyright = u'2015, ' + release.author
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -148,6 +148,8 @@ pygments_style = 'sphinx'
 # a list of builtin themes.
 #html_theme = 'default'
 html_theme = "sphinxdoc"
+#html_theme = "agogo"
+#html_theme = "scrolls"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -155,7 +157,32 @@ html_theme = "sphinxdoc"
 #html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = []
+#html_theme_path = []
+
+import sphinx_rtd_theme
+html_theme = "sphinx_rtd_theme"
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+
+
+#import alabaster
+#html_theme_path = [alabaster.get_path()]
+#extensions = ['alabaster']
+#html_theme = 'alabaster'
+#html_sidebars = {
+#    '**': [
+#        'about.html', 'navigation.html', 'searchbox.html', 'donate.html',
+#    ]
+#}
+#    'logo': 'logo.png',
+#    'github_user': 'bitprophet',
+#    'github_repo': 'alabaster',
+#
+#html_theme_options = {
+#    'logo': 'logo.png',
+#    'github_user': 'bitprophet',
+#    'github_repo': 'alabaster',
+#}
+
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -166,7 +193,7 @@ html_theme_path = []
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = "_static/abipy_logo.jpg"
+#html_logo = "_static/logo.png"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -180,7 +207,7 @@ html_static_path = ['_static']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
-#html_last_updated_fmt = '%b %d, %Y'
+html_last_updated_fmt = '%b %d, %Y'
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.

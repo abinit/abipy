@@ -556,7 +556,7 @@ class MdfPlotter(object):
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
             cplx_mode: string defining the data to print (case-insensitive).
-                Possible choices are: `re` for the real part, `im` for imaginary part only. `abs` for the absolute value.
+                Possible choices are `re` for the real part, `im` for imaginary part only. `abs` for the absolute value.
                 Options can be concated with "-".
             qpoint: index of the q-point or :class:`Kpoint` object or None to plot emacro_avg.
 
