@@ -1,7 +1,9 @@
 language: python
 python:
   - "2.7"
-#before_install:
+before_install:
+  - sudo apt-get install libhdf5-serial-dev netcdf-bin libnetcdf-dev
+  - pip install numpy cython python-dateutil
 #  - easy_install -U setuptools
 #  - pip install -Iv https://bitbucket.org/jamesrhester/pycifrw/downloads/PyCifRW-3.6.1.tar.gz
 #  - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
