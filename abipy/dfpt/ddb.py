@@ -33,7 +33,7 @@ class AnaddbError(DdbError):
     """
     Exceptions raised when we try to execute :class:`AnaddbTask` in the :class:`DdbFile` methods
 
-    A `AnaddbException` has a reference to the task and to the :class:`EventsReport` that contains
+    An `AnaddbError` has a reference to the task and to the :class:`EventsReport` that contains
     the error messages of the run.
     """
     def __init__(self, *args, **kwargs):

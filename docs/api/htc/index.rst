@@ -11,4 +11,3 @@ High-Throughput Computing
    filesfile.rst
    launcher.rst
    input.rst
-   robots.rst

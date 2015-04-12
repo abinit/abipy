@@ -24,6 +24,7 @@ def make_scf_nscf_bse_inputs(ngkpt=(6, 6, 6), ecut=6, ecuteps=3,
     """
     multi = abilab.MultiDataset(structure=abidata.structure_from_ucell("Si"),
                                 pseudos=abidata.pseudos("14si.pspnc"), ndtset=3)
+    multi.set_mnemonics(True)
 
     # Variables common to the three datasets.
     multi.set_vars(

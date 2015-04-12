@@ -14,4 +14,3 @@ new in abipy-0.1
 Fermi surface 
 -------------
 
-Bla Bla Bla

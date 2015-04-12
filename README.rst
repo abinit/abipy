@@ -71,12 +71,12 @@ All required dependencies should be automatically taken care of if you install a
 Otherwise, these packages should be available on `PyPI <http://pypi.python.org>`_.
 
   #. Python 2.7 required (Python 3.0+ not supported) 
-  #. pymatgen 3.0.7+
+  #. pymatgen
   #. numpy 
-  #. matplotlib 1.1+
-  #. scipy 0.10+
+  #. matplotlib 
+  #. scipy 
   #. netCDF4
-  #. pyYaml 3.11+
+  #. pyYaml
 
 The following packages are much easier to install with easy_install:
 
@@ -102,16 +102,10 @@ Optional libraries that are required if you need certain features:
 1. wxPython - For the GUI 
 2. wxmplot
 
-Installing wxPython
--------------------
-
-Mac users can download the
-
-Linux users:
-    TODO
-
 The directory `abipy.gui.demos` contains demos that can be used to test the installation 
 (run the script `runall.py` to have an overview of the different graphical interfaces).
+
+See the ``INSTALL_HOTWO.rst``
 
 
 Using abipy
