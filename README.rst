@@ -4,6 +4,10 @@
 .. image:: https://pypip.in/v/abipy/badge.png
         :target: https://pypi.python.org/pypi/abipy
 
+.. image:: https://coveralls.io/repos/gmatteo/abipy/badge.svg
+  :target: https://coveralls.io/r/gmatteo/abipy
+
+
 About
 =====
 Abipy is an open-source library for the analysis of the results produced by ABINIT (http://www.abinit.org), 

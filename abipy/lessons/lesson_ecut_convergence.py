@@ -90,15 +90,13 @@ to show the status of a flow:
 
 There are many more properties and methods of the flow than may also come in handy. 
 By typing [tab] in ipython after the period, you will be presented
-with all the option. Feel free to experiment a bit at this point. 
+with all the options. Feel free to experiment a bit at this point. 
 In the ipython shell, one can get the description of the object by
-adding a question mark at the end of the object: 
+adding a question mark at the end of the statement:
 
     .. code-block:: python
 
         flow.build()?
-
-The build() method will create the input files, open_files() can be used to open them.
 
 Start the flow with the scheduler and wait for completion.
 
@@ -115,15 +113,10 @@ To analyze the results.
 Exercises
 ---------
 
-As for the kpoint convergence study, try to run the convergence study for Al.
+Try to run the convergence study for Al.
 
-Get a copy of the python script we use in this lesson like before. In the lesson class definition you'll find the
-analyze method. Execute the parts to get the dataframe. Use the commands you learned in this lesson to find out what
-else is contained in the dataframe. Make some more convergence plots.
-
-If you like to dig in more look up the pandas package on internet. The dataframe the robot returns is a pandas dataframe
-all the thing that have been programmed in that package are at your disposal.
-
+Get a copy of the python script used in this lesson like before and look at the `analyze` method. 
+Use the code in `analyze` to build your Pandas dataframe and use its method to produce convergence plots:
 
 Next
 ----

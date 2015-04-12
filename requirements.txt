@@ -5,4 +5,5 @@ pyyaml>=3.11
 #scipy>=0.10
 netCDF4
 pymatgen>=3.0.7
+html2text
 #matplotlib>=1.1

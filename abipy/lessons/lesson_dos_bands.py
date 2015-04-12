@@ -7,22 +7,22 @@ Background
 ----------
 
 This lesson focuses on the calculation of the density of states (DOS) and 
-the electronic band structure within the Kohn-Sham (KS) formalism. 
+of the electronic band structure within the Kohn-Sham (KS) formalism. 
 
-In contrast to the total energy and its derivatives, the energies of the KS-levels have no exact physical meaning,
+In contrast to the total energy and its derivatives, the energies of the KS levels have no physical meaning,
 except for the highest occupied state that actually would be the first ionization energy if the DFT XC functional would be
 exact. So why do we use the KS formalism to calculate electron DOSes and band structures? 
 
 As a matter of fact, the KS energy spectrum is usually in qualitative agreement with experiments (let's ignore correlated systems).
 Standard KS band structures with LDA or GGA are relatively cheap and KS calculations allow us to make reasonable predictions 
 and to study trends.
-In lesson_g0w0.py, we discuss a more accurate and expensive approach for the calculation of band strtuctures and band gaps
-based on many-body theory.
+In `lesson_g0w0.py`, we discuss a more accurate and expensive approach for the calculation of band strtuctures and band gaps
+based on many-body perturbation theory.
 
 The related abinit variables
 ----------------------------
 
-    * kptopt    (negative values if band structures are wanted.)
+    * kptopt    (negative values if band structures are wanted)
     * kptbounds (the boundaries of the k-path)
     * ndivsm    (number of points used to sample the smallest segment of the k-path)
 
@@ -31,7 +31,7 @@ from __future__ import division, print_function
 
 
 _ipython_lesson_ = """
-More info on the inputvariables and their use can be obtained with the command:
+More info on the input variables and their use can be obtained with the command:
 
     .. code-block:: python
 

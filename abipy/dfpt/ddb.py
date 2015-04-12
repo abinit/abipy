@@ -426,7 +426,7 @@ class DdbFile(TextFile, Has_Structure):
             splined_dos = phdos.spline_on_mesh(last_mesh)
             abs_diff = (splined_dos - phdoses[-1]).abs()
             print(" Delta(Phdos[%d] - Phdos[%d]) / Phdos[%d]: %f" % 
-                (i, len(phdoses), len(phdoses), abs_diff.integral().values[-1]), file=stream)
+                (i, len(phdoses)-1, len(phdoses)-1, abs_diff.integral().values[-1]), file=stream)
 
         # Fill the plotter.
         plotter = PhononDosPlotter()

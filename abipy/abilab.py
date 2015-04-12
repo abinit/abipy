@@ -10,8 +10,14 @@ from pymatgen.io.abinitio.pseudos import PseudoTable
 from pymatgen.io.abinitio.wrappers import Mrgscr, Mrgddb, Mrggkk
 from pymatgen.io.abinitio.tasks import *
 from pymatgen.io.abinitio.works import *
-from pymatgen.io.abinitio.flows import (Flow, G0W0WithQptdmFlow, PhononFlow, bandstructure_flow, 
+from pymatgen.io.abinitio.flows import (Flow, G0W0WithQptdmFlow, bandstructure_flow, 
     g0w0_flow, phonon_flow, phonon_conv_flow)
+# Need new version of pymatgen.
+try:
+    from pymatgen.io.abinitio.flows import PhononFlow
+except ImportError:
+    pass
+
 from pymatgen.io.abinitio.launcher import PyFlowScheduler, BatchLauncher
 
 from abipy.core.structure import Lattice, Structure, StructureModifier

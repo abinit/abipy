@@ -104,10 +104,7 @@ To build the flow, use
 
         flow.show_inputs()
 
-displays all the inputs that will be 'passed' to abinit. In the
-previous lessons we ran the flows each time directly inside ipython.
-For relatively small calculations this is very practical. There are
-however other approaches that are more suited for large and expensive calculations.
+displays all the inputs that will be 'passed' to abinit. 
 
 To start the execution of calculations packed in this flow we use the following command:
 
@@ -219,12 +216,12 @@ def make_inputs(ngkpt, paral_kgb=0):
     )
 
     # Dataset 1 (GS run to get the density)
-    multi[0].set_kmesh(scf_kmesh)
+    multi[0].set_kmesh(**scf_kmesh)
     multi[0].set_vars(
         tolvrs=1e-6,
         nband=4,
     )
-    multi[0].set_kmesh(scf_kmesh)
+    multi[0].set_kmesh(**scf_kmesh)
 
     # Dataset 2 (NSCF run)
     multi[1].set_vars(iscf=-2,
@@ -239,14 +236,14 @@ def make_inputs(ngkpt, paral_kgb=0):
                       nband=35,
                       #nband=10,
                       )
-    multi[2].set_kmesh(dos_kmesh)
+    multi[2].set_kmesh(**dos_kmesh)
 
     # Dataset 4 (NSCF run for GW)
     multi[3].set_vars(iscf=-2,
                       tolwfr=1e-12,
                       nband=35,
                      )
-    multi[3].set_kmesh(gw_kmesh)
+    multi[3].set_kmesh(**gw_kmesh)
 
     # Dataset3: Calculation of the screening.
     multi[4].set_vars(
@@ -257,7 +254,7 @@ def make_inputs(ngkpt, paral_kgb=0):
         inclvkb=0,
         ecuteps=4.0,    
     )
-    multi[4].set_kmesh(gw_kmesh)
+    multi[4].set_kmesh(**gw_kmesh)
 
     multi[5].set_vars(
             optdriver=4,
@@ -269,7 +266,7 @@ def make_inputs(ngkpt, paral_kgb=0):
             gw_qprange=-4,  # Compute GW corrections for all kpts in IBZ, 
                             # all occupied states and 4 empty states,
         )
-    multi[5].set_kmesh(gw_kmesh)
+    multi[5].set_kmesh(**gw_kmesh)
 
     return multi.split_datasets()
 
