@@ -1,43 +1,47 @@
 language: python
 python:
   - "2.7"
-before_install:
-  - easy_install -U setuptools
-  - pip install -Iv https://bitbucket.org/jamesrhester/pycifrw/downloads/PyCifRW-3.6.1.tar.gz
-  - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
-  - chmod +x miniconda.sh
-  - ./miniconda.sh -b
-  - export PATH=/home/travis/miniconda/bin:$PATH
-  - conda update --yes conda
-  # The next couple lines fix a crash with multiprocessing on Travis and are not specific to using Miniconda
-  - sudo rm -rf /dev/shm
-  - sudo ln -s /run/shm /dev/shm
-  - sudo apt-get install -qq libhdf5-serial-dev hdf5-tools 
-  - sudo apt-get install libnetcdf-dev
-  #- pip install -Iv https://netcdf4-python.googlecode.com/files/netCDF4-1.0.2.tar.gz
-  #- pip install netCDF4
-  - conda install netCDF4 && /usr/bin/yes
-  #- sudo apt-get update -qq
-  #- sudo apt-get install -qq liblapack-dev 
-  #- sudo apt-get install libzmq3-dev
-  #- sudo apt-get install build-essential gfortran python-dev
-  #- sudo apt-get install python-nose python-numpy python-setuptools python-docutils
-  #- sudo apt-get install python-h5py python-setuptools
-  #- sudo apt-get install python-numpy 
-  #- sudo apt-get install python-scipy 
-  #- sudo apt-get install python-matplotlib 
-  #- pip -q install numpy
-  #- pip install scipy
+#before_install:
+#  - easy_install -U setuptools
+#  - pip install -Iv https://bitbucket.org/jamesrhester/pycifrw/downloads/PyCifRW-3.6.1.tar.gz
+#  - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+#  - chmod +x miniconda.sh
+#  - ./miniconda.sh -b
+#  - export PATH=/home/travis/miniconda/bin:$PATH
+#  - conda update --yes conda
+#  # The next couple lines fix a crash with multiprocessing on Travis and are not specific to using Miniconda
+#  - sudo rm -rf /dev/shm
+#  - sudo ln -s /run/shm /dev/shm
+#  - sudo apt-get install -qq libhdf5-serial-dev hdf5-tools 
+#  - sudo apt-get install libnetcdf-dev
+#  #- pip install -Iv https://netcdf4-python.googlecode.com/files/netCDF4-1.0.2.tar.gz
+#  #- pip install netCDF4
+#  - conda install netCDF4 && /usr/bin/yes
+#  #- sudo apt-get update -qq
+#  #- sudo apt-get install -qq liblapack-dev 
+#  #- sudo apt-get install libzmq3-dev
+#  #- sudo apt-get install build-essential gfortran python-dev
+#  #- sudo apt-get install python-nose python-numpy python-setuptools python-docutils
+#  #- sudo apt-get install python-h5py python-setuptools
+#  #- sudo apt-get install python-numpy 
+#  #- sudo apt-get install python-scipy 
+#  #- sudo apt-get install python-matplotlib 
+#  #- pip -q install numpy
+#  #- pip install scipy
 
 # command to install dependencies
-#install: "pip install -r requirements.txt --use-mirrors"
-install: "pip install -r requirements.txt"
+install:
+  - "sudo apt-get install python-scipy"
+  - "easy_install -U setuptools"
+  - "pip install -r requirements.txt"
+
 # This is needed, otherwise, nosetests will import try to import wx.
 before_script:
     - rm abipy/gui/__init__.py 
     - export LD_LIBRARY_PATH=/usr/lib/:$LD_LIBRARY_PATH
     #- python -m netCDF4_utils
     #- abipy/dev_scripts/check_netcdf4.py
+    #
 # command to run tests
 script: nosetests
 branches:

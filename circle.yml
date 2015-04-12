@@ -2,12 +2,14 @@ machine:
   python:
     version: 2.7.8
 dependenciees:
-  only:
-     - none # list of branches to build
-  ovyerride:
+  #only:
+  #   - none # list of branches to build
+  override:
     - easy_install -U setuptools
     - pip install distribute --upgrade
+    - pip install -q numpy
     - pip install pymatgen
+    - pip install -r requirements.txt
     #- pip install -r requirements.txt
     #- pip install -r requirements-optional.txt
     - python setup.py develop
