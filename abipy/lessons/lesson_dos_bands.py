@@ -35,7 +35,7 @@ More info on the input variables and their use can be obtained with the command:
 
     .. code-block:: python
 
-        lesson.docvar("inputvariable")
+        print(lesson.docvar("inputvariable"))
 
 that prints the official description of `inputvariable`.
 

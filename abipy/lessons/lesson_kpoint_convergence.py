@@ -43,7 +43,7 @@ The full description, directly from the official abinit docs, is available in ip
 
     .. code-block:: python
 
-        lesson.docvar("inputvariable")
+        print(lesson.docvar("inputvariable"))
 
 that will print the official description of inputvariable.
 

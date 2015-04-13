@@ -179,6 +179,7 @@ install_requires = [
     "pymatgen>=3.0.8",
     "wxmplot",
     "html2text",
+    "pigments",
     #"matplotlib>=1.1",
     #"seaborn",
     #"psutil",

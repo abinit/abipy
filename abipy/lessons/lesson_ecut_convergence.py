@@ -40,7 +40,7 @@ More info on the input variables and their use can be obtained using:
 
     .. code-block:: python
 
-        lesson.docvar("inputvariable")
+        print(lesson.docvar("inputvariable"))
 
 Description of the lesson
 -------------------------
@@ -96,7 +96,7 @@ adding a question mark at the end of the statement:
 
     .. code-block:: python
 
-        flow.build()?
+        flow.show_status?
 
 Start the flow with the scheduler and wait for completion.
 
