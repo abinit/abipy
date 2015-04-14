@@ -1,9 +1,8 @@
 .TH The "" "" "calculation of the density of states and the bandstructure"
 .SH Background
 .PP
-This lesson focuses on the calculation of the density of states (DOS)
-and of the electronic band structure within the Kohn\-Sham (KS)
-formalism.
+This lesson focuses on the calculation of density of states (DOSes) and
+of electronic band structures within the Kohn\-Sham (KS) formalism.
 .PP
 In contrast to the total energy and its derivatives, the energies of the
 KS levels have no physical meaning, except for the highest occupied
@@ -18,7 +17,7 @@ Standard KS band structures with LDA or GGA are relatively cheap and KS
 calculations allow us to make reasonable predictions and to study
 trends.
 In lesson_g0w0.py, we discuss a more accurate and expensive approach for
-the calculation of band strtuctures and band gaps based on many\-body
+the calculation of band structures and band gaps based on many\-body
 perturbation theory.
 .SH The related abinit variables
 .RS

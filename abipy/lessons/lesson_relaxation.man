@@ -1,18 +1,28 @@
 .TH Relaxation "" "" "of the unit cell with two different techniques"
 .SH Background
 .PP
-One of the tasks that is most performed using DFT is the relaxation of
-an atomic structure.
-Effectively we search for that structure for which the total energy is
-minimal.
-Since the total energy is in principle exact in DFT the atomic position
-are in general rather good.
-\[aq]In principle\[aq] means if the exchange\-correlation functional
-would be exact.
-However, since we are comparing differences in total energies an certain
-amount of error\-cancellation can be expected.
+In this lesson we discuss two different methods to find the equilibrium
+structure of a system.
+In the first method, we use the GS part of Abinit to calculate the total
+energy of silicon for different volumes and then we fit the energy vs
+the volume with a model for the equation of state (EOS).
+The fit provides the optimal volume (i.e.
+the volume for which the total energy is minimal), as well as the bulk
+modulus (the \[aq]compressibility\[aq] of the system).
+Note that this approach is only applicable to isotropic materials
+without any degree of freedom for the atomic positions.
+Indeed, the equation of state is obtained by performing a homogeneous
+compressions/dilatation of the initial Bravais lattice while keeping the
+atoms fixed in the initial high\-symmetry positions.
 .PP
-In this lesson we focus on different types of structure relaxations.
+In the second example, we find the equilibrium configuration of GaN.
+In this case, the approach used for computing the EOS of silicon is not
+applicable because, one should optimize both the lattice parameters as
+well the distance between Ga and N.
+For this reason, we employ the relaxation algorithms implemented in
+Abinit (ionmov and optcell) in which the forces and the stresses
+obtained at the end of the SCF cycle are used to find the minimum energy
+configuration.
 .SH The related abinit variables
 .RS
 .IP \[bu] 2

@@ -129,6 +129,6 @@ Define the environment variable `$NETCDF4_DIR`::
 
 Now we can download and install the python interface with::
 
-    pip install netcdf
+    pip install netcdf4
 
 You may want to consult the official `netcdf4-python documentation <http://unidata.github.io/netcdf4-python>`_.

@@ -13,7 +13,7 @@ problematic for PWs.
 Describing these features would require very high energy cutoff
 energies.
 For this reason PW codes use pseudo\-potentials in order to facilitate
-convergence.
+the convergence of the results.
 A pseudopotential replaces the singular coulomb potential of the nucleus
 and the core electrons by something smoother inside the so\-called
 pseudization region.

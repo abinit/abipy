@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-K-point convergence study for a semi-conductor. An introduction to some of the basic concepts of AbiPy
-======================================================================================================
+K-point convergence study for a semi-conductor
+===============================================
 
 Background
 ----------
@@ -45,7 +45,6 @@ The full description, directly from the official abinit docs, is available in ip
 
         print(lesson.docvar("inputvariable"))
 
-that will print the official description of inputvariable.
 
 Description of the lesson
 -------------------------
@@ -106,7 +105,7 @@ To start the calculation inside the python shell, use the following command:
 The scheduler is a sort of daemon that submits all the tasks that are ready to run.
 In our case all the tasks in the flow are independent so the first
 cycle of the scheduler will submit all the tasks in the flow. 
-More complicated flows may have tasks that can only started when their `parents` are completed.
+More complicated flows may have tasks that can start only when their `parents` are completed.
 We will encounter similar flows later on when discussing band structure calculations with AbiPy.
 
 Once the flow is completed, you can analyze the results with
@@ -126,6 +125,9 @@ Finally, once you have completed this lesson you can exit ipython with:
 Note that in your working directory there is a new sub-directory (flow_lesson_Si_kpoint_convergence)
 containing all the input and output files produced by the flow. 
 Have a look at these folders and the files that are in them.
+Hint: you can use the `ls` command inside ipython to list files and directories.
+You can even open a file directly within ipython with the command: `!vi filename`
+
 
 
 Exercises

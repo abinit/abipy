@@ -13,7 +13,7 @@ the kinetic energy cutoff (ecut).
 
 The sharp features of the wavefunctions near the nucleus are however problematic for PWs. 
 Describing these features would require very high energy cutoff energies.
-For this reason PW codes use pseudo-potentials in order to facilitate convergence. 
+For this reason PW codes use pseudo-potentials in order to facilitate the convergence of the results. 
 A pseudopotential replaces the singular coulomb potential of the nucleus and the 
 core electrons by something smoother inside the so-called pseudization region. 
 The pseudopotential connects smoothly to the real all-electron potential outside the pseudization region.
@@ -73,14 +73,6 @@ To print the input files
     .. code-block:: python
 
         flow.show_inputs()
-
-Now we are going to take a closer look at the structure of a Flow. In general
-a flow is a container of 'works'. Works are (possibly connected) series of abinit runs a.k.a tasks. 
-To show the works contained in a flow use the 'works' property:
-
-    .. code-block:: python
-
-        flow.works
 
 to show the status of a flow:
 
