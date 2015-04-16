@@ -57,7 +57,7 @@ def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
 
 
 def itest_unconverged_scf(fwp, tvars):
-    """Test the treatment of unconverged GS calculations."""
+    """Testing the treatment of unconverged GS calculations."""
     print("tvars:\n %s" % str(tvars))
 
     # Build the SCF and the NSCF input (note nstep to have an unconverged run)
@@ -153,7 +153,7 @@ def itest_unconverged_scf(fwp, tvars):
 
 def itest_bandstructure_flow(fwp, tvars):
     """
-    Test band-structure flow with one dependency: SCF -> NSCF.
+    Testing band-structure flow with one dependency: SCF -> NSCF.
     """
     print("tvars:\n %s" % str(tvars))
 
@@ -246,7 +246,7 @@ def itest_bandstructure_flow(fwp, tvars):
 
 def itest_bandstructure_schedflow(fwp, tvars):
     """
-    Run a bandstructure flow with the scheduler.
+    Testing bandstructure flow with the scheduler.
     """
     print("tvars:\n %s" % str(tvars))
 
@@ -306,23 +306,22 @@ def itest_bandstructure_schedflow(fwp, tvars):
 def itest_htc_bandstructure(fwp, tvars):
     """Test band-structure calculations done with the HTC interface."""
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
+    pseudos = abidata.pseudos("14si.pspnc")
 
-    scf_kppa = 20
-    nscf_nband = 6
-    ndivsm = 5
-    dos_kppa = 40
     # TODO: Add this options because I don't like the kppa approach
     # I had to use it because it was the approach used in VaspIO
     #dos_ngkpt = [4,4,4]
     #dos_shiftk = [0.1, 0.2, 0.3]
 
-    extra_abivars = dict(ecut=2, paral_kgb=tvars.paral_kgb)
-
     # Initialize the flow.
     flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager)
 
-    work = bandstructure_work(structure, abidata.pseudos("14si.pspnc"), scf_kppa, nscf_nband, ndivsm,
-                              spin_mode="unpolarized", smearing=None, dos_kppa=dos_kppa, **extra_abivars)
+    # Use ebands_input factory function to build inputs.
+    multi = abilab.ebands_input(structure, pseudos, kppa=20, nscf_nband=6, ndivsm=5, 
+                                ecut=2, dos_kppa=40, spin_mode="unpolarized")
+
+    work = abilab.BandStructureWork(scf_input=multi[0], nscf_input=multi[1], dos_inputs=multi[2:])
+    multi.set_vars(paral_kgb=tvars.paral_kgb)
 
     flow.register_work(work)
     flow.allocate()

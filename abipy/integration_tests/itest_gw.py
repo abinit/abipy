@@ -5,7 +5,6 @@ import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
 
-from pymatgen.io.abinitio.calculations import g0w0_with_ppmodel_work
 from abipy.core.testing import has_abinit, has_matplotlib
 
 # Tests in this module require abinit >= 7.9.0
@@ -202,7 +201,7 @@ def itest_g0w0qptdm_flow(fwp, tvars):
 
 
 def itest_htc_g0w0(fwp, tvars):
-    """G0W0 corrections with the HT interface."""
+    """Testing G0W0Work."""
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
     pseudos = abidata.pseudos("14si.pspnc")
 
@@ -222,10 +221,19 @@ def itest_htc_g0w0(fwp, tvars):
         paral_kgb=tvars.paral_kgb,
     )
 
-    work = g0w0_with_ppmodel_work(structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx,
-                                  accuracy="normal", spin_mode="unpolarized", smearing=None,
-                                  ppmodel="godby", charge=0.0, inclvkb=2, sigma_nband=None, gw_qprange=1,
-                                  scr_nband=None, **extra_abivars)
+    multi = abilab.g0w0_with_ppmodel_inputs(
+        structure, pseudos, 
+        scf_kppa, nscf_nband, ecuteps, ecutsigx,
+        ecut=ecut, pawecutdg=None,
+        accuracy="normal", spin_mode="unpolarized", smearing=None,
+        #ppmodel="godby", charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
+        #sigma_nband=None, gw_qprange=1):
+
+    )
+    multi.set_vars(paral_kgb=tvars.paral_kgb)
+
+    scf_input, nscf_input, scr_input, sigma_input = multi.split_datasets()
+    work = abilab.G0W0Work(scf_input, nscf_input, scr_input, sigma_input)
 
     flow.register_work(work)
     flow.allocate()

@@ -20,7 +20,7 @@ except ImportError:
 
 
 def itest_deltafactor(fwp, tvars):
-    """Test the flow used for the computation of the deltafactor."""
+    """Testing the flow used for the computation of the deltafactor."""
 
     # Path of the pseudopotential to test.
     pseudo = abidata.pseudo("Si.GGA_PBE-JTH-paw.xml")
@@ -60,7 +60,7 @@ def itest_deltafactor(fwp, tvars):
 
 
 def itest_gbrv_flow(fwp, tvars):
-    """The the GBRV flow: relaxation + EOS computation."""
+    """Testing the GBRV flow: relaxation + EOS computation."""
     factory = GbrvFactory()
 
     #pseudo = "si_pbe_v1_abinit.paw"

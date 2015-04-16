@@ -14,6 +14,14 @@ from abipy.abio.inputs import AbinitInput, MultiDataset
 import logging
 logger = logging.getLogger(__file__)
 
+__all__ = [
+    "ebands_input",
+    "g0w0_with_ppmodel_inputs",
+    "bse_with_mdf_inputs",
+    "ion_ioncell_relax_input",
+    "scf_phonons_inputs",
+]
+
 
 # TODO: To be discussed: 
 #    1) extra_abivars is more similar to a hack. The factory functions are designed for
@@ -275,7 +283,7 @@ def ion_ioncell_relax_and_ebands_input(structure, pseudos,
     return relax_multi + ebands_multi
 
 
-def g0w0_with_ppmodel_input(structure, pseudos, 
+def g0w0_with_ppmodel_inputs(structure, pseudos, 
                             kppa, nscf_nband, ecuteps, ecutsigx,
                             ecut=None, pawecutdg=None,
                             accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
@@ -363,12 +371,12 @@ def g0w0_with_ppmodel_input(structure, pseudos,
 #TODO
 #def g0w0_extended_work(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx, scf_nband, accuracy="normal",
 
-def bse_with_mdf_input(structure, pseudos, 
-                       scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk, 
-                       ecuteps, bs_loband, bs_nband, soenergy, mdf_epsinf, 
-                       ecut=None, pawecutdg=None, 
-                       exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="polarized", 
-                       smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
+def bse_with_mdf_inputs(structure, pseudos, 
+                        scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk, 
+                        ecuteps, bs_loband, bs_nband, soenergy, mdf_epsinf, 
+                        ecut=None, pawecutdg=None, 
+                        exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="polarized", 
+                        smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
     """
     Returns a :class:`AbinitInput` object that performs a GS + NSCF + Bethe-Salpeter calculation.
     The self-energy corrections are approximated with the scissors operator.

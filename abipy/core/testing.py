@@ -24,40 +24,57 @@ __all__ = [
 ]
 
 
-def has_abinit(version=None, cmp=">="):
+def cmp_version(this, other, op=">="):
     """
-    Return True if abinit is in $PATH and version is cmp version.
-    False if condition is not fulfilled or the execution of `abinit -v`
-    raised CalledProcessError
+    Compare two version strings with the given operator `op`
+
+    >>> assert cmp_version("1.1.1", "1.1.0") and not cmp_version("1.1.1", "1.1.0", op="==")
+    """
+    from pkg_resources import parse_version
+    from monty.operator import operator_from_str
+    op = operator_from_str(op)
+    return op(parse_version(this), parse_version(other))
+
+
+def has_abinit(version=None, op=">="):
+    """
+    True if abinit is in $PATH.
+    If version is not None, abinit version op version is evaluated and the result is returned.
+    False if condition is not fulfilled or the execution of `abinit -v` raised CalledProcessError
     """
     abinit = which("abinit") 
     if abinit is None: return False
     if version is None: return abinit is not None
 
     try:
-        abiver = str(subprocess.check_output(["abinit", "-v"]))
+        abinit_version = str(subprocess.check_output(["abinit", "-v"]))
 
     except subprocess.CalledProcessError:
         # Some MPI implementations require the mpirunner.
         try:
-            abiver = subprocess.check_output(["mpirun", "-n", "1", "abinit", "-v"])
+            abinit_version = subprocess.check_output(["mpirun", "-n", "1", "abinit", "-v"])
         except subprocess.CalledProcessError:
             try:
-                abiver = subprocess.check_output(["mpiexec", "-n", "1", "abinit", "-v"])
+                abinit_version = subprocess.check_output(["mpiexec", "-n", "1", "abinit", "-v"])
             except subprocess.CalledProcessError as exc:
                 logger.warning(exc.output)
                 return False
 
-    return {">=": abiver.strip() >= version.strip(),
-            "==": abiver.strip() == version.strip()}[cmp]
+    return cmp_version(abinit_version, version, op=op)
 
 
-def has_matplotlib():
+def has_matplotlib(version=None, op=">="):
+    """
+    True if matplotlib is installed.
+    If version is None, the result of matplotlib.__version__ `op` version is returned.
+    """
     try:
-        import matplotlib.pyplot as plt
-        return True
+        import matplotlib
+        if version is None: return True
     except ImportError:
         return False
+
+    return cmp_version(matplotlib.__version__, version, op=op)
 
 
 def has_fireworks():
@@ -90,9 +107,9 @@ class AbipyTest(PymatgenTest):
         return which(program)
 
     @staticmethod
-    def has_abinit(version, cmp=">="):
-        """Return True if abinit is in $PATH and version is cmp min_version."""
-        return has_abinit(version, cmp=cmp)
+    def has_abinit(version=None, op=">="):
+        """Return True if abinit is in $PATH and version is op min_version."""
+        return has_abinit(version=None, op=op)
 
     def assertFwSerializable(self, obj):
         self.assertTrue('_fw_name' in obj.to_dict())
