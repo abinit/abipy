@@ -6,7 +6,6 @@ import sys
 import os
 import abipy.data as abidata  
 
-from pymatgen.io.abinitio.calculations import g0w0_with_ppmodel_work
 from abipy import abilab
 
 

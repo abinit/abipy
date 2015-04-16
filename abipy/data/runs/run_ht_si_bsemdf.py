@@ -4,10 +4,9 @@ from __future__ import division, print_function, unicode_literals
 
 import sys
 import os
-from abipy import abilab
 import abipy.data as abidata  
 
-
+from abipy import abilab
 
 
 def build_flow(options):

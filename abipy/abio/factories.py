@@ -14,7 +14,9 @@ from abipy.abio.inputs import AbinitInput, MultiDataset
 import logging
 logger = logging.getLogger(__file__)
 
+
 __all__ = [
+    "gs_input",
     "ebands_input",
     "g0w0_with_ppmodel_inputs",
     "bse_with_mdf_inputs",
@@ -125,6 +127,35 @@ def _find_scf_nband(structure, pseudos, electrons):
 
     nband += nband % 2
     return int(nband)
+
+
+def gs_input(structure, pseudos, 
+             kppa=None, ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
+             smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
+    """
+    Returns a :class:`AbinitInput` for band structure calculations.
+
+    Args:
+        structure: :class:`Structure` object.
+        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.
+        kppa: Defines the sampling used for the SCF run. Defaults to 1000 if not given.
+        ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
+        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos
+            according to accuracy)
+        scf_nband: Number of bands for SCF run. If scf_nband is None, nband is automatically initialized
+            from the list of pseudos, the structure and the smearing option.
+        accuracy: Accuracy of the calculation.
+        spin_mode: Spin polarization.
+        smearing: Smearing technique.
+        charge: Electronic charge added to the unit cell.
+        scf_algorithm: Algorithm used for solving of the SCF cycle.
+    """
+    multi = ebands_input(structure, pseudos, 
+                 kppa=kppa, 
+                 ecut=ecut, pawecutdg=pawecutdg, scf_nband=scf_nband, accuracy=accuracy, spin_mode=spin_mode,
+                 smearing=smearing, charge=charge, scf_algorithm=scf_algorithm)
+
+    return multi[0]
 
 
 def ebands_input(structure, pseudos, 

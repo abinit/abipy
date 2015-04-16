@@ -115,6 +115,18 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
             self[varname] = varvalue
         return kwargs
 
+    def add_abiobjects(self, *abi_objects):
+        """
+        This function receive a list of `AbiVarable` objects and add 
+        the corresponding variables to the input.
+        """
+        d = {}
+        for aobj in abi_objects:
+            if not hasattr(aobj, "to_abivars"):
+                raise ValueError("type %s: %s does not have `to_abivars` method" % (type(aobj), repr(aobj)))
+            d.update(self.set_vars(aobj.to_abivars()))
+        return d
+
     def remove_vars(self, keys, strict=True):
         """
         Remove the variables listed in keys.
