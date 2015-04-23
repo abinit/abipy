@@ -191,9 +191,7 @@ class SingleAbinitGWWork():
         electrons = 0
 
         for element in structure.species:
-            entries = self.pseudo_table.pseudos_with_symbol(element.symbol)
-            assert len(entries) == 1
-            pseudo = entries[0]
+            pseudo = self.pseudo_table.pseudo_with_symbol(element.symbol)
             electrons += pseudo.Z_val
         return electrons
 
