@@ -192,8 +192,8 @@ def itest_g0w0qptdm_flow(fwp, tvars):
     #assert not scr_task.outdir.has_abiext("SCR")
     #assert not scr_task.outdir.has_abiext("SUS")
 
-    # The scr workflow should produce a SIGRES file.
-    assert scr_work.outdir.has_abiext("SCR")
+    # The SCR file produced by scr_work should have been removed
+    assert not scr_work.outdir.has_abiext("SCR")
 
     #assert flow.validate_json_schema()
 

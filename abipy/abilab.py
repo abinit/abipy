@@ -80,7 +80,11 @@ def abifile_subclass_from_filename(filename):
     try:
         return ext2ncfile[ext]
     except KeyError:
-        raise KeyError("No class has been registered for extension %s" % ext)
+        #raise KeyError("No class has been registered for extension %s" % ext)
+        for ext, cls in ext2ncfile.items():
+            if filename.endswith(ext): return cls
+
+        raise ValueErro("No class has been registered for filename %s" % filename)
 
 
 def abiopen(filepath):

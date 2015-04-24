@@ -70,7 +70,6 @@ def make_scf_nscf_inputs(paral_kgb=1):
     #pseudos = data.pseudos("Si.GGA_PBE-JTH-paw.xml")
 
     multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"), pseudos=pseudos, ndtset=2)
-    #inp.set_mnemonics(True)
 
     # Global variables
     ecut = 28
@@ -114,7 +113,9 @@ def build_flow(options):
 
     # Create the flow
     flow = abilab.Flow(workdir, manager=options.manager)
-    paral_kgb = 0
+
+    paral_kgb = 1
+    #paral_kgb = 0  # This one is OK
 
     # Create a relaxation work and add it to the flow.
     ion_inp, ioncell_inp = make_ion_ioncell_inputs(paral_kgb=paral_kgb)
@@ -128,9 +129,14 @@ def build_flow(options):
 
     # The scf task in bands work restarts from the DEN file of the last task in relax_work
     if paral_kgb == 0:
-        bands_work.scf_task.add_deps({relax_work[-1]: "WFK"}) # --> This triggers an infamous bug in abinit
+        # cg works fine if we restart from the WFK
+        bands_work.scf_task.add_deps({relax_work[-1]: "WFK"}) 
     else:
-        bands_work.scf_task.add_deps({relax_work[-1]: "DEN"})
+        # --> This triggers an infamous bug in abinit
+        bands_work.scf_task.add_deps({relax_work[-1]: "WFK"}) 
+
+        # --> This is ok if we used fourier_interp to change the FFT mesh.
+        #bands_work.scf_task.add_deps({relax_work[-1]: "DEN"})
 
     # All task in bands_work will fetch the relaxed structure from the last task in relax_work
     for task in bands_work:
