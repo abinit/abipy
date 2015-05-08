@@ -31,8 +31,10 @@ def has_abinit(version=None, cmp=">="):
     raised CalledProcessError
     """
     abinit = which("abinit") 
-    if abinit is None: return False
-    if version is None: return abinit is not None
+    if abinit is None:
+        return False
+    if version is None:
+        return abinit is not None
 
     try:
         abiver = str(subprocess.check_output(["abinit", "-v"]))
@@ -90,7 +92,7 @@ class AbipyTest(PymatgenTest):
         return which(program)
 
     @staticmethod
-    def has_abinit(version, cmp=">="):
+    def has_abinit(version=None, cmp=">="):
         """Return True if abinit is in $PATH and version is cmp min_version."""
         return has_abinit(version, cmp=cmp)
 
