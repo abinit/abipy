@@ -111,7 +111,11 @@ How to install HDF5/Netcdf4 and the python bindings
 
 Obtain the latest HDF5 Software from the `official web-site <http://www.hdfgroup.org/HDF5/release/obtain5.html>`_.
 Configure the package with `--enable-hl --enable-shared` and the `--prefix` option as usual.
-Build and install with `make && make install`.
+Build and install with:: 
+
+    make 
+    make install
+
 Finally define the environment variable `$HDF5_DIR` with::
 
     export HDF5_DIR=$HOME/local

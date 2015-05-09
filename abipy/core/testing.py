@@ -43,8 +43,10 @@ def has_abinit(version=None, op=">="):
     False if condition is not fulfilled or the execution of `abinit -v` raised CalledProcessError
     """
     abinit = which("abinit") 
-    if abinit is None: return False
-    if version is None: return abinit is not None
+    if abinit is None:
+        return False
+    if version is None:
+        return abinit is not None
 
     try:
         abinit_version = str(subprocess.check_output(["abinit", "-v"]))

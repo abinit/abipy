@@ -39,22 +39,9 @@ print(optic_input)
 global_vars = dict(
     istwfk="*1",
     paral_kgb=0,
-    ecut=15,
-    nstep=500,
-    spinat=[[0.0000000000E+00,  0.0000000000E+00,  3.5716762600E+00],
-            [0.0000000000E+00,  0.0000000000E+00, -3.5716762600E+00],
-            [0.0000000000E+00,  0.0000000000E+00,  0.0000000000E+00],
-            [0.0000000000E+00,  0.0000000000E+00,  0.0000000000E+00],
-            [0.0000000000E+00,  0.0000000000E+00,  0.0000000000E+00],
-            [0.0000000000E+00,  0.0000000000E+00,  0.0000000000E+00],
-            [0.0000000000E+00,  0.0000000000E+00,  0.0000000000E+00],
-            [0.0000000000E+00,  0.0000000000E+00,  0.0000000000E+00],
-            [0.0000000000E+00,  0.0000000000E+00,  0.0000000000E+00],
-            [0.0000000000E+00,  0.0000000000E+00,  0.0000000000E+00]],
-    nsppol=2,
-    nspden=2,
-    diemac=5,
-    diemix=0.6,
+    ecut=8,
+    nstep=200,
+    diemac=12,
     ixc=7,
     chksymbreak=0,
     #accesswff=3
@@ -68,7 +55,7 @@ def raman_flow(options):
 
     ngkpt = [6,6,6]
 
-    etas = [-.002,-.001, 0, +.001, +.002]
+    etas = [-.001, 0, +.001]
     ph_displ = np.reshape(np.zeros(3*len(base_structure)), (-1,3))
     ph_displ[0,:] = [+1, 0, 0]
     ph_displ[1,:] = [-1, 0, 0]
@@ -114,16 +101,18 @@ def raman_work(structure, pseudos, ngkpt, shiftk, ddk_manager, shell_manager):
 
     # GS run
     multi[0].set_vars(
-        tolvrs=1e+8,
-        nband=59,
+        tolvrs=1e-8,
+        nband=20,
+        nbdbuf=2,
     )
 
     # NSCF run
     multi[1].set_vars(
        iscf=-2,
-       nband=100,
+       nband=40,
+       nbdbuf=5,
        kptopt=1,
-       tolwfr=1.e+12,
+       tolwfr=1.e-12,
     )
     
     # DDK along 3 directions
@@ -136,7 +125,8 @@ def raman_work(structure, pseudos, ngkpt, shiftk, ddk_manager, shell_manager):
 
         multi[2+dir].set_vars(
            iscf=-3,
-	       nband=100,
+	       nband=40,
+           nbdbuf=5,
            nstep=1,
            nline=0,
            prtwf=3,
@@ -145,7 +135,7 @@ def raman_work(structure, pseudos, ngkpt, shiftk, ddk_manager, shell_manager):
            qpt=[0.0, 0.0, 0.0],
            rfdir=rfdir,
            rfelfd=2,
-           tolwfr=1.e+12,
+           tolwfr=1.e-12,
         )
 
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = multi.split_datasets()
