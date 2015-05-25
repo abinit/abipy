@@ -23,7 +23,7 @@ def itest_deltafactor(fwp, tvars):
     """Testing the flow used for the computation of the deltafactor."""
 
     # Path of the pseudopotential to test.
-    pseudo = abidata.pseudo("Si.GGA_PBE-JTH-paw.xml")
+    pseudo = abidata.pseudo("Si.GGA_PBE-JTH-paw.xml").as_tmpfile()
 
     flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager)
 
@@ -64,11 +64,11 @@ def itest_gbrv_flow(fwp, tvars):
     factory = GbrvFactory()
 
     #pseudo = "si_pbe_v1_abinit.paw"
-    pseudo = abidata.pseudo("Si.GGA_PBE-JTH-paw.xml")
+    pseudo = abidata.pseudo("Si.GGA_PBE-JTH-paw.xml").as_tmpfile()
     ecut = 2
     pawecutdg = 2 * ecut if pseudo.ispaw else None
 
-    flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager, pickle_protocol=0)
+    flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager)
 
     struct_types = ["fcc"] #, "bcc"]
 
