@@ -7,14 +7,10 @@ import json
 import yaml
 import html2text
 
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from six.moves import StringIO, cPickle as pickle
 from monty.string import is_string, list_strings
 from monty.functools import lazy_property
-
-
-with open(os.path.join(os.path.dirname(__file__), "abinit_vars.json")) as fh:
-    ABI_VARNAMES = json.load(fh)
 
 
 # Unit names.
@@ -67,10 +63,6 @@ yaml.add_representer(literal, literal_unicode_representer)
 
 class Variable(yaml.YAMLObject):
     yaml_tag = u'!variable'
-
-    #def attrs(self):
-    #    return ['vartype','characteristic','definition','dimensions','defaultval','text',
-    #            'varname','section']
 
     def __init__(self, vartype=None, characteristics=None, definition=None, dimensions=None, 
                 default=None, text=None, varname=None, section=None, range=None, 
@@ -235,7 +227,7 @@ def get_abinit_variables():
     global __VARS_DATABASE
 
     if __VARS_DATABASE is None: 
-        pickle_file = os.path.join(os.path.dirname(__file__), "abinit_vars.pickle")
+        pickle_file = os.path.join(os.getenv("HOME"), ".abinit", "abipy", "abinit_vars.pickle")
         
         if os.path.exists(pickle_file): 
             #print("Reading from pickle")
@@ -243,6 +235,10 @@ def get_abinit_variables():
                 __VARS_DATABASE = pickle.load(fh)
 
         else:
+            # Make dir and file if not present.
+            if not os.path.exists(os.path.dirname(pickle_file)):
+                os.makedirs(os.path.dirname(pickle_file))
+
             #print("Reading database from YAML file and generating pickle version. It may take a while...")
             from abipy import data as abidata
             yaml_file = abidata.var_file('abinit_vars.yml')
@@ -256,7 +252,6 @@ def get_abinit_variables():
             # Save object to pickle file so that can we can reload it from pickle instead of yaml (slower)
             with open(pickle_file, "wb") as fh:
                 pickle.dump(__VARS_DATABASE, fh)
-                os.chmod(pickle_file, 0o444)
 
     return __VARS_DATABASE
         
@@ -278,6 +273,35 @@ class VariableDatabase(OrderedDict):
         with open(abidata.var_file('sections.yml'),'r') as f:
             return yaml.load(f)
 
+    @lazy_property
+    def name2section(self):
+        """
+        Dictionary mapping the name of the variable to the section.
+        """
+        d = {}
+        for name, var in self.items():
+            d[name] = var.section
+        return d
+
+    def group_by_section(self, names):
+        """
+        Group a list of variable in sections.
+
+        Args:
+            names: string or list of strings with ABINIT variable names.
+
+        Return:
+            Ordered dict mapping section_name to the list of variable names belonging to the section.
+            The dict uses the same ordering as those in `self.sections`
+        """
+        d = defaultdict(list)
+
+        for name in list_strings(names):
+            sec = self.name2section[name]
+            d[sec].append(name)
+
+        return OrderedDict([(sec, d[sec]) for sec in self.sections if d[sec]])
+
     def apropos(self, varname):
         """Return the list of :class:`Variable` objects that are related` to the given varname"""
         vars = []
@@ -292,7 +316,7 @@ class VariableDatabase(OrderedDict):
 
     def vars_with_section(self, sections):
         """
-        List of :class:`Variable` assocated to the given sections.
+        List of :class:`Variable` associated to the given sections.
         sections can be a string or a list of strings.
         """
         sections = set(list_strings(sections))

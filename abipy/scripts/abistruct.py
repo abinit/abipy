@@ -40,6 +40,8 @@ Usage example:\n
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands, use command --help for help")
 
+    subparsers.add_parser('version', help='Show version number and exit')
+
     # Subparser for convert command.
     p_convert = subparsers.add_parser('convert', parents=[path_selector], help="Convert structure to the specified format.")
     p_convert.add_argument('format', nargs="?", default="cif", type=str, help="Format of the output file (cif, cssr, POSCAR, json, mson, abivars).")
@@ -65,7 +67,12 @@ Usage example:\n
     except: 
         show_examples_and_exit(error_code=1)
 
-    if options.command == "convert":
+    if options.command == "version":
+        from abipy.core.release import version
+        print(version)
+        return 0
+
+    elif options.command == "convert":
         structure = abilab.Structure.from_file(options.filepath)
 
         if options.format == "abivars":

@@ -7,8 +7,7 @@ import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
 
-from pymatgen.io.abinitio.calculations import bandstructure_work
-from abipy.core.testing import has_abinit, has_matplotlib
+from abipy.core.testing import has_matplotlib
 
 # Tests in this module require abinit >= 7.9.0
 #pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
@@ -18,11 +17,11 @@ def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
     """
     Returns two input files: GS run and NSCF on a high symmetry k-mesh
     """
-    inp = abilab.AbiInput(pseudos=abidata.pseudos(pp_paths), ndtset=2)
-    structure = inp.set_structure_from_file(abidata.cif_file("si.cif"))
+    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"),
+                                pseudos=abidata.pseudos(pp_paths), ndtset=2)
 
-    nval = structure.num_valence_electrons(inp.pseudos)
-    assert nval == 8
+    nval = multi[0].num_valence_electrons
+    assert all(inp.num_valence_electrons == 8 for inp in multi)
 
     # Global variables
     ecut = 4
@@ -31,14 +30,14 @@ def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
                        nstep=nstep,
                        paral_kgb=tvars.paral_kgb)
 
-    if inp.ispaw:
+    if multi.ispaw:
         global_vars.update(pawecutdg=2*ecut)
 
-    inp.set_vars(**global_vars)
+    multi.set_vars(global_vars)
 
     # Dataset 1 (GS run)
-    inp[1].set_kmesh(ngkpt=[4, 4, 4], shiftk=[0, 0, 0])
-    inp[1].set_vars(tolvrs=1e-4)
+    multi[0].set_kmesh(ngkpt=[4, 4, 4], shiftk=[0, 0, 0])
+    multi[0].set_vars(tolvrs=1e-4)
 
     # Dataset 2 (NSCF run)
     kptbounds = [
@@ -47,17 +46,17 @@ def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
         [0.0, 0.5, 0.5],  # X point
     ]
 
-    inp[2].set_kpath(ndivsm=2, kptbounds=kptbounds)
-    inp[2].set_vars(tolwfr=1e-6)
+    multi[1].set_kpath(ndivsm=2, kptbounds=kptbounds)
+    multi[1].set_vars(tolwfr=1e-6)
     
     # Generate two input files for the GS and the NSCF run.
-    scf_input, nscf_input = inp.split_datasets()
+    scf_input, nscf_input = multi.split_datasets()
 
     return scf_input, nscf_input
 
 
 def itest_unconverged_scf(fwp, tvars):
-    """Test the treatment of unconverged GS calculations."""
+    """Testing the treatment of unconverged GS calculations."""
     print("tvars:\n %s" % str(tvars))
 
     # Build the SCF and the NSCF input (note nstep to have an unconverged run)
@@ -89,7 +88,7 @@ def itest_unconverged_scf(fwp, tvars):
     # Remove nstep from the input so that we use the default value.
     # Then restart the GS task and test that GS is OK.
     assert not t1.can_run
-    t0.strategy.remove_extra_abivars(["nstep"])
+    t0.input.pop("nstep")
     assert t0.num_restarts == 0
     t0.restart()
     t0.wait()
@@ -109,7 +108,7 @@ def itest_unconverged_scf(fwp, tvars):
     assert not flow.all_ok
 
     # Restart (same trick as the one used for the GS run)
-    t1.strategy.remove_extra_abivars(["nstep"])
+    t1.input.pop("nstep")
     assert t1.num_restarts == 0
     assert t1.restart()
     t1.wait()
@@ -137,14 +136,23 @@ def itest_unconverged_scf(fwp, tvars):
     # Test reset_from_scratch
     t0.reset_from_scratch()
     assert t0.status == t0.S_READY
+    # Datetime counters shouls be set to None
+    dt = t0.datetimes
+    assert (dt.submission, dt.start, dt.end) == (None, None, None)
+
     t0.start_and_wait()
     t0.reset_from_scratch()
+
+    # Datetime counters shouls be set to None
+    dt = t0.datetimes
+    assert (dt.submission, dt.start, dt.end) == (None, None, None)
+
     #assert 0
 
 
 def itest_bandstructure_flow(fwp, tvars):
     """
-    Test band-structure flow with one dependency: SCF -> NSCF.
+    Testing band-structure flow with one dependency: SCF -> NSCF.
     """
     print("tvars:\n %s" % str(tvars))
 
@@ -237,7 +245,7 @@ def itest_bandstructure_flow(fwp, tvars):
 
 def itest_bandstructure_schedflow(fwp, tvars):
     """
-    Run a bandstructure flow with the scheduler.
+    Testing bandstructure flow with the scheduler.
     """
     print("tvars:\n %s" % str(tvars))
 
@@ -257,7 +265,7 @@ def itest_bandstructure_schedflow(fwp, tvars):
     with pytest.raises(fwp.scheduler.Error):
         fwp.scheduler.add_flow(flow)
 
-    assert fwp.scheduler.start() 
+    assert fwp.scheduler.start() == 0
     assert not fwp.scheduler.exceptions
     assert fwp.scheduler.nlaunch == 2
 
@@ -269,6 +277,27 @@ def itest_bandstructure_schedflow(fwp, tvars):
     for task in flow[0]:
         assert not task.outdir.has_abiext("WFK")
 
+    # Test if GSR files are produced and are readable.
+    for i, task in enumerate(flow[0]):
+        with task.open_gsr() as gsr:
+            print(gsr)
+            assert gsr.nsppol == 1
+            #assert gsr.structure == structure
+            ebands = gsr.ebands
+
+            # TODO: This does not work yet because GSR files do not contain
+            # enough info to understand if we have a path or a mesh.
+            #if i == 2:
+                # Bandstructure case
+                #assert ebands.has_bzpath
+                #with pytest.raises(ebands.Error):
+                #    ebands.get_edos()
+
+            #if i == 3:
+            #    # DOS case
+            #    assert ebands.has_bzmesh
+            #    gsr.bands.get_edos()
+
     #assert flow.validate_json_schema()
     #assert 0
 
@@ -276,30 +305,29 @@ def itest_bandstructure_schedflow(fwp, tvars):
 def itest_htc_bandstructure(fwp, tvars):
     """Test band-structure calculations done with the HTC interface."""
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
+    pseudos = abidata.pseudos("14si.pspnc")
 
-    scf_kppa = 20
-    nscf_nband = 6
-    ndivsm = 5
-    dos_kppa = 40
     # TODO: Add this options because I don't like the kppa approach
     # I had to use it because it was the approach used in VaspIO
     #dos_ngkpt = [4,4,4]
     #dos_shiftk = [0.1, 0.2, 0.3]
 
-    extra_abivars = dict(ecut=2, paral_kgb=tvars.paral_kgb)
-
     # Initialize the flow.
     flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager)
 
-    work = bandstructure_work(structure, abidata.pseudos("14si.pspnc"), scf_kppa, nscf_nband, ndivsm,
-                              spin_mode="unpolarized", smearing=None, dos_kppa=dos_kppa, **extra_abivars)
+    # Use ebands_input factory function to build inputs.
+    multi = abilab.ebands_input(structure, pseudos, kppa=20, nscf_nband=6, ndivsm=5, 
+                                ecut=2, dos_kppa=40, spin_mode="unpolarized")
+
+    work = abilab.BandStructureWork(scf_input=multi[0], nscf_input=multi[1], dos_inputs=multi[2:])
+    multi.set_vars(paral_kgb=tvars.paral_kgb)
 
     flow.register_work(work)
     flow.allocate()
     flow.build_and_pickle_dump()
 
     fwp.scheduler.add_flow(flow)
-    assert fwp.scheduler.start()
+    assert fwp.scheduler.start() == 0
     assert not fwp.scheduler.exceptions
     assert fwp.scheduler.nlaunch == 3
 

@@ -30,18 +30,13 @@ def special_positions(lattice, u):
         species += len(positions) * [symbol]
         coords += positions
 
-    return abilab.Structure(lattice, species, coords, 
-                            validate_proximity=True, coords_are_cartesian=False)
+    return abilab.Structure(lattice, species, coords, validate_proximity=True, coords_are_cartesian=False)
 
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
-
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
 
     pseudos = data.pseudos("14si.pspnc", "8o.pspnc")
 
@@ -53,14 +48,14 @@ def build_flow(options):
         new = special_positions(base_structure.lattice, u)
         news.append(new)
 
-    flow = abilab.Flow(workdir, manager=manager)
+    flow = abilab.Flow(workdir, manager=options.manager)
 
     # Create the list of workflows. Each workflow defines a band structure calculation.
     for new_structure, u in zip(news, uparams):
         # Generate the workflow and register it.
         flow.register_work(make_workflow(new_structure, pseudos))
 
-    return flow.allocate()
+    return flow
 
 
 def make_workflow(structure, pseudos, paral_kgb=1):
@@ -76,18 +71,15 @@ def make_workflow(structure, pseudos, paral_kgb=1):
     )
 
     # GS + NSCF run 
-    inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
-    inp.set_structure(structure)
-    inp.set_vars(**global_vars)
+    multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=2)
+    multi.set_vars(global_vars)
 
     # (GS run)
-    inp[1].set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
-
-    inp[1].set_vars(
-          tolvrs=1e-6)
+    multi[0].set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
+    multi[0].set_vars(tolvrs=1e-6)
 
     # (NSCF run)
-    inp[2].set_vars(
+    multi[1].set_vars(
         iscf=-2,
         tolwfr=1e-12,
         kptopt=0,
@@ -95,7 +87,7 @@ def make_workflow(structure, pseudos, paral_kgb=1):
         kpt=[0, 0, 0],
     )
 
-    gs_inp, nscf_inp = inp.split_datasets()
+    gs_inp, nscf_inp = multi.split_datasets()
 
     return abilab.BandStructureWork(gs_inp, nscf_inp)
 

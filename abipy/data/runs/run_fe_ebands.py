@@ -13,35 +13,34 @@ import abipy.abilab as abilab
 
 def make_scf_nscf_inputs(nsppol, paral_kgb=1):
     """Generate two input files for the GS and the NSCF run for given nsppol"""
-    inp = abilab.AbiInput(pseudos=data.pseudos("26fe.pspnc"), ndtset=2)
-
     # Fe normal bcc structure for test of a ferromagnetic calculation
-    structure = data.structure_from_ucell("Fe-fm")
-    inp.set_structure(structure)
-
+    multi = abilab.MultiDataset(structure=data.structure_from_ucell("Fe-fm"),
+                                pseudos=data.pseudos("26fe.pspnc"), ndtset=2)
+    
     # Global variables
-    global_vars = dict(nsppol=nsppol,
-                       ecut=18,
-                       nband=8,
-                       occopt=3,
-                       tsmear=0.01,
-                       paral_kgb=paral_kgb,
-                    )
+    global_vars = dict(
+        nsppol=nsppol,
+        ecut=18,
+        nband=8,
+        occopt=3,
+        tsmear=0.01,
+        paral_kgb=paral_kgb,
+    )
     if nsppol == 2:
         global_vars.update(spinat=[0.0, 0.0, 4.0])
 
-    inp.set_vars(**global_vars)
+    multi.set_vars(global_vars)
 
     # Dataset 1 (GS run)
-    inp[1].set_kmesh(ngkpt=[4,4,4], shiftk=[0.5,0.5,0.5])
-    inp[1].set_vars(tolvrs=1e-6)
+    multi[0].set_kmesh(ngkpt=[4,4,4], shiftk=[0.5,0.5,0.5])
+    multi[0].set_vars(tolvrs=1e-6)
 
     # Dataset 2 (NSCF run)
-    inp[2].set_kpath(ndivsm=4)
-    inp[2].set_vars(tolwfr=1e-8)
+    multi[1].set_kpath(ndivsm=4)
+    multi[1].set_vars(tolwfr=1e-8)
     
     # Generate two input files for the GS and the NSCF run 
-    scf_input, nscf_input = inp.split_datasets()
+    scf_input, nscf_input = multi.split_datasets()
 
     return scf_input, nscf_input
 
@@ -52,12 +51,8 @@ def build_flow(options):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
-
     # Create the Flow.
-    flow = abilab.Flow(workdir, manager=manager)
+    flow = abilab.Flow(workdir, manager=options.manager)
 
     # Create the task defining the calculation and run and register it in the flow
     for nsppol in [1,2]:
@@ -65,7 +60,7 @@ def build_flow(options):
         work = abilab.BandStructureWork(scf_input, nscf_input)
         flow.register_work(work)
 
-    return flow.allocate()
+    return flow
 
 
 @abilab.flow_main

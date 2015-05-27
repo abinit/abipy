@@ -12,23 +12,21 @@ import pymatgen.io.abinitio.mocks as mocks
 
 def make_scf_nscf_inputs(paral_kgb=1):
     """Returns two input files: GS run and NSCF on a high symmetry k-mesh."""
-    pseudos = abidata.pseudos("14si.pspnc")
-
-    inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
-    structure = inp.set_structure(abidata.cif_file("si.cif"))
+    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"), 
+                              pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)
 
     # Global variables
     ecut = 4
     global_vars = dict(ecut=ecut, nband=8, nstep=15, paral_kgb=paral_kgb)
 
-    if inp.ispaw:
+    if multi.ispaw:
         global_vars.update(pawecutdg=2*ecut)
 
-    inp.set_vars(global_vars)
+    multi.set_vars(global_vars)
 
     # Dataset 1 (GS run)
-    inp[1].set_kmesh(ngkpt=[2,2,2], shiftk=[0,0,0])
-    inp[1].set_vars(tolvrs=1e-4)
+    multi[0].set_kmesh(ngkpt=[2,2,2], shiftk=[0,0,0])
+    multi[0].set_vars(tolvrs=1e-4)
 
     # Dataset 2 (NSCF run)
     kptbounds = [
@@ -37,11 +35,11 @@ def make_scf_nscf_inputs(paral_kgb=1):
         [0.0, 0.5, 0.5], # X point
     ]
 
-    inp[2].set_kpath(ndivsm=2, kptbounds=kptbounds)
-    inp[2].set_vars(tolwfr=1e-4)
+    multi[1].set_kpath(ndivsm=2, kptbounds=kptbounds)
+    multi[1].set_vars(tolwfr=1e-4)
     
     # Generate two input files for the GS and the NSCF run 
-    scf_input, nscf_input = inp.split_datasets()
+    scf_input, nscf_input = multi.split_datasets()
     return scf_input, nscf_input
 
 
@@ -74,7 +72,7 @@ def itest_flow_with_deadlocks(fwp):
     # Here we set max_num_abierrs to a very large number.
     sched = flow.make_scheduler()
     sched.max_num_abierrs = 10000
-    sched.start()
+    assert sched.start() == 0
     flow.check_status(show=True)
 
     assert not flow.all_ok
@@ -108,7 +106,7 @@ def itest_flow_without_runnable_tasks(fwp):
 
     sched = flow.make_scheduler()
     sched.max_num_abierrs = 10000
-    sched.start()
+    assert sched.start() == 0
     flow.check_status(show=True)
 
     assert not flow.all_ok

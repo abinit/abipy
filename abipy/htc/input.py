@@ -14,7 +14,6 @@ import six
 import abc
 import json
 import numpy as np
-import abipy.tools.mixins as mixins
 
 from collections import OrderedDict
 from monty.dev import deprecated
@@ -30,7 +29,8 @@ from pymatgen.io.abinitio.abiinspect import yaml_read_irred_perts
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
 from .variable import InputVariable
-from .abivars import is_abivar, is_anaddb_var
+from abipy.abio.abivars import is_abivar, is_anaddb_var
+from abipy.abio.abivars_db import get_abinit_variables
 
 import logging
 logger = logging.getLogger(__file__)
@@ -41,7 +41,6 @@ __all__ = [
     "LdauParams",
     "LexxParams",
     "input_gen",
-    "AnaddbInput",
 ]
 
 # Variables that must have a unique value throughout all the datasets.
@@ -107,54 +106,28 @@ class Input(six.with_metaclass(abc.ABCMeta, PMGSONable, object)):
 
     def write(self, filepath):
         """
-        Write the input file to file. Returns a string with the input.
+        Write the input file to file to `filepath`. Returns a string with the input.
         """
         dirname = os.path.dirname(filepath)
         if not os.path.exists(dirname): os.makedirs(dirname)
                                                                                       
         # Write the input file.
         input_string = str(self)
-        with open(filepath, "w") as fh:
+        with open(filepath, "wt") as fh:
             fh.write(input_string)
 
         return input_string
 
     #@abc.abstractmethod
-    #def make_input(self)
+    #def make_input(self):
 
     #@abc.abstractproperty
     #def structure(self):
 
     #def set_structure(self, structure):
 
-    #def set_vars(self, dtset=0, **vars):
-    #    """
-    #    Set the value of a set of input variables.
 
-    #    Args:
-    #        dtset:
-    #            Int with the index of the dataset, slice object of iterable 
-    #        vars:
-    #            Dictionary with the variables.
-    #    """
-    #    for idt in self._dtset2range(dtset):
-    #        self[idt].set_vars(**vars)
-
-    #def pop_vars(self, keys, dtset=0):
-    #    """
-    #    Remove the variable listed in keys
-    #                                                                         
-    #    Args:
-    #        dtset:
-    #            Int with the index of the dataset, slice object of iterable 
-    #        keys:
-    #            List of variables to remove.
-    #    """
-    #    for idt in self._dtset2range(dtset):
-    #        self[idt].remove_vars(keys)
-
-
-class InputError(Exception):
+class AbinitInputError(Exception):
     """Base error class for exceptions raised by `AbiInput`"""
 
 
@@ -174,7 +147,7 @@ class AbiInput(Input, Has_Structure):
         # Print it to get the final input.
         print(inp)
     """
-    Error = InputError
+    Error = AbinitInputError
 
     def __init__(self, pseudos, pseudo_dir="", structure=None, ndtset=1, comment="", decorators=None):
         """
@@ -343,8 +316,6 @@ class AbiInput(Input, Has_Structure):
         """True if varname is a valid Abinit variable."""
         return is_abivar(varname)
 
-    #def add_dataset(self, *args, **kwargs):
-
     def new_with_vars(self, *args, **kwargs):
         """Generate a new input (deep copy) with these variables"""
         new = self.deepcopy()
@@ -480,7 +451,7 @@ class AbiInput(Input, Has_Structure):
             shiftk: Shiftks (default None i.e. use shiftk from self)
             qpoint: qpoint in reduced coordinates. Used to shift the k-mesh (default None i.e no shift)
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
-            manager: TaskManager of the task. If None, the :class:`TaskManager` is initialized from the config file.
+            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
 
         Returns:
             `namedtuple` with attributes:
@@ -516,10 +487,17 @@ class AbiInput(Input, Has_Structure):
         task.start_and_wait(autoparal=False)
 
         # Read the list of k-points from the netcdf file.
-        with NetcdfReader(os.path.join(task.workdir, "kpts.nc")) as r:
-            ibz = collections.namedtuple("ibz", "points weights")
-            return ibz(points=r.read_value("reduced_coordinates_of_kpoints"),
-                       weights=r.read_value("kpoint_weights"))
+        try:
+            with NetcdfReader(os.path.join(task.workdir, "kpts.nc")) as r:
+                ibz = collections.namedtuple("ibz", "points weights")
+                return ibz(points=r.read_value("reduced_coordinates_of_kpoints"),
+                           weights=r.read_value("kpoint_weights"))
+
+        except Exception as exc:
+            # Try to understand if it's a problem with the Abinit input.
+            report = task.get_event_report()
+            if report.errors: raise self.Error(str(report))
+            raise exc
 
     def get_irred_perts(self, ngkpt=None, shiftk=None, kptopt=None, qpoint=None, workdir=None, manager=None):
         """
@@ -531,7 +509,7 @@ class AbiInput(Input, Has_Structure):
             shiftk: Shiftks (default None i.e. use shiftk from self)
             qpoint: qpoint in reduced coordinates. Used to shift the k-mesh (default None i.e no shift)
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
-            manager: TaskManager of the task. If None, the :class:`TaskManager` is initialized from the config file.
+            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
 
         Returns:
             List of dictionaries with the Abinit variables defining the irreducible perturbation
@@ -564,7 +542,13 @@ class AbiInput(Input, Has_Structure):
         task.start_and_wait(autoparal=False)
 
         # Parse the file to get the perturbations.
-        return yaml_read_irred_perts(task.log_file.path)
+        try:
+            return yaml_read_irred_perts(task.log_file.path)
+        except Exception as exc:
+            # Try to understand if it's a problem with the Abinit input.
+            report = task.get_event_report()
+            if report.errors: raise self.Error(str(report))
+            raise exc
 
     def linspace(self, varname, start, stop, endpoint=True):
         """
@@ -625,8 +609,7 @@ class AbiInput(Input, Has_Structure):
         """
         # Split items into varnames and values
         for i, item in enumerate(items):
-            if not is_string(item):
-                break
+            if not is_string(item): break
 
         varnames, values = items[:i], items[i:]
         if len(varnames) != len(values):
@@ -646,10 +629,7 @@ class AbiInput(Input, Has_Structure):
 
     def set_structure(self, structure, dtset=0):
         """Set the :class:`Structure` object for the specified dtset."""
-        if is_string(structure): 
-            structure = Structure.from_file(structure)
-        elif isinstance(structure, collections.Mapping): 
-            structure = Structure.from_abivars(**structure)
+        structure = Structure.as_structure(structure)
 
         if dtset is None:
             dtset = slice(self.ndtset+1)
@@ -714,7 +694,7 @@ class AbiInput(Input, Has_Structure):
         dtsets = []
         for ds in self:
             ds_copy = ds.deepcopy()
-            for key, value in ds_copy.iteritems():
+            for key, value in ds_copy.items():
                 if isinstance(value, np.ndarray):
                     ds_copy[key] = value.tolist()
             dtsets.append(dict(ds_copy))
@@ -768,16 +748,88 @@ class AbiInput(Input, Has_Structure):
             `RuntimeError` if executable is not in $PATH.
         """
         task = AbinitTask.temp_shell_task(inp=self) 
-        retcode = task.start_and_wait(autoparal=False, exec_args="--dry-run")
+        retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
         return dict2namedtuple(retcode=retcode, log_file=task.log_file, stderr_file=task.stderr_file)
 
 
-class Dataset(mixins.MappingMixin, Has_Structure):
+
+class MappingMixin(collections.Mapping):
+    """
+    Mixin class implementing the mapping protocol. Useful to avoid boilerplate code if you want
+    to define a object that behaves as a Mapping but without inheriting from dict or similar classes
+    because you don't want to expose/support all the methods of dict.
+
+    Client code must initialize a Mapping object either in new or in init and bound it to _mapping_mixin_
+    The implemention of the Mapping interface is delegated to _mapping_mixin_
+
+    .. Example:
+
+    >>> class Foo(MappingMixin):
+    ...     def __init__(self, attr, **kwargs):
+    ...         self._mapping_mixin_ = kwargs
+    ...         self.attr = attr
+    >>> obj = Foo(attr=1, spam=2)
+    >>> obj.attr, obj["spam"]
+    (1, 2)
+    >>> obj.pop("spam")
+    2
+    >>> len(obj), "spam" in obj
+    (0, False)
+    """
+    def __len__(self):
+        return len(self._mapping_mixin_)
+
+    def __iter__(self):
+        return self._mapping_mixin_.__iter__()
+
+    def __getitem__(self, key):
+        return self._mapping_mixin_[key]
+
+    def __setitem__(self, key, value):
+        self._mapping_mixin_[key] = value
+
+    def __contains__(self, key):
+        return key in self._mapping_mixin_
+
+    def keys(self):
+        return self._mapping_mixin_.keys()
+
+    def items(self):
+        return self._mapping_mixin_.items()
+
+    def get(self, value, default=None):
+        try:
+            return self[value]
+        except KeyError:
+            return default
+
+    def pop(self, k, *d):
+        """
+        D.pop(k[,d]) -> v, remove specified key and return the corresponding value.
+        If key is not found, d is returned if given, otherwise KeyError is raised
+        """
+        if d:
+            return self._mapping_mixin_.pop(k, d[0])
+        else:
+            return self._mapping_mixin_.pop(k)
+
+    def update(self, e, **f):
+        """
+        D.update([E, ]**F) -> None.  Update D from dict/iterable E and F.
+        If E present and has a .keys() method, does:     for k in E: D[k] = E[k]
+        If E present and lacks .keys() method, does:     for (k, v) in E: D[k] = v
+        In either case, this is followed by: for k in F: D[k] = F[k]
+        """
+        self._mapping_mixin_.update(e, **f)
+
+
+
+class Dataset(MappingMixin, Has_Structure):
     """
     This object stores the ABINIT variables for a single dataset.
     """
     # TODO this should be the "actual" input file
-    Error = InputError
+    Error = AbinitInputError
 
     def __init__(self, index, dt0, *args, **kwargs):
         self._mapping_mixin_ = collections.OrderedDict(*args, **kwargs)
@@ -785,7 +837,7 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         self._dt0 = dt0
 
     def __repr__(self):
-        "<%s at %s>" % (self.__class__.__name__, id(self))
+        return "<%s at %s>" % (self.__class__.__name__, id(self))
 
     def __str__(self):
         return self.to_string()
@@ -842,21 +894,6 @@ class Dataset(mixins.MappingMixin, Has_Structure):
 
     #    # At this point we have to understand the type of calculation.
 
-    #@property
-    #def geoformat(self):
-    #    """
-    #    angdeg if the crystalline structure should be specified with angdeg and acell, 
-    #    rprim otherwise (default format)
-    #    """
-    #    try:
-    #        return self._geoformat
-    #    except AttributeError
-    #        return "rprim" # default
-    #                                                                                    
-    #def set_geoformat(self, format):
-    #    assert format in ["angdeg", "rprim"]
-    #    self._geoformat = format
-
     def set_mnemonics(self, boolean):
         """True if mnemonics should be printed"""
         self._mnemonics = bool(boolean)
@@ -905,7 +942,6 @@ class Dataset(mixins.MappingMixin, Has_Structure):
 
         with_mnemonics = self.mnemonics
         if with_mnemonics:
-            from .abivars_db import get_abinit_variables
             var_database = get_abinit_variables()
 
         for var in keys:
@@ -963,7 +999,6 @@ class Dataset(mixins.MappingMixin, Has_Structure):
                 msg = "%s is already defined with a different value:\nOLD:\n %s,\nNEW\n %s" % (
                     varname, str(self[varname]), str(value))
                 logger.debug(msg)
-                #logger.critical(msg)
 
         self[varname] = value
 
@@ -1023,8 +1058,6 @@ class Dataset(mixins.MappingMixin, Has_Structure):
 
     def set_structure(self, structure):
         structure = Structure.as_structure(structure)
-        #if is_string(structure): structure = Structure.from_file(filepath)
-        #if isinstance(structure, collections.Mapping): structure = Structure.from_abivars(**structure)
 
         self._structure = structure
         if structure is None: return
@@ -1055,8 +1088,8 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         """
         shiftk = self.structure.calc_shiftk()
         
-        self.set_vars(ngkpt=self.structure.calc_ngkpt(nksmall),
-                      kptopt=kptopt, nshiftk=len(shiftk), shiftk=shiftk)
+        self.set_vars(ngkpt=self.structure.calc_ngkpt(nksmall), kptopt=kptopt, 
+                      nshiftk=len(shiftk), shiftk=shiftk)
 
     def set_kpath(self, ndivsm, kptbounds=None, iscf=-2):
         """
@@ -1067,13 +1100,10 @@ class Dataset(mixins.MappingMixin, Has_Structure):
             kptbounds: k-points defining the path in k-space.
                 If None, we use the default high-symmetry k-path defined in the pymatgen database.
         """
-        if kptbounds is None:
-            kptbounds = self.structure.calc_kptbounds()
-
+        if kptbounds is None: kptbounds = self.structure.calc_kptbounds()
         kptbounds = np.reshape(kptbounds, (-1,3))
 
-        self.set_vars(kptbounds=kptbounds, kptopt=-(len(kptbounds)-1),
-                      ndivsm=ndivsm, iscf=iscf)
+        self.set_vars(kptbounds=kptbounds, kptopt=-(len(kptbounds)-1), ndivsm=ndivsm, iscf=iscf)
 
     def set_kptgw(self, kptgw, bdgw):
         """
@@ -1087,9 +1117,7 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         """
         kptgw = np.reshape(kptgw, (-1,3))
         nkptgw = len(kptgw)
-
-        if len(bdgw) == 2:
-            bdgw = len(kptgw) * bdgw
+        if len(bdgw) == 2: bdgw = len(kptgw) * bdgw
 
         self.set_vars(kptgw=kptgw, nkptgw=nkptgw, bdgw=np.reshape(bdgw, (nkptgw, 2)))
 
@@ -1266,8 +1294,7 @@ def input_gen(inp, **kwargs):
     """
     for new_vars in product_dict(kwargs):
         new_inp = inp.deepcopy()
-        # Remove the variable names to avoid annoying warnings.
-        # if the variable is overwritten.
+        # Remove the variable names to avoid annoying warnings if the variable is overwritten.
         new_inp.remove_vars(new_vars.keys())
         new_inp.set_vars(**new_vars)
 
@@ -1314,374 +1341,3 @@ def product_dict(d):
         vars_prod.append(dprod)
 
     return vars_prod
-
-
-class AnaddbInput(mixins.MappingMixin, Has_Structure):
-    #TODO: Abstract interface so that we can provide tools for AbinitInput and AnaddbInput
-    Error = InputError
-
-    @classmethod
-    def modes_at_qpoint(cls, structure, qpoint, asr=2, chneut=1, dipdip=1):
-        """
-        Input file for the calculation of the phonon frequencies at a given q-point.
-
-        Args:
-            Structure: :class:`Structure` object
-            qpoint: Reduced coordinates of the q-point where phonon frequencies and modes are wanted
-            asr, chneut, dipdp: Anaddb input variable. See official documentation.
-            kwargs:
-        """
-        new = cls(structure, comment="ANADB input for the computation of phonon frequencies for one q-point")
-
-        new.set_vars(
-            ifcflag=1,        # Interatomic force constant flag
-            asr=asr,          # Acoustic Sum Rule
-            chneut=chneut,    # Charge neutrality requirement for effective charges.
-            dipdip=dipdip,    # Dipole-dipole interaction treatment
-            # This part if fixed
-            ngqpt=(1, 1,  1), 
-            nqshft=1,         
-            q1shft=qpoint,
-            nqpath=2,
-            qpath=list(qpoint) + [0, 0, 0],
-            ndivsm=1
-        )
-
-        return new
-
-    #@classmethod
-    #def phbands(cls, structure, ngqpt, nqsmall, q1shft=(0,0,0),
-    #          asr=2, chneut=0, dipdip=1, dos_method="tetra", **kwargs):
-    #    """
-    #    Build an anaddb input file for the computation of phonon band structure.
-    #    """
-
-    #@classmethod
-    #def phdos(cls, structure, ngqpt, nqsmall, q1shft=(0,0,0),
-    #          asr=2, chneut=0, dipdip=1, dos_method="tetra", **kwargs):
-    #    """
-    #    Build an anaddb input file for the computation of phonon DOS.
-    #    """
-
-    @classmethod
-    def phbands_and_dos(cls, structure, ngqpt, nqsmall, ndivsm=20, q1shft=(0,0,0),
-                        qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", **kwargs):
-        """
-        Build an anaddb input file for the computation of phonon bands and phonon DOS.
-
-        Args:
-            structure: :class:`Structure` object
-            ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
-            nqsmall: Used to generate the (dense) mesh for the DOS.
-                It defines the number of q-points used to sample the smallest lattice vector.
-            ndivsm: Used to generate a normalized path for the phonon bands.
-                If gives the number of divisions for the smallest segment of the path.
-            q1shft: Shifts used for the coarse Q-mesh
-            qptbounds Boundaries of the path. If None, the path is generated from an internal database
-                depending on the input structure.
-            asr, chneut, dipdp: Anaddb input variable. See official documentation.
-            dos_method: Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
-                In the later case, the value 0.001 eV is used as gaussian broadening
-        """
-        dosdeltae, dossmear = None, None
-
-        if dos_method == "tetra":
-            prtdos = 2
-        elif "gaussian" in dos_method:
-            prtdos = 1
-            i = dos_method.find(":")
-            if i != -1:
-                value, eunit = dos_method[i+1:].split()
-                dossmear = Energy(float(value), eunit).to("Ha")
-        else:
-            raise cls.Error("Wrong value for dos_method: %s" % dos_method)
-
-        new = cls(structure, comment="ANADB input for phonon bands and DOS", **kwargs)
-
-        # Parameters for the dos.
-        new.set_autoqmesh(nqsmall)
-        new.set_vars(
-            prtdos=prtdos,
-            dosdeltae=dosdeltae,
-            dossmear=dossmear,
-        )
-
-        new.set_qpath(ndivsm, qptbounds=qptbounds)
-        q1shft = np.reshape(q1shft, (-1, 3))
-
-        new.set_vars(
-            ifcflag=1,
-            ngqpt=np.array(ngqpt),
-            q1shft=q1shft,
-            nqshft=len(q1shft),
-            asr=asr,
-            chneut=chneut,
-            dipdip=dipdip,
-        )
-
-        return new
-
-    @classmethod
-    def thermo(cls, structure, ngqpt, nqsmall, q1shft=(0, 0, 0), nchan=1250, nwchan=5, thmtol=0.5,
-               ntemper=199, temperinc=5, tempermin=5., asr=2, chneut=1, dipdip=1, ngrids=10, **kwargs):
-        """
-        Build an anaddb input file for the computation of phonon bands and phonon DOS.
-
-        Args:
-            structure: :class:`Structure` object
-            ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
-            nqsmall: Used to generate the (dense) mesh for the DOS.
-                It defines the number of q-points used to sample the smallest lattice vector.
-            q1shft: Shifts used for the coarse Q-mesh
-            nchan:
-            nwchan:
-            thmtol:
-            ntemper:
-            temperinc:
-            tempermin:
-            asr, chneut, dipdp: Anaddb input variable. See official documentation.
-            ngrids:
-            kwargs: Additional variables you may want to pass to Anaddb.
-
-            #!Flags
-            # ifcflag   1     ! Interatomic force constant flag
-            # thmflag   1     ! Thermodynamical properties flag
-            #!Wavevector grid number 1 (coarse grid, from DDB)
-            #  brav    2      ! Bravais Lattice : 1-S.C., 2-F.C., 3-B.C., 4-Hex.)
-            #  ngqpt   4  4  4   ! Monkhorst-Pack indices
-            #  nqshft  1         ! number of q-points in repeated basic q-cell
-            #  q1shft  3*0.0
-            #!Effective charges
-            #     asr   1     ! Acoustic Sum Rule. 1 => imposed asymetrically
-            #  chneut   1     ! Charge neutrality requirement for effective charges.
-            #!Interatomic force constant info
-            #  dipdip  1      ! Dipole-dipole interaction treatment
-            #!Wavevector grid number 2 (series of fine grids, extrapolated from interat forces)
-            #  ng2qpt   20 20 20  ! sample the BZ up to ngqpt2
-            #  ngrids   5         ! number of grids of increasing size#  q2shft   3*0.0
-            #!Thermal information
-            #  nchan   1250   ! # of channels for the DOS with channel width 1 cm-1
-            #  nwchan  5      ! # of different channel widths from this integer down to 1 cm-1
-            #  thmtol  0.120  ! Tolerance on thermodynamical function fluctuations
-            #  ntemper 10     ! Number of temperatures
-            #  temperinc 20.  ! Increment of temperature in K for temperature dependency
-            #  tempermin 20.  ! Minimal temperature in Kelvin
-            # This line added when defaults were changed (v5.3) to keep the previous, old behaviour
-            #  symdynmat 0
-
-        """
-        new = cls(structure, comment="ANADB input for thermodynamics", **kwargs)
-
-        new.set_autoqmesh(nqsmall)
-
-        q1shft = np.reshape(q1shft, (-1, 3))
-
-        new.set_vars(
-            ifcflag=1,
-            thmflag=1,
-            ngqpt=np.array(ngqpt),
-            ngrids=ngrids,
-            q1shft=q1shft,
-            nqshft=len(q1shft),
-            asr=asr,
-            chneut=chneut,
-            dipdip=dipdip,
-            nchan=nchan,
-            nwchan=nwchan,
-            thmtol=thmtol,
-            ntemper=ntemper,
-            temperinc=temperinc,
-            tempermin=tempermin,
-        )
-
-        return new
-
-    @classmethod
-    def modes(cls, structure, enunit=2, asr=2, chneut=1, **kwargs):
-        """
-        Build an anaddb input file for the computation of phonon modes.
-
-        Args:
-            Structure: :class:`Structure` object
-            ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
-            nqsmall: Used to generate the (dense) mesh for the DOS.
-                It defines the number of q-points used to sample the smallest lattice vector.
-            q1shft: Shifts used for the coarse Q-mesh
-            qptbounds Boundaries of the path. If None, the path is generated from an internal database
-                depending on the input structure.
-            asr, chneut, dipdp: Anaddb input variable. See official documentation.
-
-        #!General information
-        #enunit    2
-        #eivec     1
-        #!Flags
-        #dieflag   1
-        #ifcflag   1
-        #ngqpt     1 1 1
-        #!Effective charges
-        #asr       2
-        #chneut    2
-        # Wavevector list number 1
-        #nph1l     1
-        #qph1l   0.0  0.0  0.0    1.0   ! (Gamma point)
-        #!Wavevector list number 2
-        #nph2l     3      ! number of phonons in list 1
-        #qph2l   1.0  0.0  0.0    0.0
-        #        0.0  1.0  0.0    0.0
-        #        0.0  0.0  1.0    0.0
-        """
-        new = cls(structure, comment="ANADB input for modes", **kwargs)
-
-        new.set_vars(
-            enunit=enunit,
-            eivec=1,
-            ifcflag=1,
-            dieflag=1,
-            ngqpt=[1.0, 1.0, 1.0],
-            asr=asr,
-            chneut=chneut,
-            nph1l=1,
-            qph1l=[0.0, 0.0, 0.0, 1.0],
-            nph2l=3,
-            qph2l=[[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]]
-        )
-
-        return new
-
-    def __init__(self, structure, comment="", **kwargs):
-        """
-        Args:
-            structure: :class:`Structure` object 
-            comment: Optional string with a comment that will be placed at the beginning of the file.
-        """
-        self._structure = structure
-        self.comment = comment
-
-        for k in kwargs:
-            if not self.is_anaddb_var(k):
-                raise self.Error("%s is not a registered Anaddb variable" % k)
-
-        self._mapping_mixin_ = collections.OrderedDict(**kwargs)
-
-    @property
-    def vars(self):
-        """Dictionary with the Anaddb variables."""
-        return self._mapping_mixin_ 
-
-    @property
-    def structure(self):
-        return self._structure
-
-    def __repr__(self):
-        return "<%s at %s>" % (self.__class__.__name__, id(self))
-
-    def __str__(self):
-        return self.to_string()
-
-    def make_input(self):
-        return self.to_string()
-
-    def to_string(self, sortmode=None):
-        """
-        String representation.
-
-        Args:
-            sortmode: "a" for alphabetical order, None if no sorting is wanted
-        """
-        lines = []
-        app = lines.append
-
-        if self.comment:
-            app("# " + self.comment.replace("\n", "\n#"))
-
-        if sortmode is None:
-            # no sorting.
-            keys = self.keys()
-        elif sortmode == "a":
-            # alphabetical order.
-            keys = sorted(self.keys())
-        else:
-            raise ValueError("Unsupported value for sortmode %s" % str(sortmode))
-
-        for varname in keys:
-            value = self[varname]
-            app(str(InputVariable(varname, value)))
-
-        return "\n".join(lines)
-
-    def deepcopy(self):
-        """Deep copy of the input."""
-        return copy.deepcopy(self)
-
-    def set_var(self, varname, value):
-        """Set a single variable."""
-        if varname in self:
-            try:
-                iseq = (self[varname] == value)
-                iseq = np.all(iseq)
-            except ValueError:
-                # array like.
-                iseq = np.allclose(self[varname], value)
-            else:
-                iseq = False
-
-            if not iseq:
-                msg = "%s is already defined with a different value:\nOLD:\n %s,\nNEW\n %s" % (
-                    varname, str(self[varname]), str(value))
-                warnings.warn(msg)
-
-        if not self.is_anaddb_var(varname):
-            raise self.Error("%s is not a valid ANADDB variable." % varname)
-
-        self[varname] = value
-
-    # Alias 
-    set_variable = set_var
-    set_variable = deprecated(replacement=set_var)(set_variable)
-
-    def set_vars(self, *args, **kwargs):
-        """Set the value of the variables"""
-        kwargs.update(dict(*args))
-        for varname, varvalue in kwargs.items():
-            self.set_var(varname, varvalue)
-
-    # Alias 
-    set_variables = set_vars
-    set_variables = deprecated(replacement=set_vars)(set_variables)
-
-    def add_extra_abivars(self, abivars):
-        """
-        This method is needed in order not to break the API used for strategies
-
-        Connection is explicit via the input file
-        since we can pass the paths of the output files
-        produced by the previous runs.
-        """
-
-    @staticmethod
-    def is_anaddb_var(varname):
-        """"True if varname is a valid anaddb variable."""
-        return is_anaddb_var(varname)
-
-    def set_qpath(self, ndivsm, qptbounds=None):
-        """
-        Set the variables for the computation of the phonon band structure.
-
-        Args:
-            ndivsm: Number of divisions for the smallest segment.
-            qptbounds: q-points defining the path in k-space.
-                If None, we use the default high-symmetry k-path defined in the pymatgen database.
-        """
-        if qptbounds is None: qptbounds = self.structure.calc_kptbounds()
-        qptbounds = np.reshape(qptbounds, (-1, 3))
-
-        self.set_vars(ndivsm=ndivsm, nqpath=len(qptbounds), qpath=qptbounds)
-
-    def set_autoqmesh(self, nqsmall):
-        """
-        Set the variable nqpt for the sampling of the BZ.
-
-        Args:
-            nqsmall: Number of divisions used to sample the smallest lattice vector.
-        """
-        self.set_vars(ng2qpt=self.structure.calc_ngkpt(nqsmall))

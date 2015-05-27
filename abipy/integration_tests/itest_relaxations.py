@@ -12,9 +12,7 @@ from abipy.core.testing import has_abinit, has_matplotlib
 
 
 def ion_relaxation(tvars, ntime=50):
-    pseudos = abidata.pseudos("14si.pspnc")
-    cif_file = abidata.cif_file("si.cif")
-    structure = abilab.Structure.from_file(cif_file)
+    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
 
     # Perturb the structure (random perturbation of 0.1 Angstrom)
     structure.perturb(distance=0.02)
@@ -28,11 +26,10 @@ def ion_relaxation(tvars, ntime=50):
         paral_kgb=tvars.paral_kgb,
     )
 
-    inp = abilab.AbiInput(pseudos=pseudos)
-    inp.set_structure(structure)
+    inp = abilab.AbinitInput(structure, pseudos=abidata.pseudos("14si.pspnc"))
 
     # Global variables
-    inp.set_vars(**global_vars)
+    inp.set_vars(global_vars)
 
     # Dataset 1 (Atom Relaxation)
     #inp[1].set_vars(
@@ -71,13 +68,8 @@ def itest_atomic_relaxation(fwp, tvars):
     unconverged_structure = t0.get_final_structure() 
     assert unconverged_structure != t0.initial_structure 
 
-    # Remove ntime from the input so that the next run will
-    # use the default value ntime=50 and we can converge the calculation.
-    # This one does not work
-    print("Before Input:\n", t0.strategy.abinit_input)
-    #t0.strategy.abinit_input.remove_vars("ntime")
-    t0.strategy.abinit_input.set_vars(ntime=50)
-    print("After input:\n", t0.strategy.abinit_input)
+    # Use the default value ntime=50 and we can converge the calculation.
+    t0.input.set_vars(ntime=50)
 
     t0.build()
     assert t0.restart()
@@ -98,7 +90,7 @@ def itest_atomic_relaxation(fwp, tvars):
 
     # post-processing tools
     if has_matplotlib():
-        t0.inspect(show=False)
+        assert t0.inspect(show=False) is not None
 
     with t0.open_hist() as hist:
         print(hist)
@@ -112,17 +104,14 @@ def itest_atomic_relaxation(fwp, tvars):
     t0.get_results()
 
 
-def make_ion_ioncell_inputs(tvars, dilatmx, scalevol):
-    cif_file = abidata.cif_file("si.cif")
-    structure = abilab.Structure.from_file(cif_file)
+def make_ion_ioncell_inputs(tvars, dilatmx, scalevol=1, ntime=50):
+    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
 
     # Perturb the structure (random perturbation of 0.1 Angstrom)
     #structure.perturb(distance=0.01)
 
     # Compress the lattice so that ABINIT complains about dilatmx
     structure.scale_lattice(structure.volume * scalevol)
-
-    pseudos = abidata.pseudos("14si.pspnc")
 
     global_vars = dict(
         ecut=6,
@@ -134,37 +123,66 @@ def make_ion_ioncell_inputs(tvars, dilatmx, scalevol):
         paral_kgb=tvars.paral_kgb,
     )
 
-    inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
-    inp.set_structure(structure)
+    multi = abilab.MultiDataset(structure, pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)
 
     # Global variables
-    inp.set_vars(**global_vars)
+    multi.set_vars(global_vars)
 
     # Dataset 1 (Atom Relaxation)
-    inp[1].set_vars(
+    multi[0].set_vars(
         optcell=0,
         ionmov=2,
         tolrff=0.02,
         tolmxf=5.0e-5,
-        ntime=50,
-        #ntime=5, To test the restart
-        #dilatmx=1.05, # FIXME: abinit crashes if I don't use this
+        ntime=ntime,
     )
 
     # Dataset 2 (Atom + Cell Relaxation)
-    inp[2].set_vars(
+    multi[1].set_vars(
         optcell=1,
         ionmov=2,
         dilatmx=dilatmx,
         tolrff=0.02,
         tolmxf=5.0e-5,
         strfact=100,
-        ntime=50,
-        #ntime=5, To test the restart
-        )
+        ntime=ntime,
+    )
 
-    ion_inp, ioncell_inp = inp.split_datasets()
+    ion_inp, ioncell_inp = multi.split_datasets()
     return ion_inp, ioncell_inp
+
+
+def itest_relaxation_with_restart_from_den(fwp, tvars):
+    """Test structural relaxations with automatic restart from DEN files."""
+    # Build the flow
+    flow = abilab.Flow(fwp.workdir, manager=fwp.manager)
+ 
+    # Use small value for ntime to trigger restart, then disable the output of the WFK file.
+    ion_input, ioncell_input = make_ion_ioncell_inputs(tvars, dilatmx=1.1, ntime=3)
+    ion_input.set_vars(prtwf=0)
+    ioncell_input.set_vars(prtwf=0)
+
+    relax_work = abilab.RelaxWork(ion_input, ioncell_input)
+    flow.register_work(relax_work)
+
+    assert flow.make_scheduler().start() == 0
+    flow.show_status()
+
+    assert all(work.finalized for work in flow)
+    assert flow.all_ok
+
+    # we should have (0, 1) restarts and no WFK file in outdir.
+    for i, task in enumerate(relax_work):
+       assert task.status == task.S_OK
+       assert task.num_restarts == i
+       assert task.num_corrections == 0
+       assert not task.outdir.has_abiext("WFK")
+
+    if has_matplotlib:
+        assert relax_work.plot_ion_relaxation(show=False) is not None
+        assert relax_work.plot_ioncell_relaxation(show=False) is not None
+
+    flow.rmtree()
 
 
 def itest_dilatmx_error_handler(fwp, tvars):
@@ -182,7 +200,7 @@ def itest_dilatmx_error_handler(fwp, tvars):
  
      flow.register_work(work)
      flow.allocate()
-     flow.make_scheduler().start()
+     assert flow.make_scheduler().start() == 0
      flow.show_status()
 
      assert all(work.finalized for work in flow)

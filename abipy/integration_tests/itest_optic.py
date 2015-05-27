@@ -15,8 +15,7 @@ def make_inputs(tvars):
     """Constrcut the input files."""
     structure = abidata.structure_from_ucell("GaAs")
 
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("31ga.pspnc", "33as.pspnc"), ndtset=5)
-    inp.set_structure(structure)
+    multi = abilab.MultiDataset(structure, pseudos=abidata.pseudos("31ga.pspnc", "33as.pspnc"), ndtset=5)
 
     # Global variables
     kmesh = dict(ngkpt=[4, 4, 4],
@@ -29,15 +28,15 @@ def make_inputs(tvars):
     global_vars = dict(ecut=2, paral_kgb=tvars.paral_kgb)
     global_vars.update(kmesh)
 
-    inp.set_vars(**global_vars)
+    multi.set_vars(global_vars)
 
     # Dataset 1 (GS run)
-    inp[1].set_vars(
+    multi[0].set_vars(
         tolvrs=1e-6,
         nband=4)
 
     # NSCF run with large number of bands, and points in the the full BZ
-    inp[2].set_vars(
+    multi[1].set_vars(
         iscf=-2,
         nband=20,
         nstep=25,
@@ -52,7 +51,7 @@ def make_inputs(tvars):
         rfdir = 3 * [0]
         rfdir[idir] = 1
 
-        inp[3+idir].set_vars(
+        multi[2+idir].set_vars(
             iscf=-3,
             nband=20,
             nstep=1,
@@ -67,25 +66,35 @@ def make_inputs(tvars):
         )
 
     # scf_inp, nscf_inp, ddk1, ddk2, ddk3
-    return inp.split_datasets()
-
-
-optic_input = """\
-0.002         ! Value of the smearing factor, in Hartree
-0.0003  0.3   ! Difference between frequency values (in Hartree), and maximum frequency ( 1 Ha is about 27.211 eV)
-0.000         ! Scissor shift if needed, in Hartree
-0.002         ! Tolerance on closeness of singularities (in Hartree)
-1             ! Number of components of linear optic tensor to be computed
-11            ! Linear coefficients to be computed (x=1, y=2, z=3)
-2             ! Number of components of nonlinear optic tensor to be computed
-123 222       ! Non-linear coefficients to be computed
-"""
-
+    return multi.split_datasets()
 
 def itest_optic_flow(fwp, tvars):
     """Test optic calculations."""
     if tvars.paral_kgb == 1:
         pytest.xfail("Optic flow with paral_kgb==1 is expected to fail (implementation problem)")
+        
+    """
+    0.002         ! Value of the smearing factor, in Hartree
+    0.0003  0.3   ! Difference between frequency values (in Hartree), and maximum frequency ( 1 Ha is about 27.211 eV)
+    0.000         ! Scissor shift if needed, in Hartree
+    0.002         ! Tolerance on closeness of singularities (in Hartree)
+    1             ! Number of components of linear optic tensor to be computed
+    11            ! Linear coefficients to be computed (x=1, y=2, z=3)
+    2             ! Number of components of nonlinear optic tensor to be computed
+    123 222       ! Non-linear coefficients to be computed
+    """
+    optic_input = abilab.OpticInput(
+        zcut=0.002,
+        wmesh=(0.0003,  0.3),
+        scissor=0.000,
+        sing_tol=0.002,
+        num_lin_comp=1,
+        lin_comp=11,
+        num_nonlin_comp=2,
+        nonlin_comp=(123, 222),
+    )
+    print(optic_input)
+    #raise ValueError()
 
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = make_inputs(tvars)
 

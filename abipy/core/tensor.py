@@ -8,7 +8,6 @@ import itertools
 import numpy as np
 
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-#from pymatgen.symmetry.finder import SymmetryFinder
 from abipy.core import Structure
 
 
@@ -23,15 +22,14 @@ def from_cart_to_red(cartesian_tensor,lattice):
     red_tensor = np.dot(np.dot(np.transpose(mat), cartesian_tensor), mat)
     return red_tensor
 
+
 class Tensor(object):
     """Representation of a 3x3 tensor"""
     def __init__(self, red_tensor, lattice, space="r"):
         """
         Args:
-            red_tensor:
-                array-like object with the 9 cartesian components of the tensor
-            lattice:
-                Lattice object defining the reference system
+            red_tensor: array-like object with the 9 cartesian components of the tensor
+            lattice: Lattice object defining the reference system
             space:
                 "r" if the lattice is a real space lattice
                 "g" if the lattice is a reciprocal space lattice
@@ -56,6 +54,29 @@ class Tensor(object):
     def __ne__(self, other):
         return not self == other
 
+    def __repr__(self):
+        return self.to_string() 
+
+    def __str__(self):
+        return repr(self)
+
+    def to_string(self, with_reduced=False):
+        lines = []
+        app = lines.append
+
+        app("Tensor in %s space." % self.space)
+        app("")
+        app("Cartesian coordinates:")
+        app(str(self.cartesian_tensor))
+
+        if with_reduced:
+            app("")
+            app(str(self.lattice))
+            app("Reduced coordinates:")
+            app(str(self.reduced_tensor))
+
+        return "\n".join(lines)
+
     @property
     def lattice(self):
         return self._lattice
@@ -71,11 +92,11 @@ class Tensor(object):
     @property
     def cartesian_tensor(self):
         mat = self._lattice.matrix
-        return np.dot(np.dot(np.transpose(mat),self._reduced_tensor),mat)
+        return np.dot(np.dot(np.transpose(mat), self._reduced_tensor), mat)
 
     @classmethod
-    def from_cartesian_tensor(cls, cartesian_tensor,lattice,space="r"):
-        red_tensor = from_cart_to_red(cartesian_tensor,lattice)
+    def from_cartesian_tensor(cls, cartesian_tensor, lattice, space="r"):
+        red_tensor = from_cart_to_red(cartesian_tensor, lattice)
         return cls(red_tensor, lattice,space)
 
     def symmetrize(self, structure):
@@ -114,15 +135,11 @@ class SymmetricTensor(Tensor):
         Build a `SymmetricTensor` from the values computed along 6 directions. 
 
         Args:
-            qpoints:
-                fractional coordinates of 6 independent q-directions
-            values:
-                values of (q^T E q)/(q^T q) along the 6 qpoints
-            lattice:
-                `Lattice` object defining the reference system
-            space:
-                "r" if the lattice is a real space lattice
-                "g" if the lattice is a reciprocal space lattice
+            qpoints: fractional coordinates of 6 independent q-directions
+            values: values of (q^T E q)/(q^T q) along the 6 qpoints
+            lattice: `Lattice` object defining the reference system
+            space: "r" if the lattice is a real space lattice
+                   "g" if the lattice is a reciprocal space lattice
         """
         assert len(qpoints) == 6 and len(values) == len(qpoints)
 
@@ -141,13 +158,10 @@ class SymmetricTensor(Tensor):
 
             coeffs_red[iqpt,:] = coeffs_red[iqpt,:] / normqpt_red
 
-
         red_symm = np.linalg.solve(coeffs_red,values)
-
 
         red_tensor = [[red_symm[0],red_symm[3],red_symm[4]],
                       [red_symm[3],red_symm[1],red_symm[5]],
                       [red_symm[4],red_symm[5],red_symm[2]]]
 
-        return cls(red_tensor,lattice,space)
-
+        return cls(red_tensor, lattice, space)

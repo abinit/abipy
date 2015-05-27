@@ -1,15 +1,30 @@
-**Official docs:** http://pythonhosted.org/abipy/
+.. :Repository: https://github.com/gmatteo/abipy
+.. :Author: Matteo Giantomassi (http://github.com/gmatteo)
 
+.. image:: https://pypip.in/v/abipy/badge.png
+        :target: https://pypi.python.org/pypi/abipy
+
+.. image:: https://img.shields.io/travis/gmatteo/abipy/master.svg    
+        :target: https://travis-ci.org/gmatteo/abipy
+
+.. image:: https://img.shields.io/badge/license-LGPL-blue.svg
+
+
+About
+=====
 Abipy is an open-source library for the analysis of the results produced by ABINIT (http://www.abinit.org), 
 an open-source program for the ab-initio calculation of the physical properties of materials 
 within Density Functional Theory (DFT).
 Abipy is written in Python and is designed with the philosophy that you should be able to create 
 simple plots with just a few commands.
+
+Documentation available at http://pythonhosted.org/abipy/
 Check out the the list of plotting scripts available in the 
 `examples/plot <http://pythonhosted.org/abipy/examples/plot/index.html>`_ directory.
 To learn more about abipy, you can visit our example collection of ipython `notebooks 
-<https://github.com/gmatteo/abipy/blob/master/abipy/examples/notebooks/index.ipynb>`_.
-
+<http://nbviewer.ipython.org/github/gmatteo/abipy/blob/master/abipy/examples/notebooks/index.ipynb>`_
+and the abipy 
+`lessons <http://nbviewer.ipython.org/github/gmatteo/abipy/blob/master/abipy/examples/notebooks/lessons/index.ipynb>`_.
 
 Abipy is free to use. However, we also welcome your help to improve this library by making your own contributions.  
 These contributions can be in the form of additional tools or modules you develop, or even simple things 
@@ -70,12 +85,12 @@ All required dependencies should be automatically taken care of if you install a
 Otherwise, these packages should be available on `PyPI <http://pypi.python.org>`_.
 
   #. Python 2.7 required (Python 3.0+ not supported) 
-  #. pymatgen 3.0.7+
+  #. pymatgen
   #. numpy 
-  #. matplotlib 1.1+
-  #. scipy 0.10+
+  #. matplotlib 
+  #. scipy 
   #. netCDF4
-  #. pyYaml 3.11+
+  #. pyYaml
 
 The following packages are much easier to install with easy_install:
 
@@ -101,17 +116,8 @@ Optional libraries that are required if you need certain features:
 1. wxPython - For the GUI 
 2. wxmplot
 
-Installing wxPython
--------------------
-
-Mac users can download the
-
-Linux users:
-    TODO
-
 The directory `abipy.gui.demos` contains demos that can be used to test the installation 
 (run the script `runall.py` to have an overview of the different graphical interfaces).
-
 
 Using abipy
 ===========
@@ -123,8 +129,6 @@ There are a variety of ways to use abipy, and most of them are illustrated in th
 Below is a brief description of the different directories found there:
 
   * plot - scripts showing how to produce plots with matplotlib
-
-  * htc -  usage examples of the High-throughput API.
 
   * notebooks - ipython notebooks 
     (use `ipython notebook FILE` to open the notebook in your browser)

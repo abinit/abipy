@@ -31,10 +31,7 @@ class _File(object):
         self._filepath = os.path.abspath(filepath)
 
     def __repr__(self):
-        return "<%s at %s, filepath = %s>" % (self.__class__.__name__, id(self), self.filepath)
-
-    def __str__(self):
-        return "<%s at %s, filepath = %s>" % (self.__class__.__name__, id(self), os.path.relpath(self.filepath))
+        return "<%s, %s>" % (self.__class__.__name__, self.relpath)
 
     @classmethod
     def from_file(cls, filepath):
@@ -54,6 +51,15 @@ class _File(object):
     def filepath(self):
         """Absolute path of the file."""
         return self._filepath
+
+    @property
+    def relpath(self):
+        """Relative path."""
+        try:
+            return os.path.relpath(self.filepath)
+        except OSError:
+            # current working directory may not be defined!
+            return self.filepath
 
     @property
     def basename(self):

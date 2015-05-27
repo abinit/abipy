@@ -21,7 +21,7 @@ def scf_ph_inputs(paral_kgb=0):
     # List of q-points for the phonon calculation.
     qpoints = [
              0.00000000E+00,  0.00000000E+00,  0.00000000E+00, 
-            ]
+    ]
 
     qpoints = np.reshape(qpoints, (-1,3))
 
@@ -34,14 +34,14 @@ def scf_ph_inputs(paral_kgb=0):
                        paral_kgb=paral_kgb,
                     )
 
-    inp = abilab.AbiInput(pseudos=pseudos, ndtset=1+len(qpoints))
+    multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=1+len(qpoints))
 
-    inp.set_structure(structure)
-    inp.set_vars(**global_vars)
+    multi.set_structure(structure)
+    multi.set_vars(global_vars)
 
     for i, qpt in enumerate(qpoints):
         # Response-function calculation for phonons.
-        inp[i+2].set_vars(
+        multi[i+1].set_vars(
             nstep=20,
             rfphon=1,                     # Will consider phonon-type perturbation
             nqpt=1,                       # One one wavevector is to be considered
@@ -53,7 +53,7 @@ def scf_ph_inputs(paral_kgb=0):
 
 
     # Split input into gs_inp and ph_inputs
-    return inp.split_datasets()
+    return multi.split_datasets()
 
 
 def build_flow(options):
@@ -71,19 +71,15 @@ def build_flow(options):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
-
     all_inps = scf_ph_inputs()
     scf_input, ph_inputs = all_inps[0], all_inps[1:]
 
-    flow = abilab.Flow(workdir, manager=manager)
+    flow = abilab.Flow(workdir, manager=options.manager)
     from pymatgen.io.abinitio.works import build_oneshot_phononwork
     work = build_oneshot_phononwork(scf_input, ph_inputs)
     flow.register_work(work)
 
-    return flow.allocate()
+    return flow
 
 
 @abilab.flow_main

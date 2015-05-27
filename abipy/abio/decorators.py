@@ -1,5 +1,5 @@
 # coding: utf-8
-"""Decorators for AbiInput objects."""
+"""Decorators for AbinitInput or MultiDataset objects."""
 from __future__ import print_function, division, unicode_literals
 
 import six
@@ -8,7 +8,8 @@ import pymatgen.io.abinitio.abiobjects as aobj
 
 from monty.inspect import initializer
 from pymatgen.serializers.json_coders import PMGSONable, pmg_serialize
-from .input import LdauParams, LexxParams
+from abipy.htc.input import LdauParams, LexxParams
+from .inputs import AbinitInput, MultiDataset
 
 import logging
 logger = logging.getLogger(__file__)
@@ -20,13 +21,17 @@ class InputDecoratorError(Exception):
 
 class AbinitInputDecorator(six.with_metaclass(abc.ABCMeta, PMGSONable)):
     """
-    An `AbinitInputDecorator` adds new options to an existing :class:`AbiInput` without altering its structure. 
-    This is an abstract Base class.
+    An `AbinitInputDecorator` adds new options to an existing :class:`AbinitInput` 
+    or an existing :class:`MultiDataset` without altering its structure. This is an abstract Base class.
 
     Example:
         
         decorator = MyDecorator(arguments)
-        new_input = decorator(input)
+        
+        new_abinit_input = decorator(abinit_input)
+        new_multidataset = decorator(multidataset)
+
+    Note that a decorator does not modify the object on which it acts.
 
     .. warning::
 
@@ -42,30 +47,52 @@ class AbinitInputDecorator(six.with_metaclass(abc.ABCMeta, PMGSONable)):
     def __str__(self):
         return str(self.as_dict())
 
-    def __call__(self, inp, deepcopy=True):
-        new_inp = self._decorate(inp, deepcopy=deepcopy)
-        # Log the decoration in new_inp.
-        new_inp.register_decorator(self)
-        return new_inp
+    def __call__(self, obj, deepcopy=True):
+        """
+        Decorate an `AbinitInput` or a `MultiDataset` object
+        This is the public API that calls the concrete implementation of the subclass
+
+        Returns:
+            New `AbinitInput` or new `MultiDataset` depending on obj.
+        """
+
+        if isinstance(obj, AbinitInput):
+            new_inp = self._decorate(obj, deepcopy=deepcopy)
+            # Log the decoration in new_inp.
+            new_inp.register_decorator(self)
+            return new_inp
+
+        elif isinstance(obj, MultiDataset):
+            new_inputs = []
+            for inp in obj:
+                new_inp = self._decorate(inp, deepcopy=deepcopy)
+                # Log the decoration in new_inp.
+                new_inp.register_decorator(self)
+                new_inputs.append(new_inp)
+
+            return MultiDataset.from_inputs(new_inputs)
+
+        else:
+            raise TypeError("Don't know how to decorate type %s" % type(inp))
 
     @abc.abstractmethod
     def _decorate(self, inp, deepcopy=True):
         """
         Abstract method that must be implemented by the concrete classes.
-        It receives a :class:`AbiInput` object, applies the decoration and returns a new `AbiInput`.
+        It receives a :class:`AbinitInput` object, applies the decoration and returns a new `AbinitInput`.
 
         Args:
-            inp: :class:`AbiInput` object.
+            inp: :class:`AbinitInput` object.
             deepcopy: True if a deepcopy of inp should be performed before changing the object.
 
         Returns:
-            decorated :class:`AbiInput` object (new object)
+            decorated :class:`AbinitInput` object (new object)
         """
 
-class SpinDecorator(AbinitInputDecorator):
 
+class SpinDecorator(AbinitInputDecorator):
+    """This decorator changes the spin polarization."""
     def __init__(self, spinmode, kptopt_ifspinor=4):
-        """change the spin polarization."""
         self.spinmode = aobj.SpinMode.as_spinmode(spinmode)
         self.kptopt_ifspinor = kptopt_ifspinor
 
@@ -80,8 +107,7 @@ class SpinDecorator(AbinitInputDecorator):
     def _decorate(self, inp, deepcopy=True):
         if deepcopy: inp = inp.deepcopy()
 
-        for dataset in inp:
-            dataset.set_vars(self.spinmode.to_abivars())
+        inp.set_vars(self.spinmode.to_abivars())
 
         # in version 7.11.5
         # When non-collinear magnetism is activated (nspden=4),
@@ -92,17 +118,14 @@ class SpinDecorator(AbinitInputDecorator):
         # Here we set kptopt to 4 (spatial symmetries, no time-reversal)
         # unless we already have a dataset with kptopt == 3 (no tr, no spatial)
         # This case is needed for DFPT at q != 0.
-        if self.spinmode.nspinor == 2:
-            for dt in inp:
-                # FIXME: Here there's a bug because get should check the global variables!
-                if dt.get("kptopt") != 3:
-                    dt.set_vars(kptopt=self.kptopt_ifspinor)
+        if self.spinmode.nspinor == 2 and inp.get("kptopt") != 3:
+            inp.set_vars(kptopt=self.kptopt_ifspinor)
 
         return inp
 
 
 class SmearingDecorator(AbinitInputDecorator):
-    """Change the electronic smearing."""
+    """This decorator changes the electronic smearing."""
     def __init__(self, smearing):
         self.smearing = aobj.Smearing.as_smearing(smearing)
 
@@ -116,12 +139,11 @@ class SmearingDecorator(AbinitInputDecorator):
 
     def _decorate(self, inp, deepcopy=True):
         if deepcopy: inp = inp.deepcopy()
-        for dataset in inp:
-            dataset.set_vars(self.smearing.to_abivars())
+        inp.set_vars(self.smearing.to_abivars())
         return inp
 
 
-class XCDecorator(AbinitInputDecorator):
+class XcDecorator(AbinitInputDecorator):
     """Change the exchange-correlation functional."""
     def __init__(self, ixc):
         """
@@ -143,14 +165,13 @@ class XCDecorator(AbinitInputDecorator):
         # TODO: Don't understand why abinit does not enable usekden if MGGA!
         usekden = None
         #usekden = 1 if ixc.ismgga() else None
-        for dataset in inp:
-            dataset.set_vars(ixc=self.ixc, usekden=usekden)
+        inp.set_vars(ixc=self.ixc, usekden=usekden)
 
         return inp
 
 
 class LdaUDecorator(AbinitInputDecorator):
-    """Add LDA+U to an :class:`AbiInput` object."""
+    """This decorator adds LDA+U parameters to an :class:`AbinitInput` object."""
     def __init__(self, symbols_luj, usepawu=1, unit="eV"):
         """
         Args:
@@ -180,14 +201,13 @@ class LdaUDecorator(AbinitInputDecorator):
             luj_params.luj_for_symbol(symbol, l=args["l"], u=args["u"], j=args["j"], unit=self.unit)
             #luj_params.luj_for_symbol("Ni", l=2, u=u, j=0.1*u, unit=self.unit)
 
-        for dataset in inp:
-            dataset.set_vars(luj_params.to_abivars())
+        inp.set_vars(luj_params.to_abivars())
 
         return inp
 
 
 class LexxDecorator(AbinitInputDecorator):
-    """Add Local exact exchange to an :class:`AbiInput` object."""
+    """This decorator add local exact exchange to an :class:`AbinitInput` object."""
     def __init__(self, symbols_lexx, exchmix=None):
         """
         Args:
@@ -222,13 +242,10 @@ class LexxDecorator(AbinitInputDecorator):
         # The value of the input variable ixc is    7, while it must be
         # equal to one of the following:  11  23
         # Action : you should change the input variables ixc or useexexch.
-        for dataset in inp:
-            dataset.set_vars(lexx_params.to_abivars())
-            dt_ixc = dataset.get("ixc")
-            if dt_ixc is None or ixc not in [11, 23]:
-                dataset.set_vars(ixc=11)
-            if self.exchmix is not None:
-                dataset.set_vars(exchmix=self.exchmix)
+        inp.set_vars(lexx_params.to_abivars())
+        dt_ixc = inp.get("ixc")
+        if dt_ixc is None or ixc not in [11, 23]: inp.set_vars(ixc=11)
+        if self.exchmix is not None: inp.set_vars(exchmix=self.exchmix)
 
         return inp
 
@@ -239,6 +256,7 @@ class LexxDecorator(AbinitInputDecorator):
 
 #class MagneticMomentDecorator(AbinitInputDecorator):
 #    """Add reasoanble guesses for the initial magnetic moments."""
+
 
 #class SpinOrbitDecorator(AbinitInputDecorator):
 #    """Enable spin-orbit in the input."""
@@ -268,6 +286,7 @@ class LexxDecorator(AbinitInputDecorator):
 #         for dt in inp[1:]:
 #            runlevel = dt.runlevel 
 #        return inp
+
 
 #class DmftDecorator(AbinitInputDecorator):
 #    """Add DMFT variables."""

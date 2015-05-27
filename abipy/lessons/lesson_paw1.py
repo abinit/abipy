@@ -10,8 +10,6 @@ def gs_input(ecut, pawecutdg, acell_ang=3.567):
     # tpaw1_2.in
     # Input for PAW1 tutorial
     # Diamond at experimental volume
-
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("6c.lda.atompaw"))
     structure = abilab.Structure.from_abivars(
         natom=2,
         ntypat=1,
@@ -24,10 +22,10 @@ def gs_input(ecut, pawecutdg, acell_ang=3.567):
         xred=[0.0, 0.0, 0.0,
               1/4, 1/4, 1/4],
     )
-    inp.set_structure(structure)
+    inp = abilab.AbinitInput(structure=structure, pseudos=abidata.pseudos("6c.lda.atompaw"))
 
     # Optimization of the lattice parameters
-    inp[1].set_vars(
+    inp.set_vars(
         ecut=ecut, 
         pawecutdg=pawecutdg,
         ecutsm=0.5,
@@ -36,7 +34,7 @@ def gs_input(ecut, pawecutdg, acell_ang=3.567):
         nstep=20,
     )
 
-    inp[1].set_autokmesh(nksmall=6) # ngkpt=[6, 6, 6], shiftk=[0.5, 0.5, 0.5])
+    inp.set_autokmesh(nksmall=6) # ngkpt=[6, 6, 6], shiftk=[0.5, 0.5, 0.5])
 
     return inp
 

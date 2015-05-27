@@ -4,18 +4,21 @@ from __future__ import print_function, division, unicode_literals
 
 import sys
 import os
+import numpy as np
 import pandas as pd
 
 from collections import OrderedDict, deque 
-from monty.string import is_string
+from monty.string import is_string, list_strings
+from monty.functools import lazy_property
+from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from pymatgen.io.abinitio.eos import EOS
 from pymatgen.io.abinitio.flows import Flow
 from pymatgen.io.abinitio.netcdf import NetcdfReaderError
 
 
-__all__ = [
-    "abirobot",
-]
+#__all__ = [
+#    "abirobot",
+#]
 
 
 def abirobot(obj, ext, nids=None):
@@ -56,6 +59,11 @@ class Robot(object):
         with Robot([("label1", "file1"), (label2, "file2")]) as robot:
             # Do something with robot. files are automatically closed when we exit.
     """
+    # TODO
+    # 1) Abstract interface from collections
+    # 2) should __iter__  return (label, ncfile) or ncfile (not __getitem__ returns ncfiles.__getitem__ !!!
+    # 3) replace ncfiles with files just to be consistent since we have DdbRobot!
+
     def __init__(self, *args):
         """args is a list of tuples (label, filepath)"""
         self._ncfiles, self._do_close = OrderedDict(), OrderedDict()
@@ -64,11 +72,93 @@ class Robot(object):
         for label, ncfile in args:
             self.add_file(label, ncfile)
 
+    @classmethod
+    def for_ext(cls, ext):
+        """Return the Robot subclass associated to the given extension."""
+        for subcls in cls.__subclasses__():
+            if subcls.EXT in (ext, ext.upper()): 
+                return subcls
+
+        raise ValueError("Cannot find Robot subclass associated to extension %s\n" % ext + 
+                         "The list of supported extensions is:\n%s" %
+                         [cls.EXT for cls in Robot.__subclasses__()])
+
+    @classmethod
+    def from_flow(cls, flow, outdirs="all", nids=None):
+        """
+
+        Args:
+            flow: :class:`Flow` object
+            outdirs: String used to select/ignore the files in the output directory of flow, works and tasks
+                outdirs="work" selects only the outdir of the Works,
+                outdirs="flow+task" selects the outdir of the Flow and the outdirs of the tasks
+                outdirs="-work" excludes the outdir of the Works.
+                Cannot use `+` and `-` flags in the same string.
+                Default: `all` that is equivalent to "flow+work+task"
+            nids: List of node identifiers used to select particular nodes. Not used if None
+
+        Returns:
+            `Robot` subclass.
+        """
+        robot = cls()
+        all_opts = ["flow", "work", "task"]
+    
+        if outdirs == "all":
+            tokens = all_opts
+        elif "+" in outdirs:
+            assert "-" not in outdirs
+            tokens = outdirs.split("+")
+        elif "-" in outdirs:
+            assert "+" not in outdirs
+            tokens = [s for s in all if s not in outdirs.split("-")]
+        else:
+            tokens = list_strings(outdirs)
+
+        if not all(t in all_opts for t in tokens):
+            raise ValueError("Wrong outdirs string %s" % outdirs)
+
+        if "flow" in tokens:
+            robot.add_extfile_of_node(flow, nids=nids)
+
+        if "work" in tokens:
+            for work in flow:
+                robot.add_extfile_of_node(work, nids=nids)
+
+        if "task" in tokens:
+            for task in flow.iflat_tasks():
+                robot.add_extfile_of_node(task, nids=nids)
+
+        return robot
+
+    def add_extfile_of_node(self, node, nids=None):
+        """Add the file produced by this node to the robot."""
+        if nids and node.node_id in nids: return 
+        filepath = node.outdir.has_abiext(self.EXT)
+        if filepath:
+            try:
+                label = os.path.relpath(filepath)
+            except OSError:
+                # current working directory may not be defined!
+                label = filepath
+
+            self.add_file(label, filepath)
+
     def add_file(self, label, ncfile):
+        """
+        Add a file to the robot with the given label.
+
+        Args:
+            label: String used to identify the file (must be unique, ax exceptions is 
+                raised if label is already present.
+            ncfile: Specify the file to be added. Accepts strings (filepath) or abipy file-like objects.
+        """
         if is_string(ncfile):
             from abipy.abilab import abiopen
             ncfile = abiopen(ncfile)
             self._do_close[ncfile.filepath] = True
+
+        if label in self._ncfiles:
+            raise ValueError("label %s is already present!")
 
         self._ncfiles[label] = ncfile
 
@@ -77,8 +167,14 @@ class Robot(object):
         """List of exceptions."""
         return self._exceptions
 
+    def __len__(self):
+        return len(self._ncfiles)
+
     def __iter__(self):
         return iter(self._ncfiles.items())
+
+    def __getitem__(self, key):
+        return self.ncfiles.__getitem__(key)
 
     def __enter__(self):
         return self
@@ -91,8 +187,13 @@ class Robot(object):
         s = "\n".join(["%s --> %s" % (label, ncfile.filepath) for label, ncfile in self])
         stream.write(s)
 
-    def __str__(self):
-        return "%s with %d files in memory" % (self.__class__.__name__, len(self.ncfiles))
+    def __repr__(self):
+        lines = ["%s with %d files in memory" % (self.__class__.__name__, len(self.ncfiles))]
+        for i, f in enumerate(self.ncfiles):
+            lines.append("\t[%d]  %s" % (i, f.relpath))
+        return "\n".join(lines)
+
+    __str__ = __repr__
 
     @property
     def ncfiles(self):
@@ -126,7 +227,7 @@ class Robot(object):
         if not has_dirpath:
             # We have a Flow. smeth is the name of the Task method used to open the file.
             smeth = "open_" + cls.EXT.lower()
-            for task in obj.iflat_tasks(nids=nids):
+            for task in obj.iflat_tasks(nids=nids, status=obj.S_OK):
                 open_method = getattr(task, smeth, None)
                 if open_method is None: continue
                 ncfile = open_method()
@@ -145,12 +246,12 @@ class Robot(object):
 
         new = cls(*items)
         # Save a reference to the initial object so that we can reload it if needed
-        new._initial_object = obj
+        #new._initial_object = obj
         return new
 
-    def reload(self):
-        """Reload data. Return new :class:`Robot` object."""
-        return self.__class__.open(self._initial_object)
+    #def reload(self):
+    #    """Reload data. Return new :class:`Robot` object."""
+    #    return self.__class__.open(self._initial_object)
 
     @staticmethod
     def _get_geodict(structure):
@@ -335,7 +436,7 @@ class SigresRobot(Robot):
 
 class MdfRobot(Robot):
     """This robot analyzes the results contained in multiple MDF files."""
-    EXT = "MDF"
+    EXT = "MDF.nc"
 
     def get_mdf_plotter(self):
         from abipy.electrons.bse import MdfPlotter
@@ -370,6 +471,7 @@ class MdfRobot(Robot):
 
         return pd.DataFrame(rows, index=row_names, columns=rows[0].keys())
 
+    @add_fig_kwargs
     def plot_conv_mdf(self, hue, mdf_type="exc_mdf", **kwargs):
         import matplotlib.pyplot as plt
         frame = self.get_dataframe()
@@ -385,4 +487,101 @@ class MdfRobot(Robot):
             for mdf in mdfs:
                 mdf.plot_ax(ax)
 
+        return fig
+
+
+class DdbRobot(Robot):
+    """This robot analyzes the results contained in multiple DDB files."""
+    EXT = "DDB"
+
+    @property
+    def qpoints_union(self):
+        """Return numpy array with the q-points in reduced coordinates found in the DDB files."""
+        qpoints = []
+        for (label, ddb) in enumerate(self):
+            qpoints.extend(q for q in ddb.qpoints if q not in qpoints)
+
+        return np.array(qpoints)
+
+    #@property
+    #def qpoints_intersection(self):
+    #    """Return numpy array with the q-points in reduced coordinates found in the DDB files."""
+    #    qpoints = []
+    #    for (label, ddb) in enumerate(self):
+    #        qpoints.extend(q for q in ddb.qpoints if q not in qpoints)
+    #                                                                                              
+    #    return np.array(qpoints)
+
+    def get_dataframe_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, **kwargs):
+        """
+        Return a pandas table with the phonon frequencies at the given q-point
+        as computed from the different DDB files.
+
+        Args:
+            qpoint: Reduced coordinates of the qpoint where phonon modes are computed
+            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+        """
+        # If qpoint is None, all the DDB must contain have the same q-point .
+        if qpoint is None:
+            if not all(len(ddb.qpoints) == 1 for ddb in self.ncfiles):
+                raise ValueError("Found more than one q-point in the DDB file. qpoint must be specified")
+            qpoint = self[0].qpoints[0] 
+            if any(np.any(ddb.qpoints[0] != qpoint) for ddb in self.ncfiles):
+                raise ValueError("All the q-points in the DDB files must be equal")
+
+        rows, row_names = [], []
+        for i, (label, ddb) in enumerate(self):
+            row_names.append(label)
+            d = dict(
+            #    exc_mdf=mdf.exc_mdf,
+            )
+            #d = {aname: getattr(ddb, aname) for aname in attrs}
+            #d.update({"qpgap": mdf.get_qpgap(spin, kpoint)})
+
+            # Call anaddb to get the phonon frequencies.
+            phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, asr=asr, chneut=chneut, dipdip=dipdip)
+            freqs = phbands.phfreqs[0, :] # (nq, nmodes)
+
+            d.update({"mode" + str(i): freqs[i] for i in range(len(freqs))})
+
+            # Add convergence parameters
+            d.update(ddb.params)
+
+            # Add info on structure.
+            if kwargs.get("with_geo", True):
+                d.update(self._get_geodict(phbands.structure))
+
+            # Execute funcs.
+            d.update(self._exec_funcs(kwargs.get("funcs", []), ddb))
+
+            rows.append(d)
+
+        return pd.DataFrame(rows, index=row_names, columns=rows[0].keys())
+
+    def plot_conv_phfreqs_qpoint(self, x_vars, qpoint=None, **kwargs): 
+        """
+        Plot the convergence of the phonon frequencies. 
+        kwargs are passed to :class:`seaborn.PairGrid`.
+        """
+        import matplotlib.pyplot as plt
+        import seaborn as sns
+
+        # Get the dataframe for this q-point.
+        data = self.get_dataframe_at_qpoint(qpoint=qpoint)
+
+        y_vars = sorted([k for k in data if k.startswith("mode")])
+        #print(y_vars)
+
+        # Call seaborn.
+        grid = sns.PairGrid(data, x_vars=x_vars, y_vars=y_vars, **kwargs)
+        grid.map(plt.plot, marker="o")
+        grid.add_legend()
         plt.show()
+
+    # TODO
+    #def get_phbands_plotter(self):
+    #    from abipy import abilab
+    #    plotter = abilab.PhononBandsPlotter()
+    #    for label, ddb in self:
+    #        plotter.add_ebands(label, ddb.ebands)
+    #    return plotter

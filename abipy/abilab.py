@@ -8,19 +8,23 @@ from pymatgen.core.units import *
 from pymatgen.io.abinitio.eos import EOS
 from pymatgen.io.abinitio.pseudos import PseudoTable
 from pymatgen.io.abinitio.wrappers import Mrgscr, Mrgddb, Mrggkk
-#from pymatgen.io.abinitio.tasks import (TaskManager, ScfTask, NscfTask, RelaxTask, DDK_Task,
-#    PhononTask, G_Task, HaydockBseTask, OpticTask, AnaddbTask)
-#from pymatgen.io.abinitio.workflows import (Workflow, IterativeWorkflow, BandStructureWorkflow,
-#    RelaxWorkflow, DeltaFactorWorkflow, G0W0_Workflow, SigmaConvWorkflow, BSEMDF_Workflow,
-#    PhononWorkflow)
 from pymatgen.io.abinitio.tasks import *
 from pymatgen.io.abinitio.works import *
-from pymatgen.io.abinitio.flows import Flow, G0W0WithQptdmFlow, bandstructure_flow, g0w0_flow, phonon_flow
+from pymatgen.io.abinitio.flows import (Flow, G0W0WithQptdmFlow, bandstructure_flow, 
+    g0w0_flow, phonon_flow, phonon_conv_flow)
+# Need new version of pymatgen.
+try:
+    from pymatgen.io.abinitio.flows import PhononFlow
+except ImportError:
+    pass
+
 from pymatgen.io.abinitio.launcher import PyFlowScheduler, BatchLauncher
 
 from abipy.core.structure import Lattice, Structure, StructureModifier
-from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen, AnaddbInput
-from abipy.htc.robots import GsrRobot, SigresRobot, MdfRobot, abirobot
+from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
+from abipy.abio.robots import GsrRobot, SigresRobot, MdfRobot, DdbRobot, abirobot
+from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
+from abipy.abio.factories import *
 from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter, SigresPlotter
 from abipy.electrons.gsr import GsrFile
 from abipy.electrons.gw import SigresFile, SigresPlotter 
@@ -39,7 +43,7 @@ FloatWithUnit = units.FloatWithUnit
 ArrayWithUnit = units.ArrayWithUnit
 
 # Documentation.
-from abipy.htc.abivars_db import get_abinit_variables, abinit_help, docvar
+from abipy.abio.abivars_db import get_abinit_variables, abinit_help, docvar
 
 # Utils for notebooks.
 from abipy.tools.notebooks import mpld3_enable_notebook
@@ -76,7 +80,11 @@ def abifile_subclass_from_filename(filename):
     try:
         return ext2ncfile[ext]
     except KeyError:
-        raise KeyError("No class has been registered for extension %s" % ext)
+        #raise KeyError("No class has been registered for extension %s" % ext)
+        for ext, cls in ext2ncfile.items():
+            if filename.endswith(ext): return cls
+
+        raise ValueErro("No class has been registered for filename %s" % filename)
 
 
 def abiopen(filepath):
@@ -194,8 +202,10 @@ def flow_main(main):
 
         parser.add_argument("-w", '--workdir', default="", type=str, help="Working directory of the flow.")
 
-        parser.add_argument("-m", '--manager', default="", type=str,
-                            help="YAML file with the parameters of the task manager")
+        parser.add_argument("-m", '--manager', default=None, 
+                            help="YAML file with the parameters of the task manager. " 
+                                 "Default None i.e. the manager is read from standard locations: "
+                                 "working directory first then ~/.abinit/abipy/manager.yml.")
 
         parser.add_argument("-s", '--scheduler', action="store_true", default=False, 
                             help="Run the flow with the scheduler")
@@ -203,8 +213,7 @@ def flow_main(main):
         parser.add_argument("-b", '--batch', action="store_true", default=False, 
                             help="Run the flow in batch mode")
 
-        #parser.add_argument("-r", '--remove', action="store_true", default=False, 
-        #                    help="Run the flow with the scheduler")
+        #parser.add_argument("-r", '--remove', action="store_true", default=False, help="Run the flow with the scheduler")
 
         parser.add_argument("--prof", action="store_true", default=False, help="Profile code wth cProfile ")
 
@@ -218,15 +227,11 @@ def flow_main(main):
             raise ValueError('Invalid log level: %s' % options.loglevel)
         logging.basicConfig(level=numeric_level)
 
-        #options.manager = TaskManager.as_manager(options.manager)
+        # Istantiate the manager.
+        options.manager = TaskManager.as_manager(options.manager)
 
-        if options.prof:
-            import pstats, cProfile
-            cProfile.runctx("main(options)", globals(), locals(), "Profile.prof")
-            s = pstats.Stats("Profile.prof")
-            s.strip_dirs().sort_stats("time").print_stats()
-            return 0
-        else:
+        def execute():
+            """This is the function that performs the work depending on options."""
             flow = main(options)
 
             if options.scheduler:
@@ -239,5 +244,15 @@ def flow_main(main):
                 return flow.batch()
 
             return 0
+
+        if options.prof:
+            # Profile execute
+            import pstats, cProfile
+            cProfile.runctx("execute()", globals(), locals(), "Profile.prof")
+            s = pstats.Stats("Profile.prof")
+            s.strip_dirs().sort_stats("time").print_stats()
+            return 0
+        else:
+            return execute()
 
     return wrapper

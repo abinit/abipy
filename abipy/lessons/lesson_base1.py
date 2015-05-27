@@ -8,8 +8,6 @@ import numpy as np
 
 def gs_input(x=0.7, acell=(10, 10, 10)):
     """H2 molecule in a big box"""
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("01h.pspgth"))
-
     structure = abilab.Structure.from_abivars(
         ntypat=1,  
         znucl=1,
@@ -20,7 +18,8 @@ def gs_input(x=0.7, acell=(10, 10, 10)):
         acell=acell,
         rprim=[1, 0, 0, 0, 1, 0, 0, 0, 1]
     )
-    inp.set_structure(structure)
+
+    inp = abilab.AbinitInput(structure=structure, pseudos=abidata.pseudos("01h.pspgth"))
 
     inp.set_vars(
         ecut=10, 

@@ -10,7 +10,7 @@ import argparse
 
 from pprint import pprint
 from abipy.abilab import abinit_help
-from abipy.htc.abivars_db import get_abinit_variables
+from abipy.abio.abivars_db import get_abinit_variables
 
 
 def print_vlist(vlist, options):

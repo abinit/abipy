@@ -13,9 +13,8 @@ def make_scf_nscf_inputs(paral_kgb=1):
     pseudos = abidata.pseudos("14si.pspnc")
     #pseudos = data.pseudos("Si.GGA_PBE-JTH-paw.xml")
 
-    inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
-    #inp.set_mnemonics(True)
-    structure = inp.set_structure(abidata.cif_file("si.cif"))
+    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"), pseudos=pseudos, ndtset=2)
+    multi.set_mnemonics(True)
 
     # Global variables
     ecut = 6
@@ -27,14 +26,14 @@ def make_scf_nscf_inputs(paral_kgb=1):
                        paral_kgb=paral_kgb,
                     )
 
-    if inp.ispaw:
+    if multi.ispaw:
         global_vars.update(pawecutdg=2*ecut)
 
-    inp.set_vars(**global_vars)
+    multi.set_vars(global_vars)
 
     # Dataset 1 (GS run)
-    inp[1].set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
-    inp[1].set_vars(tolvrs=1e-6)
+    multi[0].set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
+    multi[0].set_vars(tolvrs=1e-6)
 
     # Dataset 2 (NSCF run)
     kptbounds = [
@@ -43,11 +42,11 @@ def make_scf_nscf_inputs(paral_kgb=1):
         [0.0, 0.5, 0.5], # X point
     ]
 
-    inp[2].set_kpath(ndivsm=6, kptbounds=kptbounds)
-    inp[2].set_vars(tolwfr=1e-12)
+    multi[1].set_kpath(ndivsm=6, kptbounds=kptbounds)
+    multi[1].set_vars(tolwfr=1e-12)
     
     # Generate two input files for the GS and the NSCF run 
-    scf_input, nscf_input = inp.split_datasets()
+    scf_input, nscf_input = multi.split_datasets()
     return scf_input, nscf_input
 
 def build_flow(options):
@@ -56,15 +55,12 @@ def build_flow(options):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
-
     # Get the SCF and the NSCF input.
     scf_input, nscf_input = make_scf_nscf_inputs()
+    print(scf_input.to_string(sortmode="section"))
 
     # Build the flow.
-    return abilab.bandstructure_flow(workdir, scf_input, nscf_input, manager=manager)
+    return abilab.bandstructure_flow(workdir, scf_input, nscf_input, manager=options.manager)
     
 
 @abilab.flow_main
@@ -74,6 +70,7 @@ def main(options):
     #flow = mocks.infinite_flow(flow)
     flow.build_and_pickle_dump()
     return flow
+
 
 if __name__ == "__main__":
     sys.exit(main())

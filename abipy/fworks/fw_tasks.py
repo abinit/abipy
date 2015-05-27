@@ -18,8 +18,10 @@ import inspect
 import subprocess
 import logging
 import collections
+import time
 from pymatgen.io.abinitio.utils import Directory, File
 from pymatgen.io.abinitio import events
+from pymatgen.io.abinitio.nodes import Status
 from monty.json import MontyEncoder, MontyDecoder
 from pymatgen.serializers.json_coders import pmg_serialize
 
@@ -33,6 +35,32 @@ class AbiFireTask(FireTaskBase):
     # List of `AbinitEvent` subclasses that are tested in the check_status method.
     # Subclasses should provide their own list if they need to check the converge status.
     CRITICAL_EVENTS = [
+    ]
+
+    S_INIT = Status.from_string("Initialized")
+    S_LOCKED = Status.from_string("Locked")
+    S_READY = Status.from_string("Ready")
+    S_SUB = Status.from_string("Submitted")
+    S_RUN = Status.from_string("Running")
+    S_DONE = Status.from_string("Done")
+    S_ABICRITICAL = Status.from_string("AbiCritical")
+    S_QCRITICAL = Status.from_string("QCritical")
+    S_UNCONVERGED = Status.from_string("Unconverged")
+    S_ERROR = Status.from_string("Error")
+    S_OK = Status.from_string("Completed")
+
+    ALL_STATUS = [
+        S_INIT,
+        S_LOCKED,
+        S_READY,
+        S_SUB,
+        S_RUN,
+        S_DONE,
+        S_ABICRITICAL,
+        S_QCRITICAL,
+        S_UNCONVERGED,
+        S_ERROR,
+        S_OK,
     ]
 
     def __init__(self, abiinput):
@@ -143,11 +171,12 @@ class AbiFireTask(FireTaskBase):
     def run_abinit(self, fw_spec):
 
         with open(self.files_file.path, 'r') as stdin, open(self.log_file.path, 'w') as stdout, \
-        open(self.stderr_file.path, 'w') as stderr:
+            open(self.stderr_file.path, 'w') as stderr:
+
             p = subprocess.Popen(['mpirun', 'abinit'], stdin=stdin, stdout=stdout, stderr=stderr)
 
         (stdoutdata, stderrdata) = p.communicate()
-        return p.returncode
+        self.returncode = p.returncode
 
     def get_event_report(self):
         """
@@ -171,35 +200,123 @@ class AbiFireTask(FireTaskBase):
             return parser.report_exception(self.log_file.path, exc)
 
     def task_analysis(self, fw_spec):
+
+        status, msg = self.check_final_status()
+
+        if self.status != self.S_OK:
+            raise AbinitRuntimeError(self)
+
+        return FWAction(stored_data=dict(**self.report.as_dict()))
+
+    def run_task(self, fw_spec):
+        self.set_workdir(os.path.abspath('.'))
+        self.build()
+        self.run_abinit(fw_spec)
+        return self.task_analysis(fw_spec)
+
+    def set_status(self, status, msg=None):
+        self.status = status
+        return status, msg
+
+    def check_final_status(self):
+        """
+        This function checks the status of the task by inspecting the output and the
+        error files produced by the application. Based on abipy task checkstatus().
+        """
+        # 2) see if an error occured at starting the job
+        # 3) see if there is output
+        # 4) see if abinit reports problems
+        # 5) see if err file exists and is empty
+        # 9) the only way of landing here is if there is a output file but no err files...
+
+        # 2) Check the returncode of the process (the process of submitting the job) first.
+        if self.returncode != 0:
+            # The job was not submitted properly
+            return self.set_status(self.S_QCRITICAL, msg="return code %s" % self.returncode)
+
+        # Analyze the stderr file for Fortran runtime errors.
+        err_msg = None
+        if self.stderr_file.exists:
+            err_msg = self.stderr_file.read()
+
+        # Start to check ABINIT status if the output file has been created.
         if self.output_file.exists:
             try:
                 self.report = self.get_event_report()
             except Exception as exc:
                 msg = "%s exception while parsing event_report:\n%s" % (self, exc)
                 logger.critical(msg)
-                return {'error': msg}
+                return self.set_status(self.S_ABICRITICAL, msg=msg)
 
             if self.report.run_completed:
+
                 # Check if the calculation converged.
                 not_ok = self.report.filter_types(self.CRITICAL_EVENTS)
                 if not_ok:
-                    return 1
+                    return self.set_status(self.S_UNCONVERGED)
                 else:
-                    return 0
+                    return self.set_status(self.S_OK)
 
             # Calculation still running or errors?
             if self.report.errors or self.report.bugs:
-                return 1
+                # Abinit reported problems
+                if self.report.errors:
+                    logger.debug('Found errors in report')
+                    for error in self.report.errors:
+                        logger.debug(str(error))
+                        try:
+                            self.abi_errors.append(error)
+                        except AttributeError:
+                            self.abi_errors = [error]
+
+                # The job is unfixable due to ABINIT errors
+                logger.debug("%s: Found Errors or Bugs in ABINIT main output!" % self)
+                msg = "\n".join(map(repr, self.report.errors + self.report.bugs))
+                return self.set_status(self.S_ABICRITICAL, msg=msg)
 
 
-    def run_task(self, fw_spec):
-        self.set_workdir(os.path.abspath('.'))
-        self.build()
-        self.run_abinit(fw_spec)
-        retcode = self.task_analysis(fw_spec)
-        if retcode:
-            raise AbinitRuntimeError(self)
-        return FWAction(stored_data=dict(**self.report.as_dict()))
+        # 9) if we still haven't returned there is no indication of any error and the job can only still be running
+        # but we should actually never land here, or we have delays in the file system ....
+        # print('the job still seems to be running maybe it is hanging without producing output... ')
+
+        # Check time of last modification.
+        if self.output_file.exists and \
+           (time.time() - self.output_file.get_stat().st_mtime > self.manager.policy.frozen_timeout):
+            msg = "Task seems to be frozen, last change more than %s [s] ago" % self.manager.policy.frozen_timeout
+            return self.set_status(self.S_ERROR, msg)
+
+        return self.set_status(self.S_RUN)
+
+    # from GsTask
+    @property
+    def gsr_path(self):
+        """Absolute path of the GSR file. Empty string if file is not present."""
+        # Lazy property to avoid multiple calls to has_abiext.
+        try:
+            return self._gsr_path
+        except AttributeError:
+            path = self.outdir.has_abiext("GSR")
+            if path: self._gsr_path = path
+            return path
+
+    def open_gsr(self):
+        """
+        Open the GSR file located in the in self.outdir.
+        Returns :class:`GsrFile` object, None if file could not be found or file is not readable.
+        """
+        gsr_path = self.gsr_path
+        if not gsr_path:
+            if self.status == self.S_OK:
+                logger.critical("%s reached S_OK but didn't produce a GSR file in %s" % (self, self.outdir))
+            return None
+
+        # Open the GSR file.
+        from abipy.electrons.gsr import GsrFile
+        try:
+            return GsrFile(gsr_path)
+        except Exception as exc:
+            logger.critical("Exception while reading GSR file at %s:\n%s" % (gsr_path, str(exc)))
+            return None
 
 
 class ErrorCode(object):

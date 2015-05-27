@@ -1,7 +1,7 @@
 """Tests for htc.FilesFile."""
 from __future__ import print_function, division, unicode_literals
 
-from abipy.htc.abivars_db import get_abinit_variables
+from abipy.abio.abivars_db import get_abinit_variables
 
 def test_database():
     """Testing database of ABINIT variables."""
@@ -23,5 +23,12 @@ def test_database():
     database.apropos("ecut")
     print(database.json_dumps_varnames())
 
+    print("vargeo section:\n", database.vars_with_section("vargeo"))
     for section in database.sections:
         database.vars_with_section(section)
+
+    name2section = database.name2section
+    assert name2section["ecut"] == "varbas" and name2section["ionmov"] == "varrlx"
+
+    assert database.group_by_section("ecut") == {'varbas': ['ecut']}
+    #assert 0

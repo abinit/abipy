@@ -226,6 +226,15 @@ class Kpoint(object):
         self.set_weight(weight)
         self.set_name(name)
 
+    #def __array__(self, **kwargs):
+    #    """np.array(self)"""
+    #    print(kwargs)
+    #    dtype = kwargs.pop("dtype", None)
+    #    if dtype is None:
+    #        return self._frac_coords
+    #    else:
+    #        return np.array(self._frac_coords, dtype=dtype)
+
     def __hash__(self):
         """
         Kpoint objects can be used as keys in dictionaries.

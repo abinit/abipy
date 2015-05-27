@@ -5,7 +5,6 @@ import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
 
-from pymatgen.io.abinitio.calculations import g0w0_with_ppmodel_work
 from abipy.core.testing import has_abinit, has_matplotlib
 
 # Tests in this module require abinit >= 7.9.0
@@ -19,8 +18,8 @@ def make_g0w0_inputs(ngkpt, tvars):
     Returns:
         gs_input, nscf_input, scr_input, sigma_input
     """
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=4)
-    inp.set_structure_from_file(abidata.cif_file("si.cif"))
+    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"), 
+                                pseudos=abidata.pseudos("14si.pspnc"), ndtset=4)
 
     # This grid is the most economical, but does not contain the Gamma point.
     scf_kmesh = dict(
@@ -44,28 +43,27 @@ def make_g0w0_inputs(ngkpt, tvars):
     # Global variables. gw_kmesh is used in all datasets except DATASET 1.
     ecut = 4
 
-    inp.set_vars(
+    multi.set_vars(
         ecut=ecut,
-        pawecutdg=ecut*2 if inp.pseudos.allpaw else None,
+        pawecutdg=ecut*2 if multi.ispaw else None,
         istwfk="*1",
         paral_kgb=tvars.paral_kgb,
         gwpara=2,
     )
-    inp.set_kmesh(**gw_kmesh)
+    multi.set_kmesh(**gw_kmesh)
 
     # Dataset 1 (GS run)
-    inp[1].set_kmesh(**scf_kmesh)
-    inp[1].set_vars(tolvrs=1e-6, nband=4)
+    multi[0].set_kmesh(**scf_kmesh)
+    multi[0].set_vars(tolvrs=1e-6, nband=4)
 
     # Dataset 2 (NSCF run)
-    # Here we select the second dataset directly with the syntax inp[2]
-    inp[2].set_vars(iscf=-2,
-                         tolwfr=1e-10,
-                         nband=10,
-                         nbdbuf=2)
+    multi[1].set_vars(iscf=-2,
+                      tolwfr=1e-10,
+                      nband=10,
+                      nbdbuf=2)
 
     # Dataset3: Calculation of the screening.
-    inp[3].set_vars(
+    multi[2].set_vars(
         optdriver=3,
         nband=8,
         ecutwfn=ecut,
@@ -84,7 +82,7 @@ def make_g0w0_inputs(ngkpt, tvars):
           0.00000000E+00,  0.00000000E+00,  0.00000000E+00,
       ]
 
-    inp[4].set_vars(
+    multi[3].set_vars(
             optdriver=4,
             nband=10,
             ecutwfn=ecut,
@@ -95,9 +93,9 @@ def make_g0w0_inputs(ngkpt, tvars):
     )
 
     bdgw = [4, 5]
-    inp[4].set_kptgw(kptgw, bdgw)
+    multi[3].set_kptgw(kptgw, bdgw)
 
-    return inp.split_datasets()
+    return multi.split_datasets()
 
 
 def itest_g0w0_flow(fwp, tvars):
@@ -180,7 +178,7 @@ def itest_g0w0qptdm_flow(fwp, tvars):
 
     # Run the flow.
     fwp.scheduler.add_flow(flow)
-    assert fwp.scheduler.start() 
+    assert fwp.scheduler.start() == 0 
     assert not fwp.scheduler.exceptions
 
     flow.show_status()
@@ -194,8 +192,8 @@ def itest_g0w0qptdm_flow(fwp, tvars):
     #assert not scr_task.outdir.has_abiext("SCR")
     #assert not scr_task.outdir.has_abiext("SUS")
 
-    # The scr workflow should produce a SIGRES file.
-    assert scr_work.outdir.has_abiext("SCR")
+    # The SCR file produced by scr_work should have been removed
+    assert not scr_work.outdir.has_abiext("SCR")
 
     #assert flow.validate_json_schema()
 
@@ -203,7 +201,7 @@ def itest_g0w0qptdm_flow(fwp, tvars):
 
 
 def itest_htc_g0w0(fwp, tvars):
-    """G0W0 corrections with the HT interface."""
+    """Testing G0W0Work."""
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
     pseudos = abidata.pseudos("14si.pspnc")
 
@@ -223,10 +221,19 @@ def itest_htc_g0w0(fwp, tvars):
         paral_kgb=tvars.paral_kgb,
     )
 
-    work = g0w0_with_ppmodel_work(structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx,
-                                  accuracy="normal", spin_mode="unpolarized", smearing=None,
-                                  ppmodel="godby", charge=0.0, inclvkb=2, sigma_nband=None, gw_qprange=1,
-                                  scr_nband=None, **extra_abivars)
+    multi = abilab.g0w0_with_ppmodel_inputs(
+        structure, pseudos, 
+        scf_kppa, nscf_nband, ecuteps, ecutsigx,
+        ecut=ecut, pawecutdg=None,
+        accuracy="normal", spin_mode="unpolarized", smearing=None,
+        #ppmodel="godby", charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
+        #sigma_nband=None, gw_qprange=1):
+
+    )
+    multi.set_vars(paral_kgb=tvars.paral_kgb)
+
+    scf_input, nscf_input, scr_input, sigma_input = multi.split_datasets()
+    work = abilab.G0W0Work(scf_input, nscf_input, scr_input, sigma_input)
 
     flow.register_work(work)
     flow.allocate()
@@ -234,7 +241,7 @@ def itest_htc_g0w0(fwp, tvars):
 
     #flow.build_and_pickle_dump()
     fwp.scheduler.add_flow(flow)
-    assert fwp.scheduler.start()
+    assert fwp.scheduler.start() == 0
     assert not fwp.scheduler.exceptions
     assert fwp.scheduler.nlaunch == 4
 
@@ -248,6 +255,7 @@ def itest_htc_g0w0(fwp, tvars):
     #assert flow.validate_json_schema()
 
 
+# TODO
 #def itest_bse_with_mdf(fwp, tvars):
 #    pseudos = abidata.pseudos("14si.pspnc")
 #    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))

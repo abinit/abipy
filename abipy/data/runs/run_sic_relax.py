@@ -16,11 +16,7 @@ def build_flow(options):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
-
-    flow = abilab.Flow(workdir, manager)
+    flow = abilab.Flow(workdir, manager=options.manager)
 
     pseudos = data.pseudos("14si.pspnc", "6c.pspnc")
     structure = data.structure_from_ucell("SiC")
@@ -38,11 +34,10 @@ def build_flow(options):
               [0.0,0.0,0.5]]
 
 
-    inp = abilab.AbiInput(pseudos=pseudos, ndtset=2)
-    inp.set_structure(structure)
-    inp.set_vars(**global_vars)
+    multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=2)
+    multi.set_vars(global_vars)
 
-    relax_inp, nscf_inp = inp[1:]
+    relax_inp, nscf_inp = multi.split_datasets()
 
     relax_inp.set_kmesh(ngkpt=ngkpt, shiftk=shiftk)
     relax_inp.set_vars(
@@ -59,15 +54,13 @@ def build_flow(options):
     nscf_inp.set_kpath(ndivsm=20)
     nscf_inp.tolwfr = 1e-22
 
-    relax_inp, nscf_inp = inp.split_datasets()
-
     # Initialize the work.
     relax_task = flow.register_task(relax_inp, task_class=abilab.RelaxTask)
 
     #work = RelaxWork(self, ion_input, ioncell_input, workdir=None, manager=None):
     #nscf_task = flow.register_task(nscf_inp, deps={relax_task: "DEN"}, task_class=abilab.NscfTask)
 
-    return flow.allocate()
+    return flow
 
 
 @abilab.flow_main
