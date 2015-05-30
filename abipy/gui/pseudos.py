@@ -76,7 +76,7 @@ class PseudoListPanel(awx.Panel, listmix.ColumnSorterMixin):
         pseudo_list.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
 
         self.id2pseudo = {}
-        columns = self.columns = ["name", "symbol", "Z_val", "l_max", "rcore", "type"]
+        columns = self.columns = ["basename", "symbol", "Z_val", "l_max", "rcore", "type"]
 
         # Used to store the Max width in pixels for the data in the column.
         column_widths = [awx.get_width_height(self, s)[0] for s in columns]

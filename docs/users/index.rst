@@ -14,5 +14,5 @@ User's Guide
 
     intro.rst
     whats_new.rst
+    howto_compile_python_and_bootstrap_pip.rst
     license.rst
-    tutorial/index.rst

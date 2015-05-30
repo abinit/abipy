@@ -12,8 +12,8 @@ Overview
 
    users/index.rst
    examples/index.rst
-   devel/index.rst
    api/index.rst
+   devel/index.rst
 
 Indices and tables
 ==================

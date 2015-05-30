@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Optical properties with excitonic effects (Bethe-Salpeter formalism)."""
 from __future__ import division, print_function
 
 import os
@@ -10,8 +11,8 @@ import abipy.data as abidata
 def make_scf_nscf_bse_inputs(ngkpt=(6, 6, 6), ecut=6, ecuteps=3, 
                              mdf_epsinf=12.0, soenergy="0.8 eV"):
     """
-    Build and returns three `AbinitInput` object to perform a 
-    GS-SCF + GS-NSCF + BSE calculation. with the model dielectric function.
+    Build and returns three `AbinitInput` objects to perform a 
+    GS-SCF + GS-NSCF + BSE calculation with the model dielectric function.
 
     Args:
         ngkpt: Three integers giving the number of divisions for the k-mesh.
@@ -23,6 +24,7 @@ def make_scf_nscf_bse_inputs(ngkpt=(6, 6, 6), ecut=6, ecuteps=3,
     """
     multi = abilab.MultiDataset(structure=abidata.structure_from_ucell("Si"),
                                 pseudos=abidata.pseudos("14si.pspnc"), ndtset=3)
+    multi.set_mnemonics(True)
 
     # Variables common to the three datasets.
     multi.set_vars(
@@ -73,39 +75,6 @@ def make_scf_nscf_bse_inputs(ngkpt=(6, 6, 6), ecut=6, ecuteps=3,
     scf_input, nscf_input, bse_input = multi.split_datasets()
     return scf_input, nscf_input, bse_input
 
-
-#def eh_convergence_study():
-#    """
-#    """
-#    scf_input, nscf_input, bse_input = make_inputs()
-#
-#    flow = abilab.Flow(workdir="flow_bse_ecuteps")
-#    work = abilab.BseMdfWork(scf_input, nscf_input, bse_input)
-#
-#    flow.register_work(work)
-#    flow.make_scheduler().start()
-#
-#    import matplotlib.pyplot as plt
-#    import pandas as pd
-#
-#    #with abilab.abirobot(flow, "MDF") as robot:
-#        #frame = robot.get_dataframe()
-#        #print(frame)
-#        #plotter = robot.get_mdf_plotter()
-#        #plotter.plot()
-#        #robot.plot_conv_mdf(hue="broad")
-#
-#        #grouped = frame.groupby("broad")
-#        #fig, ax_list = plt.subplots(nrows=len(grouped), ncols=1, sharex=True, sharey=True, squeeze=True)
-#
-#        #for i, (zcut, group) in enumerate(grouped):
-#        #    print(group)
-#        #    mdfs = group["exc_mdf"] 
-#        #    ax = ax_list[i]
-#        #    ax.set_title("zcut %s" % zcut)
-#        #    for mdf in mdfs:
-#        #        mdf.plot_ax(ax)
-#        #plt.show()
 
 #if __name__ == "__main__":
 #    eh_convergence_study()

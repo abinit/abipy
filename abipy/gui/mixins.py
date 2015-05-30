@@ -9,8 +9,8 @@ import abipy.gui.awx as awx
 import abipy.gui.electronswx as ewx
 
 from monty.os.path import which
+from abipy.core.mixins import NcDumper
 from abipy.iotools.visualizer import Visualizer
-from abipy.iotools.files import NcDumper
 from abipy.electrons.ebands import ElectronBandsPlotter, ElectronDosPlotter
 from abipy.gui.structure import StructureConverterFrame
 from abipy.gui.converter import ConverterFrame

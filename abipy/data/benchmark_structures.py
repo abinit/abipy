@@ -1,5 +1,5 @@
 """
-This file contains some lists of structures that can be used to test flow generating schripts for HTC.
+This file contains lists of structures that can be used to test flows for HTC.
 Preferably one should test the scripts on all lists.
 """
 

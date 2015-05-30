@@ -6,21 +6,23 @@ The calculation of the density of states and the bandstructure
 Background
 ----------
 
-This lesson focuses on the calculation of the density of states (DOS) and 
-the electronic band structure within the Kohn-Sham (KS) formalism. 
+This lesson focuses on the calculation of density of states (DOSes) and 
+of electronic band structures within the Kohn-Sham (KS) formalism. 
 
-In contrast to the total energy and its derivatives, the energies of the KS-levels have no exact physical meaning,
+In contrast to the total energy and its derivatives, the energies of the KS levels have no physical meaning,
 except for the highest occupied state that actually would be the first ionization energy if the DFT XC functional would be
 exact. So why do we use the KS formalism to calculate electron DOSes and band structures? 
 
 As a matter of fact, the KS energy spectrum is usually in qualitative agreement with experiments (let's ignore correlated systems).
-Standard KS band structures with LDA or GGA are relatively cheap and KS calculations allow us to make good predictions on trends.
-In lesson_g0w0.py, we discuss a more accurate and expensive approach for the calculation of band strtuctures and band gaps.
+Standard KS band structures with LDA or GGA are relatively cheap and KS calculations allow us to make reasonable predictions 
+and to study trends.
+In `lesson_g0w0.py`, we discuss a more accurate and expensive approach for the calculation of band structures and band gaps
+based on many-body perturbation theory.
 
 The related abinit variables
 ----------------------------
 
-    * kptopt    (negative values if band structures are wanted.)
+    * kptopt    (negative values if band structures are wanted)
     * kptbounds (the boundaries of the k-path)
     * ndivsm    (number of points used to sample the smallest segment of the k-path)
 
@@ -29,27 +31,24 @@ from __future__ import division, print_function
 
 
 _ipython_lesson_ = """
-More info on the inputvariables and their use can be obtained with:
+More info on the input variables and their use can be obtained with the command:
 
     .. code-block:: python
 
-        lesson.docvar("inputvariable")
+        print(lesson.docvar("inputvariable"))
 
-This command will print the official description of `inputvariable`.
+that prints the official description of `inputvariable`.
 
-The abipy flow used in this lesson
-----------------------------------
 
-The flow used  in this lesson contains for the first time dependencies.
-This means that some of the tasks in the flow can start only if its `parents` are completed.
-We will first perform one self-consistent calculation to obtain a proper density. 
-From this density we then calculate the DOS and the bandstructure in two independent tasks. 
-The DOS calculation is done on a regular grid of k-points because the DOS is expressed in 
-terms on a integral over the first Brillouin zone.
-For the band structure task, we use a high symmetry path inside the BZ.
-
-The course of this lesson
+Description of the lesson
 -------------------------
+
+The flow used  in this lesson contains, for the first time, dependencies.
+This means that some of the tasks in the flow can start only if its `parents` are completed.
+We will first perform a self-consistent calculation to obtain a well converged density. 
+From this density we then calculate the DOS and the bandstructure in two independent tasks (non-self consistent calculations). 
+Note that the DOS is computed on a regular grid of k-points because the DOS requires an integration over the first Brillouin zone.
+For the band structure, we use a high symmetry path inside the BZ.
 
 Start this lesson by importing it in a new namespace:
 

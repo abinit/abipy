@@ -83,14 +83,6 @@ GUI Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`flowsdb` Module
----------------------
-
-.. automodule:: abipy.gui.flowsdb
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 :mod:`flowviewer` Module
 ------------------------
 

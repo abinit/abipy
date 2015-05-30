@@ -1,50 +1,45 @@
-.TH Basis "" "" "set convergence study and some more on flows, works, and tasks."
+.TH Basis "" "" "set convergence study and more info on flows, works, and tasks"
 .SH Background
 .PP
 This lesson focuses on the convergence study on the completeness of the
-basis set.
-In our case the basis set consists of plane waves.
+plane wave (PW) basis set.
 Plane waves are inherently well suited to capture the periodic nature of
-a crystalline solid.
-In addition a plane wave basis set has the advantage that it introduces
-only one convergence parameter, the kinetic energy cutoff (ecut).
+crystalline solids.
+In addition, a PW basis set has the advantage that it introduces only
+one convergence parameter, the kinetic energy cutoff (ecut).
 .PP
 The sharp features of the wavefunctions near the nucleus are however
-problematic for plane waves.
-Describing these features would require very high energy plane waves.
-In practice we will always use pseudo\-potentials instead of the actual
-nuclear potential to facilitate convergence.
-Effectively a pseudopotential replaces the sharp coulomb potential of
-the nucleus and the core electrons by something smoother inside the
-pseudization region that connects smoothly to the real potential outside
-the pseudization region.
+problematic for PWs.
+Describing these features would require very high energy cutoff
+energies.
+For this reason PW codes use pseudo\-potentials in order to facilitate
+the convergence of the results.
+A pseudopotential replaces the singular coulomb potential of the nucleus
+and the core electrons by something smoother inside the so\-called
+pseudization region.
+The pseudopotential connects smoothly to the real all\-electron
+potential outside the pseudization region.
 .PP
-Needless to say a different pseudo potential will require a different
-cutoff for the calculation to be converged.
-In general norm\-conserving pseudos require a larger cut\-off that
+Note that different pseudo potentials usually require a different cutoff
+energy to be converged.
+In general norm\-conserving pseudos require a larger cut\-off than
 ultra\-soft pseudos or Projector Augmented Wave \[aq]pseudos\[aq].
 Moreover two pseudos of the same type for the same element may require
-different cutoffs as well.
-\[aq]Harder\[aq] (having a smaller pseudization radius) require larger
-cutoffs than \[aq]softer\[aq] pseudos.
-There are however many more properties of a pseudo that determine the
-cutoff needed.
+different cutoff energies as well.
+Pseudos with small pseudization radius usually require larger cutoffs
+than pseudos with large pseudization radius.
 .SH The related abinit variables
-.PP
-As said, the most important parameter is the energy cutoff (ecut input
-variable).
-The most important input parameters concerning the basis set are:
 .RS
 .IP \[bu] 2
-ecut
+ecut (cutoff energy)
 .IP \[bu] 2
-pawecutdg (additional variable for PAW)
+pawecutdg (additional variable for the double\-grid used in PAW)
 .IP \[bu] 2
-ecutsm
+ecutsm (smoothing of the kinetic energy)
 .RE
 .PP
-The full description, directly from the abinit description is available
-via the following function:
+The full description, directly from the abinit documentation, is
+available via the shell command:
 .RS
 .IP
 .nf
@@ -54,11 +49,11 @@ abidoc.py\ man\ inputvariable
 .fi
 .RE
 .PP
-This will print the official abinit description of this inputvariable.
+that prints the official description of inputvariable.
 .SH The course of this lesson
 .PP
-As in the previous lesson, executing the python script created the
-folder structure with the in input files for this lesson.
+As in the previous lesson, executing the python script creates the
+folder structure with the required input files.
 .PP
 One of the standard thing to look for to be converged in the total
 energy.

@@ -18,6 +18,16 @@ from pymatgen.serializers.json_coders import pmg_serialize
 logger = logging.getLogger(__file__)
 
 
+__all__ = [
+    "gs_input",
+    "ebands_input",
+    "g0w0_with_ppmodel_inputs",
+    "bse_with_mdf_inputs",
+    "ion_ioncell_relax_input",
+    "scf_phonons_inputs",
+]
+
+
 # TODO: To be discussed: 
 #    1) extra_abivars is more similar to a hack. The factory functions are designed for
 #       HPC hence we cannot allow the user to inject something we cannot control easily
@@ -122,6 +132,35 @@ def _find_scf_nband(structure, pseudos, electrons):
     return int(nband)
 
 
+def gs_input(structure, pseudos, 
+             kppa=None, ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
+             smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
+    """
+    Returns a :class:`AbinitInput` for band structure calculations.
+
+    Args:
+        structure: :class:`Structure` object.
+        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.
+        kppa: Defines the sampling used for the SCF run. Defaults to 1000 if not given.
+        ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
+        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos
+            according to accuracy)
+        scf_nband: Number of bands for SCF run. If scf_nband is None, nband is automatically initialized
+            from the list of pseudos, the structure and the smearing option.
+        accuracy: Accuracy of the calculation.
+        spin_mode: Spin polarization.
+        smearing: Smearing technique.
+        charge: Electronic charge added to the unit cell.
+        scf_algorithm: Algorithm used for solving of the SCF cycle.
+    """
+    multi = ebands_input(structure, pseudos, 
+                 kppa=kppa, 
+                 ecut=ecut, pawecutdg=pawecutdg, scf_nband=scf_nband, accuracy=accuracy, spin_mode=spin_mode,
+                 smearing=smearing, charge=charge, scf_algorithm=scf_algorithm)
+
+    return multi[0]
+
+
 def ebands_input(structure, pseudos, 
                  kppa=None, nscf_nband=None, ndivsm=15, 
                  ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
@@ -131,7 +170,7 @@ def ebands_input(structure, pseudos,
 
     Args:
         structure: :class:`Structure` object.
-        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable: object.
+        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.
         kppa: Defines the sampling used for the SCF run. Defaults to 1000 if not given.
         nscf_nband: Number of bands included in the NSCF run. Set to scf_nband + 10 if None.
         ndivsm: Number of divisions used to sample the smallest segment of the k-path.
@@ -206,7 +245,7 @@ def ion_ioncell_relax_input(structure, pseudos,
 
     Args:
         structure: :class:`Structure` object.
-        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable: object.
+        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.
         kppa: Defines the sampling used for the Brillouin zone.
         nband: Number of bands included in the SCF run.
         accuracy: Accuracy of the calculation.
@@ -254,7 +293,7 @@ def ion_ioncell_relax_and_ebands_input(structure, pseudos,
 
     Args:
         structure: :class:`Structure` object.
-        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable: object.
+        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.
         kppa: Defines the sampling used for the Brillouin zone.
         nband: Number of bands included in the SCF run.
         accuracy: Accuracy of the calculation.
@@ -278,7 +317,7 @@ def ion_ioncell_relax_and_ebands_input(structure, pseudos,
     return relax_multi + ebands_multi
 
 
-def g0w0_with_ppmodel_input(structure, pseudos, 
+def g0w0_with_ppmodel_inputs(structure, pseudos, 
                             kppa, nscf_nband, ecuteps, ecutsigx,
                             ecut=None, pawecutdg=None,
                             accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
@@ -289,7 +328,7 @@ def g0w0_with_ppmodel_input(structure, pseudos,
 
     Args:
         structure: Pymatgen structure.
-        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable: object.
+        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.
         kppa: Defines the sampling used for the SCF run.
         nscf_nband: Number of bands included in the NSCF run.
         ecuteps: Cutoff energy [Ha] for the screening matrix.
@@ -366,12 +405,12 @@ def g0w0_with_ppmodel_input(structure, pseudos,
 #TODO
 #def g0w0_extended_work(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx, scf_nband, accuracy="normal",
 
-def bse_with_mdf_input(structure, pseudos, 
-                       scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk, 
-                       ecuteps, bs_loband, bs_nband, soenergy, mdf_epsinf, 
-                       ecut=None, pawecutdg=None, 
-                       exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="polarized", 
-                       smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
+def bse_with_mdf_inputs(structure, pseudos, 
+                        scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk, 
+                        ecuteps, bs_loband, bs_nband, soenergy, mdf_epsinf, 
+                        ecut=None, pawecutdg=None, 
+                        exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="polarized", 
+                        smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
     """
     Returns a :class:`AbinitInput` object that performs a GS + NSCF + Bethe-Salpeter calculation.
     The self-energy corrections are approximated with the scissors operator.
@@ -379,7 +418,7 @@ def bse_with_mdf_input(structure, pseudos,
 
     Args:
         structure: :class:`Structure` object.
-        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable: object.
+        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.
         scf_kppa: Defines the sampling used for the SCF run.
         nscf_nband: Number of bands included in the NSCF run.
         nscf_ngkpt: Divisions of the k-mesh used for the NSCF and the BSE run.
@@ -458,7 +497,7 @@ def scf_phonons_inputs(structure, pseudos, kppa,
 
     Args:
         structure: :class:`Structure` object.
-        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable: object.
+        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.
         kppa: Defines the sampling used for the SCF run.
         ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
         pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the

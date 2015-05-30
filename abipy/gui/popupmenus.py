@@ -9,7 +9,7 @@ import abipy.gui.electronswx as ewx
 from collections import OrderedDict
 
 from abipy.abilab import abifile_subclass_from_filename, abiopen
-from abipy.iotools.files import NcDumper, AbinitLogFile, AbinitOutputFile, get_filestat
+from abipy.core.mixins import NcDumper, AbinitLogFile, AbinitOutputFile, get_filestat
 from abipy.iotools.visualizer import Visualizer
 from abipy.waves import WfkFile
 from abipy.electrons import SigresFile, GsrFile

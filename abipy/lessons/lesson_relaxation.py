@@ -6,15 +6,20 @@ Relaxation of the unit cell with two different techniques
 Background
 ----------
 
-One of the tasks that is most performed using DFT is the relaxation of an
-atomic structure. Effectively we search for that structure for which the
-total energy is minimal. Since the total energy is in principle exact in
-DFT the atomic position are in general rather good. 'In principle' means
-if the exchange-correlation functional would be exact. However, since we
-are comparing differences in total energies an certain amount of
-error-cancellation can be expected.
+In this lesson we discuss two different methods to find the equilibrium  structure of a system.
+In the first method, we use the GS part of Abinit to calculate the total energy of silicon for 
+different volumes and then we fit the energy vs the volume with a model for the equation of state (EOS).
+The fit provides the optimal volume (i.e. the volume for which the total energy is minimal),
+as well as the bulk modulus (the 'compressibility' of the system).
+Note that this approach is only applicable to isotropic materials without any degree of freedom for the atomic positions. 
+Indeed, the equation of state is obtained by performing a homogeneous compressions/dilatation of 
+the initial Bravais lattice while keeping the atoms fixed in the initial high-symmetry positions.
 
-In this lesson we focus on different types of structure relaxations.
+In the second example, we find the equilibrium configuration of GaN.
+In this case, the approach used for computing the EOS of silicon is not applicable because, 
+one should optimize both the lattice parameters as well the distance between Ga and N.
+For this reason, we employ the relaxation algorithms implemented in Abinit (`ionmov` and `optcell`)
+in which the forces and the stresses obtained at the end of the SCF cycle are used to find the minimum energy configuration.
 
 The related abinit variables
 ----------------------------
@@ -28,35 +33,30 @@ The related abinit variables
     * tolrff
 
 """
+from __future__ import division, print_function
 
 _ipython_lesson_ = """
-
-More info on the input variables and their use can be obtained using:
+For a more detailed description of the variables, you are invited to consult the abinit documentation. 
+The full description, directly from the official abinit docs, is available in ipython with the command:
 
     .. code-block:: python
 
-        lesson.docvar("inputvariable")
+        print(lesson.docvar("inputvariable"))
 
 
-The abipy flows used in this lesson
------------------------------------
-
-In this lesson, we will use two different relaxation flows. One flow will
-calculate the total energies of a compound at various volumes and fit an
-equation of state to the energy v.s. volume data. Besides the optimal
-volume, where the energy is minimal, this will also provide the bulk modulus,
-the 'compressibility' of the systems. The other flow will automatically
-optimize all degrees of freedom. In our first example Si, there is only
-one degree of freedom, due to the symmetry of the crystal, the volume of
-the unit cell, or the lattice parameter. In the second example, GaN, the
-symmetry is lower and one additional internal degree of freedom appears,
-for example the distance between Ga and N.
-
-
-The course of this lesson
+Description of the lesson
 -------------------------
 
-Start this lesson by importing it in a new namespace:
+We will use two different AbiPy flows to find the equilibrium configuration.
+The first flow, si_flow, calculates the total energy of silicon at different volumes 
+and computes the equation of state E(V).
+The other flow, gan_flow, uses Abinit to optimize all degrees of freedom (atomic positions
+and lattice vectors).
+
+Executing the lesson
+--------------------
+
+Start this lesson by importing it with the commands:
 
     .. code-block:: python
 
@@ -69,7 +69,7 @@ As usual, you can reread this text using the command:
 
         lesson
 
-To build the flow for silicon
+To build the flow for silicon, use
 
     .. code-block:: python
 
@@ -106,16 +106,16 @@ To analyze the results.
 In the case of silicon, python will show a fit of the total energy vs the
 volume of the unit cell. The minimum of this curve is the equilibrium
 volume. From this fit, we can also obtain the bulk modulus.
-This approach is only applicable for isotropic materials since we are
-scaling the entire volume.
+Note that this approach is only applicable to isotropic materials since the
+equation of state has been obtained by performing 
+a homogeneous compressions/dilatation of the initial Bravais lattice.
 
 Try to compare the results with these experimental results:
 Volume of the unit cell of silicon: 40.05 A^3 [NSM]
 Bulk modulus: 98 GPa [NSM]
 
-For gallium nitride
-In the case of gallium nitride, you will see the change of equilibrium
-volume and length of the box with respect to the k-point mesh.
+In the case of gallium nitride, you will observe a change of the equilibrium
+parameters with respect to the k-point mesh.
 
 Try to compare the results with these experimental results:
 
@@ -123,33 +123,34 @@ Try to compare the results with these experimental results:
     * Lattice parameters of GaN: a = 3.190 A, c = 5.189 A [Schulz & Thiemann 1977]
     * Vertical distance between Ga and N : about 0.377 * c [ Schulz & Thiemann, 1977]
 
-Of course you will need to converge your results with respect to the k-point sampling and ecut...
+Of course you will need to converge your results with respect to the k-point sampling and the 
+cutoff energy ecut.
 
-The pseudopotentials we are using are of GGA type, which tends to overestimate the lattice parameters. 
+Note the we are using pseudopotentials generated with the GGA which tends to 
+overestimate the lattice parameters. 
 If you use LDA-type pseudopotentials, you will observe that LDA tends to underestimate the parameters.
 
 Exercises
 ---------
 
-As an exercise you can now try to get the equilibrium unit cell
-of silicon automatically using abinit. You can inspire yourself
-from the GaN relaxation. 
+As an exercise you can now try to get the equilibrium unit cell of silicon automatically using abinit. 
+You can use the code for the relaxation of GaN as template.
 First download a local copy of the python script.
 
     .. code-block:: python
 
         lesson.get_local_copy()
 
-And have a look at the code in make_relax_gan_flow(), try to do the same
-with 'si.cif' file instead of 'gan.cif'
+and have a look at the code in make_relax_gan_flow().
+Try to do the same with 'si.cif' file instead of 'gan.cif'
 
 Pay attention to the fact that for silicon, you cannot use tolrff
 to stop your self-consistent cycle. 
 Silicon has no internal degree of freedom, the forces are zero by symmetry. 
 and hence the tolrff criterion makes no sense.
 
-As a second exercise, you can try to converge the results 
-with respect to the k-point sampling and ecut.
+As a second exercise, you can try to converge the results for silicon with respect 
+to the k-point sampling and ecut.
 Compare the converged results with experimental data.
 
 Next
@@ -160,13 +161,13 @@ A logical next lesson would be lesson_dos_bands
 
 
 _commandline_lesson_ = """
-The full description of the variables, directly from the abinit description is available via the following function:
+The full description of the variables, directly from the abinit documentation is available via the shell command:
 
     .. code-block:: shell
 
         abidoc.py man inputvariable
 
-This will print the official abinit description of `inputvariable`.
+that prints the official description of `inputvariable`.
 
 As in the previous lessons, executing the python script creates the folder structure with the input files for this
 lesson.
@@ -202,7 +203,9 @@ from abipy.lessons.core import BaseLesson, get_pseudos
 
 
 def make_relax_flow(structure_file=None):
-    # Structural relaxation for different k-point samplings.
+    """
+    Build and return a flow that perform a structural relaxation for different k-point samplings.
+    """
     ngkpt_list = [[3, 3, 2], [6, 6, 4], [8, 8, 6]]
 
     if structure_file is None:
@@ -235,7 +238,10 @@ def make_relax_flow(structure_file=None):
 
 
 def make_eos_flow(structure_file=None):
-    # Structural relaxation for different k-point samplings.
+    """
+    Build and return a Flow to compute the equation of state 
+    of an isotropic material for different k-point samplings.
+    """
     scale_volumes = np.arange(94, 108, 2) / 100.
 
     if structure_file is None:
@@ -260,7 +266,7 @@ def make_eos_flow(structure_file=None):
 
         multi[idt].set_structure(new_structure)
 
-    eos_flow = abilab.Flow.from_inputs("flow_si_relax", inputs=multi.split_datasets(), task_class=abilab.RelaxTask)
+    eos_flow = abilab.Flow.from_inputs("flow_si_relax", inputs=multi.split_datasets())
     eos_flow.volumes = structure.volume * scale_volumes
     return eos_flow
 

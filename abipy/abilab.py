@@ -10,14 +10,21 @@ from pymatgen.io.abinitio.pseudos import PseudoTable
 from pymatgen.io.abinitio.wrappers import Mrgscr, Mrgddb, Mrggkk
 from pymatgen.io.abinitio.tasks import *
 from pymatgen.io.abinitio.works import *
-from pymatgen.io.abinitio.flows import (Flow, G0W0WithQptdmFlow, PhononFlow, bandstructure_flow, 
+from pymatgen.io.abinitio.flows import (Flow, G0W0WithQptdmFlow, bandstructure_flow, 
     g0w0_flow, phonon_flow, phonon_conv_flow)
+# Need new version of pymatgen.
+try:
+    from pymatgen.io.abinitio.flows import PhononFlow
+except ImportError:
+    pass
+
 from pymatgen.io.abinitio.launcher import PyFlowScheduler, BatchLauncher
 
 from abipy.core.structure import Lattice, Structure, StructureModifier
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
 from abipy.abio.robots import GsrRobot, SigresRobot, MdfRobot, DdbRobot, abirobot
 from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
+from abipy.abio.factories import *
 from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter, SigresPlotter
 from abipy.electrons.gsr import GsrFile
 from abipy.electrons.gw import SigresFile, SigresPlotter 
@@ -73,7 +80,11 @@ def abifile_subclass_from_filename(filename):
     try:
         return ext2ncfile[ext]
     except KeyError:
-        raise KeyError("No class has been registered for extension %s" % ext)
+        #raise KeyError("No class has been registered for extension %s" % ext)
+        for ext, cls in ext2ncfile.items():
+            if filename.endswith(ext): return cls
+
+        raise ValueErro("No class has been registered for filename %s" % filename)
 
 
 def abiopen(filepath):

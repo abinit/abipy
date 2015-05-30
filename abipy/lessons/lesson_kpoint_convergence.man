@@ -1,41 +1,49 @@
-.TH K\-point "" "" "convergence study for a semi\-conductor and an introduction
-  some of the basic concepts of the abipy library."
+.TH K\-point "" "" "convergence study for a semi\-conductor"
 .SH Background
 .PP
 This lesson deals with the basic k\-point convergence study that is
-needed in any DFT calculation of a solid.
-In a DFT calculation of a solid the first Brillouin zone needs to be
-discretized to enable the integration of various quantities.
-Effectively the integrals are turned in to sums over k\-points.
-For any result to be converged we need a k\-point mesh that is dense
-enough, but at the same time as coarse as possible to make for an
-efficient calculation.
-Various types of materials require in general different densities of the
-k\-point meshes.
-In general metals need denser meshes than semiconductors, because of the
-need to accurately sample the Fermi surface.
-Your first investigation into a new compound will quit often be a
-k\-point convergence study.
-.SH The related abinit variables
+needed in any DFT calculation in periodic systems.
+In such systems, indeed, the first Brillouin zone (BZ) needs to be
+discretized when performing the integration of several important
+quantities e.g.
+the electronic density or the electronic energy.
+Integrals over the BZ are therefore turned into sums over discrete
+k\-points and the k\-mesh should be dense enough, but at the same time
+as coarse as possible to make for an efficient calculation.
+Your first investigation into a new compound will often be a k\-point
+convergence study.
 .PP
-The abinit parameters concerned with the k\-point grid are:
+It is worth stressing that the density of the k\-mesh needed to reach
+converged results is system\-dependent.
+Note that metals need much denser k\-meshes than semiconductors.
+The presence of the Fermi surface, indeed, introduces discontinuities in
+the integrand functions and a fictitious broadening of the occupation
+factors (tsmear) should be introduced in order to accelerate the
+convergence of the integrals.
+.SH The related Abinit variables
+.PP
+The variables used to specify the k\-point sampling are:
 .RS
 .IP \[bu] 2
 ngkpt
 .IP \[bu] 2
 shiftk
 .IP \[bu] 2
-occopt (see exercises)
-.IP \[bu] 2
-tsmear (see exercises)
-.IP \[bu] 2
 kptopt (see exercises)
 .RE
 .PP
-At this place they will not be discussed in detail.
-In stead you are invited to read the abinit documentation on them.
-The full description, directly from the abinit description is available
-via the following function:
+The variables used to specify the occupation scheme in metals are:
+.RS
+.IP \[bu] 2
+occopt (see exercises)
+.IP \[bu] 2
+tsmear (see exercises)
+.RE
+.PP
+For a more detailed description of the variables, you are invited to
+consult the abinit documentation.
+The full description, directly from the official abinit docs, is
+available via the shell command:
 .RS
 .IP
 .nf
@@ -45,25 +53,26 @@ abidoc.py\ man\ inputvariable
 .fi
 .RE
 .PP
-This will print the official abinit description of this inputvariable.
-.SH The course of this lesson
+that prints the official description of inputvariable.
+.SH Description of the lesson
 .PP
 In the generation of this lesson by the python script all the input
 files have been generated automatically.
 The input files have been organized in a workdir
 "flow_lesson_Si_kpoint_convergence".
-Inside you\[aq]ll find a single work, w0, with four tasks, t0 \- t3.
-Have a look at the input files, run.abi, in the four tasks to see what
+Inside this directory, you\[aq]ll find a single work, w0, with four
+tasks, t0\-t1\-t2\-t3.
+Have a look at the input files, run.abi, of the four tasks to see what
 is different.
 .PP
 You\[aq]ll see that also the files file and the jobs submission script
-are generated.
+have been generated.
 In the job scripts you\[aq]ll see that the jobs are prepared to run just
 on the front end.
 .PP
 You\[aq]ll also see that the files file has been created as well.
 .PP
-To perform the kpoint convergence study execute abinit with the four
+To perform the k\-point convergence study execute, abinit with the four
 input sets.
 .PP
 Once the calculations are ready, you\[aq]ll see three important output

@@ -109,11 +109,23 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
         return copy.deepcopy(self)
 
     def set_vars(self, *args, **kwargs):
-        """Set the value of the variables provied in the dictionary **kwargs"""
+        """Set the value of the variables"""
         kwargs.update(dict(*args))
         for varname, varvalue in kwargs.items():
             self[varname] = varvalue
         return kwargs
+
+    def add_abiobjects(self, *abi_objects):
+        """
+        This function receive a list of `AbiVarable` objects and add 
+        the corresponding variables to the input.
+        """
+        d = {}
+        for aobj in abi_objects:
+            if not hasattr(aobj, "to_abivars"):
+                raise ValueError("type %s: %s does not have `to_abivars` method" % (type(aobj), repr(aobj)))
+            d.update(self.set_vars(aobj.to_abivars()))
+        return d
 
     def remove_vars(self, keys, strict=True):
         """
@@ -856,11 +868,11 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
 
 class MultiDataset(object):
     """
-    This object is essentially a list of :class:`AbinitInput objects.
+    This object is essentially a list of :class:`AbinitInput` objects.
     that provides an easy-to-use interface to apply global changes to the 
     the inputs stored in the objects.
 
-    Let's assume for example that multi contains two AbinitInput objects and we
+    Let's assume for example that multi contains two `AbinitInput` objects and we
     want to set `ecut` to 1 in both dictionaries. The direct approach would be:
 
         for inp in multi:

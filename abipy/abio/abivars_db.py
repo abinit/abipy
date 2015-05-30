@@ -13,12 +13,6 @@ from monty.string import is_string, list_strings
 from monty.functools import lazy_property
 
 
-#from abipy import data as abidata
-#with open(os.path.join(os.path.dirname(__file__), "abinit_vars.json")) as fh:
-#with open(abidata.var_file("abinit_vars.json")) as fh:
-#    ABI_VARNAMES = json.load(fh)
-
-
 # Unit names.
 ABI_UNITS = [
     'au',

@@ -426,8 +426,6 @@ Specify the files to open. Possible choices:
     #flow.set_spectator_mode(False)
     retcode = 0
 
-
-
     if options.command == "gui":
         if options.chroot:
             # Change the workdir of flow.
@@ -545,7 +543,7 @@ Specify the files to open. Possible choices:
                 pass
         else:
             show_func(verbose=options.verbose, nids=selected_nids(flow, options))
-            if flow.manager.has_queue:
+            if options.verbose and flow.manager.has_queue:
                 print("Total number of jobs in queue: %s" % flow.manager.get_njobs_in_queue())
 
     elif options.command == "set_status":

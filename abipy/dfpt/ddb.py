@@ -33,7 +33,7 @@ class AnaddbError(DdbError):
     """
     Exceptions raised when we try to execute :class:`AnaddbTask` in the :class:`DdbFile` methods
 
-    A `AnaddbException` has a reference to the task and to the :class:`EventsReport` that contains
+    An `AnaddbError` has a reference to the task and to the :class:`EventsReport` that contains
     the error messages of the run.
     """
     def __init__(self, *args, **kwargs):
@@ -201,7 +201,7 @@ class DdbFile(TextFile, Has_Structure):
     def qindex(self, qpoint):
         """
         The index of the q-point in the internal list of k-points.
-        Accepts: :class:`qpoint` instance or integer.
+        Accepts: :class:`Kpoint` instance or integer.
         """
         if isinstance(qpoint, int):
             return qpoint
@@ -332,8 +332,8 @@ class DdbFile(TextFile, Has_Structure):
             verbose: verbosity level. Set it to a value > 0 to get more information
 
         Returns:
-            :class:`PhbstFile`, netcdf file with the phonon band structure.
-            :class:`PhdosFile`, netcdf file the the phonon DOS.
+            :class:`PhbstFile` with the phonon band structure.
+            :class:`PhdosFile` with the the phonon DOS.
         """
         if ngqpt is None: ngqpt = self.guessed_ngqpt
 
@@ -426,7 +426,7 @@ class DdbFile(TextFile, Has_Structure):
             splined_dos = phdos.spline_on_mesh(last_mesh)
             abs_diff = (splined_dos - phdoses[-1]).abs()
             print(" Delta(Phdos[%d] - Phdos[%d]) / Phdos[%d]: %f" % 
-                (i, len(phdoses), len(phdoses), abs_diff.integral().values[-1]), file=stream)
+                (i, len(phdoses)-1, len(phdoses)-1, abs_diff.integral().values[-1]), file=stream)
 
         # Fill the plotter.
         plotter = PhononDosPlotter()

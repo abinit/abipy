@@ -2,7 +2,7 @@
 import wx
 import numpy as np
 
-from abipy.core import Function1D
+from abipy.core.func1d import Function1D
 from abipy.gui.awx.func1dframe import Func1dPlotFrame
 
 app = wx.App()
