@@ -7,11 +7,14 @@ import pymatgen.io.abinitio.abiobjects as aobj
 
 from collections import namedtuple
 from monty.collections import AttrDict
+from monty.json import jsanitize, MontyDecoder
 from pymatgen.io.abinitio.pseudos import PseudoTable
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
 
 import logging
+from pymatgen.serializers.json_coders import pmg_serialize
+
 logger = logging.getLogger(__file__)
 
 
@@ -80,7 +83,7 @@ def _find_ecut_pawecutdg(ecut, pawecutdg, pseudos, accuracy='normal'):
         if has_hints:
             ecut = max(p.hint_for_accuracy(accuracy).ecut for p in pseudos)
         else:
-            raise AbiniInput.Error("ecut is None but pseudos do not provide hints for ecut")
+            raise AbinitInput.Error("ecut is None but pseudos do not provide hints for ecut")
 
     # TODO: This should be the new API.
     if pawecutdg is None and any(p.ispaw for p in pseudos):
@@ -103,7 +106,7 @@ def _find_scf_nband(structure, pseudos, electrons):
     nval -= electrons.charge
 
     # First guess (semiconductors)
-    nband = nval // nsppol
+    nband = nval // 2
 
     # TODO: Find better algorithm
     # If nband is too small we may kill the job, increase nband and restart
@@ -566,3 +569,152 @@ def phonons_from_gsinput(gs_inp):
             ph_inputs.append(ph_inp)
 
     #return MultiDataset.from_inputs(ph_inputs)
+
+
+def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=None, accuracy="normal",
+              spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
+              shift_mode="Monkhorst-Pack"):
+    structure = Structure.as_structure(structure)
+
+    abinit_input = AbinitInput(structure, pseudos)
+
+    # Set the cutoff energies.
+    abinit_input.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, abinit_input.pseudos))
+
+    # SCF calculation.
+    kppa = _DEFAULTS.get("kppa") if kppa is None else kppa
+    shifts = (0.5, 0.5, 0.5) if shift_mode[0].lower() == "m" else (0.0, 0.0, 0.0)
+    scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=shifts)
+    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
+                                   charge=charge, nband=nband, fband=None)
+
+    if scf_electrons.nband is None:
+        scf_electrons.nband = _find_scf_nband(structure, abinit_input.pseudos, scf_electrons)
+
+    abinit_input.set_vars(scf_ksampling.to_abivars())
+    abinit_input.set_vars(scf_electrons.to_abivars())
+    abinit_input.set_vars(_stopping_criterion("scf", accuracy))
+
+    return abinit_input
+
+
+def ebands_from_gsinput(gsinput, nband=None, ndivsm=15, accuracy="normal"):
+    """
+
+    :param gsinput:
+    :param nband:
+    :param ndivsm:
+    :param accuracy:
+    :return: AbinitInput
+    """
+    # create a copy to avoid messing with the previous input
+    bands_input = gsinput.deepcopy()
+
+    nscf_ksampling = aobj.KSampling.path_from_structure(ndivsm, gsinput.structure)
+    if nband is None:
+        nband = gsinput.get("nband", gsinput.structure.num_valence_electrons(gsinput.pseudos)) + 10
+
+    bands_input.set_vars(nscf_ksampling.to_abivars())
+    bands_input.set_vars(nband=nband, iscf=-2)
+    bands_input.set_vars(_stopping_criterion("nscf", accuracy))
+
+    return bands_input
+
+
+def ioncell_relax_from_gsinput(gsinput, accuracy="normal"):
+
+    ioncell_input = gsinput.deepcopy()
+
+    ioncell_relax = aobj.RelaxationMethod.atoms_and_cell(atoms_constraints=None)
+    ioncell_input.set_vars(ioncell_relax.to_abivars())
+    ioncell_input.set_vars(_stopping_criterion("relax", accuracy))
+
+    return ioncell_input
+
+
+def hybrid_oneshot_input(gsinput, functional="hse06", ecutsigx=None, gw_qprange=1):
+
+    hybrid_input = gsinput.deepcopy()
+
+    functional = functional.lower()
+    if functional == 'hse06':
+        gwcalctyp = 115
+        icutcoul = 5
+        rcut = 9.090909
+    elif functional == 'pbe0':
+        gwcalctyp = 215
+        icutcoul = 6
+        rcut = 0.
+    elif functional == 'b3lyp':
+        gwcalctyp = 315
+        icutcoul = 6
+        rcut = 0.
+    else:
+        raise ValueError("Unknow functional {}.".format(functional))
+
+    ecut = hybrid_input['ecut']
+    ecutsigx = ecutsigx or 2*ecut
+
+    hybrid_input.set_vars(optdriver=4, gwcalctyp=gwcalctyp, gw_nstep=1, gwpara=2, icutcoul=icutcoul, rcut=rcut,
+                          gw_qprange=gw_qprange, ecutwfn=ecut*0.995, ecutsigx=ecutsigx)
+
+    return hybrid_input
+
+
+#FIXME if the pseudos are passed as a PseudoTable the whole table will be serialized,
+# it would be better to filter on the structure elements
+class InputFactory():
+    factory_function = None
+    input_required = True
+
+    def __init__(self, *args, **kwargs):
+        if self.factory_function is None:
+            raise NotImplementedError('The factory function should be specified')
+
+        self.args = args
+        self.kwargs = kwargs
+
+    def build_input(self, previous_input=None):
+        # make a copy to pop additional parameteres
+        kwargs = dict(self.kwargs)
+        decorators = kwargs.pop('decorators', [])
+        if not isinstance(decorators, (list, tuple)):
+            decorators = [decorators]
+        extra_abivars = kwargs.pop('extra_abivars', {})
+        if self.input_required:
+            if not previous_input:
+                raise ValueError('An input is required for factory function {}.'.format(self.factory_function.__name__))
+            abiinput = self.factory_function(previous_input, *self.args, **kwargs)
+        else:
+            abiinput = self.factory_function(*self.args, **kwargs)
+        for d in decorators:
+            abiinput = d(abiinput)
+        abiinput.set_vars(extra_abivars)
+        return abiinput
+
+    @pmg_serialize
+    def as_dict(self):
+        # sanitize to avoid numpy arrays and serialize PMGSonable objects
+        return jsanitize(dict(args=self.args, kwargs=self.kwargs), strict=True)
+
+    @classmethod
+    def from_dict(cls, d):
+        dec = MontyDecoder()
+        return cls(*dec.process_decoded(d['args']), **dec.process_decoded(d['kwargs']))
+
+
+class BandsFromGsFactory(InputFactory):
+    factory_function = staticmethod(ebands_from_gsinput)
+
+
+class IoncellRelaxFromGsFactory(InputFactory):
+    factory_function = staticmethod(ioncell_relax_from_gsinput)
+
+
+class HybridOneShotFromGsFactory(InputFactory):
+    factory_function = staticmethod(hybrid_oneshot_input)
+
+
+class ScfFactory(InputFactory):
+    factory_function = staticmethod(scf_input)
+    input_required = False
