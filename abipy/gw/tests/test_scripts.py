@@ -4,9 +4,11 @@ __author__ = 'setten'
 
 import unittest
 import os
+import shutil
 import subprocess
 
 import tempfile
+import abipy.data as abidata
 from pymatgen.util.testing import PymatgenTest
 from pymatgen.core.structure import Structure
 from pymatgen.io.vaspio.GWvaspinputsets import GWDFTDiagVaspInputSet, GWG0W0VaspInputSet, GWscDFTPrepVaspInputSet
@@ -30,16 +32,20 @@ class GWSetupTest(PymatgenTest):
         spec_in = get_spec('GW')
         self.assertIsInstance(spec_in, GWSpecs)
 
-        spec_in.test()
+        self.assert_equal(spec_in.test(), 0)
 
-        wdir = tempfile.mkstemp()
+        wdir = tempfile.mkdtemp()
         base = os.getcwd()
+        print(wdir)
 
         os.chdir(wdir)
 
-        #copy refference spec.in
-
-        #test the main function used in abiGWsetup
+        shutil.copyfile(abidata.cif_file("si.cif"), os.path.join(wdir, 'si.cif'))
+        shutil.copyfile(abidata.pseudo("14si.pspnc").path, os.path.join(wdir, 'Si.pspnc'))
+        shutil.copyfile(os.path.join(abidata.dirpath, 'managers', 'shell_manager.yml'), os.path.join(wdir, 'manager.yml'))
+        shutil.copyfile(os.path.join(abidata.dirpath, 'managers', 'scheduler.yml'), os.path.join(wdir, 'scheduler.yml'))
+        spec_in.data['source'] = 'cif'
+        print(abidata.dirpath)
 
         spec_in.write_to_file('spec.in')
         spec_in.loop_structures('i')

@@ -200,6 +200,7 @@ class AbstractAbinitioSpec(MSONable):
                         structure = add_gg_gap(structure)
                 elif 'cif' in item:
                     structure = pmg.read_structure(item)
+                    structure = add_gg_gap(structure)
                 elif item.startswith('mp-'):
                     with MPRester(mp_key) as mp_database:
                         print('structure from mp database', item)
@@ -385,6 +386,7 @@ class GWSpecs(AbstractAbinitioSpec):
             for warning in self.warnings:
                 print(' > ' + warning)
         self.reset_job_collection()
+        return 0
 
     def excecute_flow(self, structure):
         """

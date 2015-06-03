@@ -349,9 +349,9 @@ class SingleAbinitGWWork():
             print('| all is done for this material')
             return
 
-        logger.info('ecuteps : ', ecuteps)
-        logger.info('extra   : ', extra_abivars)
-        logger.info('nscf_nb : ', nscf_nband)
+        logger.info('ecuteps : %s ' % str(ecuteps))
+        logger.info('extra   : %s ' % str(extra_abivars))
+        logger.info('nscf_nb : %s ' % str(nscf_nband))
 
         work = g0w0_extended_work(abi_structure, self.pseudo_table, kppa, nscf_nband, ecuteps, ecutsigx, scf_nband,
                              accuracy="normal", spin_mode="unpolarized", smearing=None, response_models=response_models,
