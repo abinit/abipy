@@ -130,7 +130,10 @@ class Input(six.with_metaclass(abc.ABCMeta, PMGSONable, object)):
 class AbinitInputError(Exception):
     """Base error class for exceptions raised by `AbiInput`"""
 
-
+from monty.dev import deprecated
+from abipy.abio.inputs import AbinitInput
+@deprecated(replacement=AbinitInput,
+            message="This class is deprecated and will be removed in abipy0.2.")
 class AbiInput(Input, Has_Structure):
     """
     This object represents an ABINIT input file. It supports multi-datasets a
