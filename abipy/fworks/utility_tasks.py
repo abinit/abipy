@@ -20,6 +20,7 @@ import shutil
 import logging
 import traceback
 from abipy.fworks.fw_tasks import INDIR_NAME, OUTDIR_NAME, TMPDIR_NAME
+from abipy.fworks.fw_databases import MongoDatabase
 from monty.serialization import loadfn
 
 
@@ -87,7 +88,38 @@ class FinalCleanUpTask(FireTaskBase):
 
         return FWAction(stored_data={'deleted_files': deleted_files})
 
+@explicit_serialize
+class DatabaseInsertTask(FireTaskBase):
+
+    def __init__(self, insertion_data={'structure': None}):
+        self.insertion_data = insertion_data
+
+    @serialize_fw
+    def to_dict(self):
+        return dict(insertion_data=self.insertion_data)
+
+    @classmethod
+    def from_dict(cls, m_dict):
+        return cls(insertion_data=m_dict['insertion_data'])
+
+    @staticmethod
+    def insert_objects():
+        return None
+
+    def run_task(self, fw_spec):
+        # the FW.json/yaml file is mandatory to get the fw_id
+        # no need to deserialize the whole FW
+        try:
+            fw_dict = loadfn('FW.json')
+        except IOError:
+            try:
+                fw_dict = loadfn('FW.yaml')
+            except IOError:
+                raise RuntimeError("No FW.json nor FW.yaml file present: impossible to determine fw_id")
+
+        database = MongoDatabase.from_dict(fw_spec['mongo_database'])
+        fw_id = fw_dict['fw_id']
+        database.insert_entry({'bonjour': 'test', 'fw_id': fw_id})
 
 
-
-
+        return FWAction()

@@ -17,7 +17,7 @@ import logging
 import sys
 
 from fw_tasks import AbiFireTask, ScfFWTask, RelaxFWTask, NscfFWTask, HybridFWTask
-from utility_tasks import FinalCleanUpTask
+from utility_tasks import FinalCleanUpTask, DatabaseInsertTask
 from fw_utils import SHORT_SINGLE_CORE_SPEC, append_fw_to_wf, get_short_single_core_spec
 from abipy.abio.factories import ion_ioncell_relax_input, ebands_input, scf_input
 from abipy.abio.factories import HybridOneShotFromGsFactory, ScfFactory
@@ -52,6 +52,14 @@ class AbstractFWWorkflow():
                               name=(self.wf.name+"_cleanup")[:15])
 
         append_fw_to_wf(cleanup_fw, self.wf)
+
+    def add_db_insert_and_cleanup(self, out_exts=["WFK"]):
+        insert_and_cleanup_fw = Firework([DatabaseInsertTask(),
+                                          FinalCleanUpTask(out_exts=out_exts)],
+                                         spec=self.set_short_single_core_to_spec(),
+                                         name=(self.wf.name+"_insert_and_cleanup")[:15])
+
+        append_fw_to_wf(insert_and_cleanup_fw, self.wf)
 
     def add_metadata(self, structure=None, additional_metadata={}):
         metadata = dict(wf_type = self.__class__.__name__)
@@ -185,3 +193,18 @@ class HybridOneShotFWWorkflow(AbstractFWWorkflow):
                                                  decorators=decorators, extra_abivars=extra_abivars)
 
         return cls(scf_fact, hybrid_fact, autoparal=autoparal, spec=spec, initialization_info=initialization_info)
+
+class NscfFWWorkflow(AbstractFWWorkflow):
+    def __init__(self, scf_input, nscf_input, autoparal=False, spec={}):
+
+        spec = dict(spec)
+        if autoparal:
+            spec = self.set_short_single_core_to_spec(spec)
+
+        ion_task = ScfFWTask(scf_input, is_autoparal=autoparal)
+        self.ion_fw = Firework(ion_task, spec=spec)
+
+        ioncell_task = NscfFWTask(nscf_input, deps={ion_task.task_type: 'DEN'}, is_autoparal=autoparal)
+        self.ioncell_fw = Firework(ioncell_task, spec=spec)
+
+        self.wf = Workflow([self.ion_fw, self.ioncell_fw], {self.ion_fw: [self.ioncell_fw]})
