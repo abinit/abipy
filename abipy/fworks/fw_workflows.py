@@ -53,11 +53,13 @@ class AbstractFWWorkflow():
 
         append_fw_to_wf(cleanup_fw, self.wf)
 
-    def add_db_insert_and_cleanup(self, out_exts=["WFK"]):
+    def add_db_insert_and_cleanup(self, out_exts=["WFK"], mongo_database=None):
+        spec = self.set_short_single_core_to_spec()
+        spec['mongo_database'] = mongo_database.as_dict()
         insert_and_cleanup_fw = Firework([DatabaseInsertTask(),
                                           FinalCleanUpTask(out_exts=out_exts)],
-                                         spec=self.set_short_single_core_to_spec(),
-                                         name=(self.wf.name+"_insert_and_cleanup")[:15])
+                                         spec=spec,
+                                         name=(self.wf.name+"_insclnup")[:15])
 
         append_fw_to_wf(insert_and_cleanup_fw, self.wf)
 
