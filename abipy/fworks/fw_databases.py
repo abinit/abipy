@@ -5,7 +5,6 @@ Utilities for database insertion
 
 from pymatgen.serializers.json_coders import PMGSONable
 import gridfs
-import json
 import pymongo
 
 

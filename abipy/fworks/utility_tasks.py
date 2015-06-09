@@ -88,10 +88,11 @@ class FinalCleanUpTask(FireTaskBase):
 
         return FWAction(stored_data={'deleted_files': deleted_files})
 
+
 @explicit_serialize
 class DatabaseInsertTask(FireTaskBase):
 
-    def __init__(self, insertion_data={'structure': None}):
+    def __init__(self, insertion_data={'structure': 'get_final_structure_and_history'}):
         self.insertion_data = insertion_data
 
     @serialize_fw
@@ -117,9 +118,21 @@ class DatabaseInsertTask(FireTaskBase):
             except IOError:
                 raise RuntimeError("No FW.json nor FW.yaml file present: impossible to determine fw_id")
 
-        database = MongoDatabase.from_dict(fw_spec['mongo_database'])
         fw_id = fw_dict['fw_id']
-        database.insert_entry({'bonjour': 'test', 'fw_id': fw_id})
+        lp = LaunchPad.auto_load()
+        wf = lp.get_wf_by_fw_id_lzyfw(fw_id)
+        wf_module = __import__(wf.metadata['workflow_module'])
+        wf_class = getattr(wf_module, wf.metadata['workflow_module'])
+
+        get_results_method = getattr(wf_class, 'get_final_structure_and_history')
+        #TODO: make this more general ... just to test right now ...
+        results = get_results_method()
+
+        database = MongoDatabase.from_dict(fw_spec['mongo_database'])
+
+        database.insert_entry({'structure': results['structure'], 'history': results['history']})
+
+        logging.info("Inserted data:\n something")
 
 
         return FWAction()

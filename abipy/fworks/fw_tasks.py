@@ -519,6 +519,10 @@ class AbiFireTask(FireTaskBase):
             new_spec['_queueadapter'] = qadapter_spec
             new_spec['mpi_ncpus'] = optconf['mpi_ncpus']
 
+        if 'wf_task_index' in fw_spec:
+            split = fw_spec['wf_task_index'].split('_')
+            new_spec['wf_task_index'] = '{}_{:d}'.format('_'.join(split[:-1]), int(split[-1])+1)
+
         #TODO here should be done the check if rerun in the same FW or create a new one
 
         # new task. Construct it from the actual values of the input parameters
