@@ -122,11 +122,11 @@ class DatabaseInsertTask(FireTaskBase):
         lp = LaunchPad.auto_load()
         wf = lp.get_wf_by_fw_id_lzyfw(fw_id)
         wf_module = __import__(wf.metadata['workflow_module'])
-        wf_class = getattr(wf_module, wf.metadata['workflow_module'])
+        wf_class = getattr(wf_module, wf.metadata['workflow_class'])
 
         get_results_method = getattr(wf_class, 'get_final_structure_and_history')
         #TODO: make this more general ... just to test right now ...
-        results = get_results_method()
+        results = get_results_method(wf)
 
         database = MongoDatabase.from_dict(fw_spec['mongo_database'])
 
