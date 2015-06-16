@@ -16,7 +16,7 @@ _mods = [
     'launcher',
 ]
 
-for _mod in _mods:
-    exec('from .' + _mod + ' import *')
-    exec('__all__.extend(' + _mod + '.__all__)')
-    exec('del ' + _mod)
+#for _mod in _mods:
+#    exec('from .' + _mod + ' import *')
+#    exec('__all__.extend(' + _mod + '.__all__)')
+#    exec('del ' + _mod)
