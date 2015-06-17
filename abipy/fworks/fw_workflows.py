@@ -17,7 +17,7 @@ import logging
 import sys
 
 from fw_tasks import AbiFireTask, ScfFWTask, RelaxFWTask, NscfFWTask, HybridFWTask
-from utility_tasks import FinalCleanUpTask
+from utility_tasks import FinalCleanUpTask, DatabaseInsertTask
 from fw_utils import SHORT_SINGLE_CORE_SPEC, append_fw_to_wf, get_short_single_core_spec
 from abipy.abio.factories import ion_ioncell_relax_input, ebands_input, scf_input
 from abipy.abio.factories import HybridOneShotFromGsFactory, ScfFactory
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
 @six.add_metaclass(abc.ABCMeta)
-class AbstractFWWorkflow():
+class AbstractFWWorkflow(Workflow):
     """
     Abstract Workflow class.
     """
@@ -52,6 +52,16 @@ class AbstractFWWorkflow():
                               name=(self.wf.name+"_cleanup")[:15])
 
         append_fw_to_wf(cleanup_fw, self.wf)
+
+    def add_db_insert_and_cleanup(self, out_exts=["WFK"], mongo_database=None):
+        spec = self.set_short_single_core_to_spec()
+        spec['mongo_database'] = mongo_database.as_dict()
+        insert_and_cleanup_fw = Firework([DatabaseInsertTask(),
+                                          FinalCleanUpTask(out_exts=out_exts)],
+                                         spec=spec,
+                                         name=(self.wf.name+"_insclnup")[:15])
+
+        append_fw_to_wf(insert_and_cleanup_fw, self.wf)
 
     def add_metadata(self, structure=None, additional_metadata={}):
         metadata = dict(wf_type = self.__class__.__name__)
@@ -90,7 +100,8 @@ class InputFWWorkflow(AbstractFWWorkflow):
 
         self.fw = Firework(abitask, spec=spec)
 
-        self.wf = Workflow([self.fw])
+        #self.wf = Workflow([self.fw])
+        Workflow.__init__([self.fw])
 
 
 class ScfFWWorkflow(AbstractFWWorkflow):
@@ -120,19 +131,44 @@ class ScfFWWorkflow(AbstractFWWorkflow):
 
 
 class RelaxFWWorkflow(AbstractFWWorkflow):
+    workflow_class = 'RelaxFWWorkflow'
+    workflow_module = 'abipy.fworks.fw_workflows'
     def __init__(self, ion_input, ioncell_input, autoparal=False, spec={}):
 
         spec = dict(spec)
         if autoparal:
             spec = self.set_short_single_core_to_spec(spec)
 
+        spec['wf_task_index'] = 'ion_1'
         ion_task = RelaxFWTask(ion_input, is_autoparal=autoparal)
         self.ion_fw = Firework(ion_task, spec=spec)
 
+        spec['wf_task_index'] = 'ioncell_1'
         ioncell_task = RelaxFWTask(ioncell_input, is_autoparal=autoparal)
         self.ioncell_fw = Firework(ioncell_task, spec=spec)
 
-        self.wf = Workflow([self.ion_fw, self.ioncell_fw], {self.ion_fw: [self.ioncell_fw]})
+        self.wf = Workflow([self.ion_fw, self.ioncell_fw], {self.ion_fw: [self.ioncell_fw]},
+                           metadata={'workflow_class': self.workflow_class,
+                                     'workflow_module': self.workflow_module})
+
+    @classmethod
+    def get_final_structure_and_history(cls, wf):
+        assert wf.metadata['workflow_class'] == cls.workflow_class
+        assert wf.metadata['workflow_module'] == cls.workflow_module
+        ioncell = -1
+        final_fw_id = None
+        for fw_id, fw in wf.id_fw.items():
+            if fw.spec['wf_task_index'][:8] == 'ioncell_':
+                this_ioncell =  int(fw.spec['wf_task_index'].split('_')[-1])
+                if this_ioncell > ioncell:
+                    ioncell = this_ioncell
+                    final_fw_id = fw_id
+        if final_fw_id is None:
+            raise RuntimeError('Final strucure not found ...')
+        myfw = wf.id_fw[final_fw_id]
+        structure = myfw.tasks[-1].get_final_structure()
+        history = myfw.tasks[-1].history
+        return {'structure': structure.as_dict(), 'history': history.as_dict()}
 
 
 class NscfFWWorkflow(AbstractFWWorkflow):
@@ -185,3 +221,18 @@ class HybridOneShotFWWorkflow(AbstractFWWorkflow):
                                                  decorators=decorators, extra_abivars=extra_abivars)
 
         return cls(scf_fact, hybrid_fact, autoparal=autoparal, spec=spec, initialization_info=initialization_info)
+
+class NscfFWWorkflow(AbstractFWWorkflow):
+    def __init__(self, scf_input, nscf_input, autoparal=False, spec={}):
+
+        spec = dict(spec)
+        if autoparal:
+            spec = self.set_short_single_core_to_spec(spec)
+
+        ion_task = ScfFWTask(scf_input, is_autoparal=autoparal)
+        self.ion_fw = Firework(ion_task, spec=spec)
+
+        ioncell_task = NscfFWTask(nscf_input, deps={ion_task.task_type: 'DEN'}, is_autoparal=autoparal)
+        self.ioncell_fw = Firework(ioncell_task, spec=spec)
+
+        self.wf = Workflow([self.ion_fw, self.ioncell_fw], {self.ion_fw: [self.ioncell_fw]})
