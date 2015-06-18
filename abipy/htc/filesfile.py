@@ -132,7 +132,7 @@ class FilesFile(object):
     def __str__(self):
         lines = [self.input, self.output, self.idat_root, self.odat_root,
                  self.tmp_root] + self.pseudos
-        return '\n'.join(lines)
+        return '\n'.join(lines) + '\n'
 
     def write(self):
         """Write the file."""
