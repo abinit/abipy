@@ -119,7 +119,8 @@ class TestFWTaskManager(AbipyTest):
         with open(os.path.abspath(fw_tasks.FWTaskManager.YAML_FILE), 'w') as f:
             f.write(mock_objects.MANAGER_OK)
 
-        ftm = fw_tasks.FWTaskManager.from_user_config({'fw_policy': {'max_restarts': 30}})
+        ftm = fw_tasks.FWTaskManager.from_user_config()
+        ftm.update_fw_policy({'max_restarts': 30})
 
         self.assertTrue(ftm.fw_policy.rerun_same_dir)
         self.assertEqual(ftm.fw_policy.max_restarts, 30)

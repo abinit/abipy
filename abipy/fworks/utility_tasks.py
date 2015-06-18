@@ -19,6 +19,7 @@ import os
 import shutil
 import logging
 import traceback
+import importlib
 from abipy.fworks.fw_tasks import INDIR_NAME, OUTDIR_NAME, TMPDIR_NAME
 from abipy.fworks.fw_databases import MongoDatabase
 from monty.serialization import loadfn
@@ -30,7 +31,7 @@ logger = logging.getLogger(__name__)
 @explicit_serialize
 class FinalCleanUpTask(FireTaskBase):
 
-    def __init__(self, out_exts=["WFK"]):
+    def __init__(self, out_exts=["WFK", "1WF"]):
         self.out_exts = out_exts
 
     @serialize_fw
@@ -121,7 +122,7 @@ class DatabaseInsertTask(FireTaskBase):
         fw_id = fw_dict['fw_id']
         lp = LaunchPad.auto_load()
         wf = lp.get_wf_by_fw_id_lzyfw(fw_id)
-        wf_module = __import__(wf.metadata['workflow_module'])
+        wf_module = importlib.import_module(wf.metadata['workflow_module'])
         wf_class = getattr(wf_module, wf.metadata['workflow_class'])
 
         get_results_method = getattr(wf_class, 'get_final_structure_and_history')

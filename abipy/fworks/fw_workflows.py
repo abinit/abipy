@@ -16,12 +16,13 @@ import os
 import logging
 import sys
 
-from fw_tasks import AbiFireTask, ScfFWTask, RelaxFWTask, NscfFWTask, HybridFWTask
+from fw_tasks import AbiFireTask, ScfFWTask, RelaxFWTask, NscfFWTask, HybridFWTask, RelaxDilatmxFWTask, GeneratePhononFlowFWTask
 from utility_tasks import FinalCleanUpTask, DatabaseInsertTask
 from fw_utils import SHORT_SINGLE_CORE_SPEC, append_fw_to_wf, get_short_single_core_spec
 from abipy.abio.factories import ion_ioncell_relax_input, ebands_input, scf_input
-from abipy.abio.factories import HybridOneShotFromGsFactory, ScfFactory
+from abipy.abio.factories import HybridOneShotFromGsFactory, ScfFactory, IoncellRelaxFromGsFactory, PhononsFromGsFactory
 from abipy.abio.inputs import AbinitInput
+from monty.serialization import loadfn
 
 # logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -53,7 +54,7 @@ class AbstractFWWorkflow(Workflow):
 
         append_fw_to_wf(cleanup_fw, self.wf)
 
-    def add_db_insert_and_cleanup(self, out_exts=["WFK"], mongo_database=None):
+    def add_db_insert_and_cleanup(self, mongo_database, out_exts=["WFK"]):
         spec = self.set_short_single_core_to_spec()
         spec['mongo_database'] = mongo_database.as_dict()
         insert_and_cleanup_fw = Firework([DatabaseInsertTask(),
@@ -91,10 +92,11 @@ class AbstractFWWorkflow(Workflow):
 
 
 class InputFWWorkflow(AbstractFWWorkflow):
-    def __init__(self, abiinput, task_type=AbiFireTask, autoparal=False, spec={}):
+    def __init__(self, abiinput, task_type=AbiFireTask, autoparal=False, spec={}, initialization_info={}):
         abitask = task_type(abiinput, is_autoparal=autoparal)
 
         spec = dict(spec)
+        spec['initialization_info'] = initialization_info
         if autoparal:
             spec = self.set_short_single_core_to_spec(spec)
 
@@ -105,10 +107,11 @@ class InputFWWorkflow(AbstractFWWorkflow):
 
 
 class ScfFWWorkflow(AbstractFWWorkflow):
-    def __init__(self, abiinput, autoparal=False, spec={}):
+    def __init__(self, abiinput, autoparal=False, spec={}, initialization_info={}):
         abitask = ScfFWTask(abiinput, is_autoparal=autoparal)
 
         spec = dict(spec)
+        spec['initialization_info'] = initialization_info
         if autoparal:
             spec = self.set_short_single_core_to_spec(spec)
 
@@ -133,9 +136,11 @@ class ScfFWWorkflow(AbstractFWWorkflow):
 class RelaxFWWorkflow(AbstractFWWorkflow):
     workflow_class = 'RelaxFWWorkflow'
     workflow_module = 'abipy.fworks.fw_workflows'
-    def __init__(self, ion_input, ioncell_input, autoparal=False, spec={}):
+
+    def __init__(self, ion_input, ioncell_input, autoparal=False, spec={}, initialization_info={}, target_dilatmx=None):
 
         spec = dict(spec)
+        spec['initialization_info'] = initialization_info
         if autoparal:
             spec = self.set_short_single_core_to_spec(spec)
 
@@ -144,7 +149,11 @@ class RelaxFWWorkflow(AbstractFWWorkflow):
         self.ion_fw = Firework(ion_task, spec=spec)
 
         spec['wf_task_index'] = 'ioncell_1'
-        ioncell_task = RelaxFWTask(ioncell_input, is_autoparal=autoparal)
+        if target_dilatmx:
+            ioncell_task = RelaxDilatmxFWTask(ioncell_input, is_autoparal=autoparal, target_dilatmx=target_dilatmx)
+        else:
+            ioncell_task = RelaxFWTask(ioncell_input, is_autoparal=autoparal)
+
         self.ioncell_fw = Firework(ioncell_task, spec=spec)
 
         self.wf = Workflow([self.ion_fw, self.ioncell_fw], {self.ion_fw: [self.ioncell_fw]},
@@ -158,7 +167,7 @@ class RelaxFWWorkflow(AbstractFWWorkflow):
         ioncell = -1
         final_fw_id = None
         for fw_id, fw in wf.id_fw.items():
-            if fw.spec['wf_task_index'][:8] == 'ioncell_':
+            if 'wf_task_index' in fw.spec and fw.spec['wf_task_index'][:8] == 'ioncell_':
                 this_ioncell =  int(fw.spec['wf_task_index'].split('_')[-1])
                 if this_ioncell > ioncell:
                     ioncell = this_ioncell
@@ -166,15 +175,37 @@ class RelaxFWWorkflow(AbstractFWWorkflow):
         if final_fw_id is None:
             raise RuntimeError('Final strucure not found ...')
         myfw = wf.id_fw[final_fw_id]
+        #TODO add a check on the state of the launches
+        last_launch = (myfw.archived_launches + myfw.launches)[-1]
+        #TODO add a cycle to find the instance of AbiFireTask?
+        myfw.tasks[-1].set_workdir(workdir=last_launch.launch_dir)
         structure = myfw.tasks[-1].get_final_structure()
-        history = myfw.tasks[-1].history
-        return {'structure': structure.as_dict(), 'history': history.as_dict()}
+        history = loadfn(os.path.join(last_launch.launch_dir, 'history.json'))
+        print(structure.as_dict())
+        return {'structure': structure.as_dict(), 'history': history}
+
+    @classmethod
+    def from_factory(cls, structure, pseudos, kppa=None, nband=None, ecut=None, pawecutdg=None, accuracy="normal",
+                     spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
+                     extra_abivars={}, decorators=[], autoparal=False, spec={}, initialization_info={},
+                     target_dilatmx=None):
+
+        ion_input = ion_ioncell_relax_input(structure=structure, pseudos=pseudos, kppa=kppa, nband=nband, ecut=ecut,
+                                            pawecutdg=pawecutdg, accuracy=accuracy, spin_mode=spin_mode,
+                                            smearing=smearing, charge=charge, scf_algorithm=scf_algorithm)[0]
+
+        ioncell_fact = IoncellRelaxFromGsFactory(accuracy=accuracy)
+
+        return cls(ion_input, ioncell_fact, autoparal=autoparal, spec=spec, initialization_info=initialization_info,
+                   target_dilatmx=target_dilatmx)
+
 
 
 class NscfFWWorkflow(AbstractFWWorkflow):
-    def __init__(self, scf_input, nscf_input, autoparal=False, spec={}):
+    def __init__(self, scf_input, nscf_input, autoparal=False, spec={}, initialization_info={}):
 
         spec = dict(spec)
+        spec['initialization_info'] = initialization_info
         if autoparal:
             spec = self.set_short_single_core_to_spec(spec)
 
@@ -222,6 +253,7 @@ class HybridOneShotFWWorkflow(AbstractFWWorkflow):
 
         return cls(scf_fact, hybrid_fact, autoparal=autoparal, spec=spec, initialization_info=initialization_info)
 
+
 class NscfFWWorkflow(AbstractFWWorkflow):
     def __init__(self, scf_input, nscf_input, autoparal=False, spec={}):
 
@@ -236,3 +268,42 @@ class NscfFWWorkflow(AbstractFWWorkflow):
         self.ioncell_fw = Firework(ioncell_task, spec=spec)
 
         self.wf = Workflow([self.ion_fw, self.ioncell_fw], {self.ion_fw: [self.ioncell_fw]})
+
+
+class PhononFWWorkflow(AbstractFWWorkflow):
+    def __init__(self, scf_inp, phonon_factory, autoparal=False, spec={}, initialization_info={}):
+        rf = self.get_reduced_formula(scf_inp)
+
+        scf_task = ScfFWTask(scf_inp, is_autoparal=autoparal)
+
+        spec = dict(spec)
+        spec['initialization_info'] = initialization_info
+        if autoparal:
+            spec = self.set_short_single_core_to_spec(spec)
+
+        self.scf_fw = Firework(scf_task, spec=spec, name=rf+"_"+scf_task.task_type)
+
+        ph_generation_task = GeneratePhononFlowFWTask(phonon_factory, previous_task_type=scf_task.task_type,
+                                                      with_autoparal=autoparal)
+
+        self.ph_generation_fw = Firework(ph_generation_task, spec=spec, name=rf+"_gen_ph")
+
+        self.wf = Workflow([self.scf_fw, self.ph_generation_fw], {self.scf_fw: self.ph_generation_fw})
+
+    @classmethod
+    def from_factory(cls, structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=None, accuracy="normal",
+                     spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
+                     shift_mode="Monkhorst-Pack", ph_ngqpt=None, with_ddk=True, with_dde=True, with_bec=False,
+                     ph_tol=None, ddk_tol=None, dde_tol=None, extra_abivars={}, decorators=[], autoparal=False, spec={},
+                     initialization_info={}):
+
+        scf_fact = ScfFactory(structure=structure, pseudos=pseudos, kppa=kppa, ecut=ecut, pawecutdg=pawecutdg,
+                              nband=nband, accuracy=accuracy, spin_mode=spin_mode, smearing=smearing, charge=charge,
+                              scf_algorithm=scf_algorithm, shift_mode=shift_mode, extra_abivars=extra_abivars,
+                              decorators=decorators)
+
+        phonon_fact = PhononsFromGsFactory(ph_ngqpt=ph_ngqpt, with_ddk=with_ddk, with_dde=with_dde, with_bec=with_bec,
+                                           ph_tol=ph_tol, ddk_tol=ddk_tol, dde_tol=dde_tol)
+
+        return cls(scf_fact, phonon_fact, autoparal=autoparal, spec=spec, initialization_info=initialization_info)
+

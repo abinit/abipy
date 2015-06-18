@@ -26,7 +26,8 @@ class MongoDatabase(PMGSONable):
     def _connect(self):
         self.server = pymongo.MongoClient(host=self._host, port=self._port)
         self.database = self.server[self._database]
-        self.database.authenticate(name=self._username, password=self._password)
+        if self._username:
+            self.database.authenticate(name=self._username, password=self._password)
         self.collection = self.database[self._collection]
         if self._gridfs_collection is not None:
             self.gridfs = gridfs.GridFS(self.database, collection=self._gridfs_collection)
