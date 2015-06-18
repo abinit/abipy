@@ -565,49 +565,54 @@ def scf_phonons_inputs(structure, pseudos, kppa,
     return all_inps
 
 
-def phonons_from_gsinput(gs_inp):
+def phonons_from_gsinput(gs_inp, ph_ngqpt=None, with_ddk=True, with_dde=True, with_bec=False, ph_tol=None, ddk_tol=None,
+                         dde_tol=None):
     """
     Returns a :class:`AbinitInput` for performing phonon calculations.
     GS input + the input files for the phonon calculation.
     """
-    qpoints = gs_inp.abiget_ibz(ngkpt=(4,4,4), shiftk=(0,0,0), kptopt=1).points
-    #print("get_ibz qpoints:", qpoints)
+
+    if with_dde:
+        with_ddk = True
+
+    if with_bec:
+        with_ddk = True
+        with_dde = False
+
+    if ph_ngqpt is None:
+        qpoints = gs_inp.abiget_ibz().points
+    else:
+        qpoints = gs_inp.abiget_ibz(ngkpt=ph_ngqpt, shiftk=(0,0,0), kptopt=1).points
 
     # Build the input files for the q-points in the IBZ.
     # Response-function calculation for phonons.
-    ph_inputs = []
+    multi_ph = []
+    multi_ddk = None
+    multi_dde = None
+    multi_bec = None
     for qpt in qpoints:
-        q_inp = gs_inp.deepcopy()
-        #q_inp.pop_tolerances()
-        q_inp.set_vars(
-            rfphon=1,        # Will consider phonon-type perturbation
-            nqpt=1,          # One wavevector is to be considered
-            qpt=qpt,         # This wavevector is q=0 (Gamma)
-            #tolwfr=1.0e-20,
-            kptopt=3,        # One could used symmetries for Gamma.
-        )
-            #rfatpol   1 1   # Only the first atom is displaced
-            #rfdir   1 0 0   # Along the first reduced coordinate axis
-            #kptopt   2      # Automatic generation of k points, taking
-        #print(tmp_inp)
-        irred_perts = q_inp.abiget_irred_phperts()
+        if np.allclose(qpt, 0):
+            if with_ddk:
+                multi_ddk = gs_inp.make_ddk_inputs(ddk_tol)
+            if with_dde:
+                multi_dde = gs_inp.make_dde_inputs(dde_tol)
+            elif with_bec:
+                multi_bec = gs_inp.make_bec_inputs(ph_tol)
+                continue
 
-        for pert in irred_perts:
-            #print(pert)
-            # TODO this will work for phonons, but not for the other types of perturbations.
-            ph_inp = q_inp.deepcopy()
+        multi_ph_q = gs_inp.make_ph_inputs_qpoint(qpt, ph_tol)
+        multi_ph.extend(multi_ph_q)
 
-            rfdir = 3 * [0]
-            rfdir[pert.idir -1] = 1
+    multi_ph = MultiDataset.from_inputs(multi_ph)
+    ph_inputs = namedtuple('ph_inputs', 'multi_ph multi_ddk multi_dde multi_bec')
 
-            ph_inp.set_vars(
-                rfdir=rfdir,
-                rfatpol=[pert.ipert, pert.ipert]
-            )
+    out = ph_inputs(multi_ph, multi_ddk, multi_dde, multi_bec)
+    # for i in out:
+    #     if i:
+    #         for ii in i:
+    #             ii['kptopt'] = 3
 
-            ph_inputs.append(ph_inp)
-
-    #return MultiDataset.from_inputs(ph_inputs)
+    return out #ph_inputs(multi_ph, multi_ddk, multi_dde, multi_bec)
 
 
 def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=None, accuracy="normal",
@@ -702,7 +707,7 @@ def hybrid_oneshot_input(gsinput, functional="hse06", ecutsigx=None, gw_qprange=
 
 #FIXME if the pseudos are passed as a PseudoTable the whole table will be serialized,
 # it would be better to filter on the structure elements
-class InputFactory():
+class InputFactory(object):
     factory_function = None
     input_required = True
 
@@ -726,9 +731,13 @@ class InputFactory():
             abiinput = self.factory_function(previous_input, *self.args, **kwargs)
         else:
             abiinput = self.factory_function(*self.args, **kwargs)
-        for d in decorators:
-            abiinput = d(abiinput)
-        abiinput.set_vars(extra_abivars)
+
+        # Some factories can return list of inputs for flow generation. Do not support the addition of custom variables
+        #FIXME add this feature?
+        if not isinstance(abiinput, (list, tuple)):
+            for d in decorators:
+                abiinput = d(abiinput)
+            abiinput.set_vars(extra_abivars)
         return abiinput
 
     @pmg_serialize
@@ -757,3 +766,7 @@ class HybridOneShotFromGsFactory(InputFactory):
 class ScfFactory(InputFactory):
     factory_function = staticmethod(scf_input)
     input_required = False
+
+
+class PhononsFromGsFactory(InputFactory):
+    factory_function = staticmethod(phonons_from_gsinput)

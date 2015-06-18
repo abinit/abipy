@@ -665,6 +665,42 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
 
         return ddk_inputs
 
+    def make_dde_inputs(self, tolerance=None):
+        """
+        Return inputs for the calculation of the electric field perturbations.
+
+        This functions should be called with an input the represents a gs run.
+        """
+        if tolerance is None:
+            tolerance = {"tolvrs": 1.0e-10}
+
+        if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
+            raise self.Error("Invalid tolerance: %s" % tolerance)
+
+        # Call Abinit to get the list of irred perts.
+        perts = self.abiget_irred_ddeperts()
+
+        # Build list of datasets (one input per perturbation)
+        multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
+
+        # See tutorespfn/Input/trf1_5.in dataset 3
+        for pert, inp in zip(perts, multi):
+            rfdir = 3 * [0]
+            rfdir[pert.idir -1] = 1
+
+            inp.set_vars(
+                rfelfd=3,             # Activate the calculation of the electric field perturbation
+                rfdir=rfdir,          # Direction of the dde perturbation.
+                nqpt=1,               # One wavevector is to be considered
+                qpt=(0, 0, 0),        # q-wavevector.
+                kptopt=2,             # Take into account time-reversal symmetry.
+            )
+
+            inp.pop_tolerances()
+            inp.set_vars(tolerance)
+
+        return multi
+
     def make_bec_inputs(self, tolerance=None):
         """
         Return inputs for the calculation of the Born effective charges.
@@ -784,13 +820,14 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
             if report and report.errors: raise self.Error(str(report))
             raise self.Error("Problem in temp Task executed in %s\n%s" % (task.workdir, exc))
 
-    def abiget_irred_phperts(self, qpt=None, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
+    def _abiget_irred_perts(self, perts_vars, qpt=None, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
         """
         This function, computes the list of irreducible perturbations for DFPT.
         It should be called with an input file that contains all the mandatory variables required by ABINIT.
 
         Args:
-            qpt: qpoint of the phonon in reduced coordinates. Used to shift the k-mesh 
+            perts_vars: list of variables to be added to get the appropriate perturbation
+            qpt: qpoint of the phonon in reduced coordinates. Used to shift the k-mesh
                 if qpt is not passed, self must already contain "qpt" otherwise an exception is raised.
             ngkpt: Number of divisions for the k-mesh (default None i.e. use ngkpt from self)
             shiftk: Shiftks (default None i.e. use shiftk from self)
@@ -817,17 +854,15 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
         if shiftk is not None:
             shiftk = np.reshape(shiftk, (-1,3))
             inp.set_vars(shiftk=shiftk, nshiftk=len(inp.shiftk))
-                                                                 
-        if kptopt is not None: inp["kptopt"] = kptopt
 
         inp.set_vars(
-            rfphon=1,                         # Will consider phonon-type perturbation
             nqpt=1,                           # One wavevector is to be considered
             qpt=qpt,                          # q-wavevector.
-            rfatpol=[1, len(inp.structure)],  # Set of atoms to displace.
-            rfdir=[1, 1, 1],                  # Along this set of reduced coordinate axis.
             paral_rf=-1,                      # Magic value to get the list of irreducible perturbations for this q-point.
+            **perts_vars
         )
+
+        if kptopt is not None: inp["kptopt"] = kptopt
 
         # Build a Task to run Abinit in a shell subprocess
         task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
@@ -841,6 +876,64 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
             report = task.get_event_report()
             if report and report.errors: raise self.Error(str(report))
             raise self.Error("Problem in temp Task executed in %s\n%s" % (task.workdir, exc))
+
+    def abiget_irred_phperts(self, qpt=None, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
+        """
+        This function, computes the list of irreducible perturbations for DFPT.
+        It should be called with an input file that contains all the mandatory variables required by ABINIT.
+
+        Args:
+            qpt: qpoint of the phonon in reduced coordinates. Used to shift the k-mesh 
+                if qpt is not passed, self must already contain "qpt" otherwise an exception is raised.
+            ngkpt: Number of divisions for the k-mesh (default None i.e. use ngkpt from self)
+            shiftk: Shiftks (default None i.e. use shiftk from self)
+            kptopt: Option for k-point generation. If None, the value in self is used.
+            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
+            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
+
+        Returns:
+            List of dictionaries with the Abinit variables defining the irreducible perturbation
+            Example:
+
+                [{'idir': 1, 'ipert': 1, 'qpt': [0.25, 0.0, 0.0]},
+                 {'idir': 2, 'ipert': 1, 'qpt': [0.25, 0.0, 0.0]}]
+
+        """
+        phperts_vars = dict(rfphon=1,                         # Will consider phonon-type perturbation
+                            rfatpol=[1, len(self.structure)],  # Set of atoms to displace.
+                            rfdir=[1, 1, 1],                  # Along this set of reduced coordinate axis.
+                            )
+
+        return self._abiget_irred_perts(phperts_vars, qpt=qpt, ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
+                                        workdir=workdir, manager=manager)
+
+    def abiget_irred_ddeperts(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
+        """
+        This function, computes the list of irreducible perturbations for DFPT.
+        It should be called with an input file that contains all the mandatory variables required by ABINIT.
+
+        Args:
+            ngkpt: Number of divisions for the k-mesh (default None i.e. use ngkpt from self)
+            shiftk: Shiftks (default None i.e. use shiftk from self)
+            kptopt: Option for k-point generation. If None, the value in self is used.
+            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
+            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
+
+        Returns:
+            List of dictionaries with the Abinit variables defining the irreducible perturbation
+            Example:
+
+                [{'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
+                 {'idir': 2, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]}]
+
+        """
+        ddeperts_vars = dict(rfphon=0,           # No phonon-type perturbation
+                             rfelfd=3,           # Electric field
+                             kptopt=2,           # kpt time reversal symmetry
+                             )
+
+        return self._abiget_irred_perts(ddeperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
+                                        workdir=workdir, manager=manager)
 
     def abiget_autoparal_pconfs(self, max_ncpus, autoparal=1, workdir=None, manager=None):
         """Get all the possible configurations up to max_ncpus"""
@@ -1015,14 +1108,41 @@ class MultiDataset(object):
         if isattr: on_all = on_all()
         return on_all
 
+    def __add__(self, other):
+        if isinstance(other, AbinitInput):
+            new_mds = MultiDataset.from_inputs(self)
+            new_mds.append(other)
+            return new_mds
+        elif isinstance(other, MultiDataset):
+            new_mds = MultiDataset.from_inputs(self)
+            new_mds.extend(other)
+            return new_mds
+        else:
+            return NotImplemented
+
+    def __radd__(self, other):
+        if isinstance(other, AbinitInput):
+            new_mds = MultiDataset.from_inputs([other])
+            new_mds.extend(self)
+        elif isinstance(other, MultiDataset):
+            new_mds = MultiDataset.from_inputs(other)
+            new_mds.extend(self)
+        else:
+            return NotImplemented
+
     def append(self, abinit_input):
         """Add a :class:`AbinitInput` to the list."""
         assert isinstance(abinit_input, AbinitInput)
+        if any(p1 != p2 for p1, p2 in zip(inputs[0].pseudos, abinit_input.pseudos)):
+            raise ValueError("Pseudos must be consistent when from_inputs is invoked.")
         self._inputs.append(abinit_input)
 
     def extend(self, abinit_inputs):
         """Extends self with a list of :class:`AbinitInput` objects."""
         assert all(isinstance(inp, AbinitInput) for inp in abinit_inputs)
+        for inp in abinit_inputs:
+            if any(p1 != p2 for p1, p2 in zip(self[0].pseudos, inp.pseudos)):
+                raise ValueError("Pseudos must be consistent when from_inputs is invoked.")
         self._inputs.extend(abinit_inputs)
 
     def addnew_from(self, dtindex):
