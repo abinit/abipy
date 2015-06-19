@@ -102,8 +102,8 @@ class InputFWWorkflow(AbstractFWWorkflow):
 
         self.fw = Firework(abitask, spec=spec)
 
-        #self.wf = Workflow([self.fw])
-        Workflow.__init__([self.fw])
+        self.wf = Workflow([self.fw])
+        # Workflow.__init__([self.fw])
 
 
 class ScfFWWorkflow(AbstractFWWorkflow):

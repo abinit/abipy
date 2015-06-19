@@ -30,6 +30,7 @@ from abipy.core.mixins import Has_Structure
 from abipy.htc.variable import InputVariable
 from abipy.abio.abivars import is_abivar, is_anaddb_var
 from abipy.abio.abivars_db import get_abinit_variables
+from abipy.abio.input_tags import *
 
 import logging
 logger = logging.getLogger(__file__)
@@ -168,7 +169,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
     """
     Error = AbinitInputError
 
-    def __init__(self, structure, pseudos, pseudo_dir=None, comment=None, decorators=None, abi_args=None, abi_kwargs=None):
+    def __init__(self, structure, pseudos, pseudo_dir=None, comment=None, decorators=None, abi_args=None,
+                 abi_kwargs=None, tags=None):
         """
         Args:
             structure: Parameters defining the crystalline structure. Accepts :class:`Structure` object 
@@ -181,6 +183,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
             decorators: List of `AbinitInputDecorator` objects.
             abi_args: list of tuples (key, value) with the initial set of variables. Default: Empty
             abi_kwargs: Dictionary with the initial set of variables. Default: Empty
+            tags: list/set of tags describing the input
         """
         # Internal dict with variables. we use an ordered dict so that 
         # variables will be likely grouped by `topics` when we fill the input.
@@ -214,6 +217,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
 
         self._decorators = [] if not decorators else decorators
 
+        self.tags = set() if not tags else set(tags)
+
     @pmg_serialize
     def as_dict(self):
         #vars = OrderedDict()
@@ -228,7 +233,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
                     pseudos=[p.as_dict() for p in self.pseudos], 
                     comment=self.comment,
                     decorators=[dec.as_dict() for dec in self.decorators],
-                    abi_args=abi_args)
+                    abi_args=abi_args,
+                    tags=list(self.tags))
 
     @property
     def vars(self):
@@ -239,7 +245,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
         pseudos = [Pseudo.from_file(p['filepath']) for p in d['pseudos']]
         dec = MontyDecoder()
         return cls(d["structure"], pseudos, decorators=dec.process_decoded(d["decorators"]),
-                   comment=d["comment"], abi_args=d["abi_args"])
+                   comment=d["comment"], abi_args=d["abi_args"], tags=d["tags"])
 
     def _check_varname(self, key):
         if not is_abivar(key):
@@ -273,6 +279,67 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
     #    if optdriver is None: optdriver = 0
 
     #    # At this point we have to understand the type of calculation.
+
+    @property
+    def runlevel(self):
+        """
+        A Set of strings defining the type of run of the current input.
+        """
+        optdriver = self.get("optdriver")
+
+        if optdriver is None:
+            if self.get("rfddk") or self.get("rfelfd") or self.get("rfphon") or self.get("rfstrs"):
+                optdriver = 1
+            else:
+                optdriver = 0
+
+        runlevel = set()
+        if optdriver == 0:
+            runlevel.add(GROUND_STATE)
+            iscf = self.get("iscf", 17 if self.pseudos[0].ispaw else 7)
+            ionmov = self.get("ionmov", 0)
+            optcell = self.get("optcell", 0)
+            if ionmov == 0:
+                if iscf < -1:
+                    runlevel.add(NSCF)
+                    if self.get("kptbounds") is not None:
+                        runlevel.add(BANDS)
+                else:
+                    runlevel.add(SCF)
+            elif ionmov in (2, 3, 4, 5, 7, 10, 11, 20):
+                runlevel.add(RELAX)
+                if optcell == 0:
+                    runlevel.add(ION_RELAX)
+                else:
+                    runlevel.add(IONCELL_RELAX)
+            elif ionmov in [1, 6, 8, 9, 12, 13, 14, 23]:
+                runlevel.add(MOLECULAR_DYNACMICS)
+        elif optdriver == 1:
+            runlevel.add(DFPT)
+            rfelfd = self.get("rfelfd")
+            rfphon = self.get("rfphon")
+            if self.get("rfddk") == 1 or rfelfd == 2:
+                runlevel.add(DDK)
+            elif rfelfd == 3:
+                if rfphon == 1:
+                    runlevel.add(BEC)
+                else:
+                    runlevel.add(DDE)
+            elif rfphon == 1:
+                runlevel.add(PH_Q_PERT)
+            elif self.get("rfstrs ") > 0:
+                runlevel.add(STRAIN)
+        elif optdriver == 3:
+            runlevel.update([MANY_BODY, SCREENING])
+        elif optdriver == 4:
+            runlevel.update([MANY_BODY, SIGMA])
+            gwcalctyp = self.get("gwcalctyp")
+            if gwcalctyp > 100:
+                runlevel.add(HYBRID)
+        elif optdriver == 99:
+            runlevel.update([MANY_BODY, BSE])
+
+        return runlevel
 
     @property
     def decorators(self):
@@ -958,6 +1025,29 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
             if report and report.errors: raise self.Error(str(report))
             raise self.Error("Problem in temp Task executed in %s\n%s" % (task.workdir, exc))
 
+    def add_tags(self, tags):
+        """
+        Add tags to the input
+        Args:
+            tags: A single tag or list/tuple/set of tags
+        """
+        if isinstance(tags, (list, tuple, set)):
+            self.tags.update(tags)
+        else:
+            self.tags.add(tags)
+
+    def remove_tags(self, tags):
+        """
+        Remove tags from the input
+        Args:
+            tags: A single tag or list/tuple/set of tags
+        """
+        print(tags)
+        if isinstance(tags, (list, tuple, set)):
+            self.tags.difference_update(tags)
+        else:
+            self.tags.discard(tags)
+
 
 class MultiDataset(object):
     """
@@ -1001,6 +1091,7 @@ class MultiDataset(object):
         for inp, new_inp in zip(inputs, multi):
             new_inp.set_vars(**inp)
             new_inp._decorators = inp.decorators
+            new_inp.tags = set(inp.tags)
 
         return multi
 
@@ -1011,6 +1102,7 @@ class MultiDataset(object):
 
         for inp in multi: 
             inp.set_vars({k: v for k, v in input.items()})
+            inp.tags = set(input.tags)
 
         return multi
 
@@ -1133,7 +1225,7 @@ class MultiDataset(object):
     def append(self, abinit_input):
         """Add a :class:`AbinitInput` to the list."""
         assert isinstance(abinit_input, AbinitInput)
-        if any(p1 != p2 for p1, p2 in zip(inputs[0].pseudos, abinit_input.pseudos)):
+        if any(p1 != p2 for p1, p2 in zip(abinit_input.pseudos, abinit_input.pseudos)):
             raise ValueError("Pseudos must be consistent when from_inputs is invoked.")
         self._inputs.append(abinit_input)
 
@@ -1194,6 +1286,53 @@ class MultiDataset(object):
     #    """Interactive prompt"""
     #    #return dir(self) + dir(self._inputs[0])
     #    return dir(self._inputs[0])
+
+    def filter_by_tags(self, tags):
+        """
+        Filters the input according to the tags
+        Args:
+            tags: A single tag or list/tuple/set of tags
+        Returns:
+            A multidata containing the inputs containing all the requested tags
+        """
+        if isinstance(tags, (list, tuple, set)):
+            tags = set(tags)
+        elif not isinstance(tags, set):
+            tags = {tags}
+
+        inputs = [i for i in self if tags.issubset(i.tags)]
+
+        return MultiDataset.from_inputs(inputs) if inputs else None
+
+    def add_tags(self, tags, dtindeces=None):
+        """
+        Add tags to the selected inputs
+        Args:
+            tags: A single tag or list/tuple/set of tags
+            dtindeces: a list of indices to which the tags will be added. None=all the inputs.
+        """
+        for i in dtindeces if dtindeces else range(len(self)):
+            self[i].add_tags(tags)
+
+    def remove_tags(self, tags, dtindeces=None):
+        """
+        Remove tags from the selected inputs
+        Args:
+            tags: A single tag or list/tuple/set of tags
+            dtindeces: a list of indices from which the tags will be removed. None=all the inputs.
+        """
+        for i in dtindeces if dtindeces else range(len(self)):
+            self[i].remove_tags(tags)
+
+    def filter_by_runlevel(self, runlevel):
+        if isinstance(runlevel, (list, tuple, set)):
+            runlevel = set(runlevel)
+        elif not isinstance(runlevel, set):
+            runlevel = {runlevel}
+
+        inputs = [i for i in self if runlevel.issubset(i.runlevel)]
+
+        return MultiDataset.from_inputs(inputs) if inputs else None
 
 
 class AnaddbInputError(Exception):

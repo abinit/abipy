@@ -11,6 +11,7 @@ from monty.json import jsanitize, MontyDecoder
 from pymatgen.io.abinitio.pseudos import PseudoTable
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
+from abipy.abio.input_tags import *
 
 import logging
 from pymatgen.serializers.json_coders import pmg_serialize
@@ -586,33 +587,31 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, with_ddk=True, with_dde=True, wi
 
     # Build the input files for the q-points in the IBZ.
     # Response-function calculation for phonons.
-    multi_ph = []
-    multi_ddk = None
-    multi_dde = None
-    multi_bec = None
+    multi = []
     for qpt in qpoints:
         if np.allclose(qpt, 0):
             if with_ddk:
                 multi_ddk = gs_inp.make_ddk_inputs(ddk_tol)
+                multi_ddk.add_tags(DDK)
+                multi.extend(multi_ddk)
             if with_dde:
                 multi_dde = gs_inp.make_dde_inputs(dde_tol)
+                multi_dde.add_tags(DDE)
+                multi.extend(multi_dde)
             elif with_bec:
                 multi_bec = gs_inp.make_bec_inputs(ph_tol)
+                multi_bec.add_tags(BEC)
+                multi.extend(multi_bec)
                 continue
 
         multi_ph_q = gs_inp.make_ph_inputs_qpoint(qpt, ph_tol)
-        multi_ph.extend(multi_ph_q)
+        multi_ph_q.add_tags(PH_Q_PERT)
+        multi.extend(multi_ph_q)
 
-    multi_ph = MultiDataset.from_inputs(multi_ph)
-    ph_inputs = namedtuple('ph_inputs', 'multi_ph multi_ddk multi_dde multi_bec')
+    multi = MultiDataset.from_inputs(multi)
+    multi.add_tags(PHONON)
 
-    out = ph_inputs(multi_ph, multi_ddk, multi_dde, multi_bec)
-    # for i in out:
-    #     if i:
-    #         for ii in i:
-    #             ii['kptopt'] = 3
-
-    return out #ph_inputs(multi_ph, multi_ddk, multi_dde, multi_bec)
+    return multi
 
 
 def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=None, accuracy="normal",
@@ -732,12 +731,10 @@ class InputFactory(object):
         else:
             abiinput = self.factory_function(*self.args, **kwargs)
 
-        # Some factories can return list of inputs for flow generation. Do not support the addition of custom variables
-        #FIXME add this feature?
-        if not isinstance(abiinput, (list, tuple)):
-            for d in decorators:
-                abiinput = d(abiinput)
-            abiinput.set_vars(extra_abivars)
+        for d in decorators:
+            abiinput = d(abiinput)
+        abiinput.set_vars(extra_abivars)
+
         return abiinput
 
     @pmg_serialize

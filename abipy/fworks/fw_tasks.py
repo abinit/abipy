@@ -37,6 +37,7 @@ from monty.json import MontyEncoder, MontyDecoder
 from monty.serialization import loadfn
 from abipy.abio.factories import InputFactory
 from abipy.abio.inputs import AbinitInput
+from abipy.abio.input_tags import *
 from abipy.core import Structure
 
 import abipy.abilab as abilab
@@ -1321,20 +1322,26 @@ class GeneratePhononFlowFWTask(BasicTaskMixin, FireTaskBase):
         initialization_info['input_factory'] = self.phonon_factory.as_dict()
         new_spec = dict(previous_fws=fw_spec['previous_fws'], initialization_info=initialization_info)
 
-        ph_fws = self.get_fws(ph_inputs.multi_ph, PhononTask, {self.previous_task_type: "WFK"}, new_spec)
+        ph_q_pert_inputs = ph_inputs.filter_by_tags(PH_Q_PERT)
+        ddk_inputs = ph_inputs.filter_by_tags(DDK)
+        dde_inputs = ph_inputs.filter_by_tags(DDE)
+        bec_inputs = ph_inputs.filter_by_tags(BEC)
+
+        if ph_q_pert_inputs:
+            ph_fws = self.get_fws(ph_q_pert_inputs, PhononTask, {self.previous_task_type: "WFK"}, new_spec)
 
         ddk_fws = []
-        if ph_inputs.multi_ddk:
-            ddk_fws = self.get_fws(ph_inputs.multi_ddk, DdkTask, {self.previous_task_type: "WFK"}, new_spec)
+        if ddk_inputs:
+            ddk_fws = self.get_fws(ddk_inputs, DdkTask, {self.previous_task_type: "WFK"}, new_spec)
 
         dde_fws = []
-        if ph_inputs.multi_dde:
-            dde_fws = self.get_fws(ph_inputs.multi_dde, DdeTask,
+        if dde_inputs:
+            dde_fws = self.get_fws(dde_inputs, DdeTask,
                                    {self.previous_task_type: "WFK", DdkTask.task_type: "DDK"}, new_spec)
 
         bec_fws = []
-        if ph_inputs.multi_bec:
-            bec_fws = self.get_fws(ph_inputs.multi_bec, BecTask,
+        if bec_inputs:
+            bec_fws = self.get_fws(bec_inputs, BecTask,
                                    {self.previous_task_type: "WFK", DdkTask.task_type: "DDK"}, new_spec)
 
         mrgddb_fw = Firework(MergeDdbTask(), spec=new_spec)
