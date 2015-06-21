@@ -733,6 +733,9 @@ class AbiFireTask(BasicTaskMixin, FireTaskBase):
         # set quadapter specification. Note that mpi_ncpus may be different from ntasks
         new_spec['_queueadapter'] = qadapter_spec
         new_spec['mpi_ncpus'] = optconf['mpi_ncpus']
+        if 'wf_task_index' in fw_spec:
+            split = fw_spec['wf_task_index'].split('_')
+            new_spec['wf_task_index'] = '{}_{:d}'.format('_'.join(split[:-1]), 1)
         new_fw = Firework([task], new_spec)
 
         return FWAction(detours=new_fw)
@@ -1527,7 +1530,7 @@ class TaskHistory(collections.deque, PMGSONable):
         self.append(TaskEvent('corrections', corrections))
 
     def log_restart(self, restart_info, local_restart=False):
-        self.append(TaskEvent('restart', details=restart_info, local_restart=local_restart))
+        self.append(TaskEvent('restart', details=dict(restart_info=restart_info, local_restart=local_restart)))
 
     def log_autoparal(self, optconf):
         self.append(TaskEvent('autoparal', details={'optconf': optconf}))
@@ -1552,7 +1555,7 @@ class TaskHistory(collections.deque, PMGSONable):
         event_details = dict(stacktrace=tb)
         # If the exception is serializable, save its details
         try:
-            exception_details = e.to_dict()
+            exception_details = exc.to_dict()
         except AttributeError:
             exception_details = None
         except BaseException as e:

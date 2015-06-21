@@ -138,17 +138,18 @@ class RelaxFWWorkflow(AbstractFWWorkflow):
     workflow_module = 'abipy.fworks.fw_workflows'
 
     def __init__(self, ion_input, ioncell_input, autoparal=False, spec={}, initialization_info={}, target_dilatmx=None):
-
+        start_task_index = 1
         spec = dict(spec)
         spec['initialization_info'] = initialization_info
         if autoparal:
             spec = self.set_short_single_core_to_spec(spec)
+            start_task_index = 'autoparal'
 
-        spec['wf_task_index'] = 'ion_1'
+        spec['wf_task_index'] = 'ion_' + str(start_task_index)
         ion_task = RelaxFWTask(ion_input, is_autoparal=autoparal)
         self.ion_fw = Firework(ion_task, spec=spec)
 
-        spec['wf_task_index'] = 'ioncell_1'
+        spec['wf_task_index'] = 'ioncell_' + str(start_task_index)
         if target_dilatmx:
             ioncell_task = RelaxDilatmxFWTask(ioncell_input, is_autoparal=autoparal, target_dilatmx=target_dilatmx)
         else:
@@ -168,7 +169,11 @@ class RelaxFWWorkflow(AbstractFWWorkflow):
         final_fw_id = None
         for fw_id, fw in wf.id_fw.items():
             if 'wf_task_index' in fw.spec and fw.spec['wf_task_index'][:8] == 'ioncell_':
-                this_ioncell =  int(fw.spec['wf_task_index'].split('_')[-1])
+                try:
+                    this_ioncell =  int(fw.spec['wf_task_index'].split('_')[-1])
+                except ValueError:
+                    # skip if the index is not an int
+                    continue
                 if this_ioncell > ioncell:
                     ioncell = this_ioncell
                     final_fw_id = fw_id
@@ -181,7 +186,7 @@ class RelaxFWWorkflow(AbstractFWWorkflow):
         myfw.tasks[-1].set_workdir(workdir=last_launch.launch_dir)
         structure = myfw.tasks[-1].get_final_structure()
         history = loadfn(os.path.join(last_launch.launch_dir, 'history.json'))
-        print(structure.as_dict())
+
         return {'structure': structure.as_dict(), 'history': history}
 
     @classmethod
