@@ -1282,13 +1282,13 @@ class GeneratePhononFlowFWTask(BasicTaskMixin, FireTaskBase):
         self.handlers = handlers
         self.with_autoparal=with_autoparal
 
-    def get_fws(self, multi_inp, task_class, deps, new_spec):
+    def get_fws(self, multi_inp, task_class, deps, new_spec, ftm):
         new_spec = dict(new_spec)
         formula = multi_inp[0].structure.composition.reduced_formula
         fws = []
         for i, inp in enumerate(multi_inp):
             if self.with_autoparal:
-                autoparal_dir = os.path.join(os.path.abspath('.'), "autoparal_ph_{}".format("_"+str(i) if i else ""))
+                autoparal_dir = os.path.join(os.path.abspath('.'), "autoparal_{}_{}".format(task_class.__name__, str(i)))
                 optconf, qadapter_spec = self.run_autoparal(inp, autoparal_dir, ftm)
                 new_spec['_queueadapter'] = qadapter_spec
                 new_spec['mpi_ncpus'] = optconf['mpi_ncpus']
@@ -1331,21 +1331,21 @@ class GeneratePhononFlowFWTask(BasicTaskMixin, FireTaskBase):
         bec_inputs = ph_inputs.filter_by_tags(BEC)
 
         if ph_q_pert_inputs:
-            ph_fws = self.get_fws(ph_q_pert_inputs, PhononTask, {self.previous_task_type: "WFK"}, new_spec)
+            ph_fws = self.get_fws(ph_q_pert_inputs, PhononTask, {self.previous_task_type: "WFK"}, new_spec, ftm)
 
         ddk_fws = []
         if ddk_inputs:
-            ddk_fws = self.get_fws(ddk_inputs, DdkTask, {self.previous_task_type: "WFK"}, new_spec)
+            ddk_fws = self.get_fws(ddk_inputs, DdkTask, {self.previous_task_type: "WFK"}, new_spec, ftm)
 
         dde_fws = []
         if dde_inputs:
             dde_fws = self.get_fws(dde_inputs, DdeTask,
-                                   {self.previous_task_type: "WFK", DdkTask.task_type: "DDK"}, new_spec)
+                                   {self.previous_task_type: "WFK", DdkTask.task_type: "DDK"}, new_spec, ftm)
 
         bec_fws = []
         if bec_inputs:
             bec_fws = self.get_fws(bec_inputs, BecTask,
-                                   {self.previous_task_type: "WFK", DdkTask.task_type: "DDK"}, new_spec)
+                                   {self.previous_task_type: "WFK", DdkTask.task_type: "DDK"}, new_spec, ftm)
 
         mrgddb_fw = Firework(MergeDdbTask(), spec=new_spec)
 
