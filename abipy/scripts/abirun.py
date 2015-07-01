@@ -439,8 +439,8 @@ Specify the files to open. Possible choices:
         # Read the new manager from file.
         new_manager = abilab.TaskManager.from_file(options.manager_file)
 
-        # Default status for reset is QCritical
-        if options.task_status: options.task_status = Status.as_status("QCritical")
+        # Default status for new_manager is QCritical
+        if options.task_status is None: options.task_status = Status.as_status("QCritical")
 
         # Change the manager of the errored tasks.
         print("Resetting tasks with status: %s" % options.task_status)
@@ -613,7 +613,7 @@ Specify the files to open. Possible choices:
 
     elif options.command == "reset":
         # Default status for reset is QCritical
-        if options.task_status: options.task_status = Status.as_status("QCritical")
+        if options.task_status is None: options.task_status = Status.as_status("QCritical")
         print("Will reset tasks with status: %s" % options.task_status)
 
         count = 0
@@ -656,7 +656,7 @@ Specify the files to open. Possible choices:
             return getattr(choices[options.what_tail], "path")
 
         # Default status for tail is Running
-        if options.status is None: status = Status.as_status("Running")
+        if options.task_status is None: options.task_status = Status.as_status("Running")
 
         paths = [get_path(task) for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options))]
 
