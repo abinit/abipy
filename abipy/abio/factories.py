@@ -644,7 +644,7 @@ def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None
     # Set the cutoff energies.
     gs_inp.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, gs_inp.pseudos))
 
-    ksampling = aobj.KSampling.automatic_density(gs_inp.structure, kppa, chksymbreak=0)
+    ksampling = aobj.KSampling.automatic_density(gs_inp.structure, kppa, chksymbreak=0, shifts=(0.0, 0.0, 0.0))
     gs_inp.set_vars(ksampling.to_abivars())
     gs_inp.set_vars(tolvrs=1.0e-18)
 
@@ -670,13 +670,13 @@ def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None
     ddk_inp.set_vars(ddk_tol)
 
     ddk_inp.add_tags(DDK)
-    all_inps.extend(ddk_inp)
+    all_inps.append(ddk_inp)
 
     # Add the Response Function calculation
     rf_inp = gs_inp.deepcopy()
 
     rf_inp.set_vars(rfphon=1,                          # Atomic displacement perturbation
-                    rfatpol=(1,gs_inp.vars["natom"]),  # Perturbation of all atoms
+                    rfatpol=(1,len(gs_inp.structure)), # Perturbation of all atoms
                     rfstrs=3,                          # Do the strain perturbations
                     rfdir=(1,1,1),                     # All directions
                     nqpt=1,                            # One wavevector is to be considered
@@ -694,7 +694,7 @@ def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None
     rf_inp.set_vars(rf_tol)
 
     rf_inp.add_tags([DFPT, STRAIN])
-    all_inps.extend(rf_inp)
+    all_inps.append(rf_inp)
 
     return all_inps
 
