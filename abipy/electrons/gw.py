@@ -733,7 +733,11 @@ class SigresPlotter(Iterable):
             `matplotlib` figure
         """
         spin_range = range(self.nsppol) if spin is None else torange(spin)
-        kpoints_for_plot = self.computed_gwkpoints  #if kpoint is None else KpointList.as_kpoints(kpoint)
+
+        if kpoint is None:
+            kpoints_for_plot = self.computed_gwkpoints  #if kpoint is None else KpointList.as_kpoints(kpoint)
+        else:
+            kpoints_for_plot = np.reshape(kpoint, (-1, 3))
 
         self.prepare_plot()
 
@@ -770,7 +774,10 @@ class SigresPlotter(Iterable):
         """
         spin_range = range(self.nsppol) if spin is None else torange(spin)
         band_range = range(self.max_gwbstart, self.min_gwbstop) if band is None else torange(band)
-        kpoints_for_plot = self.computed_gwkpoints #if kpoint is None else KpointList.askpoints(kpoint)
+        if kpoint is None:
+            kpoints_for_plot = self.computed_gwkpoints 
+        else:
+            kpoints_for_plot = np.reshape(kpoint, (-1, 3))
 
         self.prepare_plot()
 

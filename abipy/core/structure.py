@@ -72,19 +72,20 @@ class Structure(pymatgen.Structure):
         Returns:
             :class:`Structure` object
         """
-        if filepath.endswith(".nc"):
-            from pymatgen.io.abinitio.netcdf import as_etsfreader
-            file, closeit = as_etsfreader(filepath)
-
-            new = file.read_structure(cls=cls)
-            new.set_spacegroup(SpaceGroup.from_file(file))
-            if closeit: file.close()
-
-        elif filepath.endswith("_HIST") or filepath.endswith("_HIST.nc"):
+        if filepath.endswith("_HIST") or filepath.endswith("_HIST.nc"):
             # Abinit history file. In this case we return the last structure!
+            # Note that HIST does not follow the etsf-io conventions.
             from abipy.dynamics.hist import HistFile
             with HistFile(filepath) as hist:
                 return hist.structures[-1]
+
+        elif filepath.endswith(".nc"):
+            from pymatgen.io.abinitio.netcdf import as_etsfreader
+            file, closeit = as_etsfreader(filepath)
+                                                                  
+            new = file.read_structure(cls=cls)
+            new.set_spacegroup(SpaceGroup.from_file(file))
+            if closeit: file.close()
 
         else:
             # TODO: Spacegroup is missing here.

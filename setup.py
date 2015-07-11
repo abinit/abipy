@@ -122,7 +122,7 @@ def find_package_data():
 
 def find_exclude_package_data():
     package_data = {
-        'abipy.data' : ["managers", 'benchmarks','runs/flow_*'],
+        'abipy.data' : ["managers", 'benchmarks','runs/flow_*','runs/gspert'],
     }
     return package_data
 

@@ -65,7 +65,7 @@ def itest_gbrv_flow(fwp, tvars):
 
     #pseudo = "si_pbe_v1_abinit.paw"
     pseudo = abidata.pseudo("Si.GGA_PBE-JTH-paw.xml").as_tmpfile()
-    ecut = 2
+    ecut = 4
     pawecutdg = 2 * ecut if pseudo.ispaw else None
 
     flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager)
