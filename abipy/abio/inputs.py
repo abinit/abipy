@@ -1421,6 +1421,22 @@ class AnaddbInput(AbstractInput, Has_Structure):
 
         return new
 
+    @classmethod
+    def piezo_elastic(cls, structure, anaddb_args=None, anaddb_kwargs=None):
+        new = cls(structure, comment="ANADB input for piezoelectric and elastic tensor calculation",
+                  anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
+
+        new.set_vars(
+            elaflag=3,
+            piezoflag=3,
+            instrflag=1,
+            chneut=1,
+            asr=0,
+            symdynmat=1
+        )
+
+        return new
+
     #@classmethod
     #def phbands(cls, structure, ngqpt, nqsmall, q1shft=(0,0,0), asr=2, chneut=0, dipdip=1, 
     #           anaddb_args=None, anaddb_kwargs=None):
