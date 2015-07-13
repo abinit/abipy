@@ -697,7 +697,7 @@ def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None
     rf_inp.add_tags([DFPT, STRAIN])
     all_inps.append(rf_inp)
 
-    return all_inps
+    return MultiDataset.from_inputs(all_inps)
 
 
 def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=None, accuracy="normal",
