@@ -1,0 +1,75 @@
+# Hardware specification.
+westmere: &westmere
+   num_nodes: 274
+   sockets_per_node: 2
+   cores_per_socket: 6
+   mem_per_node: 24 Gb
+
+ivybridge: &ivybridge
+   num_nodes: 342
+   sockets_per_node: 2
+   cores_per_socket: 12
+   mem_per_node: 64 Gb # So that we can increase the memory 
+
+# Environment, modules, and parameters used to launch jobs.
+job: &job
+    mpi_runner: mpirun
+    shell_env:
+         PATH: /home/acad/ucl-naps/ygillet/abinit/gmatteo-7.11.5-private/build/src/98_main/:$PATH
+    modules:
+        - compiler/intel/composerxe/2013_sp1.1.106
+        - intelmpi
+        - python/2.7
+    pre_run: |
+        ulimit -s unlimited  # pre_run is a string in verbatim mode (note |)
+
+policy:
+   frozen_timeout: 0-12:0:0
+
+# List of qdapters. 
+qadapters:
+  # Westmere default.
+  - priority: 100
+    queue: 
+       qname: main
+       qtype: pbspro
+       qparams:
+         group_list: napsimu
+         qverbatim: |
+           #PBS -r y
+    limits:
+       timelimit: 0-0:00:30
+       timelimit_hard: 4:00:0
+       min_cores: 1
+       max_cores: 24
+       hint_cores: 12
+    job: *job
+    hardware: *westmere 
+  
+  # Ivybridge large.
+  - priority: 0
+    queue: 
+       qname: large
+       qtype: pbspro
+       qparams:
+          group_list: napsimu
+          qverbatim: |
+            #PBS -r y
+    limits:
+       timelimit: 0-0:00:30
+       timelimit_hard: 24:00:0
+       min_cores: 96
+       max_cores: 192  
+       hint_cores: 150 # So that I'll try to increase memory if needed
+    job: *job
+    hardware: *ivybridge
+
+# Connection to the MongoDb database (optional) 
+db_connector:
+    enabled: no
+    database: abinit 
+    collection: test
+    #host: 0.0.0.0 
+    #port: 8080 
+    #user: gmatteo
+    #password: helloworld
