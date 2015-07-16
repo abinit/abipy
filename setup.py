@@ -239,4 +239,28 @@ setup_args = dict(
 
 if __name__ == "__main__":
     setup(**setup_args)
+
+    print('!! Please read the following if you are about to use abipy for the first time: !!')
+    print('1 :'
+          ''
+          'abipy needs to know about the cluster / computer you are running on this infomation'
+          'is provided via the manager.yml and scheduler.yml files. These files need to be located'
+          'in ~/.abinit/abipy or in the working directory. Examples are provided in '
+          'abipy/data/managers'
+          ''
+          '2:'
+          ''
+          'If you are completely new to abipy you could follow the lessons. The simplest way is to'
+          'move to an empty working folder, start an ipython session and type:'
+          ''
+          'from abipy.lessons.lesson_kpoint_convergence import Lesson()'
+          ''
+          'followed by:'
+          ''
+          'Lesson()'
+          ''
+          'This will print the lessons text and further instructions'
+          ''
+          'have fun')
+
     cleanup()
