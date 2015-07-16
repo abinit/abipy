@@ -9,8 +9,10 @@ import collections
 
 from time import ctime
 from monty.os.path import which
+from monty.string import is_string
 from monty.functools import lazy_property
 from pymatgen.io.abinitio.events import EventsParser
+from pymatgen.io.abinitio.abiinspect import GroundStateScfCycle, D2DEScfCycle, Relaxation
 from pymatgen.io.abinitio.abitimer import AbinitTimerParser
 
 
@@ -130,14 +132,79 @@ class AbinitTextFile(TextFile):
 class AbinitInputFile(TextFile):
     """Class representing the input file."""
 
+class AbinitLogFile(AbinitTextFile):
+    """Class representing the log file."""
+
 
 class AbinitOutputFile(AbinitTextFile):
     """Class representing the main output file."""
 
+    def next_gs_scf_cycle(self):
+        """Return the next :class:`GroundStateScfCycle` in the file. None if not found."""
+        return GroundStateScfCycle.from_stream(self)
 
-class AbinitLogFile(AbinitTextFile):
-    """Class representing the log file."""
+    def next_d2de_scf_cycle(self):
+        """:class:`GroundStateScfCycle` with information on the GS iterations. None if not found."""
+        return D2DEScfCycle.from_stream(self)
 
+    def compare_gs_scf_cycles(self, others, show=True):
+        """
+        Produce and returns a list of `matplotlib` figure comparing the GS self-consistent 
+        cycle in self with the ones in others.
+
+        Args:
+            others: list of `AbinitOutputFile` objects or strings with paths to output files.
+            show: True to diplay plots.
+        """
+        for i, other in enumerate(others):
+            if is_string(other): others[i] = self.__class__.from_file(other)
+        
+        fig, figures = None, []
+        while True:
+            cycle = self.next_gs_scf_cycle()
+            if cycle is None: break 
+
+            fig = cycle.plot(show=False)
+            for i, other in enumerate(others):
+                other_cycle = other.next_gs_scf_cycle()
+                if other_cycle is None: break
+                last = (i == len(others) - 1)
+                fig = other_cycle.plot(fig=fig, show=show and last)
+                if last: figures.append(fig)
+
+        self.seek(0)
+        for other in others: other.seek(0)
+        return figures
+
+    def compare_d2de_scf_cycles(self, others, show=True):
+        """
+        Produce and returns a `matplotlib` figure comparing the DFPT self-consistent 
+        cycle in self with the ones in others.
+                                                                                                   
+        Args:
+            others: list of `AbinitOutputFile` objects or strings with paths to output files.
+            show: True to diplay plots.
+        """
+        for i, other in enumerate(others):
+            if is_string(other): others[i] = self.__class__.from_file(other)
+
+        fig, figures = None, []
+        while True:
+            cycle = self.next_d2de_scf_cycle()
+            if cycle is None: break 
+
+            fig = cycle.plot(show=False)
+            for i, other in enumerate(others):
+                other_cycle = other.next_d2de_scf_cycle()
+                if other_cycle is None: break
+                last = (i == len(others) - 1)
+                fig = other_cycle.plot(fig=fig, show=show and last)
+                if last: figures.append(fig)
+
+        self.seek(0)
+        for other in others: other.seek(0)
+        return figures
+                                                                                                   
 
 @six.add_metaclass(abc.ABCMeta)
 class AbinitNcFile(_File):

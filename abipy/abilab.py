@@ -6,7 +6,7 @@ from __future__ import print_function, division, unicode_literals
 from monty.os.path import which
 from pymatgen.core.units import *
 from pymatgen.io.abinitio.eos import EOS
-from pymatgen.io.abinitio.pseudos import PseudoTable
+from pymatgen.io.abinitio.pseudos import Pseudo, PseudoTable
 from pymatgen.io.abinitio.wrappers import Mrgscr, Mrgddb, Mrggkk
 from pymatgen.io.abinitio.tasks import *
 from pymatgen.io.abinitio.works import *
@@ -27,6 +27,7 @@ from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
 from abipy.abio.factories import *
 from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter, SigresPlotter
 from abipy.electrons.gsr import GsrFile
+from abipy.electrons.psps import PspsFile
 from abipy.electrons.gw import SigresFile, SigresPlotter 
 from abipy.electrons.bse import MdfFile
 from abipy.electrons.scissors import ScissorsBuilder
@@ -65,7 +66,8 @@ def abifile_subclass_from_filename(filename):
         "PHBST.nc": PhbstFile,
         "PHDOS.nc": PhdosFile,
         "DDB": DdbFile,
-        "HIST": HistFile,
+        "HIST.nc": HistFile,
+        "PSPS.nc": PspsFile,
     }
 
     # Abinit text files.
@@ -84,12 +86,13 @@ def abifile_subclass_from_filename(filename):
         for ext, cls in ext2ncfile.items():
             if filename.endswith(ext): return cls
 
-        raise ValueErro("No class has been registered for filename %s" % filename)
+        raise ValueError("No class has been registered for filename %s" % filename)
 
 
 def abiopen(filepath):
     """
     Factory function that opens any file supported by abipy.
+    File type is detected from the extension
 
     Args:
         filepath: string with the filename. 

@@ -1170,7 +1170,7 @@
     definition: BanD for second-order EIGenvalues from Response-Function
     dimensions: scalar
     excludes: null
-    requires: '[[ieig2rf]] in [1,2,3,4]'
+    requires: '[[ieig2rf]] in [1,2,3,4,5]'
     section: varrf
     text: |-
         <p>
@@ -1956,6 +1956,46 @@
     - '[[BETHE_SALPETER]]'
     commentdefault: null
     commentdims: null
+    defaultval: 1.0
+    definition: Bethe-Salpeter INTERPolation Method3 WIDTH
+    dimensions: null
+    excludes: null
+    requires: '[[bs_interp_mode]]==3 and [[bs_algorithm]]==2'
+    section: vardev
+    text: |-
+        Defines the width of the region where divergence treatment is applied for BSE interpolation
+    varname: bs_interp_m3_width
+    vartype: real
+- !variable
+    characteristics:
+    - '[[BETHE_SALPETER]]'
+    commentdefault: null
+    commentdims: null
+    defaultval: 0
+    definition: Bethe-Salpeter INTERPolation METHOD
+    dimensions: null
+    excludes: null
+    requires: '[[bs_interp_mode]] > 0 and [[bs_algorithm]]==2'
+    section: vardev
+    text: |-
+        <p>
+         [[bs_interp_method]] selects the method of interpolation:
+         <ul>
+          <li>
+           0 =&gt; Interpolate using Y. Gillet technique with 8 neighbours
+          </li>
+          <li>
+           1 =&gt; Interpolation using Rohlfing & Louie technique (missing reference)
+          </li>
+         </ul>
+        </p>
+    varname: bs_interp_method
+    vartype: integer
+- !variable
+    characteristics:
+    - '[[BETHE_SALPETER]]'
+    commentdefault: null
+    commentdims: null
     defaultval: 0
     definition: Bethe-Salpeter INTERPolation MODE
     dimensions: scalar
@@ -1999,6 +2039,22 @@
         It generates the decomposition of BSR in a,b,c coefficients used for the interpolation.
         </p>
     varname: bs_interp_prep
+    vartype: integer
+- !variable
+    characteristics:
+    - '[[BETHE_SALPETER]]'
+    commentdefault: null
+    commentdims: null
+    defaultval: 1
+    definition: Bethe-Salpeter INTERPolation Rohlfing & Louie NeighBour
+    dimensions: null
+    excludes: null
+    requires: '[[bs_interp_mode]] > 0 and [[bs_algorithm]]==2 and [[bs_interp_method]]
+        == 1'
+    section: vardev
+    text: |-
+        Gives the index of the neighbour that is used for Rohlfing & Louie
+    varname: bs_interp_rl_nb
     vartype: integer
 - !variable
     characteristics:
@@ -4748,6 +4804,45 @@
 - !variable
     characteristics:
     - '[[RESPFN]]'
+    commentdefault: null
+    commentdims: null
+    defaultval: First conduction band.
+    definition: EFfective MASs, BAND to be trated.
+    dimensions: scalar
+    excludes: null
+    requires: '[[efmas]]==1'
+    section: varrf
+    text: |-
+        <p>
+        This variable controls the band for which the effective mass is to be calculated.
+        If a band is degenerate, all other bands of the degenerate group will automatically be treated.
+        </p>
+    varname: efmas_band
+    vartype: integer
+- !variable
+    characteristics:
+    - '[[RESPFN]]'
+    commentdefault: null
+    commentdims: null
+    defaultval: 1000
+    definition: EFfective MASs, Number of points for integration w/r to THETA
+    dimensions: scalar
+    excludes: null
+    requires: '[[efmas]]==1 and [[efmas_band]]==(degenerate band index)'
+    section: varrf
+    text: |-
+        <p>
+        When a band is degenerate, the usual definition of effective mass becomes invalid.
+        However, it is still possible to define a 'transport equivalent mass tensor' that
+        reproduces the contribution of the band to the conductivity tensor.
+        To obtain this tensor, an integration over the solid sphere is required.
+        The default value gives a tensor accurate to the 4th decimal in Ge.
+        </p>
+    varname: efmas_ntheta
+    vartype: integer
+- !variable
+    characteristics:
+    - '[[RESPFN]]'
     - '[[ENERGY]]'
     commentdefault: null
     commentdims: null
@@ -6045,6 +6140,56 @@
     commentdefault: null
     commentdims: null
     defaultval: 0
+    definition: GET the DDB from ...
+    dimensions: scalar
+    excludes: null
+    requires: null
+    section: varfil
+    text: |-
+        <p>
+        This variable should be used when performing electron-phonon
+        or temperature-dependence calculations.
+        The Born effective charge
+        as well as the dielectric tensor will be read from a previous
+        DFPT calculations of the electric field at q=Gamma.
+
+        The use of this variable will trigger the cancellation of a
+        residual dipole that leads to an unphysical divergence of the
+        GKK with vanishing q-points.
+
+        The use of this variable greatly improves the k-point convergence
+        speed as the density of the k-point grid required to obtain the
+        fulfillment of the charge neutrality sum rule is usually prohibitively
+        large.
+
+         <br />
+         If [[getddb]]==0, no such use of previously computed Born effective charge
+         and dielectric tensor is done.
+         <br />
+         If [[getddb]] is positive, its value gives the index of the dataset
+        from which the output density is to be used as input.
+         <br />
+         If [[getddb]] is -1, the output density of the previous dataset
+        must be taken, which is a frequently occuring case.
+         <br />
+         If [[getddb]] is a negative number, it indicates the number
+        of datasets to go backward to find the needed file.
+         <br />
+         NOTE : a negative value of a "get" variable indicates the number of datasets to go backwards;
+        it is not the number to be subtracted from the current dataset to find the proper dataset.
+        As an example :
+         <pre>
+          ndtset 3   jdtset 1 2 4  getXXX -1
+         </pre>
+         refers to dataset 2 when dataset 4 is initialized.
+        </p>
+    varname: getddb
+    vartype: integer
+- !variable
+    characteristics: null
+    commentdefault: null
+    commentdims: null
+    defaultval: 0
     definition: GET the ddk wavefunctions from _1WF file
     dimensions: scalar
     excludes: null
@@ -7074,6 +7219,41 @@
     characteristics: null
     commentdefault: null
     commentdims: null
+    defaultval:
+    - -1
+    - -1
+    - -1
+    - -1
+    - -1
+    definition: 'GPU: choice of DEVICES on one node'
+    dimensions:
+    - 5
+    excludes: null
+    requires: null
+    section: varpar
+    text: |-
+        <p>
+         Only relevant if [[use_gpu_cuda]]=1, that is, if ABINIT is used with CUDA functionality.
+         <br />
+         <br />
+         To be used when several GPU devices are present on each node, assuming the same number of devices on all nodes.
+        <br />
+         Allows to choose in which order the GPU devices are choosen and distributed among MPI processes (see examples below). When the default value (-1) is set, the GPU devices are choosen by order of performance (FLOPS, memory).
+        <br /><br />
+        Examples:
+        <ul>
+        <li>2 GPU devices per node, 4 MPI processes per node,  <b>gpu_device</b>=[-1,-1,-1,-1,-1] (default):<br />MPI processes 0 and 2 use the best GPU card, MPI processes 1 and 3 use the slowest GPU card.</li>
+        <li>3 GPU devices per node, 5 MPI processes per node,  <b>gpu_device</b>=[1,0,2,-1,-1]:<br />MPI processes 0 and 3 use GPU card 1, MPI processes 1  and 4 use GPU card 0, MPI process 2 uses GPU card 2.</li>
+        <li>3 GPU devices per node, 5 MPI processes per node,  <b>gpu_device</b>=[0,1,-1,-1,-1]:<br />MPI processes 0, 2 and 4 use GPU card 0, MPI processes 1 and 3 use GPU card 1;  the 3rd GPU card is not used.</li>
+        </ul>
+        GPU card are numbered starting from 0; to get the GPU devices list, type "nvidia-smi" or "lspci | grep -i nvidia".
+        </p>
+    varname: gpu_devices
+    vartype: integer
+- !variable
+    characteristics: null
+    commentdefault: null
+    commentdims: null
     defaultval: 2000000
     definition: 'GPU (Cuda): LINear ALGebra LIMIT'
     dimensions: scalar
@@ -7839,7 +8019,7 @@
     varname: gwgamma
     vartype: integer
 - !variable
-    characteristics: 
+    characteristics:
     - '[[GW]]'
     commentdefault: ''
     commentdims: ''
@@ -7857,7 +8037,7 @@
     varname: gwls_band_index
     vartype: integer
 - !variable
-    characteristics: 
+    characteristics:
     - '[[GW]]'
     commentdefault: ''
     commentdims: ''
@@ -7877,22 +8057,22 @@
         <li> [[gwls_correlation]] == 2 : GWLS calculation WITHOUT the dielectric model and WITHOUT the shift Lanczos technique, </li>
         <li> [[gwls_correlation]] == 3 : GWLS calculation WITH the dielectric model and WITH the shift Lanczos technique, </li>
         <li> [[gwls_correlation]] == 4 : GWLS calculation WITHOUT the dielectric model and WITH the shift Lanczos technique, </li>
-        <li> [[gwls_correlation]] == 5 : Not a GWLS calculation; just calculate and print the eigenvalues of the (static) dielectric matrix (for debugging purposes). </li> 
+        <li> [[gwls_correlation]] == 5 : Not a GWLS calculation; just calculate and print the eigenvalues of the (static) dielectric matrix (for debugging purposes). </li>
         </ul>
         </p>
         <p>
-        The default, ([[gwls_correlation]] == 3), is the most performant option and should be kept by the user. 
-        Option 1, 2 and 5 are deprecated and will be removed. 
+        The default, ([[gwls_correlation]] == 3), is the most performant option and should be kept by the user.
+        Option 1, 2 and 5 are deprecated and will be removed.
         </p>
     varname: gwls_correlation
     vartype: integer
 - !variable
-    characteristics: 
+    characteristics:
     - '[[GW]]'
     commentdefault: ''
     commentdims: ''
     defaultval: 2
-    definition: GWLS dielectric model 
+    definition: GWLS dielectric model
     dimensions: scalar
     excludes: null
     requires: '[[optdriver]]==66'
@@ -7902,7 +8082,7 @@
     varname: gwls_dielectric_model
     vartype: integer
 - !variable
-    characteristics: 
+    characteristics:
     - '[[GW]]'
     commentdefault: ''
     commentdims: ''
@@ -7919,7 +8099,7 @@
     varname: gwls_exchange
     vartype: integer
 - !variable
-    characteristics: 
+    characteristics:
     - '[[GW]]'
     commentdefault: ''
     commentdims: ''
@@ -7944,7 +8124,7 @@
     varname: gwls_first_seed
     vartype: integer
 - !variable
-    characteristics: 
+    characteristics:
     - '[[GW]]'
     commentdefault: ''
     commentdims: ''
@@ -7962,7 +8142,7 @@
     varname: gwls_kmax_analytic
     vartype: integer
 - !variable
-    characteristics: 
+    characteristics:
     - '[[GW]]'
     commentdefault: ''
     commentdims: ''
@@ -7974,10 +8154,10 @@
     section: vargw
     text: |-
         <p>
-        The G0W0 formalism involves the calculation of a summation conceptually linked to the trace of the dielectric matrix (see eq. (38) of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>). 
+        The G0W0 formalism involves the calculation of a summation conceptually linked to the trace of the dielectric matrix (see eq. (38) of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>).
         Since the eigenvalues spectrum of the dielectric matrix of formed by a few large discrete eigenvalues and an integrable divergence in the density of eigenvalues around 0, it is expensive to sample accurately this divergence using the exact dielectric operator.
         It this becomes interesting to calculate the 'trace' of the 'exact - model' dielectric matrix in a small basis and add it to the 'trace' of the 'model' dielectric matrix obtained in a large bais.
-        In the context where the model dielectric matrix is used in the calculations, [[gwls_sternheimer_kmax]] determines the size of the 'small' basis and [[gwls_kmax_complement]] determines the size of the 'large' basis. 
+        In the context where the model dielectric matrix is used in the calculations, [[gwls_sternheimer_kmax]] determines the size of the 'small' basis and [[gwls_kmax_complement]] determines the size of the 'large' basis.
         </p>
         <p>
         For more information on the exact role of these bases and on the model dielectric operator used, see section V of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>.
@@ -7985,7 +8165,7 @@
     varname: gwls_kmax_complement
     vartype: integer
 - !variable
-    characteristics: 
+    characteristics:
     - '[[GW]]'
     commentdefault: ''
     commentdims: ''
@@ -8003,7 +8183,7 @@
     varname: gwls_kmax_numeric
     vartype: integer
 - !variable
-    characteristics: 
+    characteristics:
     - '[[GW]]'
     commentdefault: ''
     commentdims: ''
@@ -8016,9 +8196,9 @@
     text: |-
         <p>
         The contour deformation technique, in the G0W0 context, will involve the calculation of pole residues associated to states lying between the one corrected ([[gwls_band_index]]) and the fermi level.
-        These residues take the form of a matrix element of the inverse dielectric matrix at a real frequency (see eq. (11) of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>). 
-        Therefore, the dielectric matrix must be constructed in some basis at these frequencies and inverted to calculate the matrix element. 
-        The present input variable sets the size of the Lanczos basis to be constructed for this purpose. 
+        These residues take the form of a matrix element of the inverse dielectric matrix at a real frequency (see eq. (11) of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>).
+        Therefore, the dielectric matrix must be constructed in some basis at these frequencies and inverted to calculate the matrix element.
+        The present input variable sets the size of the Lanczos basis to be constructed for this purpose.
         The default value has proven to be very robust for many molecular systems and should therefore be left to the default value by the user.
         </p>
         <p>
@@ -8027,25 +8207,25 @@
     varname: gwls_kmax_poles
     vartype: integer
 - !variable
-    characteristics: 
+    characteristics:
     - '[[GW]]'
     commentdefault: ''
     commentdims: ''
     defaultval: '*0.0'
     definition: GWLS LIST of the PROJection FREQuencies
-    dimensions: 
+    dimensions:
     - '[[gwls_n_proj_freq]]'
     excludes: null
     requires: '[[optdriver]]==66'
     section: vargw
     text: |-
-        This variable sets the frequencies to be used to construct the basis in which the hamiltonian is projected to accelerate the solution of the Sternheimer equations involved by the construction of the dielectric matrix at finite frequencies. 
+        This variable sets the frequencies to be used to construct the basis in which the hamiltonian is projected to accelerate the solution of the Sternheimer equations involved by the construction of the dielectric matrix at finite frequencies.
         See section VI of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>.
         For most cases, since the frequencies \Infty and (if [[gwls_recycle]]>0) 0.0 are used at no computational cost, [[gwls_n_proj_freq]]==0 (which means no ADDITIONAL frequency is to be used) is fine and no frequencies need to be picked up.
     varname: gwls_list_proj_freq
     vartype: real
 - !variable
-    characteristics: 
+    characteristics:
     - '[[GW]]'
     - '[[ENERGY]]'
     commentdefault: ''
@@ -8058,20 +8238,37 @@
     section: vargw
     text: |-
         <p>
-        This is the width of the lorentzian, in Ha, used to model the frequency dependence of the dielectric matrix in the GWLS calculation (see eqs. (12), (13), (14), (15), (16) and (34) of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>). 
+        This is the width of the lorentzian, in Ha, used to model the frequency dependence of the dielectric matrix in the GWLS calculation (see eqs. (12), (13), (14), (15), (16) and (34) of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>).
         More precisely, this parameter is the value of \alpha used in eq. (34).
-        This model is then used to separate the integration over frequencies into a 'model' part (second term of eq. (12)) and a 'exact - model' part (first term of eq. (12)). 
+        This model is then used to separate the integration over frequencies into a 'model' part (second term of eq. (12)) and a 'exact - model' part (first term of eq. (12)).
         Since the 'model' part can be integrated analytically (see eqs. (15), (16) and (34)), only the the 'exact - model' part needs to be integrated numerically.
         </p>
         <p>
-        The only effect of this model is therefore to alleviate the numerical cost of the integration over frequencies in the G0W0 calculation. 
-        The value of the associated parameter has thus an impact on the convergence rate of the GWLS calculation with respect to the number of frequencies of integration ([[gwls_npt_gauss_quad]]), but no impact on the converged result of the GWLS calculation. 
+        The only effect of this model is therefore to alleviate the numerical cost of the integration over frequencies in the G0W0 calculation.
+        The value of the associated parameter has thus an impact on the convergence rate of the GWLS calculation with respect to the number of frequencies of integration ([[gwls_npt_gauss_quad]]), but no impact on the converged result of the GWLS calculation.
         Typically, the default ([[gwls_model_parameter]]==1.0) is optimal.
         </p>
     varname: gwls_model_parameter
     vartype: real
 - !variable
-    characteristics: 
+    characteristics:
+    - '[[GW]]'
+    commentdefault: ''
+    commentdims: ''
+    defaultval: 0
+    definition: GWLS Number of PROJection FREQuencies
+    dimensions: scalar
+    excludes: ''
+    requires: '[[optdriver]]==66'
+    section: vargw
+    text: |-
+        This variable sets the number of frequencies, on top of \Infty and (if [[gwls_recycle]]>0) 0.0, to be used for the construction of the basis in which the hamiltonian is projected to accelerate the solution of the Sternheimer equations involved in the construction of the dielectric matrix at finite frequencies.
+        See section VI of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>.
+        For most cases, the default ([[gwls_n_proj_freq]]==0) is fine.
+    varname: gwls_n_proj_freq
+    vartype: integer
+- !variable
+    characteristics:
     - '[[GW]]'
     commentdefault: ''
     commentdims: ''
@@ -8082,12 +8279,12 @@
     requires: '[[optdriver]]==66'
     section: vargw
     text: |-
-        This variable defines the number of points used for the numerical integration of the self-energy over frequencies in GWLS computations (see eq. (12) of  <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>). 
+        This variable defines the number of points used for the numerical integration of the self-energy over frequencies in GWLS computations (see eq. (12) of  <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>).
         The default is fine for most cases.
     varname: gwls_npt_gauss_quad
     vartype: integer
 - !variable
-    characteristics: 
+    characteristics:
     - '[[GW]]'
     commentdefault: ''
     commentdims: ''
@@ -8104,24 +8301,7 @@
     varname: gwls_nseeds
     vartype: integer
 - !variable
-    characteristics: 
-    - '[[GW]]'
-    commentdefault: ''
-    commentdims: ''
-    defaultval: 0
-    definition: 'GWLS Number of PROJection FREQuencies'
-    dimensions: scalar
-    excludes: ''
-    requires: '[[optdriver]]==66'
-    section: vargw
-    text: |-
-        This variable sets the number of frequencies, on top of \Infty and (if [[gwls_recycle]]>0) 0.0, to be used for the construction of the basis in which the hamiltonian is projected to accelerate the solution of the Sternheimer equations involved in the construction of the dielectric matrix at finite frequencies. 
-        See section VI of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>.
-        For most cases, the default ([[gwls_n_proj_freq]]==0) is fine.
-    varname: gwls_n_proj_freq
-    vartype: integer
-- !variable
-    characteristics: 
+    characteristics:
     - '[[GW]]'
     commentdefault: ''
     commentdims: ''
@@ -8136,38 +8316,38 @@
     varname: gwls_print_debug
     vartype: integer
 - !variable
-    characteristics: 
+    characteristics:
     - '[[GW]]'
     commentdefault: ''
     commentdims: ''
     defaultval: 2
-    definition: GWLS RECYCLE 
+    definition: GWLS RECYCLE
     dimensions: scalar
     excludes: null
     requires: '[[optdriver]]==66'
     section: vargw
     text: |-
         <p>
-        This variable let the user choose if and how he wants to recycle the solutions of the Sternheimer equations involved in the construction of the static dielectric matrix. 
+        This variable let the user choose if and how he wants to recycle the solutions of the Sternheimer equations involved in the construction of the static dielectric matrix.
         <ul>
         <li> [[gwls_recycle]]==0 : No recycling of the solutions </li>
         <li> [[gwls_recycle]]==1 : Recycle the solutions. To do so, store them in RAM. </li>
         <li> [[gwls_recycle]]==2 : Recycle the solutions. To do so, store them on disk. </li>
         </ul>
-        If the user choose to recycle the solutions, they are used to construct the basis in which the hamiltonian is projected for the solution of the Sternheimer equations involved by the calculation of the dielectric matrix at finite frequencies. 
+        If the user choose to recycle the solutions, they are used to construct the basis in which the hamiltonian is projected for the solution of the Sternheimer equations involved by the calculation of the dielectric matrix at finite frequencies.
         The other solutions used will be those at \omega \to \Infty (alwyas used) and those at \omega=[[gwls_list_proj_freq]].
         For more information of the basis constructed, see section IV of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>.
         </p>
         <p>
-        It is important to note that the solutions rapidly take much space to store. 
+        It is important to note that the solutions rapidly take much space to store.
         Therefore, it is often not possible to store them in RAM in production calculations, yet still desirable to retain them.
-        This is when it becomes interesting to store them on disk. 
+        This is when it becomes interesting to store them on disk.
         It is particularly efficient to choose the path of the file to be on disk space local to the processor in large MPI calculations, since each processor need only his own solutions in the construction of the basis.
         </p>
     varname: gwls_recycle
     vartype: integer
 - !variable
-    characteristics: 
+    characteristics:
     - '[[GW]]'
     - '[[ENERGY]]'
     commentdefault: ''
@@ -8183,7 +8363,7 @@
     varname: gwls_second_model_parameter
     vartype: real
 - !variable
-    characteristics: 
+    characteristics:
     - '[[GW]]'
     commentdefault: ''
     commentdims: ''
@@ -8194,12 +8374,12 @@
     requires: '[[optdriver]]==66'
     section: vargw
     text: |-
-        This variable sets the dimension of the dielectric matrix used in a GWLS calculation (see section IV of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>). 
+        This variable sets the dimension of the dielectric matrix used in a GWLS calculation (see section IV of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>).
         Typically converged at a value of a few hundreds to a few thousands for a convergence criterion of 50meV on the  eigenenergies.
     varname: gwls_sternheimer_kmax
     vartype: integer
 - !variable
-    characteristics: 
+    characteristics:
     - '[[GW]]'
     commentdefault: null
     commentdims: null
@@ -8627,21 +8807,37 @@
     excludes: null
     requires: null
     section: varrf
-    text: |-
-        <p>
-         If [[ieig2rf]] is greater then 0, the code will produce a file, named with the trailing suffix _EIGR2D, containing the second-order electronic eigenvalues for the perturbation. These files are used in the calculation of the thermal correction to the electronic eigenvalues.
-         <br />
-         <br />
-         If [[ieig2rf]] is set to 1, the second-order electronic eigenvalues will be calculated from the DFPT method (Sternheimer).
-         <br />
-         If [[ieig2rf]] is set to 2, the second-order electronic eigenvalues will be calculated from the Allen-Cardona method. (sum over states)
-         <br />
-         If [[ieig2rf]] is set to 3, the second-order electronic eigenvalues will be calculated from the DFPT method (sum over states) but using a different part of the code. This is equivalent to [[ieig2rf]] = 1 [debuging]
-         <br />
-         If [[ieig2rf]] is set to 4, the second-order electronic eigenvalues will be calculated from the dynamical DFPT method (Sternheimer). Note that [[ieig2rf]]=4 can only be used if Abinit is compiled with NETCDF support.
-         <br />
-         Related variables : [[bdeigrf]],[[elph2_imagden]],[[getgam_eig2nkq]],[[smdelta]]
-        </p>
+    text: "<p>\n If [[ieig2rf]] is greater then 0, the code will produce a\
+        \ file, named with the trailing suffix _EIGR2D, containing the second-order\
+        \ electronic eigenvalues for the perturbation. These files are used\
+        \ in the calculation of the thermal correction to the electronic eigenvalues.\n\
+        \ <br />\n <br />\n If [[ieig2rf]] is set to 1, the second-order electronic\
+        \ eigenvalues will be calculated from the DFPT method (Sternheimer).\n\
+        \ <br />\n If [[ieig2rf]] is set to 2, the second-order electronic\
+        \ eigenvalues will be calculated from the Allen-Cardona method. (sum\
+        \ over states)\n <br />\n If [[ieig2rf]] is set to 3, the second-order\
+        \ electronic eigenvalues will be calculated from the DFPT method (sum\
+        \ over states) but using a different part of the code. This is equivalent\
+        \ to [[ieig2rf]] = 1 [debuging]\n <br />\n If [[ieig2rf]] is set to\
+        \ 4, the second-order electronic eigenvalues will be calculated from\
+        \ the dynamical DFPT method (Sternheimer).\n The code will generate\
+        \ _EIGR2D.nc files that contain the electron-phonon matrix element\
+        \ squared on the space orthogonal to the active space.\n The code\
+        \ will also produce _FAN.nc files that contain the electron-phonon\
+        \ matrix elements squared. \n Note that [[ieig2rf]]=4 can only be\
+        \ used if Abinit is compiled with NETCDF support.\n <br />\n If [[ieig2rf]]\
+        \ is set to 5, the second-order electronic eigenvalues will be calculated\
+        \ from the dynamical DFPT method (Sternheimer).\n The code will generate\
+        \ _EIGR2D.nc files that contain the electron-phonon matrix element\
+        \ square on the space orthogonal to the active space.\n The code will\
+        \ also produce _GKK.nc files that contain electron-phonon matrix elements.\n\
+        \ This option is preferable for large system to [[ieig2rf]]=4 as the\
+        \ GKK files take less much less disk space and memory (but run a little\
+        \ bit slower). \n Note that [[ieig2rf]]=5 can only be used if Abinit\
+        \ is compiled with NETCDF support.\n <br />\n Related variables :\
+        \ [[bdeigrf]],[[elph2_imagden]],[[getgam_eig2nkq]],[[smdelta]]\n Related\
+        \ variables : [[bdeigrf]],[[elph2_imagden]],[[getgam_eig2nkq]],[[smdelta]]\n\
+        </p>"
     varname: ieig2rf
     vartype: integer
 - !variable
@@ -9646,8 +9842,8 @@
     commentdefault: null
     commentdims: null
     defaultval: !valuewithconditions
-        '[[iscf]] < 0': 1
         defaultval: 0
+        '[[iscf]] < 0': 1
     definition: Integer that governs the ReaDing of 1st-order DEN file
     dimensions: scalar
     excludes: null
@@ -9885,6 +10081,48 @@
     characteristics: null
     commentdefault: null
     commentdims: null
+    defaultval: !valuewithconditions
+        defaultval: 0
+        '[[iscf]] < 0': '1'
+    definition: Integer that governs the ReaDing of DDB file
+    dimensions: scalar
+    excludes: null
+    requires: null
+    section: varfil
+    text: |-
+        <p>
+        This variable should be used when performing electron-phonon
+        or temperature-dependence calculations.
+        The Born effective charge
+        as well as the dielectric tensor will be read from a previous
+        DFPT calculations of the electric field at q=Gamma.
+
+        The use of this variable will trigger the cancellation of a
+        residual dipole that leads to an unphysical divergence of the
+        GKK with vanishing q-points.
+
+        The use of this variable greatly improves the k-point convergence
+        speed as the density of the k-point grid required to obtain the
+        fulfillment of the charge neutrality sum rule is usually prohibitively
+        large.
+        </p>
+        <p>
+         A non-zero value of [[irdddb]] is treated in the same way
+        as other "ird" variables,
+        see the
+         <a href="../../users/abinit_help.html#4">
+          section 4
+         </a>
+         of abinit_help.
+         <br />
+         <br />
+        </p>
+    varname: irdddb
+    vartype: integer
+- !variable
+    characteristics: null
+    commentdefault: null
+    commentdims: null
     defaultval: 0
     definition: Integer that governs the ReaDing of DDK wavefunctions, in _1WF files
     dimensions: scalar
@@ -10038,8 +10276,8 @@
     commentdefault: null
     commentdims: null
     defaultval: !valuewithconditions
-        '[[iscf]] < 0': '1'
         defaultval: 0
+        '[[iscf]] < 0': '1'
     definition: Integer that governs the ReaDing of DEN file
     dimensions: scalar
     excludes: null
@@ -14234,6 +14472,27 @@
     vartype: integer
 - !variable
     characteristics:
+    - '[[DEVELOP]]'
+    commentdefault: null
+    commentdims: null
+    defaultval: 0
+    definition: Norm-Conserving, use XC Core-Correction in G-space
+    dimensions: scalar
+    excludes: null
+    requires: null
+    section: vardev
+    text: |-
+        This variable is relevant only for norm-conserving calculations. Historically, Abinit treats the model core charge used for the non-linear core
+        correction in real space. Alternatively, it is possible to instruct the code to compute the core charge in G-space following the same approach used in
+        the PAW code. The G-space formalism is more accurate than the interpolation in real space, especially when derivatives of the model core charge are
+        needed, e.g. DFPT. Preliminary tests showed that the violation of the acoustic sum rule is reduced when nc_xccc_gspace==1 , especially for LDA. It's
+        worth stressing, however, that nc_xccc_gspace==1 should be used only in conjunction with NC pseudos whose model core charge that decays quickly in
+        G-space. Several NC pseudos available in the Abinit table are not optimized for the G-space formalism and users are strongly invited to perform
+        convergence studies with respect to ecut before using this option.
+    varname: nc_xccc_gspace
+    vartype: integer
+- !variable
+    characteristics:
     - '[[NO_MULTI]]'
     commentdefault: null
     commentdims: null
@@ -16516,6 +16775,25 @@
     characteristics: null
     commentdefault: null
     commentdims: null
+    defaultval: 0.0
+    definition: NUClear DIPole MOMents
+    dimensions:
+    - 3
+    - '[[natom]]'
+    excludes: null
+    requires: '[[usepaw]] = 1; [[pawcpxocc]] = 2; [[kptopt]] > 2'
+    section: vargs
+    text: "Places an array of nuclear magnetic dipole moments on the atomic\
+        \ positions, useful for computing the magnetization in the presence\
+        \ of nuclear dipoles and thus the chemical shielding by the converse\
+        \ method. The presence of these dipoles breaks time reversal symmetry\
+        \ and lowers the overall spatial symmetry. "
+    varname: nucdipmom
+    vartype: real
+- !variable
+    characteristics: null
+    commentdefault: null
+    commentdims: null
     defaultval: 0
     definition: Number of WaveFunctionS HISTory
     dimensions: scalar
@@ -17382,25 +17660,6 @@
         for some PAW calculations.
         </p>
     varname: optstress
-    vartype: integer
-- !variable
-    characteristics: null
-    commentdefault: null
-    commentdims: null
-    defaultval: 0
-    definition: ORBital MAGnetization
-    dimensions: scalar
-    excludes: null
-    requires: '[[usepaw]]==1'
-    section: varpaw
-    text: |
-        <ul>
-         <li>
-          If set to 1, calculate the orbital magnetization. THIS CODE
-        IS UNDER DEVELOPMENT AND IS NOT READY FOR USE.
-         </li>
-        </ul>
-    varname: orbmag
     vartype: integer
 - !variable
     characteristics:
@@ -19394,7 +19653,7 @@
     text: |-
         <p>
          Print out geometry (_BLZTRP_GEOM) and eigenenergy (_BLZTRP_EIGEN) files for the
-         <a href="http://www.icams.de/content/departments/atomistic-modelling-and-simulation/simplified-models-of-the-electronic-structure/boltztrap/"> BoltzTraP code</a> 
+         <a href="http://www.icams.de/content/departments/cmat/boltztrap/"> BoltzTraP code</a>
          by Georg Madsen.
         </p>
     varname: prtbltztrp
@@ -19482,27 +19741,6 @@
          No output is provided by [[prtcml]] different from 1 or 2
         </p>
     varname: prtcml
-    vartype: integer
-- !variable
-    characteristics: null
-    commentdefault: null
-    commentdims: null
-    defaultval: 0
-    definition: PRinT Chemical Shielding
-    dimensions: scalar
-    excludes: null
-    requires: '[[usepaw]]==1'
-    section: varpaw
-    text: |-
-        <p>
-         <ul>
-          <li>
-           If set to 1, calculate the chemical shielding at each atomic site in the unit cell. THIS CODE
-        IS UNDER DEVELOPMENT AND IS NOT READY FOR USE.
-          </li>
-         </ul>
-        </p>
-    varname: prtcs
     vartype: integer
 - !variable
     characteristics: null
@@ -20275,6 +20513,21 @@
     commentdefault: null
     commentdims: null
     defaultval: 0
+    definition: PRint the PSPS file
+    dimensions: scalar
+    excludes: null
+    requires: null
+    section: varfil
+    text: |-
+        If set to 1, the code produces a netcdf file (PSPS.nc) with the internal tables used by Abinit to apply the pseudopotential part of the KS Hamiltonian. The data can be visualized with AbiPy.
+        if prtpsps is set to -1, the code will exit after the output of the PSPS.nc file.
+    varname: prtpsps
+    vartype: integer
+- !variable
+    characteristics: null
+    commentdefault: null
+    commentdims: null
+    defaultval: 0
     definition: PRinT the SPin CURrent density
     dimensions: scalar
     excludes: null
@@ -20405,7 +20658,7 @@
     commentdefault: null
     commentdims: null
     defaultval: 0
-    definition: PRinT V_XC
+    definition: PRinT V_HArtree
     dimensions: scalar
     excludes: null
     requires: null
@@ -20447,7 +20700,7 @@
     commentdefault: null
     commentdims: null
     defaultval: 0
-    definition: PRinT V_XC
+    definition: PRinT V_HXC
     dimensions: scalar
     excludes: null
     requires: null
@@ -20620,6 +20873,48 @@
         is reduced to total energy and convergence residuals only.
         </p>
     varname: prtvolimg
+    vartype: integer
+- !variable
+    characteristics: null
+    commentdefault: null
+    commentdims: null
+    defaultval: 0
+    definition: PRinT V_PSeudoPotential
+    dimensions: scalar
+    excludes: null
+    requires: null
+    section: varfil
+    text: |-
+        <p>
+         If set &gt;=1 , provide output of the local pseudo potential.
+         <br />
+        <p>
+         If [[ionmov]]==0, the name of the potential file will be
+        the root output name, followed by _VPSP.
+         <br />
+         If [[ionmov]]==1 or 2, potential files will be output
+        at each time step, with the name being made of
+         <ul>
+          <li>
+           the root output name,
+          </li>
+          <li>
+           followed by _TIMx , where
+        x is related to the timestep (see later)
+          </li>
+          <li>
+           then followed by _VPSP.
+          </li>
+         </ul>
+         The file structure of this unformatted output file is
+        described in
+         <a href="../../users/abinit_help.html#localpotfile">
+          section 6.6
+         </a>
+         of abinit_help.
+        No output is provided by a negative value of this variable.
+        </p>
+    varname: prtvpsp
     vartype: integer
 - !variable
     characteristics: null
@@ -25118,7 +25413,7 @@
     definition: calculation of the screened interaction U with the Constrained RPA method
     dimensions: scalar
     excludes: null
-    requires: null
+    requires: '[[nspinor]] == 1'
     section: vargw
     text: |-
         <p>
@@ -25137,10 +25432,14 @@
         the polarisability calculation.
         </p>
         <p>
-         For [[ucrpa]] = 2, the ucrpa_bands should be equal to the dmftbandi and dmftbandf
+         For [[ucrpa]] = 2, the ucrpa_bands should be equal to the [[dmftbandi]] and [[dmftbandf]]
         values, and the polarisability of the correlated subspace
         is constructed with a band and k-point dependant weight.
-
+        </p>
+        <p>
+        The implementation is restricted to the case of [[nspinor]] = 1 (collinear case).
+        </p>
+        <p>
         A short presentation of the method and some aspect of the implementation can be found in Section II and Appendix A of
          <a href="http://journals.aps.org/prb/abstract/10.1103/PhysRevB.89.125110">
           B. Amadon, T. Applencourt and F. Bruneval Phys. Rev. B 89, 125110 (2014)
@@ -26658,11 +26957,43 @@
     section: vardev
     text: |-
         <p>
-         The DFT-D2 (S. Grimme approach) dispersion potentiali, [[vdw_xc]]==5, is implemented as a pair potential.
+         The DFT-D methods (S. Grimme approach) dispersion potentials, [[vdw_xc]]==5 or 6 or 7, include a pair potential.
         The number of pairs of atoms contributing to the potential is necessarily limited. To be included
         in the potential a pair of atom must have contribution to the energy larger than [[vdw_tol]].
         </p>
     varname: vdw_tol
+    vartype: real
+- !variable
+    characteristics:
+    - '[[DEVELOP]]'
+    commentdefault: Do include the 3-body term in the correction
+    commentdims: null
+    defaultval: -1
+    definition: van der Waals TOLerance for 3-Body Term
+    dimensions: scalar
+    excludes: null
+    requires: '[[vdw_xc]] == 6'
+    section: vardev
+    text: |-
+        Control the computation of the 3-body correction inside DFT-D3 dispersion correction (Grimme's approach) to the total energy:
+        <br />
+        -If <b> vdw_tol_3bt</b>&lt;0, no 3-body correction.
+        <br />
+        -If <b> vdw_tol_3bt</b>&gt;0, the 3-body term is included with a tolerance = <b>vdw_tol_3bt</b>
+        <br />
+        <br />
+        DFT-D3 as proposed by S. Grimme adds two contributions to the total energy in order to take into account of the dispersion:
+        <br />
+         <ul>
+        <li>
+        A pair-wise potential for which the tolerance is controlled by [[vdw_tol]]
+        </li>
+        <br />
+        <li>A 3-body term which is obtained by summing over all triplets of atoms. Each individual contribution depends of the distances and angles between the three atoms. As it is impossible to sum over all the triplets in a periodic system, one has to define a stopping criterium which is here that an additional contribution to the energy must be higher than <b>vdw_tol_3bt</b>
+        </li>
+        </ul>
+        The last term has been predicted to have an important effect for large molecules (see for e.g. <i> Grimme S.,  J. Chem. Phys. 132, 154104 (2010) </i>). It is however quite costly in computational time for periodic systems and seems to lead to an overestimation of lattice parameters for weakly bound systems (see for e.g. <i> Reckien W., J. Chem. Phys. 132, 154104(2010) </i>). Still, its contribution to energy, to forces and to stress is available (not planned for elastic constants, dynamical matrix and internal strains)
+    varname: vdw_tol_3bt
     vartype: real
 - !variable
     characteristics:
@@ -26738,11 +27069,31 @@
           <li>
            5: apply vdw-DFT-D2 as proposed by S. Grimme (adding a semi-empirical dispersion potential)
            <br />
-           Available only for ground-state calculations ; see [[vdw_tol]] variable
+           Available only for ground-state calculations and response functions; see [[vdw_tol]] variable
         to control convergency
            <br />
            <i>
             J. Comp. Chem. 27, 1787 (2006)
+           </i>
+          </li>
+        <li>
+           6: apply vdw-DFT-D3 as proposed by S. Grimme (refined version of DFT-D2)
+           <br />
+           Available only for ground-state calculations and response functions except strain; see [[vdw_tol]] variable
+        to control convergency and [[vdw_dftd3_3bt]] variable to include 3-body corrections
+           <br />
+           <i>
+            J. Chem. Phys. 132, 154104 (2010)
+           </i>
+          </li>
+           <li>
+           7: apply vdw-DFT-D3(BJ) as proposed by Grimme (based on Becke-Jonhson method J. Chem. Phys. 2004-2006)
+           <br />
+           Available only for ground-state calculations and response functions except strain; see [[vdw_tol]] variable
+        to control convergency
+           <br />
+           <i>
+            J. Comput. Chem. 32, 1456 (2011)
            </i>
           </li>
           <li>
