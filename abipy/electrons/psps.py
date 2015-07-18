@@ -286,6 +286,9 @@ class PspsFile(AbinitNcFile):
 
     @add_fig_kwargs
     def compare(self, others, what="all", **kwargs):
+        if not isinstance(others, (list, tuple)):
+            others = [others]
+
         if what == "all":
             what = ["corer", "coreq", "vlocq", "ffspl"]
         else:

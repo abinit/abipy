@@ -141,6 +141,19 @@ def itest_g0w0_flow(fwp, tvars):
     scr_task.get_results()
     sig_task.get_results()
 
+    # Test SCR.nc file (this is optional)
+    if scr_task.scr_path:
+        with scr_task.open_scr() as scr:
+            print(scr)
+            assert len(scr.wpts) == 2
+            assert scr.nwre == 1 and scr.nwim == 1
+            for iq, qpoint in enumerate(scr.qpoints[:2]):
+                print(qpoint)
+                qpt, iqcheck = scr.reader.find_qpoint_fileindex(qpoint)
+                assert iqcheck == iq
+                em1 = scr.get_em1(qpoint)
+                print(em1)
+
     # TODO Add more tests
     #assert flow.validate_json_schema()
 
