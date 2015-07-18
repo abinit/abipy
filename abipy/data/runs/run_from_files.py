@@ -10,7 +10,8 @@ import abipy.abilab as abilab
 
 def make_scf_nscf_inputs(paral_kgb=1):
     """Returns two input files: GS run and NSCF on a high symmetry k-mesh."""
-    multi = abilab.AbiInput(structure=abidata.cif_file("si.cif"), pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)
+    multi = abilab.AbinitInput(structure=abidata.cif_file("si.cif"), 
+                               pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)
 
     # Global variables
     ecut = 6

@@ -215,7 +215,7 @@ class Structure(pymatgen.Structure):
             1,  0,  1,
             1,  1,  0])
 
-        coords = np.reshape([0, 0, 0, 0.5, 0.5, 0.5], (2, 3))
+        frac_coords = np.reshape([0, 0, 0, 0.5, 0.5, 0.5], (2, 3))
         return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
 
     #@classmethod
