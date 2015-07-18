@@ -31,6 +31,7 @@ from abipy.electrons.psps import PspsFile
 from abipy.electrons.gw import SigresFile, SigresPlotter 
 from abipy.electrons.bse import MdfFile
 from abipy.electrons.scissors import ScissorsBuilder
+from abipy.electrons.scr import ScrFile
 from abipy.dfpt import PhbstFile, PhononBands, PhdosFile, PhdosReader
 from abipy.dfpt.ddb import DdbFile
 from abipy.dynamics.hist import HistFile
@@ -63,6 +64,7 @@ def abifile_subclass_from_filename(filename):
         "WFK-etsf.nc": WfkFile,
         "MDF.nc": MdfFile,
         "GSR.nc": GsrFile,
+        "SCR-etsf.nc": ScrFile,
         "PHBST.nc": PhbstFile,
         "PHDOS.nc": PhdosFile,
         "DDB": DdbFile,

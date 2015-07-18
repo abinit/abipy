@@ -41,6 +41,15 @@ def compare_pseudos(filepaths, ecut=30):
         pfile.close()
 
 
+def mklabel(fsym, der, arg):
+    """mklabel(f, 2, x) --> $f''(x)$"""
+    if der == 0:
+        return "$%s(%s)$" % (fsym, arg)
+    else:
+        fsym = fsym + "^{" + (der * "\prime") + "}"
+        return "$%s(%s)$" % (fsym, arg)
+
+
 def rescale(arr, scale=1.0):
     if scale is None:
         return arr, 0.0
@@ -62,7 +71,7 @@ class PspsFile(AbinitNcFile):
         with PspsFile("foo_PSPS.nc") as psps:
             psps.plot_modelcore_rspace()
     """
-    linestyles_der = ["solid", '-', '--', '-.', ":", ":"]
+    linestyles_der = ["-", "--", '-.', ':', ":", ":"]
 
     @classmethod
     def from_file(cls, filepath):
@@ -108,7 +117,7 @@ class PspsFile(AbinitNcFile):
         return fig
 
     @add_fig_kwargs
-    def plot_modelcore_rspace(self, ax=None, ders=(0, 1), rmax=3.0,  **kwargs):
+    def plot_modelcore_rspace(self, ax=None, ders=(0, 1, 2, 3), rmax=3.0,  **kwargs):
         """
         Plot the model core and its derivatives in real space.
 
@@ -133,7 +142,7 @@ class PspsFile(AbinitNcFile):
                 yvals, fact, = rescale(values)
                 ax.plot(rmesh, yvals, color=color, linewidth=linewidth, 
                         linestyle=self.linestyles_der[der], 
-                        label="%s derivative x %.4f" % (der, fact))
+                        label=mklabel("\\tilde{n}_c", der, "r") + " x %.4f" % fact)
 
         ax.grid(True)
         ax.set_xlabel("r [Bohr]")
@@ -143,7 +152,7 @@ class PspsFile(AbinitNcFile):
         return fig
 
     @add_fig_kwargs
-    def plot_modelcore_qspace(self, ax=None, ders=(0,), with_qn=0, **kwargs):
+    def plot_modelcore_qspace(self, ax=None, ders=(0,), with_fact=False, with_qn=0, **kwargs):
         """
         Plot the model core in q space
 
@@ -168,15 +177,19 @@ class PspsFile(AbinitNcFile):
                 if der == 1: der = 2
                 if der not in ders: continue
                 yvals, fact = rescale(values)
+
+                label = mklabel("\\tilde{n}_{c}", der, "q")
+                if with_fact: label += " x %.4f" % fact
+
                 line, = ax.plot(ecuts, yvals, color=color, linewidth=linewidth, 
-                                linestyle=self.linestyles_der[der], 
-                                label="%s derivative x %.4f" % (der, fact))
+                                linestyle=self.linestyles_der[der], label=label)
                 lines.append(line)
 
                 if with_qn and der == 0:
                     yvals, fact = rescale(qmesh * values)
                     line, ax.plot(ecuts, yvals, color=color, linewidth=linewidth, 
-                                  label="q*f(q) x %.4f" % fact)
+                                  label=mklabel("q f", der, "q") + " x %.4f" % fact)
+
                     lines.append(line)
 
         ax.grid(True)
@@ -187,7 +200,7 @@ class PspsFile(AbinitNcFile):
         return fig
 
     @add_fig_kwargs
-    def plot_vlspl(self, ax=None, ders=(0,), with_qn=0, **kwargs):
+    def plot_vlspl(self, ax=None, ders=(0,), with_qn=0, with_fact=False, **kwargs):
         """
         Plot the local part of the pseudopotential in q space.
 
@@ -210,10 +223,13 @@ class PspsFile(AbinitNcFile):
             for der, values in enumerate(vl_atype):
                 if der == 1: der = 2
                 if der not in ders: continue
+
                 yvals, fact = rescale(values)
+                label = mklabel("v_{loc}", der, "q")
+                if with_fact: label += " x %.4f" % fact
+
                 ax.plot(ecuts, yvals, color=color, linewidth=linewidth, 
-                        linestyle=self.linestyles_der[der], 
-                        label="%s derivative x %.4f" % (der, fact))
+                        linestyle=self.linestyles_der[der], label=label)
 
                 if with_qn and der == 0:
                     yvals, fact = rescale(qmesh * values)
@@ -228,7 +244,7 @@ class PspsFile(AbinitNcFile):
         return fig
 
     @add_fig_kwargs
-    def plot_ffspl(self, ax=None, ders=(0,), with_qn=0, **kwargs):
+    def plot_ffspl(self, ax=None, ders=(0,), with_qn=0, with_fact=False, **kwargs):
         """
         Plot the nonlocal part of the pseudopotential in q space.
 
@@ -257,14 +273,14 @@ class PspsFile(AbinitNcFile):
                     if der == 1: der = 2
                     if der not in ders: continue
                     #yvals, fact = rescale(values, scale=scale)
+                    label = mklabel("v_{nl}", der, "q")
                     ax.plot(p.ecuts, values * p.ekb, color=color_l[p.l], linewidth=linewidth, 
-                            linestyle=linestyles_n[p.n],
-                            label="(l=%s, n=%s) der %s" % (p.l, p.n, der))
+                            linestyle=linestyles_n[p.n]) #, label=label)
 
         ax.grid(True)
         ax.set_xlabel("Ecut [Hartree]")
         ax.set_title("ekb * ffnl(q)")
-        ax.legend(loc="upper right")
+        #ax.legend(loc="upper right")
 
         return fig
 

@@ -196,22 +196,27 @@ class Structure(pymatgen.Structure):
 
         return cls(lattice, species, coords=[[0, 0, 0]], **kwargs)
 
-    #@classmethod
-    #def rocksalt(cls, a, species, **kwargs):
-    #    """
-    #    Build a primitive fcc crystal structure.
-    #                                                                                      
-    #    Args:
-    #        a: Lattice parameter in Angstrom.
-    #        species: Chemical species. See __init__ method of :class:`pymatgen.Structure`
-    #        kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`
-    #    """
-    #    lattice = 0.5 * float(a) * np.array([
-    #        0,  1,  1,
-    #        1,  0,  1,
-    #        1,  1,  0])
-    #    coords = np.reshape([0, 0, 0, 0.5, 0.5, 0.5], (2, 3))
-    #    return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
+    @classmethod
+    def rocksalt(cls, a, species, **kwargs):
+        """
+        Build a primitive fcc crystal structure.
+                                                                                          
+        Args:
+            a: Lattice parameter in Angstrom.
+            species: Chemical species. See __init__ method of :class:`pymatgen.Structure`
+            kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`
+
+        Example:
+
+            Structure.rocksalt(a, ["Na", "Cl"])
+        """
+        lattice = 0.5 * float(a) * np.array([
+            0,  1,  1,
+            1,  0,  1,
+            1,  1,  0])
+
+        coords = np.reshape([0, 0, 0, 0.5, 0.5, 0.5], (2, 3))
+        return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
 
     #@classmethod
     #def ABO3(cls, a, species, **kwargs)
