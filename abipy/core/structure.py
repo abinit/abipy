@@ -218,13 +218,40 @@ class Structure(pymatgen.Structure):
         frac_coords = np.reshape([0, 0, 0, 0.5, 0.5, 0.5], (2, 3))
         return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
 
-    #@classmethod
-    #def ABO3(cls, a, species, **kwargs)
-    #   """Peroviskite structures."""
-    #    return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
+    @classmethod
+    def ABO3(cls, a, species, **kwargs)
+       """
+       Peroviskite structures.
+       """
+       lattice = float(a) * np.eye(3)
+
+       frac_coords = np.reshape([
+          0,     0,   0,  # A (2a)  
+          0.5, 0.5, 0.5,  # B (2a)
+          0.5, 0.5, 0.0,  # O (6b)
+          0.5, 0.0, 0.5,  # O (6b)
+          0.0, 0.5, 0.5,  # O (6b)
+         ], (5, 3))
+
+        return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
 
     #@classmethod
-    #def hH(cls, a, species, **kwargs)
+    #def half_heusler(cls, a, species, **kwargs)
+    #    # fcc lattice with 3 atoms as basis 
+    #    # XYZ, C1_b
+    #    # see http://arxiv.org/pdf/cond-mat/0510276v1.pdf
+    #    lattice = 0.5 * float(a) * np.array([
+    #        0,  1,  1,
+    #        1,  0,  1,
+    #        1,  1,  0])
+
+    #    frac_coords = np.reshape([
+    #       0,   0,   0,    # X
+    #       1/4, 1/4, 1/4,  # Y
+    #       #0.5, 0.5, 0.5, # Y
+    #       3/4, 3/4, 3/4,  # Z
+    #      ], (3, 3))
+
     #    return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
 
     @property
