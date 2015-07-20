@@ -118,8 +118,7 @@ def main():
 
     def str_examples():
         examples = """\
-Usage example:\n
-
+usage example:
     abirun.py [FLOWDIR] rapid                    => Keep repeating, stop when no task can be executed.
     abirun.py [FLOWDIR] scheduler                => Execute flow with the scheduler
     abirun.py [FLOWDIR] events                   => Print ABINIT events (Warning/Error/Comment)
@@ -184,7 +183,7 @@ Usage example:\n
                         Status.all_status_strings())
     #group.add_argument("-p", "--task-pos", default=None, type=parse_wslice, help="List of tuples with the position of the tasl in the flow.")
 
-    # Parent parse for common options.
+    # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
 
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2

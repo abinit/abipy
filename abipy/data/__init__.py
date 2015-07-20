@@ -146,6 +146,7 @@ def mp_structures():
     with open(os.path.join(_MPDATA_DIRPATH, 'mp_structures.json'), 'r') as f:
         return json.load(f, cls=MontyDecoder)
 
+
 WFK_NCFILES = ncfiles_with_ext("WFK")
 
 DEN_NCFILES = ncfiles_with_ext("DEN")
