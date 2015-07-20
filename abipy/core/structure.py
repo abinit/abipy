@@ -219,7 +219,7 @@ class Structure(pymatgen.Structure):
         return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
 
     @classmethod
-    def ABO3(cls, a, species, **kwargs)
+    def ABO3(cls, a, species, **kwargs):
        """
        Peroviskite structures.
        """
@@ -233,7 +233,7 @@ class Structure(pymatgen.Structure):
           0.0, 0.5, 0.5,  # O (6b)
          ], (5, 3))
 
-        return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
+       return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
 
     #@classmethod
     #def half_heusler(cls, a, species, **kwargs)
