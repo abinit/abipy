@@ -61,6 +61,47 @@ def as_slice(obj):
     raise ValueError("Cannot convert %s into a slice:\n%s" % (type(obj), obj))
 
 
+def find_flowdir_wtpos(nodepath):
+    """"
+    Given a directory `nodepath` containing a node of the `Flow`,
+    this function locates the directory of the flow (e.g. the dir with the pickle file)
+    and returns the position of the node inside the flow by parsing the directory tree
+
+    Return: flowdir, w_pos, t_pos
+
+        where w_pos and t_pos are the position of the work/task.
+        t_pos is set to None, if we have a work.
+    """
+    nodepath = os.path.abspath(nodepath)
+
+    # Is nodepath a work director?
+    back, tail = os.path.split(nodepath)
+    p = os.path.join(back, abilab.Flow.PICKLE_FNAME)
+
+    if os.path.exists(p):
+        # /root/flow_dir/w[num]
+        head, w_dirname = os.path.split(nodepath)
+        w_pos = int(w_dirname.replace("w" , ""))
+        t_pos = None
+        #print("got work", w_pos, t_pos)
+        return p, w_pos, t_pos
+
+    # Is nodepath a task directory?
+    back, tail = os.path.split(back)
+    p = os.path.join(back, abilab.Flow.PICKLE_FNAME)
+
+    if os.path.exists(p):
+        # /root/flow_dir/w[num]/t[num]
+        head, t_dirname = os.path.split(nodepath)
+        head, w_dirname = os.path.split(head)
+        w_pos = int(w_dirname.replace("w" , ""))
+        t_pos = int(t_dirname.replace("t" , ""))
+        #print("got task", w_pos, t_pos)
+        return p, w_pos, t_pos
+
+    raise RuntimeError("Cannot locate flowdir from %s" % nodepath)
+
+
 def selected_nids(flow, options):
     """Return the list of node ids selected by the user via the command line interface."""
     return [task.node_id for task in flow.select_tasks(nids=options.nids, wslice=options.wslice)]
@@ -130,6 +171,18 @@ usage example:
 
     If FLOWDIR is not given, abirun.py automatically selects the database located within 
     the working directory. An Exception is raised if multiple databases are found.
+
+    Note, moreover, that you can also replace FLOWDIR with the directory of a work/task
+    to make the command operate on this node of the flow without having to specify --nids.
+    To have the list of events of the task in `FLOWDIR/w0/t1` simply use: 
+
+        abirun.py FLOWDIR/w0/t1 events 
+
+    instead of 
+
+        abirun.py FLOWDIR events -n 123
+
+    where 123 is the node identifier of w0/t1.
 
     Options for developers:
 
@@ -416,13 +469,31 @@ Specify the files to open. Possible choices:
 
         sys.exit(0)
 
-    # Read the flow from the pickle database.
+
+    patch_nids = False
     if options.flowdir is None:
         # Will try to figure out the location of the Flow.
         options.flowdir = os.getcwd()
+    else:
+        # Sometimes one wants to inspect a work or a task by just using 
+        # abirun.py flow/w0/t0 inspect
+        # without knowing its node id. 
+        if not os.path.exists(os.path.join(options.flowdir, abilab.Flow.PICKLE_FNAME)):
+            print("The directory does not contain a flow! Will get node ids from dirpath")
+            assert options.nids is None
+            patch_nids = True
+            options.flowdir, w_pos, t_pos = find_flowdir_wtpos(options.flowdir)
 
+    # Read the flow from the pickle database.
     flow = abilab.Flow.pickle_load(options.flowdir, remove_lock=options.remove_lock)
     #flow.set_spectator_mode(False)
+
+    if patch_nids:
+        # Create options.nids here  
+        node = flow[w_pos]
+        if t_pos is not None: node = node[t_pos]
+        options.nids = [node.node_id]
+
     retcode = 0
 
     if options.command == "gui":
