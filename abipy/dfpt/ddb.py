@@ -608,11 +608,11 @@ class ElasticComplianceTensor(Has_Structure):
         G_Voigt = (self.elastic_tensor[0, 0] + self.elastic_tensor[1, 1] + self.elastic_tensor[2, 2] -
                    self.elastic_tensor[0, 1] - self.elastic_tensor[1, 2] - self.elastic_tensor[2, 0] +
                    3.0*self.elastic_tensor[3, 3] + 3.0*self.elastic_tensor[4, 4] + 3.0*self.elastic_tensor[5, 5]) / 15.0
-        G_Reuss = 1.0 / 15.0 / (4.0*self.compliance_tensor[0, 0] + 4.0*self.compliance_tensor[1, 1] +
-                                4.0*self.compliance_tensor[2, 2] - 4.0*self.compliance_tensor[0, 1] -
-                                4.0*self.compliance_tensor[1, 2] - 4.0*self.compliance_tensor[2, 0] +
-                                3.0*self.compliance_tensor[3, 3] + 3.0*self.compliance_tensor[4, 4] +
-                                3.0*self.compliance_tensor[5, 5])
+        G_Reuss = 15.0 / (4.0*self.compliance_tensor[0, 0] + 4.0*self.compliance_tensor[1, 1] +
+                          4.0*self.compliance_tensor[2, 2] - 4.0*self.compliance_tensor[0, 1] -
+                          4.0*self.compliance_tensor[1, 2] - 4.0*self.compliance_tensor[2, 0] +
+                          3.0*self.compliance_tensor[3, 3] + 3.0*self.compliance_tensor[4, 4] +
+                          3.0*self.compliance_tensor[5, 5])
         K_VRH = (K_Voigt + K_Reuss) / 2.0
         G_VRH = (G_Voigt + G_Reuss) / 2.0
         universal_elastic_anisotropy = 5.0*G_Voigt/G_Reuss + K_Voigt/K_Reuss - 6.0
