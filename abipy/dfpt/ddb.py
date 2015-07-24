@@ -598,6 +598,35 @@ class ElasticComplianceTensor(Has_Structure):
                 'structure': self.structure.as_dict() if self.structure is not None else None,
                 'additional_info': self.additional_info}
 
+    def extended_dict(self):
+        dd = self.as_dict()
+        K_Voigt = (self.elastic_tensor[0, 0] + self.elastic_tensor[1, 1] + self.elastic_tensor[2, 2] +
+                   2.0*self.elastic_tensor[0, 1] + 2.0*self.elastic_tensor[1, 2] + 2.0*self.elastic_tensor[2, 0]) / 9.0
+        K_Reuss = 1.0 / (self.compliance_tensor[0, 0] + self.compliance_tensor[1, 1] + self.compliance_tensor[2, 2] +
+                         2.0*self.compliance_tensor[0, 1] + 2.0*self.compliance_tensor[1, 2] +
+                         2.0*self.compliance_tensor[2, 0])
+        G_Voigt = (self.elastic_tensor[0, 0] + self.elastic_tensor[1, 1] + self.elastic_tensor[2, 2] -
+                   self.elastic_tensor[0, 1] - self.elastic_tensor[1, 2] - self.elastic_tensor[2, 0] +
+                   3.0*self.elastic_tensor[3, 3] + 3.0*self.elastic_tensor[4, 4] + 3.0*self.elastic_tensor[5, 5]) / 15.0
+        G_Reuss = 1.0 / 15.0 / (4.0*self.compliance_tensor[0, 0] + 4.0*self.compliance_tensor[1, 1] +
+                                4.0*self.compliance_tensor[2, 2] - 4.0*self.compliance_tensor[0, 1] -
+                                4.0*self.compliance_tensor[1, 2] - 4.0*self.compliance_tensor[2, 0] +
+                                3.0*self.compliance_tensor[3, 3] + 3.0*self.compliance_tensor[4, 4] +
+                                3.0*self.compliance_tensor[5, 5])
+        K_VRH = (K_Voigt + K_Reuss) / 2.0
+        G_VRH = (G_Voigt + G_Reuss) / 2.0
+        universal_elastic_anisotropy = 5.0*G_Voigt/G_Reuss + K_Voigt/K_Reuss - 6.0
+        isotropic_poisson_ratio = (3.0*K_VRH - 2.0*G_VRH) / (6.0*K_VRH + 2.0*G_VRH)
+        dd['K_Voigt'] = K_Voigt
+        dd['G_Voigt'] = G_Voigt
+        dd['K_Reuss'] = K_Reuss
+        dd['G_Reuss'] = G_Reuss
+        dd['K_VRH'] = K_VRH
+        dd['G_VRH'] = G_VRH
+        dd['universal_elastic_anistropy'] = universal_elastic_anisotropy
+        dd['isotropic_poisson_ratio'] = isotropic_poisson_ratio
+        return dd
+
     @classmethod
     def from_dict(cls, dd):
         return cls(elastic_tensor=dd['elastic_tensor'], compliance_tensor=dd['compliance_tensor'],
