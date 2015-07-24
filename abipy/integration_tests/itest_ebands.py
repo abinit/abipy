@@ -28,7 +28,9 @@ def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
     global_vars = dict(ecut=ecut,
                        nband=int(nval/2),
                        nstep=nstep,
-                       paral_kgb=tvars.paral_kgb)
+                       paral_kgb=tvars.paral_kgb,
+                       timopt=-1,
+                       )
 
     if multi.ispaw:
         global_vars.update(pawecutdg=2*ecut)
@@ -238,6 +240,17 @@ def itest_bandstructure_flow(fwp, tvars):
         table = robot.get_dataframe()
         assert table is not None
         print(table)
+
+    # Test AbinitTimer.
+    timer = t0.get_abitimer()
+    print(timer)
+    timer.to_csv()
+    timer.totable()
+
+    if has_matplotlib:
+        timer.plot_pie(show=False)
+        timer.plot_stacked_hist(show=False)
+        timer.plot_efficiency(show=False)
 
     #assert flow.validate_json_schema()
     #assert 0
