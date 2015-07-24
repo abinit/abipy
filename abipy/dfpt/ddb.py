@@ -12,6 +12,7 @@ from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.dev import get_ncpus
 from pymatgen.io.abinitio.tasks import AnaddbTask
+from pymatgen.io.abinitio.netcdf import NetcdfReader
 from abipy.core.mixins import TextFile, Has_Structure
 from abipy.core.symmetries import SpaceGroup
 from abipy.core.structure import Structure
@@ -555,3 +556,50 @@ class Becs(Has_Structure):
         stream.write("Born effective charge neutrality sum-rule with chneut: %d\n" % self.chneut)
         becs_atomsum = self.becs.sum(axis=0)
         stream.write(str(becs_atomsum))
+
+
+class ElasticComplianceTensor(Has_Structure):
+    """This object is used to store the elastic and compliance tensors."""
+
+    def __init__(self, elastic_tensor, compliance_tensor, structure, additional_info=None):
+        """
+
+        Args:
+            elastic_tensor: (6, 6) array with the elastic tensor in Cartesian coordinates
+            compliance_tensor: (6, 6) array with the compliance tensor in Cartesian coordinates
+            structure: Structure object.
+        """
+        self._structure = structure
+        self.elastic_tensor = elastic_tensor
+        self.compliance_tensor = compliance_tensor
+        self.additional_info = additional_info
+
+    @property
+    def structure(self):
+        return self._structure
+
+    def __repr__(self):
+        return self.to_string()
+
+    @classmethod
+    def from_ec_nc_file(cls, ec_nc_file, tensor_type='relaxed_ion'):
+        nc_reader = NetcdfReader(ec_nc_file)
+        if tensor_type == 'relaxed_ion':
+            ec_relaxed =  nc_reader.read_variable('elastic_constants_relaxed_ion')
+            compl_relaxed =  nc_reader.read_variable('compliance_constants_relaxed_ion')
+        else:
+            raise ValueError('tensor_type "{}" not allowed'.format(tensor_type))
+        #TODO: add the structure object!
+        return cls(elastic_tensor=ec_relaxed, compliance_tensor=compl_relaxed, structure=None,
+                   additional_info={'tensor_type': tensor_type})
+
+    def as_dict(self):
+        return {'elastic_tensor': self.elastic_tensor, 'compliance_tensor': self.compliance_tensor,
+                'structure': self.structure.as_dict() if self.structure is not None else None,
+                'additional_info': self.additional_info}
+
+    @classmethod
+    def from_dict(cls, dd):
+        return cls(elastic_tensor=dd['elastic_tensor'], compliance_tensor=dd['compliance_tensor'],
+                   structure=dd['structure'] if dd['structure'] is not None else None,
+                   additional_info=dd['additional_info'])
