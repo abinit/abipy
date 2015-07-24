@@ -585,8 +585,8 @@ class ElasticComplianceTensor(Has_Structure):
     def from_ec_nc_file(cls, ec_nc_file, tensor_type='relaxed_ion'):
         nc_reader = NetcdfReader(ec_nc_file)
         if tensor_type == 'relaxed_ion':
-            ec_relaxed =  nc_reader.read_variable('elastic_constants_relaxed_ion')
-            compl_relaxed =  nc_reader.read_variable('compliance_constants_relaxed_ion')
+            ec_relaxed =  np.array(nc_reader.read_variable('elastic_constants_relaxed_ion'))
+            compl_relaxed =  np.array(nc_reader.read_variable('compliance_constants_relaxed_ion'))
         else:
             raise ValueError('tensor_type "{}" not allowed'.format(tensor_type))
         #TODO: add the structure object!
