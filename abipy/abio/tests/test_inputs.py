@@ -7,6 +7,7 @@ import abipy.data as abidata
 from abipy import abilab
 from abipy.core.testing import *
 from abipy.abio.inputs import *
+from abipy.abio.input_tags import *
 
 import abipy.abio.decorators as ideco
 from abipy.abio.factories import *
@@ -81,6 +82,14 @@ class TestAbinitInput(AbipyTest):
         # Compatible with Pickle and PMGSONable?
         self.serialize_with_pickle(inp, test_eq=False)
         self.assertPMGSONable(inp)
+
+        # Test tags
+        assert isinstance(inp.tags, set)
+        assert len(inp.tags) == 0
+        inp.add_tags([GROUND_STATE, SCF])
+        assert len(inp.tags) == 2
+        inp.remove_tags([GROUND_STATE])
+        assert len(inp.tags) == 1
 
     def test_input_errors(self):
         """Testing typical AbinitInput Error"""
@@ -289,6 +298,14 @@ class TestMultiDataset(AbipyTest):
         # Compatible with Pickle and PMGSONable?
         #self.serialize_with_pickle(multi, test_eq=False)
         #self.assertPMGSONable(multi)
+
+        # Test tags
+        new_multi.add_tags([GROUND_STATE, RELAX], [0,2])
+        assert len(new_multi[0].tags) == 2
+        sub_multi = new_multi.filter_by_tags(GROUND_STATE)
+        assert len(sub_multi) == 2
+        new_multi.remove_tags([RELAX])
+        assert len(new_multi[0].tags) == 1
 
 
 

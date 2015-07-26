@@ -11,6 +11,7 @@ from monty.json import jsanitize, MontyDecoder
 from pymatgen.io.abinitio.pseudos import PseudoTable
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
+from abipy.abio.input_tags import *
 
 import logging
 from pymatgen.serializers.json_coders import pmg_serialize
@@ -87,7 +88,8 @@ def _stopping_criterion(runlevel, accuracy):
 def _find_ecut_pawecutdg(ecut, pawecutdg, pseudos, accuracy='normal'):
     """Return a :class:`AttrDict` with the value of ecut and pawecutdg"""
     # Get ecut and pawecutdg from the pseudo hints.
-    has_hints = all(p.has_hints for p in pseudos)
+    if ecut is None or (pawecutdg is None and any(p.ispaw for p in pseudos)):
+        has_hints = all(p.has_hints for p in pseudos)
 
     if ecut is None:
         if has_hints:
@@ -565,49 +567,137 @@ def scf_phonons_inputs(structure, pseudos, kppa,
     return all_inps
 
 
-def phonons_from_gsinput(gs_inp):
+def phonons_from_gsinput(gs_inp, ph_ngqpt=None, with_ddk=True, with_dde=True, with_bec=False, ph_tol=None, ddk_tol=None,
+                         dde_tol=None):
     """
     Returns a :class:`AbinitInput` for performing phonon calculations.
     GS input + the input files for the phonon calculation.
     """
-    qpoints = gs_inp.abiget_ibz(ngkpt=(4,4,4), shiftk=(0,0,0), kptopt=1).points
-    #print("get_ibz qpoints:", qpoints)
+
+    if with_dde:
+        with_ddk = True
+
+    if with_bec:
+        with_ddk = True
+        with_dde = False
+
+    if ph_ngqpt is None:
+        qpoints = gs_inp.abiget_ibz().points
+    else:
+        qpoints = gs_inp.abiget_ibz(ngkpt=ph_ngqpt, shiftk=(0,0,0), kptopt=1).points
 
     # Build the input files for the q-points in the IBZ.
     # Response-function calculation for phonons.
-    ph_inputs = []
+    multi = []
     for qpt in qpoints:
-        q_inp = gs_inp.deepcopy()
-        #q_inp.pop_tolerances()
-        q_inp.set_vars(
-            rfphon=1,        # Will consider phonon-type perturbation
-            nqpt=1,          # One wavevector is to be considered
-            qpt=qpt,         # This wavevector is q=0 (Gamma)
-            #tolwfr=1.0e-20,
-            kptopt=3,        # One could used symmetries for Gamma.
-        )
-            #rfatpol   1 1   # Only the first atom is displaced
-            #rfdir   1 0 0   # Along the first reduced coordinate axis
-            #kptopt   2      # Automatic generation of k points, taking
-        #print(tmp_inp)
-        irred_perts = q_inp.abiget_irred_phperts()
+        if np.allclose(qpt, 0):
+            if with_ddk:
+                multi_ddk = gs_inp.make_ddk_inputs(ddk_tol)
+                multi_ddk.add_tags(DDK)
+                multi.extend(multi_ddk)
+            if with_dde:
+                multi_dde = gs_inp.make_dde_inputs(dde_tol)
+                multi_dde.add_tags(DDE)
+                multi.extend(multi_dde)
+            elif with_bec:
+                multi_bec = gs_inp.make_bec_inputs(ph_tol)
+                multi_bec.add_tags(BEC)
+                multi.extend(multi_bec)
+                continue
 
-        for pert in irred_perts:
-            #print(pert)
-            # TODO this will work for phonons, but not for the other types of perturbations.
-            ph_inp = q_inp.deepcopy()
+        multi_ph_q = gs_inp.make_ph_inputs_qpoint(qpt, ph_tol)
+        multi_ph_q.add_tags(PH_Q_PERT)
+        multi.extend(multi_ph_q)
 
-            rfdir = 3 * [0]
-            rfdir[pert.idir -1] = 1
+    multi = MultiDataset.from_inputs(multi)
+    multi.add_tags(PHONON)
 
-            ph_inp.set_vars(
-                rfdir=rfdir,
-                rfatpol=[pert.ipert, pert.ipert]
+    return multi
+
+
+def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None, scf_nband=None,
+                             accuracy="normal", spin_mode="polarized",
+                             smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None, ddk_tol=None, rf_tol=None):
+
+    """
+    Returns a :class:`AbinitInput` for performing elastic and piezoelectric constants calculations.
+    GS input + the input files for the elastic and piezoelectric constants calculation.
+
+    Args:
+        structure: :class:`Structure` object.
+        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.
+        kppa: Defines the sampling used for the SCF run.
+        ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
+        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the
+            pseudos according to accuracy)
+        scf_nband: Number of bands for SCF run. If scf_nband is None, nband is automatically initialized
+            from the list of pseudos, the structure and the smearing option.
+        accuracy: Accuracy of the calculation.
+        spin_mode: Spin polarization.
+        smearing: Smearing technique.
+        charge: Electronic charge added to the unit cell.
+        scf_algorithm: Algorithm used for solving of the SCF cycle.
+        ddk_tol
+    """
+    # Build the input file for the GS run.
+    gs_inp = AbinitInput(structure=structure, pseudos=pseudos)
+
+    # Set the cutoff energies.
+    gs_inp.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, gs_inp.pseudos))
+
+    ksampling = aobj.KSampling.automatic_density(gs_inp.structure, kppa, chksymbreak=0, shifts=(0.0, 0.0, 0.0))
+    gs_inp.set_vars(ksampling.to_abivars())
+    gs_inp.set_vars(tolvrs=1.0e-18)
+
+    all_inps = [gs_inp]
+
+    # Add the ddk input
+    ddk_inp = gs_inp.deepcopy()
+
+    ddk_inp.set_vars(
+                rfelfd=2,             # Activate the calculation of the d/dk perturbation
+                rfdir=(1,1,1),        # All directions
+                nqpt=1,               # One wavevector is to be considered
+                qpt=(0, 0, 0),        # q-wavevector.
+                kptopt=2,             # Take into account time-reversal symmetry.
+                iscf=-3,              # The d/dk perturbation must be treated in a non-self-consistent way
             )
+    if ddk_tol is None:
+        ddk_tol = {"tolwfr": 1.0e-20}
 
-            ph_inputs.append(ph_inp)
+    if len(ddk_tol) != 1 or any(k not in _tolerances for k in ddk_tol):
+        raise ValueError("Invalid tolerance: {}".format(ddk_tol))
+    ddk_inp.pop_tolerances()
+    ddk_inp.set_vars(ddk_tol)
 
-    #return MultiDataset.from_inputs(ph_inputs)
+    ddk_inp.add_tags(DDK)
+    all_inps.append(ddk_inp)
+
+    # Add the Response Function calculation
+    rf_inp = gs_inp.deepcopy()
+
+    rf_inp.set_vars(rfphon=1,                          # Atomic displacement perturbation
+                    rfatpol=(1,len(gs_inp.structure)), # Perturbation of all atoms
+                    rfstrs=3,                          # Do the strain perturbations
+                    rfdir=(1,1,1),                     # All directions
+                    nqpt=1,                            # One wavevector is to be considered
+                    qpt=(0, 0, 0),                     # q-wavevector.
+                    kptopt=2,                          # Take into account time-reversal symmetry.
+                    iscf=5,                            # The d/dk perturbation must be treated in a non-self-consistent way
+                    )
+
+    if rf_tol is None:
+        rf_tol = {"tolvrs": 1.0e-12}
+
+    if len(rf_tol) != 1 or any(k not in _tolerances for k in rf_tol):
+        raise ValueError("Invalid tolerance: {}".format(rf_tol))
+    rf_inp.pop_tolerances()
+    rf_inp.set_vars(rf_tol)
+
+    rf_inp.add_tags([DFPT, STRAIN])
+    all_inps.append(rf_inp)
+
+    return MultiDataset.from_inputs(all_inps)
 
 
 def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=None, accuracy="normal",
@@ -702,7 +792,7 @@ def hybrid_oneshot_input(gsinput, functional="hse06", ecutsigx=None, gw_qprange=
 
 #FIXME if the pseudos are passed as a PseudoTable the whole table will be serialized,
 # it would be better to filter on the structure elements
-class InputFactory():
+class InputFactory(object):
     factory_function = None
     input_required = True
 
@@ -726,9 +816,11 @@ class InputFactory():
             abiinput = self.factory_function(previous_input, *self.args, **kwargs)
         else:
             abiinput = self.factory_function(*self.args, **kwargs)
+
         for d in decorators:
             abiinput = d(abiinput)
         abiinput.set_vars(extra_abivars)
+
         return abiinput
 
     @pmg_serialize
@@ -757,3 +849,7 @@ class HybridOneShotFromGsFactory(InputFactory):
 class ScfFactory(InputFactory):
     factory_function = staticmethod(scf_input)
     input_required = False
+
+
+class PhononsFromGsFactory(InputFactory):
+    factory_function = staticmethod(phonons_from_gsinput)

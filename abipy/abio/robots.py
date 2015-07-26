@@ -133,7 +133,7 @@ class Robot(object):
 
     def add_extfile_of_node(self, node, nids=None):
         """Add the file produced by this node to the robot."""
-        if nids and node.node_id in nids: return 
+        if nids and node.node_id not in nids: return
         filepath = node.outdir.has_abiext(self.EXT)
         if filepath:
             try:
@@ -240,9 +240,9 @@ class Robot(object):
 
             from abipy.abilab import abiopen
             for dirpath, dirnames, filenames in os.walk(obj):
-                filenames = [f for f in filenames if f.endswith(cls.EXT + ".nc")]
+                filenames = [f for f in filenames if f.endswith(cls.EXT + ".nc") or f.endswith(cls.EXT)]
                 for f in filenames:
-                    ncfile = abiopen(f)
+                    ncfile = abiopen(os.path.join(dirpath, f))
                     if ncfile is not None: items.append((ncfile.filepath, ncfile))
 
         new = cls(*items)

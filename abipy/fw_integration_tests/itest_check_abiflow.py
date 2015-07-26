@@ -77,7 +77,7 @@ class ItestCheckScf():
 
         assert wf.state == "COMPLETED"
 
-        num_restarts_fw = wf.fws[-1].tasks[0].num_restarts
+        num_restarts_fw = wf.fws[-1].tasks[0].restart_info.num_restarts
 
         # Build the flow
         flow = abilab.Flow(fwp.workdir, manager=fwp.manager)
