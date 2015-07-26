@@ -3,17 +3,12 @@
 from __future__ import print_function, division, unicode_literals
 
 import numpy as np
-import pymatgen.core.units as units
 
-from collections import OrderedDict, Iterable, defaultdict
-from monty.string import is_string, list_strings
-from monty.collections import AttrDict
-from monty.functools import lazy_property
+from monty.string import list_strings
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from pymatgen.io.abinitio.pseudos import Pseudo
 from abipy.iotools import ETSF_Reader
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands
-from prettytable import PrettyTable
+from abipy.core.mixins import AbinitNcFile #, Has_Structure, Has_ElectronBands
 
 
 import logging
@@ -28,7 +23,7 @@ def compare_pseudos(filepaths, ecut=30):
 
     Args:
         filepaths: List of file names.
-        ecut: Cutoff energy for the wavefunctions in Ha.
+        ecut: Cutoff energy in Ha for the wavefunctions.
     """
     pseudos = [Pseudo.from_file(path) for path in filepaths]
 
@@ -54,9 +49,9 @@ def rescale(arr, scale=1.0):
     if scale is None:
         return arr, 0.0
 
-    max = np.abs(arr).max()
-    fact = scale / max if max != 0 else 1
-    return  fact * arr, fact
+    amax = np.abs(arr).max()
+    fact = scale / amax if amax != 0 else 1
+    return fact * arr, fact
 
 
 class PspsFile(AbinitNcFile):
@@ -69,9 +64,10 @@ class PspsFile(AbinitNcFile):
     .. code-block:: python
         
         with PspsFile("foo_PSPS.nc") as psps:
-            psps.plot_modelcore_rspace()
+            psps.plot_tcore_rspace()
     """
     linestyles_der = ["-", "--", '-.', ':', ":", ":"]
+    color_der = ["black", "red", "green", "orange", "cyan"]
 
     @classmethod
     def from_file(cls, filepath):
@@ -86,38 +82,29 @@ class PspsFile(AbinitNcFile):
         self.reader.close()
 
     @add_fig_kwargs
-    def plot(self, what="all", **kwargs):
+    def plot(self, **kwargs):
         """
         Driver routine to plot several quantities on the same graph.
 
-        Args:
-            what: List of strings selecting the quantities to plot.
-                possible values in ["corer", "coreq", "vlocq", "ffspl"]
-       
         Return: matplotlb Figure
         """
-        if what == "all":
-            what = ["corer", "coreq", "vlocq", "ffspl"]
-        else:
-            what = list_strings(what)
-
         import matplotlib.pyplot as plt
-        fig, ax_list = plt.subplots(nrows=len(what), ncols=1, squeeze=True)
+        fig, ax_list = plt.subplots(nrows=2, ncols=2, squeeze=True)
 
-        what2method = {
-            "corer": "plot_modelcore_rspace",
-            "coreq": "plot_modelcore_qspace",
-            "vlocq": "plot_vlspl",
-            "ffspl": "plot_ffspl",
-        }
+        methods = [
+            "plot_tcore_rspace",
+            "plot_tcore_qspace",
+            "plot_ffspl",
+            "plot_vlocq",
+        ]
 
-        for w, ax in zip(what, ax_list):
-            getattr(self, what2method[w])(ax=ax, show=False)
+        for m, ax in zip(methods, ax_list.ravel()):
+            getattr(self, m)(ax=ax, show=False)
 
         return fig
 
     @add_fig_kwargs
-    def plot_modelcore_rspace(self, ax=None, ders=(0, 1, 2, 3), rmax=3.0,  **kwargs):
+    def plot_tcore_rspace(self, ax=None, ders=(0, 1, 2, 3), rmax=3.0,  **kwargs):
         """
         Plot the model core and its derivatives in real space.
 
@@ -131,28 +118,27 @@ class PspsFile(AbinitNcFile):
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
-        color = kwargs.pop("color", "black")
         linewidth = kwargs.pop("linewidth", 2.0)
-
         rmeshes, coresd = self.reader.read_coresd(rmax=rmax)
 
         for rmesh, mcores in zip(rmeshes, coresd): 
             for der, values in enumerate(mcores):
                 if der not in ders: continue
                 yvals, fact, = rescale(values)
-                ax.plot(rmesh, yvals, color=color, linewidth=linewidth, 
+                ax.plot(rmesh, yvals, color=self.color_der[der], linewidth=linewidth, 
                         linestyle=self.linestyles_der[der], 
                         label=mklabel("\\tilde{n}_c", der, "r") + " x %.4f" % fact)
 
         ax.grid(True)
         ax.set_xlabel("r [Bohr]")
         ax.set_title("Model core in r-space")
-        ax.legend(loc="upper right")
+        if kwargs.get("with_legend", True):
+            ax.legend(loc="upper right")
 
         return fig
 
     @add_fig_kwargs
-    def plot_modelcore_qspace(self, ax=None, ders=(0,), with_fact=False, with_qn=0, **kwargs):
+    def plot_tcore_qspace(self, ax=None, ders=(0,), with_fact=True, with_qn=0, **kwargs):
         """
         Plot the model core in q space
 
@@ -195,12 +181,13 @@ class PspsFile(AbinitNcFile):
         ax.grid(True)
         ax.set_xlabel("Ecut [Hartree]")
         ax.set_title("Model core in q-space")
-        ax.legend(loc="upper right")
+        if kwargs.get("with_legend", True):
+            ax.legend(loc="upper right")
 
         return fig
 
     @add_fig_kwargs
-    def plot_vlspl(self, ax=None, ders=(0,), with_qn=0, with_fact=False, **kwargs):
+    def plot_vlocq(self, ax=None, ders=(0,), with_qn=0, with_fact=True, **kwargs):
         """
         Plot the local part of the pseudopotential in q space.
 
@@ -239,7 +226,9 @@ class PspsFile(AbinitNcFile):
         ax.grid(True)
         ax.set_xlabel("Ecut [Hartree]")
         ax.set_title("Vloc(q)")
-        ax.legend(loc="upper right")
+        if kwargs.get("with_legend", True):
+            #ax.legend(loc="upper right")
+            ax.legend(loc="best")
 
         return fig
 
@@ -264,6 +253,7 @@ class PspsFile(AbinitNcFile):
         color_l = {-1: "black", 0: "red", 1: "blue", 2: "green", 3: "orange"}
         linestyles_n = ["solid", '-', '--', '-.', ":"]
         scale = None
+        l_seen = set()
 
         all_projs = self.reader.read_projectors()
         for itypat, projs_type in enumerate(all_projs): 
@@ -273,29 +263,34 @@ class PspsFile(AbinitNcFile):
                     if der == 1: der = 2
                     if der not in ders: continue
                     #yvals, fact = rescale(values, scale=scale)
-                    label = mklabel("v_{nl}", der, "q")
+                    label = None
+                    if p.l not in l_seen:
+                        l_seen.add(p.l)
+                        label = mklabel("v_{nl}", der, "q") + ", l=%d" % p.l
+                        
                     ax.plot(p.ecuts, values * p.ekb, color=color_l[p.l], linewidth=linewidth, 
-                            linestyle=linestyles_n[p.n]) #, label=label)
+                            linestyle=linestyles_n[p.n], label=label)
 
         ax.grid(True)
         ax.set_xlabel("Ecut [Hartree]")
         ax.set_title("ekb * ffnl(q)")
-        #ax.legend(loc="upper right")
+        if kwargs.get("with_legend", True):
+            ax.legend(loc="best")
+
+        ax.axhline(y=0, linewidth=linewidth, color='k', linestyle="solid")
 
         return fig
 
     @add_fig_kwargs
-    def compare(self, others, what="all", **kwargs):
+    def compare(self, others, **kwargs):
         if not isinstance(others, (list, tuple)):
             others = [others]
 
-        if what == "all":
-            what = ["corer", "coreq", "vlocq", "ffspl"]
-        else:
-            what = list_strings(what)
-
         import matplotlib.pyplot as plt
-        fig, ax_list = plt.subplots(nrows=len(what), ncols=1, squeeze=True)
+        fig, ax_list = plt.subplots(nrows=2, ncols=2, squeeze=True)
+        ax_list = ax_list.ravel()
+
+        #fig.suptitle("%s vs %s" % (self.basename, ", ".join(o.basename for o in others)))
 
         def mkcolor(count):
             npseudos = 1 + len(others)
@@ -305,37 +300,32 @@ class PspsFile(AbinitNcFile):
                 cmap = plt.get_cmap("jet")
                 return cmap(float(count)/ (1 + len(others)))
 
-        ic = -1
-        if "corer" in what:
-            ic += 1; ax = ax_list[ic]
-            self.plot_modelcore_rspace(ax=ax, color=mkcolor(0), show=False)
-            for count, other in enumerate(others):
-                other.plot_modelcore_rspace(ax=ax, color=mkcolor(count+1), show=False)
+        ic = 0; ax = ax_list[ic]
+        self.plot_tcore_rspace(ax=ax, color=mkcolor(0), show=False, with_legend=False)
+        for count, other in enumerate(others):
+            other.plot_tcore_rspace(ax=ax, color=mkcolor(count+1), show=False, with_legend=False)
 
-        if "coreq" in what:
-            ic += 1; ax = ax_list[ic]
-            self.plot_modelcore_qspace(ax=ax, with_qn=0, color=mkcolor(0), show=False)
-            for count, other in enumerate(others):
-                other.plot_modelcore_qspace(ax=ax, with_qn=0, color=mkcolor(count+1), show=False)
+        ic += 1; ax = ax_list[ic]
+        self.plot_tcore_qspace(ax=ax, with_qn=0, color=mkcolor(0), show=False)
+        for count, other in enumerate(others):
+            other.plot_tcore_qspace(ax=ax, with_qn=0, color=mkcolor(count+1), show=False)
 
-        if "vlocq" in what:
-            ic += 1; ax = ax_list[ic]
-            self.plot_vlspl(ax=ax, with_qn=0, color=mkcolor(0), show=False)
-            for count, other in enumerate(others):
-                other.plot_vlspl(ax=ax, with_qn=0, color=mkcolor(count+1), show=False)
+        ic += 1; ax = ax_list[ic]
+        self.plot_vlocq(ax=ax, with_qn=0, color=mkcolor(0), show=False)
+        for count, other in enumerate(others):
+            other.plot_vlocq(ax=ax, with_qn=0, color=mkcolor(count+1), show=False)
 
-        if "ffspl" in what:
-            ic += 1; ax = ax_list[ic]
-            self.plot_ffspl(ax=ax, with_qn=0, color=mkcolor(0), show=False)
-            for count, other in enumerate(others):
-                other.plot_ffspl(ax=ax, with_qn=0, color=mkcolor(count+1), show=False)
+        ic += 1; ax = ax_list[ic]
+        self.plot_ffspl(ax=ax, with_qn=0, color=mkcolor(0), show=False)
+        for count, other in enumerate(others):
+            other.plot_ffspl(ax=ax, with_qn=0, color=mkcolor(count+1), show=False)
 
         return fig
 
 
 class PspsReader(ETSF_Reader):
     """
-    This object reads the results stored in the _GSR (Ground-State Results) file produced by ABINIT.
+    This object reads the results stored in the PSPS file produced by ABINIT.
     It provides helper function to access the most important quantities.
     """
     def __init__(self, filepath):
@@ -370,6 +360,8 @@ class PspsReader(ETSF_Reader):
             meshes: List of ntypat arrays. Each array contains the linear meshes in real space.
             coresd: List with nytpat arrays of shape [6, npts].
 
+            (np.zeros. np.zeros) if core charge is not present
+
         xccc1d[ntypat6,n1xccc*(1-usepaw)]
 
         Norm-conserving psps only
@@ -378,10 +370,13 @@ class PspsReader(ETSF_Reader):
         xccc1d(n1xccc,ideriv,ntypat) give the ideriv-th derivative of the
         pseudo-core charge with respect to the radial distance.
         """
-        # TODO
-        # model core may not be present!
+
         xcccrc = self.read_value("xcccrc") 
-        all_coresd = self.read_value("xccc1d") 
+        try:
+            all_coresd = self.read_value("xccc1d") 
+        except self.Error:
+            # model core may not be present!
+            return self.ntypat * [np.linspace(0, 6, num=100)], self.ntypat * [np.zeros((2, 100))]
 
         npts = all_coresd.shape[-1]
         rmeshes, coresd = [], []
@@ -437,6 +432,7 @@ class PspsReader(ETSF_Reader):
             projs_type = []
             ln_list = self.get_lnlist_for_type(itypat)
             for i, ln in enumerate(ln_list):
+                #print(ffspl[itypat, i, :, :])
                 p = VnlProjector(itypat, ln, ekb[itypat, i], qgrid_ff, ffspl[itypat, i, :, :])
                 projs_type.append(p)
 

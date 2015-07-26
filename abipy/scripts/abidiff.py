@@ -95,7 +95,7 @@ Usage example:\n
     #  raise NotImplementedError()
 
     else:
-        raise RuntimeError("Don't know what to do with command %s!" % options.command)
+        raise RuntimeError("Don't know what to do with command: %s!" % options.command)
 
     return 0
 

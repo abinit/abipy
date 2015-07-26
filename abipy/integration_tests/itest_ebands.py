@@ -244,8 +244,6 @@ def itest_bandstructure_flow(fwp, tvars):
     # Test AbinitTimer.
     timer = t0.get_abitimer()
     print(timer)
-    timer.to_csv()
-    timer.totable()
 
     if has_matplotlib:
         timer.plot_pie(show=False)

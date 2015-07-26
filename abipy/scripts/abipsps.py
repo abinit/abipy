@@ -71,11 +71,7 @@ Usage example:\n
     else:
         pseudo = abilab.Pseudo.from_file(pseudos[0])
         with pseudo.open_pspsfile(ecut=options.ecut) as psps:
-            psps.plot(what="all")
-            #psps.plot_modelcore_rspace()
-            #psps.plot_modelcore_qspace()
-            #psps.plot_vlspl()
-            #psps.plot_ffspl()
+            psps.plot()
 
     return 0
 
