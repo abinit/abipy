@@ -30,6 +30,7 @@ from abipy.core.mixins import Has_Structure
 from abipy.htc.variable import InputVariable
 from abipy.abio.abivars import is_abivar, is_anaddb_var
 from abipy.abio.abivars_db import get_abinit_variables
+from abipy.abio.input_tags import *
 
 import logging
 logger = logging.getLogger(__file__)
@@ -168,7 +169,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
     """
     Error = AbinitInputError
 
-    def __init__(self, structure, pseudos, pseudo_dir=None, comment=None, decorators=None, abi_args=None, abi_kwargs=None):
+    def __init__(self, structure, pseudos, pseudo_dir=None, comment=None, decorators=None, abi_args=None,
+                 abi_kwargs=None, tags=None):
         """
         Args:
             structure: Parameters defining the crystalline structure. Accepts :class:`Structure` object 
@@ -181,6 +183,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
             decorators: List of `AbinitInputDecorator` objects.
             abi_args: list of tuples (key, value) with the initial set of variables. Default: Empty
             abi_kwargs: Dictionary with the initial set of variables. Default: Empty
+            tags: list/set of tags describing the input
         """
         # Internal dict with variables. we use an ordered dict so that 
         # variables will be likely grouped by `topics` when we fill the input.
@@ -214,6 +217,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
 
         self._decorators = [] if not decorators else decorators
 
+        self.tags = set() if not tags else set(tags)
+
     @pmg_serialize
     def as_dict(self):
         #vars = OrderedDict()
@@ -228,7 +233,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
                     pseudos=[p.as_dict() for p in self.pseudos], 
                     comment=self.comment,
                     decorators=[dec.as_dict() for dec in self.decorators],
-                    abi_args=abi_args)
+                    abi_args=abi_args,
+                    tags=list(self.tags))
 
     @property
     def vars(self):
@@ -239,7 +245,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
         pseudos = [Pseudo.from_file(p['filepath']) for p in d['pseudos']]
         dec = MontyDecoder()
         return cls(d["structure"], pseudos, decorators=dec.process_decoded(d["decorators"]),
-                   comment=d["comment"], abi_args=d["abi_args"])
+                   comment=d["comment"], abi_args=d["abi_args"], tags=d["tags"])
 
     def _check_varname(self, key):
         if not is_abivar(key):
@@ -273,6 +279,67 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
     #    if optdriver is None: optdriver = 0
 
     #    # At this point we have to understand the type of calculation.
+
+    @property
+    def runlevel(self):
+        """
+        A Set of strings defining the type of run of the current input.
+        """
+        optdriver = self.get("optdriver")
+
+        if optdriver is None:
+            if self.get("rfddk") or self.get("rfelfd") or self.get("rfphon") or self.get("rfstrs"):
+                optdriver = 1
+            else:
+                optdriver = 0
+
+        runlevel = set()
+        if optdriver == 0:
+            runlevel.add(GROUND_STATE)
+            iscf = self.get("iscf", 17 if self.pseudos[0].ispaw else 7)
+            ionmov = self.get("ionmov", 0)
+            optcell = self.get("optcell", 0)
+            if ionmov == 0:
+                if iscf < -1:
+                    runlevel.add(NSCF)
+                    if self.get("kptbounds") is not None:
+                        runlevel.add(BANDS)
+                else:
+                    runlevel.add(SCF)
+            elif ionmov in (2, 3, 4, 5, 7, 10, 11, 20):
+                runlevel.add(RELAX)
+                if optcell == 0:
+                    runlevel.add(ION_RELAX)
+                else:
+                    runlevel.add(IONCELL_RELAX)
+            elif ionmov in [1, 6, 8, 9, 12, 13, 14, 23]:
+                runlevel.add(MOLECULAR_DYNACMICS)
+        elif optdriver == 1:
+            runlevel.add(DFPT)
+            rfelfd = self.get("rfelfd")
+            rfphon = self.get("rfphon")
+            if self.get("rfddk") == 1 or rfelfd == 2:
+                runlevel.add(DDK)
+            elif rfelfd == 3:
+                if rfphon == 1:
+                    runlevel.add(BEC)
+                else:
+                    runlevel.add(DDE)
+            elif rfphon == 1:
+                runlevel.add(PH_Q_PERT)
+            elif self.get("rfstrs ") > 0:
+                runlevel.add(STRAIN)
+        elif optdriver == 3:
+            runlevel.update([MANY_BODY, SCREENING])
+        elif optdriver == 4:
+            runlevel.update([MANY_BODY, SIGMA])
+            gwcalctyp = self.get("gwcalctyp")
+            if gwcalctyp > 100:
+                runlevel.add(HYBRID)
+        elif optdriver == 99:
+            runlevel.update([MANY_BODY, BSE])
+
+        return runlevel
 
     @property
     def decorators(self):
@@ -665,6 +732,42 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
 
         return ddk_inputs
 
+    def make_dde_inputs(self, tolerance=None):
+        """
+        Return inputs for the calculation of the electric field perturbations.
+
+        This functions should be called with an input the represents a gs run.
+        """
+        if tolerance is None:
+            tolerance = {"tolvrs": 1.0e-10}
+
+        if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
+            raise self.Error("Invalid tolerance: %s" % tolerance)
+
+        # Call Abinit to get the list of irred perts.
+        perts = self.abiget_irred_ddeperts()
+
+        # Build list of datasets (one input per perturbation)
+        multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
+
+        # See tutorespfn/Input/trf1_5.in dataset 3
+        for pert, inp in zip(perts, multi):
+            rfdir = 3 * [0]
+            rfdir[pert.idir -1] = 1
+
+            inp.set_vars(
+                rfelfd=3,             # Activate the calculation of the electric field perturbation
+                rfdir=rfdir,          # Direction of the dde perturbation.
+                nqpt=1,               # One wavevector is to be considered
+                qpt=(0, 0, 0),        # q-wavevector.
+                kptopt=2,             # Take into account time-reversal symmetry.
+            )
+
+            inp.pop_tolerances()
+            inp.set_vars(tolerance)
+
+        return multi
+
     def make_bec_inputs(self, tolerance=None):
         """
         Return inputs for the calculation of the Born effective charges.
@@ -784,13 +887,14 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
             if report and report.errors: raise self.Error(str(report))
             raise self.Error("Problem in temp Task executed in %s\n%s" % (task.workdir, exc))
 
-    def abiget_irred_phperts(self, qpt=None, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
+    def _abiget_irred_perts(self, perts_vars, qpt=None, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
         """
         This function, computes the list of irreducible perturbations for DFPT.
         It should be called with an input file that contains all the mandatory variables required by ABINIT.
 
         Args:
-            qpt: qpoint of the phonon in reduced coordinates. Used to shift the k-mesh 
+            perts_vars: list of variables to be added to get the appropriate perturbation
+            qpt: qpoint of the phonon in reduced coordinates. Used to shift the k-mesh
                 if qpt is not passed, self must already contain "qpt" otherwise an exception is raised.
             ngkpt: Number of divisions for the k-mesh (default None i.e. use ngkpt from self)
             shiftk: Shiftks (default None i.e. use shiftk from self)
@@ -817,17 +921,15 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
         if shiftk is not None:
             shiftk = np.reshape(shiftk, (-1,3))
             inp.set_vars(shiftk=shiftk, nshiftk=len(inp.shiftk))
-                                                                 
-        if kptopt is not None: inp["kptopt"] = kptopt
 
         inp.set_vars(
-            rfphon=1,                         # Will consider phonon-type perturbation
             nqpt=1,                           # One wavevector is to be considered
             qpt=qpt,                          # q-wavevector.
-            rfatpol=[1, len(inp.structure)],  # Set of atoms to displace.
-            rfdir=[1, 1, 1],                  # Along this set of reduced coordinate axis.
             paral_rf=-1,                      # Magic value to get the list of irreducible perturbations for this q-point.
+            **perts_vars
         )
+
+        if kptopt is not None: inp["kptopt"] = kptopt
 
         # Build a Task to run Abinit in a shell subprocess
         task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
@@ -841,6 +943,64 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
             report = task.get_event_report()
             if report and report.errors: raise self.Error(str(report))
             raise self.Error("Problem in temp Task executed in %s\n%s" % (task.workdir, exc))
+
+    def abiget_irred_phperts(self, qpt=None, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
+        """
+        This function, computes the list of irreducible perturbations for DFPT.
+        It should be called with an input file that contains all the mandatory variables required by ABINIT.
+
+        Args:
+            qpt: qpoint of the phonon in reduced coordinates. Used to shift the k-mesh 
+                if qpt is not passed, self must already contain "qpt" otherwise an exception is raised.
+            ngkpt: Number of divisions for the k-mesh (default None i.e. use ngkpt from self)
+            shiftk: Shiftks (default None i.e. use shiftk from self)
+            kptopt: Option for k-point generation. If None, the value in self is used.
+            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
+            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
+
+        Returns:
+            List of dictionaries with the Abinit variables defining the irreducible perturbation
+            Example:
+
+                [{'idir': 1, 'ipert': 1, 'qpt': [0.25, 0.0, 0.0]},
+                 {'idir': 2, 'ipert': 1, 'qpt': [0.25, 0.0, 0.0]}]
+
+        """
+        phperts_vars = dict(rfphon=1,                         # Will consider phonon-type perturbation
+                            rfatpol=[1, len(self.structure)],  # Set of atoms to displace.
+                            rfdir=[1, 1, 1],                  # Along this set of reduced coordinate axis.
+                            )
+
+        return self._abiget_irred_perts(phperts_vars, qpt=qpt, ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
+                                        workdir=workdir, manager=manager)
+
+    def abiget_irred_ddeperts(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
+        """
+        This function, computes the list of irreducible perturbations for DFPT.
+        It should be called with an input file that contains all the mandatory variables required by ABINIT.
+
+        Args:
+            ngkpt: Number of divisions for the k-mesh (default None i.e. use ngkpt from self)
+            shiftk: Shiftks (default None i.e. use shiftk from self)
+            kptopt: Option for k-point generation. If None, the value in self is used.
+            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
+            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
+
+        Returns:
+            List of dictionaries with the Abinit variables defining the irreducible perturbation
+            Example:
+
+                [{'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
+                 {'idir': 2, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]}]
+
+        """
+        ddeperts_vars = dict(rfphon=0,           # No phonon-type perturbation
+                             rfelfd=3,           # Electric field
+                             kptopt=2,           # kpt time reversal symmetry
+                             )
+
+        return self._abiget_irred_perts(ddeperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
+                                        workdir=workdir, manager=manager)
 
     def abiget_autoparal_pconfs(self, max_ncpus, autoparal=1, workdir=None, manager=None):
         """Get all the possible configurations up to max_ncpus"""
@@ -864,6 +1024,29 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
             report = task.get_event_report()
             if report and report.errors: raise self.Error(str(report))
             raise self.Error("Problem in temp Task executed in %s\n%s" % (task.workdir, exc))
+
+    def add_tags(self, tags):
+        """
+        Add tags to the input
+        Args:
+            tags: A single tag or list/tuple/set of tags
+        """
+        if isinstance(tags, (list, tuple, set)):
+            self.tags.update(tags)
+        else:
+            self.tags.add(tags)
+
+    def remove_tags(self, tags):
+        """
+        Remove tags from the input
+        Args:
+            tags: A single tag or list/tuple/set of tags
+        """
+        print(tags)
+        if isinstance(tags, (list, tuple, set)):
+            self.tags.difference_update(tags)
+        else:
+            self.tags.discard(tags)
 
 
 class MultiDataset(object):
@@ -908,6 +1091,7 @@ class MultiDataset(object):
         for inp, new_inp in zip(inputs, multi):
             new_inp.set_vars(**inp)
             new_inp._decorators = inp.decorators
+            new_inp.tags = set(inp.tags)
 
         return multi
 
@@ -918,6 +1102,7 @@ class MultiDataset(object):
 
         for inp in multi: 
             inp.set_vars({k: v for k, v in input.items()})
+            inp.tags = set(input.tags)
 
         return multi
 
@@ -1015,14 +1200,41 @@ class MultiDataset(object):
         if isattr: on_all = on_all()
         return on_all
 
+    def __add__(self, other):
+        if isinstance(other, AbinitInput):
+            new_mds = MultiDataset.from_inputs(self)
+            new_mds.append(other)
+            return new_mds
+        elif isinstance(other, MultiDataset):
+            new_mds = MultiDataset.from_inputs(self)
+            new_mds.extend(other)
+            return new_mds
+        else:
+            return NotImplemented
+
+    def __radd__(self, other):
+        if isinstance(other, AbinitInput):
+            new_mds = MultiDataset.from_inputs([other])
+            new_mds.extend(self)
+        elif isinstance(other, MultiDataset):
+            new_mds = MultiDataset.from_inputs(other)
+            new_mds.extend(self)
+        else:
+            return NotImplemented
+
     def append(self, abinit_input):
         """Add a :class:`AbinitInput` to the list."""
         assert isinstance(abinit_input, AbinitInput)
+        if any(p1 != p2 for p1, p2 in zip(abinit_input.pseudos, abinit_input.pseudos)):
+            raise ValueError("Pseudos must be consistent when from_inputs is invoked.")
         self._inputs.append(abinit_input)
 
     def extend(self, abinit_inputs):
         """Extends self with a list of :class:`AbinitInput` objects."""
         assert all(isinstance(inp, AbinitInput) for inp in abinit_inputs)
+        for inp in abinit_inputs:
+            if any(p1 != p2 for p1, p2 in zip(self[0].pseudos, inp.pseudos)):
+                raise ValueError("Pseudos must be consistent when from_inputs is invoked.")
         self._inputs.extend(abinit_inputs)
 
     def addnew_from(self, dtindex):
@@ -1074,6 +1286,53 @@ class MultiDataset(object):
     #    """Interactive prompt"""
     #    #return dir(self) + dir(self._inputs[0])
     #    return dir(self._inputs[0])
+
+    def filter_by_tags(self, tags):
+        """
+        Filters the input according to the tags
+        Args:
+            tags: A single tag or list/tuple/set of tags
+        Returns:
+            A multidata containing the inputs containing all the requested tags
+        """
+        if isinstance(tags, (list, tuple, set)):
+            tags = set(tags)
+        elif not isinstance(tags, set):
+            tags = {tags}
+
+        inputs = [i for i in self if tags.issubset(i.tags)]
+
+        return MultiDataset.from_inputs(inputs) if inputs else None
+
+    def add_tags(self, tags, dtindeces=None):
+        """
+        Add tags to the selected inputs
+        Args:
+            tags: A single tag or list/tuple/set of tags
+            dtindeces: a list of indices to which the tags will be added. None=all the inputs.
+        """
+        for i in dtindeces if dtindeces else range(len(self)):
+            self[i].add_tags(tags)
+
+    def remove_tags(self, tags, dtindeces=None):
+        """
+        Remove tags from the selected inputs
+        Args:
+            tags: A single tag or list/tuple/set of tags
+            dtindeces: a list of indices from which the tags will be removed. None=all the inputs.
+        """
+        for i in dtindeces if dtindeces else range(len(self)):
+            self[i].remove_tags(tags)
+
+    def filter_by_runlevel(self, runlevel):
+        if isinstance(runlevel, (list, tuple, set)):
+            runlevel = set(runlevel)
+        elif not isinstance(runlevel, set):
+            runlevel = {runlevel}
+
+        inputs = [i for i in self if runlevel.issubset(i.runlevel)]
+
+        return MultiDataset.from_inputs(inputs) if inputs else None
 
 
 class AnaddbInputError(Exception):
@@ -1158,6 +1417,22 @@ class AnaddbInput(AbstractInput, Has_Structure):
             # ndivsm requires at least two q-points
             qpath=np.array([qpoint, qpoint + 1]).ravel(),
             ndivsm=1
+        )
+
+        return new
+
+    @classmethod
+    def piezo_elastic(cls, structure, anaddb_args=None, anaddb_kwargs=None):
+        new = cls(structure, comment="ANADB input for piezoelectric and elastic tensor calculation",
+                  anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
+
+        new.set_vars(
+            elaflag=3,
+            piezoflag=3,
+            instrflag=1,
+            chneut=1,
+            asr=0,
+            symdynmat=1
         )
 
         return new

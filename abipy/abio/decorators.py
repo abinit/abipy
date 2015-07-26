@@ -73,7 +73,7 @@ class AbinitInputDecorator(six.with_metaclass(abc.ABCMeta, PMGSONable)):
             return MultiDataset.from_inputs(new_inputs)
 
         else:
-            raise TypeError("Don't know how to decorate type %s" % type(inp))
+            raise TypeError("Don't know how to decorate type %s" % type(obj))
 
     @abc.abstractmethod
     def _decorate(self, inp, deepcopy=True):
