@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-Script to plot pseudopotential data and/or compare mulitple pseudopotentials.
-It invokes Abinit to produced the PSPS.nc files with formactors, model core charges 
-and other quanties used by Abinit to apply the non-local part of the KS Hamiltonian.
+Script to plot pseudopotential data and/or compare multiple pseudopotentials.
+It invokes Abinit to produce the PSPS.nc files with form-factors, model core charges 
+and other quantities used by Abinit to apply the non-local part of the KS Hamiltonian.
 """
 from __future__ import print_function, division, unicode_literals
 
@@ -19,9 +19,9 @@ def main():
 Usage example:\n
 
     abipsps.py pseudo            => Visualize data relative to a single pseudo.
-    abipsps.py pseudo1 pseudo2   => Compare pseudo1 with pseudo1 (accept arbitrary number of pseudos).
-
+    abipsps.py pseudo1 pseudo2   => Compare pseudo1 with pseudo1 (accept an arbitrary number of pseudos).
 """
+
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""
         sys.stderr.write(str_examples())
@@ -63,7 +63,6 @@ Usage example:\n
         #sns.despine(offset=10, trim=True)
 
     pseudos = options.pseudos
-    what = "all"
 
     if len(pseudos) > 1:
       compare_pseudos(pseudos, options.ecut)
@@ -71,7 +70,9 @@ Usage example:\n
     else:
         pseudo = abilab.Pseudo.from_file(pseudos[0])
         with pseudo.open_pspsfile(ecut=options.ecut) as psps:
+            print("Printing data from:", psps.filepath)
             psps.plot()
+            #psps.plot_ffspl()
 
     return 0
 

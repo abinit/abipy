@@ -5,11 +5,11 @@ from __future__ import print_function, division, unicode_literals
 import numpy as np
 
 from monty.string import list_strings
+from monty.bisect import find_gt
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from pymatgen.io.abinitio.pseudos import Pseudo
 from abipy.iotools import ETSF_Reader
 from abipy.core.mixins import AbinitNcFile #, Has_Structure, Has_ElectronBands
-
 
 import logging
 logger = logging.getLogger(__name__)
@@ -86,6 +86,9 @@ class PspsFile(AbinitNcFile):
         """
         Driver routine to plot several quantities on the same graph.
 
+        Args:
+            ecut_ffnl: Max cutoff energy for ffnl plot (optional)
+
         Return: matplotlb Figure
         """
         import matplotlib.pyplot as plt
@@ -98,8 +101,9 @@ class PspsFile(AbinitNcFile):
             "plot_vlocq",
         ]
 
+        ecut_ffnl = kwargs.pop("ecut_ffnl")
         for m, ax in zip(methods, ax_list.ravel()):
-            getattr(self, m)(ax=ax, show=False)
+            getattr(self, m)(ax=ax, ecut_ffnl=ecut_ffnl, show=False)
 
         return fig
 
@@ -156,6 +160,7 @@ class PspsFile(AbinitNcFile):
         linewidth = kwargs.pop("linewidth", 2.0)
 
         qmesh, tcore_spl = self.reader.read_tcorespl()
+        #print(qmesh, tcore_spl)
         ecuts = 2 * (np.pi * qmesh)**2
         lines = []
         for atype, tcore_atype in enumerate(tcore_spl): 
@@ -233,12 +238,13 @@ class PspsFile(AbinitNcFile):
         return fig
 
     @add_fig_kwargs
-    def plot_ffspl(self, ax=None, ders=(0,), with_qn=0, with_fact=False, **kwargs):
+    def plot_ffspl(self, ax=None, ecut_ffnl=None, ders=(0,), with_qn=0, with_fact=False, **kwargs):
         """
         Plot the nonlocal part of the pseudopotential in q space.
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ecut_ffnl: Max cutoff energy for ffnl plot (optional)
             ders: Tuple used to select the derivatives to be plotted.
             with_qn:
 
@@ -267,13 +273,18 @@ class PspsFile(AbinitNcFile):
                     if p.l not in l_seen:
                         l_seen.add(p.l)
                         label = mklabel("v_{nl}", der, "q") + ", l=%d" % p.l
-                        
-                    ax.plot(p.ecuts, values * p.ekb, color=color_l[p.l], linewidth=linewidth, 
+
+                    stop = len(p.ecuts)
+                    if ecut_ffnl is not None:
+                        stop = find_gt(p.ecuts, ecut_ffnl)
+
+                    #print(values.min(), values.max())
+                    ax.plot(p.ecuts[:stop], values[:stop], color=color_l[p.l], linewidth=linewidth, 
                             linestyle=linestyles_n[p.n], label=label)
 
         ax.grid(True)
         ax.set_xlabel("Ecut [Hartree]")
-        ax.set_title("ekb * ffnl(q)")
+        ax.set_title("ffnl(q)")
         if kwargs.get("with_legend", True):
             ax.legend(loc="best")
 
@@ -426,6 +437,7 @@ class PspsReader(ETSF_Reader):
         ekb = self.read_value("ekb")
         qgrid_ff = self.read_value("qgrid_ff")
         ffspl = self.read_value("ffspl")
+        #print("qgrid", qgrid_ff.min(), qgrid_ff.max())
 
         projs = self.ntypat * [None]
         for itypat in range(self.ntypat):

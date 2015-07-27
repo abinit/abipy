@@ -68,6 +68,7 @@ should be below the nearest core level for this l to make sure
 there are no ghosts, but -2.0 Ha usually is OK""",
 epsh2="Upper energy limit, 2.0 usually good",
 depsh="Energy mesh interval for plot, 0.02 usually good enough",
+rcfact="rcfact scales the crossover radius to determine the range of the Teter function.",
 rlmax="""\
 Maximum radius for Abinit psp code 8 format output. 
 Must be greater than maximum rc (including lloc=4 rc), but also determines
