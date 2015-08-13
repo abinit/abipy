@@ -101,7 +101,7 @@ class PspsFile(AbinitNcFile):
             "plot_vlocq",
         ]
 
-        ecut_ffnl = kwargs.pop("ecut_ffnl")
+        ecut_ffnl = kwargs.pop("ecut_ffnl", None)
         for m, ax in zip(methods, ax_list.ravel()):
             getattr(self, m)(ax=ax, ecut_ffnl=ecut_ffnl, show=False)
 
@@ -261,6 +261,8 @@ class PspsFile(AbinitNcFile):
         scale = None
         l_seen = set()
 
+        qmesh, vlspl = self.reader.read_vlspl()
+
         all_projs = self.reader.read_projectors()
         for itypat, projs_type in enumerate(all_projs): 
             # Loop over the projectors for this atom type.
@@ -277,6 +279,9 @@ class PspsFile(AbinitNcFile):
                     stop = len(p.ecuts)
                     if ecut_ffnl is not None:
                         stop = find_gt(p.ecuts, ecut_ffnl)
+
+                    #values = p.ekb * p.values - vlspl[itypat, 0, :]
+                    values = vlspl[itypat, 0, :] + p.sign_sqrtekb * p.values
 
                     #print(values.min(), values.max())
                     ax.plot(p.ecuts[:stop], values[:stop], color=color_l[p.l], linewidth=linewidth, 
@@ -501,3 +506,8 @@ class VnlProjector(object):
     def ecuts(self):
         """List of cutoff energies corresponding to self.qmesh."""
         return 2 * (np.pi * self.qmesh)**2
+
+    @property
+    def sign_sqrtekb(self):
+        return np.sign(self.ekb) * np.sqrt(np.abs(self.ekb))
+        

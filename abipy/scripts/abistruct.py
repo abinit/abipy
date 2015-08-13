@@ -13,7 +13,7 @@ from abipy.iotools.visualizer import Visualizer
 def main():
 
     def str_examples():
-        examples = """\
+        return """\
 Usage example:\n
 
     abistruct.py convert filepath cif         => Read the structure from file and print CIF file.
@@ -21,9 +21,9 @@ Usage example:\n
     abistrctu.py convert out_HIST abivars     => Read the last structure from the HIST file and 
                                                  print the corresponding Abinit variables.
     abistruct.py visualize filepath xcrysden  => Visualize the structure with XcrysDen.
+    abistruct.py ipython filepath             => Read structure from filepath and open Ipython terminal
     abistruct.py pmgdata mp-149               => Get structure from pymatgen database and print its JSON representation.
 """
-        return examples
 
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""
@@ -46,6 +46,9 @@ Usage example:\n
     p_convert = subparsers.add_parser('convert', parents=[path_selector], help="Convert structure to the specified format.")
     p_convert.add_argument('format', nargs="?", default="cif", type=str, help="Format of the output file (cif, cssr, POSCAR, json, mson, abivars).")
 
+    # Subparser for ipython.
+    p_ipython = subparsers.add_parser('ipython', parents=[path_selector], help="Open IPython shell for advanced operations on structure object.")
+
     # Subparser for visualize command.
     p_visualize = subparsers.add_parser('visualize', parents=[path_selector], help="Visualize the structure with the specified visualizer")
     p_visualize.add_argument('visualizer', nargs="?", default="xcrysden", type=str, help=("Visualizer name. "
@@ -64,7 +67,7 @@ Usage example:\n
     # Parse command line.
     try:
         options = parser.parse_args()
-    except: 
+    except Exception as exc: 
         show_examples_and_exit(error_code=1)
 
     if options.command == "version":
@@ -80,6 +83,12 @@ Usage example:\n
         else:
             s = structure.convert(format=options.format)
             print(s)
+
+    elif options.command == "ipython":
+        structure = abilab.Structure.from_file(options.filepath)
+        print("Invoking Ipython, structure object can be accessed in the Ipython shell")
+        import IPython
+        IPython.start_ipython(argv=[], user_ns={"structure": structure})
 
     elif options.command == "visualize":
         structure = abilab.Structure.from_file(options.filepath)
@@ -107,7 +116,7 @@ Usage example:\n
             from pymatgen.io.vaspio import Xdatcar
             structures = Xdatcar(filepath).structures
             if not structures:
-                raise RuntimError("Your Xdatcar contains only one structure. Due to a bug " 
+                raise RuntimeError("Your Xdatcar contains only one structure. Due to a bug " 
                     "in the pymatgen routine, your structures won't be parsed correctly" 
                     "Solution: Add another structure at the end of the file.")
 
