@@ -126,6 +126,7 @@ class Robot(object):
 
         if "task" in tokens:
             for task in flow.iflat_tasks():
+                #print("task %s, nids %s" %  (task, nids))
                 robot.add_extfile_of_node(task, nids=nids)
 
         return robot
@@ -227,7 +228,7 @@ class Robot(object):
         if not has_dirpath:
             # We have a Flow. smeth is the name of the Task method used to open the file.
             smeth = "open_" + cls.EXT.lower()
-            for task in obj.iflat_tasks(nids=nids, status=obj.S_OK):
+            for task in obj.iflat_tasks(nids=nids): #, status=obj.S_OK):
                 open_method = getattr(task, smeth, None)
                 if open_method is None: continue
                 ncfile = open_method()

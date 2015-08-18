@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 This script allows the user to submit the calculations contained in the `Flow`.
-It provides both a command line interface as well as a graphical interfaced based on wxpython.
+It provides a command line interface as well as a graphical interface based on wxpython.
 """
 from __future__ import print_function, division, unicode_literals
 
@@ -61,6 +61,47 @@ def as_slice(obj):
     raise ValueError("Cannot convert %s into a slice:\n%s" % (type(obj), obj))
 
 
+def find_flowdir_wtpos(nodepath):
+    """"
+    Given a directory `nodepath` containing a node of the `Flow`,
+    this function locates the directory of the flow (e.g. the dir with the pickle file)
+    and returns the position of the node inside the flow by parsing the directory tree
+
+    Return: flowdir, w_pos, t_pos
+
+        where w_pos and t_pos are the position of the work/task.
+        t_pos is set to None, if we have a work.
+    """
+    nodepath = os.path.abspath(nodepath)
+
+    # Is nodepath a work director?
+    back, tail = os.path.split(nodepath)
+    p = os.path.join(back, abilab.Flow.PICKLE_FNAME)
+
+    if os.path.exists(p):
+        # /root/flow_dir/w[num]
+        head, w_dirname = os.path.split(nodepath)
+        w_pos = int(w_dirname.replace("w" , ""))
+        t_pos = None
+        #print("got work", w_pos, t_pos)
+        return p, w_pos, t_pos
+
+    # Is nodepath a task directory?
+    back, tail = os.path.split(back)
+    p = os.path.join(back, abilab.Flow.PICKLE_FNAME)
+
+    if os.path.exists(p):
+        # /root/flow_dir/w[num]/t[num]
+        head, t_dirname = os.path.split(nodepath)
+        head, w_dirname = os.path.split(head)
+        w_pos = int(w_dirname.replace("w" , ""))
+        t_pos = int(t_dirname.replace("t" , ""))
+        #print("got task", w_pos, t_pos)
+        return p, w_pos, t_pos
+
+    raise RuntimeError("Cannot locate flowdir from %s" % nodepath)
+
+
 def selected_nids(flow, options):
     """Return the list of node ids selected by the user via the command line interface."""
     return [task.node_id for task in flow.select_tasks(nids=options.nids, wslice=options.wslice)]
@@ -118,8 +159,7 @@ def main():
 
     def str_examples():
         examples = """\
-Usage example:\n
-
+usage example:
     abirun.py [FLOWDIR] rapid                    => Keep repeating, stop when no task can be executed.
     abirun.py [FLOWDIR] scheduler                => Execute flow with the scheduler
     abirun.py [FLOWDIR] events                   => Print ABINIT events (Warning/Error/Comment)
@@ -131,6 +171,18 @@ Usage example:\n
 
     If FLOWDIR is not given, abirun.py automatically selects the database located within 
     the working directory. An Exception is raised if multiple databases are found.
+
+    Note, moreover, that you can also replace FLOWDIR with the directory of a work/task
+    to make the command operate on this node of the flow without having to specify --nids.
+    To have the list of events of the task in `FLOWDIR/w0/t1` simply use: 
+
+        abirun.py FLOWDIR/w0/t1 events 
+
+    instead of 
+
+        abirun.py FLOWDIR events -n 123
+
+    where 123 is the node identifier of w0/t1.
 
     Options for developers:
 
@@ -184,7 +236,7 @@ Usage example:\n
                         Status.all_status_strings())
     #group.add_argument("-p", "--task-pos", default=None, type=parse_wslice, help="List of tuples with the position of the tasl in the flow.")
 
-    # Parent parse for common options.
+    # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
 
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
@@ -271,6 +323,7 @@ Specify the files to open. Possible choices:
     all ==> all files.
 """)
 
+    # Subparser for ncopen.
     p_ncopen = subparsers.add_parser('ncopen', parents=[copts_parser, flow_selector_parser], 
                                       help="Open netcdf files in ipython. Use --help` for more info")
     p_ncopen.add_argument('ncext', nargs="?", default="GSR", help="Select the type of file to open")
@@ -282,52 +335,68 @@ Specify the files to open. Possible choices:
                        "In this case chroot is the absolute path to the flow on the **localhost**",
                        "Note that it is not possible to change the flow from remote when chroot is used."))
 
+    # Subparser for new_manager.
     p_new_manager = subparsers.add_parser('new_manager', parents=[copts_parser, flow_selector_parser], help="Change the TaskManager.")
     p_new_manager.add_argument("manager_file", default="", type=str, help="YAML file with the new manager")
 
+    # Subparser for tail.
     p_tail = subparsers.add_parser('tail', parents=[copts_parser, flow_selector_parser], help="Use tail to follow the main output files of the flow.")
     p_tail.add_argument('what_tail', nargs="?", type=str, default="o", help="What to follow: o for output (default), l for logfile, e for stderr")
 
+    # Subparser for qstat.
     p_qstat = subparsers.add_parser('qstat', parents=[copts_parser], help="Show additional info on the jobs in the queue.")
 
+    # Subparser for deps.
     p_deps = subparsers.add_parser('deps', parents=[copts_parser], help="Show dependencies.")
 
+    # Subparser for robot.
     p_robot = subparsers.add_parser('robot', parents=[copts_parser, flow_selector_parser], 
                                     help="Use a robot to analyze the results of multiple tasks (requires ipython)")
     p_robot.add_argument('robot_ext', nargs="?", type=str, default="GSR", help="The file extension of the netcdf file")
 
+    # Subparser for plot.
     p_plot = subparsers.add_parser('plot', parents=[copts_parser, flow_selector_parser], help="Plot data. Use --help for more info.")
     p_plot.add_argument("what", nargs="?", type=str, default="ebands", help="Object to plot")
 
+    # Subparser for inspect.
     p_inspect = subparsers.add_parser('inspect', parents=[copts_parser, flow_selector_parser], help="Inspect the tasks")
 
+    # Subparser for inputs.
     p_inputs= subparsers.add_parser('inputs', parents=[copts_parser, flow_selector_parser], help="Show the input files of the tasks")
 
+    # Subparser for manager.
     p_manager = subparsers.add_parser('manager', parents=[copts_parser], help="Document the TaskManager options")
     p_manager.add_argument("qtype", nargs="?", default=None, help=("Write job script to terminal if qtype='script' else" 
         " document the qparams for the given QueueAdapter qtype e.g. slurm"))
 
+    # Subparser for events.
     p_events = subparsers.add_parser('events', parents=[copts_parser, flow_selector_parser], 
                                     help="Show ABINIT events (error messages, warnings, comments)")
     #p_events.add_argument("-t", "event-type", default=)
 
+    # Subparser for corrections.
     p_corrections = subparsers.add_parser('corrections', parents=[copts_parser, flow_selector_parser], help="Show abipy corrections")
 
+    # Subparser for history.
     p_history = subparsers.add_parser('history', parents=[copts_parser, flow_selector_parser], help="Show Node history.")
     p_history.add_argument("-m", "--metadata", action="store_true", default=False, help="Print history metadata")
     #p_history.add_argument("-t", "--task-history", action="store_true", default=True, help=)
 
+    # Subparser for handlers.
     p_handlers = subparsers.add_parser('handlers', parents=[copts_parser], help="Show event handlers installed in the flow")
     p_handlers.add_argument("-d", "--doc", action="store_true", default=False, 
                             help="Show documentation about all the handlers that can be installed.")
 
+    # Subparser for notebook.
     p_notebook = subparsers.add_parser('notebook', parents=[copts_parser], help="Create and open an ipython notebook to interact with the flow.")
 
+    # Subparser for ipython.
     p_ipython = subparsers.add_parser('ipython', parents=[copts_parser], help="Embed IPython. Useful for advanced operations or debugging purposes.")
     p_ipython.add_argument('--argv', nargs="?", default="", type=shlex.split, 
                            help="Command-line options passed to ipython. Must be enclosed by quotes. "
                                 "Example: --argv='--matplotlib=wx'")
 
+    # Subparser for tar.
     p_tar = subparsers.add_parser('tar', parents=[copts_parser], help="Create tarball file.")
     p_tar.add_argument("-s", "--max-filesize", default=None, 
                        help="Exclude file whose size > max-filesize bytes. Accept integer or string e.g `1Mb`.")
@@ -342,26 +411,36 @@ Specify the files to open. Possible choices:
     p_tar.add_argument("-l", "--light", default=False, action="store_true",
                        help="Create light-weight version of the tarball for debugging purposes. Other options are ignored.")
 
+    # Subparser for debug.
     p_debug = subparsers.add_parser('debug', parents=[copts_parser, flow_selector_parser], 
                                      help="Scan error files and log files for possible error messages.")
 
+    # Subparser for group.
     p_group = subparsers.add_parser('group', parents=[copts_parser, flow_selector_parser], 
                                      help="Group tasks according to property.")
 
+    # Subparser for diff.
     p_diff = subparsers.add_parser('diff', parents=[copts_parser, flow_selector_parser], 
                                    help="Compare files produced by two or three nodes.")
     p_diff.add_argument('what_diff', nargs="?", type=str, default="i", 
                         help="What to diff: i for input (default), o for output, l for logfile, e for stderr")
 
+    # Subparser for networkx.
     p_networkx = subparsers.add_parser('networkx', parents=[copts_parser], #, flow_selector_parser], 
                                      help="Draw flow and node dependecies with networkx package.")
     p_networkx.add_argument('--nxmode', default="status",
                             help="Type of network plot. Possible values: `status`, `network`")
     p_networkx.add_argument('--edge-labels', action="store_true", default=False, help="Show edge labels")
 
+    # Subparser for listext.
     p_listext = subparsers.add_parser('listext', parents=[copts_parser], 
                                      help="List all the output files with the given extension that have been produced by the nodes of the flow.")
     p_listext.add_argument('listexts', nargs="+", help="List of Abinit file extensions. e.g DDB, GSR, WFK etc")
+
+    # Subparser for timer.
+    p_timer = subparsers.add_parser('timer', parents=[copts_parser, flow_selector_parser], 
+                                    help=("Read the section with timing info from the main ABINIT output file (requires timopt != 0)"
+                                          "Open Ipython terminal to inspect data."))
 
     # Parse command line.
     try:
@@ -417,13 +496,30 @@ Specify the files to open. Possible choices:
 
         sys.exit(0)
 
-    # Read the flow from the pickle database.
+
+    patch_nids = False
     if options.flowdir is None:
         # Will try to figure out the location of the Flow.
         options.flowdir = os.getcwd()
+    else:
+        # Sometimes one wants to inspect a work or a task by just using `abirun.py flow/w0/t0 inspect`
+        # without knowing its node id. find_flowdir_wtpos will solve the problem!
+        if not os.path.exists(os.path.join(options.flowdir, abilab.Flow.PICKLE_FNAME)):
+            print("The directory does not contain a flow. Will get node ids from dirpath.")
+            #assert options.nids is None
+            patch_nids = True
+            options.flowdir, w_pos, t_pos = find_flowdir_wtpos(options.flowdir)
 
+    # Read the flow from the pickle database.
     flow = abilab.Flow.pickle_load(options.flowdir, remove_lock=options.remove_lock)
     #flow.set_spectator_mode(False)
+
+    if patch_nids:
+        # Create options.nids here  
+        node = flow[w_pos]
+        if t_pos is not None: node = node[t_pos]
+        options.nids = [node.node_id]
+
     retcode = 0
 
     if options.command == "gui":
@@ -884,6 +980,16 @@ Specify the files to open. Possible choices:
         for ext in options.listexts:
             flow.listext(ext)
             print("")
+
+    elif options.command == "timer":
+        print("Warning this option is still under development")
+        timer = flow.get_abitimer()
+        if timer is None:
+            cprint("Cannot parse time data!", color="magenta", end="", flush=True)
+            return 1
+
+        import IPython
+        IPython.start_ipython(argv=[], user_ns={"timer": timer})
 
     else:
         raise RuntimeError("Don't know what to do with command %s!" % options.command)
