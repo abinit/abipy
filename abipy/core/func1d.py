@@ -1,8 +1,7 @@
 # coding: utf-8
 """
-This module defines the object Function1D that described a functions.
-of a single variables and provides simple interfaces for performing
-common tasks such as algebraic operations, integrations, differentiations, plots ...
+Function1D describes a function of a single variable and provides an easy-to-use API 
+for performing common tasks such as algebraic operations, integrations, differentiations, plots ...
 """
 from __future__ import print_function, division, unicode_literals
 
@@ -12,7 +11,7 @@ import numpy as np
 
 from six.moves import cStringIO
 from monty.functools import lazy_property
-from pymatgen.util.plotting_utils import add_fig_kwargs
+from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from abipy.tools.derivatives import finite_diff
 
 __all__ = [
@@ -28,7 +27,8 @@ class Function1D(object):
             mesh: array-like object with the real points of the grid.
             values: array-like object with the values of the function (can be complex-valued)
         """
-        self._mesh = np.ascontiguousarray(mesh)
+        mesh = np.ascontiguousarray(mesh)
+        self._mesh = np.real(mesh)
         self._values = np.ascontiguousarray(values)
         assert len(self.mesh) == len(self.values)
 
@@ -282,7 +282,7 @@ class Function1D(object):
         return self.spline.roots()
 
     def spline_on_mesh(self, mesh):
-        """Spline the function on the given mesh, returns :class:`Func1d` object."""
+        """Spline the function on the given mesh, returns :class:`Function1d` object."""
         return self.__class__(mesh, self.spline(mesh))
 
     def spline_derivatives(self, x):
@@ -364,6 +364,86 @@ class Function1D(object):
     #    smooth_vals = smooth(self.values, window_len=window_len, window=window)
     #    return self.__class__(self.mesh, smooth_vals)
 
+    def real_from_kk(self, with_div=True):
+        """
+        Compute the Kramers-Kronig transform of the imaginary part
+        to get the real part. Assume self represents the Fourier
+        transform of a response function.
+
+        Args:
+            with_div: True if the divergence should be treated numerically.
+                If False, the divergence is ignored, results are less accurate
+                but the calculation is faster.
+
+        See: https://en.wikipedia.org/wiki/Kramers%E2%80%93Kronig_relations
+        """
+        from scipy.integrate import cumtrapz, quad
+        from scipy.interpolate import UnivariateSpline
+        wmesh = self.mesh
+        num = np.array(self.values.imag * wmesh, dtype=np.double)
+
+        if with_div:
+            spline = UnivariateSpline(self.mesh, num, s=0)
+
+        kk_values = np.empty(len(self))
+        for i, w in enumerate(wmesh):
+            den = wmesh**2 - w**2
+            # Singularity is treated below.
+            den[i] = 1
+            f = num / den 
+            f[i] = 0
+            integ = cumtrapz(f, x=wmesh)
+            kk_values[i] = integ[-1]
+
+            if with_div:
+                func = lambda x: spline(x) / (x**2 - w**2)
+                w0 = w - self.h 
+                w1 = w + self.h
+                y, abserr = quad(func, w0, w1, points=[w])
+                kk_values[i] += y
+
+        return self.__class__(self.mesh, (2 / np.pi) * kk_values)
+
+    def imag_from_kk(self, with_div=True):
+        """
+        Compute the Kramers-Kronig transform of the real part
+        to get the imaginary part. Assume self represents the Fourier 
+        transform of a response function.
+
+        Args:
+            with_div: True if the divergence should be treated numerically.
+                If False, the divergence is ignored, results are less accurate
+                but the calculation is faster.
+                                                                            
+        See: https://en.wikipedia.org/wiki/Kramers%E2%80%93Kronig_relations
+        """
+        from scipy.integrate import cumtrapz, quad
+        from scipy.interpolate import UnivariateSpline
+        wmesh = self.mesh
+        num = np.array(self.values.real, dtype=np.double)
+
+        if with_div:
+            spline = UnivariateSpline(self.mesh, num, s=0)
+                                                                            
+        kk_values = np.empty(len(self))
+        for i, w in enumerate(wmesh):
+            den = wmesh**2 - w**2
+            # Singularity is treated below.
+            den[i] = 1
+            f = num / den 
+            f[i] = 0
+            integ = cumtrapz(f, x=wmesh)
+            kk_values[i] = integ[-1]
+
+            if with_div:
+                func = lambda x: spline(x) / (x**2 - w**2)
+                w0 = w - self.h 
+                w1 = w + self.h
+                y, abserr = quad(func, w0, w1, points=[w])
+                kk_values[i] += y
+                                                                            
+        return self.__class__(self.mesh, -(2 / np.pi) * wmesh * kk_values)
+
     def plot_ax(self, ax, exchange_xy=False, *args, **kwargs):
         """
         Helper function to plot self on axis ax.
@@ -380,6 +460,7 @@ class Function1D(object):
         cplx_mode       string defining the data to print. 
                         Possible choices are (case-insensitive): `re` for the real part
                         "im" for the imaginary part, "abs" for the absolute value.
+                        "angle" to display the phase of the complex number in radians.
                         Options can be concatenated with "-"
         ==============  ===============================================================
 
@@ -390,36 +471,34 @@ class Function1D(object):
         if exchange_xy:
             xx, yy = yy, xx
 
-        cplx_mode = kwargs.pop("cplx_mode", "re-im").lower().split("-")
+        cplx_mode = kwargs.pop("cplx_mode", "re-im")
+        lines = []
 
-        if np.iscomplexobj(yy):
-            lines = []
-            if "re" in cplx_mode:
-                lines.extend(ax.plot(xx, yy.real, *args, **kwargs))
-
-            if "im" in cplx_mode:
-                lines.extend(ax.plot(xx, yy.imag, *args, **kwargs))
-
-            if "abs" in cplx_mode:
-                lines.extend(ax.plot(xx, np.abs(yy), *args, **kwargs))
-
-        else:
-            lines = ax.plot(xx, yy, *args, **kwargs)
+        from abipy.tools.plotting_utils import data_from_cplx_mode
+        for c in cplx_mode.lower().split("-"):
+            data = data_from_cplx_mode(c, yy)
+            lines.extend(ax.plot(xx, data, *args, **kwargs))
 
         return lines
 
     @add_fig_kwargs
-    def plot(self, **kwargs):
+    def plot(self, ax=None, **kwargs):
         """
-        Plot the function 
+        Plot the function. 
+
+        Args:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+
+        ==============  ===============================================================
+        kwargs          Meaning
+        ==============  ===============================================================
+        exchange_xy     True to exchange x- and y-axis (default: False)
+        ==============  ===============================================================
 
         Returns:
             `matplotlib` figure.
         """
-        import matplotlib.pyplot as plt
-
-        fig = plt.figure()
-        ax = fig.add_subplot(1, 1, 1)
+        ax, fig, plt = get_ax_fig_plt(ax)
 
         ax.grid(True)
         exchange_xy = kwargs.pop("exchange_xy", False)

@@ -75,9 +75,9 @@ def main():
         parser = AbinitTimerParser()
 
         parser.parse(options.filepath)
-        #parser.show_pie(key="wall_time", minfract=0.05)
-        #parser.show_efficiency),
-        #parser.show_stacked_hist),
+        #parser.plot_pie(key="wall_time", minfract=0.05)
+        #parser.plot_efficiency),
+        #parser.plot_stacked_hist),
 
     elif options.command == "pseudo":
         from pymatgen.io.abinitio.pseudos import PseudoParser

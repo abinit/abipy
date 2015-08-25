@@ -18,19 +18,23 @@ import abipy.data as abidata
 import logging
 logger = logging.getLogger(__file__)
 
+from pymatgen.io.abinitio.launcher import BatchLauncher
+
 
 @abilab.flow_main
 def main(options):
-    #structure = abidata.structure_from_ucell("MgB2")
-    #pseudos = abilab.PseudoTable(abidata.pseudos("12mg.pspnc", "5b.pspnc"))
+    structure = abidata.structure_from_ucell("MgB2")
+    pseudos = abilab.PseudoTable(abidata.pseudos("12mg.pspnc", "5b.pspnc"))
 
-    structure = abidata.structure_from_ucell("NiO")
-    pseudos = abidata.pseudos("28ni.paw", "8o.2.paw")
+    #structure = abidata.structure_from_ucell("NiO")
+    #pseudos = abidata.pseudos("28ni.paw", "8o.2.paw")
 
+    structure.scale_lattice(structure.volume * 1.2)
 
-    inp = ion_ioncell_relax_input(structure, pseudos, ecut=8, pawecutdg=12)
+    inp = ion_ioncell_relax_input(structure, pseudos, ecut=4, pawecutdg=8)
 
     inp.chkprim = 0
+    inp.paral_kgb = 1
     ion_inp, ioncell_inp = inp.split_datasets()
 
     # Create the flow
@@ -38,7 +42,7 @@ def main(options):
 
     relax_work = abilab.RelaxWork(ion_inp, ioncell_inp)
     flow.register_work(relax_work)
-    return flow.allocate()
+    return flow
 
 
 if __name__ == "__main__":

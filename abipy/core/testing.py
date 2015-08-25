@@ -101,7 +101,7 @@ def has_mongodb(host='localhost', port=27017, name='mongodb_test', username=None
 
 
 class AbipyTest(PymatgenTest):
-    """Extend TestCase with functions from numpy.testing.utils that support ndarrays."""
+    """Extends PymatgenTest with Abinit-specific methods """
 
     @staticmethod
     def which(program):

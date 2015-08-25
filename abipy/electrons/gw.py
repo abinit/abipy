@@ -1244,7 +1244,7 @@ class SigresReader(ETSF_Reader):
     def kpt2fileindex(self, kpoint):
         """
         Helper function that returns the index of kpoint in the netcdf file.
-        Accepts `Kpoint` instance of integer
+        Accepts `Kpoint` instance or integer
 
         Raise:
             `KpointsError` if kpoint cannot be found.
@@ -1255,7 +1255,8 @@ class SigresReader(ETSF_Reader):
             with the total number of k-points in the IBZ.
         """
         if isinstance(kpoint, int):
-            kpoint = self.gwkpoints[kpoint]
+            return kpoint
+            #kpoint = self.gwkpoints[kpoint]
 
         try:
             return self.ibz.index(kpoint)

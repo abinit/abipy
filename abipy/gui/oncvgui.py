@@ -974,7 +974,7 @@ class Field(object):
 
     def set_vars_from_lines(self, lines):
         """The the value of the variables from a list of strings."""
-        #print("About to read: ", type(self), "\nlines=\n, "\n".join(lines))
+        #print("About to read: ", type(self), "\nlines=\n", "\n".join(lines))
         okeys = self.WXCTRL_PARAMS.keys()
         odtypes = [v["dtype"] for v in self.WXCTRL_PARAMS.values()]
         parsers = [self.parser_for_dtype[ot] for ot in odtypes]
@@ -984,6 +984,7 @@ class Field(object):
             assert len(lines) == 1
             tokens = lines[0].split()
             #print("row tokens", tokens)
+            #if self.__class__ == VlocalField: tokens[-1] = int(tokens[-1])
 
             for key, p, tok in zip(okeys, parsers, tokens):
                 self.data[key] = p(tok)
@@ -1170,7 +1171,7 @@ class VlocalField(RowField):
         ("lloc", dict(dtype="i", value=4)),
         ("lpopt", dict(dtype="i", value=5)),
         ("rc5", dict(dtype="f", value=3.0)),
-        ("dvloc0", dict(dtype="f", value=0.0))])
+        ("dvloc0", dict(dtype="i", value=0))])
 
 
 @add_tooltips
@@ -1197,7 +1198,9 @@ class ModelCoreField(RowField):
 
     WXCTRL_PARAMS = OrderedDict([
         ("icmod", dict(dtype="i", value=0)),
-        ("fcfact", dict(dtype="f", value=0.25))])
+        ("fcfact", dict(dtype="f", value=0.25)),
+        ("rcfact", dict(dtype="f", value=0.0)),
+        ])
 
 
 @add_tooltips
@@ -1215,7 +1218,7 @@ class RadGridField(RowField):
     name = "OUTPUT GRID"
 
     WXCTRL_PARAMS = OrderedDict([
-        ("rlmax", dict(dtype="f", value=6.0)),
+        ("rlmax", dict(dtype="f", value=6.0, step=1.0)),
         ("drl", dict(dtype="f", value=0.01))])
 
 
@@ -2279,6 +2282,7 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
         self.ID_POPUP_CHANGE_INPUT = wx.NewId()
         self.ID_POPUP_COMPUTE_HINTS = wx.NewId()
         self.ID_POPUP_COMPUTE_GBRV = wx.NewId()
+        self.ID_POPUP_COMPUTE_PSPS = wx.NewId()
         self.ID_POPUP_SAVE_PSGEN = wx.NewId()
 
         menu = wx.Menu()
@@ -2311,7 +2315,8 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
         menu.Append(self.ID_POPUP_STDERR, "Show standard error")
         menu.Append(self.ID_POPUP_CHANGE_INPUT, "Use these variables as new template")
         menu.Append(self.ID_POPUP_COMPUTE_HINTS, "Compute hints for ecut")
-        menu.Append(self.ID_POPUP_COMPUTE_GBRV, "Perform GBRV tests")
+        #menu.Append(self.ID_POPUP_COMPUTE_GBRV, "Perform GBRV tests")
+        menu.Append(self.ID_POPUP_COMPUTE_PSPS, "Get PSPS.nc file and plot data")
         menu.Append(self.ID_POPUP_SAVE_PSGEN, "Save PS generation")
 
         # Associate menu/toolbar items with their handlers.
@@ -2321,7 +2326,8 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
             (self.ID_POPUP_STDERR, self.onShowStderr),
             (self.ID_POPUP_CHANGE_INPUT, self.onChangeInput),
             (self.ID_POPUP_COMPUTE_HINTS, self.onComputeHints),
-            (self.ID_POPUP_COMPUTE_GBRV, self.onGBRV),
+            #(self.ID_POPUP_COMPUTE_GBRV, self.onGBRV),
+            (self.ID_POPUP_COMPUTE_PSPS, self.onPsps),
             (self.ID_POPUP_SAVE_PSGEN, self.onSavePsgen),
         ]
 
@@ -2397,7 +2403,7 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
             if not answer: return
 
         # Update the input file, then copy the pseudo file and the output file.
-        with open(input_file, "w") as fh:
+        with open(input_file, "wt") as fh:
             fh.write(self.notebook.makeInputString())
 
         shutil.copy(psgen.pseudo.path, ps_dest)
@@ -2425,6 +2431,14 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
         scheduler = abilab.PyFlowScheduler.from_user_config()
         scheduler.add_flow(flow)
         scheduler.start()
+
+    def onPsps(self, event):
+        psgen = self.getSelectedPseudoGen()
+        if psgen is None: return
+
+        with psgen.pseudo.open_pspsfile(ecut=30) as psps:
+            print("Printing data from:", psps.filepath)
+            psps.plot(ecut_ffnl=60)
 
     #def onAddToHistory(self, event):
     #    psgen = self.getSelectedPseudoGen()
