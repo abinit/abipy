@@ -1703,7 +1703,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
         return self.set_vars(ng2qpt=self.structure.calc_ngkpt(nqsmall))
 
 
-class OpticVar(collections.namedtuple("OpticVar", "name default help")):
+class OpticVar(collections.namedtuple("OpticVar", "name default group help")):
     def __str__(self):
         sval = str(self.default)
         return (4*" ").join(sval, "!" + self.help)
@@ -1731,6 +1731,31 @@ class OpticInput(AbstractInput):
     123 222       ! Non-linear coefficients to be computed
     """
 
+    """
+    &FILES
+     ddkfile_1 = 'abo_1WF7',
+     ddkfile_2 = 'abo_1WF8',
+     ddkfile_3 = 'abo_1WF9',
+     wfkfile = 'abo_WFK'
+    /
+    &PARAMETERS
+     broadening = 0.002,
+     domega = 0.0003,
+     maxomega = 0.3,
+     scissor = 0.000,
+     tolerance = 0.002
+    /
+    &COMPUTATIONS
+     num_lin_comp = 1,
+     lin_comp = 11,
+     num_nonlin_comp = 2,
+     nonlin_comp = 123,222,
+     num_linel_comp = 0,
+     num_nonlin2_comp = 0,
+    /
+    """
+
+
     Error = OpticError
 
     # variable name --> default value.
@@ -1739,15 +1764,22 @@ class OpticInput(AbstractInput):
         #OpticVar(name="ddkfile_y", default=None, help="Name of the second d/dk response wavefunction file"),
         #OpticVar(name="ddkfile_z", default=None, help="Name of the third d/dk response wavefunction file"),
         #OpticVar(name="wfkfile",   default=None, help="Name of the ground-state wavefunction file"),
-        OpticVar(name="zcut",      default=0.01, help="Value of the *smearing factor*, in Hartree"),
-        OpticVar(name="wmesh",     default=(0.010, 1), help="Frequency *step* and *maximum* frequency (Ha)"),
-        OpticVar(name="scissor",   default=0.000, help="*Scissor* shift if needed, in Hartree"),
-        OpticVar(name="sing_tol",  default=0.001, help="*Tolerance* on closeness of singularities (in Hartree)"),
-        OpticVar(name="num_lin_comp", default=None, help="*Number of components* of linear optic tensor to be computed"),
-        OpticVar(name="lin_comp",     default=None, help="Linear *coefficients* to be computed (x=1, y=2, z=3)"),
-        OpticVar(name="num_nonlin_comp", default=None, help="Number of components of nonlinear optic tensor to be computed"),
-        OpticVar(name="nonlin_comp", default=" ", help="Non-linear coefficients to be computed"),
+        OpticVar(name="broadening",      default=0.01, group='PARAMETERS', help="Value of the *smearing factor*, in Hartree"),
+        OpticVar(name="domega",     default=0.010, group='PARAMETERS', help="Frequency *step* (Ha)"),
+        OpticVar(name="maxomega",     default=1, group='PARAMETERS', help="Maximum frequency (Ha)"),
+        OpticVar(name="scissor",   default=0.000, group='PARAMETERS', help="*Scissor* shift if needed, in Hartree"),
+        OpticVar(name="tolerance",  default=0.001, group='PARAMETERS', help="*Tolerance* on closeness of singularities (in Hartree)"),
+        OpticVar(name="num_lin_comp", default=0, group='COMPUTATIONS', help="*Number of components* of linear optic tensor to be computed"),
+        OpticVar(name="lin_comp",     default=0, group='COMPUTATIONS', help="Linear *coefficients* to be computed (x=1, y=2, z=3)"),
+        OpticVar(name="num_nonlin_comp", default=0, group='COMPUTATIONS', help="Number of components of nonlinear optic tensor to be computed"),
+        OpticVar(name="nonlin_comp", default=0, group='COMPUTATIONS', help="Non-linear coefficients to be computed"),
+        OpticVar(name="num_linel_comp", default=0, group='COMPUTATIONS', help="Number of components of linear electro-optic tensor to be computed"),
+        OpticVar(name="linel_comp", default=0, group='COMPUTATIONS', help="Linear electro-optic coefficients to be computed"),
+        OpticVar(name="num_nonlin2_comp", default=0, group='COMPUTATIONS', help="Number of components of nonlinear optic tensor v2 to be computed"),
+        OpticVar(name="nonlin2_comp", default=0, group='COMPUTATIONS', help="Non-linear coefficients v2 to be computed"),
     ]
+ 
+    _GROUPS = ['PARAMETERS','COMPUTATIONS']
 
     # Variable names supported
     _VARNAMES = [v.name for v in _VARIABLES]
@@ -1782,6 +1814,22 @@ class OpticInput(AbstractInput):
         for var in self._VARIABLES:
             if var.name == key: return var.default
         raise KeyError("Cannot find %s in _VARIABLES" % key)
+
+    def as_dict(self):
+        my_dict = OrderedDict()
+        for grp in self._GROUPS:
+            my_dict[grp] = OrderedDict()
+        for name in self._VARNAMES:
+            value = self.vars.get(name)
+            if value is None: value = self.get_default(name)
+            if value is None:
+                raise self.Error("Variable %s is missing" % name)
+           
+            var = self._NAME2VAR[name]
+            grp = var.group
+            my_dict[grp].update({name : value})
+
+        return my_dict
 
     def to_string(self):
         table = []
