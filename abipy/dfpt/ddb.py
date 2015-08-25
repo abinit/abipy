@@ -506,7 +506,6 @@ class Becs(Has_Structure):
 
     def __init__(self, becs_arr, structure, chneut, order="c"):
         """
-
         Args:
             becs_arr: (3, 3, natom) array with the Born effective charges in Cartesian coordinates.
             structure: Structure object.

@@ -415,6 +415,7 @@ class Structure(pymatgen.Structure):
         savefig           'abc.png' or 'abc.eps'* to save the figure to a file.
         ================  ==============================================================
         """
+        #print(self.hsym_kpath.name)
         return self.hsym_kpath.get_kpath_plot(**kwargs)
 
     def export(self, filename, visu=None):
