@@ -3904,7 +3904,7 @@
     - '[[DEVELOP]]'
     commentdefault: null
     commentdims: null
-    defaultval: 0
+    defaultval: 5
     definition: 'Dynamical Mean Fied Theory: choice of SOLVer'
     dimensions: scalar
     excludes: null
@@ -3925,18 +3925,33 @@
            2=&gt; Hubbard one solver. The Hubbard one solver is an approximation which gives a rough description of correlated Mott insulators. It should not be used for metals.
           </li>
           <li>
-           5=&gt; Continuous Time Quantum Monte Carlo (CTQMC) solver CT-Hyb (Hybridization expansion as published in
+           5=&gt; Use the Continuous Time Quantum Monte Carlo (CTQMC) solver CT-Hyb of ABINIT (Hybridization expansion as published in
            <a href="http://journals.aps.org/prl/abstract/10.1103/PhysRevLett.97.076405">
             Phys. Rev. Lett 97, 076405, (2006)
            </a>
-           ) in the density density representation and without Spin Orbit Coupling.
+           ) in the density density representation, 
         CTQMC calculations are much more time consuming that Hubbard I calculations. Nevertheless, the calculation if fully parallelised.
+          </li>
+          <li>
+           6=&gt; Continuous Time Quantum Monte Carlo (CTQMC) solver CT-Hyb of TRIQS (Hybridization expansion as published in
+           <a href="http://journals.aps.org/prl/abstract/10.1103/PhysRevLett.97.076405">
+            Phys. Rev. Lett 97, 076405, (2006)
+           </a>
+           ) in the density density representation.
+          </li>
+          <li>
+           7=&gt; Continuous Time Quantum Monte Carlo (CTQMC) solver CT-Hyb of TRIQS (Hybridization expansion as published in
+           <a href="http://journals.aps.org/prl/abstract/10.1103/PhysRevLett.97.076405">
+            Phys. Rev. Lett 97, 076405, (2006)
+           </a>
+           ) with the rotationaly invariant formulation.
           </li>
          </ul>
          <br />
          WARNING: CT-QMC should be used for correlated metals. Even if correlated (Mott) insulators, QMC is expected to be much more precise: Hubbard one is an approximation !
          <br />
          See the usefull variables for CT-QMC solver :
+        [[dmftctqmc_basis]],
         [[dmftctqmc_check]],
         [[dmftctqmc_correl]],
         [[dmftctqmc_gmove]],
@@ -4051,6 +4066,38 @@
          (Introduced by B. Amadon, v6.1.0)
         </p>
     varname: dmftcheck
+    vartype: integer
+- !variable
+    characteristics:
+    - '[[DEVELOP]]'
+    commentdefault: null
+    commentdims: null
+    defaultval: 1
+    definition: 'Dynamical Mean Fied Theory: Continuous Time Quantum Monte
+        Carlo basis'
+    dimensions: scalar
+    excludes: null
+    requires: '[[dmft_solv]]==5'
+    section: vardev
+    text: |-
+        <p>
+         <br />
+         Choose the basis to perform CTQMC calculation. 
+         <ul>
+          <li>
+           0=&gt;  Use the local basis in the spherical harmonics basis. Can be useful if the hamiltonian has weak off diagonal terms
+           and for this reason, one want to keep the original basis for simplicity and for physical insight.
+          </li>
+          <li>
+           1=&gt;  Default value, diagonalize the local hamiltonian (but only if it is not diagonal). The best choice in general.
+          </li>
+          <li>
+           2=&gt;  Diagonalise the local correlated occupation matrix. Can lead to non diagonal hamiltonian that
+           cannot be handled by CTQMC. This option should be thus avoided.
+          </li>
+         </ul>
+        </p>
+    varname: dmftctqmc_basis
     vartype: integer
 - !variable
     characteristics:
@@ -14625,8 +14672,7 @@
     section: vargs
     text: |-
         <p>
-         Gives the number of divisions used to sample the smallest segment
-        of the circuit employed during a band structure calculation
+        This variable defines the number of divisions used to sample the smallest segment of the circuit employed in aband structure calculations
         (see related input variables
         [[kptopt]]
         and
@@ -18287,7 +18333,7 @@
          If [[pawoptosc]]=1 the matrix elements are computed with the expression given by Arnaud and Alouani in PRB 62. 4464
         The equation is exact provided that the set of PAW partial waves is complete.
          <br />
-         If [[pawoptosc]]=2  the matrix elements are computed with the approaximated expression proposed by Shishkin and
+         If [[pawoptosc]]=2  the matrix elements are computed with the approximated expression proposed by Shishkin and
         Kresse in PRB 74. 035101
         </p>
     varname: pawoptosc
@@ -20305,6 +20351,24 @@
     characteristics: null
     commentdefault: null
     commentdims: null
+    defaultval: prtgsr = 0
+    definition: PRinT the GSR file
+    dimensions: scalar
+    excludes: null
+    requires: null
+    section: varfil
+    text: "If set to 1, ABINIT will produce a GSR file at the end of the GS\
+        \ calculation. The GSR file contains the most important GS results\
+        \ (band structure, forces, stresses, electronic density). The GSR\
+        \ file can be read by AbiPy and used for futher postprocessing.\n\n\
+        Note that, by default, the GSR file contains the electronic density\
+        \ unless [[prtden]] is set to 0  "
+    varname: prtgsr
+    vartype: integer
+- !variable
+    characteristics: null
+    commentdefault: null
+    commentdims: null
     defaultval: 0
     definition: PRinT the Kinetic energy DENsity
     dimensions: scalar
@@ -20383,6 +20447,11 @@
         the input [[kptrlen]]), and it is better
         to examine the full analysis for a given cell and set of symmetries,
         [[shiftk]] for all the production runs.
+        </p>
+
+        <p>
+        if set to -2, the code stops in invars1 after the computation of the irreducible set and
+        a file named kpts.nc with the list of the k-points and the corresponding weights is produced
         </p>
     varname: prtkpt
     vartype: integer
@@ -20623,7 +20692,7 @@
     characteristics: null
     commentdefault: null
     commentdims: null
-    defaultval: 1
+    defaultval: 0
     definition: PRinT the SUSCEPtibility file (the irreducible polarizability)
     dimensions: scalar
     excludes: null
@@ -25418,7 +25487,7 @@
     text: |-
         <p>
          When equal to one or two, this variable allows for the calculation of U with the cRPA method.
-        An explicit test is shown in automatic tests v7/t23-t24-t25 and in v7/t68.
+        An explicit test is shown in automatic tests v7/t23-t24-t25 and in v7/t68-t69.
         The present implementation is parallelized (as for usual [[GW]] calculations), use symetry over k-points only for calculations involving one correlated atom,
         and can be use when correlated bands are entangled or not.
         The constrained calculation of the polarisability can be done by eliminating
@@ -25427,14 +25496,14 @@
         <p>
          For [[ucrpa]] = 1, two solutions are possible. The first one is to specify
         (with the variable [[ucrpa_bands]]) the bands to exclude from the polarisability calculation.
-        The second solution is to provide an energy window (with the variable [[ucrpa_window]]). The transition
+        The second solution is to provide an energy window (with the variable [[ucrpa_window]]). The electronic transitions
         inside this window will not be taken into account in
         the polarisability calculation.
         </p>
         <p>
          For [[ucrpa]] = 2, the ucrpa_bands should be equal to the [[dmftbandi]] and [[dmftbandf]]
         values, and the polarisability of the correlated subspace
-        is constructed with a band and k-point dependant weight.
+        is constructed with a band and k-point dependent weight.
         </p>
         <p>
         The implementation is restricted to the case of [[nspinor]] = 1 (collinear case).
