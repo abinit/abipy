@@ -649,6 +649,13 @@ def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None
     gs_inp.set_vars(ksampling.to_abivars())
     gs_inp.set_vars(tolvrs=1.0e-18)
 
+    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
+                                   charge=charge, nband=None, fband=None)
+
+    if scf_electrons.nband is None:
+        scf_electrons.nband = _find_scf_nband(structure, gs_inp.pseudos, scf_electrons)
+    gs_inp.set_vars(scf_electrons.to_abivars())
+
     all_inps = [gs_inp]
 
     # Add the ddk input
@@ -683,7 +690,7 @@ def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None
                     nqpt=1,                            # One wavevector is to be considered
                     qpt=(0, 0, 0),                     # q-wavevector.
                     kptopt=2,                          # Take into account time-reversal symmetry.
-                    iscf=5,                            # The d/dk perturbation must be treated in a non-self-consistent way
+                    iscf=7,                            # The d/dk perturbation must be treated in a non-self-consistent way
                     )
 
     if rf_tol is None:
