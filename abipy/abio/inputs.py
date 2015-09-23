@@ -1002,6 +1002,19 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
         return self._abiget_irred_perts(ddeperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
                                         workdir=workdir, manager=manager)
 
+    def pop_par_vars(self, all=False):
+        # in case of a restart we need to remove the paralel configuration before we rerun autoparalel
+        vars = ['npkpt', 'npfft', 'npband', 'npspinor', 'npimage']
+        if all:
+            vars.append('gwparal')
+        popped = {}
+        for var in vars:
+            popped[var] = self.pop(var, None)
+
+        return popped
+
+
+
     def abiget_autoparal_pconfs(self, max_ncpus, autoparal=1, workdir=None, manager=None):
         """Get all the possible configurations up to max_ncpus"""
         inp = self.deepcopy()
