@@ -6,7 +6,6 @@ from __future__ import unicode_literals, division, print_function
 Classes for writing GW Input and analyzing GW data. The underlying classes can handle the use of VASP and ABINIT via the
 code interfaces provided in code-interfaces.
 Reads the POSCAR_name in the the current folder and outputs GW input to sub-folders name or lists of structures
-test 3
 """
 
 __author__ = "Michiel van Setten"
@@ -199,9 +198,9 @@ class AbstractAbinitioSpec(MSONable):
                     else:
                         # print "no bandstructure information available, adding GG as 'gap'"
                         structure = add_gg_gap(structure)
-                elif 'xyz' in item:
+                elif 'cif' in item:
                     structure = pmg.read_structure(item)
-                    raise NotImplementedError
+                    structure = add_gg_gap(structure)
                 elif item.startswith('mp-'):
                     with MPRester(mp_key) as mp_database:
                         print('structure from mp database', item)
@@ -387,6 +386,7 @@ class GWSpecs(AbstractAbinitioSpec):
             for warning in self.warnings:
                 print(' > ' + warning)
         self.reset_job_collection()
+        return 0
 
     def excecute_flow(self, structure):
         """
@@ -496,6 +496,8 @@ class GWSpecs(AbstractAbinitioSpec):
                         # set data.type to convergence
                         # loop
                         done = True
+                else:
+                    done = True
 
         elif self.data['test']:
             data.read()
@@ -539,6 +541,7 @@ class GWSpecs(AbstractAbinitioSpec):
             extra = None
         ps = self.code_interface.read_ps_dir()
         results_file = os.path.join(s_name(structure)+'.res', self.code_interface.gw_data_file)
+        ksbands_file = os.path.join(s_name(structure)+'.res', self.code_interface.ks_bands_file)
         data_file = os.path.join(s_name(structure)+'.res', s_name(structure)+'.data')
         if success and con_dat is not None:
             query = {'system': s_name(structure),
@@ -554,6 +557,7 @@ class GWSpecs(AbstractAbinitioSpec):
                           'structure': structure.as_dict(),
                           'gw_results': con_dat,
                           'results_file': results_file,
+                          'ksbands_file': ksbands_file,
                           'data_file': data_file})
 
             # generic section that should go into the base class like
@@ -580,6 +584,11 @@ class GWSpecs(AbstractAbinitioSpec):
                 except IOError:
                     print(entry['results_file'], 'not found')
                 try:
+                    with open(entry['ksbands_file'], 'r') as f:
+                        entry['ksbands_file'] = gfs.put(f.read())
+                except IOError:
+                    print(entry['ksbands_file'], 'not found')
+                try:
                     with open(entry['data_file'], 'r') as f:
                         entry['data_file'] = gfs.put(f.read())
                 except IOError:
@@ -594,6 +603,11 @@ class GWSpecs(AbstractAbinitioSpec):
                 except:
                     print('remove failed')
                 try:
+                    print('removing file ', new_entry['ksbands_file'], 'from db')
+                    gfs.remove(new_entry['ksbands_file'])
+                except:
+                    print('remove failed')
+                try:
                     print('removing file ', new_entry['data_file'], 'from db')
                     gfs.remove(new_entry['data_file'])
                 except:
@@ -605,6 +619,11 @@ class GWSpecs(AbstractAbinitioSpec):
                         new_entry['results_file'] = gfs.put(f)
                 except IOError:
                     print(new_entry['results_file'], 'not found')
+                try:
+                    with open(new_entry['ksbands_file'], 'r') as f:
+                        new_entry['ksbands_file'] = gfs.put(f)
+                except IOError:
+                    print(new_entry['ksbands_file'], 'not found')
                 try:
                     with open(new_entry['data_file'], 'r') as f:
                         new_entry['data_file'] = gfs.put(f)
