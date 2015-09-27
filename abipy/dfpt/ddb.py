@@ -314,8 +314,8 @@ class DdbFile(TextFile, Has_Structure):
     #def anaget_phdos_file(self, ngqpt=None, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra" 
     #                      workdir=None, manager=None, verbose=0, **kwargs):
 
-    def anaget_phbst_and_phdos_files(self, nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, 
-                                       dos_method="tetra", ngqpt=None, workdir=None, manager=None, verbose=0):
+    def anaget_phbst_and_phdos_files(self, nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra",
+                                       ngqpt=None, workdir=None, manager=None, verbose=0, lo_to_splitting=False):
         """
         Execute anaddb to compute the phonon band structure and the phonon DOS
 
@@ -330,6 +330,8 @@ class DdbFile(TextFile, Has_Structure):
             workdir: Working directory. If None, a temporary directory is created.
             manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information
+            lo_to_splitting: if True calculation of the LO-TO splitting will be calculated and included in the
+                band structure
 
         Returns:
             :class:`PhbstFile` with the phonon band structure.
@@ -338,8 +340,8 @@ class DdbFile(TextFile, Has_Structure):
         if ngqpt is None: ngqpt = self.guessed_ngqpt
 
         inp = AnaddbInput.phbands_and_dos(
-            self.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, 
-            q1shft=(0,0,0), qptbounds=None, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method)
+            self.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, q1shft=(0,0,0), qptbounds=None,
+            asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, lo_to_splitting=lo_to_splitting)
 
         task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager)
 
@@ -354,7 +356,17 @@ class DdbFile(TextFile, Has_Structure):
         if not report.run_completed:
             raise self.AnaddbError(task=task, report=report)
 
-        return task.open_phbst(), task.open_phdos()
+        phbst = task.open_phbst()
+
+        if lo_to_splitting:
+            with ETSF_Reader(os.path.join(task.workdir, "anaddb.nc")) as r:
+                directions = r.read_value("non_analytical_directions")
+                non_anal_phfreq = r.read_value("non_analytical_phonon_modes")
+
+                phbst.non_anal_directions = directions
+                phbst.non_anal_phfreqs = non_anal_phfreq
+
+        return phbst, task.open_phdos()
 
     def anacompare_phdos(self, nqsmalls, asr=2, chneut=1, dipdip=1, dos_method="tetra", ngqpt=None, 
                          num_cpus=None, stream=sys.stdout): 
