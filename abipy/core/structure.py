@@ -266,11 +266,10 @@ class Structure(pymatgen.Structure):
                                                     
         return("\n".join(lines))
     
-    def abi_sanitize(self, symprec=1e-3, primitive=True):
+    def abi_sanitize(self, symprec=1e-3, angle_tolerance=5, primitive=True, primitive_standard=False):
         """
         Returns a new structure in which:
 
-            * Oxidation states are removed.
             * Structure is refined.
             * Reduced to primitive settings.
             * Lattice vectors are exchanged if the triple product is negative 
@@ -281,22 +280,23 @@ class Structure(pymatgen.Structure):
             primitive (bool): Whether to convert to a primitive cell.
         """
 
-        from pymatgen.transformations.standard_transformations import OxidationStateRemovalTransformation, \
-            PrimitiveCellTransformation, SupercellTransformation
+        from pymatgen.transformations.standard_transformations import PrimitiveCellTransformation, SupercellTransformation
 
-        # Remove oxidation states.
-        remove_ox = OxidationStateRemovalTransformation()
-        structure = remove_ox.apply_transformation(self)
+        structure = self.__class__.from_sites(self)
 
         # Refine structure
-        if symprec is not None:
-            sym_finder = SpacegroupAnalyzer(structure=structure, symprec=symprec)
+        if symprec is not None and angle_tolerance is not None:
+            sym_finder = SpacegroupAnalyzer(structure=structure, symprec=symprec, angle_tolerance=angle_tolerance)
             structure = sym_finder.get_refined_structure()
 
         # Convert to primitive structure.
         if primitive:
-            get_prim = PrimitiveCellTransformation()
-            structure = get_prim.apply_transformation(structure)
+            if primitive_standard:
+                sym_finder_prim = SpacegroupAnalyzer(structure=structure, symprec=symprec, angle_tolerance=angle_tolerance)
+                structure = sym_finder_prim.get_primitive_standard_structure()
+            else:
+                get_prim = PrimitiveCellTransformation()
+                structure = get_prim.apply_transformation(structure)
 
         # Exchange last two lattice vectors if triple product is negative.
         m = structure.lattice.matrix
@@ -415,6 +415,7 @@ class Structure(pymatgen.Structure):
         savefig           'abc.png' or 'abc.eps'* to save the figure to a file.
         ================  ==============================================================
         """
+        #print(self.hsym_kpath.name)
         return self.hsym_kpath.get_kpath_plot(**kwargs)
 
     def export(self, filename, visu=None):
@@ -953,37 +954,46 @@ class Structure(pymatgen.Structure):
         sym = SpacegroupAnalyzer(self, symprec=symprec, angle_tolerance=angle_tolerance)
         lattice_type, spg_symbol = sym.get_lattice_type(), sym.get_spacegroup_symbol()
 
+        # Check if the cell is primitive
+        is_primitve = len(sym.find_primitive()) == len(self)
+
         # Generate the appropriate set of shifts.
         shiftk = None
 
-        if lattice_type == "cubic":
-            if "F" in spg_symbol:  
-                # FCC
-                shiftk = [0.5, 0.5, 0.5,
-                          0.5, 0.0, 0.0,
-                          0.0, 0.5, 0.0,
-                          0.0, 0.0, 0.5]
+        if is_primitve:
+            if lattice_type == "cubic":
+                if "F" in spg_symbol:
+                    # FCC
+                    shiftk = [0.5, 0.5, 0.5,
+                              0.5, 0.0, 0.0,
+                              0.0, 0.5, 0.0,
+                              0.0, 0.0, 0.5]
 
-            elif "I" in spg_symbol:  
-                # BCC
-                shiftk = [0.25,  0.25,  0.25,
-                         -0.25, -0.25, -0.25]
+                elif "I" in spg_symbol:
+                    # BCC
+                    shiftk = [0.25,  0.25,  0.25,
+                             -0.25, -0.25, -0.25]
 
-                #shiftk = [0.5, 0.5, 05])
+                    #shiftk = [0.5, 0.5, 05])
 
-        elif lattice_type == "hexagonal":
-            # Find the hexagonal axis and set the shift along it.
-            for i, angle in enumerate(self.lattice.angles):
-                if abs(angle - 120) < 1.0:
-                    j = (i + 1) % 3
-                    k = (i + 2) % 3
-                    hex_ax = [ax for ax in range(3) if ax not in [j,k]][0] 
-                    break
-            else:
-                raise ValueError("Cannot find hexagonal axis")
+            elif lattice_type == "hexagonal":
+                # Find the hexagonal axis and set the shift along it.
+                for i, angle in enumerate(self.lattice.angles):
+                    if abs(angle - 120) < 1.0:
+                        j = (i + 1) % 3
+                        k = (i + 2) % 3
+                        hex_ax = [ax for ax in range(3) if ax not in [j,k]][0]
+                        break
+                else:
+                    raise ValueError("Cannot find hexagonal axis")
 
-            shiftk = [0.0, 0.0, 0.0]
-            shiftk[hex_ax] = 0.5 
+                shiftk = [0.0, 0.0, 0.0]
+                shiftk[hex_ax] = 0.5
+            elif lattice_type == "tetragonal":
+                if "I" in spg_symbol:
+                    # BCT
+                    shiftk = [0.25,  0.25,  0.25,
+                             -0.25, -0.25, -0.25]
 
         if shiftk is None:
             # Use default value.

@@ -18,10 +18,11 @@ Usage example:\n
 
     abistruct.py convert filepath cif         => Read the structure from file and print CIF file.
     abistruct.py convert filepath abivars     => Print the ABINIT variables defining the structure.
-    abistrctu.py convert out_HIST abivars     => Read the last structure from the HIST file and 
+    abistruct.py convert out_HIST abivars     => Read the last structure from the HIST file and 
                                                  print the corresponding Abinit variables.
     abistruct.py visualize filepath xcrysden  => Visualize the structure with XcrysDen.
-    abistruct.py ipython filepath             => Read structure from filepath and open Ipython terminal
+    abistruct.py ipython filepath             => Read structure from filepath and open Ipython terminal.
+    abistruct.py bz filepath                  => Read structure from filepath, plot BZ with matplotlib.
     abistruct.py pmgdata mp-149               => Get structure from pymatgen database and print its JSON representation.
 """
 
@@ -48,6 +49,9 @@ Usage example:\n
 
     # Subparser for ipython.
     p_ipython = subparsers.add_parser('ipython', parents=[path_selector], help="Open IPython shell for advanced operations on structure object.")
+
+    # Subparser for bz.
+    p_bz = subparsers.add_parser('bz', parents=[path_selector], help="Read structure from file, plot Brillouin zone with matplotlib.")
 
     # Subparser for visualize command.
     p_visualize = subparsers.add_parser('visualize', parents=[path_selector], help="Visualize the structure with the specified visualizer")
@@ -86,13 +90,17 @@ Usage example:\n
 
     elif options.command == "ipython":
         structure = abilab.Structure.from_file(options.filepath)
-        print("Invoking Ipython, structure object can be accessed in the Ipython shell")
+        print("Invoking Ipython, `structure` object will be available in the Ipython terminal")
         import IPython
         IPython.start_ipython(argv=[], user_ns={"structure": structure})
 
     elif options.command == "visualize":
         structure = abilab.Structure.from_file(options.filepath)
         structure.visualize(options.visualizer)
+
+    elif options.command == "bz":
+        structure = abilab.Structure.from_file(options.filepath)
+        structure.show_bz()
 
     elif options.command == "pmgdata":
         # Get the Structure corresponding the a material_id.
