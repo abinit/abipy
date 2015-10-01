@@ -13,7 +13,7 @@ from monty.string import is_string
 from pymatgen.core.units import ArrayWithUnit
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
-from pymatgen.io.abinitio.pseudos import PseudoTable
+from pymatgen.io.abinit.pseudos import PseudoTable
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from abipy.core.symmetries import SpaceGroup
 from abipy.iotools import as_etsfreader, Visualizer
@@ -80,7 +80,7 @@ class Structure(pymatgen.Structure):
                 return hist.structures[-1]
 
         elif filepath.endswith(".nc"):
-            from pymatgen.io.abinitio.netcdf import as_etsfreader
+            from pymatgen.io.abinit.netcdf import as_etsfreader
             file, closeit = as_etsfreader(filepath)
                                                                   
             new = file.read_structure(cls=cls)

@@ -4,10 +4,10 @@
 from __future__ import print_function, division, unicode_literals
 
 import numpy as np
-import pymatgen.io.abinitio.abiobjects as aobj
+import pymatgen.io.abinit.abiobjects as aobj
 
 from collections import namedtuple
-from pymatgen.io.abinitio.pseudos import PseudoTable
+from pymatgen.io.abinit.pseudos import PseudoTable
 from abipy.core.structure import Structure
 #from .input import AbiInput
 from abipy.htc.factories import *
@@ -18,7 +18,7 @@ import abipy.data as abidata
 import logging
 logger = logging.getLogger(__file__)
 
-from pymatgen.io.abinitio.launcher import BatchLauncher
+from pymatgen.io.abinit.launcher import BatchLauncher
 
 
 @abilab.flow_main

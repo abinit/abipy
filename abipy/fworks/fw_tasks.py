@@ -28,10 +28,10 @@ import threading
 import traceback
 import glob
 from collections import namedtuple
-from pymatgen.io.abinitio.utils import Directory, File
-from pymatgen.io.abinitio import events, TaskManager
-from pymatgen.io.abinitio.utils import irdvars_for_ext
-from pymatgen.io.abinitio.wrappers import Mrgddb
+from pymatgen.io.abinit.utils import Directory, File
+from pymatgen.io.abinit import events, TaskManager
+from pymatgen.io.abinit.utils import irdvars_for_ext
+from pymatgen.io.abinit.wrappers import Mrgddb
 from pymatgen.serializers.json_coders import PMGSONable, json_pretty_dump, pmg_serialize
 from monty.json import MontyEncoder, MontyDecoder
 from monty.serialization import loadfn
@@ -259,10 +259,10 @@ class AbiFireTask(BasicTaskMixin, FireTaskBase):
         return "\n".join(lines)
 
     def set_logger(self):
-        # Set a logger for abinitio and abipy
+        # Set a logger for abinit and abipy
         log_handler = logging.FileHandler('abipy.log')
         log_handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
-        logging.getLogger('pymatgen.io.abinitio').addHandler(log_handler)
+        logging.getLogger('pymatgen.io.abinit').addHandler(log_handler)
         logging.getLogger('abipy').addHandler(log_handler)
 
     def config_run(self, fw_spec):

@@ -1,6 +1,6 @@
 from __future__ import print_function, division, unicode_literals
 
-from pymatgen.io.abinitio.events import EventReport, ScfConvergenceWarning, RelaxConvergenceWarning, AbinitError
+from pymatgen.io.abinit.events import EventReport, ScfConvergenceWarning, RelaxConvergenceWarning, AbinitError
 
 from fireworks import Firework, FireTaskBase, FWAction
 

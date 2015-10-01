@@ -7,8 +7,7 @@ import unittest
 
 from pymatgen.util.testing import PymatgenTest
 from pymatgen.core.structure import Structure
-from pymatgen.io.abinitio.helpers import clean, read_extra_abivars
-from pymatgen.io.abinitio.helpers import expand
+from pymatgen.io.abinit.helpers import clean, read_extra_abivars, expand
 from abipy.gw.datastructures import get_spec
 from abipy.gw.GWworks import GWG0W0VaspInputSet, SingleAbinitGWWork
 

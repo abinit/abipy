@@ -10,8 +10,8 @@ import os
 import numpy as np
 from abipy import abilab
 import abipy.data as data  
-from pymatgen.io.abinitio.tasks import TaskPolicy
-from pymatgen.io.abinitio.abiobjects import KSampling
+from pymatgen.io.abinit.tasks import TaskPolicy
+from pymatgen.io.abinit.abiobjects import KSampling
 from abipy.dfpt import PhononBands, PhdosReader, PhdosFile
 
 unit_cell = dict(

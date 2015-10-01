@@ -33,7 +33,7 @@ import sys
 import numpy as np
 import abipy.abilab as abilab
 
-from pymatgen.io.abinitio.pseudos import PseudoTable
+from pymatgen.io.abinit.pseudos import PseudoTable
 
 
 def unique_rows(a):

@@ -11,7 +11,7 @@ from six.moves import map, zip, StringIO
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.dev import get_ncpus
-from pymatgen.io.abinitio.tasks import AnaddbTask
+from pymatgen.io.abinit.tasks import AnaddbTask
 from abipy.core.mixins import TextFile, Has_Structure
 from abipy.core.symmetries import SpaceGroup
 from abipy.core.structure import Structure

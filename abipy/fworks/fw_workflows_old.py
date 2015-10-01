@@ -18,10 +18,10 @@ import sys
 from fw_tasks_old import NscfStrategyFireTask, AutoparalFireTask, \
     MultiStepRelaxStrategyFireTask, relaxation_methods, AbiFireTask, RelaxFWTask
 from fw_utils import parse_workflow
-from pymatgen.io.abinitio.abiobjects import KSampling
-from pymatgen.io.abinitio.strategies import StrategyWithInput
+from pymatgen.io.abinit.abiobjects import KSampling
+from pymatgen.io.abinit.strategies import StrategyWithInput
 from abipy.htc.input_factories import ion_ioncell_relax_input
-from pymatgen.io.abinitio.tasks import RelaxTask
+from pymatgen.io.abinit.tasks import RelaxTask
 
 # logging.basicConfig()
 logger = logging.getLogger(__name__)

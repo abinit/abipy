@@ -1,5 +1,5 @@
 from __future__ import print_function, division, unicode_literals
-from pymatgen.io.abinitio.tasks import ParalHints
+from pymatgen.io.abinit.tasks import ParalHints
 
 try:
     from fireworks import Workflow
@@ -8,7 +8,7 @@ except ImportError:
 
 import traceback
 from abipy.fworks.fw_tasks import FWTaskManager
-import pymatgen.io.abinitio.qutils as qu
+import pymatgen.io.abinit.qutils as qu
 
 SHORT_SINGLE_CORE_SPEC = {'_queueadapter': {'ntasks': 1, 'time': '00:10:00'}, 'mpi_ncpus': 1}
 

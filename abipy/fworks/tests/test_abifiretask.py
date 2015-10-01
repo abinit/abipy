@@ -13,7 +13,7 @@ from abipy.abio.factories import *
 from abipy.core.testing import AbipyTest
 import mock_objects
 
-from pymatgen.io.abinitio.events import Correction, DilatmxErrorHandler, DilatmxError
+from pymatgen.io.abinit.events import Correction, DilatmxErrorHandler, DilatmxError
 
 from fireworks import FWAction
 

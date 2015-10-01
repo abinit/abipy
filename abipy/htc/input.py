@@ -22,10 +22,10 @@ from monty.string import is_string, list_strings
 from monty.os.path import which
 from pymatgen.core.units import Energy
 from pymatgen.serializers.json_coders import PMGSONable, pmg_serialize
-from pymatgen.io.abinitio.pseudos import PseudoTable, Pseudo
-from pymatgen.io.abinitio.tasks import TaskManager, AbinitTask
-from pymatgen.io.abinitio.netcdf import NetcdfReader
-from pymatgen.io.abinitio.abiinspect import yaml_read_irred_perts
+from pymatgen.io.abinit.pseudos import PseudoTable, Pseudo
+from pymatgen.io.abinit.tasks import TaskManager, AbinitTask
+from pymatgen.io.abinit.netcdf import NetcdfReader
+from pymatgen.io.abinit.abiinspect import yaml_read_irred_perts
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
 from .variable import InputVariable

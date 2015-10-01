@@ -7,7 +7,7 @@ from abipy.electrons.gsr import GsrFile
 from abipy.fworks.fw_workflows import InputFWWorkflow
 from abipy.fworks.fw_tasks import ScfFWTask
 import abipy.fworks.fw_tasks as fw_tasks
-from pymatgen.io.abinitio.utils import Directory
+from pymatgen.io.abinit.utils import Directory
 from abipy.core.testing import has_abinit, has_fireworks, has_mongodb
 
 from fireworks.core.rocket_launcher import rapidfire, launch_rocket

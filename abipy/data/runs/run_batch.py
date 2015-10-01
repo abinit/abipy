@@ -53,7 +53,7 @@ def main():
     batch_dir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
     # intialize the BatchLauncher.
-    from pymatgen.io.abinitio.launcher import BatchLauncher
+    from pymatgen.io.abinit.launcher import BatchLauncher
     batch = BatchLauncher(workdir=batch_dir)
 
     # Build multiple flows and add them to the BatchLauncher.

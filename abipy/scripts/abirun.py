@@ -16,8 +16,8 @@ from collections import defaultdict
 from monty import termcolor
 from monty.termcolor import cprint, get_terminal_size
 from monty.string import make_banner
-from pymatgen.io.abinitio.nodes import Status
-from pymatgen.io.abinitio.events import autodoc_event_handlers, EventsParser
+from pymatgen.io.abinit.nodes import Status
+from pymatgen.io.abinit.events import autodoc_event_handlers, EventsParser
 import abipy.abilab as abilab
 
 
@@ -485,7 +485,7 @@ Specify the files to open. Possible choices:
 
         else:
             print(abilab.TaskManager.autodoc())
-            from pymatgen.io.abinitio.qadapters import show_qparams, all_qtypes
+            from pymatgen.io.abinit.qadapters import show_qparams, all_qtypes
                                                                                                  
             print("qtype supported: %s" % all_qtypes())
             print("Use `abirun.py . manager slurm` to have the list of qparams for slurm.\n")
