@@ -109,9 +109,8 @@ def build_flow(options, paral_kgb=0):
         num_nonlin_comp=2,
         nonlin_comp=(123, 222),
     )
-    print(optic_input)
 
-    optic_task = abilab.OpticNewTask(optic_input, nscf_node=bands_work.nscf_task, ddk_nodes=ddk_work, 
+    optic_task = abilab.OpticTask(optic_input, nscf_node=bands_work.nscf_task, ddk_nodes=ddk_work, 
                                   manager=flow.manager.to_shell_manager(mpi_procs=1))
     flow.register_task(optic_task)
 
