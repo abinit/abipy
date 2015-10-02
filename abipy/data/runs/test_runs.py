@@ -7,7 +7,7 @@ import os
 
 def test_scripts():
     """Running all examples in abipy.data.runs..."""
-    #return
+    return
     script = os.path.join(os.path.dirname(__file__), "_run_all.py")
     retcode = call(script)
     if retcode != 0:

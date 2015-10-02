@@ -25,7 +25,8 @@ import logging
 
 from abc import abstractproperty, abstractmethod, ABCMeta
 from pymatgen.io.abinit.netcdf import NetcdfReader
-from pymatgen.io.vaspio.vasp_output import Vasprun
+#from pymatgen.io.vaspio.vasp_output import Vasprun
+from pymatgen.io.vasp.outputs import Vasprun
 from pymatgen.core.units import Ha_to_eV
 from pymatgen.io.abinit.helpers import is_converged, read_grid_from_file, s_name, expand, store_conv_results
 from pymatgen.io.vasp.GWvaspinputsets import SingleVaspGWWork

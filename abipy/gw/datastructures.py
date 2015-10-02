@@ -31,7 +31,8 @@ except ImportError:
     pass
 
 from abc import abstractproperty, abstractmethod, ABCMeta
-from pymatgen.io.vaspio.vasp_input import Poscar
+#from pymatgen.io.vaspio.vasp_input import Poscar
+from pymatgen.io.vasp.inputs import Poscar
 from pymatgen.matproj.rest import MPRester, MPRestError
 from pymatgen.serializers.json_coders import MSONable
 from pymatgen.util.convergence import determine_convergence
