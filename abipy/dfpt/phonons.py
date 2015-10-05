@@ -129,7 +129,7 @@ class PhononBands(object):
         self.qpoints = qpoints
         self.num_qpoints = len(self.qpoints)
 
-        #: numpy rray with phonon frequencies. Shape=(nqpt, 3*natom)
+        #: numpy array with phonon frequencies. Shape=(nqpt, 3*natom)
         self.phfreqs = phfreqs
 
         #: phonon displacements in Cartesian coordinates.
@@ -578,11 +578,12 @@ class PhononBands(object):
                 [i for i in range(1, self.num_qpoints - 1) if np.array_equal(self.qpoints.frac_coords[i], [0, 0, 0])])
             end_points_indeces.append(self.num_qpoints - 1)
 
-            # a list since the array contained have different shapes
-            split_qpoints = [self.qpoints.frac_coords[end_points_indeces[i]:end_points_indeces[i + 1] + 1] for i in
-                             range(len(end_points_indeces) - 1)]
-            split_phfreqs = [self.phfreqs[end_points_indeces[i]:end_points_indeces[i + 1] + 1] for i in
-                             range(len(end_points_indeces) - 1)]
+            # split the list of qpoints and frequencies at each end point. The end points are in both the segments.
+            # Lists since the array contained have different shapes
+            split_qpoints = [np.array(self.qpoints.frac_coords[end_points_indeces[i]:end_points_indeces[i + 1] + 1])
+                             for i in range(len(end_points_indeces) - 1)]
+            split_phfreqs = [np.array(self.phfreqs[end_points_indeces[i]:end_points_indeces[i + 1] + 1])
+                             for i in range(len(end_points_indeces) - 1)]
 
             for i, q in enumerate(split_qpoints):
                 if np.array_equal(q[0], (0, 0, 0)):
@@ -598,6 +599,8 @@ class PhononBands(object):
         return split_phfreqs, split_qpoints
 
     def _get_non_anal_freqs(self, direction):
+        # directions for the qph2l in anaddb are given in cartesian coordinates
+        direction = self.structure.lattice.reciprocal_lattice_crystallographic.get_cartesian_coords(direction)
         direction = direction / np.linalg.norm(direction)
 
         for i, d in enumerate(self.non_anal_directions):

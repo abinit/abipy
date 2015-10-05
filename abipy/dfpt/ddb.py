@@ -364,8 +364,8 @@ class DdbFile(TextFile, Has_Structure):
                 directions = r.read_value("non_analytical_directions")
                 non_anal_phfreq = r.read_value("non_analytical_phonon_modes")
 
-                phbst.non_anal_directions = directions
-                phbst.non_anal_phfreqs = non_anal_phfreq
+                phbst.phbands.non_anal_directions = directions
+                phbst.phbands.non_anal_phfreqs = non_anal_phfreq
 
         return phbst, task.open_phdos()
 
