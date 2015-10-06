@@ -4,7 +4,7 @@ from __future__ import print_function, division, unicode_literals
 
 import six
 import abc
-import pymatgen.io.abinitio.abiobjects as aobj
+import pymatgen.io.abinit.abiobjects as aobj
 
 from monty.inspect import initializer
 from pymatgen.serializers.json_coders import PMGSONable, pmg_serialize

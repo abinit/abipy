@@ -8,7 +8,7 @@ import sys
 import os
 import argparse
 
-from pymatgen.io.abinitio.qjobs import QueueJob
+from pymatgen.io.abinit.qjobs import QueueJob
 
 
 def main():

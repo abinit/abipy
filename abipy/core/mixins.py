@@ -11,9 +11,9 @@ from time import ctime
 from monty.os.path import which
 from monty.string import is_string
 from monty.functools import lazy_property
-from pymatgen.io.abinitio.events import EventsParser
-from pymatgen.io.abinitio.abiinspect import GroundStateScfCycle, D2DEScfCycle, Relaxation
-from pymatgen.io.abinitio.abitimer import AbinitTimerParser
+from pymatgen.io.abinit.events import EventsParser
+from pymatgen.io.abinit.abiinspect import GroundStateScfCycle, D2DEScfCycle, Relaxation
+from pymatgen.io.abinit.abitimer import AbinitTimerParser
 
 
 __all__ = [

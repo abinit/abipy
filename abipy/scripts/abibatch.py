@@ -8,7 +8,7 @@ import sys
 import os
 import argparse
 
-from pymatgen.io.abinitio.launcher import  BatchLauncher
+from pymatgen.io.abinit.launcher import  BatchLauncher
 
 
 def main():

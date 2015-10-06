@@ -292,7 +292,7 @@ def itest_htc_g0w0(fwp, tvars):
 #    flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager)
 #
 #    # BSE calculation with model dielectric function.
-#    from pymatgen.io.abinitio.calculations import bse_with_mdf
+#    from pymatgen.io.abinit.calculations import bse_with_mdf
 #    work = bse_with_mdf(structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,
 #                       ecuteps, bs_loband, bs_nband, soenergy, mdf_epsinf,
 #                       accuracy="normal", spin_mode="unpolarized", smearing=None,

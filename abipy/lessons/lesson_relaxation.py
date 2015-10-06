@@ -197,7 +197,7 @@ import numpy as np
 import abipy.abilab as abilab
 import abipy.data as abidata
 
-from pymatgen.io.abinitio.eos import EOS
+from pymatgen.io.abinit.eos import EOS
 from abipy.core import Structure
 from abipy.lessons.core import BaseLesson, get_pseudos
 

@@ -10,8 +10,8 @@ import wx.lib.agw.flatnotebook as fnb
 
 from collections import OrderedDict
 from monty.dev import get_ncpus
-from pymatgen.io.abinitio.launcher import PyLauncher 
-from pymatgen.io.abinitio.tasks import Node
+from pymatgen.io.abinit.launcher import PyLauncher 
+from pymatgen.io.abinit.tasks import Node
 from abipy import abilab
 from abipy.gui.events import AbinitEventsFrame, AbinitEventsNotebookFrame
 from abipy.gui.timer import MultiTimerFrame, AbinitTimerFrame

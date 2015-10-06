@@ -7,7 +7,7 @@ import abipy.gui.awx as awx
 
 from collections import OrderedDict
 from monty.string import list_strings, is_string
-from pymatgen.io.abinitio.events import EventsParser
+from pymatgen.io.abinit.events import EventsParser
 
 
 class AbinitEventsPanel(awx.Panel):
