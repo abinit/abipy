@@ -84,10 +84,11 @@ def itest_optic_flow(fwp, tvars):
     123 222       ! Non-linear coefficients to be computed
     """
     optic_input = abilab.OpticInput(
-        zcut=0.002,
-        wmesh=(0.0003,  0.3),
+        broadening=0.002,
+        domega=0.0003,
+        maxomega=0.3,
         scissor=0.000,
-        sing_tol=0.002,
+        tolerance=0.002,
         num_lin_comp=1,
         lin_comp=11,
         num_nonlin_comp=2,

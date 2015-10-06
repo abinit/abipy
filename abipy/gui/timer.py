@@ -4,7 +4,7 @@ import os
 import wx
 
 from collections import OrderedDict
-from pymatgen.io.abinitio.abitimer import AbinitTimerSection, AbinitTimerParser
+from pymatgen.io.abinit.abitimer import AbinitTimerSection, AbinitTimerParser
 import abipy.gui.awx as awx
 
 

@@ -22,8 +22,8 @@ import subprocess
 import socket
 
 from pymatgen.core.structure import Structure
-from pymatgen.io.vaspio.GWvaspinputsets import SingleVaspGWWork
-from pymatgen.io.vaspio.GWvaspinputsets import GWG0W0VaspInputSet
+from pymatgen.io.vasp.GWvaspinputsets import SingleVaspGWWork
+from pymatgen.io.vasp.GWvaspinputsets import GWG0W0VaspInputSet
 
 try:
     from fireworks.core.firework import FireTaskBase, FWAction

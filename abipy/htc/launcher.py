@@ -250,7 +250,7 @@ class Launcher(AbinitInput):
                 The lists of strings with the corresponding messages are
                 available in main.errors, main.warnings, main.comments, log.errors etc.
        """
-       from pymatgen.io.abinitio.events import EventsParser
+       from pymatgen.io.abinit.events import EventsParser
        parser = EventsParser()
        main_events = parser.parse(self.last_output())
        log_events = parser.parse(self.log_name)
@@ -600,7 +600,7 @@ class Launcher(AbinitInput):
         return False
 
         # Does not work !
-        #from pymatgen.io.abinitio.utils import abinit_output_iscomplete
+        #from pymatgen.io.abinit.utils import abinit_output_iscomplete
         #return abinit_output_iscomplete(output_file)
 
 # =========================================================================== #

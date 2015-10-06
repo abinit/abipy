@@ -4,7 +4,7 @@ from __future__ import print_function, division, unicode_literals
 from .xsf import *
 from .visualizer import *
 
-import pymatgen.io.abinitio.netcdf as ionc 
+import pymatgen.io.abinit.netcdf as ionc 
 
 as_etsfreader = ionc.as_etsfreader
 

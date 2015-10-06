@@ -6,9 +6,9 @@ import sys
 import os
 import argparse
 
-from pymatgen.io.abinitio.events import EventsParser
-from pymatgen.io.abinitio.abiinspect import plottable_from_outfile
-from pymatgen.io.abinitio.abitimer import AbinitTimerParser
+from pymatgen.io.abinit.events import EventsParser
+from pymatgen.io.abinit.abiinspect import plottable_from_outfile
+from pymatgen.io.abinit.abitimer import AbinitTimerParser
 from abipy import abilab
 
 
@@ -53,7 +53,7 @@ def main():
     # Parse command line.
     try:
         options = parser.parse_args()
-    except: 
+    except Exception: 
         show_examples_and_exit(error_code=1)
 
     if options.command == "status":
@@ -80,7 +80,7 @@ def main():
         #parser.plot_stacked_hist),
 
     elif options.command == "pseudo":
-        from pymatgen.io.abinitio.pseudos import PseudoParser
+        from pymatgen.io.abinit.pseudos import PseudoParser
         pseudo = PseudoParser().parse(options.filepath)
         print(pseudo)
 

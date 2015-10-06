@@ -8,7 +8,7 @@ import wx.lib.mixins.listctrl as listmix
 import wx.lib.dialogs as wxdg
 
 from monty.string import is_string 
-from pymatgen.io.abinitio.pseudos import PseudoParser
+from pymatgen.io.abinit.pseudos import PseudoParser
 
 
 class MyListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):

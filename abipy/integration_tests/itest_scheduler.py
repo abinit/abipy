@@ -7,7 +7,7 @@ import os
 import abipy.data as abidata  
 import abipy.abilab as abilab
 
-import pymatgen.io.abinitio.mocks as mocks
+import pymatgen.io.abinit.mocks as mocks
 
 
 def make_scf_nscf_inputs(paral_kgb=1):

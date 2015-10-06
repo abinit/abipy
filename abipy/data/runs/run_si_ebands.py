@@ -66,7 +66,7 @@ def build_flow(options):
 @abilab.flow_main
 def main(options):
     flow = build_flow(options)
-    #import pymatgen.io.abinitio.mocks as mocks
+    #import pymatgen.io.abinit.mocks as mocks
     #flow = mocks.infinite_flow(flow)
     flow.build_and_pickle_dump()
     return flow
