@@ -107,7 +107,8 @@ class PhononBands(object):
                        phfreqs=r.read_phfreqs(),
                        phdispl_cart=r.read_phdispl_cart())
 
-    def __init__(self, structure, qpoints, phfreqs, phdispl_cart, markers=None, widths=None):
+    def __init__(self, structure, qpoints, phfreqs, phdispl_cart, markers=None, widths=None,
+                 non_anal_directions=None, non_anal_phfreqs=None):
         """
         Args:
             structure: :class:`Structure` object.
@@ -128,7 +129,7 @@ class PhononBands(object):
         self.qpoints = qpoints
         self.num_qpoints = len(self.qpoints)
 
-        #: numpy rray with phonon frequencies. Shape=(nqpt, 3*natom)
+        #: numpy array with phonon frequencies. Shape=(nqpt, 3*natom)
         self.phfreqs = phfreqs
 
         #: phonon displacements in Cartesian coordinates.
@@ -148,6 +149,10 @@ class PhononBands(object):
         if widths is not None:
             for key, width in widths.items():
                 self.set_width(key, width)
+
+        # numpy arrays with the non analytical directions and corresponding frequences calculated at Gamma
+        self.non_anal_directions = non_anal_directions
+        self.non_anal_phfreqs = non_anal_phfreqs
 
     def __str__(self):
         return self.to_string()
@@ -536,11 +541,74 @@ class PhononBands(object):
         """
         branch_range = range(self.num_branches) if branch is None else [branch]
 
-        xx, lines = range(self.num_qpoints), []
-        for branch in branch_range:
-            lines.extend(ax.plot(xx, self.phfreqs[:, branch], **kwargs))
+        first_xx = 0
+        lines = []
+
+        for pf in self.split_phfreqs:
+            xx = range(first_xx, first_xx+len(pf))
+            for branch in branch_range:
+                lines.extend(ax.plot(xx, pf[:, branch], **kwargs))
+            first_xx = xx[-1]
 
         return lines
+
+    @property
+    def split_qpoints(self):
+        try:
+            return self._split_qpoints
+        except AttributeError:
+            self._set_split_intervals()
+            return self._split_qpoints
+
+    @property
+    def split_phfreqs(self):
+        try:
+            return self._split_phfreqs
+        except AttributeError:
+            self._set_split_intervals()
+            return self._split_phfreqs
+
+    def _set_split_intervals(self):
+        # Calculations available for LO-TO splitting
+        # Split the lines at each Gamma to handle possible discontinuities
+        if self.non_anal_phfreqs is not None and self.non_anal_directions is not None:
+            end_points_indeces = [0]
+
+            end_points_indeces.extend(
+                [i for i in range(1, self.num_qpoints - 1) if np.array_equal(self.qpoints.frac_coords[i], [0, 0, 0])])
+            end_points_indeces.append(self.num_qpoints - 1)
+
+            # split the list of qpoints and frequencies at each end point. The end points are in both the segments.
+            # Lists since the array contained have different shapes
+            split_qpoints = [np.array(self.qpoints.frac_coords[end_points_indeces[i]:end_points_indeces[i + 1] + 1])
+                             for i in range(len(end_points_indeces) - 1)]
+            split_phfreqs = [np.array(self.phfreqs[end_points_indeces[i]:end_points_indeces[i + 1] + 1])
+                             for i in range(len(end_points_indeces) - 1)]
+
+            for i, q in enumerate(split_qpoints):
+                if np.array_equal(q[0], (0, 0, 0)):
+                    split_phfreqs[i][0, :] = self._get_non_anal_freqs(q[1])
+                if np.array_equal(q[-1], (0, 0, 0)):
+                    split_phfreqs[i][-1, :] = self._get_non_anal_freqs(q[-2])
+        else:
+            split_qpoints = [self.qpoints]
+            split_phfreqs = [self.phfreqs]
+
+        self._split_qpoints = split_qpoints
+        self._split_phfreqs = split_phfreqs
+        return split_phfreqs, split_qpoints
+
+    def _get_non_anal_freqs(self, direction):
+        # directions for the qph2l in anaddb are given in cartesian coordinates
+        direction = self.structure.lattice.reciprocal_lattice_crystallographic.get_cartesian_coords(direction)
+        direction = direction / np.linalg.norm(direction)
+
+        for i, d in enumerate(self.non_anal_directions):
+            d = d / np.linalg.norm(d)
+            if np.allclose(direction, d):
+                return self.non_anal_phfreqs[i]
+
+        raise ValueError("Non analytical contribution has not been calcolated for direction {} ".format(direction))
 
     def plot_width_ax(self, ax, key, branch=None, fact=1.0, **kwargs):
         """Helper function to plot fatbands for given branch on the axis ax."""

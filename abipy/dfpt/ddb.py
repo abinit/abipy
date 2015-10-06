@@ -12,6 +12,7 @@ from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.dev import get_ncpus
 from pymatgen.io.abinit.tasks import AnaddbTask
+from pymatgen.io.abinit.netcdf import NetcdfReader
 from abipy.core.mixins import TextFile, Has_Structure
 from abipy.core.symmetries import SpaceGroup
 from abipy.core.structure import Structure
@@ -314,8 +315,8 @@ class DdbFile(TextFile, Has_Structure):
     #def anaget_phdos_file(self, ngqpt=None, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra" 
     #                      workdir=None, manager=None, verbose=0, **kwargs):
 
-    def anaget_phbst_and_phdos_files(self, nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, 
-                                       dos_method="tetra", ngqpt=None, workdir=None, manager=None, verbose=0):
+    def anaget_phbst_and_phdos_files(self, nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra",
+                                       ngqpt=None, workdir=None, manager=None, verbose=0, lo_to_splitting=False):
         """
         Execute anaddb to compute the phonon band structure and the phonon DOS
 
@@ -330,6 +331,8 @@ class DdbFile(TextFile, Has_Structure):
             workdir: Working directory. If None, a temporary directory is created.
             manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information
+            lo_to_splitting: if True calculation of the LO-TO splitting will be calculated and included in the
+                band structure
 
         Returns:
             :class:`PhbstFile` with the phonon band structure.
@@ -338,8 +341,8 @@ class DdbFile(TextFile, Has_Structure):
         if ngqpt is None: ngqpt = self.guessed_ngqpt
 
         inp = AnaddbInput.phbands_and_dos(
-            self.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, 
-            q1shft=(0,0,0), qptbounds=None, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method)
+            self.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, q1shft=(0,0,0), qptbounds=None,
+            asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, lo_to_splitting=lo_to_splitting)
 
         task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager)
 
@@ -354,7 +357,17 @@ class DdbFile(TextFile, Has_Structure):
         if not report.run_completed:
             raise self.AnaddbError(task=task, report=report)
 
-        return task.open_phbst(), task.open_phdos()
+        phbst = task.open_phbst()
+
+        if lo_to_splitting:
+            with ETSF_Reader(os.path.join(task.workdir, "anaddb.nc")) as r:
+                directions = r.read_value("non_analytical_directions")
+                non_anal_phfreq = r.read_value("non_analytical_phonon_modes")
+
+                phbst.phbands.non_anal_directions = directions
+                phbst.phbands.non_anal_phfreqs = non_anal_phfreq
+
+        return phbst, task.open_phdos()
 
     def anacompare_phdos(self, nqsmalls, asr=2, chneut=1, dipdip=1, dos_method="tetra", ngqpt=None, 
                          num_cpus=None, stream=sys.stdout): 
@@ -554,3 +567,79 @@ class Becs(Has_Structure):
         stream.write("Born effective charge neutrality sum-rule with chneut: %d\n" % self.chneut)
         becs_atomsum = self.becs.sum(axis=0)
         stream.write(str(becs_atomsum))
+
+
+class ElasticComplianceTensor(Has_Structure):
+    """This object is used to store the elastic and compliance tensors."""
+
+    def __init__(self, elastic_tensor, compliance_tensor, structure, additional_info=None):
+        """
+
+        Args:
+            elastic_tensor: (6, 6) array with the elastic tensor in Cartesian coordinates
+            compliance_tensor: (6, 6) array with the compliance tensor in Cartesian coordinates
+            structure: Structure object.
+        """
+        self._structure = structure
+        self.elastic_tensor = elastic_tensor
+        self.compliance_tensor = compliance_tensor
+        self.additional_info = additional_info
+
+    @property
+    def structure(self):
+        return self._structure
+
+    def __repr__(self):
+        return self.to_string()
+
+    @classmethod
+    def from_ec_nc_file(cls, ec_nc_file, tensor_type='relaxed_ion'):
+        nc_reader = NetcdfReader(ec_nc_file)
+        if tensor_type == 'relaxed_ion':
+            ec_relaxed =  np.array(nc_reader.read_variable('elastic_constants_relaxed_ion'))
+            compl_relaxed =  np.array(nc_reader.read_variable('compliance_constants_relaxed_ion'))
+        else:
+            raise ValueError('tensor_type "{}" not allowed'.format(tensor_type))
+        #TODO: add the structure object!
+        return cls(elastic_tensor=ec_relaxed, compliance_tensor=compl_relaxed, structure=None,
+                   additional_info={'tensor_type': tensor_type})
+
+    def as_dict(self):
+        return {'elastic_tensor': self.elastic_tensor, 'compliance_tensor': self.compliance_tensor,
+                'structure': self.structure.as_dict() if self.structure is not None else None,
+                'additional_info': self.additional_info}
+
+    def extended_dict(self):
+        dd = self.as_dict()
+        K_Voigt = (self.elastic_tensor[0, 0] + self.elastic_tensor[1, 1] + self.elastic_tensor[2, 2] +
+                   2.0*self.elastic_tensor[0, 1] + 2.0*self.elastic_tensor[1, 2] + 2.0*self.elastic_tensor[2, 0]) / 9.0
+        K_Reuss = 1.0 / (self.compliance_tensor[0, 0] + self.compliance_tensor[1, 1] + self.compliance_tensor[2, 2] +
+                         2.0*self.compliance_tensor[0, 1] + 2.0*self.compliance_tensor[1, 2] +
+                         2.0*self.compliance_tensor[2, 0])
+        G_Voigt = (self.elastic_tensor[0, 0] + self.elastic_tensor[1, 1] + self.elastic_tensor[2, 2] -
+                   self.elastic_tensor[0, 1] - self.elastic_tensor[1, 2] - self.elastic_tensor[2, 0] +
+                   3.0*self.elastic_tensor[3, 3] + 3.0*self.elastic_tensor[4, 4] + 3.0*self.elastic_tensor[5, 5]) / 15.0
+        G_Reuss = 15.0 / (4.0*self.compliance_tensor[0, 0] + 4.0*self.compliance_tensor[1, 1] +
+                          4.0*self.compliance_tensor[2, 2] - 4.0*self.compliance_tensor[0, 1] -
+                          4.0*self.compliance_tensor[1, 2] - 4.0*self.compliance_tensor[2, 0] +
+                          3.0*self.compliance_tensor[3, 3] + 3.0*self.compliance_tensor[4, 4] +
+                          3.0*self.compliance_tensor[5, 5])
+        K_VRH = (K_Voigt + K_Reuss) / 2.0
+        G_VRH = (G_Voigt + G_Reuss) / 2.0
+        universal_elastic_anisotropy = 5.0*G_Voigt/G_Reuss + K_Voigt/K_Reuss - 6.0
+        isotropic_poisson_ratio = (3.0*K_VRH - 2.0*G_VRH) / (6.0*K_VRH + 2.0*G_VRH)
+        dd['K_Voigt'] = K_Voigt
+        dd['G_Voigt'] = G_Voigt
+        dd['K_Reuss'] = K_Reuss
+        dd['G_Reuss'] = G_Reuss
+        dd['K_VRH'] = K_VRH
+        dd['G_VRH'] = G_VRH
+        dd['universal_elastic_anistropy'] = universal_elastic_anisotropy
+        dd['isotropic_poisson_ratio'] = isotropic_poisson_ratio
+        return dd
+
+    @classmethod
+    def from_dict(cls, dd):
+        return cls(elastic_tensor=dd['elastic_tensor'], compliance_tensor=dd['compliance_tensor'],
+                   structure=dd['structure'] if dd['structure'] is not None else None,
+                   additional_info=dd['additional_info'])

@@ -44,8 +44,8 @@ _GEOVARS = set([
     "rprim",
     "rprimd"
     "angdeg",
-    "xred"
-    "xcart"
+    "xred",
+    "xcart",
     "xangst",
     "znucl",
     "typat",
@@ -63,6 +63,34 @@ _TOLVARS = set([
     "tolimg", # ?
     "tolmxf", 
     "tolrde",  
+])
+
+# Variables defining tolerances for the SCF cycle that are mutally exclusive
+_TOLVARS_SCF = set([
+    'toldfe',
+    'tolvrs',
+    'tolwfr',
+    'tolrff',
+    "toldff",
+])
+
+# Variables determining if data files should be read in input
+_IRDVARS = set([
+    "irdbseig",
+    "irdbsreso",
+    "irdhaydock",
+    "irdddk",
+    "irdden",
+    "ird1den",
+    "irdqps",
+    "irdkss",
+    "irdscr",
+    "irdsuscep",
+    "irdvdw",
+    "irdwfk",
+    "irdwfkfine",
+    "irdwfq",
+    "ird1wf",
 ])
 
 
@@ -247,12 +275,19 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
         return cls(d["structure"], pseudos, decorators=dec.process_decoded(d["decorators"]),
                    comment=d["comment"], abi_args=d["abi_args"], tags=d["tags"])
 
+    def __setitem__(self, key, value):
+        if key in _TOLVARS_SCF and hasattr(self, '_vars') and any(t in self._vars and t != key for t in _TOLVARS_SCF):
+            logger.info("Replacing previously set tolerance variable: {}."
+                        .format(self.remove_vars(_TOLVARS_SCF, strict=False)))
+
+        return super(AbinitInput, self).__setitem__(key, value)
+
     def _check_varname(self, key):
         if not is_abivar(key):
             raise self.Error("%s is not a valid ABINIT variable.\n"
                              "If you are sure the name is correct, please contact the abipy developers\n" 
                              "or modify the JSON file abipy/abio/abinit_vars.json" % key)
-                                                                                                                      
+
         if key in _GEOVARS:
             raise self.Error("You cannot set the value of a variable associated to the structure. Use set_structure")
 
@@ -531,6 +566,38 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
 
         return self.set_vars(kptgw=kptgw, nkptgw=nkptgw, bdgw=np.reshape(bdgw, (nkptgw, 2)))
 
+    def set_autospinat(self, default=0.6):
+        """
+        Set the variable spinat for collineat calculation in the format (0, 0, m) with the value of m determined
+        with the following order of preference:
+
+        1. If the site of the structure has a magmom setting, that is used.
+        2. If the species on the site has a spin setting, that is used.
+        3. If the species itself has a particular setting in the config file, that
+           is used, e.g., Mn3+ may have a different magmom than Mn4+.
+        4. The element symbol itself is checked in the config file.
+        5. If there are no settings, the default value is used.
+
+        """
+        #TODO copy the values in abipy instead?
+        # We rely on the values from Materials Project for defaults of the magnetic moments
+        import pymatgen.io.vasp as vasp
+        from monty.serialization import loadfn
+        magmom_mp_conf = loadfn(os.path.join(os.path.dirname(vasp.__file__), "MPVaspInputSet.yaml"))['INCAR']['MAGMOM']
+
+        spinat = []
+        for site in self.structure:
+            if hasattr(site, 'magmom'):
+                spinat.append((0., 0., site.magmom))
+            elif hasattr(site.specie, 'spin'):
+                spinat.append((0., 0., site.specie.spin))
+            elif str(site.specie) in magmom_mp_conf:
+                spinat.append((0., 0., magmom_mp_conf.get(str(site.specie))))
+            else:
+                spinat.append((0., 0., magmom_mp_conf.get(site.specie.symbol, default)))
+
+        return self.set_vars(spinat=spinat)
+
     @property
     def pseudos(self):
         """List of :class:`Pseudo` objects."""
@@ -654,6 +721,30 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
         Remove all the tolerance variables present in self. 
         Return dictionary with the variables that have been removed."""
         return self.remove_vars(_TOLVARS, strict=False)
+
+    def pop_irdvars(self):
+        """
+        Remove all the ird variables present in self.
+        Return dictionary with the variables that have been removed."""
+        return self.remove_vars(_IRDVARS, strict=False)
+
+    @property
+    def scf_tolvar(self):
+        """
+        Returns the tolerance variable and value relative to the scf convergence.
+        If more than one is present raise an error
+        """
+
+        tolvar = None
+        value = None
+        for t in _TOLVARS_SCF:
+            if t in self and self[t]:
+                if tolvar:
+                    raise self.Error('More than one tolerance set.')
+                tolvar = t
+                value = self[t]
+
+        return tolvar, value
 
     def make_ph_inputs_qpoint(self, qpt, tolerance=None):
         """
@@ -1042,7 +1133,6 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
         Args:
             tags: A single tag or list/tuple/set of tags
         """
-        print(tags)
         if isinstance(tags, (list, tuple, set)):
             self.tags.difference_update(tags)
         else:
@@ -1459,7 +1549,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
 
     @classmethod
     def phbands_and_dos(cls, structure, ngqpt, nqsmall, ndivsm=20, q1shft=(0,0,0),
-                        qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", 
+                        qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", lo_to_splitting=False,
                         anaddb_args=None, anaddb_kwargs=None):
         """
         Build an anaddb input file for the computation of phonon bands and phonon DOS.
@@ -1477,6 +1567,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             dos_method: Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening
+            lo_to_splitting: if True calculation of the LO-TO splitting will be included
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
         """
@@ -1501,6 +1592,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
         new.set_vars(prtdos=prtdos, dosdeltae=dosdeltae, dossmear=dossmear)
 
         new.set_qpath(ndivsm, qptbounds=qptbounds)
+        qptbounds = new['qpath']
         q1shft = np.reshape(q1shft, (-1, 3))
 
         new.set_vars(
@@ -1512,6 +1604,25 @@ class AnaddbInput(AbstractInput, Has_Structure):
             chneut=chneut,
             dipdip=dipdip,
         )
+
+        if lo_to_splitting:
+            directions = []
+            for i, qpt in enumerate(qptbounds):
+                if np.array_equal(qpt, (0, 0, 0)):
+                    # anaddb expects cartesian coordinates for the qph2l list
+                    if i>0:
+                        directions.extend(structure.lattice.reciprocal_lattice_crystallographic.get_cartesian_coords(qptbounds[i-1]))
+                        directions.append(0)
+                    if i<len(qptbounds)-1:
+                        directions.extend(structure.lattice.reciprocal_lattice_crystallographic.get_cartesian_coords(qptbounds[i+1]))
+                        directions.append(0)
+
+            if directions:
+                directions = np.reshape(directions, (-1, 4))
+                new.set_vars(
+                    nph2l=len(directions),
+                    qph2l=directions
+                )
 
         return new
 
