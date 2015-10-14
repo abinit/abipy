@@ -18,9 +18,9 @@ import numpy as np
 from collections import OrderedDict, MutableMapping
 from monty.collections import dict2namedtuple
 from monty.string import is_string, list_strings
-from monty.json import MontyEncoder, MontyDecoder
+from monty.json import MontyEncoder, MontyDecoder, MSONable
 from pymatgen.core.units import Energy
-from pymatgen.serializers.json_coders import PMGSONable, pmg_serialize
+from pymatgen.serializers.json_coders import pmg_serialize
 from pymatgen.io.abinit.pseudos import PseudoTable, Pseudo
 from pymatgen.io.abinit.tasks import AbinitTask, ParalHintsParser
 from pymatgen.io.abinit.netcdf import NetcdfReader
@@ -191,7 +191,7 @@ class AbinitInputError(Exception):
 # TODO: API to understand if one can use time-reversal symmetry and/or spatial symmetries
 #       Very important especially when we have to select the value of kptopt
 
-class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has_Structure, object)):
+class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_Structure, object)):
     """
     This object stores the ABINIT variables for a single dataset.
     """

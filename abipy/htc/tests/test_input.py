@@ -72,10 +72,10 @@ class AbiInputTest(AbipyTest):
         new = inp.new_with_vars(kptopt=3)
         assert new.kptopt == 3 and inp.kptopt == 1
 
-        # Compatible with deepcopy, Pickle and PMGSONable?
+        # Compatible with deepcopy, Pickle and MSONable?
         inp.deepcopy()
         self.serialize_with_pickle(inp, test_eq=False)
-        self.assertPMGSONable(inp)
+        self.assertMSONable(inp)
 
         # A slightly more complicated example: input file with two datasets
         inp = AbiInput(pseudos="14si.pspnc", pseudo_dir=abidata.pseudo_dir, ndtset=2)
@@ -100,10 +100,10 @@ class AbiInputTest(AbipyTest):
         inp.set_vars(kptopt=[4,4,4], tsmear=0.008, dtset=2)
         print(inp)
 
-        # Compatible with deepcopy, Pickle and PMGSONable?
+        # Compatible with deepcopy, Pickle and MSONable?
         inp.deepcopy()
         self.serialize_with_pickle(inp, test_eq=False)
-        self.assertPMGSONable(inp)
+        self.assertMSONable(inp)
 
         # pseudo file must exist.
         with self.assertRaises(inp.Error):
@@ -157,10 +157,10 @@ class AbiInputTest(AbipyTest):
         # Set global variables.
         inp.set_vars(ecut=10)
 
-        # Compatible with deepcopy, Pickle and PMGSONable?
+        # Compatible with deepcopy, Pickle and MSONable?
         inp.deepcopy()
         self.serialize_with_pickle(inp, test_eq=False)
-        self.assertPMGSONable(inp)
+        self.assertMSONable(inp)
 
         # Setting an unknown variable should raise an error.
         with self.assertRaises(inp.Error): inp.set_vars(foobar=10)

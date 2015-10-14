@@ -79,9 +79,9 @@ class TestAbinitInput(AbipyTest):
         inp.set_structure(new_structure)
         assert inp.structure == new_structure
 
-        # Compatible with Pickle and PMGSONable?
+        # Compatible with Pickle and MSONable?
         self.serialize_with_pickle(inp, test_eq=False)
-        self.assertPMGSONable(inp)
+        self.assertMSONable(inp)
 
         # Test tags
         assert isinstance(inp.tags, set)
@@ -180,7 +180,7 @@ class TestAbinitInput(AbipyTest):
         #self.assertIsInstance(inp_dict['abi_kwargs'], collections.OrderedDict)
         assert "abi_args" in inp_dict and len(inp_dict["abi_args"]) == len(inp)
         assert all(k in inp for k, _ in inp_dict["abi_args"])
-        self.assertPMGSONable(inp)
+        self.assertMSONable(inp)
 
     def test_dfpt_methods(self):
         """Testing DFPT methods."""
@@ -295,9 +295,9 @@ class TestMultiDataset(AbipyTest):
             assert ref_input is not inp
             self.assertDictEqual(ref_input.as_dict(), inp.as_dict())
 
-        # Compatible with Pickle and PMGSONable?
+        # Compatible with Pickle and MSONable?
         #self.serialize_with_pickle(multi, test_eq=False)
-        #self.assertPMGSONable(multi)
+        #self.assertMSONable(multi)
 
         # Test tags
         new_multi.add_tags([GROUND_STATE, RELAX], [0,2])
