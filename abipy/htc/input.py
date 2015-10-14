@@ -20,8 +20,9 @@ from monty.dev import deprecated
 from monty.collections import dict2namedtuple
 from monty.string import is_string, list_strings
 from monty.os.path import which
+from monty.json import MSONable
 from pymatgen.core.units import Energy
-from pymatgen.serializers.json_coders import PMGSONable, pmg_serialize
+from pymatgen.serializers.json_coders import pmg_serialize
 from pymatgen.io.abinit.pseudos import PseudoTable, Pseudo
 from pymatgen.io.abinit.tasks import TaskManager, AbinitTask
 from pymatgen.io.abinit.netcdf import NetcdfReader
@@ -93,7 +94,7 @@ def _idt_varname(varname):
 
 
 @six.add_metaclass(abc.ABCMeta)
-class Input(six.with_metaclass(abc.ABCMeta, PMGSONable, object)):
+class Input(six.with_metaclass(abc.ABCMeta, MSONable, object)):
     """
     Base class for Input objects.
 
