@@ -364,8 +364,8 @@ class DdbFile(TextFile, Has_Structure):
                 directions = r.read_value("non_analytical_directions")
                 non_anal_phfreq = r.read_value("non_analytical_phonon_modes")
 
-                phbst.non_anal_directions = directions
-                phbst.non_anal_phfreqs = non_anal_phfreq
+                phbst.phbands.non_anal_directions = directions
+                phbst.phbands.non_anal_phfreqs = non_anal_phfreq
 
         return phbst, task.open_phdos()
 
@@ -594,12 +594,12 @@ class ElasticComplianceTensor(Has_Structure):
 
     @classmethod
     def from_ec_nc_file(cls, ec_nc_file, tensor_type='relaxed_ion'):
-        nc_reader = NetcdfReader(ec_nc_file)
-        if tensor_type == 'relaxed_ion':
-            ec_relaxed =  np.array(nc_reader.read_variable('elastic_constants_relaxed_ion'))
-            compl_relaxed =  np.array(nc_reader.read_variable('compliance_constants_relaxed_ion'))
-        else:
-            raise ValueError('tensor_type "{}" not allowed'.format(tensor_type))
+        with NetcdfReader(ec_nc_file) as nc_reader:
+            if tensor_type == 'relaxed_ion':
+                ec_relaxed =  np.array(nc_reader.read_variable('elastic_constants_relaxed_ion'))
+                compl_relaxed =  np.array(nc_reader.read_variable('compliance_constants_relaxed_ion'))
+            else:
+                raise ValueError('tensor_type "{}" not allowed'.format(tensor_type))
         #TODO: add the structure object!
         return cls(elastic_tensor=ec_relaxed, compliance_tensor=compl_relaxed, structure=None,
                    additional_info={'tensor_type': tensor_type})

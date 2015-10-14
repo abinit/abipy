@@ -1549,7 +1549,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
 
     @classmethod
     def phbands_and_dos(cls, structure, ngqpt, nqsmall, ndivsm=20, q1shft=(0,0,0),
-                        qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", lo_to_splitting=True,
+                        qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", lo_to_splitting=False,
                         anaddb_args=None, anaddb_kwargs=None):
         """
         Build an anaddb input file for the computation of phonon bands and phonon DOS.
@@ -1609,11 +1609,12 @@ class AnaddbInput(AbstractInput, Has_Structure):
             directions = []
             for i, qpt in enumerate(qptbounds):
                 if np.array_equal(qpt, (0, 0, 0)):
+                    # anaddb expects cartesian coordinates for the qph2l list
                     if i>0:
-                        directions.extend(qptbounds[i-1])
+                        directions.extend(structure.lattice.reciprocal_lattice_crystallographic.get_cartesian_coords(qptbounds[i-1]))
                         directions.append(0)
                     if i<len(qptbounds)-1:
-                        directions.extend(qptbounds[i+1])
+                        directions.extend(structure.lattice.reciprocal_lattice_crystallographic.get_cartesian_coords(qptbounds[i+1]))
                         directions.append(0)
 
             if directions:
