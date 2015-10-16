@@ -596,12 +596,18 @@ class ElasticComplianceTensor(Has_Structure):
     def from_ec_nc_file(cls, ec_nc_file, tensor_type='relaxed_ion'):
         with NetcdfReader(ec_nc_file) as nc_reader:
             if tensor_type == 'relaxed_ion':
-                ec_relaxed =  np.array(nc_reader.read_variable('elastic_constants_relaxed_ion'))
-                compl_relaxed =  np.array(nc_reader.read_variable('compliance_constants_relaxed_ion'))
+                ec =  np.array(nc_reader.read_variable('elastic_constants_relaxed_ion'))
+                compl =  np.array(nc_reader.read_variable('compliance_constants_relaxed_ion'))
+            elif tensor_type == 'clamped_ion':
+                ec =  np.array(nc_reader.read_variable('elastic_constants_clamped_ion'))
+                compl =  np.array(nc_reader.read_variable('compliance_constants_clamped_ion'))
+            elif tensor_type == 'relaxed_ion_stress_corrected':
+                ec =  np.array(nc_reader.read_variable('elastic_constants_relaxed_ion_stress_corrected'))
+                compl =  np.array(nc_reader.read_variable('compliance_constants_relaxed_ion_stress_corrected'))
             else:
                 raise ValueError('tensor_type "{}" not allowed'.format(tensor_type))
         #TODO: add the structure object!
-        return cls(elastic_tensor=ec_relaxed, compliance_tensor=compl_relaxed, structure=None,
+        return cls(elastic_tensor=ec, compliance_tensor=compl, structure=None,
                    additional_info={'tensor_type': tensor_type})
 
     def as_dict(self):

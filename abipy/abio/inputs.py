@@ -1512,12 +1512,16 @@ class AnaddbInput(AbstractInput, Has_Structure):
         return new
 
     @classmethod
-    def piezo_elastic(cls, structure, anaddb_args=None, anaddb_kwargs=None):
+    def piezo_elastic(cls, structure, anaddb_args=None, anaddb_kwargs=None, stress_correction=False):
         new = cls(structure, comment="ANADB input for piezoelectric and elastic tensor calculation",
                   anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
 
+        if stress_correction:
+            elaflag = 5
+        else:
+            elaflag = 3
         new.set_vars(
-            elaflag=3,
+            elaflag=elaflag,
             piezoflag=3,
             instrflag=1,
             chneut=1,
