@@ -905,6 +905,7 @@ class ScfFactory(InputFactory):
     factory_function = staticmethod(scf_input)
     input_required = False
 
+
 class ScfForPhononsFactory(InputFactory):
     factory_function = staticmethod(scf_for_phonons)
     input_required = False
@@ -912,3 +913,10 @@ class ScfForPhononsFactory(InputFactory):
 
 class PhononsFromGsFactory(InputFactory):
     factory_function = staticmethod(phonons_from_gsinput)
+
+
+#TODO: make PiezoElasticFromGsFactory instead and change the scf_piezo_elastic_inputs factory method to
+#      scf_piezo_elastic_from_gs_inputs ?
+class PiezoElasticFactory(InputFactory):
+    factory_function = staticmethod(scf_piezo_elastic_inputs)
+    input_required = False
