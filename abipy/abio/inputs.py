@@ -899,6 +899,35 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         return multi
 
+    def make_strain_perts_inputs(self, tolerance=None):
+        if tolerance is None:
+            tolerance = {"tolvrs": 1.0e-12}
+        if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
+            raise self.Error("Invalid tolerance: {}".format(str(tolerance)))
+
+        perts = self.abiget_irred_strainperts(kptopt=2)
+
+        # Build list of datasets (one input per perturbation)
+        multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
+
+        for pert, inp in zip(perts, multi):
+            rfdir = 3 * [0]
+            rfdir[pert.idir -1] = 1
+
+            inp.set_vars(rfphon=1,             # Activate the calculation of the atomic dispacement perturbations
+                         rfatpol=[pert.ipert, pert.ipert],
+                         rfstrs=3,
+                         rfdir=rfdir,
+                         nqpt=1,               # One wavevector is to be considered
+                         qpt=(0, 0, 0),        # q-wavevector.
+                         kptopt=2,             # Take into account time-reversal symmetry.
+                         )
+
+            inp.pop_tolerances()
+            inp.set_vars(tolerance)
+
+        return multi
+
     def pycheck(self):
         errors = []
         eapp = errors.append
@@ -1091,6 +1120,40 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                              )
 
         return self._abiget_irred_perts(ddeperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
+                                        workdir=workdir, manager=manager)
+
+    def abiget_irred_strainperts(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
+        """
+        This function, computes the list of irreducible perturbations for strain perturbations in DFPT.
+        It should be called with an input file that contains all the mandatory variables required by ABINIT.
+
+        Args:
+            ngkpt: Number of divisions for the k-mesh (default None i.e. use ngkpt from self)
+            shiftk: Shiftks (default None i.e. use shiftk from self)
+            kptopt: Option for k-point generation. If None, the value in self is used.
+            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
+            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
+
+        Returns:
+            List of dictionaries with the Abinit variables defining the irreducible perturbation
+            Example:
+
+                [{'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
+                 {'idir': 2, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]}]
+
+        """
+        strainperts_vars = dict(rfphon=1,                        # No phonon-type perturbation
+                                rfatpol=(1,len(self.structure)), # Perturbation of all atoms
+                                rfstrs=3,                        # Do the strain perturbations
+                                rfdir=(1,1,1),                   # All directions
+                                nqpt=1,                          # One wavevector is to be considered
+                                qpt=(0, 0, 0),                   # q-wavevector.
+                                kptopt=kptopt,          # Take into account time-reversal symmetry.
+                                iscf=7                           # Just so that it works with PAW ... #TODO: check this
+                             )
+
+        return self._abiget_irred_perts(strainperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk,
+                                        kptopt=kptopt,
                                         workdir=workdir, manager=manager)
 
     def abiget_autoparal_pconfs(self, max_ncpus, autoparal=1, workdir=None, manager=None):
