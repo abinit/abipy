@@ -1146,8 +1146,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                                 rfatpol=(1,len(self.structure)), # Perturbation of all atoms
                                 rfstrs=3,                        # Do the strain perturbations
                                 rfdir=(1,1,1),                   # All directions
-                                nqpt=1,                          # One wavevector is to be considered
-                                qpt=(0, 0, 0),                   # q-wavevector.
+                                # nqpt=1,                          # One wavevector is to be considered
+                                # qpt=(0, 0, 0),                   # q-wavevector.
                                 kptopt=kptopt,          # Take into account time-reversal symmetry.
                                 iscf=7                           # Just so that it works with PAW ... #TODO: check this
                              )
