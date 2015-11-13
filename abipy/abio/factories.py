@@ -671,8 +671,8 @@ def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_spl
         ddk_inp.pop_tolerances()
         ddk_inp.set_vars(ddk_tol)
 
-        ddk_inp.add_tags(DDK)
         multi = MultiDataset.from_inputs([ddk_inp])
+    multi.add_tags(DDK)
 
     # Response Function input(s)
     if rf_split:
@@ -698,9 +698,8 @@ def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_spl
         rf_inp.pop_tolerances()
         rf_inp.set_vars(rf_tol)
 
-        rf_inp.add_tags([DFPT, STRAIN])
-
         multi_rf = MultiDataset.from_inputs([rf_inp])
+    multi_rf.add_tags([DFPT, STRAIN])
 
     multi.extend(multi_rf)
 
