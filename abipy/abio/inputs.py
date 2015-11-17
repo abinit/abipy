@@ -913,15 +913,28 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         for pert, inp in zip(perts, multi):
             rfdir = 3 * [0]
             rfdir[pert.idir -1] = 1
-
-            inp.set_vars(rfphon=1,             # Activate the calculation of the atomic dispacement perturbations
-                         rfatpol=[pert.ipert, pert.ipert],
-                         rfstrs=3,
-                         rfdir=rfdir,
-                         nqpt=1,               # One wavevector is to be considered
-                         qpt=(0, 0, 0),        # q-wavevector.
-                         kptopt=2,             # Take into account time-reversal symmetry.
-                         )
+            if pert.ipert <= len(self.structure):
+                inp.set_vars(rfphon=1,             # Activate the calculation of the atomic dispacement perturbations
+                             rfatpol=[pert.ipert, pert.ipert],
+                             rfdir=rfdir,
+                             nqpt=1,               # One wavevector is to be considered
+                             qpt=(0, 0, 0),        # q-wavevector.
+                             kptopt=2,             # Take into account time-reversal symmetry.
+                             )
+            elif pert.ipert == inp.natom + 3:
+                inp.set_vars(rfstrs=1,             # Activate the calculation of the strain perturbations (uniaxial)
+                             rfdir=rfdir,
+                             nqpt=1,               # One wavevector is to be considered
+                             qpt=(0, 0, 0),        # q-wavevector.
+                             kptopt=2,             # Take into account time-reversal symmetry.
+                             )
+            elif pert.ipert == inp.natom + 4:
+                inp.set_vars(rfstrs=2,             # Activate the calculation of the strain perturbations (shear)
+                             rfdir=rfdir,
+                             nqpt=1,               # One wavevector is to be considered
+                             qpt=(0, 0, 0),        # q-wavevector.
+                             kptopt=2,             # Take into account time-reversal symmetry.
+                             )
 
             inp.pop_tolerances()
             inp.set_vars(tolerance)
