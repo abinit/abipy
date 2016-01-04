@@ -671,8 +671,9 @@ def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_spl
         ddk_inp.pop_tolerances()
         ddk_inp.set_vars(ddk_tol)
         # Adding buffer to help convergence ...
-        nbdbuf = max(int(0.1*ddk_inp['nband']), 4)
-        ddk_inp.set_vars(nband=ddk_inp['nband']+nbdbuf, nbdbuf=nbdbuf)
+        if 'nbdbuf' not in ddk_inp:
+            nbdbuf = max(int(0.1*ddk_inp['nband']), 4)
+            ddk_inp.set_vars(nband=ddk_inp['nband']+nbdbuf, nbdbuf=nbdbuf)
 
         multi = MultiDataset.from_inputs([ddk_inp])
     multi.add_tags(DDK)
@@ -702,8 +703,9 @@ def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_spl
         rf_inp.set_vars(rf_tol)
 
         # Adding buffer to help convergence ...
-        nbdbuf = max(int(0.1*rf_inp['nband']), 4)
-        rf_inp.set_vars(nband=rf_inp['nband']+nbdbuf, nbdbuf=nbdbuf)
+        if 'nbdbuf' not in rf_inp:
+            nbdbuf = max(int(0.1*rf_inp['nband']), 4)
+            rf_inp.set_vars(nband=rf_inp['nband']+nbdbuf, nbdbuf=nbdbuf)
 
         multi_rf = MultiDataset.from_inputs([rf_inp])
     multi_rf.add_tags([DFPT, STRAIN])
