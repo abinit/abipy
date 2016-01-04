@@ -938,6 +938,9 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
             inp.pop_tolerances()
             inp.set_vars(tolerance)
+            # Adding buffer to help convergence ...
+            nbdbuf = max(int(0.1*inp['nband']), 4)
+            inp.set_vars(nband=inp['nband']+nbdbuf, nbdbuf=nbdbuf)
 
         return multi
 

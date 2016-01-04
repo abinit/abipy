@@ -670,6 +670,9 @@ def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_spl
             raise ValueError("Invalid tolerance: {}".format(ddk_tol))
         ddk_inp.pop_tolerances()
         ddk_inp.set_vars(ddk_tol)
+        # Adding buffer to help convergence ...
+        nbdbuf = max(int(0.1*ddk_inp['nband']), 4)
+        ddk_inp.set_vars(nband=ddk_inp['nband']+nbdbuf, nbdbuf=nbdbuf)
 
         multi = MultiDataset.from_inputs([ddk_inp])
     multi.add_tags(DDK)
@@ -697,6 +700,10 @@ def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_spl
             raise ValueError("Invalid tolerance: {}".format(rf_tol))
         rf_inp.pop_tolerances()
         rf_inp.set_vars(rf_tol)
+
+        # Adding buffer to help convergence ...
+        nbdbuf = max(int(0.1*rf_inp['nband']), 4)
+        rf_inp.set_vars(nband=rf_inp['nband']+nbdbuf, nbdbuf=nbdbuf)
 
         multi_rf = MultiDataset.from_inputs([rf_inp])
     multi_rf.add_tags([DFPT, STRAIN])
@@ -738,6 +745,10 @@ def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None
     gs_inp = scf_input(structure=structure, pseudos=pseudos, kppa=kppa, ecut=ecut, pawecutdg=pawecutdg,
                        nband=scf_nband, accuracy=accuracy, spin_mode=spin_mode, smearing=smearing, charge=charge,
                        scf_algorithm=scf_algorithm, shift_mode="Gamma-centered")
+
+    # Adding buffer to help convergence ...
+    nbdbuf = max(int(0.1*gs_inp['nband']), 4)
+    gs_inp.set_vars(nband=gs_inp['nband']+nbdbuf, nbdbuf=nbdbuf)
 
     multi = MultiDataset.from_inputs([gs_inp])
 
