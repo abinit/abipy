@@ -919,21 +919,21 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                              rfdir=rfdir,
                              nqpt=1,               # One wavevector is to be considered
                              qpt=(0, 0, 0),        # q-wavevector.
-                             kptopt=2,             # Take into account time-reversal symmetry.
+                             kptopt=3,             # No symmetries
                              )
             elif pert.ipert == len(self.structure) + 3:
                 inp.set_vars(rfstrs=1,             # Activate the calculation of the strain perturbations (uniaxial)
                              rfdir=rfdir,
                              nqpt=1,               # One wavevector is to be considered
                              qpt=(0, 0, 0),        # q-wavevector.
-                             kptopt=2,             # Take into account time-reversal symmetry.
+                             kptopt=3,             # No symmetries
                              )
             elif pert.ipert == len(self.structure) + 4:
                 inp.set_vars(rfstrs=2,             # Activate the calculation of the strain perturbations (shear)
                              rfdir=rfdir,
                              nqpt=1,               # One wavevector is to be considered
                              qpt=(0, 0, 0),        # q-wavevector.
-                             kptopt=2,             # Take into account time-reversal symmetry.
+                             kptopt=3,             # No symmetries
                              )
 
             inp.pop_tolerances()

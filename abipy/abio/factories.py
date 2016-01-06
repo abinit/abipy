@@ -660,7 +660,7 @@ def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_spl
                     rfdir=(1,1,1),        # All directions
                     nqpt=1,               # One wavevector is to be considered
                     qpt=(0, 0, 0),        # q-wavevector.
-                    kptopt=2,             # Take into account time-reversal symmetry.
+                    kptopt=3,             # Take into account time-reversal symmetry.
                     iscf=-3,              # The d/dk perturbation must be treated in a non-self-consistent way
                 )
         if ddk_tol is None:
@@ -690,7 +690,7 @@ def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_spl
                         rfdir=(1,1,1),                     # All directions
                         nqpt=1,                            # One wavevector is to be considered
                         qpt=(0, 0, 0),                     # q-wavevector.
-                        kptopt=2,                          # Take into account time-reversal symmetry.
+                        kptopt=3,                          # Take into account time-reversal symmetry.
                         iscf=7,                            # The d/dk perturbation must be treated in a non-self-consistent way
                         )
 
