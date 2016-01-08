@@ -265,6 +265,30 @@ class Structure(pymatgen.Structure):
             app(str(InputVariable(varname, value)))
                                                     
         return("\n".join(lines))
+
+    def abi_primitive(self, symprec=1e-3, angle_tolerance=5):
+        #TODO: this should be moved to pymatgen in the get_refined_structure or so ... to be considered in February 2016
+        from pymatgen.io.ase import AseAtomsAdaptor
+        try:
+            import spglib
+            version = spglib.get_version()
+            if version != (1, 9, 0):
+                raise ValueError('abi_primitive requires spglib version 1.9.0 '
+                                 'while it is {:d}.{:d}.{:d}'.format(version[0], version[1], version[2]))
+        except ImportError:
+            raise ValueError('abi_primitive requires spglib')
+        try:
+            from ase.atoms import Atoms
+        except ImportError:
+            raise ValueError('Could not import Atoms from ase')
+        s = self.get_sorted_structure()
+        ase_adaptor = AseAtomsAdaptor()
+        ase_atoms = ase_adaptor.get_atoms(structure=s)
+        standardized = spglib.standardize_cell(bulk=ase_atoms, to_primitive=1, no_idealize=0,
+                                               symprec=symprec, angle_tolerance=angle_tolerance)
+        standardized_ase_atoms = Atoms(scaled_positions=standardized[1], numbers=standardized[2], cell=standardized[0])
+        standardized_structure = ase_adaptor.get_structure(standardized_ase_atoms)
+        return standardized_structure
     
     def abi_sanitize(self, symprec=1e-3, angle_tolerance=5, primitive=True, primitive_standard=False):
         """
