@@ -247,7 +247,7 @@ def ebands_input(structure, pseudos,
 def ion_ioncell_relax_input(structure, pseudos, 
                             kppa=None, nband=None,
                             ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
-                            smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
+                            smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None, force_gamma_centered=False):
     """
     Returns a :class:`AbinitInput` for a structural relaxation. The first dataset optmizes the 
     atomic positions at fixed unit cell. The second datasets optimizes both ions and unit cell parameters.
@@ -270,7 +270,10 @@ def ion_ioncell_relax_input(structure, pseudos,
     multi.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos))
 
     kppa = _DEFAULTS.get("kppa") if kppa is None else kppa
-    ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
+    if force_gamma_centered:
+        ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=(0.0, 0.0, 0.0))
+    else:
+        ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
     electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
                                charge=charge, nband=nband, fband=None)
 
