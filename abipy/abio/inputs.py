@@ -1094,7 +1094,10 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                                         workdir=workdir, manager=manager)
 
     def abiget_autoparal_pconfs(self, max_ncpus, autoparal=1, workdir=None, manager=None):
-        """Get all the possible configurations up to max_ncpus"""
+        """
+        Get all the possible configurations up to max_ncpus
+        Return list of parallel configurations.
+        """
         inp = self.deepcopy()
         inp.set_vars(autoparal=autoparal, max_ncpus=max_ncpus)
 

@@ -5,7 +5,7 @@ import sys
 import abipy.abilab as abilab
 import abipy.data as abidata
 
-from abipy.data.benchmarks import bench_main
+from abipy.data.benchmarks import bench_main, BenchmarkFlow
 
 
 def make_input(paw=False):
@@ -46,14 +46,14 @@ def make_input(paw=False):
 def build_flow(options):
     template = make_input()
 
-    # Get list of possible parallel configurations from abinit autoparal.
+    # Get the list of possible parallel configurations from abinit autoparal.
     max_ncpus = 10
     pconfs = template.abiget_autoparal_pconfs(max_ncpus, autoparal=1)
     print(pconfs)
 
-    flow = abilab.Flow(workdir="bench_paralkgb")
-
+    flow = BenchmarkFlow(workdir="bench_paralkgb")
     work = abilab.Work()
+
     for conf in pconfs:
         if conf.efficiency < 0.7: continue
         inp = template.deepcopy()

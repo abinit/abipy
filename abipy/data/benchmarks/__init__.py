@@ -1,5 +1,7 @@
 from __future__ import division, print_function
 
+from pymatgen.io.abinit.flows import Flow
+
 
 def bench_main(main):
     """
@@ -28,14 +30,16 @@ def bench_main(main):
 
         parser.add_argument("-w", '--workdir', default="", type=str, help="Working directory of the flow.")
 
-        parser.add_argument("-m", '--manager', default="", type=str,
-                            help="YAML file with the parameters of the task manager")
+        parser.add_argument("-m", '--manager', default=None, 
+                            help="YAML file with the parameters of the task manager. " 
+                                 "Default None i.e. the manager is read from standard locations: "
+                                 "working directory first then ~/.abinit/abipy/manager.yml.")
 
         parser.add_argument("--mpi-range", type=str, default="(1,3,1)", help="Range of MPI processors to test."
                             "'--mpi-range='(1,4,2)' performs benchmarks for mpi_procs in [1, 3]")
 
         parser.add_argument('--paw', default=False, action="store_true", help="Run PAW calculation if present")
-        parser.add_argument('--paral_kgb', default=1, type=int, help="paral_kgb input variable")
+        #parser.add_argument('--paral_kgb', default=1, type=int, help="paral_kgb input variable")
 
         parser.add_argument("--scheduler", "-s", default=False, action="store_true", help="Run with the scheduler")
 
@@ -55,7 +59,11 @@ def bench_main(main):
             t = ast.literal_eval(options.mpi_range)
             assert len(t) == 3
             options.mpi_range = range(t[0], t[1], t[2])
-            #print(lst(options.mpi_range))
+            #print(options.mpi_range)
+
+        # Istantiate the manager.
+        from abipy.abilab import TaskManager
+        options.manager = TaskManager.as_manager(options.manager)
 
         flow = main(options)
 
@@ -65,3 +73,22 @@ def bench_main(main):
         return 0
 
     return wrapper
+
+
+class BenchmarkFlow(Flow):
+
+    def exclude_from_benchmark(self, node):
+        """Exclude a task or the tasks in a Work from the benchmark analysis."""
+        if not hasattr(self, "_exclude_nodeids"): self._exclude_nodeids = set()
+
+        if node.is_work:
+            for task in node:
+                self._exclude_nodeids.add(task.node_id)
+        else:
+            assert node.is_task
+            self._exclude_nodeids.add(node.node_id)
+
+    def collect_data(self):
+        for task in self.iflat_task():
+            if task.node_id in self._exclude_nodeids: continue
+            print("analysing task:", task)
