@@ -27,7 +27,7 @@ def main(update=True):
     """
     try:
         spec_in = get_spec('GW')
-    except:
+    except None:
         return 1
 
     try:
@@ -48,7 +48,7 @@ def main(update=True):
         spec_in.write_to_file('spec.in')
         spec_in.loop_structures('i')
         return 0
-    except:
+    except None:
         return 2
 
 if __name__ == "__main__":

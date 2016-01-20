@@ -28,8 +28,8 @@ from pymatgen.io.abinitio.netcdf import NetcdfReader
 from pymatgen.io.vaspio.vasp_output import Vasprun
 from pymatgen.core.units import Ha_to_eV
 from pymatgen.io.abinitio.helpers import is_converged, read_grid_from_file, s_name, expand, store_conv_results
-from pymatgen.io.vaspio.GWvaspinputsets import SingleVaspGWWork
-from pymatgen.io.vaspio.GWvaspinputsets import GWscDFTPrepVaspInputSet, GWDFTDiagVaspInputSet, \
+from pymatgen.io.vasp.GWvaspinputsets import SingleVaspGWWork
+from pymatgen.io.vasp.GWvaspinputsets import GWscDFTPrepVaspInputSet, GWDFTDiagVaspInputSet, \
     GWG0W0VaspInputSet
 from abipy.gw.GWworks import VaspGWFWWorkFlow
 from abipy.gw.GWworks import SingleAbinitGWWork
@@ -407,9 +407,9 @@ class AbinitInterface(AbstractCodeInterface):
             option = is_converged(self.hartree_parameters, structure, return_values=True)
         else:
             option = None
-        print(option)
         work_flow = SingleAbinitGWWork(structure, spec_data, option)
         flow = work_flow.create()
+        print('flow')
         if flow is not None:
             flow.build_and_pickle_dump()
             work_flow.create_job_file()
