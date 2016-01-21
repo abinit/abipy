@@ -51,7 +51,7 @@ class Structure(pymatgen.Structure):
         raise TypeError("Don't know how to convert %s into a structure" % type(obj))
 
     @classmethod
-    def from_file(cls, filepath, primitive=True, sort=False):
+    def from_file(cls, filepath, primitive=False, sort=False):
         """
         Reads a structure from a file. For example, anything ending in
         a "cif" is assumed to be a Crystallographic Information Format file.

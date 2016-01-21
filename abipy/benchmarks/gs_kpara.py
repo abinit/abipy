@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 from __future__ import division, print_function, unicode_literals, absolute_import
 
+import sys
 import abipy.abilab as abilab
 import abipy.data as abidata
 
-from abipy.data.benchmarks import bench_main
+from abipy.benchmarks import bench_main, BenchmarkFlow
 
 
-def make_input(paral_kgb=1, paw=False):
-    """Build a template input file for GS calculations with paral_kgb"""
+def make_input(paw=False):
+    """Build a template input file for GS calculations with k-point parallelism """
     pseudos = abidata.pseudos("14si.pspnc") if not paw else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
-    inp = abilab.AbiInput(pseudos=pseudos)
+    structure = abidata.structure_from_ucell("Si")
 
-    inp.set_structure(abidata.structure_from_ucell("Si"))
+    inp = abilab.AbinitInput(structure, pseudos)
     inp.set_kmesh(ngkpt=[2,2,2], shiftk=[0,0,0])
 
     # Global variables
@@ -22,12 +23,9 @@ def make_input(paral_kgb=1, paw=False):
         pawecutdg=ecut*4,
         nsppol=1,
         nband=20,
-        paral_kgb=paral_kgb,
-        npkpt=1,
-        npband=1,
-        npfft=1,
-        #
-        istwfk="*1",
+        paral_kgb=0,
+        #istwfk="*1",
+        #fftalg=312,
         timopt=-1,
         chksymbreak=0,
         prtwf=0,
@@ -40,20 +38,19 @@ def make_input(paral_kgb=1, paw=False):
 
 
 def build_flow(options):
-    inp = make_input(paral_kgb=options.paral_kgb, paw=options.paw)
+    inp = make_input(paw=options.paw)
+    nkpt = len(inp.abiget_ibz().points)
 
-    flow = abilab.AbinitFlow(workdir="bench_gs")
-    work = abilab.Workflow()
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
-    manager.set_autoparal(0)
+    flow = BenchmarkFlow(workdir="bench_gs_kpara")
+    work = abilab.Work()
 
-    for mpi_procs in options.mpi_range:
+    mpi_range = range(1, nkpt*inp.nsppol + 1) if options.mpi_range is None else options.mpi_range
+    print("Using mpi_range:", mpi_range)
+
+    for mpi_procs in mpi_range:
+        manager = options.manager.deepcopy()
+        manager.policy.autoparal = 0
         manager.set_mpi_procs(mpi_procs)
-        for qad in manager.qads:
-            qad.min_cores = 1
-            qad.max_cores = mpi_procs
         work.register(inp, manager=manager)
 
     flow.register_work(work)
@@ -68,5 +65,4 @@ def main(options):
 
 
 if __name__ == "__main__":
-    import sys
     sys.exit(main())

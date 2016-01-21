@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 from __future__ import division, print_function, unicode_literals, absolute_import
 
+import sys
 import abipy.abilab as abilab
 import abipy.data as abidata  
 
-from abipy.data.benchmarks import bench_main
+from abipy.benchmarks import bench_main, BenchmarkFlow
 
 
-def make_inputs(paral_kgb=1, paw=False):
+def make_inputs(paw=False):
     # Crystalline silicon
     # Calculation of the GW correction to the direct band gap in Gamma
     # Dataset 1: ground state calculation 
@@ -17,20 +18,19 @@ def make_inputs(paral_kgb=1, paw=False):
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
     pseudos = abidata.pseudos("14si.pspnc") if not paw else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
 
+    multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=4)
+
     ecut = 6
-    global_vars = dict(
+    multi.set_vars(
         ecut=ecut,
         pawecutdg=ecut*4,
         gwpara=2,
         timopt=-1,
         istwfk="*1",
+        paral_kgb=0,
     )
 
-    inp = abilab.AbiInput(pseudos=pseudos, ndtset=4)
-    inp.set_structure(structure)
-    inp.set_vars(**global_vars)
-
-    gs, nscf, scr, sigma = inp.split_datasets()
+    gs, nscf, scr, sigma = multi.split_datasets()
 
     # This grid is the most economical, but does not contain the Gamma point.
     gs_kmesh = dict(
@@ -96,23 +96,26 @@ def scr_benchmark(options):
     """
     Build an `AbinitWorkflow` used for benchmarking ABINIT.
     """
-    gs_inp, nscf_inp, scr_inp, sigma_inp = make_inputs(paw=options.paw, paral_kgb=options.paral_kgb)
-    flow = abilab.AbinitFlow(workdir="bench_scr")
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
+    gs_inp, nscf_inp, scr_inp, sigma_inp = make_inputs(paw=options.paw)
+    flow = BenchmarkFlow(workdir="bench_scr")
 
-    bands = abilab.BandStructureWorkflow(gs_inp, nscf_inp)
+    bands = abilab.BandStructureWork(gs_inp, nscf_inp)
     flow.register_work(bands)
+    flow.exclude_from_benchmark(bands)
 
-    scr_work = abilab.Workflow()
-    manager.set_autoparal(0)
+    scr_work = abilab.Work()
+    print("Using mpi_range:", options.mpi_range)
+
+    # Get the list of possible parallel configurations from abinit autoparal.
+    #max_ncpus = 10
+    #pconfs = scr_inp.abiget_autoparal_pconfs(max_ncpus, autoparal=1)
+    #print(pconfs)
 
     for mpi_procs in options.mpi_range:
+        manager = options.manager.deepcopy()
+        manager.policy.autoparal = 0
         manager.set_mpi_procs(mpi_procs)
-        for qad in manager.qads:
-            qad.min_cores = 1
-            qad.max_cores = mpi_procs
+        #manager.set_autoparal(0)
         scr_work.register(scr_inp, manager=manager, deps={bands.nscf_task: "WFK"})
     flow.register_work(scr_work)
 
@@ -127,5 +130,4 @@ def main(options):
 
 
 if __name__ == "__main__":
-    import sys
     sys.exit(main())
