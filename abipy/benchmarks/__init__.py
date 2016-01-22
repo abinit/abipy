@@ -41,6 +41,7 @@ def bench_main(main):
         parser.add_argument("--omp-range", default=None, help="Range of OMP threads to be tested."
                             "'--omp-range='(1,4,2)' performs benchmarks for omp_threads in [1, 3]")
 
+	parser.add_argument("--max-ncpus", default=None, type=int, help="Maximum number of CPUs to be tested.")
         parser.add_argument('--paw', default=False, action="store_true", help="Run PAW calculation if present")
         #parser.add_argument('--paral_kgb', default=1, type=int, help="paral_kgb input variable")
 

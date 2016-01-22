@@ -1,0 +1,38 @@
+# See http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JURECA/Configuration/Configuration_node.html
+# and
+# http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JURECA/UserInfo/QuickIntroduction.html?nn=1803700#JURECABatchPart
+devel: &devel
+   num_nodes: 8
+   sockets_per_node: 2
+   cores_per_socket: 12
+   mem_per_node: 128Gb
+
+batch: &batch
+   num_nodes: 128
+   sockets_per_node: 2
+   cores_per_socket: 12
+   mem_per_node: 128Gb
+
+job: &job
+    mpi_runner: mpirun
+    shell_env:
+        PATH: $HOME/local/bin:$PATH
+    modules:
+        - python/2.7
+    # pre_run is a string in verbatim mode (note |)
+    pre_run: |
+        ulimit unlimited
+
+# queues 
+qadapters:
+  - priority: 1
+    max_num_launches: 20
+    queue:
+       qname: devel
+       qtype: slurm
+    limits:
+       timelimit: 2:0:0
+       min_cores: 1
+       max_cores: 192
+    hardware: *devel
+    job: *job

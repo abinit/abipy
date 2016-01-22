@@ -47,7 +47,12 @@ def build_flow(options):
     template = make_input()
 
     # Get the list of possible parallel configurations from abinit autoparal.
-    max_ncpus = 10
+    max_ncpus, min_eff = options.max_ncpus, 0.7
+    if max_ncpus is None:
+	raise RuntimeError("This benchmark requires --max-ncpus")
+    else:
+	print("Getting all autoparal confs up to max_ncpus: ",max_ncpus," with efficiency >= ",min_eff)
+
     pconfs = template.abiget_autoparal_pconfs(max_ncpus, autoparal=1)
     print(pconfs)
 
@@ -55,7 +60,7 @@ def build_flow(options):
     work = abilab.Work()
 
     for conf in pconfs:
-        if conf.efficiency < 0.7: continue
+        if conf.efficiency < min_eff: continue
         inp = template.deepcopy()
         inp.set_vars(conf.vars)
 

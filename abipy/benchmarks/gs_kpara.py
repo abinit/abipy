@@ -44,8 +44,12 @@ def build_flow(options):
     flow = BenchmarkFlow(workdir="bench_gs_kpara")
     work = abilab.Work()
 
-    mpi_range = range(1, nkpt*inp.nsppol + 1) if options.mpi_range is None else options.mpi_range
-    print("Using mpi_range:", mpi_range)
+
+    if options.mpi_range is None:
+    	mpi_range = range(1, nkpt*inp.nsppol + 1) 
+    	print("Using mpi_range:", mpi_range, " = nkpt * nsppol")
+    else options.mpi_range:
+    	print("Using mpi_range from cmd line:", mpi_range)
 
     for mpi_procs in mpi_range:
         manager = options.manager.deepcopy()

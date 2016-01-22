@@ -168,7 +168,7 @@ def make_input():
         tsmear=0.002,
         nbdbuf=20,
 
-        # Activation/desactvation des I/O
+        # IO
         optforces=2,
         optstress=1,
         prtwf=0,

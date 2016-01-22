@@ -105,6 +105,8 @@ def scr_benchmark(options):
 
     scr_work = abilab.Work()
     print("Using mpi_range:", options.mpi_range)
+    if options.mpi_range is None:
+	raise RuntimeError("This benchmark requires --mpi-range")
 
     # Get the list of possible parallel configurations from abinit autoparal.
     #max_ncpus = 10
