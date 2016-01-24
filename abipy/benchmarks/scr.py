@@ -20,7 +20,7 @@ def make_inputs(paw=False):
 
     multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=4)
 
-    ecut = 8
+    ecut = 24
     multi.set_vars(
         ecut=ecut,
         pawecutdg=ecut*4,
@@ -32,7 +32,7 @@ def make_inputs(paw=False):
     gs, nscf, scr, sigma = multi.split_datasets()
 
     # This grid is the most economical, but does not contain the Gamma point.
-    ngkpt=[2, 2, 2],
+    ngkpt=[5, 5, 5]
     gs_kmesh = dict(
         ngkpt=ngkpt,
         shiftk=[0.5, 0.5, 0.5,
@@ -62,8 +62,8 @@ def make_inputs(paw=False):
     nscf.set_kmesh(**gw_kmesh)
     nscf.set_vars(iscf=-2,
                   tolwfr=1e-8,
-                  nband=300,
-                  nbdbuf=50,
+                  nband=600,
+                  nbdbuf=200,
                   )
 
     # Dataset3: Calculation of the screening.
@@ -75,8 +75,8 @@ def make_inputs(paw=False):
         ecutwfn=ecut,   
         symchi=1,
         awtr=2,
-        inclvkb=0,
-        ecuteps=4.0,    
+        inclvkb=1,
+        ecuteps=6.0,    
     )
 
     # Dataset4: Calculation of the Self-Energy matrix elements (GW corrections)
@@ -111,13 +111,13 @@ def scr_benchmark(options):
 	raise RuntimeError("This benchmark requires --mpi-range")
 
     omp_threads = 1
-    for nband in [100, 200, 300]:
-	scr_work = abilab.Work()
-	for mpi_procs in options.mpi_range:
+    for nband in [200, 400, 600]:
+        scr_work = abilab.Work()
+        for mpi_procs in options.mpi_range:
             if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
-	    manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
-	    scr_work.register(scr_inp, manager=manager, deps={bands.nscf_task: "WFK"})
-	flow.register_work(scr_work)
+            manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
+            scr_work.register_scr_task(scr_inp, manager=manager, deps={bands.nscf_task: "WFK"})
+        flow.register_work(scr_work)
 
     return flow.allocate()
 

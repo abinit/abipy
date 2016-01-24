@@ -636,7 +636,7 @@ Specify the files to open. Possible choices:
                     if flow.all_ok: break
                     time.sleep(options.delay)
             except KeyboardInterrupt:
-                pass
+                print("Received KeyboardInterrupt from user\n")
         else:
             show_func(verbose=options.verbose, nids=selected_nids(flow, options))
             if options.verbose and flow.manager.has_queue:
@@ -763,7 +763,7 @@ Specify the files to open. Possible choices:
             try:
                 os.system("tail -f %s" % " ".join(paths))
             except KeyboardInterrupt:
-                pass
+                print("Received KeyboardInterrupt from user\n")
 
     elif options.command == "qstat":
         #for task in flow.select_tasks(nids=options.nids, wslice=options.wslice):

@@ -28,11 +28,8 @@ def make_inputs(paw=False):
 
     # This grid is the most economical, but does not contain the Gamma point.
     multi.set_kmesh(
-        ngkpt=[2, 2, 2],
-        shiftk=[0.5, 0.5, 0.5,
-                0.5, 0.0, 0.0,
-                0.0, 0.5, 0.0,
-                0.0, 0.0, 0.5]
+        ngkpt=[8, 8, 8],
+        shiftk=[0.0, 0.0, 0.0],
     )
 
     gs, bse = multi.split_datasets()

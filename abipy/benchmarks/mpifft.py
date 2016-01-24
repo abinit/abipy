@@ -26,11 +26,10 @@ def make_input(paw=False):
         nsppol=1,
         nband=20,
         paral_kgb=1,
-        #npkpt=1,
-        #npband=1,
+        npkpt=1,
+        npband=1,
         npfft=1,
         fftalg=112,
-        #
         #istwfk="*1",
         timopt=-1,
         chksymbreak=0,
@@ -44,22 +43,25 @@ def make_input(paw=False):
 
 
 def build_flow(options):
-    template = make_input()
-
-    flow = abilab.Flow(workdir="bench_mpifft")
-
-    mpi_list = [2]
     fftalg_list = [312, 402, 401]
-    ecut_list = list(range(400, 410, 10)) 
+    ecut_list = list(range(200, 610, 100)) 
+    ecut_list = [400,]
+
+    print("Using mpi_range:", options.mpi_range)
+    if options.mpi_range is None:
+	raise RuntimeError("This benchmark requires --mpi-range")
+
+    template = make_input()
+    flow = abilab.Flow(workdir="bench_mpifft")
 
     omp_threads = 1
     for fftalg in fftalg_list: 
         work = abilab.Work()
-        for npfft in mpi_list:
-	    if not options.accept_mpi_omp(npfft, omp_threads): continue
-	    manager = options.manager.new_with_fixed_mpi_omp(npfft, omp_threads)
+        for npfft in options.mpi_range:
+            if not options.accept_mpi_omp(npfft, omp_threads): continue
+            manager = options.manager.new_with_fixed_mpi_omp(npfft, omp_threads)
             for inp in abilab.input_gen(template, fftalg=fftalg, npfft=npfft, ecut=ecut_list):
-                work.register(inp, manager=manager)
+                work.register_scf_task(inp, manager=manager)
         flow.register_work(work)
 
     return flow.allocate()

@@ -29,6 +29,9 @@ def bench_main(main):
         parser.add_argument('--loglevel', default="ERROR", type=str,
                             help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
+        parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
+                                  help='verbose, can be supplied multiple times to increase verbosity')
+
         parser.add_argument("-w", '--workdir', default="", type=str, help="Working directory of the flow.")
 
         parser.add_argument("-m", '--manager', default=None, 
@@ -42,9 +45,8 @@ def bench_main(main):
         parser.add_argument("--omp-range", default=None, help="Range of OMP threads to be tested."
                             "'--omp-range='(1,4,2)' performs benchmarks for omp_threads in [1, 3]")
 
-	parser.add_argument("--max-ncpus", default=None, type=int, help="Maximum number of CPUs to be tested.")
+        parser.add_argument("--max-ncpus", default=None, type=int, help="Maximum number of CPUs to be tested.")
         parser.add_argument('--paw', default=False, action="store_true", help="Run PAW calculation if present")
-        #parser.add_argument('--paral_kgb', default=1, type=int, help="paral_kgb input variable")
 
         parser.add_argument("--scheduler", "-s", default=False, action="store_true", help="Run with the scheduler")
 
