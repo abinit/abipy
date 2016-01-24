@@ -49,11 +49,10 @@ def build_flow(options):
     if omp_range is None:
         raise RuntimeError("--omp-range must be specified for this benchmark")
 
+    mpi_procs = 1
     for omp_threads in omp_range:
-        manager = options.manager.deepcopy()
-        manager.policy.autoparal = 0
-        manager.set_mpi_procs(1)
-        manager.set_omp_threads(omp_threads)
+	#if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
+	manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
         work.register(inp, manager=manager)
 
     flow.register_work(work)

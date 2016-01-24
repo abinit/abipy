@@ -1,5 +1,6 @@
 from __future__ import division, print_function
 
+from monty.termcolor import cprint
 from pymatgen.io.abinit.flows import Flow
 
 
@@ -71,6 +72,20 @@ def bench_main(main):
             assert len(t) == 3
             options.omp_range = range(t[0], t[1], t[2])
             #print(options.omp_range)
+
+	# Monkey patch options to add useful method 
+	#   accept_mpi_omp(mpi_proc, omp_threads)
+	def monkey_patch(opts):
+	    def accept_mpi_omp(opts, mpi_procs, omp_threads):
+		"""Return True if we can run a benchmark with mpi_procs and omp_threads"""
+		if opts.max_ncpus is not None and mpi_procs > opts.max_ncpus:
+		    cprint("Skipping mpi_procs %d because of max_ncpus" % mpi_procs, color="magenta")
+		    return False
+	    	return True
+	    import types
+            opts.accept_mpi_omp = types.MethodType(accept_mpi_omp, opts)
+
+	monkey_patch(options)
 
         # Istantiate the manager.
         from abipy.abilab import TaskManager

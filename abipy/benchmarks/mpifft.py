@@ -52,13 +52,12 @@ def build_flow(options):
     fftalg_list = [312, 402, 401]
     ecut_list = list(range(400, 410, 10)) 
 
+    omp_threads = 1
     for fftalg in fftalg_list: 
         work = abilab.Work()
         for npfft in mpi_list:
-            manager = options.manager.deepcopy()
-            manager.policy.autoparal = 0
-            #manager.set_autoparal(0)
-            manager.set_mpi_procs(npfft)
+	    if not options.accept_mpi_omp(npfft, omp_threads): continue
+	    manager = options.manager.new_with_fixed_mpi_omp(npfft, omp_threads)
             for inp in abilab.input_gen(template, fftalg=fftalg, npfft=npfft, ecut=ecut_list):
                 work.register(inp, manager=manager)
         flow.register_work(work)

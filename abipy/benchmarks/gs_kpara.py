@@ -39,23 +39,23 @@ def make_input(paw=False):
 
 def build_flow(options):
     inp = make_input(paw=options.paw)
-    nkpt = len(inp.abiget_ibz().points)
 
     flow = BenchmarkFlow(workdir="bench_gs_kpara")
     work = abilab.Work()
 
-
-    if options.mpi_range is None:
-    	mpi_range = range(1, nkpt*inp.nsppol + 1) 
+    mpi_range = options.mpi_range
+    if mpi_range is None:
+        nkpt = len(inp.abiget_ibz().points)
+    	mpi_range = range(1, nkpt*inp["nsppol"] + 1) 
     	print("Using mpi_range:", mpi_range, " = nkpt * nsppol")
-    else options.mpi_range:
+    else:
     	print("Using mpi_range from cmd line:", mpi_range)
 
+    omp_threads = 1
     for mpi_procs in mpi_range:
-        manager = options.manager.deepcopy()
-        manager.policy.autoparal = 0
-        manager.set_mpi_procs(mpi_procs)
-        work.register(inp, manager=manager)
+	if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
+	manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
+        work.register_scf_task(inp, manager=manager)
 
     flow.register_work(work)
     return flow.allocate()

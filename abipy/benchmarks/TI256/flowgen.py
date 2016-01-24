@@ -7,6 +7,7 @@ import numpy as np
 import abipy.abilab as abilab
 import abipy.data as abidata
 
+from monty.termcolor import cprint
 from abipy.benchmarks import bench_main, BenchmarkFlow
 
 
@@ -331,7 +332,7 @@ def make_input():
 
 def build_flow(options):
     flow = BenchmarkFlow(workdir="bench_ti256")
-    work = abilab.Work()
+
 
     template = make_input()
 
@@ -344,18 +345,21 @@ def build_flow(options):
      dict(npkpt=2, npband=32, npfft=32),  # 2048
     ]
 
-    for d in pconfs:
-        mpi_procs = reduce(operator.mul, d.values(), 1)
-        d["np_slk"] = 32
-        manager = options.manager.deepcopy()
-        manager.policy.autoparal = 0
-        manager.set_mpi_procs(mpi_procs)
-        print("MPI_PROCS:", mpi_procs, "done with:", d)
-        inp = template.new_with_vars(d)
-        #inp.abivalidate()
-        work.register(inp, manager=manager)
+    omp_threads = 1
+    for wfoptalg in [None, 1]:
+    	work = abilab.Work()
+	for d in pconfs:
+	    mpi_procs = reduce(operator.mul, d.values(), 1)
+	    if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
+	    d["np_slk"] = 32
+	    manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
+	    print("wfoptalg:", wfoptalg, "done with MPI_PROCS:", mpi_procs, "and:", d)
+	    inp = template.new_with_vars(d, wfoptalg=wfoptalg)
+	    #inp.abivalidate()
+	    work.register_scf_task(inp, manager=manager)
 
-    flow.register_work(work)
+    	flow.register_work(work)
+
     return flow.allocate()
 
 

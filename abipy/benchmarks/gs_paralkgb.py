@@ -59,17 +59,15 @@ def build_flow(options):
     flow = BenchmarkFlow(workdir="bench_paralkgb")
     work = abilab.Work()
 
+    omp_threads = 1
     for conf in pconfs:
+	if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
         if conf.efficiency < min_eff: continue
         inp = template.deepcopy()
         inp.set_vars(conf.vars)
 
-        manager = options.manager.deepcopy()
-        manager.policy.autoparal = 0
-        #manager.set_autoparal(0)
-        manager.set_mpi_procs(conf.mpi_ncpus)
-
-        work.register(inp, manager=manager)
+	manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
+        work.register_scf_task(inp, manager=manager)
 
     flow.register_work(work)
     return flow.allocate()

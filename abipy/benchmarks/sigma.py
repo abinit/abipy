@@ -20,11 +20,11 @@ def make_inputs(paw=False):
 
     multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=4)
 
-    ecut = 6
+    ecut = 8
     multi.set_vars(
         ecut=ecut,
         pawecutdg=ecut*4,
-        gwpara=2,
+
         timopt=-1,
         istwfk="*1",
         paral_kgb=0,
@@ -61,15 +61,16 @@ def make_inputs(paw=False):
     # Here we select the second dataset directly with the syntax inp[2]
     nscf.set_kmesh(**gw_kmesh)
     nscf.set_vars(iscf=-2,
-                  tolwfr=1e-12,
-                  nband=35,
-                  nbdbuf=5,
+                  tolwfr=1e-8,
+                  nband=300,
+                  nbdbuf=50,
                   )
 
     # Dataset3: Calculation of the screening.
     scr.set_kmesh(**gw_kmesh)
     scr.set_vars(
         optdriver=3,   
+        gwpara=2,
         nband=25,
         ecutwfn=ecut,   
         symchi=1,
@@ -81,6 +82,7 @@ def make_inputs(paw=False):
     sigma.set_kmesh(**gw_kmesh)
     sigma.set_vars(
         optdriver=4,
+        gwpara=2,
         nband=35,
         ecutwfn=ecut,
         ecuteps=4.0,
@@ -111,20 +113,16 @@ def sigma_benchmark(options):
     print("Using mpi_range:", options.mpi_range)
     if options.mpi_range is None:
         raise RuntimeError("This benchmark requires --mpi-range")
-    # Get the list of possible parallel configurations from abinit autoparal.
-    #max_ncpus = 10
-    #pconfs = scr_inp.abiget_autoparal_pconfs(max_ncpus, autoparal=1)
-    #print(pconfs)
 
-    sigma_work = abilab.Work()
-    for mpi_procs in options.mpi_range:
-        manager = options.manager.deepcopy()
-        manager.policy.autoparal = 0
-        manager.set_mpi_procs(mpi_procs)
-        #manager.set_autoparal(0)
-        sigma_work.register_sigma_task(sigma_inp, manager=manager, 
-                 deps={bands.nscf_task: "WFK", scr_work[0]: "SCR"})
-    flow.register_work(sigma_work)
+    omp_threads = 1
+    for nband in [100, 200, 300]:
+	sigma_work = abilab.Work()
+	for mpi_procs in options.mpi_range:
+	    if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
+	    manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
+	    sigma_work.register_sigma_task(sigma_inp, manager=manager, 
+                                           deps={bands.nscf_task: "WFK", scr_work[0]: "SCR"})
+	flow.register_work(sigma_work)
 
     return flow.allocate()
 

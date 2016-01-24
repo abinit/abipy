@@ -30,11 +30,6 @@ def build_flow(options):
     ecuteps = 2
     ecut = 12
 
-    #extra_abivars = dict(
-    #    ecut=12, 
-    #    istwfk="*1",
-    #)
-
     flow = abilab.Flow(workdir=workdir, manager=options.manager)
 
     # BSE calculation with model dielectric function.
