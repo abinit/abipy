@@ -14,18 +14,17 @@ def make_input(paw=False):
     structure = abidata.structure_from_ucell("Si")
 
     inp = abilab.AbinitInput(structure, pseudos)
-    inp.set_kmesh(ngkpt=[2,2,2], shiftk=[0,0,0])
+    inp.set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
 
     # Global variables
-    ecut = 10
+    ecut = 40
     inp.set_vars(
         ecut=ecut,
         pawecutdg=ecut*4,
         nsppol=1,
-        nband=20,
+        nband=40,
         paral_kgb=0,
         #istwfk="*1",
-        #fftalg=312,
         timopt=-1,
         chksymbreak=0,
         prtwf=0,
@@ -53,8 +52,8 @@ def build_flow(options):
 
     omp_threads = 1
     for mpi_procs in mpi_range:
-	if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
-	manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
+        if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
+        manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
         work.register_scf_task(inp, manager=manager)
 
     flow.register_work(work)

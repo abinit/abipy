@@ -77,30 +77,23 @@ def make_inputs(paw=False):
         awtr=2,
         inclvkb=1,
         ecuteps=6.0,    
+        spmeth=1,        # Use Hilbert transform : Im chi0 --> chi0.
+        nomegasf=250,    # Number of points for Imchi0 
+        nfreqre=50,
+        nfreqim=10,
+        freqremax="25 eV",
+        freqremin="0 eV",
     )
 
-    # Dataset4: Calculation of the Self-Energy matrix elements (GW corrections)
-    sigma.set_kmesh(**gw_kmesh)
-    sigma.set_vars(
-        optdriver=4,
-        gwpara=2,
-        nband=35,
-        ecutwfn=ecut,
-        ecuteps=4.0,
-        ecutsigx=6.0,
-        symsigma=1,
-        gw_qprange=1,
-    )
-
-    return gs, nscf, scr, sigma
+    return gs, nscf, scr
 
 
 def scr_benchmark(options):
     """
     Build an `AbinitWorkflow` used for benchmarking ABINIT.
     """
-    gs_inp, nscf_inp, scr_inp, sigma_inp = make_inputs(paw=options.paw)
-    flow = BenchmarkFlow(workdir="bench_scr")
+    gs_inp, nscf_inp, scr_inp = make_inputs(paw=options.paw)
+    flow = BenchmarkFlow(workdir="bench_scr_hilbert")
 
     bands = abilab.BandStructureWork(gs_inp, nscf_inp)
     flow.register_work(bands)
@@ -111,7 +104,8 @@ def scr_benchmark(options):
 	raise RuntimeError("This benchmark requires --mpi-range")
 
     omp_threads = 1
-    for nband in [200, 400, 600]:
+    #for nband in [200, 400, 600]:
+    for nband in [600]:
         scr_work = abilab.Work()
         for mpi_procs in options.mpi_range:
             if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
