@@ -3,6 +3,8 @@ This module gathers the most important classes and helper functions used for scr
 """
 from __future__ import print_function, division, unicode_literals
 
+import os
+
 from monty.os.path import which
 from pymatgen.core.units import *
 from pymatgen.io.abinit.eos import EOS
@@ -59,6 +61,14 @@ def _straceback():
 
 def abifile_subclass_from_filename(filename):
     """Returns the appropriate class associated to the given filename."""
+    # Abinit text files.
+    if filename.endswith(".abi"): return AbinitInputFile
+    if filename.endswith(".abo"): return AbinitOutputFile
+    if filename.endswith(".log"): return AbinitLogFile
+
+    # CIF files.
+    if filename.endswith(".cif"): return Structure
+
     ext2ncfile = {
         "SIGRES.nc": SigresFile,
         "WFK-etsf.nc": WfkFile,
@@ -71,14 +81,6 @@ def abifile_subclass_from_filename(filename):
         "HIST.nc": HistFile,
         "PSPS.nc": PspsFile,
     }
-
-    # Abinit text files.
-    if filename.endswith(".abi"): return AbinitInputFile
-    if filename.endswith(".abo"): return AbinitOutputFile
-    if filename.endswith(".log"): return AbinitLogFile
-
-    # CIF files.
-    if filename.endswith(".cif"): return Structure
 
     ext = filename.split("_")[-1]
     try:
@@ -99,6 +101,9 @@ def abiopen(filepath):
     Args:
         filepath: string with the filename. 
     """
+    if os.path.basename(filepath) == "__AbinitFlow__.pickle":
+        return Flow.pickle_load(filepath) 
+
     cls = abifile_subclass_from_filename(filepath)
     return cls.from_file(filepath)
 
@@ -145,7 +150,6 @@ def abicheck():
     Raises:
         RuntimeError if not all the dependencies are fulfilled.
     """
-    import os
     # Executables must be in $PATH. Unfortunately we cannot test the version of the binaries.
     # A possible approach would be to execute "exe -v" but supporting argv in Fortran is not trivial.
     # Dynamic linking is tested by calling `ldd exe`

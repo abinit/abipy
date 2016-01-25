@@ -35,8 +35,11 @@ def bench_main(main):
                                  "Default None i.e. the manager is read from standard locations: "
                                  "working directory first then ~/.abinit/abipy/manager.yml.")
 
-        parser.add_argument("--mpi-range", type=str, default="(1,3,1)", help="Range of MPI processors to test."
+        parser.add_argument("--mpi-range", default=None, help="Range of MPI processors to be tested."
                             "'--mpi-range='(1,4,2)' performs benchmarks for mpi_procs in [1, 3]")
+
+        parser.add_argument("--omp-range", default=None, help="Range of OMP threads to be tested."
+                            "'--omp-range='(1,4,2)' performs benchmarks for omp_threads in [1, 3]")
 
         parser.add_argument('--paw', default=False, action="store_true", help="Run PAW calculation if present")
         #parser.add_argument('--paral_kgb', default=1, type=int, help="paral_kgb input variable")
@@ -60,6 +63,13 @@ def bench_main(main):
             assert len(t) == 3
             options.mpi_range = range(t[0], t[1], t[2])
             #print(options.mpi_range)
+
+        if options.omp_range is not None:
+            import ast
+            t = ast.literal_eval(options.omp_range)
+            assert len(t) == 3
+            options.omp_range = range(t[0], t[1], t[2])
+            #print(options.omp_range)
 
         # Istantiate the manager.
         from abipy.abilab import TaskManager
@@ -88,7 +98,33 @@ class BenchmarkFlow(Flow):
             assert node.is_task
             self._exclude_nodeids.add(node.node_id)
 
-    def collect_data(self):
-        for task in self.iflat_task():
-            if task.node_id in self._exclude_nodeids: continue
-            print("analysing task:", task)
+    @property
+    def exclude_nodeids(self):
+        if not hasattr(self, "_exclude_nodeids"): self._exclude_nodeids = set()
+        return self._exclude_nodeids 
+
+    def get_parser(self):
+        """
+        Parse the timing sections in the output files.
+        Return AbinitTimerParser parser object for further analysis.
+        """
+        nids = []
+        for task in self.iflat_tasks():
+            if task.node_id in self.exclude_nodeids: continue
+            if task.status != task.S_OK: continue
+            #print("analysing task:", task)
+            nids.append(task.node_id)
+
+        parser = self.parse_timing(nids=nids)
+
+        if parser is None: 
+            print("parse_timing returned None!")
+        else:
+            if len(parser) != len(nids): 
+                print("Not all timing sections have been parsed!")
+
+        return parser
+
+    #def make_tarball(self):
+    #    self.make_tarfile(self, name=None, max_filesize=None, exclude_exts=None, exclude_dirs=None, verbose=0, **kwargs):
+

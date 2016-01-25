@@ -5,7 +5,7 @@ import sys
 import abipy.abilab as abilab
 import abipy.data as abidata
 
-from abipy.data.benchmarks import bench_main, BenchmarkFlow
+from abipy.benchmarks import bench_main, BenchmarkFlow
 
 
 def make_input(paw=False):
@@ -45,6 +45,7 @@ def build_flow(options):
     work = abilab.Work()
 
     mpi_range = range(1, nkpt*inp.nsppol + 1) if options.mpi_range is None else options.mpi_range
+    print("Using mpi_range:", mpi_range)
 
     for mpi_procs in mpi_range:
         manager = options.manager.deepcopy()

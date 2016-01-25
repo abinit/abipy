@@ -5,7 +5,7 @@ import sys
 import abipy.abilab as abilab
 import abipy.data as abidata
 
-from abipy.data.benchmarks import bench_main
+from abipy.benchmarks import bench_main
 
 
 def make_input(paw=False):

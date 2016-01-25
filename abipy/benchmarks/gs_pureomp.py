@@ -9,9 +9,7 @@ from abipy.benchmarks import bench_main, BenchmarkFlow
 
 
 def make_input(paw=False):
-    """
-    Build and return an input file for GS calculations with paral_kgb=1
-    """
+    """Build a template input file for GS calculations with k-point parallelism """
     pseudos = abidata.pseudos("14si.pspnc") if not paw else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
     structure = abidata.structure_from_ucell("Si")
 
@@ -19,51 +17,43 @@ def make_input(paw=False):
     inp.set_kmesh(ngkpt=[1,1,1], shiftk=[0,0,0])
 
     # Global variables
-    ecut = 20
+    ecut = 10
     inp.set_vars(
         ecut=ecut,
         pawecutdg=ecut*4,
         nsppol=1,
         nband=20,
-        paral_kgb=1,
-        #npkpt=1,
-        #npband=1,
-        #npfft=1,
-        #fftalg=112,
-        #
+        paral_kgb=0,
         #istwfk="*1",
+        #fftalg=312,
         timopt=-1,
         chksymbreak=0,
         prtwf=0,
         prtden=0,
-        tolvrs=1e-8,
-        nstep=10,
+        tolvrs=1e-10,
+        nstep=50,
     )
 
     return inp
 
 
 def build_flow(options):
-    template = make_input()
+    inp = make_input(paw=options.paw)
+    nkpt = len(inp.abiget_ibz().points)
 
-    # Get the list of possible parallel configurations from abinit autoparal.
-    max_ncpus = 10
-    pconfs = template.abiget_autoparal_pconfs(max_ncpus, autoparal=1)
-    print(pconfs)
-
-    flow = BenchmarkFlow(workdir="bench_paralkgb")
+    flow = BenchmarkFlow(workdir="bench_gs_pureomp")
     work = abilab.Work()
 
-    for conf in pconfs:
-        if conf.efficiency < 0.7: continue
-        inp = template.deepcopy()
-        inp.set_vars(conf.vars)
+    omp_range = options.omp_range
+    print("Using omp-range:", omp_range)
+    if omp_range is None:
+        raise RuntimeError("--omp-range must be specified for this benchmark")
 
+    for omp_threads in omp_range:
         manager = options.manager.deepcopy()
         manager.policy.autoparal = 0
-        #manager.set_autoparal(0)
-        manager.set_mpi_procs(conf.mpi_ncpus)
-
+        manager.set_mpi_procs(1)
+        manager.set_omp_threads(omp_threads)
         work.register(inp, manager=manager)
 
     flow.register_work(work)

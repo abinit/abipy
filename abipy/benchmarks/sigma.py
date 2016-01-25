@@ -92,39 +92,45 @@ def make_inputs(paw=False):
     return gs, nscf, scr, sigma
 
 
-def scr_benchmark(options):
+def sigma_benchmark(options):
     """
     Build an `AbinitWorkflow` used for benchmarking ABINIT.
     """
     gs_inp, nscf_inp, scr_inp, sigma_inp = make_inputs(paw=options.paw)
-    flow = BenchmarkFlow(workdir="bench_scr")
+    flow = BenchmarkFlow(workdir="bench_sigma")
 
     bands = abilab.BandStructureWork(gs_inp, nscf_inp)
     flow.register_work(bands)
     flow.exclude_from_benchmark(bands)
 
     scr_work = abilab.Work()
-    print("Using mpi_range:", options.mpi_range)
+    scr_work.register_scr_task(scr_inp, deps={bands.nscf_task: "WFK"})
+    flow.register_work(scr_work)
+    flow.exclude_from_benchmark(scr_work)
 
+    print("Using mpi_range:", options.mpi_range)
+    if options.mpi_range is None:
+        raise RuntimeError("This benchmark requires --mpi-range")
     # Get the list of possible parallel configurations from abinit autoparal.
     #max_ncpus = 10
     #pconfs = scr_inp.abiget_autoparal_pconfs(max_ncpus, autoparal=1)
     #print(pconfs)
 
+    sigma_work = abilab.Work()
     for mpi_procs in options.mpi_range:
         manager = options.manager.deepcopy()
         manager.policy.autoparal = 0
         manager.set_mpi_procs(mpi_procs)
         #manager.set_autoparal(0)
-        scr_work.register(scr_inp, manager=manager, deps={bands.nscf_task: "WFK"})
-    flow.register_work(scr_work)
+        sigma_work.register_sigma_task(sigma_inp, manager=manager, deps={bands.nscf_task: "WFK", scr_work[0]: "SCR"})
+    flow.register_work(sigma_work)
 
     return flow.allocate()
 
 
 @bench_main
 def main(options):
-    flow = scr_benchmark(options)
+    flow = sigma_benchmark(options)
     flow.build_and_pickle_dump()
     return flow
 
