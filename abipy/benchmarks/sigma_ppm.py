@@ -20,46 +20,28 @@ def make_inputs(paw=False):
 
     multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=4)
 
-    ecut = 8
+    ecut = 14
     multi.set_vars(
         ecut=ecut,
         pawecutdg=ecut*4,
-
         timopt=-1,
         istwfk="*1",
         paral_kgb=0,
     )
 
+
+    multi.set_kmesh(
+        ngkpt=[6,6,6],
+        shiftk=[0.0, 0.0, 0.0],
+    )
+     
     gs, nscf, scr, sigma = multi.split_datasets()
 
-    # This grid is the most economical, but does not contain the Gamma point.
-    gs_kmesh = dict(
-        ngkpt=[2, 2, 2],
-        shiftk=[0.5, 0.5, 0.5,
-                0.5, 0.0, 0.0,
-                0.0, 0.5, 0.0,
-                0.0, 0.0, 0.5]
-    )
-
-    # This grid contains the Gamma point, which is the point at which
-    # we will compute the (direct) band gap. 
-    gw_kmesh = dict(
-        ngkpt=[2, 2, 2],
-        shiftk=[0.0, 0.0, 0.0,  
-                0.0, 0.5, 0.5,  
-                0.5, 0.0, 0.5,  
-                0.5, 0.5, 0.0]
-    )
-
-    # Dataset 1 (GS run)
-    gs.set_kmesh(**gs_kmesh)
     gs.set_vars(tolvrs=1e-6,
-                nband=4,
-                )
+                nband=4,)
 
     # Dataset 2 (NSCF run)
     # Here we select the second dataset directly with the syntax inp[2]
-    nscf.set_kmesh(**gw_kmesh)
     nscf.set_vars(iscf=-2,
                   tolwfr=1e-8,
                   nband=300,
@@ -67,7 +49,6 @@ def make_inputs(paw=False):
                   )
 
     # Dataset3: Calculation of the screening.
-    scr.set_kmesh(**gw_kmesh)
     scr.set_vars(
         optdriver=3,   
         gwpara=2,
@@ -79,14 +60,13 @@ def make_inputs(paw=False):
     )
 
     # Dataset4: Calculation of the Self-Energy matrix elements (GW corrections)
-    sigma.set_kmesh(**gw_kmesh)
     sigma.set_vars(
         optdriver=4,
         gwpara=2,
         nband=35,
         ecutwfn=ecut,
         ecuteps=4.0,
-        ecutsigx=6.0,
+        ecutsigx=ecut,
         symsigma=1,
         gw_qprange=1,
     )
@@ -99,7 +79,7 @@ def sigma_benchmark(options):
     Build an `AbinitWorkflow` used for benchmarking ABINIT.
     """
     gs_inp, nscf_inp, scr_inp, sigma_inp = make_inputs(paw=options.paw)
-    flow = BenchmarkFlow(workdir="bench_sigma")
+    flow = BenchmarkFlow(workdir="bench_sigma_pp")
 
     bands = abilab.BandStructureWork(gs_inp, nscf_inp)
     flow.register_work(bands)
@@ -116,13 +96,14 @@ def sigma_benchmark(options):
 
     omp_threads = 1
     for nband in [100, 200, 300]:
-	sigma_work = abilab.Work()
-	for mpi_procs in options.mpi_range:
-	    if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
-	    manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
-	    sigma_work.register_sigma_task(sigma_inp, manager=manager, 
+        sigma_work = abilab.Work()
+        for mpi_procs in options.mpi_range:
+            if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
+            inp = sigma_inp.new_with_vars(nband=nband)
+            manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
+            sigma_work.register_sigma_task(inp, manager=manager, 
                                            deps={bands.nscf_task: "WFK", scr_work[0]: "SCR"})
-	flow.register_work(sigma_work)
+        flow.register_work(sigma_work)
 
     return flow.allocate()
 
