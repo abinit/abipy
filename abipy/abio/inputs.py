@@ -701,6 +701,18 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         return inps
 
+    def new_with_vars(self, *args, **kwargs):
+        """
+        Return a new input with the given variables.
+
+        Example:
+            new = input.new_with_vars(ecut=20)
+        """
+        # Avoid modifications in self.
+        new = self.deepcopy()
+        new.set_vars(*args, **kwargs)
+        return new
+
     def new_with_decorators(self, decorators):
         """
         This function receives a list of :class:`AbinitInputDecorator` objects or just a single object,
