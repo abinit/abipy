@@ -1105,7 +1105,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         return self._abiget_irred_perts(ddeperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
                                         workdir=workdir, manager=manager)
 
-    def abiget_autoparal_pconfs(self, max_ncpus, autoparal=1, workdir=None, manager=None):
+    def abiget_autoparal_pconfs(self, max_ncpus, autoparal=1, workdir=None, manager=None, verbose=0):
         """
         Get all the possible configurations up to max_ncpus
         Return list of parallel configurations.
@@ -1116,6 +1116,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         # Run the job in a shell subprocess with mpi_procs = 1
         # Return code is always != 0 
         task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
+        if verbose: print("Running in:", task.workdir)
         task.start_and_wait(autoparal=False)
 
         ##############################################################
