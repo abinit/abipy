@@ -78,7 +78,7 @@ def build_flow(options):
         optdriver=7,
         #getwfk   20      # Read GS wavefunctions from DS20_WFK
         #getddb   20      # Read DDB files from DS20_DDB
-        #ddb_ngqpt 4 4 4  # q-mesh used to produce the DDB file (must be consisten with DDB data)
+        ddb_ngqpt=[4, 4, 4],  # q-mesh used to produce the DDB file (must be consisten with DDB data)
         #eph_intmeth=2,       # Tetra
         #eph_fsewin="0.8 eV",   # Energy window around Ef
         #eph_mustar="0.12",     # mustar parameter
