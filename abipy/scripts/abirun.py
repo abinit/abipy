@@ -983,7 +983,7 @@ Specify the files to open. Possible choices:
 
     elif options.command == "timer":
         print("Warning this option is still under development")
-        timer = flow.get_abitimer()
+        timer = flow.parse_timing()
         if timer is None:
             cprint("Cannot parse time data!", color="magenta", end="", flush=True)
             return 1
