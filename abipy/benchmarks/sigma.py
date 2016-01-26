@@ -122,7 +122,8 @@ def sigma_benchmark(options):
         manager.policy.autoparal = 0
         manager.set_mpi_procs(mpi_procs)
         #manager.set_autoparal(0)
-        sigma_work.register_sigma_task(sigma_inp, manager=manager, deps={bands.nscf_task: "WFK", scr_work[0]: "SCR"})
+        sigma_work.register_sigma_task(sigma_inp, manager=manager, 
+                 deps={bands.nscf_task: "WFK", scr_work[0]: "SCR"})
     flow.register_work(sigma_work)
 
     return flow.allocate()
