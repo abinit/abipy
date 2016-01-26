@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Analyze the parallel efficiency of the SIGMA code (one shot G0W0 with contour deformation and gwpara==2)"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys
@@ -119,6 +120,11 @@ def sigma_benchmark(options):
 
 @bench_main
 def main(options):
+    if options.info:
+        # print doc string and exit.
+        print(__doc__)
+        return 
+
     flow = sigma_benchmark(options)
     flow.build_and_pickle_dump()
     return flow

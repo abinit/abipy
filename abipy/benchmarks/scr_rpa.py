@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Analyze the parallel efficiency of the RPA code (sum over states, 2 frequencies and gwpara==2)"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys
@@ -111,6 +112,11 @@ def scr_benchmark(options):
 
 @bench_main
 def main(options):
+    if options.info:
+        # print doc string and exit.
+        print(__doc__)
+        return 
+
     flow = scr_benchmark(options)
     flow.build_and_pickle_dump()
     return flow

@@ -48,6 +48,8 @@ def bench_main(main):
         parser.add_argument("--max-ncpus", default=None, type=int, help="Maximum number of CPUs to be tested.")
         parser.add_argument('--paw', default=False, action="store_true", help="Run PAW calculation if present")
 
+        parser.add_argument("-i", '--info', default=False, action="store_true", help="Show benchmark info and exit")
+
         parser.add_argument("--scheduler", "-s", default=False, action="store_true", help="Run with the scheduler")
 
         options = parser.parse_args()
@@ -75,25 +77,28 @@ def bench_main(main):
             options.omp_range = range(t[0], t[1], t[2])
             #print(options.omp_range)
 
-	# Monkey patch options to add useful method 
-	#   accept_mpi_omp(mpi_proc, omp_threads)
-	def monkey_patch(opts):
-	    def accept_mpi_omp(opts, mpi_procs, omp_threads):
-		"""Return True if we can run a benchmark with mpi_procs and omp_threads"""
-		if opts.max_ncpus is not None and mpi_procs > opts.max_ncpus:
-		    cprint("Skipping mpi_procs %d because of max_ncpus" % mpi_procs, color="magenta")
-		    return False
-	    	return True
-	    import types
-            opts.accept_mpi_omp = types.MethodType(accept_mpi_omp, opts)
+        # Monkey patch options to add useful method 
+        #   accept_mpi_omp(mpi_proc, omp_threads)
+        def monkey_patch(opts):
+            def accept_mpi_omp(opts, mpi_procs, omp_threads):
+                """Return True if we can run a benchmark with mpi_procs and omp_threads"""
+                if opts.max_ncpus is not None and mpi_procs > opts.max_ncpus:
+                    cprint("Skipping mpi_procs %d because of max_ncpus" % mpi_procs, color="magenta")
+                    return False
+                return True 
 
-	monkey_patch(options)
+            import types
+            opts.accept_mpi_omp = types.MethodType(accept_mpi_omp, opts)
+            
+        monkey_patch(options)
 
         # Istantiate the manager.
         from abipy.abilab import TaskManager
         options.manager = TaskManager.as_manager(options.manager)
 
         flow = main(options)
+        if flow is None: 
+            return 0
 
         if options.scheduler:
             flow.make_scheduler().start()

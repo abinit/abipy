@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Analyze the parallel efficiency of the BSE code (Haydock method with model dielectric function)"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys
@@ -92,6 +93,11 @@ def bse_benchmark(options):
 
 @bench_main
 def main(options):
+    if options.info:
+        # print doc string and exit.
+        print(__doc__)
+        return 
+
     flow = bse_benchmark(options)
     flow.build_and_pickle_dump()
     return flow

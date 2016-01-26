@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Benchmark for k-point parallelism."""
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys
@@ -62,6 +63,11 @@ def build_flow(options):
 
 @bench_main
 def main(options):
+    if options.info:
+        # print doc string and exit.
+        print(__doc__)
+        return 
+
     flow = build_flow(options)
     flow.build_and_pickle_dump()
     return flow

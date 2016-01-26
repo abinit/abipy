@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Analyze the parallel efficiency of the RPA code (hilbert transform, 60 frequencies and gwpara==2)"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys

@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+"""Analyze the parallel efficiency of the MPI-FFT algorithsm in in the GS part.
+Use paral_kgb=1 and fftalg_list = [312, 402, 401]"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys
@@ -69,6 +71,11 @@ def build_flow(options):
 
 @bench_main
 def main(options):
+    if options.info:
+        # print doc string and exit.
+        print(__doc__)
+        return 
+
     flow = build_flow(options)
     flow.build_and_pickle_dump()
     return flow

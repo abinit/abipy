@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Compare GS calculations with NC pseudos performed with useylm in [0, 1]."""
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys
@@ -12,23 +13,27 @@ def make_input():
     """Build a template input file for GS calculations with k-point parallelism """
     pseudos = abidata.pseudos("14si.pspnc")
     structure = abidata.structure_from_ucell("Si")
+    structure.make_supercell([3,3,3])
+    print(structure)
 
     inp = abilab.AbinitInput(structure, pseudos)
-    inp.set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
+    inp.set_kmesh(ngkpt=[2,2,2], shiftk=[0,0,0])
 
     # Global variables
-    ecut = 40
+    ecut = 10
     inp.set_vars(
         ecut=ecut,
         nsppol=1,
-        nband=40,
+        nband=130,
         paral_kgb=0,
         #istwfk="*1",
         timopt=-1,
         chksymbreak=0,
+        chkprim=0,
+        maxnsym=2400,
         prtwf=0,
         prtden=0,
-        tolvrs=1e-10,
+        tolvrs=1e-8,
         nstep=50,
     )
 
@@ -62,6 +67,11 @@ def build_flow(options):
 
 @bench_main
 def main(options):
+    if options.info:
+        # print doc string and exit.
+        print(__doc__)
+        return 
+
     flow = build_flow(options)
     flow.build_and_pickle_dump()
     return flow

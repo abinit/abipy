@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+"""
+Gold with 107 atoms. Gamma-point.
+GS calculations with paralkgb==1 and wfoptalg in [default, 1]
+"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys
@@ -213,6 +217,11 @@ def build_flow(options):
 
 @bench_main
 def main(options):
+    if options.info:
+        # print doc string and exit.
+        print(__doc__)
+        return 
+
     flow = build_flow(options)
     flow.build_and_pickle_dump()
     return flow

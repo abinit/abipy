@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+"""
+UO2 with 96 atoms. PAW and nsppol=2
+GS calculations with paralkgb==1. Compare wfoptalg in [default, 1].
+"""
+
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys
@@ -13,8 +18,8 @@ from abipy.benchmarks import bench_main, BenchmarkFlow
 
 def make_input():
     """
-    GS calculations with paralkgb==1
     UO2 with 96 atoms.
+    GS calculations with paralkgb==1
     """
     pseudos = abidata.pseudos("u.paw", "o.paw")
 
@@ -219,6 +224,11 @@ def build_flow(options):
 
 @bench_main
 def main(options):
+    if options.info:
+        # print doc string and exit.
+        print(__doc__)
+        return 
+
     flow = build_flow(options)
     flow.build_and_pickle_dump()
     return flow
