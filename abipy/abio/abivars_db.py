@@ -242,7 +242,7 @@ def get_abinit_variables():
             #print("Reading database from YAML file and generating pickle version. It may take a while...")
             from abipy import data as abidata
             yaml_file = abidata.var_file('abinit_vars.yml')
-            with open(yaml_file, "r") as fh:
+            with open(yaml_file, "rt") as fh:
                 var_list = yaml.load(fh)
 
             # Build ordered dict with variables in alphabetical order.
@@ -263,14 +263,14 @@ class VariableDatabase(OrderedDict):
     def characteristics(self):
         """List of characteristics."""
         from abipy import data as abidata
-        with open(abidata.var_file('characteristics.yml'),'r') as f:
+        with open(abidata.var_file('characteristics.yml'), 'rt') as f:
             return yaml.load(f)
     
     @lazy_property
     def sections(self):
         """List of sections"""
         from abipy import data as abidata
-        with open(abidata.var_file('sections.yml'),'r') as f:
+        with open(abidata.var_file('sections.yml'), 'rt') as f:
             return yaml.load(f)
 
     @lazy_property

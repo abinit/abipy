@@ -130,6 +130,30 @@ class Structure(pymatgen.Structure):
             return new
 
     @classmethod
+    def from_ase_atoms(cls, atoms):
+        """
+        Returns structure from ASE Atoms.
+
+        Args:
+            atoms: ASE Atoms object
+
+        Returns:
+            Equivalent Structure
+        """
+        import pymatgen.io.ase as aio
+        return aio.AseAtomsAdaptor.get_structure(atoms, cls=cls)
+
+    def to_ase_atoms(self):
+        """
+        Returns ASE Atoms object from structure.
+
+        Returns:
+            ASE Atoms object
+        """
+        import pymatgen.io.ase as aio
+        return aio.AseAtomsAdaptor.get_atoms(self)
+
+    @classmethod
     def boxed_molecule(cls, pseudos, cart_coords, acell=3*(10,)):
         """
         Creates a molecule in a periodic box of lengths acell [Bohr]
@@ -401,7 +425,6 @@ class Structure(pymatgen.Structure):
 
         return coords
 
-
     def show_bz(self, **kwargs):
         """
         Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
@@ -478,7 +501,6 @@ class Structure(pymatgen.Structure):
         """Write structure fo file."""
         if filename.endswith(".nc"):
             raise NotImplementedError("Cannot write a structure to a netcdf file yet")
-
         else:
             self.to(filename=filename)
 
@@ -513,6 +535,14 @@ class Structure(pymatgen.Structure):
 
         tmp_file.seek(0)
         return tmp_file.read()
+
+    #def to_xsf_string(self):
+    #    """
+    #    Returns a string with the structure in XSF format
+    #    See http://www.xcrysden.org/doc/XSF.html
+    #    """
+    #    from pymatgen.io.xcrysden import XSF
+    #    return XSF(self).to_string()
 
     #def max_overlap_and_sites(self, pseudos):
     #    # For each site in self:
