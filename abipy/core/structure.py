@@ -425,6 +425,40 @@ class Structure(pymatgen.Structure):
 
         return coords
 
+    def dot(self, coords_a, coords_b, space="r", frac_coords=False):
+        """
+        Compute the scalar product of vector(s) either in real space or
+        reciprocal space.
+
+        Args:
+            coords (3x1 array): Array-like object with the coordinates.
+            space (str): "r" for real space, "g" for reciprocal space.
+            frac_coords (bool): Whether the vector corresponds to fractional or
+                cartesian coordinates.
+
+        Returns:
+            one-dimensional `numpy` array.
+        """
+        lattice = {"r": self.lattice,
+                   "g": self.reciprocal_lattice}[space.lower()]
+        return lattice.dot(coords_a, coords_b, frac_coords=frac_coords)
+
+    def norm(self, coords, space="r", frac_coords=True):
+        """
+        Compute the norm of vector(s) either in real space or reciprocal space.
+
+        Args:
+            coords (3x1 array): Array-like object with the coordinates.
+            space (str): "r" for real space, "g" for reciprocal space.
+            frac_coords (bool): Whether the vector corresponds to fractional or
+                cartesian coordinates.
+
+        Returns:
+            one-dimensional `numpy` array.
+        """
+        return np.sqrt(self.dot(coords, coords, space=space,
+                                frac_coords=frac_coords))
+
     def show_bz(self, **kwargs):
         """
         Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
