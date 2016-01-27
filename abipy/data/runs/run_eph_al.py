@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-"""
-Electron-phonon calculations.
-"""
+"""Electron-phonon calculations."""
 from __future__ import division, print_function, unicode_literals
 
 import os
@@ -44,11 +42,11 @@ def build_flow(options):
         nband=5,
         occopt=7,    # include metallic occupation function with a small smearing
         tsmear=0.04,
-        tolvrs=1e7,
+        tolvrs=1e-7,
+        timopt=-1,
     )
 
     # The kpoint grid is minimalistic to keep the calculation manageable.
-    # Use a centered grid for the kpoints
     gs_inp.set_kmesh(
         ngkpt=[8, 8, 8], 
         kptopt=3,
@@ -59,12 +57,12 @@ def build_flow(options):
     qpoints = np.reshape([
          0.00000000e+00,  0.00000000e+00,  0.00000000e+00, 
          2.50000000e-01,  0.00000000e+00,  0.00000000e+00,
-       #  5.00000000e-01,  0.00000000e+00,  0.00000000e+00,
-       #  2.50000000e-01,  2.50000000e-01,  0.00000000e+00,
-       #  5.00000000e-01,  2.50000000e-01,  0.00000000e+00,
-       # -2.50000000e-01,  2.50000000e-01,  0.00000000e+00,
-       #  5.00000000e-01,  5.00000000e-01,  0.00000000e+00,
-       # -2.50000000e-01,  5.00000000e-01,  2.50000000e-01,
+         5.00000000e-01,  0.00000000e+00,  0.00000000e+00,
+         2.50000000e-01,  2.50000000e-01,  0.00000000e+00,
+         5.00000000e-01,  2.50000000e-01,  0.00000000e+00,
+        -2.50000000e-01,  2.50000000e-01,  0.00000000e+00,
+         5.00000000e-01,  5.00000000e-01,  0.00000000e+00,
+        -2.50000000e-01,  5.00000000e-01,  2.50000000e-01,
         ], (-1,3))
 
     flow = abilab.Flow(workdir, manager=options.manager)
@@ -73,42 +71,37 @@ def build_flow(options):
     ph_work = abilab.PhononWork.from_scf_task(work0[0], qpoints)
     flow.register_work(ph_work)
 
-    eph_inp = gs_inp.deepcopy()
-    eph_inp.set_vars(
+    # Build input file for E-PH run.
+    eph_inp = gs_inp.new_with_vars(
         optdriver=7,
-        #getwfk   20      # Read GS wavefunctions from DS20_WFK
-        #getddb   20      # Read DDB files from DS20_DDB
-        ddb_ngqpt=[4, 4, 4],  # q-mesh used to produce the DDB file (must be consisten with DDB data)
-        #eph_intmeth=2,       # Tetra
-        #eph_fsewin="0.8 eV",   # Energy window around Ef
-        #eph_mustar="0.12",     # mustar parameter
+        #ddb_ngqpt=[1, 1, 1],  # q-mesh used to produce the DDB file (must be consisten with DDB data)
+        ddb_ngqpt=[4, 4, 4],   # q-mesh used to produce the DDB file (must be consisten with DDB data)
+        eph_intmeth=2,         # Tetra
+        eph_fsewin="0.8 eV",   # Energy window around Ef
+        eph_mustar=0.12,       # mustar parameter
         # q-path for phonons and phonon linewidths.
-        #ph_ndivsm 20
-        #ph_nqpath 3
-        #ph_qpath 
-        #  0   0   0
-        #  0.5 0   0
-        #  0.5 0.5 0
+        ph_ndivsm=20,
+        ph_nqpath=3,
+        ph_qpath= [
+          0  , 0  , 0, 
+          0.5, 0  , 0,
+          0.5, 0.5, 0,],
         # phonon DOS obtained via Fourier interpolation
-        #ph_intmeth 2          # Tetra for phonon DOS and A2F
-        #ph_smear   0.001 eV
-        #ph_wstep   0.0001 eV
-        #ph_ngqpt   16 16 16   # q-mesh for Fourier interpolatation of IFC and a2F(w)
-        #ph_nqshift 1
-        #ph_qshift 
-        #  0 0 0 
+        ph_intmeth=2,            # Tetra for phonon DOS and A2F
+        ph_smear="0.001 eV",
+        ph_wstep="0.0001 eV",
+        ph_ngqpt=[16, 16, 16],   # q-mesh for Fourier interpolatation of IFC and a2F(w)
+        ph_nqshift=1,
+        ph_qshift=[0, 0, 0],
     )
 
     eph_work = abilab.Work()
-    eph_task = eph_work.register_eph_task(eph_inp, deps={work0[0]: "WFK",
-        ph_work: ["DDB", "DVDB"]})
-
-    # ph_work: "DVDB"
+    eph_task = eph_work.register_eph_task(eph_inp, deps={work0[0]: "WFK", ph_work: ["DDB", "DVDB"]})
     flow.register_work(eph_work)
-    flow.allocate()
 
     # EPH does not support autoparal
-    eph_task.with_fixed_mpi_omp(1,1)
+    flow.allocate()
+    eph_task.with_fixed_mpi_omp(1, 1)
                                                                
     return flow
 
@@ -123,25 +116,3 @@ def main(options):
 if __name__ == "__main__":
     import sys
     sys.exit(main())
-
-"""
-    # DATASET 1 : make ground state wavefunctions and density
-    #multi[0].set_vars(
-    #    tolwfr=1.0e-14
-    #    rfphon=0        # for DS1 do _not_ do perturbation
-    #    nqpt1=0         # for DS1 do _not_ do perturbation
-    #    prtwf1=1        # need GS wavefunctions for further runs
-    #    getwfk1=0       # Change default
-    #    kptopt1=1       # Use symmetries to produce GS-WFK
-
-    # general data for all phonon calculations:
-    multi[1:9].set_vars(
-        nqpt=1,            # 1 qpoint at a time
-        getwfk=1,          # all other datasets get WFK from DS1
-        prtwf=0,
-        rfatpol=[1, 1],    # all atoms are perturbed
-        rfdir=[1, 1, 1],   # all directions of perturbation
-        rfphon=1,
-        tolvrs=1e-7,
-    )
-"""

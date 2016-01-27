@@ -304,13 +304,13 @@ class VariableDatabase(OrderedDict):
 
     def apropos(self, varname):
         """Return the list of :class:`Variable` objects that are related` to the given varname"""
-        vars = []
+        var_list = []
         for v in self.values():
-            if (varname in v.text or 
+            if (v.text and varname in v.text or 
                (v.dimensions is not None and varname in str(v.dimensions)) or
                (v.requires is not None and varname in v.requires) or
                (v.excludes is not None and varname in v.excludes)):
-                vars.append(v)
+                var_list.append(v)
 
         return vars
 

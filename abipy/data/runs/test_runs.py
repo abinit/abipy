@@ -4,7 +4,6 @@ from subprocess import call
 
 import os
 
-
 def test_scripts():
     """Running all examples in abipy.data.runs..."""
     return

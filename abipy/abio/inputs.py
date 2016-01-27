@@ -509,7 +509,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         # Check volume
         m = self.structure.lattice.matrix
         if np.dot(np.cross(m[0], m[1]), m[2]) <= 0:
-            raise self.Error("The triple product of the lattice vector is negative. Use structure abi_sanitize.")
+            raise self.Error("The triple product of the lattice vector is negative. Use structure.abi_sanitize.")
 
         return self._structure
 
