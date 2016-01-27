@@ -36,6 +36,8 @@ def main():
 
     parser.add_argument('-e', '--exclude', type=str, default="", help="Exclude scripts.")
 
+    parser.add_argument('-x', '--execute', default=False, action="store_true", help="Execute flows.")
+
     parser.add_argument('--keep-dirs', action="store_true", default=False,
                         help="Do not remove flowdirectories.")
 
@@ -74,13 +76,15 @@ def main():
 
             dirpaths.append(workdir)
 
-            execute_flow = False
-            # Comment this line to execute the flow
-            #execute_flow = True
-            if execute_flow:
-                flow = Flow.pickle_load(workdir)
-                print(flow)
-                flow.make_scheduler().start()
+            # Here we execute the flow
+            if options.execute:
+                try:
+                    flow = Flow.pickle_load(workdir)
+                    flow.make_scheduler().start()
+                except Exception as exc
+                    retcode += 1
+                    print("Exception raised during flow execution:\n:%s" % exc)
+                    if options.bail_on_failure: break
 
         # Remove directories.
         if not options.keep_dirs:

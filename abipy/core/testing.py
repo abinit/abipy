@@ -7,6 +7,7 @@ in a single location, so that test scripts can just import it and work right awa
 """
 from __future__ import print_function, division, unicode_literals
 
+import os
 import subprocess
 import json
 
@@ -72,8 +73,13 @@ def has_matplotlib(version=None, op=">="):
     """
     try:
         import matplotlib
+
+        matplotlib.use("Agg") # Use non-graphical display backend during test.
+        have_matplotlib = "DISPLAY" in os.environ
+
         if version is None: return True
     except ImportError:
+        print("Skipping matplotlib test")
         return False
 
     return cmp_version(matplotlib.__version__, version, op=op)
@@ -112,6 +118,10 @@ class AbipyTest(PymatgenTest):
     def has_abinit(version=None, op=">="):
         """Return True if abinit is in $PATH and version is op min_version."""
         return has_abinit(version=None, op=op)
+
+    @staticmethod
+    def has_matplotlib(version=None, op=">="):
+        return has_matplotlib(version=version, op=op)
 
     def assertFwSerializable(self, obj):
         self.assertTrue('_fw_name' in obj.to_dict())

@@ -38,9 +38,11 @@ class PhononDosTest(AbipyTest):
         assert dos.mesh.tolist() == [1,2,3] and dos.h == 1 and dos.values.tolist() == [4,5,6]
         print(dos)
         dos.idos
-        dos.plot(show=False)
         h = dos.get_harmonic_thermo(1, 10)
         assert h is not None
+
+        if self.has_matplotlib():
+            dos.plot(show=False)
 
 
 if __name__ == "__main__":
