@@ -901,7 +901,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
     def make_strain_perts_inputs(self, tolerance=None):
         if tolerance is None:
-            tolerance = {"tolvrs": 1.0e-12}
+            tolerance = {"tolwfr": 1.0e-16}
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error("Invalid tolerance: {}".format(str(tolerance)))
 
