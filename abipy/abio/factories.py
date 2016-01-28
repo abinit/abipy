@@ -698,7 +698,7 @@ def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_spl
                         )
 
         if rf_tol is None:
-            rf_tol = {"tolwfr": 1.0e-16}
+            rf_tol = {"tolvrs": 1.0e-12}
 
         if len(rf_tol) != 1 or any(k not in _tolerances for k in rf_tol):
             raise ValueError("Invalid tolerance: {}".format(rf_tol))

@@ -901,7 +901,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
     def make_strain_perts_inputs(self, tolerance=None):
         if tolerance is None:
-            tolerance = {"tolwfr": 1.0e-16}
+            tolerance = {"tolvrs": 1.0e-12}
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error("Invalid tolerance: {}".format(str(tolerance)))
 
@@ -920,6 +920,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                              nqpt=1,               # One wavevector is to be considered
                              qpt=(0, 0, 0),        # q-wavevector.
                              kptopt=3,             # No symmetries
+                             iscf=7
                              )
             elif pert.ipert == len(self.structure) + 3:
                 inp.set_vars(rfstrs=1,             # Activate the calculation of the strain perturbations (uniaxial)
@@ -927,6 +928,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                              nqpt=1,               # One wavevector is to be considered
                              qpt=(0, 0, 0),        # q-wavevector.
                              kptopt=3,             # No symmetries
+                             iscf=7
                              )
             elif pert.ipert == len(self.structure) + 4:
                 inp.set_vars(rfstrs=2,             # Activate the calculation of the strain perturbations (shear)
@@ -934,6 +936,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                              nqpt=1,               # One wavevector is to be considered
                              qpt=(0, 0, 0),        # q-wavevector.
                              kptopt=3,             # No symmetries
+                             iscf=7
                              )
 
             inp.pop_tolerances()
