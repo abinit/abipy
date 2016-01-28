@@ -11,7 +11,7 @@ qadapters:
          - source ~/env.sh
       limits:
          min_cores: 1
-         max_cores: 2
+         max_cores: 4
          timelimit: 0:00:05
       hardware:
          num_nodes: 1

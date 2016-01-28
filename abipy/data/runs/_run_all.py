@@ -62,7 +62,7 @@ def main():
                 scripts.append(path)
 
     # Run scripts according to mode.
-    dirpaths, retcode = [], 0
+    dirpaths, errors, retcode = [], [], 0
     if options.mode in ["s", "sequential"]:
         for script in scripts:
             # flow will be produced in a temporary workdir.
@@ -71,20 +71,30 @@ def main():
             retcode += ret
 
             if ret != 0: 
-                print("retcode %d while running %s" % (ret, script))
-                if options.bail_on_failure: break
+                e = "python %s returned retcode !=0" % script
+                print(e)
+                errors.append(e)
+                if options.bail_on_failure: 
+                    print("Exiting now since bail_on_failure")
+                    break
 
             dirpaths.append(workdir)
 
             # Here we execute the flow
             if options.execute:
+                ret = 0
                 try:
                     flow = Flow.pickle_load(workdir)
                     flow.make_scheduler().start()
-                except Exception as exc
-                    retcode += 1
-                    print("Exception raised during flow execution:\n:%s" % exc)
-                    if options.bail_on_failure: break
+                except Exception as exc:
+                    ret += 1
+                    s = "Exception raised during flow execution: %s\n:%s" % (flow, exc)
+                    print(s)
+                    errors.append(s)
+                    if options.bail_on_failure: 
+                        print("Exiting now since bail_on_failure")
+                        break
+                    retcode += ret
 
         # Remove directories.
         if not options.keep_dirs:
@@ -96,6 +106,12 @@ def main():
 
     else:
         show_examples_and_exit(err_msg="Wrong value for mode: %s" % options.mode)
+
+    if errors:
+        for i, err in enumerate(errors):
+            print(92 * "=")
+            print("[%d] %s" % (i, err))
+            print(92 * "=")
 
     print("retcode %d" % retcode)
     return retcode
