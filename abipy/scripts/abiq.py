@@ -2,7 +2,7 @@
 """
 This script retrieve information on a job in the queue
 """
-from __future__ import print_function, division, unicode_literals
+from __future__ import unicode_literals, division, print_function, absolute_import
 
 import sys
 import os

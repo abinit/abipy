@@ -1,6 +1,5 @@
 # coding: utf-8
-
-from __future__ import unicode_literals, division, print_function
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 """
 Workflows for GW calculations:

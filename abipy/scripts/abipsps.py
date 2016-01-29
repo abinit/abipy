@@ -4,7 +4,7 @@ Script to plot pseudopotential data and/or compare multiple pseudopotentials.
 It invokes Abinit to produce the PSPS.nc files with form-factors, model core charges 
 and other quantities used by Abinit to apply the non-local part of the KS Hamiltonian.
 """
-from __future__ import print_function, division, unicode_literals
+from __future__ import unicode_literals, division, print_function, absolute_import
 
 import sys
 import argparse

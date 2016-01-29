@@ -1,5 +1,5 @@
 """Widgets for browsing and/or analyzing the output files produced by Abinit."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import wx
@@ -13,7 +13,7 @@ try:
 except ImportError:
     pass
 from monty.string import list_strings, is_string
-from abipy.tools.text import WildCard
+from monty.fnmatch import WildCard
 from abipy.gui.popupmenus import popupmenu_for_filename
 
 

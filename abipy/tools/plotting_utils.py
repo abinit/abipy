@@ -6,7 +6,7 @@ Utilities for generating matplotlib plots.
 
     Avoid importing matplotlib in the module namespace otherwise startup is very slow.
 """
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
 import collections

@@ -87,7 +87,6 @@ def abifile_subclass_from_filename(filename):
     try:
         return ext2ncfile[ext]
     except KeyError:
-        #raise KeyError("No class has been registered for extension %s" % ext)
         for ext, cls in ext2ncfile.items():
             if filename.endswith(ext): return cls
 
@@ -127,13 +126,13 @@ def software_stack():
     )
 
     # Optional but strongly suggested.
-    #try:
-    #    import matplotlib
-    #    d.update(dict(
-    #        matplotlib="Version: %s, backend: %s" % (matplotlib.__version__, matplotlib.get_backend()),
-    #        ))
-    #except ImportError:
-    #    pass
+    try:
+        import matplotlib
+        d.update(dict(
+            matplotlib="Version: %s, backend: %s" % (matplotlib.__version__, matplotlib.get_backend()),
+            ))
+    except ImportError:
+        pass
 
     return d
 

@@ -1,6 +1,6 @@
 # coding: utf-8
 """Decorators for AbinitInput or MultiDataset objects."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import six
 import abc

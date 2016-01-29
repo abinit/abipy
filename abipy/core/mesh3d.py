@@ -1,6 +1,6 @@
 # coding: utf-8
 """This module contains the class defining Uniform 3D meshes."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
 from itertools import product as iproduct
