@@ -1,6 +1,6 @@
 # coding: utf-8
 """Generic helper functions"""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 

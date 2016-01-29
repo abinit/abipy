@@ -1,15 +1,11 @@
 #!/usr/bin/env python
-from __future__ import print_function, division, unicode_literals
+from __future__ import unicode_literals, division, print_function, absolute_import
 
 import sys
 import os
 import argparse 
 
 from abipy import abilab
-
-import logging
-logger = logging.getLogger(__name__)
-
 
 def main():
     def str_examples():
@@ -31,14 +27,16 @@ Usage example:\n
     copts_parser = argparse.ArgumentParser(add_help=False)
     copts_parser.add_argument('paths', nargs="+", help="List of files to compare")
 
-    copts_parser.add_argument('--loglevel', default="ERROR", type=str,
-                              help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
-
+    #copts_parser.add_argument('--loglevel', default="ERROR", type=str,
+    #                          help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
     #parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
     #                     help='verbose, can be supplied multiple times to increase verbosity')
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + abilab.__version__)
+    parser.add_argument('--loglevel', default="ERROR", type=str,
+                        help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")

@@ -1,5 +1,5 @@
 """Database with the names of the input variables used in Abinit and in other main programs."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import os
@@ -297,8 +297,12 @@ class VariableDatabase(OrderedDict):
         d = defaultdict(list)
 
         for name in list_strings(names):
-            sec = self.name2section[name]
-            d[sec].append(name)
+            try:
+                sec = self.name2section[name]
+                d[sec].append(name)
+            except KeyError as exc:
+                raise KeyError("{}\n\nIf the key is a valid Abinit variable, try to remove\n"
+                               "~/.abinit/abipy/abinit_vars.pickle and rerun.".format(exc))
 
         return OrderedDict([(sec, d[sec]) for sec in self.sections if d[sec]])
 
@@ -312,7 +316,7 @@ class VariableDatabase(OrderedDict):
                (v.excludes is not None and varname in v.excludes)):
                 var_list.append(v)
 
-        return vars
+        return var_list
 
     def vars_with_section(self, sections):
         """

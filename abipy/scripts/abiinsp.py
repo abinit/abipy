@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Script to inspect the status of Abinit calculations at run-time."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import unicode_literals, division, print_function, absolute_import
 
 import sys
 import os
@@ -32,6 +32,9 @@ def main():
 
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
 
+    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + abilab.__version__)
+    parser.add_argument('--loglevel', default="ERROR", type=str,
+                        help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
     parser.add_argument('filepath', nargs="?", help="File to inspect (output file or log file)")
 
     # Create the parsers for the sub-commands
@@ -55,6 +58,14 @@ def main():
         options = parser.parse_args()
     except Exception: 
         show_examples_and_exit(error_code=1)
+
+    # loglevel is bound to the string value obtained from the command line argument. 
+    # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
+    import logging
+    numeric_level = getattr(logging, options.loglevel.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % options.loglevel)
+    logging.basicConfig(level=numeric_level)
 
     if options.command == "status":
         # Parse the Abinit Events in filepath.

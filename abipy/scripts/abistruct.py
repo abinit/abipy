@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Script to export/visualize the crystal structure saved in the netcdf files produced by ABINIT."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import unicode_literals, division, print_function, absolute_import
 
 import sys
 import os
@@ -37,11 +37,12 @@ Usage example:\n
     path_selector.add_argument('filepath', nargs="?", help="File with the crystalline structure")
 
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + abilab.__version__)
+    parser.add_argument('--loglevel', default="ERROR", type=str,
+                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands, use command --help for help")
-
-    subparsers.add_parser('version', help='Show version number and exit')
 
     # Subparser for convert command.
     p_convert = subparsers.add_parser('convert', parents=[path_selector], help="Convert structure to the specified format.")
@@ -74,12 +75,15 @@ Usage example:\n
     except Exception as exc: 
         show_examples_and_exit(error_code=1)
 
-    if options.command == "version":
-        from abipy.core.release import version
-        print(version)
-        return 0
+    # loglevel is bound to the string value obtained from the command line argument. 
+    # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
+    import logging
+    numeric_level = getattr(logging, options.loglevel.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % options.loglevel)
+    logging.basicConfig(level=numeric_level)
 
-    elif options.command == "convert":
+    if options.command == "convert":
         structure = abilab.Structure.from_file(options.filepath)
 
         if options.format == "abivars":

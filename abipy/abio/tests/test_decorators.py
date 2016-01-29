@@ -52,7 +52,7 @@ class DecoratorTest(AbipyTest):
             #assert len(dtset.decorators) == ndec
 
             if v.retcode != 0:
-                raise RuntimeError(v.err)
+                raise RuntimeError("Wrong input. See {}".format(v))
             else:
                 print("Valid input!")
 

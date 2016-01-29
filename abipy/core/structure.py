@@ -1,6 +1,6 @@
 # coding: utf-8
 """This module defines basic objects representing the crystalline structure."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import collections

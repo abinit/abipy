@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import unicode_literals, division, print_function, absolute_import
 from IPython.config.loader import Config
 
 try:

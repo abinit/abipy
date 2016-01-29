@@ -3,7 +3,7 @@
 Function1D describes a function of a single variable and provides an easy-to-use API 
 for performing common tasks such as algebraic operations, integrations, differentiations, plots ...
 """
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import six
 import itertools
