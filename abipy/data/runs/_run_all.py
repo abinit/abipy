@@ -11,7 +11,7 @@ import shutil
 import tempfile
 
 from subprocess import call, Popen
-from abipy.abilab import Flow
+from abipy.abilab import Flow, __version__
 
 
 def main():
@@ -31,7 +31,7 @@ def main():
 
     parser = argparse.ArgumentParser(epilog=str_examples(),formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + abilab.__version__)
+    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + __version__)
     parser.add_argument('--loglevel', default="ERROR", type=str,
                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 

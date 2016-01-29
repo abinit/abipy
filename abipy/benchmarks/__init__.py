@@ -48,6 +48,8 @@ def bench_main(main):
         parser.add_argument("--max-ncpus", default=None, type=int, help="Maximum number of CPUs to be tested.")
         parser.add_argument('--paw', default=False, action="store_true", help="Run PAW calculation if present")
 
+        #parser.add_argument("--min-eff", default=0.6, type=int, help="Minimum parallel efficiency accepted.")
+
         parser.add_argument("-i", '--info', default=False, action="store_true", help="Show benchmark info and exit")
 
         parser.add_argument("--scheduler", "-s", default=False, action="store_true", help="Run with the scheduler")
@@ -97,11 +99,10 @@ def bench_main(main):
         options.manager = TaskManager.as_manager(options.manager)
 
         flow = main(options)
-        if flow is None: 
-            return 0
+        if flow is None: return 0
 
         if options.scheduler:
-            flow.make_scheduler().start()
+            return flow.make_scheduler().start()
 
         return 0
 

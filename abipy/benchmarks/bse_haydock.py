@@ -78,7 +78,7 @@ def bse_benchmark(options):
 
     print("Using mpi_range:", options.mpi_range)
     if options.mpi_range is None:
-	raise RuntimeError("This benchmark requires --mpi-range")
+	    raise RuntimeError("This benchmark requires --mpi-range")
 
     omp_threads = 1
     bse_work = abilab.Work()

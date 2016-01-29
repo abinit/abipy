@@ -123,7 +123,7 @@ def make_input():
    0.87500000000000   0.87500000000000   0.87500000000000
 """, sep=" ").reshape((-1,3))
 
-    # Crystal structure.
+    # Crystal structure with acell 3*11. angstrom natom 96 ntypat 2
     structure = abilab.Structure.from_abivars(
         acell=3 * [11. / abilab.bohr_to_ang],
         rprim=np.eye(3), 
@@ -131,10 +131,6 @@ def make_input():
         znucl=[92, 8],
         xred=xred,
     )
-
-    #acell 3*11. angstrom
-    #natom 96
-    #ntypat 2
 
     inp = abilab.AbinitInput(structure, pseudos)
     inp.set_vars(

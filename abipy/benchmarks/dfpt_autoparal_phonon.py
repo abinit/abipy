@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-"""Benchmark for phonon calculation with DFPT.""" 
+"""
+This benchmark compares the effective parallel efficiency with the one reported by autoparal.
+"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys
@@ -86,7 +88,7 @@ def build_flow(options):
     flow.exclude_from_benchmark(gs_work)
 
     # Get the list of possible parallel configurations from abinit autoparal.
-    max_ncpus, min_eff = options.max_ncpus, 0.5
+    max_ncpus, min_eff = options.max_ncpus, 0.1
     if max_ncpus is None:
 	    raise RuntimeError("This benchmark requires --max-ncpus")
     else:
