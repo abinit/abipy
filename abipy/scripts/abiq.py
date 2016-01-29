@@ -10,7 +10,6 @@ import argparse
 
 from pymatgen.io.abinit.qjobs import QueueJob
 
-
 def main():
     def str_examples():
         examples = """\
