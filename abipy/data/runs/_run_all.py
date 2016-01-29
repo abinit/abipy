@@ -31,6 +31,10 @@ def main():
 
     parser = argparse.ArgumentParser(epilog=str_examples(),formatter_class=argparse.RawDescriptionHelpFormatter)
 
+    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + abilab.__version__)
+    parser.add_argument('--loglevel', default="ERROR", type=str,
+                        help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+
     parser.add_argument('-m', '--mode', type=str, default="sequential", help="execution mode. Default is sequential.")
 
     parser.add_argument('-e', '--exclude', type=str, default="", help="Exclude scripts.")
@@ -45,6 +49,14 @@ def main():
     #parser.add_argument("scripts", nargs="+",help="List of scripts to be executed")
 
     options = parser.parse_args()
+
+    # loglevel is bound to the string value obtained from the command line argument. 
+    # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
+    import logging
+    numeric_level = getattr(logging, options.loglevel.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % options.loglevel)
+    logging.basicConfig(level=numeric_level)
 
     # Find scripts.
     if options.exclude:
