@@ -19,7 +19,7 @@ def main():
 Usage example:\n
 
     abipsps.py pseudo            => Visualize data relative to a single pseudo.
-    abipsps.py pseudo1 pseudo2   => Compare pseudo1 with pseudo1 (accept an arbitrary number of pseudos).
+    abipsps.py pseudo1 pseudo2   => Compare pseudo1 with pseudo2 (accept an arbitrary number of pseudos).
 """
 
     def show_examples_and_exit(err_msg=None, error_code=1):
@@ -31,6 +31,7 @@ Usage example:\n
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
 
+    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + abilab.__version__)
     parser.add_argument('--loglevel', default="ERROR", type=str,
                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 

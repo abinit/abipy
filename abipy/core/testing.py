@@ -44,10 +44,8 @@ def has_abinit(version=None, op=">="):
     False if condition is not fulfilled or the execution of `abinit -v` raised CalledProcessError
     """
     abinit = which("abinit") 
-    if abinit is None:
-        return False
-    if version is None:
-        return abinit is not None
+    if abinit is None: return False
+    if version is None: return abinit is not None
 
     try:
         abinit_version = str(subprocess.check_output(["abinit", "-v"]))
@@ -122,6 +120,17 @@ class AbipyTest(PymatgenTest):
     @staticmethod
     def has_matplotlib(version=None, op=">="):
         return has_matplotlib(version=version, op=op)
+
+    @staticmethod
+    def has_ase(version=None, op=">="):
+        """True if ASE package is available."""
+        try:
+            import ase
+        except ImportError:
+            return False
+        
+        if version is None: return True
+        return cmp_version(ase.__version__, version, op=op)
 
     def assertFwSerializable(self, obj):
         self.assertTrue('_fw_name' in obj.to_dict())

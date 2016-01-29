@@ -22,6 +22,9 @@ __version__ = '.'.join(map(str, _ver))
 
 version = __version__  # backwards compatibility name
 
+# The minimum Abinit version compatible with AbiPy
+min_abinit_version = "8.0.1"
+
 description = "Python modules and scripts to analyze the results of ab-initio calculation performed with ABINIT"
 
 long_description = \

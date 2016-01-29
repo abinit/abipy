@@ -31,8 +31,7 @@ def main():
 
     parser = argparse.ArgumentParser(epilog=str_examples(),formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument('-m', '--mode', type=str, default="sequential",
-                        help="execution mode. Default is sequential.")
+    parser.add_argument('-m', '--mode', type=str, default="sequential", help="execution mode. Default is sequential.")
 
     parser.add_argument('-e', '--exclude', type=str, default="", help="Exclude scripts.")
 

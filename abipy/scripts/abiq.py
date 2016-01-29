@@ -9,6 +9,7 @@ import os
 import argparse
 
 from pymatgen.io.abinit.qjobs import QueueJob
+from abipy.core.release import __version__
 
 
 def main():
@@ -32,6 +33,7 @@ Usage example:\n
     #parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
     #                    help='verbose, can be supplied multiple times to increase verbosity')
 
+    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + __version__)
     parser.add_argument('--loglevel', default="ERROR", type=str,
                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 

@@ -8,10 +8,7 @@ import argparse
 
 from monty.termcolor import cprint
 from pymatgen.io.abinit.abitimer import AbinitTimerParser
-#from abipy import abilab
-
-import logging
-logger = logging.getLogger(__name__)
+from abipy.core.release import __version__
 
 
 def main():
@@ -33,9 +30,6 @@ Usage example:\n
     # Parent parse for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
 
-    copts_parser.add_argument('--loglevel', default="ERROR", type=str,
-                              help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
-
     copts_parser.add_argument('-i', '--ipython', default=False, action='store_true',
                        help='Open interactive ipython terminal to interact with the parser.')
 
@@ -47,6 +41,9 @@ Usage example:\n
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + __version__)
+    parser.add_argument('--loglevel', default="ERROR", type=str,
+                        help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")

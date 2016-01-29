@@ -150,9 +150,7 @@ sns.set(style='ticks', palette='Set2')"""),
         nbf.write(nb, fh, 'ipynb')
 
     os.system("ipython notebook %s" % tmpfname)
-    #os.execv("/Users/gmatteo/Library/Enthought/Canopy_64bit/User/bin/ipython", ["notebook %s" % tmpfname])
-    #os.execv("/Users/gmatteo/Library/Enthought/Canopy_64bit/User/bin/ipython", ["notebook"])
-    #os.execv("/Users/gmatteo/Library/Enthought/Canopy_64bit/User/bin/python", ["ipython", "notebook", tmpfname])
+    #os.execv("python", ["ipython", "notebook", tmpfname])
 
 
 def main():
@@ -243,19 +241,19 @@ usage example:
                               help='verbose, can be supplied multiple times to increase verbosity')
     copts_parser.add_argument('--remove-lock', default=False, type=bool, help="Remove the lock file of the pickle file storing the flow.")
     copts_parser.add_argument('--no-colors', default=False, help='Disable ASCII colors')
-    copts_parser.add_argument('--loglevel', default="ERROR", type=str,
-                               help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
+
+    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + abilab.__version__)
+    parser.add_argument('--loglevel', default="ERROR", type=str,
+                        help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
     parser.add_argument('flowdir', nargs="?", help=("File or directory containing the ABINIT flow"
                                                     "If not given, the first flow in the current workdir is selected"))
 
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
-
-    subparsers.add_parser('version', parents=[copts_parser], help='Show version number and exit')
 
     # Subparser for single command.
     p_single = subparsers.add_parser('single', parents=[copts_parser], help="Run single task.")
@@ -455,11 +453,6 @@ Specify the files to open. Possible choices:
     if not isinstance(numeric_level, int):
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
-
-    if options.command == "version":
-        from abipy.core.release import version
-        print(version)
-        return 0
 
     if options.no_colors:
         # Disable colors
@@ -859,6 +852,7 @@ Specify the files to open. Possible choices:
             print("Created light tarball file %s" % tarfile)
 
     elif options.command == "debug":
+        #flow.debug()
         nrows, ncols = get_terminal_size()
 
         # Test for scheduler exceptions first.
@@ -973,8 +967,7 @@ Specify the files to open. Possible choices:
             os.system("vimdiff %s" % args)
 
     elif options.command == "networkx":
-        flow.plot_networkx(mode=options.nxmode, 
-                           with_edge_labels=options.edge_labels)
+        flow.plot_networkx(mode=options.nxmode, with_edge_labels=options.edge_labels)
 
     elif options.command == "listext":
         for ext in options.listexts:

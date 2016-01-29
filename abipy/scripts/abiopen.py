@@ -7,10 +7,6 @@ import argparse
 
 from abipy import abilab
 
-import logging
-logger = logging.getLogger(__name__)
-
-
 def main():
 
     def str_examples():
@@ -23,7 +19,6 @@ def main():
         )
         return examples
 
-
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""
         sys.stderr.write(str_examples())
@@ -31,11 +26,11 @@ def main():
             sys.stderr.write("Fatal Error\n" + err_msg + "\n")
         sys.exit(error_code)
 
-
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('--loglevel', default="ERROR", type=str,
                          help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + abilab.__version__)
 
     #parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
     #                     help='verbose, can be supplied multiple times to increase verbosity')
