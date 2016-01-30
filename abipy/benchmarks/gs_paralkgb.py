@@ -49,8 +49,8 @@ def build_flow(options):
     max_ncpus, min_eff = options.max_ncpus, options.min_eff
     print("Getting all autoparal configurations up to max_ncpus: ",max_ncpus," with efficiency >= ",min_eff)
 
-    pconfs = template.abiget_autoparal_pconfs(max_ncpus, autoparal=1)
-    print(pconfs)
+    pconfs = template.abiget_autoparal_pconfs(max_ncpus, autoparal=1, verbose=options.verbose)
+    if options.verbose: print(pconfs)
 
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
 

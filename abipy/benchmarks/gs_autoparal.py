@@ -46,16 +46,13 @@ def build_flow(options):
     template = make_input()
 
     # Get the list of possible parallel configurations from abinit autoparal.
-    max_ncpus, min_eff = options.max_ncpus, 0.2
-    if max_ncpus is None:
-	    raise RuntimeError("This benchmark requires --max-ncpus")
-    else:
-	    print("Getting all autoparal confs up to max_ncpus: ",max_ncpus," with efficiency >= ",min_eff)
+    max_ncpus, min_eff = options.max_ncpus, options.min_eff
+
+    print("Getting all autoparal confs up to max_ncpus: ",max_ncpus," with efficiency >= ",min_eff)
+    pconfs = template.abiget_autoparal_pconfs(max_ncpus, autoparal=1, verbose=options.verbose)
+    if options.verbose: print(pconfs)
 
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
-
-    pconfs = template.abiget_autoparal_pconfs(max_ncpus, autoparal=1)
-    print(pconfs)
 
     omp_threads = 1
     work = abilab.Work()
