@@ -1,9 +1,48 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
+import ast
 
 from monty.termcolor import cprint
 from pymatgen.io.abinit.flows import Flow
+
+
+def as_list(token, options):
+    """Helper function used to parse --mpi-list argument"""
+
+    if token.startswith("range"):
+        # start(1,4,2)
+        token = token[5:]
+        print("token", token)
+        t = ast.literal_eval(token)
+        assert len(t) == 3
+        l = range(t[0], t[1], t[2])
+
+    elif token.endswith("x"):
+        # 16x --> multiple of 16
+        fact = int(token[:-1])
+        l, i = [], 0
+        while True:
+            i += 1
+            val = fact * i
+            if val > options.max_ncpus: break
+            l.append(val)
+
+    elif token.endswith("pow"):
+        # 4pow --> powers of 4
+        base = int(token[:-3])
+        l, i = [], 0
+        while True:
+            i += 1
+            val = base ** i
+            if val > options.max_ncpus: break
+            l.append(val)
+    else:
+        # lists
+        l = ast.literal_eval(token)
+
+    #print("l", l)
+    return l
 
 
 def bench_main(main):
@@ -41,17 +80,16 @@ def bench_main(main):
                                  "Default None i.e. the manager is read from standard locations: "
                                  "working directory first then ~/.abinit/abipy/manager.yml.")
 
-        parser.add_argument("--mpi-list", default=None, help="List of MPI processors to be tested."
-                            "'--mpi-list='(1,4,2)' performs benchmarks for mpi_procs in [1, 3]")
-
-        parser.add_argument("--omp-list", default=None, help="List of OMP threads to be tested."
-                            "'--omp-list='(1,4,2)' performs benchmarks for omp_threads in [1, 3]")
+        parser.add_argument("--mpi-list", default=None, help="List of MPI processors to be tested. Syntax:\n"
+                            "--mpi-list='[1,6,12]' to define a list, 'range(1,4,2)' for a python range.\n" 
+                            "--mpi-list='16x' for multiple of 16 up to max--ncpus, --mpi-list='2pow' for powers of 2")
+        parser.add_argument("--omp-list", default=None, help="List of OMP threads to be tested. Same syntax as mpi-list.")
 
         parser.add_argument("--min-ncpus", default=-1, type=int, help="Minimum number of CPUs to be tested.")
-        parser.add_argument("--max-ncpus", default=206, type=int, help="Maximum number of CPUs to be tested.")
-        parser.add_argument("--min-eff", default=0.6, type=int, help="Minimum parallel efficiency accepted.")
+        parser.add_argument("--max-ncpus", default=206, type=int, help="Maximum number of CPUs to be tested. Default: 206.")
+        parser.add_argument("--min-eff", default=0.6, type=int, help="Minimum parallel efficiency accepted. Default 0.6.")
 
-        parser.add_argument('--paw', default=False, action="store_true", help="Run PAW calculation if present")
+        parser.add_argument('--paw', default=False, action="store_true", help="Run PAW calculation if available")
 
         parser.add_argument("-i", '--info', default=False, action="store_true", help="Show benchmark info and exit")
         parser.add_argument("-r", "--remove", default=False, action="store_true", help="Remove old flow workdir")
@@ -70,22 +108,15 @@ def bench_main(main):
 
         # parse arguments
         if options.mpi_list is not None:
-            import ast
-            t = ast.literal_eval(options.mpi_list)
-            assert len(t) == 3
-            options.mpi_list = range(t[0], t[1], t[2])
-            #print(options.mpi_list)
+            options.mpi_list = as_list(options.mpi_list, options)
 
         if options.omp_list is not None:
-            import ast
-            t = ast.literal_eval(options.omp_list)
-            assert len(t) == 3
-            options.omp_list = range(t[0], t[1], t[2])
-            #print(options.omp_list)
+            options.omp_list = as_list(options.omp_list, options)
 
         # Monkey patch options to add useful method 
-        #   accept_mpi_omp(mpi_proc, omp_threads)
         def monkey_patch(opts):
+
+            # options.accept_mpi_omp(mpi_proc, omp_threads)
             def accept_mpi_omp(opts, mpi_procs, omp_threads):
                 """Return True if we can run a benchmark with mpi_procs and omp_threads"""
                 tot_ncpus = mpi_procs * omp_threads
@@ -100,6 +131,7 @@ def bench_main(main):
             import types
             opts.accept_mpi_omp = types.MethodType(accept_mpi_omp, opts)
 
+            # options.get_workdir(__file__)
             def get_workdir(opts, _file_):
                 """
                 Return the workdir of the benchmark. 
