@@ -11,12 +11,10 @@ import argparse
 import pymatgen as pymatgen
 import abipy.data as abidata
 
-from abipy import abilab
 from abipy.abilab import *
 from abipy.core.release import __version__
 
 def main():
-
     # Build the main parser.
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter)
 
@@ -58,7 +56,7 @@ def main():
     # IPython at the system command line. Any parameters you want to define for
     # configuration can thus be specified here.
 
-
+    from abipy import abilab
     _abi_builtins_ = [n for n in dir(abilab) if not n.startswith("_")]
                      #[n for n in dir(pymatgen) if not n.startswith("_")] + \
     del abilab #, pymatgen
