@@ -14,19 +14,18 @@ def make_input():
     pseudos = abidata.pseudos("14si.pspnc")
     structure = abidata.structure_from_ucell("Si")
     structure.make_supercell([3,3,3])
-    print(structure)
 
     inp = abilab.AbinitInput(structure, pseudos)
-    inp.set_kmesh(ngkpt=[2,2,2], shiftk=[0,0,0])
+    inp.set_kmesh(ngkpt=[4,4,4], shiftk=[0,0,0])
 
     # Global variables
-    ecut = 10
+    ecut = 30
     inp.set_vars(
         ecut=ecut,
         nsppol=1,
         nband=130,
         paral_kgb=0,
-        #istwfk="*1",
+        istwfk="*1",
         timopt=-1,
         chksymbreak=0,
         chkprim=0,
@@ -34,7 +33,6 @@ def make_input():
         prtwf=0,
         prtden=0,
         tolvrs=1e-8,
-        nstep=50,
     )
 
     return inp
@@ -43,20 +41,19 @@ def make_input():
 def build_flow(options):
     inp = make_input()
 
-    mpi_range = options.mpi_range
-    if mpi_range is None:
+    mpi_list = options.mpi_list
+    if mpi_list is None:
         nkpt = len(inp.abiget_ibz().points)
-    	mpi_range = range(1, nkpt*inp["nsppol"] + 1) 
-    	print("Using mpi_range:", mpi_range, " = nkpt * nsppol")
-    else:
-    	print("Using mpi_range from cmd line:", mpi_range)
+        nks = nkpt * inp["nsppol"]
+    	mpi_list = [p for p in range(1, nks + 1) if nks % p == 0]
+    print("Using mpi_list:", mpi_list)
 
-    flow = BenchmarkFlow(workdir="bench_gs_useylm")
+    flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
 
     omp_threads = 1
     for useylm in [0, 1]:
         work = abilab.Work()
-        for mpi_procs in mpi_range:
+        for mpi_procs in mpi_list:
             if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
             manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
             work.register_scf_task(inp.new_with_vars(useylm=useylm), manager=manager)

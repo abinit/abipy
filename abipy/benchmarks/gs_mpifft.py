@@ -7,7 +7,7 @@ import sys
 import abipy.abilab as abilab
 import abipy.data as abidata
 
-from abipy.benchmarks import bench_main
+from abipy.benchmarks import bench_main, BenchmarkFlow
 
 
 def make_input(paw=False):
@@ -24,7 +24,7 @@ def make_input(paw=False):
     ecut = 20
     inp.set_vars(
         ecut=ecut,
-        pawecutdg=ecut*4,
+        pawecutdg=ecut*4 if paw else None,
         nsppol=1,
         nband=20,
         paral_kgb=1,
@@ -49,17 +49,16 @@ def build_flow(options):
     ecut_list = list(range(200, 610, 100)) 
     ecut_list = [400,]
 
-    print("Using mpi_range:", options.mpi_range)
-    if options.mpi_range is None:
-	raise RuntimeError("This benchmark requires --mpi-range")
+    if options.mpi_list is None: mpi_list = [2, 4, 6, 8]
+    print("Using mpi_list:", mpi_list)
 
     template = make_input()
-    flow = abilab.Flow(workdir="bench_mpifft")
+    flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
 
     omp_threads = 1
     for fftalg in fftalg_list: 
         work = abilab.Work()
-        for npfft in options.mpi_range:
+        for npfft in mpi_list:
             if not options.accept_mpi_omp(npfft, omp_threads): continue
             manager = options.manager.new_with_fixed_mpi_omp(npfft, omp_threads)
             for inp in abilab.input_gen(template, fftalg=fftalg, npfft=npfft, ecut=ecut_list):

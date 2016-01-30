@@ -186,7 +186,7 @@ def make_input():
 
 
 def build_flow(options):
-    flow = BenchmarkFlow(workdir="bench_au108")
+    flow = BenchmarkFlow(workdir=options.get_workdir(__file__),)
 
     template = make_input()
 

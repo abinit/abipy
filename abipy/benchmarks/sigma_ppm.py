@@ -24,7 +24,7 @@ def make_inputs(paw=False):
     ecut = 14
     multi.set_vars(
         ecut=ecut,
-        pawecutdg=ecut*4,
+        pawecutdg=ecut*4 if paw else None,
         timopt=-1,
         istwfk="*1",
         paral_kgb=0,
@@ -80,7 +80,7 @@ def sigma_benchmark(options):
     Build an `AbinitWorkflow` used for benchmarking ABINIT.
     """
     gs_inp, nscf_inp, scr_inp, sigma_inp = make_inputs(paw=options.paw)
-    flow = BenchmarkFlow(workdir="bench_sigma_pp")
+    flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
 
     bands = abilab.BandStructureWork(gs_inp, nscf_inp)
     flow.register_work(bands)
@@ -91,14 +91,19 @@ def sigma_benchmark(options):
     flow.register_work(scr_work)
     flow.exclude_from_benchmark(scr_work)
 
-    print("Using mpi_range:", options.mpi_range)
-    if options.mpi_range is None:
-        raise RuntimeError("This benchmark requires --mpi-range")
+    mpi_list = options.mpi_list
 
     omp_threads = 1
     for nband in [100, 200, 300]:
         sigma_work = abilab.Work()
-        for mpi_procs in options.mpi_range:
+
+        if options.mpi_list is None:
+            # Cannot call autoparal here because we need a WFK file.
+            print("Using hard coded values for mpi_list")
+            mpi_list = [np for np in range(1, nband+1) if abs((nband - 4) % np) < 1]
+        print("Using nband %d and mpi_list: %s" % (nband, mpi_list))
+
+        for mpi_procs in mpi_list:
             if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
             inp = sigma_inp.new_with_vars(nband=nband)
             manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)

@@ -3,7 +3,7 @@
 This script shows how to perform a RAMAN calculation with excitonic effects 
 included with the BSE formalism.
 """
-from __future__ import division, print_function, unicode_literals
+from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys 
 import os

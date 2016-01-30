@@ -36,6 +36,7 @@ def make_inputs(paw=False):
     global_vars = dict(
         nband=12,             
         ecut=12.0,         
+        pawecutdg=24.0 if paw else None,
         ngkpt=[8, 8, 8],
         nshiftk=4,
         shiftk=[0.0, 0.0, 0.5,   # This gives the usual fcc Monkhorst-Pack grid
@@ -79,18 +80,15 @@ def make_inputs(paw=False):
 def build_flow(options):
     gs_inp, ph_inp = make_inputs()
 
-    flow = BenchmarkFlow(workdir="bench_dfpt_phonon")
+    flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
     gs_work = abilab.Work()
     gs_work.register_scf_task(gs_inp)
     flow.register_work(gs_work)
     flow.exclude_from_benchmark(gs_work)
 
     # Get the list of possible parallel configurations from abinit autoparal.
-    max_ncpus, min_eff = options.max_ncpus, 0.5
-    if max_ncpus is None:
-	    raise RuntimeError("This benchmark requires --max-ncpus")
-    else:
-	    print("Getting all autoparal confs up to max_ncpus: ",max_ncpus," with efficiency >= ",min_eff)
+    max_ncpus, min_eff = options.max_ncpus, options.min_eff
+    print("Getting all autoparal confs up to max_ncpus: ",max_ncpus," with efficiency >= ",min_eff)
 
     pconfs = ph_inp.abiget_autoparal_pconfs(max_ncpus, autoparal=1)
     print(pconfs)

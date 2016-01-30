@@ -188,7 +188,7 @@ def make_input():
 
 
 def build_flow(options):
-    flow = BenchmarkFlow(workdir="bench_ti256")
+    flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
 
     template = make_input()
 

@@ -1,61 +1,29 @@
-# ABINIT -INPUT FILE
-# TITANE 256 ATOMES
+#!/usr/bin/env python
+"""
+Titanium with 256 atoms and k-point sampling.
+GS calculations with paralkgb==1 and wfoptalg in [default, 1]
+"""
+from __future__ import division, print_function, unicode_literals, absolute_import
 
-# Distribution des processeurs
-#npkpt 2 npband 8 npfft 8    # 128 processeurs
-#npkpt 2 npband 8 npfft 16   # 256 processeurs
-#npkpt 2 npband 16 npfft 16  # 512 processeurs
- npkpt 2 npband 16 npfft 32  # 1024 processeurs
-#npkpt 2 npband 32 npfft 32  # 2048 processeurs
-np_slk 32
+import sys
+import operator
+import numpy as np
+import abipy.abilab as abilab
+import abipy.data as abidata
 
-# Algorithme de diagonalisation
-paral_kgb 1
-wfoptalg 1
-fftalg 402
-#fftalg 302  ! To use FFTW instead of ABINIT FFT
+from monty.termcolor import cprint
+from abipy.benchmarks import bench_main, BenchmarkFlow
 
-# Donnees de la base d'ondes planes
-ecut 5.
-pawecutdg 10.
 
-# Parametres du cycle auto-coherent
-tolvrs 1.d-3
-nstep 20
+def make_input():
+    """
+    Titanium with 256 atoms.
+    GS calculations with paralkgb==1
+    """
+    pseudos = abidata.pseudos("ti.paw")
 
-# Points K et symetries
-nkpt 2
-kpt 3*0.5 2*0. 0.5
-kptopt 0
-istwfk *1
-nsym 0
-chksymbreak 0
-
-# Bandes electroniques
-nband 2048
-occopt 3
-tsmear 1800. K
-
-# Cellule de simulation
-acell 50.4 25.2 25.2 
-rprim 1. 0. 0. 0. 1. 0. 0. 0. 1.
-natom 256
-ntypat 1
-typat 256*1
-znucl 22.
-chkprim 0
-pawovlp -1
-
-# Activation/desactvation des I/O
-optforces 2
-optstress 1
-prtwf 0
-prtden 0
-prteig 0
-timopt 0
-
-#Positions des atomes
-xred
+    # Atomic Positions.
+    xred = np.fromstring("""
 0.00000000000000 0.00000000000000 0.00000000000000
 0.06250000000000 0.12500000000000 0.12500000000000
 0.00000000000000 0.00000000000000 0.25000000000000
@@ -312,4 +280,98 @@ xred
 0.93254833333333 0.97751666666666 0.81711666666667
 0.91770833333333 0.93970666666666 0.99482666666667
 0.92680333333333 0.14577666666666 0.95922666666667
+""", sep=" ").reshape((-1,3))
 
+    # Crystal structure.
+    structure = abilab.Structure.from_abivars(
+        acell=[50.4, 25.2, 25.2],
+        rprim=np.eye(3), 
+        typat=256*[1],
+        znucl=22,
+        xred=xred,
+    )
+
+    inp = abilab.AbinitInput(structure, pseudos)
+    inp.set_vars(
+        # SCF algorithm
+        paral_kgb=1,
+        wfoptalg=1,
+        fftalg=402,
+        #fftalg-302,  # To use FFTW instead of ABINIT FFT
+
+        # Basis set
+        ecut=5,
+        pawecutdg=10,
+
+        # SCF cycle
+        tolvrs=1.e-3,
+        nstep=20,
+
+        # K-Points and symmetries
+        nkpt=2,
+        kpt=[3*[0.5], [0, 0, 0.5]],
+        kptopt=0,
+        istwfk="*1",
+        nsym=0,
+        chksymbreak=0,
+        chkprim=0,
+        pawovlp=-1,
+
+        # bands and occupation scheme.
+        nband=2048,
+        occopt=3,
+        tsmear="1800. K",
+
+        # IO 
+        optforces=2,
+        optstress=1,
+        prtwf=0,
+        prtden=0,
+        prteig=0,
+        timopt=-1,
+    )
+
+    return inp
+
+
+def build_flow(options):
+    flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
+
+    template = make_input()
+
+    # Processor distribution.
+    pconfs = [
+     dict(npkpt=2, npband=8 , npfft=8 ),  # 128 
+     dict(npkpt=2, npband=8 , npfft=16),  # 256 
+     dict(npkpt=2, npband=16, npfft=16),  # 512 
+     dict(npkpt=2, npband=16, npfft=32),  # 1024
+     dict(npkpt=2, npband=32, npfft=32),  # 2048
+    ]
+
+    omp_threads = 1
+    for wfoptalg in [None, 1]:
+    	work = abilab.Work()
+	for d in pconfs:
+	    mpi_procs = reduce(operator.mul, d.values(), 1)
+	    if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
+	    d["np_slk"] = 32
+	    manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
+	    print("wfoptalg:", wfoptalg, "done with MPI_PROCS:", mpi_procs, "and:", d)
+	    inp = template.new_with_vars(d, wfoptalg=wfoptalg)
+	    #inp.abivalidate()
+	    work.register_scf_task(inp, manager=manager)
+
+    	flow.register_work(work)
+
+    return flow.allocate()
+
+
+@bench_main
+def main(options):
+    flow = build_flow(options)
+    flow.build_and_pickle_dump()
+    return flow
+
+
+if __name__ == "__main__":
+    sys.exit(main())

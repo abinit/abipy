@@ -1,5 +1,7 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
+import os
+
 from monty.termcolor import cprint
 from pymatgen.io.abinit.flows import Flow
 
@@ -39,18 +41,20 @@ def bench_main(main):
                                  "Default None i.e. the manager is read from standard locations: "
                                  "working directory first then ~/.abinit/abipy/manager.yml.")
 
-        parser.add_argument("--mpi-range", default=None, help="Range of MPI processors to be tested."
-                            "'--mpi-range='(1,4,2)' performs benchmarks for mpi_procs in [1, 3]")
+        parser.add_argument("--mpi-list", default=None, help="List of MPI processors to be tested."
+                            "'--mpi-list='(1,4,2)' performs benchmarks for mpi_procs in [1, 3]")
 
-        parser.add_argument("--omp-range", default=None, help="Range of OMP threads to be tested."
-                            "'--omp-range='(1,4,2)' performs benchmarks for omp_threads in [1, 3]")
+        parser.add_argument("--omp-list", default=None, help="List of OMP threads to be tested."
+                            "'--omp-list='(1,4,2)' performs benchmarks for omp_threads in [1, 3]")
 
-        parser.add_argument("--max-ncpus", default=None, type=int, help="Maximum number of CPUs to be tested.")
+        parser.add_argument("--max-ncpus", default=206, type=int, help="Maximum number of CPUs to be tested.")
+        parser.add_argument("--min-ncpus", default=-1, type=int, help="Minimum number of CPUs to be tested.")
         parser.add_argument('--paw', default=False, action="store_true", help="Run PAW calculation if present")
 
-        #parser.add_argument("--min-eff", default=0.6, type=int, help="Minimum parallel efficiency accepted.")
+        parser.add_argument("--min-eff", default=0.6, type=int, help="Minimum parallel efficiency accepted.")
 
         parser.add_argument("-i", '--info', default=False, action="store_true", help="Show benchmark info and exit")
+        parser.add_argument("-r", "--remove", default=False, action="store_true", help="Remove old flow workdir")
 
         parser.add_argument("--scheduler", "-s", default=False, action="store_true", help="Run with the scheduler")
 
@@ -65,32 +69,46 @@ def bench_main(main):
         logging.basicConfig(level=numeric_level)
 
         # parse arguments
-        if options.mpi_range is not None:
+        if options.mpi_list is not None:
             import ast
-            t = ast.literal_eval(options.mpi_range)
+            t = ast.literal_eval(options.mpi_list)
             assert len(t) == 3
-            options.mpi_range = range(t[0], t[1], t[2])
-            #print(options.mpi_range)
+            options.mpi_list = range(t[0], t[1], t[2])
+            #print(options.mpi_list)
 
-        if options.omp_range is not None:
+        if options.omp_list is not None:
             import ast
-            t = ast.literal_eval(options.omp_range)
+            t = ast.literal_eval(options.omp_list)
             assert len(t) == 3
-            options.omp_range = range(t[0], t[1], t[2])
-            #print(options.omp_range)
+            options.omp_list = range(t[0], t[1], t[2])
+            #print(options.omp_list)
 
         # Monkey patch options to add useful method 
         #   accept_mpi_omp(mpi_proc, omp_threads)
         def monkey_patch(opts):
             def accept_mpi_omp(opts, mpi_procs, omp_threads):
                 """Return True if we can run a benchmark with mpi_procs and omp_threads"""
-                if opts.max_ncpus is not None and mpi_procs > opts.max_ncpus:
+                tot_ncpus = mpi_procs * omp_threads
+                if tot_ncpus < opts.min_ncpus:
+                    cprint("Skipping mpi_procs %d because of min_ncpus" % mpi_procs, color="magenta")
+                    return False
+                if opts.max_ncpus is not None and tot_ncpus > opts.max_ncpus:
                     cprint("Skipping mpi_procs %d because of max_ncpus" % mpi_procs, color="magenta")
                     return False
                 return True 
 
             import types
             opts.accept_mpi_omp = types.MethodType(accept_mpi_omp, opts)
+
+            def get_workdir(opts, _file_):
+                """
+                Return the workdir of the benchmark. 
+                A default value if constructed from the name of the scrip if no cmd line arg.
+                """
+                if options.workdir: return options.workdir
+                return "bench_" + os.path.basename(_file_).replace(".py", "")
+
+            opts.get_workdir = types.MethodType(get_workdir, opts)
             
         monkey_patch(options)
 

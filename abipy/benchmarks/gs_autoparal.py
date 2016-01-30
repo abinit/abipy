@@ -26,7 +26,7 @@ def make_input(paw=False):
     ecut = 20
     inp.set_vars(
         ecut=ecut,
-        pawecutdg=ecut*4,
+        pawecutdg=ecut*4 if paw else None,
         nsppol=1,
         nband=20,
         paral_kgb=1,
@@ -52,7 +52,7 @@ def build_flow(options):
     else:
 	    print("Getting all autoparal confs up to max_ncpus: ",max_ncpus," with efficiency >= ",min_eff)
 
-    flow = BenchmarkFlow(workdir="bench_paralkgb")
+    flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
 
     pconfs = template.abiget_autoparal_pconfs(max_ncpus, autoparal=1)
     print(pconfs)

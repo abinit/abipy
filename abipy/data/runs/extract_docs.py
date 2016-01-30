@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 """This script extracts the docstrings from the run_*.py scripts located in this directory."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import os
 
-from abipy.tools.text import WildCard
+from monty.fnmatch import WildCard
 
 def main():
     # Find (runnable) scripts.
