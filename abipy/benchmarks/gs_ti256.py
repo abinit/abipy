@@ -16,12 +16,12 @@ from monty.termcolor import cprint
 from abipy.benchmarks import bench_main, BenchmarkFlow
 
 
-def make_input():
+def make_input(paw=True):
     """
     Titanium with 256 atoms.
     GS calculations with paralkgb==1
     """
-    pseudos = abidata.pseudos("ti.paw")
+    pseudos = abidata.pseudos("ti.paw") if paw else abidata.pseudos("Ti-sp.psp8")
 
     # Atomic Positions.
     xred = np.fromstring("""
