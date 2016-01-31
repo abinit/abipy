@@ -113,6 +113,10 @@ def build_flow(options):
 
 @bench_main
 def main(options):
+    if options.info:
+        # print doc string and exit.
+        print(__doc__)
+        return 
     flow = build_flow(options)
     flow.build_and_pickle_dump()
     return flow

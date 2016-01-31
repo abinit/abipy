@@ -116,6 +116,10 @@ def sigma_benchmark(options):
 
 @bench_main
 def main(options):
+    if options.info:
+        # print doc string and exit.
+        print(__doc__)
+        return 
     flow = sigma_benchmark(options)
     flow.build_and_pickle_dump()
     return flow
