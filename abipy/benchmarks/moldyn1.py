@@ -9,6 +9,7 @@ import numpy as np
 import abipy.abilab as abilab
 import abipy.data as abidata
 
+from itertools import product
 from abipy.benchmarks import bench_main, BenchmarkFlow
 
 
@@ -124,12 +125,10 @@ def build_flow(options):
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
 
     work = abilab.Work()
-    for conf in pconfs:
-        mpi_procs = conf.mpi_ncpus; omp_threads = conf.omp_ncpus
-        if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
-        if conf.efficiency < min_eff: continue
+    for conf, omp_threads in product(pconfs, options.omp_list):
+        mpi_procs = conf.mpi_ncpus
+        if not options.accept_conf(conf, omp_threads): continue
 
-        if options.verbose: print(conf)
         manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
         inp = template.new_with_vars(conf.vars)
         work.register_scf_task(inp, manager=manager)

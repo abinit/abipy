@@ -53,14 +53,13 @@ def build_flow(options):
 
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
 
+    omp_threads = 1
     for istwfk in [1, 2]:
         work = abilab.Work()
         for conf in pconfs:
-            mpi_procs = conf.mpi_ncpus; omp_threads = conf.omp_ncpus
-            if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
-            if conf.efficiency < min_eff: continue
+            mpi_procs = conf.mpi_ncpus
+            if not options.accept_conf(conf, omp_threads): continue
 
-            if options.verbose: print(conf)
             manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
             inp = template.new_with_vars(conf.vars, istwfk=istwfk)
             work.register_scf_task(inp, manager=manager)

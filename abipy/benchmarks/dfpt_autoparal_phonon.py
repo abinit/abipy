@@ -19,6 +19,8 @@ def make_inputs(paw=False):
     # Crystalline AlAs: computation of the second derivative of the total energy
     structure = abidata.structure_from_ucell("AlAs")
     pseudos = abidata.pseudos("13al.981214.fhi", "33as.pspnc")
+    if paw:
+        raise NotImplementedError("PAW")
 
     # List of q-points for the phonon calculation.
     qpoints = [
@@ -98,7 +100,7 @@ def build_flow(options):
     omp_threads = 1
     work = abilab.Work()
     for conf in pconfs:
-        mpi_procs = conf.mpi_ncpus; omp_threads = conf.omp_ncpus
+        mpi_procs = conf.mpi_ncpus
         if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
         if conf.efficiency < min_eff: continue
 

@@ -6,6 +6,7 @@ import sys
 import abipy.abilab as abilab
 import abipy.data as abidata  
 
+from itertools import product
 from abipy.benchmarks import bench_main, BenchmarkFlow
 
 
@@ -97,7 +98,6 @@ def scr_benchmark(options):
     print("Using mpi_list:", options.mpi_list)
     mpi_list = options.mpi_list
 
-    omp_threads = 1
     for nband in [200, 400, 600]:
         scr_work = abilab.Work()
         if options.mpi_list is None:
@@ -106,7 +106,7 @@ def scr_benchmark(options):
             mpi_list = [np for np in range(1, nband+1) if abs((nband - 4) % np) < 1]
         print("Using nband %d and mpi_list: %s" % (nband, mpi_list))
 
-        for mpi_procs in mpi_list:
+        for mpi_procs, omp_threads in product(mpi_list, options.omp_list):
             if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
             manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
             scr_work.register_scr_task(scr_inp, manager=manager, deps={bands.nscf_task: "WFK"})

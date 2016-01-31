@@ -51,7 +51,6 @@ def build_flow(options):
 
     mpi_procs = 1
     for omp_threads in omp_list:
-        #if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
         manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
         work.register(inp, manager=manager)
 

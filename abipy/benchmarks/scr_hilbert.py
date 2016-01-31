@@ -6,6 +6,7 @@ import sys
 import abipy.abilab as abilab
 import abipy.data as abidata  
 
+from itertools import product
 from abipy.benchmarks import bench_main, BenchmarkFlow
 
 
@@ -101,7 +102,6 @@ def scr_benchmark(options):
     flow.register_work(bands)
     flow.exclude_from_benchmark(bands)
 
-    omp_threads = 1
     #for nband in [200, 400, 600]:
     for nband in [600]:
         scr_work = abilab.Work()
@@ -111,12 +111,13 @@ def scr_benchmark(options):
             # Cannot call autoparal here because we need a WFK file.
             print("Using hard coded values for mpi_list")
             mpi_list = [np for np in range(1, nband+1) if abs((nband - 4) % np) < 1]
-            
         print("Using nband %d and mpi_list: %s" % (nband, mpi_list))
-        for mpi_procs in mpi_list:
+
+        for mpi_procs, omp_threads in product(mpi_list, options.omp_list):
             if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
             manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
             scr_work.register_scr_task(inp, manager=manager, deps={bands.nscf_task: "WFK"})
+
         flow.register_work(scr_work)
 
     return flow.allocate()

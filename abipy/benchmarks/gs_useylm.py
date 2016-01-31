@@ -6,6 +6,7 @@ import sys
 import abipy.abilab as abilab
 import abipy.data as abidata
 
+from itertools import product
 from abipy.benchmarks import bench_main, BenchmarkFlow
 
 
@@ -50,10 +51,9 @@ def build_flow(options):
 
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
 
-    omp_threads = 1
     for useylm in [0, 1]:
         work = abilab.Work()
-        for mpi_procs in mpi_list:
+        for mpi_procs, omp_threads in product(mpi_list, options.omp_list):
             if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
             manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
             work.register_scf_task(inp.new_with_vars(useylm=useylm), manager=manager)

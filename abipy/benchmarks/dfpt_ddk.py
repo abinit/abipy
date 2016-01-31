@@ -6,6 +6,7 @@ import sys
 import abipy.abilab as abilab
 import abipy.data as abidata
 
+from itertools import product
 from abipy.benchmarks import bench_main, BenchmarkFlow
 
 
@@ -33,6 +34,7 @@ def make_inputs(paw=False):
     # Global variables.
     global_vars = dict(
         ecut=32,      
+        pawecutdg=32 if paw else None,
         nband=24,
         nbdbuf=4,
         # Definition of the SCF procedure
@@ -101,14 +103,11 @@ def build_flow(options):
     pconfs = ddk_inp.abiget_autoparal_pconfs(max_ncpus, autoparal=1)
     print(pconfs)
 
-    omp_threads = 1
     work = abilab.Work()
-    for conf in pconfs:
-        mpi_procs = conf.mpi_ncpus; omp_threads = conf.omp_ncpus
-        if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
-        if conf.efficiency < min_eff: continue
+    for conf, omp_threads in product(pconfs, options.omp_list):
+        mpi_procs = conf.mpi_ncpus
+        if not options.accept_conf(conf, omp_threads): continue
 
-        if options.verbose: print(conf)
         manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
         inp = ddk_inp.new_with_vars(conf.vars)
         work.register_ddk_task(inp, manager=manager, deps={ebands_work[1]: "WFK"})

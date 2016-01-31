@@ -6,6 +6,7 @@ import sys
 import abipy.abilab as abilab
 import abipy.data as abidata  
 
+from itertools import product
 from abipy.benchmarks import bench_main, BenchmarkFlow
 
 def make_inputs(paw=False):
@@ -85,9 +86,8 @@ def bse_benchmark(options):
         mpi_list = [p for p in range(1, 1 + ntrans) if ntrans % p == 0]
     print("Using mpi_list:", mpi_list)
 
-    omp_threads = 1
     bse_work = abilab.Work()
-    for mpi_procs in mpi_list:
+    for mpi_procs, omp_threads in product(mpi_list, options.omp_list):
         if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
         manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
         bse_work.register_bse_task(bse_inp, manager=manager, deps={gs_work[0]: "WFK"})

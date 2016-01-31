@@ -58,9 +58,7 @@ def build_flow(options):
         work = abilab.Work()
         for conf in pconfs:
             mpi_procs = conf.mpi_ncpus; omp_threads = conf.omp_ncpus
-            if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
-            if conf.efficiency < min_eff: continue
-            if options.verbose: print(conf)
+            if not options.accept_conf(conf, omp_threads): continue
 
             # Two GS-SCF tasks. The first one produces the WKF, the second one reads it.
             manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
