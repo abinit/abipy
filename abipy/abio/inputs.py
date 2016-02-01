@@ -1287,7 +1287,9 @@ class MultiDataset(object):
 
     def __getattr__(self, name):
         #print("in getname with name: %s" % name)
-        m = getattr(self._inputs[0], name)
+        #m = getattr(self._inputs[0], name)
+        _inputs = object.__getattribute__(self, "_inputs")
+        m = getattr(_inputs[0], name)
         if m is None:
             raise AttributeError("Cannot find attribute %s. Tried in %s and then in AbinitInput object" 
                                  % (self.__class__.__name__, name))

@@ -1,7 +1,53 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
+import os
+import ast
+import types
+
+from orderedset import OrderedSet
 from monty.termcolor import cprint
 from pymatgen.io.abinit.flows import Flow
+
+
+def as_orderedset(token, options):
+    """
+    Helper function used to parse --mpi-list argument.
+    Return OrderedSet
+    """
+
+    if token.startswith("range"):
+        # start(1,4,2)
+        token = token[5:]
+        print("token", token)
+        t = ast.literal_eval(token)
+        assert len(t) == 3
+        l = list(range(t[0], t[1], t[2]))
+
+    elif token.endswith("x"):
+        # 16x --> multiple of 16
+        fact = int(token[:-1])
+        l, i = [], 0
+        while True:
+            i += 1
+            val = fact * i
+            if val > options.max_ncpus: break
+            l.append(val)
+
+    elif token.endswith("pow"):
+        # pow4 --> powers of 4
+        base = int(token[3:])
+        l, i = [], 0
+        while True:
+            i += 1
+            val = base ** i
+            if val > options.max_ncpus: break
+            l.append(val)
+    else:
+        # lists
+        l = ast.literal_eval(token)
+
+    #print("l", l)
+    return OrderedSet(l)
 
 
 def bench_main(main):
@@ -39,16 +85,19 @@ def bench_main(main):
                                  "Default None i.e. the manager is read from standard locations: "
                                  "working directory first then ~/.abinit/abipy/manager.yml.")
 
-        parser.add_argument("--mpi-range", default=None, help="Range of MPI processors to be tested."
-                            "'--mpi-range='(1,4,2)' performs benchmarks for mpi_procs in [1, 3]")
+        parser.add_argument("--mpi-list", default=None, help="List of MPI processors to be tested. Syntax:\n"
+                            "--mpi-list='[1,6,12]' to define a list, 'range(1,4,2)' for a python range.\n" 
+                            "--mpi-list='16x' for multiple of 16 up to max--ncpus, --mpi-list='pow2' for powers of 2")
+        parser.add_argument("--omp-list", default=None, help="List of OMP threads to be tested. Defaultis [1]. Same syntax as mpi-list.")
 
-        parser.add_argument("--omp-range", default=None, help="Range of OMP threads to be tested."
-                            "'--omp-range='(1,4,2)' performs benchmarks for omp_threads in [1, 3]")
+        parser.add_argument("--min-ncpus", default=-1, type=int, help="Minimum number of CPUs to be tested.")
+        parser.add_argument("--max-ncpus", default=206, type=int, help="Maximum number of CPUs to be tested. Default: 206.")
+        parser.add_argument("--min-eff", default=0.6, type=int, help="Minimum parallel efficiency accepted. Default 0.6.")
 
-        parser.add_argument("--max-ncpus", default=None, type=int, help="Maximum number of CPUs to be tested.")
-        parser.add_argument('--paw', default=False, action="store_true", help="Run PAW calculation if present")
+        parser.add_argument('--paw', default=False, action="store_true", help="Run PAW calculation if available")
 
         parser.add_argument("-i", '--info', default=False, action="store_true", help="Show benchmark info and exit")
+        parser.add_argument("-r", "--remove", default=False, action="store_true", help="Remove old flow workdir")
 
         parser.add_argument("--scheduler", "-s", default=False, action="store_true", help="Run with the scheduler")
 
@@ -63,32 +112,72 @@ def bench_main(main):
         logging.basicConfig(level=numeric_level)
 
         # parse arguments
-        if options.mpi_range is not None:
-            import ast
-            t = ast.literal_eval(options.mpi_range)
-            assert len(t) == 3
-            options.mpi_range = range(t[0], t[1], t[2])
-            #print(options.mpi_range)
+        if options.mpi_list is not None:
+            options.mpi_list = as_orderedset(options.mpi_list, options)
 
-        if options.omp_range is not None:
-            import ast
-            t = ast.literal_eval(options.omp_range)
-            assert len(t) == 3
-            options.omp_range = range(t[0], t[1], t[2])
-            #print(options.omp_range)
+        if options.omp_list is None:
+            options.omp_list = [1]
+        else:
+            options.omp_list = as_orderedset(options.omp_list, options)
 
         # Monkey patch options to add useful method 
-        #   accept_mpi_omp(mpi_proc, omp_threads)
         def monkey_patch(opts):
+
+            # options.accept_mpi_omp(mpi_proc, omp_threads)
             def accept_mpi_omp(opts, mpi_procs, omp_threads):
                 """Return True if we can run a benchmark with mpi_procs and omp_threads"""
-                if opts.max_ncpus is not None and mpi_procs > opts.max_ncpus:
-                    cprint("Skipping mpi_procs %d because of max_ncpus" % mpi_procs, color="magenta")
+                tot_ncpus = mpi_procs * omp_threads
+
+                if tot_ncpus < opts.min_ncpus:
+                    if options.verbose:
+                        cprint("Skipping %d because of min_ncpus" % tot_ncpus, color="magenta")
                     return False
+
+                if opts.max_ncpus is not None and tot_ncpus > opts.max_ncpus:
+                    if options.verbose:
+                        cprint("Skipping %d because of max_ncpus" % tot_ncpus, color="magenta")
+                    return False
+
                 return True 
 
-            import types
             opts.accept_mpi_omp = types.MethodType(accept_mpi_omp, opts)
+
+            def accept_conf(opts, conf, omp_threads):
+                """Return True if we can run a benchmark with mpi_procs and omp_threads"""
+                tot_ncpus = conf.mpi_procs * omp_threads
+                                                                                                      
+                if tot_ncpus < opts.min_ncpus:
+                    if options.verbose:
+                        cprint("Skipping %d because of min_ncpus" % tot_ncpus, color="magenta")
+                    return False
+                                                                                                      
+                if opts.max_ncpus is not None and tot_ncpus > opts.max_ncpus:
+                    if options.verbose:
+                        cprint("Skipping %d because of max_ncpus" % tot_ncpus, color="magenta")
+                    return False
+
+                if conf.efficiency < opts.min_eff: 
+                    if options.verbose:
+                        cprint("Skipping %d because of parallel efficiency" % tot_ncpus, color="magenta")
+                    return False
+
+                if options.verbose:
+                    cprint("Accepting omp_threads:%s with conf\n%s" % (omp_threads, conf), color="green")
+
+                return True 
+
+            opts.accept_conf = types.MethodType(accept_conf, opts)
+
+            # options.get_workdir(__file__)
+            def get_workdir(opts, _file_):
+                """
+                Return the workdir of the benchmark. 
+                A default value if constructed from the name of the scrip if no cmd line arg.
+                """
+                if options.workdir: return options.workdir
+                return "bench_" + os.path.basename(_file_).replace(".py", "")
+
+            opts.get_workdir = types.MethodType(get_workdir, opts)
             
         monkey_patch(options)
 
@@ -97,11 +186,10 @@ def bench_main(main):
         options.manager = TaskManager.as_manager(options.manager)
 
         flow = main(options)
-        if flow is None: 
-            return 0
+        if flow is None: return 0
 
         if options.scheduler:
-            flow.make_scheduler().start()
+            return flow.make_scheduler().start()
 
         return 0
 
@@ -141,13 +229,23 @@ class BenchmarkFlow(Flow):
         parser = self.parse_timing(nids=nids)
 
         if parser is None: 
-            print("parse_timing returned None!")
+            print("flow.parse_timing returned None!")
         else:
             if len(parser) != len(nids): 
                 print("Not all timing sections have been parsed!")
 
         return parser
 
+    def build_and_pickle_dump(self, *args, **kwargs):
+        cnt = 0
+        for task in self.iflat_tasks():
+            if task.node_id in self.exclude_nodeids: continue
+            cnt += 1
+            print("%s: mpi_procs %d, omp_threads %d" % 
+              (task, task.manager.qadapter.mpi_procs, task.manager.qadapter.omp_threads))
+        print("Total number of benchmarks: %d" % cnt)
+
+        return super(BenchmarkFlow, self).build_and_pickle_dump(*args, **kwargs)
+
     #def make_tarball(self):
     #    self.make_tarfile(self, name=None, max_filesize=None, exclude_exts=None, exclude_dirs=None, verbose=0, **kwargs):
-

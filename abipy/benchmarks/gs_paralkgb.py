@@ -9,6 +9,7 @@ import sys
 import abipy.abilab as abilab
 import abipy.data as abidata
 
+from itertools import product
 from abipy.benchmarks import bench_main, BenchmarkFlow
 
 
@@ -26,7 +27,7 @@ def make_input(paw=False):
     ecut = 20
     inp.set_vars(
         ecut=ecut,
-        pawecutdg=ecut*4,
+        pawecutdg=ecut*4 if paw else None,
         nsppol=1,
         nband=20,
         paral_kgb=1,
@@ -46,27 +47,19 @@ def build_flow(options):
     template = make_input()
 
     # Get the list of possible parallel configurations from abinit autoparal.
-    max_ncpus, min_eff = options.max_ncpus, 0.5
-    if max_ncpus is None:
-	    raise RuntimeError("This benchmark requires --max-ncpus")
-    else:
-	    print("Getting all autoparal confs up to max_ncpus: ",max_ncpus," with efficiency >= ",min_eff)
+    max_ncpus, min_eff = options.max_ncpus, options.min_eff
+    print("Getting all autoparal configurations up to max_ncpus: ",max_ncpus," with efficiency >= ",min_eff)
+    pconfs = template.abiget_autoparal_pconfs(max_ncpus, autoparal=1, verbose=options.verbose)
+    if options.verbose: print(pconfs)
 
-    flow = BenchmarkFlow(workdir="bench_paralkgb")
+    flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
 
-    pconfs = template.abiget_autoparal_pconfs(max_ncpus, autoparal=1)
-    print(pconfs)
-
-    omp_threads = 1
     for wfoptalg in [None, 1]:
         work = abilab.Work()
-        for conf in pconfs:
-            mpi_procs = conf.mpi_ncpus; omp_threads = conf.omp_ncpus
-            if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
-            if conf.efficiency < min_eff: continue
+        for conf, omp_threads in product(pconfs, options.omp_list):
+            if not options.accept_conf(conf, omp_threads): continue
 
-            if options.verbose: print(conf)
-            manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
+            manager = options.manager.new_with_fixed_mpi_omp(conf.mpi_procs, omp_threads)
             inp = template.new_with_vars(conf.vars, wfoptalg=wfoptalg)
             work.register_scf_task(inp, manager=manager)
 

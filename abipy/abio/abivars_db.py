@@ -111,7 +111,7 @@ class Variable(yaml.YAMLObject):
 
     def __str__(self):
         s = html2text.html2text("<h2>Default value:</h2>" + str(self.defaultval) + "<br/><h2>Description</h2>" + str(self.text))
-        return s.encode("utf-8", errors="ignore")
+        return str(s.encode("utf-8", errors="ignore"))
 
     def _repr_html_(self):
         """For Ipython notebook"""

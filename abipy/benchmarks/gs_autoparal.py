@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
-Benchmark IO sections with paral_kgb=1 algorithm (MPI-IO vs Netcdf)
+This benchmark uses paral_kgb=1 and compares the effective parallel efficiency with
+the one reported by autoparal.
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 
@@ -32,10 +33,10 @@ def make_input(paw=False):
         istwfk="*1",
         timopt=-1,
         chksymbreak=0,
-        prtwf=1,
-        prtden=1,
-        tolvrs=1e-2,
-        nstep=10,
+        prtwf=0,
+        prtden=0,
+        tolvrs=1e-8,
+        nstep=50,
     )
 
     return inp
@@ -46,28 +47,25 @@ def build_flow(options):
 
     # Get the list of possible parallel configurations from abinit autoparal.
     max_ncpus, min_eff = options.max_ncpus, options.min_eff
-    print("Getting all autoparal confs up to max_ncpus: ",max_ncpus," with efficiency >= ",min_eff)
 
+    print("Getting all autoparal confs up to max_ncpus: ",max_ncpus," with efficiency >= ",min_eff)
     pconfs = template.abiget_autoparal_pconfs(max_ncpus, autoparal=1, verbose=options.verbose)
     if options.verbose: print(pconfs)
 
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
 
     omp_threads = 1
-    for accesswff in [1, 3]: # [MPI-IO, Netcdf]
-        work = abilab.Work()
-        for conf in pconfs:
-            mpi_procs = conf.mpi_ncpus; omp_threads = conf.omp_ncpus
-            if not options.accept_conf(conf, omp_threads): continue
+    work = abilab.Work()
+    for conf in pconfs:
+        mpi_procs = conf.mpi_ncpus; omp_threads = conf.omp_ncpus
+        if not options.accept_conf(conf, omp_threads): continue
 
-            # Two GS-SCF tasks. The first one produces the WKF, the second one reads it.
-            manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
-            inp = template.new_with_vars(conf.vars, accesswff=accesswff)
-            task0 = work.register_scf_task(inp, manager=manager)
-            work.register_scf_task(inp, manager=manager, deps={task0: "WFK"})
+        manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
+        inp = template.new_with_vars(conf.vars)
+        work.register_scf_task(inp, manager=manager)
 
-        print("Found %d configurations" % len(work))
-        flow.register_work(work)
+    print("Found %d configurations" % len(work))
+    flow.register_work(work)
 
     return flow.allocate()
 

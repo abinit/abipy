@@ -1,12 +1,13 @@
 #!/usr/bin/env python
-"""Benchmark for phonon calculation with DFPT.""" 
+"""
+This benchmark compares the effective parallel efficiency with the one reported by autoparal.
+"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys
 import abipy.abilab as abilab
 import abipy.data as abidata
 
-from itertools import product
 from abipy.benchmarks import bench_main, BenchmarkFlow
 
 
@@ -39,7 +40,7 @@ def make_inputs(paw=False):
     global_vars = dict(
         nband=12,             
         ecut=12.0,         
-        pawecutdg=24.0 if paw else None,
+        pawecutdg=24 if paw else None,
         ngkpt=[8, 8, 8],
         nshiftk=4,
         shiftk=[0.0, 0.0, 0.5,   # This gives the usual fcc Monkhorst-Pack grid
@@ -96,11 +97,14 @@ def build_flow(options):
     pconfs = ph_inp.abiget_autoparal_pconfs(max_ncpus, autoparal=1)
     print(pconfs)
 
+    omp_threads = 1
     work = abilab.Work()
-    for conf, omp_threads in product(pconfs, options.omp_list):
+    for conf in pconfs:
         mpi_procs = conf.mpi_ncpus
-        if not options.accept_conf(conf, omp_threads): continue
+        if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
+        if conf.efficiency < min_eff: continue
 
+        if options.verbose: print(conf)
         manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
         inp = ph_inp.new_with_vars(conf.vars)
         work.register_phonon_task(inp, manager=manager, deps={gs_work[0]: "WFK"})

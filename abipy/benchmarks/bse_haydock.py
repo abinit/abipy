@@ -6,6 +6,7 @@ import sys
 import abipy.abilab as abilab
 import abipy.data as abidata  
 
+from itertools import product
 from abipy.benchmarks import bench_main, BenchmarkFlow
 
 def make_inputs(paw=False):
@@ -22,6 +23,7 @@ def make_inputs(paw=False):
     multi.set_vars(
         ecut=ecut,
         pawecutdg=ecut*4 if paw else None,
+        nsppol=1,
         timopt=-1,
         istwfk="*1",
         paral_kgb=0,
@@ -69,20 +71,23 @@ def bse_benchmark(options):
     Build an `AbinitWorkflow` used for benchmarking ABINIT.
     """
     gs_inp, bse_inp = make_inputs(paw=options.paw)
-    flow = BenchmarkFlow(workdir="bench_bse")
+    flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
 
     gs_work = abilab.Work()
     gs_work.register_scf_task(gs_inp)
     flow.register_work(gs_work)
     flow.exclude_from_benchmark(gs_work)
 
-    print("Using mpi_range:", options.mpi_range)
-    if options.mpi_range is None:
-	raise RuntimeError("This benchmark requires --mpi-range")
+    mpi_list = options.mpi_list
 
-    omp_threads = 1
+    if options.mpi_list is None:
+        nkpt = len(gs_inp.abiget_ibz().points)
+        ntrans = (2*2*nkpt)**2
+        mpi_list = [p for p in range(1, 1 + ntrans) if ntrans % p == 0]
+    print("Using mpi_list:", mpi_list)
+
     bse_work = abilab.Work()
-    for mpi_procs in options.mpi_range:
+    for mpi_procs, omp_threads in product(mpi_list, options.omp_list):
         if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
         manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
         bse_work.register_bse_task(bse_inp, manager=manager, deps={gs_work[0]: "WFK"})

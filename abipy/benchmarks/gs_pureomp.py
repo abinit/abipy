@@ -21,7 +21,7 @@ def make_input(paw=False):
     ecut = 10
     inp.set_vars(
         ecut=ecut,
-        pawecutdg=ecut*4,
+        pawecutdg=ecut*4 if paw else None,
         nsppol=1,
         nband=20,
         paral_kgb=0,
@@ -42,18 +42,16 @@ def build_flow(options):
     inp = make_input(paw=options.paw)
     nkpt = len(inp.abiget_ibz().points)
 
-    flow = BenchmarkFlow(workdir="bench_gs_pureomp")
+    flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
     work = abilab.Work()
 
-    omp_range = options.omp_range
-    print("Using omp-range:", omp_range)
-    if omp_range is None:
-        raise RuntimeError("--omp-range must be specified for this benchmark")
+    omp_list = options.omp_list
+    if omp_list is None: omp_list = [1, 2, 4, 6]
+    print("Using omp_list:", omp_list)
 
     mpi_procs = 1
-    for omp_threads in omp_range:
-	#if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
-	manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
+    for omp_threads in omp_list:
+        manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
         work.register(inp, manager=manager)
 
     flow.register_work(work)
