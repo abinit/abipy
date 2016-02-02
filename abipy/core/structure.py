@@ -1039,6 +1039,21 @@ class Structure(pymatgen.Structure):
 
         return nval
 
+    def valence_electrons_per_atom(self, pseudos):
+        """
+        Returns the number of valence electrons for each atom in the structure.
+
+        Args:
+            pseudos: List of :class:`Pseudo` objects or list of filenames.
+        """
+        table = PseudoTable.as_table(pseudos)
+        psp_valences = []
+        for site in self:
+            pseudo = table.pseudo_with_symbol(site.species_string)
+            psp_valences.append(pseudo.Z_val)
+
+        return psp_valences
+
 
 class StructureModifier(object):
     """

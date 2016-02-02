@@ -618,6 +618,11 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         """Number of valence electrons computed from the pseudos and the structure."""
         return self.structure.num_valence_electrons(self.pseudos)
 
+    @property
+    def valence_electrons_per_atom(self):
+        """Number of valence electrons for each atom in the structure."""
+        return self.structure.valence_electrons_per_atom(self.pseudos)
+
     def linspace(self, varname, start, stop, num=50, endpoint=True):
         """
         Returns `num` evenly spaced samples, calculated over the interval [`start`, `stop`].
