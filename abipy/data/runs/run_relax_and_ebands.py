@@ -4,7 +4,7 @@ This script shows how to perform a structural relaxation and a band structure ca
 
 WARNING: The API could change!
 """
-from __future__ import division, print_function, unicode_literals
+from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys
 import os

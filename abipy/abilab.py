@@ -3,6 +3,8 @@ This module gathers the most important classes and helper functions used for scr
 """
 from __future__ import print_function, division, unicode_literals
 
+import os
+
 from monty.os.path import which
 from pymatgen.core.units import *
 from pymatgen.io.abinit.eos import EOS
@@ -20,6 +22,7 @@ except ImportError:
 
 from pymatgen.io.abinit.launcher import PyFlowScheduler, BatchLauncher
 
+from abipy.core.release import __version__, min_abinit_version
 from abipy.core.structure import Lattice, Structure, StructureModifier
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
 from abipy.abio.robots import GsrRobot, SigresRobot, MdfRobot, DdbRobot, abirobot
@@ -59,6 +62,14 @@ def _straceback():
 
 def abifile_subclass_from_filename(filename):
     """Returns the appropriate class associated to the given filename."""
+    # Abinit text files.
+    if filename.endswith(".abi"): return AbinitInputFile
+    if filename.endswith(".abo"): return AbinitOutputFile
+    if filename.endswith(".log"): return AbinitLogFile
+
+    # CIF files.
+    if filename.endswith(".cif"): return Structure
+
     ext2ncfile = {
         "SIGRES.nc": SigresFile,
         "WFK-etsf.nc": WfkFile,
@@ -72,19 +83,10 @@ def abifile_subclass_from_filename(filename):
         "PSPS.nc": PspsFile,
     }
 
-    # Abinit text files.
-    if filename.endswith(".abi"): return AbinitInputFile
-    if filename.endswith(".abo"): return AbinitOutputFile
-    if filename.endswith(".log"): return AbinitLogFile
-
-    # CIF files.
-    if filename.endswith(".cif"): return Structure
-
     ext = filename.split("_")[-1]
     try:
         return ext2ncfile[ext]
     except KeyError:
-        #raise KeyError("No class has been registered for extension %s" % ext)
         for ext, cls in ext2ncfile.items():
             if filename.endswith(ext): return cls
 
@@ -99,37 +101,36 @@ def abiopen(filepath):
     Args:
         filepath: string with the filename. 
     """
+    if os.path.basename(filepath) == "__AbinitFlow__.pickle":
+        return Flow.pickle_load(filepath) 
+
     cls = abifile_subclass_from_filename(filepath)
     return cls.from_file(filepath)
 
 
 def software_stack():
     """
-    Import all the hard dependencies.
-    Returns a dict with the version.
+    Import all the hard dependencies. Returns a dict with the version.
     """
     # Mandatory
-    import numpy, scipy
+    import numpy, scipy, netCDF4, pymatgen, apscheduler, pydispatch, yaml
 
     d = dict(
         numpy=numpy.version.version,
         scipy=scipy.version.version,
+        netCDF4=netCDF4.__version__,
+        apscheduler=apscheduler.version,
+        pydispatch=pydispatch.__version__,
+        yaml=yaml.__version__,
+        pymatgen=pymatgen.__version__,
     )
 
     # Optional but strongly suggested.
     try:
-        import netCDF4, matplotlib
+        import matplotlib
         d.update(dict(
-            netCDF4=netCDF4.getlibversion(),
             matplotlib="Version: %s, backend: %s" % (matplotlib.__version__, matplotlib.get_backend()),
             ))
-    except ImportError:
-        pass
-
-    # Optional (GUIs).
-    try:
-        import wx
-        d["wx"] = wx.version()
     except ImportError:
         pass
 
@@ -140,45 +141,61 @@ def abicheck():
     """
     This function tests if the most important ABINIT executables
     can be found in $PATH and whether the python modules needed
-    at run-time can be imported.
-
-    Raises:
-        RuntimeError if not all the dependencies are fulfilled.
+    at run-time can be imported. Return string with error messages, empty if success.
     """
-    import os
+    err_lines = []
+    app = err_lines.append
+
     # Executables must be in $PATH. Unfortunately we cannot test the version of the binaries.
     # A possible approach would be to execute "exe -v" but supporting argv in Fortran is not trivial.
     # Dynamic linking is tested by calling `ldd exe`
-    executables = [
-        "abinit",
-        "mrgddb",
-        "mrggkk",
-        "anaddb",
-    ]
+    #executables = [
+    #    "abinit",
+    #    "mrgddb",
+    #    "mrggkk",
+    #    "mrgdv",
+    #    "anaddb",
+    #]
 
-    has_ldd = which("ldd") is not None
+    #has_ldd = which("ldd") is not None
+    #for exe in executables:
+    #    exe_path = which(exe)
+    #    if exe_path is None:
+    #        app("Cannot find %s in $PATH" % exe)
+    #    else:
+    #        if has_ldd and os.system("ldd %s > /dev/null " % exe_path) != 0:
+    #            app("Missing shared library dependencies for %s" % exe)
+    #            continue
 
-    err_lines = []
-    app = err_lines.append
-    for exe in executables:
-        exe_path = which(exe)
-
-        if exe_path is None:
-            app("Cannot find %s in $PATH" % exe)
-        else:
-            if has_ldd and os.system("ldd %s > /dev/null " % exe_path) != 0:
-                app("Missing shared library dependencies for %s" % exe)
-
-    try:    
-        software_stack()
+    try:
+        manager = TaskManager.from_user_config()
     except:
+        manager = None
         app(_straceback())
 
-    if err_lines:
-        header = "The environment on the local machine is not properly setup\n"
-        raise RuntimeError(header + "\n".join(err_lines))
+    # Get info on the Abinit build.
+    from abipy.core.testing import cmp_version
+    if manager is not None:
+        build = AbinitBuild(manager=manager)
+        if not build.has_netcdf: app("Abinit executable does not support netcdf")
+        if not build.has_etsfio: app("Abinit executable does not support etsf_io")
+        print("Abinitbuild:\n", build)
+        if not cmp_version(build.version, min_abinit_version, op=">="):
+            app("Abipy requires Abinit version >= %s but got %s" % (min_abinit_version, build.version))
 
-    return 0
+    from pymatgen.io.abinit.launcher import PyFlowScheduler
+    launcher_cnfile = os.path.join(PyFlowScheduler.USER_CONFIG_DIR, PyFlowScheduler.YAML_FILE)
+    if not os.path.exists(launcher_cnfile):
+        app("Cannot find launcher configuration file at %s" % launcher_cnfile)
+
+    try:    
+        d = software_stack()
+        print("Installed packages:")
+        print(d)
+    except ImportError:
+        app(_straceback())
+
+    return "\n".join(err_lines)
 
 
 def flow_main(main):

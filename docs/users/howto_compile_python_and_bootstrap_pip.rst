@@ -129,7 +129,7 @@ Configure with::
 Build and install with `make && make install`
 Define the environment variable `$NETCDF4_DIR`::
 
-    export HDF5_DIR=$HOME/local
+    export NETCDF4_DIR=$HOME/local
 
 Now we can download and install the python interface with::
 

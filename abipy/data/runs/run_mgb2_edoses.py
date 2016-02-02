@@ -2,7 +2,7 @@
 """
 Band structure and the electron DOS of MgB2 with different k-point samplings.
 """
-from __future__ import division, print_function, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import sys

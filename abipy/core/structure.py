@@ -1,6 +1,6 @@
 # coding: utf-8
 """This module defines basic objects representing the crystalline structure."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import collections
@@ -51,7 +51,7 @@ class Structure(pymatgen.Structure):
         raise TypeError("Don't know how to convert %s into a structure" % type(obj))
 
     @classmethod
-    def from_file(cls, filepath, primitive=True, sort=False):
+    def from_file(cls, filepath, primitive=False, sort=False):
         """
         Reads a structure from a file. For example, anything ending in
         a "cif" is assumed to be a Crystallographic Information Format file.
@@ -128,6 +128,30 @@ class Structure(pymatgen.Structure):
             new = database.get_structure_by_material_id(material_id, final=final)
             new.__class__ = cls
             return new
+
+    @classmethod
+    def from_ase_atoms(cls, atoms):
+        """
+        Returns structure from ASE Atoms.
+
+        Args:
+            atoms: ASE Atoms object
+
+        Returns:
+            Equivalent Structure
+        """
+        import pymatgen.io.ase as aio
+        return aio.AseAtomsAdaptor.get_structure(atoms, cls=cls)
+
+    def to_ase_atoms(self):
+        """
+        Returns ASE Atoms object from structure.
+
+        Returns:
+            ASE Atoms object
+        """
+        import pymatgen.io.ase as aio
+        return aio.AseAtomsAdaptor.get_atoms(self)
 
     @classmethod
     def boxed_molecule(cls, pseudos, cart_coords, acell=3*(10,)):
@@ -425,6 +449,39 @@ class Structure(pymatgen.Structure):
 
         return coords
 
+    def dot(self, coords_a, coords_b, space="r", frac_coords=False):
+        """
+        Compute the scalar product of vector(s) either in real space or
+        reciprocal space.
+
+        Args:
+            coords (3x1 array): Array-like object with the coordinates.
+            space (str): "r" for real space, "g" for reciprocal space.
+            frac_coords (bool): Whether the vector corresponds to fractional or
+                cartesian coordinates.
+
+        Returns:
+            one-dimensional `numpy` array.
+        """
+        lattice = {"r": self.lattice,
+                   "g": self.reciprocal_lattice}[space.lower()]
+        return lattice.dot(coords_a, coords_b, frac_coords=frac_coords)
+
+    def norm(self, coords, space="r", frac_coords=True):
+        """
+        Compute the norm of vector(s) either in real space or reciprocal space.
+
+        Args:
+            coords (3x1 array): Array-like object with the coordinates.
+            space (str): "r" for real space, "g" for reciprocal space.
+            frac_coords (bool): Whether the vector corresponds to fractional or
+                cartesian coordinates.
+
+        Returns:
+            one-dimensional `numpy` array.
+        """
+        return np.sqrt(self.dot(coords, coords, space=space,
+                                frac_coords=frac_coords))
 
     def show_bz(self, **kwargs):
         """
@@ -502,7 +559,6 @@ class Structure(pymatgen.Structure):
         """Write structure fo file."""
         if filename.endswith(".nc"):
             raise NotImplementedError("Cannot write a structure to a netcdf file yet")
-
         else:
             self.to(filename=filename)
 
@@ -537,6 +593,14 @@ class Structure(pymatgen.Structure):
 
         tmp_file.seek(0)
         return tmp_file.read()
+
+    #def to_xsf_string(self):
+    #    """
+    #    Returns a string with the structure in XSF format
+    #    See http://www.xcrysden.org/doc/XSF.html
+    #    """
+    #    from pymatgen.io.xcrysden import XSF
+    #    return XSF(self).to_string()
 
     #def max_overlap_and_sites(self, pseudos):
     #    # For each site in self:

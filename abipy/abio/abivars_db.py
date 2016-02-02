@@ -1,5 +1,5 @@
 """Database with the names of the input variables used in Abinit and in other main programs."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import os
@@ -111,7 +111,7 @@ class Variable(yaml.YAMLObject):
 
     def __str__(self):
         s = html2text.html2text("<h2>Default value:</h2>" + str(self.defaultval) + "<br/><h2>Description</h2>" + str(self.text))
-        return s.encode("utf-8", errors="ignore")
+        return str(s.encode("utf-8", errors="ignore"))
 
     def _repr_html_(self):
         """For Ipython notebook"""
@@ -242,7 +242,7 @@ def get_abinit_variables():
             #print("Reading database from YAML file and generating pickle version. It may take a while...")
             from abipy import data as abidata
             yaml_file = abidata.var_file('abinit_vars.yml')
-            with open(yaml_file, "r") as fh:
+            with open(yaml_file, "rt") as fh:
                 var_list = yaml.load(fh)
 
             # Build ordered dict with variables in alphabetical order.
@@ -263,14 +263,14 @@ class VariableDatabase(OrderedDict):
     def characteristics(self):
         """List of characteristics."""
         from abipy import data as abidata
-        with open(abidata.var_file('characteristics.yml'),'r') as f:
+        with open(abidata.var_file('characteristics.yml'), 'rt') as f:
             return yaml.load(f)
     
     @lazy_property
     def sections(self):
         """List of sections"""
         from abipy import data as abidata
-        with open(abidata.var_file('sections.yml'),'r') as f:
+        with open(abidata.var_file('sections.yml'), 'rt') as f:
             return yaml.load(f)
 
     @lazy_property
@@ -297,22 +297,26 @@ class VariableDatabase(OrderedDict):
         d = defaultdict(list)
 
         for name in list_strings(names):
-            sec = self.name2section[name]
-            d[sec].append(name)
+            try:
+                sec = self.name2section[name]
+                d[sec].append(name)
+            except KeyError as exc:
+                raise KeyError("{}\n\nIf the key is a valid Abinit variable, try to remove\n"
+                               "~/.abinit/abipy/abinit_vars.pickle and rerun.".format(exc))
 
         return OrderedDict([(sec, d[sec]) for sec in self.sections if d[sec]])
 
     def apropos(self, varname):
         """Return the list of :class:`Variable` objects that are related` to the given varname"""
-        vars = []
+        var_list = []
         for v in self.values():
-            if (varname in v.text or 
+            if (v.text and varname in v.text or 
                (v.dimensions is not None and varname in str(v.dimensions)) or
                (v.requires is not None and varname in v.requires) or
                (v.excludes is not None and varname in v.excludes)):
-                vars.append(v)
+                var_list.append(v)
 
-        return vars
+        return var_list
 
     def vars_with_section(self, sections):
         """

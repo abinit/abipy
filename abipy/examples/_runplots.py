@@ -6,7 +6,7 @@ the user to change the matplotlib backend.
 Usage: 
     _runplots.py [backend]
 """
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import os 

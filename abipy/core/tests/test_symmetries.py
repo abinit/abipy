@@ -20,7 +20,9 @@ class TestSymmetries(AbipyTest):
         self.assertTrue(structure.has_spacegroup)
         self.assertTrue(structure.is_symmorphic)
 
-        self.serialize_with_pickle(structure, protocols=[-1])
+        print(structure)
+        print("composition:", structure.composition)
+        self.serialize_with_pickle(structure, test_eq=True) 
 
         spgrp = structure.spacegroup
         print("spgrp:\n", spgrp)

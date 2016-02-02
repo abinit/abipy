@@ -1,5 +1,5 @@
 """Frames for text visualization."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import wx
@@ -7,7 +7,7 @@ import tempfile
 import wx.lib.agw.flatnotebook as fnb
 import abipy.gui.awx as awx
 
-from abipy.tools.text import WildCard
+from monty.fnmatch import WildCard
 from wx.py.editor import EditorFrame, EditorNotebookFrame  
 
 __all__ = [

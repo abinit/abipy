@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Calculation of the BSE spectrum with the HT interface."""
-from __future__ import division, print_function, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import os
@@ -29,11 +29,6 @@ def build_flow(options):
     mdf_epsinf = 12
     ecuteps = 2
     ecut = 12
-
-    #extra_abivars = dict(
-    #    ecut=12, 
-    #    istwfk="*1",
-    #)
 
     flow = abilab.Flow(workdir=workdir, manager=options.manager)
 

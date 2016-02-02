@@ -2,7 +2,7 @@
 """
 Script to store GW results for VASP and ABINIT in a database.
 """
-from __future__ import unicode_literals, division, print_function
+from __future__ import unicode_literals, division, print_function, absolute_import
 
 __author__ = "Michiel van Setten"
 __copyright__ = " "

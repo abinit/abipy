@@ -1,7 +1,7 @@
 """
 Integration tests for flows (require pytest, ABINIT and a properly configured environment)
 """
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import pytest
 import abipy.data as abidata
@@ -242,7 +242,7 @@ def itest_bandstructure_flow(fwp, tvars):
         print(table)
 
     # Test AbinitTimer.
-    timer = t0.get_abitimer()
+    timer = t0.parse_timing()
     print(timer)
 
     if has_matplotlib:

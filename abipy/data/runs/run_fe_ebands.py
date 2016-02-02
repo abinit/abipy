@@ -3,7 +3,7 @@
 Calculation of the band structure of Fe with and without magnetization.
 See tutorial/Input/tspin_1.in
 """
-from __future__ import division, print_function, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import sys

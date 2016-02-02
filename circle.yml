@@ -16,3 +16,7 @@ dependenciees:
 #    - nosetests:
 #        environment:
 #            PYTHONPATH: $PYTHONPATH:/usr/lib/python2.7/dist-packages/
+general:
+  branches:
+    ignore: # list of branches to ignore
+      - master 

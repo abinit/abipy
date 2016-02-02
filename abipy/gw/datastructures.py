@@ -31,10 +31,10 @@ except ImportError:
     pass
 
 from abc import abstractproperty, abstractmethod, ABCMeta
+from monty.json import MSONable
 #from pymatgen.io.vaspio.vasp_input import Poscar
 from pymatgen.io.vasp.inputs import Poscar
 from pymatgen.matproj.rest import MPRester, MPRestError
-from pymatgen.serializers.json_coders import MSONable
 from pymatgen.util.convergence import determine_convergence
 from pymatgen.io.abinit.helpers import print_gnuplot_header, s_name, add_gg_gap, refine_structure, read_extra_abivars
 from pymatgen.core.structure import Structure

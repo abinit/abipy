@@ -2,13 +2,14 @@
 """
 Interface to the database of ABINIT input variables
 """
-from __future__ import print_function, division, unicode_literals
+from __future__ import unicode_literals, division, print_function, absolute_import
 
 import sys
 import os
 import argparse
 
 from pprint import pprint
+from abipy.core.release import __version__
 from abipy.abilab import abinit_help
 from abipy.abio.abivars_db import get_abinit_variables
 
@@ -42,9 +43,11 @@ Usage example:
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + __version__)
+    parser.add_argument('--loglevel', default="ERROR", type=str,
+                        help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
     base_parser = argparse.ArgumentParser(add_help=False)
-
     base_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                         help='verbose, can be supplied multiple times to increase verbosity')
 
@@ -75,6 +78,14 @@ Usage example:
     except Exception as exc: 
         show_examples_and_exit(error_code=1)
 
+    # loglevel is bound to the string value obtained from the command line argument. 
+    # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
+    import logging
+    numeric_level = getattr(logging, options.loglevel.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % options.loglevel)
+    logging.basicConfig(level=numeric_level)
+
     database = get_abinit_variables()
 
     if options.command == "man":
@@ -82,7 +93,6 @@ Usage example:
 
     elif options.command == "apropos":
         vlist = database.apropos(options.varname)
-        print("apropos results:\n")
         print_vlist(vlist, options)
 
     elif options.command == "find":
@@ -91,7 +101,6 @@ Usage example:
         print_vlist(vlist, options)
 
     elif options.command == "list":
-
         if options.mode == "a":
             # Alphabetical
             for i, var in enumerate(database.values()):

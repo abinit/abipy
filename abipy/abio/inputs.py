@@ -3,7 +3,7 @@ This module defines objects that faciliate the creation of the
 ABINIT input files. The syntax is similar to the one used 
 in ABINIT with small differences. 
 """
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import collections
@@ -284,12 +284,14 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
     def _check_varname(self, key):
         if not is_abivar(key):
-            raise self.Error("%s is not a valid ABINIT variable.\n"
-                             "If you are sure the name is correct, please contact the abipy developers\n" 
-                             "or modify the JSON file abipy/abio/abinit_vars.json" % key)
+            raise self.Error("%s is not a valid ABINIT variable.\n" % key + 
+                             "If the name is correct, try to remove ~/.abinit/abipy/abinit_vars.pickle\n"
+                             "and rerun the code. If the problems persists, contact the abipy developers\n"
+                             "or add the variable to ~abipy/data/variables/abinit_vars.json\n")
 
         if key in _GEOVARS:
-            raise self.Error("You cannot set the value of a variable associated to the structure. Use set_structure")
+            raise self.Error("You cannot set the value of a variable associated to the structure.\n" 
+                             "Use Structure objects to prepare the input file.")
 
     #def __eq__(self, other)
     #def __ne__(self, other)
@@ -507,7 +509,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         # Check volume
         m = self.structure.lattice.matrix
         if np.dot(np.cross(m[0], m[1]), m[2]) <= 0:
-            raise self.Error("The triple product of the lattice vector is negative. Use structure abi_sanitize.")
+            raise self.Error("The triple product of the lattice vector is negative. Use structure.abi_sanitize.")
 
         return self._structure
 
@@ -705,6 +707,18 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             inps.append(inp)
 
         return inps
+
+    def new_with_vars(self, *args, **kwargs):
+        """
+        Return a new input with the given variables.
+
+        Example:
+            new = input.new_with_vars(ecut=20)
+        """
+        # Avoid modifications in self.
+        new = self.deepcopy()
+        new.set_vars(*args, **kwargs)
+        return new
 
     def new_with_decorators(self, decorators):
         """
@@ -1184,14 +1198,18 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                                         kptopt=kptopt,
                                         workdir=workdir, manager=manager)
 
-    def abiget_autoparal_pconfs(self, max_ncpus, autoparal=1, workdir=None, manager=None):
-        """Get all the possible configurations up to max_ncpus"""
+    def abiget_autoparal_pconfs(self, max_ncpus, autoparal=1, workdir=None, manager=None, verbose=0):
+        """
+        Get all the possible configurations up to max_ncpus
+        Return list of parallel configurations.
+        """
         inp = self.deepcopy()
         inp.set_vars(autoparal=autoparal, max_ncpus=max_ncpus)
 
         # Run the job in a shell subprocess with mpi_procs = 1
         # Return code is always != 0 
         task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
+        if verbose: print("Running in:", task.workdir)
         task.start_and_wait(autoparal=False)
 
         ##############################################################
@@ -1360,7 +1378,9 @@ class MultiDataset(object):
 
     def __getattr__(self, name):
         #print("in getname with name: %s" % name)
-        m = getattr(self._inputs[0], name)
+        #m = getattr(self._inputs[0], name)
+        _inputs = object.__getattribute__(self, "_inputs")
+        m = getattr(_inputs[0], name)
         if m is None:
             raise AttributeError("Cannot find attribute %s. Tried in %s and then in AbinitInput object" 
                                  % (self.__class__.__name__, name))
