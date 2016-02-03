@@ -33,7 +33,7 @@ def as_orderedset(token, options):
             if val > options.max_ncpus: break
             l.append(val)
 
-    elif token.endswith("pow"):
+    elif token.startswith("pow"):
         # pow4 --> powers of 4
         base = int(token[3:])
         l, i = [], 0
@@ -85,10 +85,10 @@ def bench_main(main):
                                  "Default None i.e. the manager is read from standard locations: "
                                  "working directory first then ~/.abinit/abipy/manager.yml.")
 
-        parser.add_argument("--mpi-list", default=None, help="List of MPI processors to be tested. Syntax:\n"
+        parser.add_argument("--mpi-list", default=None, type=str, help="List of MPI processors to be tested. Syntax:\n"
                             "--mpi-list='[1,6,12]' to define a list, 'range(1,4,2)' for a python range.\n" 
                             "--mpi-list='16x' for multiple of 16 up to max--ncpus, --mpi-list='pow2' for powers of 2")
-        parser.add_argument("--omp-list", default=None, help="List of OMP threads to be tested. Defaultis [1]. Same syntax as mpi-list.")
+        parser.add_argument("--omp-list", default=None, type=str, help="List of OMP threads to be tested. Default is [1]. Same syntax as mpi-list.")
 
         parser.add_argument("--min-ncpus", default=-1, type=int, help="Minimum number of CPUs to be tested.")
         parser.add_argument("--max-ncpus", default=206, type=int, help="Maximum number of CPUs to be tested. Default: 206.")
