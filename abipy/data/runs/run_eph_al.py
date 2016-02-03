@@ -38,7 +38,7 @@ def build_flow(options):
     gs_inp.set_vars(
         prtpot=1,
         istwfk="*1",
-        ecut=6.0,
+        ecut=12.0,
         nband=5,
         occopt=7,    # include metallic occupation function with a small smearing
         tsmear=0.04,

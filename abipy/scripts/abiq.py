@@ -11,7 +11,6 @@ import argparse
 from pymatgen.io.abinit.qjobs import QueueJob
 from abipy.core.release import __version__
 
-
 def main():
     def str_examples():
         examples = """\
