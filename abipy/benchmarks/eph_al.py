@@ -17,7 +17,8 @@ def make_flow_ephinp(options):
     # all of the independent perturbations of the single Al atom 
     # for the irreducible qpoints in a 4x4x4 grid.
     # Note that the q-point grid must be a sub-grid of the k-point grid (here 8x8x8)
-    pseudos = abidata.pseudos("Al.oncvpsp")
+    pseudos = abidata.pseudos("Al.oncvpsp") if not options.paw else \
+              abidata.pseudos("Al.GGA_PBE-JTH-paw.xml")
 
     structure = abilab.Structure.from_abivars(
         acell=3*[7.5],

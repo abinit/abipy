@@ -17,7 +17,8 @@ def make_input(paw=False):
     """
     Build and return an input file for MD calculations with paral_kgb=1
     """
-    pseudos = abidata.pseudos("13al.pspnc") # if not paw else abidata.pseudos("Al.GGA_PBE-JTH-paw.xml")
+    pseudos = abidata.pseudos("Al.oncvpsp") if not paw else \
+              abidata.pseudos("Al.GGA_PBE-JTH-paw.xml")
 
     # Atomic Positions.
     xred = np.fromstring("""
