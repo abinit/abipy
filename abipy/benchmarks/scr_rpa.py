@@ -11,73 +11,46 @@ from abipy.benchmarks import bench_main, BenchmarkFlow
 
 
 def make_inputs(paw=False):
-    # Crystalline silicon
-    # Calculation of the GW correction to the direct band gap in Gamma
-    # Dataset 1: ground state calculation 
-    # Dataset 2: NSCF calculation 
-    # Dataset 3: calculation of the screening 
-    # Dataset 4: calculation of the Self-Energy matrix elements (GW corrections)
-    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
-    pseudos = abidata.pseudos("14si.pspnc") if not paw else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
+    pseudos = abidata.pseudos("14si.pspnc", "8o.pspnc") if not paw else \
+              abidata.pseudos("Si.GGA_PBE-JTH-paw.xml", "o.paw")
+
+    structure = abidata.structure_from_ucell("SiO2-alpha")
 
     multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=4)
 
     ecut = 24
     multi.set_vars(
         ecut=ecut,
-        pawecutdg=ecut*4 if paw else None,
-        timopt=-1,
-        istwfk="*1",
+        pawecutdg=ecut*2 if paw else None,
         paral_kgb=0,
+        istwfk="*1",
+        timopt=-1,
     )
+
+    multi.set_kmesh(ngkpt=[4, 4, 3], shiftk=[0.0, 0.0, 0.0])
 
     gs, nscf, scr, sigma = multi.split_datasets()
 
-    # This grid is the most economical, but does not contain the Gamma point.
-    ngkpt=[5, 5, 5]
-    gs_kmesh = dict(
-        ngkpt=ngkpt,
-        shiftk=[0.5, 0.5, 0.5,
-                0.5, 0.0, 0.0,
-                0.0, 0.5, 0.0,
-                0.0, 0.0, 0.5]
-    )
-
-    # This grid contains the Gamma point, which is the point at which
-    # we will compute the (direct) band gap. 
-    gw_kmesh = dict(
-        ngkpt=ngkpt,
-        shiftk=[0.0, 0.0, 0.0,  
-                0.0, 0.5, 0.5,  
-                0.5, 0.0, 0.5,  
-                0.5, 0.5, 0.0]
-    )
-
     # Dataset 1 (GS run)
-    gs.set_kmesh(**gs_kmesh)
     gs.set_vars(tolvrs=1e-6,
-                nband=8,
+                nband=28,
                 )
 
     # Dataset 2 (NSCF run)
-    # Here we select the second dataset directly with the syntax inp[2]
-    nscf.set_kmesh(**gw_kmesh)
     nscf.set_vars(iscf=-2,
-                  tolwfr=1e-8,
+                  tolwfr=1e-4,
                   nband=600,
                   nbdbuf=200,
                   )
 
     # Dataset3: Calculation of the screening.
-    scr.set_kmesh(**gw_kmesh)
     scr.set_vars(
         optdriver=3,   
         gwpara=2,
-        nband=25,
         ecutwfn=ecut,   
         symchi=1,
         awtr=2,
-        inclvkb=1,
+        inclvkb=0,
         ecuteps=6.0,    
     )
 
@@ -103,7 +76,7 @@ def scr_benchmark(options):
         if options.mpi_list is None:
             # Cannot call autoparal here because we need a WFK file.
             print("Using hard coded values for mpi_list")
-            mpi_list = [np for np in range(1, nband+1) if abs((nband - 4) % np) < 1]
+            mpi_list = [np for np in range(1, nband+1) if abs((nband - 28) % np) < 1]
         print("Using nband %d and mpi_list: %s" % (nband, mpi_list))
 
         for mpi_procs, omp_threads in product(mpi_list, options.omp_list):

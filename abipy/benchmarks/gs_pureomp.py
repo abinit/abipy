@@ -11,19 +11,20 @@ from abipy.benchmarks import bench_main, BenchmarkFlow
 
 def make_input(paw=False):
     """Build a template input file for GS calculations with k-point parallelism """
-    pseudos = abidata.pseudos("14si.pspnc") if not paw else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
-    structure = abidata.structure_from_ucell("Si")
+    pseudos = abidata.pseudos("14si.pspnc", "8o.pspnc") if not paw else \
+              abidata.pseudos("Si.GGA_PBE-JTH-paw.xml", "o.paw")
+    structure = abidata.structure_from_ucell("SiO2-alpha")
 
     inp = abilab.AbinitInput(structure, pseudos)
     inp.set_kmesh(ngkpt=[1,1,1], shiftk=[0,0,0])
 
     # Global variables
-    ecut = 10
+    ecut = 24
     inp.set_vars(
         ecut=ecut,
-        pawecutdg=ecut*4 if paw else None,
+        pawecutdg=ecut*2 if paw else None,
         nsppol=1,
-        nband=20,
+        nband=28,
         paral_kgb=0,
         #istwfk="*1",
         #fftalg=312,
@@ -32,7 +33,6 @@ def make_input(paw=False):
         prtwf=0,
         prtden=0,
         tolvrs=1e-10,
-        nstep=50,
     )
 
     return inp

@@ -95,6 +95,7 @@ def bench_main(main):
         parser.add_argument("--min-eff", default=0.6, type=int, help="Minimum parallel efficiency accepted. Default 0.6.")
 
         parser.add_argument('--paw', default=False, action="store_true", help="Run PAW calculation if available")
+        parser.add_argument('--validate', default=False, action="store_true", help="Validate input files and return")
 
         parser.add_argument("-i", '--info', default=False, action="store_true", help="Show benchmark info and exit")
         parser.add_argument("-r", "--remove", default=False, action="store_true", help="Remove old flow workdir")
@@ -187,6 +188,16 @@ def bench_main(main):
 
         flow = main(options)
         if flow is None: return 0
+
+        if options.validate:
+            # Validate inputs and return
+            retcode = 0
+            for task in flow.iflat_tasks():
+                v = task.input.abivalidate()
+                if v.retcode != 0: cprint(v, color="red")
+                retcode += v.retcode 
+            print("input validation retcode: %d" % retcode)
+            return retcode
 
         if options.scheduler:
             return flow.make_scheduler().start()

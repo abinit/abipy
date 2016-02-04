@@ -12,7 +12,6 @@ import abipy.abilab as abilab
 import abipy.data as abidata
 
 from itertools import product
-from monty.termcolor import cprint
 from abipy.benchmarks import bench_main, BenchmarkFlow
 
 
@@ -207,7 +206,6 @@ def build_flow(options):
             manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
             print("wfoptalg:", wfoptalg, "done with MPI_PROCS:", mpi_procs, "and:", d)
             inp = template.new_with_vars(d, wfoptalg=wfoptalg)
-            #inp.abivalidate()
             work.register_scf_task(inp, manager=manager)
 
 	    flow.register_work(work)

@@ -12,7 +12,6 @@ import abipy.abilab as abilab
 import abipy.data as abidata
 
 from itertools import product
-from monty.termcolor import cprint
 from abipy.benchmarks import bench_main, BenchmarkFlow
 
 

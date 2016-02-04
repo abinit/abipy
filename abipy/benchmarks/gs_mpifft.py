@@ -14,20 +14,22 @@ def make_input(paw=False):
     """
     Build and return an input file for GS calculations with paral_kgb=1
     """
-    pseudos = abidata.pseudos("14si.pspnc") if not paw else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
-    structure = abidata.structure_from_ucell("Si")
+    pseudos = abidata.pseudos("14si.pspnc", "8o.pspnc") if not paw else \
+              abidata.pseudos("Si.GGA_PBE-JTH-paw.xml", "o.paw")
+
+    structure = abidata.structure_from_ucell("SiO2-alpha")
 
     inp = abilab.AbinitInput(structure, pseudos)
     inp.set_kmesh(ngkpt=[1,1,1], shiftk=[0,0,0])
 
     # Global variables
-    ecut = 20
+    ecut = 24
     inp.set_vars(
         ecut=ecut,
-        pawecutdg=ecut*4 if paw else None,
-        nsppol=1,
-        nband=20,
+        pawecutdg=ecut*2 if paw else None,
         paral_kgb=1,
+        nsppol=1,
+        nband=28,
         npkpt=1,
         npband=1,
         npfft=1,
