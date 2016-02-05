@@ -349,7 +349,7 @@ def build_flow(options):
     ]
 
     for wfoptalg in [None, 1]:
-    	work = abilab.Work()
+        work = abilab.Work()
         for d, omp_threads in product(pconfs, options.omp_list):
             mpi_procs = reduce(operator.mul, d.values(), 1)
             if not options.accept_mpi_omp(mpi_procs, omp_threads): continue

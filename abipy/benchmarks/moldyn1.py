@@ -100,6 +100,7 @@ def make_input(paw=False):
         prtden=0,
         prtwf=0, 
         prteig=0,
+        timopt=-1,
     )
 
     inp.set_kmesh(ngkpt=[1,1,1], shiftk=[0,0,0])
