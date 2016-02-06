@@ -90,7 +90,8 @@ def make_inputs(paw=False):
         rfdir=[0, 0, 1],
         nqpt=1,
         qpt=[0.0, 0.25, 0.0],
-        tolwfr=1.0e-22,
+        #tolwfr=1.0e-22,
+        toldfe=1.0e-9,
         tolrde=0.0, # This is a development input variable, used in the present case to avoid load unbalance
                     # when studying the scaling with respect to the number of cores. Do not define it in
                     # your production runs
