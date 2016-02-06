@@ -12,8 +12,8 @@ from abipy.benchmarks import bench_main, BenchmarkFlow
 
 
 def make_inputs(paw=False):
-    #pseudos = abidata.pseudos("56ba.psp_mod", "22ti.psp_mod", "8o.psp_mod")
-    pseudos = abidata.pseudos("56ba.psp_mod", "22ti.psp_mod", "8o.pspnc")
+    pseudos = abidata.pseudos("56ba.psp_mod", "22ti.psp_mod", "8o.psp_mod")
+    #pseudos = abidata.pseudos("56ba.psp_mod", "22ti.psp_mod", "8o.pspnc")
     if paw: raise NotImplementedError("PAW")
 
     # SLAB ending TiO2 double layer. paralelectric configuration
@@ -70,7 +70,7 @@ def make_inputs(paw=False):
         nband=120,
         ecut=15.0,
         pawecutdg=30.0 if paw else None,
-        #nstep=18,
+        nstep=80,
         ngkpt=[4,4,1],
         shiftk=[0,0,0],
         paral_kgb=1,
@@ -96,7 +96,6 @@ def make_inputs(paw=False):
                     # your production runs
     )
 
-    #%% max_nprocs = 24
     return gs_inp, ph_inp
 
 
