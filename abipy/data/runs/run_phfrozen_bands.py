@@ -63,7 +63,7 @@ def build_flow(options):
 
     displaced_structures = modifier.displace(ph_displ, etas, frac_coords=False)
 
-    flow = abilab.Flow(workdir, manager=options.manager)
+    flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove)
 
     for structure in displaced_structures:
         # Create the work for the band structure calculation.

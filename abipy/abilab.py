@@ -235,7 +235,7 @@ def flow_main(main):
         parser.add_argument("-b", '--batch', action="store_true", default=False, 
                             help="Run the flow in batch mode")
 
-        #parser.add_argument("-r", '--remove', action="store_true", default=False, help="Run the flow with the scheduler")
+        parser.add_argument("-r", "--remove", default=False, action="store_true", help="Remove old flow workdir")
 
         parser.add_argument("--prof", action="store_true", default=False, help="Profile code wth cProfile ")
 

@@ -65,7 +65,7 @@ def build_flow(options):
         -2.50000000e-01,  5.00000000e-01,  2.50000000e-01,
         ], (-1,3))
 
-    flow = abilab.Flow(workdir, manager=options.manager)
+    flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove)
     work0 = flow.register_task(gs_inp, task_class=abilab.ScfTask)
 
     ph_work = abilab.PhononWork.from_scf_task(work0[0], qpoints)
