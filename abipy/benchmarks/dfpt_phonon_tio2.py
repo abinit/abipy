@@ -74,7 +74,7 @@ def make_inputs(paw=False):
         ngkpt=[4,4,1],
         shiftk=[0,0,0],
         paral_kgb=1,
-        timopt=-2,
+        timopt=-1,
         prtden=0,
     )
 
@@ -90,6 +90,7 @@ def make_inputs(paw=False):
         rfdir=[0, 0, 1],
         nqpt=1,
         qpt=[0.0, 0.25, 0.0],
+        prtwf=0,
         #tolwfr=1.0e-22,
         toldfe=1.0e-9,
         tolrde=0.0, # This is a development input variable, used in the present case to avoid load unbalance
