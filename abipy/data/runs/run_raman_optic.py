@@ -12,26 +12,15 @@ import numpy as np
 import abipy.abilab as abilab
 import abipy.data as data  
 
-"""
-0.002         ! Value of the smearing factor, in Hartree
-0.0003  0.3   ! Difference between frequency values (in Hartree), and maximum frequency ( 1 Ha is about 27.211 eV)
-0.000         ! Scissor shift if needed, in Hartree
-0.002         ! Tolerance on closeness of singularities (in Hartree)
-6             ! Number of components of linear optic tensor to be computed
-11 12 13 22 23 33     ! Linear coefficients to be computed (x=1, y=2, z=3)
-0             ! Number of components of nonlinear optic tensor to be computed
-      ! Non-linear coefficients to be computed
-"""
-
 optic_input = abilab.OpticInput(
-    broadening=0.002,
-    domega=0.0003,
+    broadening=0.002,     # Value of the smearing factor, in Hartree
+    domega=0.0003,        # Frequency mesh.
     maxomega=0.3,
-    scissor=0.000,
-    tolerance=0.002,
-    num_lin_comp=6,
-    lin_comp=(11, 12, 13, 22, 23, 33),
-    num_nonlin_comp=0
+    scissor=0.000,        # Scissor shift if needed, in Hartree
+    tolerance=0.002,      # Tolerance on closeness of singularities (in Hartree)
+    num_lin_comp=6,       # Number of components of linear optic tensor to be computed
+    lin_comp=(11, 12, 13, 22, 23, 33), # Linear coefficients to be computed (x=1, y=2, z=3)
+    num_nonlin_comp=0     # Number of components of nonlinear optic tensor to be computed
     #nonlin_comp=(123, 222),
     )
 
@@ -73,10 +62,11 @@ def raman_flow(options):
     #workdir = os.path.join(os.path.dirname(__file__), base_structure.formula.replace(" ","") + "_RAMAN")
 
     manager = options.manager
-    shell_manager = manager.to_shell_manager(mpi_procs=1)
-    ddk_manager = manager.deepcopy()
+    #shell_manager = manager.to_shell_manager(mpi_procs=1)
+    #shell_manager =  manager.deepcopy()
+    #ddk_manager = manager.deepcopy()
 
-    flow = abilab.Flow(workdir, manager=manager)
+    flow = abilab.Flow(workdir, manager=manager, remove=options.remove)
 
     # Generate the different shifts to average
     ndiv = 1
@@ -85,13 +75,13 @@ def raman_flow(options):
 
     for structure, eta in zip(displaced_structures, etas):
         for ishift,shift in enumerate(all_shifts):
-            flow.register_work(raman_work(structure, pseudos, ngkpt, shift, ddk_manager, shell_manager),
+            flow.register_work(raman_work(structure, pseudos, ngkpt, shift),
                                workdir="eta_" +str(eta) + "shift_" + str(ishift))
 
     return flow
 
 
-def raman_work(structure, pseudos, ngkpt, shiftk, ddk_manager, shell_manager):
+def raman_work(structure, pseudos, ngkpt, shiftk):
     # Generate 3 different input files for computing optical properties with BSE.
 
     multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=5)
@@ -147,11 +137,9 @@ def raman_work(structure, pseudos, ngkpt, shiftk, ddk_manager, shell_manager):
     ddk_nodes = []
     for inp in ddk_inputs:
         ddk_t = work.register_ddk_task(inp, deps={nscf_t: "WFK"})
-        ddk_t.set_manager(ddk_manager)
         ddk_nodes.append(ddk_t)
 
-    optic_t = abilab.OpticTask(optic_input, nscf_node=nscf_t, ddk_nodes=ddk_nodes, manager=shell_manager)
-
+    optic_t = abilab.OpticTask(optic_input, nscf_node=nscf_t, ddk_nodes=ddk_nodes)
     work.register(optic_t)
 
     return work

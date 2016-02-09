@@ -21,7 +21,7 @@ def build_flow(options):
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Initialize the flow.
-    flow = abilab.Flow(workdir=workdir, manager=options.manager)
+    flow = abilab.Flow(workdir=workdir, manager=options.manager, remove=options.remove)
 
     # Build the workflow for the computation of the deltafactor.
     # The calculation is done with the parameters and the cif files

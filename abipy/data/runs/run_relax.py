@@ -73,7 +73,7 @@ def build_flow(options):
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
     # Create the flow
-    flow = abilab.Flow(workdir, manager=options.manager)
+    flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove)
 
     # Create a relaxation work and add it to the flow.
     ion_inp, ioncell_inp = make_ion_ioncell_inputs()

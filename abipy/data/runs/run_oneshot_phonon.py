@@ -74,7 +74,7 @@ def build_flow(options):
     all_inps = scf_ph_inputs()
     scf_input, ph_inputs = all_inps[0], all_inps[1:]
 
-    flow = abilab.Flow(workdir, manager=options.manager)
+    flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove)
     from pymatgen.io.abinit.works import build_oneshot_phononwork
     work = build_oneshot_phononwork(scf_input, ph_inputs)
     flow.register_work(work)

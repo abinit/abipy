@@ -33,7 +33,7 @@ def as_orderedset(token, options):
             if val > options.max_ncpus: break
             l.append(val)
 
-    elif token.endswith("pow"):
+    elif token.startswith("pow"):
         # pow4 --> powers of 4
         base = int(token[3:])
         l, i = [], 0
@@ -85,16 +85,17 @@ def bench_main(main):
                                  "Default None i.e. the manager is read from standard locations: "
                                  "working directory first then ~/.abinit/abipy/manager.yml.")
 
-        parser.add_argument("--mpi-list", default=None, help="List of MPI processors to be tested. Syntax:\n"
+        parser.add_argument("--mpi-list", default=None, type=str, help="List of MPI processors to be tested. Syntax:\n"
                             "--mpi-list='[1,6,12]' to define a list, 'range(1,4,2)' for a python range.\n" 
                             "--mpi-list='16x' for multiple of 16 up to max--ncpus, --mpi-list='pow2' for powers of 2")
-        parser.add_argument("--omp-list", default=None, help="List of OMP threads to be tested. Defaultis [1]. Same syntax as mpi-list.")
+        parser.add_argument("--omp-list", default=None, type=str, help="List of OMP threads to be tested. Default is [1]. Same syntax as mpi-list.")
 
         parser.add_argument("--min-ncpus", default=-1, type=int, help="Minimum number of CPUs to be tested.")
-        parser.add_argument("--max-ncpus", default=206, type=int, help="Maximum number of CPUs to be tested. Default: 206.")
-        parser.add_argument("--min-eff", default=0.6, type=int, help="Minimum parallel efficiency accepted. Default 0.6.")
+        parser.add_argument("--max-ncpus", default=248, type=int, help="Maximum number of CPUs to be tested. Default: 248.")
+        parser.add_argument("--min-eff", default=None, type=float, help="Minimum parallel efficiency accepted. Default None.")
 
         parser.add_argument('--paw', default=False, action="store_true", help="Run PAW calculation if available")
+        parser.add_argument('--validate', default=False, action="store_true", help="Validate input files and return")
 
         parser.add_argument("-i", '--info', default=False, action="store_true", help="Show benchmark info and exit")
         parser.add_argument("-r", "--remove", default=False, action="store_true", help="Remove old flow workdir")
@@ -156,7 +157,7 @@ def bench_main(main):
                         cprint("Skipping %d because of max_ncpus" % tot_ncpus, color="magenta")
                     return False
 
-                if conf.efficiency < opts.min_eff: 
+                if opts.min_eff is not None and conf.efficiency < opts.min_eff: 
                     if options.verbose:
                         cprint("Skipping %d because of parallel efficiency" % tot_ncpus, color="magenta")
                     return False
@@ -187,6 +188,16 @@ def bench_main(main):
 
         flow = main(options)
         if flow is None: return 0
+
+        if options.validate:
+            # Validate inputs and return
+            retcode = 0
+            for task in flow.iflat_tasks():
+                v = task.input.abivalidate()
+                if v.retcode != 0: cprint(v, color="red")
+                retcode += v.retcode 
+            print("input validation retcode: %d" % retcode)
+            return retcode
 
         if options.scheduler:
             return flow.make_scheduler().start()

@@ -48,7 +48,7 @@ def build_flow(options):
         new = special_positions(base_structure.lattice, u)
         news.append(new)
 
-    flow = abilab.Flow(workdir, manager=options.manager)
+    flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove)
 
     # Create the list of workflows. Each workflow defines a band structure calculation.
     for new_structure, u in zip(news, uparams):

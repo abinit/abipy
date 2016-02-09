@@ -18,7 +18,7 @@ def build_flow(options):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    flow = abilab.Flow(workdir, manager=options.manager)
+    flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove)
 
     pseudos = data.pseudos("14si.pspnc")
 

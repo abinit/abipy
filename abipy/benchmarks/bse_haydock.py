@@ -46,7 +46,7 @@ def make_inputs(paw=False):
     bse.set_vars(
         optdriver=99,
         ecutwfn=ecut,
-        npweps=51,
+        ecuteps=4.0,
         inclvkb=2,
         bs_algorithm=2,        # Haydock
         bs_haydock_niter=60,   # No. of iterations for Haydock

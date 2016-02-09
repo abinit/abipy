@@ -52,7 +52,7 @@ def build_flow(options):
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
     # Create the Flow.
-    flow = abilab.Flow(workdir, manager=options.manager)
+    flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove)
 
     # Create the task defining the calculation and run and register it in the flow
     for nsppol in [1,2]:

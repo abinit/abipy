@@ -18,16 +18,7 @@ def make_inputs(paw=False):
     pseudos = abidata.pseudos("14si.pspnc", "6c.pspnc") if not paw else \
               abidata.pseudos("Si.GGA_PBE-JTH-paw.xml", "6c.lda.atompaw") 
 
-    structure = abilab.Structure.from_abivars(
-        acell=3*[8.1395031724],
-        rprim=[0.0, 0.5, 0.5,
-               0.5, 0.0, 0.5,
-               0.5, 0.5, 0.0],
-        znucl =[6, 14],
-        typat =[1, 2],
-        xred  =[0.0 , 0.0 , 0.0,
-                0.25, 0.25, 0.25]
-    )
+    structure = abidata.structure_from_ucell("SiC")
 
     multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=3)
 

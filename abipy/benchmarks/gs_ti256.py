@@ -12,7 +12,6 @@ import abipy.abilab as abilab
 import abipy.data as abidata
 
 from itertools import product
-from monty.termcolor import cprint
 from abipy.benchmarks import bench_main, BenchmarkFlow
 
 
@@ -350,18 +349,17 @@ def build_flow(options):
     ]
 
     for wfoptalg in [None, 1]:
-    	work = abilab.Work()
+        work = abilab.Work()
         for d, omp_threads in product(pconfs, options.omp_list):
             mpi_procs = reduce(operator.mul, d.values(), 1)
             if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
-            d["np_slk"] = 32
             manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
             print("wfoptalg:", wfoptalg, "done with MPI_PROCS:", mpi_procs, "and:", d)
-            inp = template.new_with_vars(d, wfoptalg=wfoptalg)
+            inp = template.new_with_vars(d, wfoptalg=wfoptalg, np_slk=32)
             #inp.abivalidate()
             work.register_scf_task(inp, manager=manager)
 
-	flow.register_work(work)
+	    flow.register_work(work)
 
     return flow.allocate()
 

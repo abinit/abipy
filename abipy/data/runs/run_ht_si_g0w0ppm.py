@@ -20,7 +20,7 @@ def build_flow(options):
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
     # Initialize the flow.
-    flow = abilab.Flow(workdir, manager=options.manager) 
+    flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove) 
 
     scf_kppa = 10
     nscf_nband = 10

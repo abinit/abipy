@@ -129,9 +129,6 @@ class AbinitTextFile(TextFile):
         return AbinitTimerParser().parse(self.filepath)
 
 
-class AbinitInputFile(TextFile):
-    """Class representing the input file."""
-
 class AbinitLogFile(AbinitTextFile):
     """Class representing the log file."""
 

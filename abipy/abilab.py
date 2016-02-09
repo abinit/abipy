@@ -27,6 +27,7 @@ from abipy.core.structure import Lattice, Structure, StructureModifier
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
 from abipy.abio.robots import GsrRobot, SigresRobot, MdfRobot, DdbRobot, abirobot
 from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
+from abipy.abio.abivars import AbinitInputFile
 from abipy.abio.factories import *
 from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter, SigresPlotter
 from abipy.electrons.gsr import GsrFile
@@ -38,7 +39,7 @@ from abipy.electrons.scr import ScrFile
 from abipy.dfpt import PhbstFile, PhononBands, PhdosFile, PhdosReader
 from abipy.dfpt.ddb import DdbFile
 from abipy.dynamics.hist import HistFile
-from abipy.core.mixins import AbinitInputFile, AbinitLogFile, AbinitOutputFile
+from abipy.core.mixins import AbinitLogFile, AbinitOutputFile
 from abipy.waves import WfkFile
 from abipy.iotools import Visualizer
 
@@ -63,8 +64,8 @@ def _straceback():
 def abifile_subclass_from_filename(filename):
     """Returns the appropriate class associated to the given filename."""
     # Abinit text files.
-    if filename.endswith(".abi"): return AbinitInputFile
-    if filename.endswith(".abo"): return AbinitOutputFile
+    if filename.endswith(".abi") or filename.endswith(".in"): return AbinitInputFile
+    if filename.endswith(".abo") or filename.endswith(".out"): return AbinitOutputFile
     if filename.endswith(".log"): return AbinitLogFile
 
     # CIF files.
@@ -235,7 +236,7 @@ def flow_main(main):
         parser.add_argument("-b", '--batch', action="store_true", default=False, 
                             help="Run the flow in batch mode")
 
-        #parser.add_argument("-r", '--remove', action="store_true", default=False, help="Run the flow with the scheduler")
+        parser.add_argument("-r", "--remove", default=False, action="store_true", help="Remove old flow workdir")
 
         parser.add_argument("--prof", action="store_true", default=False, help="Profile code wth cProfile ")
 

@@ -1980,8 +1980,6 @@ class OpticInput(AbstractInput):
      num_nonlin2_comp = 0,
     /
     """
-
-
     Error = OpticError
 
     # variable name --> default value.
@@ -1995,6 +1993,9 @@ class OpticInput(AbstractInput):
         OpticVar(name="maxomega",     default=1, group='PARAMETERS', help="Maximum frequency (Ha)"),
         OpticVar(name="scissor",   default=0.000, group='PARAMETERS', help="*Scissor* shift if needed, in Hartree"),
         OpticVar(name="tolerance",  default=0.001, group='PARAMETERS', help="*Tolerance* on closeness of singularities (in Hartree)"),
+        OpticVar(name="autoparal",  default=0, group='PARAMETERS', help="Autoparal option"),
+        OpticVar(name="max_ncpus",  default=0, group='PARAMETERS', help="Max number of CPUs considered in autoparal mode"),
+
         OpticVar(name="num_lin_comp", default=0, group='COMPUTATIONS', help="*Number of components* of linear optic tensor to be computed"),
         OpticVar(name="lin_comp",     default=0, group='COMPUTATIONS', help="Linear *coefficients* to be computed (x=1, y=2, z=3)"),
         OpticVar(name="num_nonlin_comp", default=0, group='COMPUTATIONS', help="Number of components of nonlinear optic tensor to be computed"),
