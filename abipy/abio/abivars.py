@@ -201,6 +201,30 @@ def varname_dtindex(tok):
     return tok, dtidx
 
 
+def eval_operators(s):
+    """
+    Receive a string, find the occurences of operators supported 
+    in the input file (e.g. sqrt), evalute expression and return new string.
+    """
+    import re
+    re_sqrt = re.compile(" sqrt\((.+)\) ")
+    #m = re_sqrt.match(s)
+    #if m:
+    #    print("in sqrt")
+    #    print(m.group())
+    #re.sub(regex, replacement, subject)
+    #>>> def dashrepl(matchobj):
+    #...     if matchobj.group(0) == '-': return ' '
+    #...     else: return '-'
+    #>>> re.sub('-{1,2}', dashrepl, 'pro----gram-files')
+    #'pro--gram files'
+    #>>> re.sub(r'\sAND\s', ' & ', 'Baked Beans And Spam', flags=re.IGNORECASE)
+    #'Baked Beans & Spam'
+
+    
+    return s
+
+
 class Dataset(dict):
     #def __init__(self, **kwargs):
 
@@ -365,6 +389,7 @@ def parse_abinit_string(s):
 
     # Build string of the form "var1 value1 var2 value2" and split.
     text = " ".join(text)
+    text = eval_operators(text)
     tokens = text.split()
 
     # Get ndtset.

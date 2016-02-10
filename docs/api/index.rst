@@ -1,8 +1,8 @@
 .. _api-index:
 
-###############
-  The abipy API
-###############
+#############
+The AbiPy API
+#############
 
 .. htmlonly::
 

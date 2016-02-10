@@ -7,7 +7,8 @@ from os.path import exists, join as pj
 
 from subprocess import call
 
-def abipy_reindent(top)
+
+def abipy_reindent(top):
     """
     Change Python (.py) files to use 4-space indents and no hard tab characters.
     Also trim excess spaces and tabs from ends of lines, and remove empty lines

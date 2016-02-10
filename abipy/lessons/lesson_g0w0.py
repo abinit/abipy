@@ -271,7 +271,7 @@ def make_inputs(ngkpt, paral_kgb=0):
     return multi.split_datasets()
 
 
-def make_g0w0_scissors_flow(workdir="flow_lesson_g0w0", ngkpt=[2,2,2]):
+def make_g0w0_scissors_flow(workdir="flow_lesson_g0w0", ngkpt=(2,2,2)):
     # Change the value of ngkpt below to perform a GW calculation with a different k-mesh.
     scf, bands_nscf, dos_nscf, gw_nscf, scr, sig = make_inputs(ngkpt=ngkpt)
 
@@ -307,7 +307,7 @@ class Lesson(BaseLesson):
         return make_g0w0_scissors_flow(**kwargs)
 
     @staticmethod
-    def analyze(flow, domains_spin=[[-10, 6.02], [6.1, 20]]):
+    def analyze(flow, domains_spin=((-10, 6.02), (6.1, 20))):
         # Read the G0W0 correction form the output file of the sigma_task
         # and construct the scissors_builder object.
         sigma_task = flow[1][2]

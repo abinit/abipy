@@ -35,7 +35,8 @@ def test_abinit_input_parser(top):
                 inp = abilab.AbinitInputFile.from_file(path)
             except Exception as exc:
                 retcode += 1
-                print("[%s]: Exception:\n%s" % (path, exc))
+                if "udtset and jdtset are not supported" not in str(exc):
+                    print("[%s]: Exception:\n%s" % (path, exc))
 
     print("failed: %d/%d [%.1f%%]" % (retcode, nfiles, 100 * retcode/nfiles))
     return retcode

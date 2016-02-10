@@ -1173,7 +1173,7 @@ class FlowsDatabase(collections.MutableMapping):
             cluster = clusters[host]
             for flow in self[host]:
                 if not cluster.exists(flow.workdir):
-                     removed.append(self.remove_flow(self, flow))
+                     removed.append(self.remove_flow(flow))
 
         return removed
 

@@ -236,7 +236,7 @@ import abipy.data as abidata
 from abipy.lessons.core import BaseLesson, get_pseudos
 
 
-def make_ngkpt_flow(ngkpt_list=[(2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)], structure_file=None, metal=False):
+def make_ngkpt_flow(ngkpt_list=((2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)), structure_file=None, metal=False):
     """
     A `factory function` (a function that returns an instance of the class defined above. If no specific system is
     specified, structure_file=None, an flow for silicon in constructed and returned.

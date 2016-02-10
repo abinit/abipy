@@ -768,7 +768,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % tolerance)
+            raise self.Error("Invalid tolerance: %s" % str(tolerance))
 
         # Call Abinit to get the list of irred perts.
         perts = self.abiget_irred_phperts(qpt=qpt)
@@ -808,7 +808,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             tolerance = {"tolwfr": 1.0e-22}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % tolerance)
+            raise self.Error("Invalid tolerance: %s" % str(tolerance))
 
         if "tolvrs" in tolerance:
             raise self.Error("tolvrs should not be used in a DDK calculation")
@@ -847,7 +847,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % tolerance)
+            raise self.Error("Invalid tolerance: %s" % str(tolerance))
 
         # Call Abinit to get the list of irred perts.
         perts = self.abiget_irred_ddeperts()
@@ -883,7 +883,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % tolerance)
+            raise self.Error("Invalid tolerance: %s" % str(tolerance))
 
         # Call Abinit to get the list of irred perts.
         # TODO:
@@ -1835,9 +1835,10 @@ class AnaddbInput(AbstractInput, Has_Structure):
 
 
 class OpticVar(collections.namedtuple("OpticVar", "name default group help")):
+
     def __str__(self):
         sval = str(self.default)
-        return (4*" ").join(sval, "!" + self.help)
+        return (4*" ").join([sval, "!" + self.help])
 
 
 class OpticError(Exception):

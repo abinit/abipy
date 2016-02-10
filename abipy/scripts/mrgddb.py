@@ -20,9 +20,8 @@ def main():
         )
         return examples
 
-
     def show_examples_and_exit(err_msg=None, error_code=0):
-        "Display the usage of the script."
+        """"Display the usage of the script."""
         sys.stderr.write(str_examples())
         if err_msg: 
             sys.stderr.write("Fatal Error\n" + err_msg + "\n")

@@ -247,7 +247,7 @@ class BenchmarkFlow(Flow):
 
         return parser
 
-    def build_and_pickle_dump(self, *args, **kwargs):
+    def build_and_pickle_dump(self, **kwargs):
         cnt = 0
         for task in self.iflat_tasks():
             if task.node_id in self.exclude_nodeids: continue
@@ -256,7 +256,7 @@ class BenchmarkFlow(Flow):
               (task, task.manager.qadapter.mpi_procs, task.manager.qadapter.omp_threads))
         print("Total number of benchmarks: %d" % cnt)
 
-        return super(BenchmarkFlow, self).build_and_pickle_dump(*args, **kwargs)
+        return super(BenchmarkFlow, self).build_and_pickle_dump(**kwargs)
 
     #def make_tarball(self):
     #    self.make_tarfile(self, name=None, max_filesize=None, exclude_exts=None, exclude_dirs=None, verbose=0, **kwargs):

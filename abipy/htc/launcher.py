@@ -389,9 +389,7 @@ class Launcher(AbinitInput):
         gsfname = find_file(out_files, "GSR")
                                                                           
         if gsfname is None:
-            raise RuntimeError("Cannot find GSR file among " % out_files)
-
-
+            raise RuntimeError("Cannot find GSR file among %s" % out_files)
 
         if what_visualize == "crystal":
 

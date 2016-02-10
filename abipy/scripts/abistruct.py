@@ -63,7 +63,7 @@ Usage example:\n
     p_pmgdata = subparsers.add_parser('pmgdata', help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY")
     p_pmgdata.add_argument("pmgid", type=str, default=None, help="Pymatgen identifier")
     p_pmgdata.add_argument("--mapi-key", default=None, help="Pymatgen MAPI_KEY. Use env variable if not specified.")
-    p_pmgdata.add_argument("--host", default="www.materialsproject.org", help="Pymatgen database.")
+    p_pmgdata.add_argument("--endpoint", default="www.materialsproject.org", help="Pymatgen database.")
 
     # Subparser for animate command.
     p_animate = subparsers.add_parser('animate', parents=[path_selector], 
@@ -108,8 +108,8 @@ Usage example:\n
 
     elif options.command == "pmgdata":
         # Get the Structure corresponding the a material_id.
-        structure = abilab.Structure.from_material_id(options.pmgid, final=True, api_key=options.mapi_key, 
-            host=options.host)
+        structure = abilab.Structure.from_material_id(options.pmgid, final=True, api_key=options.mapi_key,
+                                                      endpoint=options.endpoint)
 
         # Convert to json and print it.
         s = structure.convert(format="json")

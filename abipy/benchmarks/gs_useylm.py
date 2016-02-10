@@ -47,7 +47,7 @@ def build_flow(options):
     if mpi_list is None:
         nkpt = len(inp.abiget_ibz().points)
         nks = nkpt * inp["nsppol"]
-    	mpi_list = [p for p in range(1, nks + 1) if nks % p == 0]
+        mpi_list = [p for p in range(1, nks + 1) if nks % p == 0]
     print("Using mpi_list:", mpi_list)
 
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)

@@ -130,7 +130,7 @@ class Variable(yaml.YAMLObject):
         def astr(obj):
             return str(obj).replace("[[", "").replace("]]", "")
 
-        d =  {k: astr(getattr(self, k)) for k in attrs} #if getattr(self, k) is not None}
+        d = {k: astr(getattr(self, k)) for k in attrs} #if getattr(self, k) is not None}
         stream = StringIO()
         json.dump(d, stream, indent=4, sort_keys=True)
         return stream.getvalue()
@@ -147,11 +147,12 @@ class ValueWithUnit(yaml.YAMLObject):
         self.units = units
         
     def __str__(self):
-        return str(self.value)+" "+str(self.units)  
+        return str(self.value) + " "+str(self.units)
     
     def __repr__(self):
         return str(self)
     
+
 def valuewithunit_representer(dumper, data):
     return dumper.represent_mapping('!valuewithunit',data.__dict__)
     
@@ -168,18 +169,18 @@ class Range(yaml.YAMLObject):
         
     def isin(self, value):
         isin = True
-        if (start is not None):
-            isin = isin and (start <= value)
-        if (stop is not None):
-            isin = isin and (stop > value)
+        if self.start is not None:
+            isin = isin and self.start <= value
+        if self.stop is not None:
+            isin = isin and self.stop > value
         return str(self)
     
     def __repr__(self):
-        if (self.start is not None and self.stop is not None):
+        if self.start is not None and self.stop is not None:
             return "["+str(self.start)+" .. "+str(self.stop)+"]"
-        if (self.start is not None):
+        if self.start is not None:
             return "["+str(self.start)+"; ->"
-        if (self.stop is not None):
+        if self.stop is not None:
             return "<-;"+str(self.stop)+"]"
         else:
             return None
@@ -211,16 +212,17 @@ class MultipleValue(yaml.YAMLObject):
         self.value = value
 
     def __repr__(self):
-        if self.number == None:
+        if self.number is None:
             return "*" + str(self.value)
         else:
-	        return str(self.number) + "*" + str(self.value)
+            return str(self.number) + "*" + str(self.value)
 
 __VARS_DATABASE = None
 
 ##################
 ### Public API ###
 ##################
+
 
 def get_abinit_variables():
     """Returns the database with the description of the ABINIT variables."""

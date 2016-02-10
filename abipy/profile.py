@@ -12,7 +12,7 @@ __all__ = [
 
 
 class FrozenDict(dict):
-    "A dictionary that does not permit to redefine its keys"
+    """A dictionary that does not permit to redefine its keys"""
 
     def __init__(self, *args, **kwargs):
         self.update(*args, **kwargs)

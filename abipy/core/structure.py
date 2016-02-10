@@ -124,7 +124,7 @@ class Structure(pymatgen.Structure):
 
         # Get pytmatgen structure and convert it to abipy structure
         from pymatgen.matproj.rest import MPRester, MPRestError
-        with MPRester(api_key=api_key,endpoint=endpoint) as database:
+        with MPRester(api_key=api_key, endpoint=endpoint) as database:
             new = database.get_structure_by_material_id(material_id, final=final)
             new.__class__ = cls
             return new

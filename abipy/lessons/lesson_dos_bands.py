@@ -142,7 +142,7 @@ import abipy.data as abidata
 from abipy.lessons.core import BaseLesson, get_pseudos
 
 
-def make_electronic_structure_flow(ngkpts_for_dos=[(2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)]):
+def make_electronic_structure_flow(ngkpts_for_dos=((2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8))):
     """Band structure calculation."""
     multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"),
                                 pseudos=abidata.pseudos("14si.pspnc"), ndtset=2 + len(ngkpts_for_dos))
