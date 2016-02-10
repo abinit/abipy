@@ -10,7 +10,7 @@ import abc
 import sys
 import six
 import wx
-import awx
+
 import wx.lib.mixins.listctrl as listmix
 import numpy as np
 import pymatgen.core.periodic_table as periodic_table
@@ -21,10 +21,15 @@ from monty.collections import AttrDict
 from abipy.gui.editor import TextNotebookFrame, SimpleTextViewer
 from abipy.gui.oncvtooltips import oncv_tip
 from abipy.gui import mixins as mix
-from pseudo_dojo.refdata.nist import database as nist
-from pseudo_dojo.ppcodes.ppgen import OncvGenerator
-from pseudo_dojo.ppcodes.oncvpsp import MultiPseudoGenDataPlotter
+from abipy.gui import awx
+from abipy.gui.awx.elements_gui import WxPeriodicTable, PeriodicPanel, ElementButton
 
+try:
+    from pseudo_dojo.refdata.nist import database as nist
+    from pseudo_dojo.ppcodes.ppgen import OncvGenerator
+    from pseudo_dojo.ppcodes.oncvpsp import MultiPseudoGenDataPlotter
+except ImportError:
+    print("Error while trying to import pseudo_dojo modules")
 
 # TODO
 # Change oncvpsp so that 
@@ -39,7 +44,7 @@ def add_size(kwargs, size=(800, 600)):
 
     return kwargs
 
-from awx.elements_gui import WxPeriodicTable, PeriodicPanel, ElementButton
+
 
 def my_periodic_table(parent):
     """

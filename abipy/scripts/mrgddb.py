@@ -2,11 +2,10 @@
 """This script wraps the Fortran executable mrgddb."""
 from __future__ import unicode_literals, division, print_function, absolute_import
 
-import os
 import sys
 import argparse
 
-from abipy.abilab import Mrgddb
+from abipy.abilab import Mrgddb, TaskManager
 
 
 def main():

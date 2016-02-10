@@ -126,9 +126,9 @@ def expand_star(s):
     """
     Evaluate star syntax. Return new string
 
-    >>> assert expand_star("3*2") = '2 2 2'
-    >>> assert expand_star("2 *1") = '1 1'
-    >>> assert expand_star("1 2*2") = '1 2 2'
+    >>> assert expand_star("3*2") == '2 2 2'
+    >>> assert expand_star("2 *1") == '1 1'
+    >>> assert expand_star("1 2*2") == '1 2 2'
     """
     if "*" not in s: return s
     s = s.replace("*", " * ").strip()
@@ -183,8 +183,8 @@ def str2array(obj):
 
 def varname_dtindex(tok):
     """
-    >>> assert varname_dtindex("acell1") == ("acell", "1")
-    >>> assert varname_dtindex("fa1k2") == ("fa1k", "2")
+    >>> assert varname_dtindex("acell1") == ("acell", 1)
+    >>> assert varname_dtindex("fa1k2") == ("fa1k", 2)
     """
     l = []
     for i, c in enumerate(tok[::-1]):

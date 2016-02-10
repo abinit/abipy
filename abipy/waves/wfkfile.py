@@ -184,11 +184,11 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         visu = Visualizer.from_name(visu_name)
     
         for ext in visu.supported_extensions():
-           ext = "." + ext
-           try:
-               return self.export_ur2(ext, spin, kpoint, band, visu=visu)
-           except visu.Error:
-               pass
+            ext = "." + ext
+            try:
+                return self.export_ur2(ext, spin, kpoint, band, visu=visu)
+            except visu.Error:
+                pass
         else:
             raise visu.Error("Don't know how to export data for visualizer %s" % visu_name)
 

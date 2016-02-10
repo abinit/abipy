@@ -15,7 +15,7 @@ from .flowviewer import wxapp_flow_viewer
 from .gsrviewer import wxapp_gsrviewer
 from .mdfviewer import wxapp_mdfviewer
 from .wxncview import wxapp_ncview
-from .oncvgui import wxapp_oncvpsp
+#from .oncvgui import wxapp_oncvpsp
 
 
 # Map abinit file extensions to WX Applications.
