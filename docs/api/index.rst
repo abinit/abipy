@@ -22,5 +22,3 @@ The AbiPy API
    dfpt_api.rst
    waves_api.rst
    data_api.rst
-   gui_api.rst
-   api_changes.rst

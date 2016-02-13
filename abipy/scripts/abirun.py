@@ -327,7 +327,7 @@ Specify the files to open. Possible choices:
     p_ncopen.add_argument('ncext', nargs="?", default="GSR", help="Select the type of file to open")
 
     # Subparser for gui command.
-    p_gui = subparsers.add_parser('gui', help="Open the GUI (requires wxPython).")
+    p_gui = subparsers.add_parser('gui', parents=[copts_parser], help="Open the GUI (requires wxPython).")
     p_gui.add_argument("--chroot", default="", type=str, help=("Use chroot as new directory of the flow." +
                        "Mainly used for opening a flow located on a remote filesystem mounted with sshfs." +
                        "In this case chroot is the absolute path to the flow on the **localhost**",

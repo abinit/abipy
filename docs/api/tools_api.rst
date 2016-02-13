@@ -1,9 +1,8 @@
-=============
 tools Package
 =============
 
 
-:mod:`abipy.tools` Module
+:mod:`tools` Module
 =========================
 
 .. automodule:: abipy.tools
@@ -79,14 +78,6 @@ tools Package
 ----------------------------
 
 .. automodule:: abipy.tools.plotting_utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-:mod:`dataframe` Module
------------------------
-
-.. automodule:: abipy.tools.dataframe
    :members:
    :undoc-members:
    :show-inheritance:

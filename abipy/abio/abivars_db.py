@@ -367,3 +367,4 @@ def abinit_help(varname, info=True, stream=sys.stdout):
     text = html2text.html2text("<h2>Default value:</h2>" + str(var.defaultval) + "<br/><h2>Description</h2>" + str(var.text))
     if info: text += var.info
     stream.write(text.replace("[[", "\033[1m").replace("]]", "\033[0m"))
+    stream.write("\n")
