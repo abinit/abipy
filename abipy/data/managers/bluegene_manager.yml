@@ -7,7 +7,12 @@ batch: &batch
 job: &job
     mpi_runner: runjob
     shell_env:
-        PATH: $HOME/abinit/801-private/bgq_xlf_base/src/98_main/:$PATH
+        #PATH: $HOME/abinit/801-private/bgq_xlf_base/src/98_main/:$PATH
+        #PATH: $HOME/abinit/801-private/bgq_xlf_omp/src/98_main/:$PATH
+        PATH: $HOME/abinit/801-private/bgq_xlf_legacy/src/98_main/:$PATH
+        #PATH: $HOME/abinit/801-private/bgq_xlf_o2/src/98_main/:$PATH
+        #PATH: $HOME/abinit/801-private/bgq_gcc_legacy/src/98_main/:$PATH
+        #PATH: $HOME/abinit/801-private/bgq_gcc/src/98_main/:$PATH
 
 # List of qadapters
 # Note that on the BlueGeneQ we need at least two qadapters
@@ -22,6 +27,7 @@ qadapters:
        #qname: batch
        qtype: bluegene
        qparams:
+         # Mandatory on juqueen.
          notification: error
          mail_user: matteo.giantomassi@uclouvain.be
          environment: COPY_ALL
@@ -32,7 +38,8 @@ qadapters:
     hardware: *batch
     job: *job
 
-  # shell adapter for small sequential jobs.
+  # shell adapter for small sequential jobs (e.g. autoparal tasks).
+  # Note that we need an Abinit executable that can be executed on the frontend
   # TODO check priority
   - priority: 10
     queue:
