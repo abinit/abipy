@@ -174,7 +174,7 @@ install_requires = [
     "wxmplot",
     "html2text",
     "pigments",
-    "orderedset",
+    #"orderedset",
     "pyyaml>=3.11",
     "pandas",
     "numpy>=1.8",  
