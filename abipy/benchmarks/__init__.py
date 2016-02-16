@@ -86,8 +86,8 @@ def bench_main(main):
                                  "working directory first then ~/.abinit/abipy/manager.yml.")
 
         parser.add_argument("--mpi-list", default=None, type=str, help="List of MPI processors to be tested. Syntax:\n"
-                            "--mpi-list='[1,6,12]' to define a list, 'range(1,4,2)' for a python range.\n" 
-                            "--mpi-list='16x' for multiple of 16 up to max--ncpus, --mpi-list='pow2' for powers of 2")
+                            "--mpi-list=[1,6,12] to define a list, range(1,4,2) for a python range.\n" 
+                            "--mpi-list=16x for multiple of 16 up to max--ncpus, --mpi-list=pow2 for powers of 2")
         parser.add_argument("--omp-list", default=None, type=str, help="List of OMP threads to be tested. Default is [1]. Same syntax as mpi-list.")
 
         parser.add_argument("--min-ncpus", default=-1, type=int, help="Minimum number of CPUs to be tested.")

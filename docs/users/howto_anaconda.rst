@@ -25,7 +25,7 @@ For example, you can install `pyyaml` and `netcdf4` by simply typing::
 
 Remember that if a package is not available in the official conda repository, you can always
 use `pip install` or download the package from one of the conda channels.
-For example, if you encounter problems while installing the the spacegroup library
+For example, if you encounter problems while installing the spacegroup library
 with `pip install pyspglib`, you can install the pre-compiled library from the `jochym` channel with::
 
     conda install -c jochym pyspglib
@@ -42,7 +42,6 @@ and install the packages with::
 
     python setup.py install
 
-
 Once you are done with the installation of abipy and pymatgen, open the `ipython` shell and type::
 
     from abipy import abilab
@@ -56,4 +55,4 @@ to install the `wxpython` graphical toolkit required for the GUIs.
 Note that one can use `conda` to create different enviroments with different
 versions of the python interpreter or different libraries.
 Further information are available on the
-`official website <http://conda.pydata.org/docs/test-drive.html>`_
+`official website <http://conda.pydata.org/docs/test-drive.html>`_.

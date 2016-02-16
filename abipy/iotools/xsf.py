@@ -205,7 +205,9 @@ def bxsf_write(file, structure, nsppol, nband, ndivs, emesh_sbk, fermie, unit="e
             idx += 1
             enebz = emesh_sbk[spin, band, :]
             fw(" BAND: %d\n" % idx)
-            np.savetxt(file, enebz)
+            #np.savetxt(file, enebz)
+            fw("\n".join("%.18e" % v for v in enebz))
+            fw("\n")
 
     fw(' END_BANDGRID_3D\n')
     fw('END_BLOCK_BANDGRID_3D\n')
