@@ -47,6 +47,7 @@ def as_orderedset(token, options):
         l = ast.literal_eval(token)
 
     #print("l", l)
+    l = [n for n in l if options.min_ncpus <= n <= options.max_ncpus]
     return OrderedSet(l)
 
 
