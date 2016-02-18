@@ -284,13 +284,13 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
     def _check_varname(self, key):
         if not is_abivar(key):
-            raise self.Error("%s is not a valid ABINIT variable.\n" % key + 
+            raise self.Error("%s is not a valid ABINIT variable.\n" % key +
                              "If the name is correct, try to remove ~/.abinit/abipy/abinit_vars.pickle\n"
                              "and rerun the code. If the problems persists, contact the abipy developers\n"
                              "or add the variable to ~abipy/data/variables/abinit_vars.json\n")
 
         if key in _GEOVARS:
-            raise self.Error("You cannot set the value of a variable associated to the structure.\n" 
+            raise self.Error("You cannot set the value of a variable associated to the structure.\n"
                              "Use Structure objects to prepare the input file.")
 
     #def __eq__(self, other)

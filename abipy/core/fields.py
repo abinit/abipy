@@ -3,6 +3,7 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
+import collections
 
 from monty.collections import AttrDict
 from monty.functools import lazy_property
@@ -10,10 +11,10 @@ from pymatgen.core.units import bohr_to_angstrom
 from abipy.tools import transpose_last3dims
 from abipy.iotools import Visualizer, xsf, ETSF_Reader
 from abipy.core.mesh3d import Mesh3D
+from abipy.core.func1d import Function1D
 from abipy.core.mixins import Has_Structure
 from abipy.tools import transpose_last3dims
-from abipy.iotools import Visualizer, xsf, ETSF_Reader
-
+from abipy.iotools import Visualizer, xsf, ETSF_Reader, cube
 
 __all__ = [
     "ScalarField",
@@ -60,6 +61,22 @@ class ScalarField(Has_Structure):
 
     def __str__(self):
         return self.to_string()
+
+    def __add__(self, other):
+        if any([self.nspinor != other.spinor, self.nsppol != other.nsppol, self.nspden != other.nspden,
+                self.structure != other.structure, self.mesh != other.mesh]):
+            raise ValueError('Incompatible scalar fields')
+
+        return ScalarField(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden, datar=self.datar+other.datar,
+                           structure=self.structure, iorder="c")
+
+    def __sub__(self, other):
+        if any([self.nspinor != other.spinor, self.nsppol != other.nsppol, self.nspden != other.nspden,
+                self.structure != other.structure, self.mesh != other.mesh]):
+            raise ValueError('Incompatible scalar fields')
+
+        return ScalarField(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden, datar=self.datar-other.datar,
+                           structure=self.structure, iorder="c")
 
     @property
     def structure(self):
@@ -301,6 +318,109 @@ class Density(ScalarField):
         with DensityReader(filepath) as r:
             return r.read_density(cls=cls)
 
+    @classmethod
+    def ae_core_density_on_mesh(cls, valence_density, structure, rhoc_files, maxr=2.0, nelec=None,
+                                method='mesh3d_dist_gridpoints', small_dist_mesh=(8, 8, 8), small_dist_factor=1.5):
+        """Initialize the all electron core density of the structure from the pseudopotentials *rhoc files
+           Note that these *rhoc files contain one column with the radii in Bohrs and one column with the density
+           in #/Bohr^3 multiplied by a factor 4pi.
+        """
+        rhoc_atom_splines = [None]*len(structure)
+        if isinstance(rhoc_files, (list, tuple)):
+            if len(structure) != len(rhoc_files):
+                raise ValueError('Number of rhoc_files should be equal to the number of sites in the structure')
+            for ifname, fname in rhoc_files:
+                rad_rho = np.fromfile(fname, sep=' ')
+                rad_rho = rad_rho.reshape((len(rad_rho)/2, 2))
+                radii = rad_rho[:, 0] * bohr_to_angstrom
+                rho = rad_rho[:, 1] / (4.0*np.pi) / (bohr_to_angstrom ** 3)
+                func1d = Function1D(radii, rho)
+                rhoc_atom_splines[ifname] = func1d.spline
+        elif isinstance(rhoc_files, collections.Mapping):
+            atoms_symbols = [elmt.symbol for elmt in structure.composition]
+            if not np.all([atom in rhoc_files for atom in atoms_symbols]):
+                raise ValueError('The rhoc_files should be provided for all the atoms in the structure')
+            splines = {}
+            for symbol, fname in rhoc_files.items():
+                rad_rho = np.fromfile(fname, sep=' ')
+                rad_rho = rad_rho.reshape((len(rad_rho)/2, 2))
+                radii = rad_rho[:, 0] * bohr_to_angstrom
+                rho = rad_rho[:, 1] / (4.0*np.pi) / (bohr_to_angstrom ** 3)
+                func1d = Function1D(radii, rho)
+                splines[symbol] = func1d.spline
+            for isite, site in enumerate(structure):
+                rhoc_atom_splines[isite] = splines[site.specie.symbol]
+        core_den = np.zeros_like(valence_density.datar)
+        dvx = valence_density.mesh.dvx
+        dvy = valence_density.mesh.dvy
+        dvz = valence_density.mesh.dvz
+        maxdiag = max([np.linalg.norm(dvx+dvy+dvz),
+                       np.linalg.norm(dvx+dvy-dvz),
+                       np.linalg.norm(dvx-dvy+dvz),
+                       np.linalg.norm(dvx-dvy-dvz)])
+        smallradius = small_dist_factor*maxdiag
+        if method == 'get_sites_in_sphere':
+            for ix in range(valence_density.mesh.nx):
+                for iy in range(valence_density.mesh.ny):
+                    for iz in range(valence_density.mesh.nz):
+                        rpoint = valence_density.mesh.rpoint(ix=ix, iy=iy, iz=iz)
+                        # TODO: optimize this !
+                        sites = structure.get_sites_in_sphere(pt=rpoint, r=maxr, include_index=True)
+                        for site, dist, site_index in sites:
+                            if dist > smallradius:
+                                core_den[0, ix, iy, iz] += rhoc_atom_splines[site_index](dist)
+                            # For small distances, integrate over the small volume dv around the point as the core
+                            # density is extremely high close to the atom
+                            else:
+                                total = 0.0
+                                nnx, nny, nnz = small_dist_mesh
+                                ddvx = dvx/nnx
+                                ddvy = dvy/nny
+                                ddvz = dvz/nnz
+                                rpi = rpoint - 0.5 * (dvx + dvy + dvz) + 0.5*ddvx + 0.5*ddvy + 0.5*ddvz
+                                for iix in range(nnx):
+                                    for iiy in range(nny):
+                                        for iiz in range(nnz):
+                                            rpoint2 = rpi + iix*ddvx + iiy*ddvy + iiz*ddvz
+                                            dist2 = np.linalg.norm(rpoint2 - site.coords)
+                                            total += rhoc_atom_splines[site_index](dist2)
+                                total /= (nnx*nny*nnz)
+                                core_den[0, ix, iy, iz] += total
+        elif method == 'mesh3d_dist_gridpoints':
+            site_coords = [site.coords for site in structure]
+            dist_gridpoints_sites = valence_density.mesh.dist_gridpoints_in_spheres(points=site_coords, radius=maxr)
+            for isite, dist_gridpoints_site in enumerate(dist_gridpoints_sites):
+                for igp_uc, dist, igp in dist_gridpoints_site:
+                    if dist > smallradius:
+                        core_den[0, igp_uc[0], igp_uc[1], igp_uc[2]] += rhoc_atom_splines[isite](dist)
+                    # For small distances, integrate over the small volume dv around the point as the core density
+                    # is extremely high close to the atom
+                    else:
+                        total = 0.0
+                        nnx, nny, nnz = small_dist_mesh
+                        ddvx = dvx/nnx
+                        ddvy = dvy/nny
+                        ddvz = dvz/nnz
+                        rpoint = valence_density.mesh.rpoint(ix=igp[0], iy=igp[1], iz=igp[2])
+                        rpi = rpoint - 0.5 * (dvx + dvy + dvz) + 0.5*ddvx + 0.5*ddvy + 0.5*ddvz
+                        for iix in range(nnx):
+                            for iiy in range(nny):
+                                for iiz in range(nnz):
+                                    rpoint2 = rpi + iix*ddvx + iiy*ddvy + iiz*ddvz
+                                    dist2 = np.linalg.norm(rpoint2 - site_coords[isite])
+                                    total += rhoc_atom_splines[isite](dist2)
+                        total /= (nnx*nny*nnz)
+                        core_den[0, igp_uc[0], igp_uc[1], igp_uc[2]] += total
+        else:
+            raise ValueError('Method "{}" is not allowed'.format(method))
+        if nelec is not None:
+            sum_elec = np.sum(core_den)*valence_density.mesh.dv
+            if np.abs(sum_elec-nelec) / nelec > 0.01:
+                raise ValueError('Summed electrons is different from the actual number of electrons by '
+                                 'more than 1% ...')
+            core_den = core_den / sum_elec * nelec
+        return cls(nspinor=1, nsppol=1, nspden=1, rhor=core_den, structure=structure, iorder='c')
+
     def __init__(self, nspinor, nsppol, nspden, rhor, structure, iorder="c"):
         """
         Args:
@@ -313,6 +433,26 @@ class Density(ScalarField):
             iorder: Order of the array. "c" for C ordering, "f" for Fortran ordering.
         """
         super(Density, self).__init__(nspinor, nsppol, nspden, rhor, structure, iorder=iorder)
+
+    def __add__(self, other):
+        if not isinstance(other, self.__class__):
+            raise ValueError('Other object is not an instance of Density')
+        if any([self.nspinor != other.nspinor, self.nsppol != other.nsppol, self.nspden != other.nspden,
+                self.structure != other.structure, self.mesh != other.mesh]):
+            raise ValueError('Incompatible scalar fields')
+
+        return Density(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden, rhor=self.datar+other.datar,
+                       structure=self.structure, iorder="c")
+
+    def __sub__(self, other):
+        if not isinstance(other, self.__class__):
+            raise ValueError('Other object is not an instance of Density')
+        if any([self.nspinor != other.spinor, self.nsppol != other.nsppol, self.nspden != other.nspden,
+                self.structure != other.structure, self.mesh != other.mesh]):
+            raise ValueError('Incompatible scalar fields')
+
+        return Density(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden, rhor=self.datar-other.datar,
+                       structure=self.structure, iorder="c")
 
     def get_nelect(self, spin=None):
         """
@@ -341,6 +481,10 @@ class Density(ScalarField):
 
         # Non collinear case.
         raise NotImplementedError
+
+    def total_rhor_as_density(self):
+        return Density(nspinor=1, nsppol=1, nspden=1, rhor=self.total_rhor,
+                       structure=self.structure, iorder=self.iorder)
 
     @lazy_property
     def total_rhog(self):
@@ -432,6 +576,20 @@ class Density(ScalarField):
         vhr = self.mesh.fft_g2r(vhg, fg_ishifted=False)
 
         return vhr, vhg
+
+    def export_to_cube(self, filename, spin='total'):
+        if spin != 'total':
+            raise ValueError('Argument "spin" should be "total"')
+        with open(filename, mode="w") as fh:
+            cube.cube_write_structure_mesh(file=fh, structure=self.structure, mesh=self.mesh)
+            cube.cube_write_data(file=fh, data=self.total_rhor, mesh=self.mesh)
+
+    @classmethod
+    def from_cube(cls, filename, spin='total'):
+        if spin != 'total':
+            raise ValueError('Argument "spin" should be "total"')
+        structure, mesh, data = cube.cube_read_structure_mesh_data(file=filename)
+        return cls(nspinor=1, nsppol=1, nspden=1, rhor=data, structure=structure, iorder="c")
 
     #@lazy_property
     #def kinden(self):
