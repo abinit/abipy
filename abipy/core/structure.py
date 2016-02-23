@@ -290,7 +290,7 @@ class Structure(pymatgen.Structure):
                                                     
         return("\n".join(lines))
 
-    def abi_primitive(self, symprec=1e-3, angle_tolerance=5):
+    def abi_primitive(self, symprec=1e-3, angle_tolerance=5, no_idealize=0):
         #TODO: this should be moved to pymatgen in the get_refined_structure or so ... to be considered in February 2016
         from pymatgen.io.ase import AseAtomsAdaptor
         try:
@@ -308,7 +308,7 @@ class Structure(pymatgen.Structure):
         s = self.get_sorted_structure()
         ase_adaptor = AseAtomsAdaptor()
         ase_atoms = ase_adaptor.get_atoms(structure=s)
-        standardized = spglib.standardize_cell(bulk=ase_atoms, to_primitive=1, no_idealize=0,
+        standardized = spglib.standardize_cell(bulk=ase_atoms, to_primitive=1, no_idealize=no_idealize,
                                                symprec=symprec, angle_tolerance=angle_tolerance)
         standardized_ase_atoms = Atoms(scaled_positions=standardized[1], numbers=standardized[2], cell=standardized[0])
         standardized_structure = ase_adaptor.get_structure(standardized_ase_atoms)
