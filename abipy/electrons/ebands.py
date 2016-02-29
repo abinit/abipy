@@ -897,6 +897,34 @@ class ElectronBands(object):
                           max=ediff.max(axis=axis)
                           )
 
+    def ipw_dos(self):
+        """return an ipython widget with controllers to compute the electron DOS."""
+        import ipywidgets as ipw
+
+        def callback(method, step, width):
+            edos = self.get_edos(method=method, step=step, width=width)
+            edos.plot()
+
+        return ipw.interactive(
+                callback,
+                method=["gaussian", "tetra"],
+                step=ipw.FloatSlider(value=0.1, min=1e-6, max=1, step=0.05, description="Step of linear mesh [eV]"),
+                width=ipw.FloatSlider(value=0.2, min=1e-6, max=1, step=0.05, description="Gaussian broadening [eV]"),
+            )
+
+    @classmethod
+    def qt_open(cls, dir=None):
+        """Select a file via a QT dialog, create the object from file and return instance."""
+        from PyQt4 import QtCore, QtGui
+
+        if dir is None: dir ='./'
+        qstring = QtGui.QFileDialog.getOpenFileName(None, "Select data file...", 
+                dir, filter="All files (*);; Netcdf Files (*.nc)")
+        path = str(qstring)
+        if not path: return None
+
+        return cls.from_file(path)
+
     def get_edos(self, method="gaussian", step=0.1, width=0.2):
         """
         Compute the electronic DOS on a linear mesh.
@@ -1339,23 +1367,6 @@ class ElectronBands(object):
 
         fig = plt.gcf()
         return fig
-
-    def widget_plot(self):
-        from IPython.html import widgets # Widget definitions
-        from IPython.display import display # Used to display widgets in the notebook
- 
-        widget = widgets.FloatSliderWidget()
-
-        #def on_value_change(name, value):
-        def on_value_change():
-            #print(value)
-            #print(self)
-            from IPython.display import clear_output
-            clear_output()
-            self.get_edos().plot() #method=method, step=step, width=width)
-
-        widget.on_trait_change(on_value_change)
-        return widget
 
     def export_bxsf(self, filepath):
         """
@@ -1802,7 +1813,7 @@ class ElectronDosPlotter(object):
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
-        for (label, dos) in self.edoses_dict.items():
+        for label, dos in self.edoses_dict.items():
             # Use relative paths if label is a file.
             if os.path.isfile(label): label = os.path.relpath(label)
             dos.plot_ax(ax, label=label)
@@ -2119,6 +2130,7 @@ class ElectronDOS(object):
 
         fig = plt.gcf()
         return fig
+
 
 
 class ElectronDOSPlotter(object):

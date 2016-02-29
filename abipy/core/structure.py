@@ -531,6 +531,29 @@ class Structure(pymatgen.Structure):
         else:
             raise visu.Error("Don't know how to export data for %s" % visu_name)
 
+    def molecular_viewer(self, **kwargs):
+        #from chemview import enable_notebook, MolecularViewer
+        from chemview import MolecularViewer
+
+        #from pymatgen.core.bonds import CovalentBond, get_bond_length
+        #bonds = []
+        #for j, site1 in enumerate(self): 
+        #    for i, site2 in enumerate(self): 
+        #        if j <= i: continue
+        #        if CovalentBond.is_bonded(site1, site2, tol=0.2):
+        #            bonds.append((i, j))
+
+        #bonds = self.get_covalent_bonds(tol=0.2)
+        #bonds=[(0, 1), (1, 0)]
+        bonds = [(0, 0), (1, 1)]
+
+        topology = dict(
+            atom_types=[site.specie.symbol for site in self],
+            bonds=bonds,
+        )
+        v = MolecularViewer(self.cart_coords, topology, **kwargs)
+        return v
+
     def write_structure(self, filename):
         """Write structure fo file."""
         if filename.endswith(".nc"):
