@@ -470,17 +470,15 @@ class Function1D(object):
         Returns:
             List of lines added.
         """
-        xx, yy = self.mesh, self.values
-        if exchange_xy:
-            xx, yy = yy, xx
-
         cplx_mode = kwargs.pop("cplx_mode", "re-im")
         lines = []
 
         from abipy.tools.plotting_utils import data_from_cplx_mode
         for c in cplx_mode.lower().split("-"):
-            data = data_from_cplx_mode(c, yy)
-            lines.extend(ax.plot(xx, data, *args, **kwargs))
+            xx, yy = self.mesh, data_from_cplx_mode(c, self.values)
+            if exchange_xy:
+                xx, yy = yy, xx
+            lines.extend(ax.plot(xx, yy, *args, **kwargs))
 
         return lines
 
