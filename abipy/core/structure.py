@@ -186,39 +186,59 @@ class Structure(pymatgen.Structure):
         return cls.boxed_molecule([pseudo], cart_coords, acell=acell)
 
     @classmethod
-    def bcc(cls, a, species, **kwargs):
+    def bcc(cls, a, species, primitive=True, **kwargs):
         """
-        Build a primitive bcc crystal structure.
+        Build a primitive or a conventional bcc crystal structure.
 
         Args:
             a: Lattice parameter in Angstrom.
             species: Chemical species. See __init__ method of :class:`pymatgen.Structue`
+            primitive: if True a primitive cell will be produce, otherwise a conventional one
             kwargs: All keyword arguments accepted by :class:`pymatgen.Structue`
         """
-        lattice = 0.5 * float(a) * np.array([
-            -1,  1,  1,
-             1, -1,  1,
-             1,  1, -1])
+        if primitive:
+            lattice = 0.5 * float(a) * np.array([
+                -1,  1,  1,
+                 1, -1,  1,
+                 1,  1, -1])
 
-        return cls(lattice, species, coords=[[0, 0, 0]],  **kwargs)
+            coords = [[0, 0, 0]]
+
+        else:
+            lattice = float(a) * np.eye(3)
+            coords = [[0, 0, 0],
+                      [0.5, 0.5, 0.5]]
+            species = np.repeat(species, 2)
+
+        return cls(lattice, species, coords=coords,  **kwargs)
 
     @classmethod
-    def fcc(cls, a, species, **kwargs):
+    def fcc(cls, a, species, primitive=True, **kwargs):
         """
-        Build a primitive fcc crystal structure.
+        Build a primitive or a conventional fcc crystal structure.
 
         Args:
             a: Lattice parameter in Angstrom.
             species: Chemical species. See __init__ method of :class:`pymatgen.Structure`
+            primitive: if True a primitive cell will be produce, otherwise a conventional one
             kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`
         """
-        # This is problematic
-        lattice = 0.5 * float(a) * np.array([
-            0,  1,  1,
-            1,  0,  1,
-            1,  1,  0])
+        if primitive:
+            # This is problematic
+            lattice = 0.5 * float(a) * np.array([
+                0,  1,  1,
+                1,  0,  1,
+                1,  1,  0])
+            coords = [[0, 0, 0]]
+        else:
+            lattice = float(a) * np.eye(3)
+            species = np.repeat(species, 4)
+            coords = [[0, 0, 0],
+                      [0.5, 0.5, 0],
+                      [0.5, 0, 0.5],
+                      [0, 0.5, 0.5]]
 
-        return cls(lattice, species, coords=[[0, 0, 0]], **kwargs)
+        return cls(lattice, species, coords=coords, **kwargs)
 
     @classmethod
     def rocksalt(cls, a, species, **kwargs):
@@ -317,7 +337,7 @@ class Structure(pymatgen.Structure):
         if primitive:
             if primitive_standard:
                 sym_finder_prim = SpacegroupAnalyzer(structure=structure, symprec=symprec, angle_tolerance=angle_tolerance)
-                structure = sym_finder_prim.get_primitive_standard_structure()
+                structure = sym_finder_prim.get_primitive_standard_structure(international_monoclinic=False)
             else:
                 get_prim = PrimitiveCellTransformation()
                 structure = get_prim.apply_transformation(structure)
@@ -500,12 +520,16 @@ class Structure(pymatgen.Structure):
             import tempfile
             filename = tempfile.mkstemp(suffix="." + ext, text=True)[1]
 
-        with open(filename, mode="w") as fh:
-            if ext == "xsf":  
-                # xcrysden
-                xsf.xsf_write_structure(fh, structures=[self])
-            else:
-                raise Visualizer.Error("extension %s is not supported." % ext)
+        # with open(filename, mode="w") as fh:
+        #     if ext == "xsf":
+        #         # xcrysden
+        #         xsf.xsf_write_structure(fh, structures=[self])
+        #     else:
+        #         raise Visualizer.Error("extension %s is not supported." % ext)
+
+        if ext == "xsf":
+            # xcrysden
+            self.to(filename=filename)
 
         if visu is None:
             return Visualizer.from_file(filename)
