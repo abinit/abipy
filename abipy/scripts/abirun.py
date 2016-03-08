@@ -279,8 +279,9 @@ usage example:
 
     # Subparser for status command.
     p_status = subparsers.add_parser('status', parents=[copts_parser, flow_selector_parser], help="Show task status.")
-    p_status.add_argument('-d', '--delay', default=0, type=int, help=("If 0, exit after the first analysis.\n" + 
-                          "If > 0, enter an infinite loop and delay execution for the given number of seconds."))
+    p_status.add_argument('-d', '--delay', nargs="?", const=5, default=0, type=int, 
+                          help=("Enter an infinite loop and delay execution for the given number of seconds. (default: 5)"))
+
     p_status.add_argument('-s', '--summary', default=False, action="store_true", help="Print short version with status counters.")
 
     # Subparser for set_status command.
@@ -620,7 +621,8 @@ Specify the files to open. Possible choices:
         show_func = flow.show_status if not options.summary else flow.show_summary
 
         if options.delay:
-            cprint("Entering infinite loop. Press CTRL+C to exit", color="magenta", end="", flush=True)
+            cprint("Entering infinite loop (delay: %d s).\nPress <CTRL+C> to exit" % options.delay, 
+                   color="magenta", end="", flush=True)
             try:
                 while True:
                     print(2*"\n" + time.asctime() + "\n")
@@ -752,7 +754,7 @@ Specify the files to open. Possible choices:
         if not paths:
             cprint("No job is running. Exiting!", "red")
         else:
-            cprint("Press CTRL+C to interrupt. Number of output files %d" % len(paths), color="magenta", end="", flush=True)
+            cprint("Press <CTRL+C> to interrupt. Number of output files %d\n" % len(paths), color="magenta", end="", flush=True)
             try:
                 os.system("tail -f %s" % " ".join(paths))
             except KeyboardInterrupt:
@@ -820,7 +822,7 @@ Specify the files to open. Possible choices:
         #if num_tasks == 1:
         #    p.join()
         #else:
-        #    cprint("Will produce %d matplotlib plots. Press CTRL+C to interrupt..." % num_tasks, color="magenta", end="", flush=True)
+        #    cprint("Will produce %d matplotlib plots. Press <CTRL+C> to interrupt..." % num_tasks, color="magenta", end="", flush=True)
         #    try:
         #        p.join()
         #    except KeyboardInterrupt:

@@ -45,6 +45,10 @@ class HistFile(AbinitNcFile):
     def close(self):
         self.reader.close()
 
+    def __str__(self):
+        return "File: %s\nStructure formula:%s, Number of steps: %d" % (
+            self.filepath, self.structures[-1].formula, self.num_steps)
+
     @property
     def num_steps(self):
         """Number of iterations performed."""
