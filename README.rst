@@ -139,6 +139,16 @@ The directory `abipy/data/runs` contains scripts that can be used to automate ty
 Examples of the basic capabilities can be found in the 
 `example page <http://pythonhosted.org/abipy/examples/index.html>`_ of the  official documentation.
 
+If the examples stops producing the error message: 
+    
+    "ValueError: unknown locale: UTF-8"
+
+add the following line to your `.bashrc` file inside your home (`.profile` if MacOSx):
+
+    export LC_ALL=C
+
+reload the environment with `source ~/.bashrc` and rerun.
+
 Advanced Usage
 --------------
 

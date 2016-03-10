@@ -165,7 +165,7 @@ usage example:
     abirun.py [FLOWDIR] gui                      => Open the GUI.
     abirun.py [FLOWDIR] manager slurm            => Document the TaskManager options availabe for Slurm.
     abirun.py [FLOWDIR] manager script           => Show the job script that will be produced.
-    nohup abirun.py [FLOWDIR] sheduler -s 30 &   => Start the scheduler to schedule task submission.
+    nohup abirun.py [FLOWDIR] scheduler -s 30 &  => Start the scheduler to schedule task submission.
 
     If FLOWDIR is not given, abirun.py automatically selects the database located within 
     the working directory. An Exception is raised if multiple databases are found.
