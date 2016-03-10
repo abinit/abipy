@@ -21,6 +21,13 @@ def is_macosx():
 
 def find_loc(app_name):
     """Returns the location of the application from its name."""
+    path = _find_loc(app_name)
+    if path is not None: return path
+    path = _find_loc(app_name.upper())
+    return path
+
+
+def _find_loc(app_name):
     # Try command line version
     path = which(app_name)
     if path is not None: return path
@@ -211,7 +218,7 @@ class Vesta(Visualizer):
     is_macosx_app = is_macosx()
 
     name = "vesta"
-    bin = find_loc(name) or find_loc(name.upper())
+    bin = find_loc(name)
         
     EXTS = [
         ("xsf", ""),
