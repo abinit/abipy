@@ -1488,15 +1488,18 @@ class AnaddbInput(AbstractInput, Has_Structure):
                              "or modify the JSON file abipy/abio/anaddb_vars.json" % key)
 
     @classmethod
-    def modes_at_qpoint(cls, structure, qpoint, asr=2, chneut=1, dipdip=1, 
-                        anaddb_args=None, anaddb_kwargs=None):
+    def modes_at_qpoint(cls, structure, qpoint, asr=2, chneut=1, dipdip=1, ifcflag=0, lo_to_splitting=False,
+                        directions=None, anaddb_args=None, anaddb_kwargs=None):
         """
         Input file for the calculation of the phonon frequencies at a given q-point.
 
         Args:
             Structure: :class:`Structure` object
             qpoint: Reduced coordinates of the q-point where phonon frequencies and modes are wanted
-            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            asr, chneut, dipdp, ifcflag: Anaddb input variable. See official documentation.
+            lo_to_splitting: if True calculation of the LO-TO splitting will be included if qpoint==Gamma
+            directions: list of 3D directions along which the LO-TO splitting will be calculated. If None the three
+                cartesian direction will be used
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
         """
@@ -1514,20 +1517,26 @@ class AnaddbInput(AbstractInput, Has_Structure):
             raise ValueError("Wrong q-point %s" % qpoint)
 
         new.set_vars(
-            ifcflag=1,        # Interatomic force constant flag
+            ifcflag=ifcflag,        # Interatomic force constant flag
             asr=asr,          # Acoustic Sum Rule
             chneut=chneut,    # Charge neutrality requirement for effective charges.
             dipdip=dipdip,    # Dipole-dipole interaction treatment
             # This part is fixed
-            ngqpt=(1, 1, 1), 
-            nqshft=1,         
-            q1shft=qpoint,
-            nqpath=2,
-            # FIXME
-            # ndivsm requires at least two q-points
-            qpath=np.array([qpoint, qpoint + 1]).ravel(),
-            ndivsm=1
+            nph1l=1,
+            qph1l=np.append(qpoint, 1)
         )
+
+        if lo_to_splitting and np.allclose(qpoint, [0, 0, 0]):
+            if directions is None:
+                directions = [1, 0, 0, 0, 1, 0, 0, 0, 1]
+            directions = np.reshape(directions, (-1, 3))
+            # append 0 to specify that these are directions,
+            directions = np.append(directions, [[0], [0], [0]], axis=1)
+            # add
+            new.set_vars(
+                nph2l=len(directions),
+                qph2l=directions
+            )
 
         return new
 

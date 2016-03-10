@@ -211,7 +211,7 @@ class Vesta(Visualizer):
     is_macosx_app = is_macosx()
 
     name = "vesta"
-    bin = find_loc(name)
+    bin = find_loc(name) or find_loc(name.upper())
         
     EXTS = [
         ("xsf", ""),
