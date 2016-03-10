@@ -6,9 +6,10 @@ import sys
 import os
 import tempfile
 import numpy as np
+from collections import OrderedDict
 
 from six.moves import map, zip, StringIO
-from monty.collections import AttrDict, dict2namedtuple
+from monty.collections import AttrDict, dict2namedtuple, tree
 from monty.functools import lazy_property
 from monty.dev import get_ncpus
 from pymatgen.io.abinit.netcdf import NetcdfReader
@@ -60,7 +61,7 @@ class DdbFile(TextFile, Has_Structure):
     Error = DdbError
     AnaddbError = AnaddbError
 
-    def __init__(self, filepath):
+    def __init__(self, filepath, read_blocks=False):
         super(DdbFile, self).__init__(filepath)
 
         self._header = self._parse_header()
@@ -73,6 +74,10 @@ class DdbFile(TextFile, Has_Structure):
 
         frac_coords = self._read_qpoints()
         self._qpoints = KpointList(self.structure.reciprocal_lattice, frac_coords, weights=None, names=None)
+
+        self.blocks = []
+        if read_blocks:
+            self.blocks = self._read_blocks()
 
         # Guess q-mesh
         self._guessed_ngqpt = self._guess_ngqpt()
@@ -117,7 +122,9 @@ class DdbFile(TextFile, Has_Structure):
         #     0.25000000000000D+00  0.00000000000000D+00  0.00000000000000D+00
         self.seek(0)
         keyvals = []
+        header_lines = []
         for i, line in enumerate(self):
+            header_lines.append(line.rstrip())
             line = line.strip()
             if not line: continue
             if "Version" in line:
@@ -125,7 +132,8 @@ class DdbFile(TextFile, Has_Structure):
                 version = int(line.split()[-1])
 
             if line in ("Description of the potentials (KB energies)",
-                        "No information on the potentials yet"):
+                        "No information on the potentials yet",
+                        "Description of the PAW dataset(s)"):
                 # Skip section with psps info.
                 break
 
@@ -145,7 +153,13 @@ class DdbFile(TextFile, Has_Structure):
                     parse = float if "." in tokens[0] else int
                     keyvals.append((key, list(map(parse, tokens))))
 
-        h = AttrDict(version=version)
+        # add the potential information
+        for line in self:
+            if "Database of total energy derivatives" in line:
+                break
+            header_lines.append(line.rstrip())
+
+        h = AttrDict(version=version, lines=header_lines)
         for key, value in keyvals:
             if len(value) == 1: value = value[0]
             h[key] = value
@@ -160,6 +174,7 @@ class DdbFile(TextFile, Has_Structure):
             "tnons": dict(shape=(h.nsym, 3), dtype=np.double),
             "xred":  dict(shape=(h.natom, 3), dtype=np.double),
             "znucl": dict(shape=(-1,), dtype=np.int),
+            "symafm": dict(shape=(-1,), dtype=np.int),
         }
 
         for k, ainfo in arrays.items():
@@ -193,6 +208,43 @@ class DdbFile(TextFile, Has_Structure):
             weights.append(nums[3])
 
         return np.reshape(qpoints, (-1,3))
+
+    def _read_blocks(self):
+        qpoints, weights = [], []
+        derivatives = tree()
+        self.seek(0)
+
+        # skip until the beginning of the db
+        while "Number of data blocks" not in self._file.readline():
+            pass
+
+        blocks = []
+
+        block_lines = []
+        qpt = None
+        for line in self:
+            # skip empty lines
+            if line.isspace():
+                continue
+
+            if "List of bloks and their characteristics" in line:
+                #add last block
+                blocks.append({"data": block_lines, "qpt": qpt})
+                break
+
+            line = line.rstrip()
+            # new block
+            if "# elements" in line:
+                if block_lines:
+                    blocks.append({"data": block_lines, "qpt": qpt})
+                block_lines = []
+                qpt = None
+
+            block_lines.append(line)
+            if "qpt" in line:
+                qpt = list(map(float, line.split()[1:4]))
+
+        return blocks
 
     @property
     def qpoints(self):
@@ -265,8 +317,8 @@ class DdbFile(TextFile, Has_Structure):
     #def has_bec_terms(self)
     #    """True if the DDB file contains info on the Born effective charges."""
 
-    def anaget_phmodes_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, 
-                                 workdir=None, manager=None, verbose=0):
+    def anaget_phmodes_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, workdir=None,
+                                 manager=None, verbose=0, lo_to_splitting=False, directions=None, anaddb_kwargs=None):
         """
         Execute anaddb to compute phonon modes at the given q-point.
 
@@ -276,6 +328,11 @@ class DdbFile(TextFile, Has_Structure):
             workdir: Working directory. If None, a temporary directory is created.
             manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information
+            lo_to_splitting: if True the LO-TO splitting will be calculated if qpoint==Gamma and the non_anal_directions
+                non_anal_phfreqs attributes will be added to the returned object
+            directions: list of 3D directions along which the LO-TO splitting will be calculated. If None the three
+                cartesian direction will be used
+            anaddb_kwargs: additional kwargs for anaddb
 
         Return:
             :class:`PhononBands` object.
@@ -292,7 +349,9 @@ class DdbFile(TextFile, Has_Structure):
         except:
             raise ValueError("input qpoint %s not in ddb.qpoints:%s\n" % (qpoint, self.qpoints))
 
-        inp = AnaddbInput.modes_at_qpoint(self.structure, qpoint, asr=asr, chneut=chneut, dipdip=dipdip)
+        inp = AnaddbInput.modes_at_qpoint(self.structure, qpoint, asr=asr, chneut=chneut, dipdip=dipdip,
+                                          lo_to_splitting=lo_to_splitting, directions=directions,
+                                          anaddb_kwargs=anaddb_kwargs)
 
         task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager)
 
@@ -307,6 +366,14 @@ class DdbFile(TextFile, Has_Structure):
             raise self.AnaddbError(task=task, report=report)
 
         with task.open_phbst() as ncfile:
+
+            if lo_to_splitting and np.allclose(qpoint, [0, 0, 0]):
+                with ETSF_Reader(os.path.join(task.workdir, "anaddb.nc")) as r:
+                    directions = r.read_value("non_analytical_directions")
+                    non_anal_phfreq = r.read_value("non_analytical_phonon_modes")
+
+                    ncfile.phbands.non_anal_directions = directions
+                    ncfile.phbands.non_anal_phfreqs = non_anal_phfreq
             return ncfile.phbands
 
     #def anaget_phbst_file(self, ngqpt=None, ndivsm=20, asr=2, chneut=1, dipdip=1, 
@@ -316,7 +383,8 @@ class DdbFile(TextFile, Has_Structure):
     #                      workdir=None, manager=None, verbose=0, **kwargs):
 
     def anaget_phbst_and_phdos_files(self, nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra",
-                                       ngqpt=None, workdir=None, manager=None, verbose=0, lo_to_splitting=False):
+                                       ngqpt=None, workdir=None, manager=None, verbose=0, lo_to_splitting=False,
+                                       anaddb_kwargs=None):
         """
         Execute anaddb to compute the phonon band structure and the phonon DOS
 
@@ -331,8 +399,8 @@ class DdbFile(TextFile, Has_Structure):
             workdir: Working directory. If None, a temporary directory is created.
             manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information
-            lo_to_splitting: if True calculation of the LO-TO splitting will be calculated and included in the
-                band structure
+            lo_to_splitting: if True the LO-TO splitting will be calculated and included in the band structure
+            anaddb_kwargs: additional kwargs for anaddb
 
         Returns:
             :class:`PhbstFile` with the phonon band structure.
@@ -342,7 +410,8 @@ class DdbFile(TextFile, Has_Structure):
 
         inp = AnaddbInput.phbands_and_dos(
             self.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, q1shft=(0,0,0), qptbounds=None,
-            asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, lo_to_splitting=lo_to_splitting)
+            asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, lo_to_splitting=lo_to_splitting,
+            anaddb_kwargs=anaddb_kwargs)
 
         task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager)
 
@@ -513,6 +582,58 @@ class DdbFile(TextFile, Has_Structure):
     #    if not report.run_completed:
     #        raise self.AnaddbError(task=task, report=report)
 
+    def write(self, filepath):
+        """
+        Writes the DDB file in filepath.
+        Requires the blocks data.
+        Only the onformation stored in self.header.lines and in self.blocks will be used to produce the file
+        """
+        if not self.blocks:
+            raise ValueError("Blocks information are required to write the DDB file")
+
+        lines = list(self.header.lines)
+
+        lines.append(" **** Database of total energy derivatives ****")
+        lines.append(" Number of data blocks={:5}".format(len(self.blocks)))
+        lines.append(" ")
+
+        for b in self.blocks:
+            lines.extend(b["data"])
+            lines.append(" ")
+
+        lines.append(" List of bloks and their characteristics")
+        lines.append(" ")
+
+        for b in self.blocks:
+            lines.extend(b["data"][:2])
+            lines.append(" ")
+
+        with open(filepath, "wt") as f:
+            f.write("\n".join(lines))
+
+    def get_block_for_qpoint(self, qpt):
+        """
+        Extracts the block data for the selected qpoint. Returns a list of lines containing the block information
+        """
+        if not self.blocks:
+            raise ValueError("Blocks information are required to write the DDB file")
+
+        for b in self.blocks:
+            if b['qpt'] is not None and np.allclose(b['qpt'], qpt):
+                return b["data"]
+
+    def replace_block_for_qpoint(self, qpt, data):
+        """
+        Extracts the block data for the selected qpoint. Returns a list of lines containing the block information.
+        data should be a list of strings representing the whole data block.
+        Note that the DDB file should be written and reopened in order to call methods that run anaddb.
+        """
+        if not self.blocks:
+            raise ValueError("Blocks information are required to write the DDB file")
+
+        for b in self.blocks:
+            if b['qpt'] is not None and np.allclose(b['qpt'], qpt):
+                b["data"] = data
 
 class Becs(Has_Structure):
     """This object stores the Born effective charges and provides simple tools for data analysis."""
