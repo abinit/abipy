@@ -694,7 +694,7 @@ def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None
         ddk_tol = {"tolwfr": 1.0e-20}
 
     if len(ddk_tol) != 1 or any(k not in _tolerances for k in ddk_tol):
-        raise ValueError("Invalid tolerance: {}".format(ddk_tol))
+        raise ValueError("Invalid tolerance: {0}".format(ddk_tol))
     ddk_inp.pop_tolerances()
     ddk_inp.set_vars(ddk_tol)
 
@@ -718,7 +718,7 @@ def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None
         rf_tol = {"tolvrs": 1.0e-12}
 
     if len(rf_tol) != 1 or any(k not in _tolerances for k in rf_tol):
-        raise ValueError("Invalid tolerance: {}".format(rf_tol))
+        raise ValueError("Invalid tolerance: {0}".format(rf_tol))
     rf_inp.pop_tolerances()
     rf_inp.set_vars(rf_tol)
 
@@ -816,7 +816,7 @@ def hybrid_oneshot_input(gsinput, functional="hse06", ecutsigx=None, gw_qprange=
         icutcoul = 6
         rcut = 0.
     else:
-        raise ValueError("Unknow functional {}.".format(functional))
+        raise ValueError("Unknow functional {0}.".format(functional))
 
     ecut = hybrid_input['ecut']
     ecutsigx = ecutsigx or 2*ecut
@@ -867,7 +867,7 @@ class InputFactory(object):
         extra_abivars = kwargs.pop('extra_abivars', {})
         if self.input_required:
             if not previous_input:
-                raise ValueError('An input is required for factory function {}.'.format(self.factory_function.__name__))
+                raise ValueError('An input is required for factory function {0}.'.format(self.factory_function.__name__))
             abiinput = self.factory_function(previous_input, *self.args, **kwargs)
         else:
             abiinput = self.factory_function(*self.args, **kwargs)

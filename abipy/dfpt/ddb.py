@@ -594,7 +594,7 @@ class DdbFile(TextFile, Has_Structure):
         lines = list(self.header.lines)
 
         lines.append(" **** Database of total energy derivatives ****")
-        lines.append(" Number of data blocks={:5}".format(len(self.blocks)))
+        lines.append(" Number of data blocks={0:5}".format(len(self.blocks)))
         lines.append(" ")
 
         for b in self.blocks:
@@ -720,7 +720,7 @@ class ElasticComplianceTensor(Has_Structure):
                 ec_relaxed =  np.array(nc_reader.read_variable('elastic_constants_relaxed_ion'))
                 compl_relaxed =  np.array(nc_reader.read_variable('compliance_constants_relaxed_ion'))
             else:
-                raise ValueError('tensor_type "{}" not allowed'.format(tensor_type))
+                raise ValueError('tensor_type "{0}" not allowed'.format(tensor_type))
         #TODO: add the structure object!
         return cls(elastic_tensor=ec_relaxed, compliance_tensor=compl_relaxed, structure=None,
                    additional_info={'tensor_type': tensor_type})

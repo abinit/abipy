@@ -50,8 +50,8 @@ class TestJobFile(AbipyFileTest):
 
         m1, m2 = 'mod1', 'mod2/version/1.4-b'
         lookfor = """
-        module load {}
-        module load {}
+        module load {0}
+        module load {1}
         """.format(m1, m2)
         self.file.modules = m1, m2
         self.assertContains(lookfor)

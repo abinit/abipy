@@ -309,5 +309,5 @@ class AbinitInput(AbinitFiles):
                     subprocess.call(('ln', '-fs', atarget, apointer))
             except OSError:
                 raise OSError("Unable to link the files. " +
-                              "Maybe {} exists and is not a link.".format(apointer))
+                              "Maybe {0} exists and is not a link.".format(apointer))
 
