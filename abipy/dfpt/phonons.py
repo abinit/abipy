@@ -610,7 +610,7 @@ class PhononBands(object):
             if np.allclose(direction, d):
                 return self.non_anal_phfreqs[i]
 
-        raise ValueError("Non analytical contribution has not been calcolated for direction {} ".format(direction))
+        raise ValueError("Non analytical contribution has not been calcolated for direction {0} ".format(direction))
 
     def plot_width_ax(self, ax, key, branch=None, fact=1.0, **kwargs):
         """Helper function to plot fatbands for given branch on the axis ax."""

@@ -277,7 +277,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
     def __setitem__(self, key, value):
         if key in _TOLVARS_SCF and hasattr(self, '_vars') and any(t in self._vars and t != key for t in _TOLVARS_SCF):
-            logger.info("Replacing previously set tolerance variable: {}."
+            logger.info("Replacing previously set tolerance variable: {0}."
                         .format(self.remove_vars(_TOLVARS_SCF, strict=False)))
 
         return super(AbinitInput, self).__setitem__(key, value)

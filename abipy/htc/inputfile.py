@@ -130,7 +130,7 @@ class VariableBlock(list):
         del self[:]
 
     def __str__(self):
-        lines = ['#== {} ==#'.format(self.title)]
+        lines = ['#== {0} ==#'.format(self.title)]
         for variable in sorted(self):
             svar = str(variable)
             if svar:

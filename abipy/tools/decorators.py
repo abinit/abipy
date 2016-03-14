@@ -48,7 +48,7 @@ def linetracing(f):
             lineno = frame.f_lineno
 
             bname = os.path.basename(filename)
-            print("{}({}): {}".format(bname,
+            print("{0}({1}): {2}".format(bname,
                                       lineno,
                                       linecache.getline(filename, lineno)))
         return localtrace
