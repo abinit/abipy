@@ -21,7 +21,9 @@ from docscrape_sphinx import get_doc_object, SphinxDocString
 import inspect
 
 def mangle_docstrings(app, what, name, obj, options, lines,
-                      reference_offset=[0]):
+                      reference_offset=None):
+    if reference_offset is None:
+        reference_offset = [0]
     if what == 'module':
         # Strip top title
         title_re = re.compile(r'^\s*[#*=]{4,}\n[a-z0-9 -]+\n[#*=]{4,}\s*',
