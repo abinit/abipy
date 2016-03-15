@@ -45,7 +45,7 @@ def main():
     # Parse the command line.
     try:
         options = parser.parse_args()
-    except: 
+    except Exception: 
         show_examples_and_exit(error_code=1)
 
     if not options.out_ddb:
@@ -57,7 +57,7 @@ def main():
     try:
         workdir = "."
         mrgddb.merge(workdir, options.ddb_files, options.out_ddb, options.description)
-    except:
+    except Exception:
         print("got ddb_files: ", options.ddb_files)
                                   
     return 0

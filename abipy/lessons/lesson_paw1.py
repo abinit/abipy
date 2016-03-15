@@ -30,7 +30,7 @@ def gs_input(ecut, pawecutdg, acell_ang=3.567):
         pawecutdg=pawecutdg,
         ecutsm=0.5,
         nband=6,
-        tolvrs=1e-10, 
+        tolvrs=1e-10,
         nstep=20,
     )
 

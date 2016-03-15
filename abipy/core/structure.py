@@ -193,7 +193,7 @@ class Structure(pymatgen.Structure):
         Args:
             a: Lattice parameter in Angstrom.
             species: Chemical species. See __init__ method of :class:`pymatgen.Structue`
-            primitive: if True a primitive cell will be produce, otherwise a conventional one
+            primitive: if True a primitive cell will be produced, otherwise a conventional one
             kwargs: All keyword arguments accepted by :class:`pymatgen.Structue`
         """
         if primitive:
@@ -220,7 +220,7 @@ class Structure(pymatgen.Structure):
         Args:
             a: Lattice parameter in Angstrom.
             species: Chemical species. See __init__ method of :class:`pymatgen.Structure`
-            primitive: if True a primitive cell will be produce, otherwise a conventional one
+            primitive: if True a primitive cell will be produced, otherwise a conventional one
             kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`
         """
         if primitive:

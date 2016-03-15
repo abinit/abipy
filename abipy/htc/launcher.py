@@ -583,7 +583,7 @@ class Launcher(AbinitInput):
     @staticmethod
     def _iscomplete(output_file):
         "Return True if an abinit output file is complete."
-        with open(output_file, 'read') as f:
+        with open(output_file, 'r') as f:
             lines = f.readlines()
             lines.reverse()
 

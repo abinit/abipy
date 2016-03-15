@@ -58,7 +58,7 @@ def _find_loc(app_name):
                     return os.path.join("/Applications", user_apps[i] + ".app")
                 except ValueError:
                     pass
-        except:
+        except Exception:
             pass
 
     return None
@@ -234,7 +234,7 @@ class Vesta(Visualizer):
 #    ]
 
 if __name__ == "__main__":
-    print("available visualizers:") 
+    print("available visualizers:")
     for visu in Visualizer.get_available(): print(visu)
     import sys
     filename = sys.argv[1]

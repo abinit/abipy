@@ -154,7 +154,7 @@ class AbipyrcParser(object):
         try:
             type = self._evars[opt_name].type
             return self._type_converter[type]
-        except:
+        except Exception:
             return None
 
     #def get_default(self, opt_name)
@@ -210,7 +210,7 @@ class AbipyrcParser(object):
                     env[k] = value
                 else:
                     wrong_value.append(k)
-            except:
+            except Exception:
                 wrong_conversion.append((k, module.__dict__[k]))
 
         if unknown:

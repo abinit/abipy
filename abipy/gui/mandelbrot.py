@@ -3,6 +3,7 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
+#from numpy import arange, sin, pi
 
 def mandelbrot(extent=None, ndivs=(1000,1000), iterations=100):
     """
@@ -120,8 +121,7 @@ toolbar - comment out the setA_toolbar line for no toolbar
 import wxversion
 wxversion.ensureMinimal('2.8')
 
-#from numpy import arange, sin, pi
-import numpy as np
+
 
 import matplotlib
 

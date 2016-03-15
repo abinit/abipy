@@ -36,7 +36,7 @@ def xsf_write_structure(file, structures):
     fwrite('CRYSTAL\n')
 
     for (n, struct) in enumerate(structures):
-        cell = struct.lattice_vectors(space="r") 
+        cell = struct.lattice_vectors(space="r")
 
         fwrite('# Primitive lattice vectors in Angstrom\n')
         fwrite('PRIMVEC %d\n' % (n + 1))

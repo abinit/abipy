@@ -129,7 +129,7 @@ Usage example:\n
             structures = Xdatcar(filepath).structures
             if not structures:
                 raise RuntimeError("Your Xdatcar contains only one structure. Due to a bug " 
-                    "in the pymatgen routine, your structures won't be parsed correctly" 
+                    "in the pymatgen routine, your structures won't be parsed correctly"
                     "Solution: Add another structure at the end of the file.")
 
         else:

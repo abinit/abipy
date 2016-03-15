@@ -37,7 +37,7 @@ def main():
     # Parse command line.
     try:
         options = parser.parse_args()
-    except: 
+    except Exception: 
         show_examples_and_exit(error_code=1)
 
     cif_file = options.cif_file[0]

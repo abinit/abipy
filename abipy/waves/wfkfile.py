@@ -430,7 +430,7 @@ class DMatrices(object):
         #from pymatgen.util.num_utils import iuptri
         # Loop over the set of degenerate states.
         # For each degenerate set compute the full D_(R)
-        # mats = [None] * num_degs 
+        # mats = [None] * num_degs
 
         #for idg, (e, waves) in enumerate(deg_ewaves):
         #    nb = len(waves)

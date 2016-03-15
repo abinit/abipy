@@ -7,16 +7,16 @@ Background
 ----------
 
 This lesson deals with the basic k-point convergence study that is needed in any DFT calculation in periodic systems. 
-In such systems, indeed, the first Brillouin zone (BZ) needs to be discretized when performing the 
+In such systems, indeed, the first Brillouin zone (BZ) needs to be discretized when performing the
 integration of several important quantities e.g. the electronic density or the electronic energy.
 Integrals over the BZ are therefore turned into sums over discrete k-points and the k-mesh should 
 be dense enough, but at the same time as coarse as possible to make for an efficient calculation. 
 Your first investigation into a new compound will often be a k-point convergence study.
 
 It is worth stressing that the density of the k-mesh needed to reach converged results is system-dependent.
-Note that metals need much denser k-meshes than semiconductors. 
+Note that metals need much denser k-meshes than semiconductors.
 The presence of the Fermi surface, indeed, introduces discontinuities in the integrand functions and a 
-fictitious broadening of the occupation factors (tsmear) should be introduced in order to accelerate 
+fictitious broadening of the occupation factors (tsmear) should be introduced in order to accelerate
 the convergence of the integrals.
 
 The related Abinit variables

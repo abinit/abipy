@@ -158,7 +158,7 @@ def cleanup():
     if "develop" not in sys.argv:
         try:
             shutil.rmtree('abipy.egg-info')
-        except:
+        except IOError:
             try:
                 os.unlink('abipy.egg-info')
             except:

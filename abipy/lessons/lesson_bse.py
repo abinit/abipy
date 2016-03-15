@@ -11,7 +11,7 @@ import abipy.data as abidata
 def make_scf_nscf_bse_inputs(ngkpt=(6, 6, 6), ecut=6, ecuteps=3, 
                              mdf_epsinf=12.0, soenergy="0.8 eV"):
     """
-    Build and returns three `AbinitInput` objects to perform a 
+    Build and returns three `AbinitInput` objects to perform a
     GS-SCF + GS-NSCF + BSE calculation with the model dielectric function.
 
     Args:

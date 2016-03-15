@@ -12,7 +12,7 @@ def main():
     def str_examples():
         examples = (
           "\n"
-          "Usage example:\n\n" 
+          "Usage example:\n\n"
           "  abicheck.py \n"
         )
         return examples

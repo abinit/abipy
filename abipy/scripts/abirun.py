@@ -40,14 +40,14 @@ def as_slice(obj):
     try:
         # integer.
         if int(obj) == float(obj): return slice(int(obj), int(obj)+1, 1)
-    except:
+    except Exception:
         # assume string defining a python slice [start:stop:step]
         if not obj: return None
         if obj.count("[") + obj.count("]") not in (0, 2): 
             raise ValueError("Invalid string %s" % obj)
 
         obj = obj.replace("[", "").replace("]", "")
-        n = obj.count(":") 
+        n = obj.count(":")
         if n == 0:
             obj = int(obj)
             return slice(obj, obj+1)
@@ -206,7 +206,7 @@ usage example:
                 s = as_slice(s)
                 if s.stop is None: raise argparse.ArgumentTypeError("stop must be specified")
                 return list(range(s.start, s.stop, s.step))
-        except:
+        except Exception:
             raise argparse.ArgumentTypeError("Invalid nids string %s\n Expecting None or int or comma-separated integers or slice sintax" % s)
 
     def parse_wslice(s):
@@ -391,7 +391,7 @@ Specify the files to open. Possible choices:
 
     # Subparser for ipython.
     p_ipython = subparsers.add_parser('ipython', parents=[copts_parser], help="Embed IPython. Useful for advanced operations or debugging purposes.")
-    p_ipython.add_argument('--argv', nargs="?", default="", type=shlex.split, 
+    p_ipython.add_argument('--argv', nargs="?", default="", type=shlex.split,
                            help="Command-line options passed to ipython. Must be enclosed by quotes. "
                                 "Example: --argv='--matplotlib=wx'")
 
@@ -471,7 +471,7 @@ Specify the files to open. Possible choices:
                 executable="executable",
                 qout_path="qout_file.path",
                 qerr_path="qerr_file.path",
-                stdin="stdin", 
+                stdin="stdin",
                 stdout="stdout",
                 stderr="stderr",
             )

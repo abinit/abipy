@@ -16,7 +16,7 @@ Indeed, the equation of state is obtained by performing a homogeneous compressio
 the initial Bravais lattice while keeping the atoms fixed in the initial high-symmetry positions.
 
 In the second example, we find the equilibrium configuration of GaN.
-In this case, the approach used for computing the EOS of silicon is not applicable because, 
+In this case, the approach used for computing the EOS of silicon is not applicable because,
 one should optimize both the lattice parameters as well the distance between Ga and N.
 For this reason, we employ the relaxation algorithms implemented in Abinit (`ionmov` and `optcell`)
 in which the forces and the stresses obtained at the end of the SCF cycle are used to find the minimum energy configuration.
