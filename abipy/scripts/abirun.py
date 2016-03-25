@@ -240,12 +240,13 @@ usage example:
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                               help='verbose, can be supplied multiple times to increase verbosity')
     copts_parser.add_argument('--remove-lock', default=False, type=bool, help="Remove the lock file of the pickle file storing the flow.")
-    copts_parser.add_argument('--no-colors', default=False, help='Disable ASCII colors')
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + abilab.__version__)
+
+    parser.add_argument('--no-colors', default=False, help='Disable ASCII colors')
     parser.add_argument('--loglevel', default="ERROR", type=str,
                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
