@@ -147,27 +147,6 @@ def abicheck():
     err_lines = []
     app = err_lines.append
 
-    # Executables must be in $PATH. Unfortunately we cannot test the version of the binaries.
-    # A possible approach would be to execute "exe -v" but supporting argv in Fortran is not trivial.
-    # Dynamic linking is tested by calling `ldd exe`
-    #executables = [
-    #    "abinit",
-    #    "mrgddb",
-    #    "mrggkk",
-    #    "mrgdv",
-    #    "anaddb",
-    #]
-
-    #has_ldd = which("ldd") is not None
-    #for exe in executables:
-    #    exe_path = which(exe)
-    #    if exe_path is None:
-    #        app("Cannot find %s in $PATH" % exe)
-    #    else:
-    #        if has_ldd and os.system("ldd %s > /dev/null " % exe_path) != 0:
-    #            app("Missing shared library dependencies for %s" % exe)
-    #            continue
-
     try:
         manager = TaskManager.from_user_config()
     except:
