@@ -207,7 +207,7 @@ class Mesh3D(object):
 
         if ndim == 1:
             fg = np.reshape(fg, self.shape)
-            return self.fft_g2r(fg, fh_isshifted=fg_ishifted).flatten()
+            return self.fft_g2r(fg, fg_ishifted=fg_ishifted).flatten()
 
         if ndim == 3:
             assert self.size == np.prod(shape[-3:])

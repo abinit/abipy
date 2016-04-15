@@ -11,5 +11,5 @@ Below is a brief description of the different directories found here:
   * demo - Scripts showing the different widgets/applications 
 
 If you add a new widget/application, add a new script in the demo directory.
-Name the script following the conventions demo_awx_[name_widget] so that 
+Name the script following the conventions `demo_awx_[name_widget]` so that
 run.py can import and run it automatically.

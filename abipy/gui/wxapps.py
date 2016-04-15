@@ -15,7 +15,8 @@ from .flowviewer import wxapp_flow_viewer
 from .gsrviewer import wxapp_gsrviewer
 from .mdfviewer import wxapp_mdfviewer
 from .wxncview import wxapp_ncview
-from .oncvgui import wxapp_oncvpsp
+#from .oncvgui import wxapp_oncvpsp
+from .phbstviewer import wxapp_phbstviewer
 
 
 # Map abinit file extensions to WX Applications.
@@ -24,6 +25,7 @@ _EXT2APP = {
     "SIGRES.nc": wxapp_sigresviewer,
     "GSR.nc": wxapp_gsrviewer,
     "MDF.nc": wxapp_mdfviewer,
+    "PHBST.nc": wxapp_phbstviewer,
     #".abi": MyEditorApp, 
     #".abo": MyEditorApp, 
     #".log": MyEditorApp, 

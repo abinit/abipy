@@ -8,7 +8,6 @@ import collections
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from pymatgen.core.units import bohr_to_angstrom
-from abipy.tools import transpose_last3dims
 from abipy.iotools import Visualizer, xsf, ETSF_Reader
 from abipy.core.mesh3d import Mesh3D
 from abipy.core.func1d import Function1D

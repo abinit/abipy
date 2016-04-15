@@ -12,7 +12,7 @@ __all__ = [
 
 
 class FrozenDict(dict):
-    "A dictionary that does not permit to redefine its keys"
+    """A dictionary that does not permit to redefine its keys"""
 
     def __init__(self, *args, **kwargs):
         self.update(*args, **kwargs)
@@ -154,7 +154,7 @@ class AbipyrcParser(object):
         try:
             type = self._evars[opt_name].type
             return self._type_converter[type]
-        except:
+        except Exception:
             return None
 
     #def get_default(self, opt_name)
@@ -210,7 +210,7 @@ class AbipyrcParser(object):
                     env[k] = value
                 else:
                     wrong_value.append(k)
-            except:
+            except Exception:
                 wrong_conversion.append((k, module.__dict__[k]))
 
         if unknown:

@@ -11,9 +11,9 @@ with abiopen(abidata.ref_file("si_nscf_GSR.nc")) as gsr_file:
 
 # Define the mapping reduced_coordinates -> name of the k-point.
 klabels = {
-    (0.5,  0.0,  0.0) : "L",
-    (0.0,  0.0,  0.0) : "$\Gamma$",
-    (0.0,  0.5,  0.5) : "X",
+    (0.5,  0.0,  0.0): "L",
+    (0.0,  0.0,  0.0): "$\Gamma$",
+    (0.0,  0.5,  0.5): "X",
 }
 
 # Set the width 

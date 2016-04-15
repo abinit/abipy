@@ -7,7 +7,7 @@
 .. image:: https://img.shields.io/travis/gmatteo/abipy/master.svg    
         :target: https://travis-ci.org/gmatteo/abipy
 
-.. image:: https://img.shields.io/badge/license-LGPL-blue.svg
+.. image:: https://img.shields.io/badge/license-GPL-blue.svg
 
 
 About
@@ -18,20 +18,20 @@ within Density Functional Theory (DFT).
 Abipy is written in Python and is designed with the philosophy that you should be able to create 
 simple plots with just a few commands.
 
-Documentation available at http://pythonhosted.org/abipy/
+Documentation available at `abipy docpage`_.
 Check out the the list of plotting scripts available in the 
 `examples/plot <http://pythonhosted.org/abipy/examples/plot/index.html>`_ directory.
-To learn more about abipy, you can visit our example collection of ipython `notebooks 
+To learn more about abipy, you can visit our example collection of `ipython notebooks
 <http://nbviewer.ipython.org/github/gmatteo/abipy/blob/master/abipy/examples/notebooks/index.ipynb>`_
-and the abipy 
-`lessons <http://nbviewer.ipython.org/github/gmatteo/abipy/blob/master/abipy/examples/notebooks/lessons/index.ipynb>`_.
+and the
+`abipy lessons <http://nbviewer.ipython.org/github/gmatteo/abipy/blob/master/abipy/examples/notebooks/lessons/index.ipynb>`_.
 
 Abipy is free to use. However, we also welcome your help to improve this library by making your own contributions.  
 These contributions can be in the form of additional tools or modules you develop, or even simple things 
 such as bug reports. 
-Please report any bugs and issues at abipy's `Github page <https://github.com/gmatteo/abipy>`_. 
+Please report any bugs and issues at AbiPy's `Github page <https://github.com/gmatteo/abipy>`_.
 
-Getting abipy
+Getting AbiPy
 =============
 
 Stable version
@@ -39,7 +39,7 @@ Stable version
 
 The version at the Python Package Index (PyPI) is always the latest stable
 release that will be hopefully, be relatively bug-free. 
-The easiest way to install abipy is to use easy_install or pip, as follows::
+The easiest way to install AbiPy is to use easy_install or pip, as follows::
 
     easy_install abipy
 
@@ -47,16 +47,17 @@ or::
 
     pip install abipy
 
-
-**Note**: You may need to install pymatgen before installing abipy as abipy depends on pymatgen 
-Besides, abipy required additional dependencies such as netcdf4 and wxpython for the graphical interface.
+You may need to install pymatgen before installing abipy as the code depends on pymatgen
+Besides, abipy required additional dependencies such as `netcdf4` and `wxpython` for the graphical interface.
 Users who want to use the graphical interface are suggested to install the required python packages (wxpython)
 through one of the following python distributions::
 
-    #. `Canopy <https://www.enthought.com/products/canopy>`_
+    - `Anaconda <https://continuum.io/downloads>`_
+    - `Canopy <https://www.enthought.com/products/canopy>`_
 
-    #. `Anaconda <http://continuum.io/downloads`_
-
+Anaconda is the recommended approach.
+Additional information on the steps required to install python with anaconda are available
+here :ref:`_howto_anaconda`.
 
 Developmental version
 ---------------------
@@ -84,23 +85,23 @@ Requirements
 All required dependencies should be automatically taken care of if you install abipy using easy_install or pip. 
 Otherwise, these packages should be available on `PyPI <http://pypi.python.org>`_.
 
-  #. Python 2.7 required (Python 3.0+ not supported) 
-  #. pymatgen
-  #. numpy 
-  #. matplotlib 
-  #. scipy 
-  #. netCDF4
-  #. pyYaml
+  - Python 2.7 required (Python 3.0+ not supported)
+  - pymatgen
+  - numpy
+  - matplotlib
+  - scipy
+  - pandas
+  - netCDF4
+  - pyYaml
 
 The following packages are much easier to install with easy_install:
 
-  #. pyYaml
-  #. pyCifRW
-  #. pyhull
-  #. PyDispatcher
+  - pyYaml
+  - pyCifRW
+  - pyhull
+  - PyDispatcher
 
 for netcdf4 and hdf see http://www.unidata.ucar.edu/software/netcdf/docs/build_default.html
-
 
 pyhull:
  export CC=gcc 
@@ -136,7 +137,17 @@ Below is a brief description of the different directories found there:
 The directory `abipy/data/runs` contains scripts that can be used to automate typical ab-initio calculations.
 
 Examples of the basic capabilities can be found in the 
-`example page http://pythonhosted.org/abipy/examples/index.html`_ of the  official documentation.
+`example page <http://pythonhosted.org/abipy/examples/index.html>`_ of the  official documentation.
+
+If the examples stops producing the error message: 
+    
+    "ValueError: unknown locale: UTF-8"
+
+add the following line to your `.bashrc` file inside your home (`.profile` if MacOSx):
+
+    export LC_ALL=C
+
+reload the environment with `source ~/.bashrc` and rerun.
 
 Advanced Usage
 --------------
@@ -160,3 +171,6 @@ Abipy is released under the GNU GPL License. The terms of the license are as fol
 
     You should have received a copy of the GNU Lesser General Public License along with abipy.  
     If not, see <http://www.gnu.org/licenses/>.
+
+
+.. _`abipy docpage` : http://pythonhosted.org/abipy

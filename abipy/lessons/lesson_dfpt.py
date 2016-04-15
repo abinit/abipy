@@ -27,7 +27,7 @@ def make_scf_input(ecut=2, ngkpt=(4, 4, 4)):
     
     # Set the value of the Abinit variables needed for GS runs.
     gs_inp.set_vars(
-        nband=4,             
+        nband=4,       
         ecut=ecut,         
         ngkpt=ngkpt,
         nshiftk=4,

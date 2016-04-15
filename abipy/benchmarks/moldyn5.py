@@ -188,7 +188,7 @@ def build_flow(options):
     if max_ncpus is None:
         nkpt = len(template.abiget_ibz().points)
         max_ncpus = nkpt * template["nsppol"] * template["nband"] * 4 
-	print("Getting all autoparal confs up to max_ncpus: ",max_ncpus," with efficiency >= ",min_eff)
+    print("Getting all autoparal confs up to max_ncpus: ",max_ncpus," with efficiency >= ",min_eff)
 
     pconfs = template.abiget_autoparal_pconfs(max_ncpus, autoparal=1, verbose=options.verbose)
     if options.verbose: print(pconfs)

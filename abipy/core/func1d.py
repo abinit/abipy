@@ -158,25 +158,28 @@ class Function1D(object):
                                   usecols=usecols, unpack=True)
         return cls(mesh, values)
 
-    def to_file(self, path, fmt='%.18e', delimiter=' ', newline='\n', header='', footer='', comments='# '):
+    def to_file(self, path, fmt='%.18e', header=''):
         """
-        Save self to a text file. See :func:`np.savetext` for the description of the variables
+        Save data in a text file. Use format fmr. A header is added at the beggining.
         """
-        data = zip(self.mesh, self.values)
-        np.savetxt(path, data, fmt=fmt.encode("ascii", "ignore"), delimiter=delimiter, newline=newline,
-                   header=header, footer=footer, comments=comments)
+        fmt = "%s %s\n" % (fmt, fmt)
+        with open(path, "wt") as fh:
+            if header: fh.write(header)
+            for x, y in zip(self.mesh, self.values):
+                fh.write(fmt % (x, y))
 
     def __repr__(self):
         return "%s at %s, size = %d" % (self.__class__.__name__, id(self), len(self))
 
     def __str__(self):
         stream = cStringIO()
-        self.to_file(stream)
-        return "\n".join(stream.getvalue())
+        for x, y in zip(self.mesh, self.values):
+            stream.write("%.18e %.18e\n" % (x, y))
+        return "".join(stream.getvalue())
 
     def has_same_mesh(self, other):
         """True if self and other have the same mesh."""
-        if (self.h, other.h) == (None, None):
+        if (self.h, other.h) is (None, None):
             # Generic meshes.
             return np.allclose(self.mesh, other.mesh)
         else:
@@ -235,7 +238,7 @@ class Function1D(object):
         Return the index of the first point in the mesh whose value is >= value
         -1 if not found
         """
-        for (i, x) in enumerate(self.mesh):
+        for i, x in enumerate(self.mesh):
             if x >= value:
                 return i
         return -1
@@ -467,17 +470,15 @@ class Function1D(object):
         Returns:
             List of lines added.
         """
-        xx, yy = self.mesh, self.values
-        if exchange_xy:
-            xx, yy = yy, xx
-
         cplx_mode = kwargs.pop("cplx_mode", "re-im")
         lines = []
 
         from abipy.tools.plotting_utils import data_from_cplx_mode
         for c in cplx_mode.lower().split("-"):
-            data = data_from_cplx_mode(c, yy)
-            lines.extend(ax.plot(xx, data, *args, **kwargs))
+            xx, yy = self.mesh, data_from_cplx_mode(c, self.values)
+            if exchange_xy:
+                xx, yy = yy, xx
+            lines.extend(ax.plot(xx, yy, *args, **kwargs))
 
         return lines
 

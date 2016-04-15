@@ -21,6 +21,13 @@ def is_macosx():
 
 def find_loc(app_name):
     """Returns the location of the application from its name."""
+    path = _find_loc(app_name)
+    if path is not None: return path
+    path = _find_loc(app_name.upper())
+    return path
+
+
+def _find_loc(app_name):
     # Try command line version
     path = which(app_name)
     if path is not None: return path
@@ -51,7 +58,7 @@ def find_loc(app_name):
                     return os.path.join("/Applications", user_apps[i] + ".app")
                 except ValueError:
                     pass
-        except:
+        except Exception:
             pass
 
     return None
@@ -227,7 +234,7 @@ class Vesta(Visualizer):
 #    ]
 
 if __name__ == "__main__":
-    print("available visualizers:") 
+    print("available visualizers:")
     for visu in Visualizer.get_available(): print(visu)
     import sys
     filename = sys.argv[1]

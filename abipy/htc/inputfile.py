@@ -130,7 +130,7 @@ class VariableBlock(list):
         del self[:]
 
     def __str__(self):
-        lines = ['#== {} ==#'.format(self.title)]
+        lines = ['#== {0} ==#'.format(self.title)]
         for variable in sorted(self):
             svar = str(variable)
             if svar:
@@ -328,7 +328,7 @@ class InputFile(object):
         """Set a single variable."""
         self.variables[name] = value
 
-    def set_variables(self, variables=dict(), dataset=0, **kwargs):
+    def set_variables(self, variables=None, dataset=0, **kwargs):
         """
         Sets variables by providing a dictionary, or expanding a dictionary,
         and possibly append them by a dataset index.
@@ -373,6 +373,8 @@ class InputFile(object):
             >> 
             >> f.write('myfile.in')  # The name was not set at initialization.
         """
+        if variables is None:
+            variables = dict()
         variables.update(kwargs)
 
         if not dataset:

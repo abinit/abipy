@@ -158,7 +158,7 @@ def cleanup():
     if "develop" not in sys.argv:
         try:
             shutil.rmtree('abipy.egg-info')
-        except:
+        except IOError:
             try:
                 os.unlink('abipy.egg-info')
             except:
@@ -174,7 +174,7 @@ install_requires = [
     "wxmplot",
     "html2text",
     "pigments",
-    "orderedset",
+    #"orderedset",
     "pyyaml>=3.11",
     "pandas",
     "numpy>=1.8",  

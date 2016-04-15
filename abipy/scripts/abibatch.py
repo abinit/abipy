@@ -80,7 +80,7 @@ Usage example:\n
     # Parse command line.
     try:
         options = parser.parse_args()
-    except Exception as exc: 
+    except Exception as exc:
         show_examples_and_exit(error_code=1)
 
     # loglevel is bound to the string value obtained from the command line argument. 
@@ -160,7 +160,7 @@ if __name__ == "__main__":
         do_prof = sys.argv[1] == "prof"
         do_tracemalloc = sys.argv[1] == "tracemalloc"
         if do_prof or do_tracemalloc: sys.argv.pop(1)
-    except: 
+    except Exception:
         pass
 
     if do_prof:

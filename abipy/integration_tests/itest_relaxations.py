@@ -156,7 +156,7 @@ def itest_relaxation_with_restart_from_den(fwp, tvars):
     """Test structural relaxations with automatic restart from DEN files."""
     # Build the flow
     flow = abilab.Flow(fwp.workdir, manager=fwp.manager)
- 
+
     # Use small value for ntime to trigger restart, then disable the output of the WFK file.
     ion_input, ioncell_input = make_ion_ioncell_inputs(tvars, dilatmx=1.1, ntime=3)
     ion_input.set_vars(prtwf=0)

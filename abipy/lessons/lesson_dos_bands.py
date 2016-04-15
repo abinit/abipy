@@ -14,8 +14,8 @@ except for the highest occupied state that actually would be the first ionizatio
 exact. So why do we use the KS formalism to calculate electron DOSes and band structures? 
 
 As a matter of fact, the KS energy spectrum is usually in qualitative agreement with experiments (let's ignore correlated systems).
-Standard KS band structures with LDA or GGA are relatively cheap and KS calculations allow us to make reasonable predictions 
-and to study trends.
+Standard KS band structures with LDA or GGA are relatively cheap and KS calculations allow us to make 
+reasonable predictions and to study trends.
 In `lesson_g0w0.py`, we discuss a more accurate and expensive approach for the calculation of band structures and band gaps
 based on many-body perturbation theory.
 
@@ -142,7 +142,7 @@ import abipy.data as abidata
 from abipy.lessons.core import BaseLesson, get_pseudos
 
 
-def make_electronic_structure_flow(ngkpts_for_dos=[(2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)]):
+def make_electronic_structure_flow(ngkpts_for_dos=((2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8))):
     """Band structure calculation."""
     multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"),
                                 pseudos=abidata.pseudos("14si.pspnc"), ndtset=2 + len(ngkpts_for_dos))

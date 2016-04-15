@@ -22,7 +22,7 @@ Note that different pseudo potentials usually require a different cutoff energy 
 In general norm-conserving pseudos require a larger cut-off than ultra-soft pseudos 
 or Projector Augmented Wave 'pseudos'. 
 Moreover two pseudos of the same type for the same element may require different  cutoff energies as well. 
-Pseudos with small pseudization radius usually require larger cutoffs than pseudos 
+Pseudos with small pseudization radius usually require larger cutoffs than pseudos
 with large pseudization radius.
 
 The related abinit variables

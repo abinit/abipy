@@ -389,9 +389,7 @@ class Launcher(AbinitInput):
         gsfname = find_file(out_files, "GSR")
                                                                           
         if gsfname is None:
-            raise RuntimeError("Cannot find GSR file among " % out_files)
-
-
+            raise RuntimeError("Cannot find GSR file among %s" % out_files)
 
         if what_visualize == "crystal":
 
@@ -585,7 +583,7 @@ class Launcher(AbinitInput):
     @staticmethod
     def _iscomplete(output_file):
         "Return True if an abinit output file is complete."
-        with open(output_file, 'read') as f:
+        with open(output_file, 'r') as f:
             lines = f.readlines()
             lines.reverse()
 

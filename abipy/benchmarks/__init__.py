@@ -47,6 +47,7 @@ def as_orderedset(token, options):
         l = ast.literal_eval(token)
 
     #print("l", l)
+    l = [n for n in l if options.min_ncpus <= n <= options.max_ncpus]
     return OrderedSet(l)
 
 
@@ -86,8 +87,8 @@ def bench_main(main):
                                  "working directory first then ~/.abinit/abipy/manager.yml.")
 
         parser.add_argument("--mpi-list", default=None, type=str, help="List of MPI processors to be tested. Syntax:\n"
-                            "--mpi-list='[1,6,12]' to define a list, 'range(1,4,2)' for a python range.\n" 
-                            "--mpi-list='16x' for multiple of 16 up to max--ncpus, --mpi-list='pow2' for powers of 2")
+                            "--mpi-list=[1,6,12] to define a list, range(1,4,2) for a python range.\n" 
+                            "--mpi-list=16x for multiple of 16 up to max--ncpus, --mpi-list=pow2 for powers of 2")
         parser.add_argument("--omp-list", default=None, type=str, help="List of OMP threads to be tested. Default is [1]. Same syntax as mpi-list.")
 
         parser.add_argument("--min-ncpus", default=-1, type=int, help="Minimum number of CPUs to be tested.")
@@ -247,7 +248,7 @@ class BenchmarkFlow(Flow):
 
         return parser
 
-    def build_and_pickle_dump(self, *args, **kwargs):
+    def build_and_pickle_dump(self, **kwargs):
         cnt = 0
         for task in self.iflat_tasks():
             if task.node_id in self.exclude_nodeids: continue
@@ -256,7 +257,7 @@ class BenchmarkFlow(Flow):
               (task, task.manager.qadapter.mpi_procs, task.manager.qadapter.omp_threads))
         print("Total number of benchmarks: %d" % cnt)
 
-        return super(BenchmarkFlow, self).build_and_pickle_dump(*args, **kwargs)
+        return super(BenchmarkFlow, self).build_and_pickle_dump(**kwargs)
 
     #def make_tarball(self):
     #    self.make_tarfile(self, name=None, max_filesize=None, exclude_exts=None, exclude_dirs=None, verbose=0, **kwargs):

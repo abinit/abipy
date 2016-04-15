@@ -40,14 +40,14 @@ def as_slice(obj):
     try:
         # integer.
         if int(obj) == float(obj): return slice(int(obj), int(obj)+1, 1)
-    except:
+    except Exception:
         # assume string defining a python slice [start:stop:step]
         if not obj: return None
         if obj.count("[") + obj.count("]") not in (0, 2): 
             raise ValueError("Invalid string %s" % obj)
 
         obj = obj.replace("[", "").replace("]", "")
-        n = obj.count(":") 
+        n = obj.count(":")
         if n == 0:
             obj = int(obj)
             return slice(obj, obj+1)
@@ -165,7 +165,7 @@ usage example:
     abirun.py [FLOWDIR] gui                      => Open the GUI.
     abirun.py [FLOWDIR] manager slurm            => Document the TaskManager options availabe for Slurm.
     abirun.py [FLOWDIR] manager script           => Show the job script that will be produced.
-    nohup abirun.py [FLOWDIR] sheduler -s 30 &   => Start the scheduler to schedule task submission.
+    nohup abirun.py [FLOWDIR] scheduler -s 30 &  => Start the scheduler to schedule task submission.
 
     If FLOWDIR is not given, abirun.py automatically selects the database located within 
     the working directory. An Exception is raised if multiple databases are found.
@@ -206,7 +206,7 @@ usage example:
                 s = as_slice(s)
                 if s.stop is None: raise argparse.ArgumentTypeError("stop must be specified")
                 return list(range(s.start, s.stop, s.step))
-        except:
+        except Exception:
             raise argparse.ArgumentTypeError("Invalid nids string %s\n Expecting None or int or comma-separated integers or slice sintax" % s)
 
     def parse_wslice(s):
@@ -240,12 +240,13 @@ usage example:
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                               help='verbose, can be supplied multiple times to increase verbosity')
     copts_parser.add_argument('--remove-lock', default=False, type=bool, help="Remove the lock file of the pickle file storing the flow.")
-    copts_parser.add_argument('--no-colors', default=False, help='Disable ASCII colors')
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + abilab.__version__)
+
+    parser.add_argument('--no-colors', default=False, help='Disable ASCII colors')
     parser.add_argument('--loglevel', default="ERROR", type=str,
                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
@@ -279,8 +280,9 @@ usage example:
 
     # Subparser for status command.
     p_status = subparsers.add_parser('status', parents=[copts_parser, flow_selector_parser], help="Show task status.")
-    p_status.add_argument('-d', '--delay', default=0, type=int, help=("If 0, exit after the first analysis.\n" + 
-                          "If > 0, enter an infinite loop and delay execution for the given number of seconds."))
+    p_status.add_argument('-d', '--delay', nargs="?", const=5, default=0, type=int, 
+                          help=("Enter an infinite loop and delay execution for the given number of seconds. (default: 5)"))
+
     p_status.add_argument('-s', '--summary', default=False, action="store_true", help="Print short version with status counters.")
 
     # Subparser for set_status command.
@@ -327,7 +329,7 @@ Specify the files to open. Possible choices:
     p_ncopen.add_argument('ncext', nargs="?", default="GSR", help="Select the type of file to open")
 
     # Subparser for gui command.
-    p_gui = subparsers.add_parser('gui', help="Open the GUI (requires wxPython).")
+    p_gui = subparsers.add_parser('gui', parents=[copts_parser], help="Open the GUI (requires wxPython).")
     p_gui.add_argument("--chroot", default="", type=str, help=("Use chroot as new directory of the flow." +
                        "Mainly used for opening a flow located on a remote filesystem mounted with sshfs." +
                        "In this case chroot is the absolute path to the flow on the **localhost**",
@@ -390,7 +392,7 @@ Specify the files to open. Possible choices:
 
     # Subparser for ipython.
     p_ipython = subparsers.add_parser('ipython', parents=[copts_parser], help="Embed IPython. Useful for advanced operations or debugging purposes.")
-    p_ipython.add_argument('--argv', nargs="?", default="", type=shlex.split, 
+    p_ipython.add_argument('--argv', nargs="?", default="", type=shlex.split,
                            help="Command-line options passed to ipython. Must be enclosed by quotes. "
                                 "Example: --argv='--matplotlib=wx'")
 
@@ -470,7 +472,7 @@ Specify the files to open. Possible choices:
                 executable="executable",
                 qout_path="qout_file.path",
                 qerr_path="qerr_file.path",
-                stdin="stdin", 
+                stdin="stdin",
                 stdout="stdout",
                 stderr="stderr",
             )
@@ -620,7 +622,8 @@ Specify the files to open. Possible choices:
         show_func = flow.show_status if not options.summary else flow.show_summary
 
         if options.delay:
-            cprint("Entering infinite loop. Press CTRL+C to exit", color="magenta", end="", flush=True)
+            cprint("Entering infinite loop (delay: %d s).\nPress <CTRL+C> to exit" % options.delay, 
+                   color="magenta", end="", flush=True)
             try:
                 while True:
                     print(2*"\n" + time.asctime() + "\n")
@@ -752,7 +755,7 @@ Specify the files to open. Possible choices:
         if not paths:
             cprint("No job is running. Exiting!", "red")
         else:
-            cprint("Press CTRL+C to interrupt. Number of output files %d" % len(paths), color="magenta", end="", flush=True)
+            cprint("Press <CTRL+C> to interrupt. Number of output files %d\n" % len(paths), color="magenta", end="", flush=True)
             try:
                 os.system("tail -f %s" % " ".join(paths))
             except KeyboardInterrupt:
@@ -820,7 +823,7 @@ Specify the files to open. Possible choices:
         #if num_tasks == 1:
         #    p.join()
         #else:
-        #    cprint("Will produce %d matplotlib plots. Press CTRL+C to interrupt..." % num_tasks, color="magenta", end="", flush=True)
+        #    cprint("Will produce %d matplotlib plots. Press <CTRL+C> to interrupt..." % num_tasks, color="magenta", end="", flush=True)
         #    try:
         #        p.join()
         #    except KeyboardInterrupt:

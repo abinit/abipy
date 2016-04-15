@@ -36,7 +36,7 @@ def xsf_write_structure(file, structures):
     fwrite('CRYSTAL\n')
 
     for (n, struct) in enumerate(structures):
-        cell = struct.lattice_vectors(space="r") 
+        cell = struct.lattice_vectors(space="r")
 
         fwrite('# Primitive lattice vectors in Angstrom\n')
         fwrite('PRIMVEC %d\n' % (n + 1))
@@ -205,7 +205,9 @@ def bxsf_write(file, structure, nsppol, nband, ndivs, emesh_sbk, fermie, unit="e
             idx += 1
             enebz = emesh_sbk[spin, band, :]
             fw(" BAND: %d\n" % idx)
-            np.savetxt(file, enebz)
+            #np.savetxt(file, enebz)
+            fw("\n".join("%.18e" % v for v in enebz))
+            fw("\n")
 
     fw(' END_BANDGRID_3D\n')
     fw('END_BLOCK_BANDGRID_3D\n')

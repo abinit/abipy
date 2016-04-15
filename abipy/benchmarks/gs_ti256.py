@@ -359,7 +359,7 @@ def build_flow(options):
             #inp.abivalidate()
             work.register_scf_task(inp, manager=manager)
 
-	    flow.register_work(work)
+        flow.register_work(work)
 
     return flow.allocate()
 

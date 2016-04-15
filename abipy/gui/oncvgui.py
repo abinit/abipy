@@ -10,7 +10,7 @@ import abc
 import sys
 import six
 import wx
-import awx
+
 import wx.lib.mixins.listctrl as listmix
 import numpy as np
 import pymatgen.core.periodic_table as periodic_table
@@ -21,15 +21,25 @@ from monty.collections import AttrDict
 from abipy.gui.editor import TextNotebookFrame, SimpleTextViewer
 from abipy.gui.oncvtooltips import oncv_tip
 from abipy.gui import mixins as mix
-from pseudo_dojo.refdata.nist import database as nist
-from pseudo_dojo.ppcodes.ppgen import OncvGenerator
-from pseudo_dojo.ppcodes.oncvpsp import MultiPseudoGenDataPlotter
+from abipy.gui import awx
+from abipy.gui.awx.elements_gui import WxPeriodicTable, PeriodicPanel, ElementButton
 
+try:
+    from pseudo_dojo.refdata.nist import database as nist
+    from pseudo_dojo.ppcodes.ppgen import OncvGenerator
+    from pseudo_dojo.ppcodes.oncvpsp import MultiPseudoGenDataPlotter
+except ImportError as exc:
+    print("Error while trying to import pseudo_dojo modules:\n%s" % str(exc))
+    #raise
 
 # TODO
 # Change oncvpsp so that 
 #   1) we always write the logarithmic derivative
 #   2) better error handling
+
+
+def all_symbols():
+    return periodic_table.PeriodicTable().all_symbols
 
 
 def add_size(kwargs, size=(800, 600)):
@@ -39,7 +49,7 @@ def add_size(kwargs, size=(800, 600)):
 
     return kwargs
 
-from awx.elements_gui import WxPeriodicTable, PeriodicPanel, ElementButton
+
 
 def my_periodic_table(parent):
     """
@@ -269,7 +279,7 @@ allows you to scan a set of possible values for the generation of the pseudopote
         symbol_menu = wx.Menu()
         self._id2symbol = {}
 
-        for symbol in periodic_table.all_symbols():
+        for symbol in all_symbols():
             _id = wx.NewId()
             symbol_menu.Append(_id, symbol)
             self._id2symbol[_id] = symbol
@@ -987,6 +997,7 @@ class Field(object):
             #if self.__class__ == VlocalField: tokens[-1] = int(tokens[-1])
 
             for key, p, tok in zip(okeys, parsers, tokens):
+                #print(key)
                 self.data[key] = p(tok)
 
         elif self.ftype == self.FTYPE_TABLE:
@@ -1097,7 +1108,7 @@ class AtomConfField(RowField):
     name = "ATOMIC CONFIGURATION"
 
     WXCTRL_PARAMS = OrderedDict([
-        ("atsym", dict(dtype="cbox", choices=periodic_table.all_symbols())),
+        ("atsym", dict(dtype="cbox", choices=all_symbols())),
         ("z", dict(dtype="i")),
         ("nc", dict(dtype="i", value=0, tooltip="number of core states"),),
         ("nv", dict(dtype="i", value=0, tooltip="number of valence states")),
@@ -2786,7 +2797,7 @@ if __name__ == "__main__":
 
     if filepaths is not None:
         if filepaths[0] == "table":
-            for symbol in periodic_table.all_symbols():
+            for symbol in all_symbols():
                 path = symbol + ".dat"
                 if os.path.exists(path):
                     print("Will open file %s" % path)

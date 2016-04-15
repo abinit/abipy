@@ -277,7 +277,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
     def __setitem__(self, key, value):
         if key in _TOLVARS_SCF and hasattr(self, '_vars') and any(t in self._vars and t != key for t in _TOLVARS_SCF):
-            logger.info("Replacing previously set tolerance variable: {}."
+            logger.info("Replacing previously set tolerance variable: {0}."
                         .format(self.remove_vars(_TOLVARS_SCF, strict=False)))
 
         return super(AbinitInput, self).__setitem__(key, value)
@@ -773,7 +773,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % tolerance)
+            raise self.Error("Invalid tolerance: %s" % str(tolerance))
 
         # Call Abinit to get the list of irred perts.
         perts = self.abiget_irred_phperts(qpt=qpt)
@@ -813,7 +813,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             tolerance = {"tolwfr": 1.0e-22}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % tolerance)
+            raise self.Error("Invalid tolerance: %s" % str(tolerance))
 
         if "tolvrs" in tolerance:
             raise self.Error("tolvrs should not be used in a DDK calculation")
@@ -852,7 +852,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % tolerance)
+            raise self.Error("Invalid tolerance: %s" % str(tolerance))
 
         # Call Abinit to get the list of irred perts.
         perts = self.abiget_irred_ddeperts()
@@ -888,7 +888,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % tolerance)
+            raise self.Error("Invalid tolerance: %s" % str(tolerance))
 
         # Call Abinit to get the list of irred perts.
         # TODO:
@@ -1579,15 +1579,18 @@ class AnaddbInput(AbstractInput, Has_Structure):
                              "or modify the JSON file abipy/abio/anaddb_vars.json" % key)
 
     @classmethod
-    def modes_at_qpoint(cls, structure, qpoint, asr=2, chneut=1, dipdip=1, 
-                        anaddb_args=None, anaddb_kwargs=None):
+    def modes_at_qpoint(cls, structure, qpoint, asr=2, chneut=1, dipdip=1, ifcflag=0, lo_to_splitting=False,
+                        directions=None, anaddb_args=None, anaddb_kwargs=None):
         """
         Input file for the calculation of the phonon frequencies at a given q-point.
 
         Args:
             Structure: :class:`Structure` object
             qpoint: Reduced coordinates of the q-point where phonon frequencies and modes are wanted
-            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            asr, chneut, dipdp, ifcflag: Anaddb input variable. See official documentation.
+            lo_to_splitting: if True calculation of the LO-TO splitting will be included if qpoint==Gamma
+            directions: list of 3D directions along which the LO-TO splitting will be calculated. If None the three
+                cartesian direction will be used
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
         """
@@ -1605,20 +1608,26 @@ class AnaddbInput(AbstractInput, Has_Structure):
             raise ValueError("Wrong q-point %s" % qpoint)
 
         new.set_vars(
-            ifcflag=1,        # Interatomic force constant flag
+            ifcflag=ifcflag,        # Interatomic force constant flag
             asr=asr,          # Acoustic Sum Rule
             chneut=chneut,    # Charge neutrality requirement for effective charges.
             dipdip=dipdip,    # Dipole-dipole interaction treatment
             # This part is fixed
-            ngqpt=(1, 1, 1), 
-            nqshft=1,         
-            q1shft=qpoint,
-            nqpath=2,
-            # FIXME
-            # ndivsm requires at least two q-points
-            qpath=np.array([qpoint, qpoint + 1]).ravel(),
-            ndivsm=1
+            nph1l=1,
+            qph1l=np.append(qpoint, 1)
         )
+
+        if lo_to_splitting and np.allclose(qpoint, [0, 0, 0]):
+            if directions is None:
+                directions = [1, 0, 0, 0, 1, 0, 0, 0, 1]
+            directions = np.reshape(directions, (-1, 3))
+            # append 0 to specify that these are directions,
+            directions = np.append(directions, [[0], [0], [0]], axis=1)
+            # add
+            new.set_vars(
+                nph2l=len(directions),
+                qph2l=directions
+            )
 
         return new
 
@@ -1930,9 +1939,10 @@ class AnaddbInput(AbstractInput, Has_Structure):
 
 
 class OpticVar(collections.namedtuple("OpticVar", "name default group help")):
+
     def __str__(self):
         sval = str(self.default)
-        return (4*" ").join(sval, "!" + self.help)
+        return (4*" ").join([sval, "!" + self.help])
 
 
 class OpticError(Exception):

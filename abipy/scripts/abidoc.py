@@ -131,7 +131,7 @@ if __name__ == "__main__":
     try:
         do_prof = sys.argv[1] == "prof"
         if do_prof: sys.argv.pop(1)
-    except: 
+    except Exception: 
         do_prof = False
 
     if do_prof:

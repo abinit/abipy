@@ -14,11 +14,16 @@ batch: &batch
    mem_per_node: 128Gb
 
 job: &job
-    mpi_runner: mpirun
+    # mpirun is not available on jureca.
+    # parallel applications must be executed with srun.
+    # shell_runner is used to run small sequential jobs on the frontend (e.g. autoparal jobs)
+    # None means that we should run the executable without prepending srun.
+    mpi_runner: srun
+    shell_runner: None
     shell_env:
-        PATH: $HOME/local/bin:$PATH
+        PATH: $HOME/abinit/801-private/jureca_mpi/src/98_main:$PATH
     modules:
-        - python/2.7
+        - intel-para/2015.07
     # pre_run is a string in verbatim mode (note |)
     pre_run: |
         ulimit unlimited
@@ -26,13 +31,13 @@ job: &job
 # queues 
 qadapters:
   - priority: 1
-    max_num_launches: 20
+    #max_num_launches: 20
     queue:
-       qname: devel
+       qname: batch
        qtype: slurm
     limits:
-       timelimit: 2:0:0
+       timelimit: 0:10:0
        min_cores: 1
-       max_cores: 192
-    hardware: *devel
+       max_cores: 12
+    hardware: *batch
     job: *job

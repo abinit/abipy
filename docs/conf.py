@@ -193,7 +193,7 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = "_static/logo.png"
+#html_logo = "_static/abipy_logo.png"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -326,15 +326,15 @@ texinfo_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-#intersphinx_mapping = {
-#"python": ('http://docs.python.org/', None),
-#"pymatgen": ("http://pymatgen.org/", None),
-#}
-
 intersphinx_mapping = {
     'python': ('http://docs.python.org/2', None),
     'numpy': ('http://docs.scipy.org/doc/numpy/', None),
     'scipy': ('http://docs.scipy.org/doc/scipy/reference/', None),
+    'pandas': ('http://pandas.pydata.org/pandas-docs/dev', None),
     'matplotlib': ('http://matplotlib.org/', None),
     "pymatgen": ("http://pymatgen.org/", None),
 }
+
+# If true, Sphinx will warn about all references where the target cannot be found. 
+# Default is False. You can activate this mode temporarily using the -n command-line switch.
+nitpicky = True

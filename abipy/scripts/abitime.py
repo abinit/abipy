@@ -135,8 +135,8 @@ Usage example:\n
 
     for timer in parser.timers():
         print(timer.get_dataframe())
-        #print(timer) 
-        #print(timer.totable()) 
+        #print(timer)
+        #print(timer.totable())
 
     return 0
 
