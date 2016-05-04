@@ -11,7 +11,7 @@ import numpy as np
 
 from subprocess import Popen, PIPE
 from monty.os.path import which
-from abipy.tools import WildCard
+from monty.fnmatch import WildCard
 
 __all__ = [
     "FFT_Benchmark",

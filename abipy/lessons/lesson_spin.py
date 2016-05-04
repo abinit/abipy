@@ -26,7 +26,7 @@ def gs_input(nsppol):
     # Optimization of the lattice parameters
     inp.set_vars(
         nsppol=nsppol,
-        ecut=18, 
+        ecut=18,
         nband=8,
         occopt=3,
         tsmear=0.01,

@@ -1,6 +1,6 @@
 # coding: utf-8
 """DDB File."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 #import os
 import numpy as np
@@ -44,6 +44,10 @@ class HistFile(AbinitNcFile):
 
     def close(self):
         self.reader.close()
+
+    def __str__(self):
+        return "File: %s\nStructure formula:%s, Number of steps: %d" % (
+            self.filepath, self.structures[-1].formula, self.num_steps)
 
     @property
     def num_steps(self):

@@ -3,7 +3,7 @@
 This script allows the user to submit the calculations contained in the `Flow`.
 It provides a command line interface as well as a graphical interface based on wxpython.
 """
-from __future__ import print_function, division, unicode_literals
+from __future__ import unicode_literals, division, print_function, absolute_import
 
 import sys
 import os
@@ -16,8 +16,8 @@ from collections import defaultdict
 from monty import termcolor
 from monty.termcolor import cprint, get_terminal_size
 from monty.string import make_banner
-from pymatgen.io.abinitio.nodes import Status
-from pymatgen.io.abinitio.events import autodoc_event_handlers, EventsParser
+from pymatgen.io.abinit.nodes import Status
+from pymatgen.io.abinit.events import autodoc_event_handlers, EventsParser
 import abipy.abilab as abilab
 
 
@@ -40,14 +40,14 @@ def as_slice(obj):
     try:
         # integer.
         if int(obj) == float(obj): return slice(int(obj), int(obj)+1, 1)
-    except:
+    except Exception:
         # assume string defining a python slice [start:stop:step]
         if not obj: return None
         if obj.count("[") + obj.count("]") not in (0, 2): 
             raise ValueError("Invalid string %s" % obj)
 
         obj = obj.replace("[", "").replace("]", "")
-        n = obj.count(":") 
+        n = obj.count(":")
         if n == 0:
             obj = int(obj)
             return slice(obj, obj+1)
@@ -150,9 +150,7 @@ sns.set(style='ticks', palette='Set2')"""),
         nbf.write(nb, fh, 'ipynb')
 
     os.system("ipython notebook %s" % tmpfname)
-    #os.execv("/Users/gmatteo/Library/Enthought/Canopy_64bit/User/bin/ipython", ["notebook %s" % tmpfname])
-    #os.execv("/Users/gmatteo/Library/Enthought/Canopy_64bit/User/bin/ipython", ["notebook"])
-    #os.execv("/Users/gmatteo/Library/Enthought/Canopy_64bit/User/bin/python", ["ipython", "notebook", tmpfname])
+    #os.execv("python", ["ipython", "notebook", tmpfname])
 
 
 def main():
@@ -167,7 +165,7 @@ usage example:
     abirun.py [FLOWDIR] gui                      => Open the GUI.
     abirun.py [FLOWDIR] manager slurm            => Document the TaskManager options availabe for Slurm.
     abirun.py [FLOWDIR] manager script           => Show the job script that will be produced.
-    nohup abirun.py [FLOWDIR] sheduler -s 30 &   => Start the scheduler to schedule task submission.
+    nohup abirun.py [FLOWDIR] scheduler -s 30 &  => Start the scheduler to schedule task submission.
 
     If FLOWDIR is not given, abirun.py automatically selects the database located within 
     the working directory. An Exception is raised if multiple databases are found.
@@ -208,7 +206,7 @@ usage example:
                 s = as_slice(s)
                 if s.stop is None: raise argparse.ArgumentTypeError("stop must be specified")
                 return list(range(s.start, s.stop, s.step))
-        except:
+        except Exception:
             raise argparse.ArgumentTypeError("Invalid nids string %s\n Expecting None or int or comma-separated integers or slice sintax" % s)
 
     def parse_wslice(s):
@@ -242,20 +240,21 @@ usage example:
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                               help='verbose, can be supplied multiple times to increase verbosity')
     copts_parser.add_argument('--remove-lock', default=False, type=bool, help="Remove the lock file of the pickle file storing the flow.")
-    copts_parser.add_argument('--no-colors', default=False, help='Disable ASCII colors')
-    copts_parser.add_argument('--loglevel', default="ERROR", type=str,
-                               help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
+
+    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + abilab.__version__)
+
+    parser.add_argument('--no-colors', default=False, help='Disable ASCII colors')
+    parser.add_argument('--loglevel', default="ERROR", type=str,
+                        help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
     parser.add_argument('flowdir', nargs="?", help=("File or directory containing the ABINIT flow"
                                                     "If not given, the first flow in the current workdir is selected"))
 
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
-
-    subparsers.add_parser('version', parents=[copts_parser], help='Show version number and exit')
 
     # Subparser for single command.
     p_single = subparsers.add_parser('single', parents=[copts_parser], help="Run single task.")
@@ -281,8 +280,9 @@ usage example:
 
     # Subparser for status command.
     p_status = subparsers.add_parser('status', parents=[copts_parser, flow_selector_parser], help="Show task status.")
-    p_status.add_argument('-d', '--delay', default=0, type=int, help=("If 0, exit after the first analysis.\n" + 
-                          "If > 0, enter an infinite loop and delay execution for the given number of seconds."))
+    p_status.add_argument('-d', '--delay', nargs="?", const=5, default=0, type=int, 
+                          help=("Enter an infinite loop and delay execution for the given number of seconds. (default: 5)"))
+
     p_status.add_argument('-s', '--summary', default=False, action="store_true", help="Print short version with status counters.")
 
     # Subparser for set_status command.
@@ -329,7 +329,7 @@ Specify the files to open. Possible choices:
     p_ncopen.add_argument('ncext', nargs="?", default="GSR", help="Select the type of file to open")
 
     # Subparser for gui command.
-    p_gui = subparsers.add_parser('gui', help="Open the GUI (requires wxPython).")
+    p_gui = subparsers.add_parser('gui', parents=[copts_parser], help="Open the GUI (requires wxPython).")
     p_gui.add_argument("--chroot", default="", type=str, help=("Use chroot as new directory of the flow." +
                        "Mainly used for opening a flow located on a remote filesystem mounted with sshfs." +
                        "In this case chroot is the absolute path to the flow on the **localhost**",
@@ -392,7 +392,7 @@ Specify the files to open. Possible choices:
 
     # Subparser for ipython.
     p_ipython = subparsers.add_parser('ipython', parents=[copts_parser], help="Embed IPython. Useful for advanced operations or debugging purposes.")
-    p_ipython.add_argument('--argv', nargs="?", default="", type=shlex.split, 
+    p_ipython.add_argument('--argv', nargs="?", default="", type=shlex.split,
                            help="Command-line options passed to ipython. Must be enclosed by quotes. "
                                 "Example: --argv='--matplotlib=wx'")
 
@@ -456,11 +456,6 @@ Specify the files to open. Possible choices:
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
 
-    if options.command == "version":
-        from abipy.core.release import version
-        print(version)
-        return 0
-
     if options.no_colors:
         # Disable colors
         termcolor.enable(False)
@@ -477,7 +472,7 @@ Specify the files to open. Possible choices:
                 executable="executable",
                 qout_path="qout_file.path",
                 qerr_path="qerr_file.path",
-                stdin="stdin", 
+                stdin="stdin",
                 stdout="stdout",
                 stderr="stderr",
             )
@@ -485,7 +480,7 @@ Specify the files to open. Possible choices:
 
         else:
             print(abilab.TaskManager.autodoc())
-            from pymatgen.io.abinitio.qadapters import show_qparams, all_qtypes
+            from pymatgen.io.abinit.qadapters import show_qparams, all_qtypes
                                                                                                  
             print("qtype supported: %s" % all_qtypes())
             print("Use `abirun.py . manager slurm` to have the list of qparams for slurm.\n")
@@ -627,7 +622,8 @@ Specify the files to open. Possible choices:
         show_func = flow.show_status if not options.summary else flow.show_summary
 
         if options.delay:
-            cprint("Entering infinite loop. Press CTRL+C to exit", color="magenta", end="", flush=True)
+            cprint("Entering infinite loop (delay: %d s).\nPress <CTRL+C> to exit" % options.delay, 
+                   color="magenta", end="", flush=True)
             try:
                 while True:
                     print(2*"\n" + time.asctime() + "\n")
@@ -636,7 +632,7 @@ Specify the files to open. Possible choices:
                     if flow.all_ok: break
                     time.sleep(options.delay)
             except KeyboardInterrupt:
-                pass
+                print("Received KeyboardInterrupt from user\n")
         else:
             show_func(verbose=options.verbose, nids=selected_nids(flow, options))
             if options.verbose and flow.manager.has_queue:
@@ -759,11 +755,11 @@ Specify the files to open. Possible choices:
         if not paths:
             cprint("No job is running. Exiting!", "red")
         else:
-            cprint("Press CTRL+C to interrupt. Number of output files %d" % len(paths), color="magenta", end="", flush=True)
+            cprint("Press <CTRL+C> to interrupt. Number of output files %d\n" % len(paths), color="magenta", end="", flush=True)
             try:
                 os.system("tail -f %s" % " ".join(paths))
             except KeyboardInterrupt:
-                pass
+                print("Received KeyboardInterrupt from user\n")
 
     elif options.command == "qstat":
         #for task in flow.select_tasks(nids=options.nids, wslice=options.wslice):
@@ -827,7 +823,7 @@ Specify the files to open. Possible choices:
         #if num_tasks == 1:
         #    p.join()
         #else:
-        #    cprint("Will produce %d matplotlib plots. Press CTRL+C to interrupt..." % num_tasks, color="magenta", end="", flush=True)
+        #    cprint("Will produce %d matplotlib plots. Press <CTRL+C> to interrupt..." % num_tasks, color="magenta", end="", flush=True)
         #    try:
         #        p.join()
         #    except KeyboardInterrupt:
@@ -859,6 +855,7 @@ Specify the files to open. Possible choices:
             print("Created light tarball file %s" % tarfile)
 
     elif options.command == "debug":
+        #flow.debug()
         nrows, ncols = get_terminal_size()
 
         # Test for scheduler exceptions first.
@@ -973,8 +970,7 @@ Specify the files to open. Possible choices:
             os.system("vimdiff %s" % args)
 
     elif options.command == "networkx":
-        flow.plot_networkx(mode=options.nxmode, 
-                           with_edge_labels=options.edge_labels)
+        flow.plot_networkx(mode=options.nxmode, with_edge_labels=options.edge_labels)
 
     elif options.command == "listext":
         for ext in options.listexts:
@@ -983,7 +979,7 @@ Specify the files to open. Possible choices:
 
     elif options.command == "timer":
         print("Warning this option is still under development")
-        timer = flow.get_abitimer()
+        timer = flow.parse_timing()
         if timer is None:
             cprint("Cannot parse time data!", color="magenta", end="", flush=True)
             return 1

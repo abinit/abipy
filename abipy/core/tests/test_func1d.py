@@ -3,10 +3,12 @@ from __future__ import print_function, division
 
 import numpy as np
 import collections
+import tempfile
 
 from six import StringIO
 from abipy.core.func1d import *
 from abipy.core.testing import *
+
 
 class TestFunction1D(AbipyTest):
     """Test Function1d."""
@@ -35,10 +37,9 @@ class TestFunction1D(AbipyTest):
         self.assert_almost_equal(cosf.spline.roots(), [np.pi/2, 3*np.pi/2])
         self.assertEqual(cosf.spline_on_mesh(cosf.mesh), cosf)
 
-        stream = StringIO()
-        cosf.to_file(stream)
-        stream.seek(0)
-        newcosf = Function1D.from_file(stream)
+        _, path = tempfile.mkstemp(text=True)
+        cosf.to_file(path)
+        newcosf = Function1D.from_file(path)
         self.assertTrue(cosf == newcosf)
 
         self.assertTrue(cosf == cosf)

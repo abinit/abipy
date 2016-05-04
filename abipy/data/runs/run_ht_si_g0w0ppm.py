@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """G0W0 corrections with the HT interface."""
-from __future__ import division, print_function, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import os
@@ -20,7 +20,7 @@ def build_flow(options):
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
     # Initialize the flow.
-    flow = abilab.Flow(workdir, manager=options.manager) 
+    flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove) 
 
     scf_kppa = 10
     nscf_nband = 10

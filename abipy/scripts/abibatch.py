@@ -2,13 +2,13 @@
 """
 This script allows the user to submit multiple flows 
 """
-from __future__ import print_function, division, unicode_literals
+from __future__ import unicode_literals, division, print_function, absolute_import
 
 import sys
 import os
 import argparse
 
-from pymatgen.io.abinitio.launcher import  BatchLauncher
+from pymatgen.io.abinit.launcher import  BatchLauncher
 
 
 def main():
@@ -80,7 +80,7 @@ Usage example:\n
     # Parse command line.
     try:
         options = parser.parse_args()
-    except Exception as exc: 
+    except Exception as exc:
         show_examples_and_exit(error_code=1)
 
     # loglevel is bound to the string value obtained from the command line argument. 
@@ -160,7 +160,7 @@ if __name__ == "__main__":
         do_prof = sys.argv[1] == "prof"
         do_tracemalloc = sys.argv[1] == "tracemalloc"
         if do_prof or do_tracemalloc: sys.argv.pop(1)
-    except: 
+    except Exception:
         pass
 
     if do_prof:

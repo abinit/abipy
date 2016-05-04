@@ -1,6 +1,6 @@
 # coding: utf-8
 """IO related utilities."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import tempfile
@@ -132,7 +132,7 @@ def stream_has_colours(stream):
         curses.setupterm()
         return curses.tigetnum("colors") > 2
 
-    except:
+    except Exception:
         # guess false in case of error.
         return False
 

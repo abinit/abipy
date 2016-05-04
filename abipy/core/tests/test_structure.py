@@ -32,6 +32,9 @@ class TestStructure(AbipyTest):
                 # Export data in Xcrysden format.
                 structure.export(".xsf")
 
+            if self.has_ase():
+                assert structure == Structure.from_ase_atoms(structure.to_ase_atoms())
+
     def test_utils(self):
         """Test utilities for the generation of Abinit inputs."""
         structure = data.structure_from_ucell("MgB2")

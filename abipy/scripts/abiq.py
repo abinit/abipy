@@ -2,14 +2,14 @@
 """
 This script retrieve information on a job in the queue
 """
-from __future__ import print_function, division, unicode_literals
+from __future__ import unicode_literals, division, print_function, absolute_import
 
 import sys
 import os
 import argparse
 
-from pymatgen.io.abinitio.qjobs import QueueJob
-
+from pymatgen.io.abinit.qjobs import QueueJob
+from abipy.core.release import __version__
 
 def main():
     def str_examples():
@@ -32,6 +32,7 @@ Usage example:\n
     #parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
     #                    help='verbose, can be supplied multiple times to increase verbosity')
 
+    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + __version__)
     parser.add_argument('--loglevel', default="ERROR", type=str,
                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 

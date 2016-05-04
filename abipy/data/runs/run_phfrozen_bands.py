@@ -2,7 +2,7 @@
 """
 Band structure of silicon in a distorted geometry (frozen phonon at q=0)
 """
-from __future__ import division, print_function, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import os
@@ -63,7 +63,7 @@ def build_flow(options):
 
     displaced_structures = modifier.displace(ph_displ, etas, frac_coords=False)
 
-    flow = abilab.Flow(workdir, manager=options.manager)
+    flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove)
 
     for structure in displaced_structures:
         # Create the work for the band structure calculation.

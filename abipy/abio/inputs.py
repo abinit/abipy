@@ -3,7 +3,7 @@ This module defines objects that faciliate the creation of the
 ABINIT input files. The syntax is similar to the one used 
 in ABINIT with small differences. 
 """
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import collections
@@ -18,13 +18,13 @@ import numpy as np
 from collections import OrderedDict, MutableMapping
 from monty.collections import dict2namedtuple
 from monty.string import is_string, list_strings
-from monty.json import MontyEncoder, MontyDecoder
+from monty.json import MontyEncoder, MontyDecoder, MSONable
 from pymatgen.core.units import Energy
-from pymatgen.serializers.json_coders import PMGSONable, pmg_serialize
-from pymatgen.io.abinitio.pseudos import PseudoTable, Pseudo
-from pymatgen.io.abinitio.tasks import AbinitTask, ParalHintsParser
-from pymatgen.io.abinitio.netcdf import NetcdfReader
-from pymatgen.io.abinitio.abiinspect import yaml_read_irred_perts
+from pymatgen.serializers.json_coders import pmg_serialize
+from pymatgen.io.abinit.pseudos import PseudoTable, Pseudo
+from pymatgen.io.abinit.tasks import AbinitTask, ParalHintsParser
+from pymatgen.io.abinit.netcdf import NetcdfReader
+from pymatgen.io.abinit.abiinspect import yaml_read_irred_perts
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
 from abipy.htc.variable import InputVariable
@@ -44,8 +44,8 @@ _GEOVARS = set([
     "rprim",
     "rprimd"
     "angdeg",
-    "xred"
-    "xcart"
+    "xred",
+    "xcart",
     "xangst",
     "znucl",
     "typat",
@@ -63,6 +63,34 @@ _TOLVARS = set([
     "tolimg", # ?
     "tolmxf", 
     "tolrde",  
+])
+
+# Variables defining tolerances for the SCF cycle that are mutally exclusive
+_TOLVARS_SCF = set([
+    'toldfe',
+    'tolvrs',
+    'tolwfr',
+    'tolrff',
+    "toldff",
+])
+
+# Variables determining if data files should be read in input
+_IRDVARS = set([
+    "irdbseig",
+    "irdbsreso",
+    "irdhaydock",
+    "irdddk",
+    "irdden",
+    "ird1den",
+    "irdqps",
+    "irdkss",
+    "irdscr",
+    "irdsuscep",
+    "irdvdw",
+    "irdwfk",
+    "irdwfkfine",
+    "irdwfq",
+    "ird1wf",
 ])
 
 
@@ -163,7 +191,7 @@ class AbinitInputError(Exception):
 # TODO: API to understand if one can use time-reversal symmetry and/or spatial symmetries
 #       Very important especially when we have to select the value of kptopt
 
-class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has_Structure, object)):
+class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_Structure, object)):
     """
     This object stores the ABINIT variables for a single dataset.
     """
@@ -248,14 +276,23 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
         return cls(d["structure"], pseudos, decorators=dec.process_decoded(d["decorators"]),
                    comment=d["comment"], abi_args=d["abi_args"], tags=d["tags"])
 
+    def __setitem__(self, key, value):
+        if key in _TOLVARS_SCF and hasattr(self, '_vars') and any(t in self._vars and t != key for t in _TOLVARS_SCF):
+            logger.info("Replacing previously set tolerance variable: {0}."
+                        .format(self.remove_vars(_TOLVARS_SCF, strict=False)))
+
+        return super(AbinitInput, self).__setitem__(key, value)
+
     def _check_varname(self, key):
         if not is_abivar(key):
-            raise self.Error("%s is not a valid ABINIT variable.\n"
-                             "If you are sure the name is correct, please contact the abipy developers\n" 
-                             "or modify the JSON file abipy/abio/abinit_vars.json" % key)
-                                                                                                                      
+            raise self.Error("%s is not a valid ABINIT variable.\n" % key + 
+                             "If the name is correct, try to remove ~/.abinit/abipy/abinit_vars.pickle\n"
+                             "and rerun the code. If the problems persists, contact the abipy developers\n"
+                             "or add the variable to ~abipy/data/variables/abinit_vars.json\n")
+
         if key in _GEOVARS:
-            raise self.Error("You cannot set the value of a variable associated to the structure. Use set_structure")
+            raise self.Error("You cannot set the value of a variable associated to the structure.\n" 
+                             "Use Structure objects to prepare the input file.")
 
     #def __eq__(self, other)
     #def __ne__(self, other)
@@ -473,7 +510,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
         # Check volume
         m = self.structure.lattice.matrix
         if np.dot(np.cross(m[0], m[1]), m[2]) <= 0:
-            raise self.Error("The triple product of the lattice vector is negative. Use structure abi_sanitize.")
+            raise self.Error("The triple product of the lattice vector is negative. Use structure.abi_sanitize.")
 
         return self._structure
 
@@ -531,6 +568,38 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
         if len(bdgw) == 2: bdgw = len(kptgw) * bdgw
 
         return self.set_vars(kptgw=kptgw, nkptgw=nkptgw, bdgw=np.reshape(bdgw, (nkptgw, 2)))
+
+    def set_autospinat(self, default=0.6):
+        """
+        Set the variable spinat for collineat calculation in the format (0, 0, m) with the value of m determined
+        with the following order of preference:
+
+        1. If the site of the structure has a magmom setting, that is used.
+        2. If the species on the site has a spin setting, that is used.
+        3. If the species itself has a particular setting in the config file, that
+           is used, e.g., Mn3+ may have a different magmom than Mn4+.
+        4. The element symbol itself is checked in the config file.
+        5. If there are no settings, the default value is used.
+
+        """
+        #TODO copy the values in abipy instead?
+        # We rely on the values from Materials Project for defaults of the magnetic moments
+        import pymatgen.io.vasp as vasp
+        from monty.serialization import loadfn
+        magmom_mp_conf = loadfn(os.path.join(os.path.dirname(vasp.__file__), "MPVaspInputSet.yaml"))['INCAR']['MAGMOM']
+
+        spinat = []
+        for site in self.structure:
+            if hasattr(site, 'magmom'):
+                spinat.append((0., 0., site.magmom))
+            elif hasattr(site.specie, 'spin'):
+                spinat.append((0., 0., site.specie.spin))
+            elif str(site.specie) in magmom_mp_conf:
+                spinat.append((0., 0., magmom_mp_conf.get(str(site.specie))))
+            else:
+                spinat.append((0., 0., magmom_mp_conf.get(site.specie.symbol, default)))
+
+        return self.set_vars(spinat=spinat)
 
     @property
     def pseudos(self):
@@ -635,6 +704,18 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
 
         return inps
 
+    def new_with_vars(self, *args, **kwargs):
+        """
+        Return a new input with the given variables.
+
+        Example:
+            new = input.new_with_vars(ecut=20)
+        """
+        # Avoid modifications in self.
+        new = self.deepcopy()
+        new.set_vars(*args, **kwargs)
+        return new
+
     def new_with_decorators(self, decorators):
         """
         This function receives a list of :class:`AbinitInputDecorator` objects or just a single object,
@@ -656,6 +737,30 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
         Return dictionary with the variables that have been removed."""
         return self.remove_vars(_TOLVARS, strict=False)
 
+    def pop_irdvars(self):
+        """
+        Remove all the ird variables present in self.
+        Return dictionary with the variables that have been removed."""
+        return self.remove_vars(_IRDVARS, strict=False)
+
+    @property
+    def scf_tolvar(self):
+        """
+        Returns the tolerance variable and value relative to the scf convergence.
+        If more than one is present raise an error
+        """
+
+        tolvar = None
+        value = None
+        for t in _TOLVARS_SCF:
+            if t in self and self[t]:
+                if tolvar:
+                    raise self.Error('More than one tolerance set.')
+                tolvar = t
+                value = self[t]
+
+        return tolvar, value
+
     def make_ph_inputs_qpoint(self, qpt, tolerance=None):
         """
         This functions should be called with an input the represents a GS run.
@@ -664,7 +769,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
             tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % tolerance)
+            raise self.Error("Invalid tolerance: %s" % str(tolerance))
 
         # Call Abinit to get the list of irred perts.
         perts = self.abiget_irred_phperts(qpt=qpt)
@@ -704,7 +809,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
             tolerance = {"tolwfr": 1.0e-22}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % tolerance)
+            raise self.Error("Invalid tolerance: %s" % str(tolerance))
 
         if "tolvrs" in tolerance:
             raise self.Error("tolvrs should not be used in a DDK calculation")
@@ -743,7 +848,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
             tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % tolerance)
+            raise self.Error("Invalid tolerance: %s" % str(tolerance))
 
         # Call Abinit to get the list of irred perts.
         perts = self.abiget_irred_ddeperts()
@@ -779,7 +884,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
             tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % tolerance)
+            raise self.Error("Invalid tolerance: %s" % str(tolerance))
 
         # Call Abinit to get the list of irred perts.
         # TODO:
@@ -1003,6 +1108,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
         return self._abiget_irred_perts(ddeperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
                                         workdir=workdir, manager=manager)
 
+<<<<<<< HEAD
     def pop_par_vars(self, all=False):
         # in case of a restart we need to remove the paralel configuration before we rerun autoparalel
         vars = ['npkpt', 'npfft', 'npband', 'npspinor', 'npimage']
@@ -1018,12 +1124,20 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
 
     def abiget_autoparal_pconfs(self, max_ncpus, autoparal=1, workdir=None, manager=None):
         """Get all the possible configurations up to max_ncpus"""
+=======
+    def abiget_autoparal_pconfs(self, max_ncpus, autoparal=1, workdir=None, manager=None, verbose=0):
+        """
+        Get all the possible configurations up to max_ncpus
+        Return list of parallel configurations.
+        """
+>>>>>>> matteosabipy/master
         inp = self.deepcopy()
         inp.set_vars(autoparal=autoparal, max_ncpus=max_ncpus)
 
         # Run the job in a shell subprocess with mpi_procs = 1
         # Return code is always != 0 
         task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
+        if verbose: print("Running in:", task.workdir)
         task.start_and_wait(autoparal=False)
 
         ##############################################################
@@ -1056,7 +1170,6 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
         Args:
             tags: A single tag or list/tuple/set of tags
         """
-        print(tags)
         if isinstance(tags, (list, tuple, set)):
             self.tags.difference_update(tags)
         else:
@@ -1193,7 +1306,9 @@ class MultiDataset(object):
 
     def __getattr__(self, name):
         #print("in getname with name: %s" % name)
-        m = getattr(self._inputs[0], name)
+        #m = getattr(self._inputs[0], name)
+        _inputs = object.__getattribute__(self, "_inputs")
+        m = getattr(_inputs[0], name)
         if m is None:
             raise AttributeError("Cannot find attribute %s. Tried in %s and then in AbinitInput object" 
                                  % (self.__class__.__name__, name))
@@ -1392,15 +1507,18 @@ class AnaddbInput(AbstractInput, Has_Structure):
                              "or modify the JSON file abipy/abio/anaddb_vars.json" % key)
 
     @classmethod
-    def modes_at_qpoint(cls, structure, qpoint, asr=2, chneut=1, dipdip=1, 
-                        anaddb_args=None, anaddb_kwargs=None):
+    def modes_at_qpoint(cls, structure, qpoint, asr=2, chneut=1, dipdip=1, ifcflag=0, lo_to_splitting=False,
+                        directions=None, anaddb_args=None, anaddb_kwargs=None):
         """
         Input file for the calculation of the phonon frequencies at a given q-point.
 
         Args:
             Structure: :class:`Structure` object
             qpoint: Reduced coordinates of the q-point where phonon frequencies and modes are wanted
-            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            asr, chneut, dipdp, ifcflag: Anaddb input variable. See official documentation.
+            lo_to_splitting: if True calculation of the LO-TO splitting will be included if qpoint==Gamma
+            directions: list of 3D directions along which the LO-TO splitting will be calculated. If None the three
+                cartesian direction will be used
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
         """
@@ -1418,20 +1536,26 @@ class AnaddbInput(AbstractInput, Has_Structure):
             raise ValueError("Wrong q-point %s" % qpoint)
 
         new.set_vars(
-            ifcflag=1,        # Interatomic force constant flag
+            ifcflag=ifcflag,        # Interatomic force constant flag
             asr=asr,          # Acoustic Sum Rule
             chneut=chneut,    # Charge neutrality requirement for effective charges.
             dipdip=dipdip,    # Dipole-dipole interaction treatment
             # This part is fixed
-            ngqpt=(1, 1, 1), 
-            nqshft=1,         
-            q1shft=qpoint,
-            nqpath=2,
-            # FIXME
-            # ndivsm requires at least two q-points
-            qpath=np.array([qpoint, qpoint + 1]).ravel(),
-            ndivsm=1
+            nph1l=1,
+            qph1l=np.append(qpoint, 1)
         )
+
+        if lo_to_splitting and np.allclose(qpoint, [0, 0, 0]):
+            if directions is None:
+                directions = [1, 0, 0, 0, 1, 0, 0, 0, 1]
+            directions = np.reshape(directions, (-1, 3))
+            # append 0 to specify that these are directions,
+            directions = np.append(directions, [[0], [0], [0]], axis=1)
+            # add
+            new.set_vars(
+                nph2l=len(directions),
+                qph2l=directions
+            )
 
         return new
 
@@ -1473,7 +1597,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
 
     @classmethod
     def phbands_and_dos(cls, structure, ngqpt, nqsmall, ndivsm=20, q1shft=(0,0,0),
-                        qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", 
+                        qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", lo_to_splitting=False,
                         anaddb_args=None, anaddb_kwargs=None):
         """
         Build an anaddb input file for the computation of phonon bands and phonon DOS.
@@ -1491,6 +1615,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             dos_method: Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening
+            lo_to_splitting: if True calculation of the LO-TO splitting will be included
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
         """
@@ -1515,6 +1640,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
         new.set_vars(prtdos=prtdos, dosdeltae=dosdeltae, dossmear=dossmear)
 
         new.set_qpath(ndivsm, qptbounds=qptbounds)
+        qptbounds = new['qpath']
         q1shft = np.reshape(q1shft, (-1, 3))
 
         new.set_vars(
@@ -1526,6 +1652,25 @@ class AnaddbInput(AbstractInput, Has_Structure):
             chneut=chneut,
             dipdip=dipdip,
         )
+
+        if lo_to_splitting:
+            directions = []
+            for i, qpt in enumerate(qptbounds):
+                if np.array_equal(qpt, (0, 0, 0)):
+                    # anaddb expects cartesian coordinates for the qph2l list
+                    if i>0:
+                        directions.extend(structure.lattice.reciprocal_lattice_crystallographic.get_cartesian_coords(qptbounds[i-1]))
+                        directions.append(0)
+                    if i<len(qptbounds)-1:
+                        directions.extend(structure.lattice.reciprocal_lattice_crystallographic.get_cartesian_coords(qptbounds[i+1]))
+                        directions.append(0)
+
+            if directions:
+                directions = np.reshape(directions, (-1, 4))
+                new.set_vars(
+                    nph2l=len(directions),
+                    qph2l=directions
+                )
 
         return new
 
@@ -1717,10 +1862,11 @@ class AnaddbInput(AbstractInput, Has_Structure):
         return self.set_vars(ng2qpt=self.structure.calc_ngkpt(nqsmall))
 
 
-class OpticVar(collections.namedtuple("OpticVar", "name default help")):
+class OpticVar(collections.namedtuple("OpticVar", "name default group help")):
+
     def __str__(self):
         sval = str(self.default)
-        return (4*" ").join(sval, "!" + self.help)
+        return (4*" ").join([sval, "!" + self.help])
 
 
 class OpticError(Exception):
@@ -1745,6 +1891,29 @@ class OpticInput(AbstractInput):
     123 222       ! Non-linear coefficients to be computed
     """
 
+    """
+    &FILES
+     ddkfile_1 = 'abo_1WF7',
+     ddkfile_2 = 'abo_1WF8',
+     ddkfile_3 = 'abo_1WF9',
+     wfkfile = 'abo_WFK'
+    /
+    &PARAMETERS
+     broadening = 0.002,
+     domega = 0.0003,
+     maxomega = 0.3,
+     scissor = 0.000,
+     tolerance = 0.002
+    /
+    &COMPUTATIONS
+     num_lin_comp = 1,
+     lin_comp = 11,
+     num_nonlin_comp = 2,
+     nonlin_comp = 123,222,
+     num_linel_comp = 0,
+     num_nonlin2_comp = 0,
+    /
+    """
     Error = OpticError
 
     # variable name --> default value.
@@ -1753,15 +1922,25 @@ class OpticInput(AbstractInput):
         #OpticVar(name="ddkfile_y", default=None, help="Name of the second d/dk response wavefunction file"),
         #OpticVar(name="ddkfile_z", default=None, help="Name of the third d/dk response wavefunction file"),
         #OpticVar(name="wfkfile",   default=None, help="Name of the ground-state wavefunction file"),
-        OpticVar(name="zcut",      default=0.01, help="Value of the *smearing factor*, in Hartree"),
-        OpticVar(name="wmesh",     default=(0.010, 1), help="Frequency *step* and *maximum* frequency (Ha)"),
-        OpticVar(name="scissor",   default=0.000, help="*Scissor* shift if needed, in Hartree"),
-        OpticVar(name="sing_tol",  default=0.001, help="*Tolerance* on closeness of singularities (in Hartree)"),
-        OpticVar(name="num_lin_comp", default=None, help="*Number of components* of linear optic tensor to be computed"),
-        OpticVar(name="lin_comp",     default=None, help="Linear *coefficients* to be computed (x=1, y=2, z=3)"),
-        OpticVar(name="num_nonlin_comp", default=None, help="Number of components of nonlinear optic tensor to be computed"),
-        OpticVar(name="nonlin_comp", default=" ", help="Non-linear coefficients to be computed"),
+        OpticVar(name="broadening",      default=0.01, group='PARAMETERS', help="Value of the *smearing factor*, in Hartree"),
+        OpticVar(name="domega",     default=0.010, group='PARAMETERS', help="Frequency *step* (Ha)"),
+        OpticVar(name="maxomega",     default=1, group='PARAMETERS', help="Maximum frequency (Ha)"),
+        OpticVar(name="scissor",   default=0.000, group='PARAMETERS', help="*Scissor* shift if needed, in Hartree"),
+        OpticVar(name="tolerance",  default=0.001, group='PARAMETERS', help="*Tolerance* on closeness of singularities (in Hartree)"),
+        OpticVar(name="autoparal",  default=0, group='PARAMETERS', help="Autoparal option"),
+        OpticVar(name="max_ncpus",  default=0, group='PARAMETERS', help="Max number of CPUs considered in autoparal mode"),
+
+        OpticVar(name="num_lin_comp", default=0, group='COMPUTATIONS', help="*Number of components* of linear optic tensor to be computed"),
+        OpticVar(name="lin_comp",     default=0, group='COMPUTATIONS', help="Linear *coefficients* to be computed (x=1, y=2, z=3)"),
+        OpticVar(name="num_nonlin_comp", default=0, group='COMPUTATIONS', help="Number of components of nonlinear optic tensor to be computed"),
+        OpticVar(name="nonlin_comp", default=0, group='COMPUTATIONS', help="Non-linear coefficients to be computed"),
+        OpticVar(name="num_linel_comp", default=0, group='COMPUTATIONS', help="Number of components of linear electro-optic tensor to be computed"),
+        OpticVar(name="linel_comp", default=0, group='COMPUTATIONS', help="Linear electro-optic coefficients to be computed"),
+        OpticVar(name="num_nonlin2_comp", default=0, group='COMPUTATIONS', help="Number of components of nonlinear optic tensor v2 to be computed"),
+        OpticVar(name="nonlin2_comp", default=0, group='COMPUTATIONS', help="Non-linear coefficients v2 to be computed"),
     ]
+ 
+    _GROUPS = ['PARAMETERS','COMPUTATIONS']
 
     # Variable names supported
     _VARNAMES = [v.name for v in _VARIABLES]
@@ -1796,6 +1975,22 @@ class OpticInput(AbstractInput):
         for var in self._VARIABLES:
             if var.name == key: return var.default
         raise KeyError("Cannot find %s in _VARIABLES" % key)
+
+    def as_dict(self):
+        my_dict = OrderedDict()
+        for grp in self._GROUPS:
+            my_dict[grp] = OrderedDict()
+        for name in self._VARNAMES:
+            value = self.vars.get(name)
+            if value is None: value = self.get_default(name)
+            if value is None:
+                raise self.Error("Variable %s is missing" % name)
+           
+            var = self._NAME2VAR[name]
+            grp = var.group
+            my_dict[grp].update({name : value})
+
+        return my_dict
 
     def to_string(self):
         table = []

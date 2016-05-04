@@ -1,6 +1,6 @@
-****************
+********
 Launcher
-****************
+********
 
 
 .. autoclass:: abipy.htc.Launcher

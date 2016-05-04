@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Compute the deltafactor for a given pseudopotential."""
-from __future__ import division, print_function, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import sys
@@ -21,7 +21,7 @@ def build_flow(options):
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Initialize the flow.
-    flow = abilab.Flow(workdir=workdir, manager=options.manager)
+    flow = abilab.Flow(workdir=workdir, manager=options.manager, remove=options.remove)
 
     # Build the workflow for the computation of the deltafactor.
     # The calculation is done with the parameters and the cif files

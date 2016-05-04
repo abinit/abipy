@@ -1,5 +1,6 @@
 # coding: utf-8
 """Release data for the abipy project."""
+from __future__ import print_function, division, unicode_literals
 
 # Name of the package for release purposes.  This is the name which labels
 # the tarballs and RPMs made by distutils, so it's best to lowercase it.
@@ -21,6 +22,9 @@ if _version_extra: _ver.append(_version_extra)
 __version__ = '.'.join(map(str, _ver))
 
 version = __version__  # backwards compatibility name
+
+# The minimum Abinit version compatible with AbiPy
+min_abinit_version = "8.0.1"
 
 description = "Python modules and scripts to analyze the results of ab-initio calculation performed with ABINIT"
 

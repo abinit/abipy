@@ -1,8 +1,7 @@
 # coding: utf-8
 """Utilities for working with strings and text."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
-from pymatgen.util.string_utils import WildCard
 
 def tonumber(s):
     """Convert string to number, raise ValueError if s cannot be converted."""

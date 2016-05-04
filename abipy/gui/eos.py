@@ -1,9 +1,9 @@
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import wx
 import abipy.gui.awx as awx
 
-from pymatgen.io.abinitio.eos import EOS
+from pymatgen.io.abinit.eos import EOS
 
 
 class EosFrame(awx.Frame):

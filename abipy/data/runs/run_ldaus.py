@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """LDA+U band structure of NiO for several values of U-J."""
-from __future__ import division, print_function, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import os
@@ -74,7 +74,7 @@ def build_flow(options):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    flow = abilab.Flow(workdir, manager=options.manager)
+    flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove)
 
     # Create the work for the band structure calculation.
     structure = abidata.structure_from_ucell("NiO")

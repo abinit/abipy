@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import os
@@ -7,7 +7,8 @@ from os.path import exists, join as pj
 
 from subprocess import call
 
-def abipy_reindent(top)
+
+def abipy_reindent(top):
     """
     Change Python (.py) files to use 4-space indents and no hard tab characters.
     Also trim excess spaces and tabs from ends of lines, and remove empty lines

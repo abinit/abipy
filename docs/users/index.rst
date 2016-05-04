@@ -10,9 +10,10 @@ User's Guide
     :Date: |today|
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
     intro.rst
-    whats_new.rst
     howto_compile_python_and_bootstrap_pip.rst
+    howto_anaconda.rst
+    whats_new.rst
     license.rst

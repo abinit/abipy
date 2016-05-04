@@ -1,7 +1,8 @@
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import wx
+import collections
 import abipy.gui.awx as awx
 
 try:
@@ -446,3 +447,88 @@ class ElectronJdosFrame(awx.Frame):
         except:
             awx.showErrorMessage(self)
 
+
+class BandsCompareDialog(wx.Dialog):
+    """
+    Dialog that asks the user to select two files with Ebands and Edos
+    and enter the parameters for the electron DOS.
+    """
+    def __init__(self, parent, filepaths, **kwargs):
+        if "title" not in kwargs: kwargs["title"] = "Select files to compare"
+        super(BandsCompareDialog, self).__init__(parent, -1, **kwargs)
+
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        static_sizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, "Files"), wx.VERTICAL)
+
+        self.check_boxes = collections.OrderedDict()
+
+        # Use relative paths to save space.
+        self.filepaths = map(os.path.relpath, filepaths)
+
+        for path in self.filepaths:
+            assert path not in self.check_boxes
+            cbox = wx.CheckBox(self, -1, path, wx.DefaultPosition, wx.DefaultSize, 0)
+            cbox.SetValue(True)
+            static_sizer.Add(cbox, 0, wx.ALL | wx.EXPAND, 5)
+            self.check_boxes[path] = cbox
+
+        main_sizer.Add(static_sizer, 1, wx.EXPAND, 5)
+
+        # Add buttons to (select|deselect) all checkboxes.
+        hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+
+        all_button = wx.Button(self, -1, "Select all", wx.DefaultPosition, wx.DefaultSize, 0)
+        all_button.Bind(wx.EVT_BUTTON, self.OnSelectAll)
+        hbox1.Add(all_button, 0, wx.ALL, 5)
+
+        deselect_button = wx.Button(self, -1, "Deselect all", wx.DefaultPosition, wx.DefaultSize, 0)
+        deselect_button.Bind(wx.EVT_BUTTON, self.OnDeselectAll)
+        hbox1.Add(deselect_button, 0, wx.ALL, 5)
+
+        main_sizer.Add(hbox1, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
+
+        ok_button = wx.Button(self, wx.ID_OK, label='Ok')
+        close_button = wx.Button(self, wx.ID_CANCEL, label='Cancel')
+
+        hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        hbox2.Add(ok_button)
+        hbox2.Add(close_button, flag=wx.LEFT, border=5)
+
+        main_sizer.Add(hbox2, proportion=0, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10)
+
+        self.SetSizerAndFit(main_sizer)
+
+    def OnSelectAll(self, event):
+        for cbox in self.check_boxes.values():
+            cbox.SetValue(True)
+
+    def OnDeselectAll(self, event):
+        for cbox in self.check_boxes.values():
+            cbox.SetValue(False)
+
+    def GetSelectedFilepaths(self):
+        """
+        Return the list of filepaths selected by the user.
+        Main entry point for client code.
+        """
+        selected = []
+
+        for path, cbox in self.check_boxes.items():
+            if cbox.GetValue():
+                selected.append(path)
+
+        return selected
+
+    def GetSelectedIndices(self):
+        """
+        Return the list of selected indices by the user.
+        Main entry point for client code.
+        """
+        selected = []
+
+        for i, cbox in enumerate(self.check_boxes.values()):
+            if cbox.GetValue():
+                selected.append(i)
+
+        return selected

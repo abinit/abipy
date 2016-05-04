@@ -3,7 +3,7 @@
 This script shows how to perform a RAMAN calculation with 
 excitonic effects included with the BSE formalism.
 """
-from __future__ import division, print_function, unicode_literals
+from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys 
 import os
@@ -18,7 +18,7 @@ def build_flow(options):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    flow = abilab.Flow(workdir, manager=options.manager)
+    flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove)
 
     pseudos = data.pseudos("14si.pspnc")
 

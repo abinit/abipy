@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Flow for computing the band structure of silicon."""
-from __future__ import division, print_function, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import os
@@ -56,7 +56,7 @@ def build_flow(options):
     scf_input, nscf_input = make_scf_nscf_inputs()
 
     # Build the flow.
-    flow = abilab.Flow(workdir, manager=options.manager)
+    flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove)
 
     # Create a Work, all tasks in work will read the file f
     # Note that the file must exist when the work is created

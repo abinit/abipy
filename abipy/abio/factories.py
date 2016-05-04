@@ -1,15 +1,19 @@
 # coding: utf-8
 """Factory functions for Abinit input files """
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
-import pymatgen.io.abinitio.abiobjects as aobj
+import pymatgen.io.abinit.abiobjects as aobj
 
 from collections import namedtuple
 from monty.collections import AttrDict
 from monty.json import jsanitize, MontyDecoder
+<<<<<<< HEAD
 from pymatgen.io.abinitio.pseudos import PseudoTable
 from pymatgen.io.abinitio.abiobjects import KSampling
+=======
+from pymatgen.io.abinit.pseudos import PseudoTable
+>>>>>>> matteosabipy/master
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
 from abipy.abio.input_tags import *
@@ -109,7 +113,7 @@ def _find_ecut_pawecutdg(ecut, pawecutdg, pseudos, accuracy='normal'):
     return AttrDict(ecut=ecut, pawecutdg=pawecutdg)
 
 
-def _find_scf_nband(structure, pseudos, electrons):
+def _find_scf_nband(structure, pseudos, electrons, spinat=None):
     """Find the value of nband."""
     if electrons.nband is not None: return electrons.nband
 
@@ -128,9 +132,13 @@ def _find_scf_nband(structure, pseudos, electrons):
     # if the change is not propagated e.g. phonons in metals.
     if smearing:
         # metallic occupation
-        nband += 10
+        nband = max(np.ceil(nband*1.2), nband+10)
     else:
-        nband += 4
+        nband = max(np.ceil(nband*1.1), nband+4)
+
+    # Increase number of bands based on the starting magnetization
+    if nsppol==2 and spinat is not None:
+        nband += np.ceil(max(np.sum(spinat, axis=0))/2.)
 
     nband += nband % 2
     return int(nband)
@@ -207,8 +215,11 @@ def ebands_input(structure, pseudos,
     scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
                                    charge=charge, nband=scf_nband, fband=None)
 
+    if spin_mode=="polarized":
+        multi[0].set_autospinat()
+
     if scf_electrons.nband is None:
-        scf_electrons.nband = _find_scf_nband(structure, multi.pseudos, scf_electrons)
+        scf_electrons.nband = _find_scf_nband(structure, multi.pseudos, scf_electrons, multi[0].get('spinat', None))
 
     multi[0].set_vars(scf_ksampling.to_abivars())
     multi[0].set_vars(scf_electrons.to_abivars())
@@ -269,8 +280,12 @@ def ion_ioncell_relax_input(structure, pseudos,
     electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
                                charge=charge, nband=nband, fband=None)
 
+    if spin_mode=="polarized":
+        spinat_dict = multi[0].set_autospinat()
+        multi[1].set_vars(spinat_dict)
+
     if electrons.nband is None:
-        electrons.nband = _find_scf_nband(structure, multi.pseudos, electrons)
+        electrons.nband = _find_scf_nband(structure, multi.pseudos, electrons, multi[0].get('spinat', None))
 
     ion_relax = aobj.RelaxationMethod.atoms_only(atoms_constraints=None)
     ioncell_relax = aobj.RelaxationMethod.atoms_and_cell(atoms_constraints=None)
@@ -672,6 +687,10 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, with_ddk=True, with_dde=True, wi
     GS input + the input files for the phonon calculation.
     """
 
+    gs_inp = gs_inp.deepcopy()
+
+    gs_inp.pop_irdvars()
+
     if with_dde:
         with_ddk = True
 
@@ -679,14 +698,16 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, with_ddk=True, with_dde=True, wi
         with_ddk = True
         with_dde = False
 
+    multi = []
+
     if ph_ngqpt is None:
-        qpoints = gs_inp.abiget_ibz().points
-    else:
-        qpoints = gs_inp.abiget_ibz(ngkpt=ph_ngqpt, shiftk=(0,0,0), kptopt=1).points
+        ph_ngqpt = np.array(gs_inp["ngkpt"])
+
+    qpoints = gs_inp.abiget_ibz(ngkpt=ph_ngqpt, shiftk=(0,0,0), kptopt=1).points
+
 
     # Build the input files for the q-points in the IBZ.
     # Response-function calculation for phonons.
-    multi = []
     for qpt in qpoints:
         if np.allclose(qpt, 0):
             if with_ddk:
@@ -709,6 +730,10 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, with_ddk=True, with_dde=True, wi
 
     multi = MultiDataset.from_inputs(multi)
     multi.add_tags(PHONON)
+
+    #FIXME for the time being there could be problems in mergeddb if the kpoints grid is gamma centered or if
+    # if the grid is odd. Remove when mergeddb is fixed
+    multi.set_vars(kptopt=3)
 
     return multi
 
@@ -747,6 +772,13 @@ def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None
     gs_inp.set_vars(ksampling.to_abivars())
     gs_inp.set_vars(tolvrs=1.0e-18)
 
+    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
+                                   charge=charge, nband=None, fband=None)
+
+    if scf_electrons.nband is None:
+        scf_electrons.nband = _find_scf_nband(structure, gs_inp.pseudos, scf_electrons)
+    gs_inp.set_vars(scf_electrons.to_abivars())
+
     all_inps = [gs_inp]
 
     # Add the ddk input
@@ -764,7 +796,7 @@ def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None
         ddk_tol = {"tolwfr": 1.0e-20}
 
     if len(ddk_tol) != 1 or any(k not in _tolerances for k in ddk_tol):
-        raise ValueError("Invalid tolerance: {}".format(ddk_tol))
+        raise ValueError("Invalid tolerance: {0}".format(ddk_tol))
     ddk_inp.pop_tolerances()
     ddk_inp.set_vars(ddk_tol)
 
@@ -781,14 +813,14 @@ def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None
                     nqpt=1,                            # One wavevector is to be considered
                     qpt=(0, 0, 0),                     # q-wavevector.
                     kptopt=2,                          # Take into account time-reversal symmetry.
-                    iscf=5,                            # The d/dk perturbation must be treated in a non-self-consistent way
+                    iscf=7,                            # The d/dk perturbation must be treated in a non-self-consistent way
                     )
 
     if rf_tol is None:
         rf_tol = {"tolvrs": 1.0e-12}
 
     if len(rf_tol) != 1 or any(k not in _tolerances for k in rf_tol):
-        raise ValueError("Invalid tolerance: {}".format(rf_tol))
+        raise ValueError("Invalid tolerance: {0}".format(rf_tol))
     rf_inp.pop_tolerances()
     rf_inp.set_vars(rf_tol)
 
@@ -815,8 +847,11 @@ def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=No
     scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                    charge=charge, nband=nband, fband=None)
 
+    if spin_mode=="polarized":
+        abinit_input.set_autospinat()
+
     if scf_electrons.nband is None:
-        scf_electrons.nband = _find_scf_nband(structure, abinit_input.pseudos, scf_electrons)
+        scf_electrons.nband = _find_scf_nband(structure, abinit_input.pseudos, scf_electrons,abinit_input.get('spinat', None))
 
     abinit_input.set_vars(scf_ksampling.to_abivars())
     abinit_input.set_vars(scf_electrons.to_abivars())
@@ -837,6 +872,8 @@ def ebands_from_gsinput(gsinput, nband=None, ndivsm=15, accuracy="normal"):
     # create a copy to avoid messing with the previous input
     bands_input = gsinput.deepcopy()
 
+    bands_input.pop_irdvars()
+
     nscf_ksampling = aobj.KSampling.path_from_structure(ndivsm, gsinput.structure)
     if nband is None:
         nband = gsinput.get("nband", gsinput.structure.num_valence_electrons(gsinput.pseudos)) + 10
@@ -852,6 +889,8 @@ def ioncell_relax_from_gsinput(gsinput, accuracy="normal"):
 
     ioncell_input = gsinput.deepcopy()
 
+    ioncell_input.pop_irdvars()
+
     ioncell_relax = aobj.RelaxationMethod.atoms_and_cell(atoms_constraints=None)
     ioncell_input.set_vars(ioncell_relax.to_abivars())
     ioncell_input.set_vars(_stopping_criterion("relax", accuracy))
@@ -862,6 +901,8 @@ def ioncell_relax_from_gsinput(gsinput, accuracy="normal"):
 def hybrid_oneshot_input(gsinput, functional="hse06", ecutsigx=None, gw_qprange=1):
 
     hybrid_input = gsinput.deepcopy()
+
+    hybrid_input.pop_irdvars()
 
     functional = functional.lower()
     if functional == 'hse06':
@@ -877,7 +918,7 @@ def hybrid_oneshot_input(gsinput, functional="hse06", ecutsigx=None, gw_qprange=
         icutcoul = 6
         rcut = 0.
     else:
-        raise ValueError("Unknow functional {}.".format(functional))
+        raise ValueError("Unknow functional {0}.".format(functional))
 
     ecut = hybrid_input['ecut']
     ecutsigx = ecutsigx or 2*ecut
@@ -887,6 +928,24 @@ def hybrid_oneshot_input(gsinput, functional="hse06", ecutsigx=None, gw_qprange=
 
     return hybrid_input
 
+
+def scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=None, accuracy="normal",
+                    spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
+                    shift_mode="Symmetric"):
+    abiinput = scf_input(structure=structure, pseudos=pseudos, kppa=kppa, ecut=ecut, pawecutdg=pawecutdg, nband=nband,
+                         accuracy=accuracy, spin_mode=spin_mode, smearing=smearing, charge=charge,
+                         scf_algorithm=scf_algorithm, shift_mode=shift_mode)
+    # set symmetrized k-point
+    if shift_mode[0].lower() == 's':
+        # need to convert to abipy structure to get the calc_shiftk method
+        structure = Structure.from_sites(structure)
+        shiftk = structure.calc_shiftk()
+        abiinput.set_vars(shiftk=shiftk, nshiftk=len(shiftk))
+
+    # enforce symmetries and add a buffer of bands to ease convergence with tolwfr
+    abiinput.set_vars(chksymbreak=1, nbdbuf=4, tolwfr=1.e-22)
+
+    return abiinput
 
 #FIXME if the pseudos are passed as a PseudoTable the whole table will be serialized,
 # it would be better to filter on the structure elements
@@ -910,7 +969,7 @@ class InputFactory(object):
         extra_abivars = kwargs.pop('extra_abivars', {})
         if self.input_required:
             if not previous_input:
-                raise ValueError('An input is required for factory function {}.'.format(self.factory_function.__name__))
+                raise ValueError('An input is required for factory function {0}.'.format(self.factory_function.__name__))
             abiinput = self.factory_function(previous_input, *self.args, **kwargs)
         else:
             abiinput = self.factory_function(*self.args, **kwargs)
@@ -946,6 +1005,10 @@ class HybridOneShotFromGsFactory(InputFactory):
 
 class ScfFactory(InputFactory):
     factory_function = staticmethod(scf_input)
+    input_required = False
+
+class ScfForPhononsFactory(InputFactory):
+    factory_function = staticmethod(scf_for_phonons)
     input_required = False
 
 

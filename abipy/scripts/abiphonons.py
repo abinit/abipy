@@ -18,7 +18,7 @@ the anaddb task will appear in a new work in the flow.
 TODO include the same interface as in abiGWsetup to enable precision setting, multiple input sources, ...
 
 """
-from __future__ import division, print_function, unicode_literals
+from __future__ import unicode_literals, division, print_function, absolute_import
 
 __author__ = "Michiel van Setten, Matteo Giantomassi"
 __copyright__ = " "
@@ -33,7 +33,7 @@ import sys
 import numpy as np
 import abipy.abilab as abilab
 
-from pymatgen.io.abinitio.pseudos import PseudoTable
+from pymatgen.io.abinit.pseudos import PseudoTable
 
 
 def unique_rows(a):

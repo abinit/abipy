@@ -214,9 +214,9 @@ class InputVariable(object):
         # Determine the format
         width = max(len(str(s)) for s in lvals)
         if type_all == int:
-            formatspec = '>{}d'.format(width)
+            formatspec = '>{0}d'.format(width)
         elif type_all == str:
-            formatspec = '>{}'.format(width)
+            formatspec = '>{0}'.format(width)
         else:
     
             # Number of decimal

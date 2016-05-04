@@ -1,9 +1,11 @@
 # coding: utf-8
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import functools
 import numpy as np
+import itertools
+import os
 
 from collections import OrderedDict
 from monty.collections import AttrDict
@@ -107,7 +109,8 @@ class PhononBands(object):
                        phfreqs=r.read_phfreqs(),
                        phdispl_cart=r.read_phdispl_cart())
 
-    def __init__(self, structure, qpoints, phfreqs, phdispl_cart, markers=None, widths=None):
+    def __init__(self, structure, qpoints, phfreqs, phdispl_cart, markers=None, widths=None,
+                 non_anal_directions=None, non_anal_phfreqs=None):
         """
         Args:
             structure: :class:`Structure` object.
@@ -128,7 +131,7 @@ class PhononBands(object):
         self.qpoints = qpoints
         self.num_qpoints = len(self.qpoints)
 
-        #: numpy rray with phonon frequencies. Shape=(nqpt, 3*natom)
+        #: numpy array with phonon frequencies. Shape=(nqpt, 3*natom)
         self.phfreqs = phfreqs
 
         #: phonon displacements in Cartesian coordinates.
@@ -148,6 +151,10 @@ class PhononBands(object):
         if widths is not None:
             for key, width in widths.items():
                 self.set_width(key, width)
+
+        # numpy arrays with the non analytical directions and corresponding frequences calculated at Gamma
+        self.non_anal_directions = non_anal_directions
+        self.non_anal_phfreqs = non_anal_phfreqs
 
     def __str__(self):
         return self.to_string()
@@ -536,11 +543,74 @@ class PhononBands(object):
         """
         branch_range = range(self.num_branches) if branch is None else [branch]
 
-        xx, lines = range(self.num_qpoints), []
-        for branch in branch_range:
-            lines.extend(ax.plot(xx, self.phfreqs[:, branch], **kwargs))
+        first_xx = 0
+        lines = []
+
+        for pf in self.split_phfreqs:
+            xx = range(first_xx, first_xx+len(pf))
+            for branch in branch_range:
+                lines.extend(ax.plot(xx, pf[:, branch], **kwargs))
+            first_xx = xx[-1]
 
         return lines
+
+    @property
+    def split_qpoints(self):
+        try:
+            return self._split_qpoints
+        except AttributeError:
+            self._set_split_intervals()
+            return self._split_qpoints
+
+    @property
+    def split_phfreqs(self):
+        try:
+            return self._split_phfreqs
+        except AttributeError:
+            self._set_split_intervals()
+            return self._split_phfreqs
+
+    def _set_split_intervals(self):
+        # Calculations available for LO-TO splitting
+        # Split the lines at each Gamma to handle possible discontinuities
+        if self.non_anal_phfreqs is not None and self.non_anal_directions is not None:
+            end_points_indeces = [0]
+
+            end_points_indeces.extend(
+                [i for i in range(1, self.num_qpoints - 1) if np.array_equal(self.qpoints.frac_coords[i], [0, 0, 0])])
+            end_points_indeces.append(self.num_qpoints - 1)
+
+            # split the list of qpoints and frequencies at each end point. The end points are in both the segments.
+            # Lists since the array contained have different shapes
+            split_qpoints = [np.array(self.qpoints.frac_coords[end_points_indeces[i]:end_points_indeces[i + 1] + 1])
+                             for i in range(len(end_points_indeces) - 1)]
+            split_phfreqs = [np.array(self.phfreqs[end_points_indeces[i]:end_points_indeces[i + 1] + 1])
+                             for i in range(len(end_points_indeces) - 1)]
+
+            for i, q in enumerate(split_qpoints):
+                if np.array_equal(q[0], (0, 0, 0)):
+                    split_phfreqs[i][0, :] = self._get_non_anal_freqs(q[1])
+                if np.array_equal(q[-1], (0, 0, 0)):
+                    split_phfreqs[i][-1, :] = self._get_non_anal_freqs(q[-2])
+        else:
+            split_qpoints = [self.qpoints]
+            split_phfreqs = [self.phfreqs]
+
+        self._split_qpoints = split_qpoints
+        self._split_phfreqs = split_phfreqs
+        return split_phfreqs, split_qpoints
+
+    def _get_non_anal_freqs(self, direction):
+        # directions for the qph2l in anaddb are given in cartesian coordinates
+        direction = self.structure.lattice.reciprocal_lattice_crystallographic.get_cartesian_coords(direction)
+        direction = direction / np.linalg.norm(direction)
+
+        for i, d in enumerate(self.non_anal_directions):
+            d = d / np.linalg.norm(d)
+            if np.allclose(direction, d):
+                return self.non_anal_phfreqs[i]
+
+        raise ValueError("Non analytical contribution has not been calcolated for direction {0} ".format(direction))
 
     def plot_width_ax(self, ax, key, branch=None, fact=1.0, **kwargs):
         """Helper function to plot fatbands for given branch on the axis ax."""
@@ -1145,6 +1215,218 @@ class PhdosFile(AbinitNcFile, Has_Structure):
         ax.plot(self.phdos.mesh, self.phdos.values, lw=2, label="Total PHDOS", color='black')
 
         ax.legend(loc="best")
+
+        return fig
+
+
+class PhononBandsPlotter(object):
+    """
+    Class for plotting phonon band structure and DOSes.
+    Supports plots on the same graph or separated plots.
+
+    Usage example:
+
+    .. code-block:: python
+
+        plotter = PhononBandsPlotter()
+        plotter.add_phbands_from_file("foo.nc", label="foo bands")
+        plotter.add_phbands_from_file("bar.nc", label="bar bands")
+        plotter.plot()
+    """
+    _LINE_COLORS = ["b", "r", "k", "g"]
+    _LINE_STYLES = ["-",":","--","-.",]
+    _LINE_WIDTHS = [2,]
+
+    def __init__(self):
+        self._bands_dict = OrderedDict()
+        self._phdoses_dict = OrderedDict()
+        self._markers = OrderedDict()
+
+    @property
+    def bands_dict(self):
+        """Dictionary with the mapping label --> phbands."""
+        return self._bands_dict
+
+    @property
+    def phdoses_dict(self):
+        """Dictionary with the mapping label --> phdos."""
+        return self._phdoses_dict
+
+    @property
+    def phbands_list(self):
+        """"List of `:class:PhononBands`."""
+        return list(self._bands_dict.values())
+
+    @property
+    def phdoses_list(self):
+        """"List of :class:`PhononDos`."""
+        return list(self._phdoses_dict.values())
+
+    @property
+    def markers(self):
+        return self._markers
+
+    def iter_lineopt(self):
+        """Generates style options for lines."""
+        for o in itertools.product( self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
+            yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
+
+    def add_phbands_from_file(self, filepath, label=None):
+        """
+        Adds a band structure for plotting. Reads data from a Netcdfile
+        """
+        from abipy.abilab import abiopen
+        with abiopen(filepath) as ncfile:
+            if label is None:
+                label = ncfile.filepath
+            self.add_phbands(label, ncfile.phbands)
+
+    def add_phbands(self, label, bands, dos=None):
+        """
+        Adds a band structure for plotting.
+
+        Args:
+            label: label for the bands. Must be unique.
+            bands: :class:`PhononBands` object.
+            dos: :class:`PhononDos` object.
+        """
+        if label in self._bands_dict:
+            raise ValueError("label %s is already in %s" % (label, list(self._bands_dict.keys())))
+
+        self._bands_dict[label] = bands
+
+        if dos is not None:
+            self.phdoses_dict[label] = dos
+
+    def bands_statdiff(self, ref=0):
+        """
+        Compare the reference bands with index ref with the other bands stored in the plotter.
+        """
+        for i, label in enumerate(self._bands_dict.keys()):
+            if i == ref:
+                ref_label = label
+                break
+        else:
+            raise ValueError("ref index %s is > number of bands" % ref)
+
+        ref_bands = self._bands_dict[ref_label]
+
+        text = []
+        for (label, bands) in self._bands_dict.items():
+            if label == ref_label: continue
+            stat = ref_bands.statdiff(bands)
+            text.append(str(stat))
+
+        return "\n\n".join(text)
+
+    def set_marker(self, key, xys, extend=False):
+        """
+        Set an entry in the markers dictionary.
+
+        Args:
+            key: string used to label the set of markers.
+            xys: Three iterables x,y,s where x[i],y[i] gives the
+                 positions of the i-th markers in the plot and s[i] is the size of the marker.
+            extend: True if the values xys should be added to a pre-existing marker.
+        """
+        from abipy.tools.plotting_utils import Marker
+
+        if extend:
+            if key not in self._markers:
+                self._markers[key] = Marker(*xys)
+            else:
+                # Add xys to the previous marker set.
+                self._markers[key].extend(*xys)
+
+        else:
+            if key in self._markers:
+                raise ValueError("Cannot overwrite key %s in data" % key)
+
+            self._markers[key] = Marker(*xys)
+
+    @add_fig_kwargs
+    def plot(self, qlabels=None, **kwargs):
+        """
+        Plot the band structure and the DOS.
+
+        Args:
+            qlabels: dictionary whose keys are tuple with the reduced coordinates of the k-points.
+                The values are the labels e.g. klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
+
+        ==============  ==============================================================
+        kwargs          Meaning
+        ==============  ==============================================================
+        xlim            x-axis limits. None (default) for automatic determination.
+        ylim            y-axis limits. None (default) for automatic determination.
+        ==============  ==============================================================
+
+        Returns:
+            matplotlib figure.
+        """
+        import matplotlib.pyplot as plt
+        from matplotlib.gridspec import GridSpec
+
+        # Build grid of plots.
+        if self.phdoses_dict:
+            gspec = GridSpec(1, 2, width_ratios=[2, 1])
+            ax1 = plt.subplot(gspec[0])
+            # Align bands and DOS.
+            ax2 = plt.subplot(gspec[1], sharey=ax1)
+            ax_list = [ax1, ax2]
+            fig = plt.gcf()
+        else:
+            fig = plt.figure()
+            ax1 = fig.add_subplot(111)
+            ax_list = [ax1]
+
+        for ax in ax_list:
+            ax.grid(True)
+
+        ylim = kwargs.pop("ylim", None)
+        if ylim is not None:
+            [ax.set_ylim(ylim) for ax in ax_list]
+
+        # Plot bands.
+        lines, legends = [], []
+        my_kwargs, opts_label = kwargs.copy(), {}
+        i = -1
+        for (label, bands), lineopt in zip(self._bands_dict.items(), self.iter_lineopt()):
+            i += 1
+            my_kwargs.update(lineopt)
+            opts_label[label] = my_kwargs.copy()
+
+            l = bands.plot_ax(ax1, branch=None, **my_kwargs)
+            lines.append(l[0])
+
+            # Use relative paths if label is a file.
+            if os.path.isfile(label):
+                legends.append("%s" % os.path.relpath(label))
+            else:
+                legends.append("%s" % label)
+
+            # Set ticks and labels, legends.
+            if i == 0:
+                bands.decorate_ax(ax1)
+
+        if self.markers:
+            for key, markers in self.markers.items():
+                pos, neg = markers.posneg_marker()
+                # Use different symbols depending on the value of s.
+                # Cannot use negative s.
+                fact = 1
+                if pos:
+                    ax1.scatter(pos.x, pos.y, s=np.abs(pos.s)*fact, marker="^", label=key + " >0")
+
+                if neg:
+                    ax1.scatter(neg.x, neg.y, s=np.abs(neg.s)*fact, marker="v", label=key + " <0")
+
+        ax1.legend(lines, legends, loc='best', shadow=True)
+
+        # Add DOSes
+        if self.phdoses_dict:
+            ax = ax_list[1]
+            for (label, dos) in self.phdoses_dict.items():
+                dos.plot_ax(ax, exchange_xy=True, **opts_label[label])
 
         return fig
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Flow for computing the band structure of silicon."""
-from __future__ import division, print_function, unicode_literals
+from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys
 import os
@@ -57,7 +57,7 @@ def build_flow(options):
 
     # Get the SCF and the NSCF input.
     scf_input, nscf_input = make_scf_nscf_inputs()
-    print(scf_input.to_string(sortmode="section"))
+    #print(scf_input.to_string(sortmode="section"))
 
     # Build the flow.
     return abilab.bandstructure_flow(workdir, scf_input, nscf_input, manager=options.manager)
@@ -66,7 +66,7 @@ def build_flow(options):
 @abilab.flow_main
 def main(options):
     flow = build_flow(options)
-    #import pymatgen.io.abinitio.mocks as mocks
+    #import pymatgen.io.abinit.mocks as mocks
     #flow = mocks.infinite_flow(flow)
     flow.build_and_pickle_dump()
     return flow

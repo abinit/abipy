@@ -15,7 +15,7 @@ on top of the preexisting python library.
 How to compile the Python interpreter
 =====================================
 
-First of all, you have to create a new directory to contain your python interpreter
+First of all, you have to create a new directory containing your python interpreter
 as well as as the libraries and the other executables needed by AbiPy.
 Let's assume we decided to create this directory inside `$HOME` and let's call it `local`::
 
@@ -50,7 +50,7 @@ because these packages are needed.
 
 `bz2` is more fundamental than `_tkinter` because it is used to compress/uncompress files.
 AbiPy won't work without `bz2` and you have to install the `bzip` library with the C headers.
-The source code is available `from bzip.org <www.bzip.org>`_
+The source code is available from `bzip.org <www.bzip.org>`_
 See also `this post <http://stackoverflow.com/questions/12806122/missing-python-bz2-module>`_ on stackoverflow.
 
 `Tkinter` is less important than `bz2` but without it you won't be able to use the `matplotlib` graphical back-end.
@@ -82,7 +82,7 @@ To install `easy_install`::
     $ which easy_install
     $HOME/local/bin/easy_install
 
-See also https://pypi.python.org/pypi/setuptools
+For more info, consult the `setuptools page <https://pypi.python.org/pypi/setuptools>`_
 
 Now use `easy_install` to install `pip`::
 
@@ -111,16 +111,16 @@ How to install HDF5/Netcdf4 and the python bindings
 
 Obtain the latest HDF5 Software from the `official web-site <http://www.hdfgroup.org/HDF5/release/obtain5.html>`_.
 Configure the package with `--enable-hl --enable-shared` and the `--prefix` option as usual.
-Build and install with:: 
+Build and install with::
 
-    make 
+    make
     make install
 
 Finally define the environment variable `$HDF5_DIR` with::
 
     export HDF5_DIR=$HOME/local
 
-Get the latest stable netCDF-C release from `here <http://www.unidata.ucar.edu/downloads/netcdf/index.jsp>`_.
+Get the latest stable netCDF-C release from `this page <http://www.unidata.ucar.edu/downloads/netcdf/index.jsp>`_.
 Configure with::
 
     configure --prefix=$HOME/local --enable-netcdf-4 --enable-shared \
@@ -129,7 +129,7 @@ Configure with::
 Build and install with `make && make install`
 Define the environment variable `$NETCDF4_DIR`::
 
-    export HDF5_DIR=$HOME/local
+    export NETCDF4_DIR=$HOME/local
 
 Now we can download and install the python interface with::
 

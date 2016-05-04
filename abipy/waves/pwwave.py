@@ -1,6 +1,6 @@
 # coding: utf-8
 """This module contains the class describing a planewave wavefunction."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import tempfile
 import copy
@@ -99,7 +99,7 @@ class WaveFunction(object):
     def set_ug(self, ug):
         """Set the value of the u(nspinor, G) array."""
         assert ug.shape == self.shape
-        set._ug = ug
+        self._ug = ug
         self.delete_ur()
 
     @property
@@ -306,7 +306,7 @@ class PWWaveFunction(WaveFunction):
 
     def braket(self, other, space="g"):
         """
-        Returns the scalar product <u1|u2> of the periodic part of two wavefunctions 
+        Returns the scalar product <u1|u2> of the periodic part of two wavefunctions
         computed in G-space or r-space, depending on the value of space.
 
         Args:

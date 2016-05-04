@@ -2,7 +2,7 @@
 """
 FIXME Add doc
 """
-from __future__ import print_function, division, unicode_literals
+from __future__ import unicode_literals, division, print_function, absolute_import
 
 import os
 import argparse
@@ -37,7 +37,7 @@ def main():
     # Parse command line.
     try:
         options = parser.parse_args()
-    except: 
+    except Exception: 
         show_examples_and_exit(error_code=1)
 
     cif_file = options.cif_file[0]

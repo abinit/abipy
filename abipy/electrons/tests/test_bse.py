@@ -17,8 +17,6 @@ class TestMDF_Reader(AbipyTest):
             self.assertTrue(len(r.qpoints) == r.read_dimvalue("number_of_qpoints"))
 
             exc_mdf = r.read_exc_mdf()
-            exc_mdf.raw_print()
-
             rpanlf_mdf = r.read_rpanlf_mdf()
             gwnlf_mdf = r.read_gwnlf_mdf()
 

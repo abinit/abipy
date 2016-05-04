@@ -1,6 +1,6 @@
 # coding: utf-8
 """This module ..."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import abc
 import os
@@ -11,9 +11,9 @@ from time import ctime
 from monty.os.path import which
 from monty.string import is_string
 from monty.functools import lazy_property
-from pymatgen.io.abinitio.events import EventsParser
-from pymatgen.io.abinitio.abiinspect import GroundStateScfCycle, D2DEScfCycle, Relaxation
-from pymatgen.io.abinitio.abitimer import AbinitTimerParser
+from pymatgen.io.abinit.events import EventsParser
+from pymatgen.io.abinit.abiinspect import GroundStateScfCycle, D2DEScfCycle, Relaxation
+from pymatgen.io.abinit.abitimer import AbinitTimerParser
 
 
 __all__ = [
@@ -128,9 +128,6 @@ class AbinitTextFile(TextFile):
         """Timer data."""
         return AbinitTimerParser().parse(self.filepath)
 
-
-class AbinitInputFile(TextFile):
-    """Class representing the input file."""
 
 class AbinitLogFile(AbinitTextFile):
     """Class representing the log file."""

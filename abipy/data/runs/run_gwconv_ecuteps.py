@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """G0W0 convergence study wrt ecuteps and the number of bands in W."""
-from __future__ import division, print_function, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import os
@@ -84,7 +84,7 @@ def build_flow(options):
     ecuteps_list = np.arange(2, 8, 2)
     max_ecuteps = max(ecuteps_list)
 
-    flow = abilab.Flow(workdir=workdir, manager=options.manager)
+    flow = abilab.Flow(workdir=workdir, manager=options.manager, remove=options.remove)
 
     # Band structure work to produce the WFK file
     bands = abilab.BandStructureWork(scf_inp, nscf_inp)

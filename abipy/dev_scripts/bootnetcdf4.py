@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import subprocess
@@ -22,10 +22,10 @@ nc4_tarballs = dict(
 )
 
 # Useful packages for development.
-dev_tarballs = dict(
-    ctags="http://prdownloads.sourceforge.net/ctags/ctags-5.8.tar.gz",
-    python2.7="http://www.python.org/ftp/python/2.7.6/Python-2.7.6.tar.xz",
-)
+dev_tarballs = {
+    "ctags": "http://prdownloads.sourceforge.net/ctags/ctags-5.8.tar.gz",
+    "python2.7": "http://www.python.org/ftp/python/2.7.6/Python-2.7.6.tar.xz",
+}
 
 
 #matplotlib = dict(

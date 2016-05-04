@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Band structure of silicon with the HT interface."""
-from __future__ import division, print_function, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import os
@@ -20,7 +20,7 @@ def build_flow(options):
     pseudos = abidata.pseudos("14si.pspnc")
 
     # Initialize the flow.
-    flow = abilab.Flow(workdir=workdir, manager=options.manager)
+    flow = abilab.Flow(workdir=workdir, manager=options.manager, remove=options.remove)
 
     # Use ebands_input factory function to build inputs.
     multi = abilab.ebands_input(structure, pseudos, kppa=40, nscf_nband=6, ndivsm=10, ecut=6)

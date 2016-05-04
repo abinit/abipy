@@ -3,7 +3,7 @@
 Calculation of the band structure of Fe with and without magnetization.
 See tutorial/Input/tspin_1.in
 """
-from __future__ import division, print_function, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import sys
@@ -52,7 +52,7 @@ def build_flow(options):
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
     # Create the Flow.
-    flow = abilab.Flow(workdir, manager=options.manager)
+    flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove)
 
     # Create the task defining the calculation and run and register it in the flow
     for nsppol in [1,2]:

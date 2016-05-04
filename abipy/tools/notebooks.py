@@ -1,5 +1,5 @@
 """Tools for ipython notebooks."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 
 def mpld3_enable_notebook():

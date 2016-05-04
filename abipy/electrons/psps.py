@@ -1,13 +1,13 @@
 # coding: utf-8
 """PSPS file with tabulated data."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
 
 from monty.string import list_strings
 from monty.bisect import find_gt
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
-from pymatgen.io.abinitio.pseudos import Pseudo
+from pymatgen.io.abinit.pseudos import Pseudo
 from abipy.iotools import ETSF_Reader
 from abipy.core.mixins import AbinitNcFile #, Has_Structure, Has_ElectronBands
 

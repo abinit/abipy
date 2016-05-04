@@ -1,6 +1,6 @@
 # coding: utf-8
 """Classes for the analysis of BSE calculations"""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import itertools
@@ -213,32 +213,6 @@ class DielectricFunction(object):
         import pprint
         printer = pprint.PrettyPrinter(self, width=80, depth=None, stream=stream)
         printer.pprint(self.info)
-
-    def raw_print(self, stream=sys.stdout, fmt=None, delimiter=' '):
-        """
-        Write data on stream with format fmt. See also `numpy.savetxt`.
-
-        Args:
-            stream: filename or file handle. If the filename ends in .gz, the file is automatically
-                    saved in compressed gzip format.
-            fmt:  str or sequence of strings, optional. A single format (%10.5f), a sequence of formats,
-                  or a multi-format string,
-            delimiter: Character separating columns.
-        """
-        header = \
-            """
-            2 * (num_qpoints+1) columns representing num_qpoints+1 complex numbers (re, im).
-            omega_re omega_im em_q[0]_re em_q[0]_im ... em_q[nq-1]_im
-            """
-        # Build table.
-        table = []
-        for (iw, omega) in enumerate(self.wmesh):
-            line = [omega] + [em.values[iw] for em in self.emacros_q]
-            table.append(line)
-
-        if fmt is None: fmt = (1 + self.num_qpoints) * ['%.4f %.4f']
-
-        np.savetxt(stream, table, fmt=fmt, delimiter=delimiter, header=header)
 
     @add_fig_kwargs
     def plot(self, ax=None, **kwargs):

@@ -1,4 +1,5 @@
 """This module contains a list of default tags for the AbinitInput object"""
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 GROUND_STATE = "ground_state"
 SCF = "scf"

@@ -3,7 +3,7 @@
 Python interface to fftprof. Provides objects to benchmark
 the FFT libraries used by ABINIT and plot the results with matplotlib.
 """
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 

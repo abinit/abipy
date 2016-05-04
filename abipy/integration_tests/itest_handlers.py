@@ -1,4 +1,4 @@
-from __future__ import division, print_function, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import os
@@ -17,7 +17,7 @@ def itest_tolsymerror_handler(fwp):
         src_line: 236
         ...
     
-    at the level of the symmetry finder and autoparal fails 
+    at the level of the symmetry finder and autoparal fails
     because it cannot find the parallel configurations.
     """
     structure = dict(

@@ -1,5 +1,5 @@
 """Tooltips for oncv GUI."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 
 def oncv_tip(key):

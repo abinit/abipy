@@ -1,6 +1,6 @@
 # coding: utf-8
 """This module defines basic objects representing the crystalline structure."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import collections
@@ -13,7 +13,7 @@ from monty.string import is_string
 from pymatgen.core.units import ArrayWithUnit
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
-from pymatgen.io.abinitio.pseudos import PseudoTable
+from pymatgen.io.abinit.pseudos import PseudoTable
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from abipy.core.symmetries import SpaceGroup
 from abipy.iotools import as_etsfreader, Visualizer
@@ -51,7 +51,7 @@ class Structure(pymatgen.Structure):
         raise TypeError("Don't know how to convert %s into a structure" % type(obj))
 
     @classmethod
-    def from_file(cls, filepath, primitive=True, sort=False):
+    def from_file(cls, filepath, primitive=False, sort=False):
         """
         Reads a structure from a file. For example, anything ending in
         a "cif" is assumed to be a Crystallographic Information Format file.
@@ -80,7 +80,7 @@ class Structure(pymatgen.Structure):
                 return hist.structures[-1]
 
         elif filepath.endswith(".nc"):
-            from pymatgen.io.abinitio.netcdf import as_etsfreader
+            from pymatgen.io.abinit.netcdf import as_etsfreader
             file, closeit = as_etsfreader(filepath)
                                                                   
             new = file.read_structure(cls=cls)
@@ -124,10 +124,34 @@ class Structure(pymatgen.Structure):
 
         # Get pytmatgen structure and convert it to abipy structure
         from pymatgen.matproj.rest import MPRester, MPRestError
-        with MPRester(api_key=api_key,endpoint=endpoint) as database:
+        with MPRester(api_key=api_key, endpoint=endpoint) as database:
             new = database.get_structure_by_material_id(material_id, final=final)
             new.__class__ = cls
             return new
+
+    @classmethod
+    def from_ase_atoms(cls, atoms):
+        """
+        Returns structure from ASE Atoms.
+
+        Args:
+            atoms: ASE Atoms object
+
+        Returns:
+            Equivalent Structure
+        """
+        import pymatgen.io.ase as aio
+        return aio.AseAtomsAdaptor.get_structure(atoms, cls=cls)
+
+    def to_ase_atoms(self):
+        """
+        Returns ASE Atoms object from structure.
+
+        Returns:
+            ASE Atoms object
+        """
+        import pymatgen.io.ase as aio
+        return aio.AseAtomsAdaptor.get_atoms(self)
 
     @classmethod
     def boxed_molecule(cls, pseudos, cart_coords, acell=3*(10,)):
@@ -162,39 +186,59 @@ class Structure(pymatgen.Structure):
         return cls.boxed_molecule([pseudo], cart_coords, acell=acell)
 
     @classmethod
-    def bcc(cls, a, species, **kwargs):
+    def bcc(cls, a, species, primitive=True, **kwargs):
         """
-        Build a primitive bcc crystal structure.
+        Build a primitive or a conventional bcc crystal structure.
 
         Args:
             a: Lattice parameter in Angstrom.
             species: Chemical species. See __init__ method of :class:`pymatgen.Structue`
+            primitive: if True a primitive cell will be produced, otherwise a conventional one
             kwargs: All keyword arguments accepted by :class:`pymatgen.Structue`
         """
-        lattice = 0.5 * float(a) * np.array([
-            -1,  1,  1,
-             1, -1,  1,
-             1,  1, -1])
+        if primitive:
+            lattice = 0.5 * float(a) * np.array([
+                -1,  1,  1,
+                 1, -1,  1,
+                 1,  1, -1])
 
-        return cls(lattice, species, coords=[[0, 0, 0]],  **kwargs)
+            coords = [[0, 0, 0]]
+
+        else:
+            lattice = float(a) * np.eye(3)
+            coords = [[0, 0, 0],
+                      [0.5, 0.5, 0.5]]
+            species = np.repeat(species, 2)
+
+        return cls(lattice, species, coords=coords,  **kwargs)
 
     @classmethod
-    def fcc(cls, a, species, **kwargs):
+    def fcc(cls, a, species, primitive=True, **kwargs):
         """
-        Build a primitive fcc crystal structure.
+        Build a primitive or a conventional fcc crystal structure.
 
         Args:
             a: Lattice parameter in Angstrom.
             species: Chemical species. See __init__ method of :class:`pymatgen.Structure`
+            primitive: if True a primitive cell will be produced, otherwise a conventional one
             kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`
         """
-        # This is problematic
-        lattice = 0.5 * float(a) * np.array([
-            0,  1,  1,
-            1,  0,  1,
-            1,  1,  0])
+        if primitive:
+            # This is problematic
+            lattice = 0.5 * float(a) * np.array([
+                0,  1,  1,
+                1,  0,  1,
+                1,  1,  0])
+            coords = [[0, 0, 0]]
+        else:
+            lattice = float(a) * np.eye(3)
+            species = np.repeat(species, 4)
+            coords = [[0, 0, 0],
+                      [0.5, 0.5, 0],
+                      [0.5, 0, 0.5],
+                      [0, 0.5, 0.5]]
 
-        return cls(lattice, species, coords=[[0, 0, 0]], **kwargs)
+        return cls(lattice, species, coords=coords, **kwargs)
 
     @classmethod
     def rocksalt(cls, a, species, **kwargs):
@@ -266,11 +310,10 @@ class Structure(pymatgen.Structure):
                                                     
         return("\n".join(lines))
     
-    def abi_sanitize(self, symprec=1e-3, primitive=True):
+    def abi_sanitize(self, symprec=1e-3, angle_tolerance=5, primitive=True, primitive_standard=False):
         """
         Returns a new structure in which:
 
-            * Oxidation states are removed.
             * Structure is refined.
             * Reduced to primitive settings.
             * Lattice vectors are exchanged if the triple product is negative 
@@ -281,22 +324,23 @@ class Structure(pymatgen.Structure):
             primitive (bool): Whether to convert to a primitive cell.
         """
 
-        from pymatgen.transformations.standard_transformations import OxidationStateRemovalTransformation, \
-            PrimitiveCellTransformation, SupercellTransformation
+        from pymatgen.transformations.standard_transformations import PrimitiveCellTransformation, SupercellTransformation
 
-        # Remove oxidation states.
-        remove_ox = OxidationStateRemovalTransformation()
-        structure = remove_ox.apply_transformation(self)
+        structure = self.__class__.from_sites(self)
 
         # Refine structure
-        if symprec is not None:
-            sym_finder = SpacegroupAnalyzer(structure=structure, symprec=symprec)
+        if symprec is not None and angle_tolerance is not None:
+            sym_finder = SpacegroupAnalyzer(structure=structure, symprec=symprec, angle_tolerance=angle_tolerance)
             structure = sym_finder.get_refined_structure()
 
         # Convert to primitive structure.
         if primitive:
-            get_prim = PrimitiveCellTransformation()
-            structure = get_prim.apply_transformation(structure)
+            if primitive_standard:
+                sym_finder_prim = SpacegroupAnalyzer(structure=structure, symprec=symprec, angle_tolerance=angle_tolerance)
+                structure = sym_finder_prim.get_primitive_standard_structure(international_monoclinic=False)
+            else:
+                get_prim = PrimitiveCellTransformation()
+                structure = get_prim.apply_transformation(structure)
 
         # Exchange last two lattice vectors if triple product is negative.
         m = structure.lattice.matrix
@@ -401,6 +445,39 @@ class Structure(pymatgen.Structure):
 
         return coords
 
+    def dot(self, coords_a, coords_b, space="r", frac_coords=False):
+        """
+        Compute the scalar product of vector(s) either in real space or
+        reciprocal space.
+
+        Args:
+            coords (3x1 array): Array-like object with the coordinates.
+            space (str): "r" for real space, "g" for reciprocal space.
+            frac_coords (bool): Whether the vector corresponds to fractional or
+                cartesian coordinates.
+
+        Returns:
+            one-dimensional `numpy` array.
+        """
+        lattice = {"r": self.lattice,
+                   "g": self.reciprocal_lattice}[space.lower()]
+        return lattice.dot(coords_a, coords_b, frac_coords=frac_coords)
+
+    def norm(self, coords, space="r", frac_coords=True):
+        """
+        Compute the norm of vector(s) either in real space or reciprocal space.
+
+        Args:
+            coords (3x1 array): Array-like object with the coordinates.
+            space (str): "r" for real space, "g" for reciprocal space.
+            frac_coords (bool): Whether the vector corresponds to fractional or
+                cartesian coordinates.
+
+        Returns:
+            one-dimensional `numpy` array.
+        """
+        return np.sqrt(self.dot(coords, coords, space=space,
+                                frac_coords=frac_coords))
 
     def show_bz(self, **kwargs):
         """
@@ -415,6 +492,7 @@ class Structure(pymatgen.Structure):
         savefig           'abc.png' or 'abc.eps'* to save the figure to a file.
         ================  ==============================================================
         """
+        #print(self.hsym_kpath.name)
         return self.hsym_kpath.get_kpath_plot(**kwargs)
 
     def export(self, filename, visu=None):
@@ -442,12 +520,16 @@ class Structure(pymatgen.Structure):
             import tempfile
             filename = tempfile.mkstemp(suffix="." + ext, text=True)[1]
 
-        with open(filename, mode="w") as fh:
-            if ext == "xsf":  
-                # xcrysden
-                xsf.xsf_write_structure(fh, structures=[self])
-            else:
-                raise Visualizer.Error("extension %s is not supported." % ext)
+        # with open(filename, mode="w") as fh:
+        #     if ext == "xsf":
+        #         # xcrysden
+        #         xsf.xsf_write_structure(fh, structures=[self])
+        #     else:
+        #         raise Visualizer.Error("extension %s is not supported." % ext)
+
+        if ext == "xsf":
+            # xcrysden
+            self.to(filename=filename)
 
         if visu is None:
             return Visualizer.from_file(filename)
@@ -473,11 +555,33 @@ class Structure(pymatgen.Structure):
         else:
             raise visu.Error("Don't know how to export data for %s" % visu_name)
 
+    def molecular_viewer(self, **kwargs):
+        #from chemview import enable_notebook, MolecularViewer
+        from chemview import MolecularViewer
+
+        #from pymatgen.core.bonds import CovalentBond, get_bond_length
+        #bonds = []
+        #for j, site1 in enumerate(self): 
+        #    for i, site2 in enumerate(self): 
+        #        if j <= i: continue
+        #        if CovalentBond.is_bonded(site1, site2, tol=0.2):
+        #            bonds.append((i, j))
+
+        #bonds = self.get_covalent_bonds(tol=0.2)
+        #bonds=[(0, 1), (1, 0)]
+        bonds = [(0, 0), (1, 1)]
+
+        topology = dict(
+            atom_types=[site.specie.symbol for site in self],
+            bonds=bonds,
+        )
+        v = MolecularViewer(self.cart_coords, topology, **kwargs)
+        return v
+
     def write_structure(self, filename):
         """Write structure fo file."""
         if filename.endswith(".nc"):
             raise NotImplementedError("Cannot write a structure to a netcdf file yet")
-
         else:
             self.to(filename=filename)
 
@@ -512,6 +616,14 @@ class Structure(pymatgen.Structure):
 
         tmp_file.seek(0)
         return tmp_file.read()
+
+    #def to_xsf_string(self):
+    #    """
+    #    Returns a string with the structure in XSF format
+    #    See http://www.xcrysden.org/doc/XSF.html
+    #    """
+    #    from pymatgen.io.xcrysden import XSF
+    #    return XSF(self).to_string()
 
     #def max_overlap_and_sites(self, pseudos):
     #    # For each site in self:
@@ -953,37 +1065,46 @@ class Structure(pymatgen.Structure):
         sym = SpacegroupAnalyzer(self, symprec=symprec, angle_tolerance=angle_tolerance)
         lattice_type, spg_symbol = sym.get_lattice_type(), sym.get_spacegroup_symbol()
 
+        # Check if the cell is primitive
+        is_primitve = len(sym.find_primitive()) == len(self)
+
         # Generate the appropriate set of shifts.
         shiftk = None
 
-        if lattice_type == "cubic":
-            if "F" in spg_symbol:  
-                # FCC
-                shiftk = [0.5, 0.5, 0.5,
-                          0.5, 0.0, 0.0,
-                          0.0, 0.5, 0.0,
-                          0.0, 0.0, 0.5]
+        if is_primitve:
+            if lattice_type == "cubic":
+                if "F" in spg_symbol:
+                    # FCC
+                    shiftk = [0.5, 0.5, 0.5,
+                              0.5, 0.0, 0.0,
+                              0.0, 0.5, 0.0,
+                              0.0, 0.0, 0.5]
 
-            elif "I" in spg_symbol:  
-                # BCC
-                shiftk = [0.25,  0.25,  0.25,
-                         -0.25, -0.25, -0.25]
+                elif "I" in spg_symbol:
+                    # BCC
+                    shiftk = [0.25,  0.25,  0.25,
+                             -0.25, -0.25, -0.25]
 
-                #shiftk = [0.5, 0.5, 05])
+                    #shiftk = [0.5, 0.5, 05])
 
-        elif lattice_type == "hexagonal":
-            # Find the hexagonal axis and set the shift along it.
-            for i, angle in enumerate(self.lattice.angles):
-                if abs(angle - 120) < 1.0:
-                    j = (i + 1) % 3
-                    k = (i + 2) % 3
-                    hex_ax = [ax for ax in range(3) if ax not in [j,k]][0] 
-                    break
-            else:
-                raise ValueError("Cannot find hexagonal axis")
+            elif lattice_type == "hexagonal":
+                # Find the hexagonal axis and set the shift along it.
+                for i, angle in enumerate(self.lattice.angles):
+                    if abs(angle - 120) < 1.0:
+                        j = (i + 1) % 3
+                        k = (i + 2) % 3
+                        hex_ax = [ax for ax in range(3) if ax not in [j,k]][0]
+                        break
+                else:
+                    raise ValueError("Cannot find hexagonal axis")
 
-            shiftk = [0.0, 0.0, 0.0]
-            shiftk[hex_ax] = 0.5 
+                shiftk = [0.0, 0.0, 0.0]
+                shiftk[hex_ax] = 0.5
+            elif lattice_type == "tetragonal":
+                if "I" in spg_symbol:
+                    # BCT
+                    shiftk = [0.25,  0.25,  0.25,
+                             -0.25, -0.25, -0.25]
 
         if shiftk is None:
             # Use default value.

@@ -1,6 +1,6 @@
-************
+***********
 AbinitInput
-************
+***********
 
 .. autoclass:: abipy.htc.AbinitInput
     :members: set_pseudodir, set_pseudos, read, set_variables, set_comment,

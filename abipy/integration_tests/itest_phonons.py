@@ -1,5 +1,5 @@
 """Integration tests for phonon flows."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import pytest
 import numpy as np
@@ -239,7 +239,7 @@ def itest_oneshot_phonon_work(fwp):
     # SCF + one-shot for the first 2 qpoints.
     scf_input, ph_inputs = all_inps[0], all_inps[1:3]
 
-    from pymatgen.io.abinitio.works import build_oneshot_phononwork
+    from pymatgen.io.abinit.works import build_oneshot_phononwork
     flow = abilab.Flow(fwp.workdir)
 
     # rfdir and rfatpol are missing!

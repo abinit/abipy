@@ -26,7 +26,7 @@ def gs_input(x=0.7, acell=(10, 10, 10)):
         nband=1,
         diemac=2.0,
         nstep=10,
-        toldfe=1e-6, 
+        toldfe=1e-6,
     )
 
     inp.set_kmesh(ngkpt=(1,1,1), shiftk=(0,0,0))

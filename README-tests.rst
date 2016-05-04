@@ -16,4 +16,6 @@ If nosetest fails with error::
 
 install the nose-exclude plugin with::
 
-   `pip install nose-exclude` 
+   `pip install nose-exclude`
+
+

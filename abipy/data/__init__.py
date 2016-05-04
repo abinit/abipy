@@ -4,11 +4,11 @@ Preferred way to import the module is via the import syntax:
 
 import abipy.abidata as abidata
 """
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 
-from pymatgen.io.abinitio.pseudos import PseudoParser, PseudoTable
+from pymatgen.io.abinit.pseudos import PseudoParser, PseudoTable
 from abipy.data.ucells import structure_from_ucell
 
 __all__ = [

@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 """Integration tests for the scheduler."""
-from __future__ import division, print_function, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import os
 import abipy.data as abidata  
 import abipy.abilab as abilab
 
-import pymatgen.io.abinitio.mocks as mocks
+import pymatgen.io.abinit.mocks as mocks
 
 
 def make_scf_nscf_inputs(paral_kgb=1):

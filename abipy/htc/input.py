@@ -3,7 +3,7 @@ This module defines objects that faciliate the creation of the
 ABINIT input files. The syntax is similar to the one used 
 in ABINIT with small differences. 
 """
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import collections
@@ -20,12 +20,13 @@ from monty.dev import deprecated
 from monty.collections import dict2namedtuple
 from monty.string import is_string, list_strings
 from monty.os.path import which
+from monty.json import MSONable
 from pymatgen.core.units import Energy
-from pymatgen.serializers.json_coders import PMGSONable, pmg_serialize
-from pymatgen.io.abinitio.pseudos import PseudoTable, Pseudo
-from pymatgen.io.abinitio.tasks import TaskManager, AbinitTask
-from pymatgen.io.abinitio.netcdf import NetcdfReader
-from pymatgen.io.abinitio.abiinspect import yaml_read_irred_perts
+from pymatgen.serializers.json_coders import pmg_serialize
+from pymatgen.io.abinit.pseudos import PseudoTable, Pseudo
+from pymatgen.io.abinit.tasks import TaskManager, AbinitTask
+from pymatgen.io.abinit.netcdf import NetcdfReader
+from pymatgen.io.abinit.abiinspect import yaml_read_irred_perts
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
 from .variable import InputVariable
@@ -93,7 +94,7 @@ def _idt_varname(varname):
 
 
 @six.add_metaclass(abc.ABCMeta)
-class Input(six.with_metaclass(abc.ABCMeta, PMGSONable, object)):
+class Input(six.with_metaclass(abc.ABCMeta, MSONable, object)):
     """
     Base class for Input objects.
 

@@ -5,8 +5,9 @@ Common test support for all abipy test scripts.
 This single module should provide all the common functionality for abipy tests
 in a single location, so that test scripts can just import it and work right away.
 """
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
+import os
 import subprocess
 import json
 
@@ -43,10 +44,8 @@ def has_abinit(version=None, op=">="):
     False if condition is not fulfilled or the execution of `abinit -v` raised CalledProcessError
     """
     abinit = which("abinit") 
-    if abinit is None:
-        return False
-    if version is None:
-        return abinit is not None
+    if abinit is None: return False
+    if version is None: return abinit is not None
 
     try:
         abinit_version = str(subprocess.check_output(["abinit", "-v"]))
@@ -72,8 +71,13 @@ def has_matplotlib(version=None, op=">="):
     """
     try:
         import matplotlib
+
+        matplotlib.use("Agg") # Use non-graphical display backend during test.
+        have_matplotlib = "DISPLAY" in os.environ
+
         if version is None: return True
     except ImportError:
+        print("Skipping matplotlib test")
         return False
 
     return cmp_version(matplotlib.__version__, version, op=op)
@@ -112,6 +116,21 @@ class AbipyTest(PymatgenTest):
     def has_abinit(version=None, op=">="):
         """Return True if abinit is in $PATH and version is op min_version."""
         return has_abinit(version=None, op=op)
+
+    @staticmethod
+    def has_matplotlib(version=None, op=">="):
+        return has_matplotlib(version=version, op=op)
+
+    @staticmethod
+    def has_ase(version=None, op=">="):
+        """True if ASE package is available."""
+        try:
+            import ase
+        except ImportError:
+            return False
+        
+        if version is None: return True
+        return cmp_version(ase.__version__, version, op=op)
 
     def assertFwSerializable(self, obj):
         self.assertTrue('_fw_name' in obj.to_dict())

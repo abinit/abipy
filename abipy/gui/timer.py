@@ -1,10 +1,10 @@
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import wx
 
 from collections import OrderedDict
-from pymatgen.io.abinitio.abitimer import AbinitTimerSection, AbinitTimerParser
+from pymatgen.io.abinit.abitimer import AbinitTimerSection, AbinitTimerParser
 import abipy.gui.awx as awx
 
 
