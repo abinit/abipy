@@ -1,5 +1,5 @@
 """Integration tests for pseudodojo."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import pytest
 import abipy.data as abidata
@@ -20,10 +20,10 @@ except ImportError:
 
 
 def itest_deltafactor(fwp, tvars):
-    """Test the flow used for the computation of the deltafactor."""
+    """Testing the flow used for the computation of the deltafactor."""
 
     # Path of the pseudopotential to test.
-    pseudo = abidata.pseudo("Si.GGA_PBE-JTH-paw.xml")
+    pseudo = abidata.pseudo("Si.GGA_PBE-JTH-paw.xml").as_tmpfile()
 
     flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager)
 
@@ -60,15 +60,15 @@ def itest_deltafactor(fwp, tvars):
 
 
 def itest_gbrv_flow(fwp, tvars):
-    """The the GBRV flow: relaxation + EOS computation."""
+    """Testing the GBRV flow: relaxation + EOS computation."""
     factory = GbrvFactory()
 
     #pseudo = "si_pbe_v1_abinit.paw"
-    pseudo = abidata.pseudo("Si.GGA_PBE-JTH-paw.xml")
-    ecut = 2
+    pseudo = abidata.pseudo("Si.GGA_PBE-JTH-paw.xml").as_tmpfile()
+    ecut = 4
     pawecutdg = 2 * ecut if pseudo.ispaw else None
 
-    flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager, pickle_protocol=0)
+    flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager)
 
     struct_types = ["fcc"] #, "bcc"]
 
@@ -80,7 +80,7 @@ def itest_gbrv_flow(fwp, tvars):
     flow.build_and_pickle_dump()
 
     fwp.scheduler.add_flow(flow)
-    assert fwp.scheduler.start()
+    assert fwp.scheduler.start() == 0
     assert not fwp.scheduler.exceptions
 
     #work = flow[0]

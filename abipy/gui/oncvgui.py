@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Gui for the oncvpsp norm-conserving pseudopotential generator."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import copy
@@ -10,7 +10,7 @@ import abc
 import sys
 import six
 import wx
-import awx
+
 import wx.lib.mixins.listctrl as listmix
 import numpy as np
 import pymatgen.core.periodic_table as periodic_table
@@ -21,15 +21,25 @@ from monty.collections import AttrDict
 from abipy.gui.editor import TextNotebookFrame, SimpleTextViewer
 from abipy.gui.oncvtooltips import oncv_tip
 from abipy.gui import mixins as mix
-from pseudo_dojo.refdata.nist import database as nist
-from pseudo_dojo.ppcodes.ppgen import OncvGenerator
-from pseudo_dojo.ppcodes.oncvpsp import MultiPseudoGenDataPlotter
+from abipy.gui import awx
+from abipy.gui.awx.elements_gui import WxPeriodicTable, PeriodicPanel, ElementButton
 
+try:
+    from pseudo_dojo.refdata.nist import database as nist
+    from pseudo_dojo.ppcodes.ppgen import OncvGenerator
+    from pseudo_dojo.ppcodes.oncvpsp import MultiPseudoGenDataPlotter
+except ImportError as exc:
+    print("Error while trying to import pseudo_dojo modules:\n%s" % str(exc))
+    #raise
 
 # TODO
 # Change oncvpsp so that 
 #   1) we always write the logarithmic derivative
 #   2) better error handling
+
+
+def all_symbols():
+    return periodic_table.PeriodicTable().all_symbols
 
 
 def add_size(kwargs, size=(800, 600)):
@@ -39,7 +49,7 @@ def add_size(kwargs, size=(800, 600)):
 
     return kwargs
 
-from awx.elements_gui import WxPeriodicTable, PeriodicPanel, ElementButton
+
 
 def my_periodic_table(parent):
     """
@@ -269,7 +279,7 @@ allows you to scan a set of possible values for the generation of the pseudopote
         symbol_menu = wx.Menu()
         self._id2symbol = {}
 
-        for symbol in periodic_table.all_symbols():
+        for symbol in all_symbols():
             _id = wx.NewId()
             symbol_menu.Append(_id, symbol)
             self._id2symbol[_id] = symbol
@@ -974,7 +984,7 @@ class Field(object):
 
     def set_vars_from_lines(self, lines):
         """The the value of the variables from a list of strings."""
-        #print("About to read: ", type(self), "\nlines=\n, "\n".join(lines))
+        #print("About to read: ", type(self), "\nlines=\n", "\n".join(lines))
         okeys = self.WXCTRL_PARAMS.keys()
         odtypes = [v["dtype"] for v in self.WXCTRL_PARAMS.values()]
         parsers = [self.parser_for_dtype[ot] for ot in odtypes]
@@ -984,8 +994,10 @@ class Field(object):
             assert len(lines) == 1
             tokens = lines[0].split()
             #print("row tokens", tokens)
+            #if self.__class__ == VlocalField: tokens[-1] = int(tokens[-1])
 
             for key, p, tok in zip(okeys, parsers, tokens):
+                #print(key)
                 self.data[key] = p(tok)
 
         elif self.ftype == self.FTYPE_TABLE:
@@ -1096,7 +1108,7 @@ class AtomConfField(RowField):
     name = "ATOMIC CONFIGURATION"
 
     WXCTRL_PARAMS = OrderedDict([
-        ("atsym", dict(dtype="cbox", choices=periodic_table.all_symbols())),
+        ("atsym", dict(dtype="cbox", choices=all_symbols())),
         ("z", dict(dtype="i")),
         ("nc", dict(dtype="i", value=0, tooltip="number of core states"),),
         ("nv", dict(dtype="i", value=0, tooltip="number of valence states")),
@@ -1170,7 +1182,7 @@ class VlocalField(RowField):
         ("lloc", dict(dtype="i", value=4)),
         ("lpopt", dict(dtype="i", value=5)),
         ("rc5", dict(dtype="f", value=3.0)),
-        ("dvloc0", dict(dtype="f", value=0.0))])
+        ("dvloc0", dict(dtype="i", value=0))])
 
 
 @add_tooltips
@@ -1197,7 +1209,9 @@ class ModelCoreField(RowField):
 
     WXCTRL_PARAMS = OrderedDict([
         ("icmod", dict(dtype="i", value=0)),
-        ("fcfact", dict(dtype="f", value=0.25))])
+        ("fcfact", dict(dtype="f", value=0.25)),
+        ("rcfact", dict(dtype="f", value=0.0)),
+        ])
 
 
 @add_tooltips
@@ -1215,7 +1229,7 @@ class RadGridField(RowField):
     name = "OUTPUT GRID"
 
     WXCTRL_PARAMS = OrderedDict([
-        ("rlmax", dict(dtype="f", value=6.0)),
+        ("rlmax", dict(dtype="f", value=6.0, step=1.0)),
         ("drl", dict(dtype="f", value=0.01))])
 
 
@@ -2279,6 +2293,7 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
         self.ID_POPUP_CHANGE_INPUT = wx.NewId()
         self.ID_POPUP_COMPUTE_HINTS = wx.NewId()
         self.ID_POPUP_COMPUTE_GBRV = wx.NewId()
+        self.ID_POPUP_COMPUTE_PSPS = wx.NewId()
         self.ID_POPUP_SAVE_PSGEN = wx.NewId()
 
         menu = wx.Menu()
@@ -2311,7 +2326,8 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
         menu.Append(self.ID_POPUP_STDERR, "Show standard error")
         menu.Append(self.ID_POPUP_CHANGE_INPUT, "Use these variables as new template")
         menu.Append(self.ID_POPUP_COMPUTE_HINTS, "Compute hints for ecut")
-        menu.Append(self.ID_POPUP_COMPUTE_GBRV, "Perform GBRV tests")
+        #menu.Append(self.ID_POPUP_COMPUTE_GBRV, "Perform GBRV tests")
+        menu.Append(self.ID_POPUP_COMPUTE_PSPS, "Get PSPS.nc file and plot data")
         menu.Append(self.ID_POPUP_SAVE_PSGEN, "Save PS generation")
 
         # Associate menu/toolbar items with their handlers.
@@ -2321,7 +2337,8 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
             (self.ID_POPUP_STDERR, self.onShowStderr),
             (self.ID_POPUP_CHANGE_INPUT, self.onChangeInput),
             (self.ID_POPUP_COMPUTE_HINTS, self.onComputeHints),
-            (self.ID_POPUP_COMPUTE_GBRV, self.onGBRV),
+            #(self.ID_POPUP_COMPUTE_GBRV, self.onGBRV),
+            (self.ID_POPUP_COMPUTE_PSPS, self.onPsps),
             (self.ID_POPUP_SAVE_PSGEN, self.onSavePsgen),
         ]
 
@@ -2397,7 +2414,7 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
             if not answer: return
 
         # Update the input file, then copy the pseudo file and the output file.
-        with open(input_file, "w") as fh:
+        with open(input_file, "wt") as fh:
             fh.write(self.notebook.makeInputString())
 
         shutil.copy(psgen.pseudo.path, ps_dest)
@@ -2425,6 +2442,14 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
         scheduler = abilab.PyFlowScheduler.from_user_config()
         scheduler.add_flow(flow)
         scheduler.start()
+
+    def onPsps(self, event):
+        psgen = self.getSelectedPseudoGen()
+        if psgen is None: return
+
+        with psgen.pseudo.open_pspsfile(ecut=30) as psps:
+            print("Printing data from:", psps.filepath)
+            psps.plot(ecut_ffnl=60)
 
     #def onAddToHistory(self, event):
     #    psgen = self.getSelectedPseudoGen()
@@ -2772,7 +2797,7 @@ if __name__ == "__main__":
 
     if filepaths is not None:
         if filepaths[0] == "table":
-            for symbol in periodic_table.all_symbols():
+            for symbol in all_symbols():
                 path = symbol + ".dat"
                 if os.path.exists(path):
                     print("Will open file %s" % path)

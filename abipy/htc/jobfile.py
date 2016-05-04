@@ -427,7 +427,7 @@ class PBSJobFile(JobFile):
             add('-N ' + str(self.jobname))
 
         if self.runtime:
-            add('-l walltime={}:{}:{}'.format(*self.runtime))
+            add('-l walltime={0}:{1}:{2}'.format(*self.runtime))
 
         if self.nodes and self.ppn:
             add('-l nodes=' + str(self.nodes) + ':ppn=' + str(self.ppn))
@@ -531,7 +531,7 @@ class SGEJobFile(JobFile):
             add('-N ' + str(self.jobname))
 
         if self.runtime:
-            add('-l h_rt={}:{}:{}'.format(*self.runtime))
+            add('-l h_rt={0}:{1}:{2}'.format(*self.runtime))
 
         if self.environment and self.nproc:
             line = '-pe ' + self.environment + ' ' + str(self.nproc)
@@ -639,7 +639,7 @@ class SlurmJobFile(JobFile):
             add('--job-name=' + str(self.jobname))
 
         if self.time:
-            add('--time={}:{}:{}\n'.format(*self.time))
+            add('--time={0}:{1}:{2}\n'.format(*self.time))
 
         if self.ntasks:
             add('--ntasks=' + str(self.ntasks))

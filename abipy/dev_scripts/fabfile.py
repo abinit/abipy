@@ -2,7 +2,7 @@
 """
 Fabric file providing useful tools for the synchronization of the code on the CECI clusters.
 """
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import cStringIO as StringIO
@@ -37,7 +37,7 @@ git_repospaths = [os.path.join(GIT_REPOSDIR, dirpath) for dirpath in git_urls]
 # We store our bzr branches in this directory 
 bzr_reposdir = USER_HOME + "/bzr_repos"
 
-bzr_branchurl = "bzr+ssh://forge.abinit.org/abinit/gmatteo/7.7.3-public"
+bzr_branchurl = "bzr+ssh://forge.abinit.org/abinit/gmatteo/7.11.5-public"
 
 to_location = os.path.join(*bzr_branchurl.split("/")[-2:]).replace("/", "_")
 

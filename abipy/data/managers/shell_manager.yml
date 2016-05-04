@@ -7,7 +7,7 @@ qadapters:
       job:
         mpi_runner: mpirun
         # source a script to setup the environment.
-        pre_run: "source ~/env.sh"
+        #pre_run: "source ~/env.sh"
       limits:
         timelimit: 1:00:00
         max_cores: 2

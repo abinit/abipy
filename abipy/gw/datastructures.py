@@ -6,7 +6,6 @@ from __future__ import unicode_literals, division, print_function
 Classes for writing GW Input and analyzing GW data. The underlying classes can handle the use of VASP and ABINIT via the
 code interfaces provided in code-interfaces.
 Reads the POSCAR_name in the the current folder and outputs GW input to sub-folders name or lists of structures
-test 3
 """
 
 __author__ = "Michiel van Setten"
@@ -31,11 +30,12 @@ except ImportError:
     pass
 
 from abc import abstractproperty, abstractmethod, ABCMeta
-from pymatgen.io.vaspio.vasp_input import Poscar
+from monty.json import MSONable
+#from pymatgen.io.vaspio.vasp_input import Poscar
+from pymatgen.io.vasp.inputs import Poscar
 from pymatgen.matproj.rest import MPRester, MPRestError
-from pymatgen.serializers.json_coders import MSONable
 from pymatgen.util.convergence import determine_convergence
-from pymatgen.io.abinitio.helpers import print_gnuplot_header, s_name, add_gg_gap, refine_structure
+from pymatgen.io.abinit.helpers import print_gnuplot_header, s_name, add_gg_gap, refine_structure, read_extra_abivars
 from pymatgen.core.structure import Structure
 from pymatgen.core.units import eV_to_Ha
 from abipy.gw.codeinterfaces import get_code_interface
@@ -199,9 +199,9 @@ class AbstractAbinitioSpec(MSONable):
                     else:
                         # print "no bandstructure information available, adding GG as 'gap'"
                         structure = add_gg_gap(structure)
-                elif 'xyz' in item:
+                elif 'cif' in item:
                     structure = pmg.read_structure(item)
-                    raise NotImplementedError
+                    structure = add_gg_gap(structure)
                 elif item.startswith('mp-'):
                     with MPRester(mp_key) as mp_database:
                         print('structure from mp database', item)
@@ -221,10 +221,11 @@ class AbstractAbinitioSpec(MSONable):
                 structure.item = item
             print(item, s_name(structure))
             if mode == 'i':
-                try:
+                #try:
                     self.excecute_flow(structure)
-                except:
-                    print('input generation failed')
+                #except None:# Exception as exc:
+                #    print('input generation failed')
+                #    print(exc)
             elif mode == 'w':
                 try:
                     self.print_results(structure)
@@ -342,7 +343,7 @@ class GWSpecs(AbstractAbinitioSpec):
                '              poscar will read files starting with POSCAR_ in the working folder \n' \
                'mode:         input, ceci, fw \n' \
                'functional:   PBE, LDA \n' \
-               'jobs:         prep, G0W0, GW0, scGW0, no option, just enter, remove the last option \n' \
+               'jobs:         prep, G0W0, GW0, scGW0, bands, no option, just enter, remove the last option \n' \
                'code:         VASP, ABINIT \n' \
                'kp_grid_dens: usually 500 - 1000, 1 gives gamma only, 2 gives a 2x2x2 mesh \n' \
                'tol:          tolerance for determining convergence d(gap)/d(encuteps) and d(gap)/d(nbands) < tol \n' \
@@ -386,6 +387,7 @@ class GWSpecs(AbstractAbinitioSpec):
             for warning in self.warnings:
                 print(' > ' + warning)
         self.reset_job_collection()
+        return 0
 
     def excecute_flow(self, structure):
         """
@@ -418,26 +420,28 @@ class GWSpecs(AbstractAbinitioSpec):
             while not done:
                 if data.type['parm_scr']:
                     data.read()
-                    #print data.data
-                    # determine the parameters that give converged results
+
                     if len(data.data) == 0:
                         print('| parm_scr type calculation but no data found.')
                         break
+
                     if len(data.data) < 9:  # todo this should be calculated
                         print('| parm_scr type calculation but no complete data found,'
-                              ' check is all calculations are done.')
+                              ' check if all calculations are done.')
                         break
 
                     if data.find_conv_pars_scf('ecut', 'full_width', self['tol'])[0]:
                         print('| parm_scr type calculation, converged scf values found')
-                        #print data.conv_res
                     else:
                         print('| parm_scr type calculation, no converged scf values found')
-                        data.full_res.update({'remark': 'No converged SCf parameter found. Solution not implemented.'})
-                        data.print_full_res()
+                        data.full_res.update({'remark': 'No converged SCf parameter found. Continue anyway.'})
                         data.conv_res['values'].update({'ecut': 40*eV_to_Ha})
                         data.conv_res['control'].update({'ecut': True})
-                        done = True
+
+                    #if ecut is provided in extra_abivars overwrite in any case ..
+                    if 'ecut' in read_extra_abivars().keys():
+                        data.conv_res['values'].update({'ecut': read_extra_abivars()['ecut']*eV_to_Ha})
+
                     # if converged ok, if not increase the grid parameter of the next set of calculations
                     extrapolated = data.find_conv_pars(self['tol'])
                     if data.conv_res['control']['nbands']:
@@ -446,13 +450,16 @@ class GWSpecs(AbstractAbinitioSpec):
                     else:
                         print('| parm_scr type calculation, no converged values found, increasing grid')
                         data.full_res['grid'] += 1
+
                     data.print_full_res()
                     data.print_conv_res()
+
                     # plot data:
                     print_gnuplot_header('plots', s_name(structure)+' tol = '+str(self['tol']), filetype=None)
                     data.print_gnuplot_line('plots')
                     data.print_plot_data()
                     done = True
+
                 elif data.type['full']:
                     if not data.read_conv_res_from_file(s_name(structure)+'.conv_res'):
                         print('| Full type calculation but the conv_res file is not available, trying to reconstruct')
@@ -462,12 +469,14 @@ class GWSpecs(AbstractAbinitioSpec):
                     data.read(subset='.conv')
                     if len(data.data) == 0:
                         print('| Full type calculation but no data found.')
-                        done = True
+                        break
+
                     if len(data.data) < 4:
                         print('| Full type calculation but no complete data found.')
                         for item in data.data:
                             print(item)
-                        done = True
+                        break
+
                     if data.test_full_kp_results(tol_rel=1, tol_abs=0.0015):
                         print('| Full type calculation and the full results agree with the parm_scr.'
                               ' All_done for this compound.')
@@ -480,12 +489,17 @@ class GWSpecs(AbstractAbinitioSpec):
                         print('| Full type calculation but the full results do not agree with the parm_scr.')
                         print('|   Increase the tol to find better converged parameters and test the full grid again.')
                         print('|   TODO')
+                        data.full_res.update({'remark': 'no agreement at high dens kp mesh,', 'all_done': True})
+
                         # read the system specific tol for System.conv_res
                         # if it's not there create it from the global tol
                         # reduce tol
                         # set data.type to convergence
                         # loop
                         done = True
+                else:
+                    done = True
+
         elif self.data['test']:
             data.read()
             data.set_type()
@@ -528,6 +542,7 @@ class GWSpecs(AbstractAbinitioSpec):
             extra = None
         ps = self.code_interface.read_ps_dir()
         results_file = os.path.join(s_name(structure)+'.res', self.code_interface.gw_data_file)
+        ksbands_file = os.path.join(s_name(structure)+'.res', self.code_interface.ks_bands_file)
         data_file = os.path.join(s_name(structure)+'.res', s_name(structure)+'.data')
         if success and con_dat is not None:
             query = {'system': s_name(structure),
@@ -543,6 +558,7 @@ class GWSpecs(AbstractAbinitioSpec):
                           'structure': structure.as_dict(),
                           'gw_results': con_dat,
                           'results_file': results_file,
+                          'ksbands_file': ksbands_file,
                           'data_file': data_file})
 
             # generic section that should go into the base class like
@@ -569,6 +585,11 @@ class GWSpecs(AbstractAbinitioSpec):
                 except IOError:
                     print(entry['results_file'], 'not found')
                 try:
+                    with open(entry['ksbands_file'], 'r') as f:
+                        entry['ksbands_file'] = gfs.put(f.read())
+                except IOError:
+                    print(entry['ksbands_file'], 'not found')
+                try:
                     with open(entry['data_file'], 'r') as f:
                         entry['data_file'] = gfs.put(f.read())
                 except IOError:
@@ -583,6 +604,11 @@ class GWSpecs(AbstractAbinitioSpec):
                 except:
                     print('remove failed')
                 try:
+                    print('removing file ', new_entry['ksbands_file'], 'from db')
+                    gfs.remove(new_entry['ksbands_file'])
+                except:
+                    print('remove failed')
+                try:
                     print('removing file ', new_entry['data_file'], 'from db')
                     gfs.remove(new_entry['data_file'])
                 except:
@@ -594,6 +620,11 @@ class GWSpecs(AbstractAbinitioSpec):
                         new_entry['results_file'] = gfs.put(f)
                 except IOError:
                     print(new_entry['results_file'], 'not found')
+                try:
+                    with open(new_entry['ksbands_file'], 'r') as f:
+                        new_entry['ksbands_file'] = gfs.put(f)
+                except IOError:
+                    print(new_entry['ksbands_file'], 'not found')
                 try:
                     with open(new_entry['data_file'], 'r') as f:
                         new_entry['data_file'] = gfs.put(f)
@@ -610,10 +641,10 @@ class GWSpecs(AbstractAbinitioSpec):
             #todo remove the workfolders
 
 
-class PhononSpecs(AbstractAbinitioSpec):
-    """
-    under construction
-    """
+#class PhononSpecs(AbstractAbinitioSpec):
+#    """
+#    under construction
+#    """
 
 
 class GWConvergenceData():
@@ -930,7 +961,7 @@ def get_spec(comp_type):
     """
     Main entry point
     """
-    return {'GW': GWSpecs(), 'phonons': PhononSpecs()}[comp_type]
+    return {'GW': GWSpecs()}[comp_type]
 
 
 def get_convergence_data_structure(comp_type, spec, structure):

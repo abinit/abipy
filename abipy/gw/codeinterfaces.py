@@ -24,12 +24,13 @@ import collections
 import logging
 
 from abc import abstractproperty, abstractmethod, ABCMeta
-from pymatgen.io.abinitio.netcdf import NetcdfReader
-from pymatgen.io.vaspio.vasp_output import Vasprun
+from pymatgen.io.abinit.netcdf import NetcdfReader
+#from pymatgen.io.vaspio.vasp_output import Vasprun
+from pymatgen.io.vasp.outputs import Vasprun
 from pymatgen.core.units import Ha_to_eV
-from pymatgen.io.abinitio.helpers import is_converged, read_grid_from_file, s_name, expand, store_conv_results
-from pymatgen.io.vaspio.GWvaspinputsets import SingleVaspGWWork
-from pymatgen.io.vaspio.GWvaspinputsets import GWscDFTPrepVaspInputSet, GWDFTDiagVaspInputSet, \
+from pymatgen.io.abinit.helpers import is_converged, read_grid_from_file, s_name, expand, store_conv_results
+from pymatgen.io.vasp.GWvaspinputsets import SingleVaspGWWork
+from pymatgen.io.vasp.GWvaspinputsets import GWscDFTPrepVaspInputSet, GWDFTDiagVaspInputSet, \
     GWG0W0VaspInputSet
 from abipy.gw.GWworks import VaspGWFWWorkFlow
 from abipy.gw.GWworks import SingleAbinitGWWork
@@ -317,6 +318,10 @@ class AbinitInterface(AbstractCodeInterface):
     def gw_data_file(self):
         return 'out_SIGRES.nc'
 
+    @property
+    def ks_bands_file(self):
+        return 'out_GSR.nc'
+
     def read_ps_dir(self):
         location = os.environ['ABINIT_PS']
         return location
@@ -403,9 +408,9 @@ class AbinitInterface(AbstractCodeInterface):
             option = is_converged(self.hartree_parameters, structure, return_values=True)
         else:
             option = None
-        print(option)
         work_flow = SingleAbinitGWWork(structure, spec_data, option)
         flow = work_flow.create()
+        print('flow')
         if flow is not None:
             flow.build_and_pickle_dump()
             work_flow.create_job_file()
@@ -415,8 +420,14 @@ class AbinitInterface(AbstractCodeInterface):
         store_conv_results(name, folder)
         w = 'w' + str(read_grid_from_file(name+".full_res")['grid'])
         try:
-            shutil.copyfile(os.path.join(name+".conv", w, "t9", "outdata", "out_SIGRES.nc"),
-                            os.path.join(folder, "out_SIGRES.nc"))
+            if os.path.isdir(os.path.join(name+".conv", w, "t11", "outdata")):
+                shutil.copyfile(os.path.join(name+".conv", w, "t2", "outdata", "out_GSR.nc"),
+                                os.path.join(folder, "out_GSR.nc"))
+                shutil.copyfile(os.path.join(name+".conv", w, "t11", "outdata", "out_SIGRES.nc"),
+                                os.path.join(folder, "out_SIGRES.nc"))
+            else:
+                shutil.copyfile(os.path.join(name+".conv", w, "t9", "outdata", "out_SIGRES.nc"),
+                                os.path.join(folder, "out_SIGRES.nc"))
         except (OSError, IOError):  # compatibility issue
             shutil.copyfile(os.path.join(name+".conv", "work_0", "task_6", "outdata", "out_SIGRES.nc"),
                             os.path.join(folder, "out_SIGRES.nc"))

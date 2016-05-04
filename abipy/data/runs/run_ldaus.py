@@ -1,18 +1,17 @@
 #!/usr/bin/env python
 """LDA+U band structure of NiO for several values of U-J."""
-from __future__ import division, print_function, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import os
 import numpy as np
-import abipy.data as data  
+import abipy.data as abidata  
 import abipy.abilab as abilab
 
 
 def make_scf_nscf_dos_inputs(structure, pseudos, luj_params, paral_kgb=1):
     # Input file taken from tldau_2.in
-    inp = abilab.AbiInput(pseudos=pseudos, ndtset=3)
-    inp.set_structure(structure)
+    multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=3)
 
     # Global variables
     global_vars = dict(
@@ -38,11 +37,11 @@ def make_scf_nscf_dos_inputs(structure, pseudos, luj_params, paral_kgb=1):
         # for the ground-state, this is not a problem.
     )
 
-    inp.set_vars(**global_vars)
-    inp.set_vars(**luj_params.to_abivars())
+    multi.set_vars(global_vars)
+    multi.set_vars(luj_params.to_abivars())
 
     # GS run.
-    inp[1].set_vars(
+    multi[0].set_vars(
         iscf=17,
         toldfe=1.0e-8,
         ngkpt=[2, 2, 2],
@@ -50,11 +49,11 @@ def make_scf_nscf_dos_inputs(structure, pseudos, luj_params, paral_kgb=1):
     )
 
     # Band structure run.
-    inp[2].set_kpath(ndivsm=6)
-    inp[2].set_vars(tolwfr=1e-10)
+    multi[1].set_kpath(ndivsm=6)
+    multi[1].set_vars(tolwfr=1e-10)
 
     # Dos calculation.
-    inp[3].set_vars(
+    multi[2].set_vars(
         iscf=-3,   # NSCF calculation
         ngkpt=structure.calc_ngkpt(nksmall=8),      
         shiftk=[0.0, 0.0, 0.0],
@@ -64,7 +63,7 @@ def make_scf_nscf_dos_inputs(structure, pseudos, luj_params, paral_kgb=1):
     )
 
     # Generate two input files for the GS and the NSCF run 
-    scf_input, nscf_input, dos_input = inp.split_datasets()
+    scf_input, nscf_input, dos_input = multi.split_datasets()
 
     return scf_input, nscf_input, dos_input
 
@@ -75,15 +74,11 @@ def build_flow(options):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
-
-    flow = abilab.Flow(workdir, manager=manager)
+    flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove)
 
     # Create the work for the band structure calculation.
-    structure = data.structure_from_ucell("NiO")
-    pseudos = data.pseudos("28ni.paw", "8o.2.paw")
+    structure = abidata.structure_from_ucell("NiO")
+    pseudos = abidata.pseudos("28ni.paw", "8o.2.paw")
 
     # The code below set up the parameters for the LDA+U calculation in NiO.
     #usepawu   1
@@ -103,13 +98,14 @@ def build_flow(options):
         work = abilab.BandStructureWork(scf_input, nscf_input, dos_inputs=dos_input)
         flow.register_work(work)
 
-    return flow.allocate()
+    return flow
 
 
 @abilab.flow_main
 def main(options):
     flow = build_flow(options)
-    return flow.build_and_pickle_dump()
+    flow.build_and_pickle_dump()
+    return flow
 
 
 if __name__ == "__main__":

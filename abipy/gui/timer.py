@@ -1,10 +1,10 @@
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import wx
 
 from collections import OrderedDict
-from pymatgen.io.abinitio.abitimer import AbinitTimerSection, AbinitTimerParser
+from pymatgen.io.abinit.abitimer import AbinitTimerSection, AbinitTimerParser
 import abipy.gui.awx as awx
 
 
@@ -39,8 +39,8 @@ class AbinitTimerFrame(awx.Frame):
 
         # Set callbacks (bound methods of AbiTimerData).
         self.plot_types = OrderedDict([
-            ("pie", self.timer.show_pie),
-            ("stacked_hist", self.timer.show_stacked_hist),
+            ("pie", self.timer.plot_pie),
+            ("stacked_hist", self.timer.plot_stacked_hist),
             #("raw_data", self.OnRawData),
         ])
 
@@ -107,9 +107,9 @@ class MultiTimerFrame(awx.Frame):
     def BuildUi(self):
         # Set callbacks (bound methods of AbinitTimer).
         self.plot_types = OrderedDict([
-            ("efficiency", self.timers.show_efficiency),
-            ("stacked_hist", self.timers.show_stacked_hist),
-            ("pie", self.timers.show_pie),
+            ("efficiency", self.timers.plot_efficiency),
+            ("stacked_hist", self.timers.plot_stacked_hist),
+            ("pie", self.timers.plot_pie),
             #("raw_data", self.OnRawData),
         ])
 

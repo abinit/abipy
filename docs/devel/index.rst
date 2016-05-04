@@ -1,8 +1,8 @@
 .. _developers-guide-index:
 
-####################################
-  The abipy Developers' Guide
-####################################
+###########################
+The AbiPy Developers' Guide
+###########################
 
 .. htmlonly::
 

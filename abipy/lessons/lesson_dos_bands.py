@@ -1,55 +1,54 @@
 #!/usr/bin/env python
 """
-The calculation of the density of states and the bandstructure.
-===============================================================
+The calculation of the density of states and the bandstructure
+==============================================================
 
 Background
 ----------
 
-This lesson focuses on the calculation of the density of states (DOS) and the electronic band structure withing the 
-Kohn-Sham (KS) formalism. 
+This lesson focuses on the calculation of density of states (DOSes) and 
+of electronic band structures within the Kohn-Sham (KS) formalism. 
 
-In contrast to the total energy and its derivatives, the energies of the KS-levels have no exact physical meaning,
-except for the highest occupied state that actually would be the first ionization energy if the functional would be
-exact. So why would we even want to calculate the KS-DOS and band structure? In most cases the KS spectrum is
-qualitatively in agreement with the spectrum of ionization energies. Moreover in general we are able to make good
-predictions on trends.
+In contrast to the total energy and its derivatives, the energies of the KS levels have no physical meaning,
+except for the highest occupied state that actually would be the first ionization energy if the DFT XC functional would be
+exact. So why do we use the KS formalism to calculate electron DOSes and band structures? 
 
-In lesson_g0w0.py, we discuss a more elaborated and accurate approach for the calculation of band energies and band gaps.
+As a matter of fact, the KS energy spectrum is usually in qualitative agreement with experiments (let's ignore correlated systems).
+Standard KS band structures with LDA or GGA are relatively cheap and KS calculations allow us to make 
+reasonable predictions and to study trends.
+In `lesson_g0w0.py`, we discuss a more accurate and expensive approach for the calculation of band structures and band gaps
+based on many-body perturbation theory.
 
 The related abinit variables
 ----------------------------
 
-    * kptopt (negative values)
-    * kptbounds (if you want to specify the bounds of the k-path)
-    * ndivsm
+    * kptopt    (negative values if band structures are wanted)
+    * kptbounds (the boundaries of the k-path)
+    * ndivsm    (number of points used to sample the smallest segment of the k-path)
 
 """
 from __future__ import division, print_function
 
 
 _ipython_lesson_ = """
-More info on the inputvariables and their use can be obtained using the following function:
+More info on the input variables and their use can be obtained with the command:
 
     .. code-block:: python
 
-        lesson.docvar("inputvariable")
+        print(lesson.docvar("inputvariable"))
 
-This will print the official abinit description of this inputvariable.
+that prints the official description of `inputvariable`.
 
-The abipy flows in this lesson
-------------------------------
 
-The flow that we use in this lesson contains for the first time dependencies.
-This means that some tasks in the flow can only be started if an other task is
-ready. We will first perform one self-consistent calculation to obtain a proper
-density. Using this density we calculate in two more steps the DOS and the bandstructure.
-For the DOS this not strictly necessary since the DOS will also be calculated on a regular grid.
-In general the density will be converged already before the DOS is converged. For large systems it may become
-nessesary to split. For the bandstructure, we have a non-uniform grid so we do need to fix the density.
-
-The course of this lesson
+Description of the lesson
 -------------------------
+
+The flow used  in this lesson contains, for the first time, dependencies.
+This means that some of the tasks in the flow can start only if its `parents` are completed.
+We will first perform a self-consistent calculation to obtain a well converged density. 
+From this density we then calculate the DOS and the bandstructure in two independent tasks (non-self consistent calculations). 
+Note that the DOS is computed on a regular grid of k-points because the DOS requires an integration over the first Brillouin zone.
+For the band structure, we use a high symmetry path inside the BZ.
 
 Start this lesson by importing it in a new namespace:
 
@@ -58,7 +57,7 @@ Start this lesson by importing it in a new namespace:
         from abipy.lessons.lesson_dos_bands import Lesson
         lesson = Lesson()
 
-As always you can reread this lessons text using the command:
+As usual, you can reread this text using the command:
 
     .. code-block:: python
 
@@ -98,24 +97,24 @@ Exercises
 ---------
 
 At this point, you may want to interact more with the underlying python objects
-so that you can start to develop your own script or your post-processing tool.
+so that you can start to develop your script or your post-processing tools.
 
-Our flow consists of a BandStructureWork object that provide many tools for post-processing.
+Our flow consists of a `BandStructureWork` object that provides many tools for the post-processing.
 Use
 
     .. code-block:: python
 
             work = flow[0]
 
-to have access to the band structure work and look at the `plot` methods that 
+to access the band structure work and look at the `plot` methods that 
 are available (hint: type work.plot in ipython and press TAB to get a list of methods)
 
-1) Use the plot methods to visualize the convergence of the DOS wrt to the number of k-points.
-   Then change the value of the gaussian broadening.
+1) Use the `plot_` methods to visualize the convergence of the DOS wrt to the number of k-points.
+   Then change the value of the gaussian broadening (`width` parameter).
 
 2) Plot bands and DOS on the same figure.
 
-Rememeber that, in ipython, one can access the documentation of a method with `work.plot_edoses?`
+Remember that, in ipython, one can access the documentation with `work.plot_edoses?`
 
 Next
 ----
@@ -124,9 +123,7 @@ A logical next lesson would be lesson_g0w0
 """
 
 _commandline_lesson_ = """
-At this place they will not be discussed in detail. In stead you are
-invited to read the abinit documentation on them. The full description,
-directly from the abinit description is available via the following function:
+The full description, directly from the abinit documentation, is available via the following function:
 
     .. code-block:: shell
 
@@ -145,28 +142,27 @@ import abipy.data as abidata
 from abipy.lessons.core import BaseLesson, get_pseudos
 
 
-def make_electronic_structure_flow(ngkpts_for_dos=[(2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)]):
+def make_electronic_structure_flow(ngkpts_for_dos=((2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8))):
     """Band structure calculation."""
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("14si.pspnc"), ndtset=2 + len(ngkpts_for_dos))
-    inp.set_structure(abidata.cif_file("si.cif"))
-
+    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"),
+                                pseudos=abidata.pseudos("14si.pspnc"), ndtset=2 + len(ngkpts_for_dos))
     # Global variables
-    inp.ecut = 10
+    multi.set_vars(ecut=10)
 
     # Dataset 1
-    inp[1].set_vars(tolvrs=1e-9)
-    inp[1].set_kmesh(ngkpt=[4, 4, 4], shiftk=[0, 0, 0])
+    multi[0].set_vars(tolvrs=1e-9)
+    multi[0].set_kmesh(ngkpt=[4, 4, 4], shiftk=[0, 0, 0])
 
     # Dataset 2
-    inp[2].set_vars(tolwfr=1e-15)
-    inp[2].set_kpath(ndivsm=5)
+    multi[1].set_vars(tolwfr=1e-15)
+    multi[1].set_kpath(ndivsm=5)
 
     # Dataset 3
     for i, ngkpt in enumerate(ngkpts_for_dos):
-        inp[3+i].set_vars(tolwfr=1e-15)
-        inp[3+i].set_kmesh(ngkpt=ngkpt, shiftk=[0,0,0])
+        multi[2+i].set_vars(tolwfr=1e-15)
+        multi[2+i].set_kmesh(ngkpt=ngkpt, shiftk=[0,0,0])
 
-    inputs = inp.split_datasets()
+    inputs = multi.split_datasets()
     scf_input, nscf_input, dos_input = inputs[0], inputs[1], inputs[2:]
 
     return abilab.bandstructure_flow(workdir="flow_dos_bands", scf_input=scf_input, nscf_input=nscf_input,

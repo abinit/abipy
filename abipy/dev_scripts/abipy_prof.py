@@ -1,15 +1,17 @@
 #!/usr/bin/env python
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import os
 from os.path import exists, join as pj
 
+
 def abipy_import():
     "Import the abipy package"
     #print sys.path
     import abipy 
-    print "Imported abipy package", abipy.__file__
+    print("Imported abipy package", abipy.__file__)
+
 
 def main(top):
     top = os.path.abspath(top)

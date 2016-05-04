@@ -37,6 +37,7 @@ class TestTensor(AbipyTest):
         assert(((np.abs(tensor2.cartesian_tensor)-np.abs(cartesian_tensor)) < 1E-8).all())
 
         self.assertTrue(tensor==tensor2)
+        print(tensor)
 
         #print("non-symmetrized cartesian_tensor = ",tensor2.cartesian_tensor)
         tensor2.symmetrize(structure)

@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 """This script wraps the Fortran executable mrgddb."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import unicode_literals, division, print_function, absolute_import
 
-import os
 import sys
 import argparse
 
-from pymatgen.io.abinitio.wrappers import Mrgddb
+from abipy.abilab import Mrgddb, TaskManager
+
 
 def main():
 
@@ -19,9 +19,8 @@ def main():
         )
         return examples
 
-
     def show_examples_and_exit(err_msg=None, error_code=0):
-        "Display the usage of the script."
+        """"Display the usage of the script."""
         sys.stderr.write(str_examples())
         if err_msg: 
             sys.stderr.write("Fatal Error\n" + err_msg + "\n")
@@ -46,18 +45,19 @@ def main():
     # Parse the command line.
     try:
         options = parser.parse_args()
-    except: 
+    except Exception: 
         show_examples_and_exit(error_code=1)
 
     if not options.out_ddb:
         raise ValueError("out_ddb must be specified")
 
-    mrgddb = Mrgddb(executable=options.executable, verbose=options.verbose)
-
+    manager = TaskManager.from_user_config()
+    mrgddb = Mrgddb(manager=manager, executable=options.executable, verbose=options.verbose)
 
     try:
-        mrgddb.merge(options.ddb_files, options.out_ddb, options.description, cwd=None)
-    except:
+        workdir = "."
+        mrgddb.merge(workdir, options.ddb_files, options.out_ddb, options.description)
+    except Exception:
         print("got ddb_files: ", options.ddb_files)
                                   
     return 0

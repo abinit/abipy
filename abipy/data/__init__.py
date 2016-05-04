@@ -4,11 +4,11 @@ Preferred way to import the module is via the import syntax:
 
 import abipy.abidata as abidata
 """
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 
-from pymatgen.io.abinitio.pseudos import PseudoParser, PseudoTable
+from pymatgen.io.abinit.pseudos import PseudoParser, PseudoTable
 from abipy.data.ucells import structure_from_ucell
 
 __all__ = [
@@ -27,6 +27,8 @@ _CIF_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "cifs"))
 _PSEUDOS_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "pseudos"))
 
 _VARIABLES_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "variables"))
+
+_MPDATA_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "mpdata"))
 
 
 _SCRIPTS_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "examples"))
@@ -134,6 +136,16 @@ def ncfiles_with_ext(ext):
             ncfiles.append(path)
 
     return ncfiles
+
+
+def mp_structures():
+    """ Returns a dictionary containg the structures stored in mpdata/mp_structures. """
+    import json
+    from monty.json import MontyDecoder
+
+    with open(os.path.join(_MPDATA_DIRPATH, 'mp_structures.json'), 'r') as f:
+        return json.load(f, cls=MontyDecoder)
+
 
 WFK_NCFILES = ncfiles_with_ext("WFK")
 

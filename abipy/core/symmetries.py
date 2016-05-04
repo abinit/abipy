@@ -1,6 +1,6 @@
 # coding: utf-8
 """Objects used to deal with symmetry operations in crystals."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import abc
@@ -13,7 +13,7 @@ from six.moves import cStringIO
 from monty.string import is_string
 from monty.itertools import iuptri
 from monty.pprint import pprint_table
-from pymatgen.symmetry.finder import SymmetryFinder
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.symmetry.analyzer import get_point_group
 from abipy.core.kpoints import wrap_to_ws, issamek
 from abipy.iotools import as_etsfreader
@@ -629,7 +629,7 @@ class SpaceGroup(OpSequence):
     @classmethod
     def from_structure(cls, structure, has_timerev=True, symprec=1e-5, angle_tolerance=5):
         """
-        Takes a :class:`Structure` object. Uses pyspglib to perform various symmetry finding operations.
+        Takes a :class:`Structure` object. Uses spglib to perform various symmetry finding operations.
 
         Args:
             structure: :class:`Structure` object
@@ -642,13 +642,11 @@ class SpaceGroup(OpSequence):
             AFM symmetries are not supported.
         """
         # Call spglib to get the list of symmetry operations.
-        finder = SymmetryFinder(structure, symprec=symprec, angle_tolerance=angle_tolerance)
-        data = finder.get_symmetry_dataset()
-
-        symrel = data["rotations"],
+        spga = SpacegroupAnalyzer(structure, symprec=symprec, angle_tolerance=angle_tolerance)
+        data = spga.get_symmetry_dataset()
 
         return cls(spgid=data["number"],
-                   symrel=symrel,
+                   symrel=data["rotations"],
                    tnons=data["translations"],
                    symafm=len(symrel) * [1],
                    has_timerev=has_timerev,

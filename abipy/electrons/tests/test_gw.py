@@ -51,7 +51,7 @@ class TestQPList(AbipyTest):
         print(qp)
         print(qp.tips)
 
-        self.assertAlmostEqual(qp.e0, -5.04619941555265)
+        self.assertAlmostEqual(qp.e0, -5.04619941555265, places=5)
         self.assertAlmostEqual(qp.qpe.real, -4.76022137474714)
         self.assertAlmostEqual(qp.qpe.imag, -0.011501666037697)
         self.assertAlmostEqual(qp.sigxme, -16.549383605401)

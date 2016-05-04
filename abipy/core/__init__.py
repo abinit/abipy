@@ -1,4 +1,4 @@
-#from .func1d import *
+"""Core objects."""
 from .kpoints import *
 from .structure import *
 from .symmetries import *

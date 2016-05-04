@@ -1,34 +1,37 @@
-.TH "The calculation of the density of states and the bandstructure." "" "" "" ""
+.TH The "" "" "calculation of the density of states and the bandstructure"
 .SH Background
 .PP
-This lesson focuses on the calculation of the density of states (DOS)
-and the electronic band structure withing the Kohn\-Sham (KS) formalism.
+This lesson focuses on the calculation of density of states (DOSes) and
+of electronic band structures within the Kohn\-Sham (KS) formalism.
 .PP
 In contrast to the total energy and its derivatives, the energies of the
-KS\-levels have no exact physical meaning, except for the highest
-occupied state that actually would be the first ionization energy if the
+KS levels have no physical meaning, except for the highest occupied
+state that actually would be the first ionization energy if the DFT XC
 functional would be exact.
-So why would we even want to calculate the KS\-DOS and band structure?
-In most cases the KS spectrum is qualitatively in agreement with the
-spectrum of ionization energies.
-Moreover in general we are able to make good predictions on trends.
+So why do we use the KS formalism to calculate electron DOSes and band
+structures?
 .PP
-In lesson_g0w0.py, we discuss a more elaborated and accurate approach
-for the calculation of band energies and band gaps.
+As a matter of fact, the KS energy spectrum is usually in qualitative
+agreement with experiments (let\[aq]s ignore correlated systems).
+Standard KS band structures with LDA or GGA are relatively cheap and KS
+calculations allow us to make reasonable predictions and to study
+trends.
+In lesson_g0w0.py, we discuss a more accurate and expensive approach for
+the calculation of band structures and band gaps based on many\-body
+perturbation theory.
 .SH The related abinit variables
 .RS
 .IP \[bu] 2
-kptopt (negative values)
+kptopt (negative values if band structures are wanted)
 .IP \[bu] 2
-kptbounds (if you want to specify the bounds of the k\-path)
+kptbounds (the boundaries of the k\-path)
 .IP \[bu] 2
-ndivsm
+ndivsm (number of points used to sample the smallest segment of the
+k\-path)
 .RE
 .PP
-At this place they will not be discussed in detail.
-In stead you are invited to read the abinit documentation on them.
-The full description, directly from the abinit description is available
-via the following function:
+The full description, directly from the abinit documentation, is
+available via the following function:
 .RS
 .IP
 .nf

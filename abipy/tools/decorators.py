@@ -1,6 +1,6 @@
 # coding: utf-8
 """This module contains useful decorators for a variety of functions."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import os
@@ -48,7 +48,7 @@ def linetracing(f):
             lineno = frame.f_lineno
 
             bname = os.path.basename(filename)
-            print("{}({}): {}".format(bname,
+            print("{0}({1}): {2}".format(bname,
                                       lineno,
                                       linecache.getline(filename, lineno)))
         return localtrace

@@ -1,4 +1,4 @@
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import abc
 import os
@@ -9,12 +9,15 @@ import abipy.gui.awx as awx
 import abipy.gui.electronswx as ewx
 
 from monty.os.path import which
+from abipy.core.mixins import NcDumper
 from abipy.iotools.visualizer import Visualizer
-from abipy.iotools.files import NcDumper
 from abipy.electrons.ebands import ElectronBandsPlotter, ElectronDosPlotter
 from abipy.gui.structure import StructureConverterFrame
 from abipy.gui.converter import ConverterFrame
 from abipy.gui.wxncview import NcViewerFrame
+from abipy.dfpt.phonons import PhononBandsPlotter, PhononDosPlotter
+from abipy.abilab import abiopen
+from abipy.iotools import ETSF_Reader
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -362,3 +365,183 @@ class Has_NetcdfFiles(object):
         """Open wxncview frame."""
         NcViewerFrame(self, filepaths=self.nc_filepaths).Show()
 
+
+@six.add_metaclass(abc.ABCMeta)
+class Has_Phbands(object):
+    """
+    Mixin class that provides a menu and callbacks for analyzing phonon bands.
+    """
+    @abc.abstractproperty
+    def phbands(self):
+        """`PhononBands` object."""
+
+    def CreatePhbandsMenu(self):
+        """Creates the ebands menu."""
+        # Ebands Menu ID's
+        self.ID_PHBANDS_ADD_DOS = wx.NewId()
+        self.ID_PHBANDS_ADD_LO_TO = wx.NewId()
+        self.ID_PHBANDS_PLOT = wx.NewId()
+        self.ID_PHBANDS_DOS = wx.NewId()
+        self.ID_MULTI_PHBANDS_BANDSWITHDOS = wx.NewId()
+
+        menu = wx.Menu()
+
+        menu.Append(self.ID_PHBANDS_ADD_DOS, "Add phdos data", "Add the phonon dos data from a PHDOS.nc file")
+        self.Bind(wx.EVT_MENU, self.OnAddDos, id=self.ID_PHBANDS_ADD_DOS)
+
+        menu.Append(self.ID_PHBANDS_ADD_LO_TO, "Add LO-TO data", "Add the LO-TO splitting data from a PHDOS.nc file")
+        self.Bind(wx.EVT_MENU, self.OnAddLoTo, id=self.ID_PHBANDS_ADD_LO_TO)
+
+        menu.Append(self.ID_PHBANDS_PLOT, "Plot phbands", "Plot phonon bands with matplotlib")
+        self.Bind(wx.EVT_MENU, self.OnPhbandsPlot, id=self.ID_PHBANDS_PLOT)
+
+        menu.Append(self.ID_PHBANDS_DOS, "DOS", "Plot the phonon DOS")
+        self.Bind(wx.EVT_MENU, self.OnPhbandsDos, id=self.ID_PHBANDS_DOS)
+
+        menu.Append(self.ID_MULTI_PHBANDS_BANDSWITHDOS, "Plot bands and DOS", "Plot phonon bands and DOS on the same figure")
+        self.Bind(wx.EVT_MENU, self.onPlotPhbandsWithDos, id=self.ID_MULTI_PHBANDS_BANDSWITHDOS)
+
+        return menu
+
+    def OnAddDos(self, event):
+        """Add PHDOS data to the active tab"""
+        dialog = wx.FileDialog(self, message="Choose a PHDOS.nc file", defaultDir=os.getcwd(),
+                       wildcard="Netcdf files (*.nc)|*.nc",
+                       style=wx.OPEN | wx.CHANGE_DIR)
+
+        if dialog.ShowModal() == wx.ID_CANCEL: return
+        phdos = abiopen(dialog.GetPath())
+
+        self.active_tab.phdos_file = phdos
+
+    def OnAddLoTo(self, event):
+        """Add LO-TO splitting data to the phbands in the active tab"""
+        dialog = wx.FileDialog(self, message="Choose an anaddb.nc file", defaultDir=os.getcwd(),
+                       wildcard="Netcdf files (*.nc)|*.nc",
+                       style=wx.OPEN | wx.CHANGE_DIR)
+
+        if dialog.ShowModal() == wx.ID_CANCEL: return
+
+        with ETSF_Reader(dialog.GetPath()) as r:
+            directions = r.read_value("non_analytical_directions")
+            non_anal_phfreq = r.read_value("non_analytical_phonon_modes")
+
+            self.phbands.non_anal_directions = directions
+            self.phbands.non_anal_phfreqs = non_anal_phfreq
+
+    def OnPhbandsPlot(self, event):
+        """Plot phonon frequencies with matplotlib."""
+        self.phbands.plot()
+
+    def OnPhbandsDos(self, event):
+        """Open Frame for the computation of the DOS."""
+        if not self.phdos:
+            awx.showErrorMessage(self, message="PHDOS data should be loaded using the menu Phband->Add phdos data")
+        else:
+            plotter = PhononDosPlotter()
+            try:
+                label = os.path.relpath(self.active_phdos_file.filepath)
+                plotter.add_phdos(label, self.phdos)
+            except:
+                awx.showErrorMessage(self)
+            plotter.plot()
+
+    def onPlotPhbandsWithDos(self, event):
+        """Plot phonon bands with DOS"""
+
+        try:
+            if not self.phdos:
+                awx.showErrorMessage(self, message="PHDOS data should be loaded using the menu Phband->Add phdos data")
+            else:
+                self.phbands.plot_with_phdos(self.phdos)
+        except:
+            awx.showErrorMessage(self)
+
+    @abc.abstractproperty
+    def phdos(self):
+        """PHDOS data for the active tab if it has been added. None otherwise"""
+
+
+@six.add_metaclass(abc.ABCMeta)
+class Has_MultiplePhbands(Has_Phbands):
+    """
+    Mixin class that provides a menu and callbacks
+    for analyzing and comparing multiple phonon bands.
+    """
+    def CreatePhbandsMenu(self):
+        """Creates the ebands menu."""
+        menu = super(Has_MultiplePhbands, self).CreatePhbandsMenu()
+        menu.AppendSeparator()
+
+        # Multiple Ebands Menu ID's
+        self.ID_MULTI_PHBANDS_PLOT = wx.NewId()
+        self.ID_MULTI_PHBANDS_DOS = wx.NewId()
+
+        menu.Append(self.ID_MULTI_PHBANDS_PLOT, "Compare phbands", "Plot multiple phonon bands")
+        self.Bind(wx.EVT_MENU, self.OnComparePhbands, id=self.ID_MULTI_PHBANDS_PLOT)
+        menu.Append(self.ID_MULTI_PHBANDS_DOS, "Compare DOSes", "Compare multiple phonon DOSes")
+        self.Bind(wx.EVT_MENU, self.OnComparePhdos, id=self.ID_MULTI_PHBANDS_DOS)
+
+        return menu
+
+    @abc.abstractproperty
+    def phbands_list(self):
+        """Return a list of `PhononBands`."""
+
+    @abc.abstractproperty
+    def phbands_filepaths(self):
+        """
+        Return a list with the absolute paths of the files
+        from which the `PhononBands` have been read.
+        """
+
+    @abc.abstractproperty
+    def phdos_list(self):
+        """Return a list of `PhononDos`."""
+
+    @abc.abstractproperty
+    def phdos_filepaths(self):
+        """
+        Return a list with the absolute paths of the files
+        from which the `PhononDos` have been read.
+        """
+
+    def OnComparePhbands(self, event):
+        """Plot multiple phonon bands"""
+
+        dialog = ewx.BandsCompareDialog(self, self.phbands_filepaths)
+        if dialog.ShowModal() == wx.ID_CANCEL: return
+
+        try:
+            selected = dialog.GetSelectedIndices()
+
+        except:
+            awx.showErrorMessage(self)
+
+        plotter = PhononBandsPlotter()
+        # for path, phbands in zip(self.phbands_filepaths, self.phbands_list):
+        #     label = os.path.relpath(path)
+        #     plotter.add_phbands(label, phbands)
+
+        for i in selected:
+            label = os.path.relpath(self.phbands_filepaths[i])
+            plotter.add_phbands(label, self.phbands_list[i])
+
+        try:
+            print(plotter.bands_statdiff())
+        except:
+            pass
+        plotter.plot()
+
+    def OnComparePhdos(self, event):
+        """Plot multiple phonon DOSes"""
+
+        plotter = PhononDosPlotter()
+        for path, phdos in zip(self.phdos_filepaths, self.phdos_list):
+            try:
+                label = os.path.relpath(path)
+                plotter.add_phdos(label, phdos)
+            except:
+                awx.showErrorMessage(self)
+
+        plotter.plot()

@@ -8,8 +8,6 @@ import abipy.data as abidata
 def gs_input(nsppol):
     # Fe normal bcc structure for test of a ferromagnetic calculation
     # The first dataset is without magnetization for comparison
-
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("26fe.pspnc"))
     structure = abilab.Structure.from_abivars(dict(
         natom=1,
         ntypat=1,
@@ -21,14 +19,14 @@ def gs_input(nsppol):
                 0.5,  0.5, -0.5],
         xred=[0.0, 0.0, 0.0])
     )
-    inp.set_structure(structure)
+    inp = abilab.AbinitInput(structure, pseudos=abidata.pseudos("26fe.pspnc"))
 
     inp.set_kmesh(ngkpt=[4, 4, 4], shiftk=[0.5, 0.5, 0.5])
 
     # Optimization of the lattice parameters
     inp.set_vars(
         nsppol=nsppol,
-        ecut=18, 
+        ecut=18,
         nband=8,
         occopt=3,
         tsmear=0.01,
@@ -45,7 +43,6 @@ def gs_input(nsppol):
 def afm_input():
     # Fe fcc structure with two atoms per unit cell for test of antiferromagnetic
     # This is the simplest fcc structure compatible with a X point spiral
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("26fe.pspnc"))
     structure = abilab.Structure.from_abivars(dict(
         natom=2,
         ntypat=1,
@@ -58,7 +55,7 @@ def afm_input():
         xred=[0.0, 0.0, 0.0,
               0.5, 0.0, 0.5],
         ))
-    inp.set_structure(structure)
+    inp = abilab.AbinitInput(structure=structure, pseudos=abidata.pseudos("26fe.pspnc"))
 
     inp.set_kmesh(ngkpt=[6, 6, 4], shiftk=[0.5, 0.5, 0.5])
 
@@ -88,8 +85,6 @@ def gs_flow():
         data = robot.get_dataframe()
         print(data)
         robot.pairplot(x_vars="nsppol", y_vars=["energy", "a", "volume", "pressure"])
-
-    return
 
     #gstask_nospin, gstask_spin = flow[0][0], flow[0][1] 
     #data = abilab.PrettyTable(["property", "unpolarized", "polarized"])
@@ -126,8 +121,7 @@ def afm_flow():
 
 def tantalum_gsinput(nspinor=2):
     #  Single Ta atom in a big box (BCC), treated with spin-orbit coupling.
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("73ta.hghsc"))
-    structure = abilab.Structure.from_abivars(dict(
+    structure = abilab.Structure.from_abivars(
         natom=1,
         ntypat=1,
         typat=[1],
@@ -137,8 +131,8 @@ def tantalum_gsinput(nspinor=2):
                -0.5,  0.5,  0.5,
                 0.5, -0.5,  0.5],
         xred=[0.0, 0.0, 0.0]
-        ))
-    inp.set_structure(structure)
+    )
+    inp = abilab.AbinitInput(structure=structure, pseudos=abidata.pseudos("73ta.hghsc"))
 
     inp.set_kmesh(ngkpt=[1, 1, 1], shiftk=[0.0, 0.0, 0.0])
 

@@ -3,7 +3,7 @@
 This script shows how to perform a RAMAN calculation with 
 excitonic effects included with the BSE formalism.
 """
-from __future__ import division, print_function, unicode_literals
+from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys 
 import os
@@ -18,15 +18,7 @@ def build_flow(options):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
-
-    # Initialize flow. Each work in the flow defines a complete BSE calculation for given eta.
-    #if workdir is None:
-    #    workdir = os.path.join(os.path.dirname(__file__), base_structure.formula.replace(" ","") + "_RAMAN")
-                                                                                                                 
-    flow = abilab.Flow(workdir, manager=manager)
+    flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove)
 
     pseudos = data.pseudos("14si.pspnc")
 
@@ -55,7 +47,7 @@ def build_flow(options):
         for shift in all_shifts:
             flow.register_work(raman_work(structure, pseudos, shift))
 
-    return flow.allocate()
+    return flow
 
 
 def raman_work(structure, pseudos, shiftk, paral_kgb=1):
@@ -72,18 +64,14 @@ def raman_work(structure, pseudos, shiftk, paral_kgb=1):
     )
 
     # GS run
-    scf_inp = abilab.AbiInput(pseudos=pseudos)
-
-    scf_inp.set_structure(structure)
-    scf_inp.set_vars(**global_vars)
+    scf_inp = abilab.AbinitInput(structure, pseudos=pseudos)
+    scf_inp.set_vars(global_vars)
     scf_inp.set_kmesh(ngkpt=[2,2,2], shiftk=shiftk)
-    scf_inp.tolvrs = 1e-6
+    scf_inp["tolvrs"] = 1e-6
 
     # NSCF run
-    nscf_inp = abilab.AbiInput(pseudos=pseudos)
-
-    nscf_inp.set_structure(structure)
-    nscf_inp.set_vars(**global_vars)
+    nscf_inp = abilab.AbinitInput(structure, pseudos=pseudos)
+    nscf_inp.set_vars(global_vars)
     nscf_inp.set_kmesh(ngkpt=[2,2,2], shiftk=shiftk)
 
     nscf_inp.set_vars(tolwfr=1e-8,
@@ -94,10 +82,8 @@ def raman_work(structure, pseudos, shiftk, paral_kgb=1):
 
     # BSE run with Model dielectric function and Haydock (only resonant + W + v)
     # Note that SCR file is not needed here
-    bse_inp = abilab.AbiInput(pseudos=pseudos)
-
-    bse_inp.set_structure(structure)
-    bse_inp.set_vars(**global_vars)
+    bse_inp = abilab.AbinitInput(structure, pseudos=pseudos)
+    bse_inp.set_vars(global_vars)
     bse_inp.set_kmesh(ngkpt=[2,2,2], shiftk=shiftk)
 
     bse_inp.set_vars(
@@ -126,7 +112,8 @@ def raman_work(structure, pseudos, shiftk, paral_kgb=1):
 @abilab.flow_main
 def main(options):
     flow = build_flow(options)
-    return flow.build_and_pickle_dump()
+    flow.build_and_pickle_dump()
+    return flow
 
 
 if __name__ == "__main__":

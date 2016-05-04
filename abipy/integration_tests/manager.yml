@@ -7,18 +7,16 @@ hardware:  &hardware
 
 job: &job
    mpi_runner: mpirun
-   shell_env:
-     PATH: "~/Coding/Abinit/bzr_archives/7113/gmatteo-private/fftw3/src/98_main/:$PATH"
-     DYLD_LIBRARY_PATH: /opt/intel/composerxe-2011.0.085/mkl/lib/:/opt/intel/composerxe-2011.0.085/compiler/lib/:$DYLD_LIBRARY_PATH
-   #pre_run:
-   #  - "source ~/env.sh"
+   pre_run:
+     - "source ~/env.sh"
+     #- "source ~/.bashrc"
 
 policy:
     autoparal: 1
     #max_ncpus: 2
     #vars_condition: {"npfft": {"$eq": 1}}
     #condition: {$and: [ {efficiency: {$gt: 0.99}}, {tot_ncpus: {$divisible: 2}} ]}
-    #autoparal_priorities: [speedup, efficiecy, memory]
+    #autoparal_priorities: [speedup, efficiency, memory]
     #search_mode: qadapter_first
     #search_mode: paralleconf_first
 

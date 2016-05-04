@@ -8,9 +8,7 @@ import numpy as np
 
 def gs_input(x=0.7, acell=(10, 10, 10)):
     """H2 molecule in a big box"""
-    inp = abilab.AbiInput(pseudos=abidata.pseudos("01h.pspgth"))
-
-    structure = abilab.Structure.from_abivars(dict(
+    structure = abilab.Structure.from_abivars(
         ntypat=1,  
         znucl=1,
         natom=2,        
@@ -19,34 +17,35 @@ def gs_input(x=0.7, acell=(10, 10, 10)):
                +x, 0.0, 0.0],
         acell=acell,
         rprim=[1, 0, 0, 0, 1, 0, 0, 0, 1]
-    ))
-    inp.set_structure(structure)
+    )
+
+    inp = abilab.AbinitInput(structure=structure, pseudos=abidata.pseudos("01h.pspgth"))
 
     inp.set_vars(
         ecut=10, 
         nband=1,
         diemac=2.0,
         nstep=10,
-        toldfe=1e-6, 
+        toldfe=1e-6,
     )
 
     inp.set_kmesh(ngkpt=(1,1,1), shiftk=(0,0,0))
     return inp
 
 
-class HHDistanceFlow(abilab.Flow):
-    def analyze(self):
-        def hh_dist(gsr):
-            """This function receives a GSR file and computes the H-H distance"""
-            cart_coords = gsr.structure.cart_coords
-            l = np.sqrt(np.linalg.norm(cart_coords[1] - cart_coords[0]))
-            return "hh_dist", l
+def analyze_flow(flow):
+    def hh_dist(gsr):
+        """This function receives a GSR file and computes the H-H distance"""
+        cart_coords = gsr.structure.cart_coords
+        l = np.sqrt(np.dot(cart_coords[1] - cart_coords[0]))
+        return "hh_dist", l
 
-        with abilab.abirobot(self, "GSR") as robot:
-            table = robot.get_dataframe(funcs=hh_dist)
-            print(table)
-            return table
-            #robot.ebands_plotter().plot()
+    with abilab.abirobot(flow, "GSR") as robot:
+        table = robot.get_dataframe(funcs=hh_dist)
+        print(table)
+        #robot.ebands_plotter().plot()
+
+    return table
 
 
 def build_flow():
@@ -55,7 +54,7 @@ def build_flow():
     Generate a flow to compute the total energy and forces as a function of the interatomic distance
     """
     inputs = [gs_input(x) for x in np.linspace(0.5, 1.025, 21)]
-    return HHDistanceFlow.from_inputs("flow_h", inputs)
+    return abilab.Flow.from_inputs("flow_h", inputs)
 
     #table = abilab.PrettyTable(["length [Ang]", "energy [eV]"])
     #for task in flow.iflat_tasks():
@@ -73,4 +72,4 @@ def build_flow():
 if __name__ == "__main__":
     flow = build_flow()
     flow.make_scheduler().start()
-    flow.analyze()
+    analyze_flow(flow)

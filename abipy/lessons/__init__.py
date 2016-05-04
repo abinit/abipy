@@ -32,5 +32,5 @@ def generate_manfiles():
         print("[%s] man file generated" % mod.__name__)
 
 
-if __name__ == "__main__":
-    generate_manfiles()
+#if __name__ == "__main__":
+#    generate_manfiles()

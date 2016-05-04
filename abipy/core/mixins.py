@@ -1,6 +1,6 @@
 # coding: utf-8
 """This module ..."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import abc
 import os
@@ -9,9 +9,11 @@ import collections
 
 from time import ctime
 from monty.os.path import which
+from monty.string import is_string
 from monty.functools import lazy_property
-from pymatgen.io.abinitio.events import EventsParser
-from pymatgen.io.abinitio.abitimer import AbinitTimerParser
+from pymatgen.io.abinit.events import EventsParser
+from pymatgen.io.abinit.abiinspect import GroundStateScfCycle, D2DEScfCycle, Relaxation
+from pymatgen.io.abinit.abitimer import AbinitTimerParser
 
 
 __all__ = [
@@ -31,10 +33,7 @@ class _File(object):
         self._filepath = os.path.abspath(filepath)
 
     def __repr__(self):
-        return "<%s at %s, filepath = %s>" % (self.__class__.__name__, id(self), self.filepath)
-
-    def __str__(self):
-        return "<%s at %s, filepath = %s>" % (self.__class__.__name__, id(self), os.path.relpath(self.filepath))
+        return "<%s, %s>" % (self.__class__.__name__, self.relpath)
 
     @classmethod
     def from_file(cls, filepath):
@@ -54,6 +53,15 @@ class _File(object):
     def filepath(self):
         """Absolute path of the file."""
         return self._filepath
+
+    @property
+    def relpath(self):
+        """Relative path."""
+        try:
+            return os.path.relpath(self.filepath)
+        except OSError:
+            # current working directory may not be defined!
+            return self.filepath
 
     @property
     def basename(self):
@@ -121,17 +129,79 @@ class AbinitTextFile(TextFile):
         return AbinitTimerParser().parse(self.filepath)
 
 
-class AbinitInputFile(TextFile):
-    """Class representing the input file."""
+class AbinitLogFile(AbinitTextFile):
+    """Class representing the log file."""
 
 
 class AbinitOutputFile(AbinitTextFile):
     """Class representing the main output file."""
 
+    def next_gs_scf_cycle(self):
+        """Return the next :class:`GroundStateScfCycle` in the file. None if not found."""
+        return GroundStateScfCycle.from_stream(self)
 
-class AbinitLogFile(AbinitTextFile):
-    """Class representing the log file."""
+    def next_d2de_scf_cycle(self):
+        """:class:`GroundStateScfCycle` with information on the GS iterations. None if not found."""
+        return D2DEScfCycle.from_stream(self)
 
+    def compare_gs_scf_cycles(self, others, show=True):
+        """
+        Produce and returns a list of `matplotlib` figure comparing the GS self-consistent 
+        cycle in self with the ones in others.
+
+        Args:
+            others: list of `AbinitOutputFile` objects or strings with paths to output files.
+            show: True to diplay plots.
+        """
+        for i, other in enumerate(others):
+            if is_string(other): others[i] = self.__class__.from_file(other)
+        
+        fig, figures = None, []
+        while True:
+            cycle = self.next_gs_scf_cycle()
+            if cycle is None: break 
+
+            fig = cycle.plot(show=False)
+            for i, other in enumerate(others):
+                other_cycle = other.next_gs_scf_cycle()
+                if other_cycle is None: break
+                last = (i == len(others) - 1)
+                fig = other_cycle.plot(fig=fig, show=show and last)
+                if last: figures.append(fig)
+
+        self.seek(0)
+        for other in others: other.seek(0)
+        return figures
+
+    def compare_d2de_scf_cycles(self, others, show=True):
+        """
+        Produce and returns a `matplotlib` figure comparing the DFPT self-consistent 
+        cycle in self with the ones in others.
+                                                                                                   
+        Args:
+            others: list of `AbinitOutputFile` objects or strings with paths to output files.
+            show: True to diplay plots.
+        """
+        for i, other in enumerate(others):
+            if is_string(other): others[i] = self.__class__.from_file(other)
+
+        fig, figures = None, []
+        while True:
+            cycle = self.next_d2de_scf_cycle()
+            if cycle is None: break 
+
+            fig = cycle.plot(show=False)
+            for i, other in enumerate(others):
+                other_cycle = other.next_d2de_scf_cycle()
+                if other_cycle is None: break
+                last = (i == len(others) - 1)
+                fig = other_cycle.plot(fig=fig, show=show and last)
+                if last: figures.append(fig)
+
+        self.seek(0)
+        for other in others: other.seek(0)
+        return figures
+                                                                                                   
 
 @six.add_metaclass(abc.ABCMeta)
 class AbinitNcFile(_File):

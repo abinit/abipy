@@ -1,6 +1,6 @@
 # coding: utf-8
 """This module contains the class defining Uniform 3D meshes."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
 from itertools import product as iproduct
@@ -191,7 +191,7 @@ class Mesh3D(object):
 
         if ndim == 1:
             fg = np.reshape(fg, self.shape)
-            return self.fft_g2r(fg, fh_isshifted=fg_ishifted).flatten()
+            return self.fft_g2r(fg, fg_ishifted=fg_ishifted).flatten()
 
         if ndim == 3:
             assert self.size == np.prod(shape[-3:])

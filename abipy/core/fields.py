@@ -1,13 +1,12 @@
 # coding: utf-8
 """This module contains the class describing densities in real space on uniform 3D meshes."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
 
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from pymatgen.core.units import bohr_to_angstrom
-from abipy.tools import transpose_last3dims
 from abipy.iotools import Visualizer, xsf, ETSF_Reader
 from abipy.core.mesh3d import Mesh3D
 from abipy.core.mixins import Has_Structure

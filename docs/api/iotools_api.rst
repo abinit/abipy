@@ -9,13 +9,6 @@ iotools Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`files` Package
-----------------------
-
-.. automodule:: abipy.iotools.files
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 :mod:`visualizer` Module
 ------------------------
@@ -27,7 +20,7 @@ iotools Package
 
 
 :mod:`xsf` Module
--------------------------
+-----------------
 
 .. automodule:: abipy.iotools.xsf
    :members:

@@ -1,5 +1,5 @@
 """This module import all WxWidgets applications provides by Abipy in a single namespace."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 from .events import wxapp_events
 from .browser import wxapp_dirbrowser, wxapp_listbrowser
@@ -12,11 +12,11 @@ from .converter import wxapp_converter
 from .structure import wxapp_structure_converter
 from .fftprof import wxapp_fftprof
 from .flowviewer import wxapp_flow_viewer
-from .flowsdb import wxapp_flowsdb_viewer
 from .gsrviewer import wxapp_gsrviewer
 from .mdfviewer import wxapp_mdfviewer
 from .wxncview import wxapp_ncview
-from .oncvgui import wxapp_oncvpsp
+#from .oncvgui import wxapp_oncvpsp
+from .phbstviewer import wxapp_phbstviewer
 
 
 # Map abinit file extensions to WX Applications.
@@ -25,6 +25,7 @@ _EXT2APP = {
     "SIGRES.nc": wxapp_sigresviewer,
     "GSR.nc": wxapp_gsrviewer,
     "MDF.nc": wxapp_mdfviewer,
+    "PHBST.nc": wxapp_phbstviewer,
     #".abi": MyEditorApp, 
     #".abo": MyEditorApp, 
     #".log": MyEditorApp, 

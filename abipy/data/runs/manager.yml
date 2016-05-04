@@ -1,16 +1,18 @@
 qadapters: 
-    - priority: 1 
+    - &batch 
+      priority: 1 
       queue:
         qname: gmac
         qtype: shell
+        #qtype: slurm
       job:
         mpi_runner: mpirun
         pre_run: 
          - source ~/env.sh
       limits:
          min_cores: 1
-         max_cores: 2
-         timelimit: 1:00:00
+         max_cores: 4
+         timelimit: 0:00:05
       hardware:
          num_nodes: 1
          sockets_per_node: 1
@@ -18,6 +20,8 @@ qadapters:
          mem_per_node: 4 Gb
          # Optional
          #condition: {"$eq": {omp_threads: 2}} 
+        
+batch_adapter: *batch
          
 db_connector:
     enabled: no

@@ -4,27 +4,35 @@ Utilities for generating matplotlib plots.
 
 .. note:
 
-    Avoid importing these tools in the top-level namespace of the module
-    since they rely on matplotlib whose startup is very slow.
+    Avoid importing matplotlib in the module namespace otherwise startup is very slow.
 """
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
 import collections
 
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 
-try:
-    import matplotlib as mpl
-    import matplotlib.cm as cmap
-    from matplotlib import pyplot as plt
-except ImportError:
-    pass
 
 __all__ = [
     "plot_array",
     "ArrayPlotter"
 ]
+
+
+def data_from_cplx_mode(cplx_mode, arr):
+    """
+    Extract the data from the numpy array `arr` depending on the values of `cplx_mode`.
+    cplx_mode in ("re", "im", "abs", "angle")
+    "re" for the real part, "im" for the imaginary part.
+    "abs" means that the absolute value of the complex number is shown.
+    "angle" will display the phase of the complex number in radians.
+    """
+    if cplx_mode == "re": return arr.real
+    if cplx_mode == "im": return arr.imag
+    if cplx_mode == "abs": return np.abs(arr)
+    if cplx_mode == "angle": return np.angle(arr, deg=False)
+    raise ValueError("Unsupported mode %s" % cplx_mode)
 
 
 @add_fig_kwargs
@@ -42,7 +50,9 @@ def plot_array(array, color_map=None, cplx_mode="abs", **kwargs):
         array: Array-like object (1D or 2D).
         color_map: color map.
         cplx_mode:
-            Flag defining how to handle complex arrays. Possible values are "abs", "angle"
+            Flag defining how to handle complex arrays. Possible values are in
+            ("re", "im", "abs", "angle")
+            "re" for the real part, "im" for the imaginary part.
             "abs" means that the absolute value of the complex number is shown.
             "angle" will display the phase of the complex number in radians.
 
@@ -51,16 +61,10 @@ def plot_array(array, color_map=None, cplx_mode="abs", **kwargs):
     """
     # Handle vectors
     array = np.atleast_2d(array)
+    array = data_from_cplx_mode(cplx_mode, array) 
 
-    # Handle complex arrays.
-    if np.iscomplexobj(array):
-        if cplx_mode == "abs":
-            array = np.abs(array)
-        elif cplx_mode == "angle":
-            array = np.angle(array, deg=False)
-        else:
-            raise ValueError("Unsupported mode %s" % cplx_mode)
-
+    import matplotlib as mpl
+    from matplotlib import pyplot as plt
     if color_map is None:
         # make a color map of fixed colors
         color_map = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
@@ -80,8 +84,15 @@ def plot_array(array, color_map=None, cplx_mode="abs", **kwargs):
 
 class ArrayPlotter(object):
 
-    def __init__(self):
+    def __init__(self, *labels_and_arrays):
+        """
+        Args:
+            labels_and_arrays: List [("label1", arr1), ("label2", arr2")]
+        """
         self._arr_dict = collections.OrderedDict()
+
+        for label, array in labels_and_arrays:
+            self.add_array(label, array)
 
     def __len__(self):
         return len(self._arr_dict)
@@ -112,13 +123,14 @@ class ArrayPlotter(object):
             self.add_array(label, arr)
 
     @add_fig_kwargs
-    def plot(self, color_map="jet", **kwargs):
+    def plot(self, cplx_mode="abs", color_map="jet", **kwargs):
         """
         Args:
+            cplx_mode: "abs" for absolute value, "re", "im", "angle"
             color_map: matplotlib colormap
         """
-        import matplotlib.pyplot as plt
-        fig = plt.figure()
+        ax, fig, plt = get_ax_fig_plt(None)
+        plt.axis("off")
 
         # Grid parameters
         num_plots, ncols, nrows = len(self), 1, 1
@@ -126,16 +138,20 @@ class ArrayPlotter(object):
             ncols = 2
             nrows = (num_plots//ncols) + (num_plots % ncols)
 
+        # use origin to place the [0,0] index of the array in the lower left corner of the axes. 
         for n, (label, arr) in enumerate(self.items()):
             fig.add_subplot(nrows, ncols, n)
-            img = plt.imshow(np.abs(arr), interpolation='nearest', cmap=color_map, origin='lower')
+            data = data_from_cplx_mode(cplx_mode, arr)
+            img = plt.imshow(data, interpolation='nearest', cmap=color_map, origin='lower')
+
             # make a color bar
             plt.colorbar(img, cmap=color_map)
-            plt.title(label)
+            plt.title(label + " (%s)" % cplx_mode)
+
             # Set grid
             plt.grid(True, color='white')
 
-        #fig.tight_layout()
+
         return fig
 
 

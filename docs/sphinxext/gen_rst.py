@@ -131,7 +131,7 @@ Abipy Examples
                        not noplot_regex.search(contents))
 
             do_autorun = subdir in ["htc",] #and not noautorun_regex.search(contents))
-
+            do_autorun = False
             #sys.stderr.write("subdir %s, full_path %s\n" % (subdir, fullpath))
 
             if do_plot:
@@ -142,7 +142,6 @@ Abipy Examples
                 fh.write("\n\n.. runblock:: pycon\n\n")
                 # Autorun requires >>> at the beginning of the line.
                 contents = '\n'.join(['>>> %s'% row.rstrip() for row in contents.split('\n')])
-
 
             else:
                 fh.write("[`source code <%s>`_]\n\n::\n\n" % fname)

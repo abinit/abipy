@@ -55,6 +55,7 @@ docs/examples
 .tox
 nosetests.xml
 _integration_tests_
+.cache
 
 # ipython notebooks
 .ipynb*

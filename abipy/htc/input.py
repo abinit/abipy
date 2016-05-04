@@ -3,30 +3,35 @@ This module defines objects that faciliate the creation of the
 ABINIT input files. The syntax is similar to the one used 
 in ABINIT with small differences. 
 """
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import collections
 import warnings
-import tempfile
 import itertools
 import copy
 import six
 import abc
+import json
 import numpy as np
-import abipy.tools.mixins as mixins
 
 from collections import OrderedDict
 from monty.dev import deprecated
+from monty.collections import dict2namedtuple
 from monty.string import is_string, list_strings
+from monty.os.path import which
+from monty.json import MSONable
 from pymatgen.core.units import Energy
-from pymatgen.io.abinitio.pseudos import PseudoTable, Pseudo
-from pymatgen.io.abinitio.tasks import TaskManager, AbinitTask
-from pymatgen.io.abinitio.netcdf import NetcdfReader
+from pymatgen.serializers.json_coders import pmg_serialize
+from pymatgen.io.abinit.pseudos import PseudoTable, Pseudo
+from pymatgen.io.abinit.tasks import TaskManager, AbinitTask
+from pymatgen.io.abinit.netcdf import NetcdfReader
+from pymatgen.io.abinit.abiinspect import yaml_read_irred_perts
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
 from .variable import InputVariable
-from .abivars import is_abivar, is_anaddb_var
+from abipy.abio.abivars import is_abivar, is_anaddb_var
+from abipy.abio.abivars_db import get_abinit_variables
 
 import logging
 logger = logging.getLogger(__file__)
@@ -37,7 +42,6 @@ __all__ = [
     "LdauParams",
     "LexxParams",
     "input_gen",
-    "AnaddbInput",
 ]
 
 # Variables that must have a unique value throughout all the datasets.
@@ -90,9 +94,9 @@ def _idt_varname(varname):
 
 
 @six.add_metaclass(abc.ABCMeta)
-class Input(object): 
+class Input(six.with_metaclass(abc.ABCMeta, MSONable, object)):
     """
-    Base class foor Input objects.
+    Base class for Input objects.
 
     An input object must define have a make_input method 
     that returns the string representation used by the client code.
@@ -103,57 +107,34 @@ class Input(object):
 
     def write(self, filepath):
         """
-        Write the input file to file. Returns a string with the input.
+        Write the input file to file to `filepath`. Returns a string with the input.
         """
         dirname = os.path.dirname(filepath)
         if not os.path.exists(dirname): os.makedirs(dirname)
                                                                                       
         # Write the input file.
         input_string = str(self)
-        with open(filepath, "w") as fh:
+        with open(filepath, "wt") as fh:
             fh.write(input_string)
 
         return input_string
 
     #@abc.abstractmethod
-    #def make_input(self)
+    #def make_input(self):
 
     #@abc.abstractproperty
     #def structure(self):
 
     #def set_structure(self, structure):
 
-    #def set_vars(self, dtset=0, **vars):
-    #    """
-    #    Set the value of a set of input variables.
 
-    #    Args:
-    #        dtset:
-    #            Int with the index of the dataset, slice object of iterable 
-    #        vars:
-    #            Dictionary with the variables.
-    #    """
-    #    for idt in self._dtset2range(dtset):
-    #        self[idt].set_vars(**vars)
-
-    #def remove_vars(self, keys, dtset=0):
-    #    """
-    #    Remove the variable listed in keys
-    #                                                                         
-    #    Args:
-    #        dtset:
-    #            Int with the index of the dataset, slice object of iterable 
-    #        keys:
-    #            List of variables to remove.
-    #    """
-    #    for idt in self._dtset2range(dtset):
-    #        self[idt].remove_vars(keys)
-
-
-class InputError(Exception):
+class AbinitInputError(Exception):
     """Base error class for exceptions raised by `AbiInput`"""
 
-
+#from monty.dev import deprecated
+#from abipy.abio.inputs import AbinitInput
+#@deprecated(replacement=AbinitInput,
+#            message="This class is deprecated and will be removed in abipy0.2.")
 class AbiInput(Input, Has_Structure):
     """
     This object represents an ABINIT input file. It supports multi-datasets a
@@ -170,9 +151,9 @@ class AbiInput(Input, Has_Structure):
         # Print it to get the final input.
         print(inp)
     """
-    Error = InputError
+    Error = AbinitInputError
 
-    def __init__(self, pseudos, pseudo_dir="", structure=None, ndtset=1, comment=""):
+    def __init__(self, pseudos, pseudo_dir="", structure=None, ndtset=1, comment="", decorators=None):
         """
         Args:
             pseudos: String or list of string with the name of the pseudopotential files.
@@ -180,6 +161,7 @@ class AbiInput(Input, Has_Structure):
             structure: file with the structure, :class:`Structure` object or dictionary with ABINIT geo variable
             ndtset: Number of datasets.
             comment: Optional string with a comment that will be placed at the beginning of the file.
+            decorators: List of `AbinitInputDecorator` objects.
         """
         # Dataset[0] contains the global variables common to the different datasets
         # Dataset[1:ndtset+1] stores the variables specific to the different datasets.
@@ -214,8 +196,7 @@ class AbiInput(Input, Has_Structure):
         if structure is not None: self.set_structure(structure)
         if comment is not None: self.set_comment(comment)
 
-    #def make_input(self):
-    #    return str(self)
+        self._decorators = [] if not decorators else decorators
 
     def __str__(self):
         """String representation i.e. the input file read by Abinit."""
@@ -241,7 +222,13 @@ class AbiInput(Input, Has_Structure):
             d.update(self[1])
             s = d.to_string(post="")
 
-        return s
+        # Add JSON section with pseudo potentials.
+        ppinfo = ["\n\n\n#<JSON>"]
+        d = {"pseudos": [p.as_dict() for p in self.pseudos]}
+        ppinfo.extend(json.dumps(d, indent=4).splitlines())
+        ppinfo.append("</JSON>")
+
+        return s + "\n#".join(ppinfo)
 
     def __getitem__(self, key):
         return self._datasets[key]
@@ -263,7 +250,6 @@ class AbiInput(Input, Has_Structure):
         if varname.startswith("_"):
             # Standard behaviour for "private" variables.
             super(AbiInput, self).__setattr__(varname, value)
-
         else:
             idt, varname = _idt_varname(varname)
 
@@ -309,6 +295,11 @@ class AbiInput(Input, Has_Structure):
         return all(p.isnc for p in self.pseudos)
 
     @property
+    def num_valence_electrons(self):
+        """Number of valence electrons computed from the pseudos and the structure."""
+        return self.structure.num_valence_electrons(self.pseudos)
+
+    @property
     def structure(self):
         """
         Returns the :class:`Structure` associated to the ABINIT input.
@@ -334,6 +325,14 @@ class AbiInput(Input, Has_Structure):
         new = self.deepcopy()
         new.set_vars(*args, **kwargs)
         return new
+
+    @property
+    def decorators(self):
+        return self._decorators
+
+    def register_decorator(self, decorator):
+        """Register a :class:`AbinitInputDecorator`."""
+        self._decorators.append(decorator.as_dict())
 
     def generate(self, **kwargs):
         """
@@ -380,27 +379,33 @@ class AbiInput(Input, Has_Structure):
             # Cannot use get*, ird* variables since links must be explicit.
             for varname in my_vars:
                 if varname.startswith("get") or varname.startswith("ird"):
-                    err_msg = ("get* or ird* variables should not be present in the input when you split it into datasets")
+                    err_msg = "get* or ird variables should not be present in the input when you split it into datasets"
                     raise self.Error(err_msg)
 
-            new = self.__class__(pseudos=self.pseudos, ndtset=1)
+            new = self.__class__(pseudos=self.pseudos, ndtset=1, decorators=self._decorators)
             new.set_vars(**my_vars)
             new.set_mnemonics(self.mnemonics)
             news.append(new)
     
         return news
 
-    def set_vars(self, dtset=0, *args, **kwargs):
+    def set_vars(self, *args, **kwargs):
         """
         Set the value of a set of input variables.
 
         Args:
             dtset: Int with the index of the dataset, slice object of iterable 
             kwargs: Dictionary with the variables.
+
+        Returns:
+            self
         """
+        dtset = kwargs.pop("dtset", 0)
         kwargs.update(dict(*args))
         for idt in self._dtset2range(dtset):
             self[idt].set_vars(**kwargs)
+
+        return self
 
     # Alias
     set_variables = set_vars
@@ -450,7 +455,7 @@ class AbiInput(Input, Has_Structure):
             shiftk: Shiftks (default None i.e. use shiftk from self)
             qpoint: qpoint in reduced coordinates. Used to shift the k-mesh (default None i.e no shift)
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
-            manager: TaskManager of the task. If None, the :class:`TaskManager` is initialized from the config file.
+            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
 
         Returns:
             `namedtuple` with attributes:
@@ -461,7 +466,9 @@ class AbiInput(Input, Has_Structure):
 
             Multiple datasets are ignored. Only the list of k-points for dataset 1 are returned.
         """
-        #assert self.ndtset == 1
+        if self.ndtset != 1:
+            raise RuntimeError("get_ibz cannot be used if the input contains more than one dataset")
+
         # Avoid modifications in self.
         inp = self.split_datasets()[0].deepcopy()
 
@@ -479,20 +486,74 @@ class AbiInput(Input, Has_Structure):
         if qpoint is not None:
             inp.qptn, inp.nqpt = qpoint, 1
 
-        # Build a simple manager to run the job in a shell subprocess
-        # Construct the task and run it
-        if manager is None: manager = TaskManager.from_user_config()
-        workdir = tempfile.mkdtemp() if workdir is None else workdir  
-
-        task = AbinitTask.from_input(inp, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
+        # Build a Task to run Abinit in a shell subprocess
+        task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
         task.start_and_wait(autoparal=False)
 
         # Read the list of k-points from the netcdf file.
-        with NetcdfReader(os.path.join(workdir, "kpts.nc")) as r:
-            ibz = collections.namedtuple("ibz", "points weights")
-            return ibz(points=r.read_value("reduced_coordinates_of_kpoints"),
-                       weights=r.read_value("kpoint_weights"))
-                    
+        try:
+            with NetcdfReader(os.path.join(task.workdir, "kpts.nc")) as r:
+                ibz = collections.namedtuple("ibz", "points weights")
+                return ibz(points=r.read_value("reduced_coordinates_of_kpoints"),
+                           weights=r.read_value("kpoint_weights"))
+
+        except Exception as exc:
+            # Try to understand if it's a problem with the Abinit input.
+            report = task.get_event_report()
+            if report.errors: raise self.Error(str(report))
+            raise exc
+
+    def get_irred_perts(self, ngkpt=None, shiftk=None, kptopt=None, qpoint=None, workdir=None, manager=None):
+        """
+        This function, computes the list of irreducible perturbations for DFPT.
+        It should be called with an input file that contains all the mandatory variables required by ABINIT.
+
+        Args:
+            ngkpt: Number of divisions for the k-mesh (default None i.e. use ngkpt from self)
+            shiftk: Shiftks (default None i.e. use shiftk from self)
+            qpoint: qpoint in reduced coordinates. Used to shift the k-mesh (default None i.e no shift)
+            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
+            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
+
+        Returns:
+            List of dictionaries with the Abinit variables defining the irreducible perturbation
+            Example:
+
+                [{'idir': 1, 'ipert': 1, 'qpt': [0.25, 0.0, 0.0]},
+                 {'idir': 2, 'ipert': 1, 'qpt': [0.25, 0.0, 0.0]}]
+
+        .. warning::
+
+            Multiple datasets are ignored. Only the list of k-points for dataset 1 are returned.
+        """
+        if self.ndtset != 1:
+            raise RuntimeError("get_irred_perts cannot be used if the input contains more than one dataset")
+
+        warnings.warn("get_irred_perts is still under development.")
+        # Avoid modifications in self.
+        inp = self.split_datasets()[0].deepcopy()
+
+        # Use the magic value paral_rf = -1 to get the list of irreducible perturbations for this q-point.
+        d = dict(
+            paral_rf=-1,
+            rfatpol=[1, len(inp.structure)],  # Set of atoms to displace.
+            rfdir=[1, 1, 1],                  # Along this set of reduced coordinate axis.
+        )
+        inp.set_vars(d)
+
+        # Build a Task to run Abinit in a shell subprocess
+        task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
+        task.start_and_wait(autoparal=False)
+
+        # Parse the file to get the perturbations.
+        try:
+            return yaml_read_irred_perts(task.log_file.path)
+        except Exception as exc:
+            # Try to understand if it's a problem with the Abinit input.
+            report = task.get_event_report()
+            if report.errors: raise self.Error(str(report))
+            raise exc
+
     def linspace(self, varname, start, stop, endpoint=True):
         """
         Returns `ndtset` evenly spaced samples, calculated over the interval [`start`, `stop`].
@@ -552,8 +613,7 @@ class AbiInput(Input, Has_Structure):
         """
         # Split items into varnames and values
         for i, item in enumerate(items):
-            if not is_string(item):
-                break
+            if not is_string(item): break
 
         varnames, values = items[:i], items[i:]
         if len(varnames) != len(values):
@@ -573,10 +633,7 @@ class AbiInput(Input, Has_Structure):
 
     def set_structure(self, structure, dtset=0):
         """Set the :class:`Structure` object for the specified dtset."""
-        if is_string(structure): 
-            structure = Structure.from_file(structure)
-        elif isinstance(structure, collections.Mapping): 
-            structure = Structure.from_abivars(**structure)
+        structure = Structure.as_structure(structure)
 
         if dtset is None:
             dtset = slice(self.ndtset+1)
@@ -636,41 +693,147 @@ class AbiInput(Input, Has_Structure):
         for idt in self._dtset2range(dtset):
             self[idt].set_kptgw(kptgw, bdgw)
 
+    @pmg_serialize
     def as_dict(self):
         dtsets = []
         for ds in self:
             ds_copy = ds.deepcopy()
-            for key, value in ds_copy.iteritems():
+            for key, value in ds_copy.items():
                 if isinstance(value, np.ndarray):
                     ds_copy[key] = value.tolist()
             dtsets.append(dict(ds_copy))
-        #for ds in self:
-        #    dtsets.append(ds.as_dict())
-        d = {'pseudos': [p.as_dict() for p in self.pseudos], 'datasets': dtsets,
-             '@module': self.__class__.__module__, '@class': self.__class__.__name__}
-        return d
+
+        return {'pseudos': [p.as_dict() for p in self.pseudos], 
+                'datasets': dtsets,
+                "decorators": [dec.as_dict() for dec in self._decorators],
+                }
 
     @classmethod
     def from_dict(cls, d):
-        pseudos_dict = d['pseudos']
         pseudos = []
-        for pseudo in pseudos_dict:
-            pseudos.append(Pseudo.from_file(pseudo['path']))
+        for p in d['pseudos']:
+            pseudos.append(Pseudo.from_file(p['filepath']))
 
         dtsets = d['datasets']
-        abiinput = cls(pseudos, ndtset=dtsets[0]['ndtset'])
+        abiinput = cls(pseudos, ndtset=dtsets[0]['ndtset'], decorators=d["decorators"])
 
         for n, ds in enumerate(dtsets):
             abiinput.set_vars(dtset=n, **ds)
 
         return abiinput
 
-class Dataset(mixins.MappingMixin, Has_Structure):
+    def new_from_decorators(self, decorators):
+        """
+        This function receives a list of :class:`AbinitInputDecorator` objects or just a single object,
+        applyes the decorators to the input and returns a new :class:`AbiInput` object.
+        self is not changed.
+        """
+        if not isinstance(decorators, (list, tuple)): decorators = [decorators]
+
+        # Deepcopy only at the first step to improve performance.
+        inp = self
+        for i, dec in enumerate(decorators):
+            inp = dec(inp, deepcopy=(i == 0))
+
+        return inp
+
+    def validate(self):
+        """
+        Run ABINIT in dry mode to validate the input file.
+
+        Return:
+            `namedtuple` with the following attributes:
+
+                retcode: Return code. 0 if OK.
+                log_file:  log file of the Abinit run, use log_file.read() to access its content.
+                stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
+
+        Raises:
+            `RuntimeError` if executable is not in $PATH.
+        """
+        task = AbinitTask.temp_shell_task(inp=self) 
+        retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
+        return dict2namedtuple(retcode=retcode, log_file=task.log_file, stderr_file=task.stderr_file)
+
+
+
+class MappingMixin(collections.Mapping):
+    """
+    Mixin class implementing the mapping protocol. Useful to avoid boilerplate code if you want
+    to define a object that behaves as a Mapping but without inheriting from dict or similar classes
+    because you don't want to expose/support all the methods of dict.
+
+    Client code must initialize a Mapping object either in new or in init and bound it to _mapping_mixin_
+    The implemention of the Mapping interface is delegated to _mapping_mixin_
+
+    .. Example:
+
+    >>> class Foo(MappingMixin):
+    ...     def __init__(self, attr, **kwargs):
+    ...         self._mapping_mixin_ = kwargs
+    ...         self.attr = attr
+    >>> obj = Foo(attr=1, spam=2)
+    >>> obj.attr, obj["spam"]
+    (1, 2)
+    >>> obj.pop("spam")
+    2
+    >>> len(obj), "spam" in obj
+    (0, False)
+    """
+    def __len__(self):
+        return len(self._mapping_mixin_)
+
+    def __iter__(self):
+        return self._mapping_mixin_.__iter__()
+
+    def __getitem__(self, key):
+        return self._mapping_mixin_[key]
+
+    def __setitem__(self, key, value):
+        self._mapping_mixin_[key] = value
+
+    def __contains__(self, key):
+        return key in self._mapping_mixin_
+
+    def keys(self):
+        return self._mapping_mixin_.keys()
+
+    def items(self):
+        return self._mapping_mixin_.items()
+
+    def get(self, value, default=None):
+        try:
+            return self[value]
+        except KeyError:
+            return default
+
+    def pop(self, k, *d):
+        """
+        D.pop(k[,d]) -> v, remove specified key and return the corresponding value.
+        If key is not found, d is returned if given, otherwise KeyError is raised
+        """
+        if d:
+            return self._mapping_mixin_.pop(k, d[0])
+        else:
+            return self._mapping_mixin_.pop(k)
+
+    def update(self, e, **f):
+        """
+        D.update([E, ]**F) -> None.  Update D from dict/iterable E and F.
+        If E present and has a .keys() method, does:     for k in E: D[k] = E[k]
+        If E present and lacks .keys() method, does:     for (k, v) in E: D[k] = v
+        In either case, this is followed by: for k in F: D[k] = F[k]
+        """
+        self._mapping_mixin_.update(e, **f)
+
+
+
+class Dataset(MappingMixin, Has_Structure):
     """
     This object stores the ABINIT variables for a single dataset.
     """
     # TODO this should be the "actual" input file
-    Error = InputError
+    Error = AbinitInputError
 
     def __init__(self, index, dt0, *args, **kwargs):
         self._mapping_mixin_ = collections.OrderedDict(*args, **kwargs)
@@ -678,7 +841,7 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         self._dt0 = dt0
 
     def __repr__(self):
-        "<%s at %s>" % (self.__class__.__name__, id(self))
+        return "<%s at %s>" % (self.__class__.__name__, id(self))
 
     def __str__(self):
         return self.to_string()
@@ -715,20 +878,25 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         """Deepcopy of the `Dataset`"""
         return copy.deepcopy(self)
 
-    #@property
-    #def geoformat(self):
-    #    """
-    #    angdeg if the crystalline structure should be specified with angdeg and acell, 
-    #    rprim otherwise (default format)
-    #    """
-    #    try:
-    #        return self._geoformat
-    #    except AttributeError
-    #        return "rprim" # default
-    #                                                                                    
-    #def set_geoformat(self, format):
-    #    assert format in ["angdeg", "rprim"]
-    #    self._geoformat = format
+    #@abc.property
+    #def runlevel(self):
+    #    """String defining the Runlevel. See _runl2optdriver."""
+    # Mapping runlevel --> optdriver variable
+    #_runl2optdriver = {
+    #    "scf": 0,
+    #    "nscf": 0,
+    #    "relax": 0,
+    #    "dfpt": 1,
+    #    "screening": 3,
+    #    "sigma": 4,
+    #    "bse": 99,
+    #}
+    #    # Find the value of optdriver (firt in self, then in globals finally use default value.
+    #    optdriver = self.get("optdriver")
+    #    if optdriver is None: optdriver = self.dt0.get("optdriver")
+    #    if optdriver is None: optdriver = 0
+
+    #    # At this point we have to understand the type of calculation.
 
     def set_mnemonics(self, boolean):
         """True if mnemonics should be printed"""
@@ -778,7 +946,6 @@ class Dataset(mixins.MappingMixin, Has_Structure):
 
         with_mnemonics = self.mnemonics
         if with_mnemonics:
-            from .abivars_db import get_abinit_variables
             var_database = get_abinit_variables()
 
         for var in keys:
@@ -836,7 +1003,6 @@ class Dataset(mixins.MappingMixin, Has_Structure):
                 msg = "%s is already defined with a different value:\nOLD:\n %s,\nNEW\n %s" % (
                     varname, str(self[varname]), str(value))
                 logger.debug(msg)
-                #logger.critical(msg)
 
         self[varname] = value
 
@@ -881,6 +1047,7 @@ class Dataset(mixins.MappingMixin, Has_Structure):
     @property
     def structure(self):
         """Returns the :class:`Structure` associated to this dataset."""
+        # TODO: Avoid calling Structure.from_abivars, find a way to cache the object and invalidate it.
         return Structure.from_abivars(self.allvars)
         # Cannot use lazy properties here because we may want to change the structure
 
@@ -894,8 +1061,7 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         #    return self._structure
 
     def set_structure(self, structure):
-        if is_string(structure): structure = Structure.from_file(filepath)
-        if isinstance(structure, collections.Mapping): structure = Structure.from_abivars(**structure)
+        structure = Structure.as_structure(structure)
 
         self._structure = structure
         if structure is None: return
@@ -914,10 +1080,7 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         """
         shiftk = np.reshape(shiftk, (-1,3))
         
-        self.set_vars(ngkpt=ngkpt,
-                      kptopt=kptopt,
-                      nshiftk=len(shiftk),
-                      shiftk=shiftk)
+        self.set_vars(ngkpt=ngkpt, kptopt=kptopt, nshiftk=len(shiftk), shiftk=shiftk)
 
     def set_autokmesh(self, nksmall, kptopt=1):
         """
@@ -929,10 +1092,8 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         """
         shiftk = self.structure.calc_shiftk()
         
-        self.set_vars(ngkpt=self.structure.calc_ngkpt(nksmall),
-                      kptopt=kptopt,
-                      nshiftk=len(shiftk),
-                      shiftk=shiftk)
+        self.set_vars(ngkpt=self.structure.calc_ngkpt(nksmall), kptopt=kptopt, 
+                      nshiftk=len(shiftk), shiftk=shiftk)
 
     def set_kpath(self, ndivsm, kptbounds=None, iscf=-2):
         """
@@ -943,15 +1104,10 @@ class Dataset(mixins.MappingMixin, Has_Structure):
             kptbounds: k-points defining the path in k-space.
                 If None, we use the default high-symmetry k-path defined in the pymatgen database.
         """
-        if kptbounds is None:
-            kptbounds = self.structure.calc_kptbounds()
-
+        if kptbounds is None: kptbounds = self.structure.calc_kptbounds()
         kptbounds = np.reshape(kptbounds, (-1,3))
 
-        self.set_vars(kptbounds=kptbounds,
-                      kptopt=-(len(kptbounds)-1),
-                      ndivsm=ndivsm,
-                      iscf=iscf)
+        self.set_vars(kptbounds=kptbounds, kptopt=-(len(kptbounds)-1), ndivsm=ndivsm, iscf=iscf)
 
     def set_kptgw(self, kptgw, bdgw):
         """
@@ -965,9 +1121,7 @@ class Dataset(mixins.MappingMixin, Has_Structure):
         """
         kptgw = np.reshape(kptgw, (-1,3))
         nkptgw = len(kptgw)
-
-        if len(bdgw) == 2:
-            bdgw = len(kptgw) * bdgw
+        if len(bdgw) == 2: bdgw = len(kptgw) * bdgw
 
         self.set_vars(kptgw=kptgw, nkptgw=nkptgw, bdgw=np.reshape(bdgw, (nkptgw, 2)))
 
@@ -1032,12 +1186,10 @@ class LdauParams(object):
             unit: Energy unit of U and J.
         """
         if symbol not in self.symbols_by_typat:
-            err_msg = "Symbol %s not in symbols_by_typat:\n%s" % (symbol, self.symbols_by_typat)
-            raise ValueError(err_msg)
+            raise ValueError("Symbol %s not in symbols_by_typat:\n%s" % (symbol, self.symbols_by_typat))
 
         if symbol in self._params:
-            err_msg = "Symbol %s is already present in LdauParams! Cannot overwrite:\n" % symbol
-            raise ValueError(err_msg)
+            raise ValueError("Symbol %s is already present in LdauParams! Cannot overwrite:\n" % symbol)
 
         self._params[symbol] = LujForSpecie(l=l, u=u, j=j, unit=unit)
 
@@ -1073,13 +1225,13 @@ class LexxParams(object):
     (see `to_abivars`). The LEXX operator will be applied only on the atomic species 
     that have been selected by calling `lexx_for_symbol`.
 
-    To perform a LEXX calculation for NiO in which the LEXX is compute only for the l=2
+    To perform a LEXX calculation for NiO in which the LEXX is computed only for the l=2
     channel of the nickel atoms:
                                                                          
     .. code-block:: python
 
         lexx_params = LexxParams(nio_structure)
-        lexx_params.lexx_for_symbol("Ni", l=2)                                                                         
+        lexx_params.lexx_for_symbol("Ni", l=2)
 
         print(lexc_params.to_abivars())
     """
@@ -1108,8 +1260,7 @@ class LexxParams(object):
             raise ValueError(err_msg)
 
         if symbol in self._lexx_for_symbol:
-            err_msg = "Symbol %s is already present in LdauParams! Cannot overwrite:\n" % symbol
-            raise ValueError(err_msg)
+            raise ValueError("Symbol %s is already present in LdauParams! Cannot overwrite:" % symbol)
 
         self._lexx_for_symbol[symbol] = l
 
@@ -1147,8 +1298,7 @@ def input_gen(inp, **kwargs):
     """
     for new_vars in product_dict(kwargs):
         new_inp = inp.deepcopy()
-        # Remove the variable names to avoid annoying warnings.
-        # if the variable is overwritten.
+        # Remove the variable names to avoid annoying warnings if the variable is overwritten.
         new_inp.remove_vars(new_vars.keys())
         new_inp.set_vars(**new_vars)
 
@@ -1171,11 +1321,11 @@ def product_dict(d):
     ... {'bar': 2, 'foo': 4}]
     True
 
-    .. warning::
+    .. warning:
 
         Dictionaries are not ordered, therefore one cannot assume that 
         the order of the keys in the output equals the one used to loop.
-        If the order is important, one should pass a `OrderedDict` in input
+        If the order is important, one should pass a :class:`OrderedDict` in input.
     """
     keys, vals = d.keys(), d.values()
 
@@ -1195,375 +1345,3 @@ def product_dict(d):
         vars_prod.append(dprod)
 
     return vars_prod
-
-
-class AnaddbInput(mixins.MappingMixin, Has_Structure):
-    #TODO: Abstract interface so that we can provide tools for AbinitInput and AnaddbInput
-    #removevariable
-    Error = InputError
-
-    @classmethod
-    def modes_at_qpoint(cls, structure, qpoint, asr=2, chneut=1, dipdip=1):
-        """
-        Input file for the calculation of the phonon frequencies at a given q-point.
-
-        Args:
-            Structure: :class:`Structure` object
-            qpoint: Reduced coordinates of the q-point where phonon frequencies and modes are wanted
-            asr, chneut, dipdp: Anaddb input variable. See official documentation.
-            kwargs:
-        """
-        new = cls(structure, comment="ANADB input for the computation of phonon frequencies for one q-point")
-
-        new.set_vars(
-            ifcflag=1,        # Interatomic force constant flag
-            asr=asr,          # Acoustic Sum Rule
-            chneut=chneut,    # Charge neutrality requirement for effective charges.
-            dipdip=dipdip,    # Dipole-dipole interaction treatment
-            # This part if fixed
-            ngqpt=(1, 1,  1), 
-            nqshft=1,         
-            q1shft=qpoint,
-            nqpath=2,
-            qpath=list(qpoint) + [0, 0, 0],
-            ndivsm=1
-            )
-
-        return new
-
-    #@classmethod
-    #def phbands(cls, structure, ngqpt, nqsmall, q1shft=(0,0,0),
-    #          asr=2, chneut=0, dipdip=1, dos_method="tetra", **kwargs):
-    #    """
-    #    Build an anaddb input file for the computation of phonon band structure.
-    #    """
-
-    #@classmethod
-    #def phdos(cls, structure, ngqpt, nqsmall, q1shft=(0,0,0),
-    #          asr=2, chneut=0, dipdip=1, dos_method="tetra", **kwargs):
-    #    """
-    #    Build an anaddb input file for the computation of phonon DOS.
-    #    """
-
-    @classmethod
-    def phbands_and_dos(cls, structure, ngqpt, nqsmall, ndivsm=20, q1shft=(0,0,0),
-                        qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", **kwargs):
-        """
-        Build an anaddb input file for the computation of phonon bands and phonon DOS.
-
-        Args:
-            structure: :class:`Structure` object
-            ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
-            nqsmall: Used to generate the (dense) mesh for the DOS.
-                It defines the number of q-points used to sample the smallest lattice vector.
-            ndivsm: Used to generate a normalized path for the phonon bands.
-                If gives the number of divisions for the smallest segment of the path.
-            q1shft: Shifts used for the coarse Q-mesh
-            qptbounds Boundaries of the path. If None, the path is generated from an internal database
-                depending on the input structure.
-            asr, chneut, dipdp: Anaddb input variable. See official documentation.
-            dos_method: Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
-                In the later case, the value 0.001 eV is used as gaussian broadening
-        """
-        dosdeltae, dossmear = None, None
-
-        if dos_method == "tetra":
-            prtdos = 2
-        elif "gaussian" in dos_method:
-            prtdos = 1
-            i = dos_method.find(":")
-            if i != -1:
-                value, eunit = dos_method[i+1:].split()
-                dossmear = Energy(float(value), eunit).to("Ha")
-        else:
-            raise cls.Error("Wrong value for dos_method: %s" % dos_method)
-
-        new = cls(structure, comment="ANADB input for phonon bands and DOS", **kwargs)
-
-        # Parameters for the dos.
-        new.set_autoqmesh(nqsmall)
-        new.set_vars(
-            prtdos=prtdos,
-            dosdeltae=dosdeltae,
-            dossmear=dossmear,
-        )
-
-        new.set_qpath(ndivsm, qptbounds=qptbounds)
-        q1shft = np.reshape(q1shft, (-1, 3))
-
-        new.set_vars(
-            ifcflag=1,
-            ngqpt=np.array(ngqpt),
-            q1shft=q1shft,
-            nqshft=len(q1shft),
-            asr=asr,
-            chneut=chneut,
-            dipdip=dipdip,
-        )
-
-        return new
-
-    @classmethod
-    def thermo(cls, structure, ngqpt, nqsmall, q1shft=(0, 0, 0), nchan=1250, nwchan=5, thmtol=0.5,
-               ntemper=199, temperinc=5, tempermin=5., asr=2, chneut=1, dipdip=1, ngrids=10, **kwargs):
-        """
-        Build an anaddb input file for the computation of phonon bands and phonon DOS.
-
-        Args:
-            structure: :class:`Structure` object
-            ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
-            nqsmall: Used to generate the (dense) mesh for the DOS.
-                It defines the number of q-points used to sample the smallest lattice vector.
-            q1shft: Shifts used for the coarse Q-mesh
-            nchan:
-            nwchan:
-            thmtol:
-            ntemper:
-            temperinc:
-            tempermin:
-            asr, chneut, dipdp: Anaddb input variable. See official documentation.
-            ngrids:
-            kwargs: Additional variables you may want to pass to Anaddb.
-
-            #!Flags
-            # ifcflag   1     ! Interatomic force constant flag
-            # thmflag   1     ! Thermodynamical properties flag
-            #!Wavevector grid number 1 (coarse grid, from DDB)
-            #  brav    2      ! Bravais Lattice : 1-S.C., 2-F.C., 3-B.C., 4-Hex.)
-            #  ngqpt   4  4  4   ! Monkhorst-Pack indices
-            #  nqshft  1         ! number of q-points in repeated basic q-cell
-            #  q1shft  3*0.0
-            #!Effective charges
-            #     asr   1     ! Acoustic Sum Rule. 1 => imposed asymetrically
-            #  chneut   1     ! Charge neutrality requirement for effective charges.
-            #!Interatomic force constant info
-            #  dipdip  1      ! Dipole-dipole interaction treatment
-            #!Wavevector grid number 2 (series of fine grids, extrapolated from interat forces)
-            #  ng2qpt   20 20 20  ! sample the BZ up to ngqpt2
-            #  ngrids   5         ! number of grids of increasing size#  q2shft   3*0.0
-            #!Thermal information
-            #  nchan   1250   ! # of channels for the DOS with channel width 1 cm-1
-            #  nwchan  5      ! # of different channel widths from this integer down to 1 cm-1
-            #  thmtol  0.120  ! Tolerance on thermodynamical function fluctuations
-            #  ntemper 10     ! Number of temperatures
-            #  temperinc 20.  ! Increment of temperature in K for temperature dependency
-            #  tempermin 20.  ! Minimal temperature in Kelvin
-            # This line added when defaults were changed (v5.3) to keep the previous, old behaviour
-            #  symdynmat 0
-
-        """
-        new = cls(structure, comment="ANADB input for thermodynamics", **kwargs)
-
-        new.set_autoqmesh(nqsmall)
-
-        q1shft = np.reshape(q1shft, (-1, 3))
-
-        new.set_vars(
-            ifcflag=1,
-            thmflag=1,
-            ngqpt=np.array(ngqpt),
-            ngrids=ngrids,
-            q1shft=q1shft,
-            nqshft=len(q1shft),
-            asr=asr,
-            chneut=chneut,
-            dipdip=dipdip,
-            nchan=nchan,
-            nwchan=nwchan,
-            thmtol=thmtol,
-            ntemper=ntemper,
-            temperinc=temperinc,
-            tempermin=tempermin,
-        )
-
-        return new
-
-    @classmethod
-    def modes(cls, structure, enunit=2, asr=2, chneut=1, **kwargs):
-        """
-        Build an anaddb input file for the computation of phonon modes.
-
-        Args:
-            Structure: :class:`Structure` object
-            ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
-            nqsmall: Used to generate the (dense) mesh for the DOS.
-                It defines the number of q-points used to sample the smallest lattice vector.
-            q1shft: Shifts used for the coarse Q-mesh
-            qptbounds Boundaries of the path. If None, the path is generated from an internal database
-                depending on the input structure.
-            asr, chneut, dipdp: Anaddb input variable. See official documentation.
-
-        #!General information
-        #enunit    2
-        #eivec     1
-        #!Flags
-        #dieflag   1
-        #ifcflag   1
-        #ngqpt     1 1 1
-        #!Effective charges
-        #asr       2
-        #chneut    2
-        # Wavevector list number 1
-        #nph1l     1
-        #qph1l   0.0  0.0  0.0    1.0   ! (Gamma point)
-        #!Wavevector list number 2
-        #nph2l     3      ! number of phonons in list 1
-        #qph2l   1.0  0.0  0.0    0.0
-        #        0.0  1.0  0.0    0.0
-        #        0.0  0.0  1.0    0.0
-        """
-        new = cls(structure, comment="ANADB input for modes", **kwargs)
-
-        new.set_vars(
-            enunit=enunit,
-            eivec=1,
-            ifcflag=1,
-            dieflag=1,
-            ngqpt=[1.0, 1.0, 1.0],
-            asr=asr,
-            chneut=chneut,
-            nph1l=1,
-            qph1l=[0.0, 0.0, 0.0, 1.0],
-            nph2l=3,
-            qph2l=[[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]]
-        )
-
-        return new
-
-    def __init__(self, structure, comment="", **kwargs):
-        """
-        Args:
-            structure: :class:`Structure` object 
-            comment: Optional string with a comment that will be placed at the beginning of the file.
-        """
-        self._structure = structure
-        self.comment = comment
-
-        for k in kwargs:
-            if not self.is_anaddb_var(k):
-                raise self.Error("%s is not a registered Anaddb variable" % k)
-
-        self._mapping_mixin_ = collections.OrderedDict(**kwargs)
-
-    @property
-    def vars(self):
-        """Dictionary with the Anaddb variables."""
-        return self._mapping_mixin_ 
-
-    @property
-    def structure(self):
-        return self._structure
-
-    def __repr__(self):
-        return "<%s at %s>" % (self.__class__.__name__, id(self))
-
-    def __str__(self):
-        return self.to_string()
-
-    def make_input(self):
-        return self.to_string()
-
-    def to_string(self, sortmode=None):
-        """
-        String representation.
-
-        Args:
-            sortmode: "a" for alphabetical order, None if no sorting is wanted
-        """
-        lines = []
-        app = lines.append
-
-        if self.comment:
-            app("# " + self.comment.replace("\n", "\n#"))
-
-        if sortmode is None:
-            # no sorting.
-            keys = self.keys()
-        elif sortmode == "a":
-            # alphabetical order.
-            keys = sorted(self.keys())
-        else:
-            raise ValueError("Unsupported value for sortmode %s" % str(sortmode))
-
-        for varname in keys:
-            value = self[varname]
-            app(str(InputVariable(varname, value)))
-
-        return "\n".join(lines)
-
-    def deepcopy(self):
-        """Deep copy of the input."""
-        return copy.deepcopy(self)
-
-    def set_var(self, varname, value):
-        """Set a single variable."""
-        if varname in self:
-            try:
-                iseq = (self[varname] == value)
-                iseq = np.all(iseq)
-            except ValueError:
-                # array like.
-                iseq = np.allclose(self[varname], value)
-            else:
-                iseq = False
-
-            if not iseq:
-                msg = "%s is already defined with a different value:\nOLD:\n %s,\nNEW\n %s" % (
-                    varname, str(self[varname]), str(value))
-                warnings.warn(msg)
-
-        if not self.is_anaddb_var(varname):
-            raise self.Error("%s is not a valid ANADDB variable." % varname)
-
-        self[varname] = value
-
-    # Alias 
-    set_variable = set_var
-    set_variable = deprecated(replacement=set_var)(set_variable)
-
-    def set_vars(self, *args, **kwargs):
-        """Set the value of the variables"""
-        kwargs.update(dict(*args))
-        for varname, varvalue in kwargs.items():
-            self.set_var(varname, varvalue)
-
-    # Alias 
-    set_variables = set_vars
-    set_variables = deprecated(replacement=set_vars)(set_variables)
-
-    def add_extra_abivars(self, abivars):
-        """
-        This method is needed in order not to break the API used for strategies
-
-        Connection is explicit via the input file
-        since we can pass the paths of the output files
-        produced by the previous runs.
-        """
-
-    @staticmethod
-    def is_anaddb_var(varname):
-        """"True if varname is a valid anaddb variable."""
-        return is_anaddb_var(varname)
-
-    def set_qpath(self, ndivsm, qptbounds=None):
-        """
-        Set the variables for the computation of the phonon band structure.
-
-        Args:
-            ndivsm: Number of divisions for the smallest segment.
-            qptbounds: q-points defining the path in k-space.
-                If None, we use the default high-symmetry k-path defined in the pymatgen database.
-        """
-        if qptbounds is None: qptbounds = self.structure.calc_kptbounds()
-        qptbounds = np.reshape(qptbounds, (-1, 3))
-
-        self.set_vars(ndivsm=ndivsm, nqpath=len(qptbounds), qpath=qptbounds)
-
-    def set_autoqmesh(self, nqsmall):
-        """
-        Set the variable nqpt for the sampling of the BZ.
-
-        Args:
-            nqsmall: Number of divisions used to sample the smallest lattice vector.
-        """
-        self.set_vars(ng2qpt=self.structure.calc_ngkpt(nqsmall))

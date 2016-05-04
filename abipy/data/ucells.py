@@ -1,5 +1,5 @@
 """Database of unit cells in the ABINIT format."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 from abipy.abilab import Structure, ArrayWithUnit
 
@@ -47,6 +47,17 @@ _UCELLS = {
                acell=3*[7.60],
                rprim=[[0.0,  0.5,  0.5],   
                       [0.5,  0.0,  0.5],  
+                      [0.5,  0.5,  0.0]],
+               xred=[ [0.0 , 0.0 , 0.0]],
+                    ),
+
+    "Al-negative-volume": dict(ntypat=1,         
+               natom=1,
+               typat=[1],
+               znucl=13,         
+               acell=3*[7.60],
+               rprim=[[0.0,  0.5,  0.5],   
+                      [-0.5,  -0.0,  -0.5],  
                       [0.5,  0.5,  0.0]],
                xred=[ [0.0 , 0.0 , 0.0]],
                     ),
@@ -127,6 +138,26 @@ _UCELLS = {
                    znucl=26,
                    xred=[0.0, 0.0, 0.0],
                   ),
+    "SiO2-alpha": dict(natom=9,                       
+                  typat=3*[1] + 6*[2],                       
+                  acell=ArrayWithUnit([4.91304,  4.91304, 5.40463], "ang").to("bohr"),
+                  rprim=[ 5.0000000000e-01, -8.6602540378e-01,  0.0000000000e+00,
+                          5.0000000000e-01,  8.6602540378e-01,  0.0000000000e+00,
+                          0.0000000000e+00,  0.0000000000e+00,  1.0000000000e+00],
+                  znucl=[14, 8],
+                  # Experimental parameters (Wyckoff pag 312)
+                  # u(Si)= 0.465
+                  # x= 0.415 ; y= 0.272 ; z= 0.120
+                  xred=[ 0.465,   0.000,   0.000             , #Si
+                         0.000,   0.465,   2/3               , #Si
+                        -0.465,  -0.465,   1/3               , #Si
+                         0.415,   0.272,   0.120             , #O
+                        -0.143,  -0.415,   0.4533333333333333, #O
+                        -0.272,   0.143,   0.7866666666666666, #O
+                         0.143,  -0.272,  -0.120             , #O
+                         0.272,   0.415,   0.5466666666666666, #O
+                        -0.415,  -0.143,   0.2133333333333333] #O
+             ),
 }
 
 #dict(natom=,                       

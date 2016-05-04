@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Extract the names of the entities defined in a fortran datatype."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import re

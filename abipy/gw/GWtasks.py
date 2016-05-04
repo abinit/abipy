@@ -1,6 +1,5 @@
 # coding: utf-8
-
-from __future__ import division, unicode_literals, print_function
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 """
 GW tasks for fireworks workflows, currently Vasp only
@@ -22,8 +21,8 @@ import subprocess
 import socket
 
 from pymatgen.core.structure import Structure
-from pymatgen.io.vaspio.GWvaspinputsets import SingleVaspGWWork
-from pymatgen.io.vaspio.GWvaspinputsets import GWG0W0VaspInputSet
+from pymatgen.io.vasp.GWvaspinputsets import SingleVaspGWWork
+from pymatgen.io.vasp.GWvaspinputsets import GWG0W0VaspInputSet
 
 try:
     from fireworks.core.firework import FireTaskBase, FWAction

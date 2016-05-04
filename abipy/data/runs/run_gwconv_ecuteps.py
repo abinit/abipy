@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """G0W0 convergence study wrt ecuteps and the number of bands in W."""
-from __future__ import division, print_function, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import os
@@ -15,10 +15,10 @@ def make_inputs(paral_kgb=1):
     These files are then used as templates for the convergence study
     wrt ecuteps and the number of bands in W.
     """
-    structure = abidata.structure_from_ucell("SiC")
-    pseudos = abidata.pseudos("14si.pspnc", "6c.pspnc")
-    ecut = 12
+    multi = abilab.MultiDataset(abidata.structure_from_ucell("SiC"), 
+                                pseudos=abidata.pseudos("14si.pspnc", "6c.pspnc"), ndtset=4)
 
+    ecut = 12
     global_vars = dict(
         ecut=ecut,
         istwfk="*1",
@@ -30,24 +30,24 @@ def make_inputs(paral_kgb=1):
     ngkpt = [4, 4, 4]
     shiftk = [0, 0, 0]
 
-    inp = abilab.AbiInput(pseudos=pseudos, ndtset=4)
+    multi.set_vars(global_vars)
+    multi.set_kmesh(ngkpt=ngkpt, shiftk=shiftk)
 
-    inp.set_structure(structure)
-    inp.set_vars(**global_vars)
-    inp.set_kmesh(ngkpt=ngkpt, shiftk=shiftk)
-
-    inp[1].set_vars(
+    # SCF
+    multi[0].set_vars(
         nband=10,
         tolvrs=1.e-8,
     )
 
-    inp[2].set_vars(
+    # NSCF
+    multi[1].set_vars(
         nband=25,
         tolwfr=1.e-8,
         iscf=-2
     )
 
-    inp[3].set_vars(
+    # SCR
+    multi[2].set_vars(
         optdriver=3,
         ecutwfn=ecut,
         nband=20,
@@ -56,7 +56,8 @@ def make_inputs(paral_kgb=1):
         ecuteps=ecuteps,
     )
         
-    inp[4].set_vars(
+    # SIGMA
+    multi[3].set_vars(
         optdriver=4,
         nband=20,
         ecutwfn=ecut,
@@ -66,9 +67,9 @@ def make_inputs(paral_kgb=1):
         ecuteps=ecuteps,
         )
 
-    inp[4].set_kptgw(kptgw=[[0,0,0], [0.5, 0, 0]], bdgw=[1, 8])
+    multi[3].set_kptgw(kptgw=[[0,0,0], [0.5, 0, 0]], bdgw=[1, 8])
 
-    return inp.split_datasets()
+    return multi.split_datasets()
 
 
 def build_flow(options):
@@ -77,17 +78,13 @@ def build_flow(options):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
-
     # Get our templates
     scf_inp, nscf_inp, scr_inp, sig_inp = make_inputs()
     
     ecuteps_list = np.arange(2, 8, 2)
     max_ecuteps = max(ecuteps_list)
 
-    flow = abilab.Flow(workdir=workdir, manager=manager)
+    flow = abilab.Flow(workdir=workdir, manager=options.manager, remove=options.remove)
 
     # Band structure work to produce the WFK file
     bands = abilab.BandStructureWork(scf_inp, nscf_inp)
@@ -114,7 +111,7 @@ def build_flow(options):
         sigma_conv = abilab.SigmaConvWork(wfk_node=bands.nscf_task, scr_node=scr_task, sigma_inputs=sigma_inputs)
         flow.register_work(sigma_conv)
 
-    return flow.allocate()
+    return flow
 
 
 @abilab.flow_main

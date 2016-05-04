@@ -19,7 +19,7 @@ The output produced by Sphinx can be configured by editing the :file:`conf.py` f
 
 
 Organization of abipy's documentation
-==========================================
+=====================================
 
 The actual ReStructured Text files are kept in :file:`docs/users`, :file:`docs/devel`, :file:`docs/api`. 
 The main entry point is :file:`docs/index.rst`, which pulls in the :file:`index.rst` 

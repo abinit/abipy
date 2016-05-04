@@ -2,7 +2,7 @@
 """
 Band structure of silicon in a distorted geometry (frozen phonon at q=0)
 """
-from __future__ import division, print_function, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import os
@@ -12,23 +12,23 @@ import abipy.abilab as abilab
 
 
 def make_scf_nscf_inputs(structure, paral_kgb=1):
-    inp = abilab.AbiInput(pseudos=data.pseudos("14si.pspnc"), ndtset=2)
-    structure = inp.set_structure(structure)
+    multi = abilab.MultiDataset(structure, pseudos=data.pseudos("14si.pspnc"), ndtset=2)
 
     # Global variables
-    global_vars = dict(ecut=6,
-                       nband=8,
-                       timopt=-1,
-                       paral_kgb=0,
-                       #nstep=4, # This is not enough to converge. Used to test the automatic restart.
-                       nstep=10,
-                    )
+    global_vars = dict(
+        ecut=6,
+        nband=8,
+        timopt=-1,
+        paral_kgb=0,
+        #nstep=4, # This is not enough to converge. Used to test the automatic restart.
+        nstep=10,
+    )
 
-    inp.set_vars(**global_vars)
+    multi.set_vars(global_vars)
 
     # Dataset 1 (GS run)
-    inp[1].set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
-    inp[1].set_vars(tolvrs=1e-6)
+    multi[0].set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
+    multi[0].set_vars(tolvrs=1e-6)
 
     # Dataset 2 (NSCF run)
     kptbounds = [
@@ -37,11 +37,11 @@ def make_scf_nscf_inputs(structure, paral_kgb=1):
         [0.0, 0.5, 0.5], # X point
     ]
 
-    inp[2].set_kpath(ndivsm=6, kptbounds=kptbounds)
-    inp[2].set_vars(tolwfr=1e-12)
+    multi[1].set_kpath(ndivsm=6, kptbounds=kptbounds)
+    multi[1].set_vars(tolwfr=1e-12)
     
     # Generate two input files for the GS and the NSCF run 
-    scf_input, nscf_input = inp.split_datasets()
+    scf_input, nscf_input = multi.split_datasets()
 
     return scf_input, nscf_input
 
@@ -52,10 +52,6 @@ def build_flow(options):
     if not options.workdir: 
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
                                                                                                                          
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
-
     # build the structures
     base_structure = abilab.Structure.from_file(data.cif_file("si.cif"))
     modifier = abilab.StructureModifier(base_structure)
@@ -67,7 +63,7 @@ def build_flow(options):
 
     displaced_structures = modifier.displace(ph_displ, etas, frac_coords=False)
 
-    flow = abilab.Flow(workdir, manager=manager)
+    flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove)
 
     for structure in displaced_structures:
         # Create the work for the band structure calculation.
@@ -76,14 +72,14 @@ def build_flow(options):
         work = abilab.BandStructureWork(scf_input, nscf_input)
         flow.register_work(work)
 
-    return flow.allocate()
+    return flow
 
 
 @abilab.flow_main
 def main(options):
     flow = build_flow(options)
-    return flow.build_and_pickle_dump()
-
+    flow.build_and_pickle_dump()
+    return flow
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import wx
@@ -8,7 +8,7 @@ import wx.lib.mixins.listctrl as listmix
 import wx.lib.dialogs as wxdg
 
 from monty.string import is_string 
-from pymatgen.io.abinitio.pseudos import PseudoParser
+from pymatgen.io.abinit.pseudos import PseudoParser
 
 
 class MyListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
@@ -76,7 +76,7 @@ class PseudoListPanel(awx.Panel, listmix.ColumnSorterMixin):
         pseudo_list.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
 
         self.id2pseudo = {}
-        columns = self.columns = ["name", "symbol", "Z_val", "l_max", "rcore", "type"]
+        columns = self.columns = ["basename", "symbol", "Z_val", "l_max", "rcore", "type"]
 
         # Used to store the Max width in pixels for the data in the column.
         column_widths = [awx.get_width_height(self, s)[0] for s in columns]

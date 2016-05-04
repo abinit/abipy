@@ -1,6 +1,6 @@
 # coding: utf-8
 """Release data for the abipy project."""
-#from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals
 
 # Name of the package for release purposes.  This is the name which labels
 # the tarballs and RPMs made by distutils, so it's best to lowercase it.
@@ -23,6 +23,9 @@ __version__ = '.'.join(map(str, _ver))
 
 version = __version__  # backwards compatibility name
 
+# The minimum Abinit version compatible with AbiPy
+min_abinit_version = "8.0.1"
+
 description = "Python modules and scripts to analyze the results of ab-initio calculation performed with ABINIT"
 
 long_description = \
@@ -41,8 +44,9 @@ long_description = \
 
 license = 'GPL'
 
-authors = {'Matteo': ('Matteo Giantomassi', 'gmatteo at gmail.com'),
-           'Antonius': ('Gabriel Antonius', 'gabriel.antonius at gmail.com'),
+authors = {
+    'Matteo': ('Matteo Giantomassi', 'gmatteo at gmail.com'),
+    'Antonius': ('Gabriel Antonius', 'gabriel.antonius at gmail.com'),
 }
 
 author = 'The ABINIT group'
@@ -60,10 +64,10 @@ keywords = ["ABINIT", "ab initio", "first principles"]
 classifiers=[
     "Programming Language :: Python :: 2",
     "Programming Language :: Python :: 2.7",
-    "Programming Language :: Python :: 3",
+    #"Programming Language :: Python :: 3",
     #"Programming Language :: Python :: 3.2",
     #"Programming Language :: Python :: 3.3",
-    #"Programming Language :: Python :: 3.4",
+    "Programming Language :: Python :: 3.4",
     #"Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     #"License :: OSI Approved :: MIT License",

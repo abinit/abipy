@@ -1,52 +1,33 @@
 #!/usr/bin/env python
 """Band structure of silicon with the HT interface."""
-from __future__ import division, print_function, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import os
 import abipy.data as abidata  
 
 from abipy import abilab
-from pymatgen.io.abinitio.calculations import bandstructure_work
-
 
 def build_flow(options):
-    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
-
-    scf_kppa = 40
-    nscf_nband = 6
-    ndivsm = 5
-    #dos_ngkpt = [4,4,4]
-    #dos_shiftk = [0.1, 0.2, 0.3]
-
-    extra_abivars = dict(
-        ecut=6, 
-    )
 
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    # Instantiate the TaskManager.
-    manager = abilab.TaskManager.from_user_config() if not options.manager else \
-              abilab.TaskManager.from_file(options.manager)
+    # Initialize structure and pseudos.
+    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
+    pseudos = abidata.pseudos("14si.pspnc")
 
     # Initialize the flow.
-    flow = abilab.Flow(workdir=workdir, manager=manager)
+    flow = abilab.Flow(workdir=workdir, manager=options.manager, remove=options.remove)
 
-    pseudos = abidata.pseudos("14si.pspnc")
-    work = bandstructure_work(structure,  pseudos, scf_kppa, nscf_nband, ndivsm, 
-                              spin_mode="unpolarized", smearing=None, **extra_abivars)
+    # Use ebands_input factory function to build inputs.
+    multi = abilab.ebands_input(structure, pseudos, kppa=40, nscf_nband=6, ndivsm=10, ecut=6)
+    work = abilab.BandStructureWork(scf_input=multi[0], nscf_input=multi[1])
 
     flow.register_work(work)
-    return flow.allocate()
-
-    #dos_kppa = 10
-    #bands = bandstructure_work("hello_dos", runmode, structure, pseudos, scf_kppa, nscf_nband,
-    #                      ndivsm, accuracy="normal", spin_mode="polarized",
-    #                      smearing="fermi_dirac:0.1 eV", charge=0.0, scf_solver=None,
-    #                      dos_kppa=dos_kppa)
+    return flow
 
 
 @abilab.flow_main

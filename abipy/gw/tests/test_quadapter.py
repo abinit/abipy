@@ -5,11 +5,10 @@ __author__ = 'setten'
 import os
 
 from pymatgen.util.testing import PymatgenTest
-from pymatgen.io.abinitio.tasks import TaskManager
+from pymatgen.io.abinit.flows import Flow
+from pymatgen.io.abinit.tasks import TaskManager
 
 test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
-
-from pymatgen.io.abinitio.flows import Flow
 
 
 class GWSpecTest(PymatgenTest):

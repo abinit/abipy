@@ -1,4 +1,4 @@
-.TH "$G_0W_0$ band structure with an energy\-dependent scissors operator" "" "" "" ""
+.TH $G_0W_0$ "" "" "band structure with an energy\-dependent scissors operator"
 .SH Background
 .PP
 Standard functionals (LDA and GGA), systematically underestimate band
@@ -22,7 +22,7 @@ In this lesson, we discuss how to use the MBPT part of ABINIT to compute
 the band\-structure of silicon within the so\-called $G_0W_0$
 approximation.
 .PP
-For a very brief introduction see
+For a very brief introduction to the many\-body formalism, see
 MBPTNNOTES (http://www.abinit.org/documentation/helpfiles/for-v7.10/tutorial/theory_mbt.html).
 .SH Related ABINIT variables
 .RS
@@ -42,10 +42,8 @@ gw_qprange
 all gw** variables
 .RE
 .PP
-At this place they will not be discussed in detail.
-In stead you are invited to read the abinit documentation on them.
-The full description, directly from the abinit description is available
-via the following function:
+The full description, directly from the abinit documentation, is
+available via the following shell command:
 .RS
 .IP
 .nf
@@ -55,5 +53,5 @@ abidoc.py\ man\ inputvariable
 .fi
 .RE
 .PP
-This will print the official abinit description of this inputvariable.
+This command will print the official description of inputvariable.
 .SH The course of this lesson

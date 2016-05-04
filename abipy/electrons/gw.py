@@ -1,6 +1,6 @@
 # coding: utf-8
 """Classes for the analysis of GW calculations."""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import copy
@@ -747,7 +747,11 @@ class SigresPlotter(Iterable):
             `matplotlib` figure
         """
         spin_range = range(self.nsppol) if spin is None else torange(spin)
-        kpoints_for_plot = self.computed_gwkpoints  #if kpoint is None else KpointList.as_kpoints(kpoint)
+
+        if kpoint is None:
+            kpoints_for_plot = self.computed_gwkpoints  #if kpoint is None else KpointList.as_kpoints(kpoint)
+        else:
+            kpoints_for_plot = np.reshape(kpoint, (-1, 3))
 
         self.prepare_plot()
 
@@ -784,7 +788,10 @@ class SigresPlotter(Iterable):
         """
         spin_range = range(self.nsppol) if spin is None else torange(spin)
         band_range = range(self.max_gwbstart, self.min_gwbstop) if band is None else torange(band)
-        kpoints_for_plot = self.computed_gwkpoints #if kpoint is None else KpointList.askpoints(kpoint)
+        if kpoint is None:
+            kpoints_for_plot = self.computed_gwkpoints 
+        else:
+            kpoints_for_plot = np.reshape(kpoint, (-1, 3))
 
         self.prepare_plot()
 
@@ -1251,7 +1258,7 @@ class SigresReader(ETSF_Reader):
     def kpt2fileindex(self, kpoint):
         """
         Helper function that returns the index of kpoint in the netcdf file.
-        Accepts `Kpoint` instance of integer
+        Accepts `Kpoint` instance or integer
 
         Raise:
             `KpointsError` if kpoint cannot be found.
@@ -1262,7 +1269,8 @@ class SigresReader(ETSF_Reader):
             with the total number of k-points in the IBZ.
         """
         if isinstance(kpoint, int):
-            kpoint = self.gwkpoints[kpoint]
+            return kpoint
+            #kpoint = self.gwkpoints[kpoint]
 
         try:
             return self.ibz.index(kpoint)

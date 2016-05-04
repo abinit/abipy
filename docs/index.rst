@@ -8,12 +8,12 @@ Overview
     :Date: |today|
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    users/index.rst
    examples/index.rst
-   devel/index.rst
    api/index.rst
+   devel/index.rst
 
 Indices and tables
 ==================
