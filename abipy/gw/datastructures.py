@@ -627,7 +627,10 @@ class GWConvergenceData():
         self.code_interface = get_code_interface(spec['code'])
         self.conv_res = {'control': {}, 'values': {}, 'derivatives': {}}
         self.full_res = {'all_done': False, 'grid': 0}
-        self.name = s_name(structure)
+        if structure is not None:
+            self.name = s_name(structure)
+        else:
+            self.name = 'notknown'
         self.type = {'parm_scr': False, 'full': False, 'single': False, 'test': False}
 
     def read_conv_res_from_file(self, filename):

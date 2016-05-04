@@ -1597,18 +1597,21 @@ class ElectronBandsPlotter(object):
                      coordinates of the k-points. The values are the labels.
                      e.g. klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
 
-        ==============  ==============================================================
+        ==============  ================================================================
         kwargs          Meaning
-        ==============  ==============================================================
-        xlim            x-axis limits. None (default) for automatic determination.
-        ylim            y-axis limits. None (default) for automatic determination.
-        ==============  ==============================================================
+        ==============  ================================================================
+        xlim            x-axis limits tuple. None (default) for automatic determination.
+        ylim            y-axis limits tuple. None (default) for automatic determination.
+        align           'cbm' allign all bandstructures at the cbm
+        ==============  ================================================================
 
         Returns:
             matplotlib figure.
         """
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
+
+        align = kwargs.pop("align", None)
 
         # Build grid of plots.
         if self.edoses_dict:
@@ -1639,7 +1642,16 @@ class ElectronBandsPlotter(object):
             my_kwargs.update(lineopt)
             opts_label[label] = my_kwargs.copy()
 
-            l = bands.plot_ax(ax1, spin=None, band=None, **my_kwargs)
+            if align == 'cbm':
+                fermie = bands.fermie
+                bands_shifted = copy.deepcopy(bands)
+                bands_shifted._eigens = bands_shifted._eigens - fermie
+                l = bands_shifted.plot_ax(ax1, spin=None, band=None, **my_kwargs)
+            else:
+                if align is not None:
+                    raise ValueError('values other than cbm, are not implemented for align')
+                l = bands.plot_ax(ax1, spin=None, band=None, **my_kwargs)
+
             lines.append(l[0])
 
             # Use relative paths if label is a file.
@@ -1664,13 +1676,23 @@ class ElectronBandsPlotter(object):
                 if neg:
                     ax1.scatter(neg.x, neg.y, s=np.abs(neg.s)*fact, marker="v", label=key + " <0")
 
-        ax1.legend(lines, legends, loc='best', shadow=True)
+        ax1.legend(lines, legends, loc='upper right', shadow=True)
+
+        #t = ElectronDOS()
+        #t.tot_dos._mesh
 
         # Add DOSes
         if self.edoses_dict:
             ax = ax_list[1]
             for (label, dos) in self.edoses_dict.items():
-                dos.plot_ax(ax, exchange_xy=True, **opts_label[label])
+                if align == 'cbm':
+                    dos_shifted = copy.deepcopy(dos)
+                    dos_shifted.tot_dos._mesh = dos_shifted.tot_dos._mesh - fermie
+                    dos_shifted.plot_ax(ax, exchange_xy=True, **opts_label[label])
+                else:
+                    if align is not None:
+                        raise ValueError('values other than cbm, are not implemented for align')
+                    dos.plot_ax(ax, exchange_xy=True, **opts_label[label])
 
         return fig
 

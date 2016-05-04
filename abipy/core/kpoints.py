@@ -690,7 +690,7 @@ class IrredZone(KpointList):
             err_msg += "The list of kpoints does not represent a homogeneous sampling of the BZ\n" 
             #err_msg += str(type(self)) + "\n" + str(self)
             #raise ValueError(err_msg)  # GA : Should not prevent a band structure from being read!
-            logger.warning(err_msg)
+            #logger.warning(err_msg)
 
         # FIXME
         # Quick and dirty hack to allow the reading of the k-points from WFK files
