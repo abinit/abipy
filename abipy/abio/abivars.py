@@ -56,11 +56,11 @@ def is_abivar(s):
     return s in ABI_VARNAMES
 
 
-ABI_UNIT_NAMES = set([s.lower() for s in (
+ABI_UNIT_NAMES = {s.lower() for s in (
 "au", 
 "Angstr", "Angstrom", "Angstroms", "Bohr", "Bohrs", 
 "eV", "Ha", "Hartree", "Hartrees", "K", "Ry", "Rydberg", "Rydbergs", 
-"T", "Tesla")])
+"T", "Tesla")}
 
 def is_abiunit(s):
     """True if s is one of the units supported by the ABINIT parser"""

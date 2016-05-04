@@ -254,7 +254,7 @@ class TestMultiDataset(AbipyTest):
         multi.addnew_from(0)
         assert multi.ndtset == 2 and multi[0] is not multi[1]
         assert multi[0].structure ==  multi[1].structure
-        assert not multi[0].structure is multi[1].structure
+        assert multi[0].structure is not multi[1].structure
 
         multi.set_vars(ecut=2)
         assert all(inp["ecut"] == 2 for inp in multi)

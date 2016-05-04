@@ -491,7 +491,6 @@ Specify the files to open. Possible choices:
 
         sys.exit(0)
 
-
     patch_nids = False
     if options.flowdir is None:
         # Will try to figure out the location of the Flow.

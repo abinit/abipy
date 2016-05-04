@@ -153,7 +153,7 @@ class SimpleGrid(CopyPasteGrid):
         self.Bind(wx.EVT_IDLE, self.OnIdle)
         
         self.nrows = nrows = len(table)
-        dims = set([len(row) for row in table])
+        dims = {len(row) for row in table}
         if len(dims) == 1:
             self.ncols = ncols = list(dims)[0]
         else:
