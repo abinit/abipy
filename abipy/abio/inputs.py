@@ -1112,7 +1112,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         # in case of a restart we need to remove the paralel configuration before we rerun autoparalel
         vars = ['npkpt', 'npfft', 'npband', 'npspinor', 'npimage']
         if all:
-            vars.append('gwparal')
+            vars.append('gwpara')
         popped = {}
         for var in vars:
             popped[var] = self.pop(var, None)
