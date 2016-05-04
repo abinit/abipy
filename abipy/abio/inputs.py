@@ -207,7 +207,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, PMGSONable, Has
             pseudo_dir = os.path.abspath(pseudo_dir)
             if not os.path.exists(pseudo_dir): raise self.Error("Directory  %s does not exist")
             pseudos = [os.path.join(pseudo_dir, p) for p in list_strings(pseudos)]
-
+        print(pseudos)
+        print(self.structure)
         try:
             self._pseudos = PseudoTable.as_table(pseudos).get_pseudos_for_structure(self.structure)
         except ValueError as exc:
