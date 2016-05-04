@@ -8,12 +8,8 @@ import pymatgen.io.abinit.abiobjects as aobj
 from collections import namedtuple
 from monty.collections import AttrDict
 from monty.json import jsanitize, MontyDecoder
-<<<<<<< HEAD
-from pymatgen.io.abinitio.pseudos import PseudoTable
-from pymatgen.io.abinitio.abiobjects import KSampling
-=======
+from pymatgen.io.abinit.abiobjects import KSampling
 from pymatgen.io.abinit.pseudos import PseudoTable
->>>>>>> matteosabipy/master
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
 from abipy.abio.input_tags import *

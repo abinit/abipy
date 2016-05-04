@@ -20,15 +20,15 @@ __date__ = "May 2014"
 import os
 import os.path
 import copy
-from pymatgen.io.abinitio.flows import Flow
+from pymatgen.io.abinit.flows import Flow
 #from pymatgen.io.abinitio.calculations import g0w0_extended_work
-from pymatgen.io.abinitio.tasks import TaskManager
-from pymatgen.io.abinitio.pseudos import PseudoTable
-from pymatgen.io.abinitio.helpers import now, s_name, expand, read_grid_from_file, is_converged
-from pymatgen.io.abinitio.helpers import read_extra_abivars
+from pymatgen.io.abinit.tasks import TaskManager
+from pymatgen.io.abinit.pseudos import PseudoTable
+from pymatgen.io.abinit.helpers import now, s_name, expand, read_grid_from_file, is_converged
+from pymatgen.io.abinit.helpers import read_extra_abivars
 from abipy.gw.GWtasks import *
 from abipy.abio.factories import g0w0_extended_inputs
-from pymatgen.io.abinitio.works import G0W0Work
+from pymatgen.io.abinit.works import G0W0Work
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 logger = logging.getLogger(__name__)
