@@ -1,11 +1,10 @@
 """This module contains lookup table with the name of the ABINIT variables."""
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-import os
 import json
 import numpy as np
+import logging
 
-from collections import namedtuple #Sequence, Mapping, 
 from monty.string import is_string
 from monty.functools import lazy_property
 from pymatgen.core.units import bohr_to_ang
@@ -19,13 +18,10 @@ __all__ = [
     "is_abiunit",
 ]
 
-
-import logging
 logger = logging.getLogger(__name__)
 
-
-
 _anaddb_varnames = None
+
 
 def _get_anaddb_varnames():
     global _anaddb_varnames 
@@ -45,6 +41,7 @@ def is_anaddb_var(varname):
 
 ABI_VARNAMES = None
 
+
 def is_abivar(s):
     """True if s is an ABINIT variable."""
     global ABI_VARNAMES
@@ -57,10 +54,11 @@ def is_abivar(s):
 
 
 ABI_UNIT_NAMES = set([s.lower() for s in (
-"au", 
-"Angstr", "Angstrom", "Angstroms", "Bohr", "Bohrs", 
-"eV", "Ha", "Hartree", "Hartrees", "K", "Ry", "Rydberg", "Rydbergs", 
-"T", "Tesla")])
+    "au",
+    "Angstr", "Angstrom", "Angstroms", "Bohr", "Bohrs",
+    "eV", "Ha", "Hartree", "Hartrees", "K", "Ry", "Rydberg", "Rydbergs",
+    "T", "Tesla")])
+
 
 def is_abiunit(s):
     """True if s is one of the units supported by the ABINIT parser"""
@@ -70,6 +68,7 @@ def is_abiunit(s):
 
 
 ABI_OPERATORS = set(["sqrt", ])
+
 
 def is_abioperator(s):
     """True is string contains one of the operators supported by the ABINIT parser."""
@@ -221,7 +220,6 @@ def eval_operators(s):
     #>>> re.sub(r'\sAND\s', ' & ', 'Baked Beans And Spam', flags=re.IGNORECASE)
     #'Baked Beans & Spam'
 
-    
     return s
 
 
@@ -352,7 +350,6 @@ class AbinitInputFile(object):
         if dvars:
             raise ValueError("Don't know how handle variables in %s" % str(dvars))
 
-
     def __str__(self):
         return self.string
 
@@ -397,7 +394,7 @@ def parse_abinit_string(s):
         i = tokens.index("ndtset")
     except ValueError:
         i = None
-    ndtset = 1 if i is None else int(tokens[i+1])
+    #ndtset = 1 if i is None else int(tokens[i+1])
 
     varpos = []
     for pos, tok in enumerate(tokens):
@@ -412,7 +409,7 @@ def parse_abinit_string(s):
                 continue
 
             # new variable
-            dtidx = None
+            #dtidx = None
 
             if tok[-1].isdigit() and "?" not in tok:
                 # Handle dataset index.
@@ -424,8 +421,8 @@ def parse_abinit_string(s):
                     raise ValueError("Cannot find dataset index in %s" % tok)
 
                 l.reverse()
-                dtidx = int("".join(l))
-                tok = tok[:len(tok)-i-1]
+                #dtidx = int("".join(l))
+                #tok = tok[:len(tok)-i-1]
 
             varpos.append(pos)
 

@@ -1,26 +1,20 @@
 from __future__ import division, print_function, unicode_literals
-
-__author__ = 'setten'
-
-import unittest
 import os
 import shutil
-import subprocess
-
 import tempfile
 import abipy.data as abidata
 from pymatgen.util.testing import PymatgenTest
-from pymatgen.core.structure import Structure
-from pymatgen.io.vasp.GWvaspinputsets import GWDFTDiagVaspInputSet, GWG0W0VaspInputSet, GWscDFTPrepVaspInputSet
-from pymatgen.io.vasp.GWvaspinputsets import SingleVaspGWWork
-from abipy.gw.datastructures import GWSpecs, GWConvergenceData, get_spec
-from abipy.gw.codeinterfaces import AbinitInterface, VaspInterface, get_code_interface
-from abipy.gw.tests.test_helpers import structure
-
-#test_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "..",'test_files')
-
+# from pymatgen.core.structure import Structure
+# from pymatgen.io.vasp.GWvaspinputsets import GWDFTDiagVaspInputSet, GWG0W0VaspInputSet, GWscDFTPrepVaspInputSet
+# from pymatgen.io.vasp.GWvaspinputsets import SingleVaspGWWork
+from abipy.gw.datastructures import GWSpecs, get_spec  # , GWConvergenceData
+# from abipy.gw.codeinterfaces import AbinitInterface, VaspInterface, get_code_interface
+# from abipy.gw.tests.test_helpers import structure
 from pymatgen.io.vasp.inputs import get_potcar_dir
 POTCAR_DIR = get_potcar_dir()
+
+
+__author__ = 'setten'
 
 
 class GWSetupTest(PymatgenTest):
@@ -49,8 +43,8 @@ class GWSetupTest(PymatgenTest):
 
         spec_in.write_to_file('spec.in')
         
-        #broken due to strategy refactoring
-        #spec_in.loop_structures('i')
+        # broken due to strategy refactoring
+        # spec_in.loop_structures('i')
 
         os.chdir(base)
 

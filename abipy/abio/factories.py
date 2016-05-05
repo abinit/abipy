@@ -417,7 +417,8 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
 
     return multi
 
-#TODO
+
+# TODO
 def g0w0_extended_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx, scf_nband, accuracy="normal",
                        spin_mode="polarized", smearing="fermi_dirac:0.1 eV", response_models=["godby"], charge=0.0,
                        inclvkb=2, scr_nband=None, sigma_nband=None, workdir=None, manager=None, gamma=True, nksmall=20,
@@ -464,13 +465,13 @@ def g0w0_extended_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx
             scf_ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=(0, 0, 0))
             nscf_ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=(0, 0, 0))
     else:
-        #this is the original behaviour before the devellopment of the gwwrapper
+        # this is the original behaviour before the devellopment of the gwwrapper
         scf_ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0)
         nscf_ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0)
 
     scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                    charge=charge, nband=scf_nband, fband=None)
-  
+
     multis = []
 
     to_add = {}
@@ -486,7 +487,7 @@ def g0w0_extended_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx
             values = extra_abivars.pop(k)
             to_add.update({k: values[-1]})
             for value in values:
-		diff_abivars = {}
+                diff_abivars = dict()
                 diff_abivars[var] = value
                 diff_abivars['pawecutdg'] = diff_abivars['ecut']*2
                 scf_diffs.append(diff_abivars)
@@ -506,10 +507,10 @@ def g0w0_extended_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx
     multi_scf.set_vars(scf_electrons.to_abivars())
     multi_scf.set_vars(extra_abivars)
     for vars, abinput in zip(scf_diffs, multi_scf):
-	print(type(vars), type(abinput))
-        abinput.set_vars(vars)   
+        print(type(vars), type(abinput))
+        abinput.set_vars(vars)
  
-#multi_scf.set_vars(smearing.to_abivars())
+    # multi_scf.set_vars(smearing.to_abivars())
 
     multis.append(multi_scf)
 

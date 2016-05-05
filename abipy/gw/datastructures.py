@@ -62,7 +62,7 @@ class AbstractAbinitioSpec(MSONable):
                      'tol': 0.0001}
         self.warnings = []
         self.errors = []
-        self.update_code_interface()
+        self.code_interface = get_code_interface(self.get_code())
 
     def __getitem__(self, item):
         return self.data[item]
@@ -164,7 +164,7 @@ class AbstractAbinitioSpec(MSONable):
                 name = Structure.from_dict(c['icsd_data']['structure']).composition.reduced_formula, c['icsd_id'],\
                     c['MP_id']
                 print(name)
-                #Structure.from_dict(c['icsd_data']['structure']).to(fmt='cif',filename=name)
+                # Structure.from_dict(c['icsd_data']['structure']).to(fmt='cif',filename=name)
                 items_list.append({'name': 'mp-' + c['MP_id'], 'icsd': c['icsd_id'], 'mp': c['MP_id']})
         else:
             items_list = [line.strip() for line in open(self.data['source'])]
@@ -179,8 +179,8 @@ class AbstractAbinitioSpec(MSONable):
                 structure = refine_structure(structure)
                 structure.to(fmt='cif', filename=item['name'])
                 try:
-                    kpts = local_db_gaps.GGA_BS.find({'transformations.history.0.id': item['icsd']})[0]['calculations']\
-                    [-1]['band_structure']['kpoints']
+                    kpts = local_db_gaps.GGA_BS.find({'transformations.history.0.id': item['icsd']})[0]\
+                        ['calculations'][-1]['band_structure']['kpoints']
                 except (IndexError, KeyError):
                     kpts = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
                 structure.kpts = kpts
@@ -221,11 +221,11 @@ class AbstractAbinitioSpec(MSONable):
                 structure.item = item
             print(item, s_name(structure))
             if mode == 'i':
-                #try:
-                    self.excecute_flow(structure)
-                #except None:# Exception as exc:
-                #    print('input generation failed')
-                #    print(exc)
+                # try:
+                self.execute_flow(structure)
+                # except None:# Exception as exc:
+                #     print('input generation failed')
+                #     print(exc)
             elif mode == 'w':
                 try:
                     self.print_results(structure)
@@ -271,7 +271,7 @@ class AbstractAbinitioSpec(MSONable):
         """
 
     @abstractmethod
-    def excecute_flow(self, structure):
+    def execute_flow(self, structure):
         """
         method called in loopstructures in 'i' input mode, this method should generate input, job script files etc
          or create fire_work workflows and put them in a database
@@ -389,12 +389,12 @@ class GWSpecs(AbstractAbinitioSpec):
         self.reset_job_collection()
         return 0
 
-    def excecute_flow(self, structure):
+    def execute_flow(self, structure):
         """
         excecute spec prepare input/jobfiles or submit to fw for a given structure and the given code interface
         """
-        # todo the mode should actually be handeled here... and not inside the code interface
-        self.code_interface.excecute_flow(structure, self.data)
+        # todo the mode should actually be handled here... and not inside the code interface
+        self.code_interface.execute_flow(structure, self.data)
 
     def process_data(self, structure):
         """
@@ -438,7 +438,7 @@ class GWSpecs(AbstractAbinitioSpec):
                         data.conv_res['values'].update({'ecut': 40*eV_to_Ha})
                         data.conv_res['control'].update({'ecut': True})
 
-                    #if ecut is provided in extra_abivars overwrite in any case ..
+                    # if ecut is provided in extra_abivars overwrite in any case ..
                     if 'ecut' in read_extra_abivars().keys():
                         data.conv_res['values'].update({'ecut': read_extra_abivars()['ecut']*eV_to_Ha})
 
@@ -483,7 +483,7 @@ class GWSpecs(AbstractAbinitioSpec):
                         data.full_res.update({'all_done': True})
                         data.print_full_res()
                         done = True
-                        #data.print_plot_data()
+                        # data.print_plot_data()
                         self.code_interface.store_results(name=s_name(structure))
                     else:
                         print('| Full type calculation but the full results do not agree with the parm_scr.')
@@ -514,7 +514,8 @@ class GWSpecs(AbstractAbinitioSpec):
         """
         data = GWConvergenceData(spec=self, structure=structure)
         if data.read_conv_res_from_file(os.path.join(s_name(structure)+'.res', s_name(structure)+'.conv_res')):
-            s = '%s %s %s ' % (s_name(structure), str(data.conv_res['values']['ecuteps']), str(data.conv_res['values']['nscf_nbands']))
+            s = '%s %s %s ' % (s_name(structure), str(data.conv_res['values']['ecuteps']), str(data.conv_res['values']
+                                                                                               ['nscf_nbands']))
         else:
             s = '%s 0.0 0.0 ' % s_name(structure)
         con_dat = self.code_interface.read_convergence_data(s_name(structure)+'.res')
@@ -524,7 +525,7 @@ class GWSpecs(AbstractAbinitioSpec):
             s += '0.0 '
         s += '\n'
         f = open(file_name, 'a')
-        f.write(s)
+        f.write(str(s))
         f.close()
 
     def insert_in_database(self, structure, clean_on_ok=False, db_name='GW_results', collection='general'):
@@ -638,16 +639,10 @@ class GWSpecs(AbstractAbinitioSpec):
             local_serv.disconnect()
             # end generic section
 
-            #todo remove the workfolders
+            # todo remove the workfolders
 
 
-#class PhononSpecs(AbstractAbinitioSpec):
-#    """
-#    under construction
-#    """
-
-
-class GWConvergenceData():
+class GWConvergenceData(object):
     """
     Class for GW data, reading, plotting and testing for convergence
     """
@@ -720,7 +715,8 @@ class GWConvergenceData():
         single   : Single calculation with standard parameters
         test     : Test calculation, results of a set of calculations specified in TESTS
         parm_scr : Convergence calculation first part, screening the parameters nbands and ecuteps at a low kp density
-        full     : Convergence calculation second part, testing the obtained parameters values at the provided kp density
+        full     : Convergence calculation second part, testing the obtained parameters values at the provided kp
+                   density
         """
         name = self.name
         if self.spec['converge']:
@@ -728,7 +724,7 @@ class GWConvergenceData():
                 # convergence setting in spec, but only the low grid dirs exist
                 self.type['parm_scr'] = True
             if not os.path.isdir(name) and os.path.isdir(name+'.conv'):
-                # test case, separate folder was made for the .conv caluclations
+                # test case, separate folder was made for the .conv calculations
                 self.type['full'] = True
             elif os.path.isdir(name) and os.path.isdir(name+'.conv'):
                 # both convergence and full dirs exists
@@ -798,16 +794,17 @@ class GWConvergenceData():
         self.conv_res['control'].update({'ecuteps': ecuteps_l, 'nbands': nbands_l})
         self.conv_res['values'].update({'ecuteps': ecuteps_c, 'nbands': nbands_c, 'gap': gap})
         self.conv_res['derivatives'].update({'ecuteps': ecuteps_d, 'nbands': nbands_d})
-        return determine_convergence(xs, extrapolated, name=self.name, tol=-0.05, extra='nbands at extrapolated ecuteps')
+        return determine_convergence(xs, extrapolated, name=self.name, tol=-0.05,
+                                     extra='nbands at extrapolated ecuteps')
 
     def find_conv_pars_scf(self, x_name, y_name, tol=0.0001):
         xs = self.get_var_range(x_name)
         ys = []
-        #print self.get_data_array_2d(x_name, y_name)
+        # print self.get_data_array_2d(x_name, y_name)
         for x in xs:
             ys.append(self.get_data_array_2d(x_name, y_name)[x])
         conv_data = determine_convergence(xs, ys, name=self.name, tol=tol, extra=x_name)
-        #print conv_data, {x_name: conv_data[0]}, {x_name: conv_data[1]}, {x_name: conv_data[5]}
+        # print conv_data, {x_name: conv_data[0]}, {x_name: conv_data[1]}, {x_name: conv_data[5]}
         self.conv_res['control'].update({x_name: conv_data[0]})
         self.conv_res['values'].update({x_name: conv_data[1]})
         self.conv_res['derivatives'].update({x_name: conv_data[5]})
@@ -897,13 +894,14 @@ class GWConvergenceData():
         string1 = "%s%s%s" % ("set output '", self.name, ".jpeg'\n")
         if self.conv_res['control']['nbands']:
             string2 = "%s%s%s%s%s%s%s%s%s%s%s" % ("splot '", self.name, ".data' u 1:2:3 w pm3d, '< echo ", '" ',
-                       str(self.conv_res['values']['nbands']), ' ', str(self.conv_res['values']['ecuteps']), ' ',
-                       str(self.conv_res['values']['gap']), ' "', "' w p\n")
+                                                  str(self.conv_res['values']['nbands']), ' ',
+                                                  str(self.conv_res['values']['ecuteps']), ' ',
+                                                  str(self.conv_res['values']['gap']), ' "', "' w p\n")
         else:
             string2 = "%s%s%s" % ("splot '", self.name, ".data' u 1:2:3 w pm3d\npause -1\n")
         with open(filename, mode='a') as f:
-            f.write(string1)
-            f.write(string2)
+            f.write(str(string1))
+            f.write(str(string2))
 
     def print_plot_data(self):
         """
@@ -911,7 +909,7 @@ class GWConvergenceData():
         """
         data_file = self.name + '.data'
         f = open(data_file, mode='w')
-        f.write('\n')
+        f.write(str('\n'))
         try:
             tmp = self.get_sorted_data_list()[0][0]
         except IndexError:
@@ -919,7 +917,7 @@ class GWConvergenceData():
             pass
         for data in self.get_sorted_data_list():
             if tmp != data[0]:
-                f.write('\n')
+                f.write(str('\n'))
             tmp = data[0]
             try:
                 f.write('%10.5f %10.5f %10.5f %10.5f \n' % (data[0], data[1], data[2], data[3]))

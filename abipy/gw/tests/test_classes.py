@@ -11,11 +11,9 @@ from pymatgen.io.vasp.GWvaspinputsets import SingleVaspGWWork
 from abipy.gw.datastructures import GWSpecs, GWConvergenceData, get_spec
 from abipy.gw.codeinterfaces import AbinitInterface, VaspInterface, get_code_interface
 from abipy.gw.tests.test_helpers import structure
-
-#test_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "..",'test_files')
-
 from pymatgen.io.vaspio.vasp_input import get_potcar_dir
 POTCAR_DIR = get_potcar_dir()
+
 
 class GWSpecTest(PymatgenTest):
     def test_GWspect(self):
@@ -55,7 +53,7 @@ class GWTestCodeInterfaces(PymatgenTest):
         self.assertIsInstance(interface, VaspInterface)
         self.assertEqual(len(interface.conv_pars), 3)
         self.assertEqual(len(interface.supported_methods), 4)
-        #self.assertEqual(interface.get_conv_res_test(spec_data=spec.data, structure=structure), {})
+        # self.assertEqual(interface.get_conv_res_test(spec_data=spec.data, structure=structure), {})
 
     def test_AbinitInterface(self):
         interface = get_code_interface('ABINIT')
@@ -83,7 +81,9 @@ class GWVaspInputSetTests(PymatgenTest):
         inpset = GWDFTDiagVaspInputSet(structure=self.structure, spec=self.spec)
         self.assertIsInstance(inpset, GWDFTDiagVaspInputSet)
         self.assertEqual(inpset.convs,
-                         {u'NBANDS': {u'test_range': (10, 20, 30, 40, 50, 60, 70), u'control': u'gap', u'method': u'set_nbands'}})
+                         {u'NBANDS': {u'test_range': (10, 20, 30, 40, 50, 60, 70), u'control': u'gap',
+                                      u'method': u'set_nbands'}})
+
         self.assertEqual(inpset.incar_settings, {u'ALGO': u'Exact', u'EDIFF': 1e-10, u'IBRION': -1, u'ICHARG': 1,
                                                  u'ISMEAR': -5, u'ISPIN': 1, u'LOPTICS': u'TRUE', u'LORBIT': 11,
                                                  u'LREAL': u'AUTO', u'LWAVE': True, u'MAGMOM': {u'Co': 5, u'Cr': 5,

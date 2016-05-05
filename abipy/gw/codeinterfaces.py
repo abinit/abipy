@@ -184,7 +184,7 @@ class VaspInterface(AbstractCodeInterface):
         for vasp the different jobs are created into a flow
         todo this should actually create and excecute a VaspGWWorkFlow(GWWorkflow)
         """
-        ### general part for the base class
+        # general part for the base class
         grid = 0
         all_done = False
         converged = is_converged(False, structure)
@@ -198,7 +198,7 @@ class VaspInterface(AbstractCodeInterface):
             print('| all is done for this material')
             return
 
-        ### specific part
+        # specific part
 
         if spec_data['mode'] == 'fw':
             fw_work_flow = VaspGWFWWorkFlow()
@@ -294,7 +294,7 @@ class VaspInterface(AbstractCodeInterface):
     def store_results(self, name):
         folder = name + '.res'
         store_conv_results(name, folder)
-        #todo copy the final file containing the qp to folder
+        # todo copy the final file containing the qp to folder
         raise NotImplementedError
 
 
@@ -361,7 +361,7 @@ class AbinitInterface(AbstractCodeInterface):
             else:
                 raise Exception
             gwgap = data.read_value('egwgap')[0][0]
-            #gwgap = min(data.read_value('egwgap')[0])
+            # gwgap = min(data.read_value('egwgap')[0])
             if not isinstance(gwgap, float):
                 raise Exception
             results = {'ecuteps': float(Ha_to_eV * ecuteps),
