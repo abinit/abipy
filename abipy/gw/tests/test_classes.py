@@ -11,7 +11,10 @@ from pymatgen.io.vasp.GWvaspinputsets import SingleVaspGWWork
 from abipy.gw.datastructures import GWSpecs, GWConvergenceData, get_spec
 from abipy.gw.codeinterfaces import AbinitInterface, VaspInterface, get_code_interface
 from abipy.gw.tests.test_helpers import structure
-from pymatgen.io.vaspio.vasp_input import get_potcar_dir
+from abipy.abilab import Structure as AbiStructure
+from abipy.gw.GWworks import GWWork, SingleAbinitGWWork, VaspGWFWWorkFlow
+import abipy.data as abidata
+from pymatgen.io.vasp.inputs import get_potcar_dir
 POTCAR_DIR = get_potcar_dir()
 
 
@@ -60,6 +63,13 @@ class GWTestCodeInterfaces(PymatgenTest):
         self.assertIsInstance(interface, AbinitInterface)
         self.assertEqual(len(interface.conv_pars), 3)
         self.assertEqual(len(interface.supported_methods), 2)
+        self.assertFalse(interface.all_done)
+        self.assertEqual(interface.grid, 0)
+        self.assertTrue(interface.hartree_parameters)
+        self.assertFalse(interface.converged)
+        self.assertEqual(len(interface.other_vars), 1166)
+        self.assertEqual(interface.gw_data_file, 'out_SIGRES.nc')
+        self.assertIsNone(interface.workdir)
 
 
 class GWVaspInputSetTests(PymatgenTest):
@@ -101,3 +111,27 @@ class GWVaspInputSetTests(PymatgenTest):
     def test_SingleVaspGWWork(self):
         work = SingleVaspGWWork(structure=self.structure, spec=self.spec, job='prep')
         self.assertIsInstance(work, SingleVaspGWWork)
+
+
+class GWworksTests(PymatgenTest):
+
+    def test_GWWork(self):
+        struc = AbiStructure.from_file(abidata.cif_file("si.cif"))
+        struc.item = 'test'
+        self.assertIsInstance(struc, AbiStructure)
+        work = GWWork()
+        work.set_status(struc)
+        self.assertEqual(work.workdir, 'Si_test/work_0')
+        self.assertEqual(work.grid, 0)
+        self.assertFalse(work.all_done)
+
+
+    def test_VaspGWFWWorkFlow(self):
+        struc = AbiStructure.from_file(abidata.cif_file("si.cif"))
+        struc.item = 'test'
+        self.assertIsInstance(struc, AbiStructure)
+
+    def test_SingleAbinitGWWork(self):
+        struc = AbiStructure.from_file(abidata.cif_file("si.cif"))
+        struc.item = 'test'
+        self.assertIsInstance(struc, AbiStructure)
