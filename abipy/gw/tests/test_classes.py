@@ -125,11 +125,29 @@ class GWworksTests(PymatgenTest):
         self.assertEqual(work.grid, 0)
         self.assertFalse(work.all_done)
 
-
     def test_VaspGWFWWorkFlow(self):
         struc = AbiStructure.from_file(abidata.cif_file("si.cif"))
         struc.item = 'test'
         self.assertIsInstance(struc, AbiStructure)
+        work = VaspGWFWWorkFlow()
+
+        self.assertEqual(len(work.work_list), 0)
+        self.assertEqual(len(work.connections), 0)
+        self.assertEqual(work.fw_id, 1)
+        self.assertEqual(work.prep_id, 1)
+        self.assertEqual(len(work.wf), 0)
+
+        done = False
+
+        if False:
+            for job in ['prep', 'G0W0', 'GW0', 'scGW0']:
+                parameters = dict()
+                parameters['spec'] = dict()
+                parameters['spec']['converge'] = True
+                parameters['job'] = job
+                work.add_work(parameters=parameters)
+
+        self.assertTrue(done, 'there are tests missing')
 
     def test_SingleAbinitGWWork(self):
         struc = AbiStructure.from_file(abidata.cif_file("si.cif"))
