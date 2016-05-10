@@ -105,9 +105,9 @@ class AbstractCodeInterface(object):
         """
 
     @abstractmethod
-    def excecute_flow(self, structure, spec_data):
+    def execute_flow(self, structure, spec_data):
         """
-        excecute spec prepare input/jobfiles or submit to fw for a given structure
+        execute spec prepare input/jobfiles or submit to fw for a given structure
         for vasp the different jobs are created into a flow
         for abinit a flow is created using abinitio
         """
@@ -178,11 +178,11 @@ class VaspInterface(AbstractCodeInterface):
         errors.extend(self.test_methods(data))
         return warnings, errors
 
-    def excecute_flow(self, structure, spec_data):
+    def execute_flow(self, structure, spec_data):
         """
-        excecute spec prepare input/jobfiles or submit to fw for a given structure
+        execute spec prepare input/jobfiles or submit to fw for a given structure
         for vasp the different jobs are created into a flow
-        todo this should actually create and excecute a VaspGWWorkFlow(GWWorkflow)
+        todo this should actually create and execute a VaspGWWorkFlow(GWWorkflow)
         """
         # general part for the base class
         grid = 0
@@ -398,9 +398,9 @@ class AbinitInterface(AbstractCodeInterface):
         errors.extend(self.test_methods(data))
         return warnings, errors
 
-    def excecute_flow(self, structure, spec_data):
+    def execute_flow(self, structure, spec_data):
         """
-        excecute spec prepare input/jobfiles or submit to fw for a given structure
+        execute spec prepare input/jobfiles or submit to fw for a given structure
         for abinit a flow is created using abinitio
         """
 
@@ -468,9 +468,9 @@ class NewCodeInterface(AbstractCodeInterface):
         # warnings = []
         errors.extend(self.test_methods(data))
 
-    def excecute_flow(self, structure, spec_data):
+    def execute_flow(self, structure, spec_data):
         """
-        excecute spec prepare input/jobfiles or submit to fw for a given structure
+        execute spec prepare input/jobfiles or submit to fw for a given structure
         here either an method is implemented that creates the flow, like vasp, or a flow is created from a class,
         like in abinit
         """

@@ -44,7 +44,7 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 @six.add_metaclass(ABCMeta)
-class AbstractAbinitioSpec(MSONable):
+class AbstractAbInitioSpec(MSONable):
     """
     Contains all non specific methods
     todo for some reason I can not make this class have both a metaclass and subcalss from msonable ...
@@ -144,7 +144,10 @@ class AbstractAbinitioSpec(MSONable):
         w: print all results
         """
         print('loop structures mode ', mode)
-        mp_key = os.environ['MP_KEY']
+        try:
+            mp_key = os.environ['MP_KEY']
+        except KeyError:
+            mp_key = None
 
         mp_list_vasp = ['mp-149', 'mp-2534', 'mp-8062', 'mp-2469', 'mp-1550', 'mp-830', 'mp-1986', 'mp-10695', 'mp-66',
                         'mp-1639', 'mp-1265', 'mp-1138', 'mp-23155', 'mp-111']
@@ -200,7 +203,7 @@ class AbstractAbinitioSpec(MSONable):
                         # print "no bandstructure information available, adding GG as 'gap'"
                         structure = add_gg_gap(structure)
                 elif 'cif' in item:
-                    structure = pmg.read_structure(item)
+                    structure = Structure.from_file(item)
                     structure = add_gg_gap(structure)
                 elif item.startswith('mp-'):
                     with MPRester(mp_key) as mp_database:
@@ -292,7 +295,7 @@ class AbstractAbinitioSpec(MSONable):
         """
 
 
-class GWSpecs(AbstractAbinitioSpec):
+class GWSpecs(AbstractAbInitioSpec):
     """
     Class for GW specifications.
     """
@@ -381,7 +384,7 @@ class GWSpecs(AbstractAbinitioSpec):
             print(str(len(self.errors)) + ' error(s) found:')
             for error in self.errors:
                 print(' > ' + error)
-            exit()
+            return self.errors
         if len(self.warnings) > 0:
             print(str(len(self.warnings)) + ' warning(s) found:')
             for warning in self.warnings:

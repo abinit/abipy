@@ -164,8 +164,12 @@ class SingleAbinitGWWork:
             self.all_converged = False
         path_add = '.conv' if self.all_converged else ''
         self.work_dir = s_name(self.structure)+path_add
-        abi_pseudo = os.environ['ABINIT_PS_EXT']
-        abi_pseudo_dir = os.environ['ABINIT_PS']
+        try:
+            abi_pseudo = os.environ['ABINIT_PS_EXT']
+            abi_pseudo_dir = os.environ['ABINIT_PS']
+        except KeyError:
+            abi_pseudo = None
+            abi_pseudo_dir = None
         pseudos = []
         for element in self.structure.composition.element_composition:
             pseudo = os.path.join(abi_pseudo_dir, str(element) + abi_pseudo)

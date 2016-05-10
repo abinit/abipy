@@ -42,7 +42,8 @@ def main(update=True):
         spec_in.update_interactive()
 
     try:
-        spec_in.test()
+        if spec_in.test() > 0:
+            return 2
         spec_in.write_to_file('spec.in')
         spec_in.loop_structures('i')
         return 0
