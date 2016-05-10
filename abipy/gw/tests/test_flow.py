@@ -10,8 +10,8 @@ __author__ = 'setten'
 test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
 
 
-class GWSpecTest(PymatgenTest):
-    def test_fixes(self):
+class FlowTest(PymatgenTest):
+    def test_flow(self):
         """
         Testing flow creation and task registering
         """
@@ -23,6 +23,3 @@ class GWSpecTest(PymatgenTest):
         self.assertIsInstance(flow[0], Work)
         self.assertIsInstance(flow[0][0], Task)
         self.assertEqual(flow.check_status(), None)
-
-
-
