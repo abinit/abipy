@@ -230,6 +230,7 @@ class GWworksTests(PymatgenTest):
                 self.assertIsInstance(work.CONVS[test][item], unicode)
         self.assertEqual(work.work_dir, 'Si_test')
         self.assertEqual(len(work.pseudo_table), 1)
+        self.assertEqual(work.bands_fac,1000)
 
         if temp_ABINIT_PS is not None:
             os.environ['ABINIT_PS_EXT'] = temp_ABINIT_PS_EXT
