@@ -1,12 +1,11 @@
 from __future__ import unicode_literals, division, print_function
 import unittest
-import shutil
 import os
 import tempfile
 from pymatgen.io.abinit.scheduler_error_parsers import get_parser, ALL_PARSERS, AbstractErrorParser
-from pymatgen.io.abinit.scheduler_error_parsers import SlurmErrorParser
-from pymatgen.io.abinit.scheduler_error_parsers import SubmitError, FullQueueError
-
+from pymatgen.io.abinit.scheduler_error_parsers import SlurmErrorParser, PBSErrorParser
+from pymatgen.io.abinit.scheduler_error_parsers import SubmitError, FullQueueError, MemoryCancelError, TimeCancelError
+from pymatgen.io.abinit.scheduler_error_parsers import NodeFailureError
 
 __author__ = "Michiel van Setten"
 __copyright__ = " "
@@ -63,11 +62,11 @@ class QueueErrorParseTestSLURM(unittest.TestCase):
         """
         Testing the SLURM error parsing of submit que errors
         """
+        string = "before\nBatch job submission failed\nafter"
         test_file = tempfile.mktemp()
         err_file = tempfile.mktemp()
         with open(err_file, 'w') as f:
             f.write("")
-        string = "before\nBatch job submission failed\nafter"
         with open(test_file, 'w') as f:
             f.write(string)
         parser = SlurmErrorParser(err_file=err_file, batch_err_file=test_file)
@@ -81,60 +80,112 @@ class QueueErrorParseTestSLURM(unittest.TestCase):
         """
         Testing the SLURM error parsing of full que errors
         """
+        string = "before\nsbatch: error: Batch job submission failed: Job violates accounting/QOS policy\nafter"
         test_file = tempfile.mktemp()
         err_file = tempfile.mktemp()
         with open(err_file, 'w') as f:
             f.write("")
-        string = "before\nsbatch: error: Batch job submission failed: Job violates accounting/QOS policy\nafter"
         with open(test_file, 'w') as f:
             f.write(string)
         parser = SlurmErrorParser(err_file=err_file, batch_err_file=test_file)
         parser.parse()
         self.assertEqual(len(parser.errors), 2)
-        self.assertIsInstance(parser.errors[1], FullQueueError)
+        print(parser.errors)
+        self.assertTrue(isinstance(parser.errors[0], FullQueueError) or isinstance(parser.errors[1], FullQueueError))
         os.remove(test_file)
         os.remove(err_file)
 
     def test_MemoryCancelError(self):
         """
-        Testing the SLURM error parsing of submit que errors
+        Testing the SLURM error parsing of MemoryCancelError errors
         """
-
-        definition = {
-                           'err': {
-                               'string': "Exceeded job memory limit",
-                               'meta_filter': {}
-                           }
-                       },
-
+        string = "Exceeded job memory limit"
+        err_file = tempfile.mktemp()
+        with open(err_file, 'w') as f:
+            f.write(string)
+        parser = SlurmErrorParser(err_file=err_file)
+        parser.parse()
+        self.assertEqual(len(parser.errors), 1)
+        self.assertIsInstance(parser.errors[0], MemoryCancelError)
+        self.assertEqual(parser.errors[0].meta_data, {})
+        os.remove(err_file)
 
     def test_TimeCancelError(self):
         """
-        Testing the SLURM error parsing of submit que errors
+        Testing the SLURM error parsing of TimeCancelError que errors
         """
+        # 'err'
+        string = "JOB 999 CANCELLED AT somewhere DUE TO TIME LIMIT"
+        err_file = tempfile.mktemp()
+        with open(err_file, 'w') as f:
+            f.write(string)
+        parser = SlurmErrorParser(err_file=err_file)
+        parser.parse()
+        self.assertEqual(len(parser.errors), 1)
+        self.assertIsInstance(parser.errors[0], TimeCancelError)
+        print(parser.errors[0])
+        self.assertEqual(parser.errors[0].meta_data['time_of_cancel'][0], u'999')
+        os.remove(err_file)
 
-        definition = {
-                         'err': {
-                             'string': "DUE TO TIME LIMIT",
-                             'meta_filter': {
-                                 'time_of_cancel': [r"JOB (\d+) CANCELLED AT (\S*) DUE TO TIME LIMIT", 1]
-                             }
-                         }
-                     },
-
-    def NodeFailureError(self):
+    def test_NodeFailureError(self):
         """
-        Testing the SLURM error parsing of submit que errors
+        Testing the SLURM error parsing of NodeFailureError que errors
         """
+        string = "node123.456can't open /dev/ipath, network down (err=26)"
+        err_file = tempfile.mktemp()
+        test_file = tempfile.mktemp()
+        with open(err_file, 'w') as f:
+            f.write("")
+        with open(test_file, 'w') as f:
+            f.write(string)
+        parser = SlurmErrorParser(err_file=err_file, run_err_file=test_file)
+        parser.parse()
+        self.assertEqual(len(parser.errors), 1)
+        self.assertIsInstance(parser.errors[0], NodeFailureError)
+        self.assertEqual(parser.errors[0].meta_data['nodes'], [u'123'])
+        os.remove(err_file)
+        os.remove(test_file)
 
-        definition = {
-                          'run_err': {
-                              'string': "can't open /dev/ipath, network down",
-                              'meta_filter': {
-                                  'nodes': [r"node(\d+)\.(\d+)can't open (\S*), network down \(err=26\)", 1]
-                              }
-                          }
-                      },
+
+class QueueErrorParseTestPBS(unittest.TestCase):
+
+    def test_TimeCancelError(self):
+        """
+        Testing the PBS error parsing of TimeCancelError errors
+        """
+        string = "before\n=>> PBS: job killed: walltime 1001 exceeded limit 1000\nafter"
+        test_file = tempfile.mktemp()
+        err_file = tempfile.mktemp()
+        with open(err_file, 'w') as f:
+            f.write("")
+        with open(test_file, 'w') as f:
+            f.write(string)
+        parser = PBSErrorParser(err_file=err_file, out_file=test_file)
+        parser.parse()
+        self.assertEqual(len(parser.errors), 1)
+        print(parser.errors)
+        self.assertIsInstance(parser.errors[0], TimeCancelError)
+        os.remove(test_file)
+        os.remove(err_file)
+
+    def test_MemoryCancelError(self):
+        """
+        Testing the PBS error parsing of MemoryCancelError errors
+        """
+        string = "before\n(.*)job killed: vmem 4001kb exceeded limit 4000kb\nafter"
+        test_file = tempfile.mktemp()
+        err_file = tempfile.mktemp()
+        with open(err_file, 'w') as f:
+            f.write("")
+        with open(test_file, 'w') as f:
+            f.write(string)
+        parser = PBSErrorParser(err_file=err_file, out_file=test_file)
+        parser.parse()
+        self.assertEqual(len(parser.errors), 1)
+        print(parser.errors)
+        self.assertIsInstance(parser.errors[0], MemoryCancelError)
+        os.remove(test_file)
+        os.remove(err_file)
 
 
 if __name__ == '__main__':
