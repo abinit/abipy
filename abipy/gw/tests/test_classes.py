@@ -14,6 +14,7 @@ from abipy.abilab import Structure as AbiStructure
 from abipy.gw.GWworks import GWWork, SingleAbinitGWWork, VaspGWFWWorkFlow
 import abipy.data as abidata
 from pymatgen.io.vasp.inputs import get_potcar_dir
+from pymatgen.io.abinit.flows import Flow
 
 __author__ = 'setten'
 
@@ -188,7 +189,7 @@ class GWworksTests(PymatgenTest):
                 parameters['job'] = job
                 work.add_work(parameters=parameters)
 
-        self.assertTrue(done, 'there are tests missing')
+        # self.assertTrue(done, 'there are tests missing')
 
     def test_SingleAbinitGWWork(self):
         """
@@ -230,7 +231,15 @@ class GWworksTests(PymatgenTest):
                 self.assertIsInstance(work.CONVS[test][item], unicode)
         self.assertEqual(work.work_dir, 'Si_test')
         self.assertEqual(len(work.pseudo_table), 1)
-        self.assertEqual(work.bands_fac,1000)
+        self.assertEqual(work.bands_fac, 1)
+
+        self.assertEqual(work.get_electrons(struc), 8)
+        self.assertEqual(work.get_bands(struc), 6)
+        self.assertGreater(work.get_bands(struc), work.get_electrons(struc) / 2, 'More electrons than bands, very bad.')
+
+        flow = work.create()
+
+        self.assertIsInstance(flow, Flow)
 
         if temp_ABINIT_PS is not None:
             os.environ['ABINIT_PS_EXT'] = temp_ABINIT_PS_EXT
