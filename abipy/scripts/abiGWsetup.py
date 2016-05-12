@@ -25,10 +25,7 @@ def main(update=True):
     """
     main gw setup
     """
-    try:
-        spec_in = get_spec('GW')
-    except None:
-        return 1
+    spec_in = get_spec('GW')
 
     try:
         spec_in.read_from_file('spec.in')
@@ -43,13 +40,11 @@ def main(update=True):
         # in testing mode there should not be interactive updating
         spec_in.update_interactive()
 
-    try:
-        spec_in.test()
-        spec_in.write_to_file('spec.in')
-        spec_in.loop_structures('i')
-        return 0
-    except None:
-        return 2
+    spec_in.test()
+    spec_in.write_to_file('spec.in')
+    spec_in.loop_structures('i')
+
+    return 0
 
 if __name__ == "__main__":
     sys.exit(main())

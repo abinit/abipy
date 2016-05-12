@@ -80,7 +80,7 @@ class DecoratorTest(AbipyTest):
 
     def test_smearing_decorator(self):
         """Testing electronic smearing decorator."""
-        smearing_deco = ideco.SmearingDecorator("nosmearing")
+        smearing_deco = ideco.SmearingDecorator("fermi_dirac:0.1 eV")
         self.assertMSONable(smearing_deco)
 
         new_inp = smearing_deco(self.si_ebands)

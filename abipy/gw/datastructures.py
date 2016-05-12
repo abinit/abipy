@@ -221,11 +221,7 @@ class AbstractAbinitioSpec(MSONable):
                 structure.item = item
             print(item, s_name(structure))
             if mode == 'i':
-                #try:
-                    self.excecute_flow(structure)
-                #except None:# Exception as exc:
-                #    print('input generation failed')
-                #    print(exc)
+                self.excecute_flow(structure)
             elif mode == 'w':
                 try:
                     self.print_results(structure)
