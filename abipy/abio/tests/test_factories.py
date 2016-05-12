@@ -92,6 +92,7 @@ class FactoryTest(AbipyTest):
         flow.allocate()
         #flow.make_scheduler().start()
 
+
     def test_bse_with_mdf(self):
         """Testing bse_with_mdf input factory."""
 
