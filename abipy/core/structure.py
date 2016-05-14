@@ -298,6 +298,34 @@ class Structure(pymatgen.Structure):
 
     #    return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
 
+    @classmethod
+    def from_abivars(cls, *args, **kwargs):
+        """
+        Build a :class:`Structure` object from a dictionary with ABINIT variables.
+
+        example:
+
+            al_structure = Structure.from_abivars(
+                acell=3*[7.5],
+                rprim=[0.0, 0.5, 0.5,
+                       0.5, 0.0, 0.5,
+                       0.5, 0.5, 0.0],
+                typat=1,
+                xred=[0.0, 0.0, 0.0],
+                ntypat=1,
+                znucl=13,
+            )
+
+        `xred` can be replaced with `xcart` or `xangst`.
+        """
+        from pymatgen.io.abinit.abiobjects import structure_from_abivars
+        return structure_from_abivars(cls, *args, **kwargs)
+
+    def to_abivars(self, **kwargs):
+        """Returns a dictionary with the ABINIT variables."""
+        from pymatgen.io.abinit.abiobjects import structure_to_abivars
+        return structure_to_abivars(self, **kwargs)
+
     @property
     def abi_string(self):
         """Return a string with the ABINIT input associated to this structure.""" 

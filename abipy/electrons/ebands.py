@@ -1451,8 +1451,8 @@ class ElectronBands(object):
 
     def effective_masses(self, spin, band, acc=4):
         """Compute the effective masses."""
-        ders2 = self.derivatives(spin, band, acc=acc) * units.eV_to_Ha / units.bohr_to_ang**2
-        return 1.0/ders2
+        ders2 = self.derivatives(spin, band, order=2, acc=acc) * units.eV_to_Ha / units.bohr_to_ang**2
+        return 1.0 / ders2
 
 
 class ElectronBandsPlotter(object):
