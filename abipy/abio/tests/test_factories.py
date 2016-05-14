@@ -101,7 +101,7 @@ class FactoryTest(AbipyTest):
         nscf_ngkpt, nscf_shiftk = [2,2,2], [[0,0,0]]
 
         multi = bse_with_mdf_inputs(self.si_structure, self.si_pseudo, scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,
-                                    ecuteps=2, bs_loband=1, bs_nband=2, soenergy="0.1 eV", mdf_epsinf=12, ecut=2)
+                                    ecuteps=2, bs_loband=1, bs_nband=2, mbpt_sciss="0.1 eV", mdf_epsinf=12, ecut=2)
                                     #exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="polarized", 
                                     #smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
 
