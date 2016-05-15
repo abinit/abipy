@@ -12,7 +12,7 @@ qadapters:
       limits:
          min_cores: 1
          max_cores: 4
-         timelimit: 0:00:05
+         timelimit: 0:5:0
       hardware:
          num_nodes: 1
          sockets_per_node: 1

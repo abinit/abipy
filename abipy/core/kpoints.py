@@ -824,12 +824,13 @@ class KSamplingInfo(AttrDict):
     @property
     def is_homogeneous(self):
         """True if we have a homogeneous sampling of the BZ."""
-        return self.mpdivs is not None or self.kptrlatt is not None
+        return self.mpdivs is not None or self.kptrlatt is not None and self.kptopt > 0
 
     @property
     def is_path(self):
         """True if we have a path in the BZ."""
-        return not self.is_homogeneous
+        #return not self.is_homogeneous
+        return self.kptopt < 0
 
 
 def returns_None_onfail(func):

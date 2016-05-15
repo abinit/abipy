@@ -35,7 +35,7 @@ def convert_number(value):
     then to a float.
     The string '1.0d-03' will be treated the same as '1.0e-03'
     """
-    if isinstance(value, float) or isinstance(value, int):
+    if isinstance(value, (float, int)):
         return value
 
     elif isinstance(value, str):

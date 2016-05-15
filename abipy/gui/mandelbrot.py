@@ -5,6 +5,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import numpy as np
 #from numpy import arange, sin, pi
 
+
 def mandelbrot(extent=None, ndivs=(1000,1000), iterations=100):
     """
     Based on http://cyrille.rossant.net/mandelbrot-set/
@@ -56,7 +57,6 @@ def mandelbrot(extent=None, ndivs=(1000,1000), iterations=100):
 
 import wx
 from wxmplot import ImageFrame, ImagePanel
-import matplotlib.pyplot as plt
 
 
 class MyPanel(ImagePanel):
@@ -135,9 +135,7 @@ import matplotlib.pyplot as plt
 # comment out the following to use wx rather than wxagg
 matplotlib.use('WXAgg')
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
-
 from matplotlib.backends.backend_wx import NavigationToolbar2Wx
-
 from matplotlib.figure import Figure
 
 

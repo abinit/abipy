@@ -519,7 +519,7 @@ def g0w0_extended_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx
 
 def bse_with_mdf_inputs(structure, pseudos, 
                         scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk, 
-                        ecuteps, bs_loband, bs_nband, soenergy, mdf_epsinf, 
+                        ecuteps, bs_loband, bs_nband, mbpt_sciss, mdf_epsinf, 
                         ecut=None, pawecutdg=None, 
                         exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="polarized", 
                         smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
@@ -540,7 +540,7 @@ def bse_with_mdf_inputs(structure, pseudos,
             (ABINIT convention i.e. first band starts at 1).
             Can be scalar or array of shape (nsppol,)
         bs_nband: Highest band idex used for the construction of the e-h basis set.
-        soenergy: Scissor energy in Hartree.
+        mbpt_sciss: Scissor energy in Hartree.
         mdf_epsinf: Value of the macroscopic dielectric function used in expression for the model dielectric function.
         ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
         pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos
@@ -584,7 +584,7 @@ def bse_with_mdf_inputs(structure, pseudos,
     multi[1].set_vars(_stopping_criterion("nscf", accuracy))
 
     # BSE calculation.
-    exc_ham = aobj.ExcHamiltonian(bs_loband, bs_nband, soenergy, coulomb_mode="model_df", ecuteps=ecuteps, 
+    exc_ham = aobj.ExcHamiltonian(bs_loband, bs_nband, mbpt_sciss, coulomb_mode="model_df", ecuteps=ecuteps, 
                                   spin_mode=spin_mode, mdf_epsinf=mdf_epsinf, exc_type=exc_type, algo=bs_algo,
                                   bs_freq_mesh=None, with_lf=True, zcut=None)
 

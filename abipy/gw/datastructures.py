@@ -224,11 +224,11 @@ class AbstractAbInitioSpec(MSONable):
                 structure.item = item
             print(item, s_name(structure))
             if mode == 'i':
-                # try:
-                self.execute_flow(structure)
-                # except None:# Exception as exc:
-                #     print('input generation failed')
-                #     print(exc)
+                try:
+                    self.execute_flow(structure)
+                except Exception as exc:
+                    print('input generation failed')
+                    print(exc)
             elif mode == 'w':
                 try:
                     self.print_results(structure)

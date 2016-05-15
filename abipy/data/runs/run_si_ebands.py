@@ -49,6 +49,7 @@ def make_scf_nscf_inputs(paral_kgb=1):
     scf_input, nscf_input = multi.split_datasets()
     return scf_input, nscf_input
 
+
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir

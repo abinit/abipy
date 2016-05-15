@@ -53,11 +53,11 @@ def is_abivar(s):
     return s in ABI_VARNAMES
 
 
-ABI_UNIT_NAMES = set([s.lower() for s in (
-    "au",
-    "Angstr", "Angstrom", "Angstroms", "Bohr", "Bohrs",
-    "eV", "Ha", "Hartree", "Hartrees", "K", "Ry", "Rydberg", "Rydbergs",
-    "T", "Tesla")])
+ABI_UNIT_NAMES = {s.lower() for s in (
+"au", 
+"Angstr", "Angstrom", "Angstroms", "Bohr", "Bohrs", 
+"eV", "Ha", "Hartree", "Hartrees", "K", "Ry", "Rydberg", "Rydbergs", 
+"T", "Tesla")}
 
 
 def is_abiunit(s):
