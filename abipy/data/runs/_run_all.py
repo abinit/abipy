@@ -98,6 +98,8 @@ def main():
                 try:
                     flow = Flow.pickle_load(workdir)
                     flow.make_scheduler().start()
+                    if not flow.all_ok: retcode += 1
+
                 except Exception as exc:
                     ret += 1
                     s = "Exception raised during flow execution: %s\n:%s" % (flow, exc)
@@ -125,7 +127,7 @@ def main():
             print("[%d] %s" % (i, err))
             print(92 * "=")
 
-    print("Number of scripts executed", cnt, ", retcode %d" % retcode)
+    print("Number of scripts executed %d/%d" % (cnt, len(scripts)), ", final retcode %d" % retcode)
     return retcode
 
 

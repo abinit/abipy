@@ -9,7 +9,6 @@ job: &job
    mpi_runner: mpirun
    pre_run:
      - "source ~/env.sh"
-     #- "source ~/.bashrc"
 
 policy:
     autoparal: 1
