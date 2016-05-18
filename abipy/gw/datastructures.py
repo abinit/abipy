@@ -1,6 +1,28 @@
 # coding: utf-8
 
 from __future__ import unicode_literals, division, print_function
+import os
+import stat
+import os.path
+import ast
+import pymatgen as pmg
+import copy
+import six
+try:
+    import pymongo
+    import gridfs
+except ImportError:
+    pass
+from abc import abstractproperty, abstractmethod, ABCMeta
+from monty.json import MSONable
+# from pymatgen.io.vaspio.vasp_input import Poscar
+from pymatgen.io.vasp.inputs import Poscar
+from pymatgen.matproj.rest import MPRester, MPRestError
+from pymatgen.util.convergence import determine_convergence
+from pymatgen.io.abinit.helpers import print_gnuplot_header, s_name, add_gg_gap, refine_structure, read_extra_abivars
+from pymatgen.core.structure import Structure
+from pymatgen.core.units import eV_to_Ha
+from abipy.gw.codeinterfaces import get_code_interface
 
 """
 Classes for writing GW Input and analyzing GW data. The underlying classes can handle the use of VASP and ABINIT via the
@@ -15,30 +37,6 @@ __maintainer__ = "Michiel van Setten"
 __email__ = "mjvansetten@gmail.com"
 __date__ = "May 2014"
 
-import os
-import stat
-import os.path
-import ast
-import pymatgen as pmg
-import copy
-import six
-
-try:
-    import pymongo
-    import gridfs
-except ImportError:
-    pass
-
-from abc import abstractproperty, abstractmethod, ABCMeta
-from monty.json import MSONable
-#from pymatgen.io.vaspio.vasp_input import Poscar
-from pymatgen.io.vasp.inputs import Poscar
-from pymatgen.matproj.rest import MPRester, MPRestError
-from pymatgen.util.convergence import determine_convergence
-from pymatgen.io.abinit.helpers import print_gnuplot_header, s_name, add_gg_gap, refine_structure, read_extra_abivars
-from pymatgen.core.structure import Structure
-from pymatgen.core.units import eV_to_Ha
-from abipy.gw.codeinterfaces import get_code_interface
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -394,7 +392,7 @@ class GWSpecs(AbstractAbInitioSpec):
 
     def execute_flow(self, structure):
         """
-        excecute spec prepare input/jobfiles or submit to fw for a given structure and the given code interface
+        execute spec prepare input/jobfiles or submit to fw for a given structure and the given code interface
         """
         # todo the mode should actually be handled here... and not inside the code interface
         self.code_interface.execute_flow(structure, self.data)

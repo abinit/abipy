@@ -24,7 +24,7 @@ __all__ = [
     "gs_input",
     "ebands_input",
     "g0w0_with_ppmodel_inputs",
-    "g0w0_extended_inputs",
+    "g0w0_convergence_inputs",
     "bse_with_mdf_inputs",
     "ion_ioncell_relax_input",
     "scf_phonons_inputs",
@@ -419,16 +419,18 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
 
 
 # TODO
-def g0w0_extended_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx, scf_nband, accuracy="normal",
-                       spin_mode="polarized", smearing="fermi_dirac:0.1 eV", response_models=["godby"], charge=0.0,
-                       inclvkb=2, scr_nband=None, sigma_nband=None, workdir=None, manager=None, gamma=True, nksmall=20,
-                       work_class=None, scf_algorithm=None, **extra_abivars):
+def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx, scf_nband,
+                         accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
+                         response_models=None, charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
+                         sigma_nband=None, gw_qprange=1, gamma=True, nksmall=20, **extra_abivars):
     """
     Returns a :class:`multi` object to generate a G0W0 work for the given the material.
 
     Args:
         structure: Pymatgen structure.
         pseudos: List of `Pseudo` objects.
+        kppa:
+        scf_nband:
         scf_ Defines the sampling used for the SCF run.
         nscf_nband: Number of bands included in the NSCF run.
         ecuteps: Cutoff energy [Ha] for the screening matrix.
@@ -436,34 +438,49 @@ def g0w0_extended_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx
         accuracy: Accuracy of the calculation.
         spin_mode: Spin polarization.
         smearing: Smearing technique.
-        ppmodel: Plasmonpole technique.
         charge: Electronic charge added to the unit cell.
         scf_algorithm: Algorithm used for solving of the SCF cycle.
         inclvkb: Treatment of the dipole matrix elements (see abinit variable).
         scr_nband: Number of bands used to compute the screening (default is nscf_nband)
         sigma_nband: Number of bands used to compute the self-energy (default is nscf_nband)
-        workdir: Working directory.
-        manager: :class:`TaskManager` instance.
-        nksamll: if not None, a DFT bandstucture calculation will be added after the sc run
+        response_models:
+        gw_qprange:
+        gamma:
+        nksmall:
         extra_abivars: Dictionary with extra variables passed to ABINIT.
     """
+    if response_models is None:
+        response_models = ["godby"]
+
     print(scf_nband)
+    # all these too many options are for development only the current idea for the final version is
+    #if gamma:
+    #    scf_ksampling = KSampling.automatic_density(structure=structure, kppa=10000, chksymbreak=0, shifts=(0, 0, 0))
+    #    nscf_ksampling = KSampling.gamma_centered(kpts=(2, 2, 2))
+    #    if kppa <= 13:
+    #        nscf_ksampling = KSampling.gamma_centered(kpts=(scf_kppa, scf_kppa, scf_kppa))
+    #    else:
+    #        nscf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0, shifts=(0, 0, 0))
+    #else:
+    #    scf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
+    #    nscf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
+
     if gamma:
         if kppa == 1:
-            scf_ksampling = KSampling.gamma_centered(kpts=(1, 1, 1))
-            nscf_ksampling = KSampling.gamma_centered(kpts=(1, 1, 1))
+            scf_ksampling = aobj.KSampling.gamma_centered(kpts=(1, 1, 1))
+            nscf_ksampling = aobj.KSampling.gamma_centered(kpts=(1, 1, 1))
         elif kppa == 2:
-            scf_ksampling = KSampling.gamma_centered(kpts=(2, 2, 2))
-            nscf_ksampling = KSampling.gamma_centered(kpts=(2, 2, 2))
+            scf_ksampling = aobj.KSampling.gamma_centered(kpts=(2, 2, 2))
+            nscf_ksampling = aobj.KSampling.gamma_centered(kpts=(2, 2, 2))
         elif kppa < 0:
-            scf_ksampling = KSampling.gamma_centered(kpts=(-kppa, -kppa, -kppa))
-            nscf_ksampling = KSampling.gamma_centered(kpts=(2, 2, 2))
+            scf_ksampling = aobj.KSampling.gamma_centered(kpts=(-kppa, -kppa, -kppa))
+            nscf_ksampling = aobj.KSampling.gamma_centered(kpts=(2, 2, 2))
         elif kppa <= 13: 
-            scf_ksampling = KSampling.gamma_centered(kpts=(kppa, kppa, kppa))
-            nscf_ksampling = KSampling.gamma_centered(kpts=(kppa, kppa, kppa))
+            scf_ksampling = aobj.KSampling.gamma_centered(kpts=(kppa, kppa, kppa))
+            nscf_ksampling = aobj.KSampling.gamma_centered(kpts=(kppa, kppa, kppa))
         else:
-            scf_ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=(0, 0, 0))
-            nscf_ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=(0, 0, 0))
+            scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=(0, 0, 0))
+            nscf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=(0, 0, 0))
     else:
         # this is the original behaviour before the devellopment of the gwwrapper
         scf_ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0)
@@ -471,7 +488,8 @@ def g0w0_extended_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx
 
     scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                    charge=charge, nband=scf_nband, fband=None)
-
+    nscf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm={"iscf": -2},
+                                    charge=charge, nband=nscf_nband, fband=None)
     multis = []
 
     to_add = {}
@@ -491,13 +509,6 @@ def g0w0_extended_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx
                 diff_abivars[var] = value
                 diff_abivars['pawecutdg'] = diff_abivars['ecut']*2
                 scf_diffs.append(diff_abivars)
-#                multi_scf.append(ScfStrategy(structure, pseudos, scf_ksampling, accuracy=accuracy,
-#                                                spin_mode=spin_mode, smearing=smearing, charge=charge,
-#                                                scf_algorithm=None, nband=scf_nband, **extra_abivars))
-#
-#    print(scf_diffs)
-#    print(extra_abivars)
-#    print(to_add)
 
     print(scf_diffs)
 
@@ -505,7 +516,11 @@ def g0w0_extended_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx
    
     multi_scf.set_vars(scf_ksampling.to_abivars())
     multi_scf.set_vars(scf_electrons.to_abivars())
+    multi_scf.set_vars(_stopping_criterion("scf", accuracy))
     multi_scf.set_vars(extra_abivars)
+
+    single_nscf = AbinitInput(structure, pseudos)
+
     for vars, abinput in zip(scf_diffs, multi_scf):
         print(type(vars), type(abinput))
         abinput.set_vars(vars)
@@ -513,6 +528,51 @@ def g0w0_extended_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx
     # multi_scf.set_vars(smearing.to_abivars())
 
     multis.append(multi_scf)
+    multis.append(single_nscf)
+
+    if scr_nband is None:
+        scr_nband = nscf_nband
+    if sigma_nband is None:
+        sigma_nband = nscf_nband
+
+    if ecutsigx < max(ecuteps):
+        ecutsigx = max(ecuteps)
+
+    if 'cd' in response_models:
+        hilbert = aobj.HilbertTransform(nomegasf=100, domegasf=None, spmeth=1, nfreqre=None, freqremax=None, nfreqim=None,
+                                        freqremin=None)
+
+    for response_model in response_models:
+        for ecuteps_v in ecuteps:
+            for nscf_nband_v in nscf_nband:
+                scr_nband = nscf_nband_v
+                sigma_nband = nscf_nband_v
+                multi = MultiDataset(structure, pseudos, ndtset=2)
+                multi.set_vars(nscf_ksampling.to_abivars())
+                multi.set_vars(nscf_electrons.to_abivars())
+                if response_model == 'cd':
+                    screening = aobj.Screening(ecuteps_v, scr_nband, w_type="RPA", sc_mode="one_shot", hilbert=hilbert,
+                                               ecutwfn=None, inclvkb=inclvkb)
+                    self_energy = aobj.SelfEnergy("gw", "one_shot", sigma_nband, ecutsigx, screening, hilbert=hilbert)
+                else:
+                    ppmodel = response_model
+# old           screening = Screening(ecuteps_v, scr_nband, w_type="RPA", sc_mode="one_shot", ecutwfn=None,
+# old                                 inclvkb=inclvkb)
+                    screening = aobj.Screening(ecuteps_v, scr_nband, w_type="RPA", sc_mode="one_shot",
+                                               hilbert=None, ecutwfn=None, inclvkb=inclvkb)
+                    multi[0].set_vars(screening.to_abivars())
+                    multi[0].set_vars(_stopping_criterion("screening", accuracy))  # Dummy
+# old           self_energy = SelfEnergy("gw", "one_shot", sigma_nband, ecutsigx, screening, ppmodel=ppmodel,
+# old                                    gw_qprange=1)
+                    self_energy = aobj.SelfEnergy("gw", "one_shot", sigma_nband, ecutsigx, screening,
+                                                  gw_qprange=gw_qprange, ppmodel=ppmodel)
+                    multi[1].set_vars(self_energy.to_abivars())
+                    multi[1].set_vars(_stopping_criterion("sigma", accuracy))  # Dummy
+# old           scr_strategy = ScreeningStrategy(scf_strategy[-1], nscf_strategy, screening, **extra_abivars)
+# old           sigma_strategy.append(SelfEnergyStrategy(scf_strategy[-1], nscf_strategy, scr_strategy, self_energy,
+# old                                                    **extra_abivars))
+
+                multis.append(multi)
 
     return multis
 
