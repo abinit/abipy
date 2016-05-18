@@ -53,9 +53,10 @@ docs/examples
 # Unit test / coverage reports
 .coverage
 .tox
+.cache
 nosetests.xml
 _integration_tests_
-.cache
+
 
 # ipython notebooks
 .ipynb*

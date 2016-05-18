@@ -14,7 +14,6 @@ from monty.string import is_string
 from monty.itertools import iuptri
 from monty.pprint import pprint_table
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.symmetry.analyzer import get_point_group
 from abipy.core.kpoints import wrap_to_ws, issamek
 from abipy.iotools import as_etsfreader
 
@@ -840,12 +839,14 @@ class LatticePointGroup(OpSequence):
         self._ops = [LatticeRotation(rot) for rot in rotations]
 
         # Call spglib to get the Herm symbol.
-        herm_symbol, ptg_num, trans_mat = get_point_group(rotations)
-        #                                                                                                
         # Remove blanks from C string.
+        import spglib
+        herm_symbol, ptg_num, trans_mat = spglib.get_pointgroup(rotations)
+        #from pymatgen.symmetry.analyzer import get_point_group
+        #herm_symbol, ptg_num, trans_mat = get_point_group(rotations)
         self.herm_symbol = herm_symbol.strip()
         #print(self.herm_symbol, ptg_num, trans_mat)
-        #                                                                                                
+
         if self.sch_symbol is None:
             raise ValueError("Cannot detect point group symbol! Got sch_symbol = %s" % self.sch_symbol)
 

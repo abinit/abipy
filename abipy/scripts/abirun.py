@@ -156,7 +156,7 @@ sns.set(style='ticks', palette='Set2')"""),
 def main():
 
     def str_examples():
-        examples = """\
+        return """\
 usage example:
     abirun.py [FLOWDIR] rapid                    => Keep repeating, stop when no task can be executed.
     abirun.py [FLOWDIR] scheduler                => Execute flow with the scheduler
@@ -187,8 +187,6 @@ usage example:
         abirun.py prof ABIRUN_ARGS               => to profile abirun.py
         abirun.py tracemalloc ABIRUN_ARGS        => to trace memory blocks allocated by Python
 """
-        return examples
-
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""
         sys.stderr.write(str_examples())
