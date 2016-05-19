@@ -231,7 +231,9 @@ class ElectronBandsError(Exception):
 
 
 class ElectronBands(object):
-    """This object stores the electronic band structure."""
+    """
+    This object stores the electronic band structure.
+    """
     Error = ElectronBandsError
 
     @classmethod
@@ -289,8 +291,8 @@ class ElectronBands(object):
         self.nelect = float(nelect)
         self.fermie = float(fermie)
 
-        # Fix the Fermi level and use efermi as the energy zero.
-        self._fix_fermie()
+        # Use the fermi level as zero of energies
+        self._eigens -= self.fermie
 
         if markers is not None:
             for key, xys in markers.items():
@@ -656,44 +658,6 @@ class ElectronBands(object):
 
     #def has_occupations(self):
     #    return np.any(self.occfacts != 0.0)
-
-    def _fix_fermie(self):
-        """
-        Fix the value of the Fermi level in semiconductors, set it to the HOMO level.
-        """
-        # Use the fermi level computed by Abinit for metals or if SCF run
-        # FIXME
-        #if self.use_metallic_scheme or self.from_scfrun: return
-    
-        # FXME This won't work if ferromagnetic semi-conductor.
-        try:
-            occfact = 2 if self.nsppol == 1 else 1
-            esb_levels = []
-            for k in self.kidxs:
-                esb_view = self.eigens[:,k,:].T.ravel()
-                for i, esb in enumerate(esb_view):
-                    if (i+1) * occfact == self.nelect:
-                        esb_levels.append(esb)
-                        break
-                else:
-                    raise ValueError("Not enough bands to compute the position of the Fermi level!")
-
-        except ValueError:
-            return
-
-        new_fermie = max(esb_levels)
-
-        #if abs(new_fermie - self.fermie) > 0.2:
-        #    print("old_fermie %s, new fermie %s" % (self.fermie, new_fermie))
-
-        # Use fermilevel as zero of energies.
-        self.fermie = new_fermie
-        # FIXME this is problematic since other values e.g. QP corrections
-        # are expressed in terms of KS energies and I should always have
-        # the fermi level to shift energies correctly. perhaps it's better if I provide
-        # an option to shift the energies in the plot.
-        #self._eigens = self._eigens - new_fermie 
-        #self.fermie = 0.0
 
     @property
     def lomos(self):
@@ -2197,7 +2161,7 @@ class ElectronDOSPlotter(object):
         ax.set_ylabel('DOS [states/eV]')
 
         lines, legends = [], []
-        for (label, dos) in self._doses.items():
+        for label, dos in self._doses.items():
             l = dos.plot_ax(ax, *args, **kwargs)[0]
 
             lines.append(l)
