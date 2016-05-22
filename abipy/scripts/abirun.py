@@ -237,7 +237,7 @@ usage example:
 
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                               help='verbose, can be supplied multiple times to increase verbosity')
-    copts_parser.add_argument('--remove-lock', default=False, type=bool, help="Remove the lock file of the pickle file storing the flow.")
+    copts_parser.add_argument('--remove-lock', default=False, action="store_true", help="Remove the lock file of the pickle file storing the flow.")
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -544,9 +544,10 @@ Specify the files to open. Possible choices:
 
         for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
             report = task.get_event_report()
-            print(make_banner(str(task), width=ncols, mark="="))
-            #report = report.filter_types()
-            print(report)
+            if report:
+                print(make_banner(str(task), width=ncols, mark="="))
+                #report = report.filter_types()
+                print(report)
 
     elif options.command == "corrections":
         nrows, ncols = get_terminal_size()

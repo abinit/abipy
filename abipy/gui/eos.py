@@ -3,7 +3,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import wx
 import abipy.gui.awx as awx
 
-from pymatgen.io.abinit.eos import EOS
+from pymatgen.analysis.eos import EOS
 
 
 class EosFrame(awx.Frame):

@@ -292,7 +292,8 @@ class ElectronBands(object):
         self.fermie = float(fermie)
 
         # Use the fermi level as zero of energies
-        self._eigens -= self.fermie
+        #self._eigens -= self.fermie
+        #self.fermie = 0.0
 
         if markers is not None:
             for key, xys in markers.items():
@@ -1236,6 +1237,8 @@ class ElectronBands(object):
         for spin in spin_range:
             for band in band_range:
                 yy = self.eigens[spin,:,band]
+                # fermie is the energy zero 
+                yy -= self.fermie
                 lines.extend(ax.plot(xx, yy, **kwargs))
 
         return lines
