@@ -6,7 +6,7 @@ import abipy.data as abidata
 import abipy.abilab as abilab
 from pprint import pprint
 from abipy.core.testing import AbipyTest
-from abipy.abio.inputs import AbinitInput
+from abipy.abio.inputs import AbinitInput, MultiDataset
 from abipy.abio.factories import *
 
 
@@ -76,6 +76,7 @@ class FactoryTest(AbipyTest):
         scf_kppa, scf_nband, nscf_nband = 10, 10, 10
         ecuteps, ecutsigx = 2, 2
 
+
         multi = g0w0_with_ppmodel_inputs(self.si_structure, self.si_pseudo, scf_kppa, nscf_nband, ecuteps, ecutsigx,
                                       ecut=2)
                                       #accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
@@ -91,29 +92,80 @@ class FactoryTest(AbipyTest):
         flow.allocate()
         #flow.make_scheduler().start()
 
-    def test_convergence_inputs(self):
-        """Testing g0w0_with_ppmodel_input factory."""
-        scf_kppa, scf_nband, nscf_nband = 10, 10, 10
-        ecuteps, ecutsigx = 2, 2
+    def test_convergence_inputs_single(self):
+        """Testing g0w0_convergence_input factory single calculation."""
+        scf_kppa, scf_nband, nscf_nband = 10, 10, [10]
+        ecuteps, ecutsigx = [2], 2
 
-        multis = g0w0_convergence_inputs(self.si_structure, self.si_pseudo, scf_kppa, nscf_nband, ecuteps, ecutsigx,
-                                         ecut=2)
+        inputs = g0w0_convergence_inputs(self.si_structure, self.si_pseudo, scf_kppa, nscf_nband, ecuteps, ecutsigx,
+                                         ecut_s=[2], scf_nband=scf_nband)
         # accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
         # ppmodel="godby", charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
         # sigma_nband=None, gw_qprange=1):
 
+        # one scf, one nscf and one screening / sigma multi
+        self.assertEqual(len(inputs), 4)
+        self.assertIsInstance(inputs[0][0], MultiDataset)
+        self.assertIsInstance(inputs[1][0], AbinitInput)
+        self.assertIsInstance(inputs[2][0], MultiDataset)
+        self.assertIsInstance()
+
+        scr, sig = multis[2].split_datasets()
+        self.assertIsInstance(scr, AbinitInput)
+        self.assertIsInstance(sig, AbinitInput)
+
+        print(scr.abivalidate())
+        sig.abivalidate()
+
+        self.assertEqual(len(sig.to_string()), 3153)
+        self.assertEqual(len(scr.to_string()), 3108)
+        self.assertEqual(scr['gwpara'], 2)
+        self.assertEqual(scr['gwmem'], '10')
+        self.assertEqual(scr['optdriver'], 3)
+        self.assertEqual(sig['optdriver'], 4)
+
+        done = False
+        self.assertTrue(done)
+
         for multi in multis:
             self.validate_inp(multi)
 
-        # return
-#        scf_input
-#        nscf_input
-#        scr_input
-#        sigma_input = multi.split_datasets()
-#        flow = abilab.Flow("flow_g0w0_with_ppmodel")
-#        flow.register_work(abilab.G0W0Work(scf_input, nscf_input, scr_input, sigma_input))
-#        flow.allocate()
-        # flow.make_scheduler().start()
+    def test_convergence_inputs_conve(self):
+        """Testing g0w0_convergence_input factory single calculation."""
+        scf_kppa, scf_nband, nscf_nband = 10, 10, [10, 12, 14]
+        ecuteps, ecutsigx = [2, 3, 4], 2
+
+        multis = g0w0_convergence_inputs(self.si_structure, self.si_pseudo, scf_kppa, nscf_nband, ecuteps, ecutsigx,
+                                             ecut_s=[2,3,4], scf_nband=scf_nband, nksmall=20)
+        # accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
+        # ppmodel="godby", charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
+        # sigma_nband=None, gw_qprange=1):
+
+        # one scf, one nscf and one screening / sigma multi
+        self.assertEqual(len(multis), 3)
+        self.assertIsInstance(multis[0], MultiDataset)
+        self.assertIsInstance(multis[1], AbinitInput)
+        self.assertIsInstance(multis[2], MultiDataset)
+
+        scr, sig = multis[2].split_datasets()
+        self.assertIsInstance(scr, AbinitInput)
+        self.assertIsInstance(sig, AbinitInput)
+
+        print(scr.abivalidate())
+        sig.abivalidate()
+
+        self.assertEqual(len(sig.to_string()), 3153)
+        self.assertEqual(len(scr.to_string()), 3108)
+        self.assertEqual(scr['gwpara'], 2)
+        self.assertEqual(scr['gwmem'], '10')
+        self.assertEqual(scr['optdriver'], 3)
+        self.assertEqual(sig['optdriver'], 4)
+
+        done = False
+        self.assertTrue(done)
+
+        for multi in multis:
+            self.validate_inp(multi)
 
     def test_bse_with_mdf(self):
         """Testing bse_with_mdf input factory."""

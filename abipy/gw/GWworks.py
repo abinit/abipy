@@ -26,7 +26,7 @@ from pymatgen.io.abinit.pseudos import PseudoTable
 from pymatgen.io.abinit.helpers import now, s_name, expand, read_grid_from_file, is_converged
 from pymatgen.io.abinit.helpers import read_extra_abivars
 from abipy.gw.GWtasks import *
-from abipy.abio.factories import g0w0_extended_inputs
+from abipy.abio.factories import g0w0_convergence_inputs
 from pymatgen.io.abinit.works import G0W0Work
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -286,7 +286,8 @@ class SingleAbinitGWWork:
                 else:
                     extra_abivars.update({k: self.option[k]})
                     if k == 'ecut':
-                        extra_abivars.update({'pawecutdg': self.option[k]*2})
+                        if self.pseudo_table.allpaw:
+                            extra_abivars.update({'pawecutdg': self.option[k]*2})
 
         try:
             grid = read_grid_from_file(s_name(self.structure)+".full_res")['grid']
@@ -357,10 +358,10 @@ class SingleAbinitGWWork:
         logger.info('extra   : %s ' % str(extra_abivars))
         logger.info('nscf_nb : %s ' % str(nscf_nband))
         print('before work creation')
-        multi = g0w0_extended_inputs(abi_structure, self.pseudo_table, kppa, nscf_nband, ecuteps, ecutsigx, scf_nband,
-                                     accuracy="normal", spin_mode="unpolarized", smearing=None,
-                                     response_models=response_models, charge=0.0, sigma_nband=None, scr_nband=None,
-                                     gamma=gamma, nksmall=nksmall, **extra_abivars)
+        multi = g0w0_convergence_inputs(abi_structure, self.pseudo_table, kppa, nscf_nband, ecuteps, ecutsigx,
+                                        scf_nband, accuracy="normal", spin_mode="unpolarized", smearing=None,
+                                        response_models=response_models, charge=0.0, sigma_nband=None, scr_nband=None,
+                                        gamma=gamma, nksmall=nksmall, **extra_abivars)
         print(multi)
 
         work = G0W0Work(multi)
