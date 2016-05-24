@@ -247,6 +247,10 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         self.tags = set() if not tags else set(tags)
 
+    def __hash__(self):
+        # todo add the decorators
+        return hash(str(sorted(self.as_dict()['abi_args'])))
+
     @pmg_serialize
     def as_dict(self):
         #vars = OrderedDict()

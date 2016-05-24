@@ -541,8 +541,8 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
     # create nscf inputs
 
     nscf_input = AbinitInput(structure=structure, pseudos=pseudos)
-    nscf_input.set_vars(nscf_electrons)
-    nscf_input.set_vars(nscf_ksampling)
+    nscf_input.set_vars(nscf_electrons.to_abivars())
+    nscf_input.set_vars(nscf_ksampling.to_abivars())
     nscf_input.set_vars(_stopping_criterion(runlevel="nscf", accuracy=accuracy))
 
     if nksmall is not None:
@@ -551,12 +551,12 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
         bands_ksampling = aobj.KSampling.path_from_structure(ndivsm=nksmall, structure=structure)
         dos_ksampling = aobj.KSampling.automatic_density(structure=structure, kppa=2000)
         bands_input = AbinitInput(structure=structure, pseudos=pseudos)
-        bands_input.set_vars(bands_ksampling)
-        bands_input.set_vars(nscf_electrons)
+        bands_input.set_vars(bands_ksampling.to_abivars())
+        bands_input.set_vars(nscf_electrons.to_abivars())
         bands_input.set_vars(_stopping_criterion(runlevel="nscf", accuracy=accuracy))
         dos_input = AbinitInput(structure=structure, pseudos=pseudos)
-        dos_input.set_vars(dos_ksampling)
-        dos_input.set_vars(nscf_electrons)
+        dos_input.set_vars(dos_ksampling.to_abivars())
+        dos_input.set_vars(nscf_electrons.to_abivars())
         dos_input.set_vars(_stopping_criterion(runlevel="nscf", accuracy=accuracy))
         nscf_inputs = [dos_input, bands_input, nscf_input]
     else:
@@ -575,8 +575,8 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
     if 'cd' in response_models:
         hilbert = aobj.HilbertTransform(nomegasf=100, domegasf=None, spmeth=1, nfreqre=None, freqremax=None, nfreqim=None,
                                         freqremin=None)
-    scr_inputs = list()
-    sigma_inputs = list()
+    scr_inputs = []
+    sigma_inputs = []
 
     for response_model in response_models:
         for ecuteps_v in ecuteps:
@@ -605,9 +605,9 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
 
                 scr_input, sigma_input = multi.split_datasets()
                 scr_inputs.append(scr_input)
-                sigma_inputs.append(sigma_inputs)
+                sigma_inputs.append(sigma_input)
 
-    return [scf_inputs, nscf_inputs, scr_inputs, sigma_inputs]
+    return scf_inputs, nscf_inputs, scr_inputs, sigma_inputs
 
 
 def bse_with_mdf_inputs(structure, pseudos, 
