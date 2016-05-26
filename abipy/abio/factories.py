@@ -419,7 +419,7 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
 
 
 # TODO
-def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx, scf_nband,
+def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx, scf_nband, ecut,
                          accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
                          response_models=None, charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
                          sigma_nband=None, gw_qprange=1, gamma=True, nksmall=None, **extra_abivars):
@@ -431,6 +431,7 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
         pseudos: List of `Pseudo` objects.
         kppa:
         scf_nband:
+        ecut:
         scf_ Defines the sampling used for the SCF run.
         nscf_nband: Number of bands included in the NSCF run.
         ecuteps: Cutoff energy [Ha] for the screening matrix.
@@ -456,14 +457,19 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
         response_models = ["godby"]
 
     extra_abivars_all = dict(
+        ecut=ecut,
         paral_kgb=1,
         istwfk="*1",
         timopt=0,
         nbdbuf=8,
     )
 
+    if pseudos.allpaw:
+        extra_abivars_all['pawecutdg'] = extra_abivars_all['ecut']*2
+
     extra_abivars_gw = dict(
         inclvkb=2,
+        gwpara=2,
         gwmem='10',
         prtsuscep=0
     )
@@ -508,10 +514,7 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
                                     charge=charge, nband=nscf_nband, fband=None)
     to_add = {}
 
-    if "istwfk" not in extra_abivars:
-        extra_abivars["istwfk"] = "*1"
-
-    scf_diffs = [] 
+    scf_diffs = []
 
     for k in extra_abivars.keys():
         if k[-2:] == '_s':
@@ -521,7 +524,7 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
             for value in values:
                 diff_abivars = dict()
                 diff_abivars[var] = value
-                if pseudos.allpaw:
+                if pseudos.allpaw and var == 'ecut':
                     diff_abivars['pawecutdg'] = diff_abivars['ecut']*2
                 scf_diffs.append(diff_abivars)
 
@@ -540,27 +543,26 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
 
     # create nscf inputs
 
-    nscf_input = AbinitInput(structure=structure, pseudos=pseudos)
-    nscf_input.set_vars(nscf_electrons.to_abivars())
-    nscf_input.set_vars(nscf_ksampling.to_abivars())
-    nscf_input.set_vars(_stopping_criterion(runlevel="nscf", accuracy=accuracy))
+    ndtset = 3 if nksmall is not None else 1
+    nscf_multi = MultiDataset(structure=structure, pseudos=pseudos, ndtset=ndtset)
+
+    nscf_multi.set_vars(nscf_electrons.to_abivars())
+    nscf_multi.set_vars(extra_abivars_all)
+    nscf_multi.set_vars(_stopping_criterion(runlevel="nscf", accuracy=accuracy))
+
+    nscf_multi[-1].set_vars(nscf_ksampling.to_abivars())
 
     if nksmall is not None:
         # if nksmall add bandstructure and dos calculations as well
         logger.info('added band structure calculation')
         bands_ksampling = aobj.KSampling.path_from_structure(ndivsm=nksmall, structure=structure)
         dos_ksampling = aobj.KSampling.automatic_density(structure=structure, kppa=2000)
-        bands_input = AbinitInput(structure=structure, pseudos=pseudos)
-        bands_input.set_vars(bands_ksampling.to_abivars())
-        bands_input.set_vars(nscf_electrons.to_abivars())
-        bands_input.set_vars(_stopping_criterion(runlevel="nscf", accuracy=accuracy))
-        dos_input = AbinitInput(structure=structure, pseudos=pseudos)
-        dos_input.set_vars(dos_ksampling.to_abivars())
-        dos_input.set_vars(nscf_electrons.to_abivars())
-        dos_input.set_vars(_stopping_criterion(runlevel="nscf", accuracy=accuracy))
-        nscf_inputs = [dos_input, bands_input, nscf_input]
-    else:
-        nscf_inputs = nscf_input
+        nscf_multi[0].set_vars(bands_ksampling.to_abivars())
+        nscf_multi[0].set_vars({'chksymbreak': 0})
+        nscf_multi[1].set_vars(dos_ksampling.to_abivars())
+        nscf_multi[1].set_vars({'chksymbreak': 0})
+
+    nscf_inputs = nscf_multi.split_datasets()
 
     # create screening and sigma inputs
 

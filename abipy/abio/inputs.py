@@ -247,9 +247,9 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         self.tags = set() if not tags else set(tags)
 
-    def __hash__(self):
-        # todo add the decorators
-        return hash(str(sorted(self.as_dict()['abi_args'])))
+    def variable_checksum(self):
+        # todo add the decorators, do we need to add them ?
+        return hash(str(sorted([(unicode(i[0]), i[1]) for i in self.as_dict()['abi_args']])))
 
     @pmg_serialize
     def as_dict(self):

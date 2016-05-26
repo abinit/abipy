@@ -239,6 +239,14 @@ class TestAbinitInput(AbipyTest):
             assert all(v.retcode == 0 for v in vs)
             #assert 0
 
+    def TestInputCheckSum(self):
+        """Testing the hash method of AbinitInput"""
+        inp = ebands_input(abidata.cif_file("si.cif"), abidata.pseudos("14si.pspnc"), kppa=10, ecut=2)[0]
+        inp_cs = inp.variable_checksum()
+        ecut = inp.pop('ecut')
+        inp.set_vars({'ecut': ecut})
+        self.assertEqual(inp_cs, inp.variable_checksum())
+
 
 class TestMultiDataset(AbipyTest):
     """Unit tests for MultiDataset."""
