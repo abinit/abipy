@@ -1237,7 +1237,7 @@ class ElectronBands(object):
         for spin in spin_range:
             for band in band_range:
                 yy = self.eigens[spin,:,band]
-                # fermie is the energy zero 
+                # fermie is the energy zero
                 yy -= self.fermie
                 lines.extend(ax.plot(xx, yy, **kwargs))
 

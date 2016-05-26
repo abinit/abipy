@@ -385,6 +385,38 @@ class Interpol3D(object):
         return fxy0 + (0.5 - 0.5 * np.cos(np.pi * z)) * (fxy1 - fxy0)
 
 
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()
+def find_convindex(values, tol, min_numpts=1, mode="abs", vinf=None):
+    """
+    Given a list of values and a tolerance tol, returns the leftmost index for which
+
+        abs(value[i] - vinf) < tol if mode == "abs"
+    or
+        abs(value[i] - vinf) / vinf < tol if mode == "rel"
+
+    Args:
+        tol: Tolerance
+        min_numpts: Minimum number of points that must be converged.
+        mode: "abs" for absolute convergence, "rel" for relative convergence.
+        vinf: Used to specify an alternative value instead of values[-1].
+            By default, vinf = values[-1]
+
+    Return: 
+        -1 if convergence is not achieved else the index in values.
+    """
+    vinf = values[-1] if vinf is None else vinf
+
+    if mode == "abs":
+        vdiff = [abs(v - vinf) for v in values]
+    elif mode == "rel":
+        vdiff = [abs(v - vinf) / vinf for v in values]
+    else:
+        raise ValueError("Wrong mode %s" % mode)
+
+    numpts, i = len(vdiff), -2
+    if numpts > min_numpts and vdiff[-2] < tol:
+        for i in range(numpts-1, -1, -1):
+            if vdiff[i] > tol:
+                break
+        if (numpts - i - 1) < min_numpts: i = -2
+
+    return i + 1
