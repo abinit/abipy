@@ -743,12 +743,13 @@ class GWConvergenceData(object):
             self.type['single'] = True
         print(self.type)
 
-    def find_conv_pars(self, tol=0.0001):
+    def find_conv_pars(self, tol=0.0001, silent=False):
         """
         find the pair of smallest values of ecuteps and nbands that give a gamma - gamma gap converged within tol
         positive tol ensures the dirivative is smaller than tol
         negative tol ensures the value is closer than -tol to the assymtotic limmit of a 'A + B / x ^ N' fit
         """
+        plots = False if silent else True
         ecuteps_l = False
         nbands_l = False
         ecuteps_c = 0
@@ -773,7 +774,7 @@ class GWConvergenceData(object):
                     zs.append(zd[x][y])
                 except KeyError:
                     pass
-            conv_data = determine_convergence(ys, zs, name=self.name, tol=tol, extra='ecuteps at '+str(x))
+            conv_data = determine_convergence(ys, zs, name=self.name, tol=tol, extra='ecuteps at '+str(x), plots=plots)
             extrapolated.append(conv_data[4])
             if conv_data[0]:
                 y_conv.append(conv_data[1])
@@ -784,7 +785,7 @@ class GWConvergenceData(object):
                 y_conv.append(None)
                 z_conv.append(None)
         if ecuteps_l:
-            conv_data = determine_convergence(xs, z_conv, name=self.name, tol=tol, extra='nbands')
+            conv_data = determine_convergence(xs, z_conv, name=self.name, tol=tol, extra='nbands', plots=plots)
             if conv_data[0]:
                 nbands_l = conv_data[0]
                 nbands_c = conv_data[1]
@@ -796,7 +797,7 @@ class GWConvergenceData(object):
         self.conv_res['values'].update({'ecuteps': ecuteps_c, 'nbands': nbands_c, 'gap': gap})
         self.conv_res['derivatives'].update({'ecuteps': ecuteps_d, 'nbands': nbands_d})
         return determine_convergence(xs, extrapolated, name=self.name, tol=-0.05,
-                                     extra='nbands at extrapolated ecuteps')
+                                     extra='nbands at extrapolated ecuteps', plots=plots)
 
     def find_conv_pars_scf(self, x_name, y_name, tol=0.0001):
         xs = self.get_var_range(x_name)

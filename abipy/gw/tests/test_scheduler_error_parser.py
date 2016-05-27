@@ -115,7 +115,7 @@ class QueueErrorParseTestSLURM(unittest.TestCase):
         Testing the SLURM error parsing of TimeCancelError que errors
         """
         # 'err'
-        string = "JOB 999 CANCELLED AT somewhere DUE TO TIME LIMIT"
+        string = "JOB 999 CANCELLED AT 888 DUE TO TIME LIMIT"
         err_file = tempfile.mktemp()
         with open(err_file, 'w') as f:
             f.write(string)
@@ -124,7 +124,7 @@ class QueueErrorParseTestSLURM(unittest.TestCase):
         self.assertEqual(len(parser.errors), 1)
         self.assertIsInstance(parser.errors[0], TimeCancelError)
         print(parser.errors[0])
-        self.assertEqual(parser.errors[0].meta_data['time_of_cancel'][0], u'999')
+        self.assertEqual(parser.errors[0].meta_data['time_of_cancel'][0], u'888')
         os.remove(err_file)
 
     def test_NodeFailureError(self):

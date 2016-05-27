@@ -15,6 +15,7 @@ from abipy.gw.GWworks import GWWork, SingleAbinitGWWork, VaspGWFWWorkFlow
 import abipy.data as abidata
 from pymatgen.io.vasp.inputs import get_potcar_dir
 from pymatgen.io.abinit.flows import Flow
+import copy
 
 __author__ = 'setten'
 
@@ -63,6 +64,49 @@ class GWConvergenceDataTest(PymatgenTest):
         structure.item = 'mp-149'
         conv_data = GWConvergenceData(spec=spec, structure=structure)
         self.assertIsInstance(conv_data, GWConvergenceData)
+        self.assertEqual(conv_data.name, 'Si_mp-149')
+        self.assertEqual(conv_data.conv_res, {u'control': {}, u'derivatives': {}, u'values': {}})
+        test_file = tempfile.mktemp()
+        string = "{u'grid': 0, u'all_done': True}"
+        f_name = conv_data.name+'.full_res'
+        with open(f_name, 'w') as f:
+            f.write(string)
+        conv_data.read_full_res_from_file()
+        os.remove(f_name)
+        self.assertEqual(conv_data.full_res, {u'all_done': True, u'grid': 0})
+        string = "{'control': {u'ecuteps': True, u'nbands': True}, 'values': {u'ecuteps': " \
+                 "101.98825069084282, u'nbands': 30}, 'derivatives': {u'ecuteps':" \
+                 " 0.00023077744572658418, u'nbands': -0.0013567555555555532}}"
+        with open(test_file, 'w') as f:
+            f.write(string)
+        conv_data.read_conv_res_from_file(test_file)
+        self.assertEqual(conv_data.conv_res['values']['nbands'], 30)
+        self.assertEqual(conv_data.conv_res['derivatives']['ecuteps'], 0.00023077744572658418)
+        conv_res = copy.deepcopy(conv_data.conv_res)
+        self.assertEqual(conv_data.data, {})
+        data_names = ['nbands', 'ecuteps',  'gwgap']
+        data_list = [[30.00000, 101.98825, 3.13196], [30.00000, 203.97650, 3.14811], [30.00000, 326.36240, 3.14876],
+                     [30.00000, 428.35065, 3.14880], [30.00000, 530.33890, 3.14881], [60.00000, 101.98825, 3.10808],
+                     [60.00000, 203.97650, 3.13435], [60.00000, 326.36240, 3.13522], [60.00000, 428.35065, 3.13531],
+                     [60.00000, 530.33890, 3.13532], [120.00000, 101.98825, 3.12039], [120.00000, 203.97650, 3.15994],
+                     [120.00000, 326.36240, 3.16167], [120.00000, 428.35065, 3.16182], [120.00000, 530.33890, 3.16183],
+                     [180.00000, 101.98825, 3.12198], [180.00000, 203.97650, 3.16845], [180.00000, 326.36240, 3.17183],
+                     [180.00000, 428.35065, 3.17203], [180.00000, 530.33890, 3.17205]]
+        for i, d in enumerate(data_list):
+            conv_data.data[i] = dict(zip(data_names, d))
+        data_names = ['ecut', 'full_width']
+        data_list = [[10, 100], [12, 101], [13, 101]]
+        for i, d in enumerate(data_list):
+            conv_data.data[i] = dict(zip(data_names, d))
+
+        # self.assertEqual(conv_data.data[0]['gwgap'], 3.13196)
+        # conv_data.conv_res = {u'control': {}, u'derivatives': {}, u'values': {}}
+        conv_data.find_conv_pars(tol=-0.1, silent=True)
+        conv_data.find_conv_pars_scf('ecut', 'full_width', self['tol'])
+        print(conv_data.conv_res)
+        self.assertEqual(conv_data.conv_res['control'], conv_res['control'])
+        self.assertEqual(conv_data.conv_res['derivatives'], conv_res['derivatives'])
+        self.assertEqual(conv_data.conv_res['values'], conv_res['values'])
 
 
 class GWTestCodeInterfaces(PymatgenTest):
