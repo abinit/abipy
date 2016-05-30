@@ -15,8 +15,10 @@ from monty.collections import AttrDict
 from monty.functools import lazy_property
 from monty.bisect import find_le, find_gt
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
+from pymatgen.serializers.json_coders import pmg_serialize
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, Kpath, IrredZone, KpointsReaderMixin, kmesh_from_mpdivs
+from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader, Visualizer, bxsf_write
 from abipy.tools import gaussian
 from abipy.tools.animator import FilesAnimator
@@ -52,10 +54,10 @@ class Electron(namedtuple("Electron", "spin kpoint band eig occ")):
         Energies are in eV.
     """
     #def __eq__(self, other):
-    #    return (self.spin = other.spin and 
-    #            self.kpoint == other.kpoint and 
-    #            self.band == other.band and 
-    #            self.eig == other.eig 
+    #    return (self.spin = other.spin and
+    #            self.kpoint == other.kpoint and
+    #            self.band == other.band and
+    #            self.eig == other.eig
                  # and self.occ == other.occ
     #            )
 
@@ -81,7 +83,7 @@ class Electron(namedtuple("Electron", "spin kpoint band eig occ")):
         return tuple(fields)
 
     def asdict(self):
-        """Convert self into a dict.""" 
+        """Convert self into a dict."""
         return super(Electron, self)._asdict()
 
     def to_strdict(self, fmt=None):
@@ -174,7 +176,7 @@ class ElectronTransition(object):
         return "\n".join(lines)
 
     #def __eq__(self, other):
-    #    return self.in_state == other.in_state and 
+    #    return self.in_state == other.in_state and
     #           self.out_state == other.out_state
 
     #def __ne__(self, other):
@@ -206,6 +208,20 @@ class Smearing(AttrDict):
         "occopt",
         "tsmear_ev",
     ]
+
+    @classmethod
+    def from_dict(cls, d):
+        """
+        Makes Smearing obey the general json interface used in pymatgen for easier serialization.
+        """
+        return cls(**{k: d[k] for k in cls._MANDATORY_KEYS})
+
+    @pmg_serialize
+    def as_dict(self):
+        """
+        Makes Smearing obey the general json interface used in pymatgen for easier serialization.
+        """
+        return self
 
     def __init__(self, *args, **kwargs):
         super(Smearing, self).__init__(*args, **kwargs)
@@ -247,6 +263,33 @@ class ElectronBands(object):
 
         assert new.__class__ == cls
         return new
+
+    @classmethod
+    def from_dict(cls, d):
+        from abipy.core.kpoints import KpointList, IrredZone, Kpath
+        name2cls = {c.__name__: c for c in (KpointList, IrredZone, Kpath)}
+        kpoints_cls = name2cls[d["kpoints"]["@class"]]
+        kpoints = kpoints_cls.from_dict(d["kpoints"])
+
+        return cls(Structure.from_dict(d["structure"]), kpoints,
+                   d["eigens"], d["fermie"], d["occfacts"], d["nelect"],
+                   nband_sk=d["nband_sk"], smearing=d["smearing"],
+                   #markers=None, widths=None
+                   )
+
+    @pmg_serialize
+    def as_dict(self):
+        return dict(
+            structure=self.structure.as_dict(),
+            kpoints=self.kpoints.as_dict(),
+            eigens=self.eigens.tolist(),
+            fermie=self.fermie,
+            occfacts=self.occfacts.tolist(),
+            nelect=self.nelect,
+            nband_sk=self.nband_sk.tolist(),
+            smearing=self.smearing.as_dict(),
+            #markers=, widths=
+        )
 
     def __init__(self, structure, kpoints, eigens, fermie, occfacts, nelect,
                  nband_sk=None, smearing=None, markers=None, widths=None):
@@ -405,7 +448,7 @@ class ElectronBands(object):
             else:
                 # Add xys to the previous marker set.
                 self._markers[key].extend(*xys)
-        
+
         else:
             if key in self.markers:
                 raise ValueError("Cannot overwrite key %s in data" % key)
@@ -536,7 +579,7 @@ class ElectronBands(object):
                 e0, bs = e, [band]
             else:
                 bs.append(band)
-        
+
         deg_ebands.append((e0, bs))
         return deg_ebands
 
@@ -605,20 +648,14 @@ class ElectronBands(object):
 
         stream.flush()
 
-    def to_pymatgen(self, fermie=None):
+    def to_pymatgen(self):
         """
         Return a pymatgen bandstructure object.
-
-        Args:
-            fermie: Fermi energy in eV. If None, self.efermi is used.
         """
         from pymatgen.electronic_structure.core import Spin
         from pymatgen.electronic_structure.bandstructure import BandStructure, BandStructureSymmLine
 
         assert np.all(self.nband_sk == self.nband_sk[0,0])
-
-        # TODO check this
-        if fermie is None: fermie = self.fermie
 
         #eigenvals is a dict of energies for spin up and spin down
         #{Spin.up:[][],Spin.down:[][]}, the first index of the array
@@ -629,20 +666,20 @@ class ElectronBands(object):
 
         eigenvals = {Spin.up: self.eigens[0,:,:].T.copy().tolist()}
 
-        if self.nsppol == 2: 
+        if self.nsppol == 2:
             eigenvals[Spin.down] = self.eigens[1,:,:].T.copy().tolist()
-        
+
         # FIXME: is_path does not work since info is missing in the netcdf file.
         #if self.kpoints.is_path:
         #    labels_dict = {k.name: k.frac_coords for k in self.kpoints if k.name is not None}
         #    logger.info("calling pmg BandStructureSymmLine with labels_dict %s" % str(labels_dict))
-        #    return BandStructureSymmLine(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, fermie, labels_dict,
+        #    return BandStructureSymmLine(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, self.fermie,
+        #                                 labels_dict,
         #                                 coords_are_cartesian=False, structure=self.structure, projections=None)
-
         #else:
         logger.info("Calling pmg BandStructure")
-        return BandStructure(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, fermie,
-                                 labels_dict=None, coords_are_cartesian=False, structure=self.structure, projections=None)
+        return BandStructure(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, self.fermie,
+                            labels_dict=None, coords_are_cartesian=False, structure=self.structure, projections=None)
 
     def _electron_state(self, spin, kpoint, band):
         """
@@ -683,7 +720,7 @@ class ElectronBands(object):
     def homo_sk(self, spin, kpoint):
         """
         Returns the HOMO state for the given spin, kpoint.
-                                                           
+
         Args:
             spin: Spin index
             kpoint: Index of the kpoint or :class:`Kpoint` object.
@@ -696,7 +733,7 @@ class ElectronBands(object):
     def lumo_sk(self, spin, kpoint):
         """
         Returns the LUMO state for the given spin, kpoint.
-                                                           
+
         Args:
             spin: Spin index
             kpoint: Index of the kpoint or :class:`Kpoint` object.
@@ -731,7 +768,7 @@ class ElectronBands(object):
     def lumos(self):
         """lumo states for each spin channel as a list of nsppol :class:`Electron`."""
         lumos = self.nsppol * [None]
-                                                                     
+
         for spin in self.spins:
             blist, enes = [], []
             for k in self.kidxs:
@@ -739,10 +776,10 @@ class ElectronBands(object):
                 b = find_gt(self.eigens[spin,k,:], self.fermie)
                 blist.append(b)
                 enes.append(self.eigens[spin,k,b])
-                                                                     
+
             lumo_kidx = np.array(enes).argmin()
             lumo_band = blist[lumo_kidx]
-                                                                     
+
             # Build Electron instance.
             lumos[spin] = self._electron_state(spin, lumo_kidx, lumo_band)
 
@@ -836,12 +873,12 @@ class ElectronBands(object):
         return StatParams(
             mean=ediff.mean(axis=axis),
             stdev=ediff.std(axis=axis),
-            min=ediff.min(axis=axis), 
+            min=ediff.min(axis=axis),
             max=ediff.max(axis=axis))
 
     def statdiff(self, other, axis=None, numpy_op=np.abs):
         """
-        Compare the eigenenergies of two bands and compute the 
+        Compare the eigenenergies of two bands and compute the
         statistical parameters: mean, standard deviation, min and max
 
         Args:
@@ -863,7 +900,7 @@ class ElectronBands(object):
                           )
 
     def ipw_dos(self):
-        """return an ipython widget with controllers to compute the electron DOS."""
+        """Return an ipython widget with controllers to compute the electron DOS."""
         import ipywidgets as ipw
 
         def callback(method, step, width):
@@ -883,7 +920,7 @@ class ElectronBands(object):
         from PyQt4 import QtCore, QtGui
 
         if dir is None: dir ='./'
-        qstring = QtGui.QFileDialog.getOpenFileName(None, "Select data file...", 
+        qstring = QtGui.QFileDialog.getOpenFileName(None, "Select data file...",
                 dir, filter="All files (*);; Netcdf Files (*.nc)")
         path = str(qstring)
         if not path: return None
@@ -906,7 +943,7 @@ class ElectronBands(object):
         wsum = self.kpoints.sum_weights()
         if abs(wsum - 1) > 1.e-6:
             err_msg = "Kpoint weights should sum up to one while sum_weights is %.3f\n" % wsum
-            err_msg += "The list of kpoints does not represent a homogeneous sampling of the BZ\n" 
+            err_msg += "The list of kpoints does not represent a homogeneous sampling of the BZ\n"
             err_msg += str(type(self.kpoints)) + "\n" + str(self.kpoints)
             raise ValueError(err_msg)
 
@@ -956,7 +993,7 @@ class ElectronBands(object):
         wsum = self.kpoints.sum_weights()
         if abs(wsum - 1) > 1.e-6:
             err_msg =  "Kpoint weights should sum up to one while sum_weights is %.3f\n" % wsum
-            err_msg += "The list of kpoints does not represent a homogeneous sampling of the BZ\n" 
+            err_msg += "The list of kpoints does not represent a homogeneous sampling of the BZ\n"
             err_msg += str(type(self.kpoints)) + "\n" + str(self.kpoints)
             raise ValueError(err_msg)
 
@@ -1111,7 +1148,8 @@ class ElectronBands(object):
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
             klabels: dictionary whose keys are tuple with the reduced
-                coordinates of the k-points. The values are the labels. e.g. klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0):"L"}.
+                coordinates of the k-points. The values are the labels. e.g.
+                klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0):"L"}.
             band_range: Tuple specifying the minimum and maximum band to plot (default: all bands are plotted)
             marker: String defining the marker to plot. Accepts the syntax `markername:fact` where
                 fact is a float used to scale the marker size.
@@ -1278,7 +1316,7 @@ class ElectronBands(object):
                 # Build Kpoint instance.
                 ktick = Kpoint(kcoord, self.reciprocal_lattice)
                 for (idx, kpt) in enumerate(self.kpoints):
-                    if ktick == kpt: 
+                    if ktick == kpt:
                         d[idx] = kname
 
         else:
@@ -1373,9 +1411,9 @@ class ElectronBands(object):
         ibz_arr = self.kpoints.to_array()
         #print("ibz_arr", ibz_arr)
 
-        ebands3d = EBands3D(self.structure, 
-                            ibz_arr=self.kpoints.to_array(), ene_ibz=self.eigens, 
-                            ndivs=ndivs, shifts=self.kpoints.shifts, 
+        ebands3d = EBands3D(self.structure,
+                            ibz_arr=self.kpoints.to_array(), ene_ibz=self.eigens,
+                            ndivs=ndivs, shifts=self.kpoints.shifts,
                             pbc=True, order="unit_cell")
 
         # Symmetrize bands in the unit cell.
@@ -1430,7 +1468,7 @@ class ElectronBandsPlotter(object):
     Usage example:
 
     .. code-block:: python
-        
+
         plotter = ElectronBandsPlotter()
         plotter.add_ebands_from_file("foo.nc", label="foo bands")
         plotter.add_ebands_from_file("bar.nc", label="bar bands")
@@ -1559,7 +1597,7 @@ class ElectronBandsPlotter(object):
             else:
                 # Add xys to the previous marker set.
                 self._markers[key].extend(*xys)
-        
+
         else:
             if key in self._markers:
                 raise ValueError("Cannot overwrite key %s in data" % key)
@@ -1572,7 +1610,7 @@ class ElectronBandsPlotter(object):
         Plot the band structure and the DOS.
 
         Args:
-            klabels: dictionary whose keys are tuple with the reduced coordinates of the k-points. 
+            klabels: dictionary whose keys are tuple with the reduced coordinates of the k-points.
                 The values are the labels e.g. klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
 
         ==============  ==============================================================
@@ -1712,7 +1750,7 @@ class ElectronDosPlotter(object):
     Usage example:
 
     .. code-block:: python
-        
+
         plotter = ElectronDosPlotter()
         plotter.add_edos_from_file("foo.nc", label="foo dos")
         plotter.add_edos_from_file("bar.nc", label="bar dos")
@@ -1870,13 +1908,9 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
             tsmear_ev=units.Energy(self.read_value("smearing_width"), "Ha").to("eV")
         )
 
-    #def read_xcinfo(self):
-    #   """Returns a dictionary with info on the XC functional."""
-    #    return XcInfo.from_ixc(self.read_value("ixc"))
-
 
 class EBands3D(object):
-    """This object symmetrizes the band energies in the full Brillouin zone.""" 
+    """This object symmetrizes the band energies in the full Brillouin zone."""
     def __init__(self, structure, ibz_arr, ene_ibz, ndivs, shifts, pbc=False, order="unit_cell"):
         """
         Args:
@@ -1964,13 +1998,13 @@ class EBands3D(object):
     #    #indices =
     #    z0 = 0
     #    plane = np.empty((self.nx, self.ny))
-                                                                        
+
     #    kx, ky = range(self.nx), range(self.ny)
     #    for x in kx:
     #        for y in ky:
     #            ibz_idx = self.map_xyz2ibz[x, y, z0]
     #            plane[x, y] = values_ibz[ibz_idx]
-                                                                        
+
     #    kx, ky = np.meshgrid(kx, ky)
     #    return kx, ky, plane
 

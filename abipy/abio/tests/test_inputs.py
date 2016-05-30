@@ -1,6 +1,8 @@
 """Tests for input  module"""
 from __future__ import print_function, division, unicode_literals
 
+import tempfile
+import os
 import numpy as np
 import abipy.data as abidata
 
@@ -58,6 +60,9 @@ class TestAbinitInput(AbipyTest):
         inp.to_string(sortmode="section", with_structure=True, with_pseudos=True)
 
         inp.set_vars(ecut=5, toldfe=1e-6)
+
+        _, tmp_file = tempfile.mkstemp()
+        inp.write(filepath=tmp_file)
 
         # Cannot change structure variables directly.
         with self.assertRaises(inp.Error):
@@ -242,6 +247,7 @@ class TestAbinitInput(AbipyTest):
 
 class TestMultiDataset(AbipyTest):
     """Unit tests for MultiDataset."""
+
     def test_api(self):
         """Test MultiDataset API."""
         structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
@@ -278,6 +284,10 @@ class TestMultiDataset(AbipyTest):
         print(multi)
         #print(dir(multi))
         #assert 0
+
+        tmp_dir = tempfile.mkdtemp()
+        tmp_file = os.path.join(tmp_dir, "run.abi")
+        inp.write(filepath=tmp_file)
 
         new_multi = MultiDataset.from_inputs([inp for inp in multi])
         assert new_multi.ndtset == multi.ndtset

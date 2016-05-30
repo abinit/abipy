@@ -30,9 +30,9 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
     File containing the results of a ground-state calculation.
 
     Usage example:
-                                                                  
+
     .. code-block:: python
-        
+
         with GsrFile("foo_GSR.nc") as gsr:
             print("energy: ", gsr.energy)
             gsr.ebands.plot()
@@ -124,7 +124,7 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
     def cart_stress_tensor(self):
         return self.reader.read_cart_stress_tensor()
 
-    @lazy_property 
+    @lazy_property
     def pressure(self):
         HaBohr3_GPa = 29421.033 # 1 Ha/Bohr^3, in GPa
         pressure = - (HaBohr3_GPa/3) * self.cart_stress_tensor.trace()
@@ -134,6 +134,11 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
     def residm(self):
         """Maximum of the residuals"""
         return self.reader.read_value("residm")
+
+    @lazy_property
+    def xc(self):
+        """:class:`XcFunc object with info on the exchange-correlation functional."""
+        return self.reader.read_abinit_xcfunc()
 
     @lazy_property
     def density(self):
@@ -180,15 +185,15 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         params, data = {}, {}
 
         if inc_structure:
-            return ComputedStructureEntry(self.structure, self.energy, 
+            return ComputedStructureEntry(self.structure, self.energy,
                                           parameters=params, data=data)
         else:
-            return ComputedEntry(self.structure.composition, self.energy,   
+            return ComputedEntry(self.structure.composition, self.energy,
                                  parameters=params, data=data)
 
     def as_dict(self, **kwargs):
         # TODO: Add info depending on the run_type e.g. max_resid is NSCF
-        return dict( 
+        return dict(
             structure=self.structure.as_dict(),
             final_energy=self.energy,
             final_energy_per_atom=self.energy_per_atom,
@@ -228,7 +233,7 @@ class EnergyTerms(AttrDict):
         ("e_corepspdc", "psp core-core energy double-counting"),
         ("e_kinetic", "Kinetic energy part of total energy. (valid for direct scheme, dtset%optene == 0"),
         ("e_nonlocalpsp", "Nonlocal pseudopotential part of total energy."),
-        ("e_entropy", "Entropy energy due to the occupation number smearing (if metal)\n" + 
+        ("e_entropy", "Entropy energy due to the occupation number smearing (if metal)\n" +
                       "Value is multiplied by dtset%tsmear, see %entropy for the entropy alone\n." +
                       "(valid for metals, dtset%occopt>=3 .and. dtset%occopt<=8)"),
         ("entropy", "Entropy term"),
@@ -245,7 +250,7 @@ class EnergyTerms(AttrDict):
         ("h0", "h0=e_kinetic+e_localpsp+e_nonlocalpsp"),
         ("e_electronpositron", "Electron-positron: electron-positron interaction energy"),
         ("edc_electronpositron", "Electron-positron: double-counting electron-positron interaction energy"),
-        ("e0_electronpositron", "Electron-positron: energy only due to unchanged particles\n" + 
+        ("e0_electronpositron", "Electron-positron: energy only due to unchanged particles\n" +
                                 "(if calctype=1, energy due to electrons only)\n" +
                                 "(if calctype=2, energy due to positron only)\n"),
         ("e_monopole", "Monopole correction to the total energy for charged supercells"),
@@ -295,7 +300,7 @@ class GsrReader(ElectronsReader, DensityReader):
         tensor = np.empty((3,3), dtype=np.float)
         for i in range(3): tensor[i,i] = c[i]
         for p, (i, j) in enumerate(((2,1), (2,0), (1,0))):
-            tensor[i,j] = c[3+p] 
+            tensor[i,j] = c[3+p]
             tensor[j,i] = c[3+p]
 
         return tensor
@@ -316,9 +321,9 @@ class GsrPlotter(Iterable):
     methods to inspect/analyze the results (useful for convergence studies)
 
     Usage example:
-                                                                  
+
     .. code-block:: python
-        
+
         plotter = GsrPlotter()
         plotter.add_file("foo_GSR.nc")
         plotter.add_file("bar_GSR.nc")
@@ -375,7 +380,7 @@ class GsrPlotter(Iterable):
     @property
     def param_name(self):
         """The name of the parameter whose value is checked for convergence."""
-        try: 
+        try:
             return self._param_name
 
         except AttributeError:
@@ -385,7 +390,7 @@ class GsrPlotter(Iterable):
     def _get_param_list(self):
         """Return a dictionary with the values of the parameters extracted from the GSR files."""
         param_list = defaultdict(list)
-                                                               
+
         for gsr in self:
             for pname in gsr.params.keys():
                 param_list[pname].append(gsr.params[pname])
@@ -395,7 +400,7 @@ class GsrPlotter(Iterable):
     def set_param_name(self, param_name):
         """
         Set the name of the parameter whose value is checked for convergence.
-        if param_name is None, we try to find its name by inspecting 
+        if param_name is None, we try to find its name by inspecting
         the values in the gsr.params dictionaries.
         """
         self._param_name = param_name
@@ -415,7 +420,7 @@ class GsrPlotter(Iterable):
                     param_name = key
                 else:
                     problem = True
-                    logger.warning("Cannot perform automatic detection of convergence parameter.\n" + 
+                    logger.warning("Cannot perform automatic detection of convergence parameter.\n" +
                                    "Found multiple parameters with different values. Will use filepaths as plot labels.")
 
         self.set_param_name(param_name if not problem else None)
@@ -425,18 +430,18 @@ class GsrPlotter(Iterable):
             xvalues = range(len(self))
         else:
             xvalues = param_list[self.param_name]
-                                                  
+
             # Sort xvalues and rearrange the files.
             items = sorted([iv for iv in enumerate(xvalues)], key=lambda item: item[1])
             indices = [item[0] for item in items]
-                                                                                             
+
             files = self._gsr_files.values()
-                                                                                             
+
             newd = OrderedDict()
             for i in indices:
                 gsr = files[i]
                 newd[gsr.filepath] = gsr
-                                                                                             
+
             self._gsr_files = newd
 
             # Use sorted xvalues for the plot.
@@ -448,7 +453,7 @@ class GsrPlotter(Iterable):
     @property
     def xvalues(self):
         """The values used for the X-axis."""
-        return self._xvalues 
+        return self._xvalues
 
     def set_xvalues(self, xvalues):
         """xvalues setter."""
@@ -465,8 +470,8 @@ class GsrPlotter(Iterable):
 
         title = kwargs.pop("title", None)
         if title is not None: ax.set_title(title)
-                                                                                 
-        # Set ticks and labels. 
+
+        # Set ticks and labels.
         if self.param_name is None:
             # Could not figure the name of the parameter ==> Use the basename of the files
             ticks, labels = range(len(self)), [f.basename for f in self]
@@ -505,5 +510,5 @@ class GsrPlotter(Iterable):
         if title is not None: fig.suptitle(title)
         if show: plt.show()
         if savefig is not None: fig.savefig(savefig)
-                                 
+
         return fig

@@ -33,13 +33,16 @@ class ElectronBandsTest(AbipyTest):
         """Read ElectronBands from WFK files."""
         for filename in data.WFK_NCFILES:
             ebands = ElectronBands.from_file(filename)
+            ebands.to_pymatgen()
+            print(ebands.as_dict())
+            #ElectronBands.from_dict(ebands.as_dict())
 
     def test_read_ebands_from_GSR(self):
         """Read ElectronBands from GSR files."""
         for filename in data.GSR_NCFILES:
             ebands = ElectronBands.from_file(filename)
-            # TODO: FIx this!
-            #ebands.to_pymatgen()
+            ebands.to_pymatgen()
+            #ElectronBands.from_dict(ebands.as_dict())
 
     def test_dos(self):
         """Test DOS methods."""

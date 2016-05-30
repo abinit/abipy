@@ -10,7 +10,7 @@ from collections import namedtuple, OrderedDict, Iterable, defaultdict
 from monty.string import list_strings, is_string
 from monty.collections import AttrDict
 from monty.functools import lazy_property
-from monty.bisect import find_le, find_ge 
+from monty.bisect import find_le, find_ge
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from prettytable import PrettyTable
 from six.moves import cStringIO
@@ -104,7 +104,7 @@ class QPState(namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sig
     def tips(self):
         """Bound method of self that returns a dictionary with the description of the fields."""
         return self.__class__.TIPS()
-    
+
     @classmethod
     def TIPS(cls):
         """
@@ -281,7 +281,7 @@ class QPList(list):
 
     def build_scissors(self, domains, bounds=None, k=3, **kwargs):
         """
-        Construct a scissors operator by interpolating the QPState corrections 
+        Construct a scissors operator by interpolating the QPState corrections
         as function of the initial energies E0.
 
         Args:
@@ -313,7 +313,6 @@ class QPList(list):
         # Sort QP corrections according to the initial KS energy.
         qps = self.sort_by_e0()
         e0mesh, qpcorrs = qps.get_e0mesh(), qps.get_qpeme0()
-
 
         # Check domains.
         domains = np.atleast_2d(domains)
@@ -469,8 +468,8 @@ class Sigmaw(object):
 
 def torange(obj):
     """
-    Convert obj into a range. Accepts integer, slice object  or any object with an __iter__ method.
-    Note that an integer is converted into range(int, int+1)
+    Convert obj into a range. Accepts integer, slice object  or any object
+    with an __iter__ method. Note that an integer is converted into range(int, int+1)
 
     >>> torange(1)
     [1]
@@ -500,7 +499,7 @@ class SigresPlotter(Iterable):
     to inspect/analyze the GW results (useful for convergence studies)
 
     .. Attributes:
-        
+
         nsppol:
             Number of spins (must be the same in each file)
         computed_gwkpoints:
@@ -508,9 +507,9 @@ class SigresPlotter(Iterable):
             (must be the same in each file)
 
     Usage example:
-                                                                  
+
     .. code-block:: python
-        
+
         plotter = SigresPlotter()
         plotter.add_file("foo_SIGRES.nc", label="foo bands")
         plotter.add_file("bar_SIGRES.nc", label="bar bands")
@@ -557,13 +556,13 @@ class SigresPlotter(Iterable):
         from abipy.abilab import abiopen
         sigres = abiopen(filepath)
         self._sigres_files[sigres.filepath] = sigres
-        # TODO: Not used 
+        # TODO: Not used
         self._labels.append(label)
 
         # Initialize/check useful quantities.
         #
         # 1) Number of spins
-        if not hasattr(self, "nsppol"): 
+        if not hasattr(self, "nsppol"):
             self.nsppol = sigres.nsppol
 
         if self.nsppol != sigres.nsppol:
@@ -594,7 +593,7 @@ class SigresPlotter(Iterable):
         This attribute is automatically individuated by inspecting the differences
         inf the sigres.params dictionaries of the files provided.
         """
-        try: 
+        try:
             return self._param_name
         except AttributeError:
             self.set_param_name(param_name=None)
@@ -603,7 +602,7 @@ class SigresPlotter(Iterable):
     def _get_param_list(self):
         """Return a dictionary with the values of the parameters extracted from the SIGRES files."""
         param_list = defaultdict(list)
-                                                               
+
         for sigres in self:
             for pname in sigres.params.keys():
                 param_list[pname].append(sigres.params[pname])
@@ -613,7 +612,7 @@ class SigresPlotter(Iterable):
     def set_param_name(self, param_name):
         """
         Set the name of the parameter whose value is checked for convergence.
-        if param_name is None, we try to find its name by inspecting 
+        if param_name is None, we try to find its name by inspecting
         the values in the sigres.params dictionaries.
         """
         self._param_name = param_name
@@ -621,7 +620,7 @@ class SigresPlotter(Iterable):
     def prepare_plot(self):
         """
         This method must be called before plotting data.
-        It tries to figure the name of paramenter we are converging 
+        It tries to figure the name of paramenter we are converging
         by looking at the set of parameters used to compute the different SIGRES files.
         """
         param_list = self._get_param_list()
@@ -633,7 +632,7 @@ class SigresPlotter(Iterable):
                     param_name = key
                 else:
                     problem = True
-                    logger.warning("Cannot perform automatic detection of convergence parameter.\n" + 
+                    logger.warning("Cannot perform automatic detection of convergence parameter.\n" +
                                    "Found multiple parameters with different values. Will use filepaths as plot labels.")
 
         self.set_param_name(param_name if not problem else None)
@@ -643,18 +642,18 @@ class SigresPlotter(Iterable):
             xvalues = range(len(self))
         else:
             xvalues = param_list[self.param_name]
-                                                  
+
             # Sort xvalues and rearrange the files.
             items = sorted([iv for iv in enumerate(xvalues)], key=lambda item: item[1])
             indices = [item[0] for item in items]
-                                                                                             
+
             files = list(self._sigres_files.values())
-                                                                                             
+
             newd = OrderedDict()
             for i in indices:
                 sigres = files[i]
                 newd[sigres.filepath] = sigres
-                                                                                             
+
             self._sigres_files = newd
 
             # Use sorted xvalues for the plot.
@@ -666,7 +665,7 @@ class SigresPlotter(Iterable):
     @property
     def xvalues(self):
         """The values used for the X-axis."""
-        return self._xvalues 
+        return self._xvalues
 
     def set_xvalues(self, xvalues):
         """xvalues setter."""
@@ -682,8 +681,8 @@ class SigresPlotter(Iterable):
 
         title = kwargs.pop("title", None)
         if title is not None: ax.set_title(title)
-                                                                                 
-        # Set ticks and labels. 
+
+        # Set ticks and labels.
         if self.param_name is None:
             # Could not figure the name of the parameter ==> Use the basename of the files
             ticks, labels = range(len(self)), [f.basename for f in self]
@@ -702,7 +701,7 @@ class SigresPlotter(Iterable):
         for sigres in self:
             k = sigres.ibz.index(kpoint)
             qpgaps.append(sigres.qpgaps[spin, k])
-        
+
         return np.array(qpgaps)
 
     def extract_qpenes(self, spin, kpoint, band):
@@ -714,7 +713,7 @@ class SigresPlotter(Iterable):
         for sigres in self:
             k = sigres.ibz.index(kpoint)
             qpenes.append(sigres.qpenes[spin,k,band])
-        
+
         return np.array(qpenes)
 
     @add_fig_kwargs
@@ -725,7 +724,7 @@ class SigresPlotter(Iterable):
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
             spin:
-            kpoint: 
+            kpoint:
             hspan:
             kwargs:
 
@@ -764,7 +763,7 @@ class SigresPlotter(Iterable):
 
         Args:
             spin:
-            kpoint: 
+            kpoint:
             band:
             hspan:
             kwargs:
@@ -775,7 +774,7 @@ class SigresPlotter(Iterable):
         spin_range = range(self.nsppol) if spin is None else torange(spin)
         band_range = range(self.max_gwbstart, self.min_gwbstop) if band is None else torange(band)
         if kpoint is None:
-            kpoints_for_plot = self.computed_gwkpoints 
+            kpoints_for_plot = self.computed_gwkpoints
         else:
             kpoints_for_plot = np.reshape(kpoint, (-1, 3))
 
@@ -797,7 +796,7 @@ class SigresPlotter(Iterable):
 
         xx = self.xvalues
         for kpoint, ax in zip(kpoints_for_plot, ax_list):
-            
+
             for spin in spin_range:
                 for band in band_range:
                     label = "spin %d, band %d" % (spin, band)
@@ -818,9 +817,9 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
     Container storing the GW results reported in the SIGRES.nc file.
 
     Usage example:
-                                                                  
+
     .. code-block:: python
-        
+
         sigres = SigresFile("foo_SIGRES.nc")
         sigres.plot_qps_vs_e0()
         sigres.plot_ksbands_with_qpmarkers()
@@ -842,9 +841,9 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         self.ibz = reader.ibz
         self.gwkpoints = reader.gwkpoints
 
-        self.gwbstart_sk = reader.gwbstart_sk 
+        self.gwbstart_sk = reader.gwbstart_sk
         self.gwbstop_sk = reader.gwbstop_sk
-        
+
         self.min_gwbstart = reader.min_gwbstart
         self.max_gwbstart = reader.max_gwbstart
 
@@ -981,7 +980,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
     def plot_ksbands_with_qpmarkers(self, qpattr="qpeme0", fact=1, **kwargs):
         """
-        Plot the KS energies as function an k and add markers 
+        Plot the KS energies as function an k and add markers
         whose size is proportional to QPState attribute qpattr
         """
         with_marker = qpattr + ":" + str(fact)
@@ -1371,7 +1370,7 @@ class SigresReader(ETSF_Reader):
 
     def read_params(self):
         """
-        Read the parameters of the calculation. 
+        Read the parameters of the calculation.
         Returns :class:`AttrDict` instance with the value of the parameters.
         """
         param_names = [
@@ -1387,7 +1386,7 @@ class SigresReader(ETSF_Reader):
         params = AttrDict()
         for pname in param_names:
             params[pname] = self.read_value(pname, default=None)
-        
+
         # Other quantities that might be subject to convergence studies.
         params["nkibz"] = len(self.ibz)
 
@@ -1435,7 +1434,7 @@ class SigresReader(ETSF_Reader):
 
     #def read_mel(self, mel_name, spin, kpoint, band, band2=None):
     #    array = self.read_value(mel_name)
-                                                                   
+
     #def read_mlda_to_qp(self, spin, kpoint, band=None):
     #    """Returns the unitary transformation KS --> QPS"""
     #    ik = self.kpt2fileindex(kpoint)
@@ -1443,6 +1442,6 @@ class SigresReader(ETSF_Reader):
     #        return self._mlda_to_qp[spin,ik,:,band]
     #    else:
     #        return self._mlda_to_qp[spin,ik,:,:]
-                                                                   
+
     #def read_qprhor(self):
     #    """Returns the QPState density in real space."""

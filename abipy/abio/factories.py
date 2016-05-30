@@ -263,7 +263,7 @@ def ion_ioncell_relax_input(structure, pseudos,
         spin_mode: Spin polarization.
         smearing: Smearing technique.
         charge: Electronic charge added to the unit cell.
-        scf_algorithm: Algorithm used for solving of the SCF cycle.
+        scf_algorithm: Algorithm used for the solution of the SCF cycle.
     """
     structure = Structure.as_structure(structure)
     multi = MultiDataset(structure, pseudos, ndtset=2)
@@ -525,7 +525,7 @@ def bse_with_mdf_inputs(structure, pseudos,
     """
     Returns a :class:`AbinitInput` object that performs a GS + NSCF + Bethe-Salpeter calculation.
     The self-energy corrections are approximated with the scissors operator.
-    The screening in modeled with the model dielectric function.
+    The screening is modeled with the model dielectric function.
 
     Args:
         structure: :class:`Structure` object.

@@ -1,7 +1,7 @@
 """
-This module defines objects that faciliate the creation of the 
-ABINIT input files. The syntax is similar to the one used 
-in ABINIT with small differences. 
+This module defines objects that faciliate the creation of the
+ABINIT input files. The syntax is similar to the one used
+in ABINIT with small differences.
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
@@ -37,7 +37,7 @@ logger = logging.getLogger(__file__)
 
 
 # List of Abinit variables used to specify the structure.
-# This variables should not be passed to set_vars since 
+# This variables should not be passed to set_vars since
 # they will be generated with structure.to_abivars()
 _GEOVARS = set([
     "acell",
@@ -55,14 +55,14 @@ _GEOVARS = set([
 
 # Variables defining tolerances (used in pop_tolerances)
 _TOLVARS = set([
-    'toldfe', 
-    'tolvrs', 
-    'tolwfr', 
+    'toldfe',
+    'tolvrs',
+    'tolwfr',
     'tolrff',
-    "toldff",  
+    "toldff",
     "tolimg", # ?
-    "tolmxf", 
-    "tolrde",  
+    "tolmxf",
+    "tolrde",
 ])
 
 # Variables defining tolerances for the SCF cycle that are mutally exclusive
@@ -99,16 +99,16 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
     # ABC protocol: __delitem__, __getitem__, __iter__, __len__, __setitem__
     def __delitem__(self, key):
         return self.vars.__delitem__(key)
-        
+
     def __getitem__(self, key):
         return self.vars.__getitem__(key)
-                                                                             
+
     def __iter__(self):
         return self.vars.__iter__()
-                                                                             
+
     def __len__(self):
         return len(self.vars)
-                                                                             
+
     def __setitem__(self, key, value):
         self._check_varname(key)
         return self.vars.__setitem__(key, value)
@@ -119,19 +119,16 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
     def __str__(self):
         return self.to_string()
 
-    def write(self, filepath):
+    def write(self, filepath="run.abi"):
         """
-        Write the input file to file to `filepath`. Returns a string with the input.
+        Write the input file to file to `filepath`.
         """
         dirname = os.path.dirname(filepath)
         if not os.path.exists(dirname): os.makedirs(dirname)
-                                                                                      
-        # Write the input file.
-        input_string = str(self)
-        with open(filepath, "wt") as fh:
-            fh.write(input_string)
 
-        return input_string
+        # Write the input file.
+        with open(filepath, "wt") as fh:
+            fh.write(str(self))
 
     def deepcopy(self):
         """Deep copy of the input."""
@@ -146,7 +143,7 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
 
     def add_abiobjects(self, *abi_objects):
         """
-        This function receive a list of `AbiVarable` objects and add 
+        This function receive a list of `AbiVarable` objects and add
         the corresponding variables to the input.
         """
         d = {}
@@ -201,9 +198,9 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                  abi_kwargs=None, tags=None):
         """
         Args:
-            structure: Parameters defining the crystalline structure. Accepts :class:`Structure` object 
+            structure: Parameters defining the crystalline structure. Accepts :class:`Structure` object
             file with structure (CIF, netcdf file, ...) or dictionary with ABINIT geo variables.
-            pseudos: Pseudopotentials to be used for the calculation. Accepts: string or list of strings with the name 
+            pseudos: Pseudopotentials to be used for the calculation. Accepts: string or list of strings with the name
                 of the pseudopotential files, list of :class:`Pseudo` objects or :class:`PseudoTable` object.
             pseudo_dir: Name of the directory where the pseudopotential files are located.
             ndtset: Number of datasets.
@@ -213,7 +210,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             abi_kwargs: Dictionary with the initial set of variables. Default: Empty
             tags: list/set of tags describing the input
         """
-        # Internal dict with variables. we use an ordered dict so that 
+        # Internal dict with variables. we use an ordered dict so that
         # variables will be likely grouped by `topics` when we fill the input.
         abi_args = [] if abi_args is None else abi_args
         for key, value in abi_args:
@@ -258,7 +255,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             abi_args.append((key, value))
 
         return dict(structure=self.structure.as_dict(),
-                    pseudos=[p.as_dict() for p in self.pseudos], 
+                    pseudos=[p.as_dict() for p in self.pseudos],
                     comment=self.comment,
                     decorators=[dec.as_dict() for dec in self.decorators],
                     abi_args=abi_args,
@@ -284,13 +281,13 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
     def _check_varname(self, key):
         if not is_abivar(key):
-            raise self.Error("%s is not a valid ABINIT variable.\n" % key + 
+            raise self.Error("%s is not a valid ABINIT variable.\n" % key +
                              "If the name is correct, try to remove ~/.abinit/abipy/abinit_vars.pickle\n"
                              "and rerun the code. If the problems persists, contact the abipy developers\n"
                              "or add the variable to ~abipy/data/variables/abinit_vars.json\n")
 
         if key in _GEOVARS:
-            raise self.Error("You cannot set the value of a variable associated to the structure.\n" 
+            raise self.Error("You cannot set the value of a variable associated to the structure.\n"
                              "Use Structure objects to prepare the input file.")
 
     #def __eq__(self, other)
@@ -408,9 +405,9 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             post: String that will be appended to the name of the variables
                 Note that post is usually autodetected when we have multiple datatasets
                 It is mainly used when we have an input file with a single dataset
-                so that we can prevent the code from adding "1" to the name of the variables 
-                (In this case, indeed, Abinit complains if ndtset=1 is not specified 
-                and we don't want ndtset=1 simply because the code will start to add 
+                so that we can prevent the code from adding "1" to the name of the variables
+                (In this case, indeed, Abinit complains if ndtset=1 is not specified
+                and we don't want ndtset=1 simply because the code will start to add
                 _DS1_ to all the input and output files.
             with_structure: False if section with structure variables should not be printed.
             with_pseudos: False if JSON section with pseudo data should not be added.
@@ -425,7 +422,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         mnemonics = self.mnemonics
         if with_mnemonics: mnemonics = with_mnemonics
 
-        if mnemonics or sortmode == "section": 
+        if mnemonics or sortmode == "section":
             var_database = get_abinit_variables()
 
         if sortmode in (None, "a"):
@@ -477,14 +474,14 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         s = "\n".join(lines)
 
-        if not with_pseudos: return s 
+        if not with_pseudos: return s
 
         # Add JSON section with pseudo potentials.
         ppinfo = ["\n\n\n#<JSON>"]
         d = {"pseudos": [p.as_dict() for p in self.pseudos]}
         ppinfo.extend(json.dumps(d, indent=4).splitlines())
         ppinfo.append("</JSON>")
-                                                             
+
         return s + "\n#".join(ppinfo)
 
     @property
@@ -529,13 +526,13 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
     def set_autokmesh(self, nksmall, kptopt=1):
         """
         Set the variables (ngkpt, shift, kptopt) for the sampling of the BZ.
-                                                       
+
         Args:
             nksmall: Number of k-points used to sample the smallest lattice vector.
             kptopt: Option for the generation of the mesh.
         """
         shiftk = self.structure.calc_shiftk()
-        return self.set_vars(ngkpt=self.structure.calc_ngkpt(nksmall), kptopt=kptopt, 
+        return self.set_vars(ngkpt=self.structure.calc_ngkpt(nksmall), kptopt=kptopt,
                              nshiftk=len(shiftk), shiftk=shiftk)
 
     def set_kpath(self, ndivsm, kptbounds=None, iscf=-2):
@@ -559,7 +556,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         Args
             kptgw: List of k-points in reduced coordinates.
             bdgw: Specifies the range of bands for the GW corrections.
-                Accepts iterable that be reshaped to (nkptgw, 2) 
+                Accepts iterable that be reshaped to (nkptgw, 2)
                 or a tuple of two integers if the extrema are the same for each k-point.
         """
         kptgw = np.reshape(kptgw, (-1,3))
@@ -570,7 +567,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
     def set_autospinat(self, default=0.6):
         """
-        Set the variable spinat for collineat calculation in the format (0, 0, m) with the value of m determined
+        Set the variable spinat for collinear calculation in the format (0, 0, m) with the value of m determined
         with the following order of preference:
 
         1. If the site of the structure has a magmom setting, that is used.
@@ -732,7 +729,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
     def pop_tolerances(self):
         """
-        Remove all the tolerance variables present in self. 
+        Remove all the tolerance variables present in self.
         Return dictionary with the variables that have been removed."""
         return self.remove_vars(_TOLVARS, strict=False)
 
@@ -790,9 +787,9 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                 rfphon=1,                           # Will consider phonon-type perturbation
                 nqpt=1,                             # One wavevector is to be considered
                 qpt=pert.qpt,                       # q-wavevector.
-                rfatpol=[pert.ipert, pert.ipert], 
+                rfatpol=[pert.ipert, pert.ipert],
                 rfdir=rfdir,
-                kptopt=kptopt,                           
+                kptopt=kptopt,
             )
             ph_input.pop_tolerances()
             ph_input.set_vars(tolerance)
@@ -828,7 +825,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                 rfdir=rfdir,          # Direction of the per ddk.
                 nqpt=1,               # One wavevector is to be considered
                 qpt=(0, 0, 0),        # q-wavevector.
-                kptopt=2,             # Take into account time-reversal symmetry.           
+                kptopt=2,             # Take into account time-reversal symmetry.
                 iscf=-3,              # The d/dk perturbation must be treated in a non-self-consistent way
             )
 
@@ -900,12 +897,12 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
             inp.set_vars(
                 rfphon=1,             # Activate the calculation of the atomic dispacement perturbations
-                rfatpol=[pert.ipert, pert.ipert], 
+                rfatpol=[pert.ipert, pert.ipert],
                 rfdir=rfdir,
                 rfelfd=3,             # Activate the calculation of the electric field perturbation
                 nqpt=1,               # One wavevector is to be considered
                 qpt=(0, 0, 0),        # q-wavevector.
-                kptopt=2,             # Take into account time-reversal symmetry.           
+                kptopt=2,             # Take into account time-reversal symmetry.
             )
 
             inp.pop_tolerances()
@@ -922,11 +919,11 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         if volume < 0:
             eapp("The triple product of the lattice vector is negative. Use structure abi_sanitize.")
 
-        #if sel.ispaw and "pawecutdg not in self 
+        #if sel.ispaw and "pawecutdg not in self
         #if errors: raise self.Error("\n".join(errors))
 
         return dict2namedtuple(errors=errors, warnings=warnings)
-        
+
     def abivalidate(self):
         """
         Run ABINIT in dry mode to validate the input file.
@@ -941,7 +938,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         Raises:
             `RuntimeError` if executable is not in $PATH.
         """
-        task = AbinitTask.temp_shell_task(inp=self) 
+        task = AbinitTask.temp_shell_task(inp=self)
         retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
         return dict2namedtuple(retcode=retcode, log_file=task.log_file, stderr_file=task.stderr_file)
 
@@ -1055,7 +1052,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         It should be called with an input file that contains all the mandatory variables required by ABINIT.
 
         Args:
-            qpt: qpoint of the phonon in reduced coordinates. Used to shift the k-mesh 
+            qpt: qpoint of the phonon in reduced coordinates. Used to shift the k-mesh
                 if qpt is not passed, self must already contain "qpt" otherwise an exception is raised.
             ngkpt: Number of divisions for the k-mesh (default None i.e. use ngkpt from self)
             shiftk: Shiftks (default None i.e. use shiftk from self)
@@ -1127,7 +1124,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         inp.set_vars(autoparal=autoparal, max_ncpus=max_ncpus)
 
         # Run the job in a shell subprocess with mpi_procs = 1
-        # Return code is always != 0 
+        # Return code is always != 0
         task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
         if verbose: print("Running in:", task.workdir)
         task.start_and_wait(autoparal=False)
@@ -1171,7 +1168,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 class MultiDataset(object):
     """
     This object is essentially a list of :class:`AbinitInput` objects.
-    that provides an easy-to-use interface to apply global changes to the 
+    that provides an easy-to-use interface to apply global changes to the
     the inputs stored in the objects.
 
     Let's assume for example that multi contains two `AbinitInput` objects and we
@@ -1219,7 +1216,7 @@ class MultiDataset(object):
         """Constructur a multidataset with ndtset from the :class:`AbinitInput` input."""
         multi = cls(input.structure, input.pseudos, ndtset=ndtset)
 
-        for inp in multi: 
+        for inp in multi:
             inp.set_vars({k: v for k, v in input.items()})
             inp.tags = set(input.tags)
 
@@ -1249,7 +1246,7 @@ class MultiDataset(object):
 
             missing = [p for p in pseudo_paths if not os.path.exists(p)]
             if missing:
-                raise self.Error("Cannot find the following pseudopotential files:\n%s" % str(missing)) 
+                raise self.Error("Cannot find the following pseudopotential files:\n%s" % str(missing))
 
             pseudos = PseudoTable(pseudo_paths)
 
@@ -1302,7 +1299,7 @@ class MultiDataset(object):
         _inputs = object.__getattribute__(self, "_inputs")
         m = getattr(_inputs[0], name)
         if m is None:
-            raise AttributeError("Cannot find attribute %s. Tried in %s and then in AbinitInput object" 
+            raise AttributeError("Cannot find attribute %s. Tried in %s and then in AbinitInput object"
                                  % (self.__class__.__name__, name))
         isattr = not callable(m)
 
@@ -1383,7 +1380,7 @@ class MultiDataset(object):
             for i, inp in enumerate(self):
                 header = "### DATASET %d ###" % (i + 1)
                 is_last = (i==self.ndtset - 1)
-                #with_structure = True 
+                #with_structure = True
                 #if same_structure and not is_last: with_structure = False
 
                 s = inp.to_string(post=str(i+1), with_pseudos=is_last)
@@ -1397,9 +1394,9 @@ class MultiDataset(object):
 
         else:
             # single datasets ==> don't append the dataset index to the variables.
-            # this trick is needed because Abinit complains if ndtset is not specified 
+            # this trick is needed because Abinit complains if ndtset is not specified
             # and we have variables that end with the dataset index e.g. acell1
-            # We don't want to specify ndtset here since abinit will start to add DS# to 
+            # We don't want to specify ndtset here since abinit will start to add DS# to
             # the input and output files thus complicating the algorithms we have to use to locate the files.
             return self[0].to_string()
 
@@ -1455,6 +1452,16 @@ class MultiDataset(object):
 
         return MultiDataset.from_inputs(inputs) if inputs else None
 
+    def write(self, filepath="run.abi"):
+        """
+        Write `ndset` input files to disk. The name of the file
+        is constructued from the dataset index e.g. run0.abi
+        """
+        root, ext = os.path.splitext(filepath)
+        for i, inp in enumerate(self):
+            p = root + str(i) + ext
+            inp.write(filepath=p)
+
 
 class AnaddbInputError(Exception):
     """Base error class for exceptions raised by `AnaddbInput`"""
@@ -1467,7 +1474,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
     def __init__(self, structure, comment="", anaddb_args=None, anaddb_kwargs=None):
         """
         Args:
-            structure: :class:`Structure` object 
+            structure: :class:`Structure` object
             comment: Optional string with a comment that will be placed at the beginning of the file.
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
@@ -1495,7 +1502,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
     def _check_varname(self, key):
         if not is_anaddb_var(key):
             raise self.Error("%s is not a registered Anaddb variable\n"
-                             "If you are sure the name is correct, please contact the abipy developers\n" 
+                             "If you are sure the name is correct, please contact the abipy developers\n"
                              "or modify the JSON file abipy/abio/anaddb_vars.json" % key)
 
     @classmethod
@@ -1514,7 +1521,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
         """
-        new = cls(structure, comment="ANADB input for phonon frequencies at one q-point", 
+        new = cls(structure, comment="ANADB input for phonon frequencies at one q-point",
                   anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
 
         # We need a numpy array.
@@ -1568,23 +1575,23 @@ class AnaddbInput(AbstractInput, Has_Structure):
         return new
 
     #@classmethod
-    #def phbands(cls, structure, ngqpt, nqsmall, q1shft=(0,0,0), asr=2, chneut=0, dipdip=1, 
+    #def phbands(cls, structure, ngqpt, nqsmall, q1shft=(0,0,0), asr=2, chneut=0, dipdip=1,
     #           anaddb_args=None, anaddb_kwargs=None):
     #    """
     #    Build an anaddb input file for the computation of phonon band structure.
     #    """
     #    return self.phbands_and_dos(structure, ngqpt, nqsmall, ndivsm=20, q1shft=(0,0,0),
-    #                                qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", 
+    #                                qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra",
     #                                anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
 
     #@classmethod
-    #def phdos(cls, structure, ngqpt, nqsmall, q1shft=(0,0,0), asr=2, chneut=0, dipdip=1, dos_method="tetra", 
+    #def phdos(cls, structure, ngqpt, nqsmall, q1shft=(0,0,0), asr=2, chneut=0, dipdip=1, dos_method="tetra",
     #           anaddb_args=None, anaddb_kwargs=None):
     #    """
     #    Build an anaddb input file for the computation of phonon DOS.
     #    """
     #    return self.phbands_and_dos(structure, ngqpt, nqsmall, ndivsm=20, q1shft=(0,0,0),
-    #                                qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", 
+    #                                qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra",
     #                                anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
 
     @classmethod
@@ -1624,7 +1631,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
         else:
             raise cls.Error("Wrong value for dos_method: %s" % dos_method)
 
-        new = cls(structure, comment="ANADB input for phonon bands and DOS", 
+        new = cls(structure, comment="ANADB input for phonon bands and DOS",
                   anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
 
         # Parameters for the dos.
@@ -1668,7 +1675,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
 
     @classmethod
     def thermo(cls, structure, ngqpt, nqsmall, q1shft=(0, 0, 0), nchan=1250, nwchan=5, thmtol=0.5,
-               ntemper=199, temperinc=5, tempermin=5., asr=2, chneut=1, dipdip=1, ngrids=10, 
+               ntemper=199, temperinc=5, tempermin=5., asr=2, chneut=1, dipdip=1, ngrids=10,
                anaddb_args=None, anaddb_kwargs=None):
 
         """
@@ -1718,7 +1725,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
             #  symdynmat 0
 
         """
-        new = cls(structure, comment="ANADB input for thermodynamics", 
+        new = cls(structure, comment="ANADB input for thermodynamics",
                   anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
         new.set_autoqmesh(nqsmall)
 
@@ -1931,7 +1938,7 @@ class OpticInput(AbstractInput):
         OpticVar(name="num_nonlin2_comp", default=0, group='COMPUTATIONS', help="Number of components of nonlinear optic tensor v2 to be computed"),
         OpticVar(name="nonlin2_comp", default=0, group='COMPUTATIONS', help="Non-linear coefficients v2 to be computed"),
     ]
- 
+
     _GROUPS = ['PARAMETERS','COMPUTATIONS']
 
     # Variable names supported
@@ -1960,7 +1967,7 @@ class OpticInput(AbstractInput):
     def _check_varname(self, key):
         if key not in self._VARNAMES:
             raise self.Error("%s is not a valid optic variable.\n"
-                             "If you are sure the name is correct, please change the _VARIABLES list in:\n%s"  % 
+                             "If you are sure the name is correct, please change the _VARIABLES list in:\n%s"  %
                              (key, __file__))
 
     def get_default(self, key):
@@ -1977,7 +1984,7 @@ class OpticInput(AbstractInput):
             if value is None: value = self.get_default(name)
             if value is None:
                 raise self.Error("Variable %s is missing" % name)
-           
+
             var = self._NAME2VAR[name]
             grp = var.group
             my_dict[grp].update({name : value})

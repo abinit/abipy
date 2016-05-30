@@ -123,5 +123,3 @@ def finite_diff(arr, h, order=1, acc=4):
             ders[i] = npsum(back_ws * arr[start:i+1])
 
     return ders/(h**order)
-
-

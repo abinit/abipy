@@ -12,7 +12,7 @@ from pymatgen.io.abinit.pseudos import Pseudo, PseudoTable
 from pymatgen.io.abinit.wrappers import Mrgscr, Mrgddb, Mrggkk
 from pymatgen.io.abinit.tasks import *
 from pymatgen.io.abinit.works import *
-from pymatgen.io.abinit.flows import (Flow, G0W0WithQptdmFlow, bandstructure_flow, 
+from pymatgen.io.abinit.flows import (Flow, G0W0WithQptdmFlow, bandstructure_flow,
     g0w0_flow, phonon_flow, phonon_conv_flow)
 # Need new version of pymatgen.
 try:
@@ -32,7 +32,7 @@ from abipy.abio.factories import *
 from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter
 from abipy.electrons.gsr import GsrFile
 from abipy.electrons.psps import PspsFile
-from abipy.electrons.gw import SigresFile, SigresPlotter 
+from abipy.electrons.gw import SigresFile, SigresPlotter
 from abipy.electrons.bse import MdfFile
 from abipy.electrons.scissors import ScissorsBuilder
 from abipy.electrons.scr import ScrFile
@@ -76,7 +76,7 @@ def abifile_subclass_from_filename(filename):
         "WFK-etsf.nc": WfkFile,
         "MDF.nc": MdfFile,
         "GSR.nc": GsrFile,
-        "SCR-etsf.nc": ScrFile,
+        "SCR.nc": ScrFile,
         "PHBST.nc": PhbstFile,
         "PHDOS.nc": PhdosFile,
         "DDB": DdbFile,
@@ -100,10 +100,10 @@ def abiopen(filepath):
     File type is detected from the extension
 
     Args:
-        filepath: string with the filename. 
+        filepath: string with the filename.
     """
     if os.path.basename(filepath) == "__AbinitFlow__.pickle":
-        return Flow.pickle_load(filepath) 
+        return Flow.pickle_load(filepath)
 
     cls = abifile_subclass_from_filename(filepath)
     return cls.from_file(filepath)
@@ -168,7 +168,7 @@ def abicheck():
     if not os.path.exists(launcher_cnfile):
         app("Cannot find launcher configuration file at %s" % launcher_cnfile)
 
-    try:    
+    try:
         d = software_stack()
         print("Installed packages:")
         print(d)
@@ -181,7 +181,7 @@ def abicheck():
 def flow_main(main):
     """
     This decorator is used to decorate main functions producing `Flows`.
-    It adds the initialization of the logger and an argument parser that allows one to select 
+    It adds the initialization of the logger and an argument parser that allows one to select
     the loglevel, the workdir of the flow as well as the YAML file with the parameters of the `TaskManager`.
     The main function shall have the signature:
 
@@ -204,15 +204,15 @@ def flow_main(main):
 
         parser.add_argument("-w", '--workdir', default="", type=str, help="Working directory of the flow.")
 
-        parser.add_argument("-m", '--manager', default=None, 
-                            help="YAML file with the parameters of the task manager. " 
+        parser.add_argument("-m", '--manager', default=None,
+                            help="YAML file with the parameters of the task manager. "
                                  "Default None i.e. the manager is read from standard locations: "
                                  "working directory first then ~/.abinit/abipy/manager.yml.")
 
-        parser.add_argument("-s", '--scheduler', action="store_true", default=False, 
+        parser.add_argument("-s", '--scheduler', action="store_true", default=False,
                             help="Run the flow with the scheduler")
 
-        parser.add_argument("-b", '--batch', action="store_true", default=False, 
+        parser.add_argument("-b", '--batch', action="store_true", default=False,
                             help="Run the flow in batch mode")
 
         parser.add_argument("-r", "--remove", default=False, action="store_true", help="Remove old flow workdir")
@@ -221,7 +221,7 @@ def flow_main(main):
 
         options = parser.parse_args()
 
-        # loglevel is bound to the string value obtained from the command line argument. 
+        # loglevel is bound to the string value obtained from the command line argument.
         # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
         import logging
         numeric_level = getattr(logging, options.loglevel.upper(), None)
