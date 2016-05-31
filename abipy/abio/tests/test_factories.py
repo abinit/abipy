@@ -2,7 +2,7 @@
 from __future__ import unicode_literals, division, print_function
 
 import sys
-import abipy.data as abidata  
+import abipy.data as abidata
 import abipy.abilab as abilab
 
 from pprint import pprint
@@ -36,7 +36,7 @@ class FactoryTest(AbipyTest):
         """Testing factory protocol."""
         # XXX
 
-        # No ecut and pseudos without hints 
+        # No ecut and pseudos without hints
         #with self.assertRaises(AbinitInput.Error):
         #    ebands_input(self.si_structure, pseudos=abidata.pseudos("14si.pspnc", "Si.oncvpsp"))
 
@@ -84,7 +84,7 @@ class FactoryTest(AbipyTest):
                                       #sigma_nband=None, gw_qprange=1):
 
         self.validate_inp(multi)
-        
+
         #return
         scf_input, nscf_input, scr_input, sigma_input = multi.split_datasets()
         flow = abilab.Flow("flow_g0w0_with_ppmodel")
@@ -102,7 +102,7 @@ class FactoryTest(AbipyTest):
 
         multi = bse_with_mdf_inputs(self.si_structure, self.si_pseudo, scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,
                                     ecuteps=2, bs_loband=1, bs_nband=2, mbpt_sciss="0.1 eV", mdf_epsinf=12, ecut=2)
-                                    #exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="polarized", 
+                                    #exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="polarized",
                                     #smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
 
         print(multi)
@@ -122,15 +122,10 @@ class FactoryTest(AbipyTest):
                                   ecut=ecut) #, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
         print(inps[0])
         print(inps[1])
-        #return 
+        #return
         #for inp in inps:
         #    self.validate_inp(inp)
 
         if self.has_abinit():
             print(inps[1].abiget_irred_phperts())
         #assert 0
-
-
-if __name__ == '__main__':
-    import unittest
-    unittest.main()

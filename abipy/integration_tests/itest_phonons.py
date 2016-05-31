@@ -85,7 +85,7 @@ def itest_phonon_flow(fwp, tvars):
     scf_input, ph_inputs = all_inps[0], all_inps[1:]
 
     flow = abilab.phonon_flow(fwp.workdir, scf_input, ph_inputs, manager=fwp.manager)
-    flow.build_and_pickle_dump()
+    flow.build_and_pickle_dump(abivalidate=True)
 
     t0 = flow[0][0]
     t0.start_and_wait()

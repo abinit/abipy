@@ -55,7 +55,7 @@ def itest_atomic_relaxation(fwp, tvars):
     work = flow.register_task(ion_input, task_class=abilab.RelaxTask)
 
     flow.allocate()
-    flow.build_and_pickle_dump()
+    flow.build_and_pickle_dump(abivalidate=True)
 
     # Run t0, and check status
     t0 = work[0]

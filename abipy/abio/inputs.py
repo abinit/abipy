@@ -95,6 +95,9 @@ _IRDVARS = set([
 
 
 class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
+    """
+    Abstract class defining the methods that must be implemented by Input objects.
+    """
 
     # ABC protocol: __delitem__, __getitem__, __iter__, __len__, __setitem__
     def __delitem__(self, key):
@@ -179,10 +182,28 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
     def to_string(self):
         """Returns a string with the input."""
 
+    @abc.abstractmethod
+    def abivalidate(self):
+        """
+        This method should invoke the executable associated to the input object.
+        to test whether the input variables are correct and consistent.
+        The executable is supposed to implemente some sort of `--dry-run` option
+        that invokes the parser to validate the input and exits.
+
+        Return:
+            `namedtuple` with the following attributes:
+
+                retcode: Return code. 0 if OK.
+                log_file:  log file of the Abinit run, use log_file.read() to access its content.
+                stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
+
+        Raises:
+            `RuntimeError` if executable is not in $PATH.
+        """
 
 
 class AbinitInputError(Exception):
-    """Base error class for exceptions raised by `AbiInput`"""
+    """Base error class for exceptions raised by `AbinitInput`"""
 
 
 # TODO: API to understand if one can use time-reversal symmetry and/or spatial symmetries
@@ -576,7 +597,6 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
            is used, e.g., Mn3+ may have a different magmom than Mn4+.
         4. The element symbol itself is checked in the config file.
         5. If there are no settings, the default value is used.
-
         """
         #TODO copy the values in abipy instead?
         # We rely on the values from Materials Project for defaults of the magnetic moments
@@ -1860,6 +1880,12 @@ class AnaddbInput(AbstractInput, Has_Structure):
         """
         return self.set_vars(ng2qpt=self.structure.calc_ngkpt(nqsmall))
 
+    def abivalidate(self):
+        # TODO: Anaddb does not support --dry-run
+        #task = AbinitTask.temp_shell_task(inp=self)
+        #retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
+        return dict2namedtuple(retcode=0, log_file=None, stderr_file=None)
+
 
 class OpticVar(collections.namedtuple("OpticVar", "name default group help")):
 
@@ -1872,8 +1898,6 @@ class OpticError(Exception):
     """Error class raised by OpticInput."""
 
 
-# TODO: OpticInput should implement AbstractInput!
-#class OpticInput(collections.MutableMapping):
 class OpticInput(AbstractInput):
     """
     abo_1WF7      ! Name of the first d/dk response wavefunction file, produced by abinit
@@ -2013,3 +2037,9 @@ class OpticInput(AbstractInput):
             lines.append(s)
 
         return "\n".join(lines)
+
+    def abivalidate(self):
+        # TODO: Optic does not support --dry-run
+        #task = AbinitTask.temp_shell_task(inp=self)
+        #retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
+        return dict2namedtuple(retcode=0, log_file=None, stderr_file=None)

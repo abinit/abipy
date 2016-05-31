@@ -111,7 +111,7 @@ def itest_optic_flow(fwp, tvars):
 
     flow.register_work(ddk_work)
     flow.allocate()
-    flow.build_and_pickle_dump()
+    flow.build_and_pickle_dump(abivalidate=True)
 
     # Run the tasks
     for task in flow.iflat_tasks():
@@ -130,7 +130,7 @@ def itest_optic_flow(fwp, tvars):
 
     flow.register_task(optic_task1)
     flow.allocate()
-    flow.build_and_pickle_dump()
+    flow.build_and_pickle_dump(abivalidate=True)
 
     optic_task1.start_and_wait()
     assert optic_task1.status == optic_task1.S_DONE
@@ -150,7 +150,7 @@ def itest_optic_flow(fwp, tvars):
     optic_task2 = abilab.OpticTask(optic_input, nscf_node=nscf_node, ddk_nodes=ddk_nodes)
     flow.register_task(optic_task2)
     flow.allocate()
-    flow.build_and_pickle_dump()
+    flow.build_and_pickle_dump(abivalidate=True)
     assert len(flow) == 4
 
     optic_task2.start_and_wait()
