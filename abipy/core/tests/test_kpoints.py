@@ -8,9 +8,10 @@ import numpy as np
 import abipy.data as data
 
 from pymatgen.core.lattice import Lattice
-from abipy.core.kpoints import (wrap_to_ws, wrap_to_bz, Kpoint, KpointList, KpointsReader, 
+from abipy.core.kpoints import (wrap_to_ws, wrap_to_bz, Kpoint, KpointList, KpointsReader,
                                 as_kpoints, rc_list, kmesh_from_mpdivs,)
 from abipy.core.testing import *
+
 
 class TestWrapWS(AbipyTest):
 
@@ -37,6 +38,7 @@ class TestWrapBZ(AbipyTest):
         self.assertAlmostEqual(wrap_to_bz( 3.2), 0.2)
         self.assertAlmostEqual(wrap_to_bz(-3.2), 0.8)
 
+
 class TestKpoint(AbipyTest):
     """Unit tests for Kpoint object."""
 
@@ -56,7 +58,6 @@ class TestKpoint(AbipyTest):
         #assert np.all(np.array(X) == X.frac_coords)
 
         self.serialize_with_pickle(X, protocols=[-1])
-
         self.assert_almost_equal(X.versor().norm, 1.0)
 
         self.assertTrue(X[0] == 0.5)
@@ -113,6 +114,9 @@ class TestKpointList(AbipyTest):
 
         klist = KpointList(lattice, frac_coords, weights=weights)
 
+        self.serialize_with_pickle(klist, protocols=[-1])
+        self.assertMSONable(klist, test_if_subclass=False)
+
         self.assertTrue(klist.sum_weights() == 1)
         self.assertTrue(len(klist) == 3)
 
@@ -126,11 +130,11 @@ class TestKpointList(AbipyTest):
         self.assertTrue(np.all(klist.weights == 1.0))
 
         frac_coords = [0, 0, 0, 1/2, 1/3, 1/3]
-                                                                  
+
         other_klist = KpointList(lattice, frac_coords)
 
         # Test __add__
-        add_klist = klist + other_klist 
+        add_klist = klist + other_klist
 
         for k in itertools.chain(klist, other_klist):
             self.assertTrue(k in add_klist)
@@ -172,19 +176,20 @@ class TestKpointsReader(AbipyTest):
                     # expecting a path in k-space.
                     self.assertTrue(kpoints.is_path)
 
+
 class KmeshTest(AbipyTest):
     def test_rc_list(self):
         """Testing rc_list."""
         # Special case mp=1
         rc = rc_list(mp=1, sh=0.0, pbc=False, order="unit_cell")
         self.assert_equal(rc, [0.0])
-                                                                   
+
         rc = rc_list(mp=1, sh=0.0, pbc=True, order="unit_cell")
         self.assert_equal(rc, [0.0, 1.0])
-                                                                   
+
         rc = rc_list(mp=1, sh=0.0, pbc=False, order="bz")
         self.assert_equal(rc, [0.0])
-                                                                  
+
         rc = rc_list(mp=1, sh=0.0, pbc=True, order="bz")
         self.assert_equal(rc, [0.0, 1.0])
 
@@ -197,16 +202,16 @@ class KmeshTest(AbipyTest):
 
         rc = rc_list(mp=2, sh=0, pbc=False, order="bz")
         self.assert_equal(rc, [-0.5, 0.0])
-                                                                
+
         rc = rc_list(mp=2, sh=0, pbc=True, order="bz")
         self.assert_equal(rc, [-0.5,  0.,  0.5])
 
         rc = rc_list(mp=2, sh=0.5, pbc=False, order="unit_cell")
         self.assert_equal(rc, [0.25, 0.75])
-                                                                 
+
         rc = rc_list(mp=2, sh=0.5, pbc=True, order="unit_cell")
         self.assert_equal(rc, [0.25,  0.75, 1.25])
-        
+
         rc = rc_list(mp=2, sh=0.5, pbc=False, order="bz")
         self.assert_equal(rc, [-0.25,  0.25])
 
@@ -216,25 +221,25 @@ class KmeshTest(AbipyTest):
         # Odd mp
         rc = rc_list(mp=3, sh=0, pbc=False, order="unit_cell")
         self.assert_almost_equal(rc, [0.,  0.33333333,  0.66666667])
-                                                                  
+
         rc = rc_list(mp=3, sh=0, pbc=True, order="unit_cell")
         self.assert_almost_equal(rc, [ 0.,  0.33333333,  0.66666667,  1.])
 
         rc = rc_list(mp=3, sh=0, pbc=False, order="bz")
         self.assert_almost_equal(rc, [-0.33333333,  0.,  0.33333333])
-                                                                
+
         rc = rc_list(mp=3, sh=0, pbc=True, order="bz")
         self.assert_almost_equal(rc, [-0.33333333,  0.,  0.33333333,  0.66666667])
-                                                                  
+
         rc = rc_list(mp=3, sh=0.5, pbc=False, order="unit_cell")
         self.assert_almost_equal(rc, [ 0.16666667, 0.5, 0.83333333])
-                                                                 
+
         rc = rc_list(mp=3, sh=0.5, pbc=True, order="unit_cell")
         self.assert_almost_equal(rc, [ 0.16666667, 0.5,  0.83333333, 1.16666667])
-    
+
         rc = rc_list(mp=3, sh=0.5, pbc=False, order="bz")
         self.assert_almost_equal(rc, [-0.5, -0.16666667,  0.16666667])
-                                                                  
+
         rc = rc_list(mp=3, sh=0.5, pbc=True, order="bz")
         self.assert_almost_equal(rc, [-0.5, -0.16666667,  0.16666667,  0.5])
 
@@ -243,7 +248,7 @@ class KmeshTest(AbipyTest):
         mpdivs, shifts = [1,2,3], [0,0,0]
 
         # No shift, no pbc.
-        kmesh = kmesh_from_mpdivs(mpdivs, shifts, order="unit_cell") 
+        kmesh = kmesh_from_mpdivs(mpdivs, shifts, order="unit_cell")
 
         ref_string = \
 """[[ 0.          0.          0.        ]
@@ -255,7 +260,7 @@ class KmeshTest(AbipyTest):
         self.assertMultiLineEqual(str(kmesh), ref_string)
 
         # No shift, with pbc.
-        pbc_kmesh = kmesh_from_mpdivs(mpdivs, shifts, pbc=True, order="unit_cell") 
+        pbc_kmesh = kmesh_from_mpdivs(mpdivs, shifts, pbc=True, order="unit_cell")
 
         ref_string = \
 """[[ 0.          0.          0.        ]
@@ -285,7 +290,7 @@ class KmeshTest(AbipyTest):
         self.assertMultiLineEqual(str(pbc_kmesh), ref_string)
 
         # No shift, no pbc, bz order
-        bz_kmesh = kmesh_from_mpdivs(mpdivs, shifts, pbc=False, order="bz") 
+        bz_kmesh = kmesh_from_mpdivs(mpdivs, shifts, pbc=False, order="bz")
 
         ref_string = \
 """[[ 0.         -0.5        -0.33333333]
@@ -297,7 +302,7 @@ class KmeshTest(AbipyTest):
         self.assertMultiLineEqual(str(bz_kmesh), ref_string)
 
         # No shift, pbc, bz order
-        bz_kmesh = kmesh_from_mpdivs(mpdivs, shifts, pbc=True, order="bz") 
+        bz_kmesh = kmesh_from_mpdivs(mpdivs, shifts, pbc=True, order="bz")
 
         ref_string = \
 """[[ 0.         -0.5        -0.33333333]
@@ -325,8 +330,3 @@ class KmeshTest(AbipyTest):
  [ 1.          0.5         0.33333333]
  [ 1.          0.5         0.66666667]]"""
         self.assertMultiLineEqual(str(bz_kmesh), ref_string)
-
-
-if __name__ == "__main__":
-    import unittest
-    unittest.main()

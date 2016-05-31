@@ -34,15 +34,19 @@ class ElectronBandsTest(AbipyTest):
         for filename in data.WFK_NCFILES:
             ebands = ElectronBands.from_file(filename)
             ebands.to_pymatgen()
-            print(ebands.as_dict())
+
+            #print(ebands.as_dict())
             #ElectronBands.from_dict(ebands.as_dict())
+            self.assertMSONable(ebands, test_if_subclass=False)
 
     def test_read_ebands_from_GSR(self):
         """Read ElectronBands from GSR files."""
         for filename in data.GSR_NCFILES:
             ebands = ElectronBands.from_file(filename)
             ebands.to_pymatgen()
+
             #ElectronBands.from_dict(ebands.as_dict())
+            self.assertMSONable(ebands, test_if_subclass=False)
 
     def test_dos(self):
         """Test DOS methods."""

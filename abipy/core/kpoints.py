@@ -3,8 +3,11 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import collections
+import json
 import numpy as np
 
+
+from monty.json import MSONable, MontyEncoder
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from pymatgen.core.lattice import Lattice
@@ -409,47 +412,71 @@ class KpointList(collections.Sequence):
     Error = KpointsError
 
     @classmethod
+    def subclass_from_name(cls, name):
+        """Return the class with the given name."""
+        if cls.__name__ == name: return c
+        for c in cls.__subclasses__():
+            if c.__name__ == name: return c
+
+        raise ValueError("Cannot find subclass associated to name: %s" % name)
+
+
+    @classmethod
     def from_dict(cls, d):
         """
         Makes Kpoints obey the general json interface used in pymatgen for easier serialization.
         """
         reciprocal_lattice = Lattice.from_dict(d["reciprocal_lattice"])
         return cls(reciprocal_lattice, d["frac_coords"],
-                   weights=d["weights"], names=d["names"])
+                   weights=d["weights"], names=d["names"], ksampling=d["ksampling"])
 
     @pmg_serialize
-    def as_dict(self, **kwargs):
+    def as_dict(self):
         """
         Makes Kpoints obey the general json interface used in pymatgen for easier serialization.
         """
         if self.weights is not None: weights = self.weights.tolist()
-        names = [k.name for k in self]
-        return dict(
+        d = dict(
             reciprocal_lattice=self.reciprocal_lattice.as_dict(),
             frac_coords=self.frac_coords.tolist(),
-            weights=weights,names=names,
+            weights=weights,
+            names=[k.name for k in self],
+            ksampling=self.ksampling,
         )
+        #for v in d.values():
+        #    if isinstance(v, (list, tuple)):
+        #         for i in v: print(type(i))
+        #    elif isinstance(v, (dict,)):
+        #         for i, j in v.items(): print(type(i), type(j))
+        #    else:
+        #        print(type(v))
 
-    def __init__(self, reciprocal_lattice, frac_coords, weights=None, names=None):
+        return d
+
+    def __init__(self, reciprocal_lattice, frac_coords, weights=None, names=None, ksampling=None):
         """
         Args:
             reciprocal_lattice: :class:`Lattice` object.
             frac_coords: Array-like object with the reduced coordinates of the k-points.
-            weights: List of k-point weights.
+            weights: List of k-point weights. If None, weights are initialized with zeros.
             names: List of k-point names.
+            ksampling: Info on the k-point sampling (used for homogeneous meshes)
         """
         self._reciprocal_lattice = reciprocal_lattice
-
         self._frac_coords = frac_coords = np.reshape(frac_coords, (-1, 3))
+        self.ksampling = ksampling
 
         if weights is not None:
-            assert len(weights) == len(frac_coords)
+            if len(weights) != len(frac_coords):
+                raise ValueError("len(weights) != len(frac_coords):\nweights: %s\nfrac_coords: %s" %
+                    (weights, frac_coords))
             weights = np.asarray(weights)
         else:
             weights = np.zeros(len(self.frac_coords))
 
-        if names is not None:
-            assert len(names) == len(frac_coords)
+        if names is not None and len(names) != len(frac_coords):
+            raise ValueError("len(names) != len(frac_coords):\nnames: %s\nfrac_coords: %s" %
+                    (names, frac_coords))
 
         self._points = []
         for i, rcs in enumerate(frac_coords):
@@ -474,12 +501,10 @@ class KpointList(collections.Sequence):
         return self._reciprocal_lattice
 
     def __repr__(self):
-        lines = ["%d) %s" % (i, repr(kpoint)) for i, kpoint in enumerate(self)]
-        return "\n".join(lines)
+        return "\n".join("%d) %s" % (i, repr(kpoint)) for i, kpoint in enumerate(self))
 
     def __str__(self):
-        lines = ["%d) %s" % (i, str(kpoint)) for i, kpoint in enumerate(self)]
-        return "\n".join(lines)
+        return "\n".join("%d) %s" % (i, str(kpoint)) for i, kpoint in enumerate(self))
 
     # Sequence protocol.
     def __len__(self):
@@ -498,7 +523,9 @@ class KpointList(collections.Sequence):
         return self._points.__reversed__()
 
     def __add__(self, other):
-        assert self.reciprocal_lattice == other.reciprocal_lattice
+        if self.reciprocal_lattice != other.reciprocal_lattice:
+            raise ValueError("Cannot merge k-points with different reciprocal lattice.")
+
         return KpointList(self.reciprocal_lattice,
                           frac_coords=[k.frac_coords for k in self] + [k.frac_coords for k in other],
                           weights=None,
@@ -506,7 +533,7 @@ class KpointList(collections.Sequence):
                         )
 
     def __eq__(self, other):
-        if other is None: return False
+        if other is None or not isinstance(other, KpointList): return False
         for k1, k2 in zip(self, other):
             if k1 != k2: return False
         return True
@@ -522,7 +549,6 @@ class KpointList(collections.Sequence):
         """
         try:
             return self._points.index(kpoint)
-
         except ValueError:
             raise ValueError("\nCannot find point: %s in KpointList:\n%s" % (repr(kpoint), repr(self)))
 
@@ -580,19 +606,27 @@ class KpointList(collections.Sequence):
 
         good_kpoints = [self[i] for i in good_indices]
 
-        return KpointList(self.reciprocal_lattice,
-                          frac_coords=[k.frac_coords for k in good_kpoints],
-                          weights=None,
-                          names=[k.name for k in good_kpoints])
+        return self.__class__(
+                self.reciprocal_lattice,
+                frac_coords=[k.frac_coords for k in good_kpoints],
+                weights=None,
+                names=[k.name for k in good_kpoints],
+                ksampling=self.ksampling)
 
     def to_array(self):
         """Returns a `ndarray` [nkpy, 3] with the fractional coordinates."""
         return np.array(self.frac_coords.copy())
 
+    def to_json(self):
+        """
+        Returns a json string representation of the MSONable object.
+        """
+        return json.dumps(self.as_dict(), cls=MontyEncoder)
+
 
 class KpointStar(KpointList):
     """
-    Start of the kpoint. Note that the first k-point is assumed to be the base
+    Star of the kpoint. Note that the first k-point is assumed to be the base
     of the star namely the point that is used to generate the Star.
     """
     @property
@@ -611,14 +645,6 @@ class Kpath(KpointList):
     This object describes a path in reciprocal space.
     """
 
-    #def __init__(self, reciprocal_lattice, frac_coords):
-    #    """
-    #    Args:
-    #        reciprocal_lattice: :class:`Lattice` object.
-    #        frac_coords: Array-like object with the reduced coordinates of the k-points.
-    #    """
-    #    super(Kpath, self).__init__(reciprocal_lattice, frac_coords)
-
     @lazy_property
     def ds(self):
         """
@@ -626,7 +652,7 @@ class Kpath(KpointList):
         consecutive k-points, i.e. ds[i] = ||k[i+1] - k[i]||.
         """
         ds = np.zeros(len(self) - 1)
-        for (i, kpoint) in enumerate(self[:-1]):
+        for i, kpoint in enumerate(self[:-1]):
             ds[i] = (self[i + 1] - kpoint).norm
         return ds
 
@@ -636,7 +662,7 @@ class Kpath(KpointList):
         versors = (len(self) - 1) * [None, ]
         versors[0] = Kpoint.gamma(self.reciprocal_lattice)
 
-        for (i, kpt) in enumerate(self[:-1]):
+        for i, kpt in enumerate(self[:-1]):
             versors[i] = (self[i + 1] - kpt).versor()
 
         return tuple(versors)
@@ -654,7 +680,7 @@ class Kpath(KpointList):
         lines = []
         prev, indices = self.versors[0], [0]
 
-        for (i, v) in enumerate(self.versors[1:]):
+        for i, v in enumerate(self.versors[1:]):
             i += 1
             if v != prev:
                 prev = v
@@ -707,20 +733,19 @@ class IrredZone(KpointList):
     Provides methods to symmetrize k-dependent quantities with the full symmetry of the structure. e.g.
     bands, occupation factors, phonon frequencies.
     """
-    def __init__(self, reciprocal_lattice, frac_coords, weights, ksampling):
+    def __init__(self, reciprocal_lattice, frac_coords, weights=None, names=None, ksampling=None):
         """
         Args:
             reciprocal_lattice: :class:`Lattice` object
             frac_coords: Array-like object with the reduced coordinates of the points.
             weights: Array-like with the weights of the k-points.
-            ksampling:
                 TODO
         """
-        super(IrredZone, self).__init__(reciprocal_lattice, frac_coords, weights=weights, names=None)
+        super(IrredZone, self).__init__(reciprocal_lattice, frac_coords,
+                                        weights=weights, names=names, ksampling=ksampling)
 
         # Weights must be normalized to one.
         wsum = self.sum_weights()
-
         if abs(wsum - 1) > 1.e-6:
             err_msg = "Kpoint weights should sum up to one while sum_weights is %.3f\n" % wsum
             err_msg += "The list of kpoints does not represent a homogeneous sampling of the BZ\n"
@@ -794,9 +819,7 @@ class IrredZone(KpointList):
     #def iter_bz_coords(self):
     #    """
     #    Generates the fractional coordinates of the points in the BZ.
-
     #    .. note:
-
     #        points are ordered in blocks, one block for each shift.
     #        Inside the block, points are ordered following the C convention.
     #    """
@@ -898,7 +921,7 @@ class KpointsReaderMixin(object):
         # is the only solution I found (changes in the ETSF-IO part of Abinit are needed)
         if ksampling.is_homogeneous or abs(sum(weights) - 1.0) < 1.e-6:
             # we have a homogeneous sampling of the BZ.
-            return IrredZone(structure.reciprocal_lattice, frac_coords, weights, ksampling)
+            return IrredZone(structure.reciprocal_lattice, frac_coords, weights=weights, ksampling=ksampling)
 
         elif ksampling.is_path:
             # we have a path in the BZ.
@@ -942,7 +965,7 @@ class KpointsReaderMixin(object):
     @returns_None_onfail
     def read_kptopt(self):
         """Returns the ABINIT variable kptopt. None if not found."""
-        return self.read_value("kptopt")
+        return int(self.read_value("kptopt"))
 
 
 class KpointsReader(ETSF_Reader, KpointsReaderMixin):

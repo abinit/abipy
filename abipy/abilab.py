@@ -29,7 +29,7 @@ from abipy.abio.robots import GsrRobot, SigresRobot, MdfRobot, DdbRobot, abirobo
 from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
 from abipy.abio.abivars import AbinitInputFile
 from abipy.abio.factories import *
-from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter
+from abipy.electrons import ElectronBands, ElectronDosPlotter, ElectronBandsPlotter
 from abipy.electrons.gsr import GsrFile
 from abipy.electrons.psps import PspsFile
 from abipy.electrons.gw import SigresFile, SigresPlotter

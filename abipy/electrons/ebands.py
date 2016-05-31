@@ -7,17 +7,19 @@ import os
 import tempfile
 import copy
 import itertools
+import json
 import numpy as np
 import pymatgen.core.units as units
 
 from collections import OrderedDict, namedtuple, Iterable
+from monty.json import MSONable, MontyEncoder
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from monty.bisect import find_le, find_gt
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from pymatgen.serializers.json_coders import pmg_serialize
 from abipy.core.func1d import Function1D
-from abipy.core.kpoints import Kpoint, Kpath, IrredZone, KpointsReaderMixin, kmesh_from_mpdivs
+from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, KpointsReaderMixin, kmesh_from_mpdivs
 from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader, Visualizer, bxsf_write
 from abipy.tools import gaussian
@@ -176,6 +178,8 @@ class ElectronTransition(object):
         return "\n".join(lines)
 
     #def __eq__(self, other):
+    #    if other is None: return False
+    #    if not isinstance(other, self.__class__): return False
     #    return self.in_state == other.in_state and
     #           self.out_state == other.out_state
 
@@ -183,7 +187,7 @@ class ElectronTransition(object):
     #    return not self == other
 
     #def __ge__(self, other):
-    #    return self.energy >=  other.energy
+    #    return self.energy >= other.energy
 
     @property
     def energy(self):
@@ -222,6 +226,12 @@ class Smearing(AttrDict):
         Makes Smearing obey the general json interface used in pymatgen for easier serialization.
         """
         return self
+
+    def to_json(self):
+        """
+        Returns a json string representation of the MSONable object.
+        """
+        return json.dumps(self.as_dict(), cls=MontyEncoder)
 
     def __init__(self, *args, **kwargs):
         super(Smearing, self).__init__(*args, **kwargs)
@@ -266,10 +276,10 @@ class ElectronBands(object):
 
     @classmethod
     def from_dict(cls, d):
-        from abipy.core.kpoints import KpointList, IrredZone, Kpath
-        name2cls = {c.__name__: c for c in (KpointList, IrredZone, Kpath)}
-        kpoints_cls = name2cls[d["kpoints"]["@class"]]
-        kpoints = kpoints_cls.from_dict(d["kpoints"])
+        kd = d["kpoints"].copy()
+        kd.pop("@module")
+        kpoints_cls = KpointList.subclass_from_name(kd.pop("@class"))
+        kpoints = kpoints_cls(**kd)
 
         return cls(Structure.from_dict(d["structure"]), kpoints,
                    d["eigens"], d["fermie"], d["occfacts"], d["nelect"],
@@ -283,13 +293,19 @@ class ElectronBands(object):
             structure=self.structure.as_dict(),
             kpoints=self.kpoints.as_dict(),
             eigens=self.eigens.tolist(),
-            fermie=self.fermie,
+            fermie=float(self.fermie),
             occfacts=self.occfacts.tolist(),
-            nelect=self.nelect,
+            nelect=float(self.nelect),
             nband_sk=self.nband_sk.tolist(),
             smearing=self.smearing.as_dict(),
             #markers=, widths=
         )
+
+    def to_json(self):
+        """
+        Returns a json string representation of the MSONable object.
+        """
+        return json.dumps(self.as_dict(), cls=MontyEncoder)
 
     def __init__(self, structure, kpoints, eigens, fermie, occfacts, nelect,
                  nband_sk=None, smearing=None, markers=None, widths=None):

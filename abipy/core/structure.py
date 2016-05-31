@@ -455,6 +455,7 @@ class Structure(pymatgen.Structure):
 
     def findname_in_hsym_stars(self, kpoint):
         """Returns the name of the special k-point, None if kpoint is unknown."""
+        if self.spacegroup is None: return None
         for star in self.hsym_stars:
             if star.find(kpoint) != -1:
                 return star.name
