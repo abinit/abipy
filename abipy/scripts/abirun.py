@@ -628,15 +628,40 @@ Specify the files to open. Possible choices:
         show_func = flow.show_status if not options.summary else flow.show_summary
 
         if options.delay:
-            cprint("Entering infinite loop (delay: %d s).\nPress <CTRL+C> to exit" % options.delay,
-                   color="magenta", end="", flush=True)
+            cprint("Entering infinite loop (delay: %d s). Only changes are shown\nPress <CTRL+C> to exit" %
+                   options.delay, color="magenta", end="", flush=True)
             try:
+                count = 0
+                before_task2stat, now_task2stat = {}, {}
                 while True:
-                    print(2*"\n" + time.asctime() + "\n")
+                    count += 1
                     flow.check_status()
+
+                    # Here I test whether there's been some change in the flow
+                    # before printing the status table.
+                    if count == 1:
+                        for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
+                            before_task2stat[task] = task.status
+                    else:
+                        for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
+                            now_task2stat[task] = task.status
+                        if (len(before_task2stat) == len(now_task2stat) and
+                            all(now_task2stat[t] == before_task2stat[t] for t in now_task2stat)):
+                            # In principle this is not needed but ...
+                            if flow.all_ok or any(st.is_critical for st in before_task2stat.values()):
+                                break
+                            # Do not print
+                            continue
+
+                        before_task2stat = now_task2stat
+
+                    # Print status table. Exit if success or critical errors.
+                    print(2*"\n" + time.asctime() + "\n")
                     show_func(verbose=options.verbose, nids=selected_nids(flow, options))
-                    if flow.all_ok: break
+                    if flow.all_ok or any(st.is_critical for st in before_task2stat.values()):
+                        break
                     time.sleep(options.delay)
+
             except KeyboardInterrupt:
                 print("Received KeyboardInterrupt from user\n")
         else:
