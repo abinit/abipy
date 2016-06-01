@@ -645,6 +645,37 @@ class ElectronBands(object):
                     emax = max(emax, e)
         return emax
 
+    def dispersionless_bands(self, deltae=0.05, kfact=0.9):
+        """
+        This function detects dispersionless states.
+        A state is dispersionless if there are more that (nkpt * kfact) energies
+        in the energy intervale [e0-deltae, e0+deltae]
+
+        Args:
+            deltae: Defines the energy interval in eV around the KS eigenvalue.
+            kfact: Can be used to change the criterion used to detect dispersionless states.
+
+        Returns:
+            List of :class:`Electron` objects. Each item contains information on
+            the energy, the occupation and the location of the dispersionless band.
+        """
+        # TODO: Fermi level set to zero or not?
+        kref = 0
+        dless_states = []
+        for spin in self.spins:
+            for band in range(self.nband_sk[spin,kref]):
+                e0 = self.eigens[spin, kref, band]
+                hrange = [e0 - deltae, e0 + deltae]
+                hist, bin_hedges = np.histogram(self.eigens[spin,:,:],
+                    bins=2, range=hrange, weights=None, density=False)
+                #print("hist", hist, "hrange", hrange, "bin_hedges", bin_hedges)
+
+                if hist.sum() > self.nkpt * kfact:
+                    #dless_states.append((e0, band, spin))
+                    dless_states.append(self._electron_state(spin, k0, band))
+
+        return dless_states
+
     def raw_print(self, stream=sys.stdout):
         """Print k-points and energies on stream."""
         stream.write("# Band structure energies in Ev.\n")
@@ -972,12 +1003,11 @@ class ElectronBands(object):
 
         nw = int(1 + (e_max - e_min) / step)
         mesh, step = np.linspace(e_min, e_max, num=nw, endpoint=True, retstep=True)
-
         dos = np.zeros((self.nsppol, nw))
 
         if method == "gaussian":
             for spin in self.spins:
-                for (k, kpoint) in enumerate(self.kpoints):
+                for k, kpoint in enumerate(self.kpoints):
                     weight = kpoint.weight
                     for band in range(self.nband_sk[spin,k]):
                         e = self.eigens[spin,k,band]
@@ -986,6 +1016,8 @@ class ElectronBands(object):
         else:
             raise ValueError("Method %s is not supported" % method)
 
+        # Align the DOS with the Fermi level stored in self.
+        #mesh -= self.fermie
         return ElectronDOS(mesh, dos)
 
     def get_ejdos(self, spin, valence, conduction,
@@ -1911,6 +1943,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
 
         try:
             scheme = "".join(c for c in self.read_value("smearing_scheme"))
+            scheme = scheme.strip()
         except TypeError:
             scheme = None
 

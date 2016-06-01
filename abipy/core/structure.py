@@ -521,8 +521,13 @@ class Structure(pymatgen.Structure):
         savefig           'abc.png' or 'abc.eps'* to save the figure to a file.
         ================  ==============================================================
         """
+        # TODO: pass lines and labels.
         #print(self.hsym_kpath.name)
-        return self.hsym_kpath.get_kpath_plot(**kwargs)
+        from pymatgen.electronic_structure.plotter import plot_brillouin_zone
+        return plot_brillouin_zone(self.reciprocal_lattice, **kwargs)
+        #return plot_brillouin_zone(self._bs.lattice, lines=lines, labels=labels)
+        # This method has been removed.
+        #return self.hsym_kpath.get_kpath_plot(**kwargs)
 
     def export(self, filename, visu=None):
         """
