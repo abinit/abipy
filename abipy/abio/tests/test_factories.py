@@ -5,7 +5,6 @@ import sys
 import abipy.data as abidata
 import abipy.abilab as abilab
 
-from pprint import pprint
 from abipy.core.testing import AbipyTest
 from abipy.abio.inputs import AbinitInput
 from abipy.abio.factories import *
@@ -18,24 +17,23 @@ class FactoryTest(AbipyTest):
         self.si_structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
         self.si_pseudo = abidata.pseudos("14si.pspnc")
 
-    def validate_inp(self, inp):
-        # Hack neede because ecut is not in the pseudos.
-        inp.set_vars(ecut=3)
+    def validate_multi(self, multi):
+        """Test validity of MultiDataset or a list of input objects."""
+        if hasattr(multi, "split_datasets"):
+            dtlist = multi.split_datasets()
+        else:
+            dtlist = multi
 
-        #v = inp.abivalidate()
-        #if v.retcode != 0:
-        #    raise RuntimeError(v.err)
-        #else:
-        #    print("Valid input!")
-
-        # Test validity of individual datasets.
-        for dtset in inp.split_datasets():
+        rcode = 0
+        for dtset in dtlist:
             v = dtset.abivalidate()
+            if v.retcode != 0: print("Validation error in %s" % str(v))
+            rcode += v.retcode
+        assert rcode == 0
 
     def test_factory_protocol(self):
         """Testing factory protocol."""
         # XXX
-
         # No ecut and pseudos without hints
         #with self.assertRaises(AbinitInput.Error):
         #    ebands_input(self.si_structure, pseudos=abidata.pseudos("14si.pspnc", "Si.oncvpsp"))
@@ -43,15 +41,14 @@ class FactoryTest(AbipyTest):
     def test_ebands_input(self):
         """Testing ebands_input factory."""
         inp = ebands_input(self.si_structure, self.si_pseudo, kppa=10, ecut=2)
-        self.validate_inp(inp)
+        self.validate_multi(inp)
 
         scf_inp, nscf_inp = inp.split_datasets()
 
         #inp = ebands_input(self.si_structure, self.si_pseudo, scf_kppa, nscf_nband, dos_kppa=dos_kppa)
         #print(inp)
-        #self.validate_inp(inp)
+        #self.validate_multi(inp)
 
-        #return
         flow = abilab.Flow("flow_ebands_input")
         flow.register_work(abilab.BandStructureWork(scf_inp, nscf_inp))
         flow.allocate()
@@ -63,14 +60,12 @@ class FactoryTest(AbipyTest):
                             #scf_kppa, scf_nband #accuracy="normal", spin_mode="polarized",
                             #smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None)
 
-        self.validate_inp(inp)
+        self.validate_multi(inp)
         ion_inp, ioncell_inp = inp.split_datasets()
 
-        #return
         flow = abilab.Flow("flow_ion_ioncell_relax_input")
         flow.register_work(abilab.RelaxWork(ion_inp, ioncell_inp))
         flow.allocate()
-        #flow.make_scheduler().start()
 
     def test_g0w0_with_ppmodel_inputs(self):
         """Testing g0w0_with_ppmodel_input factory."""
@@ -83,15 +78,12 @@ class FactoryTest(AbipyTest):
                                       #ppmodel="godby", charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
                                       #sigma_nband=None, gw_qprange=1):
 
-        self.validate_inp(multi)
+        self.validate_multi(multi)
 
-        #return
         scf_input, nscf_input, scr_input, sigma_input = multi.split_datasets()
         flow = abilab.Flow("flow_g0w0_with_ppmodel")
         flow.register_work(abilab.G0W0Work(scf_input, nscf_input, scr_input, sigma_input))
         flow.allocate()
-        #flow.make_scheduler().start()
-
 
     def test_bse_with_mdf(self):
         """Testing bse_with_mdf input factory."""
@@ -106,13 +98,11 @@ class FactoryTest(AbipyTest):
                                     #smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
 
         print(multi)
-        self.validate_inp(multi)
-        #return
+        self.validate_multi(multi)
         scf_input, nscf_input, bse_input = multi.split_datasets()
         flow = abilab.Flow("flow_bse_with_mdf")
         flow.register_work(abilab.BseMdfWork(scf_input, nscf_input, bse_input))
         flow.allocate()
-        #flow.make_scheduler().start()
 
     def test_scf_phonons_inputs(self):
         """Testing scf_phonons_inputs."""
@@ -120,12 +110,8 @@ class FactoryTest(AbipyTest):
         ecut = 4
         inps = scf_phonons_inputs(self.si_structure, self.si_pseudo, scf_kppa,
                                   ecut=ecut) #, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
-        print(inps[0])
-        print(inps[1])
-        #return
-        #for inp in inps:
-        #    self.validate_inp(inp)
+        self.validate_multi(inps)
 
-        if self.has_abinit():
-            print(inps[1].abiget_irred_phperts())
+        #if self.has_abinit():
+        #    print(inps[1].abiget_irred_phperts())
         #assert 0
