@@ -256,18 +256,9 @@ class SingleAbinitGWWork:
         nksmall = None
         ecuteps = [8]
         ecutsigx = 44
+        ecut = 44
 
-        extra_abivars = dict(
-            paral_kgb=1,
-            inclvkb=2,
-            ecut=44,
-            gwmem='10',
-            getden=-1,
-            istwfk="*1",
-            timopt=-1,
-            nbdbuf=8,
-            prtsuscep=0
-        )
+        extra_abivars = dict()
 
         # read user defined extra abivars from file  'extra_abivars' should be dictionary
         extra_abivars.update(read_extra_abivars())
@@ -281,13 +272,12 @@ class SingleAbinitGWWork:
 
         if self.option is not None:
             for k in self.option.keys():
+                if k == 'ecut':
+                    ecut = self.option[k]
                 if k in ['ecuteps', 'nscf_nbands']:
                     pass
                 else:
                     extra_abivars.update({k: self.option[k]})
-                    if k == 'ecut':
-                        if self.pseudo_table.allpaw:
-                            extra_abivars.update({'pawecutdg': self.option[k]*2})
 
         try:
             grid = read_grid_from_file(s_name(self.structure)+".full_res")['grid']
@@ -357,21 +347,19 @@ class SingleAbinitGWWork:
         logger.info('ecuteps : %s ' % str(ecuteps))
         logger.info('extra   : %s ' % str(extra_abivars))
         logger.info('nscf_nb : %s ' % str(nscf_nband))
-        print('before work creation')
-        multi = g0w0_convergence_inputs(abi_structure, self.pseudo_table, kppa, nscf_nband, ecuteps, ecutsigx,
-                                        scf_nband, accuracy="normal", spin_mode="unpolarized", smearing=None,
-                                        response_models=response_models, charge=0.0, sigma_nband=None, scr_nband=None,
-                                        gamma=gamma, nksmall=nksmall, **extra_abivars)
-        print(multi)
+        inputs = g0w0_convergence_inputs(abi_structure, self.pseudo_table, kppa, nscf_nband, ecuteps, ecutsigx,
+                                         scf_nband, ecut, accuracy="normal", spin_mode="unpolarized", smearing=None,
+                                         response_models=response_models, charge=0.0, sigma_nband=None, scr_nband=None,
+                                         gamma=gamma, nksmall=nksmall, extra_abivars=extra_abivars)
 
-        work = G0W0Work(multi)
+        work = G0W0Work(scf_inputs=inputs[0], nscf_inputs=inputs[1], scr_inputs=inputs[2], sigma_inputs=inputs[3])
 
         # work = g0w0_extended_work(abi_structure, self.pseudo_table, kppa, nscf_nband, ecuteps, ecutsigx, scf_nband,
         # accuracy="normal", spin_mode="unpolarized", smearing=None, response_models=response_models,
         # charge=0.0, sigma_nband=None, scr_nband=None, gamma=gamma, nksmall=nksmall, **extra_abivars)
-        print('work')
-        flow.register_work(work, workdir=workdir)
 
+        print(workdir)
+        flow.register_work(work, workdir=workdir)
         return flow.allocate()
 
     def create_job_file(self, serial=True):

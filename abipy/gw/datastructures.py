@@ -764,16 +764,16 @@ class GWConvergenceData(object):
         xs = self.get_var_range('nbands')
         ys = self.get_var_range('ecuteps')
         zd = self.get_data_array()
-        for z in zd:
-            print(z)
+#        for z in zd:
+#            print(z)
         # print 'plot "'+self.name+'condat'+'"'
         for x in xs:
             zs = []
             for y in ys:
                 try:
                     zs.append(zd[x][y])
-                except KeyError:
-                    pass
+                except KeyError as ex:
+                    print(ex.message)
             conv_data = determine_convergence(ys, zs, name=self.name, tol=tol, extra='ecuteps at '+str(x), plots=plots)
             extrapolated.append(conv_data[4])
             if conv_data[0]:
@@ -799,13 +799,13 @@ class GWConvergenceData(object):
         return determine_convergence(xs, extrapolated, name=self.name, tol=-0.05,
                                      extra='nbands at extrapolated ecuteps', plots=plots)
 
-    def find_conv_pars_scf(self, x_name, y_name, tol=0.0001):
+    def find_conv_pars_scf(self, x_name, y_name, tol=0.0001, silent=False):
         xs = self.get_var_range(x_name)
         ys = []
         # print self.get_data_array_2d(x_name, y_name)
         for x in xs:
             ys.append(self.get_data_array_2d(x_name, y_name)[x])
-        conv_data = determine_convergence(xs, ys, name=self.name, tol=tol, extra=x_name)
+        conv_data = determine_convergence(xs, ys, name=self.name, tol=tol, extra=x_name, plots=not silent)
         # print conv_data, {x_name: conv_data[0]}, {x_name: conv_data[1]}, {x_name: conv_data[5]}
         self.conv_res['control'].update({x_name: conv_data[0]})
         self.conv_res['values'].update({x_name: conv_data[1]})
@@ -863,8 +863,8 @@ class GWConvergenceData(object):
                     data_array[self.data[k]['nbands']].update({self.data[k]['ecuteps']: self.data[k]['gwgap']})
                 except KeyError:
                     data_array.update({self.data[k]['nbands']: {self.data[k]['ecuteps']: self.data[k]['gwgap']}})
-            except KeyError:
-                pass
+            except KeyError as ex:
+                print(ex.message)
         return data_array
 
     def get_data_array_2d(self, x_name, y_name):

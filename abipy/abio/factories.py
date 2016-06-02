@@ -422,7 +422,7 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
 def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx, scf_nband, ecut,
                          accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
                          response_models=None, charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
-                         sigma_nband=None, gw_qprange=1, gamma=True, nksmall=None, **extra_abivars):
+                         sigma_nband=None, gw_qprange=1, gamma=True, nksmall=None, extra_abivars=None):
     """
     Returns a :class:`multi` object to generate a G0W0 work for the given the material.
 
@@ -448,21 +448,40 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
         gw_qprange:
         gamma:
         nksmall: Kpoint division for additional band and dos calculations
-        extra_abivars: Dictionary with extra variables passed to ABINIT.
+        extra_abivars: Dictionary with extra variables passed to ABINIT for all tasks.
 
     extra abivars that are provided with _s appended will be take as a list of values to be tested a scf level
 
     """
+    if extra_abivars is None:
+        extra_abivars = {}
+
     if response_models is None:
         response_models = ["godby"]
+
+    scf_diffs = []
+
+    for k in extra_abivars.keys():
+        if k[-2:] == '_s':
+            var = k[:len(k)-2]
+            values = extra_abivars.pop(k)
+            to_add.update({k: values[-1]})
+            for value in values:
+                diff_abivars = dict()
+                diff_abivars[var] = value
+                if pseudos.allpaw and var == 'ecut':
+                    diff_abivars['pawecutdg'] = diff_abivars['ecut']*2
+                scf_diffs.append(diff_abivars)
 
     extra_abivars_all = dict(
         ecut=ecut,
         paral_kgb=1,
         istwfk="*1",
-        timopt=0,
+        timopt=-1,
         nbdbuf=8,
     )
+
+    extra_abivars_all.update(extra_abivars)
 
     if pseudos.allpaw:
         extra_abivars_all['pawecutdg'] = extra_abivars_all['ecut']*2
@@ -512,23 +531,8 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
                                    charge=charge, nband=scf_nband, fband=None)
     nscf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm={"iscf": -2},
                                     charge=charge, nband=nscf_nband, fband=None)
-    to_add = {}
 
-    scf_diffs = []
-
-    for k in extra_abivars.keys():
-        if k[-2:] == '_s':
-            var = k[:len(k)-2]
-            values = extra_abivars.pop(k)
-            to_add.update({k: values[-1]})
-            for value in values:
-                diff_abivars = dict()
-                diff_abivars[var] = value
-                if pseudos.allpaw and var == 'ecut':
-                    diff_abivars['pawecutdg'] = diff_abivars['ecut']*2
-                scf_diffs.append(diff_abivars)
-
-    multi_scf = MultiDataset(structure, pseudos, ndtset=len(scf_diffs))
+    multi_scf = MultiDataset(structure, pseudos, ndtset=max(1, len(scf_diffs)))
    
     multi_scf.set_vars(scf_ksampling.to_abivars())
     multi_scf.set_vars(scf_electrons.to_abivars())

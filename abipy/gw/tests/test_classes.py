@@ -74,9 +74,9 @@ class GWConvergenceDataTest(PymatgenTest):
         conv_data.read_full_res_from_file()
         os.remove(f_name)
         self.assertEqual(conv_data.full_res, {u'all_done': True, u'grid': 0})
-        string = "{'control': {u'ecuteps': True, u'nbands': True}, 'values': {u'ecuteps': " \
-                 "101.98825069084282, u'nbands': 30}, 'derivatives': {u'ecuteps':" \
-                 " 0.00023077744572658418, u'nbands': -0.0013567555555555532}}"
+        string = "{'control': {u'ecuteps': True, u'nbands': True, u'ecut': True}, " \
+                 "'values': {u'ecuteps': 101.98825, u'nbands': 30.0, u'ecut': 12, u'gap': 3.13196}, " \
+                 "'derivatives': {u'ecuteps': 0.00023077744572658418, u'nbands': -0.0013567555555555532, u'ecut': 0.083333333333365012}}"
         with open(test_file, 'w') as f:
             f.write(string)
         conv_data.read_conv_res_from_file(test_file)
@@ -95,14 +95,15 @@ class GWConvergenceDataTest(PymatgenTest):
         for i, d in enumerate(data_list):
             conv_data.data[i] = dict(zip(data_names, d))
         data_names = ['ecut', 'full_width']
-        data_list = [[10, 100], [12, 101], [13, 101]]
+        data_list = [[10, 100], [12, 101], [13, 101], [14, 101]]
+        ii = len(conv_data.data) + 1
         for i, d in enumerate(data_list):
-            conv_data.data[i] = dict(zip(data_names, d))
+            conv_data.data[i+ii] = dict(zip(data_names, d))
 
         # self.assertEqual(conv_data.data[0]['gwgap'], 3.13196)
         # conv_data.conv_res = {u'control': {}, u'derivatives': {}, u'values': {}}
         conv_data.find_conv_pars(tol=-0.1, silent=True)
-        conv_data.find_conv_pars_scf('ecut', 'full_width', self['tol'])
+        conv_data.find_conv_pars_scf('ecut', 'full_width', tol=-0.1, silent=True)
         print(conv_data.conv_res)
         self.assertEqual(conv_data.conv_res['control'], conv_res['control'])
         self.assertEqual(conv_data.conv_res['derivatives'], conv_res['derivatives'])
@@ -263,11 +264,11 @@ class GWworksTests(PymatgenTest):
         os.environ['ABINIT_PS'] = wdir
         self.assertIsInstance(struc, AbiStructure)
         spec = get_spec('GW')
+        print(spec)
+
         work = SingleAbinitGWWork(struc, spec)
         self.assertEqual(len(work.CONVS), 3)
 
-        spec = get_spec('GW')
-        work = SingleAbinitGWWork(struc, spec)
         conv_strings = ['method', 'control', 'level']
         for test in work.CONVS:
             self.assertIsInstance(work.CONVS[test]['test_range'], tuple)
@@ -281,9 +282,15 @@ class GWworksTests(PymatgenTest):
         self.assertEqual(work.get_bands(struc), 6)
         self.assertGreater(work.get_bands(struc), work.get_electrons(struc) / 2, 'More electrons than bands, very bad.')
 
-        # flow = work.create()
-
-        # self.assertIsInstance(flow, Flow)
+        flow = work.create()
+        print(work.work_dir)
+        print(flow.workdir)
+        print(flow[0].workdir)
+        self.assertIsInstance(flow, Flow)
+        self.assertEqual(len(flow), 1)      # one work
+        self.assertEqual(len(flow[0]), 4)   # with 4 tasks
+        self.assertEqual(flow.workdir, 'Si')
+        flow.build_and_pickle_dump()
 
         if temp_ABINIT_PS is not None:
             os.environ['ABINIT_PS_EXT'] = temp_ABINIT_PS_EXT
