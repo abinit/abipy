@@ -386,6 +386,8 @@ Specify the files to open. Possible choices:
     # Subparser for history.
     p_history = subparsers.add_parser('history', parents=[copts_parser, flow_selector_parser], help="Show Node history.")
     p_history.add_argument("-m", "--metadata", action="store_true", default=False, help="Print history metadata")
+    p_history.add_argument("-f", "--full-history", action="store_true", default=False,
+                           help="Print full history, including nodes whose history is empty")
     #p_history.add_argument("-t", "--task-history", action="store_true", default=True, help=)
 
     # Subparser for handlers.
@@ -574,20 +576,25 @@ Specify the files to open. Possible choices:
         nrows, ncols = get_terminal_size()
 
         works_done = []
+        full_history = options.full_history
         # Loop on the tasks and show the history of the work is not in works_done
         for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
             work = task.work
+
             if work not in works_done:
                 works_done.append(work)
-                print(make_banner(str(work), width=ncols, mark="="))
-                print(work.history.to_string(metadata=options.metadata))
+                if work.history or full_history:
+                    cprint(make_banner(str(work), width=ncols, mark="="), **work.status.color_opts)
+                    print(work.history.to_string(metadata=options.metadata))
 
-            print(make_banner(str(task), width=ncols, mark="="))
-            print(task.history.to_string(metadata=options.metadata))
+            if task.history or full_history:
+                cprint(make_banner(str(task), width=ncols, mark="="), **task.status.color_opts)
+                print(task.history.to_string(metadata=options.metadata))
 
         # Print the history of the flow.
-        print(make_banner(str(flow), width=ncols, mark="="))
-        print(flow.history.to_string(metadata=options.metadata))
+        if flow.history or full_history:
+            cprint(make_banner(str(flow), width=ncols, mark="="), **flow.status.color_opts)
+            print(flow.history.to_string(metadata=options.metadata))
 
     elif options.command == "handlers":
         if options.doc:
@@ -651,6 +658,7 @@ Specify the files to open. Possible choices:
                             if flow.all_ok or any(st.is_critical for st in before_task2stat.values()):
                                 break
                             # Do not print
+                            print(".", end="")
                             continue
 
                         before_task2stat = now_task2stat
@@ -663,7 +671,7 @@ Specify the files to open. Possible choices:
                     time.sleep(options.delay)
 
             except KeyboardInterrupt:
-                print("Received KeyboardInterrupt from user\n")
+                cprint("Received KeyboardInterrupt from user\n", "yellow")
         else:
             show_func(verbose=options.verbose, nids=selected_nids(flow, options))
             if options.verbose and flow.manager.has_queue:
@@ -759,7 +767,7 @@ Specify the files to open. Possible choices:
             #print("runnables:", grunnables)
             #print("running:", g.running)
             if g.deadlocked and not (g.runnables or g.running):
-                print("*** Flow is deadlocked ***")
+                cprint("*** Flow is deadlocked ***", "red")
 
         flow.pickle_dump()
 
@@ -790,7 +798,7 @@ Specify the files to open. Possible choices:
             try:
                 os.system("tail -f %s" % " ".join(paths))
             except KeyboardInterrupt:
-                print("Received KeyboardInterrupt from user\n")
+                cprint("Received KeyboardInterrupt from user\n", "yellow")
 
     elif options.command == "qstat":
         #for task in flow.select_tasks(nids=options.nids, wslice=options.wslice):

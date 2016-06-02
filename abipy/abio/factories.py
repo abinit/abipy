@@ -133,9 +133,10 @@ def _find_scf_nband(structure, pseudos, electrons, spinat=None):
         nband = max(np.ceil(nband*1.1), nband+4)
 
     # Increase number of bands based on the starting magnetization
-    if nsppol==2 and spinat is not None:
+    if nsppol == 2 and spinat is not None:
         nband += np.ceil(max(np.sum(spinat, axis=0))/2.)
 
+    # Force even nband (easier to divide among procs, mandatory if nspinor == 2)
     nband += nband % 2
     return int(nband)
 
@@ -174,7 +175,7 @@ def ebands_input(structure, pseudos,
                  ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
                  smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None, dos_kppa=None):
     """
-    Returns a :class:`AbinitInput` for band structure calculations.
+    Returns a :class:`MultiDataset` for band structure calculations.
 
     Args:
         structure: :class:`Structure` object.
@@ -211,7 +212,7 @@ def ebands_input(structure, pseudos,
     scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                    charge=charge, nband=scf_nband, fband=None)
 
-    if spin_mode=="polarized":
+    if spin_mode == "polarized":
         multi[0].set_autospinat()
 
     if scf_electrons.nband is None:
@@ -251,7 +252,7 @@ def ion_ioncell_relax_input(structure, pseudos,
                             ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
                             smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
     """
-    Returns a :class:`AbinitInput` for a structural relaxation. The first dataset optmizes the
+    Returns a :class:`MultiDataset` for a structural relaxation. The first dataset optmizes the
     atomic positions at fixed unit cell. The second datasets optimizes both ions and unit cell parameters.
 
     Args:
@@ -276,7 +277,7 @@ def ion_ioncell_relax_input(structure, pseudos,
     electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                charge=charge, nband=nband, fband=None)
 
-    if spin_mode=="polarized":
+    if spin_mode == "polarized":
         spinat_dict = multi[0].set_autospinat()
         multi[1].set_vars(spinat_dict)
 
@@ -299,12 +300,19 @@ def ion_ioncell_relax_input(structure, pseudos,
 
 
 def ion_ioncell_relax_and_ebands_input(structure, pseudos,
-                                        kppa=None, nband=None,
-                                        ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
-                                        smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
+                                       kppa=None, nband=None,
+                                       ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
+                                       smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
     """
-    Returns a :class:`AbinitInput` for a structural relaxation. The first dataset optmizes the
-    atomic positions at fixed unit cell. The second datasets optimizes both ions and unit cell parameters.
+    Returns a :class:`MultiDataset` for a structural relaxation followed by a band structure run.
+    The first dataset optmizes the atomic positions at fixed unit cell.
+    The second datasets optimizes both ions and unit cell parameters.
+    The other datasets perform a band structure calculation.
+
+    .. warning::
+
+        Client code is responsible for propagating the relaxed structure obtained with the
+        second dataset to the inputs used for the band structure calculation.
 
     Args:
         structure: :class:`Structure` object.
@@ -339,7 +347,7 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
                             ppmodel="godby", charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
                             sigma_nband=None, gw_qprange=1):
     """
-    Returns a :class:`AbinitInput` object that performs G0W0 calculations with the plasmon pole approximation.
+    Returns a :class:`MultiDataset` object that performs G0W0 calculations with the plasmon pole approximation.
 
     Args:
         structure: Pymatgen structure.
@@ -423,7 +431,7 @@ def g0w0_extended_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx
                        inclvkb=2, scr_nband=None, sigma_nband=None, workdir=None, manager=None, gamma=True, nksmall=20,
                        work_class=None, scf_algorithm=None, **extra_abivars):
     """
-    Returns a :class:`multi` object to generate a G0W0 work for the given the material.
+    Returns a :class:`MultiDataset` object to generate a G0W0 work for the given the material.
 
     Args:
         structure: Pymatgen structure.
@@ -523,7 +531,7 @@ def bse_with_mdf_inputs(structure, pseudos,
                         exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="polarized",
                         smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
     """
-    Returns a :class:`AbinitInput` object that performs a GS + NSCF + Bethe-Salpeter calculation.
+    Returns a :class:`MultiDataset` object that performs a GS + NSCF + Bethe-Salpeter calculation.
     The self-energy corrections are approximated with the scissors operator.
     The screening is modeled with the model dielectric function.
 
@@ -603,7 +611,7 @@ def scf_phonons_inputs(structure, pseudos, kppa,
                        smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
 
     """
-    Returns a :class:`AbinitInput` for performing phonon calculations.
+    Returns a list of input files for performing phonon calculations.
     GS input + the input files for the phonon calculation.
 
     Args:
@@ -678,7 +686,7 @@ def scf_phonons_inputs(structure, pseudos, kppa,
 def phonons_from_gsinput(gs_inp, ph_ngqpt=None, with_ddk=True, with_dde=True, with_bec=False, ph_tol=None, ddk_tol=None,
                          dde_tol=None):
     """
-    Returns a :class:`AbinitInput` for performing phonon calculations.
+    Returns a :class:`MultiDataset` for performing phonon calculations.
     GS input + the input files for the phonon calculation.
     """
 
@@ -726,8 +734,8 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, with_ddk=True, with_dde=True, wi
     multi = MultiDataset.from_inputs(multi)
     multi.add_tags(PHONON)
 
-    #FIXME for the time being there could be problems in mergeddb if the kpoints grid is gamma centered or if
-    # if the grid is odd. Remove when mergeddb is fixed
+    #FIXME for the time being there could be problems in mergddb if the kpoints grid is gamma centered or if
+    # if the grid is odd. Remove when mergddb is fixed
     multi.set_vars(kptopt=3)
 
     return multi
@@ -738,7 +746,7 @@ def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None
                              smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None, ddk_tol=None, rf_tol=None):
 
     """
-    Returns a :class:`AbinitInput` for performing elastic and piezoelectric constants calculations.
+    Returns a :class:`MultiDataset` for performing elastic and piezoelectric constants calculations.
     GS input + the input files for the elastic and piezoelectric constants calculation.
 
     Args:
@@ -828,6 +836,9 @@ def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None
 def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=None, accuracy="normal",
               spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
               shift_mode="Monkhorst-Pack"):
+    """
+    Returns an :class:`AbinitInput` for standard GS calculations.
+    """
     structure = Structure.as_structure(structure)
 
     abinit_input = AbinitInput(structure, pseudos)
@@ -842,7 +853,7 @@ def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=No
     scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                    charge=charge, nband=nband, fband=None)
 
-    if spin_mode=="polarized":
+    if spin_mode == "polarized":
         abinit_input.set_autospinat()
 
     if scf_electrons.nband is None:
@@ -1001,6 +1012,7 @@ class HybridOneShotFromGsFactory(InputFactory):
 class ScfFactory(InputFactory):
     factory_function = staticmethod(scf_input)
     input_required = False
+
 
 class ScfForPhononsFactory(InputFactory):
     factory_function = staticmethod(scf_for_phonons)

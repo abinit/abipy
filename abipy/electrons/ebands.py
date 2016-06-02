@@ -645,13 +645,14 @@ class ElectronBands(object):
                     emax = max(emax, e)
         return emax
 
-    def dispersionless_bands(self, deltae=0.05, kfact=0.9):
+    def dispersionless_states(self, erange=None, deltae=0.05, kfact=0.9):
         """
         This function detects dispersionless states.
         A state is dispersionless if there are more that (nkpt * kfact) energies
         in the energy intervale [e0-deltae, e0+deltae]
 
         Args:
+            erange=Energy range to be analyzed in the form [emin, emax]
             deltae: Defines the energy interval in eV around the KS eigenvalue.
             kfact: Can be used to change the criterion used to detect dispersionless states.
 
@@ -660,11 +661,13 @@ class ElectronBands(object):
             the energy, the occupation and the location of the dispersionless band.
         """
         # TODO: Fermi level set to zero or not?
+        if erange is None: erange = [-np.inf, np.inf]
         kref = 0
         dless_states = []
         for spin in self.spins:
             for band in range(self.nband_sk[spin,kref]):
                 e0 = self.eigens[spin, kref, band]
+                if not erange[1] > e0 > erange[0]: continue
                 hrange = [e0 - deltae, e0 + deltae]
                 hist, bin_hedges = np.histogram(self.eigens[spin,:,:],
                     bins=2, range=hrange, weights=None, density=False)
@@ -672,7 +675,8 @@ class ElectronBands(object):
 
                 if hist.sum() > self.nkpt * kfact:
                     #dless_states.append((e0, band, spin))
-                    dless_states.append(self._electron_state(spin, k0, band))
+                    state = self._electron_state(spin, kref, band)
+                    dless_states.append(state)
 
         return dless_states
 
@@ -732,10 +736,12 @@ class ElectronBands(object):
         """
         Build an instance of :class:`Electron` from the spin, kpoint and band index"""
         kidx = self.kindex(kpoint)
+        eig = self.eigens[spin, kidx, band]
+        #eig -= self.fermie
         return Electron(spin=spin,
                         kpoint=self.kpoints[kidx],
                         band=band,
-                        eig=self.eigens[spin, kidx, band],
+                        eig=eig,
                         occ=self.occfacts[spin, kidx, band])
 
     #def from_scfrun(self):

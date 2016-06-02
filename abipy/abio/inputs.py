@@ -160,6 +160,10 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
         """
         Remove the variables listed in keys.
         Return dictionary with the variables that have been removed.
+
+        Args:
+            keys: string or list of strings with variable names.
+            strict: If True, KeyError is raised if at least one variable is not present.
         """
         removed = {}
         for key in list_strings(keys):
@@ -765,7 +769,6 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         Returns the tolerance variable and value relative to the scf convergence.
         If more than one is present raise an error
         """
-
         tolvar = None
         value = None
         for t in _TOLVARS_SCF:
@@ -779,10 +782,25 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
     def make_ph_inputs_qpoint(self, qpt, tolerance=None):
         """
-        This functions should be called with an input the represents a GS run.
+        This functions builds and returns a list of input files
+        for the calculation of phonons at the given q-point `qpt.
+        It should be called with an input the represents a GS run.
+
+        Args:
+            qpt: q-point in reduced coordinatesl
+            tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
+                Defaults to {"tolvrs": 1.0e-10}.
+
+        Return:
+            List of AbinitInput objects for DFPT runs.
+
+        .. warning::
+
+            The routine assumes the q-point is such that k + q belongs to the initial GS mesh.
+            so that the DFPT run can be started from the WFK file directly without having
+            to generate WFQ files.
         """
-        if tolerance is None:
-            tolerance = {"tolvrs": 1.0e-10}
+        if tolerance is None: tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error("Invalid tolerance: %s" % str(tolerance))
@@ -793,13 +811,12 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         # Build list of datasets (one input per perturbation)
         ph_inputs = MultiDataset.replicate_input(input=self, ndtset=len(perts))
 
-        # TODO: Should propagate info on symmetries.
-        # use time-reversal if Gamma
+        # Set kptopt depending on the q-points i.e use time-reversal if Gamma
         kptopt = 3
         if np.allclose(qpt, 0): kptopt = 2
 
+        # Note: this will work for phonons, but not for the other types of perturbations.
         for pert, ph_input in zip(perts, ph_inputs):
-            # TODO this will work for phonons, but not for the other types of perturbations.
             rfdir = 3 * [0]
             rfdir[pert.idir -1] = 1
 
@@ -818,8 +835,15 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
     def make_ddk_inputs(self, tolerance=None):
         """
-        Return inputs for the DDK calculation.
+        Return inputs for performing DDK calculations.
         This functions should be called with an input the represents a GS run.
+
+        Args:
+            tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
+                Defaults to {"tolwfr": 1.0e-22}.
+
+        Return:
+            List of AbinitInput objects for DFPT runs.
         """
         if tolerance is None:
             tolerance = {"tolwfr": 1.0e-22}
@@ -1125,12 +1149,15 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                                         workdir=workdir, manager=manager)
 
     def pop_par_vars(self, all=False):
-        # in case of a restart we need to remove the paralel configuration before we rerun autoparalel
-        vars = ['npkpt', 'npfft', 'npband', 'npspinor', 'npimage']
+        """
+        Remove all the variables associated to parallelism from the input file.
+        Useful in case of a restart when we need to remove the parallel variables before rerunning autoparal
+        """
+        parvars = ['npkpt', 'npfft', 'npband', 'npspinor', 'npimage']
         if all:
-            vars.append('gwpara')
+            parvars.append('gwpara')
         popped = {}
-        for var in vars:
+        for var in parvars:
             popped[var] = self.pop(var, None)
 
         return popped
@@ -1202,7 +1229,6 @@ class MultiDataset(object):
         for i in range(multi.ndtset):
             multi[i].set_vars(ecut=1)
 
-
     MultiDataset provides its own implementaion of __getattr__ so that one can simply use:
 
          multi.set_vars(ecut=1)
@@ -1233,7 +1259,7 @@ class MultiDataset(object):
 
     @classmethod
     def replicate_input(cls, input, ndtset):
-        """Constructur a multidataset with ndtset from the :class:`AbinitInput` input."""
+        """Construct a multidataset with ndtset from the :class:`AbinitInput` input."""
         multi = cls(input.structure, input.pseudos, ndtset=ndtset)
 
         for inp in multi:
@@ -1253,7 +1279,10 @@ class MultiDataset(object):
             ndtset: Number of datasets.
         """
         # Setup of the pseudopotential files.
-        if isinstance(pseudos, PseudoTable):
+        if isinstance(pseudos, Pseudo):
+            pseudos = [pseudos]
+
+        elif isinstance(pseudos, PseudoTable):
             pseudos = pseudos
 
         elif all(isinstance(p, Pseudo) for p in pseudos):
