@@ -156,6 +156,20 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
             d.update(self.set_vars(aobj.to_abivars()))
         return d
 
+    def pop_vars(self, keys):
+        """
+        Remove the variables listed in keys.
+        Return dictionary with the variables that have been removed.
+        Unlike remove_vars, no exception is raised if the variables are not in the input.
+
+        Args:
+            keys: string or list of strings with variable names.
+
+        Example:
+            inp.pop_vars(["ionmov", "optcell", "ntime", "dilatmx"])
+        """
+        return self.remove_vars(keys, strict=False)
+
     def remove_vars(self, keys, strict=True):
         """
         Remove the variables listed in keys.
@@ -809,7 +823,9 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         perts = self.abiget_irred_phperts(qpt=qpt)
 
         # Build list of datasets (one input per perturbation)
+        # Remove iscf if any (required if we pass an input for NSCF calculation)
         ph_inputs = MultiDataset.replicate_input(input=self, ndtset=len(perts))
+        ph_inputs.pop_vars("iscf")
 
         # Set kptopt depending on the q-points i.e use time-reversal if Gamma
         kptopt = 3
