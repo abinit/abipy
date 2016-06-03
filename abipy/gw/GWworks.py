@@ -235,7 +235,7 @@ class SingleAbinitGWWork:
         if self.spec['converge'] and not self.all_converged:
             # (2x2x2) gamma centered mesh for the convergence test on nbands and ecuteps
             # if kp_in is present in the specs a kp_in X kp_in x kp_in mesh is used for the convergence study
-            if 'kp_in' in self.spec.keys():
+            if 'kp_in' in self.spec.data.keys():
                 if self.spec['kp_in'] > 9:
                     print('WARNING:\nkp_in should be < 13 to generate an n x n x n mesh\nfor larger values a grid with '
                           'density kp_in will be generated')
@@ -255,8 +255,6 @@ class SingleAbinitGWWork:
 
         nksmall = None
         ecuteps = [8]
-        ecutsigx = 44
-        ecut = 44
 
         extra_abivars = dict()
 
@@ -265,6 +263,14 @@ class SingleAbinitGWWork:
         # self.bands_fac = 0.5 if 'gwcomp' in extra_abivars.keys() else 1
         # self.convs['nscf_nbands']['test_range'] =
         # tuple([self.bands_fac*x for x in self.convs['nscf_nbands']['test_range']])
+
+        ecut = extra_abivars.pop('ecut', 44)
+        ecutsigx = extra_abivars.pop('ecutsigx', 44)
+
+        if ecutsigx > ecut:
+            raise RuntimeError('ecutsigx can not be largen than ecut')
+        if ecutsigx < max(ecuteps):
+            raise RuntimeError('ecutsigx < ecuteps this is not realistic')
 
         response_models = ['godby']
         if 'ppmodel' in extra_abivars.keys():

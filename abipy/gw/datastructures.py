@@ -436,12 +436,12 @@ class GWSpecs(AbstractAbInitioSpec):
                     else:
                         print('| parm_scr type calculation, no converged scf values found')
                         data.full_res.update({'remark': 'No converged SCf parameter found. Continue anyway.'})
-                        data.conv_res['values'].update({'ecut': 40*eV_to_Ha})
+                        data.conv_res['values'].update({'ecut': 44/eV_to_Ha}) # internally we work in eV
                         data.conv_res['control'].update({'ecut': True})
 
-                    # if ecut is provided in extra_abivars overwrite in any case ..
-                    if 'ecut' in read_extra_abivars().keys():
-                        data.conv_res['values'].update({'ecut': read_extra_abivars()['ecut']*eV_to_Ha})
+                    # if ecut is provided in extra_abivars overwrite in any case .. this is done at input generation
+                    # if 'ecut' in read_extra_abivars().keys():
+                    #    data.conv_res['values'].update({'ecut': read_extra_abivars()['ecut']}) # should be in eV
 
                     # if converged ok, if not increase the grid parameter of the next set of calculations
                     extrapolated = data.find_conv_pars(self['tol'])
@@ -808,7 +808,9 @@ class GWConvergenceData(object):
         conv_data = determine_convergence(xs, ys, name=self.name, tol=tol, extra=x_name, plots=not silent)
         # print conv_data, {x_name: conv_data[0]}, {x_name: conv_data[1]}, {x_name: conv_data[5]}
         self.conv_res['control'].update({x_name: conv_data[0]})
-        self.conv_res['values'].update({x_name: conv_data[1]})
+        factor = 1/eV_to_Ha if x_name == 'ecut' and self.code_interface.hartree_parameters else 1
+        self.conv_res['values'].update({x_name: conv_data[1]*factor})
+        print(conv_data[1])
         self.conv_res['derivatives'].update({x_name: conv_data[5]})
         return conv_data
 
@@ -933,6 +935,7 @@ class GWConvergenceData(object):
         this file is later used in a subsequent 'full' calculation to perform the calculations at a higher kp-mesh
         """
         if self.conv_res['control']['nbands'] or True:
+
             filename = self.name + '.conv_res'
             f = open(filename, mode='w')
             string = "{'control': "+str(self.conv_res['control'])+", 'values': "

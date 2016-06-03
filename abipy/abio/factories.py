@@ -465,7 +465,7 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
         if k[-2:] == '_s':
             var = k[:len(k)-2]
             values = extra_abivars.pop(k)
-            to_add.update({k: values[-1]})
+            #to_add.update({k: values[-1]})
             for value in values:
                 diff_abivars = dict()
                 diff_abivars[var] = value
@@ -574,9 +574,6 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
         scr_nband = nscf_nband
     if sigma_nband is None:
         sigma_nband = nscf_nband
-
-    if ecutsigx < max(ecuteps):
-        ecutsigx = max(ecuteps)
 
     if 'cd' in response_models:
         hilbert = aobj.HilbertTransform(nomegasf=100, domegasf=None, spmeth=1, nfreqre=None, freqremax=None, nfreqim=None,
