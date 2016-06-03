@@ -67,50 +67,58 @@ def as_slice(obj):
     raise ValueError("Cannot convert %s into a slice:\n%s" % (type(obj), obj))
 
 
-def find_flowdir_wtpos(nodepath):
+def flowdir_wname_tname(dirname):
     """"
-    Given a directory `nodepath` containing a node of the `Flow`,
+    Given a initial directory `dirname` containing a node of the `Flow`,
     this function locates the directory of the flow (e.g. the dir with the pickle file)
-    and returns the position of the node inside the flow by parsing the directory tree
+    and returns the name of the work and/or node.
 
-    Return: flowdir, w_pos, t_pos
+    Return: flowdir, wname, tname
 
-        where w_pos and t_pos are the position of the work/task.
-        t_pos is set to None, if we have a work.
+    where flowdir is the directory containing the pickle file,
+    wname and tname are the basenames of the work/task.
+
+    If dirname contains the pickle file we have (wname, tname) == (None, None)
+    If dirname is a work --> wname is it's basename and tname is None
+    If dirname is a task --> os.path.join(flowdir, wname, tname) == task.workdir.
     """
-    nodepath = os.path.abspath(nodepath)
+    if dirname is None: dirname = os.getcwd()
+    dirname = os.path.abspath(dirname)
+    if os.path.exists(os.path.join(dirname, abilab.Flow.PICKLE_FNAME)):
+        return dirname, None, None
 
-    # Is nodepath a work director?
-    back, tail = os.path.split(nodepath)
-    p = os.path.join(back, abilab.Flow.PICKLE_FNAME)
+    # Handle works or tasks.
+    head = dirname
+    wnane, tname = None, None
+    for i in range(2):
+        head, tail = os.path.split(head)
+        if i == 0: tail_1 = tail
+        if os.path.exists(os.path.join(head, abilab.Flow.PICKLE_FNAME)):
+            if i == 0:
+                # We have a work: /root/flow_dir/w[num]
+                wname = tail
+            if i == 1:
+                # We have a task: /root/flow_dir/w[num]/t[num]
+                wname = tail
+                tname = tail_1
 
-    if os.path.exists(p):
-        # /root/flow_dir/w[num]
-        head, w_dirname = os.path.split(nodepath)
-        w_pos = int(w_dirname.replace("w" , ""))
-        t_pos = None
-        #print("got work", w_pos, t_pos)
-        return p, w_pos, t_pos
+            #print("wname", wname, "tname", tname)
+            return head, wname, tname
 
-    # Is nodepath a task directory?
-    back, tail = os.path.split(back)
-    p = os.path.join(back, abilab.Flow.PICKLE_FNAME)
-
-    if os.path.exists(p):
-        # /root/flow_dir/w[num]/t[num]
-        head, t_dirname = os.path.split(nodepath)
-        head, w_dirname = os.path.split(head)
-        w_pos = int(w_dirname.replace("w" , ""))
-        t_pos = int(t_dirname.replace("t" , ""))
-        #print("got task", w_pos, t_pos)
-        return p, w_pos, t_pos
-
-    raise RuntimeError("Cannot locate flowdir from %s" % nodepath)
+    raise RuntimeError("Cannot locate flowdir from %s" % dirname)
 
 
 def selected_nids(flow, options):
     """Return the list of node ids selected by the user via the command line interface."""
-    return [task.node_id for task in flow.select_tasks(nids=options.nids, wslice=options.wslice)]
+    task_ids = [task.node_id for task in flow.select_tasks(nids=options.nids, wslice=options.wslice)]
+
+    # Have to add the ids of the works containing the tasks.
+    if options.nids is not None:
+        work_ids = [work.node_id for work in flow if work.node_id in options.nids]
+    else:
+        work_ids = [work.node_id for work in flow]
+
+    return set(work_ids + task_ids)
 
 
 def write_open_notebook(flow, options):
@@ -253,7 +261,8 @@ Options for developers:
 
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                               help='verbose, can be supplied multiple times to increase verbosity')
-    copts_parser.add_argument('--remove-lock', default=False, action="store_true", help="Remove the lock file of the pickle file storing the flow.")
+    copts_parser.add_argument('--remove-lock', default=False, action="store_true",
+                              help="Remove the lock file of the pickle file storing the flow.")
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -521,28 +530,47 @@ Specify the files to open. Possible choices:
 
         sys.exit(0)
 
-    patch_nids = False
+    wname, tname = None, None
     if options.flowdir is None:
         # Will try to figure out the location of the Flow.
         options.flowdir = os.getcwd()
     else:
         # Sometimes one wants to inspect a work or a task by just using `abirun.py flow/w0/t0 inspect`
-        # without knowing its node id. find_flowdir_wtpos will solve the problem!
-        if not os.path.exists(os.path.join(options.flowdir, abilab.Flow.PICKLE_FNAME)):
-            print("The directory does not contain a flow. Will get node ids from dirpath.")
-            #assert options.nids is None
-            patch_nids = True
-            options.flowdir, w_pos, t_pos = find_flowdir_wtpos(options.flowdir)
+        # without knowing its node id. flowdir_wname_tname will solve the problem!
+        options.flowdir, wname, tname = flowdir_wname_tname(options.flowdir)
 
     # Read the flow from the pickle database.
     flow = abilab.Flow.pickle_load(options.flowdir, remove_lock=options.remove_lock)
     #flow.set_spectator_mode(False)
 
-    if patch_nids:
-        # Create options.nids here
-        node = flow[w_pos]
-        if t_pos is not None: node = node[t_pos]
-        options.nids = [node.node_id]
+    # If we have selected a work/task, we have to convert wname/tname into node ids (nids)
+    if wname or tname:
+        if wname and tname:
+            # Task
+            for w_pos, work in enumerate(flow):
+                if os.path.basename(work.workdir) == wname: break
+            else:
+                raise RuntimeError("Cannot find work from name %s" % wname)
+
+            for t_pos, task in enumerate(flow[w_pos]):
+                if os.path.basename(task.workdir) == tname: break
+            else:
+                raise RuntimeError("Cannot find task from name %s" % tname)
+
+            # Create options.nids here
+            options.nids = set([flow[w_pos].node_id, flow[w_pos][t_pos].node_id])
+
+        else:
+            # Work
+            for w_pos, work in enumerate(flow):
+                if os.path.basename(work.workdir) == wname: break
+            else:
+                raise RuntimeError("Cannot find work from name %s" % wname)
+
+            # Create options.nids here
+            options.nids = set([flow[w_pos].node_id] + [task.node_id for task in flow[w_pos]])
+
+    if options.verbose > 1: print("options.nids:", options.nids)
 
     retcode = 0
 
@@ -831,7 +859,7 @@ Specify the files to open. Possible choices:
             if not task.qjob: continue
             print("qjob", task.qjob)
             print("info", task.qjob.get_info())
-            print("e start-time", task.qjob.estimated_start_time())
+            print("estimated_start-time", task.qjob.estimated_start_time())
             print("qstats", task.qjob.get_stats())
 
     elif options.command == "deps":
