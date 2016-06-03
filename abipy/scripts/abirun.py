@@ -645,6 +645,20 @@ Specify the files to open. Possible choices:
             from tqdm import tqdm
             pbar, pbar_count, pbar_total = None, 0, 100
 
+            exit_code = 0
+            def exit_now():
+                """
+                Function used to test if we have to exit from the infinite loop below.
+                Return: != 0 if we must exit. > 0 if some error occurred.
+                """
+                if flow.all_ok:
+                    cprint("Flow reached all_ok", "green")
+                    return -1
+                if any(st.is_critical for st in before_task2stat.values()):
+                    cprint("Found tasks with critical status", "red")
+                    return 1
+                return 0
+
             try:
                 while True:
                     tot_count += 1
@@ -661,9 +675,10 @@ Specify the files to open. Possible choices:
                         if (len(before_task2stat) == len(now_task2stat) and
                             all(now_task2stat[t] == before_task2stat[t] for t in now_task2stat)):
                             # In principle this is not needed but ...
-                            if flow.all_ok or any(st.is_critical for st in before_task2stat.values()):
-                                break
+                            exit_code = exit_now()
+                            if exit_code: break
 
+                            # Progress bar section.
                             if pbar is None:
                                 print("No change detected in the flow. Won't print status table till next change...")
                                 pbar = tqdm(total=pbar_total)
@@ -684,9 +699,14 @@ Specify the files to open. Possible choices:
                     # Print status table. Exit if success or critical errors.
                     print(2*"\n" + time.asctime() + "\n")
                     show_func(verbose=options.verbose, nids=selected_nids(flow, options))
-                    if flow.all_ok or any(st.is_critical for st in before_task2stat.values()):
-                        break
+
+                    exit_code = exit_now()
+                    if exit_code: break
                     time.sleep(options.delay)
+
+                # Print status table if something bad happened.
+                if exit_code == 1:
+                    flow.show_status()
 
             except KeyboardInterrupt:
                 cprint("Received KeyboardInterrupt from user\n", "yellow")
@@ -810,7 +830,7 @@ Specify the files to open. Possible choices:
         paths = [get_path(task) for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options))]
 
         if not paths:
-            cprint("No job is running. Exiting!", "red")
+            cprint("No job is running. Exiting!", "magenta")
         else:
             cprint("Press <CTRL+C> to interrupt. Number of output files %d\n" % len(paths), color="magenta", end="", flush=True)
             try:
@@ -912,85 +932,8 @@ Specify the files to open. Possible choices:
             print("Created light tarball file %s" % tarfile)
 
     elif options.command == "debug":
-        nrows, ncols = get_terminal_size()
-        #flow.debug()
-
-        # Test for scheduler exceptions first.
-        sched_excfile = os.path.join(flow.workdir, "_exceptions")
-        if os.path.exists(sched_excfile):
-            with open(sched_excfile, "r") as fh:
-                cprint(fh.read(), color="red")
-                return 0
-
-
-        if options.task_status is not None:
-            tasks = list(flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)))
-        else:
-            errors = list(flow.iflat_tasks(status=flow.S_ERROR, nids=selected_nids(flow, options)))
-            qcriticals = list(flow.iflat_tasks(status=flow.S_QCRITICAL, nids=selected_nids(flow, options)))
-            abicriticals = list(flow.iflat_tasks(status=flow.S_ABICRITICAL, nids=selected_nids(flow, options)))
-            tasks = errors + qcriticals + abicriticals
-
-        # For each task selected:
-        #     1) Check the error files of the task. If not empty, print the content to stdout and we are done.
-        #     2) If error files are empty, look at the master log file for possible errors
-        #     3) If also this check failes, scan all the process log files.
-        #        TODO: This check is not needed if we introduce a new __abinit_error__ file
-        #        that is created by the first MPI process that invokes MPI abort!
-        #
-        ntasks = 0
-        for task in tasks:
-            print(make_banner(str(task), width=ncols, mark="="))
-            ntasks += 1
-
-            #  Start with error files.
-            for efname in ["qerr_file", "stderr_file",]:
-                err_file = getattr(task, efname)
-                if err_file.exists:
-                    s = err_file.read()
-                    if not s: continue
-                    print(make_banner(str(err_file), width=ncols, mark="="))
-                    cprint(s, color="red")
-                    #count += 1
-
-            # Check main log file.
-            try:
-                report = task.get_event_report()
-                if report and report.num_errors:
-                    print(make_banner(os.path.basename(report.filename), width=ncols, mark="="))
-                    s = "\n".join(str(e) for e in report.errors)
-                else:
-                    s = None
-            except Exception as exc:
-                s = str(exc)
-
-            count = 0 # count > 0 means we found some useful info that could explain the failures.
-            if s is not None:
-                cprint(s, color="red")
-                count += 1
-
-            if not count:
-                # Inspect all log files produced by the other nodes.
-                log_files = task.tmpdir.list_filepaths(wildcard="*LOG_*")
-                if not log_files:
-                    cprint("No *LOG_* file in tmpdir. This usually happens if you are running with many CPUs", color="magenta")
-
-                for log_file in log_files:
-                    try:
-                        report = EventsParser().parse(log_file)
-                        if report.errors:
-                            print(report)
-                            count += 1
-                            break
-                    except Exception as exc:
-                        cprint(str(exc), color="red")
-                        count += 1
-                        break
-
-            if not count:
-                cprint("Houston, we could not find any error message that can explain the problem", color="magenta")
-
-        print("Number of tasks analyzed: %d" % ntasks)
+        flow.debug(status=options.task_status, nids=selected_nids(flow, options))
+        return 0
 
     elif options.command == "group":
         d = defaultdict(list)
