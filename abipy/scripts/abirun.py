@@ -637,16 +637,22 @@ Specify the files to open. Possible choices:
         if options.delay:
             cprint("Entering infinite loop (delay: %d s). Only changes are shown\nPress <CTRL+C> to exit" %
                    options.delay, color="magenta", end="", flush=True)
+
+            # Total counter and dicts used to detect changes.
+            tot_count = 0
+            before_task2stat, now_task2stat = {}, {}
+            # Progressbar setup
+            from tqdm import tqdm
+            pbar, pbar_count, pbar_total = None, 0, 100
+
             try:
-                count = 0
-                before_task2stat, now_task2stat = {}, {}
                 while True:
-                    count += 1
+                    tot_count += 1
                     flow.check_status()
 
                     # Here I test whether there's been some change in the flow
                     # before printing the status table.
-                    if count == 1:
+                    if tot_count == 1:
                         for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
                             before_task2stat[task] = task.status
                     else:
@@ -657,8 +663,20 @@ Specify the files to open. Possible choices:
                             # In principle this is not needed but ...
                             if flow.all_ok or any(st.is_critical for st in before_task2stat.values()):
                                 break
-                            # Do not print
-                            print(".", end="")
+
+                            if pbar is None:
+                                print("No change detected in the flow. Won't print status table till next change...")
+                                pbar = tqdm(total=pbar_total)
+
+                            if pbar_count <= pbar_total:
+                                pbar_count += 1
+                                pbar.update(1)
+                            else:
+                                pbar_count = 0
+                                pbar.close()
+                                pbar = tqdm(total=pbar_total)
+
+                            time.sleep(options.delay)
                             continue
 
                         before_task2stat = now_task2stat
@@ -894,8 +912,8 @@ Specify the files to open. Possible choices:
             print("Created light tarball file %s" % tarfile)
 
     elif options.command == "debug":
-        #flow.debug()
         nrows, ncols = get_terminal_size()
+        #flow.debug()
 
         # Test for scheduler exceptions first.
         sched_excfile = os.path.join(flow.workdir, "_exceptions")
@@ -903,6 +921,7 @@ Specify the files to open. Possible choices:
             with open(sched_excfile, "r") as fh:
                 cprint(fh.read(), color="red")
                 return 0
+
 
         if options.task_status is not None:
             tasks = list(flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)))
@@ -913,7 +932,6 @@ Specify the files to open. Possible choices:
             tasks = errors + qcriticals + abicriticals
 
         # For each task selected:
-        #
         #     1) Check the error files of the task. If not empty, print the content to stdout and we are done.
         #     2) If error files are empty, look at the master log file for possible errors
         #     3) If also this check failes, scan all the process log files.

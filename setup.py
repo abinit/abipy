@@ -172,6 +172,7 @@ install_requires = [
     "tabulate",
     "apscheduler==2.1.0",
     "pydispatcher>=2.0.3",
+    "tqdm",
     "wxmplot",
     "html2text",
     "pigments",
