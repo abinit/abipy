@@ -550,27 +550,12 @@ Specify the files to open. Possible choices:
         return flow.build_and_pickle_dump()
 
     elif options.command == "events":
-        nrows, ncols = get_terminal_size()
-
-        for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
-            report = task.get_event_report()
-            if report:
-                print(make_banner(str(task), width=ncols, mark="="))
-                #report = report.filter_types()
-                print(report)
+        flow.show_events(status=options.task_status, nids=selected_nids(flow, options))
+        return 0
 
     elif options.command == "corrections":
-        nrows, ncols = get_terminal_size()
-        count = 0
-        for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
-            if task.num_corrections == 0: continue
-            count += 1
-            print(make_banner(str(task), width=ncols, mark="="))
-            for corr in task.corrections:
-                pprint(corr)
-
-        if not count:
-            print("No correction found.")
+        ncorr = flow.show_corrections(status=options.task_status, nids=selected_nids(flow, options))
+        return 0
 
     elif options.command == "history":
         flow.show_history(status=options.task_status, nids=selected_nids(flow, options),
@@ -919,8 +904,7 @@ Specify the files to open. Possible choices:
     elif options.command == "group":
         d = defaultdict(list)
         for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
-            key = task.status
-            d[key].append(task.node_id)
+            d[task.status].append(task.node_id)
 
         print("Mapping status --> List of node identifiers")
         for k, v in d.items():
