@@ -4,6 +4,7 @@ This module gathers the most important classes and helper functions used for scr
 from __future__ import print_function, division, unicode_literals
 
 import os
+import collections
 
 from monty.os.path import which
 from pymatgen.core.units import *
@@ -60,38 +61,57 @@ def _straceback():
     import traceback
     return traceback.format_exc()
 
+# Abinit text files. Use OrderedDict for nice output in show_abiopen_exc2class.
+ext2file = collections.OrderedDict([
+    (".abi", AbinitInputFile),
+    (".in", AbinitInputFile),
+    (".abo", AbinitOutputFile),
+    (".out", AbinitOutputFile),
+    (".log", AbinitLogFile),
+    (".cif", Structure),
+    ("POSCAR", Structure),
+    ("cssr", Structure),
+])
+
+# Abinit files require a special treatment.
+abiext2ncfile = collections.OrderedDict([
+    ("GSR.nc", GsrFile),
+    ("WFK.nc", WfkFile),
+    ("HIST.nc", HistFile),
+    ("PSPS.nc", PspsFile),
+    ("DDB", DdbFile),
+    ("PHBST.nc", PhbstFile),
+    ("PHDOS.nc", PhdosFile),
+    ("SCR.nc", ScrFile),
+    ("SIGRES.nc", SigresFile),
+    ("MDF.nc", MdfFile),
+])
+
+def abiopen_ext2class_table():
+    """Print the association table between file extensions and File classes."""
+    from itertools import chain
+    from tabulate import tabulate
+    table = []
+
+    for ext, cls in chain(ext2file.items(), abiext2ncfile.items()):
+        table.append((ext, str(cls)))
+
+    return tabulate(table, headers=["Extension", "Class"], tablefmt="grid")
+
 
 def abifile_subclass_from_filename(filename):
     """Returns the appropriate class associated to the given filename."""
-    # Abinit text files.
-    if filename.endswith(".abi") or filename.endswith(".in"): return AbinitInputFile
-    if filename.endswith(".abo") or filename.endswith(".out"): return AbinitOutputFile
-    if filename.endswith(".log"): return AbinitLogFile
-
-    # CIF files.
-    if filename.endswith(".cif"): return Structure
-
-    ext2ncfile = {
-        "SIGRES.nc": SigresFile,
-        "WFK-etsf.nc": WfkFile,
-        "MDF.nc": MdfFile,
-        "GSR.nc": GsrFile,
-        "SCR.nc": ScrFile,
-        "PHBST.nc": PhbstFile,
-        "PHDOS.nc": PhdosFile,
-        "DDB": DdbFile,
-        "HIST.nc": HistFile,
-        "PSPS.nc": PspsFile,
-    }
+    for ext, cls in ext2file.items():
+        if filename.endswith(ext): return cls
 
     ext = filename.split("_")[-1]
     try:
-        return ext2ncfile[ext]
+        return abiext2ncfile[ext]
     except KeyError:
-        for ext, cls in ext2ncfile.items():
+        for ext, cls in abiext2ncfile.items():
             if filename.endswith(ext): return cls
 
-        raise ValueError("No class has been registered for filename %s" % filename)
+    raise ValueError("No class has been registered for filename %s" % filename)
 
 
 def abiopen(filepath):

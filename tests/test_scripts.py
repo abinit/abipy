@@ -1,18 +1,18 @@
 # coding: utf-8
-"""
-"""
+"""Test abipy command line scripts."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 
 import os
-import abipy.data as abidata  
+import abipy.data as abidata
 
 from scripttest import TestFileEnvironment
 from monty.inspect import all_subclasses
 from abipy.core.testing import AbipyTest
 from abipy import abilab
 
-script_dir = os.path.abspath("../abipy/scripts/")
+
+script_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "abipy", "scripts"))
 
 
 def test_if_all_scripts_are_tested():
@@ -47,11 +47,13 @@ class ScriptTest(AbipyTest):
 
         # Use Agg backend for plots.
         env.writefile("matplotlibrc", "backend : Agg")
+
+        # Start with --help. If this does not work...
         env.run(self.script, "--help")
 
         # Script must provide a version option
         r = env.run(self.script, "--version", expect_stderr=True)
-        assert r.stderr.strip() == "%s version %s" % (os.path.basename(self.script), abilab.__version__)    
+        assert r.stderr.strip() == "%s version %s" % (os.path.basename(self.script), abilab.__version__)
 
         return env
 
@@ -173,9 +175,3 @@ class TestAbiinsp(ScriptTest):
     def test_abiinsp(self):
         """Testing abiinsp.py"""
         env = self.get_env()
-
-
-
-if __name__ == "__main__":
-    import unittest
-    unittest.main()
