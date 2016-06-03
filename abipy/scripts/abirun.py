@@ -387,7 +387,7 @@ Specify the files to open. Possible choices:
     p_history = subparsers.add_parser('history', parents=[copts_parser, flow_selector_parser], help="Show Node history.")
     p_history.add_argument("-m", "--metadata", action="store_true", default=False, help="Print history metadata")
     p_history.add_argument("-f", "--full-history", action="store_true", default=False,
-                           help="Print full history, including nodes whose history is empty")
+                           help="Print full history set, including nodes with an empty history.")
     #p_history.add_argument("-t", "--task-history", action="store_true", default=True, help=)
 
     # Subparser for handlers.
@@ -573,28 +573,9 @@ Specify the files to open. Possible choices:
             print("No correction found.")
 
     elif options.command == "history":
-        nrows, ncols = get_terminal_size()
-
-        works_done = []
-        full_history = options.full_history
-        # Loop on the tasks and show the history of the work is not in works_done
-        for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
-            work = task.work
-
-            if work not in works_done:
-                works_done.append(work)
-                if work.history or full_history:
-                    cprint(make_banner(str(work), width=ncols, mark="="), **work.status.color_opts)
-                    print(work.history.to_string(metadata=options.metadata))
-
-            if task.history or full_history:
-                cprint(make_banner(str(task), width=ncols, mark="="), **task.status.color_opts)
-                print(task.history.to_string(metadata=options.metadata))
-
-        # Print the history of the flow.
-        if flow.history or full_history:
-            cprint(make_banner(str(flow), width=ncols, mark="="), **flow.status.color_opts)
-            print(flow.history.to_string(metadata=options.metadata))
+        flow.show_history(status=options.task_status, nids=selected_nids(flow, options),
+                         full_history=options.full_history, metadata=options.metadata)
+        return 0
 
     elif options.command == "handlers":
         if options.doc:
