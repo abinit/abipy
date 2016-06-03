@@ -14,6 +14,7 @@ import time
 from pprint import pprint
 from collections import defaultdict
 from monty import termcolor
+from monty.os.path import which
 from monty.termcolor import cprint, get_terminal_size
 from monty.string import make_banner
 from pymatgen.io.abinit.nodes import Status
@@ -112,8 +113,12 @@ def selected_nids(flow, options):
     return [task.node_id for task in flow.select_tasks(nids=options.nids, wslice=options.wslice)]
 
 
-def write_notebook(flow, options):
-    """See http://nbviewer.ipython.org/gist/fperez/9716279"""
+def write_open_notebook(flow, options):
+    """
+    Generate an ipython notebook and open it in the browser.
+    Return system exit code.
+    See http://nbviewer.ipython.org/gist/fperez/9716279
+    """
     from IPython.nbformat import current as nbf
     nb = nbf.new_notebook()
 
@@ -147,26 +152,33 @@ sns.set(style='ticks', palette='Set2')"""),
     nb['worksheets'].append(nbf.new_worksheet(cells=cells))
 
     # Next, we write it to a file on disk that we can then open as a new notebook.
-    # Note: This should be as easy as: nbf.write(nb, fname), but the current api is a little more verbose and needs a real file-like object.
+    # Note: This should be as easy as: nbf.write(nb, fname), but the current api
+    # is a little more verbose and needs a real file-like object.
     import tempfile
-    _, tmpfname = tempfile.mkstemp(suffix='.ipynb', text=True)
+    _, nbpath = tempfile.mkstemp(suffix='.ipynb', text=True)
 
-    with open(tmpfname, 'w') as fh:
+    with open(nbpath, 'w') as fh:
         nbf.write(nb, fh, 'ipynb')
 
-    os.system("ipython notebook %s" % tmpfname)
-    #os.execv("python", ["ipython", "notebook", tmpfname])
+    if which("jupyter") is not None:
+        return os.system("jupyter notebook %s" % nbpath)
+
+    if which("ipython") is not None:
+        return os.system("ipython notebook %s" % nbpath)
+
+    raise RuntimeError("Cannot find neither jupyther nor ipython. Install them with `pip install`")
 
 
 def main():
 
     def str_examples():
         return """\
-usage example:
+Usage example:
     abirun.py [FLOWDIR] rapid                    => Keep repeating, stop when no task can be executed.
     abirun.py [FLOWDIR] scheduler                => Execute flow with the scheduler
     abirun.py [FLOWDIR] events                   => Print ABINIT events (Warning/Error/Comment)
     abirun.py [FLOWDIR] history                  => Print Task history.
+    abirun.py [FLOWDIR] debug                    => Analyze error files and log files for possible error messages.
     abirun.py [FLOWDIR] gui                      => Open the GUI.
     abirun.py [FLOWDIR] manager slurm            => Document the TaskManager options availabe for Slurm.
     abirun.py [FLOWDIR] manager script           => Show the job script that will be produced.
@@ -187,10 +199,9 @@ usage example:
 
     where 123 is the node identifier of w0/t1.
 
-    Options for developers:
-
-        abirun.py prof ABIRUN_ARGS               => to profile abirun.py
-        abirun.py tracemalloc ABIRUN_ARGS        => to trace memory blocks allocated by Python
+Options for developers:
+    abirun.py prof ABIRUN_ARGS               => to profile abirun.py
+    abirun.py tracemalloc ABIRUN_ARGS        => to trace memory blocks allocated by Python
 """
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""
@@ -250,6 +261,7 @@ usage example:
     parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + abilab.__version__)
 
     parser.add_argument('--no-colors', default=False, help='Disable ASCII colors')
+    parser.add_argument('--no-logo', default=False, action="store_true", help='Disable AbiPy logo')
     parser.add_argument('--loglevel', default="ERROR", type=str,
                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
@@ -307,7 +319,8 @@ usage example:
                                     help="Reset the tasks of the flow with the specified status.")
 
     # Subparser for move command.
-    p_move = subparsers.add_parser('move', parents=[copts_parser], help="Move the flow to a new directory and change the absolute paths")
+    p_move = subparsers.add_parser('move', parents=[copts_parser],
+                                    help="Move the flow to a new directory and change the absolute paths")
     p_move.add_argument('dest', nargs=1)
 
     # Subparser for open command.
@@ -343,8 +356,10 @@ Specify the files to open. Possible choices:
     p_new_manager.add_argument("manager_file", default="", type=str, help="YAML file with the new manager")
 
     # Subparser for tail.
-    p_tail = subparsers.add_parser('tail', parents=[copts_parser, flow_selector_parser], help="Use tail to follow the main output files of the flow.")
-    p_tail.add_argument('what_tail', nargs="?", type=str, default="o", help="What to follow: o for output (default), l for logfile, e for stderr")
+    p_tail = subparsers.add_parser('tail', parents=[copts_parser, flow_selector_parser],
+                                   help="Use tail to follow the main output files of the flow.")
+    p_tail.add_argument('what_tail', nargs="?", type=str, default="o",
+                        help="What to follow: o for output (default), l for logfile, e for stderr")
 
     # Subparser for qstat.
     p_qstat = subparsers.add_parser('qstat', parents=[copts_parser], help="Show additional info on the jobs in the queue.")
@@ -358,7 +373,8 @@ Specify the files to open. Possible choices:
     p_robot.add_argument('robot_ext', nargs="?", type=str, default="GSR", help="The file extension of the netcdf file")
 
     # Subparser for plot.
-    p_plot = subparsers.add_parser('plot', parents=[copts_parser, flow_selector_parser], help="Plot data. Use --help for more info.")
+    p_plot = subparsers.add_parser('plot', parents=[copts_parser, flow_selector_parser],
+                                   help="Plot data. Use --help for more info.")
     p_plot.add_argument("what", nargs="?", type=str, default="ebands", help="Object to plot")
 
     # Subparser for inspect.
@@ -381,7 +397,8 @@ Specify the files to open. Possible choices:
     #p_events.add_argument("-t", "event-type", default=)
 
     # Subparser for corrections.
-    p_corrections = subparsers.add_parser('corrections', parents=[copts_parser, flow_selector_parser], help="Show abipy corrections")
+    p_corrections = subparsers.add_parser('corrections', parents=[copts_parser, flow_selector_parser],
+                                          help="Show abipy corrections")
 
     # Subparser for history.
     p_history = subparsers.add_parser('history', parents=[copts_parser, flow_selector_parser], help="Show Node history.")
@@ -396,10 +413,12 @@ Specify the files to open. Possible choices:
                             help="Show documentation about all the handlers that can be installed.")
 
     # Subparser for notebook.
-    p_notebook = subparsers.add_parser('notebook', parents=[copts_parser], help="Create and open an ipython notebook to interact with the flow.")
+    p_notebook = subparsers.add_parser('notebook', parents=[copts_parser],
+                                       help="Create and open an ipython notebook to interact with the flow.")
 
     # Subparser for ipython.
-    p_ipython = subparsers.add_parser('ipython', parents=[copts_parser], help="Embed IPython. Useful for advanced operations or debugging purposes.")
+    p_ipython = subparsers.add_parser('ipython', parents=[copts_parser],
+                                      help="Embed IPython. Useful for advanced operations or debugging purposes.")
     p_ipython.add_argument('--argv', nargs="?", default="", type=shlex.split,
                            help="Command-line options passed to ipython. Must be enclosed by quotes. "
                                 "Example: --argv='--matplotlib=wx'")
@@ -408,7 +427,6 @@ Specify the files to open. Possible choices:
     p_tar = subparsers.add_parser('tar', parents=[copts_parser], help="Create tarball file.")
     p_tar.add_argument("-s", "--max-filesize", default=None,
                        help="Exclude file whose size > max-filesize bytes. Accept integer or string e.g `1Mb`.")
-
 
     p_tar.add_argument("-e", "--exclude-exts", default=None, type=parse_strings,
                        help="Exclude file extensions. Accept string or comma-separated strings. Ex: -eWFK or --exclude-exts=WFK,GSR")
@@ -421,7 +439,7 @@ Specify the files to open. Possible choices:
 
     # Subparser for debug.
     p_debug = subparsers.add_parser('debug', parents=[copts_parser, flow_selector_parser],
-                                     help="Scan error files and log files for possible error messages.")
+                                     help="Analyze error files and log files for possible error messages.")
 
     # Subparser for group.
     p_group = subparsers.add_parser('group', parents=[copts_parser, flow_selector_parser],
@@ -437,12 +455,12 @@ Specify the files to open. Possible choices:
     p_networkx = subparsers.add_parser('networkx', parents=[copts_parser], #, flow_selector_parser],
                                      help="Draw flow and node dependecies with networkx package.")
     p_networkx.add_argument('--nxmode', default="status",
-                            help="Type of network plot. Possible values: `status`, `network`")
+                            help="Type of network plot. Possible values: `status`, `network`. Default: `status`")
     p_networkx.add_argument('--edge-labels', action="store_true", default=False, help="Show edge labels")
 
     # Subparser for listext.
     p_listext = subparsers.add_parser('listext', parents=[copts_parser],
-                                     help="List all the output files with the given extension that have been produced by the nodes of the flow.")
+                                     help="List all the output files with the given extension that have been produced by the nodes.")
     p_listext.add_argument('listexts', nargs="+", help="List of Abinit file extensions. e.g DDB, GSR, WFK etc")
 
     # Subparser for timer.
@@ -467,6 +485,10 @@ Specify the files to open. Possible choices:
     if options.no_colors:
         # Disable colors
         termcolor.enable(False)
+
+    if not options.no_logo:
+        nrows, ncols = get_terminal_size()
+        if ncols > 100: cprint(abilab.abipy_logo1(), "red")
 
     if options.command == "manager":
         # Document TaskManager options and qparams.
@@ -538,7 +560,8 @@ Specify the files to open. Possible choices:
         new_manager = abilab.TaskManager.from_file(options.manager_file)
 
         # Default status for new_manager is QCritical
-        if options.task_status is None: options.task_status = Status.as_status("QCritical")
+        if options.task_status is None:
+            options.task_status = Status.as_status("QCritical")
 
         # Change the manager of the errored tasks.
         print("Resetting tasks with status: %s" % options.task_status)
@@ -767,9 +790,7 @@ Specify the files to open. Possible choices:
 
         if nlaunch == 0:
             g = flow.find_deadlocks()
-            #print("deadlocked:", gdeadlocked)
-            #print("runnables:", grunnables)
-            #print("running:", g.running)
+            #print("deadlocked:", gdeadlocked, "\nrunnables:", grunnables, "\nrunning:", g.running)
             if g.deadlocked and not (g.runnables or g.running):
                 cprint("*** Flow is deadlocked ***", "red")
 
@@ -877,7 +898,7 @@ Specify the files to open. Possible choices:
         flow.show_inputs(varnames=options.varnames, nids=selected_nids(flow, options))
 
     elif options.command == "notebook":
-        write_notebook(flow, options)
+        return write_open_notebook(flow, options)
 
     elif options.command == "ipython":
         import IPython
