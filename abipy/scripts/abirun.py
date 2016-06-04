@@ -506,20 +506,8 @@ Specify the files to open. Possible choices:
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
 
-    if options.no_colors:
-        # Disable colors
-        termcolor.enable(False)
-
-    if not options.no_logo:
-        nrows, ncols = get_terminal_size()
-        if ncols > 100: cprint(abilab.abipy_logo1(), "yellow")
-
-        system, node, release, version, machine, processor = platform.uname()
-        cprint("Running on %s -- system %s -- Python %s -- %s" % (
-              gethostname(), system, platform.python_version(), "abirun" + "-" + abilab.__version__),
-              'yellow', attrs=['underline'])
-
     # Documentation options that do not need a flow.
+    # Print docs and exit immediately.
     if options.command == "doc_manager":
         # Document TaskManager options and qparams.
         qtype = options.qtype
@@ -555,6 +543,23 @@ Specify the files to open. Possible choices:
         print("Options that can be specified in scheduler.yml:")
         print(abilab.PyFlowScheduler.autodoc())
         sys.exit(0)
+
+    # After this point we start to operate on the flow.
+    # 0) Print logo
+    # 1) Read flow from pickle file and construct nids set if needed.
+    # 2) Operate on the flow depending on the options specified by the user on the CLI.
+    if options.no_colors:
+        # Disable colors
+        termcolor.enable(False)
+
+    if not options.no_logo:
+        nrows, ncols = get_terminal_size()
+        if ncols > 100: cprint(abilab.abipy_logo1(), "yellow")
+
+        system, node, release, version, machine, processor = platform.uname()
+        cprint("Running on %s -- system %s -- Python %s -- %s" % (
+              gethostname(), system, platform.python_version(), "abirun" + "-" + abilab.__version__),
+              'yellow', attrs=['underline'])
 
     wname, tname = None, None
     if options.flowdir is None:
