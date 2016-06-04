@@ -1,26 +1,26 @@
 #!/usr/bin/env python
-"""Check that the env on the local machine is properly setup"""
+"""Check that the environment on the local machine is properly setup"""
 from __future__ import unicode_literals, division, print_function, absolute_import
 
 import sys
-import argparse 
+import argparse
 
-from abipy.core.release import __version__
+from monty.termcolor import cprint #, get_terminal_size
+from abipy import abilab
+
 
 def main():
 
     def str_examples():
-        examples = (
-          "\n"
-          "Usage example:\n\n"
-          "  abicheck.py \n"
-        )
-        return examples
+        return """\
+Usage example:
+    abicheck.py
+"""
 
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""
         sys.stderr.write(str_examples())
-        if err_msg: 
+        if err_msg:
             sys.stderr.write("Fatal Error\n" + err_msg + "\n")
         sys.exit(error_code)
 
@@ -28,7 +28,9 @@ def main():
 
     parser.add_argument('--loglevel', default="ERROR", type=str,
                          help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
-    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + __version__)
+    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + abilab.__version__)
+    parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
+                         help='verbose, can be supplied multiple times to increase verbosity.')
 
     # Parse the command line.
     try:
@@ -36,7 +38,7 @@ def main():
     except Exception:
         show_examples_and_exit(error_code=1)
 
-    # loglevel is bound to the string value obtained from the command line argument. 
+    # loglevel is bound to the string value obtained from the command line argument.
     # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
     import logging
     numeric_level = getattr(logging, options.loglevel.upper(), None)
@@ -44,16 +46,12 @@ def main():
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
 
-    #try:
-    from abipy.abilab import abicheck
-    errmsg = abicheck()
-    #except:
-    #    retcode = 1
-
+    errmsg = abilab.abicheck(verbose=options.verbose)
     if errmsg:
-        print(errmsg)
+        cprint(errmsg, "red")
     else:
-        print("Abipy requirements are properly configured")
+        print()
+        cprint("Abipy requirements are properly configured", "green")
 
     return len(errmsg)
 

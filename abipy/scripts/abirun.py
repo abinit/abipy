@@ -266,22 +266,19 @@ Options for developers:
 
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
-
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                               help='verbose, can be supplied multiple times to increase verbosity.')
 
-    # Build the main parser.
-    parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
-
-    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + abilab.__version__)
-
-    parser.add_argument('--no-colors', default=False, help='Disable ASCII colors.')
-    parser.add_argument('--no-logo', default=False, action="store_true", help='Disable AbiPy logo.')
-    parser.add_argument('--loglevel', default="ERROR", type=str,
+    copts_parser.add_argument('--no-colors', default=False, action="store_true", help='Disable ASCII colors.')
+    copts_parser.add_argument('--no-logo', default=False, action="store_true", help='Disable AbiPy logo.')
+    copts_parser.add_argument('--loglevel', default="ERROR", type=str,
                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.")
 
+    # Build the main parser.
+    parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('flowdir', nargs="?", help=("File or directory containing the ABINIT flow/work/task. "
                                                     "If not given, the flow in the current workdir is selected."))
+    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + abilab.__version__)
 
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
@@ -314,7 +311,8 @@ Options for developers:
     p_status.add_argument('-d', '--delay', nargs="?", const=5, default=0, type=int,
                           help=("Enter an infinite loop and delay execution for the given number of seconds. (default: 5 secs)."))
 
-    p_status.add_argument('-s', '--summary', default=False, action="store_true", help="Print short version with status counters.")
+    p_status.add_argument('-s', '--summary', default=False, action="store_true",
+                          help="Print short version with status counters.")
 
     # Subparser for set_status command.
     p_set_status = subparsers.add_parser('set_status', parents=[copts_parser, flow_selector_parser],

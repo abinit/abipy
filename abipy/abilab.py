@@ -96,7 +96,7 @@ def abiopen_ext2class_table():
     for ext, cls in chain(ext2file.items(), abiext2ncfile.items()):
         table.append((ext, str(cls)))
 
-    return tabulate(table, headers=["Extension", "Class"], tablefmt="grid")
+    return tabulate(table, headers=["Extension", "Class"])
 
 
 def abifile_subclass_from_filename(filename):
@@ -131,34 +131,32 @@ def abiopen(filepath):
 
 def software_stack():
     """
-    Import all the hard dependencies. Returns a dict with the version.
+    Import all the hard dependencies. Returns ordered dict: package --> string with version info.
     """
     # Mandatory
     import numpy, scipy, netCDF4, pymatgen, apscheduler, pydispatch, yaml
 
-    d = dict(
-        numpy=numpy.version.version,
-        scipy=scipy.version.version,
-        netCDF4=netCDF4.__version__,
-        apscheduler=apscheduler.version,
-        pydispatch=pydispatch.__version__,
-        yaml=yaml.__version__,
-        pymatgen=pymatgen.__version__,
-    )
+    d = collections.OrderedDict([
+        ("numpy", numpy.version.version),
+        ("scipy", scipy.version.version),
+        ("netCDF4", netCDF4.__version__),
+        ("apscheduler", apscheduler.version),
+        ("pydispatch", pydispatch.__version__),
+        ("yaml", yaml.__version__),
+        ("pymatgen", pymatgen.__version__),
+    ])
 
     # Optional but strongly suggested.
     try:
         import matplotlib
-        d.update(dict(
-            matplotlib="Version: %s, backend: %s" % (matplotlib.__version__, matplotlib.get_backend()),
-            ))
+        d["matplotlib"] = "%s (backend: %s)" % (matplotlib.__version__, matplotlib.get_backend())
     except ImportError:
         pass
 
     return d
 
 
-def abicheck():
+def abicheck(verbose=0):
     """
     This function tests if the most important ABINIT executables
     can be found in $PATH and whether the python modules needed
@@ -169,29 +167,38 @@ def abicheck():
 
     try:
         manager = TaskManager.from_user_config()
-    except:
+    except Exception:
         manager = None
         app(_straceback())
 
     # Get info on the Abinit build.
     from abipy.core.testing import cmp_version
     if manager is not None:
+        print("AbiPy Manager:\n", manager)
+        print()
         build = AbinitBuild(manager=manager)
         if not build.has_netcdf: app("Abinit executable does not support netcdf")
-        if not build.has_etsfio: app("Abinit executable does not support etsf_io")
         print("Abinitbuild:\n", build)
+        if verbose: print(build.info)
+        print()
         if not cmp_version(build.version, min_abinit_version, op=">="):
             app("Abipy requires Abinit version >= %s but got %s" % (min_abinit_version, build.version))
 
+    # Get info on the scheduler.
     from pymatgen.io.abinit.launcher import PyFlowScheduler
-    launcher_cnfile = os.path.join(PyFlowScheduler.USER_CONFIG_DIR, PyFlowScheduler.YAML_FILE)
-    if not os.path.exists(launcher_cnfile):
-        app("Cannot find launcher configuration file at %s" % launcher_cnfile)
+    try:
+        scheduler = PyFlowScheduler.from_user_config()
+        print("Abipy Scheduler:\n", scheduler)
+        print()
+    except Exception as exc:
+        app(_straceback())
 
+    from tabulate import tabulate
     try:
         d = software_stack()
         print("Installed packages:")
-        print(d)
+        print(tabulate(list(d.items()), headers=["Package", "Version"]))
+        print()
     except ImportError:
         app(_straceback())
 
