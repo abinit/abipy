@@ -119,9 +119,14 @@ class TestAbirun(ScriptTest):
     def test_manager(self):
         """Testing abirun.py manager"""
         env = self.get_env()
-        env.run(self.script, self.loglevel, ".", "manager")
+
+        # Test doc_manager
+        env.run(self.script, self.loglevel, ".", "doc_manager")
         for qtype in ['shell', 'slurm', 'pbspro', 'sge', 'moab', 'bluegene', 'torque']:
             env.run(self.script, self.loglevel, ".", "manager", qtype)
+
+        # Test doc_sheduler
+        env.run(self.script, self.loglevel, ".", "doc_sheduler")
 
 
 class TestAbipsps(ScriptTest):
