@@ -310,7 +310,6 @@ Options for developers:
     p_status = subparsers.add_parser('status', parents=[copts_parser, flow_selector_parser], help="Show status table.")
     p_status.add_argument('-d', '--delay', nargs="?", const=5, default=0, type=int,
                           help=("Enter an infinite loop and delay execution for the given number of seconds. (default: 5 secs)."))
-
     p_status.add_argument('-s', '--summary', default=False, action="store_true",
                           help="Print short version with status counters.")
 
@@ -572,7 +571,7 @@ Specify the files to open. Possible choices:
 
     # Read the flow from the pickle database.
     flow = abilab.Flow.pickle_load(options.flowdir, remove_lock=options.remove_lock)
-    #flow.set_spectator_mode(False)
+    #flow.show_info()
 
     # If we have selected a work/task, we have to convert wname/tname into node ids (nids)
     if wname or tname:
@@ -726,6 +725,9 @@ Specify the files to open. Possible choices:
 
                     # Here I test whether there's been some change in the flow
                     # before printing the status table.
+                    # Note that the flow in memory could not correspond to the one that
+                    # is being executed by the scheduler. This is the reason why we
+                    # reload it when we reach pbar_count.
                     if tot_count == 1:
                         for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
                             before_task2stat[task] = task.status
@@ -751,6 +753,7 @@ Specify the files to open. Possible choices:
                                 pbar_count = 0
                                 pbar.close()
                                 pbar = tqdm(total=pbar_total)
+                                flow.reload()
 
                             time.sleep(options.delay)
                             continue
@@ -761,6 +764,8 @@ Specify the files to open. Possible choices:
                     # Print status table. Exit if success or critical errors.
                     print(2*"\n" + time.asctime() + "\n")
                     show_func(verbose=options.verbose, nids=selected_nids(flow, options))
+                    # Add summary table to status table.
+                    if show_func is flow.show_status: flow.show_summary()
 
                     exit_code = exit_now()
                     if exit_code: break
