@@ -18,7 +18,7 @@ from socket import gethostname
 from monty import termcolor
 from monty.os.path import which
 from monty.termcolor import cprint, get_terminal_size
-from monty.string import make_banner
+from monty.string import boxed
 from pymatgen.io.abinit.nodes import Status
 from pymatgen.io.abinit.events import autodoc_event_handlers, EventsParser
 import abipy.abilab as abilab
@@ -715,7 +715,7 @@ Specify the files to open. Possible choices:
                     cprint("Flow reached all_ok", "green")
                     return -1
                 if any(st.is_critical for st in before_task2stat.values()):
-                    cprint("Found tasks with critical status", "red")
+                    cprint(boxed("Found tasks with critical status"), "red")
                     return 1
                 return 0
 
@@ -732,6 +732,7 @@ Specify the files to open. Possible choices:
                     else:
                         for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
                             now_task2stat[task] = task.status
+
                         if (len(before_task2stat) == len(now_task2stat) and
                             all(now_task2stat[t] == before_task2stat[t] for t in now_task2stat)):
                             # In principle this is not needed but ...
@@ -754,7 +755,8 @@ Specify the files to open. Possible choices:
                             time.sleep(options.delay)
                             continue
 
-                        before_task2stat = now_task2stat
+                        # copy now --> before
+                        before_task2stat = now_task2stat.copy()
 
                     # Print status table. Exit if success or critical errors.
                     print(2*"\n" + time.asctime() + "\n")
