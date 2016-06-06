@@ -1,17 +1,17 @@
 from __future__ import division, print_function, unicode_literals
-
-__author__ = 'setten'
-
 import os
+import tempfile
 import unittest
-
+import shutil
+from abipy.abilab import Structure as AbiStructure
 from pymatgen.util.testing import PymatgenTest
 from pymatgen.core.structure import Structure
 from pymatgen.io.abinit.helpers import clean, read_extra_abivars, expand
+import abipy.data as abidata
 from abipy.gw.datastructures import get_spec
 from abipy.gw.GWworks import GWG0W0VaspInputSet, SingleAbinitGWWork
 
-#test_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "..",'test_files')
+__author__ = 'setten'
 
 have_abinit_ps_ext = True
 try:
@@ -40,15 +40,18 @@ structure = Structure.from_dict(structure_dict)
 
 
 class GWTestHelpers(PymatgenTest):
-    #def test_refine_structure(self):
-    #    test = refine_structure(structure)
-    #    self.assertIsInstance(test, Structure)
 
     def test_clean(self):
+        """
+        Testing helper function fo string cleaning
+        """
         string = 'MddmmdDD  '
         self.assertEqual(clean(string), 'mddmmddd')
 
     def test_read_extra_abivars(self):
+        """
+        Testing helper function to read extra variables
+        """
         vars_out = {'ecut': 40}
         f = open('extra_abivars', 'w')
         f.write(str(vars_out))
@@ -57,11 +60,36 @@ class GWTestHelpers(PymatgenTest):
         self.assertEqual(vars_out, vars_in)
         os.remove('extra_abivars')
 
-    @unittest.skipIf(not have_abinit_ps_ext, "Requires ABINIT_PS_EXT env variable")
     def test_expand(self):
+        """
+        Testing helper function to extend the convergence grid
+        """
         self.maxDiff = None
         spec = get_spec('GW')
-        tests = SingleAbinitGWWork(structure, spec).convs
+        struc = AbiStructure.from_file(abidata.cif_file("si.cif"))
+        struc.item = 'test'
+
+        wdir = tempfile.mkdtemp()
+        print('wdir', wdir)
+
+        os.chdir(wdir)
+        shutil.copyfile(abidata.cif_file("si.cif"), os.path.join(wdir, 'si.cif'))
+        shutil.copyfile(abidata.pseudo("14si.pspnc").path, os.path.join(wdir, 'Si.pspnc'))
+        shutil.copyfile(os.path.join(abidata.dirpath, 'managers', 'shell_manager.yml'),
+                        os.path.join(wdir, 'manager.yml'))
+        shutil.copyfile(os.path.join(abidata.dirpath, 'managers', 'scheduler.yml'), os.path.join(wdir, 'scheduler.yml'))
+
+        try:
+            temp_ABINIT_PS_EXT = os.environ['ABINIT_PS_EXT']
+            temp_ABINIT_PS = os.environ['ABINIT_PS']
+        except KeyError:
+            temp_ABINIT_PS_EXT = None
+            temp_ABINIT_PS = None
+
+        os.environ['ABINIT_PS_EXT'] = '.pspnc'
+        os.environ['ABINIT_PS'] = wdir
+
+        tests = SingleAbinitGWWork(struc, spec).convs
         tests_out = {'nscf_nbands': {'test_range': (40,),
                                      'control': 'gap', 'method': 'set_bands', 'level': 'nscf'},
                      'ecut': {'test_range': (50, 48, 46, 44),
@@ -70,7 +98,13 @@ class GWTestHelpers(PymatgenTest):
                                  'control': 'gap', 'method': 'direct', 'level': 'sigma'}}
         self.assertEqual(expand(tests, 1), tests_out)
         spec.data['code'] = 'VASP'
+
+        #if "VASP_PSP_DIR"] not in os.environ
         spec.update_code_interface()
-        tests = GWG0W0VaspInputSet(structure, spec).convs
+        tests = GWG0W0VaspInputSet(struc, spec).convs
         tests_out = {'ENCUTGW': {'test_range': (200, 400, 600, 800), 'control': 'gap', 'method': 'incar_settings'}}
         self.assertEqual(expand(tests, 1), tests_out)
+
+        if temp_ABINIT_PS is not None:
+            os.environ['ABINIT_PS_EXT'] = temp_ABINIT_PS_EXT
+            os.environ['ABINIT_PS'] = temp_ABINIT_PS

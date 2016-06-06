@@ -1,10 +1,7 @@
-# coding: utf-8
 from __future__ import unicode_literals, division, print_function
 
-import sys
 import abipy.data as abidata
 import abipy.abilab as abilab
-
 from abipy.core.testing import AbipyTest
 from abipy.abio.inputs import AbinitInput
 from abipy.abio.factories import *
@@ -72,6 +69,7 @@ class FactoryTest(AbipyTest):
         scf_kppa, scf_nband, nscf_nband = 10, 10, 10
         ecuteps, ecutsigx = 2, 2
 
+
         multi = g0w0_with_ppmodel_inputs(self.si_structure, self.si_pseudo, scf_kppa, nscf_nband, ecuteps, ecutsigx,
                                       ecut=2)
                                       #accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
@@ -84,6 +82,62 @@ class FactoryTest(AbipyTest):
         flow = abilab.Flow("flow_g0w0_with_ppmodel")
         flow.register_work(abilab.G0W0Work(scf_input, nscf_input, scr_input, sigma_input))
         flow.allocate()
+
+    def test_convergence_inputs_single(self):
+        """Testing g0w0_convergence_input factory single calculation."""
+        scf_kppa, scf_nband, nscf_nband = 10, 10, [10]
+        ecuteps, ecutsigx = [2], 2
+
+        inputs = g0w0_convergence_inputs(self.si_structure, self.si_pseudo, scf_kppa, nscf_nband, ecuteps, ecutsigx,
+                                         extra_abivars={'ecut_s': [2]}, scf_nband=scf_nband, ecut=2)
+        # accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
+        # ppmodel="godby", charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
+        # sigma_nband=None, gw_qprange=1):
+
+        # one scf, one nscf and one screening / sigma multi
+        self.assertEqual(len(inputs), 4)
+        self.assertIsInstance(inputs[0][0], AbinitInput)
+        self.assertIsInstance(inputs[1][0], AbinitInput)
+        self.assertIsInstance(inputs[2][0], AbinitInput)
+        self.assertIsInstance(inputs[3][0], AbinitInput)
+
+        self.assertEqual(inputs[0][0].variable_checksum(), 7103718882381428210)
+        self.assertEqual(inputs[1][0].variable_checksum(), -7769555600210016011)
+        self.assertEqual(inputs[2][0].variable_checksum(), 8757310848648668113)
+        self.assertEqual(inputs[3][0].variable_checksum(), -3535849381983428284)
+
+#        for input in [inputs[0][0], inputs[1][0], inputs[2][0], inputs[3][0]]:
+
+        for inp in [item for sublist in inputs for item in sublist]:
+            val = inp.abivalidate()
+            if val.retcode != 0:
+                print(inp)
+                print(val.log_file.read())
+                self.assertEqual(val.retcode, 0)
+
+        self.assertEqual(inputs[3][0]['gwpara'], 2)
+        self.assertEqual(inputs[3][0]['gwmem'], '10')
+        self.assertEqual(inputs[2][0]['optdriver'], 3)
+        self.assertEqual(inputs[3][0]['optdriver'], 4)
+
+    def test_convergence_inputs_conve(self):
+        """Testing g0w0_convergence_input factory convergence calculation."""
+        scf_kppa, scf_nband, nscf_nband = 10, 10, [10, 12, 14]
+        ecuteps, ecutsigx = [2, 3, 4], 2
+
+        inputs = g0w0_convergence_inputs(self.si_structure, self.si_pseudo, scf_kppa, nscf_nband, ecuteps, ecutsigx,
+                                         extra_abivars={'ecut_s': [2, 4, 6]}, scf_nband=scf_nband, ecut=2, nksmall=20)
+
+        inputs_flat = [item for sublist in inputs for item in sublist]
+
+        self.assertEqual(len(inputs_flat), 24)
+
+        for inp in [item for sublist in inputs for item in sublist]:
+            val = inp.abivalidate()
+            if val.retcode != 0:
+                print(inp)
+                print(val.log_file.read())
+                self.assertEqual(val.retcode, 0)
 
     def test_bse_with_mdf(self):
         """Testing bse_with_mdf input factory."""
