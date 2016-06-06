@@ -96,7 +96,7 @@ class FactoryTest(AbipyTest):
         ecuteps, ecutsigx = [2], 2
 
         inputs = g0w0_convergence_inputs(self.si_structure, self.si_pseudo, scf_kppa, nscf_nband, ecuteps, ecutsigx,
-                                         ecut_s=[2], scf_nband=scf_nband, ecut=2)
+                                         extra_abivars={ecut_s: [2]}, scf_nband=scf_nband, ecut=2)
         # accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
         # ppmodel="godby", charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
         # sigma_nband=None, gw_qprange=1):
@@ -115,10 +115,10 @@ class FactoryTest(AbipyTest):
 
 #        for input in [inputs[0][0], inputs[1][0], inputs[2][0], inputs[3][0]]:
 
-        for input in [item for sublist in inputs for item in sublist]:
-            val = input.abivalidate()
+        for inp in [item for sublist in inputs for item in sublist]:
+            val = inp.abivalidate()
             if val.retcode != 0:
-                print(input)
+                print(inp)
                 print(val.log_file.read())
                 self.assertEqual(val.retcode, 0)
 
