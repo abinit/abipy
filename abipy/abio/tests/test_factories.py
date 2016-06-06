@@ -133,7 +133,7 @@ class FactoryTest(AbipyTest):
         ecuteps, ecutsigx = [2, 3, 4], 2
 
         inputs = g0w0_convergence_inputs(self.si_structure, self.si_pseudo, scf_kppa, nscf_nband, ecuteps, ecutsigx,
-                                         ecut_s=[2, 4, 6], scf_nband=scf_nband, ecut=2, nksmall=20)
+                                         extra_abivars={'ecut_s': [2, 4, 6]}, scf_nband=scf_nband, ecut=2, nksmall=20)
 
         inputs_flat = [item for sublist in inputs for item in sublist]
 

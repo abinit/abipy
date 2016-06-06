@@ -418,20 +418,19 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
     return multi
 
 
-# TODO
 def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx, scf_nband, ecut,
-                         accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
-                         response_models=None, charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
-                         sigma_nband=None, gw_qprange=1, gamma=True, nksmall=None, extra_abivars=None):
+                            accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
+                            response_models=None, charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
+                            sigma_nband=None, gw_qprange=1, gamma=True, nksmall=None, extra_abivars=None):
     """
     Returns a :class:`multi` object to generate a G0W0 work for the given the material.
 
     Args:
         structure: Pymatgen structure.
         pseudos: List of `Pseudo` objects.
-        kppa:
-        scf_nband:
-        ecut:
+        kppa: k poits per reciprocal atom
+        scf_nband: number of scf bands
+        ecut: ecut for all calcs that that are not ecut convergence  cals at scf level
         scf_ Defines the sampling used for the SCF run.
         nscf_nband: Number of bands included in the NSCF run.
         ecuteps: Cutoff energy [Ha] for the screening matrix.
@@ -444,9 +443,9 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
         inclvkb: Treatment of the dipole matrix elements (see abinit variable).
         scr_nband: Number of bands used to compute the screening (default is nscf_nband)
         sigma_nband: Number of bands used to compute the self-energy (default is nscf_nband)
-        response_models:
-        gw_qprange:
-        gamma:
+        response_models: List of response models
+        gw_qprange: selectpr for the qpoint mesh
+        gamma: is true a gamma centered mesh is enforced
         nksmall: Kpoint division for additional band and dos calculations
         extra_abivars: Dictionary with extra variables passed to ABINIT for all tasks.
 
