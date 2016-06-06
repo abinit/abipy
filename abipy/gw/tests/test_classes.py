@@ -226,8 +226,6 @@ class GWworksTests(PymatgenTest):
         self.assertEqual(work.prep_id, 1)
         self.assertEqual(len(work.wf), 0)
 
-        done = False
-
         if False:
             for job in ['prep', 'G0W0', 'GW0', 'scGW0']:
                 parameters = dict()
