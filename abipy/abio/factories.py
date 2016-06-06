@@ -540,8 +540,8 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
     multi_scf.set_vars(_stopping_criterion(runlevel="scf", accuracy=accuracy))
     multi_scf.set_vars(extra_abivars)
 
-    for vars, abinput in zip(scf_diffs, multi_scf):
-        abinput.set_vars(vars)
+    for variables, abinput in zip(scf_diffs, multi_scf):
+        abinput.set_vars(variables)
 
     scf_inputs = multi_scf.split_datasets()
 
