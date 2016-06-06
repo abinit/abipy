@@ -248,9 +248,8 @@ class AbstractAbInitioSpec(MSONable):
             os.chmod("job_collection", stat.S_IRWXU)
 
     def reset_job_collection(self):
-        if 'ceci' in self.data['mode']:
-            if os.path.isfile('job_collection'):
-                os.remove('job_collection')
+        if 'ceci' in self.data['mode'] and os.path.isfile('job_collection'):
+            os.remove('job_collection')
 
     @abstractproperty
     def help(self):

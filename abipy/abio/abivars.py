@@ -10,7 +10,6 @@ from monty.functools import lazy_property
 from pymatgen.core.units import bohr_to_ang
 from abipy.core.structure import Structure
 
-import logging
 logger = logging.getLogger(__name__)
 
 __all__ = [
