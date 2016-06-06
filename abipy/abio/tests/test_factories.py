@@ -1,12 +1,10 @@
 # coding: utf-8
 from __future__ import unicode_literals, division, print_function
 
-import sys
-import abipy.data as abidata  
+import abipy.data as abidata
 import abipy.abilab as abilab
-from pprint import pprint
 from abipy.core.testing import AbipyTest
-from abipy.abio.inputs import AbinitInput, MultiDataset
+from abipy.abio.inputs import AbinitInput
 from abipy.abio.factories import *
 
 
@@ -141,10 +139,10 @@ class FactoryTest(AbipyTest):
 
         self.assertEqual(len(inputs_flat), 24)
 
-        for input in [item for sublist in inputs for item in sublist]:
-            val = input.abivalidate()
+        for inp in [item for sublist in inputs for item in sublist]:
+            val = inp.abivalidate()
             if val.retcode != 0:
-                print(input)
+                print(inp)
                 print(val.log_file.read())
                 self.assertEqual(val.retcode, 0)
 

@@ -516,7 +516,7 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
         elif kppa < 0:
             scf_ksampling = aobj.KSampling.gamma_centered(kpts=(-kppa, -kppa, -kppa))
             nscf_ksampling = aobj.KSampling.gamma_centered(kpts=(2, 2, 2))
-        elif kppa <= 13: 
+        elif kppa <= 13:
             scf_ksampling = aobj.KSampling.gamma_centered(kpts=(kppa, kppa, kppa))
             nscf_ksampling = aobj.KSampling.gamma_centered(kpts=(kppa, kppa, kppa))
         else:
