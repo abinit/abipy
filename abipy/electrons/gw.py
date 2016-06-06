@@ -333,17 +333,31 @@ class QPList(list):
         # Create the sub_domains and the spline functions in each subdomain.
         func_list = []
         residues = []
+        if len(domains) == 2:
+            #print('forcing extrmal point on the scissor')
+            ndom = 0
+        else:
+            ndom = 99
 
         for dom in domains[:]:
+            ndom += 1
             low, high = dom[0], dom[1]
             start, stop = find_ge(e0mesh, low), find_le(e0mesh, high)
 
             dom_e0 = e0mesh[start:stop+1]
-            dom_corr = qpcorrs[start:stop+1].real
+            dom_corr = qpcorrs[start:stop+1]
 
             # todo check if the number of non degenerate data points > k
+
             from scipy.interpolate import UnivariateSpline
-            f = UnivariateSpline(dom_e0, dom_corr, w=None, bbox=[None, None], k=k, s=None)
+            w = len(dom_e0)*[1]
+            if ndom == 1:
+                w[-1] = 1000
+            elif ndom == 2:
+                w[0] = 1000
+            else:
+                w = None
+            f = UnivariateSpline(dom_e0, dom_corr, w=w, bbox=[None, None], k=k, s=None)
             func_list.append(f)
             residues.append(f.get_residual())
 

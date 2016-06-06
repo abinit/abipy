@@ -150,7 +150,7 @@ class TestKpointList(AbipyTest):
 
 class TestKpointsReader(AbipyTest):
 
-    @unittest.expectedFailure
+    @unittest.skipIf(True, "Temporarily disabled")
     def test_reading(self):
         """Test the reading of Kpoints from netcdf files."""
 

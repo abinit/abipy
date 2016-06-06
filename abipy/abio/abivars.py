@@ -3,6 +3,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import json
 import numpy as np
+import logging
 
 from monty.string import is_string
 from monty.functools import lazy_property
@@ -19,6 +20,7 @@ __all__ = [
     "is_abiunit",
 ]
 
+logger = logging.getLogger(__name__)
 
 _anaddb_varnames = None
 
@@ -210,8 +212,6 @@ def eval_operators(s):
     #'pro--gram files'
     #>>> re.sub(r'\sAND\s', ' & ', 'Baked Beans And Spam', flags=re.IGNORECASE)
     #'Baked Beans & Spam'
-
-
     return s
 
 
@@ -386,7 +386,7 @@ def parse_abinit_string(s):
         i = tokens.index("ndtset")
     except ValueError:
         i = None
-    ndtset = 1 if i is None else int(tokens[i+1])
+    #ndtset = 1 if i is None else int(tokens[i+1])
 
     varpos = []
     for pos, tok in enumerate(tokens):
@@ -401,7 +401,7 @@ def parse_abinit_string(s):
                 continue
 
             # new variable
-            dtidx = None
+            #dtidx = None
 
             if tok[-1].isdigit() and "?" not in tok:
                 # Handle dataset index.
@@ -413,8 +413,8 @@ def parse_abinit_string(s):
                     raise ValueError("Cannot find dataset index in %s" % tok)
 
                 l.reverse()
-                dtidx = int("".join(l))
-                tok = tok[:len(tok)-i-1]
+                #dtidx = int("".join(l))
+                #tok = tok[:len(tok)-i-1]
 
             varpos.append(pos)
 

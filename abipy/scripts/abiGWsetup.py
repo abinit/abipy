@@ -4,6 +4,9 @@
 Script to write GW Input for VASP and ABINIT / set up work flows.
 """
 from __future__ import unicode_literals, division, print_function, absolute_import
+import sys
+import os.path
+from abipy.gw.datastructures import get_spec
 
 __author__ = "Michiel van Setten"
 __copyright__ = " "
@@ -12,11 +15,6 @@ __maintainer__ = "Michiel van Setten"
 __email__ = "mjvansetten@gmail.com"
 __date__ = "May 2014"
 
-import os
-import sys
-import os.path
-
-from abipy.gw.datastructures import get_spec
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
