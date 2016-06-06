@@ -291,15 +291,19 @@ class GWworksTests(PymatgenTest):
         self.assertEqual(len(flow[0]), 4)   # with 4 tasks
         # self.assertEqual(flow.workdir, 'Si')
 
-        flow.build_and_pickle_dump()
-#        self.assertTrue(False)
+        self.assertEqual(flow.build_and_pickle_dump(), 0)
+        # some more tests
+        flow.rmtree()
 
         spec = get_spec('GW')
         spec.data['converge'] = True
         struc.item = 'converge'
         work = SingleAbinitGWWork(struc, spec)
         flow = work.create()
-        flow.build_and_pickle_dump()
+        self.assertEqual(len(flow[0]), 45)
+        self.assertEqual(flow.build_and_pickle_dump(), 0)
+        # some more tests
+        flow.rmtree()
 
         if temp_ABINIT_PS is not None:
             os.environ['ABINIT_PS_EXT'] = temp_ABINIT_PS_EXT

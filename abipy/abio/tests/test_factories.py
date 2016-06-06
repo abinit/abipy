@@ -96,7 +96,7 @@ class FactoryTest(AbipyTest):
         ecuteps, ecutsigx = [2], 2
 
         inputs = g0w0_convergence_inputs(self.si_structure, self.si_pseudo, scf_kppa, nscf_nband, ecuteps, ecutsigx,
-                                         extra_abivars={ecut_s: [2]}, scf_nband=scf_nband, ecut=2)
+                                         extra_abivars={'ecut_s': [2]}, scf_nband=scf_nband, ecut=2)
         # accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
         # ppmodel="godby", charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
         # sigma_nband=None, gw_qprange=1):
@@ -108,10 +108,10 @@ class FactoryTest(AbipyTest):
         self.assertIsInstance(inputs[2][0], AbinitInput)
         self.assertIsInstance(inputs[3][0], AbinitInput)
 
-        self.assertEqual(inputs[0][0].variable_checksum(), 8922380746077674361)
-        self.assertEqual(inputs[1][0].variable_checksum(), -6328062324283394468)
-        self.assertEqual(inputs[2][0].variable_checksum(), -4406035156560398972)
-        self.assertEqual(inputs[3][0].variable_checksum(), 7970609742942507895)
+        self.assertEqual(inputs[0][0].variable_checksum(), 7103718882381428210)
+        self.assertEqual(inputs[1][0].variable_checksum(), -7769555600210016011)
+        self.assertEqual(inputs[2][0].variable_checksum(), 8757310848648668113)
+        self.assertEqual(inputs[3][0].variable_checksum(), -3535849381983428284)
 
 #        for input in [inputs[0][0], inputs[1][0], inputs[2][0], inputs[3][0]]:
 
