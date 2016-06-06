@@ -121,7 +121,7 @@ def get_vasp_environment(calculation_type='standard'):
             'mpi_runner_ntasks_option': get_mpi_runner_ntasks_keyword(vasp_mpi_runner)}
 
 
-class VaspGWTask:  # (FireTaskBase, FWSerializable):
+class VaspGWTask(object):  # (FireTaskBase, FWSerializable):
     """
     Base class for vasp GW tasks
     """
