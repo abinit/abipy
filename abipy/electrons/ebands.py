@@ -751,13 +751,13 @@ class ElectronBands(object):
         Args:
             zero_at_efermi: Whether to shift all eigenvalues to have zero energy at the
                 Fermi energy. Defaults to True.
-            brange: Only bands between brange[0] and brange[1] are included in the plot.
+            brange: Only bands such as `brange[0] <= band_index < brange[1]` are included in the plot.
             swarm: True to show the datapoints on top of the boxes
             kwargs: Keywork arguments passed to seaborn boxplot.
         """
         # Get the dataframe and select bands
         frame = self.to_pdframe(zero_at_efermi=zero_at_efermi)
-        if brange is not None: frame = frame[brange[0] <= frame["band"] <= brange[1]]
+        if brange is not None: frame = frame[brange[0] <= frame["band"] < brange[1]]
 
         import seaborn as sns
         hue = None if self.nsppol == 1 else "spin"
@@ -777,7 +777,7 @@ class ElectronBands(object):
             other_name: Name used to label the second band structure
             zero_at_efermi: Whether to shift all eigenvalues to have zero energy at the
                 Fermi energy. Defaults to True.
-            brange: Only bands between brange[0] and brange[1] are included in the plot.
+            brange: Only bands such as `brange[0] <= band_index < brange[1]` are included in the plot.
             swarm: True to show the datapoints on top of the boxes
             kwargs: Keywork arguments passed to seaborn boxplot.
         """
@@ -788,11 +788,11 @@ class ElectronBands(object):
 
         # Get the dataframe from self, select bands and add column with self_name
         frame1 = self.to_pdframe(zero_at_efermi=zero_at_efermi)
-        if brange is not None: frame1 = frame1[brange[0] <= frame1["band"] <= brange[1]]
+        if brange is not None: frame1 = frame1[brange[0] <= frame1["band"] < brange[1]]
         frame1["name"] = self_name
         # Get the dataframe from other, select bands and add columns with other_name
         frame2 = other.to_pdframe(zero_at_efermi=zero_at_efermi)
-        if brange is not None: frame2 = frame2[brange[0] <= frame2["band"] <= brange[1]]
+        if brange is not None: frame2 = frame2[brange[0] <= frame2["band"] < brange[1]]
         frame2["name"] = other_name
 
         # Merge frames ignoring index (not meaningful)
