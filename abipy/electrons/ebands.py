@@ -689,7 +689,7 @@ class ElectronBands(object):
         fmt_e = lambda e: " %.6f" % e
         for spin in self.spins:
             stream.write("# spin = " + str(spin) + "\n")
-            for (k, kpoint) in enumerate(self.kpoints):
+            for k, kpoint in enumerate(self.kpoints):
                 nb = self.nband_sk[spin,k]
                 ene_sk = self.eigens[spin,k,:nb]
                 st = str(k+1)
@@ -698,6 +698,113 @@ class ElectronBands(object):
                 stream.write(st+"\n")
 
         stream.flush()
+
+    def to_pdframe(self, zero_at_efermi=True):
+        """
+        Return a pandas DataFrame with the following columns:
+
+          ['spin', 'kidx', 'band', 'eig', 'occ', 'kpoint']
+
+        where:
+
+        ==============  ==========================
+        Column          Meaning
+        ==============  ==========================
+        spin            spin index
+        kidx            k-point index
+        band            band index
+        eig             KS eigenvalue in eV.
+        occ             Occupation of the state.
+        kpoint          :class:`Kpoint` object
+        ==============  ==========================
+
+        The Fermi energy is saved in frame.fermie
+
+        zero_at_efermi: Whether to shift all eigenvalues to have zero energy at the
+            Fermi energy. Defaults to True.
+        """
+        import pandas as pd
+        rows = []
+        e0 = self.fermie if zero_at_efermi else 0.0
+        for spin in self.spins:
+            for k, kpoint in enumerate(self.kpoints):
+                for band in range(self.nband_sk[spin,k]):
+                    eig = self.eigens[spin,k,band] - e0
+                    rows.append(OrderedDict([
+                               ("spin", spin),
+                               ("kidx", k),
+                               ("band", band),
+                               ("eig", eig),
+                               ("occ", self.occfacts[spin, k, band]),
+                               ("kpoint", self.kpoints[k]),
+                            ]))
+
+        frame = pd.DataFrame(rows, columns=rows[0].keys())
+        frame.fermie = e0
+        return frame
+
+    def plot_boxes(self, zero_at_efermi=True, brange=None, swarm=False, **kwargs):
+        """
+        Use seaborn to draw a box plot to show distributions of eigenvalues with respect
+        to the band index.
+
+        Args:
+            zero_at_efermi: Whether to shift all eigenvalues to have zero energy at the
+                Fermi energy. Defaults to True.
+            brange: Only bands between brange[0] and brange[1] are included in the plot.
+            swarm: True to show the datapoints on top of the boxes
+            kwargs: Keywork arguments passed to seaborn boxplot.
+        """
+        # Get the dataframe and select bands
+        frame = self.to_pdframe(zero_at_efermi=zero_at_efermi)
+        if brange is not None: frame = frame[brange[0] <= frame[band] <= brange[1]]
+
+        import seaborn as sns
+        hue = None if self.nsppol == 1 else "spin"
+        ax = sns.boxplot(x="band", y="eig", data=frame, hue=hue, **kwargs)
+        if swarm:
+            ax = sns.swarmplot(x="band", y="eig", data=frame, hue=hue, color=".25")
+
+    def plot_diff_boxes(self, other, self_name="self", other_name="other",
+                        zero_at_efermi=True, brange=None, swarm=False, **kwargs):
+        """
+        Use seaborn to draw a box plot comparing the distributions of the eigenvalues
+        in two electron bands.
+
+        Args:
+            other: :class:`ElectronBands` object.
+            self_name: Name used to label the first band structure
+            other_name: Name used to label the second band structure
+            zero_at_efermi: Whether to shift all eigenvalues to have zero energy at the
+                Fermi energy. Defaults to True.
+            brange: Only bands between brange[0] and brange[1] are included in the plot.
+            swarm: True to show the datapoints on top of the boxes
+            kwargs: Keywork arguments passed to seaborn boxplot.
+        """
+        if self.nsppol != other.nsppol:
+            raise ValueError("Cannot compare bands with different nsppol")
+        if self_name == other_name:
+            raise ValueError("self_name cannot be equal to other_name")
+
+        # Get the dataframe from self, select bands and add column with self_name
+        frame1 = self.to_pdframe(zero_at_efermi=zero_at_efermi)
+        if brange is not None: frame1 = frame1[brange[0] <= frame1[band] <= brange[1]]
+        frame1["name"] = self_name
+        # Get the dataframe from other, select bands and add columns with other_name
+        frame2 = other.to_pdframe(zero_at_efermi=zero_at_efermi)
+        if brange is not None: frame2 = frame2[brange[0] <= frame2[band] <= brange[1]]
+        frame2["name"] = other_name
+
+        # Merge frames ignoring index (not meaningful)
+	data = frame1.append(frame2, ignore_index=True)
+
+        # TODO: nsppol == 2
+        if self.nsppol == 2:
+            raise NotImplementedError("nsppol == 2 not coded")
+        import seaborn as sns
+        ax = sns.boxplot(x="band", y="eig", data=data, hue="name", **kwargs)
+        if swarm:
+            ax = sns.swarmplot(x="band", y="eig", data=data, hue="name", color=".25")
 
     def to_pymatgen(self):
         """
@@ -743,12 +850,6 @@ class ElectronBands(object):
                         band=band,
                         eig=eig,
                         occ=self.occfacts[spin, kidx, band])
-
-    #def from_scfrun(self):
-    #    return self.iscf > 0
-
-    #def has_occupations(self):
-    #    return np.any(self.occfacts != 0.0)
 
     @property
     def lomos(self):
@@ -939,7 +1040,7 @@ class ElectronBands(object):
             axis:  Axis along which the statistical parameters are computed.
                    The default is to compute the parameters of the flattened array.
             numpy_op: Numpy function to apply to the difference of the eigenvalues. The
-                      default computes t|self.eigens - other.eigens|.
+                      default computes |self.eigens - other.eigens|.
 
         Returns:
             `namedtuple` with the statistical parameters in eV
