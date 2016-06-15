@@ -40,7 +40,7 @@ except ImportError as exc:
 #   2) better error handling
 
 
-char2l = {
+_char2l = {
     "s": 0,
     "p": 1,
     "d": 2,
@@ -49,6 +49,9 @@ char2l = {
     "h": 5,
     "i": 6,
 }
+
+def char2l(char):
+    return _char2l[char]
 
 
 def all_symbols():
@@ -1130,6 +1133,8 @@ class AtomConfField(RowField):
         ("nc", dict(dtype="i", value=0, tooltip="number of core states"),),
         ("nv", dict(dtype="i", value=0, tooltip="number of valence states")),
         ("iexc", dict(dtype="i", value=4, tooltip="xc functional")),
+        #("iexc", dict(dtype="f", value=4, tooltip="xc functional")),
+        ("iexc", dict(dtype="cbox", value="4", choices=["-001013", "4"], tooltip="xc functional")),
         ("psfile", dict(dtype="cbox", value="psp8", choices=["psp8", "upf"]))])
 
 

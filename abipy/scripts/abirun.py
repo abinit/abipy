@@ -140,8 +140,7 @@ def write_open_notebook(flow, options):
 
 from __future__ import print_function
 from abipy import abilab
-%matplotlib inline
-mpld3 = abilab.mpld3_enable_notebook()
+%matplotlib notebook
 
 import pylab
 pylab.rcParams['figure.figsize'] = (25.0, 10.0)
