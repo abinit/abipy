@@ -22,7 +22,7 @@ class TestAbinitInput(AbipyTest):
         """Test AbinitInput API."""
         # Build simple input with structure and pseudos
         unit_cell = {
-            "acell": 3*[10.217],       
+            "acell": 3*[10.217],
             'rprim': [[.0, .5, .5],
                       [.5, .0, .5],
                       [.5, .5, .0]],
@@ -37,7 +37,7 @@ class TestAbinitInput(AbipyTest):
         inp = AbinitInput(structure=unit_cell, pseudos=abidata.pseudos("14si.pspnc"))
 
         print(repr(inp))
-        assert len(inp) == 0 and not inp 
+        assert len(inp) == 0 and not inp
         assert inp.get("foo", "bar") == "bar" and inp.pop("foo", "bar") == "bar"
         assert inp.comment is None
         inp.set_comment("This is a comment")
@@ -78,8 +78,13 @@ class TestAbinitInput(AbipyTest):
         removed = inp.pop_tolerances()
         assert len(removed) == 1 and removed["toldfe"] == 1e-6
 
-        # Test set_structure 
-        new_structure = inp.structure.copy() 
+        # Test set_spin_mode
+        old_vars = inp.set_spin_mode("polarized")
+        assert "nsppol" in inp and inp["nspden"] == 2 and inp["nspinor"] == 1
+        inp.set_vars(old_vars)
+
+        # Test set_structure
+        new_structure = inp.structure.copy()
         new_structure.perturb(distance=0.1)
         inp.set_structure(new_structure)
         assert inp.structure == new_structure
@@ -137,7 +142,7 @@ class TestAbinitInput(AbipyTest):
 
         prod_inps = inp.product("ngkpt", "tsmear", [[2,2,2], [4,4,4]], [0.1, 0.2, 0.3])
         #prod_inps = inp.product([("ngkpt", [[2,2,2], [4,4,4]]), ("tsmear", [0.1, 0.2, 0.3])])
-        assert len(prod_inps) == 6 
+        assert len(prod_inps) == 6
         assert prod_inps[0]["ngkpt"] == [2,2,2] and prod_inps[0]["tsmear"] == 0.1
         assert prod_inps[-1]["ngkpt"] ==  [4,4,4] and prod_inps[-1]["tsmear"] == 0.3
 
@@ -193,8 +198,8 @@ class TestAbinitInput(AbipyTest):
                              pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"))
 
         gs_inp.set_vars(
-            nband=4,             
-            ecut=2,         
+            nband=4,
+            ecut=2,
             ngkpt=[4, 4, 4],
             nshiftk=4,
             shiftk=[0.0, 0.0, 0.5,   # This gives the usual fcc Monkhorst-Pack grid
@@ -261,7 +266,7 @@ class TestMultiDataset(AbipyTest):
         structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
         multi = MultiDataset(structure=structure, pseudos=abidata.pseudos("14si.pspnc"))
 
-        assert len(multi) == 1 and multi.ndtset == 1 
+        assert len(multi) == 1 and multi.ndtset == 1
         for i, inp in enumerate(multi):
             assert inp.keys() == multi[i].keys()
 

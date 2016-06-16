@@ -25,6 +25,7 @@ from pymatgen.io.abinit.pseudos import PseudoTable, Pseudo
 from pymatgen.io.abinit.tasks import AbinitTask, ParalHintsParser
 from pymatgen.io.abinit.netcdf import NetcdfReader
 from pymatgen.io.abinit.abiinspect import yaml_read_irred_perts
+from pymatgen.io.abinit import abiobjects as aobj
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
 from abipy.htc.variable import InputVariable
@@ -607,6 +608,25 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         if len(bdgw) == 2: bdgw = len(kptgw) * bdgw
 
         return self.set_vars(kptgw=kptgw, nkptgw=nkptgw, bdgw=np.reshape(bdgw, (nkptgw, 2)))
+
+    def set_spin_mode(self, spin_mode):
+        """
+        Set the variables used to the treat the spin degree of freedom.
+        Return dictionary with the variables that have been removed.
+
+        Args:
+            spin_mode: :class:`SpinMode` object or string. Possible values for string are:
+
+            - polarized
+            - unpolarized
+            - afm (anti-ferromagnetic)
+            - spinor (non-collinear magnetism)
+            - spinor_nomag (non-collinear, no magnetism)
+        """
+        # Remove all variables used to treat spin
+        old_vars = self.pop_vars(["nsppol", "nspden", "nspinor"])
+        self.add_abiobjects(aobj.SpinMode.as_spinmode(spin_mode))
+        return old_vars
 
     def set_autospinat(self, default=0.6):
         """
