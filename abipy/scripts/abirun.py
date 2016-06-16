@@ -260,8 +260,6 @@ Options for developers:
                         Status.all_status_strings())
     #group.add_argument("-p", "--task-pos", default=None, type=parse_wslice, help="List of tuples with the position of the tasl in the flow.")
 
-    group.add_argument('--remove-lock', default=False, action="store_true",
-                              help="Remove the lock file of the pickle file storing the flow.")
 
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
@@ -272,6 +270,9 @@ Options for developers:
     copts_parser.add_argument('--no-logo', default=False, action="store_true", help='Disable AbiPy logo.')
     copts_parser.add_argument('--loglevel', default="ERROR", type=str,
                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.")
+
+    copts_parser.add_argument('--remove-lock', default=False, action="store_true",
+                       help="Remove the lock file of the pickle file storing the flow.")
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
