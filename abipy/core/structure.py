@@ -268,7 +268,6 @@ class Structure(pymatgen.Structure):
        Peroviskite structures.
        """
        lattice = float(a) * np.eye(3)
-
        frac_coords = np.reshape([
           0,     0,   0,  # A (2a)
           0.5, 0.5, 0.5,  # B (2a)
@@ -292,8 +291,8 @@ class Structure(pymatgen.Structure):
         frac_coords = np.reshape([
            0,   0,   0,    # X
            1/4, 1/4, 1/4,  # Y
-           #0.5, 0.5, 0.5, # Y
-           3/4, 3/4, 3/4,  # Z
+           0.5, 0.5, 0.5, # Y
+           #3/4, 3/4, 3/4,  # Z
           ], (3, 3))
 
         return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
