@@ -279,24 +279,24 @@ class Structure(pymatgen.Structure):
 
        return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
 
-    #@classmethod
-    #def half_heusler(cls, a, species, **kwargs)
-    #    # fcc lattice with 3 atoms as basis
-    #    # XYZ, C1_b
-    #    # see http://arxiv.org/pdf/cond-mat/0510276v1.pdf
-    #    lattice = 0.5 * float(a) * np.array([
-    #        0,  1,  1,
-    #        1,  0,  1,
-    #        1,  1,  0])
+    @classmethod
+    def half_heusler(cls, a, species, **kwargs):
+        # fcc lattice with 3 atoms as basis
+        # XYZ, C1_b
+        # see http://arxiv.org/pdf/cond-mat/0510276v1.pdf
+        lattice = 0.5 * float(a) * np.array([
+            0,  1,  1,
+            1,  0,  1,
+            1,  1,  0])
 
-    #    frac_coords = np.reshape([
-    #       0,   0,   0,    # X
-    #       1/4, 1/4, 1/4,  # Y
-    #       #0.5, 0.5, 0.5, # Y
-    #       3/4, 3/4, 3/4,  # Z
-    #      ], (3, 3))
+        frac_coords = np.reshape([
+           0,   0,   0,    # X
+           1/4, 1/4, 1/4,  # Y
+           #0.5, 0.5, 0.5, # Y
+           3/4, 3/4, 3/4,  # Z
+          ], (3, 3))
 
-    #    return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
+        return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
 
     @classmethod
     def from_abivars(cls, *args, **kwargs):
