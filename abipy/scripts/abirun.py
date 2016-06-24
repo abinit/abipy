@@ -329,6 +329,8 @@ Options for developers:
     # Subparser for reset command.
     p_reset = subparsers.add_parser('reset', parents=[copts_parser, flow_selector_parser],
                                     help="Reset the tasks of the flow with the specified status.")
+    p_reset.add_argument("--relaunch", action="store_true", default=False,
+                         help="Relaunch tasks in rapid mode after reset.")
 
     # Subparser for move command.
     p_move = subparsers.add_parser('move', parents=[copts_parser],
@@ -860,9 +862,10 @@ Specify the files to open. Possible choices:
                 count += 1
 
         cprint("%d tasks have been reset" % count, "blue")
-        nlaunch = flow.rapidfire()
+        if options.relaunch:
+            nlaunch = flow.rapidfire()
+            print("Number of tasks launched: %d" % nlaunch)
         flow.show_status()
-        print("Number of tasks launched: %d" % nlaunch)
 
         if nlaunch == 0:
             g = flow.find_deadlocks()

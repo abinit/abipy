@@ -1081,7 +1081,7 @@ class ElectronBands(object):
 
         return cls.from_file(path)
 
-    def get_edos(self, method="gaussian", step=0.1, width=0.2):
+    def get_edos(self, method="gaussian", step=0.1, width=0.2, eminmax=None):
         """
         Compute the electronic DOS on a linear mesh.
 
@@ -1089,6 +1089,9 @@ class ElectronBands(object):
             method: String defining the method for the computation of the DOS.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
+            eminmax: Min and max energy (eV) for the frequency mesh.
+                If None, boundaries are automatically computed in order to cover the
+                entire energy range.
 
         Returns:
             :class:`ElectronDOS` object.
@@ -1102,11 +1105,13 @@ class ElectronBands(object):
             raise ValueError(err_msg)
 
         # Compute the linear mesh.
-        e_min = self.enemin()
-        e_min -= 0.1 * abs(e_min)
-
-        e_max = self.enemax()
-        e_max += 0.1 * abs(e_max)
+        if eminmax is not None:
+            e_min, e_max = eminmax
+        else:
+            e_min = self.enemin()
+            e_min -= 0.1 * abs(e_min)
+            e_max = self.enemax()
+            e_max += 0.1 * abs(e_max)
 
         nw = int(1 + (e_max - e_min) / step)
         mesh, step = np.linspace(e_min, e_max, num=nw, endpoint=True, retstep=True)
