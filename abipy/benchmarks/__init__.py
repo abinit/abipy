@@ -4,7 +4,7 @@ import os
 import ast
 import types
 
-from orderedset import OrderedSet
+
 from monty.termcolor import cprint
 from pymatgen.io.abinit.flows import Flow
 
@@ -48,6 +48,7 @@ def as_orderedset(token, options):
 
     #print("l", l)
     l = [n for n in l if options.min_ncpus <= n <= options.max_ncpus]
+    from orderedset import OrderedSet
     return OrderedSet(l)
 
 

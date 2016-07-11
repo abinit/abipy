@@ -16,6 +16,7 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure
 from abipy.core.tensor import SymmetricTensor
 from abipy.iotools import ETSF_Reader
 
+
 __all__ = [
     "DielectricTensor",
     "DielectricFunction",
@@ -52,8 +53,8 @@ class DielectricTensor(object):
         self._all_tensors = all_tensors
 
     def to_array(self, red_coords=True):
-       
-        table = [] 
+
+        table = []
         for tensor in self._all_tensors:
             if red_coords:
                 table.append(tensor.reduced_tensor)
@@ -63,7 +64,7 @@ class DielectricTensor(object):
         return np.array(table)
 
     def symmetrize(self, structure):
-     
+
         for tensor in self._all_tensors:
             tensor.symmetrize(structure)
 
@@ -72,7 +73,7 @@ class DielectricTensor(object):
         table = self.to_array(red_coords)
 
         all_funcs = []
- 
+
         for i in np.arange(3):
             for j in np.arange(3):
                 all_funcs.append(Function1D(self._wmesh, table[:,i,j]))
@@ -107,7 +108,7 @@ class DielectricTensor(object):
         #    kwargs = {"color": "black", "linewidth": 2.0}
 
         # Plot the 6 independent components
-        for icomponent in [0,4,8,1,2,5]: 
+        for icomponent in [0,4,8,1,2,5]:
             self.plot_ax(ax, icomponent, red_coords, *args, **kwargs)
 
         return fig
@@ -118,7 +119,7 @@ class DielectricTensor(object):
 
         Args:
             ax: plot axis
-            what: Sequential index of the tensor matrix element. 
+            what: Sequential index of the tensor matrix element.
             args: Positional arguments passed to ax.plot
             kwargs: Keyword arguments passed to matplotlib. Accepts also:
 
@@ -128,7 +129,7 @@ class DielectricTensor(object):
         cplx_mode:      string defining the data to print (case-insensitive).
                         Possible choices are:
 
-                            - "re"  for real part 
+                            - "re"  for real part
                             - "im" for imaginary part only.
                             - "abs' for the absolute value
 
@@ -168,7 +169,7 @@ class DielectricFunction(object):
 
         """
         self.wmesh = np.array(wmesh)
-        self.qpoints = qpoints 
+        self.qpoints = qpoints
         assert len(self.qpoints) == len(emacros_q)
         self.info = info
 
@@ -263,9 +264,9 @@ class DielectricFunction(object):
 
                 cplx_mode:
                     string defining the data to print (case-insensitive).
-                    Possible choices are 
+                    Possible choices are
 
-                        - "re"  for real part 
+                        - "re"  for real part
                         - "im" for imaginary part only.
                         - "abs' for the absolute value
 
@@ -291,9 +292,9 @@ class DielectricFunction(object):
 class MdfFile(AbinitNcFile, Has_Structure):
     """
     Usage example:
-                                                                  
+
     .. code-block:: python
-        
+
         with MdfFile("foo_MDF.nc") as mdf:
             mdf.plot_mdfs()
     """
@@ -367,9 +368,9 @@ class MdfFile(AbinitNcFile, Has_Structure):
         Args:
             cplx_mode:
                 string defining the data to print (case-insensitive).
-                Possible choices are 
-                                                                      
-                    - "re"  for real part 
+                Possible choices are
+
+                    - "re"  for real part
                     - "im" for imaginary part only.
                     - "abs' for the absolute value
 
@@ -377,7 +378,7 @@ class MdfFile(AbinitNcFile, Has_Structure):
 
             mdf_type:
                 Select the type of macroscopic dielectric function.
-                Possible choices are 
+                Possible choices are
 
                     - "exc" for the excitonic MDF.
                     - "rpa" for RPA MDF.
@@ -409,13 +410,13 @@ class MdfFile(AbinitNcFile, Has_Structure):
         if "gwrpa" in mdf_type or plot_all:
             plotter.add_mdf("GW-RPA", self.gwnlf_mdf)
 
-        # Plot spectra 
+        # Plot spectra
         plotter.plot(cplx_mode=cplx_mode, qpoint=qpoint, **kwargs)
 
     def get_tensor(self, mdf_type="exc"):
         """Get the macroscopic dielectric tensor from the MDF."""
         return DielectricTensor(self.get_mdf(mdf_type), self.structure)
-        
+
 
 # TODO Add band energies to MDF file.
 #from abipy.electrons import ElectronsReader
@@ -482,9 +483,9 @@ class MdfPlotter(object):
     Class for plotting multiple MDFs.
 
     Usage example:
-                                                                  
+
     .. code-block:: python
-        
+
         plotter = MdfPlotter()
         plotter.add_mdf_from_file("foo_MDF.nc", label="foo mdf")
         plotter.add_mdf_from_file("bar_MDF.nc", label="bar mdf")
@@ -521,7 +522,7 @@ class MdfPlotter(object):
         if label is None:
             label = mdf_type + ncfile.filepath
         self.add_mdf(label, mdf)
-                
+
     @add_fig_kwargs
     def plot(self, ax=None, cplx_mode="Im", qpoint=None, **kwargs):
         """

@@ -48,7 +48,7 @@ class GSphere(collections.Sequence):
     #        return self._kpg2
     #    except AttributeError
     #        # note that now we use pymatgen lattice hence we have to convert to a.u.
-    #        self.kpg2 = 
+    #        self.kpg2 =
     #        return self._kpg2
 
     # Sequence protocol
@@ -108,7 +108,7 @@ class GSphere(collections.Sequence):
         """Returns a numpy array defined on the sphere."""
         shape = (self.npw,)
 
-        if isinstance(extra_dims, int): 
+        if isinstance(extra_dims, int):
             extra_dims = (extra_dims,)
         shape = extra_dims + tuple(shape)
 
@@ -182,7 +182,7 @@ class GSphere(collections.Sequence):
         else:
             raise NotImplementedError("istwfk = %s not implemented" % self.istwfk)
 
-        if s0 == 1:  
+        if s0 == 1:
             # Reinstate input shape
             arr_on_mesh.shape = mesh.shape
 
@@ -219,7 +219,7 @@ class GSphere(collections.Sequence):
         else:
             raise NotImplementedError("istwfk %s is not implemented" % self.istwfk)
 
-        if s0 == 1 and indim == 1:  
+        if s0 == 1 and indim == 1:
             # Reinstate input shape
             arr_on_sphere.shape = self.npw
 
@@ -232,9 +232,9 @@ class GSphere(collections.Sequence):
         Args:
             symmop: Symmetry operation object.
         """
-        # The problem in this approach is that G-spheres centered on the 
+        # The problem in this approach is that G-spheres centered on the
         # same k-point might have G-vectors ordered in a different way
-        # and therefore one cannot operate on two wavefunctions in reciprocal space 
+        # and therefore one cannot operate on two wavefunctions in reciprocal space
         # on the G-sphere without checking first that gvecs1 == gvecs2.
         # The best solution is to compute the list of g-vectors with a deterministic
         # algorithm, similar to the one used in Abinit and then create tables
@@ -257,11 +257,11 @@ class GSphere(collections.Sequence):
 #    """
 #    Set up the list of G vectors inside a sphere out to $ (1/2)*(2*\pi*(k+G))^2=ecut $
 #    """
-#    # Set up standard search sequence for grid points, in standard storage mode i.e. 
+#    # Set up standard search sequence for grid points, in standard storage mode i.e.
 #    # 0 1 2 3 ... g_max g_min ... -1
 #    from pymatgen.core.units import Energy
 #    ecut = Energy(ecut, "Ha").to("eV")
-#    two_ecut = 2 * ecut 
+#    two_ecut = 2 * ecut
 #
 #    g1d_list = 3 * [None]
 #
@@ -276,14 +276,14 @@ class GSphere(collections.Sequence):
 #        for ig in itertools.count(start=0, step=1):
 #            kpg = kcoords + (ig * rec_vec)
 #            kpg2 = norm2(kpg)
-#            if kpg2 > two_ecut: 
+#            if kpg2 > two_ecut:
 #                g_max = ig
 #                break
 #
 #        for ig in itertools.count(start=-1, step=-1):
 #            kpg = kcoords + (ig * rec_vec)
 #            kpg2 = norm2(kpg)
-#            if kpg2 > two_ecut: 
+#            if kpg2 > two_ecut:
 #                g_min = ig
 #                break
 #
@@ -301,7 +301,7 @@ class GSphere(collections.Sequence):
 #    for gvec in itertools.product(gz_list, gy_list, gx_list):
 #        gvec = np.array(gvec)
 #        kpg2 = norm2(kcoords + gvec)
-#        if kpg2 <= two_ecut: 
+#        if kpg2 <= two_ecut:
 #            app(gvec)
 #
 #    return np.array(gvecs, dtype=np.int)

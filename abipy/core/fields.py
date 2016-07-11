@@ -8,7 +8,6 @@ import collections
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from pymatgen.core.units import bohr_to_angstrom
-from abipy.iotools import Visualizer, xsf, ETSF_Reader
 from abipy.core.mesh3d import Mesh3D
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import Has_Structure
@@ -44,7 +43,7 @@ class ScalarField(Has_Structure):
         iorder = iorder.lower()
         assert iorder in ["f", "c"]
 
-        if iorder == "f": 
+        if iorder == "f":
             # (z,x,y) --> (x,y,z)
             datar = transpose_last3dims(datar)
 
@@ -136,7 +135,7 @@ class ScalarField(Has_Structure):
     #@property
     #def datar_xyz(self):
     #    """
-    #    Returns a copy of the real space data with shape [:, nx, ny, nz]. 
+    #    Returns a copy of the real space data with shape [:, nx, ny, nz].
     #    Mainly used for post-processing.
     #    """
     #    return self.mesh.reshape(self.datar).copy()
@@ -144,7 +143,7 @@ class ScalarField(Has_Structure):
     #@property
     #def datag_xyz(self):
     #    """
-    #    Returns a copy of the reciprocal space data with shape [:, nx, ny, nz]. 
+    #    Returns a copy of the reciprocal space data with shape [:, nx, ny, nz].
     #    Mainly used for post-processing.
     #    """
     #    return self.mesh.reshape(self.datag).copy()
@@ -201,7 +200,7 @@ class ScalarField(Has_Structure):
     #           The coordinates at which input is evaluated.
     #        order: int, optional
     #            The order of the spline interpolation, default is 3. The order has to be in the range 0-5.
-    #    Returns: 
+    #    Returns:
     #       ndarray with the interpolated results.
     #    """
     #    from scipy.ndimage.interpolation import map_coordinates
@@ -227,16 +226,16 @@ class ScalarField(Has_Structure):
 
     def export(self, filename, visu=None):
         """
-        Export the real space data on file filename. 
+        Export the real space data on file filename.
 
         Args:
             filename: String specifying the file path and the file format.
-                The format is defined by the file extension. filename="prefix.xsf", for example, 
+                The format is defined by the file extension. filename="prefix.xsf", for example,
                 will produce a file in XSF format. An *empty* prefix, e.g. ".xsf" makes the code use a temporary file.
             visu:
                :class:`Visualizer` subclass. By default, this method returns the first available
                 visualizer that supports the given file format. If visu is not None, an
-                instance of visu is returned. See :class:`Visualizer` for the list of 
+                instance of visu is returned. See :class:`Visualizer` for the list of
                 applications and formats supported.
 
         Returns:
@@ -595,7 +594,7 @@ class Density(ScalarField):
         #"""Compute the kinetic energy density in real- and reciprocal-space."""
         #return kindr, kindgg
 
-    #def vxc(self, xc_type=None):
+    #def vxc(self, xc=None):
         #"""Compute the exchange-correlation potential in real- and reciprocal-space."""
         #return vxcr, vxcg
 

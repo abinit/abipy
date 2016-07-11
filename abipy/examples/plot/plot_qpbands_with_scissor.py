@@ -49,4 +49,4 @@ klabels = {
     (0.0,  0.5,  0.5): "X",
 }
 
-plotter.plot(title="Silicon band structure", klabels=klabels)
+plotter.plot(title="Silicon band structure", klabels=klabels, align='cbm')

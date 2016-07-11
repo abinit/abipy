@@ -4,6 +4,7 @@ This module gathers the most important classes and helper functions used for scr
 from __future__ import print_function, division, unicode_literals
 
 import os
+import collections
 
 from monty.os.path import which
 from pymatgen.core.units import *
@@ -12,7 +13,7 @@ from pymatgen.io.abinit.pseudos import Pseudo, PseudoTable
 from pymatgen.io.abinit.wrappers import Mrgscr, Mrgddb, Mrggkk
 from pymatgen.io.abinit.tasks import *
 from pymatgen.io.abinit.works import *
-from pymatgen.io.abinit.flows import (Flow, G0W0WithQptdmFlow, bandstructure_flow, 
+from pymatgen.io.abinit.flows import (Flow, G0W0WithQptdmFlow, bandstructure_flow,
     g0w0_flow, phonon_flow, phonon_conv_flow)
 # Need new version of pymatgen.
 try:
@@ -29,10 +30,10 @@ from abipy.abio.robots import GsrRobot, SigresRobot, MdfRobot, DdbRobot, abirobo
 from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
 from abipy.abio.abivars import AbinitInputFile
 from abipy.abio.factories import *
-from abipy.electrons import ElectronDosPlotter, ElectronBandsPlotter
+from abipy.electrons import ElectronBands, ElectronDosPlotter, ElectronBandsPlotter
 from abipy.electrons.gsr import GsrFile
 from abipy.electrons.psps import PspsFile
-from abipy.electrons.gw import SigresFile, SigresPlotter 
+from abipy.electrons.gw import SigresFile, SigresPlotter
 from abipy.electrons.bse import MdfFile
 from abipy.electrons.scissors import ScissorsBuilder
 from abipy.electrons.scr import ScrFile
@@ -60,38 +61,57 @@ def _straceback():
     import traceback
     return traceback.format_exc()
 
+# Abinit text files. Use OrderedDict for nice output in show_abiopen_exc2class.
+ext2file = collections.OrderedDict([
+    (".abi", AbinitInputFile),
+    (".in", AbinitInputFile),
+    (".abo", AbinitOutputFile),
+    (".out", AbinitOutputFile),
+    (".log", AbinitLogFile),
+    (".cif", Structure),
+    ("POSCAR", Structure),
+    ("cssr", Structure),
+])
+
+# Abinit files require a special treatment.
+abiext2ncfile = collections.OrderedDict([
+    ("GSR.nc", GsrFile),
+    ("WFK.nc", WfkFile),
+    ("HIST.nc", HistFile),
+    ("PSPS.nc", PspsFile),
+    ("DDB", DdbFile),
+    ("PHBST.nc", PhbstFile),
+    ("PHDOS.nc", PhdosFile),
+    ("SCR.nc", ScrFile),
+    ("SIGRES.nc", SigresFile),
+    ("MDF.nc", MdfFile),
+])
+
+def abiopen_ext2class_table():
+    """Print the association table between file extensions and File classes."""
+    from itertools import chain
+    from tabulate import tabulate
+    table = []
+
+    for ext, cls in chain(ext2file.items(), abiext2ncfile.items()):
+        table.append((ext, str(cls)))
+
+    return tabulate(table, headers=["Extension", "Class"])
+
 
 def abifile_subclass_from_filename(filename):
     """Returns the appropriate class associated to the given filename."""
-    # Abinit text files.
-    if filename.endswith(".abi") or filename.endswith(".in"): return AbinitInputFile
-    if filename.endswith(".abo") or filename.endswith(".out"): return AbinitOutputFile
-    if filename.endswith(".log"): return AbinitLogFile
-
-    # CIF files.
-    if filename.endswith(".cif"): return Structure
-
-    ext2ncfile = {
-        "SIGRES.nc": SigresFile,
-        "WFK-etsf.nc": WfkFile,
-        "MDF.nc": MdfFile,
-        "GSR.nc": GsrFile,
-        "SCR-etsf.nc": ScrFile,
-        "PHBST.nc": PhbstFile,
-        "PHDOS.nc": PhdosFile,
-        "DDB": DdbFile,
-        "HIST.nc": HistFile,
-        "PSPS.nc": PspsFile,
-    }
+    for ext, cls in ext2file.items():
+        if filename.endswith(ext): return cls
 
     ext = filename.split("_")[-1]
     try:
-        return ext2ncfile[ext]
+        return abiext2ncfile[ext]
     except KeyError:
-        for ext, cls in ext2ncfile.items():
+        for ext, cls in abiext2ncfile.items():
             if filename.endswith(ext): return cls
 
-        raise ValueError("No class has been registered for filename %s" % filename)
+    raise ValueError("No class has been registered for filename %s" % filename)
 
 
 def abiopen(filepath):
@@ -100,10 +120,10 @@ def abiopen(filepath):
     File type is detected from the extension
 
     Args:
-        filepath: string with the filename. 
+        filepath: string with the filename.
     """
     if os.path.basename(filepath) == "__AbinitFlow__.pickle":
-        return Flow.pickle_load(filepath) 
+        return Flow.pickle_load(filepath)
 
     cls = abifile_subclass_from_filename(filepath)
     return cls.from_file(filepath)
@@ -111,34 +131,32 @@ def abiopen(filepath):
 
 def software_stack():
     """
-    Import all the hard dependencies. Returns a dict with the version.
+    Import all the hard dependencies. Returns ordered dict: package --> string with version info.
     """
     # Mandatory
     import numpy, scipy, netCDF4, pymatgen, apscheduler, pydispatch, yaml
 
-    d = dict(
-        numpy=numpy.version.version,
-        scipy=scipy.version.version,
-        netCDF4=netCDF4.__version__,
-        apscheduler=apscheduler.version,
-        pydispatch=pydispatch.__version__,
-        yaml=yaml.__version__,
-        pymatgen=pymatgen.__version__,
-    )
+    d = collections.OrderedDict([
+        ("numpy", numpy.version.version),
+        ("scipy", scipy.version.version),
+        ("netCDF4", netCDF4.__version__),
+        ("apscheduler", apscheduler.version),
+        ("pydispatch", pydispatch.__version__),
+        ("yaml", yaml.__version__),
+        ("pymatgen", pymatgen.__version__),
+    ])
 
     # Optional but strongly suggested.
     try:
         import matplotlib
-        d.update(dict(
-            matplotlib="Version: %s, backend: %s" % (matplotlib.__version__, matplotlib.get_backend()),
-            ))
+        d["matplotlib"] = "%s (backend: %s)" % (matplotlib.__version__, matplotlib.get_backend())
     except ImportError:
         pass
 
     return d
 
 
-def abicheck():
+def abicheck(verbose=0):
     """
     This function tests if the most important ABINIT executables
     can be found in $PATH and whether the python modules needed
@@ -147,52 +165,40 @@ def abicheck():
     err_lines = []
     app = err_lines.append
 
-    # Executables must be in $PATH. Unfortunately we cannot test the version of the binaries.
-    # A possible approach would be to execute "exe -v" but supporting argv in Fortran is not trivial.
-    # Dynamic linking is tested by calling `ldd exe`
-    #executables = [
-    #    "abinit",
-    #    "mrgddb",
-    #    "mrggkk",
-    #    "mrgdv",
-    #    "anaddb",
-    #]
-
-    #has_ldd = which("ldd") is not None
-    #for exe in executables:
-    #    exe_path = which(exe)
-    #    if exe_path is None:
-    #        app("Cannot find %s in $PATH" % exe)
-    #    else:
-    #        if has_ldd and os.system("ldd %s > /dev/null " % exe_path) != 0:
-    #            app("Missing shared library dependencies for %s" % exe)
-    #            continue
-
     try:
         manager = TaskManager.from_user_config()
-    except:
+    except Exception:
         manager = None
         app(_straceback())
 
     # Get info on the Abinit build.
     from abipy.core.testing import cmp_version
     if manager is not None:
+        print("AbiPy Manager:\n", manager)
+        print()
         build = AbinitBuild(manager=manager)
         if not build.has_netcdf: app("Abinit executable does not support netcdf")
-        if not build.has_etsfio: app("Abinit executable does not support etsf_io")
         print("Abinitbuild:\n", build)
+        if verbose: print(build.info)
+        print()
         if not cmp_version(build.version, min_abinit_version, op=">="):
             app("Abipy requires Abinit version >= %s but got %s" % (min_abinit_version, build.version))
 
+    # Get info on the scheduler.
     from pymatgen.io.abinit.launcher import PyFlowScheduler
-    launcher_cnfile = os.path.join(PyFlowScheduler.USER_CONFIG_DIR, PyFlowScheduler.YAML_FILE)
-    if not os.path.exists(launcher_cnfile):
-        app("Cannot find launcher configuration file at %s" % launcher_cnfile)
+    try:
+        scheduler = PyFlowScheduler.from_user_config()
+        print("Abipy Scheduler:\n", scheduler)
+        print()
+    except Exception as exc:
+        app(_straceback())
 
-    try:    
+    from tabulate import tabulate
+    try:
         d = software_stack()
         print("Installed packages:")
-        print(d)
+        print(tabulate(list(d.items()), headers=["Package", "Version"]))
+        print()
     except ImportError:
         app(_straceback())
 
@@ -202,7 +208,7 @@ def abicheck():
 def flow_main(main):
     """
     This decorator is used to decorate main functions producing `Flows`.
-    It adds the initialization of the logger and an argument parser that allows one to select 
+    It adds the initialization of the logger and an argument parser that allows one to select
     the loglevel, the workdir of the flow as well as the YAML file with the parameters of the `TaskManager`.
     The main function shall have the signature:
 
@@ -225,15 +231,15 @@ def flow_main(main):
 
         parser.add_argument("-w", '--workdir', default="", type=str, help="Working directory of the flow.")
 
-        parser.add_argument("-m", '--manager', default=None, 
-                            help="YAML file with the parameters of the task manager. " 
+        parser.add_argument("-m", '--manager', default=None,
+                            help="YAML file with the parameters of the task manager. "
                                  "Default None i.e. the manager is read from standard locations: "
                                  "working directory first then ~/.abinit/abipy/manager.yml.")
 
-        parser.add_argument("-s", '--scheduler', action="store_true", default=False, 
+        parser.add_argument("-s", '--scheduler', action="store_true", default=False,
                             help="Run the flow with the scheduler")
 
-        parser.add_argument("-b", '--batch', action="store_true", default=False, 
+        parser.add_argument("-b", '--batch', action="store_true", default=False,
                             help="Run the flow in batch mode")
 
         parser.add_argument("-r", "--remove", default=False, action="store_true", help="Remove old flow workdir")
@@ -242,7 +248,7 @@ def flow_main(main):
 
         options = parser.parse_args()
 
-        # loglevel is bound to the string value obtained from the command line argument. 
+        # loglevel is bound to the string value obtained from the command line argument.
         # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
         import logging
         numeric_level = getattr(logging, options.loglevel.upper(), None)
@@ -279,3 +285,55 @@ def flow_main(main):
             return execute()
 
     return wrapper
+
+
+def abipy_logo1():
+    """http://www.text-image.com/convert/pic2ascii.cgi"""
+    return """\
+
+                 `:-                                                               -:`
+         --`  .+/`                              `                                  `/+.  .-.
+   `.  :+.   /s-                   `yy         .yo                                   -s/   :+. .`
+ ./.  +o`   /s/           `-::-`   `yy.-::-`   `:-    .:::-`   -:`     .:`            /s/   :s- ./.
+.o.  /o:   .oo.         .oyo++syo. `yyys++oys. -ys  -syo++sy+` sy-     +y:            .oo-   oo` `o.
+++   oo.   /oo          yy-    -yy `yy:    .yy`-ys .ys`    /yo sy-     +y:             oo/   /o:  ++
++/   oo`   /oo         `yy.    .yy` yy.    `yy`-ys :ys     :yo oy/     oy:             +o/   :o:  /o
+-/   :+.   -++`         -sy+::+yyy` .sy+::+yy- -ys :yys/::oys. `oyo::/syy:            `++-   /+.  /:
+ --  `//    /+-           -/++/-//    -/++/-   `+: :yo:/++/.     .:++/:oy:            -+/   `+-  --
+  `.`  -:    :/`                                   :yo                 +y:           `/:`  `:. `.`
+        `..   .:.                                   .`                 `.           .:.  `..
+                ...                                                               ...
+"""
+
+def abipy_logo2():
+    """http://www.text-image.com/convert/pic2ascii.cgi"""
+    return """\
+MMMMMMMMMMMMMMMMNhdMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMdhmMMMMMMMMMMMMMMM
+MMMMMMMMMddNMMmoyNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMNyomMMmhmMMMMMMMM
+MMMmmMMhomMMMy/hMMMMMMMMMMMMMMMMMMMN::MMMMMMMMMm:oMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMd+yMMMhomMmmMMM
+MmsmMMs+NMMMy+yMMMMMMMMMMMNhyyhmMMMN::mhyyhmMMMNhdMMMMmhyydNMMMdyNMMMMMmyNMMMMMMMMMMMMy+yMMMh+dMmsmM
+m+mMMy+hMMMd++mMMMMMMMMMm+:+ss+:+mMN:::/ss+:+mMd:/MMd/:+so/:oNM/:dMMMMMo:yMMMMMMMMMMMMm++dMMMo+NMN+m
+osMMMo+mMMMy+oMMMMMMMMMM::dMMMMd:/MN::hMMMMd::Nd:/Mm:/NMMMMy:oM/:dMMMMMo:yMMMMMMMMMMMMMo+yMMMy+hMMso
+oyMMMooNMMMyooMMMMMMMMMN::mMMMMm::NM::mMMMMN::Nd:/Mh:/MMMMMh:+Mo:yMMMMM+:yMMMMMMMMMMMMMooyMMMyohMMyo
+dyMMMysmMMMdooNMMMMMMMMMd/:oyys:::NMd/:oyys::dMd:/Mh::/shyo:/mMN+:+yhs/::yMMMMMMMMMMMMNoodMMMysmMMyh
+MddMMNyhMMMMysdMMMMMMMMMMMdyooydssMMMMdysoydMMMNsyMh:+hsosydMMMMMmysosho:yMMMMMMMMMMMMdsyMMMNydMMddM
+MMNmNMMddMMMMhyNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMh:oMMMMMMMMMMMMMMMMMo:yMMMMMMMMMMMNyhMMMNhmMNmNMM
+MMMMMMMMNmmMMMmhmMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMmNMMMMMMMMMMMMMMMMMNdMMMMMMMMMMMmhmMMNmmMMMMMMMM
+MMMMMMMMMMMMMMMMmmNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMNmmMMMMMMMMMMMMMMM
+"""
+
+
+def abipy_logo3():
+    """http://www.text-image.com/convert/pic2ascii.cgi"""
+    """http://www.text-image.com/convert/pic2ascii.cgi"""
+    return """\
+             `-.                                                  `--`
+      -:. `//`              `/.       ::                           `+: `-:`
+ --``+:  `o+        `.--.`  -y/.--.`  ::   `---`  `-     ..         `o+  `o-`--
+:/  /o   /o-       -oo/:+s/ -yy+:/os- ss .oo/:/s+`:y.    yo          :o:  :o. /:
+o-  o/   oo`       ss    /y..y/    ss ss +y`   -y::y-    yo          -o/  .o- -o
+:-  //   /+.       :s+--/sy- +s/--+s: ss oyo:-:so``os:-:oyo          -+:  -+. -/
+ -` `/.  `/:        `-:::-:`  `-::-`  -- oy-:::.    .:::-yo          //`  :- `-
+   `  ..` `:-                            :+              /:         --` `-` `
+            `.`                                                   ..`
+"""

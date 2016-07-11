@@ -71,7 +71,7 @@ def itest_unconverged_scf(fwp, tvars):
     # Use smart-io
     flow.use_smartio()
 
-    flow.build_and_pickle_dump()
+    flow.build_and_pickle_dump(abivalidate=True)
 
     t0 = flow[0][0]
     t1 = flow[0][1]
@@ -163,7 +163,7 @@ def itest_bandstructure_flow(fwp, tvars):
 
     # Build the flow and create the database.
     flow = abilab.bandstructure_flow(fwp.workdir, scf_input, nscf_input, manager=fwp.manager)
-    flow.build_and_pickle_dump()
+    flow.build_and_pickle_dump(abivalidate=True)
 
     t0 = flow[0][0]
     t1 = flow[0][1]
@@ -268,7 +268,7 @@ def itest_bandstructure_schedflow(fwp, tvars):
 
     # Will remove output files (WFK)
     flow.set_garbage_collector()
-    flow.build_and_pickle_dump()
+    flow.build_and_pickle_dump(abivalidate=True)
 
     fwp.scheduler.add_flow(flow)
     print(fwp.scheduler)
@@ -335,7 +335,7 @@ def itest_htc_bandstructure(fwp, tvars):
 
     flow.register_work(work)
     flow.allocate()
-    flow.build_and_pickle_dump()
+    flow.build_and_pickle_dump(abivalidate=True)
 
     fwp.scheduler.add_flow(flow)
     assert fwp.scheduler.start() == 0

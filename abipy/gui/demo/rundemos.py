@@ -40,15 +40,17 @@ def main():
         if fname.endswith(".py") and fname.startswith("demo_"):
             scripts.append(os.path.join(dir, fname))
 
+    python = "pythonw"
+
     # Run scripts depending on mode.
     if options.mode in ["s", "sequential"]:
         for script in scripts:
-            retcode = call(["python", script])
+            retcode = call([python, script])
             if retcode != 0: break
 
     elif options.mode in ["a", "automatic"]:
         for script in scripts:
-            p = Popen(["python", script])
+            p = Popen([python, script])
             time.sleep(options.time)
             p.kill()
         retcode = 0
@@ -56,7 +58,7 @@ def main():
     elif options.mode == "screenshot":
         processes = []
         for script in scripts:
-            p = Popen(["python", script])
+            p = Popen([python, script])
             processes.append(p)
             
         time.sleep(options.time)

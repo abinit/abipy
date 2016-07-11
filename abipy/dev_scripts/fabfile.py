@@ -50,9 +50,11 @@ def _virtualenv(venv_dir):
     with prefix("source %s" % os.path.join(venv_dir, "bin", "activate")):
         yield
 
+
 def _exists(path):
     """True if path exists on the remote host."""
     return run('test -e %s' % path, warn_only=True, quiet=True).succeeded
+
 
 def _cpu_count():
     """Returns the number of CPUs in the remote host."""
@@ -77,6 +79,7 @@ def all_hosts():
         "nic4.segi.ulg.ac.be",
     ]
 
+
 def git_pull():
     """
     Synchronize the git branches with the master branches located on github.
@@ -94,6 +97,7 @@ def git_pull():
     for apath in git_repospaths:
         with cd(apath):
             run("git pull")
+
 
 def git_install():
     """Install the code of the git branches."""
@@ -123,6 +127,7 @@ def pytest(opts=""):
         with cd(apath), _virtualenv(VENV):
             run("py.test %s" % opts)
 
+
 def pip_install(*options):
     """
     Execute `pip install options` on the remote hosts. 
@@ -135,6 +140,7 @@ def pip_install(*options):
     """
     with _virtualenv(VENV):
         run("pip install %s" % " ".join(o for o in options))
+
 
 def py_version():
     """
@@ -152,6 +158,7 @@ def py_version():
         py_modules.extend([s for s in o.split() if "python" in s])
             
     print("default python:", py_version, "python modules:", py_modules)
+
 
 def bzr_pull():
     """
@@ -212,25 +219,29 @@ def upload_key(key):
     put(key, remotepath)
     run("chmod go-rwx %s" % remotepath)
 
-#
+
 #def use_ssh_agent():
 #    run("eval $(ssh-agent)")
 #    run("ssh-add ~/.ssh/id_rsa.ceci")
+
 
 def abinit_version():
     """Show the version of Abinit available on the remote host."""
     if run("abinit --version", warn_only=True, quiet=True).return_code:
         run("mpirun abinit --version") # Try to prepend mpirun
 
+
 def abinit_build(self):
     """Show the Abinit build parameters."""
     if run("abinit --build", warn_only=True, quiet=True).return_code:
         run("mpirun abinit --build") # Try to prepend mpirun
 
+
 def abinit_makemake():
     """Run abinit makemake to generate configure script."""
     with cd(repo_path):
         run("./config/scripts/makemake")
+
 
 def abinit_build():
     with cd(build_path):
@@ -239,10 +250,12 @@ def abinit_build():
         run("make clean")
         run("make -j8")
 
+
 def abinit_makeall(self):
     """Runs abinit makemake and build."""
     abinit_makemake()
     abinit_build()
+
 
 def abinit_runtests(opts=""):
     """

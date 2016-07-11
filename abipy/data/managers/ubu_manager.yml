@@ -1,0 +1,20 @@
+qadapters:
+    # List of qadapters objects 
+    - priority: 1
+      queue:
+        qtype: shell
+        qname: ubu
+      job:
+        modules: 
+           - ubu_intel_16.0_mpich
+        mpi_runner: mpiexec
+        # source a script to setup the environment.
+        pre_run: "source ~/env.sh"
+      limits:
+        timelimit: 1:00:00
+        max_cores: 24
+      hardware:
+         num_nodes: 1
+         sockets_per_node: 1
+         cores_per_socket: 24
+         mem_per_node: 4 Gb

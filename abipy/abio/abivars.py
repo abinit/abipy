@@ -1,35 +1,32 @@
 """This module contains lookup table with the name of the ABINIT variables."""
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-import os
 import json
 import numpy as np
+import logging
 
-from collections import namedtuple #Sequence, Mapping, 
 from monty.string import is_string
 from monty.functools import lazy_property
 from pymatgen.core.units import bohr_to_ang
 from abipy.core.structure import Structure
 
+logger = logging.getLogger(__name__)
+
 __all__ = [
     "AbinitInputFile",
     "is_anaddb_var",
-    "is_abitoken",
     "is_abivar",
     "is_abiunit",
 ]
 
-
-import logging
 logger = logging.getLogger(__name__)
-
-
 
 _anaddb_varnames = None
 
+
 def _get_anaddb_varnames():
-    global _anaddb_varnames 
-    if _anaddb_varnames is not None: 
+    global _anaddb_varnames
+    if _anaddb_varnames is not None:
         return _anaddb_varnames
 
     from abipy import data as abidata
@@ -45,6 +42,7 @@ def is_anaddb_var(varname):
 
 ABI_VARNAMES = None
 
+
 def is_abivar(s):
     """True if s is an ABINIT variable."""
     global ABI_VARNAMES
@@ -56,11 +54,12 @@ def is_abivar(s):
     return s in ABI_VARNAMES
 
 
-ABI_UNIT_NAMES = set([s.lower() for s in (
-"au", 
-"Angstr", "Angstrom", "Angstroms", "Bohr", "Bohrs", 
-"eV", "Ha", "Hartree", "Hartrees", "K", "Ry", "Rydberg", "Rydbergs", 
-"T", "Tesla")])
+ABI_UNIT_NAMES = {s.lower() for s in (
+"au",
+"Angstr", "Angstrom", "Angstroms", "Bohr", "Bohrs",
+"eV", "Ha", "Hartree", "Hartrees", "K", "Ry", "Rydberg", "Rydbergs",
+"T", "Tesla")}
+
 
 def is_abiunit(s):
     """True if s is one of the units supported by the ABINIT parser"""
@@ -71,6 +70,7 @@ def is_abiunit(s):
 
 ABI_OPERATORS = set(["sqrt", ])
 
+
 def is_abioperator(s):
     """True is string contains one of the operators supported by the ABINIT parser."""
     global ABI_UNIT_NAMES
@@ -79,12 +79,12 @@ def is_abioperator(s):
 ABI_MULTI_TAGS = set(["+", ":", "*", "?"])
 
 
-def is_abitoken(s):
-    """
-    True if s is one of the token supported by the ABINIT parser
-    i.e. variable name or unit name.
-    """
-    return s in ABI_ALLTOKENS
+#def is_abitoken(s):
+#    """
+#    True if s is one of the token supported by the ABINIT parser
+#    i.e. variable name or unit name.
+#    """
+#    return s in ABI_ALLTOKENS
 
 
 def analyze_token(tok):
@@ -98,14 +98,14 @@ def analyze_token(tok):
     dataset = None
     postfix = None
 
-    if tok[0].isalpha(): 
+    if tok[0].isalpha():
         # We have a new variable or a string giving the unit.
         dtidx = None
-                                                                          
+
         #unit = None
         #if is_abiunit(tok):
         #    unit = tok
-                                                                          
+
         if tok[-1].isdigit() and "?" not in tok:
             # Handle dataset index.
             l = []
@@ -114,7 +114,7 @@ def analyze_token(tok):
                 l.append(c)
             else:
                 raise ValueError("Cannot find dataset index in %s" % tok)
-                                                                          
+
             l.reverse()
             dataset = int("".join(l))
             tok = tok[:len(tok)-i-1]
@@ -147,22 +147,13 @@ def expand_star(s):
     return " ".join(l)
 
 
-#uinfo = namedtuple("Uinfo", "utype, pmg_name, defto") 
-#
-#ABI_UNITS = {
-## Abinit_name : unit_type (see pymatgen.core.units), pymatgen name, default conversion
-#    "bohr": uinfo("length", "bohr", "bohr"),
-#    "angstrom": uinfo("length", "ang", "bohr"),
-#}
-
-
 def str2array_bohr(obj):
     if not is_string(obj): return np.asarray(obj)
 
     # Treat e.g. acell 3 * 1.0
     obj = expand_star(obj)
     tokens = obj.split()
-    
+
     if not tokens[-1].isalpha():
         # No unit
         return np.fromstring(obj, sep=" ")
@@ -171,14 +162,14 @@ def str2array_bohr(obj):
     if unit in ("angstr", "angstrom", "angstroms"):
         return np.fromstring(" ".join(tokens[:-1]), sep=" ") / bohr_to_ang
     elif unit in ("bohr", "bohrs"):
-        return np.fromstring(" ".join(tokens[:-1]), sep=" ") 
+        return np.fromstring(" ".join(tokens[:-1]), sep=" ")
     else:
         raise ValueError("Don't know how to handle unit: %s" % unit)
 
 
 def str2array(obj):
     if not is_string(obj): return np.asarray(obj)
-    return np.fromstring(expand_star(obj), sep=" ") 
+    return np.fromstring(expand_star(obj), sep=" ")
 
 
 def varname_dtindex(tok):
@@ -203,7 +194,7 @@ def varname_dtindex(tok):
 
 def eval_operators(s):
     """
-    Receive a string, find the occurences of operators supported 
+    Receive a string, find the occurences of operators supported
     in the input file (e.g. sqrt), evalute expression and return new string.
     """
     import re
@@ -220,8 +211,6 @@ def eval_operators(s):
     #'pro--gram files'
     #>>> re.sub(r'\sAND\s', ' & ', 'Baked Beans And Spam', flags=re.IGNORECASE)
     #'Baked Beans & Spam'
-
-    
     return s
 
 
@@ -234,7 +223,7 @@ class Dataset(dict):
         if "angdeg" in self:
             assert "rprim" not in self
             raise NotImplementedError("angdeg")
-            #kwargs["angdeg"] = 
+            #kwargs["angdeg"] =
         else:
             # Handle structure specified with rprim.
             kwargs["rprim"] = str2array_bohr(self.get("rprim", "1.0 0 0 0 1 0 0 0 1"))
@@ -264,8 +253,8 @@ class Dataset(dict):
 class AbinitInputFile(object):
     """
     This object parses the Abinit input file, stores the variables in
-    dict-like objects (Datasets) and build `Structure` objects from 
-    the input variables. Mainly used for inspecting the structure 
+    dict-like objects (Datasets) and build `Structure` objects from
+    the input variables. Mainly used for inspecting the structure
     declared in the Abinit input file.
     """
     @classmethod
@@ -293,16 +282,16 @@ class AbinitInputFile(object):
         self.jdtset = dvars.pop("jdtset", None)
 
         if self.udtset is not None or self.jdtset is not None:
-            #logger.warning("udtset and jdtset are not supported") 
-            raise ValueError("udtset and jdtset are not supported") 
+            #logger.warning("udtset and jdtset are not supported")
+            raise ValueError("udtset and jdtset are not supported")
 
         self.dtsets = [Dataset() for i in range(self.ndtset)]
 
-        # Treat all variables without a dataset index 
+        # Treat all variables without a dataset index
         kv_list = list(dvars.items())
         for k, v in kv_list:
             if k[-1].isdigit() or any(c in k for c in ("?", ":", "+", "*")): continue
-            for d in self.dtsets: d[k] = v 
+            for d in self.dtsets: d[k] = v
             dvars.pop(k)
 
         # Treat all variables with a dataset index except those with "?", ":", "+"
@@ -312,18 +301,18 @@ class AbinitInputFile(object):
             varname, idt = varname_dtindex(k)
             dvars.pop(k)
 
-            if idt > self.ndtset: 
+            if idt > self.ndtset:
                 logger.warning("Ignoring key: %s because ndtset: %d" % (k, self.ndtset))
                 continue
             self.dtsets[idt-1][varname] = v
-            
+
         # Now treat series e.g. ecut: 10 ecut+ 5 (? is not treated)
         kv_list = list(dvars.items())
         for k, v in kv_list:
-            if "?" in k: continue 
+            if "?" in k: continue
             if ":" not in k: continue
             # TODO units
-            vname = k[:-1] 
+            vname = k[:-1]
             start = str2array(dvars.pop(k))
 
             incr = dvars.pop(vname + "+", None)
@@ -332,7 +321,7 @@ class AbinitInputFile(object):
                 for dt in self.dtsets:
                     dt[vname] = start.copy()
                     start += incr
-                    
+
             else:
                 mult = dvars.pop(vname + "*")
                 mult = str2array(mult)
@@ -352,7 +341,6 @@ class AbinitInputFile(object):
         if dvars:
             raise ValueError("Don't know how handle variables in %s" % str(dvars))
 
-
     def __str__(self):
         return self.string
 
@@ -364,7 +352,7 @@ class AbinitInputFile(object):
         if the datasets have different structures. In this case, one has to
         access the structure of the individual datasets. For example:
 
-            input.dtsets[0].structure 
+            input.dtsets[0].structure
 
         gives the structure of the first dataset.
         """
@@ -397,7 +385,7 @@ def parse_abinit_string(s):
         i = tokens.index("ndtset")
     except ValueError:
         i = None
-    ndtset = 1 if i is None else int(tokens[i+1])
+    #ndtset = 1 if i is None else int(tokens[i+1])
 
     varpos = []
     for pos, tok in enumerate(tokens):
@@ -406,13 +394,13 @@ def parse_abinit_string(s):
         #if t.isvar:
         #elif t.isunit:
 
-        if tok[0].isalpha():  
+        if tok[0].isalpha():
             # Either new variable, string defining the unit or operator e.g. sqrt
-            if is_abiunit(tok) or is_abioperator(tok): 
+            if is_abiunit(tok) or is_abioperator(tok):
                 continue
 
             # new variable
-            dtidx = None
+            #dtidx = None
 
             if tok[-1].isdigit() and "?" not in tok:
                 # Handle dataset index.
@@ -424,8 +412,8 @@ def parse_abinit_string(s):
                     raise ValueError("Cannot find dataset index in %s" % tok)
 
                 l.reverse()
-                dtidx = int("".join(l))
-                tok = tok[:len(tok)-i-1]
+                #dtidx = int("".join(l))
+                #tok = tok[:len(tok)-i-1]
 
             varpos.append(pos)
 
@@ -444,9 +432,3 @@ def parse_abinit_string(s):
         raise RuntimeError("\n".join(err_lines))
 
     return d
-
-# Tokens are divides in 3 classes: variable names, unit names, operators
-#from .abivars_db import ABI_VARNAMES, ABI_UNITS, ABI_OPS
-#
-## All tokens supported by the abinit parser.
-#ABI_ALLTOKENS = ABI_VARNAMES + ABI_OPS + ABI_UNITS 

@@ -8,6 +8,7 @@ import pymatgen.io.abinit.abiobjects as aobj
 from collections import namedtuple
 from monty.collections import AttrDict
 from monty.json import jsanitize, MontyDecoder
+from pymatgen.io.abinit.abiobjects import KSampling
 from pymatgen.io.abinit.pseudos import PseudoTable
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
@@ -23,13 +24,14 @@ __all__ = [
     "gs_input",
     "ebands_input",
     "g0w0_with_ppmodel_inputs",
+    "g0w0_convergence_inputs",
     "bse_with_mdf_inputs",
     "ion_ioncell_relax_input",
     "scf_phonons_inputs",
 ]
 
 
-# TODO: To be discussed: 
+# TODO: To be discussed:
 #    1) extra_abivars is more similar to a hack. The factory functions are designed for
 #       HPC hence we cannot allow the user to inject something we cannot control easily
 #       Shall we remove it?
@@ -112,7 +114,7 @@ def _find_scf_nband(structure, pseudos, electrons, spinat=None):
     if electrons.nband is not None: return electrons.nband
 
     nsppol, smearing = electrons.nsppol, electrons.smearing
-    
+
     # Number of valence electrons including possible extra charge
     nval = structure.num_valence_electrons(pseudos)
     nval -= electrons.charge
@@ -131,14 +133,15 @@ def _find_scf_nband(structure, pseudos, electrons, spinat=None):
         nband = max(np.ceil(nband*1.1), nband+4)
 
     # Increase number of bands based on the starting magnetization
-    if nsppol==2 and spinat is not None:
+    if nsppol == 2 and spinat is not None:
         nband += np.ceil(max(np.sum(spinat, axis=0))/2.)
 
+    # Force even nband (easier to divide among procs, mandatory if nspinor == 2)
     nband += nband % 2
     return int(nband)
 
 
-def gs_input(structure, pseudos, 
+def gs_input(structure, pseudos,
              kppa=None, ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
              smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
     """
@@ -159,20 +162,20 @@ def gs_input(structure, pseudos,
         charge: Electronic charge added to the unit cell.
         scf_algorithm: Algorithm used for solving of the SCF cycle.
     """
-    multi = ebands_input(structure, pseudos, 
-                 kppa=kppa, 
+    multi = ebands_input(structure, pseudos,
+                 kppa=kppa,
                  ecut=ecut, pawecutdg=pawecutdg, scf_nband=scf_nband, accuracy=accuracy, spin_mode=spin_mode,
                  smearing=smearing, charge=charge, scf_algorithm=scf_algorithm)
 
     return multi[0]
 
 
-def ebands_input(structure, pseudos, 
-                 kppa=None, nscf_nband=None, ndivsm=15, 
+def ebands_input(structure, pseudos,
+                 kppa=None, nscf_nband=None, ndivsm=15,
                  ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
                  smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None, dos_kppa=None):
     """
-    Returns a :class:`AbinitInput` for band structure calculations.
+    Returns a :class:`MultiDataset` for band structure calculations.
 
     Args:
         structure: :class:`Structure` object.
@@ -206,10 +209,10 @@ def ebands_input(structure, pseudos,
     # SCF calculation.
     kppa = _DEFAULTS.get("kppa") if kppa is None else kppa
     scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
-    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
+    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                    charge=charge, nband=scf_nband, fband=None)
 
-    if spin_mode=="polarized":
+    if spin_mode == "polarized":
         multi[0].set_autospinat()
 
     if scf_electrons.nband is None:
@@ -235,7 +238,7 @@ def ebands_input(structure, pseudos,
             dos_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
             #dos_ksampling = aobj.KSampling.monkhorst(dos_ngkpt, shiftk=dos_shiftk, chksymbreak=0)
             dos_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm={"iscf": -2},
-                                           charge=charge, nband=nscf_nband) 
+                                           charge=charge, nband=nscf_nband)
             dt = 2 + i
             multi[dt].set_vars(dos_ksampling.to_abivars())
             multi[dt].set_vars(dos_electrons.to_abivars())
@@ -244,12 +247,12 @@ def ebands_input(structure, pseudos,
     return multi
 
 
-def ion_ioncell_relax_input(structure, pseudos, 
+def ion_ioncell_relax_input(structure, pseudos,
                             kppa=None, nband=None,
                             ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
                             smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None, force_gamma_centered=False):
     """
-    Returns a :class:`AbinitInput` for a structural relaxation. The first dataset optmizes the 
+    Returns a :class:`MultiDataset` for a structural relaxation. The first dataset optmizes the
     atomic positions at fixed unit cell. The second datasets optimizes both ions and unit cell parameters.
 
     Args:
@@ -261,7 +264,7 @@ def ion_ioncell_relax_input(structure, pseudos,
         spin_mode: Spin polarization.
         smearing: Smearing technique.
         charge: Electronic charge added to the unit cell.
-        scf_algorithm: Algorithm used for solving of the SCF cycle.
+        scf_algorithm: Algorithm used for the solution of the SCF cycle.
     """
     structure = Structure.as_structure(structure)
     multi = MultiDataset(structure, pseudos, ndtset=2)
@@ -277,7 +280,7 @@ def ion_ioncell_relax_input(structure, pseudos,
     electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
                                charge=charge, nband=nband, fband=None)
 
-    if spin_mode=="polarized":
+    if spin_mode == "polarized":
         spinat_dict = multi[0].set_autospinat()
         multi[1].set_vars(spinat_dict)
 
@@ -299,13 +302,20 @@ def ion_ioncell_relax_input(structure, pseudos,
     return multi
 
 
-def ion_ioncell_relax_and_ebands_input(structure, pseudos, 
-                                        kppa=None, nband=None,
-                                        ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
-                                        smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
+def ion_ioncell_relax_and_ebands_input(structure, pseudos,
+                                       kppa=None, nband=None,
+                                       ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
+                                       smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
     """
-    Returns a :class:`AbinitInput` for a structural relaxation. The first dataset optmizes the 
-    atomic positions at fixed unit cell. The second datasets optimizes both ions and unit cell parameters.
+    Returns a :class:`MultiDataset` for a structural relaxation followed by a band structure run.
+    The first dataset optmizes the atomic positions at fixed unit cell.
+    The second datasets optimizes both ions and unit cell parameters.
+    The other datasets perform a band structure calculation.
+
+    .. warning::
+
+        Client code is responsible for propagating the relaxed structure obtained with the
+        second dataset to the inputs used for the band structure calculation.
 
     Args:
         structure: :class:`Structure` object.
@@ -320,27 +330,27 @@ def ion_ioncell_relax_and_ebands_input(structure, pseudos,
     """
     structure = Structure.as_structure(structure)
 
-    relax_multi = ion_ioncell_relax_input(structure, pseudos, 
+    relax_multi = ion_ioncell_relax_input(structure, pseudos,
                                           kppa=kppa, nband=nband,
                                           ecut=ecut, pawecutdg=pawecutdg, accuracy=accuracy, spin_mode=spin_mode,
                                           smearing=smearing, charge=charge, scf_algorithm=scf_algorithm)
 
-    ebands_multi = ebands_input(structure, pseudos, 
-                                kppa=kppa, nscf_nband=None, ndivsm=15, 
+    ebands_multi = ebands_input(structure, pseudos,
+                                kppa=kppa, nscf_nband=None, ndivsm=15,
                                 ecut=ecut, pawecutdg=pawecutdg, scf_nband=None, accuracy=accuracy, spin_mode=spin_mode,
                                 smearing=smearing, charge=charge, scf_algorithm=scf_algorithm, dos_kppa=None)
 
     return relax_multi + ebands_multi
 
 
-def g0w0_with_ppmodel_inputs(structure, pseudos, 
+def g0w0_with_ppmodel_inputs(structure, pseudos,
                             kppa, nscf_nband, ecuteps, ecutsigx,
                             ecut=None, pawecutdg=None,
                             accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
                             ppmodel="godby", charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
                             sigma_nband=None, gw_qprange=1):
     """
-    Returns a :class:`AbinitInput` object that performs G0W0 calculations with the plasmon pole approximation.
+    Returns a :class:`MultiDataset` object that performs G0W0 calculations with the plasmon pole approximation.
 
     Args:
         structure: Pymatgen structure.
@@ -350,7 +360,7 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
         ecuteps: Cutoff energy [Ha] for the screening matrix.
         ecutsigx: Cutoff energy [Ha] for the exchange part of the self-energy.
         ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
-        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized 
+        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized
             from the pseudos according to accuracy)
         accuracy: Accuracy of the calculation.
         spin_mode: Spin polarization.
@@ -372,7 +382,7 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
     multi.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos))
 
     scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
-    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
+    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                    charge=charge, nband=None, fband=None)
 
     if scf_electrons.nband is None:
@@ -418,19 +428,210 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
 
     return multi
 
-#TODO
-#def g0w0_extended_work(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx, scf_nband, accuracy="normal",
 
-def bse_with_mdf_inputs(structure, pseudos, 
-                        scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk, 
-                        ecuteps, bs_loband, bs_nband, soenergy, mdf_epsinf, 
-                        ecut=None, pawecutdg=None, 
-                        exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="polarized", 
+def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx, scf_nband, ecut,
+                            accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
+                            response_models=None, charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
+                            sigma_nband=None, gw_qprange=1, gamma=True, nksmall=None, extra_abivars=None):
+    """
+    Returns a :class:`MultiDataset` object to generate a G0W0 work for the given the material.
+
+    Args:
+        structure: Pymatgen structure.
+        pseudos: List of `Pseudo` objects.
+        kppa: k poits per reciprocal atom
+        scf_nband: number of scf bands
+        ecut: ecut for all calcs that that are not ecut convergence  cals at scf level
+        scf_ Defines the sampling used for the SCF run.
+        nscf_nband: Number of bands included in the NSCF run.
+        ecuteps: Cutoff energy [Ha] for the screening matrix.
+        ecutsigx: Cutoff energy [Ha] for the exchange part of the self-energy.
+        accuracy: Accuracy of the calculation.
+        spin_mode: Spin polarization.
+        smearing: Smearing technique.
+        charge: Electronic charge added to the unit cell.
+        scf_algorithm: Algorithm used for solving of the SCF cycle.
+        inclvkb: Treatment of the dipole matrix elements (see abinit variable).
+        scr_nband: Number of bands used to compute the screening (default is nscf_nband)
+        sigma_nband: Number of bands used to compute the self-energy (default is nscf_nband)
+        response_models: List of response models
+        gw_qprange: selectpr for the qpoint mesh
+        gamma: is true a gamma centered mesh is enforced
+        nksmall: Kpoint division for additional band and dos calculations
+        extra_abivars: Dictionary with extra variables passed to ABINIT for all tasks.
+
+    extra abivars that are provided with _s appended will be take as a list of values to be tested a scf level
+    """
+    if extra_abivars is None:
+        extra_abivars = {}
+
+    if response_models is None:
+        response_models = ["godby"]
+
+    scf_diffs = []
+
+    for k in extra_abivars.keys():
+        if k[-2:] == '_s':
+            var = k[:len(k)-2]
+            values = extra_abivars.pop(k)
+            #to_add.update({k: values[-1]})
+            for value in values:
+                diff_abivars = dict()
+                diff_abivars[var] = value
+                if pseudos.allpaw and var == 'ecut':
+                    diff_abivars['pawecutdg'] = diff_abivars['ecut']*2
+                scf_diffs.append(diff_abivars)
+
+    extra_abivars_all = dict(
+        ecut=ecut,
+        paral_kgb=1,
+        istwfk="*1",
+        timopt=-1,
+        nbdbuf=8,
+    )
+
+    extra_abivars_all.update(extra_abivars)
+
+    if pseudos.allpaw:
+        extra_abivars_all['pawecutdg'] = extra_abivars_all['ecut']*2
+
+    extra_abivars_gw = dict(
+        inclvkb=2,
+        gwpara=2,
+        gwmem='10',
+        prtsuscep=0
+    )
+
+
+    # all these too many options are for development only the current idea for the final version is
+    #if gamma:
+    #    scf_ksampling = KSampling.automatic_density(structure=structure, kppa=10000, chksymbreak=0, shifts=(0, 0, 0))
+    #    nscf_ksampling = KSampling.gamma_centered(kpts=(2, 2, 2))
+    #    if kppa <= 13:
+    #        nscf_ksampling = KSampling.gamma_centered(kpts=(scf_kppa, scf_kppa, scf_kppa))
+    #    else:
+    #        nscf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0, shifts=(0, 0, 0))
+    #else:
+    #    scf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
+    #    nscf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
+
+    if gamma:
+        if kppa == 1:
+            scf_ksampling = aobj.KSampling.gamma_centered(kpts=(1, 1, 1))
+            nscf_ksampling = aobj.KSampling.gamma_centered(kpts=(1, 1, 1))
+        elif kppa == 2:
+            scf_ksampling = aobj.KSampling.gamma_centered(kpts=(2, 2, 2))
+            nscf_ksampling = aobj.KSampling.gamma_centered(kpts=(2, 2, 2))
+        elif kppa < 0:
+            scf_ksampling = aobj.KSampling.gamma_centered(kpts=(-kppa, -kppa, -kppa))
+            nscf_ksampling = aobj.KSampling.gamma_centered(kpts=(2, 2, 2))
+        elif kppa <= 13:
+            scf_ksampling = aobj.KSampling.gamma_centered(kpts=(kppa, kppa, kppa))
+            nscf_ksampling = aobj.KSampling.gamma_centered(kpts=(kppa, kppa, kppa))
+        else:
+            scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=(0, 0, 0))
+            nscf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=(0, 0, 0))
+    else:
+        # this is the original behaviour before the devellopment of the gwwrapper
+        scf_ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0)
+        nscf_ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0)
+
+    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
+                                   charge=charge, nband=scf_nband, fband=None)
+    nscf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm={"iscf": -2},
+                                    charge=charge, nband=nscf_nband, fband=None)
+
+    multi_scf = MultiDataset(structure, pseudos, ndtset=max(1, len(scf_diffs)))
+   
+    multi_scf.set_vars(scf_ksampling.to_abivars())
+    multi_scf.set_vars(scf_electrons.to_abivars())
+    multi_scf.set_vars(extra_abivars_all)
+    multi_scf.set_vars(_stopping_criterion(runlevel="scf", accuracy=accuracy))
+    multi_scf.set_vars(extra_abivars)
+
+    for variables, abinput in zip(scf_diffs, multi_scf):
+        abinput.set_vars(variables)
+
+    scf_inputs = multi_scf.split_datasets()
+
+    # create nscf inputs
+
+    ndtset = 3 if nksmall is not None else 1
+    nscf_multi = MultiDataset(structure=structure, pseudos=pseudos, ndtset=ndtset)
+
+    nscf_multi.set_vars(nscf_electrons.to_abivars())
+    nscf_multi.set_vars(extra_abivars_all)
+    nscf_multi.set_vars(_stopping_criterion(runlevel="nscf", accuracy=accuracy))
+
+    nscf_multi[-1].set_vars(nscf_ksampling.to_abivars())
+
+    if nksmall is not None:
+        # if nksmall add bandstructure and dos calculations as well
+        logger.info('added band structure calculation')
+        bands_ksampling = aobj.KSampling.path_from_structure(ndivsm=nksmall, structure=structure)
+        dos_ksampling = aobj.KSampling.automatic_density(structure=structure, kppa=2000)
+        nscf_multi[0].set_vars(bands_ksampling.to_abivars())
+        nscf_multi[0].set_vars({'chksymbreak': 0})
+        nscf_multi[1].set_vars(dos_ksampling.to_abivars())
+        nscf_multi[1].set_vars({'chksymbreak': 0})
+
+    nscf_inputs = nscf_multi.split_datasets()
+
+    # create screening and sigma inputs
+
+    if scr_nband is None:
+        scr_nband = nscf_nband
+    if sigma_nband is None:
+        sigma_nband = nscf_nband
+
+    if 'cd' in response_models:
+        hilbert = aobj.HilbertTransform(nomegasf=100, domegasf=None, spmeth=1, nfreqre=None, freqremax=None, nfreqim=None,
+                                        freqremin=None)
+    scr_inputs = []
+    sigma_inputs = []
+
+    for response_model in response_models:
+        for ecuteps_v in ecuteps:
+            for nscf_nband_v in nscf_nband:
+                scr_nband = nscf_nband_v
+                sigma_nband = nscf_nband_v
+                multi = MultiDataset(structure, pseudos, ndtset=2)
+                multi.set_vars(nscf_ksampling.to_abivars())
+                multi.set_vars(nscf_electrons.to_abivars())
+                multi.set_vars(extra_abivars_all)
+                multi.set_vars(extra_abivars_gw)
+                if response_model == 'cd':
+                    screening = aobj.Screening(ecuteps_v, scr_nband, w_type="RPA", sc_mode="one_shot", hilbert=hilbert,
+                                               ecutwfn=None, inclvkb=inclvkb)
+                    self_energy = aobj.SelfEnergy("gw", "one_shot", sigma_nband, ecutsigx, screening)
+                else:
+                    ppmodel = response_model
+                    screening = aobj.Screening(ecuteps_v, scr_nband, w_type="RPA", sc_mode="one_shot",
+                                               hilbert=None, ecutwfn=None, inclvkb=inclvkb)
+                    self_energy = aobj.SelfEnergy("gw", "one_shot", sigma_nband, ecutsigx, screening,
+                                                  gw_qprange=gw_qprange, ppmodel=ppmodel)
+                multi[0].set_vars(screening.to_abivars())
+                multi[0].set_vars(_stopping_criterion("screening", accuracy))  # Dummy
+                multi[1].set_vars(self_energy.to_abivars())
+                multi[1].set_vars(_stopping_criterion("sigma", accuracy))  # Dummy
+
+                scr_input, sigma_input = multi.split_datasets()
+                scr_inputs.append(scr_input)
+                sigma_inputs.append(sigma_input)
+
+    return scf_inputs, nscf_inputs, scr_inputs, sigma_inputs
+
+
+def bse_with_mdf_inputs(structure, pseudos,
+                        scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,
+                        ecuteps, bs_loband, bs_nband, mbpt_sciss, mdf_epsinf,
+                        ecut=None, pawecutdg=None,
+                        exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="polarized",
                         smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
     """
-    Returns a :class:`AbinitInput` object that performs a GS + NSCF + Bethe-Salpeter calculation.
+    Returns a :class:`MultiDataset` object that performs a GS + NSCF + Bethe-Salpeter calculation.
     The self-energy corrections are approximated with the scissors operator.
-    The screening in modeled with the model dielectric function.
+    The screening is modeled with the model dielectric function.
 
     Args:
         structure: :class:`Structure` object.
@@ -444,7 +645,7 @@ def bse_with_mdf_inputs(structure, pseudos,
             (ABINIT convention i.e. first band starts at 1).
             Can be scalar or array of shape (nsppol,)
         bs_nband: Highest band idex used for the construction of the e-h basis set.
-        soenergy: Scissor energy in Hartree.
+        mbpt_sciss: Scissor energy in Hartree.
         mdf_epsinf: Value of the macroscopic dielectric function used in expression for the model dielectric function.
         ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
         pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos
@@ -464,10 +665,10 @@ def bse_with_mdf_inputs(structure, pseudos,
     d = _find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos)
     multi.set_vars(ecut=d.ecut, ecutwfn=d.ecut, pawecutdg=d.pawecutdg)
 
-    # Ground-state 
+    # Ground-state
     scf_ksampling = aobj.KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
 
-    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
+    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                    charge=charge, nband=None, fband=None)
 
     if scf_electrons.nband is None:
@@ -488,7 +689,7 @@ def bse_with_mdf_inputs(structure, pseudos,
     multi[1].set_vars(_stopping_criterion("nscf", accuracy))
 
     # BSE calculation.
-    exc_ham = aobj.ExcHamiltonian(bs_loband, bs_nband, soenergy, coulomb_mode="model_df", ecuteps=ecuteps, 
+    exc_ham = aobj.ExcHamiltonian(bs_loband, bs_nband, mbpt_sciss, coulomb_mode="model_df", ecuteps=ecuteps,
                                   spin_mode=spin_mode, mdf_epsinf=mdf_epsinf, exc_type=exc_type, algo=bs_algo,
                                   bs_freq_mesh=None, with_lf=True, zcut=None)
 
@@ -508,7 +709,7 @@ def scf_phonons_inputs(structure, pseudos, kppa,
                        smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
 
     """
-    Returns a :class:`AbinitInput` for performing phonon calculations.
+    Returns a list of input files for performing phonon calculations.
     GS input + the input files for the phonon calculation.
 
     Args:
@@ -518,7 +719,7 @@ def scf_phonons_inputs(structure, pseudos, kppa,
         ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
         pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the
             pseudos according to accuracy)
-        scf_nband: Number of bands for SCF run. If scf_nband is None, nband is automatically initialized from the list of 
+        scf_nband: Number of bands for SCF run. If scf_nband is None, nband is automatically initialized from the list of
             pseudos, the structure and the smearing option.
         accuracy: Accuracy of the calculation.
         spin_mode: Spin polarization.
@@ -542,7 +743,9 @@ def scf_phonons_inputs(structure, pseudos, kppa,
     #print("get_ibz qpoints:", qpoints)
 
     # Build the input files for the q-points in the IBZ.
-    ph_inputs = MultiDataset(gs_inp.structure, pseudos=gs_inp.pseudos, ndtset=len(qpoints))
+    #ph_inputs = MultiDataset(gs_inp.structure, pseudos=gs_inp.pseudos, ndtset=len(qpoints))
+
+    ph_inputs = MultiDataset.replicate_input(gs_inp, ndtset=len(qpoints))
 
     for ph_inp, qpt in zip(ph_inputs, qpoints):
         # Response-function calculation for phonons.
@@ -563,19 +766,16 @@ def scf_phonons_inputs(structure, pseudos, kppa,
         #    #print(pert)
         #    # TODO this will work for phonons, but not for the other types of perturbations.
         #    ph_inp = q_inp.deepcopy()
-
         #    rfdir = 3 * [0]
         #    rfdir[pert.idir -1] = 1
-
         #    ph_inp.set_vars(
         #        rfdir=rfdir,
         #        rfatpol=[pert.ipert, pert.ipert]
         #    )
-
         #    ph_inputs.append(ph_inp)
 
     # Split input into gs_inp and ph_inputs
-    all_inps = [gs_inp] 
+    all_inps = [gs_inp]
     all_inps.extend(ph_inputs.split_datasets())
 
     return all_inps
@@ -584,7 +784,7 @@ def scf_phonons_inputs(structure, pseudos, kppa,
 def phonons_from_gsinput(gs_inp, ph_ngqpt=None, with_ddk=True, with_dde=True, with_bec=False, ph_tol=None, ddk_tol=None,
                          dde_tol=None):
     """
-    Returns a :class:`AbinitInput` for performing phonon calculations.
+    Returns a :class:`MultiDataset` for performing phonon calculations.
     GS input + the input files for the phonon calculation.
     """
 
@@ -632,8 +832,8 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, with_ddk=True, with_dde=True, wi
     multi = MultiDataset.from_inputs(multi)
     multi.add_tags(PHONON)
 
-    #FIXME for the time being there could be problems in mergeddb if the kpoints grid is gamma centered or if
-    # if the grid is odd. Remove when mergeddb is fixed
+    #FIXME for the time being there could be problems in mergddb if the kpoints grid is gamma centered or if
+    # if the grid is odd. Remove when mergddb is fixed
     multi.set_vars(kptopt=3)
 
     return multi
@@ -727,7 +927,7 @@ def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None
                              ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False):
 
     """
-    Returns a :class:`AbinitInput` for performing elastic and piezoelectric constants calculations.
+    Returns a :class:`MultiDataset` for performing elastic and piezoelectric constants calculations.
     GS input + the input files for the elastic and piezoelectric constants calculation.
 
     Args:
@@ -835,6 +1035,9 @@ def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None
 def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=None, accuracy="normal",
               spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
               shift_mode="Monkhorst-Pack"):
+    """
+    Returns an :class:`AbinitInput` for standard GS calculations.
+    """
     structure = Structure.as_structure(structure)
 
     abinit_input = AbinitInput(structure, pseudos)
@@ -849,7 +1052,7 @@ def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=No
     scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                    charge=charge, nband=nband, fband=None)
 
-    if spin_mode=="polarized":
+    if spin_mode == "polarized":
         abinit_input.set_autospinat()
 
     if scf_electrons.nband is None:

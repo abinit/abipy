@@ -60,7 +60,7 @@ class Scissors(object):
         self.residues = residues
         assert len(self.func_list) == len(self.domains)
 
-        # Treat the out-of-boundary conditions. func_low and func_high are used to handle energies 
+        # Treat the out-of-boundary conditions. func_low and func_high are used to handle energies
         # that are below or above the min/max energy given in domains.
         blow, bhigh = "c", "c"
         if bounds is not None:
@@ -108,7 +108,7 @@ class Scissors(object):
             self.out_bounds[1] += 1
             return self.func_high(eig)
 
-        # eig is inside the domains: find the domain 
+        # eig is inside the domains: find the domain
         # and call the corresponding function.
         for idx, dms in enumerate(domains):
             if dms[1] >= eig >= dms[0]:
@@ -186,7 +186,7 @@ class ScissorsBuilder(object):
         e0min, e0max = np.inf, -np.inf
         for qps in self._qps_spin:
             e0mesh = qps.get_e0mesh()
-            e0min = min(e0min, e0mesh[0]) 
+            e0min = min(e0min, e0mesh[0])
             e0max = max(e0max, e0mesh[-1])
 
         self._e0min, self._e0max = e0min, e0max
@@ -294,7 +294,7 @@ class ScissorsBuilder(object):
             scissors = self._scissors_spin[spin]
             intp_qpc = [scissors.apply(e0) for e0 in e0mesh]
             ax.plot(e0mesh, intp_qpc, label="Scissors operator, spin %s" % spin)
-        
+
         ax.grid(True)
         ax.set_xlabel('KS energy [eV]')
         ax.set_ylabel('QP-KS [eV]')
@@ -323,7 +323,7 @@ class ScissorsBuilder(object):
         from abipy.abilab import abiopen, ElectronBandsPlotter
 
         # Read the KS band energies from bands_filepath and apply the scissors operator.
-        with abiopen(bands_filepath) as ncfile: 
+        with abiopen(bands_filepath) as ncfile:
             ks_bands = ncfile.ebands
             #structure = ncfile.structure
 

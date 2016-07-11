@@ -25,7 +25,7 @@ def build_flow(options):
     nscf_shiftk = [0.1, 0.2, 0.3]
     bs_loband = 2
     bs_nband = nscf_nband
-    soenergy = 0.7
+    mbpt_sciss = 0.7
     mdf_epsinf = 12
     ecuteps = 2
     ecut = 12
@@ -36,7 +36,7 @@ def build_flow(options):
     multi = abilab.bse_with_mdf_inputs(
         structure, pseudos, 
         scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk, 
-        ecuteps, bs_loband, bs_nband, soenergy, mdf_epsinf, 
+        ecuteps, bs_loband, bs_nband, mbpt_sciss, mdf_epsinf, 
         ecut=ecut,#$ pawecutdg=None, 
         exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="unpolarized", 
         smearing=None)
@@ -46,7 +46,7 @@ def build_flow(options):
 
     #from pymatgen.io.abinit.calculations import bse_with_mdf_work
     #work = bse_with_mdf_work(structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,
-    #                         ecuteps, bs_loband, bs_nband, soenergy, mdf_epsinf,
+    #                         ecuteps, bs_loband, bs_nband, mbpt_sciss, mdf_epsinf,
     #                         accuracy="normal", spin_mode="unpolarized", smearing=None,
     #                         charge=0.0, scf_solver=None, **extra_abivars)
 

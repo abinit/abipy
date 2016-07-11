@@ -14,11 +14,10 @@ def main():
 
     def str_examples():
         return """\
-Usage example:\n
-
+Usage example:
     abistruct.py convert filepath cif         => Read the structure from file and print CIF file.
     abistruct.py convert filepath abivars     => Print the ABINIT variables defining the structure.
-    abistruct.py convert out_HIST abivars     => Read the last structure from the HIST file and 
+    abistruct.py convert out_HIST abivars     => Read the last structure from the HIST file and
                                                  print the corresponding Abinit variables.
     abistruct.py visualize filepath xcrysden  => Visualize the structure with XcrysDen.
     abistruct.py ipython filepath             => Read structure from filepath and open Ipython terminal.
@@ -38,44 +37,56 @@ Usage example:\n
 
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + abilab.__version__)
-    parser.add_argument('--loglevel', default="ERROR", type=str,
-                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+
+    # Parent parser for common options.
+    copts_parser = argparse.ArgumentParser(add_help=False)
+    copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
+                              help='verbose, can be supplied multiple times to increase verbosity')
+    copts_parser.add_argument('--loglevel', default="ERROR", type=str,
+                              help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
     # Create the parsers for the sub-commands
-    subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands, use command --help for help")
+    subparsers = parser.add_subparsers(dest='command', help='sub-command help',
+                                       description="Valid subcommands, use command --help for help")
 
     # Subparser for convert command.
-    p_convert = subparsers.add_parser('convert', parents=[path_selector], help="Convert structure to the specified format.")
-    p_convert.add_argument('format', nargs="?", default="cif", type=str, help="Format of the output file (cif, cssr, POSCAR, json, mson, abivars).")
+    p_convert = subparsers.add_parser('convert', parents=[copts_parser, path_selector],
+                                      help="Convert structure to the specified format.")
+    p_convert.add_argument('format', nargs="?", default="cif", type=str,
+                           help="Format of the output file (cif, cssr, POSCAR, json, mson, abivars).")
 
     # Subparser for ipython.
-    p_ipython = subparsers.add_parser('ipython', parents=[path_selector], help="Open IPython shell for advanced operations on structure object.")
+    p_ipython = subparsers.add_parser('ipython', parents=[copts_parser, path_selector],
+                                      help="Open IPython shell for advanced operations on structure object.")
 
     # Subparser for bz.
-    p_bz = subparsers.add_parser('bz', parents=[path_selector], help="Read structure from file, plot Brillouin zone with matplotlib.")
+    p_bz = subparsers.add_parser('bz', parents=[copts_parser, path_selector],
+                                 help="Read structure from file, plot Brillouin zone with matplotlib.")
 
     # Subparser for visualize command.
-    p_visualize = subparsers.add_parser('visualize', parents=[path_selector], help="Visualize the structure with the specified visualizer")
+    p_visualize = subparsers.add_parser('visualize', parents=[copts_parser, path_selector],
+                                        help="Visualize the structure with the specified visualizer")
     p_visualize.add_argument('visualizer', nargs="?", default="xcrysden", type=str, help=("Visualizer name. "
         "List of visualizer supported: %s" % ", ".join(Visualizer.all_visunames())))
 
     # Subparser for pmgid command.
-    p_pmgdata = subparsers.add_parser('pmgdata', help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY")
+    p_pmgdata = subparsers.add_parser('pmgdata', parents=[copts_parser],
+                                      help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY")
     p_pmgdata.add_argument("pmgid", type=str, default=None, help="Pymatgen identifier")
     p_pmgdata.add_argument("--mapi-key", default=None, help="Pymatgen MAPI_KEY. Use env variable if not specified.")
     p_pmgdata.add_argument("--endpoint", default="www.materialsproject.org", help="Pymatgen database.")
 
     # Subparser for animate command.
-    p_animate = subparsers.add_parser('animate', parents=[path_selector], 
+    p_animate = subparsers.add_parser('animate', parents=[copts_parser, path_selector],
         help="Read structures from HIST or XDATCAR. Print structures in Xrysden AXSF format to stdout")
 
     # Parse command line.
     try:
         options = parser.parse_args()
-    except Exception as exc: 
+    except Exception as exc:
         show_examples_and_exit(error_code=1)
 
-    # loglevel is bound to the string value obtained from the command line argument. 
+    # loglevel is bound to the string value obtained from the command line argument.
     # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
     import logging
     numeric_level = getattr(logging, options.loglevel.upper(), None)
@@ -117,18 +128,18 @@ Usage example:\n
         print(s)
 
     elif options.command == "animate":
-        from  abipy.iotools import xsf_write_structure
+        from abipy.iotools import xsf_write_structure
         filepath = options.filepath
 
         if any(filepath.endswith(ext) for ext in ("HIST", "HIST.nc")):
-            with abilab.abiopen(filepath) as hist: 
+            with abilab.abiopen(filepath) as hist:
                 structures = hist.structures
 
         elif "XDATCAR" in filepath:
             from pymatgen.io.vaspio import Xdatcar
             structures = Xdatcar(filepath).structures
             if not structures:
-                raise RuntimeError("Your Xdatcar contains only one structure. Due to a bug " 
+                raise RuntimeError("Your Xdatcar contains only one structure. Due to a bug "
                     "in the pymatgen routine, your structures won't be parsed correctly"
                     "Solution: Add another structure at the end of the file.")
 
@@ -141,6 +152,7 @@ Usage example:\n
         raise ValueError("Unsupported command: %s" % options.command)
 
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

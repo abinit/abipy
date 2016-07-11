@@ -33,13 +33,26 @@ class ElectronBandsTest(AbipyTest):
         """Read ElectronBands from WFK files."""
         for filename in data.WFK_NCFILES:
             ebands = ElectronBands.from_file(filename)
+            ebands.to_pymatgen()
+            ebands.to_pdframe()
+
+            # FIXME
+            #print(ebands.as_dict())
+            #ElectronBands.from_dict(ebands.as_dict())
+            #self.assertMSONable(ebands, test_if_subclass=False)
+
+
 
     def test_read_ebands_from_GSR(self):
         """Read ElectronBands from GSR files."""
         for filename in data.GSR_NCFILES:
             ebands = ElectronBands.from_file(filename)
-            # TODO: FIx this!
-            #ebands.to_pymatgen()
+            ebands.to_pymatgen()
+            ebands.to_pdframe()
+
+            # FIXME
+            #ElectronBands.from_dict(ebands.as_dict())
+            #self.assertMSONable(ebands, test_if_subclass=False)
 
     def test_dos(self):
         """Test DOS methods."""
@@ -50,6 +63,8 @@ class ElectronBandsTest(AbipyTest):
         self.assert_almost_equal(dos.tot_idos[imu][1], 8, decimal=2)
 
         self.serialize_with_pickle(dos, protocols=[-1], test_eq=False)
+
+        #gs_bands.plot_boxes()
 
     def test_jdos(self):
         """Test JDOS methods."""

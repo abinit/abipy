@@ -1,12 +1,33 @@
 # coding: utf-8
 
 from __future__ import unicode_literals, division, print_function
+import os
+import stat
+import os.path
+import ast
+import pymatgen as pmg
+import copy
+import six
+try:
+    import pymongo
+    import gridfs
+except ImportError:
+    pass
+from abc import abstractproperty, abstractmethod, ABCMeta
+from monty.json import MSONable
+# from pymatgen.io.vaspio.vasp_input import Poscar
+from pymatgen.io.vasp.inputs import Poscar
+from pymatgen.matproj.rest import MPRester, MPRestError
+from pymatgen.util.convergence import determine_convergence
+from pymatgen.io.abinit.helpers import print_gnuplot_header, s_name, add_gg_gap, refine_structure, read_extra_abivars
+from pymatgen.core.structure import Structure
+from pymatgen.core.units import eV_to_Ha
+from abipy.gw.codeinterfaces import get_code_interface
 
 """
 Classes for writing GW Input and analyzing GW data. The underlying classes can handle the use of VASP and ABINIT via the
 code interfaces provided in code-interfaces.
 Reads the POSCAR_name in the the current folder and outputs GW input to sub-folders name or lists of structures
-test 3
 """
 
 __author__ = "Michiel van Setten"
@@ -16,36 +37,12 @@ __maintainer__ = "Michiel van Setten"
 __email__ = "mjvansetten@gmail.com"
 __date__ = "May 2014"
 
-import os
-import stat
-import os.path
-import ast
-import pymatgen as pmg
-import copy
-import six
-
-try:
-    import pymongo
-    import gridfs
-except ImportError:
-    pass
-
-from abc import abstractproperty, abstractmethod, ABCMeta
-from monty.json import MSONable
-#from pymatgen.io.vaspio.vasp_input import Poscar
-from pymatgen.io.vasp.inputs import Poscar
-from pymatgen.matproj.rest import MPRester, MPRestError
-from pymatgen.util.convergence import determine_convergence
-from pymatgen.io.abinit.helpers import print_gnuplot_header, s_name, add_gg_gap, refine_structure, read_extra_abivars
-from pymatgen.core.structure import Structure
-from pymatgen.core.units import eV_to_Ha
-from abipy.gw.codeinterfaces import get_code_interface
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 @six.add_metaclass(ABCMeta)
-class AbstractAbinitioSpec(MSONable):
+class AbstractAbInitioSpec(MSONable):
     """
     Contains all non specific methods
     todo for some reason I can not make this class have both a metaclass and subcalss from msonable ...
@@ -63,7 +60,7 @@ class AbstractAbinitioSpec(MSONable):
                      'tol': 0.0001}
         self.warnings = []
         self.errors = []
-        self.update_code_interface()
+        self.code_interface = get_code_interface(self.get_code())
 
     def __getitem__(self, item):
         return self.data[item]
@@ -145,7 +142,10 @@ class AbstractAbinitioSpec(MSONable):
         w: print all results
         """
         print('loop structures mode ', mode)
-        mp_key = os.environ['MP_KEY']
+        try:
+            mp_key = os.environ['MP_KEY']
+        except KeyError:
+            mp_key = None
 
         mp_list_vasp = ['mp-149', 'mp-2534', 'mp-8062', 'mp-2469', 'mp-1550', 'mp-830', 'mp-1986', 'mp-10695', 'mp-66',
                         'mp-1639', 'mp-1265', 'mp-1138', 'mp-23155', 'mp-111']
@@ -165,7 +165,7 @@ class AbstractAbinitioSpec(MSONable):
                 name = Structure.from_dict(c['icsd_data']['structure']).composition.reduced_formula, c['icsd_id'],\
                     c['MP_id']
                 print(name)
-                #Structure.from_dict(c['icsd_data']['structure']).to(fmt='cif',filename=name)
+                # Structure.from_dict(c['icsd_data']['structure']).to(fmt='cif',filename=name)
                 items_list.append({'name': 'mp-' + c['MP_id'], 'icsd': c['icsd_id'], 'mp': c['MP_id']})
         else:
             items_list = [line.strip() for line in open(self.data['source'])]
@@ -180,8 +180,8 @@ class AbstractAbinitioSpec(MSONable):
                 structure = refine_structure(structure)
                 structure.to(fmt='cif', filename=item['name'])
                 try:
-                    kpts = local_db_gaps.GGA_BS.find({'transformations.history.0.id': item['icsd']})[0]['calculations']\
-                    [-1]['band_structure']['kpoints']
+                    kpts = local_db_gaps.GGA_BS.find({'transformations.history.0.id': item['icsd']})[0]\
+                        ['calculations'][-1]['band_structure']['kpoints']
                 except (IndexError, KeyError):
                     kpts = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
                 structure.kpts = kpts
@@ -200,9 +200,9 @@ class AbstractAbinitioSpec(MSONable):
                     else:
                         # print "no bandstructure information available, adding GG as 'gap'"
                         structure = add_gg_gap(structure)
-                elif 'xyz' in item:
-                    structure = pmg.read_structure(item)
-                    raise NotImplementedError
+                elif 'cif' in item:
+                    structure = Structure.from_file(item)
+                    structure = add_gg_gap(structure)
                 elif item.startswith('mp-'):
                     with MPRester(mp_key) as mp_database:
                         print('structure from mp database', item)
@@ -223,7 +223,7 @@ class AbstractAbinitioSpec(MSONable):
             print(item, s_name(structure))
             if mode == 'i':
                 try:
-                    self.excecute_flow(structure)
+                    self.execute_flow(structure)
                 except Exception as exc:
                     print('input generation failed')
                     print(exc)
@@ -248,9 +248,8 @@ class AbstractAbinitioSpec(MSONable):
             os.chmod("job_collection", stat.S_IRWXU)
 
     def reset_job_collection(self):
-        if 'ceci' in self.data['mode']:
-            if os.path.isfile('job_collection'):
-                os.remove('job_collection')
+        if 'ceci' in self.data['mode'] and os.path.isfile('job_collection'):
+            os.remove('job_collection')
 
     @abstractproperty
     def help(self):
@@ -272,7 +271,7 @@ class AbstractAbinitioSpec(MSONable):
         """
 
     @abstractmethod
-    def excecute_flow(self, structure):
+    def execute_flow(self, structure):
         """
         method called in loopstructures in 'i' input mode, this method should generate input, job script files etc
          or create fire_work workflows and put them in a database
@@ -293,7 +292,7 @@ class AbstractAbinitioSpec(MSONable):
         """
 
 
-class GWSpecs(AbstractAbinitioSpec):
+class GWSpecs(AbstractAbInitioSpec):
     """
     Class for GW specifications.
     """
@@ -382,19 +381,20 @@ class GWSpecs(AbstractAbinitioSpec):
             print(str(len(self.errors)) + ' error(s) found:')
             for error in self.errors:
                 print(' > ' + error)
-            exit()
+            return self.errors
         if len(self.warnings) > 0:
             print(str(len(self.warnings)) + ' warning(s) found:')
             for warning in self.warnings:
                 print(' > ' + warning)
         self.reset_job_collection()
+        return 0
 
-    def excecute_flow(self, structure):
+    def execute_flow(self, structure):
         """
-        excecute spec prepare input/jobfiles or submit to fw for a given structure and the given code interface
+        execute spec prepare input/jobfiles or submit to fw for a given structure and the given code interface
         """
-        # todo the mode should actually be handeled here... and not inside the code interface
-        self.code_interface.excecute_flow(structure, self.data)
+        # todo the mode should actually be handled here... and not inside the code interface
+        self.code_interface.execute_flow(structure, self.data)
 
     def process_data(self, structure):
         """
@@ -435,12 +435,12 @@ class GWSpecs(AbstractAbinitioSpec):
                     else:
                         print('| parm_scr type calculation, no converged scf values found')
                         data.full_res.update({'remark': 'No converged SCf parameter found. Continue anyway.'})
-                        data.conv_res['values'].update({'ecut': 40*eV_to_Ha})
+                        data.conv_res['values'].update({'ecut': 44/eV_to_Ha}) # internally we work in eV
                         data.conv_res['control'].update({'ecut': True})
 
-                    #if ecut is provided in extra_abivars overwrite in any case ..
-                    if 'ecut' in read_extra_abivars().keys():
-                        data.conv_res['values'].update({'ecut': read_extra_abivars()['ecut']*eV_to_Ha})
+                    # if ecut is provided in extra_abivars overwrite in any case .. this is done at input generation
+                    # if 'ecut' in read_extra_abivars().keys():
+                    #    data.conv_res['values'].update({'ecut': read_extra_abivars()['ecut']}) # should be in eV
 
                     # if converged ok, if not increase the grid parameter of the next set of calculations
                     extrapolated = data.find_conv_pars(self['tol'])
@@ -483,7 +483,7 @@ class GWSpecs(AbstractAbinitioSpec):
                         data.full_res.update({'all_done': True})
                         data.print_full_res()
                         done = True
-                        #data.print_plot_data()
+                        # data.print_plot_data()
                         self.code_interface.store_results(name=s_name(structure))
                     else:
                         print('| Full type calculation but the full results do not agree with the parm_scr.')
@@ -497,6 +497,8 @@ class GWSpecs(AbstractAbinitioSpec):
                         # set data.type to convergence
                         # loop
                         done = True
+                else:
+                    done = True
 
         elif self.data['test']:
             data.read()
@@ -512,7 +514,8 @@ class GWSpecs(AbstractAbinitioSpec):
         """
         data = GWConvergenceData(spec=self, structure=structure)
         if data.read_conv_res_from_file(os.path.join(s_name(structure)+'.res', s_name(structure)+'.conv_res')):
-            s = '%s %s %s ' % (s_name(structure), str(data.conv_res['values']['ecuteps']), str(data.conv_res['values']['nscf_nbands']))
+            s = '%s %s %s ' % (s_name(structure), str(data.conv_res['values']['ecuteps']), str(data.conv_res['values']
+                                                                                               ['nscf_nbands']))
         else:
             s = '%s 0.0 0.0 ' % s_name(structure)
         con_dat = self.code_interface.read_convergence_data(s_name(structure)+'.res')
@@ -522,7 +525,7 @@ class GWSpecs(AbstractAbinitioSpec):
             s += '0.0 '
         s += '\n'
         f = open(file_name, 'a')
-        f.write(s)
+        f.write(str(s))
         f.close()
 
     def insert_in_database(self, structure, clean_on_ok=False, db_name='GW_results', collection='general'):
@@ -540,6 +543,7 @@ class GWSpecs(AbstractAbinitioSpec):
             extra = None
         ps = self.code_interface.read_ps_dir()
         results_file = os.path.join(s_name(structure)+'.res', self.code_interface.gw_data_file)
+        ksbands_file = os.path.join(s_name(structure)+'.res', self.code_interface.ks_bands_file)
         data_file = os.path.join(s_name(structure)+'.res', s_name(structure)+'.data')
         if success and con_dat is not None:
             query = {'system': s_name(structure),
@@ -555,6 +559,7 @@ class GWSpecs(AbstractAbinitioSpec):
                           'structure': structure.as_dict(),
                           'gw_results': con_dat,
                           'results_file': results_file,
+                          'ksbands_file': ksbands_file,
                           'data_file': data_file})
 
             # generic section that should go into the base class like
@@ -581,6 +586,11 @@ class GWSpecs(AbstractAbinitioSpec):
                 except IOError:
                     print(entry['results_file'], 'not found')
                 try:
+                    with open(entry['ksbands_file'], 'r') as f:
+                        entry['ksbands_file'] = gfs.put(f.read())
+                except IOError:
+                    print(entry['ksbands_file'], 'not found')
+                try:
                     with open(entry['data_file'], 'r') as f:
                         entry['data_file'] = gfs.put(f.read())
                 except IOError:
@@ -592,6 +602,11 @@ class GWSpecs(AbstractAbinitioSpec):
                 try:
                     print('removing file ', new_entry['results_file'], 'from db')
                     gfs.remove(new_entry['results_file'])
+                except:
+                    print('remove failed')
+                try:
+                    print('removing file ', new_entry['ksbands_file'], 'from db')
+                    gfs.remove(new_entry['ksbands_file'])
                 except:
                     print('remove failed')
                 try:
@@ -607,6 +622,11 @@ class GWSpecs(AbstractAbinitioSpec):
                 except IOError:
                     print(new_entry['results_file'], 'not found')
                 try:
+                    with open(new_entry['ksbands_file'], 'r') as f:
+                        new_entry['ksbands_file'] = gfs.put(f)
+                except IOError:
+                    print(new_entry['ksbands_file'], 'not found')
+                try:
                     with open(new_entry['data_file'], 'r') as f:
                         new_entry['data_file'] = gfs.put(f)
                 except IOError:
@@ -619,16 +639,10 @@ class GWSpecs(AbstractAbinitioSpec):
             local_serv.disconnect()
             # end generic section
 
-            #todo remove the workfolders
+            # todo remove the workfolders
 
 
-#class PhononSpecs(AbstractAbinitioSpec):
-#    """
-#    under construction
-#    """
-
-
-class GWConvergenceData():
+class GWConvergenceData(object):
     """
     Class for GW data, reading, plotting and testing for convergence
     """
@@ -639,7 +653,10 @@ class GWConvergenceData():
         self.code_interface = get_code_interface(spec['code'])
         self.conv_res = {'control': {}, 'values': {}, 'derivatives': {}}
         self.full_res = {'all_done': False, 'grid': 0}
-        self.name = s_name(structure)
+        if structure is not None:
+            self.name = s_name(structure)
+        else:
+            self.name = 'notknown'
         self.type = {'parm_scr': False, 'full': False, 'single': False, 'test': False}
 
     def read_conv_res_from_file(self, filename):
@@ -698,7 +715,8 @@ class GWConvergenceData():
         single   : Single calculation with standard parameters
         test     : Test calculation, results of a set of calculations specified in TESTS
         parm_scr : Convergence calculation first part, screening the parameters nbands and ecuteps at a low kp density
-        full     : Convergence calculation second part, testing the obtained parameters values at the provided kp density
+        full     : Convergence calculation second part, testing the obtained parameters values at the provided kp
+                   density
         """
         name = self.name
         if self.spec['converge']:
@@ -706,7 +724,7 @@ class GWConvergenceData():
                 # convergence setting in spec, but only the low grid dirs exist
                 self.type['parm_scr'] = True
             if not os.path.isdir(name) and os.path.isdir(name+'.conv'):
-                # test case, separate folder was made for the .conv caluclations
+                # test case, separate folder was made for the .conv calculations
                 self.type['full'] = True
             elif os.path.isdir(name) and os.path.isdir(name+'.conv'):
                 # both convergence and full dirs exists
@@ -724,12 +742,13 @@ class GWConvergenceData():
             self.type['single'] = True
         print(self.type)
 
-    def find_conv_pars(self, tol=0.0001):
+    def find_conv_pars(self, tol=0.0001, silent=False):
         """
         find the pair of smallest values of ecuteps and nbands that give a gamma - gamma gap converged within tol
         positive tol ensures the dirivative is smaller than tol
         negative tol ensures the value is closer than -tol to the assymtotic limmit of a 'A + B / x ^ N' fit
         """
+        plots = False if silent else True
         ecuteps_l = False
         nbands_l = False
         ecuteps_c = 0
@@ -744,17 +763,17 @@ class GWConvergenceData():
         xs = self.get_var_range('nbands')
         ys = self.get_var_range('ecuteps')
         zd = self.get_data_array()
-        for z in zd:
-            print(z)
+#        for z in zd:
+#            print(z)
         # print 'plot "'+self.name+'condat'+'"'
         for x in xs:
             zs = []
             for y in ys:
                 try:
                     zs.append(zd[x][y])
-                except KeyError:
-                    pass
-            conv_data = determine_convergence(ys, zs, name=self.name, tol=tol, extra='ecuteps at '+str(x))
+                except KeyError as ex:
+                    print(ex.message)
+            conv_data = determine_convergence(ys, zs, name=self.name, tol=tol, extra='ecuteps at '+str(x), plots=plots)
             extrapolated.append(conv_data[4])
             if conv_data[0]:
                 y_conv.append(conv_data[1])
@@ -765,7 +784,7 @@ class GWConvergenceData():
                 y_conv.append(None)
                 z_conv.append(None)
         if ecuteps_l:
-            conv_data = determine_convergence(xs, z_conv, name=self.name, tol=tol, extra='nbands')
+            conv_data = determine_convergence(xs, z_conv, name=self.name, tol=tol, extra='nbands', plots=plots)
             if conv_data[0]:
                 nbands_l = conv_data[0]
                 nbands_c = conv_data[1]
@@ -776,18 +795,21 @@ class GWConvergenceData():
         self.conv_res['control'].update({'ecuteps': ecuteps_l, 'nbands': nbands_l})
         self.conv_res['values'].update({'ecuteps': ecuteps_c, 'nbands': nbands_c, 'gap': gap})
         self.conv_res['derivatives'].update({'ecuteps': ecuteps_d, 'nbands': nbands_d})
-        return determine_convergence(xs, extrapolated, name=self.name, tol=-0.05, extra='nbands at extrapolated ecuteps')
+        return determine_convergence(xs, extrapolated, name=self.name, tol=-0.05,
+                                     extra='nbands at extrapolated ecuteps', plots=plots)
 
-    def find_conv_pars_scf(self, x_name, y_name, tol=0.0001):
+    def find_conv_pars_scf(self, x_name, y_name, tol=0.0001, silent=False):
         xs = self.get_var_range(x_name)
         ys = []
-        #print self.get_data_array_2d(x_name, y_name)
+        # print self.get_data_array_2d(x_name, y_name)
         for x in xs:
             ys.append(self.get_data_array_2d(x_name, y_name)[x])
-        conv_data = determine_convergence(xs, ys, name=self.name, tol=tol, extra=x_name)
-        #print conv_data, {x_name: conv_data[0]}, {x_name: conv_data[1]}, {x_name: conv_data[5]}
+        conv_data = determine_convergence(xs, ys, name=self.name, tol=tol, extra=x_name, plots=not silent)
+        # print conv_data, {x_name: conv_data[0]}, {x_name: conv_data[1]}, {x_name: conv_data[5]}
         self.conv_res['control'].update({x_name: conv_data[0]})
-        self.conv_res['values'].update({x_name: conv_data[1]})
+        factor = 1/eV_to_Ha if x_name == 'ecut' and self.code_interface.hartree_parameters else 1
+        self.conv_res['values'].update({x_name: conv_data[1]*factor})
+        print(conv_data[1])
         self.conv_res['derivatives'].update({x_name: conv_data[5]})
         return conv_data
 
@@ -842,8 +864,8 @@ class GWConvergenceData():
                     data_array[self.data[k]['nbands']].update({self.data[k]['ecuteps']: self.data[k]['gwgap']})
                 except KeyError:
                     data_array.update({self.data[k]['nbands']: {self.data[k]['ecuteps']: self.data[k]['gwgap']}})
-            except KeyError:
-                pass
+            except KeyError as ex:
+                print(ex.message)
         return data_array
 
     def get_data_array_2d(self, x_name, y_name):
@@ -875,13 +897,14 @@ class GWConvergenceData():
         string1 = "%s%s%s" % ("set output '", self.name, ".jpeg'\n")
         if self.conv_res['control']['nbands']:
             string2 = "%s%s%s%s%s%s%s%s%s%s%s" % ("splot '", self.name, ".data' u 1:2:3 w pm3d, '< echo ", '" ',
-                       str(self.conv_res['values']['nbands']), ' ', str(self.conv_res['values']['ecuteps']), ' ',
-                       str(self.conv_res['values']['gap']), ' "', "' w p\n")
+                                                  str(self.conv_res['values']['nbands']), ' ',
+                                                  str(self.conv_res['values']['ecuteps']), ' ',
+                                                  str(self.conv_res['values']['gap']), ' "', "' w p\n")
         else:
             string2 = "%s%s%s" % ("splot '", self.name, ".data' u 1:2:3 w pm3d\npause -1\n")
         with open(filename, mode='a') as f:
-            f.write(string1)
-            f.write(string2)
+            f.write(str(string1))
+            f.write(str(string2))
 
     def print_plot_data(self):
         """
@@ -889,7 +912,7 @@ class GWConvergenceData():
         """
         data_file = self.name + '.data'
         f = open(data_file, mode='w')
-        f.write('\n')
+        f.write(str('\n'))
         try:
             tmp = self.get_sorted_data_list()[0][0]
         except IndexError:
@@ -897,7 +920,7 @@ class GWConvergenceData():
             pass
         for data in self.get_sorted_data_list():
             if tmp != data[0]:
-                f.write('\n')
+                f.write(str('\n'))
             tmp = data[0]
             try:
                 f.write('%10.5f %10.5f %10.5f %10.5f \n' % (data[0], data[1], data[2], data[3]))
@@ -911,6 +934,7 @@ class GWConvergenceData():
         this file is later used in a subsequent 'full' calculation to perform the calculations at a higher kp-mesh
         """
         if self.conv_res['control']['nbands'] or True:
+
             filename = self.name + '.conv_res'
             f = open(filename, mode='w')
             string = "{'control': "+str(self.conv_res['control'])+", 'values': "

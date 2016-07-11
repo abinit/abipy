@@ -11,7 +11,7 @@ from collections import OrderedDict, deque
 from monty.string import is_string, list_strings
 from monty.functools import lazy_property
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
-from pymatgen.io.abinit.eos import EOS
+from pymatgen.analysis.eos import EOS
 from pymatgen.io.abinit.flows import Flow
 from pymatgen.io.abinit.netcdf import NetcdfReaderError
 

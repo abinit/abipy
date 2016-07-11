@@ -105,9 +105,9 @@ class AbstractCodeInterface(object):
         """
 
     @abstractmethod
-    def excecute_flow(self, structure, spec_data):
+    def execute_flow(self, structure, spec_data):
         """
-        excecute spec prepare input/jobfiles or submit to fw for a given structure
+        execute spec prepare input/jobfiles or submit to fw for a given structure
         for vasp the different jobs are created into a flow
         for abinit a flow is created using abinitio
         """
@@ -178,13 +178,13 @@ class VaspInterface(AbstractCodeInterface):
         errors.extend(self.test_methods(data))
         return warnings, errors
 
-    def excecute_flow(self, structure, spec_data):
+    def execute_flow(self, structure, spec_data):
         """
-        excecute spec prepare input/jobfiles or submit to fw for a given structure
+        execute spec prepare input/jobfiles or submit to fw for a given structure
         for vasp the different jobs are created into a flow
-        todo this should actually create and excecute a VaspGWWorkFlow(GWWorkflow)
+        todo this should actually create and execute a VaspGWWorkFlow(GWWorkflow)
         """
-        ### general part for the base class
+        # general part for the base class
         grid = 0
         all_done = False
         converged = is_converged(False, structure)
@@ -198,7 +198,7 @@ class VaspInterface(AbstractCodeInterface):
             print('| all is done for this material')
             return
 
-        ### specific part
+        # specific part
 
         if spec_data['mode'] == 'fw':
             fw_work_flow = VaspGWFWWorkFlow()
@@ -294,7 +294,7 @@ class VaspInterface(AbstractCodeInterface):
     def store_results(self, name):
         folder = name + '.res'
         store_conv_results(name, folder)
-        #todo copy the final file containing the qp to folder
+        # todo copy the final file containing the qp to folder
         raise NotImplementedError
 
 
@@ -317,6 +317,10 @@ class AbinitInterface(AbstractCodeInterface):
     @property
     def gw_data_file(self):
         return 'out_SIGRES.nc'
+
+    @property
+    def ks_bands_file(self):
+        return 'out_GSR.nc'
 
     def read_ps_dir(self):
         location = os.environ['ABINIT_PS']
@@ -357,7 +361,7 @@ class AbinitInterface(AbstractCodeInterface):
             else:
                 raise Exception
             gwgap = data.read_value('egwgap')[0][0]
-            #gwgap = min(data.read_value('egwgap')[0])
+            # gwgap = min(data.read_value('egwgap')[0])
             if not isinstance(gwgap, float):
                 raise Exception
             results = {'ecuteps': float(Ha_to_eV * ecuteps),
@@ -394,9 +398,9 @@ class AbinitInterface(AbstractCodeInterface):
         errors.extend(self.test_methods(data))
         return warnings, errors
 
-    def excecute_flow(self, structure, spec_data):
+    def execute_flow(self, structure, spec_data):
         """
-        excecute spec prepare input/jobfiles or submit to fw for a given structure
+        execute spec prepare input/jobfiles or submit to fw for a given structure
         for abinit a flow is created using abinitio
         """
 
@@ -404,9 +408,9 @@ class AbinitInterface(AbstractCodeInterface):
             option = is_converged(self.hartree_parameters, structure, return_values=True)
         else:
             option = None
-        print(option)
         work_flow = SingleAbinitGWWork(structure, spec_data, option)
         flow = work_flow.create()
+        print('flow')
         if flow is not None:
             flow.build_and_pickle_dump()
             work_flow.create_job_file()
@@ -416,8 +420,14 @@ class AbinitInterface(AbstractCodeInterface):
         store_conv_results(name, folder)
         w = 'w' + str(read_grid_from_file(name+".full_res")['grid'])
         try:
-            shutil.copyfile(os.path.join(name+".conv", w, "t9", "outdata", "out_SIGRES.nc"),
-                            os.path.join(folder, "out_SIGRES.nc"))
+            if os.path.isdir(os.path.join(name+".conv", w, "t11", "outdata")):
+                shutil.copyfile(os.path.join(name+".conv", w, "t2", "outdata", "out_GSR.nc"),
+                                os.path.join(folder, "out_GSR.nc"))
+                shutil.copyfile(os.path.join(name+".conv", w, "t11", "outdata", "out_SIGRES.nc"),
+                                os.path.join(folder, "out_SIGRES.nc"))
+            else:
+                shutil.copyfile(os.path.join(name+".conv", w, "t9", "outdata", "out_SIGRES.nc"),
+                                os.path.join(folder, "out_SIGRES.nc"))
         except (OSError, IOError):  # compatibility issue
             shutil.copyfile(os.path.join(name+".conv", "work_0", "task_6", "outdata", "out_SIGRES.nc"),
                             os.path.join(folder, "out_SIGRES.nc"))
@@ -458,9 +468,9 @@ class NewCodeInterface(AbstractCodeInterface):
         # warnings = []
         errors.extend(self.test_methods(data))
 
-    def excecute_flow(self, structure, spec_data):
+    def execute_flow(self, structure, spec_data):
         """
-        excecute spec prepare input/jobfiles or submit to fw for a given structure
+        execute spec prepare input/jobfiles or submit to fw for a given structure
         here either an method is implemented that creates the flow, like vasp, or a flow is created from a class,
         like in abinit
         """

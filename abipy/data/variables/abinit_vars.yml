@@ -1,72 +1,5 @@
 - !variable
     characteristics:
-    - '[[DEVELOP]]'
-    commentdefault: null
-    commentdims: null
-    defaultval: !valuewithconditions
-        defaultval: 0
-        '[[MPI_IO]] and [[paral_kgb]]==1': 1
-    definition: ACCESS to WaveFunction Files
-    dimensions: scalar
-    excludes: null
-    requires: null
-    section: vardev
-    text: |-
-        <p>
-        Governs the method of access to the internal wavefunction files.
-         <ul>
-          <li>
-           0 =&gt; Use standard Fortran IO routines
-          </li>
-          <li>
-           1 =&gt; Use MPI/IO routines
-          </li>
-          <li>
-           2 =&gt; Directly use NetCDF routines (this option is not available)
-          </li>
-          <li>
-           3 =&gt; Use ETSF_IO routines, creating NetCDF files according to the ETSF specification.
-          </li>
-         </ul>
-         <br />
-         In case [[accesswff]]=1, note the following. MPI/IO routines might be much more efficient than usual Fortran IO
-        routines in the case of a large number of processors, with a pool of
-        disks attached globally to the processors, but not one disk attached
-        to each processor. For a cluster of workstations, where each processor
-        has his own temporaries, the use of [[accesswff]]=0 might be perfectly
-        all right. This option is useful only if one is using the band-FFT parallelism.
-        MPI/IO routines are available in the MPI-2 library, but usually not in the MPI-1 library. So, perhaps you cannot
-        use [[accesswff]]=1.
-         <br />
-         In case [[accesswff]]=3, note that not only the wavefunctions will be written using the ETSF_IO routines,
-        but also, the same input variable governs the writing of the density and potential, that can also be
-        written using ETSF_IO routines. In order to use [[accesswff]]=3, you need to have the plug-in library ETSF_IO
-        working (see the documentation of the build system).
-        References :
-         <ul>
-          <li>
-           "Specification of an extensible and portable file format for electronic structure and crystallographic data",
-        X. Gonze, C.-O. Almbladh, A. Cucca, D. Caliste, C. Freysoldt, M. Marques, V. Olevano, Y. Pouillon, M.J. Verstraete,
-        Comput. Mat. Science 43, 1056 (2008)
-          </li>
-          <li>
-           "Sharing electronic structure and crystallographic data with ETSF_IO",
-        D. Caliste, Y. Pouillon, M.J. Verstraete, V. Olevano, X. Gonze,
-        Comput. Physics Communications 179, 748 (2008)
-          </li>
-          <li>
-           see also
-           <a href="http://www.etsf.eu/fileformats">
-            http://www.etsf.eu/fileformats
-           </a>
-           .
-          </li>
-         </ul>
-        </p>
-    varname: accesswff
-    vartype: integer
-- !variable
-    characteristics:
     - '[[ENERGY]]'
     commentdefault: null
     commentdims: null
@@ -1618,7 +1551,7 @@
     - '[[BETHE_SALPETER]]'
     commentdefault: null
     commentdims: null
-    defaultval: 1
+    defaultval: 2
     definition: Bethe-Salpeter ALGORITHM
     dimensions: scalar
     excludes: null
@@ -1651,9 +1584,8 @@
           </li>
           <li>
            3 =&gt;
-        Conjugate-gradient method
-        [STILL UNDER DEVELOPMENT]
-        Only available for resonant calculations (Tamm -Dancoff approximation).
+        Conjugate-gradient method. This method allows to find the few first excitonic eigenvalues.
+        Only available for resonant calculations (Tamm-Dancoff approximation).
           </li>
          </ul>
         </p>
@@ -1746,7 +1678,7 @@
     - '[[BETHE_SALPETER]]'
     commentdefault: null
     commentdims: null
-    defaultval: 1
+    defaultval: 0
     definition: Bethe-Salpeter COUPLING
     dimensions: scalar
     excludes: null
@@ -1952,8 +1884,8 @@
     dimensions:
     - 3
     excludes: null
-    requires: '[[bs_interp_mode]] > 0 and [[bs_algorithm]]==2'
-    section: vardev
+    requires: '[[bs_interp_mode]] > 0 and [[bs_algorithm]]==2 and [[bs_coupling]]==0'
+    section: vargw
     text: |-
         <p>
          [[bs_interp_kmult]] defines the number of divisions used to generate the dense mesh in the interpolation.
@@ -1974,8 +1906,8 @@
     definition: Bethe-Salpeter INTERPolation Method3 WIDTH
     dimensions: null
     excludes: null
-    requires: '[[bs_interp_mode]]==3 and [[bs_algorithm]]==2'
-    section: vardev
+    requires: '[[bs_interp_mode]]==3 and [[bs_algorithm]]==2 and [[bs_coupling]]==0'
+    section: vargw
     text: |-
         Defines the width of the region where divergence treatment is applied for BSE interpolation
     varname: bs_interp_m3_width
@@ -1985,21 +1917,21 @@
     - '[[BETHE_SALPETER]]'
     commentdefault: null
     commentdims: null
-    defaultval: 0
+    defaultval: 1
     definition: Bethe-Salpeter INTERPolation METHOD
     dimensions: null
     excludes: null
-    requires: '[[bs_interp_mode]] > 0 and [[bs_algorithm]]==2'
-    section: vardev
+    requires: '[[bs_interp_mode]] > 0 and [[bs_algorithm]]==2 and [[bs_coupling]]==0'
+    section: vargw
     text: |-
         <p>
          [[bs_interp_method]] selects the method of interpolation:
          <ul>
           <li>
-           0 =&gt; Interpolate using Y. Gillet technique with 8 neighbours
+           0 =&gt; Interpolate using Y. Gillet technique with 8 neighbours (see Comput. Phys. Commun. 203, 83 (2016))
           </li>
           <li>
-           1 =&gt; Interpolation using Rohlfing & Louie technique (missing reference)
+           1 =&gt; Interpolation using Rohlfing & Louie technique (see above-mentioned article and Phys. Rev. B 62, 4927 (2000))
           </li>
          </ul>
         </p>
@@ -2014,8 +1946,8 @@
     definition: Bethe-Salpeter INTERPolation MODE
     dimensions: scalar
     excludes: null
-    requires: '[[bs_interp_mode]] > 0 and [[bs_algorithm]]==2'
-    section: vardev
+    requires: '[[bs_interp_mode]] > 0 and [[bs_algorithm]]==2 and [[bs_coupling]]==0'
+    section: vargw
     text: |-
         <p>
          [[bs_interp_mode]] selects the mode of interpolation:
@@ -2045,8 +1977,8 @@
     definition: Bethe-Salpeter INTERPolation PREParation
     dimensions: scalar
     excludes: null
-    requires: '[[bs_interp_mode]] > 0 and [[bs_algorithm]]==2'
-    section: vardev
+    requires: '[[bs_interp_mode]] > 0 and [[bs_algorithm]]==2 and [[bs_coupling]]==0'
+    section: vargw
     text: |-
         <p>
          [[bs_interp_prep]] allows to trigger the preparation of the interpolation with method 2 or method 3.
@@ -2064,10 +1996,10 @@
     dimensions: null
     excludes: null
     requires: '[[bs_interp_mode]] > 0 and [[bs_algorithm]]==2 and [[bs_interp_method]]
-        == 1'
-    section: vardev
+        == 1 and [[bs_coupling]]==0'
+    section: vargw
     text: |-
-        Gives the index of the neighbour that is used for Rohlfing & Louie
+        Gives the index of the neighbour that is used for Rohlfing & Louie method
     varname: bs_interp_rl_nb
     vartype: integer
 - !variable
@@ -2123,10 +2055,10 @@
     section: vardev
     text: |-
         <p>
-         When [[builtintest]] is non-zero, the input file is a special one, that runs very quickly,
-        and that is accompanied by
-        a specific analysis by ABINIT, at the end of the run, against a hard-coded value of total energy
-        (and possibly stresses, forces ...). The echo of the analysis is done in the STATUS file.
+        When [[builtintest]] is non-zero, the input file is a special one, that runs very quickly,
+        and that is accompanied by a specific analysis by ABINIT, at the end of the run, against 
+        a hard-coded value of total energy (and possibly stresses, forces ...). 
+        The echo of the analysis is done in the STATUS file.
         In particular, such built-in tests can be used to check quickly
         whether ABINIT fallbacks have been connected or not (bigdft, etsf_io, libxc, wannier90).
         At present, [[builtintest]]=1 ... 7 are allowed. See more information in tests/built-in/README .
@@ -2978,6 +2910,276 @@
     varname: cpus
     vartype: real
 - !variable
+    characteristics:
+    - '[[NONLINEAR]]'
+    commentdefault: null
+    commentdims: null
+    defaultval:
+    - 1
+    - 1
+    definition: '3rd Derivative of Energy, mixed PERTurbation 1: limits of
+        ATomic POLarisations'
+    dimensions:
+    - 2
+    excludes: null
+    requires: '[[optdriver]]==5 (non-linear response computations)'
+    section: varrf
+    text: |-
+        <p>
+        Controls the range of atoms for which displacements will be considered
+        in non-linear computations (using the 2n+1 theorem), for the 1st perturbation.<br />
+        May take values from 1 to [[natom]], with
+        <b>d3e_pert1_atpol</b>(1)&lt;=<b>d3e_pert1_atpol</b>(2).<br />
+        See [[rfatpol]] for additional details.
+        </p>
+    varname: d3e_pert1_atpol
+    vartype: integer
+- !variable
+    characteristics:
+    - '[[NONLINEAR]]'
+    commentdefault: null
+    commentdims: null
+    defaultval:
+    - 0
+    - 0
+    - 0
+    definition: '3rd Derivative of Energy, mixed PERTurbation 1: DIRections'
+    dimensions:
+    - 3
+    excludes: null
+    requires: '[[optdriver]]==5 (non-linear response computations)'
+    section: varrf
+    text: |-
+        <p>
+        Gives the directions to be considered in non-linear computations
+        (using the 2n+1 theorem), for the 1st perturbation.<br />
+        The three elements corresponds to the three primitive
+        vectors, either in real space (atomic displacement),
+        or in reciprocal space (electric field perturbation).<br />
+        See [[rfdir]] for additional details.
+        </p>
+    varname: d3e_pert1_dir
+    vartype: integer
+- !variable
+    characteristics:
+    - '[[NONLINEAR]]'
+    commentdefault: null
+    commentdims: null
+    defaultval: 0
+    definition: '3rd Derivative of Energy, mixed PERTurbation 1: ELectric
+        FielD'
+    dimensions: scalar
+    excludes: null
+    requires: '[[optdriver]]==5 (non-linear response computations)'
+    section: varrf
+    text: |-
+        <p>
+        Turns on electric field perturbation in non-linear computation, as 1st perturbation.
+        Actually, such calculations requires first the non-self-consistent calculation
+        of derivatives with respect to k, independently of the electric field perturbation itself.<br />
+        See [[rfelfd]] for additional details.
+        </p>
+    varname: d3e_pert1_elfd
+    vartype: integer
+- !variable
+    characteristics:
+    - '[[NONLINEAR]]'
+    commentdefault: null
+    commentdims: null
+    defaultval: 0
+    definition: '3rd Derivative of Energy, mixed PERTurbation 1: PHONons'
+    dimensions: scalar
+    excludes: null
+    requires: '[[optdriver]]==5 (non-linear response computations)'
+    section: varrf
+    text: |-
+        <p>
+        Turns on atomic displacement perturbation in non-linear computation, as 1st perturbation.<br />
+        See [[rfphon]] for additional details.
+        </p>
+    varname: d3e_pert1_phon
+    vartype: integer
+- !variable
+    characteristics:
+    - '[[NONLINEAR]]'
+    commentdefault: null
+    commentdims: null
+    defaultval:
+    - 1
+    - 1
+    definition: '3rd Derivative of Energy, mixed PERTurbation 2: limits of
+        ATomic POLarisations'
+    dimensions:
+    - 2
+    excludes: null
+    requires: '[[optdriver]]==5 (non-linear response computations)'
+    section: varrf
+    text: |-
+        <p>
+        Controls the range of atoms for which displacements will be considered
+        in non-linear computations (using the 2n+1 theorem), for the 2nd perturbation.<br />
+        May take values from 1 to [[natom]], with
+        <b>d3e_pert2_atpol</b>(1)&lt;=<b>d3e_pert2_atpol</b>(2).<br />
+        See [[rfatpol]] for additional details.
+        </p>
+    varname: d3e_pert2_atpol
+    vartype: integer
+- !variable
+    characteristics:
+    - '[[NONLINEAR]]'
+    commentdefault: null
+    commentdims: null
+    defaultval:
+    - 0
+    - 0
+    - 0
+    definition: '3rd Derivative of Energy, mixed PERTurbation 2: DIRections'
+    dimensions:
+    - 3
+    excludes: null
+    requires: '[[optdriver]]==5 (non-linear response computations)'
+    section: varrf
+    text: |-
+        <p>
+        Gives the directions to be considered in non-linear computations
+        (using the 2n+1 theorem), for the 2nd perturbation.<br />
+        The three elements corresponds to the three primitive
+        vectors, either in real space (atomic displacement),
+        or in reciprocal space (electric field perturbation).<br />
+        See [[rfdir]] for additional details.
+        </p>
+    varname: d3e_pert2_dir
+    vartype: integer
+- !variable
+    characteristics:
+    - '[[NONLINEAR]]'
+    commentdefault: null
+    commentdims: null
+    defaultval: 0
+    definition: '3rd Derivative of Energy, mixed PERTurbation 2: ELectric
+        FielD'
+    dimensions: scalar
+    excludes: null
+    requires: '[[optdriver]]==5 (non-linear response computations)'
+    section: varrf
+    text: |-
+        <p>
+        Turns on electric field perturbation in non-linear computation, as 2nd perturbation.
+        Actually, such calculations requires first the non-self-consistent calculation
+        of derivatives with respect to k, independently of the electric field perturbation itself.<br />
+        See [[rfelfd]] for additional details.
+        </p>
+    varname: d3e_pert2_elfd
+    vartype: integer
+- !variable
+    characteristics:
+    - '[[NONLINEAR]]'
+    commentdefault: null
+    commentdims: null
+    defaultval: 0
+    definition: '3rd Derivative of Energy, mixed PERTurbation 2: PHONons'
+    dimensions: scalar
+    excludes: null
+    requires: '[[optdriver]]==5 (non-linear response computations)'
+    section: varrf
+    text: |-
+        <p>
+        Turns on atomic displacement perturbation in non-linear computation, as 2nd perturbation.<br />
+        See [[rfphon]] for additional details.
+        </p>
+    varname: d3e_pert2_phon
+    vartype: integer
+- !variable
+    characteristics:
+    - '[[NONLINEAR]]'
+    commentdefault: null
+    commentdims: null
+    defaultval:
+    - 1
+    - 1
+    definition: '3rd Derivative of Energy, mixed PERTurbation 3: limits of
+        ATomic POLarisations'
+    dimensions:
+    - 2
+    excludes: null
+    requires: '[[optdriver]]==5 (non-linear response computations)'
+    section: varrf
+    text: |-
+        <p>
+        Controls the range of atoms for which displacements will be considered
+        in non-linear computations (using the 2n+1 theorem), for the 3rd perturbation.<br />
+        May take values from 1 to [[natom]], with
+        <b>d3e_pert3_atpol</b>(1)&lt;=<b>d3e_pert3_atpol</b>(2).<br />
+        See [[rfatpol]] for additional details.
+        </p>
+    varname: d3e_pert3_atpol
+    vartype: integer
+- !variable
+    characteristics:
+    - '[[NONLINEAR]]'
+    commentdefault: null
+    commentdims: null
+    defaultval:
+    - 0
+    - 0
+    - 0
+    definition: '3rd Derivative of Energy, mixed PERTurbation 3: DIRections'
+    dimensions:
+    - 3
+    excludes: null
+    requires: '[[optdriver]]==5 (non-linear response computations)'
+    section: varrf
+    text: |-
+        <p>
+        Gives the directions to be considered in non-linear computations
+        (using the 2n+1 theorem), for the 3rd perturbation.<br />
+        The three elements corresponds to the three primitive
+        vectors, either in real space (atomic displacement),
+        or in reciprocal space (electric field perturbation).<br />
+        See [[rfdir]] for additional details.
+        </p>
+    varname: d3e_pert3_dir
+    vartype: integer
+- !variable
+    characteristics:
+    - '[[NONLINEAR]]'
+    commentdefault: null
+    commentdims: null
+    defaultval: 0
+    definition: '3rd Derivative of Energy, mixed PERTurbation 3: ELectric
+        FielD'
+    dimensions: scalar
+    excludes: null
+    requires: '[[optdriver]]==5 (non-linear response computations)'
+    section: varrf
+    text: |-
+        <p>
+        Turns on electric field perturbation in non-linear computation, as 3rd perturbation.
+        Actually, such calculations requires first the non-self-consistent calculation
+        of derivatives with respect to k, independently of the electric field perturbation itself.<br />
+        See [[rfelfd]] for additional details.
+        </p>
+    varname: d3e_pert3_elfd
+    vartype: integer
+- !variable
+    characteristics:
+    - '[[NONLINEAR]]'
+    commentdefault: null
+    commentdims: null
+    defaultval: 0
+    definition: '3rd Derivative of Energy, mixed PERTurbation 3: PHONons'
+    dimensions: scalar
+    excludes: null
+    requires: '[[optdriver]]==5 (non-linear response computations)'
+    section: varrf
+    text: |-
+        <p>
+        Turns on atomic displacement perturbation in non-linear computation, as 3rd perturbation.<br />
+        See [[rfphon]] for additional details.
+        </p>
+    varname: d3e_pert3_phon
+    vartype: integer
+- !variable
     characteristics: null
     commentdefault: null
     commentdims: null
@@ -3088,12 +3290,12 @@
           </li>
           <li>
            6 =&gt; density changed using D. Alfe 2nd-order algorithm (**) and forces corrected with the use of Harris functional formula (*)
-          </li> 
+          </li>
          </ul>
          No meaning for RF calculations.
          <br />
          <br />
-         For the time being, 
+         For the time being,
          <br />
          - the choice 3 must be used with [[ionmov]]=4
         and [[iscf]]=5.
@@ -4032,30 +4234,41 @@
            2=&gt; Hubbard one solver. The Hubbard one solver is an approximation which gives a rough description of correlated Mott insulators. It should not be used for metals.
           </li>
           <li>
-           5=&gt; Use the Continuous Time Quantum Monte Carlo (CTQMC) solver CT-Hyb of ABINIT (Hybridization expansion as published in
-           <a href="http://journals.aps.org/prl/abstract/10.1103/PhysRevLett.97.076405">
-            Phys. Rev. Lett 97, 076405, (2006)
-           </a>
-           ) in the density density representation,
-        CTQMC calculations are much more time consuming that Hubbard I calculations. Nevertheless, the calculation if fully parallelised.
+           5=&gt; Use the Continuous Time Quantum Monte Carlo (CTQMC) solver CT-Hyb of ABINIT
+            in the density density representation,
+        CTQMC calculations are much more time consuming that Hubbard I calculations. Nevertheless, the calculation is fully parallelised.
           </li>
           <li>
-           6=&gt; Continuous Time Quantum Monte Carlo (CTQMC) solver CT-Hyb of TRIQS (Hybridization expansion as published in
-           <a href="http://journals.aps.org/prl/abstract/10.1103/PhysRevLett.97.076405">
-            Phys. Rev. Lett 97, 076405, (2006)
-           </a>
-           ) in the density density representation.
+           6=&gt; Continuous Time Quantum Monte Carlo (CTQMC) solver CT-Hyb of TRIQS
+            in the density density representation.
           </li>
           <li>
-           7=&gt; Continuous Time Quantum Monte Carlo (CTQMC) solver CT-Hyb of TRIQS (Hybridization expansion as published in
-           <a href="http://journals.aps.org/prl/abstract/10.1103/PhysRevLett.97.076405">
-            Phys. Rev. Lett 97, 076405, (2006)
-           </a>
-           ) with the rotationally invariant formulation.
+           7=&gt; Continuous Time Quantum Monte Carlo (CTQMC) solver CT-Hyb of TRIQS
+            with the rotationally invariant formulation.
           </li>
          </ul>
          <br />
-         WARNING: CT-QMC should be used for correlated metals. Even if correlated (Mott) insulators, QMC is expected to be much more precise: Hubbard one is an approximation !
+         The CT Hyb algorithm is described in
+           <a href="http://journals.aps.org/prl/abstract/10.1103/PhysRevLett.97.076405">
+            Phys. Rev. Lett 97, 076405, (2006) </a>.
+            For a discussion  of density-density approximation with respect
+            with the rotationnally invariant formulation, see e.g.
+           <a href="http://link.aps.org/doi/10.1103/PhysRevB.86.155107">
+             Phys. Rev. B 86, 155107 (2012)
+           </a>.
+         <br />
+         The ABINIT/CT Hyb implementation is discussed in
+           <a href="http://dx.doi.org/10.1016/j.cpc.2016.04.003">
+              http://dx.doi.org/10.1016/j.cpc.2016.04.003 </a>.
+         <br />
+         The TRIQS/CT Hyb implementation is described in
+           <a href="http://dx.doi.org/10.1016/j.cpc.2015.10.023">
+            Comp. Phys. Comm. 200, 274 (2016)
+           </a>. Before using it, it has to be installed following
+            instructions at https://triqs.ipht.cnrs.fr/1.4/applications/cthyb/install.html.
+         <br />
+         <br />
+         WARNING: CT-QMC should be used for correlated metals. Even for correlated (Mott) insulators, QMC is expected to be much more precise: Indeed, the Hubbard one neglects the hybridization function.
          <br />
          See the usefull variables for CT-QMC solver :
         [[dmftctqmc_basis]],
@@ -5374,59 +5587,6 @@
         </p>
     varname: esmear
     vartype: real
-- !variable
-    characteristics:
-    - '[[DEVELOP]]'
-    commentdefault: null
-    commentdims: null
-    defaultval: 0
-    definition: ETSF I/O additional GROUPS of variables
-    dimensions: scalar
-    excludes: null
-    requires: '[[ETSF_IO]]'
-    section: vardev
-    text: |
-        <p>
-         This variable is a bit-wise combination of what will be written
-        into&nbsp;/&nbsp;read from a special WFK/DEN/POT file. The contents of the file
-        follow the
-         <a href="http://www.etsf.eu/fileformats">
-          Nanoquanta/ETSF file format specifications
-         </a>
-         .
-        </p>
-        <p>
-         Please check the "etsf_io" module of the ETSF I/O library for possible
-        values.
-        </p>
-    varname: etsfgroups
-    vartype: integer
-- !variable
-    characteristics:
-    - '[[DEVELOP]]'
-    commentdefault: null
-    commentdims: null
-    defaultval: 0
-    definition: ETSF I/O MAIN variable
-    dimensions: scalar
-    excludes: null
-    requires: '[[ETSF_IO]]'
-    section: vardev
-    text: |
-        <p>
-         This variable tells what will be written into&nbsp;/&nbsp;read from a
-        special WFK/DEN/POT file. The contents of the file follow the
-         <a href="http://www.etsf.eu/fileformats">
-          Nanoquanta/ETSF file format specifications
-         </a>
-         .
-        </p>
-        <p>
-         Please check the "etsf_io" module of the ETSF I/O library for possible
-        values.
-        </p>
-    varname: etsfmain
-    vartype: integer
 - !variable
     characteristics:
     - '[[DEVELOP]]'
@@ -6766,54 +6926,6 @@
     varname: gethaydock
     vartype: integer
 - !variable
-    characteristics:
-    - '[[GW]]'
-    commentdefault: null
-    commentdims: null
-    defaultval: 0
-    definition: GET Kohn-Sham Structure from ...
-    dimensions: scalar
-    excludes: null
-    requires: null
-    section: varfil
-    text: |-
-        <p>
-         Used when [[ndtset]]&gt;0
-        (multi-dataset mode) and [[optdriver]]=3 or 4
-        (a [[GW]] calculation),
-        to indicate that the KSS wavefunction file is to be taken
-        from the output of a previous dataset.
-        It is used to chain the calculations,
-        since it describes from which dataset the OUTPUT wavefunctions
-        are to be taken, as INPUT of the present dataset.
-         <br />
-         If [[getkss]]==0, no such use of previously computed output
-        KSS file is done.
-         <br />
-         If [[getkss]] is positive, its value gives the index of the dataset
-        from which the output KSS file is to be used as input.
-         <br />
-         If [[getkss]] is -1, the output KSS file of the previous dataset
-        must be taken, which is a frequently occurring case.
-         <br />
-         If [[getkss]] is a negative number, it indicates the number
-        of datasets to go backward to find the needed file.
-        In this case, if one refers to a non existent data set (prior
-        to the first), the KSS file is not initialised from
-        a disk file, so that it is as if [[getkss]]=0 for that
-        initialisation.
-         <br />
-         NOTE : a negative value of a "get" variable indicates the number of datasets to go backwards;
-        it is not the number to be subtracted from the current dataset to find the proper dataset.
-        As an example :
-         <pre>
-          ndtset 3   jdtset 1 2 4  getXXX -1
-         </pre>
-         refers to dataset 2 when dataset 4 is initialized.
-        </p>
-    varname: getkss
-    vartype: integer
-- !variable
     characteristics: null
     commentdefault: null
     commentdims: null
@@ -7237,7 +7349,7 @@
           of abinit_help).
          </li>
          <li>
-          This variable or [[irdwfkfine]] is mandatory when bs_interp_mode = 1
+          This variable or [[irdwfkfine]] is mandatory when [[bs_interp_mode]] == 1
          </li>
         </ul>
         <b>
@@ -7546,13 +7658,10 @@
     dimensions:
     - 5
     excludes: null
-    requires: null
+    requires: '[[use_gpu_cuda]]==1 (CUDA functionality)'
     section: varpar
     text: |-
         <p>
-         Only relevant if [[use_gpu_cuda]]=1, that is, if ABINIT is used with CUDA functionality.
-         <br />
-         <br />
          To be used when several GPU devices are present on each node, assuming the same number of devices on all nodes.
         <br />
          Allows to choose in which order the GPU devices are chosen and distributed among MPI processes (see examples below). When the default value (-1) is set, the GPU devices are chosen by order of performance (FLOPS, memory).
@@ -7575,13 +7684,10 @@
     definition: 'GPU (Cuda): LINear ALGebra LIMIT'
     dimensions: scalar
     excludes: null
-    requires: null
+    requires: '[[use_gpu_cuda]]==1 (CUDA functionality)'
     section: varpar
     text: |-
         <p>
-         Only relevant if [[use_gpu_cuda]]=1, that is, if ABINIT is used with CUDA functionality.
-         <br />
-         <br />
          Use of linear algebra and matrix algebra on GPU is only efficient if the size of the involved matrices is large enough.
         The [[gpu_linalg_limit]] parameter defines the threshold above which linear (and matrix) algebra operations
         are done on the Graphics Processing Unit.
@@ -7618,98 +7724,6 @@
         </p>
     varname: gw_customnfreqsp
     vartype: integer
-- !variable
-    characteristics:
-    - '[[GW]]'
-    commentdefault: null
-    commentdims: null
-    defaultval: -1
-    definition: GW Effective Energy Technique
-    dimensions: scalar
-    excludes: null
-    requires: '[[optdriver]] == 3 or [[optdriver]] == 4'
-    section: vargw
-    text: |-
-        <p>
-         [[gw_eet]] governs the use of the effective energy technique (EET).
-        With the EET [[GW]] calculations can be performed without summing over the empty states, both in the calculation of the screening and the self-energy.
-        This is achieved by using a single effective energy that takes into account the contributions of all the empty states.
-        See J.A. Berger, L. Reining, and, F. Sottile, Phys. Rev. B (82), 041103(R) (2010) for a more detailed description of the method.
-         <ul>
-          <li>
-           [[gw_eet]] = -1, no effective energy technique is used
-          </li>
-          <li>
-           [[gw_eet]] = 0, 1, or 2 an effective energy is used. These numbers correspond to the order of the approximation for the effective energy as given in Eqs. (10), (11), and (12), respectively, in J.A. Berger, L. Reining, and, F. Sottile, Phys. Rev. B (82), 041103(R) (2010). The higher the order, the more accurate (in principle) is the result. However, also the calculation time of the effective energy will increase.
-          </li>
-         </ul>
-        </p>
-    varname: gw_eet
-    vartype: integer
-- !variable
-    characteristics:
-    - '[[GW]]'
-    commentdefault: null
-    commentdims: null
-    defaultval: 0
-    definition: GW Effective Energy Technique INCLude VKB
-    dimensions: scalar
-    excludes: null
-    requires: '[[optdriver]] in [2,3] and [[gw_eet]] in [0,1,2]'
-    section: vargw
-    text: |-
-        <p>
-         [[gw_eet_inclvkb]] governs the use of the commutator of the non-local part of the pseudo-potential in determining the effective energy of the EET.
-         <ul>
-          <li>
-           [[gw_eet_inclvkb]] = 0 the commutator is not included
-          </li>
-          <li>
-           [[gw_eet_inclvkb]] = 1 the commutator is included
-          </li>
-         </ul>
-        </p>
-    varname: gw_eet_inclvkb
-    vartype: integer
-- !variable
-    characteristics:
-    - '[[GW]]'
-    commentdefault: null
-    commentdims: null
-    defaultval: -1
-    definition: GW Effective Energy Technique Number of BANDs
-    dimensions: scalar
-    excludes: null
-    requires: '[[optdriver]] in [2,3] and [[gw_eet]] in [0,1,2]'
-    section: vargw
-    text: |-
-        <p>
-         Only relevant if [[optdriver]]=3 or 4, that is, screening or sigma calculations
-        and if [[gw_eet]]=0, 1, or 2
-        </p>
-        <p>
-         [[gw_eet_nband]] governs the number of bands to be used in the effective energy technique (EET). It will only be taken into account if it is higher than the number of occupied bands. If this is not the case, summations will only include occupied states.
-        </p>
-    varname: gw_eet_nband
-    vartype: integer
-- !variable
-    characteristics:
-    - '[[GW]]'
-    commentdefault: null
-    commentdims: null
-    defaultval: 1
-    definition: GW Effective Energy Technique SCALE
-    dimensions: scalar
-    excludes: null
-    requires: '[[optdriver]] in [2,3] and [[gw_eet]] in [0,1,2]'
-    section: vargw
-    text: |-
-        <p>
-         [[gw_eet_scale]] sets the prefactor with which the effective energy can be scaled to
-        obtain a faster convergence with respect to the number of empty states.
-        </p>
-    varname: gw_eet_scale
-    vartype: real
 - !variable
     characteristics:
     - '[[GW]]'
@@ -8330,12 +8344,9 @@
     definition: GW Gamma
     dimensions: scalar
     excludes: null
-    requires: '[[optdriver]]=3 or 4'
+    requires: '[[optdriver]]=3 or 4 (Sigma calculations)'
     section: vargw
     text: |-
-        <p>
-        Only relevant for sigma calculations.
-        </p>
         <p>
          If [[gwgamma]] is 1, the vertex correction will be included leading to what is known as "[[GW]]Gamma" approximation.
         see R. Del Sole, L. Reining, and R. W. Godby, Phys. Rev. B  49, 8024 (1994).
@@ -8362,7 +8373,7 @@
     section: vargw
     text: |-
         <p>
-        Governs the DFT eigenstate |e> in which the self-energy will be evaluated, as shown in eq. (7) of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>.
+        Governs the DFT eigenstate |e> in which the self-energy will be evaluated, as shown in eq. (7) of  Phys. Rev. B 91, 125120 (2015).
         That is, it is the state to be corrected in the G0W0 scheme.
         </p>
     varname: gwls_band_index
@@ -8372,7 +8383,7 @@
     - '[[GW]]'
     commentdefault: null
     commentdims: null
-    defaultval: 1
+    defaultval: 3
     definition: GWLS CORRELATION
     dimensions: scalar
     excludes: null
@@ -8380,7 +8391,7 @@
     section: vargw
     text: |-
         <p>
-        Governs the use of a dielectric model (as explained in section V of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>)
+        Governs the use of a dielectric model (as explained in section V of Phys. Rev. B 91, 125120 (2015).
         and the use of the Lanczos scheme to solve eqs. (30) and (35) of the same reference at all external [[gw_freqsp]] and integration (as generated from [[gwls_npt_gauss_quad]]) frequencies.
         The different choices are:
         <ul>
@@ -8425,7 +8436,7 @@
     section: vargw
     text: |-
         <p>
-        Governs wether the exact exchange for the state to be corrected ([[gwls_band_index]]) is calculated ([[gwls_exchange]]==1) or not ([[gwls_exchange]]==0).
+        Governs whether the exact exchange for the state to be corrected ([[gwls_band_index]]) is calculated ([[gwls_exchange]]==1) or not ([[gwls_exchange]]==0).
         </p>
     varname: gwls_exchange
     vartype: integer
@@ -8443,8 +8454,7 @@
     text: |-
         <p>
         This variable sets the band index to be used to generate the first seed vector to be used in the construction of the Lanczos basis for the (static) dielectric matrix in a GWLS calculation.
-        See section IV of :
-        <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>.
+        See section IV of  Phys. Rev. B 91, 125120 (2015).
         Together with [[gwls_nseeds]], defines the seeds for the Lanczos procedure.
         That is, the states associated to band index [[gwls_first_seed]] to [[gwls_first_seed]]+[[gwls_nseeds]]-1 are used to generate the seed vectors.
         </p>
@@ -8467,7 +8477,7 @@
     section: vargw
     text: |-
         <p>
-        Governs the number of iterations to be done in the shift Lanczos solution of eq. (35) of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a> to solve it at all external frequencies requested by the user ([[gw_freqsp]]).
+        Governs the number of iterations to be done in the shift Lanczos solution of eq. (35) of Phys. Rev. B 91, 125120 (2015) to solve it at all external frequencies requested by the user ([[gw_freqsp]]).
         The default value is converged to a few 10s of meV for all molecules studied so far.
         </p>
     varname: gwls_kmax_analytic
@@ -8485,13 +8495,14 @@
     section: vargw
     text: |-
         <p>
-        The G0W0 formalism involves the calculation of a summation conceptually linked to the trace of the dielectric matrix (see eq. (38) of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>).
+        The G0W0 formalism involves the calculation of a summation conceptually linked to the trace of the dielectric matrix (see eq. (38)
+        of  Phys. Rev. B 91, 125120 (2015).
         Since the eigenvalues spectrum of the dielectric matrix of formed by a few large discrete eigenvalues and an integrable divergence in the density of eigenvalues around 0, it is expensive to sample accurately this divergence using the exact dielectric operator.
         It this becomes interesting to calculate the 'trace' of the 'exact - model' dielectric matrix in a small basis and add it to the 'trace' of the 'model' dielectric matrix obtained in a large bais.
         In the context where the model dielectric matrix is used in the calculations, [[gwls_sternheimer_kmax]] determines the size of the 'small' basis and [[gwls_kmax_complement]] determines the size of the 'large' basis.
         </p>
         <p>
-        For more information on the exact role of these bases and on the model dielectric operator used, see section V of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>.
+        For more information on the exact role of these bases and on the model dielectric operator used, see section V of  Phys. Rev. B 91, 125120 (2015).
         </p>
     varname: gwls_kmax_complement
     vartype: integer
@@ -8508,7 +8519,7 @@
     section: vargw
     text: |-
         <p>
-        Governs the number of iterations to be done in the shift Lanczos solution of eq. (30) of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a> to solve it simultaneously at all integration frequencies (generated automatically by the number of points [[gwls_npt_gauss_quad]] to use in the gaussian quadrature) and all external frequencies requested by the user ([[gw_freqsp]]).
+        Governs the number of iterations to be done in the shift Lanczos solution of eq. (30) of  Phys. Rev. B 91, 125120 (2015) to solve it simultaneously at all integration frequencies (generated automatically by the number of points [[gwls_npt_gauss_quad]] to use in the gaussian quadrature) and all external frequencies requested by the user ([[gw_freqsp]]).
         The default value is converged to a few 10s of meV for all molecules studied so far.
         </p>
     varname: gwls_kmax_numeric
@@ -8527,13 +8538,13 @@
     text: |-
         <p>
         The contour deformation technique, in the G0W0 context, will involve the calculation of pole residues associated to states lying between the one corrected ([[gwls_band_index]]) and the fermi level.
-        These residues take the form of a matrix element of the inverse dielectric matrix at a real frequency (see eq. (11) of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>).
+        These residues take the form of a matrix element of the inverse dielectric matrix at a real frequency (see eq. (11) of Phys. Rev. B 91, 125120 (2015)).
         Therefore, the dielectric matrix must be constructed in some basis at these frequencies and inverted to calculate the matrix element.
         The present input variable sets the size of the Lanczos basis to be constructed for this purpose.
         The default value has proven to be very robust for many molecular systems and should therefore be left to the default value by the user.
         </p>
         <p>
-        For more information on the Lanczos basis constructed for the calculation of the residues, see section IV of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>.
+        For more information on the Lanczos basis constructed for the calculation of the residues, see section IV of Phys. Rev. B 91, 125120 (2015).
         </p>
     varname: gwls_kmax_poles
     vartype: integer
@@ -8551,7 +8562,7 @@
     section: vargw
     text: |-
         This variable sets the frequencies to be used to construct the basis in which the Hamiltonian is projected to accelerate the solution of the Sternheimer equations involved by the construction of the dielectric matrix at finite frequencies.
-        See section VI of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>.
+        See section VI of Phys. Rev. B 91, 125120 (2015).
         For most cases, since the frequencies \Infty and (if [[gwls_recycle]]>0) 0.0 are used at no computational cost, [[gwls_n_proj_freq]]==0 (which means no ADDITIONAL frequency is to be used) is fine and no frequencies need to be picked up.
     varname: gwls_list_proj_freq
     vartype: real
@@ -8569,7 +8580,8 @@
     section: vargw
     text: |-
         <p>
-        This is the width of the lorentzian, in Ha, used to model the frequency dependence of the dielectric matrix in the GWLS calculation (see eqs. (12), (13), (14), (15), (16) and (34) of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>).
+        This is the width of the lorentzian, in Ha, used to model the frequency dependence of the dielectric matrix in the GWLS calculation
+        (see eqs. (12), (13), (14), (15), (16) and (34) of  Phys. Rev. B 91, 125120 (2015)).
         More precisely, this parameter is the value of \alpha used in eq. (34).
         This model is then used to separate the integration over frequencies into a 'model' part (second term of eq. (12)) and a 'exact - model' part (first term of eq. (12)).
         Since the 'model' part can be integrated analytically (see eqs. (15), (16) and (34)), only the the 'exact - model' part needs to be integrated numerically.
@@ -8594,7 +8606,7 @@
     section: vargw
     text: |-
         This variable sets the number of frequencies, on top of \Infty and (if [[gwls_recycle]]>0) 0.0, to be used for the construction of the basis in which the hamiltonian is projected to accelerate the solution of the Sternheimer equations involved in the construction of the dielectric matrix at finite frequencies.
-        See section VI of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>.
+        See section VI of  Phys. Rev. B 91, 125120 (2015).
         For most cases, the default ([[gwls_n_proj_freq]]==0) is fine.
     varname: gwls_n_proj_freq
     vartype: integer
@@ -8610,7 +8622,8 @@
     requires: '[[optdriver]]==66'
     section: vargw
     text: |-
-        This variable defines the number of points used for the numerical integration of the self-energy over frequencies in GWLS computations (see eq. (12) of  <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>).
+        This variable defines the number of points used for the numerical integration of the self-energy over frequencies in GWLS computations
+        (see eq. (12) of  Phys. Rev. B 91, 125120 (2015)).
         The default is fine for most cases.
     varname: gwls_npt_gauss_quad
     vartype: integer
@@ -8627,7 +8640,7 @@
     section: vargw
     text: |-
         This variable sets the number of seed vectors to be used in the construction of the Lanczos basis for the (static) dielectric matrix in a GWLS calculation.
-        See section IV of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>.
+        See section IV of  Phys. Rev. B 91, 125120 (2015).
         Only [[gwls_nseeds]]==1 has been tested for now and users should keep this value.
     varname: gwls_nseeds
     vartype: integer
@@ -8667,7 +8680,7 @@
         </ul>
         If the user choose to recycle the solutions, they are used to construct the basis in which the hamiltonian is projected for the solution of the Sternheimer equations involved by the calculation of the dielectric matrix at finite frequencies.
         The other solutions used will be those at \omega \to \Infty (alwyas used) and those at \omega=[[gwls_list_proj_freq]].
-        For more information of the basis constructed, see section IV of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>.
+        For more information of the basis constructed, see section IV of  Phys. Rev. B 91, 125120 (2015).
         </p>
         <p>
         It is important to note that the solutions rapidly take much space to store.
@@ -8705,7 +8718,7 @@
     requires: '[[optdriver]]==66'
     section: vargw
     text: |-
-        This variable sets the dimension of the dielectric matrix used in a GWLS calculation (see section IV of <a href="http://arxiv.org/abs/1408.3036v1">arXiv:1408.3036</a>).
+        This variable sets the dimension of the dielectric matrix used in a GWLS calculation (see section IV of  Phys. Rev. B 91, 125120 (2015)).
         Typically converged at a value of a few hundreds to a few thousands for a convergence criterion of 50meV on the  eigenenergies.
     varname: gwls_sternheimer_kmax
     vartype: integer
@@ -9179,19 +9192,25 @@
     requires: null
     section: varrlx
     text: |-
-        <p> Control the collective changes of images (see [[nimage]],[[npimage]], [[dynimage]], [[ntimimage]], [[tolimg]], [[istatimg]], [[prtvolimg]]).
-        <br> Similar to [[ionmov]] in spirit, although here, a population of self-consistent calculations for different geometries is managed, while with [[ionmov]], 
+        <p> Control the collective changes of images (see [[nimage]],[[npimage]], [[dynimage]], 
+        [[ntimimage]], [[tolimg]], [[istatimg]], [[prtvolimg]]).
+        <br> Similar to [[ionmov]] in spirit, although here, a population 
+        of self-consistent calculations for different geometries is managed, while with [[ionmov]],
         only one geometry for self-consistent calculation is managed.
-        <br> In this respect the maximal number of time step for image propagation is [[ntimimage]], 
-        corresponding to the input variable [[ntime]] of the single geometry case. 
-        Also, the stopping criterion is governed by [[tolimg]], corresponding to the input variable [[toldfe]] of the single geometry case. 
-        The stopping  condition is crude: the image propagation is stopped when the mean value (over dynamic images) 
+        <br> In this respect the maximal number of time step for image propagation is [[ntimimage]],
+        corresponding to the input variable [[ntime]] of the single geometry case.
+        Also, the stopping criterion is governed by [[tolimg]], corresponding to the 
+        input variable [[toldfe]] of the single geometry case.
+        The stopping  condition is crude: the image propagation is stopped when the mean value (over dynamic images)
         of the absolute difference of total energy (previous and current time step) is less than [[tolimg]].
-        </p>
-        <p>Actually, there might be combinations of [[ionmov]] and [[imgmov]] in which the two mechanisms are at work. 
-        Usually, however, only one mechanism will be activated (so, usually, either [[ntimimage]] is bigger than one OR [[ntime]] is bigger than one). 
-        In order for the user to acquire a mental representation of the interplay between [[ionmov]] and [[imgmov]], 
-        here is a F90 pseudo-code presenting the interplay between the different above-mentioned input variables, as well as with the parallelism (see input variable [[npimage]]).
+
+        <p>Actually, there might be combinations of [[ionmov]] and [[imgmov]] 
+        in which the two mechanisms are at work.
+        Usually, however, only one mechanism will be activated 
+        (so, usually, either [[ntimimage]] is bigger than one OR [[ntime]] is bigger than one).
+        In order for the user to acquire a mental representation of the interplay between [[ionmov]] and [[imgmov]],
+        here is a F90 pseudo-code presenting the interplay between the different above-mentioned input variables, 
+        as well as with the parallelism (see input variable [[npimage]]).
         </p>
         <p><pre>
         do itimimage=1,ntimimage
@@ -9206,33 +9225,40 @@
           Examine whether the stopping criterion defined by tolimg is fulfilled
           Predict the next geometries for all images using imgmov
         enddo
-        </pre></p>
+        </pre></p>        
         <ul>
           <li>    = 0  => simply <b> copy </b> images from previous timimage step.</li>
-          <li>    = 1  => move images according to <b> Steepest Descent </b> following the (scaled) forces, the scaling factor being [[fxcartfactor]]. </li>
-          <li>    = 2  => <b> String Method </b> for finding Minimal Energy Path (MEP) connecting to minima (see PRB 66, 052301 (2002)); 
+          <li>    = 1  => move images according to <b> Steepest Descent </b> 
+                         following the (scaled) forces, the scaling factor being [[fxcartfactor]]. </li>
+          <li>    = 2  => <b> String Method </b> for finding Minimal Energy Path (MEP) 
+               connecting to minima (see PRB 66, 052301 (2002));
                the algorithm variant can be selected with the [[string_algo]] keyword
-               (Simplified String Method by default). 
+               (Simplified String Method by default).
                The solver for the Ordinary Differential Equation (ODE) can be selected with [[mep_solver]]
                (steepest-descent by default). See also [[mep_mxstep]] keyword.</li>
           <li>    = 3  => (tentatively, not yet coded) <b> Metadynamics </b>.</li>
           <li>    = 4  => (tentatively, not yet coded) <b> Genetic Algorithm</b>.</li>
-          <li>    = 5  => <b> Nudged Elastic Band (NEB) </b> for finding Minimal Energy Path (MEP) connecting two minima; 
-               the algorithm variant can be selected with the [[neb_algo]] keyword (NEB+improved tangent by default). 
+          <li>    = 5  => <b> Nudged Elastic Band (NEB) </b> for finding Minimal Energy Path (MEP) 
+               connecting two minima;
+               the algorithm variant can be selected with the [[neb_algo]] keyword 
+               (NEB+improved tangent by default).
                The solver for the Ordinary Differential Equation (ODE) can be selected with [[mep_solver]]
-               (steepest-descent by default). The spring constant connecting images along the path is defined by [[neb_spring]]. 
+               (steepest-descent by default). 
+               The spring constant connecting images along the path is defined by [[neb_spring]].
                See also [[mep_mxstep]] keyword.</li>
-          <li>    = 9 or 13  => <b> Path-Integral Molecular Dynamics </b> 
-               (see e.g. [D. Marx and M. Parrinello, J. Chem. Phys. 104, 4077 (1996)]). 
-               Will use 9 for <b>  Langevin thermostat </b> (associated friction coefficient given by [[vis]]) 
-               and 13 for <b>  Nose-Hoover thermostat chains </b> 
+          <li>    = 9 or 13  => <b> Path-Integral Molecular Dynamics </b>
+               (see e.g. [D. Marx and M. Parrinello, J. Chem. Phys. 104, 4077 (1996)]).
+               Will use 9 for <b>  Langevin thermostat </b> (associated friction coefficient given by [[vis]])
+               and 13 for <b>  Nose-Hoover thermostat chains </b>
                (associated input variables are the number of thermostats in the chains, [[nnos]],
-               and the masses of theses thermostats [[qmass]]). [[nimage]] is the Trotter number (no use of [[dynimage]]); 
-               possible transformations of coordinates are defined by [[pitransform]]; 
+               and the masses of these thermostats [[qmass]]). 
+               [[nimage]] is the Trotter number (no use of [[dynimage]]);
+               possible transformations of coordinates are defined by [[pitransform]];
                Fictitious masses of the atoms (possibly different from the true masses given by [[amu]])
-               can be specified by [[pimass]]. At present, it is only possible to perform calculations in the (N,V,T) ensemble ([[optcell]]=0).</li>
+               can be specified by [[pimass]]. 
+               At present, it is only possible to perform calculations in the (N,V,T) ensemble ([[optcell]]=0).</li>
           </ul>
-          No meaning for RF calculations.   
+          No meaning for RF calculations.
         </p>
     varname: imgmov
     vartype: integer
@@ -9306,6 +9332,91 @@
     varname: intxc
     vartype: integer
 - !variable
+    characteristics:
+    - '[[DEVELOP]]'
+    commentdefault: null
+    commentdims: null
+    defaultval: !valuewithconditions
+        defaultval: 0
+        '[[MPI_IO]] and [[paral_kgb]]==1': 1
+    definition: IO MODE
+    dimensions: scalar
+    excludes: null
+    requires: null
+    section: vardev
+    text: |-
+        <p>
+        This option selects the format used to produce the output wavefunction files and the files containing 
+        densities and potentials. It mainly affects the creation of the output files since several parts 
+        of Abinit are able to read data from files independently of their format (either binary files or netcdf files).
+        The possible values are:
+        </p>
+
+        <ul>
+         <li>
+          0 =&gt; Use standard Fortran IO (ok for sequential runs, not suitable for large parallel runs)
+         </li>
+         <li>
+          1 =&gt; Use MPI/IO routines (ok both for sequential and large parallel runs)
+         </li>
+         <li>
+          3 =&gt; Use NetCDF library to produce files according to the ETSF specification 
+         (ok for sequential, requires netcdf4 + hdf5 + MPI-IO support for large parallel runs)
+         </li>
+        </ul>
+        <br />
+
+        <p>
+        By default, Abinit produces Fortran files and uses parallel MPI-IO under the hood when these 
+        operations cannot be implemented in terms of simple Fortran write/read statements.
+        For example, [[paral_kgb]]=1 uses the MPI-IO API provided by your MPI library.
+        </p>
+
+        <p>
+        In a nutshell, use the default value and make sure that your MPI library supports MPI-IO 
+        before embarking yourself in large parallel runs (HAVE_MPI_IO should be set to 1 in ~abinit/config.h).
+        Many MPI libraries, nowadays, support the MPI-2 standard so it's very likely that your MPI supports
+        parallel IO. If you encounter problems, please ask your sysadmin to install a MPI library 
+        with MPI-IO capabilities.
+        </p>
+        <p>
+        There are cases, however, in which you would like to change the default behaviour.
+        For example, you may want to generate WFK or DEN files in etsf-io format because you need 
+        data in this format.
+        In this case, you have to use iomode==3 in the input file to override the default behaviour.
+        Note however that you still need parallel IO capabilities enabled in the netcdf library
+        if you want to produce netcdf files in parallel with [[paral_kgb]]=1 (i.e. netcdf4 + hdf5 + MPI-IO).
+        At present, the internal fallbacks provided by Abinit do not support netcdf4 so you 
+        have to link against an external netcdf library that supports hdf5+MPI-IO and 
+        is compatible with the mpif90 used to compile Abinit.
+        See ~abinit/doc/build/config-examples/ubu_gnu_4.9_mpich.ac for a typical configuration file.
+        </p>
+
+        <p>
+        References:
+        <ul>
+         <li>
+         "Specification of an extensible and portable file format for electronic structure and crystallographic data",
+        X. Gonze, C.-O. Almbladh, A. Cucca, D. Caliste, C. Freysoldt, M. Marques, V. Olevano, Y. Pouillon, 
+        M.J. Verstraete, Comput. Mat. Science 43, 1056 (2008)
+          </li>
+          <li>
+           "Sharing electronic structure and crystallographic data with ETSF_IO",
+        D. Caliste, Y. Pouillon, M.J. Verstraete, V. Olevano, X. Gonze,
+        Comput. Physics Communications 179, 748 (2008)
+          </li>
+          <li>
+           see also
+           <a href="http://www.etsf.eu/fileformats">
+            http://www.etsf.eu/fileformats
+           </a>
+           .
+          </li>
+         </ul>
+        </p>
+    varname: iomode
+    vartype: integer
+- !variable
     characteristics: null
     commentdefault: null
     commentdims: null
@@ -9317,10 +9428,8 @@
     section: varrlx
     text: |-
         <p>
-         Control the displacements of
-        ions, and eventually (see [[optcell]])
-        changes of cell shape
-        and size.
+        Choice of algorithm to control the displacements of ions, and eventually (see [[optcell]])
+        changes of cell shape and size.
          <ul>
           <li>
            0=&gt; do not move ions;
@@ -10513,39 +10622,6 @@
     commentdefault: null
     commentdims: null
     defaultval: 0
-    definition: Integer that governs the ReaDing of KSS file
-    dimensions: scalar
-    excludes: null
-    requires: null
-    section: varfil
-    text: |-
-        <p>
-         Relevant only when [[optdriver]]=3 or 4.
-        Indicate the file from which the dielectric matrix must be obtained.
-        As alternative, one can use the input variable
-        [[getkss]].
-         <br />
-         When [[optdriver]]=3 or 4, at least one of
-        [[irdkss]] or [[getkss]]
-         must be non-zero.
-        </p>
-        <p>
-         A non-zero value of [[irdkss]] is treated in the same way
-        as other "ird" variables,
-        see the
-         <a href="../../users/abinit_help.html#4">
-          section 4
-         </a>
-         of abinit_help.
-        </p>
-    varname: irdkss
-    vartype: integer
-- !variable
-    characteristics:
-    - '[[GW]]'
-    commentdefault: null
-    commentdims: null
-    defaultval: 0
     definition: Integer that governs the ReaDing of QuasiParticle Structure
     dimensions: scalar
     excludes: null
@@ -10853,7 +10929,7 @@
           of abinit_help).
          </li>
          <li>
-          This variable or [[getwfkfine]] is mandatory when bs_interp_mode = 1
+          This variable or [[getwfkfine]] is mandatory when [[bs_interp_mode]] = 1
          </li>
         </ul>
         <b>
@@ -11811,7 +11887,7 @@
           <li>
            98=&gt; XC_GGA_X_BPCCAC  !  BPCCAC (GRAC for the energy)
         [E Bremond, D Pilard, I Ciofini, H Chermette, C Adamo, and P Cortona, Theor Chem Acc 131, 1184 (2012)
-        ]  
+        ]
           </li>
           <li>
            99=&gt; XC_GGA_C_REVTCA  !  Tognetti, Cortona, Adamo (revised)
@@ -13396,7 +13472,7 @@
         </p>
         <p>
          The option [[localrdwf]]=0 is NOT allowed when parallel I/O are activated (MPI-IO access),
-        i.e. when [[accesswff]]==1.
+        i.e. when [[iomode]]==1.
         </p>
         <p>
          In the case of a parallel computer with a unique file system,
@@ -13667,32 +13743,6 @@
     vartype: integer
 - !variable
     characteristics:
-    - '[[BETHE_SALPETER]]'
-    commentdefault: null
-    commentdims: null
-    defaultval: 0.0
-    definition: Model dielectric function, epsilon infinity
-    dimensions: scalar
-    excludes: null
-    requires: '[[optdriver]]==99 and [[bs_coulomb_term]] in [20,21]'
-    section: vargw
-    text: |-
-        <p>
-         Only relevant if
-        [[optdriver]]=99,
-        [[bs_coulomb_term]]=2x,
-        that is, bethe-salpeter calculations with a model dielectric function.
-        </p>
-        <p>
-         [[mdf_epsinf]] specifies the value of the macroscopic dielectric function used
-        to model the screening function (see Solid State Commun. <b>84</b>, 765 (1992)).
-        The proper spatial symmetry of the screening W(r,r_prime) is enforced using Eq. (7) of Phys. Rev. B <b>37</b>, (1988)
-         <br />
-        </p>
-    varname: mdf_epsinf
-    vartype: real
-- !variable
-    characteristics:
     - '[[GW]]'
     - '[[ENERGY]]'
     commentdefault: null
@@ -13709,6 +13759,26 @@
         In some cases, it mimics a second iteration self-consistent [[GW]] calculation.
         </p>
     varname: mbpt_sciss
+    vartype: real
+- !variable
+    characteristics:
+    - '[[BETHE_SALPETER]]'
+    commentdefault: null
+    commentdims: null
+    defaultval: 0.0
+    definition: Model dielectric function, epsilon infinity
+    dimensions: scalar
+    excludes: null
+    requires: '[[optdriver]]==99 and [[bs_coulomb_term]] in [20,21] (Bethe-Salpeter calculas with a model dielectric function'
+    section: vargw
+    text: |-
+        <p>
+         [[mdf_epsinf]] specifies the value of the macroscopic dielectric function used
+        to model the screening function (see Solid State Commun. <b>84</b>, 765 (1992)).
+        The proper spatial symmetry of the screening W(r,r_prime) is enforced using Eq. (7) of Phys. Rev. B <b>37</b>, (1988)
+         <br />
+        </p>
+    varname: mdf_epsinf
     vartype: real
 - !variable
     characteristics: null
@@ -14492,9 +14562,9 @@
          See [[npwkss]] for the selection of the number of the planewave components of
         the eigenstates to be stored.
          <br />
-         The input variable [[accesswff]] can be used
+         The input variable [[iomode]] can be used
         to read and write KSS files according to different fileformat
-        (presently only [[accesswff]]=0 and 3 are available in the [[GW]] part).
+        (presently only [[iomode]]=0 and 3 are available in the [[GW]] part).
          <br />
          The precision of the KSS file can be tuned through the input variable [[kssform]].
          <br />
@@ -15622,7 +15692,7 @@
     - '[[DEVELOP]]'
     commentdefault: null
     commentdims: null
-    defaultval: !valuewithconditions 
+    defaultval: !valuewithconditions
         defaultval: 1
         '[[usepaw]]==1': 2
     definition: Non LOCal MEMOry
@@ -15664,7 +15734,7 @@
          . See also [[nloc_alg]] for the algorithm for the non-local operator application.
         </p>
     varname: nloc_mem
-    vartype: integer 
+    vartype: integer
 - !variable
     characteristics: null
     commentdefault: null
@@ -15943,12 +16013,10 @@
     dimensions: scalar
     excludes: null
     requires: null
+    requires: '[[optdriver]]==1 and [[paral_kgb]]==1 (Ground-state calculations with LOBPCG algorithm)'
     section: varpar
     text: |-
         <p>
-         Only relevant (for Ground-State calculations) when [[paral_kgb]]=1
-        and LOBPCG algorithm is used.
-         <br />
          When using Scalapack (or any similar Matrix Algebra library), the efficiency of the eigenproblem resolution saturates as the number of CPU cores
         increases. It is better to use a smaller number of CPU cores for the LINALG calls.
          <br />
@@ -16236,9 +16304,6 @@
     requires: '[[iscf]] in [7,17]'
     section: vardev
     text: |-
-        <p>
-        Only relevant if iscf in {7,17}
-        </p>
         <p>
          Gives the  number of previous iterations involved in Pulay mixing (mixing
         during electronic SC iterations).
@@ -16597,7 +16662,7 @@
         down spin electrons for each band and k point.
         Compatible only with [[nspinor]]=1,
         [[nspden]]=2. If [[nsppol]]=2, one usually uses a metallic value for [[occopt]], in order to let ABINIT find the magnetization.
-        On the contrary, if [[occopt]]==1 is used, the user has to impose the magnetization, using [[spinmagntarget]], 
+        On the contrary, if [[occopt]]==1 is used, the user has to impose the magnetization, using [[spinmagntarget]],
         except for the case of a single isolated Hydrogen atom.
         </p>
         <p>
@@ -17460,7 +17525,7 @@
            An error occurs when filling cannot be done with
         occupation numbers equal to 2 or 0 in each k-point (non-spin-polarized case),
         or with occupation numbers equal to 1 or 0 in each k-point (spin-polarized case).
-        If [[nsppol]]=2  and [[occopt]]==1 is used, the user has to impose the magnetization, using [[spinmagntarget]], 
+        If [[nsppol]]=2  and [[occopt]]==1 is used, the user has to impose the magnetization, using [[spinmagntarget]],
         except for the case of a single isolated Hydrogen atom.
           </li>
           <li>
@@ -17681,16 +17746,18 @@
          (see the input variables [[ecutwfn]],
         [[ecuteps]],
         [[ppmfrq]],
-        [[getkss]],
+        [[getwfk]],
         as well as [[nbandkss]] and [[nband]])
          <br />
          [[optdriver]]=4 : self-energy calculation (SIG), routine "sigma"
          <br />
-         [[optdriver]]=5 : non-linear response functions, using the 2n+1 theorem, routine "nonlinear"
+         [[optdriver]]=5 : non-linear response functions (NONLINEAR), using the 2n+1 theorem, routine "nonlinear"
         <br />
-        [[optdriver]] =7: electron-phonon coupling
+        [[optdriver]] =7: electron-phonon coupling (EPH)
          <br />
-         [[optdriver]]=99 : Bethe-Salpeter calculation, routine "bethe_salpeter"
+        [[optdriver]] =66: GW using Lanczos-Sternheimer, see input variables whose name start with gwls_* .
+         <br />
+         [[optdriver]]=99 : Bethe-Salpeter calculation (BSE), routine "bethe_salpeter"
         </p>
         <p>
          If one of [[rfphon]], [[rfddk]],
@@ -17960,7 +18027,7 @@
           42
          </b>
          , 329 (2008),
-        available on arXiv, http://arxiv.org/abs/0707.3405 .
+        also available on arXiv, http://arxiv.org/abs/0707.3405 .
         </p>
         <p>
          If the total number of processors used is compatible with the four levels of parallelization, the values for [[npkpt]], [[npspinor]], [[npfft]], [[npband]] and [[bandpp]] will be filled automatically, although the repartition may not be optimal. To optimize the repartition use:
@@ -18373,16 +18440,33 @@
     section: varpaw
     text: |-
         <p>
-         When PAW is activated, the self-consistent requires the mixing of both the total potential (or density)
-        and the "spherical part" (in fact the augmentation occupancies rho_ij).
-         <br />
-         The same mixing scheme is applied to the potential (density) and the spherical part.
-        It is optimized in order to minimize a residual.
-         <br />
-         If [[pawoptmix]]=0 the residual is the potential (or density) residual.
-         <br />
-         If [[pawoptmix]]=1 the residual is a sum of the potential (or density) residual
-        and the "spherical part" residual.
+        In the case of PAW computations, during the self-consistent cycle,
+        ABINIT mixes the density
+        &rho;(r)=
+         <span style="position: relative; top: -5pt; left: 6pt;">&sim;</span>&rho;(r)
+        +<span style="position: relative; top: -5pt; left: 6pt;">&and;</span>&rho;(r)
+        and the occupancy matrix &rho;<sub>ij</sub>.
+        (<span style="position: relative; top: -5pt; left: 6pt;">&sim;</span>&rho;(r)
+        is the pseudo density,
+        <span style="position: relative; top: -5pt; left: 6pt;">&and;</span>&rho;(r)
+        is the compensation charge density).
+        It can be redundant as &rho;<sub>ij</sub> is contained in
+        <span style="position: relative; top: -5pt; left: 6pt;">&and;</span>&rho;(r).
+        <br>
+        <ul>
+          <li>If <b>pawoptmix</b>=0:<br>
+          ABINIT mixes &rho;(r) and &rho;<sub>ij</sub> but the residual used
+          to control the mixing algorithm is only based on &rho;(r).
+          </li>
+          <li>If <b>pawoptmix</b>=1:<br>
+          ABINIT mixes &rho;(r) and &rho;<sub>ij</sub> and the residual used
+          to control the mixing algorithm is based on &rho;(r) and &rho;<sub>ij</sub>.
+          </li>
+        </ul>
+        This has only an influence on the efficiency of the mixing algorithm.<br>
+        In cas of mixing problems, the first suggestion is to increase the size of the history
+        (see [[npulayit]]). Then it is also possible to play with the parameters of
+        the Kerker mixing: [[diemix]], [[diemac]], etc...
         </p>
     varname: pawoptmix
     vartype: integer
@@ -18973,11 +19057,10 @@
     excludes: null
     requires: null
     section: vareph
-    text: |-
-        This variable defines the number of shifts in the q-mesh used 
-        for the phonon DOS and for the Eliashberg functions (see [[ph_ngqpt]]). 
-        If not given, the code assumes a Gamma-centered mesh. The shifts 
-        are specified by [[ph_qshift]].  
+    text: "This variable defines the number of shifts in the q-mesh used\n\
+        for the phonon DOS and for the Eliashberg functions (see [[ph_ngqpt]]).\n\
+        If not given, the code assumes a Gamma-centered mesh. The shifts\n\
+        are specified by [[ph_qshift]].  "
     varname: ph_nqshift
     vartype: integer
 - !variable
@@ -19028,9 +19111,9 @@
     excludes: null
     requires: '[[ph_intmeth]]==1'
     section: vareph
-    text: |-
-        The gaussian broadening used for the integration of the phonon 
-        DOS and the Eliashberg function. See also [[ph_intmeth]] and [[ph_ngqpt]].  
+    text: "The gaussian broadening used for the integration of the phonon\n\
+        DOS and the Eliashberg function. See also [[ph_intmeth]] and [[ph_ngqpt]].\
+        \  "
     varname: ph_smear
     vartype: real
 - !variable
@@ -20509,13 +20592,12 @@
     excludes: null
     requires: null
     section: varfil
-    text: |-
-        If set to 1, ABINIT will produce a GSR file at the end of the GS 
-        calculation. The GSR file contains the most important GS results 
-        (band structure, forces, stresses, electronic density). The GSR 
-        file can be read by AbiPy and used for futher postprocessing.
-        Note that, by default, the GSR file contains the electronic density
-        unless [[prtden]] is set to 0.  
+    text: "If set to 1, ABINIT will produce a GSR file at the end of the GS\n\
+        calculation. The GSR file contains the most important GS results\n\
+        (band structure, forces, stresses, electronic density). The GSR\n\
+        file can be read by AbiPy and used for futher postprocessing.\nNote\
+        \ that, by default, the GSR file contains the electronic density\n\
+        unless [[prtden]] is set to 0.  "
     varname: prtgsr
     vartype: integer
 - !variable
@@ -20984,89 +21066,52 @@
     excludes: null
     requires: null
     section: varfil
-    text: |-
-        <p>
-         Control the volume of printed output. 
-         In particular, this concerns the explicit echo of eigenenergies and residuals for all bands and k points in the main output file.
-         Also, the analysis of the value and location of the maximal density (and magnetization).
-         <br />
-         Standard choice is 0. Positive values print more in the
-        output and log files, while negative values are
-        for debugging (or preprocessing only), and cause
-        the code to stop at some point.
-         <ul>
-          <li>
-           0 =&gt; The eigenenergies and residuals for all bands and k points are not echoed in the main output file. 
-           There are exceptions	: the eigenvalues of the first k point are printed at the end of the SCF loop, and also,
-           if [[iscf]]=-2 and [[kptopt]]&lt;=0, the eigenvalues for all the k points are printed anyway, for a maximum of 50 k-points.
-        Due to some subtlety, if for
-           <b>
-            some
-           </b>
-           dataset
-        [[prtvol]] is non-zero, the limit for input and output echoes
-        cannot be enforced, so it is like if [[prtvol]]=1 for
-           <b>
-            all
-           </b>
-           the datasets for which [[prtvol]] was set to 0.
-          </li>
-          <li>
-           1 =&gt; the eigenvalues for the first 50 k-points are printed in all cases, at the end of the SCF loop.
-          </li>
-          <li>
-           2 =&gt; all the eigenvalues  and the residuals are printed at the end of the SCF loop. Also, the analysis of the value and location of the maximal density (and magnetization) is printed.
-          </li>
-           10 =&gt; the eigenvalues are printed for every SCF iteration,
-        as well as other additions (to be specified in the future...)
-          </li>
-         </ul>
-         Debugging options :
-         <ul>
-          <li>
-           = -1 =&gt; stop in abinit (main program), before call gstate.
-        Useful to see the effect of the preprocessing of
-        input variables (memory needed, effect of symmetries,
-        k points ...) without going further. Run very fast,
-        on the order of the second.
-          </li>
-          <li>
-           =-2 =&gt; same as -1, except that print only the first dataset.
-        All the non default input variables associated to all datasets
-        are printed in the output file, but only for the first dataset.
-        Also all the input variables are written in the NetCDF file
-        "OUT.nc", even if the value is the default.
-          </li>
-          <li>
-           = -3 =&gt; stop in gstate, before call scfcv, move or brdmin.
-        Useful to debug pseudopotentials
-          </li>
-          <li>
-           = -4 =&gt; stop in move, after completion of all loops
-          </li>
-          <li>
-           = -5 =&gt; stop in brdmin, after completion of all loops
-          </li>
-          <li>
-           = -6 =&gt; stop in scfcv, after completion of all loops
-          </li>
-          <li>
-           = -7 =&gt; stop in vtorho, after the first rho is obtained
-          </li>
-          <li>
-           = -8 =&gt; stop in vtowfk, after the first k point is treated
-          </li>
-          <li>
-           = -9 =&gt; stop in cgwf, after the first wf is optimized
-          </li>
-          <li>
-           = -10 =&gt; stop in getghc, after the Hamiltonian is applied once
-          </li>
-         </ul>
-         This debugging feature is not yet activated in the RF routines.
-        Note that [[fftalg]] offers
-        another option for debugging.
-        </p>
+    text: "<p>\n Control the volume of printed output.\n In particular, this\
+        \ concerns the explicit echo of eigenenergies and residuals for all\
+        \ bands and k points in the main output file.\n Also, the analysis\
+        \ of the value and location of the maximal density (and magnetization).\n\
+        \ <br />\n Standard choice is 0. Positive values print more in the\n\
+        output and log files, while negative values are\nfor debugging (or\
+        \ preprocessing only), and cause\nthe code to stop at some point.\n\
+        \ <ul>\n  <li>\n   0 =&gt; The eigenenergies and residuals for all\
+        \ bands and k points are not echoed in the main output file.\n   There\
+        \ are exceptions\t: the eigenvalues of the first k point are printed\
+        \ at the end of the SCF loop, and also,\n   if [[iscf]]=-2 and [[kptopt]]&lt;=0,\
+        \ the eigenvalues for all the k points are printed anyway, for a maximum\
+        \ of 50 k-points.\nDue to some subtlety, if for\n   <b>\n    some\n\
+        \   </b>\n   dataset\n[[prtvol]] is non-zero, the limit for input\
+        \ and output echoes\ncannot be enforced, so it is like if [[prtvol]]=1\
+        \ for\n   <b>\n    all\n   </b>\n   the datasets for which [[prtvol]]\
+        \ was set to 0.\n  </li>\n  <li>\n   1 =&gt; the eigenvalues for the\
+        \ first 50 k-points are printed in all cases, at the end of the SCF\
+        \ loop.\n  </li>\n  <li>\n   2 =&gt; all the eigenvalues  and the\
+        \ residuals are printed at the end of the SCF loop. Also, the analysis\
+        \ of the value and location of the maximal density (and magnetization)\
+        \ is printed.\n  </li>\n   10 =&gt; the eigenvalues are printed for\
+        \ every SCF iteration,\nas well as other additions (to be specified\
+        \ in the future...)\n  </li>\n </ul>\n Debugging options :\n <ul>\n\
+        \  <li>\n   = -1 =&gt; stop in abinit (main program), before call\
+        \ gstate.\nUseful to see the effect of the preprocessing of\ninput\
+        \ variables (memory needed, effect of symmetries,\nk points ...) without\
+        \ going further. Run very fast,\non the order of the second.\n  </li>\n\
+        \  <li>\n   =-2 =&gt; same as -1, except that print only the first\
+        \ dataset.\nAll the non default input variables associated to all\
+        \ datasets\nare printed in the output file, but only for the first\
+        \ dataset.\nAlso all the input variables are written in the NetCDF\
+        \ file\n\"OUT.nc\", even if the value is the default.\n  </li>\n \
+        \ <li>\n   = -3 =&gt; stop in gstate, before call scfcv, move or brdmin.\n\
+        Useful to debug pseudopotentials\n  </li>\n  <li>\n   = -4 =&gt; stop\
+        \ in move, after completion of all loops\n  </li>\n  <li>\n   = -5\
+        \ =&gt; stop in brdmin, after completion of all loops\n  </li>\n \
+        \ <li>\n   = -6 =&gt; stop in scfcv, after completion of all loops\n\
+        \  </li>\n  <li>\n   = -7 =&gt; stop in vtorho, after the first rho\
+        \ is obtained\n  </li>\n  <li>\n   = -8 =&gt; stop in vtowfk, after\
+        \ the first k point is treated\n  </li>\n  <li>\n   = -9 =&gt; stop\
+        \ in cgwf, after the first wf is optimized\n  </li>\n  <li>\n   =\
+        \ -10 =&gt; stop in getghc, after the Hamiltonian is applied once\n\
+        \  </li>\n </ul>\n This debugging feature is not yet activated in\
+        \ the RF routines.\nNote that [[fftalg]] offers\nanother option for\
+        \ debugging.\n</p>"
     varname: prtvol
     vartype: integer
 - !variable
@@ -22373,7 +22418,7 @@
          <b>
           restartxf=-1 (New)
          </b>
-         : Use the HIST file to reconstruct 
+         : Use the HIST file to reconstruct
         a partial calculation. It will reconstruct the different configurations
         using the forces and stress store in the HIST file, instead of calling
         the SCF procedure.
@@ -22426,578 +22471,41 @@
     vartype: integer
 - !variable
     characteristics:
-    - '[[NONLINEAR]]'
-    commentdefault: null
-    commentdims: null
-    defaultval:
-    - 1
-    - 1
-    definition: 'non-linear Response Function, 3rd mixed perturbation : limits
-        of ATomic POLarisations'
-    dimensions:
-    - 2
-    excludes: null
-    requires: null
-    section: varrf
-    text: |-
-        <p>
-         Control the range
-        of atoms for which displacements will be considered
-        in non-linear
-        computations, using the 2n+1 theorem.
-         <br />
-         These values are only relevant to non-linear computations.
-         <br />
-         May take values from 1 to [[natom]], with
-         <b>
-          rfatpol
-         </b>
-         (1)&lt;=
-         <b>
-          rfatpol
-         </b>
-         (2).
-         <br />
-         The atoms to be moved will be defined by the
-         <br />
-         do-loop variable iatpol :
-         <br />
-         do iatpol=
-         <b>
-          rfatpol
-         </b>
-         (1),
-         <b>
-          rfatpol
-         </b>
-         (2)
-         <br />
-         For the calculation of a full dynamical matrix, use
-         <b>
-          rfatpol
-         </b>
-         (1)=1 and
-         <b>
-          rfatpol
-         </b>
-         (2)=[[natom]], together with
-        [[rfdir]] 1 1 1 . For selected elements of the
-        dynamical matrix, use different values of
-         <b>
-          rfatpol
-         </b>
-         and/or
-        [[rfdir]]. The name 'iatpol' is used for the part of the
-        internal variable ipert when it runs from 1 to [[natom]]. The
-        internal variable ipert can also assume values larger
-        than [[natom]],
-        denoting perturbations of electric field or stress type (see
-         <a href="../../users/respfn_help.html">
-          the response function help file
-         </a>
-         ).
-        </p>
-    varname: rf1atpol
-    vartype: integer
-- !variable
-    characteristics:
-    - '[[NONLINEAR]]'
-    commentdefault: null
-    commentdims: null
-    defaultval:
-    - 0
-    - 0
-    - 0
-    definition: 'non-linear Response Function, 3rd mixed perturbation : DIRections'
-    dimensions:
-    - 3
-    excludes: null
-    requires: null
-    section: varrf
-    text: |-
-        <p>
-         Gives the directions
-        to be considered for non-linear computations.
-         <br />
-         The three elements corresponds to the three primitive
-        vectors, either in real space (phonon calculations),
-        or in reciprocal space (d/dk, homogeneous electric field, homogeneous magnetic field
-        calculations). So, they generate a basis
-        for the generation of the dynamical matrix or
-        the macroscopic dielectric tensor or magnetic susceptibility and magnetic
-        shielding, or the effective
-        charge tensors.
-         <br />
-         If equal to 1, response functions, as defined
-        by [[rfddk]],
-        [[rfelfd]], [[rfphon]],
-         <b>
-          rfdir
-         </b>
-         and [[rfatpol]], are to be computed
-        for the corresponding direction. If 0, this direction
-        should not be considered (for non-linear computations, the corresponding input
-        variables should be used).
-        </p>
-    varname: rf1dir
-    vartype: integer
-- !variable
-    characteristics:
-    - '[[NONLINEAR]]'
+    - '[[RESPFN]]'
     commentdefault: null
     commentdims: null
     defaultval: 0
-    definition: 'non-linear Response Function, 3rd mixed perturbation : ELectric
-        FielD'
+    definition: 'Response Function : 2nd Derivative of wavefunctions with
+        respect to K'
     dimensions: scalar
     excludes: null
     requires: null
     section: varrf
     text: |-
         <p>
-         Turns on electric field perturbation in non-linear computation. Actually, such calculations
-        requires first the non-self-consistent calculation
-        of derivatives with respect to k, independently of the
-        electric field perturbation itself.
-         <br />
-         Only [[rfelfd]]
-        is compatible with both norm-conserving pseudopotentials as well as PAW. Higher mixed
-        perturbations can be used only with norm-conserving pseudopotentials.
+        UNUSABLE (in development)
+        </p>
+        <p>
+        Activates computation of second derivatives of wavefunctions with respect to wavevectors.
+        This is not strictly a response function but is a needed auxiliary quantity in the calculations
+        of 3rd-order derivatives of the energy (non-linear response).
+        The directions for the derivatives are determined by [[rfdir]] (TO BE CORRECTED!).
          <ul>
           <li>
-           0=&gt;no electric field perturbation
+           0=&gt;no derivative calculation
           </li>
           <li>
-           1=&gt;full calculation, with first the
-        derivative of ground-state wavefunction with
-        respect to k (d/dk calculation), by a
-        non-self-consistent calculation, then the generation of
-        the first-order response to an homogeneous
-        electric field
+           1=&gt;calculation along diagonal directions (d2/(dk_i dk_i), natom+10 is activated)
           </li>
           <li>
-           2=&gt;only the derivative of ground-state wavefunctions with
-        respect to k
+           2=&gt;calculation along off-diagonal directions (d2/(dk_i dk_j), natom+11 is activated)
           </li>
           <li>
-           3=&gt;only the generation of the first-order response
-        to the electric field,
-        assuming that the data on derivative of ground-state
-        wavefunction with respect to k is available on disk.
+           3=&gt;calculation along all directions (both natom+10 and natom+11 are activated)
           </li>
          </ul>
-         (Note : because the tolerances to be used for derivatives or
-        homogeneous electric field are different, one often does the
-        calculation of derivatives in a separate dataset, followed by
-        calculation of electric field response as well as phonon.
-         <br />
-         The options 2 and 3 proves useful in that context ;
-        also, in case a scissor shift is to be used,
-        it is usually not applied for the d/dk response).
         </p>
-    varname: rf1elfd
-    vartype: integer
-- !variable
-    characteristics:
-    - '[[NONLINEAR]]'
-    commentdefault: null
-    commentdims: null
-    defaultval: 0
-    definition: 'non-linear Response Function, 3rd mixed perturbation : PHONons'
-    dimensions: scalar
-    excludes: null
-    requires: null
-    section: varrf
-    text: |-
-        <p>
-         It must be equal to 1
-        to include some phonon perturbation in non-linear computations.
-        </p>
-    varname: rf1phon
-    vartype: integer
-- !variable
-    characteristics:
-    - '[[NONLINEAR]]'
-    commentdefault: null
-    commentdims: null
-    defaultval:
-    - 1
-    - 1
-    definition: 'non-linear Response Function, 3rd mixed perturbation : limits
-        of ATomic POLarisations'
-    dimensions:
-    - 2
-    excludes: null
-    requires: null
-    section: varrf
-    text: |-
-        <p>
-         Control the range
-        of atoms for which displacements will be considered
-        in non-linear
-        computations, using the 2n+1 theorem.
-         <br />
-         These values are only relevant to non-linear computations.
-         <br />
-         May take values from 1 to [[natom]], with
-         <b>
-          rfatpol
-         </b>
-         (1)&lt;=
-         <b>
-          rfatpol
-         </b>
-         (2).
-         <br />
-         The atoms to be moved will be defined by the
-         <br />
-         do-loop variable iatpol :
-         <br />
-         do iatpol=
-         <b>
-          rfatpol
-         </b>
-         (1),
-         <b>
-          rfatpol
-         </b>
-         (2)
-         <br />
-         For the calculation of a full dynamical matrix, use
-         <b>
-          rfatpol
-         </b>
-         (1)=1 and
-         <b>
-          rfatpol
-         </b>
-         (2)=[[natom]], together with
-        [[rfdir]] 1 1 1 . For selected elements of the
-        dynamical matrix, use different values of
-         <b>
-          rfatpol
-         </b>
-         and/or
-        [[rfdir]]. The name 'iatpol' is used for the part of the
-        internal variable ipert when it runs from 1 to [[natom]]. The
-        internal variable ipert can also assume values larger
-        than [[natom]],
-        denoting perturbations of electric field or stress type (see
-         <a href="../../users/respfn_help.html">
-          the response function help file
-         </a>
-         ).
-        </p>
-    varname: rf2atpol
-    vartype: integer
-- !variable
-    characteristics:
-    - '[[NONLINEAR]]'
-    commentdefault: null
-    commentdims: null
-    defaultval:
-    - 0
-    - 0
-    - 0
-    definition: 'non-linear Response Function, 3rd mixed perturbation : DIRections'
-    dimensions:
-    - 3
-    excludes: null
-    requires: null
-    section: varrf
-    text: |-
-        <p>
-         Gives the directions
-        to be considered for non-linear computations.
-         <br />
-         The three elements corresponds to the three primitive
-        vectors, either in real space (phonon calculations),
-        or in reciprocal space (d/dk, homogeneous electric field, homogeneous magnetic field
-        calculations). So, they generate a basis
-        for the generation of the dynamical matrix or
-        the macroscopic dielectric tensor or magnetic susceptibility and magnetic
-        shielding, or the effective
-        charge tensors.
-         <br />
-         If equal to 1, response functions, as defined
-        by [[rfddk]],
-        [[rfelfd]], [[rfphon]],
-         <b>
-          rfdir
-         </b>
-         and [[rfatpol]], are to be computed
-        for the corresponding direction. If 0, this direction
-        should not be considered (for non-linear computations, the corresponding input
-        variables should be used).
-        </p>
-    varname: rf2dir
-    vartype: integer
-- !variable
-    characteristics:
-    - '[[NONLINEAR]]'
-    commentdefault: null
-    commentdims: null
-    defaultval: 0
-    definition: 'non-linear Response Function, 3rd mixed perturbation : ELectric
-        FielD'
-    dimensions: scalar
-    excludes: null
-    requires: null
-    section: varrf
-    text: |-
-        <p>
-        Turns on electric field perturbation in non-linear computation. Actually, such calculations
-        requires first the non-self-consistent calculation
-        of derivatives with respect to k, independently of the
-        electric field perturbation itself.
-         <br />
-         Only [[rfelfd]]
-        is compatible with both norm-conserving pseudopotentials as well as PAW. Higher mixed
-        perturbations can be used only with norm-conserving pseudopotentials.
-         <ul>
-          <li>
-           0=&gt;no electric field perturbation
-          </li>
-          <li>
-           1=&gt;full calculation, with first the
-        derivative of ground-state wavefunction with
-        respect to k (d/dk calculation), by a
-        non-self-consistent calculation, then the generation of
-        the first-order response to an homogeneous
-        electric field
-          </li>
-          <li>
-           2=&gt;only the derivative of ground-state wavefunctions with
-        respect to k
-          </li>
-          <li>
-           3=&gt;only the generation of the first-order response
-        to the electric field,
-        assuming that the data on derivative of ground-state
-        wavefunction with respect to k is available on disk.
-          </li>
-         </ul>
-         (Note : because the tolerances to be used for derivatives or
-        homogeneous electric field are different, one often does the
-        calculation of derivatives in a separate dataset, followed by
-        calculation of electric field response as well as phonon.
-         <br />
-         The options 2 and 3 proves useful in that context ;
-        also, in case a scissor shift is to be used,
-        it is usually not applied for the d/dk response).
-        </p>
-    varname: rf2elfd
-    vartype: integer
-- !variable
-    characteristics:
-    - '[[NONLINEAR]]'
-    commentdefault: null
-    commentdims: null
-    defaultval: 0
-    definition: 'non-linear Response Function, 3rd mixed perturbation : PHONons'
-    dimensions: scalar
-    excludes: null
-    requires: null
-    section: varrf
-    text: |-
-        <p>
-         It must be equal to 1
-        to include some phonon perturbation
-        in non-linear computations.
-        </p>
-    varname: rf2phon
-    vartype: integer
-- !variable
-    characteristics:
-    - '[[NONLINEAR]]'
-    commentdefault: null
-    commentdims: null
-    defaultval:
-    - 1
-    - 1
-    definition: 'non-linear Response Function, 3rd mixed perturbation : limits
-        of ATomic POLarisations'
-    dimensions:
-    - 2
-    excludes: null
-    requires: null
-    section: varrf
-    text: |-
-        <p>
-         Control the range
-        of atoms for which displacements will be considered
-        in non-linear
-        computations, using the 2n+1 theorem.
-         <br />
-         These values are only relevant to non-linear computations.
-         <br />
-         May take values from 1 to [[natom]], with
-         <b>
-          rfatpol
-         </b>
-         (1)&lt;=
-         <b>
-          rfatpol
-         </b>
-         (2).
-         <br />
-         The atoms to be moved will be defined by the
-         <br />
-         do-loop variable iatpol :
-         <br />
-         do iatpol=
-         <b>
-          rfatpol
-         </b>
-         (1),
-         <b>
-          rfatpol
-         </b>
-         (2)
-         <br />
-         For the calculation of a full dynamical matrix, use
-         <b>
-          rfatpol
-         </b>
-         (1)=1 and
-         <b>
-          rfatpol
-         </b>
-         (2)=[[natom]], together with
-        [[rfdir]] 1 1 1 . For selected elements of the
-        dynamical matrix, use different values of
-         <b>
-          rfatpol
-         </b>
-         and/or
-        [[rfdir]]. The name 'iatpol' is used for the part of the
-        internal variable ipert when it runs from 1 to [[natom]]. The
-        internal variable ipert can also assume values larger
-        than [[natom]],
-        denoting perturbations of electric field or stress type (see
-         <a href="../../users/respfn_help.html">
-          the response function help file
-         </a>
-         ).
-        </p>
-    varname: rf3atpol
-    vartype: integer
-- !variable
-    characteristics:
-    - '[[NONLINEAR]]'
-    commentdefault: null
-    commentdims: null
-    defaultval:
-    - 0
-    - 0
-    - 0
-    definition: 'non-linear Response Function, 3rd mixed perturbation : DIRections'
-    dimensions:
-    - 3
-    excludes: null
-    requires: null
-    section: varrf
-    text: |-
-        <p>
-         Gives the directions
-        to be considered for non-linear computations.
-         <br />
-         The three elements corresponds to the three primitive
-        vectors, either in real space (phonon calculations),
-        or in reciprocal space (d/dk, homogeneous electric field, homogeneous magnetic field
-        calculations). So, they generate a basis
-        for the generation of the dynamical matrix or
-        the macroscopic dielectric tensor or magnetic susceptibility and magnetic
-        shielding, or the effective
-        charge tensors.
-         <br />
-         If equal to 1, response functions, as defined
-        by [[rfddk]],
-        [[rfelfd]], [[rfphon]],
-         <b>
-          rfdir
-         </b>
-         and [[rfatpol]], are to be computed
-        for the corresponding direction. If 0, this direction
-        should not be considered (for non-linear computations, the corresponding input
-        variables should be used).
-        </p>
-    varname: rf3dir
-    vartype: integer
-- !variable
-    characteristics:
-    - '[[NONLINEAR]]'
-    commentdefault: null
-    commentdims: null
-    defaultval: 0
-    definition: 'non-linear Response Function, 3rd mixed perturbation : ELectric
-        FielD'
-    dimensions: scalar
-    excludes: null
-    requires: null
-    section: varrf
-    text: |-
-        <p>
-         Turns on electric field perturbation in non-linear computation. Actually, such calculations
-        requires first the non-self-consistent calculation
-        of derivatives with respect to k, independently of the
-        electric field perturbation itself.
-         <br />
-         Only [[rfelfd]]
-        is compatible with both norm-conserving pseudopotentials as well as PAW. Higher mixed
-        perturbations can be used only with norm-conserving pseudopotentials.
-         <ul>
-          <li>
-           0=&gt;no electric field perturbation
-          </li>
-          <li>
-           1=&gt;full calculation, with first the
-        derivative of ground-state wavefunction with
-        respect to k (d/dk calculation), by a
-        non-self-consistent calculation, then the generation of
-        the first-order response to an homogeneous
-        electric field
-          </li>
-          <li>
-           2=&gt;only the derivative of ground-state wavefunctions with
-        respect to k
-          </li>
-          <li>
-           3=&gt;only the generation of the first-order response
-        to the electric field,
-        assuming that the data on derivative of ground-state
-        wavefunction with respect to k is available on disk.
-          </li>
-         </ul>
-         (Note : because the tolerances to be used for derivatives or
-        homogeneous electric field are different, one often does the
-        calculation of derivatives in a separate dataset, followed by
-        calculation of electric field response as well as phonon.
-         <br />
-         The options 2 and 3 proves useful in that context ;
-        also, in case a scissor shift is to be used,
-        it is usually not applied for the d/dk response).
-        </p>
-    varname: rf3elfd
-    vartype: integer
-- !variable
-    characteristics:
-    - '[[NONLINEAR]]'
-    commentdefault: null
-    commentdims: null
-    defaultval: 0
-    definition: 'non-linear Response Function, 3rd mixed perturbation : PHONons'
-    dimensions: scalar
-    excludes: null
-    requires: null
-    section: varrf
-    text: |-
-        <p>
-         It must be equal to 1
-        to include some phonon perturbation
-        in non-linear computations.
-        </p>
-    varname: rf3phon
+    varname: rf2_dkdk
     vartype: integer
 - !variable
     characteristics:
@@ -23096,44 +22604,6 @@
     commentdefault: null
     commentdims: null
     defaultval: 0
-    definition: Response Function with respect to 2nd derivative with respect to K
-    dimensions: scalar
-    excludes: null
-    requires: null
-    section: varrf
-    text: |-
-        <p>
-        UNUSABLE (in development)
-        </p>
-        <p>
-         Activates computation of second derivatives of ground state
-        wavefunctions with respect to wavevectors. This is not strictly a response
-        function but is a needed auxiliary quantity in the electric field
-        calculations (see [[rfelfd]]) The directions for the
-        derivatives are determined by [[rfdir]].
-         <ul>
-          <li>
-           0=&gt;no derivative calculation
-          </li>
-          <li>
-           1=&gt;calculation along diagonal directions (d2/(dk_i dk_i), natom+10 is activated)
-          </li>
-          <li>
-           2=&gt;calculation along off-diagonal directions (d2/(dk_i dk_j), natom+11 is activated)
-          </li>
-          <li>
-           3=&gt;calculation along all directions (both natom+10 and natom+11 are activated)
-          </li>
-         </ul>
-        </p>
-    varname: rfd2dk
-    vartype: integer
-- !variable
-    characteristics:
-    - '[[RESPFN]]'
-    commentdefault: null
-    commentdims: null
-    defaultval: 0
     definition: Response Function with respect to Derivative with respect to K
     dimensions: scalar
     excludes: null
@@ -23217,10 +22687,6 @@
         requires first the non-self-consistent calculation
         of derivatives with respect to k, independently of the
         electric field perturbation itself.
-         <br />
-         Only [[rfelfd]]
-        is compatible with both norm-conserving pseudopotentials as well as PAW. Higher mixed
-        perturbations can be used only with norm-conserving pseudopotentials.
          <ul>
           <li>
            0=&gt;no electric field perturbation
@@ -23366,9 +22832,9 @@
          In order to define and use correctly the new perturbations,
         the developper might have to include code lines or additional routines
         at the level of the following routines :
-        dfpt_cgwf.F90, dfpt_dyout.F90, dfpt_symph.F90, dfpt_dyout.F90, dfpt_etot.F90, 
-        littlegroup_pert.F90, dfpt_looppert.F90, dfpt_mkcor.F90, dfpt_nstdy.F90, 
-        dfpt_nstwf.F90, respfn.F90, dfpt_scfcv.F90, irreducible_set_pert.F90, 
+        dfpt_cgwf.F90, dfpt_dyout.F90, dfpt_symph.F90, dfpt_dyout.F90, dfpt_etot.F90,
+        littlegroup_pert.F90, dfpt_looppert.F90, dfpt_mkcor.F90, dfpt_nstdy.F90,
+        dfpt_nstwf.F90, respfn.F90, dfpt_scfcv.F90, irreducible_set_pert.F90,
         dfpt_vloca.F90, dfpt_vtorho.F90, dfpt_vtowfk.F90.
         In these routines, the developper should pay a particular
         attention to the rfpert array, defined in the routine respfn.F90 ,
@@ -25084,11 +24550,10 @@
 - !variable
     characteristics:
     - '[[ENERGY]]'
-    commentdefault: |-
-        The default value implies that this stopping condition 
-        is ignored. For the SCF case, one and only one of the input tolerance 
-        criteria \n[[tolwfr]], [[toldff]], [[tolrff]], [[toldfe]] or [[tolvrs]] 
-        must differ from zero.
+    commentdefault: "The default value implies that this stopping condition\
+        \ \nis ignored. For the SCF case, one and only one of the input tolerance\
+        \ \ncriteria \\n[[tolwfr]], [[toldff]], [[tolrff]], [[toldfe]] or\
+        \ [[tolvrs]] \nmust differ from zero."
     commentdims: null
     defaultval: 0.0
     definition: TOLerance on the DiFference of total Energy
@@ -25135,11 +24600,10 @@
     vartype: real
 - !variable
     characteristics: null
-    commentdefault: |-
-        The default value implies that this stopping condition 
-        is ignored.\nFor the SCF case, one and only one of the input tolerance 
-        criteria [[tolwfr]], [[toldff]], [[tolrff]], [[toldfe]] or [[tolvrs]] 
-        must differ from zero.
+    commentdefault: "The default value implies that this stopping condition\
+        \ \nis ignored.\\nFor the SCF case, one and only one of the input\
+        \ tolerance \ncriteria [[tolwfr]], [[toldff]], [[tolrff]], [[toldfe]]\
+        \ or [[tolvrs]] \nmust differ from zero."
     commentdims: null
     defaultval: 0.0
     definition: TOLerance on the DiFference of Forces
