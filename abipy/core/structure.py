@@ -318,6 +318,30 @@ class Structure(pymatgen.Structure):
 
         return("\n".join(lines))
 
+    def abi_primitive(self, symprec=1e-3, angle_tolerance=5, no_idealize=0):
+        #TODO: this should be moved to pymatgen in the get_refined_structure or so ... to be considered in February 2016
+        from pymatgen.io.ase import AseAtomsAdaptor
+        try:
+            import spglib
+            version = spglib.get_version()
+            if version != (1, 9, 0):
+                raise ValueError('abi_primitive requires spglib version 1.9.0 '
+                                 'while it is {:d}.{:d}.{:d}'.format(version[0], version[1], version[2]))
+        except ImportError:
+            raise ValueError('abi_primitive requires spglib')
+        try:
+            from ase.atoms import Atoms
+        except ImportError:
+            raise ValueError('Could not import Atoms from ase')
+        s = self.get_sorted_structure()
+        ase_adaptor = AseAtomsAdaptor()
+        ase_atoms = ase_adaptor.get_atoms(structure=s)
+        standardized = spglib.standardize_cell(bulk=ase_atoms, to_primitive=1, no_idealize=no_idealize,
+                                               symprec=symprec, angle_tolerance=angle_tolerance)
+        standardized_ase_atoms = Atoms(scaled_positions=standardized[1], numbers=standardized[2], cell=standardized[0])
+        standardized_structure = ase_adaptor.get_structure(standardized_ase_atoms)
+        return standardized_structure
+    
     def abi_sanitize(self, symprec=1e-3, angle_tolerance=5, primitive=True, primitive_standard=False):
         """
         Returns a new structure in which:
@@ -1238,6 +1262,21 @@ class Structure(pymatgen.Structure):
             nval += pseudo.Z_val
 
         return nval
+
+    def valence_electrons_per_atom(self, pseudos):
+        """
+        Returns the number of valence electrons for each atom in the structure.
+
+        Args:
+            pseudos: List of :class:`Pseudo` objects or list of filenames.
+        """
+        table = PseudoTable.as_table(pseudos)
+        psp_valences = []
+        for site in self:
+            pseudo = table.pseudo_with_symbol(site.species_string)
+            psp_valences.append(pseudo.Z_val)
+
+        return psp_valences
 
 
 class StructureModifier(object):

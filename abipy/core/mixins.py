@@ -14,6 +14,7 @@ from monty.functools import lazy_property
 from pymatgen.io.abinit.events import EventsParser
 from pymatgen.io.abinit.abiinspect import GroundStateScfCycle, D2DEScfCycle, Relaxation
 from pymatgen.io.abinit.abitimer import AbinitTimerParser
+from pymatgen.io.abinit.netcdf import NetcdfReader, NO_DEFAULT
 
 
 __all__ = [
@@ -201,7 +202,19 @@ class AbinitOutputFile(AbinitTextFile):
         self.seek(0)
         for other in others: other.seek(0)
         return figures
-                                                                                                   
+
+
+class AbinitOutNcFile(NetcdfReader):
+    """Class representing the _OUT.nc file."""
+
+    def get_vars(self, vars, strict=False):
+        # TODO: add a check on the variable names ?
+        default = NO_DEFAULT if strict else None
+        var_values = {}
+        for var in vars:
+            var_values[var] = self.read_value(varname=var, default=default)
+        return var_values
+
 
 @six.add_metaclass(abc.ABCMeta)
 class AbinitNcFile(_File):
