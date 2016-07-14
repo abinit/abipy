@@ -20,7 +20,7 @@ from monty.os.path import which
 from monty.termcolor import cprint, get_terminal_size
 from monty.string import boxed
 from pymatgen.io.abinit.nodes import Status
-from pymatgen.io.abinit.events import autodoc_event_handlers, EventsParser
+from pymatgen.io.abinit.events import autodoc_event_handlers
 import abipy.abilab as abilab
 
 
@@ -91,7 +91,7 @@ def flowdir_wname_tname(dirname):
 
     # Handle works or tasks.
     head = dirname
-    wnane, tname = None, None
+    wname, tname = None, None
     for i in range(2):
         head, tail = os.path.split(head)
         if i == 0: tail_1 = tail
@@ -127,26 +127,27 @@ def write_open_notebook(flow, options):
     """
     Generate an ipython notebook and open it in the browser.
     Return system exit code.
-    See http://nbviewer.ipython.org/gist/fperez/9716279
+
+    See also:
+        http://nbviewer.jupyter.org/github/maxalbert/auto-exec-notebook/blob/master/how-to-programmatically-generate-and-execute-an-ipython-notebook.ipynb
     """
-    from IPython.nbformat import current as nbf
+    import nbformat
+    nbf = nbformat.v4
     nb = nbf.new_notebook()
 
-    cells = [
-        #nbf.new_text_cell('heading', "This is an auto-generated notebook for %s" % os.path.basename(pseudopath)),
+    nb.cells.extend([
+        #nbf.new_markdown_cell("This is an auto-generated notebook for %s" % os.path.basename(pseudopath)),
         nbf.new_code_cell("""\
 ##%%javascript
 ##IPython.OutputArea.auto_scroll_threshold = 9999;
 
-from __future__ import print_function
+from __future__ import print_function, division, unicode_literals
 from abipy import abilab
 %matplotlib notebook
 
 import pylab
 pylab.rcParams['figure.figsize'] = (25.0, 10.0)
-import seaborn as sns
-#sns.set(style="dark", palette="Set2")
-sns.set(style='ticks', palette='Set2')"""),
+import seaborn as sns"""),
 
         nbf.new_code_cell("flow = abilab.Flow.pickle_load('%s')" % flow.workdir),
         nbf.new_code_cell("flow.show_dependencies()"),
@@ -155,19 +156,16 @@ sns.set(style='ticks', palette='Set2')"""),
         nbf.new_code_cell("flow.inspect(nids=None, wslice=None)"),
         nbf.new_code_cell("flow.show_abierrors()"),
         nbf.new_code_cell("flow.show_qouts()"),
-    ]
-
-    # Now that we have the cells, we can make a worksheet with them and add it to the notebook:
-    nb['worksheets'].append(nbf.new_worksheet(cells=cells))
+    ])
 
     # Next, we write it to a file on disk that we can then open as a new notebook.
     # Note: This should be as easy as: nbf.write(nb, fname), but the current api
     # is a little more verbose and needs a real file-like object.
-    import tempfile
+    import tempfile, io
     _, nbpath = tempfile.mkstemp(suffix='.ipynb', text=True)
 
-    with open(nbpath, 'w') as fh:
-        nbf.write(nb, fh, 'ipynb')
+    with io.open(nbpath, 'wt', encoding="utf8") as f:
+        nbformat.write(nb, fh)
 
     if which("jupyter") is not None:
         return os.system("jupyter notebook %s" % nbpath)
@@ -647,7 +645,7 @@ Specify the files to open. Possible choices:
         return 0
 
     elif options.command == "corrections":
-        ncorr = flow.show_corrections(status=options.task_status, nids=selected_nids(flow, options))
+        flow.show_corrections(status=options.task_status, nids=selected_nids(flow, options))
         return 0
 
     elif options.command == "history":
@@ -1078,7 +1076,12 @@ if __name__ == "__main__":
 
     elif do_tracemalloc:
         # Requires py3.4
-        import tracemalloc
+        try:
+            import tracemalloc
+        except ImportError:
+            print("Error while trying to import tracemalloc (requires py3.4)")
+            SystemExit(1)
+
         tracemalloc.start()
 
         retcode = main()

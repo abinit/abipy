@@ -92,7 +92,6 @@ class PspsFile(AbinitNcFile):
         Return: matplotlb Figure
         """
         import matplotlib.pyplot as plt
-        fig, ax_list = plt.subplots(nrows=2, ncols=2, squeeze=True)
 
         methods = [
             "plot_tcore_rspace",
@@ -100,6 +99,8 @@ class PspsFile(AbinitNcFile):
             "plot_ffspl",
             "plot_vlocq",
         ]
+
+        fig, ax_list = plt.subplots(nrows=2, ncols=2, squeeze=True)
 
         ecut_ffnl = kwargs.pop("ecut_ffnl", None)
         for m, ax in zip(methods, ax_list.ravel()):
@@ -136,8 +137,7 @@ class PspsFile(AbinitNcFile):
         ax.grid(True)
         ax.set_xlabel("r [Bohr]")
         ax.set_title("Model core in r-space")
-        if kwargs.get("with_legend", True):
-            ax.legend(loc="upper right")
+        if kwargs.get("with_legend", False): ax.legend(loc="best")
 
         return fig
 
@@ -186,8 +186,7 @@ class PspsFile(AbinitNcFile):
         ax.grid(True)
         ax.set_xlabel("Ecut [Hartree]")
         ax.set_title("Model core in q-space")
-        if kwargs.get("with_legend", True):
-            ax.legend(loc="upper right")
+        if kwargs.get("with_legend", False): ax.legend(loc="best")
 
         return fig
 
@@ -231,9 +230,7 @@ class PspsFile(AbinitNcFile):
         ax.grid(True)
         ax.set_xlabel("Ecut [Hartree]")
         ax.set_title("Vloc(q)")
-        if kwargs.get("with_legend", True):
-            #ax.legend(loc="upper right")
-            ax.legend(loc="best")
+        if kwargs.get("with_legend", False): ax.legend(loc="best")
 
         return fig
 
@@ -290,8 +287,7 @@ class PspsFile(AbinitNcFile):
         ax.grid(True)
         ax.set_xlabel("Ecut [Hartree]")
         ax.set_title("ffnl(q)")
-        if kwargs.get("with_legend", True):
-            ax.legend(loc="best")
+        if kwargs.get("with_legend", False): ax.legend(loc="best")
 
         ax.axhline(y=0, linewidth=linewidth, color='k', linestyle="solid")
 

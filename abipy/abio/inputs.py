@@ -645,6 +645,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         import pymatgen.io.vasp as vasp
         from monty.serialization import loadfn
         magmom_mp_conf = loadfn(os.path.join(os.path.dirname(vasp.__file__), "MPVaspInputSet.yaml"))['INCAR']['MAGMOM']
+        #magmom_mp_conf = loadfn(os.path.join(os.path.dirname(vasp.__file__), "MPRelaxSet.yaml"))['INCAR']['MAGMOM']
 
         spinat = []
         for site in self.structure:

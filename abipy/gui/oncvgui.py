@@ -1204,7 +1204,7 @@ class VlocalField(RowField):
         ("lloc", dict(dtype="i", value=4)),
         ("lpopt", dict(dtype="i", value=5)),
         ("rc5", dict(dtype="f", value=3.0)),
-        ("dvloc0", dict(dtype="i", value=0))])
+        ("dvloc0", dict(dtype="f", value=0))])
 
 
 @add_tooltips

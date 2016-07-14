@@ -114,6 +114,7 @@ class TestAbidiff(ScriptTest):
     def test_abidiff(self):
         """Testing abidiff"""
         env = self.get_env()
+        #env.run(self.script, "gs_scf", qtype, file1, file2, self.loglevel, self.verbose)
 
 
 class TestAbirun(ScriptTest):

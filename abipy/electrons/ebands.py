@@ -796,7 +796,7 @@ class ElectronBands(object):
         frame2["name"] = other_name
 
         # Merge frames ignoring index (not meaningful)
-	data = frame1.append(frame2, ignore_index=True)
+        data = frame1.append(frame2, ignore_index=True)
 
         # TODO: nsppol == 2
         if self.nsppol == 2:

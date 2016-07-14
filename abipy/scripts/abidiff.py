@@ -3,7 +3,7 @@ from __future__ import unicode_literals, division, print_function, absolute_impo
 
 import sys
 import os
-import argparse 
+import argparse
 
 from abipy import abilab
 
@@ -12,14 +12,14 @@ def main():
         return """\
 Usage example:\n
 
+  abidiff.py gs_scf run1.abo run2.abo         => Compare the SCF cycles in two output files.
   abidiff.py bands out1_GSR out2_GSR
-  abidiff.py scf run1.abo run2.abo         => Compare the SCF cycles in two output files.
 """
 
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""
         sys.stderr.write(str_examples())
-        if err_msg: 
+        if err_msg:
             sys.stderr.write("Fatal Error\n" + err_msg + "\n")
         sys.exit(error_code)
 
@@ -56,7 +56,7 @@ Usage example:\n
     except Exception:
         show_examples_and_exit(error_code=1)
 
-    # loglevel is bound to the string value obtained from the command line argument. 
+    # loglevel is bound to the string value obtained from the command line argument.
     # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
     import logging
     numeric_level = getattr(logging, options.loglevel.upper(), None)
@@ -70,10 +70,10 @@ Usage example:\n
     #        abifiles.append(abilab.abiopen(path))
     #    except:
     #        raise
-    #if not abifiles: 
+    #if not abifiles:
     #    return -1
 
-    #import seaborn as sns
+    import seaborn as sns
     #sns.set(style='ticks', palette='Set2')
     #sns.set(style="dark", palette="Set2")
     #And to remove "chartjunk", do:

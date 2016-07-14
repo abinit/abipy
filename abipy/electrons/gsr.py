@@ -10,7 +10,6 @@ from monty.string import is_string, list_strings
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
-from abipy.core.fields import DensityReader
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands
 from prettytable import PrettyTable
 from .ebands import ElectronsReader
@@ -140,19 +139,6 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         """:class:`XcFunc object with info on the exchange-correlation functional."""
         return self.reader.read_abinit_xcfunc()
 
-    @lazy_property
-    def density(self):
-        """:class:`Density` object."""
-        return self.reader.read_density()
-
-    @property
-    def magnetization(self):
-        return self.density.magnetization
-
-    @property
-    def nelect_updown(self):
-        return self.density.nelect_updown
-
     def close(self):
         self.reader.close()
 
@@ -281,7 +267,7 @@ class EnergyTerms(AttrDict):
         return "\n".join(lines)
 
 
-class GsrReader(ElectronsReader, DensityReader):
+class GsrReader(ElectronsReader):
     """
     This object reads the results stored in the _GSR (Ground-State Results) file produced by ABINIT.
     It provides helper function to access the most important quantities.
