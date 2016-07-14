@@ -61,6 +61,9 @@ class Mesh3D(object):
 
         cross12 = np.cross(self.vectors[1], self.vectors[2])
         self.dv = abs(np.sum(self.vectors[0] * cross12.T)) / self.size
+        self.dvx = self.vectors[0] / self.nx
+        self.dvy = self.vectors[1] / self.ny
+        self.dvz = self.vectors[2] / self.nz
 
     def __len__(self):
         return self.size
@@ -74,6 +77,15 @@ class Mesh3D(object):
 
     def __str__(self):
         return self.to_string()
+
+    def __iter__(self):
+        for ix in range(self.nx):
+            for iy in range(self.ny):
+                for iz in range(self.nz):
+                    yield ix*self.dvx + iy*self.dvy + iz*self.dvz
+
+    def rpoint(self, ix, iy, iz):
+        return ix*self.dvx + iy*self.dvy + iz*self.dvz
 
     def to_string(self, prtvol=0):
         s = self.__class__.__name__ + ": nx=%d, ny=%d, nz=%d" % self.shape
@@ -93,6 +105,10 @@ class Mesh3D(object):
     def nz(self):
         """Number of points along z."""
         return self.shape[2]
+
+    @property
+    def inv_vectors(self):
+        return np.linalg.inv(self.vectors)
 
     def _new_array(self, dtype=np.float, zero=True, extra_dims=()):
 
@@ -210,7 +226,7 @@ class Mesh3D(object):
         return fr * self.size
 
     def fourier_interp(self, data, new_mesh, inspace="r"):
-        """
+        """sphere in parallelepiped
         Fourier interpolation of data.
 
         :param data: Input array defined on this mesh
@@ -362,3 +378,107 @@ class Mesh3D(object):
         #        irot_fft == irottable[isym, ifft]
 
         return irottable
+
+    def i_closest_gridpoints(self, points):
+        inv_vectors = self.inv_vectors
+        fcoords = [np.dot(point, inv_vectors) for point in points]
+        return [[np.mod(int(np.rint(pc[ii]*self.shape[ii])), self.nx) for ii in range(3)] for pc in fcoords]
+        # return [(int(np.rint(pc[ii]*self.nx)), int(np.rint(pc[0]*self.nx)),int(np.rint(pc[0]*self.nx))) for pc in coords]
+        # ix = int(np.rint(coords[0]*self.nx))
+        # iy = int(np.rint(coords[1]*self.ny))
+        # iz = int(np.rint(coords[2]*self.nz))
+        # return (ix, iy, iz)
+
+    def dist_gridpoints_in_spheres(self, points, radius):
+        # c_ab = np.cross(self.vectors[0], self.vectors[1])
+        # c_bc = np.cross(self.vectors[1], self.vectors[2])
+        # c_ca = np.cross(self.vectors[2], self.vectors[0])
+        # h_ab = np.abs(np.dot(c_ab, self.vectors[2]) / np.linalg.norm(c_ab))
+        # h_bc = np.abs(np.dot(c_bc, self.vectors[0]) / np.linalg.norm(c_bc))
+        # h_ca = np.abs(np.dot(c_ca, self.vectors[1]) / np.linalg.norm(c_ca))
+        maxdiag = max([np.linalg.norm(self.dvx+self.dvy+self.dvz),
+                       np.linalg.norm(self.dvx+self.dvy-self.dvz),
+                       np.linalg.norm(self.dvx-self.dvy+self.dvz),
+                       np.linalg.norm(self.dvx-self.dvy-self.dvz)])
+        c_ab = np.cross(self.dvx, self.dvy)
+        c_bc = np.cross(self.dvy, self.dvz)
+        c_ca = np.cross(self.dvz, self.dvx)
+        h_ab = np.abs(np.dot(c_ab, self.dvz) / np.linalg.norm(c_ab))
+        h_bc = np.abs(np.dot(c_bc, self.dvx) / np.linalg.norm(c_bc))
+        h_ca = np.abs(np.dot(c_ca, self.dvy) / np.linalg.norm(c_ca))
+        a_factor = 1.01 * (radius+0.5*maxdiag) / h_bc
+        b_factor = 1.01 * (radius+0.5*maxdiag) / h_ca
+        c_factor = 1.01 * (radius+0.5*maxdiag) / h_ab
+        # print('HEIGHTS')
+        # print(h_ab, h_bc, h_ca)
+        # print(c_factor*h_ab, a_factor* h_bc, b_factor*h_ca)
+        mins = np.array(np.floor([-a_factor, -b_factor, -c_factor]), dtype=int)
+        maxes = np.array(np.ceil([a_factor, b_factor, c_factor]), dtype=int)
+        # print('AAAMINS AND MAXES', mins, maxes)
+        # maxes = np.ceil(nmax)
+        i_closest_gridpoint_points = self.i_closest_gridpoints(points=points)
+        dist_gridpoints_points = []
+        r2 = radius**2
+        for ipoint, point_i_closest_gridpoint in enumerate(i_closest_gridpoint_points):
+            pp = points[ipoint]
+            dist_gridpoints = []
+            for ix in range(int(mins[0]), int(maxes[0])):
+                ipx = point_i_closest_gridpoint[0] + ix
+                for iy in range(int(mins[1]), int(maxes[1])):
+                    ipy = point_i_closest_gridpoint[1] + iy
+                    for iz in range(int(mins[2]), int(maxes[2])):
+                        ipz = point_i_closest_gridpoint[2] + iz
+                        gp = ipx*self.dvx + ipy * self.dvy + ipz * self.dvz
+                        dist2_gp_pp = np.dot(pp-gp, pp-gp)
+                        if dist2_gp_pp <= r2:
+                            dist_gridpoints.append(((np.mod(ipx, self.nx), np.mod(ipy, self.ny), np.mod(ipz, self.nz)),
+                                                    np.sqrt(dist2_gp_pp), (ipx, ipy, ipz)))
+            dist_gridpoints_points.append(dist_gridpoints)
+        return dist_gridpoints_points
+
+    # def dist2_gridpoints_in_spheres(self, points, radius):
+    #     # c_ab = np.cross(self.vectors[0], self.vectors[1])
+    #     # c_bc = np.cross(self.vectors[1], self.vectors[2])
+    #     # c_ca = np.cross(self.vectors[2], self.vectors[0])
+    #     # h_ab = np.abs(np.dot(c_ab, self.vectors[2]) / np.linalg.norm(c_ab))
+    #     # h_bc = np.abs(np.dot(c_bc, self.vectors[0]) / np.linalg.norm(c_bc))
+    #     # h_ca = np.abs(np.dot(c_ca, self.vectors[1]) / np.linalg.norm(c_ca))
+    #     maxdiag = max([np.linalg.norm(self.dvx+self.dvy+self.dvz),
+    #                    np.linalg.norm(self.dvx+self.dvy-self.dvz),
+    #                    np.linalg.norm(self.dvx-self.dvy+self.dvz),
+    #                    np.linalg.norm(self.dvx-self.dvy-self.dvz)])
+    #     c_ab = np.cross(self.dvx, self.dvy)
+    #     c_bc = np.cross(self.dvy, self.dvz)
+    #     c_ca = np.cross(self.dvz, self.dvx)
+    #     h_ab = np.abs(np.dot(c_ab, self.dvz) / np.linalg.norm(c_ab))
+    #     h_bc = np.abs(np.dot(c_bc, self.dvx) / np.linalg.norm(c_bc))
+    #     h_ca = np.abs(np.dot(c_ca, self.dvy) / np.linalg.norm(c_ca))
+    #     a_factor = 1.01 * (radius+0.5*maxdiag) / h_bc
+    #     b_factor = 1.01 * (radius+0.5*maxdiag) / h_ca
+    #     c_factor = 1.01 * (radius+0.5*maxdiag) / h_ab
+    #     # print('HEIGHTS')
+    #     # print(h_ab, h_bc, h_ca)
+    #     # print(c_factor*h_ab, a_factor* h_bc, b_factor*h_ca)
+    #     mins = np.array(np.floor([-a_factor, -b_factor, -c_factor]), dtype=int)
+    #     maxes = np.array(np.ceil([a_factor, b_factor, c_factor]), dtype=int)
+    #     # print('AAAMINS AND MAXES', mins, maxes)
+    #     # maxes = np.ceil(nmax)
+    #     i_closest_gridpoint_points = self.i_closest_gridpoints(points=points)
+    #     dist_gridpoints_points = []
+    #     r2 = radius**2
+    #     for ipoint, point_i_closest_gridpoint in enumerate(i_closest_gridpoint_points):
+    #         pp = points[ipoint]
+    #         dist_gridpoints = []
+    #         for ix in range(int(mins[0]), int(maxes[0])):
+    #             ipx = point_i_closest_gridpoint[0] + ix
+    #             for iy in range(int(mins[1]), int(maxes[1])):
+    #                 ipy = point_i_closest_gridpoint[1] + iy
+    #                 for iz in range(int(mins[2]), int(maxes[2])):
+    #                     ipz = point_i_closest_gridpoint[2] + iz
+    #                     gp = ipx*self.dvx + ipy * self.dvy + ipz * self.dvz
+    #                     dist2_gp_pp = np.linalg.norm(pp-gp)
+    #                     if dist_gp_pp <= r2:
+    #                         dist_gridpoints.append(((np.mod(ipx, self.nx), np.mod(ipy, self.ny), np.mod(ipz, self.nz)),
+    #                                                 dist_gp_pp, (ipx, ipy, ipz)))
+    #         dist_gridpoints_points.append(dist_gridpoints)
+    #     return dist_gridpoints_points

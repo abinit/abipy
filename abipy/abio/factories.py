@@ -250,7 +250,7 @@ def ebands_input(structure, pseudos,
 def ion_ioncell_relax_input(structure, pseudos,
                             kppa=None, nband=None,
                             ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
-                            smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
+                            smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None, force_gamma_centered=False):
     """
     Returns a :class:`MultiDataset` for a structural relaxation. The first dataset optmizes the
     atomic positions at fixed unit cell. The second datasets optimizes both ions and unit cell parameters.
@@ -273,8 +273,11 @@ def ion_ioncell_relax_input(structure, pseudos,
     multi.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos))
 
     kppa = _DEFAULTS.get("kppa") if kppa is None else kppa
-    ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
-    electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
+    if force_gamma_centered:
+        ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=(0.0, 0.0, 0.0))
+    else:
+        ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
+    electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
                                charge=charge, nband=nband, fband=None)
 
     if spin_mode == "polarized":
@@ -836,9 +839,92 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, with_ddk=True, with_dde=True, wi
     return multi
 
 
+def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False):
+
+    """
+    Returns a :class:`AbinitInput` for performing elastic and piezoelectric constants calculations.
+    GS input + the input files for the elastic and piezoelectric constants calculation.
+
+    Args:
+        gs_inp: Ground State input to build piezo elastic inputs from.
+        ddk_tol: Tolerance for the Ddk calculation (i.e. {"tolwfr": 1.0e-20}).
+        rf_tol: Tolerance for the Strain RF calculations (i.e. {"tolvrs": 1.0e-12}).
+        ddk_split: Whether to split the ddk calculations.
+        rf_split: whether to split the RF calculations.
+    """
+    # Ddk input(s)
+    if ddk_split:
+        multi = gs_inp.make_ddk_inputs(tolerance=ddk_tol)
+    else:
+        ddk_inp = gs_inp.deepcopy()
+
+        ddk_inp.set_vars(
+                    rfelfd=2,             # Activate the calculation of the d/dk perturbation
+                    rfdir=(1,1,1),        # All directions
+                    nqpt=1,               # One wavevector is to be considered
+                    qpt=(0, 0, 0),        # q-wavevector.
+                    kptopt=3,             # Take into account time-reversal symmetry.
+                    iscf=-3,              # The d/dk perturbation must be treated in a non-self-consistent way
+                    paral_kgb=0
+                )
+        if ddk_tol is None:
+            ddk_tol = {"tolwfr": 1.0e-20}
+
+        if len(ddk_tol) != 1 or any(k not in _tolerances for k in ddk_tol):
+            raise ValueError("Invalid tolerance: {}".format(ddk_tol))
+        ddk_inp.pop_tolerances()
+        ddk_inp.set_vars(ddk_tol)
+        # Adding buffer to help convergence ...
+        if 'nbdbuf' not in ddk_inp:
+            nbdbuf = max(int(0.1*ddk_inp['nband']), 4)
+            ddk_inp.set_vars(nband=ddk_inp['nband']+nbdbuf, nbdbuf=nbdbuf)
+
+        multi = MultiDataset.from_inputs([ddk_inp])
+    multi.add_tags(DDK)
+
+    # Response Function input(s)
+    if rf_split:
+        multi_rf = gs_inp.make_strain_perts_inputs(tolerance=rf_tol)
+    else:
+        rf_inp = gs_inp.deepcopy()
+
+        rf_inp.set_vars(rfphon=1,                          # Atomic displacement perturbation
+                        rfatpol=(1,len(gs_inp.structure)), # Perturbation of all atoms
+                        rfstrs=3,                          # Do the strain perturbations
+                        rfdir=(1,1,1),                     # All directions
+                        nqpt=1,                            # One wavevector is to be considered
+                        qpt=(0, 0, 0),                     # q-wavevector.
+                        kptopt=3,                          # Take into account time-reversal symmetry.
+                        iscf=7,                            # The rfstrs perturbation must be treated in a
+                                                           #  self-consistent way
+                        paral_kgb=0
+                        )
+
+        if rf_tol is None:
+            rf_tol = {"tolvrs": 1.0e-12}
+
+        if len(rf_tol) != 1 or any(k not in _tolerances for k in rf_tol):
+            raise ValueError("Invalid tolerance: {}".format(rf_tol))
+        rf_inp.pop_tolerances()
+        rf_inp.set_vars(rf_tol)
+
+        # Adding buffer to help convergence ...
+        if 'nbdbuf' not in rf_inp:
+            nbdbuf = max(int(0.1*rf_inp['nband']), 4)
+            rf_inp.set_vars(nband=rf_inp['nband']+nbdbuf, nbdbuf=nbdbuf)
+
+        multi_rf = MultiDataset.from_inputs([rf_inp])
+    multi_rf.add_tags([DFPT, STRAIN])
+
+    multi.extend(multi_rf)
+
+    return multi
+
+
 def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None, scf_nband=None,
                              accuracy="normal", spin_mode="polarized",
-                             smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None, ddk_tol=None, rf_tol=None):
+                             smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
+                             ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False):
 
     """
     Returns a :class:`MultiDataset` for performing elastic and piezoelectric constants calculations.
@@ -858,74 +944,92 @@ def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None
         smearing: Smearing technique.
         charge: Electronic charge added to the unit cell.
         scf_algorithm: Algorithm used for solving of the SCF cycle.
-        ddk_tol
+        ddk_tol: Tolerance for the Ddk calculation (i.e. {"tolwfr": 1.0e-20}).
+        rf_tol: Tolerance for the Strain RF calculations (i.e. {"tolvrs": 1.0e-12}).
+        ddk_split: Whether to split the ddk calculations.
+        rf_split: whether to split the RF calculations.
     """
     # Build the input file for the GS run.
-    gs_inp = AbinitInput(structure=structure, pseudos=pseudos)
+    gs_inp = scf_input(structure=structure, pseudos=pseudos, kppa=kppa, ecut=ecut, pawecutdg=pawecutdg,
+                       nband=scf_nband, accuracy=accuracy, spin_mode=spin_mode, smearing=smearing, charge=charge,
+                       scf_algorithm=scf_algorithm, shift_mode="Gamma-centered")
 
-    # Set the cutoff energies.
-    gs_inp.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, gs_inp.pseudos))
+    # Adding buffer to help convergence ...
+    nbdbuf = max(int(0.1*gs_inp['nband']), 4)
+    gs_inp.set_vars(nband=gs_inp['nband']+nbdbuf, nbdbuf=nbdbuf)
 
-    ksampling = aobj.KSampling.automatic_density(gs_inp.structure, kppa, chksymbreak=0, shifts=(0.0, 0.0, 0.0))
-    gs_inp.set_vars(ksampling.to_abivars())
-    gs_inp.set_vars(tolvrs=1.0e-18)
+    multi = MultiDataset.from_inputs([gs_inp])
 
-    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
-                                   charge=charge, nband=None, fband=None)
+    piezo_elastic_inputs = piezo_elastic_inputs_from_gsinput(gs_inp=gs_inp, ddk_tol=ddk_tol, rf_tol=rf_tol)
 
-    if scf_electrons.nband is None:
-        scf_electrons.nband = _find_scf_nband(structure, gs_inp.pseudos, scf_electrons)
-    gs_inp.set_vars(scf_electrons.to_abivars())
+    multi.extend(piezo_elastic_inputs)
 
-    all_inps = [gs_inp]
+    return multi
 
-    # Add the ddk input
-    ddk_inp = gs_inp.deepcopy()
+    # gs_inp = AbinitInput(structure=structure, pseudos=pseudos)
+    #
+    # # Set the cutoff energies.
+    # gs_inp.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, gs_inp.pseudos))
+    #
+    # ksampling = aobj.KSampling.automatic_density(gs_inp.structure, kppa, chksymbreak=0, shifts=(0.0, 0.0, 0.0))
+    # gs_inp.set_vars(ksampling.to_abivars())
+    # gs_inp.set_vars(tolvrs=1.0e-18)
+    #
+    # scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
+    #                                charge=charge, nband=None, fband=None)
+    #
+    # if scf_electrons.nband is None:
+    #     scf_electrons.nband = _find_scf_nband(structure, gs_inp.pseudos, scf_electrons)
+    # gs_inp.set_vars(scf_electrons.to_abivars())
 
-    ddk_inp.set_vars(
-                rfelfd=2,             # Activate the calculation of the d/dk perturbation
-                rfdir=(1,1,1),        # All directions
-                nqpt=1,               # One wavevector is to be considered
-                qpt=(0, 0, 0),        # q-wavevector.
-                kptopt=2,             # Take into account time-reversal symmetry.
-                iscf=-3,              # The d/dk perturbation must be treated in a non-self-consistent way
-            )
-    if ddk_tol is None:
-        ddk_tol = {"tolwfr": 1.0e-20}
-
-    if len(ddk_tol) != 1 or any(k not in _tolerances for k in ddk_tol):
-        raise ValueError("Invalid tolerance: {0}".format(ddk_tol))
-    ddk_inp.pop_tolerances()
-    ddk_inp.set_vars(ddk_tol)
-
-    ddk_inp.add_tags(DDK)
-    all_inps.append(ddk_inp)
-
-    # Add the Response Function calculation
-    rf_inp = gs_inp.deepcopy()
-
-    rf_inp.set_vars(rfphon=1,                          # Atomic displacement perturbation
-                    rfatpol=(1,len(gs_inp.structure)), # Perturbation of all atoms
-                    rfstrs=3,                          # Do the strain perturbations
-                    rfdir=(1,1,1),                     # All directions
-                    nqpt=1,                            # One wavevector is to be considered
-                    qpt=(0, 0, 0),                     # q-wavevector.
-                    kptopt=2,                          # Take into account time-reversal symmetry.
-                    iscf=7,                            # The d/dk perturbation must be treated in a non-self-consistent way
-                    )
-
-    if rf_tol is None:
-        rf_tol = {"tolvrs": 1.0e-12}
-
-    if len(rf_tol) != 1 or any(k not in _tolerances for k in rf_tol):
-        raise ValueError("Invalid tolerance: {0}".format(rf_tol))
-    rf_inp.pop_tolerances()
-    rf_inp.set_vars(rf_tol)
-
-    rf_inp.add_tags([DFPT, STRAIN])
-    all_inps.append(rf_inp)
-
-    return MultiDataset.from_inputs(all_inps)
+    #
+    # # Add the ddk input
+    # ddk_inp = gs_inp.deepcopy()
+    #
+    # ddk_inp.set_vars(
+    #             rfelfd=2,             # Activate the calculation of the d/dk perturbation
+    #             rfdir=(1,1,1),        # All directions
+    #             nqpt=1,               # One wavevector is to be considered
+    #             qpt=(0, 0, 0),        # q-wavevector.
+    #             kptopt=2,             # Take into account time-reversal symmetry.
+    #             iscf=-3,              # The d/dk perturbation must be treated in a non-self-consistent way
+    #         )
+    # if ddk_tol is None:
+    #     ddk_tol = {"tolwfr": 1.0e-20}
+    #
+    # if len(ddk_tol) != 1 or any(k not in _tolerances for k in ddk_tol):
+    #     raise ValueError("Invalid tolerance: {}".format(ddk_tol))
+    # ddk_inp.pop_tolerances()
+    # ddk_inp.set_vars(ddk_tol)
+    #
+    # ddk_inp.add_tags(DDK)
+    # all_inps.append(ddk_inp)
+    #
+    # # Add the Response Function calculation
+    # rf_inp = gs_inp.deepcopy()
+    #
+    # rf_inp.set_vars(rfphon=1,                          # Atomic displacement perturbation
+    #                 rfatpol=(1,len(gs_inp.structure)), # Perturbation of all atoms
+    #                 rfstrs=3,                          # Do the strain perturbations
+    #                 rfdir=(1,1,1),                     # All directions
+    #                 nqpt=1,                            # One wavevector is to be considered
+    #                 qpt=(0, 0, 0),                     # q-wavevector.
+    #                 kptopt=2,                          # Take into account time-reversal symmetry.
+    #                 iscf=7,                            # The d/dk perturbation must be treated in a non-self-consistent way
+    #                 )
+    #
+    # if rf_tol is None:
+    #     rf_tol = {"tolvrs": 1.0e-12}
+    #
+    # if len(rf_tol) != 1 or any(k not in _tolerances for k in rf_tol):
+    #     raise ValueError("Invalid tolerance: {}".format(rf_tol))
+    # rf_inp.pop_tolerances()
+    # rf_inp.set_vars(rf_tol)
+    #
+    # rf_inp.add_tags([DFPT, STRAIN])
+    # all_inps.append(rf_inp)
+    #
+    # return MultiDataset.from_inputs(all_inps)
 
 
 def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=None, accuracy="normal",
@@ -1116,3 +1220,12 @@ class ScfForPhononsFactory(InputFactory):
 
 class PhononsFromGsFactory(InputFactory):
     factory_function = staticmethod(phonons_from_gsinput)
+
+
+class PiezoElasticFactory(InputFactory):
+    factory_function = staticmethod(scf_piezo_elastic_inputs)
+    input_required = False
+
+
+class PiezoElasticFromGsFactory(InputFactory):
+    factory_function = staticmethod(piezo_elastic_inputs_from_gsinput)
