@@ -122,6 +122,10 @@ class TestAbinitInput(AbipyTest):
         """Testing AbinitInput helper functions."""
         inp = AbinitInput(structure=abidata.cif_file("si.cif"), pseudos=abidata.pseudos("14si.pspnc"))
 
+        nval_atoms = inp.valence_electrons_per_atom
+        assert len(nval_atoms) == 2
+        assert nval_atoms == [4, 4]
+
         inp.set_kmesh(ngkpt=(1, 2, 3), shiftk=(1, 2, 3, 4, 5, 6))
         assert inp["kptopt"] == 1 and inp["nshiftk"] == 2
 
@@ -152,35 +156,33 @@ class TestAbinitInput(AbipyTest):
         inp.set_kmesh(ngkpt=(2, 2, 2), shiftk=(0, 0, 0))
 
         # The code below invokes Abinit.
-        if self.has_abinit():
+        # Test validate with wrong input
+        inp.set_vars(ecut=-1)
+        v = inp.abivalidate()
+        assert v.retcode != 0 and v.log_file.read()
 
-            # Test validate with wrong input
-            inp.set_vars(ecut=-1)
-            v = inp.abivalidate()
-            assert v.retcode != 0 and v.log_file.read()
+        # Test validate with correct input
+        inp.set_vars(ecut=2, toldfe=1e-6)
+        v = inp.abivalidate()
+        assert v.retcode == 0
 
-            # Test validate with correct input
-            inp.set_vars(ecut=2, toldfe=1e-6)
-            v = inp.abivalidate()
-            assert v.retcode == 0
+        # Test abiget_ibz
+        ibz = inp.abiget_ibz()
+        assert np.all(ibz.points == [[ 0. ,  0. ,  0. ], [ 0.5,  0. ,  0. ], [ 0.5,  0.5,  0. ]])
+        assert np.all(ibz.weights == [0.125,  0.5,  0.375])
 
-            # Test abiget_ibz
-            ibz = inp.abiget_ibz()
-            assert np.all(ibz.points == [[ 0. ,  0. ,  0. ], [ 0.5,  0. ,  0. ], [ 0.5,  0.5,  0. ]])
-            assert np.all(ibz.weights == [0.125,  0.5,  0.375])
+        # Test abiget_irred_phperts
+        # [{'idir': 1, 'ipert': 1, 'qpt': [0.0, 0.0, 0.0]}]
+        irred_perts = inp.abiget_irred_phperts(qpt=(0, 0, 0))
+        assert len(irred_perts) == 1
+        pert = irred_perts[0]
+        assert pert.idir == 1 and (pert.idir, pert.ipert) == (1, 1) and all(c == 0 for c in pert.qpt)
 
-            # Test abiget_irred_phperts
-            # [{'idir': 1, 'ipert': 1, 'qpt': [0.0, 0.0, 0.0]}]
-            irred_perts = inp.abiget_irred_phperts(qpt=(0, 0, 0))
-            assert len(irred_perts) == 1
-            pert = irred_perts[0]
-            assert pert.idir == 1 and (pert.idir, pert.ipert) == (1, 1) and all(c == 0 for c in pert.qpt)
-
-            # Test abiget_autoparal_pconfs
-            inp["paral_kgb"] = 0
-            pconfs = inp.abiget_autoparal_pconfs(max_ncpus=5)
-            inp["paral_kgb"] = 1
-            pconfs = inp.abiget_autoparal_pconfs(max_ncpus=5)
+        # Test abiget_autoparal_pconfs
+        inp["paral_kgb"] = 0
+        pconfs = inp.abiget_autoparal_pconfs(max_ncpus=5)
+        inp["paral_kgb"] = 1
+        pconfs = inp.abiget_autoparal_pconfs(max_ncpus=5)
 
     def test_dict_methods(self):
         """ Testing AbinitInput dict methods """
@@ -226,10 +228,9 @@ class TestAbinitInput(AbipyTest):
         assert all(np.all(inp["rfdir"] == [1, 0, 0] for inp in phg_inputs))
         assert all(np.all(inp["kptopt"] == 2 for inp in phg_inputs))
 
-        if self.has_abinit():
-            # Validate
-            vs = phg_inputs.abivalidate()
-            assert all(v.retcode == 0 for v in vs)
+        # Validate
+        vs = phg_inputs.abivalidate()
+        assert all(v.retcode == 0 for v in vs)
 
         #############
         # DDK methods
@@ -243,11 +244,19 @@ class TestAbinitInput(AbipyTest):
         assert all(inp["iscf"] == -3 for inp in ddk_inputs)
         assert all(inp["rfelfd"] == 2 for inp in ddk_inputs)
 
-        if self.has_abinit():
-            # Validate
-            vs = ddk_inputs.abivalidate()
-            assert all(v.retcode == 0 for v in vs)
-            #assert 0
+        # Validate
+        vs = ddk_inputs.abivalidate()
+        assert all(v.retcode == 0 for v in vs)
+
+        #################
+        # Strain methods
+        #################
+        strain_inputs = gs_inp.make_strain_perts_inputs(tolerance=None)
+        print("STRAIN inputs\n", strain_inputs)
+        assert all(inp["tolvrs"] == 1e-12 for inp in strain_inputs)
+
+        vs = strain_inputs.abivalidate()
+        assert all(v.retcode == 0 for v in vs)
 
     def TestInputCheckSum(self):
         """Testing the hash method of AbinitInput"""

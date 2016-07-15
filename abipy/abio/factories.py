@@ -277,7 +277,7 @@ def ion_ioncell_relax_input(structure, pseudos,
         ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=(0.0, 0.0, 0.0))
     else:
         ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
-    electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
+    electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                charge=charge, nband=nband, fband=None)
 
     if spin_mode == "polarized":
@@ -542,7 +542,7 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
                                     charge=charge, nband=nscf_nband, fband=None)
 
     multi_scf = MultiDataset(structure, pseudos, ndtset=max(1, len(scf_diffs)))
-   
+
     multi_scf.set_vars(scf_ksampling.to_abivars())
     multi_scf.set_vars(scf_electrons.to_abivars())
     multi_scf.set_vars(extra_abivars_all)
@@ -555,7 +555,6 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
     scf_inputs = multi_scf.split_datasets()
 
     # create nscf inputs
-
     ndtset = 3 if nksmall is not None else 1
     nscf_multi = MultiDataset(structure=structure, pseudos=pseudos, ndtset=ndtset)
 
@@ -707,7 +706,6 @@ def bse_with_mdf_inputs(structure, pseudos,
 def scf_phonons_inputs(structure, pseudos, kppa,
                        ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
                        smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
-
     """
     Returns a list of input files for performing phonon calculations.
     GS input + the input files for the phonon calculation.
@@ -787,9 +785,7 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, with_ddk=True, with_dde=True, wi
     Returns a :class:`MultiDataset` for performing phonon calculations.
     GS input + the input files for the phonon calculation.
     """
-
     gs_inp = gs_inp.deepcopy()
-
     gs_inp.pop_irdvars()
 
     if with_dde:
@@ -805,7 +801,6 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, with_ddk=True, with_dde=True, wi
         ph_ngqpt = np.array(gs_inp["ngkpt"])
 
     qpoints = gs_inp.abiget_ibz(ngkpt=ph_ngqpt, shiftk=(0,0,0), kptopt=1).points
-
 
     # Build the input files for the q-points in the IBZ.
     # Response-function calculation for phonons.
@@ -1056,7 +1051,8 @@ def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=No
         abinit_input.set_autospinat()
 
     if scf_electrons.nband is None:
-        scf_electrons.nband = _find_scf_nband(structure, abinit_input.pseudos, scf_electrons,abinit_input.get('spinat', None))
+        scf_electrons.nband = _find_scf_nband(structure, abinit_input.pseudos, scf_electrons,
+                                              abinit_input.get('spinat', None))
 
     abinit_input.set_vars(scf_ksampling.to_abivars())
     abinit_input.set_vars(scf_electrons.to_abivars())
@@ -1093,7 +1089,6 @@ def ebands_from_gsinput(gsinput, nband=None, ndivsm=15, accuracy="normal"):
 def ioncell_relax_from_gsinput(gsinput, accuracy="normal"):
 
     ioncell_input = gsinput.deepcopy()
-
     ioncell_input.pop_irdvars()
 
     ioncell_relax = aobj.RelaxationMethod.atoms_and_cell(atoms_constraints=None)

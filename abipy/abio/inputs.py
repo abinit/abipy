@@ -286,7 +286,13 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
     def variable_checksum(self):
         # todo add the decorators, do we need to add them ?
-        return hash(str(sorted([(unicode(i[0]), i[1]) for i in self.as_dict()['abi_args']])))
+        s = str(sorted([(unicode(i[0]), i[1]) for i in self.as_dict()['abi_args']]))
+        return hash(s)
+        # Use md5 because python hash is not deterministic
+        import hashlib
+        sha1 = hashlib.sha1()
+        sha1.update(s)
+        return sha1.hexdigest()
 
     @pmg_serialize
     def as_dict(self):
