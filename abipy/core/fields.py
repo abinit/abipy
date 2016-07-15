@@ -432,25 +432,30 @@ class Density(ScalarField):
         """
         super(Density, self).__init__(nspinor, nsppol, nspden, rhor, structure, iorder=iorder)
 
-    def __add__(self, other):
+    def _check_other(self, other):
+        """Consistency check"""
         if not isinstance(other, self.__class__):
-            raise ValueError('Other object is not an instance of Density')
+            raise ValueError('object of class %s is not an instance of %s' % (other.__class__, self.__class__))
+
         if any([self.nspinor != other.nspinor, self.nsppol != other.nsppol, self.nspden != other.nspden,
                 self.structure != other.structure, self.mesh != other.mesh]):
             raise ValueError('Incompatible scalar fields')
 
-        return Density(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden, rhor=self.datar+other.datar,
-                       structure=self.structure, iorder="c")
+        return True
+
+    def __add__(self, other):
+        """self + other"""
+        self._check_other(other)
+        return self.__class__(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
+                              rhor=self.datar + other.datar,
+                              structure=self.structure, iorder="c")
 
     def __sub__(self, other):
-        if not isinstance(other, self.__class__):
-            raise ValueError('Other object is not an instance of Density')
-        if any([self.nspinor != other.spinor, self.nsppol != other.nsppol, self.nspden != other.nspden,
-                self.structure != other.structure, self.mesh != other.mesh]):
-            raise ValueError('Incompatible scalar fields')
-
-        return Density(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden, rhor=self.datar-other.datar,
-                       structure=self.structure, iorder="c")
+        """self - other"""
+        self._check_other(other)
+        return self.__class__(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
+                              rhor=self.datar - other.datar,
+                              structure=self.structure, iorder="c")
 
     def get_nelect(self, spin=None):
         """

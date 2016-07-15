@@ -4,6 +4,8 @@ import unittest
 import shutil
 import os
 import tempfile
+import abipy.data as abidata
+import copy
 
 from pymatgen.util.testing import PymatgenTest
 from pymatgen.core.structure import Structure
@@ -14,10 +16,9 @@ from abipy.gw.codeinterfaces import AbinitInterface, VaspInterface, get_code_int
 from abipy.gw.tests.test_helpers import structure
 from abipy.abilab import Structure as AbiStructure
 from abipy.gw.GWworks import GWWork, SingleAbinitGWWork, VaspGWFWWorkFlow
-import abipy.data as abidata
 from pymatgen.io.vasp.inputs import get_potcar_dir
 from pymatgen.io.abinit.flows import Flow
-import copy
+
 
 __author__ = 'setten'
 

@@ -2,7 +2,9 @@
 """Tests for core.density module"""
 from __future__ import print_function, division
 
-import abipy.data as abidata 
+
+import tempfile
+import abipy.data as abidata
 
 from abipy.core import Density
 from abipy.core.testing import *
@@ -40,7 +42,9 @@ class TestDensity(AbipyTest):
                 visu = den.export(".xsf")
                 self.assertTrue(callable(visu))
 
-
-if __name__ == "__main__":
-    import unittest
-    unittest.main()
+            # Test CUBE files.
+            _, tmp_cubefile = tempfile.mkstemp(text=True)
+            den.export_to_cube(tmp_cubefile)
+            total_den = Density.from_cube(tmp_cubefile)
+            assert total_den.structure == den.structure
+            assert abs(total_den.get_nelect().sum() - nelect_file) < 1e-3
