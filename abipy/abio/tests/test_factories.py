@@ -38,7 +38,7 @@ class FactoryTest(AbipyTest):
 
     def test_ebands_input(self):
         """Testing ebands_input factory."""
-        mulit = ebands_input(self.si_structure, self.si_pseudo, kppa=10, ecut=2)
+        multi = ebands_input(self.si_structure, self.si_pseudo, kppa=10, ecut=2)
 
         scf_inp, nscf_inp = multi.split_datasets()
 
@@ -104,10 +104,10 @@ class FactoryTest(AbipyTest):
         self.assertIsInstance(inputs[2][0], AbinitInput)
         self.assertIsInstance(inputs[3][0], AbinitInput)
 
-        self.assertEqual(inputs[0][0].variable_checksum(), 7103718882381428210)
-        self.assertEqual(inputs[1][0].variable_checksum(), -7769555600210016011)
-        self.assertEqual(inputs[2][0].variable_checksum(), 8757310848648668113)
-        self.assertEqual(inputs[3][0].variable_checksum(), -3535849381983428284)
+        self.assertEqual(inputs[0][0].variable_checksum(), "6cf6121967a3cd08cc85efde3b50188df0b8067c")
+        self.assertEqual(inputs[1][0].variable_checksum(), "d1e2639f848204359e01a03d11e2dac146c7dbc6")
+        self.assertEqual(inputs[2][0].variable_checksum(), "fe1b410583611ce1ba799765f9182a9e6be6e822")
+        self.assertEqual(inputs[3][0].variable_checksum(), "d2ff935446e01d7af344e21c2fc7e0a9db201ce7")
 
         #for input in [inputs[0][0], inputs[1][0], inputs[2][0], inputs[3][0]]:
 
