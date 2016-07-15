@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Tests for core.density module"""
 from __future__ import print_function, division
 
