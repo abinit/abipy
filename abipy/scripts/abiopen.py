@@ -46,6 +46,8 @@ from abipy import abilab\
     return os.system("jupyter notebook %s" % nbpath)
 
 
+#from monty.functools import prof_main
+#@prof_main
 def main():
 
     def str_examples():
@@ -54,7 +56,7 @@ Usage example:
     abiopen.py out_GSR
     abiopen.py out_DDB
 
-List of file extensions supported:
+File extensions supported:
 """
         return s + abilab.abiopen_ext2class_table()
 
@@ -99,7 +101,7 @@ List of file extensions supported:
         # Start ipython shell with namespace
         abifile = abilab.abiopen(options.filepath)
         import IPython
-        # USe embed because I don't know how to show a header with start_ipython.
+        # Use embed because I don't know how to show a header with start_ipython.
         IPython.embed(header="The Abinit file is bound to the `abifile` variable.\nTry `print(abifile)`")
         #IPython.start_ipython(argv=options.argv,
         #                      user_ns={"abifile": abifile},
@@ -110,8 +112,8 @@ List of file extensions supported:
         #
     else:
         import daemon
-        #with daemon.DaemonContext(detach_process=True):
-        return make_open_notebook(options)
+        with daemon.DaemonContext(detach_process=True):
+            return make_open_notebook(options)
 
     return 0
 

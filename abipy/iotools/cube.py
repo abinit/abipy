@@ -1,7 +1,9 @@
 # coding: utf-8
-"""Tools for writing cube files."""
+"""
+Tools for writing cube files.
+See http://paulbourke.net/dataformats/cube/ and http://www.gaussian.com/g_tech/g_ur/u_cubegen.htm
+"""
 from __future__ import print_function, division, unicode_literals, absolute_import
-
 
 import numpy as np
 
@@ -33,6 +35,7 @@ def cube_write_structure_mesh(file, structure, mesh):
         cc = site.coords / bohr_to_angstrom
         fwrite('{:d} {:.10f} {:.10f} {:.10f} {:.10f}\n'.format(site.specie.Z, 0.0, cc[0], cc[1], cc[2]))
 
+
 def cube_write_data(file, data, mesh):
     fwrite = file.write
     data_bohrs = data * (bohr_to_angstrom ** 3)
@@ -40,6 +43,7 @@ def cube_write_data(file, data, mesh):
         for iy in range(mesh.ny):
             for iz in range(mesh.nz):
                 fwrite('{:.5e}\n'.format(data_bohrs[ix, iy, iz]))
+
 
 def cube_read_structure_mesh_data(file):
     with open(file, 'r') as fh:
@@ -79,29 +83,32 @@ def cube_read_structure_mesh_data(file):
         mesh = Mesh3D(shape=[nx, ny, nz], vectors=uc_matrix)
         return structure, mesh, data
 
-    # fh = open(file, 'r')
-    # lines = fh.readlines()
-    # fh.close()
-    # sites = []
-    # natom = 0
-    #
-    # for iline, line in enumerate(lines):
-    #     if iline < 2:
-    #         continue
-    #     elif iline == 2:
-    #         natom = int(line.split()[0])
-    #         continue
-    #     sp = line.split()
-    #     if iline == 3:
-    #         nx = int(sp[0])
-    #         dvx = np.array([float(sp[ii]) for ii in range(1, 4)])
-    #         continue
-    #     elif iline == 4:
-    #         ny = int(sp[0])
-    #         dvy = np.array([float(sp[ii]) for ii in range(1, 4)])
-    #         continue
-    #     elif iline == 5:
-    #         nz = int(sp[0])
-    #         dvz = np.array([float(sp[ii]) for ii in range(1, 4)])
-    #         continue
-    #     if 5 < iline <= 5 + natom:
+
+from abipy.core.mixins import _File
+class CubeFile(_File):
+    """
+
+    .. attribute:: structure
+
+        :class:`Structure` object
+
+    .. attribute:: mesh
+
+        :class:`Mesh3d` object with information on the uniform 3d mesh.
+
+    .. attribute:: data
+
+        numpy array of shape [nx, ny, nz] with numerical values on the real-space mesh.
+    """
+    def __init__(self, filepath):
+        super(CubeFile, self).__init__(filepath)
+        self.structure, self.mesh, self.data = cube_read_structure_mesh_data(self.filepath)
+
+    def close(self):
+        """nop, just to fulfill the abstract interface."""
+
+    #@classmethod
+    #def write_structure_mesh_data(cls, path, structure, mesh, data):
+    #    with open(path, "wt") as fh:
+    #        cube_write_structure_mesh(fh, structure, mesh)
+    #        cube_write_data(fh, data, mesh):
