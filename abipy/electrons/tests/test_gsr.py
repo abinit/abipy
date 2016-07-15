@@ -99,10 +99,6 @@ class GSRFileTestCase(AbipyTest):
             #  sigma(3 3)=  1.77139311E-04  sigma(2 1)=  2.67294316E-15
             almost_equal(gsr.pressure, -5.21162150)
 
-            # Test gsr.density.
-            print(gsr.density)
-            almost_equal(gsr.magnetization, 0)
-
             # Test as_dict
             pprint(gsr.as_dict())
             #import json

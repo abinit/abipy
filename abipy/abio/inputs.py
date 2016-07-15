@@ -640,12 +640,25 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         4. The element symbol itself is checked in the config file.
         5. If there are no settings, the default value is used.
         """
-        #TODO copy the values in abipy instead?
-        # We rely on the values from Materials Project for defaults of the magnetic moments
-        import pymatgen.io.vasp as vasp
-        from monty.serialization import loadfn
-        magmom_mp_conf = loadfn(os.path.join(os.path.dirname(vasp.__file__), "MPVaspInputSet.yaml"))['INCAR']['MAGMOM']
-        #magmom_mp_conf = loadfn(os.path.join(os.path.dirname(vasp.__file__), "MPRelaxSet.yaml"))['INCAR']['MAGMOM']
+        # These magnetic moments are from the Materials Project
+        # (MPVaspInputSet.yaml, short_sha1 = a63bcdf)
+
+        magmom_mp_conf = {
+            "Co": 5,
+            "Co3+": 0.6,
+            "Co4+": 1,
+            "Cr": 5,
+            "Fe": 5,
+            "Mn": 5,
+            "Mn3+": 4,
+            "Mn4+": 3,
+            "Mo": 5,
+            "Ni": 5,
+            "V": 5,
+            "W": 5,
+            "Ce": 5,
+            "Eu": 10,
+        }
 
         spinat = []
         for site in self.structure:

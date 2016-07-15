@@ -6,9 +6,9 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import numpy as np
 
 from pymatgen.core.units import bohr_to_angstrom
-from pymatgen.core.structure import Structure
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
+from abipy.core.structure import Structure
 from abipy.core.mesh3d import Mesh3D
 
 
