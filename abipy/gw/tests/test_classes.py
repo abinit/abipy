@@ -1,8 +1,10 @@
 from __future__ import division, print_function, unicode_literals
+
 import unittest
 import shutil
 import os
 import tempfile
+
 from pymatgen.util.testing import PymatgenTest
 from pymatgen.core.structure import Structure
 from pymatgen.io.vasp.GWvaspinputsets import GWDFTDiagVaspInputSet, GWG0W0VaspInputSet, GWscDFTPrepVaspInputSet
@@ -108,8 +110,9 @@ class GWConvergenceDataTest(PymatgenTest):
         print(conv_data.conv_res)
         self.assertEqual(conv_data.conv_res['control'], conv_res['control'])
         self.assertEqual(conv_data.conv_res['derivatives'], conv_res['derivatives'])
-        self.assertEqual(conv_data.conv_res['values'], conv_res['values'])
-        # self.assertTrue(False)
+        #self.assertEqual(conv_data.conv_res['values'], conv_res['values'])
+        for k in conv_data.conv_res['values']:
+            self.assert_almost_equal(conv_data.conv_res["values"][k], conv_res['values'][k], decimal=4)
 
 
 class GWTestCodeInterfaces(PymatgenTest):
