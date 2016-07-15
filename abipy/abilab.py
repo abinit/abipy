@@ -40,9 +40,10 @@ from abipy.electrons.scr import ScrFile
 from abipy.dfpt import PhbstFile, PhononBands, PhdosFile, PhdosReader
 from abipy.dfpt.ddb import DdbFile
 from abipy.dynamics.hist import HistFile
-from abipy.core.mixins import AbinitLogFile, AbinitOutputFile
+from abipy.core.mixins import AbinitLogFile, AbinitOutputFile, OutNcFile
 from abipy.waves import WfkFile
 from abipy.iotools import Visualizer
+from abipy.iotools.cube import CubeFile
 
 # Tools for unit conversion
 import pymatgen.core.units as units
@@ -71,11 +72,13 @@ ext2file = collections.OrderedDict([
     (".cif", Structure),
     ("POSCAR", Structure),
     ("cssr", Structure),
+    (".cube", CubeFile),
 ])
 
 # Abinit files require a special treatment.
 abiext2ncfile = collections.OrderedDict([
     ("GSR.nc", GsrFile),
+    ("OUT.nc", OutNcFile),
     ("WFK.nc", WfkFile),
     ("HIST.nc", HistFile),
     ("PSPS.nc", PspsFile),
@@ -87,8 +90,11 @@ abiext2ncfile = collections.OrderedDict([
     ("MDF.nc", MdfFile),
 ])
 
+
 def abiopen_ext2class_table():
-    """Print the association table between file extensions and File classes."""
+    """
+    Print the association table between file extensions and File classes.
+    """
     from itertools import chain
     from tabulate import tabulate
     table = []
@@ -111,7 +117,9 @@ def abifile_subclass_from_filename(filename):
         for ext, cls in abiext2ncfile.items():
             if filename.endswith(ext): return cls
 
-    raise ValueError("No class has been registered for filename %s" % filename)
+    msg = ("No class has been registered for file:\n\t%s\n\nFile extensions supported:\n%s" %
+        (filename, abiopen_ext2class_table()))
+    raise ValueError(msg)
 
 
 def abiopen(filepath):

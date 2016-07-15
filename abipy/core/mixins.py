@@ -27,7 +27,7 @@ __all__ = [
 @six.add_metaclass(abc.ABCMeta)
 class _File(object):
     """
-    Abstract base class defining the methods that must be implemented 
+    Abstract base class defining the methods that must be implemented
     by the concrete classes representing the different files produced by ABINIT.
     """
     def __init__(self, filepath):
@@ -81,7 +81,7 @@ class _File(object):
     @abc.abstractmethod
     def close(self):
         """Close file."""
-    
+
     def __enter__(self):
         return self
 
@@ -147,7 +147,7 @@ class AbinitOutputFile(AbinitTextFile):
 
     def compare_gs_scf_cycles(self, others, show=True):
         """
-        Produce and returns a list of `matplotlib` figure comparing the GS self-consistent 
+        Produce and returns a list of `matplotlib` figure comparing the GS self-consistent
         cycle in self with the ones in others.
 
         Args:
@@ -156,11 +156,11 @@ class AbinitOutputFile(AbinitTextFile):
         """
         for i, other in enumerate(others):
             if is_string(other): others[i] = self.__class__.from_file(other)
-        
+
         fig, figures = None, []
         while True:
             cycle = self.next_gs_scf_cycle()
-            if cycle is None: break 
+            if cycle is None: break
 
             fig = cycle.plot(show=False)
             for i, other in enumerate(others):
@@ -176,9 +176,9 @@ class AbinitOutputFile(AbinitTextFile):
 
     def compare_d2de_scf_cycles(self, others, show=True):
         """
-        Produce and returns a `matplotlib` figure comparing the DFPT self-consistent 
+        Produce and returns a `matplotlib` figure comparing the DFPT self-consistent
         cycle in self with the ones in others.
-                                                                                                   
+
         Args:
             others: list of `AbinitOutputFile` objects or strings with paths to output files.
             show: True to diplay plots.
@@ -189,7 +189,7 @@ class AbinitOutputFile(AbinitTextFile):
         fig, figures = None, []
         while True:
             cycle = self.next_d2de_scf_cycle()
-            if cycle is None: break 
+            if cycle is None: break
 
             fig = cycle.plot(show=False)
             for i, other in enumerate(others):
@@ -225,6 +225,34 @@ class AbinitNcFile(_File):
     def ncdump(self, *nc_args, **nc_kwargs):
         """Returns a string with the output of ncdump."""
         return NcDumper(*nc_args, **nc_kwargs).dump(self.filepath)
+
+
+class OutNcFile(AbinitNcFile):
+    """Class representing the _OUT.nc file."""
+
+    def __init__(self, filepath):
+        super(OutNcFile, self).__init__(filepath)
+        self.reader = NetcdfReader(filepath)
+        self._varscache= {k: None for k in self.reader.rootgrp.variables}
+
+    def __dir__(self):
+        """Ipython integration."""
+        return sorted(list(self._varscache.keys()))
+
+    def __getattribute__(self, name):
+        try:
+            return super(OutNcFile, self).__getattribute__(name)
+        except AttributeError:
+            varscache = super(OutNcFile, self).__getattribute__("_varscache")
+            if name not in varscache:
+                raise AttributeError("Cannot find attribute %s" % name)
+            reader = super(OutNcFile, self).__getattribute__("reader")
+            if varscache[name] is None:
+                varscache[name] = reader.read_value(name)
+            return varscache[name]
+
+    def close(self):
+        self.reader.close()
 
 
 @six.add_metaclass(abc.ABCMeta)
