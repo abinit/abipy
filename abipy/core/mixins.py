@@ -228,8 +228,11 @@ class AbinitNcFile(_File):
 
 
 class OutNcFile(AbinitNcFile):
-    """Class representing the _OUT.nc file."""
-
+    """
+    Class representing the _OUT.nc file containing the dataset results
+    produced at the end of the run. The netcdf variables can be accessed
+    via instance attribute e.g. `outfile.ecut`. Provides integration with ipython.
+    """
     def __init__(self, filepath):
         super(OutNcFile, self).__init__(filepath)
         self.reader = NetcdfReader(filepath)
@@ -243,6 +246,7 @@ class OutNcFile(AbinitNcFile):
         try:
             return super(OutNcFile, self).__getattribute__(name)
         except AttributeError:
+            # Look in self._varscache
             varscache = super(OutNcFile, self).__getattribute__("_varscache")
             if name not in varscache:
                 raise AttributeError("Cannot find attribute %s" % name)
@@ -253,6 +257,16 @@ class OutNcFile(AbinitNcFile):
 
     def close(self):
         self.reader.close()
+
+    def get_allvars(self):
+        """
+        Read all netcdf variables present in the file.
+        Return dictionary varname --> value
+        """
+        for k, v in self._varscache.items():
+            if v is not None: continue
+            self._varscache[k] = self.reader.read_value(k)
+        return self._varscache
 
 
 @six.add_metaclass(abc.ABCMeta)

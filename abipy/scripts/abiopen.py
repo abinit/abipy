@@ -26,7 +26,7 @@ def make_open_notebook(options):
     nb.cells.extend([
         nbf.new_markdown_cell("# This is an auto-generated notebook for %s" % os.path.relpath(filepath)),
         nbf.new_code_cell("""\
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 %matplotlib notebook
 #import numpy as np
 #import seaborn as sns
