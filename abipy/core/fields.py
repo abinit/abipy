@@ -88,7 +88,7 @@ class ScalarField(Has_Structure):
     def __neg__(self):
         """-self"""
         return self.__class__(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
-                              rhor=-self.datar
+                              rhor=-self.datar,
                               structure=self.structure)
     @property
     def structure(self):
