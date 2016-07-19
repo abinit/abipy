@@ -287,6 +287,9 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
     def variable_checksum(self):
         """
         Return string with sha1 value in hexadecimal format.
+        This method is mainly used in unit tests to check the invariance
+        of the input objects. Note, indeed, that AbintInput is mutable and therefore
+        should not be used as keyword in dictionaries.
         """
         # todo add the decorators, do we need to add them ?
         s = str(sorted([(unicode(i[0]), i[1]) for i in self.as_dict()['abi_args']]))
@@ -1189,9 +1192,9 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             inp.set_vars(shiftk=shiftk, nshiftk=len(inp.shiftk))
 
         inp.set_vars(
-            nqpt=1,                           # One wavevector is to be considered
-            qpt=qpt,                          # q-wavevector.
-            paral_rf=-1,                      # Magic value to get the list of irreducible perturbations for this q-point.
+            nqpt=1,       # One wavevector is to be considered
+            qpt=qpt,      # q-wavevector.
+            paral_rf=-1,  # Magic value to get the list of irreducible perturbations for this q-point.
             **perts_vars
         )
 
@@ -1233,7 +1236,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         """
         phperts_vars = dict(rfphon=1,                         # Will consider phonon-type perturbation
-                            rfatpol=[1, len(self.structure)],  # Set of atoms to displace.
+                            rfatpol=[1, len(self.structure)], # Set of atoms to displace.
                             rfdir=[1, 1, 1],                  # Along this set of reduced coordinate axis.
                             )
 
@@ -1260,9 +1263,9 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                  {'idir': 2, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]}]
 
         """
-        ddeperts_vars = dict(rfphon=0,           # No phonon-type perturbation
-                             rfelfd=3,           # Electric field
-                             kptopt=2,           # kpt time reversal symmetry
+        ddeperts_vars = dict(rfphon=0,  # No phonon-type perturbation
+                             rfelfd=3,  # Electric field
+                             kptopt=2,  # kpt time reversal symmetry
                              )
 
         return self._abiget_irred_perts(ddeperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
@@ -1292,9 +1295,9 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                                 rfatpol=(1,len(self.structure)), # Perturbation of all atoms
                                 rfstrs=3,                        # Do the strain perturbations
                                 rfdir=(1,1,1),                   # All directions
-                                # nqpt=1,                          # One wavevector is to be considered
-                                # qpt=(0, 0, 0),                   # q-wavevector.
-                                kptopt=kptopt,          # Take into account time-reversal symmetry.
+                                # nqpt=1,                        # One wavevector is to be considered
+                                # qpt=(0, 0, 0),                 # q-wavevector.
+                                kptopt=kptopt,                   # Take into account time-reversal symmetry.
                                 iscf=7                           # Just so that it works with PAW ... #TODO: check this
                              )
 
@@ -1346,6 +1349,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
     def add_tags(self, tags):
         """
         Add tags to the input
+
         Args:
             tags: A single tag or list/tuple/set of tags
         """
@@ -1357,6 +1361,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
     def remove_tags(self, tags):
         """
         Remove tags from the input
+
         Args:
             tags: A single tag or list/tuple/set of tags
         """
@@ -1603,18 +1608,15 @@ class MultiDataset(object):
             # the input and output files thus complicating the algorithms we have to use to locate the files.
             return self[0].to_string()
 
-    #def __dir__(self):
-    #    """Interactive prompt"""
-    #    #return dir(self) + dir(self._inputs[0])
-    #    return dir(self._inputs[0])
-
     def filter_by_tags(self, tags):
         """
         Filters the input according to the tags
+
         Args:
             tags: A single tag or list/tuple/set of tags
+
         Returns:
-            A multidata containing the inputs containing all the requested tags
+            A :class:`MultiDataset` containing the inputs containing all the requested tags
         """
         if isinstance(tags, (list, tuple, set)):
             tags = set(tags)
@@ -1628,6 +1630,7 @@ class MultiDataset(object):
     def add_tags(self, tags, dtindeces=None):
         """
         Add tags to the selected inputs
+
         Args:
             tags: A single tag or list/tuple/set of tags
             dtindeces: a list of indices to which the tags will be added. None=all the inputs.
@@ -1638,6 +1641,7 @@ class MultiDataset(object):
     def remove_tags(self, tags, dtindeces=None):
         """
         Remove tags from the selected inputs
+
         Args:
             tags: A single tag or list/tuple/set of tags
             dtindeces: a list of indices from which the tags will be removed. None=all the inputs.
@@ -1770,6 +1774,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
             elaflag = 5
         else:
             elaflag = 3
+
         new.set_vars(
             elaflag=elaflag,
             piezoflag=3,
