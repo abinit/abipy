@@ -21,7 +21,7 @@ from abipy.core.kpoints import KpointList
 from abipy.core.tensor import Tensor
 from abipy.iotools import ETSF_Reader
 from abipy.abio.inputs import AnaddbInput
-from abipy.dfpt.phonons import PhononDosPlotter
+from abipy.dfpt.phonons import PhononDosPlotter, InteratomicForceConstants
 
 import logging
 logger = logging.getLogger(__name__)
@@ -73,7 +73,7 @@ class DdbFile(TextFile, Has_Structure):
         self._structure.set_spacegroup(SpaceGroup(spgid, h.symrel, h.tnons, h.symafm, has_timerev))
 
         frac_coords = self._read_qpoints()
-        self._qpoints = KpointList(self.structure.reciprocal_lattice, frac_coords, weights=None, names=None)
+        self._qpoints = KpointList(self.structure.lattice.reciprocal_lattice, frac_coords, weights=None, names=None)
 
         self.blocks = []
         if read_blocks:
@@ -210,8 +210,6 @@ class DdbFile(TextFile, Has_Structure):
         return np.reshape(qpoints, (-1,3))
 
     def _read_blocks(self):
-        qpoints, weights = [], []
-        derivatives = tree()
         self.seek(0)
 
         # skip until the beginning of the db
@@ -368,12 +366,8 @@ class DdbFile(TextFile, Has_Structure):
         with task.open_phbst() as ncfile:
 
             if lo_to_splitting and np.allclose(qpoint, [0, 0, 0]):
-                with ETSF_Reader(os.path.join(task.workdir, "anaddb.nc")) as r:
-                    directions = r.read_value("non_analytical_directions")
-                    non_anal_phfreq = r.read_value("non_analytical_phonon_modes")
+                ncfile.phbands.read_non_anal_from_file(os.path.join(task.workdir, "anaddb.nc"))
 
-                    ncfile.phbands.non_anal_directions = directions
-                    ncfile.phbands.non_anal_phfreqs = non_anal_phfreq
             return ncfile.phbands
 
     #def anaget_phbst_file(self, ngqpt=None, ndivsm=20, asr=2, chneut=1, dipdip=1, 
@@ -384,7 +378,7 @@ class DdbFile(TextFile, Has_Structure):
 
     def anaget_phbst_and_phdos_files(self, nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra",
                                        ngqpt=None, workdir=None, manager=None, verbose=0, lo_to_splitting=False,
-                                       anaddb_kwargs=None):
+                                       qptbounds=None, anaddb_kwargs=None):
         """
         Execute anaddb to compute the phonon band structure and the phonon DOS
 
@@ -392,7 +386,7 @@ class DdbFile(TextFile, Has_Structure):
             nqsmall: Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions 
                 used to sample the smallest lattice vector.
             ndivsm: Number of division used for the smallest segment of the q-path
-            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            asr, chneut, dipdip: Anaddb input variable. See official documentation.
             dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening
             ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)
@@ -400,6 +394,8 @@ class DdbFile(TextFile, Has_Structure):
             manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information
             lo_to_splitting: if True the LO-TO splitting will be calculated and included in the band structure
+            qptbounds: Boundaries of the path. If None, the path is generated from an internal database
+                depending on the input structure.
             anaddb_kwargs: additional kwargs for anaddb
 
         Returns:
@@ -409,7 +405,7 @@ class DdbFile(TextFile, Has_Structure):
         if ngqpt is None: ngqpt = self.guessed_ngqpt
 
         inp = AnaddbInput.phbands_and_dos(
-            self.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, q1shft=(0,0,0), qptbounds=None,
+            self.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, q1shft=(0,0,0), qptbounds=qptbounds,
             asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, lo_to_splitting=lo_to_splitting,
             anaddb_kwargs=anaddb_kwargs)
 
@@ -429,12 +425,7 @@ class DdbFile(TextFile, Has_Structure):
         phbst = task.open_phbst()
 
         if lo_to_splitting:
-            with ETSF_Reader(os.path.join(task.workdir, "anaddb.nc")) as r:
-                directions = r.read_value("non_analytical_directions")
-                non_anal_phfreq = r.read_value("non_analytical_phonon_modes")
-
-                phbst.phbands.non_anal_directions = directions
-                phbst.phbands.non_anal_phfreqs = non_anal_phfreq
+            phbst.phbands.read_non_anal_from_file(os.path.join(task.workdir, "anaddb.nc"))
 
         return phbst, task.open_phdos()
 
@@ -581,6 +572,44 @@ class DdbFile(TextFile, Has_Structure):
     #    report = task.get_event_report()
     #    if not report.run_completed:
     #        raise self.AnaddbError(task=task, report=report)
+
+    def anaget_ifc(self, ifcout=None, asr = 2, chneut=1, dipdip = 1, ngqpt = None, workdir = None, manager = None,
+                   verbose=0, anaddb_kwargs = None):
+        """
+        Execute anaddb to compute the phonon band structure and the phonon DOS
+
+        Args:
+            ifcout: Number of neighbouring atoms for which the ifc's will be output. If None all the atoms in the big box.
+            asr, chneut, dipdip: Anaddb input variable. See official documentation.
+            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)
+            workdir: Working directory. If None, a temporary directory is created.
+            manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
+            verbose: verbosity level. Set it to a value > 0 to get more information
+            anaddb_kwargs: additional kwargs for anaddb
+
+        Returns:
+            :class:`InteratomicForceConstants` with the calculated ifc.
+        """
+
+        if ngqpt is None: ngqpt = self.guessed_ngqpt
+
+        inp = AnaddbInput.ifc(self.structure, ngqpt=ngqpt, ifcout=ifcout, q1shft=(0, 0, 0), asr=asr, chneut=chneut,
+                              dipdip=dipdip, anaddb_kwargs=anaddb_kwargs)
+
+        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager)
+
+        if verbose:
+            print("ANADDB INPUT:\n", inp)
+            print("workdir:", task.workdir)
+
+        # Run the task here.
+        task.start_and_wait(autoparal=False)
+
+        report = task.get_event_report()
+        if not report.run_completed:
+            raise self.AnaddbError(task=task, report=report)
+
+        return InteratomicForceConstants.from_file(os.path.join(task.workdir, 'anaddb.nc'))
 
     def write(self, filepath):
         """

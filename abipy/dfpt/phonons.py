@@ -15,9 +15,11 @@ from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands
 from abipy.core.kpoints import Kpoint, KpointList
+from abipy.core.structure import StructureModifier
 from abipy.iotools import ETSF_Reader
 from abipy.tools import gaussian
 from abipy.tools.plotting_utils import Marker
+from abipy.core.abinit_units import amu_emass, Bohr_Ang
 
 
 __all__ = [
@@ -103,14 +105,29 @@ class PhononBands(object):
                                  frac_coords=r.read_qredcoords(),
                                  weights=r.read_qweights(),
                                  names=None)
+
+            amu_list = r.read_amu()
+            if amu_list is not None:
+                atom_species = r.read_value("atomic_numbers")
+                amu = {at: a for at, a in zip(atom_species, amu_list)}
+            else:
+                amu = None
                                                                                    
             return cls(structure=structure,
                        qpoints=qpoints, 
                        phfreqs=r.read_phfreqs(),
-                       phdispl_cart=r.read_phdispl_cart())
+                       phdispl_cart=r.read_phdispl_cart(),
+                       amu=amu)
 
-    def __init__(self, structure, qpoints, phfreqs, phdispl_cart, markers=None, widths=None,
-                 non_anal_directions=None, non_anal_phfreqs=None):
+    def read_non_anal_from_file(self, filepath):
+        """
+        Reads the non analytical directions, frequencies and eigendisplacements from the anaddb.nc file specified and
+        adds them to the object.
+        """
+        self.non_anal_ph = NonAnalyticalPh.from_file(filepath)
+
+    def __init__(self, structure, qpoints, phfreqs, phdispl_cart, markers=None, widths=None, non_anal_ph=None,
+                 amu=None):
         """
         Args:
             structure: :class:`Structure` object.
@@ -124,6 +141,9 @@ class PhononBands(object):
             widths: Optional dictionary containing data used for the so-called fatbands
                 Each entry is an array of shape [nsppol, nkpt, mband] giving the width
                 of the band at that particular point. Used for plotting purpose e.g. fatbands.
+            non_anal_ph: :class: NonAnalyticalPh containing the information of the non analytical contribution
+            amu: dictionary that associates the atomic species present in the structure to the values of the atomic
+                mass units used for the calculation
         """
         self.structure = structure
 
@@ -152,9 +172,8 @@ class PhononBands(object):
             for key, width in widths.items():
                 self.set_width(key, width)
 
-        # numpy arrays with the non analytical directions and corresponding frequences calculated at Gamma
-        self.non_anal_directions = non_anal_directions
-        self.non_anal_phfreqs = non_anal_phfreqs
+        self.non_anal_ph = non_anal_ph
+        self.amu = amu
 
     def __str__(self):
         return self.to_string()
@@ -230,6 +249,44 @@ class PhononBands(object):
     def shape(self):
         """Shape of the array with the eigenvalues."""
         return self.num_qpoints, self.num_branches
+
+    @lazy_property
+    def dyn_mat_eigenvect(self):
+        """Eigenvalues of the dynamical matrix."""
+        return get_dyn_mat_eigenvec(self.phdispl_cart, self.structure, self.amu)
+
+    @property
+    def non_anal_directions(self):
+        """Cartesian directions along which the non analytical frequencies and displacements are available"""
+        if self.non_anal_ph:
+            return self.non_anal_ph.directions
+        else:
+            return None
+
+
+    @property
+    def non_anal_phfreqs(self):
+        """Phonon frequencies with non analytical contribution in eV along non_anal_directions"""
+        if self.non_anal_ph:
+            return self.non_anal_ph.phfreqs
+        else:
+            return None
+
+    @property
+    def non_anal_phdispl_cart(self):
+        """Displacement in Cartesian coordinates with non analytical contribution along non_anal_directions"""
+        if self.non_anal_ph:
+            return self.non_anal_ph.phdispl_cart
+        else:
+            return None
+
+    @property
+    def non_anal_dyn_mat_eigenvect(self):
+        """Eigenvalues of the dynamical matrix with non analytical contribution along non_anal_directions."""
+        if self.non_anal_ph:
+            return self.non_anal_ph.dyn_mat_eigenvect
+        else:
+            return None
 
     @property
     def markers(self):
@@ -460,13 +517,87 @@ class PhononBands(object):
                     xyz_file, self.qpoints[iqpt].frac_coords, pre_factor * np.reshape(self.phdispl_cart[iqpt, imode,:],(-1,3)), 
                     do_real=True, frac_coords=False, max_supercell=max_supercell, scale_matrix=scale_matrix)
 
-    def decorate_ax(self, ax, **kwargs):
+    def create_ascii_vib(self, iqpts, filename, pre_factor=1):
+        """
+        Create vibration ascii file for visualization of phonons.
+        This format can be read with V_sim or ascii-phonons.
+
+        Args:
+            iqpts: an index or a list of indices of the qpoints in self. Note that at present only V_sim supports
+                an ascii file with multiple qpoints.
+            filename: name of the ascii file that will be created.
+            pre_factor: Multiplication factor of the eigendisplacements.
+        """
+
+        if not isinstance(iqpts, (list, tuple)):
+            iqpts = [iqpts]
+
+        lines = []
+        alpha, beta, gamma = (np.pi*a/180 for a in self.lattice.angles)
+
+        m = self.lattice.matrix
+
+        sign = np.sign(np.dot(np.cross([0], m[1]), m[2]))
+
+        dxx = a
+        dyx = b*np.cos(gamma)
+        dyy = b*np.sin(gamma)
+        dzx = c*np.cos(beta)
+        dzy = c*(np.cos(alpha)-np.cos(gamma)*np.cos(beta))/np.sin(gamma)
+        # keep the same orientation
+        dzz = sign*np.sqrt(c**2-dzx**2-dzy**2)
+
+        lines = ["# ascii file generated with abipy"]
+        lines.append("  {: 3.10f}  {: 3.10f}  {: 3.10f}".format(dxx, dyx, dyy))
+        lines.append("  {: 3.10f}  {: 3.10f}  {: 3.10f}".format(dzx, dzy, dzz))
+
+        # use reduced coordinates
+        lines.append("#keyword: reduced")
+
+        # coordinates
+        for s in self.structure:
+            lines.append("  {: 3.10f}  {: 3.10f}  {: 3.10f} {:>2}".format(s.a, s.b, s.c, s.specie.name))
+
+        ascii_basis = [[dxx, 0, 0],
+                       [dyx, dyy, 0],
+                       [dzx, dzy, dzz]]
+
+        for iqpt in iqpts:
+            q = self.qpoints[iqpt].frac_coords
+
+            displ_list = np.zeros((self.num_branches, self.num_atoms, 3), dtype=np.complex)
+            for i in range(self.num_atoms):
+                displ_list[:,i,:] = self.phdispl_cart[iqpt,:,3*i:3*(i+1)]*\
+                                    np.exp(-2*math.pi*1j*np.dot(self.structure[i].frac_coords, self.qpoints[iqpt].frac_coords))
+
+            displ_list = np.dot(np.dot(displ_list, self.structure.lattice.inv_matrix), ascii_basis)*pre_factor
+
+            for imode in np.arange(self.num_branches):
+                lines.append("#metaData: qpt=[{:.6f};{:.6f};{:.6f};{:.6f} \\".format(q[0], q[1], q[2], self.phfreqs[iqpt, imode]))
+                for displ in displ_list[imode]:
+                    line = "#; "+ "; ".join("{:.6f}".format(i) for i in displ.real) + "; " \
+                           + "; ".join("{:.6f}".format(i) for i in displ.imag) + " \\"
+                    lines.append(line)
+                lines.append(("# ]"))
+
+        with open(filename, 'wt') as f:
+            f.write("\n".join(lines))
+
+    def decorate_ax(self, ax, units='eV', **kwargs):
         title = kwargs.pop("title", None)
         if title is not None: ax.set_title(title)
                                                                    
         ax.grid(True)
         ax.set_xlabel('q-point')
-        ax.set_ylabel('Energy [eV]')
+        if units in ['eV', 'ev', 'electronvolt']:
+            ax.set_ylabel('Energy [eV]')
+        elif units in ['Ha', 'ha', 'Hartree']:
+            ax.set_ylabel('Energy [Ha]')
+        elif units in ['cm-1', 'cm^-1']:
+            ax.set_ylabel(r'Frequency [cm$^{-1}$]')
+        else:
+            raise ValueError('Value for units {} unknown'.format(units))
+
         ax.legend(loc="best")
                                                                    
         # Set ticks and labels.
@@ -533,7 +664,7 @@ class PhononBands(object):
 
         return fig
 
-    def plot_ax(self, ax, branch, **kwargs):
+    def plot_ax(self, ax, branch, units='eV', **kwargs):
         """
         Plots the frequencies for the given branch index as a function of the q index on axis ax.
         If branch is None, all phonon branches are plotted.
@@ -546,7 +677,17 @@ class PhononBands(object):
         first_xx = 0
         lines = []
 
+        if units in ['eV', 'ev', 'electronvolt']:
+            factor = 1
+        elif units in ['Ha', 'ha', 'Hartree']:
+            factor = eV_to_Ha
+        elif units in ['cm-1', 'cm^-1']:
+            factor = 8065.5440044136285
+        else:
+            raise ValueError('Value for units {} unknown'.format(units))
+
         for pf in self.split_phfreqs:
+            pf = pf*factor
             xx = range(first_xx, first_xx+len(pf))
             for branch in branch_range:
                 lines.extend(ax.plot(xx, pf[:, branch], **kwargs))
@@ -574,18 +715,18 @@ class PhononBands(object):
         # Calculations available for LO-TO splitting
         # Split the lines at each Gamma to handle possible discontinuities
         if self.non_anal_phfreqs is not None and self.non_anal_directions is not None:
-            end_points_indeces = [0]
+            end_points_indices = [0]
 
-            end_points_indeces.extend(
+            end_points_indices.extend(
                 [i for i in range(1, self.num_qpoints - 1) if np.array_equal(self.qpoints.frac_coords[i], [0, 0, 0])])
-            end_points_indeces.append(self.num_qpoints - 1)
+            end_points_indices.append(self.num_qpoints - 1)
 
             # split the list of qpoints and frequencies at each end point. The end points are in both the segments.
             # Lists since the array contained have different shapes
-            split_qpoints = [np.array(self.qpoints.frac_coords[end_points_indeces[i]:end_points_indeces[i + 1] + 1])
-                             for i in range(len(end_points_indeces) - 1)]
-            split_phfreqs = [np.array(self.phfreqs[end_points_indeces[i]:end_points_indeces[i + 1] + 1])
-                             for i in range(len(end_points_indeces) - 1)]
+            split_qpoints = [np.array(self.qpoints.frac_coords[end_points_indices[i]:end_points_indices[i + 1] + 1])
+                             for i in range(len(end_points_indices) - 1)]
+            split_phfreqs = [np.array(self.phfreqs[end_points_indices[i]:end_points_indices[i + 1] + 1])
+                             for i in range(len(end_points_indices) - 1)]
 
             for i, q in enumerate(split_qpoints):
                 if np.array_equal(q[0], (0, 0, 0)):
@@ -805,6 +946,10 @@ class PHBST_Reader(ETSF_Reader):
         """
         return self.read_value("phdispl_cart", cmode="c")
 
+    def read_amu(self):
+        """The atomic mass units"""
+        return self.read_value("atomic_mass_units", default=None)
+
 
 class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands):
 
@@ -927,7 +1072,7 @@ class PhononDos(Function1D):
     #    """Zero point motion"""
     #    return 0.5 * hbar * (self.dos.values * self.dos.mesh).integral[-1]
 
-    def plot_ax(self, ax, what="d", exchange_xy=False, *args, **kwargs):
+    def plot_ax(self, ax, what="d", exchange_xy=False, units='eV', *args, **kwargs):
         """
         Helper function to plot the data on the axis ax.
 
@@ -944,6 +1089,18 @@ class PhononDos(Function1D):
             list of lines added to the plot
         """
         opts = [c.lower() for c in what]
+
+        if units in ['eV', 'ev', 'electronvolt']:
+            factor = 1
+        elif units in ['Ha', 'ha', 'Hartree']:
+            factor = eV_to_Ha
+        elif units in ['cm-1', 'cm^-1']:
+            factor = 8065.5440044136285
+        else:
+            raise ValueError('Value for units {} unknown'.format(units))
+
+        self._mesh = self.mesh*factor
+        self._values = self.values/factor
 
         # Use super because we are overwriting the plot_ax provided by Func1D
         cases = {"d": super(PhononDos, self),  
@@ -1345,7 +1502,7 @@ class PhononBandsPlotter(object):
             self._markers[key] = Marker(*xys)
 
     @add_fig_kwargs
-    def plot(self, qlabels=None, **kwargs):
+    def plot(self, qlabels=None, units='eV', **kwargs):
         """
         Plot the band structure and the DOS.
 
@@ -1395,7 +1552,7 @@ class PhononBandsPlotter(object):
             my_kwargs.update(lineopt)
             opts_label[label] = my_kwargs.copy()
 
-            l = bands.plot_ax(ax1, branch=None, **my_kwargs)
+            l = bands.plot_ax(ax1, branch=None, units=units, **my_kwargs)
             lines.append(l[0])
 
             # Use relative paths if label is a file.
@@ -1406,7 +1563,7 @@ class PhononBandsPlotter(object):
 
             # Set ticks and labels, legends.
             if i == 0:
-                bands.decorate_ax(ax1)
+                bands.decorate_ax(ax1, qlabels=qlabels, units=units)
 
         if self.markers:
             for key, markers in self.markers.items():
@@ -1426,7 +1583,7 @@ class PhononBandsPlotter(object):
         if self.phdoses_dict:
             ax = ax_list[1]
             for (label, dos) in self.phdoses_dict.items():
-                dos.plot_ax(ax, exchange_xy=True, **opts_label[label])
+                dos.plot_ax(ax, exchange_xy=True, units=units, **opts_label[label])
 
         return fig
 
@@ -1491,3 +1648,368 @@ class PhononDosPlotter(object):
         ax.legend(lines, legends, loc='best', shadow=True)
 
         return fig
+
+
+class NonAnalyticalPh(Has_Structure):
+    """
+    Phonon data at gamma including non analytical contributions
+    Read from anaddb.nc
+    """
+
+    def __init__(self, structure, directions, phfreqs, phdispl_cart, amu=None):
+        """
+        Args:
+            structure: :class:`Structure` object.
+            directions: Cartesian directions along which the non analytical frequencies have been calculated
+            phfreqs: Phonon frequencies with non analytical contribution in eV along directions
+            phdispl_cart: Displacement in Cartesian coordinates with non analytical contribution along directions
+            amu: dictionary that associates the atomic species present in the structure to the values of the atomic
+                mass units used for the calculation
+        """
+        self._structure = structure
+        self.directions = directions
+        self.phfreqs = phfreqs
+        self.phdispl_cart = phdispl_cart
+        self.amu = amu
+
+    @classmethod
+    def from_file(cls, filepath):
+        """
+        Reads the non analytical directions, frequencies and eigendisplacements from the anaddb.nc file specified.
+        Non existence of eigendisplacements is accepted for compatibility with abinit 8.0.6
+        Raises an error if the other values are not present in anaddb.nc.
+        """
+
+        with ETSF_Reader(filepath) as r:
+            directions = r.read_value("non_analytical_directions")
+            phfreq = r.read_value("non_analytical_phonon_modes")
+
+            #needs a default as the first abinit version including IFCs in the netcdf doesn't have this attribute
+            phdispl_cart = r.read_value("non_analytical_phdispl_cart", cmode="c", default=None)
+
+            structure = r.read_structure()
+
+            amu_list = r.read_value("atomic_mass_units", default=None)
+            if amu_list is not None:
+                atom_species = r.read_value("atomic_numbers")
+                amu = {at: a for at, a in zip(atom_species, amu_list)}
+            else:
+                amu = None
+
+            return cls(structure=structure, directions=directions, phfreqs=phfreq, phdispl_cart=phdispl_cart, amu=amu)
+
+    @lazy_property
+    def dyn_mat_eigenvect(self):
+        return get_dyn_mat_eigenvec(self.phdispl_cart, self.structure, self.amu)
+
+    @property
+    def structure(self):
+        """:class:`Structure` object"""
+        return self._structure
+
+
+class InteratomicForceConstants(Has_Structure):
+    """
+    The interatomic force constants calculated by anaddb.
+    Read from anaddb.nc
+    """
+
+    def __init__(self, structure, atoms_indices, neighbours_indices, ifc_cart_coord,
+                 ifc_cart_coord_short_range, local_vectors, distances):
+        """
+        Args:
+            structure: :class:`Structure` object.
+            atoms_index: : List of integers representing the indices in the structure of the analyzed atoms.
+            neighbours_index: List of integers representing the indices in the structure of the neighbour atoms.
+            ifc_cart_coord: ifc in Cartesian coordinates
+            ifc_cart_coord_short_range: short range part of the ifc in Cartesian coordinates
+            local_vectors: local basis used to determine the ifc_local_coord
+        """
+        self._structure = structure
+        self.atoms_indices = atoms_indices
+        self.neighbours_indices = neighbours_indices
+        self.ifc_cart_coord = ifc_cart_coord
+        self.ifc_cart_coord_short_range = ifc_cart_coord_short_range
+        self.local_vectors = local_vectors
+        self.distances = distances
+
+    @property
+    def number_of_atoms(self):
+        return len(self.structure)
+
+    @classmethod
+    def from_file(cls, filepath):
+        """Create the object from a netCDF file."""
+        with ETSF_Reader(filepath) as r:
+            try:
+                structure = r.read_structure()
+                atoms_indices = r.read_value("ifc_atoms_indices")-1
+                neighbours_indices = r.read_value("ifc_neighbours_indices")-1
+                distances = r.read_value("ifc_distances")
+                ifc_cart_coord = r.read_value("ifc_matrix_cart_coord")
+                ifc_cart_coord_short_range = r.read_value("ifc_matrix_cart_coord_short_range", default=None)
+                local_vectors = r.read_value("ifc_local_vectors", default=None)
+            except:
+                import traceback
+                msg = traceback.format_exc()
+                msg += "\n Verify that the required variablesare used in anaddb: ifcflag, natifc, atifc, ifcout \n" % cls
+                raise ValueError(msg)
+
+            return cls(structure=structure, atoms_indices=atoms_indices, neighbours_indices=neighbours_indices,
+                       ifc_cart_coord=ifc_cart_coord,
+                       ifc_cart_coord_short_range=ifc_cart_coord_short_range, local_vectors=local_vectors,
+                       distances=distances)
+
+    @property
+    def structure(self):
+        """:class:`Structure` object"""
+        return self._structure
+
+    @property
+    def number_of_neighbours(self):
+        """Number of neighbouring atoms for which the ifc are present. ifcout in anaddb."""
+        return np.shape(self.neighbours_indices)[1]
+
+    @lazy_property
+    def ifc_cart_coord_ewald(self):
+        """Ewald part of the ifcs in cartesian coordinates"""
+        if self.ifc_cart_coord_short_range is None:
+            return None
+        else:
+            return self.ifc_cart_coord-self.ifc_cart_coord_short_range
+
+    @lazy_property
+    def ifc_local_coord(self):
+        """Ifcs in local coordinates"""
+        if self.local_vectors is None:
+            return None
+        else:
+            return np.einsum("ktli,ktij,ktuj->ktlu",self.local_vectors,self.ifc_cart_coord,self.local_vectors)
+
+    @lazy_property
+    def ifc_local_coord_short_range(self):
+        """Short range part of the ifcs in cartesian coordinates"""
+        if self.local_vectors is None:
+            return None
+        else:
+            return np.einsum("ktli,ktij,ktuj->ktlu",self.local_vectors,self.ifc_cart_coord_short_range,self.local_vectors)
+
+    @lazy_property
+    def ifc_local_coord_ewald(self):
+        """Ewald part of the ifcs in local coordinates"""
+        return np.einsum("ktli,ktij,ktuj->ktlu",self.local_vectors,self.ifc_cart_coord_ewald,self.local_vectors)
+
+    def _filter_ifc_indices(self, atom_indices=None, atom_element=None, neighbour_element=None, min_dist=None, max_dist=None):
+        """
+        Internal method that provides the indices of the neighouring atoms in self.neighbours_indices that satisfy
+        the required conditions. All the arguments are optional. If None the filter will not be applied.
+        Args:
+            atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.
+            atom_element: symbol of an element in the structure. Only neighbours of these atoms will be considered.
+            neighbour_element: symbol of an element in the structure. Only neighbours of this specie will be considered.
+            min_dist: minimum distance between atoms and neighbours.
+            max_dist: maximum distance between atoms and neighbours.
+        """
+
+        if atom_indices is not None and atom_element is not None:
+            raise ValueError("atom_index and atom_element cannot be specified simultaneously")
+
+        if atom_indices is not None and not isinstance(atom_indices, (list, tuple)):
+            atom_indices = [atom_indices]
+
+        if atom_element:
+            atom_indices =self.structure.indices_from_symbol(atom_element)
+
+        if atom_indices is None:
+            atom_indices = range(len(self.structure))
+
+        # apply the filter: construct matrices of num_atoms*num_neighbours size, all conditions should be satisfied.
+        ind = np.where(
+            (np.tile(np.in1d(self.atoms_indices, atom_indices), [self.number_of_neighbours, 1])).T &
+            (self.distances > min_dist if min_dist is not None else True) &
+            (self.distances < max_dist if max_dist is not None else True) &
+            (np.in1d(self.neighbours_indices, self.structure.indices_from_symbol(neighbour_element))
+             .reshape(self.number_of_atoms, self.number_of_neighbours) if neighbour_element is not None else True)
+        )
+
+        return ind
+
+    def get_ifc_cartesian(self, atom_indices=None, atom_element=None, neighbour_element=None, min_dist=None, max_dist=None):
+        """
+        Filters the IFCs in cartesian coordinates
+        All the arguments are optional. If None the filter will not be applied.
+        Returns two arrays containing the distances and the corresponding filtered ifcs.
+        Args:
+            atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.
+            atom_element: symbol of an element in the structure. Only neighbours of these atoms will be considered.
+            neighbour_element: symbol of an element in the structure. Only neighbours of this specie will be considered.
+            min_dist: minimum distance between atoms and neighbours.
+            max_dist: maximum distance between atoms and neighbours.
+        """
+        ind = self._filter_ifc_indices(atom_indices=atom_indices, atom_element=atom_element,
+                                       neighbour_element=neighbour_element, min_dist=min_dist, max_dist=max_dist)
+
+        return self.distances[ind], self.ifc_cart_coord[ind]
+
+    def get_ifc_local(self, atom_indices=None, atom_element=None, neighbour_element=None, min_dist=None, max_dist=None):
+        """
+        Filters the IFCs in local coordinates
+        All the arguments are optional. If None the filter will not be applied.
+        Returns two arrays containing the distances and the corresponding filtered ifcs.
+        Args:
+            atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.
+            atom_element: symbol of an element in the structure. Only neighbours of these atoms will be considered.
+            neighbour_element: symbol of an element in the structure. Only neighbours of this specie will be considered.
+            min_dist: minimum distance between atoms and neighbours.
+            max_dist: maximum distance between atoms and neighbours.
+        """
+        if self.local_vectors is None:
+            raise ValueError("Local coordinates are missing. Run anaddb with ifcana=1")
+
+        ind = self._filter_ifc_indices(atom_indices=atom_indices, atom_element=atom_element,
+                                       neighbour_element=neighbour_element, min_dist=min_dist, max_dist=max_dist)
+
+        return self.distances[ind], self.ifc_local_coord[ind]
+
+    def get_plot_ifc(self, ifc, atom_indices=None, atom_element=None, neighbour_element=None, min_dist=None,
+                     max_dist=None, ax=None, **kwargs):
+        """
+        Plots the specified ifcs, filtered according to the optional arguments.
+        An array with shape number_of_atoms*number_of_neighbours, so only one of the components of the ifc matrix can
+        be plot at a time.
+        Args:
+            ifc: an array with shape number_of_atoms*number_of_neighbours of the ifc that should be plotted
+            atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.
+            atom_element: symbol of an element in the structure. Only neighbours of these atoms will be considered.
+            neighbour_element: symbol of an element in the structure. Only neighbours of this specie will be considered.
+            min_dist: minimum distance between atoms and neighbours.
+            max_dist: maximum distance between atoms and neighbours.
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to blue, symbol to 'o' and lw to 0
+        Returns:
+            matplotlib figure
+        """
+        ax, fig, plt = get_ax_fig_plt(ax)
+
+        ind = self._filter_ifc_indices(atom_indices=atom_indices, atom_element=atom_element,
+                                       neighbour_element=neighbour_element, min_dist=min_dist, max_dist=max_dist)
+
+        dist, filtered_ifc =  self.distances[ind], ifc[ind]
+
+        if 'color' not in kwargs:
+            kwargs['color'] = 'blue'
+
+        if 'marker' not in kwargs:
+            kwargs['marker'] = 'o'
+
+        if 'linewidth' not in kwargs and 'lw' not in kwargs:
+            kwargs['lw'] = 0
+
+        ax.set_xlabel('Distance [Bohr]')
+        ax.set_ylabel(r'IFC [Ha/Bohr$^2$]')
+
+        ax.plot(dist, filtered_ifc, **kwargs)
+
+        return fig
+
+
+    @add_fig_kwargs
+    def plot_longitudinal_ifc(self, atom_indices=None, atom_element=None, neighbour_element=None, min_dist=None,
+                              max_dist=None, ax=None, **kwargs):
+        """
+        Plots the total longitudinal ifcs in local coordinates, filtered according to the optional arguments.
+        Args:
+            atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.
+            atom_element: symbol of an element in the structure. Only neighbours of these atoms will be considered.
+            neighbour_element: symbol of an element in the structure. Only neighbours of this specie will be considered.
+            min_dist: minimum distance between atoms and neighbours.
+            max_dist: maximum distance between atoms and neighbours.
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to blue, symbol to 'o' and lw to 0
+        Returns:
+            matplotlib figure
+        """
+        if self.local_vectors is None:
+            raise ValueError("Local coordinates are missing. Run anaddb with ifcana=1")
+
+        return self.get_plot_ifc(self.ifc_local_coord[:, :, 0, 0], atom_indices=atom_indices, atom_element=atom_element,
+                                 neighbour_element=neighbour_element, min_dist=min_dist, max_dist=max_dist, ax=ax, **kwargs)
+
+    @add_fig_kwargs
+    def plot_longitudinal_ifc_short_range(self, atom_indices=None, atom_element=None, neighbour_element=None,
+                                          min_dist=None, max_dist=None, ax=None, **kwargs):
+        """
+        Plots the short range longitudinal ifcs in local coordinates, filtered according to the optional arguments.
+        Args:
+            atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.
+            atom_element: symbol of an element in the structure. Only neighbours of these atoms will be considered.
+            neighbour_element: symbol of an element in the structure. Only neighbours of this specie will be considered.
+            min_dist: minimum distance between atoms and neighbours.
+            max_dist: maximum distance between atoms and neighbours.
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to blue, symbol to 'o' and lw to 0
+        Returns:
+            matplotlib figure
+        """
+        if self.local_vectors is None:
+            raise ValueError("Local coordinates are missing. Run anaddb with ifcana=1")
+
+        if self.ifc_local_coord_short_range is None:
+            raise ValueError("Ewald contribution is missing, Run anaddb with dipdip=1")
+
+        return self.get_plot_ifc(self.ifc_local_coord_short_range[:, :, 0, 0], atom_indices=atom_indices,
+                                 atom_element=atom_element, neighbour_element=neighbour_element, min_dist=min_dist,
+                                 max_dist=max_dist, ax=ax, **kwargs)
+
+    @add_fig_kwargs
+    def plot_longitudinal_ifc_ewald(self, atom_indices=None, atom_element=None, neighbour_element=None,
+                                          min_dist=None, max_dist=None, ax=None, **kwargs):
+        """
+        Plots the Ewald part of the ifcs in local coordinates, filtered according to the optional arguments.
+        Args:
+            atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.
+            atom_element: symbol of an element in the structure. Only neighbours of these atoms will be considered.
+            neighbour_element: symbol of an element in the structure. Only neighbours of this specie will be considered.
+            min_dist: minimum distance between atoms and neighbours.
+            max_dist: maximum distance between atoms and neighbours.
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to blue, symbol to 'o' and lw to 0
+        Returns:
+            matplotlib figure
+        """
+
+        if self.local_vectors is None:
+            raise ValueError("Local coordinates are missing. Run anaddb with ifcana=1")
+
+        if self.ifc_local_coord_ewald is None:
+            raise ValueError("Ewald contribution is missing, Run anaddb with dipdip=1")
+
+        return self.get_plot_ifc(self.ifc_local_coord_ewald[:, :, 0, 0], atom_indices=atom_indices,
+                                 atom_element=atom_element, neighbour_element=neighbour_element, min_dist=min_dist,
+                                 max_dist=max_dist, ax=ax, **kwargs)
+
+
+def get_dyn_mat_eigenvec(phdispl, structure, amu=None):
+    """
+    Converts the phonon eigendisplacements to the orthonormal eigenvectors of the dynamical matrix.
+    Small discrepancies with the original values may be expected due to the different values of the atomic masses in
+    abinit and pymatgen.
+    Args:
+        phdispl: a numpy array containing the eigendisplacements in cartesian coordinates. The last index should have
+            size 3*(num atoms), but the rest of the shape is arbitrary.
+        structure: :class:`Structure` object.
+        amu: dictionary that associates the atomic species present in the structure to the values of the atomic
+            mass units used for the calculation. If None values from pymatgen will be used. Note that this will
+            almost always lead to inaccuracies in the conversion.
+    Returns:
+        A numpy array of the same shape as phdispl containing the eigenvectors of the dynamical matrix
+    """
+    eigvec = np.zeros(np.shape(phdispl), dtype=np.complex)
+
+    if amu is None:
+        amu = {e.number: e.atomic_mass for e in structure.composition.elements}
+
+    for j, a in enumerate(structure):
+        eigvec[...,3*j:3*(j+1)] = phdispl[...,3*j:3*(j+1)]*np.sqrt(amu[a.specie.number]*amu_emass)/Bohr_Ang
+
+    return eigvec

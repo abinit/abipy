@@ -1189,7 +1189,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         if ngkpt is not None: inp["ngkpt"] = ngkpt
         if shiftk is not None:
             shiftk = np.reshape(shiftk, (-1,3))
-            inp.set_vars(shiftk=shiftk, nshiftk=len(inp.shiftk))
+            inp.set_vars(shiftk=shiftk, nshiftk=len(inp['shiftk']))
 
         inp.set_vars(
             nqpt=1,       # One wavevector is to be considered
@@ -1608,22 +1608,34 @@ class MultiDataset(object):
             # the input and output files thus complicating the algorithms we have to use to locate the files.
             return self[0].to_string()
 
-    def filter_by_tags(self, tags):
+    def filter_by_tags(self, tags=None, exclude_tags=None):
         """
         Filters the input according to the tags
 
         Args:
             tags: A single tag or list/tuple/set of tags
-
+            exclude_tags: A single tag or list/tuple/set of tags that should be excluded
         Returns:
             A :class:`MultiDataset` containing the inputs containing all the requested tags
         """
         if isinstance(tags, (list, tuple, set)):
             tags = set(tags)
-        elif not isinstance(tags, set):
+        elif not isinstance(tags, set) and tags is not None:
             tags = {tags}
 
-        inputs = [i for i in self if tags.issubset(i.tags)]
+        if isinstance(exclude_tags, (list, tuple, set)):
+            exclude_tags = set(exclude_tags)
+        elif not isinstance(exclude_tags, set) and exclude_tags is not None:
+            exclude_tags = {exclude_tags}
+
+        if tags is not None:
+            inputs = [i for i in self if tags.issubset(i.tags)]
+        else:
+            inputs = self
+
+        if exclude_tags is not None:
+            inputs = [i for i in inputs if not exclude_tags.intersection(i.tags)]
+
 
         return MultiDataset.from_inputs(inputs) if inputs else None
 
@@ -1709,8 +1721,8 @@ class AnaddbInput(AbstractInput, Has_Structure):
     def _check_varname(self, key):
         if not is_anaddb_var(key):
             raise self.Error("%s is not a registered Anaddb variable\n"
-                             "If you are sure the name is correct, please contact the abipy developers\n"
-                             "or modify the JSON file abipy/abio/anaddb_vars.json" % key)
+                             "If you are sure the name is correct, please contact the abipy developers\n" 
+                             "or modify the JSON file abipy/data/variables/anaddb_vars.json" % key)
 
     @classmethod
     def modes_at_qpoint(cls, structure, qpoint, asr=2, chneut=1, dipdip=1, ifcflag=0, lo_to_splitting=False,
@@ -1756,7 +1768,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
                 directions = [1, 0, 0, 0, 1, 0, 0, 0, 1]
             directions = np.reshape(directions, (-1, 3))
             # append 0 to specify that these are directions,
-            directions = np.append(directions, [[0], [0], [0]], axis=1)
+            directions = np.c_[directions, np.zeros(len(directions))]
             # add
             new.set_vars(
                 nph2l=len(directions),
@@ -2013,6 +2025,47 @@ class AnaddbInput(AbstractInput, Has_Structure):
             qph1l=[0.0, 0.0, 0.0, 1.0],
             nph2l=3,
             qph2l=[[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]]
+        )
+
+        return new
+
+    @classmethod
+    def ifc(cls, structure, ngqpt, ifcout=None, q1shft=(0, 0, 0), asr=2, chneut=1, dipdip=1, anaddb_args=None,
+            anaddb_kwargs=None):
+        """
+        Build an anaddb input file for the computation of interatomic force constants.
+
+        Args:
+            structure: :class:`Structure` object
+            ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
+            ifcout: Number of neighbouring atoms for which the ifc's will be output. If None all the atoms in the big box.
+            q1shft: Shifts used for the coarse Q-mesh
+            asr, chneut, dipdip: Anaddb input variable. See official documentation.
+            anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
+            anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
+        """
+
+        new = cls(structure, comment="ANADB input for IFC",
+                  anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
+
+        q1shft = np.reshape(q1shft, (-1, 3))
+
+        #TODO add in anaddb an option to get all the atoms if ifcout<0
+        # Huge number abinit will limit to the big box
+        ifcout = ifcout or 10000000
+
+        new.set_vars(
+            ifcflag=1,
+            ngqpt=np.array(ngqpt),
+            q1shft=q1shft,
+            nqshft=len(q1shft),
+            asr=asr,
+            chneut=chneut,
+            dipdip=dipdip,
+            ifcout=ifcout,
+            natifc=len(structure),
+            atifc=range(1,len(structure)+1),
+            ifcana=1
         )
 
         return new

@@ -402,6 +402,16 @@ class AnaddbInputTest(AbipyTest):
         self.serialize_with_pickle(anaddb_input, test_eq=False)
         anaddb_input.deepcopy()
 
+    def test_ifc(self):
+        """Test the ifc constructor"""
+        anaddb_input = AnaddbInput.ifc(self.structure, ngqpt=[4,4,4])
+        self.assertTrue(str(anaddb_input))
+        for flag in ('ifcflag', 'dipdip'):
+            self.assertEqual(anaddb_input[flag], 1)
+
+        self.serialize_with_pickle(anaddb_input, test_eq=False)
+        anaddb_input.deepcopy()
+
 
 if __name__ == "__main__":
     import unittest
