@@ -909,6 +909,9 @@ def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_spl
 
         multi_rf = MultiDataset.from_inputs([rf_inp])
     multi_rf.add_tags([DFPT, STRAIN])
+    for inp in multi_rf:
+        if inp.get('rfphon', 0) == 1:
+            inp.add_tags(PHONON)
 
     multi.extend(multi_rf)
 
@@ -1062,7 +1065,6 @@ def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=No
 
 def ebands_from_gsinput(gsinput, nband=None, ndivsm=15, accuracy="normal"):
     """
-
     :param gsinput:
     :param nband:
     :param ndivsm:
@@ -1083,6 +1085,24 @@ def ebands_from_gsinput(gsinput, nband=None, ndivsm=15, accuracy="normal"):
     bands_input.set_vars(_stopping_criterion("nscf", accuracy))
 
     return bands_input
+
+
+def dos_from_gsinput(gsinput, dos_kppa, nband=None, accuracy="normal", pdos=False):
+
+    # create a copy to avoid messing with the previous input
+    dos_input = gsinput.deepcopy()
+
+    dos_input.pop_irdvars()
+
+    dos_ksampling = aobj.KSampling.automatic_density(structure, dos_kppa, chksymbreak=0)
+    dos_input.set_vars(dos_ksampling.to_abivars())
+    dos_input.set_vars(iscf=-2, ionmov=0, )
+    dos_input.set_vars(_stopping_criterion("nscf", accuracy))
+
+    if pdos:
+        pass
+
+    return dos_input
 
 
 def ioncell_relax_from_gsinput(gsinput, accuracy="normal"):
@@ -1128,21 +1148,44 @@ def hybrid_oneshot_input(gsinput, functional="hse06", ecutsigx=None, gw_qprange=
     return hybrid_input
 
 
+def hybrid_scf_input(gsinput, functional="hse06", ecutsigx=None, gw_qprange=1):
+
+    hybrid_input = hybrid_oneshot_input(gsinput=gsinput, functional=functional, ecutsigx=ecutsigx, gw_qprange=gw_qprange)
+
+    hybrid_input['gwcalctyp'] += 10
+
+    return hybrid_input
+
+
 def scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=None, accuracy="normal",
                     spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
                     shift_mode="Symmetric"):
-    abiinput = scf_input(structure=structure, pseudos=pseudos, kppa=kppa, ecut=ecut, pawecutdg=pawecutdg, nband=nband,
-                         accuracy=accuracy, spin_mode=spin_mode, smearing=smearing, charge=charge,
-                         scf_algorithm=scf_algorithm, shift_mode=shift_mode)
+    symmetric_kpt = False
     # set symmetrized k-point
     if shift_mode[0].lower() == 's':
         # need to convert to abipy structure to get the calc_shiftk method
         structure = Structure.from_sites(structure)
         shiftk = structure.calc_shiftk()
+        kppa = int(kppa/len(shiftk))
+        symmetric_kpt = True
+    abiinput = scf_input(structure=structure, pseudos=pseudos, kppa=kppa, ecut=ecut, pawecutdg=pawecutdg, nband=nband,
+                         accuracy=accuracy, spin_mode=spin_mode, smearing=smearing, charge=charge,
+                         scf_algorithm=scf_algorithm, shift_mode=shift_mode)
+
+    nbdbuf = 4
+    # with no smearing set the minimum number of bands plus some nbdbuf
+    if smearing is None:
+        nval = structure.num_valence_electrons(pseudos)
+        nval -= abiinput['charge']
+        nband = int(nval // 2 + nbdbuf)
+        abiinput.set_vars(nband=nband)
+
+    if symmetric_kpt:
         abiinput.set_vars(shiftk=shiftk, nshiftk=len(shiftk))
 
+
     # enforce symmetries and add a buffer of bands to ease convergence with tolwfr
-    abiinput.set_vars(chksymbreak=1, nbdbuf=4, tolwfr=1.e-22)
+    abiinput.set_vars(chksymbreak=1, nbdbuf=nbdbuf, tolwfr=1.e-22)
 
     return abiinput
 
@@ -1200,6 +1243,10 @@ class IoncellRelaxFromGsFactory(InputFactory):
 
 class HybridOneShotFromGsFactory(InputFactory):
     factory_function = staticmethod(hybrid_oneshot_input)
+
+
+class HybridScfFromGsFactory(InputFactory):
+    factory_function = staticmethod(hybrid_scf_input)
 
 
 class ScfFactory(InputFactory):
