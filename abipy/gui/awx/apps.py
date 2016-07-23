@@ -11,24 +11,24 @@ __all__ = [
     "App",
 ]
 
-def ExceptionHook(exctype, value, trace): 
+def ExceptionHook(exctype, value, trace):
     """
-    Handler for all unhandled exceptions 
-    Create a simple exception hook to handle and inform the user of 
+    Handler for all unhandled exceptions
+    Create a simple exception hook to handle and inform the user of
     any unexpected errors that occur while the program is running:
 
-    @param exctype: Exception Type 
+    @param exctype: Exception Type
     @param value: Error Value
-    @param trace: Trace back info 
-    """ 
-    # Format the traceback 
+    @param trace: Trace back info
+    """
+    # Format the traceback
     import traceback
-    exc = traceback.format_exception(exctype, value, trace) 
+    exc = traceback.format_exception(exctype, value, trace)
     ftrace = "".join(exc)
-    app = wx.GetApp() 
+    app = wx.GetApp()
 
     if app:
-        msg = "An unexpected error has occurred: %s" % ftrace 
+        msg = "An unexpected error has occurred: %s" % ftrace
         parent = app.GetTopWindow()
         parent.Raise()
         wx.MessageBox(parent, msg, caption=app.GetAppName(), style=wx.ICON_ERROR|wx.OK)
@@ -44,7 +44,7 @@ class App(wx.App):
     def __init__(self, *args, **kwargs):
         wx.App.__init__(self, *args, **kwargs)
 
-        # Initialize the logger 
+        # Initialize the logger
         import logging
         loglevel = "WARNING"
         loglevel = "DEBUG"
@@ -54,13 +54,18 @@ class App(wx.App):
         if not isinstance(numeric_level, int):
             raise ValueError('Invalid log level: %s' % loglevel)
         logging.basicConfig(level=numeric_level)
-        
+
         # This catches events when the app is asked to activate by some other process
         self.Bind(wx.EVT_ACTIVATE_APP, self.OnActivate)
 
-    def OnInit(self): 
-        # Handler for all unhandled exceptions 
-        sys.excepthook = ExceptionHook 
+    def OnInit(self):
+        # Handler for all unhandled exceptions
+        sys.excepthook = ExceptionHook
+
+        # Enforce WXAgg as matplotlib backend to avoid nasty SIGSEGV in the C++ layer
+        # occurring when WX Guis produce plots with other backends.
+        import matplotlib
+        matplotlib.use('WXAgg')
         return True
 
     @property
@@ -75,26 +80,26 @@ class App(wx.App):
         return self.__repr__()
 
     def BringWindowToFront(self):
-        try: 
+        try:
             # it's possible for this event to come when the frame is closed
             self.GetTopWindow().Raise()
         except:
             pass
-        
+
     def OnActivate(self, event):
         # if this is an activate event, rather than something else, like iconize.
         if event.GetActive():
             self.BringWindowToFront()
         event.Skip()
-    
+
     #@abc.abstractmethod
     #def MacOpenFile(self, filename):
     #    """Called for files droped on dock icon, or opened via finders context menu"""
     #    #if filename.endswith(".py"):
     #    #    return
     #    # Code to load filename.
-    #    #self.log("%s dropped on app %s" % (filename, self.appname)) 
-    #    
+    #    #self.log("%s dropped on app %s" % (filename, self.appname))
+    #
     #def MacReopenApp(self):
     #    """Called when the dock icon is clicked."""
     #    self.BringWindowToFront()

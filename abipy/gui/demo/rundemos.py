@@ -10,7 +10,7 @@ def str_examples():
     examples = (
       "Usage example:\n"
       "run.py               => Run all demo scripts.\n"
-      "run.py -m auto -t 7  => Run all tests, close the demo after 7 seconds.\n"
+      "run.py -m automatic -t 7  => Run all tests, close the demo after 7 seconds.\n"
       )
     return examples
 

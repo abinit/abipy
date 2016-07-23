@@ -6,12 +6,6 @@ import warnings
 
 from dialogs import showErrorMessage
 
-try:
-    from wxmplot import PlotFrame
-except ImportError:
-    #warnings.warn("Error while importing wxmplot. Some features won't be available")
-    pass
-
 __all__ = [
     "Func1dPlotFrame",
 ]
@@ -19,7 +13,7 @@ __all__ = [
 
 class Func1dPlotFrame(wx.Frame):
     """
-    Simple Frame that allows the user to have access to the method 
+    Simple Frame that allows the user to have access to the method
     of a `Function1D` objects and plot the results with wxmplot.
     """
 
@@ -72,6 +66,12 @@ class Func1dPlotFrame(wx.Frame):
 
     def OnClick(self, event):
         method = self.method_choice.GetStringSelection()
+
+        try:
+            from wxmplot import PlotFrame
+        except ImportError:
+            #warnings.warn("Error while importing wxmplot. Some features won't be available")
+            raise
 
         plotframe = None
         if self.replot_checkbox.GetValue() and len(self._pframes):

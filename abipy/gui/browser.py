@@ -8,10 +8,6 @@ import abipy.gui.awx as awx
 import wx.lib.mixins.listctrl as listmix
 
 from collections import namedtuple
-try:
-    from wxmplot import PlotApp, PlotFrame
-except ImportError:
-    pass
 from monty.string import list_strings, is_string
 from monty.fnmatch import WildCard
 from abipy.gui.popupmenus import popupmenu_for_filename

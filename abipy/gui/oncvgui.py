@@ -2792,11 +2792,10 @@ def wxapp_oncvpsp(filepath=None):
     """Standalone application."""
     class OncvApp(awx.App):
         def OnInit(self):
-            # The code for the splash screen.
-            #image = wx.Image(path_img("wabi_logo.png"), wx.BITMAP_TYPE_PNG)
-            #    bmp = image.ConvertToBitmap()
-            #    wx.SplashScreen(bmp, wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_TIMEOUT, 1000, None, -1)
-            #    wx.Yield()
+            # Enforce WXAgg as matplotlib backend to avoid nasty SIGSEGV
+            # occurring when WX Guis produce plots with other backends.
+            import matplotlib
+            matplotlib.use('WXAgg')
 
             frame = WxOncvFrame(None, filepath)
             #frame = my_periodic_table(None)
