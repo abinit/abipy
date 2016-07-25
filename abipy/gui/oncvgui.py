@@ -2792,7 +2792,7 @@ def wxapp_oncvpsp(filepath=None):
     """Standalone application."""
     class OncvApp(awx.App):
         def OnInit(self):
-            # Enforce WXAgg as matplotlib backend to avoid nasty SIGSEGV
+            # Enforce WXAgg as matplotlib backend to avoid nasty SIGSEGV in the C++ layer
             # occurring when WX Guis produce plots with other backends.
             import matplotlib
             matplotlib.use('WXAgg')
