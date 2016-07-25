@@ -280,8 +280,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         if comment is not None: self.set_comment(comment)
 
-        self._decorators = [] if not decorators else decorators
-
+        self._decorators = [] if not decorators else decorators[:]
         self.tags = set() if not tags else set(tags)
 
     def variable_checksum(self):
@@ -805,6 +804,30 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         new.set_vars(*args, **kwargs)
         return new
 
+    def new_with_structure(self, structure, scdims=None):
+        """
+        Return a new :class:`AbinitInput` with a different structure
+        (see notes below for the constraints that must be fulfilled by the new structure)
+
+        Args:
+            structure: Parameters defining the crystalline structure. Accepts :class:`Structure` object
+                file with structure (CIF, netcdf file, ...) or dictionary with ABINIT geo variables.
+            scdims= 3 integer giving with the number of cells in the supercell along the three reduced directions.
+
+        .. warning::
+        """
+        #if scdims is None:
+        #else:
+        new = AbinitInput(structure, self.pseudos, abi_args=list(self.items()),
+                          decorators=self.decorators, tags=self.tags)
+
+        if scdims is not None:
+            # This is the tricky part because variables whose shape depends on natom
+            # must be changed to reflect the new supercell.
+            # To solve this problem, we use the database of abinit variables...
+
+        return new
+
     def new_with_decorators(self, decorators):
         """
         This function receives a list of :class:`AbinitInputDecorator` objects or just a single object,
@@ -823,13 +846,15 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
     def pop_tolerances(self):
         """
         Remove all the tolerance variables present in self.
-        Return dictionary with the variables that have been removed."""
+        Return dictionary with the variables that have been removed.
+        """
         return self.remove_vars(_TOLVARS, strict=False)
 
     def pop_irdvars(self):
         """
         Remove all the ird variables present in self.
-        Return dictionary with the variables that have been removed."""
+        Return dictionary with the variables that have been removed.
+        """
         return self.remove_vars(_IRDVARS, strict=False)
 
     @property
@@ -1721,7 +1746,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
     def _check_varname(self, key):
         if not is_anaddb_var(key):
             raise self.Error("%s is not a registered Anaddb variable\n"
-                             "If you are sure the name is correct, please contact the abipy developers\n" 
+                             "If you are sure the name is correct, please contact the abipy developers\n"
                              "or modify the JSON file abipy/data/variables/anaddb_vars.json" % key)
 
     @classmethod

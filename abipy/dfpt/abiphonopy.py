@@ -51,6 +51,11 @@ class PhonopyWork(Work):
 	List of :class:`ScfTask`. Each task compute the forces in one perturbed supercell.
 
     .. attribute:: bec_tasks
+
+    .. attribute:: cpdata
+
+	If not None, the work will copy the output results to the outdir of the flow
+	once all_ok is reached. Note that cpdata must represent an absolute path.
     """
     @classmethod
     def from_gs_input(cls, gsinp, scdims, phonopy_kwargs=None, displ_kwargs=None):
@@ -72,6 +77,7 @@ class PhonopyWork(Work):
         """
         new = cls()
 	new.phonopy_tasks, new.bec_tasks = [], []
+	new.cpdata = None
 
         # Initialize phonon. Supercell matrix has (3, 3) shape.
         unitcell = atoms_from_structure(gsinp.structure)
@@ -107,7 +113,7 @@ class PhonopyWork(Work):
             sc_struct = structure_from_atoms(atoms)
             #print("sc_struct", sc_struct)
 
-            #sc_gsinp = gsinp.new_for_supercell(sc_struct, divs)
+            #sc_gsinp = gsinp.new_with_structure(sc_struct, scdivs=scdivs)
             sc_gsinp = AbinitInput(sc_struct, gsinp.pseudos)
             for k, v in gsinp.items():
                 sc_gsinp[k] = v
@@ -128,11 +134,6 @@ class PhonopyWork(Work):
 
             sc_gsinp["chksymbreak"] = 0
             sc_gsinp["chkprim"] = 0
-
-	    # TODO
-	    # This is the tricky part because variables whose shape depends on natom
-            # must be changed to reflect the new supercell.
-	    # To solve this problem, we use the database of abinit variables...
 
             task = new.register_scf_task(sc_gsinp)
 	    new.phonopy_tasks.append(task)
@@ -210,4 +211,102 @@ class PhonopyWork(Work):
 	    fh.write("\t" + examples_url + "\n")
 	    fh.write("\t" + doctags_url + "\n")
 
+	if self.cpdata:
+	    self.outdir.copy_tree(self.cpdata)
+
         return dict(returncode=0, message="Delta factor computed")
+
+
+class PhonopyGruneisenWork(Work):
+    """
+    This work compute the Grüneisen parameters with phonopy.
+    It is necessary to run three phonon calculations.
+    One is calculated at the equilibrium volume and the remaining two are calculated
+    at the slightly larger volume and smaller volume than the equilibrium volume.
+    The unitcells at these volumes have to be fully relaxed under the constraint of each volume.
+
+    .. attribute:: scdims(3)
+
+	numpy arrays with the number of cells in the supercell along the three reduced directions
+
+    .. attribute:: phonon
+
+	:class:`Phonopy` object used to construct the supercells with displaced atoms.
+
+    .. attribute:: phonopy_tasks
+
+	List of :class:`ScfTask`. Each task compute the forces in one perturbed supercell.
+
+    .. attribute:: bec_tasks
+    """
+    @classmethod
+    def from_gs_input(cls, gsinp, volscale, scdims, phonopy_kwargs=None, displ_kwargs=None):
+        """
+        Build the work from an :class:`AbinitInput` object representing a GS calculations.
+
+	Args:
+	    gsinp:
+		:class:`AbinitInput` object representing a GS calculation in the initial unit cell.
+	    volscale:
+	    scdims:
+		Number of unit cell replicas along the three reduced directions.
+	    phonopy_kwargs:
+		Dictionary with arguments passed to Phonopy constructor.
+	    displ_kwargs:
+		Dictionary with arguments passed to generate_displacements.
+
+	Return:
+	    PhonopyWork instance.
+        """
+        new = cls()
+
+	# Save arguments that will be used to call phonopy for creating
+        # the supercelss with the displacements once the three volumes have been relaxed.
+	new.scdims = np.array(scdims)
+	if new.scdims.shape != (3,):
+	    raise ValueError("Expecting 3 int in scdims but got %s" % str(new.scdims))
+	new.phonopy_kwargs = phonopy_kwargs if phonopy_kwargs is not None else {}
+	new.displ_kwargs = displ_kwargs if displ_kwargs is not None else {}
+
+	# Build three tasks for structural optimization at constant volume.
+        v0 = gsinp.structure.volume
+	if not 0 < volscale < 1:
+	    raise ValueError("volscale must be in ]0,1[ but got %s" % volscale)
+        volumes = [v0 * (1 - volscale), v0, v0 * (1 + volscale)]
+
+        for vol in volumes:
+            # Build new structure
+            new_lattice = gsinp.structure.lattice.scale(vol)
+            new_structure = Structure(new_lattice, gsinp.structure.species, gsinp.structure.frac_coords)
+	    new_input = gsinp.new_with_structure(new_structure)
+	    new_input.pop_tolerances()
+	    new_input.set_vars(optcell=0, ionmov=3, tolvrs=1e-10)
+	    new.register_relax_task(new_input)
+
+	return new
+
+    def on_all_ok(self):
+        """
+        This method is called once the `Work` is completed i.e. when all the tasks
+        have reached status S_OK.
+        """
+	self.build_and_add_phonopy_works()
+	return super(PhonopyGruneisenWork, self).on_all_ok()
+
+    def build_and_add_phonopy_works(self):
+	for i, task in enumerate(self):
+	    relaxed_structure = task.get_final_structure()
+
+	    gsinp = AbinitInput(relaxed_structure, task.input.pseudos,
+                                abi_kwargs={k: v for k, v in task.input.items()})
+	    #gsinp.pop_tolerances()
+	    gsinp.pop_vars(["ionmov", "optcell", "ntime"])
+
+	    work = PhonopyWork.from_gs_input(gsinp, self.scdims,
+					     phonopy_kwargs=self.phonopy_kwargs,
+					     displ_kwargs=self.displ_kwargs)
+
+	    self.flow.register_work(work)
+	    # Tell the work to copy the results to e.g. `flow/outdir/w0/minus`
+	    dst = os.path.join(self.pos_str, {0: "minus", 1: "orig", 2: "plus"}[i])
+	    work.cpdata = self.flow.outdir.path_in(dst)
