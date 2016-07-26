@@ -853,7 +853,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             if len(self.structure) != len(structure):
                 raise ValueError("Structures must have same value of natom")
             errors = []
-            for i, site1, site2 in enumerate(zip(self.structure, structure)):
+            for i, (site1, site2) in enumerate(zip(self.structure, structure)):
                 if site1.specie.symbol != site2.specie.symbol:
                     errors.append("[%d] %s != %s" % (i, site1.specie.symbol != site2.specie.symbol))
             if errors:
@@ -901,7 +901,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             iscale = int(np.ceil(len(new.structure) / len(self.structure)))
             if "nband" in new:
                 new["nband"] = int(self["nband"] * iscale)
-                print("gsinp['nband']", gsinp["nband"], "new['nband']", new["nband"])
+                print("self['nband']", self["nband"], "new['nband']", new["nband"])
 
             if "ngkpt" in new:
                 new["ngkpt"] = (np.rint(np.array(new["ngkpt"]) / scdims)).astype(int)
