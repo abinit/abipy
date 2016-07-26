@@ -179,7 +179,7 @@ class PhonopyWork(Work):
 	    fh.write("\t" + doctags_url + "\n")
 
 	if self.cpdata2dst:
-	    self.outdir.copytree(self.cpdata2dst)
+	    self.outdir.copy_r(self.cpdata2dst)
 
 	return super(PhonopyWork, self).on_all_ok()
 
