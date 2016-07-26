@@ -60,6 +60,9 @@ class TestAbinitInput(AbipyTest):
         inp.to_string(sortmode="section", with_structure=True, with_pseudos=True)
 
         inp.set_vars(ecut=5, toldfe=1e-6)
+        assert inp["ecut"] = 5
+        inp.set_vars_ifnotin(ecut=-10)
+        assert inp["ecut"] = 5
 
         _, tmp_file = tempfile.mkstemp()
         inp.write(filepath=tmp_file)

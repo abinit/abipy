@@ -31,4 +31,7 @@ def test_database():
     assert name2section["ecut"] == "varbas" and name2section["ionmov"] == "varrlx"
 
     assert database.group_by_section("ecut") == {'varbas': ['ecut']}
+
+    assert not database["ecut"].isarray
+    assert database["spinat"].isarray
     #assert 0

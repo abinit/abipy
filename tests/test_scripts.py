@@ -69,6 +69,8 @@ class TestAbidoc(ScriptTest):
         env.run(self.script, "apropos", "test", self.loglevel, self.verbose)
         env.run(self.script, "find", "paw", self.loglevel, self.verbose)
         env.run(self.script, "list", self.loglevel, self.verbose)
+        env.run(self.script, "list", self.loglevel, self.verbose)
+        env.run(self.script, "withdim", "natom", self.loglevel, self.verbose)
 
 
 class TestAbilab(ScriptTest):

@@ -28,10 +28,11 @@ def main():
     def str_examples():
         examples = """\
 Usage example:
-    abidoc.py man ecut      --> Show documentation for ecut input variable.
-    abidoc.py apropos ecut  --> To search in the database for the variables related to ecut.
-    abidoc.py find paw      --> To search in the database for the variables whose name contains paw
-    abidoc.py list          --> Print full list of variables
+    abidoc.py man ecut        --> Show documentation for ecut input variable.
+    abidoc.py apropos ecut    --> To search in the database for the variables related to ecut.
+    abidoc.py find paw        --> To search in the database for the variables whose name contains paw
+    abidoc.py list            --> Print full list of variables
+    abidoc.py withdim natom   --> Print arrays depending on natom.
 """
         return examples
 
@@ -71,6 +72,11 @@ Usage example:
 
     # Subparser for require.
     #p_require = subparsers.add_parser('require', parents=[copts_parser], help="Find all variables required by varname.")
+
+    # Subparser for withdim.
+    p_withdim = subparsers.add_parser('withdim', parents=[copts_parser],
+                                      help="Find all arrays depending on the given dimension.")
+    p_withdim.add_argument("dimname", help="Dimension name")
 
     # Subparser for list.
     p_list = subparsers.add_parser('list', parents=[copts_parser], help="List all variables.")
@@ -126,6 +132,11 @@ Usage example:
 
         else:
             raise ValueError("Wrong mode %s" % options.mode)
+
+    elif options.command == "withdim":
+        for var in database.values():
+            if var.isarray and options.dimname in str(var.dimensions):
+                print(repr(var), "\n", str(var.dimensions), "\n") # type(var.dimensions)
 
     else:
         raise ValueError("Don't know how to handle command %s" % options.command)

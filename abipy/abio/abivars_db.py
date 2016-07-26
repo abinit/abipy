@@ -51,7 +51,7 @@ list_specials = [
 ]
 
 
-class literal(str): 
+class literal(str):
     pass
 
 
@@ -64,8 +64,8 @@ yaml.add_representer(literal, literal_unicode_representer)
 class Variable(yaml.YAMLObject):
     yaml_tag = u'!variable'
 
-    def __init__(self, vartype=None, characteristics=None, definition=None, dimensions=None, 
-                default=None, text=None, varname=None, section=None, range=None, 
+    def __init__(self, vartype=None, characteristics=None, definition=None, dimensions=None,
+                default=None, text=None, varname=None, section=None, range=None,
                 commentdefault=None, commentdims=None, requires=None, excludes=None):
         """
         Args:
@@ -105,6 +105,11 @@ class Variable(yaml.YAMLObject):
     def from_dict(cls, d):
         return cls(**d)
 
+    @property
+    def name(self):
+        """An alias for self.varname"""
+        return self.varname
+
     def __repr__(self):
         """variable name + mnemonics"""
         return self.varname + "  <" + str(self.definition) + ">"
@@ -122,7 +127,7 @@ class Variable(yaml.YAMLObject):
     def info(self):
         """String with Extra info on the variable."""
         attrs = [
-            "vartype", "characteristics",  "definition", "dimensions", "defaultval", #"text", 
+            "vartype", "characteristics",  "definition", "dimensions", "defaultval", #"text",
             "varname", "commentdefault", "commentdims", "section", #"range",
             "requires", "excludes"
             ]
@@ -135,38 +140,49 @@ class Variable(yaml.YAMLObject):
         json.dump(d, stream, indent=4, sort_keys=True)
         return stream.getvalue()
 
+    @lazy_property
+    def isarray(self):
+        """True if the variable is an array."""
+        if (self.dimensions is None or
+            # FIXME: Improve treatment of ValueWithConditions.
+            #isinstance(self.dimensions, (Range, ValueWithConditions)) or
+            isinstance(self.dimensions, (Range,)) or
+            is_string(self.dimensions)
+            ): return False
+        return True
+
 
 class ValueWithUnit(yaml.YAMLObject):
     yaml_tag = u'!valuewithunit'
-    
+
     value = None
     units = None
-    
+
     def __init__(self, value=None, units=None):
         self.value = value
         self.units = units
-        
+
     def __str__(self):
         return str(self.value) + " "+str(self.units)
-    
+
     def __repr__(self):
         return str(self)
-    
+
 
 def valuewithunit_representer(dumper, data):
     return dumper.represent_mapping('!valuewithunit',data.__dict__)
-    
+
 
 class Range(yaml.YAMLObject):
     yaml_tag = u'!range'
-    
+
     start = None
     stop = None
-    
+
     def __init__(self, start=None, stop=None):
         self.start = start
         self.stop = stop
-        
+
     def isin(self, value):
         isin = True
         if self.start is not None:
@@ -174,7 +190,7 @@ class Range(yaml.YAMLObject):
         if self.stop is not None:
             isin = isin and self.stop > value
         return str(self)
-    
+
     def __repr__(self):
         if self.start is not None and self.stop is not None:
             return "["+str(self.start)+" .. "+str(self.stop)+"]"
@@ -188,7 +204,7 @@ class Range(yaml.YAMLObject):
 
 class ValueWithConditions(yaml.YAMLObject):
     yaml_tag = u'!valuewithconditions'
-    
+
     def __repr__(self):
         s = ''
         for key in self.__dict__.keys():
@@ -196,7 +212,7 @@ class ValueWithConditions(yaml.YAMLObject):
              s += str(self.__dict__[key])+' if '+str(key)+',\n'
         s += str(self.defaultval) + ' otherwise.\n'
         return s
-        
+
     def __str__(self):
         return self.__repr__()
 
@@ -228,10 +244,10 @@ def get_abinit_variables():
     """Returns the database with the description of the ABINIT variables."""
     global __VARS_DATABASE
 
-    if __VARS_DATABASE is None: 
+    if __VARS_DATABASE is None:
         pickle_file = os.path.join(os.getenv("HOME"), ".abinit", "abipy", "abinit_vars.pickle")
-        
-        if os.path.exists(pickle_file): 
+
+        if os.path.exists(pickle_file):
             #print("Reading from pickle")
             with open(pickle_file, "rb") as fh:
                 __VARS_DATABASE = pickle.load(fh)
@@ -256,7 +272,7 @@ def get_abinit_variables():
                 pickle.dump(__VARS_DATABASE, fh)
 
     return __VARS_DATABASE
-        
+
 
 class VariableDatabase(OrderedDict):
     """Stores the mapping varname --> variable object."""
@@ -267,7 +283,7 @@ class VariableDatabase(OrderedDict):
         from abipy import data as abidata
         with open(abidata.var_file('characteristics.yml'), 'rt') as f:
             return yaml.load(f)
-    
+
     @lazy_property
     def sections(self):
         """List of sections"""
@@ -312,7 +328,7 @@ class VariableDatabase(OrderedDict):
         """Return the list of :class:`Variable` objects that are related` to the given varname"""
         var_list = []
         for v in self.values():
-            if (v.text and varname in v.text or 
+            if (v.text and varname in v.text or
                (v.dimensions is not None and varname in str(v.dimensions)) or
                (v.requires is not None and varname in v.requires) or
                (v.excludes is not None and varname in v.excludes)):
@@ -363,7 +379,7 @@ def abinit_help(varname, info=True, stream=sys.stdout):
         var = database[varname]
     except KeyError:
         return stream.write("Variable %s not in the database\n" % varname)
-        
+
     text = html2text.html2text("<h2>Default value:</h2>" + str(var.defaultval) + "<br/><h2>Description</h2>" + str(var.text))
     if info: text += var.info
     stream.write(text.replace("[[", "\033[1m").replace("]]", "\033[0m"))

@@ -139,11 +139,35 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
         return copy.deepcopy(self)
 
     def set_vars(self, *args, **kwargs):
-        """Set the value of the variables"""
+        """
+        Set the value of the variables.
+        Return dict with the variables added to the input.
+
+        Example:
+
+            input.set_vars(ecut=10, ionmov=3)
+        """
         kwargs.update(dict(*args))
         for varname, varvalue in kwargs.items():
             self[varname] = varvalue
         return kwargs
+
+    def set_vars_ifnotin(self, *args, **kwargs):
+        """
+        Set the value of the variables but only if the variable is not already present.
+        Return dict with the variables added to the input.
+
+        Example:
+
+            input.set_vars(ecut=10, ionmov=3)
+        """
+        kwargs.update(dict(*args))
+        added = {}
+        for varname, varvalue in kwargs.items():
+            if varname not in self:
+                self[varname] = varvalue
+                added[varname] = varvalue
+        return added
 
     def add_abiobjects(self, *abi_objects):
         """
@@ -812,19 +836,80 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         Args:
             structure: Parameters defining the crystalline structure. Accepts :class:`Structure` object
                 file with structure (CIF, netcdf file, ...) or dictionary with ABINIT geo variables.
-            scdims= 3 integer giving with the number of cells in the supercell along the three reduced directions.
+            scdims: 3 integer giving with the number of cells in the supercell along the three reduced directions.
+                Must be used when structure represents a supercell of the initial structure defined
+                in the input file.
 
         .. warning::
+
+            if scdims is None (i.e. no supercell), the two structure must have the same value of
+            `natom` and `typat`, they can only differ at the level of the lattice and of the atomic positions.
+            When structure represents a supercell, scdims must be coherent with the structure passed
+            as argument.
         """
-        #if scdims is None:
-        #else:
+        # Check structure
+        if scdims is None:
+            # Same value of natom and typat
+            if len(self.structure) != len(structure):
+                raise ValueError("Structures must have same value of natom")
+            errors = []
+            for i, site1, site2 in enumerate(zip(self.structure, structure)):
+                if site1.specie.symbol != site2.specie.symbol:
+                    errors.append("[%d] %s != %s" % (i, site1.specie.symbol != site2.specie.symbol))
+            if errors:
+                errmsg = "Structures must have same order of atomic types:\n" + "\n".join(errors)
+                raise ValueError(errmsg)
+
+        else:
+            scdims = np.array(scdims)
+	    if scdims.shape != (3,):
+	        raise ValueError("Expecting 3 int in scdims but got %s" % str(scdims))
+            numcells = np.product(scdims)
+            if len(structure) != numcells * len(self.structure):
+                errmsg = "Number of atoms in input structure should be %d * %d but found" % (
+                    numcells, len(self.structure), len(structure))
+                raise ValueError(errmsg)
+            if not np.array_equal(numcells * [site.specie.symbol for site in self.structure],
+                                  [site.specie.symbol for site in structure]):
+                errmsg = "Wrong supercell"
+                raise ValueError(errmsg)
+            # TODO CHeck angles and lengths
+
+        # Build new input
         new = AbinitInput(structure, self.pseudos, abi_args=list(self.items()),
                           decorators=self.decorators, tags=self.tags)
 
         if scdims is not None:
             # This is the tricky part because variables whose shape depends on natom
-            # must be changed to reflect the new supercell.
-            # To solve this problem, we use the database of abinit variables...
+            # must be changed in order to be consistent with the supercell.
+            # Here we use the database of abinit variables to find the variables whose shape depends on `natom`.
+            # The method raises ValueError if an array that depends on `natom` is found and no handler is implemented.
+            # It's better to raise an exception here than having a error when Abinit parses the input file!
+            errors = []
+            var_database = get_abinit_variables()
+            for name in new:
+                var = var_database[name]
+                if var.isarray and "natom" in str(var.dimensions): # This test is not very robust and can fail.
+                    errors.append("Found variable %d with natom in dimensions %s" % (name, str(var.dimensions)))
+
+            if errors:
+                errmsg = ("\n".join(errors) +
+                          "\nThe present version of new_with_structure is not able to handle this case.")
+                raise ValueError(errmsg)
+
+            # Rescale nband and k-point sampling
+            iscale = int(np.ceil(len(new.structure) / len(self.structure)))
+            if "nband" in new:
+                new["nband"] = int(self["nband"] * iscale)
+                print("gsinp['nband']", gsinp["nband"], "new['nband']", new["nband"])
+
+            if "ngkpt" in new:
+                new["ngkpt"] = (np.rint(np.array(new["ngkpt"]) / scdims)).astype(int)
+                print("new new:", new["ngkpt"])
+            #elif "kptrlatt" in new:
+            #   new["kptrlatt"] = (np.rint(np.array(new["kptrlatt"]) / iscale)).astype(int)
+            #else:
+            #   """Single k-point"""
 
         return new
 

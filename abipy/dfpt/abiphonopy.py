@@ -4,6 +4,7 @@ Interface betwee phonopy and abipy workflow model.
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
+import os
 import numpy as np
 
 from phonopy import Phonopy, file_IO
@@ -52,10 +53,10 @@ class PhonopyWork(Work):
 
     .. attribute:: bec_tasks
 
-    .. attribute:: cpdata
+    .. attribute:: cpdata2dst
 
 	If not None, the work will copy the output results to the outdir of the flow
-	once all_ok is reached. Note that cpdata must represent an absolute path.
+	once all_ok is invoked. Note that cpdata2dst must represent an absolute path.
     """
     @classmethod
     def from_gs_input(cls, gsinp, scdims, phonopy_kwargs=None, displ_kwargs=None):
@@ -68,16 +69,16 @@ class PhonopyWork(Work):
 	    scdims:
 		Number of unit cell replicas along the three reduced directions.
 	    phonopy_kwargs:
-		Dictionary with arguments passed to Phonopy constructor.
+		(Optional) dictionary with arguments passed to Phonopy constructor.
 	    displ_kwargs:
-		Dictionary with arguments passed to generate_displacements.
+		(Optional) dictionary with arguments passed to generate_displacements.
 
 	Return:
 	    PhonopyWork instance.
         """
         new = cls()
 	new.phonopy_tasks, new.bec_tasks = [], []
-	new.cpdata = None
+	new.cpdata2dst = None
 
         # Initialize phonon. Supercell matrix has (3, 3) shape.
         unitcell = atoms_from_structure(gsinp.structure)
@@ -88,52 +89,18 @@ class PhonopyWork(Work):
 	supercell_matrix = np.diag(scdims)
 	phonopy_kwargs = phonopy_kwargs if phonopy_kwargs is not None else {}
         new.phonon = phonon = Phonopy(unitcell, supercell_matrix, **phonopy_kwargs)
-				#primitive_matrix=settings.get_primitive_matrix(),
-				#factor=factor,
-				#is_auto_displacements=False,
-				#dynamical_matrix_decimals=settings.get_dm_decimals(),
-				#force_constants_decimals=settings.get_fc_decimals(),
-				#symprec=options.symprec,
-				#is_symmetry=settings.get_is_symmetry(),
-				#use_lapack_solver=settings.get_lapack_solver(),
-				#log_level=log_level
 
-        #supercell, primitive = phonon.get_supercell(), phonon.get_primitive()
 	displ_kwargs = displ_kwargs if displ_kwargs is not None else {}
-        phonon.generate_displacements(**displ_kwargs)
-            #distance=0.01,
-            #is_plusminus=settings.get_is_plusminus_displacement(),
-            #is_diagonal=settings.get_is_diagonal_displacement(),
-            #is_trigonal=settings.get_is_trigonal_displacement()
+        phonon.generate_displacements(**displ_kwargs) #distance=0.01,
 
-        # Obtain supercells containing respective displacements by get_supercells_with_displacements,
-        # which are given by a list of Atoms objects.
+        # Obtain supercells containing respective displacements (list of Atoms objects).
         for atoms in phonon.get_supercells_with_displacements():
-            #print("atoms", atoms.cell, atoms.scaled_positions)
             sc_struct = structure_from_atoms(atoms)
-            #print("sc_struct", sc_struct)
-
-            #sc_gsinp = gsinp.new_with_structure(sc_struct, scdivs=scdivs)
-            sc_gsinp = AbinitInput(sc_struct, gsinp.pseudos)
-            for k, v in gsinp.items():
-                sc_gsinp[k] = v
-
-            # Rescale nband and k-point sampling
-	    iscale = int(np.ceil(len(sc_gsinp.structure) / len(gsinp.structure)))
-            if "nband" in sc_gsinp:
-                sc_gsinp["nband"] = int(gsinp["nband"] * iscale)
-                print("gsinp['nband']", gsinp["nband"], "sc_gsinp['nband']", sc_gsinp["nband"])
-
-	    if "ngkpt" in sc_gsinp:
-                sc_gsinp["ngkpt"] = (np.rint(np.array(sc_gsinp["ngkpt"]) / scdims)).astype(int)
-		print("new sc_gsinp:", sc_gsinp["ngkpt"])
-	    #elif "kptrlatt" in sc_gsinp:
-            #    sc_gsinp["kptrlatt"] = (np.rint(np.array(sc_gsinp["kptrlatt"]) / iscale)).astype(int)
-	    #else:
-	    # 	"""Single k-point"""
-
-            sc_gsinp["chksymbreak"] = 0
-            sc_gsinp["chkprim"] = 0
+            sc_gsinp = gsinp.new_with_structure(sc_struct, scdims=new.scdims)
+	    sc_gsinp.pop_tolerances()
+	    sc_gsinp.pop_vars(["ionmov", "optcell", "ntime"])
+	    sc_gsinp.set_vars(toldff=1.e-6)
+            sc_gsinp.set_vars_ifnotin(chksymbreak=0, chkprim=0)
 
             task = new.register_scf_task(sc_gsinp)
 	    new.phonopy_tasks.append(task)
@@ -159,7 +126,7 @@ class PhonopyWork(Work):
         file_IO.write_disp_yaml(displacements, supercell, directions=directions,
                                 filename=self.outdir.path_in('disp.yaml'))
 
-	# Extact forces from the main output files.
+	# Extract forces from the main output files.
 	forces_filenames = [task.output_file.path for task in self.phonopy_tasks]
 	num_atoms = supercell.get_number_of_atoms()
 	force_sets = parse_set_of_forces(num_atoms, forces_filenames)
@@ -211,15 +178,16 @@ class PhonopyWork(Work):
 	    fh.write("\t" + examples_url + "\n")
 	    fh.write("\t" + doctags_url + "\n")
 
-	if self.cpdata:
-	    self.outdir.copy_tree(self.cpdata)
+	if self.cpdata2dst:
+	    self.outdir.copytree(self.cpdata2dst)
 
-        return dict(returncode=0, message="Delta factor computed")
+	return super(PhonopyWork, self).on_all_ok()
 
 
 class PhonopyGruneisenWork(Work):
     """
-    This work compute the Grüneisen parameters with phonopy.
+    This work compute the Grüneisen parameters with phonopy. The workflow is as follows:
+
     It is necessary to run three phonon calculations.
     One is calculated at the equilibrium volume and the remaining two are calculated
     at the slightly larger volume and smaller volume than the equilibrium volume.
@@ -227,7 +195,7 @@ class PhonopyGruneisenWork(Work):
 
     .. attribute:: scdims(3)
 
-	numpy arrays with the number of cells in the supercell along the three reduced directions
+	numpy arrays with the number of cells in the supercell along the three reduced directions.
 
     .. attribute:: phonon
 
@@ -240,23 +208,25 @@ class PhonopyGruneisenWork(Work):
     .. attribute:: bec_tasks
     """
     @classmethod
-    def from_gs_input(cls, gsinp, volscale, scdims, phonopy_kwargs=None, displ_kwargs=None):
+    def from_gs_input(cls, gsinp, voldelta, scdims, phonopy_kwargs=None, displ_kwargs=None):
         """
         Build the work from an :class:`AbinitInput` object representing a GS calculations.
 
 	Args:
 	    gsinp:
 		:class:`AbinitInput` object representing a GS calculation in the initial unit cell.
-	    volscale:
+	    voldelta:
+                Absolute increment for unit cell volume. The three volumes are:
+                     [v0 - voldelta, v0, v0 + voldelta] where v0 is taken from gsinp.structure.
 	    scdims:
 		Number of unit cell replicas along the three reduced directions.
 	    phonopy_kwargs:
-		Dictionary with arguments passed to Phonopy constructor.
+		(Optional) dictionary with arguments passed to Phonopy constructor.
 	    displ_kwargs:
-		Dictionary with arguments passed to generate_displacements.
+		(Optional) dictionary with arguments passed to generate_displacements.
 
 	Return:
-	    PhonopyWork instance.
+	    PhonopyGruneisenWork instance.
         """
         new = cls()
 
@@ -270,17 +240,21 @@ class PhonopyGruneisenWork(Work):
 
 	# Build three tasks for structural optimization at constant volume.
         v0 = gsinp.structure.volume
-	if not 0 < volscale < 1:
-	    raise ValueError("volscale must be in ]0,1[ but got %s" % volscale)
-        volumes = [v0 * (1 - volscale), v0, v0 * (1 + volscale)]
+	if voldelta <= 0:
+	    raise ValueError("voldelta must be > 0 but got %s" % voldelta)
+        volumes = [v0 - voldelta, v0, v0  + voldelta]
+	if any(v <= 0 for v in volumes):
+	    raise ValueError("volumes must be > 0 but got %s" % str(volumes))
 
         for vol in volumes:
             # Build new structure
             new_lattice = gsinp.structure.lattice.scale(vol)
             new_structure = Structure(new_lattice, gsinp.structure.species, gsinp.structure.frac_coords)
 	    new_input = gsinp.new_with_structure(new_structure)
+	    # Set variables for structural optimization at constant volume.
 	    new_input.pop_tolerances()
-	    new_input.set_vars(optcell=0, ionmov=3, tolvrs=1e-10)
+	    new_input.set_vars(optcell=3, ionmov=3, tolvrs=1e-10, toldff=1.e-6)
+	    new_input.set_vars_ifnotin(ecutsm=0.5, dilatmx=1.05)
 	    new.register_relax_task(new_input)
 
 	return new
@@ -290,17 +264,17 @@ class PhonopyGruneisenWork(Work):
         This method is called once the `Work` is completed i.e. when all the tasks
         have reached status S_OK.
         """
-	self.build_and_add_phonopy_works()
+	self.add_phonopy_works_and_build()
 	return super(PhonopyGruneisenWork, self).on_all_ok()
 
-    def build_and_add_phonopy_works(self):
+    def add_phonopy_works_and_build(self):
+        """
+        Get relaxed structures from the tasks, build Phonopy works with supercells
+        constructued from the new structures, add them to the flow and build new directories.
+        """
 	for i, task in enumerate(self):
 	    relaxed_structure = task.get_final_structure()
-
-	    gsinp = AbinitInput(relaxed_structure, task.input.pseudos,
-                                abi_kwargs={k: v for k, v in task.input.items()})
-	    #gsinp.pop_tolerances()
-	    gsinp.pop_vars(["ionmov", "optcell", "ntime"])
+	    gsinp = task.input.new_with_structure(relaxed_structure)
 
 	    work = PhonopyWork.from_gs_input(gsinp, self.scdims,
 					     phonopy_kwargs=self.phonopy_kwargs,
@@ -309,4 +283,8 @@ class PhonopyGruneisenWork(Work):
 	    self.flow.register_work(work)
 	    # Tell the work to copy the results to e.g. `flow/outdir/w0/minus`
 	    dst = os.path.join(self.pos_str, {0: "minus", 1: "orig", 2: "plus"}[i])
-	    work.cpdata = self.flow.outdir.path_in(dst)
+	    work.cpdata2dst = self.flow.outdir.path_in(dst)
+
+        # Allocate new works and update the pickle database.
+        self.flow.allocate()
+	self.flow.build_and_pickle_dump()
