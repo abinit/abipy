@@ -25,7 +25,10 @@ from pymatgen.io.abinit.launcher import PyFlowScheduler, BatchLauncher
 
 from abipy.core.release import __version__, min_abinit_version
 from abipy.core.structure import Lattice, Structure, StructureModifier
+from abipy.core.mixins import AbinitLogFile, AbinitOutputFile, OutNcFile
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
+from abipy.iotools import Visualizer
+from abipy.iotools.cube import CubeFile
 from abipy.abio.robots import GsrRobot, SigresRobot, MdfRobot, DdbRobot, abirobot
 from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
 from abipy.abio.abivars import AbinitInputFile
@@ -39,11 +42,9 @@ from abipy.electrons.scissors import ScissorsBuilder
 from abipy.electrons.scr import ScrFile
 from abipy.dfpt import PhbstFile, PhononBands, PhdosFile, PhdosReader
 from abipy.dfpt.ddb import DdbFile
+from abipy.dfpt.anaddbnc import AnaddbNcFile
 from abipy.dynamics.hist import HistFile
-from abipy.core.mixins import AbinitLogFile, AbinitOutputFile, OutNcFile
 from abipy.waves import WfkFile
-from abipy.iotools import Visualizer
-from abipy.iotools.cube import CubeFile
 
 # Tools for unit conversion
 import pymatgen.core.units as units
@@ -73,6 +74,7 @@ ext2file = collections.OrderedDict([
     ("POSCAR", Structure),
     ("cssr", Structure),
     (".cube", CubeFile),
+    ("anaddb.nc", AnaddbNcFile),
 ])
 
 # Abinit files require a special treatment.

@@ -53,7 +53,7 @@ def main():
     def str_examples():
         s = """\
 Usage example:
-    abiopen.py out_GSR
+    abiopen.py out_GSR.nc
     abiopen.py out_DDB
 
 File extensions supported:

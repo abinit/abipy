@@ -263,7 +263,6 @@ class PhononBands(object):
         else:
             return None
 
-
     @property
     def non_anal_phfreqs(self):
         """Phonon frequencies with non analytical contribution in eV along non_anal_directions"""
@@ -1752,7 +1751,8 @@ class InteratomicForceConstants(Has_Structure):
             except:
                 import traceback
                 msg = traceback.format_exc()
-                msg += "\n Verify that the required variables are used in anaddb: ifcflag, natifc, atifc, ifcout \n" % cls
+                msg += ("Error while trying to read IFCs from file.\n"
+                       "Verify that the required variables are used in anaddb: ifcflag, natifc, atifc, ifcout\n")
                 raise ValueError(msg)
 
             return cls(structure=structure, atoms_indices=atoms_indices, neighbours_indices=neighbours_indices,
