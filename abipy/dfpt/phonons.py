@@ -101,7 +101,7 @@ class PhononBands(object):
             structure = r.read_structure()
 
             # Build the list of q-points
-            qpoints = KpointList(structure.reciprocal_lattice, 
+            qpoints = KpointList(structure.reciprocal_lattice,
                                  frac_coords=r.read_qredcoords(),
                                  weights=r.read_qweights(),
                                  names=None)
@@ -112,9 +112,9 @@ class PhononBands(object):
                 amu = {at: a for at, a in zip(atom_species, amu_list)}
             else:
                 amu = None
-                                                                                   
+
             return cls(structure=structure,
-                       qpoints=qpoints, 
+                       qpoints=qpoints,
                        phfreqs=r.read_phfreqs(),
                        phdispl_cart=r.read_phdispl_cart(),
                        amu=amu)
@@ -135,7 +135,7 @@ class PhononBands(object):
             phfreqs: Phonon frequencies in eV.
             phdispl_cart: Displacement in Cartesian coordinates.
             markers: Optional dictionary containing markers labelled by a string.
-                Each marker is a list of tuple(x, y, s) where x,and y are the position 
+                Each marker is a list of tuple(x, y, s) where x,and y are the position
                 in the graph and s is the size of the marker.
                 Used for plotting purpose e.g. QP data, energy derivatives...
             widths: Optional dictionary containing data used for the so-called fatbands
@@ -167,7 +167,7 @@ class PhononBands(object):
         if markers is not None:
             for key, xys in markers.items():
                 self.set_marker(key, xys)
-                                                                            
+
         if widths is not None:
             for key, width in widths.items():
                 self.set_width(key, width)
@@ -297,7 +297,7 @@ class PhononBands(object):
 
     def del_marker(self, key):
         """
-        Delete the entry in self.markers with the specied key. 
+        Delete the entry in self.markers with the specied key.
         All markers are removed if key is None.
         """
         if key is not None:
@@ -514,7 +514,7 @@ class PhononBands(object):
                 xyz_file.write(str(natoms) + "\n")
                 xyz_file.write("Mode " + str(imode) + " : " + str(self.phfreqs[iqpt, imode]) + "\n")
                 self.structure.write_vib_file(
-                    xyz_file, self.qpoints[iqpt].frac_coords, pre_factor * np.reshape(self.phdispl_cart[iqpt, imode,:],(-1,3)), 
+                    xyz_file, self.qpoints[iqpt].frac_coords, pre_factor * np.reshape(self.phdispl_cart[iqpt, imode,:],(-1,3)),
                     do_real=True, frac_coords=False, max_supercell=max_supercell, scale_matrix=scale_matrix)
 
     def create_ascii_vib(self, iqpts, filename, pre_factor=1):
@@ -586,7 +586,7 @@ class PhononBands(object):
     def decorate_ax(self, ax, units='eV', **kwargs):
         title = kwargs.pop("title", None)
         if title is not None: ax.set_title(title)
-                                                                   
+
         ax.grid(True)
         ax.set_xlabel('q-point')
         if units in ['eV', 'ev', 'electronvolt']:
@@ -599,10 +599,10 @@ class PhononBands(object):
             raise ValueError('Value for units {} unknown'.format(units))
 
         ax.legend(loc="best")
-                                                                   
+
         # Set ticks and labels.
         ticks, labels = self._make_ticks_and_labels(kwargs.pop("qlabels", None))
-                                                                   
+
         if ticks:
             ax.set_xticks(ticks, minor=False)
             ax.set_xticklabels(labels, fontdict=None, minor=False)
@@ -614,7 +614,7 @@ class PhononBands(object):
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
-            qlabels: dictionary whose keys are tuple with the reduced coordinates of the q-points. 
+            qlabels: dictionary whose keys are tuple with the reduced coordinates of the q-points.
                 The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}
             branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted).
             marker: String defining the marker to plot. Syntax `markername:fact` where fact is a float used to scale the marker size.
@@ -803,7 +803,7 @@ class PhononBands(object):
             colormap: Have a look at the colormaps here and decide which one you like:
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
             max_stripe_width_mev: The maximum width of the stripe in meV.
-            qlabels: dictionary whose keys are tuple with the reduced coordinates of the q-points. 
+            qlabels: dictionary whose keys are tuple with the reduced coordinates of the q-points.
                 The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
 
         Returns:
@@ -882,7 +882,7 @@ class PhononBands(object):
 
         Args:
             dos: An instance of :class:`PhononDos`.
-            qlabels: dictionary whose keys are tuple with the reduced coordinates of the q-points. 
+            qlabels: dictionary whose keys are tuple with the reduced coordinates of the q-points.
                 The values are the labels e.g. qlabels = {(0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L"}.
 
         Returns:
@@ -998,7 +998,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands):
 
     def get_phframe(self, qpoint):
         """
-        Return a pandas :class:`DataFrame` with the phonon frequencies at the given q-point and 
+        Return a pandas :class:`DataFrame` with the phonon frequencies at the given q-point and
         information on the crystal structure (used for convergence studies).
 
         Args:
@@ -1042,8 +1042,8 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands):
         """
         qindex, qpoint = self.qindex_qpoint(qpoint)
 
-        return PhononMode(qpoint=qpoint, 
-                          freq=self.phbands.phfreqs[qindex, branch], 
+        return PhononMode(qpoint=qpoint,
+                          freq=self.phbands.phfreqs[qindex, branch],
                           displ_cart=self.phbands.phdispl_cart[qindex, branch, :],
                           structure=self.structure)
 
@@ -1103,7 +1103,7 @@ class PhononDos(Function1D):
         self._values = self.values/factor
 
         # Use super because we are overwriting the plot_ax provided by Func1D
-        cases = {"d": super(PhononDos, self),  
+        cases = {"d": super(PhononDos, self),
                  "i": self.idos}
 
         lines = []
@@ -1149,7 +1149,7 @@ class PhononDos(Function1D):
         """
         Compute thermodinamic properties from the phonon DOS within the harmonic approximation.
 
-        tstart: The starting value (in Kelvin) of the temperature mesh. 
+        tstart: The starting value (in Kelvin) of the temperature mesh.
         tstop: The end value (in Kelvin) of the mesh.
         num: int, optional Number of samples to generate. Default is 50.
         """
@@ -1159,7 +1159,7 @@ class PhononDos(Function1D):
         csch2 = lambda x: 1.0 / (np.sinh(x) ** 2)
 
         # Boltzmann constant in Ha/K
-        kb_HaK = 8.617343e-5 / Ha_to_eV 
+        kb_HaK = 8.617343e-5 / Ha_to_eV
 
         for i, gw in enumerate(self.values):
             if gw > 0: break
@@ -1222,9 +1222,9 @@ class HarmonicThermo(AttrDict):
     #    """
     #    Compare two :class:`HarmonicThermo` objects
 
-    #    Returns: 
-    #        (iseq, diffs) 
-    #        where iseq is True if all values are converged withing tol 
+    #    Returns:
+    #        (iseq, diffs)
+    #        where iseq is True if all values are converged withing tol
     #        and diffs is a :class:`AttrDict`that gives, for each property the  l2 norm of (f1 - f2)
     #    """
     #    # TODO: Relative diff or absolute diff?
@@ -1339,7 +1339,7 @@ class PhdosFile(AbinitNcFile, Has_Structure):
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
-            colormap: Have a look at the colormaps 
+            colormap: Have a look at the colormaps
                 `here <http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html>`_
                 and decide which one you'd like:
 
@@ -1752,7 +1752,7 @@ class InteratomicForceConstants(Has_Structure):
             except:
                 import traceback
                 msg = traceback.format_exc()
-                msg += "\n Verify that the required variablesare used in anaddb: ifcflag, natifc, atifc, ifcout \n" % cls
+                msg += "\n Verify that the required variables are used in anaddb: ifcflag, natifc, atifc, ifcout \n" % cls
                 raise ValueError(msg)
 
             return cls(structure=structure, atoms_indices=atoms_indices, neighbours_indices=neighbours_indices,
@@ -1911,7 +1911,6 @@ class InteratomicForceConstants(Has_Structure):
         ax.plot(dist, filtered_ifc, **kwargs)
 
         return fig
-
 
     @add_fig_kwargs
     def plot_longitudinal_ifc(self, atom_indices=None, atom_element=None, neighbour_element=None, min_dist=None,

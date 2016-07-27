@@ -46,7 +46,7 @@ class AnaddbError(DdbError):
         lines = ["\nworkdir = %s" % self.task.workdir]
         app = lines.append
 
-        if self.report.errors: 
+        if self.report.errors:
             app("Found %d errors" % len(self.report.errors))
             lines += [str(err) for err in self.report.errors]
 
@@ -110,7 +110,7 @@ class DdbFile(TextFile, Has_Structure):
     @property
     def header(self):
         """
-        Dictionary with the values reported in the header section. 
+        Dictionary with the values reported in the header section.
         Use ddb.header.ecut to access its values
         """
         return self._header
@@ -139,7 +139,7 @@ class DdbFile(TextFile, Has_Structure):
 
             # header starts here
             if i >= 6:
-                # Python does not support exp format with D 
+                # Python does not support exp format with D
                 line = line.replace("D+", "E+").replace("D-", "E-")
                 tokens = line.split()
                 key = None
@@ -182,7 +182,7 @@ class DdbFile(TextFile, Has_Structure):
 
         # Transpose symrel because Abinit write matrices by colums.
         h.symrel = np.array([s.T for s in h.symrel])
-        
+
         return h
 
     def _read_qpoints(self):
@@ -262,19 +262,19 @@ class DdbFile(TextFile, Has_Structure):
     @property
     def guessed_ngqpt(self):
         """
-        Guess for the q-mesh divisions (ngqpt) inferred from the list of 
+        Guess for the q-mesh divisions (ngqpt) inferred from the list of
         q-points found in the DDB file.
 
         .. warning::
-            
-            The mesh may not be correct if the DDB file contains points belonging 
+
+            The mesh may not be correct if the DDB file contains points belonging
             to different meshes and/or the Q-mesh is shifted.
         """
         return self._guessed_ngqpt
 
     def _guess_ngqpt(self):
         """
-        This function tries to figure out the value of ngqpt from the list of 
+        This function tries to figure out the value of ngqpt from the list of
         points reported in the DDB file.
         """
         # Build the union of the stars of the q-points.
@@ -286,7 +286,7 @@ class DdbFile(TextFile, Has_Structure):
                 count += 1
 
         # Replace zeros with np.inf
-        for q in all_qpoints: 
+        for q in all_qpoints:
             q[q == 0] = np.inf
 
         # Compute the minimum of the fractional coordinates along the 3 directions and invert
@@ -336,9 +336,9 @@ class DdbFile(TextFile, Has_Structure):
             :class:`PhononBands` object.
         """
         if qpoint is None:
-            qpoint = self.qpoints[0] 
+            qpoint = self.qpoints[0]
             if len(self.qpoints) != 1:
-                raise ValueError("%s contains %s qpoints and the choice is ambiguous.\n" 
+                raise ValueError("%s contains %s qpoints and the choice is ambiguous.\n"
                                  "Please specify the qpoint." % (self, len(self.qpoints)))
 
         # Check if qpoint is in the DDB.
@@ -353,7 +353,7 @@ class DdbFile(TextFile, Has_Structure):
 
         task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager)
 
-        if verbose: 
+        if verbose:
             print("ANADDB INPUT:\n", inp)
             print("workdir:", task.workdir)
 
@@ -370,10 +370,10 @@ class DdbFile(TextFile, Has_Structure):
 
             return ncfile.phbands
 
-    #def anaget_phbst_file(self, ngqpt=None, ndivsm=20, asr=2, chneut=1, dipdip=1, 
+    #def anaget_phbst_file(self, ngqpt=None, ndivsm=20, asr=2, chneut=1, dipdip=1,
     #                      workdir=None, manager=None, verbose=0, **kwargs):
 
-    #def anaget_phdos_file(self, ngqpt=None, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra" 
+    #def anaget_phdos_file(self, ngqpt=None, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra"
     #                      workdir=None, manager=None, verbose=0, **kwargs):
 
     def anaget_phbst_and_phdos_files(self, nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra",
@@ -383,7 +383,7 @@ class DdbFile(TextFile, Has_Structure):
         Execute anaddb to compute the phonon band structure and the phonon DOS
 
         Args:
-            nqsmall: Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions 
+            nqsmall: Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions
                 used to sample the smallest lattice vector.
             ndivsm: Number of division used for the smallest segment of the q-path
             asr, chneut, dipdip: Anaddb input variable. See official documentation.
@@ -411,7 +411,7 @@ class DdbFile(TextFile, Has_Structure):
 
         task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager)
 
-        if verbose: 
+        if verbose:
             print("ANADDB INPUT:\n", inp)
             print("workdir:", task.workdir)
 
@@ -429,11 +429,11 @@ class DdbFile(TextFile, Has_Structure):
 
         return phbst, task.open_phdos()
 
-    def anacompare_phdos(self, nqsmalls, asr=2, chneut=1, dipdip=1, dos_method="tetra", ngqpt=None, 
-                         num_cpus=None, stream=sys.stdout): 
+    def anacompare_phdos(self, nqsmalls, asr=2, chneut=1, dipdip=1, dos_method="tetra", ngqpt=None,
+                         num_cpus=None, stream=sys.stdout):
         """
         Args:
-            nqsmalls: List of integers defining the q-mesh for the DOS. Each integer gives 
+            nqsmalls: List of integers defining the q-mesh for the DOS. Each integer gives
             the number of divisions to be used to sample the smallest reciprocal lattice vector.
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
@@ -456,7 +456,7 @@ class DdbFile(TextFile, Has_Structure):
         def do_work(nqsmall):
             _, phdos_file = self.anaget_phbst_and_phdos_files(
                 nqsmall=nqsmall, ndivsm=1, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, ngqpt=ngqpt)
-            return phdos_file.phdos                                                                                          
+            return phdos_file.phdos
 
         if num_cpus == 1:
             # Sequential version
@@ -490,15 +490,15 @@ class DdbFile(TextFile, Has_Structure):
                 q.put((nqsmall, i))
 
             # block until all tasks are done
-            q.join()       
-    
-        # Compute relative difference wrt last phonon DOS. Be careful because the DOSes may be defined 
-        # on different frequency meshes ==> spline on the mesh of the last DOS. 
+            q.join()
+
+        # Compute relative difference wrt last phonon DOS. Be careful because the DOSes may be defined
+        # on different frequency meshes ==> spline on the mesh of the last DOS.
         last_mesh, converged = phdoses[-1].mesh, False
         for i, phdos in enumerate(phdoses[:-1]):
             splined_dos = phdos.spline_on_mesh(last_mesh)
             abs_diff = (splined_dos - phdoses[-1]).abs()
-            print(" Delta(Phdos[%d] - Phdos[%d]) / Phdos[%d]: %f" % 
+            print(" Delta(Phdos[%d] - Phdos[%d]) / Phdos[%d]: %f" %
                 (i, len(phdoses)-1, len(phdoses)-1, abs_diff.integral().values[-1]), file=stream)
 
         # Fill the plotter.
@@ -518,13 +518,13 @@ class DdbFile(TextFile, Has_Structure):
             verbose: verbosity level. Set it to a value > 0 to get more information
 
         Return:
-            emacro, becs 
+            emacro, becs
         """
         inp = AnaddbInput(self.structure, anaddb_kwargs={"chneut": chneut})
 
         task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager)
 
-        if verbose: 
+        if verbose:
             print("ANADDB INPUT:\n", inp)
             print("workdir:", task.workdir)
 
@@ -563,7 +563,7 @@ class DdbFile(TextFile, Has_Structure):
 
     #    task = AnaddbTask.temp_shell_task(inp, self.filepath, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
 
-    #    if verbose: 
+    #    if verbose:
     #        print("ANADDB INPUT:\n", inp)
     #        print("workdir:", task.workdir)
 
@@ -664,6 +664,7 @@ class DdbFile(TextFile, Has_Structure):
             if b['qpt'] is not None and np.allclose(b['qpt'], qpt):
                 b["data"] = data
 
+
 class Becs(Has_Structure):
     """This object stores the Born effective charges and provides simple tools for data analysis."""
 
@@ -672,7 +673,7 @@ class Becs(Has_Structure):
         Args:
             becs_arr: (3, 3, natom) array with the Born effective charges in Cartesian coordinates.
             structure: Structure object.
-            chneut: Option used for the treatment of the Charge Neutrality requirement 
+            chneut: Option used for the treatment of the Charge Neutrality requirement
                 for the effective charges (anaddb input variable)
             order: "f" if becs_arr is in Fortran order.
         """
