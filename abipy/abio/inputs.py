@@ -1226,7 +1226,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         Args:
             ngkpt: Number of divisions for the k-mesh (default None i.e. use ngkpt from self)
-            shiftk: Shiftks (default None i.e. use shiftk from self)
+            shiftk: List of shifts (default None i.e. use shiftk from self)
             kptopt: Option for k-point generation. If None, the value in self is used.
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
             manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.

@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Interface betwee phonopy and abipy workflow model.
+Interface between phonopy and abipy workflow model.
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
@@ -97,9 +97,9 @@ class PhonopyWork(Work):
         for atoms in phonon.get_supercells_with_displacements():
             sc_struct = structure_from_atoms(atoms)
             sc_gsinp = gsinp.new_with_structure(sc_struct, scdims=new.scdims)
-	    sc_gsinp.pop_tolerances()
-	    sc_gsinp.pop_vars(["ionmov", "optcell", "ntime"])
-	    sc_gsinp.set_vars(toldff=1.e-6)
+            sc_gsinp.pop_tolerances()
+            sc_gsinp.pop_vars(["ionmov", "optcell", "ntime"])
+            sc_gsinp.set_vars(toldff=1.e-6)
             sc_gsinp.set_vars_ifnotin(chksymbreak=0, chkprim=0)
 
             task = new.register_scf_task(sc_gsinp)
