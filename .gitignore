@@ -1,6 +1,7 @@
 # abipy files
 abinit_vars.pickle
 Profile.prof
+abipy/data/runs/flow_*
 
 # cython generated code
 abipy/extensions/*.c
@@ -57,7 +58,6 @@ coverage_html
 .cache
 nosetests.xml
 _integration_tests_
-
 
 # ipython notebooks
 .ipynb*

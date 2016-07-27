@@ -20,6 +20,9 @@ from pymatgen.io.vasp.inputs import get_potcar_dir
 from pymatgen.io.abinit.flows import Flow
 
 
+# TODO: These tests produce several files. The execution of the test should be done in a temp directory.
+
+
 __author__ = 'setten'
 
 POTCAR_DIR = get_potcar_dir()
@@ -115,6 +118,9 @@ class GWConvergenceDataTest(PymatgenTest):
         for k in conv_data.conv_res['values']:
             self.assert_almost_equal(conv_data.conv_res["values"][k], conv_res['values'][k], decimal=4)
 
+        # Remove artifact
+        os.remove(conv_data.name +'.conv_res')
+
 
 class GWTestCodeInterfaces(PymatgenTest):
     def test_VaspInterface(self):
@@ -129,7 +135,7 @@ class GWTestCodeInterfaces(PymatgenTest):
 
     def test_AbinitInterface(self):
         """
-        Testing the ANINIT code interface
+        Testing the ABINIT code interface
         """
         interface = get_code_interface('ABINIT')
         self.assertIsInstance(interface, AbinitInterface)
@@ -247,7 +253,8 @@ class GWworksTests(PymatgenTest):
         struc = AbiStructure.from_file(abidata.cif_file("si.cif"))
         struc.item = 'test'
 
-        wdir = '.'
+        wdir = tempfile.mkdtemp()
+        #wdir = '.'
         shutil.copyfile(abidata.cif_file("si.cif"), os.path.join(wdir, 'si.cif'))
         shutil.copyfile(abidata.pseudo("14si.pspnc").path, os.path.join(wdir, 'Si.pspnc'))
         shutil.copyfile(os.path.join(abidata.dirpath, 'managers', 'shell_manager_nompi.yml'),
@@ -267,7 +274,7 @@ class GWworksTests(PymatgenTest):
         spec = get_spec('GW')
         spec.data['kp_grid_dens'] = 100
         spec.data['kp_in'] = -100
-        with open('extra_abivars', 'w') as f:
+        with open(os.path.join(wdir, 'extra_abivars'), 'w') as f:
             f.write('{"ecut": 8, "ecutsigx": 8}')
 
         work = SingleAbinitGWWork(struc, spec)
