@@ -52,6 +52,7 @@ docs/examples
 
 # Unit test / coverage reports
 .coverage
+coverage_html
 .tox
 .cache
 nosetests.xml
@@ -60,6 +61,7 @@ _integration_tests_
 
 # ipython notebooks
 .ipynb*
+Untitled.ipynb
 
 # Translations
 *.mo
