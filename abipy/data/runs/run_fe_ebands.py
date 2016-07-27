@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Calculation of the band structure of Fe with and without magnetization.
-See tutorial/Input/tspin_1.in
+See `~abinit/tutorial/Input/tspin_1.in`
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
