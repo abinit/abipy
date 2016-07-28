@@ -56,7 +56,7 @@ class PhonopyWork(Work):
     .. attribute:: cpdata2dst
 
 	If not None, the work will copy the output results to the outdir of the flow
-	once all_ok is invoked. Note that cpdata2dst must represent an absolute path.
+	once all_ok is invoked. Note that cpdata2dst must be an absolute path.
     """
     @classmethod
     def from_gs_input(cls, gsinp, scdims, phonopy_kwargs=None, displ_kwargs=None):
@@ -231,7 +231,7 @@ class PhonopyGruneisenWork(Work):
         new = cls()
 
 	# Save arguments that will be used to call phonopy for creating
-        # the supercelss with the displacements once the three volumes have been relaxed.
+        # the supercells with the displacements once the three volumes have been relaxed.
 	new.scdims = np.array(scdims)
 	if new.scdims.shape != (3,):
 	    raise ValueError("Expecting 3 int in scdims but got %s" % str(new.scdims))
@@ -270,7 +270,7 @@ class PhonopyGruneisenWork(Work):
     def add_phonopy_works_and_build(self):
         """
         Get relaxed structures from the tasks, build Phonopy works with supercells
-        constructued from the new structures, add them to the flow and build new directories.
+        constructed from the new structures, add them to the flow and build new directories.
         """
 	for i, task in enumerate(self):
 	    relaxed_structure = task.get_final_structure()
