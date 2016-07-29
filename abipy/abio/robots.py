@@ -7,7 +7,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from collections import OrderedDict, deque 
+from collections import OrderedDict, deque
 from monty.string import is_string, list_strings
 from monty.functools import lazy_property
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
@@ -41,7 +41,7 @@ def abirobot(obj, ext, nids=None):
         if cls.EXT in (ext, ext.upper()):
             return cls.open(obj, nids=nids)
 
-    raise ValueError("Cannot find Robot subclass associated to extension %s\n" % ext + 
+    raise ValueError("Cannot find Robot subclass associated to extension %s\n" % ext +
                      "The list of supported extensions is:\n%s" %
                      [cls.EXT for cls in Robot.__subclasses__()])
 
@@ -76,10 +76,10 @@ class Robot(object):
     def for_ext(cls, ext):
         """Return the Robot subclass associated to the given extension."""
         for subcls in cls.__subclasses__():
-            if subcls.EXT in (ext, ext.upper()): 
+            if subcls.EXT in (ext, ext.upper()):
                 return subcls
 
-        raise ValueError("Cannot find Robot subclass associated to extension %s\n" % ext + 
+        raise ValueError("Cannot find Robot subclass associated to extension %s\n" % ext +
                          "The list of supported extensions is:\n%s" %
                          [cls.EXT for cls in Robot.__subclasses__()])
 
@@ -102,7 +102,7 @@ class Robot(object):
         """
         robot = cls()
         all_opts = ["flow", "work", "task"]
-    
+
         if outdirs == "all":
             tokens = all_opts
         elif "+" in outdirs:
@@ -149,7 +149,7 @@ class Robot(object):
         Add a file to the robot with the given label.
 
         Args:
-            label: String used to identify the file (must be unique, ax exceptions is 
+            label: String used to identify the file (must be unique, ax exceptions is
                 raised if label is already present.
             ncfile: Specify the file to be added. Accepts strings (filepath) or abipy file-like objects.
         """
@@ -162,6 +162,8 @@ class Robot(object):
             raise ValueError("label %s is already present!")
 
         self._ncfiles[label] = ncfile
+
+    #def pop(self, label):
 
     @property
     def exceptions(self):
@@ -204,7 +206,7 @@ class Robot(object):
     def close(self):
         """Close all the files that have been opened by the Robot"""
         for ncfile in self.ncfiles:
-            if self._do_close.pop(ncfile.filepath, False): 
+            if self._do_close.pop(ncfile.filepath, False):
                 try:
                     ncfile.close()
                 except:
@@ -217,7 +219,7 @@ class Robot(object):
         nids is an optional list of :class:`Node` identifiers used to filter the set of :class:`Task` in the Flow.
         """
         has_dirpath = False
-        if is_string(obj): 
+        if is_string(obj):
             try:
                 obj = Flow.pickle_load(obj)
             except:
@@ -387,7 +389,7 @@ class SigresRobot(Robot):
                 table = frame
             else:
                 table = table.append(frame)
-        
+
         return table
 
     def get_qpgaps_dataframe(self, spin=None, kpoint=None, **kwargs):
@@ -408,7 +410,7 @@ class SigresRobot(Robot):
 
             # Add convergence parameters
             d.update(sigr.params)
-                                                        
+
             # Add info on structure.
             if kwargs.get("with_geo", False):
                 d.update(self._get_geodict(sigr.structure))
@@ -422,7 +424,7 @@ class SigresRobot(Robot):
 
     def plot_conv_qpgap(self, x_vars, **kwargs):
         """
-        Plot the convergence of the Quasi-particle gap. 
+        Plot the convergence of the Quasi-particle gap.
         kwargs are passed to :class:`seaborn.PairGrid`.
         """
         import matplotlib.pyplot as plt
@@ -460,7 +462,7 @@ class MdfRobot(Robot):
 
             # Add convergence parameters
             d.update(mdf.params)
-                                                        
+
             # Add info on structure.
             if kwargs.get("with_geo", False):
                 d.update(self._get_geodict(mdf.structure))
@@ -482,7 +484,7 @@ class MdfRobot(Robot):
 
         for i, (hue_val, group) in enumerate(grouped):
             #print(group)
-            mdfs = group[mdf_type] 
+            mdfs = group[mdf_type]
             ax = ax_list[i]
             ax.set_title("%s = %s" % (hue, hue_val))
             for mdf in mdfs:
@@ -510,7 +512,6 @@ class DdbRobot(Robot):
     #    qpoints = []
     #    for (label, ddb) in enumerate(self):
     #        qpoints.extend(q for q in ddb.qpoints if q not in qpoints)
-    #                                                                                              
     #    return np.array(qpoints)
 
     def get_dataframe_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, **kwargs):
@@ -526,7 +527,7 @@ class DdbRobot(Robot):
         if qpoint is None:
             if not all(len(ddb.qpoints) == 1 for ddb in self.ncfiles):
                 raise ValueError("Found more than one q-point in the DDB file. qpoint must be specified")
-            qpoint = self[0].qpoints[0] 
+            qpoint = self[0].qpoints[0]
             if any(np.any(ddb.qpoints[0] != qpoint) for ddb in self.ncfiles):
                 raise ValueError("All the q-points in the DDB files must be equal")
 
@@ -559,9 +560,9 @@ class DdbRobot(Robot):
 
         return pd.DataFrame(rows, index=row_names, columns=rows[0].keys())
 
-    def plot_conv_phfreqs_qpoint(self, x_vars, qpoint=None, **kwargs): 
+    def plot_conv_phfreqs_qpoint(self, x_vars, qpoint=None, **kwargs):
         """
-        Plot the convergence of the phonon frequencies. 
+        Plot the convergence of the phonon frequencies.
         kwargs are passed to :class:`seaborn.PairGrid`.
         """
         import matplotlib.pyplot as plt

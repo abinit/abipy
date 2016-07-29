@@ -1678,8 +1678,7 @@ class ElectronBandsPlotter(object):
         """
         from abipy.abilab import abiopen
         with abiopen(filepath) as ncfile:
-            if label is None:
-                label = ncfile.filepath
+            if label is None: label = ncfile.filepath
             self.add_ebands(label, ncfile.ebands)
 
     def add_ebands(self, label, bands, dos=None):
@@ -1878,15 +1877,12 @@ class ElectronBandsPlotter(object):
     #    """
     #    animator = FilesAnimator()
     #    figures = OrderedDict()
-
     #    for label, bands in self.bands_dict.items():
     #        if self.edoses_dict:
     #            fig = bands.plot_with_edos(self.edoses_dict[label], show=False)
     #        else:
     #            fig = bands.plot(show=False)
-
     #        figures[label] = fig
-
     #    animator.add_figures(labels=figures.keys(), figure_list=figures.values())
     #    return animator.animate(**kwargs)
 
@@ -1896,12 +1892,9 @@ class ElectronBandsPlotter(object):
     #    """
     #    import matplotlib.pyplot as plt
     #    import matplotlib.animation as animation
-
     #    fig, ax = plt.subplots()
     #    bands = list(self.bands_dict.values())
-
     #    plot_opts = {"color": "black", "linewidth": 2.0}
-
     #    def cbk_animate(i):
     #        #line.set_ydata(np.sin(x+i/10.0))  # update the data
     #        #print("in animate with %d" % i)
@@ -1915,13 +1908,9 @@ class ElectronBandsPlotter(object):
     #        return bands[0].plot_ax(ax, spin=None, band=None, **plot_opts)
     #        #line.set_data([], [])
     #        #return line,
-
     #    anim = animation.FuncAnimation(fig, cbk_animate, frames=len(bands), interval=250, blit=True, init_func=init)
-
     #    #anim.save('im.mp4', metadata={'artist':'gmatteo'})
-
     #    if kwargs.get("show", True): plt.show()
-
     #    return anim
 
 

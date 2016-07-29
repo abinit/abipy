@@ -22,6 +22,7 @@ __all__ = [
     "Has_Structure",
     "Has_ElectronBands",
     "Has_PhononBands",
+    "NotebookWriter",
 ]
 
 @six.add_metaclass(abc.ABCMeta)
@@ -436,3 +437,60 @@ def get_filestat(filepath):
         ("Modification Time", ctime(stat.st_mtime)),
         ("Change Time", ctime(stat.st_ctime)),
     ])
+
+
+
+@six.add_metaclass(abc.ABCMeta)
+class NotebookWriter(object):
+    """
+    Mixin class for objects that are able to generate jupyter notebooks.
+    Subclasses must provide a concrete implementation of `write_notebook`.
+    """
+    def make_and_open_notebook(self, nbpath=None):
+        """
+        Generate an ipython notebook and open it in the browser.
+        If nbpath is None, a temporay file is created.
+        Return system exit code.
+
+        Raise:
+            RuntimeError if jupyter is not in $PATH
+        """
+        nbpath = self.write_notebook(nbpath=nbpath)
+
+        if which("jupyter") is None:
+            raise RuntimeError("Cannot find jupyter in PATH. Install it with `pip install`")
+        return os.system("jupyter notebook %s" % nbpath)
+
+        #import daemon
+        #with daemon.DaemonContext(detach_process=True):
+        #    return os.system("jupyter notebook %s" % nbpath)
+
+    def get_nbformat_nb(self, title=None):
+        import nbformat
+        nbf = nbformat.v4
+        nb = nbf.new_notebook()
+
+        if title is not None:
+            nb.cells.append(nbf.new_markdown_cell("## %s" % title))
+
+        nb.cells.extend([
+            nbf.new_code_cell("""\
+from __future__ import print_function, division, unicode_literals, absolute_import
+
+%matplotlib notebook
+#import seaborn as sns
+#from IPython.display import display
+""")
+        ])
+
+        return nbf, nb
+
+    @abc.abstractmethod
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file is created.
+        Return path to the notebook.
+
+        See also:
+            http://nbviewer.jupyter.org/github/maxalbert/auto-exec-notebook/blob/master/how-to-programmatically-generate-and-execute-an-ipython-notebook.ipynb
+        """

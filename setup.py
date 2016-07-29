@@ -184,14 +184,14 @@ install_requires = [
     "pymatgen>=3.0.8",
     "netCDF4",
     "python-daemon",
+    #"ipython",
+    #"jupyter",
+    #"nbformat",
     #"matplotlib",
     #"seaborn",
     #"psutil",
     #"fabric",
     #"paramiko",
-    #"ipython",
-    #"jupyter",
-    #"nbformat",
 ]
 
 if False and with_ipython:
