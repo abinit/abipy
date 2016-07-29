@@ -439,7 +439,6 @@ def get_filestat(filepath):
     ])
 
 
-
 @six.add_metaclass(abc.ABCMeta)
 class NotebookWriter(object):
     """
