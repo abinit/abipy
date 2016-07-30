@@ -1465,6 +1465,8 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
     if phdos_objects is not None:
         if phdos_kwargs is None: phdos_kwargs = {}
         phdos_list = [PhononDos.as_phdos(obj, phdos_kwargs) for obj in phdos_objects]
+        if len(phdos_list) != len(phbands_list):
+            raise ValueError("The number of objects for DOS must be to the number of bands")
 
     import matplotlib.pyplot as plt
     nrows, ncols = 1, 1
