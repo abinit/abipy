@@ -33,15 +33,16 @@ from abipy.abio.robots import GsrRobot, SigresRobot, MdfRobot, DdbRobot, abirobo
 from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
 from abipy.abio.abivars import AbinitInputFile
 from abipy.abio.factories import *
-from abipy.electrons import ElectronBands, ElectronDosPlotter, ElectronBandsPlotter
-from abipy.electrons.ebands import ebands_gridplot
+#from abipy.electrons import ElectronBands, ElectronDosPlotter, ElectronBandsPlotter
+from abipy.electrons.ebands import ElectronBands, ElectronDosPlotter, ElectronBandsPlotter, ebands_gridplot
 from abipy.electrons.gsr import GsrFile
 from abipy.electrons.psps import PspsFile
 from abipy.electrons.gw import SigresFile, SigresPlotter
 from abipy.electrons.bse import MdfFile
 from abipy.electrons.scissors import ScissorsBuilder
 from abipy.electrons.scr import ScrFile
-from abipy.dfpt import PhbstFile, PhononBands, PhdosFile, PhdosReader
+#from abipy.dfpt import PhbstFile, PhononBands, PhdosFile, PhdosReader
+from abipy.dfpt.phonons import PhbstFile, PhononBands, PhdosFile, PhdosReader, phbands_gridplot
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.anaddbnc import AnaddbNcFile
 from abipy.dynamics.hist import HistFile

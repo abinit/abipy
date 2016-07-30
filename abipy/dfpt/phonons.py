@@ -8,6 +8,7 @@ import itertools
 import os
 
 from collections import OrderedDict
+from monty.string import is_string #, list_strings
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from pymatgen.core.units import Ha_to_eV, eV_to_Ha
@@ -24,7 +25,7 @@ from abipy.core.abinit_units import amu_emass, Bohr_Ang
 
 __all__ = [
     "PhononBands",
-    #"PhononBandsPlotter",
+    "PhononBandsPlotter",
     "PhbstFile",
     "PhononDos",
     "PhdosReader",
@@ -875,7 +876,7 @@ class PhononBands(object):
         return fig
 
     @add_fig_kwargs
-    def plot_with_phdos(self, dos, qlabels=None, **kwargs):
+    def plot_with_phdos(self, dos, qlabels=None, axlist=None, **kwargs):
         """
         Plot the phonon band structure with the phonon DOS.
 
@@ -883,6 +884,8 @@ class PhononBands(object):
             dos: An instance of :class:`PhononDos`.
             qlabels: dictionary whose keys are tuple with the reduced coordinates of the q-points.
                 The values are the labels e.g. qlabels = {(0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L"}.
+            axlist: The axes for the bandstructure plot and the DOS plot. If axlist is None, a new figure
+                is created and the two axes are automatically generated.
 
         Returns:
             `matplotlib` figure.
@@ -890,26 +893,26 @@ class PhononBands(object):
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
 
-        gspec = GridSpec(1, 2, width_ratios=[2, 1])
-
-        ax1 = plt.subplot(gspec[0])
-        # Align bands and DOS.
-        ax2 = plt.subplot(gspec[1], sharey=ax1)
+        if axlist is None:
+            # Build axes and align bands and DOS.
+            gspec = GridSpec(1, 2, width_ratios=[2, 1])
+            ax1 = plt.subplot(gspec[0])
+            ax2 = plt.subplot(gspec[1], sharey=ax1)
+        else:
+            # Take them from axlist.
+            ax1, ax2 = axlist
 
         if not kwargs:
             kwargs = {"color": "black", "linewidth": 2.0}
 
         # Plot the phonon band structure.
         self.plot_ax(ax1, branch=None, **kwargs)
-
         self.decorate_ax(ax1, qlabels=qlabels)
 
         emin = np.min(self.minfreq)
         emin -= 0.05 * abs(emin)
-
         emax = np.max(self.maxfreq)
         emax += 0.05 * abs(emax)
-
         ax1.yaxis.set_view_interval(emin, emax)
 
         # Plot the DOS
@@ -1373,6 +1376,106 @@ class PhdosFile(AbinitNcFile, Has_Structure):
         ax.legend(loc="best")
 
         return fig
+
+
+@add_fig_kwargs
+def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=None, **kwargs):
+    """
+    Plot multiple electron bandstructures and optionally DOSes on a grid.
+
+    Args:
+        phb_objects: List of objects from which the phonon band structures are extracted.
+            Each item in phb_objects is either a string with the path of the netcdf file,
+            or one of the abipy object with an `phbands` attribute or a :class:`PhononBands` object.
+        phdos_objects:
+            List of objects from which the phonon DOSes are extracted.
+            Accept filepaths or :class:`ElectronDos` objects. If phdos_objects is not None,
+            each subplot in the grid contains a band structure with DOS else a simple bandstructure plot.
+        titles:
+            List of strings with the titles to be added to the subplots.
+        phdos_kwargs: optional dictionary with the options passed to `get_phdos` to compute the phonon DOS.
+            Used only if `phdos_objects` is not None.
+
+    Returns:
+        matplotlib figure.
+    """
+    # Build list of ElectronBands objects.
+    phbands_list = []
+    from abipy.abilab import abiopen
+    for obj in phb_objects:
+        if is_string(obj):
+            # path?
+            with abiopen(obj) as abifile:
+                phbands_list.append(abifile.phbands)
+        elif hasattr(obj, "phbands"):
+            # object with phbands
+            phbands_list.append(obj.phbands)
+        else:
+            # assume ElectronBands instance but LBYL
+            if not hasattr(obj, "plot"):
+                raise TypeError("%s does not provide a plot method" % str(obj))
+            phbands_list.append(obj)
+
+    # Build list of PhononDos objects.
+    phdos_list = []
+    if phdos_objects is not None:
+        if phdos_kwargs is None: phdos_kwargs = {}
+        for obj in phdos_objects:
+
+            if is_string(obj):
+                # path?
+                with abiopen(obj) as abifile:
+                    if hasattr(abifile, "phdos"):
+                        phdos = abifile.phdos
+                    elif hasattr(abifile, "phbands"):
+                        phdos = abifile.phbands.get_phdos(**phdos_kwargs)
+                    else:
+                        raise TypeError("Don't know how to create `PhononDos` from %s" % type(abifile))
+
+            elif isinstance(obj, PhononBands):
+                phdos = obj.get_phdos(**phdos_kwargs)
+            elif isinstance(obj, PhononDos):
+                phdos = obj
+            else:
+                raise TypeError("Don't know how to create `PhononDos` from %s" % type(obj))
+
+            phdos_list.append(phdos)
+
+    import matplotlib.pyplot as plt
+    nrows, ncols = 1, 1
+    numeb = len(phbands_list)
+    if numeb > 1:
+        ncols = 2
+        nrows = numeb // ncols + numeb % ncols
+
+    if not phdos_list:
+        # Plot grid with bands only.
+        fig, axes = plt.subplots(nrows=nrows, ncols=ncols, sharey=True, squeeze=False)
+        axes = axes.ravel()
+        # don't show the last ax if numeb is odd.
+        if numeb % ncols != 0: axes[-1].axis("off")
+
+        for i, (phbands, ax) in enumerate(zip(phbands_list, axes)):
+            phbands.plot(ax=ax, show=False)
+            if i > 0: ax.yaxis.set_visible(False)
+            if titles is not None: ax.set_title(titles[i])
+    else:
+        # Plot grid with bands + DOS
+        # see http://matplotlib.org/users/gridspec.html
+        from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
+        fig = plt.figure()
+        gspec = GridSpec(nrows, ncols)
+
+        for i, (phbands, phdos) in enumerate(zip(phbands_list, phdos_list)):
+            subgrid = GridSpecFromSubplotSpec(1, 2, subplot_spec=gspec[i], width_ratios=[2, 1])
+            # Get axes and align bands and DOS.
+            ax1 = plt.subplot(subgrid[0])
+            ax2 = plt.subplot(subgrid[1], sharey=ax1)
+            phbands.plot_with_phdos(phdos, axlist=(ax1, ax2), show=False)
+            if i > 0: ax1.yaxis.set_visible(False)
+            if titles is not None: ax1.set_title(titles[i])
+
+    return fig
 
 
 class PhononBandsPlotter(object):

@@ -1639,7 +1639,7 @@ def ebands_gridplot(eb_objects, titles=None, edos_objects=None, edos_kwargs=None
             Each item in eb_objects is either a string with the path of the netcdf file,
             or one of the abipy object with an `ebands` attribute or a :class:`ElectronBands` object.
         edos_objects:
-            List of objects from which the electron DOS are extracted.
+            List of objects from which the electron DOSes are extracted.
             Accept filepaths or :class:`ElectronDos` objects. If edos_objects is not None,
             each subplot in the grid contains a band structure with DOS else a simple bandstructure plot.
         titles:
@@ -1676,11 +1676,12 @@ def ebands_gridplot(eb_objects, titles=None, edos_objects=None, edos_kwargs=None
                 # path?
                 with abiopen(obj) as abifile:
                     edos = abifile.ebands.get_edos(**edos_kwargs)
-                    edos_list.append(edos)
-            elif isinstance(ElectronDos):
-                edos_list.append(obj)
+            elif isinstance(obj, ElectronDos):
+                edos = obj
             else:
                 raise TypeError("Don't know how to create `ElectronDos` from %s" % type(obj))
+
+            edos_list.append(edos)
 
     import matplotlib.pyplot as plt
     nrows, ncols = 1, 1
