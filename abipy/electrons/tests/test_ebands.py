@@ -4,7 +4,7 @@ from __future__ import print_function, division
 import abipy.data as data
 
 from abipy.core.kpoints import KpointList
-from abipy.electrons.ebands import ElectronsReader, ElectronBands
+from abipy.electrons.ebands import ElectronsReader, ElectronBands, ElectronDOS
 from abipy.core.testing import *
 
 
@@ -35,13 +35,12 @@ class ElectronBandsTest(AbipyTest):
             ebands = ElectronBands.from_file(filename)
             ebands.to_pymatgen()
             ebands.to_pdframe()
+            assert ElectronBands.as_ebands(ebands) is ebands
 
             # FIXME
             #print(ebands.as_dict())
             #ElectronBands.from_dict(ebands.as_dict())
             #self.assertMSONable(ebands, test_if_subclass=False)
-
-
 
     def test_read_ebands_from_GSR(self):
         """Read ElectronBands from GSR files."""
@@ -58,6 +57,11 @@ class ElectronBandsTest(AbipyTest):
         """Test DOS methods."""
         gs_bands = ElectronBands.from_file(data.ref_file("si_scf_GSR.nc"))
         dos = gs_bands.get_edos()
+        assert ElectronDOS.as_edos(dos, {}) is dos
+        edos_samevals = ElectronDOS.as_edos(gs_bands, {})
+        assert ElectronDOS.as_edos(gs_bands, {}) == dos
+        assert ElectronDOS.as_edos(data.ref_file("si_scf_GSR.nc"), {}) == dos
+
         mu = dos.find_mu(8, atol=1.e-4)
         imu = dos.tot_idos.find_mesh_index(mu)
         self.assert_almost_equal(dos.tot_idos[imu][1], 8, decimal=2)

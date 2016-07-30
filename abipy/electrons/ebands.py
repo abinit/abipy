@@ -24,7 +24,7 @@ from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, KpointsRead
 from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader, Visualizer, bxsf_write
 from abipy.tools import gaussian
-from abipy.tools.animator import FilesAnimator
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -301,6 +301,29 @@ class ElectronBands(object):
             smearing=self.smearing.as_dict(),
             #markers=, widths=
         )
+
+    @classmethod
+    def as_ebands(cls, obj):
+        """
+        Return an instance of :class:`ElectronBands` from a generic obj.
+        Supports:
+
+            - instances of cls
+            - files (string) that can be open with abiopen and that provide an `ebands` attribute.
+            - objects providing an `ebands` attribute
+        """
+        if isinstance(obj, cls):
+            return obj
+        elif is_string(obj):
+            # path?
+            from abipy.abilab import abiopen
+            with abiopen(obj) as abifile:
+                return abifile.ebands
+        elif hasattr(obj, "ebands"):
+            # object with ebands
+            return obj.ebands
+
+        raise TypeError("Don't know how to extract ebands from object %s" % type(obj))
 
     def to_json(self):
         """
@@ -1403,8 +1426,7 @@ class ElectronBands(object):
 
     def decorate_ax(self, ax, **kwargs):
         title = kwargs.pop("title", None)
-        if title is not None:
-            ax.set_title(title)
+        if title is not None: ax.set_title(title)
 
         ax.grid(True)
         #ax.set_xlabel('k-point')
@@ -1426,6 +1448,7 @@ class ElectronBands(object):
     def plot_ax(self, ax, spin=None, band=None, **kwargs):
         """
         Helper function to plot the energies for (spin,band) on the axis ax.
+        Return matplotlib lines
         """
         spin_range = range(self.nsppol) if spin is None else [spin]
         band_range = range(self.mband) if band is None else [band]
@@ -1651,37 +1674,13 @@ def ebands_gridplot(eb_objects, titles=None, edos_objects=None, edos_kwargs=None
         matplotlib figure.
     """
     # Build list of ElectronBands objects.
-    ebands_list = []
-    from abipy.abilab import abiopen
-    for obj in eb_objects:
-        if is_string(obj):
-            # path?
-            with abiopen(obj) as abifile:
-                ebands_list.append(abifile.ebands)
-        elif hasattr(obj, "ebands"):
-            # object with ebands
-            ebands_list.append(obj.ebands)
-        else:
-            # assume ElectronBands instance but LBYL
-            if not hasattr(obj, "plot"):
-                raise TypeError("%s does not provide a plot method" % str(obj))
-            ebands_list.append(obj)
+    ebands_list = [ElectronBands.as_ebands(obj) for obj in eb_objects]
 
     # Build list of ElectronDos objects.
     edos_list = []
     if edos_objects is not None:
         if edos_kwargs is None: edos_kwargs = {}
-        for obj in edos_objects:
-            if is_string(obj):
-                # path?
-                with abiopen(obj) as abifile:
-                    edos = abifile.ebands.get_edos(**edos_kwargs)
-            elif isinstance(obj, ElectronDos):
-                edos = obj
-            else:
-                raise TypeError("Don't know how to create `ElectronDos` from %s" % type(obj))
-
-            edos_list.append(edos)
+        edos_list = [ElectronDOS.as_edos(obj, edos_kwargs) for obj in edos_objects]
 
     import matplotlib.pyplot as plt
     nrows, ncols = 1, 1
@@ -2075,7 +2074,6 @@ class ElectronDosPlotter(object):
     #def animate(self, **kwargs):
     #    animator = Animator()
     #    tmpdir = tempfile.mkdtemp()
-    #
     #    for (label, dos) in self.edoses_dict.items():
     #        savefig = os.path.join(tmpdir, label + ".png")
     #        dos.plot(show=False, savefig=savefig)
@@ -2283,6 +2281,44 @@ class ElectronDOS(object):
         self.tot_dos = Function1D(mesh, sumv)
         self.tot_idos = self.tot_dos.integral()
 
+    @classmethod
+    def as_edos(cls, obj, edos_kwargs):
+        """
+        Return an instance of :class:`ElectronDOS` from a generic obj.
+        Supports:
+
+            - instances of cls
+            - files (string) that can be open with abiopen and that provide an `ebands` attribute.
+            - objects providing an `ebands` or `get_edos` attribute
+
+        Args:
+            edos_kwargs: optional dictionary with the options passed to `get_edos` to compute the electron DOS.
+            Used when obj is not already an instance of `cls`.
+        """
+        if isinstance(obj, cls):
+            return obj
+        elif is_string(obj):
+            # path?
+            from abipy.abilab import abiopen
+            with abiopen(obj) as abifile:
+                return abifile.ebands.get_edos(**edos_kwargs)
+        elif hasattr(obj, "ebands"):
+            return obj.ebands.get_edos(**edos_kwargs)
+        elif hasattr(obj, "get_edos"):
+            return obj.get_edos(**edos_kwargs)
+
+        raise TypeError("Don't know how to create `ElectronDos` from %s" % type(obj))
+
+    def __eq__(self, other):
+        if other is None: return False
+        if self.nsppol != other.nsppol: return False
+        for f1, f2 in zip(self.spin_dos, other.spin_dos):
+            if f1 != f2: return False
+        return True
+
+    def __ne__(self, other):
+        return not (self == other)
+
     def dos_idos(self, spin=None):
         """
         Returns DOS and IDOS for given spin. Total DOS and IDOS if spin is None.
@@ -2453,44 +2489,35 @@ class ElectronDOSPlotter(object):
         return fig
 
 
-#def animate_files(self, **kwargs):
-#    """
-#    See http://visvis.googlecode.com/hg/vvmovie/images2gif.py for a (much better) approach
-#    """
-#    animator = FilesAnimator()
-#    figures = OrderedDict()
-#    for label, bands in self.bands_dict.items():
-#        if self.edoses_dict:
-#            fig = bands.plot_with_edos(self.edoses_dict[label], show=False)
-#        else:
-#            fig = bands.plot(show=False)
-#        figures[label] = fig
-#    animator.add_figures(labels=figures.keys(), figure_list=figures.values())
-#    return animator.animate(**kwargs)
+def ebands_animate(eb_objects, titles=None, interval=250, **kwargs):
+    """
+    See http://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/
+    """
+    # Build list of ElectronBands objects.
+    ebands_list = [ElectronBands.as_ebands(obj) for obj in eb_objects]
 
-#def animate(self, **kwargs):
-#    """
-#    See http://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/
-#    """
-#    import matplotlib.pyplot as plt
-#    import matplotlib.animation as animation
-#    fig, ax = plt.subplots()
-#    bands = list(self.bands_dict.values())
-#    plot_opts = {"color": "black", "linewidth": 2.0}
-#    def cbk_animate(i):
-#        #line.set_ydata(np.sin(x+i/10.0))  # update the data
-#        #print("in animate with %d" % i)
-#        return bands[i].plot_ax(ax, spin=None, band=None, **plot_opts)
-#        #lines = bands[i].plot_ax(ax, spin=None, band=None)
-#        #line = lines[0]
-#        #return line
+    # Consistency check. Needed to avoid exception in the animation loop.
 
-#    # initialization function: plot the background of each frame
-#    def init():
-#        return bands[0].plot_ax(ax, spin=None, band=None, **plot_opts)
-#        #line.set_data([], [])
-#        #return line,
-#    anim = animation.FuncAnimation(fig, cbk_animate, frames=len(bands), interval=250, blit=True, init_func=init)
-#    #anim.save('im.mp4', metadata={'artist':'gmatteo'})
-#    if kwargs.get("show", True): plt.show()
-#    return anim
+    ax, fig, plt = get_ax_fig_plt(ax=None)
+
+    plotax_kwargs = {"color": "black", "linewidth": 2.0}
+    def init():
+        """Initialization function: plot the background of each frame"""
+        ebands_list[0].decorate_ax(ax)
+        if titles is not None: ax.set_title(titles[0])
+        lines = ebands_list[0].plot_ax(ax=ax, **plotax_kwargs)
+        return lines
+
+    def cbk_animate(i):
+        """The callback invoked by FuncAnimation."""
+        if titles is not None: ax.set_title(titles[i])
+        lines = ebands_list[i].plot_ax(ax=ax, **plotax_kwargs)
+        return lines
+
+    import matplotlib.animation as animation
+    anim = animation.FuncAnimation(fig, cbk_animate, frames=len(ebands_list), init_func=init,
+                                   interval=interval, blit=True)
+    #anim.save('im.mp4')
+    if kwargs.get("show", True): plt.show()
+
+    return anim

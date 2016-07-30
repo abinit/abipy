@@ -17,9 +17,10 @@ class PhononBandsTest(AbipyTest):
     def test_base(self):
         """Base tests for PhononBands"""
         filename = abidata.ref_file("trf2_5.out_PHBST.nc")
-
         phbands = PhononBands.from_file(filename)
         print(phbands)
+        assert PhononBands.as_phbands(phbands) is phbands
+        assert np.array_equal(PhononBands.as_phbands(filename).phfreqs, phbands.phfreqs)
 
         self.serialize_with_pickle(phbands, protocols=[-1], test_eq=False)
 
@@ -47,6 +48,8 @@ class PhononDosTest(AbipyTest):
         assert dos.mesh.tolist() == [1,2,3] and dos.h == 1 and dos.values.tolist() == [4,5,6]
         print(dos)
         dos.idos
+        assert PhononDos.as_phdos(dos, {}) is dos
+
         h = dos.get_harmonic_thermo(1, 10)
         assert h is not None
 

@@ -120,6 +120,29 @@ class PhononBands(object):
                        phdispl_cart=r.read_phdispl_cart(),
                        amu=amu)
 
+    @classmethod
+    def as_phbands(cls, obj):
+        """
+        Return an instance of :class:`PhononBands` from a generic obj.
+        Supports:
+
+            - instances of cls
+            - files (string) that can be open with abiopen and that provide a `phbands` attribute.
+            - objects providing a `phbands` attribute.
+        """
+        if isinstance(obj, cls):
+            return obj
+        elif is_string(obj):
+            # path?
+            from abipy.abilab import abiopen
+            with abiopen(obj) as abifile:
+                return abifile.phbands
+        elif hasattr(obj, "phbands"):
+            # object with phbands
+            return obj.phbands
+
+        raise TypeError("Don't know how to extract a PhononBands from type %s" % type(obj))
+
     def read_non_anal_from_file(self, filepath):
         """
         Reads the non analytical directions, frequencies and eigendisplacements from the anaddb.nc file specified and
@@ -1064,6 +1087,41 @@ class PhononDos(Function1D):
     #    super(PhononDos, self).__init__(mesh, values)
     #    self.qmesh = qmesh
 
+    @classmethod
+    def as_phdos(cls, obj, phdos_kwargs):
+        """
+        Return an instance of :class:`PhononDOS` from a generic obj.
+        Supports:
+
+            - instances of cls
+            - files (string) that can be open with abiopen and that provide one of the following attributes:
+                [`phdos`, `phbands`]
+            - instances of `PhononBands`
+            - objects providing a `phbands`attribute.
+
+        Args:
+            phdos_kwargs: optional dictionary with the options passed to `get_phdos` to compute the phonon DOS.
+            Used when obj is not already an instance of `cls` or when we have to compute the DOS from obj.
+        """
+        if isinstance(obj, cls):
+            return obj
+        elif is_string(obj):
+            # path?
+            from abipy.abilab import abiopen
+            with abiopen(obj) as abifile:
+                if hasattr(abifile, "phdos"):
+                    return abifile.phdos
+                elif hasattr(abifile, "phbands"):
+                    return abifile.phbands.get_phdos(**phdos_kwargs)
+                else:
+                    raise TypeError("Don't know how to create `PhononDos` from %s" % type(abifile))
+        elif isinstance(obj, PhononBands):
+            return obj.get_phdos(**phdos_kwargs)
+        elif hasattr(obj, "phbands"):
+            return obj.phbands.get_phdos(**phdos_kwargs)
+
+        raise TypeError("Don't know how to create `PhononDos` from %s" % type(obj))
+
     @lazy_property
     def idos(self):
         """Integrated DOS."""
@@ -1389,7 +1447,7 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
             or one of the abipy object with an `phbands` attribute or a :class:`PhononBands` object.
         phdos_objects:
             List of objects from which the phonon DOSes are extracted.
-            Accept filepaths or :class:`ElectronDos` objects. If phdos_objects is not None,
+            Accept filepaths or :class:`PhononDos` objects. If phdos_objects is not None,
             each subplot in the grid contains a band structure with DOS else a simple bandstructure plot.
         titles:
             List of strings with the titles to be added to the subplots.
@@ -1399,47 +1457,14 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
     Returns:
         matplotlib figure.
     """
-    # Build list of ElectronBands objects.
-    phbands_list = []
-    from abipy.abilab import abiopen
-    for obj in phb_objects:
-        if is_string(obj):
-            # path?
-            with abiopen(obj) as abifile:
-                phbands_list.append(abifile.phbands)
-        elif hasattr(obj, "phbands"):
-            # object with phbands
-            phbands_list.append(obj.phbands)
-        else:
-            # assume ElectronBands instance but LBYL
-            if not hasattr(obj, "plot"):
-                raise TypeError("%s does not provide a plot method" % str(obj))
-            phbands_list.append(obj)
+    # Build list of PhononBands objects.
+    phbands_list = [PhononBands.as_phbands(obj) for obj in phb_objects]
 
     # Build list of PhononDos objects.
     phdos_list = []
     if phdos_objects is not None:
         if phdos_kwargs is None: phdos_kwargs = {}
-        for obj in phdos_objects:
-
-            if is_string(obj):
-                # path?
-                with abiopen(obj) as abifile:
-                    if hasattr(abifile, "phdos"):
-                        phdos = abifile.phdos
-                    elif hasattr(abifile, "phbands"):
-                        phdos = abifile.phbands.get_phdos(**phdos_kwargs)
-                    else:
-                        raise TypeError("Don't know how to create `PhononDos` from %s" % type(abifile))
-
-            elif isinstance(obj, PhononBands):
-                phdos = obj.get_phdos(**phdos_kwargs)
-            elif isinstance(obj, PhononDos):
-                phdos = obj
-            else:
-                raise TypeError("Don't know how to create `PhononDos` from %s" % type(obj))
-
-            phdos_list.append(phdos)
+        phdos_list = [PhononDos.as_phdos(obj, phdos_kwargs) for obj in phdos_objects]
 
     import matplotlib.pyplot as plt
     nrows, ncols = 1, 1
