@@ -14,6 +14,7 @@ from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from pymatgen.analysis.eos import EOS
 from pymatgen.io.abinit.flows import Flow
 from pymatgen.io.abinit.netcdf import NetcdfReaderError
+from abipy.core.mixins import NotebookWriter
 
 
 #__all__ = [
@@ -65,7 +66,9 @@ class Robot(object):
     # 3) replace ncfiles with files just to be consistent since we have DdbRobot!
 
     def __init__(self, *args):
-        """args is a list of tuples (label, filepath)"""
+        """
+        args is a list of tuples (label, filepath)
+        """
         self._ncfiles, self._do_close = OrderedDict(), OrderedDict()
         self._exceptions = deque(maxlen=100)
 
@@ -186,6 +189,9 @@ class Robot(object):
         """Activated at the end of the with statement."""
         self.close()
 
+    def items(self):
+        return self._ncfiles.items()
+
     def show_files(self, stream=sys.stdout):
         s = "\n".join(["%s --> %s" % (label, ncfile.filepath) for label, ncfile in self])
         stream.write(s)
@@ -193,7 +199,8 @@ class Robot(object):
     def __repr__(self):
         lines = ["%s with %d files in memory" % (self.__class__.__name__, len(self.ncfiles))]
         for i, f in enumerate(self.ncfiles):
-            lines.append("\t[%d]  %s" % (i, f.relpath))
+            path = f.relpath if len(f.relpath) < len(f.filepath) else f.filepath
+            lines.append("  [%d]  %s" % (i, path))
         return "\n".join(lines)
 
     __str__ = __repr__
@@ -297,8 +304,10 @@ class Robot(object):
         return grid
 
 
-class GsrRobot(Robot):
-    """This robot analyzes the results contained in multiple GSR files."""
+class GsrRobot(Robot, NotebookWriter):
+    """
+    This robot analyzes the results contained in multiple GSR files.
+    """
     EXT = "GSR"
 
     def get_dataframe(self, **kwargs):
@@ -317,8 +326,8 @@ class GsrRobot(Robot):
         # TODO add more columns
         # Add attributes specified by the users
         attrs = [
-            "nsppol", "ecut", "pawecutdg", #"nspinor", "nspden",
-            "tsmear", "nkpts", "energy", "magnetization", "pressure", "max_force",
+            "nsppol", "ecut", "pawecutdg", #"nspinor", "nspden", #"magnetization",
+            "tsmear", "nkpts", "energy", "pressure", "max_force",
         ] + kwargs.pop("attrs", [])
 
         rows, row_names = [], []
@@ -341,7 +350,7 @@ class GsrRobot(Robot):
 
             rows.append(d)
 
-        return pd.DataFrame(rows, index=row_names, columns=rows[0].keys())
+        return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     def get_ebands_plotter(self):
         from abipy import abilab
@@ -374,8 +383,31 @@ class GsrRobot(Robot):
                 fits.append(fit)
                 rows.append(fit.results)
 
-            frame = pd.DataFrame(rows, index=EOS.MODELS, columns=rows[0].keys())
+            frame = pd.DataFrame(rows, index=EOS.MODELS, columns=list(rows[0].keys()))
             return fits, frame
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file is created.
+        Return path to the notebook.
+        """
+        import io, tempfile
+        if nbpath is None:
+            _, nbpath = tempfile.mkstemp(suffix='.ipynb', text=True)
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        args = [(l, f.filepath) for l, f in self.items()]
+        nb.cells.extend([
+            nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("robot = abilab.GsrRobot(*%s)\nprint(robot)" % str(args)),
+            nbv.new_code_cell("frame = robot.get_dataframe()\ndisplay(frame)"),
+            nbv.new_code_cell("plotter = robot.get_ebands_plotter()"),
+            nbv.new_code_cell("fig = plotter.plot()"),
+        ])
+
+        with io.open(nbpath, 'wt', encoding="utf8") as fh:
+            nbformat.write(nb, fh)
+        return nbpath
 
 
 class SigresRobot(Robot):
@@ -420,7 +452,7 @@ class SigresRobot(Robot):
 
             rows.append(d)
 
-        return pd.DataFrame(rows, index=row_names, columns=rows[0].keys())
+        return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     def plot_conv_qpgap(self, x_vars, **kwargs):
         """
@@ -472,7 +504,7 @@ class MdfRobot(Robot):
 
             rows.append(d)
 
-        return pd.DataFrame(rows, index=row_names, columns=rows[0].keys())
+        return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     @add_fig_kwargs
     def plot_conv_mdf(self, hue, mdf_type="exc_mdf", **kwargs):
@@ -558,7 +590,7 @@ class DdbRobot(Robot):
 
             rows.append(d)
 
-        return pd.DataFrame(rows, index=row_names, columns=rows[0].keys())
+        return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     def plot_conv_phfreqs_qpoint(self, x_vars, qpoint=None, **kwargs):
         """

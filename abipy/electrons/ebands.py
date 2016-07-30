@@ -12,6 +12,7 @@ import numpy as np
 import pymatgen.core.units as units
 
 from collections import OrderedDict, namedtuple, Iterable
+from monty.string import is_string
 from monty.json import MSONable, MontyEncoder
 from monty.collections import AttrDict
 from monty.functools import lazy_property
@@ -1325,7 +1326,7 @@ class ElectronBands(object):
         else:
             band_range = range(band_range[0], band_range[1], 1)
 
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         # Decorate the axis (e.g add ticks and labels).
         self.decorate_ax(ax, klabels=klabels) #, title=title)
@@ -1423,7 +1424,9 @@ class ElectronBands(object):
             ax.set_xticklabels(labels, fontdict=None, minor=False)
 
     def plot_ax(self, ax, spin=None, band=None, **kwargs):
-        """Helper function to plot the energies for (spin,band) on the axis ax."""
+        """
+        Helper function to plot the energies for (spin,band) on the axis ax.
+        """
         spin_range = range(self.nsppol) if spin is None else [spin]
         band_range = range(self.mband) if band is None else [band]
 
@@ -1457,7 +1460,7 @@ class ElectronBands(object):
                 ax.fill_between(x, y-w/2, y+w/2, facecolor=facecolor, alpha=alpha)
 
     def plot_marker_ax(self, ax, key, fact=1.0):
-        """Helper function to plot the markers on the axis ax."""
+        """Helper function to plot the markers on the axes ax."""
         pos, neg = self.markers[key].posneg_marker()
 
         # Use different symbols depending on the value of s.
@@ -1486,7 +1489,7 @@ class ElectronBands(object):
         return list(d.keys()), list(d.values())
 
     @add_fig_kwargs
-    def plot_with_edos(self, dos, klabels=None, **kwargs):
+    def plot_with_edos(self, dos, klabels=None, axlist=None, **kwargs):
         """
         Plot the band structure and the DOS.
 
@@ -1494,6 +1497,8 @@ class ElectronBands(object):
             dos: An instance of :class:`ElectronDOS`.
             klabels: dictionary whose keys are tuple with the reduced coordinates of the k-points.
                 The values are the labels. e.g. `klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}`.
+            axlist: The axes for the bandstructure plot and the DOS plot. If axlist is None, a new figure
+                is created and the two axes are automatically generated.
 
         Returns:
             `matplotlib` figure.
@@ -1501,10 +1506,14 @@ class ElectronBands(object):
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
 
-        gspec = GridSpec(1, 2, width_ratios=[2, 1])
-        ax1 = plt.subplot(gspec[0])
-        # Align bands and DOS.
-        ax2 = plt.subplot(gspec[1], sharey=ax1)
+        if axlist is None:
+            # Build axes and align bands and DOS.
+            gspec = GridSpec(1, 2, width_ratios=[2, 1])
+            ax1 = plt.subplot(gspec[0])
+            ax2 = plt.subplot(gspec[1], sharey=ax1)
+        else:
+            # Take them from axlist.
+            ax1, ax2 = axlist
 
         if not kwargs:
             kwargs = {"color": "black", "linewidth": 2.0}
@@ -1618,6 +1627,96 @@ class ElectronBands(object):
         """Compute the effective masses."""
         ders2 = self.derivatives(spin, band, order=2, acc=acc) * units.eV_to_Ha / units.bohr_to_ang**2
         return 1.0 / ders2
+
+
+@add_fig_kwargs
+def ebands_gridplot(eb_objects, titles=None, edos_objects=None, edos_kwargs=None, **kwargs):
+    """
+    Plot multiple electron bandstructures and optionally DOSes on a grid.
+
+    Args:
+        eb_objects: List of objects from which the band structures are extracted.
+            Each item in eb_objects is either a string with the path of the netcdf file,
+            or one of the abipy object with an `ebands` attribute or a :class:`ElectronBands` object.
+        edos_objects:
+            List of objects from which the electron DOS are extracted.
+            Accept filepaths or :class:`ElectronDos` objects. If edos_objects is not None,
+            each subplot in the grid contains a band structure with DOS else a simple bandstructure plot.
+        titles:
+            List of strings with the titles to be added to the subplots.
+        edos_kwargs: optional dictionary with the options passed to `get_edos` to compute the electron DOS.
+            Used only if `edos_objects` is not None.
+
+    Returns:
+        matplotlib figure.
+    """
+    # Build list of ElectronBands objects.
+    ebands_list = []
+    from abipy.abilab import abiopen
+    for obj in eb_objects:
+        if is_string(obj):
+            # path?
+            with abiopen(obj) as abifile:
+                ebands_list.append(abifile.ebands)
+        elif hasattr(obj, "ebands"):
+            # object with ebands
+            ebands_list.append(obj.ebands)
+        else:
+            # assume ElectronBands instance but LBYL
+            if not hasattr(obj, "plot"):
+                raise TypeError("%s does not provide a plot method" % str(obj))
+            ebands_list.append(obj)
+
+    # Build list of ElectronDos objects.
+    edos_list = []
+    if edos_objects is not None:
+        if edos_kwargs is None: edos_kwargs = {}
+        for obj in edos_objects:
+            if is_string(obj):
+                # path?
+                with abiopen(obj) as abifile:
+                    edos = abifile.ebands.get_edos(**edos_kwargs)
+                    edos_list.append(edos)
+            elif isinstance(ElectronDos):
+                edos_list.append(obj)
+            else:
+                raise TypeError("Don't know how to create `ElectronDos` from %s" % type(obj))
+
+    import matplotlib.pyplot as plt
+    nrows, ncols = 1, 1
+    numeb = len(ebands_list)
+    if numeb > 1:
+        ncols = 2
+        nrows = numeb // ncols + numeb % ncols
+
+    if not edos_list:
+        # Plot grid with bands only.
+        fig, axes = plt.subplots(nrows=nrows, ncols=ncols, sharey=True, squeeze=False)
+        axes = axes.ravel()
+        # don't show the last ax if numeb is odd.
+        if numeb % ncols != 0: axes[-1].axis("off")
+
+        for i, (ebands, ax) in enumerate(zip(ebands_list, axes)):
+            ebands.plot(ax=ax, show=False)
+            if i > 0: ax.yaxis.set_visible(False)
+            if titles is not None: ax.set_title(titles[i])
+    else:
+        # Plot grid with bands + DOS
+        # see http://matplotlib.org/users/gridspec.html
+        from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
+        fig = plt.figure()
+        gspec = GridSpec(nrows, ncols)
+
+        for i, (ebands, edos) in enumerate(zip(ebands_list, edos_list)):
+            subgrid = GridSpecFromSubplotSpec(1, 2, subplot_spec=gspec[i], width_ratios=[2, 1])
+            # Get axes and align bands and DOS.
+            ax1 = plt.subplot(subgrid[0])
+            ax2 = plt.subplot(subgrid[1], sharey=ax1)
+            ebands.plot_with_edos(edos, axlist=(ax1, ax2), show=False)
+            if i > 0: ax1.yaxis.set_visible(False)
+            if titles is not None: ax1.set_title(titles[i])
+
+    return fig
 
 
 class ElectronBandsPlotter(object):
@@ -1871,47 +1970,18 @@ class ElectronBandsPlotter(object):
 
         return fig
 
-    #def animate_files(self, **kwargs):
-    #    """
-    #    See http://visvis.googlecode.com/hg/vvmovie/images2gif.py for a (much better) approach
-    #    """
-    #    animator = FilesAnimator()
-    #    figures = OrderedDict()
-    #    for label, bands in self.bands_dict.items():
-    #        if self.edoses_dict:
-    #            fig = bands.plot_with_edos(self.edoses_dict[label], show=False)
-    #        else:
-    #            fig = bands.plot(show=False)
-    #        figures[label] = fig
-    #    animator.add_figures(labels=figures.keys(), figure_list=figures.values())
-    #    return animator.animate(**kwargs)
+    def gridplot(self, titles=None, edos_kwargs=None):
+        """
+        Plot electron bands on a grid.
+        """
+        if titles is None:
+            titles = list(self.bands_dict.keys())
 
-    #def animate(self, **kwargs):
-    #    """
-    #    See http://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/
-    #    """
-    #    import matplotlib.pyplot as plt
-    #    import matplotlib.animation as animation
-    #    fig, ax = plt.subplots()
-    #    bands = list(self.bands_dict.values())
-    #    plot_opts = {"color": "black", "linewidth": 2.0}
-    #    def cbk_animate(i):
-    #        #line.set_ydata(np.sin(x+i/10.0))  # update the data
-    #        #print("in animate with %d" % i)
-    #        return bands[i].plot_ax(ax, spin=None, band=None, **plot_opts)
-    #        #lines = bands[i].plot_ax(ax, spin=None, band=None)
-    #        #line = lines[0]
-    #        #return line
-
-    #    # initialization function: plot the background of each frame
-    #    def init():
-    #        return bands[0].plot_ax(ax, spin=None, band=None, **plot_opts)
-    #        #line.set_data([], [])
-    #        #return line,
-    #    anim = animation.FuncAnimation(fig, cbk_animate, frames=len(bands), interval=250, blit=True, init_func=init)
-    #    #anim.save('im.mp4', metadata={'artist':'gmatteo'})
-    #    if kwargs.get("show", True): plt.show()
-    #    return anim
+        if not self.edoses_dict:
+            return ebands_gridplot(list(self.bands_dict.values()), titles=titles)
+        else:
+            return ebands_gridplot(list(self.bands_dict.values()), titles=titles,
+                                   edos_objects=list(self.edoses_dict.values()), edos_kwargs=edos_kwargs)
 
 
 class ElectronDosPlotter(object):
@@ -1987,7 +2057,7 @@ class ElectronDosPlotter(object):
         Returns:
             `matplotlib` figure.
         """
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         for label, dos in self.edoses_dict.items():
             # Use relative paths if label is a file.
@@ -2357,7 +2427,7 @@ class ElectronDOSPlotter(object):
         ylim            y-axis limits.  None (default) for automatic determination.
         ==============  ==============================================================
         """
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
 
         xlim = kwargs.pop("xlim", None)
@@ -2380,3 +2450,46 @@ class ElectronDOSPlotter(object):
         ax.legend(lines, legends, loc='best', shadow=True)
 
         return fig
+
+
+#def animate_files(self, **kwargs):
+#    """
+#    See http://visvis.googlecode.com/hg/vvmovie/images2gif.py for a (much better) approach
+#    """
+#    animator = FilesAnimator()
+#    figures = OrderedDict()
+#    for label, bands in self.bands_dict.items():
+#        if self.edoses_dict:
+#            fig = bands.plot_with_edos(self.edoses_dict[label], show=False)
+#        else:
+#            fig = bands.plot(show=False)
+#        figures[label] = fig
+#    animator.add_figures(labels=figures.keys(), figure_list=figures.values())
+#    return animator.animate(**kwargs)
+
+#def animate(self, **kwargs):
+#    """
+#    See http://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/
+#    """
+#    import matplotlib.pyplot as plt
+#    import matplotlib.animation as animation
+#    fig, ax = plt.subplots()
+#    bands = list(self.bands_dict.values())
+#    plot_opts = {"color": "black", "linewidth": 2.0}
+#    def cbk_animate(i):
+#        #line.set_ydata(np.sin(x+i/10.0))  # update the data
+#        #print("in animate with %d" % i)
+#        return bands[i].plot_ax(ax, spin=None, band=None, **plot_opts)
+#        #lines = bands[i].plot_ax(ax, spin=None, band=None)
+#        #line = lines[0]
+#        #return line
+
+#    # initialization function: plot the background of each frame
+#    def init():
+#        return bands[0].plot_ax(ax, spin=None, band=None, **plot_opts)
+#        #line.set_data([], [])
+#        #return line,
+#    anim = animation.FuncAnimation(fig, cbk_animate, frames=len(bands), interval=250, blit=True, init_func=init)
+#    #anim.save('im.mp4', metadata={'artist':'gmatteo'})
+#    if kwargs.get("show", True): plt.show()
+#    return anim

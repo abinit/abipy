@@ -918,8 +918,9 @@ Specify the files to open. Possible choices:
     elif options.command == "robot":
         import IPython
         with abilab.abirobot(flow, options.robot_ext, nids=selected_nids(flow, options)) as robot:
-            #IPython.embed(header=str(robot) + "\nType `robot` in the terminal and use <TAB> to list its methods",  robot=robot)
-            IPython.start_ipython(argv=[], user_ns={"robot": robot})
+            IPython.embed(header=str(robot) + "\nType `robot` in the terminal and use <TAB> to list its methods",  robot=robot)
+            #IPython.start_ipython(argv=[], user_ns={"robot": robot})
+            #robot.make_and_open_notebook(nbpath=None, daemonize=True)
 
     elif options.command == "plot":
         fext = dict(

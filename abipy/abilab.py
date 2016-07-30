@@ -34,6 +34,7 @@ from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
 from abipy.abio.abivars import AbinitInputFile
 from abipy.abio.factories import *
 from abipy.electrons import ElectronBands, ElectronDosPlotter, ElectronBandsPlotter
+from abipy.electrons.ebands import ebands_gridplot
 from abipy.electrons.gsr import GsrFile
 from abipy.electrons.psps import PspsFile
 from abipy.electrons.gw import SigresFile, SigresPlotter

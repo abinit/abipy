@@ -444,12 +444,20 @@ class NotebookWriter(object):
     """
     Mixin class for objects that are able to generate jupyter notebooks.
     Subclasses must provide a concrete implementation of `write_notebook`.
+
+    See also:
+        http://nbviewer.jupyter.org/github/maxalbert/auto-exec-notebook/blob/master/how-to-programmatically-generate-and-execute-an-ipython-notebook.ipynb
     """
-    def make_and_open_notebook(self, nbpath=None):
+    def make_and_open_notebook(self, nbpath=None, daemonize=False):
         """
         Generate an ipython notebook and open it in the browser.
-        If nbpath is None, a temporay file is created.
-        Return system exit code.
+
+        Args:
+            nbpath: If nbpath is None, a temporay file is created.
+            daemonize:
+
+        Return:
+            system exit code.
 
         Raise:
             RuntimeError if jupyter is not in $PATH
@@ -458,38 +466,57 @@ class NotebookWriter(object):
 
         if which("jupyter") is None:
             raise RuntimeError("Cannot find jupyter in PATH. Install it with `pip install`")
-        return os.system("jupyter notebook %s" % nbpath)
 
-        #import daemon
-        #with daemon.DaemonContext(detach_process=True):
-        #    return os.system("jupyter notebook %s" % nbpath)
+        cmd = "jupyter notebook %s" % nbpath
+        if not daemonize:
+            return os.system(cmd)
+        else:
+            import daemon
+            with daemon.DaemonContext():
+                return os.system(cmd)
 
-    def get_nbformat_nb(self, title=None):
+    def get_nbformat_nbv_nb(self, title=None):
+        """
+        """
         import nbformat
-        nbf = nbformat.v4
-        nb = nbf.new_notebook()
+        nbv = nbformat.v4
+        nb = nbv.new_notebook()
 
         if title is not None:
-            nb.cells.append(nbf.new_markdown_cell("## %s" % title))
+            nb.cells.append(nbv.new_markdown_cell("## %s" % title))
 
         nb.cells.extend([
-            nbf.new_code_cell("""\
+            nbv.new_code_cell("""\
 from __future__ import print_function, division, unicode_literals, absolute_import
-
 %matplotlib notebook
+from IPython.display import display
 #import seaborn as sns
-#from IPython.display import display
+
+from abipy import abilab
 """)
         ])
 
-        return nbf, nb
+        return nbformat, nbv, nb
 
     @abc.abstractmethod
     def write_notebook(self, nbpath=None):
         """
         Write an ipython notebook to nbpath. If nbpath is None, a temporay file is created.
         Return path to the notebook.
-
-        See also:
-            http://nbviewer.jupyter.org/github/maxalbert/auto-exec-notebook/blob/master/how-to-programmatically-generate-and-execute-an-ipython-notebook.ipynb
         """
+        # Preable.
+        import io, tempfile
+        if nbpath is None:
+            _, nbpath = tempfile.mkstemp(suffix='.ipynb', text=True)
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        # Put your code here
+        nb.cells.extend([
+            nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("a = 1"),
+        ])
+
+        # Write notebook
+        with io.open(nbpath, 'wt', encoding="utf8") as fh:
+            nbformat.write(nb, fh)
+        return nbpath
