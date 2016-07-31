@@ -12,6 +12,8 @@ def main():
         return """\
 Usage example:\n
 
+  abidiff.py struct */*/outdata/out_GSR.nc    => Compare structures in multiple files.
+  abidiff.py ebands out1_GSR.nc out2_GSR.nc   => Plot electron bands on a grid.
   abidiff.py gs_scf run1.abo run2.abo         => Compare the SCF cycles in two output files.
   abidiff.py dfpt2_scf                        => Compare the DFPT SCF cycles in two output files.
 """
@@ -26,6 +28,9 @@ Usage example:\n
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
     copts_parser.add_argument('paths', nargs="+", help="List of files to compare")
+    copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
+                         help='Verbose, can be supplied multiple times to increase verbosity')
+    copts_parser.add_argument('--seaborn', action="store_true", help="Use seaborn settings")
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -41,6 +46,12 @@ Usage example:\n
 
     # Subparser for dfpt2_scf command.
     p_dftp2_scf = subparsers.add_parser('dfpt2_scf', parents=[copts_parser], help="Compare DFPT SCF cycles.")
+
+    # Subparser for struct command.
+    p_struct = subparsers.add_parser('struct', parents=[copts_parser], help="Compare crystalline structures.")
+
+    # Subparser for ebands command.
+    p_ebands = subparsers.add_parser('ebands', parents=[copts_parser], help="Compare electron bands.")
 
     # Subparser for gsr command.
     #p_gsr = subparsers.add_parser('gsr', parents=[copts_parser], help="Compare electron bands.")
@@ -59,13 +70,12 @@ Usage example:\n
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
 
-    #import seaborn as sns
-    #sns.set(style='ticks', palette='Set2')
-    #sns.set(style="dark", palette="Set2")
-    #And to remove "chartjunk", do:
-    #sns.despine()
-    #plt.tight_layout()
-    #sns.despine(offset=30, trim=True)
+    if options.seaborn:
+        import seaborn as sns
+        #sns.set(style="dark", palette="Set2")
+        #sns.set(style='ticks', palette='Set2')
+        #sns.despine()
+
     paths = options.paths
 
     if options.command == "gs_scf":
@@ -76,10 +86,25 @@ Usage example:\n
         f0 = abilab.AbinitOutputFile(paths[0])
         f0.compare_d2de_scf_cycles(paths[1:])
 
-    #elif options.command == "gsr":
+    elif options.command == "struct":
+        index = [os.path.relpath(p) for p in paths]
+        frame = abilab.frame_from_structures(paths, index=None)
+        print("File list:")
+        for i, p in enumerate(paths):
+            print("%d %s" % (i, p))
+        print()
+        print(frame)
+
+    elif options.command == "ebands":
+        eb_objects = paths
+        titles = paths
+        abilab.ebands_gridplot(eb_objects, titles=titles, edos_objects=None, edos_kwargs=None)
 
     else:
         raise RuntimeError("Don't know what to do with command: %s!" % options.command)
+
+    # Dispatch
+    #return globals()["dojo_" + options.command](options)
 
     return 0
 

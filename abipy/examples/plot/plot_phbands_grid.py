@@ -7,7 +7,6 @@ We use two files produced by anaddb:
 
 See also tutorial/lesson_rf2.html
 """
-# FIXME: LO-TO splitting and phonon displacements instead of eigenvectors.
 from abipy.abilab import phbands_gridplot
 from abipy.data import ref_file
 
@@ -22,4 +21,4 @@ phb_objects = 3 * [ref_file("trf2_5.out_PHBST.nc")]
 phdos_objects = 3 * [ref_file("trf2_5.out_PHDOS.nc")]
 
 phbands_gridplot(phb_objects, phdos_objects=phdos_objects, phdos_kwargs=None,
-                titles=["AlAs phbands + DOS", "Same data", "Same data"])
+                 titles=["AlAs phbands + DOS", "Same data", "Same data"])

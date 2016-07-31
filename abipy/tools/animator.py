@@ -49,8 +49,7 @@ class FilesAnimator(object):
             figure:
         """
         if label in self._figures:
-            raise ValueError("label %s is already in %s" % (label, self._figures.keys()))
-
+            raise ValueError("label %s is already in %s" % (label, list(self._figures.keys())))
         self._figures[label] = figure
 
     def add_figures(self, labels, figure_list):
@@ -105,8 +104,7 @@ class FilesAnimator(object):
             files.append(fname)
 
         command = [self.animate_bin] + options + files
-        msg = "will execute command: %s" % command
-        logger.info(msg)
+        print("will execute command: %s" % command)
         retcode = subprocess.call(command)
 
         # Remove the temporary directory.

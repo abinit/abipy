@@ -87,8 +87,39 @@ class Robot(object):
                          [cls.EXT for cls in Robot.__subclasses__()])
 
     @classmethod
+    def from_dir(cls, top, walk=True):
+        """
+        This classmethod builds a robot by scanning all files located within directory `top`.
+        Note that if walk is True, directories inside `top` are included as well.
+        This method should be invoked with a concrete robot class, for example:
+
+            robot = GsrRobot.from_dir(".")
+
+        Args:
+            top (str): Root directory
+        """
+        top = os.path.abspath(top)
+
+        from abipy.abilab import abiopen
+        items = []
+        if walk:
+            for dirpath, dirnames, filenames in os.walk(top):
+                filenames = [f for f in filenames if f.endswith(cls.EXT + ".nc") or f.endswith(cls.EXT)]
+                for f in filenames:
+                    ncfile = abiopen(os.path.join(dirpath, f))
+                    if ncfile is not None: items.append((ncfile.filepath, ncfile))
+        else:
+            filenames = [f for f in os.listdir(top) if f.endswith(cls.EXT + ".nc") or f.endswith(cls.EXT)]
+            for f in filenames:
+                ncfile = abiopen(os.path.join(top, f))
+                if ncfile is not None: items.append((ncfile.filepath, ncfile))
+
+        return cls(*items)
+
+    @classmethod
     def from_flow(cls, flow, outdirs="all", nids=None):
         """
+        Build a robot from a Flow.
 
         Args:
             flow: :class:`Flow` object
@@ -211,7 +242,9 @@ class Robot(object):
         return list(self._ncfiles.values())
 
     def close(self):
-        """Close all the files that have been opened by the Robot"""
+        """
+        Close all files that have been opened by the Robot
+        """
         for ncfile in self.ncfiles:
             if self._do_close.pop(ncfile.filepath, False):
                 try:
@@ -232,40 +265,27 @@ class Robot(object):
             except:
                 has_dirpath = True
 
-        items = []
-
         if not has_dirpath:
             # We have a Flow. smeth is the name of the Task method used to open the file.
+            items = []
             smeth = "open_" + cls.EXT.lower()
             for task in obj.iflat_tasks(nids=nids): #, status=obj.S_OK):
                 open_method = getattr(task, smeth, None)
                 if open_method is None: continue
                 ncfile = open_method()
                 if ncfile is not None: items.append((task.pos_str, ncfile))
+            return cls(*items)
 
         else:
             # directory --> search for files with the appropriate extension and open it with abiopen.
             if nids is not None: raise ValueError("nids cannot be used when obj is a directory.")
-
-            from abipy.abilab import abiopen
-            for dirpath, dirnames, filenames in os.walk(obj):
-                filenames = [f for f in filenames if f.endswith(cls.EXT + ".nc") or f.endswith(cls.EXT)]
-                for f in filenames:
-                    ncfile = abiopen(os.path.join(dirpath, f))
-                    if ncfile is not None: items.append((ncfile.filepath, ncfile))
-
-        new = cls(*items)
-        # Save a reference to the initial object so that we can reload it if needed
-        #new._initial_object = obj
-        return new
-
-    #def reload(self):
-    #    """Reload data. Return new :class:`Robot` object."""
-    #    return self.__class__.open(self._initial_object)
+            return cls.from_dir(obj)
 
     @staticmethod
     def _get_geodict(structure):
-        """Return a dictionary with info on the structure (used to build pandas dataframes)."""
+        """
+        Return a dictionary with info on the structure (used to build pandas dataframes).
+        """
         abc, angles = structure.lattice.abc, structure.lattice.angles
         return dict(
             a=abc[0], b=abc[1], c=abc[2], volume=structure.volume,
@@ -274,7 +294,9 @@ class Robot(object):
         )
 
     def _exec_funcs(self, funcs, arg):
-        """Execute list of callables funcs. Each func receives arg as argument."""
+        """
+        Execute list of callables funcs. Each func receives arg as argument.
+        """
         if not isinstance(funcs, (list, tuple)): funcs = [funcs]
         d = {}
         for func in funcs:
@@ -347,7 +369,6 @@ class GsrRobot(Robot, NotebookWriter):
 
             # Execute funcs.
             d.update(self._exec_funcs(kwargs.get("funcs", []), gsr))
-
             rows.append(d)
 
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
@@ -449,7 +470,6 @@ class SigresRobot(Robot):
 
             # Execute funcs.
             d.update(self._exec_funcs(kwargs.get("funcs", []), sigr))
-
             rows.append(d)
 
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
@@ -501,7 +521,6 @@ class MdfRobot(Robot):
 
             # Execute funcs.
             d.update(self._exec_funcs(kwargs.get("funcs", []), mdf))
-
             rows.append(d)
 
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))

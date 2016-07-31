@@ -1466,7 +1466,7 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
         if phdos_kwargs is None: phdos_kwargs = {}
         phdos_list = [PhononDos.as_phdos(obj, phdos_kwargs) for obj in phdos_objects]
         if len(phdos_list) != len(phbands_list):
-            raise ValueError("The number of objects for DOS must be to the number of bands")
+            raise ValueError("The number of objects for DOS must equal be to the number of bands")
 
     import matplotlib.pyplot as plt
     nrows, ncols = 1, 1
@@ -1598,7 +1598,7 @@ class PhononBandsPlotter(object):
         ref_bands = self._bands_dict[ref_label]
 
         text = []
-        for (label, bands) in self._bands_dict.items():
+        for label, bands in self._bands_dict.items():
             if label == ref_label: continue
             stat = ref_bands.statdiff(bands)
             text.append(str(stat))
@@ -1848,7 +1848,7 @@ class InteratomicForceConstants(Has_Structure):
         """
         Args:
             structure: :class:`Structure` object.
-            atoms_index: : List of integers representing the indices in the structure of the analyzed atoms.
+            atoms_index: List of integers representing the indices in the structure of the analyzed atoms.
             neighbours_index: List of integers representing the indices in the structure of the neighbour atoms.
             ifc_cart_coord: ifc in Cartesian coordinates
             ifc_cart_coord_short_range: short range part of the ifc in Cartesian coordinates
@@ -2128,7 +2128,7 @@ def get_dyn_mat_eigenvec(phdispl, structure, amu=None):
             size 3*(num atoms), but the rest of the shape is arbitrary.
         structure: :class:`Structure` object.
         amu: dictionary that associates the atomic species present in the structure to the values of the atomic
-            mass units used for the calculation. If None values from pymatgen will be used. Note that this will
+            mass units used for the calculation. If None, values from pymatgen will be used. Note that this will
             almost always lead to inaccuracies in the conversion.
     Returns:
         A numpy array of the same shape as phdispl containing the eigenvectors of the dynamical matrix

@@ -24,7 +24,7 @@ except ImportError:
 from pymatgen.io.abinit.launcher import PyFlowScheduler, BatchLauncher
 
 from abipy.core.release import __version__, min_abinit_version
-from abipy.core.structure import Lattice, Structure, StructureModifier
+from abipy.core.structure import Lattice, Structure, StructureModifier, frame_from_structures
 from abipy.core.mixins import AbinitLogFile, AbinitOutputFile, OutNcFile
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
 from abipy.iotools import Visualizer

@@ -1078,7 +1078,9 @@ class ElectronBands(object):
                           )
 
     def ipw_dos(self):
-        """Return an ipython widget with controllers to compute the electron DOS."""
+        """
+        Return an ipython widget with controllers to compute the electron DOS.
+        """
         import ipywidgets as ipw
 
         def callback(method, step, width):
@@ -2491,9 +2493,10 @@ class ElectronDOSPlotter(object):
         return fig
 
 
-def ebands_animate(eb_objects, edos_objects=None, titles=None, interval=250,
-                   edos_kwargs=None, savefile=None, show=True):
+def ebands_animate(eb_objects, edos_objects=None, edos_kwargs=None,
+                   interval=250, savefile=None, show=True):
     """
+    Use matplotlib animate module to animate a list of band structure plots (with or without DOS).
 
     Args:
         eb_objects: List of objects from which the band structures are extracted.
@@ -2502,18 +2505,23 @@ def ebands_animate(eb_objects, edos_objects=None, titles=None, interval=250,
         edos_objects:
             List of objects from which the electron DOSes are extracted.
             Accept filepaths or :class:`ElectronDos` objects. If edos_objects is not None,
-            each subplot in the grid contains a band structure with DOS else a simple bandstructure plot.
-        titles:
-            List of strings with the titles to be added to the subplots.
-        interval:
+            the animation will show a band structure with DOS else a simple (animated) bandstructure plot.
+        interval: draws a new frame every interval milliseconds.
         edos_kwargs: optional dictionary with the options passed to `get_edos` to compute the electron DOS.
             Used only if `edos_objects` is not None.
-        savefile:
-        show:
+        savefile: Use e.g. 'myanimation.mp4' to save the animation in mp4 format.
+        show: True if the animation should be shown immediately
 
     Returns:
+        Animation object.
 
-    See http://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/
+    See also http://matplotlib.org/api/animation_api.html
+             http://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/
+
+    Note:
+        It would be nice to have the possibility of animating the title of the plot, unfortunately
+        this feature is not available in the present version of matplotlib. See
+        http://stackoverflow.com/questions/17558096/animated-title-in-matplotlib
     """
     # Build list of ElectronBands objects.
     ebands_list = [ElectronBands.as_ebands(obj) for obj in eb_objects]
@@ -2524,7 +2532,7 @@ def ebands_animate(eb_objects, edos_objects=None, titles=None, interval=250,
         if edos_kwargs is None: edos_kwargs = {}
         edos_list = [ElectronDOS.as_edos(obj, edos_kwargs) for obj in edos_objects]
         if len(edos_list) != len(ebands_list):
-            raise ValueError("The number of objects for DOS must be to the number of bands")
+            raise ValueError("The number of objects for DOS must be equal to the number of bands")
 
     import matplotlib.pyplot as plt
     fig = plt.figure()
@@ -2532,13 +2540,16 @@ def ebands_animate(eb_objects, edos_objects=None, titles=None, interval=250,
 
     artists = []
     if not edos_list:
-        ax = fig.add_subplot(1,1,1)
+        # Animation with band structures
+        ax = fig.add_subplot(1, 1, 1)
         ebands_list[0].decorate_ax(ax)
-        for ebands in ebands_list:
+        for i, ebands in enumerate(ebands_list):
             lines = ebands.plot_ax(ax, **plotax_kwargs)
+            #if titles is not None:
+            #    lines += [ax.set_title(titles[i])]
             artists.append(lines)
-
     else:
+        # Animation with band structures + DOS.
         from matplotlib.gridspec import GridSpec
         gspec = GridSpec(1, 2, width_ratios=[2, 1])
         ax1 = plt.subplot(gspec[0])
@@ -2548,27 +2559,21 @@ def ebands_animate(eb_objects, edos_objects=None, titles=None, interval=250,
         ax2.yaxis.set_ticks_position("right")
         ax2.yaxis.set_label_position("right")
 
-        for ebands, edos in zip(ebands_list, edos_list):
+        for i, (ebands, edos) in enumerate(zip(ebands_list, edos_list)):
             ebands_lines = ebands.plot_ax(ax1, **plotax_kwargs)
-            edos_lines = edos.plot_ax(ax2, exchange_xy=True,  **plotax_kwargs)
-            artists.append(ebands_lines + edos_lines)
+            edos_lines = edos.plot_ax(ax2, exchange_xy=True, **plotax_kwargs)
+            lines = ebands_lines + edos_lines
+            #if titles is not None:
+            #    lines += [ax.set_title(titles[i])]
+            artists.append(lines)
 
     import matplotlib.animation as animation
     anim = animation.ArtistAnimation(fig, artists, interval=interval,
-                                     #blit=True, # True should be faster but then the movie starts with an empty frame!
+                                     blit=False, # True should be faster but then the movie starts with an empty frame!
                                      #repeat_delay=1000
                                      )
 
-    if savefile is not None:
-        anim.save(savefile)
-    # save the animation as an mp4.  This requires ffmpeg or mencoder to be
-    # installed.  The extra_args ensure that the x264 codec is used, so that
-    # the video can be embedded in html5.  You may need to adjust this for
-    # your system: for more information, see
-    # http://matplotlib.sourceforge.net/api/animation_api.html
-    #anim.save('basic_animation.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
-
-    if show:
-        plt.show()
+    if savefile is not None: anim.save(savefile)
+    if show: plt.show()
 
     return anim

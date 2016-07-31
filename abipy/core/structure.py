@@ -7,6 +7,7 @@ import collections
 import pymatgen
 import numpy as np
 
+from collections import OrderedDict
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.string import is_string
@@ -31,7 +32,14 @@ class Structure(pymatgen.Structure):
     """
     @classmethod
     def as_structure(cls, obj):
-        """Convert obj into a structure."""
+        """
+        Convert obj into a structure. Accepts:
+
+            - Structure instances
+            - Filenames
+            - Dictionaries (JSON format or dictionaries with abinit variables).
+            - Objects with a `structure` attribute.
+        """
         if isinstance(obj, cls): return obj
         if isinstance(obj, pymatgen.Structure):
             obj.__class__ = cls
@@ -47,6 +55,9 @@ class Structure(pymatgen.Structure):
                     return Structure.from_dict(obj)
                 except:
                     raise TypeError("Don't know how to convert dict %s into a structure" % obj)
+
+        if hasattr(obj, "structure"):
+            return cls.as_structure(obj.structure)
 
         raise TypeError("Don't know how to convert %s into a structure" % type(obj))
 
@@ -86,6 +97,11 @@ class Structure(pymatgen.Structure):
             new = file.read_structure(cls=cls)
             new.set_spacegroup(SpaceGroup.from_file(file))
             if closeit: file.close()
+
+        elif filepath.endswith(".abi") or filepath.endswith(".in"):
+            from abipy.abio.abivars import AbinitInputFile
+            # Here I assume that the input file contains a single structure.
+            return AbinitInputFile.from_file(filepath).structure
 
         else:
             # TODO: Spacegroup is missing here.
@@ -341,7 +357,7 @@ class Structure(pymatgen.Structure):
         standardized_ase_atoms = Atoms(scaled_positions=standardized[1], numbers=standardized[2], cell=standardized[0])
         standardized_structure = ase_adaptor.get_structure(standardized_ase_atoms)
         return standardized_structure
-    
+
     def abi_sanitize(self, symprec=1e-3, angle_tolerance=5, primitive=True, primitive_standard=False):
         """
         Returns a new structure in which:
@@ -1390,3 +1406,44 @@ class StructureModifier(object):
         new_structure.frozen_2phonon(qpoint, displ1, displ2, do_real1, do_real2, frac_coords, scale_matrix, max_supercell)
 
         return new_structure
+
+
+def frame_from_structures(struct_objects, index=None, with_spglib=True):
+    """
+    Build a pandas dataframe with the most important geometrical paramaters associated to
+    a list of structures or a list of objects that can be converted into structures.
+
+    Args:
+        struct_objects: List of objects that can be converted to structure.
+            Support filenames, structure objects, Abinit input files, dicts and many more types.
+            See `Structure.as_structure` for the complete list.
+        index: Index of the dataframe.
+        with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
+
+    Return:
+        pandas :class:`DataFrame`
+    """
+    structures = [Structure.as_structure(obj) for obj in struct_objects]
+
+    dict_list = []
+    for structure in structures:
+        abc, angles = structure.lattice.abc, structure.lattice.angles
+        # Get spacegroup info from spglib.
+        spglib_symbol, spglib_number = None, None
+        if with_spglib:
+            spglib_symbol, spglib_number = structure.get_spacegroup_info()
+        # Get spacegroup number computed by Abinit if available.
+        abispg_number = None if structure.spacegroup is None else structure.spacegroup.spgid
+
+        # Use OrderedDict to have columns ordered nicely.
+        dict_list.append(OrderedDict([
+            ("formula", structure.formula), ("num_sites", structure.num_sites),
+            ("angle0", angles[0]), ("angle1", angles[1]), ("angle2", angles[2]),
+            ("a", abc[0]), ("b", abc[1]), ("c", abc[2]), ("volume", structure.volume),
+            ("abispg_num", abispg_number),
+            ("spglib_symb", spglib_symbol), ("spglib_num", spglib_number),
+        ]))
+
+    import pandas as pd
+    return pd.DataFrame(dict_list, index=index,
+                        columns=list(dict_list[0].keys()) if dict_list else None)
