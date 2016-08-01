@@ -64,7 +64,7 @@ getden2   1
 #################
 symchi3   1
 ppmfrq3   16.7 eV
-getkss3   2
+getwfk3   2
 ecutwfn3     6
 nband3   25
 optdriver3   3
@@ -75,7 +75,7 @@ inclvkb3   0
 ### DATASET 4 ###
 #################
 symsigma4   1
-getkss4   2
+getwfk4   2
 ecutwfn4     6
 nband4   10
 optdriver4   4
@@ -102,7 +102,7 @@ kptgw4
 ### DATASET 5 ###
 #################
 symsigma5   1
-getkss5   2
+getwfk5   2
 ecutwfn5     6
 nband5   20
 optdriver5   4
@@ -129,7 +129,7 @@ kptgw5
 ### DATASET 6 ###
 #################
 symsigma6   1
-getkss6   2
+getwfk6   2
 ecutwfn6     6
 nband6   30
 optdriver6   4
@@ -150,4 +150,3 @@ kptgw6
    -0.250    0.5    0.25
     0.5    0.0    0.0
     0.0    0.0    0.0
-
