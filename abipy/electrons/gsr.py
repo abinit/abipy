@@ -224,7 +224,7 @@ class EnergyTerms(AttrDict):
                       "(valid for metals, dtset%occopt>=3 .and. dtset%occopt<=8)"),
         ("entropy", "Entropy term"),
         ("e_xc", "Exchange-correlation energy"),
-        ("e_vdw_dftd2", "Dispersion energy from DFT-D2 Van der Waals correction"),
+        #("e_vdw_dftd2", "Dispersion energy from DFT-D2 Van der Waals correction"),
         ("e_xcdc", "enxcdc=exchange-correlation double-counting energy"),
         ("e_paw", "PAW spherical part energy"),
         ("e_pawdc", "PAW spherical part double-counting energy"),
@@ -240,7 +240,8 @@ class EnergyTerms(AttrDict):
                                 "(if calctype=1, energy due to electrons only)\n" +
                                 "(if calctype=2, energy due to positron only)\n"),
         ("e_monopole", "Monopole correction to the total energy for charged supercells"),
-        ("e_xc_vdw", "vdW-DF correction to the XC energy"),
+        # FIXME: Some names have been changed in Abinit8, I should recheck the code.
+        #("e_xc_vdw", "vdW-DF correction to the XC energy"),
     ])
 
     ALL_KEYS = _NAME2DOC.keys()

@@ -12,7 +12,7 @@ class EbandsReaderTest(AbipyTest):
 
     def test_reader(self):
         """Test ElectronsReader."""
-        filepath = data.ref_file("si_scf_WFK-etsf.nc")
+        filepath = data.ref_file("si_scf_WFK.nc")
 
         with ElectronsReader(filepath) as r:
             kpoints = r.read_kpoints()
