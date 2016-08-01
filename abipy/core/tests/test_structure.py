@@ -28,6 +28,9 @@ class TestStructure(AbipyTest):
             # Call pymatgen machinery to get the high-symmetry stars.
             print(structure.hsym_stars)
 
+            geodict = structure.get_geodict()
+            assert geodict["abispg_num"] is not None
+
             if self.which("xcrysden") is not None:
                 # Export data in Xcrysden format.
                 structure.export(".xsf")

@@ -549,6 +549,35 @@ class Structure(pymatgen.Structure):
         return np.sqrt(self.dot(coords, coords, space=space,
                                 frac_coords=frac_coords))
 
+    def get_geodict(self, with_spglib=True):
+        """
+        Return a :class:`OrderedDict` with the most important structural parameters:
+
+            - Chemical formula and number of atoms.
+            - Lattice lengths, angles and volume.
+            - The spacegroup number computed by Abinit (set to None if not available).
+            - The spacegroup number and symbol computed by spglib (set to None not `with_spglib`).
+
+        Useful to construct pandas DataFrames
+
+        Args:
+            with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
+        """
+        abc, angles = self.lattice.abc, self.lattice.angles
+        # Get spacegroup info from spglib.
+        spglib_symbol, spglib_number = None, None
+        if with_spglib: spglib_symbol, spglib_number = self.get_spacegroup_info()
+        # Get spacegroup number computed by Abinit if available.
+        abispg_number = None if self.spacegroup is None else self.spacegroup.spgid
+
+        return OrderedDict([
+            ("formula", self.formula), ("num_sites", self.num_sites),
+            ("angle0", angles[0]), ("angle1", angles[1]), ("angle2", angles[2]),
+            ("a", abc[0]), ("b", abc[1]), ("c", abc[2]), ("volume", self.volume),
+            ("abispg_num", abispg_number),
+            ("spglib_symb", spglib_symbol), ("spglib_num", spglib_number),
+        ])
+
     def show_bz(self, **kwargs):
         """
         Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
@@ -629,29 +658,6 @@ class Structure(pymatgen.Structure):
                 pass
         else:
             raise visu.Error("Don't know how to export data for %s" % visu_name)
-
-    def molecular_viewer(self, **kwargs):
-        #from chemview import enable_notebook, MolecularViewer
-        from chemview import MolecularViewer
-
-        #from pymatgen.core.bonds import CovalentBond, get_bond_length
-        #bonds = []
-        #for j, site1 in enumerate(self):
-        #    for i, site2 in enumerate(self):
-        #        if j <= i: continue
-        #        if CovalentBond.is_bonded(site1, site2, tol=0.2):
-        #            bonds.append((i, j))
-
-        #bonds = self.get_covalent_bonds(tol=0.2)
-        #bonds=[(0, 1), (1, 0)]
-        bonds = [(0, 0), (1, 1)]
-
-        topology = dict(
-            atom_types=[site.specie.symbol for site in self],
-            bonds=bonds,
-        )
-        v = MolecularViewer(self.cart_coords, topology, **kwargs)
-        return v
 
     def write_structure(self, filename):
         """Write structure fo file."""
@@ -1418,32 +1424,15 @@ def frame_from_structures(struct_objects, index=None, with_spglib=True):
             Support filenames, structure objects, Abinit input files, dicts and many more types.
             See `Structure.as_structure` for the complete list.
         index: Index of the dataframe.
-        with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
+        with_spglib: If True, spglib is invoked to get the spacegroup symbol and number.
 
     Return:
         pandas :class:`DataFrame`
     """
     structures = [Structure.as_structure(obj) for obj in struct_objects]
-
-    dict_list = []
-    for structure in structures:
-        abc, angles = structure.lattice.abc, structure.lattice.angles
-        # Get spacegroup info from spglib.
-        spglib_symbol, spglib_number = None, None
-        if with_spglib:
-            spglib_symbol, spglib_number = structure.get_spacegroup_info()
-        # Get spacegroup number computed by Abinit if available.
-        abispg_number = None if structure.spacegroup is None else structure.spacegroup.spgid
-
-        # Use OrderedDict to have columns ordered nicely.
-        dict_list.append(OrderedDict([
-            ("formula", structure.formula), ("num_sites", structure.num_sites),
-            ("angle0", angles[0]), ("angle1", angles[1]), ("angle2", angles[2]),
-            ("a", abc[0]), ("b", abc[1]), ("c", abc[2]), ("volume", structure.volume),
-            ("abispg_num", abispg_number),
-            ("spglib_symb", spglib_symbol), ("spglib_num", spglib_number),
-        ]))
+    # Use OrderedDict to have columns ordered nicely.
+    odict_list = [(structure.get_geodict(with_spglib=with_spglib)) for structure in structures]
 
     import pandas as pd
-    return pd.DataFrame(dict_list, index=index,
-                        columns=list(dict_list[0].keys()) if dict_list else None)
+    return pd.DataFrame(odict_list, index=index,
+                        columns=list(odict_list[0].keys()) if odict_list else None)

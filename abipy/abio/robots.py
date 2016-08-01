@@ -75,8 +75,11 @@ class Robot(object):
         for label, ncfile in args:
             self.add_file(label, ncfile)
 
+    #@abstractmethod
+    #def get_dataframe(self, **kwargs):
+
     @classmethod
-    def for_ext(cls, ext):
+    def class_for_ext(cls, ext):
         """Return the Robot subclass associated to the given extension."""
         for subcls in cls.__subclasses__():
             if subcls.EXT in (ext, ext.upper()):
@@ -85,6 +88,9 @@ class Robot(object):
         raise ValueError("Cannot find Robot subclass associated to extension %s\n" % ext +
                          "The list of supported extensions is:\n%s" %
                          [cls.EXT for cls in Robot.__subclasses__()])
+
+    # Deprecated. Use class_for_ext
+    for_ext = class_for_ext
 
     @classmethod
     def from_dir(cls, top, walk=True):
@@ -114,6 +120,19 @@ class Robot(object):
                 ncfile = abiopen(os.path.join(top, f))
                 if ncfile is not None: items.append((ncfile.filepath, ncfile))
 
+        return cls(*items)
+
+    @classmethod
+    def from_files(cls, filenames):
+        """
+        Build a Robot from a list of files.
+        """
+        from abipy.abilab import abiopen
+        filenames = [f for f in filenames if f.endswith(cls.EXT + ".nc") or f.endswith(cls.EXT)]
+        items = []
+        for f in filenames:
+            ncfile = abiopen(os.path.join(dirpath, f))
+            if ncfile is not None: items.append((ncfile.filepath, ncfile))
         return cls(*items)
 
     @classmethod
@@ -166,7 +185,9 @@ class Robot(object):
         return robot
 
     def add_extfile_of_node(self, node, nids=None):
-        """Add the file produced by this node to the robot."""
+        """
+        Add the file produced by this node to the robot.
+        """
         if nids and node.node_id not in nids: return
         filepath = node.outdir.has_abiext(self.EXT)
         if filepath:
@@ -231,7 +252,7 @@ class Robot(object):
         lines = ["%s with %d files in memory" % (self.__class__.__name__, len(self.ncfiles))]
         for i, f in enumerate(self.ncfiles):
             path = f.relpath if len(f.relpath) < len(f.filepath) else f.filepath
-            lines.append("  [%d]  %s" % (i, path))
+            lines.append("  [%d] %s" % (i, path))
         return "\n".join(lines)
 
     __str__ = __repr__
@@ -280,18 +301,6 @@ class Robot(object):
             # directory --> search for files with the appropriate extension and open it with abiopen.
             if nids is not None: raise ValueError("nids cannot be used when obj is a directory.")
             return cls.from_dir(obj)
-
-    @staticmethod
-    def _get_geodict(structure):
-        """
-        Return a dictionary with info on the structure (used to build pandas dataframes).
-        """
-        abc, angles = structure.lattice.abc, structure.lattice.angles
-        return dict(
-            a=abc[0], b=abc[1], c=abc[2], volume=structure.volume,
-            angle0=angles[0], angle1=angles[1], angle2=angles[2],
-            formula=structure.formula,
-        )
 
     def _exec_funcs(self, funcs, arg):
         """
@@ -342,30 +351,28 @@ class GsrRobot(Robot, NotebookWriter):
                 the pandas :class:`DataFrame`
             funcs:
                 Function or list of functions to execute to add more data to the DataFrame.
-                Each function receives a GsrFile object and returns a tuple (key, value)
+                Each function receives a :class:`GsrFile` object and returns a tuple (key, value)
                 where key is a string with the name of column and value is the value to be inserted.
         """
         # TODO add more columns
         # Add attributes specified by the users
         attrs = [
-            "nsppol", "ecut", "pawecutdg", #"nspinor", "nspden", #"magnetization",
-            "tsmear", "nkpts", "energy", "pressure", "max_force",
+            "energy", "pressure", "max_force",
+            "ecut", "pawecutdg",
+            "tsmear", "nkpts",
+            "nsppol", "nspinor", "nspden",
         ] + kwargs.pop("attrs", [])
 
         rows, row_names = [], []
         for label, gsr in self:
             row_names.append(label)
-            #d = {aname: getattr(gsr, aname) for aname in attrs}
-            d = {}
+            d = OrderedDict()
             for aname in attrs:
-                try:
-                    d[aname] = getattr(gsr, aname)
-                except NetcdfReaderError:
-                    pass
+                d[aname] = getattr(gsr, aname, None)
 
             # Add info on structure.
             if kwargs.get("with_geo", True):
-                d.update(self._get_geodict(gsr.structure))
+                d.update(gsr.structure.get_geodict())
 
             # Execute funcs.
             d.update(self._exec_funcs(kwargs.get("funcs", []), gsr))
@@ -432,7 +439,9 @@ class GsrRobot(Robot, NotebookWriter):
 
 
 class SigresRobot(Robot):
-    """This robot analyzes the results contained in multiple SIGRES files."""
+    """
+    This robot analyzes the results contained in multiple SIGRES files.
+    """
     EXT = "SIGRES"
 
     def merge_dataframes_sk(self, spin, kpoint, **kwargs):
@@ -458,7 +467,9 @@ class SigresRobot(Robot):
         rows, row_names = [], []
         for label, sigr in self:
             row_names.append(label)
-            d = {aname: getattr(sigr, aname) for aname in attrs}
+            d = OrderedDict()
+            for aname in attrs:
+                d[aname] = getattr(sig, aname, None)
             d.update({"qpgap": sigr.get_qpgap(spin, kpoint)})
 
             # Add convergence parameters
@@ -466,7 +477,7 @@ class SigresRobot(Robot):
 
             # Add info on structure.
             if kwargs.get("with_geo", False):
-                d.update(self._get_geodict(sigr.structure))
+                d.update(sigr.structure.get_geodict())
 
             # Execute funcs.
             d.update(self._exec_funcs(kwargs.get("funcs", []), sigr))
@@ -490,7 +501,9 @@ class SigresRobot(Robot):
 
 
 class MdfRobot(Robot):
-    """This robot analyzes the results contained in multiple MDF files."""
+    """
+    This robot analyzes the results contained in multiple MDF files.
+    """
     EXT = "MDF.nc"
 
     def get_mdf_plotter(self):
@@ -504,11 +517,11 @@ class MdfRobot(Robot):
         rows, row_names = [], []
         for i, (label, mdf) in enumerate(self):
             row_names.append(label)
-            d = dict(
-                exc_mdf=mdf.exc_mdf,
-                rpa_mdf=mdf.rpanlf_mdf,
-                gwrpa_mdf=mdf.gwnlf_mdf,
-            )
+            d = OrderedDict([
+                ("exc_mdf", mdf.exc_mdf),
+                ("rpa_mdf", mdf.rpanlf_mdf),
+                ("gwrpa_mdf", mdf.gwnlf_mdf),
+            ])
             #d = {aname: getattr(mdf, aname) for aname in attrs}
             #d.update({"qpgap": mdf.get_qpgap(spin, kpoint)})
 
@@ -517,7 +530,7 @@ class MdfRobot(Robot):
 
             # Add info on structure.
             if kwargs.get("with_geo", False):
-                d.update(self._get_geodict(mdf.structure))
+                d.update(mdf.structure.get_geodict())
 
             # Execute funcs.
             d.update(self._exec_funcs(kwargs.get("funcs", []), mdf))
@@ -550,7 +563,9 @@ class DdbRobot(Robot):
 
     @property
     def qpoints_union(self):
-        """Return numpy array with the q-points in reduced coordinates found in the DDB files."""
+        """
+        Return numpy array with the q-points in reduced coordinates found in the DDB files.
+        """
         qpoints = []
         for (label, ddb) in enumerate(self):
             qpoints.extend(q for q in ddb.qpoints if q not in qpoints)
@@ -585,7 +600,7 @@ class DdbRobot(Robot):
         rows, row_names = [], []
         for i, (label, ddb) in enumerate(self):
             row_names.append(label)
-            d = dict(
+            d = OrderedDict(
             #    exc_mdf=mdf.exc_mdf,
             )
             #d = {aname: getattr(ddb, aname) for aname in attrs}
@@ -602,7 +617,7 @@ class DdbRobot(Robot):
 
             # Add info on structure.
             if kwargs.get("with_geo", True):
-                d.update(self._get_geodict(phbands.structure))
+                d.update(phbands.structure.get_geodict())
 
             # Execute funcs.
             d.update(self._exec_funcs(kwargs.get("funcs", []), ddb))
