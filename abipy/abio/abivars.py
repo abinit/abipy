@@ -129,7 +129,7 @@ def expand_star_syntax(s):
         assert tokens[1] != "*"
         return " ".join(tokens)
 
-    #print(s)
+    #print(s, tokens)
     l = []
     while tokens:
         c = tokens.pop(0)
@@ -375,10 +375,13 @@ def parse_abinit_string(s):
     #
     # Step 3 is needed because we are gonna use python to evaluate the operators and
     # in abinit `2*sqrt(0.75)` means `sqrt(0.75) sqrt(0.75)` and not math multiplication!
-    tokens = []
-    for t in " ".join(lines).split():
-        tokens.extend(expand_star_syntax(t).split())
-    tokens = eval_abinit_operators(tokens)
+    #tokens = []
+    #for t in " ".join(lines).split():
+    #    tokens.extend(expand_star_syntax(t).split())
+    #tokens = eval_abinit_operators(tokens)
+    # The code above does not work everywhere e.g. typat 2 * 1
+    # I think this section should be performed afterwards when we have already constructed the dictionary
+    tokens = " ".join(lines).split()
 
     # Get value of ndtset.
     #try:

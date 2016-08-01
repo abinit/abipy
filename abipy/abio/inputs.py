@@ -314,13 +314,26 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         of the input objects. Note, indeed, that AbintInput is mutable and therefore
         should not be used as keyword in dictionaries.
         """
-        # todo add the decorators, do we need to add them ?
-        s = str(sorted([(unicode(i[0]), i[1]) for i in self.as_dict()['abi_args']]))
         # Use sha1 from hashlib because python builtin hash is not deterministic
         # (hash is version- and machine-dependent)
         import hashlib
         sha1 = hashlib.sha1()
-        sha1.update(s)
+
+        # Add abi_args to sha1
+        # (not sure this is code is portable: roundoff errors and conversion to string)
+        # We could just compute the hash from the keys (hash equality does not necessarily imply eq!)
+        for key in sorted(self.keys()):
+            value = self[key]
+            if isinstance(value, np.ndarray): value = value.tolist()
+            sha1.update(unicode(key))
+            sha1.update(unicode(value))
+
+        sha1.update(str(self.comment))
+        # add pseudos (this is easy because we have md5)
+        sha1.update(str([p.md5 for p in self.pseudos]))
+        # add the decorators, do we need to add them ?
+        sha1.update(str([dec.__class__.__name__ for dec in self.decorators]))
+
         return sha1.hexdigest()
 
     @pmg_serialize
@@ -330,7 +343,6 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         abi_args = []
         for key, value in self.items():
             if isinstance(value, np.ndarray): value = value.tolist()
-            #vars[key] = value
             abi_args.append((key, value))
 
         return dict(structure=self.structure.as_dict(),

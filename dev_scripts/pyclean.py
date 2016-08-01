@@ -4,6 +4,8 @@ This script remove all pyc files and all __pycache__ directory.
 """
 from __future__ import print_function, division, unicode_literals
 
+
+import sys
 import os
 import shutil
 

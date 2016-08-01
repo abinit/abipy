@@ -104,13 +104,12 @@ class FactoryTest(AbipyTest):
         self.assertIsInstance(inputs[2][0], AbinitInput)
         self.assertIsInstance(inputs[3][0], AbinitInput)
 
-        self.assertEqual(inputs[0][0].variable_checksum(), "6cf6121967a3cd08cc85efde3b50188df0b8067c")
-        self.assertEqual(inputs[1][0].variable_checksum(), "d1e2639f848204359e01a03d11e2dac146c7dbc6")
-        self.assertEqual(inputs[2][0].variable_checksum(), "fe1b410583611ce1ba799765f9182a9e6be6e822")
-        self.assertEqual(inputs[3][0].variable_checksum(), "d2ff935446e01d7af344e21c2fc7e0a9db201ce7")
+        self.assertEqual(inputs[0][0].variable_checksum(), "4b724717b4f39cf99e390e0e836c7c6df3738f0c")
+        self.assertEqual(inputs[1][0].variable_checksum(), "e79dbacccf019d59ab87f66599b89f808333064e")
+        self.assertEqual(inputs[2][0].variable_checksum(), "569ca521b0207f77fdbb9e4f6e1a7295273b7e5a")
+        self.assertEqual(inputs[3][0].variable_checksum(), "77f4e676b1532d517c562da4e7cc792b21c2b2eb")
 
         #for input in [inputs[0][0], inputs[1][0], inputs[2][0], inputs[3][0]]:
-
         for inp in [item for sublist in inputs for item in sublist]:
             val = inp.abivalidate()
             if val.retcode != 0:
