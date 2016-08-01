@@ -260,12 +260,20 @@ class ElectronBandsError(Exception):
 class ElectronBands(object):
     """
     This object stores the electronic band structure.
+
+    .. attribute:: fermie
+
+        fermie: Fermi level in eV. Note that, tf the band structure has been computed
+            with a NSCF run, fermie corresponds to the fermi level obtained
+            in the SCF run that produced the density used for the band structure calculation.
     """
     Error = ElectronBandsError
 
     @classmethod
     def from_file(cls, filepath):
-        """Initialize an instance of :class:`ElectronBands` from a netCDF file."""
+        """
+        Initialize an instance of :class:`ElectronBands` from a netCDF file.
+        """
         if filepath.endswith(".nc"):
             with ElectronsReader(filepath) as r:
                 new = r.read_ebands()
@@ -738,8 +746,6 @@ class ElectronBands(object):
         kpoint          :class:`Kpoint` object
         ==============  ==========================
 
-
-
         Args:
             zero_at_efermi: Whether to shift all eigenvalues to have zero energy at the
                 Fermi energy. Defaults to True. The Fermi energy is saved in frame.fermie
@@ -760,11 +766,11 @@ class ElectronBands(object):
                                ("kpoint", self.kpoints[k]),
                             ]))
 
-        frame = pd.DataFrame(rows, columns=rows[0].keys())
+        frame = pd.DataFrame(rows, columns=list(rows[0].keys()))
         frame.fermie = e0
         return frame
 
-    def plot_boxes(self, zero_at_efermi=True, brange=None, swarm=False, **kwargs):
+    def boxplot(self, zero_at_efermi=True, brange=None, swarm=False, **kwargs):
         """
         Use seaborn to draw a box plot to show distributions of eigenvalues with respect
         to the band index.
@@ -1993,9 +1999,6 @@ class ElectronBandsPlotter(object):
 
         ax1.legend(lines, legends, loc='upper right', shadow=True)
 
-        #t = ElectronDOS()
-        #t.tot_dos._mesh
-
         # Add DOSes
         if self.edoses_dict:
             ax = ax_list[1]
@@ -2330,6 +2333,8 @@ class ElectronDOS(object):
         if self.nsppol == 1: sumv = 2 * sumv
         self.tot_dos = Function1D(mesh, sumv)
         self.tot_idos = self.tot_dos.integral()
+
+        #self.fermie = self.find_mu(self.nelect)
 
     @classmethod
     def as_edos(cls, obj, edos_kwargs):

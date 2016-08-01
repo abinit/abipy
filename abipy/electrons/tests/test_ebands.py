@@ -68,7 +68,8 @@ class ElectronBandsTest(AbipyTest):
 
         self.serialize_with_pickle(dos, protocols=[-1], test_eq=False)
 
-        #gs_bands.plot_boxes()
+        # Test plot methods
+        #gs_bands.boxplot()
 
     def test_jdos(self):
         """Test JDOS methods."""
