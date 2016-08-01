@@ -302,7 +302,7 @@ class AnaddbFilesGenerator(FilesGenerator):
         # 7) file containing ddk filenames for elphon/transport
         return "\n".join([
             "run.abi", 
-            "run.abo", 
+            "out", 
             self.in_ddb,
             self.out_ddb,
             self.in_gkk,
