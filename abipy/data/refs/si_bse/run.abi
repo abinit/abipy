@@ -28,12 +28,12 @@ shiftk2    0.11 0.21 0.31  # This shift breaks the symmetry of the k-mesh.
 
 # BSE run with Haydock iterative method (only resonant + W + v)
 optdriver3 99              # BS calculation
-getkss3    2               # Read the KSS generated on the shifted k-mesh.
+getwfk3    2               # Read the KSS generated on the shifted k-mesh.
 chksymbreak3 0          # To skip the check on the k-mesh.
 shiftk3    0.11 0.21 0.31  # This shift breaks the symmetry of the k-mesh.
 
 bs_calctype3       1
-soenergy3          0.8 eV  # Scissors operator used to correct the KS band structure.
+mbpt_sciss3          0.8 eV  # Scissors operator used to correct the KS band structure.
 bs_exchange_term3  1       # Exchange term included.
 bs_coulomb_term3   21      # Use model W and full W_GG.
 mdf_epsinf         12.0
