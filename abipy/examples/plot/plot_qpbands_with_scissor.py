@@ -50,4 +50,10 @@ klabels = {
     (0.0,  0.5,  0.5): "X",
 }
 
-plotter.plot(title="Silicon band structure", klabels=klabels, align='cbm')
+
+# By default, the two band energies are shifted wrt to *their* fermi level.
+plotter.plot(title="Silicon band structure", klabels=klabels)
+
+# Use e=0 if you don't want to shift the eigenvalus
+# so that it's possible to visualize the QP corrections.
+plotter.plot(title="Silicon band structure", klabels=klabels, e0=0.0)

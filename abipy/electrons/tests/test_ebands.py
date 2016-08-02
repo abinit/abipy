@@ -57,6 +57,7 @@ class ElectronBandsTest(AbipyTest):
         """Test DOS methods."""
         gs_bands = ElectronBands.from_file(data.ref_file("si_scf_GSR.nc"))
         dos = gs_bands.get_edos()
+        print(dos)
         assert ElectronDos.as_edos(dos, {}) is dos
         edos_samevals = ElectronDos.as_edos(gs_bands, {})
         assert ElectronDos.as_edos(gs_bands, {}) == dos

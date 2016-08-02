@@ -754,7 +754,7 @@ class ElectronBands(object):
         """
         import pandas as pd
         rows = []
-        e0 = self._get_e0(e0)
+        e0 = self.get_e0(e0)
         for spin in self.spins:
             for k, kpoint in enumerate(self.kpoints):
                 for band in range(self.nband_sk[spin,k]):
@@ -1301,7 +1301,7 @@ class ElectronBands(object):
         # Create new array with same shape as self.
         qp_energies = np.zeros(self.shape)
 
-        # Calculate Quasi-particle energies with the scissors operator.
+        # Calculate quasi-particle energies with the scissors operator.
         for spin in self.spins:
             sciss = scissors[spin]
             for k in self.kidxs:
@@ -1315,10 +1315,17 @@ class ElectronBands(object):
                     # Update the energy.
                     qp_energies[spin,k,band] = qp_ene
 
-        # Change the energies (NB: occupations and fermie are left unchanged).
-        #fermie = self.fermie + scissors[0].apply(self.fermie)
+        # Apply the scissors to the Fermi level as well.
+        # NB: This should be ok for semiconductors in which fermie == CBM (abinit convention)
+        # and there's usually one CBM state whose QP correction is expected to be reproduced
+        # almost exactly by the polyfit.
+        # Not sure about metals. Besides occupations are not changed here!
+        fermie = self.fermie + scissors[0].apply(self.fermie)
+        #fermie = self.fermie
+        print("KS fermie", self.fermie, "--> QP fermie", fermie, "Delta(QP_KS)=", fermie - self.fermie)
+
         return ElectronBands(
-            self.structure, self.kpoints, qp_energies, self.fermie, self.occfacts, self.nelect,
+            self.structure, self.kpoints, qp_energies, fermie, self.occfacts, self.nelect,
             nband_sk=self.nband_sk, smearing=self.smearing, markers=self.markers)
 
     @add_fig_kwargs
@@ -1449,7 +1456,7 @@ class ElectronBands(object):
             ax.set_xticks(ticks, minor=False)
             ax.set_xticklabels(labels, fontdict=None, minor=False)
 
-    def _get_e0(self, e0):
+    def get_e0(self, e0):
         """
         e0: Option used to define the zero of energy in the band structure plot. Possible values:
                 - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
@@ -1487,7 +1494,7 @@ class ElectronBands(object):
             kwargs["label"] = "_no_legend_" # Actively suppress.
 
         xx, lines = range(self.nkpt), []
-        e0 = self._get_e0(e0)
+        e0 = self.get_e0(e0)
         for spin in spin_range:
             for band in band_range:
                 yy = self.eigens[spin,:,band] - e0
@@ -1510,7 +1517,7 @@ class ElectronBands(object):
 
         x, width = range(self.nkpt), fact * self.widths[key]
 
-        e0 = self._get_e0(e0)
+        e0 = self.get_e0(e0)
         for spin in spin_range:
             for band in band_range:
                 y, w = self.eigens[spin,:,band] - e0, width[spin,:,band] * fact
@@ -1524,7 +1531,7 @@ class ElectronBands(object):
             e0: Option used to define the zero of energy in the band structure plot.
         """
         pos, neg = self.markers[key].posneg_marker()
-        e0 = self._get_e0(e0)
+        e0 = self.get_e0(e0)
 
         # Use different symbols depending on the value of s. Cannot use negative s.
         if pos:
@@ -1588,7 +1595,7 @@ class ElectronBands(object):
             ax1, ax2 = axlist
 
         # Define the zero of energy.
-        e0 = self._get_e0(e0) if e0 != "edos_fermie" else dos.fermie
+        e0 = self.get_e0(e0) if e0 != "edos_fermie" else dos.fermie
         if not kwargs: kwargs = {"color": "black", "linewidth": 2.0}
 
         # Plot the band structure
@@ -1782,8 +1789,8 @@ def ebands_gridplot(eb_objects, titles=None, edos_objects=None, edos_kwargs=None
             ax2 = plt.subplot(subgrid[1], sharey=ax1)
 
             # Define the zero of energy and plot
-            e0 = ebands._get_e0(e0) if e0 != "edos_fermie" else edos.fermie
-            ebands.plot_with_edos(edos, e0=e0, axlist=(ax1, ax2), show=False)
+            mye0 = ebands.get_e0(e0) if e0 != "edos_fermie" else edos.fermie
+            ebands.plot_with_edos(edos, e0=mye0, axlist=(ax1, ax2), show=False)
 
             if titles is not None: ax1.set_title(titles[i])
             if i % ncols != 0:
@@ -1920,7 +1927,7 @@ class ElectronBandsPlotter(object):
     @add_fig_kwargs
     def plot(self, klabels=None, e0="fermie", **kwargs):
         """
-        Plot the band structure and the DOS.
+        Plot the band structure and the DOS on the same figure.
 
         Args:
             klabels: dictionary whose keys are tuple with the reduced coordinates of the k-points.
@@ -1935,23 +1942,24 @@ class ElectronBandsPlotter(object):
         ==============  ================================================================
         xlim            x-axis limits tuple. None (default) for automatic determination.
         ylim            y-axis limits tuple. None (default) for automatic determination.
-        align           'cbm' allign all bandstructures at the cbm
         ==============  ================================================================
 
         Returns:
             matplotlib figure.
         """
+        if "align" in kwargs:
+            raise ValueError("align option is not supported anymore. Use e0 to change the alignment")
+
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
-
-        align = kwargs.pop("align", None)
+        # TODO: This one should be rewritten completely
 
         # Build grid of plots.
         if self.edoses_dict:
             gspec = GridSpec(1, 2, width_ratios=[2, 1])
             gspec.update(wspace=0.05)
             ax1 = plt.subplot(gspec[0])
-            # Align bands and DOS.
+            # bands and DOS will share the y-axis
             ax2 = plt.subplot(gspec[1], sharey=ax1)
             ax_list = [ax1, ax2]
             fig = plt.gcf()
@@ -1967,25 +1975,17 @@ class ElectronBandsPlotter(object):
         if ylim is not None:
             [ax.set_ylim(ylim) for ax in ax_list]
 
-        # Plot bands.
+        # Plot ebands.
         lines, legends = [], []
         my_kwargs, opts_label = kwargs.copy(), {}
         i = -1
-        for (label, bands), lineopt in zip(self._bands_dict.items(), self.iter_lineopt()):
+        for (label, ebands), lineopt in zip(self._bands_dict.items(), self.iter_lineopt()):
             i += 1
             my_kwargs.update(lineopt)
             opts_label[label] = my_kwargs.copy()
 
-            if align == 'cbm':
-                fermie = bands.fermie
-                bands_shifted = copy.deepcopy(bands)
-                bands_shifted._eigens = bands_shifted._eigens - fermie
-                l = bands_shifted.plot_ax(ax1, e0=0.0, spin=None, band=None, **my_kwargs)
-            else:
-                if align is not None:
-                    raise ValueError('values other than cbm, are not implemented for align')
-                l = bands.plot_ax(ax1, e0, spin=None, band=None, **my_kwargs)
-
+            mye0 = ebands.get_e0(e0)
+            l = ebands.plot_ax(ax1, mye0, spin=None, band=None, **my_kwargs)
             lines.append(l[0])
 
             # Use relative paths if label is a file.
@@ -1996,7 +1996,7 @@ class ElectronBandsPlotter(object):
 
             # Set ticks and labels, legends.
             if i == 0:
-                bands.decorate_ax(ax1)
+                ebands.decorate_ax(ax1)
 
         if self.markers:
             for key, markers in self.markers.items():
@@ -2015,15 +2015,9 @@ class ElectronBandsPlotter(object):
         # Add DOSes
         if self.edoses_dict:
             ax = ax_list[1]
-            for (label, dos) in self.edoses_dict.items():
-                if align == 'cbm':
-                    dos_shifted = copy.deepcopy(dos)
-                    dos_shifted.tot_dos._mesh = dos_shifted.tot_dos._mesh - fermie
-                    dos_shifted.plot_ax(ax, e0=0.0, exchange_xy=True, **opts_label[label])
-                else:
-                    if align is not None:
-                        raise ValueError('values other than cbm, are not implemented for align')
-                    dos.plot_ax(ax, e0, exchange_xy=True, **opts_label[label])
+            for (label, edos) in self.edoses_dict.items():
+                #mye0 =
+                edos.plot_ax(ax, mye0, exchange_xy=True, **opts_label[label])
 
         return fig
 
@@ -2355,8 +2349,18 @@ class ElectronDos(object):
         self.tot_dos = Function1D(mesh, sumv)
         self.tot_idos = self.tot_dos.integral()
 
+        # *Compute* fermie from nelect. Note that this value could differ
+        # from the one stored in ElectronBands (coming from the SCF run)
+        # The accuracy of self.fermie depends on the number of k-points used for the DOS
+        # and the parameters used to call ebands.get_edos.
         self.fermie = self.find_mu(self.nelect)
-        print("Dos fermie: %s (from nelect %s):" % (self.fermie, self.nelect))
+
+    def __str__(self):
+        lines = []
+        app = lines.append
+        app("nsppol=%d, nelect=%s" % (self.nsppol, self.nelect))
+        app("Fermi energy: %s (recomputed from nelect):" % self.fermie)
+        return "\n".join(lines)
 
     @classmethod
     def as_edos(cls, obj, edos_kwargs):
@@ -2427,7 +2431,7 @@ class ElectronDos(object):
         else:
             raise RuntimeError("Cannot find mu, try to increase num and/or atol")
 
-    def _get_e0(self, e0):
+    def get_e0(self, e0):
         """
         e0: Option used to define the zero of energy in the band structure plot. Possible values:
                 - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
@@ -2466,7 +2470,7 @@ class ElectronDos(object):
         dosf, idosf = self.dos_idos(spin=spin)
         opts = [c.lower() for c in what]
 
-        e0 = self._get_e0(e0)
+        e0 = self.get_e0(e0)
         lines = []
         for c in opts:
             if c == "d": f = dosf
@@ -2670,9 +2674,9 @@ def ebands_animate(eb_objects, edos_objects=None, edos_kwargs=None, e0="fermie",
 
         for i, (ebands, edos) in enumerate(zip(ebands_list, edos_list)):
             # Define the zero of energy to align bands and dos
-            e0 = ebands._get_e0(e0) if e0 != "edos_fermie" else edos.fermie
-            ebands_lines = ebands.plot_ax(ax1, e0, **plotax_kwargs)
-            edos_lines = edos.plot_ax(ax2, e0, exchange_xy=True, **plotax_kwargs)
+            mye0 = ebands.get_e0(e0) if e0 != "edos_fermie" else edos.fermie
+            ebands_lines = ebands.plot_ax(ax1, mye0, **plotax_kwargs)
+            edos_lines = edos.plot_ax(ax2, mye0, exchange_xy=True, **plotax_kwargs)
             lines = ebands_lines + edos_lines
             #if titles is not None:
             #    lines += [ax.set_title(titles[i])]
