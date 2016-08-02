@@ -36,7 +36,7 @@ __all__ = [
     "ElectronDosPlotter",
     "ElectronsReader",
     # TODO Rename it, use camel case
-    "ElectronDOS",
+    "ElectronDos",
     "ElectronDOSPlotter",
 ]
 
@@ -1112,7 +1112,7 @@ class ElectronBands(object):
                 entire energy range.
 
         Returns:
-            :class:`ElectronDOS` object.
+            :class:`ElectronDos` object.
         """
         # Weights must be normalized to one.
         wsum = self.kpoints.sum_weights()
@@ -1146,7 +1146,7 @@ class ElectronBands(object):
         else:
             raise ValueError("Method %s is not supported" % method)
 
-        return ElectronDOS(mesh, dos)
+        return ElectronDos(mesh, dos, self.nelect)
 
     def get_ejdos(self, spin, valence, conduction, #zero_at_efermi=True,
                   method="gaussian", step=0.1, width=0.2, mesh=None):
@@ -1448,6 +1448,17 @@ class ElectronBands(object):
             ax.set_xticks(ticks, minor=False)
             ax.set_xticklabels(labels, fontdict=None, minor=False)
 
+    def _get_e0(self, e0):
+        if e0 is None:
+            return 0
+        elif is_string(e0):
+            if e0 not in ("fermie",):
+                raise ValueError("Wrong value for e0: %s" % e0)
+            if e0 == "fermie": e0 = self.fermie
+            return e0
+        else:
+            return e0
+
     def plot_ax(self, ax, spin=None, band=None, #zero_at_efermi=True,
                 **kwargs):
         """
@@ -1469,11 +1480,11 @@ class ElectronBands(object):
             kwargs["label"] = "_no_legend_" # Actively suppress.
 
         xx, lines = range(self.nkpt), []
+        # fermie is the energy zero
+        e0 = self.fermie
         for spin in spin_range:
             for band in band_range:
-                yy = self.eigens[spin,:,band]
-                # fermie is the energy zero
-                #yy -= self.fermie
+                yy = self.eigens[spin,:,band] - e0
                 lines.extend(ax.plot(xx, yy, **kwargs))
 
         return lines
@@ -1541,7 +1552,7 @@ class ElectronBands(object):
         Plot the band structure and the DOS.
 
         Args:
-            dos: An instance of :class:`ElectronDOS`.
+            dos: An instance of :class:`ElectronDos`.
             klabels: dictionary whose keys are tuple with the reduced coordinates of the k-points.
                 The values are the labels. e.g. `klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}`.
             axlist: The axes for the bandstructure plot and the DOS plot. If axlist is None, a new figure
@@ -1577,7 +1588,6 @@ class ElectronBands(object):
 
         emin = np.min(self.eigens)
         emin -= 0.05 * abs(emin)
-
         emax = np.max(self.eigens)
         emax += 0.05 * abs(emax)
         ax1.yaxis.set_view_interval(emin, emax)
@@ -1710,7 +1720,7 @@ def ebands_gridplot(eb_objects, titles=None, edos_objects=None, edos_kwargs=None
     edos_list = []
     if edos_objects is not None:
         if edos_kwargs is None: edos_kwargs = {}
-        edos_list = [ElectronDOS.as_edos(obj, edos_kwargs) for obj in edos_objects]
+        edos_list = [ElectronDos.as_edos(obj, edos_kwargs) for obj in edos_objects]
         if len(edos_list) != len(ebands_list):
             raise ValueError("The number of objects for DOS must be to the number of bands")
 
@@ -2208,7 +2218,7 @@ class EBands3D(object):
                 "unit_cell":
                     Point are located in the unit_cell, i.e kx in [0, 1]
                 "bz":
-                    Point are located in the Brilluoin zone, i.e kx in [-1/2, 1/2].
+                    Point are located in the Brillouin zone, i.e kx in [-1/2, 1/2].
         """
         self.ibz_arr = ibz_arr
         self.ene_ibz = np.atleast_3d(ene_ibz)
@@ -2281,35 +2291,37 @@ class EBands3D(object):
     #    #indices =
     #    z0 = 0
     #    plane = np.empty((self.nx, self.ny))
-
     #    kx, ky = range(self.nx), range(self.ny)
     #    for x in kx:
     #        for y in ky:
     #            ibz_idx = self.map_xyz2ibz[x, y, z0]
     #            plane[x, y] = values_ibz[ibz_idx]
-
     #    kx, ky = np.meshgrid(kx, ky)
     #    return kx, ky, plane
 
 
-class ElectronDOS(object):
+class ElectronDos(object):
     """
     This object stores the electronic density of states.
+    It is usually created by calling the get_edos method of :class:`ElectronBands`.
     """
 
-    def __init__(self, mesh, spin_dos):
+    def __init__(self, mesh, spin_dos, nelect):
         """
         Args:
             mesh: array-like object with the mesh points.
             spin_dos: array-like object with the DOS value for the different spins.
-                      spin_dos[nw] if spin-unpolarized.
-                      spin_dos[nsppol, nw] if spin-polarized case.
+                      spin_dos[1, nw] if spin-unpolarized.
+                      spin_dos[2, nw] if spin-polarized case.
+            nelect: Number of electrons in the unit cell.
 
         .. note::
+
             mesh is given in eV, spin_dos is in states/eV.
         """
         spin_dos = np.atleast_2d(spin_dos)
         self.nsppol = len(spin_dos)
+        self.nelect = nelect
 
         # Save DOS and IDOS for each spin.
         sumv = np.zeros(len(mesh))
@@ -2325,14 +2337,14 @@ class ElectronDOS(object):
         self.tot_dos = Function1D(mesh, sumv)
         self.tot_idos = self.tot_dos.integral()
 
-        #self.fermie = self.find_mu(self.nelect)
-        self.fermie = self.find_mu(8)
-        print("Dos fermie:", self.fermie)
+        print(self.nelect)
+        fermie = self.find_mu(self.nelect)
+        print("Dos fermie (from nelect):", fermie)
 
     @classmethod
     def as_edos(cls, obj, edos_kwargs):
         """
-        Return an instance of :class:`ElectronDOS` from a generic obj.
+        Return an instance of :class:`ElectronDos` from a generic obj.
         Supports:
 
             - instances of cls
@@ -2574,7 +2586,7 @@ def ebands_animate(eb_objects, edos_objects=None, edos_kwargs=None,
     edos_list = []
     if edos_objects is not None:
         if edos_kwargs is None: edos_kwargs = {}
-        edos_list = [ElectronDOS.as_edos(obj, edos_kwargs) for obj in edos_objects]
+        edos_list = [ElectronDos.as_edos(obj, edos_kwargs) for obj in edos_objects]
         if len(edos_list) != len(ebands_list):
             raise ValueError("The number of objects for DOS must be equal to the number of bands")
 
