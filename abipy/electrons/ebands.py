@@ -702,7 +702,6 @@ class ElectronBands(object):
                 #print("hist", hist, "hrange", hrange, "bin_hedges", bin_hedges)
 
                 if hist.sum() > self.nkpt * kfact:
-                    #dless_states.append((e0, band, spin))
                     state = self._electron_state(spin, kref, band)
                     dless_states.append(state)
 
@@ -808,6 +807,7 @@ class ElectronBands(object):
             swarm: True to show the datapoints on top of the boxes
             kwargs: Keywork arguments passed to seaborn boxplot.
         """
+        # TODO: Write function ebands_boxplot
         if self.nsppol != other.nsppol:
             raise ValueError("Cannot compare bands with different nsppol")
         if self_name == other_name:
@@ -871,12 +871,13 @@ class ElectronBands(object):
         Build an instance of :class:`Electron` from the spin, kpoint and band index"""
         kidx = self.kindex(kpoint)
         eig = self.eigens[spin, kidx, band]
-        #eig -= self.fermie
         return Electron(spin=spin,
                         kpoint=self.kpoints[kidx],
                         band=band,
                         eig=eig,
-                        occ=self.occfacts[spin, kidx, band])
+                        occ=self.occfacts[spin, kidx, band]
+                        #fermie=self.fermie
+                        )
 
     @property
     def lomos(self):
@@ -1097,20 +1098,8 @@ class ElectronBands(object):
                 width=ipw.FloatSlider(value=0.2, min=1e-6, max=1, step=0.05, description="Gaussian broadening [eV]"),
             )
 
-    @classmethod
-    def qt_open(cls, dir=None):
-        """Select a file via a QT dialog, create the object from file and return instance."""
-        from PyQt4 import QtCore, QtGui
-
-        if dir is None: dir ='./'
-        qstring = QtGui.QFileDialog.getOpenFileName(None, "Select data file...",
-                dir, filter="All files (*);; Netcdf Files (*.nc)")
-        path = str(qstring)
-        if not path: return None
-
-        return cls.from_file(path)
-
     def get_edos(self, method="gaussian", step=0.1, width=0.2, eminmax=None):
+    #def get_edos(self, method="gaussian", step=0.02, width=0.1, eminmax=None):
         """
         Compute the electronic DOS on a linear mesh.
 
@@ -1157,8 +1146,6 @@ class ElectronBands(object):
         else:
             raise ValueError("Method %s is not supported" % method)
 
-        # Align the DOS with the Fermi level stored in self.
-        #mesh -= self.fermie
         return ElectronDOS(mesh, dos)
 
     def get_ejdos(self, spin, valence, conduction, #zero_at_efermi=True,
@@ -1486,7 +1473,7 @@ class ElectronBands(object):
             for band in band_range:
                 yy = self.eigens[spin,:,band]
                 # fermie is the energy zero
-                yy -= self.fermie
+                #yy -= self.fermie
                 lines.extend(ax.plot(xx, yy, **kwargs))
 
         return lines
@@ -1571,6 +1558,7 @@ class ElectronBands(object):
         if axlist is None:
             # Build axes and align bands and DOS.
             gspec = GridSpec(1, 2, width_ratios=[2, 1])
+            gspec.update(wspace=0.05)
             ax1 = plt.subplot(gspec[0])
             ax2 = plt.subplot(gspec[1], sharey=ax1)
         else:
@@ -1750,9 +1738,11 @@ def ebands_gridplot(eb_objects, titles=None, edos_objects=None, edos_kwargs=None
         from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
         fig = plt.figure()
         gspec = GridSpec(nrows, ncols)
+        #gspec.update(wspace=0.05, hspace=)
 
         for i, (ebands, edos) in enumerate(zip(ebands_list, edos_list)):
             subgrid = GridSpecFromSubplotSpec(1, 2, subplot_spec=gspec[i], width_ratios=[2, 1])
+            #subgrid.update(wspace=0.05, hspace=)
             # Get axes and align bands and DOS.
             ax1 = plt.subplot(subgrid[0])
             ax2 = plt.subplot(subgrid[1], sharey=ax1)
@@ -1937,6 +1927,7 @@ class ElectronBandsPlotter(object):
         # Build grid of plots.
         if self.edoses_dict:
             gspec = GridSpec(1, 2, width_ratios=[2, 1])
+            gspec.update(wspace=0.05)
             ax1 = plt.subplot(gspec[0])
             # Align bands and DOS.
             ax2 = plt.subplot(gspec[1], sharey=ax1)
@@ -2335,6 +2326,8 @@ class ElectronDOS(object):
         self.tot_idos = self.tot_dos.integral()
 
         #self.fermie = self.find_mu(self.nelect)
+        self.fermie = self.find_mu(8)
+        print("Dos fermie:", self.fermie)
 
     @classmethod
     def as_edos(cls, obj, edos_kwargs):
@@ -2392,8 +2385,7 @@ class ElectronDOS(object):
         # Cannot use bisection because DOS might be negative due to smearing.
         # This one is safer albeit slower.
         for i, (ene, intg) in enumerate(idos):
-            if intg > nelect:
-                break
+            if intg > nelect: break
         else:
             raise ValueError("Cannot find I(e) such that I(e) > nelect")
 
@@ -2450,6 +2442,7 @@ class ElectronDOS(object):
         from matplotlib.gridspec import GridSpec
 
         gspec = GridSpec(2, 1, height_ratios=[1, 2])
+        gspec.update(wspace=0.05)
         ax1 = plt.subplot(gspec[0])
         ax2 = plt.subplot(gspec[1])
 
@@ -2466,7 +2459,6 @@ class ElectronDOS(object):
 
         fig = plt.gcf()
         return fig
-
 
 
 class ElectronDOSPlotter(object):
@@ -2604,6 +2596,7 @@ def ebands_animate(eb_objects, edos_objects=None, edos_kwargs=None,
         # Animation with band structures + DOS.
         from matplotlib.gridspec import GridSpec
         gspec = GridSpec(1, 2, width_ratios=[2, 1])
+        gspec.update(wspace=0.05)
         ax1 = plt.subplot(gspec[0])
         ax2 = plt.subplot(gspec[1], sharey=ax1)
         ebands_list[0].decorate_ax(ax1)

@@ -7,7 +7,7 @@ from abipy.abilab import abiopen, ElectronDosPlotter
 
 # Open the wavefunction file computed with a homogeneous sampling of the BZ 
 # and extract the band structure on the k-mesh.
-with abiopen(abidata.ref_file("si_scf_WFK-etsf.nc")) as gs_wfk:
+with abiopen(abidata.ref_file("si_scf_WFK.nc")) as gs_wfk:
     gs_bands = gs_wfk.ebands
 
 # Compute the DOS with the Gaussian method.

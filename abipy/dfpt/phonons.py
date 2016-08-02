@@ -919,6 +919,7 @@ class PhononBands(object):
         if axlist is None:
             # Build axes and align bands and DOS.
             gspec = GridSpec(1, 2, width_ratios=[2, 1])
+            gspec.update(wspace=0.05)
             ax1 = plt.subplot(gspec[0])
             ax2 = plt.subplot(gspec[1], sharey=ax1)
         else:
@@ -1189,6 +1190,7 @@ class PhononDos(Function1D):
         from matplotlib.gridspec import GridSpec
 
         gspec = GridSpec(2, 1, height_ratios=[1, 2])
+        gspec.update(wspace=0.05)
         ax1 = plt.subplot(gspec[0])
         ax2 = plt.subplot(gspec[1])
 
@@ -1492,9 +1494,11 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
         from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
         fig = plt.figure()
         gspec = GridSpec(nrows, ncols)
+        #gspec.update(wspace=0.05, hspace=)
 
         for i, (phbands, phdos) in enumerate(zip(phbands_list, phdos_list)):
             subgrid = GridSpecFromSubplotSpec(1, 2, subplot_spec=gspec[i], width_ratios=[2, 1])
+            #subgrid.update(wspace=0.05, hspace=)
             # Get axes and align bands and DOS.
             ax1 = plt.subplot(subgrid[0])
             ax2 = plt.subplot(subgrid[1], sharey=ax1)
@@ -1655,6 +1659,7 @@ class PhononBandsPlotter(object):
         # Build grid of plots.
         if self.phdoses_dict:
             gspec = GridSpec(1, 2, width_ratios=[2, 1])
+            gspec.update(wspace=0.05)
             ax1 = plt.subplot(gspec[0])
             # Align bands and DOS.
             ax2 = plt.subplot(gspec[1], sharey=ax1)
