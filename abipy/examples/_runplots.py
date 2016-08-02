@@ -51,6 +51,7 @@ def revert_backend():
     if BKP_FILE is not None:
         shutil.move(BKP_FILE, CONF_FILE)
 
+
 def str_examples():
     examples = """
       Usage example:\n\n
@@ -58,6 +59,7 @@ def str_examples():
       _runplots.py -m auto -t 5  => Run all scripts, kill the process after 5 seconds.
     """
     return examples
+
 
 def show_examples_and_exit(err_msg=None, error_code=1):
     """Display the usage of the script."""
@@ -118,6 +120,7 @@ def main():
 
     revert_backend()
     return retcode
+
 
 if __name__ == "__main__":
     sys.exit(main())

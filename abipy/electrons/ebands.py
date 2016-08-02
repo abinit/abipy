@@ -726,7 +726,7 @@ class ElectronBands(object):
 
         stream.flush()
 
-    def to_pdframe(self, zero_at_efermi=True):
+    def to_pdframe(self, e0="fermie"):
         """
         Return a pandas DataFrame with the following columns:
 
@@ -746,12 +746,15 @@ class ElectronBands(object):
         ==============  ==========================
 
         Args:
-            zero_at_efermi: Whether to shift all eigenvalues to have zero energy at the
-                Fermi energy. Defaults to True. The Fermi energy is saved in frame.fermie
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
+                The Fermi energy is saved in frame.fermie
         """
         import pandas as pd
         rows = []
-        e0 = self.fermie if zero_at_efermi else 0.0
+        e0 = self._get_e0(e0)
         for spin in self.spins:
             for k, kpoint in enumerate(self.kpoints):
                 for band in range(self.nband_sk[spin,k]):
@@ -769,20 +772,23 @@ class ElectronBands(object):
         frame.fermie = e0
         return frame
 
-    def boxplot(self, zero_at_efermi=True, brange=None, swarm=False, **kwargs):
+    def boxplot(self, e0="fermie", brange=None, swarm=False, **kwargs):
         """
         Use seaborn to draw a box plot to show distributions of eigenvalues with respect
         to the band index.
 
         Args:
-            zero_at_efermi: Whether to shift all eigenvalues to have zero energy at the
-                Fermi energy. Defaults to True.
+        Args:
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
             brange: Only bands such as `brange[0] <= band_index < brange[1]` are included in the plot.
             swarm: True to show the datapoints on top of the boxes
             kwargs: Keywork arguments passed to seaborn boxplot.
         """
         # Get the dataframe and select bands
-        frame = self.to_pdframe(zero_at_efermi=zero_at_efermi)
+        frame = self.to_pdframe(e0=e0)
         if brange is not None: frame = frame[brange[0] <= frame["band"] < brange[1]]
 
         import seaborn as sns
@@ -792,7 +798,7 @@ class ElectronBands(object):
             ax = sns.swarmplot(x="band", y="eig", data=frame, hue=hue, color=".25")
 
     def plot_diff_boxes(self, other, self_name="self", other_name="other",
-                        zero_at_efermi=True, brange=None, swarm=False, **kwargs):
+                        brange=None, swarm=False, **kwargs):
         """
         Use seaborn to draw a box plot comparing the distributions of the eigenvalues
         in two electron bands.
@@ -801,8 +807,6 @@ class ElectronBands(object):
             other: :class:`ElectronBands` object.
             self_name: Name used to label the first band structure
             other_name: Name used to label the second band structure
-            zero_at_efermi: Whether to shift all eigenvalues to have zero energy at the
-                Fermi energy. Defaults to True.
             brange: Only bands such as `brange[0] <= band_index < brange[1]` are included in the plot.
             swarm: True to show the datapoints on top of the boxes
             kwargs: Keywork arguments passed to seaborn boxplot.
@@ -814,11 +818,12 @@ class ElectronBands(object):
             raise ValueError("self_name cannot be equal to other_name")
 
         # Get the dataframe from self, select bands and add column with self_name
-        frame1 = self.to_pdframe(zero_at_efermi=zero_at_efermi)
+        e0 = 0.0
+        frame1 = self.to_pdframe(e0=e0)
         if brange is not None: frame1 = frame1[brange[0] <= frame1["band"] < brange[1]]
         frame1["name"] = self_name
         # Get the dataframe from other, select bands and add columns with other_name
-        frame2 = other.to_pdframe(zero_at_efermi=zero_at_efermi)
+        frame2 = other.to_pdframe(e0=e0)
         if brange is not None: frame2 = frame2[brange[0] <= frame2["band"] < brange[1]]
         frame2["name"] = other_name
 
@@ -1148,8 +1153,7 @@ class ElectronBands(object):
 
         return ElectronDos(mesh, dos, self.nelect)
 
-    def get_ejdos(self, spin, valence, conduction, #zero_at_efermi=True,
-                  method="gaussian", step=0.1, width=0.2, mesh=None):
+    def get_ejdos(self, spin, valence, conduction, method="gaussian", step=0.1, width=0.2, mesh=None):
         """
         Compute the join density of states at q==0
             :math:`\sum_{kbv} f_{vk} (1 - f_{ck}) \delta(\omega - E_{ck} - E_{vk})`
@@ -1158,8 +1162,6 @@ class ElectronBands(object):
             spin: Spin index.
             valence: Int or iterable with the valence indices.
             conduction: Int or iterable with the conduction indices.
-            zero_at_efermi: Whether to shift all eigenvalues to have zero energy at the
-                Fermi energy. Defaults to True.
             method: String defining the method.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
@@ -1223,16 +1225,13 @@ class ElectronBands(object):
         return Function1D(mesh, jdos)
 
     @add_fig_kwargs
-    def plot_ejdosvc(self, vrange, crange, #zero_at_efermi=True,
-                     method="gaussian", step=0.1, width=0.2, cumulative=True, **kwargs):
+    def plot_ejdosvc(self, vrange, crange, method="gaussian", step=0.1, width=0.2, cumulative=True, **kwargs):
         """
         Plot the decomposition of the joint-density of States (JDOS).
 
         Args:
             vrange: Int or `Iterable` with the indices of the valence bands to consider.
             crange: Int or `Iterable` with the indices of the conduction bands to consider.
-            zero_at_efermi: Whether to shift all eigenvalues to have zero energy at the
-                Fermi energy. Defaults to True.
             method: String defining the method.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
@@ -1317,13 +1316,13 @@ class ElectronBands(object):
                     qp_energies[spin,k,band] = qp_ene
 
         # Change the energies (NB: occupations and fermie are left unchanged).
+        #fermie = self.fermie + scissors[0].apply(self.fermie)
         return ElectronBands(
             self.structure, self.kpoints, qp_energies, self.fermie, self.occfacts, self.nelect,
             nband_sk=self.nband_sk, smearing=self.smearing, markers=self.markers)
 
     @add_fig_kwargs
-    def plot(self, ax=None, klabels=None, band_range=None, #zero_at_efermi=True,
-             marker=None, width=None, **kwargs):
+    def plot(self, ax=None, klabels=None, band_range=None, e0="fermie", marker=None, width=None, **kwargs):
         """
         Plot the band structure.
 
@@ -1333,8 +1332,10 @@ class ElectronBands(object):
                 coordinates of the k-points. The values are the labels. e.g.
                 klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0):"L"}.
             band_range: Tuple specifying the minimum and maximum band to plot (default: all bands are plotted)
-            zero_at_efermi: Whether to shift all eigenvalues to have zero energy at the
-                Fermi energy. Defaults to True.
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
             marker: String defining the marker to plot. Accepts the syntax `markername:fact` where
                 fact is a float used to scale the marker size.
             width: String defining the width to plot. Accepts the syntax widthname:fact where
@@ -1362,7 +1363,7 @@ class ElectronBands(object):
                 opts = {"color": "red", "linewidth": 2.0}
 
             for band in band_range:
-                self.plot_ax(ax, spin=spin, band=band, **opts)
+                self.plot_ax(ax, e0, spin=spin, band=band, **opts)
 
         # Add markers to the plot.
         if marker is not None:
@@ -1373,7 +1374,7 @@ class ElectronBands(object):
                 fact = 1
             fact = float(fact)
 
-            self.plot_marker_ax(ax, key, fact=fact)
+            self.plot_marker_ax(ax, key, e0, fact=fact)
 
         # Plot fatbands.
         if width is not None:
@@ -1383,21 +1384,23 @@ class ElectronBands(object):
                 key = width
                 fact = 1
 
-            self.plot_width_ax(ax, key, fact=fact)
+            self.plot_width_ax(ax, key, e0, fact=fact)
 
         return fig
 
     @add_fig_kwargs
-    def plot_fatbands(self, klabels=None, #zero_at_efermi=True,
-                      **kwargs):  #colormap="jet", max_stripe_width_mev=3.0, qlabels=None, **kwargs):
+    def plot_fatbands(self, klabels=None, e0="fermie", **kwargs):
+        #colormap="jet", max_stripe_width_mev=3.0, qlabels=None, **kwargs):
         """
         Plot the electronic fatbands.
 
         Args:
             klabels: Dictionary whose keys are tuple with the reduced coordinates of the k-points.
                 The values are the labels. e.g. ~klabels = { (0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L" }`.
-            zero_at_efermi: Whether to shift all eigenvalues to have zero energy at the
-                Fermi energy. Defaults to True.
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
             band_range: Tuple specifying the minimum and maximum band to plot (default: all bands are plotted)
             width: String defining the width to plot. accepts the syntax widthname:fact where
                 fact is a float used to scale the stripe size.
@@ -1420,10 +1423,9 @@ class ElectronBands(object):
             self.decorate_ax(ax, klabels=klabels, title=key)
 
             # Plot the energies.
-            self.plot_ax(ax)
-
+            self.plot_ax(ax, e0)
             # Add width around each band.
-            self.plot_width_ax(ax, key)
+            self.plot_width_ax(ax, key, e0)
 
         return fig
 
@@ -1443,32 +1445,37 @@ class ElectronBands(object):
 
         # Set ticks and labels.
         ticks, labels = self._make_ticks_and_labels(kwargs.pop("klabels", None))
-
         if ticks:
             ax.set_xticks(ticks, minor=False)
             ax.set_xticklabels(labels, fontdict=None, minor=False)
 
     def _get_e0(self, e0):
+        """
+        e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
+        """
         if e0 is None:
-            return 0
+            return 0.0
         elif is_string(e0):
-            if e0 not in ("fermie",):
+            if e0 == "fermie":
+                return self.fermie
+            else:
                 raise ValueError("Wrong value for e0: %s" % e0)
-            if e0 == "fermie": e0 = self.fermie
-            return e0
         else:
+            # Assume number
             return e0
 
-    def plot_ax(self, ax, spin=None, band=None, #zero_at_efermi=True,
-                **kwargs):
+    def plot_ax(self, ax, e0, spin=None, band=None, **kwargs):
         """
-        Helper function to plot the energies for (spin,band) on the axis ax.
+        Helper function to plot the energies for (spin, band) on the axis ax.
 
         Args:
+            ax: Matplotlib axis.
+            e0: Option used to define the zero of energy in the band structure plot.
             spin: Spin index. If None, all spins are plotted.
             band: Band index, If None, all bands are plotted.
-            zero_at_efermi: Whether to shift all eigenvalues to have zero energy at the
-                Fermi energy. Defaults to True.
 
         Return matplotlib lines
         """
@@ -1480,8 +1487,7 @@ class ElectronBands(object):
             kwargs["label"] = "_no_legend_" # Actively suppress.
 
         xx, lines = range(self.nkpt), []
-        # fermie is the energy zero
-        e0 = self.fermie
+        e0 = self._get_e0(e0)
         for spin in spin_range:
             for band in band_range:
                 yy = self.eigens[spin,:,band] - e0
@@ -1489,14 +1495,12 @@ class ElectronBands(object):
 
         return lines
 
-    def plot_width_ax(self, ax, key, spin=None, band=None,  #zero_at_efermi=True,
-                      fact=1.0, **kwargs):
+    def plot_width_ax(self, ax, key, e0, spin=None, band=None, fact=1.0, **kwargs):
         """
         Helper function to plot fatbands for the given (spin,band) on the axis ax.
 
         Args:
-            zero_at_efermi: Whether to shift all eigenvalues to have zero energy at the
-                Fermi energy. Defaults to True.
+            e0: Option used to define the zero of energy in the band structure plot.
         """
         spin_range = range(self.nsppol) if spin is None else [spin]
         band_range = range(self.mband) if band is None else [band]
@@ -1506,28 +1510,28 @@ class ElectronBands(object):
 
         x, width = range(self.nkpt), fact * self.widths[key]
 
+        e0 = self._get_e0(e0)
         for spin in spin_range:
             for band in band_range:
-                y, w = self.eigens[spin,:,band], width[spin,:,band] * fact
+                y, w = self.eigens[spin,:,band] - e0, width[spin,:,band] * fact
                 ax.fill_between(x, y-w/2, y+w/2, facecolor=facecolor, alpha=alpha)
 
-    def plot_marker_ax(self, ax, key, fact=1.0): # zero_at_efermi
+    def plot_marker_ax(self, ax, key, e0, fact=1.0):
         """
         Helper function to plot the markers on the axes ax.
 
         Args:
-            zero_at_efermi: Whether to shift all eigenvalues to have zero energy at the
-                Fermi energy. Defaults to True.
+            e0: Option used to define the zero of energy in the band structure plot.
         """
         pos, neg = self.markers[key].posneg_marker()
+        e0 = self._get_e0(e0)
 
-        # Use different symbols depending on the value of s.
-        # Cannot use negative s.
+        # Use different symbols depending on the value of s. Cannot use negative s.
         if pos:
-            ax.scatter(pos.x, pos.y, s=np.abs(pos.s)*fact, marker="^", label=key + " >0")
+            ax.scatter(pos.x, pos.y - e0, s=np.abs(pos.s)*fact, marker="^", label=key + " >0")
 
         if neg:
-            ax.scatter(neg.x, neg.y, s=np.abs(neg.s)*fact, marker="v", label=key + " <0")
+            ax.scatter(neg.x, neg.y - e0, s=np.abs(neg.s)*fact, marker="v", label=key + " <0")
 
     def _make_ticks_and_labels(self, klabels):
         """Return ticks and labels from the mapping qlabels."""
@@ -1546,8 +1550,7 @@ class ElectronBands(object):
         return list(d.keys()), list(d.values())
 
     @add_fig_kwargs
-    def plot_with_edos(self, dos, klabels=None, axlist=None, #zero_at_efermi,
-                       **kwargs):
+    def plot_with_edos(self, dos, klabels=None, axlist=None, e0="fermie", **kwargs):
         """
         Plot the band structure and the DOS.
 
@@ -1557,8 +1560,16 @@ class ElectronBands(object):
                 The values are the labels. e.g. `klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}`.
             axlist: The axes for the bandstructure plot and the DOS plot. If axlist is None, a new figure
                 is created and the two axes are automatically generated.
-            zero_at_efermi: Whether to shift all eigenvalues to have zero energy at the
-                Fermi energy. Defaults to True.
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
+                   Note that, by default, the Fermi energy is taken from the band structure object
+                   i.e. the Fermi energy computed at the end of the SCF file that produced the density.
+                   This should be ok in semiconductors. In metals, however, a better value of the Fermi energy
+                   can be obtained from the DOS provided that the k-sampling for the DOS is much denser than
+                   the one used to compute the density. See `edos_fermie`.
+                - `edos_fermie`: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
 
         Returns:
             `matplotlib` figure.
@@ -1576,28 +1587,30 @@ class ElectronBands(object):
             # Take them from axlist.
             ax1, ax2 = axlist
 
-        if not kwargs:
-            kwargs = {"color": "black", "linewidth": 2.0}
+        # Define the zero of energy.
+        e0 = self._get_e0(e0) if e0 != "edos_fermie" else dos.fermie
+        if not kwargs: kwargs = {"color": "black", "linewidth": 2.0}
 
         # Plot the band structure
         for spin in self.spins:
             for band in range(self.mband):
-                self.plot_ax(ax1, spin=spin, band=band, **kwargs)
+                self.plot_ax(ax1, e0, spin=spin, band=band, **kwargs)
 
         self.decorate_ax(ax1, klabels=klabels)
 
-        emin = np.min(self.eigens)
-        emin -= 0.05 * abs(emin)
-        emax = np.max(self.eigens)
-        emax += 0.05 * abs(emax)
-        ax1.yaxis.set_view_interval(emin, emax)
-
         # Plot the DOS
-        dos.plot_ax(ax2, exchange_xy=True, **kwargs)
-
+        dos.plot_ax(ax2, e0, exchange_xy=True, **kwargs)
         ax2.grid(True)
         ax2.yaxis.set_ticks_position("right")
         ax2.yaxis.set_label_position("right")
+
+        # commented because it does not work!
+        #emin = np.min(self.eigens)
+        #emin -= 0.01 * abs(emin)
+        #emax = np.max(self.eigens)
+        #emax += 0.01 * abs(emax)
+        #for ax in (ax1, ax2):
+        #    ax.yaxis.set_view_interval(emin, emax)
 
         fig = plt.gcf()
         return fig
@@ -1655,7 +1668,9 @@ class ElectronBands(object):
         return Visualizer.from_file(filepath)
 
     def derivatives(self, spin, band, order=1, acc=4, asmarker=None):
-        """Compute the derivative of the eigenvalues along the path."""
+        """
+        Compute the derivative of the eigenvalues along the path.
+        """
         if self.has_bzpath:
             # Extract the branch.
             branch = self.eigens[spin,:,band]
@@ -1690,8 +1705,7 @@ class ElectronBands(object):
 
 
 @add_fig_kwargs
-def ebands_gridplot(eb_objects, titles=None, edos_objects=None, edos_kwargs=None, #zero_at_efermi=True,
-                     **kwargs):
+def ebands_gridplot(eb_objects, titles=None, edos_objects=None, edos_kwargs=None, e0="fermie", **kwargs):
     """
     Plot multiple electron bandstructures and optionally DOSes on a grid.
 
@@ -1707,8 +1721,17 @@ def ebands_gridplot(eb_objects, titles=None, edos_objects=None, edos_kwargs=None
             List of strings with the titles to be added to the subplots.
         edos_kwargs: optional dictionary with the options passed to `get_edos` to compute the electron DOS.
             Used only if `edos_objects` is not None.
-        zero_at_efermi: Whether to shift all eigenvalues to have zero energy at the
-            Fermi energy. Defaults to True.
+        e0: Option used to define the zero of energy in the band structure plot. Possible values:
+            - `fermie`: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
+               Note that, by default, the Fermi energy is taken from the band structure object
+               i.e. the Fermi energy computed at the end of the SCF file that produced the density.
+               This should be ok in semiconductors. In metals, however, a better value of the Fermi energy
+               can be obtained from the DOS provided that the k-sampling for the DOS is much denser than
+               the one used to compute the density. See `dos_fermie`.
+            - `dos_fermie`: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
+               Available only if edos_objects is not None
+            -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+            -  None: Don't shift energies, equivalent to e0=0
 
     Returns:
         matplotlib figure.
@@ -1739,9 +1762,11 @@ def ebands_gridplot(eb_objects, titles=None, edos_objects=None, edos_kwargs=None
         if numeb % ncols != 0: axes[-1].axis("off")
 
         for i, (ebands, ax) in enumerate(zip(ebands_list, axes)):
-            ebands.plot(ax=ax, show=False)
-            if i > 0: ax.yaxis.set_visible(False)
+            ebands.plot(ax=ax, e0=e0, show=False)
             if titles is not None: ax.set_title(titles[i])
+            if i % ncols != 0:
+                ax.set_ylabel("")
+
     else:
         # Plot grid with bands + DOS
         # see http://matplotlib.org/users/gridspec.html
@@ -1751,14 +1776,19 @@ def ebands_gridplot(eb_objects, titles=None, edos_objects=None, edos_kwargs=None
         #gspec.update(wspace=0.05, hspace=)
 
         for i, (ebands, edos) in enumerate(zip(ebands_list, edos_list)):
-            subgrid = GridSpecFromSubplotSpec(1, 2, subplot_spec=gspec[i], width_ratios=[2, 1])
-            #subgrid.update(wspace=0.05, hspace=)
+            subgrid = GridSpecFromSubplotSpec(1, 2, subplot_spec=gspec[i], width_ratios=[2, 1], wspace=0.05)
             # Get axes and align bands and DOS.
             ax1 = plt.subplot(subgrid[0])
             ax2 = plt.subplot(subgrid[1], sharey=ax1)
-            ebands.plot_with_edos(edos, axlist=(ax1, ax2), show=False)
-            if i > 0: ax1.yaxis.set_visible(False)
+
+            # Define the zero of energy and plot
+            e0 = ebands._get_e0(e0) if e0 != "edos_fermie" else edos.fermie
+            ebands.plot_with_edos(edos, e0=e0, axlist=(ax1, ax2), show=False)
+
             if titles is not None: ax1.set_title(titles[i])
+            if i % ncols != 0:
+                for ax in (ax1, ax2):
+                    ax.set_ylabel("")
 
     return fig
 
@@ -1841,25 +1871,6 @@ class ElectronBandsPlotter(object):
         if dos is not None:
             self.edoses_dict[label] = dos
 
-    #def add_ebands_list(self, labels, bands_list, dos_list=None):
-    #    """
-    #    Add a list of Bands and DOSes.
-
-    #    Args:
-    #        labels: List of labels.
-    #        bands_list: List of :class:`ElectronBands` objects.
-    #        dos_list: List of :class:`ElectronDos` objects.
-    #    """
-    #    assert len(labels) == len(bands_list)
-
-    #    if dos_list is None:
-    #        for label, bands in zip(labels, bands_list):
-    #            self.add_ebands(label, bands)
-    #    else:
-    #        assert len(dos_list) == len(bands_list)
-    #        for label, bands, dos in zip(labels, bands_list, dos_list):
-    #            self.add_ebands(label, bands, dos=dos)
-
     def bands_statdiff(self, ref=0):
         """
         Compare the reference bands with index ref with the other bands stored in the plotter.
@@ -1907,16 +1918,17 @@ class ElectronBandsPlotter(object):
             self._markers[key] = Marker(*xys)
 
     @add_fig_kwargs
-    def plot(self, klabels=None, #zero_at_efermi=True,
-             **kwargs):
+    def plot(self, klabels=None, e0="fermie", **kwargs):
         """
         Plot the band structure and the DOS.
 
         Args:
             klabels: dictionary whose keys are tuple with the reduced coordinates of the k-points.
                 The values are the labels e.g. klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
-            zero_at_efermi: Whether to shift all eigenvalues to have zero energy at the
-                Fermi energy. Defaults to True.
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
 
         ==============  ================================================================
         kwargs          Meaning
@@ -1968,11 +1980,11 @@ class ElectronBandsPlotter(object):
                 fermie = bands.fermie
                 bands_shifted = copy.deepcopy(bands)
                 bands_shifted._eigens = bands_shifted._eigens - fermie
-                l = bands_shifted.plot_ax(ax1, spin=None, band=None, **my_kwargs)
+                l = bands_shifted.plot_ax(ax1, e0=0.0, spin=None, band=None, **my_kwargs)
             else:
                 if align is not None:
                     raise ValueError('values other than cbm, are not implemented for align')
-                l = bands.plot_ax(ax1, spin=None, band=None, **my_kwargs)
+                l = bands.plot_ax(ax1, e0, spin=None, band=None, **my_kwargs)
 
             lines.append(l[0])
 
@@ -2007,15 +2019,15 @@ class ElectronBandsPlotter(object):
                 if align == 'cbm':
                     dos_shifted = copy.deepcopy(dos)
                     dos_shifted.tot_dos._mesh = dos_shifted.tot_dos._mesh - fermie
-                    dos_shifted.plot_ax(ax, exchange_xy=True, **opts_label[label])
+                    dos_shifted.plot_ax(ax, e0=0.0, exchange_xy=True, **opts_label[label])
                 else:
                     if align is not None:
                         raise ValueError('values other than cbm, are not implemented for align')
-                    dos.plot_ax(ax, exchange_xy=True, **opts_label[label])
+                    dos.plot_ax(ax, e0, exchange_xy=True, **opts_label[label])
 
         return fig
 
-    def gridplot(self, titles=None, edos_kwargs=None): # zero_at_efermi
+    def gridplot(self, titles=None, edos_kwargs=None, e0="fermie"):
         """
         Plot electron bands on a grid.
 
@@ -2023,17 +2035,19 @@ class ElectronBandsPlotter(object):
             titles: Titles of subplots.
             edos_kwargs: optional dictionary with the options passed to `get_edos` to compute the electron DOS.
                 Used only if the plotter contains dos objects.
-            zero_at_efermi: Whether to shift all eigenvalues to have zero energy at the
-                Fermi energy. Defaults to True.
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
         """
         if titles is None:
             titles = list(self.bands_dict.keys())
 
         if not self.edoses_dict:
-            return ebands_gridplot(list(self.bands_dict.values()), titles=titles)
+            return ebands_gridplot(list(self.bands_dict.values()), titles=titles, e0=e0)
         else:
             return ebands_gridplot(list(self.bands_dict.values()), titles=titles,
-                                   edos_objects=list(self.edoses_dict.values()), edos_kwargs=edos_kwargs)
+                                   edos_objects=list(self.edoses_dict.values()), edos_kwargs=edos_kwargs, e0=e0)
 
 
 class ElectronDosPlotter(object):
@@ -2099,12 +2113,16 @@ class ElectronDosPlotter(object):
         self._edoses_dict[label] = edos
 
     @add_fig_kwargs
-    def plot(self, ax=None, **kwargs):
+    def plot(self, ax=None, e0="fermie", **kwargs):
         """
-        Plot the band structure and the DOS.
+        Plot the the DOSes.
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
 
         Returns:
             `matplotlib` figure.
@@ -2114,7 +2132,7 @@ class ElectronDosPlotter(object):
         for label, dos in self.edoses_dict.items():
             # Use relative paths if label is a file.
             if os.path.isfile(label): label = os.path.relpath(label)
-            dos.plot_ax(ax, label=label)
+            dos.plot_ax(ax, e0, label=label)
 
         ax.grid(True)
         ax.set_xlabel("Energy [eV]")
@@ -2337,9 +2355,8 @@ class ElectronDos(object):
         self.tot_dos = Function1D(mesh, sumv)
         self.tot_idos = self.tot_dos.integral()
 
-        print(self.nelect)
-        fermie = self.find_mu(self.nelect)
-        print("Dos fermie (from nelect):", fermie)
+        self.fermie = self.find_mu(self.nelect)
+        print("Dos fermie: %s (from nelect %s):" % (self.fermie, self.nelect))
 
     @classmethod
     def as_edos(cls, obj, edos_kwargs):
@@ -2410,12 +2427,31 @@ class ElectronDos(object):
         else:
             raise RuntimeError("Cannot find mu, try to increase num and/or atol")
 
-    def plot_ax(self, ax, spin=None, what="d", exchange_xy=False, *args, **kwargs):
+    def _get_e0(self, e0):
         """
-        Helper function to plot the data on the axis ax.
+        e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
+        """
+        if e0 is None:
+            return 0.0
+        elif is_string(e0):
+            if e0 == "fermie":
+                return self.fermie
+            else:
+                raise ValueError("Wrong value for e0: %s" % e0)
+        else:
+            # Assume number
+            return e0
+
+    def plot_ax(self, ax, e0, spin=None, what="d", exchange_xy=False, **kwargs):
+        """
+        Helper function to plot the DOS data on the axis ax.
 
         Args:
             ax: matplotlib axis.
+            e0: Option used to define the zero of energy in the band structure plot.
             spin: selects the spin component, None for total DOS, IDOS.
             what: string selecting what will be plotted:
                   "d" for DOS, "i" for IDOS. chars can be concatenated
@@ -2428,23 +2464,28 @@ class ElectronDos(object):
             list of lines added to the axis.
         """
         dosf, idosf = self.dos_idos(spin=spin)
-
         opts = [c.lower() for c in what]
 
+        e0 = self._get_e0(e0)
         lines = []
         for c in opts:
             if c == "d": f = dosf
             if c == "i": f = idosf
-            ls = f.plot_ax(ax, exchange_xy=exchange_xy, *args, **kwargs)
-            lines.extend(ls)
+            xx, yy = f.mesh - e0, f.values
+            if exchange_xy: xx, yy = yy, xx
+            lines.extend(ax.plot(xx, yy, **kwargs))
         return lines
 
     @add_fig_kwargs
-    def plot(self, spin=None, **kwargs):
+    def plot(self, e0="fermie", spin=None, **kwargs):
         """
         Plot DOS and IDOS.
 
         Args:
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
             spin: Selects the spin component, None if total DOS is wanted.
 
         Returns:
@@ -2466,8 +2507,8 @@ class ElectronDos(object):
         ax1.set_ylabel("TOT IDOS" if spin is None else "IDOS (spin %s)" % spin)
         ax2.set_ylabel("TOT DOS" if spin is None else "DOS (spin %s)" % spin)
 
-        self.plot_ax(ax1, spin=spin, what="i", **kwargs)
-        self.plot_ax(ax2, spin=spin, what="d", **kwargs)
+        self.plot_ax(ax1, e0, spin=spin, what="i", **kwargs)
+        self.plot_ax(ax2, e0, spin=spin, what="d", **kwargs)
 
         fig = plt.gcf()
         return fig
@@ -2510,12 +2551,16 @@ class ElectronDOSPlotter(object):
             self.add_dos(label, dos_dict[label])
 
     @add_fig_kwargs
-    def plot(self, ax=None, *args, **kwargs):
+    def plot(self, ax=None, e0="fermie", **kwargs):
         """
         Get a matplotlib plot showing the DOSes.
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            e0: Option used to define the zero of energy in the DOS plot. Possible values:
+                - `fermie`: shift the DOS to have zero energy at the Fermi energy (`edos.fermie`).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -2538,8 +2583,7 @@ class ElectronDOSPlotter(object):
 
         lines, legends = [], []
         for label, dos in self._doses.items():
-            l = dos.plot_ax(ax, *args, **kwargs)[0]
-
+            l = dos.plot_ax(ax, e0, **kwargs)[0]
             lines.append(l)
             legends.append("DOS: %s" % label)
 
@@ -2549,7 +2593,7 @@ class ElectronDOSPlotter(object):
         return fig
 
 
-def ebands_animate(eb_objects, edos_objects=None, edos_kwargs=None,
+def ebands_animate(eb_objects, edos_objects=None, edos_kwargs=None, e0="fermie",
                    interval=250, savefile=None, show=True):
     """
     Use matplotlib animate module to animate a list of band structure plots (with or without DOS).
@@ -2562,6 +2606,14 @@ def ebands_animate(eb_objects, edos_objects=None, edos_kwargs=None,
             List of objects from which the electron DOSes are extracted.
             Accept filepaths or :class:`ElectronDos` objects. If edos_objects is not None,
             the animation will show a band structure with DOS else a simple (animated) bandstructure plot.
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
+                   Note that, by default, the Fermi energy is taken from the band structure object
+                   i.e. the Fermi energy computed at the end of the SCF file that produced the density.
+                   See `edos_fermie`.
+                - `edos_fermie`: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
         interval: draws a new frame every interval milliseconds.
         edos_kwargs: optional dictionary with the options passed to `get_edos` to compute the electron DOS.
             Used only if `edos_objects` is not None.
@@ -2600,7 +2652,7 @@ def ebands_animate(eb_objects, edos_objects=None, edos_kwargs=None,
         ax = fig.add_subplot(1, 1, 1)
         ebands_list[0].decorate_ax(ax)
         for i, ebands in enumerate(ebands_list):
-            lines = ebands.plot_ax(ax, **plotax_kwargs)
+            lines = ebands.plot_ax(ax, e0, **plotax_kwargs)
             #if titles is not None:
             #    lines += [ax.set_title(titles[i])]
             artists.append(lines)
@@ -2617,8 +2669,10 @@ def ebands_animate(eb_objects, edos_objects=None, edos_kwargs=None,
         ax2.yaxis.set_label_position("right")
 
         for i, (ebands, edos) in enumerate(zip(ebands_list, edos_list)):
-            ebands_lines = ebands.plot_ax(ax1, **plotax_kwargs)
-            edos_lines = edos.plot_ax(ax2, exchange_xy=True, **plotax_kwargs)
+            # Define the zero of energy to align bands and dos
+            e0 = ebands._get_e0(e0) if e0 != "edos_fermie" else edos.fermie
+            ebands_lines = ebands.plot_ax(ax1, e0, **plotax_kwargs)
+            edos_lines = edos.plot_ax(ax2, e0, exchange_xy=True, **plotax_kwargs)
             lines = ebands_lines + edos_lines
             #if titles is not None:
             #    lines += [ax.set_title(titles[i])]

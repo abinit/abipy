@@ -20,10 +20,6 @@ with abiopen(abidata.ref_file("si_scf_GSR.nc")) as gs_file:
 # the broadening and the linear mesh step.
 edos = gs_ebands.get_edos()
 
-print("nscf_ebands.efermi", nscf_ebands.fermie)
-print("gs_ebands.efermi", gs_ebands.fermie)
-
-
 # Define the mapping reduced_coordinates -> name of the k-point.
 klabels = {
     (0.5,  0.0,  0.0) : "L",
@@ -32,4 +28,7 @@ klabels = {
 }
 
 # Plot bands and DOS.
-nscf_ebands.plot_with_edos(edos, klabels=klabels)
+nscf_ebands.plot_with_edos(edos, klabels=klabels, e0=None)
+
+print("nscf_ebands.efermi", nscf_ebands.fermie)
+print("gs_ebands.efermi", gs_ebands.fermie)

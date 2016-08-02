@@ -1,10 +1,11 @@
 #!/usr/bin/env python
-#
-# This example shows how to generate an energy-dependent scissors operator
-# by fitting the GW QPState corrections as function of the KS eigenvalues
-# We then use the scissors operator to correct the KS band structure 
-# computed on a high symmetry k-path. Finally, the LDA and the QPState band
-# structure are plotted with matplotlib.
+"""
+This example shows how to generate an energy-dependent scissors operator
+by fitting the GW QPState corrections as function of the KS eigenvalues
+We then use the scissors operator to correct the KS band structure
+computed on a high symmetry k-path. Finally, the LDA and the QPState band
+structure are plotted with matplotlib.
+"""
 import abipy.data as abidata
 from abipy.abilab import abiopen, ElectronBandsPlotter
 
@@ -26,8 +27,8 @@ ks_bands = abiopen(abidata.ref_file("si_nscf_GSR.nc")).ebands
 ks_mpbands = abiopen(abidata.ref_file("si_scf_GSR.nc")).ebands
 ks_dos = ks_mpbands.get_edos()
 
-# Apply the scissors operator first on the KS band structure 
-# along the k-path then on the energies computed with the MP mesh. 
+# Apply the scissors operator first on the KS band structure
+# along the k-path then on the energies computed with the MP mesh.
 qp_bands = ks_bands.apply_scissors(scissors)
 
 qp_mpbands = ks_mpbands.apply_scissors(scissors)

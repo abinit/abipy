@@ -611,7 +611,7 @@ class PhononBands(object):
         if title is not None: ax.set_title(title)
 
         ax.grid(True)
-        ax.set_xlabel('q-point')
+        #ax.set_xlabel('q-point')
         if units in ['eV', 'ev', 'electronvolt']:
             ax.set_ylabel('Energy [eV]')
         elif units in ['Ha', 'ha', 'Hartree']:
@@ -1486,25 +1486,28 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
 
         for i, (phbands, ax) in enumerate(zip(phbands_list, axes)):
             phbands.plot(ax=ax, show=False)
-            if i > 0: ax.yaxis.set_visible(False)
             if titles is not None: ax.set_title(titles[i])
+            if i % ncols != 0:
+                ax.set_ylabel("")
+
     else:
         # Plot grid with bands + DOS
         # see http://matplotlib.org/users/gridspec.html
         from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
         fig = plt.figure()
         gspec = GridSpec(nrows, ncols)
-        #gspec.update(wspace=0.05, hspace=)
 
         for i, (phbands, phdos) in enumerate(zip(phbands_list, phdos_list)):
-            subgrid = GridSpecFromSubplotSpec(1, 2, subplot_spec=gspec[i], width_ratios=[2, 1])
-            #subgrid.update(wspace=0.05, hspace=)
+            subgrid = GridSpecFromSubplotSpec(1, 2, subplot_spec=gspec[i], width_ratios=[2, 1], wspace=0.05)
             # Get axes and align bands and DOS.
             ax1 = plt.subplot(subgrid[0])
             ax2 = plt.subplot(subgrid[1], sharey=ax1)
             phbands.plot_with_phdos(phdos, axlist=(ax1, ax2), show=False)
-            if i > 0: ax1.yaxis.set_visible(False)
+
             if titles is not None: ax1.set_title(titles[i])
+            if i % ncols != 0:
+                for ax in (ax1, ax2):
+                    ax.set_ylabel("")
 
     return fig
 
