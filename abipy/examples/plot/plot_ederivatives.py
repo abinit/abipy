@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-#
-# This example shows how to compute and plot the derivatives of the
-# KS eigenvalues along a high symmetry path in K-space.
+"""
+This example shows how to compute and plot the derivatives of the
+KS eigenvalues along a high symmetry path in K-space.
+"""
 from abipy.abilab import abiopen
 import abipy.data as abidata
 
@@ -24,11 +25,8 @@ kpath = gsr_file.kpoints
 bands = gsr_file.ebands
 
 xys = bands.derivatives(spin=0,band=0,order=1, asmarker="DER1-band0")
-
 xys = bands.derivatives(spin=0,band=1,order=1, asmarker="DER1-band1")
-
 xys = bands.derivatives(spin=0,band=2,order=1, asmarker="DER1-band2")
-
 xys = bands.derivatives(spin=0,band=3,order=1, asmarker="DER1-band3")
 
 bands.plot(marker="DER1-band0:100")

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-#
-# This example shows how to plot the phonon band structure of AlAs.
-# See tutorial/lesson_rf2.html
+"""
+This example shows how to plot the phonon band structure of AlAs.
+See tutorial/lesson_rf2.html
+"""
 
 # FIXME: LO-TO splitting and phonon displacements instead of eigenvectors.
 from abipy.abilab import abiopen 

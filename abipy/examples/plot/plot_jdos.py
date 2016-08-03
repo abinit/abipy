@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-#
-# This example shows how plot the different contributions 
-# to the electronic joint density of states of Silicon
+"""
+This example shows how plot the different contributions 
+to the electronic joint density of states of Silicon
+"""
 import abipy.data as abidata
 from abipy.abilab import abiopen
 

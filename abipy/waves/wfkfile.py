@@ -8,8 +8,8 @@ import numpy as np
 from monty.functools import lazy_property
 from abipy.core import Mesh3D, GSphere, Structure
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands
-from abipy.iotools import ETSF_Reader, Visualizer 
-from abipy.electrons import ElectronsReader
+from abipy.iotools import ETSF_Reader, Visualizer
+from abipy.electrons.ebands import ElectronsReader
 from abipy.waves.pwwave import PWWaveFunction
 
 __all__ = [
@@ -30,9 +30,9 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
     the data stored in the WFK file produced by ABINIT.
 
     Usage example:
-                                                                  
+
     .. code-block:: python
-        
+
         wfk = WfkFile("foo_WFK.nc")
 
         # Plot band energies.
@@ -57,7 +57,7 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
         self.reader = reader = WFK_Reader(filepath)
 
-        # Read the electron bands 
+        # Read the electron bands
         self._ebands = reader.read_ebands()
 
         assert reader.has_pwbasis_set
@@ -146,7 +146,7 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         """
         k = self.kindex(kpoint)
 
-        if (spin not in range(self.nsppol) or 
+        if (spin not in range(self.nsppol) or
             k not in range(self.nkpt) or
             band not in range(self.nband_sk[spin, k])):
             raise ValueError("Wrong (spin, band, kpt) indices")
@@ -182,7 +182,7 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         See :class:`Visualizer` for the list of applications and formats supported.
         """
         visu = Visualizer.from_name(visu_name)
-    
+
         for ext in visu.supported_extensions():
             ext = "." + ext
             try:
@@ -198,7 +198,7 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
         Args:
             spin: Spin index.
-            kpoint: K-point index or :class:`Kpoint` object 
+            kpoint: K-point index or :class:`Kpoint` object
             bands_range: Range of band indices to analyze.
             tol_ediff: Tolerance on the energy difference (in eV)
         """
@@ -212,7 +212,7 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         # Create list of tuples (energy, waves) for each degenerate set.
         deg_ewaves = []
         for e, bands in deg_ebands:
-            deg_ewaves.append((e, [self.get_wave(spin, k, band) for band in bands])) 
+            deg_ewaves.append((e, [self.get_wave(spin, k, band) for band in bands]))
 
         print("degeneracies detected:", deg_ebands)
         #print(deg_ewaves)
@@ -331,32 +331,32 @@ class DMatrices(object):
        $ M_ab(R_t) = e^{-i(k+G0).\tau} \int e^{iG0.r} u_{ak}(r)^* u_{bk}(R^{-1}(r-\tau)) \,dr $.
 
     * The irreducible representation of the small _point_ group of k, M_ab(R), suffices to
-      classify the degenerate eigenstates provided that particular conditions are fulfilled 
+      classify the degenerate eigenstates provided that particular conditions are fulfilled
       (see limitations below). The matrix is indeed given by:
 
        $ M_ab(R) = e^{+ik.\tau} M_ab(R_t) = e^{-iG0.\tau} \int e^{iG0.r} u_{ak}(r)^* u_{bk}(R^{-1}(r-\tau))\,dr $
-     
+
       The phase factor outside the integral should be zero since symmetry analysis at border zone in non-symmorphic
       space groups is not available. Anyway it is included in our expressions for the sake of consistency.
 
-    * For PAW there is an additional onsite terms involving <phi_i|phi_j(R^{-1}(r-\tau)> and 
-      the pseudized version that can be  evaluated using the rotation matrix for 
+    * For PAW there is an additional onsite terms involving <phi_i|phi_j(R^{-1}(r-\tau)> and
+      the pseudized version that can be  evaluated using the rotation matrix for
        real spherical harmonis, zarot(mp,m,l,R). $ Y_{lm}(Rr)= \sum_{m'} zarot(m',m,ll,R) Y_{lm'}(r) $
 
-       $ M^{onsite}_ab(R_t) = sum_{c ij} <\tpsi_a| p_i^c>  <p_j^{c'}|\tpsi_b\> \times 
+       $ M^{onsite}_ab(R_t) = sum_{c ij} <\tpsi_a| p_i^c>  <p_j^{c'}|\tpsi_b\> \times
           [ <\phi_i^c|\phi_j^{c'}> - <\tphi_i^c|\tphi_j^{c'}> ]. $
 
        $ [ <\phi_i^c|\phi_j^{c'}> - <\tphi_i^c|\tphi_j^{c'}> ] = s_{ij} D_{\mi\mj}^\lj(R^{-1}) $
 
-      where c' is the rotated atom i.e c' = R^{-1}( c-\tau) and D is the rotation matrix for 
+      where c' is the rotated atom i.e c' = R^{-1}( c-\tau) and D is the rotation matrix for
       real spherical harmonics.
 
       Remember that zarot(m',m,l,R)=zarot(m,m',l,R^{-1})
       and $ Y^l_m(ISG) = sum_{m'} D_{m'm}(S) Y_{m'}^l(G) (-i)^l $
           $ D_{m'm}^l (R) = D_{m,m'}^l (R^{-1}) $
 
-    * LIMITATIONS: The method does not work if k is at zone border and the little group of k 
-                   contains a non-symmorphic fractional translation. 
+    * LIMITATIONS: The method does not work if k is at zone border and the little group of k
+                   contains a non-symmorphic fractional translation.
     """
     Error = DmatsError
     ClassificationError = DmatsClassificationError
@@ -369,12 +369,12 @@ class DMatrices(object):
         kgroup = ltk.kgroup
         #print("g0vecs", ltk.g0vecs)
 
-        #The main problem here is represented by the fact 
-        #that the classes in ltk might not have the 
+        #The main problem here is represented by the fact
+        #that the classes in ltk might not have the
         #same order as the classes reported in the Bilbao database.
         #Hence we have to shuffle the last dimension of my_character
         #so that we can compare the two array correctly
-        #The most robust approach consists in matching class invariants 
+        #The most robust approach consists in matching class invariants
         #such as the trace, the determinant of the rotation matrices.
         #as well as the order of the rotation and inv_root!
         #Perhaps I can make LatticeRotation hashable with
@@ -389,14 +389,14 @@ class DMatrices(object):
         except:
             raise self.Error(straceback())
 
-        # Number of degeneracies, 
+        # Number of degeneracies,
         # number of spatial rotation in the group of k, number of classes in kgroup.
         self.num_degs = num_degs = len(deg_ewaves)
         num_rotk, num_classes = len(kgroup), kgroup.num_classes
 
         # Allocate D(R) for each set of degenerated bands.
-        # Init them with np.inf. If everything goes well 
-        # only the diagonal element for the first operation 
+        # Init them with np.inf. If everything goes well
+        # only the diagonal element for the first operation
         # in each class has to be computed.
         dmats = self.num_degs * [None]
         for idg, (e, waves) in enumerate(deg_ewaves):
@@ -425,7 +425,7 @@ class DMatrices(object):
         for idg in range(num_degs):
             if idg != 2: continue
             print(self.all_traces(idg))
-        
+
         #my_character[idg] = my_character[idg][to_bilbao_classes]
         #from pymatgen.util.num_utils import iuptri
         # Loop over the set of degenerate states.
@@ -458,13 +458,13 @@ class DMatrices(object):
         #    self.deg_labels = deg_labels
         #    return
 
-        # Case with accidental degeneraties. 
+        # Case with accidental degeneraties.
         # Try to decompose the reducible representations
         #try:
         #    dmats.decompose()
         #    return dmats
         #except dmats.DecompositionError:
-        #    raise 
+        #    raise
 
     #def __str__(self):
     #    lines = []
@@ -501,7 +501,7 @@ class DMatrices(object):
                 if np.allclose(irrep.character, mychar, rtol=trace_rtol, atol=trace_atol):
                     deg_labels[idg] = irrep.name
                     break
-                                                                                  
+
         if any(label is None for label in deg_labels):
             raise ClassificationError()
 

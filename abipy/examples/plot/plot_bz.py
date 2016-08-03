@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-#
-# This example shows how to display the Brillouin zone 
-# with pymatgen and matplotlib.
+"""
+This example shows how to display the Brillouin zone 
+with pymatgen and matplotlib.
+"""
 from abipy.abilab import abiopen
 import abipy.data as abidata
 

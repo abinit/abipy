@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-#
-# This example shows how to plot the so-called fatbands for electrons
+"""
+This example shows how to plot the so-called fatbands for electrons
+"""
 from abipy.abilab import abiopen
 import abipy.data as abidata
 
 # Open the WKF file and extract the band structure. 
-
 with abiopen(abidata.ref_file("si_nscf_GSR.nc")) as gsr_file:
     ebands = gsr_file.ebands
 

@@ -32,12 +32,10 @@ logger = logging.getLogger(__name__)
 
 __all__ = [
     "ElectronBands",
+    "ElectronDos",
     "ElectronBandsPlotter",
     "ElectronDosPlotter",
-    "ElectronsReader",
-    # TODO Rename it, use camel case
-    "ElectronDos",
-    "ElectronDOSPlotter",
+    "ElectronDOSPlotter",  # TODO Rename it, use camel case. Why this duplication?
 ]
 
 
@@ -1711,95 +1709,6 @@ class ElectronBands(object):
         return 1.0 / ders2
 
 
-@add_fig_kwargs
-def ebands_gridplot(eb_objects, titles=None, edos_objects=None, edos_kwargs=None, e0="fermie", **kwargs):
-    """
-    Plot multiple electron bandstructures and optionally DOSes on a grid.
-
-    Args:
-        eb_objects: List of objects from which the band structures are extracted.
-            Each item in eb_objects is either a string with the path of the netcdf file,
-            or one of the abipy object with an `ebands` attribute or a :class:`ElectronBands` object.
-        edos_objects:
-            List of objects from which the electron DOSes are extracted.
-            Accept filepaths or :class:`ElectronDos` objects. If edos_objects is not None,
-            each subplot in the grid contains a band structure with DOS else a simple bandstructure plot.
-        titles:
-            List of strings with the titles to be added to the subplots.
-        edos_kwargs: optional dictionary with the options passed to `get_edos` to compute the electron DOS.
-            Used only if `edos_objects` is not None.
-        e0: Option used to define the zero of energy in the band structure plot. Possible values:
-            - `fermie`: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
-               Note that, by default, the Fermi energy is taken from the band structure object
-               i.e. the Fermi energy computed at the end of the SCF file that produced the density.
-               This should be ok in semiconductors. In metals, however, a better value of the Fermi energy
-               can be obtained from the DOS provided that the k-sampling for the DOS is much denser than
-               the one used to compute the density. See `dos_fermie`.
-            - `dos_fermie`: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
-               Available only if edos_objects is not None
-            -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-            -  None: Don't shift energies, equivalent to e0=0
-
-    Returns:
-        matplotlib figure.
-    """
-    # Build list of ElectronBands objects.
-    ebands_list = [ElectronBands.as_ebands(obj) for obj in eb_objects]
-
-    # Build list of ElectronDos objects.
-    edos_list = []
-    if edos_objects is not None:
-        if edos_kwargs is None: edos_kwargs = {}
-        edos_list = [ElectronDos.as_edos(obj, edos_kwargs) for obj in edos_objects]
-        if len(edos_list) != len(ebands_list):
-            raise ValueError("The number of objects for DOS must be to the number of bands")
-
-    import matplotlib.pyplot as plt
-    nrows, ncols = 1, 1
-    numeb = len(ebands_list)
-    if numeb > 1:
-        ncols = 2
-        nrows = numeb // ncols + numeb % ncols
-
-    if not edos_list:
-        # Plot grid with bands only.
-        fig, axes = plt.subplots(nrows=nrows, ncols=ncols, sharey=True, squeeze=False)
-        axes = axes.ravel()
-        # don't show the last ax if numeb is odd.
-        if numeb % ncols != 0: axes[-1].axis("off")
-
-        for i, (ebands, ax) in enumerate(zip(ebands_list, axes)):
-            ebands.plot(ax=ax, e0=e0, show=False)
-            if titles is not None: ax.set_title(titles[i])
-            if i % ncols != 0:
-                ax.set_ylabel("")
-
-    else:
-        # Plot grid with bands + DOS
-        # see http://matplotlib.org/users/gridspec.html
-        from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
-        fig = plt.figure()
-        gspec = GridSpec(nrows, ncols)
-        #gspec.update(wspace=0.05, hspace=)
-
-        for i, (ebands, edos) in enumerate(zip(ebands_list, edos_list)):
-            subgrid = GridSpecFromSubplotSpec(1, 2, subplot_spec=gspec[i], width_ratios=[2, 1], wspace=0.05)
-            # Get axes and align bands and DOS.
-            ax1 = plt.subplot(subgrid[0])
-            ax2 = plt.subplot(subgrid[1], sharey=ax1)
-
-            # Define the zero of energy and plot
-            mye0 = ebands.get_e0(e0) if e0 != "edos_fermie" else edos.fermie
-            ebands.plot_with_edos(edos, e0=mye0, axlist=(ax1, ax2), show=False)
-
-            if titles is not None: ax1.set_title(titles[i])
-            if i % ncols != 0:
-                for ax in (ax1, ax2):
-                    ax.set_ylabel("")
-
-    return fig
-
-
 class ElectronBandsPlotter(object):
     """
     Class for plotting electronic band structure and DOSes.
@@ -1818,10 +1727,16 @@ class ElectronBandsPlotter(object):
     _LINE_STYLES = ["-",":","--","-.",]
     _LINE_WIDTHS = [2,]
 
-    def __init__(self):
-        self._bands_dict = OrderedDict()
-        self._edoses_dict = OrderedDict()
-        self._markers = OrderedDict()
+    def __init__(self, key_ebands=None, key_edos=None):
+        if key_ebands is None: key_ebands = []
+        self._bands_dict = OrderedDict(key_ebands)
+        if key_edos is None: key_edos = []
+        self._edoses_dict = OrderedDict(key_edos)
+        if key_edos:
+            if not key_ebands:
+                raise ValueError("key_ebands must be specifed when key_dos is not None")
+            if len(key_ebands) != len(key_edos):
+                raise ValueError("key_ebands and key_edos must have the same number of elements.")
 
     @property
     def bands_dict(self):
@@ -1843,10 +1758,6 @@ class ElectronBandsPlotter(object):
         """"List of :class:`ElectronDos`."""
         return list(self._edoses_dict.values())
 
-    @property
-    def markers(self):
-        return self._markers
-
     def iter_lineopt(self):
         """Generates style options for lines."""
         for o in itertools.product( self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
@@ -1856,27 +1767,27 @@ class ElectronBandsPlotter(object):
         """
         Adds a band structure for plotting. Reads data from a Netcdfile
         """
-        from abipy.abilab import abiopen
-        with abiopen(filepath) as ncfile:
-            if label is None: label = ncfile.filepath
-            self.add_ebands(label, ncfile.ebands)
+        if label is None: label = os.path.abspath(filepath)
+        ebands = ElectronBands.as_ebands(filepath)
+        self.add_ebands(label, ebands)
 
-    def add_ebands(self, label, bands, dos=None):
+    def add_ebands(self, label, bands, dos=None, edos_kwargs=None):
         """
-        Adds a band structure for plotting.
+        Adds a band structure and optionally a dos to the plotter.
 
         Args:
             label: label for the bands. Must be unique.
             bands: :class:`ElectronBands` object.
             dos: :class:`ElectronDos` object.
+            edos_kwargs: optional dictionary with the options passed to `get_edos` to compute the electron DOS.
+                Used only if `dos` is not None and it not an ElectronDos instance.
         """
         if label in self._bands_dict:
             raise ValueError("label %s is already in %s" % (label, list(self._bands_dict.keys())))
 
-        self._bands_dict[label] = bands
-
+        self._bands_dict[label] = ElectronBands.as_ebands(bands)
         if dos is not None:
-            self.edoses_dict[label] = dos
+            self.edoses_dict[label] = ElectronDos.as_edos(dos, edos_kwargs)
 
     def bands_statdiff(self, ref=0):
         """
@@ -1899,67 +1810,33 @@ class ElectronBandsPlotter(object):
 
         return "\n\n".join(text)
 
-    def set_marker(self, key, xys, extend=False):
-        """
-        Set an entry in the markers dictionary.
-
-        Args:
-            key: string used to label the set of markers.
-            xys: Three iterables x,y,s where x[i],y[i] gives the
-                 positions of the i-th markers in the plot and s[i] is the size of the marker.
-            extend: True if the values xys should be added to a pre-existing marker.
-        """
-        from abipy.tools.plotting_utils import Marker
-
-        if extend:
-            if key not in self._markers:
-                self._markers[key] = Marker(*xys)
-            else:
-                # Add xys to the previous marker set.
-                self._markers[key].extend(*xys)
-
-        else:
-            if key in self._markers:
-                raise ValueError("Cannot overwrite key %s in data" % key)
-
-            self._markers[key] = Marker(*xys)
-
     @add_fig_kwargs
-    def plot(self, klabels=None, e0="fermie", **kwargs):
+    def combiplot(self, e0="fermie", **kwargs):
         """
         Plot the band structure and the DOS on the same figure.
+        Use `gridplot` to plot on different figures.
 
         Args:
-            klabels: dictionary whose keys are tuple with the reduced coordinates of the k-points.
-                The values are the labels e.g. klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
                 - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
 
-        ==============  ================================================================
-        kwargs          Meaning
-        ==============  ================================================================
-        xlim            x-axis limits tuple. None (default) for automatic determination.
-        ylim            y-axis limits tuple. None (default) for automatic determination.
-        ==============  ================================================================
-
         Returns:
             matplotlib figure.
         """
-        if "align" in kwargs:
-            raise ValueError("align option is not supported anymore. Use e0 to change the alignment")
+        if "align" in kwargs or "xlim" in kwargs or "ylim" in kwargs:
+            raise ValueError("align|xlim|ylim options are not supported anymore.")
 
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
-        # TODO: This one should be rewritten completely
 
         # Build grid of plots.
         if self.edoses_dict:
             gspec = GridSpec(1, 2, width_ratios=[2, 1])
             gspec.update(wspace=0.05)
-            ax1 = plt.subplot(gspec[0])
             # bands and DOS will share the y-axis
+            ax1 = plt.subplot(gspec[0])
             ax2 = plt.subplot(gspec[1], sharey=ax1)
             ax_list = [ax1, ax2]
             fig = plt.gcf()
@@ -1971,10 +1848,6 @@ class ElectronBandsPlotter(object):
         for ax in ax_list:
             ax.grid(True)
 
-        ylim = kwargs.pop("ylim", None)
-        if ylim is not None:
-            [ax.set_ylim(ylim) for ax in ax_list]
-
         # Plot ebands.
         lines, legends = [], []
         my_kwargs, opts_label = kwargs.copy(), {}
@@ -1983,6 +1856,11 @@ class ElectronBandsPlotter(object):
             i += 1
             my_kwargs.update(lineopt)
             opts_label[label] = my_kwargs.copy()
+
+            if e0 == "edos_fermie":
+                mye0 = self.edoses_dict[label].fermie
+            else:
+                mye0 = ebands.get_e0(e0)
 
             mye0 = ebands.get_e0(e0)
             l = ebands.plot_ax(ax1, mye0, spin=None, band=None, **my_kwargs)
@@ -1998,50 +1876,177 @@ class ElectronBandsPlotter(object):
             if i == 0:
                 ebands.decorate_ax(ax1)
 
-        if self.markers:
-            for key, markers in self.markers.items():
-                pos, neg = markers.posneg_marker()
-                # Use different symbols depending on the value of s.
-                # Cannot use negative s.
-                fact = 1
-                if pos:
-                    ax1.scatter(pos.x, pos.y, s=np.abs(pos.s)*fact, marker="^", label=key + " >0")
-
-                if neg:
-                    ax1.scatter(neg.x, neg.y, s=np.abs(neg.s)*fact, marker="v", label=key + " <0")
-
         ax1.legend(lines, legends, loc='upper right', shadow=True)
 
         # Add DOSes
         if self.edoses_dict:
             ax = ax_list[1]
-            for (label, edos) in self.edoses_dict.items():
-                #mye0 =
+            for label, edos in self.edoses_dict.items():
+                ebands = self.edoses_dict[label]
+                mye0 = ebands.get_e0(e0) if e0 != "edos_fermie" else edos.fermie
                 edos.plot_ax(ax, mye0, exchange_xy=True, **opts_label[label])
 
         return fig
 
-    def gridplot(self, titles=None, edos_kwargs=None, e0="fermie"):
+    # Deprecated
+    plot = combiplot
+
+    @add_fig_kwargs
+    def gridplot(self, e0="fermie", with_dos=True, **kwargs):
         """
-        Plot electron bands on a grid.
+        Plot multiple electron bandstructures and optionally DOSes on a grid.
 
         Args:
-            titles: Titles of subplots.
+            eb_objects: List of objects from which the band structures are extracted.
+                Each item in eb_objects is either a string with the path of the netcdf file,
+                or one of the abipy object with an `ebands` attribute or a :class:`ElectronBands` object.
+            edos_objects:
+                List of objects from which the electron DOSes are extracted.
+                Accept filepaths or :class:`ElectronDos` objects. If edos_objects is not None,
+                each subplot in the grid contains a band structure with DOS else a simple bandstructure plot.
+            titles:
+                List of strings with the titles to be added to the subplots.
             edos_kwargs: optional dictionary with the options passed to `get_edos` to compute the electron DOS.
-                Used only if the plotter contains dos objects.
+                Used only if `edos_objects` is not None.
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                - `fermie`: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
+                   Note that, by default, the Fermi energy is taken from the band structure object
+                   i.e. the Fermi energy computed at the end of the SCF file that produced the density.
+                   This should be ok in semiconductors. In metals, however, a better value of the Fermi energy
+                   can be obtained from the DOS provided that the k-sampling for the DOS is much denser than
+                   the one used to compute the density. See `edos_fermie`.
+                - `edos_fermie`: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
+                   Available only if edos_objects is not None
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
-        """
-        if titles is None:
-            titles = list(self.bands_dict.keys())
 
-        if not self.edoses_dict:
-            return ebands_gridplot(list(self.bands_dict.values()), titles=titles, e0=e0)
+        Returns:
+            matplotlib figure.
+        """
+        titles = list(self.bands_dict.keys())
+        ebands_list, edos_list = self.ebands_list, self.edoses_list
+
+        import matplotlib.pyplot as plt
+        nrows, ncols = 1, 1
+        numeb = len(ebands_list)
+        if numeb > 1:
+            ncols = 2
+            nrows = numeb // ncols + numeb % ncols
+
+        if not edos_list or not with_dos:
+            # Plot grid with bands only.
+            fig, axes = plt.subplots(nrows=nrows, ncols=ncols, sharey=True, squeeze=False)
+            axes = axes.ravel()
+            # don't show the last ax if numeb is odd.
+            if numeb % ncols != 0: axes[-1].axis("off")
+
+            for i, (ebands, ax) in enumerate(zip(ebands_list, axes)):
+                ebands.plot(ax=ax, e0=e0, show=False)
+                if titles is not None: ax.set_title(titles[i])
+                if i % ncols != 0:
+                    ax.set_ylabel("")
+
         else:
-            return ebands_gridplot(list(self.bands_dict.values()), titles=titles,
-                                   edos_objects=list(self.edoses_dict.values()), edos_kwargs=edos_kwargs, e0=e0)
+            # Plot grid with bands + DOS. see http://matplotlib.org/users/gridspec.html
+            from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
+            fig = plt.figure()
+            gspec = GridSpec(nrows, ncols)
+
+            for i, (ebands, edos) in enumerate(zip(ebands_list, edos_list)):
+                subgrid = GridSpecFromSubplotSpec(1, 2, subplot_spec=gspec[i], width_ratios=[2, 1], wspace=0.05)
+                # Get axes and align bands and DOS.
+                ax1 = plt.subplot(subgrid[0])
+                ax2 = plt.subplot(subgrid[1], sharey=ax1)
+
+                # Define the zero of energy and plot
+                mye0 = ebands.get_e0(e0) if e0 != "edos_fermie" else edos.fermie
+                ebands.plot_with_edos(edos, e0=mye0, axlist=(ax1, ax2), show=False)
+
+                if titles is not None: ax1.set_title(titles[i])
+                if i % ncols != 0:
+                    for ax in (ax1, ax2):
+                        ax.set_ylabel("")
+
+        return fig
+
+    def animate(self, e0="fermie", interval=250, savefile=None, show=True):
+        """
+        Use matplotlib animate module to animate a list of band structure plots (with or without DOS).
+
+        Args:
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
+                   Note that, by default, the Fermi energy is taken from the band structure object
+                   i.e. the Fermi energy computed at the end of the SCF file that produced the density.
+                   See `edos_fermie`.
+                - `edos_fermie`: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
+            interval: draws a new frame every interval milliseconds.
+            savefile: Use e.g. 'myanimation.mp4' to save the animation in mp4 format.
+            show: True if the animation should be shown immediately
+
+        Returns:
+            Animation object.
+
+        See also http://matplotlib.org/api/animation_api.html
+                 http://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/
+
+        Note:
+            It would be nice to have the possibility of animating the title of the plot, unfortunately
+            this feature is not available in the present version of matplotlib. See
+            http://stackoverflow.com/questions/17558096/animated-title-in-matplotlib
+        """
+        ebands_list, edos_list = self.ebands_list, self.edoses_list
+        if edos_list and len(edos_list) != len(ebands_list):
+            raise ValueError("The number of objects for DOS must be equal to the number of bands")
+
+        import matplotlib.pyplot as plt
+        fig = plt.figure()
+        plotax_kwargs = {"color": "black", "linewidth": 2.0}
+
+        artists = []
+        if not edos_list:
+            # Animation with band structures
+            ax = fig.add_subplot(1, 1, 1)
+            ebands_list[0].decorate_ax(ax)
+            for i, ebands in enumerate(ebands_list):
+                lines = ebands.plot_ax(ax, e0, **plotax_kwargs)
+                #if titles is not None:
+                #    lines += [ax.set_title(titles[i])]
+                artists.append(lines)
+        else:
+            # Animation with band structures + DOS.
+            from matplotlib.gridspec import GridSpec
+            gspec = GridSpec(1, 2, width_ratios=[2, 1])
+            gspec.update(wspace=0.05)
+            ax1 = plt.subplot(gspec[0])
+            ax2 = plt.subplot(gspec[1], sharey=ax1)
+            ebands_list[0].decorate_ax(ax1)
+            ax2.grid(True)
+            ax2.yaxis.set_ticks_position("right")
+            ax2.yaxis.set_label_position("right")
+
+            for i, (ebands, edos) in enumerate(zip(ebands_list, edos_list)):
+                # Define the zero of energy to align bands and dos
+                mye0 = ebands.get_e0(e0) if e0 != "edos_fermie" else edos.fermie
+                ebands_lines = ebands.plot_ax(ax1, mye0, **plotax_kwargs)
+                edos_lines = edos.plot_ax(ax2, mye0, exchange_xy=True, **plotax_kwargs)
+                lines = ebands_lines + edos_lines
+                #if titles is not None:
+                #    lines += [ax.set_title(titles[i])]
+                artists.append(lines)
+
+        import matplotlib.animation as animation
+        anim = animation.ArtistAnimation(fig, artists, interval=interval,
+                                         blit=False, # True is faster but then the movie starts with an empty frame!
+                                         #repeat_delay=1000
+                                         )
+
+        if savefile is not None: anim.save(savefile)
+        if show: plt.show()
+
+        return anim
 
 
 class ElectronDosPlotter(object):
@@ -2085,10 +2090,7 @@ class ElectronDosPlotter(object):
         """
         Adds a dos for plotting. Reads data from a Netcdf file
         """
-        from abipy.abilab import abiopen
-        with abiopen(filepath) as ncfile:
-            ebands = ncfile.ebands
-
+        ebands = ElectronBands.as_ebands(filepath)
         edos = ebands.get_edos(method=method, step=step, width=width)
         if label is None: label = filepath
         self.add_edos(label, edos)
@@ -2146,7 +2148,9 @@ class ElectronDosPlotter(object):
 
 
 class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
-    """This object reads band structure data from a netcdf file written"""
+    """
+    This object reads band structure data from a netcdf file written
+    """
     def read_ebands(self):
         """
         Returns an instance of :class:`ElectronBands`. Main entry point for client code
@@ -2376,6 +2380,7 @@ class ElectronDos(object):
             edos_kwargs: optional dictionary with the options passed to `get_edos` to compute the electron DOS.
             Used when obj is not already an instance of `cls`.
         """
+        if edos_kwargs is None: edos_kwargs = {}
         if isinstance(obj, cls):
             return obj
         elif is_string(obj):
@@ -2447,7 +2452,7 @@ class ElectronDos(object):
                 raise ValueError("Wrong value for e0: %s" % e0)
         else:
             # Assume number
-            return e0
+            return float(e0)
 
     def plot_ax(self, ax, e0, spin=None, what="d", exchange_xy=False, **kwargs):
         """
@@ -2538,22 +2543,6 @@ class ElectronDOSPlotter(object):
 
         self._doses[label] = dos
 
-    def add_dos_dict(self, dos_dict, key_sort_func=None):
-        """
-        Add a dictionary of DOSes, with an optional sorting function for the keys.
-
-        Args:
-            dos_dict: dict of {label: dos}
-            key_sort_func: function used to sort the dos_dict keys.
-        """
-        if key_sort_func:
-            keys = sorted(dos_dict.keys(), key=key_sort_func)
-        else:
-            keys = dos_dict.keys()
-
-        for label in keys:
-            self.add_dos(label, dos_dict[label])
-
     @add_fig_kwargs
     def plot(self, ax=None, e0="fermie", **kwargs):
         """
@@ -2595,100 +2584,3 @@ class ElectronDOSPlotter(object):
         ax.legend(lines, legends, loc='best', shadow=True)
 
         return fig
-
-
-def ebands_animate(eb_objects, edos_objects=None, edos_kwargs=None, e0="fermie",
-                   interval=250, savefile=None, show=True):
-    """
-    Use matplotlib animate module to animate a list of band structure plots (with or without DOS).
-
-    Args:
-        eb_objects: List of objects from which the band structures are extracted.
-            Each item in eb_objects is either a string with the path of the netcdf file,
-            or one of the abipy object with an `ebands` attribute or a :class:`ElectronBands` object.
-        edos_objects:
-            List of objects from which the electron DOSes are extracted.
-            Accept filepaths or :class:`ElectronDos` objects. If edos_objects is not None,
-            the animation will show a band structure with DOS else a simple (animated) bandstructure plot.
-            e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
-                   Note that, by default, the Fermi energy is taken from the band structure object
-                   i.e. the Fermi energy computed at the end of the SCF file that produced the density.
-                   See `edos_fermie`.
-                - `edos_fermie`: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
-        interval: draws a new frame every interval milliseconds.
-        edos_kwargs: optional dictionary with the options passed to `get_edos` to compute the electron DOS.
-            Used only if `edos_objects` is not None.
-        savefile: Use e.g. 'myanimation.mp4' to save the animation in mp4 format.
-        show: True if the animation should be shown immediately
-
-    Returns:
-        Animation object.
-
-    See also http://matplotlib.org/api/animation_api.html
-             http://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/
-
-    Note:
-        It would be nice to have the possibility of animating the title of the plot, unfortunately
-        this feature is not available in the present version of matplotlib. See
-        http://stackoverflow.com/questions/17558096/animated-title-in-matplotlib
-    """
-    # Build list of ElectronBands objects.
-    ebands_list = [ElectronBands.as_ebands(obj) for obj in eb_objects]
-
-    # Build list of ElectronDos objects.
-    edos_list = []
-    if edos_objects is not None:
-        if edos_kwargs is None: edos_kwargs = {}
-        edos_list = [ElectronDos.as_edos(obj, edos_kwargs) for obj in edos_objects]
-        if len(edos_list) != len(ebands_list):
-            raise ValueError("The number of objects for DOS must be equal to the number of bands")
-
-    import matplotlib.pyplot as plt
-    fig = plt.figure()
-    plotax_kwargs = {"color": "black", "linewidth": 2.0}
-
-    artists = []
-    if not edos_list:
-        # Animation with band structures
-        ax = fig.add_subplot(1, 1, 1)
-        ebands_list[0].decorate_ax(ax)
-        for i, ebands in enumerate(ebands_list):
-            lines = ebands.plot_ax(ax, e0, **plotax_kwargs)
-            #if titles is not None:
-            #    lines += [ax.set_title(titles[i])]
-            artists.append(lines)
-    else:
-        # Animation with band structures + DOS.
-        from matplotlib.gridspec import GridSpec
-        gspec = GridSpec(1, 2, width_ratios=[2, 1])
-        gspec.update(wspace=0.05)
-        ax1 = plt.subplot(gspec[0])
-        ax2 = plt.subplot(gspec[1], sharey=ax1)
-        ebands_list[0].decorate_ax(ax1)
-        ax2.grid(True)
-        ax2.yaxis.set_ticks_position("right")
-        ax2.yaxis.set_label_position("right")
-
-        for i, (ebands, edos) in enumerate(zip(ebands_list, edos_list)):
-            # Define the zero of energy to align bands and dos
-            mye0 = ebands.get_e0(e0) if e0 != "edos_fermie" else edos.fermie
-            ebands_lines = ebands.plot_ax(ax1, mye0, **plotax_kwargs)
-            edos_lines = edos.plot_ax(ax2, mye0, exchange_xy=True, **plotax_kwargs)
-            lines = ebands_lines + edos_lines
-            #if titles is not None:
-            #    lines += [ax.set_title(titles[i])]
-            artists.append(lines)
-
-    import matplotlib.animation as animation
-    anim = animation.ArtistAnimation(fig, artists, interval=interval,
-                                     blit=False, # True should be faster but then the movie starts with an empty frame!
-                                     #repeat_delay=1000
-                                     )
-
-    if savefile is not None: anim.save(savefile)
-    if show: plt.show()
-
-    return anim

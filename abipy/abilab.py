@@ -33,8 +33,7 @@ from abipy.abio.robots import GsrRobot, SigresRobot, MdfRobot, DdbRobot, abirobo
 from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
 from abipy.abio.abivars import AbinitInputFile
 from abipy.abio.factories import *
-from abipy.electrons.ebands import (ElectronBands, ElectronDosPlotter, ElectronBandsPlotter,
-                                    ebands_gridplot, ebands_animate)
+from abipy.electrons.ebands import ElectronBands, ElectronDosPlotter, ElectronBandsPlotter
 from abipy.electrons.gsr import GsrFile
 from abipy.electrons.psps import PspsFile
 from abipy.electrons.gw import SigresFile, SigresPlotter
@@ -139,19 +138,6 @@ def abiopen(filepath):
 
     cls = abifile_subclass_from_filename(filepath)
     return cls.from_file(filepath)
-
-#def qt_abiopen(directory=None):
-#    """
-#    Select a file via a QT dialog, create the object from file and return instance.
-#    """
-#    from PyQt4 import QtCore, QtGui
-#
-#    if directory is None: directory ='./'
-#    qstring = QtGui.QFileDialog.getOpenFileName(None, "Select data file...",
-#            directory, filter="All files (*);; Netcdf Files (*.nc)")
-#    path = str(qstring)
-#    if not path: return None
-#    return abiopen(path)
 
 
 def print_frame(x):

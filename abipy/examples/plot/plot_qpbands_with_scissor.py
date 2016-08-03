@@ -43,17 +43,9 @@ plotter.add_ebands("LDA", ks_bands, dos=ks_dos)
 
 plotter.add_ebands("LDA+scissors(e)", qp_bands, dos=qp_dos)
 
-# Define the mapping reduced_coordinates -> name of the k-point.
-klabels = {
-    (0.5,  0.0,  0.0): "L",
-    (0.0,  0.0,  0.0): "$\Gamma$",
-    (0.0,  0.5,  0.5): "X",
-}
-
-
 # By default, the two band energies are shifted wrt to *their* fermi level.
-plotter.plot(title="Silicon band structure", klabels=klabels)
-
 # Use e=0 if you don't want to shift the eigenvalus
 # so that it's possible to visualize the QP corrections.
-plotter.plot(title="Silicon band structure", klabels=klabels, e0=0.0)
+plotter.plot(title="Silicon band structure")
+
+plotter.gridplot(title="Silicon band structure")

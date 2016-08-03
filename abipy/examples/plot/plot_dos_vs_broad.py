@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-#
-# This example shows how to compute and plot several
-# gaussian DOS by varying the broadening parameters.
+"""
+This example shows how to compute and plot several
+gaussian DOS by varying the broadening parameters.
+"""
 import abipy.data as abidata
 from abipy.abilab import abiopen, ElectronDosPlotter
 

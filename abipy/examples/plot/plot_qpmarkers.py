@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-#
-# This example shows how to plot the Kohn-Sham energies with
-# markers providing a graphical representation of the GW results. 
+"""
+This example shows how to plot the Kohn-Sham energies with
+markers providing a graphical representation of the GW results. 
+"""
 import abipy.data as abidata
 from abipy.abilab import abiopen
 

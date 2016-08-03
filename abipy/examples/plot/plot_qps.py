@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-#
-# This example shows how to visualize the QP results 
-# stored in the SIGRES produced by the GW code (sigma run)
+"""
+This example shows how to visualize the QP results 
+stored in the SIGRES produced by the GW code (sigma run)
+"""
 import abipy.data as abidata
 from abipy.abilab import abiopen
 

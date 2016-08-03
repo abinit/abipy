@@ -30,12 +30,17 @@ def abicomp_ebands(options):
     paths = options.paths
     eb_objects = paths
     titles = paths
-    abilab.ebands_gridplot(eb_objects, titles=titles, edos_objects=None, edos_kwargs=None)
+    e0 = "fermie"
+    mode = "single"
+    mode = "grid"
 
-    #animate = True
-    #if animate:
-    #    abilab.ebands_animate(eb_objects, edos_objects=None, edos_kwargs=None,
-    #                          interval=250, savefile=None, show=True)
+    #if mode == "grid":
+    #    abilab.ebands_gridplot(eb_objects, titles=titles, edos_objects=None, edos_kwargs=None)
+    #elif mode == "single":
+    #    abilab.ebands_singleplot(eb_objects, edos_objects=None, edos_kwargs=None, e0=e0)
+    #elif mode == "animate":
+    #    abilab.ebands_animate(eb_objects, edos_objects=None, edos_kwargs=None, e0=e0,
+    #                          interval=250, savefile=None)
 
     return 0
 
