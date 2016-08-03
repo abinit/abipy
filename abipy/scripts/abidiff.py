@@ -28,20 +28,25 @@ def abicomp_ebands(options):
     Plot electron bands on a grid.
     """
     paths = options.paths
-    eb_objects = paths
-    titles = paths
     e0 = "fermie"
     mode = "single"
     mode = "grid"
 
-    #if mode == "grid":
-    #    abilab.ebands_gridplot(eb_objects, titles=titles, edos_objects=None, edos_kwargs=None)
-    #elif mode == "single":
-    #    abilab.ebands_singleplot(eb_objects, edos_objects=None, edos_kwargs=None, e0=e0)
-    #elif mode == "animate":
-    #    abilab.ebands_animate(eb_objects, edos_objects=None, edos_kwargs=None, e0=e0,
-    #                          interval=250, savefile=None)
+    plotter = abilab.ElectronBandsPlotter(key_ebands=[(os.path.relpath(p), p) for p in paths])
+    #for p in paths: plotter.add_ebands(os.path.relpath(p), path)
 
+    if mode == "grid":
+        plotter.gridplot(e0=e0)
+    elif mode == "combi":
+        plotter.combiplot(e0=e0)
+    elif mode == "animate":
+        plotter.animate(e0=e0)
+
+    #if options.ipython:
+    #    import IPython
+    #    IPython.embed(header=str(plotter) + "\nType `plotter` in the terminal and use <TAB> to list its methods", plotter=robot)
+    #elif options.notebook:
+    #    robot.make_and_open_notebook(nbpath=None, daemonize=True)
     return 0
 
 

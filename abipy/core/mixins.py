@@ -488,6 +488,10 @@ class NotebookWriter(object):
         nb.cells.extend([
             nbv.new_code_cell("""\
 from __future__ import print_function, division, unicode_literals, absolute_import
+
+impor sys
+import os
+
 %matplotlib notebook
 from IPython.display import display
 #import seaborn as sns

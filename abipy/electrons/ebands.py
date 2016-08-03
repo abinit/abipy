@@ -17,6 +17,7 @@ from monty.json import MSONable, MontyEncoder
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from monty.bisect import find_le, find_gt
+from monty.dev import deprecated
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from pymatgen.serializers.json_coders import pmg_serialize
 from abipy.core.func1d import Function1D
@@ -35,7 +36,6 @@ __all__ = [
     "ElectronDos",
     "ElectronBandsPlotter",
     "ElectronDosPlotter",
-    "ElectronDOSPlotter",  # TODO Rename it, use camel case. Why this duplication?
 ]
 
 
@@ -1719,19 +1719,23 @@ class ElectronBandsPlotter(object):
     .. code-block:: python
 
         plotter = ElectronBandsPlotter()
-        plotter.add_ebands_from_file("foo.nc", label="foo bands")
-        plotter.add_ebands_from_file("bar.nc", label="bar bands")
-        plotter.plot()
+        plotter.add_ebands("foo.nc", label="foo bands")
+        plotter.add_ebands("bar.nc", label="bar bands")
+        plotter.gridplot()
+
+    Dictionary with the mapping label --> edos.
     """
     _LINE_COLORS = ["b", "r",]
     _LINE_STYLES = ["-",":","--","-.",]
     _LINE_WIDTHS = [2,]
 
-    def __init__(self, key_ebands=None, key_edos=None):
+    def __init__(self, key_ebands=None, key_edos=None, edos_kwargs=None):
         if key_ebands is None: key_ebands = []
-        self._bands_dict = OrderedDict(key_ebands)
+        key_ebands = [(k, ElectronBands.as_ebands(v)) for k, v in key_ebands]
+        self.bands_dict = OrderedDict(key_ebands)
         if key_edos is None: key_edos = []
-        self._edoses_dict = OrderedDict(key_edos)
+        key_edos = [(k, ElectronDos.as_edos(v, edos_kwargs)) for k, v in key_edos]
+        self.edoses_dict = OrderedDict(key_edos)
         if key_edos:
             if not key_ebands:
                 raise ValueError("key_ebands must be specifed when key_dos is not None")
@@ -1739,24 +1743,14 @@ class ElectronBandsPlotter(object):
                 raise ValueError("key_ebands and key_edos must have the same number of elements.")
 
     @property
-    def bands_dict(self):
-        """Dictionary with the mapping label --> ebands."""
-        return self._bands_dict
-
-    @property
-    def edoses_dict(self):
-        """Dictionary with the mapping label --> edos."""
-        return self._edoses_dict
-
-    @property
     def ebands_list(self):
         """"List of `:class:ElectronBands`."""
-        return list(self._bands_dict.values())
+        return list(self.bands_dict.values())
 
     @property
     def edoses_list(self):
         """"List of :class:`ElectronDos`."""
-        return list(self._edoses_dict.values())
+        return list(self.edoses_dict.values())
 
     def iter_lineopt(self):
         """Generates style options for lines."""
@@ -1782,10 +1776,10 @@ class ElectronBandsPlotter(object):
             edos_kwargs: optional dictionary with the options passed to `get_edos` to compute the electron DOS.
                 Used only if `dos` is not None and it not an ElectronDos instance.
         """
-        if label in self._bands_dict:
-            raise ValueError("label %s is already in %s" % (label, list(self._bands_dict.keys())))
+        if label in self.bands_dict:
+            raise ValueError("label %s is already in %s" % (label, list(self.bands_dict.keys())))
 
-        self._bands_dict[label] = ElectronBands.as_ebands(bands)
+        self.bands_dict[label] = ElectronBands.as_ebands(bands)
         if dos is not None:
             self.edoses_dict[label] = ElectronDos.as_edos(dos, edos_kwargs)
 
@@ -1793,17 +1787,17 @@ class ElectronBandsPlotter(object):
         """
         Compare the reference bands with index ref with the other bands stored in the plotter.
         """
-        for i, label in enumerate(self._bands_dict.keys()):
+        for i, label in enumerate(self.bands_dict.keys()):
             if i == ref:
                 ref_label = label
                 break
         else:
             raise ValueError("ref index %s is > number of bands" % ref)
 
-        ref_bands = self._bands_dict[ref_label]
+        ref_bands = self.bands_dict[ref_label]
 
         text = []
-        for label, bands in self._bands_dict.items():
+        for label, bands in self.bands_dict.items():
             if label == ref_label: continue
             stat = ref_bands.statdiff(bands)
             text.append(str(stat))
@@ -1814,25 +1808,29 @@ class ElectronBandsPlotter(object):
     def combiplot(self, e0="fermie", **kwargs):
         """
         Plot the band structure and the DOS on the same figure.
-        Use `gridplot` to plot on different figures.
+        Use `gridplot` to plot band structurs on different figures.
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (ebands.fermie)
+                   Note that, by default, the Fermi energy is taken from the band structure object
+                   i.e. the Fermi energy computed at the end of the SCF file that produced the density.
+                   This should be ok in semiconductors. In metals, however, a better value of the Fermi energy
+                   can be obtained from the DOS provided that the k-sampling for the DOS is much denser than
+                   the one used to compute the density. See `edos_fermie`.
+                - `edos_fermie`: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
+                   Available only if plotter contains dos objects.
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
 
         Returns:
             matplotlib figure.
         """
-        if "align" in kwargs or "xlim" in kwargs or "ylim" in kwargs:
-            raise ValueError("align|xlim|ylim options are not supported anymore.")
-
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
 
-        # Build grid of plots.
         if self.edoses_dict:
+            # Build grid with two axes.
             gspec = GridSpec(1, 2, width_ratios=[2, 1])
             gspec.update(wspace=0.05)
             # bands and DOS will share the y-axis
@@ -1841,6 +1839,7 @@ class ElectronBandsPlotter(object):
             ax_list = [ax1, ax2]
             fig = plt.gcf()
         else:
+            # One axis for bands only
             fig = plt.figure()
             ax1 = fig.add_subplot(111)
             ax_list = [ax1]
@@ -1852,17 +1851,17 @@ class ElectronBandsPlotter(object):
         lines, legends = [], []
         my_kwargs, opts_label = kwargs.copy(), {}
         i = -1
-        for (label, ebands), lineopt in zip(self._bands_dict.items(), self.iter_lineopt()):
+        for (label, ebands), lineopt in zip(self.bands_dict.items(), self.iter_lineopt()):
             i += 1
             my_kwargs.update(lineopt)
             opts_label[label] = my_kwargs.copy()
 
+            # Get energy zero.
             if e0 == "edos_fermie":
                 mye0 = self.edoses_dict[label].fermie
             else:
                 mye0 = ebands.get_e0(e0)
 
-            mye0 = ebands.get_e0(e0)
             l = ebands.plot_ax(ax1, mye0, spin=None, band=None, **my_kwargs)
             lines.append(l[0])
 
@@ -1888,8 +1887,11 @@ class ElectronBandsPlotter(object):
 
         return fig
 
-    # Deprecated
-    plot = combiplot
+    @deprecated(message="plot method of ElectronBands has been replaced by combiplot.")
+    def plot(self, *args, **kwargs):
+        if "align" in kwargs or "xlim" in kwargs or "ylim" in kwargs:
+            raise ValueError("align|xlim|ylim options are not supported anymore.")
+        return self.combiplot(*args, **kwargs)
 
     @add_fig_kwargs
     def gridplot(self, e0="fermie", with_dos=True, **kwargs):
@@ -1906,8 +1908,6 @@ class ElectronBandsPlotter(object):
                 each subplot in the grid contains a band structure with DOS else a simple bandstructure plot.
             titles:
                 List of strings with the titles to be added to the subplots.
-            edos_kwargs: optional dictionary with the options passed to `get_edos` to compute the electron DOS.
-                Used only if `edos_objects` is not None.
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
                 - `fermie`: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
                    Note that, by default, the Fermi energy is taken from the band structure object
@@ -1971,7 +1971,7 @@ class ElectronBandsPlotter(object):
 
     def animate(self, e0="fermie", interval=250, savefile=None, show=True):
         """
-        Use matplotlib animate module to animate a list of band structure plots (with or without DOS).
+        Use matplotlib to animate a list of band structure plots (with or without DOS).
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
@@ -2045,7 +2045,6 @@ class ElectronBandsPlotter(object):
 
         if savefile is not None: anim.save(savefile)
         if show: plt.show()
-
         return anim
 
 
@@ -2132,7 +2131,7 @@ class ElectronDosPlotter(object):
 
         ax.grid(True)
         ax.set_xlabel("Energy [eV]")
-        ax.set_ylabel("DOS")
+        ax.set_ylabel('DOS [states/eV]')
         ax.legend(loc="best")
 
         return fig
@@ -2520,67 +2519,4 @@ class ElectronDos(object):
         self.plot_ax(ax2, e0, spin=spin, what="d", **kwargs)
 
         fig = plt.gcf()
-        return fig
-
-
-class ElectronDOSPlotter(object):
-    """
-    Class for plotting multiple electron DOSes.
-    """
-    def __init__(self):
-        self._doses = OrderedDict()
-
-    def add_dos(self, label, dos):
-        """
-        Adds a DOS for plotting.
-
-        Args:
-            label: label for the DOS. Must be unique.
-            dos: :class:`ElectroDos` object.
-        """
-        if label in self._doses:
-            raise ValueError("label %s is already in %s" % (label, self._doses.keys()))
-
-        self._doses[label] = dos
-
-    @add_fig_kwargs
-    def plot(self, ax=None, e0="fermie", **kwargs):
-        """
-        Get a matplotlib plot showing the DOSes.
-
-        Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
-            e0: Option used to define the zero of energy in the DOS plot. Possible values:
-                - `fermie`: shift the DOS to have zero energy at the Fermi energy (`edos.fermie`).
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
-
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        xlim            x-axis limits. None (default) for automatic determination.
-        ylim            y-axis limits.  None (default) for automatic determination.
-        ==============  ==============================================================
-        """
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
-        ax.grid(True)
-
-        xlim = kwargs.pop("xlim", None)
-        if xlim is not None: ax.set_xlim(xlim)
-
-        ylim = kwargs.pop("ylim", None)
-        if ylim is not None: ax.set_ylim(ylim)
-
-        ax.set_xlabel('Energy [eV]')
-        ax.set_ylabel('DOS [states/eV]')
-
-        lines, legends = [], []
-        for label, dos in self._doses.items():
-            l = dos.plot_ax(ax, e0, **kwargs)[0]
-            lines.append(l)
-            legends.append("DOS: %s" % label)
-
-        # Set legends.
-        ax.legend(lines, legends, loc='best', shadow=True)
-
         return fig

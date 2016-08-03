@@ -10,11 +10,9 @@ from abipy.data import ref_file
 
 # To plot a grid with two band structures:
 plotter = ElectronBandsPlotter()
-eb_objects = [ref_file("si_scf_GSR.nc"), ref_file("si_nscf_GSR.nc")]
-plotter.add_ebands("Si SCF-RUN", ref_file("si_scf_GSR.nc"))
-plotter.add_ebands("Si NSCF-RUN", ref_file("si_nscf_GSR.nc"))
-plotter.plot()
-#plotter.gridplot()
+plotter.add_ebands("BZ sampling", ref_file("si_scf_GSR.nc"))
+plotter.add_ebands("k-path", ref_file("si_nscf_GSR.nc"))
+plotter.gridplot()
 #plotter.animate()
 
 
