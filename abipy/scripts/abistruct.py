@@ -7,6 +7,7 @@ import os
 import argparse
 
 from pprint import pprint
+from tabulate import tabulate
 from abipy import abilab
 from abipy.iotools.visualizer import Visualizer
 
@@ -19,6 +20,8 @@ Usage example:
     abistruct.py convert filepath abivars     => Print the ABINIT variables defining the structure.
     abistruct.py convert out_HIST abivars     => Read the last structure from the HIST file and
                                                  print the corresponding Abinit variables.
+    abistruct.py abisanitize FILE             => Read structure from FILE, call abisanitize, compare structures and save
+                                                 "abisanitized" structure to file.
     abistruct.py visualize filepath xcrysden  => Visualize the structure with XcrysDen.
     abistruct.py ipython filepath             => Read structure from filepath and open Ipython terminal.
     abistruct.py bz filepath                  => Read structure from filepath, plot BZ with matplotlib.
@@ -54,6 +57,9 @@ Usage example:
                                       help="Convert structure to the specified format.")
     p_convert.add_argument('format', nargs="?", default="cif", type=str,
                            help="Format of the output file (cif, cssr, POSCAR, json, mson, abivars).")
+
+    p_abisanitize = subparsers.add_parser('abisanitize', parents=[copts_parser, path_selector],
+                                      help="Sanitize structure with abi_sanitize, compare structures and save result to file.")
 
     # Subparser for ipython.
     p_ipython = subparsers.add_parser('ipython', parents=[copts_parser, path_selector],
@@ -102,6 +108,41 @@ Usage example:
         else:
             s = structure.convert(format=options.format)
             print(s)
+
+    elif options.command == "abisanitize":
+        print("Calling abi_sanitize to get a new structure in which:")
+        print("    * Structure is refined.")
+        print("    * Reduced to primitive settings.")
+        print("    * Lattice vectors are exchanged if the triple product is negative\n")
+
+        structure = abilab.Structure.from_file(options.filepath)
+        sanitized = structure.abi_sanitize() #symprec=1e-3, angle_tolerance=5, primitive=True, primitive_standard=False)
+        index = [options.filepath, "abisanitized"]
+        frame = abilab.frame_from_structures([structure, sanitized], index=index, with_spglib=True)
+        print(frame)
+
+        if not options.verbose:
+            print("\nUse -v for more info")
+        else:
+            #print("\nDifference between structures:")
+            if len(structure) == len(sanitized):
+                table = []
+                for line1, line2 in zip(str(structure).splitlines(), str(sanitized).splitlines()):
+                    table.append([line1, line2])
+                print(str(tabulate(table, headers=["Initial structure", "Abisanitized"])))
+
+            else:
+                print("\nInitial structure:")
+                print(structure)
+                print("\nabisanitized structure:")
+                print(sanitized)
+
+        root, basename = os.path.split(options.filepath)
+        new_filename = os.path.join(root, "abisanitized_" + basename)
+        print("Saving abisanitized structure as %s" % new_filename)
+        if os.path.exists(new_filename):
+            raise RuntimeError("%s already exists. Cannot overwrite" % new_filename)
+        sanitized.to(filename=new_filename)
 
     elif options.command == "ipython":
         structure = abilab.Structure.from_file(options.filepath)

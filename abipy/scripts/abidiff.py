@@ -5,6 +5,7 @@ import sys
 import os
 import argparse
 
+
 from abipy import abilab
 
 
@@ -13,8 +14,7 @@ def abicomp_struct(options):
     Compare crystalline structures.
     """
     paths = options.paths
-    index = [os.path.relpath(p) for p in paths]
-    frame = abilab.frame_from_structures(paths, index=None)
+    frame = abilab.frame_from_structures(paths, index=[os.path.relpath(p) for p in paths])
     print("File list:")
     for i, p in enumerate(paths):
         print("%d %s" % (i, p))
@@ -27,26 +27,38 @@ def abicomp_ebands(options):
     """
     Plot electron bands on a grid.
     """
-    paths = options.paths
-    e0 = "fermie"
-    mode = "single"
-    mode = "grid"
-
+    paths, e0 = options.paths, options.e0
     plotter = abilab.ElectronBandsPlotter(key_ebands=[(os.path.relpath(p), p) for p in paths])
-    #for p in paths: plotter.add_ebands(os.path.relpath(p), path)
 
-    if mode == "grid":
-        plotter.gridplot(e0=e0)
-    elif mode == "combi":
-        plotter.combiplot(e0=e0)
-    elif mode == "animate":
-        plotter.animate(e0=e0)
+    if options.ipython:
+        import IPython
+        IPython.embed(header=str(plotter) + "\nType `plotter` in the terminal and use <TAB> to list its methods",
+                      plotter=plotter)
 
-    #if options.ipython:
-    #    import IPython
-    #    IPython.embed(header=str(plotter) + "\nType `plotter` in the terminal and use <TAB> to list its methods", plotter=robot)
-    #elif options.notebook:
-    #    robot.make_and_open_notebook(nbpath=None, daemonize=True)
+    elif options.notebook:
+        plotter.make_and_open_notebook(daemonize=True)
+
+    else:
+        # Print pandas Dataframe.
+        frame = plotter.get_ebands_frame()
+        abilab.print_frame(frame)
+        #from tabulate import tabulate
+        #print(tabulate(frame, floatfmt=".3f")) #headers="keys",
+
+        # Optionally, print info on gaps and their location
+        if not options.verbose:
+            print("\nUse --verbose for more information")
+        else:
+            for ebands in plotter.ebands_list:
+                print(ebands)
+
+        # Here I select the plot method to call.
+        if options.plot_mode != "None":
+            plotfunc = getattr(plotter, options.plot_mode, None)
+            if plotfunc is None:
+                raise ValueError("Don't know how to handle plot_mode: %s" % options.plot_mode)
+            plotfunc(e0=e0)
+
     return 0
 
 
@@ -116,7 +128,8 @@ def abicomp_robot(options):
 
     if options.ipython:
         import IPython
-        IPython.embed(header=str(robot) + "\nType `robot` in the terminal and use <TAB> to list its methods",  robot=robot)
+        IPython.embed(header=str(robot) + "\nType `robot` in the terminal and use <TAB> to list its methods",
+                     robot=robot)
     elif options.notebook:
         robot.make_and_open_notebook(nbpath=None, daemonize=True)
     else:
@@ -124,6 +137,7 @@ def abicomp_robot(options):
         abilab.print_frame(robot.get_dataframe())
 
     return 0
+
 
 def abicomp_gs_scf(options):
     """
@@ -150,7 +164,9 @@ def main():
         return """\
 Usage example:
   abidiff.py struct */*/outdata/out_GSR.nc        => Compare structures in multiple files.
-  abidiff.py ebands out1_GSR.nc out2_GSR.nc       => Plot electron bands on a grid.
+  abidiff.py ebands out1_GSR.nc out2_GSR.nc       => Plot electron bands on a grid (Use `-p` to change plot mode)
+  abidiff.py ebands *_GSR.nc -ipy                 => Build plotter object and start ipython console.
+  abidiff.py ebands *_GSR.nc -nb                  => Interact with the plotter via the jupyter notebook.
   abidiff.py phbands out1_PHBST.nc out2_PHBST.nc  => Plot electron bands on a grid.
   abidiff.py gs_scf run1.abo run2.abo             => Compare the SCF cycles in two output files.
   abidiff.py dfpt2_scf                            => Compare the DFPT SCF cycles in two output files.
@@ -170,6 +186,11 @@ Usage example:
                          help='Verbose, can be supplied multiple times to increase verbosity')
     copts_parser.add_argument('--seaborn', action="store_true", help="Use seaborn settings")
 
+    # Parent parser for commands support (ipython/jupyter)
+    ipy_parser = argparse.ArgumentParser(add_help=False)
+    ipy_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
+    ipy_parser.add_argument('-ipy', '--ipython', default=False, action="store_true", help='Invoke ipython terminal.')
+
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + abilab.__version__)
@@ -183,7 +204,12 @@ Usage example:
     p_struct = subparsers.add_parser('struct', parents=[copts_parser], help=abicomp_struct.__doc__)
 
     # Subparser for ebands command.
-    p_ebands = subparsers.add_parser('ebands', parents=[copts_parser], help=abicomp_ebands.__doc__)
+    p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, ipy_parser], help=abicomp_ebands.__doc__)
+    p_ebands.add_argument("-p", "--plot-mode", default="gridplot",
+                          choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "animate", "None"],
+                          help="Plot mode e.g. `-p combiplot` to plot bands on the same figure. Default is `gridplot`")
+    p_ebands.add_argument("-e0", default="fermie", choices=["fermie", "None"],
+                          help="Option used to define the zero of energy in the band structure plot. Default is `fermie`")
 
     # Subparser for phbands command.
     p_phbands = subparsers.add_parser('phbands', parents=[copts_parser], help=abicomp_phbands.__doc__)
@@ -192,7 +218,7 @@ Usage example:
     #p_pseudos = subparsers.add_parser('pseudos', parents=[copts_parser], help=abicomp_pseudos.__doc__)
 
     # Subparser for robot command.
-    p_robot = subparsers.add_parser('robot', parents=[copts_parser], help=abicomp_robot.__doc__)
+    #p_robot = subparsers.add_parser('robot', parents=[copts_parser, ipy_parser], help=abicomp_robot.__doc__)
 
     # Subparser for gs_scf command.
     p_gs_scf = subparsers.add_parser('gs_scf', parents=[copts_parser], help=abicomp_gs_scf.__doc__)

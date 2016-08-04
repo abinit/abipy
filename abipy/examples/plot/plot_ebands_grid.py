@@ -12,7 +12,9 @@ from abipy.data import ref_file
 plotter = ElectronBandsPlotter()
 plotter.add_ebands("BZ sampling", ref_file("si_scf_GSR.nc"))
 plotter.add_ebands("k-path", ref_file("si_nscf_GSR.nc"))
-plotter.gridplot()
+frame = plotter.get_ebands_frame()
+print(frame)
+plotter.gridplot(e0=None)
 #plotter.animate()
 
 

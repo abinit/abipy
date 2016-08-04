@@ -21,6 +21,7 @@ from monty.dev import deprecated
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from pymatgen.serializers.json_coders import pmg_serialize
 from abipy.core.func1d import Function1D
+from abipy.core.mixins import NotebookWriter
 from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, KpointsReaderMixin, kmesh_from_mpdivs
 from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader, Visualizer, bxsf_write
@@ -34,6 +35,7 @@ logger = logging.getLogger(__name__)
 __all__ = [
     "ElectronBands",
     "ElectronDos",
+    "frame_from_ebands",
     "ElectronBandsPlotter",
     "ElectronDosPlotter",
 ]
@@ -267,6 +269,20 @@ class ElectronBands(object):
     """
     Error = ElectronBandsError
 
+    # FIXME
+    # Increase a bit the value of fermie used in bisection routines to solve the problem mentioned below
+    pad_fermie = 1e-6
+    # One should check whether fermie is recomputed at the end of the SCF cyle
+    # I have problems in finding homos/lumos in semiconductors (e.g. Si)
+    # because fermie is slightly smaller than the CBM:
+
+    # fermie 5.59845327874
+    # homos [Electron(spin=0, kpoint=[0.000, 0.000, 0.000], band=1, eig=5.5984532787385985, occ=2.0)]
+    # lumos [Electron(spin=0, kpoint=[0.000, 0.000, 0.000], band=2, eig=5.5984532788661543, occ=2.0)]
+    #
+    # There's also another possible problem if the DEN is computed on a grid that does not contain the CBM (e.g. Gamma)
+    # because the CBM obtained with the NSCF band structure run will be likely above the Ef computed previously.
+
     @classmethod
     def from_file(cls, filepath):
         """
@@ -403,10 +419,12 @@ class ElectronBands(object):
                     kpoint.set_name(name)
         return _auto_klabels
 
+    # TODO
     #def __repr__(self):
-    #    return self.info
+    #    """String representation (short version)"""
 
     def __str__(self):
+        """String representation"""
         return self.info
 
     # Handy variables used to loop
@@ -448,6 +466,44 @@ class ElectronBands(object):
     def shape(self):
         """Shape of the array with the eigenvalues."""
         return self.nsppol, self.nkpt, self.mband
+
+    def get_dict4frame(self, with_spglib=True):
+        """
+        Return a :class:`OrderedDict` with the most important parameters:
+
+            - Chemical formula and number of atoms.
+            - Lattice lengths, angles and volume.
+            - The spacegroup number computed by Abinit (set to None if not available).
+            - The spacegroup number and symbol computed by spglib (set to None not `with_spglib`).
+
+        Useful to construct pandas DataFrames
+
+        Args:
+            with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
+        """
+        odict = OrderedDict([
+            ("nsppol", self.nsppol), ("nkpt", self.nkpt), ("nband", self.nband_sk.min()),
+            ("nelect", self.nelect), ("fermie", self.fermie),
+
+        ])
+        odict.update(self.structure.get_dict4frame(with_spglib=with_spglib))
+        #odict.update(self.smearing.as_dict())
+
+        bws = self.bandwidths
+        for spin in self.spins:
+            odict["bandwidth_spin%d" % spin] = bws[spin]
+
+        fundamental_gaps = self.fundamental_gaps
+        for spin in self.spins:
+            odict["fundamentalgap_spin%d" % spin] = fundamental_gaps[spin].energy
+            #odict["fundamentalgap_spin%d" % spin] = fundamental_gaps[spin].energy
+
+        direct_gaps = self.direct_gaps
+        for spin in self.spins:
+            odict["directgap_spin%d" % spin] = direct_gaps[spin].energy
+
+        #print(self)
+        return odict
 
     @property
     def markers(self):
@@ -770,13 +826,13 @@ class ElectronBands(object):
         frame.fermie = e0
         return frame
 
-    def boxplot(self, e0="fermie", brange=None, swarm=False, **kwargs):
+    @add_fig_kwargs
+    def boxplot(self, ax=None, e0="fermie", brange=None, swarm=False, **kwargs):
         """
-        Use seaborn to draw a box plot to show distributions of eigenvalues with respect
-        to the band index.
+        Use seaborn to draw a box plot to show distributions of eigenvalues with respect to the band index.
 
         Args:
-        Args:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
                 - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
@@ -789,52 +845,15 @@ class ElectronBands(object):
         frame = self.to_pdframe(e0=e0)
         if brange is not None: frame = frame[brange[0] <= frame["band"] < brange[1]]
 
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        ax.grid(True)
+
         import seaborn as sns
         hue = None if self.nsppol == 1 else "spin"
-        ax = sns.boxplot(x="band", y="eig", data=frame, hue=hue, **kwargs)
+        ax = sns.boxplot(x="band", y="eig", data=frame, hue=hue, ax=ax, **kwargs)
         if swarm:
-            ax = sns.swarmplot(x="band", y="eig", data=frame, hue=hue, color=".25")
-
-    def plot_diff_boxes(self, other, self_name="self", other_name="other",
-                        brange=None, swarm=False, **kwargs):
-        """
-        Use seaborn to draw a box plot comparing the distributions of the eigenvalues
-        in two electron bands.
-
-        Args:
-            other: :class:`ElectronBands` object.
-            self_name: Name used to label the first band structure
-            other_name: Name used to label the second band structure
-            brange: Only bands such as `brange[0] <= band_index < brange[1]` are included in the plot.
-            swarm: True to show the datapoints on top of the boxes
-            kwargs: Keywork arguments passed to seaborn boxplot.
-        """
-        # TODO: Write function ebands_boxplot
-        if self.nsppol != other.nsppol:
-            raise ValueError("Cannot compare bands with different nsppol")
-        if self_name == other_name:
-            raise ValueError("self_name cannot be equal to other_name")
-
-        # Get the dataframe from self, select bands and add column with self_name
-        e0 = 0.0
-        frame1 = self.to_pdframe(e0=e0)
-        if brange is not None: frame1 = frame1[brange[0] <= frame1["band"] < brange[1]]
-        frame1["name"] = self_name
-        # Get the dataframe from other, select bands and add columns with other_name
-        frame2 = other.to_pdframe(e0=e0)
-        if brange is not None: frame2 = frame2[brange[0] <= frame2["band"] < brange[1]]
-        frame2["name"] = other_name
-
-        # Merge frames ignoring index (not meaningful)
-        data = frame1.append(frame2, ignore_index=True)
-
-        # TODO: nsppol == 2
-        if self.nsppol == 2:
-            raise NotImplementedError("nsppol == 2 not coded")
-        import seaborn as sns
-        ax = sns.boxplot(x="band", y="eig", data=data, hue="name", **kwargs)
-        if swarm:
-            ax = sns.swarmplot(x="band", y="eig", data=data, hue="name", color=".25")
+            sns.swarmplot(x="band", y="eig", data=frame, hue=hue, color=".25", ax=ax)
+        return fig
 
     def to_pymatgen(self):
         """
@@ -912,7 +931,7 @@ class ElectronBands(object):
         """
         k = self.kindex(kpoint)
         # Find rightmost value less than or equal to fermie.
-        b = find_le(self.eigens[spin,k,:], self.fermie)
+        b = find_le(self.eigens[spin,k,:], self.fermie + self.pad_fermie)
         return self._electron_state(spin, k, b)
 
     def lumo_sk(self, spin, kpoint):
@@ -925,19 +944,21 @@ class ElectronBands(object):
         """
         k = self.kindex(kpoint)
         # Find leftmost value greater than fermie.
-        b = find_gt(self.eigens[spin,k,:], self.fermie)
+        b = find_gt(self.eigens[spin,k,:], self.fermie + self.pad_fermie)
         return self._electron_state(spin, k, b)
 
     @property
     def homos(self):
-        """homo states for each spin channel as a list of nsppol :class:`Electron`."""
+        """
+        homo states for each spin channel as a list of nsppol :class:`Electron`.
+        """
         homos = self.nsppol * [None]
 
         for spin in self.spins:
             blist, enes = [], []
             for k in self.kidxs:
                 # Find rightmost value less than or equal to fermie.
-                b = find_le(self.eigens[spin,k,:], self.fermie)
+                b = find_le(self.eigens[spin,k,:], self.fermie + self.pad_fermie)
                 blist.append(b)
                 enes.append(self.eigens[spin,k,b])
 
@@ -951,14 +972,16 @@ class ElectronBands(object):
 
     @property
     def lumos(self):
-        """lumo states for each spin channel as a list of nsppol :class:`Electron`."""
+        """
+        lumo states for each spin channel as a list of nsppol :class:`Electron`.
+        """
         lumos = self.nsppol * [None]
 
         for spin in self.spins:
             blist, enes = [], []
             for k in self.kidxs:
-                # Find leftmost value greater than x.
-                b = find_gt(self.eigens[spin,k,:], self.fermie)
+                # Find leftmost value greater than fermie.
+                b = find_gt(self.eigens[spin,k,:], self.fermie + self.pad_fermie)
                 blist.append(b)
                 enes.append(self.eigens[spin,k,b])
 
@@ -1019,7 +1042,9 @@ class ElectronBands(object):
 
     @property
     def info(self):
-        """Human-readable string with useful info such as band gaps, position of HOMO, LOMO..."""
+        """
+        Human-readable string with useful info such as band gaps, position of HOMO, LOMO...
+        """
         dir_gaps = self.direct_gaps
         fun_gaps = self.fundamental_gaps
         widths = self.bandwidths
@@ -1030,8 +1055,7 @@ class ElectronBands(object):
         app = lines.append
 
         app("Electron bands of %s" % self.structure.formula)
-        app("Number of electrons %s" % self.nelect)
-        app("Fermi level: %s [eV]" % self.fermie)
+        app("Number of electrons: %s, Ferml level: %s [eV]" % (self.nelect, self.fermie))
 
         def indent(s):
             return "\t" + s.replace("\n", "\n\t")
@@ -1065,6 +1089,7 @@ class ElectronBands(object):
         """
         Compare the eigenenergies of two bands and compute the
         statistical parameters: mean, standard deviation, min and max
+        The bands are aligned wrt to their fermi level.
 
         Args:
             other: :class:`BandStructure` object.
@@ -1076,8 +1101,7 @@ class ElectronBands(object):
         Returns:
             `namedtuple` with the statistical parameters in eV
         """
-        ediff = numpy_op(self.eigens - other.eigens)
-
+        ediff = numpy_op(self.eigens - self.fermie - other.eigens + other.fermie)
         return StatParams(mean=ediff.mean(axis=axis),
                           stdev=ediff.std(axis=axis),
                           min=ediff.min(axis=axis),
@@ -1102,7 +1126,6 @@ class ElectronBands(object):
             )
 
     def get_edos(self, method="gaussian", step=0.1, width=0.2, eminmax=None):
-    #def get_edos(self, method="gaussian", step=0.02, width=0.1, eminmax=None):
         """
         Compute the electronic DOS on a linear mesh.
 
@@ -1191,7 +1214,6 @@ class ElectronBands(object):
 
             e_min = cmin - vmax
             e_min -= 0.1 * abs(e_min)
-
             e_max = cmax - vmin
             e_max += 0.1 * abs(e_max)
 
@@ -1206,11 +1228,11 @@ class ElectronBands(object):
         full = 2.0 if self.nsppol == 1 else 1.0
 
         if method == "gaussian":
-            for (k, kpoint) in enumerate(self.kpoints):
+            for k, kpoint in enumerate(self.kpoints):
                 weight = kpoint.weight
                 for c in conduction:
                     ec = self.eigens[spin,k,c]
-                    fc = 1 - self.occfacts[spin,k,c] / full
+                    fc = 1.0 - self.occfacts[spin,k,c] / full
                     for v in valence:
                         ev = self.eigens[spin,k,v]
                         fv = self.occfacts[spin,k,v] / full
@@ -1320,7 +1342,7 @@ class ElectronBands(object):
         # Not sure about metals. Besides occupations are not changed here!
         fermie = self.fermie + scissors[0].apply(self.fermie)
         #fermie = self.fermie
-        print("KS fermie", self.fermie, "--> QP fermie", fermie, "Delta(QP_KS)=", fermie - self.fermie)
+        print("KS fermie", self.fermie, "--> QP fermie", fermie, "Delta(QP-KS)=", fermie - self.fermie)
 
         return ElectronBands(
             self.structure, self.kpoints, qp_energies, fermie, self.occfacts, self.nelect,
@@ -1422,6 +1444,8 @@ class ElectronBands(object):
         import matplotlib.pyplot as plt
         fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, squeeze=False)
         ax_list = ax_list.ravel()
+        # don't show the last ax if numeb is odd.
+        if num_plots % ncols != 0: ax_list[-1].axis("off")
 
         for ax, key in zip(ax_list, self.widths):
             # Decorate the axis
@@ -1466,6 +1490,8 @@ class ElectronBands(object):
         elif is_string(e0):
             if e0 == "fermie":
                 return self.fermie
+            elif e0 == "None":
+                return 0.0
             else:
                 raise ValueError("Wrong value for e0: %s" % e0)
         else:
@@ -1609,14 +1635,6 @@ class ElectronBands(object):
         ax2.yaxis.set_ticks_position("right")
         ax2.yaxis.set_label_position("right")
 
-        # commented because it does not work!
-        #emin = np.min(self.eigens)
-        #emin -= 0.01 * abs(emin)
-        #emax = np.max(self.eigens)
-        #emax += 0.01 * abs(emax)
-        #for ax in (ax1, ax2):
-        #    ax.yaxis.set_view_interval(emin, emax)
-
         fig = plt.gcf()
         return fig
 
@@ -1709,7 +1727,30 @@ class ElectronBands(object):
         return 1.0 / ders2
 
 
-class ElectronBandsPlotter(object):
+def frame_from_ebands(ebands_objects, index=None, with_spglib=True):
+    """
+    Build a pandas dataframe with the most important results available in a list of band structures.
+
+    Args:
+        struct_objects: List of objects that can be converted to structure.
+            Support netcdf filenames or :class:`ElectronBands` objects
+            See `ElectronBands.as_ebands` for the complete list.
+        index: Index of the dataframe.
+        with_spglib: If True, spglib is invoked to get the spacegroup symbol and number.
+
+    Return:
+        pandas :class:`DataFrame`
+    """
+    ebands_list = [ElectronBands.as_ebands(obj) for obj in ebands_objects]
+    # Use OrderedDict to have columns ordered nicely.
+    odict_list = [(ebands.get_dict4frame(with_spglib=with_spglib)) for ebands in ebands_list]
+
+    import pandas as pd
+    return pd.DataFrame(odict_list, index=index,
+                        columns=list(odict_list[0].keys()) if odict_list else None)
+
+
+class ElectronBandsPlotter(NotebookWriter):
     """
     Class for plotting electronic band structure and DOSes.
     Supports plots on the same graph or separated plots.
@@ -1732,7 +1773,7 @@ class ElectronBandsPlotter(object):
     def __init__(self, key_ebands=None, key_edos=None, edos_kwargs=None):
         if key_ebands is None: key_ebands = []
         key_ebands = [(k, ElectronBands.as_ebands(v)) for k, v in key_ebands]
-        self.bands_dict = OrderedDict(key_ebands)
+        self.ebands_dict = OrderedDict(key_ebands)
         if key_edos is None: key_edos = []
         key_edos = [(k, ElectronDos.as_edos(v, edos_kwargs)) for k, v in key_edos]
         self.edoses_dict = OrderedDict(key_edos)
@@ -1742,10 +1783,28 @@ class ElectronBandsPlotter(object):
             if len(key_ebands) != len(key_edos):
                 raise ValueError("key_ebands and key_edos must have the same number of elements.")
 
+    def __repr__(self):
+        lines = []
+        app = lines.append
+        for i, (label, ebands) in enumerate(self.ebands_dict.items()):
+            app("[%d] %s --> %s" % (i, label, repr(ebands)))
+
+        if self.edoses_dict:
+            for i, (label, edos) in enumerate(self.edoses_dict.items()):
+                app("[%d] %s --> %s" % (i, label, repr(edos)))
+
+        return "\n".join(lines)
+
+    def get_ebands_frame(self, with_spglib=True):
+        """
+        Build a pandas dataframe with the most important results available in the band structures."""
+        return frame_from_ebands(list(self.ebands_dict.values()),
+                                 index=list(self.ebands_dict.keys()), with_spglib=with_spglib)
+
     @property
     def ebands_list(self):
         """"List of `:class:ElectronBands`."""
-        return list(self.bands_dict.values())
+        return list(self.ebands_dict.values())
 
     @property
     def edoses_list(self):
@@ -1776,10 +1835,10 @@ class ElectronBandsPlotter(object):
             edos_kwargs: optional dictionary with the options passed to `get_edos` to compute the electron DOS.
                 Used only if `dos` is not None and it not an ElectronDos instance.
         """
-        if label in self.bands_dict:
-            raise ValueError("label %s is already in %s" % (label, list(self.bands_dict.keys())))
+        if label in self.ebands_dict:
+            raise ValueError("label %s is already in %s" % (label, list(self.ebands_dict.keys())))
 
-        self.bands_dict[label] = ElectronBands.as_ebands(bands)
+        self.ebands_dict[label] = ElectronBands.as_ebands(bands)
         if dos is not None:
             self.edoses_dict[label] = ElectronDos.as_edos(dos, edos_kwargs)
 
@@ -1787,17 +1846,17 @@ class ElectronBandsPlotter(object):
         """
         Compare the reference bands with index ref with the other bands stored in the plotter.
         """
-        for i, label in enumerate(self.bands_dict.keys()):
+        for i, label in enumerate(self.ebands_dict.keys()):
             if i == ref:
                 ref_label = label
                 break
         else:
             raise ValueError("ref index %s is > number of bands" % ref)
 
-        ref_bands = self.bands_dict[ref_label]
+        ref_bands = self.ebands_dict[ref_label]
 
         text = []
-        for label, bands in self.bands_dict.items():
+        for label, bands in self.ebands_dict.items():
             if label == ref_label: continue
             stat = ref_bands.statdiff(bands)
             text.append(str(stat))
@@ -1851,7 +1910,7 @@ class ElectronBandsPlotter(object):
         lines, legends = [], []
         my_kwargs, opts_label = kwargs.copy(), {}
         i = -1
-        for (label, ebands), lineopt in zip(self.bands_dict.items(), self.iter_lineopt()):
+        for (label, ebands), lineopt in zip(self.ebands_dict.items(), self.iter_lineopt()):
             i += 1
             my_kwargs.update(lineopt)
             opts_label[label] = my_kwargs.copy()
@@ -1923,7 +1982,7 @@ class ElectronBandsPlotter(object):
         Returns:
             matplotlib figure.
         """
-        titles = list(self.bands_dict.keys())
+        titles = list(self.ebands_dict.keys())
         ebands_list, edos_list = self.ebands_list, self.edoses_list
 
         import matplotlib.pyplot as plt
@@ -1966,6 +2025,87 @@ class ElectronBandsPlotter(object):
                 if i % ncols != 0:
                     for ax in (ax1, ax2):
                         ax.set_ylabel("")
+
+        return fig
+
+    @add_fig_kwargs
+    def boxplot(self, e0="fermie", brange=None, swarm=False, **kwargs):
+        """
+        Use seaborn to draw a box plot to show distributions of eigenvalues with respect to the band index.
+        Band structures are drawn on different subplots.
+
+        Args:
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
+            brange: Only bands such as `brange[0] <= band_index < brange[1]` are included in the plot.
+            swarm: True to show the datapoints on top of the boxes
+            kwargs: Keywork arguments passed to seaborn boxplot.
+        """
+        # Build grid of plots.
+        num_plots, ncols, nrows = len(self.ebands_dict), 1, 1
+        if num_plots > 1:
+            ncols = 2
+            nrows = (num_plots//ncols) + (num_plots % ncols)
+
+        import matplotlib.pyplot as plt
+        fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharey=True, squeeze=False)
+        ax_list = ax_list.ravel()
+        # don't show the last ax if numeb is odd.
+        if num_plots % ncols != 0: ax_list[-1].axis("off")
+
+        for (label, ebands), ax in zip(self.ebands_dict.items(), ax_list):
+            ebands.boxplot(ax=ax, show=False)
+            ax.set_title(label)
+        return fig
+
+    @add_fig_kwargs
+    def combiboxplot(self, e0="fermie", brange=None, swarm=False, ax=None, **kwargs):
+        """
+        Use seaborn to draw a box plot comparing the distributions of the eigenvalues
+        Band structures are drawn on the same plot.
+
+        Args:
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
+
+            brange: Only bands such as `brange[0] <= band_index < brange[1]` are included in the plot.
+            swarm: True to show the datapoints on top of the boxes
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            kwargs: Keyword arguments passed to seaborn boxplot.
+        """
+        spin_polarized = False
+        frames = []
+        for label, ebands in self.ebands_dict.items():
+            # Get the dataframe, select bands and add column with label
+            frame = ebands.to_pdframe(e0=e0)
+            if brange is not None: frame = frame[brange[0] <= frame["band"] < brange[1]]
+            frame["label"] = label
+            frames.append(frame)
+            if ebands.nsppol == 2: spin_polarized = True
+
+        # Merge frames ignoring index (not meaningful)
+        import pandas as pd
+        data = pd.concat(frames, ignore_index=True)
+
+        import seaborn as sns
+        if not spin_polarized:
+            ax, fig, plt = get_ax_fig_plt(ax=ax)
+            sns.boxplot(x="band", y="eig", data=data, hue="label", ax=ax, **kwargs)
+            if swarm:
+                sns.swarmplot(x="band", y="eig", data=data, hue="label", color=".25", ax=ax)
+        else:
+            if ax is not None:
+                raise NotImplementedError("ax == None not implemented when nsppol==2")
+            fig, axes = plt.subplots(nrows=2, ncols=1, sharex=True, squeeze=False)
+            for spin, ax in zip(range(2), axes.ravel()):
+                data_spin = data[data["spin"] == spin]
+                sns.boxplot(x="band", y="eig", data=data_spin, hue="label", ax=ax, **kwargs)
+                if swarm:
+                    sns.swarmplot(x="band", y="eig", data=data_spin, hue="label", color=".25", ax=ax)
 
         return fig
 
@@ -2046,6 +2186,29 @@ class ElectronBandsPlotter(object):
         if savefile is not None: anim.save(savefile)
         if show: plt.show()
         return anim
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file is created.
+        Return path to the notebook.
+        """
+        import io, tempfile
+        if nbpath is None:
+            _, nbpath = tempfile.mkstemp(suffix='.ipynb', text=True)
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        #args = [(l, f.filepath) for l, f in self.items()]
+        #nb.cells.extend([
+        #    nbv.new_markdown_cell("# This is a markdown cell"),
+        #    nbv.new_code_cell("robot = abilab.GsrRobot(*%s)\nprint(robot)" % str(args)),
+        #    nbv.new_code_cell("frame = robot.get_dataframe()\ndisplay(frame)"),
+        #    nbv.new_code_cell("plotter = robot.get_ebands_plotter()"),
+        #    nbv.new_code_cell("fig = plotter.plot()"),
+        #])
+
+        with io.open(nbpath, 'wt', encoding="utf8") as fh:
+            nbformat.write(nb, fh)
+        return nbpath
 
 
 class ElectronDosPlotter(object):
@@ -2148,7 +2311,7 @@ class ElectronDosPlotter(object):
 
 class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
     """
-    This object reads band structure data from a netcdf file written
+    This object reads band structure data from a netcdf file.
     """
     def read_ebands(self):
         """
@@ -2447,6 +2610,8 @@ class ElectronDos(object):
         elif is_string(e0):
             if e0 == "fermie":
                 return self.fermie
+            elif e0 == "None":
+                return 0.0
             else:
                 raise ValueError("Wrong value for e0: %s" % e0)
         else:

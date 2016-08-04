@@ -489,7 +489,7 @@ class NotebookWriter(object):
             nbv.new_code_cell("""\
 from __future__ import print_function, division, unicode_literals, absolute_import
 
-impor sys
+import sys
 import os
 
 %matplotlib notebook

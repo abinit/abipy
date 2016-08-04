@@ -549,7 +549,7 @@ class Structure(pymatgen.Structure):
         return np.sqrt(self.dot(coords, coords, space=space,
                                 frac_coords=frac_coords))
 
-    def get_geodict(self, with_spglib=True):
+    def get_dict4frame(self, with_spglib=True):
         """
         Return a :class:`OrderedDict` with the most important structural parameters:
 
@@ -571,7 +571,7 @@ class Structure(pymatgen.Structure):
         abispg_number = None if self.spacegroup is None else self.spacegroup.spgid
 
         return OrderedDict([
-            ("formula", self.formula), ("num_sites", self.num_sites),
+            ("formula", self.formula), ("natom", self.num_sites),
             ("angle0", angles[0]), ("angle1", angles[1]), ("angle2", angles[2]),
             ("a", abc[0]), ("b", abc[1]), ("c", abc[2]), ("volume", self.volume),
             ("abispg_num", abispg_number),
@@ -1431,7 +1431,7 @@ def frame_from_structures(struct_objects, index=None, with_spglib=True):
     """
     structures = [Structure.as_structure(obj) for obj in struct_objects]
     # Use OrderedDict to have columns ordered nicely.
-    odict_list = [(structure.get_geodict(with_spglib=with_spglib)) for structure in structures]
+    odict_list = [(structure.get_dict4frame(with_spglib=with_spglib)) for structure in structures]
 
     import pandas as pd
     return pd.DataFrame(odict_list, index=index,
