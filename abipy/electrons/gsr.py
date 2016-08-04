@@ -12,7 +12,7 @@ from monty.functools import lazy_property
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands
 from prettytable import PrettyTable
-from .ebands import ElectronsReader
+from abipy.electrons.ebands import ElectronsReader
 
 import logging
 logger = logging.getLogger(__name__)
@@ -302,6 +302,7 @@ class GsrReader(ElectronsReader):
         return EnergyTerms(**d)
 
 
+# TODO: Remove
 class GsrPlotter(Iterable):
     """
     This object receives a list of `GsrFile` objects and provides

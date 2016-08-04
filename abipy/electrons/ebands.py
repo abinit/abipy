@@ -1447,6 +1447,7 @@ class ElectronBands(object):
         # don't show the last ax if numeb is odd.
         if num_plots % ncols != 0: ax_list[-1].axis("off")
 
+        e0 = self.get_e0(e0)
         for ax, key in zip(ax_list, self.widths):
             # Decorate the axis
             self.decorate_ax(ax, klabels=klabels, title=key)
