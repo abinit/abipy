@@ -262,6 +262,31 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
         return fig
 
+    def get_edos_pjdos(self, method="gaussian", step=0.1, width=0.2):
+        edos = self.ebands.get_edos(method=method, step=step, width=width)
+        mesh = edos.spin_dos[0].mesh
+
+        # Compute l-decomposed PJ DOS for each type of atom.
+        if method == "gaussian":
+            pjdos_symbls = OrderedDict()
+            for symbol in self.symbols:
+                lmax = self.lmax_symbol[symbol]
+                wlsbk = self.wl_symbol(symbol)
+                lso = np.zeros((self.lsize, self.nsppol, len(mesh)))
+                for spin in range(self.nsppol):
+                    for k, kpoint in enumerate(ebands.kpoints):
+                        weight = kpoint.weight
+                        for band in range(ebands.nband_sk[spin, k]):
+                            e = ebands.eigens[spin,k,band]
+                            for l in range(lmax+1):
+                                lso[l, spin] += wlsbk[l, spin, band, k] * weight * gaussian(mesh, width, center=e)
+                pjdos_symbls[symbol] = lso
+
+        else:
+            raise ValueError("Method %s is not supported" % method)
+
+        return edos, pjdos_symbls
+
     @add_fig_kwargs
     def plot_pjdos(self, e0="fermie", what="l", method="gaussian", step=0.1, width=0.2, **kwargs):
         """
@@ -275,31 +300,11 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         Returns:
             :class:`ElectronDos` object.
         """
-        ebands = self.ebands
-        edos = ebands.get_edos(method=method, step=step, width=width)
+        edos, dos_symbls = self.get_edos_pjdos(self, method=method, step=step, width=width)
         mesh = edos.spin_dos[0].mesh
-        # Define the zero of energy
+        # Define the zero of energy.
         e0 = ebands.get_e0(e0)
         mesh -= e0
-
-        # Compute l-decomposed PJ DOS for each type of atom.
-        if method == "gaussian":
-            dos_symbls = OrderedDict()
-            for symbol in self.symbols:
-                lmax = self.lmax_symbol[symbol]
-                wlsbk = self.wl_symbol(symbol)
-                lso = np.zeros((self.lsize, self.nsppol, len(mesh)))
-                for spin in range(self.nsppol):
-                    for k, kpoint in enumerate(ebands.kpoints):
-                        weight = kpoint.weight
-                        for band in range(ebands.nband_sk[spin, k]):
-                            e = ebands.eigens[spin,k,band] - e0
-                            for l in range(lmax+1):
-                                lso[l, spin] += wlsbk[l, spin, band, k] * weight * gaussian(mesh, width, center=e)
-                dos_symbls[symbol] = lso
-
-        else:
-            raise ValueError("Method %s is not supported" % method)
 
         # Plot data.
         import matplotlib.pyplot as plt
@@ -309,7 +314,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
         for symbol in self.symbols:
             lso = dos_symbls[symbol]
-            for spin in ebands.spins:
+            for spin in self.ebands.spins:
                 spin_sign = +1 if spin == 0 else -1
                 for l in range(self.lmax_symbol[symbol]+1):
                     tot_line = ax_list[l].plot(mesh, spin_sign * edos.spin_dos[spin].values, color="k", label="Total")
@@ -324,3 +329,17 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
                 ax.set_ylabel('DOS [states/eV]')
 
         return fig
+
+    @add_fig_kwargs
+    def plot_fatbands_with_pjdos(self, e0="fermie", what="l", method="gaussian", step=0.1, width=0.2, **kwargs):
+        """
+        Compute the electronic DOS on a linear mesh.
+
+        Args:
+            method: String defining the method for the computation of the DOS.
+            step: Energy step (eV) of the linear mesh.
+            width: Standard deviation (eV) of the gaussian.
+
+        Returns:
+            :class:`ElectronDos` object.
+        """
