@@ -40,6 +40,7 @@ from abipy.electrons.gw import SigresFile, SigresPlotter
 from abipy.electrons.bse import MdfFile
 from abipy.electrons.scissors import ScissorsBuilder
 from abipy.electrons.scr import ScrFile
+from abipy.electrons.fatbands import FatBandsFile
 from abipy.dfpt.phonons import (PhbstFile, PhononBands, PhdosFile, PhdosReader,
                                 phbands_gridplot)
 from abipy.dfpt.ddb import DdbFile
@@ -91,6 +92,7 @@ abiext2ncfile = collections.OrderedDict([
     ("SCR.nc", ScrFile),
     ("SIGRES.nc", SigresFile),
     ("MDF.nc", MdfFile),
+    ("FATBANDS.nc", FatBandsFile),
 ])
 
 
