@@ -2576,7 +2576,7 @@ class ElectronDos(object):
         else:
             return self.spin_dos[spin], self.spin_idos[spin]
 
-    def find_mu(self, nelect, spin=None, num=500, atol=1.e-5):
+    def find_mu(self, nelect, spin=None, num=500, atol=1.e-3):
         """
         Finds the chemical potential given the number of electrons.
         """
@@ -2589,11 +2589,14 @@ class ElectronDos(object):
         else:
             raise ValueError("Cannot find I(e) such that I(e) > nelect")
 
+        # FIXME: Use linear interpolation.
         # Now use spline to get a more accurate mu (useful if mesh is coarse)
         e0, e1 = idos.mesh[i-1], idos.mesh[i]
+        print("idos[i-1]:", idos[i-1], "idos[i]:", idos[i], "intg", intg, "nelect", nelect)
         idos_spline = idos.spline
         for mu in np.linspace(e0, e1, num=num):
             if abs(idos_spline(mu) - nelect) < atol:
+                print(mu, mu / 27.3)
                 return mu
         else:
             raise RuntimeError("Cannot find mu, try to increase num and/or atol")
