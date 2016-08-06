@@ -1464,7 +1464,6 @@ class ElectronBands(object):
         if title is not None: ax.set_title(title)
 
         ax.grid(True)
-        #ax.set_xlabel('k-point')
         ax.set_ylabel('Energy [eV]')
 
         # FIXME:
@@ -2630,7 +2629,7 @@ class ElectronDos(object):
             what: string selecting what will be plotted:
                   "d" for DOS, "i" for IDOS. chars can be concatenated
                   hence what="id" plots both IDOS and DOS. (default "d").
-            exchange_xy: True to exchange axis.
+            exchange_xy: True to exchange x-y axes.
             kwargs:
                 Options passes to matplotlib.
 

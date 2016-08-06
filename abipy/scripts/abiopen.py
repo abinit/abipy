@@ -11,7 +11,7 @@ from monty.os.path import which
 from abipy import abilab
 
 
-def make_open_notebook(options):
+def make_and_open_notebook(options):
     """
     Generate an ipython notebook and open it in the browser.
     Return system exit code.
@@ -24,11 +24,11 @@ def make_open_notebook(options):
     nb = nbf.new_notebook()
 
     nb.cells.extend([
-        nbf.new_markdown_cell("# This is an auto-generated notebook for %s" % os.path.relpath(filepath)),
+        nbf.new_markdown_cell("## This is an auto-generated notebook for %s" % os.path.relpath(options.filepath)),
         nbf.new_code_cell("""\
 from __future__ import print_function, division, unicode_literals, absolute_import
 %matplotlib notebook
-#import numpy as np
+import numpy as np
 #import seaborn as sns
 from abipy import abilab\
 """),
@@ -111,9 +111,16 @@ File extensions supported:
         #                      )
         #
     else:
-        import daemon
-        with daemon.DaemonContext(detach_process=True):
-            return make_open_notebook(options)
+        # Call specialized method if the object is a NotebookWriter
+        # else generate simple notebook by calling `make_and_open_notebook`
+        cls = abilab.abifile_subclass_from_filename(options.filepath)
+        if hasattr(cls, "make_and_open_notebook"):
+            with abilab.abiopen(options.filepath) as abifile:
+                return abifile.make_and_open_notebook()
+        else:
+            import daemon
+            with daemon.DaemonContext():
+                return make_and_open_notebook(options)
 
     return 0
 
