@@ -1466,12 +1466,6 @@ class ElectronBands(object):
         ax.grid(True)
         ax.set_ylabel('Energy [eV]')
 
-        # FIXME:
-        # This causes the annoying warning
-        #UserWarning: No labeled objects found. Use label='...' kwarg on individual plots.
-        # perhaps a method ax_finalize?
-        #ax.legend(loc="best", shadow=True)
-
         # Set ticks and labels.
         ticks, labels = self._make_ticks_and_labels(kwargs.pop("klabels", None))
         if ticks:
@@ -2576,7 +2570,7 @@ class ElectronDos(object):
         else:
             return self.spin_dos[spin], self.spin_idos[spin]
 
-    def find_mu(self, nelect, spin=None, num=500, atol=1.e-3):
+    def find_mu(self, nelect, spin=None):
         """
         Finds the chemical potential given the number of electrons.
         """
@@ -2589,17 +2583,25 @@ class ElectronDos(object):
         else:
             raise ValueError("Cannot find I(e) such that I(e) > nelect")
 
-        # FIXME: Use linear interpolation.
-        # Now use spline to get a more accurate mu (useful if mesh is coarse)
-        e0, e1 = idos.mesh[i-1], idos.mesh[i]
-        print("idos[i-1]:", idos[i-1], "idos[i]:", idos[i], "intg", intg, "nelect", nelect)
-        idos_spline = idos.spline
-        for mu in np.linspace(e0, e1, num=num):
-            if abs(idos_spline(mu) - nelect) < atol:
-                print(mu, mu / 27.3)
-                return mu
-        else:
-            raise RuntimeError("Cannot find mu, try to increase num and/or atol")
+        # Use linear interpolation to find mu (useful if mesh is coarse)
+        e0, y0 = idos[i-1]
+        e1, y1 = idos[i]
+
+        alpha = (y1 - y0) / (e1 - e0)
+        beta = y0 - alpha * e0
+        mu = (nelect - beta) / alpha
+        return mu
+
+        #print("idos[i-1]:", idos[i-1], "idos[i]:", idos[i], "intg", intg, "nelect", nelect)
+        #print("mu linear", mu)
+        # Use spline to get a more accurate mu (useful if mesh is coarse)
+        #idos_spline = idos.spline
+        #for mu in np.linspace(e0, e1, num=500):
+        #    if abs(idos_spline(mu) - nelect) < 1.e-3:
+        #        print(mu, mu / 27.3)
+        #        return mu
+        #else:
+        #    raise RuntimeError("Cannot find mu, try to increase num and/or atol")
 
     def get_e0(self, e0):
         """
@@ -2653,7 +2655,40 @@ class ElectronDos(object):
         return lines
 
     @add_fig_kwargs
-    def plot(self, e0="fermie", spin=None, **kwargs):
+    def plot(self, e0="fermie", spin=None, ax=None, **kwargs):
+        """
+        Plot DOS
+
+        Args:
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
+            spin: Selects the spin component, None if total DOS is wanted.
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+
+        Returns:
+            matplotlib figure.
+        """
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        ax.grid(True)
+        ax.set_xlabel('Energy [eV]')
+        e0 = self.get_e0(e0)
+
+        for spin in range(self.nsppol):
+            spin_sign = +1 if spin == 0 else -1
+            x, y = self.spin_dos[spin].mesh - e0, spin_sign * self.spin_dos[spin].values
+            ax.plot(x, y, **{"color": "black", "linewidth": 1.0})
+
+        #self.spin_idos[spin]
+        #ax1.set_ylabel("TOT IDOS" if spin is None else "IDOS (spin %s)" % spin)
+        #ax2.set_ylabel("TOT DOS" if spin is None else "DOS (spin %s)" % spin)
+        #self.plot_ax(ax1, e0, spin=spin, what="i", **kwargs)
+        #self.plot_ax(ax2, e0, spin=spin, what="d", **kwargs)
+        return fig
+
+    @add_fig_kwargs
+    def plot_dos_idos(self, e0="fermie", spin=None, **kwargs):
         """
         Plot DOS and IDOS.
 
@@ -2678,13 +2713,43 @@ class ElectronDos(object):
         for ax in (ax1, ax2):
             ax.grid(True)
 
-        ax2.set_xlabel('Energy [eV]')
-
         ax1.set_ylabel("TOT IDOS" if spin is None else "IDOS (spin %s)" % spin)
         ax2.set_ylabel("TOT DOS" if spin is None else "DOS (spin %s)" % spin)
+        ax2.set_xlabel('Energy [eV]')
 
         self.plot_ax(ax1, e0, spin=spin, what="i", **kwargs)
         self.plot_ax(ax2, e0, spin=spin, what="d", **kwargs)
 
         fig = plt.gcf()
+        return fig
+
+    @add_fig_kwargs
+    def plot_up_minus_down(self, e0="fermie", ax=None, **kwargs):
+        """
+        Plot DOS
+
+        Args:
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+
+        Returns:
+            matplotlib figure.
+        """
+        if self.nsppol == 1: # DOH!
+            dos_diff = Func1d.from_constant(self.spin_dos[0].mesh, 0.0)
+        else:
+            dos_diff = self.spin_dos[0] - self.spin_dos[1]
+        idos_diff= dos_diff.integral()
+
+        e0 = self.get_e0(e0)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        ax.plot(dos_diff.mesh - e0, dos_diff.values, **{"color": "black", "linewidth": 1.0})
+        ax.plot(idos_diff.mesh - e0, idos_diff.values, **{"color": "black", "linewidth": 1.0})
+
+        ax.grid(True)
+        ax.set_xlabel('Energy [eV]')
+
         return fig

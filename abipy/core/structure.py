@@ -103,6 +103,11 @@ class Structure(pymatgen.Structure):
             # Here I assume that the input file contains a single structure.
             return AbinitInputFile.from_file(filepath).structure
 
+        elif filepath.endswith("_DDB"):
+            from abipy.abilab import abiopen
+            with abiopen(filepath) as abifile:
+                return abifile.structure
+
         else:
             # TODO: Spacegroup is missing here.
             new = super(Structure, cls).from_file(filepath, primitive=primitive, sort=sort)

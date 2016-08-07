@@ -235,6 +235,8 @@ class Dataset(dict, Has_Structure):
         elif "xangst" in self:
             kwargs["xangst"] = np.fromstring(self["xangst"], sep=" ")
 
+        #print(kwargs["rprim"])
+
         return Structure.from_abivars(
             acell=acell,
             znucl=str2array(self["znucl"]),

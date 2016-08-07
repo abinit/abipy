@@ -880,8 +880,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         else:
             scdims = np.array(scdims)
-	    if scdims.shape != (3,):
-	        raise ValueError("Expecting 3 int in scdims but got %s" % str(scdims))
+            if scdims.shape != (3,):
+                raise ValueError("Expecting 3 int in scdims but got %s" % str(scdims))
             numcells = np.product(scdims)
             if len(structure) != numcells * len(self.structure):
                 errmsg = "Number of atoms in input structure should be %d * %d but found" % (

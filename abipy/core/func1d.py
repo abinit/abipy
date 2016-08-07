@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Function1D describes a function of a single variable and provides an easy-to-use API 
+Function1D describes a function of a single variable and provides an easy-to-use API
 for performing common tasks such as algebraic operations, integrations, differentiations, plots ...
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
@@ -21,6 +21,13 @@ __all__ = [
 
 class Function1D(object):
     """Immutable object representing a (real|complex) function of real variable."""
+
+    @classmethod
+    def from_constant(cls, mesh, const):
+        """Build a constant function from the mesh and the scalart `const`"""
+        mesh = np.ascontiguousarray(mesh)
+        return cls(mesh, np.ones(mesh.shape) * const)
+
     def __init__(self, mesh, values):
         """
         Args:
@@ -56,7 +63,7 @@ class Function1D(object):
 
     def __eq__(self, other):
         if other is None: return False
-        return (self.has_same_mesh(other) and 
+        return (self.has_same_mesh(other) and
                 np.allclose(self.values, other.values))
 
     def __ne__(self, other):
@@ -393,14 +400,14 @@ class Function1D(object):
             den = wmesh**2 - w**2
             # Singularity is treated below.
             den[i] = 1
-            f = num / den 
+            f = num / den
             f[i] = 0
             integ = cumtrapz(f, x=wmesh)
             kk_values[i] = integ[-1]
 
             if with_div:
                 func = lambda x: spline(x) / (x**2 - w**2)
-                w0 = w - self.h 
+                w0 = w - self.h
                 w1 = w + self.h
                 y, abserr = quad(func, w0, w1, points=[w])
                 kk_values[i] += y
@@ -410,14 +417,14 @@ class Function1D(object):
     def imag_from_kk(self, with_div=True):
         """
         Compute the Kramers-Kronig transform of the real part
-        to get the imaginary part. Assume self represents the Fourier 
+        to get the imaginary part. Assume self represents the Fourier
         transform of a response function.
 
         Args:
             with_div: True if the divergence should be treated numerically.
                 If False, the divergence is ignored, results are less accurate
                 but the calculation is faster.
-                                                                            
+
         See: https://en.wikipedia.org/wiki/Kramers%E2%80%93Kronig_relations
         """
         from scipy.integrate import cumtrapz, quad
@@ -427,24 +434,24 @@ class Function1D(object):
 
         if with_div:
             spline = UnivariateSpline(self.mesh, num, s=0)
-                                                                            
+
         kk_values = np.empty(len(self))
         for i, w in enumerate(wmesh):
             den = wmesh**2 - w**2
             # Singularity is treated below.
             den[i] = 1
-            f = num / den 
+            f = num / den
             f[i] = 0
             integ = cumtrapz(f, x=wmesh)
             kk_values[i] = integ[-1]
 
             if with_div:
                 func = lambda x: spline(x) / (x**2 - w**2)
-                w0 = w - self.h 
+                w0 = w - self.h
                 w1 = w + self.h
                 y, abserr = quad(func, w0, w1, points=[w])
                 kk_values[i] += y
-                                                                            
+
         return self.__class__(self.mesh, -(2 / np.pi) * wmesh * kk_values)
 
     def plot_ax(self, ax, exchange_xy=False, *args, **kwargs):
@@ -460,7 +467,7 @@ class Function1D(object):
         ==============  ===============================================================
         kwargs          Meaning
         ==============  ===============================================================
-        cplx_mode       string defining the data to print. 
+        cplx_mode       string defining the data to print.
                         Possible choices are (case-insensitive): `re` for the real part
                         "im" for the imaginary part, "abs" for the absolute value.
                         "angle" to display the phase of the complex number in radians.
@@ -485,7 +492,7 @@ class Function1D(object):
     @add_fig_kwargs
     def plot(self, ax=None, **kwargs):
         """
-        Plot the function. 
+        Plot the function.
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.

@@ -63,7 +63,7 @@ class ElectronBandsTest(AbipyTest):
         assert ElectronDos.as_edos(gs_bands, {}) == dos
         assert ElectronDos.as_edos(data.ref_file("si_scf_GSR.nc"), {}) == dos
 
-        mu = dos.find_mu(8, atol=1.e-4)
+        mu = dos.find_mu(8)
         imu = dos.tot_idos.find_mesh_index(mu)
         self.assert_almost_equal(dos.tot_idos[imu][1], 8, decimal=2)
 
