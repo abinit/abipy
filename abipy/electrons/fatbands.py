@@ -56,7 +56,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         self.prtdos = r.read_value("prtdos")
         self.prtdosm = r.read_value("prtdosm")
         self.pawprtdos = r.read_value("pawprtdos")
-        self.pawfatbnd = r.read_value("pawfatbnd")
+        #self.pawfatbnd = r.read_value("pawfatbnd")
         self.natsph = r.read_dimvalue("natsph")
         self.iatsph = r.read_value("iatsph") - 1 # F --> C
         self.ndosfraction = r.read_dimvalue("ndosfraction")
@@ -69,13 +69,13 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             self.xredsph_extra = r.read_value("xredsph_extra")
 
         # pawtab_l_size(ntypat): Maximum value of l+1 leading to non zero Gaunt coeffs: l_size=2*l_max+1
-        self.pawtab_l_size = r.read_value("pawtab_l_size")
+        self.lmax_type = r.read_value("lmax_type")
         typat = r.read_value("atom_species") - 1 # F --> C
         self.lmax_atom = np.empty(self.natom, dtype=np.int)
         for iat in range(self.natom):
-            self.lmax_atom[iat] = (self.pawtab_l_size[typat[iat]] - 1) // 2
+            self.lmax_atom[iat] = self.lmax_type[typat[iat]]
         # lsize is used to dimension arrays that depend on L.
-        self.lsize = self.lmax_atom.max() + 1
+        self.lsize = self.lmax_type.max() + 1
 
         # Sort the chemical symbols and use OrderedDict because we are gonna use these dicts for looping.
         self.symbols = sorted(self.structure.symbol_set, key=lambda s: Element[s].Z)
@@ -260,7 +260,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         return 1.0 - sp
 
     @add_fig_kwargs
-    def plot_fatbands(self, e0="fermie", view="inequivalent", fact=2.0, alpha=0.6, **kwargs):
+    def plot_fatbands_siteview(self, e0="fermie", view="inequivalent", fact=2.0, alpha=0.6, **kwargs):
         """
         Plot fatbands for each atom in the unit cell. By default, only the "inequivalent" atoms are shown.
 
@@ -284,7 +284,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         #    print("Setting view to all")
         #    view = "all"
 
-        if view == "all":
+        if view == "all" or self.natom == 1:
             num_plots, ax2iatom = self.natom, np.arange(self.natom)
 
         elif view == "inequivalent":
@@ -832,19 +832,20 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file is created.
-        Return path to the notebook.
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        workind directory is created. Return path to the notebook.
         """
-        import io, tempfile
-        if nbpath is None: _, nbpath = tempfile.mkstemp(suffix='.ipynb', text=True)
+        import io, os, tempfile
+        if nbpath is None:
+            _, nbpath = tempfile.mkstemp(prefix="abinb_", suffix='.ipynb', dir=os.getcwd(), text=True)
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
         nb.cells.extend([
             nbv.new_code_cell("fbfile = abilab.abiopen('%s')\nprint(fbfile)" % self.filepath),
             nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("fig = fbfile.plot_fatbands()"),
             nbv.new_code_cell("fig = fbfile.plot_fatbands_lview()"),
             nbv.new_code_cell("fig = fbfile.plot_fatbands_mview(iatom=0)"),
+            nbv.new_code_cell("fig = fbfile.plot_fatbands_siteview()"),
             nbv.new_code_cell("fig = fbfile.plot_pjdos_lview()"),
             nbv.new_code_cell("fig = fbfile.plot_fatbands_with_pjdos(pjdosfile=None)"),
         ])

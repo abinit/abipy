@@ -416,12 +416,12 @@ class GsrRobot(Robot, NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file is created.
-        Return path to the notebook.
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        workind directory is created. Return path to the notebook.
         """
         import io, tempfile
         if nbpath is None:
-            _, nbpath = tempfile.mkstemp(suffix='.ipynb', text=True)
+            _, nbpath = tempfile.mkstemp(prefix="abinb_", suffix='.ipynb', dir=os.getcwd(), text=True)
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
         args = [(l, f.filepath) for l, f in self.items()]
