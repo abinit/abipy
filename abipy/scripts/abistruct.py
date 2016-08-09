@@ -149,10 +149,10 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
         print()
 
         wickoffs, equivalent_atoms = spgdata["wyckoffs"], spgdata["equivalent_atoms"]
-        table = [["Pos", "Symbol", "Reduced_Coords", "Wyck", "EqPos"]]
+        table = [["Idx", "Symbol", "Reduced_Coords", "Wyck", "EqIdx"]]
         for i, site in enumerate(structure):
             table.append([
-                "%d" % i,
+                i,
                 site.specie.symbol,
                 "%.5f %.5f %.5f" % tuple(site.frac_coords),
                 "%s" % wickoffs[i],
@@ -162,8 +162,7 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
         print(tabulate(table, headers="firstrow"))
 
         # Print entire dataset.
-        if options.verbose:
-            pprint(spgdata)
+        if options.verbose: pprint(spgdata)
 
         return 0
 
@@ -242,7 +241,6 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
         # Get the Structure corresponding the a material_id.
         structure = abilab.Structure.from_material_id(options.pmgid, final=True, api_key=options.mapi_key,
                                                       endpoint=options.endpoint)
-
         # Convert to json and print it.
         s = structure.convert(format="json")
         print(s)

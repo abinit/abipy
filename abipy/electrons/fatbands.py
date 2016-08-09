@@ -5,6 +5,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import numpy as np
 
 from collections import OrderedDict, defaultdict
+from tabulate import tabulate
 from pymatgen.core.periodic_table import Element
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
@@ -61,19 +62,31 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         self.iatsph = r.read_value("iatsph") - 1 # F --> C
         self.ndosfraction = r.read_dimvalue("ndosfraction")
         self.mbesslang = r.read_dimvalue("mbesslang")
-        self.ratsph = r.read_value("ratsph")
+        self.ratsph_type = r.read_value("ratsph")
         # natsph_extra is present only if we have an extra sphere.
         self.natsph_extra = r.read_dimvalue("natsph_extra", default=0)
         if self.natsph_extra:
             self.ratsph_extra = r.read_value("ratsph_extra")
             self.xredsph_extra = r.read_value("xredsph_extra")
+        if self.natsph_extra != 0:
+            raise NotImplementedError("natsph_extra is not implemented, "
+              "but it's just a matter of using natom + natsph_extra")
 
-        # pawtab_l_size(ntypat): Maximum value of l+1 leading to non zero Gaunt coeffs: l_size=2*l_max+1
+        # This is a tricky part. Note the following:
+        # If usepaw == 0, lmax_type gives the max l included in the non-local part of Vnl
+        #   The wavefunction can have l-components > lmax_type
+        # If usepaw == 1, lmax_type represents the max l included in the PAW basis set.
+        #   The AE wavefunction cannot have more ls than l-max if pawprtdos == 2 and
+        #   the cancellation between PS-onsite and FFT part is perfect
+        # TODO: Decide how to change lmax_type at run-time: API or global self.set_lmax?
         self.lmax_type = r.read_value("lmax_type")
-        typat = r.read_value("atom_species") - 1 # F --> C
+        if not self.usepaw or self.pawprtdos != 0:
+            self.lmax_type[:] = self.mbesslang - 1
+
+        self.typat = r.read_value("atom_species") - 1 # F --> C
         self.lmax_atom = np.empty(self.natom, dtype=np.int)
         for iat in range(self.natom):
-            self.lmax_atom[iat] = self.lmax_type[typat[iat]]
+            self.lmax_atom[iat] = self.lmax_type[self.typat[iat]]
         # lsize is used to dimension arrays that depend on L.
         self.lsize = self.lmax_type.max() + 1
 
@@ -98,26 +111,14 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             for i, symb in enumerate(self.symbols):
                 self.symbol2color[symb] = cm(i/nsymb)
 
+        # Array dimensiones as natom. Set to true if iatom has been calculated
+        self.has_atom = np.zeros(self.natom, dtype=bool)
+        self.has_atom[self.iatsph] = True
+
         #lmax=(pawtab(dtset%typat(dtset%iatsph(iat)))%l_size-1)/2
-        #dos_fractions_m(dtset%nkpt,dtset%mband,dtset%nsppol,ndosfraction*mbesslang)
-        #integer,intent(in) :: m_dos_flag,mbesslang,ndosfraction,pawfatbnd
         #dos_fractions_m(nkpt,mband,nsppol,ndosfraction*mbesslang*m_dos_flag)
         #             = m-resolved projected dos inside PAW sphere.
-
-        #pawfatbnd = keyword for fatbands
         #mbesslang = maximum angular momentum for Bessel function expansion
-        #m_dos_flag = option for the m-contributions to the partial DOS
-        #ndosfraction = natsph*mbesslang
-
-        # LDA+U params.
-        #self.usepawu = r.read_value("usepawu")
-        #self.lpawu = r.read_value("lpawu")
-        #self.upawu = r.read_value("upawu")
-        #self.jpawu = r.read_value("jpawu")
-
-        # Array dimensiones as natom. Set to true if iatom has been calculated
-        #self.has_atom = np.zeros(self.natom, dtype=bool)
-        #self.has_atom[self.iatsph] = True
 
         # Read dos_fraction_m from file and build walm_sbk array of shape [natom, lmax**2, nsppol, mband, nkpt].
         # Note that Abinit allows the users to select a subset of atoms with iatsph. Moreover the order
@@ -146,6 +147,8 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 for i, iatom in enumerate(self.iatsph):
                     self.walm_sbk[iatom] = filedata[i]
 
+        # In principle, this should never happen (unless there's a bug in Abinit or a
+        # very bad cancellation between the FFT and the PS-PAW term (pawprtden=0).
         num_neg = np.sum(self.walm_sbk < 0)
         if num_neg:
             print("WARNING: There are %d (%.1f%%) negative entries in LDOS weights" % (
@@ -169,9 +172,23 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         """String representation"""
         lines = []
         app = lines.append
-        app("lmax_symbol=%s" % str(self.lmax_symbol))
-        #app("mbesslang=%s" % str(self.mbesslang))
-        #app("prtdos=%d, pawprtdos=%d, pawfatbnd=%d, prtdosm=%s" % (self.prtdos, self.pawprtdos, self.pawfatbnd, self.prtdosm)
+        app("usepaw=%d, prtdos=%d, pawprtdos=%d, prtdosm=%d, mbesslang=%d" % (
+            self.usepaw, self.prtdos, self.pawprtdos, self.prtdosm, self.mbesslang))
+        app("nsppol=%d, nkpt=%d, mband=%d" % (self.nsppol, self.nkpt, self.mband))
+        app("")
+
+        table = [["Idx", "Symbol", "Reduced_Coords", "Lmax", "Ratsph [Bohr]", "Has_Atom"]]
+        for iatom, site in enumerate(self.structure):
+            table.append([
+                iatom,
+                site.specie.symbol,
+                "%.5f %.5f %.5f" % tuple(site.frac_coords),
+                self.lmax_atom[iatom],
+                self.ratsph_type[self.typat[iatom]],
+                bool(self.has_atom[iatom]),
+            ])
+
+        app(tabulate(table, headers="firstrow"))
 
         return "\n".join(lines)
 
@@ -281,7 +298,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         # TODO
         #if view == "inequivalent" and self.nspden == 2 and self.nsppol == 1:
         #    print("The system contains magnetic symmetries but the spglib API used does not handle them.")
-        #    print("Setting view to all")
+        #    print("Setting view to `all`")
         #    view = "all"
 
         if view == "all" or self.natom == 1:
@@ -355,7 +372,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         return fig
 
     @add_fig_kwargs
-    def plot_fatbands_lview(self, e0="fermie", fact=2.0, alpha=0.6, ax_list=None, **kwargs):
+    def plot_fatbands_lview(self, e0="fermie", fact=2.0, alpha=0.6, ax_list=None, lmax=None, **kwargs):
         """
         Plot the electronic fatbands grouped by l.
 
@@ -371,13 +388,14 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         Returns:
             `matplotlib` figure
         """
+        mylsize = self.lsize if lmax is None else lmax + 1
         # Get ax_list and fig.
         import matplotlib.pyplot as plt
         if ax_list is None:
-            fig, ax_list = plt.subplots(nrows=1, ncols=self.lsize, sharex=True, sharey=True, squeeze=False)
+            fig, ax_list = plt.subplots(nrows=1, ncols=mylsize, sharex=True, sharey=True, squeeze=False)
             ax_list = ax_list.ravel()
         else:
-            if len(ax_list) != self.lsize:
+            if len(ax_list) != mylsize:
                 raise ValueError("len(ax_list) != self.lsize")
             fig = plt.gcf()
 
@@ -414,7 +432,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         return fig
 
     @add_fig_kwargs
-    def plot_fatbands_mview(self, iatom, e0="fermie", fact=6.0, alpha=0.6, **kwargs):
+    def plot_fatbands_mview(self, iatom, e0="fermie", fact=6.0, alpha=0.6, lmax=None, **kwargs):
         """
         Plot the electronic fatbands grouped by l.
 
@@ -430,12 +448,13 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         Returns:
             `matplotlib` figure
         """
-        lmax = self.lmax_atom[iatom]
+        mylmax = self.lmax_atom[iatom] if lmax is None else lmax
+
         # Build plot grid.
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
         fig = plt.figure()
-        nrows, ncols = 2 * (lmax+1), lmax + 1
+        nrows, ncols = 2 * (mylmax+1), mylmax + 1
         gspec = GridSpec(nrows=nrows, ncols=ncols)
         gspec.update(wspace=0.1, hspace=0.1)
 
@@ -835,9 +854,6 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
         workind directory is created. Return path to the notebook.
         """
-        import io, os, tempfile
-        if nbpath is None:
-            _, nbpath = tempfile.mkstemp(prefix="abinb_", suffix='.ipynb', dir=os.getcwd(), text=True)
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
         nb.cells.extend([
@@ -850,6 +866,4 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             nbv.new_code_cell("fig = fbfile.plot_fatbands_with_pjdos(pjdosfile=None)"),
         ])
 
-        with io.open(nbpath, 'wt', encoding="utf8") as fh:
-            nbformat.write(nb, fh)
-        return nbpath
+        return self._write_nb_nbpath(nb, nbpath)

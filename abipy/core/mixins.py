@@ -506,21 +506,32 @@ from abipy import abilab
     def write_notebook(self, nbpath=None):
         """
         Write an ipython notebook to nbpath. If nbpath is None, a temporay file is created.
-        Return path to the notebook.
+        Return path to the notebook. A typical template is given below.
         """
         # Preable.
-        import io, tempfile
-        if nbpath is None:
-            _, nbpath = tempfile.mkstemp(suffix='.ipynb', text=True)
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
+        #####################
         # Put your code here
         nb.cells.extend([
             nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("a = 1"),
         ])
+        #####################
+
+        # Call _write_nb_nbpath
+        return self._write_nb_nbpath(nb, nbpath)
+
+    def _write_nb_nbpath(nb, nbpath):
+        """
+        This method must be called at the end of `write_notebook`.
+        nb is the ipython notebook and nbpath the argument passed to `write_notebook`.
+        """
+        import io, os, tempfile
+        if nbpath is None:
+            _, nbpath = tempfile.mkstemp(prefix="abinb_", suffix='.ipynb', dir=os.getcwd(), text=True)
 
         # Write notebook
         with io.open(nbpath, 'wt', encoding="utf8") as fh:
             nbformat.write(nb, fh)
-        return nbpath
+            return nbpath

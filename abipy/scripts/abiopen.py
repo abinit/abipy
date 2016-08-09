@@ -36,7 +36,8 @@ from abipy import abilab\
     nbf.new_code_cell("abifile = abilab.abiopen('%s')" % options.filepath)
     ])
 
-    _, nbpath = tempfile.mkstemp(suffix='.ipynb', text=True)
+    import io, os, tempfile
+    _, nbpath = tempfile.mkstemp(prefix="abinb_", suffix='.ipynb', dir=os.getcwd(), text=True)
 
     with io.open(nbpath, 'wt', encoding="utf8") as f:
         nbformat.write(nb, f)
@@ -77,6 +78,7 @@ File extensions supported:
     #                     help='verbose, can be supplied multiple times to increase verbosity')
 
     parser.add_argument('-nb', '--notebook', action='store_true', default=False, help="Open file in jupyter notebook")
+    parser.add_argument('-p', '--print', action='store_true', default=False, help="Print python object and return.")
     parser.add_argument("filepath", help="File to open. See table below for the list of supported extensions.")
 
     # Parse the command line.
@@ -100,6 +102,10 @@ File extensions supported:
     if not options.notebook:
         # Start ipython shell with namespace
         abifile = abilab.abiopen(options.filepath)
+        if options.print:
+            print(abifile)
+            return 0
+
         import IPython
         # Use embed because I don't know how to show a header with start_ipython.
         IPython.embed(header="The Abinit file is bound to the `abifile` variable.\nTry `print(abifile)`")
