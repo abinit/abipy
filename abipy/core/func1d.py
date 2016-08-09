@@ -266,19 +266,21 @@ class Function1D(object):
 
         return self.__class__(self.mesh, finite_diff(self.values, self.h, order=order, acc=acc))
 
-    def integral(self):
+    def integral(self, start=0, stop=None):
         """
-        Cumulatively integrate y(x) using the composite trapezoidal rule.
+        Cumulatively integrate y(x) from start to stop using the composite trapezoidal rule.
 
         Returns:
             :class:`Function1d` with :math:`\int y(x) dx`
         """
+        if stop is None: stop = len(self.values) + 1
+        x, y = self.mesh[start:stop], self.values[start:stop]
         from scipy.integrate import cumtrapz
-        integ = cumtrapz(self.values, x=self.mesh)
-        pad_intg = np.zeros(len(self.values))
+        integ = cumtrapz(y, x=x)
+        pad_intg = np.zeros(len(y))
         pad_intg[1:] = integ
 
-        return self.__class__(self.mesh, pad_intg)
+        return self.__class__(x, pad_intg)
 
     @lazy_property
     def spline(self):

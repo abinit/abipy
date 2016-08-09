@@ -622,6 +622,12 @@ class ElectronBands(object):
         else:
             return self.kpoints.index(kpoint)
 
+    def sb_iter(self):
+        """Iterator over (spin, band) indices."""
+        for spin in self.spins:
+            for band in self.nband_sk[spin,k]:
+                yield spin, band
+
     def skb_iter(self):
         """Iterator over (spin, k, band) indices."""
         for spin in self.spins:
@@ -2375,7 +2381,9 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
 
 
 class EBands3D(object):
-    """This object symmetrizes the band energies in the full Brillouin zone."""
+    """
+    This object symmetrizes the band energies in the full Brillouin zone.
+    """
     def __init__(self, structure, ibz_arr, ene_ibz, ndivs, shifts, pbc=False, order="unit_cell"):
         """
         Args:

@@ -1,5 +1,5 @@
 # coding: utf-8
-"""Classes for the analysis of electronic structures."""
+"""Classes for the analysis of fatbands and PJDOS."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
@@ -14,13 +14,18 @@ from abipy.tools import gaussian
 
 class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
-    File with  ...
+    Provides methods to analyze the data stored in the FATBANDS.nc file.
 
     Usage example:
 
     .. code-block:: python
 
         with FatBandsFile("foo_FATBANDS.nc") as fb:
+            fb.plot_fatbands_lview()
+
+    Alternatively, one can use::
+
+        with abiopen("foo_FATBANDS.nc") as fb:
             fb.plot_fatbands_lview()
     """
     # Mapping L --> color used in plots.
@@ -55,11 +60,13 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         self.natsph = r.read_dimvalue("natsph")
         self.iatsph = r.read_value("iatsph") - 1 # F --> C
         self.ndosfraction = r.read_dimvalue("ndosfraction")
-        #self.ratsph = r.read_value("ratsph")
-        #self.natsph_extra = r.read_dimvalue("natsph_extra")
-        #self.ratsph_extra = r.read_value("ratsph_extra")
-        #self.xredsph_extra = r.read_value("xredsph_extra")
         self.mbesslang = r.read_dimvalue("mbesslang")
+        self.ratsph = r.read_value("ratsph")
+        # natsph_extra is present only if we have an extra sphere.
+        self.natsph_extra = r.read_dimvalue("natsph_extra", default=0)
+        if self.natsph_extra:
+            self.ratsph_extra = r.read_value("ratsph_extra")
+            self.xredsph_extra = r.read_value("xredsph_extra")
 
         # pawtab_l_size(ntypat): Maximum value of l+1 leading to non zero Gaunt coeffs: l_size=2*l_max+1
         self.pawtab_l_size = r.read_value("pawtab_l_size")
@@ -67,6 +74,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         self.lmax_atom = np.empty(self.natom, dtype=np.int)
         for iat in range(self.natom):
             self.lmax_atom[iat] = (self.pawtab_l_size[typat[iat]] - 1) // 2
+        # lsize is used to dimension arrays that depend on L.
         self.lsize = self.lmax_atom.max() + 1
 
         # Sort the chemical symbols and use OrderedDict because we are gonna use these dicts for looping.
@@ -113,7 +121,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
         # Read dos_fraction_m from file and build walm_sbk array of shape [natom, lmax**2, nsppol, mband, nkpt].
         # Note that Abinit allows the users to select a subset of atoms with iatsph. Moreover the order
-        # of the atoms could differ from the one in the structure.
+        # of the atoms could differ from the one in the structure even when natom == natsph (unlikely but possible).
         # To keep it simple, the code always operate on an array dimensioned with the total number of atoms
         # Entries that are not computed are set to zero and a warning is issued.
         wshape = (self.natom, self.mbesslang**2, self.nsppol, self.mband, self.nkpt)
@@ -128,7 +136,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 print("Will rearrange filedata since iatsp != [1, 2, ...])")
                 filedata = np.reshape(r.read_value("dos_fractions_m"), wshape)
                 for i, iatom in enumerate(self.iatsph):
-                    self.walm_sbl[iatom] = filedata[i]
+                    self.walm_sbk[iatom] = filedata[i]
 
             else:
                 print("natsph < natom. Will set to zero the PJDOS contributions for the atoms that are not included.")
@@ -136,7 +144,12 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 filedata = np.reshape(r.read_value("dos_fractions_m"),
                                      (self.natsph, self.mbesslang**2, self.nsppol, self.mband, self.nkpt))
                 for i, iatom in enumerate(self.iatsph):
-                    self.walm_sbl[iatom] = filedata[i]
+                    self.walm_sbk[iatom] = filedata[i]
+
+        num_neg = np.sum(self.walm_sbk < 0)
+        if num_neg:
+            print("WARNING: There are %d (%.1f%%) negative entries in LDOS weights" % (
+                  num_neg, 100 * num_neg / self.walm_sbk.size))
 
     @property
     def ebands(self):
@@ -156,10 +169,13 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         """String representation"""
         lines = []
         app = lines.append
-        app("lmax_symbol = %s" % str(self.lmax_symbol))
+        app("lmax_symbol=%s" % str(self.lmax_symbol))
+        #app("mbesslang=%s" % str(self.mbesslang))
+        #app("prtdos=%d, pawprtdos=%d, pawfatbnd=%d, prtdosm=%s" % (self.prtdos, self.pawprtdos, self.pawfatbnd, self.prtdosm)
+
         return "\n".join(lines)
 
-    def wl_atom(self, iatom, spin=None, band=None):
+    def get_wl_atom(self, iatom, spin=None, band=None):
         """
         Return the l-dependent DOS weights for atom index `iatom`. The weights are summed over m.
         If `spin` and `band` are not specified, the method returns the weights
@@ -168,20 +184,18 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         if spin is None and band is None:
             wl = np.zeros((self.lsize, self.nsppol, self.mband, self.nkpt))
             for l in range(self.lmax_atom[iatom]+1):
-                padl = l**2
                 for m in range(2*l + 1):
-                    wl[l] += self.walm_sbk[iatom, padl + m]
+                    wl[l] += self.walm_sbk[iatom, l**2 + m]
         else:
             assert spin is not None and band is not None
             wl = np.zeros((self.lsize, self.nkpt))
             for l in range(self.lmax_atom[iatom]+1):
-                padl = l**2
                 for m in range(2*l + 1):
-                    wl[l] += self.walm_sbk[iatom, padl + m, spin, band, :]
+                    wl[l] += self.walm_sbk[iatom, l**2 + m, spin, band, :]
 
         return wl
 
-    def wl_symbol(self, symbol, spin=None, band=None):
+    def get_wl_symbol(self, symbol, spin=None, band=None):
         """
         Return the l-dependent DOS weights for a given type specified in terms of the
         chemical symbol `symbol`. The weights are summed over m and over all atoms of the same type.
@@ -192,21 +206,19 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             wl = np.zeros((self.lsize, self.nsppol, self.mband, self.nkpt))
             for iat in self.symbol2indices[symbol]:
                 for l in range(self.lmax_atom[iat]+1):
-                    padl = l**2
                     for m in range(2*l + 1):
-                        wl[l] += self.walm_sbk[iat, padl + m]
+                        wl[l] += self.walm_sbk[iat, l**2 + m]
         else:
             assert spin is not None and band is not None
             wl = np.zeros((self.lsize, self.nkpt))
             for iat in self.symbol2indices[symbol]:
                 for l in range(self.lmax_atom[iat]+1):
-                    padl = l**2
                     for m in range(2*l + 1):
-                        wl[l, :] += self.walm_sbk[iat, padl + m, spin, band, :]
+                        wl[l, :] += self.walm_sbk[iat, l**2 + m, spin, band, :]
 
         return wl
 
-    def w_symbol(self, symbol, spin=None, band=None):
+    def get_w_symbol(self, symbol, spin=None, band=None):
         """
         Return the DOS weights for a given type specified in terms of the
         chemical symbol `symbol`. The weights are summed over m and lmax[symbol] and over all atoms of the same type.
@@ -214,54 +226,73 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         for all spins and bands else the contribution for (spin, band).
         """
         if spin is None and band is None:
-            wl = self.wl_symbol(symbol)
+            wl = self.get_wl_symbol(symbol)
             w = np.zeros((self.nsppol, self.mband, self.nkpt))
             for l in range(self.lmax_symbol[symbol]+1):
                 w += wl[l]
 
         else:
             assert spin is not None and band is not None
-            wl = self.wl_symbol(symbol, spin=spin, band=spin)
+            wl = self.get_wl_symbol(symbol, spin=spin, band=spin)
             w = np.zeros((self.nkpt))
             for l in range(self.lmax_symbol[symbol]+1):
                 w += wl[l]
 
         return w
 
+    def get_spilling(self, spin=None, band=None):
+        """
+        """
+        if spin is None and band is None:
+            sp = np.zeros((self.nsppol, self.mband, self.nkpt))
+            for iatom in range(self.natom):
+                for l in range(self.lmax_atom[iatom]+1):
+                    for m in range(2*l + 1):
+                        sp += self.walm_sbk[iatom, l**2 + m]
+        else:
+            assert spin is not None and band is not None
+            sp = np.zeros((self.nkpt))
+            for iatom in range(self.natom):
+                for l in range(self.lmax_atom[iatom]+1):
+                    for m in range(2*l + 1):
+                        sp += self.walm_sbk[iatom, l**2 + m, spin, band, :]
+
+        return 1.0 - sp
+
     @add_fig_kwargs
     def plot_fatbands(self, e0="fermie", view="inequivalent", fact=2.0, alpha=0.6, **kwargs):
         """
-        Plot the fatbands for all atoms in the unit cell.
+        Plot fatbands for each atom in the unit cell. By default, only the "inequivalent" atoms are shown.
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
                 - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
+            view: "inequivalent", "all"
             fact:  float used to scale the stripe size.
             alpha:
-            view: "inequivalent", "all"
 
         Returns:
             `matplotlib` figure
         """
         # Define num_plots and ax2atom depending on view.
         # ax2natom[1:num_plots] --> iatom index in structure.
+        # TODO
         #if view == "inequivalent" and self.nspden == 2 and self.nsppol == 1:
         #    print("The system contains magnetic symmetries but the spglib API used does not handle them.")
         #    print("Setting view to all")
         #    view = "all"
 
         if view == "all":
-            num_plots = self.natom
-            ax2iatom = np.arange(self.natom)
+            num_plots, ax2iatom = self.natom, np.arange(self.natom)
+
         elif view == "inequivalent":
-            #if self.nspden == 2 and self.nsppol = 1
             print("Calling spglib to find inequivalent sites. Note: magnetic symmetries are not taken into account")
             from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
             spgan = SpacegroupAnalyzer(self.structure)
             spgdata = spgan.get_symmetry_dataset()
-            wickoffs, equivalent_atoms = spgdata["wyckoffs"], spgdata["equivalent_atoms"]
+            equivalent_atoms = spgdata["equivalent_atoms"]
             ax2iatom = []
             eqmap = defaultdict(list)
             for pos, eqpos in enumerate(equivalent_atoms):
@@ -307,7 +338,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             # Add width around each band.
             for spin in ebands.spins:
                 for band in range(ebands.mband):
-                    wlk = self.wl_atom(iat, spin=spin, band=band) * fact
+                    wlk = self.get_wl_atom(iat, spin=spin, band=band) * fact
                     yup = ebands.eigens[spin, :, band] - e0
                     ydown = yup.copy()
                     for l in range(self.lmax_atom[iat]+1):
@@ -326,7 +357,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
     @add_fig_kwargs
     def plot_fatbands_lview(self, e0="fermie", fact=2.0, alpha=0.6, ax_list=None, **kwargs):
         """
-        Plot the electronic fatbands
+        Plot the electronic fatbands grouped by l.
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
@@ -369,7 +400,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                     yup = ebands.eigens[spin, :, band] - e0
                     ydown = yup.copy()
                     for symbol in self.symbols:
-                        wlk = self.wl_symbol(symbol, spin=spin, band=band) * fact
+                        wlk = self.get_wl_symbol(symbol, spin=spin, band=band) * fact
                         w = wlk[l] / 2
                         y1, y2 = yup + w, ydown - w
                         # Add width around each band.
@@ -385,6 +416,19 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
     @add_fig_kwargs
     def plot_fatbands_mview(self, iatom, e0="fermie", fact=6.0, alpha=0.6, **kwargs):
         """
+        Plot the electronic fatbands grouped by l.
+
+        Args:
+            iatom: Index of the atom in the structure.
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
+            fact:  float used to scale the stripe size.
+            alpha:
+
+        Returns:
+            `matplotlib` figure
         """
         lmax = self.lmax_atom[iatom]
         # Build plot grid.
@@ -479,7 +523,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             if i != 0:
                 ax.set_ylabel("")
 
-            w_sbk = self.w_symbol(symbol) * fact
+            w_sbk = self.get_w_symbol(symbol) * fact
             for spin in range(self.nsppol):
                 for band in range(self.mband):
                     y = ebands.eigens[spin, :, band] - e0
@@ -489,6 +533,93 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                     ax.fill_between(x, y, y - w, alpha=alpha, facecolor=self.symbol2color[symbol])
 
         return fig
+
+    @add_fig_kwargs
+    def plot_spilling(self, e0="fermie", fact=5.0, alpha=0.6, ax=None, **kwargs):
+        """
+        Plot the electronic fatbands
+
+        Args:
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
+            fact:  float used to scale the stripe size.
+            alpha:
+
+        Returns:
+            `matplotlib` figure
+        """
+        # Get ax_list and fig.
+        import matplotlib.pyplot as plt
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+
+        ebands = self.ebands
+        e0 = ebands.get_e0(e0)
+        x = np.arange(self.nkpt)
+
+        spill_sbk = self.get_spilling() * fact
+
+        ebands.decorate_ax(ax)
+        for spin in range(self.nsppol):
+            ebands.plot_ax(ax, e0, spin=spin,
+                           color="grey", linewidth=0.2, markersize=2.0, marker=self.marker_spin[spin])
+
+            for band in range(self.mband):
+                y = ebands.eigens[spin, :, band] - e0
+                w = spill_sbk[spin, band, :] / 2
+
+                # Handle negative spilling values.
+                wispos = w >= 0.0
+                wisneg = np.logical_not(wispos)
+                num_neg = np.sum(wisneg)
+
+                # Add width around each band.
+                ax.fill_between(x, y, y + w, where=wispos, alpha=alpha, facecolor="blue")
+                ax.fill_between(x, y, y - w, where=wispos, alpha=alpha, facecolor="blue")
+
+                # Show regions with negative spilling in red.
+                if num_neg:
+                    print("For spin:", spin, "band:", band,
+                          "There are %d (%.1f%%) k-points with negative spilling. Min: %.2E" % (
+                           num_neg, 100 * num_neg / self.nkpt, w.min()))
+
+                    absw = np.abs(w)
+                    ax.fill_between(x, y, y + absw, where=wisneg, alpha=alpha, facecolor="red")
+                    ax.fill_between(x, y, y - absw, where=wisneg, alpha=alpha, facecolor="red")
+
+        return fig
+
+    def nelect_in_spheres(self, energy=None, method="gaussian", step=0.1, width=0.2):
+        """
+        Print the number of electrons inside each atom-centered sphere.
+        Note that this is a very crude estimate of the charge density distribution.
+
+        Args:
+            energy: PJDOS is integrated up to this energy [eV]. If None, the Fermi level is used.
+            method: String defining the method for the computation of the DOS.
+            step: Energy step (eV) of the linear mesh.
+            width: Standard deviation (eV) of the gaussian.
+        """
+        raise NotImplementedError("")
+        if energy is None: energy = self.ebands.fermie
+        #edos, pjdos_symbls, cumdos_ls = self._get_edos_pjdos_cumdos(method=method, step=step, width=width)
+
+        for iatm, site in enumerate(self.structure):
+            # ?? site_dos: [natom, spin, nomega]
+            if iatm == 0:
+                # Find the index of the first point in the mesh whose value is >= value. -1 if not found
+                stop_spin = {}
+                for spin in self.spins:
+                    stop = site_dos[spin].find_mesh_index(energy)
+                    if stop == -1:
+                        raise ValueError("For spin %d: cannot find index in mesh such that mesh[i] >= energy." % spin)
+                    stop_spin[spin] = stop
+
+            nel_spin = {}
+            for spin in self.spins:
+                nel_spin[spin] = site_dos[spin].integral(stop=stop_spin[spin])
+            print("iatom", iatm, "site", site, nel_spin)
 
     def _get_edos_pjdos_cumdos(self, method="gaussian", step=0.1, width=0.2):
         ebands = self.ebands
@@ -500,7 +631,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             pjdos_symbls = OrderedDict()
             for symbol in self.symbols:
                 lmax = self.lmax_symbol[symbol]
-                wlsbk = self.wl_symbol(symbol)
+                wlsbk = self.get_wl_symbol(symbol)
                 lso = np.zeros((self.lsize, self.nsppol, len(mesh)))
                 for spin in range(self.nsppol):
                     for k, kpoint in enumerate(ebands.kpoints):
@@ -647,7 +778,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
     def plot_fatbands_with_pjdos(self, e0="fermie", fact=2.0, alpha=0.6,
                                  pjdosfile=None, edos_kwargs=None, stacked=True, **kwargs):
         """
-        Compute the electronic DOS on a linear mesh.
+        Compute the fatbands and the PJDOS.
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
