@@ -27,10 +27,10 @@ class Mesh3D(object):
     symmetry operations and integrating functions over space.
 
     This is how a 2x2x2 3D array arr[x,y,z] is stored in memory::
-    
+
         3-----7
         |\    |
-        | \   | 
+        | \   |
         |  1-----5      z
         2--|--6  |   y  |
          \ |   \ |    \ |
@@ -266,9 +266,9 @@ class Mesh3D(object):
         gy_list = np.rint(fftfreq(self.ny) * self.ny)
         gz_list = np.rint(fftfreq(self.nz) * self.nz)
         #print(gz_list, gy_list, gx_list)
-                                                      
+
         gvecs = np.empty((self.size,3), dtype=np.int)
-                                                      
+
         idx = -1
         for gx in gx_list:
             for gy in gy_list:
@@ -290,7 +290,7 @@ class Mesh3D(object):
         return rpoints
 
     #def ogrid_rfft(self):
-    #    return np.ogrid[0:1:1/self.nx, 
+    #    return np.ogrid[0:1:1/self.nx,
     #                    0:1:1/self.ny,
     #                    0:1:1/self.nz]
 
@@ -299,7 +299,7 @@ class Mesh3D(object):
         Returns an ogrid with the indices associated to the specified line.
 
         Args:
-            line: 
+            line:
                 String specifying the type of line (in reduced coordinates),
                 e.g. "x", "y", "z".
         """
@@ -319,7 +319,7 @@ class Mesh3D(object):
         Returns an ogrid with the indices associated to the specified plane.
 
         Args:
-            plane: 
+            plane:
                 String specifying the type of plane (in reduced coordinates),
                 e.g. "xy" "xz" ...
             h:
@@ -344,8 +344,8 @@ class Mesh3D(object):
         red2fft = np.diag([nx, ny, nz])
         fft2red = np.diag([1/nx, 1/ny, 1/nz])
 
-        # For a fully compatible mesh, each mat in rotsm1_fft should be integer 
-        rotsm1_fft, tnons_fft = np.empty((nsym,3,3)), np.empty((nsym,3)) 
+        # For a fully compatible mesh, each mat in rotsm1_fft should be integer
+        rotsm1_fft, tnons_fft = np.empty((nsym,3,3)), np.empty((nsym,3))
 
         for isym, symmop in enumerate(symmops):
             rotm1_r, tau = symmop.rotm1_r, symmop.tau
@@ -353,7 +353,7 @@ class Mesh3D(object):
             tnons_fft[isym] = np.dot(red2fft, tau)
 
         # Indeces of $R^{-1}(r-\tau)$ in the FFT box.
-        irottable = np.empty((nsym, nx*ny*nz), dtype=np.int) 
+        irottable = np.empty((nsym, nx*ny*nz), dtype=np.int)
 
         #max_err = 0.0
         nxyz = np.array((nx, ny, nz), np.int)

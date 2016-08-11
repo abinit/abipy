@@ -2598,18 +2598,9 @@ class ElectronDos(object):
         alpha = (y1 - y0) / (e1 - e0)
         beta = y0 - alpha * e0
         mu = (nelect - beta) / alpha
-        return mu
-
         #print("idos[i-1]:", idos[i-1], "idos[i]:", idos[i], "intg", intg, "nelect", nelect)
         #print("mu linear", mu)
-        # Use spline to get a more accurate mu (useful if mesh is coarse)
-        #idos_spline = idos.spline
-        #for mu in np.linspace(e0, e1, num=500):
-        #    if abs(idos_spline(mu) - nelect) < 1.e-3:
-        #        print(mu, mu / 27.3)
-        #        return mu
-        #else:
-        #    raise RuntimeError("Cannot find mu, try to increase num and/or atol")
+        return mu
 
     def get_e0(self, e0):
         """
@@ -2631,7 +2622,7 @@ class ElectronDos(object):
             # Assume number
             return float(e0)
 
-    def plot_ax(self, ax, e0, spin=None, what="d", exchange_xy=False, **kwargs):
+    def plot_ax(self, ax, e0, spin=None, what="d", fact=1.0, exchange_xy=False, **kwargs):
         """
         Helper function to plot the DOS data on the axis ax.
 
@@ -2642,6 +2633,7 @@ class ElectronDos(object):
             what: string selecting what will be plotted:
                   "d" for DOS, "i" for IDOS. chars can be concatenated
                   hence what="id" plots both IDOS and DOS. (default "d").
+            fact: Multiplication factor for DOS/IDOS. Usually +-1 for spin DOS
             exchange_xy: True to exchange x-y axes.
             kwargs:
                 Options passes to matplotlib.
@@ -2657,7 +2649,7 @@ class ElectronDos(object):
         for c in opts:
             if c == "d": f = dosf
             if c == "i": f = idosf
-            xx, yy = f.mesh - e0, f.values
+            xx, yy = f.mesh - e0, f.values * fact
             if exchange_xy: xx, yy = yy, xx
             lines.extend(ax.plot(xx, yy, **kwargs))
         return lines
@@ -2674,6 +2666,7 @@ class ElectronDos(object):
                 -  None: Don't shift energies, equivalent to e0=0
             spin: Selects the spin component, None if total DOS is wanted.
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            kwargs: options passed to ax.plot.
 
         Returns:
             matplotlib figure.
@@ -2683,10 +2676,13 @@ class ElectronDos(object):
         ax.set_xlabel('Energy [eV]')
         e0 = self.get_e0(e0)
 
+        if not kwargs:
+            kwargs = {"color": "black", "linewidth": 1.0}
+
         for spin in range(self.nsppol):
             spin_sign = +1 if spin == 0 else -1
             x, y = self.spin_dos[spin].mesh - e0, spin_sign * self.spin_dos[spin].values
-            ax.plot(x, y, **{"color": "black", "linewidth": 1.0})
+            ax.plot(x, y, **kwargs)
 
         #self.spin_idos[spin]
         #ax1.set_ylabel("TOT IDOS" if spin is None else "IDOS (spin %s)" % spin)
@@ -2706,6 +2702,7 @@ class ElectronDos(object):
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
             spin: Selects the spin component, None if total DOS is wanted.
+            kwargs: options passed to plot_ax
 
         Returns:
             matplotlib figure.
@@ -2742,6 +2739,7 @@ class ElectronDos(object):
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            kwargs: options passed to ax.plot.
 
         Returns:
             matplotlib figure.
@@ -2753,9 +2751,12 @@ class ElectronDos(object):
         idos_diff= dos_diff.integral()
 
         e0 = self.get_e0(e0)
+        if not kwargs:
+            kwargs = {"color": "black", "linewidth": 1.0}
+
         ax, fig, plt = get_ax_fig_plt(ax=ax)
-        ax.plot(dos_diff.mesh - e0, dos_diff.values, **{"color": "black", "linewidth": 1.0})
-        ax.plot(idos_diff.mesh - e0, idos_diff.values, **{"color": "black", "linewidth": 1.0})
+        ax.plot(dos_diff.mesh - e0, dos_diff.values, **kwargs)
+        ax.plot(idos_diff.mesh - e0, idos_diff.values, **kwargs)
 
         ax.grid(True)
         ax.set_xlabel('Energy [eV]')

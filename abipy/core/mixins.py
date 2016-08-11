@@ -351,14 +351,20 @@ class Has_ElectronBands(object):
         return self.ebands.nelect
 
     @property
+    def nkpt(self):
+        """Number of k-points."""
+        return self.ebands.nkpt
+
+    @property
     def kpoints(self):
         """Iterable with the Kpoints."""
         return self.ebands.kpoints
 
-    @property
-    def nkpts(self):
-        """Number of k-points."""
-        return len(self.kpoints)
+    # TODO: Remove
+    #@property
+    #def nkpts(self):
+    #    """Number of k-points."""
+    #    return len(self.kpoints)
 
     def plot_ebands(self, **kwargs):
         """Plot the electron energy bands. See the :func:`ElectronBands.plot` for the signature."""
@@ -522,6 +528,7 @@ from abipy import abilab
         # Call _write_nb_nbpath
         return self._write_nb_nbpath(nb, nbpath)
 
+    @staticmethod
     def _write_nb_nbpath(nb, nbpath):
         """
         This method must be called at the end of `write_notebook`.
@@ -532,6 +539,7 @@ from abipy import abilab
             _, nbpath = tempfile.mkstemp(prefix="abinb_", suffix='.ipynb', dir=os.getcwd(), text=True)
 
         # Write notebook
+        import nbformat
         with io.open(nbpath, 'wt', encoding="utf8") as fh:
             nbformat.write(nb, fh)
             return nbpath
