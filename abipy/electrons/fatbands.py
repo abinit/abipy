@@ -699,7 +699,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
     def get_dos_integrator(self, method, step, width):
         """
-        FatBandsFile can use differerent integrator that are cached in
+        FatBandsFile can use differerent integrators that are cached in self._cached_dos_integrators
         """
         if not hasattr(self, "_cached_dos_integrators"): self._cached_dos_integrators = {}
         key = (method, step, width)
@@ -766,7 +766,6 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             aliased_axis = True
             axmat = np.array([axmat.ravel(), axmat.ravel()])
 
-        # TODO: Fix labels with spin
         spin_sign = +1
         if not stacked:
             # Plot PJDOS as lines.
@@ -855,8 +854,150 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         return fig
 
     @add_fig_kwargs
+    def plot_pjdos_typeview(self, e0="fermie", method="gaussian", step=0.1, width=0.2,
+                         stacked=True, combined_spins=True, axmat=None, exchange_xy=False,
+                         with_info=True, with_spin_sign=True, **kwargs):
+        """
+        Plot the PJ-DOS on a linear mesh.
+
+        Args:
+            method: String defining the method for the computation of the DOS.
+            step: Energy step (eV) of the linear mesh.
+            width: Standard deviation (eV) of the gaussian.
+            stacked: True if DOS curves
+            combined_spins: Define how up/down DOS components should be plotted when nsppol==2.
+                If True, up/down DOSes are plotted on the same figure (positive values for up,
+                negative values for down component)
+                If False, up/down components are plotted on different axes.
+            axmat:
+            exchange_xy: True if the dos should be plotted on the x axis instead of y.
+
+        Returns:
+            `matplotlib` figure
+        """
+        try:
+            intg = self.get_dos_integrator(method, step, width)
+        except Exception:
+            msg = traceback.format_exc()
+            msg += ("Error while trying to compute the DOS.\n"
+                    "Verify that the k-points form a homogenous sampling of the BZ.\n"
+                    "Returning None\n")
+            print(msg)
+            return None
+
+        # Get energy mesh from total DOS and define the zero of energy
+        # Note that the mesh is not not spin-dependent.
+        e0 = self.ebands.get_e0(e0)
+        mesh = intg.mesh.copy()
+        mesh -= e0
+        edos, symbols_lso = intg.edos, intg.symbols_lso
+
+        # Get grid of axes.
+        import matplotlib.pyplot as plt
+        nrows = self.nsppol if not combined_spins else 1
+        if axmat is None:
+            fig, axmat = plt.subplots(nrows=nrows, ncols=self.ntypat, sharex=True, sharey=True, squeeze=False)
+        else:
+            axmat = np.reshape(axmat, (nrows, self.ntypat))
+            fig = plt.gcf()
+
+        # The code below expectes a matrix of axes of shape[nsppol, self.ntypat]
+        # If spins are plotted on the same graph (combined_spins), I build a new matrix so that
+        # axmat[spin=0] is axmat[spin=1] and aliased_axis is set to True
+        aliased_axis = False
+        if self.nsppol == 2 and combined_spins:
+            aliased_axis = True
+            axmat = np.array([axmat.ravel(), axmat.ravel()])
+
+        spin_sign = +1
+        if not stacked:
+            for spin in range(self.nsppol):
+                if with_spin_sign: spin_sign = +1 if spin == 0 else -1
+                # Loop over the columns of the grid.
+                for isymb, symbol in enumerate(self.symbols):
+                    ax = axmat[spin, isymb]
+
+                    # Plot total DOS.
+                    x, y = mesh, spin_sign * edos.spin_dos[spin].values
+                    if exchange_xy: x, y = y, x
+                    label = "Tot" if (spin, isymb) == (0, 0) else None
+                    ax.plot(x, y, color="k", label=label if with_info else None)
+
+                    for l in range(self.lmax_symbol[symbol]+1):
+                        # Plot PJ-DOS(l, spin)
+                        x, y = mesh, spin_sign * symbols_lso[symbol][l, spin]
+                        if exchange_xy: x, y = y, x
+                        label = self.l2tex[l] if (spin, isymb) == (0, 0) else None
+                        ax.plot(x, y, color=self.l2color[l], label=label if with_info else None)
+
+        else:
+            # Plot stacked PJDOS
+            # Loop over the columns of the grid.
+            #ls_stackdos = intg.ls_stackdos
+            spin_sign = +1
+            zerodos = np.zeros(len(mesh))
+            for spin in range(self.nsppol):
+                if with_spin_sign: spin_sign = +1 if spin == 0 else -1
+                for isymb, symbol in enumerate(self.symbols):
+                    ax = axmat[spin, isymb]
+
+                    # Plot total DOS.
+                    x, y = mesh, spin_sign * edos.spin_dos[spin].values
+                    if exchange_xy: x, y = y, x
+                    label = "Tot" if (spin, isymb) == (0, 0) else None
+                    ax.plot(x, y, color="k", label=label if with_info else None)
+
+                    # Plot cumulative PJ-DOS(l, spin)
+                    stack = intg.get_lstack_symbol(symbol, spin) * spin_sign
+                    for l in range(self.lmax_symbol[symbol]+1):
+                        yup = stack[l]
+                        ydown = stack[l-1] if l != 0 else zerodos
+                        label ="%s (stacked)" % self.l2tex[l] if (isym, spin) == (0, 0) else None
+                        fill = ax.fill_between if not exchange_xy else ax.fill_betweenx
+                        fill(mesh, yup, ydown, alpha=self.alpha, facecolor=self.l2color[l],
+                             label=label if with_info else None)
+
+        # Decorate axis.
+        for spin in range(self.nsppol):
+            if aliased_axis and spin == 1: break # Don't repeat yourself!
+
+            for itype, symbol in enumerate(self.symbols):
+                ax = axmat[spin, itype]
+                if with_info:
+                    if combined_spins:
+                        title = "Type: %s", symbol
+                    else:
+                        title = "%s, %s" % (symbol, self.spin2tex[spin]) if self.nsppol == 2 else \
+                                 symbol
+                    ax.set_title(title)
+                ax.grid(True)
+
+                # Display yticklabels on the first plot and last plot only.
+                # and display the legend only on the first plot.
+                ax.set_xlabel("Energy [eV]")
+                if itype == 0:
+                    if with_info:
+                        ax.legend(loc="best")
+                        if exchange_xy:
+                            ax.set_xlabel('DOS [states/eV]')
+                        else:
+                            ax.set_ylabel('DOS [states/eV]')
+                elif itype == self.ntypat - 1:
+                    ax.yaxis.set_ticks_position("right")
+                    ax.yaxis.set_label_position("right")
+                else:
+                    # Plots in the middle: don't show labels.
+                    # Trick: Don't change the labels but set their fontsize to 0 otherwise
+                    # also the other axes are affecred (likely due to sharey=True).
+                    # ax.set_yticklabels([])
+                    for tick in ax.yaxis.get_major_ticks():
+                        tick.label.set_fontsize(0)
+
+        return fig
+
+    @add_fig_kwargs
     def plot_fatbands_with_pjdos(self, e0="fermie", fact=2.0, blist=None, view="type",
-                                 pjdosfile=None, edos_kwargs=None, stacked=True, width_ratios=(1,2),
+                                 pjdosfile=None, edos_kwargs=None, stacked=True, width_ratios=(2, 1),
                                  **kwargs):
         """
         Compute the fatbands and the PJDOS on the same figure, a.k.a the Sistine Chapel.
@@ -910,8 +1051,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 fatbands_axmat[spin, icol] = ax1
                 pjdos_axmat[spin, icol] = ax2
 
-        # Plot bands on fatbands_axmat
-        # Plot PJDOS on pjdos_axmat.
+        # Plot bands on fatbands_axmat and PJDOS on pjdos_axmat.
         if view == "lview":
             self.plot_fatbands_lview(e0=e0, fact=fact, blist=blist, axmat=fatbands_axmat, show=False)
             pjdosfile.plot_pjdos_lview(e0=e0, axmat=pjdos_axmat, exchange_xy=True,
@@ -920,9 +1060,9 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
         elif view == "type":
             self.plot_fatbands_typeview(e0=e0, fact=fact, blist=blist, axmat=fatbands_axmat, show=False)
-            #pjdosfile.plot_pjdos_typeview(e0=e0, axmat=pjdos_axmat, exchange_xy=True,
-            #                              stacked=stacked, combined_spins=False,
-            #                              with_info=False, with_spin_sign=False, show=False, **edos_kwargs)
+            pjdosfile.plot_pjdos_typeview(e0=e0, axmat=pjdos_axmat, exchange_xy=True,
+                                          stacked=stacked, combined_spins=False,
+                                          with_info=False, with_spin_sign=False, show=False, **edos_kwargs)
         else:
             raise ValueError("Don't know how to handle view=%s" % str(view))
 
@@ -952,7 +1092,8 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             nbv.new_code_cell("fig = fbfile.plot_fatbands_mview(iatom=0)"),
             nbv.new_code_cell("fig = fbfile.plot_fatbands_siteview()"),
             nbv.new_code_cell("fig = fbfile.plot_pjdos_lview()"),
-            nbv.new_code_cell("fig = fbfile.plot_fatbands_with_pjdos(pjdosfile=None)"),
+            nbv.new_code_cell("fig = fbfile.plot_pjdos_typeview()"),
+            nbv.new_code_cell("fig = fbfile.plot_fatbands_with_pjdos(pjdosfile=None, view='type')"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
@@ -1027,8 +1168,14 @@ class _DosIntegrator(object):
             arr = np.zeros((nsymb, len(self.mesh)))
             for isymb, symbol in enumerate(fbfile.symbols):
                 arr[isymb] = dvals[symbol]
-            ls_stackdos[(l, spin)] = np.cumsum(arr, axis=0)
+            ls_stackdos[(l, spin)] = ar.cumsum(axis=0)
 
         return ls_stackdos
 
-
+    def get_lstack_symbol(self, symbol, spin):
+        """
+        Return numpy array with the cumulative sum over l for a given
+        atom type (specified by chemical symbol) and spin.
+        """
+        lso = self.symbols_lso[symbol][:, spin]
+        return lso.cumsum(axis=0)
