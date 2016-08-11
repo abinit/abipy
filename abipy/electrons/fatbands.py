@@ -750,8 +750,8 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         edos, symbols_lso = intg.edos, intg.symbols_lso
 
         # Get grid of axes.
-        nrows = self.nsppol if not combined_spins else 1
         import matplotlib.pyplot as plt
+        nrows = self.nsppol if not combined_spins else 1
         if axmat is None:
             fig, axmat = plt.subplots(nrows=nrows, ncols=self.lsize, sharex=True, sharey=True, squeeze=False)
         else:
@@ -766,7 +766,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             aliased_axis = True
             axmat = np.array([axmat.ravel(), axmat.ravel()])
 
-        # TODO: Fix labels.
+        # TODO: Fix labels with spin
         spin_sign = +1
         if not stacked:
             # Plot PJDOS as lines.
@@ -805,8 +805,6 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                     if exchange_xy: x, y = y, x
                     label = "Tot" if (l, spin) == (0, 0) else None
                     ax.plot(x, y, color="k", label=label if with_info else None)
-                    #edos.plot_ax(ax, e0, spin=spin, exchange_xy=exchange_xy, fact=spin_sign,
-                    #              color="k", label=label if with_info else None)
 
                     # Plot cumulative PJ-DOS(l, spin)
                     stack = ls_stackdos[(l, spin)] * spin_sign
@@ -821,50 +819,45 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         # Decorate axis.
         for spin in range(self.nsppol):
             if aliased_axis and spin == 1: break # Don't repeat yourself!
+
             for l in range(self.lsize):
                 ax = axmat[spin, l]
                 if with_info:
-                    ax.set_title("%s, %s" % (self.l2tex[l], self.spin2tex[spin]) if self.nsppol == 2 else\
-                                 "%s" % self.l2tex[l])
+                    if combined_spins:
+                        title = self.l2tex[l]
+                    else:
+                        title = "%s, %s" % (self.l2tex[l], self.spin2tex[spin]) if self.nsppol == 2 else \
+                                 self.l2tex[l]
+                    ax.set_title(title)
                 ax.grid(True)
 
-                if not exchange_xy:
-                    # Display yticklabels on the first plot and last plot only.
-                    # and display the legend only on the first plot.
-                    ax.set_xlabel("Energy [eV]")
-                    if l == 0:
-                        if with_info:
-                            ax.legend(loc="best")
-                            ax.set_ylabel('DOS [states/eV]')
-                    elif l == self.lsize - 1:
-                        ax.yaxis.set_ticks_position("right")
-                        ax.yaxis.set_label_position("right")
-                    else:
-                        # Plots in the middle: don't show labels.
-                        # Trick: Don't change the labels but set their fontsize to 0 otherwise
-                        # also the other axes are affecred (likely due to sharey=True).
-                        #ax.set_yticklabels([])
-                        for tick in ax.yaxis.get_major_ticks():
-                            tick.label.set_fontsize(0)
-                else:
-                    if l == 0:
-                        if with_info:
-                            ax.legend(loc="best")
+                # Display yticklabels on the first plot and last plot only.
+                # and display the legend only on the first plot.
+                ax.set_xlabel("Energy [eV]")
+                if l == 0:
+                    if with_info:
+                        ax.legend(loc="best")
+                        if exchange_xy:
                             ax.set_xlabel('DOS [states/eV]')
-                    elif l == self.lsize - 1:
-                        ax.yaxis.set_ticks_position("right")
-                        ax.yaxis.set_label_position("right")
-                    else:
-                        # See trick used above.
-                        #ax.set_yticklabels([])
-                        for tick in ax.yaxis.get_major_ticks():
-                            tick.label.set_fontsize(0)
+                        else:
+                            ax.set_ylabel('DOS [states/eV]')
+                elif l == self.lsize - 1:
+                    ax.yaxis.set_ticks_position("right")
+                    ax.yaxis.set_label_position("right")
+                else:
+                    # Plots in the middle: don't show labels.
+                    # Trick: Don't change the labels but set their fontsize to 0 otherwise
+                    # also the other axes are affecred (likely due to sharey=True).
+                    # ax.set_yticklabels([])
+                    for tick in ax.yaxis.get_major_ticks():
+                        tick.label.set_fontsize(0)
 
         return fig
 
     @add_fig_kwargs
     def plot_fatbands_with_pjdos(self, e0="fermie", fact=2.0, blist=None, view="type",
-                                 pjdosfile=None, edos_kwargs=None, stacked=True, **kwargs):
+                                 pjdosfile=None, edos_kwargs=None, stacked=True, width_ratios=(1,2),
+                                 **kwargs):
         """
         Compute the fatbands and the PJDOS on the same figure, a.k.a the Sistine Chapel.
 
@@ -875,10 +868,10 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 -  None: Don't shift energies, equivalent to e0=0
             fact:  float used to scale the stripe size.
             blist: List of band indices for the fatband plot. If None, all bands are included
-            alpha:
             pjdosfile: FATBANDS file used to compute the PJDOS. If None, the PJDOS is taken from self.
-            edos_kwargs
+            edos_kwargs:
             stacked:
+            width_ratio:
 
         Returns:
             `matplotlib` figure
@@ -907,7 +900,8 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
         for spin in range(self.nsppol):
             for icol in range(ncols):
-                subgrid = GridSpecFromSubplotSpec(1, 2, subplot_spec=gspec[spin, icol], width_ratios=[2, 1], wspace=0.05)
+                subgrid = GridSpecFromSubplotSpec(1, 2, subplot_spec=gspec[spin, icol],
+                                                  width_ratios=width_ratios, wspace=0.05)
                 # Similar plots share the x-axis. All plots share the y-axis.
                 prev_fatbax = None if (icol == 0 and spin == 0) else fatbands_axmat[0, 0]
                 ax1 = plt.subplot(subgrid[0], sharex=prev_fatbax, sharey=prev_fatbax)
