@@ -12,6 +12,7 @@ from monty.collections import AttrDict
 from monty.functools import lazy_property
 from pymatgen.core.lattice import Lattice
 from pymatgen.serializers.json_coders import pmg_serialize
+from pymatgen.serializers.pickle_coders import SlotPickleMixin
 from abipy.iotools import ETSF_Reader
 from abipy.tools.derivatives import finite_diff
 
@@ -199,17 +200,18 @@ def as_kpoints(obj, lattice, weights=None, names=None):
         raise ValueError("ndim > 2 is not supported")
 
 
-class Kpoint(object):
-    """Class defining one k-point."""
+class Kpoint(SlotPickleMixin):
+    """
+    Class defining one k-point.
+    """
 
-    # TODO: Fix problem with pickle
-    #__slots__ = [
-    #    "_frac_coords",
-    #    "_lattice",
-    #    "_weight",
-    #    "_name",
-    #    "_hash",
-    #]
+    __slots__ = [
+        "_frac_coords",
+        "_lattice",
+        "_weight",
+        "_name",
+        "_hash",
+    ]
 
     # Tolerance used to compare k-points.
     @property

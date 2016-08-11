@@ -8,6 +8,7 @@ import tempfile
 import copy
 import itertools
 import json
+import pickle
 import numpy as np
 import pymatgen.core.units as units
 
@@ -338,6 +339,10 @@ class ElectronBands(object):
             return obj
         elif is_string(obj):
             # path?
+            if obj.endswith(".pickle"):
+                with open(obj, "rb") as fh:
+                    return cls.as_ebands(pickle.load(fh))
+
             from abipy.abilab import abiopen
             with abiopen(obj) as abifile:
                 return abifile.ebands
@@ -2091,6 +2096,7 @@ class ElectronBandsPlotter(NotebookWriter):
         import pandas as pd
         data = pd.concat(frames, ignore_index=True)
 
+        import matplotlib.pyplot as plt
         import seaborn as sns
         if not spin_polarized:
             ax, fig, plt = get_ax_fig_plt(ax=ax)
@@ -2189,26 +2195,41 @@ class ElectronBandsPlotter(NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file is created.
-        Return path to the notebook.
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
         """
-        import io, tempfile
-        if nbpath is None:
-            _, nbpath = tempfile.mkstemp(suffix='.ipynb', text=True)
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        #args = [(l, f.filepath) for l, f in self.items()]
-        #nb.cells.extend([
-        #    nbv.new_markdown_cell("# This is a markdown cell"),
-        #    nbv.new_code_cell("robot = abilab.GsrRobot(*%s)\nprint(robot)" % str(args)),
-        #    nbv.new_code_cell("frame = robot.get_dataframe()\ndisplay(frame)"),
-        #    nbv.new_code_cell("plotter = robot.get_ebands_plotter()"),
-        #    nbv.new_code_cell("fig = plotter.plot()"),
-        #])
+        # Use pickle files for data persistence. The notebook will reconstruct
+        # the ebands and the edoses from this file by calling as_ebands, as_edos
+        import tempfile
+        key_ebands = []
+        for label, ebands in self.ebands_dict.items():
+            _, tmpfile = tempfile.mkstemp(suffix='.pickle')
+            with open(tmpfile, "w") as fh:
+                pickle.dump(ebands, fh)
+                key_ebands.append((label, tmpfile))
 
-        with io.open(nbpath, 'wt', encoding="utf8") as fh:
-            nbformat.write(nb, fh)
-        return nbpath
+        key_edos = []
+        for label, edos in self.edoses_dict.items():
+            _, tmpfile = tempfile.mkstemp(suffix='.pickle')
+            with open(tmpfile, "w") as fh:
+                pickle.dump(edos, fh)
+                key_edos.append((label, tmpfile))
+
+        nb.cells.extend([
+            nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("plotter = abilab.ElectronBandsPlotter(\nkey_ebands=%s,\nkey_edos=%s,\nedos_kwargs=None)" %
+                (str(key_ebands), str(key_edos))),
+            nbv.new_code_cell("print(plotter)"),
+            nbv.new_code_cell("frame = plotter.get_ebands_frame()\ndisplay(frame)"),
+            nbv.new_code_cell("fig = plotter.gridplot()"),
+            nbv.new_code_cell("fig = plotter.boxplot()"),
+            nbv.new_code_cell("fig = plotter.combiboxplot()"),
+            nbv.new_code_cell("anim = plotter.animate()"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
 
 
 class ElectronDosPlotter(object):
@@ -2549,6 +2570,10 @@ class ElectronDos(object):
             return obj
         elif is_string(obj):
             # path?
+            if obj.endswith(".pickle"):
+                with open(obj, "rb") as fh:
+                    return cls.as_edos(pickle.load(fh), **edos_kwargs)
+
             from abipy.abilab import abiopen
             with abiopen(obj) as abifile:
                 return abifile.ebands.get_edos(**edos_kwargs)

@@ -5,6 +5,7 @@ import sys
 import functools
 import numpy as np
 import itertools
+import pickle
 import os
 
 from collections import OrderedDict
@@ -134,6 +135,10 @@ class PhononBands(object):
             return obj
         elif is_string(obj):
             # path?
+            if obj.endswith(".pickle"):
+                with open(obj, "rb") as fh:
+                    return cls.as_phbands(pickle.load(fh))
+
             from abipy.abilab import abiopen
             with abiopen(obj) as abifile:
                 return abifile.phbands
@@ -1108,6 +1113,10 @@ class PhononDos(Function1D):
             return obj
         elif is_string(obj):
             # path?
+            if obj.endswith(".pickle"):
+                with open(obj, "rb") as fh:
+                    return cls.as_phdos(pickle.load(fh), phdos_kwargs)
+
             from abipy.abilab import abiopen
             with abiopen(obj) as abifile:
                 if hasattr(abifile, "phdos"):
