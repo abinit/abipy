@@ -5,7 +5,7 @@ import sys
 import os
 import argparse
 
-
+from monty.termcolor import cprint
 from abipy import abilab
 
 
@@ -42,8 +42,6 @@ def abicomp_ebands(options):
         # Print pandas Dataframe.
         frame = plotter.get_ebands_frame()
         abilab.print_frame(frame)
-        #from tabulate import tabulate
-        #print(tabulate(frame, floatfmt=".3f")) #headers="keys",
 
         # Optionally, print info on gaps and their location
         if not options.verbose:
@@ -51,6 +49,43 @@ def abicomp_ebands(options):
         else:
             for ebands in plotter.ebands_list:
                 print(ebands)
+
+        # Here I select the plot method to call.
+        if options.plot_mode != "None":
+            plotfunc = getattr(plotter, options.plot_mode, None)
+            if plotfunc is None:
+                raise ValueError("Don't know how to handle plot_mode: %s" % options.plot_mode)
+            plotfunc(e0=e0)
+
+    return 0
+
+
+def abicomp_edos(options):
+    """
+    Plot electron DOSes on a grid.
+    """
+    paths, e0 = options.paths, options.e0
+    plotter = abilab.ElectronDosPlotter(key_edos=[(os.path.relpath(p), p) for p in paths])
+
+    if options.ipython:
+        import IPython
+        IPython.embed(header=str(plotter) + "\nType `plotter` in the terminal and use <TAB> to list its methods",
+                      plotter=plotter)
+
+    elif options.notebook:
+        plotter.make_and_open_notebook(daemonize=True)
+
+    else:
+        # Print pandas Dataframe.
+        #frame = plotter.get_ebands_frame()
+        #abilab.print_frame(frame)
+
+        # Optionally, print info on gaps and their location
+        if not options.verbose:
+            print("\nUse --verbose for more information")
+        else:
+            for edos in plotter.edos_list:
+                print(edos)
 
         # Here I select the plot method to call.
         if options.plot_mode != "None":
@@ -104,7 +139,7 @@ def abicomp_robot(options):
 
     By default, the script with call `robot.get_dataframe()` to create an print a table
     with the most important results. For finer control, use --ipython to start an ipython
-    console to interact with the robot directly.
+    console to interact with the robot directly or --nb to generate a jupyter notebook.
     """
     # To define an Help action
     #http://stackoverflow.com/questions/20094215/argparse-subparser-monolithic-help-output?rq=1
@@ -145,7 +180,9 @@ def abicomp_gs_scf(options):
     """
     paths = options.paths
     f0 = abilab.AbinitOutputFile(paths[0])
-    f0.compare_gs_scf_cycles(paths[1:])
+    figures = f0.compare_gs_scf_cycles(paths[1:])
+    if not figures:
+        cprint("Cannot find GS-SCF sections in output files.", "yellow")
     return 0
 
 
@@ -155,7 +192,9 @@ def abicomp_dfpt2_scf(options):
     """
     paths = options.paths
     f0 = abilab.AbinitOutputFile(paths[0])
-    f0.compare_d2de_scf_cycles(paths[1:])
+    figures = f0.compare_d2de_scf_cycles(paths[1:])
+    if not figures:
+        cprint("Cannot find DFPT-SCF sections in output files.", "yellow")
     return 0
 
 
@@ -167,9 +206,10 @@ Usage example:
   abidiff.py ebands out1_GSR.nc out2_GSR.nc       => Plot electron bands on a grid (Use `-p` to change plot mode)
   abidiff.py ebands *_GSR.nc -ipy                 => Build plotter object and start ipython console.
   abidiff.py ebands *_GSR.nc -nb                  => Interact with the plotter via the jupyter notebook.
+  abidiff.py edos *_WFK.nc -nb                    => Compare electron DOS in the jupyter notebook.
   abidiff.py phbands out1_PHBST.nc out2_PHBST.nc  => Plot electron bands on a grid.
   abidiff.py gs_scf run1.abo run2.abo             => Compare the SCF cycles in two output files.
-  abidiff.py dfpt2_scf                            => Compare the DFPT SCF cycles in two output files.
+  abidiff.py dfpt2_scf run1.abo run2.abo          => Compare the DFPT SCF cycles in two output files.
 """
 
     def show_examples_and_exit(err_msg=None, error_code=1):
@@ -211,6 +251,14 @@ Usage example:
     p_ebands.add_argument("-e0", default="fermie", choices=["fermie", "None"],
                           help="Option used to define the zero of energy in the band structure plot. Default is `fermie`")
 
+    # Subparser for edos command.
+    p_edos = subparsers.add_parser('edos', parents=[copts_parser, ipy_parser], help=abicomp_edos.__doc__)
+    p_edos.add_argument("-p", "--plot-mode", default="gridplot",
+                          choices=["gridplot", "combiplot", "None"],
+                          help="Plot mode e.g. `-p combiplot` to plot DOSes on the same figure. Default is `gridplot`")
+    p_edos.add_argument("-e0", default="fermie", choices=["fermie", "None"],
+                          help="Option used to define the zero of energy in the DOS plot. Default is `fermie`")
+
     # Subparser for phbands command.
     p_phbands = subparsers.add_parser('phbands', parents=[copts_parser], help=abicomp_phbands.__doc__)
 
@@ -242,9 +290,6 @@ Usage example:
 
     if options.seaborn:
         import seaborn as sns
-        #sns.set(style="dark", palette="Set2")
-        #sns.set(style='ticks', palette='Set2')
-        #sns.despine()
 
     # Dispatch
     return globals()["abicomp_" + options.command](options)

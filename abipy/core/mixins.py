@@ -12,7 +12,7 @@ from monty.os.path import which
 from monty.string import is_string
 from monty.functools import lazy_property
 from pymatgen.io.abinit.events import EventsParser
-from pymatgen.io.abinit.abiinspect import GroundStateScfCycle, D2DEScfCycle, Relaxation
+from pymatgen.io.abinit.abiinspect import GroundStateScfCycle, D2DEScfCycle
 from pymatgen.io.abinit.abitimer import AbinitTimerParser
 from pymatgen.io.abinit.netcdf import NetcdfReader, NO_DEFAULT
 
@@ -168,8 +168,10 @@ class AbinitOutputFile(AbinitTextFile):
                 other_cycle = other.next_gs_scf_cycle()
                 if other_cycle is None: break
                 last = (i == len(others) - 1)
-                fig = other_cycle.plot(fig=fig, show=show and last)
-                if last: figures.append(fig)
+                fig = other_cycle.plot(axlist=fig.axes, show=show and last)
+                if last:
+                    fig.tight_layout()
+                    figures.append(fig)
 
         self.seek(0)
         for other in others: other.seek(0)
@@ -197,8 +199,10 @@ class AbinitOutputFile(AbinitTextFile):
                 other_cycle = other.next_d2de_scf_cycle()
                 if other_cycle is None: break
                 last = (i == len(others) - 1)
-                fig = other_cycle.plot(fig=fig, show=show and last)
-                if last: figures.append(fig)
+                fig = other_cycle.plot(axlist=fig.axes, show=show and last)
+                if last:
+                    fig.tight_layout()
+                    figures.append(fig)
 
         self.seek(0)
         for other in others: other.seek(0)

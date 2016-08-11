@@ -859,7 +859,7 @@ class ElectronBands(object):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
 
-        import seaborn as sns
+        import seaborn.apionly as sns
         hue = None if self.nsppol == 1 else "spin"
         ax = sns.boxplot(x="band", y="eig", data=frame, hue=hue, ax=ax, **kwargs)
         if swarm:
@@ -1765,9 +1765,9 @@ class ElectronBandsPlotter(NotebookWriter):
     .. code-block:: python
 
         plotter = ElectronBandsPlotter()
-        plotter.add_ebands("foo.nc", label="foo bands")
-        plotter.add_ebands("bar.nc", label="bar bands")
-        plotter.gridplot()
+        plotter.add_ebands("foo bands", "foo.nc")
+        plotter.add_ebands("bar bands", "bar.nc")
+        fig = plotter.gridplot()
 
     Dictionary with the mapping label --> edos.
     """
@@ -1821,6 +1821,7 @@ class ElectronBandsPlotter(NotebookWriter):
         for o in itertools.product( self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
             yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
 
+    @deprecated(message="add_ebands_from_file method of ElectronBandsPlotter has been replaced by add_ebands.")
     def add_ebands_from_file(self, filepath, label=None):
         """
         Adds a band structure for plotting. Reads data from a Netcdfile
@@ -1872,7 +1873,7 @@ class ElectronBandsPlotter(NotebookWriter):
     def combiplot(self, e0="fermie", **kwargs):
         """
         Plot the band structure and the DOS on the same figure.
-        Use `gridplot` to plot band structurs on different figures.
+        Use `gridplot` to plot band structures on different figures.
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
@@ -1970,8 +1971,6 @@ class ElectronBandsPlotter(NotebookWriter):
                 List of objects from which the electron DOSes are extracted.
                 Accept filepaths or :class:`ElectronDos` objects. If edos_objects is not None,
                 each subplot in the grid contains a band structure with DOS else a simple bandstructure plot.
-            titles:
-                List of strings with the titles to be added to the subplots.
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
                 - `fermie`: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
                    Note that, by default, the Fermi energy is taken from the band structure object
@@ -2097,7 +2096,7 @@ class ElectronBandsPlotter(NotebookWriter):
         data = pd.concat(frames, ignore_index=True)
 
         import matplotlib.pyplot as plt
-        import seaborn as sns
+        import seaborn.apionly as sns
         if not spin_polarized:
             ax, fig, plt = get_ax_fig_plt(ax=ax)
             sns.boxplot(x="band", y="eig", data=data, hue="label", ax=ax, **kwargs)
@@ -2232,104 +2231,6 @@ class ElectronBandsPlotter(NotebookWriter):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-class ElectronDosPlotter(object):
-    """
-    Class for plotting electronic DOSes.
-
-    Usage example:
-
-    .. code-block:: python
-
-        plotter = ElectronDosPlotter()
-        plotter.add_edos_from_file("foo.nc", label="foo dos")
-        plotter.add_edos_from_file("bar.nc", label="bar dos")
-        plotter.plot()
-    """
-    #_LINE_COLORS = ["b", "r",]
-    #_LINE_STYLES = ["-",":","--","-.",]
-    #_LINE_WIDTHS = [2,]
-
-    def __init__(self, *args):
-        self._edoses_dict = OrderedDict()
-        for label, dos in args:
-            self.add_edos(label, dos)
-
-    #def iter_lineopt(self):
-    #    """Generates style options for lines."""
-    #    for o in itertools.product( self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
-    #        yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
-
-    @property
-    def edoses_dict(self):
-        """Dictionary with the DOSes"""
-        return self._edoses_dict
-
-    @property
-    def edoses(self):
-        """List of DOSes"""
-        return list(self._edoses_dict.values())
-
-    def add_edos_from_file(self, filepath, label=None, method="gaussian", step=0.1, width=0.2):
-        """
-        Adds a dos for plotting. Reads data from a Netcdf file
-        """
-        ebands = ElectronBands.as_ebands(filepath)
-        edos = ebands.get_edos(method=method, step=step, width=width)
-        if label is None: label = filepath
-        self.add_edos(label, edos)
-
-    def add_edos(self, label, edos):
-        """
-        Adds a DOS for plotting.
-
-        Args:
-            label: label for the DOS. Must be unique.
-            dos: :class:`ElectronDos` object.
-        """
-        if label in self.edoses_dict:
-            raise ValueError("label %s is already in %s" % (label, self._edoses_dict.keys()))
-
-        self._edoses_dict[label] = edos
-
-    @add_fig_kwargs
-    def plot(self, ax=None, e0="fermie", **kwargs):
-        """
-        Plot the the DOSes.
-
-        Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
-            e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
-
-        Returns:
-            `matplotlib` figure.
-        """
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
-
-        for label, dos in self.edoses_dict.items():
-            # Use relative paths if label is a file.
-            if os.path.isfile(label): label = os.path.relpath(label)
-            dos.plot_ax(ax, e0, label=label)
-
-        ax.grid(True)
-        ax.set_xlabel("Energy [eV]")
-        ax.set_ylabel('DOS [states/eV]')
-        ax.legend(loc="best")
-
-        return fig
-
-    #def animate(self, **kwargs):
-    #    animator = Animator()
-    #    tmpdir = tempfile.mkdtemp()
-    #    for (label, dos) in self.edoses_dict.items():
-    #        savefig = os.path.join(tmpdir, label + ".png")
-    #        dos.plot(show=False, savefig=savefig)
-    #        animator.add_figure(label, savefig)
-    #    return animator.animate(**kwargs)
-
-
 class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
     """
     This object reads band structure data from a netcdf file.
@@ -2401,6 +2302,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
         )
 
 
+# TODO: Finalize the implementation.
 class EBands3D(object):
     """
     This object symmetrizes the band energies in the full Brillouin zone.
@@ -2572,7 +2474,7 @@ class ElectronDos(object):
             # path?
             if obj.endswith(".pickle"):
                 with open(obj, "rb") as fh:
-                    return cls.as_edos(pickle.load(fh), **edos_kwargs)
+                    return cls.as_edos(pickle.load(fh), edos_kwargs)
 
             from abipy.abilab import abiopen
             with abiopen(obj) as abifile:
@@ -2787,3 +2689,177 @@ class ElectronDos(object):
         ax.set_xlabel('Energy [eV]')
 
         return fig
+
+
+class ElectronDosPlotter(NotebookWriter):
+    """
+    Class for plotting electronic DOSes.
+
+    Usage example:
+
+    .. code-block:: python
+
+        plotter = ElectronDosPlotter()
+        plotter.add_edos("foo dos", "foo.nc")
+        plotter.add_edos("bar dos", "bar.nc")
+        fig = plotter.gridplot()
+    """
+    #_LINE_COLORS = ["b", "r",]
+    #_LINE_STYLES = ["-",":","--","-.",]
+    #_LINE_WIDTHS = [2,]
+
+    def __init__(self, key_edos=None, edos_kwargs=None):
+        if key_edos is None: key_edos = []
+        key_edos = [(k, ElectronDos.as_edos(v, edos_kwargs)) for k, v in key_edos]
+        self.edoses_dict = OrderedDict(key_edos)
+
+    #def iter_lineopt(self):
+    #    """Generates style options for lines."""
+    #    for o in itertools.product( self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
+    #        yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
+
+    @property
+    def edos_list(self):
+        """List of DOSes"""
+        return list(self.edoses_dict.values())
+
+    @deprecated(message="add_edos_from_file method of ElectronDosPlotter has been replaced by add_edos.")
+    def add_edos_from_file(self, filepath, label=None, method="gaussian", step=0.1, width=0.2):
+        """
+        Adds a dos for plotting. Reads data from a Netcdf file
+        """
+        ebands = ElectronBands.as_ebands(filepath)
+        edos = ebands.get_edos(method=method, step=step, width=width)
+        if label is None: label = filepath
+        self.add_edos(label, edos)
+
+    def add_edos(self, label, edos, edos_kwargs=None):
+        """
+        Adds a DOS for plotting.
+
+        Args:
+            label: label for the DOS. Must be unique.
+            dos: :class:`ElectronDos` object.
+            edos_kwargs: optional dictionary with the options passed to `get_edos` to compute the electron DOS.
+                Used only if `edos` is not an ElectronDos instance.
+        """
+        if label in self.edoses_dict:
+            raise ValueError("label %s is already in %s" % (label, list(self.edoses_dict.keys())))
+        self.edoses_dict[label] = ElectronDos.as_edos(edos, edos_kwargs)
+
+    @add_fig_kwargs
+    def combiplot(self, ax=None, e0="fermie", **kwargs):
+        """
+        Plot the the DOSes on the same figure.
+        Use `gridplot` to plot DOSes on different figures.
+
+        Args:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
+
+        Returns:
+            `matplotlib` figure.
+        """
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+
+        for label, dos in self.edoses_dict.items():
+            # Use relative paths if label is a file.
+            if os.path.isfile(label): label = os.path.relpath(label)
+            dos.plot_ax(ax, e0, label=label)
+
+        ax.grid(True)
+        ax.set_xlabel("Energy [eV]")
+        ax.set_ylabel('DOS [states/eV]')
+        ax.legend(loc="best")
+
+        return fig
+
+    @deprecated(message="plot method of ElectronDos has been replaced by combiplot.")
+    def plot(self, *args, **kwargs):
+        return self.combiplot(*args, **kwargs)
+
+    @add_fig_kwargs
+    def gridplot(self, e0="fermie", **kwargs):
+        """
+        Plot multiple DOSes on a grid.
+
+        Args:
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
+                   Note that, by default, the Fermi energy is taken from the band structure object
+                   i.e. the Fermi energy computed at the end of the SCF file that produced the density.
+                   This should be ok in semiconductors. In metals, however, a better value of the Fermi energy
+                   can be obtained from the DOS provided that the k-sampling for the DOS is much denser than
+                   the one used to compute the density. See `edos_fermie`.
+                - `edos_fermie`: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
+                   Available only if edos_objects is not None
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
+
+        Returns:
+            matplotlib figure.
+        """
+        titles = list(self.edoses_dict.keys())
+        edos_list = self.edos_list
+
+        import matplotlib.pyplot as plt
+        nrows, ncols = 1, 1
+        numeb = len(edos_list)
+        if numeb > 1:
+            ncols = 2
+            nrows = numeb // ncols + numeb % ncols
+
+        # Build Grid
+        fig, axes = plt.subplots(nrows=nrows, ncols=ncols, sharey=True, squeeze=False)
+        axes = axes.ravel()
+        # don't show the last ax if numeb is odd.
+        if numeb % ncols != 0: axes[-1].axis("off")
+
+        for i, (label, edos) in enumerate(self.edoses_dict.items()):
+            ax = axes[i]
+            edos.plot(ax=ax, e0=e0, show=False)
+            ax.set_title(label)
+            if i % ncols != 0:
+                ax.set_ylabel("")
+
+        return fig
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        # Use pickle files for data persistence. The notebook will reconstruct
+        # the ebands and the edoses from this file by calling as_ebands, as_edos
+        import tempfile
+        key_edos = []
+        for label, edos in self.edoses_dict.items():
+            _, tmpfile = tempfile.mkstemp(suffix='.pickle')
+            with open(tmpfile, "w") as fh:
+                pickle.dump(edos, fh)
+                key_edos.append((label, tmpfile))
+
+        nb.cells.extend([
+            nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("plotter = abilab.ElectronDosPlotter(\nkey_edos=%s,\nedos_kwargs=None)" %
+                (str(key_edos))),
+            nbv.new_code_cell("print(plotter)"),
+            nbv.new_code_cell("fig = plotter.combiplot()"),
+            nbv.new_code_cell("fig = plotter.gridplot()"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
+
+    #def animate(self, **kwargs):
+    #    animator = Animator()
+    #    tmpdir = tempfile.mkdtemp()
+    #    for (label, dos) in self.edoses_dict.items():
+    #        savefig = os.path.join(tmpdir, label + ".png")
+    #        dos.plot(show=False, savefig=savefig)
+    #        animator.add_figure(label, savefig)
+    #    return animator.animate(**kwargs)
