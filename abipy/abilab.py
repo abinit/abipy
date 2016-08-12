@@ -138,6 +138,13 @@ def abiopen(filepath):
     if os.path.basename(filepath) == "__AbinitFlow__.pickle":
         return Flow.pickle_load(filepath)
 
+    # Handle old output files produced by Abinit.
+    import re
+    outnum = re.compile(".+\.out[\d]+")
+    abonum = re.compile(".+\.abo[\d]+")
+    if outnum.match(filepath) or abonum.match(filepath):
+        return AbinitOutputFile.from_file(filepath)
+
     cls = abifile_subclass_from_filename(filepath)
     return cls.from_file(filepath)
 

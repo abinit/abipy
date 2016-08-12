@@ -120,12 +120,12 @@ class TextFile(_File):
 class AbinitTextFile(TextFile):
     """Class for the ABINIT main output file and the log file."""
 
-    @lazy_property
+    @property
     def events(self):
         """List of ABINIT events reported in the file."""
         return EventsParser().parse(self.filepath)
 
-    @lazy_property
+    @property
     def timer_data(self):
         """Timer data."""
         return AbinitTimerParser().parse(self.filepath)
@@ -210,7 +210,9 @@ class AbinitOutputFile(AbinitTextFile):
 
 
 class AbinitOutNcFile(NetcdfReader):
-    """Class representing the _OUT.nc file."""
+    """
+    Class representing the _OUT.nc file.
+    """
 
     def get_vars(self, vars, strict=False):
         # TODO: add a check on the variable names ?
