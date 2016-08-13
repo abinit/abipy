@@ -8,6 +8,7 @@ import sys
 import os
 import argparse
 
+from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy import abilab
 
@@ -253,6 +254,7 @@ def abicomp_time(options):
     return 0
 
 
+@prof_main
 def main():
     def str_examples():
         return """\

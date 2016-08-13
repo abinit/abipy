@@ -9,6 +9,7 @@ import os
 import argparse
 
 from pprint import pprint
+from monty.functools import prof_main
 from abipy.core.release import __version__
 from abipy.abilab import abinit_help
 from abipy.abio.abivars_db import get_abinit_variables
@@ -24,6 +25,7 @@ def print_vlist(vlist, options):
         print("\nUse -v for more info")
 
 
+@prof_main
 def main():
     def str_examples():
         examples = """\
@@ -143,16 +145,4 @@ Usage example:
 
 
 if __name__ == "__main__":
-    try:
-        do_prof = sys.argv[1] == "prof"
-        if do_prof: sys.argv.pop(1)
-    except Exception:
-        do_prof = False
-
-    if do_prof:
-        import pstats, cProfile
-        cProfile.runctx("main()", globals(), locals(), "Profile.prof")
-        s = pstats.Stats("Profile.prof")
-        s.strip_dirs().sort_stats("time").print_stats()
-    else:
-        sys.exit(main())
+    sys.exit(main())

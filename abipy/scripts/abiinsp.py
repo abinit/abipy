@@ -6,21 +6,22 @@ import sys
 import os
 import argparse
 
+from monty.functools import prof_main
 from pymatgen.io.abinit.events import EventsParser
 from pymatgen.io.abinit.abiinspect import plottable_from_outfile
-from pymatgen.io.abinit.abitimer import AbinitTimerParser
 from abipy import abilab
 
 
+@prof_main
 def main():
 
     def str_examples():
-        examples = """
-    Usage example:\n
-        abiinsp.py OUTFILE status  ==> Report the list of Warning, Commments, Errors
-        abiinsp.py OUTFILE plot    ==> Plot results of the GS Scf cycle, Phonon Scf cycle...
-        abiinsp.py OUTFILE timer   ==> Visualize timing data with matplotlib.
-    """
+        examples = """\
+Usage example:
+    abiinsp.py OUTFILE status  ==> Report the list of Warning, Commments, Errors
+    abiinsp.py OUTFILE plot    ==> Plot results of the GS Scf cycle, Phonon Scf cycle...
+    abiinsp.py OUTFILE timer   ==> Visualize timing data with matplotlib.
+"""
         return examples
 
 
@@ -42,21 +43,20 @@ def main():
 
     # Subparser for status command.
     p_status = subparsers.add_parser('status', help="Check the status of the run (errors, warning, completion)")
-
     #p_status.add_argument('format', nargs="?", default="cif", type=str, help="Format of the output file (ciff, POSCAR, json).")
 
     # Subparser for plot command.
     p_plot = subparsers.add_parser('plot', help="Plot data")
     #p_plot.add_argument('visualizer', nargs="?", default="xcrysden", type=str, help="Visualizer.")
 
-    subparsers.add_parser('timer', help="Show timing data.")
+    p_timer = subparsers.add_parser('timer', help="Show timing data.")
 
-    subparsers.add_parser('pseudo', help="Show info on pseudopotential file.")
+    p_pseudo = subparsers.add_parser('pseudo', help="Show info on pseudopotential file.")
 
     # Parse command line.
     try:
         options = parser.parse_args()
-    except Exception: 
+    except Exception:
         show_examples_and_exit(error_code=1)
 
     # loglevel is bound to the string value obtained from the command line argument.
@@ -83,12 +83,8 @@ def main():
             raise ValueError("Don't know how to extract plottable data from %s" % options.filepath)
 
     elif options.command == "timer":
-        parser = AbinitTimerParser()
-
+        parser = abilab.AbinitTimerParser()
         parser.parse(options.filepath)
-        #parser.plot_pie(key="wall_time", minfract=0.05)
-        #parser.plot_efficiency),
-        #parser.plot_stacked_hist),
 
     elif options.command == "pseudo":
         from pymatgen.io.abinit.pseudos import PseudoParser

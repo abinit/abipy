@@ -8,6 +8,7 @@ import argparse
 import tempfile
 
 from monty.os.path import which
+from monty.functools import prof_main
 from abipy import abilab
 
 
@@ -47,8 +48,7 @@ from abipy import abilab\
     return os.system("jupyter notebook %s" % nbpath)
 
 
-#from monty.functools import prof_main
-#@prof_main
+@prof_main
 def main():
 
     def str_examples():

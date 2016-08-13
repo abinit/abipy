@@ -6,11 +6,14 @@ import sys
 import os
 import argparse
 
+from monty.functools import prof_main
 from pprint import pprint
 from tabulate import tabulate
 from abipy import abilab
 from abipy.iotools.visualizer import Visualizer
 
+
+@prof_main
 def main():
 
     def str_examples():
