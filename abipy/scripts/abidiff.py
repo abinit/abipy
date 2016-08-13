@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+"""
+Script to analyze/compare multiple files.
+"""
 from __future__ import unicode_literals, division, print_function, absolute_import
 
 import sys
@@ -198,18 +201,73 @@ def abicomp_dfpt2_scf(options):
     return 0
 
 
+def abicomp_time(options):
+    """
+    Analyze/plot the timing data of single or multiple runs.
+    """
+    paths = options.paths
+
+    if len(options.paths) == 1 and os.path.isdir(paths[0]):
+        top = options.paths[0]
+        print("Walking directory tree from top:", top, "Looking for file extension:", options.ext)
+        parser, paths_found, okfiles = abilab.AbinitTimerParser.walk(top=top, ext=options.ext)
+
+        if not paths_found:
+            cprint("Empty file list!", color="magenta")
+            return 1
+
+        print("Found %d files\n" % len(paths_found))
+        if okfiles != paths_found:
+            badfiles = [f for f in paths_found if f not in okfiles]
+            cprint("Cannot parse timing data from the following files:", color="magenta")
+            for bad in badfiles: print(bad)
+
+    else:
+        parser = abilab.AbinitTimerParser()
+        okfiles = parser.parse(options.paths)
+
+        if okfiles != options.paths:
+            badfiles = [f for f in options.paths if f not in okfiles]
+            cprint("Cannot parse timing data from the following files:", color="magenta")
+            for bad in badfiles: print(bad)
+
+    if parser is None:
+        cprint("Cannot analyze timing data. parser is None", color="magenta")
+        return 1
+
+    print(parser.summarize())
+
+    if options.verbose:
+        for timer in parser.timers():
+            print(timer.get_dataframe())
+
+    if options.ipython:
+        cprint("Invoking ipython shell. Use parser to access the object inside ipython", color="blue")
+        import IPython
+        IPython.start_ipython(argv=[], user_ns={"parser": parser})
+    elif options.notebook:
+        parser.make_and_open_notebook(daemonize=True)
+    else:
+        parser.plot_all()
+
+    return 0
+
+
 def main():
     def str_examples():
         return """\
 Usage example:
-  abidiff.py struct */*/outdata/out_GSR.nc        => Compare structures in multiple files.
-  abidiff.py ebands out1_GSR.nc out2_GSR.nc       => Plot electron bands on a grid (Use `-p` to change plot mode)
-  abidiff.py ebands *_GSR.nc -ipy                 => Build plotter object and start ipython console.
-  abidiff.py ebands *_GSR.nc -nb                  => Interact with the plotter via the jupyter notebook.
-  abidiff.py edos *_WFK.nc -nb                    => Compare electron DOS in the jupyter notebook.
-  abidiff.py phbands out1_PHBST.nc out2_PHBST.nc  => Plot electron bands on a grid.
-  abidiff.py gs_scf run1.abo run2.abo             => Compare the SCF cycles in two output files.
-  abidiff.py dfpt2_scf run1.abo run2.abo          => Compare the DFPT SCF cycles in two output files.
+  abicomp.py struct */*/outdata/out_GSR.nc        => Compare structures in multiple files.
+  abicomp.py ebands out1_GSR.nc out2_GSR.nc       => Plot electron bands on a grid (Use `-p` to change plot mode)
+  abicomp.py ebands *_GSR.nc -ipy                 => Build plotter object and start ipython console.
+  abicomp.py ebands *_GSR.nc -nb                  => Interact with the plotter via the jupyter notebook.
+  abicomp.py edos *_WFK.nc -nb                    => Compare electron DOS in the jupyter notebook.
+  abicomp.py phbands out1_PHBST.nc out2_PHBST.nc  => Plot electron bands on a grid.
+  abicomp.py gs_scf run1.abo run2.abo             => Compare the SCF cycles in two output files.
+  abicomp.py dfpt2_scf run1.abo run2.abo          => Compare the DFPT SCF cycles in two output files.
+  abicomp.py.py time [OUT_FILES]                  => Parse timing data in files and plot results
+  abicomp.py.py time . --ext=abo                  => Scan directory tree from `.`, look for files with extension `abo`
+                                                     parse timing data and plot results.
 """
 
     def show_examples_and_exit(err_msg=None, error_code=1):
@@ -267,6 +325,11 @@ Usage example:
 
     # Subparser for robot command.
     #p_robot = subparsers.add_parser('robot', parents=[copts_parser, ipy_parser], help=abicomp_robot.__doc__)
+
+    # Subparser for time command.
+    p_time = subparsers.add_parser('time', parents=[copts_parser, ipy_parser], help=abicomp_time.__doc__)
+    p_time.add_argument("-e", "--ext", default=".abo", help=("File extension for Abinit output files. "
+                        "Used when the first argument is a directory. Default is `.abo`"))
 
     # Subparser for gs_scf command.
     p_gs_scf = subparsers.add_parser('gs_scf', parents=[copts_parser], help=abicomp_gs_scf.__doc__)

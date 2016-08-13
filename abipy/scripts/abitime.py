@@ -5,10 +5,9 @@ from __future__ import unicode_literals, division, print_function, absolute_impo
 import sys
 import os
 import argparse
+import abipy.abilab as abilab
 
 from monty.termcolor import cprint
-from pymatgen.io.abinit.abitimer import AbinitTimerParser
-from abipy.core.release import __version__
 
 
 def main():
@@ -39,7 +38,7 @@ Usage example:\n
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + __version__)
+    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + abilab.__version__)
     parser.add_argument('--loglevel', default="ERROR", type=str,
                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
     parser.add_argument('--seaborn', action="store_true", help="Use seaborn settings")
@@ -75,7 +74,7 @@ Usage example:\n
         import seaborn as sns
 
     if options.command == "scan":
-        parser = AbinitTimerParser()
+        parser = abilab.AbinitTimerParser()
         okfiles = parser.parse(options.paths)
 
         if okfiles != options.paths:
@@ -85,20 +84,13 @@ Usage example:\n
 
     elif options.command == "walk":
         print("Walking directory tree from top:", options.top, "Looking for file extension:", options.ext)
-        paths = []
-        for root, dirs, files in os.walk(options.top):
-            for f in files:
-                if f.endswith(options.ext):
-                    paths.append(os.path.join(root, f))
+        parser, paths, okfiles = abilab.AbinitTimerParser.walk(top=options.top, ext=options.ext)
 
         if not paths:
             cprint("Empty file list!", color="magenta")
             return 1
 
         print("Found %d files\n" % len(paths))
-        parser = AbinitTimerParser()
-        okfiles = parser.parse(paths)
-
         if okfiles != paths:
             badfiles = [f for f in paths if f not in okfiles]
             cprint("Cannot parse timing data from the following files:", color="magenta")
@@ -115,9 +107,6 @@ Usage example:\n
 
     if options.plot:
         parser.plot_all()
-        #parser.plot_efficiency()
-        #parser.plot_pie()
-        #parser.plot_stacked_hist()
 
     if options.verbose:
         for timer in parser.timers():
@@ -131,6 +120,7 @@ Usage example:\n
         parser.make_and_open_notebook(daemonize=True)
 
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

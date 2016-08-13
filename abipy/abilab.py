@@ -29,6 +29,7 @@ from abipy.core.mixins import AbinitLogFile, AbinitOutputFile, OutNcFile
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
 from abipy.iotools import Visualizer
 from abipy.iotools.cube import CubeFile
+from abipy.abio.timer import AbinitTimerParser
 from abipy.abio.robots import GsrRobot, SigresRobot, MdfRobot, DdbRobot, abirobot
 from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
 from abipy.abio.abivars import AbinitInputFile
