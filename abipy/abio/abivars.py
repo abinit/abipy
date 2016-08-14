@@ -4,11 +4,10 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import json
 import numpy as np
 
-
 from monty.string import is_string
 from monty.functools import lazy_property
 from pymatgen.core.units import bohr_to_ang
-from abipy.core.structure import Structure
+from abipy.core.structure import Structure, frame_from_structures
 from abipy.core.mixins import Has_Structure
 
 import logging
@@ -236,7 +235,6 @@ class Dataset(dict, Has_Structure):
             kwargs["xangst"] = np.fromstring(self["xangst"], sep=" ")
 
         #print(kwargs["rprim"])
-
         return Structure.from_abivars(
             acell=acell,
             znucl=str2array(self["znucl"]),
@@ -334,7 +332,26 @@ class AbinitInputFile(Has_Structure):
             raise ValueError("Don't know how handle variables in %s" % str(dvars))
 
     def __str__(self):
-        return self.string
+        """String representation."""
+        lines = []
+        app = lines.append
+        header = 10 * "=" + " Input File " + 10 * "="
+        app(header)
+        app(self.string)
+        app(len(header) * "=" + "\n")
+
+        # Print info on structure(s).
+        if self.structure is not None:
+            app(self.structure.spglib_summary())
+        else:
+            structures = [dt.structure for dt in self.dtsets]
+            app("Input file contains %d structures:" % len(structures))
+            for i, struct in enumerate(structures):
+                app("Dataset %d" % (i+1))
+                app(structure.spglib_summary())
+            app(str(self.frame_from_structures()))
+
+        return "\n".join(lines)
 
     @lazy_property
     def structure(self):
@@ -350,9 +367,14 @@ class AbinitInputFile(Has_Structure):
         """
         for dt in self.dtsets[1:]:
             if dt.structure != self.dtsets[0].structure:
-                print("Datasets have different structures. Returning None. Use input.dtsets[i].structure")
+                logger.info("Datasets have different structures. Returning None. Use input.dtsets[i].structure")
                 return None
         return self.dtsets[0].structure
+
+    def frame_from_structures(self, **kwargs):
+        """Wraps frame_from_structures."""
+        structures = [dt.structure for dt in self.dtsets]
+        return frame_from_structures(structures, **kwargs)
 
 
 def parse_abinit_string(s):

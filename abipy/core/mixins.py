@@ -34,6 +34,12 @@ class _File(object):
     def __init__(self, filepath):
         self._filepath = os.path.abspath(filepath)
 
+        # Save stat values
+        stat = os.stat(filepath)
+        self._last_atime = stat.st_atime
+        self._last_mtime = stat.st_mtime
+        self._last_ctime = stat.st_ctime
+
     def __repr__(self):
         return "<%s, %s>" % (self.__class__.__name__, self.relpath)
 
@@ -122,13 +128,25 @@ class AbinitTextFile(TextFile):
 
     @property
     def events(self):
-        """List of ABINIT events reported in the file."""
-        return EventsParser().parse(self.filepath)
+        """
+        List of ABINIT events reported in the file.
+        """
+        # Parse the file the first time the property is accessed or when mtime is changed.
+        stat = os.stat(self.filepath)
+        if stat.st_mtime != self._last_mtime or not hasattr(self, "_events"):
+            self._events = EventsParser().parse(self.filepath)
+        return self._events
 
     @property
     def timer_data(self):
-        """Timer data."""
-        return AbinitTimerParser().parse(self.filepath)
+        """
+        Timer data.
+        """
+        # Parse the file the first time the property is accessed or when mtime is changed.
+        stat = os.stat(self.filepath)
+        if stat.st_mtime != self._last_mtime or not hasattr(self, "_timer_data"):
+            self._timer_data = AbinitTimerParser().parse(self.filepath)
+        return self._timer_data
 
 
 class AbinitLogFile(AbinitTextFile):
@@ -138,12 +156,22 @@ class AbinitLogFile(AbinitTextFile):
 class AbinitOutputFile(AbinitTextFile):
     """Class representing the main output file."""
 
+    #ndtset
+    #offset_dataset
+    #dims_dataset
+    #vars_dataset
+    #pseudos
+
     def next_gs_scf_cycle(self):
-        """Return the next :class:`GroundStateScfCycle` in the file. None if not found."""
+        """
+        Return the next :class:`GroundStateScfCycle` in the file. None if not found.
+        """
         return GroundStateScfCycle.from_stream(self)
 
     def next_d2de_scf_cycle(self):
-        """:class:`GroundStateScfCycle` with information on the GS iterations. None if not found."""
+        """
+        Return :class:`GroundStateScfCycle` with information on the GS iterations. None if not found.
+        """
         return D2DEScfCycle.from_stream(self)
 
     def compare_gs_scf_cycles(self, others, show=True):
@@ -508,8 +536,7 @@ import os
 from IPython.display import display
 #import seaborn as sns
 
-from abipy import abilab
-""")
+from abipy import abilab""")
         ])
 
         return nbformat, nbv, nb

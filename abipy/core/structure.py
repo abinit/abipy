@@ -185,13 +185,10 @@ class Structure(pymatgen.Structure):
             acell: Lengths of the box in *Bohr*
         """
         cart_coords = np.atleast_2d(cart_coords)
-
         molecule = pymatgen.Molecule([p.symbol for p in pseudos], cart_coords)
-
         l = ArrayWithUnit(acell, "bohr").to("ang")
 
         structure = molecule.get_boxed_structure(l[0], l[1], l[2])
-
         return cls(structure)
 
     @classmethod
@@ -376,7 +373,6 @@ class Structure(pymatgen.Structure):
                 if `symprec` is None, so structure refinement is peformed.
             primitive (bool): Whether to convert to a primitive cell.
         """
-
         from pymatgen.transformations.standard_transformations import PrimitiveCellTransformation, SupercellTransformation
 
         structure = self.__class__.from_sites(self)
@@ -427,6 +423,59 @@ class Structure(pymatgen.Structure):
         if space.lower() == "g":
             return self.lattice.reciprocal_lattice.matrix
         raise ValueError("Wrong value for space: %s " % space)
+
+    def spglib_summary(self, verbose=0):
+        """
+        Return string with full information about crystalline structure i.e.
+        space group, point group, wyckoff positions, equivalent sites.
+
+        Args:
+            verbose: Verbosity level.
+        """
+        spgan = SpacegroupAnalyzer(self)
+        spgdata = spgan.get_symmetry_dataset()
+        # Get spacegroup number computed by Abinit if available.
+        abispg_number = None if self.spacegroup is None else self.spacegroup.spgid
+
+        # Print lattice info
+        outs = ["Full Formula ({s})".format(s=self.composition.formula),
+                "Reduced Formula: {}".format(self.composition.reduced_formula)]
+        app = outs.append
+        to_s = lambda x: "%0.6f" % x
+        outs.append("abc   : " + " ".join([to_s(i).rjust(10)
+                                           for i in self.lattice.abc]))
+        outs.append("angles: " + " ".join([to_s(i).rjust(10)
+                                           for i in self.lattice.angles]))
+        app("Space group info (note that magnetic symmetries are not taken into account).")
+        app("Spacegroup: %s (%s), Hall: %s, Abinit spg_number: %s" % (
+             spgan.get_spacegroup_symbol(), spgan.get_spacegroup_number(), spgan.get_hall(), str(abispg_number)))
+        app("Crystal_system: %s, Lattice_type: %s, Point_group: %s" % (
+            spgan.get_crystal_system(), spgan.get_lattice_type(), spgan.get_point_group()))
+        app("")
+
+        wickoffs, equivalent_atoms = spgdata["wyckoffs"], spgdata["equivalent_atoms"]
+        table = [["Idx", "Symbol", "Reduced_Coords", "Wyck", "EqIdx"]]
+        for i, site in enumerate(self):
+            table.append([
+                i,
+                site.specie.symbol,
+                "%.5f %.5f %.5f" % tuple(site.frac_coords),
+                "%s" % wickoffs[i],
+                "%d" % equivalent_atoms[i],
+            ])
+
+        from tabulate import tabulate
+        app(tabulate(table, headers="firstrow"))
+
+        # Print entire dataset.
+        if verbose:
+            from six.moves import StringIO
+            from pprint import pprint
+            stream = StringIO()
+            pprint(spgdata, stream=stream)
+            app(stream.getvalue())
+
+        return "\n".join(outs)
 
     @property
     def spacegroup(self):
@@ -1103,7 +1152,7 @@ class Structure(pymatgen.Structure):
             Pandu Wisesa, Kyle A. McGill, and Tim Mueller
             Phys. Rev. B 93, 155109
         """
-        from StringIO import StringIO
+        from six.moves import StringIO
 
         # Prepare PRECALC file.
         precalc_names = set(("INCLUDEGAMMA", "MINDISTANCE", "HEADER", "MINTOTALKPOINTS", "KPPRA", "GAPDISTANCE"))

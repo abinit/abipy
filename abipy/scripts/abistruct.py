@@ -127,47 +127,7 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
 
     if options.command == "spglib":
         structure = abilab.Structure.from_file(options.filepath)
-        #print(structure.lattice)
-        from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-        spgan = SpacegroupAnalyzer(structure)
-        spgdata = spgan.get_symmetry_dataset()
-        # Get spacegroup number computed by Abinit if available.
-        abispg_number = None if structure.spacegroup is None else structure.spacegroup.spgid
-
-        # Print lattice info
-        outs = ["Full Formula ({s})".format(s=structure.composition.formula),
-                "Reduced Formula: {}".format(structure.composition.reduced_formula)]
-        to_s = lambda x: "%0.6f" % x
-        outs.append("abc   : " + " ".join([to_s(i).rjust(10)
-                                           for i in structure.lattice.abc]))
-        outs.append("angles: " + " ".join([to_s(i).rjust(10)
-                                           for i in structure.lattice.angles]))
-        print("\n".join(outs))
-
-        print("Space group info (note that magnetic symmetries are not taken into account).")
-        print("Spacegroup: %s (%s), Hall: %s, Abinit spg_number: %s" % (
-             spgan.get_spacegroup_symbol(), spgan.get_spacegroup_number(), spgan.get_hall(), str(abispg_number)))
-        print("Crystal_system: %s, Lattice_type: %s, Point_group: %s" % (
-            spgan.get_crystal_system(), spgan.get_lattice_type(), spgan.get_point_group()))
-        print()
-
-        wickoffs, equivalent_atoms = spgdata["wyckoffs"], spgdata["equivalent_atoms"]
-        table = [["Idx", "Symbol", "Reduced_Coords", "Wyck", "EqIdx"]]
-        for i, site in enumerate(structure):
-            table.append([
-                i,
-                site.specie.symbol,
-                "%.5f %.5f %.5f" % tuple(site.frac_coords),
-                "%s" % wickoffs[i],
-                "%d" % equivalent_atoms[i],
-            ])
-
-        print(tabulate(table, headers="firstrow"))
-
-        # Print entire dataset.
-        if options.verbose: pprint(spgdata)
-
-        return 0
+        print(structure.spglib_summary(verbose=options.verbose))
 
     elif options.command == "convert":
         structure = abilab.Structure.from_file(options.filepath)
