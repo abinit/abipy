@@ -6,20 +6,20 @@ from abipy.core.structure import *
 from abipy.core.testing import *
 from abipy.abio.abivars import AbinitInputFile
 
+
 class TestAbinitInputFile(AbipyTest):
 
     def test_simple_input(self):
         # Reference structure
-        s = ("acell 1 1 1 rprim 1 0 0 0 1 0 0 0 1 natom 1"
-             "ntypat 1 typat 1 znucl 14 xred 0 0 0")
+        s = ("acell 1 1 1 rprim 1 0 0 0 1 0 0 0 1 natom 1 "
+             "ntypat 1 typat 1 znucl 14 xred 0 0 0 ")
         inp = AbinitInputFile.from_string(s)
-
         print(inp)
         si1_structure = inp.structure
         assert inp.ndtset == 1 and len(si1_structure) == 1 and si1_structure.formula == "Si1"
 
         # Default values for acell (3*1) and rprim (np.eye(3))
-        s = "natom 1" "ntypat 1 typat 1 znucl 14 xred 0 0 0"
+        s = "natom 1 ntypat 1 typat 1 znucl 14 xred 0 0 0"
         inp = AbinitInputFile.from_string(s)
         assert inp.structure == si1_structure
 
@@ -39,14 +39,13 @@ class TestAbinitInputFile(AbipyTest):
         assert inp.structure == si1_structure
 
         # TODO Angdeg sqrt()
-
         #assert 0
 
     def test_input_with_datasets(self):
         # H2 molecule in a big box
         s = """
           ndtset 2
-          natom 2 ntypat 1 znucl 1 typat 2 * 1
+          natom 2 ntypat 1 znucl 1 typat 2*1
           acell1 10 10 10  # this is a comment
           acell2 20 20 20
           xcart -0.7 0.0 0.0 0.7 0.0 0.0
@@ -60,7 +59,7 @@ class TestAbinitInputFile(AbipyTest):
         # same input but with global acell
         s = """
           ndtset 2
-          natom 2 ntypat 1 znucl 1 typat 2 * 1
+          natom 2 ntypat 1 znucl 1 typat 2*1
           acell  10 10 10 ! this is a comment
           acell2 20 20 20 ! bohrs
           xcart -0.7 0.0 0.0 0.7 0.0 0.0
@@ -72,7 +71,7 @@ class TestAbinitInputFile(AbipyTest):
         # same input in terms of an arithmetic series in acell
         s = """
           ndtset 2
-          natom 2 ntypat 1 znucl 1 typat 2 * 1
+          natom 2 ntypat 1 znucl 1 typat 2*1
           acell:  10 10 10
           acell+ 10 10 10 # bohrs
           xcart -0.7 0.0 0.0 0.7 0.0 0.0
@@ -85,7 +84,7 @@ class TestAbinitInputFile(AbipyTest):
         # Test arithmetic and geometric series with ecut.
         s = """
           ndtset 3
-          natom 2 ntypat 1 znucl 1 typat 2 * 1
+          natom 2 ntypat 1 znucl 1 typat 2*1
           acell 10 10 10 xcart -0.7 0.0 0.0 0.7 0.0 0.0
           ecut: 10 ecut+ 5
           pawecutdg: 2 pawecutdg* 3
@@ -98,7 +97,7 @@ class TestAbinitInputFile(AbipyTest):
         # Test arithmetic series with xcart.
         s = """
           ndtset 2
-          natom 2 ntypat 1 znucl 1 typat 2 * 1
+          natom 2 ntypat 1 znucl 1 typat 2*1
           acell 1 1 1
           xcart: -0.7 0.0 0.0 0.7 0.0 0.0
           xcart+ -0.1 0.0 0.0 0.1 0.0 0.0
@@ -110,8 +109,3 @@ class TestAbinitInputFile(AbipyTest):
 
         self.assert_almost_equal(s0.cart_coords.ravel() / bohr_to_ang, [-0.7, 0, 0, 0.7, 0, 0])
         self.assert_almost_equal(s1.cart_coords.ravel() / bohr_to_ang, [-0.8, 0, 0, 0.8, 0, 0])
-
-
-if __name__ == "__main__":
-    import unittest
-    unittest.main()
