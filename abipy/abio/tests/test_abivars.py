@@ -4,7 +4,23 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 from pymatgen.core.units import bohr_to_ang
 from abipy.core.structure import *
 from abipy.core.testing import *
-from abipy.abio.abivars import AbinitInputFile
+from abipy.abio.abivars import AbinitInputFile, AbinitInputParser
+
+
+class TestAbinitInputParser(AbipyTest):
+
+    def test_static_methods(self):
+        """Testing AbinitInputParser static methods."""
+        p = AbinitInputParser()
+
+        assert p.varname_dtindex("acell1") == ("acell", 1)
+        assert p.varname_dtindex("fa1k2") == ("fa1k", 2)
+
+        from math import sqrt
+        assert p.eval_abinit_operators(["1/2"]) == [str(1/2)]
+        assert p.eval_abinit_operators(["sqrt(3.)"]) == [str(sqrt(3.))]
+        assert p.eval_abinit_operators(["+sqrt(3.)"]) == [str(sqrt(3.))]
+        assert p.eval_abinit_operators(["-sqrt(3.)"]) == [str(-sqrt(3.))]
 
 
 class TestAbinitInputFile(AbipyTest):
@@ -29,16 +45,17 @@ class TestAbinitInputFile(AbipyTest):
         assert inp.structure == si1_structure
 
         # xcart instead of xred and more variables using * syntax.
-        s = "acell 1 2*1 natom 1*1 ntypat 1*1 typat 1*1 znucl 1*14 xcart 0 0 0"
+        s = "acell 1 2*1 natom 1*1 ntypat 1*1 typat 1*1 znucl *14 xcart 0 0 0"
         inp = AbinitInputFile.from_string(s)
         assert inp.structure == si1_structure
 
         # acell and rprimd with unit.
-        s = "acell 1 2*1 Bohr rprim 1 0 0 0 1 0 0 0 1 Bohr natom 1*1 ntypat 1*1 typat 1*1 znucl 1*14 xangst 0 0 0"
+        s = ("acell 1 2*1 Bohr rprim 1 0 0 0 1 0 0 0 1 Bohr natom 1*1 "
+             "ntypat 1*1 typat *1 znucl 1*14 xangst 0 0 0")
         inp = AbinitInputFile.from_string(s)
         assert inp.structure == si1_structure
 
-        # TODO Angdeg sqrt()
+        # TODO Angdeg sqrt(4) sqrt(4/2)
         #assert 0
 
     def test_input_with_datasets(self):
@@ -55,6 +72,7 @@ class TestAbinitInputFile(AbipyTest):
         s0, s1 = inp.dtsets[0].structure, inp.dtsets[1].structure
         assert s0 != s1
         assert s1.volume == 8 * s0.volume
+        print(inp)
 
         # same input but with global acell
         s = """
@@ -67,6 +85,7 @@ class TestAbinitInputFile(AbipyTest):
         inp = AbinitInputFile.from_string(s)
         assert s0 == inp.dtsets[0].structure
         assert s1 == inp.dtsets[1].structure
+        print(inp)
 
         # same input in terms of an arithmetic series in acell
         s = """
@@ -79,6 +98,7 @@ class TestAbinitInputFile(AbipyTest):
         inp = AbinitInputFile.from_string(s)
         assert s0 == inp.dtsets[0].structure
         assert s1 == inp.dtsets[1].structure
+        print(inp)
 
     def test_input_with_serie(self):
         # Test arithmetic and geometric series with ecut.
@@ -93,6 +113,7 @@ class TestAbinitInputFile(AbipyTest):
         assert inp.ndtset == 3
         self.assertArrayEqual([dt["ecut"] for dt in inp.dtsets], [10, 15, 20])
         self.assertArrayEqual([dt["pawecutdg"] for dt in inp.dtsets], [2, 6, 18])
+        print(inp)
 
         # Test arithmetic series with xcart.
         s = """
@@ -106,6 +127,6 @@ class TestAbinitInputFile(AbipyTest):
         assert inp.ndtset == 2 and inp.structure is None
 
         s0, s1 = inp.dtsets[0].structure, inp.dtsets[1].structure
-
         self.assert_almost_equal(s0.cart_coords.ravel() / bohr_to_ang, [-0.7, 0, 0, 0.7, 0, 0])
         self.assert_almost_equal(s1.cart_coords.ravel() / bohr_to_ang, [-0.8, 0, 0, 0.8, 0, 0])
+        print(inp)

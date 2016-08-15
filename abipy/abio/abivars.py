@@ -135,14 +135,14 @@ def str2array_bohr(obj):
         raise ValueError("Don't know how to handle unit: %s" % unit)
 
 
-def str2array(obj):
+def str2array(obj, dtype=float):
     if not is_string(obj): return np.asarray(obj)
     if obj.startswith("*"):
         raise ValueError("This case should be treated by the caller: %s" % str(obj))
     s = expand_star_syntax(obj)
     # Numpy does not understand "0.00d0 0.00d0"
     s = s.lower().replace("d", "e")
-    return np.fromstring(s, sep=" ")
+    return np.fromstring(s, sep=" ", dtype=dtype)
 
 
 class Dataset(dict, Has_Structure):
@@ -164,13 +164,13 @@ class Dataset(dict, Has_Structure):
         if "xred" in self:
             # v3/Input/t05.in
             #kwargs["xred"] = np.fromstring(self["xred"], sep=" ")
-            print("xred", self["xred"], type(self["xred"]))
+            #print("xred", self["xred"], type(self["xred"]))
             kwargs["xred"] = str2array(self["xred"])
             #print(kwargs["xred"])
         elif "xcart" in self:
             kwargs["xcart"] = str2array_bohr(self["xcart"])
         elif "xangst" in self:
-            kwargs["xangst"] = np.fromstring(self["xangst"], sep=" ")
+            kwargs["xangst"] = str2array(self["xangst"])
         else:
             raise ValueError("xred|xcart|xangst must be given in input")
 
@@ -183,7 +183,7 @@ class Dataset(dict, Has_Structure):
         if znucl.startswith("*"):
             i = znucl.find("*")
             znucl_size = natom if "npsp" not in self else int(self["npsp"])
-            znucl = zcnul_size * [float(znucl[i+1:])]
+            znucl = znucl_size * [float(znucl[i+1:])]
         else:
             znucl = str2array(self["znucl"])
 
@@ -191,20 +191,24 @@ class Dataset(dict, Has_Structure):
         typat = self["typat"]
         if typat.startswith("*"):
             i = typat.find("*")
-            typat = natom * [int(typat[i+1:])]
+            typat = np.array(natom * [int(typat[i+1:])], dtype=int)
         else:
-            typat = str2array(self["typat"])
+            typat = str2array(self["typat"], dtype=int)
 
-        print("kwargs", kwargs)
-        print("acell", acell)
-        print("znucl", znucl)
-        print("typat", typat)
-        return Structure.from_abivars(
-            acell=acell,
-            znucl=znucl,
-            typat=typat,
-            **kwargs
-        )
+	try:
+	    return Structure.from_abivars(
+		acell=acell,
+		znucl=znucl,
+		typat=typat,
+		**kwargs
+	    )
+	except:
+	    print("Wrong inputs passed to Structure.from_abivar:")
+	    print("  acell", acell)
+	    print("  znucl", znucl)
+	    print("  typat", typat)
+	    print("  kwargs", kwargs)
+	    raise
 
 
 class AbinitInputFile(Has_Structure):
@@ -262,10 +266,12 @@ class AbinitInputFile(Has_Structure):
 
     @lazy_property
     def structure(self):
-        """
+	"""
         The structure defined in the input file.
-        If the input file contains multiple datasets **AND** the datasets have different structures.
-        this property returns None. In this case, one has to access the structure of the individual datasets.
+
+        If the input file contains multiple datasets **AND** the datasets
+        have different structures, this property returns None.
+        In this case, one has to access the structure of the individual datasets.
         For example:
 
             input.dtsets[0].structure
@@ -285,7 +291,7 @@ class AbinitInputParser(object):
     def parse(self, s):
         """
         This function receives a string `s` with the Abinit input and return
-        a dictionary {var_name: var_value} when var_value is still a string.
+        a list of :class:`Dataset` objects.
         """
         # Remove comments from lines.
         lines = []
@@ -301,31 +307,29 @@ class AbinitInputParser(object):
         # 2) split string in tokens.
         # 3) Evaluate star syntax i.e. "3*2" ==> '2 2 2'
         # 4) Evaluate operators e.g. sqrt(0.75)
-        #
+
         tokens = " ".join(lines).split()
         # Step 3 is needed because we are gonna use python to evaluate the operators and
         # in abinit `2*sqrt(0.75)` means `sqrt(0.75) sqrt(0.75)` and not math multiplication!
         # /Users/gmatteo/git/abinit/tests/v7/Input/t03.in
-        print("tokens", tokens)
+        if self.verbose: print("tokens", tokens)
         new_tokens = []
         for t in tokens:
             l = expand_star_syntax(t).split()
-            print("t", t, "l", l)
+            #print("t", t, "l", l)
             new_tokens.extend(l)
         tokens = new_tokens
-        print("new_tokens", new_tokens)
+        if self.verbose: print("new_tokens", new_tokens)
 
         tokens = self.eval_abinit_operators(tokens)
-        # The code above does not work everywhere e.g. typat 2 * 1
-        # I think this section should be performed afterwards when we have already constructed the dictionary
-        #tokens = " ".join(lines).split()
 
         varpos = []
         for pos, tok in enumerate(tokens):
 
             if tok[0].isalpha():
                 # Either new variable, string defining the unit or operator e.g. sqrt
-                if is_abiunit(tok) or tok in ABI_OPERATORS: continue
+                if is_abiunit(tok) or tok in ABI_OPERATORS:
+		    continue
 
                 # Have new variable
                 if tok[-1].isdigit() and "?" not in tok:
@@ -342,6 +346,7 @@ class AbinitInputParser(object):
 
         varpos.append(len(tokens) + 1)
 
+	# Build dict {varname --> value_string}
         dvars = {}
         for i, pos in enumerate(varpos[:-1]):
             varname = tokens[pos]
@@ -350,7 +355,7 @@ class AbinitInputParser(object):
         err_lines = []
         for k, v in dvars.items():
             if not v:
-                err_lines.append("key %s was not parsed correctly (empty value)" % k)
+                err_lines.append("key `%s` was not parsed correctly (empty value)" % k)
         if err_lines:
             raise RuntimeError("\n".join(err_lines))
 
@@ -361,6 +366,7 @@ class AbinitInputParser(object):
         if udtset is not None or jdtset is not None:
             raise NotImplementedError("udtset and jdtset are not supported")
 
+	# Build list of datasets.
         dtsets = [Dataset() for i in range(ndtset)]
 
         # Treat all variables without a dataset index
@@ -382,7 +388,7 @@ class AbinitInputParser(object):
                 continue
             dtsets[idt-1][varname] = v
 
-        # Now treat series e.g. ecut: 10 ecut+ 5 (? is not treated here)
+        # Now treat series e.g. ecut: 10 ecut+ 5 (NB: ? is not treated here)
         kv_list = list(dvars.items())
         for k, v in kv_list:
             if "?" in k: continue
@@ -391,6 +397,7 @@ class AbinitInputParser(object):
             vname = k[:-1]
             start = str2array(dvars.pop(k))
 
+	    # Handle ecut+ or ecut*
             incr = dvars.pop(vname + "+", None)
             if incr is not None:
                 incr = str2array(incr)
@@ -405,6 +412,12 @@ class AbinitInputParser(object):
                     dt[vname] = start.copy()
                     start *= mult
 
+	# Consistency check
+	# 1) dvars should be empty
+        if dvars:
+            raise ValueError("Don't know how handle variables in:\n%s" % pformat(dvars), indent=4)
+
+	# 2) Keys in datasets should be valid Abinit input variables.
         wrong = []
         for i, dt in enumerate(dtsets):
             wlist = [k for k in dt if not is_abivar(k)]
@@ -413,9 +426,8 @@ class AbinitInputParser(object):
         if wrong:
             raise ValueError("Found wrong variables:\n%s" % pformat(wrong, indent=4))
 
-        if dvars:
-            raise ValueError("Don't know how handle variables in:\n%s" % pformat(dvars), indent=4)
-
+	# 3) We don't support spg builder: dataset.structure will fail or, even worse,
+        #    spglib will segfault so it's better to raise here!
         for dt in dtsets:
             if "spgroup" in dt or "nobj" in dt:
                 raise NotImplementedError(
@@ -428,6 +440,10 @@ class AbinitInputParser(object):
         """
         Receive a list of strings, find the occurences of operators supported
         in the input file (e.g. sqrt), evalute the expression and return new list of strings.
+
+	.. note:
+
+	    This function is not recursive hence expr like sqrt(1/2) are not supported
         """
         import math
         import re
@@ -437,10 +453,9 @@ class AbinitInputParser(object):
         for tok in tokens:
             m = re_sqrt.match(tok)
             if m:
-                #print("in sqrt with token:", tok)
                 tok = tok.replace("sqrt", "math.sqrt")
                 tok = str(eval(tok))
-            if "/" in tok:
+            if "/" in tok: # Note true_division from __future__
                 tok = str(eval(tok))
             values.append(tok)
         return values
@@ -448,8 +463,9 @@ class AbinitInputParser(object):
     @staticmethod
     def varname_dtindex(tok):
         """
-        >>> assert varname_dtindex("acell1") == ("acell", 1)
-        >>> assert varname_dtindex("fa1k2") == ("fa1k", 2)
+        >>> p = AbinitInputParser()
+        >>> assert p.varname_dtindex("acell1") == ("acell", 1)
+        >>> assert p.varname_dtindex("fa1k2") == ("fa1k", 2)
         """
         l = []
         for i, c in enumerate(tok[::-1]):
@@ -461,6 +477,89 @@ class AbinitInputParser(object):
         assert i > 0
         l.reverse()
         dtidx = int("".join(l))
-        tok = tok[:len(tok)-i]
+        varname = tok[:len(tok)-i]
 
-        return tok, dtidx
+        return varname, dtidx
+
+
+def validate_input_parser():
+    """
+    Script to validate/test AbinitInput parser.
+
+    Usage:
+	$ test_input_parser DIRECTORY
+	$ test_input_parser FILES
+
+    Return: Exit code.
+    """
+    import sys
+    import os
+    from abipy import abilab
+
+    try:
+        args = sys.argv[1:]
+    except:
+        print(validate_input_parser.__doc__)
+        return 1
+
+    if "-h" in args or "--help" in args:
+        print(validate_input_parser.__doc__)
+        return 0
+
+    def is_abinit_input(path):
+        """
+        True if path is one of the input files used in the Abinit Test suite.
+        """
+	if path.endswith(".abi"): return True
+        if not path.endswith(".in"): return False
+
+        with open(path, "rt") as fh:
+            for line in fh:
+                if "executable" in line and "abinit" in line: return True
+            return False
+
+    # Collect files
+    paths = []
+
+    if len(args) == 1 and os.path.isdir(args[0]):
+        print("Analyzing directory %s for input files" % args[0])
+        for dirpath, dirnames, filenames in os.walk(args[0]):
+            for fname in filenames:
+                path = os.path.join(dirpath, fname)
+                if is_abinit_input(path): paths.append(path)
+    else:
+        for arg in args:
+            if is_abinit_input(arg):
+                paths.append(arg)
+
+    nfiles = len(paths)
+    if nfiles == 0:
+        print("Empty list of input files.")
+        return 0
+
+    print("Found %d Abinit input files" % len(paths))
+    errpaths = []
+    for path in paths:
+        print("About to analyze:", path)
+        try:
+            inp = abilab.AbinitInputFile.from_file(path)
+            s = str(inp)
+            print(s)
+        except Exception as exc:
+            if not isinstance(exc, NotImplementedError):
+                errpaths.append(path)
+                import traceback
+                print(traceback.format_exc())
+                #print("[%s]: Exception:\n%s" % (path, str(exc)))
+
+                #with open(path, "rt") as fh:
+                #    print(10*"=" + "Input File" + 10*"=")
+                #    print(fh.read())
+                #    print()
+
+    print("failed: %d/%d [%.1f%%]" % (len(errpaths), nfiles, 100 * len(errpaths)/nfiles))
+    if errpaths:
+        for i, epath in enumerate(errpaths):
+            print("[%d] %s" % (i, epath))
+
+    return len(errpaths)
