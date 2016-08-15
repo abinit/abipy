@@ -4,6 +4,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import json
 import numpy as np
 
+from pprint import pformat
 from monty.string import is_string, boxed
 from monty.functools import lazy_property
 from pymatgen.core.units import bohr_to_ang
@@ -117,13 +118,15 @@ def str2array_bohr(obj):
 
     # Treat e.g. acell 3 * 1.0
     obj = expand_star_syntax(obj)
-    tokens = obj.split()
+    # Numpy does not understand "0.00d0 0.00d0"
+    obj = obj.lower().replace("d", "e")
 
+    tokens = obj.split()
     if not tokens[-1].isalpha():
         # No unit
         return np.fromstring(obj, sep=" ")
 
-    unit = tokens[-1].lower()
+    unit = tokens[-1]
     if unit in ("angstr", "angstrom", "angstroms"):
         return np.fromstring(" ".join(tokens[:-1]), sep=" ") / bohr_to_ang
     elif unit in ("bohr", "bohrs"):
@@ -136,8 +139,10 @@ def str2array(obj):
     if not is_string(obj): return np.asarray(obj)
     if obj.startswith("*"):
         raise ValueError("This case should be treated by the caller: %s" % str(obj))
-    return np.fromstring(expand_star_syntax(obj), sep=" ")
-    #return np.fromstring(obj, sep=" ")
+    s = expand_star_syntax(obj)
+    # Numpy does not understand "0.00d0 0.00d0"
+    s = s.lower().replace("d", "e")
+    return np.fromstring(s, sep=" ")
 
 
 class Dataset(dict, Has_Structure):
@@ -159,7 +164,7 @@ class Dataset(dict, Has_Structure):
         if "xred" in self:
             # v3/Input/t05.in
             #kwargs["xred"] = np.fromstring(self["xred"], sep=" ")
-            #print(self["xred"])
+            print("xred", self["xred"], type(self["xred"]))
             kwargs["xred"] = str2array(self["xred"])
             #print(kwargs["xred"])
         elif "xcart" in self:
@@ -186,11 +191,14 @@ class Dataset(dict, Has_Structure):
         typat = self["typat"]
         if typat.startswith("*"):
             i = typat.find("*")
-            typat = ntypat * [int(typat[i+1:])]
+            typat = natom * [int(typat[i+1:])]
         else:
             typat = str2array(self["typat"])
 
-        #print(kwargs["rprim"])
+        print("kwargs", kwargs)
+        print("acell", acell)
+        print("znucl", znucl)
+        print("typat", typat)
         return Structure.from_abivars(
             acell=acell,
             znucl=znucl,
@@ -327,7 +335,7 @@ class AbinitInputParser(object):
                         if c.isalpha(): break
                         l.append(c)
                     else:
-                        raise ValueError("Cannot find dataset index in %s" % tok)
+                        raise ValueError("Cannot find dataset index in token: %s" % tok)
                     l.reverse()
 
                 varpos.append(pos)
@@ -352,10 +360,6 @@ class AbinitInputParser(object):
         jdtset = dvars.pop("jdtset", None)
         if udtset is not None or jdtset is not None:
             raise NotImplementedError("udtset and jdtset are not supported")
-
-        if "spgroup" in dvars or "nobj" in dvars:
-            raise NotImplementedError(
-                "Abinit spgroup builder is not supported. Structure must be given explicitly!")
 
         dtsets = [Dataset() for i in range(ndtset)]
 
@@ -407,10 +411,15 @@ class AbinitInputParser(object):
             if wlist:
                 wrong.extend(("dataset %d" % i, wlist))
         if wrong:
-            raise ValueError("Found wrong variables.\n%s" % str(wrong))
+            raise ValueError("Found wrong variables:\n%s" % pformat(wrong, indent=4))
 
         if dvars:
-            raise ValueError("Don't know how handle variables in %s" % str(dvars))
+            raise ValueError("Don't know how handle variables in:\n%s" % pformat(dvars), indent=4)
+
+        for dt in dtsets:
+            if "spgroup" in dt or "nobj" in dt:
+                raise NotImplementedError(
+                    "Abinit spgroup builder is not supported. Structure must be given explicitly!")
 
         return dtsets
 
@@ -430,10 +439,10 @@ class AbinitInputParser(object):
             if m:
                 #print("in sqrt with token:", tok)
                 tok = tok.replace("sqrt", "math.sqrt")
-                tok = eval(tok)
+                tok = str(eval(tok))
             if "/" in tok:
-                tok = eval(tok)
-            values.append(str(tok))
+                tok = str(eval(tok))
+            values.append(tok)
         return values
 
     @staticmethod
@@ -447,7 +456,7 @@ class AbinitInputParser(object):
             if c.isalpha(): break
             l.append(c)
         else:
-            raise ValueError("Cannot find dataset index in %s" % tok)
+            raise ValueError("Cannot find dataset index in: %s" % tok)
 
         assert i > 0
         l.reverse()
