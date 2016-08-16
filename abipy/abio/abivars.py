@@ -49,13 +49,14 @@ def is_abivar(s):
         with open(abidata.var_file("abinit_vars.json")) as fh:
             ABI_VARNAMES = set(json.load(fh))
             # Add include statement
+            # FIXME: This should be added to the database.
             ABI_VARNAMES.add("include")
+            ABI_VARNAMES.add("xyzfile")
 
     return s in ABI_VARNAMES
 
 
 ABI_OPERATORS = set(["sqrt", ])
-#ABI_MULTI_TAGS = set(["+", ":", "*", "?"])
 
 ABI_UNIT_NAMES = {
     s.lower() for s in (
@@ -114,7 +115,8 @@ def expand_star_syntax(s):
 
 
 def str2array_bohr(obj):
-    if not is_string(obj): return np.asarray(obj)
+    if not is_string(obj):
+        return np.asarray(obj)
 
     # Treat e.g. acell 3 * 1.0
     obj = expand_star_syntax(obj)
@@ -129,7 +131,7 @@ def str2array_bohr(obj):
     unit = tokens[-1]
     if unit in ("angstr", "angstrom", "angstroms"):
         return np.fromstring(" ".join(tokens[:-1]), sep=" ") / bohr_to_ang
-    elif unit in ("bohr", "bohrs"):
+    elif unit in ("bohr", "bohrs", "au"):
         return np.fromstring(" ".join(tokens[:-1]), sep=" ")
     else:
         raise ValueError("Don't know how to handle unit: %s" % unit)
@@ -149,6 +151,7 @@ class Dataset(dict, Has_Structure):
 
     @lazy_property
     def structure(self):
+        # Get lattice.
         kwargs = {}
         if "angdeg" in self:
             assert "rprim" not in self
@@ -160,19 +163,6 @@ class Dataset(dict, Has_Structure):
 
         # Default value for acell
         acell = str2array_bohr(self.get("acell", "1.0 1.0 1.0"))
-
-        if "xred" in self:
-            # v3/Input/t05.in
-            #kwargs["xred"] = np.fromstring(self["xred"], sep=" ")
-            #print("xred", self["xred"], type(self["xred"]))
-            kwargs["xred"] = str2array(self["xred"])
-            #print(kwargs["xred"])
-        elif "xcart" in self:
-            kwargs["xcart"] = str2array_bohr(self["xcart"])
-        elif "xangst" in self:
-            kwargs["xangst"] = str2array(self["xangst"])
-        else:
-            raise ValueError("xred|xcart|xangst must be given in input")
 
         # Get important dimensions.
         ntypat = int(self.get("ntypat", 1))
@@ -195,15 +185,23 @@ class Dataset(dict, Has_Structure):
         else:
             typat = str2array(self["typat"], dtype=int)
 
+        # Extract atomic positions.
+        # Select first natom entries (needed if multidatasets with different natom)
+        #    # v3/Input/t05.in
+        typat = typat[:natom]
+        for k in ("xred", "xcart", "xangst"):
+            toarray = str2array_bohr if k == "xcart" else str2array
+            if k in self:
+                arr = np.reshape(toarray(self[k]), (-1, 3))
+                kwargs[k] = arr[:natom]
+                break
+        else:
+            raise ValueError("xred|xcart|xangst must be given in input")
+
 	try:
-	    return Structure.from_abivars(
-		acell=acell,
-		znucl=znucl,
-		typat=typat,
-		**kwargs
-	    )
+	    return Structure.from_abivars(acell=acell, znucl=znucl, typat=typat, **kwargs)
 	except:
-	    print("Wrong inputs passed to Structure.from_abivar:")
+	    print("Wrong inputs passed to Structure.from_abivars:")
 	    print("  acell", acell)
 	    print("  znucl", znucl)
 	    print("  typat", typat)
@@ -236,8 +234,8 @@ class AbinitInputFile(Has_Structure):
             string: String with the Abinit input (used in __str__)
         """
         self.string = string
-        self.dtsets = AbinitInputParser().parse(string)
-        self.ndtset = len(self.dtsets)
+        self.datasets = AbinitInputParser().parse(string)
+        self.ndtset = len(self.datasets)
 
     def __str__(self):
         """String representation."""
@@ -252,7 +250,7 @@ class AbinitInputFile(Has_Structure):
         if self.structure is not None:
             app(self.structure.spglib_summary())
         else:
-            structures = [dt.structure for dt in self.dtsets]
+            structures = [dt.structure for dt in self.datasets]
             app("Input file contains %d structures:" % len(structures))
             for i, structure in enumerate(structures):
                 app(boxed("Dataset: %d" % (i+1)))
@@ -274,15 +272,15 @@ class AbinitInputFile(Has_Structure):
         In this case, one has to access the structure of the individual datasets.
         For example:
 
-            input.dtsets[0].structure
+            input.datasets[0].structure
 
         gives the structure of the first dataset.
         """
-        for dt in self.dtsets[1:]:
-            if dt.structure != self.dtsets[0].structure:
-                logger.info("Datasets have different structures. Returning None. Use input.dtsets[i].structure")
+        for dt in self.datasets[1:]:
+            if dt.structure != self.datasets[0].structure:
+                logger.info("Datasets have different structures. Returning None. Use input.datasets[i].structure")
                 return None
-        return self.dtsets[0].structure
+        return self.datasets[0].structure
 
 
 class AbinitInputParser(object):
@@ -311,7 +309,6 @@ class AbinitInputParser(object):
         tokens = " ".join(lines).split()
         # Step 3 is needed because we are gonna use python to evaluate the operators and
         # in abinit `2*sqrt(0.75)` means `sqrt(0.75) sqrt(0.75)` and not math multiplication!
-        # /Users/gmatteo/git/abinit/tests/v7/Input/t03.in
         if self.verbose: print("tokens", tokens)
         new_tokens = []
         for t in tokens:
@@ -322,17 +319,19 @@ class AbinitInputParser(object):
         if self.verbose: print("new_tokens", new_tokens)
 
         tokens = self.eval_abinit_operators(tokens)
+        #print(tokens)
 
         varpos = []
         for pos, tok in enumerate(tokens):
+            #if not isnewvar(ok): continue
 
             if tok[0].isalpha():
                 # Either new variable, string defining the unit or operator e.g. sqrt
-                if is_abiunit(tok) or tok in ABI_OPERATORS:
+                if is_abiunit(tok) or tok in ABI_OPERATORS or "?" in tok:
 		    continue
 
                 # Have new variable
-                if tok[-1].isdigit() and "?" not in tok:
+                if tok[-1].isdigit(): # and "?" not in tok:
                     # Handle dataset index.
                     l = []
                     for i, c in enumerate(tok[::-1]):
@@ -341,17 +340,25 @@ class AbinitInputParser(object):
                     else:
                         raise ValueError("Cannot find dataset index in token: %s" % tok)
                     l.reverse()
+                    #if not is_abivar(tok):
+                        #continue
+                        #raise ValueError("Expecting variable but got: %s" % tok)
 
+                #print("new var", tok, pos)
                 varpos.append(pos)
 
-        varpos.append(len(tokens) + 1)
+        varpos.append(len(tokens))
 
 	# Build dict {varname --> value_string}
         dvars = {}
         for i, pos in enumerate(varpos[:-1]):
             varname = tokens[pos]
-            dvars[varname] = " ".join(tokens[pos+1: varpos[i+1]])
+            if pos + 2 == len(tokens):
+                dvars[varname] = tokens[-1]
+            else:
+                dvars[varname] = " ".join(tokens[pos+1: varpos[i+1]])
 
+        #print(dvars)
         err_lines = []
         for k, v in dvars.items():
             if not v:
@@ -367,13 +374,13 @@ class AbinitInputParser(object):
             raise NotImplementedError("udtset and jdtset are not supported")
 
 	# Build list of datasets.
-        dtsets = [Dataset() for i in range(ndtset)]
+        datasets = [Dataset() for i in range(ndtset)]
 
         # Treat all variables without a dataset index
         kv_list = list(dvars.items())
         for k, v in kv_list:
             if k[-1].isdigit() or any(c in k for c in ("?", ":", "+", "*")): continue
-            for d in dtsets: d[k] = v
+            for d in datasets: d[k] = v
             dvars.pop(k)
 
         # Treat all variables with a dataset index except those with "?", ":", "+"
@@ -386,7 +393,7 @@ class AbinitInputParser(object):
             if idt > ndtset:
                 if self.verbose: print("Ignoring key: %s because ndtset: %d" % (k, ndtset))
                 continue
-            dtsets[idt-1][varname] = v
+            datasets[idt-1][varname] = v
 
         # Now treat series e.g. ecut: 10 ecut+ 5 (NB: ? is not treated here)
         kv_list = list(dvars.items())
@@ -401,14 +408,14 @@ class AbinitInputParser(object):
             incr = dvars.pop(vname + "+", None)
             if incr is not None:
                 incr = str2array(incr)
-                for dt in dtsets:
+                for dt in datasets:
                     dt[vname] = start.copy()
                     start += incr
 
             else:
                 mult = dvars.pop(vname + "*")
                 mult = str2array(mult)
-                for dt in dtsets:
+                for dt in datasets:
                     dt[vname] = start.copy()
                     start *= mult
 
@@ -419,21 +426,21 @@ class AbinitInputParser(object):
 
 	# 2) Keys in datasets should be valid Abinit input variables.
         wrong = []
-        for i, dt in enumerate(dtsets):
+        for i, dt in enumerate(datasets):
             wlist = [k for k in dt if not is_abivar(k)]
             if wlist:
                 wrong.extend(("dataset %d" % i, wlist))
         if wrong:
-            raise ValueError("Found wrong variables:\n%s" % pformat(wrong, indent=4))
+            raise ValueError("Found variables that are not registered in the abipy database:\n%s" % pformat(wrong, indent=4))
 
 	# 3) We don't support spg builder: dataset.structure will fail or, even worse,
         #    spglib will segfault so it's better to raise here!
-        for dt in dtsets:
+        for dt in datasets:
             if "spgroup" in dt or "nobj" in dt:
                 raise NotImplementedError(
                     "Abinit spgroup builder is not supported. Structure must be given explicitly!")
 
-        return dtsets
+        return datasets
 
     @staticmethod
     def eval_abinit_operators(tokens):

@@ -1,10 +1,14 @@
 """Tests for structure module"""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
+import numpy as np
+
 from pymatgen.core.units import bohr_to_ang
 from abipy.core.structure import *
 from abipy.core.testing import *
 from abipy.abio.abivars import AbinitInputFile, AbinitInputParser
+
+#AbinitInputFile.verbose = 1
 
 
 class TestAbinitInputParser(AbipyTest):
@@ -40,18 +44,18 @@ class TestAbinitInputFile(AbipyTest):
         assert inp.structure == si1_structure
 
         # Same structure but with * syntax.
-        s = "acell 3*1 natom 1 ntypat 1 typat 1 znucl 14 xred 0 0 0"
+        s = "acell 3*1 natom 1 ntypat 1 typat 1 znucl 14 xred 3*0e0"
         inp = AbinitInputFile.from_string(s)
         assert inp.structure == si1_structure
 
         # xcart instead of xred and more variables using * syntax.
-        s = "acell 1 2*1 natom 1*1 ntypat 1*1 typat 1*1 znucl *14 xcart 0 0 0"
+        s = "acell 1 2*1 natom 1*1 ntypat 1*1 typat 1*1 znucl *14 xcart 0d0 0d0 0d0"
         inp = AbinitInputFile.from_string(s)
         assert inp.structure == si1_structure
 
         # acell and rprimd with unit.
-        s = ("acell 1 2*1 Bohr rprim 1 0 0 0 1 0 0 0 1 Bohr natom 1*1 "
-             "ntypat 1*1 typat *1 znucl 1*14 xangst 0 0 0")
+        s = ("acell 1 2*1 Bohr rprim 1 0 0 0 1 0 0 0 1 Bohr natom 1 "
+             "ntypat 1 typat *1 znucl 1*14 xangst 0 0 0")
         inp = AbinitInputFile.from_string(s)
         assert inp.structure == si1_structure
 
@@ -69,7 +73,7 @@ class TestAbinitInputFile(AbipyTest):
         """
         inp = AbinitInputFile.from_string(s)
         assert inp.ndtset == 2
-        s0, s1 = inp.dtsets[0].structure, inp.dtsets[1].structure
+        s0, s1 = inp.datasets[0].structure, inp.datasets[1].structure
         assert s0 != s1
         assert s1.volume == 8 * s0.volume
         print(inp)
@@ -83,8 +87,8 @@ class TestAbinitInputFile(AbipyTest):
           xcart -0.7 0.0 0.0 0.7 0.0 0.0
         """
         inp = AbinitInputFile.from_string(s)
-        assert s0 == inp.dtsets[0].structure
-        assert s1 == inp.dtsets[1].structure
+        assert s0 == inp.datasets[0].structure
+        assert s1 == inp.datasets[1].structure
         print(inp)
 
         # same input in terms of an arithmetic series in acell
@@ -96,8 +100,8 @@ class TestAbinitInputFile(AbipyTest):
           xcart -0.7 0.0 0.0 0.7 0.0 0.0
         """
         inp = AbinitInputFile.from_string(s)
-        assert s0 == inp.dtsets[0].structure
-        assert s1 == inp.dtsets[1].structure
+        assert s0 == inp.datasets[0].structure
+        assert s1 == inp.datasets[1].structure
         print(inp)
 
     def test_input_with_serie(self):
@@ -111,8 +115,8 @@ class TestAbinitInputFile(AbipyTest):
         """
         inp = AbinitInputFile.from_string(s)
         assert inp.ndtset == 3
-        self.assertArrayEqual([dt["ecut"] for dt in inp.dtsets], [10, 15, 20])
-        self.assertArrayEqual([dt["pawecutdg"] for dt in inp.dtsets], [2, 6, 18])
+        self.assertArrayEqual([dt["ecut"] for dt in inp.datasets], [10, 15, 20])
+        self.assertArrayEqual([dt["pawecutdg"] for dt in inp.datasets], [2, 6, 18])
         print(inp)
 
         # Test arithmetic series with xcart.
@@ -126,7 +130,72 @@ class TestAbinitInputFile(AbipyTest):
         inp = AbinitInputFile.from_string(s)
         assert inp.ndtset == 2 and inp.structure is None
 
-        s0, s1 = inp.dtsets[0].structure, inp.dtsets[1].structure
+        s0, s1 = inp.datasets[0].structure, inp.datasets[1].structure
         self.assert_almost_equal(s0.cart_coords.ravel() / bohr_to_ang, [-0.7, 0, 0, 0.7, 0, 0])
         self.assert_almost_equal(s1.cart_coords.ravel() / bohr_to_ang, [-0.8, 0, 0, 0.8, 0, 0])
+        print(inp)
+
+    def test_tricky_inputs(self):
+        """Testing tricky inputs"""
+        s = """\
+# define kpt mesh
+kptrlatt 2 2 -2
+        -2 2 -2
+        -2 2  2
+
+#definition of the elementary cell
+natom 2
+ntypat 2
+znucl 31 1*33
+typat 1*1 2
+
+acell 3*5.6533 angstrom # expt value
+
+rprim 0   1/2 1/2
+      1/2 0   1/2
+      1/2 1/2 0
+
+include "foo"
+xred 3*0 3*1/4
+"""
+        inp = AbinitInputFile.from_string(s)
+        assert inp.ndtset == 1 and inp.structure is not None and len(inp.structure) == 2
+        self.assertArrayEqual(inp.structure[0].frac_coords, [0, 0, 0])
+        self.assertArrayEqual(inp.structure[0].specie.symbol, "Ga")
+        self.assertArrayEqual(inp.structure[1].frac_coords, [1/4, 1/4, 1/4])
+        self.assertArrayEqual(inp.structure[1].specie.symbol, "As")
+        mat = 5.6533 * np.array([0, 1/2, 1/2, 1/2, 0, 1/2, 1/2, 1/2, 0])
+        mat.shape = (3, 3)
+        self.assertArrayEqual(inp.structure[1].lattice.matrix, mat)
+
+        # tutorial/input/tbase2_1
+        # 2 datasets with different natom (should use typat[:1] in 2nd dataset)
+        s = """\
+ndtset 2
+
+#Definition of the unit cell and ecut,
+#for which one will have to make a convergence study
+acell 10 10 10
+ecut 10
+
+   natom1  2             # There are two atoms
+   xcart1  -0.7  0.0 0.0 # The starting values of the
+            0.7  0.0 0.0 # atomic coordinates
+
+#Second dataset : get the total energy of the isolated atom
+   natom2  1             # There is one atom
+   xcart2  0.0 0.0 0.0   # The atom is located at the origin
+
+#Definition of the atom types
+ntypat 1          # There is only one type of atom
+znucl 1           # The keyword "znucl" refers to the atomic number of the
+
+#Definition of the atoms
+typat 1 1         # For the first dataset, both numbers will be read,
+                  # while for the second dataset, only one number will be read
+"""
+        inp = AbinitInputFile.from_string(s)
+        assert inp.ndtset == 2 and inp.structure is None
+        assert len(inp.datasets[0].structure) == 2
+        assert len(inp.datasets[1].structure) == 1
         print(inp)
