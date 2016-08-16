@@ -154,14 +154,16 @@ class Dataset(dict, Has_Structure):
         # Get lattice.
         kwargs = {}
         if "angdeg" in self:
-            assert "rprim" not in self
-            raise NotImplementedError("angdeg")
-            #kwargs["angdeg"] =
+            if "rprim" in self:
+                raise ValueError("rprim and angdeg cannot be used together!")
+            angdeg = str2array(self["angdeg"])
+            angdeg.shape = (3)
+            kwargs["angdeg"] = angdeg
         else:
             # Handle structure specified with rprim.
             kwargs["rprim"] = str2array_bohr(self.get("rprim", "1.0 0 0 0 1 0 0 0 1"))
 
-        # Default value for acell
+        # Default value for acell.
         acell = str2array_bohr(self.get("acell", "1.0 1.0 1.0"))
 
         # Get important dimensions.
@@ -200,13 +202,13 @@ class Dataset(dict, Has_Structure):
 
 	try:
 	    return Structure.from_abivars(acell=acell, znucl=znucl, typat=typat, **kwargs)
-	except:
+	except Exception as exc:
 	    print("Wrong inputs passed to Structure.from_abivars:")
 	    print("  acell", acell)
 	    print("  znucl", znucl)
 	    print("  typat", typat)
 	    print("  kwargs", kwargs)
-	    raise
+	    raise exc
 
 
 class AbinitInputFile(Has_Structure):
@@ -358,7 +360,7 @@ class AbinitInputParser(object):
             else:
                 dvars[varname] = " ".join(tokens[pos+1: varpos[i+1]])
 
-        #print(dvars)
+        print(dvars)
         err_lines = []
         for k, v in dvars.items():
             if not v:
@@ -389,7 +391,7 @@ class AbinitInputParser(object):
             if any(c in k for c in ("?", ":", "+", "*")): continue
             varname, idt = self.varname_dtindex(k)
             dvars.pop(k)
-
+            #if varname == "angdeg": raise ValueError("got angdeg")
             if idt > ndtset:
                 if self.verbose: print("Ignoring key: %s because ndtset: %d" % (k, ndtset))
                 continue

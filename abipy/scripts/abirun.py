@@ -1056,8 +1056,4 @@ Specify the files to open. Possible choices:
     return retcode
 
 if __name__ == "__main__":
-    #import psutil
-    #p = psutil.Process(os.getpid())
-    retcode = main()
-    #print("open_files", p.open_files())
-    sys.exit(retcode)
+    sys.exit(main())
