@@ -23,5 +23,5 @@ for width in widths:
    label="$\sigma = %s$ [eV]" % width
    plotter.add_edos(label, edos)
 
-plotter.plot()
+plotter.combiplot()
 #plotter.animate()

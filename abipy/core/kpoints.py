@@ -6,7 +6,6 @@ import collections
 import json
 import numpy as np
 
-
 from monty.json import MSONable, MontyEncoder
 from monty.collections import AttrDict
 from monty.functools import lazy_property
@@ -438,22 +437,13 @@ class KpointList(collections.Sequence):
         Makes Kpoints obey the general json interface used in pymatgen for easier serialization.
         """
         if self.weights is not None: weights = self.weights.tolist()
-        d = dict(
+        return dict(
             reciprocal_lattice=self.reciprocal_lattice.as_dict(),
             frac_coords=self.frac_coords.tolist(),
             weights=weights,
             names=[k.name for k in self],
             ksampling=self.ksampling,
         )
-        #for v in d.values():
-        #    if isinstance(v, (list, tuple)):
-        #         for i in v: print(type(i))
-        #    elif isinstance(v, (dict,)):
-        #         for i, j in v.items(): print(type(i), type(j))
-        #    else:
-        #        print(type(v))
-
-        return d
 
     def __init__(self, reciprocal_lattice, frac_coords, weights=None, names=None, ksampling=None):
         """
@@ -826,7 +816,6 @@ class IrredZone(KpointList):
     #        Inside the block, points are ordered following the C convention.
     #    """
     #    for shift in self.shifts:
-
     #        for i in range(mpdivs[0]):
     #            x = (i + shift[0]) / mpdivs[0]
     #            for j in range(mpdivs[1]):
@@ -922,21 +911,23 @@ class KpointsReaderMixin(object):
         # where info on the sampling is missing. I will regret it but at present
         # is the only solution I found (changes in the ETSF-IO part of Abinit are needed)
         if ksampling.is_homogeneous or abs(sum(weights) - 1.0) < 1.e-6:
+        #if np.any(ksampling.kptrlatt_orig != 0) or abs(sum(weights) - 1.0) < 1.e-6:
             # we have a homogeneous sampling of the BZ.
             return IrredZone(structure.reciprocal_lattice, frac_coords, weights=weights, ksampling=ksampling)
 
         elif ksampling.is_path:
             # we have a path in the BZ.
-            return Kpath(structure.reciprocal_lattice, frac_coords)
+            return Kpath(structure.reciprocal_lattice, frac_coords, ksampling=ksampling)
 
-        else:
-            raise ValueError("Only homogeneous or path samplings are supported!")
+        raise ValueError("Only homogeneous or path samplings are supported!")
 
     def read_ksampling_info(self):
         return KSamplingInfo(
             shifts=self.read_kshifts(),
             mpdivs=self.read_kmpdivs(),
             kptrlatt=self.read_kptrlatt(),
+            #kptrlatt_orig=self.read_value("kptrlatt_orig"),
+            #shiftk_orig=self.read_value("shiftk_orig"),
             kptopt=self.read_kptopt(),
         )
 

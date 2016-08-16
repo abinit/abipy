@@ -40,12 +40,11 @@ qp_dos = qp_mpbands.get_edos()
 plotter = ElectronBandsPlotter()
 
 plotter.add_ebands("LDA", ks_bands, dos=ks_dos)
-
 plotter.add_ebands("LDA+scissors(e)", qp_bands, dos=qp_dos)
 
 # By default, the two band energies are shifted wrt to *their* fermi level.
 # Use e=0 if you don't want to shift the eigenvalus
 # so that it's possible to visualize the QP corrections.
-plotter.plot(title="Silicon band structure")
+plotter.combiplot(title="Silicon band structure")
 
 plotter.gridplot(title="Silicon band structure")
