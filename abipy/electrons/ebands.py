@@ -401,7 +401,6 @@ class ElectronBands(object):
         self.nelect = float(nelect)
         self.fermie = float(fermie)
 
-        # Use the fermi level as zero of energies
         if markers is not None:
             for key, xys in markers.items():
                 self.set_marker(key, xys)
@@ -1697,21 +1696,27 @@ class ElectronBands(object):
 
     def derivatives(self, spin, band, order=1, acc=4, asmarker=None):
         """
-        Compute the derivative of the eigenvalues along the path.
+        Compute the derivative of the eigenvalues wrt to k.
+
+        Args:
+            spin
+            band:
+            order:
+            acc:
+            asmarker:
+
+        Returns:
         """
         if self.has_bzpath:
             # Extract the branch.
-            branch = self.eigens[spin,:,band]
-
+            branch = self.eigens[spin, :, band]
             # Simulate free-electron bands. This will produce all(effective masses == 1)
-            #branch = [0.5 * Ha_eV * (k.norm * Bohr_Ang)**2 for k in self.kpoints]
+            #branch = 0.5 * units.Ha_to_eV * np.array([(k.norm * units.bohr_to_ang)**2 for k in self.kpoints])
 
             # Compute derivatives by finite differences.
             ders_onlines = self.kpoints.finite_diff(branch, order=order, acc=acc)
 
-            if asmarker is None:
-                return ders_onlines
-            else:
+            if asmarker is not None:
                 x, y, s = [], [], []
                 for i, line in enumerate(self.kpoints.lines):
                     #print(line)
@@ -1719,17 +1724,82 @@ class ElectronBands(object):
                     y.extend(branch[line])
                     s.extend(ders_onlines[i])
                     assert len(x) == len(y) == len(s)
+                self.set_marker(asmarker, (x, y, s))
 
-                self.set_marker(asmarker, (x,y,s))
-                return x, y, s
+            return ders_onlines
 
         else:
             raise ValueError("Derivatives on homogeneous k-meshes are not supported yet")
 
     def effective_masses(self, spin, band, acc=4):
-        """Compute the effective masses."""
-        ders2 = self.derivatives(spin, band, order=2, acc=acc) * units.eV_to_Ha / units.bohr_to_ang**2
-        return 1.0 / ders2
+        """
+        Compute the effective masses for the given `spin` and `band` index.
+        Use finite difference with accuracy `acc`.
+
+        Returns:
+            numpy array of size nkpt.
+        """
+        ders2 = self.derivatives(spin, band, order=2, acc=acc) * (units.eV_to_Ha / units.bohr_to_ang**2)
+        return 1. / ders2
+
+    def effmass_line(self, spin, kpoint, band, acc=4):
+        """
+        Compute the effective masses along a line. Requires energies on a k-path.
+
+        Args:
+            spin: Spin index.
+            kpoint: integer or class:`Kpoint` object. Note that if kpoint is not an integer,
+                and the path contains duplicated k-points, the first k-point is selected.
+            band: Band index.
+            acc:
+
+        Returns:
+        """
+        if not self.has_bzpath:
+            raise ValueError("effmass_line requires a k-path.")
+
+        # Find index associate to the k-point
+        ik = self.kindex(kpoint)
+
+        # We have to understand is the k-point is a vertex or not.
+        # If it's a vertex, indeed, we have to compute the left and right derivative
+        # If kpt is inside the line, and left and right derivatives are supposed to be equal
+        for iline, line in enumerate(self.kpoints.lines):
+            if line[-1] >= ik >= line[0]: break
+        else:
+            raise ValueError("Cannot find k-index %s in lines: %s" % (ik, self.kpoints.lines))
+
+        kpos = line.index(ik)
+        isinside = kpos not in (0, len(line)-1)
+        do_right = not isinside and kpos != 0 and iline != len(self.kpoints.lines) - 1
+        if do_right:
+            kpos_right = self.kpath.lines[iline+1].index(ik)
+            assert kpos_right == 0
+
+        from abipy.tools.derivatives import finite_diff
+        vals_on_line, h_left, vers_left = self._eigens_hvers_iline(spin, band, iline)
+        emline = finite_diff(vals_on_line, h_left, order=2, acc=acc) * (units.eV_to_Ha / units.bohr_to_ang**2)
+        em_left = emline[kpos]
+        em_right = emline[kpos]
+        h_right, vers_right = h_left, vers_left
+
+        if do_right:
+            vals_on_line, h_right, vers_right = self._eigens_hvers_iline(iline+1, spin, band)
+            emline = finite_diff(vals_on_line, h_right, order=2, acc=acc) * (units.eV_to_Ha / units.bohr_to_ang**2)
+            em_right = emline[kpos_right]
+
+        #return EffectiveMassAlongLine(spin, self.kpoints[ik], band, acc, self.structure.reciprocal_lattice,
+        #                              inside,
+        #                              h_left, vers_left, em_left, h_right, vers_right, em_right)
+
+    def _eigens_hvers_iline(self, spin, band, iline):
+        line = self.kpoints.lines[iline]
+        vals_on_line = self.eigens[spin, line, band]
+        h = self.kpoints.ds[line[0]]
+        if not np.allclose(h, self.kpoints.ds[line[:-1]]):
+            raise ValueError("For finite difference derivatives, the path must be homogeneous!\n" +
+                             str(self.kpoints.ds[line[:-1]]))
+        return vals_on_line, h, self.kpoints.versors[line[0]]
 
 
 def frame_from_ebands(ebands_objects, index=None, with_spglib=True):

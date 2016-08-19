@@ -187,6 +187,7 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
             cart_stress_tensor=self.cart_stress_tensor,
             pressure=self.pressure,
             number_of_electrons=self.nelect,
+        )
             # FIXME: this call raises
             #>       if kpointcbm.label is not None:
             #E       AttributeError: 'NoneType' object has no attribute 'label'
@@ -202,7 +203,6 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
             #band_gap:
             #optical_gap:
             #efermi:
-        )
 
 
 class EnergyTerms(AttrDict):

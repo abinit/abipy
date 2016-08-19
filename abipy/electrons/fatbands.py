@@ -952,7 +952,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                     for l in range(self.lmax_symbol[symbol]+1):
                         yup = stack[l]
                         ydown = stack[l-1] if l != 0 else zerodos
-                        label ="%s (stacked)" % self.l2tex[l] if (isym, spin) == (0, 0) else None
+                        label ="%s (stacked)" % self.l2tex[l] if (isymb, spin) == (0, 0) else None
                         fill = ax.fill_between if not exchange_xy else ax.fill_betweenx
                         fill(mesh, yup, ydown, alpha=self.alpha, facecolor=self.l2color[l],
                              label=label if with_info else None)

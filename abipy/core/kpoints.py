@@ -6,6 +6,7 @@ import collections
 import json
 import numpy as np
 
+from tabulate import tabulate
 from monty.json import MSONable, MontyEncoder
 from monty.collections import AttrDict
 from monty.functools import lazy_property
@@ -308,13 +309,12 @@ class Kpoint(SlotPickleMixin):
         return np.any(diff < self.ATOL_KDIFF)
 
     def __repr__(self):
-        return "[%.3f, %.3f, %.3f]" % tuple(self.frac_coords)
+        return "[%.5f, %.5f, %.5f]" % tuple(self.frac_coords)
 
     def __str__(self):
-        s = repr(self)
+        s =  "[%.5f, %.5f, %.5f]" % tuple(self.frac_coords)
         if self.name is not None: s += ", name = %s" % self.name
         if self._weight is not None: s += ", weight = %f" % self.weight
-
         return s
 
     # Kpoint algebra.
@@ -421,7 +421,6 @@ class KpointList(collections.Sequence):
 
         raise ValueError("Cannot find subclass associated to name: %s" % name)
 
-
     @classmethod
     def from_dict(cls, d):
         """
@@ -484,7 +483,7 @@ class KpointList(collections.Sequence):
         else:
             raise NotImplementedError("Only netcdf files are supported.")
 
-        new.__class__ == cls
+        new.__class__ = cls
         return new
 
     @property
@@ -634,14 +633,36 @@ class KpointStar(KpointList):
 
 class Kpath(KpointList):
     """
-    This object describes a path in reciprocal space.
+    This object describes a k-path in reciprocal space.
     """
+
+    def __str__(self):
+        lines = []
+        app = lines.append
+        app("K-path contains %s lines. Number of k-points in each line: %s" % (
+            len(self.lines), [len(l) for l in self.lines]))
+        for i, line in enumerate(self.lines):
+            app("line %d: %s" % (i, line))
+        header = "\n".join(lines)
+
+        vids = {line[0] for line in self.lines}
+
+        table = [["Idx", "Frac_coords", "Name", "ds", "Vert",]]
+        for i, kpoint in enumerate(self):
+            table.append([
+                str(i),
+                "%.5f, %.5f, %.5f" % tuple(kpoint.frac_coords),
+                kpoint.name,
+                self.ds[i] if i != len(self) - 1 else None,
+                "*" if i in vids else " ",
+            ])
+        return "\n".join([header, " ", tabulate(table, headers="firstrow")])
 
     @lazy_property
     def ds(self):
         """
-        ndarray of len(self)-1 elements giving the distance between two
-        consecutive k-points, i.e. ds[i] = ||k[i+1] - k[i]||.
+        numpy array of len(self)-1 elements giving the distance between two
+        consecutive k-points, i.e. ds[i] = ||k[i+1] - k[i]|| for i=0,1,...,n-1
         """
         ds = np.zeros(len(self) - 1)
         for i, kpoint in enumerate(self[:-1]):
@@ -650,39 +671,39 @@ class Kpath(KpointList):
 
     @lazy_property
     def versors(self):
-        """Tuple of len(self)-1 elements with the versors connecting k[i] to k[i+1]."""
+        """
+        Tuple of len(self)-1 elements with the versors connecting k[i] to k[i+1].
+        """
         versors = (len(self) - 1) * [None, ]
-        versors[0] = Kpoint.gamma(self.reciprocal_lattice)
-
         for i, kpt in enumerate(self[:-1]):
             versors[i] = (self[i + 1] - kpt).versor()
-
         return tuple(versors)
-
-    @property
-    def num_lines(self):
-        """The number of lines forming the path."""
-        return len(self.lines)
 
     @lazy_property
     def lines(self):
         """
-        tuple with the list of indices of the points belonging to the same line.
+        Nested list containing the indices of the points belonging to the same line.
+        Used for extracting the eigenvalues while looping over the lines.
+
+        Example:
+
+            for line in self.lines:
+                vals_on_line = eigens[spin, line, band]
         """
-        lines = []
-        prev, indices = self.versors[0], [0]
+        prev = self.versors[0]
+        lines = [[0]]
 
         for i, v in enumerate(self.versors[1:]):
             i += 1
             if v != prev:
+                #print("diff", v.frac_coords - prev.frac_coords)
                 prev = v
-                lines.append(indices + [i])
-                indices = [i]
+                lines[-1].append(i)
+                lines.append([i])
             else:
-                indices += [i]
+                lines[-1].append(i)
 
-            lines.append(indices + [len(self) - 1])
-
+        lines[-1].append(len(self)-1)
         return tuple(lines)
 
     def finite_diff(self, values, order=1, acc=4):
@@ -690,24 +711,23 @@ class Kpath(KpointList):
         Compute the derivatives of values by finite differences.
 
         Args:
-            values: array-like object with the values of the path.
+            values: array-like object with shape=(nkpt) containing the values of the path.
             order: Order of the derivative.
             acc: Accuracy: 4 corresponds to a central difference with 5 points.
 
         Returns:
-            ndarray with the derivative.
+            ragged numpy array. The i-th entry is a numpy array with the derivatives
+            on the i-th line.
         """
         values = np.asarray(values)
         assert len(values) == len(self)
 
-        # Loop over the lines of the path, extract the data and
-        # differenciate f(s) where s is the distance along the line.
+        # Loop over the lines of the path, extract the data on the line and
+        # differentiate f(s) where s is the distance between two consecutive points along the line.
         ders_on_lines = []
-
         for line in self.lines:
             vals_on_line = values[line]
             h = self.ds[line[0]]
-
             if not np.allclose(h, self.ds[line[:-1]]):
                 raise ValueError("For finite difference derivatives, the path must be homogeneous!\n" +
                                  str(self.ds[line[:-1]]))
@@ -741,9 +761,8 @@ class IrredZone(KpointList):
         if abs(wsum - 1) > 1.e-6:
             err_msg = "Kpoint weights should sum up to one while sum_weights is %.3f\n" % wsum
             err_msg += "The list of kpoints does not represent a homogeneous sampling of the BZ\n"
-            #err_msg += str(type(self)) + "\n" + str(self)
-            #raise ValueError(err_msg)  # GA : Should not prevent a band structure from being read!
-            #logger.warning(err_msg)
+            print(err_msg)
+            #raise ValueError(err_msg)
 
         # FIXME
         # Quick and dirty hack to allow the reading of the k-points from WFK files
@@ -787,6 +806,12 @@ class IrredZone(KpointList):
         #    grids_1d[i] = np.arange(0, self.mpdivs[i])
         #self.grids_1d = tuple(grids_1d)
 
+    def __str__(self):
+        lines = []
+        app = lines.append
+        app(str(self.ksampling))
+        return "\n".join(lines)
+
     @property
     def shifts(self):
         """`ndarray` with the shifts."""
@@ -806,7 +831,7 @@ class IrredZone(KpointList):
     #def ktab(self):
     #Compute the mapping bz --> ibz
     #from abipy.extensions.klib import map_bz2ibz
-    #return map_bz2ibz(structure=structure, bz_arr=self.bz_arr, ib_arr=self.ibz_arr)
+    #return map_bz2ibz(structure=structure, bz_arr=self.bz_arr, ibz_arr=self.ibz_arr)
 
     #def iter_bz_coords(self):
     #    """
@@ -833,13 +858,11 @@ class IrredZone(KpointList):
     #    #indices =
     #    z0 = 0
     #    plane = np.empty((self.nx, self.ny))
-
     #    kx, ky = range(self.nx), range(self.ny)
     #    for x in kx:
     #        for y in ky:
     #            ibz_idx = self.map_xyz2ibz[x, y, z0]
     #            plane[x, y] = values_ibz[ibz_idx]
-
     #    kx, ky = np.meshgrid(kx, ky)
     #    return kx, ky, plane
 
@@ -910,55 +933,68 @@ class KpointsReaderMixin(object):
         # Quick and dirty hack to allow the reading of the k-points from WFK files
         # where info on the sampling is missing. I will regret it but at present
         # is the only solution I found (changes in the ETSF-IO part of Abinit are needed)
-        if ksampling.is_homogeneous or abs(sum(weights) - 1.0) < 1.e-6:
-        #if np.any(ksampling.kptrlatt_orig != 0) or abs(sum(weights) - 1.0) < 1.e-6:
-            # we have a homogeneous sampling of the BZ.
+        #if ksampling.is_homogeneous or abs(sum(weights) - 1.0) < 1.e-6:
+        if np.any(ksampling.kptrlatt_orig != 0) or abs(sum(weights) - 1.0) < 1.e-6:
+            # We have a homogeneous sampling of the BZ.
             return IrredZone(structure.reciprocal_lattice, frac_coords, weights=weights, ksampling=ksampling)
 
         elif ksampling.is_path:
-            # we have a path in the BZ.
-            return Kpath(structure.reciprocal_lattice, frac_coords, ksampling=ksampling)
+            # We have a path in the BZ.
+            kpath = Kpath(structure.reciprocal_lattice, frac_coords, ksampling=ksampling)
+            for kpoint in kpath:
+                kpoint.set_name(structure.findname_in_hsym_stars(kpoint))
+            return kpath
 
         raise ValueError("Only homogeneous or path samplings are supported!")
 
     def read_ksampling_info(self):
+        # FIXME: in v8.0, the SIGRES files does not have kptopt, kptrlatt_orig and shiftk_orig
+        kptrlatt = self.read_kptrlatt()
+        shifts = self.read_kshifts()
+
         return KSamplingInfo(
-            shifts=self.read_kshifts(),
+            kptopt=int(self.read_value("kptopt", default=0)),
             mpdivs=self.read_kmpdivs(),
-            kptrlatt=self.read_kptrlatt(),
-            #kptrlatt_orig=self.read_value("kptrlatt_orig"),
-            #shiftk_orig=self.read_value("shiftk_orig"),
-            kptopt=self.read_kptopt(),
+            kptrlatt=kptrlatt,
+            shifts=shifts,
+            kptrlatt_orig=self.read_value("kptrlatt_orig", default=kptrlatt),
+            shiftk_orig=self.read_value("shiftk_orig", default=shifts),
         )
 
     def read_kfrac_coords(self):
         """Fractional coordinates of the k-points"""
         return self.read_value("reduced_coordinates_of_kpoints")
 
-    @returns_None_onfail
+    #@returns_None_onfail
     def read_kweights(self):
         """Returns the weight of the k-points. None if not found."""
         return self.read_value("kpoint_weights")
 
-    @returns_None_onfail
+    #@returns_None_onfail
     def read_kshifts(self):
         """Returns the shifts of the k-mesh in reduced coordinates. None if not found."""
-        return self.read_value("kpoint_grid_shift")
+        try:
+            return self.read_value("shiftk")
+        except self.Error:
+            return self.read_value("kpoint_grid_shift")
 
-    @returns_None_onfail
+    #@returns_None_onfail
     def read_kmpdivs(self):
         """Returns the Monkhorst-Pack divisions defining the mesh. None if not found."""
         return self.read_value("monkhorst_pack_folding")
 
-    @returns_None_onfail
+    #@returns_None_onfail
     def read_kptrlatt(self):
         """Returns ABINIT variable kptrlatt. None if not found."""
-        return self.read_value("kpoint_grid_vectors")
+        try:
+            return self.read_value("kptrlatt")
+        except self.Error:
+            return self.read_value("kpoint_grid_vectors")
 
-    @returns_None_onfail
-    def read_kptopt(self):
-        """Returns the ABINIT variable kptopt. None if not found."""
-        return int(self.read_value("kptopt"))
+    #@returns_None_onfail
+    #def read_kptopt(self):
+    #    """Returns the ABINIT variable kptopt. None if not found."""
+    #    return int(self.read_value("kptopt"))
 
 
 class KpointsReader(ETSF_Reader, KpointsReaderMixin):
