@@ -372,7 +372,7 @@ class GsrRobot(Robot, NotebookWriter):
 
             # Add info on structure.
             if kwargs.get("with_geo", True):
-                d.update(gsr.structure.get_geodict())
+                d.update(gsr.structure.get_dict4frame(with_spglib=True))
 
             # Execute funcs.
             d.update(self._exec_funcs(kwargs.get("funcs", []), gsr))
@@ -472,7 +472,7 @@ class SigresRobot(Robot):
 
             # Add info on structure.
             if kwargs.get("with_geo", False):
-                d.update(sigr.structure.get_geodict())
+                d.update(sigr.structure.get_dict4frame(with_spglib=True))
 
             # Execute funcs.
             d.update(self._exec_funcs(kwargs.get("funcs", []), sigr))
@@ -525,7 +525,7 @@ class MdfRobot(Robot):
 
             # Add info on structure.
             if kwargs.get("with_geo", False):
-                d.update(mdf.structure.get_geodict())
+                d.update(mdf.structure.get_dict4frame(with_spglib=True))
 
             # Execute funcs.
             d.update(self._exec_funcs(kwargs.get("funcs", []), mdf))
@@ -612,7 +612,7 @@ class DdbRobot(Robot):
 
             # Add info on structure.
             if kwargs.get("with_geo", True):
-                d.update(phbands.structure.get_geodict())
+                d.update(phbands.structure.get_dict4frame(with_spglib=True))
 
             # Execute funcs.
             d.update(self._exec_funcs(kwargs.get("funcs", []), ddb))
