@@ -127,7 +127,7 @@ class TestKpointList(AbipyTest):
 
         # Changing the weight of the Kpoint object should change the weights of klist.
         for kpoint in klist: kpoint.set_weight(1.0)
-        assert np.all(klist.weights == 1.0))
+        assert np.all(klist.weights == 1.0)
 
         frac_coords = [0, 0, 0, 1/2, 1/3, 1/3]
 
