@@ -643,6 +643,22 @@ class KpointList(collections.Sequence):
         """
         return json.dumps(self.as_dict(), cls=MontyEncoder)
 
+    def plot(self, ax=None, **kwargs):
+        from pymatgen.electronic_structure.plotter import plot_brillouin_zone
+        fold = False
+
+        if self.is_path:
+            labels = {k.name: k.frac_coords for k in self if k.name}
+            frac_coords_lines = [self.frac_coords[line] for line in self.lines]
+            return plot_brillouin_zone(self.reciprocal_lattice, lines=frac_coords_lines, labels=labels,
+                                       ax=ax, fold=fold, **kwargs)
+        else:
+            # Not sure this works, I got points outside of the BZ in a simple with Si and Gamm-centered 8x8x8.
+            # Don't know if it's a bug in matplotlib or plot_brillouin_zone.
+            #print(self.frac_coords)
+            return plot_brillouin_zone(self.reciprocal_lattice, kpoints=self.frac_coords,
+                                       ax=ax, fold=fold, **kwargs)
+
 
 class KpointStar(KpointList):
     """

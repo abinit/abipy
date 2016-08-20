@@ -14,5 +14,8 @@ with abiopen(abidata.ref_file("si_scf_WFK.nc")) as gs_wfk:
 # Compute the DOS with the Gaussian method.
 edos = gs_ebands.get_edos(method="gaussian", step=0.01, width=0.1)
 
-# Plot DOS and IDOS
-edos.plot(title="Total IDOS and DOS of Silicon")
+# Plot electron DOS and IDOS
+edos.plot(title="DOS of Silicon")
+
+# Plot electron DOS and IDOS
+edos.plot_dos_idos(title="DOS and Integrated DOS")

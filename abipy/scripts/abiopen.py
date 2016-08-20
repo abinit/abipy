@@ -20,6 +20,7 @@ def make_and_open_notebook(options):
     Raise:
         RuntimeError if jupyther is not in $PATH
     """
+    import os
     import nbformat
     nbf = nbformat.v4
     nb = nbf.new_notebook()
@@ -37,7 +38,7 @@ from abipy import abilab\
     nbf.new_code_cell("abifile = abilab.abiopen('%s')" % options.filepath)
     ])
 
-    import io, os, tempfile
+    import io, tempfile
     _, nbpath = tempfile.mkstemp(prefix="abinb_", suffix='.ipynb', dir=os.getcwd(), text=True)
 
     with io.open(nbpath, 'wt', encoding="utf8") as f:
@@ -45,7 +46,14 @@ from abipy import abilab\
 
     if which("jupyter") is None:
         raise RuntimeError("Cannot find jupyter in PATH. Install it with `pip install`")
-    return os.system("jupyter notebook %s" % nbpath)
+
+    cmd = "jupyter notebook %s" % nbpath
+    if options.no_daemon:
+        return os.system(cmd)
+    else:
+        import daemon
+        with daemon.DaemonContext():
+            return os.system(cmd)
 
 
 @prof_main
@@ -78,6 +86,8 @@ File extensions supported:
     #                     help='verbose, can be supplied multiple times to increase verbosity')
 
     parser.add_argument('-nb', '--notebook', action='store_true', default=False, help="Open file in jupyter notebook")
+    parser.add_argument('--no-daemon', action='store_true', default=False,
+                         help="Don't start jupyter notebook with daemon process")
     parser.add_argument('-p', '--print', action='store_true', default=False, help="Print python object and return.")
     parser.add_argument("filepath", help="File to open. See table below for the list of supported extensions.")
 
@@ -122,11 +132,9 @@ File extensions supported:
         cls = abilab.abifile_subclass_from_filename(options.filepath)
         if hasattr(cls, "make_and_open_notebook"):
             with abilab.abiopen(options.filepath) as abifile:
-                return abifile.make_and_open_notebook()
+                return abifile.make_and_open_notebook(daemonize=not options.no_daemon)
         else:
-            import daemon
-            with daemon.DaemonContext():
-                return make_and_open_notebook(options)
+            return make_and_open_notebook(options)
 
     return 0
 

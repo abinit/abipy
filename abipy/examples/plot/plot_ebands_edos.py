@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-This example shows how to compute the DOS and how to plot a band structure
-using two GSR files produced by abinit.
+This example shows how to compute the DOS and plot a 
+band structure with DOS using two GSR files.
 """
 from abipy.abilab import abiopen
 import abipy.data as abidata
@@ -20,15 +20,8 @@ with abiopen(abidata.ref_file("si_scf_GSR.nc")) as gs_file:
 # the broadening and the linear mesh step.
 edos = gs_ebands.get_edos()
 
-# Define the mapping reduced_coordinates -> name of the k-point.
-klabels = {
-    (0.5,  0.0,  0.0) : "L",
-    (0.0,  0.0,  0.0) : "$\Gamma$",
-    (0.0,  0.5,  0.5) : "X",
-}
-
 # Plot bands and DOS.
-nscf_ebands.plot_with_edos(edos, klabels=klabels, e0=None)
+nscf_ebands.plot_with_edos(edos, e0=None)
 
 print("nscf_ebands.efermi", nscf_ebands.fermie)
 print("gs_ebands.efermi", gs_ebands.fermie)

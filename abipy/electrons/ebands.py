@@ -1425,50 +1425,6 @@ class ElectronBands(object):
 
         return fig
 
-    @add_fig_kwargs
-    def plot_fatbands(self, klabels=None, e0="fermie", **kwargs):
-        #colormap="jet", max_stripe_width_mev=3.0, qlabels=None, **kwargs):
-        """
-        Plot the electronic fatbands.
-
-        Args:
-            klabels: Dictionary whose keys are tuple with the reduced coordinates of the k-points.
-                The values are the labels. e.g. ~klabels = { (0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L" }`.
-            e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
-            band_range: Tuple specifying the minimum and maximum band to plot (default: all bands are plotted)
-            width: String defining the width to plot. accepts the syntax widthname:fact where
-                fact is a float used to scale the stripe size.
-
-        Returns:
-            `matplotlib` figure
-        """
-        # Build grid of plots.
-        num_plots, ncols, nrows = len(self.widths), 1, 1
-        if num_plots > 1:
-            ncols = 2
-            nrows = (num_plots//ncols) + (num_plots % ncols)
-
-        import matplotlib.pyplot as plt
-        fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, squeeze=False)
-        ax_list = ax_list.ravel()
-        # don't show the last ax if numeb is odd.
-        if num_plots % ncols != 0: ax_list[-1].axis("off")
-
-        e0 = self.get_e0(e0)
-        for ax, key in zip(ax_list, self.widths):
-            # Decorate the axis
-            self.decorate_ax(ax, klabels=klabels, title=key)
-
-            # Plot the energies.
-            self.plot_ax(ax, e0)
-            # Add width around each band.
-            self.plot_width_ax(ax, key, e0)
-
-        return fig
-
     def decorate_ax(self, ax, **kwargs):
         title = kwargs.pop("title", None)
         if title is not None: ax.set_title(title)

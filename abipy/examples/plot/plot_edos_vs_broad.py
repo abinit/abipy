@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-This example shows how to compute and plot several
-gaussian DOS by varying the broadening parameters.
+This example shows how to compute and plot multiple
+electron DOSes obtained with different values for the gaussian broadening.
 """
 import abipy.data as abidata
 from abipy.abilab import abiopen, ElectronDosPlotter
@@ -19,8 +19,9 @@ step = 0.1
 plotter = ElectronDosPlotter()
 
 for width in widths:
+    # Compute DOS and add it to the plotter.
    edos = gs_bands.get_edos(method="gaussian", step=step, width=width)
-   label="$\sigma = %s$ [eV]" % width
+   label = "$\sigma = %s$ [eV]" % width
    plotter.add_edos(label, edos)
 
 plotter.combiplot()

@@ -634,21 +634,24 @@ class Structure(pymatgen.Structure):
         ])
 
     @add_fig_kwargs
-    def show_bz(self, ax=None, **kwargs):
+    def show_bz(self, ax=None, pmg_path=True, **kwargs):
         """
         Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            pmg_path: True if the default path used in pymatgen should be show.
 
         Returns: `matplotlib` figure.
         """
         from pymatgen.electronic_structure.plotter import plot_brillouin_zone, plot_brillouin_zone_from_kpath
         labels = self.hsym_kpath.kpath["kpoints"]
-        lines = None
         pprint(labels)
-        #return plot_brillouin_zone(self.reciprocal_lattice, ax=ax, lines=lines, labels=labels, show=False, **kwargs)
-        return plot_brillouin_zone_from_kpath(self.hsym_kpoints)
+        if pmg_path:
+            return plot_brillouin_zone_from_kpath(self.hsym_kpath, ax=ax, show=False, **kwargs)
+        else:
+            return plot_brillouin_zone(self.reciprocal_lattice, ax=ax, labels=labels, show=False, **kwargs)
+
 
     def export(self, filename, visu=None):
         """
