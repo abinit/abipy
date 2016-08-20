@@ -57,6 +57,9 @@ class TestFunction1D(AbipyTest):
         self.assert_almost_equal((1-cosf).integral()[-1], 2*np.pi)
         self.assert_almost_equal(sinf.l1_norm, 4., decimal=4)
 
+        one = Function1D.from_constant(cosf.mesh, 1.0)
+        assert one ==  sinf**2 + cosf**2
+
         def primitive(x):
             return 0.5 * x - 0.25 * np.sin(2*x)
 
@@ -87,6 +90,6 @@ class TestFunction1D(AbipyTest):
         self.assert_almost_equal(same_sinf.mesh, sinf.mesh)
 
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     import unittest
     unittest.main()

@@ -29,6 +29,7 @@ from abipy.core.mixins import AbinitLogFile, AbinitOutputFile, OutNcFile
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
 from abipy.iotools import Visualizer
 from abipy.iotools.cube import CubeFile
+from abipy.abio.timer import AbinitTimerParser
 from abipy.abio.robots import GsrRobot, SigresRobot, MdfRobot, DdbRobot, abirobot
 from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
 from abipy.abio.abivars import AbinitInputFile
@@ -40,6 +41,7 @@ from abipy.electrons.gw import SigresFile, SigresPlotter
 from abipy.electrons.bse import MdfFile
 from abipy.electrons.scissors import ScissorsBuilder
 from abipy.electrons.scr import ScrFile
+from abipy.electrons.fatbands import FatBandsFile
 from abipy.dfpt.phonons import (PhbstFile, PhononBands, PhdosFile, PhdosReader,
                                 phbands_gridplot)
 from abipy.dfpt.ddb import DdbFile
@@ -91,6 +93,7 @@ abiext2ncfile = collections.OrderedDict([
     ("SCR.nc", ScrFile),
     ("SIGRES.nc", SigresFile),
     ("MDF.nc", MdfFile),
+    ("FATBANDS.nc", FatBandsFile),
 ])
 
 
@@ -135,6 +138,13 @@ def abiopen(filepath):
     """
     if os.path.basename(filepath) == "__AbinitFlow__.pickle":
         return Flow.pickle_load(filepath)
+
+    # Handle old output files produced by Abinit.
+    import re
+    outnum = re.compile(".+\.out[\d]+")
+    abonum = re.compile(".+\.abo[\d]+")
+    if outnum.match(filepath) or abonum.match(filepath):
+        return AbinitOutputFile.from_file(filepath)
 
     cls = abifile_subclass_from_filename(filepath)
     return cls.from_file(filepath)

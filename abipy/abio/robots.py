@@ -372,7 +372,7 @@ class GsrRobot(Robot, NotebookWriter):
 
             # Add info on structure.
             if kwargs.get("with_geo", True):
-                d.update(gsr.structure.get_geodict())
+                d.update(gsr.structure.get_dict4frame(with_spglib=True))
 
             # Execute funcs.
             d.update(self._exec_funcs(kwargs.get("funcs", []), gsr))
@@ -416,12 +416,9 @@ class GsrRobot(Robot, NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file is created.
-        Return path to the notebook.
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
         """
-        import io, tempfile
-        if nbpath is None:
-            _, nbpath = tempfile.mkstemp(suffix='.ipynb', text=True)
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
         args = [(l, f.filepath) for l, f in self.items()]
@@ -433,9 +430,7 @@ class GsrRobot(Robot, NotebookWriter):
             nbv.new_code_cell("fig = plotter.plot()"),
         ])
 
-        with io.open(nbpath, 'wt', encoding="utf8") as fh:
-            nbformat.write(nb, fh)
-        return nbpath
+        return self._write_nb_nbpath(nb, nbpath)
 
 
 class SigresRobot(Robot):
@@ -477,7 +472,7 @@ class SigresRobot(Robot):
 
             # Add info on structure.
             if kwargs.get("with_geo", False):
-                d.update(sigr.structure.get_geodict())
+                d.update(sigr.structure.get_dict4frame(with_spglib=True))
 
             # Execute funcs.
             d.update(self._exec_funcs(kwargs.get("funcs", []), sigr))
@@ -530,7 +525,7 @@ class MdfRobot(Robot):
 
             # Add info on structure.
             if kwargs.get("with_geo", False):
-                d.update(mdf.structure.get_geodict())
+                d.update(mdf.structure.get_dict4frame(with_spglib=True))
 
             # Execute funcs.
             d.update(self._exec_funcs(kwargs.get("funcs", []), mdf))
@@ -617,7 +612,7 @@ class DdbRobot(Robot):
 
             # Add info on structure.
             if kwargs.get("with_geo", True):
-                d.update(phbands.structure.get_geodict())
+                d.update(phbands.structure.get_dict4frame(with_spglib=True))
 
             # Execute funcs.
             d.update(self._exec_funcs(kwargs.get("funcs", []), ddb))

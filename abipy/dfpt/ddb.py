@@ -61,6 +61,11 @@ class DdbFile(TextFile, Has_Structure):
     Error = DdbError
     AnaddbError = AnaddbError
 
+    @classmethod
+    def from_file(cls, filepath):
+        """Needed for the `AbinitFile` abstract interface."""
+        return cls(filepath)
+
     def __init__(self, filepath, read_blocks=False):
         super(DdbFile, self).__init__(filepath)
 
@@ -80,7 +85,10 @@ class DdbFile(TextFile, Has_Structure):
             self.blocks = self._read_blocks()
 
         # Guess q-mesh
-        self._guessed_ngqpt = self._guess_ngqpt()
+        #self._guessed_ngqpt = self._guess_ngqpt()
+
+    def close(self):
+        """Needed for the `AbinitFile` abstract interface."""
 
     def __str__(self):
         """String representation."""
@@ -259,7 +267,7 @@ class DdbFile(TextFile, Has_Structure):
         else:
             return self.qpoints.index(qpoint)
 
-    @property
+    @lazy_property
     def guessed_ngqpt(self):
         """
         Guess for the q-mesh divisions (ngqpt) inferred from the list of
@@ -270,7 +278,7 @@ class DdbFile(TextFile, Has_Structure):
             The mesh may not be correct if the DDB file contains points belonging
             to different meshes and/or the Q-mesh is shifted.
         """
-        return self._guessed_ngqpt
+        return self._guess_ngqpt()
 
     def _guess_ngqpt(self):
         """
@@ -573,8 +581,8 @@ class DdbFile(TextFile, Has_Structure):
     #    if not report.run_completed:
     #        raise self.AnaddbError(task=task, report=report)
 
-    def anaget_ifc(self, ifcout=None, asr = 2, chneut=1, dipdip = 1, ngqpt = None, workdir = None, manager = None,
-                   verbose=0, anaddb_kwargs = None):
+    def anaget_ifc(self, ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None, workdir=None, manager=None,
+                   verbose=0, anaddb_kwargs=None):
         """
         Execute anaddb to compute the phonon band structure and the phonon DOS
 
@@ -590,7 +598,6 @@ class DdbFile(TextFile, Has_Structure):
         Returns:
             :class:`InteratomicForceConstants` with the calculated ifc.
         """
-
         if ngqpt is None: ngqpt = self.guessed_ngqpt
 
         inp = AnaddbInput.ifc(self.structure, ngqpt=ngqpt, ifcout=ifcout, q1shft=(0, 0, 0), asr=asr, chneut=chneut,

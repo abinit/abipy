@@ -5,6 +5,7 @@ import sys
 import functools
 import numpy as np
 import itertools
+import pickle
 import os
 
 from collections import OrderedDict
@@ -134,6 +135,10 @@ class PhononBands(object):
             return obj
         elif is_string(obj):
             # path?
+            if obj.endswith(".pickle"):
+                with open(obj, "rb") as fh:
+                    return cls.as_phbands(pickle.load(fh))
+
             from abipy.abilab import abiopen
             with abiopen(obj) as abifile:
                 return abifile.phbands
@@ -611,7 +616,6 @@ class PhononBands(object):
         if title is not None: ax.set_title(title)
 
         ax.grid(True)
-        #ax.set_xlabel('q-point')
         if units in ['eV', 'ev', 'electronvolt']:
             ax.set_ylabel('Energy [eV]')
         elif units in ['Ha', 'ha', 'Hartree']:
@@ -621,11 +625,8 @@ class PhononBands(object):
         else:
             raise ValueError('Value for units {} unknown'.format(units))
 
-        ax.legend(loc="best")
-
         # Set ticks and labels.
         ticks, labels = self._make_ticks_and_labels(kwargs.pop("qlabels", None))
-
         if ticks:
             ax.set_xticks(ticks, minor=False)
             ax.set_xticklabels(labels, fontdict=None, minor=False)
@@ -1108,6 +1109,10 @@ class PhononDos(Function1D):
             return obj
         elif is_string(obj):
             # path?
+            if obj.endswith(".pickle"):
+                with open(obj, "rb") as fh:
+                    return cls.as_phdos(pickle.load(fh), phdos_kwargs)
+
             from abipy.abilab import abiopen
             with abiopen(obj) as abifile:
                 if hasattr(abifile, "phdos"):

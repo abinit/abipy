@@ -117,17 +117,17 @@ class TestKpointList(AbipyTest):
         self.serialize_with_pickle(klist, protocols=[-1])
         self.assertMSONable(klist, test_if_subclass=False)
 
-        self.assertTrue(klist.sum_weights() == 1)
-        self.assertTrue(len(klist) == 3)
+        assert klist.sum_weights() == 1
+        assert len(klist) == 3
 
         for i, kpoint in enumerate(klist):
-            self.assertTrue(kpoint in klist)
-            self.assertTrue(klist.count(kpoint) == 1)
-            self.assertTrue(klist.find(kpoint) == i)
+            assert kpoint in klist
+            assert klist.count(kpoint) == 1
+            assert klist.find(kpoint) == i
 
         # Changing the weight of the Kpoint object should change the weights of klist.
         for kpoint in klist: kpoint.set_weight(1.0)
-        self.assertTrue(np.all(klist.weights == 1.0))
+        assert np.all(klist.weights == 1.0)
 
         frac_coords = [0, 0, 0, 1/2, 1/3, 1/3]
 
@@ -137,9 +137,9 @@ class TestKpointList(AbipyTest):
         add_klist = klist + other_klist
 
         for k in itertools.chain(klist, other_klist):
-            self.assertTrue(k in add_klist)
+            assert k in add_klist
 
-        self.assertTrue(add_klist.count([0,0,0]) == 2)
+        assert add_klist.count([0,0,0]) == 2
 
         # Remove duplicated k-points.
         add_klist = add_klist.remove_duplicated()
@@ -150,14 +150,13 @@ class TestKpointList(AbipyTest):
 
 class TestKpointsReader(AbipyTest):
 
-    @unittest.skipIf(True, "Temporarily disabled")
     def test_reading(self):
         """Test the reading of Kpoints from netcdf files."""
 
         filenames = [
             "si_scf_GSR.nc",
             "si_nscf_GSR.nc",
-            "si_scf_WFK-etsf.nc",
+            "si_scf_WFK.nc",
         ]
 
         for fname in filenames:
@@ -166,15 +165,30 @@ class TestKpointsReader(AbipyTest):
 
             with KpointsReader(filepath) as r:
                 kpoints = r.read_kpoints()
+                print(kpoints)
 
                 if "_scf" in fname:
                     # expecting a homogeneous sampling.
-                    self.assertTrue(kpoints.is_homogeneous)
-                    self.assertTrue(kpoints.sum_weights() == 1.0)
+                    assert not kpoints.is_path
+                    assert kpoints.is_ibz
+                    assert kpoints.sum_weights() == 1.0
+                    assert kpoints.ksampling.kptopt == 1
+                    mpdivs, shifts = kpoints.mpdivs_shifts
+                    assert np.all(mpdivs == [8, 8, 8])
+                    assert len(shifts) == 1 and np.all(shifts[0] == [0, 0, 0])
 
                 elif "_nscf" in fname:
                     # expecting a path in k-space.
-                    self.assertTrue(kpoints.is_path)
+                    assert kpoints.is_path
+                    assert not kpoints.is_ibz
+                    assert kpoints.ksampling.kptopt == -2
+                    mpdivs, shifts = kpoints.mpdivs_shifts
+                    assert mpdivs is None
+                    assert len(kpoints.lines) == abs(kpoints.ksampling.kptopt)
+
+            # Test pickle and json
+            self.serialize_with_pickle(kpoints)
+            self.assertMSONable(kpoints, test_if_subclass=False)
 
 
 class KmeshTest(AbipyTest):

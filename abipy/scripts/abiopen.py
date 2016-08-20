@@ -8,10 +8,11 @@ import argparse
 import tempfile
 
 from monty.os.path import which
+from monty.functools import prof_main
 from abipy import abilab
 
 
-def make_open_notebook(options):
+def make_and_open_notebook(options):
     """
     Generate an ipython notebook and open it in the browser.
     Return system exit code.
@@ -19,16 +20,17 @@ def make_open_notebook(options):
     Raise:
         RuntimeError if jupyther is not in $PATH
     """
+    import os
     import nbformat
     nbf = nbformat.v4
     nb = nbf.new_notebook()
 
     nb.cells.extend([
-        nbf.new_markdown_cell("# This is an auto-generated notebook for %s" % os.path.relpath(filepath)),
+        nbf.new_markdown_cell("## This is an auto-generated notebook for %s" % os.path.relpath(options.filepath)),
         nbf.new_code_cell("""\
 from __future__ import print_function, division, unicode_literals, absolute_import
 %matplotlib notebook
-#import numpy as np
+import numpy as np
 #import seaborn as sns
 from abipy import abilab\
 """),
@@ -36,18 +38,25 @@ from abipy import abilab\
     nbf.new_code_cell("abifile = abilab.abiopen('%s')" % options.filepath)
     ])
 
-    _, nbpath = tempfile.mkstemp(suffix='.ipynb', text=True)
+    import io, tempfile
+    _, nbpath = tempfile.mkstemp(prefix="abinb_", suffix='.ipynb', dir=os.getcwd(), text=True)
 
     with io.open(nbpath, 'wt', encoding="utf8") as f:
         nbformat.write(nb, f)
 
     if which("jupyter") is None:
         raise RuntimeError("Cannot find jupyter in PATH. Install it with `pip install`")
-    return os.system("jupyter notebook %s" % nbpath)
+
+    cmd = "jupyter notebook %s" % nbpath
+    if options.no_daemon:
+        return os.system(cmd)
+    else:
+        import daemon
+        with daemon.DaemonContext():
+            return os.system(cmd)
 
 
-#from monty.functools import prof_main
-#@prof_main
+@prof_main
 def main():
 
     def str_examples():
@@ -77,6 +86,9 @@ File extensions supported:
     #                     help='verbose, can be supplied multiple times to increase verbosity')
 
     parser.add_argument('-nb', '--notebook', action='store_true', default=False, help="Open file in jupyter notebook")
+    parser.add_argument('--no-daemon', action='store_true', default=False,
+                         help="Don't start jupyter notebook with daemon process")
+    parser.add_argument('-p', '--print', action='store_true', default=False, help="Print python object and return.")
     parser.add_argument("filepath", help="File to open. See table below for the list of supported extensions.")
 
     # Parse the command line.
@@ -100,6 +112,10 @@ File extensions supported:
     if not options.notebook:
         # Start ipython shell with namespace
         abifile = abilab.abiopen(options.filepath)
+        if options.print:
+            print(abifile)
+            return 0
+
         import IPython
         # Use embed because I don't know how to show a header with start_ipython.
         IPython.embed(header="The Abinit file is bound to the `abifile` variable.\nTry `print(abifile)`")
@@ -111,9 +127,14 @@ File extensions supported:
         #                      )
         #
     else:
-        import daemon
-        with daemon.DaemonContext(detach_process=True):
-            return make_open_notebook(options)
+        # Call specialized method if the object is a NotebookWriter
+        # else generate simple notebook by calling `make_and_open_notebook`
+        cls = abilab.abifile_subclass_from_filename(options.filepath)
+        if hasattr(cls, "make_and_open_notebook"):
+            with abilab.abiopen(options.filepath) as abifile:
+                return abifile.make_and_open_notebook(daemonize=not options.no_daemon)
+        else:
+            return make_and_open_notebook(options)
 
     return 0
 

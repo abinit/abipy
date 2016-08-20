@@ -63,6 +63,9 @@ class TestSymmetries(AbipyTest):
             self.assertTrue(spgrp.find(symmop) == idx)
             self.assertTrue(abs(symmop.det) == 1)
 
+        # Test pickle
+        self.serialize_with_pickle(spgrp[0], protocols=None, test_eq=True)
+
         for idx in range(len(spgrp)-1):
             self.assertTrue(spgrp[idx] == spgrp[idx])
             self.assertTrue(spgrp[idx] != spgrp[idx+1])

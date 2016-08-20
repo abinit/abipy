@@ -29,12 +29,12 @@ def test_if_all_scripts_are_tested():
     assert not_tested == set([
         "abibatch.py",
         "mrgddb.py",
-        "cif2spg.py",
         "abiGWprint.py",
         "abiGWstore.py",
         "abiGWoutput.py",
         "abiphonons.py",
-        "abiGWsetup.py",])
+        "abiGWsetup.py",
+    ])
 
 
 class ScriptTest(AbipyTest):
@@ -69,19 +69,7 @@ class TestAbidoc(ScriptTest):
         env.run(self.script, "apropos", "test", self.loglevel, self.verbose)
         env.run(self.script, "find", "paw", self.loglevel, self.verbose)
         env.run(self.script, "list", self.loglevel, self.verbose)
-        env.run(self.script, "list", self.loglevel, self.verbose)
         env.run(self.script, "withdim", "natom", self.loglevel, self.verbose)
-
-
-class TestAbilab(ScriptTest):
-    script = os.path.join(script_dir, "abilab.py")
-
-    def test_abidoc(self):
-        """Testing abilab.py script"""
-        #env = self.get_env()
-        env = TestFileEnvironment()
-        env.run(self.script, "--help", expect_stderr=True)
-        env.run(self.script, "--version", expect_stderr=True)
 
 
 class TestAbiopen(ScriptTest):
@@ -109,11 +97,11 @@ class TestAbistruct(ScriptTest):
     #    #env.run(self.script, self.loglevel, "bz", ncfile)
 
 
-class TestAbidiff(ScriptTest):
-    script = os.path.join(script_dir, "abidiff.py")
+class TestAbicomp(ScriptTest):
+    script = os.path.join(script_dir, "abicomp.py")
 
-    def test_abidiff(self):
-        """Testing abidiff"""
+    def test_abicomp(self):
+        """Testing abicomp"""
         env = self.get_env()
         #env.run(self.script, "gs_scf", qtype, file1, file2, self.loglevel, self.verbose)
 
@@ -162,14 +150,6 @@ class TestAbiq(ScriptTest):
     script = os.path.join(script_dir, "abiq.py")
     def test_abiq(self):
         """Testing abiq.py"""
-        env = self.get_env()
-
-
-class TestAbitime(ScriptTest):
-    script = os.path.join(script_dir, "abitime.py")
-
-    def test_abitime(self):
-        """Testing abitime.py"""
         env = self.get_env()
 
 

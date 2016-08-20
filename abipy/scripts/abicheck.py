@@ -5,10 +5,12 @@ from __future__ import unicode_literals, division, print_function, absolute_impo
 import sys
 import argparse
 
-from monty.termcolor import cprint #, get_terminal_size
+from monty.termcolor import cprint
+from monty.functools import prof_main
 from abipy import abilab
 
 
+@prof_main
 def main():
 
     def str_examples():

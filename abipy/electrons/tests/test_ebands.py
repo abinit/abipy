@@ -1,8 +1,10 @@
 """Tests for electrons.ebands module"""
 from __future__ import print_function, division
 
+import numpy as np
 import abipy.data as data
 
+import pymatgen.core.units as units
 from abipy.core.kpoints import KpointList
 from abipy.electrons.ebands import ElectronsReader, ElectronBands, ElectronDos
 from abipy.core.testing import *
@@ -63,7 +65,7 @@ class ElectronBandsTest(AbipyTest):
         assert ElectronDos.as_edos(gs_bands, {}) == dos
         assert ElectronDos.as_edos(data.ref_file("si_scf_GSR.nc"), {}) == dos
 
-        mu = dos.find_mu(8, atol=1.e-4)
+        mu = dos.find_mu(8)
         imu = dos.tot_idos.find_mesh_index(mu)
         self.assert_almost_equal(dos.tot_idos[imu][1], 8, decimal=2)
 
@@ -101,11 +103,26 @@ class ElectronBandsTest(AbipyTest):
             nscf_bands.get_ejdos(spin, 0, 4)
 
     def test_pymatgen_converter(self):
-        """Test abipy-->pymatgen converter"""
+        """Testing abipy-->pymatgen converter"""
         nscf_bands = ElectronBands.from_file(data.ref_file("si_nscf_GSR.nc"))
         pmg_bands = nscf_bands.to_pymatgen()
 
+    def test_derivatives(self):
+        """Testing computation of effective masses."""
+        ebands = ElectronBands.from_file(data.ref_file("si_nscf_GSR.nc"))
 
-if __name__ == "__main__":
-    import unittest
-    unittest.main()
+        # Hack eigens to simulate free-electron bands. This will produce all(effective masses == 1)
+        new_eigens = np.empty(ebands.shape)
+        branch = 0.5 * units.Ha_to_eV * np.array([(k.norm * units.bohr_to_ang)**2 for k in ebands.kpoints])
+        for spin in ebands.spins:
+            for band in range(ebands.mband):
+                new_eigens[spin, :, band] = branch
+        ebands._eigens = new_eigens
+
+        effm_lines = ebands.effective_masses(spin=0, band=0, acc=2)
+
+        # Flatten structure (.flatten does not work in this case)
+        values = []
+        for arr in effm_lines:
+            values.extend(arr)
+        self.assertArrayAlmostEqual(np.array(values), 1.0)

@@ -17,6 +17,7 @@ from collections import defaultdict
 from socket import gethostname
 from monty import termcolor
 from monty.os.path import which
+from monty.functools import prof_main
 from monty.termcolor import cprint, get_terminal_size
 from monty.string import boxed
 from pymatgen.io.abinit.nodes import Status
@@ -138,9 +139,6 @@ def write_open_notebook(flow, options):
     nb.cells.extend([
         #nbf.new_markdown_cell("This is an auto-generated notebook for %s" % os.path.basename(pseudopath)),
         nbf.new_code_cell("""\
-##%%javascript
-##IPython.OutputArea.auto_scroll_threshold = 9999;
-
 from __future__ import print_function, division, unicode_literals
 from abipy import abilab
 %matplotlib notebook
@@ -176,6 +174,7 @@ import seaborn as sns"""),
     raise RuntimeError("Cannot find neither jupyther nor ipython. Install them with `pip install`")
 
 
+@prof_main
 def main():
 
     def str_examples():
@@ -534,12 +533,12 @@ Specify the files to open. Possible choices:
                 print("QPARAMS for %s" % qtype)
                 show_qparams(qtype)
 
-        sys.exit(0)
+        return 0
 
     if options.command == "doc_scheduler":
         print("Options that can be specified in scheduler.yml:")
         print(abilab.PyFlowScheduler.autodoc())
-        sys.exit(0)
+        return 0
 
     # After this point we start to operate on the flow.
     # 0) Print logo
@@ -1057,44 +1056,4 @@ Specify the files to open. Possible choices:
     return retcode
 
 if __name__ == "__main__":
-    # Replace python open to detect open files.
-    #from abipy.tools import open_hook
-    #open_hook.install()
-    retcode = 0
-    do_prof, do_tracemalloc = 2* [False]
-    try:
-        do_prof = sys.argv[1] == "prof"
-        do_tracemalloc = sys.argv[1] == "tracemalloc"
-        if do_prof or do_tracemalloc: sys.argv.pop(1)
-    except:
-        pass
-
-    if do_prof:
-        import pstats, cProfile
-        cProfile.runctx("main()", globals(), locals(), "Profile.prof")
-        s = pstats.Stats("Profile.prof")
-        s.strip_dirs().sort_stats("time").print_stats()
-
-    elif do_tracemalloc:
-        # Requires py3.4
-        try:
-            import tracemalloc
-        except ImportError:
-            print("Error while trying to import tracemalloc (requires py3.4)")
-            SystemExit(1)
-
-        tracemalloc.start()
-
-        retcode = main()
-
-        snapshot = tracemalloc.take_snapshot()
-        top_stats = snapshot.statistics('lineno')
-
-        print("[Top 10]")
-        for stat in top_stats[:10]:
-            print(stat)
-    else:
-        sys.exit(main())
-
-    #open_hook.print_open_files()
-    sys.exit(retcode)
+    sys.exit(main())

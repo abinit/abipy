@@ -12,7 +12,7 @@ from monty.os.path import which
 from monty.string import is_string
 from monty.functools import lazy_property
 from pymatgen.io.abinit.events import EventsParser
-from pymatgen.io.abinit.abiinspect import GroundStateScfCycle, D2DEScfCycle, Relaxation
+from pymatgen.io.abinit.abiinspect import GroundStateScfCycle, D2DEScfCycle
 from pymatgen.io.abinit.abitimer import AbinitTimerParser
 from pymatgen.io.abinit.netcdf import NetcdfReader, NO_DEFAULT
 
@@ -33,6 +33,12 @@ class _File(object):
     """
     def __init__(self, filepath):
         self._filepath = os.path.abspath(filepath)
+
+        # Save stat values
+        stat = os.stat(filepath)
+        self._last_atime = stat.st_atime
+        self._last_mtime = stat.st_mtime
+        self._last_ctime = stat.st_ctime
 
     def __repr__(self):
         return "<%s, %s>" % (self.__class__.__name__, self.relpath)
@@ -120,15 +126,27 @@ class TextFile(_File):
 class AbinitTextFile(TextFile):
     """Class for the ABINIT main output file and the log file."""
 
-    @lazy_property
+    @property
     def events(self):
-        """List of ABINIT events reported in the file."""
-        return EventsParser().parse(self.filepath)
+        """
+        List of ABINIT events reported in the file.
+        """
+        # Parse the file the first time the property is accessed or when mtime is changed.
+        stat = os.stat(self.filepath)
+        if stat.st_mtime != self._last_mtime or not hasattr(self, "_events"):
+            self._events = EventsParser().parse(self.filepath)
+        return self._events
 
-    @lazy_property
+    @property
     def timer_data(self):
-        """Timer data."""
-        return AbinitTimerParser().parse(self.filepath)
+        """
+        Timer data.
+        """
+        # Parse the file the first time the property is accessed or when mtime is changed.
+        stat = os.stat(self.filepath)
+        if stat.st_mtime != self._last_mtime or not hasattr(self, "_timer_data"):
+            self._timer_data = AbinitTimerParser().parse(self.filepath)
+        return self._timer_data
 
 
 class AbinitLogFile(AbinitTextFile):
@@ -138,12 +156,22 @@ class AbinitLogFile(AbinitTextFile):
 class AbinitOutputFile(AbinitTextFile):
     """Class representing the main output file."""
 
+    #ndtset
+    #offset_dataset
+    #dims_dataset
+    #vars_dataset
+    #pseudos
+
     def next_gs_scf_cycle(self):
-        """Return the next :class:`GroundStateScfCycle` in the file. None if not found."""
+        """
+        Return the next :class:`GroundStateScfCycle` in the file. None if not found.
+        """
         return GroundStateScfCycle.from_stream(self)
 
     def next_d2de_scf_cycle(self):
-        """:class:`GroundStateScfCycle` with information on the GS iterations. None if not found."""
+        """
+        Return :class:`GroundStateScfCycle` with information on the GS iterations. None if not found.
+        """
         return D2DEScfCycle.from_stream(self)
 
     def compare_gs_scf_cycles(self, others, show=True):
@@ -168,8 +196,10 @@ class AbinitOutputFile(AbinitTextFile):
                 other_cycle = other.next_gs_scf_cycle()
                 if other_cycle is None: break
                 last = (i == len(others) - 1)
-                fig = other_cycle.plot(fig=fig, show=show and last)
-                if last: figures.append(fig)
+                fig = other_cycle.plot(axlist=fig.axes, show=show and last)
+                if last:
+                    fig.tight_layout()
+                    figures.append(fig)
 
         self.seek(0)
         for other in others: other.seek(0)
@@ -197,8 +227,10 @@ class AbinitOutputFile(AbinitTextFile):
                 other_cycle = other.next_d2de_scf_cycle()
                 if other_cycle is None: break
                 last = (i == len(others) - 1)
-                fig = other_cycle.plot(fig=fig, show=show and last)
-                if last: figures.append(fig)
+                fig = other_cycle.plot(axlist=fig.axes, show=show and last)
+                if last:
+                    fig.tight_layout()
+                    figures.append(fig)
 
         self.seek(0)
         for other in others: other.seek(0)
@@ -206,7 +238,9 @@ class AbinitOutputFile(AbinitTextFile):
 
 
 class AbinitOutNcFile(NetcdfReader):
-    """Class representing the _OUT.nc file."""
+    """
+    Class representing the _OUT.nc file.
+    """
 
     def get_vars(self, vars, strict=False):
         # TODO: add a check on the variable names ?
@@ -351,14 +385,20 @@ class Has_ElectronBands(object):
         return self.ebands.nelect
 
     @property
+    def nkpt(self):
+        """Number of k-points."""
+        return self.ebands.nkpt
+
+    @property
     def kpoints(self):
         """Iterable with the Kpoints."""
         return self.ebands.kpoints
 
-    @property
-    def nkpts(self):
-        """Number of k-points."""
-        return len(self.kpoints)
+    # TODO: Remove
+    #@property
+    #def nkpts(self):
+    #    """Number of k-points."""
+    #    return len(self.kpoints)
 
     def plot_ebands(self, **kwargs):
         """Plot the electron energy bands. See the :func:`ElectronBands.plot` for the signature."""
@@ -496,8 +536,7 @@ import os
 from IPython.display import display
 #import seaborn as sns
 
-from abipy import abilab
-""")
+from abipy import abilab""")
         ])
 
         return nbformat, nbv, nb
@@ -506,21 +545,34 @@ from abipy import abilab
     def write_notebook(self, nbpath=None):
         """
         Write an ipython notebook to nbpath. If nbpath is None, a temporay file is created.
-        Return path to the notebook.
+        Return path to the notebook. A typical template is given below.
         """
         # Preable.
-        import io, tempfile
-        if nbpath is None:
-            _, nbpath = tempfile.mkstemp(suffix='.ipynb', text=True)
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
+        #####################
         # Put your code here
         nb.cells.extend([
             nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("a = 1"),
         ])
+        #####################
+
+        # Call _write_nb_nbpath
+        return self._write_nb_nbpath(nb, nbpath)
+
+    @staticmethod
+    def _write_nb_nbpath(nb, nbpath):
+        """
+        This method must be called at the end of `write_notebook`.
+        nb is the ipython notebook and nbpath the argument passed to `write_notebook`.
+        """
+        import io, os, tempfile
+        if nbpath is None:
+            _, nbpath = tempfile.mkstemp(prefix="abinb_", suffix='.ipynb', dir=os.getcwd(), text=True)
 
         # Write notebook
+        import nbformat
         with io.open(nbpath, 'wt', encoding="utf8") as fh:
             nbformat.write(nb, fh)
-        return nbpath
+            return nbpath

@@ -170,18 +170,31 @@ class ScalarField(Has_Structure):
         return space
 
     def mean(self, space="r"):
-        """Returns the average of the array elements."""
+        """
+        Returns the average of the array elements.
+        """
         if "r" == self._check_space(space):
             return self.datar.mean(axis=0)
         else:
             return self.datag.mean(axis=0)
 
     def std(self, space="r"):
-        """Returns the standard deviation."""
+        """
+        Returns the standard deviation.
+        """
         if "r" == self._check_space(space):
             return self.datar.std(axis=0)
         else:
             return self.datag.std(axis=0)
+
+    #def spheres_indexarr(self, symbrad=None):
+    #    if not hasattr(self, "_cached_spheres_indexarr"):
+    #        self._cached_spheres_indexarr = collections.deque(5)
+    #    for d, arr in self._cached_spheres_indexarr:
+    #        if d == symbrad: return arr
+    #    indarr = self.calc_ind_arr(symbrad)
+    #    self._cached_spheres_indexarr.append(symbrad, indarr)
+    #    return iarr
 
     #def braket_waves(self, bra_wave, ket_wave):
     #    """

@@ -12,7 +12,6 @@ import subprocess
 import json
 
 from monty.os.path import which
-from monty.json import MontyDecoder
 from pymatgen.util.testing import PymatgenTest
 
 import logging

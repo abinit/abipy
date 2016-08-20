@@ -7,8 +7,8 @@ import abipy.data as abidata
 from abipy.abilab import abiopen
 
 # Extract the bands computed with the SCF cycle on a Monkhorst-Pack mesh.
-wfk_file = abiopen(abidata.ref_file("si_scf_WFK.nc"))
-ebands = wfk_file.ebands
+with abiopen(abidata.ref_file("si_scf_WFK.nc")) as wfk_file:
+    ebands = wfk_file.ebands
 
 # Select the valence and conduction bands to include in the JDOS
 # Here we include valence bands from 0 to 3 and the first conduction band (4).

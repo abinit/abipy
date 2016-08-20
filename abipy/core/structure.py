@@ -7,6 +7,7 @@ import collections
 import pymatgen
 import numpy as np
 
+from pprint import pprint
 from collections import OrderedDict
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
@@ -14,6 +15,7 @@ from monty.string import is_string
 from pymatgen.core.units import ArrayWithUnit
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
+from pymatgen.util.plotting_utils import add_fig_kwargs #, get_ax_fig_plt
 from pymatgen.io.abinit.pseudos import PseudoTable
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from abipy.core.symmetries import SpaceGroup
@@ -103,6 +105,11 @@ class Structure(pymatgen.Structure):
             # Here I assume that the input file contains a single structure.
             return AbinitInputFile.from_file(filepath).structure
 
+        elif filepath.endswith("_DDB"):
+            from abipy.abilab import abiopen
+            with abiopen(filepath) as abifile:
+                return abifile.structure
+
         else:
             # TODO: Spacegroup is missing here.
             new = super(Structure, cls).from_file(filepath, primitive=primitive, sort=sort)
@@ -180,13 +187,10 @@ class Structure(pymatgen.Structure):
             acell: Lengths of the box in *Bohr*
         """
         cart_coords = np.atleast_2d(cart_coords)
-
         molecule = pymatgen.Molecule([p.symbol for p in pseudos], cart_coords)
-
         l = ArrayWithUnit(acell, "bohr").to("ang")
 
         structure = molecule.get_boxed_structure(l[0], l[1], l[2])
-
         return cls(structure)
 
     @classmethod
@@ -371,7 +375,6 @@ class Structure(pymatgen.Structure):
                 if `symprec` is None, so structure refinement is peformed.
             primitive (bool): Whether to convert to a primitive cell.
         """
-
         from pymatgen.transformations.standard_transformations import PrimitiveCellTransformation, SupercellTransformation
 
         structure = self.__class__.from_sites(self)
@@ -422,6 +425,58 @@ class Structure(pymatgen.Structure):
         if space.lower() == "g":
             return self.lattice.reciprocal_lattice.matrix
         raise ValueError("Wrong value for space: %s " % space)
+
+    def spglib_summary(self, verbose=0):
+        """
+        Return string with full information about crystalline structure i.e.
+        space group, point group, wyckoff positions, equivalent sites.
+
+        Args:
+            verbose: Verbosity level.
+        """
+        spgan = SpacegroupAnalyzer(self)
+        spgdata = spgan.get_symmetry_dataset()
+        # Get spacegroup number computed by Abinit if available.
+        abispg_number = None if self.spacegroup is None else self.spacegroup.spgid
+
+        # Print lattice info
+        outs = ["Full Formula ({s})".format(s=self.composition.formula),
+                "Reduced Formula: {}".format(self.composition.reduced_formula)]
+        app = outs.append
+        to_s = lambda x: "%0.6f" % x
+        outs.append("abc   : " + " ".join([to_s(i).rjust(10)
+                                           for i in self.lattice.abc]))
+        outs.append("angles: " + " ".join([to_s(i).rjust(10)
+                                           for i in self.lattice.angles]))
+        app("Space group info (note that magnetic symmetries are not taken into account).")
+        app("Spacegroup: %s (%s), Hall: %s, Abinit spg_number: %s" % (
+             spgan.get_spacegroup_symbol(), spgan.get_spacegroup_number(), spgan.get_hall(), str(abispg_number)))
+        app("Crystal_system: %s, Lattice_type: %s, Point_group: %s" % (
+            spgan.get_crystal_system(), spgan.get_lattice_type(), spgan.get_point_group()))
+        app("")
+
+        wickoffs, equivalent_atoms = spgdata["wyckoffs"], spgdata["equivalent_atoms"]
+        table = [["Idx", "Symbol", "Reduced_Coords", "Wyck", "EqIdx"]]
+        for i, site in enumerate(self):
+            table.append([
+                i,
+                site.specie.symbol,
+                "%.5f %.5f %.5f" % tuple(site.frac_coords),
+                "%s" % wickoffs[i],
+                "%d" % equivalent_atoms[i],
+            ])
+
+        from tabulate import tabulate
+        app(tabulate(table, headers="firstrow"))
+
+        # Print entire dataset.
+        if verbose:
+            from six.moves import StringIO
+            stream = StringIO()
+            pprint(spgdata, stream=stream)
+            app(stream.getvalue())
+
+        return "\n".join(outs)
 
     @property
     def spacegroup(self):
@@ -578,26 +633,25 @@ class Structure(pymatgen.Structure):
             ("spglib_symb", spglib_symbol), ("spglib_num", spglib_number),
         ])
 
-    def show_bz(self, **kwargs):
+    @add_fig_kwargs
+    def show_bz(self, ax=None, pmg_path=True, **kwargs):
         """
         Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
 
-        Returns: `matplotlib` figure.
+        Args:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            pmg_path: True if the default path used in pymatgen should be show.
 
-        ================  ==============================================================
-        kwargs            Meaning
-        ================  ==============================================================
-        show              True to show the figure (Default).
-        savefig           'abc.png' or 'abc.eps'* to save the figure to a file.
-        ================  ==============================================================
+        Returns: `matplotlib` figure.
         """
-        # TODO: pass lines and labels.
-        #print(self.hsym_kpath.name)
-        from pymatgen.electronic_structure.plotter import plot_brillouin_zone
-        return plot_brillouin_zone(self.reciprocal_lattice, **kwargs)
-        #return plot_brillouin_zone(self._bs.lattice, lines=lines, labels=labels)
-        # This method has been removed.
-        #return self.hsym_kpath.get_kpath_plot(**kwargs)
+        from pymatgen.electronic_structure.plotter import plot_brillouin_zone, plot_brillouin_zone_from_kpath
+        labels = self.hsym_kpath.kpath["kpoints"]
+        pprint(labels)
+        if pmg_path:
+            return plot_brillouin_zone_from_kpath(self.hsym_kpath, ax=ax, show=False, **kwargs)
+        else:
+            return plot_brillouin_zone(self.reciprocal_lattice, ax=ax, labels=labels, show=False, **kwargs)
+
 
     def export(self, filename, visu=None):
         """
@@ -1098,7 +1152,7 @@ class Structure(pymatgen.Structure):
             Pandu Wisesa, Kyle A. McGill, and Tim Mueller
             Phys. Rev. B 93, 155109
         """
-        from StringIO import StringIO
+        from six.moves import StringIO
 
         # Prepare PRECALC file.
         precalc_names = set(("INCLUDEGAMMA", "MINDISTANCE", "HEADER", "MINTOTALKPOINTS", "KPPRA", "GAPDISTANCE"))
