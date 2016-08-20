@@ -8,7 +8,6 @@ from abipy.core.kpoints import issamek
 def slow_mesh2ibz(structure, bz, ibz):
     #print("bz",bz)
     #print("ibz",ibz)
-
     bz2ibz = -np.ones(len(bz), dtype=np.int)
 
     for ik_bz, kbz in enumerate(bz):
@@ -27,9 +26,10 @@ def slow_mesh2ibz(structure, bz, ibz):
 
     return bz2ibz
 
+
 def map_mesh2ibz(structure, mpdivs, shifts, ibz):
     """
-    This function computes the mapping between the 
+    This function computes the mapping between the
     points in the full BZ and the points in the IBZ.
 
     Args:
@@ -44,7 +44,7 @@ def map_mesh2ibz(structure, mpdivs, shifts, ibz):
             points in the IBZ.
 
     Returns
-        ndarray array that maps the full mesh onto ibz i.e. 
+        ndarray array that maps the full mesh onto ibz i.e.
 
             bzmap[idx_bz] = id_ibz
 
@@ -64,7 +64,7 @@ def map_mesh2ibz(structure, mpdivs, shifts, ibz):
 
     timrev = 2 if spg.has_timerev else 1
     spg_fdata = spg.to_fortran_arrays()
-                                        
+
     # Build mapping.
     ibz_fdata = ibz.to_fortran_arrays()
 
@@ -81,7 +81,7 @@ def map_mesh2ibz(structure, mpdivs, shifts, ibz):
                     z = (k + shift[2]) / mpdivs[2]
                     kbz[count] = (x, y, z)
                     count += 1
-    
+
         bz2ibz, ktabi, ktabo, ierr = mod.map_bz2ibz(kibz=ibz_fdata.frac_coords,
                                                     kbz=np.asfortranarray(kbz.T),
                                                     timrev=timrev,
@@ -89,21 +89,22 @@ def map_mesh2ibz(structure, mpdivs, shifts, ibz):
                                                     symafm=spg_fdata.symafm
                                                     )
         if ierr != 0:
-            msg = "map_bz2ibz returned ierr %d, Kmesh is not symmetric" % ierr 
+            msg = "map_bz2ibz returned ierr %d, Kmesh is not symmetric" % ierr
             #raise KmeshNotSymmetricError(msg)
             raise ValueError(msg)
 
         #for (ik_bz, full_kpt) in enumerate(kbz):
-        #    ik_ibz = bz2ibz[ik_bz] 
+        #    ik_ibz = bz2ibz[ik_bz]
         #    isym = ktabo[ik_bz]
         #    itime = ktabi[ik_bz]
         #    op = spg[isym + itime
         #    krot = op.rotate_k(ibz[ik_ibz].frac_coords, wrap_tows=True)
         #    assert full_kpt == krot
-    
+
         tables[ish] = KSymmetryTables(bz2ibz=bz2ibz, ktabi=ktabi, ktabo=ktabo)
 
     return tuple(tables)
+
 
 def main():
     #import m_kpoints

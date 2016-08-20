@@ -1648,49 +1648,40 @@ class ElectronBands(object):
         suitable for the visualization of the Fermi surface.
         """
         # Sanity check.
-        errors = []
-        eapp = errors.append
-
+        errors = []; eapp = errors.append
         if np.any(self.nband_sk != self.nband_sk[0,0]):
-            eapp("nband must be constant")
-
-        # TODO
-        #if not self.has_omesh:
-        #    eapp("An homogeneous sampling is needed for the Fermi surface")
-
-        if not np.allclose(self.kpoints.shifts, 0.0):
-            eapp("shifted meshes are not supported by Xcryden")
-
+            eapp("The number of bands in nband must be constant")
+        if not self.kpoints.is_ibz:
+            eapp("Expecting an IBZ sampling for the Fermi surface but got %s" % type(ebands.kpoints))
+        if not self.kpoints.is_mpmesh:
+            eapp("Monkhorst-Pack meshes are required for Fermi surface visualization.")
+        mpdivs, shifts = self.kpoints.mpdivs_shifts
+        if shifts is not None and not np.all(shifts == 0.0):
+            eapp("Shifted meshes are not supported by Xcryden")
         if errors:
             raise ValueError("\n".join(errors))
 
         if "." not in filepath:
-            raise ValueError("Cannot detect file extension in path %s: " % filepath)
+            raise ValueError("Cannot detect file extension in path %s:" % filepath)
 
         tokens = filepath.strip().split(".")
         ext = tokens[-1]
 
         if not tokens[0]:
             # fname == ".ext" ==> Create temporary file.
-            path = tempfile.mkstemp(suffix="."+ext, text=True)[1]
+            _, path = tempfile.mkstemp(suffix="." + ext, text=True)
 
-        # Xcrysden requires points in the unit cell and the mesh must include the periodic images hence use pbc=True.
-        ndivs = self.kpoints.mpdivs
-
-        ibz_arr = self.kpoints.to_array()
-        #print("ibz_arr", ibz_arr)
-
+        # Xcrysden requires points in the unit cell and the mesh must include
+        # the periodic images hence use pbc=True.
         ebands3d = EBands3D(self.structure,
-                            ibz_arr=self.kpoints.to_array(), ene_ibz=self.eigens,
-                            ndivs=ndivs, shifts=self.kpoints.shifts,
-                            pbc=True, order="unit_cell")
+                            ibz_arr=self.kpoints.frac_coords, ene_ibz=self.eigens,
+                            ndivs=mpdivs, shifts=shifts, pbc=True, order="unit_cell")
 
         # Symmetrize bands in the unit cell.
         emesh_sbk = ebands3d.get_emesh_sbk()
 
-        #print(self.nband, ndivs+1)
         with open(filepath, "w") as fh:
-            bxsf_write(fh, self.structure, self.nsppol, self.nband, ndivs+1, emesh_sbk, self.fermie, unit="eV")
+            bxsf_write(fh, self.structure, self.nsppol, self.nband, mpdivs+1, emesh_sbk, self.fermie, unit="eV")
 
         return Visualizer.from_file(filepath)
 
@@ -1699,15 +1690,15 @@ class ElectronBands(object):
         Compute the derivative of the eigenvalues wrt to k.
 
         Args:
-            spin
-            band:
+            spin: Spin index
+            band: Band index
             order:
             acc:
             asmarker:
 
         Returns:
         """
-        if self.has_bzpath:
+        if self.kpoints.is_path:
             # Extract the branch.
             branch = self.eigens[spin, :, band]
             # Simulate free-electron bands. This will produce all(effective masses == 1)
@@ -1744,53 +1735,52 @@ class ElectronBands(object):
 
     def effmass_line(self, spin, kpoint, band, acc=4):
         """
-        Compute the effective masses along a line. Requires energies on a k-path.
+        Compute the effective masses along a line. Requires band energies on a k-path.
 
         Args:
             spin: Spin index.
             kpoint: integer or class:`Kpoint` object. Note that if kpoint is not an integer,
                 and the path contains duplicated k-points, the first k-point is selected.
             band: Band index.
-            acc:
+            acc: accuracy
 
         Returns:
         """
-        if not self.has_bzpath:
+        if not self.kpoints.is_path:
             raise ValueError("effmass_line requires a k-path.")
 
         # Find index associate to the k-point
         ik = self.kindex(kpoint)
 
-        # We have to understand is the k-point is a vertex or not.
+        # We have to understand if the k-point is a vertex or not.
         # If it's a vertex, indeed, we have to compute the left and right derivative
-        # If kpt is inside the line, and left and right derivatives are supposed to be equal
+        # If kpt is inside the line, left and right derivatives are supposed to be equal
         for iline, line in enumerate(self.kpoints.lines):
             if line[-1] >= ik >= line[0]: break
         else:
             raise ValueError("Cannot find k-index %s in lines: %s" % (ik, self.kpoints.lines))
 
         kpos = line.index(ik)
-        isinside = kpos not in (0, len(line)-1)
-        do_right = not isinside and kpos != 0 and iline != len(self.kpoints.lines) - 1
-        if do_right:
-            kpos_right = self.kpath.lines[iline+1].index(ik)
-            assert kpos_right == 0
+        is_inside = kpos not in (0, len(line)-1)
+        do_right = not is_inside and kpos != 0 and iline != len(self.kpoints.lines) - 1
 
         from abipy.tools.derivatives import finite_diff
         vals_on_line, h_left, vers_left = self._eigens_hvers_iline(spin, band, iline)
-        emline = finite_diff(vals_on_line, h_left, order=2, acc=acc) * (units.eV_to_Ha / units.bohr_to_ang**2)
-        em_left = emline[kpos]
-        em_right = emline[kpos]
+        d2line = finite_diff(vals_on_line, h_left, order=2, acc=acc) * (units.eV_to_Ha / units.bohr_to_ang**2)
+        em_left = 1. / d2line[kpos]
+        em_right = em_left
         h_right, vers_right = h_left, vers_left
 
         if do_right:
-            vals_on_line, h_right, vers_right = self._eigens_hvers_iline(iline+1, spin, band)
-            emline = finite_diff(vals_on_line, h_right, order=2, acc=acc) * (units.eV_to_Ha / units.bohr_to_ang**2)
-            em_right = emline[kpos_right]
+            kpos_right = self.kpoints.lines[iline+1].index(ik)
+            assert kpos_right == 0
+            vals_on_line, h_right, vers_right = self._eigens_hvers_iline(spin, band, iline+1)
+            d2line = finite_diff(vals_on_line, h_right, order=2, acc=acc) * (units.eV_to_Ha / units.bohr_to_ang**2)
+            em_right = 1. / d2line[kpos_right]
 
-        #return EffectiveMassAlongLine(spin, self.kpoints[ik], band, acc, self.structure.reciprocal_lattice,
-        #                              inside,
-        #                              h_left, vers_left, em_left, h_right, vers_right, em_right)
+        return EffectiveMassAlongLine(spin, self.kpoints[ik], band, self.eigens[spin, ik, band],
+                                      acc, self.structure.reciprocal_lattice,
+                                      is_inside, h_left, vers_left, em_left, h_right, vers_right, em_right)
 
     def _eigens_hvers_iline(self, spin, band, iline):
         line = self.kpoints.lines[iline]
@@ -1800,6 +1790,29 @@ class ElectronBands(object):
             raise ValueError("For finite difference derivatives, the path must be homogeneous!\n" +
                              str(self.kpoints.ds[line[:-1]]))
         return vals_on_line, h, self.kpoints.versors[line[0]]
+
+
+class EffectiveMassAlongLine(object):
+    """
+    Store the value of the effective mass computed along a line.
+    """
+    def __init__(self, spin, kpoint, band, eig, acc, lattice,
+                 is_inside, h_left, vers_left, em_left, h_right, vers_right, em_right):
+        self.spin, self.kpoint, self.eig, self.band, self.acc, self.lattice = spin, kpoint, band, eig, acc, lattice,
+        self.is_inside, self.h_left, self.vers_left, self.em_left, self.h_right, self.vers_right, self.em_right = \
+            is_inside, h_left, vers_left, em_left, h_right, vers_right, em_right
+
+    def __repr__(self):
+        return "em_left: %s, em_right: %s" % (self.em_left, self.em_right)
+
+    def __str__(self):
+        lines = []; app = lines.append
+        app("Effective masses for spin: %s, band: %s, accuracy: %s" % (self.spin, self.band, self.acc))
+        app("K-point: %s, eigenvalue: %s [eV]" % (self.kpoint, self.eig))
+        app("h_left: %s, h_right %s" % (self.h_left, self.h_right))
+        app("is_inside: %s, vers_left: %s, vers_right: %s" % (self.is_inside, self.vers_left, self.vers_right))
+        app("em_left: %s, em_right: %s" % (self.em_left, self.em_right))
+        return "\n".join(lines)
 
 
 def frame_from_ebands(ebands_objects, index=None, with_spglib=True):
@@ -2389,9 +2402,9 @@ class EBands3D(object):
                 during the generation of the k-mesh
             order: String defining the order of the k-point in the k-mesh.
                 "unit_cell":
-                    Point are located in the unit_cell, i.e kx in [0, 1]
+                    Point are located in the unit_cell, i.e. kx in [0, 1]
                 "bz":
-                    Point are located in the Brillouin zone, i.e kx in [-1/2, 1/2].
+                    Point are located in the Brillouin zone, i.e. kx in [-1/2, 1/2].
         """
         self.ibz_arr = ibz_arr
         self.ene_ibz = np.atleast_3d(ene_ibz)
@@ -2404,13 +2417,16 @@ class EBands3D(object):
         self.bz_arr = kmesh_from_mpdivs(self.ndivs, shifts, pbc=pbc, order=order)
 
         # Compute the mapping bz --> ibz
-        from abipy.extensions.klib import map_bz2ibz
-        self.bz2ibz = map_bz2ibz(structure, self.bz_arr, self.ibz_arr)
-
-        #for ik_bz, ik_ibz in enumerate(self.bz2ibz):
-        #   print(ik_bz, ">>>", ik_ibz)
+        try:
+            from abipy.extensions.klib import map_bz2ibz
+            self.bz2ibz = map_bz2ibz(structure, self.bz_arr, self.ibz_arr)
+        except ImportError:
+            # This is really slow
+            self.bz2ibz = self.slow_map_bz2ibz(structure, self.bz_arr, self.ibz_arr)
 
         if np.any(self.bz2ibz == -1):
+            #for ik_bz, ik_ibz in enumerate(self.bz2ibz):
+            #   print(ik_bz, ">>>", ik_ibz)
             raise ValueError("-1 found")
 
     @property
@@ -2428,15 +2444,37 @@ class EBands3D(object):
         """Number of point in the full bz."""
         return len(self.bz_arr)
 
+    @staticmethod
+    def slow_map_bz2ibz(structure, bz, ibz):
+        #print("bz",bz)
+        #print("ibz",ibz)
+        bz2ibz = -np.ones(len(bz), dtype=np.int)
+        from abipy.core.kpoints import issamek
+
+        for ik_bz, kbz in enumerate(bz):
+            #print("kbz",kbz)
+            found = False
+            for ik_ibz, kibz in enumerate(ibz):
+                #print("kibz",kibz)
+                if found: break
+                for symmop in structure.spacegroup:
+                    krot = symmop.rotate_k(kibz)
+                    if issamek(krot, kbz):
+                        bz2ibz[ik_bz] = ik_ibz
+                        found = True
+                        break
+
+        return bz2ibz
+
     def get_emesh_sbk(self):
         """
-        Returns a `ndarray` with shape [nsppol, nband, len_bz] with the eigevanalues in the full zone.
+        Returns a numpy array of shape [nsppol, nband, len_bz] with the eigevanalues in the full zone.
         """
         emesh_sbk = np.empty((self.nsppol, self.nband, self.len_bz))
-
         for spin in self.spins:
             for band in self.bands:
-                emesh_sbk[spin,band,:] = self.get_emesh_k(spin, band)
+                #emesh_sbk[spin, band, :] = self.ene_ibz[spin, self.bz2ibz, band]
+                emesh_sbk[spin, band, :] = self.get_emesh_k(spin, band)
 
         return emesh_sbk
 
