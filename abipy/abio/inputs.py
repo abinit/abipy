@@ -2192,7 +2192,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
             dipdip=dipdip,
             ifcout=ifcout,
             natifc=len(structure),
-            atifc=range(1,len(structure)+1),
+            atifc=list(range(1, len(structure)+1)),
             ifcana=1
         )
 

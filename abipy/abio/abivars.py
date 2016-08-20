@@ -200,15 +200,15 @@ class Dataset(dict, Has_Structure):
         else:
             raise ValueError("xred|xcart|xangst must be given in input")
 
-	try:
-	    return Structure.from_abivars(acell=acell, znucl=znucl, typat=typat, **kwargs)
-	except Exception as exc:
-	    print("Wrong inputs passed to Structure.from_abivars:")
-	    print("  acell", acell)
-	    print("  znucl", znucl)
-	    print("  typat", typat)
-	    print("  kwargs", kwargs)
-	    raise exc
+        try:
+            return Structure.from_abivars(acell=acell, znucl=znucl, typat=typat, **kwargs)
+        except Exception as exc:
+            print("Wrong inputs passed to Structure.from_abivars:")
+            print("  acell", acell)
+            print("  znucl", znucl)
+            print("  typat", typat)
+            print("  kwargs", kwargs)
+            raise exc
 
 
 class AbinitInputFile(Has_Structure):
@@ -266,7 +266,7 @@ class AbinitInputFile(Has_Structure):
 
     @lazy_property
     def structure(self):
-	"""
+        """
         The structure defined in the input file.
 
         If the input file contains multiple datasets **AND** the datasets
@@ -330,7 +330,7 @@ class AbinitInputParser(object):
             if tok[0].isalpha():
                 # Either new variable, string defining the unit or operator e.g. sqrt
                 if is_abiunit(tok) or tok in ABI_OPERATORS or "?" in tok:
-		    continue
+                    continue
 
                 # Have new variable
                 if tok[-1].isdigit(): # and "?" not in tok:
@@ -519,7 +519,7 @@ def validate_input_parser():
         """
         True if path is one of the input files used in the Abinit Test suite.
         """
-	if path.endswith(".abi"): return True
+        if path.endswith(".abi"): return True
         if not path.endswith(".in"): return False
 
         with open(path, "rt") as fh:

@@ -581,8 +581,8 @@ class DdbFile(TextFile, Has_Structure):
     #    if not report.run_completed:
     #        raise self.AnaddbError(task=task, report=report)
 
-    def anaget_ifc(self, ifcout=None, asr = 2, chneut=1, dipdip = 1, ngqpt = None, workdir = None, manager = None,
-                   verbose=0, anaddb_kwargs = None):
+    def anaget_ifc(self, ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None, workdir=None, manager=None,
+                   verbose=0, anaddb_kwargs=None):
         """
         Execute anaddb to compute the phonon band structure and the phonon DOS
 
@@ -598,7 +598,6 @@ class DdbFile(TextFile, Has_Structure):
         Returns:
             :class:`InteratomicForceConstants` with the calculated ifc.
         """
-
         if ngqpt is None: ngqpt = self.guessed_ngqpt
 
         inp = AnaddbInput.ifc(self.structure, ngqpt=ngqpt, ifcout=ifcout, q1shft=(0, 0, 0), asr=asr, chneut=chneut,
