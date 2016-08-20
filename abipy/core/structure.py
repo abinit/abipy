@@ -7,6 +7,7 @@ import collections
 import pymatgen
 import numpy as np
 
+from pprint import pprint
 from collections import OrderedDict
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
@@ -14,6 +15,7 @@ from monty.string import is_string
 from pymatgen.core.units import ArrayWithUnit
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
+from pymatgen.util.plotting_utils import add_fig_kwargs #, get_ax_fig_plt
 from pymatgen.io.abinit.pseudos import PseudoTable
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from abipy.core.symmetries import SpaceGroup
@@ -470,7 +472,6 @@ class Structure(pymatgen.Structure):
         # Print entire dataset.
         if verbose:
             from six.moves import StringIO
-            from pprint import pprint
             stream = StringIO()
             pprint(spgdata, stream=stream)
             app(stream.getvalue())
@@ -632,9 +633,13 @@ class Structure(pymatgen.Structure):
             ("spglib_symb", spglib_symbol), ("spglib_num", spglib_number),
         ])
 
-    def show_bz(self, **kwargs):
+    @add_fig_kwargs
+    def show_bz(self, ax=None, **kwargs):
         """
         Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
+
+        Args:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
 
         Returns: `matplotlib` figure.
 
@@ -645,13 +650,11 @@ class Structure(pymatgen.Structure):
         savefig           'abc.png' or 'abc.eps'* to save the figure to a file.
         ================  ==============================================================
         """
-        # TODO: pass lines and labels.
-        #print(self.hsym_kpath.name)
         from pymatgen.electronic_structure.plotter import plot_brillouin_zone
-        return plot_brillouin_zone(self.reciprocal_lattice, **kwargs)
-        #return plot_brillouin_zone(self._bs.lattice, lines=lines, labels=labels)
-        # This method has been removed.
-        #return self.hsym_kpath.get_kpath_plot(**kwargs)
+        labels = self.hsym_kpath.kpath["kpoints"]
+        lines = None
+        pprint(labels)
+        return plot_brillouin_zone(self.reciprocal_lattice, ax=ax, lines=lines, labels=labels, show=False, **kwargs)
 
     def export(self, filename, visu=None):
         """
