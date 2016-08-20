@@ -1762,7 +1762,7 @@ class ElectronBands(object):
 
         kpos = line.index(ik)
         is_inside = kpos not in (0, len(line)-1)
-        do_right = not is_inside and kpos != 0 and iline != len(self.kpoints.lines) - 1
+        do_right = (not is_inside) and kpos != 0 and iline != len(self.kpoints.lines) - 1
 
         from abipy.tools.derivatives import finite_diff
         vals_on_line, h_left, vers_left = self._eigens_hvers_iline(spin, band, iline)

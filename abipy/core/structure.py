@@ -642,19 +642,13 @@ class Structure(pymatgen.Structure):
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
 
         Returns: `matplotlib` figure.
-
-        ================  ==============================================================
-        kwargs            Meaning
-        ================  ==============================================================
-        show              True to show the figure (Default).
-        savefig           'abc.png' or 'abc.eps'* to save the figure to a file.
-        ================  ==============================================================
         """
-        from pymatgen.electronic_structure.plotter import plot_brillouin_zone
+        from pymatgen.electronic_structure.plotter import plot_brillouin_zone, plot_brillouin_zone_from_kpath
         labels = self.hsym_kpath.kpath["kpoints"]
         lines = None
         pprint(labels)
-        return plot_brillouin_zone(self.reciprocal_lattice, ax=ax, lines=lines, labels=labels, show=False, **kwargs)
+        #return plot_brillouin_zone(self.reciprocal_lattice, ax=ax, lines=lines, labels=labels, show=False, **kwargs)
+        return plot_brillouin_zone_from_kpath(self.hsym_kpoints)
 
     def export(self, filename, visu=None):
         """
