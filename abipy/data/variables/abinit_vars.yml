@@ -19057,10 +19057,11 @@
     excludes: null
     requires: null
     section: vareph
-    text: "This variable defines the number of shifts in the q-mesh used\n\
-        for the phonon DOS and for the Eliashberg functions (see [[ph_ngqpt]]).\n\
-        If not given, the code assumes a Gamma-centered mesh. The shifts\n\
-        are specified by [[ph_qshift]].  "
+    text: |-
+        This variable defines the number of shifts in the q-mesh used
+        for the phonon DOS and for the Eliashberg functions (see [[ph_ngqpt]]).
+        If not given, the code assumes a Gamma-centered mesh. The shifts
+        are specified by [[ph_qshift]]. 
     varname: ph_nqshift
     vartype: integer
 - !variable
@@ -19111,9 +19112,9 @@
     excludes: null
     requires: '[[ph_intmeth]]==1'
     section: vareph
-    text: "The gaussian broadening used for the integration of the phonon\n\
-        DOS and the Eliashberg function. See also [[ph_intmeth]] and [[ph_ngqpt]].\
-        \  "
+    text: |-
+        The gaussian broadening used for the integration of the phonon
+        DOS and the Eliashberg function. See also [[ph_intmeth]] and [[ph_ngqpt]]. 
     varname: ph_smear
     vartype: real
 - !variable
@@ -20249,6 +20250,10 @@
         and [[tsmear]]. All levels that are present in the calculation
         are taken into account (occupied and unoccupied).
         Note that [[occopt]] must be between 3 and 7 .
+        Also note that the sampling of the Brillouin Zone that is needed to get a converged DOS
+        is usually much finer than the sampling needed to converge the total energy or the geometry of the system,
+        unless [[tsmear]] is very large (hence the DOS is not obtained properly)..
+        A separate convergence study is needed.
          <br />
          In order to compute the DOS of an insulator with [[prtdos]]=1, compute its density thanks to
         a self-consistent calculation (with a non-metallic [[occopt]]
@@ -20319,7 +20324,10 @@
         It can be compared to the integrated DOS provided in _DOS file when [[prtdos]]=3.
         </p>
         <p>
-         [[prtdos]]=4 is possible for testing purpose.
+         [[prtdos]]=4 delivers the sphere-projected DOS (like [[prtdos]]=3), on the basis of a smearing approach (like [[prtdos]]=1)
+        </p>
+        <p>
+         [[prtdos]]=5 delivers the spin-spin DOS in the [[nspinor]]==2 case, using the tetrahedron method (as [[prtdos]]=2).
         </p>
     varname: prtdos
     vartype: integer
@@ -20592,12 +20600,14 @@
     excludes: null
     requires: null
     section: varfil
-    text: "If set to 1, ABINIT will produce a GSR file at the end of the GS\n\
-        calculation. The GSR file contains the most important GS results\n\
-        (band structure, forces, stresses, electronic density). The GSR\n\
-        file can be read by AbiPy and used for futher postprocessing.\nNote\
-        \ that, by default, the GSR file contains the electronic density\n\
-        unless [[prtden]] is set to 0.  "
+    text: |-
+        <p> If set to 1, ABINIT will produce a GSR file at the end of the GS
+        calculation. The GSR file contains the most important GS results
+        (band structure, forces, stresses, electronic density). The GSR
+        file can be read by AbiPy and used for futher postprocessing.
+        <br> Note that, by default, the GSR file contains the electronic density
+        unless [[prtden]] is set to 0.
+        </p>
     varname: prtgsr
     vartype: integer
 - !variable
@@ -21066,52 +21076,62 @@
     excludes: null
     requires: null
     section: varfil
-    text: "<p>\n Control the volume of printed output.\n In particular, this\
-        \ concerns the explicit echo of eigenenergies and residuals for all\
-        \ bands and k points in the main output file.\n Also, the analysis\
-        \ of the value and location of the maximal density (and magnetization).\n\
-        \ <br />\n Standard choice is 0. Positive values print more in the\n\
-        output and log files, while negative values are\nfor debugging (or\
-        \ preprocessing only), and cause\nthe code to stop at some point.\n\
-        \ <ul>\n  <li>\n   0 =&gt; The eigenenergies and residuals for all\
-        \ bands and k points are not echoed in the main output file.\n   There\
-        \ are exceptions\t: the eigenvalues of the first k point are printed\
-        \ at the end of the SCF loop, and also,\n   if [[iscf]]=-2 and [[kptopt]]&lt;=0,\
-        \ the eigenvalues for all the k points are printed anyway, for a maximum\
-        \ of 50 k-points.\nDue to some subtlety, if for\n   <b>\n    some\n\
-        \   </b>\n   dataset\n[[prtvol]] is non-zero, the limit for input\
-        \ and output echoes\ncannot be enforced, so it is like if [[prtvol]]=1\
-        \ for\n   <b>\n    all\n   </b>\n   the datasets for which [[prtvol]]\
-        \ was set to 0.\n  </li>\n  <li>\n   1 =&gt; the eigenvalues for the\
-        \ first 50 k-points are printed in all cases, at the end of the SCF\
-        \ loop.\n  </li>\n  <li>\n   2 =&gt; all the eigenvalues  and the\
-        \ residuals are printed at the end of the SCF loop. Also, the analysis\
-        \ of the value and location of the maximal density (and magnetization)\
-        \ is printed.\n  </li>\n   10 =&gt; the eigenvalues are printed for\
-        \ every SCF iteration,\nas well as other additions (to be specified\
-        \ in the future...)\n  </li>\n </ul>\n Debugging options :\n <ul>\n\
-        \  <li>\n   = -1 =&gt; stop in abinit (main program), before call\
-        \ gstate.\nUseful to see the effect of the preprocessing of\ninput\
-        \ variables (memory needed, effect of symmetries,\nk points ...) without\
-        \ going further. Run very fast,\non the order of the second.\n  </li>\n\
-        \  <li>\n   =-2 =&gt; same as -1, except that print only the first\
-        \ dataset.\nAll the non default input variables associated to all\
-        \ datasets\nare printed in the output file, but only for the first\
-        \ dataset.\nAlso all the input variables are written in the NetCDF\
-        \ file\n\"OUT.nc\", even if the value is the default.\n  </li>\n \
-        \ <li>\n   = -3 =&gt; stop in gstate, before call scfcv, move or brdmin.\n\
-        Useful to debug pseudopotentials\n  </li>\n  <li>\n   = -4 =&gt; stop\
-        \ in move, after completion of all loops\n  </li>\n  <li>\n   = -5\
-        \ =&gt; stop in brdmin, after completion of all loops\n  </li>\n \
-        \ <li>\n   = -6 =&gt; stop in scfcv, after completion of all loops\n\
-        \  </li>\n  <li>\n   = -7 =&gt; stop in vtorho, after the first rho\
-        \ is obtained\n  </li>\n  <li>\n   = -8 =&gt; stop in vtowfk, after\
-        \ the first k point is treated\n  </li>\n  <li>\n   = -9 =&gt; stop\
-        \ in cgwf, after the first wf is optimized\n  </li>\n  <li>\n   =\
-        \ -10 =&gt; stop in getghc, after the Hamiltonian is applied once\n\
-        \  </li>\n </ul>\n This debugging feature is not yet activated in\
-        \ the RF routines.\nNote that [[fftalg]] offers\nanother option for\
-        \ debugging.\n</p>"
+    text: |-
+        <p> Control the volume of printed output. In particular, this
+        concerns the explicit echo of eigenenergies and residuals for all
+        bands and k points in the main output file.
+        Also, the analysis
+        of the value and location of the maximal density (and magnetization).
+        <br />
+        Standard choice is 0. Positive values print more in the
+        output and log files, while negative values are
+        for debugging (or preprocessing only), and cause
+        the code to stop at some point.
+        <ul>
+          <li> 0 =&gt; The eigenenergies and residuals for all
+        bands and k points are not echoed in the main output file.
+        There are exceptions: the eigenvalues of the first k point are printed
+        at the end of the SCF loop, and also,
+        if [[iscf]]=-2 and [[kptopt]]&lt;=0,
+        the eigenvalues for all the k points are printed anyway, for a maximum
+        of 50 k-points.  Due to some subtlety, if for
+         <b>some</b> dataset [[prtvol]] is non-zero, the limit for input
+        and output echoes cannot be enforced, so it is like if [[prtvol]]=1
+        for <b>all</b> the datasets for which [[prtvol]]
+        was set to 0.</li>
+           <li> 1 =&gt; the eigenvalues for the
+        first 50 k-points are printed in all cases, at the end of the SCF loop.</li>
+           <li> 2 =&gt; all the eigenvalues  and the
+        residuals are printed at the end of the SCF loop. Also, the analysis
+        of the value and location of the maximal density (and magnetization)
+        is printed.</li>
+           <li> 10 =&gt; the eigenvalues are printed for
+        every SCF iteration, as well as other additions (to be specified
+        in the future...) </li>
+        </ul>
+        Debugging options :
+        <ul>
+         <li> = -1 =&gt; stop in abinit (main program), before call
+        driver. Useful to see the effect of the preprocessing of input
+        variables (memory needed, effect of symmetries, k points ...) without
+        going further. Run very fast, on the order of the second.</li>
+         <li>  =-2 =&gt; same as -1, except that print only the first
+        dataset. All the non default input variables associated to all
+        datasets are printed in the output file, but only for the first
+        dataset. Also all the input variables are written in the NetCDF
+        file \"OUT.nc\", even if the value is the default.</li>
+         <li>  = -3 =&gt; stop in gstate, before call scfcv, move or brdmin.
+        Useful to debug pseudopotentials</li>
+         <li>  = -4 =&gt; stop in move, after completion of all loops</li>
+         <li>  = -5 =&gt; stop in brdmin, after completion of all loops</li>
+         <li>  = -6 =&gt; stop in scfcv, after completion of all loops </li>
+         <li>  = -7 =&gt; stop in vtorho, after the first rho is obtained</li>
+         <li>  = -8 =&gt; stop in vtowfk, after the first k point is treated</li>
+         <li>  = -9 =&gt; stop in cgwf, after the first wf is optimized</li>
+         <li>  = -10 =&gt; stop in getghc, after the Hamiltonian is applied once</li>
+        </ul>
+        This debugging feature is not yet activated in the RF routines.
+        Note that [[fftalg]] offers another option for debugging.</p>
     varname: prtvol
     vartype: integer
 - !variable
@@ -24550,10 +24570,10 @@
 - !variable
     characteristics:
     - '[[ENERGY]]'
-    commentdefault: "The default value implies that this stopping condition\
-        \ \nis ignored. For the SCF case, one and only one of the input tolerance\
-        \ \ncriteria \\n[[tolwfr]], [[toldff]], [[tolrff]], [[toldfe]] or\
-        \ [[tolvrs]] \nmust differ from zero."
+    commentdefault: The default value implies that this stopping condition
+        is ignored. For the SCF case, one and only one of the input tolerance 
+        criteria [[tolwfr]], [[toldff]], [[tolrff]], [[toldfe]] or 
+        [[tolvrs]] must differ from zero. 
     commentdims: null
     defaultval: 0.0
     definition: TOLerance on the DiFference of total Energy
@@ -24600,10 +24620,10 @@
     vartype: real
 - !variable
     characteristics: null
-    commentdefault: "The default value implies that this stopping condition\
-        \ \nis ignored.\\nFor the SCF case, one and only one of the input\
-        \ tolerance \ncriteria [[tolwfr]], [[toldff]], [[tolrff]], [[toldfe]]\
-        \ or [[tolvrs]] \nmust differ from zero."
+    commentdefault: The default value implies that this stopping condition
+        is ignored. For the SCF case, one and only one of the input
+        tolerance criteria [[tolwfr]], [[toldff]], [[tolrff]], [[toldfe]]
+        or [[tolvrs]] must differ from zero. 
     commentdims: null
     defaultval: 0.0
     definition: TOLerance on the DiFference of Forces
@@ -24763,10 +24783,10 @@
     vartype: real
 - !variable
     characteristics: null
-    commentdefault: "The default value implies that this stopping condition\
-        \ is ignored.\nFor the SCF case, one and only one of the input tolerance\
-        \ criteria \n[[tolwfr]], [[toldff]], [[tolrff]], [[toldfe]] or [[tolvrs]]\
-        \ must differ from zero.\n"
+    commentdefault: The default value implies that this stopping condition
+        is ignored. For the SCF case, one and only one of the input tolerance
+        criteria [[tolwfr]], [[toldff]], [[tolrff]], [[toldfe]] or [[tolvrs]]
+        must differ from zero.
     commentdims: null
     defaultval: 0.0
     definition: TOLerance on the Relative diFference of Forces
@@ -24834,10 +24854,10 @@
     vartype: real
 - !variable
     characteristics: null
-    commentdefault: "The default value implies that this stopping condition\
-        \ is ignored.\nFor the SCF case, one and only one of the input tolerance\
-        \ criteria \n[[tolwfr]], [[toldff]], [[tolrff]], [[toldfe]] or [[tolvrs]]\
-        \ must differ from zero.\n"
+    commentdefault: The default value implies that this stopping condition
+        is ignored. For the SCF case, one and only one of the input tolerance
+        criteria [[tolwfr]], [[toldff]], [[tolrff]], [[toldfe]] or [[tolvrs]]
+        must differ from zero.
     commentdims: null
     defaultval: 0.0
     definition: TOLerance on the potential V(r) ReSidual
@@ -24886,10 +24906,10 @@
     vartype: real
 - !variable
     characteristics: null
-    commentdefault: "The default value implies that this stopping condition\
-        \ is ignored.\nFor the SCF case, one and only one of the input tolerance\
-        \ criteria \n[[tolwfr]], [[toldff]], [[tolrff]], [[toldfe]] or [[tolvrs]]\
-        \ must differ from zero.\n"
+    commentdefault: The default value implies that this stopping condition 
+        is ignored. For the SCF case, one and only one of the input tolerance 
+        criteria [[tolwfr]], [[toldff]], [[tolrff]], [[toldfe]] or [[tolvrs]] 
+        must differ from zero.
     commentdims: null
     defaultval: 0.0
     definition: TOLerance on WaveFunction squared Residual
