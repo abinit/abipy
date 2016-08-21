@@ -500,6 +500,7 @@ class ElectronBands(object):
         for spin in self.spins:
             odict["bandwidth_spin%d" % spin] = bws[spin]
 
+        # FIXME: Should treat the case in which not enough bands are available.
         fundamental_gaps = self.fundamental_gaps
         for spin in self.spins:
             odict["fundamentalgap_spin%d" % spin] = fundamental_gaps[spin].energy
@@ -1052,12 +1053,13 @@ class ElectronBands(object):
 
         return dirgaps
 
-    def to_string(self, with_structure=True, title=None):
+    def to_string(self, title=None, with_structure=True, with_kpoints=True):
         """
         Human-readable string with useful info such as band gaps, position of HOMO, LOMO...
 
         Args:
             with_structure: False if structural info shoud not be displayed.
+            with_kpoints: False if k-point info shoud not be displayed.
         """
         dir_gaps = self.direct_gaps
         fun_gaps = self.fundamental_gaps
@@ -1088,9 +1090,10 @@ class ElectronBands(object):
             app("Valence max located at:\n%s" % indent(str(homos[spin])))
             app("")
 
-        app(marquee("K-points", mark="="))
-        app(str(self.kpoints))
-        app("")
+        if with_kpoints:
+            app(marquee("K-points", mark="="))
+            app(str(self.kpoints))
+            app("")
 
         return "\n".join(lines)
 
@@ -2152,6 +2155,7 @@ class ElectronBandsPlotter(NotebookWriter):
         import seaborn.apionly as sns
         if not spin_polarized:
             ax, fig, plt = get_ax_fig_plt(ax=ax)
+            ax.grid(True)
             sns.boxplot(x="band", y="eig", data=data, hue="label", ax=ax, **kwargs)
             if swarm:
                 sns.swarmplot(x="band", y="eig", data=data, hue="label", color=".25", ax=ax)
@@ -2160,6 +2164,7 @@ class ElectronBandsPlotter(NotebookWriter):
                 raise NotImplementedError("ax == None not implemented when nsppol==2")
             fig, axes = plt.subplots(nrows=2, ncols=1, sharex=True, squeeze=False)
             for spin, ax in zip(range(2), axes.ravel()):
+                ax.grid(True)
                 data_spin = data[data["spin"] == spin]
                 sns.boxplot(x="band", y="eig", data=data_spin, hue="label", ax=ax, **kwargs)
                 if swarm:

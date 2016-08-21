@@ -7,7 +7,7 @@ import copy
 import numpy as np
 
 from collections import namedtuple, OrderedDict, Iterable, defaultdict
-from monty.string import list_strings, is_string
+from monty.string import list_strings, is_string, marquee
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from monty.bisect import find_le, find_ge
@@ -16,7 +16,7 @@ from prettytable import PrettyTable
 from six.moves import cStringIO
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands
+from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.iotools import ETSF_Reader
 from abipy.electrons.ebands import ElectronBands
 from abipy.electrons.scissors import Scissors
@@ -348,7 +348,6 @@ class QPList(list):
             dom_corr = qpcorrs[start:stop+1]
 
             # todo check if the number of non degenerate data points > k
-
             from scipy.interpolate import UnivariateSpline
             w = len(dom_e0)*[1]
             if ndom == 1:
@@ -826,7 +825,7 @@ class SigresPlotter(Iterable):
         return fig
 
 
-class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
+class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     Container storing the GW results reported in the SIGRES.nc file.
 
@@ -897,6 +896,20 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
     def close(self):
         """Close the netcdf file."""
         self.reader.close()
+
+    def __str__(self):
+        return self.to_string()
+
+    def to_string(self):
+        lines = []; app = lines.append
+
+        app(marquee("File Info", mark="="))
+        app(self.filestat(as_string=True))
+        app("")
+        app(self.ebands.to_string(title="Kohn-Sham bands"))
+        # TODO: Finalize the implementation.
+
+        return "\n".join(lines)
 
     @property
     def structure(self):
@@ -1026,6 +1039,23 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
     #def plot_mlda_to_qps(self, spin, kpoint, *args, **kwargs):
     #    matrix = self.reader.read_mlda_to_qps(spin, kpoint)
     #    return plot_matrix(matrix, *args, **kwargs)
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        nb.cells.extend([
+            nbv.new_code_cell("sigres = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(sigres)"),
+            nbv.new_code_cell("fig = sigres.plot_qps_vs_e0()"),
+            nbv.new_code_cell("fig = sigres.plot_ksbands_with_qpmarkers(qpattr='qpeme0', fact=1000)"),
+            nbv.new_code_cell("fig = sigres.plot_spectral_functions(spin=0, kpoint=[0,0,0], bands=0)"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
 
 
 class SigresReader(ETSF_Reader):

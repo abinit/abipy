@@ -598,8 +598,7 @@ class MdfPlotter(object):
         qtag = "avg" if qpoint is None else repr(qpoint)
 
         lines, legends = [], []
-        for (label, mdf) in self._mdfs.items():
-
+        for label, mdf in self._mdfs.items():
             # Plot the q-points
             #for (iq, qpoint) in enumerate(self.qpoints):
             #    self.plot_ax(ax, iq, **kwargs)
@@ -607,7 +606,6 @@ class MdfPlotter(object):
             for cmode in cmodes:
                 # Plot the average value
                 l = mdf.plot_ax(ax, qpoint, cplx_mode=cmode, **kwargs)[0]
-
                 lines.append(l)
                 legends.append("%s: %s, %s $\,\\varepsilon$" % (cmode, qtag, label))
 
