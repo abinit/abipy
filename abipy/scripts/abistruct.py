@@ -97,7 +97,7 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
     # Subparser for visualize command.
     p_visualize = subparsers.add_parser('visualize', parents=[copts_parser, path_selector],
                                         help="Visualize the structure with the specified visualizer")
-    p_visualize.add_argument('visualizer', nargs="?", default="xcrysden", type=str, help=("Visualizer name. "
+    p_visualize.add_argument('visualizer', nargs="?", default="vesta", type=str, help=("Visualizer name. "
         "List of visualizer supported: %s" % ", ".join(Visualizer.all_visunames())))
 
     # Subparser for pmgid command.
@@ -184,6 +184,8 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
 
     elif options.command == "visualize":
         structure = abilab.Structure.from_file(options.filepath)
+        print(structure)
+        print("Visualizing structure with:", options.visualizer)
         structure.visualize(options.visualizer)
 
     elif options.command == "kpath":

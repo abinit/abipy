@@ -675,7 +675,8 @@ class Structure(pymatgen.Structure):
         if not tokens[0]:
             # filename == ".ext" ==> Create temporary file.
             import tempfile
-            filename = tempfile.mkstemp(suffix="." + ext, text=True)[1]
+            #_, filename = tempfile.mkstemp(suffix="." + ext, dir=os.getcwd(), text=True)
+            _, filename = tempfile.mkstemp(suffix="." + ext, text=True)
 
         # with open(filename, mode="w") as fh:
         #     if ext == "xsf":
@@ -686,7 +687,9 @@ class Structure(pymatgen.Structure):
 
         if ext == "xsf":
             # xcrysden
-            self.to(filename=filename)
+            print("Writing data to", filename)
+            s = self.to(fmt="xsf", filename=filename)
+            #print(s)
 
         if visu is None:
             return Visualizer.from_file(filename)
@@ -698,6 +701,11 @@ class Structure(pymatgen.Structure):
         Visualize the crystalline structure with visualizer.
         See :class:`Visualizer` for the list of applications and formats supported.
         """
+        # Code for VTK.
+        #from pymatgen.vis.structure_vtk import StructureVis
+        #vis = StructureVis()
+        #vis.set_structure(self)
+        #vis.show()
         # Get the Visualizer subclass from the string.
         visu = Visualizer.from_name(visu_name)
 
@@ -751,7 +759,7 @@ class Structure(pymatgen.Structure):
         tmp_file.seek(0)
         return tmp_file.read()
 
-    #def to_xsf_string(self):
+    #def to_xsf(self):
     #    """
     #    Returns a string with the structure in XSF format
     #    See http://www.xcrysden.org/doc/XSF.html
@@ -1465,7 +1473,6 @@ class StructureModifier(object):
         new_structure.frozen_2phonon(qpoint, displ1, displ2, do_real1, do_real2, frac_coords, scale_matrix, max_supercell)
 
         return new_structure
-
 
 def frames_from_structures(struct_objects, index=None, with_spglib=True, cart_coords=False):
     """
