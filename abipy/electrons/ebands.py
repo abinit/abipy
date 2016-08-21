@@ -308,7 +308,7 @@ class ElectronBands(object):
         kpoints = kpoints_cls(**kd)
 
         return cls(Structure.from_dict(d["structure"]), kpoints,
-                   d["eigens"], d["fermie"], d["occfacts"], d["nelect"],
+                   d["eigens"], d["fermie"], d["occfacts"], d["nelect"], d["nspinor"], d["nspden"],
                    nband_sk=d["nband_sk"], smearing=d["smearing"],
                    #markers=None, widths=None
                    )
@@ -322,9 +322,10 @@ class ElectronBands(object):
             fermie=float(self.fermie),
             occfacts=self.occfacts.tolist(),
             nelect=float(self.nelect),
+            nspinor=self.nspinor,
+            nspden=self.nspden,
             nband_sk=self.nband_sk.tolist(),
             smearing=self.smearing.as_dict(),
-            #markers=, widths=
         )
 
     @classmethod
@@ -360,7 +361,7 @@ class ElectronBands(object):
         """
         return json.dumps(self.as_dict(), cls=MontyEncoder)
 
-    def __init__(self, structure, kpoints, eigens, fermie, occfacts, nelect,
+    def __init__(self, structure, kpoints, eigens, fermie, occfacts, nelect, nspinor, nspden,
                  nband_sk=None, smearing=None, markers=None, widths=None):
         """
         Args:
@@ -371,6 +372,8 @@ class ElectronBands(object):
             fermie: Fermi level in eV.
             occfacts: Occupation factors (same shape as eigens)
             nelect: Number of valence electrons in the unit cell.
+            nspinor: Number of spinorial components
+            nspden: Number of indipendent density components.
             smearing: :class:`Smearing` object storing information on the smearing technique.
             nband_sk: Array-like object with the number of bands treated at each [spin,kpoint]
                       If not given, nband_sk is initialized from eigens.
@@ -390,6 +393,7 @@ class ElectronBands(object):
         self._occfacts = np.atleast_3d(occfacts)
         assert self.occfacts.shape == self.occfacts.shape
         self.nsppol, self.nkpt, self.mband = self.eigens.shape
+        self.nspinor, self.nspden = nspinor, nspden
 
         if nband_sk is not None:
             self.nband_sk = np.array(nband_sk)
@@ -500,16 +504,16 @@ class ElectronBands(object):
         for spin in self.spins:
             odict["bandwidth_spin%d" % spin] = bws[spin]
 
-        # FIXME: Should treat the case in which not enough bands are available.
-        fundamental_gaps = self.fundamental_gaps
-        for spin in self.spins:
-            odict["fundamentalgap_spin%d" % spin] = fundamental_gaps[spin].energy
+        enough_bands = (self.mband > self.nspinor * self.nelect // 2)
+        if enough_bands:
+            fundamental_gaps = self.fundamental_gaps
+            for spin in self.spins:
+                odict["fundgap_spin%d" % spin] = fundamental_gaps[spin].energy
 
-        direct_gaps = self.direct_gaps
-        for spin in self.spins:
-            odict["directgap_spin%d" % spin] = direct_gaps[spin].energy
+            direct_gaps = self.direct_gaps
+            for spin in self.spins:
+                odict["dirgap_spin%d" % spin] = direct_gaps[spin].energy
 
-        #print(self)
         return odict
 
     @property
@@ -1026,17 +1030,17 @@ class ElectronBands(object):
     #    for spin in self.spins:
     #       if abs(fun_gaps.ene) <  TOL_EGAP
 
-    @property
+    @lazy_property
     def bandwidths(self):
         """The bandwidth for each spin channel i.e. the energy difference (homo - lomo)."""
         return [self.homos[spin].eig - self.lomos[spin].eig for spin in self.spins]
 
-    @property
+    @lazy_property
     def fundamental_gaps(self):
         """List of :class:`ElectronTransition` with info on the fundamental gaps for each spin."""
         return [ElectronTransition(self.homos[spin], self.lumos[spin]) for spin in self.spins]
 
-    @property
+    @lazy_property
     def direct_gaps(self):
         """List of :class:`ElectronTransition` with info on the direct gaps for each spin."""
         dirgaps = self.nsppol * [None]
@@ -1061,12 +1065,6 @@ class ElectronBands(object):
             with_structure: False if structural info shoud not be displayed.
             with_kpoints: False if k-point info shoud not be displayed.
         """
-        dir_gaps = self.direct_gaps
-        fun_gaps = self.fundamental_gaps
-        widths = self.bandwidths
-        lomos = self.lomos
-        homos = self.homos
-
         lines = []; app = lines.append
         if title is not None:
             app(marquee(title, mark="="))
@@ -1076,18 +1074,22 @@ class ElectronBands(object):
             app("")
 
         app("Number of electrons: %s, Fermi level: %.3f [eV]" % (self.nelect, self.fermie))
+        app("nsppol: %d, nkpt: %d, mband: %d, nspinor: %s, nspden: %s" % (
+           self.nsppol, self.nkpt, self.mband, self.nspinor, self.nspden))
 
         def indent(s):
             return "    " + s.replace("\n", "\n    ")
 
+        enough_bands = (self.mband > self.nspinor * self.nelect // 2)
         for spin in self.spins:
             if self.nsppol == 2:
                 app(">>> For spin %s" % spin)
-            app("Direct gap:\n%s" % indent(str(dir_gaps[spin])))
-            app("Fundamental gap:\n%s" % indent(str(fun_gaps[spin])))
-            app("Bandwidth: %.3f [eV]" % widths[spin])
-            app("Valence minimum located at:\n%s" % indent(str(lomos[spin])))
-            app("Valence max located at:\n%s" % indent(str(homos[spin])))
+            if enough_bands:
+                app("Direct gap:\n%s" % indent(str(self.direct_gaps[spin])))
+                app("Fundamental gap:\n%s" % indent(str(self.fundamental_gaps[spin])))
+            app("Bandwidth: %.3f [eV]" % self.bandwidths[spin])
+            app("Valence minimum located at:\n%s" % indent(str(self.lomos[spin])))
+            app("Valence max located at:\n%s" % indent(str(self.homos[spin])))
             app("")
 
         if with_kpoints:
@@ -1372,7 +1374,7 @@ class ElectronBands(object):
         print("KS fermie", self.fermie, "--> QP fermie", fermie, "Delta(QP-KS)=", fermie - self.fermie)
 
         return ElectronBands(
-            self.structure, self.kpoints, qp_energies, fermie, self.occfacts, self.nelect,
+            self.structure, self.kpoints, qp_energies, fermie, self.occfacts, self.nelect, self.nspinor, self.nspden,
             nband_sk=self.nband_sk, smearing=self.smearing, markers=self.markers)
 
     @add_fig_kwargs
@@ -2305,6 +2307,8 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
             fermie=self.read_fermie(),
             occfacts=self.read_occupations(),
             nelect=self.read_nelect(),
+            nspinor=self.read_nspinor(),
+            nspden=self.read_nspden(),
             nband_sk=self.read_nband_sk(),
             smearing=self.read_smearing(),
             )
@@ -2319,7 +2323,8 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
 
     def read_nspden(self):
         """Number of spin-density components"""
-        return self.read_dimvalue("number_of_components")
+        # FIXME: default 1 is needed for SIGRES files (abinit8)
+        return self.read_dimvalue("number_of_components", default=1)
 
     def read_tsmear(self):
         return self.read_value("smearing_width")

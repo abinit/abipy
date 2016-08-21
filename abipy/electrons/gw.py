@@ -954,7 +954,9 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return Function1D(wmesh, spf_values)
 
     def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, **kwargs):
-        """Plot :class:`QPState` data as function of the KS energy."""
+        """
+        Plot QP data as function of the KS energy.
+        """
         for spin in range(self.nsppol):
             qps = self.qplist_spin[spin].sort_by_e0()
             qps.plot_qps_vs_e0(with_fields=with_fields, exclude_fields=exclude_fields, **kwargs)

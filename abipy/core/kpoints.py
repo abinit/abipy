@@ -684,6 +684,9 @@ class Kpath(KpointList):
     """
 
     def __str__(self):
+        return self.to_string()
+
+    def to_string(self):
         lines = []
         app = lines.append
         app("K-path contains %s lines. Number of k-points in each line: %s" % (
@@ -831,15 +834,19 @@ class IrredZone(KpointList):
             #raise ValueError(err_msg)
 
     def __str__(self):
-        lines = []
-        app = lines.append
+        return self.to_string()
+
+    def to_string(self):
+        lines = []; app = lines.append
+
         if self.is_mpmesh:
             mpdivs, shifts = self.mpdivs_shifts
             d = "[%d, %d, %d]" % tuple(mpdivs)
             s = ", ".join("[%.1f, %.1f, %.1f]" % tuple(s) for s in shifts)
             app("K-mesh with divisions: %s, shifts: %s, kptopt: %s" % (d, s, self.ksampling.kptopt))
         else:
-            app(str(self.ksampling))
+            for k, v in self.ksampling.items():
+                app("%s: %s" % (k, v))
 
         return "\n".join(lines)
 

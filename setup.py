@@ -17,7 +17,7 @@ if sys.version[0:3] < '2.7':
     sys.exit(1)
 
 # Install ipython with notebook support.
-with_ipython = True
+with_ipython = False
 if '--with-ipython' in sys.argv:
     with_ipython = True
     sys.argv.remove('--with-ipython')
@@ -184,9 +184,6 @@ install_requires = [
     "pymatgen>=3.0.8",
     "netCDF4",
     "python-daemon",
-    #"ipython",
-    #"jupyter",
-    #"nbformat",
     #"matplotlib",
     #"seaborn",
     #"psutil",
@@ -194,11 +191,13 @@ install_requires = [
     #"paramiko",
 ]
 
-if False and with_ipython:
+if with_ipython:
     install_requires += [
-        "ipython>=1.1.0",
-        "pyzmq",     # for the notebook
-        "jinja2",
+        "ipython",
+        "jupyter",
+        "nbformat",
+        #"pyzmq",
+        #"jinja2",
     ]
 
 #if with_cython:
