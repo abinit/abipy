@@ -14,7 +14,7 @@ from monty.functools import lazy_property
 from monty.dev import get_ncpus
 from pymatgen.io.abinit.netcdf import NetcdfReader
 from pymatgen.io.abinit.tasks import AnaddbTask
-from abipy.core.mixins import TextFile, Has_Structure
+from abipy.core.mixins import TextFile, Has_Structure, NotebookWriter
 from abipy.core.symmetries import SpaceGroup
 from abipy.core.structure import Structure
 from abipy.core.kpoints import KpointList
@@ -53,7 +53,7 @@ class AnaddbError(DdbError):
         return "\n".join(lines)
 
 
-class DdbFile(TextFile, Has_Structure):
+class DdbFile(TextFile, Has_Structure, NotebookWriter):
     """
     This object provides an interface to the DDB file produced by ABINIT
     as well as methods to compute phonon band structures, phonon DOS, thermodinamical properties ...
@@ -373,7 +373,6 @@ class DdbFile(TextFile, Has_Structure):
             raise self.AnaddbError(task=task, report=report)
 
         with task.open_phbst() as ncfile:
-
             if lo_to_splitting and np.allclose(qpoint, [0, 0, 0]):
                 ncfile.phbands.read_non_anal_from_file(os.path.join(task.workdir, "anaddb.nc"))
 
@@ -432,7 +431,6 @@ class DdbFile(TextFile, Has_Structure):
             raise self.AnaddbError(task=task, report=report)
 
         phbst = task.open_phbst()
-
         if lo_to_splitting:
             phbst.phbands.read_non_anal_from_file(os.path.join(task.workdir, "anaddb.nc"))
 
@@ -585,7 +583,7 @@ class DdbFile(TextFile, Has_Structure):
     def anaget_ifc(self, ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None, workdir=None, manager=None,
                    verbose=0, anaddb_kwargs=None):
         """
-        Execute anaddb to compute the phonon band structure and the phonon DOS
+        Execute anaddb to compute the interatomic forces.
 
         Args:
             ifcout: Number of neighbouring atoms for which the ifc's will be output. If None all the atoms in the big box.
@@ -671,6 +669,37 @@ class DdbFile(TextFile, Has_Structure):
         for b in self.blocks:
             if b['qpt'] is not None and np.allclose(b['qpt'], qpt):
                 b["data"] = data
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        nb.cells.extend([
+            nbv.new_code_cell("ddb = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(ddb)"),
+            nbv.new_code_cell("display(ddb.header)"),
+            nbv.new_code_cell("""\
+bstfile, phdosfile =  ddb.anaget_phbst_and_phdos_files(nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra",
+                                   ngqpt=None, lo_to_splitting=False,
+                                   qptbounds=None, anaddb_kwargs=None)
+phbands, phdos = bstfile.phbands, phdosfile.phdos"""),
+            nbv.new_code_cell("fig = phbands.plot_with_phdos(phdos)"),
+
+            nbv.new_code_cell("""\
+emacro, becs = ddb.anaget_emacro_and_becs()
+print(emacro)
+print(becs)
+"""),
+
+            nbv.new_code_cell("""\
+ifc = ddb.anaget_ifc(ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None, verbose=0, anaddb_kwargs=None)
+"""),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
 
 
 class Becs(Has_Structure):
