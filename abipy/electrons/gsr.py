@@ -11,7 +11,7 @@ from monty.collections import AttrDict
 from monty.functools import lazy_property
 from pymatgen.core.units import EnergyArray, ArrayWithUnit
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands
+from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from prettytable import PrettyTable
 from abipy.electrons.ebands import ElectronsReader
 
@@ -25,7 +25,7 @@ __all__ = [
 ]
 
 
-class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
+class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     File containing the results of a ground-state calculation.
 
@@ -233,6 +233,24 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
             #band_gap:
             #optical_gap:
             #efermi:
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        nb.cells.extend([
+            nbv.new_code_cell("gsr = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(gsr)"),
+            nbv.new_code_cell("fig = gsr.ebands.plot()"),
+            nbv.new_code_cell("fig = gsr.ebands.kpoints.plot()"),
+            nbv.new_code_cell("fig = gsr.ebands.get_edos().plot()"),
+            nbv.new_code_cell("emass = gsr.ebands.effective_masses(spin=0, band=0, acc=4)"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
 
 
 class EnergyTerms(AttrDict):
