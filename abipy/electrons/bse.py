@@ -9,10 +9,11 @@ import numpy as np
 
 from monty.collections import AttrDict
 from monty.functools import lazy_property
+from monty.string import marquee # is_string, list_strings,
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList
-from abipy.core.mixins import AbinitNcFile, Has_Structure
+from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.core.tensor import SymmetricTensor
 from abipy.iotools import ETSF_Reader
 
@@ -289,7 +290,7 @@ class DielectricFunction(object):
         return f.plot_ax(ax, **kwargs)
 
 
-class MdfFile(AbinitNcFile, Has_Structure):
+class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
     """
     Usage example:
 
@@ -309,6 +310,25 @@ class MdfFile(AbinitNcFile, Has_Structure):
 
         # TODO Add electron Bands.
         #self._ebands = r.read_ebands()
+
+    def __str__(self):
+        """String representation."""
+        return self.to_string()
+
+    def to_string(self):
+        """String representation."""
+        lines = []; app = lines.append
+
+        app(marquee("File Info", mark="="))
+        app(self.filestat(as_string=True))
+        app("")
+        app(marquee("Structure", mark="="))
+        app(str(self.structure))
+
+        app(marquee("Q-points", mark="="))
+        app(str(self.qpoints))
+
+        return "\n".join(lines)
 
     def close(self):
         self.reader.close()
@@ -411,11 +431,31 @@ class MdfFile(AbinitNcFile, Has_Structure):
             plotter.add_mdf("GW-RPA", self.gwnlf_mdf)
 
         # Plot spectra
-        plotter.plot(cplx_mode=cplx_mode, qpoint=qpoint, **kwargs)
+        return plotter.plot(cplx_mode=cplx_mode, qpoint=qpoint, **kwargs)
 
     def get_tensor(self, mdf_type="exc"):
         """Get the macroscopic dielectric tensor from the MDF."""
         return DielectricTensor(self.get_mdf(mdf_type), self.structure)
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        nb.cells.extend([
+            nbv.new_code_cell("mdf_file = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(mdf_file)"),
+            nbv.new_code_cell("fig = mdf_file.plot_mdfs(cplx_mode='Re')"),
+            nbv.new_code_cell("fig = mdf_file.plot_mdfs(cplx_mode='Im')"),
+            # TODO:
+            #nbv.new_code_cell("tensor_exc = mdf_file.get_tensor("exc")")
+            #tensor_exc.symmetrize(mdf_file.structure)
+            #tensor_exc.plot(title=title)
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
 
 
 # TODO Add band energies to MDF file.

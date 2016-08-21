@@ -56,6 +56,9 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     def __str__(self):
         """String representation."""
+        return self.to_string()
+
+    def to_string(self):
         lines = []; app = lines.append
 
         app(marquee("File Info", mark="="))
