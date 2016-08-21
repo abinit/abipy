@@ -24,7 +24,7 @@ except ImportError:
 from pymatgen.io.abinit.launcher import PyFlowScheduler, BatchLauncher
 
 from abipy.core.release import __version__, min_abinit_version
-from abipy.core.structure import Lattice, Structure, StructureModifier, frame_from_structures
+from abipy.core.structure import Lattice, Structure, StructureModifier, frames_from_structures
 from abipy.core.mixins import AbinitLogFile, AbinitOutputFile, OutNcFile
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
 from abipy.iotools import Visualizer
@@ -150,14 +150,20 @@ def abiopen(filepath):
     return cls.from_file(filepath)
 
 
-def print_frame(x):
+def print_frame(frame, title=None):
     """
     Print entire pandas DataFrame.
+
+    Args:
+        frame: pandas DataFrame.
+        title: Optional string to print as initial title.
     """
+    if title is not None: print(title)
     import pandas as pd
-    with pd.option_context('display.max_rows', len(x),
-                           'display.max_columns', len(list(x.keys()))):
-        print(x)
+    with pd.option_context('display.max_rows', len(frame),
+                           'display.max_columns', len(list(frame.keys()))):
+        print(frame)
+    print()
 
 
 def software_stack():

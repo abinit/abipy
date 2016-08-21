@@ -8,7 +8,7 @@ from pprint import pformat
 from monty.string import is_string, boxed
 from monty.functools import lazy_property
 from pymatgen.core.units import bohr_to_ang
-from abipy.core.structure import Structure, frame_from_structures
+from abipy.core.structure import Structure, frames_from_structures
 from abipy.core.mixins import Has_Structure
 
 import logging
@@ -259,8 +259,14 @@ class AbinitInputFile(Has_Structure):
                 app(structure.spglib_summary())
                 app("")
 
+            dfs = frames_from_structures(structures, index=[i+1 for i in range(self.ndtset)])
             app(boxed("Tabular view (each row corresponds to a dataset structure)"))
-            app(str(frame_from_structures(structures, index=[i+1 for i in range(self.ndtset)])))
+            app("")
+            app("Lattice parameters:")
+            app(str(dfs.lattice))
+            app("")
+            app("Atomic positions:")
+            app(str(dfs.coords))
 
         return "\n".join(lines)
 
@@ -360,7 +366,7 @@ class AbinitInputParser(object):
             else:
                 dvars[varname] = " ".join(tokens[pos+1: varpos[i+1]])
 
-        print(dvars)
+        #print(dvars)
         err_lines = []
         for k, v in dvars.items():
             if not v:

@@ -81,9 +81,14 @@ class _File(object):
         """String defining the filetype."""
         return self.__class__.__name__
 
-    def filestat(self):
-        """Dictionary with file metadata"""
-        return get_filestat(self.filepath)
+    def filestat(self, as_string=False):
+        """
+        Dictionary with file metadata
+        if `as_string` is True, a string is returned.
+        """
+        d = get_filestat(self.filepath)
+        if not as_string: return d
+        return "\n".join("%s: %s" % (k, v) for k, v in d.items())
 
     @abc.abstractmethod
     def close(self):

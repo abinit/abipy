@@ -1468,9 +1468,9 @@ class StructureModifier(object):
         return new_structure
 
 
-def frame_from_structures(struct_objects, index=None, with_spglib=True):
+def frames_from_structures(struct_objects, index=None, with_spglib=True, cart_coords=False):
     """
-    Build a pandas dataframe with the most important geometrical paramaters associated to
+    Build two pandas dataframes with the most important geometrical paramaters associated to
     a list of structures or a list of objects that can be converted into structures.
 
     Args:
@@ -1479,14 +1479,39 @@ def frame_from_structures(struct_objects, index=None, with_spglib=True):
             See `Structure.as_structure` for the complete list.
         index: Index of the dataframe.
         with_spglib: If True, spglib is invoked to get the spacegroup symbol and number.
+        cart_coords: True if the `coords` dataframe should contain Cartesian cordinates
+            instead of Reduced coordinates.
 
     Return:
-        pandas :class:`DataFrame`
+        namedtuple with two pandas :class:`DataFrame`: `lattice` contains the latticee paramenters,
+        `coords` the atomic positions. The list of structures is available in the `structures` entry:
+
+    Example:
+        dfs = frames_from_structures(files)
+        dfs.lattice
+        dfs.coords
+        for structure in dfs.structures:
+            print(structure)
     """
     structures = [Structure.as_structure(obj) for obj in struct_objects]
+    # Build Frame with lattice parameters.
     # Use OrderedDict to have columns ordered nicely.
     odict_list = [(structure.get_dict4frame(with_spglib=with_spglib)) for structure in structures]
 
     import pandas as pd
-    return pd.DataFrame(odict_list, index=index,
-                        columns=list(odict_list[0].keys()) if odict_list else None)
+    lattice_frame = pd.DataFrame(odict_list, index=index,
+                                 columns=list(odict_list[0].keys()) if odict_list else None)
+
+    # Build Frame with atomic positions.
+    max_numsite = max(len(s) for s in structures)
+    odict_list = []
+    for structure in structures:
+        if cart_coords:
+            odict_list.append({i: (site.species_string, site.coords) for i, site in enumerate(structure)})
+        else:
+            odict_list.append({i: (site.species_string, site.frac_coords) for i, site in enumerate(structure)})
+
+    coords_frame = pd.DataFrame(odict_list, index=index,
+                                columns=list(range(max_numsite)) if odict_list else None)
+
+    return dict2namedtuple(lattice=lattice_frame, coords=coords_frame, structures=structures)

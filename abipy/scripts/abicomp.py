@@ -13,17 +13,19 @@ from monty.termcolor import cprint
 from abipy import abilab
 
 
-def abicomp_struct(options):
+def abicomp_structure(options):
     """
     Compare crystalline structures.
     """
     paths = options.paths
-    frame = abilab.frame_from_structures(paths, index=[os.path.relpath(p) for p in paths])
+    dfs = abilab.frames_from_structures(paths, index=[os.path.relpath(p) for p in paths])
     print("File list:")
     for i, p in enumerate(paths):
         print("%d %s" % (i, p))
     print()
-    abilab.print_frame(frame)
+    abilab.print_frame(dfs.lattice, title="Lattice parameters:")
+    abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
+
     return 0
 
 
@@ -40,7 +42,7 @@ def abicomp_ebands(options):
                       plotter=plotter)
 
     elif options.notebook:
-        plotter.make_and_open_notebook(daemonize=True)
+        plotter.make_and_open_notebook(daemonize=not options.no_daemon)
 
     else:
         # Print pandas Dataframe.
@@ -77,7 +79,7 @@ def abicomp_edos(options):
                       plotter=plotter)
 
     elif options.notebook:
-        plotter.make_and_open_notebook(daemonize=True)
+        plotter.make_and_open_notebook(daemonize=not options.no_daemon)
 
     else:
         # Print pandas Dataframe.
@@ -170,7 +172,7 @@ def abicomp_robot(options):
         IPython.embed(header=str(robot) + "\nType `robot` in the terminal and use <TAB> to list its methods",
                      robot=robot)
     elif options.notebook:
-        robot.make_and_open_notebook(nbpath=None, daemonize=True)
+        robot.make_and_open_notebook(daemonize=not options.no_daemon)
     else:
         print(robot)
         abilab.print_frame(robot.get_dataframe())
@@ -247,7 +249,7 @@ def abicomp_time(options):
         import IPython
         IPython.start_ipython(argv=[], user_ns={"parser": parser})
     elif options.notebook:
-        parser.make_and_open_notebook(daemonize=True)
+        parser.make_and_open_notebook(daemonize=not options.no_daemon)
     else:
         parser.plot_all()
 
@@ -259,7 +261,7 @@ def main():
     def str_examples():
         return """\
 Usage example:
-  abicomp.py struct */*/outdata/out_GSR.nc        => Compare structures in multiple files.
+  abicomp.py structure */*/outdata/out_GSR.nc        => Compare structures in multiple files.
   abicomp.py ebands out1_GSR.nc out2_GSR.nc       => Plot electron bands on a grid (Use `-p` to change plot mode)
   abicomp.py ebands *_GSR.nc -ipy                 => Build plotter object and start ipython console.
   abicomp.py ebands *_GSR.nc -nb                  => Interact with the plotter via the jupyter notebook.
@@ -289,6 +291,8 @@ Usage example:
     # Parent parser for commands support (ipython/jupyter)
     ipy_parser = argparse.ArgumentParser(add_help=False)
     ipy_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
+    ipy_parser.add_argument('--no-daemon', action='store_true', default=False,
+                             help="Don't start jupyter notebook with daemon process")
     ipy_parser.add_argument('-ipy', '--ipython', default=False, action="store_true", help='Invoke ipython terminal.')
 
     # Build the main parser.
@@ -300,8 +304,8 @@ Usage example:
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
-    # Subparser for struct command.
-    p_struct = subparsers.add_parser('struct', parents=[copts_parser], help=abicomp_struct.__doc__)
+    # Subparser for structure command.
+    p_struct = subparsers.add_parser('structure', parents=[copts_parser], help=abicomp_structure.__doc__)
 
     # Subparser for ebands command.
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, ipy_parser], help=abicomp_ebands.__doc__)

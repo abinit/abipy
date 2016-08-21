@@ -148,8 +148,10 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
         sanitized = structure.abi_sanitize(symprec=options.symprec, angle_tolerance=options.angle_tolerance,
                                            primitive=True, primitive_standard=False)
         index = [options.filepath, "abisanitized"]
-        frame = abilab.frame_from_structures([structure, sanitized], index=index, with_spglib=True)
-        print(frame)
+        dfs = abilab.frames_from_structures([structure, sanitized], index=index, with_spglib=True)
+
+        abilab.print_frame(dfs.lattice, title="Lattice parameters:")
+        abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
 
         if not options.verbose:
             print("\nUse -v for more info")

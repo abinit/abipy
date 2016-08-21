@@ -285,6 +285,7 @@ class DdbFile(TextFile, Has_Structure):
         This function tries to figure out the value of ngqpt from the list of
         points reported in the DDB file.
         """
+        if not self.qpoints: return None
         # Build the union of the stars of the q-points.
         all_qpoints = np.empty((len(self.qpoints) * len(self.structure.spacegroup), 3))
         count = 0

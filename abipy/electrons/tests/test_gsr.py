@@ -68,6 +68,7 @@ class GSRFileTestCase(AbipyTest):
         almost_equal = self.assertAlmostEqual
 
         with GsrFile(abidata.ref_file("si_scf_GSR.nc")) as gsr:
+            assert gsr.filestat()
             print(repr(gsr))
             print(gsr)
             print(gsr.ebands)

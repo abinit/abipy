@@ -2258,12 +2258,13 @@ class ElectronBandsPlotter(NotebookWriter):
                 key_edos.append((label, tmpfile))
 
         nb.cells.extend([
-            nbv.new_markdown_cell("# This is a markdown cell"),
+            #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("plotter = abilab.ElectronBandsPlotter(\nkey_ebands=%s,\nkey_edos=%s,\nedos_kwargs=None)" %
                 (str(key_ebands), str(key_edos))),
             nbv.new_code_cell("print(plotter)"),
             nbv.new_code_cell("frame = plotter.get_ebands_frame()\ndisplay(frame)"),
             nbv.new_code_cell("fig = plotter.gridplot()"),
+            nbv.new_code_cell("fig = plotter.combiplot()"),
             nbv.new_code_cell("fig = plotter.boxplot()"),
             nbv.new_code_cell("fig = plotter.combiboxplot()"),
             nbv.new_code_cell("anim = plotter.animate()"),

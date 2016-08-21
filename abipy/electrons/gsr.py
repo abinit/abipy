@@ -6,7 +6,7 @@ import numpy as np
 import pymatgen.core.units as units
 
 from collections import OrderedDict, Iterable, defaultdict
-from monty.string import is_string, list_strings, make_banner
+from monty.string import is_string, list_strings, marquee
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
@@ -55,17 +55,20 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
     def __str__(self):
         lines = []; app = lines.append
-        app(make_banner("Structure", mark="="))
+
+        app(self.filestat(as_string=True))
+        app("")
+        app(marquee("Structure", mark="="))
         app(str(self.structure))
         if self.is_scf_run:
             app("")
             app("Stress tensor (Cartesian coordinates in Ha/Bohr**3):\n%s" % self.cart_stress_tensor)
             app("Pressure: %.3f [GPa]" % self.pressure)
         app("")
-        app(make_banner("K-points", mark="="))
+        app(marquee("K-points", mark="="))
         app(str(self.kpoints))
         app("")
-        app(make_banner("Electronic Bands", mark="="))
+        app(marquee("Electronic Bands", mark="="))
         app(str(self.ebands))
 
         return "\n".join(lines)
