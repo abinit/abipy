@@ -652,7 +652,6 @@ class Structure(pymatgen.Structure):
         else:
             return plot_brillouin_zone(self.reciprocal_lattice, ax=ax, labels=labels, show=False, **kwargs)
 
-
     def export(self, filename, visu=None):
         """
         Export the crystalline structure on file filename.

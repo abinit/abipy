@@ -378,8 +378,8 @@ class AbinitInputParser(object):
         ndtset = int(dvars.pop("ndtset", 1))
         udtset = dvars.pop("udtset", None)
         jdtset = dvars.pop("jdtset", None)
-        if udtset is not None or jdtset is not None:
-            raise NotImplementedError("udtset and jdtset are not supported")
+        if udtset is not None:
+            raise NotImplementedError("udtset is not supported")
 
 	# Build list of datasets.
         datasets = [Dataset() for i in range(ndtset)]
@@ -447,6 +447,10 @@ class AbinitInputParser(object):
             if "spgroup" in dt or "nobj" in dt:
                 raise NotImplementedError(
                     "Abinit spgroup builder is not supported. Structure must be given explicitly!")
+
+        if jdtset is not None:
+            # Return the datasets selected by jdtset.
+            datasets = [datasets[i-1] for i in np.fromstring(jdtset, sep=" ", dtype=int)]
 
         return datasets
 
