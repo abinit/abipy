@@ -675,15 +675,8 @@ class Structure(pymatgen.Structure):
         if not tokens[0]:
             # filename == ".ext" ==> Create temporary file.
             import tempfile
-            #_, filename = tempfile.mkstemp(suffix="." + ext, dir=os.getcwd(), text=True)
-            _, filename = tempfile.mkstemp(suffix="." + ext, text=True)
-
-        # with open(filename, mode="w") as fh:
-        #     if ext == "xsf":
-        #         # xcrysden
-        #         xsf.xsf_write_structure(fh, structures=[self])
-        #     else:
-        #         raise Visualizer.Error("extension %s is not supported." % ext)
+            #_, filename = tempfile.mkstemp(suffix="." + ext, text=True)
+            _, filename = tempfile.mkstemp(suffix="." + ext, dir=os.getcwd(), text=True)
 
         if ext == "xsf":
             # xcrysden
