@@ -8,6 +8,7 @@ import numpy as np
 from collections import OrderedDict, defaultdict
 from tabulate import tabulate
 from monty.functools import lazy_property
+from monty.string import marquee # is_string, list_strings,
 from pymatgen.core.periodic_table import Element
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
@@ -186,8 +187,14 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
     def __str__(self):
         """String representation"""
-        lines = []
-        app = lines.append
+        lines = []; app = lines.append
+
+        app(marquee("File Info", mark="="))
+        app(self.filestat(as_string=True))
+        app("")
+        app(self.ebands.to_string(with_structure=True, title="Electronic Bands"))
+        app("")
+        app(marquee("Fatbands Info", mark="="))
         app("usepaw=%d, prtdos=%d, pawprtdos=%d, prtdosm=%d, mbesslang=%d" % (
             self.usepaw, self.prtdos, self.pawprtdos, self.prtdosm, self.mbesslang))
         app("nsppol=%d, nkpt=%d, mband=%d" % (self.nsppol, self.nkpt, self.mband))

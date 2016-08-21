@@ -13,7 +13,7 @@ import numpy as np
 import pymatgen.core.units as units
 
 from collections import OrderedDict, namedtuple, Iterable
-from monty.string import is_string
+from monty.string import is_string, marquee
 from monty.json import MSONable, MontyEncoder
 from monty.collections import AttrDict
 from monty.functools import lazy_property
@@ -425,13 +425,14 @@ class ElectronBands(object):
                     kpoint.set_name(name)
         return _auto_klabels
 
-    # TODO
     #def __repr__(self):
     #    """String representation (short version)"""
 
     def __str__(self):
-        """String representation"""
-        return self.info
+        """
+        String representation
+        """
+        return self.to_string()
 
     # Handy variables used to loop
     @property
@@ -1051,10 +1052,12 @@ class ElectronBands(object):
 
         return dirgaps
 
-    @property
-    def info(self):
+    def to_string(self, with_structure=True, title=None):
         """
         Human-readable string with useful info such as band gaps, position of HOMO, LOMO...
+
+        Args:
+            with_structure: False if structural info shoud not be displayed.
         """
         dir_gaps = self.direct_gaps
         fun_gaps = self.fundamental_gaps
@@ -1062,10 +1065,14 @@ class ElectronBands(object):
         lomos = self.lomos
         homos = self.homos
 
-        lines = []
-        app = lines.append
+        lines = []; app = lines.append
+        if title is not None:
+            app(marquee(title, mark="="))
 
-        app("Electron bands of %s" % self.structure.formula)
+        if with_structure:
+            app(str(self.structure))
+            app("")
+
         app("Number of electrons: %s, Fermi level: %.3f [eV]" % (self.nelect, self.fermie))
 
         def indent(s):
@@ -1077,8 +1084,13 @@ class ElectronBands(object):
             app("Direct gap:\n%s" % indent(str(dir_gaps[spin])))
             app("Fundamental gap:\n%s" % indent(str(fun_gaps[spin])))
             app("Bandwidth: %.3f [eV]" % widths[spin])
-            app("Valence min:\n%s" % indent(str(lomos[spin])))
-            app("Valence max:\n%s" % indent(str(homos[spin])))
+            app("Valence minimum located at:\n%s" % indent(str(lomos[spin])))
+            app("Valence max located at:\n%s" % indent(str(homos[spin])))
+            app("")
+
+        app(marquee("K-points", mark="="))
+        app(str(self.kpoints))
+        app("")
 
         return "\n".join(lines)
 
@@ -2514,8 +2526,7 @@ class ElectronDos(object):
         self.fermie = self.find_mu(self.nelect)
 
     def __str__(self):
-        lines = []
-        app = lines.append
+        lines = []; app = lines.append
         app("nsppol=%d, nelect=%s" % (self.nsppol, self.nelect))
         app("Fermi energy: %s (recomputed from nelect):" % self.fermie)
         return "\n".join(lines)

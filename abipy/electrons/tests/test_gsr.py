@@ -87,9 +87,9 @@ class GSRFileTestCase(AbipyTest):
             almost_equal(eterm.e_fermie.to("Ha"), 0.205739364929368)
 
             # Forces and stress
-            self.assert_almost_equal(gsr.cart_forces.flat,
-                [-5.98330096024095e-30, -5.64111024387213e-30, 1.49693284867669e-29,
-                  5.98330096024095e-30,  5.64111024387213e-30, -1.49693284867669e-29])
+            self.assert_almost_equal(gsr.cart_forces.to("Ha bohr^-1").flat,
+               [-1.14726679671674e-28, -3.76037290483622e-29, 5.65937773808884e-29,
+                 1.14726679671674e-28, 3.76037290483622e-29, -5.65937773808884e-29])
 
             almost_equal(gsr.max_force, 0)
             print(gsr.force_stats())

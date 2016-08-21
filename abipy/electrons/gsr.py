@@ -9,6 +9,7 @@ from collections import OrderedDict, Iterable, defaultdict
 from monty.string import is_string, list_strings, marquee
 from monty.collections import AttrDict
 from monty.functools import lazy_property
+from pymatgen.core.units import EnergyArray, ArrayWithUnit
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands
 from prettytable import PrettyTable
@@ -54,8 +55,10 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
             self.structure.add_site_property("cartesian_forces", self.cart_forces)
 
     def __str__(self):
+        """String representation."""
         lines = []; app = lines.append
 
+        app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
         app("")
         app(marquee("Structure", mark="="))
@@ -65,11 +68,7 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
             app("Stress tensor (Cartesian coordinates in Ha/Bohr**3):\n%s" % self.cart_stress_tensor)
             app("Pressure: %.3f [GPa]" % self.pressure)
         app("")
-        app(marquee("K-points", mark="="))
-        app(str(self.kpoints))
-        app("")
-        app(marquee("Electronic Bands", mark="="))
-        app(str(self.ebands))
+        app(self.ebands.to_string(with_structure=False, title="Electronic Bands"))
 
         return "\n".join(lines)
 
@@ -121,6 +120,7 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
     @lazy_property
     def cart_forces(self):
+        """Cartesian forces in eV / Ang"""
         return self.reader.read_cart_forces()
 
     @property
@@ -303,9 +303,12 @@ class GsrReader(ElectronsReader):
     This object reads the results stored in the _GSR (Ground-State Results) file produced by ABINIT.
     It provides helper function to access the most important quantities.
     """
-    def read_cart_forces(self):
-        """Return the cartesian forces."""
-        return self.read_value("cartesian_forces")
+    def read_cart_forces(self, unit="eV ang^-1"):
+        """
+        Read and return a numpy array with the cartesian forces in unit `unit`.
+        Shape (num_steps, natom, 3)
+        """
+        return ArrayWithUnit(self.read_value("cartesian_forces"), "Ha bohr^-1").to(unit)
 
     def read_cart_stress_tensor(self):
         """

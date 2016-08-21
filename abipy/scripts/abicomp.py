@@ -261,7 +261,7 @@ def main():
     def str_examples():
         return """\
 Usage example:
-  abicomp.py structure */*/outdata/out_GSR.nc        => Compare structures in multiple files.
+  abicomp.py structure */*/outdata/out_GSR.nc     => Compare structures in multiple files.
   abicomp.py ebands out1_GSR.nc out2_GSR.nc       => Plot electron bands on a grid (Use `-p` to change plot mode)
   abicomp.py ebands *_GSR.nc -ipy                 => Build plotter object and start ipython console.
   abicomp.py ebands *_GSR.nc -nb                  => Interact with the plotter via the jupyter notebook.
