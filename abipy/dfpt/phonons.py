@@ -1040,17 +1040,11 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands):
         )
 
         # Add geo information
-        structure = self.structure
-        abc, angles = structure.lattice.abc, structure.lattice.angles
-        d.update(dict(
-            a=abc[0], b=abc[1], c=abc[2], volume=structure.volume,
-            angle0=angles[0], angle1=angles[1], angle2=angles[2],
-            formula=structure.formula,
-        ))
+        d.update(self.structure.get_dict4frame(with_spglib=True))
 
         # Build the pandas Frame and add the q-point as attribute.
         import pandas as pd
-        frame = pd.DataFrame(d, columns=d.keys())
+        frame = pd.DataFrame(d, columns=list(d.keys()))
         frame.qpoint = qpoint
 
         return frame

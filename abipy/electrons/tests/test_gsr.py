@@ -39,12 +39,12 @@ class GSRReaderTestCase(AbipyTest):
                 self.assert_equal(value, int_ref)
 
             # Test int variables
-            for (varname, int_ref) in ref_int_values.items():
+            for varname, int_ref in ref_int_values.items():
                 value = r.read_value(varname)
                 self.assert_equal(value, int_ref)
 
             # Test float variables
-            for (varname, float_ref) in ref_float_values.items():
+            for varname, float_ref in ref_float_values.items():
                 value = r.read_value(varname)
                 self.assert_almost_equal(value, float_ref)
 
@@ -59,6 +59,7 @@ class GSRReaderTestCase(AbipyTest):
             # Initialize pymatgen structure from GSR.
             structure = r.read_structure()
             self.assertTrue(isinstance(structure, abipy.core.Structure))
+
 
 class GSRFileTestCase(AbipyTest):
 
@@ -114,8 +115,3 @@ class GSRFileTestCase(AbipyTest):
                 assert gsr.energy == e.energy
 
             #assert 0
-
-
-if __name__ == "__main__":
-    import unittest
-    unittest.main()

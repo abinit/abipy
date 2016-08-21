@@ -6,7 +6,7 @@ import numpy as np
 import pymatgen.core.units as units
 
 from collections import OrderedDict, Iterable, defaultdict
-from monty.string import is_string, list_strings
+from monty.string import is_string, list_strings, make_banner
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
@@ -50,12 +50,37 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         self._ebands = r.read_ebands()
 
         # Add forces to structure
-        self.structure.add_site_property("cartesian_forces", self.cart_forces)
+        if self.is_scf_run:
+            self.structure.add_site_property("cartesian_forces", self.cart_forces)
+
+    def __str__(self):
+        lines = []; app = lines.append
+        app(make_banner("Structure", mark="="))
+        app(str(self.structure))
+        if self.is_scf_run:
+            app("")
+            app("Stress tensor (Cartesian coordinates in Ha/Bohr**3):\n%s" % self.cart_stress_tensor)
+            app("Pressure: %.3f [GPa]" % self.pressure)
+        app("")
+        app(make_banner("K-points", mark="="))
+        app(str(self.kpoints))
+        app("")
+        app(make_banner("Electronic Bands", mark="="))
+        app(str(self.ebands))
+
+        return "\n".join(lines)
 
     @property
     def ebands(self):
         """:class:`ElectronBands` object."""
         return self._ebands
+
+    @property
+    def is_scf_run(self):
+        """True if the GSR has been produced by a SCF run."""
+        # NOTE: We use kptopt to understand if we have a SCF/NSCF run
+        # In principle one should use iscf but it's not available in the GSR.
+        return self.ebands.kpoints.ksampling.kptopt >= 0
 
     #FIXME
     @property
@@ -121,10 +146,12 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
     @lazy_property
     def cart_stress_tensor(self):
+        """Stress tensor in Ha/Bohr**3"""
         return self.reader.read_cart_stress_tensor()
 
     @lazy_property
     def pressure(self):
+        """Pressure in Gpa"""
         HaBohr3_GPa = 29421.033 # 1 Ha/Bohr^3, in GPa
         pressure = - (HaBohr3_GPa/3) * self.cart_stress_tensor.trace()
         return units.FloatWithUnit(pressure, unit="GPa", unit_type="pressure")

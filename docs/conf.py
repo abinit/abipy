@@ -44,15 +44,15 @@ release = imp.load_source(mod_name, mod_name)
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
-'sphinx.ext.autodoc', 
-'sphinx.ext.doctest', 
-#'sphinx.ext.coverage', 
-#'sphinx.ext.autosummary', 
-'sphinx.ext.intersphinx', 
-'sphinx.ext.todo', 
-'sphinx.ext.coverage', 
-'sphinx.ext.mathjax', 
-'sphinx.ext.ifconfig', 
+'sphinx.ext.autodoc',
+'sphinx.ext.doctest',
+#'sphinx.ext.coverage',
+#'sphinx.ext.autosummary',
+'sphinx.ext.intersphinx',
+'sphinx.ext.todo',
+'sphinx.ext.coverage',
+'sphinx.ext.mathjax',
+'sphinx.ext.ifconfig',
 'sphinx.ext.viewcode',
 'sphinx.ext.graphviz',
 'sphinx.ext.inheritance_diagram',
@@ -69,10 +69,10 @@ extensions += [
           'IPython.sphinxext.ipython_directive',
           'IPython.sphinxext.ipython_console_highlighting',
           # MG deprecated but we continue using it
-          #'ipython_directive',               
+          #'ipython_directive',
           #'ipython_console_highlighting',
           # This does not work with py3k
-          'numpydoc',
+          #'numpydoc',
           'gen_rst',
           'sphinxcontrib.autorun',
           #'gen_gallery',  Generate gallery of PICS a la' matplotlib.
@@ -96,7 +96,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'abipy'
-copyright = u'2015, ' + release.author
+copyright = u'2016, ' + release.author
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -335,6 +335,6 @@ intersphinx_mapping = {
     "pymatgen": ("http://pymatgen.org/", None),
 }
 
-# If true, Sphinx will warn about all references where the target cannot be found. 
+# If true, Sphinx will warn about all references where the target cannot be found.
 # Default is False. You can activate this mode temporarily using the -n command-line switch.
 nitpicky = True

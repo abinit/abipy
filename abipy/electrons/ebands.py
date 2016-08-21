@@ -68,7 +68,9 @@ class Electron(namedtuple("Electron", "spin kpoint band eig occ")):
     #def __ne__(self, other):
     #    return not self == other
 
-    #def __str__(self):
+    def __str__(self):
+        return "spin=%d, kpt=%s, band=%d, eig=%.3f, occ=%.3f" % (
+            self.spin, self.kpoint, self.band, self.eig, self.occ)
 
     @property
     def skb(self):
@@ -173,9 +175,9 @@ class ElectronTransition(object):
         """String representation."""
         lines = []
         app = lines.append
-        app("Energy: %s [Ev]" % self.energy)
+        app("Energy: %.3f [eV]" % self.energy)
         app("Initial state: %s" % str(self.in_state))
-        app("Final state: %s" % str(self.out_state))
+        app("Final state:   %s" % str(self.out_state))
 
         return "\n".join(lines)
 
@@ -500,7 +502,6 @@ class ElectronBands(object):
         fundamental_gaps = self.fundamental_gaps
         for spin in self.spins:
             odict["fundamentalgap_spin%d" % spin] = fundamental_gaps[spin].energy
-            #odict["fundamentalgap_spin%d" % spin] = fundamental_gaps[spin].energy
 
         direct_gaps = self.direct_gaps
         for spin in self.spins:
@@ -1065,18 +1066,19 @@ class ElectronBands(object):
         app = lines.append
 
         app("Electron bands of %s" % self.structure.formula)
-        app("Number of electrons: %s, Ferml level: %s [eV]" % (self.nelect, self.fermie))
+        app("Number of electrons: %s, Fermi level: %.3f [eV]" % (self.nelect, self.fermie))
 
         def indent(s):
-            return "\t" + s.replace("\n", "\n\t")
+            return "    " + s.replace("\n", "\n    ")
 
         for spin in self.spins:
-            app(">>> Spin %s" % spin)
-            app("Direct gap:\n %s" % indent(str(dir_gaps[spin])))
-            app("Fundamental gap:\n %s" % indent(str(fun_gaps[spin])))
-            app("Bandwidth: %s [eV]" % widths[spin])
-            app("LOMO:\n %s" % indent(str(lomos[spin])))
-            app("HOMO:\n %s" % indent(str(homos[spin])))
+            if self.nsppol == 2:
+                app(">>> For spin %s" % spin)
+            app("Direct gap:\n%s" % indent(str(dir_gaps[spin])))
+            app("Fundamental gap:\n%s" % indent(str(fun_gaps[spin])))
+            app("Bandwidth: %.3f [eV]" % widths[spin])
+            app("Valence min:\n%s" % indent(str(lomos[spin])))
+            app("Valence max:\n%s" % indent(str(homos[spin])))
 
         return "\n".join(lines)
 

@@ -309,12 +309,12 @@ class Kpoint(SlotPickleMixin):
         return np.any(diff < self.ATOL_KDIFF)
 
     def __repr__(self):
-        return "[%.5f, %.5f, %.5f]" % tuple(self.frac_coords)
+        return "[%.3f, %.3f, %.3f]" % tuple(self.frac_coords)
 
     def __str__(self):
-        s =  "[%.5f, %.5f, %.5f]" % tuple(self.frac_coords)
-        if self.name is not None: s += ", name = %s" % self.name
-        if self._weight is not None: s += ", weight = %f" % self.weight
+        s =  "[%.3f, %.3f, %.3f]" % tuple(self.frac_coords)
+        if self.name is not None: s += ", name=%s" % self.name
+        if self._weight is not None: s += ", weight=%.3f" % self.weight
         return s
 
     # Kpoint algebra.
@@ -688,8 +688,8 @@ class Kpath(KpointList):
         app = lines.append
         app("K-path contains %s lines. Number of k-points in each line: %s" % (
             len(self.lines), [len(l) for l in self.lines]))
-        for i, line in enumerate(self.lines):
-            app("line %d: %s" % (i, line))
+        #for i, line in enumerate(self.lines):
+        #    app("line %d: %s" % (i, line))
         header = "\n".join(lines)
 
         vids = {line[0] for line in self.lines}
@@ -836,9 +836,8 @@ class IrredZone(KpointList):
         if self.is_mpmesh:
             mpdivs, shifts = self.mpdivs_shifts
             d = "[%d, %d, %d]" % tuple(mpdivs)
-            s = ", ".join("[%.2f, %.2f, %.2f]" % tuple(s) for s in shifts)
-            app("Mesh with divisions: %s, kptopt: %s" % (d, self.ksampling.kptopt))
-            app("Mesh shifts: %s" % s)
+            s = ", ".join("[%.1f, %.1f, %.1f]" % tuple(s) for s in shifts)
+            app("K-mesh with divisions: %s, shifts: %s, kptopt: %s" % (d, s, self.ksampling.kptopt))
         else:
             app(str(self.ksampling))
 
