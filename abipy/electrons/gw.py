@@ -334,7 +334,7 @@ class QPList(list):
         func_list = []
         residues = []
         if len(domains) == 2:
-            #print('forcing extrmal point on the scissor')
+            #print('forcing extremal point on the scissor')
             ndom = 0
         else:
             ndom = 99
@@ -998,7 +998,6 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         else:
             from abipy.tools.plotting_utils import plot_array
             ksqp_arr = self.reader.read_eigvec_qp(spin, kpoint, band=band)
-
             fig = plot_array(ksqp_arr, **kwargs)
 
         return fig

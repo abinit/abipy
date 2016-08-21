@@ -667,16 +667,19 @@ class Structure(pymatgen.Structure):
         Returns: Instance of :class:`Visualizer`
         """
         if "." not in filename:
-            raise ValueError("Cannot detect extension in filename %s: " % filename)
+            raise ValueError("Cannot detect extension in filename %s:" % filename)
 
         tokens = filename.strip().split(".")
         ext = tokens[-1]
 
         if not tokens[0]:
             # filename == ".ext" ==> Create temporary file.
+            # Note: It seems that dir=os.getcwd() is needed otherwise the file is empty.
+            # Don't know why though!
             import tempfile
-            #_, filename = tempfile.mkstemp(suffix="." + ext, text=True)
             _, filename = tempfile.mkstemp(suffix="." + ext, dir=os.getcwd(), text=True)
+            #_, filename = tempfile.mkstemp(suffix="." + ext, text=True)
+            #_, filename = tempfile.mkstemp(suffix="." + ext, dir=tempfile.gettempdir(), text=True)
 
         if ext == "xsf":
             # xcrysden
@@ -946,7 +949,8 @@ class Structure(pymatgen.Structure):
 
         return tvects
 
-    def write_vib_file(self, xyz_file, qpoint, displ, do_real=True, frac_coords=True, scale_matrix=None, max_supercell=None):
+    def write_vib_file(self, xyz_file, qpoint, displ, do_real=True, frac_coords=True,
+                       scale_matrix=None, max_supercell=None):
         """
         write into the file descriptor xyz_file the positions and displacements of the atoms
 
@@ -995,9 +999,11 @@ class Structure(pymatgen.Structure):
                 new_fcoords = np.mod(new_fcoords, 1)
                 coords = new_lattice.get_cartesian_coords(new_fcoords)
 
-                xyz_file.write(fmtstr.format(site.specie, coords[0], coords[1], coords[2], new_displ[0], new_displ[1], new_displ[2]))
+                xyz_file.write(fmtstr.format(site.specie, coords[0], coords[1], coords[2],
+                               new_displ[0], new_displ[1], new_displ[2]))
 
-    def frozen_2phonon(self, qpoint, displ1, displ2, do_real1=True, do_real2=True, frac_coords=True, scale_matrix=None, max_supercell=None):
+    def frozen_2phonon(self, qpoint, displ1, displ2, do_real1=True, do_real2=True, frac_coords=True,
+                       scale_matrix=None, max_supercell=None):
         """
         Compute the supercell needed for a given qpoint and add the displacement.
 
@@ -1049,7 +1055,6 @@ class Structure(pymatgen.Structure):
                 if not frac_coords:
                     # Convert to fractional coordinates.
                     new_displ2 = self.lattice.get_fractional_coords(new_displ2)
-
 
                 # We don't normalize here !!!
                 fcoords = site.frac_coords + t + new_displ1 + new_displ2
@@ -1313,6 +1318,7 @@ class Structure(pymatgen.Structure):
 
                 shiftk = [0.0, 0.0, 0.0]
                 shiftk[hex_ax] = 0.5
+
             elif lattice_type == "tetragonal":
                 if "I" in spg_symbol:
                     # BCT
@@ -1466,6 +1472,7 @@ class StructureModifier(object):
         new_structure.frozen_2phonon(qpoint, displ1, displ2, do_real1, do_real2, frac_coords, scale_matrix, max_supercell)
 
         return new_structure
+
 
 def frames_from_structures(struct_objects, index=None, with_spglib=True, cart_coords=False):
     """

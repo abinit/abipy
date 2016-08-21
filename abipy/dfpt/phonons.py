@@ -17,7 +17,6 @@ from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands
 from abipy.core.kpoints import Kpoint, KpointList
-from abipy.core.structure import StructureModifier
 from abipy.iotools import ETSF_Reader
 from abipy.tools import gaussian
 from abipy.tools.plotting_utils import Marker
@@ -428,7 +427,7 @@ class PhononBands(object):
             fmt = format_str.format
 
         sep = ", " if cvs else " "
-        for (q, qpoint) in enumerate(self.qpoints):
+        for q, qpoint in enumerate(self.qpoints):
             freq_q = self.phfreqs[q, :]
             for c in qpoint: s += fmt(c)
             for w in freq_q: s += fmt(e)
@@ -641,8 +640,10 @@ class PhononBands(object):
             qlabels: dictionary whose keys are tuple with the reduced coordinates of the q-points.
                 The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}
             branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted).
-            marker: String defining the marker to plot. Syntax `markername:fact` where fact is a float used to scale the marker size.
-            width: String defining the width to plot. Syntax `widthname:fact` where fact is a float used to scale the stripe size.
+            marker: String defining the marker to plot. Syntax `markername:fact` where fact is a float used
+                to scale the marker size.
+            width: String defining the width to plot. Syntax `widthname:fact` where fact is a float used
+                to scale the stripe size.
 
         Returns:
             `matplotlib` figure.
