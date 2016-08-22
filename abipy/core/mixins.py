@@ -317,11 +317,11 @@ class Has_Structure(object):
     def structure(self):
         """Returns the :class:`Structure` object."""
 
-    def show_bz(self):
+    def show_bz(self, **kwargs):
         """
         Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
         """
-        return self.structure.hsym_kpath.get_kpath_plot()
+        return self.structure.show_bz(**kwargs)
 
     def export_structure(self, filepath):
         """
@@ -398,12 +398,6 @@ class Has_ElectronBands(object):
     def kpoints(self):
         """Iterable with the Kpoints."""
         return self.ebands.kpoints
-
-    # TODO: Remove
-    #@property
-    #def nkpts(self):
-    #    """Number of k-points."""
-    #    return len(self.kpoints)
 
     def plot_ebands(self, **kwargs):
         """Plot the electron energy bands. See the :func:`ElectronBands.plot` for the signature."""

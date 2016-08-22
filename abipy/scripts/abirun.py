@@ -139,40 +139,48 @@ def write_open_notebook(flow, options):
     nb.cells.extend([
         #nbf.new_markdown_cell("This is an auto-generated notebook for %s" % os.path.basename(pseudopath)),
         nbf.new_code_cell("""\
-from __future__ import print_function, division, unicode_literals
-from abipy import abilab
-%matplotlib notebook
+from __future__ import print_function, division, unicode_literals, absolute_import
 
-import pylab
-pylab.rcParams['figure.figsize'] = (25.0, 10.0)
-import seaborn as sns"""),
+import sys
+import os
+
+%matplotlib notebook
+from IPython.display import display
+#import seaborn
+
+from abipy import abilab
+"""),
 
         nbf.new_code_cell("flow = abilab.Flow.pickle_load('%s')" % flow.workdir),
-        nbf.new_code_cell("flow.show_dependencies()"),
+        nbf.new_code_cell("#flow.debug()"),
         nbf.new_code_cell("flow.check_status(show=True, verbose=0)"),
+        nbf.new_code_cell("flow.show_dependencies()"),
+        nbf.new_code_cell("fig = flow.plot_networkx()"),
         nbf.new_code_cell("flow.show_inputs(nids=None, wslice=None)"),
+        nbf.new_code_cell("flow.show_history()"),
+        nbf.new_code_cell("flow.show_corrections()"),
+        nbf.new_code_cell("flow.show_event_handlers()"),
         nbf.new_code_cell("flow.inspect(nids=None, wslice=None)"),
         nbf.new_code_cell("flow.show_abierrors()"),
         nbf.new_code_cell("flow.show_qouts()"),
     ])
 
-    # Next, we write it to a file on disk that we can then open as a new notebook.
-    # Note: This should be as easy as: nbf.write(nb, fname), but the current api
-    # is a little more verbose and needs a real file-like object.
     import tempfile, io
     _, nbpath = tempfile.mkstemp(suffix='.ipynb', text=True)
 
-    with io.open(nbpath, 'wt', encoding="utf8") as f:
+    with io.open(nbpath, 'wt', encoding="utf8") as fh:
         nbformat.write(nb, fh)
 
-    if which("jupyter") is not None:
-        return os.system("jupyter notebook %s" % nbpath)
+    if which("jupyter") is None:
+        raise RuntimeError("Cannot find jupyter in $PATH. Install it with `pip install`")
 
-    if which("ipython") is not None:
-        return os.system("ipython notebook %s" % nbpath)
-
-    raise RuntimeError("Cannot find neither jupyther nor ipython. Install them with `pip install`")
-
+    cmd = "jupyter notebook %s" % nbpath
+    if not options.no_daemon:
+        return os.system(cmd)
+    else:
+        import daemon
+        with daemon.DaemonContext():
+            return os.system(cmd)
 
 @prof_main
 def main():
@@ -435,6 +443,8 @@ Specify the files to open. Possible choices:
     # Subparser for notebook.
     p_notebook = subparsers.add_parser('notebook', parents=[copts_parser],
                                        help="Create and open an ipython notebook to interact with the flow.")
+    p_notebook.add_argument('--no-daemon', action='store_true', default=False,
+                             help="Don't start jupyter notebook with daemon process")
 
     # Subparser for ipython.
     p_ipython = subparsers.add_parser('ipython', parents=[copts_parser],

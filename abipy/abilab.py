@@ -199,6 +199,7 @@ def abicheck(verbose=0):
     can be found in $PATH and whether the python modules needed
     at run-time can be imported. Return string with error messages, empty if success.
     """
+    from monty.termcolor import cprint
     err_lines = []
     app = err_lines.append
 
@@ -211,12 +212,11 @@ def abicheck(verbose=0):
     # Get info on the Abinit build.
     from abipy.core.testing import cmp_version
     if manager is not None:
-        print("AbiPy Manager:\n", manager)
-        print()
+        cprint("AbiPy Manager:\n%s\n" % str(manager), color="green")
         build = AbinitBuild(manager=manager)
         if not build.has_netcdf: app("Abinit executable does not support netcdf")
-        print("Abinitbuild:\n", build)
-        if verbose: print(build.info)
+        cprint("Abinitbuild:\n%s" % str(build), color="magenta")
+        if verbose: cprint(str(build.info), color="magenta")
         print()
         if not cmp_version(build.version, min_abinit_version, op=">="):
             app("Abipy requires Abinit version >= %s but got %s" % (min_abinit_version, build.version))
@@ -225,16 +225,15 @@ def abicheck(verbose=0):
     from pymatgen.io.abinit.launcher import PyFlowScheduler
     try:
         scheduler = PyFlowScheduler.from_user_config()
-        print("Abipy Scheduler:\n", scheduler)
-        print()
+        cprint("Abipy Scheduler:\n%s\n" % str(scheduler), color="yellow")
     except Exception as exc:
         app(_straceback())
 
     from tabulate import tabulate
     try:
         d = software_stack()
-        print("Installed packages:")
-        print(tabulate(list(d.items()), headers=["Package", "Version"]))
+        cprint("Installed packages:", color="blue")
+        cprint(tabulate(list(d.items()), headers=["Package", "Version"]), color="blue")
         print()
     except ImportError:
         app(_straceback())

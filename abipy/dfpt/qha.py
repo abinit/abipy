@@ -1,6 +1,8 @@
 # coding: utf-8
 """
 Tools and workflows for calculations within the quasi-harmonic approximation.
+
+WARNING: This code is still under development.
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 

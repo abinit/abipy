@@ -81,7 +81,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure):
         """
         The interatomic force constants calculated by anaddb.
         The following anaddb variables should be used in the run: ifcflag, natifc, atifc, ifcout
-        None, if the netcdf file does not contain the IFCs,
+        Return None, if the netcdf file does not contain the IFCs,
         """
         try:
             return InteratomicForceConstants.from_file(self.filepath)
