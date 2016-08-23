@@ -318,7 +318,7 @@ class Robot(object):
 
     def pairplot(self, data=None, getter="get_dataframe", map_kws=None, show=True, **kwargs):
         import matplotlib.pyplot as plt
-        import seaborn as sns
+        import seaborn.apionly as sns
         if data is None:
             data = getattr(self, getter)()
 
@@ -486,7 +486,7 @@ class SigresRobot(Robot):
         kwargs are passed to :class:`seaborn.PairGrid`.
         """
         import matplotlib.pyplot as plt
-        import seaborn as sns
+        import seaborn.apionly as sns
 
         data = self.get_qpgaps_dataframe()
         grid = sns.PairGrid(data, x_vars=x_vars, y_vars="qpgap", **kwargs)
@@ -627,7 +627,7 @@ class DdbRobot(Robot):
         kwargs are passed to :class:`seaborn.PairGrid`.
         """
         import matplotlib.pyplot as plt
-        import seaborn as sns
+        import seaborn.apionly as sns
 
         # Get the dataframe for this q-point.
         data = self.get_dataframe_at_qpoint(qpoint=qpoint)

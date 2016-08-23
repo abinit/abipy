@@ -1617,7 +1617,7 @@ class ElectronBands(object):
         fig = plt.gcf()
         return fig
 
-    def export_bxsf(self, filepath):
+    def to_bxsf(self, filepath):
         """
         Export the full band structure on filepath in the BXSF format
         suitable for the visualization of the Fermi surface.

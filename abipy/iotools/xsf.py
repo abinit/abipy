@@ -7,6 +7,7 @@ import numpy as np
 from abipy.tools import transpose_last3dims, add_periodic_replicas
 from pymatgen.core.units import Energy, EnergyArray
 
+
 __all__ = [
     "xsf_write_structure",
     "xsf_write_data",
@@ -43,7 +44,7 @@ def xsf_write_structure(file, structures):
         for i in range(3):
             fwrite(' %.14f %.14f %.14f\n' % tuple(cell[i]))
 
-        cart_coords = struct.cart_coords  
+        cart_coords = struct.cart_coords
         atomic_numbers = struct.atomic_numbers
 
         # TODO
@@ -75,7 +76,7 @@ def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None):
             in order to have a periodic 3D array of shape=(nx+1,ny+1,nz+1).
         cplx_mode: string defining the data to print when data is a complex array.
             Possible choices are (case-insensitive):
-                                                                                        
+
                 - "re"  for real part.
                 - "im" for imaginary part.
                 - "abs" for the absolute value
@@ -115,7 +116,7 @@ def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None):
     fdata = transpose_last3dims(data)
     fgrid = fdata.shape[-3:]
 
-    cell = structure.lattice_vectors(space="r") 
+    cell = structure.lattice_vectors(space="r")
     origin = np.zeros(3)
 
     fwrite('BEGIN_BLOCK_DATAGRID_3D\n')
@@ -158,7 +159,7 @@ def bxsf_write(file, structure, nsppol, nband, ndivs, emesh_sbk, fermie, unit="e
         #. The k-points must span the reciprocal unit cell, not the Brillouin zone.
 
         #. The mesh must be closed and centered on Gamma.
-            
+
         #. Energies are written in row-major (i.e. C) order.
 
         #  Energies are in Hartree.
@@ -193,7 +194,7 @@ def bxsf_write(file, structure, nsppol, nband, ndivs, emesh_sbk, fermie, unit="e
     fw("%d %d %d\n" % tuple(ndivs)) # Number of division in the full BZ mesh.
     fw("0 0 0\n")                   # Unshifted meshes are not supported.
 
-    # Reciprocal lattice vectors in Ang^{-1} 
+    # Reciprocal lattice vectors in Ang^{-1}
     gcell = structure.lattice_vectors("g")
     for i in range(3):
         fw('%f %f %f\n' % tuple(gcell[i]))
@@ -205,13 +206,11 @@ def bxsf_write(file, structure, nsppol, nband, ndivs, emesh_sbk, fermie, unit="e
             idx += 1
             enebz = emesh_sbk[spin, band, :]
             fw(" BAND: %d\n" % idx)
-            #np.savetxt(file, enebz)
             fw("\n".join("%.18e" % v for v in enebz))
             fw("\n")
 
     fw(' END_BANDGRID_3D\n')
     fw('END_BLOCK_BANDGRID_3D\n')
-
     file.flush()
 
     if close_it:

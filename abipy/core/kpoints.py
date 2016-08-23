@@ -35,25 +35,42 @@ __all__ = [
 _ATOL_KDIFF = 1e-8
 
 
-def is_integer(x, atol=_ATOL_KDIFF):
+def set_atol_kdiff(new_atol):
+    """
+    Change the value of the tolerance `_ATOL_KDIFF` used to compare k-points.
+    Return old value
+
+    .. warning::
+
+        This function should be called at the beginning of the script.
+    """
+    global _ATOL_KDIFF
+    old_atol = _ATOL_KDIFF
+    _ATOL_KDIFF = new_atol
+    return old_atol
+
+
+def is_integer(x, atol=None):
     """
     True if all x is integer within the absolute tolerance atol.
+    Use _ATOL_KDIFF is atol is None.
 
     >>> assert is_integer([1., 2.])
     >>> assert is_integer(1.01, atol=0.011)
     >>> assert not is_integer([1.01, 2])
     """
+    if atol is None: atol = _ATOL_KDIFF
     int_x = np.around(x)
     return np.allclose(int_x, x, atol=atol)
-
     #return (np.abs(int_x[0] - x[0]) < atol and
     #        np.abs(int_x[1] - x[1]) < atol and
     #        np.abs(int_x[2] - x[2]) < atol )
 
 
-def issamek(k1, k2, atol=1e-08):
+def issamek(k1, k2, atol=None):
     """
     True if k1 and k2 are equal modulo a lattice vector.
+    Use _ATOL_KDIFF is atol is None.
 
     >>> assert issamek([1,1,1], [0,0,0])
     >>> assert issamek([1.1,1,1], [0,0,0], atol=0.1)
@@ -213,11 +230,6 @@ class Kpoint(SlotPickleMixin):
         "_hash",
     ]
 
-    # Tolerance used to compare k-points.
-    @property
-    def ATOL_KDIFF(self):
-        return _ATOL_KDIFF
-
     def __init__(self, frac_coords, lattice, weight=None, name=None):
         """
         Args:
@@ -306,7 +318,7 @@ class Kpoint(SlotPickleMixin):
         """
         kreds = wrap_to_ws(self.frac_coords)
         diff = np.abs(np.abs(kreds) - 0.5)
-        return np.any(diff < self.ATOL_KDIFF)
+        return np.any(diff < _ATOL_KDIFF)
 
     def __repr__(self):
         return "[%.3f, %.3f, %.3f]" % tuple(self.frac_coords)
@@ -327,11 +339,10 @@ class Kpoint(SlotPickleMixin):
     def __eq__(self, other):
         try:
             # Comparison between two Kpoint objects
-            return issamek(self.frac_coords, other.frac_coords, atol=self.ATOL_KDIFF)
-
+            return issamek(self.frac_coords, other.frac_coords)
         except AttributeError:
             # Kpoint vs iterable (e.g. list)
-            return issamek(self.frac_coords, other, atol=self.ATOL_KDIFF)
+            return issamek(self.frac_coords, other)
 
     def __ne__(self, other):
         return not self == other
@@ -397,8 +408,7 @@ class Kpoint(SlotPickleMixin):
 
             # Add it only if it's not already in the list.
             for prev_coords in frac_coords:
-                if issamek(sk_coords, prev_coords, atol=self.ATOL_KDIFF):
-                    break
+                if issamek(sk_coords, prev_coords): break
             else:
                 frac_coords.append(sk_coords)
 
@@ -546,7 +556,7 @@ class KpointList(collections.Sequence):
         try:
             return self._points.index(kpoint)
         except ValueError:
-            raise ValueError("\nCannot find point: %s in KpointList:\n%s" % (repr(kpoint), repr(self)))
+            raise ValueError("Cannot find point: %s in KpointList:\n%s" % (repr(kpoint), repr(self)))
 
     def find(self, kpoint):
         """
@@ -618,8 +628,7 @@ class KpointList(collections.Sequence):
             i += 1
             # Add it only if it's not already in the list.
             for prev_coords in frac_coords:
-                if issamek(kpoint.frac_coords, prev_coords, atol=_ATOL_KDIFF):
-                    break
+                if issamek(kpoint.frac_coords, prev_coords): break
             else:
                 frac_coords.append(kpoint.frac_coords)
                 good_indices.append(i)
