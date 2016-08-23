@@ -375,77 +375,80 @@ o-  o/   oo`       ss    /y..y/    ss ss +y`   -y::y-    yo          -o/  .o- -o
             `.`                                                   ..`
 """
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#<script type="text/javascript" src="//file/local/jmol/jsmol/JSmol.min.js"></script>
+#<script type="text/javascript" src="//file/Users/gmatteo//local/jmol/jsmol/JSmol.min.js"></script>
+#<script type="text/javascript" src="JSmol.min.js"></script>
+
+def display_structure(structure):
+    structure = Structure.as_structure(structure)
+    cif_string = structure.to(fmt="cif", file="foo.cif")
+    cif_file = "foo.cif"
+    structure.to(fmt="cif", filename=cif_file)
+    #src = "%(cif_string)s",
+    #src: '%(cif_file)s',
+
+    javascript = """
+<script type="text/javascript" src="jquery/jquery.min.js"></script>
+//<script type="text/javascript" src="JSmol.lite.nojq.js"></script>
+<script type="text/javascript" src="JSmol.min.js"></script>
+
+<script type="text/javascript">
+
+var Info;
+
+;(function() {
+    Info = {
+        width: 500,
+        height: 500,
+        debug: false,
+        color: "0xC0C0C0",
+        //addSelectionOptions: true,
+        serverURL: "http://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php",
+        script: "load %(cif_file)s;",
+        //src: "%(cif_file)s",
+        use: "HTML5",
+        readyFunction: null,
+        //defaultModel: ":dopamine", // PubChem -- use $ for NCI
+        bondWidth: 4,
+        zoomScaling: 1.5,
+        pinchScaling: 2.0,
+        mouseDragFactor: 0.5,
+        touchDragFactor: 0.15,
+        multipleBondSpacing: 4,
+        spinRateX: 0.2,
+        spinRateY: 0.5,
+        spinFPS: 20,
+        spin:true,
+        debug: false
+    }
+})();
+
+$(window).ready(function() {
+  //Jmol._document = null;
+  //Jmol.getAppletHtml("jmol", Info);
+  //Jmol.script(jmol, "load '" + "%(cif_file)s" + "'");
+  //$("#apphere").html(jmol._code);
+  $("#apphere").html(Jmol.getAppletHtml("jmol", Info));
+  //$("#apphere").html(Jmol.getTMApplet("jmol", Info));
+  $("#spinstuff").html('<a href="javascript:jmol.spin(true)">spin ON</a> <a href="javascript:jmol.spin(false)">spin OFF</a>');
+});
+
+</script>
+""" % locals()
+
+
+  #//Jmol.getApplet("jmol", Info);
+  #//$("#apphere").html(Jmol.getAppletHtml("jmol", Info));
+  #//var jmolApplet0;
+  #//Jmol.loadFile("jmol", '%(cif_file)s');
+
+
+    from IPython.display import HTML, display
+    html_code = """
+<div id="spinstuff"></div>
+<br>
+<div id="apphere"></div>
+"""
+    #return HTML(javascript + html_code)
+    #return display(HTML(javascript + html_code))
+    return javascript + html_code
