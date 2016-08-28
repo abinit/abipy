@@ -382,6 +382,6 @@ def display_structure(obj, **kwargs):
                           "\ndisplay structure requires nbjsmol package\n."
                           "Install it with `pip install nbjsmol`\n")
 
-    # Cast to structure, get string with cif data and pass it do nbjsmol.
+    # Cast to structure, get string with cif data and pass it to nbjsmol.
     structure = Structure.as_structure(obj)
     return nbjsmol_display(structure.to(fmt="cif"), ext=".cif", **kwargs)

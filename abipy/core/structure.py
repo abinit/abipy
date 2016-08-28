@@ -8,6 +8,7 @@ import pymatgen
 import numpy as np
 
 from pprint import pprint
+from warnings import warn
 from collections import OrderedDict
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
@@ -404,6 +405,16 @@ class Structure(pymatgen.Structure):
             if x_prod < 0: raise RuntimeError("x_prod is still negative!")
 
         return structure
+
+    def _repr_html_(self):
+        try:
+            from nbjsmol import nbjsmol_display
+            return nbjsmol_display(self.to(fmt="cif"), ext=".cif")
+        except ImportError as exc:
+            warn(str(exc) +
+                 "\nnbjsmol package (install it with `pip install nbjsmol`).\n"
+                 "Return `repr(self)`")
+            return repr(self)
 
     @property
     def reciprocal_lattice(self):
