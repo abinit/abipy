@@ -30,8 +30,8 @@ __all__ = [
 
 class Structure(pymatgen.Structure):
     """
-    Extends :class:`pymatgen.Structure` with methods that allows one
-    to construct a Structure object from ABINIT variables.
+    Extends :class:`pymatgen.Structure` with Abinit-specific methods.
+
     """
     @classmethod
     def as_structure(cls, obj):
@@ -57,7 +57,7 @@ class Structure(pymatgen.Structure):
                 try:
                     return Structure.from_dict(obj)
                 except:
-                    raise TypeError("Don't know how to convert dict %s into a structure" % obj)
+                    raise TypeError("Don't know how to convert dict %s into a structure" % str(obj))
 
         if hasattr(obj, "structure"):
             return cls.as_structure(obj.structure)
@@ -120,7 +120,8 @@ class Structure(pymatgen.Structure):
         return new
 
     @classmethod
-    def from_material_id(cls, material_id, final=True, api_key=None, endpoint="https://www.materialsproject.org/rest/v2"):
+    def from_material_id(cls, material_id, final=True, api_key=None,
+                         endpoint="https://www.materialsproject.org/rest/v2"):
         """
         Get a Structure corresponding to a material_id.
 
@@ -340,7 +341,8 @@ class Structure(pymatgen.Structure):
         return("\n".join(lines))
 
     def abi_primitive(self, symprec=1e-3, angle_tolerance=5, no_idealize=0):
-        #TODO: this should be moved to pymatgen in the get_refined_structure or so ... to be considered in February 2016
+        #TODO: this should be moved to pymatgen in the get_refined_structure or so ...
+        # to be considered in February 2016
         from pymatgen.io.ase import AseAtomsAdaptor
         try:
             import spglib
@@ -350,10 +352,12 @@ class Structure(pymatgen.Structure):
                                  'while it is {:d}.{:d}.{:d}'.format(version[0], version[1], version[2]))
         except ImportError:
             raise ValueError('abi_primitive requires spglib')
+
         try:
             from ase.atoms import Atoms
         except ImportError:
             raise ValueError('Could not import Atoms from ase')
+
         s = self.get_sorted_structure()
         ase_adaptor = AseAtomsAdaptor()
         ase_atoms = ase_adaptor.get_atoms(structure=s)
@@ -407,14 +411,22 @@ class Structure(pymatgen.Structure):
         return structure
 
     def _repr_html_(self):
+        """Integration with jupyter notebooks."""
         try:
             from nbjsmol import nbjsmol_display
-            return nbjsmol_display(self.to(fmt="cif"), ext=".cif")
+            return nbjsmol_display(self.to(fmt="cif"), ext=".cif", html=True)
         except ImportError as exc:
-            warn(str(exc) +
-                 "\nnbjsmol package (install it with `pip install nbjsmol`).\n"
-                 "Return `repr(self)`")
-            return repr(self)
+            # Write warning only once.
+            cls = self.__class__
+            if not hasattr(cls, "_repr_html_num_warns"): cls._repr_html_num_warns = 0
+            if cls._repr_html_num_warns == 0:
+                cls._repr_html_num_warns += 1
+                warn(str(exc) +
+                     "\n_repr_html_ requires nbjsmol package\n."
+                     "Install it with `pip install nbjsmol.`\n"
+                     "See also https://github.com/gmatteo/nbjsmol.\n"
+                     "Returning `str(self)` in HTML form.")
+            return str(self).replace("\n", "<br>")
 
     @property
     def reciprocal_lattice(self):
@@ -524,7 +536,8 @@ class Structure(pymatgen.Structure):
     @lazy_property
     def hsym_kpath(self):
         """
-        Returns an instance of :class:`HighSymmKpath`. (Database of high symmetry k-points and high symmetry lines).
+        Returns an instance of :class:`HighSymmKpath`.
+        (Database of high symmetry k-points and high symmetry lines).
         """
         from pymatgen.symmetry.bandstructure import HighSymmKpath
         return HighSymmKpath(self)
@@ -685,16 +698,13 @@ class Structure(pymatgen.Structure):
 
         if not tokens[0]:
             # filename == ".ext" ==> Create temporary file.
-            # Note: It seems that dir=os.getcwd() is needed otherwise the file is empty.
-            # Don't know why though!
+            # dir=os.getcwd() is needed when we invoke the method from a notebook.
             import tempfile
             _, filename = tempfile.mkstemp(suffix="." + ext, dir=os.getcwd(), text=True)
-            #_, filename = tempfile.mkstemp(suffix="." + ext, text=True)
-            #_, filename = tempfile.mkstemp(suffix="." + ext, dir=tempfile.gettempdir(), text=True)
 
         if ext == "xsf":
             # xcrysden
-            print("Writing data to", filename)
+            print("Writing data to:", filename)
             s = self.to(fmt="xsf", filename=filename)
             #print(s)
 
@@ -1210,7 +1220,6 @@ class Structure(pymatgen.Structure):
         from pymatgen.io.vasp.inputs import Kpoints
         vasp_kpoints = Kpoints.from_string(r.text)
         #print(vasp_kpoints.style)
-
         #return kptrlatt, shiftk
         #return ksamp
 
@@ -1372,6 +1381,55 @@ class Structure(pymatgen.Structure):
         return psp_valences
 
 
+def frames_from_structures(struct_objects, index=None, with_spglib=True, cart_coords=False):
+    """
+    Build two pandas dataframes with the most important geometrical paramaters associated to
+    a list of structures or a list of objects that can be converted into structures.
+
+    Args:
+        struct_objects: List of objects that can be converted to structure.
+            Support filenames, structure objects, Abinit input files, dicts and many more types.
+            See `Structure.as_structure` for the complete list.
+        index: Index of the dataframe.
+        with_spglib: If True, spglib is invoked to get the spacegroup symbol and number.
+        cart_coords: True if the `coords` dataframe should contain Cartesian cordinates
+            instead of Reduced coordinates.
+
+    Return:
+        namedtuple with two pandas :class:`DataFrame`: `lattice` contains the lattice parameters,
+        `coords` the atomic positions. The list of structures is available in the `structures` entry:
+
+    Example:
+        dfs = frames_from_structures(files)
+        dfs.lattice
+        dfs.coords
+        for structure in dfs.structures:
+            print(structure)
+    """
+    structures = [Structure.as_structure(obj) for obj in struct_objects]
+    # Build Frame with lattice parameters.
+    # Use OrderedDict to have columns ordered nicely.
+    odict_list = [(structure.get_dict4frame(with_spglib=with_spglib)) for structure in structures]
+
+    import pandas as pd
+    lattice_frame = pd.DataFrame(odict_list, index=index,
+                                 columns=list(odict_list[0].keys()) if odict_list else None)
+
+    # Build Frame with atomic positions.
+    max_numsite = max(len(s) for s in structures)
+    odict_list = []
+    for structure in structures:
+        if cart_coords:
+            odict_list.append({i: (site.species_string, site.coords) for i, site in enumerate(structure)})
+        else:
+            odict_list.append({i: (site.species_string, site.frac_coords) for i, site in enumerate(structure)})
+
+    coords_frame = pd.DataFrame(odict_list, index=index,
+                                columns=list(range(max_numsite)) if odict_list else None)
+
+    return dict2namedtuple(lattice=lattice_frame, coords=coords_frame, structures=structures)
+
+
 class StructureModifier(object):
     """
     This object provides an easy-to-use interface for
@@ -1483,52 +1541,3 @@ class StructureModifier(object):
         new_structure.frozen_2phonon(qpoint, displ1, displ2, do_real1, do_real2, frac_coords, scale_matrix, max_supercell)
 
         return new_structure
-
-
-def frames_from_structures(struct_objects, index=None, with_spglib=True, cart_coords=False):
-    """
-    Build two pandas dataframes with the most important geometrical paramaters associated to
-    a list of structures or a list of objects that can be converted into structures.
-
-    Args:
-        struct_objects: List of objects that can be converted to structure.
-            Support filenames, structure objects, Abinit input files, dicts and many more types.
-            See `Structure.as_structure` for the complete list.
-        index: Index of the dataframe.
-        with_spglib: If True, spglib is invoked to get the spacegroup symbol and number.
-        cart_coords: True if the `coords` dataframe should contain Cartesian cordinates
-            instead of Reduced coordinates.
-
-    Return:
-        namedtuple with two pandas :class:`DataFrame`: `lattice` contains the latticee paramenters,
-        `coords` the atomic positions. The list of structures is available in the `structures` entry:
-
-    Example:
-        dfs = frames_from_structures(files)
-        dfs.lattice
-        dfs.coords
-        for structure in dfs.structures:
-            print(structure)
-    """
-    structures = [Structure.as_structure(obj) for obj in struct_objects]
-    # Build Frame with lattice parameters.
-    # Use OrderedDict to have columns ordered nicely.
-    odict_list = [(structure.get_dict4frame(with_spglib=with_spglib)) for structure in structures]
-
-    import pandas as pd
-    lattice_frame = pd.DataFrame(odict_list, index=index,
-                                 columns=list(odict_list[0].keys()) if odict_list else None)
-
-    # Build Frame with atomic positions.
-    max_numsite = max(len(s) for s in structures)
-    odict_list = []
-    for structure in structures:
-        if cart_coords:
-            odict_list.append({i: (site.species_string, site.coords) for i, site in enumerate(structure)})
-        else:
-            odict_list.append({i: (site.species_string, site.frac_coords) for i, site in enumerate(structure)})
-
-    coords_frame = pd.DataFrame(odict_list, index=index,
-                                columns=list(range(max_numsite)) if odict_list else None)
-
-    return dict2namedtuple(lattice=lattice_frame, coords=coords_frame, structures=structures)

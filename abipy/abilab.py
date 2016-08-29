@@ -167,6 +167,29 @@ def print_frame(frame, title=None):
     print()
 
 
+def display_structure(obj, **kwargs):
+    """
+    Use Jsmol to display a structure in the jupyter notebook.
+    Requires `nbjsmol` notebook extension installed on the local machine.
+    Install it with `pip install nbjsmol`. See also https://github.com/gmatteo/nbjsmol.
+
+    Args:
+        obj: Structure object or file with a structure or python object with a `structure` attribute.
+        kwargs: Keyword arguments passed to `nbjsmol_display`
+    """
+    try:
+        from nbjsmol import nbjsmol_display
+    except ImportError as exc:
+        raise ImportError(str(exc) +
+                          "\ndisplay structure requires nbjsmol package\n."
+                          "Install it with `pip install nbjsmol.`\n"
+                          "See also https://github.com/gmatteo/nbjsmol.")
+
+    # Cast to structure, get string with cif data and pass it to nbjsmol.
+    structure = Structure.as_structure(obj)
+    return nbjsmol_display(structure.to(fmt="cif"), ext=".cif", **kwargs)
+
+
 def software_stack():
     """
     Import all the hard dependencies. Returns ordered dict: package --> string with version info.
@@ -373,15 +396,3 @@ o-  o/   oo`       ss    /y..y/    ss ss +y`   -y::y-    yo          -o/  .o- -o
    `  ..` `:-                            :+              /:         --` `-` `
             `.`                                                   ..`
 """
-
-def display_structure(obj, **kwargs):
-    try:
-        from nbjsmol import nbjsmol_display
-    except ImportError as exc:
-        raise ImportError(str(exc) +
-                          "\ndisplay structure requires nbjsmol package\n."
-                          "Install it with `pip install nbjsmol`\n")
-
-    # Cast to structure, get string with cif data and pass it to nbjsmol.
-    structure = Structure.as_structure(obj)
-    return nbjsmol_display(structure.to(fmt="cif"), ext=".cif", **kwargs)
