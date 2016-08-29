@@ -266,7 +266,7 @@ class ElectronBands(object):
 
     .. attribute:: fermie
 
-        fermie: Fermi level in eV. Note that, tf the band structure has been computed
+            Fermi level in eV. Note that, if the band structure has been computed
             with a NSCF run, fermie corresponds to the fermi level obtained
             in the SCF run that produced the density used for the band structure calculation.
     """

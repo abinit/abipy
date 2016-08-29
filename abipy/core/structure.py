@@ -1040,7 +1040,6 @@ class Structure(pymatgen.Structure):
         """
         # I've copied code from make_supercell since the loop over supercell images
         # is inside make_supercell and I don't want to create a mapping
-
         if scale_matrix is None:
             if max_supercell is None:
                 raise ValueError("If scale_matrix is not provided, please provide max_supercell !")
@@ -1061,7 +1060,7 @@ class Structure(pymatgen.Structure):
         new_sites = []
         for at,site in enumerate(self):
             for t in tvects:
-                if(do_real1):
+                if do_real1:
                     new_displ1[:] = np.real(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ1[at,:])
                 else:
                     new_displ1[:] = np.imag(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ1[at,:])
@@ -1069,7 +1068,7 @@ class Structure(pymatgen.Structure):
                     # Convert to fractional coordinates.
                     new_displ1 = self.lattice.get_fractional_coords(new_displ1)
 
-                if(do_real2):
+                if do_real2:
                     new_displ2[:] = np.real(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ2[at,:])
                 else:
                     new_displ2[:] = np.imag(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ2[at,:])

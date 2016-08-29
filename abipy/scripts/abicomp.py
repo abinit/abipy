@@ -18,13 +18,53 @@ def abicomp_structure(options):
     Compare crystalline structures.
     """
     paths = options.paths
-    dfs = abilab.frames_from_structures(paths, index=[os.path.relpath(p) for p in paths])
-    print("File list:")
-    for i, p in enumerate(paths):
-        print("%d %s" % (i, p))
-    print()
-    abilab.print_frame(dfs.lattice, title="Lattice parameters:")
-    abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
+    index = [os.path.relpath(p) for p in paths]
+
+    if options.notebook:
+        import nbformat
+        nbv = nbformat.v4
+        nb = nbv.new_notebook()
+
+        nb.cells.extend([
+            nbv.new_code_cell("""\
+from __future__ import print_function, division, unicode_literals, absolute_import
+import sys
+import os
+
+%matplotlib notebook
+from IPython.display import display
+#import seaborn as sns
+
+from abipy import abilab"""),
+            nbv.new_code_cell("dfs = abilab.frames_from_structures(%s, index=%s)" % (paths, index)),
+            nbv.new_code_cell("dfs.lattice"),
+            nbv.new_code_cell("dfs.coords"),
+            nbv.new_code_cell("for structure in dfs.structures: display(structure)"),
+        ])
+
+        import io, tempfile # os,
+        _, nbpath = tempfile.mkstemp(prefix="abinb_", suffix='.ipynb', dir=os.getcwd(), text=True)
+
+        # Write notebook
+        import nbformat
+        with io.open(nbpath, 'wt', encoding="utf8") as fh:
+            nbformat.write(nb, fh)
+
+        cmd = "jupyter notebook %s" % nbpath
+        return os.system(cmd)
+
+    dfs = abilab.frames_from_structures(paths, index=index)
+
+    if options.ipython:
+        import IPython
+        IPython.embed(header="Type `dfs` in the terminal and use <TAB> to list its methods", dfs=dfs)
+    else:
+        print("File list:")
+        for i, p in enumerate(paths):
+            print("%d %s" % (i, p))
+        print()
+        abilab.print_frame(dfs.lattice, title="Lattice parameters:")
+        abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
 
     return 0
 
@@ -305,7 +345,7 @@ Usage example:
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for structure command.
-    p_struct = subparsers.add_parser('structure', parents=[copts_parser], help=abicomp_structure.__doc__)
+    p_struct = subparsers.add_parser('structure', parents=[copts_parser, ipy_parser], help=abicomp_structure.__doc__)
 
     # Subparser for ebands command.
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, ipy_parser], help=abicomp_ebands.__doc__)
