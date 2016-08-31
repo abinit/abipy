@@ -9,7 +9,7 @@ from monty.string import is_string, boxed
 from monty.functools import lazy_property
 from pymatgen.core.units import bohr_to_ang
 from abipy.core.structure import Structure, frames_from_structures
-from abipy.core.mixins import Has_Structure
+from abipy.core.mixins import Has_Structure, TextFile
 
 import logging
 logger = logging.getLogger(__name__)
@@ -211,7 +211,7 @@ class Dataset(dict, Has_Structure):
             raise exc
 
 
-class AbinitInputFile(Has_Structure):
+class AbinitInputFile(TextFile, Has_Structure):
     """
     This object parses the Abinit input file, stores the variables in
     dict-like objects (Datasets) and build `Structure` objects from
@@ -219,22 +219,20 @@ class AbinitInputFile(Has_Structure):
     declared in the Abinit input file.
     """
     @classmethod
-    def from_file(cls, path):
-        """Build the object from file."""
-        with open(path, "rt") as fh:
-            return cls.from_string(fh.read())
-
-    @classmethod
     def from_string(cls, string):
         """Build the object from string."""
-        return cls(string)
+        import tempfile
+        _, filename = tempfile.mkstemp(suffix=".abi", text=True)
+        with open(filename, "wt") as fh:
+            fh.write(string)
+        return cls(filename)
 
-    def __init__(self, string):
-        """
-        Args:
-            dvars: Dictionary {varname: value}.
-            string: String with the Abinit input (used in __str__)
-        """
+    def __init__(self, filepath):
+        super(AbinitInputFile, self).__init__(filepath)
+
+        with open(filepath, "rt") as fh:
+            string = fh.read()
+
         self.string = string
         self.datasets = AbinitInputParser().parse(string)
         self.ndtset = len(self.datasets)
@@ -269,6 +267,9 @@ class AbinitInputFile(Has_Structure):
             app(str(dfs.coords))
 
         return "\n".join(lines)
+
+    def close(self):
+        """NOP, required by ABC."""
 
     @lazy_property
     def structure(self):

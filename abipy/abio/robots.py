@@ -5,7 +5,6 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import sys
 import os
 import numpy as np
-import pandas as pd
 
 from collections import OrderedDict, deque
 from monty.string import is_string, list_strings
@@ -13,7 +12,6 @@ from monty.functools import lazy_property
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from pymatgen.analysis.eos import EOS
 from pymatgen.io.abinit.flows import Flow
-from pymatgen.io.abinit.netcdf import NetcdfReaderError
 from abipy.core.mixins import NotebookWriter
 
 
@@ -127,11 +125,15 @@ class Robot(object):
         """
         Build a Robot from a list of files.
         """
+        # Refactor this. cls should be automatically detecteed from the extension in filenames[0]
         from abipy.abilab import abiopen
         filenames = [f for f in filenames if f.endswith(cls.EXT + ".nc") or f.endswith(cls.EXT)]
         items = []
         for f in filenames:
-            ncfile = abiopen(os.path.join(dirpath, f))
+            try:
+                ncfile = abiopen(f)
+            except Exception:
+                ncfile = None
             if ncfile is not None: items.append((ncfile.filepath, ncfile))
         return cls(*items)
 
@@ -317,12 +319,13 @@ class Robot(object):
         return d
 
     def pairplot(self, data=None, getter="get_dataframe", map_kws=None, show=True, **kwargs):
+        # TODO: Remove
         import matplotlib.pyplot as plt
         import seaborn.apionly as sns
         if data is None:
             data = getattr(self, getter)()
 
-        #grid = sns.PairGrid(data, x_vars="nkpts", y_vars=["a", "volume"]) #, hue="tsmear")
+        #grid = sns.PairGrid(data, x_vars="nkpt", y_vars=["a", "volume"]) #, hue="tsmear")
         grid = sns.PairGrid(data, **kwargs)
         if map_kws is None:
             grid.map(plt.plot, marker="o")
@@ -359,7 +362,7 @@ class GsrRobot(Robot, NotebookWriter):
         attrs = [
             "energy", "pressure", "max_force",
             "ecut", "pawecutdg",
-            "tsmear", "nkpts",
+            "tsmear", "nkpt",
             "nsppol", "nspinor", "nspden",
         ] + kwargs.pop("attrs", [])
 
@@ -378,6 +381,7 @@ class GsrRobot(Robot, NotebookWriter):
             d.update(self._exec_funcs(kwargs.get("funcs", []), gsr))
             rows.append(d)
 
+        import pandas as pd
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     def get_ebands_plotter(self):
@@ -411,6 +415,7 @@ class GsrRobot(Robot, NotebookWriter):
                 fits.append(fit)
                 rows.append(fit.results)
 
+            import pandas as pd
             frame = pd.DataFrame(rows, index=EOS.MODELS, columns=list(rows[0].keys()))
             return fits, frame
 
@@ -423,11 +428,15 @@ class GsrRobot(Robot, NotebookWriter):
 
         args = [(l, f.filepath) for l, f in self.items()]
         nb.cells.extend([
-            nbv.new_markdown_cell("# This is a markdown cell"),
+            #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("robot = abilab.GsrRobot(*%s)\nprint(robot)" % str(args)),
-            nbv.new_code_cell("frame = robot.get_dataframe()\ndisplay(frame)"),
             nbv.new_code_cell("plotter = robot.get_ebands_plotter()"),
-            nbv.new_code_cell("fig = plotter.plot()"),
+            nbv.new_code_cell("frame = plotter.get_ebands_frame()\ndisplay(frame)"),
+            nbv.new_code_cell("fig = plotter.gridplot()"),
+            nbv.new_code_cell("fig = plotter.combiplot()"),
+            nbv.new_code_cell("fig = plotter.boxplot()"),
+            nbv.new_code_cell("fig = plotter.combiboxplot()"),
+            nbv.new_code_cell("anim = plotter.animate()"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
@@ -478,6 +487,7 @@ class SigresRobot(Robot):
             d.update(self._exec_funcs(kwargs.get("funcs", []), sigr))
             rows.append(d)
 
+        import pandas as pd
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     def plot_conv_qpgap(self, x_vars, **kwargs):
@@ -531,6 +541,7 @@ class MdfRobot(Robot):
             d.update(self._exec_funcs(kwargs.get("funcs", []), mdf))
             rows.append(d)
 
+        import pandas as pd
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     @add_fig_kwargs
@@ -619,6 +630,7 @@ class DdbRobot(Robot):
 
             rows.append(d)
 
+        import pandas as pd
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     def plot_conv_phfreqs_qpoint(self, x_vars, qpoint=None, **kwargs):

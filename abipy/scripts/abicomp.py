@@ -184,28 +184,26 @@ def abicomp_robot(options):
             abicomp.py robot . GSR.nc
 
     By default, the script with call `robot.get_dataframe()` to create an print a table
-    with the most important results. For finer control, use --ipython to start an ipython
+    with the most important results. For finer control, use --ipy to start an ipython
     console to interact with the robot directly or --nb to generate a jupyter notebook.
     """
     # To define an Help action
     #http://stackoverflow.com/questions/20094215/argparse-subparser-monolithic-help-output?rq=1
     paths = options.paths
 
-    # Temp code
-    robot = abilab.abirobot(".", "GSR")
-    print(robot)
-    abilab.print_frame(robot.get_dataframe())
-    return 0
+    # Temporary code
+    #robot = abilab.abirobot(".", "GSR")
 
     if os.path.isdir(paths[0]):
-        # Directory + extension
+        # Assume directory + extension
         top, ext = paths[:2]
-        cls = Robot.class_for_ext(ext)
+        cls = abilab.Robot.class_for_ext(ext)
         robot = cls.from_dir(top, walk=True)
     else:
-        # File list.
-        #cls = Robot.class_for_ext(ext)
-        robot = Robot.from_files(paths)
+        # Assume file list.
+        ext = "GSR"
+        cls = abilab.Robot.class_for_ext(ext)
+        robot = cls.from_files(paths)
 
     if options.ipython:
         import IPython
@@ -364,13 +362,13 @@ Usage example:
                           help="Option used to define the zero of energy in the DOS plot. Default is `fermie`")
 
     # Subparser for phbands command.
-    p_phbands = subparsers.add_parser('phbands', parents=[copts_parser], help=abicomp_phbands.__doc__)
+    p_phbands = subparsers.add_parser('phbands', parents=[copts_parser, ipy_parser], help=abicomp_phbands.__doc__)
 
     # Subparser for pseudos command.
-    #p_pseudos = subparsers.add_parser('pseudos', parents=[copts_parser], help=abicomp_pseudos.__doc__)
+    #p_pseudos = subparsers.add_parser('pseudos', parents=[copts_parser, ipy_parser], help=abicomp_pseudos.__doc__)
 
     # Subparser for robot command.
-    #p_robot = subparsers.add_parser('robot', parents=[copts_parser, ipy_parser], help=abicomp_robot.__doc__)
+    p_robot = subparsers.add_parser('robot', parents=[copts_parser, ipy_parser], help=abicomp_robot.__doc__)
 
     # Subparser for time command.
     p_time = subparsers.add_parser('time', parents=[copts_parser, ipy_parser], help=abicomp_time.__doc__)

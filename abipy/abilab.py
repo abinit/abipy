@@ -31,7 +31,7 @@ from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
 from abipy.iotools import Visualizer
 from abipy.iotools.cube import CubeFile
 from abipy.abio.timer import AbinitTimerParser
-from abipy.abio.robots import GsrRobot, SigresRobot, MdfRobot, DdbRobot, abirobot
+from abipy.abio.robots import Robot, GsrRobot, SigresRobot, MdfRobot, DdbRobot, abirobot
 from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
 from abipy.abio.abivars import AbinitInputFile
 from abipy.abio.factories import *
@@ -127,6 +127,41 @@ def abifile_subclass_from_filename(filename):
     msg = ("No class has been registered for file:\n\t%s\n\nFile extensions supported:\n%s" %
         (filename, abiopen_ext2class_table()))
     raise ValueError(msg)
+
+
+def dir2abifiles(top, recurse=True):
+    """
+    Analyze the filesystem starting from directory `top` and
+    return an ordered dictionary mapping the directory name to the list
+    of files supported by `abiopen` contained within that directory.
+    If not `recurse`, children directories are not analyzed.
+    """
+    dl = collections.defaultdict(list)
+
+    if recurse:
+        for dirpath, dirnames, filenames in os.walk(top):
+            for f in filenames:
+                path = os.path.join(dirpath, f)
+                if not isabifile(path): continue
+                dl[dirpath].append(path)
+    else:
+        for f in os.listdir(top):
+            path = os.path.join(top, f)
+            if not isabifile(path): continue
+            dl[dirpath].append(path)
+
+    return collections.OrderedDict([(k, dl[k]) for k in sorted(dl.keys())])
+
+
+def isabifile(filepath):
+    """
+    Return True if `filepath` can be opened with `abiopen`.
+    """
+    try:
+        abifile_subclass_from_filename(filepath)
+        return True
+    except ValueError:
+        return False
 
 
 def abiopen(filepath):

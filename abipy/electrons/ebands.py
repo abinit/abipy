@@ -1142,16 +1142,16 @@ class ElectronBands(object):
         Return an ipython widget with controllers to compute the electron DOS.
         """
         import ipywidgets as ipw
-
-        def callback(method, step, width):
+        def plot_dos(method, step, width):
             edos = self.get_edos(method=method, step=step, width=width)
             edos.plot()
 
         return ipw.interactive(
-                callback,
+                plot_dos,
                 method=["gaussian", "tetra"],
                 step=ipw.FloatSlider(value=0.1, min=1e-6, max=1, step=0.05, description="Step of linear mesh [eV]"),
                 width=ipw.FloatSlider(value=0.2, min=1e-6, max=1, step=0.05, description="Gaussian broadening [eV]"),
+                __manual=True,
             )
 
     def get_edos(self, method="gaussian", step=0.1, width=0.2, eminmax=None):
