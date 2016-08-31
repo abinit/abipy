@@ -437,6 +437,15 @@ class KpointList(collections.Sequence):
     Error = KpointsError
 
     @classmethod
+    def subclass_from_name(cls, name):
+        """Return the class with the given name."""
+        if cls.__name__ == name: return c
+        for c in cls.__subclasses__():
+            if c.__name__ == name: return c
+
+        raise ValueError("Cannot find subclass associated to name: %s" % name)
+
+    @classmethod
     def from_dict(cls, d):
         """
         Makes Kpoints obey the general json interface used in pymatgen for easier serialization.

@@ -302,11 +302,17 @@ class ElectronBands(object):
 
     @classmethod
     def from_dict(cls, d):
+        d = d.copy()
         kd = d["kpoints"].copy()
         kd.pop("@module")
-        kpoints_cls = KpointList.subclass_from_name(kd.pop("@class"))
-        kpoints = kpoints_cls(**kd)
 
+        kpoints_cls = KpointList.subclass_from_name(kd.pop("@class"))
+        #kpoints = kpoints_cls(**kd)
+        kpoints = kpoints_cls.from_dict(kd)
+
+        # Needed to support old dictionaries
+        if "nspden" not in d: d["nspden"] = 1
+        if "nspinor" not in d: d["nspinor"] = 1
         return cls(Structure.from_dict(d["structure"]), kpoints,
                    d["eigens"], d["fermie"], d["occfacts"], d["nelect"], d["nspinor"], d["nspden"],
                    nband_sk=d["nband_sk"], smearing=d["smearing"],
