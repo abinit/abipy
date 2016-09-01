@@ -37,9 +37,10 @@ from IPython.display import display
 
 from abipy import abilab"""),
             nbv.new_code_cell("dfs = abilab.frames_from_structures(%s, index=%s)" % (paths, index)),
+            # Analyze dataframes.
             nbv.new_code_cell("dfs.lattice"),
             nbv.new_code_cell("dfs.coords"),
-            nbv.new_code_cell("for structure in dfs.structures: display(structure)"),
+            nbv.new_code_cell("# for structure in dfs.structures: display(structure)"),
         ])
 
         import io, tempfile # os,

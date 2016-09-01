@@ -6,6 +6,7 @@ import numpy as np
 import pymatgen.core.units as units
 
 from collections import OrderedDict, Iterable, defaultdict
+from tabulate import tabulate
 from monty.string import is_string, list_strings, marquee
 from monty.collections import AttrDict
 from monty.functools import lazy_property
@@ -133,7 +134,9 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return fmods.max()
 
     def force_stats(self, **kwargs):
-        """Return a string with information on the forces."""
+        """
+        Return a string with information on the forces.
+        """
         fmods = np.sqrt([np.dot(force, force) for force in self.cart_forces])
         imin, imax = fmods.argmin(), fmods.argmax()
 
@@ -144,11 +147,11 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             "maximum at site %s, cart force: %s" % (self.structure.sites[imax], self.cart_forces[imax]),
         ])
 
-        table = PrettyTable(["Site", "Cartesian Force", "Length"])
+        table = [["Site", "Cartesian Force", "Length"]]
         for i, fmod in enumerate(fmods):
-            table.add_row([self.structure.sites[i], self.cart_forces[i], fmod])
+            table.append([self.structure.sites[i], self.cart_forces[i], fmod])
+        s += "\n" + tabulate(table)
 
-        s += "\n" + str(table)
         return s
 
     @lazy_property
@@ -328,7 +331,7 @@ class GsrReader(ElectronsReader):
     def read_cart_forces(self, unit="eV ang^-1"):
         """
         Read and return a numpy array with the cartesian forces in unit `unit`.
-        Shape (num_steps, natom, 3)
+        Shape (natom, 3)
         """
         return ArrayWithUnit(self.read_value("cartesian_forces"), "Ha bohr^-1").to(unit)
 

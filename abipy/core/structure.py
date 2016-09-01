@@ -340,6 +340,25 @@ class Structure(pymatgen.Structure):
 
         return("\n".join(lines))
 
+    def get_conventional_standard_structure(self, international_monoclinic=True,
+                                            symprec=1e-3, angle_tolerance=5):
+        """
+        Gives a structure with a conventional cell according to certain
+        standards. The standards are defined in Setyawan, W., & Curtarolo,
+        S. (2010). High-throughput electronic band structure calculations:
+        Challenges and tools. Computational Materials Science,
+        49(2), 299-312. doi:10.1016/j.commatsci.2010.05.010
+        They basically enforce as much as possible
+        norm(a1)<norm(a2)<norm(a3)
+
+        Returns:
+            The structure in a conventional standardized cell
+        """
+        spga = SpacegroupAnalyzer(self, symprec=symprec, angle_tolerance=angle_tolerance)
+        new = spga.get_conventional_standard_structure(international_monoclinic=international_monoclinic)
+        new.__class__ = self.__class__
+        return new
+
     def abi_primitive(self, symprec=1e-3, angle_tolerance=5, no_idealize=0):
         #TODO: this should be moved to pymatgen in the get_refined_structure or so ...
         # to be considered in February 2016

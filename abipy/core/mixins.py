@@ -101,6 +101,15 @@ class _File(object):
         """Activated at the end of the with statement. It automatically closes the file."""
         self.close()
 
+    #def __del__(self):
+    #    """
+    #    Called when the instance is about to be destroyed.
+    #    """
+    #    try:
+    #        self.close()
+    #    finally:
+    #        super(_File, self).__close__(self)
+
 
 class TextFile(_File):
     def __enter__(self):

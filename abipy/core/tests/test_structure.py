@@ -42,6 +42,7 @@ class TestStructure(AbipyTest):
         """Test utilities for the generation of Abinit inputs."""
         structure = data.structure_from_ucell("MgB2")
         structure.abi_sanitize()
+        structure.get_conventional_standard_structure()
         print(structure.abi_string)
         #print(structure._repr_html_())
 

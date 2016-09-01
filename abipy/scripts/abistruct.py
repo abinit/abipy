@@ -28,6 +28,9 @@ Usage example:
     abistruct.py bz filepath                  => Read structure from filepath, plot BZ with matplotlib.
     abistruct.py abisanitize FILE             => Read structure from FILE, call abisanitize, compare structures and save
                                                  "abisanitized" structure to file.
+
+    abistruct.py conventional FILE             => Read structure from FILE, generate conventional structure
+                                                  following doi:10.1016/j.commatsci.2010.05.010
     abistruct.py visualize filepath xcrysden  => Visualize the structure with XcrysDen.
     abistruct.py ipython filepath             => Read structure from filepath and open Ipython terminal.
     abistruct.py pmgdata mp-149               => Get structure from pymatgen database and print its JSON representation.
@@ -41,7 +44,7 @@ Usage example:
 
     # Parent parser for commands that need to know the filepath
     path_selector = argparse.ArgumentParser(add_help=False)
-    path_selector.add_argument('filepath', nargs="?", help="File with the crystalline structure")
+    path_selector.add_argument('filepath', nargs="?", help="File with the crystalline structure (netcdf, cif, input files ...)")
 
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + abilab.__version__)
@@ -81,6 +84,14 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
 
     p_abisanitize = subparsers.add_parser('abisanitize', parents=[copts_parser, path_selector, spgopt_parser],
                                       help="Sanitize structure with abi_sanitize, compare structures and save result to file.")
+    p_abisanitize.add_argument("--savefile", default="", type=str,
+                               help='Save final structure to file. Format is detected from file extensions e.g. Si.cif')
+
+    p_conventional = subparsers.add_parser('conventional', parents=[copts_parser, path_selector, spgopt_parser],
+                                           help="Gives a structure with a conventional cell according to certain standards. "
+                                                "The standards are defined in doi:10.1016/j.commatsci.2010.05.010")
+    p_conventional.add_argument("--savefile", default="", type=str,
+                                help='Save final structure to file. Format is detected from file extensions e.g. Si.cif')
 
     # Subparser for ipython.
     p_ipython = subparsers.add_parser('ipython', parents=[copts_parser, path_selector],
@@ -139,7 +150,7 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
             print(s)
 
     elif options.command == "abisanitize":
-        print("Calling abi_sanitize to get a new structure in which:")
+        print("\nCalling abi_sanitize to get a new structure in which:")
         print("    * Structure is refined.")
         print("    * Reduced to primitive settings.")
         print("    * Lattice vectors are exchanged if the triple product is negative\n")
@@ -169,12 +180,50 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
                 print("\nabisanitized structure:")
                 print(sanitized)
 
-        root, basename = os.path.split(options.filepath)
-        new_filename = os.path.join(root, "abisanitized_" + basename)
-        print("Saving abisanitized structure as %s" % new_filename)
-        if os.path.exists(new_filename):
-            raise RuntimeError("%s already exists. Cannot overwrite" % new_filename)
-        sanitized.to(filename=new_filename)
+        # save file.
+        if options.savefile:
+            print("Saving abisanitized structure as %s" % options.savefile)
+            if os.path.exists(options.savefile):
+                raise RuntimeError("%s already exists. Cannot overwrite" % options.savefile)
+        sanitized.to(filename=options.savefile)
+
+    elif options.command == "conventional":
+        print("\nCalling get_conventional_standard_structure to get conventional structure:")
+        print("The standards are defined in Setyawan, W., & Curtarolo, S. (2010). ")
+        print("High-throughput electronic band structure calculations: Challenges and tools. ")
+        print("Computational Materials Science, 49(2), 299-312. doi:10.1016/j.commatsci.2010.05.010\n")
+
+        structure = abilab.Structure.from_file(options.filepath)
+        conv = structure.get_conventional_standard_structure(international_monoclinic=True,
+                                           symprec=options.symprec, angle_tolerance=options.angle_tolerance)
+        index = [options.filepath, "conventional"]
+        dfs = abilab.frames_from_structures([structure, conv], index=index, with_spglib=True)
+
+        abilab.print_frame(dfs.lattice, title="Lattice parameters:")
+        #abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
+
+        if not options.verbose:
+            print("\nUse -v for more info")
+        else:
+            #print("\nDifference between structures:")
+            if len(structure) == len(conv):
+                table = []
+                for line1, line2 in zip(str(structure).splitlines(), str(conv).splitlines()):
+                    table.append([line1, line2])
+                print(str(tabulate(table, headers=["Initial structure", "Conventional"])))
+
+            else:
+                print("\nInitial structure:")
+                print(structure)
+                print("\nConventional structure:")
+                print(conv)
+
+        # save file.
+        if options.savefile:
+            print("Saving conventional structure as %s" % options.savefile)
+            if os.path.exists(options.savefile):
+                raise RuntimeError("%s already exists. Cannot overwrite" % options.savefile)
+            conv.to(filename=options.savefile)
 
     elif options.command == "ipython":
         structure = abilab.Structure.from_file(options.filepath)
