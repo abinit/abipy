@@ -185,7 +185,7 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
             print("Saving abisanitized structure as %s" % options.savefile)
             if os.path.exists(options.savefile):
                 raise RuntimeError("%s already exists. Cannot overwrite" % options.savefile)
-        sanitized.to(filename=options.savefile)
+            sanitized.to(filename=options.savefile)
 
     elif options.command == "conventional":
         print("\nCalling get_conventional_standard_structure to get conventional structure:")
