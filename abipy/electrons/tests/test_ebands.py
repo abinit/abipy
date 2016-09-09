@@ -94,11 +94,10 @@ class ElectronBandsTest(AbipyTest):
         degs = nscf_bands.degeneracies(spin=0, kpoint=[0,0,0], bands_range=range(8))
 
         ref_degbands = [[0], [1,2,3], [4,5,6], [7]]
-
         for i, (e, deg_bands) in enumerate(degs):
             self.assertEqual(deg_bands, ref_degbands[i])
 
-        # JDOS a homogeneous sampling.
+        # JDOS requires a homogeneous sampling.
         with self.assertRaises(ValueError):
             nscf_bands.get_ejdos(spin, 0, 4)
 

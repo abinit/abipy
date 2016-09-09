@@ -210,7 +210,9 @@ class ElectronTransition(object):
 
 
 class Smearing(AttrDict):
-    """Stores data and information about the smearing technique."""
+    """
+    Stores data and information about the smearing technique.
+    """
     _MANDATORY_KEYS = [
         "scheme",
         "occopt",
@@ -243,10 +245,13 @@ class Smearing(AttrDict):
             if mkey not in self:
                 raise ValueError("Mandatory key %s must be provided" % str(mkey))
 
+    def __str__(self):
+        return "smearing scheme: %s, tsmear_eV: %.3f, occopt: %d" % (self.scheme, self.tsmear_ev, self.occopt)
+
     @property
     def has_metallic_scheme(self):
         """True if we are using a metallic scheme for occupancies."""
-        return self.occopt in [3,4,5,6,7,8]
+        return self.occopt in [3, 4, 5, 6, 7, 8]
 
 
 class StatParams(namedtuple("StatParams", "mean stdev min max")):
@@ -413,6 +418,11 @@ class ElectronBands(object):
         self.nelect = float(nelect)
         self.fermie = float(fermie)
 
+        # Recompute the Fermi level (in principle should do this only if
+        # bands are computed on a BZ mesh with a NSCF run.
+        #if self.kpoints.is_ibz: # and iscf < 0
+        #    self.recalc_fermie()
+
         if markers is not None:
             for key, xys in markers.items():
                 self.set_marker(key, xys)
@@ -484,6 +494,20 @@ class ElectronBands(object):
         """Shape of the array with the eigenvalues."""
         return self.nsppol, self.nkpt, self.mband
 
+    def recalc_fermie(self, nelect=None, method="gaussian", step=0.001, width=0.002):
+        """
+        Recompute the Fermi level.
+        """
+        if nelect is None: nelect = self.nelect
+        edos = self.get_edos(method=method, step=step, width=width)
+        ef = edos.find_mu(nelect)
+        self.set_fermie(ef)
+        return ef
+
+    def set_fermie(self, fermie):
+        self.fermie = fermie
+        # TODO: Recalculate occupations.
+
     def get_dict4frame(self, with_spglib=True):
         """
         Return a :class:`OrderedDict` with the most important parameters:
@@ -504,7 +528,7 @@ class ElectronBands(object):
 
         ])
         odict.update(self.structure.get_dict4frame(with_spglib=with_spglib))
-        #odict.update(self.smearing.as_dict())
+        odict.update(self.smearing)
 
         bws = self.bandwidths
         for spin in self.spins:
@@ -887,29 +911,23 @@ class ElectronBands(object):
 
         assert np.all(self.nband_sk == self.nband_sk[0,0])
 
-        #eigenvals is a dict of energies for spin up and spin down
-        #{Spin.up:[][],Spin.down:[][]}, the first index of the array
-        #[][] refers to the band and the second to the index of the
-        #kpoint. The kpoints are ordered according to the order of the
-        #kpoints array. If the band structure is not spin polarized, we
-        #only store one data set under Spin.up
-
+        # eigenvals is a dict of energies for spin up and spin down
+        # {Spin.up:[][],Spin.down:[][]}, the first index of the array
+        # [][] refers to the band and the second to the index of the
+        # kpoint. The kpoints are ordered according to the order of the
+        # kpoints array. If the band structure is not spin polarized, we
+        # only store one data set under Spin.up
         eigenvals = {Spin.up: self.eigens[0,:,:].T.copy().tolist()}
-
         if self.nsppol == 2:
             eigenvals[Spin.down] = self.eigens[1,:,:].T.copy().tolist()
 
-        # FIXME: is_path does not work since info is missing in the netcdf file.
-        #if self.kpoints.is_path:
-        #    labels_dict = {k.name: k.frac_coords for k in self.kpoints if k.name is not None}
-        #    logger.info("calling pmg BandStructureSymmLine with labels_dict %s" % str(labels_dict))
-        #    return BandStructureSymmLine(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, self.fermie,
-        #                                 labels_dict,
-        #                                 coords_are_cartesian=False, structure=self.structure, projections=None)
-        #else:
-        logger.info("Calling pmg BandStructure")
-        return BandStructure(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, self.fermie,
-                            labels_dict=None, coords_are_cartesian=False, structure=self.structure, projections=None)
+        if self.kpoints.is_path:
+            labels_dict = {k.name: k.frac_coords for k in self.kpoints if k.name is not None}
+            return BandStructureSymmLine(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, self.fermie,
+                                         labels_dict, coords_are_cartesian=False, structure=self.structure, projections=None)
+        else:
+            return BandStructure(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, self.fermie,
+                                labels_dict=None, coords_are_cartesian=False, structure=self.structure, projections=None)
 
     def _electron_state(self, spin, kpoint, band):
         """
@@ -1083,6 +1101,8 @@ class ElectronBands(object):
         app("nsppol: %d, nkpt: %d, mband: %d, nspinor: %s, nspden: %s" % (
            self.nsppol, self.nkpt, self.mband, self.nspinor, self.nspden))
 
+        app(str(self.smearing))
+
         def indent(s):
             return "    " + s.replace("\n", "\n    ")
 
@@ -1160,7 +1180,7 @@ class ElectronBands(object):
                 __manual=True,
             )
 
-    def get_edos(self, method="gaussian", step=0.1, width=0.2, eminmax=None):
+    def get_edos(self, method="gaussian", step=0.1, width=0.2):
         """
         Compute the electronic DOS on a linear mesh.
 
@@ -1168,9 +1188,6 @@ class ElectronBands(object):
             method: String defining the method for the computation of the DOS.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
-            eminmax: Min and max energy (eV) for the frequency mesh.
-                If None, boundaries are automatically computed in order to cover the
-                entire energy range.
 
         Returns:
             :class:`ElectronDos` object.
@@ -1184,18 +1201,15 @@ class ElectronBands(object):
             raise ValueError(err_msg)
 
         # Compute the linear mesh.
-        if eminmax is not None:
-            e_min, e_max = eminmax
-        else:
-            e_min = self.enemin()
-            e_min -= 0.1 * abs(e_min)
-            e_max = self.enemax()
-            e_max += 0.1 * abs(e_max)
+        epad = 3.0
+        e_min = self.enemin() - epad
+        e_max = self.enemax() + epad
 
         nw = int(1 + (e_max - e_min) / step)
         mesh, step = np.linspace(e_min, e_max, num=nw, endpoint=True, retstep=True)
         dos = np.zeros((self.nsppol, nw))
 
+        # TODO: Write cython version.
         if method == "gaussian":
             for spin in self.spins:
                 for k, kpoint in enumerate(self.kpoints):
@@ -1207,7 +1221,14 @@ class ElectronBands(object):
         else:
             raise ValueError("Method %s is not supported" % method)
 
-        return ElectronDos(mesh, dos, self.nelect)
+        # Use fermie from Abinit if we are not using metallic scheme for occopt.
+        fermie = None
+        #if self.smearing["occopt"] == 1:
+        #    print("using fermie from GSR")
+        #    fermie = self.fermie
+        edos = ElectronDos(mesh, dos, self.nelect, fermie=fermie)
+        #print("ebands.fermie", self.fermie, "edos.fermie", edos.fermie)
+        return edos
 
     def get_ejdos(self, spin, valence, conduction, method="gaussian", step=0.1, width=0.2, mesh=None):
         """
@@ -1280,7 +1301,8 @@ class ElectronBands(object):
         return Function1D(mesh, jdos)
 
     @add_fig_kwargs
-    def plot_ejdosvc(self, vrange, crange, method="gaussian", step=0.1, width=0.2, cumulative=True, **kwargs):
+    def plot_ejdosvc(self, vrange, crange, method="gaussian", step=0.1, width=0.2,
+                     cumulative=True, ax=None, alpha=0.7, **kwargs):
         """
         Plot the decomposition of the joint-density of States (JDOS).
 
@@ -1291,6 +1313,7 @@ class ElectronBands(object):
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
             cumulative: True for cumulative plots (default).
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
 
         Returns:
             `matplotlib` figure
@@ -1298,43 +1321,47 @@ class ElectronBands(object):
         if not isinstance(crange, Iterable): crange = [crange]
         if not isinstance(vrange, Iterable): vrange = [vrange]
 
-        import matplotlib.pyplot as plt
-        fig = plt.figure()
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        ax.grid(True)
+        ax.set_xlabel('Energy [eV]')
+        cmap = plt.get_cmap("jet")
+        lw = 1.0
 
         for s in self.spins:
-            ax = fig.add_subplot(1, self.nsppol, s+1)
+            spin_sign = +1 if s == 0 else -1
 
-            # Get total JDOS
-            tot_jdos = self.get_ejdos(s, vrange, crange, method=method, step=step, width=width)
+            # Get total JDOS for this spin
+            tot_jdos = spin_sign * self.get_ejdos(s, vrange, crange, method=method, step=step, width=width)
 
+            # Decomposition in terms of v --> c transitions.
             jdos_vc = OrderedDict()
             for v in vrange:
                 for c in crange:
                     jd = self.get_ejdos(s, v, c, method=method, step=step, width=width, mesh=tot_jdos.mesh)
-                    jdos_vc[(v, c)] = jd
+                    jdos_vc[(v, c)] = spin_sign * jd
 
             # Plot data for this spin.
             if cumulative:
-                cmap = plt.get_cmap("jet")
                 cumulative = np.zeros(len(tot_jdos))
                 num_plots, i = len(jdos_vc), 0
-
                 for (v, c), jdos in jdos_vc.items():
-                    label = "val=%s --> cond=%s, s=%s" % (v, c, s)
+                    label = r"$v=%s \rightarrow c=%s, \sigma=%s$" % (v, c, s)
                     color = cmap(float(i)/num_plots)
                     x, y = jdos.mesh, jdos.values
-                    ax.plot(x, cumulative + y, lw=1.0, label=label, color=color)
-                    ax.fill_between(x, cumulative, cumulative + y, facecolor=color, alpha=0.7)
+                    ax.plot(x, cumulative + y, lw=lw, label=label, color=color)
+                    ax.fill_between(x, cumulative, cumulative + y, facecolor=color, alpha=alpha)
                     cumulative += jdos.values
                     i += 1
-                #tot_jdos.plot_ax(ax, color="k", lw=2, label=" Total JDOS: s=%s," % s, **kwargs)
-
             else:
-                tot_jdos.plot_ax(ax, label="Total JDOS: s=%s," % s, **kwargs)
+                num_plots, i = len(jdos_vc), 0
                 for (v, c), jdos in jdos_vc.items():
-                    jdos.plot_ax(ax, label="val=%s --> cond=%s, s=%s" % (v,c,s), **kwargs)
+                    color = cmap(float(i)/num_plots)
+                    jdos.plot_ax(ax, color=color, lw=lw, label=r"$v=%s \rightarrow c=%s, \sigma=%s$" % (v, c, s))
+                    i += 1
 
-        plt.legend(loc="best")
+            tot_jdos.plot_ax(ax, color="k", lw=lw, label="Total JDOS, $\sigma=%s$" % s)
+
+        ax.legend(loc="best")
         return fig
 
     def apply_scissors(self, scissors):
@@ -1349,7 +1376,6 @@ class ElectronBands(object):
         """
         if self.nsppol == 1 and not isinstance(scissors, Iterable):
             scissors = [scissors]
-
         if self.nsppol == 2 and len(scissors) != 2:
             raise ValueError("Expecting two scissors operators for spin up and down")
 
@@ -2353,17 +2379,13 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
 
     def read_smearing(self):
         """Returns a :class:`Smearing` instance with info on the smearing technique."""
-        occopt = self.read_value("occopt")
+        occopt = int(self.read_value("occopt"))
 
         try:
             scheme = "".join(c for c in self.read_value("smearing_scheme"))
             scheme = scheme.strip()
         except TypeError:
             scheme = None
-
-        # FIXME there's a problem in smearing_scheme
-        #if scheme is None:
-        #    logger.warning("warning: scheme is None, occopt %s" % occopt)
 
         return Smearing(
             scheme=scheme,
@@ -2504,7 +2526,7 @@ class ElectronDos(object):
     It is usually created by calling the get_edos method of :class:`ElectronBands`.
     """
 
-    def __init__(self, mesh, spin_dos, nelect):
+    def __init__(self, mesh, spin_dos, nelect, fermie=None):
         """
         Args:
             mesh: array-like object with the mesh points.
@@ -2512,6 +2534,7 @@ class ElectronDos(object):
                       spin_dos[1, nw] if spin-unpolarized.
                       spin_dos[2, nw] if spin-polarized case.
             nelect: Number of electrons in the unit cell.
+            fermie: Fermi level in eV. If None, fermie is obtained from the idos.
 
         .. note::
 
@@ -2535,11 +2558,19 @@ class ElectronDos(object):
         self.tot_dos = Function1D(mesh, sumv)
         self.tot_idos = self.tot_dos.integral()
 
-        # *Compute* fermie from nelect. Note that this value could differ
-        # from the one stored in ElectronBands (coming from the SCF run)
-        # The accuracy of self.fermie depends on the number of k-points used for the DOS
-        # and the parameters used to call ebands.get_edos.
-        self.fermie = self.find_mu(self.nelect)
+        if fermie is not None:
+            self.fermie = float(fermie)
+        else:
+            # *Compute* fermie from nelect. Note that this value could differ
+            # from the one stored in ElectronBands (coming from the SCF run)
+            # The accuracy of self.fermie depends on the number of k-points used for the DOS
+            # and the parameters used to call ebands.get_edos.
+            try:
+                self.fermie = self.find_mu(self.nelect)
+            except ValueError:
+                print("tot_idos values:")
+                print(self.tot_idos)
+                raise
 
     def __str__(self):
         lines = []; app = lines.append
@@ -2696,7 +2727,6 @@ class ElectronDos(object):
         ax.grid(True)
         ax.set_xlabel('Energy [eV]')
         e0 = self.get_e0(e0)
-
         if not kwargs:
             kwargs = {"color": "black", "linewidth": 1.0}
 
@@ -2705,11 +2735,6 @@ class ElectronDos(object):
             x, y = self.spin_dos[spin].mesh - e0, spin_sign * self.spin_dos[spin].values
             ax.plot(x, y, **kwargs)
 
-        #self.spin_idos[spin]
-        #ax1.set_ylabel("TOT IDOS" if spin is None else "IDOS (spin %s)" % spin)
-        #ax2.set_ylabel("TOT DOS" if spin is None else "DOS (spin %s)" % spin)
-        #self.plot_ax(ax1, e0, spin=spin, what="i", **kwargs)
-        #self.plot_ax(ax2, e0, spin=spin, what="d", **kwargs)
         return fig
 
     @add_fig_kwargs

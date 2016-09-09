@@ -17,3 +17,5 @@ crange = range(4,5)
 
 # Plot data.
 ebands.plot_ejdosvc(vrange, crange)
+
+ebands.plot_ejdosvc(vrange, crange, cumulative=False)

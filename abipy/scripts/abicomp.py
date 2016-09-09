@@ -330,8 +330,8 @@ Usage example:
     # Parent parser for commands support (ipython/jupyter)
     ipy_parser = argparse.ArgumentParser(add_help=False)
     ipy_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
-    ipy_parser.add_argument('--no-daemon', action='store_true', default=False,
-                             help="Don't start jupyter notebook with daemon process")
+    #ipy_parser.add_argument('--no-daemon', action='store_true', default=False,
+    #                         help="Don't start jupyter notebook with daemon process")
     ipy_parser.add_argument('-ipy', '--ipython', default=False, action="store_true", help='Invoke ipython terminal.')
 
     # Build the main parser.

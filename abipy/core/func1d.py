@@ -479,10 +479,13 @@ class Function1D(object):
         Returns:
             List of lines added.
         """
-        cplx_mode = kwargs.pop("cplx_mode", "re-im")
-        lines = []
+        if self.iscomplexobj:
+            cplx_mode = kwargs.pop("cplx_mode", "re-im")
+        else:
+            cplx_mode = kwargs.pop("cplx_mode", "re")
 
         from abipy.tools.plotting_utils import data_from_cplx_mode
+        lines = []
         for c in cplx_mode.lower().split("-"):
             xx, yy = self.mesh, data_from_cplx_mode(c, self.values)
             if exchange_xy:

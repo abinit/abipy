@@ -129,8 +129,15 @@ class TestKpointList(AbipyTest):
         for kpoint in klist: kpoint.set_weight(1.0)
         assert np.all(klist.weights == 1.0)
 
-        frac_coords = [0, 0, 0, 1/2, 1/3, 1/3]
+        # Test find_closest
+        iclose, kclose, dist = klist.find_closest([0, 0, 0])
+        assert iclose == 0 and dist == 0.
 
+        iclose, kclose, dist = klist.find_closest(Kpoint([0.001, 0.002, 0.003], klist.reciprocal_lattice))
+        assert iclose == 0
+        self.assert_almost_equal(dist, 0.001984943324127921)
+
+        frac_coords = [0, 0, 0, 1/2, 1/3, 1/3]
         other_klist = KpointList(lattice, frac_coords)
 
         # Test __add__

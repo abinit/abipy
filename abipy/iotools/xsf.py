@@ -4,8 +4,8 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import numpy as np
 
+from pymatgen.core.units import Energy, EnergyArray, ArrayWithUnit
 from abipy.tools import transpose_last3dims, add_periodic_replicas
-from pymatgen.core.units import Energy, EnergyArray
 
 
 __all__ = [
@@ -36,8 +36,8 @@ def xsf_write_structure(file, structures):
 
     fwrite('CRYSTAL\n')
 
-    for (n, struct) in enumerate(structures):
-        cell = struct.lattice_vectors(space="r")
+    for n, struct in enumerate(structures):
+        cell = struct.lattice.matrix
 
         fwrite('# Primitive lattice vectors in Angstrom\n')
         fwrite('PRIMVEC %d\n' % (n + 1))
@@ -49,7 +49,8 @@ def xsf_write_structure(file, structures):
 
         # TODO
         cart_forces = None
-        #cart_forces  = struct.cart_forces()
+        #if "cartesian_forces" in structure.site_properties:
+        #cart_forces = ArrayWithUnit().to("Ha ang^-1")
 
         fwrite("# Cartesian coordinates in Angstrom.\n")
         fwrite('PRIMCOORD %d\n' % (n + 1))

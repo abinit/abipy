@@ -580,6 +580,34 @@ class KpointList(collections.Sequence):
         """Return number of occurrences of kpoint"""
         return self._points.count(kpoint)
 
+    def find_closest(self, obj):
+        """
+        Find the closest k-point in the list (not necessarily equal).
+
+        Args:
+            obj: Fractional coordinates or :class:`Kpoint` instance.
+
+        Return:
+            (ind, kpoint, dist)
+
+            where `ind` is the index in self of the closest k-point.
+            `kpoint` is the :class:`Kpoint` instance of index `ind`.
+            dist is the distance between `obj` and `kpoint`.
+        """
+        if isinstance(obj, Kpoint):
+            if obj.lattice != self.reciprocal_lattice:
+                raise ValueError("Kpoint list and Kpoint object have different lattices!")
+            frac_coords = obj.frac_coords
+        else:
+            frac_coords = np.asarray(obj)
+
+        dist = np.empty(len(self))
+        for i, kpt in enumerate(self):
+            dist[i] = kpt.lattice.norm(kpt.frac_coords - frac_coords)
+
+        ind = dist.argmin()
+        return ind, self[ind], np.copy(dist[ind])
+
     @property
     def is_path(self):
         """True if self represents a path in the BZ."""

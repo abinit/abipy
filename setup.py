@@ -18,6 +18,7 @@ if sys.version[0:3] < '2.7':
 
 # Install ipython with notebook support.
 with_ipython = False
+#with_ipython = True
 if '--with-ipython' in sys.argv:
     with_ipython = True
     sys.argv.remove('--with-ipython')

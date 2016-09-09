@@ -384,7 +384,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         x = np.arange(self.nkpt)
         mybands = range(ebands.mband) if blist is None else blist
 
-        for iax, ax in enumerate(axmat):
+        for iax, ax in enumerate(axmat.flat):
             iatom = ax2iatom[iax]
             # Plot the energies.
             for spin in range(self.nsppol):
@@ -404,11 +404,11 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                         y1, y2 = yup + w, ydown - w
                         ax.fill_between(x, yup, y1, alpha=self.alpha, facecolor=self.l2color[l])
                         ax.fill_between(x, ydown, y2, alpha=self.alpha, facecolor=self.l2color[l],
-                                        label=l2text[l] if (i, spin, band) == (0, 0, 0) else None)
+                                        label=self.l2tex[l] if (i, spin, band) == (0, 0, 0) else None)
                                         # Note: could miss a label in the other plots if lmax is not large enough!
                         yup, ydown = y1, y2
 
-        axmat[0].legend(loc="best")
+        axmat[0,0].legend(loc="best")
 
         return fig
 
@@ -491,7 +491,8 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         Returns:
             `matplotlib` figure
         """
-        raise NotImplementedError("To be tested with spin")
+        if self.nsppol == 2:
+            raise NotImplementedError("To be tested with spin")
         mylmax = self.lmax_atom[iatom] if lmax is None else lmax
 
         # Build plot grid.
@@ -1093,11 +1094,12 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
         nb.cells.extend([
             nbv.new_code_cell("fbfile = abilab.abiopen('%s')\nprint(fbfile)" % self.filepath),
-            nbv.new_markdown_cell("# This is a markdown cell"),
+            #nbv.new_code_cell("fbfile.structure"),
+            #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("fig = fbfile.plot_fatbands_typeview()"),
             nbv.new_code_cell("fig = fbfile.plot_fatbands_lview()"),
-            nbv.new_code_cell("fig = fbfile.plot_fatbands_mview(iatom=0)"),
             nbv.new_code_cell("fig = fbfile.plot_fatbands_siteview()"),
+            nbv.new_code_cell("fig = fbfile.plot_fatbands_mview(iatom=0)"),
             nbv.new_code_cell("fig = fbfile.plot_pjdos_lview()"),
             nbv.new_code_cell("fig = fbfile.plot_pjdos_typeview()"),
             nbv.new_code_cell("fig = fbfile.plot_fatbands_with_pjdos(pjdosfile=None, view='type')"),
@@ -1175,7 +1177,7 @@ class _DosIntegrator(object):
             arr = np.zeros((nsymb, len(self.mesh)))
             for isymb, symbol in enumerate(fbfile.symbols):
                 arr[isymb] = dvals[symbol]
-            ls_stackdos[(l, spin)] = ar.cumsum(axis=0)
+            ls_stackdos[(l, spin)] = arr.cumsum(axis=0)
 
         return ls_stackdos
 
