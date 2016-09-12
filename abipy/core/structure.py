@@ -131,9 +131,9 @@ class Structure(pymatgen.Structure):
                 (pre-relaxation) structure. Defaults to True.
             api_key (str): A String API key for accessing the MaterialsProject
                 REST interface. Please apply on the Materials Project website for one.
-                If this is None, the code will check if there is a "MAPI_KEY"
-                environment variable set. If so, it will use that environment
-                variable. This makes easier for heavy users to simply add
+                If this is None, the code will check if there is a "MAPI_KEY" in 
+                your .pmgrc.yaml. If so, it will use that environment
+                This makes easier for heavy users to simply add
                 this environment variable to their setups and MPRester can
                 then be called without any arguments.
             endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
@@ -143,9 +143,13 @@ class Structure(pymatgen.Structure):
         Returns:
             Structure object.
         """
+        from pymatgen import SETTINGS
         if api_key is None:
-            # Check if MP_KEY is defined, otherwise fallback to MAPI_KEY.
-            api_key = os.environ.get('MP_KEY', None)
+            api_key = SETTINGS.get("MAPI_KEY")
+            if api_key is None:
+                raise RuntimeError(
+                    "Cannot find MAPI_KEY in pymatgen settings. Add it to $HOME/.pmgrc.yaml"
+                )
 
         # Get pytmatgen structure and convert it to abipy structure
         from pymatgen.matproj.rest import MPRester, MPRestError
