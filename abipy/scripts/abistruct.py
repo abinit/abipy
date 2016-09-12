@@ -10,7 +10,9 @@ from monty.functools import prof_main
 from pprint import pprint
 from tabulate import tabulate
 from abipy import abilab
+from pymatgen.io.vasp.outputs import Xdatcar
 from abipy.iotools.visualizer import Visualizer
+from abipy.iotools.xsf import xsf_write_structure
 
 
 @prof_main
@@ -262,15 +264,12 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
         print(s)
 
     elif options.command == "animate":
-        from abipy.iotools import xsf_write_structure
         filepath = options.filepath
-
         if any(filepath.endswith(ext) for ext in ("HIST", "HIST.nc")):
             with abilab.abiopen(filepath) as hist:
                 structures = hist.structures
 
         elif "XDATCAR" in filepath:
-            from pymatgen.io.vaspio import Xdatcar
             structures = Xdatcar(filepath).structures
             if not structures:
                 raise RuntimeError("Your Xdatcar contains only one structure. Due to a bug "
