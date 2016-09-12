@@ -10,8 +10,10 @@ from pymatgen.io.vasp.GWvaspinputsets import SingleVaspGWWork
 from abipy.gw.datastructures import GWSpecs, get_spec  # , GWConvergenceData
 from abipy.gw.codeinterfaces import AbinitInterface, VaspInterface, get_code_interface
 from abipy.gw.tests.test_helpers import structure
-from pymatgen.io.vasp.inputs import get_potcar_dir
-POTCAR_DIR = get_potcar_dir()
+
+
+#from pymatgen import SETTINGS
+#POTCAR_DIR = SETTINGS.get("VASP_PSP_DIR")
 
 
 __author__ = 'setten'

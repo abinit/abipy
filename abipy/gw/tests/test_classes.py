@@ -16,7 +16,6 @@ from abipy.gw.codeinterfaces import AbinitInterface, VaspInterface, get_code_int
 from abipy.gw.tests.test_helpers import structure
 from abipy.abilab import Structure as AbiStructure
 from abipy.gw.GWworks import GWWork, SingleAbinitGWWork, VaspGWFWWorkFlow
-from pymatgen.io.vasp.inputs import get_potcar_dir
 from pymatgen.io.abinit.flows import Flow
 
 
@@ -25,7 +24,8 @@ from pymatgen.io.abinit.flows import Flow
 
 __author__ = 'setten'
 
-POTCAR_DIR = get_potcar_dir()
+from pymatgen import SETTINGS
+POTCAR_DIR = SETTINGS.get("VASP_PSP_DIR")
 
 
 class GWSpecTest(PymatgenTest):
