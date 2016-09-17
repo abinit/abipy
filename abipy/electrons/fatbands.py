@@ -8,7 +8,7 @@ import numpy as np
 from collections import OrderedDict, defaultdict
 from tabulate import tabulate
 from monty.functools import lazy_property
-from monty.string import marquee # is_string, list_strings,
+from monty.string import marquee
 from pymatgen.core.periodic_table import Element
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter

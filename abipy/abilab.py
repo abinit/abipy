@@ -42,6 +42,7 @@ from abipy.electrons.gw import SigresFile, SigresPlotter
 from abipy.electrons.bse import MdfFile
 from abipy.electrons.scissors import ScissorsBuilder
 from abipy.electrons.scr import ScrFile
+from abipy.electrons.ncdenpot import DensityNcFile
 from abipy.electrons.fatbands import FatBandsFile
 from abipy.dfpt.phonons import (PhbstFile, PhononBands, PhdosFile, PhdosReader,
                                 phbands_gridplot)
@@ -84,6 +85,7 @@ ext2file = collections.OrderedDict([
 # Abinit files require a special treatment.
 abiext2ncfile = collections.OrderedDict([
     ("GSR.nc", GsrFile),
+    ("DEN.nc", DensityNcFile),
     ("OUT.nc", OutNcFile),
     ("WFK.nc", WfkFile),
     ("HIST.nc", HistFile),

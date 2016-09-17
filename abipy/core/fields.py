@@ -335,7 +335,8 @@ class ScalarField(Has_Structure):
 
 class Density(ScalarField):
     """
-    Electronic density
+    Electronic density.
+    Note that unlike Abinit, datar[nspden] contains the up/down components if nsppol = 2
     """
     @classmethod
     def from_file(cls, filepath):
@@ -346,9 +347,10 @@ class Density(ScalarField):
     @classmethod
     def ae_core_density_on_mesh(cls, valence_density, structure, rhoc_files, maxr=2.0, nelec=None,
                                 method='mesh3d_dist_gridpoints', small_dist_mesh=(8, 8, 8), small_dist_factor=1.5):
-        """Initialize the all electron core density of the structure from the pseudopotentials *rhoc files
-           Note that these *rhoc files contain one column with the radii in Bohrs and one column with the density
-           in #/Bohr^3 multiplied by a factor 4pi.
+        """
+        Initialize the all electron core density of the structure from the pseudopotentials *rhoc files
+        Note that these *rhoc files contain one column with the radii in Bohrs and one column with the density
+        in #/Bohr^3 multiplied by a factor 4pi.
         """
         rhoc_atom_splines = [None]*len(structure)
         if isinstance(rhoc_files, (list, tuple)):
@@ -487,7 +489,9 @@ class Density(ScalarField):
 
     @lazy_property
     def total_rhor(self):
-        """numpy array with the total density in real space on the FFT mesh"""
+        """
+        numpy array with the total density in real space on the FFT mesh
+        """
         if self.is_collinear:
             if self.nsppol == 1:
                 if self.nspden == 2: raise NotImplementedError()
@@ -619,6 +623,26 @@ class Density(ScalarField):
         #"""Compute the exchange-correlation potential in real- and reciprocal-space."""
         #return vxcr, vxcg
 
+    def to_chgcar(self, filename=None):
+        from pymatgen.io.vasp.inputs import Poscar
+        from pymatgen.io.vasp.outputs import Chgcar
+
+        # From: http://cms.mpi.univie.ac.at/vasp/vasp/CHGCAR_file.html
+        # This file contains the total charge density multiplied by the volume
+        # For spinpolarized calculations, two sets of data can be found in the CHGCAR file.
+        # The first set contains the total charge density (spin up plus spin down),
+        # the second one the magnetization density (spin up minus spin down).
+        # For non collinear calculations the CHGCAR file contains the total charge density
+        # and the magnetisation density in the x, y and z direction in this order.
+        myrhor = self.datar * self.structure.volume
+        data_dict = {"total": myrhor[0]}
+        if self.nsppol == 2: {"diff": myrhor[0] - myrhor[1]}
+        if self.nspinor == 2: raise NotImplementedError("pymatgen Chgcar does not implement nspinor == 2")
+
+        chgcar = Chgcar(Poscar(self.structure), data_dict)
+        if filename is not None: chgcar.write_file(filename)
+        return chgcar
+
 
 class DensityReader(ETSF_Reader):
     """This object reads density data from a netcdf file."""
@@ -637,7 +661,10 @@ class DensityReader(ETSF_Reader):
         )
 
     def read_density(self, cls=Density):
-        """Factory function that builds and returns a `Density` object."""
+        """
+        Factory function that builds and returns a `Density` object.
+        Note that unlike Abinit, datar[nspden] contains the up/down components if nsppol = 2
+        """
         structure = self.read_structure()
         dims = self.read_den_dims()
 
@@ -647,15 +674,13 @@ class DensityReader(ETSF_Reader):
         # (for non-collinear magnetism, first element: total density, 3 next ones: mx,my,mz in units of hbar/2)
         rhor = self.read_value("density")
 
-        if dims.nspden == 1:
+        if dims.nspden in (1, 4):
             pass
         elif dims.nspden == 2:
             # Store rho_up, rho_down instead of rho_total, rho_up
             total = rhor[0].copy()
             rhor[0] = rhor[1]
             rhor[1] = total - rhor[1]
-        elif dims.nspden == 4:
-            raise NotImplementedError("nspden == 4 not coded")
         else:
             raise RuntimeError("You should not be here")
 

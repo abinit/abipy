@@ -31,7 +31,6 @@ class TestPWWave(AbipyTest):
         vectors.shape = (3,3)
 
         mesh = Mesh3D( (12,3,5), vectors)
-
         extra_dims = [(), 1, (2,), (3,4)]
         types = [np.float, np.complex]
 
