@@ -131,7 +131,7 @@ class Structure(pymatgen.Structure):
                 (pre-relaxation) structure. Defaults to True.
             api_key (str): A String API key for accessing the MaterialsProject
                 REST interface. Please apply on the Materials Project website for one.
-                If this is None, the code will check if there is a "MAPI_KEY" in 
+                If this is None, the code will check if there is a "MAPI_KEY" in
                 your .pmgrc.yaml. If so, it will use that environment
                 This makes easier for heavy users to simply add
                 this environment variable to their setups and MPRester can
@@ -496,7 +496,7 @@ class Structure(pymatgen.Structure):
                                            for i in self.lattice.angles]))
         app("Space group info (note that magnetic symmetries are not taken into account).")
         app("Spacegroup: %s (%s), Hall: %s, Abinit spg_number: %s" % (
-             spgan.get_spacegroup_symbol(), spgan.get_spacegroup_number(), spgan.get_hall(), str(abispg_number)))
+             spgan.get_space_group_symbol(), spgan.get_space_group_number(), spgan.get_hall(), str(abispg_number)))
         app("Crystal_system: %s, Lattice_type: %s, Point_group: %s" % (
             spgan.get_crystal_system(), spgan.get_lattice_type(), spgan.get_point_group()))
         app("")
@@ -668,7 +668,7 @@ class Structure(pymatgen.Structure):
         abc, angles = self.lattice.abc, self.lattice.angles
         # Get spacegroup info from spglib.
         spglib_symbol, spglib_number = None, None
-        if with_spglib: spglib_symbol, spglib_number = self.get_spacegroup_info()
+        if with_spglib: spglib_symbol, spglib_number = self.get_space_group_info()
         # Get spacegroup number computed by Abinit if available.
         abispg_number = None if self.spacegroup is None else self.spacegroup.spgid
 
@@ -1323,7 +1323,7 @@ class Structure(pymatgen.Structure):
         """
         # Find lattice type.
         sym = SpacegroupAnalyzer(self, symprec=symprec, angle_tolerance=angle_tolerance)
-        lattice_type, spg_symbol = sym.get_lattice_type(), sym.get_spacegroup_symbol()
+        lattice_type, spg_symbol = sym.get_lattice_type(), sym.get_space_group_symbol()
 
         # Check if the cell is primitive
         is_primitve = len(sym.find_primitive()) == len(self)
