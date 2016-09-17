@@ -15,7 +15,7 @@ from monty.functools import lazy_property
 from pymatgen.core.units import Ha_to_eV, eV_to_Ha
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.func1d import Function1D
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands
+from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter
 from abipy.core.kpoints import Kpoint, KpointList
 from abipy.iotools import ETSF_Reader
 from abipy.tools import gaussian
@@ -979,7 +979,7 @@ class PHBST_Reader(ETSF_Reader):
         return self.read_value("atomic_mass_units", default=None)
 
 
-class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands):
+class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
 
     def __init__(self, filepath):
         """
@@ -1068,6 +1068,23 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands):
                           freq=self.phbands.phfreqs[qindex, branch],
                           displ_cart=self.phbands.phdispl_cart[qindex, branch, :],
                           structure=self.structure)
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        nb.cells.extend([
+            nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(ncfile)"),
+            nbv.new_code_cell("fig = ncfile.phbands.plot()"),
+            nbv.new_code_cell("fig = ncfile.phbands.qpoints.plot()"),
+            #nbv.new_code_cell("fig = ncfile.phbands.get_phdos().plot()"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
 
 
 class PhononDos(Function1D):
@@ -1359,7 +1376,7 @@ class PhdosReader(ETSF_Reader):
     #     return self.read_value("phonon_frequencies")
 
 
-class PhdosFile(AbinitNcFile, Has_Structure):
+class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
     """
     Container object storing the different DOSes stored in the
     PHDOS.nc file produced by anaddb. Provides helper function
@@ -1436,6 +1453,22 @@ class PhdosFile(AbinitNcFile, Has_Structure):
         ax.legend(loc="best")
 
         return fig
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        nb.cells.extend([
+            nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(ncfile)"),
+            nbv.new_code_cell("fig = ncfile.phdos.plot()"),
+            #nbv.new_code_cell("fig = ncfile.phbands.get_phdos().plot()"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
 
 
 @add_fig_kwargs

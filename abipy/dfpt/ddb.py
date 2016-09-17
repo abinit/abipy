@@ -9,6 +9,7 @@ import numpy as np
 from collections import OrderedDict
 
 from six.moves import map, zip, StringIO
+from monty.string import marquee
 from monty.collections import AttrDict, dict2namedtuple, tree
 from monty.functools import lazy_property
 from monty.dev import get_ncpus
@@ -92,22 +93,22 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def __str__(self):
         """String representation."""
+        return self.to_string()
+
+    def to_string(self):
         lines = []
-        append, extend = lines.append, lines.extend
-        extend(super(DdbFile, self).__str__().splitlines())
+        app, extend = lines.append, lines.extend
+        #extend(super(DdbFile, self).__str__().splitlines())
 
-        append(" ")
-        append("@@Structure")
-        extend(str(self.structure).splitlines())
-        append(" ")
-        append("@@q-points")
-        extend(str(self.qpoints).splitlines())
-        append("guessed_ngqpt: %s" % self.guessed_ngqpt)
+        app(marquee("File Info", mark="="))
+        app(self.filestat(as_string=True))
+        app("")
+        app(marquee("Structure", mark="="))
+        app(str(self.structure))
 
-        width = max(len(l) for l in lines)
-        for i, line in enumerate(lines):
-            if line.startswith("@@"):
-                lines[i] = (" " + line[2:] + " ").center(width, "=")
+        app(marquee("Q-points", mark="="))
+        app(str(self.qpoints))
+        app("guessed_ngqpt: %s" % self.guessed_ngqpt)
 
         return "\n".join(lines)
 
@@ -621,7 +622,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         Writes the DDB file in filepath.
         Requires the blocks data.
-        Only the onformation stored in self.header.lines and in self.blocks will be used to produce the file
+        Only the information stored in self.header.lines and in self.blocks will be used to produce the file
         """
         if not self.blocks:
             raise ValueError("Blocks information are required to write the DDB file")

@@ -9,7 +9,7 @@ import numpy as np
 
 from monty.collections import AttrDict
 from monty.functools import lazy_property
-from monty.string import marquee # is_string, list_strings,
+from monty.string import marquee
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList

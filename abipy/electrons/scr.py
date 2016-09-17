@@ -5,7 +5,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import numpy as np
 
 from collections import OrderedDict, Iterable, defaultdict
-from monty.string import is_string, list_strings
+from monty.string import is_string, list_strings, marquee
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from monty.bisect import index as bs_index
@@ -14,7 +14,7 @@ from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList
 from abipy.core.gsphere import GSphere
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands
+from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting_utils import ArrayPlotter, plot_array, data_from_cplx_mode
 
@@ -25,11 +25,11 @@ logger = logging.getLogger(__name__)
 
 class WGGFunction(object):
     """
-    Base class for two-point functions expressed in 
+    Base class for two-point functions expressed in
     reciprocal space i.e. a matrix A_{G,G'}(q, \omega)
 
     .. attributes:
-        
+
         qpoint
         wpts
         gpshere:
@@ -43,7 +43,7 @@ class WGGFunction(object):
             qpoint: Q-point object
             wpts: Frequency points in Ha.
             wggmat: numpy array of shape [nw, ng, ng]
-            inord: storage order of wggmat. If inord == "F", wggmat in 
+            inord: storage order of wggmat. If inord == "F", wggmat in
                 in Fortran column-major order. Default: "C" i.e. C row-major order
         """
         self.qpoint = qpoint
@@ -51,7 +51,7 @@ class WGGFunction(object):
         self.gsphere = gsphere
         self.wggmat = np.reshape(wggmat, (self.nw, self.ng, self.ng))
 
-        if inord == "F": 
+        if inord == "F":
             # Fortran to C.
             for iw in range(len(wpts)):
                 self.wggmat[iw] = self.wggmat[iw].T
@@ -157,7 +157,7 @@ class WGGFunction(object):
         Args:
             gvec1, gvec2:
             waxis: "real" to plot along the real axis, "imag" for the imaginary axis.
-            cplx_mode: string defining the data to print. 
+            cplx_mode: string defining the data to print.
                        Possible choices are (case-insensitive): `re` for the real part
                        "im" for the imaginary part, "abs" for the absolute value.
                        "angle" will display the phase of the complex number in radians.
@@ -214,7 +214,7 @@ class WGGFunction(object):
         Args:
             cplx_mode:
             wpos: List of frequency indices to plot. If None, the first
-                frequency is used (usually w=0). if wpos == "all" 
+                frequency is used (usually w=0). if wpos == "all"
                 all frequencies are shown (use it carefully)
                 Other possible values: "real" if only real frequencies are wanted.
                 "imag" for imaginary frequencies only.
@@ -246,12 +246,12 @@ class WGGFunction(object):
 
 
 class Polarizability(WGGFunction):
-    etsf_name = "dielectric_function" 
+    etsf_name = "dielectric_function"
     latex_name = "\\tilde chi"
 
 
 class DielectricFunction(WGGFunction):
-    etsf_name = "dielectric_function" 
+    etsf_name = "dielectric_function"
     latex_name = "\epsilon"
 
 
@@ -272,13 +272,13 @@ class InverseDielectricFunction(WGGFunction):
         return self._add_ppmodel(ppm)
 
     @add_fig_kwargs
-    def plot_with_ppmodels(self, gvec1, gvec2=None, waxis="real", cplx_mode="re", 
+    def plot_with_ppmodels(self, gvec1, gvec2=None, waxis="real", cplx_mode="re",
         zcut=0.1/Ha_to_eV, **kwargs):
         """
         Args:
             gvec1, gvec2:
             waxis: "real" to plot along the real axis, "imag" for the imaginary axis.
-            cplx_mode: string defining the data to print. 
+            cplx_mode: string defining the data to print.
                        Possible choices are (case-insensitive): `re` for the real part
                        "im" for the imaginary part, "abs" for the absolute value.
                        "angle" will display the phase of the complex number in radians.
@@ -295,7 +295,7 @@ class InverseDielectricFunction(WGGFunction):
 
         ax, fig, plt = get_ax_fig_plt(None)
 
-        self.plot_w(gvec1, gvec2=gvec2, waxis=waxis, cplx_mode=cplx_mode, 
+        self.plot_w(gvec1, gvec2=gvec2, waxis=waxis, cplx_mode=cplx_mode,
                     ax=ax, show=False)
 
         # Compute em1 from the ppmodel on the same grid used for self.
@@ -306,7 +306,7 @@ class InverseDielectricFunction(WGGFunction):
 
         for ppm in self.ppmodels:
             em1_ppm = ppm.eval_em1(omegas, zcut)
-            em1_ppm.plot_w(ig1, gvec2=ig2, waxis=waxis, cplx_mode=cplx_mode, 
+            em1_ppm.plot_w(ig1, gvec2=ig2, waxis=waxis, cplx_mode=cplx_mode,
                            ax=ax, linestyle="--", show=False)
 
         ax.set_ylim(ymin_em1, ymax_em1)
@@ -314,15 +314,15 @@ class InverseDielectricFunction(WGGFunction):
         return fig
 
 
-class ScrFile(AbinitNcFile, Has_Structure):
+class ScrFile(AbinitNcFile, Has_Structure, NotebookWriter):
     """
-    Netcdf file with the tables used in Abinit to apply the 
-    pseudopotential part of the KS Hamiltonian. 
+    Netcdf file with the tables used in Abinit to apply the
+    pseudopotential part of the KS Hamiltonian.
 
     Usage example:
-                                                                  
+
     .. code-block:: python
-        
+
         with ScrFile("foo_SCR.nc") as scr:
             print(scr)
             em1 = scr.get_em1(qpoint=0)
@@ -347,14 +347,23 @@ class ScrFile(AbinitNcFile, Has_Structure):
         self.reader.close()
 
     def __str__(self):
-        lines = []
-        app = lines.append
-                                                                                               
-        #app(self.etsf_name)
-        app("  Number of qpoints: %d" % len(self.qpoints))
+        return self.to_string()
+
+    def to_string(self):
+        lines = []; app = lines.append
+
+        app(marquee("File Info", mark="="))
+        app(self.filestat(as_string=True))
+        app("")
+        app(marquee("Structure", mark="="))
+        app(str(self.structure))
+        app("")
+        app(marquee("Q-points", mark="="))
+        app(str(self.qpoints))
+        app("")
         #app("  Number of G-vectors: %d" % self.ng)
         #app("  Number of frequencies: %d (real:%d, imag%d)" % (self.nw, self.nrew, self.nimw))
-                                                                                               
+
         return "\n".join(lines)
 
     @property
@@ -381,11 +390,11 @@ class ScrFile(AbinitNcFile, Has_Structure):
     def get_emacro_nlf(self, qpoint=(0, 0, 0)):
         """
         Compute the macroscopic dielectric function *without* local field effects.
-        e_{0,0)(q=0, w). 
+        e_{0,0)(q=0, w).
 
         Return :class:`Function1D`
 
-        .. warning: 
+        .. warning:
             This function performs the inversion of e-1 to get e.
             that can be quite expensive and memory demanding for large matrices!
         """
@@ -396,14 +405,13 @@ class ScrFile(AbinitNcFile, Has_Structure):
 
     def get_emacro_lf(self, qpoint=(0, 0, 0)):
         """
-        Compute the macroscopic dielectric function *with* local field effects 
-        1/ em1_{0,0)(q=0, w). 
-        
+        Compute the macroscopic dielectric function *with* local field effects
+        1/ em1_{0,0)(q=0, w).
+
         Return :class:`Function1D`
         """
         em1 = self.get_em1(qpoint=qpoint)
         emacro = 1 / em1.wggmat[:, 0, 0]
-
         return Function1D(em1.real_wpts, emacro[:em1.nrew])
 
     @add_fig_kwargs
@@ -415,6 +423,22 @@ class ScrFile(AbinitNcFile, Has_Structure):
             matplotlib figure.
         """
         return self.get_emacro_lf().plot(**kwargs)
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        nb.cells.extend([
+            nbv.new_code_cell("scr = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(scr)"),
+            nbv.new_code_cell("fig = scr.plot_emacro_lf()"),
+            #nbv.new_code_cell("fig = ncfile.phbands.get_phdos().plot()"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
 
 
 class ScrReader(ETSF_Reader):
@@ -451,7 +475,7 @@ class ScrReader(ETSF_Reader):
         Raise:
             `KpointsError` if qpoint cannot be found.
         """
-        if isinstance(qpoint, int): 
+        if isinstance(qpoint, int):
             iq = qpoint
         else:
             iq = self.qpoints.index(qpoint)
@@ -496,7 +520,7 @@ class GodbyNeeds(PPModel):
         """
         bigomegatwsq(:)
         Plasmon pole parameters $\tilde\Omega^2_{G Gp}(q)$.
-                                                             
+
         omegatw(:)
         omegatw(nqibz)%value(npwc,dm2_otq)
         Plasmon pole parameters $\tilde\omega_{G Gp}(q)$.
@@ -527,7 +551,7 @@ class GodbyNeeds(PPModel):
         w1gg = em1.wggmat[iw1, :, :]
 
         aa = w0gg - np.eye(em1.ng)
-        diff = w0gg - w1gg 
+        diff = w0gg - w1gg
         ratio = aa / diff
         omegatwsq = (ratio - 1.0) * (wplasma ** 2)
 
@@ -542,7 +566,7 @@ class GodbyNeeds(PPModel):
         #omegatw(ig,igp)=SQRT(REAL(omegatwsq))
         #omegatw = np.sqrt(omegatwsq)
         omegatw = np.sqrt(omegatwsq.real)
-        #omegatw = omegatw + 7j * eV_to_Ha 
+        #omegatw = omegatw + 7j * eV_to_Ha
 
         bigomegatwsq = -aa * omegatw**2
 
