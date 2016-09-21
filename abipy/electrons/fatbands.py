@@ -133,7 +133,63 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         self.has_atom = np.zeros(self.natom, dtype=bool)
         self.has_atom[self.iatsph] = True
 
-        # Read dos_fraction_m from file and build walm_sbk array of shape [natom, lmax**2, nsppol, mband, nkpt].
+    @lazy_property
+    def wal_sbk(self):
+        return self._read_wal_sbk()
+
+    @lazy_property
+    def walm_sbk(self):
+        return self._read_walm_sbk()
+
+    def _read_wal_sbk(self):
+        # Read dos_fraction_m from file and build wal_sbk array of shape
+        # [natom, lmax, nsppol, mband, nkpt].
+        #
+        # In abinit the **Fortran** array has shape
+        #   dos_fractions(nkpt,mband,nsppol,ndosfraction)
+        #
+        # Note that Abinit allows the users to select a subset of atoms with iatsph. Moreover the order
+        # of the atoms could differ from the one in the structure even when natom == natsph (unlikely but possible).
+        # To keep it simple, the code always operate on an array dimensioned with the total number of atoms
+        # Entries that are not computed are set to zero and a warning is issued.
+        if self.prtdos != 3:
+          raise RuntimeError("The file does not contain L-DOS since prtdos=%i" % self.prtdos)
+
+        wshape = (self.natom, self.mbesslang, self.nsppol, self.mband, self.nkpt)
+
+        if self.natsph == self.natom and np.all(self.iatsph == np.arange(self.natom)):
+            # All atoms have been calculated and the order if ok.
+            wal_sbk = np.reshape(self.reader.read_value("dos_fractions"), wshape)
+
+        else:
+            # Need to tranfer data. Note np.zeros.
+            wal_sbk = np.zeros(wshape)
+            if self.natsph == self.natom and np.any(self.iatsph != np.arange(self.natom)):
+                print("Will rearrange filedata since iatsp != [1, 2, ...])")
+                filedata = np.reshape(self.reader.read_value("dos_fractions"), wshape)
+                for i, iatom in enumerate(self.iatsph):
+                    wal_sbk[iatom] = filedata[i]
+            else:
+                print("natsph < natom. Will set to zero the PJDOS contributions for the atoms that are not included.")
+                assert self.natsph < self.natom
+                filedata = np.reshape(r.read_value("dos_fractions"),
+                                     (self.natsph, self.mbesslang, self.nsppol, self.mband, self.nkpt))
+                for i, iatom in enumerate(self.iatsph):
+                    wal_sbk[iatom] = filedata[i]
+
+        # In principle, this should never happen (unless there's a bug in Abinit or a
+        # very bad cancellation between the FFT and the PS-PAW term (pawprtden=0).
+        num_neg = np.sum(wal_sbk < 0)
+        if num_neg:
+            print("WARNING: There are %d (%.1f%%) negative entries in LDOS weights" % (
+                  num_neg, 100 * num_neg / wal_sbk.size))
+
+        return wal_sbk
+
+    def _read_walm_sbk(self):
+        # Read dos_fraction_m from file and build walm_sbk array of shape
+        # [natom, lmax**2, nsppol, mband, nkpt].
+        #
         # In abinit the **Fortran** array has shape
         #   dos_fractions_m(nkpt,mband,nsppol,ndosfraction*mbesslang*m_dos_flag)
         #
@@ -141,35 +197,41 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         # of the atoms could differ from the one in the structure even when natom == natsph (unlikely but possible).
         # To keep it simple, the code always operate on an array dimensioned with the total number of atoms
         # Entries that are not computed are set to zero and a warning is issued.
+        if self.prtdos != 3:
+          raise RuntimeError("The file does not contain L-DOS since prtdos=%i" % self.prtdos)
+        if self.prtdosm == 0:
+          raise RuntimeError("The file does not contain LM-DOS since prtdosm=%i" % self.prtdosm)
+
         wshape = (self.natom, self.mbesslang**2, self.nsppol, self.mband, self.nkpt)
 
         if self.natsph == self.natom and np.all(self.iatsph == np.arange(self.natom)):
             # All atoms have been calculated and the order if ok.
-            self.walm_sbk = np.reshape(r.read_value("dos_fractions_m"), wshape)
+            walm_sbk = np.reshape(self.reader.read_value("dos_fractions_m"), wshape)
 
         else:
             # Need to tranfer data. Note np.zeros.
-            self.walm_sbk = np.zeros(wshape)
+            walm_sbk = np.zeros(wshape)
             if self.natsph == self.natom and np.any(self.iatsph != np.arange(self.natom)):
                 print("Will rearrange filedata since iatsp != [1, 2, ...])")
-                filedata = np.reshape(r.read_value("dos_fractions_m"), wshape)
+                filedata = np.reshape(self.reader.read_value("dos_fractions_m"), wshape)
                 for i, iatom in enumerate(self.iatsph):
-                    self.walm_sbk[iatom] = filedata[i]
-
+                    walm_sbk[iatom] = filedata[i]
             else:
                 print("natsph < natom. Will set to zero the PJDOS contributions for the atoms that are not included.")
                 assert self.natsph < self.natom
                 filedata = np.reshape(r.read_value("dos_fractions_m"),
                                      (self.natsph, self.mbesslang**2, self.nsppol, self.mband, self.nkpt))
                 for i, iatom in enumerate(self.iatsph):
-                    self.walm_sbk[iatom] = filedata[i]
+                    walm_sbk[iatom] = filedata[i]
 
         # In principle, this should never happen (unless there's a bug in Abinit or a
         # very bad cancellation between the FFT and the PS-PAW term (pawprtden=0).
-        num_neg = np.sum(self.walm_sbk < 0)
+        num_neg = np.sum(walm_sbk < 0)
         if num_neg:
             print("WARNING: There are %d (%.1f%%) negative entries in LDOS weights" % (
-                  num_neg, 100 * num_neg / self.walm_sbk.size))
+                  num_neg, 100 * num_neg / walm_sbk.size))
+
+        return walm_sbk
 
     @property
     def ebands(self):
@@ -195,8 +257,8 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         app(self.ebands.to_string(with_structure=True, title="Electronic Bands"))
         app("")
         app(marquee("Fatbands Info", mark="="))
-        app("usepaw=%d, prtdos=%d, pawprtdos=%d, prtdosm=%d, mbesslang=%d" % (
-            self.usepaw, self.prtdos, self.pawprtdos, self.prtdosm, self.mbesslang))
+        app("prtdos=%d, prtdosm=%d, mbesslang=%d, pawprtdos=%d, usepaw=%d" % (
+            self.prtdos, self.prtdosm, self.mbesslang, self.pawprtdos, self.usepaw))
         app("nsppol=%d, nkpt=%d, mband=%d" % (self.nsppol, self.nkpt, self.mband))
         app("")
 
@@ -222,18 +284,21 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         for all spin and bands else the contribution for (spin, band)
         """
         if spin is None and band is None:
-            wl = np.zeros((self.lsize, self.nsppol, self.mband, self.nkpt))
-            for l in range(self.lmax_atom[iatom]+1):
-                for m in range(2*l + 1):
-                    wl[l] += self.walm_sbk[iatom, l**2 + m]
+            return self.wal_sbk[iatom]
+            #wl = np.zeros((self.lsize, self.nsppol, self.mband, self.nkpt))
+            #for l in range(self.lmax_atom[iatom]+1):
+            #    for m in range(2*l + 1):
+            #        wl[l] += self.walm_sbk[iatom, l**2 + m]
         else:
             assert spin is not None and band is not None
-            wl = np.zeros((self.lsize, self.nkpt))
-            for l in range(self.lmax_atom[iatom]+1):
-                for m in range(2*l + 1):
-                    wl[l] += self.walm_sbk[iatom, l**2 + m, spin, band, :]
+            return self.wal_sbk[iatom, :, spin, band, :]
+            #wl = np.zeros((self.lsize, self.nkpt))
+            #for l in range(self.lmax_atom[iatom]+1):
+            #    return self.wal_sbk[iatom, l, spin, band, :]
+            #    for m in range(2*l + 1):
+            #        wl[l] += self.walm_sbk[iatom, l**2 + m, spin, band, :]
 
-        return wl
+        #return wl
 
     def get_wl_symbol(self, symbol, spin=None, band=None):
         """
@@ -246,15 +311,17 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             wl = np.zeros((self.lsize, self.nsppol, self.mband, self.nkpt))
             for iat in self.symbol2indices[symbol]:
                 for l in range(self.lmax_atom[iat]+1):
-                    for m in range(2*l + 1):
-                        wl[l] += self.walm_sbk[iat, l**2 + m]
+                    wl[l] += self.wal_sbk[iat, l]
+                    #for m in range(2*l + 1):
+                    #    wl[l] += self.walm_sbk[iat, l**2 + m]
         else:
             assert spin is not None and band is not None
             wl = np.zeros((self.lsize, self.nkpt))
             for iat in self.symbol2indices[symbol]:
                 for l in range(self.lmax_atom[iat]+1):
-                    for m in range(2*l + 1):
-                        wl[l, :] += self.walm_sbk[iat, l**2 + m, spin, band, :]
+                    wl[l, :] += self.wal_sbk[iat, l, spin, band, :]
+                    #for m in range(2*l + 1):
+                    #    wl[l, :] += self.walm_sbk[iat, l**2 + m, spin, band, :]
 
         return wl
 
@@ -291,15 +358,17 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             sp = np.zeros((self.nsppol, self.mband, self.nkpt))
             for iatom in range(self.natom):
                 for l in range(self.lmax_atom[iatom]+1):
-                    for m in range(2*l + 1):
-                        sp += self.walm_sbk[iatom, l**2 + m]
+                    sp += self.wal_sbk[iatom, l]
+                    #for m in range(2*l + 1):
+                    #    sp += self.walm_sbk[iatom, l**2 + m]
         else:
             assert spin is not None and band is not None
             sp = np.zeros((self.nkpt))
             for iatom in range(self.natom):
                 for l in range(self.lmax_atom[iatom]+1):
-                    for m in range(2*l + 1):
-                        sp += self.walm_sbk[iatom, l**2 + m, spin, band, :]
+                    sp += self.wal_sbk[iatom, l, spin, band, :]
+                    #for m in range(2*l + 1):
+                    #    sp += self.walm_sbk[iatom, l**2 + m, spin, band, :]
 
         return 1.0 - sp
 
@@ -346,7 +415,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             num_plots, ax2iatom = self.natom, np.arange(self.natom)
 
         elif view == "inequivalent":
-            print("Calling spglib to find the inequivalent sites.")
+            print("Calling spglib to find inequivalent sites.")
             print("Note that magnetic symmetries are not taken into account")
             from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
             spgan = SpacegroupAnalyzer(self.structure)
@@ -663,6 +732,13 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
         return fig
 
+    #@add_fig_kwargs
+    #def plot_pawdos_terms(self, **kwargs)
+    #    if self.pawprtdos != 3:
+    #      raise RuntimeError("The file does not contain L-DOS since prtdos=%i" % self.prtdos)
+    #  fractions_pawt1
+    #  ABI_CALLOC(new%fractions_paw1,(dtset%nkpt,dtset%mband,dtset%nsppol,new%ndosfraction))
+
     def nelect_in_spheres(self, start_energy=None, stop_energy=None,
                          method="gaussian", step=0.1, width=0.2):
         """
@@ -973,7 +1049,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 ax = axmat[spin, itype]
                 if with_info:
                     if combined_spins:
-                        title = "Type: %s", symbol
+                        title = "Type: %s" % symbol
                     else:
                         title = "%s, %s" % (symbol, self.spin2tex[spin]) if self.nsppol == 2 else \
                                  symbol
@@ -1094,7 +1170,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
         nb.cells.extend([
             nbv.new_code_cell("fbfile = abilab.abiopen('%s')\nprint(fbfile)" % self.filepath),
-            #nbv.new_code_cell("fbfile.structure"),
+            nbv.new_code_cell("fbfile.structure"),
             #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("fig = fbfile.plot_fatbands_typeview()"),
             nbv.new_code_cell("fig = fbfile.plot_fatbands_lview()"),
@@ -1111,7 +1187,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 class _DosIntegrator(object):
     """
     This object is responsible for the integration of the DOS/PJDOS.
-    It's an internal object that should not be instanciated directly outside of this module.
+    It's an internal object that should not be instantiated directly outside of this module.
     PJDOSes are computed lazily and stored in the integrator so that we can reuse the results
     if needed.
     """
