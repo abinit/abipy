@@ -27,6 +27,7 @@ from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, KpointsRead
 from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader, Visualizer, bxsf_write
 from abipy.tools import gaussian
+from abipy.tools.plotting_utils import set_axlims
 
 
 import logging
@@ -1410,7 +1411,8 @@ class ElectronBands(object):
             nband_sk=self.nband_sk, smearing=self.smearing, markers=self.markers)
 
     @add_fig_kwargs
-    def plot(self, ax=None, klabels=None, band_range=None, e0="fermie", marker=None, width=None, **kwargs):
+    def plot(self, ax=None, klabels=None, band_range=None, e0="fermie",
+             ylims=None, marker=None, width=None, **kwargs):
         """
         Plot the band structure.
 
@@ -1420,6 +1422,8 @@ class ElectronBands(object):
                 coordinates of the k-points. The values are the labels. e.g.
                 klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0):"L"}.
             band_range: Tuple specifying the minimum and maximum band to plot (default: all bands are plotted)
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
                 - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
@@ -1441,7 +1445,8 @@ class ElectronBands(object):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         # Decorate the axis (e.g add ticks and labels).
-        self.decorate_ax(ax, klabels=klabels) #, title=title)
+        self.decorate_ax(ax, klabels=klabels)
+        set_axlims(ax, ylims, "y")
 
         # Plot the band energies.
         for spin in self.spins:
@@ -1592,7 +1597,7 @@ class ElectronBands(object):
         return list(d.keys()), list(d.values())
 
     @add_fig_kwargs
-    def plot_with_edos(self, dos, klabels=None, axlist=None, e0="fermie", **kwargs):
+    def plot_with_edos(self, dos, klabels=None, axlist=None, e0="fermie", ylims=None, **kwargs):
         """
         Plot the band structure and the DOS.
 
@@ -1602,6 +1607,8 @@ class ElectronBands(object):
                 The values are the labels. e.g. `klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}`.
             axlist: The axes for the bandstructure plot and the DOS plot. If axlist is None, a new figure
                 is created and the two axes are automatically generated.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
                 - `fermie`: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
                    Note that, by default, the Fermi energy is taken from the band structure object
@@ -1639,12 +1646,14 @@ class ElectronBands(object):
                 self.plot_ax(ax1, e0, spin=spin, band=band, **kwargs)
 
         self.decorate_ax(ax1, klabels=klabels)
+        set_axlims(ax1, ylims, "y")
 
         # Plot the DOS
         dos.plot_ax(ax2, e0, exchange_xy=True, **kwargs)
         ax2.grid(True)
         ax2.yaxis.set_ticks_position("right")
         ax2.yaxis.set_label_position("right")
+        set_axlims(ax2, ylims, "y")
 
         fig = plt.gcf()
         return fig
@@ -1960,7 +1969,7 @@ class ElectronBandsPlotter(NotebookWriter):
         return "\n\n".join(text)
 
     @add_fig_kwargs
-    def combiplot(self, e0="fermie", **kwargs):
+    def combiplot(self, e0="fermie", ylims=None, **kwargs):
         """
         Plot the band structure and the DOS on the same figure.
         Use `gridplot` to plot band structures on different figures.
@@ -1977,7 +1986,8 @@ class ElectronBandsPlotter(NotebookWriter):
                    Available only if plotter contains dos objects.
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
-
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
         Returns:
             matplotlib figure.
         """
@@ -2001,6 +2011,7 @@ class ElectronBandsPlotter(NotebookWriter):
 
         for ax in ax_list:
             ax.grid(True)
+            set_axlims(ax, ylims, "y")
 
         # Plot ebands.
         lines, legends = [], []
@@ -2049,7 +2060,7 @@ class ElectronBandsPlotter(NotebookWriter):
         return self.combiplot(*args, **kwargs)
 
     @add_fig_kwargs
-    def gridplot(self, e0="fermie", with_dos=True, **kwargs):
+    def gridplot(self, e0="fermie", with_dos=True, ylims=None, **kwargs):
         """
         Plot multiple electron bandstructures and optionally DOSes on a grid.
 
@@ -2072,6 +2083,8 @@ class ElectronBandsPlotter(NotebookWriter):
                    Available only if edos_objects is not None
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
 
         Returns:
             matplotlib figure.
@@ -2095,6 +2108,7 @@ class ElectronBandsPlotter(NotebookWriter):
 
             for i, (ebands, ax) in enumerate(zip(ebands_list, axes)):
                 ebands.plot(ax=ax, e0=e0, show=False)
+                set_axlims(ax, ylims, "y")
                 if titles is not None: ax.set_title(titles[i])
                 if i % ncols != 0:
                     ax.set_ylabel("")
@@ -2110,6 +2124,8 @@ class ElectronBandsPlotter(NotebookWriter):
                 # Get axes and align bands and DOS.
                 ax1 = plt.subplot(subgrid[0])
                 ax2 = plt.subplot(subgrid[1], sharey=ax1)
+                set_axlims(ax1, ylims, "y")
+                set_axlims(ax2, ylims, "y")
 
                 # Define the zero of energy and plot
                 mye0 = ebands.get_e0(e0) if e0 != "edos_fermie" else edos.fermie
@@ -2314,8 +2330,9 @@ class ElectronBandsPlotter(NotebookWriter):
                 (str(key_ebands), str(key_edos))),
             nbv.new_code_cell("print(plotter)"),
             nbv.new_code_cell("frame = plotter.get_ebands_frame()\ndisplay(frame)"),
-            nbv.new_code_cell("fig = plotter.gridplot()"),
-            nbv.new_code_cell("fig = plotter.combiplot()"),
+            nbv.new_code_cell("ylims = (None, None)"),
+            nbv.new_code_cell("fig = plotter.gridplot(ylims=ylims)"),
+            nbv.new_code_cell("fig = plotter.combiplot(ylims=ylims)"),
             nbv.new_code_cell("fig = plotter.boxplot()"),
             nbv.new_code_cell("fig = plotter.combiboxplot()"),
             nbv.new_code_cell("anim = plotter.animate()"),
@@ -2707,7 +2724,7 @@ class ElectronDos(object):
         return lines
 
     @add_fig_kwargs
-    def plot(self, e0="fermie", spin=None, ax=None, **kwargs):
+    def plot(self, e0="fermie", spin=None, ax=None, xlims=None, **kwargs):
         """
         Plot DOS
 
@@ -2718,6 +2735,8 @@ class ElectronDos(object):
                 -  None: Don't shift energies, equivalent to e0=0
             spin: Selects the spin component, None if total DOS is wanted.
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
             kwargs: options passed to ax.plot.
 
         Returns:
@@ -2726,6 +2745,7 @@ class ElectronDos(object):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
         ax.set_xlabel('Energy [eV]')
+        set_axlims(ax, xlims, "x")
         e0 = self.get_e0(e0)
         if not kwargs:
             kwargs = {"color": "black", "linewidth": 1.0}
@@ -2738,7 +2758,7 @@ class ElectronDos(object):
         return fig
 
     @add_fig_kwargs
-    def plot_dos_idos(self, e0="fermie", spin=None, **kwargs):
+    def plot_dos_idos(self, e0="fermie", spin=None, xlims=None, **kwargs):
         """
         Plot DOS and IDOS.
 
@@ -2748,6 +2768,8 @@ class ElectronDos(object):
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
             spin: Selects the spin component, None if total DOS is wanted.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
             kwargs: options passed to plot_ax
 
         Returns:
@@ -2763,6 +2785,7 @@ class ElectronDos(object):
 
         for ax in (ax1, ax2):
             ax.grid(True)
+            set_axlims(ax, xlims, "x")
 
         ax1.set_ylabel("TOT IDOS" if spin is None else "IDOS (spin %s)" % spin)
         ax2.set_ylabel("TOT DOS" if spin is None else "DOS (spin %s)" % spin)
@@ -2775,7 +2798,7 @@ class ElectronDos(object):
         return fig
 
     @add_fig_kwargs
-    def plot_up_minus_down(self, e0="fermie", ax=None, **kwargs):
+    def plot_up_minus_down(self, e0="fermie", ax=None, xlims=None, **kwargs):
         """
         Plot DOS
 
@@ -2785,6 +2808,8 @@ class ElectronDos(object):
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
             kwargs: options passed to ax.plot.
 
         Returns:
@@ -2805,6 +2830,7 @@ class ElectronDos(object):
         ax.plot(idos_diff.mesh - e0, idos_diff.values, **kwargs)
 
         ax.grid(True)
+        set_axlims(ax, xlims, "x")
         ax.set_xlabel('Energy [eV]')
 
         return fig
@@ -2867,7 +2893,7 @@ class ElectronDosPlotter(NotebookWriter):
         self.edoses_dict[label] = ElectronDos.as_edos(edos, edos_kwargs)
 
     @add_fig_kwargs
-    def combiplot(self, ax=None, e0="fermie", **kwargs):
+    def combiplot(self, ax=None, e0="fermie", xlims=None, **kwargs):
         """
         Plot the the DOSes on the same figure.
         Use `gridplot` to plot DOSes on different figures.
@@ -2878,6 +2904,8 @@ class ElectronDosPlotter(NotebookWriter):
                 - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
 
         Returns:
             `matplotlib` figure.
@@ -2892,6 +2920,7 @@ class ElectronDosPlotter(NotebookWriter):
         ax.grid(True)
         ax.set_xlabel("Energy [eV]")
         ax.set_ylabel('DOS [states/eV]')
+        set_axlims(ax, xlims, "x")
         ax.legend(loc="best")
 
         return fig
@@ -2901,7 +2930,7 @@ class ElectronDosPlotter(NotebookWriter):
         return self.combiplot(*args, **kwargs)
 
     @add_fig_kwargs
-    def gridplot(self, e0="fermie", **kwargs):
+    def gridplot(self, e0="fermie", xlims=None, **kwargs):
         """
         Plot multiple DOSes on a grid.
 
@@ -2917,6 +2946,8 @@ class ElectronDosPlotter(NotebookWriter):
                    Available only if edos_objects is not None
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
 
         Returns:
             matplotlib figure.
@@ -2941,6 +2972,7 @@ class ElectronDosPlotter(NotebookWriter):
             ax = axes[i]
             edos.plot(ax=ax, e0=e0, show=False)
             ax.set_title(label)
+            set_axlims(ax, xlims, "x")
             if i % ncols != 0:
                 ax.set_ylabel("")
 
@@ -2968,8 +3000,9 @@ class ElectronDosPlotter(NotebookWriter):
             nbv.new_code_cell("plotter = abilab.ElectronDosPlotter(\nkey_edos=%s,\nedos_kwargs=None)" %
                 (str(key_edos))),
             nbv.new_code_cell("print(plotter)"),
-            nbv.new_code_cell("fig = plotter.combiplot()"),
-            nbv.new_code_cell("fig = plotter.gridplot()"),
+            nbv.new_code_cell("xlims = (None, None)"),
+            nbv.new_code_cell("fig = plotter.combiplot(xlims=xlims)"),
+            nbv.new_code_cell("fig = plotter.gridplot(xlims=xlims)"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
